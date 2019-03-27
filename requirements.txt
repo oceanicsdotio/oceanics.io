@@ -1,0 +1,7 @@
+requests
+redis
+flask_api
+flask
+flask_cors
+gunicorn
+connexion

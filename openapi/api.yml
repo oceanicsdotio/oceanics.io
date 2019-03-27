@@ -1,0 +1,152 @@
+openapi: "3.0.0"
+
+info:
+  title: "Neritics API Specification"
+  version: "0.1"
+  description: |
+
+    The machine learning service implements multivariate time series prediction using recurrent neural networks with
+    long short-term memory. The backend is Keras and TensorFlow.
+
+  contact:
+    name: Oceanicsdotio
+    url: http://www.oceanics.io
+    email: aquaculture@oceanics.io
+
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+
+paths:
+
+  /init:
+
+    get:
+      tags: [Predict]
+      summary: Run simulation for one species
+      description: |
+
+      operationId: goodbuoy_ml.routes.create_keras_lstm
+
+      responses:
+
+        '200':
+          description: Return simulations
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Batch'
+
+  /train/{epochs}:
+
+    get:
+      tags: [Predict]
+      summary: Run simulation for one species
+      description: |
+
+      operationId: goodbuoy_ml.routes.train_keras_lstm
+
+      properties:
+        - $ref: "#/components/parameters/stateful"
+
+      responses:
+
+        '200':
+          description: Return simulations
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Batch'
+
+  /forecast/{species}:
+
+    get:
+      tags: [Predict]
+      summary: Run simulation for one species
+      description: |
+
+      operationId: goodbuoy_ml.routes.predict_keras_lstm
+
+      responses:
+
+        '200':
+          description: Return simulations
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Batch'
+
+components:
+  schemas:
+
+    Error:
+      type: object
+      properties:
+        message:
+            type: string
+
+    Response:
+      type: object
+      required:
+        - time
+        - weight
+      properties:
+        time:
+          type: number
+          format: float
+          minimum: 0.0
+
+        weight:
+          type: number
+          format: float
+          minimum: 0.0
+
+
+    Forcing:
+      type: object
+      properties:
+
+        temperature:
+          description: |
+            Temperature, degrees Celsius, controls vital rates.
+          type: number
+          format: float
+          minimum: 0
+          maximum: 40
+
+        turbidity:
+          description: |
+            Turbidity help determine the amount of food available to shellfish.
+
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+
+        chlorophyll:
+          description: Chlorophyll-a concentration (ug/L) is used as the default food source.
+          type: number
+          format: float
+          minimum: 0
+
+        salinity:
+          description: Salinity, PSU
+          type: number
+          format: float
+          minimum: 0
+          maximum: 40
+
+
+
+  parameters:
+
+    stateful:
+      in: query
+      name: stateful
+      description: |
+        Open socket interactive mode
+      schema:
+        type: boolean
+        default: false
+
