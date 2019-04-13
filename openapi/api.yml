@@ -6,7 +6,7 @@ info:
   description: |
 
     The machine learning service implements multivariate time series prediction using recurrent neural networks with
-    long short-term memory. The backend is Keras and TensorFlow.
+    long short-term memory. The backend is `Keras` and `TensorFlow`.
 
   contact:
     name: Oceanicsdotio
@@ -23,11 +23,12 @@ paths:
   /init:
 
     get:
-      tags: [Predict]
+      tags:
+        - Predict
       summary: Run simulation for one species
       description: |
 
-      operationId: goodbuoy_ml.routes.create_keras_lstm
+      operationId: goodbuoy_ml.create_keras_lstm
 
       responses:
 
@@ -41,11 +42,12 @@ paths:
   /train/{epochs}:
 
     get:
-      tags: [Predict]
+      tags:
+        - Predict
       summary: Run simulation for one species
       description: |
 
-      operationId: goodbuoy_ml.routes.train_keras_lstm
+      operationId: goodbuoy_ml.train_keras_lstm
 
       properties:
         - $ref: "#/components/parameters/stateful"
@@ -62,11 +64,12 @@ paths:
   /forecast/{species}:
 
     get:
-      tags: [Predict]
+      tags:
+        - Predict
       summary: Run simulation for one species
       description: |
 
-      operationId: goodbuoy_ml.routes.predict_keras_lstm
+      operationId: goodbuoy_ml.predict_keras_lstm
 
       responses:
 

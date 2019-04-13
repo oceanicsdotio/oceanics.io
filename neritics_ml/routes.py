@@ -1,4 +1,3 @@
-#!/usr/bin/python
 from pickle import dump, load
 from flask import jsonify, make_response
 from .keras import LSTM
@@ -18,7 +17,7 @@ def create_keras_lstm(stateful: bool = True, cache: str = None):
     if cache is not None:
         network.model.save(cache)
 
-    return make_response(jsonify({'message': 'model created and cached'}), 200)
+    return 200, {'message': 'model created and cached'}
 
 
 def train_keras_lstm(epochs: int, stateful: bool = True):
@@ -37,8 +36,7 @@ def train_keras_lstm(epochs: int, stateful: bool = True):
     fid = open(cache + ".val", "wb+")
     dump(validation, fid)
     network.model.save(cache)
-    return make_response(
-        jsonify({'message': 'model trained and cached'}), 200)
+    return 200, {'message': 'model trained and cached'}
 
 
 def predict_keras_lstm(stateful: bool = True):

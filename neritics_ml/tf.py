@@ -246,19 +246,19 @@ class RNN:
         prediction = network.predict(predictor, feed["predict"])  # make prediction
         return yt, prediction, err
 
-
-conf = {
-    "input": 1,
-    "hidden": 10,
-    "output": 1,
-    "periods": 30,
-    "horizon": 1,
-    "epochs": 5000,
-    "rate": 0.001,
-    "file": "db/tensorflow/tf_lstm_test"
-}
-
-actual, predicted, error = RNN.run(conf, lstm=True)
-
-
-RNN.plot(actual, predicted)
+#
+# conf = {
+#     "input": 1,
+#     "hidden": 10,
+#     "output": 1,
+#     "periods": 30,
+#     "horizon": 1,
+#     "epochs": 5000,
+#     "rate": 0.001,
+#     "file": "db/tensorflow/tf_lstm_test"
+# }
+#
+# actual, predicted, error = RNN.run(conf, lstm=True)
+#
+#
+# RNN.plot(actual, predicted)

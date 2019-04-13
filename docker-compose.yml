@@ -1,0 +1,27 @@
+version: "3"
+
+networks:
+  oceanics:
+    driver: bridge
+
+services:
+
+  reverseproxy:
+    image: nginx
+    ports:
+      - 80:80
+    volumes:
+      - ./config/nginx:/etc/nginx/conf.d:ro
+      - ./openapi:/openapi
+    depends_on:
+      - neuralnet
+    networks:
+      - oceanics
+
+  neuralnet:
+    build: .
+    image: oceanicsdotio/neritics-ml
+    ports:
+      - 5000:5000
+    networks:
+      - oceanics
