@@ -1,0 +1,710 @@
+openapi: "3.0.0"
+
+info:
+  title: "Bathysphere API - Graph"
+  version: "0.1"
+  description: |
+
+    The Bathysphere application provides a web API for controlling a graph database backend. This enables topological
+    hierarchies of data models, in which graph nodes are generic entities. The graph drivers are very generic,
+    and schemas are only enforced by API specification validation. The heavy lifting for big data structures is
+    delegated to optimized databases, while provenance tracking and permissioning is handled in the graph layer.
+
+    The service implements entity models following the
+    [SpatioTemporal Assets Catalog specification (STAC)](https://stacspec.org/),
+    in combination with the Open Geospatial Consortium (OGC) SensorThings API specification.
+
+    There are domain-specific schemas for sensor networks, scientific meshes, and user authentication/permissioning.
+    See [here](https://bitbucket.org/aquaculture/synthetic-ecosystems/src/master/graph-query.md) for
+    more info on graph applications for ocean data.
+
+    The Neo4j `bolt` interface is accessible through `hostname:7687`, and the built-in GUI is `hostname:7474`.
+    This uses the [official container image](https://hub.docker.com/_/neo4j/). Authorization requires the environment
+    variable `NEO4J_AUTH`.
+
+  contact:
+    name: Oceanicsdotio
+    url: http://www.oceanics.io
+    email: aquaculture@oceanics.io
+
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+
+paths:
+
+  /auth:
+
+    post:
+      tags: [Account]
+      operationId: bathysphere_graph.handlers.auth.register
+      summary: Create account
+      description: |
+
+        Register an e-mail address to get access to development API. Accounts are for development and testing purposes
+        only. We won't share your contact information, but we do reserve the right to analyze and profile your use of
+        our infrastructure, as well as monitor unencrypted traffic. Proprietary data should be encrypted by providing
+        a secret with your registration.
+
+        Please contact us if you are interested in a dedicated database instance, or long-term multi-tenancy
+        hosting.
+
+      requestBody:
+        $ref: '#/components/requestBodies/Register'
+
+      responses:
+        '200':
+          $ref: '#/components/responses/TokenResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+
+    get:
+      tags: [Account]
+      operationId: bathysphere_graph.handlers.auth.get_token
+      summary: Get JWT token
+      description: |
+
+        Exchange token or email and password for a Javascript Web Token. This will allow you make API calls and use
+        graphical interfaces for up to 1-60 minutes. If you have previously provided a secret, it will be required
+        here to authenticate a login and encrypt a JWT token.
+
+      parameters:
+        - name: secret
+          in: query
+          schema:
+            $ref: '#/components/schemas/SecretKey'
+
+      responses:
+        '200':
+          $ref: '#/components/responses/TokenResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /:
+
+    get:
+      tags: [Collection]
+      operationId: bathysphere_graph.handlers.entity.get_sets
+      summary: Fetch classes
+      description: |
+
+        Get all entity type in database. Any entity can be linked topologically to any other entity, but generally
+        these are grouped in functional sets by application area.
+
+        * `catalog` implements the SpatioTemporal Asset Catalog specification.
+
+        * `sensing` implements Open Geospatial Consortium SensorThings specification (part 1),
+        and has models relevant to operating and getting data from sensor networks.
+
+        * `tasking` builds off of the SensorThings specification part 2.
+
+      parameters:
+        - name: extension
+          in: query
+          schema:
+            type: string
+            enum: [sensing, mesh, tasking, catalog]
+            default: sensing
+
+      responses:
+        '200':
+          $ref: '#/components/responses/Message'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+
+  /{entity}:
+
+    post:
+      tags: [Entity]
+      operationId: bathysphere_graph.handlers.entity.create
+      summary: Create
+      description: |
+        Create a new entity.
+
+      parameters:
+        - $ref: "#/components/parameters/entityClass"
+
+      requestBody:
+        $ref: '#/components/requestBodies/Entity'
+
+      responses:
+        '200':
+          $ref: '#/components/responses/Entity'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+    put:
+      tags: [Collection]
+      operationId: bathysphere_graph.handlers.entity.update_collection
+      summary: Update collection
+      description: |
+
+        Update the collection. This can include re-labeling the nodes, or applying an index.
+
+      requestBody:
+        $ref: '#/components/requestBodies/CollectionUpdate'
+
+      parameters:
+        - $ref: "#/components/parameters/entityClass"
+
+      responses:
+        '204':
+          description: No content
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+    get:
+      tags: [Collection]
+      operationId: bathysphere_graph.handlers.entity.get_all
+      summary: Fetch by class
+      description: |
+        Get all entities of one type
+
+      parameters:
+        - $ref: "#/components/parameters/entityClass"
+
+      responses:
+        '200':
+          $ref: '#/components/responses/EntityCollection'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /{entity}/{id}:
+
+    get:
+      tags: [Entity]
+      operationId: bathysphere_graph.handlers.entity.get_by_id
+      summary: Fetch by ID
+      description: |
+        Get entity
+
+      parameters:
+        - $ref: "#/components/parameters/entityClass"
+        - $ref: "#/components/parameters/entityId"
+
+      responses:
+        '200':
+          $ref: '#/components/responses/Entity'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags: [Entity]
+      operationId: bathysphere_graph.handlers.entity.update
+      summary: Update
+      description: |
+
+        Update entity
+
+      requestBody:
+        $ref: '#/components/requestBodies/Entity'
+
+      parameters:
+        - $ref: "#/components/parameters/entityClass"
+        - $ref: "#/components/parameters/entityId"
+
+      responses:
+        '200':
+          $ref: '#/components/responses/Entity'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags: [Entity]
+      operationId: bathysphere_graph.handlers.entity.delete
+      summary: Delete entity and children
+      description: |
+        Delete recusively.
+
+      parameters:
+        - $ref: "#/components/parameters/entityClass"
+        - $ref: "#/components/parameters/entityId"
+
+      responses:
+        '204':
+          description: No content
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+
+  parameters:
+
+    entityClass:
+      in: path
+      required: true
+      name: entity
+      schema:
+        type: string
+
+    entityId:
+      in: path
+      required: true
+      name: id
+      schema:
+        type: integer
+
+  requestBodies:
+
+    Register:
+      description: |
+        Request is e-mail and password, plus an optional secret key for encrypting password and data.
+        Note that if you lose the secret key, you will lose access to data.
+
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Register'
+
+    Entity:
+      description: |
+        Entity
+
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Entity'
+
+
+
+    CollectionUpdate:
+      description: |
+        Relabel or index an entity collection
+
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CollectionOptions'
+
+
+  responses:
+
+    EntityCollection:
+      description: |
+        Collection of entities
+
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EntityCollection'
+
+    Entity:
+      description: Entity
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Entity'
+
+    TokenResponse:
+      description: Auth token
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+
+              token:
+                description: JWT Bearer token containing user ID
+                type: string
+                minLength: 127
+
+              duration:
+                type: integer
+                description: JWT expiration interval in seconds
+                default: 600
+                minimum: 30
+                maximum: 3600
+
+    Message:
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Message'
+
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  schemas:
+
+    CollectionOptions:
+      type: object
+      properties:
+
+        label:
+          $ref: '#/components/schemas/EntityLabel'
+
+        indexBy:
+          type: string
+          default: id
+          enum:
+            - id
+            - location
+            - ts
+
+
+    EntityLabel:
+      type: string
+      enum:
+        - Proxy
+        - Buoy
+        - Server
+        - Metadata
+        - File
+        - Raw
+
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+
+    Message:
+      type: object
+      properties:
+        message:
+          type: string
+
+    Index:
+      type: string
+
+    SecretKey:
+      description: |
+        Your secret key is used to encrypt traffic and private data, such as your login credentials. If you do not
+        provide your own key, a default secret will be used. If you do provide a secret key, make sure to save it.
+        It is not possible for us to recover data encrypted with a user secret.
+
+      type: string
+
+    Register:
+      type: object
+      properties:
+
+        email:
+          description: |
+            Registration requires an e-mail that can be used to validate non-profit or educational affiliation.
+          type: string
+
+        password:
+          description: |
+            Password cannot be `password`, but there are no character limits otherwise.
+            A compromised account will only expose your data and publicly available
+            datasets. This is encrypted to prevent possible re-use across other services. Use a good random password.
+          type: string
+          minLength: 10
+          maxLength: 128
+
+        secret:
+          $ref: '#/components/schemas/SecretKey'
+
+    EntityCollection:
+      type: object
+      properties:
+        "@iot.count":
+          type: integer
+          minimum: 1
+          maximum: 100
+
+        value:
+          type: array
+          items:
+            $ref: '#/components/schemas/Entity'
+
+    EntityClass:
+      type: string
+      enum:
+        - Datastreams
+        - Features
+        - Locations
+        - Observations
+        - ObservedProperties
+        - Sensors
+        - Things
+        - Collections
+        - Catalogs
+        - Providers
+
+    Entity:
+      type: object
+      required: [entityClass]
+      properties:
+
+        id:
+          type: integer
+          description: |
+            Unique integer identifier for entity. This usually auto-generated, but is different that the default node
+            IDs within the Neo4j database, since those are not guarenteed to persist.
+
+        name:
+          type: string
+          description: |
+            Human readable entity name for displaying data.
+
+        description:
+          type: string
+          description: |
+            Short but useful explaination of what the entity is.
+
+        entityClass:
+          type: string
+          description: |
+            String to help discriminator.
+
+      discriminator:
+        propertyName: entityClass
+        mapping:
+          Datastream: '#/components/schemas/Datastream'
+          FeatureOfInterest: '#/components/schemas/FeatureOfInterest'
+          Location: '#/components/schemas/Location'
+          HistoricalLocation: '#/components/schemas/HistoricalLocation'
+          Observation: '#/components/schemas/Observation'
+          ObservedProperty: '#/components/schemas/ObservedProperty'
+          Sensor: '#/components/schemas/Sensor'
+          Thing: '#/components/schemas/Thing'
+          Collection: '#/components/schemas/Collection'
+          Catalog: '#/components/schemas/Catalog'
+
+    FeatureOfInterest:
+      allOf:
+        - $ref: '#/components/schemas/Entity'
+        - type: object
+          description: |
+            Features of interest are usually Locations
+
+          properties:
+
+            encodingType:
+              type: string
+
+            feature:
+              type: object
+
+    Thing:
+      allOf:
+        - $ref: '#/components/schemas/Entity'
+        - type: object
+          description: |
+            A thing is an object of the physical or information world that is capable of of being identified
+            and integrated into communication networks.
+          properties:
+            properties:
+              type: object
+
+
+    Location:
+      allOf:
+        - $ref: '#/components/schemas/Entity'
+        - type: object
+          description: |
+            Last known location of a thing. May be a feature of interest, unless remote sensing.
+
+          properties:
+            encodingType:
+              type: string
+              enum: [application/vnd.geo+json]
+              default: application/vnd.geo+json
+
+    HistoricalLocation:
+      allOf:
+        - $ref: '#/components/schemas/Entity'
+        - type: object
+          properties:
+            encodingType:
+              type: string
+              enum: ["application/vnd.geo+json"]
+              default: "application/vnd.geo+json"
+
+            time:
+              type: string
+
+    Sensor:
+
+      allOf:
+        - $ref: '#/components/schemas/Entity'
+        - type: object
+          properties:
+
+            encodingType:
+              type: string
+              enum: [application/pdf, "http://www.opengis.net/doc/IS/SensorML/2.0"]
+              default: "http://www.opengis.net/doc/IS/SensorML/2.0"
+
+            metadata:
+              type: object
+
+
+
+    Datastream:
+      allOf:
+        - $ref: '#/components/schemas/Entity'
+        - type: object
+          properties:
+
+            unitOfMeasurement:
+              type: object
+              properties:
+                name:
+                  type: string
+                symbol:
+                  type: string
+                definition:
+                  type: string
+
+            observationType:
+              type: string
+
+            observedArea:
+              type: object
+              description: |
+                Boundary geometry, GeoJSON polygon
+
+            phenomenonTime:
+              type: array
+              description: |
+                Time interval of the measured process, consisting of two ISO8601 timestamps.
+              items:
+                type: string
+
+            resultTime:
+              type: array
+              description: |
+                Time interval of receiving data, consisting of two ISO8601 timestamps. May be different than the
+                measured process, due to batch uploads, latency, lack of real-time clocks in devices, etc.
+
+              items:
+                type: string
+
+            timescale:
+              type: string
+              description: |
+                Time series observations associated with a datastream can be stored in the TimescaleDB.
+                TimescaleDB is an extension of Postgres+Postgis, and this is SQL table reference to find and
+                retrieve data.
+
+    Observation:
+      allOf:
+        - $ref: '#/components/schemas/Entity'
+        - type: object
+          properties:
+
+            resultTime:
+              type: string
+
+            resultQuality:
+              type: string
+
+            validTime:
+              type: array
+              description: time interval, ISO8601
+              items:
+                type: string
+
+            phenomenonTime:
+              type: string
+
+            result:
+              description: The result of the observation. Usually a number.
+              type: number
+              format: float
+
+
+    ObservedProperty:
+      allOf:
+        - $ref: '#/components/schemas/Entity'
+        - type: object
+          properties:
+            definition:
+              type: string
+
+    Catalog:
+      allOf:
+        - $ref: '#/components/schemas/Entity'
+        - type: object
+          description: |
+            SpatioTemporal Asset Catalog catalog linking object.
+          properties:
+
+            title:
+              type: string
+
+    Collection:
+      allOf:
+        - $ref: '#/components/schemas/Entity'
+        - type: object
+          description: |
+            SpatioTemporal Asset Catalog object-linking collection object.
+          properties:
+
+            extent:
+              $ref: '#/components/schemas/Extent'
+
+            license:
+              type: string
+
+            version:
+              type: string
+
+            keywords:
+              type: array
+              items:
+                type: string
+
+            providers:
+              type: array
+              items:
+                $ref: '#/components/schemas/Provider'
+
+    Extent:
+      type: object
+      properties:
+        spatial:
+          type: array
+          minLength: 4
+          maxLength: 6
+          items:
+            type: number
+            format: float
+
+        temporal:
+          type: string
+          description: ISO format timestamp interval
+
+
+    Provider:
+      allOf:
+        - $ref: '#/components/schemas/Entity'
+        - type: object
+          properties:
+            url:
+              type: string
+              description: URL to organization website
+
+            roles:
+              $ref: '#/components/schemas/ProviderRoles'
+
+    ProviderRoles:
+      type: array
+      items:
+        $ref: '#/components/schemas/ProviderRole'
+
+    ProviderRole:
+      type: string
+      enum:
+        - licensor
+        - producer
+        - processor
+        - host

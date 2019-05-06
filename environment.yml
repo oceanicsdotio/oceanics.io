@@ -1,0 +1,16 @@
+name: bathysphere_graph
+channels:
+  - conda-forge
+dependencies:
+  - python=3.7
+  - pip
+  - neo4j-python-driver
+  - pip:
+    - connexion
+    - flask
+    - gunicorn
+    - flask_cors
+    - pytest
+    - pytest_dependency
+    - itsdangerous
+    - passlib

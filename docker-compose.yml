@@ -1,0 +1,50 @@
+version: "3"
+
+networks:
+  oceanics:
+    driver: bridge
+
+services:
+
+  nginx:
+    image: nginx
+    ports:
+      - 80:80
+    volumes:
+      - ./config/nginx:/etc/nginx/conf.d:ro
+      - ./openapi:/openapi
+    depends_on:
+      - neo4j
+      - bathysphere_graph
+    networks:
+      - oceanics
+
+  neo4j:
+    image: neo4j
+    ports:
+      - 7474:7474 # HTTP
+      - 7473:7473 # HTTPS
+      - 7687:7687 # BOLT
+    environment:
+      - NEO4J_AUTH=neo4j/n0t_passw0rd
+      - NEO4J_dbms_memory_pagecache_size=1G
+      - NEO4J_dbms_memory_heap_maxSize=2G
+    volumes:
+      - ./data/debug:/data/databases
+      - ./logs:/logs
+      - ./data/neo4j-import:/var/lib/neo4j/import
+    networks:
+      - oceanics
+
+  bathysphere_graph:
+    build: .
+    image: oceanicsdotio/bathysphere_graph
+    ports:
+      - 5000:5000
+    networks:
+      - oceanics
+    volumes:
+      - ./src:/src
+      - ./logs:/logs
+    depends_on:
+      - neo4j
