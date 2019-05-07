@@ -4,7 +4,8 @@ from .. import catalog
 from bathysphere_graph.graph import Organizations
 from bathysphere_graph.sensing import *
 from bathysphere_graph.catalog import *
-from bathysphere_graph.mesh import Mesh
+from bathysphere_graph.mesh import Mesh, Cells, Nodes
+from bathysphere_graph.tasking import TaskingCapabilities, Tasks, Actuators
 from .utils import graph_context
 from ..secrets import SERVICE, PORT
 
@@ -19,9 +20,9 @@ def get_sets(extension: str):
     elif extension == "catalog":
         models = catalog.models
     elif extension == "mesh":
-        return 501
+        models = (Mesh, Cells, Nodes)
     elif extension == "tasking":
-        return 501
+        models = (TaskingCapabilities, Tasks, Actuators)
     else:
         return 405
 
@@ -119,7 +120,7 @@ def create(entity, body, offset=0):
     obj = eval(entity)(**{
         **{
             "identity": request.graph.auto_id(entity, offset=offset),
-            "graph": request.graph
+            "graph": request.graph,
         },
         **body
     })

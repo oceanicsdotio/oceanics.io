@@ -428,7 +428,7 @@ components:
       type: string
       enum:
         - Datastreams
-        - Features
+        - FeaturesOfInterest
         - Locations
         - Observations
         - ObservedProperties
@@ -437,6 +437,12 @@ components:
         - Collections
         - Catalogs
         - Providers
+        - Nodes
+        - Cells
+        - Mesh
+        - Actuators
+        - TaskingCapabilities
+        - Tasks
 
     Entity:
       type: object
@@ -545,7 +551,6 @@ components:
 
             metadata:
               type: object
-
 
 
     Datastream:

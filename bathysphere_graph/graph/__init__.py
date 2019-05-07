@@ -5,6 +5,7 @@ from . import index
 from .user import User, Organizations
 from ..sensing import *
 from ..secrets import ORGANIZATION, API_KEY
+from . import cypher
 
 
 class Graph:
@@ -12,6 +13,22 @@ class Graph:
     def __init__(self, uri, auth, name="root"):
         self.db = GraphDatabase.driver(uri=uri, auth=auth)
         self.name = name
+
+    def keeper(self, name, description, api_key):
+
+        cls = Organizations.__name__
+        if not self.check(cls=cls, identity=name):
+            org_id = self.auto_id(cls)
+            self.create(
+                Organizations(
+                    identity=org_id,
+                    description=description,
+                    url="", #"https://www.oceanics.io",
+                    name=name,
+                    apiKey=api_key
+                ),
+                parent={"cls": "Root", "id": 0}
+            )
 
     @staticmethod
     def find(auth: tuple, port: int = 7687, hosts: tuple = ("neo4j", "localhost")):
@@ -21,42 +38,22 @@ class Graph:
         graph = None
         for each in hosts:
             try:
-                uri = "bolt://" + each + ":" + str(port)
-                graph = Graph(uri, auth=auth)
+                graph = Graph("bolt://" + each + ":" + str(port), auth=auth)
 
             except:
                 continue
+
             else:
                 break
 
         if type(graph) is Graph:
 
             root = {"cls": "Root", "identity": 0}
-
             if not graph.check(**root):
-                graph.proto({**root, **{"properties": None}})
+                graph.write(cypher.create, {**root, **{"properties": {"url": "localhost:5000"}}})
 
-            if not graph.check(cls="Organizations", identity=ORGANIZATION):
-                _ = Organizations(
-                    identity=graph.auto_id("Organizations"),
-                    description="Oceanicsdotio admin and development",
-                    url="https://www.oceanics.io",
-                    name=ORGANIZATION,
-                    graph=graph,
-                    parent={"cls": "Root", "id": 0},
-                    apiKey=API_KEY
-                )
-
-            if not graph.check(cls="Organizations", identity="Public"):
-                _ = Organizations(
-                    identity=graph.auto_id("Organizations"),
-                    description="Public test account",
-                    url="https://www.oceanics.io",
-                    name="Public",
-                    graph=graph,
-                    parent={"cls": "Root", "id": 0},
-                    apiKey=""
-                )
+            graph.keeper(name="Public", description="Public test account", api_key="")
+            graph.keeper(name=ORGANIZATION, description="Admin", api_key=API_KEY)
 
         return graph
 
@@ -125,7 +122,7 @@ class Graph:
 
         try:
             kwargs = {"cls": cls, "identity": identity}
-            return self.read(Entity._exists, kwargs)
+            return self.read(cypher.exists, kwargs)
 
         except ConnectionError or KeyError:
             print(Exception)
@@ -143,7 +140,7 @@ class Graph:
 
         try:
             kwargs = {"cls": cls, "identity": identity}
-            return self.read(Entity._identity, kwargs)[0]
+            return self.read(cypher.identify, kwargs)[0]
 
         except ConnectionError or KeyError:
             print(Exception)
@@ -163,7 +160,7 @@ class Graph:
         :return:
         """
         kwargs = {"cls": cls, "new": new, "identity": identity}
-        return self.write(Entity._label, kwargs)
+        return self.write(cypher.add_label, kwargs)
 
     def count(self, cls):
         """
@@ -173,25 +170,20 @@ class Graph:
         :return: integer count or None if bad label
         """
         kwargs = {"cls": cls}
-        return self.read(Entity._count, kwargs)
+        return self.read(cypher.count, kwargs)
 
     def render(self, cls: str, identity=None):
 
-        return tuple(Entity._build(Organizations, each[0]._properties)
+        return tuple(Entity._from_record(Organizations, each[0]._properties)
                      for each in self.load(cls, identity=identity).values())
 
-    def load(self, cls, identity=None):
+    def load(self, cls: str, identity: int = None) -> list or None:
         """
         Load database node as in-memory object.
-
-        :param cls: entity class name
-        :param identity: integer
-
-        :return: None or list of responses
         """
-        return self.read(Entity._load, {"cls": cls, "identity": identity})
+        return self.read(cypher.load_records, {"cls": cls, "identity": identity})
 
-    def link(self, root, children, relationship="LINKED"):
+    def link(self, root: dict, children: dict or list, relationship: str = "LINKED"):
         """
         Link parent to children.
 
@@ -207,14 +199,12 @@ class Graph:
         kwargs = [{"parent": root, "child": each, "label": relationship} for each in children]
         self.write(child.link, kwargs)
 
-    def index(self, cls, by):
+    def index(self, cls: str, by: str) -> None:
         """
         Create an index on a particular property.
 
         :param cls: entity class name
         :param by: property name
-
-        :return: None
         """
         self.write(index.add, {"cls": cls, "by": by})
 
@@ -232,26 +222,24 @@ class Graph:
             if input() != "y":
                 return
 
-        self.write(Entity._purge, cls)
+        self.write(cypher.purge, cls)
 
-    def _check_and_load(self, cls, service, identity=None):
+    def check_and_load(self, cls, service, identity=None):
         """
 
         :param cls:
         :param service:
         :param identity:
-        :return:
         """
         nn = self.count(cls)  # number of entities of class
         entities = None
-
         if nn > 0:
-            entities = self._loading_queue(cls, identity, service)
+            entities = self.loading_queue(cls, identity, service)
             nn = len(entities)
 
         return nn, entities
 
-    def _loading_queue(self, cls, identity, service):
+    def loading_queue(self, cls, identity, service):
         """
         :param cls: entity class
         :param identity: integer
@@ -262,29 +250,28 @@ class Graph:
 
         for item in iterator:
 
-            e = Entity._load(eval(cls), item[0]._properties)  #
+            e = Entity._from_record(eval(cls), item[0]._properties)
             links = child._get_children(cls, e.id)  # nav links to children
-            result += [e._serialize(links, service)]
+            result += [e._serialize(links, service)]  # NOQA
 
         return result
 
-    def children(self, cls, service, identity, b=None):
+    def children(self, cls, service, identity, of_cls=None) -> (int, tuple):
         """
         Get all children of identified node.
 
         :param cls: entity class for children
         :param service: service end point, full path for self-links
         :param identity: parent, identifier for entering graph
-        :param b: UNUSED
-
-        :return: count, entity objects
+        :param of_cls: UNUSED
         """
-        entities = []
-        for linked in child.find(cls, identity, of_cls=b, kwargs={""}):
-            nn, ee = self._check_and_load(linked, service, identity=None)
-            entities += ee
 
-        return len(entities), entities
+        collect = []
+        for linked in child.find(cls, identity, of_cls=of_cls, kwargs={""}):
+            nn, ee = self._check_and_load(linked, service, identity=None)
+            collect += ee
+
+        return len(collect), tuple(collect)
 
     def many(self, cls, identifiers, properties):
         """
@@ -294,56 +281,31 @@ class Graph:
         :param identifiers: list of identifiers
         :param properties: list of dictionaries of properties
         """
-        kwargs = [{"cls": cls, "identity": ii, "properties": pp} for ii, pp in zip(identifiers, properties)]
-        self.write(Entity._create, kwargs)
+        self.write(
+            cypher.create,
+            [{"cls": cls, "identity": ii, "properties": pp} for ii, pp in zip(identifiers, properties)]
+        )
 
-    def one(self, entity, identity=None):
-        """
-        Parse entity object into Neo4j.
-
-        :param entity: object instance
-        :param identity: integer id override
-
-        :return: JSON like itemized entity
-        """
-
-        cls = entity.__class__.__name__
-        ii = identity if identity is not None else entity.id
-        kwargs = {"cls": cls, "identity": ii, "properties": entity._properties()}
-        self.write(Entity._create, kwargs)
-        return Entity._itemize(cls, entity.id)
-
-    def proto(self, kwargs):
-        """
-        Create a proto-object
-        """
-        self.write(Entity._create, kwargs)
-        return Entity._itemize(kwargs["cls"], kwargs["identity"])
-
-    def create(self, e, global_id_classes=None, count=0, noid=False, parent=None):
+    def create(self, e: object, parent: object or dict =None):
         """
         Parse entity object or list of them into Neo4j db nodes.
 
         :param e: entity object of known format, or list of entities
-        :param count: number of existing observed properties
-        :param noid: assign None for integer ID
         :param parent: node to link to
 
         :return: identifiers: list of identifiers
         """
+        json = {
+            "cls": e.__class__.__name__,
+            "identity": e.id,
+            "properties": e._properties()
+        }
 
-        if e.__class__ != list:  # convert to list if single item
-            e = [e]
-
-        if global_id_classes is None:
-            global_id_classes = ()
-
-        result = [
-            self.one(each, e.id if type(e) in global_id_classes else each._assign_id(offset=count, noid=noid))
-            for each in (e if type(e) in (list, tuple) else (e,))
-        ]
+        self.write(cypher.create, json)
+        item = e._to_item()
 
         if parent is not None:
-            self.link(parent._as_item() if type(parent) != dict else parent, result)
+            parent_item = parent._to_item() if type(parent) != dict else parent
+            self.link(parent_item, item)
 
-        return result if len(result) > 1 else result[0]
+        return item

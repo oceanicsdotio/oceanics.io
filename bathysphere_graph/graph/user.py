@@ -1,10 +1,10 @@
 from bathysphere_graph.graph import Entity
 from ..secrets import ACCOUNT_OFFSET
-
+from secrets import token_urlsafe
 
 class User(Entity):
 
-    def __init__(self, name, credential, identity=0, graph=None, parent=None):
+    def __init__(self, name, credential, identity, graph=None, parent=None):
         """
         Create a user entity.
 
@@ -35,7 +35,7 @@ class Organizations(Entity):
         self.name = name
         self.description = description
         self.url = url
-        self.apiKey = apiKey
+        self.apiKey = token_urlsafe(64) if apiKey is None else apiKey
 
         if graph is not None:
             graph.create(self, parent=parent)

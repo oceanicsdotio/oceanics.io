@@ -20,7 +20,7 @@ def graph():
 
     yield graph
 
-    graph.purge(auto=True)
+    # graph.purge(auto=True)
 
 
 @pytest.fixture(scope="session")

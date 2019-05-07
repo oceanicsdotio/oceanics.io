@@ -2,7 +2,7 @@ from connexion import request
 from passlib.apps import custom_app_context
 from ..graph import User, Organizations
 from .utils import authenticate, token, graph_context
-from ..secrets import SECRET_KEY, SERVICE_EMAIL, EMAIL_AUTH, EMAIL_PORT, EMAIL_SERVER
+from ..secrets import SECRET_KEY, SERVICE_EMAIL, EMAIL_AUTH, EMAIL_PORT, EMAIL_SERVER, ACCOUNT_OFFSET
 
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -39,6 +39,7 @@ def register(body):
         return {'message': "login"}, 405
 
     user = User(
+        identity=request.graph.auto_id("User", ACCOUNT_OFFSET),
         name=username,
         graph=request.graph,
         parent={"cls": Organizations.__name__, "id": parent_id},

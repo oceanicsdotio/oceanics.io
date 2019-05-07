@@ -2,10 +2,9 @@ import pytest
 from bathysphere_graph import sensing
 from bathysphere_graph.graph import Entity
 from .utils import validate_created
+from bathysphere_graph.graph import cypher
 
 TEST_LOCATION = "Upper Damariscotta Estuary"
-
-
 
 
 class TestEntityGraphMethodsCallAPI:
@@ -28,7 +27,7 @@ class TestEntityGraphMethodsCallAPI:
                 "name": TEST_LOCATION,
                 "entityClass": cls,
                 "description": "API call test",
-                "location": [-45.0, 36.0, -5.0]
+                "coordinates": [-45.0, 36.0, -5.0]
             }
         )
         obj_id = validate_created(response, graph, cls)
@@ -142,12 +141,14 @@ class TestEntityGraphMethodsLowLevel:
         cls = sensing.Locations.__name__
         assert graph.check(cls, TEST_LOCATION)
 
-        kwargs = {"cls": cls, "identity": None}
-        result = graph.write(Entity._load, kwargs)
+        result = graph.write(cypher.load_records, {
+            "cls": cls,
+            "identity": None
+        })
 
         for each in result.values():
             p = each[0]._properties
-            e = Entity._build(sensing.Locations, p)
+            e = Entity._from_record(sensing.Locations, p)
             assert e.__class__ == sensing.Locations
 
         # returns result if result is None else result.values()

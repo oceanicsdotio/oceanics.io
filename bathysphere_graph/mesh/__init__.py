@@ -1,8 +1,11 @@
-from numpy import cross, hstack,  zeros, where, intersect1d, roll
+from numpy import cross, hstack, zeros, where, intersect1d, roll
 from numpy import arctan2,  zeros, intersect1d
 from itertools import repeat
 from pickle import dump
 from ..sensing import FeaturesOfInterest
+from ..graph import Entity
+from .cells import Cells
+from .nodes import Nodes
 
 
 class Mesh(FeaturesOfInterest):

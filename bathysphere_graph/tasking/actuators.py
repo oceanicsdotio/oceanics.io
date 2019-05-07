@@ -3,7 +3,8 @@ from ..sensing.sensors import Device
 
 class Actuators(Device):
 
-    def __init__(self, identity, name=None, description=None, encodingType=None, metadata=None, verb=False):
+    def __init__(self, identity, name=None, description=None, encodingType=None, metadata=None, verb=False, graph=None,
+                 parent=None):
         """
         Abstract class encapsulating communications with a single relay
 
@@ -18,3 +19,6 @@ class Actuators(Device):
         """
         Device.__init__(self, identity, name, description, encodingType, metadata, verb)
         self._notify("created")
+
+        if graph is not None:
+            graph.create(self, parent=parent)

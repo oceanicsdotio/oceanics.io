@@ -23,9 +23,9 @@ class TestUserAuth:
                 "apiKey": API_KEY
             }
         )
-        assert response.status_code == 200
-
         data = response.get_json()
+        assert response.status_code == 200, data
+
         token = data.get("token")
         duration = data.get("duration")
         assert token is not None and len(token) >= TOKEN_MIN_SIZE
