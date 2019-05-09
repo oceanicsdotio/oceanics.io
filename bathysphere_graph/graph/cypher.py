@@ -96,7 +96,7 @@ def count(tx, cls, symbol="n"):
     """
     Count nodes of class cls
     """
-    command = " ".join([match(cls, None, symbol), 'RETURN', "count(" + symbol + ")"])
+    command = " ".join([match_node(cls, None, symbol), 'RETURN', "count(" + symbol + ")"])
     return tx.run(command).single()[0]
 
 
@@ -105,7 +105,7 @@ def add_label(tx, cls, new, identity=None):
     Add a new label to all nodes of certain type, returns message
     """
 
-    command = " ".join([match(cls, identity=identity), "SET", "n:" + new])
+    command = " ".join([match_node(cls, identity=identity), "SET", "n:" + new])
     kwargs = None if identity is None else {"id": identity}
     return tx.run(command, kwargs)
 
@@ -160,4 +160,101 @@ def find(cls, identity, prop=None, symbol="n"):
     Format match query that returns entity, optionally filtered for a property.
     """
     result = symbol if prop is None else ".".join([symbol, prop])
-    return " ".join([match(cls, identity, symbol), 'RETURN', result])
+    return " ".join([match_node(cls, identity, symbol), 'RETURN', result])
+
+
+def fmt_link(parent_cls: str, child_cls: str = None, label: str = None, directional: bool = False):
+    a = "(a:" + parent_cls + "{id: $id})"
+    b = "(b)" if child_cls is None else "(b: " + child_cls + ")"
+    return (("--" if label is None else "-[:label]-") + (">" if directional else "")).join([a, b])
+
+
+def match_node(cls, result: str = None, child: str = None, label: str = None):
+    """
+    Match query formatter.
+
+    Kwargs:
+    - id: node id
+    """
+    query = " ".join(["MATCH", fmt_link(parent_cls=cls, child_cls=child, label=label)])
+    return query if result is None else " ".join([query, "RETURN", result])
+
+
+def relationships(tx, cls: str, kwargs: dict):
+    """
+    Match and return the label set for connected entities
+
+    :param tx: DB transmit
+    :param cls: entity class
+    :param kwargs: contains ID
+
+    :return: List of records
+    """
+    return tx.run(
+        match_node(cls, result="labels(b)", label=kwargs.get("label", None)),
+        **kwargs
+    ).values()[0]
+
+
+def child_types(tx, cls: str, kwargs: dict):
+    """
+    Match and return the label set for connected entities.
+    """
+    return set(item[0] for
+               item in relationships(tx, cls, kwargs))
+
+
+def get_linked_records(tx, cls: str, kwargs: dict, of_cls: str):
+    """
+
+    :param tx: DB transmit
+    :param cls: entity class
+    :param kwargs: contains ID
+    :param of_cls: child entity class
+
+    :return: List of records
+    """
+    return tx.run(
+        match_node(cls, result="labels(b)", child=of_cls),
+        **kwargs
+    ).values()
+
+
+def add_link(tx, parent: dict, child: dict, label: str):
+    """
+    Create topological relationships
+
+    :param tx:
+    :param parent:
+    :param child:
+    :param label:
+    :return:
+
+    """
+    tx.run("MATCH (p:" + parent["cls"] + " {id: $p}) " +
+           "MATCH (c:" + child["cls"] + " {id: $c}) " +
+           "MERGE (p)-[:" + label + "]->(c) ", p=parent["id"], c=child["id"])
+
+
+def fmt_index(method, cls, by):
+    """
+    Generate formatted query.
+    """
+    index = cls + "(" + by + ")"
+    return " ".join([method, "INDEX", "ON", ":", index])
+
+
+def add_index(tx, cls, by):
+    """
+    Create index on specified node type by property.
+    """
+    command = fmt_index("CREATE", cls, by)
+    tx.run(command)
+
+
+def drop_index(tx, cls, by):
+    """
+    Drop index on specified node type by property.
+    """
+    command = fmt_index("DROP", cls, by)
+    tx.run(command)

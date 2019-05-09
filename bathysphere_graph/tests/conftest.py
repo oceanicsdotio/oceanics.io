@@ -16,11 +16,10 @@ def client():
 @pytest.fixture(scope="module")
 def graph():
     graph = Graph.find(auth=NEO4J_AUTH)
-    graph.purge(auto=True)
 
     yield graph
 
-    # graph.purge(auto=True)
+    graph.purge(auto=True)
 
 
 @pytest.fixture(scope="session")

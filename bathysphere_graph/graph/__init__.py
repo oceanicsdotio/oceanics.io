@@ -2,7 +2,7 @@ from neo4j.v1 import GraphDatabase
 from .entity import Entity
 from . import child
 from . import index
-from .user import User, Organizations
+from .accounts import User, Organizations
 from ..sensing import *
 from ..secrets import ORGANIZATION, API_KEY
 from . import cypher
@@ -197,7 +197,7 @@ class Graph:
             children = [children]
 
         kwargs = [{"parent": root, "child": each, "label": relationship} for each in children]
-        self.write(child.link, kwargs)
+        self.write(child.add_link, kwargs)
 
     def index(self, cls: str, by: str) -> None:
         """
@@ -206,7 +206,7 @@ class Graph:
         :param cls: entity class name
         :param by: property name
         """
-        self.write(index.add, {"cls": cls, "by": by})
+        self.write(index.add_index, {"cls": cls, "by": by})
 
     def purge(self, cls=None, auto=False):
         """
@@ -267,7 +267,7 @@ class Graph:
         """
 
         collect = []
-        for linked in child.find(cls, identity, of_cls=of_cls, kwargs={""}):
+        for linked in child.get_records(cls, identity, of_cls=of_cls, kwargs={""}):
             nn, ee = self._check_and_load(linked, service, identity=None)
             collect += ee
 

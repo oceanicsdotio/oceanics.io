@@ -3,7 +3,7 @@ from itsdangerous import TimedJSONWebSignatureSerializer as Serializer, BadSigna
 from passlib.apps import custom_app_context
 from ..graph import Graph
 from ..secrets import SECRET_KEY, NEO4J_AUTH, TOKEN_DURATION
-from bathysphere_graph.graph.user import User, Organizations
+from bathysphere_graph.graph.accounts import User, Organizations
 from bathysphere_graph.graph.entity import Entity
 
 

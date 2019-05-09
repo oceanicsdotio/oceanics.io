@@ -2,6 +2,7 @@ from bathysphere_graph.graph import Entity
 from ..secrets import ACCOUNT_OFFSET
 from secrets import token_urlsafe
 
+
 class User(Entity):
 
     def __init__(self, name, credential, identity, graph=None, parent=None):
