@@ -37,10 +37,11 @@ def point(coordinates):
 
     return "location: point({" + values + "})"
 
+
 def cypher_object(properties: dict):
 
     blanks = (None, "None")
-    return list(key + ':"' + str(value) + '"' for key, value in properties.items() if value not in (None, "None"))
+    return list(key + ':"' + str(value) + '"' for key, value in properties.items() if value not in blanks)
 
 
 def load_records(tx, cls, identity=None):
@@ -53,8 +54,10 @@ def load_records(tx, cls, identity=None):
     :return:
     """
 
-    command = find(cls, identity)
-    return tx.run(command, id=identity)
+    return tx.run(
+        find(cls, identity),
+        id=identity
+    )
 
 
 def identify(tx, cls, identity):
@@ -105,7 +108,7 @@ def add_label(tx, cls, new, identity=None):
     Add a new label to all nodes of certain type, returns message
     """
 
-    command = " ".join([match_node(cls, identity=identity), "SET", "n:" + new])
+    command = " ".join([match(cls, identity=identity), "SET", "n:" + new])
     kwargs = None if identity is None else {"id": identity}
     return tx.run(command, kwargs)
 
@@ -122,30 +125,14 @@ def purge(tx, cls=None):
     tx.run(command)
 
 
-def insert_identity(identity):
-    """
-    Format node property sub-query.
-    """
-
-    if identity is None:
-        return ""
-
-    else:
-        if identity.__class__ == int:
-            p = "id"
-        elif identity.__class__ == str:
-            p = "name"
-        else:
-            return ""
-
-        return "".join(["{", p, ":", "$id", "}"])
-
-
 def node_pattern(cls, identity, symbol):
     """
     Format node pattern sub-query.
+
+    (n:ClassName
+
     """
-    return "".join(["(", symbol, ":", cls, insert_identity(identity), ")"])
+    return "(" + symbol + ":" + cls + "{" + "id" if type(identity) is int else "name" + ":$id})"
 
 
 def match(cls, identity, symbol="n"):
@@ -160,13 +147,13 @@ def find(cls, identity, prop=None, symbol="n"):
     Format match query that returns entity, optionally filtered for a property.
     """
     result = symbol if prop is None else ".".join([symbol, prop])
-    return " ".join([match_node(cls, identity, symbol), 'RETURN', result])
+    return " ".join([match(cls, identity, symbol), 'RETURN', result])
 
 
-def fmt_link(parent_cls: str, child_cls: str = None, label: str = None, directional: bool = False):
-    a = "(a:" + parent_cls + "{id: $id})"
-    b = "(b)" if child_cls is None else "(b: " + child_cls + ")"
-    return (("--" if label is None else "-[:label]-") + (">" if directional else "")).join([a, b])
+def fmt_new_link(parent_cls: str, child_cls: str = None, label: str = None, directional: bool = False):
+
+    relation = ("--" if label is None else "-[:label]-") + (">" if directional else "")
+    return "(a:" + parent_cls + "{id: $id})" + relation + "(b)" if child_cls is None else "(b: " + child_cls + ")"
 
 
 def match_node(cls, result: str = None, child: str = None, label: str = None):
