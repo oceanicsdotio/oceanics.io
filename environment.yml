@@ -1,4 +1,4 @@
-name: filter
+name: tensorflow
 channels:
   - conda-forge
 dependencies:

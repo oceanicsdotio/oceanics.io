@@ -13,12 +13,12 @@ services:
     volumes:
       - ./config/nginx:/etc/nginx/conf.d:ro
       - ./openapi:/openapi
-    depends_on:
-      - neuralnet
+#    depends_on:
+#      - neritics-ml
     networks:
       - oceanics
 
-  neuralnet:
+  neritics-ml:
     build: .
     image: oceanicsdotio/neritics-ml
     ports:

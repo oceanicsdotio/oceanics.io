@@ -1,6 +1,5 @@
-from numpy import random, array, ravel
+from numpy import random, array
 from pandas import date_range, Series
-from matplotlib import pyplot as plt
 import tensorflow as tf
 from tensorflow import reduce_sum, square, placeholder, Session
 
@@ -44,32 +43,7 @@ class RNN:
         """
         rng = date_range(start="2018", periods=n, freq="D")
         data = Series(random.normal(0, 0.5, size=len(rng)), rng).cumsum()
-        if show:
-            data.plot(title="Time series")
-            plt.show()
         return array(data)
-
-    @staticmethod
-    def plot(test, predict):
-        """
-        Plot real versus predicted values
-
-        :param test: real
-        :param predict: estimate from model
-        :return:
-        """
-
-        plt.title("Forecast", fontsize=12)
-
-        a = Series(ravel(test))
-        b = Series(ravel(predict))
-
-        plt.plot(a, "k", label="Actual")
-        plt.plot(b, "r", label="Forecast")
-
-        plt.legend(loc="best")
-        plt.xlabel("Timestep")
-        plt.show()
 
     def test(self, data):
         """
