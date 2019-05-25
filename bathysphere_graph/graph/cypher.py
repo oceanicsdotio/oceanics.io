@@ -163,7 +163,7 @@ def match_node(cls, result: str = None, child: str = None, label: str = None):
     Kwargs:
     - id: node id
     """
-    query = " ".join(["MATCH", fmt_link(parent_cls=cls, child_cls=child, label=label)])
+    query = " ".join(["MATCH", fmt_new_link(parent_cls=cls, child_cls=child, label=label)])
     return query if result is None else " ".join([query, "RETURN", result])
 
 

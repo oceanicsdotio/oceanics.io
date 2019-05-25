@@ -1,26 +1,20 @@
 openapi: "3.0.0"
 
 info:
-  title: "Bathysphere API - Graph"
+  title: "Bathysphere - Graph API"
   version: "0.1"
   description: |
 
-    The Bathysphere application provides a web API for controlling a graph database backend. This enables topological
-    hierarchies of data models, in which graph nodes are generic entities. The graph drivers are very generic,
-    and schemas are only enforced by API specification validation. The heavy lifting for big data structures is
-    delegated to optimized databases, while provenance tracking and permissioning is handled in the graph layer.
+    The Graph API extension provides a web service for controlling the graph database backend. This enables topology for
+    data models, in which graph nodes are generic entities. Schemas are only enforced by API specification validation.
+    Heavy lifting for big data structures is delegated to optimized databases, while provenance tracking and
+    permissions are handled in the graph layer.
 
-    The service implements entity models following the
-    [SpatioTemporal Assets Catalog specification (STAC)](https://stacspec.org/),
-    in combination with the Open Geospatial Consortium (OGC) SensorThings API specification.
+    The service implements combines [SpatioTemporal Assets Catalog](https://stacspec.org/) (STAC)
+    and Open Geospatial Consortium (OGC) SensorThings API specifications to provide domain-specific topologies
+    for sensor networks, scientific meshes, control systems, and user authentication/permissioning.
 
-    There are domain-specific schemas for sensor networks, scientific meshes, and user authentication/permissioning.
-    See [here](https://bitbucket.org/aquaculture/synthetic-ecosystems/src/master/graph-query.md) for
-    more info on graph applications for ocean data.
-
-    The Neo4j `bolt` interface is accessible through `hostname:7687`, and the built-in GUI is `hostname:7474`.
-    This uses the [official container image](https://hub.docker.com/_/neo4j/). Authorization requires the environment
-    variable `NEO4J_AUTH`.
+    See the [documentation]() for more information on getting started.
 
   contact:
     name: Oceanicsdotio
@@ -99,6 +93,8 @@ paths:
         and has models relevant to operating and getting data from sensor networks.
 
         * `tasking` builds off of the SensorThings specification part 2.
+
+        * `mesh` implements rules for building versioned structures for numerical experiments.
 
       parameters:
         - name: extension
