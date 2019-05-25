@@ -91,7 +91,7 @@ session = driver.session()
 
 ## Calling the API
 
-See the [OpenAPI specification](localhost:80) for complete details on the supported schemas and methods. In general, the format for entity-based requests made to port `5000` is shown in the table below. 
+See the embedded [OpenAPI specification](http://localhost:80) for complete details on the supported schemas and methods. In general, the format for entity-based requests made to port `5000` is shown in the table below. 
 
 | Route | Description | Arguments | Format |
 | --- | --- | --- | --- |
