@@ -12,7 +12,7 @@ The system is relatively dumb, with complex logic delegated to sidecar and front
 
 
 
-See the embedded [OpenAPI specification](http://localhost:80){target="_blank"} for complete details on the supported schemas and methods. In general, the format for entity-based requests is: 
+See the embedded [OpenAPI specification](http://localhost:80) for complete details on the supported schemas and methods. In general, the format for entity-based requests is: 
 
 | Route                       | Description         | Arguments            | Format |
 | --------------------------- | ------------------- | -------------------- | ------ |
