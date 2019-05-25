@@ -7,12 +7,25 @@ The representation of complex relationships between heterogenous data is simplif
 The system is relatively dumb, with complex logic delegated to sidecar and frontend services. This REST API provides backend functionality supporting:
 
 - Secure organizational accounts
-
 - OGC SensorThings API coverage
-
 - SpatioTemporal Assets Catalog coverage
 
-  
+
+
+See the embedded [OpenAPI specification](http://localhost:80){target="_blank"} for complete details on the supported schemas and methods. In general, the format for entity-based requests is: 
+
+| Route                       | Description         | Arguments            | Format |
+| --------------------------- | ------------------- | -------------------- | ------ |
+| `/`                         | All sets            | None                 | JSON   |
+| `/name`                     | Set                 | name                 | JSON   |
+| `/name(id)`                 | Instance            | name, id             | JSON   |
+| `/name(id)/key`             | Property            | name, id, key        | JSON   |
+| `/name(id)/key/$value`      | Value               | name, id, key        | JSON   |
+| `/name(id)/other`           | Neighbors           | name, id, other      | JSON   |
+| `/name(id)/other/$ref`      | Link to other nodes | name, id, other      | JSON   |
+| `/name(id)/other(id2)/$ref` | Link                | name, id, other, id2 | JSON   |
+
+
 
 ## Getting Started
 
@@ -86,23 +99,6 @@ from neo4j.v1 import GraphDatabase
 driver = GraphDatabase.driver("bolt://localhost:7687", auth=("neo4j", "neo4j"))
 session = driver.session()
 ```
-
-
-
-## Calling the API
-
-See the embedded [OpenAPI specification](http://localhost:80) for complete details on the supported schemas and methods. In general, the format for entity-based requests made to port `5000` is shown in the table below. 
-
-| Route | Description | Arguments | Format |
-| --- | --- | --- | --- |
-| `/` | All sets | None | JSON |
-| `/name` | Set | name | JSON |
-| `/name(id)` | Instance | name, id | JSON |
-| `/name(id)/key` | Property | name, id, key | JSON |
-| `/name(id)/key/$value` | Value | name, id, key | JSON |
-| `/name(id)/other` | Neighbors | name, id, other | JSON |
-| `/name(id)/other/$ref` | Link to other nodes | name, id, other | JSON |
-| `/name(id)/other(id2)/$ref` | Link | name, id, other, id2 | JSON |
 
 
 
