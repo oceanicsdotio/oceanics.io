@@ -14,7 +14,7 @@ info:
     and Open Geospatial Consortium (OGC) SensorThings API specifications to provide domain-specific topologies
     for sensor networks, scientific meshes, control systems, and user authentication/permissioning.
 
-    See the [documentation](https://bitbucket.org/aquaculture/bathysphere-graph/README.md) for more information on getting started.
+    See the [documentation](https://bitbucket.org/aquaculture/bathysphere-graph/src/master/README.md) for more information on getting started.
 
   contact:
     name: Oceanicsdotio
