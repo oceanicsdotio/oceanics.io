@@ -1,4 +1,4 @@
-from bathysphere_graph.graph import Entity
+from bathysphere_graph.drivers import Entity
 
 
 class Datastreams(Entity):
@@ -9,16 +9,12 @@ class Datastreams(Entity):
     phenomenonTime = None  # time interval, ISO8601
     resultTime = None  # result times interval, ISO8601
 
-    def __init__(self, identity=None, name=None, description=None, unitOfMeasurement=None, graph=None, parent=None,
-                 sql=None):
+    def __init__(self, identity=None, name=None, description=None, unitOfMeasurement=None, sql=None):
 
         Entity.__init__(self, identity, annotated=True)
         self.name = name
         self.description = description
         self.unitOfMeasurement = unitOfMeasurement  # JSON
-
-        if graph is not None:
-            graph.create(self, parent=parent)
 
         if sql is not None:
             self.timescale = sql

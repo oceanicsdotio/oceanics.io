@@ -53,4 +53,4 @@ class STACCatalogDriver:
     @staticmethod
     def _stac_geometry():
         """GEOJSON payload"""
-        return "" # GEOJSON EPS4326
+        return ""  # GEOJSON EPS4326

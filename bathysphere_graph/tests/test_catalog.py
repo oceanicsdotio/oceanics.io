@@ -1,51 +1,54 @@
 import pytest
-from bathysphere_graph.graph import Organizations
+from bathysphere_graph.drivers import Ingress, count, connect
 from bathysphere_graph.catalog import Collections, Catalogs
-from .utils import validate_created
+from ..secrets import NEO4J_AUTH
 
 
-class TestCatalogBackend:
+class TestCatalogExtensionAPI:
 
     @staticmethod
     @pytest.mark.dependency()
     def test_create_provider(create_entity, graph):
-        """Test database is empty."""
-        cls = Organizations.__name__
+        """Create non-core provider"""
+        cls = Ingress.__name__
         response = create_entity(
             cls,
             {
                 "entityClass": cls,
-                "name": "University of Maine",
-                "description": "University of Maine",
-                "url": "https://www.maine.edu"
+                "name": "Maine Aquaculture Association",
+                "description": "",
+                "url": ""
             }
         )
-        obj_id = validate_created(response, graph, cls)
-
-
-        # "roles": ["licensor", "producer", "processor", "host"]  TODO: build dynamically
+        data = response.get_json()
+        assert response.status_code == 200, data
+        assert count(graph, cls=cls) > 0
 
     @staticmethod
-    @pytest.mark.dependency()
+    @pytest.mark.dependency(depends=["TestCatalogExtensionAPI::test_create_provider"])
     def test_create_collection(create_entity, graph):
-        """Test database is empty."""
+        """Create collection."""
         cls = Collections.__name__
         response = create_entity(
             cls,
             {
                 "entityClass": cls,
-                "title": "Buoy sites",
-                "description": "SEANET Buoy Sites",
-                "license": None,
-                "version": None,
-                "keywords": None,
+                "title": "Oysters",
+                "description": "Oyster growth simulations",
+                "license": "",
+                "version": 1,
+                "keywords": "oysters,aquaculture,Maine,ShellSIM",
                 "providers": None
             }
         )
-        obj_id = validate_created(response, graph, cls)
+        data = response.get_json()
+        assert response.status_code == 200, data
+        assert count(graph, cls=cls) > 0
+        payload = data.get("value")
+        obj_id = payload.get("@iot.id")
 
     @staticmethod
-    @pytest.mark.dependency()
+    @pytest.mark.dependency(depends=["TestCatalogExtensionAPI::test_create_collection"])
     def test_create_catalog(create_entity, graph):
         """Test database is empty."""
         cls = Catalogs.__name__
@@ -53,11 +56,15 @@ class TestCatalogBackend:
             cls,
             {
                 "entityClass": cls,
-                "title": "Oceanicsdotio Catalog",
-                "description": "SEANET Buoy Sites",
+                "title": "neritics-bivalve-simulations",
+                "description": "Bivalve growth experiments with Neritics API formats.",
             }
         )
-        obj_id = validate_created(response, graph, cls)
+        data = response.get_json()
+        assert response.status_code == 200, data
+        assert count(graph, cls=cls) > 0
+        payload = data.get("value")
+        obj_id = payload.get("@iot.id")
 
 
 

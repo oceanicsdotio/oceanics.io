@@ -2,8 +2,8 @@ from setuptools import setup
 
 setup(
     name='bathysphere-graph',
-    version='1.3',
-    description='Graph database driver for marine spatial data',
+    version='1.4',
+    description='Graph database manager for marine spatial data',
     url='https://www.oceanics.io',
     author='Oceanicsdotio',
     author_email='aquaculture@oceanics.io',

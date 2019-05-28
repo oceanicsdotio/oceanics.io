@@ -1,9 +1,9 @@
-from bathysphere_graph.graph import Entity
+from bathysphere_graph.drivers import Entity
 
 
 class Device(Entity):
 
-    def __init__(self, identity, name=None, description=None, encodingType=None, metadata=None, verb=False):
+    def __init__(self, identity=None, name=None, description=None, encodingType=None, metadata=None, verb=False):
         """
         Sensor-actuator base class.
 
@@ -29,16 +29,12 @@ class Sensors(Device):
     _label = None  # variable label
     _variable = None
 
-    def __init__(self, identity, name=None, description=None, encodingType=None, metadata=None, verb=False,
-                 graph=None, parent=None):
+    def __init__(self, **kwargs):
         """
         A sensor is an instrument that observes a property. It is not directly linked with a thing.
 
         :param identity:
         :param name:
         """
-        Device.__init__(self, identity, name, description, encodingType, metadata, verb)
+        Device.__init__(self, **kwargs)
         self._notify("created")
-
-        if graph is not None:
-            graph.create(self, parent=parent)

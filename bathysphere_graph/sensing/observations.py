@@ -1,4 +1,5 @@
-from bathysphere_graph.graph import Entity
+from bathysphere_graph.drivers import Entity
+from datetime import datetime
 
 
 class Observations(Entity):
@@ -8,7 +9,7 @@ class Observations(Entity):
     validTime = None  # time period
     parameters = None
 
-    def __init__(self, identity, ts, val, graph=None, parent=None):
+    def __init__(self, val, identity=None, ts=datetime.utcnow().isoformat()):
         """
         Observation are individual time stamped members of Datastreams
 
@@ -19,6 +20,3 @@ class Observations(Entity):
         Entity.__init__(self, identity)
         self.phenomenonTime = ts
         self.result = val
-
-        if graph is not None:
-            graph.create(self, parent=parent)

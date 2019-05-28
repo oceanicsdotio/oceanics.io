@@ -1,4 +1,4 @@
-from ..graph.entity import Entity
+from bathysphere_graph.drivers import Entity
 from .driver import STACCatalogDriver
 from datetime import datetime
 
@@ -9,7 +9,7 @@ class Items(Entity, STACCatalogDriver):
     """
     type = "Feature"
 
-    def __init__(self, identity, title="", assets=None, ll=None, ur=None, graph=None, parent=None):
+    def __init__(self, identity=None, title="", assets=None, ll=None, ur=None, graph=None, parent=None):
         Entity.__init__(self, identity=identity, annotated=True)
         self.bbox = self._stac_bbox(ll, ur)
         self.assets = assets

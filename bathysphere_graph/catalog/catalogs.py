@@ -1,4 +1,4 @@
-from ..graph.entity import Entity
+from bathysphere_graph.drivers import Entity
 from .driver import STACCatalogDriver
 
 
@@ -8,10 +8,8 @@ class Catalogs(Entity, STACCatalogDriver):
 
     https://github.com/radiantearth/stac-spec/tree/master/catalog-spec
     """
-    def __init__(self, identity, title, description, graph=None, parent=None):
+    def __init__(self, identity=None, title="", description=""):
         Entity.__init__(self, identity=identity, annotated=True)
         self.title = self.name = title
         self.description = description
 
-        if graph is not None:
-            graph.create(self, parent=parent)

@@ -1,11 +1,11 @@
-from bathysphere_graph.graph import Entity
+from bathysphere_graph.drivers import Entity
 
 
 class Things(Entity):
 
     properties = None  # (optional)
 
-    def __init__(self, identity, name, description="", graph=None, parent=None, verb=False):
+    def __init__(self, identity=None, name="", description="", verb=False):
         """
         A thing is an object of the physical or information world that is capable of of being identified
         and integrated into communication networks.
@@ -17,6 +17,3 @@ class Things(Entity):
         Entity.__init__(self, identity, annotated=True, verb=verb)
         self.name = name
         self.description = description
-
-        if graph is not None:
-            graph.create(self, parent=parent)

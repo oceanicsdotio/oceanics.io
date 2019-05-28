@@ -3,7 +3,7 @@ from numpy import arctan2,  zeros, intersect1d
 from itertools import repeat
 from pickle import dump
 from ..sensing import FeaturesOfInterest
-from ..graph import Entity
+from ..drivers import Entity
 from .cells import Cells
 from .nodes import Nodes
 

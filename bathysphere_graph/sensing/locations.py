@@ -1,11 +1,11 @@
-from bathysphere_graph.graph import Entity
+from bathysphere_graph.drivers import Entity
 
 
 class Locations(Entity):
 
     encodingType = "application/vnd.geo+json"
 
-    def __init__(self, identity, name, coordinates=None, description="", graph=None, parent=None, verb=False):
+    def __init__(self, identity=None, name="", coordinates=None, description="", verb=False):
         """
         Last known location of a thing. May be a feature of interest, unless remote sensing.
 
@@ -17,14 +17,11 @@ class Locations(Entity):
         self.name = name
         self.description = description
 
-        if graph is not None:
-            graph.create(self, parent=parent)
-
 
 class HistoricalLocations(Entity):
     time = None  # time when thing is known at location (ISO-8601 string)
 
-    def __init__(self, identity, graph=None, parent=None):
+    def __init__(self, identity=None):
         """
         Private and automatic, should be added to sensor when new location is determined
 
@@ -33,6 +30,3 @@ class HistoricalLocations(Entity):
         :param parent:
         """
         Entity.__init__(self, identity)
-
-        if graph is not None:
-            graph.create(self, parent=parent)

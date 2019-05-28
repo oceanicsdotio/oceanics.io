@@ -1,8 +1,4 @@
-from numpy import arange, array, zeros, hstack, where, isnan, unique
-from pyproj import Proj, transform
-from netCDF4 import Dataset
-
-from ..sensing.locations import Locations
+from bathysphere_graph.sensing.models.locations import Locations
 
 
 class Nodes(Locations):

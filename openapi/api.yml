@@ -32,7 +32,7 @@ paths:
 
     post:
       tags: [Account]
-      operationId: bathysphere_graph.handlers.auth.register
+      operationId: bathysphere_graph.handlers.register
       summary: Create account
       description: |
 
@@ -56,7 +56,7 @@ paths:
 
     get:
       tags: [Account]
-      operationId: bathysphere_graph.handlers.auth.get_token
+      operationId: bathysphere_graph.handlers.get_token
       summary: Get JWT token
       description: |
 
@@ -80,7 +80,7 @@ paths:
 
     get:
       tags: [Collection]
-      operationId: bathysphere_graph.handlers.entity.get_sets
+      operationId: bathysphere_graph.handlers.get_sets
       summary: Fetch classes
       description: |
 
@@ -115,7 +115,7 @@ paths:
 
     post:
       tags: [Entity]
-      operationId: bathysphere_graph.handlers.entity.create
+      operationId: bathysphere_graph.handlers.create_entity
       summary: Create
       description: |
         Create a new entity.
@@ -134,7 +134,7 @@ paths:
 
     put:
       tags: [Collection]
-      operationId: bathysphere_graph.handlers.entity.update_collection
+      operationId: bathysphere_graph.handlers.update_collection
       summary: Update collection
       description: |
 
@@ -154,7 +154,7 @@ paths:
 
     get:
       tags: [Collection]
-      operationId: bathysphere_graph.handlers.entity.get_all
+      operationId: bathysphere_graph.handlers.get_all
       summary: Fetch by class
       description: |
         Get all entities of one type
@@ -168,11 +168,11 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-  /{entity}/{id}:
+  /{entity}({id}):
 
     get:
       tags: [Entity]
-      operationId: bathysphere_graph.handlers.entity.get_by_id
+      operationId: bathysphere_graph.handlers.get_by_id
       summary: Fetch by ID
       description: |
         Get entity
@@ -189,7 +189,7 @@ paths:
 
     put:
       tags: [Entity]
-      operationId: bathysphere_graph.handlers.entity.update
+      operationId: bathysphere_graph.handlers.update
       summary: Update
       description: |
 
@@ -210,7 +210,7 @@ paths:
 
     delete:
       tags: [Entity]
-      operationId: bathysphere_graph.handlers.entity.delete
+      operationId: bathysphere_graph.handlers.delete
       summary: Delete entity and children
       description: |
         Delete recusively.

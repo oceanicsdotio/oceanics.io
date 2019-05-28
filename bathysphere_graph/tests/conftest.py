@@ -1,49 +1,62 @@
 import pytest
 from bathysphere_graph import app
-from bathysphere_graph.graph import Graph
-from bathysphere_graph.secrets import NEO4J_AUTH
+from bathysphere_graph.drivers import connect, purge
+from bathysphere_graph.secrets import NEO4J_AUTH, GRAPH_ADMIN_USER, GRAPH_ADMIN_PASS
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope='session')
 def client():
-    flask_app = app.app
-    flask_app.config['DEBUG'] = True
-    flask_app.config['TESTING'] = True
-    with flask_app.test_client() as c:
+    """
+    Connexion Apps are a wrapper around the real Flask App.
+
+    This yields the TestClient for making API calls with pytest.
+    """
+    app.app.config['DEBUG'] = True
+    app.app.config['TESTING'] = True
+    with app.app.test_client() as c:
         yield c
 
 
-@pytest.fixture(scope="module")
-def graph():
-    graph = Graph.find(auth=NEO4J_AUTH)
-
-    yield graph
-
-    graph.purge(auto=True)
-
-
 @pytest.fixture(scope="session")
-def mesh():
-    yield {"name": "Midcoast Maine", "path": './data/mesh/midcoast_nodes.csv'}
+def graph():
+    """
+    Connect to the test database
+    """
+    db = connect(auth=NEO4J_AUTH)
+    assert db is not None
+    purge(db)
+    yield db
 
 
 @pytest.fixture(scope="function")
-def create_entity(client):
+def create_entity(client, token):
     def _make_request(cls, properties):
         response = client.post(
             "/{0}".format(cls),
-            json=properties
+            json=properties,
+            headers={"Authorization": ":"+token.get("token", "")}
         )
         return response
     return _make_request
 
 
 @pytest.fixture(scope="function")
-def get_entity(client):
+def get_entity(client, token):
     def _make_request(cls, id):
         response = client.get(
-            "/{0}/{1}".format(cls, id)
+            "/{0}({1})".format(cls, id),
+            headers={"Authorization": ":"+token.get("token", "")}
         )
         return response
     return _make_request
 
+
+@pytest.fixture(scope="session")
+def token(client):
+    response = client.get(
+        "/auth",
+        headers={"Authorization": ":".join((GRAPH_ADMIN_USER, GRAPH_ADMIN_PASS))}
+    )
+    data = response.get_json()
+    assert response.status_code == 200, data
+    return data

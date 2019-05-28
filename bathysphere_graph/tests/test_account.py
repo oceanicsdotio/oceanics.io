@@ -1,50 +1,30 @@
 import pytest
-from bathysphere_graph.secrets import SECRET_KEY, DEVELOP_PASSWORD, DEVELOP_USER, API_KEY
-from .utils import validate_created
-from bathysphere_graph.graph import User
+from bathysphere_graph.secrets import GRAPH_SECRET_KEY, GRAPH_ADMIN_PASS, GRAPH_ADMIN_USER, GRAPH_API_KEY
 
 TOKEN_MIN_SIZE = 127
 
 
 class TestUserAuth:
-
     @staticmethod
     @pytest.mark.dependency()
     def test_register_user(client, graph):
-
         _ = graph
-
         response = client.post(
             "/auth",
             json={
-                "username": DEVELOP_USER,
-                "password": DEVELOP_PASSWORD,
-                "secret": SECRET_KEY,
-                "apiKey": API_KEY
+                "username": GRAPH_ADMIN_USER,
+                "password": GRAPH_ADMIN_PASS,
+                "secret": GRAPH_SECRET_KEY,
+                "apiKey": GRAPH_API_KEY
             }
         )
-        data = response.get_json()
-        assert response.status_code == 200, data
-
-        token = data.get("token")
-        duration = data.get("duration")
-        assert token is not None and len(token) >= TOKEN_MIN_SIZE
-        assert duration is not None and duration > 30
-
-        users = graph.render("User")
-        assert len(users) > 0
+        print(response)
+        assert response.status_code == 204
 
     @staticmethod
     @pytest.mark.dependency(depends=["TestUserAuth::test_register_user"])
-    def test_get_token(client):
-        response = client.get(
-            "/auth",
-            headers={"Authorization": ":".join((DEVELOP_USER, DEVELOP_PASSWORD))}
-        )
-        assert response.status_code == 200
-
-        data = response.get_json()
-        token = data.get("token")
-        duration = data.get("duration")
-        assert token is not None and len(token) >= TOKEN_MIN_SIZE
+    def test_get_token(token):
+        btk = token.get("token")
+        duration = token.get("duration")
+        assert btk is not None and len(btk) >= TOKEN_MIN_SIZE
         assert duration is not None and duration > 30
