@@ -225,9 +225,73 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+
+  /{root}({rootId})/{entity}:
+
+    post:
+      tags: [Entity]
+      operationId: bathysphere_graph.handlers.create_entity_as_child
+      summary: Create
+      description: |
+        Create a new entity.
+
+      parameters:
+        - $ref: "#/components/parameters/root"
+        - $ref: "#/components/parameters/rootId"
+        - $ref: "#/components/parameters/entityClass"
+
+      requestBody:
+        $ref: '#/components/requestBodies/Entity'
+
+      responses:
+        '200':
+          $ref: '#/components/responses/Entity'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+
+  /{root}({rootId})/{entity}({id}):
+
+    post:
+      tags: [Entity]
+      operationId: bathysphere_graph.handlers.add_link
+      summary: Link
+      description: |
+        Create a labeled relationship between entities.
+
+      parameters:
+        - $ref: "#/components/parameters/root"
+        - $ref: "#/components/parameters/rootId"
+        - $ref: "#/components/parameters/entityClass"
+        - $ref: "#/components/parameters/entityId"
+
+      requestBody:
+        $ref: '#/components/requestBodies/AddLink'
+
+      responses:
+        '204':
+          description: No Content
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+
 components:
 
   parameters:
+
+    root:
+      in: path
+      required: true
+      name: root
+      schema:
+        type: string
+
+    rootId:
+      in: path
+      required: true
+      name: rootId
+      schema:
+        type: integer
 
     entityClass:
       in: path
@@ -264,6 +328,15 @@ components:
           schema:
             $ref: '#/components/schemas/Entity'
 
+    AddLink:
+      description: Connect two entities
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              label:
+                type: string
 
 
     CollectionUpdate:

@@ -1,4 +1,5 @@
 from neo4j.v1 import GraphDatabase, Node
+from itertools import repeat
 from bathysphere_graph.models import Root, Ingress, Entity, User
 from bathysphere_graph.secrets import GRAPH_API_KEY
 from bathysphere_graph.sensing import *
@@ -262,6 +263,76 @@ def neighbors(db, cls: str, identity: int or str, of_cls: str = None) -> (int, t
     for child_type in records(db, cls=cls, id=identity, of_cls=of_cls):
         collection.append(load(db, cls=child_type, identity=None))
     return collection
+
+
+def _get(cls, tx, node):
+    """
+    Get node parents and node neighbors
+
+    :param tx:
+    :param node:
+    :return:
+    """
+    a = cls._match("Node", node, "a")
+    b = cls._match("Node", "b")
+    chain = "(a)-[:SIDE_OF]->(:Element)<-[:SIDE_OF]-"
+    command = " ".join([a, "MATCH", chain + b, "MERGE", "(a)-[:NEIGHBORS]-(b)"])
+    tx.run(command, id=node)
+
+
+def _topology(tx, nodes, index):
+    """
+    Create parent-child relationships
+
+    :param tx: Implicit transmit
+    :param nodes: vertices, indices
+    :param index: element identifier
+    :return:
+    """
+    tx.run("MATCH (n1:Node {id: $node1}) " +
+           "MATCH (n2:Node {id: $node2}) " +
+           "MATCH (n3:Node {id: $node3}) " +
+           "MATCH (e:Element {id: $index}) " +
+           "CREATE (n1)-[: SIDE_OF]->(e) " +
+           "CREATE (n2)-[: SIDE_OF]->(e) " +
+           "CREATE (n3)-[: SIDE_OF]->(e) ",
+           node1=int(nodes[0]), node2=int(nodes[1]), node3=int(nodes[2]), index=index)
+
+
+def _neighbors(mesh):
+    """
+    Make queries and use results to build topological relationships.
+
+    :param mesh:
+    :return:
+    """
+    kwargs = [{"identity": ii for ii in range(mesh.nodes.n)}]
+    _write(_neighbors, kwargs)
+
+
+def _create_blanks(graph, nn, ne):
+    """
+    Setup new sphere
+    """
+    graph.create("Elements", range(ne), repeat(None, ne))
+    graph.index("Elements", "id")
+    graph.create("Nodes", range(nn), repeat(None, nn))
+    graph.index("Nodes", "id")
+
+
+def _neighbor(cls, tx, id):
+    """
+    Get node parents and node neighbors
+
+    :param tx:
+    :param node:
+    :return:
+    """
+    a = _node("a", cls, id)
+    b = _node("b", cls, id)
+    path = a + "-[:SIDE_OF]->(:Cell)<-" + b
+    command = " ".join(["MATCH", path, "MERGE", "(a)-[:NEIGHBORS]-(b)"])
+    tx.run(command, id=id)
 
 
 def _location(coordinates):

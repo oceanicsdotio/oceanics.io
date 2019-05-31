@@ -1,7 +1,7 @@
 import pytest
 from bathysphere_graph import sensing
-from bathysphere_graph.drivers import Entity, load, count
-from bathysphere_graph import drivers
+from bathysphere_graph.models import Entity
+from bathysphere_graph.graph import load, count
 
 TEST_LOCATION = "Upper Damariscotta Estuary"
 
@@ -18,7 +18,7 @@ class TestEntityGraphMethodsCallAPI:
                 "name": TEST_LOCATION,
                 "entityClass": cls,
                 "description": "API call test",
-                "coordinates": [-45.0, 36.0, -5.0]
+                "location": [-45.0, 36.0, -5.0]
             }
         )
         data = response.get_json()

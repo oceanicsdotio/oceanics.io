@@ -1,6 +1,6 @@
 import pytest
 from bathysphere_graph import app
-from bathysphere_graph.drivers import connect, purge
+from bathysphere_graph.graph import connect, purge
 from bathysphere_graph.secrets import NEO4J_AUTH, GRAPH_ADMIN_USER, GRAPH_ADMIN_PASS
 
 
@@ -34,6 +34,18 @@ def create_entity(client, token):
         response = client.post(
             "/{0}".format(cls),
             json=properties,
+            headers={"Authorization": ":"+token.get("token", "")}
+        )
+        return response
+    return _make_request
+
+
+@pytest.fixture(scope="function")
+def add_link(client, token):
+    def _make_request(root, root_id, cls, identity, label):
+        response = client.post(
+            "/{0}({1})/{2}({3})".format(root, root_id, cls, identity),
+            json={"label": label},
             headers={"Authorization": ":"+token.get("token", "")}
         )
         return response
