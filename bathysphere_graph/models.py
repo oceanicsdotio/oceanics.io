@@ -40,6 +40,8 @@ class Root(Entity):
     def __init__(self, url: str):
         Entity.__init__(self, identity=0, annotated=False)
         self.url = url
+        self.secretKey = "blah blah blah"
+        self.tokenDuration = 600
 
 
 class Proxy(Entity):
@@ -67,7 +69,7 @@ class User(Entity):
 
 class Ingress(Entity):
 
-    def __init__(self, name, description, url, apiKey=None, identity=None):
+    def __init__(self, name, description="", url="", apiKey=None, identity=None):
 
         Entity.__init__(self, identity=identity, annotated=True)
         self.name = name

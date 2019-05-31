@@ -1,7 +1,6 @@
 import pytest
 from bathysphere_graph import app
 from bathysphere_graph.graph import connect, purge
-from bathysphere_graph.secrets import NEO4J_AUTH, GRAPH_ADMIN_USER, GRAPH_ADMIN_PASS
 
 
 @pytest.fixture(scope='session')
@@ -22,7 +21,7 @@ def graph():
     """
     Connect to the test database
     """
-    db = connect(auth=NEO4J_AUTH)
+    db = connect(auth=("neo4j", app.app.config['ADMIN_PASS']))
     assert db is not None
     purge(db)
     yield db
@@ -65,9 +64,11 @@ def get_entity(client, token):
 
 @pytest.fixture(scope="session")
 def token(client):
+    user = app.app.config["ADMIN"]
+    credential = app.app.config["ADMIN_PASS"]
     response = client.get(
         "/auth",
-        headers={"Authorization": ":".join((GRAPH_ADMIN_USER, GRAPH_ADMIN_PASS))}
+        headers={"Authorization": "{}:{}".format(user, credential)}
     )
     data = response.get_json()
     assert response.status_code == 200, data

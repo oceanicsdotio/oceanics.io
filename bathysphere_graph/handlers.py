@@ -6,6 +6,7 @@ from connexion import request
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from passlib.apps import custom_app_context
 
+from bathysphere_graph import app
 from bathysphere_graph.graph import index, records, add_label, itemize, load, exists, serialize, connect, create, link
 from bathysphere_graph.sensing import *
 from bathysphere_graph.stac import *
@@ -13,16 +14,13 @@ from bathysphere_graph.mesh import *
 from bathysphere_graph.tasking import *
 from bathysphere_graph.models import *
 
-from bathysphere_graph.secrets import EMAIL_USER, EMAIL_AUTH, EMAIL_PORT, EMAIL_SERVER, \
-    NEO4J_AUTH, GRAPH_SECRET_KEY, TOKEN_DURATION, GRAPH_HOST, GRAPH_PORT, EMAIL_REPLY_TO
 
-
-def token(secret_key, user_id, duration=TOKEN_DURATION):
+def token(secret_key, user_id, duration):
     """
     Generate token
     """
     return {
-        'token': Serializer(secret_key=secret_key, expires_in=TOKEN_DURATION).dumps({'id': user_id}).decode('ascii'),
+        'token': Serializer(secret_key=secret_key, expires_in=duration).dumps({'id': user_id}).decode('ascii'),
         'duration': duration
     }
 
@@ -32,7 +30,7 @@ def context(fcn):
     Inject graph database session into request.
     """
     def wrapper(*args, **kwargs):
-        db = connect(auth=NEO4J_AUTH)  # inject db session
+        db = connect(auth=("neo4j", app.app.config["ADMIN_PASS"]))  # inject db session
         if db is None:
             return {"message": "no graph backend"}, 500
         return fcn(*args, db=db, **kwargs)
@@ -47,10 +45,10 @@ def authenticate(fcn):
     def wrapper(*args, **kwargs):
 
         value, credential = request.headers.get("Authorization").split(":")
-        secret = kwargs.get("secret", GRAPH_SECRET_KEY)
         db = kwargs.get("db")
 
         try:
+            secret = kwargs.get("secret", load(db, cls="Root", identity=0).pop().secretKey)
             decoded = Serializer(secret).loads(credential)  # first try to authenticate by token
         except:
             accounts = load(db, cls="User", identity=value)
@@ -64,7 +62,7 @@ def authenticate(fcn):
 
         user = accounts[0]
         if not user.validated:
-            return {"message": "please complete registration"}, 403
+            return {"message": "complete registration"}, 403
         if not token and not custom_app_context.verify(credential, user.credential):
             return {"message": "invalid credentials"}, 403
 
@@ -73,8 +71,27 @@ def authenticate(fcn):
     return wrapper
 
 
+def send_credential(email: str, text: str, auth: dict):
+
+    server = smtplib.SMTP_SSL(auth["server"], port=auth["port"])
+    server.login(auth["account"], auth["key"])
+
+    msg_root = MIMEMultipart()
+    msg_root['Subject'] = "Oceanicsdotio Account"
+    msg_root['From'] = auth["reply to"]
+    msg_root['To'] = email
+
+    msg_alternative = MIMEMultipart('alternative')
+    msg_root.attach(msg_alternative)
+    msg_alternative.attach(
+        MIMEText(text)
+    )
+    server.sendmail(auth["account"], email, msg_root.as_string())
+
+
+
 @context
-def register(body, db, email_auth: bool = False):
+def register(body, db, auth: dict = None):
     """
     Register a new user account
     """
@@ -82,6 +99,7 @@ def register(body, db, email_auth: bool = False):
     ingress = [item for item in load(db, cls=Ingress.__name__) if item.apiKey == api_key]
     if len(ingress) != 1:
         return {"message": "bad API key"}, 403
+    port_of_entry = ingress.pop()
 
     username = body.get('username')
     if not ("@" in username and "." in username):
@@ -89,7 +107,6 @@ def register(body, db, email_auth: bool = False):
     if exists(db, "User", identity=username):
         return {'message': "invalid email"}, 405
 
-    port_of_entry = ingress.pop()
     _, domain = username.split("@")
     if port_of_entry.name != "Public" and domain != port_of_entry.url:
         return {'message': "invalid email"}, 405
@@ -97,37 +114,31 @@ def register(body, db, email_auth: bool = False):
     user = User(name=username, credential=custom_app_context.hash(body.get('password')))
     item = create(db, obj=user)
     link(db, root=itemize(port_of_entry), children=item)
-    if email_auth:
-        server = smtplib.SMTP_SSL(EMAIL_SERVER, port=EMAIL_PORT)
-        server.login(*EMAIL_AUTH)
-
-        msg_root = MIMEMultipart()
-        msg_root['Subject'] = "Oceanicsdotio API Token"
-        msg_root['From'] = EMAIL_REPLY_TO
-        msg_root['To'] = username
-
-        msg_alternative = MIMEMultipart('alternative')
-        msg_root.attach(msg_alternative)
-        msg_alternative.attach(
-            MIMEText(
-                token(
-                    secret_key=body.get('secret', GRAPH_SECRET_KEY),
-                    user_id=item["id"]
-                ).get("token")
-            )
+    if auth:
+        send_credential(
+            email=username,
+            auth=auth,
+            text=token(
+                secret_key=body.get('secret', load(db, cls="Root").secretKey),
+                user_id=item["id"],
+                duration=load(db, cls="Root").tokenDuration
+            ).get("token")
         )
-        server.sendmail(EMAIL_USER, username, msg_root.as_string())
-
     return None, 204
 
 
 @context
 @authenticate
-def get_token(db, user, secret_key=GRAPH_SECRET_KEY):
+def get_token(db, user: User, secret: str = None):
     """
     Send an auth token back for future sessions
     """
-    return token(secret_key=secret_key, user_id=user.id)
+    root = load(db, cls="Root").pop()
+    return token(
+        secret_key=secret if secret else root.secretKey,
+        user_id=user.id,
+        duration=root.tokenDuration
+    ), 200
 
 
 @context
@@ -139,7 +150,7 @@ def get_sets(extension: str):
         return {"value": [
             {
                 "name": each.__name__,
-                "url":  "http://{0}:{1}/{2}".format(GRAPH_HOST, GRAPH_PORT, each.__name__)
+                "url":  "http://{0}:{1}/{2}".format(app.config["HOST"], app.config["PORT"], each.__name__)
             } for each in {
                 "admin": graph_models,
                 "sensing": sensing_models,
@@ -185,7 +196,7 @@ def create_entity(db, user, entity: str, body: dict, offset: int = 0):
     link(db, root=itemize(user), children=item)
     capabilties(db, obj=obj, label="HAS")
 
-    return {"message": "Create "+cls, "value": serialize(obj, service=GRAPH_HOST)}, 200
+    return {"message": "Create "+cls, "value": serialize(obj, service=app.app.config["HOST"])}, 200
 
 
 @context
@@ -203,12 +214,12 @@ def create_entity_as_child(db, user, entity: str, body: dict, offset: int = 0):
     link(db, root=itemize(user), children=item)
     capabilties(db, obj=obj, label="HAS")
 
-    return {"message": "Create "+cls, "value": serialize(obj, service=GRAPH_HOST)}, 200
+    return {"message": "Create "+cls, "value": serialize(obj, service=app.app.config["HOST"])}, 200
 
 @context
 def get_all(db, entity: str):
     """Usage 2. Get all entities of a single class"""
-    entities = records(db, cls=entity, service=GRAPH_HOST)
+    entities = records(db, cls=entity, service=app.app.config["HOST"])
     return {"@iot.count": len(entities), "value": entities}, 200
 
 
@@ -219,12 +230,12 @@ def get_by_id(db, entity: str, id: int, key: str = None, method: str = None) -> 
     Usage 4. Return single entity property
     Usage 5. Return the value of single property of the entity
     """
-
+    host = app.app.config["HOST"]
     e = load(db, cls=entity, identity=id)
     if len(e) != 1:
         return {
             "error": "duplicate entries found",
-            "value": tuple(serialize(item, service=GRAPH_HOST) for item in e)
+            "value": tuple(serialize(item, service=host) for item in e)
         }, 500
 
     if key is not None:
@@ -236,7 +247,7 @@ def get_by_id(db, entity: str, id: int, key: str = None, method: str = None) -> 
 
     return {
         "@iot.count": len(e),
-        "value": tuple(serialize(item, service=GRAPH_HOST) for item in e)
+        "value": tuple(serialize(item, service=host) for item in e)
     }, 200
 
 

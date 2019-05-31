@@ -1,0 +1,12 @@
+- name: Oceanicsdotio
+  owner: true
+  description: Research and development
+  url: oceanics.io
+
+- name: Public
+  description: Public Data Repository
+  apiKey: ""
+
+- name: University of Maine
+  description: Aquaculture research partners
+  url: maine.edu

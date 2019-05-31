@@ -2,7 +2,6 @@ import pytest
 from bathysphere_graph.models import Ingress
 from bathysphere_graph.graph import count, connect
 from bathysphere_graph.stac import Collections, Catalogs
-from ..secrets import NEO4J_AUTH
 
 
 class TestCatalogExtensionAPI:
