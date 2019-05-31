@@ -1,30 +1,10 @@
 from neo4j.v1 import GraphDatabase, Node
+from yaml import loader, load as load_yml
 from itertools import repeat
+from bathysphere_graph import app
 from bathysphere_graph.models import Root, Ingress, Entity, User
-from bathysphere_graph.secrets import GRAPH_API_KEY
 from bathysphere_graph.sensing import *
 from bathysphere_graph.tasking import *
-
-
-INGRESS_CONFIG = [
-    {
-        "name": "Public",
-        "description": "Public Data Repository",
-        "apiKey": "",
-        "url": "oceanics.io"
-    },
-    {
-        "name": "Oceanicsdotio",
-        "description": "Research Allocations",
-        "apiKey": GRAPH_API_KEY,
-        "url": "oceanics.io"
-    },
-    {
-        "name": "University of Maine",
-        "description": "Aquaculture research partners",
-        "url": "maine.edu"
-    }
-]
 
 
 def connect(auth: tuple, port: int = 7687, hosts: tuple = ("neo4j", "localhost")):
@@ -41,12 +21,16 @@ def connect(auth: tuple, port: int = 7687, hosts: tuple = ("neo4j", "localhost")
             if len(queue) == 0 and db is None:
                 return
 
-    root = Root(url="localhost:5000")
-    root_item = create(db, cls=Root.__name__, identity=root.id, props=properties(root))
-    for config in INGRESS_CONFIG:
-        cls = Ingress.__name__
-        if not exists(db, cls=cls, identity=config.get("name")):
-            obj = Ingress(identity=auto_id(db, cls), **config)
+    if not exists(db, cls="Root", identity=0):
+        root = Root(url="localhost:5000")
+        root_item = create(db, cls=Root.__name__, identity=root.id, props=properties(root))
+
+        for conf in load_yml(open("./config/ingress.yml")):
+            cls = Ingress.__name__
+            if conf.pop("owner", False):
+                conf["apiKey"] = app.app.config["API_KEY"]
+
+            obj = Ingress(identity=auto_id(db, cls), **conf)
             item = create(db, cls=cls, identity=obj.id, props=properties(obj))
             link(db, root=root_item, children=item)
 

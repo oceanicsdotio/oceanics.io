@@ -1,5 +1,5 @@
 import pytest
-from bathysphere_graph.secrets import GRAPH_SECRET_KEY, GRAPH_ADMIN_PASS, GRAPH_ADMIN_USER, GRAPH_API_KEY
+from bathysphere_graph import app
 
 TOKEN_MIN_SIZE = 127
 
@@ -12,10 +12,10 @@ class TestUserAuth:
         response = client.post(
             "/auth",
             json={
-                "username": GRAPH_ADMIN_USER,
-                "password": GRAPH_ADMIN_PASS,
-                "secret": GRAPH_SECRET_KEY,
-                "apiKey": GRAPH_API_KEY
+                "username": app.app.config["ADMIN"],
+                "password": app.app.config["ADMIN_PASS"],
+                "secret": app.app.config["SECRET"],
+                "apiKey": app.app.config["API_KEY"]
             }
         )
         print(response)
