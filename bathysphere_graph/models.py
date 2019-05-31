@@ -2,14 +2,14 @@ from secrets import token_urlsafe
 
 
 class Entity:
-    def __init__(self, identity: int or None, annotated: bool = False,
-                 coordinates: list or tuple or None = None, verb: bool = False):
+    def __init__(self, identity: int = None, annotated: bool = False,
+                 location: list or tuple or None = None, verb: bool = False):
         """
         Primitive object/entity, may have name and location
 
         :param identity: Unique identifier, assumed to be integer ID
         :param annotated: Has a name and/or description
-        :param coordinates: Coordinates, geographic or cartesian
+        :param location: Coordinates, geographic or cartesian
         """
         self.id = identity
         self._verb = verb
@@ -18,8 +18,10 @@ class Entity:
             self.name = None
             self.description = None
 
-        if coordinates:
-            self.location = {"type": "Point", "coordinates": coordinates}
+        if location:
+            self.location = {"type": "Point", "coordinates": location} \
+                if type(location) == list \
+                else location
 
         self._notify('created')
 
@@ -72,3 +74,12 @@ class Ingress(Entity):
         self.description = description
         self.url = url
         self.apiKey = token_urlsafe(64) if apiKey is None else apiKey
+
+
+graph_models = {
+    Entity,
+    Root,
+    Proxy,
+    User,
+    Ingress
+}

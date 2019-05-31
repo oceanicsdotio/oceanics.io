@@ -1,6 +1,7 @@
 import pytest
-from bathysphere_graph.drivers import Ingress, count, connect
-from bathysphere_graph.catalog import Collections, Catalogs
+from bathysphere_graph.models import Ingress
+from bathysphere_graph.graph import count, connect
+from bathysphere_graph.stac import Collections, Catalogs
 from ..secrets import NEO4J_AUTH
 
 

@@ -1,4 +1,4 @@
-
+from inspect import signature
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -6,11 +6,12 @@ from connexion import request
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from passlib.apps import custom_app_context
 
-from .drivers import index, records, add_label, itemize, load, exists, serialize, connect, create, link
-from .models import Ingress, User
-from .sensing import *
-from .catalog import *
-from .tasking import *
+from bathysphere_graph.graph import index, records, add_label, itemize, load, exists, serialize, connect, create, link
+from bathysphere_graph.sensing import *
+from bathysphere_graph.stac import *
+from bathysphere_graph.mesh import *
+from bathysphere_graph.tasking import *
+from bathysphere_graph.models import *
 
 from bathysphere_graph.secrets import EMAIL_USER, EMAIL_AUTH, EMAIL_PORT, EMAIL_SERVER, \
     NEO4J_AUTH, GRAPH_SECRET_KEY, TOKEN_DURATION, GRAPH_HOST, GRAPH_PORT, EMAIL_REPLY_TO
@@ -140,14 +141,33 @@ def get_sets(extension: str):
                 "name": each.__name__,
                 "url":  "http://{0}:{1}/{2}".format(GRAPH_HOST, GRAPH_PORT, each.__name__)
             } for each in {
-                "sensing": sensing.models,
-                "catalog": catalog.models,
-                "mesh": mesh.models,
-                "tasking": tasking.models
+                "admin": graph_models,
+                "sensing": sensing_models,
+                "catalog": stac_models,
+                "mesh": mesh_models,
+                "tasking": tasking_models
             }[extension]
         ]}, 200
     except KeyError:
         return 405
+
+
+def capabilties(db, obj: object, label: str, private: str = "_"):
+    """
+    Create child TaskingCapabilities for public methods bound to the instance.
+    """
+    root = itemize(obj)
+    for each in (key for key in set(dir(obj)) - set(obj.__dict__.keys()) if key[0] != private):
+        fname = "{}.{}".format(type(obj).__name__, each)
+        item = create(
+            db=db,
+            obj=TaskingCapabilities(
+                name=fname,
+                taskingParameters=[tasking_parameters(name=b.name, kind="", tokens=[""])
+                                   for b in signature(eval(fname)).parameters.values()]
+            )
+        )
+        link(db=db, root=root, children=item, label=label)
 
 
 @context
@@ -163,8 +183,27 @@ def create_entity(db, user, entity: str, body: dict, offset: int = 0):
     obj = eval(entity)(**body)
     item = create(db, obj=obj, offset=offset)
     link(db, root=itemize(user), children=item)
+    capabilties(db, obj=obj, label="HAS")
+
     return {"message": "Create "+cls, "value": serialize(obj, service=GRAPH_HOST)}, 200
 
+
+@context
+@authenticate
+def create_entity_as_child(db, user, entity: str, body: dict, offset: int = 0):
+    """
+    Attach to db, and find available ID number to register the entity
+    """
+    cls = body.pop("entityClass")  # only used for API discriminator
+    if entity != cls:
+        return {'error': 'Bad request'}, 405
+
+    obj = eval(entity)(**body)
+    item = create(db, obj=obj, offset=offset)
+    link(db, root=itemize(user), children=item)
+    capabilties(db, obj=obj, label="HAS")
+
+    return {"message": "Create "+cls, "value": serialize(obj, service=GRAPH_HOST)}, 200
 
 @context
 def get_all(db, entity: str):
@@ -239,13 +278,14 @@ def delete(entity, id):
 
 
 @context
-def add_link(parent_cls, parent_id, child_cls, child_id, db):
+def add_link(db, root: str, rootId: int, entity: str, id: int, body: dict):
     link(
         db,
-        root={"cls": parent_cls, "id": parent_id},
-        children={"cls": child_cls, "id": child_id}
+        root={"cls": root, "id": rootId},
+        children={"cls": entity, "id": id},
+        label=body.get("label")
     )
-    return 204
+    return None, 204
 
 
 @context
@@ -258,4 +298,4 @@ def update_collection(entity, body, db):
     if label is not None:
         add_label(db, cls=entity, label=label)
 
-    return 204
+    return None, 204
