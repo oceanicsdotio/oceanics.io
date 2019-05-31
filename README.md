@@ -12,7 +12,14 @@ The system is relatively dumb, with complex logic delegated to sidecar and front
 
 
 
-See the embedded [OpenAPI specification](http://localhost:80) for complete details on the supported schemas and methods. In general, the format for entity-based requests is: 
+See the OpenAPI specification for complete details on the supported schemas and methods. 
+
+There is an [embedded](http://localhost) version running locally if you use `docker-compose`, 
+and an [online](https://graph.oceanics.io) version with current status: [![Netlify Status](https://api.netlify.com/api/v1/badges/dfa3c4f1-b304-42cb-9ff5-ea64f2219ff0/deploy-status)](https://app.netlify.com/sites/bathysphere-graph/deploys)
+
+
+In general, the format for entity-based requests is: 
+
 
 | Route                       | Description         | Arguments            | Format |
 | --------------------------- | ------------------- | -------------------- | ------ |
@@ -28,8 +35,6 @@ See the embedded [OpenAPI specification](http://localhost:80) for complete detai
 
 
 ## Getting Started
-
-[![Netlify Status](https://api.netlify.com/api/v1/badges/dfa3c4f1-b304-42cb-9ff5-ea64f2219ff0/deploy-status)](https://app.netlify.com/sites/bathysphere-graph/deploys)
 
 Deployed locally with `docker-compose up -d`. 
 
