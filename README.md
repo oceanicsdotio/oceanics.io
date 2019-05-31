@@ -29,6 +29,8 @@ See the embedded [OpenAPI specification](http://localhost:80) for complete detai
 
 ## Getting Started
 
+[![Netlify Status](https://api.netlify.com/api/v1/badges/dfa3c4f1-b304-42cb-9ff5-ea64f2219ff0/deploy-status)](https://app.netlify.com/sites/bathysphere-graph/deploys)
+
 Deployed locally with `docker-compose up -d`. 
 
 The database manager runs in the [official container image](https://hub.docker.com/_/neo4j/), and maps the server ports to an external interface. The [built-in GUI](http://localhost:7474/browser/) is at  `hostname:7474`, and the `bolt` [interface](https://boltprotocol.org/) defaults to  `hostname:7687`. Bolt is used for API calls from Python scripts. User authorization requires the environment variable `NEO4J_AUTH`. 
