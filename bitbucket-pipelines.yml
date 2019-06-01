@@ -16,6 +16,7 @@ pipelines:
           - conda env create -f config/environment.yml
           - source activate bathysphere_graph
           - docker-compose up -d neo4j
+          - sleep 30
           - pytest
           - docker-compose down
 
