@@ -38,8 +38,7 @@ paths:
 
         Register an e-mail address to get access to development API. Accounts are for development and testing purposes
         only. We won't share your contact information, but we do reserve the right to analyze and profile your use of
-        our infrastructure, as well as monitor unencrypted traffic. Proprietary data should be encrypted by providing
-        a secret with your registration.
+        our infrastructure, as well as monitor unencrypted traffic.
 
         Please contact us if you are interested in a dedicated database instance, or long-term multi-tenancy
         hosting.
@@ -53,7 +52,6 @@ paths:
         '400':
           $ref: '#/components/responses/BadRequest'
 
-
     get:
       tags: [Account]
       operationId: bathysphere_graph.handlers.get_token
@@ -61,8 +59,8 @@ paths:
       description: |
 
         Exchange token or email and password for a Javascript Web Token. This will allow you make API calls and use
-        graphical interfaces for up to 1-60 minutes. If you have previously provided a secret, it will be required
-        here to authenticate a login and encrypt a JWT token.
+        graphical interfaces for a fixed period of time. If you have previously provided a secret, it will be required
+        here to authenticate login and hash the token.
 
       parameters:
         - name: secret
@@ -94,7 +92,7 @@ paths:
 
         * `tasking` builds off of the SensorThings specification part 2.
 
-        * `mesh` implements rules for building versioned structures for numerical experiments.
+        * `mesh` implements structures for spatial simulations.
 
       parameters:
         - name: extension
@@ -109,7 +107,6 @@ paths:
           $ref: '#/components/responses/Message'
         '404':
           $ref: '#/components/responses/NotFound'
-
 
   /{entity}:
 
@@ -283,6 +280,11 @@ components:
       in: path
       required: true
       name: root
+      description: |
+        The class name of the root or parent entity that the request object is associated with. During a `GET` request
+        this will be used to collect child entities based on graph relationship. For `PUT` and `POST` requests this
+        and the child entities will be linked with a labeled relationship.
+
       schema:
         type: string
 
@@ -290,6 +292,8 @@ components:
       in: path
       required: true
       name: rootId
+      description: |
+        Unique integer identifier of the parent entity.
       schema:
         type: integer
 
@@ -297,6 +301,9 @@ components:
       in: path
       required: true
       name: entity
+      description: |
+        Name of the entity model to create or fetch.
+
       schema:
         type: string
 
@@ -304,6 +311,8 @@ components:
       in: path
       required: true
       name: id
+      description: |
+        Unique integer identifier of the resource to be retrieved.
       schema:
         type: integer
 
@@ -329,7 +338,8 @@ components:
             $ref: '#/components/schemas/Entity'
 
     AddLink:
-      description: Connect two entities
+      description: |
+        Manually connect two entities with a labeled relationship
       content:
         application/json:
           schema:
@@ -337,6 +347,9 @@ components:
             properties:
               label:
                 type: string
+                description: |
+                  Should be in format `LABEL`, although this is not strictly necessary. Labeled relationships
+                  are used to crawl over the graph.
 
 
     CollectionUpdate:
@@ -361,7 +374,8 @@ components:
             $ref: '#/components/schemas/EntityCollection'
 
     Entity:
-      description: Entity
+      description: |
+        Single entity
       content:
         application/json:
           schema:
@@ -424,6 +438,8 @@ components:
             - id
             - location
             - ts
+          description: |
+            Node attribute to create an index on.
 
 
     EntityLabel:
@@ -435,21 +451,26 @@ components:
         - Metadata
         - File
         - Raw
+      description: |
+        Additional node labels that can be applied to entities, which have internal meaning.
 
     Error:
       type: object
       properties:
         message:
           type: string
+          description: Error message
 
     Message:
       type: object
       properties:
         message:
           type: string
+          description: Status message
 
     Index:
       type: string
+      description: Class name of entities to index.
 
     SecretKey:
       description: |
@@ -487,9 +508,11 @@ components:
           type: integer
           minimum: 1
           maximum: 100
+          description: Total number of records in the response
 
         value:
           type: array
+          description: Array of response data
           items:
             $ref: '#/components/schemas/Entity'
 
@@ -564,9 +587,12 @@ components:
 
             encodingType:
               type: string
+              description: Identifier for parsing feature data
 
             feature:
               type: object
+              description: Feature data
+
 
     Thing:
       allOf:
@@ -578,7 +604,13 @@ components:
           properties:
             properties:
               type: object
+              description: Key-value properties
 
+    LocationEncodingType:
+      type: string
+      enum: ["application/vnd.geo+json"]
+      default: "application/vnd.geo+json"
+      description: The encoding rendered in the location response
 
     Location:
       allOf:
@@ -589,9 +621,8 @@ components:
 
           properties:
             encodingType:
-              type: string
-              enum: [application/vnd.geo+json]
-              default: application/vnd.geo+json
+              $ref: '#/components/schemas/LocationEncodingType'
+
 
     HistoricalLocation:
       allOf:
@@ -599,12 +630,11 @@ components:
         - type: object
           properties:
             encodingType:
-              type: string
-              enum: ["application/vnd.geo+json"]
-              default: "application/vnd.geo+json"
+              $ref: '#/components/schemas/LocationEncodingType'
 
             time:
               type: string
+              description: Timestamp when the location was current
 
     Sensor:
 
@@ -633,10 +663,13 @@ components:
               properties:
                 name:
                   type: string
+                  description: Name for matching and displaying
                 symbol:
                   type: string
+                  description: Abbreviation for the parameter
                 definition:
                   type: string
+                  description: A link to a formal definition
 
             observationType:
               type: string
