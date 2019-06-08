@@ -6,15 +6,15 @@ networks:
 
 services:
 
-  reverseproxy:
+  nginx:
     image: nginx
     ports:
       - 80:80
     volumes:
       - ./config/nginx:/etc/nginx/conf.d:ro
       - ./openapi:/openapi
-#    depends_on:
-#      - neritics-ml
+    depends_on:
+      - neritics-ml
     networks:
       - oceanics
 

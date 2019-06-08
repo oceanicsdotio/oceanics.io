@@ -9,5 +9,15 @@ setup(
     author_email='aquaculture@oceanics.io',
     license='MIT',
     packages=["neritics_ml"],
+    install_requires=[
+        "numpy",
+        "requests",
+        "redis",
+        "flask_cors",
+        "gunicorn",
+        "connexion",
+        "tensorflow",
+        "pandas"
+    ],
     zip_safe=False
 )

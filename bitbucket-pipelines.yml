@@ -1,0 +1,21 @@
+image: continuumio/miniconda3
+
+options:
+  docker: true
+
+pipelines:
+  default:
+    - step:
+        name: Install dependencies, unit test, and deploy a local node
+        caches:
+          - docker
+          - pip
+
+        script:
+          - pip install docker-compose
+          - conda env create -f config/environment.yml
+          - source activate tensorflow
+          - docker-compose up
+          - sleep 10
+          - pytest
+          - docker-compose down

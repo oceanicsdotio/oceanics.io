@@ -12,7 +12,7 @@ WORKDIR neritics_ml
 
 # build the environment, and make it start automatically
 
-COPY environment.yml ./
+COPY config/environment.yml ./
 RUN conda env create -f environment.yml
 COPY openapi/api.yml ./openapi/api.yml
 COPY neritics_ml ./neritics_ml
