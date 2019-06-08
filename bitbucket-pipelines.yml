@@ -14,4 +14,5 @@ pipelines:
         script:
           - pip install docker-compose
           - docker-compose up -d
+          - sleep 10
           - docker-compose down
