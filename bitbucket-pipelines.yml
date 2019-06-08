@@ -13,9 +13,5 @@ pipelines:
 
         script:
           - pip install docker-compose
-          - conda env create -f config/environment.yml
-          - source activate tensorflow
-          - docker-compose up
-          - sleep 10
-          - pytest
+          - docker-compose up -d
           - docker-compose down
