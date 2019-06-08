@@ -1,8 +1,6 @@
 import pytest
 from bathysphere_graph import app
 
-TOKEN_MIN_SIZE = 127
-
 
 class TestUserAuth:
     @staticmethod
@@ -26,5 +24,5 @@ class TestUserAuth:
     def test_get_token(token):
         btk = token.get("token")
         duration = token.get("duration")
-        assert btk is not None and len(btk) >= TOKEN_MIN_SIZE
+        assert btk is not None and len(btk) >= 127
         assert duration is not None and duration > 30

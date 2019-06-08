@@ -1,3 +1,5 @@
+
+
 [TOC]
 
 # Knowledge Graphs
@@ -9,7 +11,6 @@ The system is relatively dumb, with complex logic delegated to sidecar and front
 - Secure organizational accounts
 - OGC SensorThings API coverage
 - SpatioTemporal Assets Catalog coverage
-
 
 
 See the OpenAPI specification for complete details on the supported schemas and methods. 
