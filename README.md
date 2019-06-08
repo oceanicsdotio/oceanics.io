@@ -1,3 +1,5 @@
+[![Netlify Status](https://api.netlify.com/api/v1/badges/4f85d6f2-2a71-4b27-b21d-1df0bd286fc0/deploy-status)](https://app.netlify.com/sites/neritics-ml/deploys)
+
 # TensorFlow
 
 Machine learning services use the Python 3 CPU-only TensorFlow container,
