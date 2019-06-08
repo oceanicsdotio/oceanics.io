@@ -28,3 +28,10 @@ pipelines:
           - pip install docker-compose
           - docker-compose up -d --build
           - docker-compose down
+
+    - step:
+        name: Digital Ocean
+        deployment: staging
+        trigger: manual
+        script:
+          - cat ./src/deploy.sh | ssh -t $USERNAME@$GOODBUOY

@@ -452,3 +452,75 @@ def relationships(db, **kwargs):
     #             result[each].append(entity._serialize(future, sel))
     #
     #     return result
+
+
+
+def expand(string):
+    """
+    Expands a navigation property recursively
+
+    $expand
+
+    """
+
+    classes = []
+    for each in string.split(","):
+        path = []
+        levels = each.split("/")
+        for level in levels:
+            a = dict()
+            item = level.replace(")", "").split("(")
+            a["name"] = item[0]
+            if len(item) > 1:
+                q = item[1].split("&")
+                a["queries"] = dict()
+                for ii in q:
+                    b, c = ii.split("=")
+                    a["queries"][b] = c
+
+            else:
+                a["queries"] = None
+            path.append(a)
+
+        classes.append(path)
+    return classes
+
+
+def orderby(collection, string):
+
+    kind = collection.__class__.__name__
+    sequence = [each.strip() for each in string.split(",")]
+    for each in sequence:
+        if "desc" in string:
+            prop, order = string.split(" ")
+        elif "asc" in string:
+            prop, order = string.split(" ")
+        else:
+            prop = string.split(" ")
+            order = "asc"
+
+    if kind == "dict":
+        values = [each for each in collection.values()]
+    elif kind == "list":
+        values = collection
+    else:
+        return None
+
+
+def parse_query(request):
+    args = [key for key in request.args.keys()]
+    options = ["$expand", "$select", "$orderby", "$top", "$skip", "$count", "$filter"]
+
+
+def parse_select(string):
+    """
+    Return only properties explicitly requested
+
+    $select
+
+    :param string:
+    :return:
+    """
+
+    clauses = string.split(",")
+    return clauses
