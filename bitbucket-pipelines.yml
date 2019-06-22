@@ -15,10 +15,7 @@ pipelines:
           - pip install docker-compose
           - conda env create -f config/environment.yml
           - source activate bathysphere_graph
-          - docker-compose up -d neo4j
-          - sleep 30
-          - pytest
-          - docker-compose down
+          - sh src/test.sh
 
     - step:
         name: Build docker image in docker
@@ -28,10 +25,3 @@ pipelines:
           - pip install docker-compose
           - docker-compose up -d --build
           - docker-compose down
-
-    - step:
-        name: Digital Ocean
-        deployment: staging
-        trigger: manual
-        script:
-          - cat ./src/deploy.sh | ssh -t $USERNAME@$GOODBUOY
