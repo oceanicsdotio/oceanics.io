@@ -3,7 +3,7 @@
 count=0
 retries=10
 timeout=6
-status=$(docker inspect --format='{{json .State.Health.Status}}' bathysphere-graph_neo4j_1)
+status="undefined"
 
 while [[ "$status" != *"healthy"* ]]
 do
