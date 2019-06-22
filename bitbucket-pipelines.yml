@@ -10,7 +10,6 @@ pipelines:
         caches:
           - docker
           - pip
-          - condacache
 
         script:
           - pip install docker-compose
@@ -31,6 +30,3 @@ pipelines:
           - docker-compose up -d --build
           - docker-compose down
 
-definitions:
-  caches:
-    condacache: /opt/python/bin
