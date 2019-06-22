@@ -18,6 +18,7 @@ setup(
         "pytest_dependency",
         "neo4j-python-driver",
         "itsdangerous",
-        "passlib"
+        "passlib",
+        "yaml"
     ],
     zip_safe=False)

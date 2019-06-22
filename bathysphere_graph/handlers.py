@@ -97,6 +97,18 @@ def create_catalog():
 
 @context
 @authenticate
+def update_catalog():
+    pass
+
+
+@context
+@authenticate
+def delete_catalog():
+    pass
+
+
+@context
+@authenticate
 def remove_children():
     pass
 
@@ -326,6 +338,10 @@ def add_link(db, root: str, rootId: int, entity: str, id: int, body: dict):
         label=body.get("label")
     )
     return None, 204
+
+
+def break_link():
+    pass
 
 
 @context
