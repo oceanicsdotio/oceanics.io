@@ -15,7 +15,11 @@ pipelines:
           - pip install docker-compose
           - conda env create -f config/environment.yml
           - source activate bathysphere_graph
-          - sh src/test.sh
+          - docker pull neo4j:3.5
+          - docker-compose up -d neo4j
+          - sh src/healthcheck.sh
+          - pytest
+          - docker-compose down
 
     - step:
         name: Build docker image in docker
