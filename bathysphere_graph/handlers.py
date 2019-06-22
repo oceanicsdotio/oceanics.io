@@ -89,6 +89,35 @@ def send_credential(email: str, text: str, auth: dict):
     server.sendmail(auth["account"], email, msg_root.as_string())
 
 
+@context
+@authenticate
+def create_catalog():
+    pass
+
+
+@context
+@authenticate
+def remove_children():
+    pass
+
+
+@context
+@authenticate
+def get_children():
+    pass
+
+
+@context
+@authenticate
+def update_account():
+    pass
+
+
+@context
+@authenticate
+def delete_account():
+    pass
+
 
 @context
 def register(body, db, auth: dict = None):
