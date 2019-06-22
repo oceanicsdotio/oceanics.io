@@ -149,7 +149,7 @@ paths:
 
       responses:
         '200':
-          $ref: '#/components/requestBodies/Catalog'
+          $ref: '#/components/responses/Catalog'
 
     get:
       tags: [Collection]
@@ -199,7 +199,7 @@ paths:
 
       responses:
         '200':
-          $ref: '#/components/requestBodies/Catalog'
+          $ref: '#/components/responses/Catalog'
 
 
     delete:
@@ -209,12 +209,9 @@ paths:
       description: |
         Purge catalog data from the database. Irreversible.
 
-      requestBody:
-        $ref: '#/components/requestBodies/Catalog'
-
       responses:
         '204':
-          summary: No Content
+          description: No Content
 
   /{entity}:
 
@@ -526,6 +523,15 @@ components:
 
   responses:
 
+    Catalog:
+      description: |
+        Collection of entities
+
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Catalog'
+
     EntityCollection:
       description: |
         Collection of entities
@@ -779,52 +785,53 @@ components:
           description: |
             A thing is an object of the physical or information world that is capable of of being identified
             and integrated into communication networks.
+
           properties:
             properties:
               type: object
               description: Key-value properties
 
-              HistoricalLocations:
-                readOnly: true
-                oneOf:
+            HistoricalLocations:
+              readOnly: true
+              oneOf:
 
-                  - type: array
-                    title: references
-                    items:
-                      type: string
+                - type: array
+                  title: references
+                  items:
+                    type: string
 
-                  - type: array
-                    title: objects
-                    items:
-                      type: object
+                - type: array
+                  title: objects
+                  items:
+                    type: object
 
-              Locations:
-                readOnly: true
-                oneOf:
+            Locations:
+              readOnly: true
+              oneOf:
 
-                  - type: array
-                    title: references
-                    items:
-                      type: string
+                - type: array
+                  title: references
+                  items:
+                    type: string
 
-                  - type: array
-                    title: objects
-                    items:
-                      type: object
+                - type: array
+                  title: objects
+                  items:
+                    type: object
 
-              Datastreams:
-                readOnly: true
-                oneOf:
+            Datastreams:
+              readOnly: true
+              oneOf:
 
-                  - type: array
-                    title: references
-                    items:
-                      type: string
+                - type: array
+                  title: references
+                  items:
+                    type: string
 
-                  - type: array
-                    title: objects
-                    items:
-                      type: object
+                - type: array
+                  title: objects
+                  items:
+                    type: object
 
 
     LocationEncodingType:
@@ -894,13 +901,15 @@ components:
 
                 - type: array
                   title: references
-                  length: 1
+                  minItems: 1
+                  maxItems: 1
                   items:
                     type: string
 
                 - type: array
                   title: objects
-                  length: 1
+                  minItems: 1
+                  maxItems: 1
                   items:
                     type: object
 
@@ -910,13 +919,13 @@ components:
 
                 - type: array
                   title: references
-                  length: 1
+                  minItems: 1
                   items:
                     type: string
 
                 - type: array
                   title: objects
-                  length: 1
+                  minItems: 1
                   items:
                     type: object
 
@@ -967,12 +976,13 @@ components:
               properties:
                 name:
                   type: string
-                  required: true
                   description: Name for matching and displaying
+
                 symbol:
                   type: string
                   nullable: true
                   description: Abbreviation for the parameter
+
                 definition:
                   type: string
                   nullable: true
@@ -1002,7 +1012,8 @@ components:
               type: array
               description: |
                 Time interval of the measured process, consisting of two ISO8601 timestamps.
-              length: 2
+              minItems: 2
+              maxItems: 2
               items:
                 type: string
                 format: date-time
@@ -1012,7 +1023,8 @@ components:
               description: |
                 Time interval of receiving data, consisting of two ISO8601 timestamps. May be different than the
                 measured process, due to batch uploads, latency, lack of real-time clocks in devices, etc.
-              length: 2
+              minItems: 2
+              maxItems: 2
               items:
                 type: string
                 format: date-time
@@ -1045,13 +1057,13 @@ components:
 
                 - type: array
                   title: references
-                  length: 1
+                  minItems: 1
                   items:
                     type: string
 
                 - type: array
                   title: objects
-                  length: 1
+                  minItems: 1
                   items:
                     type: object
 
@@ -1061,13 +1073,13 @@ components:
 
                 - type: array
                   title: references
-                  length: 1
+                  minItems: 1
                   items:
                     type: string
 
                 - type: array
                   title: objects
-                  length: 1
+                  minItems: 1
                   items:
                     type: object
 
@@ -1077,13 +1089,13 @@ components:
 
                 - type: array
                   title: references
-                  length: 1
+                  minItems: 1
                   items:
                     type: string
 
                 - type: array
                   title: objects
-                  length: 1
+                  minItems: 1
                   items:
                     type: object
 
@@ -1108,7 +1120,8 @@ components:
             validTime:
               type: array
               description: Time interval when the result is valid
-              length: 2
+              minItems: 2
+              maxItems: 2
               items:
                 type: string
                 format: date-time
@@ -1134,13 +1147,13 @@ components:
 
                 - type: array
                   title: references
-                  length: 1
+                  maxItems: 1
                   items:
                     type: string
 
                 - type: array
                   title: objects
-                  length: 1
+                  maxItems: 1
                   items:
                     type: object
 
@@ -1150,13 +1163,13 @@ components:
 
                 - type: array
                   title: references
-                  length: 1
+                  maxItems: 1
                   items:
                     type: string
 
                 - type: array
                   title: objects
-                  length: 1
+                  maxItems: 1
                   items:
                     type: object
 
@@ -1176,13 +1189,13 @@ components:
 
                 - type: array
                   title: references
-                  length: 1
+                  maxItems: 1
                   items:
                     type: string
 
                 - type: array
                   title: objects
-                  length: 1
+                  maxItems: 1
                   items:
                     type: object
 
@@ -1190,11 +1203,7 @@ components:
       allOf:
         - $ref: '#/components/schemas/Entity'
         - type: object
-          description: |
-            SpatioTemporal Asset Catalog catalog linking object.
-
           properties:
-
             title:
               type: string
               description: The display name of the catalog
