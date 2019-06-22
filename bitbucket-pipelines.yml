@@ -10,11 +10,11 @@ pipelines:
         caches:
           - docker
           - pip
+        services:
+          - docker
 
         script:
           - pip install docker-compose
-          - conda env create -f config/environment.yml
-          - source activate bathysphere_graph
           - docker pull neo4j:3.5
           - docker-compose up -d neo4j
           - count=0; retries=10; timeout=6; status="undefined"
@@ -27,7 +27,10 @@ pipelines:
           -   count=$(( count+1 )); sleep ${timeout}
           -   status=$(docker inspect --format='{{json .State.Health.Status}}' bathysphere-graph_neo4j_1)
           - done
-          - echo "Neo4j status is ${status}, continuing with tests"; pytest
+          - echo "Neo4j status is ${status}, continuing with tests";
+          - conda env create -f config/environment.yml
+          - source activate bathysphere_graph
+          - pytest
           - docker-compose down
 
     - step:
