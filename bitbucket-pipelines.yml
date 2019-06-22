@@ -10,6 +10,7 @@ pipelines:
         caches:
           - docker
           - pip
+          - condacache
 
         script:
           - pip install docker-compose
@@ -29,3 +30,7 @@ pipelines:
           - pip install docker-compose
           - docker-compose up -d --build
           - docker-compose down
+
+definitions:
+  caches:
+
