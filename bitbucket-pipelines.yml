@@ -33,4 +33,4 @@ pipelines:
 
 definitions:
   caches:
-
+    condacache: /opt/python/bin
