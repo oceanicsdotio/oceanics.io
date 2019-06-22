@@ -52,6 +52,7 @@ paths:
         '400':
           $ref: '#/components/responses/BadRequest'
 
+
     get:
       tags: [Account]
       operationId: bathysphere_graph.handlers.get_token
@@ -74,32 +75,107 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+    put:
+      tags: [Account]
+      operationId: bathysphere_graph.handlers.update_account
+      summary: Update account
+      description: |
+
+        Change e-mail address or password.
+
+      requestBody:
+        $ref: '#/components/requestBodies/Register'
+
+      responses:
+        '200':
+          $ref: '#/components/responses/TokenResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+
+
+    delete:
+      tags: [Account]
+      operationId: bathysphere_graph.handlers.delete_account
+      summary: Delete account
+      description: |
+
+        Permanently delete account. Private data will be deleted. Public and derived data will be transferred to
+        control of the system admin. Specify `download=true` to download all data during delete process.
+
+      parameters:
+
+        - name: secret
+          in: query
+          schema:
+            $ref: '#/components/schemas/SecretKey'
+
+        - name: download
+          in: query
+          description: |
+
+          schema:
+            type: boolean
+            default: false
+
+      responses:
+        '200':
+          $ref: '#/components/responses/TokenResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
   /:
+
+    post:
+      tags: [Catalog]
+      operationId: bathysphere_graph.handlers.create_catalog
+      summary: Create catalog
+      description: |
+        Create catalog in current `Ingress`, which is automatically assigned from your credentials. `Ingress` instances
+        are associated with an organizational domain. For example a valid `@oceanics.io` e-mail address will get you
+        into the graph context known to Oceanicsdotio, while `@my.domain` will root you in a different subgraph.
+
+        An `Ingress` may exist in a database instance even if that organization is not a data provider. It simply
+        indicates that it is known and navigable by that client, and allows restricted `GET` queries by users wielding
+        an associated API key. The owner of the database instance must grant write access to perform other queries.
+        This is done by requesting to `POST` a `Catalog`, which is the top-level model of the SpatioTemporal Asset
+        Catalog (STAC) specification. If you are the instance owner, a `Catalog` is created automatically for you on
+        deployment.
+
+      requestBody:
+        $ref: '#/components/requestBodies/Catalog'
+
+      responses:
+        '200':
+          $ref: '#/components/requestBodies/Catalog'
 
     get:
       tags: [Collection]
       operationId: bathysphere_graph.handlers.get_sets
-      summary: Fetch classes
+      summary: Get collections
       description: |
 
-        Get all entity type in database. Any entity can be linked topologically to any other entity, but generally
-        these are grouped in functional sets by application area.
+        Get all entity types in database as collections following the SpatioTemporal Asset Catalog specification
 
-        * `catalog` implements the SpatioTemporal Asset Catalog specification.
-
-        * `sensing` implements Open Geospatial Consortium SensorThings specification (part 1),
-        and has models relevant to operating and getting data from sensor networks.
-
-        * `tasking` builds off of the SensorThings specification part 2.
-
-        * `mesh` implements structures for spatial simulations.
 
       parameters:
+
         - name: extension
+          description: |
+            Any entity can be linked topologically to any other entity, but generally
+            these are grouped in functional sets by application area:
+
+            * `sensing` implements Open Geospatial Consortium SensorThings specification (part 1),
+            and has models relevant to operating and getting data from sensor networks.
+
+            * `tasking` builds off of the SensorThings specification part 2.
+
+            * `mesh` implements structures for spatial simulations.
+
           in: query
           schema:
             type: string
-            enum: [sensing, mesh, tasking, catalog]
+            enum: [sensing, mesh, tasking]
             default: sensing
 
       responses:
@@ -108,12 +184,42 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+    put:
+
+      tags: [Catalog]
+      operationId: bathysphere_graph.handlers.update_catalog
+      summary: Update catalog
+      description: |
+        Update catalog metadata and permissions
+
+      requestBody:
+        $ref: '#/components/requestBodies/Catalog'
+
+      responses:
+        '200':
+          $ref: '#/components/requestBodies/Catalog'
+
+
+    delete:
+      tags: [Catalog]
+      operationId: bathysphere_graph.handlers.delete_catalog
+      summary: Delete catalog
+      description: |
+        Purge catalog data from the database. Irreversible.
+
+      requestBody:
+        $ref: '#/components/requestBodies/Catalog'
+
+      responses:
+        '204':
+          summary: No Content
+
   /{entity}:
 
     post:
       tags: [Entity]
       operationId: bathysphere_graph.handlers.create_entity
-      summary: Create
+      summary: Create entity
       description: |
         Create a new entity.
 
@@ -128,6 +234,22 @@ paths:
           $ref: '#/components/responses/Entity'
         '400':
           $ref: '#/components/responses/BadRequest'
+
+    get:
+      tags: [Collection]
+      operationId: bathysphere_graph.handlers.get_all
+      summary: Get collection
+      description: |
+        Get all entities of one type
+
+      parameters:
+        - $ref: "#/components/parameters/entityClass"
+
+      responses:
+        '200':
+          $ref: '#/components/responses/EntityCollection'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
     put:
       tags: [Collection]
@@ -149,28 +271,12 @@ paths:
         '400':
           $ref: '#/components/responses/BadRequest'
 
-    get:
-      tags: [Collection]
-      operationId: bathysphere_graph.handlers.get_all
-      summary: Fetch by class
-      description: |
-        Get all entities of one type
-
-      parameters:
-        - $ref: "#/components/parameters/entityClass"
-
-      responses:
-        '200':
-          $ref: '#/components/responses/EntityCollection'
-        '404':
-          $ref: '#/components/responses/NotFound'
-
   /{entity}({id}):
 
     get:
       tags: [Entity]
       operationId: bathysphere_graph.handlers.get_by_id
-      summary: Fetch by ID
+      summary: Get entity by ID
       description: |
         Get entity
 
@@ -187,7 +293,7 @@ paths:
     put:
       tags: [Entity]
       operationId: bathysphere_graph.handlers.update
-      summary: Update
+      summary: Update entity
       description: |
 
         Update entity
@@ -208,9 +314,9 @@ paths:
     delete:
       tags: [Entity]
       operationId: bathysphere_graph.handlers.delete
-      summary: Delete entity and children
+      summary: Delete entity
       description: |
-        Delete recusively.
+        Delete entity and orphaned children recursively.
 
       parameters:
         - $ref: "#/components/parameters/entityClass"
@@ -226,16 +332,17 @@ paths:
   /{root}({rootId})/{entity}:
 
     post:
-      tags: [Entity]
+      tags: [Topology]
       operationId: bathysphere_graph.handlers.create_entity_as_child
-      summary: Create
+      summary: Create related entity
       description: |
-        Create a new entity.
+        Create a new entity as a child of another.
 
       parameters:
         - $ref: "#/components/parameters/root"
         - $ref: "#/components/parameters/rootId"
         - $ref: "#/components/parameters/entityClass"
+        - $ref: "#/components/parameters/label"
 
       requestBody:
         $ref: '#/components/requestBodies/Entity'
@@ -246,13 +353,32 @@ paths:
         '400':
           $ref: '#/components/responses/BadRequest'
 
+    get:
+      tags: [Topology]
+      operationId: bathysphere_graph.handlers.get_children
+      summary: Get related entities
+      description: |
+        Get related entities
+
+      parameters:
+        - $ref: "#/components/parameters/root"
+        - $ref: "#/components/parameters/rootId"
+        - $ref: "#/components/parameters/entityClass"
+        - $ref: "#/components/parameters/label"
+
+      responses:
+        '200':
+          $ref: '#/components/responses/EntityCollection'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
 
   /{root}({rootId})/{entity}({id}):
 
     post:
-      tags: [Entity]
+      tags: [Topology]
       operationId: bathysphere_graph.handlers.add_link
-      summary: Link
+      summary: Create relationship
       description: |
         Create a labeled relationship between entities.
 
@@ -261,9 +387,7 @@ paths:
         - $ref: "#/components/parameters/rootId"
         - $ref: "#/components/parameters/entityClass"
         - $ref: "#/components/parameters/entityId"
-
-      requestBody:
-        $ref: '#/components/requestBodies/AddLink'
+        - $ref: "#/components/parameters/label"
 
       responses:
         '204':
@@ -271,6 +395,26 @@ paths:
         '400':
           $ref: '#/components/responses/BadRequest'
 
+    delete:
+      tags: [Topology]
+      operationId: bathysphere_graph.handlers.break_link
+      summary: Remove relationship
+      description: |
+        Remove a labeled relationship between entities. If no `label` is specified, remove all
+        relationships between the entities.
+
+      parameters:
+        - $ref: "#/components/parameters/root"
+        - $ref: "#/components/parameters/rootId"
+        - $ref: "#/components/parameters/entityClass"
+        - $ref: "#/components/parameters/entityId"
+        - $ref: "#/components/parameters/label"
+
+      responses:
+        '204':
+          description: No Content
+        '400':
+          $ref: '#/components/responses/BadRequest'
 
 components:
 
@@ -316,6 +460,17 @@ components:
       schema:
         type: integer
 
+
+    label:
+      in: query
+      name: label
+      description: |
+        Should be in format `LABEL`, although this is not strictly necessary. Labeled relationships
+        are used to crawl over the graph.
+      schema:
+        type: string
+
+
   requestBodies:
 
     Register:
@@ -328,6 +483,18 @@ components:
           schema:
             $ref: '#/components/schemas/Register'
 
+    Catalog:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Catalog'
+
+    Collection:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Collection'
+
     Entity:
       description: |
         Entity
@@ -335,22 +502,15 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Entity'
-
-    AddLink:
-      description: |
-        Manually connect two entities with a labeled relationship
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              label:
-                type: string
-                description: |
-                  Should be in format `LABEL`, although this is not strictly necessary. Labeled relationships
-                  are used to crawl over the graph.
-
+            oneOf:
+              - $ref: '#/components/schemas/Thing'
+              - $ref: '#/components/schemas/Location'
+              - $ref: '#/components/schemas/HistoricalLocation'
+              - $ref: '#/components/schemas/Datastream'
+              - $ref: '#/components/schemas/Observation'
+              - $ref: '#/components/schemas/ObservedProperty'
+              - $ref: '#/components/schemas/Sensor'
+              - $ref: '#/components/schemas/FeatureOfInterest'
 
     CollectionUpdate:
       description: |
@@ -379,7 +539,15 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Entity'
+            oneOf:
+              - $ref: '#/components/schemas/Thing'
+              - $ref: '#/components/schemas/Location'
+              - $ref: '#/components/schemas/HistoricalLocation'
+              - $ref: '#/components/schemas/Datastream'
+              - $ref: '#/components/schemas/Observation'
+              - $ref: '#/components/schemas/ObservedProperty'
+              - $ref: '#/components/schemas/Sensor'
+              - $ref: '#/components/schemas/FeatureOfInterest'
 
     TokenResponse:
       description: Auth token
@@ -425,21 +593,23 @@ components:
   schemas:
 
     CollectionOptions:
-      type: object
-      properties:
+      allOf:
+        - $ref: '#/components/schemas/Collection'
+        - type: object
+          properties:
 
-        label:
-          $ref: '#/components/schemas/EntityLabel'
+            label:
+              $ref: '#/components/schemas/EntityLabel'
 
-        indexBy:
-          type: string
-          default: id
-          enum:
-            - id
-            - location
-            - ts
-          description: |
-            Node attribute to create an index on.
+            indexBy:
+              type: string
+              default: id
+              enum:
+                - id
+                - location
+                - ts
+              description: |
+                Node attribute to create an index on.
 
 
     EntityLabel:
@@ -502,19 +672,29 @@ components:
           $ref: '#/components/schemas/SecretKey'
 
     EntityCollection:
-      type: object
-      properties:
-        "@iot.count":
-          type: integer
-          minimum: 1
-          maximum: 100
-          description: Total number of records in the response
+      allOf:
+        - type: object
+          properties:
+            "@iot.count":
+              type: integer
+              minimum: 1
+              maximum: 100
+              description: Total number of records in the response
 
-        value:
-          type: array
-          description: Array of response data
-          items:
-            $ref: '#/components/schemas/Entity'
+            value:
+              type: array
+              description: Array of response data
+              items:
+                oneOf:
+                  - $ref: '#/components/schemas/Thing'
+                  - $ref: '#/components/schemas/Location'
+                  - $ref: '#/components/schemas/HistoricalLocation'
+                  - $ref: '#/components/schemas/Datastream'
+                  - $ref: '#/components/schemas/Observation'
+                  - $ref: '#/components/schemas/ObservedProperty'
+                  - $ref: '#/components/schemas/Sensor'
+                  - $ref: '#/components/schemas/FeatureOfInterest'
+        - $ref: '#/components/schemas/Collection'
 
     EntityClass:
       type: string
@@ -538,43 +718,26 @@ components:
 
     Entity:
       type: object
-      required: [entityClass]
       properties:
 
         id:
           type: integer
+          readOnly: true
           description: |
             Unique integer identifier for entity. This usually auto-generated, but is different that the default node
             IDs within the Neo4j database, since those are not guarenteed to persist.
 
         name:
           type: string
+          nullable: true
           description: |
             Human readable entity name for displaying data.
 
         description:
           type: string
+          nullable: true
           description: |
             Short but useful explaination of what the entity is.
-
-        entityClass:
-          type: string
-          description: |
-            String to help discriminator.
-
-      discriminator:
-        propertyName: entityClass
-        mapping:
-          Datastream: '#/components/schemas/Datastream'
-          FeatureOfInterest: '#/components/schemas/FeatureOfInterest'
-          Location: '#/components/schemas/Location'
-          HistoricalLocation: '#/components/schemas/HistoricalLocation'
-          Observation: '#/components/schemas/Observation'
-          ObservedProperty: '#/components/schemas/ObservedProperty'
-          Sensor: '#/components/schemas/Sensor'
-          Thing: '#/components/schemas/Thing'
-          Collection: '#/components/schemas/Collection'
-          Catalog: '#/components/schemas/Catalog'
 
     FeatureOfInterest:
       allOf:
@@ -593,6 +756,19 @@ components:
               type: object
               description: Feature data
 
+            Observations:
+              readOnly: true
+              oneOf:
+
+                - type: array
+                  title: references
+                  items:
+                    type: string
+
+                - type: array
+                  title: objects
+                  items:
+                    type: object
 
     Thing:
       allOf:
@@ -605,6 +781,49 @@ components:
             properties:
               type: object
               description: Key-value properties
+
+              HistoricalLocations:
+                readOnly: true
+                oneOf:
+
+                  - type: array
+                    title: references
+                    items:
+                      type: string
+
+                  - type: array
+                    title: objects
+                    items:
+                      type: object
+
+              Locations:
+                readOnly: true
+                oneOf:
+
+                  - type: array
+                    title: references
+                    items:
+                      type: string
+
+                  - type: array
+                    title: objects
+                    items:
+                      type: object
+
+              Datastreams:
+                readOnly: true
+                oneOf:
+
+                  - type: array
+                    title: references
+                    items:
+                      type: string
+
+                  - type: array
+                    title: objects
+                    items:
+                      type: object
+
 
     LocationEncodingType:
       type: string
@@ -620,21 +839,84 @@ components:
             Last known location of a thing. May be a feature of interest, unless remote sensing.
 
           properties:
+
             encodingType:
               $ref: '#/components/schemas/LocationEncodingType'
 
+            HistoricalLocations:
+              readOnly: true
+              oneOf:
+
+                - type: array
+                  title: references
+                  items:
+                    type: string
+
+                - type: array
+                  title: objects
+                  items:
+                    type: object
+
+
+            Things:
+              readOnly: true
+              oneOf:
+
+                - type: array
+                  title: references
+                  items:
+                    type: string
+
+                - type: array
+                  title: objects
+                  items:
+                    type: object
 
     HistoricalLocation:
       allOf:
         - $ref: '#/components/schemas/Entity'
         - type: object
           properties:
+
             encodingType:
               $ref: '#/components/schemas/LocationEncodingType'
 
             time:
               type: string
+              format: date-time
               description: Timestamp when the location was current
+
+            Things:
+              readOnly: true
+              oneOf:
+
+                - type: array
+                  title: references
+                  length: 1
+                  items:
+                    type: string
+
+                - type: array
+                  title: objects
+                  length: 1
+                  items:
+                    type: object
+
+            Locations:
+              readOnly: true
+              oneOf:
+
+                - type: array
+                  title: references
+                  length: 1
+                  items:
+                    type: string
+
+                - type: array
+                  title: objects
+                  length: 1
+                  items:
+                    type: object
 
     Sensor:
 
@@ -651,56 +933,158 @@ components:
             metadata:
               type: object
 
+            Datastreams:
+              readOnly: true
+              oneOf:
+
+                - type: array
+                  title: references
+                  items:
+                    type: string
+
+                - type: array
+                  title: objects
+                  items:
+                    type: object
 
     Datastream:
       allOf:
         - $ref: '#/components/schemas/Entity'
         - type: object
+          description: |
+
+            Datastreams are collections of `Observations` from the same `Sensor`.
+
           properties:
 
             unitOfMeasurement:
               type: object
+              description: |
+                Unified Code for Unit of Measure
+
               properties:
                 name:
                   type: string
+                  required: true
                   description: Name for matching and displaying
                 symbol:
                   type: string
+                  nullable: true
                   description: Abbreviation for the parameter
                 definition:
                   type: string
+                  nullable: true
                   description: A link to a formal definition
 
             observationType:
               type: string
+              description: |
+                Data model of child `Observations`. Usually a `Measurement`.
+
+              nullable: true
+              enum:
+                - "OM_CategoryObservation"
+                - "OM_CountObservation"
+                - "OM_Measurement"
+                - "OM_Observation"
+                - "OM_TruthObservation"
 
             observedArea:
               type: object
+              nullable: true
+              readOnly: true
               description: |
-                Boundary geometry, GeoJSON polygon
+                The bounding box that encloses all `FeaturesOfInterest` referenced by child `Observations`
 
             phenomenonTime:
               type: array
               description: |
                 Time interval of the measured process, consisting of two ISO8601 timestamps.
+              length: 2
               items:
                 type: string
+                format: date-time
 
             resultTime:
               type: array
               description: |
                 Time interval of receiving data, consisting of two ISO8601 timestamps. May be different than the
                 measured process, due to batch uploads, latency, lack of real-time clocks in devices, etc.
-
+              length: 2
               items:
                 type: string
+                format: date-time
 
-            timescale:
+            table:
               type: string
               description: |
                 Time series observations associated with a datastream can be stored in the TimescaleDB.
                 TimescaleDB is an extension of Postgres+Postgis, and this is SQL table reference to find and
                 retrieve data.
+
+
+            Observations:
+              readOnly: true
+              oneOf:
+
+                - type: array
+                  title: references
+                  items:
+                    type: string
+
+                - type: array
+                  title: objects
+                  items:
+                    type: object
+
+            ObservedProperties:
+              readOnly: true
+              oneOf:
+
+                - type: array
+                  title: references
+                  length: 1
+                  items:
+                    type: string
+
+                - type: array
+                  title: objects
+                  length: 1
+                  items:
+                    type: object
+
+            Sensors:
+              readOnly: true
+              oneOf:
+
+                - type: array
+                  title: references
+                  length: 1
+                  items:
+                    type: string
+
+                - type: array
+                  title: objects
+                  length: 1
+                  items:
+                    type: object
+
+            Things:
+              readOnly: true
+              oneOf:
+
+                - type: array
+                  title: references
+                  length: 1
+                  items:
+                    type: string
+
+                - type: array
+                  title: objects
+                  length: 1
+                  items:
+                    type: object
+
 
     Observation:
       allOf:
@@ -710,24 +1094,69 @@ components:
 
             resultTime:
               type: string
+              format: date-time
+              description: |
+                Timestamp when the `Observation` was registered by the system.
 
             resultQuality:
               type: string
+              description: |
+                Quality of the result described as a `DQ_Element` (OGC)
 
             validTime:
               type: array
-              description: time interval, ISO8601
+              description: Time interval when the result is valid
+              length: 2
               items:
                 type: string
+                format: date-time
 
             phenomenonTime:
               type: string
+              format: date-time
+              description: |
+                Timestamp of the acquisition of the `Observation`
 
             result:
               description: The result of the observation. Usually a number.
               type: number
               format: float
 
+            parameters:
+              type: object
+              description: Environmental conditions during the `Observation`
+
+            Datastreams:
+              readOnly: true
+              oneOf:
+
+                - type: array
+                  title: references
+                  length: 1
+                  items:
+                    type: string
+
+                - type: array
+                  title: objects
+                  length: 1
+                  items:
+                    type: object
+
+            FeaturesOfInterest:
+              readOnly: true
+              oneOf:
+
+                - type: array
+                  title: references
+                  length: 1
+                  items:
+                    type: string
+
+                - type: array
+                  title: objects
+                  length: 1
+                  items:
+                    type: object
 
     ObservedProperty:
       allOf:
@@ -736,6 +1165,24 @@ components:
           properties:
             definition:
               type: string
+              nullable: true
+              description: Reference to resource that defines the property. We default to trying Wikipedia.
+
+            Datastreams:
+              readOnly: true
+              oneOf:
+
+                - type: array
+                  title: references
+                  length: 1
+                  items:
+                    type: string
+
+                - type: array
+                  title: objects
+                  length: 1
+                  items:
+                    type: object
 
     Catalog:
       allOf:
@@ -743,17 +1190,22 @@ components:
         - type: object
           description: |
             SpatioTemporal Asset Catalog catalog linking object.
+
           properties:
 
             title:
               type: string
+              description: The display name of the catalog
 
     Collection:
       allOf:
         - $ref: '#/components/schemas/Entity'
         - type: object
           description: |
-            SpatioTemporal Asset Catalog object-linking collection object.
+            SpatioTemporal Asset Catalog object-linking collection object. Collections are generic, while some
+            SensorThings entities are special Collections. For instance, a `Datastream` is a collection of
+            `Observations`.
+
           properties:
 
             extent:
@@ -761,23 +1213,43 @@ components:
 
             license:
               type: string
+              nullable: true
+              description: |
+                Reference to license for use of data.
 
             version:
               type: string
+              readOnly: true
+              nullable: true
+              description: Revision number
 
             keywords:
+              description: Search terms.
+              nullable: true
               type: array
               items:
                 type: string
 
             providers:
+              readOnly: true
+              description: |
+                Array of data providers and their relation to the data.
               type: array
               items:
                 $ref: '#/components/schemas/Provider'
 
     Extent:
+      title: extent
       type: object
+      readOnly: true
+      nullable: true
+      description: |
+
+        Spatiotemporal extent of a data `Collection`. Contains a 2 or 3-D `spatial` extent, and a `temporal`
+        interval.
+
       properties:
+
         spatial:
           type: array
           minLength: 4
@@ -792,23 +1264,30 @@ components:
 
 
     Provider:
+      title: dataProvider
       allOf:
         - $ref: '#/components/schemas/Entity'
         - type: object
+          description: |
+            Data providers are organizations or individuals that produce, process, host, or license data.
+
           properties:
+
             url:
               type: string
               description: URL to organization website
 
             roles:
-              $ref: '#/components/schemas/ProviderRoles'
+              type: array
+              description: |
+                Data providers are labeled with a role, so that attribution and redaction works properly on synthesized
+                datasets. Data in the system m
 
-    ProviderRoles:
-      type: array
-      items:
-        $ref: '#/components/schemas/ProviderRole'
+              items:
+                $ref: '#/components/schemas/ProviderRole'
 
     ProviderRole:
+      title: providerRole
       type: string
       enum:
         - licensor
