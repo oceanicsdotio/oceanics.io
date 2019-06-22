@@ -501,7 +501,8 @@ components:
       content:
         application/json:
           schema:
-            oneOf:
+            type: object
+            anyOf:  # TODO: change to oneOf and add the rest of the models
               - $ref: '#/components/schemas/Thing'
               - $ref: '#/components/schemas/Location'
               - $ref: '#/components/schemas/HistoricalLocation'
@@ -787,6 +788,12 @@ components:
             and integrated into communication networks.
 
           properties:
+
+            entityClass:
+              writeOnly: true
+              enum: [thing]
+              default: thing
+
             properties:
               type: object
               description: Key-value properties
@@ -849,6 +856,11 @@ components:
 
           properties:
 
+            entityClass:
+              writeOnly: true
+              enum: [location]
+              default: location
+
             encodingType:
               $ref: '#/components/schemas/LocationEncodingType'
 
@@ -886,6 +898,11 @@ components:
         - $ref: '#/components/schemas/Entity'
         - type: object
           properties:
+
+            entityClass:
+              writeOnly: true
+              enum: [historicalLocation]
+              default: historicalLocation
 
             encodingType:
               $ref: '#/components/schemas/LocationEncodingType'
@@ -936,6 +953,12 @@ components:
         - type: object
           properties:
 
+            entityClass:
+              writeOnly: true
+              type: string
+              enum: [sensor]
+              default: sensor
+
             encodingType:
               type: string
               enum: [application/pdf, "http://www.opengis.net/doc/IS/SensorML/2.0"]
@@ -967,6 +990,12 @@ components:
             Datastreams are collections of `Observations` from the same `Sensor`.
 
           properties:
+
+            entityClass:
+              writeOnly: true
+              type: string
+              enum: [datastream]
+              default: datastream
 
             unitOfMeasurement:
               type: object
