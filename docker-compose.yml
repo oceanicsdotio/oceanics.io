@@ -15,7 +15,7 @@ services:
       - ./openapi:/openapi
     depends_on:
       - neo4j
-      - bathysphere_graph
+      - bathysphere-graph
     networks:
       - oceanics
 
