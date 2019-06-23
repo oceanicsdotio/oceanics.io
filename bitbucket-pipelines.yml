@@ -15,10 +15,10 @@ pipelines:
           - graph
 
         script:
-          - pip install docker-compose
-          - docker pull neo4j:3.5
-          - docker-compose up -d neo4j
-          - sleep 30
+#          - pip install docker-compose
+#          - docker pull neo4j:3.5
+#          - docker-compose up -d neo4j
+#          - sleep 30
 #          - count=0; retries=10; timeout=6; status="undefined"
 #          - while [ "$status" != *"healthy"* ]; do
 #          -   if [ ${count} -gt ${retries} ]; then
@@ -33,7 +33,7 @@ pipelines:
           - conda env create -f config/environment.yml
           - source activate bathysphere_graph
           - pytest
-          - docker-compose down
+#          - docker-compose down
 
     - step:
         name: Build docker image in docker
