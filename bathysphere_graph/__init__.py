@@ -15,7 +15,9 @@ except ImportError:
         "EMAIL_SERVER": "",
         "EMAIL_PORT": 0,
         "REPLY_TO": "",
-        "SECRET": ""
+        "SECRET": "",
+        "PORT": 5000,
+        "BASE_PATH": "/api"
     }
 
 
@@ -24,4 +26,4 @@ for key, value in defaults.items():
     app.app.config[key] = getenv(key, value)
 
 CORS(app.app)
-app.add_api('api.yml')
+app.add_api('api.yml', base_path=app.app.config["BASE_PATH"])

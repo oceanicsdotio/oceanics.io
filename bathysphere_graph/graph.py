@@ -1,4 +1,4 @@
-from neo4j.v1 import GraphDatabase, Node
+from neo4j.v1 import GraphDatabase
 from yaml import loader, load as load_yml
 from itertools import repeat
 from bathysphere_graph import app
@@ -65,15 +65,25 @@ def _read(db, method, kwargs: list or dict = None) -> list or None:
     return None
 
 
-def properties(obj: object or Node, select: list = None, private: str = "_") -> dict:
+def properties(obj, select: list or tuple = None, private: str = "_") -> dict:
     """
     Create a filtered dictionary from the object properties.
     """
+    flag = True
+    if obj.__class__.__name__ == "Node":
+        try:
+            iterator = obj
+            flag = False
+        except AttributeError:
+            pass
+
+    if flag:
+        iterator = obj.__dict__
+
     return {
-        key: value for
-        key, value in (obj if type(obj) is Node else obj.__dict__).items() if
-        (type(key) == str and key[:len(private)] != private) and
-        (key in select if select else True)  # limit to user selected properties
+        key: value for key, value in iterator.items() if
+        (isinstance(key, str) and key[:len(private)] != private) and (key in select if select else True)
+        # limit to user selected properties
     }
 
 
@@ -84,7 +94,7 @@ def itemize(obj) -> dict:
     return {"cls": type(obj).__name__, "id": obj.id}
 
 
-def serialize(obj: object or Node, service: str, links=tuple(), protocol: str = "http", select: list = None) -> dict:
+def serialize(obj, service: str, links=tuple(), protocol: str = "http", select: list = None) -> dict:
     """
     Format entity as JSON compatible dictionary from either an object instance or a Neo4j <Node>
 
@@ -92,21 +102,24 @@ def serialize(obj: object or Node, service: str, links=tuple(), protocol: str = 
     Remove private members that include a underscore,
     since SensorThings notation is title case
     """
-    cls = list(obj.labels)[0] if type(obj) is Node else type(obj).__name__
+    try:
+        cls = list(obj.labels)[0]
+    except AttributeError:
+        cls = type(obj).__name__
+
     props = properties(obj, select)
     identity = props.pop("id")
     return {
-        "@iot.id": identity,
-        "@iot.selfLink": "{0}://{1}/{2}(3)".format(protocol, service, cls, identity),
+        "@iot.id":
+            identity,
+        "@iot.selfLink":
+            f"{protocol}://{service}:{app.app.config['PORT']}{app.app.config['BASE_PATH']}/{cls}({identity})",
         **props,
-        **{
-            each + "@iot.navigation": "{0}(1)/{2}".format(cls, identity, each) for
-            each in links
-        }
+        **{each + "@iot.navigation": f"{cls}({identity})/{each}" for each in links}
     }
 
 
-def render(cls: str, props: dict or Node) -> object:
+def render(cls: str, props) -> object:
     """
     Create entity instance from a dictionary or Neo4j <Node>, which has an items() method
     that works the same as the dictionary method.

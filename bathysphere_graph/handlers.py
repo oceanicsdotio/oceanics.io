@@ -7,7 +7,7 @@ from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from passlib.apps import custom_app_context
 
 from bathysphere_graph import app
-from bathysphere_graph.graph import index, records, add_label, itemize, load, exists, serialize, connect, create, link
+from bathysphere_graph.graph import index, add_label, itemize, load, exists, serialize, connect, create, link
 from bathysphere_graph.sensing import *
 from bathysphere_graph.stac import *
 from bathysphere_graph.mesh import *
@@ -43,8 +43,11 @@ def authenticate(fcn):
     Validate/verify JWT token.
     """
     def wrapper(*args, **kwargs):
+        try:
+            value, credential = request.headers.get("Authorization").split(":")
+        except AttributeError:
+            return {"message": "missing authorization header"}, 403
 
-        value, credential = request.headers.get("Authorization").split(":")
         db = kwargs.get("db")
 
         try:
@@ -91,44 +94,44 @@ def send_credential(email: str, text: str, auth: dict):
 
 @context
 @authenticate
-def create_catalog():
-    pass
+def create_catalog(body):
+    return body, 501
 
 
 @context
 @authenticate
-def update_catalog():
-    pass
+def update_catalog(body):
+    return body, 501
 
 
 @context
 @authenticate
-def delete_catalog():
-    pass
+def delete_catalog(**kwargs):
+    return kwargs, 501
 
 
 @context
 @authenticate
-def remove_children():
-    pass
+def remove_children(**kwargs):
+    return kwargs, 501
 
 
 @context
 @authenticate
-def get_children():
-    pass
+def get_children(**kwargs):
+    return kwargs, 501
 
 
 @context
 @authenticate
-def update_account():
-    pass
+def update_account(body):
+    return body, 501
 
 
 @context
 @authenticate
-def delete_account():
-    pass
+def delete_account(**kwargs):
+    return kwargs, 501
 
 
 @context
@@ -182,16 +185,16 @@ def get_token(db, user: User, secret: str = None):
     ), 200
 
 
-@context
 def get_sets(extension: str):
     """
     Usage 1. Get references to all entity sets
     """
+    path = f"http://{app.app.config['HOST']}:{app.app.config['PORT']}{app.app.config['BASE_PATH']}"
     try:
         return {"value": [
             {
                 "name": each.__name__,
-                "url":  "http://{0}:{1}/{2}".format(app.config["HOST"], app.config["PORT"], each.__name__)
+                "url":  f"{path}/{each.__name__}"
             } for each in {
                 "admin": graph_models,
                 "sensing": sensing_models,
@@ -200,11 +203,11 @@ def get_sets(extension: str):
                 "tasking": tasking_models
             }[extension]
         ]}, 200
-    except KeyError:
-        return 405
+    except KeyError as e:
+        return {"message": f"{e} on extension={extension}"}, 400
 
 
-def capabilties(db, obj: object, label: str, private: str = "_"):
+def capabilities(db, obj: object, label: str, private: str = "_"):
     """
     Create child TaskingCapabilities for public methods bound to the instance.
     """
@@ -235,7 +238,7 @@ def create_entity(db, user, entity: str, body: dict, offset: int = 0):
     obj = eval(entity)(**body)
     item = create(db, obj=obj, offset=offset)
     link(db, root=itemize(user), children=item)
-    capabilties(db, obj=obj, label="HAS")
+    capabilities(db, obj=obj, label="HAS")
 
     return {"message": "Create "+cls, "value": serialize(obj, service=app.app.config["HOST"])}, 200
 
@@ -253,15 +256,20 @@ def create_entity_as_child(db, user, entity: str, body: dict, offset: int = 0):
     obj = eval(entity)(**body)
     item = create(db, obj=obj, offset=offset)
     link(db, root=itemize(user), children=item)
-    capabilties(db, obj=obj, label="HAS")
+    capabilities(db, obj=obj, label="HAS")
 
     return {"message": "Create "+cls, "value": serialize(obj, service=app.app.config["HOST"])}, 200
+
 
 @context
 def get_all(db, entity: str):
     """Usage 2. Get all entities of a single class"""
-    entities = records(db, cls=entity, service=app.app.config["HOST"])
-    return {"@iot.count": len(entities), "value": entities}, 200
+    host = app.app.config["HOST"]
+    e = load(db, cls=entity)
+    return {
+        "@iot.count": len(e),
+        "value": tuple(serialize(item, service=host) for item in e)
+    }, 200
 
 
 @context

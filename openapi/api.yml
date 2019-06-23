@@ -183,8 +183,6 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/Message'
-        '404':
-          $ref: '#/components/responses/NotFound'
 
     put:
 
@@ -449,6 +447,21 @@ components:
 
       schema:
         type: string
+        enum:
+          - Datastreams
+          - Observations
+          - HistoricalLocations
+          - Locations
+          - Sensors
+          - Things
+          - Nodes
+          - Cells
+          - Meshes
+          - ObservedProperties
+          - Tasks
+          - Actuators
+          - TaskingCapabilities
+          - FeaturesOfInterest
 
     entityId:
       in: path
