@@ -4,34 +4,31 @@ from bathysphere_graph.tasking import TaskingCapabilities, Tasks, Actuators
 from bathysphere_graph.graph import count, load
 
 
-class TestTaskingMethodsAPI:
-    @staticmethod
-    @pytest.mark.dependency()
-    def test_create_task(create_entity, graph):
-        """Class name of graph"""
-        cls = Tasks.__name__
-        response = create_entity(cls, {
-            "entityClass": cls
-        })
-        assert response.status_code == 200
-        assert count(graph, cls=cls) > 0
-
-    @staticmethod
-    @pytest.mark.dependency(depends=["TestTaskingMethodsAPI::test_create_task"])
-    def test_create_actuator(create_entity, graph, add_link):
-        """Class name of graph"""
-        root = Actuators.__name__
-        response = create_entity(root, {
-            "entityClass": root,
-            "name": "Solenoid"})
-        assert response.status_code == 200
-        assert count(graph, cls=root) > 0
+@pytest.mark.dependency()
+def test_create_task(create_entity, graph):
+    """Class name of graph"""
+    cls = Tasks.__name__
+    response = create_entity(cls, {
+        "entityClass": cls
+    })
+    assert response.status_code == 200
+    assert count(graph, cls=cls) > 0
 
 
-    @staticmethod
-    @pytest.mark.dependency(depends=["TestTaskingMethodsAPI::test_create_actuator"])
-    def test_create_capability(create_entity, graph):
-        """Class name of graph"""
+@pytest.mark.dependency(depends=["test_create_task"])
+def test_create_actuator(create_entity, graph, add_link):
+    """Class name of graph"""
+    root = Actuators.__name__
+    response = create_entity(root, {
+        "entityClass": root,
+        "name": "Solenoid"})
+    assert response.status_code == 200
+    assert count(graph, cls=root) > 0
 
+
+@pytest.mark.dependency(depends=["test_create_actuator"])
+def test_create_capability(create_entity, graph):
+    """Class name of graph"""
+    pass
 
 

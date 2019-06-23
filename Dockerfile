@@ -13,5 +13,5 @@ COPY bathysphere_graph ./bathysphere_graph
 COPY src ./src
 
 RUN chmod +x ./src/start.sh
-HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD "curl -f localhost:7474"
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD "curl -f localhost:5000" || exit 1
 ENTRYPOINT ["./src/start.sh"]
