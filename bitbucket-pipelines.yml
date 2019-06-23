@@ -15,25 +15,9 @@ pipelines:
           - graph
 
         script:
-#          - pip install docker-compose
-#          - docker pull neo4j:3.5
-#          - docker-compose up -d neo4j
-#          - sleep 30
-#          - count=0; retries=10; timeout=6; status="undefined"
-#          - while [ "$status" != *"healthy"* ]; do
-#          -   if [ ${count} -gt ${retries} ]; then
-#          -     echo "Neo4j status is ${status}, aborting"
-#          -     docker-compose down; exit 1
-#          -   fi
-#          -   echo "Neo4j status is ${status}, waiting 5 seconds"
-#          -   count=$(( count+1 )); sleep ${timeout}
-#          -   status=$(docker inspect --format='{{json .State.Health.Status}}' bathysphere-graph_neo4j_1)
-#          - done
-#          - echo "Neo4j status is ${status}, continuing with tests";
           - conda env create -f config/environment.yml
           - source activate bathysphere_graph
           - pytest
-#          - docker-compose down
 
     - step:
         name: Build docker image in docker
@@ -41,7 +25,7 @@ pipelines:
           - docker
         script:
           - pip install docker-compose
-          - docker-compose build goodbuoy
+          - docker-compose build bathysphere-graph
 
 definitions:
   services:

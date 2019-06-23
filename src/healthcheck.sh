@@ -14,7 +14,7 @@ do
         exit 1
     fi
     echo "Neo4j status is ${status}, waiting 5 seconds"
-    let "count++"
+    [[ count++ ]]
     sleep ${timeout}
     status=$(docker inspect --format='{{json .State.Health.Status}}' bathysphere-graph_neo4j_1)
 done
