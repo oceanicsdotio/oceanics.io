@@ -1,10 +1,13 @@
-FROM continuumio/miniconda3
-
-WORKDIR bathysphere_graph
+FROM continuumio/miniconda3:4.6.14 AS base
 
 COPY config/environment.yml ./
 RUN conda env create -f environment.yml
 
+FROM continuumio/miniconda3:4.6.14
+
+COPY --from=base /opt/conda/ /opt/conda/
+
+WORKDIR bathysphere_graph
 COPY openapi/api.yml ./openapi/api.yml
 COPY bathysphere_graph ./bathysphere_graph
 COPY src ./src
