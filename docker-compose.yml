@@ -42,9 +42,9 @@ services:
       retries: 3
 
 
-  bathysphere_graph:
+  bathysphere-graph:
     build: .
-    image: oceanicsdotio/bathysphere_graph
+    image: oceanicsdotio/bathysphere-graph
     ports:
       - 5000:5000
     networks:
