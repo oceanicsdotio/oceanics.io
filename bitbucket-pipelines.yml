@@ -5,8 +5,9 @@ options:
 
 pipelines:
   default:
+
     - step:
-        name: Install dependencies, unit test, and deploy a local node
+        name: Build environment and run tests
         caches:
           - docker
           - pip
@@ -20,7 +21,7 @@ pipelines:
           - pytest
 
     - step:
-        name: Build docker image in docker
+        name: Build docker image
         caches:
           - docker
         script:
