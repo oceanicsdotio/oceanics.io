@@ -5,9 +5,9 @@ retries=10
 timeout=6
 status="undefined"
 
-while [ "$status" != *"healthy"* ]
+while [[ "$status" != *"healthy"* ]]
 do
-    if [ ${count} -gt ${retries} ]
+    if [[ ${count} -gt ${retries} ]]
     then
         echo "Neo4j status is ${status}, aborting"
         docker-compose down
