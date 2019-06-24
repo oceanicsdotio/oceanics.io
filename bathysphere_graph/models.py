@@ -1,7 +1,13 @@
 from secrets import token_urlsafe
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 
 class Entity:
+
+    _verb = False
+
     def __init__(self, identity: int = None, annotated: bool = False,
                  location: list or tuple or None = None, verb: bool = False):
         """
@@ -52,7 +58,9 @@ class Proxy(Entity):
 
 class User(Entity):
 
-    def __init__(self, name: str, credential: str, identity: int = None):
+    _ipAddress = None
+
+    def __init__(self, name: str, credential: str, identity: int = None, description: str = "", ip=None):
         """
         Create a user entity.
 
@@ -61,13 +69,34 @@ class User(Entity):
         """
         Entity.__init__(self, identity=identity, annotated=True)
         self.name = name
+        self.alias = name
         self._credential = credential
         self.validated = False
+        self._ipAddress = ip
+        self.description = description
+
+    def sendCredential(self, text: str, auth: dict):
+
+        server = smtplib.SMTP_SSL(auth["server"], port=auth["port"])
+        server.login(auth["account"], auth["key"])
+
+        msg_root = MIMEMultipart()
+        msg_root['Subject'] = "Oceanicsdotio Account"
+        msg_root['From'] = auth["reply to"]
+        msg_root['To'] = self.name
+
+        msg_alternative = MIMEMultipart('alternative')
+        msg_root.attach(msg_alternative)
+        msg_alternative.attach(
+            MIMEText(text)
+        )
+        server.sendmail(auth["account"], self.name, msg_root.as_string())
 
 
 class Ingress(Entity):
 
     _apiKey = None
+    _lock = False
 
     def __init__(self, name, description="", url="", apiKey=None, identity=None):
 

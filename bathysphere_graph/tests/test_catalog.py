@@ -64,4 +64,31 @@ def test_create_catalog(create_entity, graph):
     obj_id = payload.get("@iot.id")
 
 
+@pytest.mark.xfail
+def test_config_catalog(client, token):
+    response = client.post(
+        "api/",
+        json={"echo": "test"},
+        headers={"Authorization": ":" + token.get("token", "")}
+    )
+    assert response.status_code == 204, response.get_json()
 
+
+@pytest.mark.xfail
+def test_update_catalog(client, token):
+    response = client.put(
+        "api/",
+        json={"echo": "test"},
+        headers={"Authorization": ":" + token.get("token", "")}
+    )
+    assert response.status_code == 204, response.get_json()
+
+
+@pytest.mark.xfail
+def test_delete_catalog(client, token):
+    response = client.delete(
+        "api/",
+        json={"echo": "test"},
+        headers={"Authorization": ":" + token.get("token", "")}
+    )
+    assert response.status_code == 204, response.get_json()

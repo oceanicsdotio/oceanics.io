@@ -27,6 +27,19 @@ def graph():
     yield db
 
 
+@pytest.fixture(scope="session")
+def token(client):
+    user = app.app.config["ADMIN"]
+    credential = app.app.config["ADMIN_PASS"]
+    response = client.get(
+        "api/auth",
+        headers={"Authorization": "{}:{}".format(user, credential)}
+    )
+    data = response.get_json()
+    assert response.status_code == 200, data
+    return data
+
+
 @pytest.fixture(scope="function")
 def create_entity(client, token):
     def _make_request(cls, properties):
@@ -61,15 +74,3 @@ def get_entity(client, token):
         return response
     return _make_request
 
-
-@pytest.fixture(scope="session")
-def token(client):
-    user = app.app.config["ADMIN"]
-    credential = app.app.config["ADMIN_PASS"]
-    response = client.get(
-        "api/auth",
-        headers={"Authorization": "{}:{}".format(user, credential)}
-    )
-    data = response.get_json()
-    assert response.status_code == 200, data
-    return data

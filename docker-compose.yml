@@ -18,6 +18,11 @@ services:
       - bathysphere-graph
     networks:
       - oceanics
+    healthcheck:
+      test: ["CMD", "curl", "-f", "localhost:80"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
   neo4j:
     image: neo4j:3.5

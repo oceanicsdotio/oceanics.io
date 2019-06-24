@@ -177,8 +177,7 @@ paths:
           in: query
           schema:
             type: string
-            enum: [sensing, mesh, tasking]
-            default: sensing
+            enum: [sensing, mesh, tasking, admin, catalog]
 
       responses:
         '200':

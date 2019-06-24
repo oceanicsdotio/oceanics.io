@@ -26,6 +26,14 @@ class Datastreams(Entity):
         self.phenomenonTime = None  # time interval, ISO8601
         self.resultTime = None  # result times interval, ISO8601
 
+    @staticmethod
+    def statistics():
+        pass
+
+    @staticmethod
+    def resample():
+        pass
+
 
 class FeaturesOfInterest(Entity):
 
@@ -80,6 +88,10 @@ class Locations(Entity):
         self.name = name
         self.description = description
         self.encodingType = "application/vnd.geo+json"
+
+    @staticmethod
+    def project():
+        pass
 
 
 class HistoricalLocations(Entity):
