@@ -17,11 +17,8 @@ class Entity:
         if annotated:
             self.name = None
             self.description = None
-
         if location:
-            self.location = {"type": "Point", "coordinates": location} \
-                if type(location) == list \
-                else location
+            self.location = {"type": "Point", "coordinates": location} if type(location) == list else location
 
         self._notify('created')
 
@@ -37,10 +34,11 @@ class Entity:
 
 
 class Root(Entity):
-    def __init__(self, url: str):
-        Entity.__init__(self, identity=0, annotated=False)
+    def __init__(self, url: str, secretKey: str):
+        Entity.__init__(self, identity=0, annotated=True)
+        self.name = "root"
         self.url = url
-        self.secretKey = "blah blah blah"
+        self._secretKey = secretKey
         self.tokenDuration = 600
 
 
@@ -63,11 +61,13 @@ class User(Entity):
         """
         Entity.__init__(self, identity=identity, annotated=True)
         self.name = name
-        self.credential = credential
+        self._credential = credential
         self.validated = False
 
 
 class Ingress(Entity):
+
+    _apiKey = None
 
     def __init__(self, name, description="", url="", apiKey=None, identity=None):
 
@@ -75,7 +75,7 @@ class Ingress(Entity):
         self.name = name
         self.description = description
         self.url = url
-        self.apiKey = token_urlsafe(64) if apiKey is None else apiKey
+        self._apiKey = apiKey if apiKey else token_urlsafe(64)
 
 
 graph_models = {

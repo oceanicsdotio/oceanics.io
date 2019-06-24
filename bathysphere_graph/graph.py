@@ -4,6 +4,7 @@ from itertools import repeat
 from bathysphere_graph import app
 from bathysphere_graph.models import Root, Ingress, Entity, User
 from bathysphere_graph.sensing import *
+from bathysphere_graph.stac import *
 from bathysphere_graph.tasking import *
 
 
@@ -15,24 +16,20 @@ def connect(auth: tuple, port: int = 7687, hosts: tuple = ("neo4j", "localhost")
     queue = list(hosts)
     while len(queue) > 0:
         try:
-            db = GraphDatabase.driver(uri="bolt://{0}:{1}".format(queue.pop(), port), auth=auth)
+            db = GraphDatabase.driver(uri=f"bolt://{queue.pop()}:{port}", auth=auth)
             break
         except:
             if len(queue) == 0 and db is None:
                 return
 
     if not exists(db, cls="Root", identity=0):
-        root = Root(url="localhost:5000")
+        root = Root(url="localhost:5000", secretKey=app.app.config["SECRET"])
         root_item = create(db, cls=Root.__name__, identity=root.id, props=properties(root))
 
         for conf in load_yml(open("./config/ingress.yml")):
-            cls = Ingress.__name__
             if conf.pop("owner", False):
                 conf["apiKey"] = app.app.config["API_KEY"]
-
-            obj = Ingress(identity=auto_id(db, cls), **conf)
-            item = create(db, cls=cls, identity=obj.id, props=properties(obj))
-            link(db, root=root_item, children=item)
+            link(db, root=root_item, children=create(db, obj=Ingress(**conf)))
 
     return db
 
@@ -65,7 +62,7 @@ def _read(db, method, kwargs: list or dict = None) -> list or None:
     return None
 
 
-def properties(obj, select: list or tuple = None, private: str = "_") -> dict:
+def properties(obj, select: list or tuple = None, private: str = None) -> dict:
     """
     Create a filtered dictionary from the object properties.
     """
@@ -84,6 +81,8 @@ def properties(obj, select: list or tuple = None, private: str = "_") -> dict:
         key: value for key, value in iterator.items() if
         (isinstance(key, str) and key[:len(private)] != private) and (key in select if select else True)
         # limit to user selected properties
+    } if private else {
+        key: value for key, value in iterator.items() if (key in select if select else True)
     }
 
 
@@ -94,7 +93,7 @@ def itemize(obj) -> dict:
     return {"cls": type(obj).__name__, "id": obj.id}
 
 
-def serialize(obj, service: str, links=tuple(), protocol: str = "http", select: list = None) -> dict:
+def serialize(db, obj, service: str, protocol: str = "http", select: list = None) -> dict:
     """
     Format entity as JSON compatible dictionary from either an object instance or a Neo4j <Node>
 
@@ -107,19 +106,29 @@ def serialize(obj, service: str, links=tuple(), protocol: str = "http", select: 
     except AttributeError:
         cls = type(obj).__name__
 
-    props = properties(obj, select)
+    restricted = ("User", "Ingress", "Root")
+    props = properties(obj, select, private="_")
     identity = props.pop("id")
+    collection_link = f"{protocol}://{service}:{app.app.config['PORT']}{app.app.config['BASE_PATH']}/{cls}"
+    self_link = f"{collection_link}({identity})"
+    nav = links(db=db, parent={"cls": cls, "id": identity})
+
+    nav_links = {
+        each + "@iot.navigation": f"{self_link}/{each}"
+        for each in nav
+        if each not in restricted
+    }
+
     return {
-        "@iot.id":
-            identity,
-        "@iot.selfLink":
-            f"{protocol}://{service}:{app.app.config['PORT']}{app.app.config['BASE_PATH']}/{cls}({identity})",
+        "@iot.id": identity,
+        "@iot.selfLink": self_link,
         **props,
-        **{each + "@iot.navigation": f"{cls}({identity})/{each}" for each in links}
+        **nav_links,
+        **{cls + "@iot.navigation": collection_link}
     }
 
 
-def render(cls: str, props) -> object:
+def render(cls: str, props, private: str = "_") -> object:
     """
     Create entity instance from a dictionary or Neo4j <Node>, which has an items() method
     that works the same as the dictionary method.
@@ -133,6 +142,15 @@ def render(cls: str, props) -> object:
             setattr(obj, key, value)
         except KeyError:
             pass
+        else:
+            continue
+
+        try:
+            setattr(obj, private + key, value)
+        except KeyError:
+            print(f"Warning, unknown key: {key}")
+            pass
+
     return obj
 
 
@@ -159,7 +177,7 @@ def add_label(db, **kwargs) -> list or None:
     """
     def _tx(tx, cls: str, label: str, identity: int or str = None) -> list:
         return tx.run(
-            "MATCH {0} SET n:{1}".format(_node(cls=cls, by=type(identity)), label),
+            f"MATCH {_node(cls=cls, by=type(identity))} SET n:{label}",
             {"id": identity} if identity is not None else None
         ).values()
 
@@ -178,12 +196,19 @@ def count(db, **kwargs) -> int:
     return _read(db, _tx, kwargs)
 
 
-def load(db, **kwargs) -> list or None:
-    rec = records(db, **kwargs)
+def load(**kwargs) -> list or None:
+
+    rec = kwargs.get("rec", None)
+    if not rec:
+        db = kwargs.get("db", None)
+        if not db:
+            return None
+        rec = records(**kwargs)
     if not rec:
         return None
 
-    return [render(cls=kwargs.get("cls"), props=properties(each[0])) for each in rec]
+    cls = kwargs.get("cls", None)
+    return [render(cls=(cls if cls else list(each.labels)[0]), props=properties(each[0])) for each in rec]
 
 
 def records(db, **kwargs) -> list or None:
@@ -195,13 +220,9 @@ def records(db, **kwargs) -> list or None:
         Load entities as database records.
         """
         by = None if identity is None else type(identity)
-        return tx.run(
-            "MATCH {0} RETURN {1}".format(
-                _node(symbol=symbol, cls=cls, by=by),
-                "{0}.{1}".format(symbol, result) if result else symbol
-            ),
-            id=identity
-        ).values()
+        nodes = _node(symbol=symbol, cls=cls, by=by)
+        return_val = f"{symbol}.{result}" if result else symbol
+        return tx.run(f"MATCH {nodes} RETURN {return_val}", id=identity).values()
 
     try:
         return _read(db, _tx, kwargs)
@@ -257,8 +278,8 @@ def neighbors(db, cls: str, identity: int or str, of_cls: str = None) -> (int, t
     Get all children of identified node.
     """
     collection = []
-    for child_type in records(db, cls=cls, id=identity, of_cls=of_cls):
-        collection.append(load(db, cls=child_type, identity=None))
+    for child_type in records(db=db, cls=cls, id=identity, of_cls=of_cls):
+        collection.append(load(db=db, cls=child_type, identity=None))
     return collection
 
 
@@ -327,18 +348,16 @@ def _neighbor(cls, tx, id):
     """
     a = _node("a", cls, id)
     b = _node("b", cls, id)
-    path = a + "-[:SIDE_OF]->(:Cell)<-" + b
-    command = " ".join(["MATCH", path, "MERGE", "(a)-[:NEIGHBORS]-(b)"])
+    command = f"MATCH {a}-[:SIDE_OF]->(:Cell)<-{b} MERGE (a)-[:NEIGHBORS]-(b)"
     tx.run(command, id=id)
 
 
 def _location(coordinates):
     if len(coordinates) == 2:
-        values = "x: {0}, y: {1}, crs:'wgs-84'".format(str(coordinates[1]), str(coordinates[0]))
+        values = f"x: {coordinates[1]}, y: {coordinates[0]}, crs:'wgs-84'"
     else:
-        string = "x: {0}, y: {1}, z: {2}, crs:'wgs-84-3d'"
-        values = string.format(str(coordinates[1]), str(coordinates[0]), str(coordinates[2]))
-    return "location: point({" + values + "})"
+        values = f"x: {coordinates[1]}, y: {coordinates[0]}, z: {coordinates[2]}, crs:'wgs-84-3d'"
+    return f"location: point({{{values}}})"
 
 
 def create(db, obj: object = None, offset: int = 0, **kwargs):
@@ -355,7 +374,7 @@ def create(db, obj: object = None, offset: int = 0, **kwargs):
         kwargs = {
             "cls": type(obj).__name__,
             "identity": getattr(obj, "id"),
-            "props": properties(obj)
+            "props": obj.__dict__
         }
     if kwargs.get("identity", None) is None:
         kwargs["identity"] = auto_id(db, cls=kwargs.get("cls"), offset=offset)
@@ -371,10 +390,10 @@ def create(db, obj: object = None, offset: int = 0, **kwargs):
             if key == "location":
                 p.append(_location(value["coordinates"]))
             else:
-                str_val = ('{0}' if type(value) is int else '"{0}"').format(value)
-                p.append('{0}:{1}'.format(key, str_val))
+                str_val = f'{value}' if type(value) is int else f'"{value}"'
+                p.append(f'{key}:{str_val}')
 
-        return tx.run("MERGE (n: {0} {{{1}}}) ".format(cls, ", ".join(p)), id=identity).values()
+        return tx.run(f"MERGE (n: {cls} {{{', '.join(p)}}})", id=identity).values()
 
     _write(db, _tx, kwargs)
     return {"cls": kwargs["cls"], "id": kwargs["identity"]}
@@ -409,19 +428,20 @@ def relationships(db, **kwargs):
             by = None
         else:
             cls = obj["cls"]
-            by = type(obj["id"])
+            by = None if not obj.get("id", None) else type(obj.get("id"))
 
         return _node(symbol=symbol, cls=cls, by=by, var=symbol)
 
     def _tx(tx, parent: dict = None, child: dict = None,
-                      label: str = "", result: str = "labels(b)", directional=False, kwargs: dict = None) -> list:
+            label: str = "", result: str = "labels(b)",
+            directional=False, kwargs: dict = None) -> list:
 
         left = _fmt(parent, symbol="a")
         right = _fmt(child, symbol="b")
         params = dict()
-        if parent is not None:
+        if parent and parent.get("id", None):
             params["a"] = parent["id"]
-        if child is not None:
+        if child and child.get("id", None):
             params["b"] = child["id"]
 
         return tx.run(

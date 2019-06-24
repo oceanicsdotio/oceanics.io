@@ -23,7 +23,7 @@ def graph():
     """
     db = connect(auth=("neo4j", app.app.config['ADMIN_PASS']))
     assert db is not None
-    purge(db)
+    purge(db)  # purge the test database - then leave it populated after teardown
     yield db
 
 
@@ -31,7 +31,7 @@ def graph():
 def create_entity(client, token):
     def _make_request(cls, properties):
         response = client.post(
-            "/{0}".format(cls),
+            "api/{0}".format(cls),
             json=properties,
             headers={"Authorization": ":"+token.get("token", "")}
         )
@@ -43,7 +43,7 @@ def create_entity(client, token):
 def add_link(client, token):
     def _make_request(root, root_id, cls, identity, label):
         response = client.post(
-            "/{0}({1})/{2}({3})".format(root, root_id, cls, identity),
+            "api/{0}({1})/{2}({3})".format(root, root_id, cls, identity),
             json={"label": label},
             headers={"Authorization": ":"+token.get("token", "")}
         )
@@ -55,7 +55,7 @@ def add_link(client, token):
 def get_entity(client, token):
     def _make_request(cls, id):
         response = client.get(
-            "/{0}({1})".format(cls, id),
+            "api/{0}({1})".format(cls, id),
             headers={"Authorization": ":"+token.get("token", "")}
         )
         return response
@@ -67,7 +67,7 @@ def token(client):
     user = app.app.config["ADMIN"]
     credential = app.app.config["ADMIN_PASS"]
     response = client.get(
-        "/auth",
+        "api/auth",
         headers={"Authorization": "{}:{}".format(user, credential)}
     )
     data = response.get_json()
