@@ -1,6 +1,7 @@
 import pytest
 from bathysphere_graph import sensing
 from bathysphere_graph.models import Entity
+from uuid import uuid4
 from bathysphere_graph.graph import load, count
 
 TEST_LOCATION = "Upper Damariscotta Estuary"
@@ -73,7 +74,7 @@ def test_create_datastream(create_entity, get_entity, graph):
     response = create_entity(
         cls,
         {
-            "name": "test_series",
+            "name": f"temperature-{uuid4()}",
             "entityClass": cls,
             "description": "API call test"
         }
@@ -85,6 +86,24 @@ def test_create_datastream(create_entity, get_entity, graph):
     obj_id = payload.get("@iot.id")
     response = get_entity(cls, obj_id)
     assert response.status_code == 200, response.get_json()
+
+    response = create_entity(
+        cls,
+        {
+            "name": f"temperature-{uuid4()}",
+            "entityClass": cls,
+            "description": "API call test"
+        }
+    )
+
+    response = create_entity(
+        cls,
+        {
+            "name": f"temperature-{uuid4()}",
+            "entityClass": cls,
+            "description": "API call test"
+        }
+    )
 
 
 @pytest.mark.dependency(depends=["test_create_location"])

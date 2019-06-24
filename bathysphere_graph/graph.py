@@ -1,4 +1,5 @@
 from neo4j.v1 import GraphDatabase
+from inspect import signature
 from yaml import loader, load as load_yml
 from itertools import repeat
 from bathysphere_graph import app
@@ -6,6 +7,7 @@ from bathysphere_graph.models import Root, Ingress, Entity, User
 from bathysphere_graph.sensing import *
 from bathysphere_graph.stac import *
 from bathysphere_graph.tasking import *
+from bathysphere_graph.mesh import Cells, Nodes, Mesh
 
 
 def connect(auth: tuple, port: int = 7687, hosts: tuple = ("neo4j", "localhost")):
@@ -122,9 +124,9 @@ def serialize(db, obj, service: str, protocol: str = "http", select: list = None
     return {
         "@iot.id": identity,
         "@iot.selfLink": self_link,
+        "@iot.collection": collection_link,
         **props,
-        **nav_links,
-        **{cls + "@iot.navigation": collection_link}
+        **nav_links
     }
 
 
@@ -360,7 +362,32 @@ def _location(coordinates):
     return f"location: point({{{values}}})"
 
 
-def create(db, obj: object = None, offset: int = 0, **kwargs):
+def capabilities(db, obj, label: str, private: str = "_"):
+    """
+    Create child TaskingCapabilities for public methods bound to the instance.
+    """
+    root = itemize(obj)
+    entity = type(obj).__name__
+    for each in (key for key in set(dir(obj)) - set(obj.__dict__.keys()) if key[0] != private):
+
+        fname = f"{entity}.{each}"
+        tc = load(db=db, cls=entity, identity=fname)
+        if not tc:
+            item = create(
+                db=db,
+                obj=TaskingCapabilities(
+                    name=fname,
+                    taskingParameters=[tasking_parameters(name=b.name, kind="", tokens=[""])
+                                       for b in signature(eval(fname)).parameters.values()]
+                )
+            )
+        else:
+            item = {"cls": entity, "id": tc[0].id}
+
+        link(db=db, root=root, children=item, label=label)
+
+
+def create(db, obj=None, offset: int = 0, **kwargs):
     """
     Create a new node(s) in graph. Format object properties dictionary as list of key:"value" strings,
     automatically converting each object to string using its built-in __str__ converter.
@@ -396,6 +423,9 @@ def create(db, obj: object = None, offset: int = 0, **kwargs):
         return tx.run(f"MERGE (n: {cls} {{{', '.join(p)}}})", id=identity).values()
 
     _write(db, _tx, kwargs)
+    if obj:
+        capabilities(db=db, obj=obj, label="HAS")
+
     return {"cls": kwargs["cls"], "id": kwargs["identity"]}
 
 

@@ -61,7 +61,7 @@ class Collections(Entity):
         self.extent = extent()
         self.license = license
         self.version = "" if version is None else version
-        self.keywords = list(set() if keywords is None else set(keywords))
+        self.keywords = list(set() if keywords is None else set(keywords.split(",")))
         self.providers = providers
 
 

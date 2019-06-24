@@ -1,12 +1,8 @@
-from inspect import signature
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 from connexion import request
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from passlib.apps import custom_app_context
 
-from bathysphere_graph import app
+
 from bathysphere_graph.graph import index, add_label, itemize, load, exists, serialize, connect, create, link, \
     relationships
 from bathysphere_graph.sensing import *
@@ -14,6 +10,7 @@ from bathysphere_graph.stac import *
 from bathysphere_graph.mesh import *
 from bathysphere_graph.tasking import *
 from bathysphere_graph.models import *
+from bathysphere_graph import app, models
 
 
 def token(secret_key, user_id, duration):
@@ -34,7 +31,11 @@ def context(fcn):
         db = connect(auth=("neo4j", app.app.config["ADMIN_PASS"]))  # inject db session
         if db is None:
             return {"message": "no graph backend"}, 500
+        # try:
         return fcn(*args, db=db, **kwargs)
+        # except Exception as e:
+        #     return {"message": "runtime error"}, 500
+
     return wrapper
 
 
@@ -47,7 +48,9 @@ def authenticate(fcn):
         try:
             value, credential = request.headers.get("Authorization").split(":")
         except AttributeError:
-            return {"message": "missing authorization header"}, 403
+            if request.method != "GET":
+                return {"message": "missing authorization header"}, 403
+            return fcn(*args, user=None, **kwargs)
 
         db = kwargs.get("db")
 
@@ -78,59 +81,75 @@ def authenticate(fcn):
     return wrapper
 
 
-def send_credential(email: str, text: str, auth: dict):
-
-    server = smtplib.SMTP_SSL(auth["server"], port=auth["port"])
-    server.login(auth["account"], auth["key"])
-
-    msg_root = MIMEMultipart()
-    msg_root['Subject'] = "Oceanicsdotio Account"
-    msg_root['From'] = auth["reply to"]
-    msg_root['To'] = email
-
-    msg_alternative = MIMEMultipart('alternative')
-    msg_root.attach(msg_alternative)
-    msg_alternative.attach(
-        MIMEText(text)
-    )
-    server.sendmail(auth["account"], email, msg_root.as_string())
-
-
 @context
 @authenticate
-def create_catalog(body):
+def create_catalog(db, user, body):
+    """
+    Configure a new catalog
+
+    :param body:
+    :return:
+    """
     return body, 501
 
 
 @context
 @authenticate
-def update_catalog(body):
+def update_catalog(db, user, body):
+    """
+    Update a catalog
+
+    :param body:
+    :return:
+    """
     return body, 501
 
 
 @context
 @authenticate
 def delete_catalog(**kwargs):
+    """
+    Delete catalog and contents
+
+    :param kwargs:
+    :return:
+    """
     return kwargs, 501
 
 
 @context
 @authenticate
 def remove_children(**kwargs):
+    """
+    Remove children
+
+    :param kwargs:
+    :return:
+    """
     return kwargs, 501
-
-
 
 
 @context
 @authenticate
-def update_account(body):
+def update_account(db, user, body):
+    """
+    Change account settings
+
+    :param body:
+    :return:
+    """
     return body, 501
 
 
 @context
 @authenticate
 def delete_account(**kwargs):
+    """
+    Delete account and all private data
+
+    :param kwargs:
+    :return:
+    """
     return kwargs, 501
 
 
@@ -140,19 +159,16 @@ def register(body, db, auth: dict = None):
     Register a new user account
     """
     api_key = body.get('apiKey', "")
-    collection = load(db, cls=Ingress.__name__)
+    collection = load(db=db, cls=Ingress.__name__)
     ingress = [item for item in collection if item._apiKey == api_key]
     if len(ingress) != 1:
-        for item in collection:
-            print(item.__dict__)
-
         return {"message": "bad API key"}, 403
     port_of_entry = ingress.pop()
 
     username = body.get('username')
     if not ("@" in username and "." in username):
         return {'message': "use email"}, 403
-    if exists(db, "User", identity=username):
+    if exists(db=db, cls="User", identity=username):
         return {'message': "invalid email"}, 403
 
     _, domain = username.split("@")
@@ -160,16 +176,16 @@ def register(body, db, auth: dict = None):
         return {'message': "invalid email"}, 403
 
     user = User(name=username, credential=custom_app_context.hash(body.get('password')))
-    item = create(db, obj=user)
-    link(db, root=itemize(port_of_entry), children=item)
+    item = create(db=db, obj=user)
+    link(db=db, root=itemize(port_of_entry), children=item, label="MEMBER")
     if auth:
-        send_credential(
-            email=username,
+        root = load(db=db, cls="Root")
+        user.sendCredential(
             auth=auth,
             text=token(
-                secret_key=body.get('secret', load(db, cls="Root").secretKey),
+                secret_key=body.get('secret', root._secretKey),
                 user_id=item["id"],
-                duration=load(db, cls="Root").tokenDuration
+                duration=root.tokenDuration
             ).get("token")
         )
     return None, 204
@@ -181,7 +197,9 @@ def get_token(db, user: User, secret: str = None):
     """
     Send an auth token back for future sessions
     """
-    root = load(db, cls="Root").pop()
+    if not user:
+        return None, 403
+    root = load(db=db, cls="Root").pop()
     return token(
         secret_key=secret if secret else root._secretKey,
         user_id=user.id,
@@ -189,45 +207,23 @@ def get_token(db, user: User, secret: str = None):
     ), 200
 
 
-def get_sets(extension: str = None):
+@context
+@authenticate
+def get_sets(db, user, extension: str = "all"):
     """
-    Usage 1. Get references to all entity sets
+    Usage 1. Get references to all entity sets, or optionally filter
     """
     path = f"http://{app.app.config['HOST']}:{app.app.config['PORT']}{app.app.config['BASE_PATH']}"
+
     try:
-        return {"value": [
-            {
+        return {"value": {
+            "-".join([each.__name__, datetime.utcnow().isoformat()]): {
                 "name": each.__name__,
                 "url":  f"{path}/{each.__name__}"
-            } for each in {
-                "admin": graph_models,
-                "sensing": sensing_models,
-                "catalog": stac_models,
-                "mesh": mesh_models,
-                "tasking": tasking_models
-            }[extension]
-        ]}, 200
+            } for each in models[extension]
+        }}, 200
     except KeyError as e:
         return {"message": f"{e} on extension={extension}"}, 400
-
-
-@authenticate
-def capabilities(db, user, obj: object, label: str, private: str = "_"):
-    """
-    Create child TaskingCapabilities for public methods bound to the instance.
-    """
-    root = itemize(obj)
-    for each in (key for key in set(dir(obj)) - set(obj.__dict__.keys()) if key[0] != private):
-        fname = f"{type(obj).__name__}.{each}"
-        item = create(
-            db=db,
-            obj=TaskingCapabilities(
-                name=fname,
-                taskingParameters=[tasking_parameters(name=b.name, kind="", tokens=[""])
-                                   for b in signature(eval(fname)).parameters.values()]
-            )
-        )
-        link(db=db, root=root, children=item, label=label)
 
 
 @context
@@ -245,10 +241,14 @@ def create_entity(db, user, entity: str, body: dict, offset: int = 0):
         return {'error': 'Bad request'}, 400
 
     item = create(db=db, obj=obj, offset=offset)
-    link(db=db, root=itemize(user), children=item)
-    capabilities(db=db, obj=obj, label="HAS")
+    link(db=db, root=itemize(user), children=item, label="POST")
+    e = relationships(db=db, parent={"cls": "User", "id": user.id},
+                      child={"cls": "Ingress"}, result="b.id", label="MEMBER")
+    if e and not isinstance(obj, Ingress):
+        for each in e:
+            link(db=db, root={"cls": "Ingress", "id": each[0]}, children=item, label="PROVIDER")
 
-    return {"message": "Create "+cls, "value": serialize(db, obj, service=app.app.config["HOST"])}, 200
+    return {"message": f"Create {cls}", "value": serialize(db, obj, service=app.app.config["HOST"])}, 200
 
 
 @context
@@ -265,26 +265,34 @@ def create_entity_as_child(db, user, entity: str, body: dict, offset: int = 0):
     except:
         return {'error': 'Bad request'}, 400
 
-    item = create(db, obj=obj, offset=offset)
-    link(db, root=itemize(user), children=item)
-    capabilities(db, obj=obj, label="HAS")
+    item = create(db=db, obj=obj, offset=offset)
+    link(db=db, root=itemize(user), children=item, label="POST")
+    e = relationships(db=db, parent={"cls": "User", "id": user.id}, child={"cls": "Ingress"}, result="b.id")
+    if e:
+        for each in e:
+            link(db=db, root={"cls": "Ingress", "id": each[0]}, children=item, label="PROVIDER")
 
-    return {"message": "Create "+cls, "value": serialize(db, obj, service=app.app.config["HOST"])}, 200
+    return {"message": f"Create {cls}", "value": serialize(db=db, obj=obj, service=app.app.config["HOST"])}, 200
 
 
 @context
-def get_all(db, entity: str):
+@authenticate
+def get_all(db, user: User, entity: str):
     """Usage 2. Get all entities of a single class"""
     host = app.app.config["HOST"]
     e = load(db=db, cls=entity)
+    if not e:
+        e = []
+
     return {
         "@iot.count": len(e),
-        "value": tuple(serialize(db, item, service=host) for item in e)
+        "value": tuple(serialize(db=db, obj=item, service=host) for item in e)
     }, 200
 
 
 @context
-def get_by_id(db, entity: str, id: int, key: str = None, method: str = None) -> (dict, int):
+@authenticate
+def get_by_id(db, user: User, entity: str, id: int, key: str = None, method: str = None) -> (dict, int):
     """
     Usage 3. Return information on a single entity
     Usage 4. Return single entity property
@@ -295,7 +303,7 @@ def get_by_id(db, entity: str, id: int, key: str = None, method: str = None) -> 
     if len(e) != 1:
         return {
             "error": "duplicate entries found",
-            "value": tuple(serialize(db, item, service=host) for item in e)
+            "value": tuple(serialize(db=db, obj=item, service=host) for item in e)
         }, 500
 
     if key is not None:
@@ -307,30 +315,25 @@ def get_by_id(db, entity: str, id: int, key: str = None, method: str = None) -> 
 
     return {
         "@iot.count": len(e),
-        "value": tuple(serialize(db, item, service=host) for item in e)
+        "value": tuple(serialize(db=db, obj=item, service=host) for item in e)
     }, 200
 
 
 @context
-def get_children(db, root, rootId, entity, **kwargs):
+@authenticate
+def get_children(db, user: User, root, rootId, entity, **kwargs):
 
     host = app.app.config["HOST"]
-    e = relationships(db, parent={"cls": root, "id": rootId}, child={"cls": entity}, result="b")[0]
-
-    [print("recs:", i) for i in e]
-
-    records = tuple(serialize(db=db, obj=obj, service=host) for obj in e)
-
-    [print("json:", i) for i in records]
-
+    e = relationships(db=db, parent={"cls": root, "id": rootId}, child={"cls": entity}, result="b")
     return {
         "@iot.count": len(e),
-        "value": records
+        "value": tuple(serialize(db=db, obj=obj[0], service=host) for obj in e)
     }, 200
 
 
 @context
-def update(entity, id):
+@authenticate
+def update(db, user, entity, id):
     """
     Give new values for the properties of an existing entity.
     """
@@ -359,6 +362,7 @@ def update(entity, id):
 
 
 @context
+@authenticate
 def delete(entity, id):
     """
     Delete entity, and all owned/attached entities, follow SensorThings logic
@@ -369,7 +373,7 @@ def delete(entity, id):
 @context
 def add_link(db, root: str, rootId: int, entity: str, id: int, body: dict):
     link(
-        db,
+        db=db,
         root={"cls": root, "id": rootId},
         children={"cls": entity, "id": id},
         label=body.get("label")
@@ -377,18 +381,20 @@ def add_link(db, root: str, rootId: int, entity: str, id: int, body: dict):
     return None, 204
 
 
+@context
+@authenticate
 def break_link():
-    pass
+    return None, 501
 
 
 @context
 def update_collection(entity, body, db):
     index_by = body.get("indexBy", None)
     if index_by is not None:
-        index(db, cls=entity, by=index_by)
+        index(db=db, cls=entity, by=index_by)
 
     label = body.get("label", None)
     if label is not None:
-        add_label(db, cls=entity, label=label)
+        add_label(db=db, cls=entity, label=label)
 
     return None, 204
