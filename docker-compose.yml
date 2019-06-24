@@ -35,9 +35,9 @@ services:
       - NEO4J_dbms_memory_pagecache_size=200M
       - NEO4J_dbms_memory_heap_maxSize=500M
     volumes:
-      - ./data/testing:/data/databases
-      - ./logs:/logs
-      - ./data/import:/var/lib/neo4j/import
+      - /data/testing:/data/databases
+      - /logs:/logs
+      - /data/import:/var/lib/neo4j/import
     networks:
       - oceanics
     healthcheck:
