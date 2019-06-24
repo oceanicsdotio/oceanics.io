@@ -1,4 +1,4 @@
-from connexion import request
+from flask import request
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from passlib.apps import custom_app_context
 
@@ -175,7 +175,7 @@ def register(body, db, auth: dict = None):
     if port_of_entry.name != "Public" and domain != port_of_entry.url:
         return {'message': "invalid email"}, 403
 
-    user = User(name=username, credential=custom_app_context.hash(body.get('password')))
+    user = User(name=username, credential=custom_app_context.hash(body.get('password')), ip=request.remote_addr)
     item = create(db=db, obj=user)
     link(db=db, root=itemize(port_of_entry), children=item, label="MEMBER")
     if auth:
