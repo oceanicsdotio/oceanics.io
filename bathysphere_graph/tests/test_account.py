@@ -6,7 +6,7 @@ from bathysphere_graph import app
 def test_register_user(client, graph):
     _ = graph
     response = client.post(
-        "/auth",
+        "api/auth",
         json={
             "username": app.app.config["ADMIN"],
             "password": app.app.config["ADMIN_PASS"],
@@ -14,8 +14,7 @@ def test_register_user(client, graph):
             "apiKey": app.app.config["API_KEY"]
         }
     )
-    print(response)
-    assert response.status_code == 204
+    assert response.status_code == 204, response.get_json()
 
 
 @pytest.mark.dependency(depends=["test_register_user"])

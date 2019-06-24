@@ -462,6 +462,9 @@ components:
           - Actuators
           - TaskingCapabilities
           - FeaturesOfInterest
+          - Ingress
+          - Collections
+          - Catalogs
 
     entityId:
       in: path
