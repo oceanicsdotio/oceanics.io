@@ -19,7 +19,7 @@ services:
     networks:
       - oceanics
     healthcheck:
-      test: ["CMD", "curl", "-f", "localhost:80"]
+      test: ["CMD", "curl", "-f", "localhost:443"]
       interval: 30s
       timeout: 5s
       retries: 3
