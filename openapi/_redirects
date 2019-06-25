@@ -1,2 +1,2 @@
-/api            http://165.22.37.71/api/
-/browser        http://165.22.37.71/browser/
+/api/*      http://165.22.37.71/api/:splat      200
+/browser/*  http://165.22.37.71/browser/:splat  200
