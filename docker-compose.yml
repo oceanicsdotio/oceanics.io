@@ -52,6 +52,20 @@ services:
     image: oceanicsdotio/bathysphere-graph
     ports:
       - 5000:5000
+    environment:
+      - ADMIN
+      - ADMIN_PASS
+      - API_KEY
+      - HOST
+      - EMAIL_ACCT
+      - EMAIL_KEY
+      - EMAIL_SERVER=smtp.oceanics.io
+      - EMAIL_PORT=465
+      - REPLY_TO
+      - SECRET="blah blah blah"
+      - PORT=5000
+      - BASE_PATH=/api
+
     networks:
       - oceanics
     volumes:
