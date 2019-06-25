@@ -35,7 +35,7 @@ services:
       - NEO4J_dbms_memory_pagecache_size=200M
       - NEO4J_dbms_memory_heap_maxSize=500M
     volumes:
-      - ${GRAPHDB:-.}/data/neo4j/:/data/databases
+      - ${GRAPHDB:-./data/neo4j}:/data/databases
       - ./logs/neo4j/:/logs
       - ./data/import:/var/lib/neo4j/import
     networks:
