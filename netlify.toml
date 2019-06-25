@@ -13,4 +13,3 @@
 
   [headers.values]
     Access-Control-Allow-Origin = "*"
-    Content-Security-Policy = "default-src 'self' *.oceanics.io"
