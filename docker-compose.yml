@@ -34,11 +34,10 @@ services:
       - NEO4J_AUTH=neo4j/n0t_passw0rd
       - NEO4J_dbms_memory_pagecache_size=200M
       - NEO4J_dbms_memory_heap_maxSize=500M
-      - GRAPHDB
     volumes:
-      - ${GRAPHDB:-./data/testing}:/data/databases
-      - ./logs:/logs
-      - ./data/import:/var/lib/neo4j/import
+      - ${GRAPHDB/graph:-./data/testing}:/data/databases
+      - ${GRAPHDB/logs:-./logs}:/logs
+      - ${GRAPHDB/import:-./data/import}:/var/lib/neo4j/import
     networks:
       - oceanics
     healthcheck:
