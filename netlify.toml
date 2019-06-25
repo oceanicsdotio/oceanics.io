@@ -1,2 +1,16 @@
 [build]
-publish = "openapi"
+  publish = "openapi"
+
+[[redirects]]
+  from = "/api/* "
+  to = "http://165.22.37.71/api/:splat"
+  status = 200
+
+
+[[headers]]
+  # Define which paths this specific [[headers]] block will cover.
+  for = "/*"
+
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Content-Security-Policy = "default-src 'self' *.oceanics.io"
