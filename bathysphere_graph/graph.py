@@ -28,7 +28,7 @@ def connect(auth: tuple, port: int = 7687, hosts: tuple = ("neo4j", "localhost")
         root = Root(url="localhost:5000", secretKey=app.app.config["SECRET"])
         root_item = create(db, cls=Root.__name__, identity=root.id, props=properties(root))
 
-        for conf in load_yml(open("./config/ingress.yml")):
+        for conf in load_yml(open("config/ingress.yml")):
             if conf.pop("owner", False):
                 conf["apiKey"] = app.app.config["API_KEY"]
             link(db, root=root_item, children=create(db, obj=Ingress(**conf)))
