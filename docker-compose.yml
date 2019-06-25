@@ -62,7 +62,7 @@ services:
       - EMAIL_SERVER=smtp.oceanics.io
       - EMAIL_PORT=465
       - REPLY_TO
-      - SECRET="blah blah blah"
+      - SECRET
       - PORT=5000
       - BASE_PATH=/api
 
