@@ -5,7 +5,7 @@ from bathysphere_graph.graph import count
 @pytest.mark.dependency()
 def test_create_mesh(create_entity, graph):
     """Class name of graph"""
-    response = create_entity("Meshes", {"entityClass": "Mesh", "name": "Midcoast"})
+    response = create_entity("Mesh", {"entityClass": "Mesh", "name": "Midcoast"})
     assert response.status_code == 200, response.get_json()
     assert count(graph, cls="Mesh") > 0
 

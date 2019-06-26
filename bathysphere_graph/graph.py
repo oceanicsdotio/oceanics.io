@@ -391,22 +391,27 @@ def capabilities(db, obj, label: str, private: str = "_"):
     """
     root = itemize(obj)
     entity = type(obj).__name__
-    for each in (key for key in set(dir(obj)) - set(obj.__dict__.keys()) if key[0] != private):
+    instance = [f"{entity}.{key}" for key in set(dir(obj)) - set(obj.__dict__.keys())
+                if key[:len(private)] != private]
 
-        fname = f"{entity}.{each}"
-        tc = load(db=db, cls=entity, identity=fname)
-        if not tc:
-            item = create(
-                db=db,
-                obj=TaskingCapabilities(
-                    name=fname,
-                    taskingParameters=[tasking_parameters(name=b.name, kind="", tokens=[""])
-                                       for b in signature(eval(fname)).parameters.values()]
-                )
-            )
+    existing = load(db=db, cls=TaskingCapabilities.__name__)
+    matching = {
+        item.name: item.id for item in existing
+        if item.name in instance
+    } if existing else {}
+
+    for fname in instance:
+        match_id = matching.get(fname, None)  # already exists
+        if match_id is not None:
+            item = {"cls": TaskingCapabilities.__name__, "id": match_id}
         else:
-            item = {"cls": entity, "id": tc[0].id}
-
+            fcn = eval(fname)
+            params = [
+                tasking_parameters(name=b.name, kind="", tokens=[""])
+                for b in signature(fcn).parameters.values()
+            ]
+            obj = TaskingCapabilities(name=fname, taskingParameters=params, description=fcn.__doc__)
+            item = create(db=db, obj=obj)
         link(db=db, root=root, children=item, label=label)
 
 

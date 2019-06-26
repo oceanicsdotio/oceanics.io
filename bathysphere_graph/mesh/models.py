@@ -11,6 +11,10 @@ class Cells(Locations):
         self.porosity = None
         self.area = None
 
+    @staticmethod
+    def adjacency():
+        pass
+
 
 class Nodes(Locations):
 
@@ -26,6 +30,10 @@ class Nodes(Locations):
         self.elevation = None
         self.wet = None
         self.open = None
+
+    @staticmethod
+    def adjacency():
+        pass
 
 
 class Mesh(FeaturesOfInterest):
@@ -45,6 +53,22 @@ class Mesh(FeaturesOfInterest):
 
     def statistics(self):
         pass
+
+    @staticmethod
+    def cellAdjacency(parents: dict, indices: list, topology) -> (dict, list):
+        """
+        Get element neighbors
+        """
+        queue = dict()
+        while indices:
+            cell = indices.pop()
+            nodes = [set(parents[key]) - {cell} for key in topology[cell, :]]
+            buffer = [nodes[ii] & nodes[ii - 1] for ii in range(3)]
+            key = "neighbor" if 0 < len(buffer) <= 3 else "error"
+            queue[key][cell] = buffer
+
+        return queue
+
 
 
 mesh_models = {

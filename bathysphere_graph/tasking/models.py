@@ -56,6 +56,9 @@ class Tasks(Entity):
         self.creationTime = time()
         self.taskingParameters = taskingParameters
 
+    def stop(self):
+        pass
+
 
 tasking_models = {
     Actuators,

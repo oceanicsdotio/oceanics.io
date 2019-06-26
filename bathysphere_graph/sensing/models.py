@@ -28,10 +28,22 @@ class Datastreams(Entity):
 
     @staticmethod
     def statistics():
+        """Generate summary statistics for this Datastream"""
         pass
 
     @staticmethod
     def resample():
+        """Change sample frequency or clean/interpolate data"""
+        pass
+
+    @staticmethod
+    def transform():
+        """Turn this ObservedProperty into another, or translate to frequency domain"""
+        pass
+
+    @staticmethod
+    def filter():
+        """Flag bad or unwanted data"""
         pass
 
 
@@ -50,6 +62,9 @@ class FeaturesOfInterest(Entity):
 
         self.encodingType = None
         self.feature = None
+
+    def map(self):
+        pass
 
 
 def polygon(points, inner=None):
@@ -141,6 +156,9 @@ class Device(Entity):
         self.description = description
         self.encodingType = encodingType
         self.metadata = metadata
+
+    def disable(self):
+        pass
 
 
 class Sensors(Device):
