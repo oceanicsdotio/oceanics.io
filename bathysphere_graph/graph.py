@@ -490,9 +490,9 @@ def relationships(db, **kwargs):
         left = _fmt(parent, symbol="a")
         right = _fmt(child, symbol="b")
         params = dict()
-        if parent and parent.get("id", None):
+        if parent and parent.get("id", None) is not None:
             params["a"] = parent["id"]
-        if child and child.get("id", None):
+        if child and child.get("id", None) is not None:
             params["b"] = child["id"]
 
         return tx.run(
