@@ -145,16 +145,12 @@ def serialize(db, obj, service: str, protocol: str = "http", select: list = None
     nav = links(db=db, parent={"cls": cls, "id": identity})
     nav_links = {each + "@iot.navigation": f"{self_link}/{each}" for each in nav if each not in restricted}
 
-    nav = links(db=db, child={"cls": cls, "id": identity})
-    nav_links2 = {each + "@iot.backref": f"{self_link}/{each}" for each in nav if each not in restricted}
-
     return {
         "@iot.id": identity,
         "@iot.selfLink": self_link,
         "@iot.collection": collection_link,
         **props,
-        **nav_links,
-        **nav_links2
+        **nav_links
     }
 
 
@@ -506,7 +502,7 @@ def relationships(db, **kwargs):
             "MATCH {0}-{1}-{2}{3} RETURN {4}".format(
                 left,
                 "[:{0}]".format(label) if label else "",
-                ">" if directional else "",
+                "" if directional else "",
                 right,
                 result
             ),
