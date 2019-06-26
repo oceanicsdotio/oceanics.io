@@ -139,7 +139,8 @@ def serialize(db, obj, service: str, protocol: str = "http", select: list = None
     restricted = ("User", "Ingress", "Root")
     props = properties(obj, select, private="_")
     identity = props.pop("id")
-    collection_link = f"{protocol}://{service}:{app.app.config['PORT']}{app.app.config['BASE_PATH']}/{cls}"
+    show_port = f":{app.app.config['PORT']}" if service in ("localhost", ) else ""
+    collection_link = f"{protocol}://{service}{show_port}{app.app.config['BASE_PATH']}/{cls}"
     self_link = f"{collection_link}({identity})"
     nav = links(db=db, parent={"cls": cls, "id": identity})
 
