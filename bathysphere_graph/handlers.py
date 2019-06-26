@@ -218,7 +218,8 @@ def get_sets(db, user, extension: str = "all"):
     """
     Usage 1. Get references to all entity sets, or optionally filter
     """
-    path = f"http://{app.app.config['HOST']}:{app.app.config['PORT']}{app.app.config['BASE_PATH']}"
+    show_port = f":{app.app.config['PORT']}" if app.app.config['HOST'] in ("localhost",) else ""
+    path = f"http://{app.app.config['HOST']}{show_port}{app.app.config['BASE_PATH']}"
 
     try:
         return {"value": {
