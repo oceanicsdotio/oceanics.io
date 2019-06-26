@@ -136,14 +136,14 @@ def serialize(db, obj, service: str, protocol: str = "http", select: list = None
     except AttributeError:
         cls = type(obj).__name__
 
-    restricted = ("User", "Ingress", "Root")
+    # restricted = ("User", "Ingress", "Root")
     props = properties(obj, select, private="_")
     identity = props.pop("id")
     show_port = f":{app.app.config['PORT']}" if service in ("localhost", ) else ""
     collection_link = f"{protocol}://{service}{show_port}{app.app.config['BASE_PATH']}/{cls}"
     self_link = f"{collection_link}({identity})"
     nav = links(db=db, parent={"cls": cls, "id": identity})
-    nav_links = {each + "@iot.navigation": f"{self_link}/{each}" for each in nav if each not in restricted}
+    nav_links = {each + "@iot.navigation": f"{self_link}/{each}" for each in nav if each not in []}
 
     return {
         "@iot.id": identity,
@@ -467,10 +467,7 @@ def _node(symbol: str = "n", cls: str = "", by: type = None, var: str = "id") ->
 
 def links(db, **kwargs):
     wrapped = relationships(db, **kwargs)
-    backref = relationships(db, directional=True, **kwargs)
-    forward = set(label for buffer in wrapped[0] for label in buffer) if wrapped else set()
-    backward = set(label for buffer in backref[0] for label in buffer) if backref else set()
-    return forward | backward
+    return set(label for buffer in wrapped for label in buffer[0]) if wrapped else set()
 
 
 def relationships(db, **kwargs):
@@ -489,7 +486,7 @@ def relationships(db, **kwargs):
 
     def _tx(tx, parent: dict = None, child: dict = None,
             label: str = "", result: str = "labels(b)",
-            directional=False, kwargs: dict = None) -> list:
+            direction=None) -> list:
 
         left = _fmt(parent, symbol="a")
         right = _fmt(child, symbol="b")
@@ -499,8 +496,10 @@ def relationships(db, **kwargs):
         if child and child.get("id", None):
             params["b"] = child["id"]
 
+        command = f"MATCH {left}-[]-{right} RETURN {result}"
+        print(command)
         return tx.run(
-            f"MATCH {left}{'<' if not directional else ''}-{f'[:{label}]' if label else ''}-{'' if directional else ''}{right} RETURN {result}",
+            f"MATCH {left}{'<' if direction==-1 else ''}-{f'[:{label}]' if label else ''}-{'' if direction==1 else ''}{right} RETURN {result}",
             **params
         ).values()
 
@@ -534,7 +533,6 @@ def relationships(db, **kwargs):
     #             result[each].append(entity._serialize(future, sel))
     #
     #     return result
-
 
 
 def expand(string):
