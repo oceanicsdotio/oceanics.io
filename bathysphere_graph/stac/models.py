@@ -64,6 +64,9 @@ class Collections(Entity):
         self.keywords = list(set() if keywords is None else set(keywords.split(",")))
         self.providers = providers
 
+    def calculateExtent(self, projection: str) -> (int, dict):
+        pass
+
 
 class Catalogs(Entity):
     """
@@ -93,6 +96,9 @@ class Items(Entity):
         }
 
         self.type = "Feature"
+
+    def calculateBoundingBox(self, projection: str) -> (int, dict):
+        pass
 
 
 stac_models = {

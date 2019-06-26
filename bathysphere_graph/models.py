@@ -7,6 +7,7 @@ from email.mime.text import MIMEText
 class Entity:
 
     _verb = False
+    _source = None
 
     def __init__(self, identity: int = None, annotated: bool = False,
                  location: list or tuple or None = None, verb: bool = False):
@@ -19,6 +20,7 @@ class Entity:
         """
         self.id = identity
         self._verb = verb
+        self._source = "entity.__init__"
 
         if annotated:
             self.name = None

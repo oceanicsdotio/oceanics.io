@@ -19,7 +19,7 @@ info:
   contact:
     name: Oceanicsdotio
     url: http://www.oceanics.io
-    email: aquaculture@oceanics.io
+    email: bathysphere@oceanics.io
 
   license:
     name: MIT
@@ -462,13 +462,13 @@ components:
           - Things
           - Nodes
           - Cells
-          - Meshes
+          - Mesh  # TODO(Keeney): plural consistency
           - ObservedProperties
           - Tasks
           - Actuators
           - TaskingCapabilities
           - FeaturesOfInterest
-          - Ingress
+          - Ingress  # TODO(Keeney): plural consistency
           - Collections
           - Catalogs
 
