@@ -479,7 +479,7 @@ def relationships(db, **kwargs):
             by = None
         else:
             cls = obj["cls"]
-            by = None if not obj.get("id", None) else type(obj.get("id"))
+            by = None if obj.get("id", None) is None else type(obj.get("id"))
 
         return _node(symbol=symbol, cls=cls, by=by, var=symbol)
 
