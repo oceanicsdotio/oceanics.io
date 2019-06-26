@@ -11,7 +11,7 @@ def tasking_parameters(name: str, description: str = "", kind: str = "", tokens:
         "name": name,
         "description": description,
         "type": kind,
-        "AllowedTokens": tokens
+        "allowedTokens": tokens
     }
 
 
