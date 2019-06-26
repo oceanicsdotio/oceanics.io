@@ -1,5 +1,7 @@
 import pytest
 from bathysphere_graph import app
+from requests import get
+from json import loads
 
 
 @pytest.mark.dependency()
@@ -21,6 +23,23 @@ def test_register_user(client, graph):
 def test_get_token(token):
     btk = token.get("token")
     duration = token.get("duration")
+    assert btk is not None and len(btk) >= 127
+    assert duration is not None and duration > 30
+
+
+@pytest.mark.dependency()
+@pytest.mark.xfail
+def test_get_remote_token():
+
+    response = get(
+        url="https://graph.oceanics.io/api/auth",
+        headers={"Authorization": "bathysphere@oceanics.io:n0t_passw0rd"}
+    )
+    assert response.ok
+    data = loads(response.text)
+
+    btk = data.get("token")
+    duration = data.get("duration")
     assert btk is not None and len(btk) >= 127
     assert duration is not None and duration > 30
 
