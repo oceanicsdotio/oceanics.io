@@ -12,6 +12,7 @@ try:
 except ImportError:
     defaults = {
         'ADMIN': '',
+        'NEO4J_AUTH': '',
         'ADMIN_PASS': '',
         'API_KEY': '',
         'HOST': 'localhost',

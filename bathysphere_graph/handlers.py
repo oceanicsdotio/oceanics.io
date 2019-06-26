@@ -28,7 +28,7 @@ def context(fcn):
     Inject graph database session into request.
     """
     def wrapper(*args, **kwargs):
-        db = connect(auth=("neo4j", app.app.config["ADMIN_PASS"]))  # inject db session
+        db = connect(auth=(app.app.config["ADMIN"], app.app.config["ADMIN_PASS"]))
         if db is None:
             return {"message": "no graph backend"}, 500
         if isinstance(db, (dict, list)):
