@@ -143,19 +143,18 @@ def serialize(db, obj, service: str, protocol: str = "http", select: list = None
     collection_link = f"{protocol}://{service}{show_port}{app.app.config['BASE_PATH']}/{cls}"
     self_link = f"{collection_link}({identity})"
     nav = links(db=db, parent={"cls": cls, "id": identity})
+    nav_links = {each + "@iot.navigation": f"{self_link}/{each}" for each in nav if each not in restricted}
 
-    nav_links = {
-        each + "@iot.navigation": f"{self_link}/{each}"
-        for each in nav
-        if each not in restricted
-    }
+    nav = links(db=db, child={"cls": cls, "id": identity})
+    nav_links2 = {each + "@iot.backref": f"{self_link}/{each}" for each in nav if each not in restricted}
 
     return {
         "@iot.id": identity,
         "@iot.selfLink": self_link,
         "@iot.collection": collection_link,
         **props,
-        **nav_links
+        **nav_links,
+        **nav_links2
     }
 
 
