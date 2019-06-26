@@ -59,7 +59,6 @@ def connect(auth: tuple, port: int = 7687, retries: int = 3, delay: int = 10,
                 conf["apiKey"] = app.app.config["API_KEY"]
             ingress = create(db, obj=Ingress(**conf))
             link(db, root=root_item, children=ingress)
-            print(ingress)
 
     return db
 
@@ -136,14 +135,14 @@ def serialize(db, obj, service: str, protocol: str = "http", select: list = None
     except AttributeError:
         cls = type(obj).__name__
 
-    # restricted = ("User", "Ingress", "Root")
+    restricted = ("User", "Ingress", "Root")
     props = properties(obj, select, private="_")
     identity = props.pop("id")
     show_port = f":{app.app.config['PORT']}" if service in ("localhost", ) else ""
     collection_link = f"{protocol}://{service}{show_port}{app.app.config['BASE_PATH']}/{cls}"
     self_link = f"{collection_link}({identity})"
     nav = links(db=db, parent={"cls": cls, "id": identity})
-    nav_links = {each + "@iot.navigation": f"{self_link}/{each}" for each in nav if each not in []}
+    nav_links = {each + "@iot.navigation": f"{self_link}/{each}" for each in nav if each not in restricted}
 
     return {
         "@iot.id": identity,
@@ -496,8 +495,6 @@ def relationships(db, **kwargs):
         if child and child.get("id", None):
             params["b"] = child["id"]
 
-        command = f"MATCH {left}-[]-{right} RETURN {result}"
-        print(command)
         return tx.run(
             f"MATCH {left}{'<' if direction==-1 else ''}-{f'[:{label}]' if label else ''}-{'' if direction==1 else ''}{right} RETURN {result}",
             **params
