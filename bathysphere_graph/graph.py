@@ -446,7 +446,7 @@ def create(db, obj=None, offset: int = 0, **kwargs):
             if key == "location":
                 p.append(_location(value["coordinates"]))
             else:
-                str_val = f'{value}' if type(value) is int else f'"{value}"'
+                str_val = str(value) if isinstance(value, int) else f'"{value}"'
                 p.append(f'{key}:{str_val}')
 
         return tx.run(f"MERGE (n: {cls} {{{', '.join(p)}}})", id=identity).values()
