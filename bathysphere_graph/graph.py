@@ -13,9 +13,6 @@ from bathysphere_graph.tasking import *
 from bathysphere_graph.mesh import Cells, Nodes, Mesh
 
 
-# get(url="http://localhost:7474")
-
-
 def connect(auth: tuple, port: int = 7687, retries: int = 3, delay: int = 10,
             hosts: tuple = ("neo4j", "localhost", "bathysphere-graph_neo4j_1")):
     """
