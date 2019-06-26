@@ -28,6 +28,13 @@ pipelines:
           - pip install docker-compose
           - docker-compose build bathysphere-graph
 
+    - step:
+        name: Deploy to Digital Ocean
+        deployment: production
+        trigger: manual
+        script:
+          - cat /src/deploy.sh | ssh -t $USERNAME@$BATHYSPHERE_GRAPH
+
 definitions:
   services:
     graph:
