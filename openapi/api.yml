@@ -28,6 +28,13 @@ info:
   x-logo:
     url: gom.png
 
+  servers:
+  - url: https://graph.oceanics.io/{basePath}
+    description: Production API server
+    variables:
+      basePath:
+        default: api
+
 paths:
 
   /auth:
