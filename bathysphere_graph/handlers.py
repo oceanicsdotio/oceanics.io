@@ -31,10 +31,12 @@ def context(fcn):
         db = connect(auth=("neo4j", app.app.config["ADMIN_PASS"]))  # inject db session
         if db is None:
             return {"message": "no graph backend"}, 500
-        # try:
-        return fcn(*args, db=db, **kwargs)
-        # except Exception as e:
-        #     return {"message": "runtime error"}, 500
+        if isinstance(db, (dict, list)):
+            return db, 500
+        try:
+            return fcn(*args, db=db, **kwargs)
+        except Exception as e:
+            return {"message": f"{e} error during call"}, 500
 
     return wrapper
 
@@ -67,8 +69,11 @@ def authenticate(fcn):
             accounts = load(db=db, cls="User", identity=decoded["id"])
             token = True
 
-        if accounts is None or len(accounts) != 1:
-            return {"message": "unable to authenticate"}, 400
+        if accounts is None:
+            print(credential)
+            return {"message": "unable to authenticate"}, 403
+        if len(accounts) != 1:
+            return {"message": "non-unique identity"}, 403
 
         user = accounts[0]
         if not user.validated:

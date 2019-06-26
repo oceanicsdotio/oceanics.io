@@ -38,22 +38,28 @@ def connect(auth: tuple, port: int = 7687, retries: int = 3, delay: int = 10,
         return None
 
     if not exists(db, cls="Root", identity=0):
-        attempts = ["", "./"]
+
         root = Root(url=f"{host}:5000", secretKey=app.app.config["SECRET"])
         root_item = create(db, cls=Root.__name__, identity=root.id, props=properties(root))
-        yml = None
-        while not yml and attempts:
+        attempts = ["./", ""]
+        errors = []
+        while attempts:
             try:
                 yml = open(attempts.pop() + "config/ingress.yml")
-            except FileNotFoundError:
-                error = {"message": f"{e}"}
-        if yml is None:
-            return error
+                break
+            except FileNotFoundError as e:
+                yml = None
+                errors.append({"message": f"{e}"})
+
+        if errors and not isinstance(yml, bytes):
+            return errors
 
         for conf in load_yml(yml):
             if conf.pop("owner", False):
                 conf["apiKey"] = app.app.config["API_KEY"]
-            link(db, root=root_item, children=create(db, obj=Ingress(**conf)))
+            ingress = create(db, obj=Ingress(**conf))
+            link(db, root=root_item, children=ingress)
+            print(ingress)
 
     return db
 
