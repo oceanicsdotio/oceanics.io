@@ -467,9 +467,10 @@ def _node(symbol: str = "n", cls: str = "", by: type = None, var: str = "id") ->
 
 def links(db, **kwargs):
     wrapped = relationships(db, **kwargs)
-    if not wrapped:
-        return None
-    return set(label for buffer in wrapped[0] for label in buffer)
+    backref = relationships(db, directional=True, **kwargs)
+    forward = set(label for buffer in wrapped[0] for label in buffer) if wrapped else set()
+    backward = set(label for buffer in backref[0] for label in buffer) if backref else set()
+    return forward | backward
 
 
 def relationships(db, **kwargs):
@@ -499,13 +500,7 @@ def relationships(db, **kwargs):
             params["b"] = child["id"]
 
         return tx.run(
-            "MATCH {0}-{1}-{2}{3} RETURN {4}".format(
-                left,
-                "[:{0}]".format(label) if label else "",
-                "" if directional else "",
-                right,
-                result
-            ),
+            f"MATCH {left}{'<' if not directional else ''}-{f'[:{label}]' if label else ''}-{'' if directional else ''}{right} RETURN {result}",
             **params
         ).values()
 
