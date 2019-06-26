@@ -158,7 +158,7 @@ def render(cls: str, props, private: str = "_") -> object:
     Create entity instance from a dictionary or Neo4j <Node>, which has an items() method
     that works the same as the dictionary method.
 
-    TODO: retain labels from
+    TODO: retain labels
     """
     obj = Entity(None)
     obj.__class__ = eval(cls)

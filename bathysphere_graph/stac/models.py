@@ -54,7 +54,10 @@ class Collections(Entity):
     """
     https://github.com/radiantearth/stac-spec/tree/master/collection-spec
     """
-    def __init__(self, title="", description="", identity=None, license=None, version=None, keywords=None, providers=None):
+    _stac_enabled = True
+
+    def __init__(self, title="", description="", identity=None, license=None, version=None, keywords=None,
+                 providers=None, **kwargs):
         Entity.__init__(self, identity=identity, annotated=True)
         self.title = self.name = title
         self.description = description
@@ -74,6 +77,9 @@ class Catalogs(Entity):
 
     https://github.com/radiantearth/stac-spec/tree/master/catalog-spec
     """
+
+    _stac_enabled = True
+
     def __init__(self, identity=None, title="", description=""):
         Entity.__init__(self, identity=identity, annotated=True)
         self.title = self.name = title
@@ -84,6 +90,8 @@ class Items(Entity):
     """
     https://github.com/radiantearth/stac-spec/blob/master/item-spec/item-spec.md
     """
+
+    _stac_enabled = True
 
     def __init__(self, identity=None, title="", assets=None, ll=None, ur=None):
         Entity.__init__(self, identity=identity, annotated=True)
