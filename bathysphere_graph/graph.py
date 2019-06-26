@@ -1,6 +1,9 @@
 from neo4j.v1 import GraphDatabase
+from neo4j.exceptions import AddressError
 from inspect import signature
 from yaml import loader, load as load_yml
+from requests import get
+from time import sleep
 from itertools import repeat
 from bathysphere_graph import app
 from bathysphere_graph.models import Root, Ingress, Entity, User
@@ -10,32 +13,45 @@ from bathysphere_graph.tasking import *
 from bathysphere_graph.mesh import Cells, Nodes, Mesh
 
 
-def connect(auth: tuple, port: int = 7687, hosts: tuple = ("neo4j", "localhost")):
+# get(url="http://localhost:7474")
+
+
+def connect(auth: tuple, port: int = 7687, retries: int = 3, delay: int = 10,
+            hosts: tuple = ("neo4j", "localhost", "bathysphere-graph_neo4j_1")):
     """
     Connect to a database manager. Try docker networking, or fallback to local host.
     """
     db = None
-    queue = list(hosts)
-    while len(queue) > 0:
-        try:
-            db = GraphDatabase.driver(uri=f"bolt://{queue.pop()}:{port}", auth=auth)
+    n = 0
+    while n < retries:
+        queue = list(hosts)
+        while queue:
+            host = queue.pop()
+            try:
+                db = GraphDatabase.driver(uri=f"bolt://{host}:{port}", auth=auth)
+                break
+            except Exception as e:
+                print(f"{e} on host={host}")
+        if db:
             break
-        except:
-            if len(queue) == 0 and db is None:
-                return
+        sleep(delay)
+        n += 1
+
+    if not db:
+        return None
 
     if not exists(db, cls="Root", identity=0):
         attempts = ["", "./"]
-        root = Root(url="localhost:5000", secretKey=app.app.config["SECRET"])
+        root = Root(url=f"{host}:5000", secretKey=app.app.config["SECRET"])
         root_item = create(db, cls=Root.__name__, identity=root.id, props=properties(root))
         yml = None
         while not yml and attempts:
             try:
                 yml = open(attempts.pop() + "config/ingress.yml")
             except FileNotFoundError:
-                pass
+                error = {"message": f"{e}"}
         if yml is None:
-            return None
+            return error
 
         for conf in load_yml(yml):
             if conf.pop("owner", False):
