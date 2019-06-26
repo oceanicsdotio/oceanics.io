@@ -71,7 +71,7 @@ class User(Entity):
         self.name = name
         self.alias = name
         self._credential = credential
-        self.validated = False
+        self.validated = True
         self._ipAddress = ip
         self.description = description
 

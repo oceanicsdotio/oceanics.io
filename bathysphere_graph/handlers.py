@@ -75,7 +75,7 @@ def authenticate(fcn):
         if len(accounts) != 1:
             return {"message": "non-unique identity"}, 403
 
-        user = accounts[0]
+        user = accounts.pop()
         if not user.validated:
             return {"message": "complete registration"}, 403
         if not token and not custom_app_context.verify(credential, user._credential):
