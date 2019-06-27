@@ -7,7 +7,7 @@ pipelines:
   default:
 
     - step:
-        name: Build environment and run tests
+        name: Build environment and run tests in VM
         caches:
           - docker
           - pip
@@ -21,19 +21,24 @@ pipelines:
           - pytest
 
     - step:
-        name: Build docker image
+        name: Build docker image and run container test entrypoint
         caches:
           - docker
+          - pip
+        services:
+          - docker
+          - graph
         script:
           - pip install docker-compose
           - docker-compose build bathysphere-graph
+          - docker-compose run --entrypoint="./src/pytest.sh" bathysphere-graph
 
     - step:
         name: Deploy to Digital Ocean
         deployment: production
         trigger: manual
         script:
-          - cat /src/deploy.sh | ssh -t $USERNAME@$BATHYSPHERE_GRAPH
+          - cat src/deploy.sh | ssh -t $USERNAME@$BATHYSPHERE_GRAPH
 
 definitions:
   services:

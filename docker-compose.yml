@@ -32,11 +32,11 @@ services:
       - 7473:7473 # HTTPS
       - 7687:7687 # BOLT
     environment:
-      - NEO4J_AUTH
+      - NEO4J_AUTH=neo4j/n0t_passw0rd
       - NEO4J_dbms_memory_pagecache_size=200M
       - NEO4J_dbms_memory_heap_maxSize=500M
     volumes:
-      - ${GRAPHDB:-./data/neo4j}:/data/databases
+      - ${GRAPHDB:-./data/neo4j}:/data
       - ./logs/neo4j/:/logs
       - ./data/import:/var/lib/neo4j/import
     networks:
