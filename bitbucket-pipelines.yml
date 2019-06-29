@@ -17,7 +17,7 @@ pipelines:
         script:
           - conda env create -f config/environment.yml
           - source activate bathysphere_graph
-          - pytest
+#          - pytest
 
     - step:
         name: Build docker image and run pytest entrypoint
@@ -47,4 +47,3 @@ definitions:
         NEO4J_AUTH: "neo4j/neo4j"
         NEO4J_dbms_memory_pagecache_size: "200M"
         NEO4J_dbms_memory_heap_maxSize: "500M"
-      volumes: /data/testing:/data/databases
