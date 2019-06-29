@@ -21,7 +21,7 @@ def graph():
     """
     Connect to the test database
     """
-    db = connect(auth=("neo4j", app.app.config['ADMIN_PASS']))
+    db = connect(auth=("neo4j", "neo4j"))
     assert db is not None
     purge(db)  # purge the test database - then leave it populated after teardown
     yield db

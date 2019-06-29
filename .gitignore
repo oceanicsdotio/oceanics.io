@@ -10,6 +10,7 @@ __pycache__/
 secrets.*
 # C extensions
 *.so
+random_seed
 
 # Distribution / packaging
 .Python
@@ -109,3 +110,5 @@ venv.bak/
 .plotlib/__pycache__
 .egg-info
 .DS_Store
+.gitsecret/keys/random_seed
+!*.secret
