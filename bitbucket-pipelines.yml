@@ -31,7 +31,7 @@ pipelines:
         script:
           - pip install docker-compose
           - docker-compose build bathysphere-graph
-          - docker-compose run --entrypoint="./src/pytest.sh" bathysphere-graph
+          - docker-compose run --entrypoint="./src/pytest.sh" --no-deps bathysphere-graph
 
     - step:
         name: Deploy to Digital Ocean
