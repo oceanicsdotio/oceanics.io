@@ -13,11 +13,12 @@ pipelines:
           - pip
         services:
           - docker
-          - neo4j
         script:
+          - pip install docker-compose
           - conda env create -f config/environment.yml
-          - source activate bathysphere_graph
-          - pytest
+          - docker pull neo4j:3.5
+          - docker-compose up -d neo4j
+          - sh src/pytest.sh
 
     - step:
         name: Build docker image and run pytest entrypoint
@@ -26,11 +27,10 @@ pipelines:
           - pip
         services:
           - docker
-          - neo4j
         script:
           - pip install docker-compose
           - docker-compose build bathysphere-graph
-          - docker-compose run --entrypoint="./src/pytest.sh" --no-deps bathysphere-graph
+          - docker-compose run --entrypoint="./src/pytest.sh" bathysphere-graph
 
     - step:
         name: Manual deploy to Digital Ocean
@@ -38,11 +38,3 @@ pipelines:
         trigger: manual
         script:
           - cat src/deploy.sh | ssh -t $USERNAME@$BATHYSPHERE_GRAPH
-
-definitions:
-  services:
-    neo4j:
-      image: neo4j:3.5
-      environment:
-        NEO4J_dbms_memory_pagecache_size: "200M"
-        NEO4J_dbms_memory_heap_maxSize: "500M"
