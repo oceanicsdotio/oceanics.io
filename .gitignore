@@ -7,10 +7,8 @@ __pycache__/
 .DS_store
 .idea/
 .envrc
-secrets.*
 # C extensions
 *.so
-random_seed
 
 # Distribution / packaging
 .Python
@@ -112,3 +110,4 @@ venv.bak/
 .DS_Store
 .gitsecret/keys/random_seed
 !*.secret
+bathysphere-graph-env.sh
