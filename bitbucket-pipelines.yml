@@ -41,7 +41,7 @@ pipelines:
 
 definitions:
   services:
-    graph:
+    neo4j:
       image: neo4j:3.5
       environment:
         NEO4J_dbms_memory_pagecache_size: "200M"
