@@ -10,9 +10,10 @@ pipelines:
         name: Decryption attempt
         script:
           - echo -e $BATHYSPHERE_GPG_KEY > PRIVATE_GPG_KEY.asc
+          - apt-get update && apt-get install gpg
           - echo "deb https://dl.bintray.com/sobolevn/deb git-secret main" | tee -a /etc/apt/sources.list
           - wget -qO - https://api.bintray.com/users/sobolevn/keys/gpg/public.key | apt-key add -
-          - apt-get update && sudo apt-get install gpg git-secret
+          - apt-get update && apt-get install git-secret
           - gpg --import PRIVATE_GPG_KEY.asc
           - git secret reveal
 
