@@ -13,7 +13,7 @@ pipelines:
           - pip
         services:
           - docker
-          - graph
+          - neo4j
         script:
           - conda env create -f config/environment.yml
           - source activate bathysphere_graph
@@ -26,7 +26,7 @@ pipelines:
           - pip
         services:
           - docker
-          - graph
+          - neo4j
         script:
           - pip install docker-compose
           - docker-compose build bathysphere-graph
