@@ -14,14 +14,13 @@ pipelines:
         services:
           - docker
           - graph
-
         script:
           - conda env create -f config/environment.yml
           - source activate bathysphere_graph
           - pytest
 
     - step:
-        name: Build docker image and run container test entrypoint
+        name: Build docker image and run pytest entrypoint
         caches:
           - docker
           - pip
@@ -34,7 +33,7 @@ pipelines:
           - docker-compose run --entrypoint="./src/pytest.sh" --no-deps bathysphere-graph
 
     - step:
-        name: Deploy to Digital Ocean
+        name: Manual deploy to Digital Ocean
         deployment: production
         trigger: manual
         script:
@@ -45,12 +44,7 @@ definitions:
     graph:
       image: neo4j:3.5
       environment:
-        NEO4J_AUTH: "neo4j/n0t_passw0rd"
+        NEO4J_AUTH: "neo4j/neo4j"
         NEO4J_dbms_memory_pagecache_size: "200M"
         NEO4J_dbms_memory_heap_maxSize: "500M"
       volumes: /data/testing:/data/databases
-      healthcheck:
-        test: ["CMD", "curl", "-f", "localhost:7474"]
-        interval: 30s
-        timeout: 5s
-        retries: 3
