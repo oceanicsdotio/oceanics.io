@@ -18,34 +18,48 @@ def connect(auth: tuple = None, host: str = app.app.config["HOST"], port: int = 
         auth_str = app.app.config.get("NEO4J_AUTH", None)
         if auth_str:
             auth = tuple(auth_str.split("/"))
+    hosts = [
+        app.app.config["DOCKER_COMPOSE_NAME"],
+        app.app.config["DOCKER_CONTAINER_NAME"],
+        app.app.config['EMBEDDED_NAME'],
+        host]
 
-    try:
-        uri = f"{host}:{port}"
-        db = GraphDatabase.driver(uri=f"bolt://{uri}", auth=auth)
-    except Exception as e:
-        print(f"{e} on host={host}")
+    while hosts:
+        attempt = hosts.pop()
+        uri = f"{attempt}:{port}"
+        try:
+            db = GraphDatabase.driver(uri=f"bolt://{uri}", auth=auth)
+        except Exception as e:
+            print(f"{e} on host={attempt}")
+        else:
+            break
     if not db:
         return None
-    if not exists(db, cls="Root", identity=0):
-        root = Root(url=f"{host}:5000", secretKey=app.app.config["SECRET"])
-        root_item = create(db, cls=Root.__name__, identity=root.id, props=properties(root))
-        attempts = ["./", ""]
-        errors = []
-        yml = None
-        while attempts:
-            try:
-                yml = open(attempts.pop() + "config/ingress.yml")
-                if errors and not isinstance(yml, bytes):
-                    return errors
-                break
-            except FileNotFoundError as e:
-                errors.append({"message": f"{e}"})
-        if yml:
-            for conf in load_yml(yml):
-                if conf.pop("owner", False):
-                    conf["apiKey"] = app.app.config["API_KEY"]
-                ingress = create(db, obj=Ingress(**conf))
-                link(db, root=root_item, children=ingress)
+    if exists(db, cls="Root", identity=0):
+        return db
+    return configure(db, host)
+
+
+def configure(db, host):
+    root = Root(url=f"{host}:5000", secretKey=app.app.config["SECRET"])
+    root_item = create(db, cls=Root.__name__, identity=root.id, props=properties(root))
+    attempts = ["./", ""]
+    errors = []
+    yml = None
+    while attempts:
+        try:
+            yml = open(attempts.pop() + "config/ingress.yml")
+            if errors and not isinstance(yml, bytes):
+                return errors
+            break
+        except FileNotFoundError as e:
+            errors.append({"message": f"{e}"})
+    if yml:
+        for conf in load_yml(yml):
+            if conf.pop("owner", False):
+                conf["apiKey"] = app.app.config["API_KEY"]
+            ingress = create(db, obj=Ingress(**conf))
+            link(db, root=root_item, children=ingress)
     return db
 
 

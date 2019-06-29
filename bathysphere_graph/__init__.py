@@ -55,8 +55,8 @@ service = app.app
 tries = 0
 db = None
 while not db and tries < service.config["RETRIES"]:
-    # if tries:
-    #     sleep(service.config['DELAY'])
+    if tries:
+        sleep(service.config['DELAY'])
 
     hosts = [
         service.config["DOCKER_COMPOSE_NAME"],
@@ -67,7 +67,7 @@ while not db and tries < service.config["RETRIES"]:
         host = hosts.pop()
         service.config["NEO4J_HOST"] = host
         uri = f"{host}:{service.config['NEO4J_PORT']}"
-        for each in (default_auth, declared_auth):
+        for each in (declared_auth, default_auth):  # likely that the db has been accessed and setup previously
             try:
                 db = GraphDatabase.driver(uri=f"bolt://{uri}", auth=each)
             except:
@@ -77,10 +77,10 @@ while not db and tries < service.config["RETRIES"]:
                     f"http://{host}:7474/user/neo4j/password",
                     auth=each,
                     json={"password": service.config['ADMIN_PASS']})
-            service.config["NEO4J_AUTH"] = "/".join(each)  # re-write the access credential settings for app
+            service.config["NEO4J_AUTH"] = "/".join(each)  # re-write the admin access settings
             break
     tries += 1
 
 if not db:
+    print("Could not find Neo4j on startup. Exiting.")
     exit(1)
-

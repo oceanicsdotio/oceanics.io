@@ -19,6 +19,7 @@ setup(
         "neo4j-python-driver",
         "itsdangerous",
         "passlib",
-        "yaml"
+        "yaml",
+        "requests"
     ],
     zip_safe=False)
