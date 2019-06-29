@@ -111,4 +111,4 @@ venv.bak/
 .gitsecret/keys/random_seed
 !*.secret
 bathysphere-graph-env.sh
-bathysphere-graph-env*
+bathysphere-graph-env-dev.sh
