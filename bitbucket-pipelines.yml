@@ -10,8 +10,8 @@ pipelines:
         name: Decryption attemp
         script:
           - echo -e $BATHYSPHERE_GPG_KEY > PRIVATE_GPG_KEY.asc
+          - apt install gpg git-secret
           - gpg --import PRIVATE_GPG_KEY.asc
-          - apt install git-secret
           - git secret reveal
 
     - step:
