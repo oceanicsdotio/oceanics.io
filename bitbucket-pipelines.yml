@@ -7,10 +7,10 @@ pipelines:
   default:
 
     - step:
-        name: Decryption attemp
+        name: Decryption attempt
         script:
           - echo -e $BATHYSPHERE_GPG_KEY > PRIVATE_GPG_KEY.asc
-          - apt install gpg git-secret
+          - apt-get install gpg git-secret
           - gpg --import PRIVATE_GPG_KEY.asc
           - git secret reveal
 
