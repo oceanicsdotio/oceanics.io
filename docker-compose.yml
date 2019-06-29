@@ -32,7 +32,7 @@ services:
       - 7473:7473 # HTTPS
       - 7687:7687 # BOLT
     environment:
-      - NEO4J_AUTH=neo4j/n0t_passw0rd
+      - NEO4J_dbms_security_auth_max_failed_attempts=6
       - NEO4J_dbms_memory_pagecache_size=200M
       - NEO4J_dbms_memory_heap_maxSize=500M
     volumes:
@@ -43,7 +43,7 @@ services:
       - oceanics
     healthcheck:
       test: ["CMD", "curl", "-f", "localhost:7474"]
-      interval: 10s
+      interval: 30s
       timeout: 5s
       retries: 3
       start_period: 30s
@@ -53,20 +53,8 @@ services:
     image: oceanicsdotio/bathysphere-graph
     ports:
       - 5000:5000
-    environment:
-      - ADMIN
-      - ADMIN_PASS
-      - API_KEY
-      - HOST
-      - EMAIL_ACCT
-      - EMAIL_KEY
-      - EMAIL_SERVER=smtp.oceanics.io
-      - EMAIL_PORT=465
-      - REPLY_TO
-      - SECRET
-      - PORT=5000
-      - BASE_PATH=/api
-
+    env_file:
+         - ./Docker/api/api.env
     networks:
       - oceanics
     volumes:

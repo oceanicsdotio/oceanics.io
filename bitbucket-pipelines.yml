@@ -17,7 +17,7 @@ pipelines:
         script:
           - conda env create -f config/environment.yml
           - source activate bathysphere_graph
-#          - pytest
+          - pytest
 
     - step:
         name: Build docker image and run pytest entrypoint

@@ -21,7 +21,7 @@ def graph():
     """
     Connect to the test database
     """
-    db = connect(auth=("neo4j", "neo4j"))
+    db = connect()
     assert db is not None
     purge(db)  # purge the test database - then leave it populated after teardown
     yield db
@@ -33,7 +33,7 @@ def token(client):
     credential = app.app.config["ADMIN_PASS"]
     response = client.get(
         "api/auth",
-        headers={"Authorization": "{}:{}".format(user, credential)}
+        headers={"Authorization": f"{user}:{credential}"}
     )
     data = response.get_json()
     assert response.status_code == 200, data
@@ -56,7 +56,7 @@ def create_entity(client, token):
 def add_link(client, token):
     def _make_request(root, root_id, cls, identity, label):
         response = client.post(
-            "api/{0}({1})/{2}({3})".format(root, root_id, cls, identity),
+            f"api/{root}({root_id})/{cls}({identity})",
             json={"label": label},
             headers={"Authorization": ":"+token.get("token", "")}
         )
@@ -68,7 +68,7 @@ def add_link(client, token):
 def get_entity(client, token):
     def _make_request(cls, id):
         response = client.get(
-            "api/{0}({1})".format(cls, id),
+            f"api/{cls}({id})",
             headers={"Authorization": ":"+token.get("token", "")}
         )
         return response

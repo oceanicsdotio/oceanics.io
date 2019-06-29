@@ -1,11 +1,7 @@
-from neo4j.v1 import GraphDatabase
-from neo4j.exceptions import AddressError
 from inspect import signature
-from yaml import loader, load as load_yml
-from requests import get
-from time import sleep
 from itertools import repeat
-from bathysphere_graph import app
+from yaml import loader, load as load_yml
+from bathysphere_graph import app, GraphDatabase
 from bathysphere_graph.models import Root, Ingress, Entity, User
 from bathysphere_graph.sensing import *
 from bathysphere_graph.stac import *
@@ -13,53 +9,43 @@ from bathysphere_graph.tasking import *
 from bathysphere_graph.mesh import Cells, Nodes, Mesh
 
 
-def connect(auth: tuple, port: int = 7687, retries: int = 3, delay: int = 10,
-            hosts: tuple = ("neo4j", "localhost", "bathysphere-graph_neo4j_1")):
+def connect(auth: tuple = None, host: str = app.app.config["HOST"], port: int = app.app.config["NEO4J_PORT"]):
     """
     Connect to a database manager. Try docker networking, or fallback to local host.
     """
     db = None
-    n = 0
-    while n < retries:
-        queue = list(hosts)
-        while queue:
-            host = queue.pop()
-            try:
-                db = GraphDatabase.driver(uri=f"bolt://{host}:{port}", auth=auth)
-                break
-            except Exception as e:
-                print(f"{e} on host={host}")
-        if db:
-            break
-        sleep(delay)
-        n += 1
+    if not auth:
+        auth_str = app.app.config.get("NEO4J_AUTH", None)
+        if auth_str:
+            auth = tuple(auth_str.split("/"))
 
+    try:
+        uri = f"{host}:{port}"
+        db = GraphDatabase.driver(uri=f"bolt://{uri}", auth=auth)
+    except Exception as e:
+        print(f"{e} on host={host}")
     if not db:
         return None
-
     if not exists(db, cls="Root", identity=0):
-
         root = Root(url=f"{host}:5000", secretKey=app.app.config["SECRET"])
         root_item = create(db, cls=Root.__name__, identity=root.id, props=properties(root))
         attempts = ["./", ""]
         errors = []
+        yml = None
         while attempts:
             try:
                 yml = open(attempts.pop() + "config/ingress.yml")
+                if errors and not isinstance(yml, bytes):
+                    return errors
                 break
             except FileNotFoundError as e:
-                yml = None
                 errors.append({"message": f"{e}"})
-
-        if errors and not isinstance(yml, bytes):
-            return errors
-
-        for conf in load_yml(yml):
-            if conf.pop("owner", False):
-                conf["apiKey"] = app.app.config["API_KEY"]
-            ingress = create(db, obj=Ingress(**conf))
-            link(db, root=root_item, children=ingress)
-
+        if yml:
+            for conf in load_yml(yml):
+                if conf.pop("owner", False):
+                    conf["apiKey"] = app.app.config["API_KEY"]
+                ingress = create(db, obj=Ingress(**conf))
+                link(db, root=root_item, children=ingress)
     return db
 
 

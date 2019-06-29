@@ -29,7 +29,8 @@ def context(fcn):
     """
     def wrapper(*args, **kwargs):
 
-        db = connect(auth=tuple(app.app.config["NEO4J_AUTH"].split("/")))
+        auth = tuple(app.app.config["NEO4J_AUTH"].split("/"))
+        db = connect(auth=auth)
         if db is None:
             return {"message": "no graph backend"}, 500
         if isinstance(db, (dict, list)):
