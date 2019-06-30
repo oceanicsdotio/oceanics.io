@@ -35,6 +35,7 @@ for key, value in {
     "SECRET": None,
     "PORT": 5000,
     "BASE_PATH": "/api",
+    "CI_BUILD_NAME": "build_neo4j_1",
     "DOCKER_COMPOSE_NAME":  "bathysphere-graph_neo4j_1",
     "DOCKER_CONTAINER_NAME": "neo4j",
     "EMBEDDED_NAME": "localhost",
@@ -59,8 +60,9 @@ while not db and tries < service.config["RETRIES"]:
         sleep(service.config['DELAY'])
 
     hosts = [
-        service.config["DOCKER_COMPOSE_NAME"],
         service.config["DOCKER_CONTAINER_NAME"],
+        service.config["CI_BUILD_NAME"],
+        service.config["DOCKER_COMPOSE_NAME"],
         service.config['EMBEDDED_NAME']]
 
     while hosts and not db:
