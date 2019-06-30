@@ -31,9 +31,9 @@ pipelines:
 
     - step:
         name: Build docker image and run pytest entrypoint
-        caches:
-          - docker
-          - pip
+#        caches:
+#          - docker
+#          - pip
         services:
           - docker
           - neo4j
