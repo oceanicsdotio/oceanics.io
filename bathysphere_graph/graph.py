@@ -19,7 +19,6 @@ def connect(auth: tuple = None, host: str = app.app.config["HOST"], port: int = 
         if auth_str:
             auth = tuple(auth_str.split("/"))
     hosts = [
-        app.app.config["CI_BUILD_NAME"],
         app.app.config["DOCKER_COMPOSE_NAME"],
         app.app.config["DOCKER_CONTAINER_NAME"],
         app.app.config['EMBEDDED_NAME'],

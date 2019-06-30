@@ -26,7 +26,6 @@ pipelines:
           - neo4j
         script:
           - conda env create -f config/environment.yml
-          - touch config/graph.env
           - source activate bathysphere_graph
           - pytest
 
@@ -40,6 +39,7 @@ pipelines:
           - neo4j
         script:
           - pip install docker-compose
+          - touch config/graph.env
           - docker-compose build bathysphere-graph
           - docker-compose run --entrypoint="./src/pytest.sh" --no-deps bathysphere-graph
 
