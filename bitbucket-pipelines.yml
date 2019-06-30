@@ -29,7 +29,9 @@ pipelines:
           - docker pull neo4j:3.5
           - touch config/graph.env
           - docker-compose up -d neo4j
-          - sh src/pytest.sh
+          - source activate bathysphere_graph
+          - sleep 5
+          - pytest -sv
 
     - step:
         name: Build docker image and run pytest entrypoint
