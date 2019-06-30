@@ -22,10 +22,7 @@ def graph():
     Connect to the test database
     """
     db = connect()
-    if db is None:
-        for key, val in app.app.config.items():
-            print(f"{key}: {val}")
-        assert False
+    assert db is not None
     purge(db)  # purge the test database - then leave it populated after teardown
     yield db
 

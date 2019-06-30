@@ -1,4 +1,4 @@
-image: continuumio/miniconda3
+image: docker:stable
 
 options:
   docker: true
@@ -16,22 +16,22 @@ pipelines:
 #          - echo -e $BATHYSPHERE_GPG_KEY | gpg --import --batch --homedir=.gitsecret/keys
 #          - git secret reveal
 
-    - step:
-        name: Build environment and run tests in VM
-        caches:
-          - docker
-          - pip
-        services:
-          - docker
-        script:
-          - pip install docker-compose
-          - conda env create -f config/environment.yml
-          - docker pull neo4j:3.5
-          - touch config/graph.env
-          - docker-compose up -d neo4j
-          - source activate bathysphere_graph
-          - sleep 5
-          - pytest -sv
+#    - step:
+#        name: Build environment and run tests in VM
+#        caches:
+#          - docker
+#          - pip
+#        services:
+#          - docker
+#        script:
+#          - pip install docker-compose
+#          - conda env create -f config/environment.yml
+#          - docker pull neo4j:3.5
+#          - touch config/graph.env
+#          - docker-compose up -d neo4j
+#          - source activate bathysphere_graph
+#          - sleep 5
+#          - pytest -sv
 
     - step:
         name: Build docker image and run pytest entrypoint
@@ -44,6 +44,7 @@ pipelines:
           - pip install docker-compose
           - docker-compose build bathysphere-graph
           - docker-compose run --entrypoint="./src/pytest.sh" bathysphere-graph
+          - docker-compode down
 
     - step:
         name: Manual deploy to Digital Ocean
