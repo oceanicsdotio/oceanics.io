@@ -110,6 +110,20 @@ session = driver.session()
 
 
 
+## Deploy
+
+Create a new personal access token for Digital Ocean. 
+
+Authorize your development environment using `doctl auth init`, and then provide the new access token. 
+
+`doctl kubernetes cluster kubeconfig save $CLUSTER_NAME`
+
+Download the cluster configuration, and get the nodes.
+
+`cd ~/.kube && kubectl --kubeconfig="$CLUSTER_NAME-kubeconfig.yaml" get nodes`
+
+
+
 # Mesh Example
 
 ## Pre-processing
