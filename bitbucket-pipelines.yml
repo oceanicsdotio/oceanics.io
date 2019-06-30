@@ -16,18 +16,18 @@ pipelines:
 #          - echo -e $BATHYSPHERE_GPG_KEY | gpg --import --batch --homedir=.gitsecret/keys
 #          - git secret reveal
 
-    - step:
-        name: Build environment and run tests in VM
-        caches:
-          - docker
-          - pip
-        services:
-          - docker
-          - neo4j
-        script:
-          - conda env create -f config/environment.yml
-          - source activate bathysphere_graph
-          - pytest
+#    - step:
+#        name: Build environment and run tests in VM
+#        caches:
+#          - docker
+#          - pip
+#        services:
+#          - docker
+#          - neo4j
+#        script:
+#          - conda env create -f config/environment.yml
+#          - source activate bathysphere_graph
+#          - pytest
 
     - step:
         name: Build docker image and run pytest entrypoint
