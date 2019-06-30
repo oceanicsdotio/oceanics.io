@@ -70,7 +70,8 @@ while not db and tries < service.config["RETRIES"]:
         for each in (declared_auth, default_auth):  # likely that the db has been accessed and setup previously
             try:
                 db = GraphDatabase.driver(uri=f"bolt://{uri}", auth=each)
-            except:
+            except Exception as e:
+                print(f"Failed to connect to {uri} with {e}")
                 continue
             if each != declared_auth:
                 response = post(
