@@ -6,15 +6,15 @@ options:
 pipelines:
   default:
 
-    - step:
-        name: Decryption attempt
-        script:
-          - apt-get update && apt-get install -y gpg apt-transport-https
-          - echo "deb https://dl.bintray.com/sobolevn/deb git-secret main" | tee -a /etc/apt/sources.list
-          - wget -qO - https://api.bintray.com/users/sobolevn/keys/gpg/public.key | apt-key add -
-          - apt-get update && apt-get install -y git-secret
-          - echo -e $BATHYSPHERE_GPG_KEY | gpg --import --batch --homedir=.gitsecret/keys
-          - git secret reveal
+#    - step:
+#        name: Decryption attempt
+#        script:
+#          - apt-get update && apt-get install -y gpg apt-transport-https
+#          - echo "deb https://dl.bintray.com/sobolevn/deb git-secret main" | tee -a /etc/apt/sources.list
+#          - wget -qO - https://api.bintray.com/users/sobolevn/keys/gpg/public.key | apt-key add -
+#          - apt-get update && apt-get install -y git-secret
+#          - echo -e $BATHYSPHERE_GPG_KEY | gpg --import --batch --homedir=.gitsecret/keys
+#          - git secret reveal
 
     - step:
         name: Build environment and run tests in VM
@@ -27,6 +27,7 @@ pipelines:
           - pip install docker-compose
           - conda env create -f config/environment.yml
           - docker pull neo4j:3.5
+          - touch config/graph.env
           - docker-compose up -d neo4j
           - sh src/pytest.sh
 
