@@ -16,22 +16,21 @@ pipelines:
 #          - echo -e $BATHYSPHERE_GPG_KEY | gpg --import --batch --homedir=.gitsecret/keys
 #          - git secret reveal
 
-#    - step:
-#        name: Build environment and run tests in VM
-#        caches:
-#          - docker
-#          - pip
-#        services:
-#          - docker
-#        script:
-#          - pip install docker-compose
-#          - conda env create -f config/environment.yml
-#          - docker pull neo4j:3.5
-#          - touch config/graph.env
-#          - docker-compose up -d neo4j
-#          - source activate bathysphere_graph
-#          - sleep 5
-#          - pytest -sv
+    - step:
+        name: Build environment and run tests in VM
+        caches:
+          - docker
+          - pip
+        services:
+          - docker
+          - neo4j
+        script:
+          - pip install docker-compose
+          - conda env create -f config/environment.yml
+          - touch config/graph.env
+          - source activate bathysphere_graph
+          - sleep 5
+          - pytest -sv
 
     - step:
         name: Build docker image and run pytest entrypoint
@@ -40,11 +39,11 @@ pipelines:
           - pip
         services:
           - docker
+          - neo4j
         script:
           - pip install docker-compose
-          - docker-compose -v
           - docker-compose build bathysphere-graph
-          - docker-compose run --entrypoint="./src/pytest.sh" bathysphere-graph
+          - docker-compose run --entrypoint="./src/pytest.sh" --no-deps bathysphere-graph
 
     - step:
         name: Manual deploy to Digital Ocean
@@ -52,3 +51,11 @@ pipelines:
         trigger: manual
         script:
           - cat src/deploy.sh | ssh -t $USERNAME@$BATHYSPHERE_GRAPH
+
+
+definitions:
+  services:
+    neo4j:
+      image: neo4j:3.5
+      variables:
+        NEO4J_dbms_security_auth__max__failed__attempts: 6
