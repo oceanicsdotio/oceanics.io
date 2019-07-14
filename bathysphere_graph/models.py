@@ -108,6 +108,12 @@ class Ingress(Entity):
         self.url = url
         self._apiKey = apiKey if apiKey else token_urlsafe(64)
 
+    def lock(self):
+        """
+        Close an Ingress without deleting or permanently deactivating it.
+        """
+        pass
+
 
 graph_models = {
     Entity,

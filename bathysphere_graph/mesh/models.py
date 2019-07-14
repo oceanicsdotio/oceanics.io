@@ -1,5 +1,6 @@
 from ..sensing import Locations, FeaturesOfInterest
-
+from bathysphere_graph.models import Entity
+from enum import Enum
 
 class Cells(Locations):
 
@@ -34,6 +35,18 @@ class Nodes(Locations):
     @staticmethod
     def adjacency():
         pass
+
+
+class CoordinateSystem:
+    Sigma = 1
+    Cartesian = 2
+
+
+class Layers(Entity):
+
+    def __init__(self, **kwargs):
+        Entity.__init__(self, **kwargs)
+        self.coordinateSystem = CoordinateSystem.Cartesian
 
 
 class Mesh(FeaturesOfInterest):

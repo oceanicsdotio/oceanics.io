@@ -886,6 +886,22 @@ components:
             encodingType:
               $ref: '#/components/schemas/LocationEncodingType'
 
+            location:
+              type: object
+              properties:
+                type:
+                  type: string
+                  default: "Point"
+                  enum: ["Point"]
+                coordinates:
+                  type: array
+                  minLength: 2
+                  maxLength: 3
+                  items:
+                    type: number
+                    format: float
+
+
             HistoricalLocations:
               readOnly: true
               oneOf:

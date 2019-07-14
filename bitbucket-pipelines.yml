@@ -36,12 +36,11 @@ pipelines:
 #          - pip
         services:
           - docker
-          - neo4j
         script:
           - pip install docker-compose
           - touch config/graph.env
           - docker-compose build bathysphere-graph
-          - docker-compose run --entrypoint="./src/pytest.sh" --no-deps bathysphere-graph
+          - docker-compose run --entrypoint="./src/pytest.sh" bathysphere-graph
 
     - step:
         name: Manual deploy to Digital Ocean
