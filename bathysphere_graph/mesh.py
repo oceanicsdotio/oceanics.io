@@ -1,9 +1,8 @@
-from ..sensing import Locations, FeaturesOfInterest
-from bathysphere_graph.models import Entity
-from enum import Enum
+from bathysphere_graph.sensing import Locations, FeaturesOfInterest
+from bathysphere_graph.base import Entity
+
 
 class Cells(Locations):
-
     def __init__(self, **kwargs):
         Locations.__init__(self, **kwargs)
 
@@ -19,7 +18,9 @@ class Cells(Locations):
 
 class Nodes(Locations):
 
-    _neighbors = None  # nodes sharing an edge with given node -- set in self.adjacency()
+    _neighbors = (
+        None
+    )  # nodes sharing an edge with given node -- set in self.adjacency()
     _parents = None  # triangles containing given node -- set in self.adjacency()
 
     def __init__(self, **kwargs):
@@ -43,19 +44,19 @@ class CoordinateSystem:
 
 
 class Layers(Entity):
-
     def __init__(self, **kwargs):
         Entity.__init__(self, **kwargs)
         self.coordinateSystem = CoordinateSystem.Cartesian
 
 
-class Mesh(FeaturesOfInterest):
+class Meshes(FeaturesOfInterest):
 
     _model = None  # regression model handle for interpolating data to the grid
     _triang = None  # triangulation object reference
     _host = None  # tri finder object reference
 
     def __init__(self, path=None, **kwargs):
+        # type: (str, dict) -> Meshes
         FeaturesOfInterest.__init__(self, **kwargs)
         self.data = path
 
@@ -68,7 +69,8 @@ class Mesh(FeaturesOfInterest):
         pass
 
     @staticmethod
-    def cellAdjacency(parents: dict, indices: list, topology) -> (dict, list):
+    def cellAdjacency(parents, indices, topology):
+        # type: (dict, list, [[float]])  -> (dict, list)
         """
         Get element neighbors
         """
@@ -81,11 +83,3 @@ class Mesh(FeaturesOfInterest):
             queue[key][cell] = buffer
 
         return queue
-
-
-
-mesh_models = {
-    Cells,
-    Nodes,
-    Mesh
-}

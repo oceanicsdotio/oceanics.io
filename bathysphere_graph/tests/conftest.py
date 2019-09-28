@@ -1,17 +1,17 @@
 import pytest
 from bathysphere_graph import app
-from bathysphere_graph.graph import connect, purge
+from bathysphere_graph.drivers import connect, delete_entities
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def client():
     """
     Connexion Apps are a wrapper around the real Flask App.
 
     This yields the TestClient for making API calls with pytest.
     """
-    app.app.config['DEBUG'] = True
-    app.app.config['TESTING'] = True
+    app.app.config["DEBUG"] = True
+    app.app.config["TESTING"] = True
     with app.app.test_client() as c:
         yield c
 
@@ -23,7 +23,7 @@ def graph():
     """
     db = connect()
     assert db is not None
-    purge(db)  # purge the test database - then leave it populated after teardown
+    delete_entities(db)  # purge the test database - then leave it populated after teardown
     yield db
 
 
@@ -31,10 +31,7 @@ def graph():
 def token(client):
     user = app.app.config["ADMIN"]
     credential = app.app.config["ADMIN_PASS"]
-    response = client.get(
-        "api/auth",
-        headers={"Authorization": f"{user}:{credential}"}
-    )
+    response = client.get("api/auth", headers={"Authorization": f"{user}:{credential}"})
     data = response.get_json()
     assert response.status_code == 200, data
     return data
@@ -46,9 +43,10 @@ def create_entity(client, token):
         response = client.post(
             "api/{0}".format(cls),
             json=properties,
-            headers={"Authorization": ":"+token.get("token", "")}
+            headers={"Authorization": ":" + token.get("token", "")},
         )
         return response
+
     return _make_request
 
 
@@ -58,9 +56,10 @@ def add_link(client, token):
         response = client.post(
             f"api/{root}({root_id})/{cls}({identity})",
             json={"label": label},
-            headers={"Authorization": ":"+token.get("token", "")}
+            headers={"Authorization": ":" + token.get("token", "")},
         )
         return response
+
     return _make_request
 
 
@@ -68,9 +67,8 @@ def add_link(client, token):
 def get_entity(client, token):
     def _make_request(cls, id):
         response = client.get(
-            f"api/{cls}({id})",
-            headers={"Authorization": ":"+token.get("token", "")}
+            f"api/{cls}({id})", headers={"Authorization": ":" + token.get("token", "")}
         )
         return response
-    return _make_request
 
+    return _make_request

@@ -1,0 +1,98 @@
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: bathysphere-graph-ingress
+spec:
+  rules:
+    - host: db.oceanics.io
+      http:
+        paths:
+          - backend:
+              serviceName: bathysphere-graph
+              servicePort: 80
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: graphdb-pvc
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: do-block-storage
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bathysphere-graph
+spec:
+  selector:
+    name: bathysphere-graph
+  ports:
+  - port: 80
+    targetPort: 7474
+    protocol: TCP
+  type: NodePort
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: bathysphere-graph
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bathysphere-graph
+
+  template:
+    metadata:
+      name: bathysphere-graph
+      labels:
+        app: bathysphere-graph
+
+    spec:
+      restartPolicy: Always
+
+      containers:
+
+        - name: neo4j
+          image: neo4j:3.5
+          env:
+            - name: NEO4J_dbms_security_auth__max__failed__attempts
+              value: "6"
+            - name: NEO4J_dbms_memory_pagecache_size
+              value: "200M"
+            - name: NEO4J_dbms_memory_heap_maxSize
+              value: "500M"
+
+          volumeMounts:
+            - name: graph-database
+              mountPath: /data
+              readOnly: true
+
+#        - name: bathysphere-graph
+#          image: nginx
+#          env:
+#            - name: NEO4J_AUTH
+#              valueFrom:
+#                secretKeyRef:
+#                  name: bathysphere-graph-secret-1
+#                  key: NEO4J_AUTH
+#          volumeMounts:
+#            - name: secrets-volume
+#              mountPath: /secrets/neo4j
+#              readOnly: true
+
+      volumes:
+
+#        - name: secrets-volume
+#          secret:
+#            secretName: bathysphere-graph
+
+        - name: graph-database
+          persistentVolumeClaim:
+            claimName: graphdb-pvc

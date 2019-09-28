@@ -1,20 +1,18 @@
 from datetime import datetime
-from bathysphere_graph.models import Entity
+from bathysphere_graph.base import Entity
 
 
 def unit():
-    return {
-        "name": None,
-        "symbol": None,
-        "definition": None
-    }
+    return {"name": None, "symbol": None, "definition": None}
 
 
 class Datastreams(Entity):
 
     _dbTable = None
 
-    def __init__(self, identity=None, name=None, description=None, unitOfMeasurement=None):
+    def __init__(
+        self, identity=None, name=None, description=None, unitOfMeasurement=None
+    ):
 
         Entity.__init__(self, identity=identity, annotated=True)
         self.name = name
@@ -48,7 +46,6 @@ class Datastreams(Entity):
 
 
 class FeaturesOfInterest(Entity):
-
     def __init__(self, identity=None, name="", description="", verb=False):
         """
         Features of interest are usually Locations
@@ -71,27 +68,22 @@ def polygon(points, inner=None):
 
     return {
         "type": "Polygon",
-        "coordinates": [points] if not inner else [points, inner]
+        "coordinates": [points] if not inner else [points, inner],
     }
 
 
 def point(coordinates):
-    return {
-        "type": "Point",
-        "coordinates": coordinates,
-    }
+    return {"type": "Point", "coordinates": coordinates}
 
 
 def multi_point(points):
-    return {
-        "type": "MultiPoint",
-        "coordinates": points,
-    }
+    return {"type": "MultiPoint", "coordinates": points}
 
 
 class Locations(Entity):
-
-    def __init__(self, identity=None, name="", location=None, description="", verb=False):
+    def __init__(
+        self, identity=None, name="", location=None, description="", verb=False
+    ):
         """
         Last known location of a thing. May be a feature of interest, unless remote sensing.
 
@@ -110,7 +102,6 @@ class Locations(Entity):
 
 
 class HistoricalLocations(Entity):
-
     def __init__(self, identity=None):
         """
         Private and automatic, should be added to sensor when new location is determined
@@ -121,7 +112,6 @@ class HistoricalLocations(Entity):
 
 
 class Things(Entity):
-
     def __init__(self, identity=None, name="", description="", verb=False):
         """
         A thing is an object of the physical or information world that is capable of of being identified
@@ -139,8 +129,15 @@ class Things(Entity):
 
 
 class Device(Entity):
-
-    def __init__(self, identity=None, name=None, description=None, encodingType=None, metadata=None, verb=False):
+    def __init__(
+        self,
+        identity=None,
+        name=None,
+        description=None,
+        encodingType=None,
+        metadata=None,
+        verb=False,
+    ):
         """
         Sensor-actuator base class.
 
@@ -181,7 +178,6 @@ class Sensors(Device):
 
 
 class Observations(Entity):
-
     def __init__(self, val, identity=None, ts=datetime.utcnow().isoformat()):
         """
         Observation are individual time stamped members of Datastreams
@@ -201,9 +197,14 @@ class Observations(Entity):
 
 
 class ObservedProperties(Entity):
-
-    def __init__(self, identity=None, name="", definition=None, description="",
-                 src="https://en.wikipedia.org/wiki/"):
+    def __init__(
+        self,
+        identity=None,
+        name="",
+        definition=None,
+        description="",
+        src="https://en.wikipedia.org/wiki/",
+    ):
         """
         Create a property, but do not associate any data streams with it
 
@@ -215,15 +216,3 @@ class ObservedProperties(Entity):
         self.name = name
         self.description = description
         self.definition = (src + name) if definition is None else definition
-
-
-sensing_models = {
-    ObservedProperties,
-    Observations,
-    Sensors,
-    Locations,
-    HistoricalLocations,
-    Things,
-    Datastreams,
-    FeaturesOfInterest
-}

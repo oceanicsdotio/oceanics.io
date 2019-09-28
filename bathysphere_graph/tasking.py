@@ -1,9 +1,10 @@
-from ..models import Entity
-from ..sensing import Device
+from bathysphere_graph.base import Entity
+from bathysphere_graph.sensing import Device
 from time import time
 
 
-def tasking_parameters(name: str, description: str = "", kind: str = "", tokens: list = None):
+def tasking_parameters(name, description="", kind="", tokens=None):
+    # type: (str, str, str, [str]) -> dict
     """
     Format sub-model for tasks
     """
@@ -11,12 +12,11 @@ def tasking_parameters(name: str, description: str = "", kind: str = "", tokens:
         "name": name,
         "description": description,
         "type": kind,
-        "allowedTokens": tokens
+        "allowedTokens": tokens,
     }
 
 
 class Actuators(Device):
-
     def __init__(self, **kwargs):
         """
         Abstract class encapsulating communications with a single relay
@@ -25,17 +25,25 @@ class Actuators(Device):
         self._notify("created")
 
     @staticmethod
-    def open(duration: int = None, ramp: bool = True):
-        pass
+    def open(duration=None, ramp=True):
+        # type: (int, bool) -> dict
+        return {
+            "message": "not implemented",
+            "status": 501,
+        }
 
     @staticmethod
-    def close(duration: int = None, ramp: bool = True):
-        pass
+    def close(duration=None, ramp=True):
+        # type: (int, bool) -> dict
+        return {
+            "message": "not implemented",
+            "status": 501,
+        }
 
 
 class TaskingCapabilities(Entity):
-
-    def __init__(self, name: str = "", description: str = "", taskingParameters: list = None, **kwargs):
+    def __init__(self, name="", description="", taskingParameters=None, **kwargs):
+        # type: (str, str, list, dict) -> TaskingCapabilities
         """
         Abstract tasking class mapping I/O and generating signal.
         """
@@ -47,8 +55,8 @@ class TaskingCapabilities(Entity):
 
 
 class Tasks(Entity):
-
-    def __init__(self, taskingParameters: dict = None, **kwargs):
+    def __init__(self, taskingParameters=None, **kwargs):
+        # type: (dict, dict) -> Tasks
         """
         Task!
         """
@@ -58,10 +66,3 @@ class Tasks(Entity):
 
     def stop(self):
         pass
-
-
-tasking_models = {
-    Actuators,
-    TaskingCapabilities,
-    Tasks
-}

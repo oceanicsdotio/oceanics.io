@@ -2,19 +2,19 @@ openapi: "3.0.0"
 
 info:
   title: "Bathysphere - Graph API"
-  version: "0.1"
+  version: "1.0"
   description: |
 
-    The Graph API extension provides a web service for controlling the graph database backend. This enables topology for
-    data models, in which graph nodes are generic entities. Schemas are only enforced by API specification validation.
-    Heavy lifting for big data structures is delegated to optimized databases, while provenance tracking and
-    permissions are handled in the graph layer.
+    The Graph API provides a web service for controlling the graph database backend. This enables topology for
+    data models, in which nodes are generic entities. Schemas are only enforced by API specification validation.
+    Heavy lifting for big data structures is delegated to the core Bathysphere application, while provenance
+    tracking and permissions are handled in the graph.
 
-    The service implements combines [SpatioTemporal Assets Catalog](https://stacspec.org/) (STAC)
-    and Open Geospatial Consortium (OGC) SensorThings API specifications to provide domain-specific topologies
-    for sensor networks, scientific meshes, control systems, and user authentication/permissioning.
+    The service implements Open Geospatial Consortium (OGC) SensorThings API specification. The
+    [SpatioTemporal Assets Catalog](https://stacspec.org/) (STAC) standard is used to interface with
+    `Bathysphere`.
 
-    See our [repository](https://bitbucket.org/aquaculture/bathysphere-graph) for more information on getting started.
+    See the [repository](https://bitbucket.org/aquaculture/bathysphere-graph) for more information.
 
   contact:
     name: Oceanicsdotio
@@ -41,7 +41,7 @@ paths:
 
     post:
       tags: [Account]
-      operationId: bathysphere_graph.handlers.register
+      operationId: bathysphere_graph.handlers.create_user
       summary: Create account
       description: |
 
@@ -86,7 +86,7 @@ paths:
 
     put:
       tags: [Account]
-      operationId: bathysphere_graph.handlers.update_account
+      operationId: bathysphere_graph.handlers.update_user
       summary: Update account
       description: |
 
@@ -104,8 +104,9 @@ paths:
 
 
     delete:
+
       tags: [Account]
-      operationId: bathysphere_graph.handlers.delete_account
+      operationId: bathysphere_graph.handlers.delete_user
       summary: Delete account
       description: |
 
@@ -128,44 +129,19 @@ paths:
             default: false
 
       responses:
-        '200':
-          $ref: '#/components/responses/TokenResponse'
+        '204':
+          description: No content
         '404':
           $ref: '#/components/responses/NotFound'
 
   /:
-
-    post:
-      tags: [Catalog]
-      operationId: bathysphere_graph.handlers.create_catalog
-      summary: Create catalog
-      description: |
-        Create catalog in current `Ingress`, which is automatically assigned from your credentials. `Ingress` instances
-        are associated with an organizational domain. For example a valid `@oceanics.io` e-mail address will get you
-        into the graph context known to Oceanicsdotio, while `@my.domain` will root you in a different subgraph.
-
-        An `Ingress` may exist in a database instance even if that organization is not a data provider. It simply
-        indicates that it is known and navigable by that client, and allows restricted `GET` queries by users wielding
-        an associated API key. The owner of the database instance must grant write access to perform other queries.
-        This is done by requesting to `POST` a `Catalog`, which is the top-level model of the SpatioTemporal Asset
-        Catalog (STAC) specification. If you are the instance owner, a `Catalog` is created automatically for you on
-        deployment.
-
-      requestBody:
-        $ref: '#/components/requestBodies/Catalog'
-
-      responses:
-        '200':
-          $ref: '#/components/responses/Catalog'
 
     get:
       tags: [Collection]
       operationId: bathysphere_graph.handlers.get_sets
       summary: Get collections
       description: |
-
         Get all entity types in database as collections following the SpatioTemporal Asset Catalog specification
-
 
       parameters:
 
@@ -173,12 +149,9 @@ paths:
           description: |
             Any entity can be linked topologically to any other entity, but generally
             these are grouped in functional sets by application area:
-
             * `sensing` implements Open Geospatial Consortium SensorThings specification (part 1),
             and has models relevant to operating and getting data from sensor networks.
-
             * `tasking` builds off of the SensorThings specification part 2.
-
             * `mesh` implements structures for spatial simulations.
 
           in: query
@@ -190,32 +163,6 @@ paths:
         '200':
           $ref: '#/components/responses/Message'
 
-    put:
-
-      tags: [Catalog]
-      operationId: bathysphere_graph.handlers.update_catalog
-      summary: Update catalog
-      description: |
-        Update catalog metadata and permissions
-
-      requestBody:
-        $ref: '#/components/requestBodies/Catalog'
-
-      responses:
-        '200':
-          $ref: '#/components/responses/Catalog'
-
-
-    delete:
-      tags: [Catalog]
-      operationId: bathysphere_graph.handlers.delete_catalog
-      summary: Delete catalog
-      description: |
-        Purge catalog data from the database. Irreversible.
-
-      responses:
-        '204':
-          description: No Content
 
   /{entity}:
 
@@ -254,25 +201,6 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-    put:
-      tags: [Collection]
-      operationId: bathysphere_graph.handlers.update_collection
-      summary: Update collection
-      description: |
-
-        Update the collection. This can include re-labeling the nodes, or applying an index.
-
-      requestBody:
-        $ref: '#/components/requestBodies/CollectionUpdate'
-
-      parameters:
-        - $ref: "#/components/parameters/entityClass"
-
-      responses:
-        '204':
-          description: No content
-        '400':
-          $ref: '#/components/responses/BadRequest'
 
   /{entity}({id}):
 
@@ -295,7 +223,7 @@ paths:
 
     put:
       tags: [Entity]
-      operationId: bathysphere_graph.handlers.update
+      operationId: bathysphere_graph.handlers.update_entity
       summary: Update entity
       description: |
 
@@ -319,7 +247,7 @@ paths:
       operationId: bathysphere_graph.handlers.delete
       summary: Delete entity
       description: |
-        Delete entity and orphaned children recursively.
+        Delete entity and orphans recursively.
 
       parameters:
         - $ref: "#/components/parameters/entityClass"
@@ -335,9 +263,9 @@ paths:
   /{root}({rootId})/{entity}:
 
     post:
-      tags: [Topology]
+      tags: [Entityt]
       operationId: bathysphere_graph.handlers.create_entity_as_child
-      summary: Create related entity
+      summary: Create child entity
       description: |
         Create a new entity as a child of another.
 
@@ -462,13 +390,13 @@ components:
           - Things
           - Nodes
           - Cells
-          - Mesh  # TODO(Keeney): plural consistency
+          - Meshes
           - ObservedProperties
           - Tasks
           - Actuators
           - TaskingCapabilities
           - FeaturesOfInterest
-          - Ingress  # TODO(Keeney): plural consistency
+          - Ingresses
           - Collections
           - Catalogs
 
@@ -533,6 +461,8 @@ components:
               - $ref: '#/components/schemas/ObservedProperty'
               - $ref: '#/components/schemas/Sensor'
               - $ref: '#/components/schemas/FeatureOfInterest'
+              - $ref: '#/components/schemas/Catalog'
+              - $ref: '#/components/schemas/Collection'
 
     CollectionUpdate:
       description: |
@@ -742,7 +672,7 @@ components:
         - Providers
         - Nodes
         - Cells
-        - Mesh
+        - Meshes
         - Actuators
         - TaskingCapabilities
         - Tasks
