@@ -1,21 +1,20 @@
 import pytest
-from bathysphere_graph.models import Ingress
-from bathysphere_graph.graph import count, connect
-from bathysphere_graph.stac import Collections, Catalogs
+from bathysphere_graph.base import Ingresses, Collections, Catalogs
+from bathysphere_graph.drivers import count, connect
 
 
 @pytest.mark.dependency()
 def test_create_provider(create_entity, graph):
     """Create non-core provider"""
-    cls = Ingress.__name__
+    cls = Ingresses.__name__
     response = create_entity(
         cls,
         {
             "entityClass": cls,
             "name": "Maine Aquaculture Association",
             "description": "",
-            "url": ""
-        }
+            "url": "",
+        },
     )
     data = response.get_json()
     assert response.status_code == 200, data
@@ -35,8 +34,8 @@ def test_create_collection(create_entity, graph):
             "license": "",
             "version": 1,
             "keywords": "oysters,aquaculture,Maine,ShellSIM",
-            "providers": None
-        }
+            "providers": None,
+        },
     )
     data = response.get_json()
     assert response.status_code == 200, data
@@ -55,7 +54,7 @@ def test_create_catalog(create_entity, graph):
             "entityClass": cls,
             "title": "neritics-bivalve-simulations",
             "description": "Bivalve growth experiments with Neritics API formats.",
-        }
+        },
     )
     data = response.get_json()
     assert response.status_code == 200, data
@@ -69,7 +68,7 @@ def test_config_catalog(client, token):
     response = client.post(
         "api/",
         json={"echo": "test"},
-        headers={"Authorization": ":" + token.get("token", "")}
+        headers={"Authorization": ":" + token.get("token", "")},
     )
     assert response.status_code == 204, response.get_json()
 
@@ -79,7 +78,7 @@ def test_update_catalog(client, token):
     response = client.put(
         "api/",
         json={"echo": "test"},
-        headers={"Authorization": ":" + token.get("token", "")}
+        headers={"Authorization": ":" + token.get("token", "")},
     )
     assert response.status_code == 204, response.get_json()
 
@@ -89,6 +88,6 @@ def test_delete_catalog(client, token):
     response = client.delete(
         "api/",
         json={"echo": "test"},
-        headers={"Authorization": ":" + token.get("token", "")}
+        headers={"Authorization": ":" + token.get("token", "")},
     )
     assert response.status_code == 204, response.get_json()

@@ -1,0 +1,46 @@
+models:
+
+  base:
+    - User
+    - Ingress
+    - Catalogs
+    - Collections
+    - Items
+
+  sensing:
+    - Things
+    - Datastreams
+    - Observations
+    - ObservedProperties
+    - HistoricalLocations
+    - Locations
+    - Sensors
+    - FeaturesOfInterest
+
+  tasking:
+    - Actuators
+    - TaskingCapabilities
+    - Tasks
+
+  mesh:
+    - Meshes
+    - Nodes
+    - Cells
+
+ingress:
+  - name: Oceanicsdotio
+    owner: true
+    description: Research and development
+    url: oceanics.io
+
+  - name: Public
+    description: Public Data Repository
+    apiKey: ""
+
+  - name: University of Maine
+    description: Aquaculture research partner
+    url: maine.edu
+
+  - name: Cabot7
+    description: Fisheries data partner
+    url: cabot7.com

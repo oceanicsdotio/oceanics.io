@@ -1,8 +1,7 @@
 import pytest
 from bathysphere_graph import sensing
-from bathysphere_graph.models import Entity
 from uuid import uuid4
-from bathysphere_graph.graph import load, count
+from bathysphere_graph.drivers import load, count
 
 
 @pytest.mark.dependency()
@@ -14,8 +13,8 @@ def test_create_location(create_entity, get_entity, graph):
             "name": "Upper Damariscotta Estuary",
             "entityClass": cls,
             "description": "Buoy deployment",
-            "location": [43.998178, -69.54253, 0.0]
-        }
+            "location": [43.998178, -69.54253, 0.0],
+        },
     )
     data = response.get_json()
     assert response.status_code == 200, data
@@ -30,12 +29,7 @@ def test_create_location(create_entity, get_entity, graph):
 def test_create_sensor(create_entity, get_entity, graph):
     cls = sensing.Sensors.__name__
     response = create_entity(
-        cls,
-        {
-            "name": "SeaBird Electronics CTD",
-            "entityClass": cls,
-            "description": ""
-        }
+        cls, {"name": "SeaBird Electronics CTD", "entityClass": cls, "description": ""}
     )
     data = response.get_json()
     assert response.status_code == 200, data
@@ -55,8 +49,8 @@ def test_create_thing(create_entity, get_entity, graph, add_link):
             "name": "Land Ocean Biogeochemical Observatory",
             "entityClass": cls,
             "description": "Moored buoy with instrumentation, deployed in the Damariscotta River"
-                           "Estuary (Maine) as part of the Sustainable Ecological Aquaculture Network project."
-        }
+            "Estuary (Maine) as part of the Sustainable Ecological Aquaculture Network project.",
+        },
     )
     data = response.get_json()
     assert response.status_code == 200, data
@@ -75,8 +69,8 @@ def test_create_datastream(create_entity, get_entity, graph):
         {
             "name": f"temperature-{uuid4()}",
             "entityClass": cls,
-            "description": "Temperature"
-        }
+            "description": "Temperature",
+        },
     )
     data = response.get_json()
     assert response.status_code == 200, data
@@ -95,8 +89,8 @@ def test_create_observed_property(create_entity, get_entity, graph):
         {
             "name": "Temperature",
             "entityClass": cls,
-            "description": "Temperature as measured through a thermistor or remote sensing"
-        }
+            "description": "Temperature as measured through a thermistor or remote sensing",
+        },
     )
     data = response.get_json()
     assert response.status_code == 200, data
@@ -115,8 +109,8 @@ def test_create_feature_of_interest(create_entity, get_entity, graph):
         {
             "name": "Damariscotta River Estuary shellfish growing area",
             "entityClass": cls,
-            "description": "The Damariscotta River Estuary is a traditional growing area for oysters in Maine."
-        }
+            "description": "The Damariscotta River Estuary is a traditional growing area for oysters in Maine.",
+        },
     )
     data = response.get_json()
     assert response.status_code == 200, data
@@ -130,14 +124,7 @@ def test_create_feature_of_interest(create_entity, get_entity, graph):
 @pytest.mark.dependency(depends=["test_create_location"])
 def test_create_observation(create_entity, get_entity, graph):
     cls = sensing.Observations.__name__
-    response = create_entity(
-        cls,
-        {
-            "entityClass": cls,
-            "ts": 1000.234,
-            "val": 10.0
-        }
-    )
+    response = create_entity(cls, {"entityClass": cls, "ts": 1000.234, "val": 10.0})
     data = response.get_json()
     assert response.status_code == 200, data
     assert count(graph, cls=cls) > 0

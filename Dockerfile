@@ -9,7 +9,7 @@ COPY --from=base /opt/conda/ /opt/conda/
 
 WORKDIR bathysphere_graph
 COPY openapi/api.yml ./openapi/api.yml
-COPY config/ingress.yml ./config/ingress.yml
+COPY config/app.yml ./config/app.yml
 COPY bathysphere_graph ./bathysphere_graph
 COPY src ./src
 
