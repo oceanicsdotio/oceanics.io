@@ -29,16 +29,10 @@ def create(db, obj=None, offset=0, **kwargs):
             "identity": getattr(obj, "id"),
             "props": obj.__dict__,
         })
-    print({
-        "object": obj,
-        "kwargs": kwargs
-    })
     if kwargs.get("identity", None) is None:
         kwargs["identity"] = auto_id(db, cls=kwargs.get("cls"), offset=offset)
         if obj:
             obj.id = kwargs["identity"]
-
-    print("before _tx")
 
     def _tx(tx, cls: str, identity: int, props: dict) -> list:
         p = filter(
@@ -51,7 +45,6 @@ def create(db, obj=None, offset=0, **kwargs):
 
     _write(db, _tx, kwargs)
 
-    print("before capabilities")
     if obj:
         capabilities(db=db, obj=obj, label="HAS")
 
@@ -115,17 +108,10 @@ def connect(
             errors.append({"message": f"{e}"})
             return errors
         for conf in ingress:
-            print(conf)
             if conf.pop("owner", False):
                 conf["apiKey"] = app.app.config["API_KEY"]
             ingress = create(db, obj=Ingresses(**conf))
-            print({
-                "ingress": ingress,
-                "root": root_item,
-            })
-
-            # link(db, root=root_item, children=ingress)
-    print("Before return")
+            link(db, root=root_item, children=ingress)
     return db
 
 
@@ -278,7 +264,6 @@ def exists(db, cls: str, identity: int or str) -> bool:
     Check whether name or ID already exists, and return logical.
     """
     r = records(db, cls=cls, identity=identity, result="id")
-    print("exists", identity, r)
     return True if r else False
 
 
@@ -300,12 +285,10 @@ def count(db, **kwargs) -> int:
     """
     Count occurrence of a class label in Neo4j.
     """
-
     def _tx(tx, symbol: str = "n", cls: str = "") -> int:
         return tx.run(
-            "MATCH {0} RETURN count({1})".format(_node(symbol=symbol, cls=cls), symbol)
+            f"MATCH {_node(symbol=symbol, cls=cls)} RETURN count({symbol})"
         ).single()[0]
-
     return _read(db, _tx, kwargs)
 
 
@@ -342,7 +325,6 @@ def records(db, **kwargs) -> list or None:
         nodes = _node(symbol=symbol, cls=cls, by=by, var="id")
         return_val = f"{symbol}.{result}" if result else symbol
         cmd = f"MATCH {nodes} RETURN {return_val}"
-        print("records:", cmd)
         return tx.run(cmd, id=identity).values()
 
     try:
@@ -568,10 +550,13 @@ def update_properties(db, data, obj=None, cls=None, identity=None, props=None):
 
     def _tx(tx, cls, identity, props, updates):
         # type: (None, str, int, dict, dict) -> list
-        match = ["id: $id"] + [_process_key_value(*item) for item in props.items()]
+        # match = ["id: $id"] + [_process_key_value(*item) for item in props.items()]
+        # TODO: Get generic matching working
+        match = ["id: $id"]
         pattern = f"{', '.join(match)}"
         _updates = [_process_key_value(*item, null=True) for item in updates.items()]
-        cmd = f"MATCH (n: {cls} {{ {pattern} }}) SET n += {', '.join(_updates)}"
+        cmd = f"MATCH (n: {cls} {{ {pattern} }}) SET n += {{ {', '.join(_updates)} }}"
+        print(cmd)
         return tx.run(cmd, id=identity).values()
 
     _write(db, _tx, kwargs)

@@ -19,7 +19,7 @@ def test_create_user(client, graph):
     assert response.status_code == 204, response.get_json()
 
 
-@pytest.mark.dependency(depends=["test_register_user"])
+@pytest.mark.dependency(depends=["test_create_user"])
 def test_get_token(token):
     btk = token.get("token")
     duration = token.get("duration")
@@ -46,7 +46,7 @@ def test_get_remote_token():
     assert duration is not None and duration > 30
 
 
-@pytest.mark.dependency(depends=["test_register_user"])
+@pytest.mark.dependency(depends=["test_create_user"])
 def test_update_user(client, token):
     response = client.put(
         "api/auth",
@@ -56,7 +56,7 @@ def test_update_user(client, token):
     assert response.status_code == 204, response.get_json()
 
 
-@pytest.mark.dependency(depends=["test_register_user"])
+@pytest.mark.dependency(depends=["test_create_user"])
 def test_delete_user(client, token):
 
     response = client.delete(

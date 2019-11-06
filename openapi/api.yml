@@ -308,7 +308,7 @@ paths:
 
     post:
       tags: [Topology]
-      operationId: bathysphere_graph.handlers.add_link
+      operationId: bathysphere_graph.handlers.addLink
       summary: Create relationship
       description: |
         Create a labeled relationship between entities.
@@ -328,7 +328,7 @@ paths:
 
     delete:
       tags: [Topology]
-      operationId: bathysphere_graph.handlers.break_link
+      operationId: bathysphere_graph.handlers.breakLink
       summary: Remove relationship
       description: |
         Remove a labeled relationship between entities. If no `label` is specified, remove all
