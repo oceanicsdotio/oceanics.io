@@ -11,6 +11,53 @@ from bathysphere_graph.tasking import *
 from bathysphere_graph.mesh import *
 
 
+def create(db, obj=None, offset=0, **kwargs):
+    # type: (Driver, Entity, int, dict) -> dict
+    """
+    Create a new node(s) in graph. Format object properties dictionary as list of key:"value" strings,
+    automatically converting each object to string using its built-in __str__ converter.
+    Special values can be given unique string serialization methods by overloading __str__.
+
+    Blank values are ignored and will not result in graph attributes. Blank values are:
+    - None (python value)
+    - "None" (string)
+    """
+
+    if obj:
+        kwargs.update({
+            "cls": type(obj).__name__,
+            "identity": getattr(obj, "id"),
+            "props": obj.__dict__,
+        })
+    print({
+        "object": obj,
+        "kwargs": kwargs
+    })
+    if kwargs.get("identity", None) is None:
+        kwargs["identity"] = auto_id(db, cls=kwargs.get("cls"), offset=offset)
+        if obj:
+            obj.id = kwargs["identity"]
+
+    print("before _tx")
+
+    def _tx(tx, cls: str, identity: int, props: dict) -> list:
+        p = filter(
+            lambda x: x is not None,
+            (_process_key_value(*item, null=False) for item in props.items())
+        )
+        p = ["id: $id"] + list(p)
+        cmd = f"MERGE (n: {cls} {{ {', '.join(p)} }})"
+        return tx.run(cmd, id=identity).values()
+
+    _write(db, _tx, kwargs)
+
+    print("before capabilities")
+    if obj:
+        capabilities(db=db, obj=obj, label="HAS")
+
+    return {"cls": kwargs["cls"], "id": kwargs["identity"]}
+
+
 def connect(
     auth=None,
     host=app.app.config["HOST"],
@@ -51,6 +98,7 @@ def connect(
     attempts = ["./", ""]
     errors = []
     yml = None
+
     while attempts:
         try:
             yml = open(attempts.pop() + "config/app.yml")
@@ -59,6 +107,7 @@ def connect(
             break
         except FileNotFoundError as e:
             errors.append({"message": f"{e}"})
+
     if yml:
         try:
             ingress = load_yml(yml, Loader)["ingress"]
@@ -66,11 +115,17 @@ def connect(
             errors.append({"message": f"{e}"})
             return errors
         for conf in ingress:
+            print(conf)
             if conf.pop("owner", False):
                 conf["apiKey"] = app.app.config["API_KEY"]
             ingress = create(db, obj=Ingresses(**conf))
-            link(db, root=root_item, children=ingress)
+            print({
+                "ingress": ingress,
+                "root": root_item,
+            })
 
+            # link(db, root=root_item, children=ingress)
+    print("Before return")
     return db
 
 
@@ -222,7 +277,9 @@ def exists(db, cls: str, identity: int or str) -> bool:
     """
     Check whether name or ID already exists, and return logical.
     """
-    return True if records(db, cls=cls, identity=identity, result="id") else False
+    r = records(db, cls=cls, identity=identity, result="id")
+    print("exists", identity, r)
+    return True if r else False
 
 
 def add_label(db, **kwargs) -> list or None:
@@ -282,9 +339,11 @@ def records(db, **kwargs) -> list or None:
         Load entities as database records.
         """
         by = None if identity is None else type(identity)
-        nodes = _node(symbol=symbol, cls=cls, by=by)
+        nodes = _node(symbol=symbol, cls=cls, by=by, var="id")
         return_val = f"{symbol}.{result}" if result else symbol
-        return tx.run(f"MATCH {nodes} RETURN {return_val}", id=identity).values()
+        cmd = f"MATCH {nodes} RETURN {return_val}"
+        print("records:", cmd)
+        return tx.run(cmd, id=identity).values()
 
     try:
         return _read(db, _tx, kwargs)
@@ -493,44 +552,6 @@ def _process_key_value(key, value, null=False):
     return None
 
 
-def create(db, obj=None, offset=0, **kwargs):
-    # type: (Driver, Entity, int, dict) -> dict
-    """
-    Create a new node(s) in graph. Format object properties dictionary as list of key:"value" strings,
-    automatically converting each object to string using its built-in __str__ converter.
-    Special values can be given unique string serialization methods by overloading __str__.
-
-    Blank values are ignored and will not result in graph attributes. Blank values are:
-    - None (python value)
-    - "None" (string)
-    """
-    if obj:
-        kwargs.update({
-            "cls": type(obj).__name__,
-            "identity": getattr(obj, "id"),
-            "props": obj.__dict__,
-        })
-    if kwargs.get("identity", None) is None:
-        kwargs["identity"] = auto_id(db, cls=kwargs.get("cls"), offset=offset)
-        if obj:
-            obj.id = kwargs["identity"]
-
-    def _tx(tx, cls: str, identity: int, props: dict) -> list:
-        p = filter(
-            lambda x: x is not None,
-            (_process_key_value(*item, null=False) for item in props.items())
-        )
-        p = ["id: $id"] + list(p)
-        cmd = f"MERGE (n: {cls} {{ {', '.join(p)} }})"
-        return tx.run(cmd, id=identity).values()
-
-    _write(db, _tx, kwargs)
-    if obj:
-        capabilities(db=db, obj=obj, label="HAS")
-
-    return {"cls": kwargs["cls"], "id": kwargs["identity"]}
-
-
 def update_properties(db, data, obj=None, cls=None, identity=None, props=None):
     # type: (Driver, dict, object, str, int, dict) -> dict
     """
@@ -564,9 +585,9 @@ def _node(symbol="n", cls="", by=None, var="id", **kwargs):
     - "n:Class { <index>:$<var> }" where <index> is "id" or "name"
     """
     identity = f":{cls}" if cls else ""
-    if isinstance(by, int):
+    if by == int:
         props = f" {{ id: ${var} }}"
-    elif isinstance(by, str):
+    elif by == str:
         props = f" {{ name: ${var} }}"
     else:
         props = ""
