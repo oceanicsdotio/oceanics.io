@@ -6,20 +6,14 @@
 
 The representation of complex relationships between heterogenous data is simplified by applying a graph framework. The Graph API extension uses [Neo4j](https://neo4j.com/) graph database to store semi-structured data, along with labeled relationships. It can be applied to many flexible, high-level cases, from NASA managing their [lessons-learned](https://neo4j.com/blog/nasa-lesson-learned-database-using-neo4j-linkurious/) mission database, to modeling a virtual [economy](https://www.airpair.com/neo4j/posts/modelling-game-economy-with-neo4j). 
 
-The system is relatively dumb, with complex logic delegated to sidecar and frontend services. This REST API provides backend functionality supporting:
+The system is relatively dumb, with complex logic delegated to sidecar and frontend services. The API provides services through a representation state transfer (REST) interface, with:
 
 - Secure organizational accounts
 - OGC SensorThings API coverage
-- SpatioTemporal Assets Catalog coverage
+- Data provenance tracking
 
 
-See the OpenAPI specification for complete details on the supported schemas and methods. 
-
-There is an [embedded](http://localhost) version running if you use `docker-compose`, 
-and an [online](http://graph.oceanics.io) one with current status: [![Netlify Status](https://api.netlify.com/api/v1/badges/dfa3c4f1-b304-42cb-9ff5-ea64f2219ff0/deploy-status)](https://app.netlify.com/sites/bathysphere-graph/deploys)
-
-
-In general, the format for entity-based requests is: 
+See the OpenAPI specification for complete details on schemas and methods. There is an [embedded](http://localhost) version running if you use `docker-compose`, and one [online](http://graph.oceanics.io). In general, the format for entity-based requests is: 
 
 
 | Route                       | Description         | Arguments            | Format |
@@ -35,9 +29,11 @@ In general, the format for entity-based requests is:
 
 
 
-## Getting Started
+## Deploy
 
-Deployed locally with `docker-compose up -d`. 
+### Development
+
+Deploy locally with `docker-compose up -d`. 
 
 The database manager runs in the [official container image](https://hub.docker.com/_/neo4j/), and maps the server ports to an external interface. The [built-in GUI](http://localhost:7474/browser/) is at  `hostname:7474`, and the `bolt` [interface](https://boltprotocol.org/) defaults to  `hostname:7687`. Bolt is used for API calls from Python scripts. User authorization requires the environment variable `NEO4J_AUTH`. 
 
@@ -62,11 +58,33 @@ The `nginx` container is a reverse proxy that forwards requests to the other ser
 
 
 
+### DigitalOcean
+
+Create a new personal access token for Digital Ocean. 
+
+Authorize your development environment using `doctl auth init`, and then provide the new access token. 
+
+`doctl kubernetes cluster kubeconfig save $CLUSTER_NAME`
+
+Download the cluster configuration, and get the nodes.
+
+`cd ~/.kube && kubectl --kubeconfig="$CLUSTER_NAME-kubeconfig.yaml" get nodes`
+
+
+
+
+
+### OpenFAAS
+
+
+
+
+
 ## Clients
 
-**Cypher**
+### Cypher
 
-The Neo4j web interface provides a visualization of the graph, which can be used to sanity check things.  [Cypher](https://neo4j.com/docs/cypher-refcard/current/) is the Neo4j query language. Either can be used directly to build the database, traverse nodes and edges, and return data. The mesh example below has further details, but using a 3D model as an example, here are some basic queries:
+The Neo4j web interface provides a visualization of the graph, which can be used to sanity check things.  [Cypher](https://neo4j.com/docs/cypher-refcard/current/) is the Neo4j query language. Either can be used to build the database, traverse nodes and edges, and return data. Using a 3D model as an example, here are some basic queries:
 
 Return a specific triangle, child vertices, and their relationships:
 
@@ -98,7 +116,7 @@ RETURN avg(v.x),
 
 
 
-**Python**
+### Python
 
 Instead of manually commands or Cypher scripts, you can manage the database with the Python `neo4j-driver` package. This can be installed locally with `pip install neo4j-driver`. Establish a connection to the database using Bolt, and start a session:
 
@@ -107,20 +125,6 @@ from neo4j.v1 import GraphDatabase
 driver = GraphDatabase.driver("bolt://localhost:7687", auth=("neo4j", "neo4j"))
 session = driver.session()
 ```
-
-
-
-## Deploy
-
-Create a new personal access token for Digital Ocean. 
-
-Authorize your development environment using `doctl auth init`, and then provide the new access token. 
-
-`doctl kubernetes cluster kubeconfig save $CLUSTER_NAME`
-
-Download the cluster configuration, and get the nodes.
-
-`cd ~/.kube && kubectl --kubeconfig="$CLUSTER_NAME-kubeconfig.yaml" get nodes`
 
 
 
