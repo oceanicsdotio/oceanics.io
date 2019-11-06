@@ -94,7 +94,7 @@ def authenticate(fcn):
 
 
 @context
-def create_user(body, db, auth: dict = None):
+def create_user(body, db, auth: dict = None, **kwargs):
     """
     Register a new user account
     """
@@ -137,12 +137,12 @@ def create_user(body, db, auth: dict = None):
 
 @context
 @authenticate
-def update_user(db, user, body):
-    # type: (Driver, User, dict) -> (None, int)
+def update_user(db, user, body, **kwargs):
+    # type: (Driver, User, dict, dict) -> (None, int)
     """
     Change account settings
     """
-    allowed = {"alias"}
+    allowed = {"alias", }
     if any(k not in allowed for k in body.keys()):
         return "Bad request", 400
     _ = update_properties(db, data=body, obj=user)
@@ -165,7 +165,7 @@ def delete_user(db, user, purge=False, **kwargs):
 
 @context
 @authenticate
-def get_token(db, user: User, secret: str = None):
+def get_token(db, user: User, secret: str = None, **kwargs):
     """
     Send an auth token back for future sessions
     """
@@ -184,8 +184,8 @@ def get_token(db, user: User, secret: str = None):
 
 @context
 @authenticate
-def get_sets(db, user, extension=None):
-    # type: (GraphDatabase, User, str) -> (dict, int)
+def get_sets(db, user, extension=None, **kwargs):
+    # type: (GraphDatabase, User, str, dict) -> (dict, int)
     """
     Usage 1. Get references to all entity sets, or optionally filter
     """
@@ -211,7 +211,7 @@ def get_sets(db, user, extension=None):
 
 @context
 @authenticate
-def create_entity(db, user, entity: str, body: dict, offset: int = 0):
+def create_entity(db, user, entity: str, body: dict, offset: int = 0, **kwargs):
     """
     Attach to db, and find available ID number to register the entity
     """
@@ -252,7 +252,7 @@ def create_entity(db, user, entity: str, body: dict, offset: int = 0):
 
 @context
 @authenticate
-def create_entity_as_child(db, user, entity: str, body: dict, offset: int = 0):
+def create_entity_as_child(db, user, entity: str, body: dict, offset: int = 0, **kwargs):
     """
     Attach to db, and find available ID number to register the entity
     """
@@ -289,8 +289,8 @@ def create_entity_as_child(db, user, entity: str, body: dict, offset: int = 0):
 
 @context
 @authenticate
-def get_all(db, user, entity):
-    # type: (GraphDatabase, User, str) -> (dict, int)
+def get_all(db, user, entity, **kwargs):
+    # type: (GraphDatabase, User, str, dict) -> (dict, int)
     """
     Usage 2. Get all entities of a single class
     """
@@ -373,8 +373,8 @@ def delete(db, entity, id, **kwargs):
 
 @context
 @authenticate
-def add_link(db, root, rootId, entity, id, body):
-    # type: (Driver, str, int, str, int, dict) -> (None, int)
+def addLink(db, root, rootId, entity, id, body, **kwargs):
+    # type: (Driver, str, int, str, int, dict, dict) -> (None, int)
     link(
         db=db,
         root={"cls": root, "id": rootId},
@@ -386,8 +386,8 @@ def add_link(db, root, rootId, entity, id, body):
 
 @context
 @authenticate
-def break_link(db, root, rootId, entity, id, label):
-    # type: (Driver, str, int, str, int, str) -> (None, int)
+def breakLink(db, root, rootId, entity, id, label, **kwargs):
+    # type: (Driver, str, int, str, int, str, dict) -> (None, int)
     link(
         db=db,
         root={"cls": root, "id": rootId},
