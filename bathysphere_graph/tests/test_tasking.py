@@ -1,6 +1,6 @@
 import pytest
 from inspect import signature
-from bathysphere_graph.tasking import TaskingCapabilities, Tasks, Actuators
+from bathysphere_graph.models import TaskingCapabilities, Tasks, Actuators
 from bathysphere_graph.drivers import count, load
 
 

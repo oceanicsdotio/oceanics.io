@@ -1,12 +1,12 @@
 import pytest
-from bathysphere_graph import sensing
+from bathysphere_graph.models import Locations, Sensors, Things, Observations, ObservedProperties, FeaturesOfInterest, Datastreams
 from uuid import uuid4
 from bathysphere_graph.drivers import load, count
 
 
 @pytest.mark.dependency()
 def test_create_location(create_entity, get_entity, graph):
-    cls = sensing.Locations.__name__
+    cls = Locations.__name__
     response = create_entity(
         cls,
         {
@@ -27,7 +27,7 @@ def test_create_location(create_entity, get_entity, graph):
 
 @pytest.mark.dependency(depends=["test_create_location"])
 def test_create_sensor(create_entity, get_entity, graph):
-    cls = sensing.Sensors.__name__
+    cls = Sensors.__name__
     response = create_entity(
         cls, {"name": "SeaBird Electronics CTD", "entityClass": cls, "description": ""}
     )
@@ -42,7 +42,7 @@ def test_create_sensor(create_entity, get_entity, graph):
 
 @pytest.mark.dependency(depends=["test_create_location"])
 def test_create_thing(create_entity, get_entity, graph, add_link):
-    cls = sensing.Things.__name__
+    cls = Things.__name__
     response = create_entity(
         cls,
         {
@@ -63,7 +63,7 @@ def test_create_thing(create_entity, get_entity, graph, add_link):
 
 @pytest.mark.dependency(depends=["test_create_location"])
 def test_create_datastream(create_entity, get_entity, graph):
-    cls = sensing.Datastreams.__name__
+    cls = Datastreams.__name__
     response = create_entity(
         cls,
         {
@@ -83,7 +83,7 @@ def test_create_datastream(create_entity, get_entity, graph):
 
 @pytest.mark.dependency(depends=["test_create_location"])
 def test_create_observed_property(create_entity, get_entity, graph):
-    cls = sensing.ObservedProperties.__name__
+    cls = ObservedProperties.__name__
     response = create_entity(
         cls,
         {
@@ -103,7 +103,7 @@ def test_create_observed_property(create_entity, get_entity, graph):
 
 @pytest.mark.dependency(depends=["test_create_location"])
 def test_create_feature_of_interest(create_entity, get_entity, graph):
-    cls = sensing.FeaturesOfInterest.__name__
+    cls = FeaturesOfInterest.__name__
     response = create_entity(
         cls,
         {
@@ -123,7 +123,7 @@ def test_create_feature_of_interest(create_entity, get_entity, graph):
 
 @pytest.mark.dependency(depends=["test_create_location"])
 def test_create_observation(create_entity, get_entity, graph):
-    cls = sensing.Observations.__name__
+    cls = Observations.__name__
     response = create_entity(cls, {"entityClass": cls, "ts": 1000.234, "val": 10.0})
     data = response.get_json()
     assert response.status_code == 200, data
