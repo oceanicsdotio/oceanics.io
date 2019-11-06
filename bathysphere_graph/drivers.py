@@ -45,14 +45,7 @@ def connect(
         return None
     if exists(db, cls="Root", identity=0):
         return db
-    return configure(db, host)
 
-
-def configure(db, host):
-    # type: (Driver, str) -> Driver or [dict]
-    """
-    Setup the declared structure if necessary
-    """
     root = Root(url=f"{host}:5000", secretKey=app.app.config["SECRET"])
     root_item = create(db, cls=Root.__name__, identity=root.id, props=properties(root))
     attempts = ["./", ""]
