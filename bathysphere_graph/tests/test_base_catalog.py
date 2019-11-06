@@ -1,5 +1,5 @@
 import pytest
-from bathysphere_graph.base import Ingresses, Collections, Catalogs
+from bathysphere_graph.models import Ingresses, Collections, Catalogs
 from bathysphere_graph.drivers import count, connect
 
 

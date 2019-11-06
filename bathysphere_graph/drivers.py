@@ -5,10 +5,7 @@ from yaml import Loader, load as load_yml
 from json import dumps
 from neo4j.v1 import Driver, GraphDatabase
 from bathysphere_graph import app
-from bathysphere_graph.base import *
-from bathysphere_graph.sensing import *
-from bathysphere_graph.tasking import *
-from bathysphere_graph.mesh import *
+from bathysphere_graph.models import *
 
 
 def create(db, obj=None, offset=0, **kwargs):
@@ -382,7 +379,12 @@ def delete_entities(db, **kwargs):
         # type: (None, str, dict) -> None
         node = _node(symbol=symbol, **kw)
         cmd = f"MATCH {node} DETACH DELETE {symbol}"
-        tx.run(cmd)
+
+        identity = kw.get("id", None)
+        if isinstance(identity, int):
+            tx.run(cmd, id=identity)
+        else:
+            tx.run(cmd)
 
     return _write(db, _tx, kwargs)
 
