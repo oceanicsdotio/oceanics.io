@@ -1,28 +1,23 @@
-import pytest
-from inspect import signature
 from bathysphere_graph.models import TaskingCapabilities, Tasks, Actuators
 from bathysphere_graph.drivers import count, load
+from bathysphere_graph import appConfig
+from bathysphere_graph.tests.conftest import validateCreateTx
 
 
-@pytest.mark.dependency()
-def test_create_task(create_entity, graph):
+def test_create_task(create_entity, get_entity, graph):
     """Class name of graph"""
     cls = Tasks.__name__
-    response = create_entity(cls, {"entityClass": cls})
-    assert response.status_code == 200, response.get_json()
-    assert count(graph, cls=cls) > 0
+    props = appConfig[cls][0]
+    validateCreateTx(create_entity, get_entity, cls, props, graph)
 
 
-@pytest.mark.dependency(depends=["test_create_task"])
-def test_create_actuator(create_entity, graph, add_link):
+def test_create_actuator(create_entity, get_entity, graph, add_link):
     """Class name of graph"""
-    root = Actuators.__name__
-    response = create_entity(root, {"entityClass": root, "name": "Solenoid"})
-    assert response.status_code == 200, response.get_json()
-    assert count(graph, cls=root) > 0
+    cls = Actuators.__name__
+    props = appConfig[cls][0]
+    validateCreateTx(create_entity, get_entity, cls, props, graph)
 
 
-@pytest.mark.dependency(depends=["test_create_actuator"])
 def test_create_capability(create_entity, graph):
     """Class name of graph"""
     pass

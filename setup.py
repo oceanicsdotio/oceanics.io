@@ -20,6 +20,7 @@ setup(
         "itsdangerous",
         "passlib",
         "yaml",
-        "requests"
+        "requests",
+        "retry"
     ],
     zip_safe=False)

@@ -1,11 +1,9 @@
 from connexion import App
 from os import getenv
 from flask_cors import CORS
-from requests import post
-from time import sleep
-from neo4j.v1 import GraphDatabase
+from yaml import Loader, load as load_yml
 
-
+appConfig = load_yml(open("config/app.yml"), Loader)
 app = App(__name__, specification_dir="../openapi/", options={"swagger_ui": False})
 
 for key, value in {

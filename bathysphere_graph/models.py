@@ -24,23 +24,7 @@ class CoordinateSystem:
 
 
 def unit():
-    return {
-        "name": None,
-        "symbol": None,
-        "definition": None}
-
-
-def tasking_parameters(name, description="", kind="", tokens=None):
-    # type: (str, str, str, [str]) -> dict
-    """
-    Format sub-model for tasks
-    """
-    return {
-        "name": name,
-        "description": description,
-        "type": kind,
-        "allowedTokens": tokens,
-    }
+    return {"name": None, "symbol": None, "definition": None}
 
 
 def links(urls):
@@ -85,6 +69,16 @@ def point(coordinates):
 
 def multi_point(points):
     return {"type": "MultiPoint", "coordinates": points}
+
+
+class Link:
+
+    def __init__(self, identity, labels, props, symbol="r"):
+        # type: (Link, int, (str, ), dict) -> Link
+        self.id = identity
+        self.labels = labels
+        self.props = props
+        self.symbol = symbol
 
 
 class Entity:
@@ -240,6 +234,7 @@ class Collections(Entity):
     """
     https://github.com/radiantearth/stac-spec/tree/master/collection-spec
     """
+
     _stac_enabled = True
 
     def __init__(
@@ -510,18 +505,12 @@ class Actuators(Device):
     @staticmethod
     def open(duration=None, ramp=True):
         # type: (int, bool) -> dict
-        return {
-            "message": "not implemented",
-            "status": 501,
-        }
+        return {"message": "not implemented", "status": 501}
 
     @staticmethod
     def close(duration=None, ramp=True):
         # type: (int, bool) -> dict
-        return {
-            "message": "not implemented",
-            "status": 501,
-        }
+        return {"message": "not implemented", "status": 501}
 
 
 class TaskingCapabilities(Entity):

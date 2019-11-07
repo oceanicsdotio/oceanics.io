@@ -1,6 +1,21 @@
 import pytest
 from bathysphere_graph import app
-from bathysphere_graph.drivers import connect, delete
+from bathysphere_graph.drivers import delete, count
+from bathysphere_graph.handlers import connect
+
+
+def validateCreateTx(create, get, cls, props, db):
+    response = create(
+        cls,
+        props,
+    )
+    data = response.get_json()
+    assert response.status_code == 200, data
+    assert count(db, cls=cls) > 0
+    payload = data.get("value")
+    obj_id = payload.get("@iot.id")
+    response = get(cls, obj_id)
+    assert response.status_code == 200, response.get_json()
 
 
 @pytest.fixture(scope="session")
@@ -32,7 +47,7 @@ def graph():
         hosts=hosts,
         port=app.app.config["NEO4J_PORT"],
         defaultAuth=default_auth,
-        declaredAuth=(default_auth[0], app.app.config["ADMIN_PASS"])
+        declaredAuth=(default_auth[0], app.app.config["ADMIN_PASS"]),
     )
     assert db is not None
     delete(db)  # purge the test database - then leave it populated after teardown
@@ -54,7 +69,7 @@ def create_entity(client, token):
     def _make_request(cls, properties):
         response = client.post(
             "api/{0}".format(cls),
-            json=properties,
+            json={**properties, **{"entityClass": cls}},
             headers={"Authorization": ":" + token.get("token", "")},
         )
         return response
@@ -64,10 +79,10 @@ def create_entity(client, token):
 
 @pytest.fixture(scope="function")
 def add_link(client, token):
-    def _make_request(root, root_id, cls, identity, label):
+    def _make_request(root, root_id, cls, identity, label, properties=None):
         response = client.post(
             f"api/{root}({root_id})/{cls}({identity})",
-            json={"label": label},
+            json={"label": label, **(prop)},
             headers={"Authorization": ":" + token.get("token", "")},
         )
         return response
