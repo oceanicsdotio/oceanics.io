@@ -1,6 +1,6 @@
 import pytest
 from bathysphere_graph import app
-from bathysphere_graph.drivers import connect, delete_entities
+from bathysphere_graph.drivers import connect, delete
 
 
 @pytest.fixture(scope="session")
@@ -21,9 +21,21 @@ def graph():
     """
     Connect to the test database
     """
-    db = connect()
+    hosts = [
+        app.app.config["DOCKER_COMPOSE_NAME"],
+        app.app.config["DOCKER_CONTAINER_NAME"],
+        app.app.config["EMBEDDED_NAME"],
+    ]
+
+    default_auth = tuple(app.app.config["NEO4J_AUTH"].split("/"))
+    db = connect(
+        hosts=hosts,
+        port=app.app.config["NEO4J_PORT"],
+        defaultAuth=default_auth,
+        declaredAuth=(default_auth[0], app.app.config["ADMIN_PASS"])
+    )
     assert db is not None
-    delete_entities(db)  # purge the test database - then leave it populated after teardown
+    delete(db)  # purge the test database - then leave it populated after teardown
     yield db
 
 

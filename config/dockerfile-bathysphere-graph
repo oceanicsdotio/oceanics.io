@@ -1,19 +1,13 @@
-FROM continuumio/miniconda3:4.6.14 AS base
-
-COPY config/environment.yml ./
-RUN conda env create -f environment.yml
-
-FROM continuumio/miniconda3:4.6.14
-
-COPY --from=base /opt/conda/ /opt/conda/
+FROM python:3.7-alpine
 
 WORKDIR bathysphere_graph
 COPY openapi/api.yml ./openapi/api.yml
 COPY config/app.yml ./config/app.yml
+COPY config/requirements.txt ./requirements.txt
 COPY bathysphere_graph ./bathysphere_graph
 COPY src ./src
+RUN pip install -r requirements.txt
 
-RUN chmod +x ./src/start.sh
-RUN chmod +x ./src/pytest.sh
+RUN chmod +x ./src/start.sh && chmod +x ./src/pytest.sh
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD "curl -f localhost:5000/api"
 ENTRYPOINT ["./src/start.sh"]

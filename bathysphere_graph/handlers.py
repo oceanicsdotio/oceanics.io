@@ -4,7 +4,6 @@ from passlib.apps import custom_app_context
 from functools import reduce
 
 from bathysphere_graph.drivers import *
-from bathysphere_graph.models import *
 from bathysphere_graph import app
 
 
@@ -28,7 +27,19 @@ def context(fcn):
     def wrapper(*args, **kwargs):
 
         auth = tuple(app.app.config["NEO4J_AUTH"].split("/"))
-        db = connect(auth=auth)
+        hosts = [
+            app.app.config["DOCKER_COMPOSE_NAME"],
+            app.app.config["DOCKER_CONTAINER_NAME"],
+            app.app.config["EMBEDDED_NAME"],
+        ]
+        default_auth = tuple(app.app.config["NEO4J_AUTH"].split("/"))
+        db = connect(
+            hosts=hosts,
+            port=app.app.config["NEO4J_PORT"],
+            defaultAuth=default_auth,
+            declaredAuth=(default_auth[0], app.app.config["ADMIN_PASS"])
+        )
+
         if db is None:
             return {"message": "no graph backend"}, 500
         if isinstance(db, (dict, list)):
@@ -91,7 +102,8 @@ def authenticate(fcn):
 
 
 @context
-def create_user(body, db, auth: dict = None, **kwargs):
+def create_user(body, db, auth=None, **kwargs):
+    # type: (dict, Driver, dict, dict) -> (dict, int)
     """
     Register a new user account
     """
@@ -105,7 +117,7 @@ def create_user(body, db, auth: dict = None, **kwargs):
     username = body.get("username")
     if not ("@" in username and "." in username):
         return {"message": "use email"}, 403
-    if exists(db=db, cls="User", identity=username):
+    if records(db=db, cls=User.__name__, identity=username, result="id"):
         return {"message": "invalid email"}, 403
 
     _, domain = username.split("@")
@@ -118,7 +130,7 @@ def create_user(body, db, auth: dict = None, **kwargs):
         ip=request.remote_addr,
     )
     item = create(db=db, obj=user)
-    link(db=db, root=itemize(port_of_entry), children=item, label="MEMBER")
+    link(db=db, root={"cls": repr(port_of_entry), "id": port_of_entry.id}, children=(item,), label="MEMBER")
     if auth:
         root = load(db=db, cls="Root")
         user.sendCredential(
@@ -156,13 +168,14 @@ def delete_user(db, user, purge=False, **kwargs):
     """
     if purge:
         return "Data purge not permitted", 403
-    delete_entities(db, cls="User", id=user.id, by=int)
+    delete(db, cls="User", id=user.id, by=int)
     return None, 204
 
 
 @context
 @authenticate
-def get_token(db, user: User, secret: str = None, **kwargs):
+def get_token(db, user, secret=None, **kwargs):
+    # type: (Driver, User, str, dict) -> (dict, int)
     """
     Send an auth token back for future sessions
     """
@@ -208,39 +221,36 @@ def get_sets(db, user, extension=None, **kwargs):
 
 @context
 @authenticate
-def create_entity(db, user, entity: str, body: dict, offset: int = 0, **kwargs):
+def createEntity(db, user, entity, body, offset=0, **kwargs):
+    # type: (Driver, User, str, dict, int, dict) -> (dict, int)
     """
     Attach to db, and find available ID number to register the entity
     """
-    cls = body.pop("entityClass", None)  # only used for API discriminator
-    if not cls:
-        cls = entity
     try:
-        obj = eval(cls)(**body)
+        _ = body.pop("entityClass")  # only used for API discriminator
+        obj = eval(entity)(**body)
     except Exception as ex:
         return {"error": f"{ex}"}, 500
 
     item = create(db=db, obj=obj, offset=offset)
-    link(db=db, root=itemize(user), children=item, label="POST")
-    e = relationships(
-        db=db,
-        parent={"cls": "User", "id": user.id},
-        child={"cls": "Ingresses"},
-        result="b.id",
-        label="MEMBER",
-    )
-    if e and not isinstance(obj, Ingresses):
-        for each in e:
-            link(
-                db=db,
-                root={"cls": "Ingresses", "id": each[0]},
-                children=item,
-                label="PROVIDER",
-            )
+    link(db=db, root={"cls": repr(user), "id": user.id}, children=(item,), label="POST")
 
+    if not isinstance(obj, Ingresses):
+        link(
+            db=db,
+            root=item,
+            children=tuple({"cls": "Ingresses", "id": r[0]} for r in relationships(
+                db=db,
+                parent={"cls": "User", "id": user.id},
+                child={"cls": "Ingresses"},
+                result="b.id",
+                label="MEMBER",
+            )),
+            label="PROVIDER",
+        )
     return (
         {
-            "message": f"Create {cls}",
+            "message": f"Create {entity}",
             "value": serialize(db, obj, service=app.app.config["HOST"]),
         },
         200,
@@ -249,7 +259,7 @@ def create_entity(db, user, entity: str, body: dict, offset: int = 0, **kwargs):
 
 @context
 @authenticate
-def create_entity_as_child(db, user, entity: str, body: dict, offset: int = 0, **kwargs):
+def createChildEntity(db, user, entity: str, body: dict, offset: int = 0, **kwargs):
     """
     Attach to db, and find available ID number to register the entity
     """
@@ -262,7 +272,7 @@ def create_entity_as_child(db, user, entity: str, body: dict, offset: int = 0, *
         return {"error": f"Bad request: {ex}"}, 400
 
     item = create(db=db, obj=obj, offset=offset)
-    link(db=db, root=itemize(user), children=item, label="POST")
+    link(db=db, root={"cls": repr(user), "id": user.id}, children=(item,), label="POST")
     e = relationships(
         db=db,
         parent={"cls": "User", "id": user.id},
@@ -274,7 +284,7 @@ def create_entity_as_child(db, user, entity: str, body: dict, offset: int = 0, *
             link(
                 db=db,
                 root={"cls": "Ingresses", "id": each[0]},
-                children=item,
+                children=(item,),
                 label="PROVIDER",
             )
     data = {
@@ -359,12 +369,12 @@ def update_entity(body, db, entity, id, **kwargs):
 
 @context
 @authenticate
-def delete(db, entity, id, **kwargs):
+def deleteEntity(db, entity, id, **kwargs):
     # type: (Driver, str, int, dict) -> (None, int)
     """
     Delete entity, and all owned/attached entities, follow SensorThings logic
     """
-    delete_entities(db, cls=entity, id=id, **kwargs)
+    delete(db, cls=entity, id=id, **kwargs)
     return None, 204
 
 
@@ -375,7 +385,7 @@ def addLink(db, root, rootId, entity, id, body, **kwargs):
     link(
         db=db,
         root={"cls": root, "id": rootId},
-        children={"cls": entity, "id": id},
+        children=({"cls": entity, "id": id},),
         label=body.get("label"),
     )
     return None, 204
@@ -388,7 +398,7 @@ def breakLink(db, root, rootId, entity, id, label, **kwargs):
     link(
         db=db,
         root={"cls": root, "id": rootId},
-        children={"cls": entity, "id": id},
+        children=({"cls": entity, "id": id},),
         label=label,
         drop=True
     )
