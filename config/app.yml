@@ -51,6 +51,11 @@ FeaturesOfInterest:
     description: |
       The Damariscotta River Estuary is a traditional growing area for oysters in Maine.
 
+  - name: Midcoast Maine Mesh
+  - name: Gulf of Maine Mesh
+  - name: Damariscotta River Nested Mesh
+
+
 ObservedProperties:
    - name: Temperature
      description: |
@@ -67,15 +72,26 @@ Locations:
     description: Buoy deployment
     location: [43.998178, -69.54253, 0.0]
 
+  - location: [-45.0, 36.0, -5.0]
+  - location: [-45.01, 36.01, -5.0]
+
 Sensors:
   - name: SeaBird Electronics CTD
     description: A common oceanographic sensing package
+
+  - name: Chlorophyll fluorometer
+    description: For measuring plankton stuff
+
 
 Things:
   - name: Land Ocean Biogeochemical Observatory
     description: |
       Moored buoy with instrumentation, deployed in the Damariscotta River
       Estuary (Maine) as part of the Sustainable Ecological Aquaculture Network project.
+
+  - name: Regional Sentinel Model Service
+    description: |
+      Operational model for aquaculture
 
 Datastreams:
   - name: temperature
@@ -93,25 +109,19 @@ Observations:
   - ts: 1005.208
     val: 10.4
 
-TaskingCapabilties:
+TaskingCapabilities: []
 
 Tasks:
   - taskingParameters:
       location: host:port/endpoint
       message: something
 
+  - taskingParameters:
+      location: host:port/endpoint
+      message: something-else
+
+
 Actuators:
   - name: Solenoid
   - name: Solenoid
   - name: Solenoid
-
-Meshes:
-  - name: Midcoast Maine
-  - name: Gulf of Maine
-  - name: Damariscotta River Nested
-
-Nodes:
-  - location: [-45.0, 36.0, -5.0]
-
-Cells:
-  - location: [-45.01, 36.01, -5.0]

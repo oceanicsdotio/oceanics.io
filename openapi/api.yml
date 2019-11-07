@@ -86,7 +86,7 @@ paths:
 
     put:
       tags: [Account]
-      operationId: bathysphere_graph.handlers.update_user
+      operationId: bathysphere_graph.handlers.manageAccount
       summary: Update account
       description: |
 
@@ -101,45 +101,12 @@ paths:
         '400':
           $ref: '#/components/responses/BadRequest'
 
-
-
-    delete:
-
-      tags: [Account]
-      operationId: bathysphere_graph.handlers.delete_user
-      summary: Delete account
-      description: |
-
-        Permanently delete account. Private data will be deleted. Public and derived data will be transferred to
-        control of the system admin. Specify `download=true` to download all data during delete process.
-
-      parameters:
-
-        - name: secret
-          in: query
-          schema:
-            $ref: '#/components/schemas/SecretKey'
-
-        - name: download
-          in: query
-          description: |
-
-          schema:
-            type: boolean
-            default: false
-
-      responses:
-        '204':
-          description: No content
-        '404':
-          $ref: '#/components/responses/NotFound'
-
   /:
 
     get:
-      tags: [Collection]
-      operationId: bathysphere_graph.handlers.get_sets
-      summary: Get collections
+      tags: [Catalog]
+      operationId: bathysphere_graph.handlers.getCatalog
+      summary: Catalog
       description: |
         Get all entity types in database as collections following the SpatioTemporal Asset Catalog specification
 
@@ -167,7 +134,7 @@ paths:
   /{entity}:
 
     post:
-      tags: [Entity]
+      tags: [Catalog]
       operationId: bathysphere_graph.handlers.createEntity
       summary: Create entity
       description: |
@@ -186,8 +153,8 @@ paths:
           $ref: '#/components/responses/BadRequest'
 
     get:
-      tags: [Collection]
-      operationId: bathysphere_graph.handlers.get_all
+      tags: [Catalog]
+      operationId: bathysphere_graph.handlers.getCollection
       summary: Get collection
       description: |
         Get all entities of one type
@@ -205,9 +172,9 @@ paths:
   /{entity}({id}):
 
     get:
-      tags: [Entity]
+      tags: [Catalog]
       operationId: bathysphere_graph.handlers.getEntity
-      summary: Get entity by ID
+      summary: Get entity
       description: |
         Get entity
 
@@ -222,7 +189,7 @@ paths:
           $ref: '#/components/responses/NotFound'
 
     put:
-      tags: [Entity]
+      tags: [Catalog]
       operationId: bathysphere_graph.handlers.mutateEntity
       summary: Update entity
       description: |
@@ -243,7 +210,7 @@ paths:
           $ref: '#/components/responses/NotFound'
 
     delete:
-      tags: [Entity]
+      tags: [Catalog]
       operationId: bathysphere_graph.handlers.deleteEntity
       summary: Delete entity
       description: |
@@ -264,8 +231,8 @@ paths:
 
     get:
       tags: [Topology]
-      operationId: bathysphere_graph.handlers.get_children
-      summary: Get related entities
+      operationId: bathysphere_graph.handlers.linkedEntities
+      summary: Related entities
       description: |
         Get related entities
 
@@ -366,17 +333,12 @@ components:
           - Locations
           - Sensors
           - Things
-          - Nodes
-          - Cells
-          - Meshes
           - ObservedProperties
           - Tasks
           - Actuators
           - TaskingCapabilities
           - FeaturesOfInterest
           - Ingresses
-          - Collections
-          - Catalogs
 
     entityId:
       in: path

@@ -4,6 +4,7 @@ from passlib.apps import custom_app_context
 from functools import reduce
 from retry import retry
 from requests import post
+from neo4j.v1 import GraphDatabase
 
 from bathysphere_graph.drivers import *
 from bathysphere_graph import app, appConfig
@@ -43,14 +44,14 @@ def connect(hosts, port, defaultAuth, declaredAuth):
         return None
     if records(db=db, cls=Root.__name__, identity=0, result="id"):
         return db
-
     root = Root(url=f"{attempt}:{port}", secretKey=app.app.config["SECRET"])
+    createIngresses = []
     root_item = create(db, cls=Root.__name__, identity=root.id, props=properties(root))
     for ing in appConfig[Ingresses.__name__]:
         if ing.pop("owner", False):
             ing["apiKey"] = app.app.config["API_KEY"]
-        item = create(db, obj=Ingresses(**ing))
-        link(db, root=root_item, children=({label: "Linked", **item},))
+        createIngresses.append({"label": "Linked", **create(db, obj=Ingresses(**ing))})
+    link(db, root=root_item, children=createIngresses)
     return db
 
 
@@ -60,8 +61,6 @@ def context(fcn):
     """
 
     def wrapper(*args, **kwargs):
-
-        auth = tuple(app.app.config["NEO4J_AUTH"].split("/"))
         hosts = [
             app.app.config["DOCKER_COMPOSE_NAME"],
             app.app.config["DOCKER_CONTAINER_NAME"],
@@ -74,7 +73,6 @@ def context(fcn):
             defaultAuth=default_auth,
             declaredAuth=(default_auth[0], app.app.config["ADMIN_PASS"]),
         )
-
         if db is None:
             return {"message": "no graph backend"}, 500
         if isinstance(db, (dict, list)):
@@ -145,7 +143,7 @@ def register(body, db, **kwargs):
     ingress = [item for item in collection if item._apiKey == api_key]
     if len(ingress) != 1:
         return {"message": "bad API key"}, 403
-    port_of_entry = ingress.pop()
+    portOfEntry = ingress.pop()
 
     username = body.get("username")
     if not ("@" in username and "." in username):
@@ -154,48 +152,35 @@ def register(body, db, **kwargs):
         return {"message": "invalid email"}, 403
 
     _, domain = username.split("@")
-    if port_of_entry.name != "Public" and domain != port_of_entry.url:
+    if portOfEntry.name != "Public" and domain != portOfEntry.url:
         return {"message": "invalid email"}, 403
-
-    user = User(
-        name=username,
-        credential=custom_app_context.hash(body.get("password")),
-        ip=request.remote_addr,
-    )
-    item = create(db=db, obj=user)
-    link(
+    _ = create(
         db=db,
-        root={"cls": repr(port_of_entry), "id": port_of_entry.id, "label": "Member"},
-        children=(item,),
+        obj=User(
+            name=username,
+            credential=custom_app_context.hash(body.get("password")),
+            ip=request.remote_addr,
+        ),
+        links=[{"label": "Member", "cls": repr(portOfEntry), "id": portOfEntry.id},]
     )
     return None, 204
 
 
 @context
 @authenticate
-def update_user(db, user, body, **kwargs):
+def manageAccount(db, user, body, **kwargs):
     # type: (Driver, User, dict, dict) -> (None, int)
     """
     Change account settings
     """
-    allowed = {"alias"}
+
+    allowed = {"alias", "delete"}
     if any(k not in allowed for k in body.keys()):
         return "Bad request", 400
-    _ = mutate(db, data=body, obj=user)
-    return None, 204
-
-
-@context
-@authenticate
-def delete_user(db, user, purge=False, **kwargs):
-    # type: (Driver, User, bool, dict) -> (str or None, int)
-    """
-    1. Delete account
-    2. Delete all private data - Not implemented
-    """
-    if purge:
-        return "Data purge not permitted", 403
-    delete(db, cls="User", id=user.id, by=int)
+    if body.get("delete", False):
+        delete(db, cls=repr(user), id=user.id, by=int)
+    else:
+        _ = mutate(db, data=body, obj=user)
     return None, 204
 
 
@@ -211,9 +196,12 @@ def authToken(db, user, secret=None, **kwargs):
     root = load(db=db, cls="Root").pop()
     return (
         {
-            "token": Serializer(secret_key=secret if secret else root._secretKey, expires_in=root.tokenDuration)
-                .dumps({"id": user.id})
-                .decode("ascii"),
+            "token": Serializer(
+                secret_key=secret if secret else root._secretKey,
+                expires_in=root.tokenDuration,
+            )
+            .dumps({"id": user.id})
+            .decode("ascii"),
             "duration": root.tokenDuration,
         },
         200,
@@ -222,8 +210,8 @@ def authToken(db, user, secret=None, **kwargs):
 
 @context
 @authenticate
-def get_sets(db, user, extension=None, **kwargs):
-    # type: (GraphDatabase, User, str, dict) -> (dict, int)
+def getCatalog(db, user, extension=None, **kwargs):
+    # type: (Driver, User, str, dict) -> (dict, int)
     """
     Usage 1. Get references to all entity sets, or optionally filter
     """
@@ -257,28 +245,26 @@ def createEntity(db, user, entity, body, offset=0, **kwargs):
     """
     try:
         _ = body.pop("entityClass")  # only used for API discriminator
+        declaredLinks = body.get("links", [])
         obj = eval(entity)(**body)
     except Exception as ex:
         return {"error": f"{ex}"}, 500
 
-    item = create(db=db, obj=obj, offset=offset)
-    link(db=db, root={"cls": repr(user), "id": user.id}, children=({label: "Post", **item},))
-
+    declaredLinks.append({"cls": repr(user), "id": user.id, "label": "Post"})
     if not isinstance(obj, Ingresses):
-        link(
-            db=db,
-            root=item,
-            children=tuple(
+        declaredLinks.extend(
+            [
                 {"cls": "Ingresses", "id": r[0], "label": "Provider"}
                 for r in relationships(
                     db=db,
                     parent={"cls": "User", "id": user.id},
                     child={"cls": "Ingresses"},
                     result="b.id",
-                    label="MEMBER",
+                    label="Member",
                 )
-            ),
+            ]
         )
+    item = create(db=db, obj=obj, offset=offset, links=declaredLinks)
     return (
         {
             "message": f"Create {entity}",
@@ -290,8 +276,37 @@ def createEntity(db, user, entity, body, offset=0, **kwargs):
 
 @context
 @authenticate
-def get_all(db, user, entity, **kwargs):
-    # type: (GraphDatabase, User, str, dict) -> (dict, int)
+def mutateEntity(body, db, entity, id, user, **kwargs):
+    # type: (dict, Driver, str, int, User, dict) -> (dict, int)
+    """
+    Give new values for the properties of an existing entity.
+    """
+    _ = body.pop("entityClass")  # only used for API discriminator
+    _ = mutate(db=db, data=body, cls=entity, identity=id, props={})
+    createLinks = [{"cls": repr(user), "id": user.id, "label": "Put"}]
+    print("b")
+    if entity != Ingresses.__name__:
+        createLinks.extend(
+            [
+                {"cls": Ingresses.__name__, "id": r[0], "label": "Provider"}
+                for r in relationships(
+                    db=db,
+                    parent={"cls": repr(user), "id": user.id},
+                    child={"cls": Ingresses.__name__},
+                    result="b.id",
+                    label="Member",
+                )
+            ]
+        )
+    print("c")
+    link(db=db, root={"cls": entity, "id": id}, children=createLinks)
+    return None, 204
+
+
+@context
+@authenticate
+def getCollection(db, user, entity, **kwargs):
+    # type: (Driver, User, str, dict) -> (dict, int)
     """
     Usage 2. Get all entities of a single class
     """
@@ -309,7 +324,7 @@ def get_all(db, user, entity, **kwargs):
 @context
 @authenticate
 def getEntity(db, entity, id, key=None, method=None, **kwargs):
-    # type: (GraphDatabase, str, int, str, str, dict)  -> (dict, int)
+    # type: (Driver, str, int, str, str, dict)  -> (dict, int)
     """
     Usage 3. Return information on a single entity
     Usage 4. Return single entity property
@@ -337,7 +352,7 @@ def getEntity(db, entity, id, key=None, method=None, **kwargs):
 
 @context
 @authenticate
-def get_children(db, root, rootId, entity, **kwargs):
+def linkedEntities(db, root, rootId, entity, **kwargs):
     # type: (Driver, str, int, str, dict) -> (dict, int)
     host = app.app.config["HOST"]
     e = relationships(
@@ -348,16 +363,6 @@ def get_children(db, root, rootId, entity, **kwargs):
         "value": tuple(serialize(db=db, obj=obj[0], service=host) for obj in e),
     }
     return data, 200
-
-
-@context
-@authenticate
-def mutateEntity(body, db, entity, id, **kwargs):
-    # type: (dict, Driver, str, int, dict) -> (dict, int)
-    """
-    Give new values for the properties of an existing entity.
-    """
-    return mutate(db, data=body, cls=entity, identity=id), 200
 
 
 @context
@@ -379,7 +384,7 @@ def addLink(db, root, rootId, entity, id, body, **kwargs):
         db=db,
         root={"cls": root, "id": rootId},
         children=({"cls": entity, "id": id, "label": body.get("label", "Linked")},),
-        props=body.get("props", None)
+        props=body.get("props", None),
     )
     return None, 204
 

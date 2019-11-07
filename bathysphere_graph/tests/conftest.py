@@ -5,10 +5,7 @@ from bathysphere_graph.handlers import connect
 
 
 def validateCreateTx(create, get, cls, props, db):
-    response = create(
-        cls,
-        props,
-    )
+    response = create(cls, props)
     data = response.get_json()
     assert response.status_code == 200, data
     assert count(db, cls=cls) > 0
@@ -69,7 +66,20 @@ def token(client):
 def create_entity(client, token):
     def _make_request(cls, properties):
         response = client.post(
-            "api/{0}".format(cls),
+            f"api/{cls}",
+            json={"entityClass": cls, **properties},
+            headers={"Authorization": ":" + token.get("token", "")},
+        )
+        return response
+
+    return _make_request
+
+
+@pytest.fixture(scope="function")
+def mutate_entity(client, token):
+    def _make_request(cls, id, properties):
+        response = client.put(
+            f"api/{cls}({id})",
             json={"entityClass": cls, **properties},
             headers={"Authorization": ":" + token.get("token", "")},
         )
@@ -87,6 +97,7 @@ def add_link(client, token):
             headers={"Authorization": ":" + token.get("token", "")},
         )
         assert response.status_code == 204, response.get_json()
+
     return _make_request
 
 
