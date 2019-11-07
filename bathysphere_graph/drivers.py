@@ -459,7 +459,7 @@ def update_properties(db, data, obj=None, cls=None, identity=None, props=None):
 
 
 def _node(symbol="n", cls="", by=None, var="id", **kwargs):
-    # type: (str, str, type, str, dict) -> str
+    # type: (str, str, type, str, **dict) -> str
     """
     Format node pattern sub-query:
     - "n:Class { <index>:$<var> }" where <index> is "id" or "name"
@@ -510,33 +510,33 @@ def relationships(db, **kwargs):
     return _read(db, _tx, kwargs)
 
 
-# def _expand(self, links, select):
-#     """
-#     Expand linked entities
-#
-#     :param links: available navigation links
-#     :param expand:
-#     :return:
-#     """
-#     result = dict()
-#     for each in links:
-#         expansion = [item for item in select if item[0]["name"] == each][0]
-#         sel = None
-#         if expansion.__class__.__name__ == "list" and len(expansion) > 1:
-#             future = [item for item in expansion[1:]]
-#             try:
-#                 sel = future[0]["queries"]["$select"]
-#             except KeyError or TypeError:
-#                 pass
-#         else:
-#             future = None
-#
-#         result[each + "@iot.count"] = len(self.collections[each])
-#         result[each] = []
-#         for entity in self._collections[each]:
-#             result[each].append(entity._serialize(future, sel))
-#
-#     return result
+def _expand(self, links, select):
+    """
+    Expand linked entities
+
+    :param links: available navigation links
+    :param expand:
+    :return:
+    """
+    result = dict()
+    for each in links:
+        expansion = [item for item in select if item[0]["name"] == each][0]
+        sel = None
+        if isinstance(expansion, list) and len(expansion) > 1:
+            future = [item for item in expansion[1:]]
+            try:
+                sel = future[0]["queries"]["$select"]
+            except KeyError or TypeError:
+                pass
+        else:
+            future = None
+
+        result[each + "@iot.count"] = len(self.collections[each])
+        result[each] = []
+        for entity in self._collections[each]:
+            result[each].append(entity._serialize(future, sel))
+
+    return result
 
 
 def expand(string):
@@ -590,22 +590,3 @@ def order_by(collection, string):
     else:
         raise TypeError
 
-
-def parse_query(request):
-    args = [key for key in request.args.keys()]
-    options = ["$expand", "$select", "$orderby", "$top", "$skip", "$count", "$filter"]
-
-
-def parse_select(string):
-    # type: (str) -> [str]
-    """
-    Return only properties explicitly requested
-
-    $select
-
-    :param string:
-    :return:
-    """
-
-    clauses = string.split(",")
-    return clauses
