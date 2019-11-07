@@ -54,30 +54,30 @@ def test_create_observation(create_entity, get_entity, graph):
 
 
 def test_add_links_prop_stream(add_link):
-    response = add_link("ObservedProperties", 0, "Datastreams", 0, label="LINKED")
+    response = add_link("ObservedProperties", 0, "Datastreams", 0, label="LINKED", props={"weight": 1})
     assert response.status_code == 204, response.get_json()
 
 
 def test_add_links_stream_obs(add_link):
-    response = add_link("Datastreams", 0, "Observations", 0, label="LINKED")
+    response = add_link("Datastreams", 0, "Observations", 0, label="LINKED", props={"weight": 1})
     assert response.status_code == 204, response.get_json()
 
 
 def test_add_links_thing_stream(add_link):
-    response = add_link("Things", 0, "Datastreams", 0, label="LINKED")
+    response = add_link("Things", 0, "Datastreams", 0, label="LINKED", props={"weight": 1})
     assert response.status_code == 204, response.get_json()
 
 
 def test_add_links_sensor_stream(add_link):
-    response = add_link("Sensors", 0, "Datastreams", 0, label="LINKED")
+    response = add_link("Sensors", 0, "Datastreams", 0, label="LINKED", props={"weight": 1})
     assert response.status_code == 204, response.get_json()
 
 
 def test_add_links_loc_thing(add_link):
-    response = add_link("Locations", 0, "Things", 0, label="LINKED")
+    response = add_link("Locations", 0, "Things", 0, label="LINKED", props={"weight": 1})
     assert response.status_code == 204, response.get_json()
 
 
 def test_add_links_feat_obs(add_link):
-    response = add_link("FeaturesOfInterest", 0, "Observations", 0, label="LINKED")
+    response = add_link("FeaturesOfInterest", 0, "Observations", 0, label="LINKED", props={"weight": 1})
     assert response.status_code == 204, response.get_json()

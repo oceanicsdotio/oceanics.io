@@ -69,7 +69,7 @@ def create_entity(client, token):
     def _make_request(cls, properties):
         response = client.post(
             "api/{0}".format(cls),
-            json={**properties, **{"entityClass": cls}},
+            json={"entityClass": cls, **properties},
             headers={"Authorization": ":" + token.get("token", "")},
         )
         return response
@@ -79,14 +79,13 @@ def create_entity(client, token):
 
 @pytest.fixture(scope="function")
 def add_link(client, token):
-    def _make_request(root, root_id, cls, identity, label, properties=None):
+    def _make_request(root, root_id, cls, identity, **kwargs):
         response = client.post(
             f"api/{root}({root_id})/{cls}({identity})",
-            json={"label": label, **(prop)},
+            json=kwargs,
             headers={"Authorization": ":" + token.get("token", "")},
         )
         return response
-
     return _make_request
 
 
