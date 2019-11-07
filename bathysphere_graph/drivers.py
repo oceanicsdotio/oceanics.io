@@ -188,9 +188,9 @@ def create(db, obj=None, offset=0, **kwargs):
                 description=fcn.__doc__,
             ),
         )
-        _capabilities.append(item)
+        _capabilities.append({"label": "Has", **item})
 
-    link(db=db, root=root, children=tuple(_capabilities), label="HAS")
+    link(db=db, root=root, children=tuple(_capabilities))
     return root
 
 
@@ -341,31 +341,28 @@ def records(db, **kwargs):
     return _read(db, _tx, kwargs)
 
 
-def link(db, root, children, label="LINKED", props=None, drop=False):
-    # type: (Driver, dict, (dict, ), str, dict, bool) -> None
+def link(db, root, children, props=None, drop=False, **kwargs):
+    # type: (Driver, dict, (dict, ), dict, bool, **dict) -> None
     """
     Create a new topological relationship.
     """
-
-    def _tx(tx, a, b, label, props, drop):
-        # type: (None, dict, dict, str, dict, bool) -> None
-        _a = _node(symbol="a", cls=a["cls"], by=int, var="a")
-        _b = _node(symbol="b", cls=b["cls"], by=int, var="b")
-        relPattern = _link(label=label, props=props)
+    def _tx(tx, root, leaf, props, drop):
+        # type: (None, dict, dict, dict, bool) -> None
+        _a = _node(symbol="root", cls=root["cls"], by=int, var="root")
+        _b = _node(symbol="leaf", cls=leaf["cls"], by=int, var="leaf")
+        relPattern = _link(label=leaf.get("label", "Linked"), props=props)
         if drop:
             cmd = f"MATCH ({_a})-{relPattern}->({_b}) DELETE r"
         else:
-            cmd = f"MATCH {_a} MATCH {_b} MERGE (a)-{relPattern}->(b)"
-        return tx.run(cmd, a=a["id"], b=b["id"]).values()
+            cmd = f"MATCH {_a} MATCH {_b} MERGE (root)-{relPattern}->(leaf)"
+        return tx.run(cmd, root=root["id"], leaf=leaf["id"]).values()
 
-    return _write(
-        db,
-        _tx,
-        tuple(
-            {"a": root, "b": each, "label": label, "drop": drop, "props": props}
-            for each in children
-        ),
-    )
+    links = [
+        {"root": root, "leaf": each, "drop": drop, "props": props}
+        for each in children
+    ]
+
+    return _write(db, _tx, links)
 
 
 def index(db, **kwargs):

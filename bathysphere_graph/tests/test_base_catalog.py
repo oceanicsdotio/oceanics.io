@@ -3,18 +3,6 @@ from bathysphere_graph.models import Ingresses, Collections, Catalogs
 from bathysphere_graph.drivers import count
 
 
-@pytest.mark.dependency()
-def test_create_provider(create_entity, graph):
-    """Create non-core provider"""
-    cls = Ingresses.__name__
-    response = create_entity(
-        cls, {"name": "Maine Aquaculture Association", "description": "", "url": ""}
-    )
-    data = response.get_json()
-    assert response.status_code == 200, data
-    assert count(graph, cls=cls) > 0
-
-
 @pytest.mark.dependency(depends=["test_create_provider"])
 def test_create_collection(create_entity, graph):
     """Create collection."""
