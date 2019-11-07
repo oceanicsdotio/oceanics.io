@@ -1,0 +1,4 @@
+FROM neo4j:3.5
+COPY config/neo4j-graphql-*.jar /var/lib/neo4j/plugins
+RUN echo 'dbms.unmanaged_extension_classes=org.neo4j.graphql=/graphql' | tee -a /var/lib/neo4j/conf/neo4j.confn
+CMD ["neo4j"]

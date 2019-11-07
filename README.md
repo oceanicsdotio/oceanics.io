@@ -72,6 +72,71 @@ Download the cluster configuration, and get the nodes.
 
 
 
+The cluster doesn't need nginx, so we just deploy the neo4j container and the bathyphsere-graph container. 
+
+
+
+```
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-beta4/aio/deploy/recommended.yaml
+```
+
+```
+kubectl -n kubernetes-dashboard describe secret $(kubectl -n kubernetes-dashboard get secret | grep admin-user | awk '{print $1}')
+```
+
+```
+https://raw.githubusercontent.com/kubernetes/ingress-nginx/nginx-0.26.1/deploy/static/mandatory.yaml
+```
+
+```
+brew install kubernetes-helm
+helm init # baf
+helm repo add stable https://kubernetes-charts.storage.googleapis.com/
+kubectl get deployments -l 'app=helm' --all-namespaces
+
+helm install \
+--namespace bathysphere \
+--name neo4j-helm stable/neo4j \
+--set acceptLicenseAgreement=yes \
+--set neo4jPassword=n0t_passw0rd
+
+kubectl logs -l "app=neo4j,component=core"
+
+
+kubectl run -it --rm cypher-shell \
+    --image=neo4j:3.2.3-enterprise \
+    --restart=Never \
+    --namespace bathysphere \
+    --command -- ./bin/cypher-shell -u neo4j -p n0t_passw0rd \
+    --a neo4j-helm-neo4j.bathysphere.svc.cluster.local "call dbms.cluster.overview()"
+
+
+helm delete neo4j-helm --purge
+
+
+kubectl scale deployment neo4j-helm-neo4j-replica  --namespace bathysphere --replicas=2
+
+kubectl exec neo4j-helm-neo4j-core-0 -- bin/cypher-shell \
+"UNWIND range(0, 1000) AS id CREATE (:Person {id: id}) RETURN COUNT(*)"
+```
+
+
+
+
+
+```
+kubectl create serviceaccount tiller --namespace kube-system
+helm init --service-account tiller --upgrade
+```
+
+
+
+```
+kubectl get svc --namespace=ingress-nginx
+```
+
+https://www.asykim.com/blog/deep-dive-into-kubernetes-external-traffic-policies
+
 
 
 ### OpenFAAS
@@ -125,6 +190,14 @@ from neo4j.v1 import GraphDatabase
 driver = GraphDatabase.driver("bolt://localhost:7687", auth=("neo4j", "neo4j"))
 session = driver.session()
 ```
+
+
+
+### GraphQL
+
+https://daten-und-bass.io/blog/getting-started-with-neo4j-and-graphql/
+
+https://github.com/neo4j-graphql/neo4j-graphql#schema-from-graph
 
 
 

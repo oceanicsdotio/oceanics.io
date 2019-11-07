@@ -168,7 +168,7 @@ paths:
 
     post:
       tags: [Entity]
-      operationId: bathysphere_graph.handlers.create_entity
+      operationId: bathysphere_graph.handlers.createEntity
       summary: Create entity
       description: |
         Create a new entity.
@@ -244,7 +244,7 @@ paths:
 
     delete:
       tags: [Entity]
-      operationId: bathysphere_graph.handlers.delete
+      operationId: bathysphere_graph.handlers.deleteEntity
       summary: Delete entity
       description: |
         Delete entity and orphans recursively.
@@ -264,7 +264,7 @@ paths:
 
     post:
       tags: [Entityt]
-      operationId: bathysphere_graph.handlers.create_entity_as_child
+      operationId: bathysphere_graph.handlers.createChildEntity
       summary: Create child entity
       description: |
         Create a new entity as a child of another.

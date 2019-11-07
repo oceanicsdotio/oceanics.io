@@ -3,13 +3,15 @@ from itertools import repeat
 from typing import Callable, Any
 from yaml import Loader, load as load_yml
 from json import dumps
-from neo4j.v1 import Driver, GraphDatabase
+from neo4j.v1 import Driver, GraphDatabase, Node
+from retry import retry
+from requests import post
 from bathysphere_graph import app
 from bathysphere_graph.models import *
 
 
 def create(db, obj=None, offset=0, **kwargs):
-    # type: (Driver, Entity, int, dict) -> dict
+    # type: (Driver, Entity, int, **dict) -> dict
     """
     Create a new node(s) in graph. Format object properties dictionary as list of key:"value" strings,
     automatically converting each object to string using its built-in __str__ converter.
@@ -21,20 +23,23 @@ def create(db, obj=None, offset=0, **kwargs):
     """
 
     if obj:
-        kwargs.update({
-            "cls": type(obj).__name__,
-            "identity": getattr(obj, "id"),
-            "props": obj.__dict__,
-        })
+        kwargs.update(
+            {"cls": repr(obj), "identity": getattr(obj, "id"), "props": obj.__dict__}
+        )
     if kwargs.get("identity", None) is None:
-        kwargs["identity"] = auto_id(db, cls=kwargs.get("cls"), offset=offset)
+        cls = kwargs.get("cls")
+        identity = count(db, cls=cls) + offset
+        while records(db=db, cls=cls, identity=identity, result="id"):
+            identity += 1
+        kwargs["identity"] = identity
+
         if obj:
             obj.id = kwargs["identity"]
 
     def _tx(tx, cls: str, identity: int, props: dict) -> list:
         p = filter(
             lambda x: x is not None,
-            (_process_key_value(*item, null=False) for item in props.items())
+            (_process_key_value(*item, null=False) for item in props.items()),
         )
         p = ["id: $id"] + list(p)
         cmd = f"MERGE (n: {cls} {{ {', '.join(p)} }})"
@@ -42,148 +47,123 @@ def create(db, obj=None, offset=0, **kwargs):
 
     _write(db, _tx, kwargs)
 
-    if obj:
-        capabilities(db=db, obj=obj, label="HAS")
+    if obj is None:
+        return {"cls": kwargs["cls"], "id": kwargs["identity"]}
 
-    return {"cls": kwargs["cls"], "id": kwargs["identity"]}
+    private = "_"
+    root = {"cls": repr(obj), "id": obj.id}
+    instanceKeys = set(
+        f"{repr(obj)}.{key}"
+        for key in set(dir(obj)) - set(obj.__dict__.keys())
+        if key[:len(private)] != private
+    )
+
+    existing = {x.name: x.id for x in load(db=db, cls=TaskingCapabilities.__name__)}
+    allExistingKeys = set(existing.keys())
+
+    _capabilities = [
+        {"cls": TaskingCapabilities.__name__, "id": existing[key]}
+        for key in tuple(allExistingKeys & instanceKeys)
+    ]
+    for key in instanceKeys - allExistingKeys:
+        fcn = eval(key)
+        item = create(db=db, obj=TaskingCapabilities(
+            name=key,
+            taskingParameters=[
+                tasking_parameters(name=b.name, kind="", tokens=[""])
+                for b in signature(fcn).parameters.values()
+            ],
+            description=fcn.__doc__
+        ))
+        _capabilities.append(item)
+
+    link(db=db, root=root, children=tuple(_capabilities), label="HAS")
+    return root
 
 
-def connect(
-    auth=None,
-    host=app.app.config["HOST"],
-    port=app.app.config["NEO4J_PORT"],
-):
-    # type: ((str, str), str, int) -> Driver or None
+@retry(tries=3, delay=3, backoff=1)
+def connect(hosts, port, defaultAuth, declaredAuth):
+    # type: ((str, ), int, (str, str), (str, str)) -> Driver or None
     """
     Connect to a database manager. Try docker networking, or fallback to local host.
     """
     db = None
-    if not auth:
-        auth_str = app.app.config.get("NEO4J_AUTH", None)
-        if auth_str:
-            auth = tuple(auth_str.split("/"))
-    hosts = [
-        app.app.config["DOCKER_COMPOSE_NAME"],
-        app.app.config["DOCKER_CONTAINER_NAME"],
-        app.app.config["EMBEDDED_NAME"],
-        host,
-    ]
-
+    attempt = None
     while hosts:
         attempt = hosts.pop()
         uri = f"{attempt}:{port}"
-        try:
-            db = GraphDatabase.driver(uri=f"bolt://{uri}", auth=auth)
-        except Exception as ex:
-            print(f"{ex} on host={attempt}")
-        else:
+        for auth in (
+            declaredAuth,
+            defaultAuth,
+        ):  # likely that the db has been accessed and setup previously
+            try:
+                db = GraphDatabase.driver(uri=f"bolt://{uri}", auth=auth)
+            except Exception as ex:
+                print(f"{ex} on {uri}")
+                continue
+            if auth != declaredAuth:
+                response = post(
+                    f"http://{attempt}:7474/user/neo4j/password",
+                    auth=auth,
+                    json={"password": app.app.config["ADMIN_PASS"]},
+                )
+                assert response.ok
             break
+
     if not db:
         return None
-    if exists(db, cls="Root", identity=0):
+    if records(db=db, cls=Root.__name__, identity=0, result="id"):
         return db
 
-    root = Root(url=f"{host}:5000", secretKey=app.app.config["SECRET"])
+    root = Root(url=f"{attempt}:{port}", secretKey=app.app.config["SECRET"])
     root_item = create(db, cls=Root.__name__, identity=root.id, props=properties(root))
-    attempts = ["./", ""]
-    errors = []
-    yml = None
-
-    while attempts:
-        try:
-            yml = open(attempts.pop() + "config/app.yml")
-            if errors and not isinstance(yml, bytes):
-                return errors
-            break
-        except FileNotFoundError as e:
-            errors.append({"message": f"{e}"})
-
-    if yml:
-        try:
-            ingress = load_yml(yml, Loader)["ingress"]
-        except KeyError as e:
-            errors.append({"message": f"{e}"})
-            return errors
-        for conf in ingress:
-            if conf.pop("owner", False):
-                conf["apiKey"] = app.app.config["API_KEY"]
-            ingress = create(db, obj=Ingresses(**conf))
-            link(db, root=root_item, children=ingress)
+    for conf in load_yml(open("config/app.yml"), Loader)["ingress"]:
+        if conf.pop("owner", False):
+            conf["apiKey"] = app.app.config["API_KEY"]
+        ing = create(db, obj=Ingresses(**conf))
+        link(db, root=root_item, children=(ing,))
     return db
 
 
-def _write(db, method, kwargs=None):
-    # type: (Driver, Callable, dict or list)  -> list or None
-    """
-    Call driver methods to write transaction.
-    """
-    with db.session() as session:
-        if kwargs is None:
-            return session.write_transaction(method)
-        if isinstance(kwargs, list):
-            return [session.write_transaction(method, **each) for each in kwargs]
-        if isinstance(kwargs, dict):
-            return session.write_transaction(method, **kwargs)
+def _transaction(session, method, kwargs=None):
+    # type: (Callable, Callable, dict or list or tuple)  -> list or None
+    if kwargs is None:
+        return session(method)
+    if isinstance(kwargs, list) or isinstance(kwargs, tuple):
+        return [session(method, **each) for each in kwargs]
+    if isinstance(kwargs, dict):
+        return session(method, **kwargs)
     raise ValueError
+
+
+def _write(db, method, kwargs=None):
+    # type: (Driver, Callable, dict or list or tuple)  -> list or None
+    with db.session() as session:
+        return _transaction(session.write_transaction, method, kwargs)
 
 
 def _read(db, method, kwargs=None):
     # type: (Driver, Callable, dict or [dict])  -> list or [list] or None
-    """
-    Call driver methods to read transaction.
-    """
     with db.session() as session:
-        if kwargs is None:
-            return session.read_transaction(method)
-        if isinstance(kwargs, list):
-            return [session.read_transaction(method, **each) for each in kwargs]
-        if isinstance(kwargs, dict):
-            return session.read_transaction(method, **kwargs)
-    raise ValueError
+        return _transaction(session.read_transaction, method, kwargs)
 
 
-def properties(obj, select: list or tuple = None, private: str = None) -> dict:
+def properties(obj, select=None, private=None):
+    # type: (Entity, list or tuple, str) -> dict
     """
     Create a filtered dictionary from the object properties.
     """
-    flag = True
-    if obj.__class__.__name__ == "Node":
-        try:
-            iterator = obj
-            flag = False
-        except AttributeError:
-            pass
-
-    if flag:
-        iterator = obj.__dict__
-
-    return (
-        {
-            key: value
-            for key, value in iterator.items()
-            if (isinstance(key, str) and key[: len(private)] != private)
-            and (key in select if select else True)
-            # limit to user selected properties
-        }
-        if private
-        else {
-            key: value
-            for key, value in iterator.items()
-            if (key in select if select else True)
-        }
-    )
+    return {
+        key: value
+        for key, value in (obj if isinstance(obj, Node) else obj.__dict__).items()
+        if isinstance(key, str)
+        and (key[: len(private)] != private if private else True)
+        and (key in select if select else True)
+    }
 
 
-def itemize(obj) -> dict:
-    """
-    Convenience method for item notation.
-    """
-    return {"cls": type(obj).__name__, "id": obj.id}
-
-
-def serialize(
-    db, obj, service: str, protocol: str = "http", select: list = None
-) -> dict:
+def serialize(db, obj, service, protocol="http", select=None):
+    # type: (Driver, Entity, str, str, list) -> dict
     """
     Format entity as JSON compatible dictionary from either an object instance or a Neo4j <Node>
 
@@ -194,9 +174,9 @@ def serialize(
     try:
         cls = list(obj.labels)[0]
     except AttributeError:
-        cls = type(obj).__name__
+        cls = repr(obj)
 
-    restricted = ("User", "Ingresses", "Root")
+    restricted = {"User", "Ingresses", "Root"}
     props = properties(obj, select, private="_")
     identity = props.pop("id")
     show_port = f":{app.app.config['PORT']}" if service in ("localhost",) else ""
@@ -204,67 +184,22 @@ def serialize(
         f"{protocol}://{service}{show_port}{app.app.config['BASE_PATH']}/{cls}"
     )
     self_link = f"{collection_link}({identity})"
-    nav = links(db=db, parent={"cls": cls, "id": identity})
-    nav_links = {
-        each + "@iot.navigation": f"{self_link}/{each}"
-        for each in nav
-        if each not in restricted
-    }
+    linked = set(label for buffer in relationships(db, parent={"cls": cls, "id": identity}) for label in buffer[0])
 
     return {
         "@iot.id": identity,
         "@iot.selfLink": self_link,
         "@iot.collection": collection_link,
         **props,
-        **nav_links,
+        **{
+            each + "@iot.navigation": f"{self_link}/{each}"
+            for each in (linked - restricted)
+        }
     }
 
 
-def render(cls: str, props, private: str = "_") -> object:
-    """
-    Create entity instance from a dictionary or Neo4j <Node>, which has an items() method
-    that works the same as the dictionary method.
-
-    TODO: retain labels
-    """
-    obj = Entity(None)
-    obj.__class__ = eval(cls)
-    for key, value in props.items():
-        try:
-            setattr(obj, key, value)
-        except KeyError:
-            pass
-        else:
-            continue
-
-        try:
-            setattr(obj, private + key, value)
-        except KeyError:
-            print(f"Warning, unknown key: {key}")
-            pass
-
-    return obj
-
-
-def auto_id(db, cls: str, offset: int = 0) -> int:
-    """
-    Generate low-ish identifier, not guaranteed to fill small integer ID gaps.
-    """
-    identity = count(db, cls=cls) + offset
-    while exists(db, cls=cls, identity=identity):
-        identity += 1
-    return identity
-
-
-def exists(db, cls: str, identity: int or str) -> bool:
-    """
-    Check whether name or ID already exists, and return logical.
-    """
-    r = records(db, cls=cls, identity=identity, result="id")
-    return True if r else False
-
-
-def add_label(db, **kwargs) -> list or None:
+def add_label(db, **kwargs):
+    # type: (Driver, **dict)  -> list or None
     """
     Apply new label to nodes of this class, or a specific node.
     """
@@ -278,61 +213,57 @@ def add_label(db, **kwargs) -> list or None:
     return _write(db, _tx, kwargs)
 
 
-def count(db, **kwargs) -> int:
+def count(db, **kwargs):
+    # type: (Driver, **dict) -> int
     """
     Count occurrence of a class label in Neo4j.
     """
+
     def _tx(tx, symbol: str = "n", cls: str = "") -> int:
         return tx.run(
             f"MATCH {_node(symbol=symbol, cls=cls)} RETURN count({symbol})"
         ).single()[0]
+
     return _read(db, _tx, kwargs)
 
 
-def load(**kwargs) -> list or None:
+def load(db, cls, private="_", **kwargs):
+    # type: (Driver, str, str, **dict) -> list or None
+    """
+    Create entity instance from a dictionary or Neo4j <Node>, which has an items() method
+    that works the same as the dictionary method.
 
-    rec = kwargs.get("rec", None)
-    if not rec:
-        db = kwargs.get("db", None)
-        if not db:
-            return None
-        rec = records(**kwargs)
-    if not rec:
-        return None
+    TODO: retain labels
+    """
+    payload = []
+    for each in records(db=db, cls=cls, **kwargs):
+        payload.append(Entity(None))
+        payload[-1].__class__ = eval(cls)
+        for key, value in properties(each[0]).items():
+            try:
+                setattr(payload[-1], key, value)
+                continue
+            except KeyError:
+                setattr(payload[-1], private + key, value)
+    return payload
 
-    cls = kwargs.get("cls", None)
-    return [
-        render(cls=(cls if cls else list(each.labels)[0]), props=properties(each[0]))
-        for each in rec
-    ]
 
-
-def records(db, **kwargs) -> list or None:
+def records(db, **kwargs):
+    # type: (Driver, **dict) -> list or None
     """
     Load database nodes as in-memory record.
     """
-
-    def _tx(
-        tx, cls: str, identity: int or str = None, symbol: str = "n", result: str = ""
-    ) -> list:
-        """
-        Load entities as database records.
-        """
+    def _tx(tx, cls, identity=None, symbol="n", result=""):
+        # type: (Any, str, int or str, str, str) -> list
         by = None if identity is None else type(identity)
         nodes = _node(symbol=symbol, cls=cls, by=by, var="id")
-        return_val = f"{symbol}.{result}" if result else symbol
-        cmd = f"MATCH {nodes} RETURN {return_val}"
-        return tx.run(cmd, id=identity).values()
-
-    try:
-        return _read(db, _tx, kwargs)
-    except ConnectionError or KeyError or TypeError as exception:
-        print(exception)
-    return None
+        return_val = f".{result}" if result else ""
+        return tx.run(f"MATCH {nodes} RETURN n{return_val}", id=identity).values()
+    return _read(db, _tx, kwargs)
 
 
-def link(db, root, children, label="LINKED", drop=False):
-    # type: (Driver, dict, dict or list, str, bool) -> None
+def link(db, root, children, label="LINKED", labelProps=None, drop=False):
+    # type: (Driver, dict, (dict, ), str, dict, bool) -> None
     """
     Create topological relationships.
     """
@@ -344,15 +275,20 @@ def link(db, root, children, label="LINKED", drop=False):
 
         if drop:
             cmd = f"MATCH ({_a})-[r:{label}]->({_b}) DELETE r"
+        elif labelProps is None:
+            cmd = f"MATCH {_a} MATCH {_b} MERGE (a)-[r:{label}]->(b)"
         else:
             cmd = f"MATCH {_a} MATCH {_b} MERGE (a)-[r:{label}]->(b)"
-        return tx.run(cmd, a=a["id"], b=b["id"],).values()
 
-    if type(children) != list:
-        children = [children]
+        return tx.run(cmd, a=a["id"], b=b["id"]).values()
 
-    kwargs = [{"a": root, "b": each, "label": label, "drop": drop} for each in children]
-    return _write(db, _tx, kwargs)
+    return _write(
+        db,
+        _tx,
+        tuple(
+            {"a": root, "b": each, "label": label, "drop": drop} for each in children
+        ),
+    )
 
 
 def index(db, **kwargs):
@@ -360,21 +296,19 @@ def index(db, **kwargs):
     """
     Create an index on a particular property.
     """
-
     def _tx(tx, cls, by, drop=False):
         # type: (None, str, str, bool) -> list
-        return tx.run(
-            "{0} INDEX ON : {0}({1})".format("DROP" if drop else "CREATE", cls, by)
-        ).values()
-
+        verb = "DROP" if drop else "CREATE"
+        return tx.run(f"{verb} INDEX ON : {cls}({by})").values()
     return _write(db, _tx, kwargs)
 
 
-def delete_entities(db, **kwargs):
+def delete(db, **kwargs):
     # type: (Driver, dict) -> None
     """
     Remove all nodes from the graph, can optionally specify node-matching parameters.
     """
+
     def _tx(tx, symbol="n", **kw):
         # type: (None, str, dict) -> None
         node = _node(symbol=symbol, **kw)
@@ -482,47 +416,6 @@ def _location(coordinates):
     return f"point({{{values}}})"
 
 
-def capabilities(db, obj, label, private="_"):
-    # type: (Driver, Entity, str, str) -> [dict]
-    """
-    Create child TaskingCapabilities for public methods bound to the instance.
-    """
-    root = itemize(obj)
-    entity = type(obj).__name__
-    instance = [
-        f"{entity}.{key}"
-        for key in set(dir(obj)) - set(obj.__dict__.keys())
-        if key[: len(private)] != private
-    ]
-
-    existing = load(db=db, cls=TaskingCapabilities.__name__)
-    matching = (
-        {item.name: item.id for item in existing if item.name in instance}
-        if existing
-        else {}
-    )
-
-    _linked = []
-    for fname in instance:
-        match_id = matching.get(fname, None)  # already exists
-        if match_id is not None:
-            item = {"cls": TaskingCapabilities.__name__, "id": match_id}
-        else:
-            fcn = eval(fname)
-            params = [
-                tasking_parameters(name=b.name, kind="", tokens=[""])
-                for b in signature(fcn).parameters.values()
-            ]
-            obj = TaskingCapabilities(
-                name=fname, taskingParameters=params, description=fcn.__doc__
-            )
-            item = create(db=db, obj=obj)
-
-        link(db=db, root=root, children=item, label=label)
-        _linked.append(item)
-    return _linked
-
-
 def _process_key_value(key, value, null=False):
     # type: (str, Any, bool) -> str or None
     if "location" in key:
@@ -544,7 +437,7 @@ def update_properties(db, data, obj=None, cls=None, identity=None, props=None):
     if obj is None and (cls is None or identity is None or props is None):
         raise ValueError
     kwargs = {
-        "cls": type(obj).__name__ if obj else cls,
+        "cls": repr(obj) if obj else cls,
         "identity": getattr(obj, "id") if obj else identity,
         "props": obj.__dict__ if obj else props,
         "updates": data,
@@ -581,11 +474,6 @@ def _node(symbol="n", cls="", by=None, var="id", **kwargs):
     return f"({symbol}{identity}{props})"
 
 
-def links(db, **kwargs):
-    wrapped = relationships(db, **kwargs)
-    return set(label for buffer in wrapped for label in buffer[0]) if wrapped else set()
-
-
 def relationships(db, **kwargs):
     """
     Match and return the label set for connected entities.
@@ -601,14 +489,7 @@ def relationships(db, **kwargs):
 
         return _node(symbol=symbol, cls=cls, by=by, var=symbol)
 
-    def _tx(
-        tx,
-        parent=None,
-        child=None,
-        label="",
-        result="labels(b)",
-        direction=None,
-    ):
+    def _tx(tx, parent=None, child=None, label="", result="labels(b)", direction=None):
         # type: (None, dict, dict, str, str, str) -> list
         left = _fmt(parent, symbol="a")
         right = _fmt(child, symbol="b")
@@ -618,14 +499,13 @@ def relationships(db, **kwargs):
         if child and child.get("id", None) is not None:
             params["b"] = child["id"]
 
-        pattern = f"{left}{'<' if direction==-1 else ''}-"\
-                  f"{f'[:{label}]' if label else ''}-"\
-                  f"{'' if direction==1 else ''}{right}"
+        pattern = (
+            f"{left}{'<' if direction==-1 else ''}-"
+            f"{f'[:{label}]' if label else ''}-"
+            f"{'' if direction==1 else ''}{right}"
+        )
 
-        return tx.run(
-            f"MATCH {pattern} RETURN {result}",
-            **params,
-        ).values()
+        return tx.run(f"MATCH {pattern} RETURN {result}", **params).values()
 
     return _read(db, _tx, kwargs)
 

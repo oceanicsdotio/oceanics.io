@@ -1,16 +1,11 @@
 from secrets import token_urlsafe
-import smtplib
+from smtplib import SMTP_SSL
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from datetime import datetime
 from enum import Enum
 from typing import Generator
-
 from time import time
-
-
-def unit():
-    return {"name": None, "symbol": None, "definition": None}
 
 API_STAC_VERSION = "0.0"
 
@@ -23,6 +18,16 @@ class RelationshipLabels(Enum):
     derived_from = 5  # provenance tracking!
 
 
+class CoordinateSystem:
+    Sigma = 1
+    Cartesian = 2
+
+
+def unit():
+    return {
+        "name": None,
+        "symbol": None,
+        "definition": None}
 
 
 def tasking_parameters(name, description="", kind="", tokens=None):
@@ -82,7 +87,6 @@ def multi_point(points):
     return {"type": "MultiPoint", "coordinates": points}
 
 
-
 class Entity:
 
     _verb = False
@@ -115,6 +119,12 @@ class Entity:
 
     def __del__(self):
         self._notify("removed")
+
+    def __repr__(self):
+        return type(self).__name__
+
+    def __str__(self):
+        return type(self).__name__
 
     def _notify(self, message):
         # type: (str) -> None
@@ -190,7 +200,7 @@ class User(Entity):
         :return:
         """
 
-        server = smtplib.SMTP_SSL(auth["server"], port=auth["port"])
+        server = SMTP_SSL(auth["server"], port=auth["port"])
         server.login(auth["account"], auth["key"])
 
         msg_root = MIMEMultipart()
@@ -218,7 +228,8 @@ class Ingresses(Entity):
         self.url = url
         self._apiKey = apiKey if apiKey else token_urlsafe(64)
 
-    def lock(self):
+    @staticmethod
+    def lock():
         """
         Close `Ingresses` without deleting or permanently deactivating it.
         """
@@ -290,21 +301,6 @@ class Items(Entity):
 
     def calculateBoundingBox(self, projection: str) -> (int, dict):
         pass
-
-
-
-class CoordinateSystem:
-    Sigma = 1
-    Cartesian = 2
-
-
-class Layers(Entity):
-    def __init__(self, **kwargs):
-        Entity.__init__(self, **kwargs)
-        self.coordinateSystem = CoordinateSystem.Cartesian
-
-
-
 
 
 class Datastreams(Entity):
@@ -555,7 +551,6 @@ class Tasks(Entity):
         pass
 
 
-
 class Meshes(FeaturesOfInterest):
 
     _model = None  # regression model handle for interpolating data to the grid
@@ -592,7 +587,6 @@ class Meshes(FeaturesOfInterest):
         return queue
 
 
-
 class Cells(Locations):
     def __init__(self, **kwargs):
         Locations.__init__(self, **kwargs)
@@ -627,3 +621,9 @@ class Nodes(Locations):
     @staticmethod
     def adjacency():
         pass
+
+
+class Layers(Entity):
+    def __init__(self, **kwargs):
+        Entity.__init__(self, **kwargs)
+        self.coordinateSystem = CoordinateSystem.Cartesian
