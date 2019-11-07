@@ -2,21 +2,55 @@ from flask import request
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from passlib.apps import custom_app_context
 from functools import reduce
+from retry import retry
+from requests import post
 
 from bathysphere_graph.drivers import *
-from bathysphere_graph import app
+from bathysphere_graph import app, appConfig
 
 
-def token(secret_key, user_id, duration):
+@retry(tries=3, delay=3, backoff=1)
+def connect(hosts, port, defaultAuth, declaredAuth):
+    # type: ((str, ), int, (str, str), (str, str)) -> Driver or None
     """
-    Generate token
+    Connect to a database manager. Try docker networking, or fallback to local host.
     """
-    return {
-        "token": Serializer(secret_key=secret_key, expires_in=duration)
-        .dumps({"id": user_id})
-        .decode("ascii"),
-        "duration": duration,
-    }
+    db = None
+    attempt = None
+
+    while hosts:
+        attempt = hosts.pop()
+        uri = f"{attempt}:{port}"
+        for auth in (
+            declaredAuth,
+            defaultAuth,
+        ):  # likely that the db has been accessed and setup previously
+            try:
+                db = GraphDatabase.driver(uri=f"bolt://{uri}", auth=auth)
+            except Exception as ex:
+                print(f"{ex} on {uri}")
+                continue
+            if auth != declaredAuth:
+                response = post(
+                    f"http://{attempt}:7474/user/neo4j/password",
+                    auth=auth,
+                    json={"password": app.app.config["ADMIN_PASS"]},
+                )
+                assert response.ok
+            break
+
+    if not db:
+        return None
+    if records(db=db, cls=Root.__name__, identity=0, result="id"):
+        return db
+
+    root = Root(url=f"{attempt}:{port}", secretKey=app.app.config["SECRET"])
+    root_item = create(db, cls=Root.__name__, identity=root.id, props=properties(root))
+    for ing in appConfig[Ingresses.__name__]:
+        if ing.pop("owner", False):
+            ing["apiKey"] = app.app.config["API_KEY"]
+        link(db, root=root_item, children=(create(db, obj=Ingresses(**ing)),))
+    return db
 
 
 def context(fcn):
@@ -37,7 +71,7 @@ def context(fcn):
             hosts=hosts,
             port=app.app.config["NEO4J_PORT"],
             defaultAuth=default_auth,
-            declaredAuth=(default_auth[0], app.app.config["ADMIN_PASS"])
+            declaredAuth=(default_auth[0], app.app.config["ADMIN_PASS"]),
         )
 
         if db is None:
@@ -74,9 +108,7 @@ def authenticate(fcn):
                 root = load(db=db, cls="Root", identity=0).pop()
                 secret = root._secretKey
             # first try to authenticate by token
-            decoded = Serializer(secret).loads(
-                credential
-            )
+            decoded = Serializer(secret).loads(credential)
         except:
             accounts = load(db=db, cls="User", identity=value)
             _token = False
@@ -102,8 +134,8 @@ def authenticate(fcn):
 
 
 @context
-def create_user(body, db, auth=None, **kwargs):
-    # type: (dict, Driver, dict, dict) -> (dict, int)
+def register(body, db, **kwargs):
+    # type: (dict, Driver, dict) -> (dict, int)
     """
     Register a new user account
     """
@@ -130,17 +162,12 @@ def create_user(body, db, auth=None, **kwargs):
         ip=request.remote_addr,
     )
     item = create(db=db, obj=user)
-    link(db=db, root={"cls": repr(port_of_entry), "id": port_of_entry.id}, children=(item,), label="MEMBER")
-    if auth:
-        root = load(db=db, cls="Root")
-        user.sendCredential(
-            auth=auth,
-            text=token(
-                secret_key=body.get("secret", root._secretKey),
-                user_id=item["id"],
-                duration=root.tokenDuration,
-            ).get("token"),
-        )
+    link(
+        db=db,
+        root={"cls": repr(port_of_entry), "id": port_of_entry.id},
+        children=(item,),
+        label="MEMBER",
+    )
     return None, 204
 
 
@@ -151,10 +178,10 @@ def update_user(db, user, body, **kwargs):
     """
     Change account settings
     """
-    allowed = {"alias", }
+    allowed = {"alias"}
     if any(k not in allowed for k in body.keys()):
         return "Bad request", 400
-    _ = update_properties(db, data=body, obj=user)
+    _ = mutate(db, data=body, obj=user)
     return None, 204
 
 
@@ -183,11 +210,12 @@ def get_token(db, user, secret=None, **kwargs):
         return None, 403
     root = load(db=db, cls="Root").pop()
     return (
-        token(
-            secret_key=secret if secret else root._secretKey,
-            user_id=user.id,
-            duration=root.tokenDuration,
-        ),
+        {
+            "token": Serializer(secret_key=secret if secret else root._secretKey, expires_in=root.tokenDuration)
+                .dumps({"id": user.id})
+                .decode("ascii"),
+            "duration": root.tokenDuration,
+        },
         200,
     )
 
@@ -200,14 +228,15 @@ def get_sets(db, user, extension=None, **kwargs):
     Usage 1. Get references to all entity sets, or optionally filter
     """
     host = app.app.config["HOST"]
-    show_port = (
-        f":{app.app.config['PORT']}" if host in ("localhost",) else ""
-    )
+    show_port = f":{app.app.config['PORT']}" if host in ("localhost",) else ""
     path = f"http://{host}{show_port}{app.app.config['BASE_PATH']}"
-    fid = open("config/app.yml")
-    model_set = load_yml(fid, Loader)["models"]
+    model_set = appConfig["models"]
     try:
-        collections = reduce(lambda a, b: a.extend(b), model_set.values()) if extension is None else model_set[extension]
+        collections = (
+            reduce(lambda a, b: a.extend(b), model_set.values())
+            if extension is None
+            else model_set[extension]
+        )
     except KeyError as e:
         return {"message": f"{e} on extension={extension}"}, 400
 
@@ -239,13 +268,16 @@ def createEntity(db, user, entity, body, offset=0, **kwargs):
         link(
             db=db,
             root=item,
-            children=tuple({"cls": "Ingresses", "id": r[0]} for r in relationships(
-                db=db,
-                parent={"cls": "User", "id": user.id},
-                child={"cls": "Ingresses"},
-                result="b.id",
-                label="MEMBER",
-            )),
+            children=tuple(
+                {"cls": "Ingresses", "id": r[0]}
+                for r in relationships(
+                    db=db,
+                    parent={"cls": "User", "id": user.id},
+                    child={"cls": "Ingresses"},
+                    result="b.id",
+                    label="MEMBER",
+                )
+            ),
             label="PROVIDER",
         )
     return (
@@ -358,13 +390,12 @@ def get_children(db, root, rootId, entity, **kwargs):
 
 @context
 @authenticate
-def update_entity(body, db, entity, id, **kwargs):
+def mutateEntity(body, db, entity, id, **kwargs):
     # type: (dict, Driver, str, int, dict) -> (dict, int)
     """
     Give new values for the properties of an existing entity.
     """
-    item = update_properties(db, data=body, cls=entity, identity=id)
-    return item, 200
+    return mutate(db, data=body, cls=entity, identity=id), 200
 
 
 @context
@@ -387,6 +418,7 @@ def addLink(db, root, rootId, entity, id, body, **kwargs):
         root={"cls": root, "id": rootId},
         children=({"cls": entity, "id": id},),
         label=body.get("label"),
+        props=body.get("props", None)
     )
     return None, 204
 
@@ -400,6 +432,6 @@ def breakLink(db, root, rootId, entity, id, label, **kwargs):
         root={"cls": root, "id": rootId},
         children=({"cls": entity, "id": id},),
         label=label,
-        drop=True
+        drop=True,
     )
     return None, 204

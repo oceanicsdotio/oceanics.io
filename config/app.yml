@@ -27,7 +27,7 @@ models:
     - Nodes
     - Cells
 
-ingress:
+Ingresses:
   - name: Oceanicsdotio
     owner: true
     description: Research and development
@@ -44,3 +44,74 @@ ingress:
   - name: Cabot7
     description: Fisheries data partner
     url: cabot7.com
+
+
+FeaturesOfInterest:
+  - name: Damariscotta River Estuary shellfish growing area
+    description: |
+      The Damariscotta River Estuary is a traditional growing area for oysters in Maine.
+
+ObservedProperties:
+   - name: Temperature
+     description: |
+       Temperature as measured through a thermistor or remote sensing
+   - name: Chlorophyll
+     description: |
+       Measure of chlorophyll
+   - name: Salinity
+     description: |
+       Seawater salinity
+
+Locations:
+  - name: Upper Damariscotta Estuary
+    description: Buoy deployment
+    location: [43.998178, -69.54253, 0.0]
+
+Sensors:
+  - name: SeaBird Electronics CTD
+    description: A common oceanographic sensing package
+
+Things:
+  - name: Land Ocean Biogeochemical Observatory
+    description: |
+      Moored buoy with instrumentation, deployed in the Damariscotta River
+      Estuary (Maine) as part of the Sustainable Ecological Aquaculture Network project.
+
+Datastreams:
+  - name: temperature
+    description: |
+      Just another temperature series
+  - name: cholorophyll
+    description: |
+      Just another chlorophyll series
+
+Observations:
+  - ts: 1000.234
+    val: 10.0
+  - ts: 1002.793
+    val: 10.5
+  - ts: 1005.208
+    val: 10.4
+
+TaskingCapabilties:
+
+Tasks:
+  - taskingParameters:
+      location: host:port/endpoint
+      message: something
+
+Actuators:
+  - name: Solenoid
+  - name: Solenoid
+  - name: Solenoid
+
+Meshes:
+  - name: Midcoast Maine
+  - name: Gulf of Maine
+  - name: Damariscotta River Nested
+
+Nodes:
+  - location: [-45.0, 36.0, -5.0]
+
+Cells:
+  - location: [-45.01, 36.01, -5.0]

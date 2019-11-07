@@ -60,8 +60,7 @@ def test_update_user(client, token):
 def test_delete_user(client, token):
 
     response = client.delete(
-        "api/auth",
-        headers={"Authorization": ":" + token.get("token", "")}
+        "api/auth", headers={"Authorization": ":" + token.get("token", "")}
     )
     assert response.status_code == 204, response.get_json()
 
