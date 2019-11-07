@@ -3,7 +3,7 @@ from itertools import repeat
 from typing import Callable, Any
 
 from json import dumps
-from neo4j.v1 import Driver, GraphDatabase, Node
+from neo4j.v1 import Driver, Node
 from bathysphere_graph import app
 from bathysphere_graph.models import *
 
@@ -118,9 +118,11 @@ def relationships(db, **kwargs):
     return _read(db, _tx, kwargs)
 
 
-def create(db, obj=None, offset=0, **kwargs):
-    # type: (Driver, Entity, int, **dict) -> dict
+def create(db, obj=None, offset=0, links=None, **kwargs):
+    # type: (Driver, Entity, int, (dict, ), **dict) -> dict
     """
+    RECURSIVE!
+
     Create a new node(s) in graph. Format object properties dictionary as list of key:"value" strings,
     automatically converting each object to string using its built-in __str__ converter.
     Special values can be given unique string serialization methods by overloading __str__.
@@ -129,7 +131,8 @@ def create(db, obj=None, offset=0, **kwargs):
     - None (python value)
     - "None" (string)
     """
-
+    if links is None:
+        links = []
     if obj:
         kwargs.update(
             {"cls": repr(obj), "identity": getattr(obj, "id"), "props": obj.__dict__}
@@ -165,14 +168,14 @@ def create(db, obj=None, offset=0, **kwargs):
 
     existing = {x.name: x.id for x in load(db=db, cls=TaskingCapabilities.__name__)}
     allExistingKeys = set(existing.keys())
+    functions = {key: eval(key) for key in instanceKeys - allExistingKeys}
 
-    _capabilities = [
-        {"cls": TaskingCapabilities.__name__, "id": existing[key]}
+    links.extend(
+        {"cls": TaskingCapabilities.__name__, "id": existing[key], "label": "Has"}
         for key in (allExistingKeys & instanceKeys)
-    ]
-    for key in instanceKeys - allExistingKeys:
-        fcn = eval(key)
-        item = create(
+    )
+    for key, fcn in functions.items():
+        links.append({"label": "Has", **create(
             db=db,
             obj=TaskingCapabilities(
                 name=key,
@@ -187,10 +190,9 @@ def create(db, obj=None, offset=0, **kwargs):
                 ],
                 description=fcn.__doc__,
             ),
-        )
-        _capabilities.append({"label": "Has", **item})
+        )})
 
-    link(db=db, root=root, children=tuple(_capabilities))
+    link(db=db, root=root, children=links)
     return root
 
 
@@ -201,7 +203,8 @@ def mutate(db, data, obj=None, cls=None, identity=None, props=None):
     # match = ["id: $id"] + map(_process_key_value, props.items())
     # TODO: Get generic matching working
     """
-    if obj is None and (cls is None or identity is None or props is None):
+    print(obj, cls, identity, props)
+    if obj is None and (None in (cls, identity, props)):
         raise ValueError
     kwargs = {
         "cls": repr(obj) if obj else cls,
@@ -215,7 +218,7 @@ def mutate(db, data, obj=None, cls=None, identity=None, props=None):
         return tx.run(
             f"MATCH {_node(symbol='n', cls=cls, by=int, props=props)} "
             f"SET n += {{ {', '.join(map(_process_key_value, updates.items(), repeat(True)))} }}",
-            id=identity,
+            id=identity
         ).values()
 
     _write(db, _tx, kwargs)
@@ -276,7 +279,7 @@ def serialize(db, obj, service, protocol="http", select=None):
     }
 
 
-def label(db, **kwargs):
+def addLabel(db, **kwargs):
     # type: (Driver, **dict)  -> list or None
     """
     Apply new label to nodes of this class, or a specific node.
@@ -346,6 +349,7 @@ def link(db, root, children, props=None, drop=False, **kwargs):
     """
     Create a new topological relationship.
     """
+
     def _tx(tx, root, leaf, props, drop):
         # type: (None, dict, dict, dict, bool) -> None
         _a = _node(symbol="root", cls=root["cls"], by=int, var="root")
@@ -357,12 +361,9 @@ def link(db, root, children, props=None, drop=False, **kwargs):
             cmd = f"MATCH {_a} MATCH {_b} MERGE (root)-{relPattern}->(leaf)"
         return tx.run(cmd, root=root["id"], leaf=leaf["id"]).values()
 
-    links = [
-        {"root": root, "leaf": each, "drop": drop, "props": props}
-        for each in children
-    ]
-
-    return _write(db, _tx, links)
+    return _write(db, _tx, [
+        {"root": root, "leaf": each, "drop": drop, "props": props} for each in children
+    ])
 
 
 def index(db, **kwargs):
@@ -459,15 +460,15 @@ def delete(db, **kwargs):
 #     graph.index("Nodes", "id")
 #
 #
-# def _neighbor(cls, tx, id):
-#     """
-#     Get node parents and node neighbors
-#
-#     :param tx:
-#     :param node:
-#     :return:
-#     """
-#     a = _node("a", cls, id)
-#     b = _node("b", cls, id)
-#     command = f"MATCH {a}-[:SIDE_OF]->(:Cell)<-{b} MERGE (a)-[:NEIGHBORS]-(b)"
-#     tx.run(command, id=id)
+def _neighbor(root, cls, tx, id):
+    """
+    Get node parents and node neighbors
+
+    :param tx:
+    :param node:
+    :return:
+    """
+    a = _node("a", cls, id)
+    b = _node("b", cls, id)
+    command = f"MATCH {a}-[:SIDE_OF]->(:{root})<-{b} MERGE (a)-[:Neighbors]-(b)"
+    tx.run(command, id=id)
