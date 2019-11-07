@@ -16,6 +16,7 @@ def validateCreateTx(create, get, cls, props, db):
     obj_id = payload.get("@iot.id")
     response = get(cls, obj_id)
     assert response.status_code == 200, response.get_json()
+    return obj_id
 
 
 @pytest.fixture(scope="session")
@@ -85,7 +86,7 @@ def add_link(client, token):
             json=kwargs,
             headers={"Authorization": ":" + token.get("token", "")},
         )
-        return response
+        assert response.status_code == 204, response.get_json()
     return _make_request
 
 

@@ -49,7 +49,8 @@ def connect(hosts, port, defaultAuth, declaredAuth):
     for ing in appConfig[Ingresses.__name__]:
         if ing.pop("owner", False):
             ing["apiKey"] = app.app.config["API_KEY"]
-        link(db, root=root_item, children=(create(db, obj=Ingresses(**ing)),))
+        item = create(db, obj=Ingresses(**ing))
+        link(db, root=root_item, children=({label: "Linked", **item},))
     return db
 
 
@@ -164,9 +165,8 @@ def register(body, db, **kwargs):
     item = create(db=db, obj=user)
     link(
         db=db,
-        root={"cls": repr(port_of_entry), "id": port_of_entry.id},
+        root={"cls": repr(port_of_entry), "id": port_of_entry.id, "label": "Member"},
         children=(item,),
-        label="MEMBER",
     )
     return None, 204
 
@@ -201,7 +201,7 @@ def delete_user(db, user, purge=False, **kwargs):
 
 @context
 @authenticate
-def get_token(db, user, secret=None, **kwargs):
+def authToken(db, user, secret=None, **kwargs):
     # type: (Driver, User, str, dict) -> (dict, int)
     """
     Send an auth token back for future sessions
@@ -262,14 +262,14 @@ def createEntity(db, user, entity, body, offset=0, **kwargs):
         return {"error": f"{ex}"}, 500
 
     item = create(db=db, obj=obj, offset=offset)
-    link(db=db, root={"cls": repr(user), "id": user.id}, children=(item,), label="POST")
+    link(db=db, root={"cls": repr(user), "id": user.id}, children=({label: "Post", **item},))
 
     if not isinstance(obj, Ingresses):
         link(
             db=db,
             root=item,
             children=tuple(
-                {"cls": "Ingresses", "id": r[0]}
+                {"cls": "Ingresses", "id": r[0], "label": "Provider"}
                 for r in relationships(
                     db=db,
                     parent={"cls": "User", "id": user.id},
@@ -278,7 +278,6 @@ def createEntity(db, user, entity, body, offset=0, **kwargs):
                     label="MEMBER",
                 )
             ),
-            label="PROVIDER",
         )
     return (
         {
@@ -287,43 +286,6 @@ def createEntity(db, user, entity, body, offset=0, **kwargs):
         },
         200,
     )
-
-
-@context
-@authenticate
-def createChildEntity(db, user, entity: str, body: dict, offset: int = 0, **kwargs):
-    """
-    Attach to db, and find available ID number to register the entity
-    """
-    cls = body.pop("entityClass", None)  # only used for API discriminator
-    if not cls:
-        cls = entity
-    try:
-        obj = eval(cls)(**body)
-    except Exception as ex:
-        return {"error": f"Bad request: {ex}"}, 400
-
-    item = create(db=db, obj=obj, offset=offset)
-    link(db=db, root={"cls": repr(user), "id": user.id}, children=(item,), label="POST")
-    e = relationships(
-        db=db,
-        parent={"cls": "User", "id": user.id},
-        child={"cls": "Ingresses"},
-        result="b.id",
-    )
-    if e:
-        for each in e:
-            link(
-                db=db,
-                root={"cls": "Ingresses", "id": each[0]},
-                children=(item,),
-                label="PROVIDER",
-            )
-    data = {
-        "message": f"Create {cls}",
-        "value": serialize(db=db, obj=obj, service=app.app.config["HOST"]),
-    }
-    return data, 200
 
 
 @context
@@ -346,7 +308,7 @@ def get_all(db, user, entity, **kwargs):
 
 @context
 @authenticate
-def get_by_id(db, entity, id, key=None, method=None, **kwargs):
+def getEntity(db, entity, id, key=None, method=None, **kwargs):
     # type: (GraphDatabase, str, int, str, str, dict)  -> (dict, int)
     """
     Usage 3. Return information on a single entity
@@ -416,8 +378,7 @@ def addLink(db, root, rootId, entity, id, body, **kwargs):
     link(
         db=db,
         root={"cls": root, "id": rootId},
-        children=({"cls": entity, "id": id},),
-        label=body.get("label"),
+        children=({"cls": entity, "id": id, "label": body.get("label", "Linked")},),
         props=body.get("props", None)
     )
     return None, 204
@@ -425,13 +386,12 @@ def addLink(db, root, rootId, entity, id, body, **kwargs):
 
 @context
 @authenticate
-def breakLink(db, root, rootId, entity, id, label, **kwargs):
+def breakLink(db, root, rootId, entity, id, label="Linked", **kwargs):
     # type: (Driver, str, int, str, int, str, dict) -> (None, int)
     link(
         db=db,
         root={"cls": root, "id": rootId},
-        children=({"cls": entity, "id": id},),
-        label=label,
+        children=({"cls": entity, "id": id, "label": label},),
         drop=True,
     )
     return None, 204
