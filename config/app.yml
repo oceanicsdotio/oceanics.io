@@ -1,3 +1,27 @@
+environment:
+  ADMIN: ""
+  NEO4J_AUTH: neo4j/neo4j
+  ADMIN_PASS: ""
+  API_KEY: ""
+  HOST: localhost
+  EMAIL_ACCT:
+  EMAIL_KEY:
+  EMAIL_SERVER:
+  EMAIL_PORT:
+  REPLY_TO:
+  SECRET:
+  PORT: 5000
+  BASE_PATH: /api
+  SPEC_PATH: ../openapi/
+  DOCKER_COMPOSE_NAME: bathysphere-graph_neo4j_1
+  DOCKER_CONTAINER_NAME: neo4j
+  EMBEDDED_NAME: localhost
+  RETRIES: 3
+  DELAY: 10
+  NEO4J_PORT: 7687
+  NEO4J_HOST:
+
+
 models:
 
   base:
@@ -21,11 +45,6 @@ models:
     - Actuators
     - TaskingCapabilities
     - Tasks
-
-  mesh:
-    - Meshes
-    - Nodes
-    - Cells
 
 Ingresses:
   - name: Oceanicsdotio
@@ -88,26 +107,82 @@ Things:
     description: |
       Moored buoy with instrumentation, deployed in the Damariscotta River
       Estuary (Maine) as part of the Sustainable Ecological Aquaculture Network project.
+    links:
+      Locations:
+        - id: 0
+          label: Linked
 
   - name: Regional Sentinel Model Service
     description: |
-      Operational model for aquaculture
+      Operational model for Maine aquaculture
+
 
 Datastreams:
   - name: temperature
     description: |
       Just another temperature series
+    links:
+      Things:
+        - name: Land Ocean Biogeochemical Observatory
+          label: Linked
+      Sensors:
+        - id: 0
+          label: Linked
+      ObservedProperties:
+        - name: temperature
+          label: Linked
+
   - name: cholorophyll
     description: |
       Just another chlorophyll series
 
+    links:
+      Things:
+        - name: Land Ocean Biogeochemical Observatory
+          label: Linked
+
+      Sensors:
+        - id: 0
+          label: Linked
+
+      ObservedProperties:
+        - name: chlorophyll
+          label: Linked
+
+
 Observations:
   - ts: 1000.234
     val: 10.0
+    links:
+      Datastreams:
+        - name: temperature
+          label: Linked
+
+      FeaturesOfInterest:
+        - id: 0
+          label: Linked
+
   - ts: 1002.793
     val: 10.5
+    links:
+      Datastreams:
+        - name: temperature
+          label: Linked
+
+      FeaturesOfInterest:
+        - id: 0
+          label: Linked
+
   - ts: 1005.208
     val: 10.4
+    links:
+      Datastreams:
+        - name: temperature
+          label: Linked
+
+      FeaturesOfInterest:
+        - id: 0
+          label: Linked
 
 TaskingCapabilities: []
 
@@ -123,5 +198,19 @@ Tasks:
 
 Actuators:
   - name: Solenoid
+    links:
+      Things:
+        - name: Land Ocean Biogeochemical Observatory
+          label: Linked
+
   - name: Solenoid
+    links:
+      Things:
+        - name: Land Ocean Biogeochemical Observatory
+          label: Linked
+
   - name: Solenoid
+    links:
+      Things:
+        - name: Land Ocean Biogeochemical Observatory
+          label: Linked
