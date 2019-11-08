@@ -104,15 +104,15 @@ def authenticate(fcn):
         try:
             secret = kwargs.get("secret", None)
             if not secret:
-                root = load(db=db, cls="Root", identity=0).pop()
+                root = load(db=db, cls=Root.__name__, identity=0).pop()
                 secret = root._secretKey
             # first try to authenticate by token
             decoded = Serializer(secret).loads(credential)
         except:
-            accounts = load(db=db, cls="User", identity=value)
+            accounts = load(db=db, cls=User.__name__, identity=value)
             _token = False
         else:
-            accounts = load(db=db, cls="User", identity=decoded["id"])
+            accounts = load(db=db, cls=User.__name__, identity=decoded["id"])
             _token = True
 
         if accounts is None:
@@ -161,7 +161,7 @@ def register(body, db, **kwargs):
             credential=custom_app_context.hash(body.get("password")),
             ip=request.remote_addr,
         ),
-        links=[{"label": "Member", "cls": repr(portOfEntry), "id": portOfEntry.id},]
+        links=[{"label": "Member", "cls": repr(portOfEntry), "id": portOfEntry.id}],
     )
     return None, 204
 
@@ -245,7 +245,9 @@ def createEntity(db, user, entity, body, offset=0, **kwargs):
     """
     try:
         _ = body.pop("entityClass")  # only used for API discriminator
-        declaredLinks = body.get("links", [])
+        declaredLinks = []
+        for key, val in body.pop("links", {}).items():
+            declaredLinks.extend({"cls": key, **each} for each in val)
         obj = eval(entity)(**body)
     except Exception as ex:
         return {"error": f"{ex}"}, 500
@@ -264,7 +266,7 @@ def createEntity(db, user, entity, body, offset=0, **kwargs):
                 )
             ]
         )
-    item = create(db=db, obj=obj, offset=offset, links=declaredLinks)
+    _ = create(db=db, obj=obj, offset=offset, links=declaredLinks)
     return (
         {
             "message": f"Create {entity}",

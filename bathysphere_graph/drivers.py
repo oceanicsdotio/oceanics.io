@@ -159,7 +159,7 @@ def create(db, obj=None, offset=0, links=None, **kwargs):
         return {"cls": kwargs["cls"], "id": kwargs["identity"]}
 
     private = "_"
-    root = {"cls": repr(obj), "id": obj.id}
+    taskingLabel = "Has"
     instanceKeys = set(
         f"{repr(obj)}.{key}"
         for key in set(dir(obj)) - set(obj.__dict__.keys())
@@ -171,27 +171,33 @@ def create(db, obj=None, offset=0, links=None, **kwargs):
     functions = {key: eval(key) for key in instanceKeys - allExistingKeys}
 
     links.extend(
-        {"cls": TaskingCapabilities.__name__, "id": existing[key], "label": "Has"}
+        {"cls": TaskingCapabilities.__name__, "id": existing[key], "label": taskingLabel}
         for key in (allExistingKeys & instanceKeys)
     )
-    for key, fcn in functions.items():
-        links.append({"label": "Has", **create(
-            db=db,
-            obj=TaskingCapabilities(
-                name=key,
-                taskingParameters=[
-                    {
-                        "name": b.name,
-                        "description": "",
-                        "type": "",
-                        "allowedTokens": [""],
-                    }
-                    for b in signature(fcn).parameters.values()
-                ],
-                description=fcn.__doc__,
+    links.extend(
+        {
+            "label": taskingLabel,
+            **create(
+                db=db,
+                obj=TaskingCapabilities(
+                    name=key,
+                    taskingParameters=[
+                        {
+                            "name": b.name,
+                            "description": "",
+                            "type": "",
+                            "allowedTokens": [""],
+                        }
+                        for b in signature(fcn).parameters.values()
+                    ],
+                    description=fcn.__doc__,
+                ),
             ),
-        )})
+        }
+        for key, fcn in functions.items()
+    )
 
+    root = {"cls": repr(obj), "id": obj.id}
     link(db=db, root=root, children=links)
     return root
 
@@ -218,7 +224,7 @@ def mutate(db, data, obj=None, cls=None, identity=None, props=None):
         return tx.run(
             f"MATCH {_node(symbol='n', cls=cls, by=int, props=props)} "
             f"SET n += {{ {', '.join(map(_process_key_value, updates.items(), repeat(True)))} }}",
-            id=identity
+            id=identity,
         ).values()
 
     _write(db, _tx, kwargs)
@@ -352,18 +358,29 @@ def link(db, root, children, props=None, drop=False, **kwargs):
 
     def _tx(tx, root, leaf, props, drop):
         # type: (None, dict, dict, dict, bool) -> None
+        if leaf.get("id", None) is not None:
+            _b_by = int
+            leafId = leaf["id"]
+        else:
+            _b_by = str
+            leafId = leaf["name"]
         _a = _node(symbol="root", cls=root["cls"], by=int, var="root")
-        _b = _node(symbol="leaf", cls=leaf["cls"], by=int, var="leaf")
+        _b = _node(symbol="leaf", cls=leaf["cls"], by=_b_by, var="leaf")
         relPattern = _link(label=leaf.get("label", "Linked"), props=props)
         if drop:
             cmd = f"MATCH ({_a})-{relPattern}->({_b}) DELETE r"
         else:
             cmd = f"MATCH {_a} MATCH {_b} MERGE (root)-{relPattern}->(leaf)"
-        return tx.run(cmd, root=root["id"], leaf=leaf["id"]).values()
+        return tx.run(cmd, root=root["id"], leaf=leafId).values()
 
-    return _write(db, _tx, [
-        {"root": root, "leaf": each, "drop": drop, "props": props} for each in children
-    ])
+    return _write(
+        db,
+        _tx,
+        [
+            {"root": root, "leaf": each, "drop": drop, "props": props}
+            for each in children
+        ],
+    )
 
 
 def index(db, **kwargs):
@@ -397,78 +414,3 @@ def delete(db, **kwargs):
             tx.run(cmd)
 
     return _write(db, _tx, kwargs)
-
-
-#
-# def vertexNeighbors(cls, tx, node):
-#     """
-#     Get node parents and node neighbors
-#
-#     :param tx:
-#     :param node:
-#     :return:
-#     """
-#     a = cls._match("Nodes", node, "a")
-#     b = cls._match("Nodes", "b")
-#     chain = "(a)-[:SIDE_OF]->(:Element)<-[:SIDE_OF]-"
-#     command = " ".join([a, "MATCH", chain + b, "MERGE", "(a)-[:NEIGHBORS]-(b)"])
-#     tx.run(command, id=node)
-#
-#
-# def _topology(tx, nodes, index):
-#     """
-#     Create parent-child relationships
-#
-#     :param tx: Implicit transmit
-#     :param nodes: vertices, indices
-#     :param index: element identifier
-#     :return:
-#     """
-#     tx.run(
-#         "MATCH (n1:Node {id: $node1}) "
-#         + "MATCH (n2:Node {id: $node2}) "
-#         + "MATCH (n3:Node {id: $node3}) "
-#         + "MATCH (e:Element {id: $index}) "
-#         + "CREATE (n1)-[: SIDE_OF]->(e) "
-#         + "CREATE (n2)-[: SIDE_OF]->(e) "
-#         + "CREATE (n3)-[: SIDE_OF]->(e) ",
-#         node1=int(nodes[0]),
-#         node2=int(nodes[1]),
-#         node3=int(nodes[2]),
-#         index=index,
-#     )
-#
-#
-# def _neighbors(mesh):
-#     """
-#     Make queries and use results to build topological relationships.
-#
-#     :param mesh:
-#     :return:
-#     """
-#     kwargs = [{"identity": ii for ii in range(mesh.nodes.n)}]
-#     _write(_neighbors, kwargs)
-#
-#
-# def _create_blanks(graph, nn, ne):
-#     """
-#     Setup new sphere
-#     """
-#     graph.create("Elements", range(ne), repeat(None, ne))
-#     graph.index("Elements", "id")
-#     graph.create("Nodes", range(nn), repeat(None, nn))
-#     graph.index("Nodes", "id")
-#
-#
-def _neighbor(root, cls, tx, id):
-    """
-    Get node parents and node neighbors
-
-    :param tx:
-    :param node:
-    :return:
-    """
-    a = _node("a", cls, id)
-    b = _node("b", cls, id)
-    command = f"MATCH {a}-[:SIDE_OF]->(:{root})<-{b} MERGE (a)-[:Neighbors]-(b)"
-    tx.run(command, id=id)
