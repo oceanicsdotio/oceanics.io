@@ -10,3 +10,4 @@ passlib >= 1.7.1
 requests >= 2.20.1
 retry
 pyyaml
+redis

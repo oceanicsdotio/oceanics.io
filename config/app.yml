@@ -20,7 +20,17 @@ environment:
   DELAY: 10
   NEO4J_PORT: 7687
   NEO4J_HOST:
-
+  DARKSKY_API_KEY: ""
+  MAX_CALLS: 1000
+  PG_USERNAME:
+  PG_PASSWORD:
+  PG_DATABASE:
+  PG_HOST:
+  PG_PORT:
+  REDIS_KEY:
+  REDIS_HOST: "bathysphere-redis-do-user-3962990-0.db.ondigitalocean.com"
+  LOBOVIZ_USER:
+  LOBOVIZ_PASSWORD:
 
 models:
 
@@ -75,6 +85,8 @@ FeaturesOfInterest:
   - name: Damariscotta River Nested Mesh
 
 
+
+
 ObservedProperties:
    - name: Temperature
      description: |
@@ -86,6 +98,24 @@ ObservedProperties:
      description: |
        Seawater salinity
 
+   - name: cdom
+   - name: chlorophyll
+   - name: conductivity
+   - name: current_direction
+   - name: current_speed_cm
+   - name: depth
+   - name: oxygen
+   - name: nitrate
+   - name: oxygen_sat
+   - name: oxygen_percent
+   - name: par0minus
+   - name: par0plus
+   - name: salinity
+   - name: temperature
+   - name: transmission
+   - name: turbidity
+   - name: voltage
+
 Locations:
   - name: Upper Damariscotta Estuary
     description: Buoy deployment
@@ -93,6 +123,54 @@ Locations:
 
   - location: [-45.0, 36.0, -5.0]
   - location: [-45.01, 36.01, -5.0]
+
+  - name: "Wood Island Harbor"
+    location:
+      type: Point
+      coordinates: [43.456550, -70.344432]
+
+  - name: "Lower Damariscotta"
+    location:
+      type: Point
+      coordinates: [43.93354, -69.58344]
+
+  - name: "Ram Island Saco Bay"
+    location:
+      type: Point
+      coordinates: [43.465934, -70.359646]
+
+  - name: "Upper New Meadows"
+    location:
+      type: Point
+      coordinates: [43.863669, -69.8984055]  # Bombazine / New Meadows
+
+  - name: "Lower New Meadows"
+    location:
+      type: Point
+      coordinates: [43.77643055, -69.89196944]  # Sand Cove / New Meadows
+
+  - name: "Bagaduce River"
+    location:
+      type: Point
+      coordinates: [44.40156667, -68.7738333]
+
+  - name: "Machias Bay"
+    location:
+      type: Point
+      coordinates: [44.618517, -67.318033]
+
+  - name: "Cobscook Bay"
+    location:
+      type: Point
+      coordinates: [44.8968, -67.0651]
+
+  - name: "Western Passage / Passamaquoddy Bay"
+    location:
+      type: Point
+      coordinates: [44.92017, -66.995833]
+
+  - name: "Harpswell Sound"
+
 
 Sensors:
   - name: SeaBird Electronics CTD

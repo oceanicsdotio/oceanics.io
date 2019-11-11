@@ -21,6 +21,9 @@ setup(
         "passlib",
         "yaml",
         "requests",
-        "retry"
+        "retry",
+        "redis",
+        "pg8000",
+        "bidict"
     ],
     zip_safe=False)

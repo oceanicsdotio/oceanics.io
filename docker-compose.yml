@@ -80,3 +80,56 @@ services:
       - ./logs:/logs
     depends_on:
       - neo4j
+
+
+#
+#  postgres:
+#    image: timescale/timescaledb-postgis
+#    ports:
+#      - 5432:5432
+#    environment:
+#      - POSTGRES_PASSWORD=n0t_passw0rd
+#      - PGDATA=/var/lib/postgresql/data
+#    networks:
+#      - oceanics
+#    volumes:
+#      - ./db/timescale:/var/lib/postgresql/data
+#    healthcheck:
+#      test: ["CMD", "curl", "-f", "localhost:5432"]
+#      interval: 30s
+#      timeout: 5s
+#      retries: 3
+##      start_interval: 40s
+#
+#  redis:
+#    image: redis
+#    ports:
+#      - 6379:6379
+#    networks:
+#      - oceanics
+#    healthcheck:
+#      test: ["CMD", "curl", "-f", "localhost:6379"]
+#      interval: 30s
+#      timeout: 5s
+#      retries: 3
+##      start_interval: 40s
+#
+#  goodbuoy:
+#    build: .
+#    image: oceanicsdotio/goodbuoy
+#    ports:
+#      - 5000:5000
+#    volumes:
+#      - ./src:/src
+#      - ./logs:/logs
+#    depends_on:
+#      - redis
+#      - postgres
+#    networks:
+#      - oceanics
+#    healthcheck:
+#      test: ["CMD", "curl", "-f", "localhost:5000"]
+#      interval: 30s
+#      timeout: 5s
+#      retries: 3
+##      start_interval: 40s

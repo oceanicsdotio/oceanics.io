@@ -5,7 +5,11 @@ from yaml import Loader, load as load_yml
 
 
 appConfig = load_yml(open("config/app.yml"), Loader)
-app = App(__name__, specification_dir=appConfig["environment"]["SPEC_PATH"], options={"swagger_ui": False})
+app = App(
+    __name__,
+    specification_dir=appConfig["environment"]["SPEC_PATH"],
+    options={"swagger_ui": False},
+)
 for key, value in appConfig["environment"].items():
     app.app.config[key] = getenv(key, value)
 

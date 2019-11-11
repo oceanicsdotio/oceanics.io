@@ -1,7 +1,8 @@
 import pytest
 from bathysphere_graph import app
-from bathysphere_graph.drivers import delete, count
+from bathysphere_graph.drivers import delete, count, postgres
 from bathysphere_graph.handlers import connect
+from bathysphere_graph.storage import connect as FTP
 
 
 def validateCreateTx(create, get, cls, props, db):
@@ -110,3 +111,29 @@ def get_entity(client, token):
         return response
 
     return _make_request
+
+
+@pytest.fixture(scope="session")
+def ftp():
+    ftp = FTP(
+        host="misclab.umeoce.maine.edu",
+        timeout=4,
+        root="/".join(("users", "misclab", "coastal_sat")),
+    )
+    yield ftp
+    ftp.close()
+
+
+@pytest.fixture(scope="function")
+def psql():
+    database = app.app.config["PG_DATABASE"]
+    auth = (app.app.config["PG_USERNAME"], app.app.config["PG_PASSWORD"])
+    connection, cursor = postgres(
+        host=app.app.config["PG_HOST"],
+        port=app.app.config["PG_PORT"],
+        auth=auth,
+        autoCommit=True,
+        database=database,
+    )
+    yield connection, cursor, database
+    connection.close()

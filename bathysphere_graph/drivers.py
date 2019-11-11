@@ -1,11 +1,122 @@
 from inspect import signature
 from itertools import repeat
 from typing import Callable, Any
-
 from json import dumps
 from neo4j.v1 import Driver, Node
 from bathysphere_graph import app
 from bathysphere_graph.models import *
+from pg8000 import connect, Connection, Cursor
+from time import time
+from datetime import datetime
+
+
+PG_DP_NULL = "DOUBLE PRECISION NULL"
+PG_TS_TYPE = "TIMESTAMP NOT NULL"
+PG_GEO_TYPE = "GEOGRAPHY NOT NULL"
+PG_ID_TYPE = "INT PRIMARY KEY"
+PG_STR_TYPE = "VARCHAR(100) NULL"
+
+
+def postgres(auth, host, port, database, autoCommit=True):
+    # type: ((str, str), str, int, str, bool) -> (Connection, Cursor)
+    """
+    Connect to database and create cursor
+    """
+    user, password = auth
+    db = connect(
+        host=host, port=port, user=user, password=password, ssl=True, database=database
+    )
+    db.autocommit = autoCommit
+    return db, db.cursor()
+
+
+def declareTable(cursor, table, fields):
+    # type: (Cursor, str, dict) -> None
+    """
+    Create a table in connected database
+    """
+    cursor.execute(f"CREATE TABLE {table}({', '.join(f'{k} {v}' for k, v in fields.items())});")
+
+
+def describeTable(db, cursor, **kwargs):
+    # type: (Connection, Cursor, **dict) -> dict
+    """
+    List all tables in given database
+    """
+    select(cursor=cursor, limit=500, **kwargs)
+    data = cursor.fetchall()
+    cursor.execute("SHOW CLIENT_ENCODING;")
+    encoding = cursor.fetchall()[0]
+    return {
+        "rows": len(data),
+        "last": latestObservation(cursor=cursor, **{"db": db, **kwargs}),
+        "encoding": encoding,
+    }
+
+
+def deleteTable(cursor, table):
+    # type: (Cursor, str) -> None
+    """
+    Delete table and all contents
+    """
+    cursor.execute(f"DROP TABLE {table}")
+
+
+def select(cursor, table, order_by, limit=100, result=None):
+    # type: (Cursor, str, str, int, (str,)) -> bool
+    """
+    Read back values/rows.
+    """
+    order = "DESC"
+    expand = "*" if result is None else ", ".join(result)
+    return cursor.execute(f"SELECT {expand} FROM {table} ORDER BY {order_by} {order} LIMIT {limit};")
+
+
+def latestObservation(cursor, result="*", **kwargs):
+    # type: (Cursor, str, **dict) -> datetime
+    """
+    Get most recent row from database as datetime
+    """
+    _ = select(limit=1, result=result, cursor=cursor, **kwargs)
+    return cursor.fetchmany(1)[0][0]
+
+
+def progressNotification(start, count, total):
+    # type: (float, int, int) -> str
+    """
+    Format a string for progress notifications
+    """
+    elapsed = time() - start
+    ss = int(elapsed * total / count - elapsed)
+    mm = ss // 60
+    hh = mm // 60
+    return (
+        f"Ingested {count} of {total} rows, "
+        f"{hh}:{mm - hh * 60}:{ss - mm * 60} remaining"
+    )
+
+
+def ingestRows(cursor, table, fields, data):
+    # type: (Cursor, str, (str, ), ((Any, ), )) -> None
+    """
+    Insert new rows into database.
+    """
+
+    def parse(v):
+        if isinstance(v, datetime):
+            return v.isoformat()
+        if isinstance(v, float):
+            return str(v)
+        if isinstance(v, int):
+            return f"{v}.0"
+        if isinstance(v, str):
+            return f"'{v}'"
+        if isinstance(v, dict):
+            return f"ST_GeomFromGeoJSON('{dumps(v)}')"
+        return "NULL"
+
+    rows = (f"({', '.join(map(parse, row))})" for row in data)
+    cursor.execute(f"INSERT INTO {table} ({', '.join(fields)}) VALUES {', '.join(rows)};")
 
 
 def _transaction(session, method, kwargs=None):
@@ -69,13 +180,17 @@ def _link(label, symbol="r", props=None):
 def _process_key_value(keyValue, null=False):
     # type: ((str, Any), bool) -> str or None
     key, value = keyValue
-    if "location" in key:
-        coordinates = value["coordinates"]
-        if len(coordinates) == 2:
-            values = f"x: {coordinates[1]}, y: {coordinates[0]}, crs:'wgs-84'"
-        else:
-            values = f"x: {coordinates[1]}, y: {coordinates[0]}, z: {coordinates[2]}, crs:'wgs-84-3d'"
-        return f"{key}: point({{{values}}})"
+    if "location" in key and isinstance(value, dict):
+        if value.get("type") == "Point":
+            coord = value["coordinates"]
+            if len(coord) == 2:
+                values = f"x: {coord[1]}, y: {coord[0]}, crs:'wgs-84'"
+            else:
+                values = f"x: {coord[1]}, y: {coord[0]}, z: {coord[2]}, crs:'wgs-84-3d'"
+            return f"{key}: point({{{values}}})"
+        if value.get("type") == "Polygon":
+            return f"{key}: postgis://bathysphere/locations"
+
     if isinstance(value, (list, tuple, dict)):
         return f"{key}: '{dumps(value)}'"
     if value is not None:
@@ -89,6 +204,8 @@ def relationships(db, **kwargs):
     # type: (Driver, **dict) -> Any
     """
     Match and return the label set for connected entities.
+
+    Increment the pageRank every time the link is traversed.
     """
 
     def _fmt(obj, symbol):
@@ -102,10 +219,10 @@ def relationships(db, **kwargs):
         return _node(symbol=symbol, cls=cls, by=by, var=symbol)
 
     def _tx(tx, parent=None, child=None, label="", result="labels(b)", direction=None):
-        # type: (None, dict, dict, str, str) -> list
+        # type: (None, dict, dict, str, str, str) -> list
         pattern = (
             f"{_fmt(parent, symbol='a')}{'<' if direction==-1 else ''}-"
-            f"{f'[:{label}]' if label else ''}-"
+            f"{f'[r:{label}]' if label else '[r]'}-"
             f"{'' if direction==1 else ''}{_fmt(child, symbol='b')}"
         )
         params = dict()
@@ -113,13 +230,15 @@ def relationships(db, **kwargs):
             params["a"] = parent["id"]
         if child and child.get("id", None) is not None:
             params["b"] = child["id"]
-        return tx.run(f"MATCH {pattern} RETURN {result}", **params).values()
+        return tx.run(
+            f"MATCH {pattern} " f"SET r.rank = r.rank + 1 " f"RETURN {result}", **params
+        ).values()
 
     return _read(db, _tx, kwargs)
 
 
-def create(db, obj=None, offset=0, links=None, **kwargs):
-    # type: (Driver, Entity, int, (dict, ), **dict) -> dict
+def create(db, obj=None, links=None, **kwargs):
+    # type: (Driver, Entity, (dict, ), **dict) -> dict
     """
     RECURSIVE!
 
@@ -139,7 +258,10 @@ def create(db, obj=None, offset=0, links=None, **kwargs):
         )
     if kwargs.get("identity", None) is None:
         cls = kwargs.get("cls")
-        identity = count(db, cls=cls) + offset
+        identity = count(db, cls=cls)
+        if identity == 0:
+            index(db=db, cls=cls, by="id")
+
         while records(db=db, cls=cls, identity=identity, result="id"):
             identity += 1
         kwargs["identity"] = identity
@@ -171,7 +293,11 @@ def create(db, obj=None, offset=0, links=None, **kwargs):
     functions = {key: eval(key) for key in instanceKeys - allExistingKeys}
 
     links.extend(
-        {"cls": TaskingCapabilities.__name__, "id": existing[key], "label": taskingLabel}
+        {
+            "cls": TaskingCapabilities.__name__,
+            "id": existing[key],
+            "label": taskingLabel,
+        }
         for key in (allExistingKeys & instanceKeys)
     )
     links.extend(
@@ -315,17 +441,23 @@ def count(db, **kwargs):
     return _read(db, _tx, kwargs)
 
 
-def load(db, cls, private="_", **kwargs):
-    # type: (Driver, str, str, **dict) -> list or None
+def load(db, cls, user=None, private="_", **kwargs):
+    # type: (Driver, str, User, str, **dict) -> list or None
     """
     Create entity instance from a dictionary or Neo4j <Node>, which has an items() method
     that works the same as the dictionary method.
     """
     payload = []
-    for each in records(db=db, cls=cls, **kwargs):
+    for each in records(db=db, user=user, cls=cls, **kwargs):
         payload.append(Entity(None))
         payload[-1].__class__ = eval(cls)
         for key, value in properties(each[0]).items():
+            if key == "location":
+                setattr(payload[-1], key, {
+                    "type": "Point",
+                    "coordinates": eval(value) if isinstance(value, str) else value
+                })
+                continue
             try:
                 setattr(payload[-1], key, value)
                 continue
@@ -334,8 +466,8 @@ def load(db, cls, private="_", **kwargs):
     return payload
 
 
-def records(db, **kwargs):
-    # type: (Driver, **dict) -> list or None
+def records(db, user=None, **kwargs):
+    # type: (Driver, User or None, **dict) -> list or None
     """
     Load database nodes as in-memory record.
     """
@@ -344,8 +476,21 @@ def records(db, **kwargs):
         # type: (Any, str, int or str, str, str) -> list
         by = None if identity is None else type(identity)
         nodes = _node(symbol=symbol, cls=cls, by=by, var="id")
+        if user is not None:
+            _user = _node(symbol="u", cls=User.__name__, by=int, var="uid")
+            match = f"MATCH {nodes}, {_user} "
+            merge = (
+                f"MERGE ({symbol})<-[r:Get]-(u) "
+                f"ON CREATE SET r.rank = 1 "
+                f"ON MATCH SET r.rank = r.rank + 1 "
+            )
+        else:
+            match = f"MATCH {nodes} "
+            merge = ""
         return_val = f".{result}" if result else ""
-        return tx.run(f"MATCH {nodes} RETURN n{return_val}", id=identity).values()
+        return tx.run(
+            f"{match} {merge} RETURN n{return_val}", id=identity, uid=0
+        ).values()
 
     return _read(db, _tx, kwargs)
 
@@ -366,7 +511,10 @@ def link(db, root, children, props=None, drop=False, **kwargs):
             leafId = leaf["name"]
         _a = _node(symbol="root", cls=root["cls"], by=int, var="root")
         _b = _node(symbol="leaf", cls=leaf["cls"], by=_b_by, var="leaf")
-        relPattern = _link(label=leaf.get("label", "Linked"), props=props)
+        relPattern = _link(
+            label=leaf.get("label", "Linked"),
+            props={"rank": 0, **(props if isinstance(props, dict) else {})},
+        )
         if drop:
             cmd = f"MATCH ({_a})-{relPattern}->({_b}) DELETE r"
         else:
@@ -389,12 +537,21 @@ def index(db, **kwargs):
     Create an index on a particular property.
     """
 
-    def _tx(tx, cls, by, drop=False):
-        # type: (None, str, str, bool) -> list
+    def _tx1(tx, cls, by, drop=False, unique=True):
+        # type: (None, str, str, bool, bool) -> list
         verb = "DROP" if drop else "CREATE"
         return tx.run(f"{verb} INDEX ON : {cls}({by})").values()
 
-    return _write(db, _tx, kwargs)
+    def _tx2(tx, cls, by, drop=False, unique=True):
+        if unique and not drop:
+            return tx.run(f"CREATE CONSTRAINT ON (n:{cls}) ASSERT n.{by} IS UNIQUE")
+
+    try:
+        _write(db, _tx2, kwargs)
+    except:
+        pass
+
+    return _write(db, _tx1, kwargs)
 
 
 def delete(db, **kwargs):
