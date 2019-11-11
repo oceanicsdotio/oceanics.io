@@ -1,11 +1,17 @@
 from secrets import token_urlsafe
-from smtplib import SMTP_SSL
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from datetime import datetime
 from enum import Enum
 from typing import Generator
 from time import time
+from requests import get
+from json import loads
+from datetime import datetime, timedelta
+from collections import deque
+from requests.exceptions import ConnectionError
+from pickle import load as unpickle
+
+from functions.satlantic import query, report
+from bathysphere_graph.utils import synchronous
+from bathysphere_graph import app
 
 API_STAC_VERSION = "0.0"
 
@@ -102,12 +108,7 @@ class Entity:
             self.name = None
             self.description = None
         if location:
-            self.location = (
-                {"type": "Point", "coordinates": location}
-                if type(location) == list
-                else location
-            )
-
+            self.location = location
         self._notify("created")
 
     def __del__(self):
@@ -183,29 +184,28 @@ class User(Entity):
         self._ipAddress = ip
         self.description = description
 
-    def sendCredential(self, text, auth):
-        # type: (str, dict) -> (None, int)
-        """
-        Email the login credential to the user after registration
-
-        :param text:
-        :param auth:
-        :return:
-        """
-
-        server = SMTP_SSL(auth["server"], port=auth["port"])
-        server.login(auth["account"], auth["key"])
-
-        msg_root = MIMEMultipart()
-        msg_root["Subject"] = "Oceanicsdotio Account"
-        msg_root["From"] = auth["reply to"]
-        msg_root["To"] = self.name
-
-        msg_alternative = MIMEMultipart("alternative")
-        msg_root.attach(msg_alternative)
-        msg_alternative.attach(MIMEText(text))
-        server.sendmail(auth["account"], self.name, msg_root.as_string())
-        return None, 204
+    # def sendCredential(self, text, auth):
+    #     # type: (str, dict) -> (None, int)
+    #     """
+    #     Email the login credential to the user after registration
+    #
+    #     :param text:
+    #     :param auth:
+    #     :return:
+    #     """
+    #     server = SMTP_SSL(auth["server"], port=auth["port"])
+    #     server.login(auth["account"], auth["key"])
+    #
+    #     msg_root = MIMEMultipart()
+    #     msg_root["Subject"] = "Oceanicsdotio Account"
+    #     msg_root["From"] = auth["reply to"]
+    #     msg_root["To"] = self.name
+    #
+    #     msg_alternative = MIMEMultipart("alternative")
+    #     msg_root.attach(msg_alternative)
+    #     msg_alternative.attach(MIMEText(text))
+    #     server.sendmail(auth["account"], self.name, msg_root.as_string())
+    #     return None, 204
 
 
 class Ingresses(Entity):
@@ -245,7 +245,7 @@ class Collections(Entity):
         version=None,
         keywords=None,
         providers=None,
-        **kwargs
+        **kwargs,
     ):
         # type: (str, str, int, str, str, [str], [str], dict) -> Collections
         Entity.__init__(self, identity=identity, annotated=True)
@@ -371,9 +371,80 @@ class Locations(Entity):
         self.description = description
         self.encodingType = "application/vnd.geo+json"
 
+    def geometry(self, encodingType="application/vnd.geo+json"):
+        """
+        Retrieve geometry data for a location, which may be described externally
+        :return:
+        """
+        pass
+
     @staticmethod
     def project():
         pass
+
+    def reportWeather(self, ts, end, dt, api_key, url, max_calls=1000, fields=None):
+        # type: (Locations, datetime, datetime, timedelta, str, str, int, (str, )) -> dict
+        """
+        Get meteorological conditions in past/present/future.
+
+        :param ts: time stamp, as date time object
+        :param end: time stamp, as date time object
+        :param dt:
+        :param api_key: API key to charge against account quotas
+        :param url: base route for requests
+        :param fields: return only these fields
+        :param max_calls:
+
+        :return: calls, timestamp, JSON of conditions
+        """
+
+        def _annotate(obj):
+            obj["message"] = " ".join(
+                [
+                    "Retrieved",
+                    str(obj.get("count")),
+                    "observations.",
+                    "Used",
+                    str(obj.get("calls")),
+                    "API calls, with",
+                    str(obj.get("credit")),
+                    "remaining.",
+                ]
+            )
+            return obj
+
+        series = dict()
+        calls = 0
+        print(self.location)
+
+        while ts < end and calls < max_calls:
+            options = ",".join(
+                ["minutely", "hourly", "daily", "flags", "alerts"]
+            )  # blocks to ignore
+            point = "{},{},{}".format(*self.location["coordinates"][:2], ts.isoformat())
+            query = f"{url}/{api_key}/{point}?exclude={options}&units=si"
+            print(query)
+            response = get(query)
+
+            assert response.ok, response.json()
+            data = loads(response.content)
+            currently = data["currently"]
+
+            calls = int(response.headers["X-Forecast-API-Calls"])
+            time = currently.pop("time")
+            series[time] = (
+                currently if fields is None else {key: currently[key] for key in fields}
+            )
+            ts += dt
+
+        return _annotate(
+            {
+                "count": len(series),
+                "calls": calls,
+                "credit": max_calls - calls,
+                "value": series,
+            }
+        )
 
 
 class HistoricalLocations(Entity):
@@ -382,7 +453,6 @@ class HistoricalLocations(Entity):
         Private and automatic, should be added to sensor when new location is determined
         """
         Entity.__init__(self, identity)
-
         self.time = None  # time when thing is known at location (ISO-8601 string)
 
 
@@ -401,6 +471,53 @@ class Things(Entity):
         self.description = description
 
         self.properties = None  # (optional)
+
+    @staticmethod
+    def dataAge():
+        pass
+
+    @staticmethod
+    def setSchedule():
+        pass
+
+    @staticmethod
+    def getSchedule():
+        pass
+
+    @staticmethod
+    def ingestBuoy(identity, fields, samples=None):
+        # type: (int, (str, ), int) -> (dict, int)
+        """
+        Get existing data from a remote server.
+        """
+        try:
+            host = app.app.config["DOMAIN"]
+        except:
+            host = app.app.config["DOMAIN"]
+
+        try:
+            data = synchronous(query(host=host, fields=fields, node=identity))
+        except ConnectionError:
+            return {"error": "Can't connect to remote server"}, 500
+
+        return {"value": report(data=data, samples=samples, keys=fields)}, 200
+
+    @staticmethod
+    def catalog(year: int, month: int = None, day: int = None):
+
+        try:
+            fid = open("data/remoteCache-{}".format(year), "rb")
+            data = list(unpickle(fid))
+        except FileNotFoundError:
+            return {"message": "No data for year"}, 404
+
+        response = dict()
+        for date in data:
+            if (not month or date["date"].month == month) and (not day or date["date"].day == day):
+                date["files"] = [file.serialize() for file in date["files"]]
+                response[date["name"]] = date
+
+        return response, 200
 
 
 class Device(Entity):
@@ -431,6 +548,7 @@ class Device(Entity):
 
     def disable(self):
         pass
+
 
 
 class Sensors(Device):
@@ -537,77 +655,3 @@ class Tasks(Entity):
 
     def stop(self):
         pass
-
-
-#
-# class Meshes(FeaturesOfInterest):
-#
-#     _model = None  # regression model handle for interpolating data to the grid
-#     _triang = None  # triangulation object reference
-#     _host = None  # tri finder object reference
-#
-#     def __init__(self, path=None, **kwargs):
-#         # type: (str, dict) -> Meshes
-#         FeaturesOfInterest.__init__(self, **kwargs)
-#         self.data = path
-#
-#         self.layers = 0
-#         self.nodes = 0
-#         self.cells = 0
-#         self.fit = None  # r-squared value of the last trend surface fit
-#
-#     def statistics(self):
-#         pass
-#
-#     @staticmethod
-#     def cellAdjacency(parents, indices, topology):
-#         # type: (dict, list, [[float]])  -> (dict, list)
-#         """
-#         Get element neighbors
-#         """
-#         queue = dict()
-#         while indices:
-#             cell = indices.pop()
-#             nodes = [set(parents[key]) - {cell} for key in topology[cell, :]]
-#             buffer = [nodes[ii] & nodes[ii - 1] for ii in range(3)]
-#             key = "neighbor" if 0 < len(buffer) <= 3 else "error"
-#             queue[key][cell] = buffer
-#
-#         return queue
-#
-#
-# class Cells(Locations):
-#     def __init__(self, **kwargs):
-#         Locations.__init__(self, **kwargs)
-#
-#         self.solid = None  # element contains solid boundary node
-#         self.open = None  # element contains open boundary node
-#         self.porosity = None
-#         self.area = None
-#
-#     @staticmethod
-#     def adjacency():
-#         pass
-#
-#
-# class Nodes(Locations):
-#
-#     def __init__(self, **kwargs):
-#         Locations.__init__(self, **kwargs)
-#
-#         self.solid = None  # solid boundary mask -- set in self.adjacency()
-#         self.area = None  # planar area of control volumes -- set_areas()
-#         self.parent_area = None  # total area of parent elements -- set_areas()
-#         self.elevation = None
-#         self.wet = None
-#         self.open = None
-#
-#     @staticmethod
-#     def adjacency():
-#         pass
-#
-#
-# class Layers(Entity):
-#     def __init__(self, **kwargs):
-#         Entity.__init__(self, **kwargs)
-#         self.coordinateSystem = CoordinateSystem.Cartesian

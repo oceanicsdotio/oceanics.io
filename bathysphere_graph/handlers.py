@@ -4,13 +4,14 @@ from passlib.apps import custom_app_context
 from functools import reduce
 from retry import retry
 from requests import post
+from redis import Redis, ConnectionError
 from neo4j.v1 import GraphDatabase
 
 from bathysphere_graph.drivers import *
 from bathysphere_graph import app, appConfig
 
 
-@retry(tries=3, delay=3, backoff=1)
+@retry(tries=2, delay=1, backoff=1)
 def connect(hosts, port, defaultAuth, declaredAuth):
     # type: ((str, ), int, (str, str), (str, str)) -> Driver or None
     """
@@ -55,11 +56,46 @@ def connect(hosts, port, defaultAuth, declaredAuth):
     return db
 
 
+def cache(fcn):
+    """
+    Cache/load data on inbound-outbound.
+    """
+
+    def wrapper(*args, **kwargs):
+
+        db = Redis(
+            host=app.app.config["REDIS_HOST"],
+            port=25061,
+            db=0,
+            password=app.app.config["REDIS_KEY"],
+            socket_timeout=3,
+            ssl=True,
+        )  # inject db session
+        try:
+            db.time()
+        except ConnectionError:
+            return fcn(*args, **kwargs)
+
+        if kwargs.pop("cache", True):
+            binary = db.get(request.url)
+            if binary:
+                db.incr("hits")
+                return loads(binary)
+
+        data, status = fcn(*args, **kwargs)
+        if status == 200:
+            db.set(request.url, dumps(data), ex=3600)
+            db.incr("count")
+
+        return data, status
+
+    return wrapper
+
+
 def context(fcn):
     """
     Inject graph database session into request.
     """
-
     def wrapper(*args, **kwargs):
         hosts = [
             app.app.config["DOCKER_COMPOSE_NAME"],
@@ -238,8 +274,8 @@ def getCatalog(db, user, extension=None, **kwargs):
 
 @context
 @authenticate
-def createEntity(db, user, entity, body, offset=0, **kwargs):
-    # type: (Driver, User, str, dict, int, dict) -> (dict, int)
+def createEntity(db, user, entity, body, **kwargs):
+    # type: (Driver, User, str, dict, dict) -> (dict, int)
     """
     Attach to db, and find available ID number to register the entity
     """
@@ -247,16 +283,35 @@ def createEntity(db, user, entity, body, offset=0, **kwargs):
         _ = body.pop("entityClass")  # only used for API discriminator
         declaredLinks = []
         for key, val in body.pop("links", {}).items():
-            declaredLinks.extend({"cls": key, **each} for each in val)
+            declaredLinks.extend(
+                {
+                    "cls": key,
+                    "props": {"confidence": 1.0, "weight": 1.0, "cost": 0.0},
+                    **each,
+                }
+                for each in val
+            )
         obj = eval(entity)(**body)
     except Exception as ex:
         return {"error": f"{ex}"}, 500
 
-    declaredLinks.append({"cls": repr(user), "id": user.id, "label": "Post"})
+    declaredLinks.append(
+        {
+            "cls": repr(user),
+            "id": user.id,
+            "label": "Post",
+            "props": {"confidence": 1.0, "weight": 1.0, "cost": 0.0},
+        }
+    )
     if not isinstance(obj, Ingresses):
         declaredLinks.extend(
             [
-                {"cls": "Ingresses", "id": r[0], "label": "Provider"}
+                {
+                    "cls": Ingresses.__name__,
+                    "id": r[0],
+                    "label": "Provider",
+                    "props": {"confidence": 1.0, "weight": 1.0, "cost": 0.0},
+                }
                 for r in relationships(
                     db=db,
                     parent={"cls": "User", "id": user.id},
@@ -266,7 +321,7 @@ def createEntity(db, user, entity, body, offset=0, **kwargs):
                 )
             ]
         )
-    _ = create(db=db, obj=obj, offset=offset, links=declaredLinks)
+    _ = create(db=db, obj=obj, links=declaredLinks)
     return (
         {
             "message": f"Create {entity}",
@@ -313,7 +368,7 @@ def getCollection(db, user, entity, **kwargs):
     Usage 2. Get all entities of a single class
     """
     host = app.app.config["HOST"]
-    e = load(db=db, cls=entity)
+    e = load(db=db, user=user, cls=entity)
     if not e:
         e = []
     data = {
@@ -325,15 +380,15 @@ def getCollection(db, user, entity, **kwargs):
 
 @context
 @authenticate
-def getEntity(db, entity, id, key=None, method=None, **kwargs):
-    # type: (Driver, str, int, str, str, dict)  -> (dict, int)
+def getEntity(db, user, entity, id, key=None, method=None, **kwargs):
+    # type: (Driver, User, str, int, str, str, **dict)  -> (dict, int)
     """
     Usage 3. Return information on a single entity
     Usage 4. Return single entity property
     Usage 5. Return the value of single property of the entity
     """
     host = app.app.config["HOST"]
-    e = load(db=db, cls=entity, identity=id)
+    e = load(db=db, user=user, cls=entity, identity=id)
     if len(e) != 1:
         value = {
             "error": "duplicate entries found",
