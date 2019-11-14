@@ -1,6 +1,99 @@
 from types import MethodType
-from bathysphere_graph.extensions import *
-from bathysphere_graph import app, appConfig
+from flask import request
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+from passlib.apps import custom_app_context
+import hashlib
+import hmac
+
+
+from bathysphere_graph.drivers import *
+from bathysphere_graph import appConfig
+
+
+def context(fcn):
+    """
+    Inject graph database session into request.
+    """
+
+    def wrapper(*args, **kwargs):
+        host = app.app.config["EMBEDDED_NAME"]
+        port = app.app.config["NEO4J_PORT"]
+        default_auth = tuple(app.app.config["NEO4J_AUTH"].split("/"))
+        db = connectBolt(
+            host=host,
+            port=port,
+            defaultAuth=default_auth,
+            declaredAuth=(default_auth[0], app.app.config["ADMIN_PASS"]),
+        )
+        if db is None:
+            return {"message": "no graph backend"}, 500
+        if isinstance(db, (dict, list)):
+            return db, 500
+
+        if not records(db=db, **{"cls": Root.__name__, "identity": 0, "result": "id"}):
+            root_item = create(
+                db, obj=Root(url=f"{host}:{port}", secretKey=app.app.config["SECRET"])
+            )
+            for ing in appConfig[Ingresses.__name__]:
+                if ing.pop("owner", False):
+                    ing["apiKey"] = app.app.config["API_KEY"]
+                _ = create(
+                    db,
+                    obj=Ingresses(**ing),
+                    **{"links": [{"label": "Linked", **root_item}]},
+                )
+        try:
+            return fcn(*args, db=db, **kwargs)
+        except Exception as e:
+            return {"message": f"{e} error during call"}, 500
+
+    return wrapper
+
+
+def authenticate(fcn):
+    """
+    Decorator to authenticate and inject user into request.
+    Validate/verify JWT token.
+    """
+
+    def wrapper(*args, **kwargs):
+        try:
+            value, credential = request.headers.get("Authorization").split(":")
+        except AttributeError:
+            if request.method != "GET":
+                return {"message": "missing authorization header"}, 403
+            return fcn(*args, user=None, **kwargs)
+
+        db = kwargs.get("db")
+
+        try:
+            secret = kwargs.get("secret", None)
+            if not secret:
+                root = load(db=db, cls=Root.__name__, identity=0).pop()
+                secret = root._secretKey
+            # first try to authenticate by token
+            decoded = Serializer(secret).loads(credential)
+        except:
+            accounts = load(db=db, cls=User.__name__, identity=value)
+            _token = False
+        else:
+            accounts = load(db=db, cls=User.__name__, identity=decoded["id"])
+            _token = True
+
+        if not accounts:
+            return {"message": "unable to authenticate"}, 403
+        if len(accounts) != 1:
+            return {"message": "non-unique identity"}, 403
+
+        user = accounts.pop()
+        if not user.validated:
+            return {"message": "complete registration"}, 403
+        if not _token and not custom_app_context.verify(credential, user._credential):
+            return {"message": "invalid credentials"}, 403
+
+        return fcn(*args, user=user, **kwargs)
+
+    return wrapper
 
 
 @context
@@ -81,7 +174,6 @@ def authToken(db, user, secret=None, **kwargs):
 
 
 @context
-@session
 @authenticate
 def getCatalog(db, user, extension=None, **kwargs):
     # type: (Driver, User, str, dict) -> (dict, int)
@@ -177,18 +269,26 @@ def createEntity(db, user, entity, body, **kwargs):
     data = serialize(db, obj, service=app.app.config["HOST"])
     if entity in (Collections.__name__, Catalogs.__name__):
         name = obj.name.lower().replace(" ", "-")
-        declareObject(
-            data=data,
-            bucket_name="bathysphere-test",
-            object_name=f"{name}/index.json",
-            metadata={
+        _transmit = dumps({
+            "headers": {
                 "x-amz-meta-service-file-type": "index",
                 "x-amz-acl": "public-read",
                 "x-amz-meta-extent": "null",
                 **appConfig["headers"],
             },
-            storage=Minio(**appConfig["storage"]),
+            "object_name": f"{name}/index.json",
+            "bucket_name": "bathysphere-test",
+            "data": dumps(data).encode(),
+            "content_type": "application/json"
+        })
+        response = post(
+            url="http://faas.oceanics.io:8080/async-function/respository",
+            data=_transmit,
+            headers={
+                "hmac": hmac.new(app.app.config["HMAC_KEY"].encode(), _transmit.encode(), hashlib.sha1).hexdigest()
+            }
         )
+        assert response.status_code == 202
     return {"message": f"Create {entity}", "value": data}, 200
 
 

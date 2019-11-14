@@ -1,0 +1,258 @@
+- name: nprocs
+  description: Number of processes used in simulation
+
+- name: partition
+  description: Mesh partitioning index
+
+- name: x
+  descroption: Position
+  attributeOf: Node
+  dim: 1
+
+- name: y
+  description: Position
+  attributeOf: Node
+  dim: 1
+
+- name: lon
+  description: Position
+  attributeOf: Node
+  dim: 1
+
+- name: lat
+  description: Position
+  attributeOf: Node
+  dim: 1
+
+- name: xc
+  description: Position
+  attributeOf: Cell
+  dim: 1
+
+- name: yc
+  description: Position
+  attributeOf: Cell
+  dim: 1
+
+- name: lonc
+  description: Position
+  attributeOf: Cell
+  dim: 1
+
+- name: latc
+  description: Position
+  attributeOf: Cell
+  dim: 1
+
+- name: siglay
+  description: Sigma layers
+  attributeOf: Mesh
+  dim: 1
+
+- name: siglay_center
+  description: Intra sigma layers
+  attributeOf: Mesh
+  dim: 1
+
+- name: siglev
+  description: Sigma levels
+  attributeOf: Mesh
+  dim: 1
+
+- name: siglev_center
+  description: Intra sigma levels
+  attributeOf: Mesh
+  dim: 1
+
+- name: h
+  description: Bathymetry
+  attributeOf: Node
+  dim: 1
+
+- name: h_center
+  description: Bathymetry
+  attributeOf: Cell
+  dim: 1
+
+- name: nv
+  description: Topology
+  attributeOf: Mesh
+  dim: 2
+
+- name: nbe
+  description: Topology
+  attributeOf: Mesh
+  dim: 2
+
+- name: ntsn
+  description: Topology
+  attributeOf: Mesh
+  dim: 2
+
+- name: nbsn
+  description: Topology
+  attributeOf: Mesh
+  dim: 2
+
+- name: "ntve"
+  description: Topology
+  attributeOf: Mesh
+  dim: 2
+
+- name: "nbve"
+  description: "Topology"
+  attributeOf: "Mesh"
+  dim: 2
+
+- name: 'wet_nodes'
+  description: Mask of water nodes
+  dim: 1
+
+- name: 'wet_cells'
+  description: Mask of water cells
+  dim: 1
+
+- name: 'wet_nodes_prev_int'
+  description: Previous wet nodes
+  dim: 1
+
+- name: 'wet_cells_prev_int'
+  description: Previous wet nodes
+  dim: 1
+
+- name: 'wet_cells_prev_ext'
+  dim: 1
+
+- name: "iint"
+
+- name: "time"
+  flag: True
+
+- name: "Itime"
+
+- name: "Itime2"
+
+- name: "Times"
+
+- name: "zeta"
+
+- name: "file_date"
+
+- name: "a1u"
+  description: Shape coefficient
+  attributeOf: Node
+
+- name: "a2u"
+  description: Shape coefficient
+  attributeOf: Node
+
+- name: "aw0"
+  description: Shape coefficient
+  attributeOf: Node
+
+- name: "awx"
+  description: Shape coefficient
+  attributeOf: Node
+
+- name: "awy"
+  description: Shape coefficient
+  attributeOf: Node
+
+- name: "art2"
+  description: Area of neighborhood
+  attributeOf: Node
+
+- name: "art1"
+  description: Area
+  attributeOf: Cell
+
+- name: "u"
+  description: Velocity
+  attributeOf: Cell
+  dim: 3
+  flag: True
+
+- name: "v"
+  description: Velocity
+  attributeOf: Cell
+  dim: 3
+  flag: True
+
+- name: "omega"
+  description: Vertical velocity sigma
+  attributeOf: Cell
+
+- name: "ww"
+  description: Vertical velocity
+  attributeOf: Cell
+  dim: 3
+
+- name: "ua"
+  description: Depth averaged velocity
+  attributeOf: Cell
+  dimensions: 2
+
+- name: "va"
+  description: Depth averaged velocity
+  attributeOf: Cell
+  dim: 2
+
+- name: "temp"
+  description: Temperature
+  attributeOf: Node
+  dim: 3
+  flag: True
+
+- name: "salinity"
+  description: Salinity
+  attributeOf: Cell
+  dim: 3
+  flag: True
+
+- name: "km"
+  dim: 3
+
+- name: "kh"
+  dim: 3
+  description: Diffusion
+  attributeOf: Cell
+
+- name: "kq"
+  description: Heat diffusion???
+  attributeOf: Cell
+  dim: 3
+
+- name: "q2"
+  dim: 3
+
+- name: "q2l"
+  dim: 3
+
+- name: "l"
+  dim: 3
+
+- name: "short_wave"
+  description: Radiation
+  dim: 2
+
+- name: "net_heat_flux"
+  dim: 2
+
+- name: "uwind_stress"
+  description: Wind stress along east-west vector
+  attributeOf: Cell
+
+- name: "vwind_stress"
+  description: Wind stress along north-south vector
+  attributeOf: Cell
+
+- name: tauc
+  dim: 2
+
+- name: viscofm
+  description: Viscosity
+  dim: 3
+
+- name: viscofh
+  description: Viscosity
+  dim: 3

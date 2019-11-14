@@ -52,6 +52,36 @@ headers:
   x-amz-acl: "public-read"
   x-amz-meta-service: "bathysphere"
 
+landsat:
+  resolution: 30.0
+  region: "mid_maine"
+  sensors:
+    - "OLI"
+    - "TIRS"
+  datum: "WGS84"
+  proj: "UTM"
+  dtfmt: "%Y:%j:%H:%M:%S"
+  codec: "ISO-8859-1"
+
+  file_generator:
+    root: "LC8011030"
+    suffix: "LGN00"
+    translator":
+       OSI: "OSI"
+       SST: "SSTiterate"
+       chl: "CHL"
+       spm: "SPM"
+       lat: "LAT"
+       lon: "LON"
+
+avhrr:
+  AVHRR_SST: "sea_surface_temperature"
+
+clipping:
+  roi: "[-69.5, 43.0, -69.1, 43.9]"
+  subext: "[-72.5, 42.1, -69.5, 44.2]"
+  extent: "[-70.7, 42.15, -69, 44.25]"
+  avhrr_outliers: "[-2.0, 28.875]"
 
 models:
 

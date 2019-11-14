@@ -7,12 +7,15 @@ networks:
 services:
 
   nginx:
-    image: nginx
+    image: nginx:latest
     ports:
       - 80:80
+      - 8080:8080 # HTTP
+      - 443:443 # HTTPS
     volumes:
       - ./config/nginx:/etc/nginx/conf.d:ro
       - ./openapi:/openapi
+      - ./static:/static
     depends_on:
       - neo4j
       - bathysphere-graph
@@ -28,7 +31,7 @@ services:
   neo4j:
     build:
       context: .
-      dockerfile: config/dockerfile-neo4j-graphql
+      dockerfile: config/bathysphere-neo4j-dockerfile
     image: oceanicsdotio/neo4j
     ports:
       - 7474:7474 # HTTP
@@ -54,7 +57,7 @@ services:
   bathysphere-graph:
     build:
       context: .
-      dockerfile: config/dockerfile-bathysphere-graph
+      dockerfile: config/bathysphere-graph-dockerfile
     image: oceanicsdotio/bathysphere-graph
     ports:
       - 5000:5000
@@ -78,6 +81,18 @@ services:
       - ./logs:/logs
     depends_on:
       - neo4j
+
+
+  bathysphere-array:
+    build: .
+    image: oceanicsdotio/bathysphere-array
+    ports:
+      - 5000:5000
+    networks:
+      - oceanics
+    volumes:
+      - ./logs:/logs
+    command: ["sh", "start.sh"]
 
   postgres:
     image: timescale/timescaledb-postgis

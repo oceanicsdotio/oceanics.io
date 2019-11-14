@@ -1,0 +1,18 @@
+name: bathysphere
+channels:
+  - conda-forge
+dependencies:
+  - python=3.6
+  - pip
+  - pytz
+  - numpy
+  - matplotlib
+  - pandas
+  - pyshp
+  - pyproj
+  - netCDF4
+  - scipy
+  - requests
+  - pip:
+      - rdp
+      - minio

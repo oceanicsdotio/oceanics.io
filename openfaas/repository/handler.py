@@ -5,6 +5,7 @@ import hashlib
 from io import BytesIO
 from minio import Minio
 from minio.error import NoSuchKey
+from uuid import uuid4
 
 #
 # def listener(storage, bucket_name, filetype="", channel="bathysphere-events"):
@@ -17,6 +18,140 @@ from minio.error import NoSuchKey
 #         ps.publish(channel, str(event))
 
 storage = Minio(**appConfig["storage"])
+
+
+def locking(fcn):
+    async def wrapper(storage, bucket_name, name, sess, headers, *args, **kwargs):
+        # type: (Minio, str, str, str, dict, list, dict) -> Any
+
+        _lock = {"session": sess, "object_name": f"{name}/lock.json"}
+        obj = declareObject(
+            bucket_name=bucket_name,
+            object_name=f"{name}/lock.json",
+            data={sess: []},
+            metadata={
+                "x-amz-meta-created": datetime.utcnow().isoformat(),
+                "x-amz-acl": "private",
+                "x-amz-meta-service-file-type": "lock",
+                **(headers if headers else {}),
+            },
+            replace=False,
+            storage=storage,
+        )
+        if obj is None:
+            return "Repository lock failure", 500
+
+        result = fcn(storage=storage, dataset=None, *args, session=session, **kwargs)
+
+        if unlock(**_lock):
+            raise BlockingIOError
+
+        return result
+
+    return wrapper
+
+
+def session(fcn):
+    # type: (Callable) -> Callable
+    def wrapper(*args, **kwargs):
+        # type: (*list, **dict) -> Any
+        return fcn(
+            *args,
+            storage=Minio(**appConfig["storage"]),
+            bucket_name=appConfig["bucketName"],
+            session=str(uuid4()).replace("-", ""),
+            **kwargs,
+        )
+
+    return wrapper
+
+
+def artifact(fcn):
+    # type: (Callable) -> Callable
+
+    def wrapper(storage, bucket_name, object_name, *args, **kwargs):
+        # type: (Minio, str, str, list, dict) -> Any
+
+        result = fcn(storage=storage, dataset=None, *args, session=session, **kwargs)
+
+        _ = declareObject(
+            storage=storage,
+            bucket_name=bucket_name,
+            object_name=f"{object_name}.png",
+            data=result,
+            metadata={
+                "x-amz-meta-created": datetime.utcnow().isoformat(),
+                "x-amz-meta-service-file-type": image,
+                "x-amz-meta-extent": None,
+                "x-amz-acl": "private",  # "public-read"
+                "x-amz-meta-parent": None,
+            },
+            content_type="image/png",
+        )
+        return send_file(result, mimetype="image/png")
+
+    return wrapper
+
+@session
+@locking
+async def updateCatalog(body, storage, name, **kwargs):
+    # type: (dict, Minio, str, dict) -> ResponseJSON
+    """
+    Update contents of index metadata
+    """
+    _index = appConfig["index"]
+    bucket_name = appConfig["storage"]["bucketName"]
+    if collection:
+        object_name = f"{collection}/{_index}"
+    else:
+        object_name = _index
+    try:
+        stat = storage.stat_object(bucket_name, object_name)
+    except NoSuchKey:
+        return f"{object_name} not found", 404
+
+    metadata = body.get("metadata", {})
+    key_value = body.get("entries", {})
+
+    if not key_value:
+        storage.copy_object(
+            bucket_name=bucket_name,
+            object_name=object_name,
+            object_source=object_name,
+            metadata=metadata,
+        )
+    else:
+        await declareObject(
+            storage=storage,
+            data={
+                **loads(storage.get_object(bucket_name, object_name).data),
+                **key_value,
+                **body.get("properties", {}),
+            },
+            bucket_name=bucket_name,
+            object_name=object_name,
+            metadata={**stat.metadata, **metadata},
+        )
+
+]
+@session
+@authenticate
+def streamObject(storage, bucket_name, object_name):
+    # type: (Minio, str, str) -> ResponseJSON
+    """
+    Retrieve metadata for single item, and optionally the full dataset
+    """
+    try:
+        obj = storage.get_object(bucket_name, object_name)
+    except NoSuchKey:
+        return None
+
+    def generate():
+        for d in obj.stream(32 * 1024):
+            yield d
+
+    return Response(generate(), mimetype="application/octet-stream")
+
 
 
 def create(bucket_name, object_name, buffer, content_type, metadata):

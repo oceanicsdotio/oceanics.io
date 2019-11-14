@@ -115,3 +115,6 @@ bathysphere-graph-env-dev.sh
 *.env
 template
 build
+queries
+service.key
+*.crt

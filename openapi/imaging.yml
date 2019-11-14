@@ -1,0 +1,377 @@
+openapi: "3.0.0"
+
+info:
+  title: "Bathysphere"
+  version: "1.3"
+  description: |
+    Bathysphere is a geospatial library and application thats operates as infrastructure for other
+    public-facing architecture. It is intended for scientific computing on unstructured triangular meshes,
+    in the fields of hydrodynamics and ocean modeling.
+
+    The image rendering service creates PNG format files for time series and geospatial data. Small and simple
+    data structures can be sent and analyzed directly. More complex structures like large, unstructured triangular
+    meshes need to be accessible from a database already. This ensures that caching is enforced to prevent
+    redundant computation.
+
+  contact:
+    name: Oceanicsdotio
+    url: http://www.oceanics.io
+    email: bathysphere@oceanics.io
+
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+  x-logo:
+    url: gom.png
+
+tags:
+  - name: Catalog
+  - name: Collection
+  - name: Asset
+
+servers:
+- url: localhost/{basePath}
+  description: Localhost
+  variables:
+    basePath:
+      default: api
+
+paths:
+
+  /Datastreams:
+
+    post:
+
+      tags: [Datastream]
+      operationId: bathysphere.handlers.datastreams
+      summary: Render JSON
+      description: |
+        Create image from time series and cache it. The service call methods from the `matplotlib` library,
+        which uses the anti-grain graphics backend (`AGG`). The images are portable network graphics (`.png`)
+        by default, but `.pdf` and `.tiff` are available for print media.
+
+      parameters:
+        - $ref: "#/components/parameters/View"
+
+      requestBody:
+        $ref: "#/components/requestBodies/Datastreams"
+
+      responses:
+        '200':
+          $ref: '#/components/responses/ImageResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /Locations:
+
+    post:
+      tags: [Location]
+      operationId: bathysphere.handlers.locations
+      summary: Render location
+      description: |
+
+        Create image from time series and cache it. The service call methods from the `matplotlib` library,
+        which uses the anti-grain graphics backend (`AGG`). The images are portable network graphics (`.png`)
+        by default, but `.pdf` and `.tiff` are available for print media.
+
+      requestBody:
+        $ref: "#/components/requestBodies/Locations"
+
+      responses:
+        '200':
+          $ref: '#/components/responses/ImageResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+
+  parameters:
+
+    collection:
+      required: true
+      name: collection
+      in: path
+      schema:
+        type: string
+
+
+    View:
+      name: view
+      in: query
+      description: |
+        How to transform and render the data
+      schema:
+        type: string
+        enum: [series, coverage, frequency, scatter]
+        default: scatter
+
+
+    DatastreamId:
+      name: datastreamId
+      in: path
+      description: |
+        Look-up ID for datastream
+      schema:
+        type: integer
+
+  requestBodies:
+
+    Catalog:
+      description: Datastream and configuration data
+      content:
+        application/json:
+          schema:
+            $ref: 'https://graph.oceanics.io/api.yml#/components/schemas/Catalog'
+
+
+    Datastreams:
+      description: Datastream and configuration data
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Datastreams'
+
+    Locations:
+      description: Render spatial data sets
+      content:
+        application/json:
+          schema:
+            $ref: 'https://graph.oceanics.io/api.yml#/components/schemas/Location'
+
+    Collection:
+      description: |
+        Create a new collection
+      content:
+        application/json:
+          schema:
+            $ref: 'https://graph.oceanics.io/api.yml#/components/schemas/Collection'
+
+
+    Asset:
+      description: |
+        Tell the server where to find the data
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Asset'
+
+
+    Configuration:
+      description: |
+        Configure service
+      content:
+        application/json:
+          schema:
+            type: object
+
+  schemas:
+
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+
+    Message:
+      type: object
+      properties:
+        message:
+          type: string
+
+    Asset:
+      type: object
+
+
+    Metadata:
+      type: object
+      properties:
+        link:
+          type: string
+        cache:
+          type: string
+        objectKey:
+          type: string
+
+    Datastreams:
+      type: object
+      properties:
+        datastream:
+          type: array
+          items:
+            $ref: '#/components/schemas/Observation'
+        extent:
+          $ref: '#/components/schemas/Extent'
+        style:
+          $ref: '#/components/schemas/Style'
+
+    Reference:
+      type: object
+      properties:
+        extent:
+          $ref: '#/components/schemas/Extent'
+        style:
+          $ref: '#/components/schemas/Style'
+
+    Observation:
+      oneOf:
+      - type: object
+        properties:
+          time:
+            type: number
+          value:
+            type: number
+      - type: array
+        minLength: 2
+        items:
+          type: number
+          format: float
+
+    Extent:
+      maxItems: 4
+      minItems: 6
+      type: array
+      items:
+        type: number
+        format: float
+      description: |
+        Spatial extent
+
+    Style:
+      type: object
+      description: |
+        Style is used change the appearance of the rendered image.
+
+      properties:
+
+        template:
+          type: string
+          enum: [dark, light]
+          default: dark
+          description: |
+            Select between light and dark templates depending on whether the image is intended for display
+            on a screen or for printed media.
+
+        bg:
+          type: string
+          default: black
+          description: |
+            Override the default background color for the chosen or default template. Dark themes have a `black`
+            background by default, and light themes have a `white` background. Use this to match the background
+            color when embedding in a web page. This can also be transparent for image compositing.
+
+        contrast:
+          type: string
+          default: white
+          description: |
+            Contrast color for rendering over background.
+
+        flag:
+          type: string
+          default: red
+          description: |
+            Highlight color for marking selected or masked data.
+
+        label:
+          type: string
+          description: |
+            Color for text and labels. The default is the same as the `contrast` color.
+
+        dpi:
+          type: integer
+          default: 150
+          minimum: 90
+          maximum: 300
+          description: |
+            Image resolution. Be careful, `dpi=300` images can be very large.
+
+        format:
+          type: string
+          enum: [png, pdf, tiff]
+          default: png
+          description: |
+            Image file format. Only `png` is available through the API.
+
+        alpha:
+          type: number
+          format: float
+          default: 1.0
+          maximum: 1.0
+          minimum: 0.0
+          description: |
+            Transparency of drawn objects. Useful for rendering Monte Carlo simulations.
+
+        padding:
+          type: array
+          minLength: 4
+          maxLength: 4
+          items:
+            type: number
+            format: float
+          default: [0.1, 0.2, 0.05, 0.1]
+          description: |
+            Content padding from edges of image to make room for labels and title.
+
+        marker:
+          type: integer
+          default: 1
+          description: |
+            Size of markers if rendering scatter plots or points on a map
+
+        font:
+          type: integer
+          default: 10
+          description: |
+            Font size
+
+        text:
+          type: number
+          format: float
+          default: 1.0
+          description: |
+            Size of labels relative to font size.
+
+        width:
+          type: number
+          format: float
+          default: 6.5
+          description: |
+            Width of image in inches
+
+        height:
+          type: number
+          format: float
+          description: |
+            Height of image in inches
+
+
+  responses:
+
+    Result:
+      description: |
+        Result of an operation
+      content:
+        application/json:
+          schema:
+            type: object
+
+    Message:
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Message'
+
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    ImageResponse:
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Metadata'

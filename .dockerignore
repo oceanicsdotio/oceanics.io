@@ -4,5 +4,8 @@ __pycache__
 logs/
 **/__pycache__
 **/*.pyc
+queries/
+
+
 
 

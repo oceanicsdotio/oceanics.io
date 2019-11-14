@@ -7,7 +7,7 @@ provider:
 functions:
 
   buoys:
-    lang: python3
+    lang: python3-http
     handler: ./buoys
     image: oceanicsdotio/faas-buoys:latest
     environment:
@@ -65,6 +65,11 @@ functions:
       - redis-host
       - redis-key
       - redis-port
+
+  preview:
+    lang: python3-debian
+    handler: ./preview
+    image: oceanicsdotio/faas-preview:latest
 
 #  repository:
 #    lang: python3
