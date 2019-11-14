@@ -6,15 +6,9 @@ from requests import get
 from datetime import datetime
 from pickle import load as unpickle
 from redis import StrictRedis
-from minio import Minio
-from minio.error import NoSuchKey
 
 
-PG_DP_NULL = "DOUBLE PRECISION NULL"
-PG_TS_TYPE = "TIMESTAMP NOT NULL"
-PG_GEO_TYPE = "GEOGRAPHY NOT NULL"
-PG_ID_TYPE = "INT PRIMARY KEY"
-PG_STR_TYPE = "VARCHAR(100) NULL"
+
 API_STAC_VERSION = "0.0"
 
 ExtentType = (float, float, float, float)
@@ -249,46 +243,7 @@ class Catalogs(Entity):
         self.title = self.name = title
         self.description = description
 
-    @staticmethod
-    def onDelete(storage, bucket_name, prefix, **kwargs):
-        # type: (Minio, str, str, **dict) -> ResponseJSON
-        """
-        Delete all objects within a subdirectory or abstract collection
 
-        :param storage: header matching
-        :param bucket_name: file prefix/dataset
-        :param prefix: most to process at once
-
-        :return: deleted files
-        """
-        remove = ()
-        objects_iter = storage.list_objects(bucket_name, prefix=prefix)
-        while True:
-            try:
-                object_name = next(objects_iter).object_name
-                stat = storage.stat_object(bucket_name, object_name)
-            except StopIteration:
-                break
-            except NoSuchKey:
-                return None
-            if all(
-                stat.metadata.get(key) == val
-                for key, val in {"x-amz-meta-service": "bathysphere"}.items()
-            ):
-                remove += (object_name,)
-
-        storage.remove_objects(bucket_name=bucket_name, objects_iter=remove)
-        return None, 204
-
-    @staticmethod
-    def listener(storage, bucket_name, filetype="", channel="bathysphere-events"):
-        fcns = ("s3:ObjectCreated:*", "s3:ObjectRemoved:*", "s3:ObjectAccessed:*")
-        r = StrictRedis()
-        ps = r.pubsub()
-        for event in storage.listen_bucket_notification(
-            bucket_name, "", filetype, fcns
-        ):
-            ps.publish(channel, str(event))
 
 
 class Items(Entity):

@@ -7,12 +7,41 @@ from json import loads
 from functools import reduce
 
 
-def indexFtp(ftp, graph, node=".", depth=0, limit=None, metadata=None, parent=None):
-    # type: (FTP, Driver, str, int, int or None, dict or None, dict) -> None
+
+def searchTree(pattern, filesystem):
+    # type: (str, dict) -> None or str
+    """
+    Recursively search a directory structure for a key.
+    Call this on the result of `index`
+
+    :param filesystem: paths
+    :param pattern: search key
+    :return:
+    """
+    for key, level in filesystem.items():
+        if key == pattern:
+            return key
+        try:
+            result = searchTree(pattern, level)
+        except AttributeError:
+            result = None
+        if result:
+            return f"{key}/{result}"
+    return None
+
+
+def syncFtp(ftp, remote, local, filesystem=None):
+    # type: (FTP, str, str, dict) -> int
+    path = searchTree(filesystem=filesystem, pattern=remote)
+    with open(local, "wb+") as fid:
+        return int(ftp.retrbinary(f"RETR {path}", fid.write))
+
+
+def indexFtp(ftp, node=".", depth=0, limit=None, metadata=None, parent=None):
+    # type: (FTP, str, int, int or None, dict or None, dict) -> None
     """
     Build directory structure recursively.
 
-    :param graph: database
     :param ftp: persistent ftp connection
     :param node: node in current working directory
     :param depth: current depth, do not set
@@ -109,5 +138,6 @@ def handle(req):
     assert ftp.sock
     if root is not None:
         _ = ftp.cwd(root)
-    return ftp
+    indexFtp(ftp)
+
 

@@ -1,12 +1,10 @@
 from inspect import signature
 from itertools import repeat, chain
 from neo4j.v1 import Driver, Node, GraphDatabase
-from pg8000 import connect, Connection, Cursor
 from typing import Any, Callable
 from bidict import bidict
 from difflib import SequenceMatcher
 from functools import reduce
-from ftplib import FTP
 from retry import retry
 from requests import post
 from json import dumps
@@ -53,130 +51,18 @@ def log(message, file=None, console=True):
         fid.close()
 
 
-def image(fcn):
-    """
-    Get the requested data as an image if image=True
-    """
-
-    def wrapper(*args, **kwargs):
-
-        convert = kwargs.pop("image", False)
-        data, status = fcn(*args, **kwargs)
-        if status != 200 or not convert:
-            return data, status
-
-        try:
-            response = get(url="localhost", json=data)
-            # img = BytesIO()
-            # make request to image service
-            # img.seek(0)
-            # send_file(img, mimetype='image/png')
-
-        except:
-            return {"message": "Could not reach rendering service"}, 500
-
-        return response
-
-    return wrapper
-
-
-def postgres(auth, host, port, database, autoCommit=True):
-    # type: ((str, str), str, int, str, bool) -> (Connection, Cursor)
-    """
-    Connect to database and create cursor
-    """
-    user, password = auth
-    db = connect(
-        host=host, port=port, user=user, password=password, ssl=True, database=database
-    )
-    db.autocommit = autoCommit
-    return db, db.cursor()
-
-
-def declareTable(cursor, table, fields):
-    # type: (Cursor, str, dict) -> None
-    """
-    Create a table in connected database
-    """
-    cursor.execute(
-        f"CREATE TABLE {table}({', '.join(f'{k} {v}' for k, v in fields.items())});"
-    )
-
-
-def describeTable(db, cursor, **kwargs):
-    # type: (Connection, Cursor, **dict) -> dict
-    """
-    List all tables in given database
-    """
-    select(cursor=cursor, limit=500, **kwargs)
-    data = cursor.fetchall()
-    cursor.execute("SHOW CLIENT_ENCODING;")
-    encoding = cursor.fetchall()[0]
-    return {
-        "rows": len(data),
-        "last": latestObservation(cursor=cursor, **{"db": db, **kwargs}),
-        "encoding": encoding,
-    }
-
-
-def select(cursor, table, order_by, limit=100, result=None):
-    # type: (Cursor, str, str, int, (str,)) -> bool
-    """
-    Read back values/rows.
-    """
-    order = "DESC"
-    expand = "*" if result is None else ", ".join(result)
-    return cursor.execute(
-        f"SELECT {expand} FROM {table} ORDER BY {order_by} {order} LIMIT {limit};"
-    )
-
-
-def latestObservation(cursor, result="*", **kwargs):
-    # type: (Cursor, str, **dict) -> datetime
-    """
-    Get most recent row from database as datetime
-    """
-    _ = select(limit=1, result=result, cursor=cursor, **kwargs)
-    return cursor.fetchmany(1)[0][0]
-
-
-def progressNotification(start, count, total):
+def progressNotification(start, current, total):
     # type: (float, int, int) -> str
     """
     Format a string for progress notifications
     """
     elapsed = time() - start
-    ss = int(elapsed * total / count - elapsed)
+    ss = int(elapsed * total / current - elapsed)
     mm = ss // 60
     hh = mm // 60
     return (
-        f"Ingested {count} of {total} rows, "
+        f"Ingested {current} of {total} rows, "
         f"{hh}:{mm - hh * 60}:{ss - mm * 60} remaining"
-    )
-
-
-def ingestRows(cursor, table, fields, data):
-    # type: (Cursor, str, (str, ), ((Any, ), )) -> None
-    """
-    Insert new rows into database.
-    """
-
-    def parse(v):
-        if isinstance(v, datetime):
-            return v.isoformat()
-        if isinstance(v, float):
-            return str(v)
-        if isinstance(v, int):
-            return f"{v}.0"
-        if isinstance(v, str):
-            return f"'{v}'"
-        if isinstance(v, dict):
-            return f"ST_GeomFromGeoJSON('{dumps(v)}')"
-        return "NULL"
-
-    rows = (f"({', '.join(map(parse, row))})" for row in data)
-    cursor.execute(
-        f"INSERT INTO {table} ({', '.join(fields)}) VALUES {', '.join(rows)};"
     )
 
 
@@ -649,125 +535,6 @@ def delete(db, **kwargs):
             tx.run(cmd)
 
     return _write(db, _tx, kwargs)
-
-
-def searchTree(pattern, filesystem):
-    # type: (str, dict) -> None or str
-    """
-    Recursively search a directory structure for a key.
-    Call this on the result of `index`
-
-    :param filesystem: paths
-    :param pattern: search key
-    :return:
-    """
-    for key, level in filesystem.items():
-        if key == pattern:
-            return key
-        try:
-            result = searchTree(pattern, level)
-        except AttributeError:
-            result = None
-        if result:
-            return f"{key}/{result}"
-    return None
-
-
-def connectFtp(host, root=None, **kwargs):
-
-    ftp = FTP(host, **kwargs)
-    assert "230" in ftp.login()  # attach if no open socket
-    assert ftp.sock
-    if root is not None:
-        _ = ftp.cwd(root)
-    return ftp
-
-
-def indexFtp(ftp, graph, node=".", depth=0, limit=None, metadata=None, parent=None):
-    # type: (FTP, Driver, str, int, int or None, dict or None, dict) -> None
-    """
-    Build directory structure recursively.
-
-    :param graph: database
-    :param ftp: persistent ftp connection
-    :param node: node in current working directory
-    :param depth: current depth, do not set
-    :param limit: maximum depth,
-    :param metadata: pass the object metadata down one level
-    :param parent:
-    :return:
-    """
-
-    def _map(rec):
-        values = rec.split()
-        key = values.pop().strip()
-        return {key: values}
-
-    if depth == 0 and parent is None:
-        parent = create(
-            db=graph,
-            obj=Locations(
-                **{"name": "FTP Server", "description": "Autogenerated FTP Server"}
-            ),
-        )
-
-    if limit is None or depth <= limit:
-        try:
-            _ = ftp.cwd(node)  # target is a file
-        except:
-            create(
-                db=graph,
-                obj=Proxy(
-                    **{"name": node, "description": "Autogenerated", "url": node}
-                ),
-                links=[parent],
-            )
-
-        else:
-            collection = create(
-                db=graph,
-                obj=Proxy(
-                    **{"name": node, "description": "Autogenerated", "url": node}
-                ),
-                links=[parent],
-            )
-
-            files = []
-            ftp.retrlines("LIST", files.append)
-            _fs = dict()
-            for k, v in reduce(lambda x, y: {**x, **y}, map(_map, files), {}).items():
-                indexFtp(
-                    ftp=ftp,
-                    graph=graph,
-                    node=k,
-                    depth=depth + 1,
-                    limit=limit,
-                    metadata=v,
-                    parent=collection,
-                )
-
-            if node != ".":
-                _ = ftp.cwd("..")
-
-
-def syncFtp(ftp, remote, local, filesystem=None):
-    # type: (FTP, str, str, dict) -> int
-    path = searchTree(filesystem=filesystem, pattern=remote)
-    with open(local, "wb+") as fid:
-        return int(ftp.retrbinary(f"RETR {path}", fid.write))
-
-
-def unlock(storage, bucket_name, object_name):
-    # type: (Minio, str, str) -> bool
-    """
-    Unlock the dataset or repository IFF it contains the session ID
-    """
-    try:
-        _ = storage.stat_object(bucket_name, object_name)
-    except NoSuchKey:
-        return False
-    storage.remove_object(bucket_name, object_name)
-    return True
 
 
 @retry(tries=2, delay=1, backoff=1)
