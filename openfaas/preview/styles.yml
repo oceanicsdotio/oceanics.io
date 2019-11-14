@@ -1,0 +1,27 @@
+base:
+    padding: [0.1, 0.2, 0.05, 0.1]
+    marker: 1
+    font: 10
+    text: 10
+    width: 6.5
+    height: 4.0
+    line: 1.0
+    alpha: 1.0
+    dpi: 150
+    legend: false
+    grid: false
+    imageInterp: bilinear
+
+dark:
+    bg: black
+    contrast: white
+    flag: red
+    label: white
+    colors: [purple, blue, red, grey, green, yellow, orange, brown]
+
+light:
+    bg: white
+    contrast: black
+    flag: red
+    label: black
+    colors: [purple, blue, red, grey, green, yellow, orange, brown]

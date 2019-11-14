@@ -8,7 +8,7 @@ import hmac
 import hashlib
 
 
-def handle(req):
+def handle(event, context):
     # We receive the hashed message in form of a header
 
     if getenv("Http_Method") != "POST":
@@ -17,19 +17,18 @@ def handle(req):
 
     with open("/var/openfaas/secrets/payload-secret", "r") as secretContent:
         _hash = getenv("Http_Hmac")
-        expectedMAC = hmac.new(secretContent.read().encode(), req.encode(), hashlib.sha1)
+        expectedMAC = hmac.new(secretContent.read().encode(), event.encode(), hashlib.sha1)
         if (_hash[5:] if "sha1=" in _hash else _hash) != expectedMAC.hexdigest():
-            print(dumps({"Error": "HMAC validation"}))
-            exit(403)
+            return {"Error": "HMAC validation"}, 403
 
-    body = loads(req)
+    body = event.body
     interval = body.get("interval", (None, None))
     limit = body.get("limit", None)
     encoding = body.get("encoding", "txt")
     node = body.get("id", None)
     fields = body.get("observedProperties", None)
     if not any((limit, *interval)) or not any((fields, node)) or encoding not in ("txt", "json"):
-        return {"Message": "Bad Request"}
+        return {"Error": "Bad Request"}, 400
 
     host = getenv("hostname")
     times = f"&newest={limit}" if limit else "&min_date={}&max_date={}".format(*interval)
@@ -51,7 +50,7 @@ def handle(req):
     }
     lines = deque(map(lambda x: tuple(x.split("\t")), lines))
     keys = lines.popleft()
-    return dumps({
+    return {
         **data,
         "values": [dict(zip(k, v)) for k, v in zip(repeat(keys), lines)]
-    })
+    }, 200
