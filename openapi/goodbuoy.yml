@@ -1,0 +1,584 @@
+openapi: "3.0.0"
+
+info:
+  title: "Goodbuoy API"
+  version: "0.1"
+  description: |
+
+    The Good Buoy API (`goodbuoy`) is a distributed microservices application. The system is designed to support a
+    buoy network in the Gulf of Maine, but can be configured and extended for other applications.
+    It uses best-in-class technology, and has a permissive open source license, but should be considered experimental.
+
+    The library can be installed and used separately from the API, or as a client.
+
+    Goodbuoy accesses and stores data in the `bathysphere-graph` database, and refers there to validate requests
+    against registered users and organizations. For instructions on registering for an account, please refer to
+    that OpenAPI [spec](https://graph.oceanics.io), or the
+    project [repository](https://www.bitbucket.org/aquaculture/bathysphere-graph)
+
+  contact:
+    name: Oceanicsdotio
+    url: http://www.oceanics.io
+    email: goodbuoy@oceanics.io
+
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+  x-logo:
+    url: buoy.jpg
+
+
+tags:
+  - name: Things
+    description: |
+      `Things` are physical assets, through which multiple `Datastreams` are linked. Often this will be a
+      data logger, or instrument platform (like a buoy).
+
+  - name: Datastreams
+    description: |
+      `Datastreams` are collections of `Observations` which measure the same `ObservedProperty`.
+
+  - name: Sensors
+    description: |
+      `Sensors` are associated with `Things` through `Datastreams`.
+
+paths:
+
+  /Things:
+
+    post:
+      tags: [Things]
+      summary: Register thing
+      operationId: goodbuoy.handler.register
+      description: |
+        You can set up `Things` in our system by posting configuration information. This can take the form of a
+        key-value description, reference to external file, or credentials for establishing machine-to-machine
+        communication.
+
+      requestBody:
+        description: Thing
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Thing"
+
+
+      responses:
+        '200':
+          description: Thing
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Thing"
+
+  /Things({thingId}):
+
+    get:
+      tags: [Things]
+      summary: Get thing
+      operationId: goodbuoy.handlers.get_thing
+      description: |
+        `Things` are physical assets, through which multiple `Datastreams` are linked. Often this will be a
+        data logger, or instrument platform (like a buoy).
+
+      parameters:
+
+        - name: thingId
+          in: path
+          description: Unique identifier of the thing
+          schema:
+            type: integer
+            format: int32
+
+        - name: schedule
+          in: query
+          required: false
+          description: |
+            Get the collection schedule or automation queue for the thing
+          schema:
+            default: false
+            type: boolean
+
+        - name: events
+          in: query
+          required: false
+          description: |
+            Get the notification and event settings for the thing
+          schema:
+            default: false
+            type: boolean
+
+        - name: archive
+          in: query
+          required: false
+          description: |
+            Get metadata for all ingested raw files from this thing on the given date
+
+          schema:
+            type: string
+            format: date
+
+        - name: logs
+          in: query
+          schema:
+            type: boolean
+            default: false
+
+        - name: recent
+          in: query
+          description: |
+            Get metadata for recently ingested raw files from this thing
+          schema:
+            type: boolean
+            default: false
+
+        - name: pending
+          in: query
+          description: |
+            Get metadata for raw data that has been received by the server, but not processed
+          schema:
+            type: boolean
+            default: false
+
+      responses:
+        '200':
+          description: Thing
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Thing"
+
+    put:
+      tags: [Things]
+      summary: Configure
+      operationId: goodbuoy.handlers.update_thing
+      descriptiong: |
+
+        Update the automation schedule or event handlers for the thing. Within the `goodbuoy` context,
+        this is an internet-connected datalogger which can dial out to download configuration files,
+        but cannot be accessed directly. Other sensing and control systems may have internal servers that
+        allow bi-directional TCP or HTTP communication. There are security and operational trade-offs to
+        these approaches.
+
+      parameters:
+
+        - name: identity
+          in: path
+          schema:
+            type: integer
+
+      requestBody:
+        description: Schedule
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: "#/components/schemas/Events"
+                - $ref: "#/components/schemas/Schedule"
+                - $ref: "#/components/schemas/Thing"
+
+      responses:
+        '204':
+          description: No Content
+
+
+  /Things({thingId})/Datastreams:
+
+    get:
+      tags: [Datastreams]
+      summary: Datastreams
+      description: |
+
+        Get `Datastreams` of `Things`. A instrument deployment will measure many processes, both during environmental
+        sampling, and health checks on power and communication systems.
+
+        Time domain filtering is done using `start` with `end`.
+
+      operationId: goodbuoy.handlers.get_datastreams
+
+      parameters:
+
+        - name: start
+          in: query
+          description: Start time for range selection.
+          schema:
+            type: string
+            format: date-time
+
+        - name: end
+          in: query
+          description: End time for range selection.
+          schema:
+            type: string
+            format: date-time
+
+        - name: observations
+          in: query
+          description: |
+            The `observations` option by itself will return the last rows collected, or in combination with
+            `start` and `end` will act as span for selecting `Observations`.
+
+          schema:
+            type: integer
+            format: int32
+
+        - name: fields
+          in: query
+          description: |
+            The names of the fields to return. If these are unknown, the service will attempt to auto-correct them.
+
+          schema:
+            type: array
+            items:
+              type: string
+
+        - name: observedProperties
+          in: query
+          description: |
+            References to `ObservedProperties` can be supplied in place of or in addition to `fields`.
+          schema:
+            type: array
+            items:
+              type: integer
+
+        - name: statistics
+          in: query
+          description: |
+             Additional quantitative and qualitative information is appended to the response if `statistics=true`.
+          schema:
+            type: boolean
+            default: false
+
+        - name: orientation
+          in: query
+          description: |
+            Depending on the application, you may want
+            to receive JSON data as rows or columns. A `row` is useful for streaming data into a simulation model,
+            training multiple regression or neural network models, or updating process controllers.
+
+            The `column` options for `orientation` is the default, and returns `Datastreams` as arrays of
+            `Observations` belonging to a single `ObservedProperty`.
+          schema:
+            type: string
+            enum: [row, column]
+            default: column
+
+      responses:
+        '200':
+          description: Datastreams
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "https://graph.oceanics.io/api.yml#/components/schemas/Datastream"
+
+  /Datastreams({datastreamId})/Sensors:
+
+    post:
+      tags: [Sensors]
+      summary: Register
+      operationId: goodbuoy.handlers.create_sensor
+      description: |
+        Register a sensor with the system, and relate it to a datastream.
+
+      requestBody:
+        description: Sensor schema
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Sensor"
+
+      responses:
+        '200':
+          description: Config
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Sensor"
+
+    get:
+      tags: [Sensors]
+      summary: Metadata
+      operationId: goodbuoy.handlers.get_sensor
+      description: |
+        Get information about the sensor associated with this datastream.
+
+      parameters:
+
+        - name: config
+          in: query
+          schema:
+            type: boolean
+            default: false
+            description: Return links to config files
+
+      responses:
+        '200':
+          description: Connected sensors
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Sensor"
+
+    put:
+      tags: [Sensors]
+      summary: Update
+      operationId: goodbuoy.handlers.update_sensor
+      description: |
+        `Sensors` can have events added to them, or can can have configurarion data like calibration
+        coefficients associated with them.
+
+      parameters:
+
+        - name: datastreamId
+          in: path
+          description: Unique identifier for datastream
+          schema:
+            type: integer
+            ofrmat: int32
+
+        - name: identity
+          in: path
+          description: Unique identifier for sensor
+          schema:
+            type: integer
+            format: int32
+
+      requestBody:
+        description: |
+          The sensor update body can be updated values for the sensor attributes, sensor configuration info, or
+          event handlers for triggering actions.
+
+        content:
+          application/json:
+            schema:
+              oneOf:
+               - $ref: "#/components/schemas/Events"
+               - $ref: "#/components/schemas/SensorConfig"
+               - $ref: "#/components/schemas/Sensor"
+
+      responses:
+        '200':
+          description: Config
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Sensor"
+
+    delete:
+      tags: [Sensors]
+      summary: Remove
+      operationId: goodbuoy.handlers.remove_sensor
+      description: |
+        Remove the sensor from the datastream and thing
+
+      parameters:
+
+        - name: datastreamId
+          in: path
+          description: Unique identifier for datastream
+          schema:
+            type: integer
+            ofrmat: int32
+
+        - name: identity
+          in: path
+          description: Unique identifier for sensor
+          schema:
+            type: integer
+            format: int32
+
+      responses:
+        '204':
+          description: Success
+
+components:
+
+  schemas:
+
+    Thing:
+      allOf:
+      - $ref: "https://graph.oceanics.io/api.yml#/components/schemas/Thing"
+      - type: object
+        properties:
+          externalId:
+            description: External identifier
+            type: integer
+            format: int32
+            minimum: 1
+
+    Schedule:
+      type: object
+      properties:
+        scheduleCreationProgram:
+          type: string
+        scheduleCreationOperator:
+          type: string
+        scheduleCreationTime:
+          type: string
+          format: date-time
+
+        storxSettings:
+          type: object
+          properties:
+            type:
+              type: string
+              default: "STOR-X"
+
+            operatingCurrent:
+              type: string
+              default: 50(mA)
+
+            peakOperatingCurrent:
+              type: string
+              default: 50(mA)
+
+            cleanUpTime:
+              type: string
+              default: 0(min)
+
+        emailSettings:
+          type: object
+
+    SensorConfig:
+      type: object
+
+    Events:
+      type: array
+      items:
+        type: object
+        properties:
+
+          comparison:
+            type: string
+            default: 'eq'
+          action:
+            type: string
+          contact:
+            type: string
+
+    Sensor:
+      allOf:
+        - $ref: "https://graph.oceanics.io/api.yml#/components/schemas/Sensor"
+        - type: object
+          properties:
+            name:
+              type: string
+            sn:
+              type: string
+
+
+    FTPSettings:
+      server:
+        description: FTP_SERVER
+        type: string
+      port:
+        description: FTP_PORT
+        type: integer
+      user:
+        description: FTP_USER
+        type: string
+      password:
+        description: FTP_PASSWORD
+        type: string
+        format: password
+
+    Auth:
+      type: object
+      properties:
+        user:
+          description: AUTHUSER
+          type: string
+        password:
+          description: AUTHPW
+          type: string
+          format: password
+
+    ScheduleConfig:
+      type: object
+      properties:
+        port:
+          description: SCHED_PORT
+          type: integer
+          default: 80
+        path:
+          description: PATHNAME
+          type: string
+          default: "/schedule"
+
+    EmailConfig:
+      type: object
+      properties:
+        domainNameServers:
+          description: DOM_NAM_SERV1, DOM_NAM_SERV2
+          type: array
+          maxItems: 2
+          items:
+            type: string
+
+        helo:
+          description: HELO
+          type: string
+          default: "storx.storxmodem.com"
+
+        server:
+          description: SERVER
+          type: string
+          default: "23.92.25.145"
+
+        webaddress:
+          description: WEBADDRESS
+          type: string
+          default: "23.92.25.145"
+
+        ip:
+          description: IPVAL
+          type: string
+          default: "0.0.0.0"
+
+        port:
+          description: PORT
+          type: integer
+          default: 25
+
+        from:
+          description: STORXEMAIL
+          type: string
+          default: "storx.xxx@storxmodem.com"
+
+        to:
+          description: EMAIL
+          type: string
+          default: "lobodata@server.loboviz.com"
+
+        user:
+          description: USERID
+          type: string
+          default: ""
+
+        password:
+          description: PASSWD
+          type: string
+          format: password
+          default: ""
+
+        headercom:
+          description: HEADERCOM
+          type: integer
+          default: 0
+
+        datacom:
+          description: DATACOM
+          type: integer
+          default: 0
+
+        apn:
+          description: APN
+          type: string
+          default: BROADBAND

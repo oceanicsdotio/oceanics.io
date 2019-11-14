@@ -1,171 +1,6 @@
-from flask import request
-from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
-from passlib.apps import custom_app_context
-from functools import reduce
-from retry import retry
-from requests import post
-from redis import Redis, ConnectionError
-from neo4j.v1 import GraphDatabase
-
-from bathysphere_graph.drivers import *
+from types import MethodType
+from bathysphere_graph.extensions import *
 from bathysphere_graph import app, appConfig
-
-
-@retry(tries=2, delay=1, backoff=1)
-def connect(hosts, port, defaultAuth, declaredAuth):
-    # type: ((str, ), int, (str, str), (str, str)) -> Driver or None
-    """
-    Connect to a database manager. Try docker networking, or fallback to local host.
-    """
-    db = None
-    attempt = None
-
-    while hosts:
-        attempt = hosts.pop()
-        uri = f"{attempt}:{port}"
-        for auth in (
-            declaredAuth,
-            defaultAuth,
-        ):  # likely that the db has been accessed and setup previously
-            try:
-                db = GraphDatabase.driver(uri=f"bolt://{uri}", auth=auth)
-            except Exception as ex:
-                print(f"{ex} on {uri}")
-                continue
-            if auth != declaredAuth:
-                response = post(
-                    f"http://{attempt}:7474/user/neo4j/password",
-                    auth=auth,
-                    json={"password": app.app.config["ADMIN_PASS"]},
-                )
-                assert response.ok
-            break
-
-    if not db:
-        return None
-    if records(db=db, cls=Root.__name__, identity=0, result="id"):
-        return db
-    root = Root(url=f"{attempt}:{port}", secretKey=app.app.config["SECRET"])
-    createIngresses = []
-    root_item = create(db, cls=Root.__name__, identity=root.id, props=properties(root))
-    for ing in appConfig[Ingresses.__name__]:
-        if ing.pop("owner", False):
-            ing["apiKey"] = app.app.config["API_KEY"]
-        createIngresses.append({"label": "Linked", **create(db, obj=Ingresses(**ing))})
-    link(db, root=root_item, children=createIngresses)
-    return db
-
-
-def cache(fcn):
-    """
-    Cache/load data on inbound-outbound.
-    """
-
-    def wrapper(*args, **kwargs):
-
-        db = Redis(
-            host=app.app.config["REDIS_HOST"],
-            port=25061,
-            db=0,
-            password=app.app.config["REDIS_KEY"],
-            socket_timeout=3,
-            ssl=True,
-        )  # inject db session
-        try:
-            db.time()
-        except ConnectionError:
-            return fcn(*args, **kwargs)
-
-        if kwargs.pop("cache", True):
-            binary = db.get(request.url)
-            if binary:
-                db.incr("hits")
-                return loads(binary)
-
-        data, status = fcn(*args, **kwargs)
-        if status == 200:
-            db.set(request.url, dumps(data), ex=3600)
-            db.incr("count")
-
-        return data, status
-
-    return wrapper
-
-
-def context(fcn):
-    """
-    Inject graph database session into request.
-    """
-    def wrapper(*args, **kwargs):
-        hosts = [
-            app.app.config["DOCKER_COMPOSE_NAME"],
-            app.app.config["DOCKER_CONTAINER_NAME"],
-            app.app.config["EMBEDDED_NAME"],
-        ]
-        default_auth = tuple(app.app.config["NEO4J_AUTH"].split("/"))
-        db = connect(
-            hosts=hosts,
-            port=app.app.config["NEO4J_PORT"],
-            defaultAuth=default_auth,
-            declaredAuth=(default_auth[0], app.app.config["ADMIN_PASS"]),
-        )
-        if db is None:
-            return {"message": "no graph backend"}, 500
-        if isinstance(db, (dict, list)):
-            return db, 500
-        try:
-            return fcn(*args, db=db, **kwargs)
-        except Exception as e:
-            return {"message": f"{e} error during call"}, 500
-
-    return wrapper
-
-
-def authenticate(fcn):
-    """
-    Decorator to authenticate and inject user into request.
-    Validate/verify JWT token.
-    """
-
-    def wrapper(*args, **kwargs):
-        try:
-            value, credential = request.headers.get("Authorization").split(":")
-        except AttributeError:
-            if request.method != "GET":
-                return {"message": "missing authorization header"}, 403
-            return fcn(*args, user=None, **kwargs)
-
-        db = kwargs.get("db")
-
-        try:
-            secret = kwargs.get("secret", None)
-            if not secret:
-                root = load(db=db, cls=Root.__name__, identity=0).pop()
-                secret = root._secretKey
-            # first try to authenticate by token
-            decoded = Serializer(secret).loads(credential)
-        except:
-            accounts = load(db=db, cls=User.__name__, identity=value)
-            _token = False
-        else:
-            accounts = load(db=db, cls=User.__name__, identity=decoded["id"])
-            _token = True
-
-        if accounts is None:
-            print(credential)
-            return {"message": "unable to authenticate"}, 403
-        if len(accounts) != 1:
-            return {"message": "non-unique identity"}, 403
-
-        user = accounts.pop()
-        if not user.validated:
-            return {"message": "complete registration"}, 403
-        if not _token and not custom_app_context.verify(credential, user._credential):
-            return {"message": "invalid credentials"}, 403
-
-        return fcn(*args, user=user, **kwargs)
-
-    return wrapper
 
 
 @context
@@ -176,7 +11,8 @@ def register(body, db, **kwargs):
     """
     api_key = body.get("apiKey", "")
     collection = load(db=db, cls=Ingresses.__name__)
-    ingress = [item for item in collection if item._apiKey == api_key]
+    ingress = list(filter(lambda x: x._apiKey == api_key, collection))
+
     if len(ingress) != 1:
         return {"message": "bad API key"}, 403
     portOfEntry = ingress.pop()
@@ -245,6 +81,7 @@ def authToken(db, user, secret=None, **kwargs):
 
 
 @context
+@session
 @authenticate
 def getCatalog(db, user, extension=None, **kwargs):
     # type: (Driver, User, str, dict) -> (dict, int)
@@ -279,56 +116,80 @@ def createEntity(db, user, entity, body, **kwargs):
     """
     Attach to db, and find available ID number to register the entity
     """
-    try:
-        _ = body.pop("entityClass")  # only used for API discriminator
-        declaredLinks = []
-        for key, val in body.pop("links", {}).items():
-            declaredLinks.extend(
-                {
-                    "cls": key,
-                    "props": {"confidence": 1.0, "weight": 1.0, "cost": 0.0},
-                    **each,
-                }
-                for each in val
-            )
-        obj = eval(entity)(**body)
-    except Exception as ex:
-        return {"error": f"{ex}"}, 500
+    _ = body.pop("entityClass")  # only used for API discriminator
+    _links = body.pop("links", {})
+    obj = eval(entity)(**body)
+    bind = (testBindingCapability,) if entity == Catalogs.__name__ else ()
+    indices = ("id", "name") if type(obj) in NamedIndex else ("id",)
+    for fcn in bind:
+        try:
+            setattr(obj, fcn.__name__, MethodType(fcn, obj))
+        except Exception as ex:
+            # log(f"{ex}")
+            pass
 
-    declaredLinks.append(
-        {
-            "cls": repr(user),
-            "id": user.id,
-            "label": "Post",
-            "props": {"confidence": 1.0, "weight": 1.0, "cost": 0.0},
-        }
-    )
-    if not isinstance(obj, Ingresses):
-        declaredLinks.extend(
-            [
-                {
-                    "cls": Ingresses.__name__,
-                    "id": r[0],
-                    "label": "Provider",
-                    "props": {"confidence": 1.0, "weight": 1.0, "cost": 0.0},
-                }
-                for r in relationships(
-                    db=db,
-                    parent={"cls": "User", "id": user.id},
-                    child={"cls": "Ingresses"},
-                    result="b.id",
-                    label="Member",
+    _ = create(
+        db=db,
+        obj=obj,
+        indices=indices,
+        links=chain(
+            (
+                (
+                    {
+                        "cls": Ingresses.__name__,
+                        "id": r[0],
+                        "label": "Provider",
+                        "props": {"confidence": 1.0, "weight": 1.0, "cost": 0.0},
+                    }
+                    for r in relationships(
+                        db=db,
+                        parent={"cls": "User", "id": user.id},
+                        child={"cls": "Ingresses"},
+                        result="b.id",
+                        label="Member",
+                    )
                 )
-            ]
-        )
-    _ = create(db=db, obj=obj, links=declaredLinks)
-    return (
-        {
-            "message": f"Create {entity}",
-            "value": serialize(db, obj, service=app.app.config["HOST"]),
-        },
-        200,
+                if not isinstance(obj, Ingresses)
+                else ()
+            ),
+            (
+                {
+                    "cls": repr(user),
+                    "id": user.id,
+                    "label": "Post",
+                    "props": {"confidence": 1.0, "weight": 1.0, "cost": 0.0},
+                },
+            ),
+            *(
+                (
+                    {
+                        "cls": key,
+                        "props": {"confidence": 1.0, "weight": 1.0, "cost": 0.0},
+                        **each,
+                    }
+                    for each in val
+                )
+                for key, val in _links.items()
+            ),
+        ),
     )
+
+    data = serialize(db, obj, service=app.app.config["HOST"])
+    if entity in (Collections.__name__, Catalogs.__name__):
+        name = obj.name.lower().replace(" ", "-")
+        declareObject(
+            data=data,
+            bucket_name="bathysphere-test",
+            object_name=f"{name}/index.json",
+            metadata={
+                "x-amz-meta-service-file-type": "index",
+                "x-amz-acl": "public-read",
+                "x-amz-meta-extent": "null",
+                **appConfig["headers"],
+            },
+            storage=Minio(**appConfig["storage"]),
+        )
+    return {"message": f"Create {entity}", "value": data}, 200
 
 
 @context
@@ -341,7 +202,6 @@ def mutateEntity(body, db, entity, id, user, **kwargs):
     _ = body.pop("entityClass")  # only used for API discriminator
     _ = mutate(db=db, data=body, cls=entity, identity=id, props={})
     createLinks = [{"cls": repr(user), "id": user.id, "label": "Put"}]
-    print("b")
     if entity != Ingresses.__name__:
         createLinks.extend(
             [
@@ -355,7 +215,6 @@ def mutateEntity(body, db, entity, id, user, **kwargs):
                 )
             ]
         )
-    print("c")
     link(db=db, root={"cls": entity, "id": id}, children=createLinks)
     return None, 204
 

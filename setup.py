@@ -24,6 +24,8 @@ setup(
         "retry",
         "redis",
         "pg8000",
-        "bidict"
+        "bidict",
+        "prance",
+        "rq"
     ],
     zip_safe=False)

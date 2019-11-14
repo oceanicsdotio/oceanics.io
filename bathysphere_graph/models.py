@@ -3,17 +3,23 @@ from enum import Enum
 from typing import Generator
 from time import time
 from requests import get
-from json import loads
-from datetime import datetime, timedelta
-from collections import deque
-from requests.exceptions import ConnectionError
+from datetime import datetime
 from pickle import load as unpickle
+from redis import StrictRedis
+from minio import Minio
+from minio.error import NoSuchKey
 
-from functions.satlantic import query, report
-from bathysphere_graph.utils import synchronous
-from bathysphere_graph import app
 
+PG_DP_NULL = "DOUBLE PRECISION NULL"
+PG_TS_TYPE = "TIMESTAMP NOT NULL"
+PG_GEO_TYPE = "GEOGRAPHY NOT NULL"
+PG_ID_TYPE = "INT PRIMARY KEY"
+PG_STR_TYPE = "VARCHAR(100) NULL"
 API_STAC_VERSION = "0.0"
+
+ExtentType = (float, float, float, float)
+ResponseJSON = (dict, int)
+ResponseOctet = (dict, int)
 
 
 class RelationshipLabels(Enum):
@@ -77,6 +83,17 @@ def multi_point(points):
     return {"type": "MultiPoint", "coordinates": points}
 
 
+def testBindingCapability(self, message):
+    """
+    Just a test
+
+    :param self:
+    :param message:
+    :return:
+    """
+    return f"{message} from {repr(self)}"
+
+
 class Link:
     def __init__(self, identity, labels, props, symbol="r"):
         # type: (Link, int, (str, ), dict) -> Link
@@ -87,12 +104,8 @@ class Link:
 
 
 class Entity:
-
-    _verb = False
-    _source = None
-
-    def __init__(self, identity=None, annotated=False, location=None, verb=False):
-        # type: (int, bool, list or tuple, bool) -> None
+    def __init__(self, identity=None, annotated=False, location=None):
+        # type: (int or None, bool, list or tuple or None) -> None
         """
         Primitive object/entity, may have name and location
 
@@ -101,32 +114,17 @@ class Entity:
         :param location: Coordinates, geographic or cartesian
         """
         self.id = identity
-        self._verb = verb
-        self._source = "entity.__init__"
-
         if annotated:
             self.name = None
             self.description = None
         if location:
             self.location = location
-        self._notify("created")
-
-    def __del__(self):
-        self._notify("removed")
 
     def __repr__(self):
         return type(self).__name__
 
     def __str__(self):
         return type(self).__name__
-
-    def _notify(self, message):
-        # type: (str) -> None
-        """
-        Print notification to commandline if in verbose mode
-        """
-        if self._verb:
-            print(self.name, self.__class__, message)
 
 
 class Root(Entity):
@@ -183,29 +181,6 @@ class User(Entity):
         self.validated = True
         self._ipAddress = ip
         self.description = description
-
-    # def sendCredential(self, text, auth):
-    #     # type: (str, dict) -> (None, int)
-    #     """
-    #     Email the login credential to the user after registration
-    #
-    #     :param text:
-    #     :param auth:
-    #     :return:
-    #     """
-    #     server = SMTP_SSL(auth["server"], port=auth["port"])
-    #     server.login(auth["account"], auth["key"])
-    #
-    #     msg_root = MIMEMultipart()
-    #     msg_root["Subject"] = "Oceanicsdotio Account"
-    #     msg_root["From"] = auth["reply to"]
-    #     msg_root["To"] = self.name
-    #
-    #     msg_alternative = MIMEMultipart("alternative")
-    #     msg_root.attach(msg_alternative)
-    #     msg_alternative.attach(MIMEText(text))
-    #     server.sendmail(auth["account"], self.name, msg_root.as_string())
-    #     return None, 204
 
 
 class Ingresses(Entity):
@@ -269,12 +244,51 @@ class Catalogs(Entity):
     https://github.com/radiantearth/stac-spec/tree/master/catalog-spec
     """
 
-    _stac_enabled = True
-
     def __init__(self, identity=None, title="", description=""):
         Entity.__init__(self, identity=identity, annotated=True)
         self.title = self.name = title
         self.description = description
+
+    @staticmethod
+    def onDelete(storage, bucket_name, prefix, **kwargs):
+        # type: (Minio, str, str, **dict) -> ResponseJSON
+        """
+        Delete all objects within a subdirectory or abstract collection
+
+        :param storage: header matching
+        :param bucket_name: file prefix/dataset
+        :param prefix: most to process at once
+
+        :return: deleted files
+        """
+        remove = ()
+        objects_iter = storage.list_objects(bucket_name, prefix=prefix)
+        while True:
+            try:
+                object_name = next(objects_iter).object_name
+                stat = storage.stat_object(bucket_name, object_name)
+            except StopIteration:
+                break
+            except NoSuchKey:
+                return None
+            if all(
+                stat.metadata.get(key) == val
+                for key, val in {"x-amz-meta-service": "bathysphere"}.items()
+            ):
+                remove += (object_name,)
+
+        storage.remove_objects(bucket_name=bucket_name, objects_iter=remove)
+        return None, 204
+
+    @staticmethod
+    def listener(storage, bucket_name, filetype="", channel="bathysphere-events"):
+        fcns = ("s3:ObjectCreated:*", "s3:ObjectRemoved:*", "s3:ObjectAccessed:*")
+        r = StrictRedis()
+        ps = r.pubsub()
+        for event in storage.listen_bucket_notification(
+            bucket_name, "", filetype, fcns
+        ):
+            ps.publish(channel, str(event))
 
 
 class Items(Entity):
@@ -292,9 +306,6 @@ class Items(Entity):
         self.properties = {"datetime": datetime.utcnow().isoformat(), "title": title}
 
         self.type = "Feature"
-
-    def calculateBoundingBox(self, projection: str) -> (int, dict):
-        pass
 
 
 class Datastreams(Entity):
@@ -337,14 +348,14 @@ class Datastreams(Entity):
 
 
 class FeaturesOfInterest(Entity):
-    def __init__(self, identity=None, name="", description="", verb=False):
+    def __init__(self, identity=None, name="", description=""):
         """
         Features of interest are usually Locations
 
         :param identity: integer id
         :param name: name string
         """
-        Entity.__init__(self, identity, annotated=True, verb=verb)
+        Entity.__init__(self, identity, annotated=True)
         self.name = name
         self.description = description
 
@@ -356,17 +367,15 @@ class FeaturesOfInterest(Entity):
 
 
 class Locations(Entity):
-    def __init__(
-        self, identity=None, name="", location=None, description="", verb=False
-    ):
+    def __init__(self, identity=None, name="", location=None, description=""):
         """
         Last known location of a thing. May be a feature of interest, unless remote sensing.
 
         :param identity: integer id
         :param name: name string
-        :param location: coordinates or GeoJSON
+        :param location: GeoJSON
         """
-        Entity.__init__(self, identity, annotated=True, location=location, verb=verb)
+        Entity.__init__(self, identity, annotated=True, location=location)
         self.name = name
         self.description = description
         self.encodingType = "application/vnd.geo+json"
@@ -382,68 +391,25 @@ class Locations(Entity):
     def project():
         pass
 
-    def reportWeather(self, ts, end, dt, api_key, url, max_calls=1000, fields=None):
-        # type: (Locations, datetime, datetime, timedelta, str, str, int, (str, )) -> dict
+    def reportWeather(self, ts, api_key, url, exclude=None):
+        # type: (Locations, datetime, str, str, (str, )) -> (dict, int)
         """
         Get meteorological conditions in past/present/future.
 
         :param ts: time stamp, as date time object
-        :param end: time stamp, as date time object
-        :param dt:
         :param api_key: API key to charge against account quotas
         :param url: base route for requests
-        :param fields: return only these fields
-        :param max_calls:
+        :param exclude:
+        ("minutely", "hourly", "daily", "flags", "alerts")
 
         :return: calls, timestamp, JSON of conditions
         """
-
-        def _annotate(obj):
-            obj["message"] = " ".join(
-                [
-                    "Retrieved",
-                    str(obj.get("count")),
-                    "observations.",
-                    "Used",
-                    str(obj.get("calls")),
-                    "API calls, with",
-                    str(obj.get("credit")),
-                    "remaining.",
-                ]
-            )
-            return obj
-
-        series = dict()
-        calls = 0
-        print(self.location)
-
-        while ts < end and calls < max_calls:
-            options = ",".join(
-                ["minutely", "hourly", "daily", "flags", "alerts"]
-            )  # blocks to ignore
-            point = "{},{},{}".format(*self.location["coordinates"][:2], ts.isoformat())
-            query = f"{url}/{api_key}/{point}?exclude={options}&units=si"
-            print(query)
-            response = get(query)
-
-            assert response.ok, response.json()
-            data = loads(response.content)
-            currently = data["currently"]
-
-            calls = int(response.headers["X-Forecast-API-Calls"])
-            time = currently.pop("time")
-            series[time] = (
-                currently if fields is None else {key: currently[key] for key in fields}
-            )
-            ts += dt
-
-        return _annotate(
-            {
-                "count": len(series),
-                "calls": calls,
-                "credit": max_calls - calls,
-                "value": series,
-            }
+        if self.location["type"] != "Point":
+            return {"message": "Only GeoJSON Point types are supported"}, 400
+        inference = "{},{},{}".format(*self.location["coordinates"][:2], ts.isoformat())
+        return get(
+            f"{url}/{api_key}/{inference}?units=si"
+            + (f"&exclude={','.join(exclude)}" if exclude else "")
         )
 
 
@@ -457,19 +423,17 @@ class HistoricalLocations(Entity):
 
 
 class Things(Entity):
-    def __init__(self, identity=None, name="", description="", verb=False):
+    def __init__(self, identity=None, name="", description=""):
         """
         A thing is an object of the physical or information world that is capable of of being identified
         and integrated into communication networks.
 
         :param identity: integer id
         :param name: name string
-        :param verb: verbose logging and notification modes
         """
-        Entity.__init__(self, identity, annotated=True, verb=verb)
+        Entity.__init__(self, identity, annotated=True)
         self.name = name
         self.description = description
-
         self.properties = None  # (optional)
 
     @staticmethod
@@ -485,24 +449,6 @@ class Things(Entity):
         pass
 
     @staticmethod
-    def ingestBuoy(identity, fields, samples=None):
-        # type: (int, (str, ), int) -> (dict, int)
-        """
-        Get existing data from a remote server.
-        """
-        try:
-            host = app.app.config["DOMAIN"]
-        except:
-            host = app.app.config["DOMAIN"]
-
-        try:
-            data = synchronous(query(host=host, fields=fields, node=identity))
-        except ConnectionError:
-            return {"error": "Can't connect to remote server"}, 500
-
-        return {"value": report(data=data, samples=samples, keys=fields)}, 200
-
-    @staticmethod
     def catalog(year: int, month: int = None, day: int = None):
 
         try:
@@ -513,7 +459,9 @@ class Things(Entity):
 
         response = dict()
         for date in data:
-            if (not month or date["date"].month == month) and (not day or date["date"].day == day):
+            if (not month or date["date"].month == month) and (
+                not day or date["date"].day == day
+            ):
                 date["files"] = [file.serialize() for file in date["files"]]
                 response[date["name"]] = date
 
@@ -540,7 +488,7 @@ class Device(Entity):
         :param metadata: metadata
         :param verb: verbose mode
         """
-        Entity.__init__(self, identity, annotated=True, verb=verb)
+        Entity.__init__(self, identity, annotated=True)
         self.name = name
         self.description = description
         self.encodingType = encodingType
@@ -548,7 +496,6 @@ class Device(Entity):
 
     def disable(self):
         pass
-
 
 
 class Sensors(Device):
@@ -567,7 +514,6 @@ class Sensors(Device):
         :param name:
         """
         Device.__init__(self, **kwargs)
-        self._notify("created")
 
 
 class Observations(Entity):
@@ -617,7 +563,6 @@ class Actuators(Device):
         Abstract class encapsulating communications with a single relay
         """
         Device.__init__(self, **kwargs)
-        self._notify("created")
 
     @staticmethod
     def open(duration=None, ramp=True):
@@ -640,7 +585,6 @@ class TaskingCapabilities(Entity):
         self.name = name
         self.description = description
         self.taskingParameters = taskingParameters
-        self._notify("created")
 
 
 class Tasks(Entity):
@@ -655,3 +599,6 @@ class Tasks(Entity):
 
     def stop(self):
         pass
+
+
+NamedIndex = (Catalogs, Ingresses, Collections, User)

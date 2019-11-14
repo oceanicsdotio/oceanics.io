@@ -1,20 +1,83 @@
 from inspect import signature
-from itertools import repeat
-from typing import Callable, Any
-from json import dumps
-from neo4j.v1 import Driver, Node
-from bathysphere_graph import app
-from bathysphere_graph.models import *
+from itertools import repeat, chain
+from neo4j.v1 import Driver, Node, GraphDatabase
 from pg8000 import connect, Connection, Cursor
-from time import time
-from datetime import datetime
+from typing import Any, Callable
+from bidict import bidict
+from difflib import SequenceMatcher
+from functools import reduce
+from ftplib import FTP
+from retry import retry
+from requests import post
+from json import dumps
+
+from bathysphere_graph.models import *
+from bathysphere_graph import app
 
 
-PG_DP_NULL = "DOUBLE PRECISION NULL"
-PG_TS_TYPE = "TIMESTAMP NOT NULL"
-PG_GEO_TYPE = "GEOGRAPHY NOT NULL"
-PG_ID_TYPE = "INT PRIMARY KEY"
-PG_STR_TYPE = "VARCHAR(100) NULL"
+def autoCorrect(key, lookup, maximum=0.0, threshold=0.25):
+    # type: (str, bidict, float, float) -> str
+    """
+    Match fieldnames probabilistically
+    """
+    fields = lookup.keys()
+    seq = SequenceMatcher(isjunk=None, autojunk=False)
+
+    def _score(x):
+        seq.set_seqs(key.lower(), x.lower())
+        return seq.ratio()
+
+    def _reduce(a, b):
+        return b if (b[1] > a[1]) and (b[1] > threshold) else a
+
+    return reduce(_reduce, zip(fields, map(_score, fields)), (key, maximum))
+
+
+def log(message, file=None, console=True):
+    # type: (str, str, bool) -> None
+    """
+    Write to console and/or file.
+
+    :param message: content
+    :param file: destination
+    :param console: print to std out also
+    :return: None
+    """
+    string = f"{datetime.utcnow().isoformat()} — {message}"
+    if console:
+        print(string)
+
+    if file is not None:
+        fid = open(file, "a")
+        fid.write(string + "\n")
+        fid.close()
+
+
+def image(fcn):
+    """
+    Get the requested data as an image if image=True
+    """
+
+    def wrapper(*args, **kwargs):
+
+        convert = kwargs.pop("image", False)
+        data, status = fcn(*args, **kwargs)
+        if status != 200 or not convert:
+            return data, status
+
+        try:
+            response = get(url="localhost", json=data)
+            # img = BytesIO()
+            # make request to image service
+            # img.seek(0)
+            # send_file(img, mimetype='image/png')
+
+        except:
+            return {"message": "Could not reach rendering service"}, 500
+
+        return response
+
+    return wrapper
 
 
 def postgres(auth, host, port, database, autoCommit=True):
@@ -35,7 +98,9 @@ def declareTable(cursor, table, fields):
     """
     Create a table in connected database
     """
-    cursor.execute(f"CREATE TABLE {table}({', '.join(f'{k} {v}' for k, v in fields.items())});")
+    cursor.execute(
+        f"CREATE TABLE {table}({', '.join(f'{k} {v}' for k, v in fields.items())});"
+    )
 
 
 def describeTable(db, cursor, **kwargs):
@@ -54,14 +119,6 @@ def describeTable(db, cursor, **kwargs):
     }
 
 
-def deleteTable(cursor, table):
-    # type: (Cursor, str) -> None
-    """
-    Delete table and all contents
-    """
-    cursor.execute(f"DROP TABLE {table}")
-
-
 def select(cursor, table, order_by, limit=100, result=None):
     # type: (Cursor, str, str, int, (str,)) -> bool
     """
@@ -69,7 +126,9 @@ def select(cursor, table, order_by, limit=100, result=None):
     """
     order = "DESC"
     expand = "*" if result is None else ", ".join(result)
-    return cursor.execute(f"SELECT {expand} FROM {table} ORDER BY {order_by} {order} LIMIT {limit};")
+    return cursor.execute(
+        f"SELECT {expand} FROM {table} ORDER BY {order_by} {order} LIMIT {limit};"
+    )
 
 
 def latestObservation(cursor, result="*", **kwargs):
@@ -116,7 +175,9 @@ def ingestRows(cursor, table, fields, data):
         return "NULL"
 
     rows = (f"({', '.join(map(parse, row))})" for row in data)
-    cursor.execute(f"INSERT INTO {table} ({', '.join(fields)}) VALUES {', '.join(rows)};")
+    cursor.execute(
+        f"INSERT INTO {table} ({', '.join(fields)}) VALUES {', '.join(rows)};"
+    )
 
 
 def _transaction(session, method, kwargs=None):
@@ -189,7 +250,7 @@ def _process_key_value(keyValue, null=False):
                 values = f"x: {coord[1]}, y: {coord[0]}, z: {coord[2]}, crs:'wgs-84-3d'"
             return f"{key}: point({{{values}}})"
         if value.get("type") == "Polygon":
-            return f"{key}: postgis://bathysphere/locations"
+            return f"{key}: '{dumps(value)}'"
 
     if isinstance(value, (list, tuple, dict)):
         return f"{key}: '{dumps(value)}'"
@@ -237,8 +298,8 @@ def relationships(db, **kwargs):
     return _read(db, _tx, kwargs)
 
 
-def create(db, obj=None, links=None, **kwargs):
-    # type: (Driver, Entity, (dict, ), **dict) -> dict
+def create(db, obj, links=(), indices=("id",), **kwargs):
+    # type: (Driver, Entity, (dict, ), (str,), **dict) -> dict
     """
     RECURSIVE!
 
@@ -250,24 +311,12 @@ def create(db, obj=None, links=None, **kwargs):
     - None (python value)
     - "None" (string)
     """
-    if links is None:
-        links = []
-    if obj:
-        kwargs.update(
-            {"cls": repr(obj), "identity": getattr(obj, "id"), "props": obj.__dict__}
-        )
-    if kwargs.get("identity", None) is None:
-        cls = kwargs.get("cls")
-        identity = count(db, cls=cls)
-        if identity == 0:
-            index(db=db, cls=cls, by="id")
-
-        while records(db=db, cls=cls, identity=identity, result="id"):
-            identity += 1
-        kwargs["identity"] = identity
-
-        if obj:
-            obj.id = kwargs["identity"]
+    cls = repr(obj)
+    obj.id = count(db, **{"cls": cls})
+    if obj.id == 0:
+        _ = tuple(graphConstraint(db=db, **{"cls": cls, "by": x}) for x in indices)
+    while records(db=db, **{"cls": cls, "identity": obj.id, "result": "id"}):
+        obj.id += 1
 
     def _tx(tx, cls, identity, props):
         # type: (Any, str, int, dict) -> list
@@ -275,56 +324,70 @@ def create(db, obj=None, links=None, **kwargs):
             f"MERGE {_node(cls=cls, by=int, props=props)}", id=identity
         ).values()
 
-    _write(db, _tx, kwargs)
-
-    if obj is None:
-        return {"cls": kwargs["cls"], "id": kwargs["identity"]}
-
+    _props = properties(obj)
     private = "_"
     taskingLabel = "Has"
-    instanceKeys = set(
-        f"{repr(obj)}.{key}"
-        for key in set(dir(obj)) - set(obj.__dict__.keys())
-        if key[: len(private)] != private
+    boundMethods = set(
+        map(
+            lambda y: y[0],
+            filter(lambda x: isinstance(x[1], Callable), obj.__dict__.items()),
+        )
     )
+    classMethods = set(filter(lambda x: x[: len(private)] != private, dir(obj)))
+    instanceKeys = (boundMethods | classMethods) - set(_props.keys())
 
-    existing = {x.name: x.id for x in load(db=db, cls=TaskingCapabilities.__name__)}
-    allExistingKeys = set(existing.keys())
-    functions = {key: eval(key) for key in instanceKeys - allExistingKeys}
+    existingItems = {
+        x.name: x.id for x in load(db=db, cls=TaskingCapabilities.__name__)
+    }
+    existingKeys = set(existingItems.keys())
 
-    links.extend(
-        {
-            "cls": TaskingCapabilities.__name__,
-            "id": existing[key],
-            "label": taskingLabel,
-        }
-        for key in (allExistingKeys & instanceKeys)
-    )
-    links.extend(
-        {
-            "label": taskingLabel,
-            **create(
-                db=db,
-                obj=TaskingCapabilities(
-                    name=key,
-                    taskingParameters=[
-                        {
-                            "name": b.name,
-                            "description": "",
-                            "type": "",
-                            "allowedTokens": [""],
-                        }
-                        for b in signature(fcn).parameters.values()
-                    ],
-                    description=fcn.__doc__,
-                ),
-            ),
-        }
-        for key, fcn in functions.items()
-    )
+    functions = dict()
+    for key in instanceKeys - existingKeys:
+        try:
+            functions[key] = eval(f"{cls}.{key}")
+        except:
+            functions[key] = eval(f"obj.{key}")
 
+    _ = _props.pop("id")
+    _write(db, _tx, {"cls": cls, "identity": obj.id, "props": _props})
     root = {"cls": repr(obj), "id": obj.id}
-    link(db=db, root=root, children=links)
+    link(
+        db=db,
+        root=root,
+        children=chain(
+            links,
+            (
+                {
+                    "label": taskingLabel,
+                    **create(
+                        db=db,
+                        obj=TaskingCapabilities(
+                            name=key,
+                            taskingParameters=[
+                                {
+                                    "name": b.name,
+                                    "description": "",
+                                    "type": "",
+                                    "allowedTokens": [""],
+                                }
+                                for b in signature(fcn).parameters.values()
+                            ],
+                            description=fcn.__doc__,
+                        ),
+                    ),
+                }
+                for key, fcn in functions.items()
+            ),
+            (
+                {
+                    "cls": TaskingCapabilities.__name__,
+                    "id": existingItems[key],
+                    "label": taskingLabel,
+                }
+                for key in (existingKeys & instanceKeys)
+            ),
+        ),
+    )
     return root
 
 
@@ -335,7 +398,6 @@ def mutate(db, data, obj=None, cls=None, identity=None, props=None):
     # match = ["id: $id"] + map(_process_key_value, props.items())
     # TODO: Get generic matching working
     """
-    print(obj, cls, identity, props)
     if obj is None and (None in (cls, identity, props)):
         raise ValueError
     kwargs = {
@@ -358,17 +420,22 @@ def mutate(db, data, obj=None, cls=None, identity=None, props=None):
 
 
 def properties(obj, select=None, private=None):
-    # type: (Entity, list or tuple, str) -> dict
+    # type: (Entity, (str, ), str) -> dict
     """
     Create a filtered dictionary from the object properties.
     """
-    return {
-        key: value
-        for key, value in (obj if isinstance(obj, Node) else obj.__dict__).items()
-        if isinstance(key, str)
-        and (key[: len(private)] != private if private else True)
-        and (key in select if select else True)
-    }
+
+    def _filter(keyValue):
+        key, value = keyValue
+        return (
+            not isinstance(value, Callable)
+            and isinstance(key, str)
+            and (key[: len(private)] != private if private else True)
+            and (key in select if select else True)
+        )
+
+    props = obj if isinstance(obj, Node) else obj.__dict__
+    return {k: v for k, v in filter(_filter, props.items())}
 
 
 def serialize(db, obj, service, protocol="http", select=None):
@@ -380,22 +447,17 @@ def serialize(db, obj, service, protocol="http", select=None):
     Remove private members that include a underscore,
     since SensorThings notation is title case
     """
-    try:
-        cls = list(obj.labels)[0]
-    except AttributeError:
-        cls = repr(obj)
-
     restricted = {"User", "Ingresses", "Root"}
     props = properties(obj, select, private="_")
     identity = props.pop("id")
     show_port = f":{app.app.config['PORT']}" if service in ("localhost",) else ""
     collection_link = (
-        f"{protocol}://{service}{show_port}{app.app.config['BASE_PATH']}/{cls}"
+        f"{protocol}://{service}{show_port}{app.app.config['BASE_PATH']}/{repr(obj)}"
     )
     self_link = f"{collection_link}({identity})"
     linked = set(
         label
-        for buffer in relationships(db, parent={"cls": cls, "id": identity})
+        for buffer in relationships(db, parent={"cls": repr(obj), "id": identity})
         for label in buffer[0]
     )
 
@@ -448,15 +510,19 @@ def load(db, cls, user=None, private="_", **kwargs):
     that works the same as the dictionary method.
     """
     payload = []
-    for each in records(db=db, user=user, cls=cls, **kwargs):
+    for each in records(db=db, user=user, **{"cls": cls, **kwargs}):
         payload.append(Entity(None))
         payload[-1].__class__ = eval(cls)
         for key, value in properties(each[0]).items():
             if key == "location":
-                setattr(payload[-1], key, {
-                    "type": "Point",
-                    "coordinates": eval(value) if isinstance(value, str) else value
-                })
+                setattr(
+                    payload[-1],
+                    key,
+                    {
+                        "type": "Point",
+                        "coordinates": eval(value) if isinstance(value, str) else value,
+                    },
+                )
                 continue
             try:
                 setattr(payload[-1], key, value)
@@ -464,6 +530,22 @@ def load(db, cls, user=None, private="_", **kwargs):
             except KeyError:
                 setattr(payload[-1], private + key, value)
     return payload
+
+
+def jdbcRecords(db, query):
+    # type: (Driver, str) -> (dict, )
+    def _tx(tx):
+        host = "bathysphere-do-user-3962990-0.db.ondigitalocean.com"
+        port = 25060
+        url = f"jdbc:postgresql://{host}:{port}/bathysphere?user=bathysphere&password=de2innbnm1w6r27y"
+        cmd = (
+            f"CALL apoc.load.jdbc('{url}','{query}') "
+            f"YIELD row "
+            f"MERGE n: ()"
+            f"RETURN row"
+        )
+        return tx.run(cmd)
+    return _read(db, _tx)
 
 
 def records(db, user=None, **kwargs):
@@ -521,7 +603,7 @@ def link(db, root, children, props=None, drop=False, **kwargs):
             cmd = f"MATCH {_a} MATCH {_b} MERGE (root)-{relPattern}->(leaf)"
         return tx.run(cmd, root=root["id"], leaf=leafId).values()
 
-    return _write(
+    _write(
         db,
         _tx,
         [
@@ -531,27 +613,23 @@ def link(db, root, children, props=None, drop=False, **kwargs):
     )
 
 
-def index(db, **kwargs):
+def graphConstraint(db, **kwargs):
+    # type: (Driver, **dict) -> None
+    def _tx(tx, cls, by):
+        return tx.run(f"CREATE CONSTRAINT ON (n:{cls}) ASSERT n.{by} IS UNIQUE")
+    _write(db, _tx, kwargs)
+
+
+def graphIndex(db, **kwargs):
     # type: (Driver, **dict) -> None
     """
-    Create an index on a particular property.
+    Create/drop an index on a particular property.
     """
-
-    def _tx1(tx, cls, by, drop=False, unique=True):
-        # type: (None, str, str, bool, bool) -> list
-        verb = "DROP" if drop else "CREATE"
-        return tx.run(f"{verb} INDEX ON : {cls}({by})").values()
-
-    def _tx2(tx, cls, by, drop=False, unique=True):
-        if unique and not drop:
-            return tx.run(f"CREATE CONSTRAINT ON (n:{cls}) ASSERT n.{by} IS UNIQUE")
-
-    try:
-        _write(db, _tx2, kwargs)
-    except:
-        pass
-
-    return _write(db, _tx1, kwargs)
+    def _tx(tx, cls, by, drop=False):
+        # type: (None, str, str, bool) -> None
+        cmd = f"{'DROP' if drop else 'CREATE'} INDEX ON : {cls}({by})"
+        tx.run(cmd)
+    _write(db, _tx, kwargs)
 
 
 def delete(db, **kwargs):
@@ -571,3 +649,145 @@ def delete(db, **kwargs):
             tx.run(cmd)
 
     return _write(db, _tx, kwargs)
+
+
+def searchTree(pattern, filesystem):
+    # type: (str, dict) -> None or str
+    """
+    Recursively search a directory structure for a key.
+    Call this on the result of `index`
+
+    :param filesystem: paths
+    :param pattern: search key
+    :return:
+    """
+    for key, level in filesystem.items():
+        if key == pattern:
+            return key
+        try:
+            result = searchTree(pattern, level)
+        except AttributeError:
+            result = None
+        if result:
+            return f"{key}/{result}"
+    return None
+
+
+def connectFtp(host, root=None, **kwargs):
+
+    ftp = FTP(host, **kwargs)
+    assert "230" in ftp.login()  # attach if no open socket
+    assert ftp.sock
+    if root is not None:
+        _ = ftp.cwd(root)
+    return ftp
+
+
+def indexFtp(ftp, graph, node=".", depth=0, limit=None, metadata=None, parent=None):
+    # type: (FTP, Driver, str, int, int or None, dict or None, dict) -> None
+    """
+    Build directory structure recursively.
+
+    :param graph: database
+    :param ftp: persistent ftp connection
+    :param node: node in current working directory
+    :param depth: current depth, do not set
+    :param limit: maximum depth,
+    :param metadata: pass the object metadata down one level
+    :param parent:
+    :return:
+    """
+
+    def _map(rec):
+        values = rec.split()
+        key = values.pop().strip()
+        return {key: values}
+
+    if depth == 0 and parent is None:
+        parent = create(
+            db=graph,
+            obj=Locations(
+                **{"name": "FTP Server", "description": "Autogenerated FTP Server"}
+            ),
+        )
+
+    if limit is None or depth <= limit:
+        try:
+            _ = ftp.cwd(node)  # target is a file
+        except:
+            create(
+                db=graph,
+                obj=Proxy(
+                    **{"name": node, "description": "Autogenerated", "url": node}
+                ),
+                links=[parent],
+            )
+
+        else:
+            collection = create(
+                db=graph,
+                obj=Proxy(
+                    **{"name": node, "description": "Autogenerated", "url": node}
+                ),
+                links=[parent],
+            )
+
+            files = []
+            ftp.retrlines("LIST", files.append)
+            _fs = dict()
+            for k, v in reduce(lambda x, y: {**x, **y}, map(_map, files), {}).items():
+                indexFtp(
+                    ftp=ftp,
+                    graph=graph,
+                    node=k,
+                    depth=depth + 1,
+                    limit=limit,
+                    metadata=v,
+                    parent=collection,
+                )
+
+            if node != ".":
+                _ = ftp.cwd("..")
+
+
+def syncFtp(ftp, remote, local, filesystem=None):
+    # type: (FTP, str, str, dict) -> int
+    path = searchTree(filesystem=filesystem, pattern=remote)
+    with open(local, "wb+") as fid:
+        return int(ftp.retrbinary(f"RETR {path}", fid.write))
+
+
+def unlock(storage, bucket_name, object_name):
+    # type: (Minio, str, str) -> bool
+    """
+    Unlock the dataset or repository IFF it contains the session ID
+    """
+    try:
+        _ = storage.stat_object(bucket_name, object_name)
+    except NoSuchKey:
+        return False
+    storage.remove_object(bucket_name, object_name)
+    return True
+
+
+@retry(tries=2, delay=1, backoff=1)
+def connectBolt(host, port, defaultAuth, declaredAuth):
+    # type: ((str, ), int, (str, str), (str, str)) -> Driver or None
+    """
+    Connect to a database manager. Try docker networking, or fallback to local host.
+    likely that the db has been accessed and setup previously
+    """
+    for auth in (declaredAuth, defaultAuth):
+        try:
+            db = GraphDatabase.driver(uri=f"bolt://{host}:{port}", auth=auth)
+        except Exception as ex:
+            log(f"{ex} on {host}:{port}")
+            continue
+        if auth != declaredAuth:
+            response = post(
+                f"http://{host}:7474/user/neo4j/password",
+                auth=auth,
+                json={"password": app.app.config["ADMIN_PASS"]},
+            )
+            assert response.ok
+        return db

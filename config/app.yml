@@ -28,9 +28,30 @@ environment:
   PG_HOST:
   PG_PORT:
   REDIS_KEY:
-  REDIS_HOST: "bathysphere-redis-do-user-3962990-0.db.ondigitalocean.com"
+  REDIS_HOST: bathysphere-redis-do-user-3962990-0.db.ondigitalocean.com
   LOBOVIZ_USER:
   LOBOVIZ_PASSWORD:
+  storageAccessKey:
+  storageSecretKey:
+
+
+specPath: "openapi/api.yml"
+basePath: "/api"
+enableSwagger: false
+lock: "lock.json"
+index: "index.json"
+
+
+bucketName: "oceanicsdotio"
+storageLocalCache: "data/"
+storage:
+  endpoint: "nyc3.digitaloceanspaces.com"
+  secure: true
+
+headers:
+  x-amz-acl: "public-read"
+  x-amz-meta-service: "bathysphere"
+
 
 models:
 
