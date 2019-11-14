@@ -1,8 +1,12 @@
 import pytest
 from bathysphere_graph import app
-from bathysphere_graph.drivers import delete, count, postgres
-from bathysphere_graph.handlers import connect
-from bathysphere_graph.storage import connect as FTP
+from bathysphere_graph.drivers import (
+    delete,
+    count,
+    postgres,
+    connectFtp as FTP,
+    connectBolt,
+)
 
 
 def validateCreateTx(create, get, cls, props, db):
@@ -35,21 +39,14 @@ def graph():
     """
     Connect to the test database
     """
-    hosts = [
-        app.app.config["DOCKER_COMPOSE_NAME"],
-        app.app.config["DOCKER_CONTAINER_NAME"],
-        app.app.config["EMBEDDED_NAME"],
-    ]
-
     default_auth = tuple(app.app.config["NEO4J_AUTH"].split("/"))
-    db = connect(
-        hosts=hosts,
+    db = connectBolt(
+        host=app.app.config["EMBEDDED_NAME"],
         port=app.app.config["NEO4J_PORT"],
         defaultAuth=default_auth,
         declaredAuth=(default_auth[0], app.app.config["ADMIN_PASS"]),
     )
     assert db is not None
-    delete(db)  # purge the test database - then leave it populated after teardown
     yield db
 
 
@@ -130,7 +127,7 @@ def psql():
     auth = (app.app.config["PG_USERNAME"], app.app.config["PG_PASSWORD"])
     connection, cursor = postgres(
         host=app.app.config["PG_HOST"],
-        port=app.app.config["PG_PORT"],
+        port=int(app.app.config["PG_PORT"]),
         auth=auth,
         autoCommit=True,
         database=database,

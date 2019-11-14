@@ -1,0 +1,53 @@
+version: 1.0
+
+provider:
+  name: openfaas
+  gateway: http://127.0.0.1:8080
+
+functions:
+
+  buoys:
+    lang: python3
+    handler: ./buoys
+    image: oceanicsdotio/faas-buoys:latest
+    environment:
+      hostname: maine.loboviz.com
+    secrets:
+      - payload-secret
+
+#  controller:
+#    lang: python3
+#    handler: ./controller
+#    image: oceanicsdotio/faas-contoller:latest
+#
+
+  archive:
+    lang: python3
+    handler: ./archive
+    environment:
+      hostname: maine.loboviz.com
+    image: oceanicsdotio/faas-archive:latest
+    secrets:
+      - loboviz-admin
+      - loboviz-secret
+#
+#  parse:
+#    lang: python3
+#    handler: ./parse
+#    image: oceanicsdotio/faas-parse:latest
+
+  notify:
+    lang: python3
+    handler: ./notify
+    image: oceanicsdotio/faas-notify:latest
+    secrets:
+      - mail-service-key
+      - smtp-host
+      - payload-secret
+
+#  repository:
+#    lang: python3
+#    handler: ./repository
+#    image: repository:latest
+#    secrets:
+#      - object-storage

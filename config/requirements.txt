@@ -11,3 +11,5 @@ requests >= 2.20.1
 retry
 pyyaml
 redis
+prance
+rq

@@ -1,4 +1,4 @@
-version: "3.4"
+version: "3.6"
 
 networks:
   oceanics:
@@ -38,10 +38,11 @@ services:
       - NEO4J_dbms_security_auth__max__failed__attempts=6
       - NEO4J_dbms_memory_pagecache_size=200M
       - NEO4J_dbms_memory_heap_maxSize=500M
-#    volumes:
-#      - ${GRAPHDB:-./data/neo4j}:/data
-#      - ./logs/neo4j/:/logs
-#      - ./data/import:/var/lib/neo4j/import
+      - NEO4J_dbms_security_procedures_unrestricted=apoc.*
+    volumes:
+      - ${GRAPHDB:-./data/neo4j}:/data
+      - ./logs/neo4j/:/logs
+      - ./data/import:/var/lib/neo4j/import
     networks:
       - oceanics
     healthcheck:
@@ -49,7 +50,6 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
-      start_period: 30s
 
   bathysphere-graph:
     build:
@@ -58,8 +58,6 @@ services:
     image: oceanicsdotio/bathysphere-graph
     ports:
       - 5000:5000
-    env_file:
-      - ./config/graph.env
     environment:
       - ADMIN
       - ADMIN_PASS
@@ -81,55 +79,31 @@ services:
     depends_on:
       - neo4j
 
+  postgres:
+    image: timescale/timescaledb-postgis
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_PASSWORD=n0t_passw0rd
+      - PGDATA=/var/lib/postgresql/data
+    networks:
+      - oceanics
+    volumes:
+      - ./db/timescale:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "localhost:5432"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
-#
-#  postgres:
-#    image: timescale/timescaledb-postgis
-#    ports:
-#      - 5432:5432
-#    environment:
-#      - POSTGRES_PASSWORD=n0t_passw0rd
-#      - PGDATA=/var/lib/postgresql/data
-#    networks:
-#      - oceanics
-#    volumes:
-#      - ./db/timescale:/var/lib/postgresql/data
-#    healthcheck:
-#      test: ["CMD", "curl", "-f", "localhost:5432"]
-#      interval: 30s
-#      timeout: 5s
-#      retries: 3
-##      start_interval: 40s
-#
-#  redis:
-#    image: redis
-#    ports:
-#      - 6379:6379
-#    networks:
-#      - oceanics
-#    healthcheck:
-#      test: ["CMD", "curl", "-f", "localhost:6379"]
-#      interval: 30s
-#      timeout: 5s
-#      retries: 3
-##      start_interval: 40s
-#
-#  goodbuoy:
-#    build: .
-#    image: oceanicsdotio/goodbuoy
-#    ports:
-#      - 5000:5000
-#    volumes:
-#      - ./src:/src
-#      - ./logs:/logs
-#    depends_on:
-#      - redis
-#      - postgres
-#    networks:
-#      - oceanics
-#    healthcheck:
-#      test: ["CMD", "curl", "-f", "localhost:5000"]
-#      interval: 30s
-#      timeout: 5s
-#      retries: 3
-##      start_interval: 40s
+  redis:
+    image: redis
+    ports:
+      - 6379:6379
+    networks:
+      - oceanics
+    healthcheck:
+      test: ["CMD", "curl", "-f", "localhost:6379"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

@@ -1,18 +1,29 @@
 openapi: "3.0.0"
 
 info:
-  title: "Bathysphere - Graph API"
+  title: "Bathysphere API"
   version: "1.0"
   description: |
 
-    The Graph API provides a web service for controlling the graph database backend. This enables topology for
+    Bathysphere is a geospatial library and application thats operates as infrastructure for other
+    public-facing architecture. It is intended for scientific computing on unstructured triangular meshes,
+    in the fields of hydrodynamics and ocean modeling.
+
+
+
+    The Graph API provides a web service for controlling the graph database backend. The service implements Open
+    Geospatial Consortium (OGC) SensorThings API specification and the
+    [SpatioTemporal Assets Catalog](https://stacspec.org/) (STAC) standard.
+
+    This enables topology for
     data models, in which nodes are generic entities. Schemas are only enforced by API specification validation.
     Heavy lifting for big data structures is delegated to the core Bathysphere application, while provenance
     tracking and permissions are handled in the graph.
 
-    The service implements Open Geospatial Consortium (OGC) SensorThings API specification. The
-    [SpatioTemporal Assets Catalog](https://stacspec.org/) (STAC) standard is used to interface with
-    `Bathysphere`.
+    The image rendering service creates PNG format files for time series and geospatial data. Small and simple
+    data structures can be sent and analyzed directly. More complex structures like large, unstructured triangular
+    meshes need to be accessible from a database already. This ensures that caching is enforced to prevent
+    redundant computation.
 
     See the [repository](https://bitbucket.org/aquaculture/bathysphere-graph) for more information.
 
@@ -28,9 +39,22 @@ info:
   x-logo:
     url: gom.png
 
+tags:
+  - name: Catalog
+  - name: Collection
+  - name: Asset
+  - name: Account
+  - name: Topology
+
 servers:
 - url: https://graph.oceanics.io/{basePath}
   description: Production API server
+  variables:
+    basePath:
+      default: api
+
+- url: localhost/{basePath}
+  description: Localhost
   variables:
     basePath:
       default: api
@@ -112,6 +136,12 @@ paths:
 
       parameters:
 
+        - name: asset
+          in: query
+          schema:
+            type: string
+            default: index
+
         - name: extension
           description: |
             Any entity can be linked topologically to any other entity, but generally
@@ -128,8 +158,7 @@ paths:
 
       responses:
         '200':
-          $ref: '#/components/responses/Message'
-
+          $ref: '#/components/responses/Catalog'
 
   /{entity}:
 
@@ -296,6 +325,13 @@ components:
 
   parameters:
 
+    collection:
+      required: true
+      name: collection
+      in: path
+      schema:
+        type: string
+
     root:
       in: path
       required: true
@@ -339,6 +375,8 @@ components:
           - TaskingCapabilities
           - FeaturesOfInterest
           - Ingresses
+          - Collections
+          - Catalogs
 
     entityId:
       in: path
@@ -413,6 +451,14 @@ components:
           schema:
             $ref: '#/components/schemas/CollectionOptions'
 
+    Asset:
+      description: |
+        Tell the server where to find the data
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Asset'
+
 
   responses:
 
@@ -424,6 +470,23 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Catalog'
+
+
+    Asset:
+      description: |
+        Description of the file
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Asset'
+
+    Collection:
+      description: |
+        Description of the service and data
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Collection'
 
     EntityCollection:
       description: |
@@ -492,6 +555,10 @@ components:
             $ref: '#/components/schemas/Error'
 
   schemas:
+
+
+    Asset:
+      type: object
 
     CollectionOptions:
       allOf:

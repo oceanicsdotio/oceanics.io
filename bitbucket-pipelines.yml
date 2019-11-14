@@ -1,4 +1,4 @@
-image: continuumio/miniconda3
+image: ubuntu
 
 options:
   docker: true
@@ -31,9 +31,9 @@ pipelines:
 
     - step:
         name: Build docker image and run pytest entrypoint
-#        caches:
+        caches:
 #          - docker
-#          - pip
+          - pip
         services:
           - docker
         script:
@@ -53,7 +53,7 @@ pipelines:
 definitions:
   services:
     neo4j:
-      image: neo4j:3.5
+      image: oceanicsdotio/neo4j
       variables:
         NEO4J_dbms_security_auth__max__failed__attempts: 6
         NEO4J_AUTH: neo4j/n0t_passw0rd
