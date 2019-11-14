@@ -4,7 +4,7 @@ from multiprocessing import Pool
 from requests import get
 from itertools import repeat
 from enum import Enum
-from typing import Coroutine
+from typing import Coroutine, Any
 from asyncio import new_event_loop, set_event_loop, BaseEventLoop
 
 

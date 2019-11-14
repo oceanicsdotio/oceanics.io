@@ -1,9 +1,79 @@
 from os import getenv
-from json import dumps
+from json import dumps, loads
 import hmac
 import hashlib
+from io import BytesIO
 from minio import Minio
 from minio.error import NoSuchKey
+
+#
+# def listener(storage, bucket_name, filetype="", channel="bathysphere-events"):
+#     fcns = ("s3:ObjectCreated:*", "s3:ObjectRemoved:*", "s3:ObjectAccessed:*")
+#     r = StrictRedis()
+#     ps = r.pubsub()
+#     for event in storage.listen_bucket_notification(
+#             bucket_name, "", filetype, fcns
+#     ):
+#         ps.publish(channel, str(event))
+
+storage = Minio(**appConfig["storage"])
+
+
+def create(bucket_name, object_name, buffer, content_type, metadata):
+    storage.put_object(
+        bucket_name=bucket_name,
+        object_name=object_name,
+        metadata=metadata,
+        data=BytesIO(buffer),
+        length=len(buffer),
+        content_type=content_type,
+    )
+
+
+def delete(bucket_name, prefix, batch=10):
+    """
+    Delete all objects within a subdirectory or abstract collection
+
+    :param bucket_name: file prefix/dataset
+    :param prefix: most to process at once
+    :param batch:  number to delete at a time
+    """
+    remove = ()
+    conditions = {"x-amz-meta-service": "bathysphere"}
+
+    objects_iter = storage.list_objects(bucket_name, prefix=prefix)
+    stop = False
+    while not stop:
+        try:
+            object_name = next(objects_iter).object_name
+        except StopIteration:
+            stop = True
+        else:
+            stat = storage.stat_object(bucket_name, object_name).metadata
+            if all(stat.get(k) == v for k, v in conditions.items()):
+                remove += (object_name,)
+        if len(remove) >= batch or stop:
+            storage.remove_objects(bucket_name=bucket_name, objects_iter=remove)
+            remove = ()
+        if stop:
+            break
+
+
+def update():
+    pass
+
+
+def unlock(storage, bucket_name, object_name):
+    # type: (Minio, str, str) -> bool
+    """
+    Unlock the dataset or repository IFF it contains the session ID
+    """
+    try:
+        _ = storage.stat_object(bucket_name, object_name)
+    except NoSuchKey:
+        return False
+    storage.remove_object(bucket_name, object_name)
+    return True
 
 
 def handle(req):
@@ -30,46 +100,25 @@ def handle(req):
             print(dumps({"Error": "HMAC validation"}))
             exit(403)
 
-    storage = Minio(**appConfig["storage"])
+    body = loads(req)
+    bucket_name = body.get("bucket_name")
+    object_name = body.get("object_name")
+    action = body.get("action")
+
     if not storage.bucket_exists(bucket_name):
         _ = storage.make_bucket(bucket_name)
+
     try:
         _ = storage.stat_object(bucket_name, object_name)
+        existing = True
     except NoSuchKey:
-        pass
-    else:
-        if not replace:
-            return None
+        existing = False
 
-    if isinstance(data, set):
-        data = tuple(data)
+    if not existing and action in ("delete", "update"):
+        print(dumps({"Error": f"{object_name} not found"}))
+        exit(404)
 
-    if isinstance(data, (dict, list, tuple)):
-        content_type = "application/json"
-        buffer = bytes(dumps(data).encode("utf-8"))
-    elif isinstance(data, str):
-        content_type = "text/plain"
-        buffer = data.encode("utf-8")
-    elif isinstance(data, (bytes, BytesIO)):
-        if content_type is None:
-            raise ValueError
-        buffer = data
-    else:
-        raise TypeError
+    if existing and action == "create":
+        print(dumps({"Error": f"{object_name} already exists"}))
+        exit(403)
 
-    if isinstance(buffer, BytesIO):
-        _data = buffer
-        length = len(buffer.getvalue())
-    else:
-        _data = BytesIO(buffer)
-        length = len(buffer)
-
-    storage.put_object(
-        bucket_name=bucket_name,
-        object_name=object_name,
-        metadata=metadata,
-        data=_data,
-        length=length,
-        content_type=content_type,
-    )
-    return {object_name: data}

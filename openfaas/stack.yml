@@ -20,16 +20,16 @@ functions:
 #    handler: ./controller
 #    image: oceanicsdotio/faas-contoller:latest
 #
-
-  archive:
-    lang: python3
-    handler: ./archive
-    environment:
-      hostname: maine.loboviz.com
-    image: oceanicsdotio/faas-archive:latest
-    secrets:
-      - loboviz-admin
-      - loboviz-secret
+#
+#  archive:
+#    lang: python3
+#    handler: ./archive
+#    environment:
+#      hostname: maine.loboviz.com
+#    image: oceanicsdotio/faas-archive:latest
+#    secrets:
+#      - loboviz-admin
+#      - loboviz-secret
 #
 #  parse:
 #    lang: python3
@@ -44,6 +44,27 @@ functions:
       - mail-service-key
       - smtp-host
       - payload-secret
+
+  postgres:
+    lang: python3
+    handler: ./postgres
+    image: oceanicsdotio/faas-postgres:latest
+    secrets:
+      - payload-secret
+      - pg-username
+      - pg-hostname
+      - pg-password
+      - pg-port
+
+  cache:
+    lang: python3
+    handler: ./cache
+    image: oceanicsdotio/faas-cache:latest
+    secrets:
+      - payload-secret
+      - redis-host
+      - redis-key
+      - redis-port
 
 #  repository:
 #    lang: python3

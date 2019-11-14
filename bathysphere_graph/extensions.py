@@ -82,42 +82,6 @@ def artifact(fcn):
     return wrapper
 
 
-def cache(fcn):
-    """
-    Cache/load data from Redis on inbound-outbound.
-    """
-
-    def wrapper(*args, **kwargs):
-
-        db = Redis(
-            host=app.app.config["REDIS_HOST"],
-            port=25061,
-            db=0,
-            password=app.app.config["REDIS_KEY"],
-            socket_timeout=3,
-            ssl=True,
-        )  # inject db session
-        try:
-            db.time()
-        except ConnectionError:
-            return fcn(*args, **kwargs)
-
-        if kwargs.pop("cache", True):
-            binary = db.get(request.url)
-            if binary:
-                db.incr("hits")
-                return loads(binary)
-
-        data, status = fcn(*args, **kwargs)
-        if status == 200:
-            db.set(request.url, dumps(data), ex=3600)
-            db.incr("count")
-
-        return data, status
-
-    return wrapper
-
-
 def context(fcn):
     """
     Inject graph database session into request.

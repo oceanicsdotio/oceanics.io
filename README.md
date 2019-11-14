@@ -195,6 +195,11 @@ echo -n '{"id": 67, "limit": 10, "observedProperties": ["temperature", "salinity
 echo -n '{"subject": "Hello World", "addresses": ["nicholas.keeney@gmail.com"]}' | faas-cli invoke notify --sign hmac --key=$HMAC_KEY
 
 echo -n '{"subject": "Hello World", "addresses": ["nicholas.keeney@gmail.com"]}' | faas-cli invoke notify --sign hmac --key=$HMAC_KEY
+
+echo -n '{"subject": "Hello World", "addresses": ["nicholas.keeney@gmail.com"]}' | faas-cli invoke notify --sign hmac --key=$HMAC_KEY
+
+echo -n '{"table": "test"}' | faas-cli invoke postgres --sign hmac --key=$HMAC_KEY
+
 ```
 
 
