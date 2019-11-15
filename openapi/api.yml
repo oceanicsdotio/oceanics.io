@@ -41,8 +41,6 @@ info:
 
 tags:
   - name: Catalog
-  - name: Collection
-  - name: Asset
   - name: Account
   - name: Topology
 
