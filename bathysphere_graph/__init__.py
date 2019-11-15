@@ -21,4 +21,4 @@ parser = ResolvingParser(
     str(Path(appConfig["specPath"]).absolute()), lazy=True, strict=True
 )
 parser.parse()
-app.add_api(parser.specification, base_path=app.app.config["BASE_PATH"])
+app.add_api(parser.specification, base_path="/api")

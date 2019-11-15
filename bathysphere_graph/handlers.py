@@ -6,11 +6,12 @@ import hashlib
 import hmac
 
 
-from bathysphere_graph.drivers import *
+from bathysphere_graph.models import *
 from bathysphere_graph import appConfig
 ExtentType = (float, float, float, float)
 ResponseJSON = (dict, int)
 ResponseOctet = (dict, int)
+NamedIndex = (Catalogs, Ingresses, Collections, User)
 
 
 def context(fcn):
