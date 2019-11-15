@@ -1,1 +1,2 @@
-/function/*  http://167.71.191.127:8080/function/:splat    200
+/function/*  http://faas.oceanics.io:8080/function/:splat    200
+/browser/*   https://neo4j.oceanics.io:7473/browser/:splat   200
