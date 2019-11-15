@@ -8,7 +8,7 @@
 
 ## Overview
 
-The Bathysphere API is a distributed store and registry for public and proprietary geospatial data. The system is designed to support a aquaculture research in the Gulf of Maine, but can be configured and extended for other applications. It uses best-in-class technology to ingest sensor and model data and metadata, and automatically parse them into discoverable databases.
+The Bathysphere API is a distributed store and registry for public and proprietary geospatial data. The system is designed to support aquaculture research in the Gulf of Maine, but can be configured and extended for other applications. It uses best-in-class technology to ingest sensor and model data and metadata, and automatically parse them into discoverable databases.
 
 The representation of complex relationships between heterogenous data is simplified by applying a graph framework, backed by a [Neo4j](https://neo4j.com/) graph database cluster to store semi-structured data, along with labeled relationships. This approach can be applied to many flexible, high-level cases, from NASA managing their [lessons-learned](https://neo4j.com/blog/nasa-lesson-learned-database-using-neo4j-linkurious/) mission database, to modeling a virtual [economy](https://www.airpair.com/neo4j/posts/modelling-game-economy-with-neo4j). 
 

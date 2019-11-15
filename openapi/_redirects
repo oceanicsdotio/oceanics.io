@@ -1,1 +1,1 @@
-/api/*      http://165.22.37.71/api/:splat      200
+/functions/*  http://167.71.191.127/api/:splat    200
