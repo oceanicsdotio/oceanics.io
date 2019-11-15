@@ -38,9 +38,10 @@ info:
     url: bathysphere.png
 
 tags:
-  - name: Catalog
   - name: Account
+  - name: Catalog
   - name: Topology
+  - name: Render
 
 servers:
 - url: https://graph.oceanics.io/{basePath}
@@ -68,7 +69,7 @@ paths:
 
     post:
 
-      tags: [Image]
+      tags: [Render]
 #      operationId: bathysphere.handlers.datastreams
       summary: Time View
       description: |
@@ -98,7 +99,7 @@ paths:
   /image/location:
 
     post:
-      tags: [Image]
+      tags: [Render]
 #      operationId: bathysphere.handlers.locations
       summary: Spatial View
       description: |
