@@ -1,23 +1,16 @@
 openapi: "3.0.0"
 
 info:
-  title: "Goodbuoy API"
+  title: "Goodbuoy Extension"
   version: "0.1"
-  description: |
-
-
   contact:
     name: Oceanicsdotio
-    url: http://www.oceanics.io
-    email: goodbuoy@oceanics.io
+    url: http://graph.oceanics.io
+    email: aquaculture@oceanics.io
 
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
-
-  x-logo:
-    url: buoy.jpg
-
 
 tags:
   - name: Things
@@ -34,33 +27,6 @@ tags:
       `Sensors` are associated with `Things` through `Datastreams`.
 
 paths:
-
-  /Things:
-
-    post:
-      tags: [Things]
-      summary: Register thing
-      operationId: goodbuoy.handler.register
-      description: |
-        You can set up `Things` in our system by posting configuration information. This can take the form of a
-        key-value description, reference to external file, or credentials for establishing machine-to-machine
-        communication.
-
-      requestBody:
-        description: Thing
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/Thing"
-
-
-      responses:
-        '200':
-          description: Thing
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Thing"
 
   /Things({thingId}):
 
@@ -572,3 +538,4 @@ components:
           description: APN
           type: string
           default: BROADBAND
+

@@ -9,8 +9,6 @@ info:
     public-facing architecture. It is intended for scientific computing on unstructured triangular meshes,
     in the fields of hydrodynamics and ocean modeling.
 
-
-
     The Graph API provides a web service for controlling the graph database backend. The service implements Open
     Geospatial Consortium (OGC) SensorThings API specification and the
     [SpatioTemporal Assets Catalog](https://stacspec.org/) (STAC) standard.
@@ -46,10 +44,16 @@ tags:
 
 servers:
 - url: https://graph.oceanics.io/{basePath}
-  description: Production API server
+  description: Production API
   variables:
     basePath:
       default: api
+
+- url: https://graph.oceanics.io/{basePath}
+  description: OpenFaaS server
+  variables:
+    basePath:
+      default: function
 
 - url: localhost/{basePath}
   description: Localhost
@@ -58,6 +62,60 @@ servers:
       default: api
 
 paths:
+
+
+  /image/series:
+
+    post:
+
+      tags: [Image]
+#      operationId: bathysphere.handlers.datastreams
+      summary: Time View
+      description: |
+        Create image from time series and cache it. The service call methods from the `matplotlib` library,
+        which uses the anti-grain graphics backend (`AGG`). The images are portable network graphics (`.png`)
+        by default, but `.pdf` and `.tiff` are available for print media.
+
+      parameters:
+        - name: view
+          in: query
+          description: |
+            How to transform and render the data
+          schema:
+            type: string
+            enum: [series, coverage, frequency, scatter]
+            default: scatter
+
+#      requestBody:
+#        $ref: "#/components/requestBodies/Datastreams"
+
+      responses:
+        '200':
+          $ref: '#/components/responses/ImageResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /image/location:
+
+    post:
+      tags: [Image]
+#      operationId: bathysphere.handlers.locations
+      summary: Spatial View
+      description: |
+
+        Create image from time series and cache it. The service call methods from the `matplotlib` library,
+        which uses the anti-grain graphics backend (`AGG`). The images are portable network graphics (`.png`)
+        by default, but `.pdf` and `.tiff` are available for print media.
+
+#      requestBody:
+#        $ref: "#/components/requestBodies/Locations"
+
+      responses:
+        '200':
+          $ref: '#/components/responses/ImageResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
 
   /auth:
 
@@ -459,6 +517,13 @@ components:
 
 
   responses:
+
+    ImageResponse:
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Metadata'
 
     Catalog:
       description: |
@@ -1307,3 +1372,156 @@ components:
         - producer
         - processor
         - host
+
+
+    Metadata:
+      type: object
+      properties:
+        link:
+          type: string
+        cache:
+          type: string
+        objectKey:
+          type: string
+
+    Datastreams:
+      type: object
+      properties:
+        datastream:
+          type: array
+          items:
+            $ref: '#/components/schemas/Observation'
+        extent:
+          $ref: '#/components/schemas/Extent'
+        style:
+          $ref: '#/components/schemas/Style'
+
+    Reference:
+      type: object
+      properties:
+        extent:
+          $ref: '#/components/schemas/Extent'
+        style:
+          $ref: '#/components/schemas/Style'
+
+#    Observation:
+#      oneOf:
+#      - type: object
+#        properties:
+#          time:
+#            type: number
+#          value:
+#            type: number
+#      - type: array
+#        minLength: 2
+#        items:
+#          type: number
+#          format: float
+
+    Style:
+      type: object
+      description: |
+        Style is used change the appearance of the rendered image.
+
+      properties:
+
+        template:
+          type: string
+          enum: [dark, light]
+          default: dark
+          description: |
+            Select between light and dark templates depending on whether the image is intended for display
+            on a screen or for printed media.
+
+        bg:
+          type: string
+          default: black
+          description: |
+            Override the default background color for the chosen or default template. Dark themes have a `black`
+            background by default, and light themes have a `white` background. Use this to match the background
+            color when embedding in a web page. This can also be transparent for image compositing.
+
+        contrast:
+          type: string
+          default: white
+          description: |
+            Contrast color for rendering over background.
+
+        flag:
+          type: string
+          default: red
+          description: |
+            Highlight color for marking selected or masked data.
+
+        label:
+          type: string
+          description: |
+            Color for text and labels. The default is the same as the `contrast` color.
+
+        dpi:
+          type: integer
+          default: 150
+          minimum: 90
+          maximum: 300
+          description: |
+            Image resolution. Be careful, `dpi=300` images can be very large.
+
+        format:
+          type: string
+          enum: [png, pdf, tiff]
+          default: png
+          description: |
+            Image file format. Only `png` is available through the API.
+
+        alpha:
+          type: number
+          format: float
+          default: 1.0
+          maximum: 1.0
+          minimum: 0.0
+          description: |
+            Transparency of drawn objects. Useful for rendering Monte Carlo simulations.
+
+        padding:
+          type: array
+          minLength: 4
+          maxLength: 4
+          items:
+            type: number
+            format: float
+          default: [0.1, 0.2, 0.05, 0.1]
+          description: |
+            Content padding from edges of image to make room for labels and title.
+
+        marker:
+          type: integer
+          default: 1
+          description: |
+            Size of markers if rendering scatter plots or points on a map
+
+        font:
+          type: integer
+          default: 10
+          description: |
+            Font size
+
+        text:
+          type: number
+          format: float
+          default: 1.0
+          description: |
+            Size of labels relative to font size.
+
+        width:
+          type: number
+          format: float
+          default: 6.5
+          description: |
+            Width of image in inches
+
+        height:
+          type: number
+          format: float
+          description: |
+            Height of image in inches
+
