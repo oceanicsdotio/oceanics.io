@@ -8,6 +8,42 @@ from json import dumps, loads
 from os import getenv
 import hashlib
 import hmac
+from time import time
+
+
+def log(message, file=None, console=True):
+    # type: (str, str, bool) -> None
+    """
+    Write to console and/or file.
+
+    :param message: content
+    :param file: destination
+    :param console: print to std out also
+    :return: None
+    """
+    string = f"{datetime.utcnow().isoformat()} — {message}"
+    if console:
+        print(string)
+
+    if file is not None:
+        fid = open(file, "a")
+        fid.write(string + "\n")
+        fid.close()
+
+
+def progressNotification(start, current, total):
+    # type: (float, int, int) -> str
+    """
+    Format a string for progress notifications
+    """
+    elapsed = time() - start
+    ss = int(elapsed * total / current - elapsed)
+    mm = ss // 60
+    hh = mm // 60
+    return (
+        f"Ingested {current} of {total} rows, "
+        f"{hh}:{mm - hh * 60}:{ss - mm * 60} remaining"
+    )
 
 
 def get_latest_email():
