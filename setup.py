@@ -1,13 +1,13 @@
 from setuptools import setup
 
 setup(
-    name='bathysphere-graph',
+    name='bathysphere',
     version='1.4',
-    description='Graph database manager for marine spatial data',
+    description='Marine geospatial data and analytics service',
     url='https://www.oceanics.io',
     author='Oceanicsdotio',
-    author_email='aquaculture@oceanics.io',
-    packages=["bathysphere-graph"],
+    author_email='business@oceanics.io',
+    packages=["bathysphere_graph", "bathysphere_array"],
     license='MIT',
     install_requires=[
         "flask",
