@@ -12,20 +12,6 @@ info:
     name: MIT
     url: https://opensource.org/licenses/MIT
 
-tags:
-  - name: Things
-    description: |
-      `Things` are physical assets, through which multiple `Datastreams` are linked. Often this will be a
-      data logger, or instrument platform (like a buoy).
-
-  - name: Datastreams
-    description: |
-      `Datastreams` are collections of `Observations` which measure the same `ObservedProperty`.
-
-  - name: Sensors
-    description: |
-      `Sensors` are associated with `Things` through `Datastreams`.
-
 paths:
 
   /Things({thingId}):
