@@ -38,16 +38,16 @@ pipelines:
           - docker
         script:
           - pip install docker-compose
-          - touch config/graph.env
-          - docker-compose build bathysphere-graph
-          - docker-compose run --entrypoint="./src/pytest.sh" bathysphere-graph
+#          - touch config/graph.env
+#          - docker-compose build bathysphere-graph
+#          - docker-compose run --entrypoint="./src/pytest.sh" bathysphere-graph
 
     - step:
         name: Manual deploy to Digital Ocean
         deployment: production
         trigger: manual
         script:
-          - cat src/deploy.sh | ssh -t $USERNAME@$BATHYSPHERE_GRAPH
+          - echo "cat src/deploy.sh | ssh -t $USERNAME@$BATHYSPHERE_GRAPH"
 
 
 definitions:
