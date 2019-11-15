@@ -1,3 +1,26 @@
+from bidict import bidict
+from difflib import SequenceMatcher
+from functools import reduce
+
+
+def autoCorrect(key, lookup, maximum=0.0, threshold=0.25):
+    # type: (str, bidict, float, float) -> str
+    """
+    Match fieldnames probabilistically
+    """
+    fields = lookup.keys()
+    seq = SequenceMatcher(isjunk=None, autojunk=False)
+
+    def _score(x):
+        seq.set_seqs(key.lower(), x.lower())
+        return seq.ratio()
+
+    def _reduce(a, b):
+        return b if (b[1] > a[1]) and (b[1] > threshold) else a
+
+    return reduce(_reduce, zip(fields, map(_score, fields)), (key, maximum))
+
+
 
 def restore_fields(final, units):
     # type: ((str, ), (str, )) -> (str,)

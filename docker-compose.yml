@@ -6,53 +6,6 @@ networks:
 
 services:
 
-  nginx:
-    image: nginx:latest
-    ports:
-      - 80:80
-      - 8080:8080 # HTTP
-      - 443:443 # HTTPS
-    volumes:
-      - ./config/nginx:/etc/nginx/conf.d:ro
-      - ./openapi:/openapi
-      - ./static:/static
-    depends_on:
-      - neo4j
-      - bathysphere-graph
-    networks:
-      - oceanics
-    healthcheck:
-      test: ["CMD", "curl", "-f", "localhost:443"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 30s
-
-  neo4j:
-    build:
-      context: .
-      dockerfile: config/bathysphere-neo4j-dockerfile
-    image: oceanicsdotio/neo4j
-    ports:
-      - 7474:7474 # HTTP
-      - 7473:7473 # HTTPS
-      - 7687:7687 # BOLT
-    environment:
-      - NEO4J_dbms_security_auth__max__failed__attempts=6
-      - NEO4J_dbms_memory_pagecache_size=200M
-      - NEO4J_dbms_memory_heap_maxSize=500M
-      - NEO4J_dbms_security_procedures_unrestricted=apoc.*
-    volumes:
-      - ${GRAPHDB:-./data/neo4j}:/data
-      - ./logs/neo4j/:/logs
-      - ./data/import:/var/lib/neo4j/import
-    networks:
-      - oceanics
-    healthcheck:
-      test: ["CMD", "curl", "-f", "localhost:7474"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
 
   bathysphere-graph:
     build:
@@ -75,24 +28,79 @@ services:
       - PORT
       - BASE_PATH
     networks:
-      - oceanics
+      - bathysphere
     volumes:
       - ./src:/src
       - ./logs:/logs
-    depends_on:
-      - neo4j
+    healthcheck:
+      test: ["CMD", "curl", "-fI", "localhost:7474"]
+      interval: 60s
+      timeout: 5s
+      retries: 3
 
 
   bathysphere-array:
-    build: .
+    build:
+      context: .
+      dockerfile: config/bathysphere-array-dockerfile
     image: oceanicsdotio/bathysphere-array
     ports:
       - 5000:5000
     networks:
-      - oceanics
+      - bathysphere
     volumes:
       - ./logs:/logs
     command: ["sh", "start.sh"]
+
+
+  neo4j:
+    build:
+      context: .
+      dockerfile: config/bathysphere-neo4j-dockerfile
+    image: oceanicsdotio/neo4j
+    ports:
+      - 7474:7474 # HTTP
+      - 7473:7473 # HTTPS
+      - 7687:7687 # BOLT
+    environment:
+      - NEO4J_dbms_security_auth__max__failed__attempts=6
+      - NEO4J_dbms_memory_pagecache_size=200M
+      - NEO4J_dbms_memory_heap_maxSize=500M
+      - NEO4J_dbms_security_procedures_unrestricted=apoc.*
+    volumes:
+      - ${GRAPHDB:-./data/neo4j}:/data
+      - ./logs/neo4j/:/logs
+      - ./data/import:/var/lib/neo4j/import
+    networks:
+      - bathysphere
+    healthcheck:
+      test: ["CMD", "curl", "-fI", "localhost:7474"]
+      interval: 60s
+      timeout: 5s
+      retries: 3
+
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - 80:80
+      - 8080:8080 # HTTP
+      - 443:443 # HTTPS
+    volumes:
+      - ./config/nginx:/etc/nginx/conf.d:ro
+      - ./openapi:/openapi
+      - ./static:/static
+    depends_on:
+      - neo4j
+      - bathysphere-graph
+    networks:
+      - bathysphere
+    healthcheck:
+      test: ["CMD", "curl", "-fI", "localhost:443"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
 
   postgres:
     image: timescale/timescaledb-postgis
@@ -102,23 +110,24 @@ services:
       - POSTGRES_PASSWORD=n0t_passw0rd
       - PGDATA=/var/lib/postgresql/data
     networks:
-      - oceanics
+      - bathysphere
     volumes:
       - ./db/timescale:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "curl", "-f", "localhost:5432"]
-      interval: 30s
+      test: ["CMD", "curl", "-fI", "localhost:5432"]
+      interval: 60s
       timeout: 5s
       retries: 3
+
 
   redis:
     image: redis
     ports:
       - 6379:6379
     networks:
-      - oceanics
+      - bathysphere
     healthcheck:
-      test: ["CMD", "curl", "-f", "localhost:6379"]
-      interval: 30s
+      test: ["CMD", "curl", "-fI", "localhost:6379"]
+      interval: 60s
       timeout: 5s
       retries: 3
