@@ -23,7 +23,7 @@ info:
     meshes need to be accessible from a database already. This ensures that caching is enforced to prevent
     redundant computation.
 
-    See the [repository](https://bitbucket.org/aquaculture/bathysphere-graph) for more information.
+    See the [repository](https://bitbucket.org/aquaculture/bathysphere) for more information.
 
   contact:
     name: Oceanicsdotio
