@@ -85,43 +85,43 @@ The protected [LOBOViz admin panel](https://maine.loboviz.com/info) has 4 sectio
 
 | Heading                                                      |         Auth         | Description                                                  | Path      | Query        | Tokens        |
 | :----------------------------------------------------------- | :------------------: | :----------------------------------------------------------- | --------- | ------------ | ------------- |
-| [Configuration](http://maine.loboviz.com/cgi-config/system-config) | ![](lock.png) | Node and parameter definitions.                              | `Things`  | `GET`        | `$events`     |
-| [Data age](http://maine.loboviz.com/latest/age-of-data.html) | ![](lock.png) | Data ages                                                    | `Things`  | `GET`        | `$statistics` |
-| [Schedules](http://maine.loboviz.com/schedule/)              | ![](lock.png) | Browse schedule files                                        | `Things`  | `GET`        | `$schedule`   |
-| [System logs](http://maine.loboviz.com/status/)              | ![](lock.png) | E-mail and processing logs                                   | `Things`  | `GET`        | `$logs`       |
-| [XML](http://maine.loboviz.com/ingestorxml/)                 | ![](lock.png) | Instrument configuration files                               | `Sensors` | `GET`        | `$config`     |
-| [XML Sensors](http://maine.loboviz.com/cgi-config/list-xml-sensors) | ![](lock.png) | Sites and frames                                             | `Sensors` | `GET`        | —             |
-| [Check schedule files](http://maine.loboviz.com/cgi-config/check-schedule) | ![](lock.png) | Check file for errors in browser.<br /><br />Notes: We check files automatically during upload. | `Things`  | `POST` `PUT` | `$schedule`   |
+| [Configuration](http://maine.loboviz.com/cgi-config/system-config) | ![](../static/lock.png) | Node and parameter definitions.                              | `Things`  | `GET`        | `$events`     |
+| [Data age](http://maine.loboviz.com/latest/age-of-data.html) | ![](../static/lock.png) | Data ages                                                    | `Things`  | `GET`        | `$statistics` |
+| [Schedules](http://maine.loboviz.com/schedule/)              | ![](../static/lock.png) | Browse schedule files                                        | `Things`  | `GET`        | `$schedule`   |
+| [System logs](http://maine.loboviz.com/status/)              | ![](../static/lock.png) | E-mail and processing logs                                   | `Things`  | `GET`        | `$logs`       |
+| [XML](http://maine.loboviz.com/ingestorxml/)                 | ![](../static/lock.png) | Instrument configuration files                               | `Sensors` | `GET`        | `$config`     |
+| [XML Sensors](http://maine.loboviz.com/cgi-config/list-xml-sensors) | ![](../static/lock.png) | Sites and frames                                             | `Sensors` | `GET`        | —             |
+| [Check schedule files](http://maine.loboviz.com/cgi-config/check-schedule) | ![](../static/lock.png) | Check file for errors in browser.<br /><br />Notes: We check files automatically during upload. | `Things`  | `POST` `PUT` | `$schedule`   |
 
 **Table 4. Data**
 
 | Heading                                             |         Auth         | Description                                  | Path     | Query | Tokens        |
 | :-------------------------------------------------- | :------------------: | :------------------------------------------- | -------- | ----- | ------------- |
-| [Archive](http://maine.loboviz.com/archive/)        | ![](lock.png) | Raw data (`.raw`) and log (`.raw.txt`) files | `Things` | `GET` | `$archive`    |
+| [Archive](http://maine.loboviz.com/archive/)        | ![](../static/lock.png) | Raw data (`.raw`) and log (`.raw.txt`) files | `Things` | `GET` | `$archive`    |
 | [Info](http://maine.loboviz.com/cgi-data/data-info) |                      | Summary table with site, first, last, total  | `Things` | `GET` | `$statistics` |
-| [Pending](http://maine.loboviz.com/data/)           | ![](lock.png) | Files waiting to be processed                | `Things` | `GET` | `$pending`    |
-| [Recent-Raw](http://maine.loboviz.com/newest-raw/)  | ![](lock.png) | Daily raw text                               | `Things` | `GET` | `$recent`     |
+| [Pending](http://maine.loboviz.com/data/)           | ![](../static/lock.png) | Files waiting to be processed                | `Things` | `GET` | `$pending`    |
+| [Recent-Raw](http://maine.loboviz.com/newest-raw/)  | ![](../static/lock.png) | Daily raw text                               | `Things` | `GET` | `$recent`     |
 
 **Table 5. Management**
 
 | Heading       | Auth | Description     | Equivalent | Query |  |
 | :----------- | :--: | :------------------------------------ | ------------------------------------- | ------------------------------------- | ------------------------------------- |
-| [Event settings](http://maine.loboviz.com/cgi-config/edit-events) | ![](lock.png) | Settings for events, e-mail contacts.    | `Things` | `PUT` | `$events` |
-| [Hide bad events](http://maine.loboviz.com/protected/hide-bad-data.shtml) | ![](lock.png) | Hide or show values for one site, any number of variables, on a single day for some number of hours. | `Datastreams` | `PUT` | `$mask` |
-| [Modify sensor values](http://maine.loboviz.com/protected/modify-values.shtml) | ![](lock.png) | Apply correction to database values for calibration change. <br /><br />Notes: Our implementation is algorithmic instead of manual. | `Datastreams` | `PUT` | `$resample` |
-| [Remove sensor values](http://maine.loboviz.com/protected/remove-values.shtml) | ![](lock.png) | Delete database values outside nominal range, but not raw data. <br /><br />Note: We mask instead of delete. Using `GET` will transform and return the data without persisting the change. | `Datastreams` | `PUT` `GET` | `$mask` |
-| [Schedule upload](http://maine.loboviz.com/cgi-auth/cgiwrap/lobodata/schedule-upload) | ![](lock.png) | Upload acquisition schedule files for StorX. | `Things` | `POST` | `$schedule` |
-| [Instrument swaps](http://maine.loboviz.com/protected/instrument-swaps.html) | ![](lock.png) | Move instruments between sites, and view move history | `Sensors` | `PUT` `GET` | `$swap` |
-| [Instrument XML upload](http://maine.loboviz.com/cgi-auth/cgiwrap/lobodata/single-xml-upload) | ![](lock.png) | Upload XML/sensor file for use with swapping function | `Sensors` | `POST` `PUT` | `$config` |
-| [Calibration values](http://maine.loboviz.com/cgi-auth/cgiwrap/lobodata/calibration-values-step1) | ![](lock.png) | Modify existing XML file with new calibrations | `Sensors` | `POST` `PUT` `GET` | `$calibrate` |
+| [Event settings](http://maine.loboviz.com/cgi-config/edit-events) | ![](../static/lock.png) | Settings for events, e-mail contacts.    | `Things` | `PUT` | `$events` |
+| [Hide bad events](http://maine.loboviz.com/protected/hide-bad-data.shtml) | ![](../static/lock.png) | Hide or show values for one site, any number of variables, on a single day for some number of hours. | `Datastreams` | `PUT` | `$mask` |
+| [Modify sensor values](http://maine.loboviz.com/protected/modify-values.shtml) | ![](../static/lock.png) | Apply correction to database values for calibration change. <br /><br />Notes: Our implementation is algorithmic instead of manual. | `Datastreams` | `PUT` | `$resample` |
+| [Remove sensor values](http://maine.loboviz.com/protected/remove-values.shtml) | ![](../static/lock.png) | Delete database values outside nominal range, but not raw data. <br /><br />Note: We mask instead of delete. Using `GET` will transform and return the data without persisting the change. | `Datastreams` | `PUT` `GET` | `$mask` |
+| [Schedule upload](http://maine.loboviz.com/cgi-auth/cgiwrap/lobodata/schedule-upload) | ![](../static/lock.png) | Upload acquisition schedule files for StorX. | `Things` | `POST` | `$schedule` |
+| [Instrument swaps](http://maine.loboviz.com/protected/instrument-swaps.html) | ![](../static/lock.png) | Move instruments between sites, and view move history | `Sensors` | `PUT` `GET` | `$swap` |
+| [Instrument XML upload](http://maine.loboviz.com/cgi-auth/cgiwrap/lobodata/single-xml-upload) | ![](../static/lock.png) | Upload XML/sensor file for use with swapping function | `Sensors` | `POST` `PUT` | `$config` |
+| [Calibration values](http://maine.loboviz.com/cgi-auth/cgiwrap/lobodata/calibration-values-step1) | ![](../static/lock.png) | Modify existing XML file with new calibrations | `Sensors` | `POST` `PUT` `GET` | `$calibrate` |
 **Table 6. Graphing**
 
 | Heading | Auth | Description | Path | Query | Parameter |
 | :-- | :-- | --- | :-- | --- | --- |
 | [Averages](http://maine.loboviz.com/loboviz/research/averages.shtml) |  |One sensor, one site, one averaging window (d/w/m/y), for any date range. |`Datastreams` |`GET` |`$resample` `$image` |
 | [By year](http://maine.loboviz.com/loboviz/research/by-year.shtml) |  | One variable, overlapping years. Replace with Julian day. | `Datastreams` | `GET` | `$image` `$wrap` |
-| [Non-public](http://maine.loboviz.com/protected/) | ![](lock.png) |Includes extra y-variables for diagnostic |`Datastreams` |`GET` |`$image` |
-|[Peaks](http://maine.loboviz.com/loboviz/research/recent-peaks.shtml) |![](lock.png) | Min and max values and the date of occurance, for single site. | `Datastreams` | `GET` | `$statistics` |
+| [Non-public](http://maine.loboviz.com/protected/) | ![](../static/lock.png) |Includes extra y-variables for diagnostic |`Datastreams` |`GET` |`$image` |
+|[Peaks](http://maine.loboviz.com/loboviz/research/recent-peaks.shtml) |![](../static/lock.png) | Min and max values and the date of occurance, for single site. | `Datastreams` | `GET` | `$statistics` |
 |[Year background](http://maine.loboviz.com/loboviz/research/year-background.shtml) | | Display single variable for year against daily min/max for multiple other years. <br /><br />Note: Replaced with daily moving average and envelope of other sites. | `Datastreams` | `GET` | `$image` `$wrap` `$resample` `$statistics` |
 
 

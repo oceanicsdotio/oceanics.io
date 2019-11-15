@@ -62,7 +62,7 @@ See the OpenAPI [specification](http://graph.oceanics.io) for complete details o
 ### Frontend
 
 The interface is served as static files throughs Nginx. This uses pure JavaScript. The functionality is broken 
-down in `goodbuoy.js` and `webgl.js`. These methods inject elements into the basic HTML skeleton provided by `index.html`. This follows the logic of a "card"-like system, in which UI and visualization elements are added based on context. So a location card can create a map, and a data stream card can create a plot. 
+down in `buoy.js` and `webgl.js`. These methods inject elements into the basic HTML skeleton provided by `index.html`. This follows the logic of a "card"-like system, in which UI and visualization elements are added based on context. So a location card can create a map, and a data stream card can create a plot. 
 
 The `nginx` container is a reverse proxy that forwards requests to the other services. It also serves static content on port `80`, in this case the ReDoc-rendered OpenAPI specification.  This fully describes the possible transactions with the database, which are enforced in the `bathysphere_graph` application by the Python `connexion` library.
 
