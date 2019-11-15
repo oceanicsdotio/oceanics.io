@@ -1,3 +1,3 @@
 /api/*       http://api.oceanics.io:5000/api/:splat          200
-/faas/*      http://faas.oceanics.io:8080/function/:splat    200
+/function/*  http://faas.oceanics.io:8080/function/:splat    200
 /data/*      http://neo4j.oceanics.io:7474/:splat            200
