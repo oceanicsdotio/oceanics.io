@@ -1,8 +1,17 @@
-
 def test_postgres_jdbc_direct_query(graph, create_entity):
     title = "Limited purpose aquaculture sites"
     table = title.lower().replace(" ", "_").replace("-", "_")
-    columns = ("first_name", "last_name", "width", "length", "gear", "species", "site_id", "location", "site_town")
+    columns = (
+        "first_name",
+        "last_name",
+        "width",
+        "length",
+        "gear",
+        "species",
+        "site_id",
+        "location",
+        "site_town",
+    )
     # response = create_entity(
     #     Collections.__name__,
     #     {
@@ -76,4 +85,3 @@ def test_postgres_jdbc_direct_query(graph, create_entity):
         #     },
         # )
         # assert response.status_code == 200, response.get_json()
-

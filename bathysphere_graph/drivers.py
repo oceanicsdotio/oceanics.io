@@ -5,6 +5,8 @@ from retry import retry
 from requests import post
 from typing import Any
 from enum import Enum
+import hashlib
+import hmac
 
 
 class RelationshipLabels(Enum):
@@ -23,7 +25,26 @@ class CoordinateSystem:
     Periodic = 5
 
 
-def processKeyValue(keyValue, null=False):
+def processKeyValueOutbound(obj, keyValue, private="_"):
+    key, value = keyValue
+    if key == "location":
+        setattr(
+            obj,
+            key,
+            {
+                "type": "Point",
+                "coordinates": eval(value) if isinstance(value, str) else value,
+            },
+        )
+        return
+    try:
+        setattr(obj, key, value)
+    except KeyError:
+        setattr(obj, private + key, value)
+    return
+
+
+def processKeyValueInbound(keyValue, null=False):
     # type: ((str, Any), bool) -> str or None
     key, value = keyValue
     if "location" in key and isinstance(value, dict):
@@ -88,12 +109,16 @@ def jdbcRecords(db, query, auth, connection, database="bathysphere"):
     host, port = connection
     user, password = auth
     return executeQuery(
-        db, lambda tx: tx.run((
-            f"CALL apoc.load.jdbc('jdbc:postgresql://{host}:{port}/{database}?user={user}&password={password}','{query}') "
-            f"YIELD row "
-            f"MERGE n: ()"
-            f"RETURN row"
-        )))
+        db,
+        lambda tx: tx.run(
+            (
+                f"CALL apoc.load.jdbc('jdbc:postgresql://{host}:{port}/{database}?user={user}&password={password}','{query}') "
+                f"YIELD row "
+                f"MERGE n: ()"
+                f"RETURN row"
+            )
+        ),
+    )
 
 
 def unit():
@@ -127,3 +152,32 @@ def testBindingCapability(self, message):
     :return:
     """
     return f"{message} from {repr(self)}"
+
+
+def storeJson(name, data, apiKey, headers=None):
+    _transmit = dumps(
+        {
+            "headers": {
+                "x-amz-meta-service-file-type": "index",
+                "x-amz-acl": "public-read",
+                "x-amz-meta-extent": "null",
+                **(headers or {}),
+            },
+            "object_name": f"{name}/index.json",
+            "bucket_name": "bathysphere-test",
+            "data": dumps(data).encode(),
+            "content_type": "application/json",
+        }
+    )
+    response = post(
+        url="http://faas.oceanics.io:8080/async-function/repository",
+        data=_transmit,
+        headers={
+            "hmac": hmac.new(
+                apiKey.encode(),
+                _transmit.encode(),
+                hashlib.sha1,
+            ).hexdigest()
+        },
+    )
+    assert response.status_code == 202

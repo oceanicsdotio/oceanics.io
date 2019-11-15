@@ -4,10 +4,11 @@ from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from passlib.apps import custom_app_context
 import hashlib
 import hmac
-
+from functools import reduce
 
 from bathysphere_graph.models import *
-from bathysphere_graph import appConfig
+from bathysphere_graph import appConfig, app
+
 ExtentType = (float, float, float, float)
 ResponseJSON = (dict, int)
 ResponseOctet = (dict, int)
@@ -18,12 +19,11 @@ def context(fcn):
     """
     Inject graph database session into request.
     """
-
     def wrapper(*args, **kwargs):
         host = app.app.config["EMBEDDED_NAME"]
         port = app.app.config["NEO4J_PORT"]
         default_auth = tuple(app.app.config["NEO4J_AUTH"].split("/"))
-        db = connectBolt(
+        db = connect(
             host=host,
             port=port,
             defaultAuth=default_auth,
@@ -34,23 +34,16 @@ def context(fcn):
         if isinstance(db, (dict, list)):
             return db, 500
 
-        if not records(db=db, **{"cls": Root.__name__, "identity": 0, "result": "id"}):
-            root_item = create(
-                db, obj=Root(url=f"{host}:{port}", secretKey=app.app.config["SECRET"])
-            )
+        if not Root.records(db=db, **{"id": 0, "result": "id"}):
+            root_item = Root.create(db, url=f"{host}:{port}", secretKey=app.app.config["SECRET"])
             for ing in appConfig[Ingresses.__name__]:
                 if ing.pop("owner", False):
                     ing["apiKey"] = app.app.config["API_KEY"]
-                _ = create(
-                    db,
-                    obj=Ingresses(**ing),
-                    **{"links": [{"label": "Linked", **root_item}]},
-                )
+                _ = Ingresses.create(db, **{"links": [{"label": "Linked", **root_item}]})
         try:
             return fcn(*args, db=db, **kwargs)
         except Exception as e:
             return {"message": f"{e} error during call"}, 500
-
     return wrapper
 
 
@@ -73,15 +66,15 @@ def authenticate(fcn):
         try:
             secret = kwargs.get("secret", None)
             if not secret:
-                root = load(db=db, cls=Root.__name__, identity=0).pop()
+                root = Root.load(db=db, id=0).pop()
                 secret = root._secretKey
             # first try to authenticate by token
             decoded = Serializer(secret).loads(credential)
         except:
-            accounts = load(db=db, cls=User.__name__, identity=value)
+            accounts = User.load(db=db, identity=value)
             _token = False
         else:
-            accounts = load(db=db, cls=User.__name__, identity=decoded["id"])
+            accounts = User.load(db=db, identity=decoded["id"])
             _token = True
 
         if not accounts:
@@ -106,10 +99,7 @@ def register(body, db, **kwargs):
     """
     Register a new user account
     """
-    api_key = body.get("apiKey", "")
-    collection = load(db=db, cls=Ingresses.__name__)
-    ingress = list(filter(lambda x: x._apiKey == api_key, collection))
-
+    ingress = Ingresses.load(db=db, _apiKey=body.get("apiKey", ""))
     if len(ingress) != 1:
         return {"message": "bad API key"}, 403
     portOfEntry = ingress.pop()
@@ -117,20 +107,19 @@ def register(body, db, **kwargs):
     username = body.get("username")
     if not ("@" in username and "." in username):
         return {"message": "use email"}, 403
-    if records(db=db, cls=User.__name__, identity=username, result="id"):
+
+    if User.records(db=db, identity=username, result="id"):
         return {"message": "invalid email"}, 403
 
     _, domain = username.split("@")
     if portOfEntry.name != "Public" and domain != portOfEntry.url:
         return {"message": "invalid email"}, 403
-    _ = create(
+    _ = User.create(
         db=db,
-        obj=User(
-            name=username,
-            credential=custom_app_context.hash(body.get("password")),
-            ip=request.remote_addr,
-        ),
-        links=[{"label": "Member", "cls": repr(portOfEntry), "id": portOfEntry.id}],
+        links=[{"label": "Member", "cls": Ingresses.__name__, "id": portOfEntry.id}],
+        name=username,
+        credential=custom_app_context.hash(body.get("password")),
+        ip=request.remote_addr,
     )
     return None, 204
 
@@ -142,14 +131,13 @@ def manageAccount(db, user, body, **kwargs):
     """
     Change account settings
     """
-
     allowed = {"alias", "delete"}
     if any(k not in allowed for k in body.keys()):
         return "Bad request", 400
     if body.get("delete", False):
-        delete(db, cls=repr(user), id=user.id, by=int)
+        User.delete(db, id=user.id)
     else:
-        _ = mutate(db, data=body, obj=user)
+        _ = User.mutate(db, data=body, obj=user)
     return None, 204
 
 
@@ -162,19 +150,17 @@ def authToken(db, user, secret=None, **kwargs):
     """
     if not user:
         return None, 403
-    root = load(db=db, cls="Root").pop()
-    return (
-        {
-            "token": Serializer(
-                secret_key=secret if secret else root._secretKey,
-                expires_in=root.tokenDuration,
-            )
-            .dumps({"id": user.id})
-            .decode("ascii"),
-            "duration": root.tokenDuration,
-        },
-        200,
-    )
+    root = Root.load(db).pop()
+    payload = {
+        "token": Serializer(
+            secret_key=secret or root._secretKey,
+            expires_in=root.tokenDuration,
+        )
+        .dumps({"id": user.id})
+        .decode("ascii"),
+        "duration": root.tokenDuration,
+    }
+    return payload, 200
 
 
 @context
@@ -213,86 +199,31 @@ def createEntity(db, user, entity, body, **kwargs):
     Attach to db, and find available ID number to register the entity
     """
     _ = body.pop("entityClass")  # only used for API discriminator
-    _links = body.pop("links", {})
-    obj = eval(entity)(**body)
-    bind = (testBindingCapability,) if entity == Catalogs.__name__ else ()
-    indices = ("id", "name") if type(obj) in NamedIndex else ("id",)
-    for fcn in bind:
-        try:
-            setattr(obj, fcn.__name__, MethodType(fcn, obj))
-        except Exception as ex:
-            # log(f"{ex}")
-            pass
+    declaredLinks = body.pop("links", {})
+    linkMetadata = {"confidence": 1.0, "weight": 1.0, "cost": 0.0}
 
-    _ = create(
-        db=db,
-        obj=obj,
-        indices=indices,
-        links=chain(
-            (
-                (
-                    {
-                        "cls": Ingresses.__name__,
-                        "id": r[0],
-                        "label": "Provider",
-                        "props": {"confidence": 1.0, "weight": 1.0, "cost": 0.0},
-                    }
-                    for r in relationships(
-                        db=db,
-                        parent={"cls": "User", "id": user.id},
-                        child={"cls": "Ingresses"},
-                        result="b.id",
-                        label="Member",
-                    )
-                )
-                if not isinstance(obj, Ingresses)
-                else ()
-            ),
-            (
-                {
-                    "cls": repr(user),
-                    "id": user.id,
-                    "label": "Post",
-                    "props": {"confidence": 1.0, "weight": 1.0, "cost": 0.0},
-                },
-            ),
-            *(
-                (
-                    {
-                        "cls": key,
-                        "props": {"confidence": 1.0, "weight": 1.0, "cost": 0.0},
-                        **each,
-                    }
-                    for each in val
-                )
-                for key, val in _links.items()
-            ),
-        ),
-    )
+    provenance = tuple({
+        "cls": Ingresses.__name__,
+        "id": r[0],
+        "label": "Provider",
+    } for r in Link.query(db=db, a=user, b=Ingresses, result="b.id"))
 
-    data = serialize(db, obj, service=app.app.config["HOST"])
+    poster = ({
+        "cls": User.__name__,
+        "id": user.id,
+        "label": "Post",
+    },) if eval(entity) not in (Ingresses, User) else ()
+
+    parseLink = map(lambda k, v: (each.update({
+        "cls": k,
+    }) for each in v), declaredLinks.items())
+
+    createLinks = (link.update(linkMetadata) for link in chain(provenance, poster, *parseLink))
+
+    e = eval(entity).create(db=db, links=createLinks, **body)
+    data = e.serialize(db, service=app.app.config["service"])
     if entity in (Collections.__name__, Catalogs.__name__):
-        name = obj.name.lower().replace(" ", "-")
-        _transmit = dumps({
-            "headers": {
-                "x-amz-meta-service-file-type": "index",
-                "x-amz-acl": "public-read",
-                "x-amz-meta-extent": "null",
-                **appConfig["headers"],
-            },
-            "object_name": f"{name}/index.json",
-            "bucket_name": "bathysphere-test",
-            "data": dumps(data).encode(),
-            "content_type": "application/json"
-        })
-        response = post(
-            url="http://faas.oceanics.io:8080/async-function/respository",
-            data=_transmit,
-            headers={
-                "hmac": hmac.new(app.app.config["HMAC_KEY"].encode(), _transmit.encode(), hashlib.sha1).hexdigest()
-            }
-        )
-        assert response.status_code == 202
+        storeJson(e.name.lower().replace(" ", "-"), data, app.app.config["HMAC_KEY"], appConfig["headers"])
     return {"message": f"Create {entity}", "value": data}, 200
 
 
@@ -304,22 +235,20 @@ def mutateEntity(body, db, entity, id, user, **kwargs):
     Give new values for the properties of an existing entity.
     """
     _ = body.pop("entityClass")  # only used for API discriminator
-    _ = mutate(db=db, data=body, cls=entity, identity=id, props={})
-    createLinks = [{"cls": repr(user), "id": user.id, "label": "Put"}]
-    if entity != Ingresses.__name__:
-        createLinks.extend(
-            [
+    cls = eval(entity)
+    _ = cls.mutate(db=db, data=body, identity=id, props={})
+    createLinks = chain(({"cls": repr(user), "id": user.id, "label": "Put"},),(
                 {"cls": Ingresses.__name__, "id": r[0], "label": "Provider"}
-                for r in relationships(
+                for r in Link.query(
                     db=db,
                     parent={"cls": repr(user), "id": user.id},
                     child={"cls": Ingresses.__name__},
                     result="b.id",
                     label="Member",
                 )
-            ]
-        )
-    link(db=db, root={"cls": entity, "id": id}, children=createLinks)
+    ) if entity != Ingresses.__name__ else ())
+
+    Link.join(db=db, a=cls(id=id), b=createLinks)
     return None, 204
 
 
@@ -330,59 +259,54 @@ def getCollection(db, user, entity, **kwargs):
     """
     Usage 2. Get all entities of a single class
     """
-    host = app.app.config["HOST"]
-    e = load(db=db, user=user, cls=entity)
-    if not e:
-        e = []
-    data = {
-        "@iot.count": len(e),
-        "value": tuple(serialize(db=db, obj=item, service=host) for item in e),
-    }
-    return data, 200
+    items = tuple(
+        item.serialize(db=db, service=app.app.config["service"])
+        for item in (
+            eval(entity).load(db=db, user=user) or ()
+        )
+    )
+    return {
+        "@iot.count": len(items),
+        "value": items,
+    }, 200
 
 
 @context
 @authenticate
-def getEntity(db, user, entity, id, key=None, method=None, **kwargs):
-    # type: (Driver, User, str, int, str, str, **dict)  -> (dict, int)
+def getEntity(db, user, entity, id, key=None, **kwargs):
+    # type: (Driver, User, str, int, str, **dict)  -> (dict, int)
     """
-    Usage 3. Return information on a single entity
-    Usage 4. Return single entity property
-    Usage 5. Return the value of single property of the entity
+    Usage 3-5. Return information on a single entity, single entity property, value of single property of the entity
     """
-    host = app.app.config["HOST"]
-    e = load(db=db, user=user, cls=entity, identity=id)
-    if len(e) != 1:
-        value = {
-            "error": "duplicate entries found",
-            "value": tuple(serialize(db=db, obj=item, service=host) for item in e),
-        }
-        return value, 500
-
-    if key is not None:
-        value = getattr(e[0], key)
-        return {{"value": value} if method == "$value" else {key: value}}, 200
-
-    value = {
-        "@iot.count": len(e),
-        "value": tuple(serialize(db=db, obj=item, service=host) for item in e),
-    }
-    return value, 200
+    value = tuple(
+        getattr(item, key) if key else
+        item.serialize(db=db, service=app.app.config["service"])
+        for item in (
+            eval(entity).load(db=db, user=user, id=id) or ()
+        )
+    )
+    return {
+        "@iot.count": len(value),
+        "value": value,
+    }, 200
 
 
 @context
 @authenticate
 def linkedEntities(db, root, rootId, entity, **kwargs):
     # type: (Driver, str, int, str, dict) -> (dict, int)
-    host = app.app.config["HOST"]
-    e = relationships(
-        db=db, parent={"cls": root, "id": rootId}, child={"cls": entity}, result="b"
+    items = tuple(
+        item.serialize(db=db, service=app.app.config["service"])
+        for item in (
+            Link.query(
+                db=db, parent={"cls": root, "id": rootId}, child={"cls": entity}, result="b"
+            ) or ()
+        )
     )
-    data = {
-        "@iot.count": len(e),
-        "value": tuple(serialize(db=db, obj=obj[0], service=host) for obj in e),
-    }
-    return data, 200
+    return {
+       "@iot.count": len(items),
+       "value": items,
+    }, 200
 
 
 @context
@@ -392,7 +316,7 @@ def deleteEntity(db, entity, id, **kwargs):
     """
     Delete entity, and all owned/attached entities, follow SensorThings logic
     """
-    delete(db, cls=entity, id=id, **kwargs)
+    eval(entity).delete(db, id=id)
     return None, 204
 
 
@@ -400,23 +324,13 @@ def deleteEntity(db, entity, id, **kwargs):
 @authenticate
 def addLink(db, root, rootId, entity, id, body, **kwargs):
     # type: (Driver, str, int, str, int, dict, dict) -> (None, int)
-    link(
-        db=db,
-        root={"cls": root, "id": rootId},
-        children=({"cls": entity, "id": id, "label": body.get("label", "Linked")},),
-        props=body.get("props", None),
-    )
+    Link.join(db, (eval(root)(id=rootId), eval(entity)(id=id)), body.get("props", None))
     return None, 204
 
 
 @context
 @authenticate
-def breakLink(db, root, rootId, entity, id, label="Linked", **kwargs):
-    # type: (Driver, str, int, str, int, str, dict) -> (None, int)
-    link(
-        db=db,
-        root={"cls": root, "id": rootId},
-        children=({"cls": entity, "id": id, "label": label},),
-        drop=True,
-    )
+def breakLink(db, root, rootId, entity, id, props, **kwargs):
+    # type: (Driver, str, int, str, int, dict, dict) -> (None, int)
+    Link.drop(db, (eval(root)(id=rootId), eval(entity)(id=id)), props)
     return None, 204
