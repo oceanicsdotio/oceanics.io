@@ -4,7 +4,7 @@ from time import time, sleep
 from socket import create_connection
 from yaml import load as load_yml, Loader
 
-from utils import log, synchronous
+from drivers import log, synchronous
 from math import floor
 
 
