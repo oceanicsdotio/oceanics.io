@@ -33,13 +33,7 @@ def test_collection_create(create_entity, mutate_entity):
             "version": 1,
             "keywords": "oysters,aquaculture,Maine,ShellSIM",
             "providers": None,
-            "links": {
-                "Catalogs": [
-                    {
-                        "name": "oceanicsdotio-test"
-                    }
-                ]
-            }
+            "links": {"Catalogs": [{"name": "oceanicsdotio-test"}]},
         },
     )
     data = response.get_json()

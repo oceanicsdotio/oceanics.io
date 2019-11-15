@@ -6,15 +6,12 @@ from pickle import load as unpickle
 from uuid import uuid4
 from itertools import chain
 from neo4j.v1 import Node
+from inspect import signature
 
 from bathysphere_graph.drivers import *
 
 
 class Entity:
-
-    _metadata = {}
-    __symbol = "n"
-
     def __init__(self, identity=None, annotated=False, location=None):
         # type: (int or None, bool, list or tuple or None) -> None
         """
@@ -26,6 +23,7 @@ class Entity:
         """
         self.id = identity
         self.uuid = None
+        self.__symbol = "n"
         if annotated:
             self.name = None
             self.description = None
@@ -36,8 +34,10 @@ class Entity:
         """
         (n:Class { <var>: $<var>, <k>: <v>, <k>: <v> })
         """
-        entity = ":" + type(self).__name__ if type(self) not in (Entity, External) else ""
-        pattern = filter(lambda x: x, map(processKeyValue, self._properties()))
+        entity = (
+            ":" + type(self).__name__ if type(self) not in (Entity, External) else ""
+        )
+        pattern = filter(lambda x: x, map(processKeyValueInbound, self._properties()))
         return f"({self.__symbol}{entity} {{ {', '.join(pattern)} }} )"
 
     def __str__(self):
@@ -48,20 +48,24 @@ class Entity:
         """
         Create a filtered dictionary from the object properties.
         """
+
         def _filter(keyValue):
             key, value = keyValue
             return (
-                    not isinstance(value, Callable)
-                    and isinstance(key, str)
-                    and (key[: len(private)] != private if private else True)
-                    and (key in select if select else True)
+                not isinstance(value, Callable)
+                and isinstance(key, str)
+                and (key[: len(private)] != private if private else True)
+                and (key in select if select else True)
             )
+
         return {k: v for k, v in filter(_filter, self.__dict__.items())}
 
     @classmethod
     def addConstraint(cls, db, by):
         # type: (Entity, str) -> Callable
-        query = lambda tx: tx.run(f"CREATE CONSTRAINT ON (n:{cls.__name__}) ASSERT n.{by} IS UNIQUE")
+        query = lambda tx: tx.run(
+            f"CREATE CONSTRAINT ON (n:{cls.__name__}) ASSERT n.{by} IS UNIQUE"
+        )
         return executeQuery(db, query, access_mode="write")
 
     @classmethod
@@ -83,8 +87,10 @@ class Entity:
         Update/add node properties
         """
         e = cls(**kwargs)
-        _updates = ', '.join(map(processKeyValue, data.items()))
-        query = lambda tx: tx.run(f"MATCH {repr(e)} SET {e.__symbol} += {{ {_updates} }}").values()
+        _updates = ", ".join(map(processKeyValueInbound, data.items()))
+        query = lambda tx: tx.run(
+            f"MATCH {repr(e)} SET {e.__symbol} += {{ {_updates} }}"
+        ).values()
         return executeQuery(db, query, access_mode="write")
 
     @classmethod
@@ -94,7 +100,9 @@ class Entity:
         Remove all nodes from the graph, can optionally specify node-matching parameters.
         """
         e = cls(**kwargs)
-        query = lambda tx: tx.run(f"MATCH {repr(e)} DETACH DELETE {e.__symbol}").values()
+        query = lambda tx: tx.run(
+            f"MATCH {repr(e)} DETACH DELETE {e.__symbol}"
+        ).values()
         return executeQuery(db, query, access_mode="write")
 
     @classmethod
@@ -114,8 +122,10 @@ class Entity:
         Count occurrence of a class label or pattern in Neo4j.
         """
         e = cls(**kwargs)
-        query = lambda tx: tx.run(f"MATCH {repr(e)} RETURN count({e.__symbol})").single()[0]
-        return executeQuery(db, query)
+        query = lambda tx: tx.run(
+            f"MATCH {repr(e)} RETURN count({e.__symbol})"
+        ).single()[0]
+        return executeQuery(db, query, access_mode="read")
 
     @classmethod
     def records(cls, db, user=None, annotate="Get", result=None, **kwargs):
@@ -127,21 +137,24 @@ class Entity:
         if user:
             user.__symbol = "u"
         _query = (
-            f"MATCH {repr(e)}, {repr(user)} "
-            f"MERGE ({e.__symbol})<-[r:{annotate}]-({user.__symbol}) "
-            f"ON CREATE SET r.rank = 1 "
-            f"ON MATCH SET r.rank = r.rank + 1 "
-            f"RETURN {e.__symbol}{'.{}'.format(result) if result else ''}"
-        ) if user else (
-            f"MATCH {repr(e)} "
-            f"RETURN {e.__symbol}{'.{}'.format(result) if result else ''}"
+            (
+                f"MATCH {repr(e)}, {repr(user)} "
+                f"MERGE ({e.__symbol})<-[r:{annotate}]-({user.__symbol}) "
+                f"ON CREATE SET r.rank = 1 "
+                f"ON MATCH SET r.rank = r.rank + 1 "
+                f"RETURN {e.__symbol}{'.{}'.format(result) if result else ''}"
+            )
+            if user
+            else (
+                f"MATCH {repr(e)} "
+                f"RETURN {e.__symbol}{'.{}'.format(result) if result else ''}"
+            )
         )
-        return executeQuery(db, lambda tx: tx.run(_query).values())
-
+        return executeQuery(db, lambda tx: tx.run(_query).values(), access_mode="read")
 
     @classmethod
-    def create(cls, db, link=(), index=("id",), **kwargs):
-        # type: (Entity, Driver, (dict, ), (str,), **dict) -> dict
+    def create(cls, db, link=(), user=None, **kwargs):
+        # type: (Entity, Driver, (dict, ), User, dict) -> dict
         """
         RECURSIVE!
 
@@ -157,11 +170,21 @@ class Entity:
         e.uuid = uuid4().hex
         root = {"cls": cls.__name__, "id": e.uuid}
         executeQuery(db, lambda tx: tx.run(f"MERGE {repr(e)}"))
-
+        bind = (testBindingCapability,) if entity == Catalogs.__name__ else ()
+        indices = ("id", "name") if type(obj) in NamedIndex else ("id",)
+        for fcn in bind:
+            try:
+                setattr(obj, fcn.__name__, MethodType(fcn, obj))
+            except Exception as ex:
+                # log(f"{ex}")
+                pass
         taskingLabel = "Has"
-        boundMethods = set(y[0] for y in filter(lambda x: isinstance(x[1], Callable), e.__dict__.items()))
+        boundMethods = set(
+            y[0]
+            for y in filter(lambda x: isinstance(x[1], Callable), e.__dict__.items())
+        )
         classMethods = set(filter(lambda x: x[: len("_")] != "_", dir(e)))
-        instanceKeys = (boundMethods | classMethods) - set(_props.keys())
+        instanceKeys = (boundMethods | classMethods) - set(e._properties())
         existingItems = {
             x.name: x.id for x in TaskingCapabilities.load(db=db, user=user)
         }
@@ -171,30 +194,39 @@ class Entity:
         for key in instanceKeys - existingKeys:
             try:
                 functions[key] = eval(f"{cls}.{key}")
-            except:
+            except AttributeError:
                 functions[key] = eval(f"obj.{key}")
 
         existingLinks = (
             {
+                "label": "Has",
                 "cls": TaskingCapabilities.__name__,
                 "id": existingItems[key],
-            } for key in (existingKeys & instanceKeys)
+            }
+            for key in (existingKeys & instanceKeys)
         )
 
         createLinks = (
-            TaskingCapabilities.create(
-                db=db,
-                name=key,
-                description=fcn.__doc__,
-                taskingParameters=[
-                    {
-                        "name": b.name,
-                        "description": "",
-                        "type": "",
-                        "allowedTokens": [""],
-                    } for b in signature(fcn).parameters.values()
-                ],
-            ) for key, fcn in functions.items()
+            {
+                "label": "Has",
+                **TaskingCapabilities.create(
+                    db=db,
+                    link=(),
+                    user=user,
+                    name=key,
+                    description=fcn.__doc__,
+                    taskingParameters=(
+                        {
+                            "name": b.name,
+                            "description": "",
+                            "type": "",
+                            "allowedTokens": [""],
+                        }
+                        for b in signature(fcn).parameters.values()
+                    ),
+                ),
+            }
+            for key, fcn in functions.items()
         )
 
         link(db=db, root=root, children=chain(links, existingLinks, createLinks))
@@ -202,40 +234,19 @@ class Entity:
 
     @classmethod
     def load(cls, db, user=None, private="_", **kwargs):
-        # type: (Driver, str, User, str, **dict) -> list or None
+        # type: (Entity, Driver, User, str, **dict) -> list or None
         """
         Create entity instance from a dictionary or Neo4j <Node>, which has an items() method
         that works the same as the dictionary method.
         """
         payload = []
-        for each in records(db=db, user=user, **{"cls": cls.__name__, **kwargs}):
-            payload.append(Entity(None))
-            payload[-1].__class__ = cls
-            for key, value in dict(each[0]).items():
-                if key == "location":
-                    setattr(
-                        payload[-1],
-                        key,
-                        {
-                            "type": "Point",
-                            "coordinates": eval(value) if isinstance(value, str) else value,
-                        },
-                    )
-                    continue
-                try:
-                    setattr(payload[-1], key, value)
-                    continue
-                except KeyError:
-                    setattr(payload[-1], private + key, value)
+        for each in cls.records(db=db, user=user, **kwargs):
+            e = Entity(None)
+            e.__class__ = cls
+            for keyValue in dict(each[0]).items():
+                processKeyValueOutbound(e, keyValue, private)
+            payload.append(e)
         return payload
-
-    def
-    linked = set(
-        label
-        for buffer in relationships(db, parent={"cls": repr(self), "id": identity})
-        for label in buffer[0]
-    )
-
 
 
 class External(Entity):
@@ -243,8 +254,8 @@ class External(Entity):
     External entities can be serialized and reported
     """
 
-    def serialize(self, db, service, protocol="http", select=None, port=None, linked=()):
-        # type: (Entity, Driver, str, str, list, (dict,)) -> dict
+    def serialize(self, db, service, protocol="http", select=None):
+        # type: (External, Driver, str, str, (str,)) -> dict
         """
         Format entity as JSON compatible dictionary from either an object instance or a Neo4j <Node>
 
@@ -255,36 +266,44 @@ class External(Entity):
         restricted = {"User", "Ingresses", "Root"}
         props = self._properties(select=select, private="_")
         identity = props.pop("id")
-
-        collection_link = f"{protocol}://{service}/api/{repr(self)}"
-        self_link = f"{collection_link}({identity})"
-        linked = set(
-            label
-            for buffer in relationships(db, parent={"cls": repr(self), "id": identity})
-            for label in buffer[0]
+        cls = type(self).__name__
+        base_url = f"{protocol}://{service}/api/"
+        root_url = f"{base_url}/{cls}"
+        self_url = (
+            f"{root_url}({self.id})"
+            if isinstance(self.id, int)
+            else f"{base_url}/{self.uuid}"
         )
 
         return {
             "@iot.id": identity,
-            "@iot.selfLink": self_link,
-            "@iot.collection": collection_link,
+            "@iot.selfLink": self_url,
+            "@iot.collection": root_url,
             **props,
             **{
-                each + "@iot.navigation": f"{self_link}/{each}"
-                for each in (linked - restricted)
+                each + "@iot.navigation": f"{self_url}/{each}"
+                for each in set(
+                    label
+                    for buffer in Link.query(
+                        db, parent={"cls": repr(self), "id": identity}
+                    )
+                    for label in buffer[0]
+                    if buffer not in restricted
+                )
             },
         }
 
 
-
 class Link:
+    __symbol = "r"
 
-    def __init__(self, identity=None, label=None, symbol="r", **kwargs):
+    def __init__(self, identity=None, label=None, **kwargs):
         # type: (Link, int, (str, ), dict) -> Link
         self.id = identity
+        self.uuid = None
         self.label = label
-        self.symbol = symbol
         self.props = kwargs
+        self._rank = 0
 
     def __repr__(self):
         """
@@ -293,28 +312,26 @@ class Link:
         labelStr = f":{self.label}" if self.label else ""
         pattern = ""
         if self.props:
-            _pattern = filter(lambda x: x, map(processKeyValue, self.props.items()))
+            _pattern = filter(
+                lambda x: x, map(processKeyValueInbound, self.props.items())
+            )
             pattern += f"{{ {', '.join(_pattern)} }}"
-        return f"[ {self.symbol}{labelStr} {pattern} ]"
+        return f"[ {self.__symbol}{labelStr} {pattern} ]"
 
     @classmethod
-    def create(cls, tx, root, leaf, props, drop):
-        # type: (None, dict, dict, dict, bool) -> Callable
+    def drop(cls, db, nodes, props):
+        # type: (Link, Driver, (Entity, Entity), dict) -> None
+        r = cls(**props)
+        a, b = nodes
+        cmd = f"MATCH {repr(a)}-{repr(r)}-{repr(b)} DELETE {r.__symbol}"
+        return executeQuery(db, lambda tx: tx.run(cmd), access_mode="write")
 
-        _r = cls(label=leaf.get("label", "Linked"), **{"rank": 0, **(props or {})})
-        if leaf.get("id", None) is not None:
-            _b_by = int
-            leafId = leaf["id"]
-        else:
-            _b_by = str
-            leafId = leaf["name"]
-        _a = eval(root["cls"])()._node(symbol="root", by=int, var="root")
-        _b = eval(leaf["cls"])._node(symbol="leaf", cls=leaf["cls"], by=_b_by, var="leaf")
-        if drop:
-            cmd = f"MATCH ({_a})-{repr(_r)}->({_b}) DELETE r"
-        else:
-            cmd = f"MATCH {_a} MATCH {_b} MERGE (root)-{repr(_r)}->(leaf)"
-        return tx.run(cmd, root=root["id"], leaf=leafId).values()
+    @classmethod
+    def join(cls, db, nodes, props):
+        # type: (Link, Driver, (Entity, Entity), dict) -> None
+        a, b = nodes
+        cmd = f"MATCH {repr(a)}, {repr(b)} MERGE ({a.__symbol})-{repr(cls(**props))}->({b.__symbol})"
+        return executeQuery(db, lambda tx: tx.run(cmd), access_mode="write")
 
     @classmethod
     def query(cls, db, label=None, result="labels(b)", pattern=None, **kwargs):
@@ -325,11 +342,11 @@ class Link:
         Increment the pageRank every time the link is traversed.
         """
         query = lambda tx: tx.run(
-            f"MATCH " 
+            f"MATCH "
             f"{repr(cls(**kwargs))}-"
             f"{f'[r:{label}]' if label else '[r]'}-"
             f"{repr(pattern or Entity())}"
-            f"SET r.rank = r.rank + 1 " 
+            f"SET r.rank = r.rank + 1 "
             f"RETURN {result}"
         ).values()
         return executeQuery(db, query, access_mode="read")
@@ -413,7 +430,7 @@ class Device(External):
         name=None,
         description=None,
         encodingType=None,
-        metadata=None
+        metadata=None,
     ):
         """
         Sensor-actuator base class.
@@ -423,7 +440,6 @@ class Device(External):
         :param description: description string
         :param encodingType: encoding of metadata
         :param metadata: metadata
-        :param verb: verbose mode
         """
         External.__init__(self, identity, annotated=True)
         self.name = name
@@ -436,16 +452,13 @@ class Collections(External):
     """
     https://github.com/radiantearth/stac-spec/tree/master/collection-spec
     """
-
-    _stac_enabled = True
-
     def __init__(
         self,
         title="",
         description="",
         identity=None,
         license=None,
-        version=None,
+        version="",
         keywords=None,
         providers=None,
         **kwargs,
@@ -454,19 +467,18 @@ class Collections(External):
         External.__init__(self, identity=identity, annotated=True)
         self.title = self.name = title
         self.description = description
-        self.extent = {"spatial": None, "temporal": None}
+        self.extent = None
         self.license = license
-        self.version = "" if version is None else version
+        self.version = version
         self.keywords = list(set() if keywords is None else set(keywords.split(",")))
         self.providers = providers
 
 
 class Catalogs(External):
     """
-    SpatioTemporal Asset Catalog (STAC) Catalog:
-
     https://github.com/radiantearth/stac-spec/tree/master/catalog-spec
     """
+
     def __init__(self, identity=None, title="", description=""):
         External.__init__(self, identity=identity, annotated=True)
         self.title = self.name = title
@@ -477,18 +489,17 @@ class Items(External):
     """
     https://github.com/radiantearth/stac-spec/blob/master/item-spec/item-spec.md
     """
+    type = "Feature"
+
     def __init__(self, identity=None, title=""):
         External.__init__(self, identity=identity, annotated=True)
         self.bbox = None
         self.assets = None
         self.geometry = None
-        self.properties = {"datetime": datetime.utcnow().isoformat(), "title": title}
-
-        self.type = "Feature"
+        self.properties = None
 
 
 class Datastreams(External):
-
     def __init__(
         self, identity=None, name=None, description=None, unitOfMeasurement=None
     ):
@@ -496,8 +507,7 @@ class Datastreams(External):
         External.__init__(self, identity=identity, annotated=True)
         self.name = name
         self.description = description
-        self.unitOfMeasurement = unitOfMeasurement or {"name": None, "symbol": None, "definition": None} # JSON
-
+        self.unitOfMeasurement = unitOfMeasurement
         self.observationType = None
         self.observedArea = None  # boundary geometry, GeoJSON polygon
         self.phenomenonTime = None  # time interval, ISO8601
@@ -515,7 +525,6 @@ class FeaturesOfInterest(External):
         External.__init__(self, identity, annotated=True)
         self.name = name
         self.description = description
-
         self.encodingType = None
         self.feature = None
 

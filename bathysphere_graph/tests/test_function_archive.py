@@ -42,11 +42,9 @@ def test_get_raw_files():
     queue = directory.get("files")
     result = deque(
         _file_metadata(
-            directory["url"],
-            f.name,
-            f.ts.strftime("%d-%b-%Y %H:%M"),
-            str(f.kb) + "K",
-        ) for f in queue
+            directory["url"], f.name, f.ts.strftime("%d-%b-%Y %H:%M"), str(f.kb) + "K"
+        )
+        for f in queue
     )
 
     with open(f"{file}-annotated", "wb+") as fid:
