@@ -2,7 +2,7 @@ openapi: "3.0.0"
 
 info:
   title: "Bathysphere API"
-  version: "1.0"
+  version: "1.4"
   description: |
 
     Bathysphere is a geospatial library and application thats operates as infrastructure for other
