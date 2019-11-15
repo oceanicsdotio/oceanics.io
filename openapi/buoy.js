@@ -1,4 +1,4 @@
-let MAPBOX = 'pk.eyJ1Ijoib2NlYW5pY3Nkb3RpbyIsImEiOiJjam5vYXNzeHMwMXJhM3BudjZpaGt0ZzRuIn0.NxwJU6f1rDi9TImfqZ8Z_A';
+let MAPBOX = 'pk.eyJ1Ijoib2NlYW5pY3Nkb3RpbyIsImEiOiJjazMwbnRndWkwMGNxM21wYWVuNm1nY3VkIn0.5N7C9UKLKHla4I5UdbOi2Q';
 let MAPBOX_STYLE = 'mapbox://styles/oceanicsdotio/cjnoaz4rf13ly2sla2keyuarx';
 
 class Context {
