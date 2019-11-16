@@ -1,4 +1,4 @@
-image: ubuntu
+image: python3
 
 options:
   docker: true
