@@ -2,7 +2,7 @@ FROM python:3.7-alpine
 
 WORKDIR bathysphere_graph
 COPY openapi/api.yml ./openapi/api.yml
-COPY config/app.yml ./config/app.yml
+COPY config/bathysphere.yml ./config/bathysphere.yml
 COPY config/requirements.txt ./requirements.txt
 COPY bathysphere_graph ./bathysphere_graph
 COPY src ./src

@@ -38,9 +38,6 @@ environment:
 specPath: "openapi/api.yml"
 basePath: "/api"
 enableSwagger: false
-lock: "lock.json"
-index: "index.json"
-
 
 bucketName: "oceanicsdotio"
 storageLocalCache: "data/"
@@ -52,36 +49,6 @@ headers:
   x-amz-acl: "public-read"
   x-amz-meta-service: "bathysphere"
 
-landsat:
-  resolution: 30.0
-  region: "mid_maine"
-  sensors:
-    - "OLI"
-    - "TIRS"
-  datum: "WGS84"
-  proj: "UTM"
-  dtfmt: "%Y:%j:%H:%M:%S"
-  codec: "ISO-8859-1"
-
-  file_generator:
-    root: "LC8011030"
-    suffix: "LGN00"
-    translator":
-       OSI: "OSI"
-       SST: "SSTiterate"
-       chl: "CHL"
-       spm: "SPM"
-       lat: "LAT"
-       lon: "LON"
-
-avhrr:
-  AVHRR_SST: "sea_surface_temperature"
-
-clipping:
-  roi: "[-69.5, 43.0, -69.1, 43.9]"
-  subext: "[-72.5, 42.1, -69.5, 44.2]"
-  extent: "[-70.7, 42.15, -69, 44.25]"
-  avhrr_outliers: "[-2.0, 28.875]"
 
 models:
 
@@ -165,7 +132,6 @@ ObservedProperties:
   - name: transmission
   - name: turbidity
   - name: voltage
-
 
   - name: nprocs
     description: Number of processes used in simulation
@@ -589,6 +555,7 @@ Observations:
 TaskingCapabilities: []
 
 Tasks:
+
   - taskingParameters:
       location: host:port/endpoint
       message: something
@@ -599,11 +566,6 @@ Tasks:
 
 
 Actuators:
-  - name: Solenoid
-    links:
-      Things:
-        - name: Land Ocean Biogeochemical Observatory
-          label: Linked
 
   - name: Solenoid
     links:
@@ -617,56 +579,90 @@ Actuators:
         - name: Land Ocean Biogeochemical Observatory
           label: Linked
 
+  - name: Solenoid
+    links:
+      Things:
+        - name: Land Ocean Biogeochemical Observatory
+          label: Linked
 
-servers:
-  - name: NECOFS data
+
+Servers:
+
+  necofs:
+
+    name: NECOFS data
     service: "thredds/dodsC/models/fvcom/NECOFS/Archive/Seaplan_33_Hindcast_v1"
     protocol: "http"
-    hosts:
-      - "www.smast.umassd.edu"
+    hosts: ["www.smast.umassd.edu"]
     port: 8080
     target: "gom3_{}.nc"
     format: NetCDF
 
-  - name: University of Maine Satellite Data
-    hosts:
-      - "misclab.umeoce.maine.edu"
-    protocol: "ftp"
-    service: "users/misclab/coastal_sat"
-    target: "LC8011030JulyAvLGN00_OSI.nc"
-    format: NetCDF
+  misclab:
+
+    name: University of Maine Satellite Data
+    hosts: [ misclab.umeoce.maine.edu ]
+    protocol: ftp
     port: 80
-
-  - name: S3 Storage
-    hosts:
-      - "bathysphere_minio"
-      - "minio"
-      - "localhost"
-    port: 9000
-    format: Binary
+    service: users/misclab/coastal_sat
+    targets:
+      - name: LC8011030JulyAvLGN00_OSI.nc
+        format: netcdf
+      - name: LC08_L1TP_011030_20170709_20170717_01_T1_B10.tif
+        format: geotiff
 
 
-  - name: Graph API
-    hosts:
-      - "localhost"
-    port: 5000
-    service: "api"
-    protocol: https
-    format: JSON
+    wellKnown:
+      landsat:
+        resolution: 30.0
+        region: "mid_maine"
+        sensors:
+          - "OLI"
+          - "TIRS"
+        datum: "WGS84"
+        proj: "UTM"
+        dtfmt: "%Y:%j:%H:%M:%S"
+        codec: "ISO-8859-1"
 
-  - name: National Oceanography Data Center
-    host: "https://data.nodc.noaa.gov/"
+        file_generator:
+          root: "LC8011030"
+          suffix: "LGN00"
+          translator":
+            OSI: "OSI"
+            SST: "SSTiterate"
+            chl: "CHL"
+            spm: "SPM"
+            lat: "LAT"
+            lon: "LON"
 
-  - name: Other
-    assets:
-      - f"http://data.nodc.noaa.gov/thredds/dodsC/pathfinder/Version5.3/L3C/{filename[0:4]}/data/{filename}"
-      - "20170709140704-NCEI-L3C_GHRSST-SSTskin-AVHRR_Pathfinder-PFV5.3_NOAA19_G_2017190_day-v02.0-fv01.0.nc"
+  nodc:
+
+    name: National Oceanography Data Center
+    hosts: ["data.nodc.noaa.gov"]
+    protocol: "https"
+    service: "/thredds/dodsC/pathfinder/Version5.3/L3C/{}/data/{}"
+    target: "20170709140704-NCEI-L3C_GHRSST-SSTskin-AVHRR_Pathfinder-PFV5.3_NOAA19_G_2017190_day-v02.0-fv01.0.nc"
+
+    metadata:
+      outliers: [-2.0, 28.875]
+      observedProperties: ["sea_surface_temperature"]
+      clipping:
+        roi: "[-69.5, 43.0, -69.1, 43.9]"
+        subext: "[-72.5, 42.1, -69.5, 44.2]"
+        extent: "[-70.7, 42.15, -69, 44.25]"
+
+  local:
+
+    name: Other
+
       - "LC08_L1TP_011030_20170709_20170717_01_T1_B10.tif"
 
-  - service: "cgi-data/nph-data.cgi"
+  loboviz:
+
+    service: "cgi-data/nph-data.cgi"
     protocol: "http"
-    subdomain: "maine"
-    home: "loboviz.com"
-    admin: "info.html"
-    data: "archive"
-    metadata: "ingestorxml"
+    hosts: ["maine.loboviz.com", "bowdoin.loboviz.com"]
+    locations:
+      admin: "info.html"
+      data: "archive"
+      metadata: "ingestorxml"
