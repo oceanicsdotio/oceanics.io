@@ -7,7 +7,6 @@ from json import loads
 from functools import reduce
 
 
-
 def searchTree(pattern, filesystem):
     # type: (str, dict) -> None or str
     """

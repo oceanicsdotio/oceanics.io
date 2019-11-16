@@ -113,6 +113,8 @@ Functions-as-a-Service ([FaaS](https://github.com/openfaas/workshop/blob/master)
 ```bash
 brew install faas-cli
 faas-cli list --verbose
+faas-cli login --password $OPENFAAS_KEY
+
 docker service create -d \
 --name=grafana \
 --publish=3000:3000 \

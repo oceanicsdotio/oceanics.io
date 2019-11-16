@@ -6,18 +6,19 @@ from io import BytesIO
 from minio import Minio
 from minio.error import NoSuchKey
 from uuid import uuid4
+from datetime import datetime
+from flask import Response
+from redis import StrictRedis
 
-#
-# def listener(storage, bucket_name, filetype="", channel="bathysphere-events"):
-#     fcns = ("s3:ObjectCreated:*", "s3:ObjectRemoved:*", "s3:ObjectAccessed:*")
-#     r = StrictRedis()
-#     ps = r.pubsub()
-#     for event in storage.listen_bucket_notification(
-#             bucket_name, "", filetype, fcns
-#     ):
-#         ps.publish(channel, str(event))
 
-storage = Minio(**appConfig["storage"])
+def listener(storage, bucket_name, filetype="", channel="bathysphere-events"):
+    fcns = ("s3:ObjectCreated:*", "s3:ObjectRemoved:*", "s3:ObjectAccessed:*")
+    r = StrictRedis()
+    ps = r.pubsub()
+    for event in storage.listen_bucket_notification(
+            bucket_name, "", filetype, fcns
+    ):
+        ps.publish(channel, str(event))
 
 
 def locking(fcn):
@@ -25,95 +26,32 @@ def locking(fcn):
         # type: (Minio, str, str, str, dict, list, dict) -> Any
 
         _lock = {"session": sess, "object_name": f"{name}/lock.json"}
-        obj = declareObject(
+        create(
             bucket_name=bucket_name,
             object_name=f"{name}/lock.json",
-            data={sess: []},
+            buffer=dumps({sess: []}).encode(),
             metadata={
                 "x-amz-meta-created": datetime.utcnow().isoformat(),
                 "x-amz-acl": "private",
                 "x-amz-meta-service-file-type": "lock",
                 **(headers if headers else {}),
             },
-            replace=False,
             storage=storage,
+            content_type="application/json"
         )
-        if obj is None:
-            return "Repository lock failure", 500
-
-        result = fcn(storage=storage, dataset=None, *args, session=session, **kwargs)
-
-        if unlock(**_lock):
-            raise BlockingIOError
-
+        result = fcn(storage=storage, dataset=None, *args, session=sess, **kwargs)
+        unlock(**_lock)
         return result
-
     return wrapper
 
 
-def session(fcn):
-    # type: (Callable) -> Callable
-    def wrapper(*args, **kwargs):
-        # type: (*list, **dict) -> Any
-        return fcn(
-            *args,
-            storage=Minio(**appConfig["storage"]),
-            bucket_name=appConfig["bucketName"],
-            session=str(uuid4()).replace("-", ""),
-            **kwargs,
-        )
-
-    return wrapper
-
-
-def artifact(fcn):
-    # type: (Callable) -> Callable
-
-    def wrapper(storage, bucket_name, object_name, *args, **kwargs):
-        # type: (Minio, str, str, list, dict) -> Any
-
-        result = fcn(storage=storage, dataset=None, *args, session=session, **kwargs)
-
-        _ = declareObject(
-            storage=storage,
-            bucket_name=bucket_name,
-            object_name=f"{object_name}.png",
-            data=result,
-            metadata={
-                "x-amz-meta-created": datetime.utcnow().isoformat(),
-                "x-amz-meta-service-file-type": image,
-                "x-amz-meta-extent": None,
-                "x-amz-acl": "private",  # "public-read"
-                "x-amz-meta-parent": None,
-            },
-            content_type="image/png",
-        )
-        return send_file(result, mimetype="image/png")
-
-    return wrapper
-
-@session
-@locking
-async def updateCatalog(body, storage, name, **kwargs):
-    # type: (dict, Minio, str, dict) -> ResponseJSON
+def updateJson(storage, bucket_name, object_name, metadata, entries, props):
+    # type: (Minio, str, str, dict, dict, dict) -> None
     """
     Update contents of index metadata
     """
-    _index = appConfig["index"]
-    bucket_name = appConfig["storage"]["bucketName"]
-    if collection:
-        object_name = f"{collection}/{_index}"
-    else:
-        object_name = _index
-    try:
-        stat = storage.stat_object(bucket_name, object_name)
-    except NoSuchKey:
-        return f"{object_name} not found", 404
-
-    metadata = body.get("metadata", {})
-    key_value = body.get("entries", {})
-
-    if not key_value:
+    stat = storage.stat_object(bucket_name, object_name)
+    if not entries:
         storage.copy_object(
             bucket_name=bucket_name,
             object_name=object_name,
@@ -121,40 +59,34 @@ async def updateCatalog(body, storage, name, **kwargs):
             metadata=metadata,
         )
     else:
-        await declareObject(
+        create(
             storage=storage,
-            data={
+            buffer=dumps({
                 **loads(storage.get_object(bucket_name, object_name).data),
-                **key_value,
-                **body.get("properties", {}),
-            },
+                **(entries or {}),
+                **(props or {}),
+            }).encode(),
             bucket_name=bucket_name,
             object_name=object_name,
-            metadata={**stat.metadata, **metadata},
+            metadata={**stat.metadata, **(metadata or {})},
+            content_type="application/json"
         )
 
-]
-@session
-@authenticate
+
 def streamObject(storage, bucket_name, object_name):
-    # type: (Minio, str, str) -> ResponseJSON
+    # type: (Minio, str, str) -> Response
     """
     Retrieve metadata for single item, and optionally the full dataset
     """
-    try:
-        obj = storage.get_object(bucket_name, object_name)
-    except NoSuchKey:
-        return None
+    obj = storage.get_object(bucket_name, object_name)
 
     def generate():
         for d in obj.stream(32 * 1024):
             yield d
-
     return Response(generate(), mimetype="application/octet-stream")
 
 
-
-def create(bucket_name, object_name, buffer, content_type, metadata):
+def create(storage, bucket_name, object_name, buffer, content_type, metadata):
     storage.put_object(
         bucket_name=bucket_name,
         object_name=object_name,
@@ -165,7 +97,7 @@ def create(bucket_name, object_name, buffer, content_type, metadata):
     )
 
 
-def delete(bucket_name, prefix, batch=10):
+def delete(storage, bucket_name, prefix, batch=10):
     """
     Delete all objects within a subdirectory or abstract collection
 
@@ -192,10 +124,6 @@ def delete(bucket_name, prefix, batch=10):
             remove = ()
         if stop:
             break
-
-
-def update():
-    pass
 
 
 def unlock(storage, bucket_name, object_name):

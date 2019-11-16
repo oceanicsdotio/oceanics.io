@@ -1,71 +1,94 @@
-from json import loads as load_json
-from multiprocessing import Pool
+from json import loads, dumps
 from yaml import load, Loader
-from .views import extract_json_series, consume, apply_series, apply_style, Time, update_extent, _loc, Spatial
+from collections import deque
+from numpy import arange, array
+from matplotlib import cm
+from itertools import repeat
+from .views import Time, Spatial
+from os import getenv
+from minio import Minio
+from datetime import datetime
+from io import BytesIO
+
 
 ResponseJSON = (dict, int)
 ResponseOctet = (dict, int)
-_styles = load(open("styles.yml"), Loader)
+
+with open("function/styles.yml", "r") as fid:
+    styles = load(fid, Loader)
+with open("/var/openfaas/secrets/image-bucket-name", "r") as fid:
+    bucketName = fid.read()
+with open("/var/openfaas/secrets/spaces-connection", "r") as fid:
+    connection = fid.read().split(",")
 
 
-def datastreams(body, client, view="scatter", **kwargs):
-    # type: (dict, Storage, str, dict) -> bytes
-    labels = body.get("labels", {})
-    view_extent = body.get("extent", None)
-    data = body.get("data")
-    objectKey = data.get("objectKey")
-    if objectKey:
-        pool = Pool(processes=1)
-        _data = pool.starmap(consume, (load_json(client.get(objectKey)).get("data"),))
-        _data = extract_json_series(client, objectKey)[0]
-        data = [[_data["time"], _data["weight"]]]
-        unwind = False
-    else:
-        unwind = True
-
-    style = apply_style(conf=app.app.config, declared=body.get("style", {}))
-    figure = Time(style=style, extent=view_extent)
-    data_extent = None
-    if view in {"series", "scatter"}:
-        for dataset, label in zip(data, labels.get(view, [None])):
-            _extent = apply_series(
-                dataset, figure, label=label, scatter=(view == "scatter"), unwind=unwind
-            )
-            data_extent = update_extent(_extent, data_extent)
-        xloc = _loc(10, view, mn_x=data_extent[0], mx_x=data_extent[2])
-        yloc = _loc(5, view, mn_x=data_extent[1], mx_x=data_extent[3])
-    else:
-        x, y = zip(*data[0])
-        if view == "coverage":
-            figure.coverage(x, bins=20)
-        elif view == "frequency":
-            figure.frequency(y, bins=10)
-        else:
-            return "Bad request", 400
-        xloc = _loc(10, view, x=x)
-        yloc = _loc(5, view, x=y)
-
-    return figure.push(
-        legend=figure.style["legend"],
-        xloc=xloc,
-        yloc=yloc,
-        xlab=labels.get("x", "Time"),
-        ylab=labels.get("y", None),
-    ).getvalue()
+def consume(streams, select=None):
+    # type: (list, set) -> dict
+    d = dict()
+    _series = deque(streams)
+    _inits = _series.popleft()
+    _defaults = _series.popleft()
+    while _series:
+        for key, val in _series.popleft().items():
+            if select is not None and key not in select:
+                continue
+            if d.get(key) is None:
+                d[key] = [val]
+            else:
+                d[key].append(val)
+    return d
 
 
-def locations(body: dict, **kwargs):
+def palette(keys, colorMap="Spectral"):
+    # type: ({str}, str) -> dict
+    """create color dictionary for visualization"""
+    nc = len(keys)
+    colors = arange(nc) / (nc - 1)
+    scale = array([1, 1, 1, 0.5])
+    return dict(zip(keys, (cm.get_cmap(colorMap))(colors) * scale))
 
-    style = apply_style(conf=app.app.config, declared=body.get("style", {}))
-    view = Spatial(style=style, extent=body.get("extent", None))
 
-    for image, extent in body.get("images", ((), ())):
-        view.ax.imshow(image, extent=extent, interpolation=style["imageInterp"])
-    for s in body.get("shapes", ()):
-        view.shape(s, edge="black", face="none")
-    for p in body.get("points", ()):
-        view.points(p)
-    return view.push()
+def series(figure, data, labels=None, extent=None, unwind=True, scatter=True):
+
+    for dataset, label in zip(data.get("series", ()), labels or repeat("none")):
+        x, y = zip(*dataset) if unwind else dataset
+        figure.plot(x, y, label=label, scatter=scatter)
+        new = [min(x), max(x), min(y), max(y)]
+        if extent is None:
+            extent = new.copy()
+        for ii in range(len(new) // 2):
+            a = ii * 2
+            b = a + 1
+            extent[a] = min((extent[a], new[a]))
+            extent[b] = max((extent[b], new[b]))
+
+    return (
+        30, 5
+    ) if extent else (
+        None, None
+    )
+
+
+def coverage(figure, data, bins=20):
+    t = data.get("time")
+    _ = figure.coverage(t, bins=bins)
+    return (int(max(t) - min(t)) // 6), (len(t) // bins // 2)
+
+
+def frequency(figure, data, bins=10):
+    y = data.get("value")
+    _ = figure.frequency(y, bins=bins)
+    return int(max(y) - min(y)) // 6, len(y) // bins // 2
+
+
+def spatial(fig, data, **kwargs):
+    # type: (Spatial, dict, dict) -> BytesIO or None
+    imageHandles = []
+    for image, imageExtent in data.get("images", ()):
+        imageHandles.append(fig.ax.imshow(image, extent=imageExtent, interpolation=fig.style["imageInterp"]))
+    shapeHandles = tuple(map(fig.shape, data.pop("polygons", ()), repeat({"edgecolor": "black", "facecolor": "none"})))
+    pointHandles = tuple(map(fig.points, (array(p) for p in data.pop("points", ()))))
+    return None if not any((imageHandles, shapeHandles, pointHandles)) else fig.push()
 
 
 def handle(req):
@@ -73,4 +96,65 @@ def handle(req):
     Args:
         req (str): request body
     """
-    return req
+    if getenv("Http_Method") != "POST" or not req:
+        print(dumps({"Error": "Requires POST with payload"}))
+        exit(400)
+
+    body = loads(req)
+    labels = body.get("labels", {})
+    base = body.pop("style", {})
+    data = body.pop("data")
+    view = body.pop("view")
+
+    style = {**styles["base"], **styles[base.pop("base", "dark")]}
+    style.update(**base)
+    extent = body.pop("extent", None)
+    if view in {"spatial", "geo", "map", "cartographic"}:
+        fig = Spatial(style=style, extent=extent)
+        b = spatial(fig, data, **body.pop("args", {}))
+    elif view in {"series", "coverage", "frequency"}:
+        fig = Time(style=style, extent=extent)
+        xloc, yloc = eval(view)(fig, data, **body.pop("args", {}))
+        b = fig.push(
+            legend=fig.style["legend"],
+            xloc=xloc,
+            yloc=yloc,
+            xlab=labels.get("x", "Time"),
+            ylab=labels.get("y", None),
+        )
+    else:
+        print(dumps({"Error": f"View '{view}' not found"}))
+        exit(400)
+
+    buffer = b.getvalue()
+    assert buffer
+
+    host, access_key, secret_key = connection
+    host = "nyc3.digitaloceanspaces.com"
+    try:
+        storage = Minio(host, access_key=access_key, secret_key=secret_key, secure=True)
+    except Exception as ex:
+        print(dumps({"Error": f"{ex}"}))
+        exit(400)
+
+    objectName = body["objectName"]
+    if "png" not in objectName[-4:]:
+        objectName += ".png"
+
+    response = storage.put_object(
+        bucket_name=bucketName,
+        object_name=objectName,
+        data=BytesIO(buffer),
+        length=len(buffer),
+        metadata={
+            "x-amz-meta-created": datetime.utcnow().isoformat(),
+            "x-amz-meta-extent": dumps(extent or []),
+            "x-amz-acl": "public-read",
+        },
+        content_type="image/png",
+    )
+    return dumps({
+        "uuid": response,
+        "objectName": objectName,
+        "url": f"https://{bucketName}.{host}/{objectName}"
+    })

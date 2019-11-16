@@ -1,4 +1,4 @@
-from bathysphere.tests.conftest import scan
+from bathysphere_array.tests.conftest import scan
 
 
 def test_storage_netcdf_variables_fixture(variables):

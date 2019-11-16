@@ -1,14 +1,56 @@
 import pytest
-from numpy import random, array, arange, meshgrid, stack, diff
-from itertools import repeat
-
-from bathysphere_array.views import Spatial, Time
-from bathysphere_array.utils import lin_transform, geom_shader
+from numpy import random, array, stack, diff
+from requests import post
+from .views import Spatial, Time
 
 OSI_DATASET = "bivalve-suitability"
 
 
-@pytest.fixture(scope="function")
+def dumpErrors(response):
+    contents = response.content.decode()
+    if not response.ok:
+        for each in contents.splitlines():
+            print(each)
+        raise AssertionError
+    if not all((each in contents for each in ("uuid", "url", "objectName"))):
+        print(contents)
+        raise AssertionError
+
+
+def test_function_image_spatial_random_points():
+    """
+    Create random points
+    """
+    points = [random.uniform(size=(10, 2)).tolist() for _ in range(4)]
+    response = post(
+        "http://faas.oceanics.io:8080/function/image",
+        json={
+            "view": "spatial",
+            "objectName": "test_function_image_spatial_random_points",
+            "data": {"points": points},
+            "style": {"base": "light", "alpha": 0.5, "marker": 5}
+        }
+    )
+    dumpErrors(response)
+
+
+def test_function_image_spatial_random_triangles():
+    """
+    Create random triangles
+    """
+    tri = [random.uniform(size=(3, 2)).tolist() for _ in range(10)]
+    response = post(
+        "http://faas.oceanics.io:8080/function/image",
+        json={
+            "view": "spatial",
+            "objectName": "test_function_image_spatial_random_triangles",
+            "data": {"polygons": tri},
+            "style": {"base": "light", "alpha": 0.5}
+        }
+    )
+    dumpErrors(response)
+
+
 def shape_preview(object_storage, spatial, config_no_app):
     def _method(dataset, **kwargs):
         object_storage.restore(
@@ -26,64 +68,39 @@ def shape_preview(object_storage, spatial, config_no_app):
     return _method
 
 
-@pytest.mark.spatial
-def test_render_random_points(config_no_app, object_storage, spatial):
 
-    for each in spatial.style["colors"]:
-        xy = random.uniform(size=(500, 2))
-        spatial.points(xy=xy, marker=5, color=each, alpha=0.1)
-
-    object_storage.upload_image(
-        "test-render-random-points.png",
-        spatial.push(transparent=False),
-        config_no_app["headers"]
-    )
-
-
-@pytest.mark.spatial
-def test_render_random_shapes(config_no_app, object_storage, spatial):
-
-    for each in spatial.style["colors"]:
-        spatial.shape(xy=random.uniform(size=(3, 2)), edge=each, face="none")
-
-    object_storage.upload_image(
-        "test-render-random-shapes.png",
-        spatial.push(),
-        config_no_app["headers"]
-    )
-
-
-@pytest.mark.spatial
-def test_render_random_points_and_extent_culling(config_no_app, spatial, object_storage):
-    """
-    Should be front facing (CCW per OpenGL)
-
-    :param config_no_app:
-    :return:
-    """
-
-    extent = array((-1, 1, -1, 1))
-
-    n = 100
-    x = lin_transform(arange(0, n + 1) / n, *extent[:2])
-    y = lin_transform(arange(0, n + 1) / n, *extent[2:4])
-    xv, yv = meshgrid(x, y)
-    pxy = stack((xv, yv), axis=1)
-
-    spatial.points(pxy, color="black", alpha=0.1)
-    spatial.bbox(extent, edgecolor="black", facecolor="none", alpha=0.5)
-
-    for each in repeat("blue", times=6):
-        e1 = list(lin_transform(random.uniform(size=2), *extent[:2]))
-        e2 = list(lin_transform(random.uniform(size=2), *extent[2:4]))
-        ext = array(e1 + e2)
-        spatial.bbox(ext, edgecolor=each, facecolor="none", alpha=0.5)
-        shp = geom_shader(ext)
-        spatial.shape(shp, edgecolor=each, facecolor="none", alpha=0.5)
-
-    object_storage.upload_image(
-        "test-render-random-points-and-extent-culling.png", spatial.push(transparent=False), config_no_app
-    )
+#
+# @pytest.mark.spatial
+# def test_render_random_points_and_extent_culling(config_no_app, spatial, object_storage):
+#     """
+#     Should be front facing (CCW per OpenGL)
+#
+#     :param config_no_app:
+#     :return:
+#     """
+#
+#     extent = array((-1, 1, -1, 1))
+#
+#     n = 100
+#     x = lin_transform(arange(0, n + 1) / n, *extent[:2])
+#     y = lin_transform(arange(0, n + 1) / n, *extent[2:4])
+#     xv, yv = meshgrid(x, y)
+#     pxy = stack((xv, yv), axis=1)
+#
+#     spatial.points(pxy, color="black", alpha=0.1)
+#     spatial.bbox(extent, edgecolor="black", facecolor="none", alpha=0.5)
+#
+#     for each in repeat("blue", times=6):
+#         e1 = list(lin_transform(random.uniform(size=2), *extent[:2]))
+#         e2 = list(lin_transform(random.uniform(size=2), *extent[2:4]))
+#         ext = array(e1 + e2)
+#         spatial.bbox(ext, edgecolor=each, facecolor="none", alpha=0.5)
+#         shp = geom_shader(ext)
+#         spatial.shape(shp, edgecolor=each, facecolor="none", alpha=0.5)
+#
+#     object_storage.upload_image(
+#         "test-render-random-points-and-extent-culling.png", spatial.push(transparent=False), config_no_app
+#     )
 
 
 @pytest.mark.spatial

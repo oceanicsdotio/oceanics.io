@@ -7,8 +7,8 @@ from itertools import chain, repeat
 from functools import reduce
 from collections import deque
 
-from bathysphere.tests.conftest import DATASET, pad, ext
-from bathysphere.utils import (
+from bathysphere_array.tests.conftest import DATASET, pad, ext
+from bathysphere_array.utils import (
     extent,
     reduce_extent,
     extent_overlap_filter,
