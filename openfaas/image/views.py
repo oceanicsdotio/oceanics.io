@@ -1,6 +1,3 @@
-from matplotlib import use
-use("agg")
-
 from numpy import ceil, max, min, arange, isnan, array, hstack
 from matplotlib.pyplot import subplots, subplots_adjust
 from matplotlib import rc, cm
@@ -8,14 +5,9 @@ from matplotlib.ticker import MultipleLocator, FormatStrFormatter
 from matplotlib.patches import Polygon
 from matplotlib.dates import DateFormatter, MonthLocator, DayLocator
 from io import BytesIO
-from json import loads as load_json
 from collections import deque
+from json import load as load_json
 from multiprocessing import Pool
-from yaml import load, Loader
-
-ResponseJSON = (dict, int)
-ResponseOctet = (dict, int)
-_styles = load(open("config/styles.yml"), Loader)
 
 
 class View:
@@ -149,6 +141,7 @@ def update_extent(new, old=None):
 
 
 class Time(View):
+
     def _envelope(
         self,
         time: array,
@@ -315,6 +308,7 @@ class Time(View):
 
 
 class Spatial(View):
+
     def push(self, encoding="png", transparent=False, **kwargs):
         # type: (str, bool, dict) -> BytesIO
         """
@@ -418,6 +412,7 @@ def _loc(s: int, view: str, mx_x=None, mn_x=None, x=None):
     dx = span / s
     return dx if span < 3 else int(ceil(dx))
 
+
 def consume(streams, select=None):
     # type: (list, set) -> dict
     d = dict()
@@ -441,72 +436,3 @@ def extract_json_series(client, objectKey, processes=1):
     pool = Pool(processes=processes)
     return pool.starmap(consume, (load_json(data).get("data"),))
 
-
-def datastreams(body, client, view="scatter", **kwargs):
-    # type: (dict, Storage, str, dict) -> bytes
-
-    labels = body.get("labels", {})
-    view_extent = body.get("extent", None)
-    data = body.get("data")
-    objectKey = data.get("objectKey")
-    if objectKey:
-        pool = Pool(processes=1)
-        _data = pool.starmap(consume, (load_json(client.get(objectKey)).get("data"),))
-        _data = extract_json_series(client, objectKey)[0]
-        data = [[_data["time"], _data["weight"]]]
-        unwind = False
-    else:
-        unwind = True
-
-    style = apply_style(conf=app.app.config, declared=body.get("style", {}))
-    figure = Time(style=style, extent=view_extent)
-    data_extent = None
-    if view in {"series", "scatter"}:
-        for dataset, label in zip(data, labels.get(view, [None])):
-            _extent = apply_series(
-                dataset, figure, label=label, scatter=(view == "scatter"), unwind=unwind
-            )
-            data_extent = update_extent(_extent, data_extent)
-        xloc = _loc(10, view, mn_x=data_extent[0], mx_x=data_extent[2])
-        yloc = _loc(5, view, mn_x=data_extent[1], mx_x=data_extent[3])
-    else:
-        x, y = zip(*data[0])
-        if view == "coverage":
-            figure.coverage(x, bins=20)
-        elif view == "frequency":
-            figure.frequency(y, bins=10)
-        else:
-            return "Bad request", 400
-        xloc = _loc(10, view, x=x)
-        yloc = _loc(5, view, x=y)
-
-    return figure.push(
-        legend=figure.style["legend"],
-        xloc=xloc,
-        yloc=yloc,
-        xlab=labels.get("x", "Time"),
-        ylab=labels.get("y", None),
-    ).getvalue()
-
-
-def locations(body: dict, **kwargs):
-
-    style = apply_style(conf=app.app.config, declared=body.get("style", {}))
-    view = Spatial(style=style, extent=body.get("extent", None))
-
-    for image, extent in body.get("images", ((), ())):
-        view.ax.imshow(image, extent=extent, interpolation=style["imageInterp"])
-    for s in body.get("shapes", ()):
-        view.shape(s, edge="black", face="none")
-    for p in body.get("points", ()):
-        view.points(p)
-    return view.push()
-
-
-def handle(req):
-    """handle a request to the function
-    Args:
-        req (str): request body
-    """
-
-    return req

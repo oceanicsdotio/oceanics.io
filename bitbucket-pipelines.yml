@@ -6,54 +6,45 @@ options:
 pipelines:
   default:
 
-#    - step:
-#        name: Decryption attempt
-#        script:
-#          - apt-get update && apt-get install -y gpg apt-transport-https
-#          - echo "deb https://dl.bintray.com/sobolevn/deb git-secret main" | tee -a /etc/apt/sources.list
-#          - wget -qO - https://api.bintray.com/users/sobolevn/keys/gpg/public.key | apt-key add -
-#          - apt-get update && apt-get install -y git-secret
-#          - echo -e $BATHYSPHERE_GPG_KEY | gpg --import --batch --homedir=.gitsecret/keys
-#          - git secret reveal
+    - step:
+        name: Build environment and run tests in VM
+        caches:
+          - docker
+          - pip
+        services:
+          - docker
+          - neo4j
+        script:
+          - pip install -r config/requirements.txt
+
+    - step:
+        name: Build database image
+        caches:
+          - docker
+          - pip
+        services:
+          - docker
+        script:
+          - echo $DOCKER_PWD | docker login -u $DOCKER_LOGIN --password-stdin
+          - pip install docker-compose
+          - docker-compose build neo4j
+          - docker-compose push neo4j
 
 #    - step:
-#        name: Build environment and run tests in VM
+#        name: Build API image and run pytest entrypoint
 #        caches:
 #          - docker
 #          - pip
 #        services:
 #          - docker
-#          - neo4j
 #        script:
-#          - conda env create -f config/environment.yml
-#          - source activate bathysphere_graph
-#          - pytest
-
-    - step:
-        name: Build docker image and run pytest entrypoint
-        caches:
-#          - docker
-          - pip
-        services:
-          - docker
-        script:
-          - pip install docker-compose
-#          - touch config/graph.env
+#          - pip install docker-compose
 #          - docker-compose build bathysphere-graph
-#          - docker-compose run --entrypoint="./src/pytest.sh" bathysphere-graph
+#          - docker-compose push neo4j
 
     - step:
         name: Manual deploy to Digital Ocean
         deployment: production
         trigger: manual
         script:
-          - echo "cat src/deploy.sh | ssh -t $USERNAME@$BATHYSPHERE_GRAPH"
-
-
-definitions:
-  services:
-    neo4j:
-      image: oceanicsdotio/neo4j
-      variables:
-        NEO4J_dbms_security_auth__max__failed__attempts: 6
-        NEO4J_AUTH: neo4j/n0t_passw0rd
+          - echo "cat src/docker-compose-deploy.sh | ssh -t $USERNAME@$BATHYSPHERE_GRAPH"

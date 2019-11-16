@@ -1,0 +1,11 @@
+version: 1.0
+
+provider:
+  name: openfaas
+  gateway: http://faas.oceanics.io:8080
+
+functions:
+  image:
+    lang: python3-debian
+    handler: ./image
+    image: oceanicsdotio/faas-image:latest

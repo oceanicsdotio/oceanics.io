@@ -9,6 +9,7 @@ from os import getenv
 import hashlib
 import hmac
 from time import time
+from requests import post
 
 
 def log(message, file=None, console=True):
@@ -70,39 +71,9 @@ def get_latest_email():
         print(x)
 
 
-def handle(req):
-    """
-    Add the From: and To: headers at the start!
-
-    '{
-        "sender": "...@...",
-        "subject": "..."
-        "addresses": ["...@..."],
-        "attachment: {
-            "subtype":
-            "name":
-            "data":
-        }
-    }'
-
-    """
-
-    if getenv("Http_Method") != "POST":
-        print(dumps({"Error": "Require POST"}))
-        exit(403)
-
-    with open("/var/openfaas/secrets/payload-secret", "r") as fid:
-        secretContent = fid.read().encode()
-    _hash = getenv("Http_Hmac")
-    expectedMAC = hmac.new(secretContent, req.encode(), hashlib.sha1)
-    if (_hash[5:] if "sha1=" in _hash else _hash) != expectedMAC.hexdigest():
-        print(dumps({"Error": "HMAC validation"}))
-        exit(403)
-
-    data = loads(req)
-
+def sendEmail(data):
     subject = data.get("subject", None)
-    emails = data.get("addresses", (None, ))
+    emails = data.get("addresses", (None,))
 
     if not all((subject, *emails)):
         print(dumps({"Error": "Bad request"}))
@@ -134,4 +105,50 @@ def handle(req):
     for each in emails:
         server.sendmail(from_addr=sender, to_addrs=each, msg=msg_root.as_string())
     server.quit()
+
+
+def sendSlack(data):
+    response = post(
+
+    )
+
+
+def handle(req):
+    """
+    Add the From: and To: headers at the start!
+
+    '{
+        "sender": "...@...",
+        "subject": "..."
+        "addresses": ["...@..."],
+        "attachment: {
+            "subtype":
+            "name":
+            "data":
+        }
+    }'
+
+    """
+
+    if getenv("Http_Method") != "POST":
+        print(dumps({"Error": "Require POST"}))
+        exit(403)
+
+    with open("/var/openfaas/secrets/payload-secret", "r") as fid:
+        secretContent = fid.read().encode()
+    _hash = getenv("Http_Hmac")
+    expectedMAC = hmac.new(secretContent, req.encode(), hashlib.sha1)
+    if (_hash[5:] if "sha1=" in _hash else _hash) != expectedMAC.hexdigest():
+        print(dumps({"Error": "HMAC validation"}))
+        exit(403)
+
+    data = loads(req)
+    channel = data.pop("channel", "email")
+    if channel == "email":
+        sendEmail(data)
+    elif channel == "slack":
+        post
+
+
+
 

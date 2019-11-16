@@ -1,11 +1,10 @@
 version: "3.6"
 
 networks:
-  oceanics:
+  bathysphere:
     driver: bridge
 
 services:
-
 
   bathysphere-graph:
     build:
@@ -102,32 +101,32 @@ services:
       retries: 3
 
 
-  postgres:
-    image: timescale/timescaledb-postgis
-    ports:
-      - 5432:5432
-    environment:
-      - POSTGRES_PASSWORD=n0t_passw0rd
-      - PGDATA=/var/lib/postgresql/data
-    networks:
-      - bathysphere
-    volumes:
-      - ./db/timescale:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD", "curl", "-fI", "localhost:5432"]
-      interval: 60s
-      timeout: 5s
-      retries: 3
+#  postgres:
+#    image: timescale/timescaledb-postgis
+#    ports:
+#      - 5432:5432
+#    environment:
+#      - POSTGRES_PASSWORD=n0t_passw0rd
+#      - PGDATA=/var/lib/postgresql/data
+#    networks:
+#      - bathysphere
+#    volumes:
+#      - ./db/timescale:/var/lib/postgresql/data
+#    healthcheck:
+#      test: ["CMD", "curl", "-fI", "localhost:5432"]
+#      interval: 60s
+#      timeout: 5s
+#      retries: 3
 
 
-  redis:
-    image: redis
-    ports:
-      - 6379:6379
-    networks:
-      - bathysphere
-    healthcheck:
-      test: ["CMD", "curl", "-fI", "localhost:6379"]
-      interval: 60s
-      timeout: 5s
-      retries: 3
+#  redis:
+#    image: redis
+#    ports:
+#      - 6379:6379
+#    networks:
+#      - bathysphere
+#    healthcheck:
+#      test: ["CMD", "curl", "-fI", "localhost:6379"]
+#      interval: 60s
+#      timeout: 5s
+#      retries: 3

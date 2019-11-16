@@ -256,24 +256,27 @@ kubectl exec neo4j-helm-neo4j-core-0 -- bin/cypher-shell \
 
 Execute a query against the cluster:
 
-```
-kubectl run -it --rm cypher-shell \
-    --image=neo4j:3.2.3-enterprise \
-    --restart=Never \
-    --namespace bathysphere \
-    --command -- ./bin/cypher-shell -u neo4j -p n0t_passw0rd \
-    --a neo4j-helm-neo4j.bathysphere.svc.cluster.local "call dbms.cluster.overview()"
+```bash
+kubectl run -it \
+--rm cypher-shell \
+--image=neo4j:3.2.3-enterprise \
+--restart=Never \
+--namespace bathysphere \
+--command -- ./bin/cypher-shell -u neo4j -p n0t_passw0rd \
+--a neo4j-helm-neo4j.bathysphere.svc.cluster.local "call dbms.cluster.overview()"
 ```
 
 
 
-```
+Cluster networking is a bit [tricky](https://www.asykim.com/blog/deep-dive-into-kubernetes-external-traffic-policies). You'll need an ingress.
+
+```bash
 kubectl create serviceaccount tiller --namespace kube-system
 helm init --service-account tiller --upgrade
 kubectl get svc --namespace=ingress-nginx
 ```
 
-https://www.asykim.com/blog/deep-dive-into-kubernetes-external-traffic-policies
+
 
 
 
@@ -282,11 +285,20 @@ https://www.asykim.com/blog/deep-dive-into-kubernetes-external-traffic-policies
 Create a new node:
 
 ```bash
+# src/docker-machine-create.sh
 docker-machine create \
 --driver digitalocean \
---digitalocean-size s-2vcpu-2gb \
+--digitalocean-size s-2vcpu-4gb \
 --digitalocean-access-token $DOCKER_MACHINE_PAK \
-bathysphere-graph
+bathysphere-api-neo4j
+```
+
+
+
+Connect you local environment to issue commands to the remote docker service:
+
+```bash
+eval $(docker-machine env bathysphere-api-neo4j)
 ```
 
 
@@ -304,12 +316,6 @@ sudo apt-get install -y certbot
 ```
 
 
-
-Connect you local environment to issue commands to the remote docker service:
-
-```bash
-eval $(docker-machine env bathysphere-graph-test)
-```
 
 
 
@@ -479,8 +485,6 @@ The University of Maine Midcoast mesh on a late model MacBook:
 - 322,546 elements with 322,546 properties (ID) = 7993–9071 ms. 
 - 967,638 relationships = 51,360 ms
 - Database volume = 385 MB
-
-
 
 
 
