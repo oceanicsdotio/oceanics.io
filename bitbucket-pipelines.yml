@@ -7,25 +7,17 @@ pipelines:
   default:
 
     - step:
-        name: Build environment and run tests in VM
+        name: Build
         caches:
           - pip
           - apt
+          - pip
         services:
           - docker
         script:
           - rm /etc/apt/apt.conf.d/docker-clean
           - apt update && apt install -y python-pip
           - pip install -r config/requirements.txt
-
-    - step:
-        name: Build database image
-        caches:
-          - docker
-          - pip
-        services:
-          - docker
-        script:
           - echo $DOCKER_PWD | docker login -u $DOCKER_LOGIN --password-stdin
           - pip install docker-compose
           - docker-compose build neo4j
