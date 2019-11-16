@@ -1,4 +1,4 @@
-image: ubuntu
+image: ubuntu:19.04
 
 options:
   docker: true
@@ -9,12 +9,13 @@ pipelines:
     - step:
         name: Build environment and run tests in VM
         caches:
-          - docker
           - pip
+          - apt
         services:
           - docker
         script:
-          - apt update && apt install -y python3-pip
+          - rm /etc/apt/apt.conf.d/docker-clean
+          - apt update && apt install -y python-pip
           - pip install -r config/requirements.txt
 
     - step:
@@ -48,3 +49,7 @@ pipelines:
         trigger: manual
         script:
           - echo "cat src/docker-compose-deploy.sh | ssh -t $USERNAME@$BATHYSPHERE_GRAPH"
+
+definitions:
+  caches:
+    apt: /var/cache/apt/archives
