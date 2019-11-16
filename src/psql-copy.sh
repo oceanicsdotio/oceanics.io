@@ -1,22 +1,22 @@
 #!/usr/bin/env bash
 psqlCopy () {
-    PGPASSWORD=de2innbnm1w6r27y psql \
+    PGPASSWORD=${PG_PASSWORD} psql \
     --echo-queries \
     --username=bathysphere \
     --host=${PG_HOST} \
     --port=${PG_PORT} \
-    --dbname=bathysphere \
+    --dbname=${PG_DATABASE} \
     --command="\copy landsat_points (longitude, latitude, oyster_suitability_index) FROM '$1' WITH DELIMITER ',' CSV $2"
 }
 
 ingestShape () {
     shp2pgsql -I $1 $2 | \
-        PGPASSWORD=de2innbnm1w6r27y psql \
+        PGPASSWORD=${PG_PASSWORD} psql \
         --quiet \
         --username=bathysphere \
         --host=${PG_HOST} \
         --port=${PG_PORT} \
-        --dbname=bathysphere
+        --dbname=${PG_DATABASE}
 }
 
 echo Splitting file...

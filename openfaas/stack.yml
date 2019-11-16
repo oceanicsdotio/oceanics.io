@@ -5,6 +5,10 @@ provider:
   gateway: http://127.0.0.1:8080
 
 functions:
+  preview:
+    lang: python3-debian
+    handler: ./image
+    image: oceanicsdotio/faas-image:latest
 
   buoys:
     lang: python3-http
@@ -66,10 +70,6 @@ functions:
       - redis-key
       - redis-port
 
-  preview:
-    lang: python3-debian
-    handler: ./preview
-    image: oceanicsdotio/faas-preview:latest
 
 #  repository:
 #    lang: python3
