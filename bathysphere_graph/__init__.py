@@ -5,8 +5,8 @@ from yaml import Loader, load as load_yml
 from pathlib import Path
 from prance import ResolvingParser
 
-with open(Path("config/app.yml"), "r") as fid:
-    appConfig = load_yml(open("config/app.yml"), Loader)
+with open(Path("config/bathysphere.yml"), "r") as fid:
+    appConfig = load_yml(fid, Loader)
 app = App(
     __name__,
     specification_dir=appConfig["environment"]["SPEC_PATH"],

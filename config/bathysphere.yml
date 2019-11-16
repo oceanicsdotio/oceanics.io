@@ -1,0 +1,672 @@
+environment:
+  ADMIN: ""
+  NEO4J_AUTH: neo4j/neo4j
+  ADMIN_PASS: ""
+  API_KEY: ""
+  HOST: localhost
+  EMAIL_ACCT:
+  EMAIL_KEY:
+  EMAIL_SERVER:
+  EMAIL_PORT:
+  REPLY_TO:
+  SECRET:
+  PORT: 5000
+  BASE_PATH: /api
+  SPEC_PATH: ../openapi/
+  DOCKER_COMPOSE_NAME: bathysphere-graph_neo4j_1
+  DOCKER_CONTAINER_NAME: neo4j
+  EMBEDDED_NAME: localhost
+  RETRIES: 3
+  DELAY: 10
+  NEO4J_PORT: 7687
+  NEO4J_HOST:
+  DARKSKY_API_KEY: ""
+  MAX_CALLS: 1000
+  PG_USERNAME:
+  PG_PASSWORD:
+  PG_DATABASE:
+  PG_HOST:
+  PG_PORT:
+  REDIS_KEY:
+  REDIS_HOST: bathysphere-redis-do-user-3962990-0.db.ondigitalocean.com
+  LOBOVIZ_USER:
+  LOBOVIZ_PASSWORD:
+  storageAccessKey:
+  storageSecretKey:
+
+
+specPath: "openapi/api.yml"
+basePath: "/api"
+enableSwagger: false
+lock: "lock.json"
+index: "index.json"
+
+
+bucketName: "oceanicsdotio"
+storageLocalCache: "data/"
+storage:
+  endpoint: "nyc3.digitaloceanspaces.com"
+  secure: true
+
+headers:
+  x-amz-acl: "public-read"
+  x-amz-meta-service: "bathysphere"
+
+landsat:
+  resolution: 30.0
+  region: "mid_maine"
+  sensors:
+    - "OLI"
+    - "TIRS"
+  datum: "WGS84"
+  proj: "UTM"
+  dtfmt: "%Y:%j:%H:%M:%S"
+  codec: "ISO-8859-1"
+
+  file_generator:
+    root: "LC8011030"
+    suffix: "LGN00"
+    translator":
+       OSI: "OSI"
+       SST: "SSTiterate"
+       chl: "CHL"
+       spm: "SPM"
+       lat: "LAT"
+       lon: "LON"
+
+avhrr:
+  AVHRR_SST: "sea_surface_temperature"
+
+clipping:
+  roi: "[-69.5, 43.0, -69.1, 43.9]"
+  subext: "[-72.5, 42.1, -69.5, 44.2]"
+  extent: "[-70.7, 42.15, -69, 44.25]"
+  avhrr_outliers: "[-2.0, 28.875]"
+
+models:
+
+  base:
+    - User
+    - Ingress
+    - Catalogs
+    - Collections
+    - Items
+
+  sensing:
+    - Things
+    - Datastreams
+    - Observations
+    - ObservedProperties
+    - HistoricalLocations
+    - Locations
+    - Sensors
+    - FeaturesOfInterest
+
+  tasking:
+    - Actuators
+    - TaskingCapabilities
+    - Tasks
+
+Ingresses:
+  - name: Oceanicsdotio
+    owner: true
+    description: Research and development
+    url: oceanics.io
+
+  - name: Public
+    description: Public Data Repository
+    apiKey: ""
+
+  - name: University of Maine
+    description: Aquaculture research partner
+    url: maine.edu
+
+  - name: Cabot7
+    description: Fisheries data partner
+    url: cabot7.com
+
+
+FeaturesOfInterest:
+  - name: Damariscotta River Estuary shellfish growing area
+    description: |
+      The Damariscotta River Estuary is a traditional growing area for oysters in Maine.
+
+  - name: Midcoast Maine Mesh
+  - name: Gulf of Maine Mesh
+  - name: Damariscotta River Nested Mesh
+
+
+
+ObservedProperties:
+  - name: Temperature
+    description: |
+      Temperature as measured through a thermistor or remote sensing
+  - name: Chlorophyll
+    description: |
+      Measure of chlorophyll
+  - name: Salinity
+    description: |
+      Seawater salinity
+
+  - name: cdom
+  - name: chlorophyll
+  - name: conductivity
+  - name: current_direction
+  - name: current_speed_cm
+  - name: depth
+  - name: oxygen
+  - name: nitrate
+  - name: oxygen_sat
+  - name: oxygen_percent
+  - name: par0minus
+  - name: par0plus
+  - name: salinity
+  - name: temperature
+  - name: transmission
+  - name: turbidity
+  - name: voltage
+
+
+  - name: nprocs
+    description: Number of processes used in simulation
+
+  - name: partition
+    description: Mesh partitioning index
+
+  - name: x
+    descroption: Position
+    attributeOf: Node
+    dim: 1
+
+  - name: y
+    description: Position
+    attributeOf: Node
+    dim: 1
+
+  - name: lon
+    description: Position
+    attributeOf: Node
+    dim: 1
+
+  - name: lat
+    description: Position
+    attributeOf: Node
+    dim: 1
+
+  - name: xc
+    description: Position
+    attributeOf: Cell
+    dim: 1
+
+  - name: yc
+    description: Position
+    attributeOf: Cell
+    dim: 1
+
+  - name: lonc
+    description: Position
+    attributeOf: Cell
+    dim: 1
+
+  - name: latc
+    description: Position
+    attributeOf: Cell
+    dim: 1
+
+  - name: siglay
+    description: Sigma layers
+    attributeOf: Mesh
+    dim: 1
+
+  - name: siglay_center
+    description: Intra sigma layers
+    attributeOf: Mesh
+    dim: 1
+
+  - name: siglev
+    description: Sigma levels
+    attributeOf: Mesh
+    dim: 1
+
+  - name: siglev_center
+    description: Intra sigma levels
+    attributeOf: Mesh
+    dim: 1
+
+  - name: h
+    description: Bathymetry
+    attributeOf: Node
+    dim: 1
+
+  - name: h_center
+    description: Bathymetry
+    attributeOf: Cell
+    dim: 1
+
+  - name: nv
+    description: Topology
+    attributeOf: Mesh
+    dim: 2
+
+  - name: nbe
+    description: Topology
+    attributeOf: Mesh
+    dim: 2
+
+  - name: ntsn
+    description: Topology
+    attributeOf: Mesh
+    dim: 2
+
+  - name: nbsn
+    description: Topology
+    attributeOf: Mesh
+    dim: 2
+
+  - name: "ntve"
+    description: Topology
+    attributeOf: Mesh
+    dim: 2
+
+  - name: "nbve"
+    description: "Topology"
+    attributeOf: "Mesh"
+    dim: 2
+
+  - name: 'wet_nodes'
+    description: Mask of water nodes
+    dim: 1
+
+  - name: 'wet_cells'
+    description: Mask of water cells
+    dim: 1
+
+  - name: 'wet_nodes_prev_int'
+    description: Previous wet nodes
+    dim: 1
+
+  - name: 'wet_cells_prev_int'
+    description: Previous wet nodes
+    dim: 1
+
+  - name: 'wet_cells_prev_ext'
+    dim: 1
+
+  - name: "iint"
+
+  - name: "time"
+    flag: True
+
+  - name: "Itime"
+
+  - name: "Itime2"
+
+  - name: "Times"
+
+  - name: "zeta"
+
+  - name: "file_date"
+
+  - name: "a1u"
+    description: Shape coefficient
+    attributeOf: Node
+
+  - name: "a2u"
+    description: Shape coefficient
+    attributeOf: Node
+
+  - name: "aw0"
+    description: Shape coefficient
+    attributeOf: Node
+
+  - name: "awx"
+    description: Shape coefficient
+    attributeOf: Node
+
+  - name: "awy"
+    description: Shape coefficient
+    attributeOf: Node
+
+  - name: "art2"
+    description: Area of neighborhood
+    attributeOf: Node
+
+  - name: "art1"
+    description: Area
+    attributeOf: Cell
+
+  - name: "u"
+    description: Velocity
+    attributeOf: Cell
+    dim: 3
+    flag: True
+
+  - name: "v"
+    description: Velocity
+    attributeOf: Cell
+    dim: 3
+    flag: True
+
+  - name: "omega"
+    description: Vertical velocity sigma
+    attributeOf: Cell
+
+  - name: "ww"
+    description: Vertical velocity
+    attributeOf: Cell
+    dim: 3
+
+  - name: "ua"
+    description: Depth averaged velocity
+    attributeOf: Cell
+    dimensions: 2
+
+  - name: "va"
+    description: Depth averaged velocity
+    attributeOf: Cell
+    dim: 2
+
+  - name: "temp"
+    description: Temperature
+    attributeOf: Node
+    dim: 3
+    flag: True
+
+  - name: "salinity"
+    description: Salinity
+    attributeOf: Cell
+    dim: 3
+    flag: True
+
+  - name: "km"
+    dim: 3
+
+  - name: "kh"
+    dim: 3
+    description: Diffusion
+    attributeOf: Cell
+
+  - name: "kq"
+    description: Heat diffusion???
+    attributeOf: Cell
+    dim: 3
+
+  - name: "q2"
+    dim: 3
+
+  - name: "q2l"
+    dim: 3
+
+  - name: "l"
+    dim: 3
+
+  - name: "short_wave"
+    description: Radiation
+    dim: 2
+
+  - name: "net_heat_flux"
+    dim: 2
+
+  - name: "uwind_stress"
+    description: Wind stress along east-west vector
+    attributeOf: Cell
+
+  - name: "vwind_stress"
+    description: Wind stress along north-south vector
+    attributeOf: Cell
+
+  - name: tauc
+    dim: 2
+
+  - name: viscofm
+    description: Viscosity
+    dim: 3
+
+  - name: viscofh
+    description: Viscosity
+    dim: 3
+
+Locations:
+  - name: Upper Damariscotta Estuary
+    description: Buoy deployment
+    lobovizNode: 66
+    location:
+      type: Point
+      coordinates: [43.998178, -69.54253, 0.0]
+
+
+  - location: [-45.0, 36.0, -5.0]
+  - location: [-45.01, 36.01, -5.0]
+
+  - name: "Wood Island Harbor"
+    lobovizNode: 64
+    location:
+      type: Point
+      coordinates: [43.456550, -70.344432]
+
+  - name: "Lower Damariscotta"
+    lobovizNode: 65
+    location:
+      type: Point
+      coordinates: [43.93354, -69.58344]
+
+  - name: "Ram Island Saco Bay"
+    lobovizNode: 67
+    location:
+      type: Point
+      coordinates: [43.465934, -70.359646]
+
+  - name: "Upper New Meadows"
+    lobovizNode: 70
+    location:
+      type: Point
+      coordinates: [43.863669, -69.8984055]  # Bombazine / New Meadows
+
+  - name: "Lower New Meadows"
+    lobovizNode: 71
+    location:
+      type: Point
+      coordinates: [43.77643055, -69.89196944]  # Sand Cove / New Meadows
+
+  - name: "Bagaduce River"
+    lobovizNode: 72
+    location:
+      type: Point
+      coordinates: [44.40156667, -68.7738333]
+
+  - name: "Machias Bay"
+    lobovizNode: 73
+    location:
+      type: Point
+      coordinates: [44.618517, -67.318033]
+
+  - name: "Cobscook Bay"
+    lobovizNode: 74
+    location:
+      type: Point
+      coordinates: [44.8968, -67.0651]
+
+  - name: "Western Passage / Passamaquoddy Bay"
+    lobovizNode: 75
+    location:
+      type: Point
+      coordinates: [44.92017, -66.995833]
+
+  - name: "Harpswell Sound"
+    lobovizNode: 52
+
+
+Sensors:
+  - name: SeaBird Electronics CTD
+    description: A common oceanographic sensing package
+
+  - name: Chlorophyll fluorometer
+    description: For measuring plankton stuff
+
+
+Things:
+  - name: Land Ocean Biogeochemical Observatory
+    description: |
+      Moored buoy with instrumentation, deployed in the Damariscotta River
+      Estuary (Maine) as part of the Sustainable Ecological Aquaculture Network project.
+    links:
+      Locations:
+        - id: 0
+          label: Linked
+
+  - name: Regional Sentinel Model Service
+    description: |
+      Operational model for Maine aquaculture
+
+
+Datastreams:
+  - name: temperature
+    description: |
+      Just another temperature series
+    links:
+      Things:
+        - name: Land Ocean Biogeochemical Observatory
+          label: Linked
+      Sensors:
+        - id: 0
+          label: Linked
+      ObservedProperties:
+        - name: temperature
+          label: Linked
+
+  - name: cholorophyll
+    description: |
+      Just another chlorophyll series
+
+    links:
+      Things:
+        - name: Land Ocean Biogeochemical Observatory
+          label: Linked
+
+      Sensors:
+        - id: 0
+          label: Linked
+
+      ObservedProperties:
+        - name: chlorophyll
+          label: Linked
+
+
+Observations:
+  - ts: 1000.234
+    val: 10.0
+    links:
+      Datastreams:
+        - name: temperature
+          label: Linked
+
+      FeaturesOfInterest:
+        - id: 0
+          label: Linked
+
+  - ts: 1002.793
+    val: 10.5
+    links:
+      Datastreams:
+        - name: temperature
+          label: Linked
+
+      FeaturesOfInterest:
+        - id: 0
+          label: Linked
+
+  - ts: 1005.208
+    val: 10.4
+    links:
+      Datastreams:
+        - name: temperature
+          label: Linked
+
+      FeaturesOfInterest:
+        - id: 0
+          label: Linked
+
+TaskingCapabilities: []
+
+Tasks:
+  - taskingParameters:
+      location: host:port/endpoint
+      message: something
+
+  - taskingParameters:
+      location: host:port/endpoint
+      message: something-else
+
+
+Actuators:
+  - name: Solenoid
+    links:
+      Things:
+        - name: Land Ocean Biogeochemical Observatory
+          label: Linked
+
+  - name: Solenoid
+    links:
+      Things:
+        - name: Land Ocean Biogeochemical Observatory
+          label: Linked
+
+  - name: Solenoid
+    links:
+      Things:
+        - name: Land Ocean Biogeochemical Observatory
+          label: Linked
+
+
+servers:
+  - name: NECOFS data
+    service: "thredds/dodsC/models/fvcom/NECOFS/Archive/Seaplan_33_Hindcast_v1"
+    protocol: "http"
+    hosts:
+      - "www.smast.umassd.edu"
+    port: 8080
+    target: "gom3_{}.nc"
+    format: NetCDF
+
+  - name: University of Maine Satellite Data
+    hosts:
+      - "misclab.umeoce.maine.edu"
+    protocol: "ftp"
+    service: "users/misclab/coastal_sat"
+    target: "LC8011030JulyAvLGN00_OSI.nc"
+    format: NetCDF
+    port: 80
+
+  - name: S3 Storage
+    hosts:
+      - "bathysphere_minio"
+      - "minio"
+      - "localhost"
+    port: 9000
+    format: Binary
+
+
+  - name: Graph API
+    hosts:
+      - "localhost"
+    port: 5000
+    service: "api"
+    protocol: https
+    format: JSON
+
+  - name: National Oceanography Data Center
+    host: "https://data.nodc.noaa.gov/"
+
+  - name: Other
+    assets:
+      - f"http://data.nodc.noaa.gov/thredds/dodsC/pathfinder/Version5.3/L3C/{filename[0:4]}/data/{filename}"
+      - "20170709140704-NCEI-L3C_GHRSST-SSTskin-AVHRR_Pathfinder-PFV5.3_NOAA19_G_2017190_day-v02.0-fv01.0.nc"
+      - "LC08_L1TP_011030_20170709_20170717_01_T1_B10.tif"
+
+  - service: "cgi-data/nph-data.cgi"
+    protocol: "http"
+    subdomain: "maine"
+    home: "loboviz.com"
+    admin: "info.html"
+    data: "archive"
+    metadata: "ingestorxml"
