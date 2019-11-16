@@ -13,7 +13,6 @@ pipelines:
           - pip
         services:
           - docker
-          - neo4j
         script:
           - pip install -r config/requirements.txt
 
