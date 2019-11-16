@@ -14,7 +14,7 @@ pipelines:
         services:
           - docker
         script:
-          - apt install -y python3-pip
+          - apt update && apt install -y python3-pip
           - pip install -r config/requirements.txt
 
     - step:
