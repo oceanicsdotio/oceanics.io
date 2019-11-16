@@ -6,7 +6,7 @@ from collections import deque
 from multiprocessing import Pool
 
 
-from bathysphere_graph import app
+from bathysphere_graph import app, appConfig
 from openfaas.archive.satlantic import indexFileMetadata, synchronous, _file_metadata
 
 YEAR = 2019
@@ -16,8 +16,7 @@ YEAR = 2019
 def test_function_archive_http_indexer():
 
     start = time()
-    with open("config/servers.yml") as fid:
-        server = load_yml(fid, Loader).pop()
+    server = appConfig["servers"].pop()
 
     folders = indexFileMetadata(
         url="{}://{}.{}/{}".format(
