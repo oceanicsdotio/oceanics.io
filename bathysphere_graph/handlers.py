@@ -1,9 +1,6 @@
-from types import MethodType
 from flask import request
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from passlib.apps import custom_app_context
-import hashlib
-import hmac
 from functools import reduce
 
 from bathysphere_graph.models import *

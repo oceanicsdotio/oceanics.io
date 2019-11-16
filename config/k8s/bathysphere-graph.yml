@@ -116,28 +116,28 @@ spec:
           volumeMounts:
             - name: graph-database
               mountPath: /data
-#            - name: plugins
-#              mountPath: /plugins
+            - name: plugins
+              mountPath: /plugins
 
-#        - name: bathysphere-graph
-#          image: nginx
-#          env:
-#            - name: NEO4J_AUTH
-#              valueFrom:
-#                secretKeyRef:
-#                  name: bathysphere-graph-secret-1
-#                  key: NEO4J_AUTH
-#          volumeMounts:
-#            - name: secrets-volume
-#              mountPath: /secrets/neo4j
-#              readOnly: true
+        - name: bathysphere-graph
+          image: nginx
+          env:
+            - name: NEO4J_AUTH
+              valueFrom:
+                secretKeyRef:
+                  name: bathysphere-graph-secret-1
+                  key: NEO4J_AUTH
+          volumeMounts:
+            - name: secrets-volume
+              mountPath: /secrets/neo4j
+              readOnly: true
 
       volumes:
 
-#        - name: secrets-volume
-#          secret:
-#            secretName: bathysphere-graph
-#
+        - name: secrets-volume
+          secret:
+            secretName: bathysphere-graph
+
         - name: graph-database
           persistentVolumeClaim:
             claimName: graphdb-pvc

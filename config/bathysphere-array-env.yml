@@ -1,4 +1,4 @@
-name: bathysphere
+name: bathysphere-array
 channels:
   - conda-forge
 dependencies:

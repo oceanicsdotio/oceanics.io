@@ -7,9 +7,9 @@ pipelines:
   default:
 
     - step:
-        name: Build
+        name: Build and Push Docker Images
         caches:
-          - pip
+          - docker
           - apt
           - pip
         services:
@@ -22,18 +22,8 @@ pipelines:
           - pip3 install docker-compose
           - docker-compose build neo4j
           - docker-compose push neo4j
-
-#    - step:
-#        name: Build API image and run pytest entrypoint
-#        caches:
-#          - docker
-#          - pip
-#        services:
-#          - docker
-#        script:
-#          - pip install docker-compose
-#          - docker-compose build bathysphere-graph
-#          - docker-compose push neo4j
+          - docker-compose build bathysphere-graph
+          - docker-compose push bathysphere-graph
 
     - step:
         name: Manual deploy to Digital Ocean
