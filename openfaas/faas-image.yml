@@ -2,10 +2,15 @@ version: 1.0
 
 provider:
   name: openfaas
-  gateway: http://faas.oceanics.io:8080
+  gateway: http://127.0.0.1:8080
 
 functions:
   image:
     lang: python3-debian
     handler: ./image
     image: oceanicsdotio/faas-image:latest
+    environment:
+      content_type: application/json
+    secrets:
+      - image-bucket-name
+      - spaces-connection

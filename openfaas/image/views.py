@@ -1,25 +1,25 @@
-from numpy import ceil, max, min, arange, isnan, array, hstack
+from matplotlib import use
+use("agg")
 from matplotlib.pyplot import subplots, subplots_adjust
-from matplotlib import rc, cm
+from matplotlib import rc
 from matplotlib.ticker import MultipleLocator, FormatStrFormatter
 from matplotlib.patches import Polygon
 from matplotlib.dates import DateFormatter, MonthLocator, DayLocator
 from io import BytesIO
-from collections import deque
-from json import load as load_json
-from multiprocessing import Pool
+from numpy import ceil, max, min, arange, isnan, array, hstack
+from typing import Any
 
 
 class View:
     count = 0
 
-    def __init__(self, style: dict, extent: list = None):
+    def __init__(self, style, extent=None):
+        # type: (dict, (float,)) -> View
         """
         Setup and return figure and axis instances
         """
-
         rc("text", usetex=False)
-        rc("font", **{"family": "sans-serif", "sans-serif": ["Arial"]})
+        # rc("font", **{"family": "sans-serif", "sans-serif": ["Arial"]})
         rc("mathtext", default="sf")
         rc("lines", markeredgewidth=1, linewidth=style["line"])
         rc("axes", labelsize=style["text"], linewidth=(style["line"] + 1) // 2)
@@ -70,7 +70,8 @@ class View:
         self.format(**self.style)
         self.ax.set_frame_on(True)
 
-    def push(self, encoding: str = "png", transparent: bool = False, **kwargs):
+    def push(self, encoding="png", transparent=False, **kwargs):
+        # type: (str, bool, dict) -> BytesIO
         buffer = BytesIO()
         self.fig.savefig(buffer, format=encoding, transparent=transparent, **kwargs)
         buffer.seek(0)
@@ -96,66 +97,15 @@ class View:
             text.set_color(self.style["contrast"])
 
 
-def palette(keys: set, cmap: str = "Spectral"):
-    """create color dictionary for visualization"""
-    nc = len(keys)
-    colors = arange(nc) / (nc - 1)
-    scale = array([1, 1, 1, 0.5])
-    return dict(zip(keys, (cm.get_cmap(cmap))(colors) * scale))
-
-
-def apply_style(conf: dict, declared: dict, default_base: str = "dark"):
-    base = declared.pop("base", default_base)
-    try:
-        style = conf["styles"][base].copy()
-    except KeyError:
-        return "Style not found", 404
-    style.update(**declared)
-    return style
-
-
-def apply_series(
-    data, figure, label: str = "Unnamed", scatter: bool = True, unwind=True
-):
-
-    x, y = zip(*data) if unwind else (data[0], data[1])
-    if len(x) != len(y):
-        raise IndexError
-    figure.plot(x, y, label=label, scatter=scatter)
-    return min(x), max(x), min(y), max(y)
-
-
-def update_extent(new, old=None):
-    if old is None:
-        old = new
-    if (len(old) != len(new)) or (len(old) % 2 != 0):
-        raise ValueError
-
-    output = [item for item in old]
-    for ii in range(len(new) // 2):
-        a = ii * 2
-        b = a + 1
-        output[a] = min((output[a], new[a]))
-        output[b] = max((output[b], new[b]))
-    return output
-
-
 class Time(View):
 
-    def _envelope(
-        self,
-        time: array,
-        mean: array = None,
-        deviation: array = None,
-        facecolor: str = None,
-        edgecolor="none",
-        zorder: int = 3,
-    ):
+    def _envelope(self, time, mean=None, deviation=None, facecolor=None, edgecolor="none", zorder=3):
+        # type: (array, array, array, str, str, int) -> None
         """
         Add envelope to time series plot
         """
         color = facecolor if facecolor else self.style["face"]
-        self.ax.fill_between(
+        return self.ax.fill_between(
             time,
             mean + deviation,
             mean - deviation,
@@ -190,7 +140,8 @@ class Time(View):
         else:
             self.ax.xaxis.set_major_locator(MultipleLocator(ticks))
 
-    def __fmt_y_axis(self, label: str, ticks: float):
+    def __fmt_y_axis(self, label, ticks):
+        # type: (Spatial, str, float) -> None
         """
         Format axes for X,Y plot similar to time series
 
@@ -200,7 +151,6 @@ class Time(View):
         """
         if self.extent is not None:
             self.ax.set_ylim(*self.extent[2:4])
-
         self.ax.set_ylabel(label)
         self.ax.yaxis.set_major_locator(MultipleLocator(ticks))
 
@@ -243,7 +193,8 @@ class Time(View):
             facecolor=color if color else self.style["contrast"],
         )
 
-    def frequency(self, datastream, bins: int = 10, **kwargs):
+    def frequency(self, datastream, bins=10, **kwargs):
+        # type: (Time, Any, int, dict) -> None
         """
         render histogram of value distribution
         """
@@ -256,7 +207,7 @@ class Time(View):
         lower = kwargs.get("lower", min(datastream))
         span = kwargs.get("upper", max(datastream)) - lower
 
-        self.ax.hist(
+        return self.ax.hist(
             x=x,
             bins=tuple(span * arange(bins + 1) / bins - lower),
             facecolor=kwargs.get("color", self.style["contrast"]),
@@ -315,7 +266,6 @@ class Spatial(View):
         Write figure as image to binary output buffer
         """
         self.pre_push()
-
         self.ax.axis("equal")
         self.ax.set_xlabel("x")
         self.ax.set_ylabel("y")
@@ -346,7 +296,7 @@ class Spatial(View):
         """
         Add collection of identical points to figure axis
         """
-        self.ax.scatter(
+        return self.ax.scatter(
             xy[:, 0],
             xy[:, 1],
             s=kwargs.get("marker", self.style["marker"]),
@@ -361,15 +311,16 @@ class Spatial(View):
         """
         e = ext
         xy = array([[e[0], e[2]], [e[1], e[2]], [e[1], e[3]], [e[0], e[3]]])
-        self.shape(xy=xy, **kwargs)
+        self.shape(xy, kwargs)
 
-    def shape(self, xy, **kwargs):
-        # type: (array, dict) -> None
+    def shape(self, xy, kwargs):
+        # type: (array, dict) -> Polygon
         """
         Add shape to figure axis
         """
         patch = Polygon(xy, **kwargs)
         self.ax.add_patch(patch)  # add polygon to figure
+        return patch
 
     def topology(
         self,
@@ -397,42 +348,3 @@ class Spatial(View):
             vmax=z.max(),
             **kwargs,
         )
-
-
-
-def _loc(s: int, view: str, mx_x=None, mn_x=None, x=None):
-
-    assert (mx_x is not None and mn_x is not None) or x is not None
-    if x is not None:
-        mx_x = max(x)
-        mn_x = min(x)
-    if view == "coverage":
-        return int(mx_x - mn_x) / 10
-    span = mx_x - mn_x
-    dx = span / s
-    return dx if span < 3 else int(ceil(dx))
-
-
-def consume(streams, select=None):
-    # type: (list, set) -> dict
-    d = dict()
-    _series = deque(streams)
-    _inits = _series.popleft()
-    _defaults = _series.popleft()
-    while _series:
-        for key, val in _series.popleft().items():
-            if select is not None and key not in select:
-                continue
-            if d.get(key) is None:
-                d[key] = [val]
-            else:
-                d[key].append(val)
-    return d
-
-
-def extract_json_series(client, objectKey, processes=1):
-    # type: (Storage, str, int) -> [dict]
-    data = client.get(objectKey)
-    pool = Pool(processes=processes)
-    return pool.starmap(consume, (load_json(data).get("data"),))
-

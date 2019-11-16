@@ -15,9 +15,9 @@ def handle(event, context):
         print(dumps({"Error": "Require POST"}))
         exit(403)
 
-    with open("/var/openfaas/secrets/payload-secret", "r") as secretContent:
+    with open("/var/openfaas/secrets/payload-secret", "r") as fid:
         _hash = getenv("Http_Hmac")
-        expectedMAC = hmac.new(secretContent.read().encode(), event.encode(), hashlib.sha1)
+        expectedMAC = hmac.new(fid.read().encode(), event.encode(), hashlib.sha1)
         if (_hash[5:] if "sha1=" in _hash else _hash) != expectedMAC.hexdigest():
             return {"Error": "HMAC validation"}, 403
 

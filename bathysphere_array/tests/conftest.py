@@ -12,8 +12,8 @@ from pathlib import Path
 from yaml import load as load_yml, Loader
 from os import getenv
 
-from bathysphere.storage import Storage, Dataset
-from bathysphere.utils import (
+from bathysphere_array.storage import Storage, Dataset
+from bathysphere_array.utils import (
     project,
     center,
     extent,
@@ -26,9 +26,9 @@ from bathysphere.utils import (
     nan_mask,
     arrays2points,
 )
-from bathysphere.views import Spatial, Time
-from bathysphere.shapes import shapefile
-from bathysphere import app
+
+from bathysphere_array.shapes import shapefile
+from bathysphere_array import app
 
 
 DATE = datetime(2014, 4, 12)
@@ -98,16 +98,6 @@ def config_no_app():
         "light": {**_styles["base"], **_styles["light"]},
     }
     return defaults
-
-
-@pytest.fixture()
-def spatial(config_no_app):
-    return Spatial(style=config_no_app["styles"]["light"])
-
-
-@pytest.fixture()
-def view(config_no_app):
-    return Time(style=config_no_app["styles"]["light"])
 
 
 def pick_one(storage):
