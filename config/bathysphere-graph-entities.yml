@@ -209,7 +209,7 @@ spec:
     protocol: https
     host: data.nodc.noaa.gov
     port: 80
-    service: /thredds/dodsC/pathfinder/Version5.3/L3C/{}/data/{}
+    service: "/thredds/dodsC/pathfinder/Version5.3/L3C/{}/data/{}"
 ---
 apiVersion: extensions/sensing
 kind: Locations
@@ -298,7 +298,7 @@ metadata:
   Ingresses@iot.navigation:
     - domain: [ umassd.edu ]
   Assets@iot.navigation:
-    - name: [ gom3_{}.nc ]
+    - name: [ "gom3_{}.nc" ]
       format: netcdf
 spec:
   name: NECOFS data

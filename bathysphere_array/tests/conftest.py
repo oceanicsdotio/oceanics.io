@@ -28,7 +28,7 @@ from bathysphere_array.utils import (
 )
 
 from bathysphere_array.shapes import shapefile
-from bathysphere_array import app
+from bathysphere_graph import app
 
 
 DATE = datetime(2014, 4, 12)

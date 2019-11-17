@@ -102,4 +102,3 @@ def get_entity(client, token):
         return response
 
     return _make_request
-
