@@ -7,7 +7,7 @@ def validateCreateTx(create, get, cls, props, db):
     response = create(cls, props)
     data = response.get_json()
     assert response.status_code == 200, data
-    assert count(db, cls=cls) > 0
+    assert eval(cls).count(db) > 0
     payload = data.get("value")
     obj_id = payload.get("@iot.id")
     response = get(cls, obj_id)

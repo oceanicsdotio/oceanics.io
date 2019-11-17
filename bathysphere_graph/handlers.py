@@ -9,7 +9,7 @@ from bathysphere_graph import appConfig, app
 ExtentType = (float, float, float, float)
 ResponseJSON = (dict, int)
 ResponseOctet = (dict, int)
-NamedIndex = (Catalogs, Ingresses, Collections, User)
+NamedIndex = (Catalogs, Providers, Collections, User)
 
 
 def context(fcn):
@@ -33,10 +33,10 @@ def context(fcn):
 
         if not Root.records(db=db, **{"id": 0, "result": "id"}):
             root_item = Root.create(db, url=f"{host}:{port}", secretKey=app.app.config["SECRET"])
-            for ing in appConfig[Ingresses.__name__]:
+            for ing in appConfig[Providers.__name__]:
                 if ing.pop("owner", False):
                     ing["apiKey"] = app.app.config["API_KEY"]
-                _ = Ingresses.create(db, **{"links": [{"label": "Linked", **root_item}]})
+                _ = Providers.create(db, **{"links": [{"label": "Linked", **root_item}]})
         try:
             return fcn(*args, db=db, **kwargs)
         except Exception as e:
@@ -96,7 +96,7 @@ def register(body, db, **kwargs):
     """
     Register a new user account
     """
-    ingress = Ingresses.load(db=db, _apiKey=body.get("apiKey", ""))
+    ingress = Providers.load(db=db, _apiKey=body.get("apiKey", ""))
     if len(ingress) != 1:
         return {"message": "bad API key"}, 403
     portOfEntry = ingress.pop()
@@ -113,7 +113,7 @@ def register(body, db, **kwargs):
         return {"message": "invalid email"}, 403
     _ = User.create(
         db=db,
-        links=[{"label": "Member", "cls": Ingresses.__name__, "id": portOfEntry.id}],
+        links=[{"label": "Member", "cls": Providers.__name__, "id": portOfEntry.id}],
         name=username,
         credential=custom_app_context.hash(body.get("password")),
         ip=request.remote_addr,
@@ -200,16 +200,16 @@ def createEntity(db, user, entity, body, **kwargs):
     linkMetadata = {"confidence": 1.0, "weight": 1.0, "cost": 0.0}
 
     provenance = tuple({
-        "cls": Ingresses.__name__,
+        "cls": Providers.__name__,
         "id": r[0],
         "label": "Provider",
-    } for r in Link.query(db=db, a=user, b=Ingresses, result="b.id"))
+    } for r in Link.query(db=db, a=user, b=Providers, result="b.id"))
 
     poster = ({
         "cls": User.__name__,
         "id": user.id,
         "label": "Post",
-    },) if eval(entity) not in (Ingresses, User) else ()
+    },) if eval(entity) not in (Providers, User) else ()
 
     parseLink = map(lambda k, v: (each.update({
         "cls": k,
@@ -234,16 +234,16 @@ def mutateEntity(body, db, entity, id, user, **kwargs):
     _ = body.pop("entityClass")  # only used for API discriminator
     cls = eval(entity)
     _ = cls.mutate(db=db, data=body, identity=id, props={})
-    createLinks = chain(({"cls": repr(user), "id": user.id, "label": "Put"},),(
-                {"cls": Ingresses.__name__, "id": r[0], "label": "Provider"}
+    createLinks = chain(({"cls": repr(user), "id": user.id, "label": "Put"},), (
+                {"cls": Providers.__name__, "id": r[0], "label": "Provider"}
                 for r in Link.query(
                     db=db,
                     parent={"cls": repr(user), "id": user.id},
-                    child={"cls": Ingresses.__name__},
+                    child={"cls": Providers.__name__},
                     result="b.id",
                     label="Member",
                 )
-    ) if entity != Ingresses.__name__ else ())
+    ) if entity != Providers.__name__ else ())
 
     Link.join(db=db, a=cls(id=id), b=createLinks)
     return None, 204

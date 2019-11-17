@@ -1,12 +1,12 @@
 import pytest
 from bathysphere_graph import app
-from bathysphere_graph.drivers import delete
+from bathysphere_graph.models import Entity
 from os import getenv
 
 
 @pytest.mark.teardown
 def test_teardown_graph(graph):
-    delete(graph)
+    Entity.delete(graph)
 
 
 def test_account_create_user(client):

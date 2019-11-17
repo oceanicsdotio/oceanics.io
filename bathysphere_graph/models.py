@@ -7,48 +7,44 @@ from uuid import uuid4
 from itertools import chain
 from neo4j.v1 import Node
 from inspect import signature
+from types import MethodType
 
 from bathysphere_graph.drivers import *
 
 
 class Entity:
-    def __init__(self, identity=None, annotated=False, location=None):
-        # type: (int or None, bool, list or tuple or None) -> None
+
+    def __init__(self, uuid=None):
+        # type: (Entity) -> None
         """
         Primitive object/entity, may have name and location
-
-        :param identity: Unique identifier, assumed to be integer ID
-        :param annotated: Has a name and/or description
-        :param location: Coordinates, geographic or cartesian
         """
-        self.id = identity
-        self.uuid = None
-        self.__symbol = "n"
-        if annotated:
-            self.name = None
-            self.description = None
-        if location:
-            self.location = location
+        self.uuid = uuid
+        self.__symbol = None
 
     def __repr__(self):
         """
-        (n:Class { <var>: $<var>, <k>: <v>, <k>: <v> })
+        (<symbol>:<class> { <var>: $<var>, <k>: <v>, <k>: <v> })
         """
         entity = (
-            ":" + type(self).__name__ if type(self) not in (Entity, External) else ""
+            ":" + type(self).__name__ if type(self) not in (Entity,) else ""
         )
+        symbol = self.uuid or self.__symbol
         pattern = filter(lambda x: x, map(processKeyValueInbound, self._properties()))
-        return f"({self.__symbol}{entity} {{ {', '.join(pattern)} }} )"
+        return f"({symbol or self.uuid}{entity} {{ {', '.join(pattern)} }} )"
 
     def __str__(self):
         return type(self).__name__
+
+    def _setSymbol(self, symbol):
+        self.__symbol = symbol
+        return self
 
     def _properties(self, select=None, private=None):
         # type: (Entity, (str, ), str) -> dict
         """
         Create a filtered dictionary from the object properties.
         """
-
         def _filter(keyValue):
             key, value = keyValue
             return (
@@ -57,7 +53,6 @@ class Entity:
                 and (key[: len(private)] != private if private else True)
                 and (key in select if select else True)
             )
-
         return {k: v for k, v in filter(_filter, self.__dict__.items())}
 
     @classmethod
@@ -88,10 +83,13 @@ class Entity:
         """
         e = cls(**kwargs)
         _updates = ", ".join(map(processKeyValueInbound, data.items()))
-        query = lambda tx: tx.run(
-            f"MATCH {repr(e)} SET {e.__symbol} += {{ {_updates} }}"
-        ).values()
-        return executeQuery(db, query, access_mode="write")
+        return executeQuery(
+            db=db,
+            access_mode="write",
+            method=lambda tx: tx.run(
+                f"MATCH {repr(e)} SET {e.__symbol} += {{ {_updates} }}"
+            ).values()
+        )
 
     @classmethod
     def delete(cls, db, **kwargs):
@@ -100,10 +98,13 @@ class Entity:
         Remove all nodes from the graph, can optionally specify node-matching parameters.
         """
         e = cls(**kwargs)
-        query = lambda tx: tx.run(
-            f"MATCH {repr(e)} DETACH DELETE {e.__symbol}"
-        ).values()
-        return executeQuery(db, query, access_mode="write")
+        return executeQuery(
+            db=db,
+            access_mode="write",
+            method=lambda tx: tx.run(
+                f"MATCH {repr(e)} DETACH DELETE {e.__symbol}"
+            ).values()
+        )
 
     @classmethod
     def addLabel(cls, db, label, **kwargs):
@@ -112,8 +113,13 @@ class Entity:
         Apply new label to nodes of this class, or a specific node.
         """
         e = cls(**kwargs)
-        query = lambda tx: tx.run(f"MATCH {repr(e)} SET {e.__symbol}:{label}").values()
-        return executeQuery(db, query, access_mode="write")
+        return executeQuery(
+            db=db,
+            access_mode="write",
+            method=lambda tx: tx.run(
+                f"MATCH {repr(e)} SET {e.__symbol}:{label}"
+            ).values()
+        )
 
     @classmethod
     def count(cls, db, **kwargs):
@@ -134,11 +140,9 @@ class Entity:
         Load database nodes as in-memory record.
         """
         e = cls(**kwargs)
-        if user:
-            user.__symbol = "u"
         _query = (
             (
-                f"MATCH {repr(e)}, {repr(user)} "
+                f"MATCH {repr(e)}, {repr(user._setSymbol('u'))} "
                 f"MERGE ({e.__symbol})<-[r:{annotate}]-({user.__symbol}) "
                 f"ON CREATE SET r.rank = 1 "
                 f"ON MATCH SET r.rank = r.rank + 1 "
@@ -170,11 +174,11 @@ class Entity:
         e.uuid = uuid4().hex
         root = {"cls": cls.__name__, "id": e.uuid}
         executeQuery(db, lambda tx: tx.run(f"MERGE {repr(e)}"))
-        bind = (testBindingCapability,) if entity == Catalogs.__name__ else ()
-        indices = ("id", "name") if type(obj) in NamedIndex else ("id",)
+        bind = ()
+        indices = ("uuid", )
         for fcn in bind:
             try:
-                setattr(obj, fcn.__name__, MethodType(fcn, obj))
+                setattr(e, fcn.__name__, MethodType(fcn, e))
             except Exception as ex:
                 # log(f"{ex}")
                 pass
@@ -248,14 +252,8 @@ class Entity:
             payload.append(e)
         return payload
 
-
-class External(Entity):
-    """
-    External entities can be serialized and reported
-    """
-
     def serialize(self, db, service, protocol="http", select=None):
-        # type: (External, Driver, str, str, (str,)) -> dict
+        # type: (Entity, Driver, str, str, (str,)) -> dict
         """
         Format entity as JSON compatible dictionary from either an object instance or a Neo4j <Node>
 
@@ -263,7 +261,7 @@ class External(Entity):
         Remove private members that include a underscore,
         since SensorThings notation is title case
         """
-        restricted = {"User", "Ingresses", "Root"}
+        restricted = {"User", "Providers", "Root"}
         props = self._properties(select=select, private="_")
         identity = props.pop("id")
         cls = type(self).__name__
@@ -369,22 +367,23 @@ class Root(Entity):
         self.tokenDuration = 600
 
 
-class Proxy(Entity):
-    def __init__(self, url, name, description, identity=None):
-        # type: (str, str, str, int) -> None
+class Assets(Entity):
+    def __init__(self, url, name, description, uuid):
+        # type: (str, str, str, str) -> None
         """
-        Proxies are references to external data sources, which may or may not
+        Assets are references to data objects, which may or may not
         be accessible at the time of query.
 
         :param url: URL for the resource
         :param name: name of the resource
         :param description: useful description
-        :param identity: unique ID
+        :param uuid: unique ID
         """
-        Entity.__init__(self, identity=identity, annotated=True)
+        Entity.__init__(self, annotated=True)
         self.name = name
         self.description = description
         self.url = url
+        self.uuid = uuid
 
 
 class User(Entity):
@@ -409,102 +408,31 @@ class User(Entity):
         self.description = description
 
 
-class Ingresses(Entity):
+class Providers(Entity):
 
-    _apiKey = None
-    _lock = False
-
-    def __init__(self, name, description="", url="", apiKey=None, identity=None):
-        # type: (str, str, str, str, int or str) -> None
-        Entity.__init__(self, identity=identity, annotated=True)
+    def __init__(self, name, domain=None, apiKey=None, uuid=None):
+        # type: (str, str, str, str) -> None
+        Entity.__init__(self, uuid=uuid)
         self.name = name
-        self.description = description
-        self.url = url
-        self._apiKey = apiKey if apiKey else token_urlsafe(64)
+        self.domain = domain
+        self.apiKey = apiKey or token_urlsafe(64)
 
 
-class Device(External):
-    def __init__(
-        self,
-        identity=None,
-        name=None,
-        description=None,
-        encodingType=None,
-        metadata=None,
-    ):
-        """
-        Sensor-actuator base class.
-
-        :param identity: integer id
-        :param name: name string
-        :param description: description string
-        :param encodingType: encoding of metadata
-        :param metadata: metadata
-        """
-        External.__init__(self, identity, annotated=True)
+class Collections(Entity):
+    def __init__(self, name, description=None, uuid=None, extent=None):
+        # type: (str, str, str, dict) -> Collections
+        Entity.__init__(self, uuid=uuid)
         self.name = name
-        self.description = description
-        self.encodingType = encodingType
-        self.metadata = metadata
-
-
-class Collections(External):
-    """
-    https://github.com/radiantearth/stac-spec/tree/master/collection-spec
-    """
-    def __init__(
-        self,
-        title="",
-        description="",
-        identity=None,
-        license=None,
-        version="",
-        keywords=None,
-        providers=None,
-        **kwargs,
-    ):
-        # type: (str, str, int, str, str, [str], [str], dict) -> Collections
-        External.__init__(self, identity=identity, annotated=True)
-        self.title = self.name = title
         self.description = description
         self.extent = None
-        self.license = license
-        self.version = version
-        self.keywords = list(set() if keywords is None else set(keywords.split(",")))
-        self.providers = providers
 
 
-class Catalogs(External):
-    """
-    https://github.com/radiantearth/stac-spec/tree/master/catalog-spec
-    """
-
-    def __init__(self, identity=None, title="", description=""):
-        External.__init__(self, identity=identity, annotated=True)
-        self.title = self.name = title
-        self.description = description
-
-
-class Items(External):
-    """
-    https://github.com/radiantearth/stac-spec/blob/master/item-spec/item-spec.md
-    """
-    type = "Feature"
-
-    def __init__(self, identity=None, title=""):
-        External.__init__(self, identity=identity, annotated=True)
-        self.bbox = None
-        self.assets = None
-        self.geometry = None
-        self.properties = None
-
-
-class Datastreams(External):
+class Datastreams(Entity):
     def __init__(
         self, identity=None, name=None, description=None, unitOfMeasurement=None
     ):
         # type: (Datastreams, int, str, str, dict) -> Datastreams
-        External.__init__(self, identity=identity, annotated=True)
+        Entity.__init__(self, identity=identity, annotated=True)
         self.name = name
         self.description = description
         self.unitOfMeasurement = unitOfMeasurement
@@ -514,7 +442,7 @@ class Datastreams(External):
         self.resultTime = None  # result times interval, ISO8601
 
 
-class FeaturesOfInterest(External):
+class FeaturesOfInterest(Entity):
     def __init__(self, identity=None, name="", description=""):
         """
         Features of interest are usually Locations
@@ -522,14 +450,14 @@ class FeaturesOfInterest(External):
         :param identity: integer id
         :param name: name string
         """
-        External.__init__(self, identity, annotated=True)
+        Entity.__init__(self, identity, annotated=True)
         self.name = name
         self.description = description
         self.encodingType = None
         self.feature = None
 
 
-class Locations(External):
+class Locations(Entity):
     def __init__(self, identity=None, name="", location=None, description=""):
         """
         Last known location of a thing. May be a feature of interest, unless remote sensing.
@@ -538,7 +466,7 @@ class Locations(External):
         :param name: name string
         :param location: GeoJSON
         """
-        External.__init__(self, identity, annotated=True, location=location)
+        Entity.__init__(self, identity, annotated=True, location=location)
         self.name = name
         self.description = description
         self.encodingType = "application/vnd.geo+json"
@@ -565,16 +493,16 @@ class Locations(External):
         )
 
 
-class HistoricalLocations(External):
+class HistoricalLocations(Entity):
     def __init__(self, identity=None):
         """
         Private and automatic, should be added to sensor when new location is determined
         """
-        External.__init__(self, identity)
+        Entity.__init__(self, identity)
         self.time = None  # time when thing is known at location (ISO-8601 string)
 
 
-class Things(External):
+class Things(Entity):
     def __init__(self, identity=None, name="", description=""):
         """
         A thing is an object of the physical or information world that is capable of of being identified
@@ -583,7 +511,7 @@ class Things(External):
         :param identity: integer id
         :param name: name string
         """
-        External.__init__(self, identity, annotated=True)
+        Entity.__init__(self, identity, annotated=True)
         self.name = name
         self.description = description
         self.properties = None  # (optional)
@@ -607,25 +535,33 @@ class Things(External):
         return response, 200
 
 
-class Sensors(Device):
+class Sensors(Entity):
 
     _encodings = ["application/pdf", "http://www.opengis.net/doc/IS/SensorML/2.0"]
-    _order = None  # order of sensor in read file columns
-    _sampletime = None  # datetime of last measurement
-    _label = None  # variable label
-    _variable = None
 
-    def __init__(self, **kwargs):
+    def __init__(
+            self,
+            identity=None,
+            name=None,
+            description=None,
+            encodingType=None,
+            metadata=None,
+    ):
         """
-        A sensor is an instrument that observes a property. It is not directly linked with a thing.
-
-        :param identity:
-        :param name:
+        :param identity: integer id
+        :param name: name string
+        :param description: description string
+        :param encodingType: encoding of metadata
+        :param metadata: metadata
         """
-        Device.__init__(self, **kwargs)
+        Entity.__init__(self, identity, annotated=True)
+        self.name = name
+        self.description = description
+        self.encodingType = encodingType
+        self.metadata = metadata
 
 
-class Observations(External):
+class Observations(Entity):
     def __init__(self, val, identity=None, ts=datetime.utcnow().isoformat()):
         """
         Observation are individual time stamped members of Datastreams
@@ -634,7 +570,7 @@ class Observations(External):
         :param ts: timestamp, doesn't enforce specific format
         :param val: value of the observation ("result" in SensorThings parlance)
         """
-        External.__init__(self, identity)
+        Entity.__init__(self, identity)
         self.phenomenonTime = ts
         self.result = val
 
@@ -644,7 +580,7 @@ class Observations(External):
         self.parameters = None
 
 
-class ObservedProperties(External):
+class ObservedProperties(Entity):
     def __init__(
         self,
         identity=None,
@@ -660,38 +596,53 @@ class ObservedProperties(External):
         :param definition: URL to reference defining the property
         :param src: host for looking up definition
         """
-        External.__init__(self, identity, annotated=True)
+        Entity.__init__(self, identity, annotated=True)
         self.name = name
         self.description = description
         self.definition = (src + name) if definition is None else definition
 
 
-class Actuators(Device):
-    def __init__(self, **kwargs):
+class Actuators(Entity):
+    def __init__(
+            self,
+            identity=None,
+            name=None,
+            description=None,
+            encodingType=None,
+            metadata=None,
+    ):
         """
-        Abstract class encapsulating communications with a single relay
+        :param identity: integer id
+        :param name: name string
+        :param description: description string
+        :param encodingType: encoding of metadata
+        :param metadata: metadata
         """
-        Device.__init__(self, **kwargs)
+        Entity.__init__(self, identity, annotated=True)
+        self.name = name
+        self.description = description
+        self.encodingType = encodingType
+        self.metadata = metadata
 
 
-class TaskingCapabilities(External):
+class TaskingCapabilities(Entity):
     def __init__(self, name="", description="", taskingParameters=None, **kwargs):
         # type: (str, str, list, dict) -> TaskingCapabilities
         """
         Abstract tasking class mapping I/O and generating signal.
         """
-        External.__init__(self, annotated=True, **kwargs)
+        Entity.__init__(self, annotated=True, **kwargs)
         self.name = name
         self.description = description
         self.taskingParameters = taskingParameters
 
 
-class Tasks(External):
+class Tasks(Entity):
     def __init__(self, taskingParameters=None, **kwargs):
         # type: (dict, dict) -> Tasks
         """
         Task!
         """
-        External.__init__(self, **kwargs)
+        Entity.__init__(self, **kwargs)
         self.creationTime = time()
         self.taskingParameters = taskingParameters
