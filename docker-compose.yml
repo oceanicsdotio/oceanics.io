@@ -1,41 +1,13 @@
 version: "3.6"
 
 networks:
+
+
   bathysphere:
     driver: bridge
 
-services:
 
-  bathysphere-graph:
-    build:
-      context: .
-      dockerfile: config/bathysphere-graph-dockerfile
-    image: oceanicsdotio/bathysphere-graph
-    ports:
-      - 5000:5000
-    environment:
-      - ADMIN
-      - ADMIN_PASS
-      - API_KEY
-      - HOST
-      - EMAIL_ACCT
-      - EMAIL_KEY
-      - EMAIL_SERVER
-      - EMAIL_PORT
-      - REPLY_TO
-      - SECRET
-      - PORT
-      - BASE_PATH
-    networks:
-      - bathysphere
-    volumes:
-      - ./src:/src
-      - ./logs:/logs
-    healthcheck:
-      test: ["CMD", "curl", "-fI", "localhost:7474"]
-      interval: 60s
-      timeout: 5s
-      retries: 3
+services:
 
 
   bathysphere-array:
@@ -50,6 +22,33 @@ services:
     volumes:
       - ./logs:/logs
     command: ["sh", "start.sh"]
+
+
+  api:
+    build:
+      context: .
+      dockerfile: config/bathysphere-graph-dockerfile
+    image: oceanicsdotio/bathysphere-graph
+    ports:
+      - 5000:5000
+#    environment:
+#      - ADMIN
+#      - ADMIN_PASS
+#      - API_KEY
+#      - HOST
+#      - REPLY_TO
+#      - SECRET
+#      - PORT
+    networks:
+      - bathysphere
+    volumes:
+      - ./src:/src
+      - ./logs:/logs
+    healthcheck:
+      test: ["CMD", "curl", "-fI", "localhost:7474"]
+      interval: 60s
+      timeout: 5s
+      retries: 3
 
 
   neo4j:
@@ -91,7 +90,7 @@ services:
       - ./static:/static
     depends_on:
       - neo4j
-      - bathysphere-graph
+      - api
     networks:
       - bathysphere
     healthcheck:
@@ -101,32 +100,32 @@ services:
       retries: 3
 
 
-#  postgres:
-#    image: timescale/timescaledb-postgis
-#    ports:
-#      - 5432:5432
-#    environment:
-#      - POSTGRES_PASSWORD=n0t_passw0rd
-#      - PGDATA=/var/lib/postgresql/data
-#    networks:
-#      - bathysphere
-#    volumes:
-#      - ./db/timescale:/var/lib/postgresql/data
-#    healthcheck:
-#      test: ["CMD", "curl", "-fI", "localhost:5432"]
-#      interval: 60s
-#      timeout: 5s
-#      retries: 3
+  postgres:
+    image: timescale/timescaledb-postgis
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_PASSWORD=n0t_passw0rd
+      - PGDATA=/var/lib/postgresql/data
+    networks:
+      - bathysphere
+    volumes:
+      - ./db/timescale:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "curl", "-fI", "localhost:5432"]
+      interval: 60s
+      timeout: 5s
+      retries: 3
 
 
-#  redis:
-#    image: redis
-#    ports:
-#      - 6379:6379
-#    networks:
-#      - bathysphere
-#    healthcheck:
-#      test: ["CMD", "curl", "-fI", "localhost:6379"]
-#      interval: 60s
-#      timeout: 5s
-#      retries: 3
+  redis:
+    image: redis
+    ports:
+      - 6379:6379
+    networks:
+      - bathysphere
+    healthcheck:
+      test: ["CMD", "curl", "-fI", "localhost:6379"]
+      interval: 60s
+      timeout: 5s
+      retries: 3
