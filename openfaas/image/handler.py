@@ -101,7 +101,7 @@ def handle(req):
         exit(400)
 
     body = loads(req)
-    labels = body.get("labels", {})
+    labels = body.pop("labels", {})
     base = body.pop("style", {})
     data = body.pop("data")
     view = body.pop("view")
@@ -119,8 +119,8 @@ def handle(req):
             legend=fig.style["legend"],
             xloc=xloc,
             yloc=yloc,
-            xlab=labels.get("x", "Time"),
-            ylab=labels.get("y", None),
+            xlab=labels.pop("x", "Time"),
+            ylab=labels.pop("y", None),
         )
     else:
         print(dumps({"Error": f"View '{view}' not found"}))

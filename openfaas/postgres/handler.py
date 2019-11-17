@@ -98,7 +98,7 @@ def handle(req):
     """
     if getenv("Http_Method") != "POST":
         print(dumps({"Error": "Require POST"}))
-        exit(403)
+        exit(400)
 
     with open("/var/openfaas/secrets/payload-secret", "r") as fid:
         _hash = getenv("Http_Hmac")

@@ -38,33 +38,24 @@ info:
   x-logo:
     url: bathysphere.png
 
+
+x-tagGroups:
+  - name: BATHYSPHERE API
+    tags: [Account, Catalog, Topology]
+  - name: FAAS ENDPOINTS
+    tags: [ Archive, Buoys, Cache, Controller, Image, Notify, Repository, Parse, Postgres ]
+
 tags:
   - name: Account
   - name: Catalog
   - name: Topology
-  - name: Render
 
 servers:
-- url: https://graph.oceanics.io/{basePath}
-  description: Production API
-  variables:
-    basePath:
-      default: api
+- url: https://graph.oceanics.io/api
+  description: Oceanicsdotio
 
-- url: https://graph.oceanics.io/{basePath}
-  description: OpenFaaS server
-  variables:
-    basePath:
-      default: function
-
-- url: localhost/{basePath}
-  description: Localhost
-  variables:
-    basePath:
-      default: api
 
 paths:
-
 
   /auth:
 

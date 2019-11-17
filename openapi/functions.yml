@@ -1,6 +1,7 @@
 openapi: "3.0.0"
 
 info:
+
   title: "Functions API"
   version: "1.0"
   description: |
@@ -21,81 +22,117 @@ info:
   x-logo:
     url: bathysphere.png
 
-#x-tagGroups:
-#  - name: Storage
-#    tags: [ Postgres, Repository, Cache ]
-#  - name: IoT
-#    tags: [ Buoys, Controller ]
-#  - name: Admin
-#    tags: [ Archive, Notify ]
-#  - name: Analysis
-#    tags: [ Image, Parse ]
-
 tags:
-  - name: Archive
-  - name: Buoys
-  - name: Cache
-  - name: Controller
-  - name: Image
-  - name: Notify
-  - name: Parse
-  - name: Postgres
-  - name: Repository
+  - name: Admin
+  - name: Analysis
+  - name: IoT
+  - name: Storage
 
 servers:
-
 - url: https://graph.oceanics.io/function
   description: Synchronous endpoint
-
 - url: https://graph.oceanics.io/async-function
   description: Asynchronous endpoint
-
 
 paths:
 
   /archive:
 
     post:
-      tags: [ Archive ]
-      summary: Data ingestion
+      tags: [ Admin ]
+      summary: Archive
       description: Index an external data or storage system
 
+    responses:
+        '200': Success
 
   /buoys:
 
     post:
-      tags: [ Buoys ]
-      summary: Buoy data
+      tags: [ IoT ]
+      summary: Buoys
       description: Access third-party buoy data
-      headers:
-        hmac:
-          description: |
-            HMAC header
-          schema:
-            type: str
+
+      parameters:
+        - $ref: "#/components/parameters/HMAC"
+
+      requestBody:
+
+        description: Buoy data
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Buoys function request
+              properties:
+                interval:
+                  type: array
+                  minItems: 2
+                  maxItems: 2
+                  items:
+                    type: string
+                    format: date-time
+                limit:
+                  type: integer
+                  description: |
+                    Number of records to retrieve, from today or the end of `interval`.
+                encoding:
+                  type: string
+                  description: Return data as CSV text or as JSON
+                  enum: [ txt, json ]
+                  default: txt
+                id:
+                  type: integer
+                  description: The identity of the buoy, known to the external server
+                observedProperties:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: string
+
+    responses:
+        '202':
+          description: Async response
+
+        '200':
+          description: Buoy data
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Buoys data
+                properties:
+                  name:
+                    type: string
+                  aliases:
+                    type: array
+                    items:
+                      type: string
+                  values:
+                    type: array
+                    items:
+                      type: object
 
   /cache:
 
     post:
-      tags: [ Cache ]
-      summary: Cache data
+      tags: [ Storage ]
+      summary: Cache
       description: Redis integration
 
   /controller:
 
     post:
-      tags: [ Controller ]
-      summary: Control system
+      tags: [ IoT ]
+      summary: Controller
       description: Deploy control loops
 
   /image:
 
-  /image/series:
-
     post:
 
-      tags: [ Image ]
-      summary: Data view
+      tags: [ Analysis ]
+      summary: Image
       description: |
         Create PNG images from data sources and references and cache it.
         The service call methods from the `matplotlib` library,
@@ -103,386 +140,334 @@ paths:
         by default, but `.pdf` and `.tiff` are available for print media.
 
       parameters:
-
-        - name: view
-          in: query
-          description: |
-            How to transform and render the data
-          schema:
-            type: string
-            enum: [series, coverage, frequency, scatter]
-            default: scatter
+        - $ref: "#/components/parameters/HMAC"
 
       requestBody:
-        $ref: "#/components/requestBodies/Datastreams"
+
+        description: Image request
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Buoys function request
+              properties:
+                labels:
+                  type: object
+                  nullable: true
+                  properties:
+                    x:
+                      type: string
+                      nullable: true
+                    y:
+                      type: string
+                      nullable: true
+
+                style:
+                  type: object
+                  nullable: true
+                  description: |
+                    Style is used change the appearance of the rendered image.
+
+                  properties:
+
+                    template:
+                      type: string
+                      enum: [dark, light]
+                      default: dark
+                      description: |
+                        Select between light and dark templates depending on whether the image is intended for display
+                        on a screen or for printed media.
+
+                    bg:
+                      type: string
+                      default: black
+                      description: |
+                        Override the default background color for the chosen or default template. Dark themes have a `black`
+                        background by default, and light themes have a `white` background. Use this to match the background
+                        color when embedding in a web page. This can also be transparent for image compositing.
+
+                    contrast:
+                      type: string
+                      default: white
+                      description: |
+                        Contrast color for rendering over background.
+
+                    flag:
+                      type: string
+                      default: red
+                      description: |
+                        Highlight color for marking selected or masked data.
+
+                    label:
+                      type: string
+                      description: |
+                        Color for text and labels. The default is the same as the `contrast` color.
+
+                    dpi:
+                      type: integer
+                      default: 150
+                      minimum: 90
+                      maximum: 300
+                      description: |
+                        Image resolution. Be careful, `dpi=300` images can be very large.
+
+                    format:
+                      type: string
+                      enum: [png, pdf, tiff]
+                      default: png
+                      description: |
+                        Image file format. Only `png` is available through the API.
+
+                    alpha:
+                      type: number
+                      format: float
+                      default: 1.0
+                      maximum: 1.0
+                      minimum: 0.0
+                      description: |
+                        Transparency of drawn objects. Useful for rendering Monte Carlo simulations.
+
+                    padding:
+                      type: array
+                      minLength: 4
+                      maxLength: 4
+                      items:
+                        type: number
+                        format: float
+                      default: [0.1, 0.2, 0.05, 0.1]
+                      description: |
+                        Content padding from edges of image to make room for labels and title.
+
+                    marker:
+                      type: integer
+                      default: 1
+                      description: |
+                        Size of markers if rendering scatter plots or points on a map
+
+                    font:
+                      type: integer
+                      default: 10
+                      description: |
+                        Font size
+
+                    text:
+                      type: number
+                      format: float
+                      default: 1.0
+                      description: |
+                        Size of labels relative to font size.
+
+                    width:
+                      type: number
+                      format: float
+                      default: 6.5
+                      description: |
+                        Width of image in inches
+
+                    height:
+                      type: number
+                      format: float
+                      description: |
+                        Height of image in inches
+
+                data:
+                  title: data container
+                  type: object
+
+                view:
+                  type: string
+                  description: The type of data view
+                  enum: [series, coverage, frequency, scatter]
+
+                extent:
+                  title: extent
+                  type: object
+                  readOnly: true
+                  nullable: true
+                  description: |
+
+                    Spatiotemporal extent of a data `Collection`. Contains a 2 or 3-D `spatial` extent, and a `temporal`
+                    interval.
+
+                  properties:
+
+                    spatial:
+                      type: array
+                      minLength: 4
+                      maxLength: 6
+                      items:
+                        type: number
+                        format: float
+
+                    temporal:
+                      type: string
+                      description: ISO format timestamp interval
+                args:
+                  title: arguments
+                  type: object
+                  nullable: true
 
       responses:
-        '200':
-          description: Image Response
+
+        '202':
+          description: Accepted
+
+        '403':
+          description: Unauthorized
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  link:
+                  Error:
                     type: string
-                  objectKey:
+                    example: HMAC validation
+
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  Error:
                     type: string
-        '404':
-          $ref: '#/components/responses/NotFound'
+                    example: Requires POST with payload
+
+        '200':
+          description: Image reference
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  uui:
+                    type: string
+                    format: uuid
+                  objectName:
+                    type: string
+                    example: example.png
+                  url:
+                    type: string
+                    format: uri
+                    example: https://data.oceanics.io/example.png
 
   /notify:
 
     post:
-      tags: [ Notify ]
-      summary: Send notification
+      tags: [ Admin ]
+      summary: Notify
       description: Send notification by e-mail or Slack
 
   /parse:
 
     post:
-      tags: [ Parse ]
-      summary: Parse data
+      tags: [ Analysis ]
+      summary: Parse
       description: Heuristic XML/JSON parser
 
   /postgres:
 
     post:
-      tags: [ Postgres ]
-      summary: SQL support
+      tags: [ Storage ]
+      summary: Postgres
       description: Postgres and PostGIS integration
+
+      requestBody:
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: object
+                  nullable: true
+                  description: Data to ingest
+
+                encoding:
+                  type: string
+                  enum: [ json, txt ]
+                  default: json
+                  description: Encoding of result
+
+                streaming:
+                  type: boolean
+                  description: Stream the records
+                  default: false
+                table:
+                  type: string
+                fields:
+                  type: array
+                  items:
+                    type: string
+                limit:
+                  type: integer
+                  default: 100
+                order:
+                  type: string
+                  default: DESC
+                conditions:
+                  type: array
+                  items:
+                    type: str
+
+
+
+
+      responses:
+
+        '202':
+          description: Accepted
+
+        '200':
+          description: Records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  description: Parsed data record
+
+        '403':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  Error:
+                    type: string
+                    example: HMAC validation
+
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  Error:
+                    type: string
+                    example: Requires POST with payload
 
   /repository:
 
     post:
-      tags: [ Repository ]
-      summary: Object storage
+      tags: [ Storage ]
+      summary: Repository
       description: S3 object storage integration
 
 components:
 
-  schemas:
-
-    SatlanticThing:
-      allOf:
-      - $ref: "https://graph.oceanics.io/api.yml#/components/schemas/Thing"
-      - type: object
-        properties:
-          externalId:
-            description: External identifier
-            type: integer
-            format: int32
-            minimum: 1
-
-    Schedule:
-      type: object
-      properties:
-        scheduleCreationProgram:
-          type: string
-        scheduleCreationOperator:
-          type: string
-        scheduleCreationTime:
-          type: string
-          format: date-time
-
-        storxSettings:
-          type: object
-          properties:
-            type:
-              type: string
-              default: "STOR-X"
-
-            operatingCurrent:
-              type: string
-              default: 50(mA)
-
-            peakOperatingCurrent:
-              type: string
-              default: 50(mA)
-
-            cleanUpTime:
-              type: string
-              default: 0(min)
-
-        emailSettings:
-          type: object
-
-    SensorConfig:
-      type: object
-
-    Events:
-      type: array
-      items:
-        type: object
-        properties:
-
-          comparison:
-            type: string
-            default: 'eq'
-          action:
-            type: string
-          contact:
-            type: string
-
-    SatlanticSensor:
-      allOf:
-        - $ref: "https://graph.oceanics.io/api.yml#/components/schemas/Sensor"
-        - type: object
-          properties:
-            name:
-              type: string
-            sn:
-              type: string
-
-
-    FTPSettings:
-      server:
-        description: FTP_SERVER
-        type: string
-      port:
-        description: FTP_PORT
-        type: integer
-      user:
-        description: FTP_USER
-        type: string
-      password:
-        description: FTP_PASSWORD
-        type: string
-        format: password
-
-    Auth:
-      type: object
-      properties:
-        user:
-          description: AUTHUSER
-          type: string
-        password:
-          description: AUTHPW
-          type: string
-          format: password
-
-    ScheduleConfig:
-      type: object
-      properties:
-        port:
-          description: SCHED_PORT
-          type: integer
-          default: 80
-        path:
-          description: PATHNAME
-          type: string
-          default: "/schedule"
-
-    EmailConfig:
-      type: object
-      properties:
-        domainNameServers:
-          description: DOM_NAM_SERV1, DOM_NAM_SERV2
-          type: array
-          maxItems: 2
-          items:
-            type: string
-
-        helo:
-          description: HELO
-          type: string
-          default: "storx.storxmodem.com"
-
-        server:
-          description: SERVER
-          type: string
-          default: "23.92.25.145"
-
-        webaddress:
-          description: WEBADDRESS
-          type: string
-          default: "23.92.25.145"
-
-        ip:
-          description: IPVAL
-          type: string
-          default: "0.0.0.0"
-
-        port:
-          description: PORT
-          type: integer
-          default: 25
-
-        from:
-          description: STORXEMAIL
-          type: string
-          default: "storx.xxx@storxmodem.com"
-
-        to:
-          description: EMAIL
-          type: string
-          default: "lobodata@server.loboviz.com"
-
-        user:
-          description: USERID
-          type: string
-          default: ""
-
-        password:
-          description: PASSWD
-          type: string
-          format: password
-          default: ""
-
-        headercom:
-          description: HEADERCOM
-          type: integer
-          default: 0
-
-        datacom:
-          description: DATACOM
-          type: integer
-          default: 0
-
-        apn:
-          description: APN
-          type: string
-          default: BROADBAND
-
-    Style:
-      type: object
+  parameters:
+    HMAC:
+      name: hmac
       description: |
-        Style is used change the appearance of the rendered image.
+        Hash-based message authentication code (HMAC) used to validate content and authenticity
+        of requests.
 
-      properties:
-
-        template:
-          type: string
-          enum: [dark, light]
-          default: dark
-          description: |
-            Select between light and dark templates depending on whether the image is intended for display
-            on a screen or for printed media.
-
-        bg:
-          type: string
-          default: black
-          description: |
-            Override the default background color for the chosen or default template. Dark themes have a `black`
-            background by default, and light themes have a `white` background. Use this to match the background
-            color when embedding in a web page. This can also be transparent for image compositing.
-
-        contrast:
-          type: string
-          default: white
-          description: |
-            Contrast color for rendering over background.
-
-        flag:
-          type: string
-          default: red
-          description: |
-            Highlight color for marking selected or masked data.
-
-        label:
-          type: string
-          description: |
-            Color for text and labels. The default is the same as the `contrast` color.
-
-        dpi:
-          type: integer
-          default: 150
-          minimum: 90
-          maximum: 300
-          description: |
-            Image resolution. Be careful, `dpi=300` images can be very large.
-
-        format:
-          type: string
-          enum: [png, pdf, tiff]
-          default: png
-          description: |
-            Image file format. Only `png` is available through the API.
-
-        alpha:
-          type: number
-          format: float
-          default: 1.0
-          maximum: 1.0
-          minimum: 0.0
-          description: |
-            Transparency of drawn objects. Useful for rendering Monte Carlo simulations.
-
-        padding:
-          type: array
-          minLength: 4
-          maxLength: 4
-          items:
-            type: number
-            format: float
-          default: [0.1, 0.2, 0.05, 0.1]
-          description: |
-            Content padding from edges of image to make room for labels and title.
-
-        marker:
-          type: integer
-          default: 1
-          description: |
-            Size of markers if rendering scatter plots or points on a map
-
-        font:
-          type: integer
-          default: 10
-          description: |
-            Font size
-
-        text:
-          type: number
-          format: float
-          default: 1.0
-          description: |
-            Size of labels relative to font size.
-
-        width:
-          type: number
-          format: float
-          default: 6.5
-          description: |
-            Width of image in inches
-
-        height:
-          type: number
-          format: float
-          description: |
-            Height of image in inches
-
-
-    Datastreams:
-      type: object
-      properties:
-        datastream:
-          type: array
-          items:
-            $ref: '#/components/schemas/Observation'
-        extent:
-          $ref: '#/components/schemas/Extent'
-        style:
-          $ref: '#/components/schemas/Style'
-
-    Reference:
-      type: object
-      properties:
-        extent:
-          $ref: '#/components/schemas/Extent'
-        style:
-          $ref: '#/components/schemas/Style'
-
-#    Observation:
-#      oneOf:
-#      - type: object
-#        properties:
-#          time:
-#            type: number
-#          value:
-#            type: number
-#      - type: array
-#        minLength: 2
-#        items:
-#          type: number
-#          format: float
-
+      in: header
+      type: string
+      example: "hmac=sd76sd0s98sdf09"
