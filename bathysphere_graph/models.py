@@ -13,7 +13,6 @@ from bathysphere_graph.drivers import *
 
 
 class Entity:
-
     def __init__(self, uuid=None):
         # type: (Entity) -> None
         """
@@ -26,9 +25,7 @@ class Entity:
         """
         (<symbol>:<class> { <var>: $<var>, <k>: <v>, <k>: <v> })
         """
-        entity = (
-            ":" + type(self).__name__ if type(self) not in (Entity,) else ""
-        )
+        entity = ":" + type(self).__name__ if type(self) not in (Entity,) else ""
         symbol = self.uuid or self.__symbol
         pattern = filter(lambda x: x, map(processKeyValueInbound, self._properties()))
         return f"({symbol or self.uuid}{entity} {{ {', '.join(pattern)} }} )"
@@ -45,6 +42,7 @@ class Entity:
         """
         Create a filtered dictionary from the object properties.
         """
+
         def _filter(keyValue):
             key, value = keyValue
             return (
@@ -53,6 +51,7 @@ class Entity:
                 and (key[: len(private)] != private if private else True)
                 and (key in select if select else True)
             )
+
         return {k: v for k, v in filter(_filter, self.__dict__.items())}
 
     @classmethod
@@ -88,7 +87,7 @@ class Entity:
             access_mode="write",
             method=lambda tx: tx.run(
                 f"MATCH {repr(e)} SET {e.__symbol} += {{ {_updates} }}"
-            ).values()
+            ).values(),
         )
 
     @classmethod
@@ -103,7 +102,7 @@ class Entity:
             access_mode="write",
             method=lambda tx: tx.run(
                 f"MATCH {repr(e)} DETACH DELETE {e.__symbol}"
-            ).values()
+            ).values(),
         )
 
     @classmethod
@@ -118,7 +117,7 @@ class Entity:
             access_mode="write",
             method=lambda tx: tx.run(
                 f"MATCH {repr(e)} SET {e.__symbol}:{label}"
-            ).values()
+            ).values(),
         )
 
     @classmethod
@@ -157,8 +156,8 @@ class Entity:
         return executeQuery(db, lambda tx: tx.run(_query).values(), access_mode="read")
 
     @classmethod
-    def create(cls, db, link=(), user=None, **kwargs):
-        # type: (Entity, Driver, (dict, ), User, dict) -> dict
+    def create(cls, db, link=(), bind=(), **kwargs):
+        # type: (Entity, Driver, (dict, ), (Callable, ), dict) -> dict
         """
         RECURSIVE!
 
@@ -174,23 +173,14 @@ class Entity:
         e.uuid = uuid4().hex
         root = {"cls": cls.__name__, "id": e.uuid}
         executeQuery(db, lambda tx: tx.run(f"MERGE {repr(e)}"))
-        bind = ()
-        indices = ("uuid", )
         for fcn in bind:
-            try:
-                setattr(e, fcn.__name__, MethodType(fcn, e))
-            except Exception as ex:
-                # log(f"{ex}")
-                pass
-        taskingLabel = "Has"
-        boundMethods = set(
-            y[0]
-            for y in filter(lambda x: isinstance(x[1], Callable), e.__dict__.items())
-        )
+            setattr(e, fcn.__name__, MethodType(fcn, e))
+        _filter = lambda x: isinstance(x[1], Callable)
+        boundMethods = set(y[0] for y in filter(_filter, e.__dict__.items()))
         classMethods = set(filter(lambda x: x[: len("_")] != "_", dir(e)))
         instanceKeys = (boundMethods | classMethods) - set(e._properties())
         existingItems = {
-            x.name: x.id for x in TaskingCapabilities.load(db=db, user=user)
+            x.name: x.uuid for x in TaskingCapabilities.load(db)
         }
         existingKeys = set(existingItems.keys())
 
@@ -216,7 +206,6 @@ class Entity:
                 **TaskingCapabilities.create(
                     db=db,
                     link=(),
-                    user=user,
                     name=key,
                     description=fcn.__doc__,
                     taskingParameters=(
@@ -238,7 +227,7 @@ class Entity:
 
     @classmethod
     def load(cls, db, user=None, private="_", **kwargs):
-        # type: (Entity, Driver, User, str, **dict) -> list or None
+        # type: (Driver, User, str, **dict) -> [Entity]
         """
         Create entity instance from a dictionary or Neo4j <Node>, which has an items() method
         that works the same as the dictionary method.
@@ -268,8 +257,8 @@ class Entity:
         base_url = f"{protocol}://{service}/api/"
         root_url = f"{base_url}/{cls}"
         self_url = (
-            f"{root_url}({self.id})"
-            if isinstance(self.id, int)
+            f"{root_url}({self.uuid})"
+            if isinstance(self.uuid, int)
             else f"{base_url}/{self.uuid}"
         )
 
@@ -350,23 +339,6 @@ class Link:
         return executeQuery(db, query, access_mode="read")
 
 
-class Root(Entity):
-    def __init__(self, url, secretKey):
-        # type: (str, str) -> Root
-        """
-        The graph supports multi-tenancy, so all operations are associated with a Root
-        to allow hyper-graphs
-
-        :param url:
-        :param secretKey:
-        """
-        Entity.__init__(self, identity=0, annotated=True)
-        self.name = "root"
-        self.url = url
-        self._secretKey = secretKey
-        self.tokenDuration = 600
-
-
 class Assets(Entity):
     def __init__(self, url, name, description, uuid):
         # type: (str, str, str, str) -> None
@@ -379,7 +351,7 @@ class Assets(Entity):
         :param description: useful description
         :param uuid: unique ID
         """
-        Entity.__init__(self, annotated=True)
+        Entity.__init__(self, uuid)
         self.name = name
         self.description = description
         self.url = url
@@ -391,48 +363,48 @@ class User(Entity):
     _ipAddress = None
     __symbol = "u"
 
-    def __init__(self, name, credential, identity=None, description="", ip=None):
+    def __init__(self, name=None, credential=None, uuid=None, description="", ip=None):
         # type: (str, str, int, str, str) -> None
         """
         Create a user entity.
 
         :param name: user name string
-        :param identity: optional integer to request (will be automatically generated if already taken)
+        :param uuid: optional integer to request (will be automatically generated if already taken)
         """
-        Entity.__init__(self, identity=identity, annotated=True)
+        Entity.__init__(self, uuid)
         self.name = name
-        self.alias = name
-        self._credential = credential
+        self.credential = credential
         self.validated = True
-        self._ipAddress = ip
+        self.ipAddress = ip
         self.description = description
 
 
 class Providers(Entity):
-
-    def __init__(self, name, domain=None, apiKey=None, uuid=None):
-        # type: (str, str, str, str) -> None
+    def __init__(self, name=None, domain=None, apiKey=None, uuid=None, secretKey=None):
+        # type: (str, str, str, str, str) -> None
         Entity.__init__(self, uuid=uuid)
         self.name = name
         self.domain = domain
         self.apiKey = apiKey or token_urlsafe(64)
+        self.secretKey = secretKey
+        self.tokenDuration = 600
 
 
 class Collections(Entity):
-    def __init__(self, name, description=None, uuid=None, extent=None):
+    def __init__(self, name=None, description=None, uuid=None, extent=None):
         # type: (str, str, str, dict) -> Collections
         Entity.__init__(self, uuid=uuid)
         self.name = name
         self.description = description
-        self.extent = None
+        self.extent = extent
 
 
 class Datastreams(Entity):
     def __init__(
-        self, identity=None, name=None, description=None, unitOfMeasurement=None
+        self, uuid=None, name=None, description=None, unitOfMeasurement=None
     ):
         # type: (Datastreams, int, str, str, dict) -> Datastreams
-        Entity.__init__(self, identity=identity, annotated=True)
+        Entity.__init__(self, uuid=uuid)
         self.name = name
         self.description = description
         self.unitOfMeasurement = unitOfMeasurement
@@ -443,14 +415,14 @@ class Datastreams(Entity):
 
 
 class FeaturesOfInterest(Entity):
-    def __init__(self, identity=None, name="", description=""):
+    def __init__(self, name="", description="", uuid=None):
         """
         Features of interest are usually Locations
 
-        :param identity: integer id
+        :param uuid: integer id
         :param name: name string
         """
-        Entity.__init__(self, identity, annotated=True)
+        Entity.__init__(self, uuid)
         self.name = name
         self.description = description
         self.encodingType = None
@@ -458,15 +430,16 @@ class FeaturesOfInterest(Entity):
 
 
 class Locations(Entity):
-    def __init__(self, identity=None, name="", location=None, description=""):
+    def __init__(self, name=None, location=None, description=None, uuid=None):
         """
         Last known location of a thing. May be a feature of interest, unless remote sensing.
 
-        :param identity: integer id
+        :param uuid: integer id
         :param name: name string
         :param location: GeoJSON
         """
-        Entity.__init__(self, identity, annotated=True, location=location)
+        Entity.__init__(self, uuid)
+        self.location = location
         self.name = name
         self.description = description
         self.encodingType = "application/vnd.geo+json"
@@ -494,24 +467,24 @@ class Locations(Entity):
 
 
 class HistoricalLocations(Entity):
-    def __init__(self, identity=None):
+    def __init__(self, uuid=None):
         """
         Private and automatic, should be added to sensor when new location is determined
         """
-        Entity.__init__(self, identity)
+        Entity.__init__(self, uuid)
         self.time = None  # time when thing is known at location (ISO-8601 string)
 
 
 class Things(Entity):
-    def __init__(self, identity=None, name="", description=""):
+    def __init__(self, name=None, description=None, uuid=None):
         """
         A thing is an object of the physical or information world that is capable of of being identified
         and integrated into communication networks.
 
-        :param identity: integer id
+        :param uuid: integer id
         :param name: name string
         """
-        Entity.__init__(self, identity, annotated=True)
+        Entity.__init__(self, uuid)
         self.name = name
         self.description = description
         self.properties = None  # (optional)
@@ -537,24 +510,22 @@ class Things(Entity):
 
 class Sensors(Entity):
 
-    _encodings = ["application/pdf", "http://www.opengis.net/doc/IS/SensorML/2.0"]
-
     def __init__(
-            self,
-            identity=None,
-            name=None,
-            description=None,
-            encodingType=None,
-            metadata=None,
+        self,
+        uuid=None,
+        name=None,
+        description=None,
+        encodingType=None,
+        metadata=None,
     ):
         """
-        :param identity: integer id
+        :param uuid: integer id
         :param name: name string
         :param description: description string
         :param encodingType: encoding of metadata
         :param metadata: metadata
         """
-        Entity.__init__(self, identity, annotated=True)
+        Entity.__init__(self, uuid)
         self.name = name
         self.description = description
         self.encodingType = encodingType
@@ -562,18 +533,17 @@ class Sensors(Entity):
 
 
 class Observations(Entity):
-    def __init__(self, val, identity=None, ts=datetime.utcnow().isoformat()):
+    def __init__(self, result=None, identity=None, phenomenonTime=None):
         """
         Observation are individual time stamped members of Datastreams
 
         :param identity: integer id
-        :param ts: timestamp, doesn't enforce specific format
-        :param val: value of the observation ("result" in SensorThings parlance)
+        :param phenomenonTime: timestamp, doesn't enforce specific format
+        :param result: value of the observation ("result" in SensorThings parlance)
         """
         Entity.__init__(self, identity)
-        self.phenomenonTime = ts
-        self.result = val
-
+        self.phenomenonTime = phenomenonTime
+        self.result = result
         self.resultTime = None
         self.resultQuality = None
         self.validTime = None  # time period
@@ -583,42 +553,40 @@ class Observations(Entity):
 class ObservedProperties(Entity):
     def __init__(
         self,
-        identity=None,
-        name="",
+        uuid=None,
+        name=None,
         definition=None,
-        description="",
-        src="https://en.wikipedia.org/wiki/",
+        description=None,
     ):
         """
         Create a property, but do not associate any data streams with it
 
         :param name: name of the property
         :param definition: URL to reference defining the property
-        :param src: host for looking up definition
         """
-        Entity.__init__(self, identity, annotated=True)
+        Entity.__init__(self, uuid)
         self.name = name
         self.description = description
-        self.definition = (src + name) if definition is None else definition
+        self.definition = definition
 
 
 class Actuators(Entity):
     def __init__(
-            self,
-            identity=None,
-            name=None,
-            description=None,
-            encodingType=None,
-            metadata=None,
+        self,
+        uuid=None,
+        name=None,
+        description=None,
+        encodingType=None,
+        metadata=None,
     ):
         """
-        :param identity: integer id
+        :param uuid: integer id
         :param name: name string
         :param description: description string
         :param encodingType: encoding of metadata
         :param metadata: metadata
         """
-        Entity.__init__(self, identity, annotated=True)
+        Entity.__init__(self, uuid)
         self.name = name
         self.description = description
         self.encodingType = encodingType
@@ -626,23 +594,23 @@ class Actuators(Entity):
 
 
 class TaskingCapabilities(Entity):
-    def __init__(self, name="", description="", taskingParameters=None, **kwargs):
-        # type: (str, str, list, dict) -> TaskingCapabilities
+    def __init__(self, name=None, description=None, taskingParameters=None, uuid=None):
+        # type: (TaskingCapabilities, str, str, dict, str) -> TaskingCapabilities
         """
         Abstract tasking class mapping I/O and generating signal.
         """
-        Entity.__init__(self, annotated=True, **kwargs)
+        Entity.__init__(self, uuid)
         self.name = name
         self.description = description
         self.taskingParameters = taskingParameters
 
 
 class Tasks(Entity):
-    def __init__(self, taskingParameters=None, **kwargs):
-        # type: (dict, dict) -> Tasks
+    def __init__(self, taskingParameters=None, uuid=None):
+        # type: (Tasks, dict, **dict) -> Tasks
         """
         Task!
         """
-        Entity.__init__(self, **kwargs)
+        Entity.__init__(self, uuid)
         self.creationTime = time()
         self.taskingParameters = taskingParameters

@@ -71,7 +71,7 @@ paths:
                   maxItems: 2
                   items:
                     type: string
-                    format: date-time
+                    format: date
                 limit:
                   type: integer
                   description: |

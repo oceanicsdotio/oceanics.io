@@ -8,6 +8,6 @@ COPY bathysphere_graph ./bathysphere_graph
 COPY src ./src
 RUN pip install -r bathysphere-graph-env.txt
 
-RUN chmod +x ./src/start.sh && chmod +x ./src/pytest.sh
+RUN chmod +x ./src/start.sh
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD "curl -f localhost:5000/api"
 ENTRYPOINT ["./src/start.sh"]

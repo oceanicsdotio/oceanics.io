@@ -84,8 +84,8 @@ paths:
 
     get:
       tags: [Account]
-      operationId: bathysphere_graph.handlers.authToken
-      summary: Authorize
+      operationId: bathysphere_graph.handlers.token
+      summary: Token
       description: |
 
         Exchange token or email and password for a Javascript Web Token. This will allow you make API calls and use
@@ -106,7 +106,7 @@ paths:
 
     put:
       tags: [Account]
-      operationId: bathysphere_graph.handlers.manageAccount
+      operationId: bathysphere_graph.handlers.manage
       summary: Manage
       description: |
 
@@ -125,7 +125,7 @@ paths:
 
     get:
       tags: [Catalog]
-      operationId: bathysphere_graph.handlers.getCatalog
+      operationId: bathysphere_graph.handlers.catalog
       summary: Catalog
       description: |
         Get all entity types in database as collections following the SpatioTemporal Asset Catalog specification
@@ -164,7 +164,7 @@ paths:
 
     post:
       tags: [Catalog]
-      operationId: bathysphere_graph.handlers.createEntity
+      operationId: bathysphere_graph.handlers.create
       summary: Create
       description: |
         Create a new entity.
@@ -183,7 +183,7 @@ paths:
 
     get:
       tags: [Catalog]
-      operationId: bathysphere_graph.handlers.getCollection
+      operationId: bathysphere_graph.handlers.collection
       summary: Collection
       description: |
         Get all entities of one type
@@ -202,7 +202,7 @@ paths:
 
     get:
       tags: [Catalog]
-      operationId: bathysphere_graph.handlers.getEntity
+      operationId: bathysphere_graph.handlers.metadata
       summary: Metadata
       description: |
         Get entity
@@ -219,7 +219,7 @@ paths:
 
     put:
       tags: [ Catalog ]
-      operationId: bathysphere_graph.handlers.mutateEntity
+      operationId: bathysphere_graph.handlers.mutate
       summary: Update
       description: Update entity
       requestBody:
@@ -237,7 +237,7 @@ paths:
 
     delete:
       tags: [ Catalog ]
-      operationId: bathysphere_graph.handlers.deleteEntity
+      operationId: bathysphere_graph.handlers.delete
       summary: Delete
       description: Delete entity and orphans recursively.
       parameters:
@@ -255,7 +255,7 @@ paths:
 
     get:
       tags: [ Topology ]
-      operationId: bathysphere_graph.handlers.linkedEntities
+      operationId: bathysphere_graph.handlers.query
       summary: Query
       description: |
         Get related entities
@@ -277,8 +277,8 @@ paths:
 
     post:
       tags: [ Topology ]
-      operationId: bathysphere_graph.handlers.addLink
-      summary: Create
+      operationId: bathysphere_graph.handlers.join
+      summary: Join
       description: Create a labeled relationship between entities.
       parameters:
         - $ref: "#/components/parameters/root"
@@ -295,8 +295,8 @@ paths:
 
     delete:
       tags: [Topology]
-      operationId: bathysphere_graph.handlers.breakLink
-      summary: Delete
+      operationId: bathysphere_graph.handlers.drop
+      summary: Drop
       description: |
         Remove a labeled relationship between entities. If no `label` is specified, remove all
         relationships between the entities.
@@ -1229,13 +1229,11 @@ components:
               description: |
                 Data providers are labeled with a role, so that attribution and redaction works properly on synthesized
                 datasets. Data in the system m
-
               items:
-                ProviderRole:
-                  title: providerRole
-                  type: string
-                  enum:
-                    - licensor
-                    - producer
-                    - processor
-                    - host
+                title: providerRole
+                type: string
+                enum:
+                  - licensor
+                  - producer
+                  - processor
+                  - host

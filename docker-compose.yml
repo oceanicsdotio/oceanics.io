@@ -10,7 +10,7 @@ networks:
 services:
 
 
-  bathysphere-array:
+  array:
     build:
       context: .
       dockerfile: config/bathysphere-array-dockerfile

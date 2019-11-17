@@ -1,6 +1,6 @@
 from json import dumps
 from typing import Callable, Generator
-from neo4j.v1 import Driver, GraphDatabase
+from neo4j.v1 import Driver
 from retry import retry
 from requests import post
 from typing import Any
@@ -82,23 +82,24 @@ def executeQuery(db, method, kwargs=(), access_mode="read"):
 
 
 @retry(tries=2, delay=1, backoff=1)
-def connect(host, port, defaultAuth, declaredAuth):
-    # type: ((str, ), int, (str, str), (str, str)) -> Driver or None
+def connect(host, port, accessKey):
+    # type: ((str, ), int or None, (str, str)) -> Driver or None
     """
     Connect to a database manager. Try docker networking, or fallback to local host.
     likely that the db has been accessed and setup previously
     """
-    for auth in (declaredAuth, defaultAuth):
+    default = "neo4j"
+    for auth in ((default, accessKey), (default, default)):
         try:
-            db = GraphDatabase.driver(uri=f"bolt://{host}:{port}", auth=auth)
+            db = Driver(uri=f"bolt://{host}:{port}", auth=auth)
         except Exception as ex:
-            # log(f"{ex} on {host}:{port}")
+            print(f"{ex} on {host}:{port}")
             continue
-        if auth == defaultAuth:
+        if auth == (default, default):
             response = post(
                 f"http://{host}:7474/user/neo4j/password",
                 auth=auth,
-                json={"password": declaredAuth[1]},
+                json={"password": accessKey},
             )
             assert response.ok
         return db
@@ -174,9 +175,7 @@ def storeJson(name, data, apiKey, headers=None):
         data=_transmit,
         headers={
             "hmac": hmac.new(
-                apiKey.encode(),
-                _transmit.encode(),
-                hashlib.sha1,
+                apiKey.encode(), _transmit.encode(), hashlib.sha1
             ).hexdigest()
         },
     )

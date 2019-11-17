@@ -12,7 +12,6 @@ from bathysphere_graph.models import TaskingCapabilities, Tasks, Actuators
 from bathysphere_graph import appConfig
 from bathysphere_graph.tests.conftest import validateCreateTx
 from datetime import datetime
-from bathysphere_graph.drivers import load, indexFtp
 from bathysphere_graph import app
 from json import dump
 
@@ -27,9 +26,7 @@ def test_create_location(create_entity, get_entity, graph):
 
 def test_location_weather_report(graph):
 
-    location = load(
-        db=graph, cls=Locations.__name__, identity="Upper Damariscotta Estuary"
-    ).pop()
+    location = Locations.load(db=graph, name="Upper Damariscotta Estuary").pop()
 
     response = location.reportWeather(
         url="https://api.darksky.net/forecast",
@@ -117,9 +114,3 @@ def test_create_task(create_entity, get_entity, graph):
         validateCreateTx(create_entity, get_entity, cls, props, graph)
         for props in appConfig[cls]
     ]
-
-
-@mark.indexing
-def test_create_from_ftp_index(ftp, graph):
-    """Can index a single directory"""
-    indexFtp(ftp=ftp, graph=graph)
