@@ -2,7 +2,7 @@ import pytest
 from datetime import datetime
 from random import random
 from collections import OrderedDict
-from requests import post
+from requests import post, get
 from json import dumps
 from os import getenv
 import hmac
@@ -104,9 +104,14 @@ def test_function_postgres_retrieve_polygons():
     data = dumps(
         {
             "table": "maine_boundaries_town_polygon",
-            "fields": ["globalid", "town", "county", "shapestare"],
-            "conditions": ["land='n'", "type='coast'"],
+            "fields": ["globalid", "town", "county", "shapestare", "st_asgeojson(st_transform(st_setsrid(geom, 2960), 4326))"],
+            "conditions": [
+                "land='n'",
+                "type='coast'",
+                "st_transform(st_setsrid(geom, 2960), 4326) && 'POLYGON((-70.7495 42.2156,  -67.8952 42.2156, -67.8952 44.1929, -70.7495 44.1929, -70.7495 42.2156))'::geography"
+            ],
             "encoding": "json",
+            "limit": 1
         }
     )
     response = post(
@@ -117,4 +122,10 @@ def test_function_postgres_retrieve_polygons():
         },
     )
     assert response.ok, response.content.decode()
+    data = response.json()
 
+
+def test_function_postgres_special_nearest_neighbor():
+    response = post(
+        url="https://graph.oceanics.io/faas/postgres?observedProperties=osi&x=-69.89196944&y=43.77643055",
+    )

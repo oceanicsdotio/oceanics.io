@@ -56,6 +56,78 @@ def select(cursor, table, order_by=None, limit=100, fields=("*",), order="DESC",
     )
 
 
+def nearestNeighbor(x, y, k=24, r=500):
+    """
+    :return:
+    """
+    db = connect(
+        host=host, port=int(port), user=user, password=password, ssl=True, database="bathysphere"
+    )
+    cursor = db.cursor()
+    cursor.execute(f"""
+    SELECT AVG(osi), COUNT(osi) FROM (
+        SELECT osi FROM (
+            SELECT oyster_suitability_index as osi, geo
+            FROM landsat_points
+            ORDER BY geo <-> 'POINT({x} {y})'
+            LIMIT {k}
+        ) AS knn
+        WHERE st_distance(geo, 'POINT({x} {y})') < {r}
+    ) as points;
+    """)
+    avg, count = cursor.fetchall()[0]
+    return dumps({
+        "message": "Mean Oyster Suitability",
+        "value": {
+            "mean": avg,
+            "distance": {
+                "value": r,
+                "units": "meters"
+            },
+            "observations": {
+                "requested": k,
+                "found": count
+            }
+        }
+    })
+
+
+def maineTowns(x, y, k=24, r=500):
+    """
+    :return:
+    """
+    db = connect(
+        host=host, port=int(port), user=user, password=password, ssl=True, database="bathysphere"
+    )
+    cursor = db.cursor()
+    cursor.execute(f"""
+    SELECT AVG(osi), COUNT(osi) FROM (
+        SELECT osi FROM (
+            SELECT oyster_suitability_index as osi, geo
+            FROM landsat_points
+            ORDER BY geo <-> 'POINT({x} {y})'
+            LIMIT {k}
+        ) AS knn
+        WHERE st_distance(geo, 'POINT({x} {y})') < {r}
+    ) as points;
+    """)
+    avg, count = cursor.fetchall()[0]
+    return dumps({
+        "message": "Mean Oyster Suitability",
+        "value": {
+            "mean": avg,
+            "distance": {
+                "value": r,
+                "units": "meters"
+            },
+            "observations": {
+                "requested": k,
+                "found": count
+            }
+        }
+    })
+
+
 def declare(cursor, table, fields, data):
     # type: (Cursor, str, (str, ), ((Any, ), )) -> None
     """
@@ -96,10 +168,26 @@ def handle(req):
     Args:
         req (str): request body
     """
-    if getenv("Http_Method") != "POST":
+    method = getenv("Http_Method")
+    querystring = getenv("Http_Query")
+    if querystring:
+        params = dict()
+        for item in querystring.split("&"):
+            k, v = item.split("=")
+            params[k] = v
+        try:
+            prop = params.pop("observedProperties", None)
+            assert prop in ("osi",)
+            return nearestNeighbor(**params)
+        except:
+            dumps({"Error": "Bad KNN query", "value": dumps(params)})
+            exit(400)
+
+    if method != "POST":
         print(dumps({"Error": "Require POST"}))
         exit(400)
 
+    body = loads(req)
     with open("/var/openfaas/secrets/payload-secret", "r") as fid:
         _hash = getenv("Http_Hmac")
         expectedMAC = hmac.new(fid.read().encode(), req.encode(), hashlib.sha1).hexdigest()
@@ -107,21 +195,21 @@ def handle(req):
             print(dumps({"Error": "HMAC validation"}))
             exit(403)
 
-    body = loads(req)
-    data = body.pop("data", None)
-    encoding = body.pop("encoding", "json")
-    streaming = body.pop("streaming", False)
-
     db = connect(
         host=host, port=int(port), user=user, password=password, ssl=True, database="bathysphere"
     )
     cursor = db.cursor()
+    data = body.pop("data", None)
+    encoding = body.pop("encoding", "json")
+    streaming = body.pop("streaming", False)
+
     if data is not None:
         db.autocommit = True
         declare(cursor=cursor, data=data, **body)
         return None
 
     db.autocommit = False
+
     select(cursor=cursor, **body)
     columns = [desc[0].decode("utf-8") for desc in cursor.description]
     if encoding == "json":

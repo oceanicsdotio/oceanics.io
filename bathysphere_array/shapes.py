@@ -1,5 +1,8 @@
 from shapefile import Reader
-from arrayfire import array as texture
+try:
+    from arrayfire import array as texture
+except ImportError:
+    from numpy import array as texture
 from numpy.linalg import norm
 from itertools import repeat
 

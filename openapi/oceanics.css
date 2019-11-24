@@ -97,3 +97,49 @@ li:hover{
   }
 
 
+#map {
+    position: relative;
+    height: 100%;
+    width: 100%;
+  }
+
+
+
+.mapboxgl-popup-content {
+    font-size: large;
+    font-family: monospace;
+    background: #101010;
+    border: solid 1px;
+    border-radius: 5px;
+    padding: 5px;
+    margin: 0;
+    color: #cccccc;
+    border-color: aquamarine;
+}
+
+#map .mapboxgl-popup-content {
+  padding: 10px;
+  max-width: 300px;
+  padding-top: 20px;
+}
+#map .mapboxgl-popup-content ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  float: left;
+}
+
+#map .mapboxgl-popup-content ul h3 {
+  margin: 0 0 10px 0;
+}
+
+#map .mapboxgl-popup-content img {
+  float: left;
+  width: 30px;
+  margin-right: 10px;
+}
+
+.mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip {
+    border-top-color: #cccccc;
+}
+

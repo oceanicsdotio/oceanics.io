@@ -12,7 +12,7 @@ from pathlib import Path
 from yaml import load as load_yml, Loader
 from os import getenv
 
-from bathysphere_array.storage import Storage, Dataset
+from bathysphere_array.storage import Dataset
 from bathysphere_array.utils import (
     project,
     center,
@@ -26,9 +26,6 @@ from bathysphere_array.utils import (
     nan_mask,
     arrays2points,
 )
-
-from bathysphere_array.shapes import shapefile
-from bathysphere_graph import app
 
 
 DATE = datetime(2014, 4, 12)
@@ -52,19 +49,6 @@ CENTER_LON = "lonc"
 avhrr_start = datetime(2015, 1, 1)
 avhrr_end = datetime(2015, 1, 30)
 ext = (-69.6, 43.8, -69.5, 44.1)
-
-
-@pytest.fixture(scope="session")
-def client():
-    """
-    Connexion Apps are a wrapper around the real Flask App.
-
-    This yields the TestClient for making API calls with pytest.
-    """
-    app.app.config["DEBUG"] = True
-    app.app.config["TESTING"] = True
-    with app.app.test_client() as c:
-        yield c
 
 
 @pytest.fixture()
@@ -99,17 +83,17 @@ def config_no_app():
     }
     return defaults
 
-
-def pick_one(storage):
-
-    bucket = app.app.config["bucketName"]
-
-    def _filter(x):
-        obj = storage.stat_object(bucket_name=bucket, object_name=x.object_name)
-        return obj.metadata["x-amz-meta-service-file-type"] == "experiment"
-
-    objs = list(filter(_filter, storage.list_objects(bucket_name=bucket)))
-    return objs[0].object_name
+#
+# def pick_one(storage):
+#
+#     bucket = app.app.config["bucketName"]
+#
+#     def _filter(x):
+#         obj = storage.stat_object(bucket_name=bucket, object_name=x.object_name)
+#         return obj.metadata["x-amz-meta-service-file-type"] == "experiment"
+#
+#     objs = list(filter(_filter, storage.list_objects(bucket_name=bucket)))
+#     return objs[0].object_name
 
 
 def pad(val, n: int = 9):
@@ -134,27 +118,6 @@ def collector(object_storage):
     _collect = []
     yield _collect
     object_storage.create(data=_collect, label="")
-
-
-def parse_shapefile(storage: Storage, dataset):
-    if storage.head(f"{dataset}/index.json"):
-        return
-    path = f"data/{dataset}/{dataset}"
-    closures = shapefile(path=path, gpu=False)
-    assert closures
-    validate_shape(closures[10])
-    headers = app.app.config["headers"]
-    overall_extent, index = storage.vertex_array_buffer(
-        closures, dataset, extents=None, headers=headers
-    )
-    metadata = storage.metadata_template(file_type="index", ext=overall_extent, headers=headers)
-
-    storage.create(
-        data=index,
-        dataset=dataset,
-        key="index.json",
-        metadata=metadata,
-    )
 
 
 def single_index(fname, field, index):
@@ -204,24 +167,6 @@ def scan(dataset, attribute, required=None, verb=False):
             print(
                 f"{var.name}: {var.datatype}, {var.dimensions}, {var.size}, {var.shape}"
             )
-
-
-@pytest.fixture(scope="session")
-def client():
-    """
-    Connexion Apps are a wrapper around the real Flask App.
-
-    This yields the TestClient for making API calls with pytest.
-    """
-    app.app.config["DEBUG"] = True
-    app.app.config["TESTING"] = True
-    with app.app.test_client() as c:
-        yield c
-
-
-@pytest.fixture(scope="session")
-def object_storage():
-    return Storage.connection()
 
 
 def load_config():
@@ -288,38 +233,6 @@ def osi():
 
     osi = Dataset(path)
     yield osi
-
-
-@pytest.fixture(scope="session")
-def variables():
-    fid = open("config/fvcom.yml")
-    txt = fid.read()
-    vars = load_yml(txt)
-    yield vars
-
-
-@pytest.fixture(scope="session")
-def maine_towns(object_storage):
-    start = time()
-    assert object_storage.head(TOWNS)
-    index = load(object_storage.get(f"{TOWNS}/index.json"))
-    assert index and isinstance(index, (set, list, tuple))
-    data = [unpickle(object_storage.get(f"{TOWNS}/{each}").data) for each in index]
-    elapsed = time() - start
-    print(elapsed, "seconds to download and process town boundaries")
-    yield data
-
-
-@pytest.fixture(scope="session")
-def nssp_closures(object_storage):
-    start = time()
-    index = load(object_storage.get(f"{CLOSURES}/index.json"))
-    data = [
-        unpickle(object_storage.get(f"{CLOSURES}/{each}").data) for each in index
-    ]
-    elapsed = time() - start
-    print(elapsed, "seconds to download and process closures")
-    yield data
 
 
 @pytest.fixture(scope="function")
