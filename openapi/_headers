@@ -1,2 +1,5 @@
-/*
+/api/*
+  Access-Control-Allow-Origin: *
+
+/faas/*
   Access-Control-Allow-Origin: *

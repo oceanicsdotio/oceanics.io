@@ -33,6 +33,9 @@ from bathysphere_array.utils import (
 OSI_OBJ = "bivalve-suitability"
 
 
+
+
+
 def polygon_crop_and_save(xyz, shapes, filename, method=multi_polygon_crop):
     print(f"Culling...", flush=True)
     xyz2 = method(xyz, shapes)
@@ -64,22 +67,6 @@ def test_osi_dataset_accessible(object_storage):
     """Remote dataset exists"""
     metadata = object_storage.head(DATASET)
     assert metadata is not None
-
-
-@pytest.mark.network
-def test_osi_dataset_downloaded(object_storage):
-    """Download large remote object to local storage"""
-    if exists(f"data/{DATASET}"):
-        return
-    start = time()
-    file_buffer = object_storage.get(DATASET)
-    fid = open(f"data/{DATASET}", "wb")
-    fid.write(file_buffer.data)
-    fid.close()
-    del file_buffer
-    elapsed = time() - start
-    print()
-    print(elapsed, "seconds")
 
 
 def _filter(shapes):
@@ -159,21 +146,7 @@ def test_osi_dataset_analysis_extent_culling(
     pickle(chunks, fid)
 
 
-@pytest.mark.network
-def test_osi_dataset_analysis_upload_vertex_array(object_storage):
 
-    fid = open("vertex-array", "rb")
-    chunks = load(fid)
-    last = 0
-
-    for indx, c in enumerate(chunks):
-        current = int(100 * indx / len(chunks))
-        if current != last:
-            print(current, "%")
-        object_storage.octet_stream(
-            data=(c,), extent="None", dataset=OSI_OBJ, key=f"vertex-array-{indx}"
-        )
-        last = current
 
 
 @pytest.mark.network

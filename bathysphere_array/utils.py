@@ -1,4 +1,16 @@
-import arrayfire as af
+try:
+    import arrayfire as af
+
+except ImportError:
+    af = None
+
+try:
+    from PIL.Image import Image, fromarray
+except ImportError:
+    Image = lambda: None
+    fromarray = lambda x: None
+
+
 from scipy.spatial import ConvexHull
 from pyproj import Proj, transform
 from numpy import (
@@ -38,7 +50,7 @@ from numpy.linalg import norm
 from numpy.ma import MaskedArray
 from scipy.interpolate import NearestNDInterpolator
 from scipy import ndimage
-from PIL.Image import Image, fromarray
+
 from matplotlib.cm import get_cmap
 from enum import Enum
 from matplotlib.tri import CubicTriInterpolator, LinearTriInterpolator
@@ -74,7 +86,10 @@ MONTHS = {
 CartesianNAD83 = Proj(init="epsg:2960")
 SphericalWGS84 = Proj(init="epsg:4326")
 
-Array = af.Array or array
+if af:
+    Array = af.Array or array
+else:
+    Array = array
 ExtentType = (float, float, float, float)
 IntervalType = (float, float)
 
@@ -348,7 +363,11 @@ def extent_overlap_filter(ext, shapes, extents, rec=None):
 def extent_crop(ext, xyz):
     # type: (ExtentType, Array) -> Array
     """Return only the pixels inside the cropping extent"""
-    mask = crop(xyz[:, 0], xyz[:, 1], ext)
+    if xyz.shape[1] > 3:
+        a, b = 1, 2
+    else:
+        a, b = 0, 1
+    mask = crop(xyz[:, a], xyz[:, b], ext)
     select = where(~mask)[0]
     return xyz[select, :]
 
@@ -431,7 +450,14 @@ def hull_contains(a, b):
 def partition_points_by_shape(path, vertex_array):
     # type: (Path, Array) -> (Array, Array)
     """"Split vertex array into points inside and outside of shape"""
-    xy = vertex_array if vertex_array.shape[1] == 2 else vertex_array[:, :2]
+    cols = vertex_array.shape[1]
+    if cols == 2:
+        xy = vertex_array
+    elif cols == 3:
+        xy = vertex_array[:2]
+    else:
+        xy = vertex_array[1:3]
+
     mask = points_in_path(path, xy)
     _subset = where(mask)[0]
     inside = vertex_array[_subset, :]
@@ -954,7 +980,7 @@ def thematic_mapping(shapes, extent, key, value):
         return not x["hide"] and x["type"] == "analytical"
 
     shapes = shapes.collect(extent=extent, flags=(~_match_field()))
-    return [_itemize(i) for i in filter(_filter, shapes)]
+    return filter(_filter, shapes)
 
 
 def _loc(s: int, view: str, mx_x=None, mn_x=None, x=None):
