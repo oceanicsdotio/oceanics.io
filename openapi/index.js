@@ -1,6 +1,6 @@
-import init, { mouse_move, modify_canvas } from 'wasm/bathysphere.js';
+// import init, { mouse_move, modify_canvas } from 'wasm/bathysphere.js';
 mapboxgl.accessToken = 'pk.eyJ1Ijoib2NlYW5pY3Nkb3RpbyIsImEiOiJjazMwbnRndWkwMGNxM21wYWVuNm1nY3VkIn0.5N7C9UKLKHla4I5UdbOi2Q';
-
+//
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
