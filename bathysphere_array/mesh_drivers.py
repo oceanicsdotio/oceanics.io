@@ -122,34 +122,6 @@ def depth(bathymetry: array, elevation: array = None, dry: float = 1E-7) -> Mask
     return ma.masked_array(depth, mask=(data > dry))  # depth threshold to consider dry
 
 
-def vertex_array(path, indexed=True):
-    """
-    Initialize vertex arrays.
-
-    :param path:
-    :param indexed:
-    """
-
-    def _filter(data):
-        """Remove NAN values"""
-        rows, = where(~isnan(data))
-        return data[rows]
-
-    # Load and assign point data
-    points = load(path, indexed=indexed)
-    x = filter(points["x"])
-    y = filter(points["y"])
-    z = filter(points["bathymetry"])
-
-
-    id = arange(n, dtype=int)  # global identifier
-
-
-def clean(data: array):
-    """Remove NAN values"""
-    return data[where(~isnan(data))]
-
-
 def xye(x, y, z):
     """Return height-mapped vertex array"""
     return hstack((

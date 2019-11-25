@@ -5,7 +5,8 @@ let urlsToCache = [
     './spatial/aquaculture-leases.json',
     './spatial/maine-towns.json',
     './spatial/nssp-closures.json',
-    'https://graph.oceanics.io/faas/postgres?observedProperties=osi&x=-69.89196944&y=43.77643055'
+    './spatial/suitability.json',
+    './style.json',
 ];
 
 self.addEventListener('install', function(event) {
@@ -19,28 +20,25 @@ self.addEventListener('install', function(event) {
   );
 });
 
-
 self.addEventListener('fetch', function(event) {
     event.respondWith(
         caches.match(event.request)
-              .then(function(response) {
+              .then((response) => {
         // Cache hit - return response
         if (response) {
           return response;
         }
-
         return fetch(event.request).then(
-          function(response) {
-            if(!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
-            }
-            let responseToCache = response.clone();
-            caches.open(CACHE_NAME)
-              .then(function(cache) {
-                cache.put(event.request, responseToCache);
-              });
-
-            return response;
+          r => {
+            // if(!response || response.status !== 200 || response.type !== 'basic') {
+            //   return response;
+            // }
+            // let responseToCache = response.clone();
+            // caches.open(CACHE_NAME)
+            //   .then(function(cache) {
+            //     cache.put(event.request, responseToCache);
+            //   });
+            return r;
           }
         );
       })

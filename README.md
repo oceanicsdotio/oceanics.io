@@ -1,36 +1,14 @@
-1. [Application](#/application)
-2. [Functions](#/functions)
-3. [Databases](#/databases)
-4. [References](#/references)
+# Bathysphere API
+
+This document provides guidance for installing and developing on Bathysphere. For instructions on using an existing deployment, please see the [docs](https://graph.oceanics.io).
 
 
 
-# Application
-
-## Overview
+## Application
 
 The Bathysphere API is a distributed store and registry for public and proprietary geospatial data. The system is designed to support aquaculture research in the Gulf of Maine, but can be configured and extended for other applications. It uses best-in-class technology to ingest sensor and model data and metadata, and automatically parse them into discoverable databases.
 
-The representation of complex relationships between heterogenous data is simplified by applying a graph framework, backed by a [Neo4j](https://neo4j.com/) graph database cluster to store semi-structured data, along with labeled relationships. This approach can be applied to many flexible, high-level cases, from NASA managing their [lessons-learned](https://neo4j.com/blog/nasa-lesson-learned-database-using-neo4j-linkurious/) mission database, to modeling a virtual [economy](https://www.airpair.com/neo4j/posts/modelling-game-economy-with-neo4j). 
-
-You probably have to share data anyway. Our middleware can enhance your data science and management experience by providing representation state transfer (REST) services for:
-
-- Secure organizational accounts
-- International geospatial data model standards
-- Provenance tracking
-- Granular access control and auditing
-
-A Linux container cluster provides web services for sharing and visualizing data, while keeping proprietary data hidden. By assessing availability over the whole domain, projects can target resources to fill coverage gaps. This supports an open marketplace data sharing model, which may be preferable to redundant collection. 
-
-
-
-## API
-
-### Services
-
-Services run in Docker containers. The application launches a TCP and filesystem listener in the background. The TCP listener can be configured to receive and route low-level instructions between computing environments and networked devices. This can be used as a central registry for IoT systems.
-
-Another listening agent uses events in the S3-compliant buckets to trigger compute tasks. Minio is a drop in replacement for Amazon Web Services (AWS) simple storage system (s3), which runs with `docker-compose`.
+Services run in Docker containers, which can be configured to receive and route low-level instructions between computing environments and networked devices. This can be used as a central registry for IoT systems.
 
 | Service             | Port   | Description                |
 | ------------------- | ------ | -------------------------- |
@@ -41,38 +19,7 @@ Another listening agent uses events in the S3-compliant buckets to trigger compu
 
 
 
-### Endpoints
-
-See the OpenAPI [specification](http://graph.oceanics.io) for complete details on schemas and methods. In general, the format for entity-based requests is: 
-
-
-| Route                       | Description         | Arguments            | Format |
-| --------------------------- | ------------------- | -------------------- | ------ |
-| `/`                         | All sets            | None                 | JSON   |
-| `/Name`                     | Set                 | name                 | JSON   |
-| `/Name(id)`                 | Instance            | name, id             | JSON   |
-| `/Name(id)/key`             | Property            | name, id, key        | JSON   |
-| `/Name(id)/key/$value`      | Value               | name, id, key        | JSON   |
-| `/Name(id)/Other`           | Neighbors           | name, id, other      | JSON   |
-| `/Name(id)/Other/$ref`      | Link to other nodes | name, id, other      | JSON   |
-| `/Name(id)/Other(id2)/$ref` | Link                | name, id, other, id2 | JSON   |
-
-
-
-### Frontend
-
-The interface is served as static files throughs Nginx. This uses pure JavaScript. The functionality is broken 
-down in `buoy.js` and `webgl.js`. These methods inject elements into the basic HTML skeleton provided by `index.html`. This follows the logic of a "card"-like system, in which UI and visualization elements are added based on context. So a location card can create a map, and a data stream card can create a plot. 
-
-The `nginx` container is a reverse proxy that forwards requests to the other services. It also serves static content on port `80`, in this case the ReDoc-rendered OpenAPI specification.  This fully describes the possible transactions with the database, which are enforced in the `bathysphere_graph` application by the Python `connexion` library.
-
-
-
-## Deployment
-
 The runtime supports parallelism, and the web service can scale out to meet high throughput or high availability requirements. Deployment is with `docker-compose` or Kubernetes. Data are placed in cloud object storage. The default implementation uses `minio` as a client to make requests to the `oceanics.io` data lake hosted through DigitalOcean. It will also work with GCP and AWS.  
-
-### Local
 
 Deploy locally with `docker-compose up -d`. 
 
@@ -104,9 +51,7 @@ https://raw.githubusercontent.com/kubernetes/ingress-nginx/nginx-0.26.1/deploy/s
 
 
 
-
-
-# Functions
+### OpenFaaS
 
 Functions-as-a-Service ([FaaS](https://github.com/openfaas/workshop/blob/master)) can be deployed automatically on DigitalOcean and other cloud providers. Extensions to the core API are provided through the `/functions` end point by an `openfaas` gateway. 
 
@@ -151,59 +96,16 @@ echo -n '{"table": "test"}' | faas-cli invoke postgres --sign hmac --key=$HMAC_K
 
 
 
-## Images
+### Web Assembly
 
-`PNG` rendering is available through the Anti-Grain Graphic (AGG) `neritics-gx` service. This is a fallback for publishable images, if WebGL is not supported by the browser. 
+The frontend uses Rust compiled to web assembly (WASM) in the frontend. To develop on WASM, you can get started with `rustup`, and `wasm-pack`:
 
-Normally, an AGG request will create a time-series figure, pushed to a file buffer for web rendering or cached in the image service. This is invoked by appending `/image`. The `/wrap` parameter blends multiple years together,  `/coverage` shows the annual distribution of observations, and `/frequency` renders the distribution of a variable over days of the year. 
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+```
 
-| Path               | Summary             | Parameters          | Format |
-| ------------------ | ------------------- | ------------------- | ------ |
-| `/image/wrap`      | Climatology         | `identity`, `field` | `PNG`  |
-| `/image/coverage`  | Effort distribution | `identity`          | `PNG`  |
-| `/image/frequency` | Variable histogram  | `identity`, `field` | `PNG`  |
-
-
-
-## Signals
-
-The `neritics-filter` service adds methods for resampling, interpolating, filling, and smoothing series. Most functions default to safe values, or will silently fail without manipulating data. 
-
-Some functions return a mask. For instance `/outlier` detects statistical anomalies in the independent variable, while `/outOfRange` returns a mask  of the values to pin. Finally, `outlier_mask()` looks for anomalies in independent variable and time derivatives to remove spikes and gaps (e.g. wave action on inter-tidal sensors, or electrical issues). 
-
-Interpolation function `/smooth` uses `numpy.convolve` to smooth a series using a boxcar filter. More control over fast Fourier transforms are given through `/fftFilter`, which can low/highpass filter, and forward-fill, using `scipy.fftpack`. 
-
-Most useful is `/resample`, which will produce a regularly-spaced series from sparse observations, using forward/backward fill or linear interpolation. This is meant for low frequency data, like manually collected data, or satellite observations. 
-
-
-
-## Geospatial
-
-All dependencies can be installed with `conda`, except for the Ramer-Douglas-Peucker (RDP) 
-algorithm (Ramer 1972, Douglas and Peucker 1973). The [RDP implementation](https://pypi.org/project/rdp/) is installed into the `bathysphere` environment with `pip`. The conda environment adds a few non-standard channels, and 
-then builds from the `conda env create -f config/environment.yml`.
-
-
-
-| Module         | Description                                                  | Status      |
-| -------------- | ------------------------------------------------------------ | ----------- |
-| `handlers`     | API end points                                               | Pass        |
-| `interface`    | Graphical interface and controls for OpenGL rendering        | <u>Fail</u> |
-| `mesh_drivers` | Methods for point topologies                                 | <u>Fail</u> |
-| `quantize`     | Methods to create derived arrays from spatial topologies     | Pass        |
-| `shaders`      | Graphics library and shaders for 3-D rendering               | <u>Fail</u> |
-| `shapes`       | Geometric primitives and state machine for [rotational physics](db/images/test_video.m4v) | Pass        |
-| `storage`      | Drivers for array storage (`netcdf`, `s3`, `memory`, `ftp`)  | Pass        |
-| `utils`        | Parallel processing of array data with OpenCL/CUDA           | Pass        |
-| `views`        | Image rendering interfaces to `matplotlib`                   | Pass        |
-
-
-
-
-
-
-
-# Databases
+The `wasm-bindgen` tooling packages WASM to interact with Javascript, and can be served as static files by compiling [without a bundler](https://github.com/rustwasm/wasm-bindgen/tree/master/examples/without-a-bundler)
 
 
 
@@ -226,7 +128,46 @@ docker run \
 
 
 
-### Helm
+### Docker Machine (Basic)
+
+Create a new node:
+
+```bash
+# src/docker-machine-create.sh
+docker-machine create \
+--driver digitalocean \
+--digitalocean-size s-2vcpu-4gb \
+--digitalocean-access-token $DOCKER_MACHINE_PAK \
+bathysphere-api-neo4j
+```
+
+
+
+Connect you local environment to issue commands to the remote docker service:
+
+```bash
+eval $(docker-machine env bathysphere-api-neo4j)
+```
+
+
+
+Setup the node remotely through an `ssh` tunnel, and install `certbot`:
+
+```bash
+docker-machine ssh
+sudo apt-get update
+sudo apt-get upgrade
+sudo apt-get install software-properties-common
+sudo add-apt-repository ppa:certbot/certbot
+sudo apt-get update
+sudo apt-get install -y certbot
+```
+
+
+
+
+
+### Helm (Advanced)
 
 A cluster can be deployed to Kubernetes using `helm`, as an advanced use case.
 
@@ -279,43 +220,6 @@ kubectl get svc --namespace=ingress-nginx
 ```
 
 
-
-
-
-### Docker Machine (DigitalOcean)
-
-Create a new node:
-
-```bash
-# src/docker-machine-create.sh
-docker-machine create \
---driver digitalocean \
---digitalocean-size s-2vcpu-4gb \
---digitalocean-access-token $DOCKER_MACHINE_PAK \
-bathysphere-api-neo4j
-```
-
-
-
-Connect you local environment to issue commands to the remote docker service:
-
-```bash
-eval $(docker-machine env bathysphere-api-neo4j)
-```
-
-
-
-Setup the node remotely through an `ssh` tunnel, and install `certbot`:
-
-```bash
-docker-machine ssh
-sudo apt-get update
-sudo apt-get upgrade
-sudo apt-get install software-properties-common
-sudo add-apt-repository ppa:certbot/certbot
-sudo apt-get update
-sudo apt-get install -y certbot
-```
 
 
 
@@ -404,7 +308,7 @@ RETURN nb.id, b.id, e.id
 
 
 
-### Ingestion (CSV)
+### Ingestion
 
 Finite-volume methods need to perform mesh interpolations, the algorithms for which involve keeping the mesh and fields in memory. For an unstructured grid, the graph nodes include nodes/vertices in the simulation mesh, along with elements, edges, and layers. A vertex would have parent elements and edges, and have adjacency with other vertices—and could have any number of associated environmental variables. Edges have child nodes, and parent elements. Their properties include boundary information. Surfaces are also a helpful construct, for representing the seafloor and air-water interface (or other isopycnal). 
 
@@ -412,7 +316,28 @@ Finite-volume methods need to perform mesh interpolations, the algorithms for wh
 
 #### Pre-processing
 
-Topology may simply be saved in CSV files, for which pre-processing might be necessary. For example, space-delimited files can be converted to comma-delimited using `sed`, `cat`, and `cut`:
+Meshes are often stored as NetCDF files. These can be read remotely by mounting the host volume to your local environment. For instance, using [fuse](https://github.com/osxfuse/osxfuse/releases) and [sshfs](https://github.com/libfuse/sshfs). On macOS `meson` and `ninja` are required, before downloading the `sshfs` tarball, installing it,
+
+```bash
+pip install meson
+brew install ninja
+gzip -d sshfs-3.3.2.tar.gz
+tar -xvf sshfs-3.3.2.tar
+cd sshfs-3.3.2
+mkdir build
+cd build
+meson ..
+sudo ninja install 
+```
+
+To mount the remote file system locally,
+
+```bash
+mkdir ~/remote/
+sshfs username@hostname:/nfs-home/username/>>export ~/remote/
+```
+
+Topology may also simply be saved in CSV files, for which pre-processing might be necessary. For example, space-delimited files can be converted to comma-delimited using `sed`, `cat`, and `cut`:
 
 ```bash
 sed 's/[[:blank:]]/,/g' midcoast_nodes.csv > neo4j_nodes.csv
@@ -510,10 +435,6 @@ CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;
 
 With Docker, the default database to create at start-up can be specified using the environment variable `POSTGRES_DB`. This is done automatically using the provided `docker-compose.yml`. The entity data for user authentication and sensor network topology are already stored in the Neo4j graph. So, this database should really only need one table: **observations**. There are actually multiple tables, one for each deployment, since the columns present for each may vary, and we're not in the business of doing joins. 
 
-
-
-### TimescaleDB
-
 The enhanced paging features of TimeScale DB are enabled with,
 
 ```sql
@@ -521,14 +442,6 @@ SELECT create_hypertable('series', 'time');
 ```
 
 
-
-### Postgis
-
-
-
-
-
-### SQL
 
 A simple table might consist of a timestamp, and some measured properties (as well as diagnostic info and event logs for the data logger). Something like,
 
@@ -600,67 +513,3 @@ def read(table, sort, limit=10):
 ```
 
 
-
-
-
-## Redis
-
-The services use  `redis` for caching and message passing. Setup a cluster with your favorite cloud provider. 
-
-
-
-## S3
-
-Object storage is used for serving chunked binary data and staging data or files for ingestion. Use the option provided by your favorite cloud vendor. For local development we recommend `minio`. 
-
-
-
-## Filesystems
-
-Meshes are often stored as NetCDF files. These can be read remotely by mounting the host volume to your local environment. For instance, using [fuse](https://github.com/osxfuse/osxfuse/releases) and [sshfs](https://github.com/libfuse/sshfs). On macOS `meson` and `ninja` are required, before downloading the `sshfs` tarball, installing it,
-
-```bash
-pip install meson
-brew install ninja
-gzip -d sshfs-3.3.2.tar.gz
-tar -xvf sshfs-3.3.2.tar
-cd sshfs-3.3.2
-mkdir build
-cd build
-meson ..
-sudo ninja install 
-```
-
-To mount the remote file system locally,
-
-```bash
-mkdir ~/remote/
-sshfs username@hostname:/nfs-home/username/>>export ~/remote/
-```
-
-
-
-
-
-# References
-
-Aven, P., & Burley, D. (2017). Building on Multi-Model Databases. (S. Cutt & M. Yarbrough, Eds.) (First Edit). Sebastopol, CA: O’Reilly Media, Inc.
-
-Dale, K. (2016). Data Visualization with Python and JavaScript. (D. Schanafelt, M. Blanchette, & K. Brown, Eds.) (First Edit). Sebastopol, CA: O’Reilly Media, Inc.
-
-Douglas, David H, and Thomas K Peucker. (1973). Algorithms for the Reduction of the Number of Points Required to Represent a Digitized Line or Its Caricature. Cartographica: The International Journal for Geographic Information and Geovisualization 10 (2): 112–122.
-
-Gers, F. Schmidhuber, J., and Cummins, F. (1999). Learning to forget: Continual prediction with LSTM." IET, 850-855.
-
-Lawrence, N. D. (2017). Data Readiness Levels. Cambridge, UK. [[arxiv]](http://arxiv.org/abs/1705.02245)
-
-Pečnik, S., & Žalik, B. (2014). Real-time visualization using GPU-accelerated filtering of LiDAR data. International Journal of Science, Engineering and Technology, 8(12), 1792–1796. Retrieved from http://waset.org/publications/9999805/real-time-visualization-using-gpu-accelerated-filtering-of-lidar-data
-
-Poliakov, A. V., Albright, E., Hinshaw, K. P., Corina, D. P., Ojemann, G., Martin, R. F., & Brinkley, J. F. (2005). 
-Server-based approach to web visualization of integrated three-dimensional brain imaging data. 
-Journal of the American Medical Informatics Association, 12(2), 140–151. https://doi.org/10.1197/jamia.M1671
-
-Ramer, U. (1972). An Iterative Procedure for the Polygonal Approximation of Plane Curves. 
-Computer Graphics and Image Processing 1 (3): 244–256.
-
-Samet, H. (1995). Spatial Data Structures. In W. Kim (Ed.), Modern Database Systems: The Object Model, Interoperability, and Beyond (pp. 361–385). Reading, MA: Addison Wesley/ACM Press.

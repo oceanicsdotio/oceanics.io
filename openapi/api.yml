@@ -7,34 +7,41 @@ info:
 
     # Overview
 
-    Bathysphere is a geospatial library and application thats operates as infrastructure for other
-    public-facing architecture. It is intended for scientific computing on unstructured triangular meshes,
-    in the fields of hydrodynamics and ocean modeling.
+    The Bathysphere API is a distributed store and registry for public and proprietary geospatial data.
+    The system is designed to support aquaculture research in the Gulf of Maine, but can be configured and extended
+    for other applications. It uses best-in-class technology to ingest sensor and model data and metadata,
+    and automatically parse them into discoverable databases.
 
-    The Graph API provides a web service for controlling the graph database backend. The service implements Open
-    Geospatial Consortium (OGC) SensorThings API specification and the
-    [SpatioTemporal Assets Catalog](https://stacspec.org/) (STAC) standard.
+    The representation of complex relationships between heterogenous data is simplified by applying a graph framework,
+    backed by a [Neo4j](https://neo4j.com/) graph database cluster to store semi-structured data,
+    along with labeled relationships. This approach can be applied to many flexible, high-level cases,
+    from NASA managing their [lessons-learned](https://neo4j.com/blog/nasa-lesson-learned-database-using-neo4j-linkurious/)
+    mission database, to modeling a virtual [economy](https://www.airpair.com/neo4j/posts/modelling-game-economy-with-neo4j).
 
-    This enables topology for data models, in which nodes are generic entities. Schemas are only enforced
-    by API specification validation. Heavy lifting for big data structures is delegated to the core Bathysphere application, while provenance
-    tracking and permissions are handled in the graph.
+    You probably have to share data anyway. Our middleware can enhance your data science and management experience by
+    providing representation state transfer (REST) and graph-based services for:
 
-    # Functions as a Service
+    - Secure organizational accounts
+    - Open Geospatial Consortium (OGC) SensorThings standard
+    - [SpatioTemporal Assets Catalog](https://stacspec.org/) (STAC) standard
+    - Provenance tracking
+    - Granular access control and auditing
 
-    Bathypshere uses an OpenFaaS cluster for asynchoronous data execution, and access to external data sources.
-    Direct access can be provided by request. These are described in the `FUNCTIONS` section.
+    # Analytics as a Service
 
+    By assessing availability over the whole domain, projects can target resources to fill coverage gaps. This supports
+    an open marketplace data sharing model, which may be preferable to redundant collection.
 
-    # Visualization
+    Bathypshere uses an OpenFaaS cluster for asynchoronous processing, and to securely access external data sources.
+    Direct access can be provided for use in third-party services by request. These are described in the
+    `FUNCTIONS` section.
+
+    <iframe src="bathysphere.html" width=100% height=500px>Not available</iframe>
 
     The image rendering service creates PNG format files for time series and geospatial data. Small and simple
     data structures can be sent and analyzed directly. More complex structures like large, unstructured triangular
     meshes need to be accessible from a database already. This ensures that caching is enforced to prevent
     redundant computation.
-
-    There are also front-end intergrations for working with Mapbox:
-
-    <iframe src="http://localhost:63343/bathysphere/openapi/bathysphere.html" width=100%>Not available</iframe>
 
   contact:
     name: Oceanicsdotio
@@ -56,40 +63,85 @@ x-tagGroups:
 
   - name: BATHYSPHERE API
     tags: [Account, Catalog, Topology]
-  - name: ENTITY MODELS
-    tags: [Things, Sensors, Datastreams, Observations, FeaturesOfInterest, Actuators]
   - name: FUNCTIONS
-    tags: [ Admin, Analysis, IoT, Storage ]
+    tags: [ Admin, Analysis, IoT, Storage, Geospatial ]
+  - name: REFERENCES
+    tags: [ References ]
+
 
 tags:
   - name: Account
   - name: Catalog
   - name: Topology
-  - name: Things
-    x-displayName: Things
-    description: |
-      <SchemaDefinition schemaRef="#/components/schemas/Thing" />
-  - name: Locations
-    x-displayName: Locations
-    description: |
-      <SchemaDefinition schemaRef="#/components/schemas/Location" />
-  - name: Sensors
-    x-displayName: Sensors
-    description: |
-      <SchemaDefinition schemaRef="#/components/schemas/Sensor" />
-  - name: Actuators
-    x-displayName: Actuators
+#  - name: Things
+#    x-displayName: Things
+#    description: |
+#      <SchemaDefinition schemaRef="#/components/schemas/Thing" />
+#  - name: Locations
+#    x-displayName: Locations
+#    description: |
+#      <SchemaDefinition schemaRef="#/components/schemas/Location" />
+#  - name: Sensors
+#    x-displayName: Sensors
+#    description: |
+#      <SchemaDefinition schemaRef="#/components/schemas/Sensor" />
+#  - name: Actuators
+#    x-displayName: Actuators
 
   - name: Admin
+
   - name: Analysis
+    x-displayName: Analysis
+    description: |
+
+      The `neritics-filter` service adds methods for resampling, interpolating, filling, and smoothing series.
+      Most functions default to safe values, or will silently fail without manipulating data.
+
+      Some functions return a mask. For instance `/outlier` detects statistical anomalies in the independent variable,
+      while `/outOfRange` returns a mask  of the values to pin. Finally, `outlier_mask()` looks for anomalies in
+      independent variable and time derivatives to remove spikes and gaps (e.g. wave action on inter-tidal sensors, or electrical issues).
+
+      Interpolation function `/smooth` uses `numpy.convolve` to smooth a series using a boxcar filter.
+      More control over fast Fourier transforms are given through `/fftFilter`, which can low/highpass filter,
+      and forward-fill, using `scipy.fftpack`.
+
+      Most useful is `/resample`, which will produce a regularly-spaced series from sparse observations,
+      using forward/backward fill or linear interpolation. This is meant for low frequency data,
+      like manually collected data, or satellite observations.
+
   - name: IoT
   - name: Storage
 
-  - name: Functions
+  - name: References
     description: |
-      Functions exposes OpenFaaS endpoints. These are used internally by Bathysphere for asynchronous
-      task execution, and access to external data sources. Direct access can be provided by request.
-      See the [repository](https://bitbucket.org/aquaculture/bathysphere) for more information.
+
+      Aven, P., & Burley, D. (2017). Building on Multi-Model Databases. (S. Cutt & M. Yarbrough, Eds.) (First Edit).
+      Sebastopol, CA: O’Reilly Media, Inc.
+
+      Dale, K. (2016). Data Visualization with Python and JavaScript. (D. Schanafelt, M. Blanchette, & K. Brown, Eds.)
+      (First Edit). Sebastopol, CA: O’Reilly Media, Inc.
+
+      Douglas, David H, and Thomas K Peucker. (1973). Algorithms for the Reduction of the Number of Points Required
+      to Represent a Digitized Line or Its Caricature. Cartographica: The International Journal for
+      Geographic Information and Geovisualization 10 (2): 112–122.
+
+      Gers, F. Schmidhuber, J., and Cummins, F. (1999). Learning to forget: Continual prediction with LSTM." IET, 850-855.
+
+      Lawrence, N. D. (2017). Data Readiness Levels. Cambridge, UK. [[arxiv]](http://arxiv.org/abs/1705.02245)
+
+      Pečnik, S., & Žalik, B. (2014). Real-time visualization using GPU-accelerated filtering of LiDAR data.
+      International Journal of Science, Engineering and Technology, 8(12), 1792–1796.
+      Retrieved from http://waset.org/publications/9999805/real-time-visualization-using-gpu-accelerated-filtering-of-lidar-data
+
+      Poliakov, A. V., Albright, E., Hinshaw, K. P., Corina, D. P., Ojemann, G., Martin, R. F., & Brinkley, J. F. (2005).
+      Server-based approach to web visualization of integrated three-dimensional brain imaging data.
+      Journal of the American Medical Informatics Association, 12(2), 140–151. https://doi.org/10.1197/jamia.M1671
+
+      Ramer, U. (1972). An Iterative Procedure for the Polygonal Approximation of Plane Curves.
+      Computer Graphics and Image Processing 1 (3): 244–256.
+
+      Samet, H. (1995). Spatial Data Structures. In W. Kim (Ed.), Modern Database Systems: The Object Model,
+      Interoperability, and Beyond (pp. 361–385). Reading, MA: Addison Wesley/ACM Press.
 
   - name: FeaturesOfInterest
     x-displayName: FeaturesOfInterest
@@ -115,6 +167,23 @@ tags:
     x-displayName: Observations
     description: |
       <SchemaDefinition schemaRef="#/components/schemas/Observation" />
+
+  - name: Geospatial Library
+    x-displayName: Geospatial Library
+    description: |
+      You can use the `bathysphere_array` library as a standalone geospatial analysis environment.
+      All dependencies can be installed with `conda`, except the Ramer-Douglas-Peucker (RDP)
+      algorithm (Ramer 1972, Douglas and Peucker 1973), which is installed with `pip`. The conda environment
+      adds a few non-standard channels, and then builds with
+      `conda env create -f config/bathysphere-array-env.yml`.
+
+      | Module         | Description                                                  | Status      |
+      | -------------- | ------------------------------------------------------------ | ----------- |
+      | `mesh_drivers` | Methods for point topologies                                 | <u>Fail</u> |
+      | `quantize`     | Methods to create derived arrays from spatial topologies     | Pass        |
+      | `shapes`       | Geometric primitives and state machine                       | Pass        |
+      | `storage`      | Drivers for array storage (`netcdf`, `memory`)               | Pass        |
+      | `utils`        | Parallel processing of array data with OpenCL/CUDA           | Pass        |
 
 servers:
 - url: https://graph.oceanics.io/api
