@@ -55,43 +55,6 @@ def read_pixel_color(px, py, qval):
     glReadPixels(px, py, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, qval)
 
 
-def compile_shader(code, shader_type):
-    # type: (bytes, int) -> str or None
-    """
-    Compile single shader in GPU memory
-    """
-    handle = glCreateShader(shader_type)  # create the shader handle
-    n = len(code)
-    src = c_array(c_char_p, *code)  # source strings to ctypes pointer-to-char array
-    glShaderSource(handle, n, cast(pointer(src), POINTER(POINTER(c_char))), None)
-    glCompileShader(handle)
-    status = c_int(0)  # compile status
-    glGetShaderiv(handle, GL_COMPILE_STATUS, byref(status))
-    if not status:
-        glGetShaderiv(handle, GL_INFO_LOG_LENGTH, byref(status))  # create a log buffer
-        buffer = create_string_buffer(status.value)  # retrieve text
-        glGetShaderInfoLog(handle, status, None, buffer)  # print log
-        return buffer.value
-
-    return None
-
-
-def bind_shader(code, shader_type, program):
-    # type: (bytes, int, GLuint) -> str or GLuint
-    """
-    Create and attach shader
-    """
-    if len(code) < 1:
-        raise ValueError  # no source code
-
-    handle, status = compile_shader(code, shader_type)
-    if status is not None:
-        return status
-
-    glAttachShader(program, handle)
-    return handle
-
-
 def vertex_header(lights: (int,)):
     """
     Generate source code for vertex shader header only

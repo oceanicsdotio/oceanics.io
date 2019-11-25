@@ -1,11 +1,13 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <title>Oceanicsdotio - Bathysphere API</title>
+    <title>Discover Data</title>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script id="vertex-shader" type="x-shader/x-vertex"></script>
+    <script id="fragment-shader" type="x-shader/x-fragment"></script>
     <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,700|Roboto:300,400,700" rel="stylesheet">
-
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v1.5.0/mapbox-gl.css' rel='stylesheet' />
     <style>
       body {
         margin: 0;
@@ -13,7 +15,7 @@
       }
     </style>
   </head>
-  <body>
+  <body onload="console.log('Ready')">
     <redoc spec-url='api.yml'></redoc>
     <script src="https://cdn.jsdelivr.net/npm/redoc@next/bundles/redoc.standalone.js"> </script>
   </body>

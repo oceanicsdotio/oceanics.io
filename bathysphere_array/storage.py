@@ -1,13 +1,9 @@
-from io import BytesIO
-from minio import Minio
-from minio.error import NoSuchKey, NoSuchBucket
-from uuid import uuid4
 from json import loads as load_json, dumps
-from pickle import dumps as pickle, dump, load as unpickle
+from pickle import dump, load as unpickle
 from numpy import zeros, arange, array, where, array_split, vstack
 from pandas import read_html
 from datetime import datetime, timedelta
-from requests import get
+from requests import get, head
 from shutil import copyfileobj
 from os.path import isfile
 from warnings import simplefilter
@@ -15,7 +11,6 @@ from netCDF4 import Dataset as _Dataset
 from time import sleep
 from collections import deque
 from minio.error import SignatureDoesNotMatch
-from flask import send_file
 from typing import Callable, Any
 from functools import reduce
 
@@ -196,153 +191,6 @@ class Dataset(_Dataset):
         fid.close()
         return fid
 
-#
-# class Storage(Minio):
-#
-#     def __init__(self, bucket_name=None, **kwargs):
-#         self.bucket_name = bucket_name
-#         Minio.__init__(self, **kwargs)
-#         if bucket_name is not None and not self.bucket_exists(bucket_name):
-#             _ = self.make_bucket(bucket_name)
-#
-#     def vertex_array_buffer(self, data, dataset, key, strategy, sequential=False, nb=None, headers=None):
-#         # type: (deque or (Array, ), str, str, str, bool, float, dict) -> set
-#         """
-#         Take an iterable of arrays, and chunk them for upload.
-#
-#         :param data: deque or iterable
-#         :param dataset: prefix for object storage
-#         :param key: key for object storage
-#         :param strategy: how to chunk (aggregate or bisect)
-#         :param sequential: create an index if False
-#         :param nb: max number of bytes
-#         :param headers: headers!
-#         """
-#         _data = data if isinstance(data, deque) else deque(data)
-#         if strategy not in ("aggregate", "bisect"):
-#             raise ValueError
-#         if strategy == "aggregate" and nb is None:
-#             raise ValueError
-#
-#         last = 0
-#         indx = 0
-#         real = len(_data)
-#         index = set()
-#
-#         while _data:
-#             current = int(100 * indx / real)
-#             if current != last:
-#                 print(current, "%")
-#
-#             c = ()
-#             if strategy == "aggregate":
-#                 size = 0
-#                 while size < nb and _data:
-#                     c += (_data.popleft(),)
-#                     size += c[-1].nbytes
-#             if strategy == "bisect":
-#                 c += (_data.popleft(),)
-#
-#             _key = f"{key}-{indx}" if sequential else None
-#             metadata = self.metadata_template(
-#                 file_type="chunk",
-#                 headers=headers if headers is not None else {},
-#                 ext=reduce(reduce_extent, (extent(*s) for s in c))
-#             )
-#             try:
-#                 _key = self.create(
-#                     data=pickle(c),
-#                     dataset=dataset,
-#                     key=_key,
-#                     metadata=metadata
-#                 )
-#             except SignatureDoesNotMatch:
-#                 to_append = ()
-#                 if strategy == "bisect":
-#                     to_append = array_split(c[0], 2, axis=0)
-#                 if strategy == "aggregate":
-#                     tilt = len(c) // 2 + 1
-#                     to_append = c[:tilt], c[tilt:]
-#                 _data.extend(to_append)
-#                 real += 1
-#             else:
-#                 index |= {_key}
-#                 indx += 1
-#
-#         return index
-#
-#     def parts(self, dataset, key):
-#         part = 0
-#         result = []
-#         while True:
-#             k = f"{dataset}/{key}-{part}"
-#             stat = self.head(k)
-#             if stat is None:
-#                 break
-#             result.append(k)
-#             part += 1
-#         return result
-#
-#     def restore(self, dataset, key, fcn=None, sequential=True, stack=False, limit=None, **kwargs):
-#         # type: (str, str, Callable, bool, bool, int, dict) -> (Array, ) or Array
-#         """
-#         Reconstruct a single or multi-part array dataset
-#
-#         :param dataset: object storage prefix
-#         :param key: object name, lat part
-#         :param fcn: method to perform on
-#         :param sequential: use a sequential naming scheme rather than an index file
-#         :param stack: append all array chunks into one
-#         :param limit: max number to process
-#         :param kwargs: arguments for the function
-#
-#         :return: transformed array, or none, if the method return no results
-#         """
-#         base = f"{dataset}/{key}"
-#         stat = self.head(base)
-#         if stat is None and not sequential:
-#             raise ValueError
-#
-#         if stat is not None:
-#             if sequential:
-#                 for s in unpickle(self.get(base)):
-#                     fcn(s, **kwargs)
-#                 return
-#         elif sequential:
-#             raise ValueError
-#
-#         index = (
-#             self.parts(dataset, key) if sequential else
-#             tuple(f"{dataset}/{key}" for key in load_json(self.get(base)))
-#         )
-#
-#         if len(index) == 0:
-#             raise ValueError
-#
-#         vertex_array_buffer = ()
-#         part = 0
-#         for key in index:
-#             if part > limit:
-#                 break
-#             c = unpickle(self.get(key).data)
-#             if isinstance(c, list):
-#                 c = tuple(c)
-#             if not isinstance(c, tuple):
-#                 raise TypeError
-#
-#             part += 1
-#             if fcn is None:
-#                 vertex_array_buffer += c
-#                 continue
-#
-#             y = (fcn(x[0] if isinstance(x, tuple) else x, **kwargs) for x in c)
-#             vertex_array_buffer += tuple(yi for yi in y if yi is not None)
-#
-#         if not len(vertex_array_buffer):
-#             return None
-#         if stack:
-#             return vstack(vertex_array_buffer)
-#         return vertex_array_buffer
 
 
 class Memory:
@@ -439,3 +287,140 @@ class Memory:
         if free:
             del data
         return len(data)
+
+
+    @staticmethod
+    def vertex_array_buffer(data, dataset, key, strategy, sequential=False, nb=None, headers=None):
+        # type: (deque or (Array, ), str, str, str, bool, float, dict) -> set
+        """
+        Take an iterable of arrays, and chunk them for upload.
+
+        :param data: deque or iterable
+        :param dataset: prefix for object storage
+        :param key: key for object storage
+        :param strategy: how to chunk (aggregate or bisect)
+        :param sequential: create an index if False
+        :param nb: max number of bytes
+        :param headers: headers!
+        """
+        _data = data if isinstance(data, deque) else deque(data)
+        if strategy not in ("aggregate", "bisect"):
+            raise ValueError
+        if strategy == "aggregate" and nb is None:
+            raise ValueError
+
+        last = 0
+        indx = 0
+        real = len(_data)
+        index = set()
+
+        while _data:
+            current = int(100 * indx / real)
+            if current != last:
+                print(current, "%")
+
+            c = ()
+            if strategy == "aggregate":
+                size = 0
+                while size < nb and _data:
+                    c += (_data.popleft(),)
+                    size += c[-1].nbytes
+            if strategy == "bisect":
+                c += (_data.popleft(),)
+
+            _key = f"{key}-{indx}" if sequential else None
+            ext = reduce(reduce_extent, (extent(*s) for s in c))
+
+            try:
+                assert False  # post here
+            except SignatureDoesNotMatch:
+                to_append = ()
+                if strategy == "bisect":
+                    to_append = array_split(c[0], 2, axis=0)
+                if strategy == "aggregate":
+                    tilt = len(c) // 2 + 1
+                    to_append = c[:tilt], c[tilt:]
+                _data.extend(to_append)
+                real += 1
+            else:
+                index |= {_key}
+                indx += 1
+
+        return index
+
+
+    @staticmethod
+    def parts(dataset, key):
+        part = 0
+        result = []
+        while True:
+            k = f"{dataset}/{key}-{part}"
+            stat = head(k)
+            if stat is None:
+                break
+            result.append(k)
+            part += 1
+        return result
+
+
+    @staticmethod
+    def restore(dataset, key, fcn=None, sequential=True, stack=False, limit=None, **kwargs):
+        # type: (str, str, Callable, bool, bool, int, dict) -> (Array, ) or Array
+        """
+        Reconstruct a single or multi-part array dataset
+
+        :param dataset: object storage prefix
+        :param key: object name, lat part
+        :param fcn: method to perform on
+        :param sequential: use a sequential naming scheme rather than an index file
+        :param stack: append all array chunks into one
+        :param limit: max number to process
+        :param kwargs: arguments for the function
+
+        :return: transformed array, or none, if the method return no results
+        """
+        base = f"{dataset}/{key}"
+        stat = head(base)
+        if stat is None and not sequential:
+            raise ValueError
+
+        if stat is not None:
+            if sequential:
+                for s in unpickle(get(base).content):
+                    fcn(s, **kwargs)
+                return
+        elif sequential:
+            raise ValueError
+
+        index = (
+            Memory.parts(dataset, key) if sequential else
+            tuple(f"{dataset}/{key}" for key in load_json(get(base)))
+        )
+
+        if len(index) == 0:
+            raise ValueError
+
+        vertex_array_buffer = ()
+        part = 0
+        for key in index:
+            if part > limit:
+                break
+            c = unpickle(get(key).content)
+            if isinstance(c, list):
+                c = tuple(c)
+            if not isinstance(c, tuple):
+                raise TypeError
+
+            part += 1
+            if fcn is None:
+                vertex_array_buffer += c
+                continue
+
+            y = (fcn(x[0] if isinstance(x, tuple) else x, **kwargs) for x in c)
+            vertex_array_buffer += tuple(yi for yi in y if yi is not None)
+
+        if not len(vertex_array_buffer):
+            return None
+        if stack:
+            return vstack(vertex_array_buffer)
+        return vertex_array_buffer
