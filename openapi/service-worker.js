@@ -7,6 +7,7 @@ let urlsToCache = [
     './spatial/nssp-closures.json',
     './spatial/suitability.json',
     './style.json',
+    './bathysphere.png',
 ];
 
 self.addEventListener('install', function(event) {
