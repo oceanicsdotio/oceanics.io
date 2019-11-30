@@ -52,10 +52,12 @@
     },{
         "render": {
             "id": "nssp-closures",
-            "type": "line",
+            "type": "fill",
             "paint": {
-                "line-color": "#f0f",
-                "line-opacity": 0.5
+                "fill-color": "#f0f",
+                "fill-opacity": ["case",
+                    ["boolean", ["feature-state", "hover"], false],
+                    0.5, 0.2]
             }
         },
         "behind": "suitability"

@@ -1,6 +1,6 @@
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
-use web_sys::{WebGlProgram, WebGlRenderingContext, WebGlShader, CanvasRenderingContext2d, ImageData};
+use web_sys::{WebGlProgram, WebGlRenderingContext, WebGlShader, CanvasRenderingContext2d, ImageData, WebGlBuffer, WebGlTexture};
 use std::time::{SystemTime, UNIX_EPOCH, Duration};
 use std::f32::consts::{PI};
 use std::fmt;
@@ -8,51 +8,12 @@ use std::slice;
 use std::mem;
 use std::os::raw::c_void;
 
+
+const SERVICE: &str = "api/";
+const HOST: &str = "http://localhost/";
 const MAPBOX_KEY: &str =
     "pk.eyJ1Ijoib2NlYW5pY3Nkb3RpbyIsImEiOiJjazMwbnRndWkwMGNxM21wYWVuNm1nY3VkIn0.5N7C9UKLKHla4I5UdbOi2Q";
-const SHADER_CODE: &str =
-r#"
-attribute vec3 ppos;
-attribute vec4 pcolor;
 
-varying mediump vec4 face_color;
-uniform mat4 mvp;
-void main(void) {
-  gl_Position = mvp * vec4(ppos.x, ppos.y, ppos.z, 1.0);
-  gl_PointSize = 2.0;
-  face_color = pcolor;
-}
-
-varying mediump vec4 face_color;
-void main(void) {
-  gl_FragColor = face_color;
-}
-"#;
-
-const SHADER_CODE_ROTATION: &str =
-r#"
-attribute vec2 aVertexPosition;
-uniform vec2 uScalingFactor;
-uniform vec2 uRotationVector;
-
-void main() {
-    vec2 rotatedPosition = vec2(
-        aVertexPosition.x * uRotationVector.y + aVertexPosition.y * uRotationVector.x,
-        aVertexPosition.y * uRotationVector.y - aVertexPosition.x * uRotationVector.x
-    );
-    gl_Position = vec4(rotatedPosition * uScalingFactor, 0.0, 1.0);
-    gl_PointSize = 10.0;
-}
-
-#ifdef GL_ES
-    precision highp float;
-#endif
-
-uniform vec4 uFlagColor;
-uniform vec4 uOverlayColor;
-
-void main() { gl_FragColor = uOverlayColor; }
-"#;
 
 #[wasm_bindgen]
 pub fn alloc(size: usize) -> *mut c_void {
@@ -68,6 +29,36 @@ pub fn dealloc(ptr: *mut c_void, cap: usize) {
         let _buf = Vec::from_raw_parts(ptr, 0, cap);
     }
 }
+
+
+//#[wasm_bindgen]
+//pub fn menu() {
+//    /*
+//    Generate an entity expansion menu from a database query.
+//    */
+//    let p = document.getElementById("sub-menu");
+//
+//    let entries = ["."];
+//    let methods = [entity("sub-menu", '${this.url("Ingress", 0)}')`];
+//    p.appendChild(list(p, entries, methods, "tool-link"));
+//
+//    let data = await Context.query(this.host + this.service + "?extension=sensing");
+//    p.appendChild(this.dropdown(data));
+//}
+
+
+//#[wasm_bindgen]
+//pub fn url(cls: String, identity: String) -> String {
+//    /*
+//    Convenience method to create basic formatted URL for getting a collection of single resource
+//     */
+//    let url: String = HOST + &SERVICE + &cls;
+//    if identity.len() != 0 {
+//        return url + "(" + &identity + ")";
+//    } else {
+//        return url;
+//    }
+//}
 
 #[wasm_bindgen]
 pub fn tile_url(longitude: f32, latitude: f32, zoom: i8) {
@@ -121,56 +112,93 @@ pub fn modify_canvas(ptr: *mut u8, height: usize, width: usize, time: f64) {
     }
 }
 
-#[wasm_bindgen(start)]
-pub fn main() -> Result<(), JsValue> {
-    // Use `web_sys`'s global `window` function to get a handle on the global
-    // window object.
-    let window = web_sys::window().expect("no global `window` exists");
-    let document = window.document().expect("should have a document on window");
-    let body = document.body().expect("document should have a body");
-    let canvas = document.get_element_by_id("canvas").unwrap();
-    let canvas: web_sys::HtmlCanvasElement = canvas.dyn_into::<web_sys::HtmlCanvasElement>()?;
-    let context = canvas.get_context("webgl")?.unwrap().dyn_into::<WebGlRenderingContext>()?;
-
-
-    let vert_shader = compile_shader(
-        &context,
+#[wasm_bindgen]
+pub fn create_program(ctx: &WebGlRenderingContext, vertex: &str, fragment: &str) -> WebGlProgram {
+     let vert_shader = compile_shader(
+        ctx,
         WebGlRenderingContext::VERTEX_SHADER,
-        r#"
-        attribute vec4 position;
-        void main() {
-            gl_Position = position;
-        }
-    "#,
-    )?;
-
+        vertex,
+    ).unwrap();
     let frag_shader = compile_shader(
-        &context,
+        ctx,
         WebGlRenderingContext::FRAGMENT_SHADER,
-        r#"
-        void main() {
-            gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
-        }
-    "#,
-    )?;
+        fragment,
+    ).unwrap();
+    return link_program(ctx, &vert_shader, &frag_shader).unwrap();
+}
 
-    // no memory allocations before dropped.
-    let vertices = make_torus(0.5, 0.1, 100, 36, 36);
-    let program = Some(link_program(&context, &vert_shader, &frag_shader)?);
+//
+//pub fn program_wrapper (ctx: &WebGlRenderingContext, program: &WebGlProgram) -> Object {
+//    let wrapper = {program: program};
+//    for i in 0..ctx.get_program_parameter(program, WebGlRenderingContext::ACTIVE_ATTRIBUTES) {
+//        let attribute = ctx.get_active_attrib(program, i);
+//        wrapper[attribute.name] = ctx.get_attrib_location(program, attribute.name);
+//    }
+//
+//    for i in 0..ctx.get_program_parameter(program, WebGlRenderingContext::ACTIVE_UNIFORMS) {
+//        let uniform = ctx.get_active_uniform(program, i);
+//        wrapper[uniform.name] = ctx.get_uniform_location(program, uniform.name);
+//    }
+//    return wrapper;
+//}
 
-    context.use_program(program.as_ref());
-    context.bind_buffer(
-        WebGlRenderingContext::ARRAY_BUFFER,
-        Some(&context.create_buffer().ok_or("failed to create buffer")?)
-    );
 
+#[wasm_bindgen]
+pub fn create_buffer(ctx: &WebGlRenderingContext, data: &[f32]) -> WebGlBuffer {
+    let buffer = ctx.create_buffer();
+    ctx.bind_buffer(WebGlRenderingContext::ARRAY_BUFFER, buffer.as_ref());
     unsafe {
-        context.buffer_data_with_array_buffer_view(
+        ctx.buffer_data_with_array_buffer_view(
             WebGlRenderingContext::ARRAY_BUFFER,
-            &js_sys::Float32Array::view(&vertices.as_slice()),
+            &js_sys::Float32Array::view(data),
             WebGlRenderingContext::STATIC_DRAW,
         );
     }
+    return buffer.unwrap();
+}
+
+#[wasm_bindgen]
+pub fn create_texture (ctx: &WebGlRenderingContext, data: &ImageData, filter: u32, width: i32, height: i32) -> WebGlTexture {
+    let texture = ctx.create_texture();
+    ctx.bind_texture(WebGlRenderingContext::TEXTURE_2D, texture.as_ref());
+    ctx.tex_parameteri(WebGlRenderingContext::TEXTURE_2D, WebGlRenderingContext::TEXTURE_WRAP_S, WebGlRenderingContext::CLAMP_TO_EDGE as i32);
+    ctx.tex_parameteri(WebGlRenderingContext::TEXTURE_2D, WebGlRenderingContext::TEXTURE_WRAP_T, WebGlRenderingContext::CLAMP_TO_EDGE as i32);
+    ctx.tex_parameteri(WebGlRenderingContext::TEXTURE_2D, WebGlRenderingContext::TEXTURE_MIN_FILTER, filter as i32);
+    ctx.tex_parameteri(WebGlRenderingContext::TEXTURE_2D, WebGlRenderingContext::TEXTURE_MAG_FILTER, filter as i32);
+    ctx.tex_image_2d_with_u32_and_u32_and_image_data(
+        WebGlRenderingContext::TEXTURE_2D,
+        0,
+        WebGlRenderingContext::RGBA as i32,
+        WebGlRenderingContext::RGBA as u32,
+        WebGlRenderingContext::UNSIGNED_BYTE,
+        data
+    );
+//    ctx.bind_texture(WebGlRenderingContext::TEXTURE_2D, null);
+    return texture.unwrap();
+}
+
+
+//#[wasm_bindgen]
+//pub fn create_buffers(ctx: &WebGlRenderingContext, particles: int) -> [WebGlBuffer] {
+//    let quad = create_buffer(ctx, &[0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0]);
+//    let frame = ctx.create_frame_buffer();
+//    let index = create_buffer(ctx, (0..particles));
+//    return (quad, frame, index)
+//}
+
+#[wasm_bindgen]
+pub fn triangle(element_id: &str, program: &WebGlProgram) -> Result<(), JsValue> {
+    let document = web_sys::window().unwrap().document().unwrap();
+    let canvas = document.get_element_by_id(element_id).unwrap();
+    let canvas: web_sys::HtmlCanvasElement = canvas.dyn_into::<web_sys::HtmlCanvasElement>()?;
+
+    let ctx = canvas
+        .get_context("webgl")?
+        .unwrap()
+        .dyn_into::<WebGlRenderingContext>()?;
+
+    ctx.use_program(Some(&program));
+    let vertices = create_shape();
 
     let angle = 0.0;
     let radians = angle * PI / 180.0;
@@ -178,26 +206,27 @@ pub fn main() -> Result<(), JsValue> {
     let scale = [1.0, 1.0];
     let width = 2;
 
-    context.clear_color(0.0, 0.0, 0.0, 1.0);
-    context.clear(WebGlRenderingContext::COLOR_BUFFER_BIT);
+    let buffer = create_buffer(&ctx, &vertices);
 
     {
-        let handle = context.get_attrib_location(&program.unwrap(), "position");
-        context.vertex_attrib_pointer_with_i32(handle as u32, 3, WebGlRenderingContext::FLOAT, false, 0, 0);
-        context.enable_vertex_attrib_array(handle as u32);
-        context.draw_arrays(
-            WebGlRenderingContext::POINTS,
-            0,
-            (&vertices.len() / 3) as i32,
-        );
+        let handle = ctx.get_attrib_location(&program, "position");
+        ctx.vertex_attrib_pointer_with_i32(handle as u32, 3, WebGlRenderingContext::FLOAT, false, 0, 0);
+        ctx.enable_vertex_attrib_array(handle as u32);
 
+        ctx.clear_color(0.0, 0.0, 0.0, 1.0);
+        ctx.clear(WebGlRenderingContext::COLOR_BUFFER_BIT);
+
+        ctx.draw_arrays(
+            WebGlRenderingContext::TRIANGLES,
+            0,
+            (vertices.len() / 3) as i32,
+        );
     }
 
-    let val = document.create_element("p")?;
-    val.set_inner_html("A triangle");
-    body.append_child(&val)?;
     Ok(())
 }
+
+
 
 fn create_shape() -> [f32; 9] {
     return [-0.7, -0.7, 0.0, 0.7, -0.7, 0.0, 0.0, 0.7, 0.0];
@@ -289,8 +318,8 @@ fn calculate_rotation(ax: f32, ay: f32, az: f32, dx: f32, dy: f32, dz: f32, aspe
 }
 
 
-pub fn make_triangle() {
-    let vertices: [f32; 9] = [
+pub fn make_triangle() -> [f32; 9] {
+    return [
         -0.7, -0.7, 0.0,
         0.7, -0.7, 0.0,
         0.0, 0.7, 0.0
@@ -302,9 +331,7 @@ fn compile_shader(
     shader_type: u32,
     source: &str,
 ) -> Result<WebGlShader, String> {
-    let shader = context
-        .create_shader(shader_type)
-        .ok_or_else(|| String::from("Unable to create shader object"))?;
+    let shader = context.create_shader(shader_type).unwrap();
     context.shader_source(&shader, source);
     context.compile_shader(&shader);
 
