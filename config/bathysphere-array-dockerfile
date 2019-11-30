@@ -1,6 +1,6 @@
 FROM continuumio/miniconda3:4.6.14
 
-COPY config/environment.yml ./
+COPY config/bathysphere-array-env.yml ./
 RUN conda env create -f bathysphere-array-env.yml && \
     echo "source activate bathysphere-array" > ~/.bashrc
 
