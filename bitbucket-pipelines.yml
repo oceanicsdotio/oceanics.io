@@ -22,8 +22,10 @@ pipelines:
           - pip3 install docker-compose
           - docker-compose build neo4j
           - docker-compose push neo4j
-          - docker-compose build bathysphere-graph
-          - docker-compose push bathysphere-graph
+          - docker-compose build api
+          - docker-compose push api
+          - docker-compose build array
+          - docker-compose push array
 
     - step:
         name: Manual deploy to Digital Ocean
