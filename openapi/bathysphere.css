@@ -1,6 +1,9 @@
 @charset "UTF-8";
 
-body { margin:0; padding:0; }
+body {
+    margin:0;
+    padding:0;
+}
 
 body, html{
     background: #000000;
@@ -8,28 +11,42 @@ body, html{
     font-family: monospace;
     color: #cccccc;
     margin: 0;
+    position: relative;
     padding: 0;
     width: 100%;
-    top: 0;
-    bottom: 100%;
+    height: 100%;
     overflow-x: hidden;
     overflow-y: scroll;
 }
 
-canvas {
-    display: block;
-    width: 100%;
-    height: 50px;
+.card {
+    position: absolute;
+    z-index: 9;
+    background: #101010CC;
+    border: solid 1px;
+    padding: 0;
 }
 
+.card p {
+    margin: 5px;
+}
 
-ul{
+.cardheader {
+    cursor: move;
+    z-index: 10;
+    height: 12px;
+    background-color: #EF5FA155;
+    color: #fff;
+    margin: 5px;
+}
+
+#bathysphere ul {
     display: block;
     padding: 0;
     margin: 0;
 }
 
-ul li{
+#bathysphere ul li {
     background: #101010;
     font-family: inherit;
     display: inline-block;
@@ -39,14 +56,13 @@ ul li{
     margin: 3px;
 }
 
-form {
+#bathysphere form {
     display: inline-block;
 }
 
-select{
-    background: #101010;
+#bathysphere select{
+    background: #101010AA;
     border: solid 1px;
-
     display: inline-block;
     font-family:inherit;
     font-size: inherit;
@@ -55,7 +71,7 @@ select{
     -moz-appearance: none;  /*Removes default style Firefox*/
 }
 
-input, button{
+#bathysphere input, button{
     background: #101010;
     border: solid 1px;
     font-family:inherit;
@@ -63,76 +79,42 @@ input, button{
     text-decoration: none;
 }
 
-iframe {
-    display: block;
-    width: 100%;
-}
-
-.card {
-    display: block;
-    margin: 0;
-    padding: 0;
-}
-
-li:hover{
+#bathysphere li:hover{
     color: #EF5FA1;
     transition:color 0.5s;
 }
 
-.container {
-    display: block;
-    position: relative;
-    margin: 20px;
-}
-
-.container .container{
-    background: #202020;
-    display: block;
-    position: relative;
+#bathysphere.container{
+    background: #EF5FA155;
+    position: absolute;
+    margin: 0;
     padding: 5px;
+    width: 100%;
+    height: auto;
+    z-index: 2;
 }
 
 #map {
     position: absolute;
     height: 100%;
     width: 100%;
+    top: 0;
+    left: 0;
+    z-index: 1;
 }
 
 #map .mapboxgl-popup-content {
-    font-size: large;
-    font-family: monospace;
-    background: #101010;
+    background: #101010AA;
     border: solid 1px;
-    border-radius: 5px;
-    padding: 5px;
+    font-family:inherit;
+    font-size: inherit;
+    width: auto;
+    padding: 10px;
+    float: left;
     margin: 0;
-    color: #cccccc;
-    border-color: aquamarine;
+    color: #ccc;
 }
-
-#map .mapboxgl-popup-content {
-  padding: 10px;
-  max-width: 300px;
-  padding-top: 20px;
-}
-#map .mapboxgl-popup-content ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  float: left;
-}
-
-#map .mapboxgl-popup-content ul h3 {
-  margin: 0 0 10px 0;
-}
-
-#map .mapboxgl-popup-content img {
-  float: left;
-  width: 30px;
-  margin-right: 10px;
-}
-
-.mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip {
-    border-top-color: #cccccc;
+#map .mapboxgl-popup-content ol {
+    padding-left: 20px;
 }
 
