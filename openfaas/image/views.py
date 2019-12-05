@@ -267,14 +267,18 @@ class Spatial(View):
         """
         self.pre_push()
         self.ax.axis("equal")
-        self.ax.set_xlabel("x")
-        self.ax.set_ylabel("y")
+        self.ax.set_xlabel(kwargs.get("xlabel", "x"))
+        self.ax.set_ylabel(kwargs.get("ylabel", "y"))
         if self.extent is not None:
             self.ax.set_xlim(*self.extent[:2])
             self.ax.set_ylim(*self.extent[2:4])
             dx = self.extent[1] - self.extent[0]
             dy = self.extent[3] - self.extent[2]
-            inc = int(ceil(min((dx, dy)))) // 5
+            inc = min((dx, dy)) / 4
+            if inc < 1.0:
+                inc = int(inc * 10) / 10
+            else:
+                inc = int(inc)
 
             for axis in (self.ax.xaxis, self.ax.yaxis):
                 axis.set_major_formatter(FormatStrFormatter("%.01f"))

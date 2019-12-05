@@ -472,20 +472,12 @@ paths:
 
         Access third-party buoy data.
 
-        In the simplest case this is a client for Satlantic LOBOviz servers.
-        University of Maine buoys are part of the http://maine.loboviz.com/cgi-data/nph-data.cgi service root URI.
-        A query string follows this, which is composed of time range specification, buoy identifier (`node=`), and
-        fields (`params=`). Requests also take `start=` and `end=`, or `samples=` as arguements.
-
-        Because data is logged hourly, the newest is also the number of hours previous to return.
+        In the simplest case this is a client for Satlantic LOBOviz servers. Because data is logged hourly,
+        the newest is also the number of hours previous to return.
         The most recent measurement becomes available about 30 minutes after it is collected.
 
         The user may only request data for a single buoy at a time,
         each of which has a unique integer identifier, `node = "node=66"`.
-
-        Sensor 66 is currently deployed in the upper Damariscotta Estuary;
-        sensors 70 and 71 are Casco Bay sites 1 and 2, respectively; and sensor 72 is located in the Bagaduce River.
-        The Bowdoin College buoy is sensor 52.
 
         Omitting this, requesting multiple buoys, or using the nodes parameter—which LOBOVIZ plots rely on will result in an error.
 
@@ -512,10 +504,7 @@ paths:
         | `temperature`       | deg C   | Temperature                                                  | SEANET |
         | `transmission`      |         | Optical transmission of water                                | SEANET |
         | `turbidity`         | NTU     | Turbidity                                                    | SEANET |
-        |                     |         |                                                              |        |
-        |                     |         |                                                              |        |
-        |                     |         |                                                              |        |
-        |                     |         |                                                              |        |
+
 
         You cannot query latitude, longitude, or battery voltage.
         Specifying no valid fields will return just temperature.
@@ -537,44 +526,44 @@ paths:
 
         | Heading                                                      |         Auth         | Description                                                  | Path      | Query        | Tokens        |
         | :----------------------------------------------------------- | :------------------: | :----------------------------------------------------------- | --------- | ------------ | ------------- |
-        | [Configuration](http://maine.loboviz.com/cgi-config/system-config) | Yes | Node and parameter definitions.                              | `Things`  | `GET`        | `$events`     |
-        | [Data age](http://maine.loboviz.com/latest/age-of-data.html) | Yes | Data ages                                                    | `Things`  | `GET`        | `$statistics` |
-        | [Schedules](http://maine.loboviz.com/schedule/)              | Yes | Browse schedule files                                        | `Things`  | `GET`        | `$schedule`   |
-        | [System logs](http://maine.loboviz.com/status/)              | Yes | E-mail and processing logs                                   | `Things`  | `GET`        | `$logs`       |
-        | [XML](http://maine.loboviz.com/ingestorxml/)                 | Yes | Instrument configuration files                               | `Sensors` | `GET`        | `$config`     |
-        | [XML Sensors](http://maine.loboviz.com/cgi-config/list-xml-sensors) | Yes | Sites and frames                                             | `Sensors` | `GET`        | —             |
-        | [Check schedule files](http://maine.loboviz.com/cgi-config/check-schedule) | Yes | Check file for errors in browser.<br /><br />Notes: We check files automatically during upload. | `Things`  | `POST` `PUT` | `$schedule`   |
+        | [Configuration]() | Yes | Node and parameter definitions.                              | `Things`  | `GET`        | `$events`     |
+        | [Data age]() | Yes | Data ages                                                    | `Things`  | `GET`        | `$statistics` |
+        | [Schedules]()              | Yes | Browse schedule files                                        | `Things`  | `GET`        | `$schedule`   |
+        | [System logs]()              | Yes | E-mail and processing logs                                   | `Things`  | `GET`        | `$logs`       |
+        | [XML]()                 | Yes | Instrument configuration files                               | `Sensors` | `GET`        | `$config`     |
+        | [XML Sensors]() | Yes | Sites and frames                                             | `Sensors` | `GET`        | —             |
+        | [Check schedule files]() | Yes | Check file for errors in browser.<br /><br />Notes: We check files automatically during upload. | `Things`  | `POST` `PUT` | `$schedule`   |
 
         **Table 4. Data**
 
         | Heading                                             |         Auth         | Description                                  | Path     | Query | Tokens        |
         | :-------------------------------------------------- | :------------------: | :------------------------------------------- | -------- | ----- | ------------- |
-        | [Archive](http://maine.loboviz.com/archive/)        | Yes | Raw data (`.raw`) and log (`.raw.txt`) files | `Things` | `GET` | `$archive`    |
-        | [Info](http://maine.loboviz.com/cgi-data/data-info) |                      | Summary table with site, first, last, total  | `Things` | `GET` | `$statistics` |
-        | [Pending](http://maine.loboviz.com/data/)           | Yes | Files waiting to be processed                | `Things` | `GET` | `$pending`    |
-        | [Recent-Raw](http://maine.loboviz.com/newest-raw/)  | Yes | Daily raw text                               | `Things` | `GET` | `$recent`     |
+        | [Archive]()        | Yes | Raw data (`.raw`) and log (`.raw.txt`) files | `Things` | `GET` | `$archive`    |
+        | [Info]() |                      | Summary table with site, first, last, total  | `Things` | `GET` | `$statistics` |
+        | [Pending]()           | Yes | Files waiting to be processed                | `Things` | `GET` | `$pending`    |
+        | [Recent-Raw]()  | Yes | Daily raw text                               | `Things` | `GET` | `$recent`     |
 
         **Table 5. Management**
 
         | Heading       | Auth | Description     | Equivalent | Query |  |
         | :----------- | :--: | :------------------------------------ | ------------------------------------- | ------------------------------------- | ------------------------------------- |
-        | [Event settings](http://maine.loboviz.com/cgi-config/edit-events) | Yes | Settings for events, e-mail contacts.    | `Things` | `PUT` | `$events` |
-        | [Hide bad events](http://maine.loboviz.com/protected/hide-bad-data.shtml) | Yes | Hide or show values for one site, any number of variables, on a single day for some number of hours. | `Datastreams` | `PUT` | `$mask` |
-        | [Modify sensor values](http://maine.loboviz.com/protected/modify-values.shtml) | Yes | Apply correction to database values for calibration change. <br /><br />Notes: Our implementation is algorithmic instead of manual. | `Datastreams` | `PUT` | `$resample` |
-        | [Remove sensor values](http://maine.loboviz.com/protected/remove-values.shtml) | Yes | Delete database values outside nominal range, but not raw data. <br /><br />Note: We mask instead of delete. Using `GET` will transform and return the data without persisting the change. | `Datastreams` | `PUT` `GET` | `$mask` |
-        | [Schedule upload](http://maine.loboviz.com/cgi-auth/cgiwrap/lobodata/schedule-upload) | Yes | Upload acquisition schedule files for StorX. | `Things` | `POST` | `$schedule` |
-        | [Instrument swaps](http://maine.loboviz.com/protected/instrument-swaps.html) | Yes | Move instruments between sites, and view move history | `Sensors` | `PUT` `GET` | `$swap` |
-        | [Instrument XML upload](http://maine.loboviz.com/cgi-auth/cgiwrap/lobodata/single-xml-upload) | Yes | Upload XML/sensor file for use with swapping function | `Sensors` | `POST` `PUT` | `$config` |
-        | [Calibration values](http://maine.loboviz.com/cgi-auth/cgiwrap/lobodata/calibration-values-step1) | Yes | Modify existing XML file with new calibrations | `Sensors` | `POST` `PUT` `GET` | `$calibrate` |
+        | [Event settings]() | Yes | Settings for events, e-mail contacts.    | `Things` | `PUT` | `$events` |
+        | [Hide bad events]() | Yes | Hide or show values for one site, any number of variables, on a single day for some number of hours. | `Datastreams` | `PUT` | `$mask` |
+        | [Modify sensor values]() | Yes | Apply correction to database values for calibration change. <br /><br />Notes: Our implementation is algorithmic instead of manual. | `Datastreams` | `PUT` | `$resample` |
+        | [Remove sensor values]() | Yes | Delete database values outside nominal range, but not raw data. <br /><br />Note: We mask instead of delete. Using `GET` will transform and return the data without persisting the change. | `Datastreams` | `PUT` `GET` | `$mask` |
+        | [Schedule upload]() | Yes | Upload acquisition schedule files for StorX. | `Things` | `POST` | `$schedule` |
+        | [Instrument swaps]() | Yes | Move instruments between sites, and view move history | `Sensors` | `PUT` `GET` | `$swap` |
+        | [Instrument XML upload]() | Yes | Upload XML/sensor file for use with swapping function | `Sensors` | `POST` `PUT` | `$config` |
+        | [Calibration values]() | Yes | Modify existing XML file with new calibrations | `Sensors` | `POST` `PUT` `GET` | `$calibrate` |
         **Table 6. Graphing**
 
         | Heading | Auth | Description | Path | Query | Parameter |
         | :-- | :-- | --- | :-- | --- | --- |
-        | [Averages](http://maine.loboviz.com/loboviz/research/averages.shtml) |  |One sensor, one site, one averaging window (d/w/m/y), for any date range. |`Datastreams` |`GET` |`$resample` `$image` |
-        | [By year](http://maine.loboviz.com/loboviz/research/by-year.shtml) |  | One variable, overlapping years. Replace with Julian day. | `Datastreams` | `GET` | `$image` `$wrap` |
-        | [Non-public](http://maine.loboviz.com/protected/) | Yes |Includes extra y-variables for diagnostic |`Datastreams` |`GET` |`$image` |
-        |[Peaks](http://maine.loboviz.com/loboviz/research/recent-peaks.shtml) |Yes | Min and max values and the date of occurance, for single site. | `Datastreams` | `GET` | `$statistics` |
-        |[Year background](http://maine.loboviz.com/loboviz/research/year-background.shtml) | | Display single variable for year against daily min/max for multiple other years. <br /><br />Note: Replaced with daily moving average and envelope of other sites. | `Datastreams` | `GET` | `$image` `$wrap` `$resample` `$statistics` |
+        | [Averages]() |  |One sensor, one site, one averaging window (d/w/m/y), for any date range. |`Datastreams` |`GET` |`$resample` `$image` |
+        | [By year]() |  | One variable, overlapping years. Replace with Julian day. | `Datastreams` | `GET` | `$image` `$wrap` |
+        | [Non-public](protected/) | Yes |Includes extra y-variables for diagnostic |`Datastreams` |`GET` |`$image` |
+        |[Peaks]() |Yes | Min and max values and the date of occurance, for single site. | `Datastreams` | `GET` | `$statistics` |
+        |[Year background]() | | Display single variable for year against daily min/max for multiple other years. <br /><br />Note: Replaced with daily moving average and envelope of other sites. | `Datastreams` | `GET` | `$image` `$wrap` `$resample` `$statistics` |
 
 
 
