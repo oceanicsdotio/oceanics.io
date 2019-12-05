@@ -27,6 +27,7 @@ pipelines:
           - docker-compose build array
           - docker-compose push array
 
+
     - step:
         name: Manual deploy to Digital Ocean
         deployment: production
