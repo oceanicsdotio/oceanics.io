@@ -13,6 +13,8 @@ dependencies:
   - netCDF4
   - scipy
   - requests
+  - pillow
+  - scikit-learn
   - pip:
       - rdp
       - minio
