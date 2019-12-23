@@ -65,7 +65,6 @@ const getColorRamp = (colors) => {
     for (let stop in colors) {
         gradient.addColorStop(+stop, colors[stop]);
     }
-
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, 256, 1);
 
@@ -80,6 +79,30 @@ const makeTextures = (gl, props, init, img) => {
         previous: createTexture(gl, gl.NEAREST, init, props.res, props.res),
         color: createTexture(gl, gl.LINEAR, getColorRamp(props.colors), 16, 16),
         uv: createTexture(gl, gl.LINEAR, img)
+    }
+};
+
+export const shaders = async () => {
+    return {
+        draw: {
+            frag: await fetch('glsl/draw-fragment.glsl').then(r => r.text()),
+            vert: await fetch('glsl/draw-vertex.glsl').then(r => r.text())
+        },
+        quad: {
+            vert: await fetch('glsl/quad-vertex.glsl').then(r => r.text())
+        },
+        screen: {
+            frag: await fetch('glsl/screen-fragment.glsl').then(r => r.text())
+        },
+        update: {
+            frag: await fetch('glsl/update-fragment.glsl').then(r => r.text())
+        },
+        triangle: {
+            frag: await fetch('glsl/triangle-fragment.glsl').then(r => r.text()),
+            vert: await fetch('glsl/triangle-vertex.glsl').then(r => r.text())
+        }
+
+
     }
 };
 
@@ -102,8 +125,9 @@ export function renderLoop(gl, data, img, programs, props) {
     }
     let textures = makeTextures(gl, props, particleState, img);
 
-    function frame() {
 
+
+    const wind = () => {
         {
             gl.disable(gl.DEPTH_TEST);
             gl.disable(gl.STENCIL_TEST);
@@ -188,9 +212,14 @@ export function renderLoop(gl, data, img, programs, props) {
             textures.state = textures.previous;
             textures.previous = temp2;
         }
+    };
 
-        requestAnimationFrame(frame);
+    function render() {
+
+
+        wind();
+        requestAnimationFrame(render);
     }
-    frame();
+    render();
 }
 
