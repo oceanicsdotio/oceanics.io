@@ -236,7 +236,7 @@ fn create_shape() -> [f32; 9] {
 #[wasm_bindgen]
 pub fn random_series(np: i32) -> Vec<f64> {
     let mut series = vec![0.0; np as usize];
-    for ii  in 0..np {
+    for ii in 0..np {
         series[ii as usize] = 1.0;
     }
     return series
