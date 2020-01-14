@@ -140,6 +140,7 @@ const menu = () => {
 };
 
 let hoveredStateId =  null;
+let radius = 0;
 fetch("style.json")
 .then(r => r.json())
 .then(style => {
@@ -164,6 +165,20 @@ fetch("style.json")
     });
 
 
+    return map;
+
+})
+.then(map => {
+    setInterval(() => {
+        const period = 64;
+        let base = radius/16 ;
+        radius = (++radius)%period;
+        map.setPaintProperty(
+            'limited-purpose-licenses',
+            'circle-radius', {
+                "stops": [[base, 1], [base, 10]]
+            });
+    }, 10);
 });
 
 const drag = (text) => {
