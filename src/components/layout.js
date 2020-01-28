@@ -63,9 +63,29 @@ class Layout extends React.Component {
         <header>{header}</header>
         <main>{children}</main>
         <footer>
-          © {new Date().getFullYear()}, Built with
-          {` `}
-          <a href="https://www.gatsbyjs.org">Gatsby</a>
+          <hr/>
+          <p>
+            Copyleft 2018-{new Date().getFullYear()}. No rights reserved.
+          </p>
+          <p>
+            Funded in part by Maine EPSCoR (NSF #1355457)
+          </p>
+          <p>
+            <a>Accessibility</a>
+          </p>
+          <p>
+            <a>Code of conduct</a>
+          </p>
+          <p>
+            <a>Privacy</a>
+          </p>
+
+          <p>
+            <a>Data management</a>
+          </p>
+
+
+
         </footer>
       </div>
     )

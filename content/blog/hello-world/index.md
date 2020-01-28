@@ -1,22 +1,17 @@
 ---
 title: Hello World
-date: "2015-05-01T22:12:03.284Z"
+date: "2018-11-02T22:12:03.284Z"
 description: "Hello World"
+tags: ["geospatial","glsl","visualization","python"]
 ---
 
-This is my first post on my new fake blog! How exciting!
 
-I'm sure I'll write a lot more interesting things in the future.
+Hi, welcome. 
 
-Oh, and here's a great quote from this Wikipedia on
-[salted duck eggs](http://en.wikipedia.org/wiki/Salted_duck_egg).
+This is a parking spot for ocean data science products and web services. 
+We'll post updates here to share progress, eye candy, and algorithms from ongoing open source projects.
 
-> A salted duck egg is a Chinese preserved food product made by soaking duck
-> eggs in brine, or packing each egg in damp, salted charcoal. In Asian
-> supermarkets, these eggs are sometimes sold covered in a thick layer of salted
-> charcoal paste. The eggs may also be sold with the salted paste removed,
-> wrapped in plastic, and vacuum packed. From the salt curing process, the
-> salted duck eggs have a briny aroma, a gelatin-like egg white and a
-> firm-textured, round yolk that is bright orange-red in color.
+Here's an early GLSL test for the Midcoast Maine hydrodynamic mesh, 
+rendered at 600fps. We like Python. 
 
-![Chinese Salty Egg](./salty_egg.jpg)
+![Midcoast mesh](mesh-rotation.gif)
