@@ -1,12 +1,9 @@
 {
-  "name": "gatsby-starter-blog",
+  "name": "oceanics.io",
   "private": true,
-  "description": "A starter for a blog powered by Gatsby and Markdown",
+  "description": "Situational awareness for a changing ocean",
   "version": "0.1.0",
-  "author": "Kyle Mathews <mathews.kyle@gmail.com>",
-  "bugs": {
-    "url": "https://github.com/gatsbyjs/gatsby/issues"
-  },
+  "author": "Nicholas Keeney <nkeeney@oceanics.io>",
   "dependencies": {
     "gatsby": "^2.19.7",
     "gatsby-image": "^2.2.39",
@@ -40,15 +37,15 @@
   "devDependencies": {
     "prettier": "^1.19.1"
   },
-  "homepage": "https://github.com/gatsbyjs/gatsby-starter-blog#readme",
+  "homepage": "https://www.oceanics.io",
   "keywords": [
-    "gatsby"
+    "aquaculture"
   ],
   "license": "MIT",
   "main": "n/a",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/gatsbyjs/gatsby-starter-blog.git"
+    "url": "git+https://bitbucket.org/oceanicsdotio/oceanics.io.git"
   },
   "scripts": {
     "build": "gatsby build",
