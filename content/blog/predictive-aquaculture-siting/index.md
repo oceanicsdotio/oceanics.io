@@ -1,7 +1,7 @@
 ---
 title: Predictive aquaculture siting
 date: "2019-12-14T12:00:00.000Z"
-description: "Public comment on NOAA artifical intelligence strategy"
+description: "Spatiotemporal model of aquaculture expansion in Maine"
 tags: ["aquaculture", "data", "geospatial", "policy"]
 ---
 
