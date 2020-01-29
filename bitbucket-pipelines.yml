@@ -27,14 +27,6 @@ pipelines:
           - docker-compose build array
           - docker-compose push array
 
-
-    - step:
-        name: Manual deploy to Digital Ocean
-        deployment: production
-        trigger: manual
-        script:
-          - echo "cat src/docker-compose-deploy.sh | ssh -t $USERNAME@$BATHYSPHERE_GRAPH"
-
 definitions:
   caches:
     apt: /var/cache/apt/archives

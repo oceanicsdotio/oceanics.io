@@ -1,14 +1,10 @@
 # Bathysphere API
 
-This document provides guidance for installing and developing on Bathysphere. For instructions on using an existing deployment, please see the [docs](https://graph.oceanics.io).
+This document provides guidance for installing and developing on Bathysphere. For instructions on interacting with an existing deployment, please see the [API specification](https://graph.oceanics.io).
 
+Bathysphere is a distributed store and registry for public and proprietary geospatial data. The system is designed to support aquaculture research in the Gulf of Maine, but can be configured and extended for other applications. It ingests sensor and model data and metadata, and parses them into discoverable databases. It can, for instance, act as a hub for IoT applications.
 
-
-## Application
-
-The Bathysphere API is a distributed store and registry for public and proprietary geospatial data. The system is designed to support aquaculture research in the Gulf of Maine, but can be configured and extended for other applications. It uses best-in-class technology to ingest sensor and model data and metadata, and automatically parse them into discoverable databases.
-
-Services run in Docker containers, which can be configured to receive and route low-level instructions between computing environments and networked devices. This can be used as a central registry for IoT systems.
+The services run in Docker containers, which are configured to receive and route low-level instructions between computing environments and networked devices. The runtime supports parallelism, and the web service can scale out to meet high throughput or high availability requirements. Deployment is with `docker-compose` or Kubernetes.
 
 | Service             | Port   | Description                |
 | ------------------- | ------ | -------------------------- |
@@ -19,13 +15,11 @@ Services run in Docker containers, which can be configured to receive and route 
 
 
 
-The runtime supports parallelism, and the web service can scale out to meet high throughput or high availability requirements. Deployment is with `docker-compose` or Kubernetes. Data are placed in cloud object storage. The default implementation uses `minio` as a client to make requests to the `oceanics.io` data lake hosted through DigitalOcean. It will also work with GCP and AWS.  
+Data are persisted in cloud object storage. The default implementation uses `minio` as a client to make requests to an `oceanics.io` data lake.  
 
-Deploy locally with `docker-compose up -d`. 
+A development environment can be deployed locally with `docker-compose up -d`. 
 
-
-
-### Kubernetes (DigitalOcean)
+### Kubernetes on DigitalOcean
 
 Create a new personal access token then authorize your environment using `doctl auth init`.
 
@@ -56,15 +50,9 @@ https://raw.githubusercontent.com/kubernetes/ingress-nginx/nginx-0.26.1/deploy/s
 Functions-as-a-Service ([FaaS](https://github.com/openfaas/workshop/blob/master)) can be deployed automatically on DigitalOcean and other cloud providers. Extensions to the core API are provided through the `/functions` end point by an `openfaas` gateway. 
 
 ```bash
-brew install faas-cli
+apt install faas-cli
 faas-cli list --verbose
 faas-cli login --password $OPENFAAS_KEY
-
-docker service create -d \
---name=grafana \
---publish=3000:3000 \
---network=func_functions \
-stefanprodan/faas-grafana:4.6.3
 ```
 
 
@@ -78,7 +66,7 @@ echo -n $HMAC_KEY | faas-cli secret create payload-secret
 
 
 
-Build and deploy a specific function eith `faas-cli up -f buoys.yml`, or the full contents of a `stack.yml` file with, simply, `faas-cli up`. Some examples of invoking the included functions:
+Build and deploy a specific function `faas-cli up -f buoys.yml`, or the full contents of a `stack.yml` file with, simply, `faas-cli up`. Some examples of invoking the included functions:
 
 
 
@@ -93,19 +81,6 @@ echo -n '{"subject": "Account Info", "addresses": ["user@example.com"], "message
 echo -n '{"table": "test"}' | faas-cli invoke postgres --sign hmac --key=$HMAC_KEY
 
 ```
-
-
-
-### Web Assembly
-
-The frontend uses Rust compiled to web assembly (WASM) in the frontend. To develop on WASM, you can get started with `rustup`, and `wasm-pack`:
-
-```bash
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
-```
-
-The `wasm-bindgen` tooling packages WASM to interact with Javascript, and can be served as static files by compiling [without a bundler](https://github.com/rustwasm/wasm-bindgen/tree/master/examples/without-a-bundler)
 
 
 
@@ -165,13 +140,9 @@ sudo apt-get install -y certbot
 
 
 
+### Helm
 
-
-### Helm (Advanced)
-
-A cluster can be deployed to Kubernetes using `helm`, as an advanced use case.
-
-Get the deployment environment setup:
+A cluster can be deployed to Kubernetes using `helm`. Get the deployment environment setup:
 
 ```bash
 brew install kubernetes-helm
@@ -211,25 +182,11 @@ kubectl run -it \
 
 
 
-Cluster networking is a bit [tricky](https://www.asykim.com/blog/deep-dive-into-kubernetes-external-traffic-policies). You'll need an ingress.
-
-```bash
-kubectl create serviceaccount tiller --namespace kube-system
-helm init --service-account tiller --upgrade
-kubectl get svc --namespace=ingress-nginx
-```
-
-
-
-
-
-
-
 ### Cypher
 
-The Neo4j web interface provides a visualization of the graph, which can be used to sanity check things.  [Cypher](https://neo4j.com/docs/cypher-refcard/current/) is the Neo4j query language. Either can be used to build the database, traverse nodes and edges, and return data.
+[Cypher](https://neo4j.com/docs/cypher-refcard/current/) is the Neo4j query language. Either can be used to build the database, traverse nodes and edges, and return data. You can manage the database with the Python `neo4j-driver` package, installed with `pip install neo4j-driver`. 
 
-You can manage the database with the Python `neo4j-driver` package. This can be installed locally with `pip install neo4j-driver`. Establish a connection to the database using Bolt, and start a session:
+Establish a connection to the database using Bolt, and start a session:
 
 ```python
 from neo4j.v1 import GraphDatabase
@@ -237,9 +194,7 @@ driver = GraphDatabase.driver("bolt://localhost:7687", auth=("neo4j", "neo4j"))
 session = driver.session()
 ```
 
-
-
-Using a 3D model as an example, here are some basic queries:
+Using a 3D model as an example, here are some basic queries. 
 
 Return a specific triangle, child vertices, and their relationships:
 
@@ -308,7 +263,7 @@ RETURN nb.id, b.id, e.id
 
 
 
-### Ingestion
+### Ingestion tips
 
 Finite-volume methods need to perform mesh interpolations, the algorithms for which involve keeping the mesh and fields in memory. For an unstructured grid, the graph nodes include nodes/vertices in the simulation mesh, along with elements, edges, and layers. A vertex would have parent elements and edges, and have adjacency with other vertices—and could have any number of associated environmental variables. Edges have child nodes, and parent elements. Their properties include boundary information. Surfaces are also a helpful construct, for representing the seafloor and air-water interface (or other isopycnal). 
 
@@ -432,84 +387,3 @@ A database is manually created and extended with,
 CREATE database bathysphere;
 CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;
 ```
-
-With Docker, the default database to create at start-up can be specified using the environment variable `POSTGRES_DB`. This is done automatically using the provided `docker-compose.yml`. The entity data for user authentication and sensor network topology are already stored in the Neo4j graph. So, this database should really only need one table: **observations**. There are actually multiple tables, one for each deployment, since the columns present for each may vary, and we're not in the business of doing joins. 
-
-The enhanced paging features of TimeScale DB are enabled with,
-
-```sql
-SELECT create_hypertable('series', 'time');
-```
-
-
-
-A simple table might consist of a timestamp, and some measured properties (as well as diagnostic info and event logs for the data logger). Something like,
-
-```sql
-CREATE TABLE series (
-  time        TIMESTAMPTZ       NOT NULL,
-  temperature DOUBLE PRECISION  NULL,
-  salinity    DOUBLE PRECISION  NULL,
-  pressure    DOUBLE PRECISION  NULL, 
-);
-```
-
-New data is added with an `INSERT` query,
-
-```sql
-INSERT INTO series(time, temperature, salinity)
-VALUES (NOW(), 20.0, 30.0),
-		(NOW(), 21.0, 30.1);
-```
-
-The most recent data are selected and returned by a `SELECT`,   
-
-
-```sql
-SELECT * FROM series ORDER BY time DESC LIMIT 10;
-```
-
-### 
-
-Use the `psycopg2` library for connecting to and querying the database. The commands are identical, but sent as strings.
-
-```python
-from psycopg2 import connect
-db = connect(dbname='observations', user='postgres', host='localhost', password="password")
-```
-
-
-
-Tables can be setup with a string generator,
-
-```python
-DP_NULL = "DOUBLE PRECISION NULL"
-
-def create_table(params):
-    ts = "time TIMESTAMPTZ NOT NULL"
-    fields = [ts] + [" ".join([p, DP_NULL]) for p in params]
-    return "CREATE TABLE series(" + ", ".join(fields) + ");"
-
-cmd = create_table(params)
-cur = db.cursor()
-cur.execute(cmd)
-```
-
-
-
-```python
-def insert_single(data):
-    string = "INSERT INTO series(time, temperature, salinity, pressure)"
-    row = "(" + ", ".join(["NOW()"] + [str(i) for i in data]) + ")"
-    return " ".join([string, "VALUES", row]) + ";"
-```
-
-
-
-```python
-def read(table, sort, limit=10):
-    cmd = ["SELECT * FROM", table, "ORDER BY", sort, "DESC LIMIT", str(limit)]
-    return " ".join(cmd) + ";"
-```
-
-
