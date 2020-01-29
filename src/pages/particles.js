@@ -229,7 +229,7 @@ let state = {
     kinetic: 0.0,
     potential: 0.0
   },
-  zero: performance.now(),
+  zero: 0.0, // performance.now(),
   cursor: [0, 0, 0],
   padding: 0.0,
   streamline: false,
