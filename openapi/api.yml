@@ -29,19 +29,17 @@ info:
 
     # Analytics as a Service
 
-    By assessing availability over the whole domain, projects can target resources to fill coverage gaps. This supports
-    an open marketplace data sharing model, which may be preferable to redundant collection.
-
     Bathypshere uses an OpenFaaS cluster for asynchoronous processing, and to securely access external data sources.
     Direct access can be provided for use in third-party services by request. These are described in the
     `FUNCTIONS` section.
-
-    <iframe src="bathysphere.html" width=100% height=500px>Not available</iframe>
 
     The image rendering service creates PNG format files for time series and geospatial data. Small and simple
     data structures can be sent and analyzed directly. More complex structures like large, unstructured triangular
     meshes need to be accessible from a database already. This ensures that caching is enforced to prevent
     redundant computation.
+
+    By assessing availability over the whole domain, projects can target resources to fill coverage gaps. This supports
+    an open marketplace data sharing model, which may be preferable to redundant collection.
 
   contact:
     name: Oceanicsdotio
