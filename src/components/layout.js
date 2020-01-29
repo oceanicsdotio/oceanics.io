@@ -15,11 +15,9 @@ class Layout extends React.Component {
       </li>
     )
 
-
     header = (
       <h3
         style={{
-          fontFamily: `Montserrat, sans-serif`,
           marginTop: 0,
         }}
       >
@@ -34,9 +32,7 @@ class Layout extends React.Component {
           {title}
         </Link>
         <ul style={{ listStyle: `none`, float: `right` }}>
-          <ListLink to="/tools/">Tools</ListLink>
-          <ListLink to="/workshops/">Workshops</ListLink>
-          <ListLink to="/about/">About</ListLink>
+          <ListLink to="/bathysphere/">Bathysphere API</ListLink>
           <ListLink to="mailto:business@oceanics.io">Contact</ListLink>
         </ul>
       </h3>
