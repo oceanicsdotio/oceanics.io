@@ -1,0 +1,58 @@
+<!DOCTYPE html >
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Wind</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    </head>
+    <link rel="stylesheet" href="bathysphere.css" type="text/css"/>
+    <body>
+
+        <canvas id="wind"></canvas>
+        <canvas id="canvas"></canvas>
+        <script type="module">
+
+            import init, { triangle, create_program } from './bathysphere.js';
+            import { programWrapper, renderLoop, shaders } from './wind.js'
+
+            shaders().then(
+                async (txt) => {
+
+                    await init();
+                    let gl = document.getElementById("canvas").getContext("webgl");
+                    let p = create_program(gl, txt.triangle.vert, txt.triangle.frag);
+                    triangle("canvas", p);
+
+                    let canvas = document.getElementById("wind");
+                    let wind = canvas.getContext("webgl");
+
+                    fetch('wind/2016112000.json').then(r => r.json()).then(data => {
+                        const img = new Image();
+                        img.src = 'wind/2016112000.png';
+                        img.onload = () => {
+                            renderLoop(wind, data, img, {
+                                draw: programWrapper(wind, create_program(wind, txt.draw.vert, txt.draw.frag)),
+                                screen: programWrapper(wind, create_program(wind, txt.quad.vert, txt.screen.frag)),
+                                update: programWrapper(wind, create_program(wind, txt.quad.vert, txt.update.frag))
+                            }, {
+                                opacity: 0.996, // how fast the particle trails fade on each frame
+                                speed: 0.25, // how fast the particles move
+                                drop: 0.003, // how often the particles move to a random place
+                                bump: 0.01, // drop rate increase relative to individual particle speed
+                                colors: {
+                                    0.0: '#dd7700',
+                                    1.0: '#660066'
+                                },
+                                data: data,
+                                width: canvas.width,
+                                height: canvas.height,
+                                res: Math.ceil(Math.sqrt(10000))
+                            });
+                        };
+                    });
+                }
+            );
+
+        </script>
+    </body>
+</html>

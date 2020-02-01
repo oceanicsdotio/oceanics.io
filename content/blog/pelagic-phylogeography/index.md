@@ -5,35 +5,16 @@ description: "Phylogeography of pelagic fishes at the Gulf of Mexico / Atlantic 
 tags: ["fisheries", "genetics", "geography", "gulf of mexico"]
 ---
 
-The Gulf of Mexico (GOM) today consists of a large mediterranean sea with limited water exchanged. 
-In through the Yucatan Channel, and out through the narrow and shallow Straits of Florida. 
-The loop current and mesoscale eddies it sheds are important oceanographic microcosms that divide Caribbean water masses from the distinct GOM mass.
-
-The larvae of marine organisms may be physically entrained in eddies, 
-while slow swimming nekton may be transported into areas of unsuitable environmental conditions before the eddy loses 
-vorticity and mixes with ambient seawater. 
+The Gulf of Mexico (GOM) today consists of a large mediterranean sea with limited water exchanged. In through the Yucatan Channel, and out through the narrow and shallow Straits of Florida. The loop current and mesoscale eddies it sheds are important oceanographic microcosms that divide Caribbean water masses from the distinct GOM mass. The larvae of marine organisms may be physically entrained in eddies, while slow-swimming adults may be transported into areas of unsuitable environmental conditions before eddies lose vorticity and mix with ambient seawater. 
 
 The sill restricting inflow into the basin is deeper and wider than the outflow sill near Florida, 
-so the exiting current is strengthened and curls around the Florida peninsula as the Florida Current to become the 
-Gulf Stream near Cape Hatteras, NC. 
+so the exiting current is strengthened and curls around the Florida peninsula as the Florida Current to become the Gulf Stream near Cape Hatteras, NC. The strong current and propagation of tropical waters influences the distribution of marine species, and in particular advances the northern range of sub-tropical fish. It is not unusual to find Caribbean species north as far as Massachusetts.
 
-The strong current and propagation of tropical waters influences the distribution of marine species, 
-and in particular advances the northern range of sub-tropical fish. 
-It is not unusual to find Caribbean species north as far as Massachusetts.
+18,000 years ago the oceanographic regime was very different (Cunningham and Collins 1998; Bowen and Avise 1990). Falling Pleistocene sea levels exposed previously submerged land around Florida and the Yucatan Peninsula, choking oceanographic exchange between the Gulf and the western Atlantic. 
 
-But 18,000 years ago the oceanographic regime was very different (Cunningham and Collins 1998; Bowen and Avise 1990). 
-Falling Pleistocene sea levels exposed previously submerged land around Florida and the Yucatan Peninsula, 
-choking oceanographic exchange between the Gulf and the western Atlantic. 
+During this period of isolation, aridity in Florida meant reduced river outflow, and a subsequent lack of estuarine nursery and feeding habitat for fish species. Population ranges receded into the Gulf, where coastal habitats offered sufficient shelter, until sea levels once again rose during the current interglacial. 
 
-During this period of effective isolation, the aridity of Florida meant reduced river outflow, 
-and a subsequent lack of estuarine nursery and feeding habitat for fish species. 
-Population ranges receded into the Gulf, where coastal habitats offered sufficient shelter, 
-until sea levels once again rose during the current interglacial. 
-
-An alternate, non-exclusive theory is that population separations occur during interglacial periods. 
-Today, for example, the Florida peninsula remains a barrier to temperate species. 
-The conditions along south Florida coast and offshore are simply too tropical for colonization of these areas (Bowen and Avise 1990). 
-During glaciation, lower temperatures expand the southern range of some species, which may become genetically reconnected. 
+An alternate, non-exclusive theory is that population separations occur during interglacial periods. Today, for example, the Florida peninsula remains a barrier to temperate species. The conditions along south Florida coast and offshore are simply too tropical for colonization of these areas (Bowen and Avise 1990). During glaciation, lower temperatures expand the southern range of some species, which may become genetically reconnected. 
 Increasing sea surface temperatures associated with climate change will likely exacerbate this effect in tolerant sub-tropical species with tenuous connectivity.
 
 Scientists now use genetics to establish boundaries (or lack thereof) for marine populations, especially commercially fished species. 
@@ -172,10 +153,10 @@ Effective population size is an important consideration in stock management, esp
 
 When considering the role of biogeographic barriers in management decision making it is vital to utilize genetic methods to at least be able to estimate contemporary rates of exchange, if not robust models of metapopulation connectivity. Studies of pelagic fish have shown that long distance migration and seasonal overlap of adults is sufficient to maintain homogeneity between the GOM and western Atlantic, but not necessarily between eastern and western Atlantic. Active migrators like tuna can span these distances, but exhibit spawning site fidelity that results in greater partitioning than may be expected. Coastal fishes will general have greater population structure due to linear dispersal and hydrodynamic retention of eggs and larvae at estuaries. However, even anadromous fish which may live in freshwater for years can show connectivity between GOM and Atlantic. Sedentary demersal fishes like snapper are subject to pelagic egg and larval advection, though the scale of connectivity does not appear proportional to PLD. 
 
-
 Clearly much has been accomplished in this field, especially in well-studied regions like the GOM. 
 The metrics used are necessarily vague, due to inconsistencies in results from varying sample size and methods. 
-But the general trend is to reach finer temporal and spatial scales, and to use multiple techniques to improve statistical confidence. As the discipline evolves further we should see better quantitative estimates of subpopulation age (and be able to date to specific geological events), as well as the ability to meaningfully compare species.
+
+The general trend is to reach finer temporal and spatial scales, and to use multiple techniques to improve statistical confidence. As the discipline evolves further we should see better quantitative estimates of subpopulation age (and be able to date to specific geological events), as well as the ability to meaningfully compare species.
 
 
 

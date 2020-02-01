@@ -1,0 +1,85 @@
+{
+    "image": [
+        {
+            "render": {
+                "id": "osi-composite",
+                "source": {
+                    "type": "image",
+                    "url": "spatial/osi-composite-web.png",
+                    "coordinates": [
+                        [-70.7495, 44.1929],
+                        [-67.8952, 44.1929],
+                        [-67.8952, 42.2156],
+                        [-70.7495, 42.2156]
+                    ]
+                },
+                "type": "raster",
+                "paint": {
+                    "raster-opacity": 0.5
+                }
+            },
+            "behind": "maine-towns"
+        }
+    ],
+    "json": [
+    {
+        "render": {
+            "id": "limited-purpose-licenses",
+            "type": "circle",
+            "paint": {
+                "circle-radius": {
+                    "stops": [[8, 1], [12, 4], [16, 10]]
+                },
+                "circle-color": "rgba(0,0,0,0)",
+                "circle-stroke-width": 1,
+                "circle-stroke-color": "#0ff"
+            }
+        }, "behind": "cities"
+    }, {
+        "render": {
+            "id": "suitability",
+            "type": "circle",
+            "paint": {
+                "circle-radius": {
+                    "stops": [[8, 2], [12, 8], [16, 20]]
+                },
+                "circle-color": "rgba(0,0,0,0)",
+                "circle-stroke-width": 1,
+                "circle-stroke-color": "#fff"
+            }
+        },
+        "behind": "limited-purpose-licenses"
+    },{
+        "render": {
+            "id": "nssp-closures",
+            "type": "fill",
+            "paint": {
+                "fill-color": "#f0f",
+                "fill-opacity": ["case",
+                    ["boolean", ["feature-state", "hover"], false],
+                    0.5, 0.2]
+            }
+        },
+        "behind": "suitability"
+    },{
+        "render": {
+            "id": "aquaculture-leases",
+            "type": "line",
+            "paint": {
+                "line-color": "#00FF99",
+                "line-opacity": 0.75
+            }
+        },
+        "behind": "suitability"
+    }, {
+        "render": {
+            "id": "maine-towns",
+            "type": "line",
+            "paint": {
+                "line-color": "rgba(255,255,255,0.5)"
+            }
+        },
+        "behind": "aquaculture-leases"
+    }
+    ]
+}

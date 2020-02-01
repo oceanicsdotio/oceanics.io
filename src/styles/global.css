@@ -135,3 +135,40 @@ input[type=range]::-moz-range-thumb {
     border-radius: 3px;
     background: #000000;
 }
+
+
+
+table {
+    table-layout: fixed; /* by headings to make behavior more predictable */
+    width: 100%;
+    border-collapse: collapse; /* remove duplicate borders */
+    border: 3px solid black;
+}
+
+
+th, td, tfoot {
+    border: 1px solid black;
+    padding: 0;
+}
+
+th {
+    padding: 10px;
+}
+
+
+
+tfoot td {
+    position: inherit;
+    padding-right: 5px;
+    text-align: right;
+}
+
+td input {
+    position: relative;
+    width: 95%;
+    height: 100%;
+    padding: 5px;
+    margin: 0;
+    text-align: right;
+    border: none;
+}
