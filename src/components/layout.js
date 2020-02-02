@@ -61,23 +61,14 @@ class Layout extends React.Component {
             Copyleft 2018-{new Date().getFullYear()}. No rights reserved.
           </p>
           <p>
-            Funded in part by Maine EPSCoR (NSF #1355457)
+            Funded in part by Maine EPSCoR (NSF #1355457) and the LSU Board of Regents.
           </p>
           <p>
-            <a>Accessibility</a>
+            <a href={"/code-of-conduct"}>Code of conduct</a>
           </p>
           <p>
-            <a>Code of conduct</a>
+            <a href={"/privacy-policy"}>Privacy policy</a>
           </p>
-          <p>
-            <a>Privacy</a>
-          </p>
-
-          <p>
-            <a>Data management</a>
-          </p>
-
-
 
         </footer>
       </div>
