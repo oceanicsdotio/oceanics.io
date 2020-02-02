@@ -1,7 +1,10 @@
 ---
 title: Acceleration
 date: "2017-08-17T12:00:00.000Z"
-description: "Strategies for making faster Python code from parallelization to JIT to GPUs and whatnot."
+description: |
+    Strategies for making faster Python code from parallelization to JIT to GPUs and whatnot. Sometimes people
+    say languages are slow, but they're just not being creative enough. 
+    
 tags: ["python", "distributed computing", "parallel", "gpu"]
 ---
 
@@ -12,7 +15,7 @@ You can do more with less code, programming in high level languages is faster.
 Since the installation of the interpretor handles machineand operating system dependencies and quirks, you can write code once that will run anywhere. 
 The computational bits can also be refactored into lower level languages like Fortran and C. 
 
-# Just-in-time compilation
+## Just-in-time compilation
 
 Numba does just-in-time (JIT) compiling on Python code to make it as fast as native C in many cases. 
 This approach is good for pieces of code that run repetitively. 

@@ -1,16 +1,15 @@
 ---
 title: Algorithms - Statistical clustering
 date: "2019-12-13T12:00:00.000Z"
-description: "Overview of cluster analysis methods"
+description: |
+    Brief overview of statistical clustering analysis methods, 
+    an unsupervised learning method for defining intrinsic groups in unlabelled data. 
 tags: ["algorithms", "clustering", "data", "unsupervised learning"]
 ---
 
-With the Algorithms series, I want to provide a high level view of some statistical methods and data structures we use in our work. 
+I want to provide a high level view of some statistical methods and data structures we use in our work. 
 These are meant to be living notes, and may contain stubs or incomplete information. 
-
-First up is classic statistical clustering, an unsupervised learning method for defining intrinsic groups in unlabelled data. 
 There are plenty of exhaustive resources, but I highly recommend Matteo Matteucci's <a href="https://home.deib.polimi.it/matteucc/Clustering/tutorial_html/index.html">work</a>.</p>
-
 
 K-means (or medians) is an <strong>exclusive</strong> model that associates observations with clusters. 
 The number of clusters cannot be determined analytically. Instead $k$ is chosen based on domain knowledge and refined 

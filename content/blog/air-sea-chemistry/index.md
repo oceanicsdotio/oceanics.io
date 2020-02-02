@@ -1,7 +1,12 @@
 ---
 title: Chemistry at the air-sea interface
 date: "2011-12-17T12:00:00.000Z"
-description: "The vertical stratification of the ocean creates unique layers of interest. One of the most challenging to study is the nearly 2-dimensional surface microlayer."
+description: |
+    The vertical stratification of the ocean creates unique layers of interest. 
+    One of the most challenging to study is the nearly 2-dimensional surface microlayer.
+    This review explores some of the peculiarities of dealing with biogeochemical
+    processes right at the surface.
+    
 tags: ["surface microlayer", "chemistry", "biogeochemisty", "carbon"]
 ---
 
