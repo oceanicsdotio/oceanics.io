@@ -11,7 +11,13 @@ class Layout extends React.Component {
 
     const ListLink = props => (
       <li style={{ display: `inline-block`, marginRight: `1rem` }}>
-        <Link to={props.to}>{props.children}</Link>
+        <Link {...props}>{props.children}</Link>
+      </li>
+    )
+
+    const ListLinkExternal = props => (
+      <li style={{ display: `inline-block`, marginRight: `1rem` }}>
+        <a href={props.href}>{props.children}</a>
       </li>
     )
 
@@ -32,8 +38,8 @@ class Layout extends React.Component {
           {title}
         </Link>
         <ul style={{ listStyle: `none`, float: `right` }}>
-          <ListLink to="/bathysphere/">Bathysphere API</ListLink>
-          <ListLink to="mailto:business@oceanics.io">Contact</ListLink>
+          <ListLinkExternal href={"https://graph.oceanics.io"}>Bathysphere API</ListLinkExternal>
+          <ListLink to={"tags"}>Tags</ListLink>
         </ul>
       </h3>
     )

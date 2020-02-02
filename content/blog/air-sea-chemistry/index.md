@@ -38,7 +38,7 @@ Surface active molecules (surfactants) preferentially occupy the air-sea interfa
 
 
 
-EQAUTION 1
+-d*gamma = SUM{1,n}(RHO_i(d*mu_i))
 
 describes the relationship between surface tension and surface enrichment of chemical species, where γ is surface tension, μi is chemical potential of species i, and Γi is the surface excess (moles cm-2). Those which decrease surface tension will be preferentially adsorbed, while those which increase surface tension will be excluded. Because of the limited adsorption sites, as material is concentrated by physical processes high-molecular-weight molecules will preferentially occupy the interface, and inorganic molecules are excluded. When pollutants are introduced to sea water, they can become a major surface constituent, as in the Mediterranean Sea, where 85% of SML molecules  can be pollutant hydrocarbons (Lion and Leckie 1981). The surface exclusion of inorganic metal species means that upward particle transport must be substantial to counteract diffusion and scavenging by sinking particles. 
 	
@@ -51,7 +51,7 @@ The current model of the SML is as a gelatinous matrix of polysaccharides, prote
 
 Since there is negative net primary production in the SML, some upward flux of organic material is required to fuel high surface respiration rates (Dandonneau etal 2008). Inverted sediment traps show upward particulate flux is typically 5-10% of downward flux at 600 m, and could be much greater closer to the surface where more organic matter is produced (Dandonneau etal 2008). Ascending transparent exopolymer particles (TEP) balance this deficit. TEP is part of the POM pool. It adheres and aggregates particles and microbes, building marine snow from suspended material. Fresh TEP, produced during the spontaneous aggregation of polysaccharide DOM (Lion and Leckie 1981), is initially positively buoyant and collects at the surface, transporting bacteria and diatoms as it ascends (Azetsu-Scott and Passow 2004; Dandonneau et al 2008; Wurl and Holmes 2008). The ascension rate can be calculated from the change in surface concentrations of pure TEP (Ct-C0), over time t,
 
-
+W_TEP = (C_t-C_0) * V over pi * r_c^2 * C_0 * t
 
 where V is the surface volume, and rc is the radius of the experimental settling column. On average, TEP ascends at 14 m day-1 (Azetsu-Scott and Passow 2004). Mean TEP concentrations around 1000μg Xeq L-1 (expressed in xanthan gum equivalency) are typical during bloom periods. Blooms in growth phase produce the more precursor DOM than standing stocks (Kuznetsova et al 2004).
 	

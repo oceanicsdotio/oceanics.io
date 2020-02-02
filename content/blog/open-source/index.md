@@ -2,7 +2,7 @@
 title: Open $ource
 date: "2018-11-06T01:15:00.000Z"
 description: "News-worthy action in open source this week"
-tags: ["Neo4j", "Kubernetes", "software", "venture capital"]
+tags: ["neo4j", "kubernetes", "software", "venture capital"]
 ---
 
 Graph database company Neo4j [secured](https://neo4j.com/blog/80-million-series-e/) $80M in funding to keep up their magic.

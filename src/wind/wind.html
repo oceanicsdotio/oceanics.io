@@ -5,13 +5,13 @@
         <title>Wind</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     </head>
-    <link rel="stylesheet" href="bathysphere.css" type="text/css"/>
+    <link rel="stylesheet" href="../styles/bathysphere.css" type="text/css"/>
     <body>
 
         <canvas id="wind">Wind data renders here</canvas>
         <script type="module">
 
-            import init, { create_program } from '../wasm/bathysphere';
+            import init, { create_program } from '../wasm';
             import { programWrapper, renderLoop, shaders } from './wind.js'
 
             shaders().then(
