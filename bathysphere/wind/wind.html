@@ -8,21 +8,16 @@
     <link rel="stylesheet" href="bathysphere.css" type="text/css"/>
     <body>
 
-        <canvas id="wind"></canvas>
-        <canvas id="canvas"></canvas>
+        <canvas id="wind">Wind data renders here</canvas>
         <script type="module">
 
-            import init, { triangle, create_program } from './bathysphere.js';
+            import init, { create_program } from '../wasm/bathysphere';
             import { programWrapper, renderLoop, shaders } from './wind.js'
 
             shaders().then(
                 async (txt) => {
 
                     await init();
-                    let gl = document.getElementById("canvas").getContext("webgl");
-                    let p = create_program(gl, txt.triangle.vert, txt.triangle.frag);
-                    triangle("canvas", p);
-
                     let canvas = document.getElementById("wind");
                     let wind = canvas.getContext("webgl");
 

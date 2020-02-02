@@ -1,68 +1,144 @@
-// import React, {useState, useEffect} from "react"
-// import PropTypes from "prop-types"
-//
-// // Components
-// import { graphql } from "gatsby"
-// import Layout from "../components/layout"
-// import SEO from "../components/seo"
-// import { rhythm } from "../utils/typography"
-// import { prune } from "../utils/reticule"
-//
-//
-// const controls = [
-//   {
-//     title: "Zone of exclusion at boundary",
-//     type: "range",
-//     id: "padding",
-//     name: "padding",
-//     min:"0",
-//     max: "0.2",
-//     defaultValue: "0.0",
-//     step: "0.02"
-//   }, {
-//     title: "Radius of entities in pixels",
-//     type: "range",
-//     id: "radius",
-//     name: "radius",
-//     min: "4",
-//     max: "64",
-//     defaultValue: "16",
-//     step: "4"
-//   }, {
-//     title: "Fraction of velocity lost to boundary",
-//     type: "range",
-//     id: "bounce",
-//     name: "bounce",
-//     min: "0.0",
-//     max: "1.0",
-//     defaultValue: "0.9",
-//     step: "0.1"
-//   },{
-//     title: "Magnitude of torque applied by mouse events",
-//     type: "range",
-//     id: "control",
-//     name: "control",
-//     min: "0.0",
-//     max:"1.0",
-//     defaultValue: "0.001",
-//     step: "0.001"
-//   }, {
-//     title: "Alpha scale for z-dimension",
-//     type: "range",
-//     id: "fade",
-//     name: "fade",
-//     min: "0.0",
-//     max: "1.0",
-//     defaultValue: "0.1",
-//     step: "0.05"
-//   },{
-//     title: "Toggle frame blending",
-//     type: "checkbox",
-//     id: "streamline",
-//     name: "streamline"
-//   }
-// ];
-//
+import React from "react"
+import { Link, graphql } from "gatsby"
+import Layout from "../components/layout"
+import SEO from "../components/seo"
+import Map from "../components/map"
+import PropTypes from "prop-types"
+import Table from "../components/table"
+
+
+const state = {
+  order: "time",
+  records: [{
+    "time": "2019-01-01 05:00:00",
+    "product": "lobster",
+    "weight": 101,
+    "price": 5.63
+  },{
+    "time": "2019-01-02 05:00:00",
+    "product": "lobster",
+    "weight": 150,
+    "price": 4.76
+  },{
+    "time": "2019-01-04 05:00:00",
+    "product": "lobster",
+    "weight": 132,
+    "price": 3.97
+  },{
+    "time": "2019-01-04 05:00:00",
+    "product": "crab",
+    "weight": 54,
+    "price": 1.20
+  }],
+  schema: [{
+    "label": "time",
+    "type": "datetime",
+  }, {
+    "label": "product",
+    "type": "string",
+  }, {
+    "label": "weight",
+    "type": "float",
+    parse: (x) => {return parseFloat(x)}
+  }, {
+    "label": "price",
+    "type": "currency",
+    format: (x) => {return `$${x.toFixed(2)}`},
+    parse: (x) => {return parseFloat(x.replace("$", ""))}
+  }]
+}
+
+
+export default class DataPage extends React.Component {
+  render() {
+    const { data } = this.props;
+    const siteTitle = data.site.siteMetadata.title;
+    return (
+      <Layout location={this.props.location} title={siteTitle}>
+        <SEO title="Discover data" />
+        <Map />
+        <Table {...state}/>
+      </Layout>
+    )
+  }
+}
+
+DataPage.propTypes = {
+  data: PropTypes.shape({
+    site: PropTypes.shape({
+      siteMetadata: PropTypes.shape({
+        title: PropTypes.string.isRequired,
+      }),
+    }),
+  }),
+}
+
+
+export const pageQuery = graphql`
+    query {
+        site {
+            siteMetadata {
+                title
+            }
+        }
+    }
+`
+
+
+const controls = [
+  {
+    title: "Zone of exclusion at boundary",
+    type: "range",
+    id: "padding",
+    name: "padding",
+    min:"0",
+    max: "0.2",
+    defaultValue: "0.0",
+    step: "0.02"
+  }, {
+    title: "Radius of entities in pixels",
+    type: "range",
+    id: "radius",
+    name: "radius",
+    min: "4",
+    max: "64",
+    defaultValue: "16",
+    step: "4"
+  }, {
+    title: "Fraction of velocity lost to boundary",
+    type: "range",
+    id: "bounce",
+    name: "bounce",
+    min: "0.0",
+    max: "1.0",
+    defaultValue: "0.9",
+    step: "0.1"
+  },{
+    title: "Magnitude of torque applied by mouse events",
+    type: "range",
+    id: "control",
+    name: "control",
+    min: "0.0",
+    max:"1.0",
+    defaultValue: "0.001",
+    step: "0.001"
+  }, {
+    title: "Alpha scale for z-dimension",
+    type: "range",
+    id: "fade",
+    name: "fade",
+    min: "0.0",
+    max: "1.0",
+    defaultValue: "0.1",
+    step: "0.05"
+  },{
+    title: "Toggle frame blending",
+    type: "checkbox",
+    id: "streamline",
+    name: "streamline"
+  }
+];
+
 //
 //
 // class ParticleIndex extends React.Component {
@@ -383,15 +459,3 @@
 //     }),
 //   }),
 // }
-//
-// export default ParticleIndex
-//
-// export const pageQuery = graphql`
-//     query {
-//         site {
-//             siteMetadata {
-//                 title
-//             }
-//         }
-//     }
-// `
