@@ -2,8 +2,8 @@
 title: New Gatsby website
 date: "2020-02-01T12:00:00.000Z"
 description: |
-    Despite my adversarial relation with React as Node.js, I but the bullet
-    and made a new website to replace the turn-key Wordpress we've been rocking
+    Despite my adversarial relation with React and Node.js, I bit the bullet
+    and made a proper website to replace the Wordpress we've been rocking
     for two years.
     
 tags: ["react", "gatsby", "netlify", "oceanics.io", "scholarship"]
