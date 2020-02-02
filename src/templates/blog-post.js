@@ -19,6 +19,7 @@ class BlogPostTemplate extends React.Component {
           description={post.frontmatter.description || post.excerpt}
         />
         <article>
+
           <header>
             <h1 style={{marginTop: rhythm(1), marginBottom: 0}}>
               {post.frontmatter.title}
@@ -33,6 +34,7 @@ class BlogPostTemplate extends React.Component {
               {post.frontmatter.date}
             </p>
           </header>
+          <hr/>
           <section dangerouslySetInnerHTML={{ __html: post.html }} />
           <hr
             style={{

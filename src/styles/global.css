@@ -155,6 +155,10 @@ th {
     padding: 10px;
 }
 
+hr {
+    border-top: 1px solid #ccc;
+}
+
 
 
 tfoot td {
