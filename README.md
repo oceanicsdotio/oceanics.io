@@ -1,53 +1,26 @@
 # Bathysphere API
 
-This document provides guidance for installing and developing on Bathysphere. For instructions on interacting with an existing deployment, please see the [API specification](https://graph.oceanics.io).
+Bathysphere is a distributed store and registry for public and proprietary geospatial data, designed to support aquaculture research in the Gulf of Maine. It helps to ingest sensor and model data and metadata, and parse them into discoverable databases.
 
-Bathysphere is a distributed store and registry for public and proprietary geospatial data. The system is designed to support aquaculture research in the Gulf of Maine, but can be configured and extended for other applications. It ingests sensor and model data and metadata, and parses them into discoverable databases. It can, for instance, act as a hub for IoT applications.
+Services run in Docker containers, which are configured to receive and route traffic between computing environments and networked devices. Data are persisted in cloud object storage, with `minio` as the default driver. The runtime supports parallelism, and the web service can scale out to meet high throughput or high availability requirements. 
 
-The services run in Docker containers, which are configured to receive and route low-level instructions between computing environments and networked devices. The runtime supports parallelism, and the web service can scale out to meet high throughput or high availability requirements. Deployment is with `docker-compose` or Kubernetes.
+This document provides guidance for testing and developing Bathysphere. For instructions on interacting with an existing deployment, please see the [API specification](https://graph.oceanics.io).
 
-| Service             | Port   | Description                |
-| ------------------- | ------ | -------------------------- |
-| `nginx`             | `80`   | OpenAPI specification      |
-| `bathysphere_graph` | `5000` | Graph API                  |
-| `neo4j`             | `7687` | Neo4j Bolt protocol access |
-| `neo4j`             | `7474` | Neo4j built-in browser GUI |
+The development environment is deployed locally with `docker-compose up -d`, and the production environment with `kubectl`.
 
-
-
-Data are persisted in cloud object storage. The default implementation uses `minio` as a client to make requests to an `oceanics.io` data lake.  
-
-A development environment can be deployed locally with `docker-compose up -d`. 
-
-### Kubernetes on DigitalOcean
-
-Create a new personal access token then authorize your environment using `doctl auth init`.
-
-Download the cluster configuration, and get the nodes. The cluster doesn't need `nginx`, so we just deploy the `neo4j` container and the `bathysphere-graph` container:
-
-```bash
-doctl kubernetes cluster kubeconfig save $CLUSTER_NAME
-cd ~/.kube && kubectl --kubeconfig="$CLUSTER_NAME-kubeconfig.yaml" get nodes
-```
-
-A monitoring dashboard can be installed into the cluster:
-
-```bash
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-beta4/aio/deploy/recommended.yaml
-kubectl -n kubernetes-dashboard describe secret $(kubectl -n kubernetes-dashboard get secret | grep admin-user | awk '{print $1}')
-```
-
-The ingress controller for the cluster:
-
-```
-https://raw.githubusercontent.com/kubernetes/ingress-nginx/nginx-0.26.1/deploy/static/mandatory.yaml
-```
+| Service             | Port   | Description                                 |
+| ------------------- | ------ | ------------------------------------------- |
+| `nginx`             | `80`   | OpenAPI specification                       |
+| `bathysphere-graph` | `5000` | Graph API gateway                           |
+| `bathysphere-array` | `5000` | Array processing service                    |
+| `neo4j`             | `7687` | Graph database `bolt` protocol access       |
+| `neo4j`             | `7474` | Graph database built-in browser and console |
 
 
 
-### OpenFaaS
+## Functions
 
-Functions-as-a-Service ([FaaS](https://github.com/openfaas/workshop/blob/master)) can be deployed automatically on DigitalOcean and other cloud providers. Extensions to the core API are provided through the `/functions` end point by an `openfaas` gateway. 
+Extensions to the core API are provided through the `/functions` end point by an `openfaas` gateway. Functions-as-a-Service ([FaaS](https://github.com/openfaas/workshop/blob/master)) can be deployed automatically on cloud platforms. To issue commands to the cluster, set up the command line interface and login to the local or remote service:
 
 ```bash
 apt install faas-cli
@@ -55,26 +28,22 @@ faas-cli list --verbose
 faas-cli login --password $OPENFAAS_KEY
 ```
 
-
-
-Functions used by `bathysphere` must have HMAC for cryptographic verification. A key is stored in `openfass` that will be used to validate requests. 
+Functions in `bathysphere` use hash-based message authentication codes (HMAC) for cryptographic verification. The key is stored in `openfaas` and is loaded to validate requests. For instance, to create a new service and secret, then pipe a secret to the cluster:
 
 ```bash
 faas-cli new --lang python3-http buoys --prefix=oceanicsdotio
 echo -n $HMAC_KEY | faas-cli secret create payload-secret
 ```
 
+The function is built and deployed with `faas-cli up -f buoys.yml`. A full stack of functions is deployed by invoking `stack.yml` file, or simply issuing `faas-cli up`. 
 
-
-Build and deploy a specific function `faas-cli up -f buoys.yml`, or the full contents of a `stack.yml` file with, simply, `faas-cli up`. Some examples of invoking the included functions:
-
-
+These are a few examples of invoking functions directly:
 
 ```bash
 # Get buoy data
 echo -n '{"id": 66, "limit": 10, "observedProperties": ["temperature", "salinity"], "encoding": "json"}' | faas-cli invoke buoy-data --sign hmac --key=$HMAC_KEY
 
-# Send an e-mail containing credentials
+# Send a reminder e-mail containing credentials
 echo -n '{"subject": "Account Info", "addresses": ["user@example.com"], "message": "your-secret-thing"}' | faas-cli invoke notify --sign hmac --key=$HMAC_KEY
 
 # Dump the contents of a `postgres` table:
@@ -86,26 +55,20 @@ echo -n '{"table": "test"}' | faas-cli invoke postgres --sign hmac --key=$HMAC_K
 
 ## Neo4j
 
-The database manager runs in the [official container image](https://hub.docker.com/_/neo4j/), and maps the server ports to an external interface. The [built-in GUI](http://localhost:7474/browser/) is at  `hostname:7474`, and the `bolt` [interface](https://boltprotocol.org/) defaults to  `hostname:7687`. 
-
-Bolt is used for API calls from Python scripts. User authorization requires the environment variable `NEO4J_AUTH`. 
-
-If you are new to Neo4j, try deploying a stand-alone graph container first:
+The database manager runs in an extension of the [official container image](https://hub.docker.com/_/neo4j/), and maps the server ports to an external interface. The [built-in GUI](http://localhost:7474/browser/) is at  `hostname:7474`, and the `bolt` [interface](https://boltprotocol.org/) defaults to  `hostname:7687`. The `bolt` protocol is used for API calls from Python scripts. User authorization requires the environment variable `NEO4J_AUTH`. If you are new to Neo4j, try deploying a stand-alone container and experimenting some first:
 
 ```bash
 docker run \
-	--publish=7474:7474 \
-  --publish=7473:7473 \
-	--publish=7687:7687 \
-	--volume=$HOME/neo4j/data:/data \
+    --publish=7474:7474 \
+    --publish=7473:7473 \
+    --publish=7687:7687 \
+    --volume=$HOME/neo4j/data:/data \
 	oceanicsdotio/neo4j
 ```
 
 
 
-### Docker Machine (Basic)
-
-Create a new node:
+Most cloud providers have an endpoint for docker. You can create a new node and deploy to it by use third party drivers with `docker-machine`:
 
 ```bash
 # src/docker-machine-create.sh
@@ -116,19 +79,10 @@ docker-machine create \
 bathysphere-api-neo4j
 ```
 
-
-
-Connect you local environment to issue commands to the remote docker service:
+Connect you local environment to issue commands to the remote docker service, and then etup the node remotely through an `ssh` tunnel, and install `certbot`:
 
 ```bash
 eval $(docker-machine env bathysphere-api-neo4j)
-```
-
-
-
-Setup the node remotely through an `ssh` tunnel, and install `certbot`:
-
-```bash
 docker-machine ssh
 sudo apt-get update
 sudo apt-get upgrade
@@ -140,49 +94,7 @@ sudo apt-get install -y certbot
 
 
 
-### Helm
-
-A cluster can be deployed to Kubernetes using `helm`. Get the deployment environment setup:
-
-```bash
-brew install kubernetes-helm
-helm init
-helm repo add stable https://kubernetes-charts.storage.googleapis.com/
-kubectl get deployments -l 'app=helm' --all-namespaces
-```
-
-Install the application:
-
-```bash
-helm install \
---namespace bathysphere \
---name neo4j-helm stable/neo4j \
---set acceptLicenseAgreement=yes \
---set neo4jPassword=n0t_passw0rd
-
-kubectl logs -l "app=neo4j,component=core"
-
-helm delete neo4j-helm --purge
-kubectl scale deployment neo4j-helm-neo4j-replica  --namespace bathysphere --replicas=2
-kubectl exec neo4j-helm-neo4j-core-0 -- bin/cypher-shell \
-"UNWIND range(0, 1000) AS id CREATE (:Person {id: id}) RETURN COUNT(*)"
-```
-
-Execute a query against the cluster:
-
-```bash
-kubectl run -it \
---rm cypher-shell \
---image=neo4j:3.2.3-enterprise \
---restart=Never \
---namespace bathysphere \
---command -- ./bin/cypher-shell -u neo4j -p n0t_passw0rd \
---a neo4j-helm-neo4j.bathysphere.svc.cluster.local "call dbms.cluster.overview()"
-```
-
-
-
-### Cypher
+## Cypher
 
 [Cypher](https://neo4j.com/docs/cypher-refcard/current/) is the Neo4j query language. Either can be used to build the database, traverse nodes and edges, and return data. You can manage the database with the Python `neo4j-driver` package, installed with `pip install neo4j-driver`. 
 
@@ -263,15 +175,9 @@ RETURN nb.id, b.id, e.id
 
 
 
-### Ingestion tips
+## Ingestion tips
 
-Finite-volume methods need to perform mesh interpolations, the algorithms for which involve keeping the mesh and fields in memory. For an unstructured grid, the graph nodes include nodes/vertices in the simulation mesh, along with elements, edges, and layers. A vertex would have parent elements and edges, and have adjacency with other vertices—and could have any number of associated environmental variables. Edges have child nodes, and parent elements. Their properties include boundary information. Surfaces are also a helpful construct, for representing the seafloor and air-water interface (or other isopycnal). 
-
-
-
-#### Pre-processing
-
-Meshes are often stored as NetCDF files. These can be read remotely by mounting the host volume to your local environment. For instance, using [fuse](https://github.com/osxfuse/osxfuse/releases) and [sshfs](https://github.com/libfuse/sshfs). On macOS `meson` and `ninja` are required, before downloading the `sshfs` tarball, installing it,
+Meshes are often stored as NetCDF, which can be read remotely by mounting the host volume to your local environment (e.g. using [fuse](https://github.com/osxfuse/osxfuse/releases) and [sshfs](https://github.com/libfuse/sshfs)). On macOS `meson` and `ninja` are required, before downloading and install the `sshfs` tarball:
 
 ```bash
 pip install meson
@@ -292,7 +198,7 @@ mkdir ~/remote/
 sshfs username@hostname:/nfs-home/username/>>export ~/remote/
 ```
 
-Topology may also simply be saved in CSV files, for which pre-processing might be necessary. For example, space-delimited files can be converted to comma-delimited using `sed`, `cat`, and `cut`:
+Topology may also be saved in CSV files which require pre-processing. Space-delimited files can be converted to comma-delimited using `sed`, `cat`, and `cut`:
 
 ```bash
 sed 's/[[:blank:]]/,/g' midcoast_nodes.csv > neo4j_nodes.csv
@@ -303,13 +209,9 @@ cat new_elements.csv | cut -c 2- > neo4j_elements.csv
 
 A single triangular element/cell in a 2-D mesh consists of seven graph nodes: three vertices, three edges, and one element. The former are related to the latter by the `SIDE_OF` relationship. The vertices and edges are shared by other edges and elements, which they are also `SIDE_OF`.
 
-
-
-#### Load
-
 CSV data are ingested with `LOAD CSV`, which [loads data](https://neo4j.com/developer/guide-import-csv/) from a uniform resource identifier (URI). Vertices are loaded first, and relationships built in the second call. The process calls `CREATE` for each line of the input file. Explicit IDs are used for mapping between global and local domains when partitioning the graph. The files need to be in `/var/lib/neo4j/import` of the database container. At this point, it it worth noting, that if data entry goes wrong, you can abort and remove all nodes and relationships with `MATCH (n) DETACH DELETE n`.
 
-Create nodes/vertices:
+Create vertices:
 
 ```sql
 USING PERIODIC COMMIT
@@ -357,33 +259,21 @@ CREATE (n3)-[:SIDE_OF]->(e)
 
 
 
-#### Benchmark
-
-The University of Maine Midcoast mesh on a late model MacBook:
-
-* CSV files = 15 MB
-
-- 165,632 nodes with 662,498 properties  (ID, latitude, longitude, and depth) = 8061–9460 ms
-- 322,546 elements with 322,546 properties (ID) = 7993–9071 ms. 
-- 967,638 relationships = 51,360 ms
-- Database volume = 385 MB
-
-
-
 ## Postgres
 
-The backend uses the `postgres` relational database, with the `timescale` and `postgis` extensions for time series and geospatial data, respectively. To work directly with a relational database, run a container, and enter the `postgres` instance with the `exec` command:
+The back-end uses the `postgres` relational database, with the `timescale` and `postgis` extensions for time series and spatial data, respectively. A database is manually created and extended through queries with, 
+
+```sql
+CREATE database bathysphere;
+CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;
+```
+
+To develop with a local relational database, run and enter a `postgres` instance with the `exec` command:
 
 ```bash
 docker run -d --name timescaledb -p 5432:5432 -e
 	POSTGRES_PASSWORD=n0t_passw0rd
 	timescale/timescaledb-postgis
+	
 docker exec -it timescaledb-postgis psql -U postgres
-```
-
-A database is manually created and extended with, 
-
-```sql
-CREATE database bathysphere;
-CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;
 ```
