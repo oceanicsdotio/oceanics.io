@@ -4,7 +4,7 @@ import { graphql } from "gatsby"
 import Layout from "../components/layout"
 import SEO from "../components/seo"
 
-class NotFoundPage extends React.Component {
+class CodeOfConduct extends React.Component {
   render() {
     const { data } = this.props
     const siteTitle = data.site.siteMetadata.title
@@ -83,7 +83,7 @@ class NotFoundPage extends React.Component {
   }
 }
 
-export default NotFoundPage
+export default CodeOfConduct
 
 export const pageQuery = graphql`
     query {
