@@ -6,7 +6,7 @@ description: |
     information and speed up queries and analysis. The next level of sophistication
     after bounding boxes are convex hulls. 
     
-tags: ["algorithms", "spatial", "topology", "indexing"]
+tags: ["algorithms", "spatial", "topology", "indexing", "python"]
 ---
 
 
@@ -21,7 +21,13 @@ A simple [convex hull algorithm](https://www.oreilly.com/ideas/an-elegant-soluti
 2. Include $\vec{U}$ and  $\vec{V}$ in the hull, and bisect the set with $\vec{U}-\vec{V}$
 3. For each half, choose the furthest point $\vec{W}$
 4. Discard points inside triangle $\Lambda (\vec{U},\vec{V},\vec{W})$
-5. Repeat recursively with $\vec{U}-\vec{W}$ and $\vec{V}-\vec{W}$Array libraries with linear algebra, like `numpy`, make this simple. You partition the set by the sign of the cross product with the vector between starting points. We’ll pass in the array by reference, along with indices, and `convex_hull()` will return indices required to reconstruct the hull from the original. This way we don’t need to copy, change, or destroy large amounts of data. 
+5. Repeat recursively with $\vec{U}-\vec{W}$ and $\vec{V}-\vec{W}$
+
+
+
+Array libraries with linear algebra, like `numpy`, make this simple. You partition the set by the sign of the cross product with the vector between starting points. We’ll pass in the array by reference, along with indices, and `convex_hull()` will return indices required to reconstruct the hull from the original. This way we don’t need to copy, change, or destroy large amounts of data. 
+
+
 
 The indices of each half are passed to `segment()` which determines a far point by the cross product of $\vec{U}-\vec{V}$ and $\vec{W}$. The sign of the cross products of $\vec{U}-\vec{W}$ and $\vec{V}-\vec{W}$ with $\vec{W}$ are used to choose new members, and the process continues until there are no candidates remaining. 
 
