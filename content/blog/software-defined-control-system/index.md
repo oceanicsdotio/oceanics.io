@@ -1,6 +1,6 @@
 ---
 title: Software-defined control system
-date: "2019-02-05T12:00:00.000Z"
+date: "2019-02-11T12:00:00.000Z"
 description: |
   Several years ago, I built something pretty neat for a National Science Foundation
   grant. The code has been incorporated into other projects at this point, but this 
