@@ -116,7 +116,7 @@ The system forces a volumetric actuation rate ($U$) based on the error ($E$) bet
 
 Proportional feedback means $U$ is proportional to error when $|E|<E_max$. Integral action has zero steady-state error, and can be viewed as a method for automatically generating a feed-forward term. Derivative action predicts future error, and should use a second-order filter for best results. A backward difference discretization scheme guarantees stability. The combined equation is
 
-$U = kpE + ki \integral{E·dt} + kd·E’$
+$U = kpE + ki \int{E·dt} + kd·E’$
 
 The general mass-conservative thermo-molecular differential equation for a fixed-volume reservoir is,
 
