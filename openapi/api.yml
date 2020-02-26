@@ -81,44 +81,46 @@ tags:
     description: |
       Manage you account stuff. Delete it if you want.
 
-  - name: Analysis
-    x-displayName: Analysis
-    description: |
-
-      The `neritics-filter` service adds methods for resampling, interpolating, filling, and smoothing series.
-      Most functions default to safe values, or will silently fail without manipulating data.
-
-      Some functions return a mask. For instance `/outlier` detects statistical anomalies in the independent variable,
-      while `/outOfRange` returns a mask  of the values to pin. Finally, `outlier_mask()` looks for anomalies in
-      independent variable and time derivatives to remove spikes and gaps (e.g. wave action on inter-tidal sensors, or electrical issues).
-
-      Interpolation function `/smooth` uses `numpy.convolve` to smooth a series using a boxcar filter.
-      More control over fast Fourier transforms are given through `/fftFilter`, which can low/highpass filter,
-      and forward-fill, using `scipy.fftpack`.
-
-      Most useful is `/resample`, which will produce a regularly-spaced series from sparse observations,
-      using forward/backward fill or linear interpolation. This is meant for low frequency data,
-      like manually collected data, or satellite observations.
-
-  - name: Internet of Things
-    x-displayName: Internet of Things
-    description: |
-      Build topological relationships and access metadata.
-
-
-  - name: Storage
-    x-displayName: Storage
-    description: |
-      Database integrations.
+#
+#  - name: Analysis
+#    x-displayName: Analysis
+#    description: |
+#
+#      The `neritics-filter` service adds methods for resampling, interpolating, filling, and smoothing series.
+#      Most functions default to safe values, or will silently fail without manipulating data.
+#
+#      Some functions return a mask. For instance `/outlier` detects statistical anomalies in the independent variable,
+#      while `/outOfRange` returns a mask  of the values to pin. Finally, `outlier_mask()` looks for anomalies in
+#      independent variable and time derivatives to remove spikes and gaps (e.g. wave action on inter-tidal sensors, or electrical issues).
+#
+#      Interpolation function `/smooth` uses `numpy.convolve` to smooth a series using a boxcar filter.
+#      More control over fast Fourier transforms are given through `/fftFilter`, which can low/highpass filter,
+#      and forward-fill, using `scipy.fftpack`.
+#
+#      Most useful is `/resample`, which will produce a regularly-spaced series from sparse observations,
+#      using forward/backward fill or linear interpolation. This is meant for low frequency data,
+#      like manually collected data, or satellite observations.
+#
+#  - name: Internet of Things
+#    x-displayName: Internet of Things
+#    description: |
+#      Build topological relationships and access metadata.
+#
+#
+#  - name: Storage
+#    x-displayName: Storage
+#    description: |
+#      Database integrations.
 
 servers:
 
 - url: https://graph.oceanics.io/api
   description: Oceanicsdotio
-- url: https://graph.oceanics.io/async-function
-  description: Asynchronous endpoint
-- url: https://graph.oceanics.io/function
-  description: Function endpoint
+
+#- url: https://graph.oceanics.io/async-function
+#  description: Asynchronous endpoint
+#- url: https://graph.oceanics.io/function
+#  description: Function endpoint
 
 paths:
 
@@ -379,522 +381,543 @@ paths:
         '400':
           $ref: '#/components/responses/BadRequest'
 
-
-  /archive:
-
-    post:
-      tags: [ Admin ]
-      summary: Archive
-      description: Index an external data or storage system
-
-    responses:
-        '200': Success
-
-  /buoys:
-
-    post:
-      tags: [ IoT ]
-      summary: Buoys
-      description: |
-
-        Access third-party buoy data.
-
-        In the simplest case this is a client for Satlantic LOBOviz servers. Because data is logged hourly,
-        the newest is also the number of hours previous to return.
-        The most recent measurement becomes available about 30 minutes after it is collected.
-
-        The user may only request data for a single buoy at a time,
-        each of which has a unique integer identifier, `node = "node=66"`.
-
-        Omitting this, requesting multiple buoys, or using the nodes parameter—which LOBOVIZ plots rely on will result in an error.
-
-        Data fields are returned as columns in the order they are requested, according to a comma-separated expression.
-        The options for variables include those in the table below.
-
-        **Table 2. Well-known parameters**
-
-        | Name                | Unit    | Description                                                  | Source |
-        | ------------------- | ------- | ------------------------------------------------------------ | ------ |
-        | `cdom`              |         | Colored dissolved organic matter                             | SEANET |
-        | `chlorophyll`       |         | Chlorophyll-a fluoresence                                    | SEANET |
-        | `conductivity`      |         | Conductivity                                                 | SEANET |
-        | `current_direction` | degrees | Angle of current relative to true North                      | SEANET |
-        | `current_speed_cm`  | cm/s    | Speed of water relative to platform                          | SEANET |
-        | `depth`             | meters  | Depth of the pressure sensor for interpreting other observations | SEANET |
-        | `oxygen`            |         | Dissolved oxygen                                             | SEANET |
-        | `nitrate`           |         | Nitrate                                                      | SEANET |
-        | `oxygen_sat`        |         | Oxygen saturation                                            | SEANET |
-        | `oxygen_percent`    | %       | Oxygen percent saturation                                    | SEANET |
-        | `par0minus`         |         | Photosynthetically active radiation below water              | SEANET |
-        | `par0plus`          |         | Photosynthetically active radiation above water              | SEANET |
-        | `salinity`          | psu     | Salinity                                                     | SEANET |
-        | `temperature`       | deg C   | Temperature                                                  | SEANET |
-        | `transmission`      |         | Optical transmission of water                                | SEANET |
-        | `turbidity`         | NTU     | Turbidity                                                    | SEANET |
-
-
-        You cannot query latitude, longitude, or battery voltage.
-        Specifying no valid fields will return just temperature.
-        Specifying an invalid field will not return an error,
-        meaning that you’ll have to incorporate your own error handling—though the buoy
-        configurations are unlikely to change.
-
-        The final parameter is `data_format=text`.
-        This is outputs pure text, as would be displayed in a web browser.
-        The date-time column is `YYYY–MM–DD HH:MM:SS`. The date and time a separated by a single space,
-        while columns are tab-delimited. If omitted, the response will be a file. Depending on your usage,
-        these may be identical.
-
-        The node is translated to a sensible name, and there is limited auto-correct that will sometimes
-        forgive you for guessing the field name.
-
-
-        **Table. Status Options**
-
-        | Heading                                                      |         Auth         | Description                                                  | Path      | Query        | Tokens        |
-        | :----------------------------------------------------------- | :------------------: | :----------------------------------------------------------- | --------- | ------------ | ------------- |
-        | [Configuration]() | Yes | Node and parameter definitions.                              | `Things`  | `GET`        | `$events`     |
-        | [Data age]() | Yes | Data ages                                                    | `Things`  | `GET`        | `$statistics` |
-        | [Schedules]()              | Yes | Browse schedule files                                        | `Things`  | `GET`        | `$schedule`   |
-        | [System logs]()              | Yes | E-mail and processing logs                                   | `Things`  | `GET`        | `$logs`       |
-        | [XML]()                 | Yes | Instrument configuration files                               | `Sensors` | `GET`        | `$config`     |
-        | [XML Sensors]() | Yes | Sites and frames                                             | `Sensors` | `GET`        | —             |
-        | [Check schedule files]() | Yes | Check file for errors in browser.<br /><br />Notes: We check files automatically during upload. | `Things`  | `POST` `PUT` | `$schedule`   |
-
-        **Table 4. Data**
-
-        | Heading                                             |         Auth         | Description                                  | Path     | Query | Tokens        |
-        | :-------------------------------------------------- | :------------------: | :------------------------------------------- | -------- | ----- | ------------- |
-        | [Archive]()        | Yes | Raw data (`.raw`) and log (`.raw.txt`) files | `Things` | `GET` | `$archive`    |
-        | [Info]() |                      | Summary table with site, first, last, total  | `Things` | `GET` | `$statistics` |
-        | [Pending]()           | Yes | Files waiting to be processed                | `Things` | `GET` | `$pending`    |
-        | [Recent-Raw]()  | Yes | Daily raw text                               | `Things` | `GET` | `$recent`     |
-
-        **Table 5. Management**
-
-        | Heading       | Auth | Description     | Equivalent | Query |  |
-        | :----------- | :--: | :------------------------------------ | ------------------------------------- | ------------------------------------- | ------------------------------------- |
-        | [Event settings]() | Yes | Settings for events, e-mail contacts.    | `Things` | `PUT` | `$events` |
-        | [Hide bad events]() | Yes | Hide or show values for one site, any number of variables, on a single day for some number of hours. | `Datastreams` | `PUT` | `$mask` |
-        | [Modify sensor values]() | Yes | Apply correction to database values for calibration change. <br /><br />Notes: Our implementation is algorithmic instead of manual. | `Datastreams` | `PUT` | `$resample` |
-        | [Remove sensor values]() | Yes | Delete database values outside nominal range, but not raw data. <br /><br />Note: We mask instead of delete. Using `GET` will transform and return the data without persisting the change. | `Datastreams` | `PUT` `GET` | `$mask` |
-        | [Schedule upload]() | Yes | Upload acquisition schedule files for StorX. | `Things` | `POST` | `$schedule` |
-        | [Instrument swaps]() | Yes | Move instruments between sites, and view move history | `Sensors` | `PUT` `GET` | `$swap` |
-        | [Instrument XML upload]() | Yes | Upload XML/sensor file for use with swapping function | `Sensors` | `POST` `PUT` | `$config` |
-        | [Calibration values]() | Yes | Modify existing XML file with new calibrations | `Sensors` | `POST` `PUT` `GET` | `$calibrate` |
-        **Table 6. Graphing**
-
-        | Heading | Auth | Description | Path | Query | Parameter |
-        | :-- | :-- | --- | :-- | --- | --- |
-        | [Averages]() |  |One sensor, one site, one averaging window (d/w/m/y), for any date range. |`Datastreams` |`GET` |`$resample` `$image` |
-        | [By year]() |  | One variable, overlapping years. Replace with Julian day. | `Datastreams` | `GET` | `$image` `$wrap` |
-        | [Non-public](protected/) | Yes |Includes extra y-variables for diagnostic |`Datastreams` |`GET` |`$image` |
-        |[Peaks]() |Yes | Min and max values and the date of occurance, for single site. | `Datastreams` | `GET` | `$statistics` |
-        |[Year background]() | | Display single variable for year against daily min/max for multiple other years. <br /><br />Note: Replaced with daily moving average and envelope of other sites. | `Datastreams` | `GET` | `$image` `$wrap` `$resample` `$statistics` |
-
-
-      parameters:
-        - $ref: "#/components/parameters/HMAC"
-
-      requestBody:
-
-        description: Buoy data
-        content:
-          application/json:
-            schema:
-              type: object
-              description: Buoys function request
-              properties:
-                interval:
-                  type: array
-                  minItems: 2
-                  maxItems: 2
-                  items:
-                    type: string
-                    format: date
-                limit:
-                  type: integer
-                  description: |
-                    Number of records to retrieve, from today or the end of `interval`.
-                encoding:
-                  type: string
-                  description: Return data as CSV text or as JSON
-                  enum: [ txt, json ]
-                  default: txt
-                id:
-                  type: integer
-                  description: The identity of the buoy, known to the external server
-                observedProperties:
-                  type: array
-                  minItems: 1
-                  items:
-                    type: string
-
-    responses:
-        '202':
-          description: Async response
-
-        '200':
-          description: Buoy data
-          content:
-            application/json:
-              schema:
-                type: object
-                description: Buoys data
-                properties:
-                  name:
-                    type: string
-                  aliases:
-                    type: array
-                    items:
-                      type: string
-                  values:
-                    type: array
-                    items:
-                      type: object
-
-  /cache:
-
-    post:
-      tags: [ Storage ]
-      summary: Cache
-      description: Redis integration
-
-  /controller:
-
-    post:
-      tags: [ IoT ]
-      summary: Controller
-      description: Deploy control loops
-
-  /image:
-
-    post:
-
-      tags: [ Analysis ]
-      summary: Image
-      description: |
-        Create PNG images from data sources and references and cache it.
-        The service call methods from the `matplotlib` library,
-        which uses the anti-grain graphics backend (`AGG`). The images are portable network graphics (`.png`)
-        by default, but `.pdf` and `.tiff` are available for print media.
-
-      parameters:
-        - $ref: "#/components/parameters/HMAC"
-
-      requestBody:
-
-        description: Image request
-        content:
-          application/json:
-            schema:
-              type: object
-              description: Buoys function request
-              properties:
-                labels:
-                  type: object
-                  nullable: true
-                  properties:
-                    x:
-                      type: string
-                      nullable: true
-                    y:
-                      type: string
-                      nullable: true
-
-                style:
-                  type: object
-                  nullable: true
-                  description: |
-                    Style is used change the appearance of the rendered image.
-
-                  properties:
-
-                    template:
-                      type: string
-                      enum: [dark, light]
-                      default: dark
-                      description: |
-                        Select between light and dark templates depending on whether the image is intended for display
-                        on a screen or for printed media.
-
-                    bg:
-                      type: string
-                      default: black
-                      description: |
-                        Override the default background color for the chosen or default template. Dark themes have a `black`
-                        background by default, and light themes have a `white` background. Use this to match the background
-                        color when embedding in a web page. This can also be transparent for image compositing.
-
-                    contrast:
-                      type: string
-                      default: white
-                      description: |
-                        Contrast color for rendering over background.
-
-                    flag:
-                      type: string
-                      default: red
-                      description: |
-                        Highlight color for marking selected or masked data.
-
-                    label:
-                      type: string
-                      description: |
-                        Color for text and labels. The default is the same as the `contrast` color.
-
-                    dpi:
-                      type: integer
-                      default: 150
-                      minimum: 90
-                      maximum: 300
-                      description: |
-                        Image resolution. Be careful, `dpi=300` images can be very large.
-
-                    format:
-                      type: string
-                      enum: [png, pdf, tiff]
-                      default: png
-                      description: |
-                        Image file format. Only `png` is available through the API.
-
-                    alpha:
-                      type: number
-                      format: float
-                      default: 1.0
-                      maximum: 1.0
-                      minimum: 0.0
-                      description: |
-                        Transparency of drawn objects. Useful for rendering Monte Carlo simulations.
-
-                    padding:
-                      type: array
-                      minLength: 4
-                      maxLength: 4
-                      items:
-                        type: number
-                        format: float
-                      default: [0.1, 0.2, 0.05, 0.1]
-                      description: |
-                        Content padding from edges of image to make room for labels and title.
-
-                    marker:
-                      type: integer
-                      default: 1
-                      description: |
-                        Size of markers if rendering scatter plots or points on a map
-
-                    font:
-                      type: integer
-                      default: 10
-                      description: |
-                        Font size
-
-                    text:
-                      type: number
-                      format: float
-                      default: 1.0
-                      description: |
-                        Size of labels relative to font size.
-
-                    width:
-                      type: number
-                      format: float
-                      default: 6.5
-                      description: |
-                        Width of image in inches
-
-                    height:
-                      type: number
-                      format: float
-                      description: |
-                        Height of image in inches
-
-                data:
-                  title: data container
-                  type: object
-
-                view:
-                  type: string
-                  description: The type of data view
-                  enum: [series, coverage, frequency, scatter]
-
-                extent:
-                  title: extent
-                  type: object
-                  readOnly: true
-                  nullable: true
-                  description: |
-
-                    Spatiotemporal extent of a data `Collection`. Contains a 2 or 3-D `spatial` extent, and a `temporal`
-                    interval.
-
-                  properties:
-
-                    spatial:
-                      type: array
-                      minLength: 4
-                      maxLength: 6
-                      items:
-                        type: number
-                        format: float
-
-                    temporal:
-                      type: string
-                      description: ISO format timestamp interval
-                args:
-                  title: arguments
-                  type: object
-                  nullable: true
-
-      responses:
-
-        '202':
-          description: Accepted
-
-        '403':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  Error:
-                    type: string
-                    example: HMAC validation
-
-        '400':
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  Error:
-                    type: string
-                    example: Requires POST with payload
-
-        '200':
-          description: Image reference
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  uui:
-                    type: string
-                    format: uuid
-                  objectName:
-                    type: string
-                    example: example.png
-                  url:
-                    type: string
-                    format: uri
-                    example: https://data.oceanics.io/example.png
-
-  /notify:
-
-    post:
-      tags: [ Admin ]
-      summary: Notify
-      description: Send notification by e-mail or Slack
-
-  /parse:
-
-    post:
-      tags: [ Analysis ]
-      summary: Parse
-      description: Heuristic XML/JSON parser
-
-  /postgres:
-
-    post:
-      tags: [ Storage ]
-      summary: Postgres
-      description: Postgres and PostGIS integration
-
-      requestBody:
-        description: Unauthorized
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                data:
-                  type: object
-                  nullable: true
-                  description: Data to ingest
-
-                encoding:
-                  type: string
-                  enum: [ json, txt ]
-                  default: json
-                  description: Encoding of result
-
-                streaming:
-                  type: boolean
-                  description: Stream the records
-                  default: false
-                table:
-                  type: string
-                fields:
-                  type: array
-                  items:
-                    type: string
-                limit:
-                  type: integer
-                  default: 100
-                order:
-                  type: string
-                  default: DESC
-                conditions:
-                  type: array
-                  items:
-                    type: str
-
-      responses:
-
-        '202':
-          description: Accepted
-
-        '200':
-          description: Records
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  description: Parsed data record
-
-        '403':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  Error:
-                    type: string
-                    example: HMAC validation
-
-        '400':
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  Error:
-                    type: string
-                    example: Requires POST with payload
-
-  /repository:
-
-    post:
-      tags: [ Storage ]
-      summary: Repository
-      description: S3 object storage integration
+#
+#  /archive:
+#
+#    post:
+#      tags: [ Admin ]
+#      summary: Archive
+#      description: Index an external data or storage system
+#
+#      responses:
+#        '200':
+#          description: Success
+#
+#  /buoys:
+#
+#    post:
+#      tags: [ IoT ]
+#      summary: Buoys
+#      description: |
+#
+#        Access third-party buoy data.
+#
+#        In the simplest case this is a client for Satlantic LOBOviz servers. Because data is logged hourly,
+#        the newest is also the number of hours previous to return.
+#        The most recent measurement becomes available about 30 minutes after it is collected.
+#
+#        The user may only request data for a single buoy at a time,
+#        each of which has a unique integer identifier, `node = "node=66"`.
+#
+#        Omitting this, requesting multiple buoys, or using the nodes parameter—which LOBOVIZ plots rely on will result in an error.
+#
+#        Data fields are returned as columns in the order they are requested, according to a comma-separated expression.
+#        The options for variables include those in the table below.
+#
+#        **Table 2. Well-known parameters**
+#
+#        | Name                | Unit    | Description                                                  | Source |
+#        | ------------------- | ------- | ------------------------------------------------------------ | ------ |
+#        | `cdom`              |         | Colored dissolved organic matter                             | SEANET |
+#        | `chlorophyll`       |         | Chlorophyll-a fluoresence                                    | SEANET |
+#        | `conductivity`      |         | Conductivity                                                 | SEANET |
+#        | `current_direction` | degrees | Angle of current relative to true North                      | SEANET |
+#        | `current_speed_cm`  | cm/s    | Speed of water relative to platform                          | SEANET |
+#        | `depth`             | meters  | Depth of the pressure sensor for interpreting other observations | SEANET |
+#        | `oxygen`            |         | Dissolved oxygen                                             | SEANET |
+#        | `nitrate`           |         | Nitrate                                                      | SEANET |
+#        | `oxygen_sat`        |         | Oxygen saturation                                            | SEANET |
+#        | `oxygen_percent`    | %       | Oxygen percent saturation                                    | SEANET |
+#        | `par0minus`         |         | Photosynthetically active radiation below water              | SEANET |
+#        | `par0plus`          |         | Photosynthetically active radiation above water              | SEANET |
+#        | `salinity`          | psu     | Salinity                                                     | SEANET |
+#        | `temperature`       | deg C   | Temperature                                                  | SEANET |
+#        | `transmission`      |         | Optical transmission of water                                | SEANET |
+#        | `turbidity`         | NTU     | Turbidity                                                    | SEANET |
+#
+#
+#        You cannot query latitude, longitude, or battery voltage.
+#        Specifying no valid fields will return just temperature.
+#        Specifying an invalid field will not return an error,
+#        meaning that you’ll have to incorporate your own error handling—though the buoy
+#        configurations are unlikely to change.
+#
+#        The final parameter is `data_format=text`.
+#        This is outputs pure text, as would be displayed in a web browser.
+#        The date-time column is `YYYY–MM–DD HH:MM:SS`. The date and time a separated by a single space,
+#        while columns are tab-delimited. If omitted, the response will be a file. Depending on your usage,
+#        these may be identical.
+#
+#        The node is translated to a sensible name, and there is limited auto-correct that will sometimes
+#        forgive you for guessing the field name.
+#
+#
+#        **Table. Status Options**
+#
+#        | Heading                                                      |         Auth         | Description                                                  | Path      | Query        | Tokens        |
+#        | :----------------------------------------------------------- | :------------------: | :----------------------------------------------------------- | --------- | ------------ | ------------- |
+#        | [Configuration]() | Yes | Node and parameter definitions.                              | `Things`  | `GET`        | `$events`     |
+#        | [Data age]() | Yes | Data ages                                                    | `Things`  | `GET`        | `$statistics` |
+#        | [Schedules]()              | Yes | Browse schedule files                                        | `Things`  | `GET`        | `$schedule`   |
+#        | [System logs]()              | Yes | E-mail and processing logs                                   | `Things`  | `GET`        | `$logs`       |
+#        | [XML]()                 | Yes | Instrument configuration files                               | `Sensors` | `GET`        | `$config`     |
+#        | [XML Sensors]() | Yes | Sites and frames                                             | `Sensors` | `GET`        | —             |
+#        | [Check schedule files]() | Yes | Check file for errors in browser.<br /><br />Notes: We check files automatically during upload. | `Things`  | `POST` `PUT` | `$schedule`   |
+#
+#        **Table 4. Data**
+#
+#        | Heading                                             |         Auth         | Description                                  | Path     | Query | Tokens        |
+#        | :-------------------------------------------------- | :------------------: | :------------------------------------------- | -------- | ----- | ------------- |
+#        | [Archive]()        | Yes | Raw data (`.raw`) and log (`.raw.txt`) files | `Things` | `GET` | `$archive`    |
+#        | [Info]() |                      | Summary table with site, first, last, total  | `Things` | `GET` | `$statistics` |
+#        | [Pending]()           | Yes | Files waiting to be processed                | `Things` | `GET` | `$pending`    |
+#        | [Recent-Raw]()  | Yes | Daily raw text                               | `Things` | `GET` | `$recent`     |
+#
+#        **Table 5. Management**
+#
+#        | Heading       | Auth | Description     | Equivalent | Query |  |
+#        | :----------- | :--: | :------------------------------------ | ------------------------------------- | ------------------------------------- | ------------------------------------- |
+#        | [Event settings]() | Yes | Settings for events, e-mail contacts.    | `Things` | `PUT` | `$events` |
+#        | [Hide bad events]() | Yes | Hide or show values for one site, any number of variables, on a single day for some number of hours. | `Datastreams` | `PUT` | `$mask` |
+#        | [Modify sensor values]() | Yes | Apply correction to database values for calibration change. <br /><br />Notes: Our implementation is algorithmic instead of manual. | `Datastreams` | `PUT` | `$resample` |
+#        | [Remove sensor values]() | Yes | Delete database values outside nominal range, but not raw data. <br /><br />Note: We mask instead of delete. Using `GET` will transform and return the data without persisting the change. | `Datastreams` | `PUT` `GET` | `$mask` |
+#        | [Schedule upload]() | Yes | Upload acquisition schedule files for StorX. | `Things` | `POST` | `$schedule` |
+#        | [Instrument swaps]() | Yes | Move instruments between sites, and view move history | `Sensors` | `PUT` `GET` | `$swap` |
+#        | [Instrument XML upload]() | Yes | Upload XML/sensor file for use with swapping function | `Sensors` | `POST` `PUT` | `$config` |
+#        | [Calibration values]() | Yes | Modify existing XML file with new calibrations | `Sensors` | `POST` `PUT` `GET` | `$calibrate` |
+#        **Table 6. Graphing**
+#
+#        | Heading | Auth | Description | Path | Query | Parameter |
+#        | :-- | :-- | --- | :-- | --- | --- |
+#        | [Averages]() |  |One sensor, one site, one averaging window (d/w/m/y), for any date range. |`Datastreams` |`GET` |`$resample` `$image` |
+#        | [By year]() |  | One variable, overlapping years. Replace with Julian day. | `Datastreams` | `GET` | `$image` `$wrap` |
+#        | [Non-public](protected/) | Yes |Includes extra y-variables for diagnostic |`Datastreams` |`GET` |`$image` |
+#        |[Peaks]() |Yes | Min and max values and the date of occurance, for single site. | `Datastreams` | `GET` | `$statistics` |
+#        |[Year background]() | | Display single variable for year against daily min/max for multiple other years. <br /><br />Note: Replaced with daily moving average and envelope of other sites. | `Datastreams` | `GET` | `$image` `$wrap` `$resample` `$statistics` |
+#
+#
+#      parameters:
+#        - $ref: "#/components/parameters/HMAC"
+#
+#      requestBody:
+#
+#        description: Buoy data
+#        content:
+#          application/json:
+#            schema:
+#              type: object
+#              description: Buoys function request
+#              properties:
+#                interval:
+#                  type: array
+#                  minItems: 2
+#                  maxItems: 2
+#                  items:
+#                    type: string
+#                    format: date
+#                limit:
+#                  type: integer
+#                  description: |
+#                    Number of records to retrieve, from today or the end of `interval`.
+#                encoding:
+#                  type: string
+#                  description: Return data as CSV text or as JSON
+#                  enum: [ txt, json ]
+#                  default: txt
+#                id:
+#                  type: integer
+#                  description: The identity of the buoy, known to the external server
+#                observedProperties:
+#                  type: array
+#                  minItems: 1
+#                  items:
+#                    type: string
+#
+#      responses:
+#        '202':
+#          description: Async response
+#
+#        '200':
+#          description: Buoy data
+#          content:
+#            application/json:
+#              schema:
+#                type: object
+#                description: Buoys data
+#                properties:
+#                  name:
+#                    type: string
+#                  aliases:
+#                    type: array
+#                    items:
+#                      type: string
+#                  values:
+#                    type: array
+#                    items:
+#                      type: object
+#
+#  /cache:
+#
+#    post:
+#      tags: [ Storage ]
+#      summary: Cache
+#      description: Redis integration
+#
+#      responses:
+#        '200':
+#          description: Success
+#
+#  /controller:
+#
+#    post:
+#      tags: [ IoT ]
+#      summary: Controller
+#      description: Deploy control loops
+#
+#
+#      responses:
+#        '200':
+#          description: Success
+#  /image:
+#
+#    post:
+#
+#      tags: [ Analysis ]
+#      summary: Image
+#      description: |
+#        Create PNG images from data sources and references and cache it.
+#        The service call methods from the `matplotlib` library,
+#        which uses the anti-grain graphics backend (`AGG`). The images are portable network graphics (`.png`)
+#        by default, but `.pdf` and `.tiff` are available for print media.
+#
+#      parameters:
+#        - $ref: "#/components/parameters/HMAC"
+#
+#      requestBody:
+#
+#        description: Image request
+#        content:
+#          application/json:
+#            schema:
+#              type: object
+#              description: Buoys function request
+#              properties:
+#                labels:
+#                  type: object
+#                  nullable: true
+#                  properties:
+#                    x:
+#                      type: string
+#                      nullable: true
+#                    y:
+#                      type: string
+#                      nullable: true
+#
+#                style:
+#                  type: object
+#                  nullable: true
+#                  description: |
+#                    Style is used change the appearance of the rendered image.
+#
+#                  properties:
+#
+#                    template:
+#                      type: string
+#                      enum: [dark, light]
+#                      default: dark
+#                      description: |
+#                        Select between light and dark templates depending on whether the image is intended for display
+#                        on a screen or for printed media.
+#
+#                    bg:
+#                      type: string
+#                      default: black
+#                      description: |
+#                        Override the default background color for the chosen or default template. Dark themes have a `black`
+#                        background by default, and light themes have a `white` background. Use this to match the background
+#                        color when embedding in a web page. This can also be transparent for image compositing.
+#
+#                    contrast:
+#                      type: string
+#                      default: white
+#                      description: |
+#                        Contrast color for rendering over background.
+#
+#                    flag:
+#                      type: string
+#                      default: red
+#                      description: |
+#                        Highlight color for marking selected or masked data.
+#
+#                    label:
+#                      type: string
+#                      description: |
+#                        Color for text and labels. The default is the same as the `contrast` color.
+#
+#                    dpi:
+#                      type: integer
+#                      default: 150
+#                      minimum: 90
+#                      maximum: 300
+#                      description: |
+#                        Image resolution. Be careful, `dpi=300` images can be very large.
+#
+#                    format:
+#                      type: string
+#                      enum: [png, pdf, tiff]
+#                      default: png
+#                      description: |
+#                        Image file format. Only `png` is available through the API.
+#
+#                    alpha:
+#                      type: number
+#                      format: float
+#                      default: 1.0
+#                      maximum: 1.0
+#                      minimum: 0.0
+#                      description: |
+#                        Transparency of drawn objects. Useful for rendering Monte Carlo simulations.
+#
+#                    padding:
+#                      type: array
+#                      minLength: 4
+#                      maxLength: 4
+#                      items:
+#                        type: number
+#                        format: float
+#                      default: [0.1, 0.2, 0.05, 0.1]
+#                      description: |
+#                        Content padding from edges of image to make room for labels and title.
+#
+#                    marker:
+#                      type: integer
+#                      default: 1
+#                      description: |
+#                        Size of markers if rendering scatter plots or points on a map
+#
+#                    font:
+#                      type: integer
+#                      default: 10
+#                      description: |
+#                        Font size
+#
+#                    text:
+#                      type: number
+#                      format: float
+#                      default: 1.0
+#                      description: |
+#                        Size of labels relative to font size.
+#
+#                    width:
+#                      type: number
+#                      format: float
+#                      default: 6.5
+#                      description: |
+#                        Width of image in inches
+#
+#                    height:
+#                      type: number
+#                      format: float
+#                      description: |
+#                        Height of image in inches
+#
+#                data:
+#                  title: data container
+#                  type: object
+#
+#                view:
+#                  type: string
+#                  description: The type of data view
+#                  enum: [series, coverage, frequency, scatter]
+#
+#                extent:
+#                  title: extent
+#                  type: object
+#                  readOnly: true
+#                  nullable: true
+#                  description: |
+#
+#                    Spatiotemporal extent of a data `Collection`. Contains a 2 or 3-D `spatial` extent, and a `temporal`
+#                    interval.
+#
+#                  properties:
+#
+#                    spatial:
+#                      type: array
+#                      minLength: 4
+#                      maxLength: 6
+#                      items:
+#                        type: number
+#                        format: float
+#
+#                    temporal:
+#                      type: string
+#                      description: ISO format timestamp interval
+#                args:
+#                  title: arguments
+#                  type: object
+#                  nullable: true
+#
+#      responses:
+#
+#        '202':
+#          description: Accepted
+#
+#        '403':
+#          description: Unauthorized
+#          content:
+#            application/json:
+#              schema:
+#                type: object
+#                properties:
+#                  Error:
+#                    type: string
+#                    example: HMAC validation
+#
+#        '400':
+#          description: Bad request
+#          content:
+#            application/json:
+#              schema:
+#                type: object
+#                properties:
+#                  Error:
+#                    type: string
+#                    example: Requires POST with payload
+#
+#        '200':
+#          description: Image reference
+#          content:
+#            application/json:
+#              schema:
+#                type: object
+#                properties:
+#                  uui:
+#                    type: string
+#                    format: uuid
+#                  objectName:
+#                    type: string
+#                    example: example.png
+#                  url:
+#                    type: string
+#                    format: uri
+#                    example: https://data.oceanics.io/example.png
+#
+#  /notify:
+#
+#    post:
+#      tags: [ Admin ]
+#      summary: Notify
+#      description: Send notification by e-mail or Slack
+#
+#      responses:
+#        '200':
+#          description: Success
+#
+#  /parse:
+#
+#    post:
+#      tags: [ Analysis ]
+#      summary: Parse
+#      description: Heuristic XML/JSON parser
+#
+#      responses:
+#        '200':
+#          description: Success
+#
+#  /postgres:
+#
+#    post:
+#      tags: [ Storage ]
+#      summary: Postgres
+#      description: Postgres and PostGIS integration
+#
+#      requestBody:
+#        description: Unauthorized
+#        content:
+#          application/json:
+#            schema:
+#              type: object
+#              properties:
+#                data:
+#                  type: object
+#                  nullable: true
+#                  description: Data to ingest
+#
+#                encoding:
+#                  type: string
+#                  enum: [ json, txt ]
+#                  default: json
+#                  description: Encoding of result
+#
+#                streaming:
+#                  type: boolean
+#                  description: Stream the records
+#                  default: false
+#                table:
+#                  type: string
+#                fields:
+#                  type: array
+#                  items:
+#                    type: string
+#                limit:
+#                  type: integer
+#                  default: 100
+#                order:
+#                  type: string
+#                  default: DESC
+#                conditions:
+#                  type: array
+#                  items:
+#                    type: str
+#
+#      responses:
+#
+#        '202':
+#          description: Accepted
+#
+#        '200':
+#          description: Records
+#          content:
+#            application/json:
+#              schema:
+#                type: array
+#                items:
+#                  type: object
+#                  description: Parsed data record
+#
+#        '403':
+#          description: Unauthorized
+#          content:
+#            application/json:
+#              schema:
+#                type: object
+#                properties:
+#                  Error:
+#                    type: string
+#                    example: HMAC validation
+#
+#        '400':
+#          description: Bad request
+#          content:
+#            application/json:
+#              schema:
+#                type: object
+#                properties:
+#                  Error:
+#                    type: string
+#                    example: Requires POST with payload
+#
+#  /repository:
+#
+#    post:
+#      tags: [ Storage ]
+#      summary: Repository
+#      description: S3 object storage integration
+#
+#      responses:
+#        '200':
+#          description: Success
 
 components:
 
@@ -907,8 +930,9 @@ components:
         of requests.
 
       in: header
-      type: string
-      example: "hmac=sd76sd0s98sdf09"
+      schema:
+        type: string
+        example: "hmac=sd76sd0s98sdf09"
 
     collection:
       required: true

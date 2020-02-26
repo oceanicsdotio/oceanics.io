@@ -20,7 +20,22 @@ The development environment is deployed locally with `docker-compose up -d`, and
 
 ## Functions
 
-Extensions to the core API are provided through the `/functions` end point by an `openfaas` gateway. Functions-as-a-Service ([FaaS](https://github.com/openfaas/workshop/blob/master)) can be deployed automatically on cloud platforms. To issue commands to the cluster, set up the command line interface and login to the local or remote service:
+Extensions to the core API are provided through the `/functions` end point by an `openfaas` gateway. Functions-as-a-Service ([FaaS](https://github.com/openfaas/workshop/blob/master)) can be deployed automatically on cloud platforms. 
+
+```
+docker swarm init --advertise-addr lo
+git clone https://github.com/openfaas/faas
+cd faas
+./deploy_stack.sh
+
+echo -n $PASSWORD | faas-cli login --username admin --password-stdin
+```
+
+
+
+
+
+To issue commands to the cluster, set up the command line interface and login to the local or remote service:
 
 ```bash
 apt install faas-cli
@@ -28,20 +43,20 @@ faas-cli list --verbose
 faas-cli login --password $OPENFAAS_KEY
 ```
 
-Functions in `bathysphere` use hash-based message authentication codes (HMAC) for cryptographic verification. The key is stored in `openfaas` and is loaded to validate requests. For instance, to create a new service and secret, then pipe a secret to the cluster:
+Functions use hash-based message authentication codes (HMAC) for cryptographic verification. The key is stored in `openfaas` and is loaded to validate requests. For instance, to create a new service and secret, then pipe a secret to the cluster:
 
 ```bash
-faas-cli new --lang python3-http buoys --prefix=oceanicsdotio
-echo -n $HMAC_KEY | faas-cli secret create payload-secret
+faas new --lang python3-http buoys --prefix=oceanicsdotio
+echo -n $HMAC_KEY | faas secret create payload-secret
 ```
 
-The function is built and deployed with `faas-cli up -f buoys.yml`. A full stack of functions is deployed by invoking `stack.yml` file, or simply issuing `faas-cli up`. 
+A function is built and deployed with `faas up buoy`. A stack of functions is deployed by invoking `-f stack.yml`  or `faas up`. 
 
 These are a few examples of invoking functions directly:
 
 ```bash
 # Get buoy data
-echo -n '{"id": 66, "limit": 10, "observedProperties": ["temperature", "salinity"], "encoding": "json"}' | faas-cli invoke buoy-data --sign hmac --key=$HMAC_KEY
+echo -n '{"id": 66, "limit": 10, "observedProperties": ["temperature", "salinity"], "encoding": "json"}' | faas-cli invoke buoy --sign hmac --key=$HMAC_KEY
 
 # Send a reminder e-mail containing credentials
 echo -n '{"subject": "Account Info", "addresses": ["user@example.com"], "message": "your-secret-thing"}' | faas-cli invoke notify --sign hmac --key=$HMAC_KEY

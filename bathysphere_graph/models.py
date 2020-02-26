@@ -5,7 +5,7 @@ from datetime import datetime
 from pickle import load as unpickle
 from uuid import uuid4
 from itertools import chain
-from neo4j.v1 import Node
+from neo4j import Node
 from inspect import signature
 from types import MethodType
 

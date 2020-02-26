@@ -11,7 +11,7 @@ services:
     build:
       context: .
       dockerfile: config/bathysphere-array-dockerfile
-    image: oceanicsdotio/bathysphere-array
+    image: bathysphere/bathysphere-array
     ports:
       - 5000:5000
     networks:
@@ -24,7 +24,7 @@ services:
     build:
       context: .
       dockerfile: config/bathysphere-graph-dockerfile
-    image: oceanicsdotio/bathysphere-graph
+    image: bathysphere/bathysphere-graph
     ports:
       - 5000:5000
 #    environment:
@@ -50,7 +50,7 @@ services:
     build:
       context: .
       dockerfile: config/bathysphere-neo4j-dockerfile
-    image: oceanicsdotio/neo4j
+    image: bathysphere/neo4j
     ports:
       - 7474:7474 # HTTP
       - 7473:7473 # HTTPS
