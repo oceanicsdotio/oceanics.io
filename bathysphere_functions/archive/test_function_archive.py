@@ -7,7 +7,7 @@ from multiprocessing import Pool
 
 
 from bathysphere_graph import app, appConfig
-from openfaas.archive.satlantic import indexFileMetadata, synchronous, _file_metadata
+from bathysphere_functions.archive.satlantic import indexFileMetadata, synchronous, _file_metadata
 
 YEAR = 2019
 

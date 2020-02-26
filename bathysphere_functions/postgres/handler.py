@@ -14,13 +14,13 @@ PG_GEO_TYPE = "GEOGRAPHY NOT NULL"
 PG_ID_TYPE = "INT PRIMARY KEY"
 PG_STR_TYPE = "VARCHAR(100) NULL"
 
-with open("/var/openfaas/secrets/pg-username", "r") as fid:
+with open("/var/bathysphere_functions/secrets/pg-username", "r") as fid:
     user = fid.read()
-with open("/var/openfaas/secrets/pg-password", "r") as fid:
+with open("/var/bathysphere_functions/secrets/pg-password", "r") as fid:
     password = fid.read()
-with open("/var/openfaas/secrets/pg-hostname", "r") as fid:
+with open("/var/bathysphere_functions/secrets/pg-hostname", "r") as fid:
     host = fid.read()
-with open("/var/openfaas/secrets/pg-port", "r") as fid:
+with open("/var/bathysphere_functions/secrets/pg-port", "r") as fid:
     port = fid.read()
 
 
@@ -188,7 +188,7 @@ def handle(req):
         exit(400)
 
     body = loads(req)
-    with open("/var/openfaas/secrets/payload-secret", "r") as fid:
+    with open("/var/bathysphere_functions/secrets/payload-secret", "r") as fid:
         _hash = getenv("Http_Hmac")
         expectedMAC = hmac.new(fid.read().encode(), req.encode(), hashlib.sha1).hexdigest()
         if (_hash[5:] if "sha1=" in _hash else _hash) != expectedMAC:

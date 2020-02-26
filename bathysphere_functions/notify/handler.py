@@ -49,9 +49,9 @@ def progressNotification(start, current, total):
 
 def get_latest_email():
 
-    with open("/var/openfaas/secrets/imap-host", "r") as fid:
+    with open("/var/bathysphere_functions/secrets/imap-host", "r") as fid:
         mail = IMAP4_SSL(fid.read())
-    with open("/var/openfaas/secrets/mail-service-key", "r") as fid:
+    with open("/var/bathysphere_functions/secrets/mail-service-key", "r") as fid:
         mail.login("data@oceanics.io", fid.read())
     mail.list()
     mail.select("inbox")
@@ -84,9 +84,9 @@ def sendEmail(data):
     attachment = data.get("attachment", None)
     _emails = ','.join(emails)
 
-    with open("/var/openfaas/secrets/smtp-host", "r") as fid:
+    with open("/var/bathysphere_functions/secrets/smtp-host", "r") as fid:
         server = SMTP_SSL(fid.read(), port=465)
-    with open("/var/openfaas/secrets/mail-service-key", "r") as fid:
+    with open("/var/bathysphere_functions/secrets/mail-service-key", "r") as fid:
         server.login("data@oceanics.io", fid.read())
 
     msg_root = MIMEMultipart()
@@ -134,7 +134,7 @@ def handle(req):
         print(dumps({"Error": "Require POST"}))
         exit(403)
 
-    with open("/var/openfaas/secrets/payload-secret", "r") as fid:
+    with open("/var/bathysphere_functions/secrets/payload-secret", "r") as fid:
         secretContent = fid.read().encode()
     _hash = getenv("Http_Hmac")
     expectedMAC = hmac.new(secretContent, req.encode(), hashlib.sha1)
@@ -147,7 +147,7 @@ def handle(req):
     if channel == "email":
         sendEmail(data)
     elif channel == "slack":
-        post
+        post()
 
 
 

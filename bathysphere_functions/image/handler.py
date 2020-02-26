@@ -16,9 +16,9 @@ ResponseOctet = (dict, int)
 
 with open("function/styles.yml", "r") as fid:
     styles = load(fid, Loader)
-with open("/var/openfaas/secrets/image-bucket-name", "r") as fid:
+with open("/var/bathysphere_functions/secrets/image-bucket-name", "r") as fid:
     bucketName = fid.read()
-with open("/var/openfaas/secrets/spaces-connection", "r") as fid:
+with open("/var/bathysphere_functions/secrets/spaces-connection", "r") as fid:
     connection = fid.read().split(",")
 
 

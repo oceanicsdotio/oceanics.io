@@ -119,7 +119,7 @@ def handle(req):
         print(dumps({"Error": "Require POST"}))
         exit(403)
 
-    with open("/var/openfaas/secrets/payload-secret", "r") as secretContent:
+    with open("/var/bathysphere_functions/secrets/payload-secret", "r") as secretContent:
         _hash = getenv("Http_Hmac")
         expectedMAC = hmac.new(secretContent.read().encode(), req.encode(), hashlib.sha1)
         if (_hash[5:] if "sha1=" in _hash else _hash) != expectedMAC.hexdigest():
