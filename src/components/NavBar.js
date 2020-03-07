@@ -6,6 +6,20 @@ import {
 } from "react-netlify-identity-widget"
 import "react-netlify-identity-widget/styles.css" // delete if you want to bring your own CSS
 
+
+
+const ListLink = props => (
+  <li style={{ display: `inline-block`, marginRight: `1rem` }}>
+    <Link {...props}>{props.children}</Link>
+  </li>
+)
+
+const ListLinkExternal = props => (
+  <li style={{ display: `inline-block`, marginRight: `1rem` }}>
+    <a href={props.href}>{props.children}</a>
+  </li>
+)
+
 function Login() {
   const identity = useIdentityContext()
   const [dialog, setDialog] = React.useState(false)
@@ -37,13 +51,14 @@ export default () => {
         width: "100%",
         justifyContent: "space-between",
         textAlign: "right",
-        borderBottom: "1px solid rebeccapurple",
-        backgroundColor: "aliceblue",
+        background: "none",
         marginBottom: `1.45rem`,
       }}
     >
 
       <nav>
+        <ListLinkExternal href={"https://graph.oceanics.io"}>Bathysphere API</ListLinkExternal>
+        <ListLink to={"tags"}>Tags</ListLink>
 
         {
           isLoggedIn ? (

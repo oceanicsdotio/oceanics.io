@@ -1,48 +1,14 @@
 import React from "react"
 import { Link } from "gatsby"
+import Header from "./header"
 
 import { rhythm, scale } from "../utils/typography"
+import NavBar from "./NavBar"
 
 class Layout extends React.Component {
   render() {
     const { location, title, children } = this.props
     const rootPath = `${__PATH_PREFIX__}/`
-    let header
-
-    const ListLink = props => (
-      <li style={{ display: `inline-block`, marginRight: `1rem` }}>
-        <Link {...props}>{props.children}</Link>
-      </li>
-    )
-
-    const ListLinkExternal = props => (
-      <li style={{ display: `inline-block`, marginRight: `1rem` }}>
-        <a href={props.href}>{props.children}</a>
-      </li>
-    )
-
-    header = (
-      <h3
-        style={{
-          marginTop: 0,
-        }}
-      >
-        <Link
-          style={{
-            boxShadow: `none`,
-            textDecoration: `none`,
-            color: `inherit`,
-          }}
-          to={`/`}
-        >
-          {title}
-        </Link>
-        <ul style={{ listStyle: `none`, float: `right` }}>
-          <ListLinkExternal href={"https://graph.oceanics.io"}>Bathysphere API</ListLinkExternal>
-          <ListLink to={"tags"}>Tags</ListLink>
-        </ul>
-      </h3>
-    )
 
     return (
       <div
@@ -53,7 +19,8 @@ class Layout extends React.Component {
           padding: `${rhythm(1.5)} ${rhythm(3 / 4)}`,
         }}
       >
-        <header>{header}</header>
+        <Header siteTitle={"Oceanicsdotio"}/>
+        <NavBar />
         <main>{children}</main>
         <footer>
           <hr/>
