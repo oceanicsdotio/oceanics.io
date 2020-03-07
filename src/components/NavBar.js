@@ -39,7 +39,7 @@ function Login() {
 
 export default () => {
   const { user, isLoggedIn, logoutUser } = useIdentityContext()
-  console.log(user);
+
   let message = isLoggedIn
     ? `${user.email}`
     : ""
