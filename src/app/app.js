@@ -14,8 +14,8 @@ const App = () => {
 
     <Layout>
       <Router>
-        <PrivateRoute path="/app/settings" component={Settings} />
         <PrivateRoute path="/app/" component={Main} />
+        <PrivateRoute path="/app/settings" component={Settings} />
       </Router>
     </Layout>
     </>
