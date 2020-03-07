@@ -1,3 +1,5 @@
+const netlifyInstance = "https://oceanicsdotio.netlify.com";
+
 module.exports = {
   siteMetadata: {
     title: `Oceanics.io`,
@@ -73,5 +75,11 @@ module.exports = {
         pathToConfigModule: `src/utils/typography`,
       },
     },
+    {
+      resolve: `gatsby-plugin-netlify-identity`,
+      options: {
+        url: netlifyInstance,
+      },
+    }
   ],
 }
