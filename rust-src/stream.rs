@@ -77,7 +77,7 @@ pub mod plotting_system {
         pub fn push(&mut self, x: f64, y: f64) {
 
             let size = self.data.len();
-            let mut new_val;
+            let new_val;
             if size == 0 {
                 new_val = y;
             } else if (0 < size) && (size < self.capacity) {

@@ -13,7 +13,7 @@ pub mod agent_system {
 
     fn alpha (color: &JsValue) -> i64 {
 
-        let mut cstring = color.as_string().unwrap();
+        let cstring = color.as_string().unwrap();
         if cstring.len() == 9 {
             let alpha_string = &cstring[7..9].to_lowercase();
             i64::from_str_radix(alpha_string, 16).unwrap()
@@ -95,7 +95,6 @@ pub mod agent_system {
         #[wasm_bindgen]
         pub fn draw (ctx: &CanvasRenderingContext2d, w: f64, h: f64, time: f64, x: f64, y: f64, dx: f64, dy: f64, color: JsValue) {
 
-            use std::i64;
             const PULSE_RINGS: usize = 7;
             const ICON: f64 = 16.0;
 
@@ -130,8 +129,8 @@ pub mod agent_system {
                 ctx.save();
                 ctx.translate(0.5*w, 0.5*h).unwrap();
 
-                Cursor::ticks(&ctx, (time / 10000.0), 8, 1.1*ICON, 1.3*ICON);
-                Cursor::ticks(&ctx, (time / 10000.0), 16, rad - 0.5 * ICON, rad - 0.25 * ICON);
+                Cursor::ticks(&ctx, time / 10000.0, 8, 1.1*ICON, 1.3*ICON);
+                Cursor::ticks(&ctx, time / 10000.0, 16, rad - 0.5 * ICON, rad - 0.25 * ICON);
                 Cursor::ticks(&ctx, -(time / 30000.0), 16, rad - 0.5 * ICON, rad - 0.75 * ICON);
                 Cursor::keyring(&ctx, displacement, ICON, 6, completeness * PI * 2.0);
 
@@ -305,7 +304,7 @@ pub mod agent_system {
 
             // Draw entity
             ctx.begin_path();
-            if let Err(e) = ctx.arc(x * w, y * h, scale, 0.0, std::f64::consts::PI*2.0) {
+            if let Err(_e) = ctx.arc(x * w, y * h, scale, 0.0, std::f64::consts::PI*2.0) {
                 ctx.close_path();
                 panic!("Problem drawing agent, probably negative scale value");
             }

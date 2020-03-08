@@ -10,15 +10,13 @@ pub use agent::agent_system::{Cursor};
 
 
 use wasm_bindgen::prelude::*;
-use wasm_bindgen::{JsCast, JsValue, Clamped};
-use web_sys::{HtmlCanvasElement, CanvasRenderingContext2d, ImageData};
+use wasm_bindgen::{JsCast, JsValue};
+use web_sys::{HtmlCanvasElement, CanvasRenderingContext2d};
 use std::f32::consts::{PI};
 use std::mem;
 use std::os::raw::c_void;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{Request, RequestInit, RequestMode, Response};
-use std::cell::RefCell;
-use std::rc::Rc;
 use std::collections::{VecDeque};
 
 
@@ -248,7 +246,7 @@ impl Segment {
         }
     }
 
-    pub fn draw(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64) {
+    pub fn draw(&self, ctx: &CanvasRenderingContext2d, _w: f64, _h: f64) {
         let n = self.points.len();
         if n == 0 {
             return
@@ -272,16 +270,16 @@ impl DrawingCanvas {
         }
     }
 
-    pub fn start_segment(&mut self, x: f64, y: f64) {
+    pub fn start_segment(&mut self, _x: f64, _y: f64) {
         self.segments.push(Segment::new());
 
     }
 
     pub fn extend(&mut self, x: f64, y: f64) {
         let n = self.segments.len();
-        let mut seg = &self.segments[n];
+        let mut seg = self.segments[n];
         if seg.points.len() > 100 {
-            let _ = *seg.points.pop_front().unwrap();
+            let (_, _) = seg.points.pop_front().unwrap();
         }
         let _xy = seg.points.back().unwrap();
         if (_xy.0 - x).abs() < 0.001 && (_xy.1 - y).abs() < 0.001 {

@@ -132,7 +132,7 @@ pub mod tessellate {
                 ctx.stroke();
             }
 
-            for ((ii, jj), mark) in self.cells.iter() {
+            for ((ii, jj), _mark) in self.cells.iter() {
                 ctx.fill_rect(dx*(*ii as f64), dy*(*jj as f64), dx, dy);
             }
         }
@@ -170,7 +170,7 @@ pub mod tessellate {
         }
 
         #[wasm_bindgen]
-        pub fn animation_frame(&mut self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, frames: u32, time: f64, color: JsValue) {
+        pub fn animation_frame(&mut self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, frames: u32, _time: f64, color: JsValue) {
             let (a, b) = self.random_cell();
             if (frames as usize) % (self.nx*self.ny) > 0 {
                 let _ = self.mark(a, b);
@@ -191,7 +191,7 @@ pub mod tessellate {
             let dy = h / (ny as f64);
 
             let mut ni = 0;
-            let mut ti = 0;
+            // let mut ti = 0;
             let mut start_pattern = false;
 
             let mut points: Vec<f64> = vec![];
@@ -208,13 +208,13 @@ pub mod tessellate {
                         indices.push(ni);
                         indices.push(ni + nx + 1 + alternate_pattern as usize);
                         indices.push(ni + 1);
-                        ti += 1;
+                        // ti += 1;
 
                         indices.push(ni + nx + 1);
                         indices.push(ni + nx + 2);
                         indices.push(ni + !alternate_pattern as usize);
 
-                        ti += 1;
+                        // ti += 1;
                         alternate_pattern = !alternate_pattern;
                     }
 
@@ -227,7 +227,7 @@ pub mod tessellate {
         }
 
         fn triangle_path (&self, ctx: &CanvasRenderingContext2d, ii: usize, num_components: usize) {
-            let num_components = 3;
+            
             for jj in 0..3 {  // can set to 2 if nice regular mesh, 1 degenerates
                 let cursor = self.indices[ii * 3 + (jj + 1) % 3] * num_components;
                 ctx.line_to(self.points[cursor], self.points[cursor + 1]);
@@ -245,16 +245,16 @@ pub mod tessellate {
             let num_components = 3;
             ctx.begin_path();
             for ii in 0..(self.indices.len()/3) {
-                let mut cursor = self.indices[ii * 3] * num_components;
+                let cursor = self.indices[ii * 3] * num_components;
                 ctx.move_to(self.points[cursor], self.points[cursor + 1]);
                 self.triangle_path(ctx, ii, num_components);
             }
             ctx.stroke();
             ctx.close_path();
 
-            for (index, mark) in self.cells.iter() {
+            for (index, _mark) in self.cells.iter() {
                 ctx.begin_path();
-                let mut cursor = self.indices[index * 3] * num_components;
+                let cursor = self.indices[index * 3] * num_components;
                 ctx.move_to(self.points[cursor], self.points[cursor + 1]);
                 self.triangle_path(ctx, *index, num_components);
                 ctx.fill();
@@ -264,7 +264,7 @@ pub mod tessellate {
 
 
         #[wasm_bindgen]
-        pub fn animation_frame(&mut self, ctx: &CanvasRenderingContext2d, w: u32, h: u32, frame: u32, time: f64, color: JsValue) {
+        pub fn animation_frame(&mut self, ctx: &CanvasRenderingContext2d, w: u32, h: u32, frame: u32, _time: f64, color: JsValue) {
 
             self.draw(ctx, w, h, color);
             let current_size = self.indices.len() as u32 / 3;
@@ -326,7 +326,7 @@ pub mod tessellate {
                 ctx.begin_path();
 //                ctx.arc(0.0, 0.0, 0.5*dx, 0.0, 2.0*std::f64::consts::PI).unwrap();
                 ctx.move_to(0.0, diag);
-                for kk in 0..5 {
+                for _kk in 0..5 {
                     ctx.rotate(2.0*std::f64::consts::PI/6.0).unwrap();
                     ctx.line_to(0.0, diag);
                 }
