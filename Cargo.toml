@@ -1,0 +1,49 @@
+[package]
+name = "space"
+version = "0.2.0"
+authors = ["Oceanicsdotio <business@oceanics.io>"]
+edition = "2018"
+description = "Spatial stuff"
+
+[lib]
+path = "rust-src/lib.rs"
+crate-type = ["cdylib"]
+
+[dependencies]
+js-sys = "0.3.32"
+wasm-bindgen-futures = "0.4.8"
+serde = { version = "1.0.80", features = ["derive"] }
+serde_derive = "^1.0.59"
+console_error_panic_hook = "0.1.6"
+
+[dependencies.wasm-bindgen]
+version = "0.2.55"
+features = ["serde-serialize"]
+
+[dependencies.web-sys]
+version = "0.3.4"
+features = [
+    'Document',
+    'Element',
+    'HtmlElement',
+    'Node',
+    'HtmlCanvasElement',
+    'WebGlBuffer',
+    'WebGlRenderingContext',
+    'WebGlProgram',
+    'WebGlShader',
+    'WebGlTexture',
+    'Window',
+    'console',
+    'ImageData',
+    'CanvasRenderingContext2d',
+    'CanvasGradient',
+    'Headers',
+    'Request',
+    'RequestInit',
+    'RequestMode',
+    'Response',
+    'Performance'
+]
+
+

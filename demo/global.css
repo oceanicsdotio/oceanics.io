@@ -1,0 +1,152 @@
+@charset "UTF-8";
+
+body {
+    margin:0;
+    padding:0;
+}
+
+
+p,
+label {
+    color: #cc66cc;
+}
+
+canvas {
+    border-radius: 3px;
+    border: 1px solid #FF00FF;
+}
+
+body, html{
+    background: #000000;
+    font-size: large;
+    font-family: monospace;
+    color: #cccccc;
+    margin: 0;
+    position: relative;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: scroll;
+}
+
+input[type=range] {
+    margin: 10px;
+    width: 50px;
+    background: none;
+}
+
+input[type=range]::-moz-range-track {
+    width: 100%;
+    height: 8px;
+    cursor: pointer;
+    box-shadow: none;
+    background: none;
+    border-radius: 3px;
+    border: 1px solid #FF00FF;
+}
+
+input[type=range]::-moz-range-thumb {
+    box-shadow: none;
+    border: 1px solid #FF00FF;
+    height: 16px;
+    width: 2px;
+    border-radius: 3px;
+    background: #000000;
+}
+
+
+.container {
+    display: inline-flex;
+    flex-direction: row;
+    padding: 5px;
+    outline: none;
+    overflow-wrap: normal;
+    text-align: center;
+}
+
+.container p {
+    display: block;
+    height: 100%;
+    position: absolute;
+    z-index: 10;
+
+}
+
+#bathysphere ul {
+    display: block;
+    padding: 0;
+    margin: 0;
+}
+
+#bathysphere ul li {
+    background: #101010;
+    font-family: inherit;
+    display: inline-block;
+    font-size: inherit;
+    text-decoration: none;
+    border: solid 1px;
+    margin: 3px;
+}
+
+#bathysphere form {
+    display: inline-block;
+}
+
+#bathysphere select{
+    background: #101010AA;
+    border: solid 1px;
+    display: inline-block;
+    font-family:inherit;
+    font-size: inherit;
+    color: #ccc;
+    -webkit-appearance: none;  /*Removes default chrome and safari style*/
+    -moz-appearance: none;  /*Removes default style Firefox*/
+}
+
+#bathysphere input, button{
+    background: #101010;
+    border: solid 1px;
+    font-family:inherit;
+    color: #ccc;
+    text-decoration: none;
+}
+
+#bathysphere li:hover{
+    color: #EF5FA1;
+    transition:color 0.5s;
+}
+
+#bathysphere.container{
+    background: #EF5FA155;
+    position: absolute;
+    margin: 0;
+    padding: 5px;
+    width: 100%;
+    height: auto;
+    z-index: 2;
+}
+
+#map {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    top: 0;
+    left: 0;
+    z-index: 1;
+}
+
+#map .mapboxgl-popup-content {
+    background: #101010AA;
+    border: solid 1px;
+    font-family:inherit;
+    font-size: inherit;
+    width: auto;
+    padding: 10px;
+    float: left;
+    margin: 0;
+    color: #ccc;
+}
+#map .mapboxgl-popup-content ol {
+    padding-left: 20px;
+}

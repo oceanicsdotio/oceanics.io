@@ -1,0 +1,16 @@
+{
+  "name": "space",
+  "collaborators": [
+    "Oceanicsdotio <business@oceanics.io>"
+  ],
+  "description": "Spatial stuff",
+  "version": "0.2.0",
+  "files": [
+    "space_bg.wasm",
+    "space.js",
+    "space.d.ts"
+  ],
+  "module": "space.js",
+  "types": "space.d.ts",
+  "sideEffects": false
+}
