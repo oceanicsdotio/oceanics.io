@@ -4,7 +4,7 @@ from pickle import dump, load as unpickle
 from collections import deque
 
 from bathysphere_graph import app, appConfig
-from bathysphere_functions_archive import indexFileMetadata, synchronous, _file_metadata
+from archive import indexFileMetadata, synchronous, _file_metadata
 
 YEAR = 2019
 

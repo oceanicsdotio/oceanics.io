@@ -4,7 +4,7 @@ from collections import deque
 from numpy import arange, array
 from matplotlib import cm
 from itertools import repeat
-from .views import Time, Spatial
+from image.views import Time, Spatial
 from os import getenv
 from minio import Minio
 from datetime import datetime
