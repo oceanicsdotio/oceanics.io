@@ -1,7 +1,7 @@
 import pytest
 from numpy import arange, random
 from requests import post
-from test_function_image_spatial import dumpErrors
+from tests.test_function_image_spatial import dumpErrors
 
 
 def test_function_image_time_series_scatter_plot():

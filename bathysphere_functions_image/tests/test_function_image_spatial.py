@@ -1,7 +1,7 @@
 import pytest
 from numpy import random, array, stack, diff
 from requests import post
-from .views import Spatial, Time
+from image.views import Spatial, Time
 
 OSI_DATASET = "bivalve-suitability"
 
