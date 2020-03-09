@@ -1,6 +1,6 @@
 from json import dumps
 from os import getenv
-from flask import Flask, Request
+from flask import Request
 import sqlalchemy
 from google.cloud import secretmanager
 
@@ -11,7 +11,7 @@ PG_ID_TYPE = "INT PRIMARY KEY"
 PG_STR_TYPE = "VARCHAR(100) NULL"
 
 client = secretmanager.SecretManagerServiceClient()
-project_id = getenv("GCP_PROJECT")
+project_id = getenv("GCP_PROJECT")  # Google Compute default param
 
 
 def googleCloudSecret(secret_name="my-secret"):
