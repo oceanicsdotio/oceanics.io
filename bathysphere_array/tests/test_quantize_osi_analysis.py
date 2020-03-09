@@ -215,7 +215,7 @@ def test_osi_dataset_analysis_upload_vertex_array_hulls(object_storage):
 
 @pytest.mark.network
 def test_osi_dataset_analysis_convex_hull_intersections(object_storage):
-    """Intersect convex hulls with points and cache to local system"""
+    """Intersect convex hulls with points and bathysphere_functions_cache to local system"""
     hulls = unpickle(object_storage.get(f"{OSI_OBJ}/convex-hulls-2").data)
     with open("vertex-array-hulls", "rb") as fid:
         xyz = vstack(load(fid))

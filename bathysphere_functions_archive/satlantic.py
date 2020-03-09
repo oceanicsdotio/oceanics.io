@@ -290,7 +290,7 @@ async def indexTaskTree(url, enum, count=0, depth=2, auth=None):
     """
     Private method is used by `metadata()` to build a temporal index with multiple levels of resolution on demand.
 
-    Recursively `GET` file metadata in a destination file catalog, based on date, then parse the tabular HTML
+    Recursively `GET` file metadata in a destination file catalog, based on date, then bathysphere_functions_parse the tabular HTML
     into nested tuples of (index, <coroutine>). The coroutine is then resolved to another (index, <coroutine>) tuple,
     using the `render()` method, until the specified depth is reached.
     """
@@ -341,7 +341,7 @@ def _search(
 
     The files can be:
     - On a remote server
-    - In the cache
+    - In the bathysphere_functions_cache
     - Supplied as a list of dictionaries
     """
     iterators = []

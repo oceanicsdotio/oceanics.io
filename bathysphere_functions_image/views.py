@@ -263,7 +263,7 @@ class Spatial(View):
     def push(self, encoding="png", transparent=False, **kwargs):
         # type: (str, bool, dict) -> BytesIO
         """
-        Write figure as image to binary output buffer
+        Write figure as bathysphere_functions_image to binary output buffer
         """
         self.pre_push()
         self.ax.axis("equal")

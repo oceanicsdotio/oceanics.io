@@ -28,7 +28,7 @@ def test_function_image_time_series_scatter_plot():
 
 def test_function_image_time_frequency_random():
     """
-    Create histogram image of the probability of magnitude values
+    Create histogram bathysphere_functions_image of the probability of magnitude values
     """
     response = post(
         "http://faas.oceanics.io:8080/function/image",
@@ -45,7 +45,7 @@ def test_function_image_time_frequency_random():
 @pytest.mark.xfail
 def test_function_image_time_coverage_random():
     """
-    Create histogram image of occurrences in time
+    Create histogram bathysphere_functions_image of occurrences in time
     """
     response = post(
         "http://faas.oceanics.io:8080/function/image",

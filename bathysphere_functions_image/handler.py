@@ -16,7 +16,7 @@ ResponseOctet = (dict, int)
 
 with open("function/styles.yml", "r") as fid:
     styles = load(fid, Loader)
-with open("/var/bathysphere_functions/secrets/image-bucket-name", "r") as fid:
+with open("/var/bathysphere_functions/secrets/bathysphere_functions_image-bucket-name", "r") as fid:
     bucketName = fid.read()
 with open("/var/bathysphere_functions/secrets/spaces-connection", "r") as fid:
     connection = fid.read().split(",")
@@ -151,7 +151,7 @@ def handle(req):
             "x-amz-meta-extent": dumps(extent or []),
             "x-amz-acl": "public-read",
         },
-        content_type="image/png",
+        content_type="bathysphere_functions_image/png",
     )
     return dumps({
         "uuid": response,

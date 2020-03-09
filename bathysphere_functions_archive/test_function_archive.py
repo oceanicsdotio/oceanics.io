@@ -1,13 +1,10 @@
 import pytest
-from yaml import load as load_yml, Loader
 from time import time
 from pickle import dump, load as unpickle
 from collections import deque
-from multiprocessing import Pool
-
 
 from bathysphere_graph import app, appConfig
-from bathysphere_functions.archive.satlantic import indexFileMetadata, synchronous, _file_metadata
+from bathysphere_functions_archive import indexFileMetadata, synchronous, _file_metadata
 
 YEAR = 2019
 

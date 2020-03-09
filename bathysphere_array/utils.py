@@ -151,11 +151,11 @@ def image_to_masked(image: array, m: float = 0.125, b: float = 2.0, hide: bool =
     """
     Calculate value from greyscale color
 
-    :param image: color value of image
+    :param image: color value of bathysphere_functions_image
     :param m: slope
     :param b: offset
     :param hide: sometimes there are things like color map bars and shit
-    :return: sea surface temperature image
+    :return: sea surface temperature bathysphere_functions_image
     """
 
     sst = m * image - b
@@ -170,14 +170,14 @@ def image2arrays(
 ):
     # type: (str, list, Proj, Proj) -> (Array, Array, Array)
     """
-    Load landsat image and convert to arrays for processing.
+    Load landsat bathysphere_functions_image and convert to arrays for processing.
 
     Including the Projection definitions should memoize the defaults between calls
     run in the same context.
     """
     fid = open(path, "r")
     image = Image()
-    image.frombytes(data=fid.read())  # read image file
+    image.frombytes(data=fid.read())  # read bathysphere_functions_image file
     px = repeat(arange(image.width).reshape(1, image.width), image.height, axis=0)
     py = repeat(arange(image.height).reshape(image.height, 1), image.width, axis=1)
 
@@ -188,7 +188,7 @@ def image2arrays(
 def array2image(z, cmap):
     # type: (Array, str) -> Image
     """
-    Create image object in memory
+    Create bathysphere_functions_image object in memory
     """
     return fromarray(uint8(get_cmap(cmap)(z) * 255)).rotate(90)
 

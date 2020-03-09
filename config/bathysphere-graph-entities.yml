@@ -237,7 +237,7 @@ spec:
     protocol: http
     host: maine.loboviz.com
     port: 80
-    service: archive
+    service: bathysphere_functions_archive
   auth:
     basic:
 ---
@@ -253,7 +253,7 @@ spec:
     protocol: http
     host: maine.loboviz.com
     port: 80
-    service: archive
+    service: bathysphere_functions_archive
   auth:
     basic:
 ---
