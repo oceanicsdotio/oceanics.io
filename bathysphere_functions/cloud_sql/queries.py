@@ -1,14 +1,53 @@
 from datetime import datetime
 from json import dumps
-from typing import Any
+from typing import Any, Callable
 from decimal import Decimal
+from collections import namedtuple
+from attrs import attr
+from enum import Enum
 
-from pg8000 import connect, Cursor, ProgrammingError
 
-import datetime
+class PostgresType(Enum):
+    Numerical = "DOUBLE PRECISION NULL"
+    TimeStamp = "TIMESTAMP NOT NULL"
+    Geography = "GEOGRAPHY NOT NULL"
+    IntIdentity = "INT PRIMARY KEY"
+    NullString = "VARCHAR(100) NULL"
+
+@attr.s
+class Coordinates:
+    x: float = attr.ib()
+    y: float = attr.ib()
+
+@attr.s
+class Field:
+    value: Any = attr.ib()
+    type: str = attr.ib()
+
+@attr.s
+class Query:
+    sql: str = attr.ib()
+    parser: Callable = attr.ib()
+
+@attr.s
+class Distance:
+    value: float = attr.ib()
+    unit: str = attr.ib()
+
+@attr.s
+class Schema:
+    fields: [Field] = attr.ib(default=attr.Factory(list))
+
+@attr.s
+class Table:
+    name: str = attr.ib()
+    schema: Schema = attr.ib(default=Schema())
 
 
-def parse(v):
+
+
+
+def parsePostgresValueIn(v: Any) -> str:
     if isinstance(v, datetime):
         return v.isoformat()
     if isinstance(v, float):
@@ -22,127 +61,103 @@ def parse(v):
     return "NULL"
 
 
-def parse_out(v):
+def parsePostgresValueOut(v: Any) -> Any:
     if isinstance(v, Decimal):
         return float(v)
     return v
 
+def join(x: str) -> str:
+        return ", ".join(x)
 
-def select(cursor, table, order_by=None, limit=100, fields=("*",), order="DESC", conditions=()):
-    # type: (Cursor, str, str, int, (str,), str, (str,)) -> bool
+def declareTable(table: Table) -> Query:
+    queryString = f"""
+    CREATE TABLE IF NOT EXISTS {table}({join(f'{f.value} {f.type}' for f in table.schema)});
+    """
+    return Query(queryString, None)
+
+
+def insertRecords(
+    table: Table,  
+    data: ()
+) -> Query:
+    """
+    Insert new rows into database.
+    """
+    _parsedValues = (f"({join(map(parsePostgresValueIn, row))})" for row in data)
+    columns, values = map(join, ((field[0] for field in table.schema), _parsedValues))
+
+    queryString = f"""
+    INSERT INTO {table.name} ({columns}) VALUES {values};
+    """
+    return Query(queryString, None)
+
+
+
+def selectRecords(
+    table: Table, 
+    order_by: str = None, 
+    limit: int = 100, 
+    fields: (str, ) = ("*",), 
+    order: str ="DESC", 
+    conditions=()
+) -> Query:
+   
     """
     Read back values/rows.
     """
     _order = f"ORDER BY {order_by} {order}" if order_by else ""
     _conditions = f"WHERE {' AND '.join(conditions)}" if conditions else ""
-    return cursor.execute(
-        f"SELECT {', '.join(fields)} FROM {table} {_conditions} {_order} LIMIT {limit};"
-    )
+
+    queryString = f"""
+    SELECT {', '.join(fields)} FROM {table} {_conditions} {_order} LIMIT {limit};
+    """
+    return Query(queryString, None)
 
 
-def nearestNeighbor(x, y, k=24, r=500):
+def nearestNeighbor(
+    coordinates: Coordinates, 
+    kNeighbors: int, 
+    searchRadius: Distance,
+) -> Query:
     """
-    :return:
+    Format the query and parser required for making k nearest neighbor
+    queries to a database running PostGIS, with the appropriate
+    spatial indices already in place.
     """
-    db = connect(
-        host=host, port=int(port), user=user, password=password, ssl=True, database="bathysphere"
-    )
-    cursor = db.cursor()
-    cursor.execute(f"""
-    SELECT AVG(osi), COUNT(osi) FROM (
-        SELECT osi FROM (
-            SELECT oyster_suitability_index as osi, geo
-            FROM landsat_points
+
+    x, y = coordinates
+    targetTable = "landsat_points"
+    targetColumn, alias = "oyster_suitability_index", "osi"
+
+    queryString = f"""
+    SELECT AVG({alias}), COUNT({alias}) FROM (
+        SELECT {alias} FROM (
+            SELECT {targetColumn} as {alias}, geo
+            FROM {targetTable}
             ORDER BY geo <-> 'POINT({x} {y})'
-            LIMIT {k}
+            LIMIT {kNeighbors}
         ) AS knn
-        WHERE st_distance(geo, 'POINT({x} {y})') < {r}
+        WHERE st_distance(geo, 'POINT({x} {y})') < {searchRadius}
     ) as points;
-    """)
-    avg, count = cursor.fetchall()[0]
-    return dumps({
-        "message": "Mean Oyster Suitability",
-        "value": {
-            "mean": avg,
-            "distance": {
-                "value": r,
-                "units": "meters"
-            },
-            "observations": {
-                "requested": k,
-                "found": count
+    """
+
+    def parser(fetchAll):
+
+        avg, count = fetchAll[0]
+        return {
+            "message": "Mean Oyster Suitability",
+            "value": {
+                "mean": avg,
+                "distance": {
+                    "value": searchRadius,
+                    "units": "meters"
+                },
+                "observations": {
+                    "requested": kNeighbors,
+                    "found": count
+                }
             }
         }
-    })
 
-
-def maineTowns(x, y, k=24, r=500):
-    """
-    :return:
-    """
-    db = connect(
-        host=host, port=int(port), user=user, password=password, ssl=True, database="bathysphere"
-    )
-    cursor = db.cursor()
-    cursor.execute(f"""
-    SELECT AVG(osi), COUNT(osi) FROM (
-        SELECT osi FROM (
-            SELECT oyster_suitability_index as osi, geo
-            FROM landsat_points
-            ORDER BY geo <-> 'POINT({x} {y})'
-            LIMIT {k}
-        ) AS knn
-        WHERE st_distance(geo, 'POINT({x} {y})') < {r}
-    ) as points;
-    """)
-    avg, count = cursor.fetchall()[0]
-    return dumps({
-        "message": "Mean Oyster Suitability",
-        "value": {
-            "mean": avg,
-            "distance": {
-                "value": r,
-                "units": "meters"
-            },
-            "observations": {
-                "requested": k,
-                "found": count
-            }
-        }
-    })
-
-
-def declare(cursor, table, fields, data):
-    # type: (Cursor, str, (str, ), ((Any, ), )) -> None
-    """
-    Insert new rows into database.
-    """
-    if isinstance(fields, dict):
-        try:
-            cursor.execute(
-                f"CREATE TABLE {table}({', '.join(f'{k} {v}' for k, v in fields.items())});"
-            )
-        except ProgrammingError:
-            pass
-        columns = ', '.join(fields.keys())
-    else:
-        columns = ', '.join(fields)
-
-    values = ', '.join(f"({', '.join(map(parse, row))})" for row in data)
-    cursor.execute(f"INSERT INTO {table} ({columns}) VALUES {values};")
-
-
-def generate(columns, records):
-    try:
-        prev = next(records)  # get first result
-    except:
-        yield '[]'
-        raise StopIteration
-    yield '['
-    # Iterate over the releases
-    for r in records:
-        yield dumps(dict(zip(columns, r))) + ', '
-        prev = r
-    # Now yield the last iteration without comma but with the closing brackets
-    yield dumps(dict(zip(columns, prev))) + ']'
+    return queryString, parser
 
