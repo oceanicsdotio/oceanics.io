@@ -681,7 +681,7 @@ metadata:
      - id: [ 0 ]
 spec:
   name: Land Ocean Biogeochemical Observatory
-  description: Moored buoy deployment of the Sustainable Ecological Aquaculture Network
+  description: Moored bathysphere_functions_buoy deployment of the Sustainable Ecological Aquaculture Network
 ---
 apiVersion: extensions/sensing
 kind: Things

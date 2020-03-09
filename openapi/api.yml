@@ -400,13 +400,13 @@ paths:
 #      summary: Buoys
 #      description: |
 #
-#        Access third-party buoy data.
+#        Access third-party bathysphere_functions_buoy data.
 #
 #        In the simplest case this is a client for Satlantic LOBOviz servers. Because data is logged hourly,
 #        the newest is also the number of hours previous to return.
 #        The most recent measurement becomes available about 30 minutes after it is collected.
 #
-#        The user may only request data for a single buoy at a time,
+#        The user may only request data for a single bathysphere_functions_buoy at a time,
 #        each of which has a unique integer identifier, `node = "node=66"`.
 #
 #        Omitting this, requesting multiple buoys, or using the nodes parameter—which LOBOVIZ plots rely on will result in an error.
@@ -439,7 +439,7 @@ paths:
 #        You cannot query latitude, longitude, or battery voltage.
 #        Specifying no valid fields will return just temperature.
 #        Specifying an invalid field will not return an error,
-#        meaning that you’ll have to incorporate your own error handling—though the buoy
+#        meaning that you’ll have to incorporate your own error handling—though the bathysphere_functions_buoy
 #        configurations are unlikely to change.
 #
 #        The final parameter is `data_format=text`.
@@ -526,7 +526,7 @@ paths:
 #                  default: txt
 #                id:
 #                  type: integer
-#                  description: The identity of the buoy, known to the external server
+#                  description: The identity of the bathysphere_functions_buoy, known to the external server
 #                observedProperties:
 #                  type: array
 #                  minItems: 1
