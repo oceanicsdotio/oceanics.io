@@ -8,8 +8,8 @@ functions:
 
   buoy:
     lang: python3-http
-    handler: ./buoy
-    image: bathysphere/buoy-function:latest
+    handler: ./bathysphere_functions_buoy
+    image: bathysphere/bathysphere_functions_buoy-function:latest
     environment:
       hostname: maine.loboviz.com
     secrets:

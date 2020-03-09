@@ -1,14 +1,14 @@
-from os import getenv
-from json import loads, dumps
-from requests import get
-from collections import deque
-from itertools import repeat
+# from os import getenv
+# from json import loads, dumps
+# from requests import get
+# from collections import deque
+# from itertools import repeat
+#
+# import hmac
+# import hashlib
 
-import hmac
-import hashlib
 
-
-def handle(event, context):
+def report_buoy_data(request):
     # We receive the hashed message in form of a header
 
     return "Success"
