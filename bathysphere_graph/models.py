@@ -1,13 +1,14 @@
 from secrets import token_urlsafe
 from time import time
-from requests import get
+from inspect import signature
+from types import MethodType
 from datetime import datetime
 from pickle import load as unpickle
 from uuid import uuid4, UUID
 from itertools import chain
+
+from requests import get
 from neo4j import Node
-from inspect import signature
-from types import MethodType
 from attrs import attr
 
 from bathysphere_graph.drivers import *
@@ -279,17 +280,19 @@ class Entity:
             },
         }
 
-
+@attr.s
 class Link:
-    __symbol = "r"
-
-    def __init__(self, identity=None, label=None, **kwargs):
-        # type: (Link, int, (str, ), dict) -> Link
-        self.id = identity
-        self.uuid = None
-        self.label = label
-        self.props = kwargs
-        self._rank = 0
+    """
+    Links are the relationships between two entities. 
+    
+    They are directional.
+    """
+    id: int = attr.ib(default=None)
+    uuid: UUID = attr.ib(default=None)
+    __symbol: str = attr.ib(default="r")
+    _rank: int = attr.ib(default=0)
+    props: dict = attr.ib(default=attr.Factory(dict))
+    label: str = attr.ib(default=None)
 
     def __repr__(self):
         """
@@ -339,45 +342,30 @@ class Link:
 
 @attr.s
 class Assets(Entity):
+    """
+    Assets are references to data objects, which may or may not
+    be accessible at the time of query.
+
+    TODO: Assets is an ambiguous name when dealing with real-world systems
+    """
+    description: str = attr.ib(default=None)
+    name: str = attr.ib(default=None)  # name of resource
+    url: str = attr.ib(default=None)  # address of resource
 
 
-    def __init__(self, url, name, description, uuid):
-        # type: (str, str, str, str) -> None
-        """
-        Assets are references to data objects, which may or may not
-        be accessible at the time of query.
-
-        :param url: URL for the resource
-        :param name: name of the resource
-        :param description: useful description
-        :param uuid: unique ID
-        """
-        Entity.__init__(self, uuid)
-        self.name = name
-        self.description = description
-        self.url = url
-        self.uuid = uuid
-
-
+@attr.s
 class User(Entity):
+    """
+    Create a user entity. Users contain authorization secrets, and do not enter/leave
+    the system through the same routes as normal Entities
+    """
+    ip: str = attr.ib(default=None)
+    __symbol: str = attr.ib(default="u")
+    name: str = attr.ib(default=None)
+    credential: str = attr.ib(default=None)
+    validated: bool = attr.ib(default=True)
+    description: str = attr.ib(default=None)
 
-    _ipAddress = None
-    __symbol = "u"
-
-    def __init__(self, name=None, credential=None, uuid=None, description="", ip=None):
-        # type: (str, str, int, str, str) -> None
-        """
-        Create a user entity.
-
-        :param name: user name string
-        :param uuid: optional integer to request (will be automatically generated if already taken)
-        """
-        Entity.__init__(self, uuid)
-        self.name = name
-        self.credential = credential
-        self.validated = True
-        self.ipAddress = ip
-        self.description = description
 
 @attr.s
 class Providers(Entity):
@@ -460,7 +448,7 @@ class Locations(Entity):
 
 @attr.s
 class HistoricalLocations(Entity):
-     """
+    """
     Private and automatic, should be added to sensor when new location is determined
     """
     time: str = attr.ib(default=None) # time when thing was at location (ISO-8601 string)
@@ -557,4 +545,3 @@ class Tasks(Entity):
     """
     creationTime: float = attr.ib(default=attr.Factory(time))
     taskingParameters: dict = attr.ib(default=None)
-
