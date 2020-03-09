@@ -1,27 +1,11 @@
-from pg8000 import connect, Cursor, ProgrammingError
 from datetime import datetime
-from flask import Response
-from json import dumps, loads
-from os import getenv
+from json import dumps
 from typing import Any
 from decimal import Decimal
-import hashlib
-import hmac
 
-PG_DP_NULL = "DOUBLE PRECISION NULL"
-PG_TS_TYPE = "TIMESTAMP NOT NULL"
-PG_GEO_TYPE = "GEOGRAPHY NOT NULL"
-PG_ID_TYPE = "INT PRIMARY KEY"
-PG_STR_TYPE = "VARCHAR(100) NULL"
+from pg8000 import connect, Cursor, ProgrammingError
 
-with open("/var/bathysphere_functions/secrets/pg-username", "r") as fid:
-    user = fid.read()
-with open("/var/bathysphere_functions/secrets/pg-password", "r") as fid:
-    password = fid.read()
-with open("/var/bathysphere_functions/secrets/pg-hostname", "r") as fid:
-    host = fid.read()
-with open("/var/bathysphere_functions/secrets/pg-port", "r") as fid:
-    port = fid.read()
+import datetime
 
 
 def parse(v):
@@ -161,60 +145,4 @@ def generate(columns, records):
         prev = r
     # Now yield the last iteration without comma but with the closing brackets
     yield dumps(dict(zip(columns, prev))) + ']'
-
-
-def handle(req):
-    """handle a request to the function
-    Args:
-        req (str): request body
-    """
-    method = getenv("Http_Method")
-    querystring = getenv("Http_Query")
-    if querystring:
-        params = dict()
-        for item in querystring.split("&"):
-            k, v = item.split("=")
-            params[k] = v
-        try:
-            prop = params.pop("observedProperties", None)
-            assert prop in ("osi",)
-            return nearestNeighbor(**params)
-        except:
-            dumps({"Error": "Bad KNN query", "value": dumps(params)})
-            exit(400)
-
-    if method != "POST":
-        print(dumps({"Error": "Require POST"}))
-        exit(400)
-
-    body = loads(req)
-    with open("/var/bathysphere_functions/secrets/payload-secret", "r") as fid:
-        _hash = getenv("Http_Hmac")
-        expectedMAC = hmac.new(fid.read().encode(), req.encode(), hashlib.sha1).hexdigest()
-        if (_hash[5:] if "sha1=" in _hash else _hash) != expectedMAC:
-            print(dumps({"Error": "HMAC validation"}))
-            exit(403)
-
-    db = connect(
-        host=host, port=int(port), user=user, password=password, ssl=True, database="bathysphere"
-    )
-    cursor = db.cursor()
-    data = body.pop("data", None)
-    encoding = body.pop("encoding", "json")
-    streaming = body.pop("streaming", False)
-
-    if data is not None:
-        db.autocommit = True
-        declare(cursor=cursor, data=data, **body)
-        return None
-
-    db.autocommit = False
-
-    select(cursor=cursor, **body)
-    columns = [desc[0].decode("utf-8") for desc in cursor.description]
-    if encoding == "json":
-        if streaming:
-            return Response(generate(columns, cursor.fetchall()), content_type='application/json')
-        return dumps(tuple(dict(zip(columns, map(parse_out, each))) for each in cursor.fetchall()))
-    return cursor.fetchall()
 
