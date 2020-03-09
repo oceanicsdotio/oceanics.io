@@ -11,6 +11,7 @@ from flask import Response
 from redis import StrictRedis
 
 
+
 def listener(storage, bucket_name, filetype="", channel="bathysphere-events"):
     fcns = ("s3:ObjectCreated:*", "s3:ObjectRemoved:*", "s3:ObjectAccessed:*")
     r = StrictRedis()
