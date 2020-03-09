@@ -11,7 +11,8 @@ from requests import get
 from neo4j import Node
 from attrs import attr
 
-from bathysphere_graph.drivers import *
+from bathysphere.graph.drivers import *
+from bathysphere import models
 
 @attr.s
 class Entity:
@@ -341,88 +342,37 @@ class Link:
         return executeQuery(db, query, access_mode="read")
 
 @attr.s
-class Assets(Entity):
-    """
-    Assets are references to data objects, which may or may not
-    be accessible at the time of query.
-
-    TODO: Assets is an ambiguous name when dealing with real-world systems
-    """
-    description: str = attr.ib(default=None)
-    name: str = attr.ib(default=None)  # name of resource
-    url: str = attr.ib(default=None)  # address of resource
+class Assets(Entity, models.Assets):
+   pass
 
 
 @attr.s
-class User(Entity):
-    """
-    Create a user entity. Users contain authorization secrets, and do not enter/leave
-    the system through the same routes as normal Entities
-    """
-    ip: str = attr.ib(default=None)
-    __symbol: str = attr.ib(default="u")
-    name: str = attr.ib(default=None)
-    credential: str = attr.ib(default=None)
-    validated: bool = attr.ib(default=True)
-    description: str = attr.ib(default=None)
+class User(Entity, models.User):
+   pass
 
 
 @attr.s
-class Providers(Entity):
-    """
-    Providers are generally organization or enterprise sub-units. This is used to
-    route ingress and determine implicit permissions for data access, sharing, and
-    attribution. 
-    """
-    name: str = attr.ib(default=None)
-    domain: str = attr.ib(default=None)
-    apiKey: str = attr.ib(default=attr.Factory(lambda: token_urlsafe(64)))
-    secretKey: str = attr.ib(default=None)
-    tokenDuration: int = attr.ib(default=600)
+class Providers(Entity, models.Providers):
+    pass
 
 
 @attr.s
-class Collections(Entity):
-    name: str = attr.ib(default=None)
-    description: str = attr.ib(default=None) 
-    extent: (float,) = attr.ib(default=None)
+class Collections(Entity, models.Collections):
+    pass
 
 
 @attr.s
-class Datastreams(Entity):
-    """
-    Datastreams are collections of Observations.
-    """
-    name: str = attr.ib(default=None)
-    description: str = attr.ib(default=None)  
-    unitOfMeasurement = attr.ib(default=None)
-    observationType = attr.ib(default=None)
-    observedArea: dict = attr.ib(default=None)  # boundary geometry, GeoJSON polygon
-    phenomenonTime: (datetime, datetime) = attr.ib(default=None)  # time interval, ISO8601
-    resultTime: (datetime, datetime) = attr.ib(default=None)  # result times interval, ISO8601
+class DataStreams(Entity, models.DataStreams):
+    pass
 
 
 @attr.s
-class FeaturesOfInterest(Entity):
-    """
-    FeaturesOfInterest are usually Locations.
-    """
-    name: str = attr.ib(default=None)
-    description: str = attr.ib(default=None)
-    encodingType: str = attr.ib(default=None)  # metadata encoding
-    feature: Any = attr.ib(default=None)
+class FeaturesOfInterest(Entity, models.FeaturesOfInterest):
+    pass
     
 
 @attr.s
-class Locations(Entity):
-    """
-    Last known location of a thing. May be a feature of interest, unless remote sensing.        
-    """
-    name: str = attr.ib(default=None)
-    location = attr.ib(deafult=None)  # GeoJSON
-    description: str = attr.ib(default=None)
-    encodingType: str = attr.ib(default="application/vnd.geo+json")
-
+class Locations(Entity, models.Locations):
 
     def reportWeather(self, ts, api_key, url, exclude=None):
         # type: (Locations, datetime, str, str, (str, )) -> (dict, int)
@@ -447,22 +397,12 @@ class Locations(Entity):
 
 
 @attr.s
-class HistoricalLocations(Entity):
-    """
-    Private and automatic, should be added to sensor when new location is determined
-    """
-    time: str = attr.ib(default=None) # time when thing was at location (ISO-8601 string)
+class HistoricalLocations(Entity, models.HistoricalLocations):
+    pass
     
 
 @attr.s
-class Things(Entity):
-    """
-    A thing is an object of the physical or information world that is capable of of being identified
-    and integrated into communication networks.
-    """
-    name: str = attr.ib(default=None)
-    description: str = attr.ib(default=None)
-    properties: dict = attr.ib(default=None)
+class Things(Entity, models.Things):
 
     @staticmethod
     def catalog(year: int, month: int = None, day: int = None):
@@ -484,64 +424,29 @@ class Things(Entity):
 
 
 @attr.s
-class Sensors(Entity):
-    """
-    Sensors are a class of entity which encapsulates metadata regarding a stream of observations.
-    """
-    name: str = attr.ib(default=None)
-    description: str = attr.ib(default=None)
-    encodingType: str = attr.ib(default=None)  # metadata encoding
-    metadata: Any = attr.ib(default=None)
+class Sensors(Entity, models.Sensors):
+    pass
+
+@attr.s
+class Observations(Entity, models.Observations):
+    pass
 
 
 @attr.s
-class Observations(Entity):
-    """
-    Observations are individual time-stamped members of Datastreams
-    """
-    phenomenonTime: datetime = attr.ib(default=None)  # timestamp, doesn't enforce specific format
-    result: Any = attr.ib(default=None)  # value of the observation
-    resultTime: datetime = attr.ib(default=None)
-    resultQuality: Any = attr.ib(default=None)
-    validTime: (datetime, datetime) = attr.ib(default=None)  # time period
-    parameters: dict = attr.ib(default=None)
+class ObservedProperties(Entity, models.ObservedProperties):
+    pass
 
 
 @attr.s
-class ObservedProperties(Entity):
-    """
-    Create a property, but do not associate any data streams with it
-    """
-    name: str = attr.ib(default=None)
-    description: str = attr.ib(default=None)
-    definition: str = attr.ib(default=None)  #  URL to reference defining the property
-
-
-@attr.s
-class Actuators(Entity):
-    """
-    Actuators are devices that turn messages into physical effects
-    """
-    name: str = attr.ib(default=None)
-    description: str = attr.ib(default=None)
-    encodingType: str = attr.ib(default=None)  # metadata encoding
-    metadata: Any = attr.ib(default=None)
+class Actuators(Entity, models.Actuators):
+    pass
 
     
 @attr.s
-class TaskingCapabilities(Entity):
-    """
-    Abstract tasking class mapping I/O and generating signal.
-    """
-    name: str = attr.ib(default=None)
-    creationTime: float = attr.ib(default=attr.Factory(time))
-    taskingParameters: dict = attr.ib(default=None)
+class TaskingCapabilities(Entity, models.TaskingCapabilities):
+    pass
 
 
 @attr.s
-class Tasks(Entity):
-    """
-    Tasks are pieces of work that are done asynchronously by humans or machines.
-    """
-    creationTime: float = attr.ib(default=attr.Factory(time))
-    taskingParameters: dict = attr.ib(default=None)
+class Tasks(Entity, models.Tasks):
+   pass
