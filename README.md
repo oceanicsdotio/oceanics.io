@@ -1,10 +1,24 @@
+
 # Bathysphere API
 
-Bathysphere is a distributed store and registry for public and proprietary geospatial data, designed to support aquaculture research in the Gulf of Maine. It helps to ingest sensor and model data and metadata, and parse them into discoverable databases.
+[Deploy](#deploy)
+[Functions](#functions)
+[Neo4j](#neo4j)
+[Cypher](#cypher)
+[Ingestion Tips](#ingestion-tips)
+[Postgres](#postgres)
 
-Services run in Docker containers, which are configured to receive and route traffic between computing environments and networked devices. Data are persisted in cloud object storage, with `minio` as the default driver. The runtime supports parallelism, and the web service can scale out to meet high throughput or high availability requirements. 
+Bathysphere is a distributed store and registry for public and proprietary geospatial data. It was originally designed to support aquaculture research in the Gulf of Maine, but is intentionally generic. 
+
+The interface and utilities help ingest sensor and model data and metadata, and parse them into discoverable databases.
+
+Services usually run in Docker containers configured to receive and route traffic between computing environments and networked devices. Data persist in cloud object storage, with `minio` as the default driver.
+
+The runtime supports parallelism, and the web infrastructure scales to meet high throughput or availability requirements. 
 
 This document provides guidance for testing and developing Bathysphere. For instructions on interacting with an existing deployment, please see the [API specification](https://graph.oceanics.io).
+
+## Deploy
 
 The development environment is deployed locally with `docker-compose up -d`, and the production environment with `kubectl`.
 
@@ -20,57 +34,23 @@ The development environment is deployed locally with `docker-compose up -d`, and
 
 ## Functions
 
-Extensions to the core API are provided through the `/functions` end point by an `openfaas` gateway. Functions-as-a-Service ([FaaS](https://github.com/openfaas/workshop/blob/master)) can be deployed automatically on cloud platforms. 
+Extensions to the core API are provided through the `/functions` end point. This is provided either by an `openfaas` [gateway](https://github.com/openfaas/workshop/blob/master), or by cloud vender-specific
+Functions-as-a-Service platforms. 
 
-```
-docker swarm init --advertise-addr lo
-git clone https://github.com/openfaas/faas
-cd faas
-./deploy_stack.sh
-
-echo -n $PASSWORD | faas-cli login --username admin --password-stdin
-```
-
-
-
-
-
-To issue commands to the cluster, set up the command line interface and login to the local or remote service:
-
-```bash
-apt install faas-cli
-faas-cli list --verbose
-faas-cli login --password $OPENFAAS_KEY
-```
-
-Functions use hash-based message authentication codes (HMAC) for cryptographic verification. The key is stored in `openfaas` and is loaded to validate requests. For instance, to create a new service and secret, then pipe a secret to the cluster:
-
-```bash
-faas new --lang python3-http buoys --prefix=oceanicsdotio
-echo -n $HMAC_KEY | faas secret create payload-secret
-```
-
-A function is built and deployed with `faas up buoy`. A stack of functions is deployed by invoking `-f stack.yml`  or `faas up`. 
-
-These are a few examples of invoking functions directly:
-
-```bash
-# Get buoy data
-echo -n '{"id": 66, "limit": 10, "observedProperties": ["temperature", "salinity"], "encoding": "json"}' | faas-cli invoke buoy --sign hmac --key=$HMAC_KEY
-
-# Send a reminder e-mail containing credentials
-echo -n '{"subject": "Account Info", "addresses": ["user@example.com"], "message": "your-secret-thing"}' | faas-cli invoke notify --sign hmac --key=$HMAC_KEY
-
-# Dump the contents of a `postgres` table:
-echo -n '{"table": "test"}' | faas-cli invoke postgres --sign hmac --key=$HMAC_KEY
-
-```
-
+The current version expects to have access to Google Cloud Functions. Functions use hash-based message authentication codes (HMAC) for cryptographic verification. The key is stored in a secret manager and is loaded to validate requests.
 
 
 ## Neo4j
 
-The database manager runs in an extension of the [official container image](https://hub.docker.com/_/neo4j/), and maps the server ports to an external interface. The [built-in GUI](http://localhost:7474/browser/) is at  `hostname:7474`, and the `bolt` [interface](https://boltprotocol.org/) defaults to  `hostname:7687`. The `bolt` protocol is used for API calls from Python scripts. User authorization requires the environment variable `NEO4J_AUTH`. If you are new to Neo4j, try deploying a stand-alone container and experimenting some first:
+The database manager runs in an extension of the [official container image](https://hub.docker.com/_/neo4j/), and maps the server ports to an external interface. The [built-in GUI](http://localhost:7474/browser/) is at  `hostname:7474`, and the `bolt` [interface](https://boltprotocol.org/) defaults to  `hostname:7687`. 
+
+The `bolt` protocol is used for API calls from Python scripts. User authorization requires the environment variable `NEO4J_AUTH`. 
+
+We recommend a managed cluster for the production service, like the official Aura platform from Neo4j. Other methods for provisioning are given below to get you started. 
+
+### Localhost
+
+If you are new to Neo4j, try deploying a local container to experiment:
 
 ```bash
 docker run \
@@ -81,7 +61,7 @@ docker run \
 	oceanicsdotio/neo4j
 ```
 
-
+### Docker machine
 
 Most cloud providers have an endpoint for docker. You can create a new node and deploy to it by use third party drivers with `docker-machine`:
 
@@ -94,7 +74,7 @@ docker-machine create \
 bathysphere-api-neo4j
 ```
 
-Connect you local environment to issue commands to the remote docker service, and then etup the node remotely through an `ssh` tunnel, and install `certbot`:
+Connect you local environment to issue commands to the remote docker service, and then setup the node remotely through an `ssh` tunnel, and install `certbot`:
 
 ```bash
 eval $(docker-machine env bathysphere-api-neo4j)
@@ -192,6 +172,8 @@ RETURN nb.id, b.id, e.id
 
 ## Ingestion tips
 
+### Mount remote NetCDF files with NFS
+
 Meshes are often stored as NetCDF, which can be read remotely by mounting the host volume to your local environment (e.g. using [fuse](https://github.com/osxfuse/osxfuse/releases) and [sshfs](https://github.com/libfuse/sshfs)). On macOS `meson` and `ninja` are required, before downloading and install the `sshfs` tarball:
 
 ```bash
@@ -212,6 +194,8 @@ To mount the remote file system locally,
 mkdir ~/remote/
 sshfs username@hostname:/nfs-home/username/>>export ~/remote/
 ```
+
+### Import bulk CSV data with Neo4j 
 
 Topology may also be saved in CSV files which require pre-processing. Space-delimited files can be converted to comma-delimited using `sed`, `cat`, and `cut`:
 
@@ -241,6 +225,8 @@ USING PERIODIC COMMIT
 LOAD CSV FROM "file:///neo4j_elements.csv" AS line
 CREATE ( e:Element { id: toInteger(line[0]) } )
 ```
+
+### Build graph in multiple passes
 
 To limit future results to non-duplicates, enforce:
 
@@ -276,12 +262,16 @@ CREATE (n3)-[:SIDE_OF]->(e)
 
 ## Postgres
 
-The back-end uses the `postgres` relational database, with the `timescale` and `postgis` extensions for time series and spatial data, respectively. A database is manually created and extended through queries with, 
+### Extensions
+
+The back-end uses the `postgres` relational database, with the `timescale` and `postgis` extensions for time series and spatial data, respectively. A database is manually created and extended through queries with,
 
 ```sql
 CREATE database bathysphere;
 CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;
 ```
+
+### Localhost
 
 To develop with a local relational database, run and enter a `postgres` instance with the `exec` command:
 
