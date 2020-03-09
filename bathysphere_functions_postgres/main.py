@@ -31,7 +31,7 @@ db = sqlalchemy.create_engine(
         drivername='postgres+pg8000',
         username=user,
         password=password,
-        database="bathysphere",
+        database="postgres",
         query={'unix_sock': f'/cloudsql/{cloudSQL}/.s.PGSQL.5432'}
     ),
     pool_size=4,
