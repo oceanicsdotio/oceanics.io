@@ -12,9 +12,9 @@ def report_buoy_data(request):
     # We receive the hashed message in form of a header
 
     if getenv("Http_Method") != "POST":
-        return {"Error": "Require POST"}, 400
+        return dumps({"Error": "Require POST"}), 400
     if not request.body:
-        return {"Error": "No request body"}, 400
+        return dumps({"Error": "No request body"}), 400
 
     body = request.body
 
@@ -25,7 +25,7 @@ def report_buoy_data(request):
     fields = body.get("observedProperties", None)
 
     if not any((limit, *interval)) or not any((fields, node)) or encoding not in ("txt", "json"):
-        return {"Error": "Bad Request"}, 400
+        return dumps({"Error": "Bad Request"}), 400
 
     host = getenv("hostname", "maine.loboviz.com")
     times = f"&newest={limit}" if limit else "&min_date={}&max_date={}".format(*interval)
@@ -33,11 +33,10 @@ def report_buoy_data(request):
     response = get(url)
     content = response.content.decode()
     if not response.ok:
-        print(content)
-        exit(response.status_code)
+        return response
 
     if encoding == "txt":
-        return content
+        return content, 200
 
     lines = deque(filter(lambda x: len(x), content.split("\n")))
     name, alias = lines.popleft().split("-")
@@ -47,7 +46,7 @@ def report_buoy_data(request):
     }
     lines = deque(map(lambda x: tuple(x.split("\t")), lines))
     keys = lines.popleft()
-    return {
+    return dumps({
         **data,
         "values": [dict(zip(k, v)) for k, v in zip(repeat(keys), lines)]
-    }, 200
+    }), 200
