@@ -1,6 +1,5 @@
 from json import dumps
-from typing import Callable, Generator
-from typing import Any
+from typing import Callable, Generator, Any
 from enum import Enum
 import hashlib
 import hmac
@@ -16,14 +15,6 @@ class RelationshipLabels(Enum):
     Parent = 3
     Collection = 4
     Derived = 5
-
-
-class CoordinateSystem:
-    Sigma = 1
-    Cartesian = 2
-    Gaussian = 3
-    Spherical = 4
-    Periodic = 5
 
 
 def processKeyValueOutbound(obj, keyValue, private="_"):

@@ -1,15 +1,31 @@
-from flask import request
-from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
-from passlib.apps import custom_app_context
 from functools import reduce
 from os import getenv
+from itertools import chain
+from datetime import datetime
 
-from bathysphere.models import *
+from passlib.apps import custom_app_context
+from flask import request
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+
 from bathysphere.graph import appConfig, app
+from bathysphere.graph.drivers import connect, storeJson
+from bathysphere.graph.models import (
+    Actuators,
+    Assets,
+    Collections,
+    DataStreams,
+    Link,
+    Observations,
+    ObservedProperties,
+    Providers,
+    User,
+    Sensors,
+    Tasks,
+    TaskingCapabilities,
+    Things,
+)
 
-ExtentType = (float, float, float, float)
-ResponseJSON = (dict, int)
-ResponseOctet = (dict, int)
+
 NamedIndex = (Providers, Collections, User)
 host = "localhost"
 port = 7687
@@ -118,19 +134,19 @@ def manage(db, user, body, **kwargs):
     if body.get("delete", False):
         User.delete(db, id=user.id)
     else:
-        _ = User.mutate(db, data=body, obj=user)
+        _ = User.mutation(db, data=body, obj=user)
     return None, 204
 
 
 @context
-def token(db, user, secret=None, **kwargs):
+def token(db, user, provider, secret=None, **kwargs):
     # type: (Driver, User, str, dict) -> (dict, int)
     """
     Send an auth token back for future sessions
     """
     if not user:
         return None, 403
-    root = Root.load(db).pop()
+    root = Providers.load(db).pop()  # TODO: this is incorrect
     payload = {
         "token": Serializer(
             secret_key=secret or root._secretKey, expires_in=root.tokenDuration
@@ -149,7 +165,7 @@ def catalog(db, user, host, port, **kwargs):
     Usage 1. Get references to all entity sets, or optionally filter
     """
     show_port = f":{port}" if port else ""
-    path = f"http://{host}{show_port}/api"
+    path = f"http://{host+show_port}/api"
     collections = ()
 
     def _item(name):
@@ -208,7 +224,7 @@ def mutate(body, db, entity, id, user, **kwargs):
         else (),
     )
 
-    Link.join(db=db, a=cls(id=id), b=createLinks)
+    Link.join(db=db, nodes=(cls(id=id), createLinks), props=None)
     return None, 204
 
 
