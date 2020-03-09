@@ -4,7 +4,8 @@ from flask import Request
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine.url import URL
 
-from drivers import googleCloudSecret
+from drivers import googleCloudSecret, ResponseType
+from cloud_sql.queries import selectRecords, Query, Table, Field
 
 
 db = create_engine(
@@ -24,15 +25,15 @@ db = create_engine(
 )
 
 
-def main(request: Request):
+def main(request: Request) -> ResponseType:
     """
     Do some postgres stuff
     """
 
     try:
         with db.connect() as cursor:
-            stmt = text("SELECT text FROM messages")
-            records = [{'message': row[0]} for row in cursor.execute(stmt).fetchall()]
+            query = selectRecords(table=Table(fields=[Field("text", None)]))
+            records = [query.parser(row) for row in cursor.execute(query.sql).fetchall()]
     except Exception as ex:
         return dumps({
             "Error":"Problem executing query",

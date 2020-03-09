@@ -2,7 +2,6 @@ from datetime import datetime
 from json import dumps
 from typing import Any, Callable
 from decimal import Decimal
-from collections import namedtuple
 from attrs import attr
 from enum import Enum
 
@@ -14,29 +13,38 @@ class PostgresType(Enum):
     IntIdentity = "INT PRIMARY KEY"
     NullString = "VARCHAR(100) NULL"
 
+
 @attr.s
 class Coordinates:
+    """Point coordinates for spatial applications"""
     x: float = attr.ib()
     y: float = attr.ib()
 
+
 @attr.s
 class Field:
-    value: Any = attr.ib()
+    """Column for Postgres table"""
+    name: Any = attr.ib()
     type: str = attr.ib()
+
 
 @attr.s
 class Query:
+    """"""
     sql: str = attr.ib()
     parser: Callable = attr.ib()
+
 
 @attr.s
 class Distance:
     value: float = attr.ib()
     unit: str = attr.ib()
 
+
 @attr.s
 class Schema:
     fields: [Field] = attr.ib(default=attr.Factory(list))
+
 
 @attr.s
 class Table:
@@ -44,21 +52,15 @@ class Table:
     schema: Schema = attr.ib(default=Schema())
 
 
-
-
-
-def parsePostgresValueIn(v: Any) -> str:
-    if isinstance(v, datetime):
-        return v.isoformat()
-    if isinstance(v, float):
-        return str(v)
-    if isinstance(v, int):
-        return f"{v}.0"
-    if isinstance(v, str):
-        return f"'{v}'"
-    if isinstance(v, dict):
-        return f"ST_GeomFromGeoJSON('{dumps(v)}')"
-    return "NULL"
+def parsePostgresValueIn(value: Any) -> str:
+    parsingTable = {
+        datetime: lambda x: x.isoformat(),
+        float: lambda x: str(x),
+        int: lambda x: f"{x}.0",
+        str: lambda x: f"'{x}'",
+        dict: lambda x: f"ST_GeomFromGeoJSON('{dumps(x)}')",
+    }
+    return parsingTable.get(type(value), lambda x: "NULL")(value)
 
 
 def parsePostgresValueOut(v: Any) -> Any:
@@ -66,8 +68,10 @@ def parsePostgresValueOut(v: Any) -> Any:
         return float(v)
     return v
 
+
 def join(x: str) -> str:
         return ", ".join(x)
+
 
 def declareTable(table: Table) -> Query:
     queryString = f"""
@@ -99,7 +103,7 @@ def selectRecords(
     limit: int = 100, 
     fields: (str, ) = ("*",), 
     order: str ="DESC", 
-    conditions=()
+    conditions: ((str,)) = ()
 ) -> Query:
    
     """
@@ -109,9 +113,13 @@ def selectRecords(
     _conditions = f"WHERE {' AND '.join(conditions)}" if conditions else ""
 
     queryString = f"""
-    SELECT {', '.join(fields)} FROM {table} {_conditions} {_order} LIMIT {limit};
+    SELECT {', '.join(fields)} FROM {table.name} {_conditions} {_order} LIMIT {limit};
     """
-    return Query(queryString, None)
+
+    def parse(x):
+        return {'record': x[0]}
+
+    return Query(queryString, parse)
 
 
 def nearestNeighbor(
@@ -159,5 +167,5 @@ def nearestNeighbor(
             }
         }
 
-    return queryString, parser
+    return Query(queryString, parser)
 
