@@ -22,6 +22,22 @@ def listener(storage, bucket_name, filetype="", channel="bathysphere-events"):
         ps.publish(channel, str(event))
 
 
+
+
+def unlock(session, bucket_name, object_name):
+    # type: (Minio, str, str) -> bool
+    """
+    Unlock the dataset or bathysphere_functions_repository IFF it contains the session ID
+    """
+    try:
+        _ = storage.stat_object(bucket_name, object_name)
+    except NoSuchKey:
+        return False
+    storage.remove_object(bucket_name, object_name)
+    return True
+
+
+
 def locking(fcn):
     async def wrapper(storage, bucket_name, name, sess, headers, *args, **kwargs):
         # type: (Minio, str, str, str, dict, list, dict) -> Any
@@ -41,7 +57,7 @@ def locking(fcn):
             content_type="application/json"
         )
         result = fcn(storage=storage, dataset=None, *args, session=sess, **kwargs)
-        unlock(**_lock)
+        unlock(storage, **_lock)
         return result
     return wrapper
 
@@ -125,64 +141,3 @@ def delete(storage, bucket_name, prefix, batch=10):
             remove = ()
         if stop:
             break
-
-
-def unlock(storage, bucket_name, object_name):
-    # type: (Minio, str, str) -> bool
-    """
-    Unlock the dataset or bathysphere_functions_repository IFF it contains the session ID
-    """
-    try:
-        _ = storage.stat_object(bucket_name, object_name)
-    except NoSuchKey:
-        return False
-    storage.remove_object(bucket_name, object_name)
-    return True
-
-
-def handle(req):
-    """
-    Create an s3 connection if necessary, then create bucket if it doesn't exist.
-
-    :param object_name: label for file
-    :param data: data to serialize
-    :param metadata: headers
-    :param replace:
-    :param bucket_name:
-    :param storage:
-    :param content_type: only required if sending bytes
-    """
-
-    if getenv("Http_Method") != "POST":
-        print(dumps({"Error": "Require POST"}))
-        exit(403)
-
-    with open("/var/bathysphere_functions/secrets/payload-secret", "r") as secretContent:
-        _hash = getenv("Http_Hmac")
-        expectedMAC = hmac.new(secretContent.read().encode(), req.encode(), hashlib.sha1)
-        if (_hash[5:] if "sha1=" in _hash else _hash) != expectedMAC.hexdigest():
-            print(dumps({"Error": "HMAC validation"}))
-            exit(403)
-
-    body = loads(req)
-    bucket_name = body.get("bucket_name")
-    object_name = body.get("object_name")
-    action = body.get("action")
-
-    if not storage.bucket_exists(bucket_name):
-        _ = storage.make_bucket(bucket_name)
-
-    try:
-        _ = storage.stat_object(bucket_name, object_name)
-        existing = True
-    except NoSuchKey:
-        existing = False
-
-    if not existing and action in ("delete", "update"):
-        print(dumps({"Error": f"{object_name} not found"}))
-        exit(404)
-
-    if existing and action == "create":
-        print(dumps({"Error": f"{object_name} already exists"}))
-        exit(403)
-
