@@ -3,23 +3,22 @@ from time import time
 from requests import get
 from datetime import datetime
 from pickle import load as unpickle
-from uuid import uuid4
+from uuid import uuid4, UUID
 from itertools import chain
 from neo4j import Node
 from inspect import signature
 from types import MethodType
+from attrs import attr
 
 from bathysphere_graph.drivers import *
 
-
+@attr.s
 class Entity:
-    def __init__(self, uuid=None):
-        # type: (Entity) -> None
-        """
-        Primitive object/entity, may have name and location
-        """
-        self.uuid = uuid
-        self.__symbol = None
+    """
+    Primitive object/entity, may have name and location
+    """
+    uuid: UUID = attr.ib(default=None)
+    __symbol: str = attr.ib(default=None)
 
     def __repr__(self):
         """
@@ -338,8 +337,10 @@ class Link:
         ).values()
         return executeQuery(db, query, access_mode="read")
 
-
+@attr.s
 class Assets(Entity):
+
+
     def __init__(self, url, name, description, uuid):
         # type: (str, str, str, str) -> None
         """
@@ -378,71 +379,62 @@ class User(Entity):
         self.ipAddress = ip
         self.description = description
 
-
+@attr.s
 class Providers(Entity):
-    def __init__(self, name=None, domain=None, apiKey=None, uuid=None, secretKey=None):
-        # type: (str, str, str, str, str) -> None
-        Entity.__init__(self, uuid=uuid)
-        self.name = name
-        self.domain = domain
-        self.apiKey = apiKey or token_urlsafe(64)
-        self.secretKey = secretKey
-        self.tokenDuration = 600
+    """
+    Providers are generally organization or enterprise sub-units. This is used to
+    route ingress and determine implicit permissions for data access, sharing, and
+    attribution. 
+    """
+    name: str = attr.ib(default=None)
+    domain: str = attr.ib(default=None)
+    apiKey: str = attr.ib(default=attr.Factory(lambda: token_urlsafe(64)))
+    secretKey: str = attr.ib(default=None)
+    tokenDuration: int = attr.ib(default=600)
 
 
+@attr.s
 class Collections(Entity):
-    def __init__(self, name=None, description=None, uuid=None, extent=None):
-        # type: (str, str, str, dict) -> Collections
-        Entity.__init__(self, uuid=uuid)
-        self.name = name
-        self.description = description
-        self.extent = extent
+    name: str = attr.ib(default=None)
+    description: str = attr.ib(default=None) 
+    extent: (float,) = attr.ib(default=None)
 
 
+@attr.s
 class Datastreams(Entity):
-    def __init__(
-        self, uuid=None, name=None, description=None, unitOfMeasurement=None
-    ):
-        # type: (Datastreams, int, str, str, dict) -> Datastreams
-        Entity.__init__(self, uuid=uuid)
-        self.name = name
-        self.description = description
-        self.unitOfMeasurement = unitOfMeasurement
-        self.observationType = None
-        self.observedArea = None  # boundary geometry, GeoJSON polygon
-        self.phenomenonTime = None  # time interval, ISO8601
-        self.resultTime = None  # result times interval, ISO8601
+    """
+    Datastreams are collections of Observations.
+    """
+    name: str = attr.ib(default=None)
+    description: str = attr.ib(default=None)  
+    unitOfMeasurement = attr.ib(default=None)
+    observationType = attr.ib(default=None)
+    observedArea: dict = attr.ib(default=None)  # boundary geometry, GeoJSON polygon
+    phenomenonTime: (datetime, datetime) = attr.ib(default=None)  # time interval, ISO8601
+    resultTime: (datetime, datetime) = attr.ib(default=None)  # result times interval, ISO8601
 
 
+@attr.s
 class FeaturesOfInterest(Entity):
-    def __init__(self, name="", description="", uuid=None):
-        """
-        Features of interest are usually Locations
+    """
+    FeaturesOfInterest are usually Locations.
+    """
+    name: str = attr.ib(default=None)
+    description: str = attr.ib(default=None)
+    encodingType: str = attr.ib(default=None)  # metadata encoding
+    feature: Any = attr.ib(default=None)
+    
 
-        :param uuid: integer id
-        :param name: name string
-        """
-        Entity.__init__(self, uuid)
-        self.name = name
-        self.description = description
-        self.encodingType = None
-        self.feature = None
-
-
+@attr.s
 class Locations(Entity):
-    def __init__(self, name=None, location=None, description=None, uuid=None):
-        """
-        Last known location of a thing. May be a feature of interest, unless remote sensing.
+    """
+    Last known location of a thing. May be a feature of interest, unless remote sensing.        
+    """
+    name: str = attr.ib(default=None)
+    location = attr.ib(deafult=None)  # GeoJSON
+    description: str = attr.ib(default=None)
+    encodingType: str = attr.ib(default="application/vnd.geo+json")
 
-        :param uuid: integer id
-        :param name: name string
-        :param location: GeoJSON
-        """
-        Entity.__init__(self, uuid)
-        self.location = location
-        self.name = name
-        self.description = description
-        self.encodingType = "application/vnd.geo+json"
 
     def reportWeather(self, ts, api_key, url, exclude=None):
         # type: (Locations, datetime, str, str, (str, )) -> (dict, int)
@@ -466,28 +458,23 @@ class Locations(Entity):
         )
 
 
+@attr.s
 class HistoricalLocations(Entity):
-    def __init__(self, uuid=None):
-        """
-        Private and automatic, should be added to sensor when new location is determined
-        """
-        Entity.__init__(self, uuid)
-        self.time = None  # time when thing is known at location (ISO-8601 string)
+     """
+    Private and automatic, should be added to sensor when new location is determined
+    """
+    time: str = attr.ib(default=None) # time when thing was at location (ISO-8601 string)
+    
 
-
+@attr.s
 class Things(Entity):
-    def __init__(self, name=None, description=None, uuid=None):
-        """
-        A thing is an object of the physical or information world that is capable of of being identified
-        and integrated into communication networks.
-
-        :param uuid: integer id
-        :param name: name string
-        """
-        Entity.__init__(self, uuid)
-        self.name = name
-        self.description = description
-        self.properties = None  # (optional)
+    """
+    A thing is an object of the physical or information world that is capable of of being identified
+    and integrated into communication networks.
+    """
+    name: str = attr.ib(default=None)
+    description: str = attr.ib(default=None)
+    properties: dict = attr.ib(default=None)
 
     @staticmethod
     def catalog(year: int, month: int = None, day: int = None):
@@ -508,109 +495,66 @@ class Things(Entity):
         return response, 200
 
 
+@attr.s
 class Sensors(Entity):
-
-    def __init__(
-        self,
-        uuid=None,
-        name=None,
-        description=None,
-        encodingType=None,
-        metadata=None,
-    ):
-        """
-        :param uuid: integer id
-        :param name: name string
-        :param description: description string
-        :param encodingType: encoding of metadata
-        :param metadata: metadata
-        """
-        Entity.__init__(self, uuid)
-        self.name = name
-        self.description = description
-        self.encodingType = encodingType
-        self.metadata = metadata
+    """
+    Sensors are a class of entity which encapsulates metadata regarding a stream of observations.
+    """
+    name: str = attr.ib(default=None)
+    description: str = attr.ib(default=None)
+    encodingType: str = attr.ib(default=None)  # metadata encoding
+    metadata: Any = attr.ib(default=None)
 
 
+@attr.s
 class Observations(Entity):
-    def __init__(self, result=None, identity=None, phenomenonTime=None):
-        """
-        Observation are individual time stamped members of Datastreams
-
-        :param identity: integer id
-        :param phenomenonTime: timestamp, doesn't enforce specific format
-        :param result: value of the observation ("result" in SensorThings parlance)
-        """
-        Entity.__init__(self, identity)
-        self.phenomenonTime = phenomenonTime
-        self.result = result
-        self.resultTime = None
-        self.resultQuality = None
-        self.validTime = None  # time period
-        self.parameters = None
+    """
+    Observations are individual time-stamped members of Datastreams
+    """
+    phenomenonTime: datetime = attr.ib(default=None)  # timestamp, doesn't enforce specific format
+    result: Any = attr.ib(default=None)  # value of the observation
+    resultTime: datetime = attr.ib(default=None)
+    resultQuality: Any = attr.ib(default=None)
+    validTime: (datetime, datetime) = attr.ib(default=None)  # time period
+    parameters: dict = attr.ib(default=None)
 
 
+@attr.s
 class ObservedProperties(Entity):
-    def __init__(
-        self,
-        uuid=None,
-        name=None,
-        definition=None,
-        description=None,
-    ):
-        """
-        Create a property, but do not associate any data streams with it
-
-        :param name: name of the property
-        :param definition: URL to reference defining the property
-        """
-        Entity.__init__(self, uuid)
-        self.name = name
-        self.description = description
-        self.definition = definition
+    """
+    Create a property, but do not associate any data streams with it
+    """
+    name: str = attr.ib(default=None)
+    description: str = attr.ib(default=None)
+    definition: str = attr.ib(default=None)  #  URL to reference defining the property
 
 
+@attr.s
 class Actuators(Entity):
-    def __init__(
-        self,
-        uuid=None,
-        name=None,
-        description=None,
-        encodingType=None,
-        metadata=None,
-    ):
-        """
-        :param uuid: integer id
-        :param name: name string
-        :param description: description string
-        :param encodingType: encoding of metadata
-        :param metadata: metadata
-        """
-        Entity.__init__(self, uuid)
-        self.name = name
-        self.description = description
-        self.encodingType = encodingType
-        self.metadata = metadata
+    """
+    Actuators are devices that turn messages into physical effects
+    """
+    name: str = attr.ib(default=None)
+    description: str = attr.ib(default=None)
+    encodingType: str = attr.ib(default=None)  # metadata encoding
+    metadata: Any = attr.ib(default=None)
 
-
+    
+@attr.s
 class TaskingCapabilities(Entity):
-    def __init__(self, name=None, description=None, taskingParameters=None, uuid=None):
-        # type: (TaskingCapabilities, str, str, dict, str) -> TaskingCapabilities
-        """
-        Abstract tasking class mapping I/O and generating signal.
-        """
-        Entity.__init__(self, uuid)
-        self.name = name
-        self.description = description
-        self.taskingParameters = taskingParameters
+    """
+    Abstract tasking class mapping I/O and generating signal.
+    """
+    name: str = attr.ib(default=None)
+    creationTime: float = attr.ib(default=attr.Factory(time))
+    taskingParameters: dict = attr.ib(default=None)
 
 
+@attr.s
 class Tasks(Entity):
-    def __init__(self, taskingParameters=None, uuid=None):
-        # type: (Tasks, dict, **dict) -> Tasks
-        """
-        Task!
-        """
-        Entity.__init__(self, uuid)
-        self.creationTime = time()
-        self.taskingParameters = taskingParameters
+    """
+    Tasks are pieces of work that are done asynchronously by humans or machines.
+    """
+    creationTime: float = attr.ib(default=attr.Factory(time))
+    taskingParameters: dict = attr.ib(default=None)
+
