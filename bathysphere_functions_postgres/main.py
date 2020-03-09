@@ -45,24 +45,18 @@ def main(request: Request):
     """
     Do some postgres stuff
     """
-    return "Yo", 200
-    _hash = getenv("Http_Hmac")
 
-    with db.connect() as conn:
-
-        stmt = sqlalchemy.text(
-            "SELECT text FROM messages;"
-        )
-
-        records = [{
-            'message': row[0]
-        } for row in conn.execute(stmt).fetchall()]
+    try:
+        with db.connect() as conn:
+            stmt = sqlalchemy.text("SELECT text FROM messages")
+            records = [{'message': row[0]} for row in conn.execute(stmt).fetchall()]
+    except Exception as ex:
+        return str(ex), 500
 
     return dumps({
         "count": len(records),
         "data": records,
         "method": request.method,
-        "hash": _hash,
         "query_string": request.query_string
     }), 200
 
