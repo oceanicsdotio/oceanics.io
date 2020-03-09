@@ -4,11 +4,11 @@ from flask import Request
 import sqlalchemy
 from google.cloud import secretmanager
 
-PG_DP_NULL = "DOUBLE PRECISION NULL"
-PG_TS_TYPE = "TIMESTAMP NOT NULL"
-PG_GEO_TYPE = "GEOGRAPHY NOT NULL"
-PG_ID_TYPE = "INT PRIMARY KEY"
-PG_STR_TYPE = "VARCHAR(100) NULL"
+# PG_DP_NULL = "DOUBLE PRECISION NULL"
+# PG_TS_TYPE = "TIMESTAMP NOT NULL"
+# PG_GEO_TYPE = "GEOGRAPHY NOT NULL"
+# PG_ID_TYPE = "INT PRIMARY KEY"
+# PG_STR_TYPE = "VARCHAR(100) NULL"
 
 client = secretmanager.SecretManagerServiceClient()
 project_id = getenv("GCP_PROJECT")  # Google Compute default param
@@ -45,6 +45,7 @@ def main(request: Request):
     """
     Do some postgres stuff
     """
+    return "Yo", 200
     _hash = getenv("Http_Hmac")
 
     with db.connect() as conn:
