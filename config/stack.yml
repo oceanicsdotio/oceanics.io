@@ -11,7 +11,7 @@ functions:
     handler: ./bathysphere_functions_buoy
     image: bathysphere/bathysphere_functions_buoy-function:latest
     environment:
-      hostname: maine.loboviz.com
+      hostname: maine.loboviz.coconfigm
     secrets:
       - payload-secret
 
