@@ -56,7 +56,7 @@ def main(request: Request):
     return dumps({
         "count": len(records),
         "data": records,
-        "method": request.method,
-        "query_string": request.query_string
+        "method": str(request.method),
+        "query_string": str(request.query_string)
     }), 200
 
