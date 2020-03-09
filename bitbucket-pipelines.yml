@@ -29,4 +29,4 @@ pipelines:
 
 definitions:
   caches:
-    apt: /var/cache/apt/archives
+    apt: /var/bathysphere_functions_cache/apt/archives

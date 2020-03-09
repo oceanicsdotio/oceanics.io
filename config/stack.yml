@@ -1,0 +1,74 @@
+version: 1.0
+
+provider:
+  name: bathysphere_functions
+  gateway: http://127.0.0.1:8080
+
+functions:
+
+  buoy:
+    lang: python3-http
+    handler: ./bathysphere_functions_buoy
+    image: bathysphere/bathysphere_functions_buoy-function:latest
+    environment:
+      hostname: maine.loboviz.com
+    secrets:
+      - payload-secret
+
+#  bathysphere_functions_controller:
+#    lang: python3
+#    handler: ./bathysphere_functions_controller
+#    bathysphere_functions_image: bathysphere/faas-contoller:latest
+#
+#
+#  bathysphere_functions_archive:
+#    lang: python3
+#    handler: ./bathysphere_functions_archive
+#    environment:
+#      hostname: maine.loboviz.com
+#    bathysphere_functions_image: bathysphere/faas-bathysphere_functions_archive:latest
+#    secrets:
+#      - loboviz-admin
+#      - loboviz-secret
+#
+#  bathysphere_functions_parse:
+#    lang: python3
+#    handler: ./bathysphere_functions_parse
+#    bathysphere_functions_image: bathysphere/faas-bathysphere_functions_parse:latest
+#
+#  bathysphere_functions_notify:
+#    lang: python3
+#    handler: ./bathysphere_functions_notify
+#    bathysphere_functions_image: bathysphere/bathysphere_functions_notify-function:latest
+#    secrets:
+#      - mail-service-key
+#      - smtp-host
+#      - payload-secret
+#
+#  bathysphere_functions_postgres:
+#    lang: python3
+#    handler: ./bathysphere_functions_postgres
+#    bathysphere_functions_image: bathysphere/bathysphere_functions_postgres-function:latest
+#    secrets:
+#      - payload-secret
+#      - pg-username
+#      - pg-hostname
+#      - pg-password
+#      - pg-port
+#
+#  bathysphere_functions_cache:
+#    lang: python3
+#    handler: ./bathysphere_functions_cache
+#    bathysphere_functions_image: bathysphere/bathysphere_functions_cache-function:latest
+#    secrets:
+#      - payload-secret
+#      - redis-host
+#      - redis-key
+#      - redis-port
+
+#  bathysphere_functions_repository:
+#    lang: python3
+#    handler: ./bathysphere_functions_repository
+#    bathysphere_functions_image: bathysphere_functions_repository:latest
+#    secrets:
+#      - object-storage

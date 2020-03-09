@@ -55,7 +55,7 @@ def clean_fields(fields):
 #     """
 #     Run a process that continuously updates the local database from a remote target.
 #     """
-#     db, cursor = postgres(auth=app.app.config["PG_AUTH"])
+#     db, cursor = bathysphere_functions_postgres(auth=app.app.config["PG_AUTH"])
 #     start = datetime.utcnow()
 #
 #     while True:

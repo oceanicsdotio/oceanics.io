@@ -47,7 +47,7 @@ info:
 
 externalDocs:
 
-  description: See the repository for more information
+  description: See the bathysphere_functions_repository for more information
   url: https://bitbucket.org/aquaculture/bathysphere
 
 x-tagGroups:
@@ -382,7 +382,7 @@ paths:
           $ref: '#/components/responses/BadRequest'
 
 #
-#  /archive:
+#  /bathysphere_functions_archive:
 #
 #    post:
 #      tags: [ Admin ]
@@ -468,7 +468,7 @@ paths:
 #
 #        | Heading                                             |         Auth         | Description                                  | Path     | Query | Tokens        |
 #        | :-------------------------------------------------- | :------------------: | :------------------------------------------- | -------- | ----- | ------------- |
-#        | [Archive]()        | Yes | Raw data (`.raw`) and log (`.raw.txt`) files | `Things` | `GET` | `$archive`    |
+#        | [Archive]()        | Yes | Raw data (`.raw`) and log (`.raw.txt`) files | `Things` | `GET` | `$bathysphere_functions_archive`    |
 #        | [Info]() |                      | Summary table with site, first, last, total  | `Things` | `GET` | `$statistics` |
 #        | [Pending]()           | Yes | Files waiting to be processed                | `Things` | `GET` | `$pending`    |
 #        | [Recent-Raw]()  | Yes | Daily raw text                               | `Things` | `GET` | `$recent`     |
@@ -489,11 +489,11 @@ paths:
 #
 #        | Heading | Auth | Description | Path | Query | Parameter |
 #        | :-- | :-- | --- | :-- | --- | --- |
-#        | [Averages]() |  |One sensor, one site, one averaging window (d/w/m/y), for any date range. |`Datastreams` |`GET` |`$resample` `$image` |
-#        | [By year]() |  | One variable, overlapping years. Replace with Julian day. | `Datastreams` | `GET` | `$image` `$wrap` |
-#        | [Non-public](protected/) | Yes |Includes extra y-variables for diagnostic |`Datastreams` |`GET` |`$image` |
+#        | [Averages]() |  |One sensor, one site, one averaging window (d/w/m/y), for any date range. |`Datastreams` |`GET` |`$resample` `$bathysphere_functions_image` |
+#        | [By year]() |  | One variable, overlapping years. Replace with Julian day. | `Datastreams` | `GET` | `$bathysphere_functions_image` `$wrap` |
+#        | [Non-public](protected/) | Yes |Includes extra y-variables for diagnostic |`Datastreams` |`GET` |`$bathysphere_functions_image` |
 #        |[Peaks]() |Yes | Min and max values and the date of occurance, for single site. | `Datastreams` | `GET` | `$statistics` |
-#        |[Year background]() | | Display single variable for year against daily min/max for multiple other years. <br /><br />Note: Replaced with daily moving average and envelope of other sites. | `Datastreams` | `GET` | `$image` `$wrap` `$resample` `$statistics` |
+#        |[Year background]() | | Display single variable for year against daily min/max for multiple other years. <br /><br />Note: Replaced with daily moving average and envelope of other sites. | `Datastreams` | `GET` | `$bathysphere_functions_image` `$wrap` `$resample` `$statistics` |
 #
 #
 #      parameters:
@@ -556,7 +556,7 @@ paths:
 #                    items:
 #                      type: object
 #
-#  /cache:
+#  /bathysphere_functions_cache:
 #
 #    post:
 #      tags: [ Storage ]
@@ -567,7 +567,7 @@ paths:
 #        '200':
 #          description: Success
 #
-#  /controller:
+#  /bathysphere_functions_controller:
 #
 #    post:
 #      tags: [ IoT ]
@@ -578,14 +578,14 @@ paths:
 #      responses:
 #        '200':
 #          description: Success
-#  /image:
+#  /bathysphere_functions_image:
 #
 #    post:
 #
 #      tags: [ Analysis ]
 #      summary: Image
 #      description: |
-#        Create PNG images from data sources and references and cache it.
+#        Create PNG images from data sources and references and bathysphere_functions_cache it.
 #        The service call methods from the `matplotlib` library,
 #        which uses the anti-grain graphics backend (`AGG`). The images are portable network graphics (`.png`)
 #        by default, but `.pdf` and `.tiff` are available for print media.
@@ -617,7 +617,7 @@ paths:
 #                  type: object
 #                  nullable: true
 #                  description: |
-#                    Style is used change the appearance of the rendered image.
+#                    Style is used change the appearance of the rendered bathysphere_functions_image.
 #
 #                  properties:
 #
@@ -626,7 +626,7 @@ paths:
 #                      enum: [dark, light]
 #                      default: dark
 #                      description: |
-#                        Select between light and dark templates depending on whether the image is intended for display
+#                        Select between light and dark templates depending on whether the bathysphere_functions_image is intended for display
 #                        on a screen or for printed media.
 #
 #                    bg:
@@ -635,7 +635,7 @@ paths:
 #                      description: |
 #                        Override the default background color for the chosen or default template. Dark themes have a `black`
 #                        background by default, and light themes have a `white` background. Use this to match the background
-#                        color when embedding in a web page. This can also be transparent for image compositing.
+#                        color when embedding in a web page. This can also be transparent for bathysphere_functions_image compositing.
 #
 #                    contrast:
 #                      type: string
@@ -687,7 +687,7 @@ paths:
 #                        format: float
 #                      default: [0.1, 0.2, 0.05, 0.1]
 #                      description: |
-#                        Content padding from edges of image to make room for labels and title.
+#                        Content padding from edges of bathysphere_functions_image to make room for labels and title.
 #
 #                    marker:
 #                      type: integer
@@ -713,13 +713,13 @@ paths:
 #                      format: float
 #                      default: 6.5
 #                      description: |
-#                        Width of image in inches
+#                        Width of bathysphere_functions_image in inches
 #
 #                    height:
 #                      type: number
 #                      format: float
 #                      description: |
-#                        Height of image in inches
+#                        Height of bathysphere_functions_image in inches
 #
 #                data:
 #                  title: data container
@@ -803,7 +803,7 @@ paths:
 #                    format: uri
 #                    example: https://data.oceanics.io/example.png
 #
-#  /notify:
+#  /bathysphere_functions_notify:
 #
 #    post:
 #      tags: [ Admin ]
@@ -814,7 +814,7 @@ paths:
 #        '200':
 #          description: Success
 #
-#  /parse:
+#  /bathysphere_functions_parse:
 #
 #    post:
 #      tags: [ Analysis ]
@@ -825,7 +825,7 @@ paths:
 #        '200':
 #          description: Success
 #
-#  /postgres:
+#  /bathysphere_functions_postgres:
 #
 #    post:
 #      tags: [ Storage ]
@@ -908,7 +908,7 @@ paths:
 #                    type: string
 #                    example: Requires POST with payload
 #
-#  /repository:
+#  /bathysphere_functions_repository:
 #
 #    post:
 #      tags: [ Storage ]

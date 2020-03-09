@@ -103,7 +103,7 @@ def start(
     :param relay_id: which relay this process controls
     :param host: host of server or client
     :param port: port number to open
-    :param send: operate in controller mode
+    :param send: operate in bathysphere_functions_controller mode
     :param refresh: how often the signals are updated
     :param banks: number of replica relay banks
     :param relays: total number of relays

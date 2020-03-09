@@ -97,7 +97,7 @@ class FileSystem:
         """
         Load variables from NetCDF or pickled files into memory. For NetCDF, each variable is accessed
         by name, resulting in an array. For previously processed internal data, arrays are stored as
-        binary data in either `.pkl` or `.cache` files.
+        binary data in either `.pkl` or `.bathysphere_functions_cache` files.
 
         :param observed_properties: lookup field names
         :param path: path to local files if loading

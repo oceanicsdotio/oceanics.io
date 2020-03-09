@@ -129,7 +129,7 @@ def delete(storage, bucket_name, prefix, batch=10):
 def unlock(storage, bucket_name, object_name):
     # type: (Minio, str, str) -> bool
     """
-    Unlock the dataset or repository IFF it contains the session ID
+    Unlock the dataset or bathysphere_functions_repository IFF it contains the session ID
     """
     try:
         _ = storage.stat_object(bucket_name, object_name)
