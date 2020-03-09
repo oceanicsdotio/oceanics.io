@@ -4,8 +4,8 @@ from passlib.apps import custom_app_context
 from functools import reduce
 from os import getenv
 
-from bathysphere_graph.models import *
-from bathysphere_graph import appConfig, app
+from bathysphere.models import *
+from bathysphere.graph import appConfig, app
 
 ExtentType = (float, float, float, float)
 ResponseJSON = (dict, int)

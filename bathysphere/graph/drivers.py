@@ -1,12 +1,13 @@
 from json import dumps
 from typing import Callable, Generator
-from neo4j.v1 import Driver
-from retry import retry
-from requests import post
 from typing import Any
 from enum import Enum
 import hashlib
 import hmac
+
+from neo4j import Driver
+from retry import retry
+from requests import post
 
 
 class RelationshipLabels(Enum):

@@ -4,10 +4,10 @@ setup(
     name='bathysphere',
     version='1.4',
     description='Marine geospatial data and analytics service',
-    url='https://www.oceanics.io',
+    url='https://graph.oceanics.io',
     author='Oceanicsdotio',
     author_email='business@oceanics.io',
-    packages=["bathysphere_graph", "bathysphere_array"],
+    packages=["bathysphere"],
     license='MIT',
     install_requires=[
         "flask",
@@ -26,6 +26,7 @@ setup(
         "pg8000",
         "bidict",
         "prance",
-        "rq"
+        "rq",
+        "attrs"
     ],
     zip_safe=False)
