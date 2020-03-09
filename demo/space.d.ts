@@ -2,34 +2,6 @@
 /* eslint-disable */
 /**
 * @param {any} ctx 
-* @param {string} vertex 
-* @param {string} fragment 
-* @returns {any} 
-*/
-export function create_program(ctx: any, vertex: string, fragment: string): any;
-/**
-* @param {any} ctx 
-* @param {Float32Array} data 
-* @returns {any} 
-*/
-export function create_buffer(ctx: any, data: Float32Array): any;
-/**
-* @param {any} ctx 
-* @param {any} texture 
-* @param {number} unit 
-*/
-export function bind_texture(ctx: any, texture: any, unit: number): void;
-/**
-* @param {any} ctx 
-* @param {any} data 
-* @param {number} filter 
-* @param {number} _width 
-* @param {number} _height 
-* @returns {any} 
-*/
-export function create_texture(ctx: any, data: any, filter: number, _width: number, _height: number): any;
-/**
-* @param {any} ctx 
 * @param {number} w 
 * @param {number} h 
 * @param {number} mx 
@@ -37,6 +9,11 @@ export function create_texture(ctx: any, data: any, filter: number, _width: numb
 * @param {any} color 
 */
 export function draw_hex_grid(ctx: any, w: number, h: number, mx: number, my: number, color: any): void;
+/**
+* @param {number} np 
+* @returns {Float64Array} 
+*/
+export function random_series(np: number): Float64Array;
 /**
 */
 export function panic_hook(): void;
@@ -103,10 +80,33 @@ export function make_vertex_array(series: Float64Array): Float64Array;
 */
 export function mouse_move(x: number, y: number): void;
 /**
-* @param {number} np 
-* @returns {Float64Array} 
+* @param {any} ctx 
+* @param {string} vertex 
+* @param {string} fragment 
+* @returns {any} 
 */
-export function random_series(np: number): Float64Array;
+export function create_program(ctx: any, vertex: string, fragment: string): any;
+/**
+* @param {any} ctx 
+* @param {Float32Array} data 
+* @returns {any} 
+*/
+export function create_buffer(ctx: any, data: Float32Array): any;
+/**
+* @param {any} ctx 
+* @param {any} texture 
+* @param {number} unit 
+*/
+export function bind_texture(ctx: any, texture: any, unit: number): void;
+/**
+* @param {any} ctx 
+* @param {any} data 
+* @param {number} filter 
+* @param {number} _width 
+* @param {number} _height 
+* @returns {any} 
+*/
+export function create_texture(ctx: any, data: any, filter: number, _width: number, _height: number): any;
 /**
 */
 export class Agent {
@@ -217,26 +217,6 @@ export class DataStream {
 */
 export class DrawingCanvas {
   free(): void;
-/**
-* @returns {DrawingCanvas} 
-*/
-  static new(): DrawingCanvas;
-/**
-* @param {number} x 
-* @param {number} y 
-*/
-  start_segment(x: number, y: number): void;
-/**
-* @param {number} x 
-* @param {number} y 
-*/
-  extend(x: number, y: number): void;
-/**
-* @param {any} ctx 
-* @param {number} w 
-* @param {number} h 
-*/
-  draw(ctx: any, w: number, h: number): void;
 }
 /**
 */
@@ -295,10 +275,10 @@ export class RectilinearGrid {
 * @param {number} w 
 * @param {number} h 
 * @param {number} frames 
-* @param {number} time 
+* @param {number} _time 
 * @param {any} color 
 */
-  animation_frame(ctx: any, w: number, h: number, frames: number, time: number, color: any): void;
+  animation_frame(ctx: any, w: number, h: number, frames: number, _time: number, color: any): void;
 }
 /**
 */
@@ -372,10 +352,10 @@ export class TriangularMesh {
 * @param {number} w 
 * @param {number} h 
 * @param {number} frame 
-* @param {number} time 
+* @param {number} _time 
 * @param {any} color 
 */
-  animation_frame(ctx: any, w: number, h: number, frame: number, time: number, color: any): void;
+  animation_frame(ctx: any, w: number, h: number, frame: number, _time: number, color: any): void;
 /**
 * @param {number} index 
 * @returns {boolean} 

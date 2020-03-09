@@ -260,36 +260,36 @@ impl Segment {
     }
 }
 
-#[wasm_bindgen]
-impl DrawingCanvas {
+// #[wasm_bindgen]
+// impl DrawingCanvas {
 
 
-    pub fn new() -> DrawingCanvas {
-        DrawingCanvas {
-            segments: vec![]
-        }
-    }
+//     pub fn new() -> DrawingCanvas {
+//         DrawingCanvas {
+//             segments: vec![]
+//         }
+//     }
 
-    pub fn start_segment(&mut self, _x: f64, _y: f64) {
-        self.segments.push(Segment::new());
+//     pub fn start_segment(&mut self, _x: f64, _y: f64) {
+//         self.segments.push(Segment::new());
 
-    }
+//     }
 
-    pub fn extend(&mut self, x: f64, y: f64) {
-        let n = self.segments.len();
-        let mut seg = self.segments[n];
-        if seg.points.len() > 100 {
-            let (_, _) = seg.points.pop_front().unwrap();
-        }
-        let _xy = seg.points.back().unwrap();
-        if (_xy.0 - x).abs() < 0.001 && (_xy.1 - y).abs() < 0.001 {
-            seg.points.push_back((x, y));
-        }
-    }
+//     pub fn extend(&mut self, x: f64, y: f64) {
+//         let n = self.segments.len();
+//         let mut seg = self.segments[n];
+//         if seg.points.len() > 100 {
+//             let (_, _) = seg.points.pop_front().unwrap();
+//         }
+//         let _xy = seg.points.back().unwrap();
+//         if (_xy.0 - x).abs() < 0.001 && (_xy.1 - y).abs() < 0.001 {
+//             seg.points.push_back((x, y));
+//         }
+//     }
 
-    pub fn draw(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64) {
-        for seg in &self.segments {
-            seg.draw(ctx, w, h);
-        }
-    }
-}
+//     pub fn draw(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64) {
+//         for seg in &self.segments {
+//             seg.draw(ctx, w, h);
+//         }
+//     }
+// }

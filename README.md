@@ -30,7 +30,7 @@ as static files by compiling [without a bundler](https://github.com/rustwasm/was
 
 
 
-Use `sh build-wasm.sh` to compile rust to webassembly and generate javascript bindings.
+Use `yarn run build-wasm` to compile rust to webassembly and generate javascript bindings.
 
 `Cargo.toml` describes the rust dependencies
 

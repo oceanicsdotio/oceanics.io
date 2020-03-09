@@ -1,10 +1,6 @@
 /* tslint:disable */
 /* eslint-disable */
 export const memory: WebAssembly.Memory;
-export function create_program(a: number, b: number, c: number, d: number, e: number): number;
-export function create_buffer(a: number, b: number, c: number): number;
-export function bind_texture(a: number, b: number, c: number): void;
-export function create_texture(a: number, b: number, c: number, d: number, e: number): number;
 export function __wbg_rectilineargrid_free(a: number): void;
 export function __wbg_triangularmesh_free(a: number): void;
 export function __wbg_texture2d_free(a: number): void;
@@ -44,6 +40,14 @@ export function agent_clamp_motion(a: number, b: number, c: number, d: number, e
 export function agent_draw_agent(a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number, l: number): void;
 export function __wbg_group_free(a: number): void;
 export function group_new(): number;
+export function random_series(a: number, b: number): void;
+export function __wbg_axis_free(a: number): void;
+export function __wbg_observation_free(a: number): void;
+export function __wbg_observedproperty_free(a: number): void;
+export function __wbg_datastream_free(a: number): void;
+export function datastream_new(a: number): number;
+export function datastream_push(a: number, b: number, c: number): void;
+export function datastream_draw(a: number, b: number, c: number, d: number, e: number): void;
 export function panic_hook(): void;
 export function create_color_map_canvas(a: number): number;
 export function clear_rect_blending(a: number, b: number, c: number, d: number): void;
@@ -56,18 +60,10 @@ export function fetch_text(a: number, b: number): number;
 export function make_vertex_array(a: number, b: number, c: number): void;
 export function mouse_move(a: number, b: number): void;
 export function __wbg_drawingcanvas_free(a: number): void;
-export function drawingcanvas_new(): number;
-export function drawingcanvas_start_segment(a: number, b: number, c: number): void;
-export function drawingcanvas_extend(a: number, b: number, c: number): void;
-export function drawingcanvas_draw(a: number, b: number, c: number, d: number): void;
-export function random_series(a: number, b: number): void;
-export function __wbg_axis_free(a: number): void;
-export function __wbg_observation_free(a: number): void;
-export function __wbg_observedproperty_free(a: number): void;
-export function __wbg_datastream_free(a: number): void;
-export function datastream_new(a: number): number;
-export function datastream_push(a: number, b: number, c: number): void;
-export function datastream_draw(a: number, b: number, c: number, d: number, e: number): void;
+export function create_program(a: number, b: number, c: number, d: number, e: number): number;
+export function create_buffer(a: number, b: number, c: number): number;
+export function bind_texture(a: number, b: number, c: number): void;
+export function create_texture(a: number, b: number, c: number, d: number, e: number): number;
 export function __wbindgen_malloc(a: number): number;
 export function __wbindgen_realloc(a: number, b: number, c: number): number;
 export const __wbindgen_export_2: WebAssembly.Table;

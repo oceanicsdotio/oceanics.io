@@ -1,28 +1,6 @@
 
 let wasm;
 
-const heap = new Array(32);
-
-heap.fill(undefined);
-
-heap.push(undefined, null, true, false);
-
-function getObject(idx) { return heap[idx]; }
-
-let heap_next = heap.length;
-
-function dropObject(idx) {
-    if (idx < 36) return;
-    heap[idx] = heap_next;
-    heap_next = idx;
-}
-
-function takeObject(idx) {
-    const ret = getObject(idx);
-    dropObject(idx);
-    return ret;
-}
-
 let cachedTextDecoder = new TextDecoder('utf-8', { ignoreBOM: true, fatal: true });
 
 cachedTextDecoder.decode();
@@ -39,6 +17,14 @@ function getStringFromWasm0(ptr, len) {
     return cachedTextDecoder.decode(getUint8Memory0().subarray(ptr, ptr + len));
 }
 
+const heap = new Array(32);
+
+heap.fill(undefined);
+
+heap.push(undefined, null, true, false);
+
+let heap_next = heap.length;
+
 function addHeapObject(obj) {
     if (heap_next === heap.length) heap.push(heap.length + 1);
     const idx = heap_next;
@@ -46,6 +32,20 @@ function addHeapObject(obj) {
 
     heap[idx] = obj;
     return idx;
+}
+
+function getObject(idx) { return heap[idx]; }
+
+function dropObject(idx) {
+    if (idx < 36) return;
+    heap[idx] = heap_next;
+    heap_next = idx;
+}
+
+function takeObject(idx) {
+    const ret = getObject(idx);
+    dropObject(idx);
+    return ret;
 }
 
 let WASM_VECTOR_LEN = 0;
@@ -192,86 +192,6 @@ function addBorrowedObject(obj) {
 }
 /**
 * @param {any} ctx
-* @param {string} vertex
-* @param {string} fragment
-* @returns {any}
-*/
-export function create_program(ctx, vertex, fragment) {
-    try {
-        var ptr0 = passStringToWasm0(vertex, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        var len0 = WASM_VECTOR_LEN;
-        var ptr1 = passStringToWasm0(fragment, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        var len1 = WASM_VECTOR_LEN;
-        var ret = wasm.create_program(addBorrowedObject(ctx), ptr0, len0, ptr1, len1);
-        return takeObject(ret);
-    } finally {
-        heap[stack_pointer++] = undefined;
-    }
-}
-
-let cachegetFloat32Memory0 = null;
-function getFloat32Memory0() {
-    if (cachegetFloat32Memory0 === null || cachegetFloat32Memory0.buffer !== wasm.memory.buffer) {
-        cachegetFloat32Memory0 = new Float32Array(wasm.memory.buffer);
-    }
-    return cachegetFloat32Memory0;
-}
-
-function passArrayF32ToWasm0(arg, malloc) {
-    const ptr = malloc(arg.length * 4);
-    getFloat32Memory0().set(arg, ptr / 4);
-    WASM_VECTOR_LEN = arg.length;
-    return ptr;
-}
-/**
-* @param {any} ctx
-* @param {Float32Array} data
-* @returns {any}
-*/
-export function create_buffer(ctx, data) {
-    try {
-        var ptr0 = passArrayF32ToWasm0(data, wasm.__wbindgen_malloc);
-        var len0 = WASM_VECTOR_LEN;
-        var ret = wasm.create_buffer(addBorrowedObject(ctx), ptr0, len0);
-        return takeObject(ret);
-    } finally {
-        heap[stack_pointer++] = undefined;
-    }
-}
-
-/**
-* @param {any} ctx
-* @param {any} texture
-* @param {number} unit
-*/
-export function bind_texture(ctx, texture, unit) {
-    try {
-        wasm.bind_texture(addBorrowedObject(ctx), addHeapObject(texture), unit);
-    } finally {
-        heap[stack_pointer++] = undefined;
-    }
-}
-
-/**
-* @param {any} ctx
-* @param {any} data
-* @param {number} filter
-* @param {number} _width
-* @param {number} _height
-* @returns {any}
-*/
-export function create_texture(ctx, data, filter, _width, _height) {
-    try {
-        var ret = wasm.create_texture(addBorrowedObject(ctx), addBorrowedObject(data), filter, _width, _height);
-        return takeObject(ret);
-    } finally {
-        heap[stack_pointer++] = undefined;
-        heap[stack_pointer++] = undefined;
-    }
-}
-
-/**
-* @param {any} ctx
 * @param {number} w
 * @param {number} h
 * @param {number} mx
@@ -284,6 +204,30 @@ export function draw_hex_grid(ctx, w, h, mx, my, color) {
     } finally {
         heap[stack_pointer++] = undefined;
     }
+}
+
+let cachegetFloat64Memory0 = null;
+function getFloat64Memory0() {
+    if (cachegetFloat64Memory0 === null || cachegetFloat64Memory0.buffer !== wasm.memory.buffer) {
+        cachegetFloat64Memory0 = new Float64Array(wasm.memory.buffer);
+    }
+    return cachegetFloat64Memory0;
+}
+
+function getArrayF64FromWasm0(ptr, len) {
+    return getFloat64Memory0().subarray(ptr / 8, ptr / 8 + len);
+}
+/**
+* @param {number} np
+* @returns {Float64Array}
+*/
+export function random_series(np) {
+    wasm.random_series(8, np);
+    var r0 = getInt32Memory0()[8 / 4 + 0];
+    var r1 = getInt32Memory0()[8 / 4 + 1];
+    var v0 = getArrayF64FromWasm0(r0, r1).slice();
+    wasm.__wbindgen_free(r0, r1 * 8);
+    return v0;
 }
 
 /**
@@ -394,23 +338,11 @@ export function fetch_text(path) {
     return takeObject(ret);
 }
 
-let cachegetFloat64Memory0 = null;
-function getFloat64Memory0() {
-    if (cachegetFloat64Memory0 === null || cachegetFloat64Memory0.buffer !== wasm.memory.buffer) {
-        cachegetFloat64Memory0 = new Float64Array(wasm.memory.buffer);
-    }
-    return cachegetFloat64Memory0;
-}
-
 function passArrayF64ToWasm0(arg, malloc) {
     const ptr = malloc(arg.length * 8);
     getFloat64Memory0().set(arg, ptr / 8);
     WASM_VECTOR_LEN = arg.length;
     return ptr;
-}
-
-function getArrayF64FromWasm0(ptr, len) {
-    return getFloat64Memory0().subarray(ptr / 8, ptr / 8 + len);
 }
 /**
 * @param {Float64Array} series
@@ -436,16 +368,83 @@ export function mouse_move(x, y) {
 }
 
 /**
-* @param {number} np
-* @returns {Float64Array}
+* @param {any} ctx
+* @param {string} vertex
+* @param {string} fragment
+* @returns {any}
 */
-export function random_series(np) {
-    wasm.random_series(8, np);
-    var r0 = getInt32Memory0()[8 / 4 + 0];
-    var r1 = getInt32Memory0()[8 / 4 + 1];
-    var v0 = getArrayF64FromWasm0(r0, r1).slice();
-    wasm.__wbindgen_free(r0, r1 * 8);
-    return v0;
+export function create_program(ctx, vertex, fragment) {
+    try {
+        var ptr0 = passStringToWasm0(vertex, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len0 = WASM_VECTOR_LEN;
+        var ptr1 = passStringToWasm0(fragment, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len1 = WASM_VECTOR_LEN;
+        var ret = wasm.create_program(addBorrowedObject(ctx), ptr0, len0, ptr1, len1);
+        return takeObject(ret);
+    } finally {
+        heap[stack_pointer++] = undefined;
+    }
+}
+
+let cachegetFloat32Memory0 = null;
+function getFloat32Memory0() {
+    if (cachegetFloat32Memory0 === null || cachegetFloat32Memory0.buffer !== wasm.memory.buffer) {
+        cachegetFloat32Memory0 = new Float32Array(wasm.memory.buffer);
+    }
+    return cachegetFloat32Memory0;
+}
+
+function passArrayF32ToWasm0(arg, malloc) {
+    const ptr = malloc(arg.length * 4);
+    getFloat32Memory0().set(arg, ptr / 4);
+    WASM_VECTOR_LEN = arg.length;
+    return ptr;
+}
+/**
+* @param {any} ctx
+* @param {Float32Array} data
+* @returns {any}
+*/
+export function create_buffer(ctx, data) {
+    try {
+        var ptr0 = passArrayF32ToWasm0(data, wasm.__wbindgen_malloc);
+        var len0 = WASM_VECTOR_LEN;
+        var ret = wasm.create_buffer(addBorrowedObject(ctx), ptr0, len0);
+        return takeObject(ret);
+    } finally {
+        heap[stack_pointer++] = undefined;
+    }
+}
+
+/**
+* @param {any} ctx
+* @param {any} texture
+* @param {number} unit
+*/
+export function bind_texture(ctx, texture, unit) {
+    try {
+        wasm.bind_texture(addBorrowedObject(ctx), addHeapObject(texture), unit);
+    } finally {
+        heap[stack_pointer++] = undefined;
+    }
+}
+
+/**
+* @param {any} ctx
+* @param {any} data
+* @param {number} filter
+* @param {number} _width
+* @param {number} _height
+* @returns {any}
+*/
+export function create_texture(ctx, data, filter, _width, _height) {
+    try {
+        var ret = wasm.create_texture(addBorrowedObject(ctx), addBorrowedObject(data), filter, _width, _height);
+        return takeObject(ret);
+    } finally {
+        heap[stack_pointer++] = undefined;
+        heap[stack_pointer++] = undefined;
+    }
 }
 
 function handleError(e) {
@@ -463,7 +462,7 @@ function getUint8ClampedMemory0() {
 function getClampedArrayU8FromWasm0(ptr, len) {
     return getUint8ClampedMemory0().subarray(ptr / 1, ptr / 1 + len);
 }
-function __wbg_adapter_198(arg0, arg1, arg2, arg3) {
+function __wbg_adapter_194(arg0, arg1, arg2, arg3) {
     wasm.wasm_bindgen__convert__closures__invoke2_mut__hc5676375af21edd9(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
 }
 
@@ -670,51 +669,11 @@ export class DataStream {
 */
 export class DrawingCanvas {
 
-    static __wrap(ptr) {
-        const obj = Object.create(DrawingCanvas.prototype);
-        obj.ptr = ptr;
-
-        return obj;
-    }
-
     free() {
         const ptr = this.ptr;
         this.ptr = 0;
 
         wasm.__wbg_drawingcanvas_free(ptr);
-    }
-    /**
-    * @returns {DrawingCanvas}
-    */
-    static new() {
-        var ret = wasm.drawingcanvas_new();
-        return DrawingCanvas.__wrap(ret);
-    }
-    /**
-    * @param {number} x
-    * @param {number} y
-    */
-    start_segment(x, y) {
-        wasm.drawingcanvas_start_segment(this.ptr, x, y);
-    }
-    /**
-    * @param {number} x
-    * @param {number} y
-    */
-    extend(x, y) {
-        wasm.drawingcanvas_extend(this.ptr, x, y);
-    }
-    /**
-    * @param {any} ctx
-    * @param {number} w
-    * @param {number} h
-    */
-    draw(ctx, w, h) {
-        try {
-            wasm.drawingcanvas_draw(this.ptr, addBorrowedObject(ctx), w, h);
-        } finally {
-            heap[stack_pointer++] = undefined;
-        }
     }
 }
 /**
@@ -845,12 +804,12 @@ export class RectilinearGrid {
     * @param {number} w
     * @param {number} h
     * @param {number} frames
-    * @param {number} time
+    * @param {number} _time
     * @param {any} color
     */
-    animation_frame(ctx, w, h, frames, time, color) {
+    animation_frame(ctx, w, h, frames, _time, color) {
         try {
-            wasm.rectilineargrid_animation_frame(this.ptr, addBorrowedObject(ctx), w, h, frames, time, addHeapObject(color));
+            wasm.rectilineargrid_animation_frame(this.ptr, addBorrowedObject(ctx), w, h, frames, _time, addHeapObject(color));
         } finally {
             heap[stack_pointer++] = undefined;
         }
@@ -1004,12 +963,12 @@ export class TriangularMesh {
     * @param {number} w
     * @param {number} h
     * @param {number} frame
-    * @param {number} time
+    * @param {number} _time
     * @param {any} color
     */
-    animation_frame(ctx, w, h, frame, time, color) {
+    animation_frame(ctx, w, h, frame, _time, color) {
         try {
-            wasm.triangularmesh_animation_frame(this.ptr, addBorrowedObject(ctx), w, h, frame, time, addHeapObject(color));
+            wasm.triangularmesh_animation_frame(this.ptr, addBorrowedObject(ctx), w, h, frame, _time, addHeapObject(color));
         } finally {
             heap[stack_pointer++] = undefined;
         }
@@ -1036,12 +995,12 @@ function init(module) {
     let result;
     const imports = {};
     imports.wbg = {};
-    imports.wbg.__wbindgen_object_drop_ref = function(arg0) {
-        takeObject(arg0);
-    };
     imports.wbg.__wbindgen_string_new = function(arg0, arg1) {
         var ret = getStringFromWasm0(arg0, arg1);
         return addHeapObject(ret);
+    };
+    imports.wbg.__wbindgen_object_drop_ref = function(arg0) {
+        takeObject(arg0);
     };
     imports.wbg.__wbindgen_cb_drop = function(arg0) {
         const obj = takeObject(arg0).original;
@@ -1333,7 +1292,7 @@ function init(module) {
                 const a = state0.a;
                 state0.a = 0;
                 try {
-                    return __wbg_adapter_198(a, state0.b, arg0, arg1);
+                    return __wbg_adapter_194(a, state0.b, arg0, arg1);
                 } finally {
                     state0.a = a;
                 }
@@ -1455,7 +1414,7 @@ function init(module) {
         var ret = wasm.memory;
         return addHeapObject(ret);
     };
-    imports.wbg.__wbindgen_closure_wrapper290 = function(arg0, arg1, arg2) {
+    imports.wbg.__wbindgen_closure_wrapper283 = function(arg0, arg1, arg2) {
 
         const state = { a: arg0, b: arg1, cnt: 1 };
         const real = (arg0) => {
