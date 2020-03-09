@@ -1,3 +1,4 @@
 sqlalchemy
+pg8000
 flask
 google-cloud-secret-manager==0.1.1
