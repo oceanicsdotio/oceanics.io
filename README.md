@@ -30,6 +30,12 @@ The development environment is deployed locally with `docker-compose up -d`, and
 | `neo4j`             | `7687` | Graph database `bolt` protocol access       |
 | `neo4j`             | `7474` | Graph database built-in browser and console |
 
+## Commandline interface
+
+The Python application provides configurations and management tools through `click`. 
+
+This is a work in progress and will be documented more fully in the future.
+
 
 
 ## Functions
