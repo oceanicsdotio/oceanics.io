@@ -1,7 +1,8 @@
 from datetime import datetime
-from attrs import attr
 from typing import Any
 from time import time
+from secrets import token_urlsafe
+import attr
 
 
 @attr.s
