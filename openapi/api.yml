@@ -56,7 +56,10 @@ x-tagGroups:
     tags: [ Account, Catalog, Topology ]
 
   - name: FUNCTIONS
-    tags: [ Admin, Analysis, Internet of Things, Storage ]
+    tags: [ Admin ]
+
+  - name: NERITICS
+    tags: [ ML ]
 
 tags:
 
@@ -80,6 +83,12 @@ tags:
     x-displayName: Admin
     description: |
       Manage you account stuff. Delete it if you want.
+
+  - name: ML
+    x-displayName: ML
+    description: |
+      The machine learning service implements multivariate time series prediction using recurrent neural networks with
+      long short-term memory. The backend is `Keras` and `TensorFlow`.
 
 
 servers:
@@ -281,69 +290,6 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-
-          /{root}({rootId})/{entity}:
-
-            get:
-              tags: [ Topology ]
-              operationId: bathysphere.graph.handlers.query
-              summary: Query
-              description: |
-                Get related entities
-        
-              parameters:
-                - $ref: "#/components/parameters/root"
-                - $ref: "#/components/parameters/rootId"
-                - $ref: "#/components/parameters/entityClass"
-                - $ref: "#/components/parameters/label"
-        
-              responses:
-                '200':
-                  $ref: '#/components/responses/EntityCollection'
-                '400':
-                  $ref: '#/components/responses/BadRequest'
-        
-        
-          /{root}({rootId})/{entity}({id}):
-        
-            post:
-              tags: [ Topology ]
-              operationId: bathysphere.graph.handlers.join
-              summary: Join
-              description: Create a labeled relationship between entities.
-              parameters:
-                - $ref: "#/components/parameters/root"
-                - $ref: "#/components/parameters/rootId"
-                - $ref: "#/components/parameters/entityClass"
-                - $ref: "#/components/parameters/entityId"
-                - $ref: "#/components/parameters/label"
-        
-              responses:
-                '204':
-                  description: No Content
-                '400':
-                  $ref: '#/components/responses/BadRequest'
-        
-            delete:
-              tags: [Topology]
-              operationId: bathysphere.graph.handlers.drop
-              summary: Drop
-              description: |
-                Remove a labeled relationship between entities. If no `label` is specified, remove all
-                relationships between the entities.
-        
-              parameters:
-                - $ref: "#/components/parameters/root"
-                - $ref: "#/components/parameters/rootId"
-                - $ref: "#/components/parameters/entityClass"
-                - $ref: "#/components/parameters/entityId"
-                - $ref: "#/components/parameters/label"
-        
-              responses:
-                '204':
-                  description: No Content
-                '400':
-                  $ref: '#/components/responses/BadRequest'
         
   /{root}({rootId})/{entity}:
 
@@ -946,9 +892,303 @@ paths:
 #        '200':
 #          description: Success
 
+
+  /lstm/{cache}:
+
+    post:
+      tags: [ML]
+      operationId: goodbuoy_ml.create_keras_lstm
+      summary: Initialize model
+      description: |
+
+        Create and initialize a recurrent neural network with long short-term memory.
+
+      parameters:
+        - $ref: "#/components/parameters/Cache"
+
+      responses:
+        '200':
+          $ref: '#/components/responses/Message'
+
+  /lstm/{cache}/{object}:
+
+    put:
+      tags: [ML]
+      operationId: goodbuoy_ml.train_keras_lstm
+      summary: Train model
+      description: |
+
+        Feed training data to the neural network.
+
+      requestBody:
+        $ref: "#/components/requestBodies/TrainRequest"
+
+      parameters:
+        - $ref: "#/components/parameters/Cache"
+        - $ref: "#/components/parameters/ObjectKey"
+        - $ref: "#/components/parameters/Epochs"
+
+      responses:
+        '200':
+          $ref: '#/components/responses/Message'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    get:
+      tags: [ ML ]
+      operationId: goodbuoy_ml.predict_keras_lstm
+      summary: Predict
+      description: |
+
+        Get a prediction from the neural network.
+
+      parameters:
+        - $ref: "#/components/parameters/Cache"
+        - $ref: "#/components/parameters/ObjectKey"
+
+      responses:
+        '200':
+          $ref: '#/components/responses/Prediction'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags: [ ML ]
+      summary: Destroy model
+      description: |
+
+        Destroy the model state.
+
+      parameters:
+        - $ref: "#/components/parameters/Cache"
+        - $ref: "#/components/parameters/ObjectKey"
+
+      responses:
+        '200':
+          $ref: '#/components/responses/Message'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /kde/{cache}:
+
+    post:
+      tags: [ ML ]
+      # operationId: goodbuoy_ml.routes.points.create
+      summary: Create training points
+      description: |
+        Upload a collection of points for training a kernel density estimator
+
+      parameters:
+        - $ref: "#/components/parameters/Cache"
+
+      responses:
+        '200':
+          $ref: '#/components/responses/Message'
+
+  /kde/{cache}/{object}:
+
+    get:
+      tags: [ML]
+      operationId: goodbuoy_ml.routes.
+      summary: Predict
+      description: |
+
+        Get a prediction from the neural network.
+
+      parameters:
+        - $ref: "#/components/parameters/Cache"
+        - $ref: "#/components/parameters/ObjectKey"
+
+      responses:
+        '200':
+          $ref: '#/components/responses/Prediction'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+
 components:
 
   parameters:
+
+
+    dt:
+      in: query
+      name: dt
+      description: Timestep, integer seconds
+      schema:
+        type: integer
+        minimum: 60
+        maximum: 3600
+
+    bandwidth:
+      in: query
+      name: bandwidth
+      description: |
+        Width of convolution filter signal in terms of existing sample points. This assumes that the signal
+        discretization has even intervals, and no missing values.
+
+      schema:
+        type: integer
+        default: 1
+
+    lowpass:
+      in: query
+      name: lowpass
+      description: High-frequency cutoff in Hz
+      schema:
+        type: number
+        format: foat
+
+    highpass:
+      in: query
+      name: highpass
+      description: Low-frequency cutoff in Hz
+      schema:
+        type: number
+        format: foat
+
+    fill:
+      in: query
+      name: fill
+      description: Forward fill missing values
+      schema:
+        type: boolean
+
+    compress:
+      in: query
+      name: compress
+      description: |
+
+        Remove negative symmetry after transformation to frequency domain. The original or filtered signal can be
+        reconstituted from the positive frequencies only. More efficient if performing many operations during signal
+        processing, or saving frequency spectrum itself.
+
+      schema:
+        type: boolean
+        default: true
+
+    start:
+      in: query
+      name: start
+      description: Datetime to apply as a start
+      schema:
+        type: string
+
+    observations:
+      in: query
+      name: observations
+      description: Total number of observations to produce
+      schema:
+        type: int
+
+    method:
+      in: query
+      name: method
+      description: Interpolation method
+      schema:
+        type: string
+        enum:
+          - forward
+          - back
+          - interp
+
+    dimension:
+      in: query
+      name: dimension
+      description: Filter by y-value or time derivative
+      schema:
+        type: string
+        enum:
+          - simple
+          - time
+
+    convolutionMode:
+      in: query
+      name: convolutionMode
+      description: |
+
+        Determines the length of the resulting series. Mode "full" returns points of overlap, with size (N+M-1).
+        Boundary/edge effects will be retained. Mode "same" will have the same length as the input series. Mode "valid"
+        returns points where signals overlap, and will eliminate edges effects, but will have a different size than the
+        input series.
+
+      schema:
+        type: string
+        default: same
+        enum:
+          - full
+          - same
+          - valid
+
+    max:
+      in: query
+      name: max
+      description: Maximum to mask out or clamp
+      schema:
+        type: number
+        format: float
+
+    min:
+      in: query
+      name: min
+      description: Minmum to mask out or clamp
+      schema:
+        type: number
+        format: foat
+
+    threshold:
+      in: query
+      name: threshold
+      description: Number of standard deviations in masking envelope
+      schema:
+        type: number
+        format: foat
+
+    ObjectKey:
+      name: objectKey
+      in: path
+      description: |
+
+        Object string is used to load the neural network state into memory. If combined with,
+
+      schema:
+        type: string
+
+    Cache:
+      name: cache
+      in: path
+      description: |
+
+        Cache destination string, routed by the service. The `state` route indicates that the model state should
+        be stored inside the application container, which will force the container to persist until destroyed.
+
+      schema:
+        type: string
+        default: state
+        enum: [state, redis]
+
+    Socket:
+      name: socket
+      in: query
+      description: |
+
+        Open socket interactive/streaming mode. Not implemented.
+
+      schema:
+        type: bool
+        default: false
+
+    Epochs:
+      name: epochs
+      in: query
+      description: |
+
+        Number of training epochs.
+
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 10
 
     HMAC:
       name: hmac
@@ -1084,6 +1324,19 @@ components:
           schema:
             $ref: '#/components/schemas/Asset'
 
+    TrainRequest:
+      description: Training data
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TrainSchema'
+
+    CreateRequest:
+      description: Initialization data
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CreateSchema'
 
   responses:
 
@@ -1125,8 +1378,8 @@ components:
 
       content:
         application/json:
-        schema:
-          $ref: '#/components/schemas/EntityCollection'
+          schema:
+            $ref: '#/components/schemas/EntityCollection'
 
     TokenResponse:
       description: Auth token
@@ -1154,7 +1407,14 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Message'
-
+         
+    Prediction:
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Prediction'
+                
     NotFound:
       description: Not found
       content:
@@ -1880,3 +2140,58 @@ components:
                   - producer
                   - processor
                   - host
+
+    Prediction:
+      type: object
+      properties:
+        - name: count
+          type: integer
+        - $ref: '#/components/schemas/Datastream'
+
+    TrainSchema:
+      type: object
+      properties:
+        $ref: '#/components/schemas/Datastream'
+
+    CreateSchema:
+      type: object
+
+    Time:
+      type: number
+
+    Value:
+      type: number
+
+    Periods:
+      name: periods
+      type: int
+      minimum: 1
+      maximum: 1000
+      default: 1000
+
+    Horizon:
+      name: horizon
+      description: |
+        Sequence length the LSTM is trained on for each output point
+
+      type: int
+      minimum: 1
+      maximum: 4
+      default: 1
+
+    Window:
+      name: window
+      description: |
+        Number of observations in moving window for calculating the expected value from input datastream.
+
+      type: int
+      minimum: 1
+      default: 2
+
+    Ratio:
+      name: ratio
+      description: |
+        Fraction of observations to use for training. The rest are left for validation.
+      type: number
+      format: float
+      default: 0.8
