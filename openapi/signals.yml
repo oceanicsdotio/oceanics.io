@@ -1,0 +1,472 @@
+openapi: "3.0.0"
+
+info:
+  title: "Neritics API Specification"
+  version: "0.1"
+  description: |
+
+    Perform time series filtering. This includes unit conversion, normalization, and convolution.
+
+  contact:
+    name: Oceanicsdotio
+    url: http://www.oceanics.io
+    email: aquaculture@oceanics.io
+
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+
+paths:
+
+  /filter/smooth:
+
+    post:
+      tags: [Filter]
+      summary: Smooth
+      description: |
+
+        Smooth an evenly-spaced time series using convolution. The backend uses the `Numpy.convolve` method.
+        The result is a filtered time series, with a length that depends on the `convolutionMode` parameter. It is
+        the same length by default, but introduces artifacts at the boundaries.
+
+      operationId: neritics_filter.routes.smooth_convolve
+
+      parameters:
+        - $ref: '#/components/parameters/bandwidth'
+        - $ref: '#/components/parameters/convolutionMode'
+
+      requestBody:
+        $ref: '#/components/requestBodies/Series'
+
+      responses:
+        '200':
+          $ref: '#/components/responses/Filtered'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /filter/fft:
+
+    post:
+      tags: [Filter]
+      summary: Bandpass
+      description: |
+
+        Filter an evenly-spaced time series using fast Fourier transform. The query string can include `lowpass` and
+        `highpass` thresholds. With both described, this acts as a bandpass filter. The `fill` option will
+        automatically forward-fill missing values to prevent anomalies.
+
+      operationId: neritics_filter.routes.fft
+
+      parameters:
+        - $ref: '#/components/parameters/dt'
+        - $ref: '#/components/parameters/lowpass'
+        - $ref: '#/components/parameters/highpass'
+        - $ref: '#/components/parameters/fill'
+        - $ref: '#/components/parameters/compress'
+
+      requestBody:
+        $ref: '#/components/requestBodies/Series'
+
+      responses:
+        '200':
+          $ref: '#/components/responses/Filtered'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /filter/spectrum:
+
+    post:
+      tags: [Frequency]
+      summary: Spectrum
+      description: |
+
+        Generate a frequency spectrum for the provided signal. Must be evenly spaced. If there are missing values,
+        the `fill` flag will forward-fill before the transformation. The result can be compressed by remove negative
+        symmetry with the `compress` flag.
+
+      operationId: neritics_filter.routes.spectrum
+
+      parameters:
+        - $ref: '#/components/parameters/dt'
+        - $ref: '#/components/parameters/fill'
+        - $ref: '#/components/parameters/compress'
+
+      requestBody:
+        $ref: '#/components/requestBodies/Series'
+
+      responses:
+        '200':
+          $ref: '#/components/responses/Frequency'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /filter/resample:
+
+    post:
+      tags: [Filter]
+      summary: Resample and interpolate
+      description: |
+
+        Resample a sparse time series at specified rate by either forward/back filling or linear interpolation.
+
+      operationId: neritics_filter.routes.resample_sparse_series
+
+      parameters:
+        - $ref: '#/components/parameters/observations'
+        - $ref: '#/components/parameters/start'
+        - $ref: '#/components/parameters/method'
+
+      requestBody:
+        $ref: '#/components/requestBodies/Series'
+
+      responses:
+        '200':
+          $ref: '#/components/responses/Filtered'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /filter/outlier:
+
+    post:
+      tags: [Mask]
+      summary: Statistical outliers
+      description: |
+
+        Generate a boolean mask for the series. This can be for the independent variable, using the `dimension=simple`
+        query, or for time derivatives with `dimension=time`. True values in the response are masked, meaning these
+        indices can be deleted from in-memory time series.
+
+      operationId: neritics_filter.routes.outlier_handler
+
+      parameters:
+        - $ref: '#/components/parameters/threshold'
+        - $ref: '#/components/parameters/dimension'
+
+      requestBody:
+        $ref: '#/components/requestBodies/Series'
+
+      responses:
+        '200':
+          $ref: '#/components/responses/Mask'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /filter/range:
+
+    post:
+      tags: [Mask]
+      summary: Out of range values
+      description: |
+
+        Generate a boolean mask for the series. True values are those outside the given range, can can be used to cull
+        data from the client application.
+
+      operationId: neritics_filter.routes.outlier_range
+
+      parameters:
+        - $ref: '#/components/parameters/max'
+        - $ref: '#/components/parameters/min'
+
+      requestBody:
+        $ref: '#/components/requestBodies/Series'
+
+      responses:
+        '200':
+          $ref: '#/components/responses/Mask'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+
+components:
+
+  requestBodies:
+
+    Series:
+      description: Time series to filter or convert
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Datastream'
+
+  responses:
+
+    Frequency:
+      description: New time series
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/FFT'
+
+    Filtered:
+      description: New time series
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Datastream'
+
+    Mask:
+      description: Mask of time series
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Mask'
+
+    Unauthorized:
+      description: Not authorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    ServerError:
+      description: Server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  schemas:
+
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+
+    Datastream:
+      description: Array of time step responses
+      type: array
+      items:
+        - $ref: '#/components/schemas/Observation'
+
+    FFT:
+      description: Array of time step responses
+      type: array
+      items:
+        - $ref: '#/components/schemas/transformItem'
+
+    transformItem:
+      type: object
+      properties:
+        frequency:
+          type: number
+          format: float
+          minimum: 0.0
+        index:
+          type: number
+          format: float
+
+    Mask:
+      description: Array of boolean values
+      type: array
+      items:
+        - $ref: '#/components/schemas/MaskItem'
+
+    MaskItem:
+      description: Value of single mask item
+      type: boolean
+
+    Observation:
+      type: object
+      properties:
+        time:
+          type: number
+          format: float
+          minimum: 0.0
+        value:
+          type: number
+          format: float
+
+    Temperature:
+      description: |
+        Temperature, degrees Celsius, controls vital rates.
+      type: number
+      format: float
+      minimum: 0
+      maximum: 40
+
+  parameters:
+
+    dt:
+      in: query
+      name: dt
+      description: Timestep, integer seconds
+      schema:
+        type: integer
+        minimum: 60
+        maximum: 3600
+
+    bandwidth:
+      in: query
+      name: bandwidth
+      description: |
+        Width of convolution filter signal in terms of existing sample points. This assumes that the signal
+        discretization has even intervals, and no missing values.
+
+      schema:
+        type: integer
+        default: 1
+
+    lowpass:
+      in: query
+      name: lowpass
+      description: High-frequency cutoff in Hz
+      schema:
+        type: number
+        format: foat
+
+    highpass:
+      in: query
+      name: highpass
+      description: Low-frequency cutoff in Hz
+      schema:
+        type: number
+        format: foat
+
+    fill:
+      in: query
+      name: fill
+      description: Forward fill missing values
+      schema:
+        type: boolean
+
+    compress:
+      in: query
+      name: compress
+      description: |
+
+        Remove negative symmetry after transformation to frequency domain. The original or filtered signal can be
+        reconstituted from the positive frequencies only. More efficient if performing many operations during signal
+        processing, or saving frequency spectrum itself.
+
+      schema:
+        type: boolean
+        default: true
+
+    start:
+      in: query
+      name: start
+      description: Datetime to apply as a start
+      schema:
+        type: string
+
+    observations:
+      in: query
+      name: observations
+      description: Total number of observations to produce
+      schema:
+        type: int
+
+    method:
+      in: query
+      name: method
+      description: Interpolation method
+      schema:
+        type: string
+        enum:
+          - forward
+          - back
+          - interp
+
+    dimension:
+      in: query
+      name: dimension
+      description: Filter by y-value or time derivative
+      schema:
+        type: string
+        enum:
+          - simple
+          - time
+
+    convolutionMode:
+      in: query
+      name: convolutionMode
+      description: |
+
+        Determines the length of the resulting series. Mode "full" returns points of overlap, with size (N+M-1).
+        Boundary/edge effects will be retained. Mode "same" will have the same length as the input series. Mode "valid"
+        returns points where signals overlap, and will eliminate edges effects, but will have a different size than the
+        input series.
+
+      schema:
+        type: string
+        default: same
+        enum:
+          - full
+          - same
+          - valid
+
+    max:
+      in: query
+      name: max
+      description: Maximum to mask out or clamp
+      schema:
+        type: number
+        format: float
+
+    min:
+      in: query
+      name: min
+      description: Minmum to mask out or clamp
+      schema:
+        type: number
+        format: foat
+
+    threshold:
+      in: query
+      name: threshold
+      description: Number of standard deviations in masking envelope
+      schema:
+        type: number
+        format: foat
