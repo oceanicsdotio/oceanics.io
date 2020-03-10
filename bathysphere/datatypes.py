@@ -1,6 +1,7 @@
 from enum import Enum
 
 ExtentType = (float, float, float, float)
+IntervalType = (float, float)
 ResponseJSON = (dict, int)
 ResponseOctet = (dict, int)
 

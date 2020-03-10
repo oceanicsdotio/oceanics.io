@@ -46,6 +46,7 @@ from numpy import (
     ceil,
     random
 )
+
 from numpy.linalg import norm
 from numpy.ma import MaskedArray
 from scipy.interpolate import NearestNDInterpolator
@@ -61,6 +62,9 @@ from functools import reduce
 from matplotlib.patches import Path
 from multiprocessing import Pool
 from warnings import warn
+
+
+from bathysphere.datatypes import ExtentType, IntervalType
 
 DEGREES = 180 / pi
 RADIANS = pi / 180
@@ -90,8 +94,7 @@ if af:
     Array = af.Array or array
 else:
     Array = array
-ExtentType = (float, float, float, float)
-IntervalType = (float, float)
+
 
 
 class DataFormat(Enum):
