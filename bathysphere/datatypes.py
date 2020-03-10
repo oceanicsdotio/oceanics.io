@@ -13,3 +13,13 @@ class CoordinateSystem(Enum):
     Gaussian = 3
     Spherical = 4
     Periodic = 5
+
+
+class DataFormat(Enum):
+    NETCDF3_CLASSIC = 1
+    NETCDF4 = 2
+    NETCDF5 = 3
+    Custom = 4
+    Binary = 5
+    NumpyArray = 6
+    ArrayfireTexture = 7
