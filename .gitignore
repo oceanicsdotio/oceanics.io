@@ -108,6 +108,7 @@ venv.bak/
 # mypy
 .plotlib/__pycache__
 .egg-info
+*.egg-info
 .DS_Store
 .gitsecret/keys/random_seed
 !*.secret
