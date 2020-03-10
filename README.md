@@ -6,8 +6,10 @@
 - [Functions](#functions)
 - [Neo4j](#neo4j)
 - [Cypher](#cypher)
-- [Ingestion Tips](#ingestion-tips)
+- [Ingestion tips](#ingestion-tips)
 - [Postgres](#postgres)
+- [Biological models](#postgres)
+- [TensorFlow](#tensorflow)
 
 Bathysphere is a distributed store and registry for public and proprietary geospatial data. It was originally designed to support aquaculture research in the Gulf of Maine, but is intentionally generic. 
 
