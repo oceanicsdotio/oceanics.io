@@ -1,0 +1,304 @@
+openapi: "3.0.0"
+
+info:
+  title: "Neritics API - Machine Learning Service"
+  version: "0.1"
+  description: |
+
+    The machine learning service implements multivariate time series prediction using recurrent neural networks with
+    long short-term memory. The backend is `Keras` and `TensorFlow`.
+
+  contact:
+    name: Oceanicsdotio
+    url: http://www.oceanics.io
+    email: aquaculture@oceanics.io
+
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+
+paths:
+
+  /lstm/{cache}:
+
+    post:
+      tags: [Datastream]
+      operationId: goodbuoy_ml.create_keras_lstm
+      summary: Initialize model
+      description: |
+
+        Create and initialize a recurrent neural network with long short-term memory.
+
+      parameters:
+        - $ref: "#/components/parameters/Cache"
+
+      responses:
+        '200':
+          $ref: '#/components/responses/Message'
+
+  /lstm/{cache}/{object}:
+
+    put:
+      tags: [Datastream]
+      operationId: goodbuoy_ml.train_keras_lstm
+      summary: Train model
+      description: |
+
+        Feed training data to the neural network.
+
+      requestBody:
+        $ref: "#/components/requestBodies/TrainRequest"
+
+      parameters:
+        - $ref: "#/components/parameters/Cache"
+        - $ref: "#/components/parameters/ObjectKey"
+        - $ref: "#/components/parameters/Epochs"
+
+      responses:
+        '200':
+          $ref: '#/components/responses/Message'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    get:
+      tags: [Datastream]
+      operationId: goodbuoy_ml.predict_keras_lstm
+      summary: Predict
+      description: |
+
+        Get a prediction from the neural network.
+
+      parameters:
+        - $ref: "#/components/parameters/Cache"
+        - $ref: "#/components/parameters/ObjectKey"
+
+      responses:
+        '200':
+          $ref: '#/components/responses/Prediction'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags: [Datastream]
+      summary: Destroy model
+      description: |
+
+        Destroy the model state.
+
+      parameters:
+        - $ref: "#/components/parameters/Cache"
+        - $ref: "#/components/parameters/ObjectKey"
+
+      responses:
+        '200':
+          $ref: '#/components/responses/Message'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /kde/{cache}:
+
+    post:
+      tags: [Point Process]
+      operationId: goodbuoy_ml.routes.points.create
+      summary: Create training points
+      description: |
+
+        Upload a collection of points for training a kernel density estimator
+
+      parameters:
+        - $ref: "#/components/parameters/Cache"
+
+      responses:
+        '200':
+          $ref: '#/components/responses/Message'
+
+  /kde/{cache}/{object}:
+
+    get:
+      tags: [Point Process]
+      operationId: goodbuoy_ml.routes.
+      summary: Predict
+      description: |
+
+        Get a prediction from the neural network.
+
+      parameters:
+        - $ref: "#/components/parameters/Cache"
+        - $ref: "#/components/parameters/ObjectKey"
+
+      responses:
+        '200':
+          $ref: '#/components/responses/Prediction'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+
+  parameters:
+
+    ObjectKey:
+      name: objectKey
+      in: path
+      description: |
+
+        Object string is used to load the neural network state into memory. If combined with,
+
+      schema:
+        type: string
+
+    Cache:
+      name: cache
+      in: path
+      description: |
+
+        Cache destination string, routed by the service. The `state` route indicates that the model state should
+        be stored inside the application container, which will force the container to persist until destroyed.
+
+      schema:
+        type: string
+        default: state
+        enum: [state, redis]
+
+    Socket:
+      name: socket
+      in: query
+      description: |
+
+        Open socket interactive/streaming mode. Not implemented.
+
+      schema:
+        type: bool
+        default: false
+
+    Epochs:
+      name: epochs
+      in: query
+      description: |
+
+        Number of training epochs.
+
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 10
+
+  requestBodies:
+
+    TrainRequest:
+      description: Training data
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TrainSchema'
+
+    CreateRequest:
+      description: Initialization data
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CreateSchema'
+
+  responses:
+
+    Message:
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Message'
+
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Prediction:
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Prediction'
+
+  schemas:
+
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+
+    Message:
+      type: object
+      properties:
+        message:
+          type: string
+
+    Prediction:
+      type: object
+      properties:
+        - name: count
+          type: integer
+        - $ref: '#/components/schemas/Datastream'
+
+    TrainSchema:
+      type: object
+      properties:
+        $ref: '#/components/schemas/Datastream'
+
+    CreateSchema:
+      type: object
+
+    Datastream:
+      name: datastream
+      type: array
+      items:
+        $ref: '#/components/schemas/Observation'
+
+    Observation:
+      type: object
+      properties:
+        - $ref: '#/components/schemas/Time'
+        - $ref: '#/components/schemas/Value'
+
+    Time:
+      type: number
+
+    Value:
+      type: number
+
+    Periods:
+      name: periods
+      type: int
+      minimum: 1
+      maximum: 1000
+      default: 1000
+
+    Horizon:
+      name: horizon
+      description: |
+        Sequence length the LSTM is trained on for each output point
+
+      type: int
+      minimum: 1
+      maximum: 4
+      default: 1
+
+    Window:
+      name: window
+      description: |
+        Number of observations in moving window for calculating the expected value from input datastream.
+
+      type: int
+      minimum: 1
+      default: 2
+
+    Ratio:
+      name: ratio
+      description: |
+        Fraction of observations to use for training. The rest are left for validation.
+      type: number
+      format: float
+      default: 0.8

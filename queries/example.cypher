@@ -1,0 +1,1 @@
+MATCH (a:Ingress { name:"Oceanicsdotio" })-[r]-(b:Things) RETURN *;

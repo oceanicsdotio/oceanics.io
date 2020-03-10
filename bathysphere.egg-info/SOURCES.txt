@@ -1,0 +1,9 @@
+README.md
+setup.py
+bathysphere.egg-info/PKG-INFO
+bathysphere.egg-info/SOURCES.txt
+bathysphere.egg-info/dependency_links.txt
+bathysphere.egg-info/entry_points.txt
+bathysphere.egg-info/not-zip-safe
+bathysphere.egg-info/requires.txt
+bathysphere.egg-info/top_level.txt
