@@ -2,6 +2,7 @@
 # Bathysphere API
 
 - [Deploy](#deploy)
+- [Commandline interface](#commandline-interface)
 - [Functions](#functions)
 - [Neo4j](#neo4j)
 - [Cypher](#cypher)
