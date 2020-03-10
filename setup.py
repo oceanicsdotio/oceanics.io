@@ -29,7 +29,9 @@ setup(
         "prance",
         "rq",
         "attrs",
-        "click"
+        "click",
+        "minio",
+        "urllib3",
     ],
     entry_points="""
         [console_scripts]
