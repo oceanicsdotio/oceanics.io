@@ -1,0 +1,73 @@
+<!DOCTYPE html >
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WebGL and Canvas</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+</head>
+<link rel="stylesheet" href="../styles/global.css" type="text/css"/>
+<body>
+
+<script type="module">
+
+    import init, {panic_hook} from "./space";
+    import {DataStreamLoop} from "./stream.js";
+    import {RenderingContext, LagrangianParticles} from './cadet.js';
+
+    (async () => {
+
+        await init();
+        panic_hook();
+
+        [   [DataStreamLoop, {
+            eid: "data-stream",
+            context: "2d",
+            caption: "DataStream",
+            font: "12px Arial"
+        }]
+        ].map(target => {
+            let [f, props] = target;
+            let container = document.createElement("div");
+            container.className = "container";
+            let canvas = document.createElement("canvas");
+
+            canvas.width = 200;
+            canvas.height = 200;
+            container.paused = (props.autoplay === undefined) || (!props.autoplay);
+            canvas.id = props.eid;
+            let starting = true;
+            document.body.appendChild(container);
+            props.canvas = canvas;
+            container.appendChild(canvas);
+
+            container.addEventListener("click", () => {
+
+                container.paused = !container.paused;
+
+                if (!container.paused) {
+                    RenderingContext(f, props);
+                    starting = !starting;
+                } else if (!starting) {
+                    container.removeChild(canvas);
+                    canvas = document.createElement("canvas");
+                    canvas.width = 200;
+                    canvas.height = 200;
+                    canvas.id = props.eid;
+                    props.canvas = canvas;
+                    container.appendChild(canvas);
+                    console.log("stop");
+                }
+                container.paused = !container.paused;
+            });
+
+            if (props.autoplay) {
+                RenderingContext(f, props);
+                starting = !starting;
+            }
+
+        })
+    })()
+
+</script>
+</body>
+</html>
