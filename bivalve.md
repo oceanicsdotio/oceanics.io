@@ -1,8 +1,5 @@
-[![Netlify Status](https://api.netlify.com/api/v1/badges/1dbaad2c-b2e5-4aeb-8e77-910208d0e61b/deploy-status)](https://app.netlify.com/sites/bivalve/deploys)
 
 # Quickstart
-
-
 
 The `neritics-bivalve` service interacts with `bathysphere-graph`. For full functionality it will need to be able to find an instance of the graph API on the local network, or the Internet. This search is performed automatically, based on search paths declared in `config/app.yml`.
 
