@@ -56,15 +56,15 @@ x-tagGroups:
     tags: [ Account, Catalog, Topology ]
 
   - name: FUNCTIONS
-    tags: [ Admin ]
+    tags: [ Bivalve ]
 
   - name: NERITICS
-    tags: [ ML ]
+    tags: [ ML, Filter, Frequency, Mask ]
 
 tags:
 
   - name: Account
-    x-displayName: Analysis
+    x-displayName: Account
     description: |
       If you have an e-mail address associated with an organization known to us, you can register to use the
       database and serives. Please review security and privacy information before uploading any proprietary data.
@@ -79,28 +79,52 @@ tags:
     description: |
       Build topological relationships and access metadata.
 
-  - name: Admin
-    x-displayName: Admin
-    description: |
-      Manage you account stuff. Delete it if you want.
-
   - name: ML
     x-displayName: ML
     description: |
       The machine learning service implements multivariate time series prediction using recurrent neural networks with
       long short-term memory. The backend is `Keras` and `TensorFlow`.
 
+  - name: Filter
+    x-displayName: Filter
+    description: |
+      Time series filtering
+
+  - name: Frequency
+    x-displayName: Frequency
+    description: |
+      Frequency domain manipulation
+
+  - name: Mask
+    x-displayName: Mask
+    description: |
+      Time series and raster masking
+
+  - name: Bivalve
+    x-displayName: Bivalve
+    description: |
+      Simulation and analysis API for aquaculture planning. This API implements a machine-oriented RESTful API service
+      in Python, C#, and Mono that runs batches of parallel processes. Modeling with `ShellSIM` requires a licensed copy
+      of the v3.0.0.2 `.dll` from Plymouth Marine Laboratory. The community version replaces `ShellSIM` with multiple
+      regression or neural netowrks trained on Monte Carlo simulations and empirical data.
+  
+      You can setup and run simulations in multiple ways. The recommended way is to create re-usable configurations,
+      and then request runs by referencing these and supplying any required forcing parameters. Configurations are
+      locked after their first run, unless used in `test` mode.
 
 servers:
-- url: https://graph.oceanics.io/api
-  description: Oceanicsdotio
+- url: https://graph.oceanics.io/{basePath}
+  description: Production API server
+  variables:
+    basePath:
+      default: api
 
 paths:
 
   /auth:
 
     post:
-      tags: [Account]
+      tags: [ Account ]
       operationId: bathysphere.graph.handlers.register
       summary: Register
       description: |
@@ -123,7 +147,7 @@ paths:
 
 
     get:
-      tags: [Account]
+      tags: [ Account ]
       operationId: bathysphere.graph.handlers.token
       summary: Token
       description: |
@@ -893,6 +917,81 @@ paths:
 #          description: Success
 
 
+  '/bivalve/':
+
+    post:
+      tags: [Bivalve]
+      summary: Configure
+      operationId: neritics_bivalve.handlers.configure
+      description: |
+
+        Upload a model configuration that will be associated with you and your organization. The settings will later be
+        accessible by reference for starting further simulations with the same mathematical and computational
+        behavior. There may be some additional restrictions, depending on your organizational affiliation,
+        settings, and permissions.
+
+        Configurations are immutable after the first time they are run. This ensures that if there are simulation
+        results in the system from a previous run, the configuration is also likely to be there, except through
+        intentional deletions or database loss.
+
+      requestBody:
+        $ref: "#/components/requestBodies/Configuration"
+      responses:
+        '200':
+          $ref: '#/components/responses/Configuration'
+
+    get:
+      tags: [Bivalve]
+      summary: Get configurations
+      operationId: neritics_bivalve.handlers.get_index
+      description: |
+        Get metadata for all model configurations.
+
+      responses:
+        '200':
+          $ref: '#/components/responses/ConfigurationCollection'
+
+  '/bivalve/{objectKey}':
+
+    get:
+      tags: [Bivalve]
+      summary: Get saved object by UUID
+      operationId: neritics_bivalve.handlers.get_object
+      description: |
+        Retrieve details about a model configuration or simulation. This includes links to and summary statistics
+        of the individual simulations using these settings.
+
+      parameters:
+        - $ref: '#/components/parameters/ObjectKey'
+      responses:
+        '200':
+          $ref: '#/components/responses/Configuration'
+
+    post:
+      tags: [Bivalve]
+      summary: Run
+      description: |
+
+        The bivalve endpoint uses either constant conditions over a fixed period, or time-series data sources. Responses
+        are JSON structures. The application executes a synchronous kernel call for every location, and solves for
+        mass conservation and energy dynamics.
+
+        Posting with `configId` will use an existing configuration as a reference. Any supplied parameters will override
+        defaults, creating a derived copy of the simulation configuration if necessary.
+
+      operationId: neritics_bivalve.handlers.run_batch
+      parameters:
+        - $ref: '#/components/parameters/ObjectKey'
+        - $ref: '#/components/parameters/species'
+        - $ref: '#/components/parameters/weight'
+
+      requestBody:
+        $ref: '#/components/requestBodies/Experiment'
+      responses:
+        '200':
+          $ref: '#/components/responses/Experiment'
+
+
   /lstm/{cache}:
 
     post:
@@ -1006,19 +1105,205 @@ paths:
           $ref: '#/components/responses/NotFound'
 
 
+  /filter/smooth:
+
+    post:
+      tags: [Filter]
+      summary: Smooth
+      description: |
+
+        Smooth an evenly-spaced time series using convolution. The backend uses the `Numpy.convolve` method.
+        The result is a filtered time series, with a length that depends on the `convolutionMode` parameter. It is
+        the same length by default, but introduces artifacts at the boundaries.
+
+      operationId: neritics_filter.routes.smooth_convolve
+
+      parameters:
+        - $ref: '#/components/parameters/bandwidth'
+        - $ref: '#/components/parameters/convolutionMode'
+
+      requestBody:
+        $ref: '#/components/requestBodies/Series'
+
+      responses:
+        '200':
+          $ref: '#/components/responses/Filtered'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /filter/fft:
+
+    post:
+      tags: [Filter]
+      summary: Bandpass
+      description: |
+
+        Filter an evenly-spaced time series using fast Fourier transform. The query string can include `lowpass` and
+        `highpass` thresholds. With both described, this acts as a bandpass filter. The `fill` option will
+        automatically forward-fill missing values to prevent anomalies.
+
+      operationId: neritics_filter.routes.fft
+
+      parameters:
+        - $ref: '#/components/parameters/dt'
+        - $ref: '#/components/parameters/lowpass'
+        - $ref: '#/components/parameters/highpass'
+        - $ref: '#/components/parameters/fill'
+        - $ref: '#/components/parameters/compress'
+
+      requestBody:
+        $ref: '#/components/requestBodies/Series'
+
+      responses:
+        '200':
+          $ref: '#/components/responses/Filtered'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /filter/spectrum:
+
+    post:
+      tags: [Frequency]
+      summary: Spectrum
+      description: |
+
+        Generate a frequency spectrum for the provided signal. Must be evenly spaced. If there are missing values,
+        the `fill` flag will forward-fill before the transformation. The result can be compressed by remove negative
+        symmetry with the `compress` flag.
+
+      operationId: neritics_filter.routes.spectrum
+
+      parameters:
+        - $ref: '#/components/parameters/dt'
+        - $ref: '#/components/parameters/fill'
+        - $ref: '#/components/parameters/compress'
+
+      requestBody:
+        $ref: '#/components/requestBodies/Series'
+
+      responses:
+        '200':
+          $ref: '#/components/responses/Frequency'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /filter/resample:
+
+    post:
+      tags: [Filter]
+      summary: Resample and interpolate
+      description: |
+
+        Resample a sparse time series at specified rate by either forward/back filling or linear interpolation.
+
+      operationId: neritics_filter.routes.resample_sparse_series
+
+      parameters:
+        - $ref: '#/components/parameters/observations'
+        - $ref: '#/components/parameters/start'
+        - $ref: '#/components/parameters/method'
+
+      requestBody:
+        $ref: '#/components/requestBodies/Series'
+
+      responses:
+        '200':
+          $ref: '#/components/responses/Filtered'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /filter/outlier:
+
+    post:
+      tags: [Mask]
+      summary: Statistical outliers
+      description: |
+
+        Generate a boolean mask for the series. This can be for the independent variable, using the `dimension=simple`
+        query, or for time derivatives with `dimension=time`. True values in the response are masked, meaning these
+        indices can be deleted from in-memory time series.
+
+      operationId: neritics_filter.routes.outlier_handler
+
+      parameters:
+        - $ref: '#/components/parameters/threshold'
+        - $ref: '#/components/parameters/dimension'
+
+      requestBody:
+        $ref: '#/components/requestBodies/Series'
+
+      responses:
+        '200':
+          $ref: '#/components/responses/Mask'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /filter/range:
+
+    post:
+      tags: [Mask]
+      summary: Out of range values
+      description: |
+
+        Generate a boolean mask for the series. True values are those outside the given range, can can be used to cull
+        data from the client application.
+
+      operationId: neritics_filter.routes.outlier_range
+
+      parameters:
+        - $ref: '#/components/parameters/max'
+        - $ref: '#/components/parameters/min'
+
+      requestBody:
+        $ref: '#/components/requestBodies/Series'
+
+      responses:
+        '200':
+          $ref: '#/components/responses/Mask'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+
+
 components:
 
   parameters:
-
-
-    dt:
-      in: query
-      name: dt
-      description: Timestep, integer seconds
-      schema:
-        type: integer
-        minimum: 60
-        maximum: 3600
 
     bandwidth:
       in: query
@@ -1144,15 +1429,6 @@ components:
         type: number
         format: foat
 
-    ObjectKey:
-      name: objectKey
-      in: path
-      description: |
-
-        Object string is used to load the neural network state into memory. If combined with,
-
-      schema:
-        type: string
 
     Cache:
       name: cache
@@ -1272,6 +1548,126 @@ components:
         type: string
 
 
+    ObjectKey:
+      in: path
+      name: objectKey
+      required: true
+      description: UUID of experiment data
+      schema:
+        type: string
+
+    ThingId:
+      in: path
+      name: thingId
+      required: true
+      description: Unique identifier of the object to copy.
+      schema:
+        type: integer
+        minimum: 0
+
+    configId:
+      in: query
+      name: configId
+      description: |
+        A reference to a model configuration can be used instead of supplying values for `runs`, `workers`, `dt`, and
+        `days`.
+      schema:
+        type: integer
+
+    species:
+      in: query
+      name: species
+      description: string identifier for culture species
+      required: true
+      schema:
+        type: string
+        default: oyster
+        enum: [oyster, mussel, scallop]
+
+    cultureType:
+      in: query
+      name: cultureType
+      description: |
+        String identifier for culture method. Midwater configurations reutilize pseudofaeces,
+        while bottom culture prevents resuspension.
+      required: true
+      schema:
+        type: string
+        enum: [midwater, bottom, rope]
+
+    ploidy:
+      in: query
+      name: ploidy
+      description: |
+        Shellfish are assumed to be reproductive, and therefore diploid. Future features will include phylogeography
+        tools.
+
+      schema:
+        type: string
+        enum: [diploid, triploid]
+        default: diploid
+
+    dryWeight:
+      in: query
+      name: dryWeight
+      description: |
+        Actual mass of organic material. Automatically calculated from fresh weight.
+      schema:
+        type: number
+        format: float
+        minimum: 0.0
+
+    shellHeight:
+      in: query
+      name: shellHeight
+      description: |
+        Linear size measurement. Automatically calculated from fresh weight.
+      schema:
+        type: number
+        format: float
+
+    workers:
+      in: query
+      name: workers
+      schema:
+        $ref: "#/components/schemas/Workers"
+
+    days:
+      in: query
+      name: days
+      description: Length of simulation in days
+      schema:
+        $ref: "#/components/schemas/Days"
+
+    runs:
+      in: query
+      name: runs
+      schema:
+        $ref: "#/components/schemas/Runs"
+
+    dt:
+      in: query
+      name: dt
+      description: Timestep, integer seconds
+      schema:
+        $ref: "#/components/schemas/dt"
+
+    volume:
+      in: query
+      name: volume
+      description: Control volume for density-dependence
+      schema:
+        $ref: "#/components/schemas/volume"
+
+    weight:
+      name: weight
+      in: query
+      required: true
+      schema:
+        $ref: "#/components/schemas/Weight"
+    
+
+
   requestBodies:
 
     Register:
@@ -1337,6 +1733,37 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/CreateSchema'
+
+    Series:
+      description: Time series to filter or convert
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Datastream'
+
+
+    ConfigurationCollection:
+      description: Configurations
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ConfigurationCollection'
+
+    Configuration:
+      description: Model configuration
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Configuration'
+
+    Experiment:
+      description: Optional JSON object containing forcing information
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/RunSimulation'
+        
+
 
   responses:
 
@@ -1428,6 +1855,64 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
+
+    Frequency:
+      description: New time series
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/FFT'
+
+    Filtered:
+      description: New time series
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Datastream'
+
+    Mask:
+      description: Mask of time series
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Mask'
+
+    Unauthorized:
+      description: Not authorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    ServerError:
+      description: Server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+
+    ConfigurationCollection:
+      description: Model configurations
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ConfigurationCollection'
+
+    Configuration:
+      description: Model configuration
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Configuration'
+
+    Experiment:
+      description: Return simulations
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Experiment'
+        
 
   schemas:
 
@@ -2195,3 +2680,390 @@ components:
       type: number
       format: float
       default: 0.8
+
+  
+
+    FFT:
+      description: Array of time step responses
+      type: array
+      items:
+        - $ref: '#/components/schemas/transformItem'
+
+    transformItem:
+      type: object
+      properties:
+        frequency:
+          type: number
+          format: float
+          minimum: 0.0
+        index:
+          type: number
+          format: float
+
+    Mask:
+      description: Array of boolean values
+      type: array
+      items:
+        - $ref: '#/components/schemas/MaskItem'
+
+    MaskItem:
+      description: Value of single mask item
+      type: boolean
+
+
+    Temperature:
+      description: |
+        Temperature, degrees Celsius, controls vital rates.
+      type: number
+      format: float
+      minimum: 0
+      maximum: 40
+  
+
+    Weight:
+      description: |
+        The total fresh product weight in grams. There are other conversions depending on your application case.
+        Biogeochemical modelers are likely more interested in carbon and nutrient masses. This will apply best
+        to products sold by weight like mussels.
+
+      type: number
+      format: float
+      minimum: 0.0
+
+
+    ConfigurationCollection:
+      title: modelConfigurations
+      allOf:
+        - type: object
+          properties:
+
+            "@iot.count":
+              type: integer
+              minimum: 0
+              maximum: 100
+              description: Total number of records in the response
+
+            value:
+              type: array
+              items:
+                $ref: '#/components/schemas/Configuration'
+
+    Configuration:
+      type: object
+      properties:
+
+        metadata:
+          $ref: "#/components/schemas/Collection"
+
+        properties:
+          type: object
+          description: |
+            Reproducibility is central to heuristic systems. When you configure a simulation, it will persist
+            indefinitely. After the first production run it will be frozen. Future derived versions will be connected
+            to preserve model provenance and intent.
+
+          properties:
+
+            workers:
+              $ref: "#/components/schemas/Workers"
+
+            runs:
+              $ref: "#/components/schemas/Runs"
+
+            dt:
+              $ref: "#/components/schemas/dt"
+
+            days:
+             $ref: "#/components/schemas/Days"
+
+            integration:
+              $ref: '#/components/schemas/integration'
+
+            locked:
+              readOnly: true
+              type: boolean
+              default: false
+              description: The model configuration is in production and has been locked.
+
+            backend:
+              description: |
+                There are several options for biological prediction. Your choice of backend will be based on your licenses
+                and appetite for risk:
+                * `shellsim` is available if you have licensed `ShellSIM` from Plymouth Marine Laboratory
+                * `empirical` uses multiple linear regression and field data to drive growth predictions
+                * `tensorflow` uses a recurrent neural network trained on multiple data sources and models
+              type: string
+              enum: [shellsim, empirical, tensorflow]
+              default: shellsim
+
+            derivedFrom:
+              readOnly: true
+              description: |
+                When new configurations are created as copies of existing instances, they will be linked with a
+                directional `DERIVED_FROM` relationship (in `neo4j` graph parlance). This is a URL to access information
+                about it.
+
+              type: string
+
+        experiments:
+          description: Collection of multi-simulation experiments produced by this model configuration
+          type: array
+          readOnly: true
+          nullable: true
+          items:
+            $ref: '#/components/schemas/Experiment'
+
+
+    Experiment:
+      title: experiment
+      oneOf:
+        - $ref: '#/components/schemas/Series'
+        - $ref: '#/components/schemas/Streaming'
+
+    Series:
+      title: time series
+      allOf:
+        - $ref: "#/components/schemas/Collection"
+        - description: Collection of `Datastreams`
+          type: object
+          properties:
+            location:
+              $ref: "#/components/schemas/Location"
+            datastreams:
+              type: array
+              items:
+                $ref: "#/components/schemas/Datastream"
+
+    Streaming:
+      title: streaming
+      allOf:
+        - $ref: "#/components/schemas/Collection"
+        - description: Array of time step responses
+          type: object
+          properties:
+            location:
+              $ref: "#/components/schemas/Location"
+            stream:
+              type: array
+              items:
+                $ref: '#/components/schemas/Response'
+
+    Response:
+      title: rowResponse
+      type: object
+      required:
+        - time
+        - weight
+      properties:
+
+        time:
+          description: |
+            Time in days. While computational time steps are usually hourly or shorter, the interval of interest
+            for aqaculturists is measured in days. The internal clock uses integers to prevent numerical problems
+            in long running simulations, but this is translated to decimal hours for calculating physiological rates.
+
+          type: number
+          format: float
+          minimum: 0.0
+
+        weight:
+          $ref: "#/components/schemas/Weight"
+
+        oxygenUptake:
+          nullable: true
+          description: |
+            Cummulative oxygen uptake. Metabolism removes oxygen from the water column. If aeration does not exceed
+            the rate of biological uptake (plus other processes), the water body will become hypoxic or anoxic.
+
+          type: number
+          format: float
+          minimum: 0.0
+
+        chlorophyllUptake:
+          nullable: true
+          description: |
+            Filter feeding removes phytoplankton from the water column. Chlorophyll is a proxy for the productivity
+            of the water body. When there are too many shellfish in a semi-closed system, they can deplete available
+            food for conspecifics.
+
+          type: number
+          format: float
+          minimum: 0.0
+
+        nitrogenUptake:
+          nullable: true
+          description: |
+            Filter feeding moves nitrogen from the environment into tissue.
+          type: number
+          format: float
+          minimum: 0.0
+
+        nitrogenExcretion:
+          nullable: true
+          description: |
+            Shellfish excrete nitrogen through membrane transfer.
+
+          type: number
+          format: float
+          minimum: 0.0
+
+        ammoniaLoss:
+          nullable: true
+          description: |
+            Ammonia is released to the environment as waste. This can stimulate the growth of plankton.
+
+          type: number
+          format: float
+          minimum: 0.0
+
+        deposition:
+          nullable: true
+          description: |
+            Shellfish are widely considered beneficial to
+            water quality. However, they can concentrate biological material into feces and psuedofeces. These
+            particulate forms sink more quickly, and may settle in mats either under the culture area, or downstream.
+            Decomposition can lead to sediment and bottom water hypoxia.
+          type: number
+          format: float
+          minimum: 0.0
+
+
+    RunSimulation:
+      allOf:
+        - $ref: "#/components/schemas/Collection"
+        - type: object
+          properties:
+            location:
+              $ref: "#/components/schemas/Location"
+            forcing:
+              $ref: "#/components/schemas/Forcing"
+
+    Forcing:
+      title: forcingParameters
+      description: Constant or time-varying forcing conditions for the model execution.
+      type: object
+      nullable: true
+      properties:
+
+        temperature:
+          description: |
+            Temperature, degrees Celsius, controls vital rates.
+          type: number
+          format: float
+          minimum: 0.0
+          maximum: 40.0
+
+        turbidity:
+          description: |
+            Turbidity helps determine the amount of food available to shellfish.
+
+          type: number
+          format: float
+          minimum: 0.0
+          maximum: 1
+
+        chlorophyll:
+          description: Chlorophyll-a concentration (ug/L) is a proxy for food availability.
+          type: number
+          format: float
+          minimum: 0.0
+
+        salinity:
+          description: Salinity, PSU
+          type: number
+          format: float
+          minimum: 0
+          maximum: 40
+
+        current:
+          description: Current speed, cm/s
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+
+        particulatOrganicMatter:
+          description: Particulate Organic Matter (mg/L), or POM, is used as an additional food source.
+          type: number
+          format: float
+          minimum: 0
+
+        totalParticulateMatter:
+          description: TPM/SPM, mg/L
+          type: number
+          format: float
+          minimum: 0
+
+        particulateOrganicCarbon:
+          description: Particulate organic carbon, POC, ug/L
+          type: number
+          format: float
+          minimum: 0
+
+        oxygen:
+          description: Dissolved oxygen concentration (mg/L) acts as a limitation on metabolism.
+          type: number
+          format: float
+          minimum: 0
+
+        seed:
+          description: Number of seed added during the first time step.
+          type: integer
+          minimum: 1
+          default: 1
+
+    Workers:
+      description: Number of processes to use for Monte Carlo simulations.
+      type: integer
+      minimum: 1
+      maximum: 8
+      default: 1
+
+    Days:
+      description: |
+        Length of simulation in days. For most simulations of growing commercial conditions, any growing window over
+        ~2 years is not ideal. Rather than running for a fixed period, a termination trigger can be specified. To
+        prevent infinite loops, the simulation will end automatically after a few minutes.
+
+      nullable: true
+      type: integer
+      minimum: 1
+      maximum: 730
+      default: 365
+
+    Runs:
+      description: Number of Monte Carlo replications to run.
+      type: integer
+      minimum: 1
+      maximum: 512
+      default: 1
+
+    integration:
+      description: |
+        Integration is by Euler (`euler`) or Runge-Kutta 4th order (`rungeKutta`). If `backend=shellsim`, then this will
+        default to `euler`, because the C# kernel is written that way.
+      type: string
+      enum: [euler, rungeKutta]
+      default: euler
+
+    dt:
+      description: |
+        Timestep, integer seconds. A one minute time step is probably unnecessary, unless you are validating/comparing
+        a laboratory physiology study. Longer time steps may miss important tidal dynamics. One hour is the recommended
+        value, which is also a common sampling frequency for sensors deplyed near growing areas (and therefore limits
+        interpolation). Integration is by Euler (`euler`) or Runga-Kutta (`rk`).
+
+      type: integer
+      minimum: 60
+      maximum: 3600
+      default: 3600
+
+    volume:
+      description: |
+        Control volume for density-dependence, measure in liters. As the number of organisms per unit volume increases,
+        competition for limited resources like food or oxygen can come into play.
+
+      type: number
+      format: float
+      minimum: 1
+      maximum: 1000
