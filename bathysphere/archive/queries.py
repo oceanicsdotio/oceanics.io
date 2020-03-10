@@ -2,6 +2,7 @@ from datetime import datetime
 from json import dumps
 from typing import Any, Callable
 from decimal import Decimal
+
 from attrs import attr
 from enum import Enum
 
