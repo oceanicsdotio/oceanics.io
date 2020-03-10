@@ -1,4 +1,0 @@
-
-        [console_scripts]
-        bathysphere=bathysphere.cli:cli
-    
