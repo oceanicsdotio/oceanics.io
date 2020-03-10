@@ -4,7 +4,8 @@ from flask import Request
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine.url import URL
 
-from drivers import googleCloudSecret, ResponseType
+from drivers import googleCloudSecret
+from bathysphere.datatypes import ResponseJSON
 from cloud_sql.queries import selectRecords, Query, Table, Field
 
 
@@ -25,7 +26,7 @@ db = create_engine(
 )
 
 
-def main(request: Request) -> ResponseType:
+def main(request: Request) -> ResponseJSON:
     """
     Do some postgres stuff
     """

@@ -6,7 +6,6 @@ ResponseJSON = (dict, int)
 ResponseOctet = (dict, int)
 
 
-
 class CoordinateSystem(Enum):
     Sigma = 1
     Cartesian = 2
@@ -23,3 +22,12 @@ class DataFormat(Enum):
     Binary = 5
     NumpyArray = 6
     ArrayfireTexture = 7
+
+
+class FileType(Enum):
+    Schema = 1
+    Config = 2
+    Log = 3
+    Raw = 4
+    CSV = 5
+    JSON = 6
