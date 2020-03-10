@@ -1,12 +1,12 @@
 
 # Bathysphere API
 
-[Deploy](#deploy)
-[Functions](#functions)
-[Neo4j](#neo4j)
-[Cypher](#cypher)
-[Ingestion Tips](#ingestion-tips)
-[Postgres](#postgres)
+- [Deploy](#deploy)
+- [Functions](#functions)
+- [Neo4j](#neo4j)
+- [Cypher](#cypher)
+- [Ingestion Tips](#ingestion-tips)
+- [Postgres](#postgres)
 
 Bathysphere is a distributed store and registry for public and proprietary geospatial data. It was originally designed to support aquaculture research in the Gulf of Maine, but is intentionally generic. 
 
