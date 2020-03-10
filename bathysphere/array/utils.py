@@ -64,7 +64,7 @@ from multiprocessing import Pool
 from warnings import warn
 
 
-from bathysphere.datatypes import ExtentType, IntervalType
+from bathysphere.datatypes import ExtentType, IntervalType, DataFormat
 
 DEGREES = 180 / pi
 RADIANS = pi / 180
@@ -94,18 +94,6 @@ if af:
     Array = af.Array or array
 else:
     Array = array
-
-
-
-class DataFormat(Enum):
-    NETCDF3_CLASSIC = 1
-    NETCDF4 = 2
-    NETCDF5 = 3
-    Custom = 4
-    Binary = 5
-    NumpyArray = 6
-    ArrayfireTexture = 7
-
 
 class State:
     orientation = XAXIS.copy()  # facing
