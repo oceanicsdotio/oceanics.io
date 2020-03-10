@@ -2,9 +2,8 @@ from os import getenv
 from json import dumps
 from google.cloud import secretmanager
 
-
 client = secretmanager.SecretManagerServiceClient()
-ResponseType = (dict, int)
+
 
 def googleCloudSecret(secret_name="my-secret"):
     # type: (str) -> str

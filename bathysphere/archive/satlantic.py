@@ -7,6 +7,8 @@ from enum import Enum
 from typing import Coroutine, Any
 from asyncio import new_event_loop, set_event_loop, BaseEventLoop
 
+from attrs import attr
+from bathysphere.datatypes import FileType
 
 def synchronous(task, loop=None, close=False):
     # type: (Coroutine, BaseEventLoop, bool) -> Any
@@ -24,53 +26,30 @@ def synchronous(task, loop=None, close=False):
     return result
 
 
-class FileType(Enum):
-    Schema = 1
-    Config = 2
-    Log = 3
-    Raw = 4
-    CSV = 5
-    JSON = 6
-
-
-class Frame(dict):
-    def __init__(self, data: bytes, key: bytes, headers: dict, sn: int, **kwargs):
-
-        self.bytes = data
-        self.size = len(data) if data else None
-        self.data = None
-        self.label = key
-        self.span = 32
-        self.content = None
-        self.ts = None
-        self.type = "sensor"
-        self.schema = headers["STORX{}".format(sn)]
-        dict.__init__(self, **kwargs)
+@attr.s
+class Frame(object):
+    data: bytes = attr.ib()
+    label: bytes = attr.ib()
+    headers: dict = attr.ib()
+    sn: int = attr.ib()
+    schema: dict = attr.ib()
+    span: int = attr.ib(default=32)
+    ts: datetime =  attr.ib(default=None)
+    _dict: dict = attr.ib(default=attr.Factory(dict))
 
     def goto(self, pattern: bytes, root: str = "SensorFieldGroup"):
-        return [self[key][root] for key in self.keys() if pattern in key][0]
+        return [self._dict[key][root] for key in self._dict.keys() if pattern in key][0]
 
-
+@attr.s
 class File:
-    def __init__(
-        self,
-        name="",
-        sn=None,
-        url=None,
-        time=None,
-        ts=datetime.now(),
-        kb=0.0,
-        encoding=None,
-        content=None,
-    ):
-        self.name = name
-        self.sn = sn
-        self.url = url
-        self.time = time
-        self.ts = ts
-        self.kb = kb
-        self.encoding = encoding
-        self.content = content
+    name: str = attr.ib(default="")
+    sn: int = attr.ib(default=None)
+    url: str = attr.ib(default=None)
+    time: datetime = attr.ib(default=None)
+    ts: datetime = attr.ib(defailt=attr.Factory(datetime.now))
+    kb: float = attr.ib(default=0.0)
+    encoding: str = attr.ib(default=None)
+    content: Any = attr.ib(default=None)
 
     def __repr__(self):
         return "{} ({}): {}".format(self.__class__.__name__, self.encoding, self.name)
