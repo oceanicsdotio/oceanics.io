@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name='bathysphere',
@@ -7,7 +7,8 @@ setup(
     url='https://graph.oceanics.io',
     author='Oceanicsdotio',
     author_email='business@oceanics.io',
-    packages=["bathysphere"],
+    packages=find_packages(),
+    include_package_data=True,
     license='MIT',
     install_requires=[
         "flask",
@@ -16,10 +17,10 @@ setup(
         "connexion",
         "pytest",
         "pytest_dependency",
-        "neo4j-python-driver",
+        "neo4j-driver",
         "itsdangerous",
         "passlib",
-        "yaml",
+        "pyyaml",
         "requests",
         "retry",
         "redis",
@@ -27,6 +28,11 @@ setup(
         "bidict",
         "prance",
         "rq",
-        "attrs"
+        "attrs",
+        "click"
     ],
+    entry_points="""
+        [console_scripts]
+        bathysphere=bathysphere.cli:cli
+    """,
     zip_safe=False)
