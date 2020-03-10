@@ -6,6 +6,7 @@ __pycache__/
 
 .DS_store
 .idea/
+.vscode/
 .envrc
 # C extensions
 *.so
