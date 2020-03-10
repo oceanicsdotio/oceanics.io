@@ -81,46 +81,10 @@ tags:
     description: |
       Manage you account stuff. Delete it if you want.
 
-#
-#  - name: Analysis
-#    x-displayName: Analysis
-#    description: |
-#
-#      The `neritics-filter` service adds methods for resampling, interpolating, filling, and smoothing series.
-#      Most functions default to safe values, or will silently fail without manipulating data.
-#
-#      Some functions return a mask. For instance `/outlier` detects statistical anomalies in the independent variable,
-#      while `/outOfRange` returns a mask  of the values to pin. Finally, `outlier_mask()` looks for anomalies in
-#      independent variable and time derivatives to remove spikes and gaps (e.g. wave action on inter-tidal sensors, or electrical issues).
-#
-#      Interpolation function `/smooth` uses `numpy.convolve` to smooth a series using a boxcar filter.
-#      More control over fast Fourier transforms are given through `/fftFilter`, which can low/highpass filter,
-#      and forward-fill, using `scipy.fftpack`.
-#
-#      Most useful is `/resample`, which will produce a regularly-spaced series from sparse observations,
-#      using forward/backward fill or linear interpolation. This is meant for low frequency data,
-#      like manually collected data, or satellite observations.
-#
-#  - name: Internet of Things
-#    x-displayName: Internet of Things
-#    description: |
-#      Build topological relationships and access metadata.
-#
-#
-#  - name: Storage
-#    x-displayName: Storage
-#    description: |
-#      Database integrations.
 
 servers:
-
 - url: https://graph.oceanics.io/api
   description: Oceanicsdotio
-
-#- url: https://graph.oceanics.io/async-function
-#  description: Asynchronous endpoint
-#- url: https://graph.oceanics.io/function
-#  description: Function endpoint
 
 paths:
 
@@ -128,7 +92,7 @@ paths:
 
     post:
       tags: [Account]
-      operationId: bathysphere_graph.handlers.register
+      operationId: bathysphere.graph.handlers.register
       summary: Register
       description: |
 
@@ -151,7 +115,7 @@ paths:
 
     get:
       tags: [Account]
-      operationId: bathysphere_graph.handlers.token
+      operationId: bathysphere.graph.handlers.token
       summary: Token
       description: |
 
@@ -173,7 +137,7 @@ paths:
 
     put:
       tags: [Account]
-      operationId: bathysphere_graph.handlers.manage
+      operationId: bathysphere.graph.handlers.manage
       summary: Manage
       description: |
 
@@ -192,7 +156,7 @@ paths:
 
     get:
       tags: [Catalog]
-      operationId: bathysphere_graph.handlers.catalog
+      operationId: bathysphere.graph.handlers.catalog
       summary: Catalog
       description: |
         Get all entity types in database as collections following the SpatioTemporal Asset Catalog specification
@@ -231,7 +195,7 @@ paths:
 
     post:
       tags: [Catalog]
-      operationId: bathysphere_graph.handlers.create
+      operationId: bathysphere.graph.handlers.create
       summary: Create
       description: |
         Create a new entity.
@@ -250,7 +214,7 @@ paths:
 
     get:
       tags: [Catalog]
-      operationId: bathysphere_graph.handlers.collection
+      operationId: bathysphere.graph.handlers.collection
       summary: Collection
       description: |
         Get all entities of one type
@@ -269,7 +233,7 @@ paths:
 
     get:
       tags: [Catalog]
-      operationId: bathysphere_graph.handlers.metadata
+      operationId: bathysphere.graph.handlers.metadata
       summary: Metadata
       description: |
         Get entity
@@ -286,7 +250,7 @@ paths:
 
     put:
       tags: [ Catalog ]
-      operationId: bathysphere_graph.handlers.mutate
+      operationId: bathysphere.graph.handlers.mutate
       summary: Update
       description: Update entity
       requestBody:
@@ -304,7 +268,7 @@ paths:
 
     delete:
       tags: [ Catalog ]
-      operationId: bathysphere_graph.handlers.delete
+      operationId: bathysphere.graph.handlers.delete
       summary: Delete
       description: Delete entity and orphans recursively.
       parameters:
@@ -318,11 +282,74 @@ paths:
           $ref: '#/components/responses/NotFound'
 
 
+          /{root}({rootId})/{entity}:
+
+            get:
+              tags: [ Topology ]
+              operationId: bathysphere.graph.handlers.query
+              summary: Query
+              description: |
+                Get related entities
+        
+              parameters:
+                - $ref: "#/components/parameters/root"
+                - $ref: "#/components/parameters/rootId"
+                - $ref: "#/components/parameters/entityClass"
+                - $ref: "#/components/parameters/label"
+        
+              responses:
+                '200':
+                  $ref: '#/components/responses/EntityCollection'
+                '400':
+                  $ref: '#/components/responses/BadRequest'
+        
+        
+          /{root}({rootId})/{entity}({id}):
+        
+            post:
+              tags: [ Topology ]
+              operationId: bathysphere.graph.handlers.join
+              summary: Join
+              description: Create a labeled relationship between entities.
+              parameters:
+                - $ref: "#/components/parameters/root"
+                - $ref: "#/components/parameters/rootId"
+                - $ref: "#/components/parameters/entityClass"
+                - $ref: "#/components/parameters/entityId"
+                - $ref: "#/components/parameters/label"
+        
+              responses:
+                '204':
+                  description: No Content
+                '400':
+                  $ref: '#/components/responses/BadRequest'
+        
+            delete:
+              tags: [Topology]
+              operationId: bathysphere.graph.handlers.drop
+              summary: Drop
+              description: |
+                Remove a labeled relationship between entities. If no `label` is specified, remove all
+                relationships between the entities.
+        
+              parameters:
+                - $ref: "#/components/parameters/root"
+                - $ref: "#/components/parameters/rootId"
+                - $ref: "#/components/parameters/entityClass"
+                - $ref: "#/components/parameters/entityId"
+                - $ref: "#/components/parameters/label"
+        
+              responses:
+                '204':
+                  description: No Content
+                '400':
+                  $ref: '#/components/responses/BadRequest'
+        
   /{root}({rootId})/{entity}:
 
     get:
       tags: [ Topology ]
-      operationId: bathysphere_graph.handlers.query
+      operationId: bathysphere.graph.handlers.query
       summary: Query
       description: |
         Get related entities
@@ -344,7 +371,7 @@ paths:
 
     post:
       tags: [ Topology ]
-      operationId: bathysphere_graph.handlers.join
+      operationId: bathysphere.graph.handlers.join
       summary: Join
       description: Create a labeled relationship between entities.
       parameters:
@@ -362,7 +389,7 @@ paths:
 
     delete:
       tags: [Topology]
-      operationId: bathysphere_graph.handlers.drop
+      operationId: bathysphere.graph.handlers.drop
       summary: Drop
       description: |
         Remove a labeled relationship between entities. If no `label` is specified, remove all
@@ -1076,15 +1103,6 @@ components:
           schema:
             $ref: '#/components/schemas/Collection'
 
-    EntityCollection:
-      description: |
-        Collection of entities
-
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/EntityCollection'
-
     Entity:
       description: |
         Single entity
@@ -1100,6 +1118,15 @@ components:
               - $ref: '#/components/schemas/ObservedProperty'
               - $ref: '#/components/schemas/Sensor'
               - $ref: '#/components/schemas/FeatureOfInterest'
+
+    EntityCollection:
+      description: |
+        Collection of entities
+
+      content:
+        application/json:
+        schema:
+          $ref: '#/components/schemas/EntityCollection'
 
     TokenResponse:
       description: Auth token
