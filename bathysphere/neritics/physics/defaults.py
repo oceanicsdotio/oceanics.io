@@ -1,0 +1,2 @@
+TEMPERATURE = "temperature"
+SALINITY = "salinity"
