@@ -1,8 +1,15 @@
 # Oceanics.io
 
-[![Netlify Status](https://api.netlify.com/api/v1/badges/ad77195f-da0a-428f-ad2d-8dc5f45b3858/deploy-status)](https://app.netlify.com/sites/oceanicsdotio/deploys)
+![](content/assets/dagan.png)
 
-The site is the homepage, and an application. The language are JavaScript and Rust. 
+
+
+The site is the homepage, and an application. The languages are JavaScript and Rust. Static rendering is with GatsbyJS and React. 
+
+The static sites are hosted on Netlify: [![Netlify Status](https://api.netlify.com/api/v1/badges/ad77195f-da0a-428f-ad2d-8dc5f45b3858/deploy-status)](https://app.netlify.com/sites/oceanicsdotio/deploys)
+
+Backend services are provided by the Bathysphere API geospatial graph, which is documented elsewhere.
+
 
 
 
