@@ -2,7 +2,7 @@ from uuid import uuid4
 from json import load as load_json
 from functools import reduce
 
-from bathysphere.simulation.bivalve.shellfish import batch
+from bathysphere.simulation.shellfish import batch
 from bathysphere.datatypes import ResponseJSON, ObjectStorage
 
 config = dict()
