@@ -3,6 +3,11 @@ from scipy.fftpack import rfft, irfft, fftfreq
 from statistics import median
 from .utils import interp1d
 
+def response(status, payload):
+    return {
+        "status": status,
+        "payload": list(payload),
+    }
 
 def smooth(yy, bandwidth, mode="same"):
     """Smooth using convolution"""

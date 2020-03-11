@@ -35,7 +35,12 @@ def pulse_width(signal: float, maximum=None, width=2, pid=True):
     return width * floor(5 * abs(signal) / maximum) if pid else width
 
 
-def signal(config: dict, state: dict, raw: float, offset: float = 0.0) -> float:
+def signal(
+    config: dict, 
+    state: dict, 
+    raw: float, 
+    offset: float = 0.0
+) -> float:
     """
     Returns conditioned PID signal
 
@@ -63,13 +68,6 @@ def signal(config: dict, state: dict, raw: float, offset: float = 0.0) -> float:
     c["d"] = (e - error) / config["dt"]  # derivative term
 
     return c["p"] + (k["i"] * c["i"]) + (k["d"] * c["d"])
-
-
-def statistics(state: dict) -> None:
-    print("Error = ", state["error"])
-    print("Proportional term = ", state["constant"]["p"])
-    print("Integral term = ", state["constant"]["i"])
-    print("Derivative term (de/dt) = ", state["constant"]["d"])
 
 
 def rewind(state: dict, reset: bool = False) -> None:
@@ -127,8 +125,6 @@ def start(
     )
     p.start()
     return p
-
-
 
 
 

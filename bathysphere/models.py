@@ -4,6 +4,12 @@ from time import time
 from secrets import token_urlsafe
 import attr
 
+from bathysphere.datastream.core import (
+    fft_filter, fft_spectrum, resample, response, out_of_range, outlier, outlier_time, smooth
+)
+from connexion import request
+
+
 
 @attr.s
 class Actuators(object):
@@ -39,7 +45,7 @@ class Collections(object):
 @attr.s
 class DataStreams(object):
     """
-    Datastreams are collections of Observations.
+    DataStreams are collections of Observations.
     """
     name: str = attr.ib(default=None)
     description: str = attr.ib(default=None)  
@@ -48,6 +54,86 @@ class DataStreams(object):
     observedArea: dict = attr.ib(default=None)  # boundary geometry, GeoJSON polygon
     phenomenonTime: (datetime, datetime) = attr.ib(default=None)  # time interval, ISO8601
     resultTime: (datetime, datetime) = attr.ib(default=None)  # result times interval, ISO8601
+
+
+    @staticmethod
+    def fastFourierTransform(dt=1, lowpass=None, highpass=None, fill=False, compress=True):
+
+        series = tuple(item.value for item in request.json)
+        filtered = fft_filter(series, dt, lowpass, highpass, fill, compress)
+        return response(
+            200,
+            payload=filtered
+        )
+
+
+    @staticmethod
+    def frequencySpectrum(dt=1, fill=False, compress=True):
+
+        series = tuple(item.value for item in request.json)
+        freq, index = fft_spectrum(series, dt, fill, compress)
+        return response(
+            200,
+            payload={
+                "frequency": freq,
+                "index": index
+            }
+        )
+
+
+    @staticmethod
+    def smoothUsingConvolution(bandwidth, mode="same"):
+        """
+        Convolve
+
+        :return:
+        """
+
+        series = tuple(item.value for item in request.json)
+        filtered = smooth(series, bandwidth, mode)
+        return response(200, payload=filtered)
+
+
+    @staticmethod
+    def resampleSparseSeries(method="forward", observations=None, start=None):
+
+        dates = tuple(item.time for item in request.json)
+        series = tuple(item.value for item in request.json)
+
+        if not observations:
+            observations = (dates[-1] - dates[0]).hours + 1
+
+        if not start:
+            start = dates[0]
+
+        filtered = resample(observations, start, dates, series, method=method)
+        return response(200, payload=filtered)
+
+
+    @staticmethod
+    def statisticalOutlierMask(method: str, threshold: float):
+
+        dates = tuple(item.time for item in request.json)
+        series = tuple(item.value for item in request.json)
+
+        if method == "time":
+            mask = outlier_time(dates, series, threshold)
+
+        if method == "simple":
+            mask = outlier(series, rr=threshold)
+
+        return response(200, payload=mask)
+
+
+    @staticmethod
+    def outOfRangeMask(min, max):
+        """
+        Use backend to generate a mask. 
+        """
+        series = tuple(item.value for item in request.json)
+        mask = out_of_range(series, maximum=max, minimum=min)
+
+        return response(200, payload=mask)
 
 
 @attr.s
