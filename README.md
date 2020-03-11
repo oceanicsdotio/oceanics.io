@@ -23,9 +23,7 @@ The JavaScript dependencies and builds are managed with `yarn`.
 
 ## Rust/WASM Development
 
-The frontend uses Rust compiled to web assembly (WASM). `Cargo.toml` describes the rust dependencies.
-
-To develop on Rust/WASM, you can get started with `rustup`, and `wasm-pack`:
+The frontend uses Rust compiled to web assembly (WASM). This section is for for those interested in diving right in. Start developing on Rust/WASM with `rustup`, and `wasm-pack`:
 
 ```bash
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
@@ -34,25 +32,25 @@ curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
 The `wasm-bindgen` tooling packages WASM as an importable JavaScript library. This allows the binaries to be served along with the other static assets by compiling [without a bundler](https://github.com/rustwasm/wasm-bindgen/tree/master/examples/without-a-bundler).
 
-The build command is in the package. Use `yarn run build-wasm` to compile rust to webassembly and generate javascript bindings.
+ `Cargo.toml` describes the Rust dependencies. The build command is in the package. Use `yarn run build-wasm` to compile rust to webassembly and generate the necessary JavaScript bindings.
 
 
 
-### Rust crate
+### Rust library
 
-agent.rs - agent simulations
+There is still a lot of JavaScript, but the numerical and graphics features have been ported over to Rust. 
 
-lib.rs - main routines
+The structure of the library is:
 
-model.rs - model generation, triangulation
+`agent.rs` - Agent-based simulations
+`lib.rs` - Main routines and boiler plate code
+`series.rs` - Time series manipulation, string methods, linked lists, tries, and such
+`tessellate.rs` - Model generation, triangulation, and other discretization methods
+`webgl.rs` - WebGL handlers and utilities for compiling client side (GPU) shaders
 
-series.rs - datastreams
-
-webgl.rs - webgl handlers and utilities
 
 
-
-# Production
+## Production
 
 When new commits are checked into the Bitbucket repository, the site is deployed to `oceanicsdotio.netlify.com`, which has the custom domain `oceanics.io`.
 
@@ -62,13 +60,9 @@ User management is through Netlify Identity for the time being.
 
 
 
-# IndexedDB API
+## IndexedDB API
 
-We use the IndexedDB web API for storing data on the client. These are some notes and reminders about how that works.
-
-
-
-## Overview
+We use the IndexedDB web API for storing data on the client. These are notes and reminders about how that works.
 
 The API is asynchronous, and enforces a same-origin policy to protect user data. The exception is `<iframe>` content. Third-party scripts can data unless configured otherwise. It does not handle synchronizing with servers, full text searching, or intentional deletion of the database. There is also small chance of data loss if OS crashes before data is flushed to disk, but for important data you can override this and force durable transactions.
 
@@ -81,24 +75,19 @@ To store data in the browser:
 5. Use callback
 
 
-
-## Database
+### Database
 
 The **database** is a key-value store, in which changes are encapsulated in transactions. Databases have `name` and `version` (default 1).
 
 **Object stores** have `name`, optional key generator, and key path. If there is a key path, the store uses in-line keys, otherwise out-of-line keys. **Keys** may be strings, dates, floats, binary blobs, or arrays. The browser uses a **key generator** to produce ordered sequence of keys. Keys can be properties of the objects. In-line keys are stored in the object, and found using key path that defines how to extract it. Out-of-line keys stored separately from the object. The key path can be an empty string, or one or more JavaScript identifiers. 
 
-
-
-## Requests
+### Requests
 
 The application makes **requests** (`IDBRequest`) for transactions with the object store. These can have handlers attached for `onsuccess` and `onerror`, with`addEventListener()`, `removeEventListener()`. They have the properties `readyState`, `result`, and `errorCode`.
 
 The fired DOM **events** have `type` of `"success"` or `"error"` , and a `target`  of type `IDBRequest`.
 
-
-
-## Transactions
+### Transactions
 
 Successful **transactions** (`IDBTransaction`) have types `readwrite`, `readonly`, and `versionchange` . They may be concurrent, for instance with Web Workers. Transactions have a lifetime, and always auto-commit. Indices, tables, cursors, etc tied are to transactions.
 
@@ -106,9 +95,7 @@ Concurrent write transactions are only allowed if they have separate scopes. Wri
 
 When the DB is opened with a new (greater) version, it starts `versionchange` transaction and fires `upgradeneeded` event. You can only create and delete stores and indices in `versionchange`, so the handler for this must be used to perform schema updates.
 
-
-
-## Indexes 
+### Indexes 
 
 **Indexes** are key-value stores, with the value pointing into the primary object store. They use object properties for search and sorting, and are automatically updated when the store is modified. 
 
@@ -118,17 +105,16 @@ Queries on indexes produce a **cursor** which is used to iterate through records
 
 
 
+## Spatial data structures
+
+Most of the frontend features are related to space. Screen space, real space, and the representation of real space in screen space.
+
+We use a number of spatial data structures, algorithms, and approaches to provide excellent performance. The goal is to always support average devices on flaky networks.
 
 
+### Right-triangulated Irregular Networks (RTIN)
 
-
-
-
-# Spatial data structures
-
-## Right-triangulated Irregular Networks (RTIN)
-
-
+The numerical simulations we use are executed on triangular meshes or multidimensional arrays (aka "raster" or "texture" data). For optimizing visualization and on-the-fly calculations in the browser we instead use specialized meshes like the right-triangulated irregular network. 
 
 hierarchal data structure
 
