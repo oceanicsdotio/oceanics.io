@@ -8,10 +8,11 @@ from itertools import chain
 
 from requests import get
 from neo4j import Node
-from attrs import attr
+import attr
 
-from graph.drivers import *
 from bathysphere import models
+from bathysphere_graph.drivers import *
+
 
 @attr.s
 class Entity:
