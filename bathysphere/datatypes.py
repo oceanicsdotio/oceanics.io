@@ -5,10 +5,15 @@ from math import floor
 from json import dumps, loads, decoder, load as load_json
 from collections import deque
 from uuid import uuid4
-from os import getpid
+from os import getpid, getenv
 from io import BytesIO, TextIOWrapper
 from difflib import SequenceMatcher
 from functools import reduce
+from ftplib import FTP
+from pickle import loads as unpickle
+
+import hmac
+import hashlib
 
 from bidict import bidict
 import attr
@@ -17,6 +22,13 @@ from minio.error import NoSuchKey
 from requests import get, post
 from requests.exceptions import ConnectionError
 from urllib3.exceptions import MaxRetryError
+
+
+
+try:
+    from numpy import array, append
+except ImportError as ex:
+    pass
 
 SEC2DAY = 86400
 
@@ -290,93 +302,196 @@ class File:
 
 
 
-# class FileSystem:
+class FileSystem:
 
-#     policy = OverwritePolicy(policy="never")
+    policy = OverwritePolicy(policy="never")
 
-#     @staticmethod
-#     def load_year_cache(local, years):
-#         # type: (str, (int, )) -> dict
-#         """Load a local binary file"""
-#         combined = dict()
-#         for year in years:
-#             fid = open(f"{local}/{year}_checkpoint.pickle", "rb")
-#             new = unpickle(fid)
-#             for key in new.keys():
-#                 try:
-#                     combined[key] = append(combined[key], new[key])
-#                 except KeyError:
-#                     combined[key] = array([])
-#                     combined[key] = append(combined[key], new[key])
-#         return combined
+    @staticmethod
+    def load_year_cache(local, years):
+        # type: (str, (int, )) -> dict
+        """Load a local binary file"""
+        combined = dict()
+        for year in years:
+            fid = open(f"{local}/{year}_checkpoint.pickle", "rb")
+            new = unpickle(fid)
+            for key in new.keys():
+                try:
+                    combined[key] = append(combined[key], new[key])
+                except KeyError:
+                    combined[key] = array([])
+                    combined[key] = append(combined[key], new[key])
+        return combined
 
-#     @staticmethod
-#     def download(url, prefix=""):
-#         # type: (str, str) -> str
-#         """
-#         Download a file accessible through HTTP/S.
-#         :param url: location of remote data
-#         :param prefix: local file path
-#         """
-#         response = get(url, stream=True)
-#         filename = url.split("/").pop()
-#         if not response.ok:
-#             raise ConnectionError
-#         with open(f"{prefix}{filename}", "wb") as fid:
-#             copyfileobj(response.raw, fid)
-#         return filename
+    @staticmethod
+    def download(url, prefix=""):
+        # type: (str, str) -> str
+        """
+        Download a file accessible through HTTP/S.
+        :param url: location of remote data
+        :param prefix: local file path
+        """
+        response = get(url, stream=True)
+        filename = url.split("/").pop()
+        if not response.ok:
+            raise ConnectionError
+        with open(f"{prefix}{filename}", "wb") as fid:
+            copyfileobj(response.raw, fid)
+        return filename
 
-#     def get(
-#         self,
-#         observed_properties,
-#         path=None,
-#         transpose=True,
-#         dataset=None,
-#         kind="float64",
-#         date=None,
-#     ):
-#         # type: (str or [str] or dict, str, bool, Dataset, str, datetime) -> dict
-#         """
-#         Load variables from NetCDF or pickled files into memory. For NetCDF, each variable is accessed
-#         by name, resulting in an array. For previously processed internal data, arrays are stored as
-#         binary data in either `.pkl` or `.bathysphere_functions_cache` files.
+    def get(
+        self,
+        observed_properties,
+        path=None,
+        transpose=True,
+        dataset=None,
+        kind="float64",
+        date=None,
+    ):
+        # type: (str or [str] or dict, str, bool, Dataset, str, datetime) -> dict
+        """
+        Load variables from NetCDF or pickled files into memory. For NetCDF, each variable is accessed
+        by name, resulting in an array. For previously processed internal data, arrays are stored as
+        binary data in either `.pkl` or `.bathysphere_functions_cache` files.
 
-#         :param observed_properties: lookup field names
-#         :param path: path to local files if loading
-#         :param transpose: transpose the array before saving, makes join later easier
-#         :param dataset: NetCDF reference as in-memory object
-#         :param kind: numerical format for arrays
-#         :param date: specific timestamp to sample
-#         """
-#         result = dict()
+        :param observed_properties: lookup field names
+        :param path: path to local files if loading
+        :param transpose: transpose the array before saving, makes join later easier
+        :param dataset: NetCDF reference as in-memory object
+        :param kind: numerical format for arrays
+        :param date: specific timestamp to sample
+        """
+        result = dict()
 
-#         if isinstance(observed_properties, str):
-#             fields = keys = [observed_properties]
-#         elif isinstance(observed_properties, dict):
-#             keys = observed_properties.keys()
-#             fields = observed_properties.values()
-#         else:
-#             fields = keys = observed_properties
-#         iterator = zip(*(keys, fields))
+        if isinstance(observed_properties, str):
+            fields = keys = [observed_properties]
+        elif isinstance(observed_properties, dict):
+            keys = observed_properties.keys()
+            fields = observed_properties.values()
+        else:
+            fields = keys = observed_properties
+        iterator = zip(*(keys, fields))
 
-#         for key, rename in iterator:
-#             if path:
-#                 try:
-#                     fid = open(key, "rb")
-#                 except FileNotFoundError:
-#                     continue
-#                 data = self.load_year_cache(fid).transpose() if transpose else self.load_year_cache(fid)
-#                 fid.close()
+        for key, rename in iterator:
+            if path:
+                try:
+                    fid = open(key, "rb")
+                except FileNotFoundError:
+                    continue
+                data = self.load_year_cache(fid).transpose() if transpose else self.load_year_cache(fid)
+                fid.close()
 
-#             elif dataset:
-#                 data = dataset.variables[key][:].astype(kind)
-#                 self.set(date, data, key)
-#             else:
-#                 data = None
+            elif dataset:
+                data = dataset.variables[key][:].astype(kind)
+                self.set(date, data, key)
+            else:
+                data = None
 
-#             result[rename] = data
+            result[rename] = data
 
-#         return result
+        return result
+
+    @staticmethod
+    def search(pattern, filesystem):
+        # type: (str, dict) -> None or str
+        """
+        Recursively search a directory structure for a key.
+        Call this on the result of `index`
+
+        :param filesystem: paths
+        :param pattern: search key
+        :return:
+        """
+        for key, level in filesystem.items():
+            if key == pattern:
+                return key
+            try:
+                result = FileSystem.search(pattern, level)
+            except AttributeError:
+                result = None
+            if result:
+                return f"{key}/{result}"
+        return None
+
+    @staticmethod
+    def syncFtp(ftp, remote, local, filesystem=None):
+        # type: (FTP, str, str, dict) -> int
+        path = FileSystem.search(filesystem=filesystem, pattern=remote)
+        with open(local, "wb+") as fid:
+            return int(ftp.retrbinary(f"RETR {path}", fid.write))
+
+    # @staticmethod
+    # def indexFtp(req, node=".", depth=0, limit=None, metadata=None, parent=None):
+    #     # type: (FTP, str, int, int or None, dict or None, dict) -> None
+    #     """
+    #     Build directory structure recursively.
+
+    #     :param ftp: persistent ftp connection
+    #     :param node: node in current working directory
+    #     :param depth: current depth, do not set
+    #     :param limit: maximum depth,
+    #     :param metadata: pass the object metadata down one level
+    #     :param parent:
+    #     :return:
+    #     """
+               
+    #     body = loads(req)
+    #     host = body.get("host", None)
+    #     root = body.get("root", None)
+    #     ftp = FTP(host, timeout=4)
+    #     assert "230" in ftp.login()  # attach if no open socket
+    #     assert ftp.sock
+    #     if root is not None:
+    #         _ = ftp.cwd(root)
+
+    #     def _map(rec):
+    #         values = rec.split()
+    #         key = values.pop().strip()
+    #         return {key: values}
+
+    #     if depth == 0 and parent is None:
+    #         parent = create(
+    #             db=graph,
+    #             obj=Locations(
+    #                 **{"name": "FTP Server", "description": "Autogenerated FTP Server"}
+    #             ),
+    #         )
+
+    #     if limit is None or depth <= limit:
+    #         try:
+    #             _ = ftp.cwd(node)  # target is a file
+    #         except:
+    #             create(
+    #                 db=graph,
+    #                 obj=Proxy(
+    #                     **{"name": node, "description": "Autogenerated", "url": node}
+    #                 ),
+    #                 links=[parent],
+    #             )
+
+    #         else:
+    #             collection = create(
+    #                 db=graph,
+    #                 obj=Proxy(
+    #                     **{"name": node, "description": "Autogenerated", "url": node}
+    #                 ),
+    #                 links=[parent],
+    #             )
+
+    #             files = []
+    #             ftp.retrlines("LIST", files.append)
+    #             for k, v in reduce(lambda x, y: {**x, **y}, map(_map, files), {}).items():
+    #                 indexFtp(
+    #                     ftp=ftp,
+    #                     graph=graph,
+    #                     node=k,
+    #                     depth=depth + 1,
+    #                     limit=limit,
+    #                     metadata=v,
+    #                     parent=collection,
+    #                 )
+
+    #             if node != ".":
+    #                 _ = ftp.cwd("..")
 
 
 class FileType(Enum):
@@ -980,7 +1095,7 @@ class Table:
 
 @attr.s
 class TimeStamp(object):
-    
+
     @staticmethod
     def parseBinary(
         buffer: bytes, 

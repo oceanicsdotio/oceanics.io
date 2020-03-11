@@ -22,3 +22,10 @@ def synchronous(task, loop=None, close=False):
     if close:
         loop.close()
     return result
+
+
+def interp1d(coefficient, aa, bb):
+    """
+    Simple linear interpolation in one dimension
+    """
+    return (1.0-coefficient)*aa + coefficient*bb

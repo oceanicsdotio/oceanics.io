@@ -15,7 +15,7 @@ except ImportError as ex:
 import attr
 from connexion import request
 from statistics import median
-from bathysphere.quantize.utils import interp1d
+from bathysphere.utils import interp1d
 from bathysphere.datatypes import PostgresType, Field, Table, Query, Coordinates, Distance
 
 def response(status, payload):
@@ -80,22 +80,15 @@ class Actuators(object):
         :param file: log file
         :param verb: log to console
         """
-        timer_id = relay_id + self.metadata["config"]["timer_id_offset"]
-        state = [[False] * banks] * (relays // banks)
+        # timer_id = relay_id + self.metadata["config"]["timer_id_offset"]
+        # state = [[False] * banks] * (relays // banks)
         start = time()
-
-        def _sleep():
-            """Maintain constant update rate."""
-            delay = refresh - ((time() - start) % refresh)
-            log(message="Waiting {} seconds".format(str(delay)), file=file, console=verb)
-            sleep(delay)
 
         while True:
             # response = on(host, port, relay_id, timer_id, duration=None)
             if not response:
-                log("breaking loop.")
-
-            _sleep()
+                print("breaking loop.")
+            sleep(refresh - ((time() - start) % refresh))
 
         return True
 
