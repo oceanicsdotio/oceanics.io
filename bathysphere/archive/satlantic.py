@@ -7,8 +7,8 @@ from enum import Enum
 from typing import Coroutine, Any
 from asyncio import new_event_loop, set_event_loop, BaseEventLoop
 
-from attrs import attr
-from bathysphere.datatypes import FileType
+
+from bathysphere.datatypes import FileType, File
 
 def synchronous(task, loop=None, close=False):
     # type: (Coroutine, BaseEventLoop, bool) -> Any
@@ -25,99 +25,6 @@ def synchronous(task, loop=None, close=False):
         loop.close()
     return result
 
-
-@attr.s
-class Frame(object):
-    data: bytes = attr.ib()
-    label: bytes = attr.ib()
-    headers: dict = attr.ib()
-    sn: int = attr.ib()
-    schema: dict = attr.ib()
-    span: int = attr.ib(default=32)
-    ts: datetime =  attr.ib(default=None)
-    _dict: dict = attr.ib(default=attr.Factory(dict))
-
-    def goto(self, pattern: bytes, root: str = "SensorFieldGroup"):
-        return [self._dict[key][root] for key in self._dict.keys() if pattern in key][0]
-
-@attr.s
-class File:
-    name: str = attr.ib(default="")
-    sn: int = attr.ib(default=None)
-    url: str = attr.ib(default=None)
-    time: datetime = attr.ib(default=None)
-    ts: datetime = attr.ib(defailt=attr.Factory(datetime.now))
-    kb: float = attr.ib(default=0.0)
-    encoding: str = attr.ib(default=None)
-    content: Any = attr.ib(default=None)
-
-    def __repr__(self):
-        return "{} ({}): {}".format(self.__class__.__name__, self.encoding, self.name)
-
-    def __cmp__(self, other):
-        if hasattr(other, "sort_key"):
-            return self.sort_key().__cmp__(other.sort_key())
-
-    def serialize(self):
-        return {
-            "url": self.url,
-            "ts": self.ts,
-            "kb": self.kb,
-            "encoding": self.encoding,
-            "content": self.content,
-        }
-
-    def sort_key(self):
-        return self.time
-
-    async def get_and_decode(self, headers, auth, span=32, sn=None ):
-        # type: (dict, str, int, int) -> str or list
-        """
-        Run a batch of jobs with processor pool and collapse results. This will use the file descriptions to
-        retrieve and format object remote raw file, with partially parsed observations in binary buffer.
-
-        Split the binary buffer into labeled frames. A frame corresponds to data from a single sensor/process,
-        which may become mingled by the data-logger before serialization and transmission.
-        """
-        response = get(self.url, auth=auth)
-        if not response.ok:
-            return response
-
-        if self.encoding == FileType.XML:
-            self.content = response.content.decode()  #
-
-        elif self.encoding == FileType.Config:
-            parts = ("sensor", "frame", "parameter")
-            self.content = deque(
-                dict(zip(parts, each.decode().split(":")))
-                for each in response.content.split(b"\n")
-                if each is not b""
-            )  # frames
-
-        elif self.encoding == FileType.Raw:
-            breaks = dict()
-            for key in headers.keys():
-                bkey = key.encode()
-                cursor = response.content.find(bkey)
-                while cursor != -1:
-                    breaks[cursor] = key
-                    cursor = response.content.find(bkey, cursor + span)
-
-            breaks = list(breaks.keys())
-            breaks.append(len(response.content))
-            sorted_breaks = sorted(breaks)  # add end of buffer as the last stop
-
-            self.content = deque(
-                Frame(
-                    data=response.content[start:end],
-                    key=breaks[start],
-                    sn=sn,
-                    headers=headers,
-                )
-                for start, end in zip(sorted_breaks[:-1], sorted_breaks[1:])
-            )
-
-        self.content = response.content
 
 
 def restore_fields(final, units):

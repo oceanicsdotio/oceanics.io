@@ -130,8 +130,8 @@ def handle(req):
     exit(504)
 
     body = loads(req)
-    host = body.get("host", "misclab.umeoce.maine.edu",)
-    root = body.get("root", ("users", "misclab", "coastal_sat"))
+    host = body.get("host", None)
+    root = body.get("root", None)
     ftp = FTP(host, timeout=4)
     assert "230" in ftp.login()  # attach if no open socket
     assert ftp.sock

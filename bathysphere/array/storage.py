@@ -14,7 +14,7 @@ from minio.error import SignatureDoesNotMatch
 from typing import Callable, Any
 from functools import reduce
 
-from bathysphere_array.utils import Array, OverwritePolicy, append, ExtentType, extent, reduce_extent
+from bathysphere.array.utils import Array, OverwritePolicy, append, ExtentType, extent, reduce_extent
 
 
 def avhrr_index(host, start=None, end=None, fmt="%Y%m%d%H%M%S"):
@@ -136,60 +136,6 @@ class FileSystem:
 
         return result
 
-
-class Dataset(_Dataset):
-    """
-    Wrapper for NetCDF Dataset that does back-off in case of remote connection errors
-    or drop-outs.
-
-    * Query: Get an array of a single variable
-    * Cache: Save chunk in object storage or local filesystem
-    """
-
-    def __init__(self, *args, retries=3, delay=0.5, **kwargs):
-        while retries:
-            try:
-                _Dataset.__init__(self, *args, **kwargs)
-                return
-            except IOError:
-                retries -= 1
-                sleep(delay)
-        raise TimeoutError
-
-    def query(self, observed_property, samples=None, reduce_dim=False, kind="float64"):
-        # type: (str, ((int, int),), bool, str) -> Array
-        """
-        Extract an observedProperty, and optionally extract pixel samples from it.
-        :param observed_property: field to extract
-        :param samples: buffer of pixel indices to sample
-        :param reduce_dim: if a single dim is stored as double dim, use this to avoid weirdness
-        :param kind: format for numerical data
-        """
-        simplefilter("ignore")  # ignore known NaN warning
-        if samples:
-            return array(
-                self.variables[observed_property][0, i, j].astype(kind)
-                for i, j in samples
-            )
-        return (
-            self.variables[observed_property][:, 0].astype(kind) if reduce_dim
-            else self.variables[observed_property][:].astype(kind)
-        )
-
-    def copy(self, path, observed_properties=None):
-        # type: (str, set) -> Dataset
-        fid = Dataset(path=path)
-        if isfile(path=path) and not self.policy():
-            return False
-        for name, obj in self.dimensions.items():
-            fid.createDimension(name, obj)
-        for name, obj in self.variables.items():
-            if observed_properties and str(name) not in observed_properties:
-                continue  # not matching variables in source data
-            fid.createVariable(name, obj.datatype, obj.dimensions)  # add headers
-            fid.variables[name][:] = self.variables[name][:]
-        fid.close()
-        return fid
 
 
 

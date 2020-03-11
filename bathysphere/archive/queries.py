@@ -3,12 +3,8 @@ from json import dumps
 from typing import Any, Callable
 from decimal import Decimal
 
-from attrs import attr
-from enum import Enum
-
 
 from bathysphere.datatypes import PostgresType, Field, Table, Query, Coordinates, Distance
-from bathysphere.models
 
 
 def parsePostgresValueIn(value: Any) -> str:
