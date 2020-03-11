@@ -95,6 +95,8 @@ Most of the frontend features are related to space. Screen space, real space, an
 
 We use a number of spatial data structures, algorithms, and approaches to provide excellent performance. The goal is to always support average devices on flaky networks. This section provides a introduction and references.
 
+More information can be found on our website: https://www.oceanics.io/tags/algorithms/
+
 ### Right-triangulated irregular networks
 
 The numerical simulations we use are executed on triangular meshes or multidimensional arrays (aka "raster" or "texture" data). For optimizing visualization and on-the-fly calculations in the browser we instead use specialized meshes like the right-triangulated irregular network (RTIN).
