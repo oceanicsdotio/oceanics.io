@@ -2,8 +2,6 @@
 
 ![](content/assets/dagan.png)
 
-
-
 The site is the homepage, and an application. The languages are JavaScript and Rust. Static rendering is with GatsbyJS and React. 
 
 The static sites are hosted on Netlify: [![Netlify Status](https://api.netlify.com/api/v1/badges/ad77195f-da0a-428f-ad2d-8dc5f45b3858/deploy-status)](https://app.netlify.com/sites/oceanicsdotio/deploys)
@@ -95,7 +93,7 @@ Queries on indexes produce a **cursor** which is used to iterate through records
 
 Most of the frontend features are related to space. Screen space, real space, and the representation of real space in screen space.
 
-We use a number of spatial data structures, algorithms, and approaches to provide excellent performance. The goal is to always support average devices on flaky networks.
+We use a number of spatial data structures, algorithms, and approaches to provide excellent performance. The goal is to always support average devices on flaky networks. This section provides a introduction and references.
 
 ### Right-triangulated irregular networks
 
