@@ -5,7 +5,7 @@ from re import sub
 from xml.etree import ElementTree
 
 from datetime import datetime, timedelta
-from bathysphere_graph.models import Frame
+from bathysphere.datatypes import TimeStamp, Frame
 
 
 def wqm(frame, keys):
@@ -69,17 +69,6 @@ def by_key(frame: Frame, frames: dict, headers: dict):
     frame.size: len(frame.bytes)
 
 
-def timestamp(buffer: bytes, byteorder: str = "big") -> datetime:
-    """
-    Convert two byte words into integer strings, and then date time. Only works for Satlantic date formats.
-    """
-    assert len(buffer) == 7
-    yyyydddhhmmssmmm = "{:07}{:09}".format(
-        int.from_bytes(buffer[:3], byteorder=byteorder),
-        int.from_bytes(buffer[3:], byteorder=byteorder),
-    )
-    return datetime.strptime(yyyydddhhmmssmmm, "%Y%j%H%M%S%f")
-
 
 def analog(frame: Frame, headers: dict, width: int = 35, key: str = "STORX"):
     """
@@ -96,7 +85,7 @@ def analog(frame: Frame, headers: dict, width: int = 35, key: str = "STORX"):
     f = headers[sn].goto(key)
     values, extra = binary_xml(buffer, f)
     frame.update(values)
-    frame.ts = timestamp(extra[:7])
+    frame.ts = TimeStamp.parseBinary(extra[:7])
     frame.bytes = frame.bytes[width:]
     frame.size = len(frame.bytes)
     return frame
@@ -111,7 +100,7 @@ def gps(frame: Frame, headers: dict, key: bytes = b"$GPRMC"):
     buffer = frame.bytes[loc + len(key) + 1 :]
     f = headers[sn].goto("MODEM")
     nav, extra = ascii_xml(buffer, f)
-    frame.data = {"content": nav, "ts": timestamp(extra[2:9]), "type": "nav"}
+    frame.data = {"content": nav, "ts": TimeStamp.parseBinary(extra[2:9]), "type": "nav"}
     frame.bytes = extra[9:]
     frame["size"] = len(frame.bytes)
     return frame

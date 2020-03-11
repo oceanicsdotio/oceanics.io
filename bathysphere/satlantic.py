@@ -7,56 +7,11 @@ from enum import Enum
 from typing import Coroutine, Any
 from asyncio import new_event_loop, set_event_loop, BaseEventLoop
 
+from pandas import read_html
 
 from bathysphere.datatypes import FileType, File
+from bathysphere.utils import synchronous
 
-def synchronous(task, loop=None, close=False):
-    # type: (Coroutine, BaseEventLoop, bool) -> Any
-    """
-    Run an asynchronous tasks in serial. First build JSON structures with Co-routines in place of data,
-    and then render the result of the Co-routines in-place.
-    """
-    if loop is None:
-        close = True
-        loop = new_event_loop()
-    set_event_loop(loop)  # create the event loop
-    result = loop.run_until_complete(task)
-    if close:
-        loop.close()
-    return result
-
-
-
-def restore_fields(final, units):
-    # type: ((str, ), (str, )) -> (str,)
-    """
-    Get the original header name back by reversing clean_fields() operation.
-    """
-    names = map(lambda n: n.replace("_plus", "(0+)").replace("_minus", "(0-)"), final)
-    fields = tuple(
-        map(
-            lambda f, u: f"{f} [{u}]".replace("_", " ").replace("percent", "%"),
-            zip(names, units),
-        )
-    )
-
-
-def clean_fields(fields):
-    # type: ((str, )) -> ((str, ), (str, ))
-    """
-    Make friendly formats for object and table naming. The inverse is restore_fields().
-    """
-    units = map(lambda f: f.split("[")[1].strip("]").replace(" ", "_"), fields)
-    names = map(
-        lambda f: f.split("[")[0]
-        .strip()
-        .replace(" ", "_")
-        .replace("%", "percent")
-        .replace("(0+)", "_plus")
-        .replace("(0-)", "_minus"),
-        fields,
-    )
-    return tuple(names), tuple(units)
 
 
 def indexFileMetadata(url, year, auth=None):

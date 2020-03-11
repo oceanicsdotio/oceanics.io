@@ -1,16 +1,9 @@
 from datetime import datetime
-from typing import Any
-from time import time
+from time import time, sleep
 from secrets import token_urlsafe
-import attr
-
-from connexion import request
-
-from datetime import datetime
 from json import dumps
 from typing import Any, Callable
 from decimal import Decimal
-
 from enum import Enum
 
 try:
@@ -19,15 +12,39 @@ try:
 except ImportError as ex:
     print("Unable to load numpy/scipy")
 
-
+import attr
+from connexion import request
 from statistics import median
 from bathysphere.quantize.utils import interp1d
+from bathysphere.datatypes import PostgresType, Field, Table, Query, Coordinates, Distance
 
 def response(status, payload):
     return {
         "status": status,
         "payload": list(payload),
     }
+
+
+def parsePostgresValueIn(value: Any) -> str:
+    parsingTable = {
+        datetime: lambda x: x.isoformat(),
+        float: lambda x: str(x),
+        int: lambda x: f"{x}.0",
+        str: lambda x: f"'{x}'",
+        dict: lambda x: f"ST_GeomFromGeoJSON('{dumps(x)}')",
+    }
+    return parsingTable.get(type(value), lambda x: "NULL")(value)
+
+
+def parsePostgresValueOut(v: Any) -> Any:
+    if isinstance(v, Decimal):
+        return float(v)
+    return v
+
+
+def join(x: str) -> str:
+        return ", ".join(x)
+
 
 
 @attr.s
@@ -74,7 +91,7 @@ class Actuators(object):
             sleep(delay)
 
         while True:
-            response = on(host, port, relay_id, timer_id, duration=None)
+            # response = on(host, port, relay_id, timer_id, duration=None)
             if not response:
                 log("breaking loop.")
 
@@ -130,8 +147,11 @@ class DataStreams(object):
             highpass, float :: upper cutoff
         """
         series = tuple(item.value for item in request.json)
-        spectrum = DataStreams.frequencySpectrum(series, dt=dt, fill=fill, compress=compress)
-        freq, ww = spectrum["payload"]["frequency"], spectrum["payload"]["index"]
+        spectrum: dict = DataStreams.frequencySpectrum(series, dt=dt, fill=fill, compress=compress)
+        payload: dict = spectrum.get("payload")
+        
+        freq = payload["frequency"]
+        ww = payload["index"]
 
         if highpass is not None:
             mask = (ww < highpass)
@@ -264,7 +284,7 @@ class DataStreams(object):
    
         dates = tuple(item.time for item in request.json)
         series = tuple(item.value for item in request.json)
-                   
+
         if assumeEvenSpacing:
             dydt = series
         else:
@@ -275,10 +295,10 @@ class DataStreams(object):
                 deltat.append(dates[nn] - dates[nn-1])
                 dydt.append((series[nn] - series[nn-1])/deltat[nn])
             
-        diff = abs(yy - median(yy))  # difference between series and median (anomaly)
+        diff = abs(series - median(series))  # difference between series and median (anomaly)
         mad = median(diff)  # median of anomaly
         mod_z = 0.6745 * diff / mad 
-        mask = mod_z > rr
+        mask = mod_z > threshold
 
         return response(200, payload=mask)
 
@@ -289,7 +309,7 @@ class DataStreams(object):
         Use backend to generate a mask. 
         """
         series = tuple(item.value for item in request.json)
-        mask = out_of_range(series, maximum=max, minimum=min)
+        mask = map(lambda x: x.outOfRange(maximum=max, minimum=min), series)
 
         return response(200, payload=mask)
 
@@ -324,6 +344,53 @@ class Locations(object):
     description: str = attr.ib(default=None)
     encodingType: str = attr.ib(default="application/vnd.geo+json")
 
+    @staticmethod
+    def nearestNeighborQuery(
+        coordinates: Coordinates, 
+        kNeighbors: int, 
+        searchRadius: Distance,
+    ) -> Query:
+        """
+        Format the query and parser required for making k nearest neighbor
+        queries to a database running PostGIS, with the appropriate
+        spatial indices already in place.
+        """
+
+        x, y = coordinates
+        targetTable = "landsat_points"
+        targetColumn, alias = "oyster_suitability_index", "osi"
+
+        queryString = f"""
+        SELECT AVG({alias}), COUNT({alias}) FROM (
+            SELECT {alias} FROM (
+                SELECT {targetColumn} as {alias}, geo
+                FROM {targetTable}
+                ORDER BY geo <-> 'POINT({x} {y})'
+                LIMIT {kNeighbors}
+            ) AS knn
+            WHERE st_distance(geo, 'POINT({x} {y})') < {searchRadius}
+        ) as points;
+        """
+
+        def parser(fetchAll):
+
+            avg, count = fetchAll[0]
+            return {
+                "message": "Mean Oyster Suitability",
+                "value": {
+                    "mean": avg,
+                    "distance": {
+                        "value": searchRadius,
+                        "units": "meters"
+                    },
+                    "observations": {
+                        "requested": kNeighbors,
+                        "found": count
+                    }
+                }
+            }
+
+        return Query(queryString, parser)
 
 @attr.s
 class Observations(object):

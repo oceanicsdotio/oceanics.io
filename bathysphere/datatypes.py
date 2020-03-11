@@ -1,24 +1,22 @@
 from enum import Enum
-import attr
 from typing import Callable, Any
 from datetime import datetime
 from math import floor
-from io import TextIOWrapper
-from json import dumps, loads, decoder
-from json import load as load_json
-from requests import get, post
-from requests.exceptions import ConnectionError
-from urllib3.exceptions import MaxRetryError
+from json import dumps, loads, decoder, load as load_json
+from collections import deque
 from uuid import uuid4
 from os import getpid
-from datetime import datetime
-from io import BytesIO
-from minio import Minio
-from minio.error import NoSuchKey
-from bidict import bidict
+from io import BytesIO, TextIOWrapper
 from difflib import SequenceMatcher
 from functools import reduce
 
+from bidict import bidict
+import attr
+from minio import Minio
+from minio.error import NoSuchKey
+from requests import get, post
+from requests.exceptions import ConnectionError
+from urllib3.exceptions import MaxRetryError
 
 SEC2DAY = 86400
 
@@ -92,59 +90,59 @@ class DataFormat(Enum):
     ArrayfireTexture = 7
 
 
-class Dataset(_Dataset):
-    """
-    Wrapper for NetCDF Dataset that does back-off in case of remote connection errors
-    or drop-outs.
+# class Dataset(_Dataset):
+#     """
+#     Wrapper for NetCDF Dataset that does back-off in case of remote connection errors
+#     or drop-outs.
 
-    * Query: Get an array of a single variable
-    * Cache: Save chunk in object storage or local filesystem
-    """
+#     * Query: Get an array of a single variable
+#     * Cache: Save chunk in object storage or local filesystem
+#     """
 
-    def __init__(self, *args, retries=3, delay=0.5, **kwargs):
-        while retries:
-            try:
-                _Dataset.__init__(self, *args, **kwargs)
-                return
-            except IOError:
-                retries -= 1
-                sleep(delay)
-        raise TimeoutError
+#     def __init__(self, *args, retries=3, delay=0.5, **kwargs):
+#         while retries:
+#             try:
+#                 _Dataset.__init__(self, *args, **kwargs)
+#                 return
+#             except IOError:
+#                 retries -= 1
+#                 sleep(delay)
+#         raise TimeoutError
 
-    def query(self, observed_property, samples=None, reduce_dim=False, kind="float64"):
-        # type: (str, ((int, int),), bool, str) -> Array
-        """
-        Extract an observedProperty, and optionally extract pixel samples from it.
-        :param observed_property: field to extract
-        :param samples: buffer of pixel indices to sample
-        :param reduce_dim: if a single dim is stored as double dim, use this to avoid weirdness
-        :param kind: format for numerical data
-        """
-        simplefilter("ignore")  # ignore known NaN warning
-        if samples:
-            return array(
-                self.variables[observed_property][0, i, j].astype(kind)
-                for i, j in samples
-            )
-        return (
-            self.variables[observed_property][:, 0].astype(kind) if reduce_dim
-            else self.variables[observed_property][:].astype(kind)
-        )
+#     def query(self, observed_property, samples=None, reduce_dim=False, kind="float64"):
+#         # type: (str, ((int, int),), bool, str) -> Array
+#         """
+#         Extract an observedProperty, and optionally extract pixel samples from it.
+#         :param observed_property: field to extract
+#         :param samples: buffer of pixel indices to sample
+#         :param reduce_dim: if a single dim is stored as double dim, use this to avoid weirdness
+#         :param kind: format for numerical data
+#         """
+#         simplefilter("ignore")  # ignore known NaN warning
+#         if samples:
+#             return array(
+#                 self.variables[observed_property][0, i, j].astype(kind)
+#                 for i, j in samples
+#             )
+#         return (
+#             self.variables[observed_property][:, 0].astype(kind) if reduce_dim
+#             else self.variables[observed_property][:].astype(kind)
+#         )
 
-    def copy(self, path, observed_properties=None):
-        # type: (str, set) -> Dataset
-        fid = Dataset(path=path)
-        if isfile(path=path) and not self.policy():
-            return False
-        for name, obj in self.dimensions.items():
-            fid.createDimension(name, obj)
-        for name, obj in self.variables.items():
-            if observed_properties and str(name) not in observed_properties:
-                continue  # not matching variables in source data
-            fid.createVariable(name, obj.datatype, obj.dimensions)  # add headers
-            fid.variables[name][:] = self.variables[name][:]
-        fid.close()
-        return fid
+#     def copy(self, path, observed_properties=None):
+#         # type: (str, set) -> Dataset
+#         fid = Dataset(path=path)
+#         if isfile(path=path) and not self.policy():
+#             return False
+#         for name, obj in self.dimensions.items():
+#             fid.createDimension(name, obj)
+#         for name, obj in self.variables.items():
+#             if observed_properties and str(name) not in observed_properties:
+#                 continue  # not matching variables in source data
+#             fid.createVariable(name, obj.datatype, obj.dimensions)  # add headers
+#             fid.variables[name][:] = self.variables[name][:]
+#         fid.close()
+#         return fid
 
 
 @attr.s
@@ -292,93 +290,93 @@ class File:
 
 
 
-class FileSystem:
+# class FileSystem:
 
-    policy = OverwritePolicy(policy="never")
+#     policy = OverwritePolicy(policy="never")
 
-    @staticmethod
-    def load_year_cache(local, years):
-        # type: (str, (int, )) -> dict
-        """Load a local binary file"""
-        combined = dict()
-        for year in years:
-            fid = open(f"{local}/{year}_checkpoint.pickle", "rb")
-            new = unpickle(fid)
-            for key in new.keys():
-                try:
-                    combined[key] = append(combined[key], new[key])
-                except KeyError:
-                    combined[key] = array([])
-                    combined[key] = append(combined[key], new[key])
-        return combined
+#     @staticmethod
+#     def load_year_cache(local, years):
+#         # type: (str, (int, )) -> dict
+#         """Load a local binary file"""
+#         combined = dict()
+#         for year in years:
+#             fid = open(f"{local}/{year}_checkpoint.pickle", "rb")
+#             new = unpickle(fid)
+#             for key in new.keys():
+#                 try:
+#                     combined[key] = append(combined[key], new[key])
+#                 except KeyError:
+#                     combined[key] = array([])
+#                     combined[key] = append(combined[key], new[key])
+#         return combined
 
-    @staticmethod
-    def download(url, prefix=""):
-        # type: (str, str) -> str
-        """
-        Download a file accessible through HTTP/S.
-        :param url: location of remote data
-        :param prefix: local file path
-        """
-        response = get(url, stream=True)
-        filename = url.split("/").pop()
-        if not response.ok:
-            raise ConnectionError
-        with open(f"{prefix}{filename}", "wb") as fid:
-            copyfileobj(response.raw, fid)
-        return filename
+#     @staticmethod
+#     def download(url, prefix=""):
+#         # type: (str, str) -> str
+#         """
+#         Download a file accessible through HTTP/S.
+#         :param url: location of remote data
+#         :param prefix: local file path
+#         """
+#         response = get(url, stream=True)
+#         filename = url.split("/").pop()
+#         if not response.ok:
+#             raise ConnectionError
+#         with open(f"{prefix}{filename}", "wb") as fid:
+#             copyfileobj(response.raw, fid)
+#         return filename
 
-    def get(
-        self,
-        observed_properties,
-        path=None,
-        transpose=True,
-        dataset=None,
-        kind="float64",
-        date=None,
-    ):
-        # type: (str or [str] or dict, str, bool, Dataset, str, datetime) -> dict
-        """
-        Load variables from NetCDF or pickled files into memory. For NetCDF, each variable is accessed
-        by name, resulting in an array. For previously processed internal data, arrays are stored as
-        binary data in either `.pkl` or `.bathysphere_functions_cache` files.
+#     def get(
+#         self,
+#         observed_properties,
+#         path=None,
+#         transpose=True,
+#         dataset=None,
+#         kind="float64",
+#         date=None,
+#     ):
+#         # type: (str or [str] or dict, str, bool, Dataset, str, datetime) -> dict
+#         """
+#         Load variables from NetCDF or pickled files into memory. For NetCDF, each variable is accessed
+#         by name, resulting in an array. For previously processed internal data, arrays are stored as
+#         binary data in either `.pkl` or `.bathysphere_functions_cache` files.
 
-        :param observed_properties: lookup field names
-        :param path: path to local files if loading
-        :param transpose: transpose the array before saving, makes join later easier
-        :param dataset: NetCDF reference as in-memory object
-        :param kind: numerical format for arrays
-        :param date: specific timestamp to sample
-        """
-        result = dict()
+#         :param observed_properties: lookup field names
+#         :param path: path to local files if loading
+#         :param transpose: transpose the array before saving, makes join later easier
+#         :param dataset: NetCDF reference as in-memory object
+#         :param kind: numerical format for arrays
+#         :param date: specific timestamp to sample
+#         """
+#         result = dict()
 
-        if isinstance(observed_properties, str):
-            fields = keys = [observed_properties]
-        elif isinstance(observed_properties, dict):
-            keys = observed_properties.keys()
-            fields = observed_properties.values()
-        else:
-            fields = keys = observed_properties
-        iterator = zip(*(keys, fields))
+#         if isinstance(observed_properties, str):
+#             fields = keys = [observed_properties]
+#         elif isinstance(observed_properties, dict):
+#             keys = observed_properties.keys()
+#             fields = observed_properties.values()
+#         else:
+#             fields = keys = observed_properties
+#         iterator = zip(*(keys, fields))
 
-        for key, rename in iterator:
-            if path:
-                try:
-                    fid = open(key, "rb")
-                except FileNotFoundError:
-                    continue
-                data = self.load_year_cache(fid).transpose() if transpose else self.load_year_cache(fid)
-                fid.close()
+#         for key, rename in iterator:
+#             if path:
+#                 try:
+#                     fid = open(key, "rb")
+#                 except FileNotFoundError:
+#                     continue
+#                 data = self.load_year_cache(fid).transpose() if transpose else self.load_year_cache(fid)
+#                 fid.close()
 
-            elif dataset:
-                data = dataset.variables[key][:].astype(kind)
-                self.set(date, data, key)
-            else:
-                data = None
+#             elif dataset:
+#                 data = dataset.variables[key][:].astype(kind)
+#                 self.set(date, data, key)
+#             else:
+#                 data = None
 
-            result[rename] = data
+#             result[rename] = data
 
-        return result
+#         return result
 
 
 class FileType(Enum):
@@ -430,7 +428,7 @@ class Graph:
                         "apiKey": config["graphApiKey"],
                     },
                 )
-            except ConnectionError or MaxRetryError:
+            except (ConnectionError, MaxRetryError):
                 config["graph"] = None
             else:
                 assert register.ok
@@ -500,237 +498,237 @@ class JSONIOWrapper(TextIOWrapper):
             print(response.rstrip())
 
 
-class Memory:
-    def __init__(self, size, max_size=int(1e6)):
-        # type: (int, int) -> None
-        """
-        Memory manager class for allocating and freeing bytes string, only implements contiguous chunks.
-        """
-        if not isinstance(size, int):
-            raise TypeError
-        if size > max_size:
-            raise MemoryError
+# class Memory:
+#     def __init__(self, size, max_size=int(1e6)):
+#         # type: (int, int) -> None
+#         """
+#         Memory manager class for allocating and freeing bytes string, only implements contiguous chunks.
+#         """
+#         if not isinstance(size, int):
+#             raise TypeError
+#         if size > max_size:
+#             raise MemoryError
 
-        self.buffer = zeros(size, dtype=bytes)
-        self.mask = zeros(size, dtype=bool)
-        self.map = dict()
-        self.remaining = size
-        self._count = 0
+#         self.buffer = zeros(size, dtype=bytes)
+#         self.mask = zeros(size, dtype=bool)
+#         self.map = dict()
+#         self.remaining = size
+#         self._count = 0
 
-    def alloc(self, size):
-        # type: (int) -> int
-        """
-        Allocate and return a fixed length buffer. Raise error if out of memory.
-        """
-        if self.remaining < size:
-            raise MemoryError
+#     def alloc(self, size):
+#         # type: (int) -> int
+#         """
+#         Allocate and return a fixed length buffer. Raise error if out of memory.
+#         """
+#         if self.remaining < size:
+#             raise MemoryError
 
-        # find indices of sufficient free memory, return pointers
-        # optionally shuffle memory to create contiguous blocks
-        self._count += 1
-        self.remaining -= size
+#         # find indices of sufficient free memory, return pointers
+#         # optionally shuffle memory to create contiguous blocks
+#         self._count += 1
+#         self.remaining -= size
 
-        start = self._find(size)
-        if start is None:
-            raise MemoryError
+#         start = self._find(size)
+#         if start is None:
+#             raise MemoryError
 
-        ptr = self.buffer[start : start + size]
-        self.map[self._count] = {"mask": arange(start, start + size), "data": ptr}
-        return self._count
+#         ptr = self.buffer[start : start + size]
+#         self.map[self._count] = {"mask": arange(start, start + size), "data": ptr}
+#         return self._count
 
-    def set(self, key, values):
-        # type: (int or str, bytes) -> None
-        """
-        Set buffer to specified values, or singleton
-        """
-        self.map[key]["data"][:] = values
+#     def set(self, key, values):
+#         # type: (int or str, bytes) -> None
+#         """
+#         Set buffer to specified values, or singleton
+#         """
+#         self.map[key]["data"][:] = values
 
-    def data(self, key):
-        # type: (int or str) -> bytes
-        """Return data"""
-        return self.map[key]["data"]
+#     def data(self, key):
+#         # type: (int or str) -> bytes
+#         """Return data"""
+#         return self.map[key]["data"]
 
-    def free(self, key):
-        # type: (int or str) -> bool
-        """
-        Free previously allocated variable
-        """
-        try:
-            indices = self.map[key]["mask"]  # get indices from memory map dict
-            # reset mask and increment available memory
-            self.mask[indices] = False
-            self.remaining += len(indices)
-            del key
+#     def free(self, key):
+#         # type: (int or str) -> bool
+#         """
+#         Free previously allocated variable
+#         """
+#         try:
+#             indices = self.map[key]["mask"]  # get indices from memory map dict
+#             # reset mask and increment available memory
+#             self.mask[indices] = False
+#             self.remaining += len(indices)
+#             del key
 
-        except MemoryError or TypeError:
-            return False
-        else:
-            return True
+#         except MemoryError or TypeError:
+#             return False
+#         else:
+#             return True
 
-    def _find(self, size):
-        # type: (int) -> int or None
-        """Find the starting index of the first available contiguous chunk"""
-        start = 0
-        while True:
-            offset = 1
-            if not self.mask[start]:
-                while not self.mask[start + offset] and offset <= size:
-                    if offset == size:
-                        return start
-                    else:
-                        offset += 1
-            else:
-                start += 1
+#     def _find(self, size):
+#         # type: (int) -> int or None
+#         """Find the starting index of the first available contiguous chunk"""
+#         start = 0
+#         while True:
+#             offset = 1
+#             if not self.mask[start]:
+#                 while not self.mask[start + offset] and offset <= size:
+#                     if offset == size:
+#                         return start
+#                     else:
+#                         offset += 1
+#             else:
+#                 start += 1
 
-            if start == len(self.mask) - size:
-                return None
+#             if start == len(self.mask) - size:
+#                 return None
 
-    @staticmethod
-    def cache(data, path, free=False):
-        # type: (bytes, str, bool) -> int
-        fid = open(path, "wb+")  # open pickled file to read
-        dump(data, fid)  # save array
-        fid.close()
-        if free:
-            del data
-        return len(data)
-
-
-    @staticmethod
-    def vertex_array_buffer(data, dataset, key, strategy, sequential=False, nb=None, headers=None):
-        # type: (deque or (Array, ), str, str, str, bool, float, dict) -> set
-        """
-        Take an iterable of arrays, and chunk them for upload.
-
-        :param data: deque or iterable
-        :param dataset: prefix for object storage
-        :param key: key for object storage
-        :param strategy: how to chunk (aggregate or bisect)
-        :param sequential: create an index if False
-        :param nb: max number of bytes
-        :param headers: headers!
-        """
-        _data = data if isinstance(data, deque) else deque(data)
-        if strategy not in ("aggregate", "bisect"):
-            raise ValueError
-        if strategy == "aggregate" and nb is None:
-            raise ValueError
-
-        last = 0
-        indx = 0
-        real = len(_data)
-        index = set()
-
-        while _data:
-            current = int(100 * indx / real)
-            if current != last:
-                print(current, "%")
-
-            c = ()
-            if strategy == "aggregate":
-                size = 0
-                while size < nb and _data:
-                    c += (_data.popleft(),)
-                    size += c[-1].nbytes
-            if strategy == "bisect":
-                c += (_data.popleft(),)
-
-            _key = f"{key}-{indx}" if sequential else None
-            ext = reduce(reduce_extent, (extent(*s) for s in c))
-
-            try:
-                assert False  # post here
-            except SignatureDoesNotMatch:
-                to_append = ()
-                if strategy == "bisect":
-                    to_append = array_split(c[0], 2, axis=0)
-                if strategy == "aggregate":
-                    tilt = len(c) // 2 + 1
-                    to_append = c[:tilt], c[tilt:]
-                _data.extend(to_append)
-                real += 1
-            else:
-                index |= {_key}
-                indx += 1
-
-        return index
+#     @staticmethod
+#     def cache(data, path, free=False):
+#         # type: (bytes, str, bool) -> int
+#         fid = open(path, "wb+")  # open pickled file to read
+#         dump(data, fid)  # save array
+#         fid.close()
+#         if free:
+#             del data
+#         return len(data)
 
 
-    @staticmethod
-    def parts(dataset, key):
-        part = 0
-        result = []
-        while True:
-            k = f"{dataset}/{key}-{part}"
-            stat = head(k)
-            if stat is None:
-                break
-            result.append(k)
-            part += 1
-        return result
+#     @staticmethod
+#     def vertex_array_buffer(data, dataset, key, strategy, sequential=False, nb=None, headers=None):
+#         # type: (deque or (Array, ), str, str, str, bool, float, dict) -> set
+#         """
+#         Take an iterable of arrays, and chunk them for upload.
+
+#         :param data: deque or iterable
+#         :param dataset: prefix for object storage
+#         :param key: key for object storage
+#         :param strategy: how to chunk (aggregate or bisect)
+#         :param sequential: create an index if False
+#         :param nb: max number of bytes
+#         :param headers: headers!
+#         """
+#         _data = data if isinstance(data, deque) else deque(data)
+#         if strategy not in ("aggregate", "bisect"):
+#             raise ValueError
+#         if strategy == "aggregate" and nb is None:
+#             raise ValueError
+
+#         last = 0
+#         indx = 0
+#         real = len(_data)
+#         index = set()
+
+#         while _data:
+#             current = int(100 * indx / real)
+#             if current != last:
+#                 print(current, "%")
+
+#             c = ()
+#             if strategy == "aggregate":
+#                 size = 0
+#                 while size < nb and _data:
+#                     c += (_data.popleft(),)
+#                     size += c[-1].nbytes
+#             if strategy == "bisect":
+#                 c += (_data.popleft(),)
+
+#             _key = f"{key}-{indx}" if sequential else None
+#             ext = reduce(reduce_extent, (extent(*s) for s in c))
+
+#             try:
+#                 assert False  # post here
+#             except SignatureDoesNotMatch:
+#                 to_append = ()
+#                 if strategy == "bisect":
+#                     to_append = array_split(c[0], 2, axis=0)
+#                 if strategy == "aggregate":
+#                     tilt = len(c) // 2 + 1
+#                     to_append = c[:tilt], c[tilt:]
+#                 _data.extend(to_append)
+#                 real += 1
+#             else:
+#                 index |= {_key}
+#                 indx += 1
+
+#         return index
 
 
-    @staticmethod
-    def restore(dataset, key, fcn=None, sequential=True, stack=False, limit=None, **kwargs):
-        # type: (str, str, Callable, bool, bool, int, dict) -> (Array, ) or Array
-        """
-        Reconstruct a single or multi-part array dataset
+#     @staticmethod
+#     def parts(dataset, key):
+#         part = 0
+#         result = []
+#         while True:
+#             k = f"{dataset}/{key}-{part}"
+#             stat = head(k)
+#             if stat is None:
+#                 break
+#             result.append(k)
+#             part += 1
+#         return result
 
-        :param dataset: object storage prefix
-        :param key: object name, lat part
-        :param fcn: method to perform on
-        :param sequential: use a sequential naming scheme rather than an index file
-        :param stack: append all array chunks into one
-        :param limit: max number to process
-        :param kwargs: arguments for the function
 
-        :return: transformed array, or none, if the method return no results
-        """
-        base = f"{dataset}/{key}"
-        stat = head(base)
-        if stat is None and not sequential:
-            raise ValueError
+#     @staticmethod
+#     def restore(dataset, key, fcn=None, sequential=True, stack=False, limit=None, **kwargs):
+#         # type: (str, str, Callable, bool, bool, int, dict) -> (Array, ) or Array
+#         """
+#         Reconstruct a single or multi-part array dataset
 
-        if stat is not None:
-            if sequential:
-                for s in unpickle(get(base).content):
-                    fcn(s, **kwargs)
-                return
-        elif sequential:
-            raise ValueError
+#         :param dataset: object storage prefix
+#         :param key: object name, lat part
+#         :param fcn: method to perform on
+#         :param sequential: use a sequential naming scheme rather than an index file
+#         :param stack: append all array chunks into one
+#         :param limit: max number to process
+#         :param kwargs: arguments for the function
 
-        index = (
-            Memory.parts(dataset, key) if sequential else
-            tuple(f"{dataset}/{key}" for key in load_json(get(base)))
-        )
+#         :return: transformed array, or none, if the method return no results
+#         """
+#         base = f"{dataset}/{key}"
+#         stat = head(base)
+#         if stat is None and not sequential:
+#             raise ValueError
 
-        if len(index) == 0:
-            raise ValueError
+#         if stat is not None:
+#             if sequential:
+#                 for s in unpickle(get(base).content):
+#                     fcn(s, **kwargs)
+#                 return
+#         elif sequential:
+#             raise ValueError
 
-        vertex_array_buffer = ()
-        part = 0
-        for key in index:
-            if part > limit:
-                break
-            c = unpickle(get(key).content)
-            if isinstance(c, list):
-                c = tuple(c)
-            if not isinstance(c, tuple):
-                raise TypeError
+#         index = (
+#             Memory.parts(dataset, key) if sequential else
+#             tuple(f"{dataset}/{key}" for key in load_json(get(base)))
+#         )
 
-            part += 1
-            if fcn is None:
-                vertex_array_buffer += c
-                continue
+#         if len(index) == 0:
+#             raise ValueError
 
-            y = (fcn(x[0] if isinstance(x, tuple) else x, **kwargs) for x in c)
-            vertex_array_buffer += tuple(yi for yi in y if yi is not None)
+#         vertex_array_buffer = ()
+#         part = 0
+#         for key in index:
+#             if part > limit:
+#                 break
+#             c = unpickle(get(key).content)
+#             if isinstance(c, list):
+#                 c = tuple(c)
+#             if not isinstance(c, tuple):
+#                 raise TypeError
 
-        if not len(vertex_array_buffer):
-            return None
-        if stack:
-            return vstack(vertex_array_buffer)
-        return vertex_array_buffer
+#             part += 1
+#             if fcn is None:
+#                 vertex_array_buffer += c
+#                 continue
+
+#             y = (fcn(x[0] if isinstance(x, tuple) else x, **kwargs) for x in c)
+#             vertex_array_buffer += tuple(yi for yi in y if yi is not None)
+
+#         if not len(vertex_array_buffer):
+#             return None
+#         if stack:
+#             return vstack(vertex_array_buffer)
+#         return vertex_array_buffer
 
 
 class ObjectStorage(Minio):
@@ -738,7 +736,7 @@ class ObjectStorage(Minio):
         self.bucket_name = bucket_name
         Minio.__init__(self, **kwargs)
         if not self.bucket_exists(bucket_name):
-            _ = self.make_bucket(bucket_name)
+            self.make_bucket(bucket_name)
 
     def exists(self, cacheKey: str):
         """Determine whether object exists"""
@@ -837,7 +835,7 @@ class ObjectStorage(Minio):
     @classmethod
     def lock(cls, fcn):
         def wrapper(
-            client: Storage,
+            client: ObjectStorage,
             session: str,
             index: dict,
             lock: str,
@@ -845,7 +843,7 @@ class ObjectStorage(Minio):
             *args,
             **kwargs,
         ):
-            locked, meta = client.exists(lock)
+            locked, _ = client.exists(lock)
             if locked:
                 return "Lock in place", 500
             client._lock(session, object_name=lock, headers=headers)
@@ -931,5 +929,69 @@ class Schema:
 
 @attr.s
 class Table:
+
     name: str = attr.ib()
     schema: Schema = attr.ib(default=Schema())
+
+    def declare(self) -> Query:
+        queryString = f"""
+        CREATE TABLE IF NOT EXISTS {self.name}({join(f'{f.value} {f.type}' for f in self.schema)});
+        """
+        return Query(queryString, None)
+
+
+    def insertRecords(self, data: ()) -> Query:
+        """
+        Insert new rows into database.
+        """
+        _parsedValues = (f"({join(map(parsePostgresValueIn, row))})" for row in data)
+        columns, values = map(join, ((field[0] for field in self.schema), _parsedValues))
+
+        queryString = f"""
+        INSERT INTO {self.name} ({columns}) VALUES {values};
+        """
+        return Query(queryString, None)
+
+
+    def selectRecords(
+        self, 
+        order_by: str = None, 
+        limit: int = 100, 
+        fields: (str, ) = ("*",), 
+        order: str ="DESC", 
+        conditions: ((str,)) = ()
+    ) -> Query:
+    
+        """
+        Read back values/rows.
+        """
+        _order = f"ORDER BY {order_by} {order}" if order_by else ""
+        _conditions = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+
+        queryString = f"""
+        SELECT {', '.join(fields)} FROM {self.name} {_conditions} {_order} LIMIT {limit};
+        """
+
+        def parse(x):
+            return {'record': x[0]}
+
+        return Query(queryString, parse)
+
+
+@attr.s
+class TimeStamp(object):
+    
+    @staticmethod
+    def parseBinary(
+        buffer: bytes, 
+        byteorder: str = "big"
+    ) -> datetime:
+        """
+        Convert two byte words into integer strings, and then date time. Only works for Satlantic date formats.
+        """
+        assert len(buffer) == 7
+        yyyydddhhmmssmmm = "{:07}{:09}".format(
+            int.from_bytes(buffer[:3], byteorder=byteorder),
+            int.from_bytes(buffer[3:], byteorder=byteorder),
+        )
+        return datetime.strptime(yyyydddhhmmssmmm, "%Y%j%H%M%S%f")
