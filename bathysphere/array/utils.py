@@ -107,18 +107,6 @@ class State:
     increment = zeros((1, 3), dtype=float)  # transformation increment
 
 
-class OverwritePolicy:
-    def __init__(self, policy="never"):
-        self.policy = policy
-
-    def __call__(self, *args, **kwargs):
-        if self == "always":
-            return True
-        if self == "prompt":
-            print("Cache already exists. Overwrite? [y/N]")
-            return input() in ("Y", "y")
-        return False
-
 
 def hc2pH(hc):
     pH = -log10(hc / 10 ** 9)

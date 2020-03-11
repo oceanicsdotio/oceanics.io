@@ -2,15 +2,20 @@ from uuid import uuid4
 from json import load as load_json
 from functools import reduce
 
-from neritics_bivalve import app, Storage
-from neritics_bivalve.core import batch
+from bathysphere.simulation.bivalve.shellfish import batch
+from bathysphere.datatypes import ResponseJSON, ObjectStorage
 
+config = dict()
 
-@Storage.session(config=app.app.config)
-@Storage.lock
-def get_index(index: dict, **kwargs: dict) -> tuple:
+@ObjectStorage.session(config=config)
+@ObjectStorage.lock
+def get_index(
+    index: dict, 
+    **kwargs: dict
+) -> ResponseJSON:
     """
     Get all model configurations known to the service
+
     :return:
     """
     try:
@@ -19,9 +24,14 @@ def get_index(index: dict, **kwargs: dict) -> tuple:
         return "Embedded database not found", 404
 
 
-@Storage.session(config=app.app.config)
-@Storage.lock
-def configure(body: dict, index: dict, session: str, client: Storage):
+@ObjectStorage.session(config=config)
+@ObjectStorage.lock
+def configure(
+    body: dict, 
+    index: dict, 
+    session: str, 
+    client: ObjectStorage
+) -> ResponseJSON:
     """
     Create a new configuration
 
@@ -41,29 +51,29 @@ def configure(body: dict, index: dict, session: str, client: Storage):
     _ = client.upload(
         label=session,
         data=data,
-        metadata=client.metadata_template("configuration", headers=app.app.config["headers"]),
+        metadata=client.metadata_template("configuration", headers=config["headers"]),
     )
 
     index["configurations"].append(session)
     _ = client.upload(
-        label=app.app.config["index"],
+        label=config["index"],
         data=index,
-        metadata=client.metadata_template("index", headers=app.app.config["headers"]),
+        metadata=client.metadata_template("index", headers=config["headers"]),
     )
     return data, 200
 
 
-@Storage.session(config=app.app.config)
-@Storage.lock
+@ObjectStorage.session(config=config)
+@ObjectStorage.lock
 def run_batch(
     objectKey: str,
     species: str,
-    client: Storage,
+    client: ObjectStorage,
     weight: float,
     session: str,
     body: dict = None,
     **kwargs: dict,
-) -> (dict or str, int):
+) -> ResponseJSON:
     """
     Run the model using a versioned configuration.
 
@@ -111,7 +121,7 @@ def run_batch(
         label=str(uuid4()).replace("-", ""),
         data=reduce(lambda a, b: a + b, result.pop("logs")),
         metadata=client.metadata_template(
-            file_type="log", parent=session, headers=app.app.config["headers"]
+            file_type="log", parent=session, headers=config["headers"]
         ),
     )
 
@@ -119,7 +129,7 @@ def run_batch(
         label=session,
         data=result,
         metadata=client.metadata_template(
-            file_type="experiment", parent=objectKey, headers=app.app.config["headers"]
+            file_type="experiment", parent=objectKey, headers=config["headers"]
         ),
     )
 
@@ -129,15 +139,19 @@ def run_batch(
         label=objectKey,
         data=config,
         metadata=client.metadata_template(
-            file_type="configuration", headers=app.app.config["headers"]
+            file_type="configuration", headers=config["headers"]
         ),
     )
 
     return result, 200
 
 
-@Storage.session(config=app.app.config)
-def get_object(objectKey: str, client: Storage, **kwargs):
+@ObjectStorage.session(config=config)
+def get_object(
+    objectKey: str, 
+    client: ObjectStorage, 
+    **kwargs: dict
+) -> ResponseJSON:
     """
     Browse saved results for a single model configuration. Results from different configurations are probably not
     directly comparable, so we make this a reduce the chances that someone makes wild conclusions comparing numerically
@@ -155,9 +169,13 @@ def get_object(objectKey: str, client: Storage, **kwargs):
     return load_json(raw), 200
 
 
-@Storage.session(config=app.app.config)
-@Storage.lock
-def delete_object(objectKey: str, client: Storage, **kwargs):
+@ObjectStorage.session(config=config)
+@ObjectStorage.lock
+def delete_object(
+    objectKey: str, 
+    client: ObjectStorage, 
+    **kwargs: dict
+) -> ResponseJSON:
     """
     Delete a cached result. Try not to do this.
 
@@ -169,10 +187,14 @@ def delete_object(objectKey: str, client: Storage, **kwargs):
     return None, 204
 
 
-@Storage.session(config=app.app.config)
-@Storage.lock
+@ObjectStorage.session(config=config)
+@ObjectStorage.lock
 def update_object(
-    objectKey: str, body: dict, index: dict, client: Storage, **kwargs
+    objectKey: str, 
+    body: dict, 
+    index: dict, 
+    client: ObjectStorage, 
+    **kwargs: dict
 ) -> tuple:
     """
     Change the model configuration
