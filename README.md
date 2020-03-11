@@ -13,7 +13,7 @@ Backend services are provided by the Bathysphere API geospatial graph, which is 
 
 
 
-# JS Development
+## JS Development
 
 The local development version is deployed with `gatsby develop`, or `netlify dev`. The login functions using Netlify Identity will not work unless running with the later. The ports are `:8000` and `:8080` respectively.
 
@@ -21,27 +21,24 @@ The JavaScript dependencies and builds are managed with `yarn`.
 
 
 
-# Rust/WASM Development
+## Rust/WASM Development
 
-The frontend uses Rust compiled to web assembly (WASM) in the frontend. 
+The frontend uses Rust compiled to web assembly (WASM). `Cargo.toml` describes the rust dependencies.
 
-To develop on WASM, you can get started with `rustup`, and `wasm-pack`:
+To develop on Rust/WASM, you can get started with `rustup`, and `wasm-pack`:
 
 ```bash
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 ```
 
-The `wasm-bindgen` tooling packages WASM to interact with Javascript, and can be served 
-as static files by compiling [without a bundler](https://github.com/rustwasm/wasm-bindgen/tree/master/examples/without-a-bundler)
+The `wasm-bindgen` tooling packages WASM as an importable JavaScript library. This allows the binaries to be served along with the other static assets by compiling [without a bundler](https://github.com/rustwasm/wasm-bindgen/tree/master/examples/without-a-bundler).
+
+The build command is in the package. Use `yarn run build-wasm` to compile rust to webassembly and generate javascript bindings.
 
 
 
-Use `yarn run build-wasm` to compile rust to webassembly and generate javascript bindings.
-
-`Cargo.toml` describes the rust dependencies
-
-## Rust crate
+### Rust crate
 
 agent.rs - agent simulations
 
