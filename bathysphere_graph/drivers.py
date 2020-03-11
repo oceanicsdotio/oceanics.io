@@ -9,14 +9,6 @@ from retry import retry
 from requests import post
 
 
-class RelationshipLabels(Enum):
-    Self = 1
-    Root = 2
-    Parent = 3
-    Collection = 4
-    Derived = 5
-
-
 def processKeyValueOutbound(obj, keyValue, private="_"):
     key, value = keyValue
     if key == "location":

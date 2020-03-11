@@ -916,6 +916,13 @@ class Query:
     parser: Callable = attr.ib()
 
 
+class RelationshipLabels(Enum):
+    Self = 1
+    Root = 2
+    Parent = 3
+    Collection = 4
+    Derived = 5
+
 
 @attr.s
 class Schema:

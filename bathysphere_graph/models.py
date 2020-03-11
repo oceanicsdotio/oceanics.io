@@ -341,19 +341,15 @@ class Link:
         ).values()
         return executeQuery(db, query, access_mode="read")
 
+
+@attr.s
+class Actuators(Entity, models.Actuators):
+    pass
+
+
 @attr.s
 class Assets(Entity, models.Assets):
    pass
-
-
-@attr.s
-class User(Entity, models.User):
-   pass
-
-
-@attr.s
-class Providers(Entity, models.Providers):
-    pass
 
 
 @attr.s
@@ -438,10 +434,10 @@ class ObservedProperties(Entity, models.ObservedProperties):
 
 
 @attr.s
-class Actuators(Entity, models.Actuators):
+class Providers(Entity, models.Providers):
     pass
 
-    
+
 @attr.s
 class TaskingCapabilities(Entity, models.TaskingCapabilities):
     pass
@@ -450,3 +446,9 @@ class TaskingCapabilities(Entity, models.TaskingCapabilities):
 @attr.s
 class Tasks(Entity, models.Tasks):
    pass
+
+
+@attr.s
+class User(Entity, models.User):
+   pass
+

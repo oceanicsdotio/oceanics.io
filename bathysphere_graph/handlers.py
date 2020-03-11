@@ -285,3 +285,4 @@ def drop(db, root, rootId, entity, uuid, props, **kwargs):
     # type: (Driver, str, int, str, int, dict, dict) -> (None, int)
     Link.drop(db, (eval(root)(uuid=rootId), eval(entity)(uuid=uuid)), props)
     return None, 204
+

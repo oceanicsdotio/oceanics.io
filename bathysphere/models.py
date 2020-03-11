@@ -13,10 +13,21 @@ from decimal import Decimal
 
 from enum import Enum
 
+try:
+    from numpy import abs, zeros, arange, ones, convolve, isnan, ceil, array
+    from scipy.fftpack import rfft, irfft, fftfreq
+except ImportError as ex:
+    print("Unable to load numpy/scipy")
 
-from bathysphere.datastream.core import (
-    fft_filter, fft_spectrum, resample, response, out_of_range, outlier, outlier_time, smooth
-)
+
+from statistics import median
+from bathysphere.quantize.utils import interp1d
+
+def response(status, payload):
+    return {
+        "status": status,
+        "payload": list(payload),
+    }
 
 
 @attr.s
@@ -29,6 +40,47 @@ class Actuators(object):
     encodingType: str = attr.ib(default=None)  # metadata encoding
     metadata: Any = attr.ib(default=None)
 
+    def startController(
+        self,
+        host: str,
+        port: int,
+        relay_id: int,
+        banks: int,
+        relays: int,
+        refresh: int,
+        file: str = None,
+        verb: bool = False,
+    ) -> bool:
+        """
+        Communicate with a single relay
+
+        :param host: hostname
+        :param port: port number
+        :param relay_id: relay id on board, doesn't get registered with graph
+        :param banks: number of replica banks
+        :param relays: total number of relays
+        :param refresh: fixed refresh rate, in seconds
+        :param file: log file
+        :param verb: log to console
+        """
+        timer_id = relay_id + self.metadata["config"]["timer_id_offset"]
+        state = [[False] * banks] * (relays // banks)
+        start = time()
+
+        def _sleep():
+            """Maintain constant update rate."""
+            delay = refresh - ((time() - start) % refresh)
+            log(message="Waiting {} seconds".format(str(delay)), file=file, console=verb)
+            sleep(delay)
+
+        while True:
+            response = on(host, port, relay_id, timer_id, duration=None)
+            if not response:
+                log("breaking loop.")
+
+            _sleep()
+
+        return True
 
 @attr.s
 class Assets(object):
@@ -65,29 +117,58 @@ class DataStreams(object):
 
 
     @staticmethod
-    def fastFourierTransform(dt=1, lowpass=None, highpass=None, fill=False, compress=True):
-
+    def fourierTransform(dt=1, lowpass=None, highpass=None, fill=False, compress=True):
+        """
+        Perform frequency-domain filtering on regularly spaced time series
+        
+        Kwargs:
+        
+            tt, float[] :: time series
+            yy, float[] :: reference series
+            dt, float :: regular timestep
+            lowpass, float :: lower cutoff
+            highpass, float :: upper cutoff
+        """
         series = tuple(item.value for item in request.json)
-        filtered = fft_filter(series, dt, lowpass, highpass, fill, compress)
+        spectrum = DataStreams.frequencySpectrum(series, dt=dt, fill=fill, compress=compress)
+        freq, ww = spectrum["payload"]["frequency"], spectrum["payload"]["index"]
+
+        if highpass is not None:
+            mask = (ww < highpass)
+            freq[mask] = 0.0  # zero out low frequency
+
+        if lowpass is not None:
+            mask = (ww > lowpass)
+            freq[mask] = 0.0  # zero out high-frequency
+    
+        filtered = irfft(freq)
+       
         return response(
             200,
             payload=filtered
         )
 
-
     @staticmethod
-    def frequencySpectrum(dt=1, fill=False, compress=True):
+    def frequencySpectrum(req, dt=1, fill=False, compress=True):
 
-        series = tuple(item.value for item in request.json)
-        freq, index = fft_spectrum(series, dt, fill, compress)
+        series = array(tuple(item.value for item in req.json))
+        
+        if fill:
+            series = series.ffill()  # forward-fill missing values
+
+        index = fftfreq(len(series), d=dt)  # frequency indices
+        freq = rfft(series)  # transform to frequency domain
+        if compress:
+            mask = (index < 0.0)
+            freq[mask] = 0.0  # get rid of negative symmetry
+        
         return response(
-            200,
+            status=200,
             payload={
                 "frequency": freq,
                 "index": index
             }
         )
-
 
     @staticmethod
     def smoothUsingConvolution(bandwidth, mode="same"):
@@ -96,15 +177,25 @@ class DataStreams(object):
 
         :return:
         """
-
         series = tuple(item.value for item in request.json)
-        filtered = smooth(series, bandwidth, mode)
+        filtered = convolve(series, ones((bandwidth,))/bandwidth, mode=mode)
         return response(200, payload=filtered)
-
 
     @staticmethod
     def resampleSparseSeries(method="forward", observations=None, start=None):
-
+        """
+        Generate filled regular time series of a variable from sparse observations
+        using either backward/forward fill, or linear interpolation
+        
+        Kwargs:
+            nobs, int :: number of observations
+            start, datetime :: starting time index
+            dates, datetime[] :: timestamps of observations
+            series, float[] :: magnitude of observations
+            method, str :: method if interpolation
+            
+        returns: array of filled values as single column
+        """
         dates = tuple(item.time for item in request.json)
         series = tuple(item.value for item in request.json)
 
@@ -114,21 +205,80 @@ class DataStreams(object):
         if not start:
             start = dates[0]
 
-        filtered = resample(observations, start, dates, series, method=method)
-        return response(200, payload=filtered)
+    
+        new = zeros(observations, dtype=float)
+        total = 0  # new observations created
+        previous = None
+        dtdt = None
 
+        for ii in range(len(series)):
+            time = dates[ii]
+            signal = series[ii]
+            if not isnan(signal):
+                dt = time - start
+                hours = dt.days * 24 + dt.seconds / 60 / 60  # hours elapsed since first sample
+                if hours > 0:  # reference time is after start time
+                    end = min(ceil(hours), observations)  # absolute end index
+                    span = end - total  # width of subset
 
-    @staticmethod
-    def statisticalOutlierMask(method: str, threshold: float):
+                    if method is "forward":
+                        first = total
+                        if ii == len(series) - 1:
+                            span += observations - end
 
+                        last = total + span  # not including self
+                        new[first:last] = signal if previous is None else previous  # default to back-fill
+
+                    elif method is "back":
+                        first = total  # including self
+                        last = total + span - 1
+                        new[first:last] = signal
+
+                    elif method is 'interp':
+                        if dtdt is None:
+                            fill = signal  # default to forward fill
+                        else:
+                            delta = end - dtdt  # get step between input obs
+                            coefs = arange(delta) / delta  # inter-step interpolation coefficient
+                            fill = interp1d(coefs, previous, signal)
+
+                        first = max([total - 1, 0])
+                        new[first:total + span - 1] = fill
+
+                    dtdt = dt
+                    total += span
+
+                previous = signal
+       
+        return response(200, payload=new)
+
+    def statisticalOutlierMask(
+        self,
+        assumeEvenSpacing: bool = False, 
+        threshold: float = 3.5
+    ):
+        """
+        Return array of logical values, with true indicating that the value or its 
+        first derivative are outliers
+        """
+   
         dates = tuple(item.time for item in request.json)
         series = tuple(item.value for item in request.json)
-
-        if method == "time":
-            mask = outlier_time(dates, series, threshold)
-
-        if method == "simple":
-            mask = outlier(series, rr=threshold)
+                   
+        if assumeEvenSpacing:
+            dydt = series
+        else:
+            dydt = [0.0]
+            deltat = [0.0]
+            
+            for nn in range(1, len(series)):
+                deltat.append(dates[nn] - dates[nn-1])
+                dydt.append((series[nn] - series[nn-1])/deltat[nn])
+            
+        diff = abs(yy - median(yy))  # difference between series and median (anomaly)
+        mad = median(diff)  # median of anomaly
+        mod_z = 0.6745 * diff / mad 
+        mask = mod_z > rr
 
         return response(200, payload=mask)
 
@@ -142,6 +292,7 @@ class DataStreams(object):
         mask = out_of_range(series, maximum=max, minimum=min)
 
         return response(200, payload=mask)
+
 
 
 @attr.s
@@ -185,6 +336,13 @@ class Observations(object):
     resultQuality: Any = attr.ib(default=None)
     validTime: (datetime, datetime) = attr.ib(default=None)  # time period
     parameters: dict = attr.ib(default=None)
+
+    @property
+    def outOfRange(self, maximum, minimum=0.0):
+        """
+        True if value is outside the given range
+        """
+        return (self.result > maximum) | (self.result < minimum)
 
 
 @attr.s
