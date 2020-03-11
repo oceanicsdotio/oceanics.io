@@ -10,16 +10,11 @@ The static sites are hosted on Netlify: [![Netlify Status](https://api.netlify.c
 
 Backend services are provided by the Bathysphere API geospatial graph, which is documented elsewhere.
 
-
-
-
 ## JS Development
 
 The local development version is deployed with `gatsby develop`, or `netlify dev`. The login functions using Netlify Identity will not work unless running with the later. The ports are `:8000` and `:8080` respectively.
 
 The JavaScript dependencies and builds are managed with `yarn`. 
-
-
 
 ## Rust/WASM Development
 
@@ -34,8 +29,6 @@ The `wasm-bindgen` tooling packages WASM as an importable JavaScript library. Th
 
  `Cargo.toml` describes the Rust dependencies. The build command is in the package. Use `yarn run build-wasm` to compile rust to webassembly and generate the necessary JavaScript bindings.
 
-
-
 ### Rust library
 
 There is still a lot of JavaScript, but the numerical and graphics features have been ported over to Rust. 
@@ -48,8 +41,6 @@ The structure of the library is:
 `tessellate.rs` - Model generation, triangulation, and other discretization methods
 `webgl.rs` - WebGL handlers and utilities for compiling client side (GPU) shaders
 
-
-
 ## Production
 
 When new commits are checked into the Bitbucket repository, the site is deployed to `oceanicsdotio.netlify.com`, which has the custom domain `oceanics.io`.
@@ -57,8 +48,6 @@ When new commits are checked into the Bitbucket repository, the site is deployed
 The `functions-src` directory contains the Netlify functions to deploy along side the site. Currently these include features for user authorization, and secure API calls.
 
 User management is through Netlify Identity for the time being.  
-
-
 
 ## IndexedDB API
 
@@ -73,7 +62,6 @@ To store data in the browser:
 3. start transaction, make request (RAII?)
 4. listen for DOM event to signal operation is complete
 5. Use callback
-
 
 ### Database
 
@@ -103,90 +91,32 @@ When objects are added that do not contain the key, they are omitted from the in
 
 Queries on indexes produce a **cursor** which is used to iterate through records. Cursors contain information about the object store and index, include the position and direction within the sequence.
 
-
-
 ## Spatial data structures
 
 Most of the frontend features are related to space. Screen space, real space, and the representation of real space in screen space.
 
 We use a number of spatial data structures, algorithms, and approaches to provide excellent performance. The goal is to always support average devices on flaky networks.
 
+### Right-triangulated irregular networks
 
-### Right-triangulated Irregular Networks (RTIN)
+The numerical simulations we use are executed on triangular meshes or multidimensional arrays (aka "raster" or "texture" data). For optimizing visualization and on-the-fly calculations in the browser we instead use specialized meshes like the right-triangulated irregular network (RTIN).
 
-The numerical simulations we use are executed on triangular meshes or multidimensional arrays (aka "raster" or "texture" data). For optimizing visualization and on-the-fly calculations in the browser we instead use specialized meshes like the right-triangulated irregular network. 
+This is a hierarchal data structure for representing a regular rectilinear grid as a triangulation. For the purposes of visualization, the height values at the grid points are assumed to be exactly correct.
 
-hierarchal data structure
+This is a form of multi-resolution surface rendering which forms right isosceles triangles from a subset of the points. Multiple partitioning schemes within the representation allow for changing the resultion dynamically.
 
-height values
+The algorithm to decompose a square into triangles is:
 
-assume exact representation
+1. first divide along NW-SE
+2. form partitions by splitting triangles larger than the minimum size
+3. split T from right angle to midpoint of hypoenuse
+4. if edge point causes neighbor (R) to become a quad, propagate 
+5. if equal size stop, else if R larger continue to propagate
 
+This is also called a `4*8^2` Laves net. Laves nets are tessellation methods where every subdivision has a similar shape. The numbers are the maximum splits that occur along each side of the reference shape. Squares are `4^4`, 30-60-90 triangles are `4.6.12` and equilateral triangles are `6^3`. 
 
+Squares and equilateral triangles cannot form a continuous non-uniform partition, because any split with recursively divide all cells. The `4.8^2` will change at most 2 of each size triangle, while `4.6.12` change 12 or fewer of each equal and larger size. 
 
+In practice, this is implemented as a binary tree, with triangles as leaves. The root node is the square. Each half of a split polygon is labelled `left`/`right` according to the side of splitting ray that it is on. 
 
-
-alternate to sub-grid, or TIN
-
-subset of points forming right isosceles triangle
-
-multiresolution surface rendering
-
-
-
-RTIN partitions in dataset
-
-
-
-square into triangles
-
-
-
-fisrt divide along NW-SE
-
-new partitions are formed by spling non-terminal triangles
-
-terminal value from underlying data
-
-split T from right angle to midpoint of hypoenuse
-
-if edge point causes neighbor (R) to become a quad, propagate 
-
-if euqal size, process stops, else if R larger, continue to propagate
-
-
-
-[4.8.8] laves net
-
-tother types: square (4^4), 30-60-90 (4.6.12), equilateral (6^3)
-
-square/eq, single refinement will split all cells
-
-therefore cannot form a continuous non-uniform partition
-
-for 4.8.8 split effects at most 2 triangles of each size
-
-in 4.6.12, at most 12 of each equal and larger
-
-
-
-binary tree
-
-each triangle in partition is a leaf
-
-root is square
-
-left(0)/right(1) is determined by side of splitting ray
-
-splits are from hypot to right vert
-
-
-
-from a parent triangle ordered CCW with v3 as right angle
-
-left -> (v3, v1, m), right -> (v2, v3, m)
-
-
-
-
-
+Splits are from the hypotenuse to the `right` vertex. From a parent ordered counter clockwise with the right-angled vertex labeleld v_3, the `left` partition is (v_3, v_1, m), and `right` is (v_2, v_3, m)
