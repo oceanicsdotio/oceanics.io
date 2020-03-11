@@ -300,9 +300,20 @@ class File:
         self.content = response.content
 
 
-
-
+@attr.s
 class FileSystem:
+
+    @attr.s
+    class OverwritePolicy:
+        policy: str = attr.ib(default="never")
+
+        def __call__(self, *args, **kwargs):
+            if self == "always":
+                return True
+            if self == "prompt":
+                print("Cache already exists. Overwrite? [y/N]")
+                return input() in ("Y", "y")
+            return False
 
     policy = OverwritePolicy(policy="never")
 
@@ -322,73 +333,73 @@ class FileSystem:
                     combined[key] = append(combined[key], new[key])
         return combined
 
-    @staticmethod
-    def download(url, prefix=""):
-        # type: (str, str) -> str
-        """
-        Download a file accessible through HTTP/S.
-        :param url: location of remote data
-        :param prefix: local file path
-        """
-        response = get(url, stream=True)
-        filename = url.split("/").pop()
-        if not response.ok:
-            raise ConnectionError
-        with open(f"{prefix}{filename}", "wb") as fid:
-            copyfileobj(response.raw, fid)
-        return filename
+    # @staticmethod
+    # def download(url, prefix=""):
+    #     # type: (str, str) -> str
+    #     """
+    #     Download a file accessible through HTTP/S.
+    #     :param url: location of remote data
+    #     :param prefix: local file path
+    #     """
+    #     response = get(url, stream=True)
+    #     filename = url.split("/").pop()
+    #     if not response.ok:
+    #         raise ConnectionError
+    #     with open(f"{prefix}{filename}", "wb") as fid:
+    #         copyfileobj(response.raw, fid)
+    #     return filename
 
-    def get(
-        self,
-        observed_properties,
-        path=None,
-        transpose=True,
-        dataset=None,
-        kind="float64",
-        date=None,
-    ):
-        # type: (str or [str] or dict, str, bool, Dataset, str, datetime) -> dict
-        """
-        Load variables from NetCDF or pickled files into memory. For NetCDF, each variable is accessed
-        by name, resulting in an array. For previously processed internal data, arrays are stored as
-        binary data in either `.pkl` or `.bathysphere_functions_cache` files.
+    # def get(
+    #     self,
+    #     observed_properties,
+    #     path=None,
+    #     transpose=True,
+    #     dataset=None,
+    #     kind="float64",
+    #     date=None,
+    # ):
+    #     # type: (str or [str] or dict, str, bool, Dataset, str, datetime) -> dict
+    #     """
+    #     Load variables from NetCDF or pickled files into memory. For NetCDF, each variable is accessed
+    #     by name, resulting in an array. For previously processed internal data, arrays are stored as
+    #     binary data in either `.pkl` or `.bathysphere_functions_cache` files.
 
-        :param observed_properties: lookup field names
-        :param path: path to local files if loading
-        :param transpose: transpose the array before saving, makes join later easier
-        :param dataset: NetCDF reference as in-memory object
-        :param kind: numerical format for arrays
-        :param date: specific timestamp to sample
-        """
-        result = dict()
+    #     :param observed_properties: lookup field names
+    #     :param path: path to local files if loading
+    #     :param transpose: transpose the array before saving, makes join later easier
+    #     :param dataset: NetCDF reference as in-memory object
+    #     :param kind: numerical format for arrays
+    #     :param date: specific timestamp to sample
+    #     """
+    #     result = dict()
 
-        if isinstance(observed_properties, str):
-            fields = keys = [observed_properties]
-        elif isinstance(observed_properties, dict):
-            keys = observed_properties.keys()
-            fields = observed_properties.values()
-        else:
-            fields = keys = observed_properties
-        iterator = zip(*(keys, fields))
+    #     if isinstance(observed_properties, str):
+    #         fields = keys = [observed_properties]
+    #     elif isinstance(observed_properties, dict):
+    #         keys = observed_properties.keys()
+    #         fields = observed_properties.values()
+    #     else:
+    #         fields = keys = observed_properties
+    #     iterator = zip(*(keys, fields))
 
-        for key, rename in iterator:
-            if path:
-                try:
-                    fid = open(key, "rb")
-                except FileNotFoundError:
-                    continue
-                data = self.load_year_cache(fid).transpose() if transpose else self.load_year_cache(fid)
-                fid.close()
+    #     for key, rename in iterator:
+    #         if path:
+    #             try:
+    #                 fid = open(key, "rb")
+    #             except FileNotFoundError:
+    #                 continue
+    #             data = self.load_year_cache(fid).transpose() if transpose else self.load_year_cache(fid)
+    #             fid.close()
 
-            elif dataset:
-                data = dataset.variables[key][:].astype(kind)
-                self.set(date, data, key)
-            else:
-                data = None
+    #         elif dataset:
+    #             data = dataset.variables[key][:].astype(kind)
+    #             self.set(date, data, key)
+    #         else:
+    #             data = None
 
-            result[rename] = data
+    #         result[rename] = data
 
-        return result
+    #     return result
 
     @staticmethod
     def search(pattern, filesystem):
@@ -996,21 +1007,6 @@ class ObjectStorage(Minio):
             return wrapper
 
         return decorator
-
-
-
-
-class OverwritePolicy:
-    def __init__(self, policy="never"):
-        self.policy = policy
-
-    def __call__(self, *args, **kwargs):
-        if self == "always":
-            return True
-        if self == "prompt":
-            print("Cache already exists. Overwrite? [y/N]")
-            return input() in ("Y", "y")
-        return False
 
 
 class PostgresType(Enum):

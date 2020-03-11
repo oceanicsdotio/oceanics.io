@@ -18,32 +18,7 @@ from statistics import median
 from bathysphere.utils import interp1d
 from bathysphere.datatypes import PostgresType, Field, Table, Query, Coordinates, Distance
 
-def response(status, payload):
-    return {
-        "status": status,
-        "payload": list(payload),
-    }
 
-
-def parsePostgresValueIn(value: Any) -> str:
-    parsingTable = {
-        datetime: lambda x: x.isoformat(),
-        float: lambda x: str(x),
-        int: lambda x: f"{x}.0",
-        str: lambda x: f"'{x}'",
-        dict: lambda x: f"ST_GeomFromGeoJSON('{dumps(x)}')",
-    }
-    return parsingTable.get(type(value), lambda x: "NULL")(value)
-
-
-def parsePostgresValueOut(v: Any) -> Any:
-    if isinstance(v, Decimal):
-        return float(v)
-    return v
-
-
-def join(x: str) -> str:
-        return ", ".join(x)
 
 
 
