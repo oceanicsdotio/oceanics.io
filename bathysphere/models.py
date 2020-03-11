@@ -4,11 +4,19 @@ from time import time
 from secrets import token_urlsafe
 import attr
 
+from connexion import request
+
+from datetime import datetime
+from json import dumps
+from typing import Any, Callable
+from decimal import Decimal
+
+from enum import Enum
+
+
 from bathysphere.datastream.core import (
     fft_filter, fft_spectrum, resample, response, out_of_range, outlier, outlier_time, smooth
 )
-from connexion import request
-
 
 
 @attr.s

@@ -10,7 +10,7 @@ from requests import get
 from neo4j import Node
 from attrs import attr
 
-from bathysphere.graph.drivers import *
+from graph.drivers import *
 from bathysphere import models
 
 @attr.s

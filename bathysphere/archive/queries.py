@@ -7,50 +7,8 @@ from attrs import attr
 from enum import Enum
 
 
-class PostgresType(Enum):
-    Numerical = "DOUBLE PRECISION NULL"
-    TimeStamp = "TIMESTAMP NOT NULL"
-    Geography = "GEOGRAPHY NOT NULL"
-    IntIdentity = "INT PRIMARY KEY"
-    NullString = "VARCHAR(100) NULL"
-
-
-@attr.s
-class Coordinates:
-    """Point coordinates for spatial applications"""
-    x: float = attr.ib()
-    y: float = attr.ib()
-
-
-@attr.s
-class Field:
-    """Column for Postgres table"""
-    name: Any = attr.ib()
-    type: str = attr.ib()
-
-
-@attr.s
-class Query:
-    """"""
-    sql: str = attr.ib()
-    parser: Callable = attr.ib()
-
-
-@attr.s
-class Distance:
-    value: float = attr.ib()
-    unit: str = attr.ib()
-
-
-@attr.s
-class Schema:
-    fields: [Field] = attr.ib(default=attr.Factory(list))
-
-
-@attr.s
-class Table:
-    name: str = attr.ib()
-    schema: Schema = attr.ib(default=Schema())
+from bathysphere.datatypes import PostgresType, Field, Table, Query, Coordinates, Distance
+from bathysphere.models
 
 
 def parsePostgresValueIn(value: Any) -> str:
