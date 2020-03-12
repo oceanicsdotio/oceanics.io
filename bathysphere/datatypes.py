@@ -1,6 +1,6 @@
 from enum import Enum
 from typing import Callable, Any, Coroutine
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from math import floor
 from json import dumps, loads, decoder, load as load_json
 from collections import deque
@@ -11,6 +11,8 @@ from difflib import SequenceMatcher
 from functools import reduce
 from ftplib import FTP
 from pickle import loads as unpickle
+from re import sub
+from xml.etree import ElementTree
 
 import hmac
 import hashlib
@@ -28,9 +30,8 @@ from redis.client import PubSub
 from itertools import repeat
 from multiprocessing import Pool
 
-
 try:
-    from numpy import array, append
+    from numpy import array, append, frombuffer
     from netCDF4 import Dataset as _Dataset
     from pandas import read_html
 except ImportError as ex:
@@ -808,7 +809,7 @@ class Frame(object):
         ][0]
 
         binary = ((True for key in each.keys() if ("Binary" in key)) for each in fr)
-        dat, extra = (self.binary_xml if any(binary) else self.ascii_xml)(buffer, fr)
+        dat, extra = (Frame.binary_xml if any(binary) else Frame.ascii_xml)(buffer, fr)
         loc = extra.find(b"\r\n")
 
         if self.data is None:
@@ -841,7 +842,7 @@ class Frame(object):
         sn = int(self.key[-4:])
         buffer = self.bytes[10:width]
         f = headers[sn].goto(key)
-        values, extra = binary_xml(buffer, f)
+        values, extra = Frame.binary_xml(buffer, f)
         self.update(values)
         self.ts = TimeStamp.parseBinary(extra[:7])
         self.bytes = self.bytes[width:]
@@ -855,13 +856,13 @@ class Frame(object):
         key: bytes = b"$GPRMC"
     ):
         """Decode bytes as GPGGA or GPRMC location stream"""
-        sn = int(self["key"][-4:])
+        sn = int(self.key[-4:])
         loc = self.bytes.find(key)
         if loc == -1:
             return
         buffer = self.bytes[loc + len(key) + 1 :]
         f = headers[sn].goto("MODEM")
-        nav, extra = ascii_xml(buffer, f)
+        nav, extra = Frame.ascii_xml(buffer, f)
         self.data = {"content": nav, "ts": TimeStamp.parseBinary(extra[2:9]), "type": "nav"}
         self.bytes = extra[9:]
         self["size"] = len(self.bytes)
@@ -877,7 +878,7 @@ class Frame(object):
             result["raw"] = each
             try:
                 data, ts = each.split(b"\r\n")
-                result["ts"] = cls.timestamp(ts)
+                result.ts = TimeStamp(ts)
             except ValueError:
                 data = each
                 result["ts"] = None
@@ -940,7 +941,12 @@ class Frame(object):
         return result, buffer[offset:]
 
 
-    def storx(self, fields, name_length=10, verb=False):
+    def storx(
+        self: Frame, 
+        fields: (Field,), 
+        name_length: int = 10, 
+        verb: bool = False
+    ) -> None:
         """
         Decode and process Satlantic sensor frames if format is known, or fail silently
 
@@ -952,7 +958,6 @@ class Frame(object):
         :return: possibly processed frame
         """
 
-
         delim = {"PHA": b",", "CST": b"\t"}  # SEAFET pH instrument  # CSTAR transmissometer
 
         brk = self.bytes.find(b"\t")
@@ -960,7 +965,7 @@ class Frame(object):
             brk = self.bytes.find(b"\x00")
             if brk > name_length:
                 print("Error. Instrument name appears to be too long:", self.bytes[:32])
-                return frame  # return unmodified frame
+                return  # return unmodified frame
 
         self.sensor = self.bytes[:brk].decode()
         self.time = None
@@ -975,7 +980,7 @@ class Frame(object):
             start = 1
             rest = self.bytes[brk + 1 :].split(sep)
             if sensor == "PHA":
-                frame = seafet(frame, brk, fields[sensor])
+                self.seafet(frame, brk, fields[sensor])
             else:
                 try:
                     keys = fields[sensor]
@@ -988,8 +993,6 @@ class Frame(object):
 
         if verb and self.data.__class__.__name__ == "dict":
             print(self.sensor, "[", self.time, "] ::", self.data)
-
-        return frame
 
     @staticmethod
     def parse_buffer_queue(
@@ -1067,7 +1070,7 @@ class Frame(object):
         ns = "{http://www.satlantic.com/instrument}"
         root = ElementTree.fromstring(config["xml"]["content"])
         return {
-            item[key]: _collect(_goto(item), depth=depth, namespace=ns, verb=verb)
+            item[key]: Frame._collect(_goto(item), depth=depth, namespace=ns, verb=verb)
             for item in config["config"]["content"]
         }
 
@@ -1076,9 +1079,9 @@ class Frame(object):
         """
         Recursively collect XML sensor info as dict
         """
-        return _collect(
+        return Frame._collect(
             node=ElementTree.fromstring(xml),
-            depth=depth if depth else _tree_depth(xml),
+            depth=depth if depth else Frame._tree_depth(xml),
             namespace="{http://www.satlantic.com/instrument}",
             verb=verb,
         )
