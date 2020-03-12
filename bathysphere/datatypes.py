@@ -13,6 +13,8 @@ from ftplib import FTP
 from pickle import loads as unpickle
 from re import sub
 from xml.etree import ElementTree
+from itertools import repeat, chain
+from multiprocessing import Pool
 
 import hmac
 import hashlib
@@ -27,8 +29,6 @@ from urllib3.exceptions import MaxRetryError
 from flask import Response
 from redis import StrictRedis
 from redis.client import PubSub
-from itertools import repeat
-from multiprocessing import Pool
 
 try:
     from numpy import (
@@ -1985,3 +1985,73 @@ class TimeStamp(object):
             int.from_bytes(buffer[3:], byteorder=byteorder),
         )
         return datetime.strptime(yyyydddhhmmssmmm, "%Y%j%H%M%S%f")
+
+
+@attr.s
+class Trie:
+    word = attr.ib(default=None)
+    children = attr.ib(default=attr.Factory(dict))
+  
+    def insert(self, key: str):
+        node = self
+        for letter in key:
+            if letter not in node.children:
+                node.children[letter] = Trie()
+            node = node.children[letter]
+        node.word = key
+
+    @staticmethod
+    def searchRecursive(
+        node: Trie, symbol: str, pattern: str, previous: (int,), cost: int
+    ):
+        _filter = lambda x: len(x)
+        row = (previous[0] + 1,)
+        for column in range(1, len(pattern) + 1):
+            row += min(
+                row[column - 1] + 1,
+                previous[column] + 1,
+                previous[column - 1] + int(pattern[column - 1] != symbol)
+            ),
+
+        return (
+            ((node.word, row[-1]),) if row[-1] <= cost and node.word is not None else ()
+        ) + tuple(chain(
+            *filter(_filter, tuple(Trie.searchRecursive(v, k, pattern, row, cost) for k, v in node.children.items())))
+            if min(row) <= cost else ())
+
+    @staticmethod
+    def levenshtein(word1, word2):
+        columns = len(word1) + 1
+        rows = len(word2) + 1
+
+        # build first row
+        currentRow = [0]
+        for column in range(1, columns):
+            currentRow.append(currentRow[column - 1] + 1)
+
+        for row in range(1, rows):
+            previousRow = currentRow
+            currentRow = [previousRow[0] + 1]
+
+            for column in range(1, columns):
+
+                insertCost = currentRow[column - 1] + 1
+                deleteCost = previousRow[column] + 1
+
+                if word1[column - 1] != word2[row - 1]:
+                    replaceCost = previousRow[column - 1] + 1
+                else:
+                    replaceCost = previousRow[column - 1]
+
+                currentRow.append(min(insertCost, deleteCost, replaceCost))
+
+        return currentRow[-1]
+
+    @staticmethod
+    def search(words, pattern, maxCost):
+        _results = ()
+        for word in words:
+            cost = Trie.levenshtein(pattern, word)
+            if cost <= maxCost:
+                _results += ((word, cost),)
+        return _results
