@@ -36,7 +36,9 @@ try:
 except ImportError as ex:
     print("Numerical libraries are not installes")
 
-from bathysphere.utils import join, parsePostgresValueIn, _parse_str_to_float
+from bathysphere.utils import (
+    join, parsePostgresValueIn, _parse_str_to_float, resolveTaskTree, synchronous
+)
 
 SEC2DAY = 86400
 
@@ -423,7 +425,7 @@ class FileSystem:
         cached at a leisurely interactive pace.
         """
         collector = deque()
-        for record in FileSystem.resolveTaskTree(
+        for record in resolveTaskTree(
             FileSystem.indexTaskTree(url=url, enum=year, auth=auth, depth=2)
         ):
             path = "{}/{:04}/{:02}/{:02}/".format(url, *record)
@@ -467,7 +469,7 @@ class FileSystem:
         collector = deque()
         for record in deque(response.content.decode().split("\n")[3:-1]):
             collector.append(
-                File.indexTaskTree(
+                FileSystem.indexTaskTree(
                     url=sublevel,
                     enum=__parse(record),  # name
                     count=count + 1,
@@ -479,79 +481,102 @@ class FileSystem:
         return enum, collector
 
     @staticmethod
-    def _search(
-        queue: deque, 
-        pool: Pool, 
-        fmt: set = None, 
-        identity: set = None, 
-        ts: datetime = None
-    ) -> list or None:
+    def search(pattern, filesystem):
+        # type: (str, dict) -> None or str
         """
-        Get all XML and configuration files within a directory
+        Recursively search a directory structure for a key.
+        Call this on the result of `index`
 
-        Find configurations from metadata by serial number and date.
-
-        The files can be:
-        - On a remote server
-        - In the bathysphere_functions_cache
-        - Supplied as a list of dictionaries
+        :param filesystem: paths
+        :param pattern: search key
+        :return:
         """
-        iterators = []
-        if identity:
-            iterators.append(repeat(identity))
-        if fmt:
-            iterators.append(repeat(fmt))
-        if ts:
-            iterators.append(repeat(ts))
-
-        def _chrono(x: File, ts: datetime = None):
-            return (
-                (x.time is None if ts else x.time is not None),
-                (ts - x.time if ts else x.time),
-            )
-
-        queue = sorted(queue, key=_chrono, reverse=(False if ts else True))
-        if fmt or identity:
-            matching = pool.starmap(_match, zip(queue, *iterators))
-            queue = deque(queue)
-        else:
-            return {}, queue
-
-        collector = dict()
-        for condition in matching:
-            if not condition:
-                queue.rotate(1)
-                continue
-            file = queue.popleft()
-            if not collector.get(file.sn, None):
-                collector[file.sn] = deque()
-            if (
-                not ts or len(collector[file.sn]) == 0
-            ):  # limit to length 1 for getting most recent
-                collector[file.sn].append(file)
-                continue
-
-            queue.append(file)  # put the file back if unused
-
-        return collector, queue
+        for key, level in filesystem.items():
+            if key == pattern:
+                return key
+            try:
+                result = FileSystem.search(pattern, level)
+            except AttributeError:
+                result = None
+            if result:
+                return f"{key}/{result}"
+        return None
 
 
-    def get_files(queue: deque, pool: Pool, **kwargs):
-        """
-        Create and process a day of raw files
-        """
-        extracted, queue = FileSystem.search(
-            queue=queue, pool=pool, **kwargs
-        )  # get active configuration files
-        headers = dict()
-        for sn, files in extracted.keys():
-            headers[sn] = deque()
-            for file in files:
-                synchronous(file.get_and_decode())
-                if file.encoding == FileType.Config:
-                    headers[sn].append(file.frames)
+    # @staticmethod
+    # def search(
+    #     queue: deque, 
+    #     pool: Pool, 
+    #     fmt: set = None, 
+    #     identity: set = None, 
+    #     ts: datetime = None
+    # ) -> list or None:
+    #     """
+    #     Get all XML and configuration files within a directory
 
-        return extracted, headers, queue
+    #     Find configurations from metadata by serial number and date.
+
+    #     The files can be:
+    #     - On a remote server
+    #     - In the bathysphere_functions_cache
+    #     - Supplied as a list of dictionaries
+    #     """
+    #     iterators = []
+    #     if identity:
+    #         iterators.append(repeat(identity))
+    #     if fmt:
+    #         iterators.append(repeat(fmt))
+    #     if ts:
+    #         iterators.append(repeat(ts))
+
+    #     def _chrono(x: File, ts: datetime = None):
+    #         return (
+    #             (x.time is None if ts else x.time is not None),
+    #             (ts - x.time if ts else x.time),
+    #         )
+
+    #     queue = sorted(queue, key=_chrono, reverse=(False if ts else True))
+    #     if fmt or identity:
+    #         matching = pool.starmap(self._match, zip(queue, *iterators))
+    #         queue = deque(queue)
+    #     else:
+    #         return {}, queue
+
+    #     collector = dict()
+    #     for condition in matching:
+    #         if not condition:
+    #             queue.rotate(1)
+    #             continue
+    #         file = queue.popleft()
+    #         if not collector.get(file.sn, None):
+    #             collector[file.sn] = deque()
+    #         if (
+    #             not ts or len(collector[file.sn]) == 0
+    #         ):  # limit to length 1 for getting most recent
+    #             collector[file.sn].append(file)
+    #             continue
+
+    #         queue.append(file)  # put the file back if unused
+
+    #     return collector, queue
+
+
+    # def get_files(queue: deque, pool: Pool, **kwargs):
+    #     """
+    #     Create and process a day of raw files
+    #     """
+    #     extracted, queue = FileSystem.search(
+    #         queue=queue, pool=pool, **kwargs
+    #     )  # get active configuration files
+    #     headers = dict()
+    #     for sn, files in extracted.keys():
+    #         headers[sn] = deque()
+    #         for file in files:
+    #             synchronous(file.get_and_decode())
+    #             if file.encoding == FileType.Config:
+    #                 headers[sn].append(file.frames)
+
+    #     return extracted, headers, queue
 
     # @staticmethod
     # def download(url, prefix=""):
@@ -621,34 +646,14 @@ class FileSystem:
 
     #     return result
 
-    @staticmethod
-    def search(pattern, filesystem):
-        # type: (str, dict) -> None or str
-        """
-        Recursively search a directory structure for a key.
-        Call this on the result of `index`
 
-        :param filesystem: paths
-        :param pattern: search key
-        :return:
-        """
-        for key, level in filesystem.items():
-            if key == pattern:
-                return key
-            try:
-                result = FileSystem.search(pattern, level)
-            except AttributeError:
-                result = None
-            if result:
-                return f"{key}/{result}"
-        return None
 
-    @staticmethod
-    def syncFtp(ftp, remote, local, filesystem=None):
-        # type: (FTP, str, str, dict) -> int
-        path = FileSystem.search(filesystem=filesystem, pattern=remote)
-        with open(local, "wb+") as fid:
-            return int(ftp.retrbinary(f"RETR {path}", fid.write))
+    # @staticmethod
+    # def syncFtp(ftp, remote, local, filesystem=None):
+    #     # type: (FTP, str, str, dict) -> int
+    #     path = FileSystem().search(pattern=remote)
+    #     with open(local, "wb+") as fid:
+    #         return int(ftp.retrbinary(f"RETR {path}", fid.write))
 
     # @staticmethod
     # def indexFtp(req, node=".", depth=0, limit=None, metadata=None, parent=None):
