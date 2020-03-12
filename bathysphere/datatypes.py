@@ -1255,16 +1255,12 @@ class JSONIOWrapper(TextIOWrapper):
             print(response.rstrip())
 
 
-class KernelDensityEstimator:
-
+@attr.s
+class KernelDensityEstimator(KernelDensity):
+    
     @staticmethod
     def glm():
         return LinearRegression()  # create linear regression model object
-
-    @staticmethod
-    def create(bandwidth, kernel="gaussian"):
-
-        return KernelDensity(bandwidth, kernel)  # create kernel density estimator object
 
     @staticmethod
     def get_epsilon_from_mesh(mesh: object, key: str, xx, yy):
@@ -1275,10 +1271,9 @@ class KernelDensityEstimator:
 
         return field, target
 
-    @staticmethod
-    def intensity(kde: KernelDensity, field: object):
+    def intensity(self, field: object):
 
-        intensity = kde.score_samples(field)  # create intensity field
+        intensity = self.score_samples(field)  # create intensity field
         maximum = intensity.max()
         minimum = intensity.min()
         cost = (intensity - minimum) / (maximum - minimum)
@@ -1286,7 +1281,7 @@ class KernelDensityEstimator:
         return intensity, cost
 
     @staticmethod
-    def train(kde: KernelDensity, target: iter, field: object, xx: iter, yy: iter):
+    def train(self, target: iter, field: object, xx: iter, yy: iter):
         """
         Train kernel density estimator model using a quantized mesh
 
@@ -1295,9 +1290,8 @@ class KernelDensityEstimator:
         :return:
         """
         subset, column = where(~isnan(target.data))  # mark non-NaN values to retain
-        kde.fit(hstack((xx[subset], yy[subset], target[subset])))  # train estimator
-
-        return intensity(kde, field), kde
+        self.fit(hstack((xx[subset], yy[subset], target[subset])))  # train estimator
+        return self.intensity(field)
 
     @staticmethod
     def predict(extent, count, view, native, kde, xin, yin, bandwidth=1000):
@@ -2046,7 +2040,9 @@ class RecurrentNeuralNetwork:
 
 
     @RecurrentNeuralNetwork.from_cache
+    @classmethod
     def train_cached_model(
+        cls,
         datastream,
         window: int,
         horizon: int,
@@ -2058,9 +2054,9 @@ class RecurrentNeuralNetwork:
         """
         Load and feed the model training data
         """
-        datasets = RecurrentNeuralNetwork.partition(datastream, window, horizon, batch_size, ratio, periods)
+        datasets = cls.partition(datastream, window, horizon, batch_size, ratio, periods)
 
-        RecurrentNeuralNetwork.train(
+        cls.train(
             request.model,
             batch_size=batch_size,
             training=datasets.get("training"),
@@ -2298,8 +2294,12 @@ class RecurrentNeuralNetwork:
             "predict": {x: xp}
         }
 
-    @classmethod
-    def run(cls, config, lstm=True, verb=True):
+    def run(
+        self, 
+        config, 
+        lstm: bool = True, 
+        verb: bool = True
+    ):
         """
         Create and run the model
 
@@ -2321,8 +2321,8 @@ class RecurrentNeuralNetwork:
         loss = reduce_sum(square(predictor - y))  # mean square error tensor node
         optimizer = network.optimizer(loss)  # learning model — minimize error
 
-        RecurrentNeuralNetwork.train(optimizer, feed["train"], loss, verb)  # train and get error series over epochs
-        prediction = RecurrentNeuralNetwork.predict(predictor, feed["predict"])  # make prediction
+        self.train(optimizer, feed["train"], loss, verb)  # train and get error series over epochs
+        prediction = self.predict(predictor, feed["predict"])  # make prediction
         return yt, prediction, err
 
 

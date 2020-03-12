@@ -22,6 +22,9 @@ except ImportError as _:
     read_html = None
 
 
+def log(*args, **kwargs):
+    pass
+
 def avhrr_index(
     host: str, 
     start: datetime = None, 

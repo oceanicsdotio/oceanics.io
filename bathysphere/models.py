@@ -21,7 +21,7 @@ try:
         abs, zeros, arange, ones, convolve, isnan, ceil, array, repeat
     )
     from scipy.fftpack import rfft, irfft, fftfreq
-    from pandas import DataFrame
+    from pandas import DataFrame, Series
 except ImportError as ex:
     print("Numerical libraries are not installed")
 
@@ -29,7 +29,7 @@ import attr
 from connexion import request
 from statistics import median
 
-from bathysphere.utils import interp1d, response
+from bathysphere.utils import interp1d, response, log
 from bathysphere.datatypes import PostgresType, Field, Table, Query, Coordinates, Distance
 
 
@@ -69,11 +69,11 @@ class Actuators(object):
         :param verb: log to console
         """
         timer_id = relay_id + self.metadata["config"]["timer_id_offset"]
-        state = [[False] * banks] * (relays // banks)
+        # state = [[False] * banks] * (relays // banks)
         start = time()
 
         while True:
-            response = self.on(host, port, relay_id, timer_id, duration=None)
+            response = self.on(relay_id, timer_id, duration=None)
             if not response:
                 print("breaking loop.")
             sleep(refresh - ((time() - start) % refresh))
@@ -195,7 +195,7 @@ class Actuators(object):
         :return: Process
         """
         p = Process(
-            target=deploy if send else Actuators.addEventListener,
+            target=Actuators.addEventListener,
             kwargs={
                 **{"host": host, "port": port, "banks": banks, "file": file, "verb": verb},
                 **(
@@ -612,7 +612,9 @@ class DataStreams(object):
         nn -= nn % batch_size
 
         # TODO: I think this is pandas.Series
-        expected = self.rolling(window=window, center=False).mean()  # set the target to moving average
+        observations = ()
+        series = Series(item.result for item in observations)
+        expected = series.rolling(window=window, center=False).mean()  # set the target to moving average
 
         if horizon > 1:
             datastream = DataFrame(repeat(datastream.values, repeats=horizon, axis=1))
