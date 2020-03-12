@@ -4,9 +4,8 @@ from flask import Request
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine.url import URL
 
-from drivers import googleCloudSecret
-from bathysphere.datatypes import ResponseJSON
-from cloud_sql.queries import selectRecords, Query, Table, Field
+from functions import googleCloudSecret
+from bathysphere.datatypes import ResponseJSON, Query, Table, Field
 
 
 db = create_engine(
@@ -33,7 +32,8 @@ def main(request: Request) -> ResponseJSON:
 
     try:
         with db.connect() as cursor:
-            query = selectRecords(table=Table(fields=[Field("text", None)]))
+            t = Table(fields=[Field("text", None)])
+            query = t.selectRecords()
             records = [query.parser(row) for row in cursor.execute(query.sql).fetchall()]
     except Exception as ex:
         return dumps({

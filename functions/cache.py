@@ -3,7 +3,8 @@ from json import loads, dumps
 from os import getenv
 from flask import Request
 
-from drivers import ResponseType, googleCloudSecret
+from functions import googleCloudSecret
+from bathysphere.datatypes import ResponseJSON
 
 
 db = StrictRedis(
@@ -16,7 +17,7 @@ db = StrictRedis(
 )  # inject db session
 
 
-def main(request: Request) -> ResponseType:
+def main(request: Request) -> ResponseJSON:
     """handle a request to the function
     Args:
         req (str): request body

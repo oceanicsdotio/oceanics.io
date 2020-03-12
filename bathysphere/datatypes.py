@@ -1289,7 +1289,7 @@ class KernelDensityEstimator(KernelDensity):
         :param key: Spatial field to train on
         :return:
         """
-        subset, column = where(~isnan(target.data))  # mark non-NaN values to retain
+        subset, _ = where(~isnan(target.data))  # mark non-NaN values to retain
         self.fit(hstack((xx[subset], yy[subset], target[subset])))  # train estimator
         return self.intensity(field)
 
