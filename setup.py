@@ -2,12 +2,12 @@ from setuptools import setup, find_packages
 
 setup(
     name='bathysphere',
-    version='1.4',
-    description='Marine geospatial data and analytics service',
+    version='1.5',
+    description='Marine geospatial data and analytics services',
     url='https://graph.oceanics.io',
     author='Oceanicsdotio',
     author_email='business@oceanics.io',
-    packages=find_packages(),
+    packages=["bathysphere"],
     include_package_data=True,
     license='MIT',
     install_requires=[
@@ -35,6 +35,6 @@ setup(
     ],
     entry_points="""
         [console_scripts]
-        bathysphere=bathysphere.cli:cli
+        bathysphere=cli:cli
     """,
     zip_safe=False)
