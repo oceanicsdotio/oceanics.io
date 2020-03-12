@@ -10,7 +10,7 @@ from bathysphere.datatypes import TimeStamp, Frame
 try:
     from numpy import frombuffer
 except ImportError as _:
-    pass
+    print("Numerical libraries are not installed")
 
 
 def wqm(frame, keys):

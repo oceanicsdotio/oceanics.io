@@ -26,13 +26,13 @@ from flask import Response
 from redis import StrictRedis
 from redis.client import PubSub
 
-from bathysphere.utils import join, parsePostgresValueIn
-
 try:
     from numpy import array, append
     from netCDF4 import Dataset as _Dataset
 except ImportError as ex:
-    pass
+    print("Numerical libraries are not installes")
+
+from bathysphere.utils import join, parsePostgresValueIn
 
 SEC2DAY = 86400
 

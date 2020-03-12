@@ -8,14 +8,16 @@ from shutil import copyfileobj
 from os.path import isfile
 from warnings import simplefilter
 
-from time import sleep
-from collections import deque
-from minio.error import SignatureDoesNotMatch
 from typing import Callable, Any
 from functools import reduce
 
 
-def avhrr_index(host, start=None, end=None, fmt="%Y%m%d%H%M%S"):
+def avhrr_index(
+    host: str, 
+    start: datetime = None, 
+    end: datetime = None, 
+    fmt: str = "%Y%m%d%H%M%S"
+) -> [[dict]]:
     # type: (str, datetime, datetime, str) -> [list]
     """
     Get the entries for all remote files on server in years of interest.

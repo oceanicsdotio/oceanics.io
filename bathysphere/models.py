@@ -10,7 +10,7 @@ try:
     from numpy import abs, zeros, arange, ones, convolve, isnan, ceil, array
     from scipy.fftpack import rfft, irfft, fftfreq
 except ImportError as ex:
-    print("Unable to load numpy/scipy")
+    print("Numerical libraries are not installed")
 
 import attr
 from connexion import request
