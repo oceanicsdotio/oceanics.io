@@ -1,6 +1,6 @@
 from enum import Enum
-from typing import Callable, Any
-from datetime import datetime
+from typing import Callable, Any, Coroutine
+from datetime import datetime, date
 from math import floor
 from json import dumps, loads, decoder, load as load_json
 from collections import deque
@@ -25,14 +25,18 @@ from urllib3.exceptions import MaxRetryError
 from flask import Response
 from redis import StrictRedis
 from redis.client import PubSub
+from itertools import repeat
+from multiprocessing import Pool
+
 
 try:
     from numpy import array, append
     from netCDF4 import Dataset as _Dataset
+    from pandas import read_html
 except ImportError as ex:
     print("Numerical libraries are not installes")
 
-from bathysphere.utils import join, parsePostgresValueIn
+from bathysphere.utils import join, parsePostgresValueIn, _parse_str_to_float
 
 SEC2DAY = 86400
 
@@ -303,6 +307,78 @@ class File:
 
         self.content = response.content
 
+    @classmethod
+    def metadata(
+        cls,
+        url: str, 
+        filename: str, 
+        ts: str, 
+        size: str
+    ) -> cls:
+       
+        fields = filename.split(".")
+        encoding = None
+        if len(fields) > 1:
+            fmt = fields.pop()
+            if "sensors" == fmt:
+                encoding = FileType.Config
+            elif "xml" == fmt:
+                encoding = FileType.Schema
+            elif "raw" == fmt:
+                encoding = FileType.Raw
+            elif "txt" == fmt:
+                if fields[-1] == "raw":
+                    fields.pop()  # convention is to have ".raw.txt"
+                encoding = FileType.Log
+
+        time = None
+        if len(fields) > 1:  # dated files
+            ft = fields.pop()
+            try:
+                dt_fmt = "%Y%m%d-%H%M%S" if (ft and len(ft) > 13) else "%Y%m%d-%H%M"
+                time = datetime.strptime(ft, dt_fmt)
+            except ValueError:
+                pass
+
+        try:
+            sn = int(fields.pop())
+        except ValueError:
+            sn = None
+
+        path = url + filename
+
+        return cls(
+            name=filename,
+            sn=sn,  # maybe None
+            url=path,  # retrieval path
+            time=time,  # file time from name, maybe None
+            ts=datetime.strptime(ts, "%d-%b-%Y %H:%M"),  # timestamp from server
+            kb=_parse_str_to_float(size),  # float kilobytes
+            encoding=encoding,
+        )
+
+
+    def _match(self, fmt=None, identity=None):
+        # type: (File, set, set) -> bool
+        return (not identity or self.sn in identity) and (not fmt or self.encoding in fmt)
+
+
+    @staticmethod
+    async def metadata_promise(url, auth):
+        # type: (str, str) -> tuple
+        """
+        Produce a coroutine that will yield file metadata for all files in a remote directory/catalog.
+        """
+        response = get(url, auth=auth)
+        if not response.ok:
+            return response.content
+
+        df = read_html(response.content, skiprows=3)[0]
+        return tuple(
+            File.metadata(url, *r)
+            for r in zip(*(df[ii][:-1].tolist() for ii in (1, 2, 3)))
+        )
+
 
 @attr.s
 class FileSystem:
@@ -336,6 +412,146 @@ class FileSystem:
                     combined[key] = array([])
                     combined[key] = append(combined[key], new[key])
         return combined
+
+    @staticmethod
+    def indexFileMetadata(url, year, auth=None):
+        # type: (str, int, (str,)) -> deque
+        """
+        Callable method to map a remote HTTP-accessible file catalog by date, and then build an time-indexed structure
+        that contains a <coroutine> in the place of file meta_data. This only takes a few seconds, compared to minutes
+        for resolving all files. Usually, only some data is needed immediately, so tasks can be resolved on demand and
+        cached at a leisurely interactive pace.
+        """
+        collector = deque()
+        for record in FileSystem.resolveTaskTree(
+            FileSystem.indexTaskTree(url=url, enum=year, auth=auth, depth=2)
+        ):
+            path = "{}/{:04}/{:02}/{:02}/".format(url, *record)
+            collector.append(
+                {
+                    "date": date(*record),
+                    "name": "{}-{:02}-{}".format(*record),
+                    "url": path,
+                    "files": File.metadata_promise(path, auth=auth),
+                }
+            )
+        return collector
+
+    @staticmethod
+    async def indexTaskTree(url, enum, count=0, depth=2, auth=None):
+        # type: (str, int, int, int, (str, )) -> datetime or None
+        """
+        Private method is used by `metadata()` to build a temporal index with multiple levels of resolution on demand.
+
+        Recursively `GET` file metadata in a destination file catalog, based on date, then bathysphere_functions_parse the tabular HTML
+        into nested tuples of (index, <coroutine>). The coroutine is then resolved to another (index, <coroutine>) tuple,
+        using the `render()` method, until the specified depth is reached.
+        """
+        def __parse(value):
+            return value if type(value) == int else int(value[:-1])
+
+        if count == depth:
+            return enum, None
+
+        try:
+            formatter = "{{}}/{{:0{}d}}".format(4 if count == 0 else 2)
+            insert = __parse(enum)
+        except TypeError:
+            return enum, None
+
+        sublevel = formatter.format(url, insert)
+        response = get(sublevel, auth=auth)
+        if not response.ok:
+            return enum, None
+
+        collector = deque()
+        for record in deque(response.content.decode().split("\n")[3:-1]):
+            collector.append(
+                File.indexTaskTree(
+                    url=sublevel,
+                    enum=__parse(record),  # name
+                    count=count + 1,
+                    depth=depth,
+                    auth=auth,
+                )
+            )
+
+        return enum, collector
+
+    @staticmethod
+    def _search(
+        queue: deque, 
+        pool: Pool, 
+        fmt: set = None, 
+        identity: set = None, 
+        ts: datetime = None
+    ) -> list or None:
+        """
+        Get all XML and configuration files within a directory
+
+        Find configurations from metadata by serial number and date.
+
+        The files can be:
+        - On a remote server
+        - In the bathysphere_functions_cache
+        - Supplied as a list of dictionaries
+        """
+        iterators = []
+        if identity:
+            iterators.append(repeat(identity))
+        if fmt:
+            iterators.append(repeat(fmt))
+        if ts:
+            iterators.append(repeat(ts))
+
+        def _chrono(x: File, ts: datetime = None):
+            return (
+                (x.time is None if ts else x.time is not None),
+                (ts - x.time if ts else x.time),
+            )
+
+        queue = sorted(queue, key=_chrono, reverse=(False if ts else True))
+        if fmt or identity:
+            matching = pool.starmap(_match, zip(queue, *iterators))
+            queue = deque(queue)
+        else:
+            return {}, queue
+
+        collector = dict()
+        for condition in matching:
+            if not condition:
+                queue.rotate(1)
+                continue
+            file = queue.popleft()
+            if not collector.get(file.sn, None):
+                collector[file.sn] = deque()
+            if (
+                not ts or len(collector[file.sn]) == 0
+            ):  # limit to length 1 for getting most recent
+                collector[file.sn].append(file)
+                continue
+
+            queue.append(file)  # put the file back if unused
+
+        return collector, queue
+
+
+    def get_files(queue: deque, pool: Pool, **kwargs):
+        """
+        Create and process a day of raw files
+        """
+        extracted, queue = FileSystem.search(
+            queue=queue, pool=pool, **kwargs
+        )  # get active configuration files
+        headers = dict()
+        for sn, files in extracted.keys():
+            headers[sn] = deque()
+            for file in files:
+                synchronous(file.get_and_decode())
+                if file.encoding == FileType.Config:
+                    headers[sn].append(file.frames)
+
+        return extracted, headers, queue
 
     # @staticmethod
     # def download(url, prefix=""):
