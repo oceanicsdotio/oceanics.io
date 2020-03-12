@@ -16,6 +16,13 @@ from xml.etree import ElementTree
 from itertools import repeat, chain
 from multiprocessing import Pool
 
+from flask import Request
+from sqlalchemy import create_engine, text
+from sqlalchemy.engine.url import URL
+
+from functions import googleCloudSecret
+
+
 import hmac
 import hashlib
 
@@ -51,6 +58,8 @@ try:
 except ImportError as ex:
     print("Numerical libraries are not installes")
 
+
+from bathysphere.datatypes import ResponseJSON, Query, Table, Field
 from bathysphere.utils import (
     join, parsePostgresValueIn, _parse_str_to_float, resolveTaskTree, synchronous
 )
@@ -99,7 +108,67 @@ class Clock:
             self.dt = dt
         self.elapsed += self.dt
         return self.start + self.elapsed
-       
+
+
+@attr.s
+class CloudSQL():
+
+    auth: (str, str) = attr.ib()
+    connectionString: str = attr.ib()
+    pool_size: int = 4,
+    max_overflow: int = 2,
+    pool_timeout: int = 5,
+    pool_recycle: int = 1800
+
+    @staticmethod
+    def engine(self):
+
+        username:str, password:str = self.auth
+        return create_engine(
+            URL(
+                drivername='postgres+pg8000',
+                username=username,
+                password=password,
+                database="postgres",
+                query={
+                    'unix_sock': f'/cloudsql/{connectionString}/.s.PGSQL.5432'
+                }
+            ),
+            pool_size=self.pool_size,
+            max_overflow=self.max_overflow,
+            pool_timeout=self.pool_timeout,
+            pool_recycle=self.pool_recycle,
+        )
+
+
+    def handle(request: Request) -> ResponseJSON:
+        """
+        Do some postgres stuff
+        """
+
+        try:
+            with db.connect() as cursor:
+                t = Table(fields=[Field("text", None)])
+                query:Query = t.selectRecords()
+                records = [query.parser(row) for row in cursor.execute(query.sql).fetchall()]
+        except Exception as ex:
+            return dumps({
+                "Error":"Problem executing query",
+                "detail": str(ex)
+            }), 500
+
+        try: 
+            return dumps({
+                "count": len(records),
+                "data": records,
+                "method": str(request.method),
+                "query_string": str(request.query_string)
+            }), 200
+        except Exception as ex:
+            return dumps({
+                "Error": "Could not serialize result of query"
+            }), 500
+
 
 
 class ConvexHull(object):

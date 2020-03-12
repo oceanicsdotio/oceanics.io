@@ -370,14 +370,6 @@ class Spatial(View):
         )
 
 
-with open("function/styles.yml", "r") as fid:
-    styles = load(fid, Loader)
-with open("/var/bathysphere_functions/secrets/bathysphere_functions_image-bucket-name", "r") as fid:
-    bucketName = fid.read()
-with open("/var/bathysphere_functions/secrets/spaces-connection", "r") as fid:
-    connection = fid.read().split(",")
-
-
 def consume(streams, select=None):
     # type: (list, set) -> dict
     d = dict()
@@ -479,8 +471,7 @@ def main(req):
             ylab=labels.pop("y", None),
         )
     else:
-        print(dumps({"Error": f"View '{view}' not found"}))
-        exit(400)
+        return dumps({"Error": f"View '{view}' not found"})), 400
 
     buffer = b.getvalue()
     assert buffer
