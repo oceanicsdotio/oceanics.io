@@ -742,11 +742,12 @@ class FileType(Enum):
 
 
 @attr.s
-class Frame(object):
+class Frame(dict):
     data: bytes = attr.ib()
     label: bytes = attr.ib()
     headers: dict = attr.ib()
     sn: int = attr.ib()
+    key: str = attr.ib(default=None)
     schema: dict = attr.ib()
     span: int = attr.ib(default=32)
     ts: datetime =  attr.ib(default=None)
@@ -868,20 +869,20 @@ class Frame(object):
         self["size"] = len(self.bytes)
     
 
-    @classmethod
-    def line(cls, bytes_string):
+    @staticmethod
+    def line(txt: str, bytes_string: bytes):
         keys = [b"SAT", b"WQM"]
-        lines = cls.split(bytes_string, keys)
+        lines = txt.split(bytes_string, keys)
         results = []
         for each in lines:
-            result = dict()
-            result["raw"] = each
+            result = Frame()
+            result.raw = each
             try:
                 data, ts = each.split(b"\r\n")
                 result.ts = TimeStamp(ts)
             except ValueError:
                 data = each
-                result["ts"] = None
+                result.ts = None
 
             result.bytes = data
             results.append(result)
@@ -980,7 +981,7 @@ class Frame(object):
             start = 1
             rest = self.bytes[brk + 1 :].split(sep)
             if sensor == "PHA":
-                self.seafet(frame, brk, fields[sensor])
+                self.seafet(brk, fields[sensor])
             else:
                 try:
                     keys = fields[sensor]
@@ -1037,42 +1038,42 @@ class Frame(object):
         parser.feed(xml)
         return parser.close()
 
-    @staticmethod
-    def parse_xml_frames(
-        config: dict, 
-        key: str = "sensor", 
-        depth: int = 10, 
-        verb: bool = False
-    ) -> dict:
-        """
-        Get frames for all sensors on platform
+    # def parse_xml_frames(
+    #     self: Frame,
+    #     config: dict, 
+    #     key: str = "sensor", 
+    #     depth: int = 10, 
+    #     verb: bool = False
+    # ) -> dict:
+    #     """
+    #     Get frames for all sensors on platform
 
-        :param config: xml style dictionary format with all configuration data for sensor platform
-        :param key: key for configured items
-        :return: dictionary of with sensors as keys, and dataframe schema as value
-        """
+    #     :param config: xml style dictionary format with all configuration data for sensor platform
+    #     :param key: key for configured items
+    #     :return: dictionary of with sensors as keys, and dataframe schema as value
+    #     """
 
-        def _goto(item):
-            """
-            Start node of frame
-            """
-            sensor = root.findall("./*/[@identifier='" + item["sensor"] + "']")[0]
-            frame = sensor.findall("./*/[@identifier='" + item["frame"] + "']")[0]
-            if verb:
-                print(
-                    "Parsing from: . >",
-                    sensor.attrib["identifier"],
-                    ">",
-                    self.attrib["identifier"],
-                )
-            return frame
+    #     def _goto(item):
+    #         """
+    #         Start node of frame
+    #         """
+    #         sensor = root.findall("./*/[@identifier='" + item["sensor"] + "']")[0]
+    #         frame = sensor.findall("./*/[@identifier='" + item["frame"] + "']")[0]
+    #         if verb:
+    #             print(
+    #                 "Parsing from: . >",
+    #                 sensor.identifier,
+    #                 ">",
+    #                 self.identifier,
+    #             )
+    #         return frame
 
-        ns = "{http://www.satlantic.com/instrument}"
-        root = ElementTree.fromstring(config["xml"]["content"])
-        return {
-            item[key]: Frame._collect(_goto(item), depth=depth, namespace=ns, verb=verb)
-            for item in config["config"]["content"]
-        }
+    #     ns = "{http://www.satlantic.com/instrument}"
+    #     root = ElementTree.fromstring(config["xml"]["content"])
+    #     return {
+    #         item[key]: Frame._collect(_goto(item), depth=depth, namespace=ns, verb=verb)
+    #         for item in config["config"]["content"]
+    #     }
 
     @staticmethod
     def parse_xml(xml, depth=None, verb=False):
