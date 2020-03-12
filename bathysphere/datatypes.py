@@ -30,6 +30,7 @@ from bathysphere.utils import join, parsePostgresValueIn
 
 try:
     from numpy import array, append
+    from netCDF4 import Dataset as _Dataset
 except ImportError as ex:
     pass
 

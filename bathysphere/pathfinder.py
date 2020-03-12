@@ -7,14 +7,12 @@ from requests import get, head
 from shutil import copyfileobj
 from os.path import isfile
 from warnings import simplefilter
-from netCDF4 import Dataset as _Dataset
+
 from time import sleep
 from collections import deque
 from minio.error import SignatureDoesNotMatch
 from typing import Callable, Any
 from functools import reduce
-
-from bathysphere.array.utils import Array, OverwritePolicy, append, ExtentType, extent, reduce_extent
 
 
 def avhrr_index(host, start=None, end=None, fmt="%Y%m%d%H%M%S"):
