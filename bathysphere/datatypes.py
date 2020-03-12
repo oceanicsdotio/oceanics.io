@@ -1021,9 +1021,8 @@ class ObjectStorage(Minio):
     ):
         fcns = ("s3:ObjectCreated:*", "s3:ObjectRemoved:*", "s3:ObjectAccessed:*")
         r = StrictRedis()
-        ps: PubSub = r.pubsub()
         for event in self.listen_bucket_notification(bucket_name, "", file_type, fcns):
-            ps.publish(channel, str(event))
+            r.publish(channel, str(event))
 
     def unlock(self, session, bucket_name, object_name):
         # type: (Minio, str, str) -> bool
