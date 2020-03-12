@@ -29,13 +29,24 @@ from urllib3.exceptions import MaxRetryError
 from flask import Response
 from redis import StrictRedis
 from redis.client import PubSub
+from connexion import request
+
 
 try:
     from numpy import (
-        array, append, frombuffer, argmax, argmin, cross, argwhere, arange, array, hstack, vstack
+        array, append, frombuffer, argmax, argmin, random, where, isnan,
+        cross, argwhere, arange, array, hstack, vstack, repeat
     )
     from netCDF4 import Dataset as _Dataset
-    from pandas import read_html
+    from pandas import read_html, date_range, Series, DataFrame
+
+    from sklearn.linear_model import LinearRegression
+    from sklearn.neighbors import KernelDensity
+    from pyproj import transform
+
+    import tensorflow as tf
+    from tensorflow import reduce_sum, square, placeholder, Session
+
 except ImportError as ex:
     print("Numerical libraries are not installes")
 
@@ -1244,6 +1255,87 @@ class JSONIOWrapper(TextIOWrapper):
             print(response.rstrip())
 
 
+class KernelDensityEstimator:
+
+    @staticmethod
+    def glm():
+        return LinearRegression()  # create linear regression model object
+
+    @staticmethod
+    def create(bandwidth, kernel="gaussian"):
+
+        return KernelDensity(bandwidth, kernel)  # create kernel density estimator object
+
+    @staticmethod
+    def get_epsilon_from_mesh(mesh: object, key: str, xx, yy):
+
+        epsilon = mesh.fields[key]
+        field = mesh.nodes.xye(epsilon)
+        target = mesh.interp2d(xx, yy, epsilon)  # location suitability
+
+        return field, target
+
+    @staticmethod
+    def intensity(kde: KernelDensity, field: object):
+
+        intensity = kde.score_samples(field)  # create intensity field
+        maximum = intensity.max()
+        minimum = intensity.min()
+        cost = (intensity - minimum) / (maximum - minimum)
+
+        return intensity, cost
+
+    @staticmethod
+    def train(kde: KernelDensity, target: iter, field: object, xx: iter, yy: iter):
+        """
+        Train kernel density estimator model using a quantized mesh
+
+        :param mesh: Mesh object of the Interpolator super type
+        :param key: Spatial field to train on
+        :return:
+        """
+        subset, column = where(~isnan(target.data))  # mark non-NaN values to retain
+        kde.fit(hstack((xx[subset], yy[subset], target[subset])))  # train estimator
+
+        return intensity(kde, field), kde
+
+    @staticmethod
+    def predict(extent, count, view, native, kde, xin, yin, bandwidth=1000):
+        """ Predict new locations based on trained model"""
+
+        xnew = []
+        ynew = []
+
+        def prohibit():
+            """ Strict local inhibition """
+            xtemp = array(xin + xnew)
+            ytemp = array(yin + ynew)
+            dxy = ((xtemp - xx) ** 2 + (ytemp - yy) ** 2) ** 0.5
+            nearest = dxy.min()
+            return nearest < 0.5 * bandwidth
+
+        xmin, ymin = transform(view, native, extent[0], extent[1])
+        xmax, ymax = transform(view, native, extent[2], extent[3])
+
+        total = 0
+        passes = 0
+        while total < count and passes < count*10:
+
+            sample = kde.sample()
+            xx = sample[0][0]
+            yy = sample[0][1]
+
+            if (xmax > xx > xmin) and (ymax > yy > ymin):  # particle is in window
+
+                if bandwidth is not None and prohibit():
+                    xnew.append(xx)
+                    ynew.append(yy)
+                    total += 1
+
+                else:
+                    passes += 1
+
+
 class LinkedListNode:
     def __init__(self, value):
         self.next = None
@@ -1899,9 +1991,339 @@ class PostgresType(Enum):
 
 @attr.s
 class Query:
-    """"""
+    
     sql: str = attr.ib()
     parser: Callable = attr.ib()
+
+
+@attr.s
+class RecurrentNeuralNetwork:
+
+    input = attr.ib(default=1)
+    hidden = attr.ib()  # hidden layers
+    output = attr.ib(default=1)  # out put dimensions
+    periods = attr.ib()  # previous steps to use for prediction
+    horizon = attr.ib(default=1)  # future steps to predict
+    epochs = attr.ib()  # number of training cycles
+    rate = attr.ib()  # learning rate
+    file = attr.ib(default=None) # path for persisting data
+
+    saver = tf.train.Saver
+
+    @property
+    def shape(self):
+        return (-1, self.periods, 1)
+
+
+    @staticmethod
+    def from_cache(fcn):
+
+        def wrapper(*args, **kwargs):
+
+            cache = kwargs.pop("cache")
+            key = kwargs.pop("objectKey")
+
+            # check connection
+            # check key
+
+            try:
+                request.model = tf.keras.models.load_model("/".join(["", cache, key]))  # load and inject object
+            except:
+                return 500, {"message": "Server error while loading model"}
+
+            return fcn(*args, **kwargs)
+
+        return wrapper
+
+    @staticmethod
+    def create_and_cache(stateful: bool, horizon: int, layers: int, batch_size: int, cache: str, key: str):
+        """
+        Create and cache the model structure
+        """
+        neural_net = create(stateful, horizon, layers, batch_size)
+        neural_net.save("/".join(["", cache, key]))
+        return 200, {'message': 'model created and cached'}
+
+
+    @RecurrentNeuralNetwork.from_cache
+    def train_cached_model(
+        datastream,
+        window: int,
+        horizon: int,
+        batch_size: int,
+        ratio: float,
+        periods: int,
+        epochs: int
+    ):
+        """
+        Load and feed the model training data
+        """
+        datasets = RecurrentNeuralNetwork.partition(datastream, window, horizon, batch_size, ratio, periods)
+
+        RecurrentNeuralNetwork.train(
+            request.model,
+            batch_size=batch_size,
+            training=datasets.get("training"),
+            epochs=epochs,
+            validation=datasets.get("validation")
+        )
+
+        return 200, {'message': 'model trained and cached'}
+
+
+    @RecurrentNeuralNetwork.from_cache
+    def get_prediction(datastream: object, batch_size: int = 32):
+        """
+
+        :param datastream:
+        :param batch_size: Number of samples per gradient update
+        :return:
+        """
+        predicted = request.model.predict(
+            datastream,
+            batch_size=batch_size,
+            workers=1,
+            use_multiprocessing=False
+        )
+        return 200, {"payload": predicted.flatten()}
+
+    @staticmethod
+    def train(model, batch_size: int, training: dict, validation: dict, epochs: int):
+
+        for i in range(epochs):
+            print('Epoch', i + 1, '/', epochs)
+            model.fit(
+                training["x"],
+                training["y"],
+                batch_size=batch_size,
+                epochs=1,  # different "epochs"
+                verbose=False,
+                validation_data=(validation["x"], validation["y"]),
+                shuffle=False,  # order is important
+                workers=1,
+                use_multiprocessing=False
+            )
+
+            model.reset_states()
+
+
+    @staticmethod
+    def create(stateful: bool, horizon: int, units: int, batch_size: int, variables: int = 1):
+        """
+        Create the Keras-Tensorflow model
+
+        :param horizon: sequence length for training each output point
+        :param stateful: boolean, better if true
+        :param units: number of LSTM
+        :param batch_size:
+        :param variables: number of input variables
+
+        :return: model instance
+        """
+
+        model = tf.keras.models.Sequential()
+        model.add(
+            tf.keras.layers.LSTM(
+                units=units,
+                input_shape=(horizon, variables),
+                batch_size=batch_size,
+                stateful=stateful
+            )
+        )
+        model.add(tf.keras.layers.Dense(1))
+        model.compile(loss='mse', optimizer='adam')
+
+        return model
+
+
+    @staticmethod
+    def series(n=365, show=False):
+        """
+        Create a synthetic training data set
+
+        :param n: steps
+        :param show: plot for time series
+
+        :return: numpy array of magnitudes
+        """
+        rng = date_range(start="2018", periods=n, freq="D")
+        data = Series(random.normal(0, 0.5, size=len(rng)), rng).cumsum()
+        return array(data)
+
+    def test(self, data):
+        """
+        Split data for prediction period.
+
+        :param data:
+        :return:
+        """
+        start = self.periods + self.horizon
+        setup = data[-start:]
+        x = setup[:self.periods].reshape(self.shape)
+        y = data[-self.periods:].reshape(self.shape)
+        return x, y
+
+    def x_train(self, opt, feed, loss, verb):
+        """
+        Initialize and train the neural net.
+
+        :param opt: optimizer
+        :param feed:
+        :param loss: skill assessment, in this case mean squared error
+        :param verb: verbose mode
+
+        :return: time series of error terms
+        """
+        init = tf.global_variables_initializer()
+        err = []
+
+        with Session() as session:
+            init.run()
+
+            for ep in range(self.epochs):
+                session.run(opt, feed_dict=feed)
+
+                if ep % 100 == 0:
+                    mse = loss.eval(feed_dict=feed)
+                    err.append(mse)
+                    mse = loss.eval(feed_dict=feed)
+                    if verb:
+                        print(ep, "\tMSE:", mse)
+
+            self.saver().save(session, self.file)
+            return err
+
+    def predict(self, predictor, feed):
+        """
+        Restore from file, and make a prediction
+
+        :param predictor: handle for neural net
+        :param feed: prediction feed
+        :return:
+        """
+        with Session() as session:
+            self.saver().restore(session, self.file)
+            return session.run(predictor, feed_dict=feed)
+
+    def x(self, data):
+        """
+        X data
+
+        :param data:
+        :return:
+        """
+        n = len(data)
+        end = n - n % self.periods
+        subset = data[:end]
+        return subset.reshape(self.shape)
+
+    def y(self, data):
+        """
+        Y data
+
+        :param data:
+        :return:
+        """
+        n = len(data)
+        end = n - n % self.periods
+
+        subset = data[1:end + self.horizon]
+        return subset.reshape(self.shape)
+
+    def _rnn_cell(self):
+        """
+        Basic recurrent neural network cell
+
+        :return:
+        """
+        return tf.keras.layers.SimpleRNNCell(units=self.hidden)
+
+    def _lstm_cell(self):
+        """
+        RNN with long short-term memory for drop out
+
+        :return:
+        """
+        return tf.keras.layers.LSTMCell(units=self.hidden)
+
+    def predictor(self, X, lstm=True):
+        """
+        Create graph for recurrent neural network
+
+        :param X:
+        :param lstm: use long short-term memory cells
+        :return:
+        """
+
+        cell = self._lstm_cell() if lstm else self._rnn_cell()
+
+        out, states = tf.nn.dynamic_rnn(cell, X, dtype=tf.float32)
+        stacked = tf.reshape(out, [-1, self.hidden])
+        layers = tf.layers.dense(stacked, self.output)
+        return tf.reshape(layers, [-1, self.periods, self.output])
+
+    def optimizer(self, err):
+        """
+        Stochastic gradient descent algorithm
+
+        :param err: loss/error function tensor node
+        :return:
+        """
+        opt = tf.train.AdamOptimizer(learning_rate=self.rate)
+        return opt.minimize(err)
+
+    def nodes(self):
+        """
+        X and y tensor graph nodes
+
+        :return:
+        """
+
+        X = placeholder(tf.float32, [None, self.periods, self.input])
+        Y = placeholder(tf.float32, [None, self.periods, self.output])
+        return X, Y
+
+    def feed(self, ts, x, y, xp):
+        """
+        Format data dictionaries to feed into model
+
+        :param ts: time series
+        :param x: X tensor nodes
+        :param y: Y tensor nodes
+        :param xp: x data for prediction
+        :return:
+        """
+        return {
+            "train": {x: self.x(ts), y: self.y(ts)},
+            "predict": {x: xp}
+        }
+
+    @classmethod
+    def run(cls, config, lstm=True, verb=True):
+        """
+        Create and run the model
+
+        :param config:
+        :param lstm: use memory for drop out
+
+        :return:
+        """
+
+        network = cls(**config)  # create the neural net
+
+        ts = cls.series()  # synthetic time series
+
+        x, y = network.nodes()  # tensor graph nodes
+        xt, yt = network.test(ts)  # split data for skill test
+
+        feed = network.feed(ts, x, y, xt)  # feeds for training and prediction
+        predictor = network.predictor(x, lstm=lstm)  # predictor model
+        loss = reduce_sum(square(predictor - y))  # mean square error tensor node
+        optimizer = network.optimizer(loss)  # learning model — minimize error
+
+        RecurrentNeuralNetwork.train(optimizer, feed["train"], loss, verb)  # train and get error series over epochs
+        prediction = RecurrentNeuralNetwork.predict(predictor, feed["predict"])  # make prediction
+        return yt, prediction, err
 
 
 class RelationshipLabels(Enum):

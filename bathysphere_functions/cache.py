@@ -3,7 +3,7 @@ from json import loads, dumps
 from os import getenv
 from flask import Request
 
-from driver import ResponseType, googleCloudSecret
+from drivers import ResponseType, googleCloudSecret
 
 
 db = StrictRedis(

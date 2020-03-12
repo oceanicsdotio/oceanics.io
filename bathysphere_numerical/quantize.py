@@ -1,3 +1,15 @@
+from numpy import min, std, log, zeros, arange, where, hstack, sum, diff
+from scipy.stats import linregress
+from math import ceil
+
+from multiprocessing import Pool
+from time import sleep
+from warnings import catch_warnings, simplefilter
+
+from bathysphere_array.utils import subset, Array, crop, filter_in_range, interp2d_nearest
+from bathysphere_array.storage import Dataset
+
+
 from shapefile import Reader
 try:
     from arrayfire import array as texture
@@ -43,6 +55,617 @@ from bathysphere_array.utils import (
     angle2d,
     impulse,
 )
+
+
+def colorize(data):
+    # type: (Array) -> Array
+    """
+    Convert data field to color and transparency components
+    """
+    normalized = (data - data.min()) / (data.max() - data.min())
+    colors = zeros((*data.shape, 4), dtype=int) + 255
+    colors[:, :, :, 0] *= normalized  # red
+    colors[:, :, :, 1] *= 0  # green
+    colors[:, :, :, 2] *= 1 - normalized  # blue
+    colors[:, :, :, 3] *= 0.5 * normalized  # alpha
+    return colors
+
+
+def landsat_sst_regression(raw, lon, lat, roi, samples, outliers, nsub=10):
+    # type: (Array, Array, Array, (Array,), tuple, tuple, int ) -> Array or None
+    """
+    Calculate SST by removing outliers
+    """
+
+    # Load satellite data and subset it
+    btemp = brightness_temperature(raw)
+    subbt = subset(btemp, nsub)
+    samples = interp2d_nearest((lon, lat, btemp), samples=samples)
+
+    # Generate masks
+    mask = crop(lon, lat, roi)
+    mask = filter_in_range(mask, btemp, maximum=-10)  # mask clouds 124.6
+    mask |= (
+        (samples < outliers[0]) | (samples > outliers[1]) | (btemp < min(subbt))
+    )  # combine masks
+    indices = where(~mask)  # get unmasked linear indices
+    avhrr_filtered = samples[indices].reshape(-1, 1)  # extract unmasked AVHRR values
+    ls_filtered = btemp[indices].reshape(-1, 1)  # extract
+
+    # Regress Landsat and AVHRR
+    fit = 0.0
+    intercept = None
+    slope = None
+
+    while True:
+        pairs = hstack((avhrr_filtered, ls_filtered))
+        _slope, _intercept, r, pval, stderr = linregress(pairs)  # regress
+        if (abs(r) - abs(fit)) < 0.000001:  # if r-value is improving
+            break
+
+        slope = _slope
+        intercept = _intercept
+        fit = r
+        gtruth = avhrr_filtered * _slope + _intercept  # "true" values
+        residual = abs(ls_filtered - gtruth)  # difference between observations
+        stdv = std(ls_filtered)  # landsat standard deviation
+        keepers, junk = where(residual < stdv)
+        if len(keepers) == 0:
+            break
+
+        ls_filtered = ls_filtered[keepers]
+        avhrr_filtered = avhrr_filtered[keepers]
+
+    if not slope or not intercept:
+        return None
+    sst = (btemp - intercept) / slope  # full resolution version for output
+
+    # if crop:  # sparse sub-sampling
+    #     submask = subset(mask, nsub)
+    #     subsst = subset(sst, nsub)
+    #     sublat = subset(lat, nsub)
+    #     sublon = subset(lon, nsub)
+
+    return sst
+
+
+def oc3algorithms():
+    """
+    read OC3 chlorophyll from netcdf for land mask
+    chl_sub = subset(chl, n)
+    mask land using chl_oc3 NaN land mask
+    Save results to NetCDF file
+    Plot: SST, AVHRR interp, landsat versus AVHRR;  w/ bounding box overlay
+    regress AV filter 2 and LS filter 2 for R2 and P values
+    """
+    ...
+
+
+def avhrr_sst(files, locations, processes=1, chunk=4, delay=1):
+    # type: (dict, dict, int, int, int) -> Array
+    """
+    Get year time series of AVHRR temperature
+
+    :param files: files to scrap
+    :param locations: get nearest neighbors of these locations
+    :param chunk: number to retrieve per batch
+    :param delay: Ending (inclusive) datetime day
+    :param processes: number of processes to use
+    """
+
+    total = len(files)
+    sst = {key: zeros(total, dtype=float) for key in locations.keys()}
+    found = zeros(total, dtype=bool)
+    indices = arange(total, dtype=int)
+
+    iteration = 0
+    while True:
+        pool = Pool(processes)
+        jobs = len(indices)
+        batches = ceil(jobs / chunk)
+        with catch_warnings():
+            simplefilter("ignore")
+            failures = 0
+            for ii in range(batches):
+
+                a = ii * chunk
+                b = (ii + 1) * chunk
+                new = indices[a:b] if b < len(indices) else indices[a:]
+                results = pool.map(Dataset.query, files[new])
+
+                for jj in range(len(new)):
+                    if results[jj] is not None:
+                        _index = new[jj]
+                        found[_index] = True
+                        for key in results[jj].keys():
+                            sst[key][_index] = results[jj][key]
+                    else:
+                        failures += 1
+
+        indices, = where(~found)
+        count = sum(found)
+
+        try:
+            assert count + failures == total
+        except AssertionError:
+            break
+        if found.all():
+            break
+        iteration += 1
+        sleep(delay)
+
+    return sst
+
+
+def kelvin2celsius(data):
+    # type: (Array) -> Array
+    return data - 272.15
+
+
+def brightness_temperature(x, m=3.3420e-04, b=0.1, k1=774.89, k2=1321.08):
+    # type: (Array, float, float, float, float) -> Array
+    """Brightness temperature from Band 10 raw counts"""
+    radiance = m * x + b
+    return (k2 / log((k1 / radiance) + 1)) - 272.15
+
+
+def viscosity(temperature):
+    # type: (Array) -> Array
+    """Viscosity from temperature"""
+    return 10.0 ** (-3.0) * 10.0 ** (-1.65 + 262.0 / (temperature + 169.0))
+
+
+def vertical_flux(omega, area):
+    # type: (Array, Array) -> Array
+    """Vertical flux density"""
+    return omega * area[:, None]
+
+
+def attenuation(bathymetry, elevation, sigma, coefficients):
+    # type: (Array, Array, Array, Array) -> Array
+    """Attenuated light"""
+    return (elevation - bathymetry) * sigma[:, None] * coefficients
+
+
+def lagrangian_displacement(delta, window=10):
+    # type: (Array, int) -> Array
+    """
+    Average displacement over one hour time window
+
+    :param window: steps for boxcar filter
+    :param delta: movement vectors
+    :return: average displacement of group over time
+    """
+
+    def reduce(start, end):
+        indices = arange(start, end)
+        mean_sq_displacement = delta[:, :, indices].sum(axis=2) ** 2
+        return 0.25 / 60 * mean_sq_displacement.sum(axis=0)
+
+    steps = delta.shape[2]
+    displace = zeros((delta.shape[1], steps))
+    for time in range(window, steps):  # per particle time series
+        displace[:, time] = reduce(time - window, time)
+    return displace.mean(axis=0)
+
+
+def lagrangian_diffusion(
+    vertex_array_buffer, window, bins, groups, threshold, wrap, steps=240
+):
+    # type: ((Array, ), int, int, Array, float, bool, int) -> (Array,)
+    """
+    Mean diffusion over time
+
+    :param vertex_array_buffer:
+    :param window: number of steps to average for displacement
+    :param bins: days/bins per experiment
+    :param groups: groups by array index
+    :param steps: steps per day/bin
+    :param threshold: distance to trigger wrap
+    :param wrap: amount to compensate for periodic domains
+    """
+
+    delta = diff(vertex_array_buffer, axis=2)
+    if threshold is not None and wrap is not None:
+        delta -= wrap * (delta > threshold)
+        delta += wrap * (delta < -threshold)
+
+    displace = lagrangian_displacement(delta, window=window)
+    ii = arange(bins) * steps
+    return tuple(
+        displace[indices, ii : ii + steps - 1].mean(axis=0) for indices in groups
+    )
+
+
+from numpy import arctan2, intersect1d, isnan, floor, arange, cross, array, hstack,  zeros, where, roll, unique, \
+    sum, abs, ma
+from numpy.ma import MaskedArray
+from pandas import read_csv
+from netCDF4 import Dataset
+
+
+def layers(count: int):
+
+    z = -arange(count) / (count - 1)
+    dz = z[:-1] - z[1:]  # distance between sigma layers
+    zz = zeros(count)  # intra-level sigma
+    zz[:-1] = 0.5 * (z[:-1] + z[1:])  # intra-sigma layers
+    zz[-1] = 2 * zz[-2] - zz[-3]
+    dzz = zz[:-1] - zz[1:]  # distance between intra-sigma layers
+
+
+def z_index(sigma: array, count: int) -> int:
+    """
+    Convert from (negative) sigma coordinates to intra-layer indices
+    """
+    return floor((1 - count) * sigma).astype(int)  # sigma layer index above position
+
+
+def gradient(dz: array, dzz: array) -> array:
+    """
+    Slopes for segments on either side of sigma layer, purely numerical, concentration independent
+    """
+    return -1 / dz / roll(dzz, 1)
+
+
+def reindex(indices, basis=0, enforce=None):
+    """Adjust to zero-indexed or other basis"""
+    minimum = indices.min()
+    if (minimum != enforce) if enforce else True:
+        indices -= minimum + basis  # zero-index
+    return indices
+
+
+def topology(path: str, indexed: bool = True) -> dict:
+    """
+    Read in grid topology of unstructured triangular grid
+    """
+    if path[-3:] == ".nc":
+        fid = Dataset(path)
+        topo = fid.variables['nv'][:].T
+    else:
+        fid = open(path, 'r')
+        df = read_csv(fid, sep=',', usecols=arange(4 if indexed else 3), header=None)
+        topo = df.__array__()
+
+    n = len(topo)
+    topo = reindex(topo, basis=0, enforce=1)
+
+    return {
+        "indices": topo[:, 0] if indexed else arange(n),
+        "topology": topo[:, 0] if indexed else arange(n),
+    }
+
+
+def boundary(solid: array, open: array, topology: array) -> dict:
+    """
+    Collect nodes and set boundary for element
+    """
+    solids = solid[topology].sum(axis=1)
+    return {
+        "solid": (solids - 1).clip(max=1, min=0).astype(bool),
+        "porosity": 2 - solids.clip(min=1),
+        "open": open[topology].max(axis=1)
+    }
+    
+
+def cell_adjacency(parents: dict, indices: list, topology: array) -> (dict, list):
+    """
+    Get element neighbors
+    """
+    queue = dict()
+    while indices:
+        cell = indices.pop()
+        nodes = [set(parents[key]) - {cell} for key in topology[cell, :]]
+        buffer = [nodes[ii] & nodes[ii - 1] for ii in range(3)]
+        key = "neighbor" if 0 < len(buffer) <= 3 else "error"
+        queue[key][cell] = buffer
+
+    return queue
+
+
+def _advection_terms(solid, open):
+    """Element terms for calculating advection"""
+    mask = solid + open
+    for element in where(~mask):  # for non-boundaries
+
+        indices = neighbors[element]
+        dx = (x[indices] - x[element])  # distances to neighbor centers
+        dy = (y[indices] - y[element])
+        dxdx = sum(dx ** 2)
+        dxdy = sum(dx * dy)
+        dydy = sum(dy ** 2)
+        average = [sum(dx), sum(dy)]
+
+        AU[element, 0, 0] = cross([dxdy, dydy], average)
+        AU[element, 0, 1] = cross(average, [dxdx, dxdy])
+
+        for index in range(3):
+            center = [dx[index], dy[index]]
+            AU[element, index, 0] = cross(center, [dxdx, dydy])
+            AU[element, index, 1] = cross([dxdx, dxdx], center)
+
+        positions = hstack((dx, dy))
+        aa = positions[[0, 0, 1], :]
+        bb = positions[[1, 2, 2], :]
+        delta = sum(cross(aa, bb) ** 2)
+
+        AU[element, :, :] /= delta
+
+
+def depth(bathymetry: array, elevation: array = None, dry: float = 1E-7) -> MaskedArray:
+    """
+    Time-varying property, free surface height from water level, meters
+    """
+    data = bathymetry if elevation is None else bathymetry + elevation  # water depth, meters
+    return ma.masked_array(depth, mask=(data > dry))  # depth threshold to consider dry
+
+
+def xye(x, y, z):
+    """Return height-mapped vertex array"""
+    return hstack((
+        x.reshape(-1, 1),
+        y.reshape(-1, 1),
+        z.reshape(-1, 1))
+    )
+
+
+def mask(shape, masked=None):
+    m = zeros(shape, dtype=bool)
+    if masked is not None:
+        m[masked] = True
+    return m
+
+
+def adjacency(topology):
+    """
+    Get node parents and node neighbors from topology
+
+    :param topology:
+    :return:
+    """
+    _parents = dict()
+    _neighbors = dict()
+
+    for element in range(topology.__len__()):
+        vertices = topology[element]
+        for node in vertices:
+            try:
+                p = _parents[node]
+            except KeyError:
+                p = _parents[node] = []
+            p.append(element)  # add element to parents, no possible duplicates
+
+            try:
+                n = _neighbors[node]
+            except KeyError:
+                n = _neighbors[node] = []
+            mask, = where(node != vertices)
+            others = vertices[mask]
+
+            for neighbor in others:
+                if neighbor not in n:
+                    n.append(neighbor)  # add current element to parents
+
+    solid = zeros(n, dtype=bool)
+    for node in range(n):
+        difference = _neighbors[node].__len__() - _parents[node].__len__()
+        if difference == 1:
+            solid[node] = True
+        elif difference != 0:
+            print("Error. Nonsense dimensions in detecting solid boundary nodes.")
+
+
+def _test_duplicate_adjacency(indices, data: dict or list):
+    return [key for key in indices if len(data[key]) > len(unique(data[key]))]
+
+
+def _reorder(node: int, parents: list, neighbors: list, topology: array, tri_neighbors, tri_solid):
+    """Reorder elements around a node to clockwise"""
+    parents = parents[node]  # triangle neighbors
+    neighbors = neighbors[node]
+    start = 0
+    ends, = where(tri_solid[parents])
+    for ii in ends:
+        pid = parents[ii]
+        pos, _, _ = where(node == topology[pid, :])
+        bb = topology[pid, pos - 1]
+        shared = intersect1d(parents, parents[bb])
+        queue = intersect1d(tri_neighbors[pid], shared)
+
+        if len(queue) > 0:
+            parents = roll(parents, -ii)
+            neighbors[0] = topology[pid, pos - 2]
+            start += 1
+        else:
+            neighbors[-1] = bb
+
+    np = len(parents)
+    if np > 2:
+        for ii in range(start, np - 1):
+            pid = parents[ii]
+            pos, _, _ = where(node == topology[pid, :])
+            bb = topology[pid, pos - 1]
+            shared = intersect1d(parents, parents[bb])
+
+            while parents[ii + 1] not in shared:
+                parents[ii + 1:] = roll(parents[ii + 1:], -1)
+
+            neighbors[ii] = topology[pid, pos - 2]
+
+
+def _caclulate_area_with_cross_product(x: array, y: array, topology: array):
+    """
+    Use numpy cross product of 2 legs to calculate area.
+    May be negative still, so correct windings in place
+    """
+    dx = (x[:, 1] - x[:, 0]).reshape(-1, 1)
+    dy = (y[:, 1] - y[:, 0]).reshape(-1, 1)
+    aa = hstack((dx, dy))
+
+    dx = (x[:, 2] - x[:, 0]).reshape(-1, 1)
+    dy = (y[:, 2] - y[:, 0]).reshape(-1, 1)
+    bb = hstack((dx, dy))
+
+    area = 0.5 * cross(bb, aa)
+    indices, = where(area < 0)
+    return abs(area), roll(topology[indices, 1:3], 1, axis=1)
+
+
+def calc_areas(vertex_buffer: array, topology: array, parents: list, verb=True):
+    """
+    Calculate triangle area and correct windings
+    """
+    vertex_positions = vertex_buffer[topology]
+    tri_area = _caclulate_area_with_cross_product(*vertex_positions, topology)
+    shape = len(vertex_buffer)
+    area = zeros(shape, dtype=float)
+    art2 = zeros(shape, dtype=float)
+    for node in range(shape):  # for each control volume
+        art2[node] = tri_area[parents[node]].sum()
+        area[node] = art2[node] / 3
+
+    return {
+        "parents": art2,
+        "triangles": tri_area,
+        "control volume": area
+    }
+
+
+def locations(vertex_buffer: array, after=0, before=None, bs=100):
+
+    cls = "Locations"
+    n = min(len(vertex_buffer), before)
+    np = count(cls)
+
+    while after < n:
+        size = min(n - after, bs)
+        indices = [ii + np for ii in range(after, after + size)]
+        subset = vertex_buffer[indices, :]
+        batch(cls, list(subset), indices)
+        after += size
+
+    return {
+        "after": after,
+        "before": before
+    }
+
+
+def _edges(points, indices, topology, neighbors, cells):
+    """Initialize edge arrays"""
+
+    tri = len(indices)
+    shape = (tri, 3)
+    full = (*shape, 2)
+    nodes = zeros(full, dtype=int) - 1  # indices of side-of nodes
+    cells = zeros(full, dtype=int) - 1  # indices of side-of elements
+    center = zeros(full, dtype=float)
+    ends = zeros((*full, 2), dtype=float)
+    bound = zeros(shape, dtype=bool)
+
+    for cell in range(tri):
+        children = topology[cell, :]
+        count = 0
+        for each in neighbors[cell]:  # edges which have been not set already
+
+            cells[cell, count, :] = [cell, each]
+            side_of = intersect1d(children, topology[each, :], assume_unique=True)
+            nodes[cell, count, :] = side_of
+            center[cell, count, :] = points[side_of, :2].mean(dim=1)  # edge center
+            ends[cell, count, :, :] = cells[each], center[cell, count]
+            count += 1
+
+        boundary[cell, :2] = True  # mark edges as boundaries
+
+    dx = ends[:, :, 1, 0] - ends[:, :, 0, 0]
+    dy = ends[:, :, 1, 1] - ends[:, :, 0, 1]
+
+    return {
+        "boundary": bound,
+        "length": (dx ** 2 + dy ** 2) ** 0.5,
+        "angle": arctan2(dx, dy),
+        "cells": cells,
+        "center": center,
+        "nodes": nodes,
+        "ends": ends
+    }
+
+
+
+
+#
+# def vertexNeighbors(cls, tx, node):
+#     """
+#     Get node parents and node neighbors
+#
+#     :param tx:
+#     :param node:
+#     :return:
+#     """
+#     a = cls._match("Nodes", node, "a")
+#     b = cls._match("Nodes", "b")
+#     chain = "(a)-[:SIDE_OF]->(:Element)<-[:SIDE_OF]-"
+#     command = " ".join([a, "MATCH", chain + b, "MERGE", "(a)-[:NEIGHBORS]-(b)"])
+#     tx.run(command, id=node)
+#
+#
+# def _topology(tx, nodes, index):
+#     """
+#     Create parent-child relationships
+#
+#     :param tx: Implicit transmit
+#     :param nodes: vertices, indices
+#     :param index: element identifier
+#     :return:
+#     """
+#     tx.run(
+#         "MATCH (n1:Node {id: $node1}) "
+#         + "MATCH (n2:Node {id: $node2}) "
+#         + "MATCH (n3:Node {id: $node3}) "
+#         + "MATCH (e:Element {id: $index}) "
+#         + "CREATE (n1)-[: SIDE_OF]->(e) "
+#         + "CREATE (n2)-[: SIDE_OF]->(e) "
+#         + "CREATE (n3)-[: SIDE_OF]->(e) ",
+#         node1=int(nodes[0]),
+#         node2=int(nodes[1]),
+#         node3=int(nodes[2]),
+#         index=index,
+#     )
+#
+#
+# def _neighbors(mesh):
+#     """
+#     Make queries and use results to build topological relationships.
+#
+#     :param mesh:
+#     :return:
+#     """
+#     kwargs = [{"identity": ii for ii in range(mesh.nodes.n)}]
+#     _write(_neighbors, kwargs)
+#
+#
+# def _create_blanks(graph, nn, ne):
+#     """
+#     Setup new sphere
+#     """
+#     graph.create("Elements", range(ne), repeat(None, ne))
+#     graph.index("Elements", "id")
+#     graph.create("Nodes", range(nn), repeat(None, nn))
+#     graph.index("Nodes", "id")
+#
+# #
+# def _neighbor(root, cls, tx, id):
+#     """
+#     Get node parents and node neighbors
+#
+#     :param tx:
+#     :param node:
+#     :return:
+#     """
+#     a = _node("a", cls, id)
+#     b = _node("b", cls, id)
+#     command = f"MATCH {a}-[:SIDE_OF]->(:{root})<-{b} MERGE (a)-[:Neighbors]-(b)"
+#     tx.run(command, id=id)
 
 
 def extrude(vertex_array, closed=False, loop=True, dtype=float, **kwargs):

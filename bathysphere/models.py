@@ -7,8 +7,11 @@ from decimal import Decimal
 from enum import Enum
 
 try:
-    from numpy import abs, zeros, arange, ones, convolve, isnan, ceil, array
+    from numpy import (
+        abs, zeros, arange, ones, convolve, isnan, ceil, array, repeat
+    )
     from scipy.fftpack import rfft, irfft, fftfreq
+    from pandas import DataFrame
 except ImportError as ex:
     print("Numerical libraries are not installed")
 
@@ -280,7 +283,54 @@ class DataStreams(object):
 
         return response(200, payload=mask)
 
+    def partition(
+        self, 
+        window: int, 
+        horizon: int, 
+        batch_size: int, 
+        ratio: float, 
+        periods: int
+    ) -> (DataStreams, DataStreams):
+        """
 
+        :param window: moving average observations
+        :param horizon: look ahead
+        :param periods: number of observations
+        :param batch_size: length of training segment
+        :param ratio: approximate ratio of observations to use for training
+    
+        :return:
+        """
+
+        # reshaping functions
+        def reshape3d(x):
+            return x.values.reshape((x.shape[0], x.shape[1], 1))
+
+        def reshape2d(y):
+            return y.values.reshape((y.shape[0], 1))
+
+        start = max(window - 1, horizon - 1)
+        nn = int(periods * ratio)
+        nn -= nn % batch_size
+        expected = self.rolling(window=window, center=False).mean()  # set the target to moving average
+
+        if horizon > 1:
+            datastream = DataFrame(repeat(datastream.values, repeats=horizon, axis=1))
+            for i, c in enumerate(datastream.columns):
+                datastream[c] = datastream[c].shift(i)  # shift each by one more, "rolling window view" of data
+
+        end = datastream.shape[0] % batch_size  # match with batch_size
+
+        return {
+            "training": {
+                "x": reshape3d(datastream[start:start+nn]),
+                "y": reshape2d(expected[start:start+nn])
+            },
+            "validation": {
+                "x": reshape3d(datastream[start+nn:-1 * end] if end else datastream[start+nn:]),
+                "y": reshape2d(expected[start+nn:-1 * end] if end else expected[start+nn:])
+            }
+        }
 
 @attr.s
 class FeaturesOfInterest(object):

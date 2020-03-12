@@ -1,5 +1,4 @@
-from numpy import array, where, column_stack, uint8, arange, delete, zeros, unique, isnan, abs, sqrt
-from numpy.ma import masked_where
+
 from pickle import loads as unpickle, dump as pickle
 from itertools import repeat
 from functools import reduce
@@ -7,16 +6,23 @@ from json import dumps, loads
 from requests import post
 import hmac
 import hashlib
-from netCDF4 import Dataset
+
 from time import time
-from matplotlib.cm import get_cmap
-from matplotlib.patches import Path
-from PIL.Image import fromarray, alpha_composite
 from retry import retry
-from matplotlib import pyplot as plt
+
+try:
+    from matplotlib.cm import get_cmap
+    from matplotlib.patches import Path
+    from PIL.Image import fromarray, alpha_composite
+    from netCDF4 import Dataset
+    from numpy import array, where, column_stack, uint8, arange, delete, zeros, unique, isnan, abs, sqrt
+    from numpy.ma import masked_where
+    from matplotlib import pyplot as plt
+except ImportError as _:
+    pass
 
 
-from bathysphere_array.utils import (
+from bathysphere_numerical.quantize.utils import (
     extent,
     reduce_extent,
     extent_crop,
