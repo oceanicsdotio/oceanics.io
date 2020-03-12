@@ -31,7 +31,9 @@ from itertools import repeat
 from multiprocessing import Pool
 
 try:
-    from numpy import array, append, frombuffer
+    from numpy import (
+        array, append, frombuffer, argmax, argmin, cross, argwhere, arange, array, hstack, vstack
+    )
     from netCDF4 import Dataset as _Dataset
     from pandas import read_html
 except ImportError as ex:
@@ -86,6 +88,36 @@ class Clock:
         self.elapsed += self.dt
         return self.start + self.elapsed
        
+
+
+class ConvexHull(object):
+    @staticmethod
+    def segment(u, v, indices, points):
+
+        if indices.shape[0] == 0:
+            return array([], dtype=int)
+
+        def crossProduct(i, j):
+            return cross(points[indices, :] - points[i, :], points[j, :] - points[i, :])
+
+        w = indices[argmin(crossProduct(u, v))]
+        a = indices[argwhere(crossProduct(w, v) < 0).flatten()]
+        b = indices[argwhere(crossProduct(u, w) < 0).flatten()]
+
+        return hstack((ConvexHull.segment(w, v, a, points), w, ConvexHull.segment(u, w, b, points)))
+
+    @staticmethod
+    def __call__(points):
+
+        u = argmin(points[:, 0])
+        v = argmax(points[:, 0])
+        indices = arange(0, points.shape[0])
+        parted = cross(points[indices, :] - points[u, :], points[v, :] - points[u, :]) < 0
+
+        a = indices[argwhere(~parted)]
+        b = indices[argwhere(parted)]
+
+        return hstack((u, ConvexHull.segment(v, u, a, points), v, ConvexHull.segment(u, v, b, points), u))
 
 
 @attr.s
@@ -1211,6 +1243,132 @@ class JSONIOWrapper(TextIOWrapper):
             response = self.readline()
             print(response.rstrip())
 
+
+class LinkedListNode:
+    def __init__(self, value):
+        self.next = None
+        self.prev = None
+        self.value = value
+
+    def __del__(self):
+        print(f"Node with value {self.value} removed")
+
+
+class LinkedList:
+    def __init__(self, data: (float,) = ()):
+
+        self.head = None
+        prev = None
+        for value in data:
+            n = Node(value)
+            if prev is None:
+                self.head = n
+            else:
+                prev.next = n
+            prev = n
+
+        self.tail = prev
+
+    def traverse(self) -> None:
+        cursor = self.head
+        while cursor is not None:
+            print(cursor.value)
+            cursor = cursor.next
+
+    def deduplicate(self):
+        cursor, last, exists = self.head, None, set()
+        while cursor is not None:
+            if last is not None and cursor.value in exists:
+                last.next = cursor.next.next if cursor.next is not None else None
+            else:
+                exists |= {cursor.value}
+            last, cursor = cursor, cursor.next
+        return last
+
+    def k_from_head(self, k: int) -> None or Node:
+        cursor = self.head
+        while cursor.next is not None and k:
+            cursor = cursor.next
+            k -= 1
+        return cursor.value
+
+    def k_from_end(self, k: int) -> None or Node:
+        cursor = self.head
+        total = -k
+        while cursor is not None:
+            cursor = cursor.next
+            total += 1
+
+        assert total > 0
+
+        cursor = self.head
+        while cursor is not None and total:
+            cursor.next = cursor.next
+            total -= 1
+        return cursor.value
+
+    def prepend(self, value: float) -> None:
+        n = Node(value)
+        n.next, self.head = self.head, n
+
+    def append(self, value: float) -> None:
+        n = Node(value)
+        if self.head is None:
+            self.head = n
+        if self.tail is not None:
+            self.tail.next = n
+        self.tail = n
+
+    def add(self, other):
+        ...
+
+
+class DoublyLinkedList(LinkedList):
+    prev = None  # only for doubly-linked
+
+    def __init__(self, data: (float,) = ()):
+        LinkedList.__init__(self, data)
+        cursor = self.head
+        while cursor.next is not None:
+            cursor.next.prev = cursor
+
+    def k_from_end(self, n: int = None) -> None or Node:
+
+        _next = self.tail
+        _last = None
+        while _next is not None and (n is None or n):
+            _last = _next
+            _next = _next.prev
+            if n:
+                n -= 1
+        return _last
+
+    def traverse_backward(self) -> None:
+        cursor = self.tail
+        while cursor is not None:
+            print(cursor.value)
+            cursor = cursor.prev
+
+    def push_front(self, value: float) -> None:
+        n = Node(value)
+        n.next = self.head
+        self.head.prev = n
+        self.head = n
+
+    def push_back(self, value: float) -> None:
+        n = Node(value)
+        n.prev = self.tail
+        if self.head is None:
+            self.head = n
+        if self.tail is not None:
+            self.tail.next = n
+        self.tail = n
+
+    def insert_after(self, insert: Node, ref: Node):
+        ...
+
+    def insert_before(self, insert: Node, ref: Node):
+        ...
 
 # class Memory:
 #     def __init__(self, size, max_size=int(1e6)):
