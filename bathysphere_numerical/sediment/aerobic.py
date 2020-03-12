@@ -1,6 +1,6 @@
 from .core import Sediment
-from neritics.chemistry.nutrient import NITROGEN, PHOSPHOROUS, AMMONIUM, SILICA, NOX
-from neritics.chemistry.organic import CARBON
+from .chemistry.nutrient import NITROGEN, PHOSPHOROUS, AMMONIUM, SILICA, NOX
+from .chemistry.c import CARBON
 
 
 class Aerobic(Sediment):

@@ -1195,6 +1195,63 @@ class Graph:
         url = f"{url}/{cls}"
         return post(url=url, json=obj, headers={"Authorization": f"Bearer {token}"})
  
+    @staticmethod
+    def adjacency(topology):
+        """
+        Get node parents and node neighbors from topology
+
+        :param topology:
+        :return:
+        """
+        _parents = dict()
+        _neighbors = dict()
+
+        for element in range(topology.__len__()):
+            vertices = topology[element]
+            for node in vertices:
+                try:
+                    p = _parents[node]
+                except KeyError:
+                    p = _parents[node] = []
+                p.append(element)  # add element to parents, no possible duplicates
+
+                try:
+                    n = _neighbors[node]
+                except KeyError:
+                    n = _neighbors[node] = []
+                mask, = where(node != vertices)
+                others = vertices[mask]
+
+                for neighbor in others:
+                    if neighbor not in n:
+                        n.append(neighbor)  # add current element to parents
+
+        solid = zeros(n, dtype=bool)
+        for node in range(n):
+            difference = _neighbors[node].__len__() - _parents[node].__len__()
+            if difference == 1:
+                solid[node] = True
+            elif difference != 0:
+                print("Error. Nonsense dimensions in detecting solid boundary nodes.")
+
+    @staticmethod
+    def deduplicate(topology, process=False):
+        # type: (Array, bool) -> Array
+        n = len(topology)
+        flag = zeros(n, dtype=bool)
+        ordered = sort(topology)
+
+        for ii in range(n - 1):
+            match = ordered[ii, :] == ordered[ii + 1 :, :]
+            rows, = where(match)
+            rows += ii + 1
+            flag[rows] = True
+
+        if process and flag.any():
+            topology = topology[~flag]
+            assert len(topology) == n - flag.sum()
+
+        return topology
 
 
 class JSONIOWrapper(TextIOWrapper):
@@ -2477,3 +2534,7 @@ class Trie:
             if cost <= maxCost:
                 _results += ((word, cost),)
         return _results
+
+
+@attr.s
+class VertexArray():

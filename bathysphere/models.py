@@ -312,6 +312,8 @@ class DataStreams(object):
         start = max(window - 1, horizon - 1)
         nn = int(periods * ratio)
         nn -= nn % batch_size
+
+        # TODO: I think this is pandas.Series
         expected = self.rolling(window=window, center=False).mean()  # set the target to moving average
 
         if horizon > 1:

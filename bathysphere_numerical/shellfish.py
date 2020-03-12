@@ -9,7 +9,6 @@ from itertools import repeat
 from typing import Union
 from io import BytesIO
 
-from bathysphere.bivalve import __path__
 from bathysphere.datatypes import JSONIOWrapper
 
 array = Union[list, tuple]

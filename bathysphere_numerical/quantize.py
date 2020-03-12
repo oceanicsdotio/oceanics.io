@@ -18,6 +18,15 @@ except ImportError:
 from numpy.linalg import norm
 from itertools import repeat
 
+
+
+from numpy import arctan2, intersect1d, isnan, floor, arange, cross, array, hstack,  zeros, where, roll, unique, \
+    sum, abs, ma
+from numpy.ma import MaskedArray
+from pandas import read_csv
+from netCDF4 import Dataset
+
+
 from numpy import (
     zeros,
     unique,
@@ -277,11 +286,6 @@ def lagrangian_diffusion(
     )
 
 
-from numpy import arctan2, intersect1d, isnan, floor, arange, cross, array, hstack,  zeros, where, roll, unique, \
-    sum, abs, ma
-from numpy.ma import MaskedArray
-from pandas import read_csv
-from netCDF4 import Dataset
 
 
 def layers(count: int):
@@ -415,45 +419,6 @@ def mask(shape, masked=None):
     if masked is not None:
         m[masked] = True
     return m
-
-
-def adjacency(topology):
-    """
-    Get node parents and node neighbors from topology
-
-    :param topology:
-    :return:
-    """
-    _parents = dict()
-    _neighbors = dict()
-
-    for element in range(topology.__len__()):
-        vertices = topology[element]
-        for node in vertices:
-            try:
-                p = _parents[node]
-            except KeyError:
-                p = _parents[node] = []
-            p.append(element)  # add element to parents, no possible duplicates
-
-            try:
-                n = _neighbors[node]
-            except KeyError:
-                n = _neighbors[node] = []
-            mask, = where(node != vertices)
-            others = vertices[mask]
-
-            for neighbor in others:
-                if neighbor not in n:
-                    n.append(neighbor)  # add current element to parents
-
-    solid = zeros(n, dtype=bool)
-    for node in range(n):
-        difference = _neighbors[node].__len__() - _parents[node].__len__()
-        if difference == 1:
-            solid[node] = True
-        elif difference != 0:
-            print("Error. Nonsense dimensions in detecting solid boundary nodes.")
 
 
 def _test_duplicate_adjacency(indices, data: dict or list):
@@ -884,25 +849,6 @@ def deduplicate_vertex_array(vertex_array, topology=None, threshold=0.00001):
 
         vertex_array = vertex_array[0 : len(retain), :]
     return vertex_array, topology
-
-
-def deduplicate_topology(topology, process=False):
-    # type: (Array, bool) -> Array
-    n = len(topology)
-    flag = zeros(n, dtype=bool)
-    ordered = sort(topology)
-
-    for ii in range(n - 1):
-        match = ordered[ii, :] == ordered[ii + 1 :, :]
-        rows, = where(match)
-        rows += ii + 1
-        flag[rows] = True
-
-    if process and flag.any():
-        topology = topology[~flag]
-        assert len(topology) == n - flag.sum()
-
-    return topology
 
 
 def roughen(vertex_array, scalar=0.01):
