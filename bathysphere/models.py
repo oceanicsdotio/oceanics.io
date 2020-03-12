@@ -6,6 +6,16 @@ from typing import Any, Callable
 from decimal import Decimal
 from enum import Enum
 
+from multiprocessing import Process
+from socket import AF_INET, SOCK_STREAM, socket
+from time import time, sleep
+from socket import create_connection
+from yaml import load as load_yml, Loader
+
+# from drivers import log, synchronous
+from math import floor
+
+
 try:
     from numpy import (
         abs, zeros, arange, ones, convolve, isnan, ceil, array, repeat
@@ -33,6 +43,8 @@ class Actuators(object):
     encodingType: str = attr.ib(default=None)  # metadata encoding
     metadata: Any = attr.ib(default=None)
 
+    networkAddress: (str, int) = attr.ib(default=(None, None))
+
     def startController(
         self,
         host: str,
@@ -56,18 +68,304 @@ class Actuators(object):
         :param file: log file
         :param verb: log to console
         """
-        # timer_id = relay_id + self.metadata["config"]["timer_id_offset"]
-        # state = [[False] * banks] * (relays // banks)
+        timer_id = relay_id + self.metadata["config"]["timer_id_offset"]
+        state = [[False] * banks] * (relays // banks)
         start = time()
 
         while True:
-            response = 1  # TODO: wire up corrrectly
-            # response = on(host, port, relay_id, timer_id, duration=None)
+            response = self.on(host, port, relay_id, timer_id, duration=None)
             if not response:
                 print("breaking loop.")
             sleep(refresh - ((time() - start) % refresh))
 
         return True
+
+    @property
+    def protocol(self):
+        return dict()
+
+    @property
+    def defaults(self):
+        return {
+            "datetime format": "%Y-%m-%d %H:%M:%S",
+            "host": "localhost",
+            "sample_period": 5,
+            "log": "logs/controller_server.log",
+            "gain": {"p": None, "i": None, "d": None},
+            "constant": {"p": None, "i": None, "d": None},  # persistent integral result term
+            "error": None,  # persistent error last step
+            "dt": None,  # sample period
+            "set": None,
+            "run": False,
+            "transform": lambda val: val,
+            "tail": None,  # trailing time before repeat
+            "ramp": False,  # interpolation if true
+            "repeat": False,  # repeat after tail if true
+            "acclimate": False,
+            "fade": False,
+            "current": None,  # last point passed
+            "start": None,  # first set point
+        }
+
+    @staticmethod
+    def pulseWidth(
+        signal: float, 
+        maximum: float = None, 
+        width: int = 2, 
+        pid: bool = True
+    ) -> int:
+        return width * floor(5 * abs(signal) / maximum) if pid else width
+
+    @staticmethod
+    def signalTransform(
+        config: dict, 
+        state: dict, 
+        raw: float, 
+        offset: float = 0.0
+    ) -> float:
+        """
+        Returns conditioned PID signal
+
+        :param config:
+        :param state:
+        :param raw: raw sensor reading
+        :param offset: manual offset for integral term
+        :return:
+        """
+
+        def _transform():
+            return (
+                config["transform"](state["set"])
+                - config["transform"](offset)
+                - config["transform"](raw)
+            )
+
+        error, state["error"] = state["error"], _transform()
+        e = state["error"]
+        c = state["constant"]
+        k = state["gain"]
+
+        c["p"] = k["p"] * e  # proportional term
+        c["i"] += e * config["dt"]  # integral term
+        c["d"] = (e - error) / config["dt"]  # derivative term
+
+        return c["p"] + (k["i"] * c["i"]) + (k["d"] * c["d"])
+
+    @staticmethod
+    def rewindControlLoop(state: dict, reset: bool = False) -> None:
+        """
+        Return to playback start position
+        :param state
+        :param reset: reset to first observation if True
+        """
+        if reset:
+            state["start"] = 0
+        state["current"] = state["start"]
+
+
+    @staticmethod
+    def startControlLoop(
+        relay_id: int,
+        host: str,
+        port: int,
+        send: bool = False,
+        refresh: int = 10,
+        banks: int = 1,
+        relays: int = 1,
+        buffer: int = 16,
+        file: str = None,
+        echo: bool = False,
+        verb: bool = False,
+    ):
+        """
+        Start the process in the background, and return reference
+
+        :param relay_id: which relay this process controls
+        :param host: host of server or client
+        :param port: port number to open
+        :param send: operate in bathysphere_functions_controller mode
+        :param refresh: how often the signals are updated
+        :param banks: number of replica relay banks
+        :param relays: total number of relays
+        :param buffer: length of serial buffer frames
+        :param file: logging files
+        :param verb: log to console
+        :param echo: operate in diagnostic/echo mode
+
+        :return: Process
+        """
+        p = Process(
+            target=deploy if send else Actuators.addEventListener,
+            kwargs={
+                **{"host": host, "port": port, "banks": banks, "file": file, "verb": verb},
+                **(
+                    {"echo": echo, "buffer": buffer}
+                    if not send
+                    else {"relay_id": relay_id, "relays": relays, "refresh": refresh}
+                ),
+            },
+        )
+        p.start()
+        return p
+
+
+    @staticmethod
+    def addEventListener(
+        self,
+        banks: int = 1,
+        echo: bool = False,
+        buffer: int = 16,
+        file: str = None,
+        verb: bool = False,
+    ):
+        """
+        Main loop. Create a listening connection.
+
+        :param host: hostname
+        :param port: port number
+        :param banks: number of replica banks
+        :param echo: bounce back message
+        :param buffer: byte chunk size
+        :param file: log file
+        :param verb: log to console
+        """
+
+        bank_id = 0
+        relay_id = 0
+        host, port = self.networkAddress
+
+        tcp = socket(AF_INET, SOCK_STREAM)
+        logging = {"file": file, "console": verb}
+        log(message="Listening on {} port {}".format(host, port), **logging)
+        tcp.bind((host, port))
+        tcp.listen(1)
+
+        while True:
+            connection, client = tcp.accept()
+            log(message="Connection from {} on port {}".format(*client), **logging)
+            try:
+                while True:
+                    data = connection.recv(buffer)
+                    log(message="Received {!r}".format(data), **logging)
+                    if not data:
+                        log(message="No data from {} on port {}".format(*client), **logging)
+                        break
+
+                    if echo:
+                        log(message="Echoing client", **logging)
+                        connection.sendall(data)
+                        continue
+
+                    protocol = self.protocol
+                    assert data[0] == protocol["config"]["start"]
+                    if data[1] == protocol["diagnostic"]["current_bank"]:
+                        code = bank_id
+                    elif data[1] == protocol["diagnostic"]["banks"]:
+                        code = banks
+                    elif data[1] == protocol["diagnostic"]["board"]:
+                        code = relay_id
+                    elif data[1] == protocol["diagnostic"]["test"]:
+                        code = protocol["diagnostic"]["success"]
+                    elif data[1] == protocol["diagnostic"]["status"]:
+                        code = protocol["diagnostic"]["success"]
+                    else:
+                        code = protocol["diagnostic"]["error"]
+
+                    log(message="Responding to the client", **logging)
+                    connection.sendall(bytes([code]))
+
+            finally:
+                connection.close()
+
+    @staticmethod
+    async def sendMessage(
+        self,
+        commands: list = None,
+        identity: int = None,
+        buffer: int = 16,
+        debug: bool = False,
+    ) -> bool or bytes:
+        """
+        Send a DIAGNOSTIC query
+
+        :param host:
+        :param port:
+        :param commands:
+        :param identity:
+        :param buffer:
+        :param debug: return response instead of boolean
+
+        :return:
+        """
+        host, port = self.networkAddress
+        protocol = self.protocol
+        start = protocol["config"]["start"]
+        message = [start] + commands + ([identity] if identity is not None else [])
+
+        with create_connection((host, port)) as tcp:
+            try:
+                tcp.send(bytes(message))  # send message
+                response = tcp.recv(buffer)
+            except:
+                response = None
+            finally:
+                tcp.close()
+
+        if debug:
+            return response
+
+        if response is not None and response[0] == protocol["diagnostic"]["success"]:
+            return True
+
+        return False
+
+    async def on(self, relay_id, timer_id, duration=None):
+        """
+        Relay on, with optional duration
+
+        :param duration:
+        :return:
+        """
+        commands = (
+            [self.protocol["tasks"]["on"]]
+            if duration is None
+            else [self.protocol["tasks"]["timer_setup"], timer_id, 0, 0, duration]
+        )
+        return self.sendMessage(commands, identity=relay_id)
+
+    async def off(self, relay_id=None):
+        """
+        Turn specified relay off
+        """
+        return self.sendMessage(
+            [self.protocol["tasks"]["off"]],
+            identity=relay_id
+        )
+
+    async def recover(self):
+        """
+        Attempt emergency recovery
+        """
+        return self.sendMessage(
+            [
+                self.protocol["diagnostic"]["board"], 
+                self.protocol["tasks"]["recover"]
+            ]
+        )
+
+    @property
+    async def state(self, relay_id=None):
+        """
+        Get current state of specified relay
+        """
+        return self.sendMessage(
+            [self.protocol["diagnostic"]["status"]], 
+            identity=relay_id, 
+            debug=True
+        )
+
+
+
 
 @attr.s
 class Assets(object):

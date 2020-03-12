@@ -1,6 +1,130 @@
 from numpy import zeros, where, maximum, minimum
 from numpy import sign, append, zeros
 
+from numpy import array, zeros, exp, sin, pi, cos, arccos, arcsin, tan, arctan, isnan
+
+LIGHT = "light"
+WEIGHTS = array([0.1, 0.2, 0.7])
+EXTINCTION = 0.001
+LYMOLQ = 41840 / 217400  # LIGHT SATURATION, MOL QUANTA/M2 UNITS
+PAR = 0.437
+SOURCE = 650
+
+
+class Light:
+    _slope = 0.0
+    _flag = False
+    _weights = WEIGHTS
+    _saturation = array([0.0, 0.0])
+    _latitude = None
+    _surface = None
+    _period = None
+
+    def __init__(self, latitude, intensity=SOURCE, base=EXTINCTION):
+        """
+        Simulate the submarine light field. Automatically updates when attenuation is calculated.
+
+        :param latitude: for photo-period calculation
+        :param intensity: photo synthetically active radiation from source (sun or lamp) at surface
+        :param base: base extinction rate
+        """
+        self._intensity = intensity
+        self._base = base
+        self._latitude = latitude
+
+    def attenuate(self, ts, depth, dt=None, par=PAR, biology=0.0, latitude=None):
+        """
+        Calculate light field for photosynthesis
+
+        :param ts: datetime object
+        :param dt: time step
+        :param depth: node-bound depth field
+        :param par: fraction of light
+        :param biology: optional cumulative extinction coefficient field for phytoplankton
+        :param latitude: optional, for photo-period calculation
+
+        :return:
+        """
+
+        self._update(ts, dt=dt, par=par, quanta=LYMOLQ, dk=None, latitude=latitude)
+        extinction = depth * (self._base + biology)
+        result = zeros(depth.shape, dtype=float)
+        local = self._surface
+        ii = 0
+
+        while True:
+            result[:, ii] = local
+            ii += 1
+            if ii == depth.shape[1]:
+                break
+
+            local *= exp(-extinction[:, ii])
+
+        return result
+
+    def _update(self, ts, dt=None, par=None, quanta=None, dk=None, latitude=None):
+        """
+        Update light state
+
+        :param ts: datetime object
+        :param dt: optional, timestep for updates
+        :param par: optional, irradiance
+        :param quanta: optional, conversion rate
+        :param dk: change in extinction coefficients
+        :param latitude:
+
+        :return: success
+        """
+        if dt is not None:
+            if dk is not None:
+                self._base += dk * dt
+
+            if None not in (par, quanta):
+                self._intensity += (self._slope * dt) * quanta * par  # adjust source intensity
+
+        if latitude is not None:
+            self._latitude = latitude
+
+        tt = ts.timetuple()
+        time = (tt.tm_hour + (tt.tm_min + tt.tm_sec / 60) / 60) / 24
+        self._period = self._daylight(tt.tm_yday, self._latitude)  # calculate new photo-period
+        self._surface = self._par(time, self._period, self._intensity)
+
+        return True
+
+    @staticmethod
+    def _daylight(yd, latitude, constant=0.833):
+        """
+        Calculate fraction of daylight based on current day of year and latitude
+
+        :param latitude:
+        :param constant:
+        :return:
+        """
+        revolution = 0.2163108 + 2 * arctan(0.9671396 * tan(0.00860 * (yd - 186)))
+        declination = arcsin(0.39795 * cos(revolution))
+        numerator = sin(constant * pi / 180) + sin(latitude * pi / 180) * sin(declination)
+        denominator = cos(latitude * pi / 180) * cos(declination)
+        result = 1 - arccos(numerator / denominator) / pi
+
+        return 0.0 if isnan(result) else result
+
+    @staticmethod
+    def _par(time, period, source):
+        """
+        Surface irradiance at the given time of day pure sinusoid (continuous for photosynthesis)
+
+        :param time: fraction of the day
+
+        """
+
+        if 1 + period > 2 * time > 1 - period:
+            delay = (1 - period)/2
+            x = (time - delay) / period
+            return source * 0.5 * (1 - cos(2 * pi * x))
+
+        return 0.0
+
 
 class Physics:
     
@@ -390,3 +514,102 @@ class Diffusion:
         delta["vy"] = v * dx
 
         return delta
+
+
+from numpy import zeros, array
+
+
+class Wind:
+    def __init__(self, speed=0.0, delta=0.0, minimum=0.0):
+        """
+        Simulate wind speed and mixing.
+
+        :param speed: starting wind speed
+        :param delta: acceleration
+        :param minimum: floor for clipping
+        """
+        self._speed = speed
+        self._slope = delta
+        self._min = minimum
+
+    def _simple(self, speed=None):
+        """
+        Basic wind mixing rate.
+
+        :param speed: optional override for internally tracked wind speed
+        :return: mixing rate array or value
+        """
+        if speed is None:
+            speed = self._speed
+
+        return array(0.728 * speed ** 0.5 - 0.317 * speed + 0.0372 * speed ** 2)
+
+    def _update(self, dt, clip=None):
+        """
+        Update velocity shear due to wind forcing, and optionally the clip values
+
+        :return: success
+        """
+        self._speed += self._slope * dt
+
+        if clip is not None:
+            self._min = clip
+
+        return True
+
+    @staticmethod
+    def _shear(velocity, topology, precision=float):
+        """
+        Calculate current velocity shear vector for selected cells
+
+        :param velocity: velocity field, assumed to be already subset to surface and U, V components
+        :param topology: tuple of parents of the node
+        :param precision:
+
+        :return:
+        """
+
+        n = len(topology)
+        vectors = zeros((n, 2), dtype=precision)  # shear vectors
+
+        for ii in range(n):
+            parents = topology[ii]
+            sq = velocity[parents, :, :].mean(axis=0) ** 2  # shape is (points, 3, layers, dim)
+            vectors[ii] += sq.sum(axis=0) ** 0.5  # reduce to root of the sums, shape is (dim)
+
+        return abs(vectors[:, 0] - vectors[:, 1])
+
+    @classmethod
+    def _dynamic(cls, nodes, layers, velocity, diffusivity=0.0):
+        """
+
+        :param nodes: object
+        :param layers: object
+        :param velocity: water velocity field
+        :param diffusivity: of oxygen across air-water interface, m2/day
+
+        :return: mixing rate
+        """
+        depth = nodes.depth * layers.z[:2].mean()
+        subset = velocity[:, :2, :2]
+        return (diffusivity * cls._shear(subset, nodes.parents)) / depth ** 0.5
+
+    def mixing(self, dt=None, minimum=None, simple=True, kwargs=None, speed=None):
+        """
+        Update wind forcing if necessary. Determine mixing rate. Calculate and return aeration
+
+        :param kwargs: depends on context
+        :param dt: optional time step, triggers wind state update
+        :param minimum: minimum value for mixing, m/day
+        :param simple: use wind speed as proxy for mixing rate
+
+        :return: aeration due to surface wind mixing
+        """
+        assert simple or kwargs is not None, "Cannot perform aeration calculation."
+
+        if dt is not None:
+            self._update(dt, clip=minimum)
+
+        rate = self._simple(speed) if simple else self._dynamic(**kwargs)
+        return rate.clip(min=self._min)
+

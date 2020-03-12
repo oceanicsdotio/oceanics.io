@@ -35,7 +35,8 @@ from connexion import request
 try:
     from numpy import (
         array, append, frombuffer, argmax, argmin, random, where, isnan,
-        cross, argwhere, arange, array, hstack, vstack, repeat
+        cross, argwhere, arange, array, hstack, vstack, repeat, zeros, norm,
+        flip
     )
     from netCDF4 import Dataset as _Dataset
     from pandas import read_html, date_range, Series, DataFrame
@@ -1195,64 +1196,6 @@ class Graph:
         url = f"{url}/{cls}"
         return post(url=url, json=obj, headers={"Authorization": f"Bearer {token}"})
  
-    @staticmethod
-    def adjacency(topology):
-        """
-        Get node parents and node neighbors from topology
-
-        :param topology:
-        :return:
-        """
-        _parents = dict()
-        _neighbors = dict()
-
-        for element in range(topology.__len__()):
-            vertices = topology[element]
-            for node in vertices:
-                try:
-                    p = _parents[node]
-                except KeyError:
-                    p = _parents[node] = []
-                p.append(element)  # add element to parents, no possible duplicates
-
-                try:
-                    n = _neighbors[node]
-                except KeyError:
-                    n = _neighbors[node] = []
-                mask, = where(node != vertices)
-                others = vertices[mask]
-
-                for neighbor in others:
-                    if neighbor not in n:
-                        n.append(neighbor)  # add current element to parents
-
-        solid = zeros(n, dtype=bool)
-        for node in range(n):
-            difference = _neighbors[node].__len__() - _parents[node].__len__()
-            if difference == 1:
-                solid[node] = True
-            elif difference != 0:
-                print("Error. Nonsense dimensions in detecting solid boundary nodes.")
-
-    @staticmethod
-    def deduplicate(topology, process=False):
-        # type: (Array, bool) -> Array
-        n = len(topology)
-        flag = zeros(n, dtype=bool)
-        ordered = sort(topology)
-
-        for ii in range(n - 1):
-            match = ordered[ii, :] == ordered[ii + 1 :, :]
-            rows, = where(match)
-            rows += ii + 1
-            flag[rows] = True
-
-        if process and flag.any():
-            topology = topology[~flag]
-            assert len(topology) == n - flag.sum()
-
-        return topology
-
 
 class JSONIOWrapper(TextIOWrapper):
     @staticmethod
@@ -2465,6 +2408,66 @@ class TimeStamp(object):
         )
         return datetime.strptime(yyyydddhhmmssmmm, "%Y%j%H%M%S%f")
 
+@attr.s
+class Topology(Array):
+
+    @staticmethod
+    def adjacency(topology):
+        """
+        Get node parents and node neighbors from topology
+
+        :param topology:
+        :return:
+        """
+        _parents = dict()
+        _neighbors = dict()
+
+        for element in range(topology.__len__()):
+            vertices = topology[element]
+            for node in vertices:
+                try:
+                    p = _parents[node]
+                except KeyError:
+                    p = _parents[node] = []
+                p.append(element)  # add element to parents, no possible duplicates
+
+                try:
+                    n = _neighbors[node]
+                except KeyError:
+                    n = _neighbors[node] = []
+                mask, = where(node != vertices)
+                others = vertices[mask]
+
+                for neighbor in others:
+                    if neighbor not in n:
+                        n.append(neighbor)  # add current element to parents
+
+        solid = zeros(n, dtype=bool)
+        for node in range(n):
+            difference = _neighbors[node].__len__() - _parents[node].__len__()
+            if difference == 1:
+                solid[node] = True
+            elif difference != 0:
+                print("Error. Nonsense dimensions in detecting solid boundary nodes.")
+
+    @staticmethod
+    def deduplicate(self, process=False):
+        # type: (Array, bool) -> Array
+        n = len(self)
+        flag = zeros(n, dtype=bool)
+        ordered = sort(topology)
+
+        for ii in range(n - 1):
+            match = ordered[ii, :] == ordered[ii + 1 :, :]
+            rows, = where(match)
+            rows += ii + 1
+            flag[rows] = True
+
+        if process and flag.any():
+            topology = topology[~flag]
+            assert len(topology) == n - flag.sum()
+
+        return topology
 
 @attr.s
 class Trie:
@@ -2537,4 +2540,60 @@ class Trie:
 
 
 @attr.s
-class VertexArray():
+class VertexArray(array):
+    
+    def deduplicate(
+        self, 
+        topology: Topology = None, 
+        threshold=0.00001
+    ) -> (VertexArray, Topology):
+        """
+        Scan vertex array for duplicates. If topology is also provided, swap later indices for their lower-index
+        equivalents. Can be very expensive!
+
+        :param vertex_array:
+        :param topology:
+        :param threshold:
+
+        :return: deletion flags and modified topology array
+        """
+        assert self.shape[1], "Must have explicit dimensionality >= 1"
+        flag = zeros(vertex_array.shape[0], dtype=bool)  # mask for indexing
+        delta = zeros(vertex_array.shape, dtype=float)
+
+        for ii in range(vertex_array.shape[0] - 1):
+            if flag[ii]:  # already processed
+                continue
+            # distance for unchecked vertices
+            delta[ii + 1, :] = vertex_array[ii, :] - vertex_array[ii + 1 :, :]
+            distance = norm(delta[ii + 1, :])  # magnitude of difference vec is distance
+            rows, = where(distance < threshold)  # indices of points within threshold
+            rows += ii + 1
+            flag[rows] = True  # set look-ahead flags true for deletion
+
+            if topology:
+                for jj in rows:
+                    # get rows and columns indices of duplicates
+                    re, ce = where(topology == jj)
+                    topology[re, ce] = ii  # replace duplicate indices
+
+        if flag.any():  # there are duplicates
+            retain, = where(~flag)  # first occurrences
+            # reversed un-flagged points
+            iterator = zip(retain, flip(retain, axis=0)[0 : len(retain)])
+            for first, last in iterator:
+                if first > last:
+                    break  # no swaps left
+
+                vertex_array[first, :], vertex_array[last, :] = (
+                    vertex_array[last, :],
+                    vertex_array[first, :],
+                )
+                ri, ci = where(topology == first)
+                rj, cj = where(topology == last)
+                topology[ri, ci] = last
+                topology[rj, cj] = first
+
+            vertex_array = vertex_array[0 : len(retain), :]
+        return vertex_array, topology
+

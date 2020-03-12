@@ -21,6 +21,10 @@ def redis_worker(host: str, port: int):
 def start(port: int):
     click.echo(f"gunicorn bathysphere_graph:app --bind 0.0.0.0:{port}")
 
+@click.argument("driver", help="Port to connect to")
+def compile(driver: str):
+    click.echo(f"mcs -reference:bin/{driver}.dll -out:bin/kernel.exe src/kernel.cs src/json.cs")
+
 cli.add_command(echo)
 
 if __name__ == "__main__":
