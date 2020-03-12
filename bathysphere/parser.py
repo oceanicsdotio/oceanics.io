@@ -7,6 +7,11 @@ from xml.etree import ElementTree
 from datetime import datetime, timedelta
 from bathysphere.datatypes import TimeStamp, Frame
 
+try:
+    from numpy import frombuffer
+except ImportError as _:
+    pass
+
 
 def wqm(frame, keys):
     # type: (Frame, (str, )) -> dict
@@ -54,7 +59,7 @@ def by_key(frame: Frame, frames: dict, headers: dict):
     ][0]
 
     binary = ((True for key in each.keys() if ("Binary" in key)) for each in fr)
-    dat, extra = (binary_xml if any(binary) else ascii_xml)(buffer, f)
+    dat, extra = (binary_xml if any(binary) else ascii_xml)(buffer, fr)
     loc = extra.find(b"\r\n")
 
     if frame.data is None:
@@ -62,7 +67,7 @@ def by_key(frame: Frame, frames: dict, headers: dict):
 
     frame.data = {
         "content": dat,
-        "ts": timestamp(extra[loc + 2 : loc + 9]),
+        "ts": TimeStamp.parseBinary(extra[loc + 2 : loc + 9]),
         "type": "sensor",
     }
     frame.bytes = extra[loc + 9 :]
@@ -186,6 +191,7 @@ def storx(frame, fields, name_length=10, verb=False):
     :return: possibly processed frame
     """
 
+
     delim = {"PHA": b",", "CST": b"\t"}  # SEAFET pH instrument  # CSTAR transmissometer
 
     brk = frame.bytes.find(b"\t")
@@ -208,7 +214,7 @@ def storx(frame, fields, name_length=10, verb=False):
         start = 1
         rest = frame.bytes[brk + 1 :].split(sep)
         if sensor == "PHA":
-            frame = seafet(frame, brk, keydic[sensor])
+            frame = seafet(frame, brk, fields[sensor])
         else:
             try:
                 keys = fields[sensor]

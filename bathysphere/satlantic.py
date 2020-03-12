@@ -7,7 +7,10 @@ from enum import Enum
 from typing import Coroutine, Any
 from asyncio import new_event_loop, set_event_loop, BaseEventLoop
 
-from pandas import read_html
+try:
+    from pandas import read_html
+except ImportError as _:
+    read_html = None
 
 from bathysphere.datatypes import FileType, File
 from bathysphere.utils import synchronous

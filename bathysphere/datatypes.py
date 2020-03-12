@@ -24,6 +24,7 @@ from requests.exceptions import ConnectionError
 from urllib3.exceptions import MaxRetryError
 from flask import Response
 from redis import StrictRedis
+from redis.client import PubSub
 
 from bathysphere.utils import join, parsePostgresValueIn
 
@@ -1012,13 +1013,16 @@ class ObjectStorage(Minio):
 
         
     @staticmethod
-    def listenToEvents(storage, bucket_name, filetype="", channel="bathysphere-events"):
+    def listenToEvents(
+        self, 
+        bucket_name: str, 
+        file_type: FileType = None, 
+        channel: str = "bathysphere-events"
+    ):
         fcns = ("s3:ObjectCreated:*", "s3:ObjectRemoved:*", "s3:ObjectAccessed:*")
         r = StrictRedis()
-        ps = r.pubsub()
-        for event in storage.listen_bucket_notification(
-                bucket_name, "", filetype, fcns
-        ):
+        ps: PubSub = r.pubsub()
+        for event in self.listen_bucket_notification(bucket_name, "", file_type, fcns):
             ps.publish(channel, str(event))
 
     def unlock(self, session, bucket_name, object_name):

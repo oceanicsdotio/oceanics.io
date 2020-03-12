@@ -60,6 +60,7 @@ class Actuators(object):
         start = time()
 
         while True:
+            response = 1  # TODO: wire up corrrectly
             # response = on(host, port, relay_id, timer_id, duration=None)
             if not response:
                 print("breaking loop.")
