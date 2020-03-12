@@ -15,8 +15,6 @@ setup(
         "flask_cors",
         "gunicorn",
         "connexion",
-        "pytest",
-        "pytest_dependency",
         "neo4j-driver",
         "itsdangerous",
         "passlib",
@@ -29,12 +27,40 @@ setup(
         "prance",
         "rq",
         "attrs",
-        "click",
+        "click>=6.7",
         "minio",
-        "urllib3",
+        "Jinja2",
+        "MarkupSafe",
+        "pip",
+        "setuptools",
+        "Werkzeug",
+        "wheel",
+        "sqlalchemy",
+        "google-cloud-secret-manager",
+        "pytz",
+        "urllib3<1.25,>=1.21.1",
     ],
     entry_points="""
         [console_scripts]
         bathysphere=cli:cli
     """,
-    zip_safe=False)
+    zip_safe=False,
+    extra_requires={
+        "dev": [
+            "pytest", 
+            "pytest_dependency",
+        ],
+        "numerical": [
+            "numpy",
+            "scipy",
+            "pandas",
+            "matplotlib",
+            "tensorflow",
+            "pyshp",
+            "pyproj",
+            "netCDF4",
+            "pillow",
+            "scikit-learn",
+            "rdp",
+        ]
+    })
