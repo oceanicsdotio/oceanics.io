@@ -755,6 +755,365 @@ class Frame(object):
         return [self._dict[key][root] for key in self._dict.keys() if pattern in key][0]
 
 
+    def wqm(self, keys):
+        # type: (Frame, (str, )) -> dict
+        """
+        Decode dataframe form water quality monitor instrument
+        """
+        self.sensor = self.bytes[:9].decode()
+        self.time = datetime.strptime(
+            self.bytes[20:26].decode() + self.bytes[27:33].decode(), "%m%d%y%H%M%S"
+        )
+        assert self.time < self.ts  # created date is before arrival time stamp
+
+        self.data = {
+            key: value for key, value in zip(keys, self.bytes[34:].decode().split(","))
+        }
+        return self
+
+
+    def seafet(
+        self: Frame, 
+        brk: int, 
+        keys: list, 
+        sep: bytes = b","
+    ) -> None:
+        self.sensor = self.bytes[:brk].decode()
+        assert self.sensor[3:6] == "PHA"
+        data = self.bytes[brk + 1 :].split(sep)
+        self.time = datetime.strptime(data[1].decode(), "%Y%j") + timedelta(
+            hours=float(data[2].decode())
+        )
+        self.data = {key: value.decode() for key, value in zip(keys, data[3:])}
+        
+    def by_key(
+        self: Frame, 
+        frames: dict, 
+        headers: dict
+    ):
+        sn = int(self.label[-4:])
+        pattern = self.bytes[:10].decode()
+        if pattern[:3] == "SAT":
+            pattern = pattern
+
+        key = [
+            headers[sn][key] for key in headers[sn].keys() if pattern in headers[sn][key]
+        ][0]
+        loc = self.bytes.find(key.encode())
+        buffer = self.bytes[loc + len(key) :]
+        fr = [
+            frames[sn][key]["SensorFieldGroup"]
+            for key in frames[sn].keys()
+            if pattern in headers[sn][key]
+        ][0]
+
+        binary = ((True for key in each.keys() if ("Binary" in key)) for each in fr)
+        dat, extra = (self.binary_xml if any(binary) else self.ascii_xml)(buffer, fr)
+        loc = extra.find(b"\r\n")
+
+        if self.data is None:
+            self.data = []
+
+        self.data = {
+            "content": dat,
+            "ts": TimeStamp.parseBinary(extra[loc + 2 : loc + 9]),
+            "type": "sensor",
+        }
+        self.bytes = extra[loc + 9 :]
+        self.size: len(self.bytes)
+
+
+    def analog(
+        self: Frame, 
+        headers: dict, 
+        width: int = 35, 
+        key: str = "STORX"
+    ):
+        """
+        Parse analog frame
+
+        :param frame: dictionary frame
+        :param frames: dataframe description
+        :param width: width of frame
+        :param key: search pattern
+        :return: updated frame
+        """
+        sn = int(self.key[-4:])
+        buffer = self.bytes[10:width]
+        f = headers[sn].goto(key)
+        values, extra = binary_xml(buffer, f)
+        self.update(values)
+        self.ts = TimeStamp.parseBinary(extra[:7])
+        self.bytes = self.bytes[width:]
+        self.size = len(self.bytes)
+        
+
+
+    def gps(
+        self: Frame, 
+        headers: dict, 
+        key: bytes = b"$GPRMC"
+    ):
+        """Decode bytes as GPGGA or GPRMC location stream"""
+        sn = int(self["key"][-4:])
+        loc = self.bytes.find(key)
+        if loc == -1:
+            return
+        buffer = self.bytes[loc + len(key) + 1 :]
+        f = headers[sn].goto("MODEM")
+        nav, extra = ascii_xml(buffer, f)
+        self.data = {"content": nav, "ts": TimeStamp.parseBinary(extra[2:9]), "type": "nav"}
+        self.bytes = extra[9:]
+        self["size"] = len(self.bytes)
+    
+
+    @classmethod
+    def line(cls, bytes_string):
+        keys = [b"SAT", b"WQM"]
+        lines = cls.split(bytes_string, keys)
+        results = []
+        for each in lines:
+            result = dict()
+            result["raw"] = each
+            try:
+                data, ts = each.split(b"\r\n")
+                result["ts"] = cls.timestamp(ts)
+            except ValueError:
+                data = each
+                result["ts"] = None
+
+            result.bytes = data
+            results.append(result)
+        return results
+
+    @staticmethod
+    def ascii_xml(buffer: str, frames: list):
+
+        result = dict()
+        offset = 0
+        delims = [each["SensorField"]["Delimiter"].encode() for each in frames]
+        for each, sep in zip(frames[:-1], delims[1:]):
+            loc = buffer.find(sep, offset)
+            count = loc - offset
+            wd = count + 1
+            name = each["Name"]
+            result[name] = buffer[offset:loc]
+            offset += wd
+        end = offset + 2
+        result[frames[-1]["Name"]] = buffer[offset:end]
+        return result, buffer[end:]
+
+    @staticmethod
+    def binary_xml(
+        buffer: bytes, 
+        frames: list, 
+        byteorder: str = ">"
+    ) -> (dict, bytes):
+        """
+        Parse raw bytes according to format described in XML frames
+        """
+        result = dict()
+        offset = 0
+        wc = {"BF": 4, "BD": 8, "BS": 1, "BU": 1, "AF": 1, "BULE": 1, "BSLE": 1}
+
+        for each in frames:
+            keys = each.keys()
+            dtype_key = [key for key in keys if ("Binary" in key and "Data" in key)].pop()
+
+            if "BinaryFloatingPoint" in dtype_key:
+                txt = each[dtype_key]
+                wd = wc[txt]
+                np_type = byteorder + "f" + str(wd)
+
+            elif "BinaryInteger" in dtype_key:
+                txt = each[dtype_key]["Type"]
+                wd = wc[txt] * int(each[dtype_key]["Length"])
+                np_type = byteorder + "u" + str(wd)
+
+            else:
+                break
+
+            name = each["Name"]
+            result[name] = frombuffer(buffer, dtype=np_type, count=1, offset=offset)
+            offset += wd
+
+        return result, buffer[offset:]
+
+
+    def storx(self, fields, name_length=10, verb=False):
+        """
+        Decode and process Satlantic sensor frames if format is known, or fail silently
+
+        :param frame: incoming frame dictionary structure
+        :param fields: field mappings for known sensor formats
+        :param name_length: maximum size for name search pattern, 10 is Satlantic standard
+        :param verb: verbose mode
+
+        :return: possibly processed frame
+        """
+
+
+        delim = {"PHA": b",", "CST": b"\t"}  # SEAFET pH instrument  # CSTAR transmissometer
+
+        brk = self.bytes.find(b"\t")
+        if brk == -1 or brk > name_length:
+            brk = self.bytes.find(b"\x00")
+            if brk > name_length:
+                print("Error. Instrument name appears to be too long:", self.bytes[:32])
+                return frame  # return unmodified frame
+
+        self.sensor = self.bytes[:brk].decode()
+        self.time = None
+        self.data = None
+
+        sensor = self.sensor[3:6]
+        try:
+            sep = delim[sensor]
+        except KeyError:
+            pass  # just copy bytes
+        else:
+            start = 1
+            rest = self.bytes[brk + 1 :].split(sep)
+            if sensor == "PHA":
+                frame = seafet(frame, brk, fields[sensor])
+            else:
+                try:
+                    keys = fields[sensor]
+                except KeyError:
+                    self.data = rest[start:]
+                else:
+                    self.data = {
+                        key: value.decode() for key, value in zip(keys, rest[start:])
+                    }
+
+        if verb and self.data.__class__.__name__ == "dict":
+            print(self.sensor, "[", self.time, "] ::", self.data)
+
+        return frame
+
+    @staticmethod
+    def parse_buffer_queue(
+        queue: deque, 
+        sequence: list, 
+        pool: Pool, 
+        frames: list
+    ) -> (list, list):
+        """
+        Create a job queue and use pool of workers to process byte strings until consumed
+        """
+        processed = deque()
+        for job in sequence:
+            queue = pool.starmap(job, zip(queue, repeat(frames, len(queue))))
+            processed.append(queue.pop(buffer) for buffer in queue if buffer["size"] == 0)
+
+        return processed, queue
+
+
+    @staticmethod
+    def _tree_depth(xml: str) -> int:
+        """
+        Get depth of tree
+        """
+
+        class _Parser:
+            maxDepth = 0
+            depth = 0
+
+            def start(self, tag, attrib):
+                self.depth += 1
+                if self.depth > self.maxDepth:
+                    self.maxDepth = self.depth
+
+            def end(self, tag):
+                self.depth -= 1
+
+            def close(self):
+                return self.maxDepth
+
+        parser = ElementTree.XMLParser(target=_Parser())
+        parser.feed(xml)
+        return parser.close()
+
+    @staticmethod
+    def parse_xml_frames(
+        config: dict, 
+        key: str = "sensor", 
+        depth: int = 10, 
+        verb: bool = False
+    ) -> dict:
+        """
+        Get frames for all sensors on platform
+
+        :param config: xml style dictionary format with all configuration data for sensor platform
+        :param key: key for configured items
+        :return: dictionary of with sensors as keys, and dataframe schema as value
+        """
+
+        def _goto(item):
+            """
+            Start node of frame
+            """
+            sensor = root.findall("./*/[@identifier='" + item["sensor"] + "']")[0]
+            frame = sensor.findall("./*/[@identifier='" + item["frame"] + "']")[0]
+            if verb:
+                print(
+                    "Parsing from: . >",
+                    sensor.attrib["identifier"],
+                    ">",
+                    self.attrib["identifier"],
+                )
+            return frame
+
+        ns = "{http://www.satlantic.com/instrument}"
+        root = ElementTree.fromstring(config["xml"]["content"])
+        return {
+            item[key]: _collect(_goto(item), depth=depth, namespace=ns, verb=verb)
+            for item in config["config"]["content"]
+        }
+
+    @staticmethod
+    def parse_xml(xml, depth=None, verb=False):
+        """
+        Recursively collect XML sensor info as dict
+        """
+        return _collect(
+            node=ElementTree.fromstring(xml),
+            depth=depth if depth else _tree_depth(xml),
+            namespace="{http://www.satlantic.com/instrument}",
+            verb=verb,
+        )
+
+    @staticmethod
+    def _collect(
+        node: ElementTree,
+        depth: int,
+        count: int = 0,
+        namespace: str = None,
+        verb: bool = False,
+    ) -> dict or None:
+        """
+        Recursively collect child nodes and info.
+        """
+        collector = dict()
+        if count >= depth:
+            return None
+
+        for child in node:
+            below = Frame._collect(child, depth, count=count + 1, namespace=namespace)
+            tag = sub(namespace, "", child.tag)
+            if below is None:
+                collector[tag] = child.text
+                continue
+
+            queue = collector.get(tag, None)
+            if queue is None:
+                queue = collector[tag] = []
+            queue.append(below)
+            if verb:
+                print("\t" * count + ">", tag + ":", collector[tag])
+
+        return collector
+
      
 class Graph:
     @staticmethod
