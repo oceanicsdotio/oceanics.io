@@ -1260,7 +1260,7 @@ class LinkedList:
         self.head = None
         prev = None
         for value in data:
-            n = Node(value)
+            n = LinkedListNode(value)
             if prev is None:
                 self.head = n
             else:
@@ -1285,14 +1285,14 @@ class LinkedList:
             last, cursor = cursor, cursor.next
         return last
 
-    def k_from_head(self, k: int) -> None or Node:
+    def k_from_head(self, k: int) -> None or LinkedListNode:
         cursor = self.head
         while cursor.next is not None and k:
             cursor = cursor.next
             k -= 1
         return cursor.value
 
-    def k_from_end(self, k: int) -> None or Node:
+    def k_from_end(self, k: int) -> None or LinkedListNode:
         cursor = self.head
         total = -k
         while cursor is not None:
@@ -1308,11 +1308,11 @@ class LinkedList:
         return cursor.value
 
     def prepend(self, value: float) -> None:
-        n = Node(value)
+        n = LinkedListNode(value)
         n.next, self.head = self.head, n
 
     def append(self, value: float) -> None:
-        n = Node(value)
+        n = LinkedListNode(value)
         if self.head is None:
             self.head = n
         if self.tail is not None:
@@ -1332,7 +1332,7 @@ class DoublyLinkedList(LinkedList):
         while cursor.next is not None:
             cursor.next.prev = cursor
 
-    def k_from_end(self, n: int = None) -> None or Node:
+    def k_from_end(self, n: int = None) -> None or LinkedListNode:
 
         _next = self.tail
         _last = None
@@ -1350,13 +1350,13 @@ class DoublyLinkedList(LinkedList):
             cursor = cursor.prev
 
     def push_front(self, value: float) -> None:
-        n = Node(value)
+        n = LinkedListNode(value)
         n.next = self.head
         self.head.prev = n
         self.head = n
 
     def push_back(self, value: float) -> None:
-        n = Node(value)
+        n = LinkedListNode(value)
         n.prev = self.tail
         if self.head is None:
             self.head = n
@@ -1364,10 +1364,10 @@ class DoublyLinkedList(LinkedList):
             self.tail.next = n
         self.tail = n
 
-    def insert_after(self, insert: Node, ref: Node):
+    def insert_after(self, insert: LinkedListNode, ref: LinkedListNode):
         ...
 
-    def insert_before(self, insert: Node, ref: Node):
+    def insert_before(self, insert: LinkedListNode, ref: LinkedListNode):
         ...
 
 # class Memory:
