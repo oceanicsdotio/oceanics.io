@@ -2029,12 +2029,12 @@ class RecurrentNeuralNetwork:
 
         return wrapper
 
-    @staticmethod
-    def create_and_cache(stateful: bool, horizon: int, layers: int, batch_size: int, cache: str, key: str):
+    @classmethod
+    def createAndCache(cls, stateful: bool, horizon: int, layers: int, batch_size: int, cache: str, key: str):
         """
         Create and cache the model structure
         """
-        neural_net = create(stateful, horizon, layers, batch_size)
+        neural_net = cls.create(stateful, horizon, layers, batch_size)
         neural_net.save("/".join(["", cache, key]))
         return 200, {'message': 'model created and cached'}
 
@@ -2054,7 +2054,7 @@ class RecurrentNeuralNetwork:
         """
         Load and feed the model training data
         """
-        datasets = cls.partition(datastream, window, horizon, batch_size, ratio, periods)
+        datasets = datastream.partition(window, horizon, batch_size, ratio, periods)
 
         cls.train(
             request.model,
@@ -2068,6 +2068,7 @@ class RecurrentNeuralNetwork:
 
 
     @RecurrentNeuralNetwork.from_cache
+    @staticmethod
     def get_prediction(datastream: object, batch_size: int = 32):
         """
 
@@ -2084,7 +2085,13 @@ class RecurrentNeuralNetwork:
         return 200, {"payload": predicted.flatten()}
 
     @staticmethod
-    def train(model, batch_size: int, training: dict, validation: dict, epochs: int):
+    def train(
+        model, 
+        batch_size: int, 
+        training: dict, 
+        validation: dict, 
+        epochs: int
+    ):
 
         for i in range(epochs):
             print('Epoch', i + 1, '/', epochs)
@@ -2104,7 +2111,13 @@ class RecurrentNeuralNetwork:
 
 
     @staticmethod
-    def create(stateful: bool, horizon: int, units: int, batch_size: int, variables: int = 1):
+    def create(
+        stateful: bool, 
+        horizon: int, 
+        units: int, 
+        batch_size: int,
+        variables: int = 1
+    ) -> tf.keras.models.Sequential:
         """
         Create the Keras-Tensorflow model
 
@@ -2226,22 +2239,6 @@ class RecurrentNeuralNetwork:
         subset = data[1:end + self.horizon]
         return subset.reshape(self.shape)
 
-    def _rnn_cell(self):
-        """
-        Basic recurrent neural network cell
-
-        :return:
-        """
-        return tf.keras.layers.SimpleRNNCell(units=self.hidden)
-
-    def _lstm_cell(self):
-        """
-        RNN with long short-term memory for drop out
-
-        :return:
-        """
-        return tf.keras.layers.LSTMCell(units=self.hidden)
-
     def predictor(self, X, lstm=True):
         """
         Create graph for recurrent neural network
@@ -2251,9 +2248,10 @@ class RecurrentNeuralNetwork:
         :return:
         """
 
-        cell = self._lstm_cell() if lstm else self._rnn_cell()
+        cell = tf.keras.layers.LSTMCell(units=self.hidden) if lstm else \
+               tf.keras.layers.SimpleRNNCell(units=self.hidden)
 
-        out, states = tf.nn.dynamic_rnn(cell, X, dtype=tf.float32)
+        out, _ = tf.nn.dynamic_rnn(cell, X, dtype=tf.float32)
         stacked = tf.reshape(out, [-1, self.hidden])
         layers = tf.layers.dense(stacked, self.output)
         return tf.reshape(layers, [-1, self.periods, self.output])
@@ -2294,8 +2292,9 @@ class RecurrentNeuralNetwork:
             "predict": {x: xp}
         }
 
+    @classmethod
     def run(
-        self, 
+        cls, 
         config, 
         lstm: bool = True, 
         verb: bool = True
@@ -2321,9 +2320,9 @@ class RecurrentNeuralNetwork:
         loss = reduce_sum(square(predictor - y))  # mean square error tensor node
         optimizer = network.optimizer(loss)  # learning model — minimize error
 
-        self.train(optimizer, feed["train"], loss, verb)  # train and get error series over epochs
-        prediction = self.predict(predictor, feed["predict"])  # make prediction
-        return yt, prediction, err
+        network.train(optimizer, feed["train"], loss, verb)  # train and get error series over epochs
+        prediction = network.predict(predictor, feed["predict"])  # make prediction
+        return yt, prediction
 
 
 class RelationshipLabels(Enum):
@@ -2345,14 +2344,20 @@ class Table:
     name: str = attr.ib()
     schema: Schema = attr.ib(default=Schema())
 
-    def declare(self) -> Query:
+    def declare(
+        self
+    ) -> Query:
+
         queryString = f"""
         CREATE TABLE IF NOT EXISTS {self.name}({join(f'{f.value} {f.type}' for f in self.schema)});
         """
         return Query(queryString, None)
 
 
-    def insertRecords(self, data: ()) -> Query:
+    def insertRecords(
+        self, 
+        data: ()
+    ) -> Query:
         """
         Insert new rows into database.
         """
@@ -2409,7 +2414,7 @@ class TimeStamp(object):
         return datetime.strptime(yyyydddhhmmssmmm, "%Y%j%H%M%S%f")
 
 @attr.s
-class Topology(Array):
+class Topology(array):
 
     @staticmethod
     def adjacency(topology):
@@ -2455,7 +2460,7 @@ class Topology(Array):
         # type: (Array, bool) -> Array
         n = len(self)
         flag = zeros(n, dtype=bool)
-        ordered = sort(topology)
+        ordered = sorted(self)
 
         for ii in range(n - 1):
             match = ordered[ii, :] == ordered[ii + 1 :, :]
@@ -2471,10 +2476,14 @@ class Topology(Array):
 
 @attr.s
 class Trie:
+
     word = attr.ib(default=None)
     children = attr.ib(default=attr.Factory(dict))
   
-    def insert(self, key: str):
+    def insert(
+        self, 
+        key: str
+    ) -> None:
         node = self
         for letter in key:
             if letter not in node.children:
@@ -2484,7 +2493,11 @@ class Trie:
 
     @staticmethod
     def searchRecursive(
-        node: Trie, symbol: str, pattern: str, previous: (int,), cost: int
+        node: Trie, 
+        symbol: str, 
+        pattern: str, 
+        previous: (int,), 
+        cost: int
     ):
         _filter = lambda x: len(x)
         row = (previous[0] + 1,)
@@ -2502,7 +2515,10 @@ class Trie:
             if min(row) <= cost else ())
 
     @staticmethod
-    def levenshtein(word1, word2):
+    def levenshteinDistance(
+        word1: str, 
+        word2: str
+    ) -> int:
         columns = len(word1) + 1
         rows = len(word2) + 1
 
@@ -2530,10 +2546,14 @@ class Trie:
         return currentRow[-1]
 
     @staticmethod
-    def search(words, pattern, maxCost):
+    def search(
+        words: {str}, 
+        pattern: str, 
+        maxCost: int
+    ) -> ((str, int)):
         _results = ()
         for word in words:
-            cost = Trie.levenshtein(pattern, word)
+            cost = Trie.levenshteinDistance(pattern, word)
             if cost <= maxCost:
                 _results += ((word, cost),)
         return _results
@@ -2558,14 +2578,14 @@ class VertexArray(array):
         :return: deletion flags and modified topology array
         """
         assert self.shape[1], "Must have explicit dimensionality >= 1"
-        flag = zeros(vertex_array.shape[0], dtype=bool)  # mask for indexing
-        delta = zeros(vertex_array.shape, dtype=float)
+        flag = zeros(self.shape[0], dtype=bool)  # mask for indexing
+        delta = zeros(self.shape, dtype=float)
 
-        for ii in range(vertex_array.shape[0] - 1):
+        for ii in range(self.shape[0] - 1):
             if flag[ii]:  # already processed
                 continue
             # distance for unchecked vertices
-            delta[ii + 1, :] = vertex_array[ii, :] - vertex_array[ii + 1 :, :]
+            delta[ii + 1, :] = self[ii, :] - self[ii + 1 :, :]
             distance = norm(delta[ii + 1, :])  # magnitude of difference vec is distance
             rows, = where(distance < threshold)  # indices of points within threshold
             rows += ii + 1
