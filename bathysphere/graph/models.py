@@ -11,7 +11,7 @@ from neo4j import Node
 import attr
 
 from bathysphere import models
-from bathysphere_graph.drivers import *
+from bathysphere.graph.drivers import *
 
 
 @attr.s

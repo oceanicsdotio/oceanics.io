@@ -992,312 +992,312 @@ paths:
           $ref: '#/components/responses/Experiment'
 
 
-  /lstm/{cache}:
-
-    post:
-      tags: [ML]
-      operationId: goodbuoy_ml.create_keras_lstm
-      summary: Initialize model
-      description: |
+#   /lstm/{cache}:
+
+#     post:
+#       tags: [ML]
+#       operationId: goodbuoy_ml.create_keras_lstm
+#       summary: Initialize model
+#       description: |
 
-        Create and initialize a recurrent neural network with long short-term memory.
-
-      parameters:
-        - $ref: "#/components/parameters/Cache"
+#         Create and initialize a recurrent neural network with long short-term memory.
+
+#       parameters:
+#         - $ref: "#/components/parameters/Cache"
 
-      responses:
-        '200':
-          $ref: '#/components/responses/Message'
+#       responses:
+#         '200':
+#           $ref: '#/components/responses/Message'
 
-  /lstm/{cache}/{object}:
+#   /lstm/{cache}/{object}:
 
-    put:
-      tags: [ML]
-      operationId: goodbuoy_ml.train_keras_lstm
-      summary: Train model
-      description: |
+#     put:
+#       tags: [ML]
+#       operationId: goodbuoy_ml.train_keras_lstm
+#       summary: Train model
+#       description: |
 
-        Feed training data to the neural network.
+#         Feed training data to the neural network.
 
-      requestBody:
-        $ref: "#/components/requestBodies/TrainRequest"
+#       requestBody:
+#         $ref: "#/components/requestBodies/TrainRequest"
 
-      parameters:
-        - $ref: "#/components/parameters/Cache"
-        - $ref: "#/components/parameters/ObjectKey"
-        - $ref: "#/components/parameters/Epochs"
+#       parameters:
+#         - $ref: "#/components/parameters/Cache"
+#         - $ref: "#/components/parameters/ObjectKey"
+#         - $ref: "#/components/parameters/Epochs"
 
-      responses:
-        '200':
-          $ref: '#/components/responses/Message'
-        '404':
-          $ref: '#/components/responses/NotFound'
+#       responses:
+#         '200':
+#           $ref: '#/components/responses/Message'
+#         '404':
+#           $ref: '#/components/responses/NotFound'
 
-    get:
-      tags: [ ML ]
-      operationId: goodbuoy_ml.predict_keras_lstm
-      summary: Predict
-      description: |
-
-        Get a prediction from the neural network.
+#     get:
+#       tags: [ ML ]
+#       operationId: goodbuoy_ml.predict_keras_lstm
+#       summary: Predict
+#       description: |
+
+#         Get a prediction from the neural network.
 
-      parameters:
-        - $ref: "#/components/parameters/Cache"
-        - $ref: "#/components/parameters/ObjectKey"
+#       parameters:
+#         - $ref: "#/components/parameters/Cache"
+#         - $ref: "#/components/parameters/ObjectKey"
 
-      responses:
-        '200':
-          $ref: '#/components/responses/Prediction'
-        '404':
-          $ref: '#/components/responses/NotFound'
+#       responses:
+#         '200':
+#           $ref: '#/components/responses/Prediction'
+#         '404':
+#           $ref: '#/components/responses/NotFound'
 
-    delete:
-      tags: [ ML ]
-      summary: Destroy model
-      description: |
-
-        Destroy the model state.
-
-      parameters:
-        - $ref: "#/components/parameters/Cache"
-        - $ref: "#/components/parameters/ObjectKey"
-
-      responses:
-        '200':
-          $ref: '#/components/responses/Message'
-        '404':
-          $ref: '#/components/responses/NotFound'
-
-  /kde/{cache}:
-
-    post:
-      tags: [ ML ]
-      # operationId: goodbuoy_ml.routes.points.create
-      summary: Create training points
-      description: |
-        Upload a collection of points for training a kernel density estimator
-
-      parameters:
-        - $ref: "#/components/parameters/Cache"
-
-      responses:
-        '200':
-          $ref: '#/components/responses/Message'
-
-  /kde/{cache}/{object}:
-
-    get:
-      tags: [ML]
-      operationId: goodbuoy_ml.routes.
-      summary: Predict
-      description: |
-
-        Get a prediction from the neural network.
-
-      parameters:
-        - $ref: "#/components/parameters/Cache"
-        - $ref: "#/components/parameters/ObjectKey"
-
-      responses:
-        '200':
-          $ref: '#/components/responses/Prediction'
-        '404':
-          $ref: '#/components/responses/NotFound'
-
-
-  /filter/smooth:
-
-    post:
-      tags: [Filter]
-      summary: Smooth
-      description: |
-
-        Smooth an evenly-spaced time series using convolution. The backend uses the `Numpy.convolve` method.
-        The result is a filtered time series, with a length that depends on the `convolutionMode` parameter. It is
-        the same length by default, but introduces artifacts at the boundaries.
-
-      operationId: neritics_filter.routes.smooth_convolve
-
-      parameters:
-        - $ref: '#/components/parameters/bandwidth'
-        - $ref: '#/components/parameters/convolutionMode'
-
-      requestBody:
-        $ref: '#/components/requestBodies/Series'
-
-      responses:
-        '200':
-          $ref: '#/components/responses/Filtered'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '403':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
-
-  /filter/fft:
-
-    post:
-      tags: [Filter]
-      summary: Bandpass
-      description: |
-
-        Filter an evenly-spaced time series using fast Fourier transform. The query string can include `lowpass` and
-        `highpass` thresholds. With both described, this acts as a bandpass filter. The `fill` option will
-        automatically forward-fill missing values to prevent anomalies.
-
-      operationId: neritics_filter.routes.fft
-
-      parameters:
-        - $ref: '#/components/parameters/dt'
-        - $ref: '#/components/parameters/lowpass'
-        - $ref: '#/components/parameters/highpass'
-        - $ref: '#/components/parameters/fill'
-        - $ref: '#/components/parameters/compress'
-
-      requestBody:
-        $ref: '#/components/requestBodies/Series'
-
-      responses:
-        '200':
-          $ref: '#/components/responses/Filtered'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '403':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
-
-  /filter/spectrum:
-
-    post:
-      tags: [Frequency]
-      summary: Spectrum
-      description: |
-
-        Generate a frequency spectrum for the provided signal. Must be evenly spaced. If there are missing values,
-        the `fill` flag will forward-fill before the transformation. The result can be compressed by remove negative
-        symmetry with the `compress` flag.
-
-      operationId: neritics_filter.routes.spectrum
-
-      parameters:
-        - $ref: '#/components/parameters/dt'
-        - $ref: '#/components/parameters/fill'
-        - $ref: '#/components/parameters/compress'
-
-      requestBody:
-        $ref: '#/components/requestBodies/Series'
-
-      responses:
-        '200':
-          $ref: '#/components/responses/Frequency'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '403':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
-
-  /filter/resample:
-
-    post:
-      tags: [Filter]
-      summary: Resample and interpolate
-      description: |
-
-        Resample a sparse time series at specified rate by either forward/back filling or linear interpolation.
-
-      operationId: neritics_filter.routes.resample_sparse_series
-
-      parameters:
-        - $ref: '#/components/parameters/observations'
-        - $ref: '#/components/parameters/start'
-        - $ref: '#/components/parameters/method'
-
-      requestBody:
-        $ref: '#/components/requestBodies/Series'
-
-      responses:
-        '200':
-          $ref: '#/components/responses/Filtered'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '403':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
-
-  /filter/outlier:
-
-    post:
-      tags: [Mask]
-      summary: Statistical outliers
-      description: |
-
-        Generate a boolean mask for the series. This can be for the independent variable, using the `dimension=simple`
-        query, or for time derivatives with `dimension=time`. True values in the response are masked, meaning these
-        indices can be deleted from in-memory time series.
-
-      operationId: neritics_filter.routes.outlier_handler
-
-      parameters:
-        - $ref: '#/components/parameters/threshold'
-        - $ref: '#/components/parameters/dimension'
-
-      requestBody:
-        $ref: '#/components/requestBodies/Series'
-
-      responses:
-        '200':
-          $ref: '#/components/responses/Mask'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '403':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
-
-  /filter/range:
-
-    post:
-      tags: [Mask]
-      summary: Out of range values
-      description: |
-
-        Generate a boolean mask for the series. True values are those outside the given range, can can be used to cull
-        data from the client application.
-
-      operationId: neritics_filter.routes.outlier_range
-
-      parameters:
-        - $ref: '#/components/parameters/max'
-        - $ref: '#/components/parameters/min'
-
-      requestBody:
-        $ref: '#/components/requestBodies/Series'
-
-      responses:
-        '200':
-          $ref: '#/components/responses/Mask'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '403':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
+#     delete:
+#       tags: [ ML ]
+#       summary: Destroy model
+#       description: |
+
+#         Destroy the model state.
+
+#       parameters:
+#         - $ref: "#/components/parameters/Cache"
+#         - $ref: "#/components/parameters/ObjectKey"
+
+#       responses:
+#         '200':
+#           $ref: '#/components/responses/Message'
+#         '404':
+#           $ref: '#/components/responses/NotFound'
+
+#   /kde/{cache}:
+
+#     post:
+#       tags: [ ML ]
+#       # operationId: goodbuoy_ml.routes.points.create
+#       summary: Create training points
+#       description: |
+#         Upload a collection of points for training a kernel density estimator
+
+#       parameters:
+#         - $ref: "#/components/parameters/Cache"
+
+#       responses:
+#         '200':
+#           $ref: '#/components/responses/Message'
+
+#   /kde/{cache}/{object}:
+
+#     get:
+#       tags: [ML]
+#       operationId: goodbuoy_ml.routes.
+#       summary: Predict
+#       description: |
+
+#         Get a prediction from the neural network.
+
+#       parameters:
+#         - $ref: "#/components/parameters/Cache"
+#         - $ref: "#/components/parameters/ObjectKey"
+
+#       responses:
+#         '200':
+#           $ref: '#/components/responses/Prediction'
+#         '404':
+#           $ref: '#/components/responses/NotFound'
+
+
+#   /filter/smooth:
+
+#     post:
+#       tags: [Filter]
+#       summary: Smooth
+#       description: |
+
+#         Smooth an evenly-spaced time series using convolution. The backend uses the `Numpy.convolve` method.
+#         The result is a filtered time series, with a length that depends on the `convolutionMode` parameter. It is
+#         the same length by default, but introduces artifacts at the boundaries.
+
+#       operationId: neritics_filter.routes.smooth_convolve
+
+#       parameters:
+#         - $ref: '#/components/parameters/bandwidth'
+#         - $ref: '#/components/parameters/convolutionMode'
+
+#       requestBody:
+#         $ref: '#/components/requestBodies/Series'
+
+#       responses:
+#         '200':
+#           $ref: '#/components/responses/Filtered'
+#         '400':
+#           $ref: '#/components/responses/BadRequest'
+#         '403':
+#           $ref: '#/components/responses/Unauthorized'
+#         '404':
+#           $ref: '#/components/responses/NotFound'
+#         '500':
+#           $ref: '#/components/responses/ServerError'
+
+#   /filter/fft:
+
+#     post:
+#       tags: [Filter]
+#       summary: Bandpass
+#       description: |
+
+#         Filter an evenly-spaced time series using fast Fourier transform. The query string can include `lowpass` and
+#         `highpass` thresholds. With both described, this acts as a bandpass filter. The `fill` option will
+#         automatically forward-fill missing values to prevent anomalies.
+
+#       operationId: neritics_filter.routes.fft
+
+#       parameters:
+#         - $ref: '#/components/parameters/dt'
+#         - $ref: '#/components/parameters/lowpass'
+#         - $ref: '#/components/parameters/highpass'
+#         - $ref: '#/components/parameters/fill'
+#         - $ref: '#/components/parameters/compress'
+
+#       requestBody:
+#         $ref: '#/components/requestBodies/Series'
+
+#       responses:
+#         '200':
+#           $ref: '#/components/responses/Filtered'
+#         '400':
+#           $ref: '#/components/responses/BadRequest'
+#         '403':
+#           $ref: '#/components/responses/Unauthorized'
+#         '404':
+#           $ref: '#/components/responses/NotFound'
+#         '500':
+#           $ref: '#/components/responses/ServerError'
+
+#   /filter/spectrum:
+
+#     post:
+#       tags: [Frequency]
+#       summary: Spectrum
+#       description: |
+
+#         Generate a frequency spectrum for the provided signal. Must be evenly spaced. If there are missing values,
+#         the `fill` flag will forward-fill before the transformation. The result can be compressed by remove negative
+#         symmetry with the `compress` flag.
+
+#       operationId: neritics_filter.routes.spectrum
+
+#       parameters:
+#         - $ref: '#/components/parameters/dt'
+#         - $ref: '#/components/parameters/fill'
+#         - $ref: '#/components/parameters/compress'
+
+#       requestBody:
+#         $ref: '#/components/requestBodies/Series'
+
+#       responses:
+#         '200':
+#           $ref: '#/components/responses/Frequency'
+#         '400':
+#           $ref: '#/components/responses/BadRequest'
+#         '403':
+#           $ref: '#/components/responses/Unauthorized'
+#         '404':
+#           $ref: '#/components/responses/NotFound'
+#         '500':
+#           $ref: '#/components/responses/ServerError'
+
+#   /filter/resample:
+
+#     post:
+#       tags: [Filter]
+#       summary: Resample and interpolate
+#       description: |
+
+#         Resample a sparse time series at specified rate by either forward/back filling or linear interpolation.
+
+#       operationId: neritics_filter.routes.resample_sparse_series
+
+#       parameters:
+#         - $ref: '#/components/parameters/observations'
+#         - $ref: '#/components/parameters/start'
+#         - $ref: '#/components/parameters/method'
+
+#       requestBody:
+#         $ref: '#/components/requestBodies/Series'
+
+#       responses:
+#         '200':
+#           $ref: '#/components/responses/Filtered'
+#         '400':
+#           $ref: '#/components/responses/BadRequest'
+#         '403':
+#           $ref: '#/components/responses/Unauthorized'
+#         '404':
+#           $ref: '#/components/responses/NotFound'
+#         '500':
+#           $ref: '#/components/responses/ServerError'
+
+#   /filter/outlier:
+
+#     post:
+#       tags: [Mask]
+#       summary: Statistical outliers
+#       description: |
+
+#         Generate a boolean mask for the series. This can be for the independent variable, using the `dimension=simple`
+#         query, or for time derivatives with `dimension=time`. True values in the response are masked, meaning these
+#         indices can be deleted from in-memory time series.
+
+#       operationId: neritics_filter.routes.outlier_handler
+
+#       parameters:
+#         - $ref: '#/components/parameters/threshold'
+#         - $ref: '#/components/parameters/dimension'
+
+#       requestBody:
+#         $ref: '#/components/requestBodies/Series'
+
+#       responses:
+#         '200':
+#           $ref: '#/components/responses/Mask'
+#         '400':
+#           $ref: '#/components/responses/BadRequest'
+#         '403':
+#           $ref: '#/components/responses/Unauthorized'
+#         '404':
+#           $ref: '#/components/responses/NotFound'
+#         '500':
+#           $ref: '#/components/responses/ServerError'
+
+#   /filter/range:
+
+#     post:
+#       tags: [Mask]
+#       summary: Out of range values
+#       description: |
+
+#         Generate a boolean mask for the series. True values are those outside the given range, can can be used to cull
+#         data from the client application.
+
+#       operationId: neritics_filter.routes.outlier_range
+
+#       parameters:
+#         - $ref: '#/components/parameters/max'
+#         - $ref: '#/components/parameters/min'
+
+#       requestBody:
+#         $ref: '#/components/requestBodies/Series'
+
+#       responses:
+#         '200':
+#           $ref: '#/components/responses/Mask'
+#         '400':
+#           $ref: '#/components/responses/BadRequest'
+#         '403':
+#           $ref: '#/components/responses/Unauthorized'
+#         '404':
+#           $ref: '#/components/responses/NotFound'
+#         '500':
+#           $ref: '#/components/responses/ServerError'
 
 
 
@@ -1720,12 +1720,12 @@ components:
           schema:
             $ref: '#/components/schemas/Asset'
 
-    TrainRequest:
-      description: Training data
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/TrainSchema'
+    # TrainRequest:
+    #   description: Training data
+    #   content:
+    #     application/json:
+    #       schema:
+    #         $ref: '#/components/schemas/TrainSchema'
 
     CreateRequest:
       description: Initialization data
@@ -1835,12 +1835,12 @@ components:
           schema:
             $ref: '#/components/schemas/Message'
          
-    Prediction:
-      description: Success
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Prediction'
+    # Prediction:
+    #   description: Success
+    #   content:
+    #     application/json:
+    #       schema:
+    #         $ref: '#/components/schemas/Prediction'
                 
     NotFound:
       description: Not found
@@ -2626,17 +2626,17 @@ components:
                   - processor
                   - host
 
-    Prediction:
-      type: object
-      properties:
-        - name: count
-          type: integer
-        - $ref: '#/components/schemas/Datastream'
+    # Prediction:
+    #   type: object
+    #   properties:
+    #     - name: count
+    #       type: integer
+    #     - $ref: '#/components/schemas/Datastream'
 
-    TrainSchema:
-      type: object
-      properties:
-        $ref: '#/components/schemas/Datastream'
+    # TrainSchema:
+    #   type: object
+    #   properties:
+    #     $ref: '#/components/schemas/Datastream'
 
     CreateSchema:
       type: object
@@ -2647,39 +2647,39 @@ components:
     Value:
       type: number
 
-    Periods:
-      name: periods
-      type: int
-      minimum: 1
-      maximum: 1000
-      default: 1000
+    # Periods:
+    #   name: periods
+    #   type: int
+    #   minimum: 1
+    #   maximum: 1000
+    #   default: 1000
 
-    Horizon:
-      name: horizon
-      description: |
-        Sequence length the LSTM is trained on for each output point
+    # Horizon:
+    #   name: horizon
+    #   description: |
+    #     Sequence length the LSTM is trained on for each output point
 
-      type: int
-      minimum: 1
-      maximum: 4
-      default: 1
+    #   type: int
+    #   minimum: 1
+    #   maximum: 4
+    #   default: 1
 
-    Window:
-      name: window
-      description: |
-        Number of observations in moving window for calculating the expected value from input datastream.
+    # Window:
+    #   name: window
+    #   description: |
+    #     Number of observations in moving window for calculating the expected value from input datastream.
 
-      type: int
-      minimum: 1
-      default: 2
+    #   type: int
+    #   minimum: 1
+    #   default: 2
 
-    Ratio:
-      name: ratio
-      description: |
-        Fraction of observations to use for training. The rest are left for validation.
-      type: number
-      format: float
-      default: 0.8
+    # Ratio:
+    #   name: ratio
+    #   description: |
+    #     Fraction of observations to use for training. The rest are left for validation.
+    #   type: number
+    #   format: float
+    #   default: 0.8
 
   
 

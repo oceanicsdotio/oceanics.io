@@ -7,9 +7,9 @@ from passlib.apps import custom_app_context
 from flask import request
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
-from bathysphere_graph import appConfig, app
-from bathysphere_graph.drivers import connect, storeJson
-from bathysphere_graph.models import (
+from bathysphere.graph import appConfig, app
+from bathysphere.graph.drivers import connect, storeJson
+from bathysphere.graph.models import (
     Actuators,
     Assets,
     Collections,
