@@ -5,7 +5,7 @@
   "version": "0.1.0",
   "author": "Nicholas Keeney <nkeeney@oceanics.io>",
   "dependencies": {
-    "@reach/dialog": "^0.2.9",
+    "@reach/dialog": "^0.8.4",
     "@reach/router": "^1.3.3",
     "@reach/tabs": "^0.1.6",
     "@reach/visually-hidden": "^0.1.4",
