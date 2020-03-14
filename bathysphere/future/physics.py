@@ -1,6 +1,5 @@
 from numpy import zeros, where, maximum, minimum
-from numpy import sign, append, zeros
-
+from numpy import sign, append
 from numpy import array, zeros, exp, sin, pi, cos, arccos, arcsin, tan, arctan, isnan
 
 LIGHT = "light"
@@ -515,8 +514,6 @@ class Diffusion:
 
         return delta
 
-
-from numpy import zeros, array
 
 
 class Wind:

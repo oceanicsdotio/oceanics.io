@@ -1,7 +1,3 @@
-monoPaths:
-  - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/mono"
-  - "/usr/bin/mono"
-exePath: "/bin/kernel.exe"
 logging: "logs/{}"
 basePath: "/api"
 specPath: "openapi/api.yml"

@@ -3,6 +3,68 @@ from bathysphere_graph import app
 from bathysphere_graph.drivers import connect
 
 
+from time import sleep
+
+
+import pytest
+from json import load
+from pickle import loads as unpickle
+from numpy.ma import MaskedArray
+from numpy import where, isnan
+from os.path import isfile
+from datetime import datetime
+from time import time
+from functools import reduce
+from numpy import arange, sin, pi, random, column_stack
+from pathlib import Path
+from yaml import load as load_yml, Loader
+from os import getenv
+
+from bathysphere_array.storage import Dataset
+from bathysphere_array.utils import (
+    project,
+    center,
+    extent,
+    polygon_area,
+    interp2d_nearest,
+    extent_overlap_filter,
+    reduce_extent,
+    CartesianNAD83,
+    SphericalWGS84,
+    nan_mask,
+    arrays2points,
+)
+
+
+DATE = datetime(2014, 4, 12)
+UTMEXT = (360300.000, 4662300.000, 594300.000, 4899600.000)
+WINDOW = (-69.6, 43.8, -69.5, 44.1)
+LOCAL = "../sema-1.0/data/satellite/"
+ROOT = ("users", "misclab", "coastal_sat")
+HOST = "misclab.umeoce.maine.edu"
+TESTFILE = "LC8011030JulyAvLGN00_OSI.nc"
+DEFAULT_KEY = "minio"
+DEFAULT_PASS = "minio123"
+DATASET = "LC8011030JulyAvLGN00_OSI.nc"
+TOWNS = "Maine_Boundaries_Town_Polygon"
+CLOSURES = "MaineDMR_Public_Health__NSSP_2017"
+VIEW_NAME = "none"
+LONGITUDE_NAME = "lon"
+LATITUDE_NAME = "lat"
+CENTER_LAT = "latc"
+CENTER_LON = "lonc"
+
+avhrr_start = datetime(2015, 1, 1)
+avhrr_end = datetime(2015, 1, 30)
+ext = (-69.6, 43.8, -69.5, 44.1)
+
+
+# @job('low', connection=my_redis_conn, timeout=5)
+def numberOfTheBeast(a, b):
+    sleep(3)
+    return 42, a, b
+
+
 def validateCreateTx(create, get, cls, props, db):
     response = create(cls, props)
     data = response.get_json()
@@ -104,57 +166,6 @@ def get_entity(client, token):
     return _make_request
 
 
-import pytest
-from json import load
-from pickle import loads as unpickle
-from numpy.ma import MaskedArray
-from numpy import where, isnan
-from os.path import isfile
-from datetime import datetime
-from time import time
-from functools import reduce
-from numpy import arange, sin, pi, random, column_stack
-from pathlib import Path
-from yaml import load as load_yml, Loader
-from os import getenv
-
-from bathysphere_array.storage import Dataset
-from bathysphere_array.utils import (
-    project,
-    center,
-    extent,
-    polygon_area,
-    interp2d_nearest,
-    extent_overlap_filter,
-    reduce_extent,
-    CartesianNAD83,
-    SphericalWGS84,
-    nan_mask,
-    arrays2points,
-)
-
-
-DATE = datetime(2014, 4, 12)
-UTMEXT = (360300.000, 4662300.000, 594300.000, 4899600.000)
-WINDOW = (-69.6, 43.8, -69.5, 44.1)
-LOCAL = "../sema-1.0/data/satellite/"
-ROOT = ("users", "misclab", "coastal_sat")
-HOST = "misclab.umeoce.maine.edu"
-TESTFILE = "LC8011030JulyAvLGN00_OSI.nc"
-DEFAULT_KEY = "minio"
-DEFAULT_PASS = "minio123"
-DATASET = "LC8011030JulyAvLGN00_OSI.nc"
-TOWNS = "Maine_Boundaries_Town_Polygon"
-CLOSURES = "MaineDMR_Public_Health__NSSP_2017"
-VIEW_NAME = "none"
-LONGITUDE_NAME = "lon"
-LATITUDE_NAME = "lat"
-CENTER_LAT = "latc"
-CENTER_LON = "lonc"
-
-avhrr_start = datetime(2015, 1, 1)
-avhrr_end = datetime(2015, 1, 30)
-ext = (-69.6, 43.8, -69.5, 44.1)
 
 
 @pytest.fixture()

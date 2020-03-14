@@ -30,15 +30,6 @@ def graph(port: int):
 
 
 @click.command()
-@click.argument("driver")
-def compile(driver: str):
-    """
-    Command to compile a binary library for the local machine.
-    """
-    click.echo(f"mcs -reference:bin/{driver}.dll -out:bin/kernel.exe src/kernel.cs src/json.cs")
-
-
-@click.command()
 @click.option("--port", default=8000, help="Port number")
 def serve_spec(port: int):
     """
@@ -60,10 +51,64 @@ def serve_spec(port: int):
     httpd.serve_forever()
 
 
+@click.command()
+def test():
+    """
+    Command to run developer tests.
+    """
+    click.echo("python ")
+
+@click.command()
+@click.argument("source")
+@click.argument("particle_type")
+@click.option("--out", default="./particles.csv", help="Output target")
+@click.option("--mode", default="w+", help="Write(w+) or Append(a)")
+def parse_ichthyotox(source: str, particle_type: str, out: str, mode: str):
+    """
+    Convert lagrangian particle data stored in table format to a format
+    for ingestion into the databases
+    """
+    from csv import writer
+    from pathlib import Path
+    from os import listdir
+
+    path = Path(source)
+    total = 0
+    with open(out, mode) as target:
+        csv = writer(target, delimiter=',')
+        for simulation in listdir(str(path.absolute())):
+            try:
+                _ = int(simulation)
+            except ValueError:
+                continue
+            filename = "/".join((str(path.absolute()), simulation, source))
+            try:
+                lines = list(reversed(open(filename, "r").readlines()))
+            except FileNotFoundError:
+                continue
+            while lines:
+                q = list(map(str.strip, lines.pop().split()))
+                t = q[0]
+                q = q[1:]
+                records = []
+                while q:
+                    pid, x, y, z = q[:4]
+                    records.append([simulation, particle_type, t, pid, f"POINT({x} {y} {z})"])
+                    q = q[4:]
+
+                subtotal = len(records)
+                total += subtotal
+                csv.writerows(records)
+            click.echo(f"Simulation {simulation} yielded {subtotal} {particle_type} records")
+   
+    click.echo(f"Processed {total} total {particle_type} records")
+
+
 cli.add_command(redis_worker)
 cli.add_command(compile)
 cli.add_command(serve_spec)
 cli.add_command(graph)
+cli.add_command(parse_ichthyotox)
 
 if __name__ == "__main__":
     cli()

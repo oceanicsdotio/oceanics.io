@@ -471,7 +471,7 @@ def main(req):
             ylab=labels.pop("y", None),
         )
     else:
-        return dumps({"Error": f"View '{view}' not found"})), 400
+        return dumps({"Error": f"View '{view}' not found"}), 400
 
     buffer = b.getvalue()
     assert buffer
@@ -505,5 +505,3 @@ def main(req):
         "objectName": objectName,
         "url": f"https://{bucketName}.{host}/{objectName}"
     })
-
-
