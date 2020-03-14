@@ -12,11 +12,12 @@ from shutil import copyfileobj
 from os.path import isfile
 from warnings import simplefilter
 from functools import reduce
-
 from os import getenv
-
+from logging import getLogger
 
 from requests import get, head
+from google.cloud import secretmanager
+from google.auth.exceptions import DefaultCredentialsError
 
 try:
     from pandas import read_html
@@ -24,13 +25,11 @@ try:
 except ImportError as _:
     read_html = None
 
-import logging
-
-from google.cloud import secretmanager
-
-
-log = logging.getLogger(__name__)
-client = secretmanager.SecretManagerServiceClient()
+log = getLogger(__name__)
+try:  
+    client = secretmanager.SecretManagerServiceClient()
+except DefaultCredentialsError as ex:
+    print("Could not locate cloud provider credentials")
 
 
 def googleCloudSecret(secret_name="my-secret"):

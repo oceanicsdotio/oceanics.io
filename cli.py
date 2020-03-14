@@ -4,8 +4,6 @@ from http.server import SimpleHTTPRequestHandler
 from http.server import HTTPServer as BaseHTTPServer, SimpleHTTPRequestHandler
 import os
 
-from bathysphere import graph
-
 
 @click.group()
 def cli():
@@ -13,37 +11,38 @@ def cli():
 
 
 @click.command()
-@click.option("--count", default=1, help="number of greetings")
-@click.argument("name")
-def hello(count, name):
-    for _ in range(count):
-        click.echo(f"Hello {name}!")
-
-
-# @click.command()
-# @click.argument("host", help="Redis provider")
-# @click.argument("port", help="Port to connect to")
-# def redis_worker(host: str, port: int):
-#     click.echo(f"rq worker -u redis://:{host}:{port}/0")
+@click.argument("host")
+@click.argument("port")
+def redis_worker(host: str, port: int):
+    """
+    Command to start a redis worker.
+    """
+    click.echo(f"rq worker -u redis://:{host}:{port}/0")
 
 
 @click.command()
-@click.argument("port", help="Port to connect to")
-def sttart(port: int):
-    click.echo(f"gunicorn bathysphere/graph:app --bind 0.0.0.0:{port}")
+@click.option("--port", default=5000, help="Port to connect to")
+def graph(port: int):
+    """
+    Command to start the graph database access service.
+    """
+    click.echo(f"gunicorn bathysphere.graph:app --bind 0.0.0.0:{port}")
 
 
-# @click.command()
-# @click.argument("driver", help="Port to connect to")
-# def compile(driver: str):
-#     click.echo(f"mcs -reference:bin/{driver}.dll -out:bin/kernel.exe src/kernel.cs src/json.cs")
+@click.command()
+@click.argument("driver")
+def compile(driver: str):
+    """
+    Command to compile a binary library for the local machine.
+    """
+    click.echo(f"mcs -reference:bin/{driver}.dll -out:bin/kernel.exe src/kernel.cs src/json.cs")
 
 
 @click.command()
 @click.option("--port", default=8000, help="Port number")
-def serve_spec():
+def serve_spec(port: int):
     """
-    Serve the ReDoc OpenAPI specification on the localhost
+    Serve the ReDoc OpenAPI specification on localhost.
     """
     class HTTPHandler(SimpleHTTPRequestHandler):
         """This handler uses server.base_path instead of always using os.getcwd()"""
@@ -61,19 +60,10 @@ def serve_spec():
     httpd.serve_forever()
 
 
-@click.command()
-@click.option("--port", default=5000, help="Port number")
-def serve_graph():
-    """
-    Serve the graph function locally
-    """  
-    click.echo(f"Serving graph function @ http://localhost:{port}")
-
-
-cli.add_command(hello)
+cli.add_command(redis_worker)
+cli.add_command(compile)
 cli.add_command(serve_spec)
-cli.add_command(serve_graph)
-cli.add_command(start)
+cli.add_command(graph)
 
 if __name__ == "__main__":
     cli()

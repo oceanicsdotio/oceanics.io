@@ -594,7 +594,7 @@ class DataStreams(object):
         batch_size: int, 
         ratio: float, 
         periods: int
-    ) -> (DataStreams, DataStreams):
+    ):
         """
 
         :param window: moving average observations

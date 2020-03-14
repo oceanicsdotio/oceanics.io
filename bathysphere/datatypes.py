@@ -16,13 +16,8 @@ from xml.etree import ElementTree
 from itertools import repeat, chain
 from multiprocessing import Pool
 
-from flask import Request
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine.url import URL
-
-from functions import googleCloudSecret
-
-
 import hmac
 import hashlib
 
@@ -33,7 +28,7 @@ from minio.error import NoSuchKey
 from requests import get, post
 from requests.exceptions import ConnectionError
 from urllib3.exceptions import MaxRetryError
-from flask import Response
+from flask import Response, Request
 from redis import StrictRedis
 from redis.client import PubSub
 from connexion import request
@@ -56,12 +51,13 @@ try:
     from tensorflow import reduce_sum, square, placeholder, Session
 
 except ImportError as ex:
-    print("Numerical libraries are not installes")
+    print("Numerical libraries are not installed")
+    KernelDensity = object
+    array = list
 
 
-from bathysphere.datatypes import ResponseJSON, Query, Table, Field
 from bathysphere.utils import (
-    join, parsePostgresValueIn, _parse_str_to_float, resolveTaskTree, synchronous
+    join, parsePostgresValueIn, _parse_str_to_float, resolveTaskTree, synchronous, googleCloudSecret
 )
 
 SEC2DAY = 86400
@@ -115,15 +111,15 @@ class CloudSQL():
 
     auth: (str, str) = attr.ib()
     connectionString: str = attr.ib()
-    pool_size: int = 4,
-    max_overflow: int = 2,
-    pool_timeout: int = 5,
-    pool_recycle: int = 1800
+    pool_size: int = attr.ib(default=4)
+    max_overflow: int = attr.ib(default=2)
+    pool_timeout: int = attr.ib(default=5)
+    pool_recycle: int = attr.ib(default=1800)
 
     @staticmethod
     def engine(self):
 
-        username:str, password:str = self.auth
+        (username, password) = self.auth
         return create_engine(
             URL(
                 drivername='postgres+pg8000',
@@ -131,7 +127,7 @@ class CloudSQL():
                 password=password,
                 database="postgres",
                 query={
-                    'unix_sock': f'/cloudsql/{connectionString}/.s.PGSQL.5432'
+                    'unix_sock': f'/cloudsql/{self.connectionString}/.s.PGSQL.5432'
                 }
             ),
             pool_size=self.pool_size,
@@ -140,8 +136,8 @@ class CloudSQL():
             pool_recycle=self.pool_recycle,
         )
 
-
-    def handle(request: Request) -> ResponseJSON:
+    @staticmethod
+    def handle(db, request: Request) -> ResponseJSON:
         """
         Do some postgres stuff
         """
@@ -430,7 +426,7 @@ class File:
         filename: str, 
         ts: str, 
         size: str
-    ) -> cls:
+    ):
        
         fields = filename.split(".")
         encoding = None
@@ -860,8 +856,8 @@ class Frame(dict):
     label: bytes = attr.ib()
     headers: dict = attr.ib()
     sn: int = attr.ib()
-    key: str = attr.ib(default=None)
     schema: dict = attr.ib()
+    key: str = attr.ib(default=None)
     span: int = attr.ib(default=32)
     ts: datetime =  attr.ib(default=None)
     _dict: dict = attr.ib(default=attr.Factory(dict))
@@ -870,8 +866,10 @@ class Frame(dict):
         return [self._dict[key][root] for key in self._dict.keys() if pattern in key][0]
 
 
-    def wqm(self, keys):
-        # type: (Frame, (str, )) -> dict
+    def wqm(
+        self, 
+        keys: (str,)
+    ) -> dict:
         """
         Decode dataframe form water quality monitor instrument
         """
@@ -888,7 +886,7 @@ class Frame(dict):
 
 
     def seafet(
-        self: Frame, 
+        self, 
         brk: int, 
         keys: list, 
         sep: bytes = b","
@@ -902,7 +900,7 @@ class Frame(dict):
         self.data = {key: value.decode() for key, value in zip(keys, data[3:])}
         
     def by_key(
-        self: Frame, 
+        self, 
         frames: dict, 
         headers: dict
     ):
@@ -939,7 +937,7 @@ class Frame(dict):
 
 
     def analog(
-        self: Frame, 
+        self, 
         headers: dict, 
         width: int = 35, 
         key: str = "STORX"
@@ -965,7 +963,7 @@ class Frame(dict):
 
 
     def gps(
-        self: Frame, 
+        self, 
         headers: dict, 
         key: bytes = b"$GPRMC"
     ):
@@ -1056,7 +1054,7 @@ class Frame(dict):
 
 
     def storx(
-        self: Frame, 
+        self, 
         fields: (Field,), 
         name_length: int = 10, 
         verb: bool = False
@@ -1152,7 +1150,7 @@ class Frame(dict):
         return parser.close()
 
     # def parse_xml_frames(
-    #     self: Frame,
+    #     self,
     #     config: dict, 
     #     key: str = "sensor", 
     #     depth: int = 10, 
@@ -1524,6 +1522,46 @@ class DoublyLinkedList(LinkedList):
 
     def insert_before(self, insert: LinkedListNode, ref: LinkedListNode):
         ...
+
+
+class MemCache(object):
+    
+    db = StrictRedis(
+        host=googleCloudSecret("redis-host"),
+        port=googleCloudSecret("redis-port"),
+        db=0,
+        password=googleCloudSecret("redis-key"),
+        socket_timeout=3,
+        ssl=True,
+    )  # inject db session
+
+
+    def main(self, request: Request) -> ResponseJSON:
+        """handle a request to the function
+        Args:
+            req (str): request body
+        """
+        db = self.db
+        if getenv("Http_Method") != "POST":
+            return dumps({"Error": "Require POST"}), 403
+        try:
+            body = loads(request.body)
+        except Exception as ex:
+            return dumps({"Error": f"Deserialization, {ex}"}), 500
+
+        key = body.get("key")
+        data = body.get("data", None)
+
+        if data is None:
+            binary = db.get(key)
+            if binary:
+                db.incr("get")
+                return loads(binary), 200
+            db.incr("hit")
+
+        db.set(key, dumps(data), ex=3600)
+        return dumps({"Message": "Success"}), 200
+
 
 # class Memory:
 #     def __init__(self, size, max_size=int(1e6)):
@@ -1909,7 +1947,40 @@ class ObjectStorage(Minio):
 
         return decorator
 
+    @staticmethod
+    def main(self, request: Request):
+        """
+        Create an s3 connection if necessary, then create bucket if it doesn't exist.
+
+        :param object_name: label for file
+        :param data: data to serialize
+        :param metadata: headers
+        :param replace:
+        :param bucket_name:
+        :param storage:
+        :param content_type: only required if sending bytes
+        """
+        body = loads(request)
+        bucket_name = body.get("bucket_name")
+        object_name = body.get("object_name")
+        action = body.get("action")
+
+        if not self.bucket_exists(bucket_name):
+            _ = self.make_bucket(bucket_name)
+
+        try:
+            _ = self.stat_object(bucket_name, object_name)
+            existing = True
+        except NoSuchKey:
+            existing = False
+
+        if not existing and action in ("delete", "update"):
+            return dumps({"Error": f"{object_name} not found"}), 404
         
+        if existing and action == "create":
+            return dumps({"Error": f"{object_name} already exists"}), 403
+
+
     @staticmethod
     def listenToEvents(
         self, 
@@ -2062,16 +2133,17 @@ class Query:
 @attr.s
 class RecurrentNeuralNetwork:
 
-    input = attr.ib(default=1)
     hidden = attr.ib()  # hidden layers
-    output = attr.ib(default=1)  # out put dimensions
     periods = attr.ib()  # previous steps to use for prediction
-    horizon = attr.ib(default=1)  # future steps to predict
     epochs = attr.ib()  # number of training cycles
     rate = attr.ib()  # learning rate
+
+    output = attr.ib(default=1)  # out put dimensions
+    horizon = attr.ib(default=1)  # future steps to predict
+    input = attr.ib(default=1)
     file = attr.ib(default=None) # path for persisting data
 
-    saver = tf.train.Saver
+    # saver = tf.train.Saver
 
     @property
     def shape(self):
@@ -2107,8 +2179,6 @@ class RecurrentNeuralNetwork:
         neural_net.save("/".join(["", cache, key]))
         return 200, {'message': 'model created and cached'}
 
-
-    @RecurrentNeuralNetwork.from_cache
     @classmethod
     def train_cached_model(
         cls,
@@ -2135,8 +2205,6 @@ class RecurrentNeuralNetwork:
 
         return 200, {'message': 'model trained and cached'}
 
-
-    @RecurrentNeuralNetwork.from_cache
     @staticmethod
     def get_prediction(datastream: object, batch_size: int = 32):
         """
@@ -2186,7 +2254,7 @@ class RecurrentNeuralNetwork:
         units: int, 
         batch_size: int,
         variables: int = 1
-    ) -> tf.keras.models.Sequential:
+    ):
         """
         Create the Keras-Tensorflow model
 
@@ -2562,7 +2630,7 @@ class Trie:
 
     @staticmethod
     def searchRecursive(
-        node: Trie, 
+        node, 
         symbol: str, 
         pattern: str, 
         previous: (int,), 
@@ -2635,7 +2703,7 @@ class VertexArray(array):
         self, 
         topology: Topology = None, 
         threshold=0.00001
-    ) -> (VertexArray, Topology):
+    ):
         """
         Scan vertex array for duplicates. If topology is also provided, swap later indices for their lower-index
         equivalents. Can be very expensive!

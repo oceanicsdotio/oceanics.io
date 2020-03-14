@@ -917,79 +917,79 @@ paths:
 #          description: Success
 
 
-  '/bivalve/':
+#   '/bivalve/':
 
-    post:
-      tags: [Bivalve]
-      summary: Configure
-      operationId: neritics_bivalve.handlers.configure
-      description: |
+#     post:
+#       tags: [Bivalve]
+#       summary: Configure
+#       operationId: neritics_bivalve.handlers.configure
+#       description: |
 
-        Upload a model configuration that will be associated with you and your organization. The settings will later be
-        accessible by reference for starting further simulations with the same mathematical and computational
-        behavior. There may be some additional restrictions, depending on your organizational affiliation,
-        settings, and permissions.
+#         Upload a model configuration that will be associated with you and your organization. The settings will later be
+#         accessible by reference for starting further simulations with the same mathematical and computational
+#         behavior. There may be some additional restrictions, depending on your organizational affiliation,
+#         settings, and permissions.
 
-        Configurations are immutable after the first time they are run. This ensures that if there are simulation
-        results in the system from a previous run, the configuration is also likely to be there, except through
-        intentional deletions or database loss.
+#         Configurations are immutable after the first time they are run. This ensures that if there are simulation
+#         results in the system from a previous run, the configuration is also likely to be there, except through
+#         intentional deletions or database loss.
 
-      requestBody:
-        $ref: "#/components/requestBodies/Configuration"
-      responses:
-        '200':
-          $ref: '#/components/responses/Configuration'
+#       requestBody:
+#         $ref: "#/components/requestBodies/Configuration"
+#       responses:
+#         '200':
+#           $ref: '#/components/responses/Configuration'
 
-    get:
-      tags: [Bivalve]
-      summary: Get configurations
-      operationId: neritics_bivalve.handlers.get_index
-      description: |
-        Get metadata for all model configurations.
+#     get:
+#       tags: [Bivalve]
+#       summary: Get configurations
+#       operationId: neritics_bivalve.handlers.get_index
+#       description: |
+#         Get metadata for all model configurations.
 
-      responses:
-        '200':
-          $ref: '#/components/responses/ConfigurationCollection'
+#       responses:
+#         '200':
+#           $ref: '#/components/responses/ConfigurationCollection'
 
-  '/bivalve/{objectKey}':
+#   '/bivalve/{objectKey}':
 
-    get:
-      tags: [Bivalve]
-      summary: Get saved object by UUID
-      operationId: neritics_bivalve.handlers.get_object
-      description: |
-        Retrieve details about a model configuration or simulation. This includes links to and summary statistics
-        of the individual simulations using these settings.
+#     get:
+#       tags: [Bivalve]
+#       summary: Get saved object by UUID
+#       operationId: neritics_bivalve.handlers.get_object
+#       description: |
+#         Retrieve details about a model configuration or simulation. This includes links to and summary statistics
+#         of the individual simulations using these settings.
 
-      parameters:
-        - $ref: '#/components/parameters/ObjectKey'
-      responses:
-        '200':
-          $ref: '#/components/responses/Configuration'
+#       parameters:
+#         - $ref: '#/components/parameters/ObjectKey'
+#       responses:
+#         '200':
+#           $ref: '#/components/responses/Configuration'
 
-    post:
-      tags: [Bivalve]
-      summary: Run
-      description: |
+#     post:
+#       tags: [Bivalve]
+#       summary: Run
+#       description: |
 
-        The bivalve endpoint uses either constant conditions over a fixed period, or time-series data sources. Responses
-        are JSON structures. The application executes a synchronous kernel call for every location, and solves for
-        mass conservation and energy dynamics.
+#         The bivalve endpoint uses either constant conditions over a fixed period, or time-series data sources. Responses
+#         are JSON structures. The application executes a synchronous kernel call for every location, and solves for
+#         mass conservation and energy dynamics.
 
-        Posting with `configId` will use an existing configuration as a reference. Any supplied parameters will override
-        defaults, creating a derived copy of the simulation configuration if necessary.
+#         Posting with `configId` will use an existing configuration as a reference. Any supplied parameters will override
+#         defaults, creating a derived copy of the simulation configuration if necessary.
 
-      operationId: neritics_bivalve.handlers.run_batch
-      parameters:
-        - $ref: '#/components/parameters/ObjectKey'
-        - $ref: '#/components/parameters/species'
-        - $ref: '#/components/parameters/weight'
+#       operationId: neritics_bivalve.handlers.run_batch
+#       parameters:
+#         - $ref: '#/components/parameters/ObjectKey'
+#         - $ref: '#/components/parameters/species'
+#         - $ref: '#/components/parameters/weight'
 
-      requestBody:
-        $ref: '#/components/requestBodies/Experiment'
-      responses:
-        '200':
-          $ref: '#/components/responses/Experiment'
+#       requestBody:
+#         $ref: '#/components/requestBodies/Experiment'
+#       responses:
+#         '200':
+#           $ref: '#/components/responses/Experiment'
 
 
 #   /lstm/{cache}:
