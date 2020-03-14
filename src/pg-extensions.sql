@@ -1,7 +1,0 @@
-CREATE EXTENSION timescaledb;
-CREATE EXTENSION postgis;
-CREATE EXTENSION fuzzystrmatch;
-CREATE EXTENSION pg_prometheus;
-CREATE EXTENSION unit;
-CREATE EXTENSION postgis_topology;
-CREATE EXTENSION "uuid-ossp";

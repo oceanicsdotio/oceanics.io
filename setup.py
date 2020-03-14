@@ -42,7 +42,7 @@ setup(
     ],
     entry_points="""
         [console_scripts]
-        bathysphere=cli:cli
+        bathysphere=bathysphere.cli:cli
     """,
     zip_safe=False,
     extra_requires={
