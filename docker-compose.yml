@@ -7,24 +7,10 @@ networks:
 
 services:
 
-  array:
+  bathysphere:
     build:
       context: .
-      dockerfile: config/bathysphere-array-dockerfile
-    image: bathysphere/bathysphere-array
-    ports:
-      - 5000:5000
-    networks:
-      - bathysphere
-    volumes:
-      - ./logs:/logs
-    command: ["sh", "start.sh"]
-
-  api:
-    build:
-      context: .
-      dockerfile: config/bathysphere-graph-dockerfile
-    image: bathysphere/bathysphere-graph
+    image: oceanicsdotio/bathysphere
     ports:
       - 5000:5000
 #    environment:
@@ -38,19 +24,13 @@ services:
     networks:
       - bathysphere
     volumes:
-      - ./src:/src
       - ./logs:/logs
-    healthcheck:
-      test: ["CMD", "curl", "-fI", "localhost:7474"]
-      interval: 60s
-      timeout: 5s
-      retries: 3
-
+    
   neo4j:
     build:
       context: .
-      dockerfile: config/bathysphere-neo4j-dockerfile
-    image: bathysphere/neo4j
+      dockerfile: config/neo4j-dockerfile
+    image: oceanicsdotio/neo4j
     ports:
       - 7474:7474 # HTTP
       - 7473:7473 # HTTPS
@@ -69,27 +49,6 @@ services:
     healthcheck:
       test: ["CMD", "curl", "-fI", "localhost:7474"]
       interval: 60s
-      timeout: 5s
-      retries: 3
-
-  nginx:
-    image: nginx:latest
-    ports:
-      - 80:80
-      - 8080:8080 # HTTP
-      - 443:443 # HTTPS
-    volumes:
-      - ./config/nginx:/etc/nginx/conf.d:ro
-      - ./openapi:/openapi
-      - ./static:/static
-    depends_on:
-      - neo4j
-      - api
-    networks:
-      - bathysphere
-    healthcheck:
-      test: ["CMD", "curl", "-fI", "localhost:443"]
-      interval: 30s
       timeout: 5s
       retries: 3
 
@@ -121,12 +80,3 @@ services:
       interval: 60s
       timeout: 5s
       retries: 3
-
-
-  neritics-ml:
-    build: .
-    image: oceanicsdotio/neritics-ml
-    ports:
-      - 5000:5000
-    networks:
-      - oceanics

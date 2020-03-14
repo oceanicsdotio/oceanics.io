@@ -56,7 +56,17 @@ def test():
     """
     Command to run developer tests.
     """
-    click.echo("python ")
+    click.echo("pytest")
+
+
+@click.command()
+@click.option("--service", default='', help="Docker image")
+def build(service: str) -> None:
+    """
+    Build images.
+    """
+    click.echo(f"docker-compose build {service}")
+
 
 @click.command()
 @click.argument("source")
@@ -104,11 +114,13 @@ def parse_ichthyotox(source: str, particle_type: str, out: str, mode: str):
     click.echo(f"Processed {total} total {particle_type} records")
 
 
+
+
 cli.add_command(redis_worker)
-cli.add_command(compile)
 cli.add_command(serve_spec)
 cli.add_command(graph)
 cli.add_command(parse_ichthyotox)
+cli.add_command(build)
 
 if __name__ == "__main__":
     cli()
