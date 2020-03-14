@@ -17,7 +17,7 @@ def _reverseEntityDictionary(a, b):
     return a
 
 
-with open(Path("config/bathysphere-graph-entities.yml"), "r") as fid:
+with open(Path("config/bathysphere-entities.yml"), "r") as fid:
     items = fid.read().split("---")
 appConfig = reduce(_reverseEntityDictionary, map(load_yml, items, repeat(Loader)), {})
 services = filter(
