@@ -1,29 +1,22 @@
 from enum import Enum
 from datetime import datetime
-from warnings import warn
-from math import ceil
-
+from warnings import warn, catch_warnings, simplefilter
 from typing import Any
 from functools import reduce
 from multiprocessing import Pool
 from time import sleep
-from warnings import catch_warnings, simplefilter
-from itertools import repeat
-
-
 
 try:
+    # Use ArrayFire for multiple GPU bindings if available
     from arrayfire import array as texture
-except ImportError:
-    from numpy import array as texture
-
-
-
-try:
     import arrayfire as af
 except ImportError:
     af = None
+
 try:
+    """
+    Not strictly required to have image processing capabilities.
+    """
     from PIL.Image import Image, fromarray
 except ImportError:
     Image = lambda: None
@@ -32,6 +25,7 @@ except ImportError:
 try:
     from scipy.spatial import ConvexHull
     from pyproj import Proj, transform
+
     from numpy import (
         abs,
         append,
@@ -78,13 +72,16 @@ try:
         zeros,   
     )
 
+    # use ndarray as stand-in for GPU memory
+    texture = af if af is not None else array   
+
     from numpy.linalg import norm
     from numpy.ma import MaskedArray
     from scipy.interpolate import NearestNDInterpolator
     from scipy.stats import linregress
     from scipy import ndimage
     from shapefile import Reader
-    from pandas import read_csv
+    from pandas import read_csv, read_html
     from netCDF4 import Dataset
 
     from matplotlib.cm import get_cmap
@@ -95,7 +92,8 @@ try:
     from sklearn.metrics import r2_score
 
 except ImportError:
-    pass
+    from math import ceil
+    from itertools import repeat
 
 from bathysphere.datatypes import ExtentType, IntervalType, DataFormat
 
