@@ -5,19 +5,22 @@ from itertools import repeat
 from pathlib import Path
 from functools import reduce
 from prance import ResolvingParser, ValidationError
-
+from json import dumps
 from bathysphere.utils import loadAppConfig
 
 
-appConfig = loadAppConfig
+appConfig = loadAppConfig()
 services = filter(
-    lambda x: "bathysphere" == x["spec"]["name"], 
+    lambda x: "bathysphere-api" == x["spec"]["name"], 
     appConfig["Locations"]
 )
-config = next(services)["metadata"]["config"]
+try:
+    config = next(services)["metadata"]["config"]
+except StopIteration:
+    raise ValueError(dumps(appConfig["Locations"]))
 
-absolutePath = str(Path("openapi/api.yml").absolute())
-app = App(__name__, options={"swagger_ui": config.get("enableSwagger", False)})
+absolutePath = str(Path("../"+config.get("specPath")).absolute())
+app = App(__name__, options={"swagger_ui": False})
 CORS(app.app)
 parser = ResolvingParser(absolutePath, lazy=True, strict=True)
 

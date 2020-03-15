@@ -15,6 +15,7 @@ from functools import reduce
 from os import getenv
 from logging import getLogger
 from pathlib import Path
+import operator
 
 
 from requests import get, head
@@ -33,8 +34,7 @@ log = getLogger(__name__)
 try:  
     client = secretmanager.SecretManagerServiceClient()
 except DefaultCredentialsError as ex:
-    print("Could not locate cloud provider credentials")
-
+    warn(Warning("Could not locate cloud provider credentials. Assets are temporary."))
 
 
 def loadAppConfig(
@@ -46,17 +46,26 @@ def loadAppConfig(
     def renderConfig(x: str):
         with open(Path(f"config/{x}"), "r") as fid:
             items = fid.read().split("---")
-        return map(load_yml, items, repeat(Loader))
+        return list(map(load_yml, items, repeat(Loader)))
 
     def reverseDictionary(a: dict, b: dict) -> dict:
-        key = b.pop("kind")
-        if key not in a.keys():
-            a[key] = [b]
-        else:
-            a[key].append(b)
+
+        if not isinstance(a, dict):
+            raise ValueError(
+                "Expected dictionary values. "
+                "Type is instead {}.".format(type(a))
+            )
+
+        if b is not None:    
+            key = b.pop("kind")
+            if key not in a.keys():
+                a[key] = [b]
+            else:
+                a[key].append(b)
         return a
 
-    return reduce(reverseDictionary, chain(map(renderConfig, sources)), dict())
+    items = reduce(operator.add, map(renderConfig, sources), [])
+    return reduce(reverseDictionary, items, {})
     
 
 

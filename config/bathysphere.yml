@@ -437,7 +437,6 @@ metadata:
     - domain: [ oceanics.io ]
   config:
      specification: ../openapi/
-     enableSwagger: false
      logging: "logs/{}"
      basePath: "/api"
      specPath: "openapi/api.yml"
