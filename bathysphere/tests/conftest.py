@@ -105,14 +105,14 @@ def graph():
     Connect to the test database. The connect method throws an exception if no connection
     is made. So handling here is unnecessary, since we want the bubble up.
     """
-    return (
-        lambda host, port, accessKey:
-        (yield connect(
+    def _wrapped(host: str, port: int, accessKey: str):
+        db = connect(
             host=host,
             port=port,
             accessKey=accessKey,
-        ))
-    )
+        )
+        yield db
+    return _wrapped
     
 @pytest.fixture(scope="session")
 def token(client):

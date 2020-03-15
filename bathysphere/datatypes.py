@@ -51,9 +51,9 @@ try:
     from tensorflow import reduce_sum, square, placeholder, Session
 
 except ImportError as ex:
-    print("Numerical libraries are not installed")
     KernelDensity = object
     array = list
+    raise Warning("Numerical libraries unavailable. Avoid big queries.")
 
 
 from bathysphere.utils import (
@@ -2695,11 +2695,13 @@ class Trie:
                 _results += ((word, cost),)
         return _results
 
+
 @attr.s
 class Unit:
     name: str = attr.ib(default=None)  # canonical reference name
     symbol: Any = attr.ib(default=None)  # symbol when displayed
     definition: str = attr.ib(default=None)  # reference to an external formal definition
+
 
 @attr.s
 class VertexArray(array):

@@ -24,6 +24,7 @@ try:
     from numpy import zeros, arange, array, where, array_split, vstack
 except ImportError as _:
     read_html = None
+    raise Warning("Numerical libraries unavailable. Avoid big queries.")
 
 log = getLogger(__name__)
 try:  
@@ -38,7 +39,7 @@ def googleCloudSecret(secret_name="my-secret"):
     resource_name = f"projects/{project_id}/secrets/{secret_name}/versions/latest"
     try:
         response = client.access_secret_version(resource_name)
-    except NameError as ex:
+    except NameError as _:
         return None
     return response.payload.data.decode('UTF-8')
 

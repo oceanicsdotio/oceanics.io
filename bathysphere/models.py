@@ -8,36 +8,28 @@ from enum import Enum
 from uuid import uuid4
 from json import load as load_json
 from functools import reduce
-
-
 from statistics import median
 from multiprocessing import Process
-from socket import AF_INET, SOCK_STREAM, socket
+from socket import AF_INET, SOCK_STREAM, socket, create_connection
 from time import time, sleep
-from socket import create_connection
-from yaml import load as load_yml, Loader
 
-# from drivers import log, synchronous
-from math import floor
+from yaml import load as load_yml, Loader
+from connexion import request
+import attr
 
 try:
     from numpy import (
-        abs, zeros, arange, ones, convolve, isnan, ceil, array, repeat
+        abs, zeros, arange, ones, convolve, isnan, ceil, array, repeat, floor
     )
     from scipy.fftpack import rfft, irfft, fftfreq
     from pandas import DataFrame, Series
 except ImportError as ex:
-    print("Numerical libraries are not installed")
-
-import attr
-from connexion import request
+    from math import floor
+    raise Warning("Numerical libraries unavailable. Avoid big queries.")
 
 from bathysphere.utils import interp1d, response, log
 from bathysphere.datatypes import PostgresType, Field, Table, Query, Coordinates, Distance, ResponseJSON, ObjectStorage
 from bathysphere.future.shellfish import batch
-
-config = dict()  # TODO: improt from somewhere sensible
-
 
 @attr.s
 class Actuators(object):

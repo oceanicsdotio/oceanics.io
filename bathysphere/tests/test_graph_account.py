@@ -11,7 +11,8 @@ def test_teardown_graph(graph):
     """
     Destroy the graph.
     """
-    Entity.delete(graph)
+    db = graph("localhost", 7687, "n0t_passw0rd")
+    Entity.delete(db)
 
 
 def test_account_create_user(client):
