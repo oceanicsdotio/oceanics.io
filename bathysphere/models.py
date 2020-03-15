@@ -12,6 +12,7 @@ from statistics import median
 from multiprocessing import Process
 from socket import AF_INET, SOCK_STREAM, socket, create_connection
 from time import time, sleep
+from warnings import warn
 
 from yaml import load as load_yml, Loader
 from connexion import request
@@ -25,7 +26,7 @@ try:
     from pandas import DataFrame, Series
 except ImportError as ex:
     from math import floor
-    raise Warning("Numerical libraries unavailable. Avoid big queries.")
+    warn(Warning("Numerical libraries unavailable. Avoid big queries."))
 
 from bathysphere.utils import interp1d, response, log
 from bathysphere.datatypes import PostgresType, Field, Table, Query, Coordinates, Distance, ResponseJSON, ObjectStorage

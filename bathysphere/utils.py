@@ -10,7 +10,7 @@ from json import loads as load_json, dumps
 from pickle import dump, load as unpickle
 from shutil import copyfileobj
 from os.path import isfile
-from warnings import simplefilter
+from warnings import simplefilter, warn
 from functools import reduce
 from os import getenv
 from logging import getLogger
