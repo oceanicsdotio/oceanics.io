@@ -24,7 +24,7 @@ try:
     from numpy import zeros, arange, array, where, array_split, vstack
 except ImportError as _:
     read_html = None
-    raise Warning("Numerical libraries unavailable. Avoid big queries.")
+    warn(Warning("Numerical libraries unavailable. Avoid big queries."))
 
 log = getLogger(__name__)
 try:  

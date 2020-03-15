@@ -20,7 +20,7 @@ try:
     from numpy import ceil, max, min, arange, isnan, array, hstack, array
     from matplotlib import cm
 except ImportError as _:
-    raise Warning("Numerical libraries unavailable. Avoid big queries.")
+    warn(Warning("Numerical libraries unavailable. Avoid big queries."))
 
 
 from bathysphere.datatypes import ResponseJSON, ResponseOctet

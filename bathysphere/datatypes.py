@@ -15,6 +15,7 @@ from re import sub
 from xml.etree import ElementTree
 from itertools import repeat, chain
 from multiprocessing import Pool
+from warnings import warn
 
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine.url import URL
@@ -53,7 +54,7 @@ try:
 except ImportError as ex:
     KernelDensity = object
     array = list
-    raise Warning("Numerical libraries unavailable. Avoid big queries.")
+    warn(Warning("Numerical libraries unavailable. Avoid big queries."))
 
 
 from bathysphere.utils import (
