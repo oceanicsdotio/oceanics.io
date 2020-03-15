@@ -28,10 +28,17 @@ def processKeyValueOutbound(obj, keyValue, private="_"):
     return
 
 
-def processKeyValueInbound(keyValue, null=False):
-    # type: ((str, Any), bool) -> str or None
+def processKeyValueInbound(
+    keyValue: (str, Any),
+    null: bool = False
+) -> str or None:
+    """
+    Convert a String key and Any value into a Cypher representation
+    for making the graph query.
+    """
     key, value = keyValue
     if "location" in key and isinstance(value, dict):
+        
         if value.get("type") == "Point":
             coord = value["coordinates"]
             if len(coord) == 2:
@@ -39,6 +46,7 @@ def processKeyValueInbound(keyValue, null=False):
             else:
                 values = f"x: {coord[1]}, y: {coord[0]}, z: {coord[2]}, crs:'wgs-84-3d'"
             return f"{key}: point({{{values}}})"
+
         if value.get("type") == "Polygon":
             return f"{key}: '{dumps(value)}'"
 

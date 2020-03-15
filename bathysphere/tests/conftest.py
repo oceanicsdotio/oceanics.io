@@ -99,20 +99,20 @@ def client():
         yield c
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def graph():
     """
     Connect to the test database. The connect method throws an exception if no connection
     is made. So handling here is unnecessary, since we want the bubble up.
     """
     def _wrapped(host: str, port: int, accessKey: str):
-        db = connect(
+        return connect(
             host=host,
             port=port,
             accessKey=accessKey,
         )
-        yield db
-    return _wrapped
+    yield _wrapped
+    
     
 @pytest.fixture(scope="session")
 def token(client):

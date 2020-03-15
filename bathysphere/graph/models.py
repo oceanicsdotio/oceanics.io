@@ -14,22 +14,31 @@ from bathysphere import models
 from bathysphere.graph.drivers import *
 
 
-@attr.s
-class Entity:
+@attr.s(repr=False)
+class Entity(object):
     """
     Primitive object/entity, may have name and location
     """
     uuid: UUID = attr.ib(default=None)
-    __symbol: str = attr.ib(default=None)
+    __symbol: str = attr.ib(default="n")
 
     def __repr__(self):
         """
+        Format the entity as a Neo4j style node string compatible with
+        the Cypher query language:
+
         (<symbol>:<class> { <var>: $<var>, <k>: <v>, <k>: <v> })
         """
-        entity = ":" + type(self).__name__ if type(self) not in (Entity,) else ""
-        symbol = self.uuid or self.__symbol
-        pattern = filter(lambda x: x, map(processKeyValueInbound, self._properties()))
-        return f"({symbol or self.uuid}{entity} {{ {', '.join(pattern)} }} )"
+        entity = "" if isinstance(self, Entity) else f":{type(self).__name__}"
+        try:
+            pattern = tuple(filter(
+                lambda x: x is not None, 
+                map(processKeyValueInbound, self._properties().items())
+            ))
+        except ValueError as _:
+            raise ValueError(dumps(self._properties()))
+
+        return f"( {self.__symbol}{entity} {{ {', '.join(pattern)} }} )"
 
     def __str__(self):
         return type(self).__name__
@@ -38,12 +47,19 @@ class Entity:
         self.__symbol = symbol
         return self
 
-    def _properties(self, select=None, private=None):
-        # type: (Entity, (str, ), str) -> dict
+    def _properties(
+        self, 
+        select: (str) = (), 
+        private: str = ""
+    ) -> dict:
         """
         Create a filtered dictionary from the object properties.
-        """
 
+        Remove not serializable or resticted members: 
+        - functions
+        - keys beginning with a private prefix
+        - keys not in a selected set, IFF provided
+        """
         def _filter(keyValue):
             key, value = keyValue
             return (
@@ -52,7 +68,6 @@ class Entity:
                 and (key[: len(private)] != private if private else True)
                 and (key in select if select else True)
             )
-
         return {k: v for k, v in filter(_filter, self.__dict__.items())}
 
     @classmethod
@@ -101,6 +116,7 @@ class Entity:
         Remove all nodes from the graph, or optionally specify node-matching parameters.
         """
         entity = cls(**kwargs)
+
         return executeQuery(
             db=db,
             access_mode="write",

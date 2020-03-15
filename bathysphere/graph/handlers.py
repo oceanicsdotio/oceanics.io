@@ -52,7 +52,7 @@ def context(fcn):
         user = accounts.pop()
         return user, filter(lambda x: x.apiKey == apiKey, providers)
 
-    def wrapper(providers, secret=None, **kwargs):
+    def _wrapper(providers, secret=None, **kwargs):
 
         db = connect(host, port, accessKey)
         if db is None:
@@ -85,7 +85,7 @@ def context(fcn):
         else:
             return fcn(db=db, user=user, ingresses=ingresses, **kwargs)
 
-    return wrapper
+    return _wrapper
 
 
 def register(body, **kwargs):

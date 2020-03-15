@@ -1,3 +1,4 @@
+---
 apiVersion: extensions/tasking
 kind: Actuators
 metadata:
@@ -316,6 +317,8 @@ metadata:
     - domain: [ oceanics.io ]
       props:
         bucketName: oceanicsdotio
+        lockFile: lock.json
+        indexFile: index.json
 spec:
   name: Object Storage
   location:
@@ -384,7 +387,7 @@ spec:
   location:
     type: Network
     protocol: https
-    host: bathysphere-redis-do-user-3962990-0.db.ondigitalocean.com
+    host:
     port:
     connection:
       retries: 3
@@ -398,30 +401,15 @@ metadata:
   Ingresses@iot.navigation:
     - domain: [ oceanics.io ]
 spec:
-  name: bathysphere-api-neo4j
-  location:
-    type: Network
-    protocol: bolt
-    host: neo4j.oceanics.io
-    port: 7687
-    connection:
-      retries: 3
-      delay: 1
-    auth:
-      basic:
----
-apiVersion: extensions/sensing
-kind: Locations
-metadata:
-  Ingresses@iot.navigation:
-    - domain: [ oceanics.io ]
-spec:
   name: neo4j-local
   location:
     type: Network
     protocol: bolt
     host: localhost
     port: 7687
+    connection:
+      retries: 3
+      delay: 1
     auth:
       basic: neo4j/neo4j
 ---
@@ -445,11 +433,45 @@ spec:
 apiVersion: extensions/sensing
 kind: Locations
 metadata:
+  Providers@iot.navigation:
+    - domain: [ oceanics.io ]
   config:
      specification: ../openapi/
      enableSwagger: false
-  Providers@iot.navigation:
-    - domain: [ oceanics.io ]
+     logging: "logs/{}"
+     basePath: "/api"
+     specPath: "openapi/api.yml"
+     healthcheck: "http://{}/api/Things"
+     image:      
+      styles:
+        base:
+            padding: [0.1, 0.2, 0.05, 0.1]
+            marker: 1
+            font: 10
+            text: 10
+            width: 6.5
+            height: 4.0
+            line: 1.0
+            alpha: 1.0
+            dpi: 150
+            legend: false
+            grid: false
+            imageInterp: bilinear
+        
+        dark:
+            bg: black
+            contrast: white
+            flag: red
+            label: white
+            colors: [purple, blue, red, grey, green, yellow, orange, brown]
+        
+        light:
+            bg: white
+            contrast: black
+            flag: red
+            label: black
+            colors: [purple, blue, red, grey, green, yellow, orange, brown]
+        
 spec:
   name: bathysphere-api
   location:

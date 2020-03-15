@@ -1,7 +1,7 @@
 from datetime import datetime, date, timedelta
 from collections import deque
 from multiprocessing import Pool
-from itertools import repeat
+from itertools import repeat, chain
 from enum import Enum
 from decimal import Decimal
 from typing import Coroutine, Any, Callable
@@ -14,8 +14,11 @@ from warnings import simplefilter, warn
 from functools import reduce
 from os import getenv
 from logging import getLogger
+from pathlib import Path
+
 
 from requests import get, head
+from yaml import Loader, load as load_yml
 from google.cloud import secretmanager
 from google.auth.exceptions import DefaultCredentialsError
 
@@ -31,6 +34,30 @@ try:
     client = secretmanager.SecretManagerServiceClient()
 except DefaultCredentialsError as ex:
     print("Could not locate cloud provider credentials")
+
+
+
+def loadAppConfig(
+    sources: (str) = ("bathysphere.yml", "kubernetes.yml")
+) -> dict:
+    """
+    Load known entities and services at initialization.
+    """
+    def renderConfig(x: str):
+        with open(Path(f"config/{x}"), "r") as fid:
+            items = fid.read().split("---")
+        return map(load_yml, items, repeat(Loader))
+
+    def reverseDictionary(a: dict, b: dict) -> dict:
+        key = b.pop("kind")
+        if key not in a.keys():
+            a[key] = [b]
+        else:
+            a[key].append(b)
+        return a
+
+    return reduce(reverseDictionary, chain(map(renderConfig, sources)), dict())
+    
 
 
 def googleCloudSecret(secret_name="my-secret"):

@@ -6,25 +6,16 @@ from pathlib import Path
 from functools import reduce
 from prance import ResolvingParser, ValidationError
 
-
-def _reverseEntityDictionary(a, b):
-    # type: (dict, dict) -> dict
-    key = b.pop("kind")
-    if key not in a.keys():
-        a[key] = [b]
-    else:
-        a[key].append(b)
-    return a
+from bathysphere.utils import loadAppConfig
 
 
-with open(Path("config/entities.yml"), "r") as fid:
-    items = fid.read().split("---")
-appConfig = reduce(_reverseEntityDictionary, map(load_yml, items, repeat(Loader)), {})
+appConfig = loadAppConfig
 services = filter(
-    lambda x: "bathysphere-api" == x["spec"]["name"], appConfig["Locations"]
+    lambda x: "bathysphere" == x["spec"]["name"], 
+    appConfig["Locations"]
 )
-
 config = next(services)["metadata"]["config"]
+
 absolutePath = str(Path("openapi/api.yml").absolute())
 app = App(__name__, options={"swagger_ui": config.get("enableSwagger", False)})
 CORS(app.app)

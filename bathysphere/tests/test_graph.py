@@ -1,3 +1,112 @@
+import pytest
+from bathysphere import app
+from bathysphere.graph.models import Entity
+from os import getenv
+
+from bathysphere.tests.conftest import client, graph
+from bathysphere.graph.models import Collections
+
+YEAR = 2019
+COLLECTION = "test-handlers-data-collection"
+ASSET = "test-handlers-data-asset"
+testAuth = ("neo4j", "n0t_passw0rd")
+
+
+@pytest.mark.teardown
+def test_graph_teardown(graph):
+    """
+    Destroy the graph.
+    """
+    Entity.delete(graph("localhost", 7687, testAuth[1]))
+    
+
+def test_graph_account_create_user(client):
+    """
+    Create the service account user
+    """
+    response = client.post(
+        "api/auth",
+        json={
+            "username": testAuth[0],
+            "password": testAuth[1],
+            "secret": getenv("SECRET"),
+            "apiKey": getenv("API_KEY"),
+        },
+    )
+    assert response.status_code == 204, response.get_json()
+
+
+def test_graph_account_get_token(token):
+    """
+    JWT Tokens are valid.
+    """
+    btk = token.get("token")
+    duration = token.get("duration")
+    assert btk is not None and len(btk) >= 127
+    assert duration is not None and duration > 30
+
+
+def test_graph_account_update_user(client, token):
+    """
+    Give the user an alias.
+    """
+    response = client.put(
+        "api/auth",
+        json={"alias": "By another name"},
+        headers={"Authorization": ":" + token.get("token", "")},
+    )
+    assert response.status_code == 204, response.get_json()
+
+
+def test_graph_account_delete_user(client, token):
+    """
+    Delete a user, and then recreate it
+    """
+    response = client.put(
+        "api/auth",
+        json={"delete": True},
+        headers={"Authorization": ":" + token.get("token", "")},
+    )
+    assert response.status_code == 204, response.get_json()
+
+    response = client.post(
+        "api/auth",
+        json={
+            "username": app.app.config["ADMIN"],
+            "password": app.app.config["ADMIN_PASS"],
+            "secret": app.app.config["SECRET"],
+            "apiKey": app.app.config["API_KEY"],
+        },
+    )
+    assert response.status_code == 204, response.get_json()
+
+
+
+def test_collection_create(create_entity, mutate_entity):
+    """Create collection."""
+    cls = Collections.__name__
+    response = create_entity(
+        cls,
+        {
+            "title": "Oysters",
+            "description": "Oyster data",
+            "license": "",
+            "version": 1,
+            "keywords": "oysters,aquaculture,Maine,ShellSIM",
+            "providers": None
+        },
+    )
+    data = response.get_json()
+    assert response.status_code == 200, data
+    payload = data.get("value")
+    obj_id = payload.get("@iot.id")
+
+    response = mutate_entity(
+        cls, obj_id, {"name": "some-new-name", "keywords": ["updated"]}
+    )
+    assert response.status_code == 204, response.get_json()
+
+
 def test_postgres_jdbc_direct_query(graph, create_entity):
     title = "Limited purpose aquaculture sites"
     table = title.lower().replace(" ", "_").replace("-", "_")

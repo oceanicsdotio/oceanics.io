@@ -711,7 +711,7 @@ class Locations(object):
         return Query(queryString, parser)
 
 
-    @ObjectStorage.session(config=config)
+    @ObjectStorage.session(config=None)
     @ObjectStorage.lock
     @staticmethod
     def runBivalveSimulation(
@@ -872,7 +872,7 @@ class Simulation(object):
             return "Embedded database not found", 404
 
 
-    @ObjectStorage.session(config=config)
+    @ObjectStorage.session(config=None)
     @ObjectStorage.lock
     @staticmethod
     def configure(
@@ -891,6 +891,7 @@ class Simulation(object):
 
         :return:
         """
+        objectStoreHeaders = {}  # TODO: get from appConfig
         metadata = body.get("metadata", dict())
         props = body.get("properties", dict())
         metadata["uid"] = session
@@ -900,19 +901,19 @@ class Simulation(object):
         _ = client.upload(
             label=session,
             data=data,
-            metadata=client.metadata_template("configuration", headers=config["headers"]),
+            metadata=client.metadata_template("configuration", headers=objectStoreHeaders),
         )
 
         index["configurations"].append(session)
         _ = client.upload(
-            label=config["index"],
+            label="index.json",
             data=index,
-            metadata=client.metadata_template("index", headers=config["headers"]),
+            metadata=client.metadata_template("index", headers=objectStoreHeaders),
         )
         return data, 200
 
 
-    @ObjectStorage.session(config=config)
+    @ObjectStorage.session(config=None)
     @staticmethod
     def get_object(
         objectKey: str, 
@@ -936,7 +937,7 @@ class Simulation(object):
         return load_json(raw), 200
 
 
-    @ObjectStorage.session(config=config)
+    @ObjectStorage.session(config=None)
     @ObjectStorage.lock
     @staticmethod
     def delete_object(
@@ -955,7 +956,7 @@ class Simulation(object):
         return None, 204
 
 
-    @ObjectStorage.session(config=config)
+    @ObjectStorage.session(config=None)
     @ObjectStorage.lock
     @staticmethod
     def update_object(
