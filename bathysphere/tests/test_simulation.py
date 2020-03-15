@@ -1,6 +1,6 @@
-from neritics.simulation import Simulation
-from neritics.chemistry.organic import Carbon, Oxygen
-from neritics.chemistry.nutrient import Nitrogen, Phosphorus
+from bathysphere.datatypes.simulation import Simulation
+from bathysphere.future.chemistry.c import Carbon, Oxygen
+from bathysphere.future.chemistry.nutrient import Nitrogen, Phosphorus
 
 c = Carbon()
 o = Oxygen()

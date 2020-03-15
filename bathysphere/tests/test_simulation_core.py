@@ -1,9 +1,8 @@
 import pytest
 from requests import get, post
-from neritics_bivalve import conf
-from neritics_bivalve.core import batch, job
-from neritics_bivalve.tests.utils import count_errors
+from bathysphere.future.shellfish import batch, job
 
+conf = dict()
 
 @pytest.mark.graph
 def test_connect_to_graph():
@@ -57,7 +56,6 @@ def test_bivalve_api_as_job():
         },
         forcing=forces,
     )
-    count_errors(result)
 
 
 @pytest.mark.dependency(depends=["test_bivalve_api_as_job"])
@@ -75,7 +73,7 @@ def test_bivalve_api_as_job_no_forcing():
         },
         forcing=forces,
     )
-    count_errors(result)
+ 
 
 
 @pytest.mark.dependency(depends=["test_bivalve_api_as_job"])
@@ -107,5 +105,4 @@ def test_bivalve_api_as_batch():
     logs = result.get("logs")
     assert logs
     data = result.get("data")
-    for each in data:
-        count_errors(each)
+   

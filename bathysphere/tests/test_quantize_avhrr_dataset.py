@@ -1,7 +1,7 @@
-from bathysphere_array.tests.conftest import avhrr_start, avhrr_end
-from bathysphere_array.storage import avhrr_index
+from bathysphere.tests.conftest import avhrr_start, avhrr_end
+from bathysphere.utils import avhrr_index
 from datetime import datetime
-from bathysphere_array.utils import spherical_nearest_neighbor
+from bathysphere.future.utils import spherical_nearest_neighbor
 
 
 def test_raster_avhrr_indexed_correctly_with_yield(avhrr, config_no_app):

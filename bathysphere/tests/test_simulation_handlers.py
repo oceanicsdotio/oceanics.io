@@ -1,6 +1,6 @@
 import pytest
-from neritics_bivalve import conf
 
+conf = dict()
 
 @pytest.mark.dependency()
 def test_configuration_create(client):

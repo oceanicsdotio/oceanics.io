@@ -1,8 +1,11 @@
 import pytest
-from numpy import pi, all, any
+try:
+    from numpy import pi, all, any
+except ImportError:
+    pass
 
-from bathysphere_array.utils import State, RADIANS, DEGREES, polygon_area, center
-from bathysphere_array.shapes import (
+from bathysphere.future.utils import State, RADIANS, DEGREES, polygon_area, center
+from bathysphere.future.utils import (
     rectangle,
     square,
     regular_polygon,

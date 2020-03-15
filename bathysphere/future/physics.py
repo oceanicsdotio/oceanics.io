@@ -1,7 +1,10 @@
-from numpy import zeros, where, maximum, minimum
-from numpy import sign, append
-from numpy import array, zeros, exp, sin, pi, cos, arccos, arcsin, tan, arctan, isnan
 
+try:
+    from numpy import (
+        zeros, where, maximum, minimum, sign, append, array, zeros, exp, sin, pi, cos, arccos, arcsin, tan, arctan, isnan
+    )   
+except ImportError:
+    pass
 LIGHT = "light"
 WEIGHTS = array([0.1, 0.2, 0.7])
 EXTINCTION = 0.001

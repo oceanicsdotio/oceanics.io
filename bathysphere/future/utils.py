@@ -1,124 +1,138 @@
+from enum import Enum
+from datetime import datetime
+from warnings import warn
+from math import ceil
+
+from typing import Any
+from functools import reduce
+from multiprocessing import Pool
+from time import sleep
+from warnings import catch_warnings, simplefilter
+from itertools import repeat
+
+
+
+try:
+    from arrayfire import array as texture
+except ImportError:
+    from numpy import array as texture
+from numpy.linalg import norm
+
+
 try:
     import arrayfire as af
-
 except ImportError:
     af = None
-
 try:
     from PIL.Image import Image, fromarray
 except ImportError:
     Image = lambda: None
     fromarray = lambda x: None
 
-
-from datetime import datetime
-from scipy.spatial import ConvexHull
-from pyproj import Proj, transform
-from numpy import (
-    append,
-    max,
-    cos,
-    sin,
-    array,
-    zeros,
-    pi,
-    arccos,
-    unique,
-    empty_like,
-    dot,
-    isnan,
-    where,
-    ones,
-    roll,
-    sum,
-    log,
-    log10,
-    min,
-    stack,
-    vstack,
-    argsort,
-    uint8,
-    NaN,
-    repeat,
-    asarray,
-    arange,
-    arctan2,
-    hstack,
-    array_split,
-    mean,
-    ceil,
-    random
-)
-
-from numpy.linalg import norm
-from numpy.ma import MaskedArray
-from scipy.interpolate import NearestNDInterpolator
-from scipy import ndimage
-
-from matplotlib.cm import get_cmap
-from enum import Enum
-from matplotlib.tri import CubicTriInterpolator, LinearTriInterpolator
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import r2_score
-from typing import Any
-from functools import reduce
-from matplotlib.patches import Path
-from multiprocessing import Pool
-from warnings import warn
-
-from numpy import min, std, log, zeros, arange, where, hstack, sum, diff
-from scipy.stats import linregress
-from math import ceil
-
-from multiprocessing import Pool
-from time import sleep
-from warnings import catch_warnings, simplefilter
-
-from bathysphere_array.utils import subset, Array, crop, filter_in_range, interp2d_nearest
-from bathysphere_array.storage import Dataset
-
-
-from shapefile import Reader
 try:
-    from arrayfire import array as texture
+    from scipy.spatial import ConvexHull
+    from pyproj import Proj, transform
+    from numpy import (
+        arctan2,
+        intersect1d,
+        isnan,
+        floor,
+        arange,
+        cross,
+        array,
+        hstack,
+        zeros,
+        where,
+        roll,
+        unique,
+        sum,
+        abs,
+        ma,
+        hstack,
+        flip,
+        sort,
+        cross,
+        arctan2,
+        array_split,
+        arange,
+        random,
+        where,
+        mean,
+        vstack,
+        array,
+        sin,
+        cos,
+        pi,
+        sign,
+        append,
+        max,
+        cos,
+        sin,
+        array,
+        zeros,
+        pi,
+        arccos,
+        unique,
+        empty_like,
+        dot,
+        isnan,
+        where,
+        ones,
+        roll,
+        sum,
+        log,
+        log10,
+        min,
+        stack,
+        vstack,
+        argsort,
+        uint8,
+        NaN,
+        repeat,
+        asarray,
+        arange,
+        arctan2,
+        hstack,
+        array_split,
+        mean,
+        ceil,
+        random,
+        std,
+        log,
+        zeros,
+        arange,
+        where,
+        hstack,
+        diff,
+    )
+
+    from numpy.linalg import norm
+    from numpy.ma import MaskedArray
+    from scipy.interpolate import NearestNDInterpolator
+    from scipy.stats import linregress
+    from scipy import ndimage
+    from shapefile import Reader
+    from pandas import read_csv
+    from netCDF4 import Dataset
+
+    from matplotlib.cm import get_cmap
+    from matplotlib.patches import Path
+    from matplotlib.tri import CubicTriInterpolator, LinearTriInterpolator
+
+    from sklearn.linear_model import LinearRegression
+    from sklearn.metrics import r2_score
+
 except ImportError:
-    from numpy import array as texture
-from numpy.linalg import norm
-from itertools import repeat
+    pass
 
 
-
-from numpy import arctan2, intersect1d, isnan, floor, arange, cross, array, hstack,  zeros, where, roll, unique, \
-    sum, abs, ma
-from numpy.ma import MaskedArray
-from pandas import read_csv
-from netCDF4 import Dataset
-
-
-from numpy import (
-    zeros,
-    unique,
-    hstack,
-    min,
-    flip,
-    sort,
-    cross,
-    arctan2,
-    array_split,
-    arange,
-    random,
-    where,
-    mean,
-    vstack,
-    array,
-    sin,
-    cos,
-    pi,
-    sign,
-)
-
-
-from bathysphere_array.utils import (
+from bathysphere.datatypes import ExtentType, IntervalType, DataFormat, Dataset
+from bathysphere.future.utils import (
+    subset,
+    Array,
+    crop,
+    filter_in_range,
+    interp2d_nearest,
     translate,
     ZAXIS,
     ORIGIN,
@@ -133,8 +147,6 @@ from bathysphere_array.utils import (
     impulse,
 )
 
-
-from bathysphere.datatypes import ExtentType, IntervalType, DataFormat
 
 DEGREES = 180 / pi
 RADIANS = pi / 180
@@ -165,6 +177,7 @@ if af:
 else:
     Array = array
 
+
 class State:
     orientation = XAXIS.copy()  # facing
     axis = ZAXIS.copy()  # rotation
@@ -172,7 +185,6 @@ class State:
     state3 = zeros((1, 3), dtype=float)  # 3-axis rotation state
     state4 = zeros((1, 4), dtype=float)  # 3-axis rotation state
     increment = zeros((1, 3), dtype=float)  # transformation increment
-
 
 
 def hc2pH(hc):
@@ -194,19 +206,19 @@ def rxnConstant_gen(initial_concentration, final_concentration, residence_time):
 
 
 def fahr2cel(data):
-    return (data-32.)/1.8
+    return (data - 32.0) / 1.8
 
 
 def days(date):
     """Convert a single datetime to a Julian day number"""
     delta = date - datetime(date.year, 1, 1, 0, 0, 0)
-    result = delta.total_seconds()/24/60/60
+    result = delta.total_seconds() / 24 / 60 / 60
     return result
 
 
 def interp1d(coefficient, aa, bb):
     """Simple linear interpolation in one dimension"""
-    return (1.0-coefficient)*aa + coefficient*bb
+    return (1.0 - coefficient) * aa + coefficient * bb
 
 
 # noinspection PyCallingNonCallable
@@ -310,9 +322,9 @@ def angle2d(u, v):
     """Angle relative to origin, between pairs of 2d vectors"""
     delta = u - v
     theta = arctan2(delta[1], delta[0])
-    ind, = where(theta < -pi)
+    (ind,) = where(theta < -pi)
     theta[ind] += 2 * pi
-    ind, = where(theta > pi)
+    (ind,) = where(theta > pi)
     theta[ind] -= 2 * pi
     return theta
 
@@ -943,7 +955,7 @@ def raster2mesh(train, predict, order=1):
     else:
         raise ValueError
 
-    ind, = where(~mask)
+    (ind,) = where(~mask)
 
     def extract_valid(arr):
         return arr[ind].reshape(-1, 1) if arr is not None else None
@@ -1227,7 +1239,7 @@ def avhrr_sst(files, locations, processes=1, chunk=4, delay=1):
                     else:
                         failures += 1
 
-        indices, = where(~found)
+        (indices,) = where(~found)
         count = sum(found)
 
         try:
@@ -1322,8 +1334,6 @@ def lagrangian_diffusion(
     )
 
 
-
-
 def layers(count: int):
 
     z = -arange(count) / (count - 1)
@@ -1362,10 +1372,10 @@ def topology(path: str, indexed: bool = True) -> dict:
     """
     if path[-3:] == ".nc":
         fid = Dataset(path)
-        topo = fid.variables['nv'][:].T
+        topo = fid.variables["nv"][:].T
     else:
-        fid = open(path, 'r')
-        df = read_csv(fid, sep=',', usecols=arange(4 if indexed else 3), header=None)
+        fid = open(path, "r")
+        df = read_csv(fid, sep=",", usecols=arange(4 if indexed else 3), header=None)
         topo = df.__array__()
 
     n = len(topo)
@@ -1385,9 +1395,9 @@ def boundary(solid: array, open: array, topology: array) -> dict:
     return {
         "solid": (solids - 1).clip(max=1, min=0).astype(bool),
         "porosity": 2 - solids.clip(min=1),
-        "open": open[topology].max(axis=1)
+        "open": open[topology].max(axis=1),
     }
-    
+
 
 def cell_adjacency(parents: dict, indices: list, topology: array) -> (dict, list):
     """
@@ -1410,8 +1420,8 @@ def _advection_terms(solid, open):
     for element in where(~mask):  # for non-boundaries
 
         indices = neighbors[element]
-        dx = (x[indices] - x[element])  # distances to neighbor centers
-        dy = (y[indices] - y[element])
+        dx = x[indices] - x[element]  # distances to neighbor centers
+        dy = y[indices] - y[element]
         dxdx = sum(dx ** 2)
         dxdy = sum(dx * dy)
         dydy = sum(dy ** 2)
@@ -1433,21 +1443,19 @@ def _advection_terms(solid, open):
         AU[element, :, :] /= delta
 
 
-def depth(bathymetry: array, elevation: array = None, dry: float = 1E-7) -> MaskedArray:
+def depth(bathymetry: array, elevation: array = None, dry: float = 1e-7) -> MaskedArray:
     """
     Time-varying property, free surface height from water level, meters
     """
-    data = bathymetry if elevation is None else bathymetry + elevation  # water depth, meters
+    data = (
+        bathymetry if elevation is None else bathymetry + elevation
+    )  # water depth, meters
     return ma.masked_array(depth, mask=(data > dry))  # depth threshold to consider dry
 
 
 def xye(x, y, z):
     """Return height-mapped vertex array"""
-    return hstack((
-        x.reshape(-1, 1),
-        y.reshape(-1, 1),
-        z.reshape(-1, 1))
-    )
+    return hstack((x.reshape(-1, 1), y.reshape(-1, 1), z.reshape(-1, 1)))
 
 
 def mask(shape, masked=None):
@@ -1461,12 +1469,14 @@ def _test_duplicate_adjacency(indices, data: dict or list):
     return [key for key in indices if len(data[key]) > len(unique(data[key]))]
 
 
-def _reorder(node: int, parents: list, neighbors: list, topology: array, tri_neighbors, tri_solid):
+def _reorder(
+    node: int, parents: list, neighbors: list, topology: array, tri_neighbors, tri_solid
+):
     """Reorder elements around a node to clockwise"""
     parents = parents[node]  # triangle neighbors
     neighbors = neighbors[node]
     start = 0
-    ends, = where(tri_solid[parents])
+    (ends,) = where(tri_solid[parents])
     for ii in ends:
         pid = parents[ii]
         pos, _, _ = where(node == topology[pid, :])
@@ -1490,7 +1500,7 @@ def _reorder(node: int, parents: list, neighbors: list, topology: array, tri_nei
             shared = intersect1d(parents, parents[bb])
 
             while parents[ii + 1] not in shared:
-                parents[ii + 1:] = roll(parents[ii + 1:], -1)
+                parents[ii + 1 :] = roll(parents[ii + 1 :], -1)
 
             neighbors[ii] = topology[pid, pos - 2]
 
@@ -1509,7 +1519,7 @@ def _caclulate_area_with_cross_product(x: array, y: array, topology: array):
     bb = hstack((dx, dy))
 
     area = 0.5 * cross(bb, aa)
-    indices, = where(area < 0)
+    (indices,) = where(area < 0)
     return abs(area), roll(topology[indices, 1:3], 1, axis=1)
 
 
@@ -1526,11 +1536,7 @@ def calc_areas(vertex_buffer: array, topology: array, parents: list, verb=True):
         art2[node] = tri_area[parents[node]].sum()
         area[node] = art2[node] / 3
 
-    return {
-        "parents": art2,
-        "triangles": tri_area,
-        "control volume": area
-    }
+    return {"parents": art2, "triangles": tri_area, "control volume": area}
 
 
 def locations(vertex_buffer: array, after=0, before=None, bs=100):
@@ -1546,10 +1552,7 @@ def locations(vertex_buffer: array, after=0, before=None, bs=100):
         batch(cls, list(subset), indices)
         after += size
 
-    return {
-        "after": after,
-        "before": before
-    }
+    return {"after": after, "before": before}
 
 
 def _edges(points, indices, topology, neighbors, cells):
@@ -1588,10 +1591,8 @@ def _edges(points, indices, topology, neighbors, cells):
         "cells": cells,
         "center": center,
         "nodes": nodes,
-        "ends": ends
+        "ends": ends,
     }
-
-
 
 
 #
@@ -1807,7 +1808,7 @@ def stitch(inner, outer):
 
     nn = 0
     lines = aa // cc
-    start, = where(deltas == min(deltas))  # find closest of inner circle
+    (start,) = where(deltas == min(deltas))  # find closest of inner circle
     start -= lines // 2  # shift back by half the number of lines
 
     for ii in range(cc):  # for each vertex in outer ring
@@ -1888,7 +1889,7 @@ def degrade(vertex_array, neighbors):
 
     for ii in range(niter):  # for each epoch
         for jj in zones:  # for each frequency zone
-            arr, = where((vertex_array[:, 2] > jj))  # hemisphere
+            (arr,) = where((vertex_array[:, 2] > jj))  # hemisphere
             ns = len(arr)
             for kk in range(hits):  # randomly create impact craters
                 impact(

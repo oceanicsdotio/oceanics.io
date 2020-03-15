@@ -1,14 +1,17 @@
 import pytest
 from time import time
 from os.path import exists
-from numpy import array_split, vstack, array, where
+try:
+    from numpy import array_split, vstack, array, where
+except ImportError:
+    pass
 from pickle import loads as unpickle, dump as pickle, load
 from itertools import chain, repeat
 from functools import reduce
 from collections import deque
 
-from bathysphere_array.tests.conftest import DATASET, pad, ext
-from bathysphere_array.utils import (
+from bathysphere.tests.conftest import DATASET, pad, ext
+from bathysphere.future.utils import (
     extent,
     reduce_extent,
     extent_overlap_filter,
@@ -31,9 +34,6 @@ from bathysphere_array.utils import (
 )
 
 OSI_OBJ = "bivalve-suitability"
-
-
-
 
 
 def polygon_crop_and_save(xyz, shapes, filename, method=multi_polygon_crop):

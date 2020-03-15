@@ -1,7 +1,10 @@
 import pytest
-from numpy import random, array, stack, diff
+try:
+    from numpy import random, array, stack, diff
+except:
+    pass
 from requests import post
-from image.views import Spatial, Time
+from bathysphere.image import Spatial, Time
 
 OSI_DATASET = "bivalve-suitability"
 
@@ -108,28 +111,28 @@ def test_render_closed_areas(config_no_app, object_storage, shape_preview):
     shape_preview("MaineDMR_Public_Health__NSSP_2017", edge="none", face="black")
 
 
-@pytest.mark.spatial
-def test_render_maine_towns(object_storage, config_no_app, maine_towns, spatial):
-    shape_preview("Maine_Boundaries_Town_Polygon", edge="none", face="black")
+# @pytest.mark.spatial
+# def test_render_maine_towns(object_storage, config_no_app, maine_towns, spatial):
+#     shape_preview("Maine_Boundaries_Town_Polygon", edge="none", face="black")
 
 
-@pytest.mark.spatial
-def test_render_osi_simple_extents(object_storage, config_no_app):
+# @pytest.mark.spatial
+# def test_render_osi_simple_extents(object_storage, config_no_app):
 
-    dataset = "bivalve-suitability"
-    extents = object_storage.restore(dataset, "test-extents")
-    shapes = object_storage.restore(dataset, "test-shapes")
-    view = Spatial(style=config_no_app["styles"]["light"])
-    for e in extents:
-        view.bbox(e, edgecolor="red", facecolor="none", alpha=0.5)
-    for s in shapes:
-        view.shape(s, edgecolor="blue", facecolor="none", alpha=0.5)
-    buffer = view.push(transparent=True)
-    object_storage.upload_image(
-        f"{dataset}/test-render-shape-simple-extents.png",
-        buffer,
-        config_no_app,
-    )
+#     dataset = "bivalve-suitability"
+#     extents = object_storage.restore(dataset, "test-extents")
+#     shapes = object_storage.restore(dataset, "test-shapes")
+#     view = Spatial(style=config_no_app["styles"]["light"])
+#     for e in extents:
+#         view.bbox(e, edgecolor="red", facecolor="none", alpha=0.5)
+#     for s in shapes:
+#         view.shape(s, edgecolor="blue", facecolor="none", alpha=0.5)
+#     buffer = view.push(transparent=True)
+#     object_storage.upload_image(
+#         f"{dataset}/test-render-shape-simple-extents.png",
+#         buffer,
+#         config_no_app,
+#     )
 
 
 @pytest.mark.spatial
@@ -157,7 +160,7 @@ def test_render_osi_water_shapes(object_storage, config_no_app):
 def test_load_vertex_array_shapes(object_storage, config_no_app):
     dataset = "bivalve-suitability"
     key = "vertex-array-shapes"
-    vertex_array = object_storage.restore(dataset, key, stack=True)
+    _ = object_storage.restore(dataset, key, stack=True)
 
 
 @pytest.mark.spatial
@@ -237,39 +240,39 @@ def test_render_osi_final(object_storage, config_no_app):
     )
 
 
-def test_render_osi_overlapping_shapes(object_storage, config_no_app):
+# def test_render_osi_overlapping_shapes(object_storage, config_no_app):
 
-    view = Spatial(style=config_no_app["styles"]["light"])
-    dataset = "bivalve-suitability"
-    matrix = object_storage.restore(dataset, "shapes-water-holes", stack=True, limit=3)
-    shapes = array(object_storage.restore(dataset, "shapes-water", limit=3))
+#     view = Spatial(style=config_no_app["styles"]["light"])
+#     dataset = "bivalve-suitability"
+#     matrix = object_storage.restore(dataset, "shapes-water-holes", stack=True, limit=3)
+#     shapes = array(object_storage.restore(dataset, "shapes-water", limit=3))
 
-    limit = 23
-    indx = 0
-    for each in shapes[:limit]:
-        if indx in matrix:
-            view.shape(
-                each, edgecolor="red", facecolor="none", alpha=0.5, linewidth=1.0
-            )
-        else:
-            view.shape(
-                each, edgecolor="black", facecolor="none", alpha=0.5, linewidth=1.0
-            )
-        view.ax.annotate(
-            f"{indx}",
-            xy=each.mean(axis=0),
-            xytext=(0, 0),
-            textcoords="offset points",
-            va="bottom",
-            ha="center",
-        )
-        indx += 1
+#     limit = 23
+#     indx = 0
+#     for each in shapes[:limit]:
+#         if indx in matrix:
+#             view.shape(
+#                 each, edgecolor="red", facecolor="none", alpha=0.5, linewidth=1.0
+#             )
+#         else:
+#             view.shape(
+#                 each, edgecolor="black", facecolor="none", alpha=0.5, linewidth=1.0
+#             )
+#         view.ax.annotate(
+#             f"{indx}",
+#             xy=each.mean(axis=0),
+#             xytext=(0, 0),
+#             textcoords="offset points",
+#             va="bottom",
+#             ha="center",
+#         )
+#         indx += 1
 
-    object_storage.upload_image(
-        f"{dataset}/test-render-osi-overlapping-shapes.png",
-        view.push(transparent=True),
-        config_no_app,
-    )
+#     object_storage.upload_image(
+#         f"{dataset}/test-render-osi-overlapping-shapes.png",
+#         view.push(transparent=True),
+#         config_no_app,
+#     )
 
 
 def test_render_pixel_histogram(object_storage, config_no_app):
