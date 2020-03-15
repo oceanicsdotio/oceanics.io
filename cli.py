@@ -1,5 +1,7 @@
 import click
 from functools import partial
+from subprocess import run
+from time import sleep
 from http.server import SimpleHTTPRequestHandler
 from http.server import HTTPServer as BaseHTTPServer, SimpleHTTPRequestHandler
 import os
@@ -22,7 +24,7 @@ def redis_worker(host: str, port: int):
 
 @click.command()
 @click.option("--port", default=5000, help="Port to connect to")
-def graph(port: int):
+def start(port: int):
     """
     Command to start the graph database access service.
     """
@@ -76,6 +78,16 @@ def up(service: str) -> None:
     """
     click.echo(f"docker-compose up -d {service}")
 
+@click.command()
+def neo4j() -> None:
+    """
+    Build images.
+    """
+    run(["docker-compose", "up", "-d", "neo4j"])
+    sleep(5)
+    run(["sensible-browser", "localhost:7474/browser"])
+    
+
 
 @click.command()
 @click.argument("source")
@@ -127,10 +139,11 @@ def parse_ichthyotox(source: str, particle_type: str, out: str, mode: str):
 
 cli.add_command(redis_worker)
 cli.add_command(serve_spec)
-cli.add_command(graph)
+cli.add_command(start)
 cli.add_command(parse_ichthyotox)
 cli.add_command(build)
 cli.add_command(up)
+cli.add_command(neo4j)
 
 if __name__ == "__main__":
     cli()

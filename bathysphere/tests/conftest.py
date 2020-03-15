@@ -1,27 +1,32 @@
 import pytest
-from bathysphere_graph import app
-from bathysphere_graph.drivers import connect
 
 
-from time import sleep
 
+from time import sleep, time
 
-import pytest
 from json import load
 from pickle import loads as unpickle
-from numpy.ma import MaskedArray
-from numpy import where, isnan
 from os.path import isfile
 from datetime import datetime
-from time import time
 from functools import reduce
-from numpy import arange, sin, pi, random, column_stack
+
 from pathlib import Path
 from yaml import load as load_yml, Loader
 from os import getenv
 
-from bathysphere_array.storage import Dataset
-from bathysphere_array.utils import (
+
+try:
+    from numpy import arange, sin, pi, random, column_stack
+    from numpy.ma import MaskedArray
+    from numpy import where, isnan
+except ImportError as ex:
+    pass
+
+
+from bathysphere import app
+from bathysphere.graph.drivers import connect
+# from bathysphere.datatypes import Dataset
+from bathysphere.future.utils import (
     project,
     center,
     extent,

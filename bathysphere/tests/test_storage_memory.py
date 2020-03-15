@@ -1,5 +1,5 @@
 import pytest
-from bathysphere_array.storage import Memory
+from bathysphere.datatypes import Memory
 
 NBYTES = 100
 

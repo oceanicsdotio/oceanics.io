@@ -28,6 +28,7 @@ headers:
   x-amz-meta-service: "neritics-bivalve"
 
 configTemplate:
+    
   metadata:
     name: "test-configuration"
     description: "A test configuration"

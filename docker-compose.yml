@@ -37,7 +37,10 @@ services:
       - ./data/import:/var/lib/neo4j/import
     networks:
       - bathysphere
+    environment: 
+      - NEO4J_AUTH=neo4j/neo4j
 
+      
   redis:
     image: redis
     ports:

@@ -1,18 +1,18 @@
 from pytest import mark
-from bathysphere_graph.models import (
+from bathysphere.graph.models import (
     Locations,
     Sensors,
     Things,
-    Observations,
+    Observ_graphations,
     ObservedProperties,
     FeaturesOfInterest,
     Datastreams,
 )
-from bathysphere_graph.models import TaskingCapabilities, Tasks, Actuators
-from bathysphere_graph import appConfig
-from bathysphere_graph.tests.conftest import validateCreateTx
+from bathysphere.graph.models import TaskingCapabilities, Tasks, Actuators
+from bathysphere import appConfig
+from bathysphere.tests.conftest import validateCreateTx
 from datetime import datetime
-from bathysphere_graph import app
+from bathysphere import app
 from json import dump
 
 
