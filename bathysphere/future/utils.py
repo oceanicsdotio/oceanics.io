@@ -126,7 +126,7 @@ except ImportError:
     pass
 
 
-from bathysphere.datatypes import ExtentType, IntervalType, DataFormat, Dataset
+from bathysphere.datatypes import ExtentType, IntervalType, DataFormat
 from bathysphere.future.utils import (
     subset,
     Array,
