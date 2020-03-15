@@ -3,8 +3,8 @@ from redis import StrictRedis
 from pickle import dumps as pickle, loads as unpickle
 from rq import Queue, Connection, Worker
 
-from tests import jobs
-from bathysphere_graph import app
+from bathysphere.tests.conftest import numberOfTheBeast
+from bathysphere import app
 
 
 def test_redis_connection():
@@ -41,7 +41,7 @@ def scheduleJob():
     )
     q = Queue(connection=cache)  # no args implies the default queue
     job = q.enqueue(
-        jobs.numberOfTheBeast, args=("foo", "bar"), result_ttl=500, job_timeout=180
+        numberOfTheBeast, args=("foo", "bar"), result_ttl=500, job_timeout=180
     )
     print(job.result)  # => None
 

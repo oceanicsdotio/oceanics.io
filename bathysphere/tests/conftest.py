@@ -20,25 +20,29 @@ try:
     from numpy.ma import MaskedArray
     from numpy import where, isnan
 except ImportError as ex:
-    pass
+    MaskedArray = list
 
 
 from bathysphere import app
 from bathysphere.graph.drivers import connect
 # from bathysphere.datatypes import Dataset
-from bathysphere.future.utils import (
-    project,
-    center,
-    extent,
-    polygon_area,
-    interp2d_nearest,
-    extent_overlap_filter,
-    reduce_extent,
-    CartesianNAD83,
-    SphericalWGS84,
-    nan_mask,
-    arrays2points,
-)
+
+try:
+    from bathysphere.future.utils import (
+        project,
+        center,
+        extent,
+        polygon_area,
+        interp2d_nearest,
+        extent_overlap_filter,
+        reduce_extent,
+        CartesianNAD83,
+        SphericalWGS84,
+        nan_mask,
+        arrays2points,
+    )
+except:
+    pass
 
 
 DATE = datetime(2014, 4, 12)
@@ -100,12 +104,10 @@ def graph():
     """
     Connect to the test database
     """
-    default_auth = tuple(app.app.config["NEO4J_AUTH"].split("/"))
     db = connect(
         host=app.app.config["EMBEDDED_NAME"],
         port=app.app.config["NEO4J_PORT"],
-        defaultAuth=default_auth,
-        declaredAuth=(default_auth[0], app.app.config["ADMIN_PASS"]),
+        accessKey=app.app.config["ADMIN_PASS"],
     )
     assert db is not None
     yield db
@@ -242,12 +244,12 @@ def collector(object_storage):
     object_storage.create(data=_collect, label="")
 
 
-def single_index(fname, field, index):
-    nc = Dataset(fname, "r")  # open NetCDF for reading
-    print("Model:", nc.title)
-    print("Format:", nc.Conventions)
-    data = nc.variables[field][0:240, index]
-    return data
+# def single_index(fname, field, index):
+#     nc = Dataset(fname, "r")  # open NetCDF for reading
+#     print("Model:", nc.title)
+#     print("Format:", nc.Conventions)
+#     data = nc.variables[field][0:240, index]
+#     return data
 
 
 def subset(xx, yy, field, samples, mask):
@@ -267,14 +269,14 @@ def current_speed(localdir, mesh, window):
     return ((ua * ua + va * va) ** 0.5).transpose()
 
 
-def avgvert(fname, key, mesh, host):
-    nc = Dataset(fname, "r")
-    temp = nc.variables[key]
-    nodes = mesh._GridObject__triangles[host, :]
-    aa = temp[0:240, 0, nodes[0]]
-    bb = temp[0:240, 0, nodes[1]]
-    cc = temp[0:240, 0, nodes[2]]
-    return (aa + bb + cc) / 3.0
+# def avgvert(fname, key, mesh, host):
+#     nc = Dataset(fname, "r")
+#     temp = nc.variables[key]
+#     nodes = mesh._GridObject__triangles[host, :]
+#     aa = temp[0:240, 0, nodes[0]]
+#     bb = temp[0:240, 0, nodes[1]]
+#     cc = temp[0:240, 0, nodes[2]]
+#     return (aa + bb + cc) / 3.0
 
 
 def scan(dataset, attribute, required=None, verb=False):
@@ -309,88 +311,88 @@ def validate_remote_dataset(storage, dataset, dtype=(MaskedArray, dict, dict)):
             assert isinstance(i, dtype)
 
 
-def validate_shape(shape, proj):
-    assert len(center(shape)) == 2
-    assert len(extent(shape)) == 4
-    assert polygon_area(shape) > 0.0
-    shape = project(shape, proj)
-    assert len(shape.center()) == 2
-    assert len(shape.extent()) == 4
+# def validate_shape(shape, proj):
+#     assert len(center(shape)) == 2
+#     assert len(extent(shape)) == 4
+#     assert polygon_area(shape) > 0.0
+#     shape = project(shape, proj)
+#     assert len(shape.center()) == 2
+#     assert len(shape.extent()) == 4
 
 
-@pytest.fixture(scope="module")
-@pytest.mark.external_call
-def avhrr():
-    _avhrr = Dataset("")
-    assert _avhrr.isopen()
-    yield _avhrr
+# @pytest.fixture(scope="module")
+# @pytest.mark.external_call
+# def avhrr():
+#     _avhrr = Dataset("")
+#     assert _avhrr.isopen()
+#     yield _avhrr
 
 
-@pytest.fixture(scope="session")
-def necofs():
-    yield Dataset("data/necofs_gom3_mesh.nc")
+# @pytest.fixture(scope="session")
+# def necofs():
+#     yield Dataset("data/necofs_gom3_mesh.nc")
 
 
-@pytest.fixture(scope="session")
-def mesh(necofs):
+# @pytest.fixture(scope="session")
+# def mesh(necofs):
 
-    x = necofs.variables[LONGITUDE_NAME][:]
-    y = necofs.variables[LATITUDE_NAME][:]
-    z = necofs.variables["h"][:]
-    nv = necofs.variables["nv"][:]
-    vert = column_stack((x, y, z))
+#     x = necofs.variables[LONGITUDE_NAME][:]
+#     y = necofs.variables[LATITUDE_NAME][:]
+#     z = necofs.variables["h"][:]
+#     nv = necofs.variables["nv"][:]
+#     vert = column_stack((x, y, z))
 
-    for ii in range(3):
-        vert[:, ii] -= vert[:, ii].min()
-        vert[:, ii] /= vert[:, ii].max()
+#     for ii in range(3):
+#         vert[:, ii] -= vert[:, ii].min()
+#         vert[:, ii] /= vert[:, ii].max()
 
-    yield {"vertices": vert, "data": necofs, "topology": nv}
-
-
-@pytest.fixture(scope="session")
-def osi():
-
-    path = f"data/LC8011030JulyAvLGN00_OSI.nc"
-    assert isfile(path)
-
-    osi = Dataset(path)
-    yield osi
+#     yield {"vertices": vert, "data": necofs, "topology": nv}
 
 
-@pytest.fixture(scope="function")
-def osi_vertex_array(osi):
-    start = time()
-    x = osi.query("lon")
-    y = osi.query("lat")
-    z = osi.query("OSI")
+# @pytest.fixture(scope="session")
+# def osi():
 
-    s = x.nbytes + y.nbytes + z.nbytes
+#     path = f"data/LC8011030JulyAvLGN00_OSI.nc"
+#     assert isfile(path)
 
-    cart = project(x, y, native=SphericalWGS84, view=CartesianNAD83)
-    assert z.shape == x.shape == y.shape
-    z.mask = nan_mask(z)
-    xyz = arrays2points(*cart, z)
-    b = len(xyz)
-    a = z.shape[0] * z.shape[1]
-    assert b < a
-    c = a - b
-    print(f"{int(time() - start)} seconds to unpack pixels")
-    print(f"{c} NaN values removed ({int(100*c/a)}%)")
-
-    a = x.nbytes + y.nbytes + z.nbytes
-    b = xyz.nbytes
-    print(f"{b//1000} kb from {a//1000} kb ({int(100*b/a)}%)")
-    yield xyz
+#     osi = Dataset(path)
+#     yield osi
 
 
-def dumpToXYZ():
-    path = f"data/LC8011030JulyAvLGN00_OSI.nc"
-    osi = Dataset(path)
-    x = osi.query("lon").flatten()
-    y = osi.query("lat").flatten()
-    z = osi.query("OSI").flatten()
-    with open("data/xyz.csv", "w+") as fid:
-        fid.write(f"lon,lat,osi\n")
-        for a, b, c in zip(x, y, z):
-            if not isnan(c):
-                fid.write(f"{a},{b},{c}\n")
+# @pytest.fixture(scope="function")
+# def osi_vertex_array(osi):
+#     start = time()
+#     x = osi.query("lon")
+#     y = osi.query("lat")
+#     z = osi.query("OSI")
+
+#     s = x.nbytes + y.nbytes + z.nbytes
+
+#     cart = project(x, y, native=SphericalWGS84, view=CartesianNAD83)
+#     assert z.shape == x.shape == y.shape
+#     z.mask = nan_mask(z)
+#     xyz = arrays2points(*cart, z)
+#     b = len(xyz)
+#     a = z.shape[0] * z.shape[1]
+#     assert b < a
+#     c = a - b
+#     print(f"{int(time() - start)} seconds to unpack pixels")
+#     print(f"{c} NaN values removed ({int(100*c/a)}%)")
+
+#     a = x.nbytes + y.nbytes + z.nbytes
+#     b = xyz.nbytes
+#     print(f"{b//1000} kb from {a//1000} kb ({int(100*b/a)}%)")
+#     yield xyz
+
+
+# def dumpToXYZ():
+#     path = f"data/LC8011030JulyAvLGN00_OSI.nc"
+#     osi = Dataset(path)
+#     x = osi.query("lon").flatten()
+#     y = osi.query("lat").flatten()
+#     z = osi.query("OSI").flatten()
+#     with open("data/xyz.csv", "w+") as fid:
+#         fid.write(f"lon,lat,osi\n")
+#         for a, b, c in zip(x, y, z):
+#             if not isnan(c):
+#                 fid.write(f"{a},{b},{c}\n")

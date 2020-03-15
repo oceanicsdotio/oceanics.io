@@ -36,7 +36,10 @@ def googleCloudSecret(secret_name="my-secret"):
     # type: (str) -> str
     project_id = getenv("GCP_PROJECT")  # Google Compute default param
     resource_name = f"projects/{project_id}/secrets/{secret_name}/versions/latest"
-    response = client.access_secret_version(resource_name)
+    try:
+        response = client.access_secret_version(resource_name)
+    except NameError as ex:
+        return None
     return response.payload.data.decode('UTF-8')
 
 
@@ -54,9 +57,6 @@ def generateStream(columns, records):
     # Now yield the last iteration without comma but with the closing brackets
     yield dumps(dict(zip(columns, prev))) + ']'
 
-
-def log(*args, **kwargs):
-    pass
 
 def avhrr_index(
     host: str, 

@@ -1,7 +1,10 @@
 import pytest
-from numpy import arange, random
+try:
+    from numpy import arange, random
+except ImportError:
+    pass
 from requests import post
-from tests.test_function_image_spatial import dumpErrors
+from bathysphere.tests.test_function_image_spatial import dumpErrors
 
 
 def test_function_image_time_series_scatter_plot():

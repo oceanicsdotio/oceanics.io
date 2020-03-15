@@ -1,4 +1,4 @@
-from bathysphere_graph.models import Collections
+from bathysphere.graph.models import Collections
 
 YEAR = 2019
 COLLECTION = "test-handlers-data-collection"

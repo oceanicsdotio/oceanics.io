@@ -49,6 +49,7 @@ setup(
         "dev": [
             "pytest", 
             "pytest_dependency",
+            "docker-compose"
         ],
         "numerical": [
             "numpy",

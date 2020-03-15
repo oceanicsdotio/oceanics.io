@@ -38,7 +38,7 @@ services:
     networks:
       - bathysphere
     environment: 
-      - NEO4J_AUTH=neo4j/neo4j
+      - NEO4J_AUTH=neo4j/n0t_passw0rd
 
       
   redis:
