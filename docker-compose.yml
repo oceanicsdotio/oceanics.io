@@ -13,61 +13,30 @@ services:
     image: oceanicsdotio/bathysphere
     ports:
       - 5000:5000
-#    environment:
-#      - ADMIN
-#      - ADMIN_PASS
-#      - API_KEY
-#      - HOST
-#      - REPLY_TO
-#      - SECRET
-#      - PORT
     networks:
       - bathysphere
     volumes:
       - ./logs:/logs
+    depends_on: 
+      - neo4j
+      - redis
     
   neo4j:
-    build:
-      context: .
-      dockerfile: config/neo4j-dockerfile
-    image: oceanicsdotio/neo4j
+    image: neo4j:3.5
+    # build:
+    #   context: .
+    #   dockerfile: config/neo4j-dockerfile
+    # image: oceanicsdotio/neo4j
     ports:
-      - 7474:7474 # HTTP
-      - 7473:7473 # HTTPS
-      - 7687:7687 # BOLT
-    environment:
-      - NEO4J_dbms_security_auth__max__failed__attempts=6
-      - NEO4J_dbms_memory_pagecache_size=200M
-      - NEO4J_dbms_memory_heap_maxSize=500M
-      - NEO4J_dbms_security_procedures_unrestricted=apoc.*
+      - 7474:7474 # http
+      - 7473:7473 # https
+      - 7687:7687 # bolt
     volumes:
-      - ${GRAPHDB:-./data/neo4j}:/data
+      - ./data/neo4j/:/data
       - ./logs/neo4j/:/logs
       - ./data/import:/var/lib/neo4j/import
     networks:
       - bathysphere
-    healthcheck:
-      test: ["CMD", "curl", "-fI", "localhost:7474"]
-      interval: 60s
-      timeout: 5s
-      retries: 3
-
-  postgres:
-    image: timescale/timescaledb-postgis
-    ports:
-      - 5432:5432
-    environment:
-      - POSTGRES_PASSWORD=n0t_passw0rd
-      - PGDATA=/var/lib/postgresql/data
-    networks:
-      - bathysphere
-    volumes:
-      - ./db/timescale:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD", "curl", "-fI", "localhost:5432"]
-      interval: 60s
-      timeout: 5s
-      retries: 3
 
   redis:
     image: redis
@@ -75,8 +44,5 @@ services:
       - 6379:6379
     networks:
       - bathysphere
-    healthcheck:
-      test: ["CMD", "curl", "-fI", "localhost:6379"]
-      interval: 60s
-      timeout: 5s
-      retries: 3
+    depends_on:
+      - neo4j

@@ -69,6 +69,15 @@ def build(service: str) -> None:
 
 
 @click.command()
+@click.option("--service", default='', help="Docker image")
+def up(service: str) -> None:
+    """
+    Build images.
+    """
+    click.echo(f"docker-compose up -d {service}")
+
+
+@click.command()
 @click.argument("source")
 @click.argument("particle_type")
 @click.option("--out", default="./particles.csv", help="Output target")
@@ -121,6 +130,7 @@ cli.add_command(serve_spec)
 cli.add_command(graph)
 cli.add_command(parse_ichthyotox)
 cli.add_command(build)
+cli.add_command(up)
 
 if __name__ == "__main__":
     cli()

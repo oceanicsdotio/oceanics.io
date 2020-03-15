@@ -1,12 +1,12 @@
-FROM python:3.7-alpine
+FROM python:3.7
 
-WORKDIR bathysphere_graph
-COPY openapi/api.yml ./openapi/api.yml
-COPY config/bathysphere-graph-entities.yml ./config/bathysphere-graph-entities.yml
-COPY config/bathysphere-graph-env.txt ./bathysphere-graph-env.txt
-COPY bathysphere_graph ./bathysphere_graph
-COPY src ./src
-RUN pip install -r bathysphere-graph-env.txt
+WORKDIR /bathysphere
+COPY openapi ./openapi
+COPY config ./config
+COPY bathysphere ./bathysphere
+COPY setup.py ./setup.py
+COPY cli.py ./cli.py
+RUN pip install -e .
 
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD "curl -f localhost:5000/api"
-CMD gunicorn bathysphere_graph:app --bind 0.0.0.0:5000
+CMD gunicorn bathysphere.graph:app --bind 0.0.0.0:5000
