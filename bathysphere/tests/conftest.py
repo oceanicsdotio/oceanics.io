@@ -99,20 +99,21 @@ def client():
         yield c
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def graph():
     """
-    Connect to the test database
+    Connect to the test database. The connect method throws an exception if no connection
+    is made. So handling here is unnecessary, since we want the bubble up.
     """
-    db = connect(
-        host=app.app.config["EMBEDDED_NAME"],
-        port=app.app.config["NEO4J_PORT"],
-        accessKey=app.app.config["ADMIN_PASS"],
+    return (
+        lambda host, port, accessKey:
+        (yield connect(
+            host=host,
+            port=port,
+            accessKey=accessKey,
+        ))
     )
-    assert db is not None
-    yield db
-
-
+    
 @pytest.fixture(scope="session")
 def token(client):
     user = app.app.config["ADMIN"]

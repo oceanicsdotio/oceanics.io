@@ -53,8 +53,16 @@ def processKeyValueInbound(keyValue, null=False):
     return None
 
 
-def executeQuery(db, method, kwargs=(), access_mode="read"):
-    # type: (Driver, Callable, (dict, ), str) -> (Any, ) or None
+def executeQuery(
+    db: Driver, 
+    method: Callable, 
+    kwargs: (dict,) = (), 
+    access_mode: str = "read"
+) -> None or (Any,):
+    """
+    Execute one or more cypher queries in an equal number of transactions against the
+    Neo4j graph database. 
+    """
     with db.session(access_mode="read") as session:
         if access_mode == "read":
             _transact = session.read_transaction
@@ -66,13 +74,17 @@ def executeQuery(db, method, kwargs=(), access_mode="read"):
 
 
 @retry(tries=2, delay=1, backoff=1)
-def connect(host, port, accessKey):
-    # type: ((str, ), int or None, (str, str)) -> Driver or None
+def connect(
+    host: str, 
+    port: int, 
+    accessKey: str,
+    default: str = "neo4j" 
+) -> Driver:
     """
     Connect to a database manager. Try docker networking, or fallback to local host.
     likely that the db has been accessed and setup previously
     """
-    default = "neo4j"
+    db = None
     for auth in ((default, accessKey), (default, default)):
         try:
             db = Driver(uri=f"bolt://{host}:{port}", auth=auth)
@@ -87,6 +99,9 @@ def connect(host, port, accessKey):
             )
             assert response.ok
         return db
+
+    if db is None:
+        raise Exception(f"Could not connect to Neo4j database @ {host}:{port}")
 
 
 def jdbcRecords(db, query, auth, connection, database="bathysphere"):
@@ -104,10 +119,6 @@ def jdbcRecords(db, query, auth, connection, database="bathysphere"):
             )
         ),
     )
-
-
-def unit():
-    return {"name": None, "symbol": None, "definition": None}
 
 
 def links(urls):

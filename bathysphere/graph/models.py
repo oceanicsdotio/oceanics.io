@@ -92,17 +92,20 @@ class Entity:
         )
 
     @classmethod
-    def delete(cls, db, **kwargs):
-        # type: (Driver, dict) -> None
+    def delete(
+        cls, 
+        db: Driver, 
+        **kwargs: dict
+    ) -> None:
         """
-        Remove all nodes from the graph, can optionally specify node-matching parameters.
+        Remove all nodes from the graph, or optionally specify node-matching parameters.
         """
-        e = cls(**kwargs)
+        entity = cls(**kwargs)
         return executeQuery(
             db=db,
             access_mode="write",
             method=lambda tx: tx.run(
-                f"MATCH {repr(e)} DETACH DELETE {e.__symbol}"
+                f"MATCH {repr(entity)} DETACH DELETE {entity.__symbol}"
             ).values(),
         )
 

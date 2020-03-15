@@ -2695,6 +2695,11 @@ class Trie:
                 _results += ((word, cost),)
         return _results
 
+@attr.s
+class Unit:
+    name: str = attr.ib(default=None)  # canonical reference name
+    symbol: Any = attr.ib(default=None)  # symbol when displayed
+    definition: str = attr.ib(default=None)  # reference to an external formal definition
 
 @attr.s
 class VertexArray(array):
