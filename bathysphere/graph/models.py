@@ -1,5 +1,5 @@
 from time import time
-from inspect import signature
+from inspect import signature, isclass
 from types import MethodType
 from datetime import datetime
 from pickle import load as unpickle
@@ -15,12 +15,83 @@ from bathysphere.graph.drivers import *
 
 
 @attr.s(repr=False)
+class Link:
+    """
+    Links are the relationships between two entities. 
+    
+    They are directional.
+    """
+    id: int = attr.ib(default=None)
+    uuid: UUID = attr.ib(default=None)
+    _symbol: str = attr.ib(default="r")
+    _rank: int = attr.ib(default=0)
+    props: dict = attr.ib(default=attr.Factory(dict))
+    label: str = attr.ib(default=None)
+
+    def __repr__(self):
+        """
+        [ r:Label { <key>:<value>, <key>:<value> } ]
+        """
+        labelStr = f":{self.label}" if self.label else ""
+        pattern = ""
+        if self.props:
+            _pattern = filter(
+                lambda x: x, map(processKeyValueInbound, self.props.items())
+            )
+            pattern += f"{{ {', '.join(_pattern)} }}"
+        return f"[ {self._symbol}{labelStr} {pattern} ]"
+
+    @classmethod
+    def drop(cls, db, nodes, props):
+        # type: (Link, Driver, (Entity, Entity), dict) -> None
+        """
+        Drop the link between two node patterns
+        """
+        r = cls(**props)
+        a, b = nodes
+        cmd = f"MATCH {repr(a)}-{repr(r)}-{repr(b)} DELETE {r._symbol}"
+        return executeQuery(db, lambda tx: tx.run(cmd), access_mode="write")
+
+    @classmethod
+    def join(cls, db, nodes, props):
+        # type: (Link, Driver, (Entity, Entity), dict) -> None
+        """
+        Create a link between two node patterns
+        """
+        try:
+            a, b = nodes
+        except ValueError:
+            raise ValueError("Join requires 2 (and only two) node patterns.")
+
+        cmd = f"MATCH {repr(a)}, {repr(b)} MERGE ({a._symbol})-{repr(cls(**props))}->({b._symbol})"
+        return executeQuery(db, lambda tx: tx.run(cmd), access_mode="write")
+
+    @classmethod
+    def query(cls, db, label=None, result="labels(b)", pattern=None, **kwargs):
+        # type: (Driver, str, str, Entity, **dict) -> (Any,)
+        """
+        Match and return the label set for connected entities.
+
+        Increment the pageRank every time the link is traversed.
+        """
+        cmd = (
+            f"MATCH "
+            f"{repr(cls(**kwargs))}-"
+            f"{f'[r:{label}]' if label else '[r]'}-"
+            f"{repr(pattern or Entity())}"
+            f"SET r.rank = r.rank + 1 "
+            f"RETURN {result}"
+        )
+        return executeQuery(db, lambda tx: tx.run(cmd).values(), access_mode="read")
+
+
+@attr.s(repr=False)
 class Entity(object):
     """
     Primitive object/entity, may have name and location
     """
     uuid: UUID = attr.ib(default=None)
-    __symbol: str = attr.ib(default="n")
+    _symbol: str = attr.ib(default="n")
 
     def __repr__(self):
         """
@@ -29,7 +100,8 @@ class Entity(object):
 
         (<symbol>:<class> { <var>: $<var>, <k>: <v>, <k>: <v> })
         """
-        entity = "" if isinstance(self, Entity) else f":{type(self).__name__}"
+        className = str(self)
+        entity = "" if className == Entity.__name__ else f":{className}"
         try:
             pattern = tuple(filter(
                 lambda x: x is not None, 
@@ -38,13 +110,16 @@ class Entity(object):
         except ValueError as _:
             raise ValueError(dumps(self._properties()))
 
-        return f"( {self.__symbol}{entity} {{ {', '.join(pattern)} }} )"
+        return f"( {self._symbol}{entity} {{ {', '.join(pattern)} }} )"
 
     def __str__(self):
         return type(self).__name__
 
-    def _setSymbol(self, symbol):
-        self.__symbol = symbol
+    def _setSymbol(
+        self, 
+        symbol: str,
+    ):
+        self._symbol = symbol
         return self
 
     def _properties(
@@ -102,7 +177,7 @@ class Entity(object):
             db=db,
             access_mode="write",
             method=lambda tx: tx.run(
-                f"MATCH {repr(e)} SET {e.__symbol} += {{ {_updates} }}"
+                f"MATCH {repr(e)} SET {e._symbol} += {{ {_updates} }}"
             ).values(),
         )
 
@@ -121,66 +196,85 @@ class Entity(object):
             db=db,
             access_mode="write",
             method=lambda tx: tx.run(
-                f"MATCH {repr(entity)} DETACH DELETE {entity.__symbol}"
+                f"MATCH {repr(entity)} DETACH DELETE {entity._symbol}"
             ).values(),
         )
 
     @classmethod
-    def addLabel(cls, db, label, **kwargs):
-        # type: (Driver, str, **dict)  -> list or None
+    def addLabel(
+        cls, 
+        db: Driver, 
+        label: str, 
+        **kwargs: dict
+    ) -> list or None:
         """
         Apply new label to nodes of this class, or a specific node.
         """
-        e = cls(**kwargs)
-        return executeQuery(
-            db=db,
-            access_mode="write",
-            method=lambda tx: tx.run(
-                f"MATCH {repr(e)} SET {e.__symbol}:{label}"
-            ).values(),
-        )
+        entity = cls(**kwargs)
+        query = lambda tx: tx.run(
+            f"MATCH {repr(entity)} SET {entity._symbol}:{label}"
+        ).values()
+        return executeQuery(db, query, access_mode="write")
 
     @classmethod
-    def count(cls, db, **kwargs):
-        # type: (Driver, **dict) -> int
+    def count(
+        cls, 
+        db: Driver, 
+        **kwargs: dict
+    ) -> int:
         """
         Count occurrence of a class label or pattern in Neo4j.
         """
-        e = cls(**kwargs)
+        entity = cls(**kwargs)
         query = lambda tx: tx.run(
-            f"MATCH {repr(e)} RETURN count({e.__symbol})"
+            f"MATCH {repr(entity)} RETURN count({entity._symbol})"
         ).single()[0]
         return executeQuery(db, query, access_mode="read")
 
     @classmethod
-    def records(cls, db, user=None, annotate="Get", result=None, **kwargs):
-        # type: (Driver, User, str, str, **dict) -> (Node,)
+    def records(
+        cls, 
+        db: Driver, 
+        user: Any = None, 
+        annotate: str = "Get", 
+        result: str = None, 
+        **kwargs: dict
+    ) -> (Node,):
         """
         Load database nodes as in-memory record.
         """
-        e = cls(**kwargs)
-        _query = (
+        entity = cls(**kwargs)
+        symbol = entity._symbol
+        cmd = (
             (
-                f"MATCH {repr(e)}, {repr(user._setSymbol('u'))} "
-                f"MERGE ({e.__symbol})<-[r:{annotate}]-({user.__symbol}) "
+                f"MATCH {repr(entity)}, {repr(user._setSymbol('u'))} "
+                f"MERGE ({symbol})<-[r:{annotate}]-({user._symbol}) "
                 f"ON CREATE SET r.rank = 1 "
                 f"ON MATCH SET r.rank = r.rank + 1 "
-                f"RETURN {e.__symbol}{'.{}'.format(result) if result else ''}"
+                f"RETURN {symbol}{'.{}'.format(result) if result else ''}"
             )
             if user
             else (
-                f"MATCH {repr(e)} "
-                f"RETURN {e.__symbol}{'.{}'.format(result) if result else ''}"
+                f"MATCH {repr(entity)} "
+                f"RETURN {symbol}{'.{}'.format(result) if result else ''}"
             )
         )
-        return executeQuery(db, lambda tx: tx.run(_query).values(), access_mode="read")
+    
+        result = executeQuery(db, lambda tx: tx.run(cmd).values(), access_mode="read")
+        return result
 
-    @classmethod
-    def create(cls, db, link=(), bind=(), **kwargs):
-        # type: (Entity, Driver, (dict, ), (Callable, ), dict) -> dict
+    @polymorphic
+    def create(
+        self, 
+        db: Driver, 
+        link: (dict) = (), 
+        bind: (Callable) = (),
+        uuid: str = uuid4().hex,
+        private: str = "_",
+        **kwargs: dict
+    ) -> Any or None:
+    
         """
-        RECURSIVE!
-
         Create a new node(s) in graph. Format object properties dictionary as list of key:"value" strings,
         automatically converting each object to string using its built-in __str__ converter.
         Special values can be given unique string serialization methods by overloading __str__.
@@ -189,62 +283,57 @@ class Entity(object):
         - None (python value)
         - "None" (string)
         """
-        e = cls(**kwargs)
-        e.uuid = uuid4().hex
-        root = {"cls": cls.__name__, "id": e.uuid}
+
+        if isclass(self):
+            e = self(uuid=uuid, **kwargs)  # pylint: disable=not-callable
+        else:
+            e = self
+
         executeQuery(db, lambda tx: tx.run(f"MERGE {repr(e)}"))
+
         for fcn in bind:
             setattr(e, fcn.__name__, MethodType(fcn, e))
-        _filter = lambda x: isinstance(x[1], Callable)
-        boundMethods = set(y[0] for y in filter(_filter, e.__dict__.items()))
-        classMethods = set(filter(lambda x: x[: len("_")] != "_", dir(e)))
-        instanceKeys = (boundMethods | classMethods) - set(e._properties())
-        existingItems = {
-            x.name: x.uuid for x in TaskingCapabilities.load(db)
-        }
-        existingKeys = set(existingItems.keys())
 
-        functions = dict()
-        for key in instanceKeys - existingKeys:
-            try:
-                functions[key] = eval(f"{cls}.{key}")
-            except AttributeError:
-                functions[key] = eval(f"obj.{key}")
+        existingCapabilities: dict = {x.name: x.uuid for x in TaskingCapabilities.load(db)}
+        
+        boundMethods = set(y[0] for y in filter(lambda x: isinstance(x[1], Callable), e.__dict__.items()))
+        classMethods = set(filter(lambda x: x[: len(private)] != private, dir(e)))
+        instanceKeys: set = (boundMethods | classMethods) - set(e._properties())
+        existingKeys = set(existingCapabilities.keys())
 
-        existingLinks = (
-            {
-                "label": "Has",
-                "cls": TaskingCapabilities.__name__,
-                "id": existingItems[key],
-            }
-            for key in (existingKeys & instanceKeys)
-        )
+        # for key in (existingKeys & instanceKeys):
+        #     Link.join(
+        #         db, 
+        #         (e, TaskingCapabilities(id=existingCapabilities[key])),
+        #         props={"label": "Has"}
+        #     )
+       
+        # for key in (instanceKeys - existingKeys):
+        #     fcn = eval(f"{cls.__name__}.{key}")
+        #     _ = TaskingCapabilities.create(
+        #         db=db,
+        #         link=(),
+        #         name=key,
+        #         description=fcn.__doc__,
+        #         taskingParameters=(
+        #             {
+        #                 "name": b.name,
+        #                 "description": "",
+        #                 "type": "",
+        #                 "allowedTokens": [""],
+        #             }
+        #             for b in signature(fcn).parameters.values()
+        #         ),
+        #     )
+        #     Link.join(
+        #         db, 
+        #         (e, TaskingCapabilities(id=existingCapabilities[key])),
+        #         props={"label": "Has"}
+        #     )
 
-        createLinks = (
-            {
-                "label": "Has",
-                **TaskingCapabilities.create(
-                    db=db,
-                    link=(),
-                    name=key,
-                    description=fcn.__doc__,
-                    taskingParameters=(
-                        {
-                            "name": b.name,
-                            "description": "",
-                            "type": "",
-                            "allowedTokens": [""],
-                        }
-                        for b in signature(fcn).parameters.values()
-                    ),
-                ),
-            }
-            for key, fcn in functions.items()
-        )
-
-        link(db=db, root=root, children=chain(links, existingLinks, createLinks))
-        return root
-
+        if isclass(self):
+            return e
+    
     @classmethod
     def load(cls, db, user=None, private="_", **kwargs):
         # type: (Driver, User, str, **dict) -> [Entity]
@@ -253,12 +342,12 @@ class Entity(object):
         that works the same as the dictionary method.
         """
         payload = []
-        for each in cls.records(db=db, user=user, **kwargs):
-            e = Entity(None)
-            e.__class__ = cls
-            for keyValue in dict(each[0]).items():
-                processKeyValueOutbound(e, keyValue, private)
-            payload.append(e)
+        records = cls.records(db=db, user=user, **kwargs)
+        for rec in records:
+            payload.append(cls(**{
+                k: v for k, v in 
+                map(processKeyValueOutbound, dict(rec[0]).items())
+            }))
         return payload
 
     def serialize(self, db, service, protocol="http", select=None):
@@ -300,93 +389,34 @@ class Entity(object):
             },
         }
 
-@attr.s
-class Link:
-    """
-    Links are the relationships between two entities. 
-    
-    They are directional.
-    """
-    id: int = attr.ib(default=None)
-    uuid: UUID = attr.ib(default=None)
-    __symbol: str = attr.ib(default="r")
-    _rank: int = attr.ib(default=0)
-    props: dict = attr.ib(default=attr.Factory(dict))
-    label: str = attr.ib(default=None)
-
-    def __repr__(self):
-        """
-        [ r:Label { <key>:<value>, <key>:<value> } ]
-        """
-        labelStr = f":{self.label}" if self.label else ""
-        pattern = ""
-        if self.props:
-            _pattern = filter(
-                lambda x: x, map(processKeyValueInbound, self.props.items())
-            )
-            pattern += f"{{ {', '.join(_pattern)} }}"
-        return f"[ {self.__symbol}{labelStr} {pattern} ]"
-
-    @classmethod
-    def drop(cls, db, nodes, props):
-        # type: (Link, Driver, (Entity, Entity), dict) -> None
-        r = cls(**props)
-        a, b = nodes
-        cmd = f"MATCH {repr(a)}-{repr(r)}-{repr(b)} DELETE {r.__symbol}"
-        return executeQuery(db, lambda tx: tx.run(cmd), access_mode="write")
-
-    @classmethod
-    def join(cls, db, nodes, props):
-        # type: (Link, Driver, (Entity, Entity), dict) -> None
-        a, b = nodes
-        cmd = f"MATCH {repr(a)}, {repr(b)} MERGE ({a.__symbol})-{repr(cls(**props))}->({b.__symbol})"
-        return executeQuery(db, lambda tx: tx.run(cmd), access_mode="write")
-
-    @classmethod
-    def query(cls, db, label=None, result="labels(b)", pattern=None, **kwargs):
-        # type: (Driver, str, str, Entity, **dict) -> (Any,)
-        """
-        Match and return the label set for connected entities.
-
-        Increment the pageRank every time the link is traversed.
-        """
-        query = lambda tx: tx.run(
-            f"MATCH "
-            f"{repr(cls(**kwargs))}-"
-            f"{f'[r:{label}]' if label else '[r]'}-"
-            f"{repr(pattern or Entity())}"
-            f"SET r.rank = r.rank + 1 "
-            f"RETURN {result}"
-        ).values()
-        return executeQuery(db, query, access_mode="read")
 
 
-@attr.s
+@attr.s(repr=False)
 class Actuators(Entity, models.Actuators):
     pass
 
 
-@attr.s
+@attr.s(repr=False)
 class Assets(Entity, models.Assets):
    pass
 
 
-@attr.s
+@attr.s(repr=False)
 class Collections(Entity, models.Collections):
     pass
 
 
-@attr.s
+@attr.s(repr=False)
 class DataStreams(Entity, models.DataStreams):
     pass
 
 
-@attr.s
+@attr.s(repr=False)
 class FeaturesOfInterest(Entity, models.FeaturesOfInterest):
     pass
     
 
-@attr.s
+@attr.s(repr=False)
 class Locations(Entity, models.Locations):
 
     def reportWeather(self, ts, api_key, url, exclude=None):
@@ -411,12 +441,40 @@ class Locations(Entity, models.Locations):
         )
 
 
-@attr.s
+@attr.s(repr=False)
 class HistoricalLocations(Entity, models.HistoricalLocations):
     pass
-    
+  
+@attr.s(repr=False)
+class Sensors(Entity, models.Sensors):
+    pass
 
-@attr.s
+@attr.s(repr=False)
+class Observations(Entity, models.Observations):
+    pass
+
+
+@attr.s(repr=False)
+class ObservedProperties(Entity, models.ObservedProperties):
+    pass
+
+
+@attr.s(repr=False)
+class Providers(models.Providers, Entity):
+    pass
+
+
+@attr.s(repr=False)
+class TaskingCapabilities(Entity, models.TaskingCapabilities):
+    pass
+
+
+@attr.s(repr=False)
+class Tasks(Entity, models.Tasks):
+   pass
+
+
+@attr.s(repr=False)
 class Things(Entity, models.Things):
 
     @staticmethod
@@ -438,36 +496,7 @@ class Things(Entity, models.Things):
         return response, 200
 
 
-@attr.s
-class Sensors(Entity, models.Sensors):
-    pass
-
-@attr.s
-class Observations(Entity, models.Observations):
-    pass
-
-
-@attr.s
-class ObservedProperties(Entity, models.ObservedProperties):
-    pass
-
-
-@attr.s
-class Providers(Entity, models.Providers):
-    pass
-
-
-@attr.s
-class TaskingCapabilities(Entity, models.TaskingCapabilities):
-    pass
-
-
-@attr.s
-class Tasks(Entity, models.Tasks):
-   pass
-
-
-@attr.s
+@attr.s(repr=False)
 class User(Entity, models.User):
    pass
 

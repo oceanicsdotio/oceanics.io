@@ -638,9 +638,6 @@ spec:
   name: Oceanicsdotio
   description: Research and development
   domain: oceanics.io
-  auth:
-    apiKey:
-    secret:
 ---
 kind: Providers
 spec:
@@ -650,20 +647,8 @@ spec:
 kind: Providers
 spec:
   name: University of Maine
-  description: Aquaculture research partner
+  description: Aquaculture research
   domain: maine.edu
-  auth:
-    apiKey:
-    secret:
----
-kind: Providers
-spec:
-  name: Cabot7
-  description: Fisheries research partner
-  domain: cabot7.com
-  auth:
-    apiKey:
-    secret:
 ---
 apiVersion: extensions/sensing
 kind: Sensors

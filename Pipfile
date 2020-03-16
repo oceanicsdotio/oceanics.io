@@ -10,6 +10,9 @@ rope = "*"
 [requires]
 python_version = "3.7"
 
+[packages]
+colorama = "*"
+
 [packages.e1839a8]
 path = "."
 editable = true

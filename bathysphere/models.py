@@ -1,6 +1,5 @@
 from datetime import datetime
 from time import time, sleep
-from secrets import token_urlsafe
 from json import dumps
 from typing import Any, Callable
 from decimal import Decimal
@@ -26,13 +25,13 @@ try:
     from pandas import DataFrame, Series
 except ImportError as ex:
     from math import floor
-    warn(Warning("Numerical libraries unavailable. Avoid big queries."))
+    warn("Numerical libraries unavailable. Avoid big queries.")
 
 from bathysphere.utils import interp1d, response, log
 from bathysphere.datatypes import PostgresType, Field, Table, Query, Coordinates, Distance, ResponseJSON, ObjectStorage
 from bathysphere.future.shellfish import batch
 
-@attr.s
+@attr.s(repr=False)
 class Actuators(object):
     """
     Actuators are devices that turn messages into physical effects
@@ -366,7 +365,7 @@ class Actuators(object):
 
 
 
-@attr.s
+@attr.s(repr=False)
 class Assets(object):
     """
     Assets are references to data objects, which may or may not
@@ -379,14 +378,14 @@ class Assets(object):
     url: str = attr.ib(default=None)  # address of resource
 
 
-@attr.s
+@attr.s(repr=False)
 class Collections(object):
     name: str = attr.ib(default=None)
     description: str = attr.ib(default=None) 
     extent: (float,) = attr.ib(default=None)
 
 
-@attr.s
+@attr.s(repr=False)
 class DataStreams(object):
     """
     DataStreams are collections of Observations.
@@ -633,7 +632,7 @@ class DataStreams(object):
             }
         }
 
-@attr.s
+@attr.s(repr=False)
 class FeaturesOfInterest(object):
     """
     FeaturesOfInterest are usually Locations.
@@ -644,7 +643,7 @@ class FeaturesOfInterest(object):
     feature: Any = attr.ib(default=None)
     
 
-@attr.s
+@attr.s(repr=False)
 class HistoricalLocations(object):
     """
     Private and automatic, should be added to sensor when new location is determined
@@ -652,7 +651,7 @@ class HistoricalLocations(object):
     time: str = attr.ib(default=None) # time when thing was at location (ISO-8601 string)
 
 
-@attr.s
+@attr.s(repr=False)
 class Locations(object):
     """
     Last known location of a thing. May be a feature of interest, unless remote sensing.        
@@ -795,7 +794,7 @@ class Locations(object):
         return result, 200
 
 
-@attr.s
+@attr.s(repr=False)
 class Observations(object):
     """
     Observations are individual time-stamped members of Datastreams
@@ -815,7 +814,7 @@ class Observations(object):
         return (self.result > maximum) | (self.result < minimum)
 
 
-@attr.s
+@attr.s(repr=False)
 class ObservedProperties(object):
     """
     Create a property, but do not associate any data streams with it
@@ -825,7 +824,7 @@ class ObservedProperties(object):
     definition: str = attr.ib(default=None)  #  URL to reference defining the property
 
 
-@attr.s
+@attr.s(repr=False)
 class Providers(object):
     """
     Providers are generally organization or enterprise sub-units. This is used to
@@ -833,13 +832,14 @@ class Providers(object):
     attribution. 
     """
     name: str = attr.ib(default=None)
+    description: str = attr.ib(default=None)
     domain: str = attr.ib(default=None)
-    apiKey: str = attr.ib(default=attr.Factory(lambda: token_urlsafe(64)))
     secretKey: str = attr.ib(default=None)
-    tokenDuration: int = attr.ib(default=600)
+    apiKey: str = attr.ib(default=None)
+    tokenDuration: int = attr.ib(default=None)
 
 
-@attr.s
+@attr.s(repr=False)
 class Sensors(object):
     """
     Sensors are devices that observe processes
@@ -852,9 +852,8 @@ class Sensors(object):
 
 class Simulation(object):
 
-    config = dict()
 
-    @ObjectStorage.session(config=config)
+    @ObjectStorage.session(config=None)
     @ObjectStorage.lock
     @staticmethod
     def get_index(
@@ -989,7 +988,7 @@ class Simulation(object):
             config[key] = val
         return None, 204
 
-@attr.s
+@attr.s(repr=False)
 class TaskingCapabilities(object):
     """
     Abstract tasking class mapping I/O and generating signal.
@@ -999,7 +998,7 @@ class TaskingCapabilities(object):
     taskingParameters: dict = attr.ib(default=None)
 
 
-@attr.s
+@attr.s(repr=False)
 class Tasks(object):
     """
     Tasks are pieces of work that are done asynchronously by humans or machines.
@@ -1008,7 +1007,7 @@ class Tasks(object):
     taskingParameters: dict = attr.ib(default=None)
 
 
-@attr.s
+@attr.s(repr=False)
 class Things(object):
     """
     A thing is an object of the physical or information world that is capable of of being identified
@@ -1019,14 +1018,14 @@ class Things(object):
     properties: dict = attr.ib(default=None)
 
 
-@attr.s
+@attr.s(repr=False)
 class User(object):
     """
     Create a user entity. Users contain authorization secrets, and do not enter/leave
     the system through the same routes as normal Entities
     """
     ip: str = attr.ib(default=None)
-    __symbol: str = attr.ib(default="u")
+    _symbol: str = attr.ib(default="u")
     name: str = attr.ib(default=None)
     credential: str = attr.ib(default=None)
     validated: bool = attr.ib(default=True)

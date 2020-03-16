@@ -54,7 +54,7 @@ try:
 except ImportError as ex:
     KernelDensity = object
     array = list
-    warn(Warning("Numerical libraries unavailable. Avoid big queries."))
+    warn("Numerical libraries unavailable. Avoid big queries.")
 
 
 from bathysphere.utils import (

@@ -28,6 +28,7 @@ setup(
         "rq",
         "attrs",
         "click>=6.7",
+        "colorama",
         "minio",
         "Jinja2",
         "MarkupSafe",

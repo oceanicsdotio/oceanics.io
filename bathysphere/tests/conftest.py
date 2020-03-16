@@ -4,7 +4,7 @@ import pytest
 
 from time import sleep, time
 
-from json import load
+from json import load, loads
 from pickle import loads as unpickle
 from os.path import isfile
 from datetime import datetime
@@ -13,6 +13,7 @@ from functools import reduce
 from pathlib import Path
 from yaml import load as load_yml, Loader
 from os import getenv
+from subprocess import check_output
 
 
 try:
@@ -97,6 +98,25 @@ def client():
     app.app.config["TESTING"] = True
     with app.app.test_client() as c:
         yield c
+
+
+def getCredentials(
+    select: (str) = ()
+) -> dict:
+    """
+    Use the command line interface to retrieve existing credentials from the
+    graph database.
+    """
+    credentials = dict()
+    for each in check_output(["bathysphere", "providers"]).split(b"\n"):
+        if not each:
+            continue
+        item = loads(each.decode())
+        name = item.get("name")
+        if len(select) == 0 or name in select:
+            credentials[item.get("name")] = item.get("apiKey")
+    return credentials
+
 
 
 @pytest.fixture(scope="session")

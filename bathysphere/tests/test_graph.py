@@ -3,7 +3,7 @@ from bathysphere import app
 from bathysphere.graph.models import Entity
 from os import getenv
 
-from bathysphere.tests.conftest import client, graph
+from bathysphere.tests.conftest import client, graph, getCredentials
 from bathysphere.graph.models import Collections
 
 YEAR = 2019
@@ -24,13 +24,15 @@ def test_graph_account_create_user(client):
     """
     Create the service account user
     """
+    credentials = getCredentials()
+    
     response = client.post(
         "api/auth",
         json={
             "username": testAuth[0],
             "password": testAuth[1],
-            "secret": getenv("SECRET"),
-            "apiKey": getenv("API_KEY"),
+            "secret": "something secret",
+            "apiKey": credentials["Oceanicsdotio"],  # empty string means public
         },
     )
     assert response.status_code == 204, response.get_json()

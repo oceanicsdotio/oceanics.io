@@ -34,7 +34,7 @@ log = getLogger(__name__)
 try:  
     client = secretmanager.SecretManagerServiceClient()
 except DefaultCredentialsError as ex:
-    warn(Warning("Could not locate cloud provider credentials. Assets are temporary."))
+    warn("Could not locate cloud provider credentials. Assets are temporary.")
 
 
 def loadAppConfig(

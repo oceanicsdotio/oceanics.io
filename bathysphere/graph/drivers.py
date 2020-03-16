@@ -8,25 +8,36 @@ from neo4j import Driver
 from retry import retry
 from requests import post
 
+class polymorphic(object):
 
-def processKeyValueOutbound(obj, keyValue, private="_"):
+    def __init__(self, f):
+        self.f = f
+
+    def __get__(self, instance, owner):
+        if instance is not None:
+            wrt = instance
+        else:
+            wrt = owner
+
+        def newfunc(*args, **kwargs):
+            return self.f(wrt, *args, **kwargs)
+        return newfunc
+
+
+def processKeyValueOutbound(
+    keyValue: (str, Any), 
+) -> (str, Any):
     key, value = keyValue
     if key == "location":
-        setattr(
-            obj,
-            key,
-            {
-                "type": "Point",
-                "coordinates": eval(value) if isinstance(value, str) else value,
-            },
-        )
-        return
-    try:
-        setattr(obj, key, value)
-    except KeyError:
-        setattr(obj, private + key, value)
-    return
+        return key, {
+            "type": "Point",
+            "coordinates": eval(value) if isinstance(value, str) else value,
+        }
+    if key[0] == "_":
+        return key[1:], value
 
+    return key, value
+    
 
 def processKeyValueInbound(
     keyValue: (str, Any),
@@ -37,6 +48,9 @@ def processKeyValueInbound(
     for making the graph query.
     """
     key, value = keyValue
+    if key[0] == "_":
+        return None
+
     if "location" in key and isinstance(value, dict):
         
         if value.get("type") == "Point":
@@ -52,12 +66,16 @@ def processKeyValueInbound(
 
     if isinstance(value, (list, tuple, dict)):
         return f"{key}: '{dumps(value)}'"
-    if isinstance(value, str) and value[0] == "$":
+
+    if isinstance(value, str) and value and value[0] == "$":
         return f"{key}: {value}"
+    
     if value is not None:
         return f"{key}: {dumps(value)}"
+
     if null:
         return f"{key}: NULL"
+
     return None
 
 

@@ -2,6 +2,8 @@ import click
 from functools import partial
 from subprocess import run
 from time import sleep
+from json import dumps
+from secrets import token_urlsafe
 from http.server import SimpleHTTPRequestHandler
 from http.server import HTTPServer as BaseHTTPServer, SimpleHTTPRequestHandler
 import os
@@ -19,7 +21,7 @@ def redis_worker(host: str, port: int):
     """
     Command to start a redis worker.
     """
-    click.echo(f"rq worker -u redis://:{host}:{port}/0")
+    click.secho(f"rq worker -u redis://:{host}:{port}/0", fg="green")
 
 
 @click.command()
@@ -28,7 +30,7 @@ def start(port: int):
     """
     Command to start the graph database access service.
     """
-    click.echo(f"gunicorn bathysphere.graph:app --bind 0.0.0.0:{port}")
+    click.secho(f"gunicorn bathysphere.graph:app --bind 0.0.0.0:{port}", fg="green")
 
 
 @click.command()
@@ -49,7 +51,7 @@ def serve_spec(port: int):
     httpd = BaseHTTPServer(("", 8000), HTTPHandler)
     httpd.base_path = os.path.join(os.path.dirname(__file__), 'openapi')
   
-    click.echo(f"Serving API specification @ http://localhost:{port}")
+    click.secho(f"Serving API specification @ http://localhost:{port}", fg="yellow")
     httpd.serve_forever()
 
 
@@ -58,7 +60,7 @@ def test():
     """
     Command to run developer tests.
     """
-    click.echo("pytest")
+    click.secho("pytest", fg="green")
 
 
 @click.command()
@@ -67,7 +69,7 @@ def build(service: str) -> None:
     """
     Build images.
     """
-    click.echo(f"docker-compose build {service}")
+    click.secho(f"docker-compose build {service}", fg="green")
 
 
 @click.command()
@@ -76,7 +78,7 @@ def up(service: str) -> None:
     """
     Build images.
     """
-    click.echo(f"docker-compose up -d {service}")
+    click.secho(f"docker-compose up -d {service}", fg="green")
 
 @click.command()
 def neo4j() -> None:
@@ -87,6 +89,71 @@ def neo4j() -> None:
     sleep(5)
     run(["sensible-browser", "localhost:7474/browser"])
     
+
+@click.command()
+@click.option("--host", default="localhost", help="Neo4j instance hostname")
+@click.option("--port", default=7687, help="Neo4j instance `bolt` port")
+def providers(host: str, port: int) -> None:
+    """
+    List the existing `Providers` and access credentials, and create any new ones
+    that are listed in the application configuration (`bathysphere.yml`).
+
+    This is the only way to show and create API keys. 
+    """
+    from os import getenv
+    from bathysphere.graph.drivers import connect
+    from bathysphere.graph.models import Providers
+    from bathysphere.utils import loadAppConfig
+
+    appConfig = loadAppConfig()
+    secretKeyAlias = "NEO4J_ACCESS_KEY"
+    accessKey = getenv(secretKeyAlias)
+    if accessKey is None:
+        raise EnvironmentError(
+            f"{secretKeyAlias} should be available in local environment"
+        )
+
+    db = connect(host, port, accessKey)
+    if db is None:
+        return {"message": "no graph backend"}, 500
+
+    existing = dict()
+    existingDomains = set()
+    for each in Providers.load(db):
+        existing[each.name.lower().strip()] = each
+        loggerData = {
+            "name": each.name,
+            "domain": each.domain,
+            "apiKey": each.apiKey,
+        }
+        click.secho(dumps(loggerData), fg="yellow")
+
+    existingDomains = set(p.domain for p in existing.values())
+    existingKeys = set(existing.keys())
+
+    count = 0
+    for each in appConfig["Providers"]:
+
+        p = Providers(
+            tokenDuration=600,
+            apiKey=token_urlsafe(64),
+            **each["spec"]
+        )
+        
+        if p.domain not in existingDomains  \
+            and p.name.lower().strip() not in existingKeys:
+        
+            p.create(db)
+            loggerData = {
+                "name": p.name,
+                "domain": p.domain,
+                "apiKey": p.apiKey,
+            }
+            click.secho(dumps(loggerData), fg="blue")
+            count += 1
+
+    if count > 0:
+        click.secho(f"Created {count} access methods, remember to save them!", fg="yellow")
 
 
 @click.command()
@@ -130,9 +197,9 @@ def parse_ichthyotox(source: str, particle_type: str, out: str, mode: str):
                 subtotal = len(records)
                 total += subtotal
                 csv.writerows(records)
-            click.echo(f"Simulation {simulation} yielded {subtotal} {particle_type} records")
+            click.secho(f"Simulation {simulation} yielded {subtotal} {particle_type} records", fg="blue")
    
-    click.echo(f"Processed {total} total {particle_type} records")
+    click.secho(f"Processed {total} total {particle_type} records", fg="blue")
 
 
 
@@ -144,6 +211,7 @@ cli.add_command(parse_ichthyotox)
 cli.add_command(build)
 cli.add_command(up)
 cli.add_command(neo4j)
+cli.add_command(providers)
 
 if __name__ == "__main__":
     cli()

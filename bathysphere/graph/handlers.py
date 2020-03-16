@@ -58,20 +58,6 @@ def context(fcn):
         if db is None:
             return {"message": "no graph backend"}, 500
 
-        ingresses = Providers.load(db)
-        existingIngresses = {
-            each.name.lower().strip(): each.domain for each in ingresses
-        }
-
-        for each in providers:
-            name = each["spec"]["name"]
-            domain = each["spec"]["domain"]
-            if (
-                name not in existingIngresses.keys()
-                and domain not in existingIngresses.values()
-            ):
-                _ = Providers.create(db, **each["spec"])
-
         email, credential = request.headers.get("authorization", ":").split(":")
         apiKey = request.headers.get("x-api-key", None)
         try:
