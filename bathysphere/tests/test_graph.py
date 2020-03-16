@@ -9,7 +9,7 @@ from bathysphere.graph.models import Collections
 YEAR = 2019
 COLLECTION = "test-handlers-data-collection"
 ASSET = "test-handlers-data-asset"
-testAuth = ("neo4j", "n0t_passw0rd")
+testAuth = ("testing@oceanics.io", "n0t_passw0rd")
 
 
 @pytest.mark.teardown
@@ -25,16 +25,15 @@ def test_graph_account_create_user(client):
     Create the service account user
     """
     credentials = getCredentials()
-    
+    data = {
+        "username": testAuth[0],
+        "password": testAuth[1],
+        "secret": "something secret",
+        "apiKey": credentials["Oceanicsdotio"],  # empty string means public
+    }
+    print(data)
     response = client.post(
-        "api/auth",
-        json={
-            "username": testAuth[0],
-            "password": testAuth[1],
-            "secret": "something secret",
-            "apiKey": credentials["Oceanicsdotio"],  # empty string means public
-        },
-    )
+        "api/auth", json=data)
     assert response.status_code == 204, response.get_json()
 
 

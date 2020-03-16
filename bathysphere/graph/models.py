@@ -1,6 +1,7 @@
 from time import time
 from inspect import signature, isclass
 from types import MethodType
+from typing import Type
 from datetime import datetime
 from pickle import load as unpickle
 from uuid import uuid4, UUID
@@ -21,15 +22,17 @@ class Link:
     
     They are directional.
     """
-    id: int = attr.ib(default=None)
-    uuid: UUID = attr.ib(default=None)
     _symbol: str = attr.ib(default="r")
     _rank: int = attr.ib(default=0)
+    uuid: UUID = attr.ib(default=None)
     props: dict = attr.ib(default=attr.Factory(dict))
     label: str = attr.ib(default=None)
 
     def __repr__(self):
         """
+        Format the Link for making a Cypher language query
+        to the Neo4j graph database
+
         [ r:Label { <key>:<value>, <key>:<value> } ]
         """
         labelStr = f":{self.label}" if self.label else ""
@@ -42,8 +45,12 @@ class Link:
         return f"[ {self._symbol}{labelStr} {pattern} ]"
 
     @classmethod
-    def drop(cls, db, nodes, props):
-        # type: (Link, Driver, (Entity, Entity), dict) -> None
+    def drop(
+        cls: Type, 
+        db: Driver, 
+        nodes: (Type, Type), 
+        props: dict
+    ) -> None:
         """
         Drop the link between two node patterns
         """
@@ -53,10 +60,14 @@ class Link:
         return executeQuery(db, lambda tx: tx.run(cmd), access_mode="write")
 
     @classmethod
-    def join(cls, db, nodes, props):
-        # type: (Link, Driver, (Entity, Entity), dict) -> None
+    def join(
+        cls: Type, 
+        db: Driver, 
+        nodes: (Any, Any), 
+        props: dict
+    ) -> None:
         """
-        Create a link between two node patterns
+        Create a link between two node patterns. 
         """
         try:
             a, b = nodes
@@ -67,7 +78,14 @@ class Link:
         return executeQuery(db, lambda tx: tx.run(cmd), access_mode="write")
 
     @classmethod
-    def query(cls, db, label=None, result="labels(b)", pattern=None, **kwargs):
+    def query(
+        cls: Type, 
+        db: Driver, 
+        label: str =None, 
+        result: str = "labels(b)", 
+        pattern: dict = None, 
+        **kwargs
+    ) -> (Any,):
         # type: (Driver, str, str, Entity, **dict) -> (Any,)
         """
         Match and return the label set for connected entities.
@@ -146,59 +164,33 @@ class Entity(object):
         return {k: v for k, v in filter(_filter, self.__dict__.items())}
 
     @classmethod
-    def addConstraint(cls, db, by):
-        # type: (Entity, str) -> Callable
+    def addConstraint(
+        cls, 
+        db: Driver, 
+        by: str
+    ) -> Callable:
+        """
+        Create a unique constraint on one type of labeled node.
+
+        Usually this will be by name. 
+        """
         query = lambda tx: tx.run(
             f"CREATE CONSTRAINT ON (n:{cls.__name__}) ASSERT n.{by} IS UNIQUE"
         )
         return executeQuery(db, query, access_mode="write")
 
     @classmethod
-    def addIndex(cls, db, by):
-        # type: (Entity, str) -> Callable
-        query = lambda tx: tx.run(f"CREATE INDEX ON : {cls.__name__}({by})")
-        return executeQuery(db, query, access_mode="write")
-
-    @classmethod
-    def dropIndex(cls, db, by):
-        # type: (Entity, Driver, str) -> Callable
-        query = lambda tx: tx.run(f"DROP INDEX ON : {cls.__name__}({by})")
-        return executeQuery(db, query, access_mode="write")
-
-    @classmethod
-    def mutation(cls, db, data, **kwargs):
-        # type: (Entity, Driver, dict, dict) -> Callable
-        """
-        Update/add node properties
-        """
-        e = cls(**kwargs)
-        _updates = ", ".join(map(processKeyValueInbound, data.items()))
-        return executeQuery(
-            db=db,
-            access_mode="write",
-            method=lambda tx: tx.run(
-                f"MATCH {repr(e)} SET {e._symbol} += {{ {_updates} }}"
-            ).values(),
-        )
-
-    @classmethod
-    def delete(
+    def addIndex(
         cls, 
         db: Driver, 
-        **kwargs: dict
-    ) -> None:
+        by: str
+    ) -> Callable:
         """
-        Remove all nodes from the graph, or optionally specify node-matching parameters.
+        Indexes add a unqie constraint as well as speeding up queries
+        on the graph database. 
         """
-        entity = cls(**kwargs)
-
-        return executeQuery(
-            db=db,
-            access_mode="write",
-            method=lambda tx: tx.run(
-                f"MATCH {repr(entity)} DETACH DELETE {entity._symbol}"
-            ).values(),
-        )
+        query = lambda tx: tx.run(f"CREATE INDEX ON : {cls.__name__}({by})")
+        return executeQuery(db, query, access_mode="write")
 
     @classmethod
     def addLabel(
@@ -231,38 +223,6 @@ class Entity(object):
         ).single()[0]
         return executeQuery(db, query, access_mode="read")
 
-    @classmethod
-    def records(
-        cls, 
-        db: Driver, 
-        user: Any = None, 
-        annotate: str = "Get", 
-        result: str = None, 
-        **kwargs: dict
-    ) -> (Node,):
-        """
-        Load database nodes as in-memory record.
-        """
-        entity = cls(**kwargs)
-        symbol = entity._symbol
-        cmd = (
-            (
-                f"MATCH {repr(entity)}, {repr(user._setSymbol('u'))} "
-                f"MERGE ({symbol})<-[r:{annotate}]-({user._symbol}) "
-                f"ON CREATE SET r.rank = 1 "
-                f"ON MATCH SET r.rank = r.rank + 1 "
-                f"RETURN {symbol}{'.{}'.format(result) if result else ''}"
-            )
-            if user
-            else (
-                f"MATCH {repr(entity)} "
-                f"RETURN {symbol}{'.{}'.format(result) if result else ''}"
-            )
-        )
-    
-        result = executeQuery(db, lambda tx: tx.run(cmd).values(), access_mode="read")
-        return result
-
     @polymorphic
     def create(
         self, 
@@ -291,15 +251,18 @@ class Entity(object):
 
         executeQuery(db, lambda tx: tx.run(f"MERGE {repr(e)}"))
 
-        for fcn in bind:
-            setattr(e, fcn.__name__, MethodType(fcn, e))
+        for each in link:
+            Link.join(db, (e, each), {})
 
-        existingCapabilities: dict = {x.name: x.uuid for x in TaskingCapabilities.load(db)}
+        # for fcn in bind:
+        #     setattr(e, fcn.__name__, MethodType(fcn, e))
+
+        # existingCapabilities: dict = {x.name: x.uuid for x in TaskingCapabilities.load(db)}
         
-        boundMethods = set(y[0] for y in filter(lambda x: isinstance(x[1], Callable), e.__dict__.items()))
-        classMethods = set(filter(lambda x: x[: len(private)] != private, dir(e)))
-        instanceKeys: set = (boundMethods | classMethods) - set(e._properties())
-        existingKeys = set(existingCapabilities.keys())
+        # boundMethods = set(y[0] for y in filter(lambda x: isinstance(x[1], Callable), e.__dict__.items()))
+        # classMethods = set(filter(lambda x: x[: len(private)] != private, dir(e)))
+        # instanceKeys: set = (boundMethods | classMethods) - set(e._properties())
+        # existingKeys = set(existingCapabilities.keys())
 
         # for key in (existingKeys & instanceKeys):
         #     Link.join(
@@ -333,6 +296,32 @@ class Entity(object):
 
         if isclass(self):
             return e
+
+    @classmethod
+    def delete(
+        cls, 
+        db: Driver, 
+        **kwargs: dict
+    ) -> None:
+        """
+        Remove all nodes from the graph, or optionally specify node-matching parameters.
+        """
+        entity = cls(**kwargs)
+
+        return executeQuery(
+            db=db,
+            access_mode="write",
+            method=lambda tx: tx.run(
+                f"MATCH {repr(entity)} DETACH DELETE {entity._symbol}"
+            ).values(),
+        )
+
+    @classmethod
+    def dropIndex(cls, db, by):
+        # type: (Entity, Driver, str) -> Callable
+        query = lambda tx: tx.run(f"DROP INDEX ON : {cls.__name__}({by})")
+        return executeQuery(db, query, access_mode="write")
+
     
     @classmethod
     def load(cls, db, user=None, private="_", **kwargs):
@@ -349,6 +338,58 @@ class Entity(object):
                 map(processKeyValueOutbound, dict(rec[0]).items())
             }))
         return payload
+
+    @classmethod
+    def mutation(
+        cls: Any, 
+        db: Driver, 
+        data: dict, 
+        **kwargs: dict
+    ) -> Callable:
+        """
+        Update/add node properties
+        """
+        e = cls(**kwargs)
+        _updates = ", ".join(map(processKeyValueInbound, data.items()))
+        return executeQuery(
+            db=db,
+            access_mode="write",
+            method=lambda tx: tx.run(
+                f"MATCH {repr(e)} SET {e._symbol} += {{ {_updates} }}"
+            ).values(),
+        )
+
+    @classmethod
+    def records(
+        cls, 
+        db: Driver, 
+        user: Any = None, 
+        annotate: str = "Get", 
+        result: str = None, 
+        **kwargs: dict
+    ) -> (Node,):
+        """
+        Load database nodes as in-memory record.
+        """
+        entity = cls(**kwargs)
+        symbol = entity._symbol
+        cmd = (
+            (
+                f"MATCH {repr(entity)}, {repr(user._setSymbol('u'))} "
+                f"MERGE ({symbol})<-[r:{annotate}]-({user._symbol}) "
+                f"ON CREATE SET r.rank = 1 "
+                f"ON MATCH SET r.rank = r.rank + 1 "
+                f"RETURN {symbol}{'.{}'.format(result) if result else ''}"
+            )
+            if user
+            else (
+                f"MATCH {repr(entity)} "
+                f"RETURN {symbol}{'.{}'.format(result) if result else ''}"
+            )
+        )
+    
+        result = executeQuery(db, lambda tx: tx.run(cmd).values(), access_mode="read")
+        return result
 
     def serialize(self, db, service, protocol="http", select=None):
         # type: (Entity, Driver, str, str, (str,)) -> dict

@@ -8,7 +8,8 @@ from flask import request
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
 from bathysphere import appConfig, app
-from bathysphere.graph.drivers import connect, storeJson
+from bathysphere.graph.drivers import connect, storeJson, Driver
+from bathysphere.datatypes import ResponseJSON
 from bathysphere.graph.models import (
     Actuators,
     Assets,
@@ -74,38 +75,57 @@ def context(fcn):
     return _wrapper
 
 
-def register(body, **kwargs):
-    # type: (dict, dict) -> (dict, int)
+def register(
+    body: dict, 
+    **kwargs: dict
+) -> ResponseJSON:
     """
     Register a new user account
     """
     db = connect(host, port, accessKey)
     if db is None:
-        return {"message": "no graph backend"}, 500
-    apiKey = request.headers.get("x-api-key", None)
-    ingress = Providers.load(db=db, apiKey=apiKey)
-    if len(ingress) != 1:
-        return {"message": "bad API key"}, 403
-    portOfEntry = ingress.pop()
+        return {"message": "No graph backend."}, 500
 
+    apiKey = request.headers.get("x-api-key") or body.get("apiKey")
+    if not apiKey:
+        message = (
+            "Registration requires a valid value supplied as the `x-api-key` "
+            "or `apiKey` in the request body. This is used to associate your "
+            "account with a public or private ingress."
+        )
+        return {"message": message}, 403
+    
+    providers = Providers.load(db=db, apiKey=apiKey)
+    if len(providers) != 1:
+        return {"message": "Bad API key."}, 403
+
+    entryPoint = providers.pop()
     username = body.get("username")
+    
     if not ("@" in username and "." in username):
         return {"message": "use email"}, 403
-
-    if User.records(db=db, identity=username, result="id"):
-        return {"message": "invalid email"}, 403
-
     _, domain = username.split("@")
-    if portOfEntry.name != "Public" and domain != portOfEntry.url:
+
+    if User.records(db=db, name=username, result="id"):
         return {"message": "invalid email"}, 403
-    _ = User.create(
-        db=db,
-        links=[{"label": "Member", "cls": Providers.__name__, "id": portOfEntry.id}],
+
+    if entryPoint.name != "Public" and domain != entryPoint.domain:
+        message = (
+            "You are attempting to register for a private ingress "
+            "without a matching e-mail address. Contact the "
+            "administrator of the account for access."
+        )
+        return {"message": message}, 403
+
+    User(
         name=username,
         credential=custom_app_context.hash(body.get("password")),
-        ip=request.remote_addr,
+        ip=request.remote_addr
+    ).create(
+        db=db,
+        links=[{"label": "Member", "cls": Providers.__name__, "id": entryPoint.id}]
     )
-    return None, 204
+    return {"message": f"Registered as a member of {entryPoint.name}."}, 200
 
 
 @context
@@ -125,10 +145,15 @@ def manage(db, user, body, **kwargs):
 
 
 @context
-def token(db, user, provider, secret=None, **kwargs):
-    # type: (Driver, User, str, dict) -> (dict, int)
+def token(
+    db, 
+    user, 
+    provider, 
+    secret=None, 
+    **kwargs
+) -> ResponseJSON:
     """
-    Send an auth token back for future sessions
+    Send a JavaScript Web Token back to authorize future sessions
     """
     if not user:
         return None, 403
@@ -145,8 +170,13 @@ def token(db, user, provider, secret=None, **kwargs):
 
 
 @context
-def catalog(db, user, host, port, **kwargs):
-    # type: (Driver, User, str, int, dict) -> (dict, int)
+def catalog(
+    db: Driver, 
+    user: User, 
+    host: str, 
+    port: str, 
+    **kwargs: dict
+) -> ResponseJSON:
     """
     Usage 1. Get references to all entity sets, or optionally filter
     """
