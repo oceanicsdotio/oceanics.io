@@ -8,6 +8,7 @@ from neo4j import Driver
 from retry import retry
 from requests import post
 
+
 class polymorphic(object):
 
     def __init__(self, f):
@@ -68,7 +69,9 @@ def processKeyValueInbound(
         return f"{key}: '{dumps(value)}'"
 
     if isinstance(value, str) and value and value[0] == "$":
-        return f"{key}: {value}"
+        # TODO: This hardcoding is bad, but the $ picks up credentials
+        if len(value) < 64:
+            return f"{key}: {value}"
     
     if value is not None:
         return f"{key}: {dumps(value)}"

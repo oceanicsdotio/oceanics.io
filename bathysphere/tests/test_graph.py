@@ -9,7 +9,7 @@ from bathysphere.graph.models import Collections
 YEAR = 2019
 COLLECTION = "test-handlers-data-collection"
 ASSET = "test-handlers-data-asset"
-testAuth = ("testing@oceanics.io", "n0t_passw0rd")
+testAuth = ("testing@oceanics.io", "n0t_passw0rd", "something secret")
 
 
 @pytest.mark.teardown
@@ -17,7 +17,7 @@ def test_graph_teardown(graph):
     """
     Destroy the graph.
     """
-    Entity.delete(graph("localhost", 7687, testAuth[1]))
+    Entity.delete(graph("localhost", 7687, testAuth[1]))  # pylint: disable=no-value-for-parameter
     
 
 def test_graph_account_create_user(client):
@@ -25,16 +25,15 @@ def test_graph_account_create_user(client):
     Create the service account user
     """
     credentials = getCredentials()
-    data = {
+    payload = {
         "username": testAuth[0],
         "password": testAuth[1],
-        "secret": "something secret",
-        "apiKey": credentials["Oceanicsdotio"],  # empty string means public
+        "secret": testAuth[2],
+        "apiKey": credentials["Oceanicsdotio"]
     }
-    print(data)
     response = client.post(
-        "api/auth", json=data)
-    assert response.status_code == 204, response.get_json()
+        "api/auth", json=payload)
+    assert response.status_code == 200, response.get_json()
 
 
 def test_graph_account_get_token(token):

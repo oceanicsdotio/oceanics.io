@@ -23,12 +23,12 @@ class Link:
     They are directional.
     """
     _symbol: str = attr.ib(default="r")
-    _rank: int = attr.ib(default=0)
+    rank: int = attr.ib(default=None)
     uuid: UUID = attr.ib(default=None)
-    props: dict = attr.ib(default=attr.Factory(dict))
+    props: dict = attr.ib(default=None)
     label: str = attr.ib(default=None)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """
         Format the Link for making a Cypher language query
         to the Neo4j graph database
@@ -36,12 +36,13 @@ class Link:
         [ r:Label { <key>:<value>, <key>:<value> } ]
         """
         labelStr = f":{self.label}" if self.label else ""
-        pattern = ""
-        if self.props:
-            _pattern = filter(
-                lambda x: x, map(processKeyValueInbound, self.props.items())
-            )
-            pattern += f"{{ {', '.join(_pattern)} }}"
+        combined:Generator = {
+            "uuid": self.uuid, 
+            "rank": self.rank, 
+            **(self.props or {})
+        }.items()
+        nonNullValues:Generator = filter(lambda x: x, map(processKeyValueInbound, combined))
+        pattern = "" if self.props is None else f"""{{ {', '.join(nonNullValues)} }}"""
         return f"[ {self._symbol}{labelStr} {pattern} ]"
 
     @classmethod
@@ -59,34 +60,46 @@ class Link:
         cmd = f"MATCH {repr(a)}-{repr(r)}-{repr(b)} DELETE {r._symbol}"
         return executeQuery(db, lambda tx: tx.run(cmd), access_mode="write")
 
-    @classmethod
+    @polymorphic
     def join(
-        cls: Type, 
+        self: Type, 
         db: Driver, 
-        nodes: (Any, Any), 
-        props: dict
+        nodes: (Any, Any),
+        props: dict = None
     ) -> None:
         """
-        Create a link between two node patterns. 
+        Create a link between two node patterns. This uses the `polymorphic` decorator
+        to work on either classes or isntances. 
+
+        If calling as an instance of `Link`, no addtional properties should be supplied.
+        Otherwise, a `Link` will be constructed from the `props` arguement.
+
+        There must be exactly 2 entities to link. In the future this will support N-body
+        symmetric linking. 
         """
+        if isclass(self):
+            L = self(**(props or {}))  # pylint: disable=not-callable
+        elif props is not None and len(props) > 0:
+            raise ValueError("No additional props allowed when using existing Link instance.")
+        else:
+            L = self
         try:
             a, b = nodes
         except ValueError:
-            raise ValueError("Join requires 2 (and only two) node patterns.")
-
-        cmd = f"MATCH {repr(a)}, {repr(b)} MERGE ({a._symbol})-{repr(cls(**props))}->({b._symbol})"
-        return executeQuery(db, lambda tx: tx.run(cmd), access_mode="write")
+            raise ValueError("Join requires a tuple of exactly 2 entities.")
+        
+        cmd = f"MATCH {repr(a)}, {repr(b)} MERGE ({a._symbol})-{repr(L)}->({b._symbol})"
+        executeQuery(db, lambda tx: tx.run(cmd), access_mode="write")
 
     @classmethod
     def query(
         cls: Type, 
         db: Driver, 
-        label: str =None, 
+        label: str = None, 
         result: str = "labels(b)", 
         pattern: dict = None, 
-        **kwargs
+        **kwargs: dict
     ) -> (Any,):
-        # type: (Driver, str, str, Entity, **dict) -> (Any,)
         """
         Match and return the label set for connected entities.
 
@@ -120,6 +133,7 @@ class Entity(object):
         """
         className = str(self)
         entity = "" if className == Entity.__name__ else f":{className}"
+        
         try:
             pattern = tuple(filter(
                 lambda x: x is not None, 
@@ -226,8 +240,7 @@ class Entity(object):
     @polymorphic
     def create(
         self, 
-        db: Driver, 
-        link: (dict) = (), 
+        db: Driver,
         bind: (Callable) = (),
         uuid: str = uuid4().hex,
         private: str = "_",
@@ -245,14 +258,12 @@ class Entity(object):
         """
 
         if isclass(self):
-            e = self(uuid=uuid, **kwargs)  # pylint: disable=not-callable
+            entity = self(uuid=uuid, **kwargs)  # pylint: disable=not-callable
         else:
-            e = self
+            entity = self
 
-        executeQuery(db, lambda tx: tx.run(f"MERGE {repr(e)}"))
+        executeQuery(db, lambda tx: tx.run(f"MERGE {repr(entity)}"))
 
-        for each in link:
-            Link.join(db, (e, each), {})
 
         # for fcn in bind:
         #     setattr(e, fcn.__name__, MethodType(fcn, e))
@@ -293,20 +304,25 @@ class Entity(object):
         #         (e, TaskingCapabilities(id=existingCapabilities[key])),
         #         props={"label": "Has"}
         #     )
+        return entity
 
-        if isclass(self):
-            return e
-
-    @classmethod
+    @polymorphic
     def delete(
-        cls, 
+        self, 
         db: Driver, 
-        **kwargs: dict
+        pattern: dict = None
     ) -> None:
         """
         Remove all nodes from the graph, or optionally specify node-matching parameters.
+
+        This method works on both classes and instances. 
         """
-        entity = cls(**kwargs)
+        if isclass(self):
+            entity = self(**pattern)  # pylint: disable=not-callable
+        elif pattern is not None:
+            raise ValueError("Pattern supplied for delete from entity instance.")
+        else:
+            entity = self
 
         return executeQuery(
             db=db,

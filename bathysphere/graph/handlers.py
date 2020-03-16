@@ -2,6 +2,7 @@ from functools import reduce
 from os import getenv
 from itertools import chain
 from datetime import datetime
+from uuid import uuid4
 
 from passlib.apps import custom_app_context
 from flask import request
@@ -117,14 +118,18 @@ def register(
         )
         return {"message": message}, 403
 
-    User(
+    user = User(
         name=username,
         credential=custom_app_context.hash(body.get("password")),
         ip=request.remote_addr
-    ).create(
-        db=db,
-        links=[{"label": "Member", "cls": Providers.__name__, "id": entryPoint.id}]
-    )
+    ).create(db=db)
+
+    try:
+        Link(label="Member", rank=0).join(db=db, nodes=(user, entryPoint))
+    except Exception as ex:
+        user.delete(db=db)  # make sure not to leave an orphaned User
+        raise ex
+
     return {"message": f"Registered as a member of {entryPoint.name}."}, 200
 
 
@@ -240,7 +245,7 @@ def mutate(body, db, entity, id, user, **kwargs):
         else (),
     )
 
-    Link.join(db=db, nodes=(cls(id=id), createLinks), props=None)
+    Link().join(db=db, nodes=(cls(id=id), createLinks))
     return None, 204
 
 
@@ -285,7 +290,7 @@ def query(db, root, rootId, entity, service, **kwargs):
 @context
 def delete(db, entity, uuid, **kwargs):
     # type: (Driver, str, int, dict) -> (None, int)
-    eval(entity).delete(db, uuid=id)
+    eval(entity).delete(db, uuid=uuid)
     return None, 204
 
 
