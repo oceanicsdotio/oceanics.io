@@ -92,8 +92,9 @@ try:
     from sklearn.metrics import r2_score
 
 except ImportError:
-    from math import ceil
+    from math import ceil, pi
     from itertools import repeat
+
 
 from bathysphere.datatypes import ExtentType, IntervalType, DataFormat
 
