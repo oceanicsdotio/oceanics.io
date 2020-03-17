@@ -1,24 +1,19 @@
 import pytest
 from json import load
 from pickle import loads as unpickle
+
 try:
+    from numpy import random, argmax, argmin, arange, array, vstack, pi
+    from numpy.random import random
     from numpy import where
     from numpy.ma import MaskedArray
-except:
-    pass
-
-from bathysphere.datatypes import Memory
-from bathysphere.future.utils import interp2d_nearest
-
-
-try:
-    from numpy import random, argmax, argmin, arange, array, vstack
-    from numpy.random import random
     from matplotlib import pyplot as plt
 except ImportError as _:
-    pass
+    pi = 3.1415926
 
-from bathysphere.datatypes import ConvexHull
+from bathysphere.datatypes import Memory, ConvexHull
+from bathysphere.future.utils import interp2d_nearest
+
 
 def test_datatypes_convex_hull():
     groups = (
