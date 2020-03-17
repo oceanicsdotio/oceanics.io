@@ -16,7 +16,9 @@ from bathysphere.graph.models import (
     Assets,
     Collections,
     DataStreams,
+    FeaturesOfInterest,
     Link,
+    Locations,
     Observations,
     ObservedProperties,
     Providers,
@@ -59,7 +61,7 @@ def context(fcn) -> Callable:
         else:
             secretKey = request.headers.get("x-api-key", "salt")
             decoded = Serializer(secretKey).loads(password)
-            accounts = User.load(db, **{"uuid": decoded["uuid"]})
+            accounts = User(uuid=decoded["uuid"]).load(db=db)
             if len(accounts) != 1:
                 raise ValueError
             user = accounts.pop()
@@ -213,24 +215,35 @@ def catalog(
 
 @context
 def create(
-    db, user, entity, body, service, providers, hmacKey=None, headers=None, **kwargs
-):
-    # type: (Driver, User, str, dict, str, (Providers,), str, dict, **dict) -> (dict, int)
+    db: Driver, 
+    user: User, 
+    entity: str,
+    body: dict, 
+    provider: Providers, 
+    service: str = "localhost", 
+    hmacKey: str = None, 
+    headers: str = None, 
+    **kwargs
+) -> ResponseJSON:
     """
-    Attach to db, and find available ID number to register the entity
+    Attach to db, and find available ID number to register the entity.
     """
     _ = body.pop("entityClass")  # only used for API discriminator
-    provenance = tuple(
-        {"cls": Providers.__name__, "uuid": p.uuid} for p in providers
-    ) + ({"cls": User.__name__, "uuid": user.uuid, "label": "Post"},)
-    declaredLinks = map(
-        lambda k, v: (each.update({"cls": k}) for each in v), body.pop("links", {}).items()
-    )
-    link = (link.update({"confidence": 1.0}) for link in chain(provenance, *declaredLinks))
-    e = eval(entity).create(db, link, **body)
-    data = e.serialize(db, service=service)
-    if entity in (Collections.__name__,):
-        storeJson(e.name.lower().replace(" ", "-"), data, hmacKey, headers)
+    entity = eval(entity)(**body).create(db=db)
+    data = entity.serialize(db, service=service)
+
+    # provenance = tuple(
+    
+    # ) + ({"cls": User.__name__, "uuid": user.uuid, "label": "Post"},)
+    
+    # declaredLinks = map(
+    #     lambda k, v: (each.update({"cls": k}) for each in v), body.pop("links", {}).items()
+    # )
+    # link = (link.update({"confidence": 1.0}) for link in chain(provenance, *declaredLinks))
+    
+    
+    # if entity in (Collections.__name__,):
+    #     storeJson(e.name.lower().replace(" ", "-"), data, hmacKey, headers)
     return {"message": f"Create {entity}", "value": data}, 200
 
 

@@ -97,25 +97,34 @@ class Link:
             print(cmd)
         executeQuery(db, lambda tx: tx.run(cmd), access_mode="write")
 
-    @classmethod
+    @polymorphic
     def query(
-        cls: Type, 
+        self: Type, 
         db: Driver, 
-        label: str = None, 
+        nodes: (Any, Any), 
+        props: dict = None,
         result: str = "labels(b)", 
-        pattern: dict = None, 
-        **kwargs: dict
     ) -> (Any,):
         """
         Match and return the label set for connected entities.
 
         Increment the pageRank every time the link is traversed.
         """
+        if isclass(self):
+            L = self(**(props or {}))  # pylint: disable=not-callable
+        elif props is not None and len(props) > 0:
+            raise ValueError("No additional props allowed when using existing Link instance.")
+        else:
+            L = self
+        try:
+            a, b = nodes
+        except ValueError:
+            raise ValueError("Join requires a tuple of exactly 2 entities.")
+        a._setSymbol("a")
+        b._setSymbol("b")
+
         cmd = (
-            f"MATCH "
-            f"{repr(cls(**kwargs))}-"
-            f"{f'[r:{label}]' if label else '[r]'}-"
-            f"{repr(pattern or Entity())}"
+            f"MATCH {repr(a)}-{repr(L)}-{repr(b)}"
             f"SET r.rank = r.rank + 1 "
             f"RETURN {result}"
         )
@@ -324,7 +333,7 @@ class Entity(object):
         This method works on both classes and instances. 
         """
         if isclass(self):
-            entity = self(**pattern)  # pylint: disable=not-callable
+            entity = self(**(pattern or {}))  # pylint: disable=not-callable
         elif pattern is not None:
             raise ValueError("Pattern supplied for delete from entity instance.")
         else:
@@ -419,8 +428,13 @@ class Entity(object):
         result = executeQuery(db, lambda tx: tx.run(cmd).values(), access_mode="read")
         return result
 
-    def serialize(self, db, service, protocol="http", select=None):
-        # type: (Entity, Driver, str, str, (str,)) -> dict
+    def serialize(
+        self, 
+        db: Driver, 
+        service: str, 
+        protocol: str = "http", 
+        select: (str) = None
+    ) -> dict:
         """
         Format entity as JSON compatible dictionary from either an object instance or a Neo4j <Node>
 
@@ -430,7 +444,7 @@ class Entity(object):
         """
         restricted = {"User", "Providers", "Root"}
         props = self._properties(select=select, private="_")
-        identity = props.pop("id")
+        identity = props.pop("uuid")
         cls = type(self).__name__
         base_url = f"{protocol}://{service}/api/"
         root_url = f"{base_url}/{cls}"
@@ -440,6 +454,14 @@ class Entity(object):
             else f"{base_url}/{self.uuid}"
         )
 
+        linkedEntities = set(
+            label for buffer in Link().query(
+                db=db, nodes=(self, Entity())
+            )
+            for label in buffer[0]
+            if buffer not in restricted
+        )
+
         return {
             "@iot.id": identity,
             "@iot.selfLink": self_url,
@@ -447,15 +469,8 @@ class Entity(object):
             **props,
             **{
                 each + "@iot.navigation": f"{self_url}/{each}"
-                for each in set(
-                    label
-                    for buffer in Link.query(
-                        db, parent={"cls": repr(self), "id": identity}
-                    )
-                    for label in buffer[0]
-                    if buffer not in restricted
-                )
-            },
+                for each in linkedEntities
+            }
         }
 
 

@@ -231,6 +231,7 @@ kind: Locations
 metadata:
   Ingresses@iot.navigation:
     - domain: [ maine.edu, loboviz.com ]
+
 spec:
   name: Maine Loboviz Archive
   location:
@@ -239,14 +240,15 @@ spec:
     host: maine.loboviz.com
     port: 80
     service: bathysphere_functions_archive
-  auth:
-    basic:
+    auth:
+      basic:
 ---
 apiVersion: extensions/sensing
 kind: Locations
 metadata:
   Ingresses@iot.navigation:
     - domain: [ maine.edu, loboviz.com ]
+  
 spec:
   name: Maine Loboviz Sensor Metadata
   location:
@@ -255,8 +257,8 @@ spec:
     host: maine.loboviz.com
     port: 80
     service: bathysphere_functions_archive
-  auth:
-    basic:
+    auth:
+      basic:
 ---
 apiVersion: extensions/sensing
 kind: Locations
@@ -319,6 +321,7 @@ metadata:
         bucketName: oceanicsdotio
         lockFile: lock.json
         indexFile: index.json
+
 spec:
   name: Object Storage
   location:
@@ -329,11 +332,11 @@ spec:
     connection:
       retries: 3
       delay: 1
-    auth:
-      basic:
     headers:
       x-amz-acl: private
       x-amz-meta-service: bathysphere
+    auth:
+      basic:
 ---
 apiVersion: extensions/sensing
 kind: Locations
@@ -364,6 +367,7 @@ metadata:
     - domain: [ oceanics.io ]
       props:
         database: bathysphere
+  
 spec:
   name: Spatiotemporal Database
   location:
@@ -382,6 +386,7 @@ kind: Locations
 metadata:
   Ingresses@iot.navigation:
     - domain: [ oceanics.io ]
+  
 spec:
   name: API Cache
   location:
