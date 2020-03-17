@@ -1,6 +1,14 @@
 import pytest
-from bathysphere.datatypes import Memory
+from json import load
+from pickle import loads as unpickle
+try:
+    from numpy import where
+    from numpy.ma import MaskedArray
+except:
+    pass
 
+from bathysphere.datatypes import Memory
+from bathysphere.future.utils import interp2d_nearest
 
 NBYTES = 100
 
@@ -15,14 +23,14 @@ NBYTES = 100
 
 def subset(xx, yy, field, samples, mask):
     # type: (array, array, array, array) -> array
-    from numpy import where
+    
     
     total = (~mask).sum()
     nsamples = min(samples, total)
     inds = where(~mask)[0], nsamples
     xx = xx[inds]
     yy = yy[inds]
-    zz = interp2d_nearest(xx, yy, field.data.flatten())
+    zz = interp2d_nearest((xx, yy), field.data.flatten())
     return [xx, yy, zz]
 
 

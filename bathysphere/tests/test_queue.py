@@ -7,7 +7,7 @@ from bathysphere import app
 
 
 # @job('low', connection=my_redis_conn, timeout=5)
-def numberOfTheBeast(a, b):
+def theUltimateAnswer(a, b):
     sleep(3)
     return 42, a, b
 
@@ -46,7 +46,7 @@ def scheduleJob():
     )
     q = Queue(connection=cache)  # no args implies the default queue
     job = q.enqueue(
-        numberOfTheBeast, args=("foo", "bar"), result_ttl=500, job_timeout=180
+        theUltimateAnswer, args=("foo", "bar"), result_ttl=500, job_timeout=180
     )
     print(job.result)  # => None
 
