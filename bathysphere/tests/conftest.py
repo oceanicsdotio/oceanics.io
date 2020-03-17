@@ -76,18 +76,6 @@ def numberOfTheBeast(a, b):
     return 42, a, b
 
 
-def validateCreateTx(create, get, cls, props, db):
-    response = create(cls, props)
-    data = response.get_json()
-    assert response.status_code == 200, data
-    assert eval(cls).count(db) > 0
-    payload = data.get("value")
-    obj_id = payload.get("@iot.id")
-    response = get(cls, obj_id)
-    assert response.status_code == 200, response.get_json()
-    return obj_id
-
-
 @pytest.fixture(scope="session")
 def client():
     """
@@ -176,6 +164,9 @@ def create_entity(client, token):
             json={"entityClass": cls, **properties},
             headers={"Authorization": ":" + token.get("token", "")},
         )
+
+        data = response.get_json()
+        assert response.status_code == 200, data
         return response
 
     return _make_request
@@ -252,19 +243,6 @@ def config_no_app():
     }
     return defaults
 
-#
-# def pick_one(storage):
-#
-#     bucket = app.app.config["bucketName"]
-#
-#     def _filter(x):
-#         obj = storage.stat_object(bucket_name=bucket, object_name=x.object_name)
-#         return obj.metadata["x-amz-meta-service-file-type"] == "experiment"
-#
-#     objs = list(filter(_filter, storage.list_objects(bucket_name=bucket)))
-#     return objs[0].object_name
-
-
 def pad(val, n: int = 9):
     if isinstance(val, float):
         val = str(int(val))
@@ -288,72 +266,6 @@ def collector(object_storage):
     yield _collect
     object_storage.create(data=_collect, label="")
 
-
-# def single_index(fname, field, index):
-#     nc = Dataset(fname, "r")  # open NetCDF for reading
-#     print("Model:", nc.title)
-#     print("Format:", nc.Conventions)
-#     data = nc.variables[field][0:240, index]
-#     return data
-
-
-def subset(xx, yy, field, samples, mask):
-    # type: (array, array, array, array) -> array
-    total = (~mask).sum()
-    nsamples = min(samples, total)
-    inds = where(~mask)[0], nsamples
-    xx = xx[inds]
-    yy = yy[inds]
-    zz = interp2d_nearest(xx, yy, field.data.flatten())
-    return [xx, yy, zz]
-
-
-def current_speed(localdir, mesh, window):
-    ua = load(Path(localdir + "fvcom/ua.pkl").open("rb"))
-    va = load(Path(localdir + "fvcom/va.pkl").open("rb"))
-    return ((ua * ua + va * va) ** 0.5).transpose()
-
-
-# def avgvert(fname, key, mesh, host):
-#     nc = Dataset(fname, "r")
-#     temp = nc.variables[key]
-#     nodes = mesh._GridObject__triangles[host, :]
-#     aa = temp[0:240, 0, nodes[0]]
-#     bb = temp[0:240, 0, nodes[1]]
-#     cc = temp[0:240, 0, nodes[2]]
-#     return (aa + bb + cc) / 3.0
-
-
-def scan(dataset, attribute, required=None, verb=False):
-    # type: (Dataset, str, set, bool) -> None
-    flag = required is not None
-    for var in getattr(dataset, attribute).values():
-        if flag:
-            required -= {var.name}
-        if verb and attribute == "dimensions":
-            print(f"{var.name}: {var.size}")
-        if verb and attribute == "variables":
-            print(
-                f"{var.name}: {var.datatype}, {var.dimensions}, {var.size}, {var.shape}"
-            )
-
-
-def load_config():
-    fid = open("config/app.yml")
-    config = load_yml(fid, Loader)
-    s3 = config["storage"]
-    s3["access_key"] = getenv("storageAccessKey")
-    s3["secret_key"] = getenv("storageSecretKey")
-    return config
-
-
-def validate_remote_dataset(storage, dataset, dtype=(MaskedArray, dict, dict)):
-    # type: (Storage, str, (type,)) -> None
-    fetched = load(storage.get(f"{dataset}/index.json"))
-    assert fetched
-    for each in fetched:
-        for i in unpickle(storage.get(f"{dataset}/{each}").data):
-            assert isinstance(i, dtype)
 
 
 # def validate_shape(shape, proj):

@@ -12,6 +12,7 @@ python_version = "3.7"
 
 [packages]
 colorama = "*"
+pytest-cov = "*"
 
 [packages.e1839a8]
 path = "."

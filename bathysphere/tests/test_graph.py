@@ -1,16 +1,34 @@
 import pytest
-from bathysphere import app
-from bathysphere.graph.models import Entity
 from os import getenv
 
-from bathysphere.tests.conftest import client, graph, getCredentials
-from bathysphere.graph.models import Collections
+from pytest import mark
+
+from datetime import datetime
+from json import dump
+
+from bathysphere import app, appConfig
+from bathysphere.tests.conftest import client, graph, getCredentials, validateCreateTx
+from bathysphere.graph.models import (
+    Locations,
+    Sensors,
+    Things,
+    Observations,
+    ObservedProperties,
+    FeaturesOfInterest,
+    DataStreams,
+    Collections,
+    Entity,
+    TaskingCapabilities,
+    Tasks,
+    Actuators
+)
 
 YEAR = 2019
 COLLECTION = "test-handlers-data-collection"
 ASSET = "test-handlers-data-asset"
 testAuth = ("testing@oceanics.io", "n0t_passw0rd", "something secret")
 CREDENTIALS = ("testing@oceanics.io", "n0t_passw0rd")
+
 
 
 @pytest.mark.teardown
@@ -83,7 +101,108 @@ def test_graph_account_delete_user(client, token):
             "apiKey": credentials["Oceanicsdotio"]
         },
     )
+    assert response.status_code == 200, response.get_json()
+
+
+
+def test_graph_sensorthings_locations_create(create_entity, get_entity, graph):
+    cls = Locations.__name__
+    objs = [
+        validateCreateTx(create_entity, get_entity, cls, props, graph)
+        for props in appConfig[cls]
+    ]
+
+
+def test_graph_sensorthings_locations_weather_report(graph):
+
+    location = Locations.load(db=graph, name="Upper Damariscotta Estuary").pop()
+
+    response = location.reportWeather(
+        url="https://api.darksky.net/forecast",
+        ts=datetime(2016, 2, 1, 0, 0, 0),
+        api_key=app.app.config["DARKSKY_API_KEY"],
+    )
+    assert response.ok, response.json()
+    with open("data/test_darksky.json", "w+") as fid:
+        dump(response.json(), fid)
+
+
+def test_graph_sensorthings_sensors_create(create_entity, get_entity, graph):
+    cls = Sensors.__name__
+    objs = [
+        validateCreateTx(create_entity, get_entity, cls, props, graph)
+        for props in appConfig[cls]
+    ]
+
+
+def test_graph_sensorthings_things_create(create_entity, get_entity, graph):
+    cls = Things.__name__
+    objs = [
+        validateCreateTx(create_entity, get_entity, cls, props, graph)
+        for props in appConfig[cls]
+    ]
+
+
+def test_graph_sensorthings_observed_properties_create(create_entity, get_entity, add_link, graph):
+    cls = ObservedProperties.__name__
+    objs = [
+        validateCreateTx(create_entity, get_entity, cls, props, graph)
+        for props in appConfig[cls]
+    ]
+
+
+def test_graph_sensorthings_datastreams_create(create_entity, get_entity, graph):
+    cls = DataStreams.__name__
+    objs = [
+        validateCreateTx(create_entity, get_entity, cls, props, graph)
+        for props in appConfig[cls]
+    ]
+
+
+def test_graph_sensorthings_features_of_interest_create(create_entity, get_entity, graph):
+    cls = FeaturesOfInterest.__name__
+    objs = [
+        validateCreateTx(create_entity, get_entity, cls, props, graph)
+        for props in appConfig[cls]
+    ]
+
+
+def test_graph_sensorthings_observations_create(create_entity, get_entity, graph):
+    cls = Observations.__name__
+    objs = [
+        validateCreateTx(create_entity, get_entity, cls, props, graph)
+        for props in appConfig[cls]
+    ]
+
+
+def test_graph_sensorthings_actuators_create(create_entity, get_entity, mutate_entity, graph):
+    """Class name of graph"""
+    cls = Actuators.__name__
+    objs = [
+        validateCreateTx(create_entity, get_entity, cls, props, graph)
+        for props in appConfig[cls]
+    ]
+
+    response = mutate_entity(cls, 0, {"description": "Looky a new description"})
     assert response.status_code == 204, response.get_json()
+
+
+def test_graph_sensorthings_capabilities_create(create_entity, get_entity, graph):
+    """Class name of graph"""
+    cls = TaskingCapabilities.__name__
+    objs = [
+        validateCreateTx(create_entity, get_entity, cls, props, graph)
+        for props in appConfig[cls]
+    ]
+
+
+def test_graph_sensorthings_tasks_create(create_entity, get_entity, graph):
+    """Class name of graph"""
+    cls = Tasks.__name__
+    objs = [
+        validateCreateTx(create_entity, get_entity, cls, props, graph)
+        for props in appConfig[cls]
+    ]
 
 
 

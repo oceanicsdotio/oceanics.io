@@ -32,7 +32,6 @@ NamedIndex = (Providers, Collections, User)
 host = "localhost"
 port = 7687
 accessKey = "n0t_passw0rd"
-
 DEBUG = True
 
 
@@ -135,8 +134,7 @@ def register(
             rank=0
         ).join(
             db=db, 
-            nodes=(user, entryPoint),
-            echo=True
+            nodes=(user, entryPoint)
         )
     except Exception as ex:
         user.delete(db=db)  # make sure not to leave an orphaned User

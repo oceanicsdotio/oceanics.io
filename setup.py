@@ -50,6 +50,7 @@ setup(
         "dev": [
             "pytest", 
             "pytest_dependency",
+            "pytest-cov"
             "docker-compose"
         ],
         "numerical": [
