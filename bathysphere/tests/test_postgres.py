@@ -1,17 +1,30 @@
-from requests import post
+import pytest
+from datetime import datetime
+from random import random
+from collections import OrderedDict
+from requests import post, get
 from json import dumps
 from os import getenv
 import hmac
 import hashlib
 
 
-from bathysphere_graph.models import Collections
+from bathysphere.graph.models import Collections
+
+
+PG_DP_NULL = "DOUBLE PRECISION NULL"
+PG_TS_TYPE = "TIMESTAMP NOT NULL"
+PG_GEO_TYPE = "GEOGRAPHY NOT NULL"
+PG_ID_TYPE = "INT PRIMARY KEY"
+PG_STR_TYPE = "VARCHAR(100) NULL"
 
 
 HMAC_KEY = getenv("HMAC_KEY")
 
 
 def test_postgres_create_maine_town_boundaries(create_entity):
+    props = ()
+    town = "Portland"
 
     data = dumps(
         {
@@ -57,7 +70,7 @@ def test_postgres_create_maine_town_boundaries(create_entity):
             counties[county] = _data["value"]["@iot.id"]
 
         response = create_entity(
-            cls,
+            "Locations",
             {
                 "location": {"type": "Polygon"},
                 "name": f"{town} Coast",
@@ -68,25 +81,6 @@ def test_postgres_create_maine_town_boundaries(create_entity):
         )
         assert response.status_code == 200, response.get_json()
 
-
-import pytest
-from datetime import datetime
-from random import random
-from collections import OrderedDict
-from requests import post, get
-from json import dumps
-from os import getenv
-import hmac
-import hashlib
-
-
-PG_DP_NULL = "DOUBLE PRECISION NULL"
-PG_TS_TYPE = "TIMESTAMP NOT NULL"
-PG_GEO_TYPE = "GEOGRAPHY NOT NULL"
-PG_ID_TYPE = "INT PRIMARY KEY"
-PG_STR_TYPE = "VARCHAR(100) NULL"
-
-HMAC_KEY = getenv("HMAC_KEY")
 
 
 def test_function_postgres_ingest_series_async():

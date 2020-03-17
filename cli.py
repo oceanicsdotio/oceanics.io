@@ -64,7 +64,7 @@ def test(group):
     groups = {"graph", "datatypes"}
     if group not in groups:
         click.secho(f"The valid groups are {groups}", fg="red")
-    cmd = f"pytest --cov-report html:htmlcov --cov=bathysphere/{group} -sk test_{group} --ignore bathysphere/tests/future_tests"
+    cmd = f"pytest --cov-report html:htmlcov --cov=bathysphere/{group} -sk test_{group}"
     click.secho(cmd, fg="green")
 
 

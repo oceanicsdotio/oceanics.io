@@ -1,4 +1,214 @@
 import pytest
+from json import load
+from pickle import loads as unpickle
+try:
+    from numpy import where
+    from numpy.ma import MaskedArray
+except:
+    pass
+
+from bathysphere.datatypes import Memory
+from bathysphere.future.utils import interp2d_nearest
+
+
+try:
+    from numpy import random, argmax, argmin, arange, array, vstack
+    from numpy.random import random
+    from matplotlib import pyplot as plt
+except ImportError as _:
+    pass
+
+from bathysphere.datatypes import ConvexHull
+
+def test_datatypes_convex_hull():
+    groups = (
+        random((100, 2)),
+        0.5 * random((100, 2)) + 1,
+        0.5 * random((100, 2)) - 1,
+    )
+
+    hulls = tuple(map(ConvexHull, groups))
+    hullsUnion = vstack(tuple(group[hi, :] for hi, group in zip(hulls, groups)))
+    union = ConvexHull(hullsUnion)
+    pts = vstack(groups)
+    subset = ConvexHull(pts)
+
+    fig, ax = plt.subplots(1, 2)
+    ax[0].set_title("Convex hull of all points")
+    ax[0].axis("equal")
+    ax[0].scatter(pts[:, 0], pts[:, 1], color="black")
+    ax[0].plot(pts[subset, 0], pts[subset, 1], color="black")
+
+    ax[1].set_title("Convex hull of hulls")
+    ax[1].axis("equal")
+    ax[1].plot(hullsUnion[union, 0], hullsUnion[union, 1], color="black")
+    for hull, group in zip(hulls, groups):
+        ax[1].plot(group[hull, 0], group[hull, 1], color="black")
+
+    fig.tight_layout()
+    fig.savefig(fname="convex-hull.png", bgcolor="none")
+
+
+NBYTES = 100
+
+
+# def single_index(fname, field, index):
+#     nc = Dataset(fname, "r")  # open NetCDF for reading
+#     print("Model:", nc.title)
+#     print("Format:", nc.Conventions)
+#     data = nc.variables[field][0:240, index]
+#     return data
+
+
+def subset(xx, yy, field, samples, mask):
+    # type: (array, array, array, array) -> array
+    
+    
+    total = (~mask).sum()
+    nsamples = min(samples, total)
+    inds = where(~mask)[0], nsamples
+    xx = xx[inds]
+    yy = yy[inds]
+    zz = interp2d_nearest((xx, yy), field.data.flatten())
+    return [xx, yy, zz]
+
+
+# def avgvert(fname, key, mesh, host):
+#     nc = Dataset(fname, "r")
+#     temp = nc.variables[key]
+#     nodes = mesh._GridObject__triangles[host, :]
+#     aa = temp[0:240, 0, nodes[0]]
+#     bb = temp[0:240, 0, nodes[1]]
+#     cc = temp[0:240, 0, nodes[2]]
+#     return (aa + bb + cc) / 3.0
+
+
+def scan(dataset, attribute, required=None, verb=False):
+    # type: (Dataset, str, set, bool) -> None
+    flag = required is not None
+    for var in getattr(dataset, attribute).values():
+        if flag:
+            required -= {var.name}
+        if verb and attribute == "dimensions":
+            print(f"{var.name}: {var.size}")
+        if verb and attribute == "variables":
+            print(
+                f"{var.name}: {var.datatype}, {var.dimensions}, {var.size}, {var.shape}"
+            )
+
+
+def validate_remote_dataset(storage, dataset, dtype=(MaskedArray, dict, dict)):
+    # type: (Storage, str, (type,)) -> None
+    fetched = load(storage.get(f"{dataset}/index.json"))
+    assert fetched
+    for each in fetched:
+        for i in unpickle(storage.get(f"{dataset}/{each}").data):
+            assert isinstance(i, dtype)
+
+
+def test_datatypes_memory_setup_mem_class():
+    """Setup and check internal data structures"""
+    mem = Memory(NBYTES)
+
+    assert len(mem.buffer) == NBYTES
+    assert len(mem.mask) == NBYTES
+    assert len(mem.map) == 0
+    assert mem.remaining == NBYTES
+
+
+def test_datatypes_memory_non_silent_init_failure():
+    """Raises memory error if requested buffer too long"""
+    try:
+        _ = Memory(size=NBYTES+1, max_size=NBYTES)
+    except MemoryError:
+        assert True
+    else:
+        assert False
+
+
+def test_datatypes_memory_request_for_too_much_memory_failure():
+    """Doesn't assign beyond available heap size"""
+    mem = Memory(NBYTES)
+    assert mem.remaining == NBYTES
+    try:
+        _ = mem.alloc(NBYTES + 1)
+    except MemoryError:
+        failed = True
+    else:
+        failed = False
+
+    assert failed
+
+
+def test_datatypes_memory_single_allocation():
+    """Assigning to pointer changes underlying data"""
+
+    mem = Memory(NBYTES)
+    n = NBYTES // 10
+    ptr = mem.alloc(n)
+    assert mem.remaining == NBYTES - n
+    assert mem.buffer[0] == b""
+    mem.set(ptr, b"a")
+    assert mem.buffer[0] == b"a"
+    assert mem.buffer[1] == b"a"
+
+    assert mem.free(ptr)
+
+    assert mem.remaining == NBYTES
+
+
+
+def test_storage_netcdf_variables_fixture(variables):
+
+    assert isinstance(variables, list)
+    assert variables
+    salinity = [var for var in variables if var.get("name") == "salinity"]
+    assert salinity.pop().get("dim", None) == 3
+
+
+def test_storage_netcdf_necofs_load_local(necofs):
+    """
+    Check metadata of well-known dataset
+    """
+    assert necofs.file_format == necofs.data_model == "NETCDF3_CLASSIC"
+    assert necofs.disk_format == "NETCDF3"
+    assert necofs.dimensions
+    assert necofs.isopen()
+
+    scan(necofs, attribute="dimensions", verb=True)
+    scan(necofs, attribute="variables", verb=True)
+
+
+def test_storage_netcdf_landsat_load_local(osi):
+    """
+    Check metadata of well-known dataset
+    """
+    assert osi.data_model == "NETCDF4_CLASSIC"
+    assert osi.isopen()
+    assert osi.file_format == "NETCDF4_CLASSIC"
+    assert osi.disk_format == "HDF5"
+
+    scan(osi, attribute="dimensions", required={"r", "c"}, verb=True)
+    scan(osi, attribute="variables", required={"lat", "lon", "OSI"}, verb=True)
+
+
+def test_storage_netcdf_remote_nodc_connection(avhrr):
+    """
+    Can get to NODC server and report files
+    """
+    assert avhrr.cdr_variable == "sea_surface_temperature"
+    assert avhrr.data_model == "NETCDF3_CLASSIC"
+    assert avhrr.file_format == "NETCDF3_CLASSIC"
+    assert avhrr.day_or_night == "Day"
+    assert avhrr.processing_level == "L3C"
+    assert avhrr.start_time
+    assert avhrr.stop_time
+
+    scan(avhrr, attribute="dimensions", verb=True)
+    scan(avhrr, attribute="variables", verb=True)
+
+
+import pytest
 from time import time
 from os.path import exists
 try:
@@ -10,7 +220,7 @@ from itertools import chain, repeat
 from functools import reduce
 from collections import deque
 
-from bathysphere.tests.conftest import DATASET, pad, ext
+from bathysphere.tests.conftest import DATASET, ext
 from bathysphere.future.utils import (
     extent,
     reduce_extent,
@@ -104,46 +314,46 @@ def test_osi_dataset_analysis_pixel_array(osi_vertex_array):
     assert osi_vertex_array.shape[1] == 3
 
 
-@pytest.mark.network
-def test_osi_dataset_analysis_extent_culling(
-    osi_vertex_array, maine_towns, object_storage
-):
+# @pytest.mark.network
+# def test_osi_dataset_analysis_extent_culling(
+#     osi_vertex_array, maine_towns, object_storage
+# ):
 
-    start = time()
-    data = _filter(maine_towns)
+#     start = time()
+#     data = _filter(maine_towns)
 
-    xyz, f, e, r = filter_iteration(
-        osi_vertex_array, data["shapes"], data["extents"], data["records"], 0, storage=object_storage
-    )
+#     xyz, f, e, r = filter_iteration(
+#         osi_vertex_array, data["shapes"], data["extents"], data["records"], 0, storage=object_storage
+#     )
 
-    if object_storage:
-        dat = e + (reduce(reduce_extent, e), overall)
-        object_storage.octet_stream(
-            data=dat, extent="None", dataset=OSI_OBJ, key=f"extents-iter-{iteration}"
-        )
-        object_storage.octet_stream(
-            data=r, extent="None", dataset=OSI_OBJ, key=f"records-iter-{iteration}"
-        )
+#     if object_storage:
+#         dat = e + (reduce(reduce_extent, e), overall)
+#         object_storage.octet_stream(
+#             data=dat, extent="None", dataset=OSI_OBJ, key=f"extents-iter-{iteration}"
+#         )
+#         object_storage.octet_stream(
+#             data=r, extent="None", dataset=OSI_OBJ, key=f"records-iter-{iteration}"
+#         )
 
-    xyz, f2, e2, r2 = filter_iteration(xyz, f, e, r, 1, storage=object_storage)
+#     xyz, f2, e2, r2 = filter_iteration(xyz, f, e, r, 1, storage=object_storage)
 
-    object_storage.vertex_array_buffer(f2, key="shapes-water", nb=1000000)
+#     object_storage.vertex_array_buffer(f2, key="shapes-water", nb=1000000)
 
-    a = len(osi_vertex_array)
-    b = len(xyz)
+#     a = len(osi_vertex_array)
+#     b = len(xyz)
 
-    print(f"{time() - start} seconds to do extent culling")
-    print(f"{b} pixels after cropping to extents ({int(100*b/a)}%)")
-    print(f"{len(f2)} shapes to analyze")
+#     print(f"{time() - start} seconds to do extent culling")
+#     print(f"{b} pixels after cropping to extents ({int(100*b/a)}%)")
+#     print(f"{len(f2)} shapes to analyze")
 
-    a = osi_vertex_array.nbytes
-    b = xyz.nbytes
-    print(f"{b//1000} kb from {a//1000} kb ({int(100*b/a)}%)")
+#     a = osi_vertex_array.nbytes
+#     b = xyz.nbytes
+#     print(f"{b//1000} kb from {a//1000} kb ({int(100*b/a)}%)")
 
-    nb = 1000000
-    chunks = array_split(xyz, xyz.nbytes // nb + 1, axis=0)
-    fid = open("vertex-array", "wb")
-    pickle(chunks, fid)
+#     nb = 1000000
+#     chunks = array_split(xyz, xyz.nbytes // nb + 1, axis=0)
+#     fid = open("vertex-array", "wb")
+#     pickle(chunks, fid)
 
 
 
@@ -230,21 +440,21 @@ def test_osi_dataset_analysis_upload_vertex_array_shapes(object_storage):
     object_storage.vertex_array_buffer(chunks, OSI_OBJ, "vertex-array-shapes")
 
 
-@pytest.mark.network
-def test_osi_dataset_analysis_shape_intersections(object_storage):
-    """Intersect points and shapes"""
-    part = 0
-    shapes = ()
-    while object_storage.head(f"{OSI_OBJ}/shapes-water-{part}")[0]:
-        shapes += unpickle(
-            object_storage.get(f"{OSI_OBJ}/shapes-water-{part}").data
-        )
-        part += 1
+# @pytest.mark.network
+# def test_osi_dataset_analysis_shape_intersections(object_storage):
+#     """Intersect points and shapes"""
+#     part = 0
+#     shapes = ()
+#     while object_storage.head(f"{OSI_OBJ}/shapes-water-{part}")[0]:
+#         shapes += unpickle(
+#             object_storage.get(f"{OSI_OBJ}/shapes-water-{part}").data
+#         )
+#         part += 1
 
-    with open("vertex-array-hulls-2", "rb") as fid:
-        xyz = vstack(filter(filter_arrays, chain(*load(fid))))
-    islands = where(areas < 0.0)[0]
-    polygon_crop_and_save(xyz, shapes, "vertex-array-shapes")
+#     with open("vertex-array-hulls-2", "rb") as fid:
+#         xyz = vstack(filter(filter_arrays, chain(*load(fid))))
+#     islands = where(areas < 0.0)[0]
+#     polygon_crop_and_save(xyz, shapes, "vertex-array-shapes")
 
 
 @pytest.mark.network

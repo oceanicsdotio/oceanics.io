@@ -105,10 +105,10 @@ def test_create_shapes_cube():
     assert center(vertex_array)
 
 
-@pytest.mark.xfail
-def test_create_shapes_icosahedron():
-    vertex_array, topology = icosahedron()
-    assert center(vertex_array)
+# @pytest.mark.xfail
+# def test_create_shapes_icosahedron():
+#     vertex_array, topology = icosahedron()
+#     assert center(vertex_array)
 
 
 def test_create_shapes_globe():
