@@ -232,13 +232,10 @@ paths:
       summary: Create
       description: |
         Create a new entity.
-
       parameters:
         - $ref: "#/components/parameters/entityClass"
-
       requestBody:
         $ref: '#/components/requestBodies/Entity'
-
       responses:
         '200':
           $ref: '#/components/responses/Entity'
@@ -1692,7 +1689,7 @@ components:
         application/json:
           schema:
             type: object
-            oneOf:
+            anyOf:  # change back to oneOf? needs discriminator
               - $ref: '#/components/schemas/Thing'
               - $ref: '#/components/schemas/Location'
               - $ref: '#/components/schemas/HistoricalLocation'

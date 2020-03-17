@@ -7,7 +7,7 @@ from datetime import datetime
 from json import dump
 
 from bathysphere import app, appConfig
-from bathysphere.tests.conftest import client, graph, getCredentials, validateCreateTx
+from bathysphere.tests.conftest import client, graph, getCredentials
 from bathysphere.graph.models import (
     Locations,
     Sensors,
@@ -28,7 +28,7 @@ COLLECTION = "test-handlers-data-collection"
 ASSET = "test-handlers-data-asset"
 testAuth = ("testing@oceanics.io", "n0t_passw0rd", "something secret")
 CREDENTIALS = ("testing@oceanics.io", "n0t_passw0rd")
-
+apiKeys = getCredentials()
 
 
 @pytest.mark.teardown
@@ -48,7 +48,7 @@ def test_graph_account_create_user(client):
         "username": testAuth[0],
         "password": testAuth[1],
         "secret": testAuth[2],
-        "apiKey": credentials["Oceanicsdotio"]
+        "apiKey": apiKeys["Oceanicsdotio"]
     }
     response = client.post(
         "api/auth", json=payload)
@@ -106,11 +106,15 @@ def test_graph_account_delete_user(client, token):
 
 
 def test_graph_sensorthings_locations_create(create_entity, get_entity, graph):
-    cls = Locations.__name__
-    objs = [
-        validateCreateTx(create_entity, get_entity, cls, props, graph)
-        for props in appConfig[cls]
-    ]
+    """
+    Create spatial and network `Locations`.
+    """
+    cls: str = Locations.__name__
+    results = []
+    for each in appConfig[cls]:
+        location = create_entity(cls, CREDENTIALS, each["spec"])
+        results.append(location)
+   
 
 
 def test_graph_sensorthings_locations_weather_report(graph):

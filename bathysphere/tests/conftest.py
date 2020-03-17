@@ -158,113 +158,93 @@ def token(client) -> Callable:
 
 @pytest.fixture(scope="function")
 def create_entity(client, token):
-    def _make_request(cls, properties):
+    def make_request(cls: str, auth: (str, str), properties: dict):
+        jwtToken = token(auth).get("token")
         response = client.post(
             f"api/{cls}",
             json={"entityClass": cls, **properties},
-            headers={"Authorization": ":" + token.get("token", "")},
+            headers={"Authorization": ":" + jwtToken},
         )
-
         data = response.get_json()
         assert response.status_code == 200, data
         return response
-
-    return _make_request
+    return make_request
 
 
 @pytest.fixture(scope="function")
 def mutate_entity(client, token):
-    def _make_request(cls, id, properties):
+    def make_request(cls: str, auth: (str, str), uuid: str, properties: dict):
+        jwtToken = token(auth).get("token")
         response = client.put(
-            f"api/{cls}({id})",
+            f"api/{cls}({uuid})",
             json={"entityClass": cls, **properties},
-            headers={"Authorization": ":" + token.get("token", "")},
+            headers={"Authorization": ":" + jwtToken},
         )
         return response
-
-    return _make_request
-
-
-@pytest.fixture(scope="function")
-def add_link(client, token):
-    def _make_request(root, root_id, cls, identity, **kwargs):
-        response = client.post(
-            f"api/{root}({root_id})/{cls}({identity})",
-            json=kwargs,
-            headers={"Authorization": ":" + token.get("token", "")},
-        )
-        assert response.status_code == 204, response.get_json()
-
-    return _make_request
+    return make_request
 
 
 @pytest.fixture(scope="function")
 def get_entity(client, token):
-    def _make_request(cls, id):
+    def make_request(cls: str, auth: (str, str), uuid: str):
+        jwtToken = token(auth).get("token")
         response = client.get(
-            f"api/{cls}({id})", headers={"Authorization": ":" + token.get("token", "")}
+            f"api/{cls}({uuid})", 
+            headers={"Authorization": ":" + jwtToken}
         )
         return response
+    return make_request
 
+@pytest.fixture(scope="function")
+def add_link(client, token):
+    def _make_request(root: str, root_id: str, auth: (str, str), cls: str, identity: str, **kwargs: dict):
+        jwtToken = token(auth).get("token")
+        response = client.post(
+            f"api/{root}({root_id})/{cls}({identity})",
+            json=kwargs,
+            headers={"Authorization": ":" + jwtToken},
+        )
+        assert response.status_code == 204, response.get_json()
     return _make_request
 
 
 
 
-@pytest.fixture()
-def signal():
-    def _sig(m: int = 1):
-        f = 24 * m
-        n = 365 * f
-        x = arange(0, n) / f
-        y = 5 * sin(x / 2 * pi) + random.normal(size=n)
-        return tuple(zip(x, y))
 
-    return _sig
+# @pytest.fixture()
+# def signal():
+#     def _sig(m: int = 1):
+#         f = 24 * m
+#         n = 365 * f
+#         x = arange(0, n) / f
+#         y = 5 * sin(x / 2 * pi) + random.normal(size=n)
+#         return tuple(zip(x, y))
 
-
-@pytest.fixture(scope="session")
-def config_no_app():
-    """
-    Load configuration with using `app`
-    :return:
-    """
-    file = open(Path("config/app.yml"))
-    defaults = load_yml(file, Loader)
-    for key, value in defaults.items():
-        defaults[key] = getenv(key, value)
-    defaults["storage"]["access_key"] = getenv("storageAccessKey")
-    defaults["storage"]["secret_key"] = getenv("storageSecretKey")
-
-    _styles = load_yml(open("config/styles.yml"), Loader)
-    defaults["styles"] = {
-        "dark": {**_styles["base"], **_styles["dark"]},
-        "light": {**_styles["base"], **_styles["light"]},
-    }
-    return defaults
-
-def pad(val, n: int = 9):
-    if isinstance(val, float):
-        val = str(int(val))
-    elif isinstance(val, int):
-        val = str(val)
-    return " " * (n - len(val))
+#     return _sig
 
 
-def filter_shapes(region, shapes, extents):
-    start = time()
-    f, e = extent_overlap_filter(region, shapes, extents)
-    total = reduce(reduce_extent, e)
-    print(f"{time() - start} seconds to find {len(f)} overlapping shapes")
-    print("Extent =", total)
-    return (Path(f) for f in f), total
+# def pad(val, n: int = 9):
+#     if isinstance(val, float):
+#         val = str(int(val))
+#     elif isinstance(val, int):
+#         val = str(val)
+#     return " " * (n - len(val))
 
 
-@pytest.fixture(scope="session")
-def collector(object_storage):
-    _collect = []
-    yield _collect
-    object_storage.create(data=_collect, label="")
+# def filter_shapes(region, shapes, extents):
+#     start = time()
+#     f, e = extent_overlap_filter(region, shapes, extents)
+#     total = reduce(reduce_extent, e)
+#     print(f"{time() - start} seconds to find {len(f)} overlapping shapes")
+#     print("Extent =", total)
+#     return (Path(f) for f in f), total
+
+
+# @pytest.fixture(scope="session")
+# def collector(object_storage):
+#     _collect = []
+#     yield _collect
+#     object_storage.create(data=_collect, label="")
 
 
 
