@@ -2,7 +2,7 @@ import pytest
 try:
     from numpy import pi, all, any
 except ImportError:
-    pass
+    pi = 3.1415926
 
 from bathysphere.future.utils import State, RADIANS, DEGREES, polygon_area, center
 from bathysphere.future.utils import (

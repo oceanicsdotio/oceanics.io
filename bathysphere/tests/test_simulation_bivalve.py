@@ -6,7 +6,6 @@ conf = dict()
 
 
 
-@pytest.mark.dependency()
 def test_bivalve_api_as_job():
     forces = [{"temperature": 20.0}] * 24 * 30
 
@@ -22,7 +21,6 @@ def test_bivalve_api_as_job():
     )
 
 
-@pytest.mark.dependency(depends=["test_bivalve_api_as_job"])
 def test_bivalve_api_as_job_no_forcing():
 
     forces = [{}] * 24 * 30
@@ -40,7 +38,6 @@ def test_bivalve_api_as_job_no_forcing():
  
 
 
-@pytest.mark.dependency(depends=["test_bivalve_api_as_job"])
 def test_bivalve_api_as_batch():
 
     forces = [
@@ -72,11 +69,6 @@ def test_bivalve_api_as_batch():
    
 
 
-import pytest
-
-conf = dict()
-
-@pytest.mark.dependency()
 def test_configuration_create(client):
     response = client.post("api/", json=conf["configTemplate"])
     data = response.get_json()
@@ -87,14 +79,12 @@ def test_configuration_create(client):
     assert response.status_code == 200, response.get_json()
 
 
-@pytest.mark.dependency(depends=["test_configuration_create"])
 def test_configuration_get_all(client):
 
     response = client.get("api/")
     assert response.status_code == 200, response.get_json()
 
 
-# @pytest.mark.dependency(depends=["test_configuration_create"])
 # def test_configuration_update(client):
 #
 #     response = client.put(
@@ -104,7 +94,6 @@ def test_configuration_get_all(client):
 #     assert response.status_code == 204, response.get_json()
 
 
-@pytest.mark.dependency(depends=["test_configuration_get_all"])
 def test_configuration_run_simulation(client):
 
     response = client.get("api/")
