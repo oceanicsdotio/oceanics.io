@@ -231,25 +231,40 @@ def create(
     _ = body.pop("entityClass")  # only used for API discriminator
     entity = eval(entity)(**body).create(db=db)
     data = entity.serialize(db, service=service)
-
-    # provenance = tuple(
+    linkPattern = Link(
+        label="Post",
+        props={"confidence": 1.0},
+    )
     
-    # ) + ({"cls": User.__name__, "uuid": user.uuid, "label": "Post"},)
+    linkPattern.join(
+        db=db, 
+        nodes=(user, entity)
+    )
+
+    linkPattern.join(
+        db=db, 
+        nodes=(provider, entity)
+    )
     
     # declaredLinks = map(
     #     lambda k, v: (each.update({"cls": k}) for each in v), body.pop("links", {}).items()
-    # )
-    # link = (link.update({"confidence": 1.0}) for link in chain(provenance, *declaredLinks))
-    
-    
+    # )  
     # if entity in (Collections.__name__,):
     #     storeJson(e.name.lower().replace(" ", "-"), data, hmacKey, headers)
+
     return {"message": f"Create {entity}", "value": data}, 200
 
 
 @context
-def mutate(body, db, entity, id, user, **kwargs):
-    # type: (dict, Driver, str, int, User, dict) -> (dict, int)
+def mutate(
+    body: dict, 
+    db: Driver,
+    provider: Providers,
+    entity: str, 
+    id: str, 
+    user: User, 
+    **kwargs
+) -> ResponseJSON:
     """
     Give new values for the properties of an existing entity.
     """
@@ -260,12 +275,12 @@ def mutate(body, db, entity, id, user, **kwargs):
         ({"cls": repr(user), "id": user.id, "label": "Put"},),
         (
             {"cls": Providers.__name__, "id": r[0], "label": "Provider"}
-            for r in Link.query(
+            for r in Link(
+                label="Member"
+            ).query(
                 db=db,
-                parent={"cls": repr(user), "id": user.id},
-                child={"cls": Providers.__name__},
-                result="b.id",
-                label="Member",
+                nodes=(user, provider),
+                result="b.id"
             )
         )
         if entity != Providers.__name__
@@ -304,12 +319,11 @@ def query(db, root, rootId, entity, service, **kwargs):
     # type: (Driver, str, int, str, str, dict) -> (dict, int)
     items = tuple(
         item.serialize(db=db, service=service)
-        for item in (
-            Link.query(
-                db=db, a={"cls": root, "id": rootId}, b={"cls": entity}, result="b"
+        for item in Link().query(
+                db=db, 
+                nodes=({"cls": root, "id": rootId}, {"cls": entity}), 
+                result="b"
             )
-            or ()
-        )
     )
     return {"@iot.count": len(items), "value": items}, 200
 
