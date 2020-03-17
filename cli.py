@@ -42,11 +42,10 @@ def serve(group: str, port: int):
     """
     class HTTPHandler(SimpleHTTPRequestHandler):
         """This handler uses server.base_path instead of always using os.getcwd()"""
-        def translate_path(self, path):
-            path = SimpleHTTPRequestHandler.translate_path(self, path)
-            relpath = path.relpath(path, getcwd())
-            fullpath = path.join(self.server.base_path, relpath)
-            return fullpath
+        def translate_path(self, _path):
+            _path = SimpleHTTPRequestHandler.translate_path(self, _path)
+            relpath = path.relpath(_path, getcwd())
+            return path.join(self.server.base_path, relpath)
 
     validOptions = {"htmlcov", "openapi"}
     if group not in validOptions:
@@ -55,7 +54,7 @@ def serve(group: str, port: int):
     if not path.exists(base_path):
         click.secho(f"Group ({group}) does not exist", fg="red")
 
-    httpd = BaseHTTPServer(("", 8000), HTTPHandler)
+    httpd = BaseHTTPServer(("", port), HTTPHandler)
     httpd.base_path = base_path
   
     click.secho(f"Serving `{group}` @ http://localhost:{port}", fg="yellow")
