@@ -60,7 +60,8 @@ def test():
     """
     Command to run developer tests.
     """
-    click.secho("pytest", fg="green")
+    cmd = f"pytest --cov-report html:cov_html --cov=bathysphere/graph/ -sk test_graph --ignore bathysphere/tests/future_tests"
+    click.secho(cmd, fg="green")
 
 
 @click.command()
@@ -202,8 +203,6 @@ def parse_ichthyotox(source: str, particle_type: str, out: str, mode: str):
     click.secho(f"Processed {total} total {particle_type} records", fg="blue")
 
 
-
-
 cli.add_command(redis_worker)
 cli.add_command(serve_spec)
 cli.add_command(start)
@@ -212,6 +211,8 @@ cli.add_command(build)
 cli.add_command(up)
 cli.add_command(neo4j)
 cli.add_command(providers)
+cli.add_command(test)
+
 
 if __name__ == "__main__":
     cli()

@@ -70,12 +70,6 @@ avhrr_end = datetime(2015, 1, 30)
 ext = (-69.6, 43.8, -69.5, 44.1)
 
 
-# @job('low', connection=my_redis_conn, timeout=5)
-def numberOfTheBeast(a, b):
-    sleep(3)
-    return 42, a, b
-
-
 @pytest.fixture(scope="session")
 def client():
     """

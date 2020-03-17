@@ -1,4 +1,78 @@
 import pytest
+from requests import get, post
+from bathysphere.future.shellfish import batch, job
+
+conf = dict()
+
+
+
+@pytest.mark.dependency()
+def test_bivalve_api_as_job():
+    forces = [{"temperature": 20.0}] * 24 * 30
+
+    result, logs = job(
+        config={
+            "species": "oyster",
+            "culture": "midwater",
+            "weight": 25.0,
+            "dt": 1 / 24,
+            "volume": 1000.0,
+        },
+        forcing=forces,
+    )
+
+
+@pytest.mark.dependency(depends=["test_bivalve_api_as_job"])
+def test_bivalve_api_as_job_no_forcing():
+
+    forces = [{}] * 24 * 30
+
+    result, logs = job(
+        config={
+            "species": "oyster",
+            "culture": "midwater",
+            "weight": 25.0,
+            "dt": 1 / 24,
+            "volume": 1000.0,
+        },
+        forcing=forces,
+    )
+ 
+
+
+@pytest.mark.dependency(depends=["test_bivalve_api_as_job"])
+def test_bivalve_api_as_batch():
+
+    forces = [
+        {
+            "temperature": 20.0,
+            "salinity": 32.0,
+            "current": 15.0,
+            "oxygen": 8.0,
+            "chlorophyll": 6.0,
+        }
+    ] * 24
+
+    forcing = [forces] * 2
+
+    result = batch(
+        workers=2,
+        forcing=forcing,
+        config={
+            "species": "oyster",
+            "culture": "midwater",
+            "weight": 25.0,
+            "dt": 1 / 24,
+            "volume": 1000.0,
+        },
+    )
+    logs = result.get("logs")
+    assert logs
+    data = result.get("data")
+   
+
+
+import pytest
 
 conf = dict()
 

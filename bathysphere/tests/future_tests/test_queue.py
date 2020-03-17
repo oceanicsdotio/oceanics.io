@@ -3,11 +3,16 @@ from redis import StrictRedis
 from pickle import dumps as pickle, loads as unpickle
 from rq import Queue, Connection, Worker
 
-from bathysphere.tests.conftest import numberOfTheBeast
 from bathysphere import app
 
 
-def test_redis_connection():
+# @job('low', connection=my_redis_conn, timeout=5)
+def numberOfTheBeast(a, b):
+    sleep(3)
+    return 42, a, b
+
+
+def test_queue_redis_connection():
 
     cache = StrictRedis(
         host=app.app.config["REDIS_HOST"],

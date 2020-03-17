@@ -7,6 +7,23 @@ metadata:
 spec:
   name: modem power switch
 ---
+apiVersion: extensions/catalog
+kind: Collections
+metadata:
+spec:
+  title: Oysters
+  description: Oyster data
+  license:
+  version: 1
+  keywords: oysters,aquaculture,Maine,ShellSIM
+---
+apiVersion: extensions/catalog
+kind: Collections
+metadata:
+spec:
+  title: Limited purpose aquaculture sites
+  description: Temporary sites with a small footprint
+---
 apiVersion: extensions/sensing
 kind: Datastreams
 metadata:
