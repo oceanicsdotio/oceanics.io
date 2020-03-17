@@ -1,6 +1,7 @@
 import pytest
 from bathysphere.datatypes import Memory
 
+
 NBYTES = 100
 
 
@@ -14,6 +15,8 @@ NBYTES = 100
 
 def subset(xx, yy, field, samples, mask):
     # type: (array, array, array, array) -> array
+    from numpy import where
+    
     total = (~mask).sum()
     nsamples = min(samples, total)
     inds = where(~mask)[0], nsamples

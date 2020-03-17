@@ -383,6 +383,7 @@ class Collections(object):
     name: str = attr.ib(default=None)
     description: str = attr.ib(default=None) 
     extent: (float,) = attr.ib(default=None)
+    keywords: str = attr.ib(default=None)
 
 
 @attr.s(repr=False)

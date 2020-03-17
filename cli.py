@@ -56,11 +56,15 @@ def serve_spec(port: int):
 
 
 @click.command()
-def test():
+@click.argument("group")
+def test(group):
     """
     Command to run developer tests.
     """
-    cmd = f"pytest --cov-report html:cov_html --cov=bathysphere/graph/ -sk test_graph --ignore bathysphere/tests/future_tests"
+    groups = {"graph", "datatypes"}
+    if group not in groups:
+        click.secho(f"The valid groups are {groups}", fg="red")
+    cmd = f"pytest --cov-report html:htmlcov --cov=bathysphere/{group} -sk test_{group} --ignore bathysphere/tests/future_tests"
     click.secho(cmd, fg="green")
 
 

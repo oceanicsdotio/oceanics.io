@@ -126,7 +126,7 @@ def test_graph_sensorthings_locations_weather_report(graph):
     response = Locations(
         name="Upper Damariscotta Estuary"
     ).load(
-        db=graph
+        db=graph("localhost", 7687, testAuth[1])
     ).pop().reportWeather(
         url="https://api.darksky.net/forecast",
         ts=datetime(2016, 2, 1, 0, 0, 0),
