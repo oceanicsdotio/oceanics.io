@@ -6,7 +6,7 @@ from json import dumps
 from secrets import token_urlsafe
 from http.server import SimpleHTTPRequestHandler
 from http.server import HTTPServer as BaseHTTPServer, SimpleHTTPRequestHandler
-import os
+from os import path, getcwd
 
 
 @click.group()
@@ -34,8 +34,9 @@ def start(port: int):
 
 
 @click.command()
+@click.argument("group")
 @click.option("--port", default=8000, help="Port number")
-def serve_spec(port: int):
+def serve(group: str, port: int):
     """
     Serve the ReDoc OpenAPI specification on localhost.
     """
@@ -43,15 +44,21 @@ def serve_spec(port: int):
         """This handler uses server.base_path instead of always using os.getcwd()"""
         def translate_path(self, path):
             path = SimpleHTTPRequestHandler.translate_path(self, path)
-            relpath = os.path.relpath(path, os.getcwd())
-            fullpath = os.path.join(self.server.base_path, relpath)
+            relpath = path.relpath(path, getcwd())
+            fullpath = path.join(self.server.base_path, relpath)
             return fullpath
 
+    validOptions = {"htmlcov", "openapi"}
+    if group not in validOptions:
+        click.secho(f"Invalid directory ({group}), use one of {validOptions}", fg="red")
+    base_path = path.join(path.dirname(__file__), group)
+    if not path.exists(base_path):
+        click.secho(f"Group ({group}) does not exist", fg="red")
 
     httpd = BaseHTTPServer(("", 8000), HTTPHandler)
-    httpd.base_path = os.path.join(os.path.dirname(__file__), 'openapi')
+    httpd.base_path = base_path
   
-    click.secho(f"Serving API specification @ http://localhost:{port}", fg="yellow")
+    click.secho(f"Serving `{group}` @ http://localhost:{port}", fg="yellow")
     httpd.serve_forever()
 
 
@@ -208,7 +215,7 @@ def parse_ichthyotox(source: str, particle_type: str, out: str, mode: str):
 
 
 cli.add_command(redis_worker)
-cli.add_command(serve_spec)
+cli.add_command(serve)
 cli.add_command(start)
 cli.add_command(parse_ichthyotox)
 cli.add_command(build)
