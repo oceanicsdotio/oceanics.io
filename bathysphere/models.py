@@ -1025,8 +1025,8 @@ class User(object):
     the system through the same routes as normal Entities
     """
     ip: str = attr.ib(default=None)
-    _symbol: str = attr.ib(default="u")
     name: str = attr.ib(default=None)
+    alias: str = attr.ib(default=None)
     credential: str = attr.ib(default=None)
     validated: bool = attr.ib(default=True)
     description: str = attr.ib(default=None)

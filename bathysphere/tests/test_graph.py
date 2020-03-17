@@ -10,6 +10,7 @@ YEAR = 2019
 COLLECTION = "test-handlers-data-collection"
 ASSET = "test-handlers-data-asset"
 testAuth = ("testing@oceanics.io", "n0t_passw0rd", "something secret")
+CREDENTIALS = ("testing@oceanics.io", "n0t_passw0rd")
 
 
 @pytest.mark.teardown
@@ -40,8 +41,9 @@ def test_graph_account_get_token(token):
     """
     JWT Tokens are valid.
     """
-    btk = token.get("token")
-    duration = token.get("duration")
+    jwtToken = token(CREDENTIALS)
+    btk = jwtToken.get("token")
+    duration = jwtToken.get("duration")
     assert btk is not None and len(btk) >= 127
     assert duration is not None and duration > 30
 
@@ -50,10 +52,11 @@ def test_graph_account_update_user(client, token):
     """
     Give the user an alias.
     """
+    jwtToken = token(CREDENTIALS).get("token")
     response = client.put(
         "api/auth",
         json={"alias": "By another name"},
-        headers={"Authorization": ":" + token.get("token", "")},
+        headers={"Authorization": ":" + jwtToken},
     )
     assert response.status_code == 204, response.get_json()
 
@@ -62,20 +65,22 @@ def test_graph_account_delete_user(client, token):
     """
     Delete a user, and then recreate it
     """
+    jwtToken = token(CREDENTIALS).get("token")
     response = client.put(
         "api/auth",
         json={"delete": True},
-        headers={"Authorization": ":" + token.get("token", "")},
+        headers={"Authorization": ":" + jwtToken},
     )
     assert response.status_code == 204, response.get_json()
 
+    credentials = getCredentials()
     response = client.post(
         "api/auth",
         json={
-            "username": app.app.config["ADMIN"],
-            "password": app.app.config["ADMIN_PASS"],
-            "secret": app.app.config["SECRET"],
-            "apiKey": app.app.config["API_KEY"],
+            "username": testAuth[0],
+            "password": testAuth[1],
+            "secret": testAuth[2],
+            "apiKey": credentials["Oceanicsdotio"]
         },
     )
     assert response.status_code == 204, response.get_json()

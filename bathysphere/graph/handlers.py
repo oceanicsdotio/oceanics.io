@@ -3,7 +3,7 @@ from os import getenv
 from itertools import chain
 from datetime import datetime
 from uuid import uuid4
-
+from typing import Callable, Any
 from passlib.apps import custom_app_context
 from flask import request
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
@@ -33,47 +33,51 @@ host = "localhost"
 port = 7687
 accessKey = "n0t_passw0rd"
 
+DEBUG = True
 
-def context(fcn):
+
+def context(fcn) -> Callable:
     """
     Decorator to authenticate and inject user into request.
     Validate/verify JWT token.
     """
+    db = connect(host, port, accessKey)
+    if db is None:
+        return {"message": "no graph backend"}, 500
+    
+    def _wrapper(*args, **kwargs) -> Any:
 
-    def basicAuth(db, email, credential, providers, apiKey):
-        accounts = User.load(db, **{"name": email})
-        domain = email.split("@").pop()
-        user = accounts.pop()
-        if user and custom_app_context.verify(credential, user.credential):
-            _filter = lambda x: (x.domain == domain) or (x.apiKey == apiKey)
-            return user, filter(lambda x: x.domain == domain, providers)
-
-    def jwtToken(db, credential, providers, secret, apiKey):
-        decoded = Serializer(secret).loads(credential)
-        accounts = User.load(db, **{"uuid": decoded["id"]})
-        user = accounts.pop()
-        return user, filter(lambda x: x.apiKey == apiKey, providers)
-
-    def _wrapper(providers, secret=None, **kwargs):
-
-        db = connect(host, port, accessKey)
-        if db is None:
-            return {"message": "no graph backend"}, 500
-
-        email, credential = request.headers.get("authorization", ":").split(":")
-        apiKey = request.headers.get("x-api-key", None)
-        try:
-            user, ingresses = (
-                basicAuth(db, email, credential, providers, apiKey)
-                if "@" in email
-                else jwtToken(db, credential, providers, secret, apiKey)
-            )
-        except:
-            return {"message": "Unable to authenticate"}, 403
+        username, password = request.headers.get("authorization", ":").split(":")
+    
+        if username and "@" in username:
+            accounts = User.load(db, **{"name": username})
+            if len(accounts) != 1:
+                raise ValueError
+            user = accounts.pop()
+            
+            if not custom_app_context.verify(password, user.credential):
+                raise Exception
         else:
-            return fcn(db=db, user=user, ingresses=ingresses, **kwargs)
+            secretKey = request.headers.get("x-api-key", "salt")
+            decoded = Serializer(secretKey).loads(password)
+            accounts = User.load(db, **{"uuid": decoded["uuid"]})
+            if len(accounts) != 1:
+                raise ValueError
+            user = accounts.pop()
 
-    return _wrapper
+        provider = Providers.load(db, domain=user.name.split("@").pop())
+        if len(provider) != 1:
+            raise ValueError
+
+        return fcn(db=db, user=user, provider=provider.pop(), **kwargs)
+
+    def handleUncaughtExceptions(*args, **kwargs):
+        try:
+            return _wrapper(*args, **kwargs)
+        except Exception:
+            return {"message": "Unhandled error"}, 500
+
+    return _wrapper if DEBUG else handleUncaughtExceptions
 
 
 def register(
@@ -120,12 +124,20 @@ def register(
 
     user = User(
         name=username,
+        uuid=uuid4().hex,
         credential=custom_app_context.hash(body.get("password")),
         ip=request.remote_addr
     ).create(db=db)
 
     try:
-        Link(label="Member", rank=0).join(db=db, nodes=(user, entryPoint))
+        Link(
+            label="Member", 
+            rank=0
+        ).join(
+            db=db, 
+            nodes=(user, entryPoint),
+            echo=True
+        )
     except Exception as ex:
         user.delete(db=db)  # make sure not to leave an orphaned User
         raise ex
@@ -134,44 +146,48 @@ def register(
 
 
 @context
-def manage(db, user, body, **kwargs):
-    # type: (Driver, User, dict, dict) -> (None, int)
+def manage(
+    db: Driver, 
+    user: User, 
+    body: dict,
+    **kwargs: dict
+) -> ResponseJSON:
     """
-    Change account settings
+    Change account settings. You can only delete a user or change the
+    alias.
     """
     allowed = {"alias", "delete"}
     if any(k not in allowed for k in body.keys()):
         return "Bad request", 400
     if body.get("delete", False):
-        User.delete(db, id=user.id)
+        user.delete(db)
     else:
-        _ = User.mutation(db, data=body, obj=user)
+        user.mutate(db=db, data=body)  # pylint: disable=no-value-for-parameter
     return None, 204
 
 
 @context
 def token(
-    db, 
-    user, 
-    provider, 
-    secret=None, 
-    **kwargs
+    db: Driver, 
+    user: User, 
+    provider: Providers, 
+    secretKey: str = "salt", 
+    **kwargs: dict
 ) -> ResponseJSON:
     """
     Send a JavaScript Web Token back to authorize future sessions
     """
-    if not user:
-        return None, 403
-    root = Providers.load(db).pop()  # TODO: this is incorrect
-    payload = {
-        "token": Serializer(
-            secret_key=secret or root._secretKey, expires_in=root.tokenDuration
-        )
-        .dumps({"id": user.id})
-        .decode("ascii"),
-        "duration": root.tokenDuration,
-    }
-    return payload, 200
+    _token = Serializer(
+        secret_key=secretKey, 
+        expires_in=provider.tokenDuration
+    ).dumps(
+        {"uuid": user.uuid}
+    ).decode("ascii")
+    
+    return {
+        "token": _token,
+        "duration": provider.tokenDuration,
+    }, 200
 
 
 @context

@@ -5,11 +5,12 @@ import pytest
 from time import sleep, time
 
 from json import load, loads
+from json.decoder import JSONDecodeError
 from pickle import loads as unpickle
 from os.path import isfile
 from datetime import datetime
 from functools import reduce
-
+from typing import Callable
 from pathlib import Path
 from yaml import load as load_yml, Loader
 from os import getenv
@@ -111,7 +112,10 @@ def getCredentials(
     for each in check_output(["bathysphere", "providers"]).split(b"\n"):
         if not each:
             continue
-        item = loads(each.decode())
+        try:
+            item = loads(each.decode())
+        except JSONDecodeError:
+            continue
         name = item.get("name")
         if len(select) == 0 or name in select:
             credentials[item.get("name")] = item.get("apiKey")
@@ -135,13 +139,33 @@ def graph():
     
     
 @pytest.fixture(scope="session")
-def token(client):
-    user = app.app.config["ADMIN"]
-    credential = app.app.config["ADMIN_PASS"]
-    response = client.get("api/auth", headers={"Authorization": f"{user}:{credential}"})
-    data = response.get_json()
-    assert response.status_code == 200, data
-    return data
+def token(client) -> Callable:
+    """
+    Outer test fixture function yields a Callable that memoizes JavaScript
+    Web Tokens in the outer scope. 
+    """
+
+    storedValues = dict()
+
+    def wrappedFunction(auth: (str, str)) -> dict:
+        """
+        Inner function is yielded into test function. When called it memoizes
+        access credentials into the test fixture. 
+        """
+        try:
+            data = storedValues[auth]
+        except KeyError:
+            user, credential = auth
+            response = client.get(
+                "api/auth", 
+                headers={"Authorization": f"{user}:{credential}"}
+            )
+            data = response.get_json()
+            assert response.status_code == 200, data
+            storedValues[auth] = data
+        return data
+
+    return wrappedFunction
 
 
 @pytest.fixture(scope="function")

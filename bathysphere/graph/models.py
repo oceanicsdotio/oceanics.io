@@ -36,13 +36,13 @@ class Link:
         [ r:Label { <key>:<value>, <key>:<value> } ]
         """
         labelStr = f":{self.label}" if self.label else ""
-        combined:Generator = {
+        combined = {
             "uuid": self.uuid, 
             "rank": self.rank, 
             **(self.props or {})
-        }.items()
-        nonNullValues:Generator = filter(lambda x: x, map(processKeyValueInbound, combined))
-        pattern = "" if self.props is None else f"""{{ {', '.join(nonNullValues)} }}"""
+        }
+        nonNullValues = tuple(filter(lambda x: x, map(processKeyValueInbound, combined.items())))
+        pattern = "" if len(nonNullValues) == 0 else f"""{{ {', '.join(nonNullValues)} }}"""
         return f"[ {self._symbol}{labelStr} {pattern} ]"
 
     @classmethod
@@ -65,7 +65,8 @@ class Link:
         self: Type, 
         db: Driver, 
         nodes: (Any, Any),
-        props: dict = None
+        props: dict = None,
+        echo: bool = False,
     ) -> None:
         """
         Create a link between two node patterns. This uses the `polymorphic` decorator
@@ -87,8 +88,13 @@ class Link:
             a, b = nodes
         except ValueError:
             raise ValueError("Join requires a tuple of exactly 2 entities.")
+        if a._symbol == b._symbol:
+            a._setSymbol("a")
+            b._setSymbol("b")
         
         cmd = f"MATCH {repr(a)}, {repr(b)} MERGE ({a._symbol})-{repr(L)}->({b._symbol})"
+        if echo:
+            print(cmd)
         executeQuery(db, lambda tx: tx.run(cmd), access_mode="write")
 
     @classmethod
@@ -355,24 +361,30 @@ class Entity(object):
             }))
         return payload
 
-    @classmethod
-    def mutation(
-        cls: Any, 
+    @polymorphic
+    def mutate(
+        self: Type,
         db: Driver, 
         data: dict, 
-        **kwargs: dict
-    ) -> Callable:
+        pattern: dict = None
+    ) -> None:
         """
         Update/add node properties
         """
-        e = cls(**kwargs)
+        if isclass(self):
+            entity = self(**pattern)  # pylint: disable=not-callable
+        elif pattern is not None:
+            raise ValueError("Pattern supplied for delete from entity instance.")
+        else:
+            entity = self
+        
         _updates = ", ".join(map(processKeyValueInbound, data.items()))
-        return executeQuery(
+        executeQuery(
             db=db,
             access_mode="write",
             method=lambda tx: tx.run(
-                f"MATCH {repr(e)} SET {e._symbol} += {{ {_updates} }}"
-            ).values(),
+                f"MATCH {repr(entity)} SET {entity._symbol} += {{ {_updates} }}"
+            ),
         )
 
     @classmethod
@@ -555,5 +567,5 @@ class Things(Entity, models.Things):
 
 @attr.s(repr=False)
 class User(Entity, models.User):
-   pass
+    _symbol: str = attr.ib(default="u")
 
