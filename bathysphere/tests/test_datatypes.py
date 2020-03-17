@@ -63,10 +63,6 @@ def test_datatypes_short_clock():
 
     for _ in range(6*24*3):
         clock.tick()
-        elapsed.append(clock.elapsed/clock)
+        elapsed.append(clock.elapsed)
         time.append(clock.time)
 
-    # view.plot(elapsed, elapsed, label="Elapsed")
-    # view.plot(elapsed, time, label="Time")
-
-    # view.push("db/images/test_short_clock.png", yloc=1)

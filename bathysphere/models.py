@@ -384,6 +384,7 @@ class Collections(object):
     description: str = attr.ib(default=None) 
     extent: (float,) = attr.ib(default=None)
     keywords: str = attr.ib(default=None)
+    license: str = attr.ib(default=None)
 
 
 @attr.s(repr=False)

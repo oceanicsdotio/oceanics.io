@@ -5,11 +5,12 @@ from bathysphere.future.shellfish import batch, job
 conf = dict()
 
 
-
-def test_bivalve_api_as_job():
+def test_simulation_bivalve_api_as_job():
+    """
+    Run a single job with user supplied forcing conditions
+    """
     forces = [{"temperature": 20.0}] * 24 * 30
-
-    result, logs = job(
+    _ = job(
         config={
             "species": "oyster",
             "culture": "midwater",
@@ -21,11 +22,12 @@ def test_bivalve_api_as_job():
     )
 
 
-def test_bivalve_api_as_job_no_forcing():
-
+def test_simulation_bivalve_api_as_job_no_forcing():
+    """
+    Run a single job with default forcing
+    """
     forces = [{}] * 24 * 30
-
-    result, logs = job(
+    _ = job(
         config={
             "species": "oyster",
             "culture": "midwater",
@@ -38,8 +40,10 @@ def test_bivalve_api_as_job_no_forcing():
  
 
 
-def test_bivalve_api_as_batch():
-
+def test_simulation_bivalve_api_as_batch():
+    """
+    Run a parallel batch of simulations
+    """
     forces = [
         {
             "temperature": 20.0,
@@ -65,11 +69,14 @@ def test_bivalve_api_as_batch():
     )
     logs = result.get("logs")
     assert logs
-    data = result.get("data")
+    _ = result.get("data")
    
 
 
-def test_configuration_create(client):
+def test_simulation_configuration_create(client):
+    """
+    Create a simulation configuration 
+    """
     response = client.post("api/", json=conf["configTemplate"])
     data = response.get_json()
     assert response.status_code == 200, response.get_json()
@@ -79,22 +86,22 @@ def test_configuration_create(client):
     assert response.status_code == 200, response.get_json()
 
 
-def test_configuration_get_all(client):
+def test_simulation_configuration_get_all(client):
 
     response = client.get("api/")
     assert response.status_code == 200, response.get_json()
 
 
-# def test_configuration_update(client):
-#
-#     response = client.put(
-#         "api/Things(0)",
-#         json={"metadata": {"name": "new-name"}, "properties": {"runs": 256}},
-#     )
-#     assert response.status_code == 204, response.get_json()
+def test_simulation_configuration_update(client):
+
+    response = client.put(
+        "api/Things(0)",
+        json={"metadata": {"name": "new-name"}, "properties": {"runs": 256}},
+    )
+    assert response.status_code == 204, response.get_json()
 
 
-def test_configuration_run_simulation(client):
+def test_simulation_configuration_run_simulation(client):
 
     response = client.get("api/")
     data = response.get_json()
@@ -114,8 +121,10 @@ def test_configuration_run_simulation(client):
     assert response.status_code == 200, response.get_json()
 
 
-def test_configuration_get_simulations(client):
-
+def test_simulation_configuration_get_simulations(client):
+    """
+    Retrieve `Simulations` from the database
+    """
     response = client.get("api/")
     data = response.get_json()
     assert response.status_code == 200, data
