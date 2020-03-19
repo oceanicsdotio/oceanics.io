@@ -231,6 +231,16 @@ def testTables():
             ]
         }
     },{
+        "name": "locations",
+        "schema": {
+            "fields": [
+                ("id", PostgresType.NullString),
+                ("name", PostgresType.NullString),
+                ("geo", PostgresType.Geography),
+            ]
+        }
+        
+    },{
         "name": "messages",
         "schema": {
             "fields": [
