@@ -114,27 +114,29 @@ class CloudSQL():
     By default it expects a Google CloudSQL database. 
     """
     auth: (str, str) = attr.ib()
-    connectionString: str = attr.ib()
+    instance: str = attr.ib()
+    port: int = attr.ib(default=5432)
     pool_size: int = attr.ib(default=4)
     max_overflow: int = attr.ib(default=2)
     pool_timeout: int = attr.ib(default=5)
     pool_recycle: int = attr.ib(default=1800)
 
+    
     @property
     def engine(self) -> Engine:
         """
         The engine property will be used only once per request, so
         can safely be generated as a property. 
         """
-        (username, password) = self.auth
+        user, password = self.auth
         return create_engine(
             URL(
                 drivername='postgres+pg8000',
-                username=username,
+                username=user,
                 password=password,
                 database="postgres",
                 query={
-                    'unix_sock': f'/cloudsql/{self.connectionString}/.s.PGSQL.5432'
+                    'unix_sock': f'/cloudsql/{self.instance}/.s.PGSQL.{self.port}'
                 }
             ),
             pool_size=self.pool_size,

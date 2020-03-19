@@ -10,12 +10,12 @@ import hashlib
 
 from bathysphere.datatypes import Table, CloudSQL, Query
 
-
-accessKey, secretKey, connectionString = getenv("POSTGRES_SECRETS").split(",")
+accessKey, secretKey, instance = getenv("POSTGRES_SECRETS").split(",")
 
 def test_datatypes_cloudsql_connect_and_query_for_messages():
 
-    data = CloudSQL(auth=(accessKey, secretKey), connectionString=connectionString).query()
+    db = CloudSQL(auth=(accessKey, secretKey), instance=instance)
+    data = db.query()
     assert data
     assert len(data) == 1
     
