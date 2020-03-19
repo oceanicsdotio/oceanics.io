@@ -1,11 +1,17 @@
-from connexion import App
-from flask_cors import CORS
-from yaml import Loader, load as load_yml
 from itertools import repeat
 from pathlib import Path
 from functools import reduce
-from prance import ResolvingParser, ValidationError
 from json import dumps
+
+try:
+    from connexion import App
+    from flask_cors import CORS
+    from yaml import Loader, load as load_yml
+    from prance import ResolvingParser, ValidationError
+except ModuleNotFoundError as ex:
+    help("modules")
+    raise ex
+
 from bathysphere.utils import loadAppConfig
 
 app = App(__name__, options={"swagger_ui": False})

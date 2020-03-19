@@ -100,6 +100,18 @@ def neo4j() -> None:
     sleep(5)
     run(["sensible-browser", "localhost:7474/browser"])
     
+@click.command()
+@click.argument("instances")
+@click.option("--port", default=5432, help="Localhost port for proxy")
+def cloud_sql_proxy(
+    instances: str, 
+    port: int
+) -> None:
+    """
+    Build images.
+    """
+    click.secho(f"~/cloud_sql_proxy -dir=/cloudsql/ -instances={instances}=tcp:{port}", fg= "green")
+
 
 @click.command()
 @click.option("--host", default="localhost", help="Neo4j instance hostname")
@@ -222,6 +234,7 @@ cli.add_command(up)
 cli.add_command(neo4j)
 cli.add_command(providers)
 cli.add_command(test)
+cli.add_command(cloud_sql_proxy)
 
 
 if __name__ == "__main__":

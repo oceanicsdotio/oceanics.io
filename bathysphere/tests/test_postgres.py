@@ -8,14 +8,16 @@ from os import getenv
 import hmac
 import hashlib
 
-
-from bathysphere.graph.models import Collections
-from bathysphere.datatypes import Table, CloudSQL
+from bathysphere.datatypes import Table, CloudSQL, Query
 
 
+accessKey, secretKey, connectionString = getenv("POSTGRES_SECRETS").split(",")
 
-def test_datatypes_table_create_postgres_local():
-    q = Table.declare()
+def test_datatypes_cloudsql_connect_and_query_for_messages():
+
+    data = CloudSQL(auth=(accessKey, secretKey), connectionString=connectionString).query()
+    assert data
+    assert len(data) == 1
     
 
 

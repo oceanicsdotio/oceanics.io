@@ -18,6 +18,7 @@ from multiprocessing import Pool
 from warnings import warn
 
 from sqlalchemy import create_engine, text
+from sqlalchemy.engine import Engine
 from sqlalchemy.engine.url import URL
 import hmac
 import hashlib
@@ -29,10 +30,9 @@ from minio.error import NoSuchKey
 from requests import get, post
 from requests.exceptions import ConnectionError
 from urllib3.exceptions import MaxRetryError
-from flask import Response, Request
+from flask import Response, Request, request
 from redis import StrictRedis
 from redis.client import PubSub
-from connexion import request
 
 
 try:
@@ -109,7 +109,10 @@ class Clock:
 
 @attr.s
 class CloudSQL():
-
+    """
+    This class encapsulates a connection pool to a cloud based PostgreSQL provider.
+    By default it expects a Google CloudSQL database. 
+    """
     auth: (str, str) = attr.ib()
     connectionString: str = attr.ib()
     pool_size: int = attr.ib(default=4)
@@ -117,9 +120,12 @@ class CloudSQL():
     pool_timeout: int = attr.ib(default=5)
     pool_recycle: int = attr.ib(default=1800)
 
-    @staticmethod
-    def engine(self):
-
+    @property
+    def engine(self) -> Engine:
+        """
+        The engine property will be used only once per request, so
+        can safely be generated as a property. 
+        """
         (username, password) = self.auth
         return create_engine(
             URL(
@@ -137,17 +143,21 @@ class CloudSQL():
             pool_recycle=self.pool_recycle,
         )
 
-    @staticmethod
-    def handle(db, request: Request) -> ResponseJSON:
+    def query(self):
+        """
+        Execute am arbitrary query.
+        """
+        with self.engine.connect() as cursor:
+            t = Table(fields=[Field("text", None)])
+            query:Query = t.selectRecords()
+            return [query.parser(row) for row in cursor.execute(query.sql).fetchall()]
+
+    def handle(self, request: Request) -> ResponseJSON:
         """
         Do some postgres stuff
         """
-
         try:
-            with db.connect() as cursor:
-                t = Table(fields=[Field("text", None)])
-                query:Query = t.selectRecords()
-                records = [query.parser(row) for row in cursor.execute(query.sql).fetchall()]
+            records = self.query()
         except Exception as ex:
             return dumps({
                 "Error":"Problem executing query",
