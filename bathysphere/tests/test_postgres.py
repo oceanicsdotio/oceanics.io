@@ -8,11 +8,16 @@ from os import getenv
 import hmac
 import hashlib
 
-from bathysphere.datatypes import Table, CloudSQL, Query
+from bathysphere.datatypes import Table, CloudSQL, Query, Schema
 
 accessKey, secretKey, instance = getenv("POSTGRES_SECRETS").split(",")
 
-def test_datatypes_cloudsql_connect_and_query_for_messages():
+
+def test_datatypes_cloudsql_connect():
+    db = CloudSQL(auth=(accessKey, secretKey), instance=instance)
+    assert db
+
+def test_datatypes_cloudsql_query_for_messages():
 
     db = CloudSQL(auth=(accessKey, secretKey), instance=instance)
     data = db.query()

@@ -149,9 +149,11 @@ class CloudSQL():
         """
         Execute am arbitrary query.
         """
+        schema = Schema(fields=[Field("text", None)])
+        table = Table(name="messages", schema=schema)
+
         with self.engine.connect() as cursor:
-            t = Table(fields=[Field("text", None)])
-            query:Query = t.selectRecords()
+            query:Query = table.selectRecords()
             return [query.parser(row) for row in cursor.execute(query.sql).fetchall()]
 
     def handle(self, request: Request) -> ResponseJSON:
@@ -2489,7 +2491,7 @@ class Schema:
 
 
 @attr.s
-class Table:
+class Table(object):
 
     name: str = attr.ib()
     schema: Schema = attr.ib(default=Schema())
