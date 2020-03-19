@@ -444,14 +444,14 @@ class Entity(object):
         """
         restricted = {"User", "Providers", "Root"}
         props = self._properties(select=select, private="_")
-        identity = props.pop("uuid")
-        cls = type(self).__name__
+        uuid = props.pop("uuid")
+        cls: str = type(self).__name__
         base_url = f"{protocol}://{service}/api/"
         root_url = f"{base_url}/{cls}"
         self_url = (
-            f"{root_url}({self.uuid})"
-            if isinstance(self.uuid, int)
-            else f"{base_url}/{self.uuid}"
+            f"{root_url}({uuid})"
+            if isinstance(uuid, int)
+            else f"{base_url}/{uuid}"
         )
 
         linkedEntities = set(
@@ -460,10 +460,10 @@ class Entity(object):
             )
             for label in buffer[0]
             if buffer not in restricted
-        )
+        ) if db else ()
 
         return {
-            "@iot.id": identity,
+            "@iot.id": uuid,
             "@iot.selfLink": self_url,
             "@iot.collection": root_url,
             **props,

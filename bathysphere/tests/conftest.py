@@ -1,7 +1,5 @@
 import pytest
 
-
-
 from time import sleep, time
 
 from json import load, loads
@@ -27,6 +25,8 @@ except ImportError as ex:
 
 from bathysphere import app
 from bathysphere.graph.drivers import connect
+from bathysphere.datatypes import Table, CloudSQL, Query, Schema, Field, PostgresType
+from bathysphere.graph.models import Collections
 # from bathysphere.datatypes import Dataset
 
 try:
@@ -69,6 +69,9 @@ avhrr_start = datetime(2015, 1, 1)
 avhrr_end = datetime(2015, 1, 30)
 ext = (-69.6, 43.8, -69.5, 44.1)
 
+
+accessKey, secretKey, instance = getenv("POSTGRES_SECRETS").split(",")
+IndexedDB = dict()
 
 @pytest.fixture(scope="session")
 def client():
@@ -202,7 +205,52 @@ def add_link(client, token):
     return _make_request
 
 
+@pytest.fixture(scope="session")
+def cloud_sql():
+    return CloudSQL(auth=(accessKey, secretKey), instance=instance)
+    
 
+@pytest.fixture(scope="session")
+def testTables():
+    def _parse_item(data):
+        return Table(
+            name=data["name"],
+            schema=Schema(
+                fields=[Field(*f) for f in data["schema"]["fields"]]
+            )
+        )
+
+    tables = [{
+        "name": "observations",
+        "schema": {
+            "fields": [
+                ("time", PostgresType.TimeStamp.value),
+                ("temperature", PostgresType.Numerical.value),
+                ("salinity", PostgresType.Numerical.value),
+                ("pressure", PostgresType.Numerical.value),
+            ]
+        }
+    },{
+        "name": "messages",
+        "schema": {
+            "fields": [
+                ("text", PostgresType.NullString.value),
+            ]
+        }
+    },{
+        "name": "maine_boundaries_town_polygon",
+        "schema": {
+            "fields": [
+                ("globalid", None),
+                ("town", None),
+                ("county", None),
+                ("shapestare", None)
+            ]
+        }
+    }]
+    
+    return {item["name"]: _parse_item(item) for item in tables}
+        
 
 
 # @pytest.fixture()

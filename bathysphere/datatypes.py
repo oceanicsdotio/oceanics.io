@@ -145,23 +145,26 @@ class CloudSQL():
             pool_recycle=self.pool_recycle,
         )
 
-    def query(self):
+
+    def query(self, table) -> [dict]:
         """
         Execute am arbitrary query.
         """
-        schema = Schema(fields=[Field("text", None)])
-        table = Table(name="messages", schema=schema)
-
         with self.engine.connect() as cursor:
-            query:Query = table.selectRecords()
+            query:Query = table.select()
             return [query.parser(row) for row in cursor.execute(query.sql).fetchall()]
+
 
     def handle(self, request: Request) -> ResponseJSON:
         """
         Do some postgres stuff
         """
+        conf = request.body["table"]
+        fields = [Field(f["name"], f.get("type", None)) for f in conf["schema"]["fields"]]
+        table = Table(name=conf["name"], schema=Schema(fields=fields))
+
         try:
-            records = self.query()
+            records = self.query(table=table)
         except Exception as ex:
             return dumps({
                 "Error":"Problem executing query",
@@ -293,13 +296,13 @@ class DataFormat(Enum):
 
 
 @attr.s
-class Distance:
+class Distance(object):
     value: float = attr.ib()
     unit: str = attr.ib()
 
 
 @attr.s
-class Field:
+class Field(object):
     """Column for Postgres table"""
     name: Any = attr.ib()
     type: str = attr.ib()
@@ -2496,39 +2499,42 @@ class Table(object):
     name: str = attr.ib()
     schema: Schema = attr.ib(default=Schema())
 
+    @staticmethod
+    def _unwrap(x):
+        return {'record': x[0]}
+
     def declare(
         self
     ) -> Query:
-
+        fieldString = join(f'{f.name} {f.type}' for f in self.schema.fields)
         queryString = f"""
-        CREATE TABLE IF NOT EXISTS {self.name}({join(f'{f.value} {f.type}' for f in self.schema)});
+        CREATE TABLE IF NOT EXISTS {self.name}({fieldString});
         """
         return Query(queryString, None)
 
 
-    def insertRecords(
+    def insert(
         self, 
         data: ()
     ) -> Query:
         """
-        Insert new rows into database.
+        Generate the query to insert new rows into database.
         """
         _parsedValues = (f"({join(map(parsePostgresValueIn, row))})" for row in data)
-        columns, values = map(join, ((field[0] for field in self.schema), _parsedValues))
+        columns, values = map(join, ((field.name for field in self.schema.fields), _parsedValues))
 
         queryString = f"""
         INSERT INTO {self.name} ({columns}) VALUES {values};
         """
         return Query(queryString, None)
 
-
-    def selectRecords(
+    def select(
         self, 
         order_by: str = None, 
         limit: int = 100, 
-        fields: (str, ) = ("*",), 
+        fields: (str) = ("*",), 
         order: str ="DESC", 
-        conditions: ((str,)) = ()
+        conditions: ((str)) = ()
     ) -> Query:
     
         """
@@ -2541,11 +2547,13 @@ class Table(object):
         SELECT {', '.join(fields)} FROM {self.name} {_conditions} {_order} LIMIT {limit};
         """
 
-        def parse(x):
-            return {'record': x[0]}
+        return Query(queryString, Table._unwrap)
 
-        return Query(queryString, parse)
-
+    def drop(self) -> Query:
+        """
+        Drop the entire table
+        """
+        return Query(f"DROP TABLE {self.name};", None)
 
 @attr.s
 class TimeStamp(object):
