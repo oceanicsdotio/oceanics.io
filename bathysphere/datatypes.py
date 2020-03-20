@@ -69,6 +69,71 @@ IntervalType = (float, float)
 ResponseJSON = (dict, int)
 ResponseOctet = (dict, int)
 
+
+@attr.s
+class ChemicalSystem(object):
+
+    sources = None
+    value = None
+    massAdded = None
+    symbol = None
+    validRange = (0.0, None)
+
+    @property
+    def flux(self) -> None:
+        """
+        Transfer of concentration between control volumes
+        """
+        return None
+
+    @property
+    def mass(self) -> None:
+        return None
+
+    def __add__(self, other):
+        try:
+            return self.value + other.value
+        except:
+            return self.value + other
+
+    def __truediv__(self, other):
+        try:
+            return self.value / other.value
+        except:
+            return self.value / other
+
+    def __lt__(self, other):
+        return self.value < other
+
+    def __gt__(self, other):
+        return self.value > other
+
+    # def clamp(
+    #     self,
+    #     future: array, 
+    #     volume: array
+    # ):
+    #     """
+
+    #     :param concentration:
+    #     :param future:
+    #     :param volume:
+    #     """
+    #     nodes, layers = where(self.value < self.validRange[0])
+    #     self.massAdded[nodes, layers] += volume * (self.value - future)
+    #     return future.clip(max=self.validRange[1])
+
+    # def transfer(self, conversion: float = 1.0):
+    #     """
+    #     :param conversion:
+
+    #     :return:
+    #     """
+    #     # Transport.horizontal(mesh, reactor, self.key)  # Mass flux, advection and diffusion
+    #     # Transport.vertical(mesh, reactor, self.key)  # Mass flux, vertical sigma velocity
+    #     self.mass += self.delta * conversion  # update state from reaction equations
+
+
 @attr.s
 class Clock:
     """
@@ -184,6 +249,149 @@ class CloudSQL():
             }), 500
 
 
+@attr.s
+class Condition(object):
+    """
+    Conditions are a base class for BOUNDARY and SOURCE types.
+
+    :param nodes: optional node indices, if None same value applied universally (non-point)
+    :param layers: optional layer indices, if None same value applied over column
+    """
+    value: array = attr.ib()
+    shape: (int) = attr.ib()
+    mapping: (array, array) = attr.ib()
+    scale: float = attr.ib(default=1.0)
+    mass: float = attr.ib(default=0.0)
+    next: float = attr.ib(default=None)
+    last: float = attr.ib(default=None)
+
+    @property
+    def delta(self):
+        return self.value * self.scale
+
+    def boundary(
+        self, 
+        system
+    ) -> None:
+        """
+        Boundaries are conditions which override the current state, and impose a new value. They may be a time-varying
+        function, constant, or may be controlled by an external simulation.
+        """
+        system[self.mapping] = self.value
+        return system
+
+
+    def mark(self, nodes):
+        """
+        flag nodes as source
+
+        :param nodes:
+        :return:
+        """
+        nodes.source[self.mapping] = True
+
+    def update(self, dt):
+        """
+        Update values from slope, and calculate new slope
+
+        :param dt:
+        :return:
+        """
+
+        self["value"] += self["delta"] * dt
+
+        return True
+
+    def read(self, path, conversion=1000):
+        """
+        Read forcing conditions from CSV file, and update difference equation.
+        Will fail silently if condition was declared constant
+
+        :param path: path to CSV file
+        :param conversion: unit conversion factor
+
+        :return: success
+        """
+
+        try:
+            fid = open(path, "r")
+            data = array(fid.readline().split(',')).astype(float)
+            fid.close()
+
+            self.last, self.next = self.next, data[0]  # simulation time or reads in integer seconds
+            self["delta"] = (data[1:] * conversion * self.scale - self["current"]) / (self.next - self.last)
+        except AttributeError:
+            return False
+        else:
+            return True
+
+    def source(
+        self, 
+        system
+    ) -> None:
+        """
+        Source are a type of condition. They are added to their parent state array.
+
+        :param system: chemistry instance
+        :param key: internal pool key of tracer
+        :param scale: optional conversion factor, used primarily for surface area correction
+        """
+        system.mass[self.mapping] += self.delta
+        self.mass += self.delta.sum()  # add to mass balance counter
+        return system
+
+    @classmethod
+    def NonPointSource(cls):
+        """
+        Uniform by default. Can also be vertically or horizontally uniform if desired.
+
+        Atmospheric and sediment sources are special cases.
+        """
+        return cls()
+
+
+    @classmethod
+    def PointSource(
+        cls,
+        nodes: (int) = None,
+        layers: (int) = None
+    ) -> cls:
+        """
+        Point source loads are defined at some but not all nodes. Points which are not part of the mesh model
+        (locations that are not nodes, or location that ARE elements) are divided amongst nearest neighbors.
+        This is also true when mass is released between sigma layers,
+        such as Lagrangian particle models with vertical dynamics.
+        """
+        return cls(mapping=(nodes, layers))
+        
+    @classmethod
+    def Surface(
+        cls,
+        nodes: (int) = None
+    ) -> cls:
+        """
+        Atmospheric loads are non-point sources. They may vary in space.
+        """
+        return cls(mapping=(nodes, (0,)))
+    
+
+    @classmethod
+    def FallLine(
+        cls,
+        nodes: (int),
+        layers: (int) = None
+    ) -> cls:
+        """
+        Fall-line loads occur where mass enters the system at a boundary, usually a well-mixed freshwater discharge.
+        The same concentration is added along a node-defined path, composed of at least two points on the shoreline,
+        which are joined by edges either transecting the discharge stream, or following the shoreline (e.g. ground
+        water).
+
+        They are a special type of point source.
+        """
+        cls(mapping=(nodes, layers))
+
+   
 
 class ConvexHull(object):
     @staticmethod
@@ -2131,7 +2339,6 @@ class ObjectStorage(Minio):
     #             break
 
 
-
 class PostgresType(Enum):
     Numerical = "DOUBLE PRECISION NULL"
     TimeStamp = "TIMESTAMP NOT NULL"
@@ -2140,12 +2347,59 @@ class PostgresType(Enum):
     NullString = "VARCHAR(100) NULL"
 
 
-
 @attr.s
 class Query:
     
     sql: str = attr.ib()
     parser: Callable = attr.ib()
+
+
+@attr.s
+class Reactor(object):
+    
+    systems: () = attr.ib()
+    mesh: None = attr.ib()
+
+
+    def update(self, volume: array):
+        """
+        Transfer mass from difference equation to conservative arrays
+        """
+        assert all(each.transfer(conversion=volume) for each in self.systems.values())
+
+
+    def integrate(
+        self, 
+        anomaly, 
+        nutrients,
+        carbon,
+        oxygen,
+        phyto_c=0.0, 
+        phyto_n=0.0, 
+        volume=1.0
+    ) -> None:
+        """
+            
+        Update difference equations for internal, temperature-dependent chemistry.
+
+        :param anomaly: temperature anomaly (usually T-20)
+        :param carbon: required chemistry instance
+        :param oxygen: required chemistry instance
+        :param nutrients: optional list of nutrients to track
+        :param phyto_c: carbon supplied by biology
+        :param phyto_n: nitrogen supplied by biology
+        """
+        limit = carbon.integrate(anomaly, oxygen, phyto_c)  # available carbon as proxy, consumes oxygen
+        assert oxygen.integrate(limit, anomaly)  # oxygen consumption
+
+        assert all(nutrient.mineralize(limit, anomaly) for nutrient in nutrients)
+
+        for each in nutrients:
+            if each.__class__.__name__ == "Nitrogen":
+                assert each.integrate(oxygen, carbon, phyto_n, anomaly)  # consumes oxygen and carbon
+                break
+            
+        self.update(volume)
 
 
 @attr.s
@@ -2784,3 +3038,78 @@ class VertexArray(array):
             vertex_array = vertex_array[0 : len(retain), :]
         return vertex_array, topology
 
+
+@attr.s
+class Wind:
+    """
+    Simulate wind speed and mixing.
+    """
+    speed: float or array = attr.ib(default=0.0)
+    delta: float or array = attr.ib(default=0.0)
+    validRange: (float, float) = attr.ib(default=0.0)
+
+    @property
+    def simpleMixing(
+        self,
+    ) -> float or array:
+        """
+        Basic wind mixing rate.
+        """
+        return (
+            0.728 * self.speed ** 0.5 - 
+            0.317 * self.speed + 
+            0.0372 * self.speed ** 2)
+
+    def update(self, dt: float):
+        """
+        Update velocity shear due to wind forcing
+        """
+        self.speed += self.delta * dt
+        return self
+
+    @staticmethod
+    def shear(
+        velocity: array, 
+        topology: array, 
+        precision: type = float
+    ) -> array:
+        """
+        Calculate current velocity shear vector for selected cells
+
+        :param velocity: velocity field, assumed to be already subset to surface and U, V components
+        :param topology: tuple of parents of the node
+        :param precision:
+
+        :return:
+        """
+
+        n = len(topology)
+        vectors = zeros((n, 2), dtype=precision)  # shear vectors
+
+        for ii in range(n):
+            parents = topology[ii]
+            sq = velocity[parents, :, :].mean(axis=0) ** 2  # shape is (points, 3, layers, dim)
+            vectors[ii] += sq.sum(axis=0) ** 0.5  # reduce to root of the sums, shape is (dim)
+
+        return abs(vectors[:, 0] - vectors[:, 1])
+
+    def dynamicMixing(
+        self,
+        mapping: ((int),(int)), 
+        velocity: array, 
+        diffusivity: float or array = 0.0
+    ) -> array:
+        """
+
+        :param nodes: object
+        :param layers: object
+        :param velocity: water velocity field
+        :param diffusivity: of oxygen across air-water interface, m2/day
+
+        :return: mixing rate
+        """
+        nodes, layers = mapping
+        depth = nodes.depth * layers.z[:2].mean()
+        subset = velocity[:, :2, :2]
+        return ((diffusivity * Wind.shear(subset, nodes.parents)) / depth ** 0.5).clip(min=self.validRange[0])
+v

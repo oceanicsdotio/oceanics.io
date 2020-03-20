@@ -147,3 +147,10 @@ parameters["constants"] = {
 #     "PO4SS": 100,
 #     "SISS": 101
 # }
+
+LIGHT = "light"
+WEIGHTS = array([0.1, 0.2, 0.7])
+EXTINCTION = 0.001
+LYMOLQ = 41840 / 217400  # LIGHT SATURATION, MOL QUANTA/M2 UNITS
+PAR = 0.437
+SOURCE = 650
