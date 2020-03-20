@@ -22,7 +22,7 @@ except ImportError as _:
     pass
 
 
-from bathysphere_numerical.quantize.utils import (
+from bathysphere.future.utils import (
     extent,
     reduce_extent,
     extent_crop,

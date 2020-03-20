@@ -290,7 +290,7 @@ class Condition(object):
         """
         nodes.source[self.mapping] = True
 
-    def update(self, dt):
+    def update(self, dt: float):
         """
         Update values from slope, and calculate new slope
 
@@ -298,11 +298,14 @@ class Condition(object):
         :return:
         """
 
-        self["value"] += self["delta"] * dt
+        self.value += self.delta * dt
+        return self
 
-        return True
-
-    def read(self, path, conversion=1000):
+    def read(
+        self, 
+        path: str, 
+        conversion: float = 1000
+    ):
         """
         Read forcing conditions from CSV file, and update difference equation.
         Will fail silently if condition was declared constant
@@ -327,7 +330,7 @@ class Condition(object):
 
     def source(
         self, 
-        system
+        system: ChemicalSystem
     ) -> None:
         """
         Source are a type of condition. They are added to their parent state array.
