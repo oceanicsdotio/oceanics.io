@@ -7,7 +7,7 @@ from datetime import datetime
 from json import dump
 
 from bathysphere import app, appConfig
-from bathysphere.tests.conftest import client, graph, getCredentials
+from bathysphere.tests.conftest import client, graph, getCredentials, CREDENTIALS
 from bathysphere.graph.models import (
     Locations,
     Sensors,
@@ -27,7 +27,7 @@ YEAR = 2019
 COLLECTION = "test-handlers-data-collection"
 ASSET = "test-handlers-data-asset"
 testAuth = ("testing@oceanics.io", "n0t_passw0rd", "something secret")
-CREDENTIALS = ("testing@oceanics.io", "n0t_passw0rd")
+
 
 @pytest.mark.teardown
 def test_graph_teardown(graph):

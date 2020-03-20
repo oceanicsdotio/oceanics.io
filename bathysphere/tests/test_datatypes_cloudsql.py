@@ -4,6 +4,7 @@ from datetime import datetime
 from random import random
 from collections import OrderedDict
 from requests import post, get
+from pg8000 import ProgrammingError
 from json import dumps
 from os import getenv
 import hmac
@@ -11,7 +12,9 @@ import hashlib
 
 from bathysphere.datatypes import Table, CloudSQL, Query, Schema, Field, PostgresType
 from bathysphere.graph.models import Collections, Locations
-from bathysphere.tests.conftest import IndexedDB, accessKey, secretKey, instance
+from bathysphere.tests.conftest import (
+    IndexedDB, accessKey, secretKey, instance, CREDENTIALS, stripMetadata
+)
 
 
 allTables = ["observations", "messages", "maine_boundaries_town_polygon"]
@@ -26,7 +29,10 @@ def test_datatypes_cloudsql_table_teardown(cloud_sql, testTables, table):
     with cloud_sql.engine.connect() as cursor:
 
         query:Query = testTables[table].drop()
-        cursor.execute(query.sql)
+        try:
+            cursor.execute(query.sql)
+        except ProgrammingError:
+            pass
 
 
 @pytest.mark.cloud_sql
@@ -90,14 +96,16 @@ def test_datatypes_cloudsql_collection_create(create_entity, testTables, table):
     Create collection metadata in graph database
     """
     # conditions = ["land='n'", "type='coast'"]
-
     key = "Maine"
+    collection = stripMetadata(Collections(
+        name=key,
+        description="Data pertaining to the state of Maine"
+    ).serialize(db=None, service="localhost"))
+
     response = create_entity(
         Collections.__name__,
-        Collections(
-            title=key,
-            description="Data pertaining to the state of Maine"
-        ).serialize(db=None, service="localhost"),
+        CREDENTIALS,
+        collection,
     )
     assert response.status_code == 200, response.get_json()
     IndexedDB[key] = response.get_json()["value"]["@iot.id"]
@@ -112,37 +120,33 @@ def test_datatypes_cloudsql_postgis_create_maine_towns(create_entity, county):
     Unless the shapes are changed, which is likely to be infrequent,
     then keeping this information in the graph is a great bargain. 
     """
+    collection = stripMetadata(Collections(
+        name=county,
+        description=f"Coastal polygons in {county} County"
+        # providers="Maine Office of GIS" 
+    ).serialize(db=None, service="localhost"))
+
     response = create_entity(
         Collections.__name__,
-        {
-            "links": {
-                "Collections": [{"uuid": IndexedDB["Maine"], "label": "Contains"}]
-            },
-            **Collections(
-                title=county,
-                description=f"Coastal polygons in {county} County",
-                providers="Maine Office of GIS" 
-            ).serialize(db=None, service="localhost")
-        }
+        CREDENTIALS,
+        collection
     )
     _data = response.get_json()
     assert response.status_code == 200, _data
     IndexedDB[county] = _data["value"]["@iot.id"]
 
     town = "Portland"
+    location = stripMetadata(Locations(
+        location={"type": "Polygon"},
+        name=f"{town} Coast",
+    ).serialize(db=None, service="localhost"))
 
     response = create_entity(
         Locations.__name__,
-        {
-            "links": {
-                "Collections": [{"id": IndexedDB[county], "label": "Contains"}]
-            },
-            **Locations(
-                location={"type": "Polygon"},
-                name=f"{town} Coast",
-            ).serialize(db=None, service="localhost")
-        }
+        CREDENTIALS,
+        location
     )
+    # TODO: link to Maine collection
     _data = response.get_json()
     assert response.status_code == 200, _data
     IndexedDB[county] = _data["value"]["@iot.id"]
@@ -150,7 +154,7 @@ def test_datatypes_cloudsql_postgis_create_maine_towns(create_entity, county):
 
 @pytest.mark.cloud_sql
 @pytest.mark.xfail
-def test_function_postgres_retrieve_polygons():
+def test_function_cloudsql_retrieve_polygons():
 
     _ = dumps(
         {

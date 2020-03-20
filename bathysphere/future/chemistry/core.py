@@ -1,6 +1,10 @@
-from bathysphere.array import Quantize
-from numpy import where, roll
+try:
+    from numpy import where, roll
+except ImportError:
+    pass
 
+from bathysphere.future.utils import create_fields
+Quantize.
 REFRACTORY = "R"
 PARTICULATE = "P"
 ORGANIC = "O"
@@ -8,6 +12,8 @@ DISSOLVED = "D"
 LABILE = "L"
 EXCRETED = "Ex"
 RECYCLED = "Re"
+
+
 
 
 class Chemistry(dict):
@@ -27,40 +33,18 @@ class Chemistry(dict):
         :param shape: shape of
         """
 
-        dict.__init__(self, Quantize.create_fields(keys, shape, precision=float))
+        dict.__init__(self, create_fields(keys, shape, precision=float))
         self.verb = verb
 
         self.coef = coef
         self.shape = shape  # shape of the quantized fields
-        self.delta = Quantize.create_fields(keys, shape, precision=float)  # difference equation
-        self.mass = Quantize.create_fields(keys, shape, precision=float)  # mass tracking
-        self.added = Quantize.create_fields(keys, shape, precision=float)  # mass created in simulation
-        self.previous = Quantize.create_fields(keys, shape, precision=float)
+        self.delta = create_fields(keys, shape, precision=float)  # difference equation
+        self.mass = create_fields(keys, shape, precision=float)  # mass tracking
+        self.added = create_fields(keys, shape, precision=float)  # mass created in simulation
+        self.previous = create_fields(keys, shape, precision=float)
 
         self.kappa = {"marine": kappa, "fresh": None}  # reaction constant
         self.theta = {"marine": theta, "fresh": None}  # temperature dependent reaction rate parameter
-
-    def __add__(self, other):
-
-        try:
-            return self[self.key] + other[self.key]
-        except:
-            return self[self.key] + other
-
-    def __truediv__(self, other):
-
-        try:
-            return self[self.key] / other[self.key]
-        except:
-            return self[self.key] / other
-
-    def __lt__(self, other):
-
-        return self[self.key] < other
-
-    def __gt__(self, other):
-
-        return self[self.key] > other
 
     def _sed_rxn(self, coefficient, exponent, regime="marine"):  # reaction rate for tracer class
         """Reaction rate for tracer class"""
@@ -92,35 +76,6 @@ class Chemistry(dict):
 
         return predicted if self.negatives else self._enforce_range(concentration, predicted, future)
 
-    def _enforce_range(self, concentration, future, volume):
-        """
-
-        :param concentration:
-        :param future:
-        :param volume:
-
-        :return:
-        """
-        nodes, layers = where(concentration < self.min)
-        self.added[nodes, layers] += volume * (concentration - future)
-        return future.clip(max=self.max)
-
-    def transfer(self, conversion=1.0):
-        """
-        :param conversion:
-
-        :return:
-        """
-        # Transport.horizontal(mesh, reactor, self.key)  # Mass flux, advection and diffusion
-        # Transport.vertical(mesh, reactor, self.key)  # Mass flux, vertical sigma velocity
-
-        for key in self.keys():
-            self.mass[key] += self.delta[key] * conversion  # update state from reaction equations
-
-        return True
-
-    def add(self, mass):
-        self.mass[self.key] += mass
 
     def exchange(self, delta, source=None, sink=None, layer=None, conversion=None):
         """

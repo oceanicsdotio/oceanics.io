@@ -52,10 +52,6 @@ UTMEXT = (360300.000, 4662300.000, 594300.000, 4899600.000)
 WINDOW = (-69.6, 43.8, -69.5, 44.1)
 LOCAL = "../sema-1.0/data/satellite/"
 ROOT = ("users", "misclab", "coastal_sat")
-HOST = "misclab.umeoce.maine.edu"
-TESTFILE = "LC8011030JulyAvLGN00_OSI.nc"
-DEFAULT_KEY = "minio"
-DEFAULT_PASS = "minio123"
 DATASET = "LC8011030JulyAvLGN00_OSI.nc"
 TOWNS = "Maine_Boundaries_Town_Polygon"
 CLOSURES = "MaineDMR_Public_Health__NSSP_2017"
@@ -65,6 +61,8 @@ LATITUDE_NAME = "lat"
 CENTER_LAT = "latc"
 CENTER_LON = "lonc"
 
+CREDENTIALS = ("testing@oceanics.io", "n0t_passw0rd")
+
 avhrr_start = datetime(2015, 1, 1)
 avhrr_end = datetime(2015, 1, 30)
 ext = (-69.6, 43.8, -69.5, 44.1)
@@ -72,6 +70,13 @@ ext = (-69.6, 43.8, -69.5, 44.1)
 
 accessKey, secretKey, instance = getenv("POSTGRES_SECRETS").split(",")
 IndexedDB = dict()
+
+
+def stripMetadata(item):
+    return {
+        k: v for k, v in item.items() if "@" not in k
+    }
+
 
 @pytest.fixture(scope="session")
 def client():
@@ -234,9 +239,9 @@ def testTables():
         "name": "locations",
         "schema": {
             "fields": [
-                ("id", PostgresType.NullString),
-                ("name", PostgresType.NullString),
-                ("geo", PostgresType.Geography),
+                ("id", PostgresType.NullString.value),
+                ("name", PostgresType.NullString.value),
+                ("geo", PostgresType.Geography.value),
             ]
         }
         
@@ -251,10 +256,11 @@ def testTables():
         "name": "maine_boundaries_town_polygon",
         "schema": {
             "fields": [
-                ("globalid", None),
-                ("town", None),
-                ("county", None),
-                ("shapestare", None)
+                ("globalid", PostgresType.NullString.value),
+                ("town", PostgresType.NullString.value),
+                ("county", PostgresType.NullString.value),
+                ("shapestare", PostgresType.Numerical.value),
+                ("geom", PostgresType.Geography.value)
             ]
         }
     }]

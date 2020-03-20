@@ -454,13 +454,12 @@ class Entity(object):
             else f"{base_url}/{uuid}"
         )
 
-        linkedEntities = set(
-            label for buffer in Link().query(
-                db=db, nodes=(self, Entity())
-            )
-            for label in buffer[0]
-            if buffer not in restricted
-        ) if db else ()
+        linkedEntities = set()
+        if db is not None:
+            for each in Link().query(db=db, nodes=(self, Entity())):
+                label = each[0][0]
+                if label not in restricted:
+                    linkedEntities |= {label}
 
         return {
             "@iot.id": uuid,
