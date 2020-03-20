@@ -2,13 +2,9 @@ import pytest
 
 from datetime import datetime
 from random import random
-from collections import OrderedDict
 from requests import post, get
 from pg8000 import ProgrammingError
 from json import dumps
-from os import getenv
-import hmac
-import hashlib
 
 from bathysphere.datatypes import Table, CloudSQL, Query, Schema, Field, PostgresType
 from bathysphere.graph.models import Collections, Locations
@@ -106,6 +102,7 @@ def test_datatypes_cloudsql_table_query(cloud_sql, testTables, table):
 
 
 @pytest.mark.graph
+@pytest.mark.cloud_sql
 def test_datatypes_cloudsql_collection_create(create_entity):
     """
     Create collection metadata in graph database

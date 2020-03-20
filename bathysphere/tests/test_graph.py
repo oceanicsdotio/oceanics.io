@@ -1,13 +1,13 @@
 import pytest
-from os import getenv
-
-from pytest import mark
-
 from datetime import datetime
 from json import dump
 
-from bathysphere import app, appConfig
-from bathysphere.tests.conftest import client, graph, getCredentials, CREDENTIALS
+from bathysphere import appConfig
+from bathysphere.tests.conftest import (
+    getCredentials, 
+    CREDENTIALS,
+    DARKSKY_API_KEY,
+)
 from bathysphere.graph.models import (
     Locations,
     Sensors,
@@ -20,7 +20,7 @@ from bathysphere.graph.models import (
     Entity,
     TaskingCapabilities,
     Tasks,
-    Actuators
+    Actuators,
 )
 
 YEAR = 2019
@@ -130,7 +130,7 @@ def test_graph_sensorthings_locations_weather_report(graph):
     ).pop().reportWeather(
         url="https://api.darksky.net/forecast",
         ts=datetime(2016, 2, 1, 0, 0, 0),
-        api_key=getenv("DARKSKY_API_KEY"),
+        api_key=DARKSKY_API_KEY,
     )
     assert response.ok, response.json()
     with open("data/test_darksky.json", "w+") as fid:

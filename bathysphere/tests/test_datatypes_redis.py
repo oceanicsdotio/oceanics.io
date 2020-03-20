@@ -5,6 +5,17 @@ from rq import Queue, Connection, Worker
 
 from bathysphere import app
 
+# def listenToObjectStorageEvents(
+#     self, 
+#     bucket_name: str, 
+#     file_type: FileType = None, 
+#     channel: str = "bathysphere-events"
+# ):
+#     fcns = ("s3:ObjectCreated:*", "s3:ObjectRemoved:*", "s3:ObjectAccessed:*")
+#     r = StrictRedis()
+#     for event in self.listen_bucket_notification(bucket_name, "", file_type, fcns):
+#         r.publish(channel, str(event))
+
 
 # @job('low', connection=my_redis_conn, timeout=5)
 def theUltimateAnswer(a, b):

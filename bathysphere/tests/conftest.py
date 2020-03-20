@@ -74,7 +74,10 @@ avhrr_start = datetime(2015, 1, 1)
 avhrr_end = datetime(2015, 1, 30)
 ext = (-69.6, 43.8, -69.5, 44.1)
 
+
+OSI_DATASET = "bivalve-suitability"
 OBJECT_STORAGE_SECRETS = getenv("OBJECT_STORAGE_SECRETS").split(",")
+DARKSKY_API_KEY = getenv("DARKSKY_API_KEY")
 accessKey, secretKey, instance = getenv("POSTGRES_SECRETS").split(",")
 IndexedDB = dict()
 
@@ -83,6 +86,16 @@ def stripMetadata(item):
     return {
         k: v for k, v in item.items() if "@" not in k
     }
+
+def dumpErrors(response):
+    contents = response.content.decode()
+    if not response.ok:
+        for each in contents.splitlines():
+            print(each)
+        raise AssertionError
+    if not all((each in contents for each in ("uuid", "url", "objectName"))):
+        print(contents)
+        raise AssertionError
 
 
 def getCredentials(

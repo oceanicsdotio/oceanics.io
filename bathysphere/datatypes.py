@@ -2054,6 +2054,9 @@ class ObjectStorage(Minio):
         except NoSuchKey:
             return None
 
+    def list_objects(self, prefix: str = None):
+        return super().list_objects(self.bucket_name, prefix=(prefix or self.prefix))
+
     def put_object(
         self,
         object_name: str,
@@ -2153,8 +2156,6 @@ class ObjectStorage(Minio):
 
         return self
 
-    def list_objects(self, prefix: str):
-        return super().list_objects(self.bucket_name, prefix=prefix)
 
     def delete(
         self, 
@@ -2262,24 +2263,15 @@ class ObjectStorage(Minio):
                     )
                 except NoSuchKey:
                     return "Could not lock repository", 500
-
                 try:
-                    result = fcn(
-                        *args,
-                        index=index,
-                        lock=config["lock"],
-                        headers=config["headers"],
-                        **kwargs,
-                    )
+                    result = fcn(*args, **kwargs)
                 except Exception as ex:
                     result = f"{ex}", 500
                 finally:
                     if lock and not self.unlock(object_name=lock):
                         result = "Failed to unlock", 500
                 return result
-
             return wrapper
-
         return decorator
 
  

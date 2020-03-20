@@ -7,18 +7,7 @@ except ImportError:
 from requests import post
 from bathysphere.image import Spatial, Time
 
-OSI_DATASET = "bivalve-suitability"
 
-
-def dumpErrors(response):
-    contents = response.content.decode()
-    if not response.ok:
-        for each in contents.splitlines():
-            print(each)
-        raise AssertionError
-    if not all((each in contents for each in ("uuid", "url", "objectName"))):
-        print(contents)
-        raise AssertionError
 
 
 def test_function_image_spatial_random_points():
@@ -73,38 +62,38 @@ def shape_preview(object_storage, spatial, config_no_app):
 
 
 
-#
-# @pytest.mark.spatial
-# def test_render_random_points_and_extent_culling(config_no_app, spatial, object_storage):
-#     """
-#     Should be front facing (CCW per OpenGL)
-#
-#     :param config_no_app:
-#     :return:
-#     """
-#
-#     extent = array((-1, 1, -1, 1))
-#
-#     n = 100
-#     x = lin_transform(arange(0, n + 1) / n, *extent[:2])
-#     y = lin_transform(arange(0, n + 1) / n, *extent[2:4])
-#     xv, yv = meshgrid(x, y)
-#     pxy = stack((xv, yv), axis=1)
-#
-#     spatial.points(pxy, color="black", alpha=0.1)
-#     spatial.bbox(extent, edgecolor="black", facecolor="none", alpha=0.5)
-#
-#     for each in repeat("blue", times=6):
-#         e1 = list(lin_transform(random.uniform(size=2), *extent[:2]))
-#         e2 = list(lin_transform(random.uniform(size=2), *extent[2:4]))
-#         ext = array(e1 + e2)
-#         spatial.bbox(ext, edgecolor=each, facecolor="none", alpha=0.5)
-#         shp = geom_shader(ext)
-#         spatial.shape(shp, edgecolor=each, facecolor="none", alpha=0.5)
-#
-#     object_storage.upload_image(
-#         "test-render-random-points-and-extent-culling.png", spatial.push(transparent=False), config_no_app
-#     )
+
+@pytest.mark.spatial
+def test_render_random_points_and_extent_culling(config_no_app, spatial, object_storage):
+    """
+    Should be front facing (CCW per OpenGL)
+
+    :param config_no_app:
+    :return:
+    """
+
+    extent = array((-1, 1, -1, 1))
+
+    n = 100
+    x = lin_transform(arange(0, n + 1) / n, *extent[:2])
+    y = lin_transform(arange(0, n + 1) / n, *extent[2:4])
+    xv, yv = meshgrid(x, y)
+    pxy = stack((xv, yv), axis=1)
+
+    spatial.points(pxy, color="black", alpha=0.1)
+    spatial.bbox(extent, edgecolor="black", facecolor="none", alpha=0.5)
+
+    for each in repeat("blue", times=6):
+        e1 = list(lin_transform(random.uniform(size=2), *extent[:2]))
+        e2 = list(lin_transform(random.uniform(size=2), *extent[2:4]))
+        ext = array(e1 + e2)
+        spatial.bbox(ext, edgecolor=each, facecolor="none", alpha=0.5)
+        shp = geom_shader(ext)
+        spatial.shape(shp, edgecolor=each, facecolor="none", alpha=0.5)
+
+    object_storage.upload_image(
+        "test-render-random-points-and-extent-culling.png", spatial.push(transparent=False), config_no_app
+    )
 
 
 @pytest.mark.spatial
@@ -112,28 +101,28 @@ def test_render_closed_areas(config_no_app, object_storage, shape_preview):
     shape_preview("MaineDMR_Public_Health__NSSP_2017", edge="none", face="black")
 
 
-# @pytest.mark.spatial
-# def test_render_maine_towns(object_storage, config_no_app, maine_towns, spatial):
-#     shape_preview("Maine_Boundaries_Town_Polygon", edge="none", face="black")
+@pytest.mark.spatial
+def test_render_maine_towns(object_storage, config_no_app, maine_towns, spatial):
+    shape_preview("Maine_Boundaries_Town_Polygon", edge="none", face="black")
 
 
-# @pytest.mark.spatial
-# def test_render_osi_simple_extents(object_storage, config_no_app):
+@pytest.mark.spatial
+def test_render_osi_simple_extents(object_storage, config_no_app):
 
-#     dataset = "bivalve-suitability"
-#     extents = object_storage.restore(dataset, "test-extents")
-#     shapes = object_storage.restore(dataset, "test-shapes")
-#     view = Spatial(style=config_no_app["styles"]["light"])
-#     for e in extents:
-#         view.bbox(e, edgecolor="red", facecolor="none", alpha=0.5)
-#     for s in shapes:
-#         view.shape(s, edgecolor="blue", facecolor="none", alpha=0.5)
-#     buffer = view.push(transparent=True)
-#     object_storage.upload_image(
-#         f"{dataset}/test-render-shape-simple-extents.png",
-#         buffer,
-#         config_no_app,
-#     )
+    dataset = "bivalve-suitability"
+    extents = object_storage.restore(dataset, "test-extents")
+    shapes = object_storage.restore(dataset, "test-shapes")
+    view = Spatial(style=config_no_app["styles"]["light"])
+    for e in extents:
+        view.bbox(e, edgecolor="red", facecolor="none", alpha=0.5)
+    for s in shapes:
+        view.shape(s, edgecolor="blue", facecolor="none", alpha=0.5)
+    buffer = view.push(transparent=True)
+    object_storage.upload_image(
+        f"{dataset}/test-render-shape-simple-extents.png",
+        buffer,
+        config_no_app,
+    )
 
 
 @pytest.mark.spatial
@@ -241,39 +230,39 @@ def test_render_osi_final(object_storage, config_no_app):
     )
 
 
-# def test_render_osi_overlapping_shapes(object_storage, config_no_app):
+def test_render_osi_overlapping_shapes(object_storage, config_no_app):
 
-#     view = Spatial(style=config_no_app["styles"]["light"])
-#     dataset = "bivalve-suitability"
-#     matrix = object_storage.restore(dataset, "shapes-water-holes", stack=True, limit=3)
-#     shapes = array(object_storage.restore(dataset, "shapes-water", limit=3))
+    view = Spatial(style=config_no_app["styles"]["light"])
+    dataset = "bivalve-suitability"
+    matrix = object_storage.restore(dataset, "shapes-water-holes", stack=True, limit=3)
+    shapes = array(object_storage.restore(dataset, "shapes-water", limit=3))
 
-#     limit = 23
-#     indx = 0
-#     for each in shapes[:limit]:
-#         if indx in matrix:
-#             view.shape(
-#                 each, edgecolor="red", facecolor="none", alpha=0.5, linewidth=1.0
-#             )
-#         else:
-#             view.shape(
-#                 each, edgecolor="black", facecolor="none", alpha=0.5, linewidth=1.0
-#             )
-#         view.ax.annotate(
-#             f"{indx}",
-#             xy=each.mean(axis=0),
-#             xytext=(0, 0),
-#             textcoords="offset points",
-#             va="bottom",
-#             ha="center",
-#         )
-#         indx += 1
+    limit = 23
+    indx = 0
+    for each in shapes[:limit]:
+        if indx in matrix:
+            view.shape(
+                each, edgecolor="red", facecolor="none", alpha=0.5, linewidth=1.0
+            )
+        else:
+            view.shape(
+                each, edgecolor="black", facecolor="none", alpha=0.5, linewidth=1.0
+            )
+        view.ax.annotate(
+            f"{indx}",
+            xy=each.mean(axis=0),
+            xytext=(0, 0),
+            textcoords="offset points",
+            va="bottom",
+            ha="center",
+        )
+        indx += 1
 
-#     object_storage.upload_image(
-#         f"{dataset}/test-render-osi-overlapping-shapes.png",
-#         view.push(transparent=True),
-#         config_no_app,
-#     )
+    object_storage.upload_image(
+        f"{dataset}/test-render-osi-overlapping-shapes.png",
+        view.push(transparent=True),
+        config_no_app,
+    )
 
 
 def test_render_pixel_histogram(object_storage, config_no_app):

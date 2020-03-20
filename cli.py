@@ -114,6 +114,44 @@ def cloud_sql_proxy(
 
 
 @click.command()
+@click.option("--prefix", default=None)
+def object_storage(prefix):
+    """
+    List the contents of a repository
+    """
+    from bathysphere.datatypes import ObjectStorage
+    from os import getenv
+
+    access_key, secret_key = getenv("OBJECT_STORAGE_SECRETS").split(",")
+    data = ObjectStorage(
+        "oceanicsdotio",
+        "nyc3.digitaloceanspaces.com",
+        prefix=prefix,
+        access_key=access_key, 
+        secret_key=secret_key, 
+        secure=True
+    ).list_objects()
+    
+    total = 0
+    dir_count = 0
+    file_count = 0
+    for obj in data:
+        color = "blue" if obj.is_dir else "green"
+        stop = min(len(obj.object_name), 50)
+        fields = (
+            "{0:50}".format(obj.object_name[:stop]),
+            "{0:>10}".format(obj.size)
+        )
+
+        total += obj.size
+        if obj.is_dir:
+            dir_count += 1
+        else:
+            file_count += 1
+        click.secho(", ".join(fields), fg=color)
+    
+
+@click.command()
 @click.option("--host", default="localhost", help="Neo4j instance hostname")
 @click.option("--port", default=7687, help="Neo4j instance `bolt` port")
 def providers(host: str, port: int) -> None:
@@ -124,7 +162,7 @@ def providers(host: str, port: int) -> None:
     This is the only way to show and create API keys. 
     """
     from os import getenv
-    from bathysphere.graph.drivers import connect
+    from bathysphere.graph import connect
     from bathysphere.graph.models import Providers
     from bathysphere.utils import loadAppConfig
 
@@ -235,7 +273,7 @@ cli.add_command(neo4j)
 cli.add_command(providers)
 cli.add_command(test)
 cli.add_command(cloud_sql_proxy)
-
+cli.add_command(object_storage)
 
 if __name__ == "__main__":
     cli()
