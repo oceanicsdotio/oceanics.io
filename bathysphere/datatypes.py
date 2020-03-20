@@ -211,12 +211,12 @@ class CloudSQL():
         )
 
 
-    def query(self, table) -> [dict]:
+    def query(self, table, **kwargs) -> [dict]:
         """
-        Execute am arbitrary query.
+        Execute an arbitrary query.
         """
         with self.engine.connect() as cursor:
-            query:Query = table.select()
+            query:Query = table.select(**kwargs)
             return [query.parser(row) for row in cursor.execute(query.sql).fetchall()]
 
 
@@ -322,7 +322,7 @@ class Condition(object):
             fid.close()
 
             self.last, self.next = self.next, data[0]  # simulation time or reads in integer seconds
-            self["delta"] = (data[1:] * conversion * self.scale - self["current"]) / (self.next - self.last)
+            self.delta = (data[1:] * conversion * self.scale - self.value) / (self.next - self.last)
         except AttributeError:
             return False
         else:
@@ -2025,20 +2025,30 @@ class Memory:
 #         return vertex_array_buffer
 
 
+@attr.s
 class ObjectStorage(Minio):
+
+    bucket_name: str = attr.ib()
+
     def __init__(self, bucket_name, **kwargs):
         self.bucket_name = bucket_name
         Minio.__init__(self, **kwargs)
         if not self.bucket_exists(bucket_name):
             self.make_bucket(bucket_name)
 
+    @property
+    def locked(self) -> bool:
+        # TODO: update to check actual storage
+        return False
+
     def exists(self, cacheKey: str):
-        """Determine whether object exists"""
+        """
+        Determine whether an object key exists
+        """
         try:
-            meta = self.stat_object(self.bucket_name, cacheKey)
-            return True, meta
+            return self.stat_object(self.bucket_name, cacheKey)
         except NoSuchKey:
-            return False, None
+            return None
 
     def _lock(self, session_id: str, object_name: str, headers: dict) -> bool:
         try:
@@ -2097,37 +2107,87 @@ class ObjectStorage(Minio):
 
         return label
 
-    def download(self, object_name: str):
-        try:
-            data = self.get_object(
-                bucket_name=self.bucket_name, object_name=object_name
-            )
-        except NoSuchKey:
-            return None
-        return data
+    def download(
+        self, 
+        object_name: str,
+        stream: bool = False
+    ) -> Response:
+        """
+        Download the data, may be streaming if desired
+        """
+        data = self.get_object(self.bucket_name, object_name)
+        if stream:
+            def generate():
+                for d in data.stream(32 * 1024):
+                    yield d
+            result = generate
+        else:
+            result = data
 
-    def delete(self, object_name: str):
-        try:
-            self.remove_object(bucket_name=self.bucket_name, object_name=object_name)
-        except NoSuchKey:
-            return False
-        return True
+        return Response(result, mimetype="application/octet-stream")
+
+
+    def delete(
+        self, 
+        prefix: str, 
+        batch: int = 10
+    ):
+        """
+        Delete all objects within a subdirectory or abstract collection
+
+        :param bucket_name: file prefix/dataset
+        :param prefix: most to process at once
+        :param batch:  number to delete at a time
+        """
+        remove = ()
+        conditions = {"x-amz-meta-service": "bathysphere"}
+
+        objects_iter = self.list_objects(self.bucket_name, prefix=prefix)
+        stop = False
+        while not stop:
+            try:
+                object_name = next(objects_iter).object_name
+            except StopIteration:
+                stop = True
+            else:
+                stat = self.stat_object(self.bucket_name, object_name).metadata
+                if all(stat.get(k) == v for k, v in conditions.items()):
+                    remove += (object_name,)
+
+            if len(remove) >= batch or stop:
+                self.remove_objects(bucket_name=self.bucket_name, objects_iter=remove)
+                remove = ()
+                
+            if stop:
+                break
 
     @staticmethod
-    def metadata_template(file_type: str = None, parent: str = None, **kwargs) -> dict:
-        if file_type == "lock":
-            write = {"x-amz-acl": "private"}
-        else:
-            write = {"x-amz-acl": "public-read"}
-        if parent:
-            write["z-amz-meta-parent"] = parent
+    def metadata_template(
+        file_type: str = None, 
+        parent: str = None,
+        headers: dict = None
+    ) -> dict:
 
-        write["x-amz-meta-created"] = datetime.utcnow().isoformat()
-        write["x-amz-meta-service-file-type"] = file_type
-        return {**kwargs["headers"], **write}
+        accessControl = "private" if file_type == "lock" else "public-read"
+     
+        return {
+            "x-amz-acl": accessControl,
+            "x-amz-meta-parent": parent or "",
+            "x-amz-meta-created": datetime.utcnow().isoformat(),
+            "x-amz-meta-service-file-type": file_type,
+            **(headers or {})
+        }
 
     @classmethod
     def lock(cls, fcn):
+        """
+        Object storage locking decorator for functions.
+
+        When used this implements a mutex lock on the object path,
+        which will block competing operations until it is cleared.
+
+        Locks will not block read operations except in special cases. 
+        """
         def wrapper(
             client: ObjectStorage,
             session: str,
@@ -2156,6 +2216,10 @@ class ObjectStorage(Minio):
 
     @classmethod
     def session(cls, config: dict = None):
+        """
+        Configurable decorator encapsulating 
+        """
+
         def decorator(fcn):
             def wrapper(*args, **kwargs):
 
@@ -2286,60 +2350,10 @@ class ObjectStorage(Minio):
                 content_type="application/json"
             )
 
-    @staticmethod
-    def streamObject(storage, bucket_name, object_name):
-        # type: (Minio, str, str) -> Response
-        """
-        Retrieve metadata for single item, and optionally the full dataset
-        """
-        obj = storage.get_object(bucket_name, object_name)
-
-        def generate():
-            for d in obj.stream(32 * 1024):
-                yield d
-        return Response(generate(), mimetype="application/octet-stream")
+    
 
 
-    @staticmethod
-    def create(storage, bucket_name, object_name, buffer, content_type, metadata):
-        storage.put_object(
-            bucket_name=bucket_name,
-            object_name=object_name,
-            metadata=metadata,
-            data=BytesIO(buffer),
-            length=len(buffer),
-            content_type=content_type,
-        )
 
-
-    # @staticmethod
-    # def delete(storage, bucket_name, prefix, batch=10):
-    #     """
-    #     Delete all objects within a subdirectory or abstract collection
-
-    #     :param bucket_name: file prefix/dataset
-    #     :param prefix: most to process at once
-    #     :param batch:  number to delete at a time
-    #     """
-    #     remove = ()
-    #     conditions = {"x-amz-meta-service": "bathysphere"}
-
-    #     objects_iter = storage.list_objects(bucket_name, prefix=prefix)
-    #     stop = False
-    #     while not stop:
-    #         try:
-    #             object_name = next(objects_iter).object_name
-    #         except StopIteration:
-    #             stop = True
-    #         else:
-    #             stat = storage.stat_object(bucket_name, object_name).metadata
-    #             if all(stat.get(k) == v for k, v in conditions.items()):
-    #                 remove += (object_name,)
-    #         if len(remove) >= batch or stop:
-    #             storage.remove_objects(bucket_name=bucket_name, objects_iter=remove)
-    #             remove = ()
-    #         if stop:
-    #             break
 
 
 class PostgresType(Enum):
@@ -2412,7 +2426,7 @@ class RecurrentNeuralNetwork:
     periods = attr.ib()  # previous steps to use for prediction
     epochs = attr.ib()  # number of training cycles
     rate = attr.ib()  # learning rate
-
+    model = attr.ib(default=None)
     output = attr.ib(default=1)  # out put dimensions
     horizon = attr.ib(default=1)  # future steps to predict
     input = attr.ib(default=1)
@@ -2611,7 +2625,7 @@ class RecurrentNeuralNetwork:
                     if verb:
                         print(ep, "\tMSE:", mse)
 
-            self.saver().save(session, self.file)
+            self.model.saver().save(session, self.file)
             return err
 
     def predict(self, predictor, feed):
@@ -2623,7 +2637,7 @@ class RecurrentNeuralNetwork:
         :return:
         """
         with Session() as session:
-            self.saver().restore(session, self.file)
+            self.model.saver().restore(session, self.file)
             return session.run(predictor, feed_dict=feed)
 
     def x(self, data):
@@ -2689,7 +2703,13 @@ class RecurrentNeuralNetwork:
         Y = placeholder(tf.float32, [None, self.periods, self.output])
         return X, Y
 
-    def feed(self, ts, x, y, xp):
+    def feed(
+        self, 
+        ts: array, 
+        x: array, 
+        y: array, 
+        xp: array
+    ) -> dict:
         """
         Format data dictionaries to feed into model
 
@@ -2732,7 +2752,7 @@ class RecurrentNeuralNetwork:
         loss = reduce_sum(square(predictor - y))  # mean square error tensor node
         optimizer = network.optimizer(loss)  # learning model — minimize error
 
-        network.train(optimizer, feed["train"], loss, verb)  # train and get error series over epochs
+        network.model.train(optimizer, feed["train"], loss, verb)  # train and get error series over epochs
         prediction = network.predict(predictor, feed["predict"])  # make prediction
         return yt, prediction
 
@@ -3115,4 +3135,3 @@ class Wind:
         depth = nodes.depth * layers.z[:2].mean()
         subset = velocity[:, :2, :2]
         return ((diffusivity * Wind.shear(subset, nodes.parents)) / depth ** 0.5).clip(min=self.validRange[0])
-v

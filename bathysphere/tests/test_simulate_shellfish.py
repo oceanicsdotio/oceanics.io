@@ -1,6 +1,6 @@
 import pytest
 from requests import get, post
-from bathysphere.future.shellfish import batch, job
+from bathysphere.shellfish import batch, job
 
 conf = dict()
 

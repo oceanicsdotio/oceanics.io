@@ -6,18 +6,10 @@ try:
 except ImportError:
     pass
 
-
 from pickle import dump, load
 import attr
-from bathysphere.future.utils import create_fields
+from bathysphere.future.chemistry import OXYGEN, CARBON, Nitrogen, NITROGEN, SILICA, PHOSPHOROUS, PHOSPHATE, SILICATE
 
-from .settling import Settling
-from ...chemistry.organic import OXYGEN, CARBON
-from ...chemistry.nutrient import Nitrogen, NITROGEN, SILICA, PHOSPHOROUS
-
-NUTRIENTS = (NITROGEN, SILICA, PHOSPHOROUS)
-
-from .chemistry.nutrient import SILICATE, SILICA, PHOSPHATE
 
 POM = "POM"
 PIM = "PIM"
@@ -41,6 +33,9 @@ DEFAULT_CONFIG = {
     "KECONST": 0.001  # base chl corrected extinction coefficient (when KEOPT is 0 or 2)
 }
 
+def create_field():
+    return None
+
 
 class Settling:
 
@@ -50,7 +45,15 @@ class Settling:
     def base(self, anomaly):
         return self.config["VSPMT"] ** anomaly
 
-    def settling(self, carbon, phosphorous, silica, phytoplankton, anomaly, mesh=None, conversion=0.001):
+    def settling(
+        self, 
+        carbon, 
+        phosphorous, 
+        silica, 
+        phytoplankton, 
+        anomaly: array, 
+        mesh=None, 
+        conversion: float = 0.001):
         """
         Move particulate mass due to settling
 
@@ -60,35 +63,38 @@ class Settling:
         :return:
         """
 
-        assert all(each.settling(mesh, systems, self.sediment) for each in phytoplankton)
+        (each.settling(mesh, systems, self.sediment) for each in phytoplankton)
 
         base = self.settling * mesh.nodes.area
         correction = self.config[VS+SEDT] ** anomaly
 
-        assert phosphorous._adsorbed(base, conversion, self.sediment, (PHOSPHATE, PHOSPHATE))
-        assert self._particulate_organics(base, correction, systems, carbon, phosphorous, silica)
+        phosphorous._adsorbed(base, conversion, self.sediment, (PHOSPHATE, PHOSPHATE))
+        self._particulate_organics(base, correction, systems, carbon, phosphorous, silica)
 
         corr = self.config[VS + NET] * correction
-        assert self.sediment.conversion(key, carbon._solids(**kwargs), corr)
+        self.sediment.conversion(key, carbon._solids(**kwargs), corr)
 
         if self.sediment is not None:
             self.sediment.flux()
 
-    def _adsorbed(self, base, phosphorous, silica, sediment=None):
+    def _adsorbed(
+        self, 
+        base: float, 
+        phosphorous, 
+        silica, 
+        sediment=None
+    ) -> None:
         """
 
         :param base: base rate
         :param phosphorous: phosphorous system
         :param silica: silica system
         :param sediment: optional sediment instance
-
-        :return: success
         """
         flux = base * self.config[VS+PIM]
-        a = phosphorous.adsorbed(flux, PHOSPHATE, PHOSPHATE, sediment)
-        b = silica.adsorbed(flux, SILICA, SILICATE, sediment)
+        phosphorous.adsorbed(flux, PHOSPHATE, PHOSPHATE, sediment)
+        silica.adsorbed(flux, SILICA, SILICATE, sediment)
 
-        return a and b
 
     def _particulate_organics(self, base, correction, systems, carbon, phosphorous, silica):
         """
@@ -111,29 +117,52 @@ class Settling:
         return True
 
 
-
+@attr.s
 class Light:
-    _slope = 0.0
-    _flag = False
-    _weights = WEIGHTS
-    _saturation = array([0.0, 0.0])
-    _latitude = None
-    _surface = None
-    _period = None
+    """
+    Simulate the submarine light field. Automatically updates when attenuation is calculated.
 
-    def __init__(self, latitude, intensity=SOURCE, base=EXTINCTION):
+    :param latitude: for photo-period calculation
+    :param intensity: photo synthetically active radiation from source (sun or lamp) at surface
+    :param base: base extinction rate
+    """
+    intensity: float = attr.ib()
+    base: float = attr.ib()
+
+    slope: float = attr.ib(default=0.0)
+    flag: bool = attr.ib(default=False)
+    weights: () = attr.ib(default=())
+    saturation: array = attr.ib(default=array([0.0, 0.0]))
+    latitude: float = attr.ib(default=None)
+    period: float = attr.ib(default=None)
+
+
+    def _par(self, time):
         """
-        Simulate the submarine light field. Automatically updates when attenuation is calculated.
+        Surface irradiance at the given time of day pure sinusoid (continuous for photosynthesis)
 
-        :param latitude: for photo-period calculation
-        :param intensity: photo synthetically active radiation from source (sun or lamp) at surface
-        :param base: base extinction rate
+        :param time: fraction of the day
+
         """
-        self._intensity = intensity
-        self._base = base
-        self._latitude = latitude
+        if self.period is None:
+            raise TypeError
 
-    def attenuate(self, ts, depth, dt=None, par=PAR, biology=0.0, latitude=None):
+        if 1 + self.period > 2 * time > 1 - self.period:
+            delay = (1 - self.period)/2
+            x = (time - delay) / self.period
+            return self.intensity * 0.5 * (1 - cos(2 * pi * x))
+
+        return 0.0
+
+    def attenuate(
+        self, 
+        ts, 
+        depth, 
+        dt=None, 
+        par=PAR, 
+        biology=0.0, 
+        latitude=None
+    ):
         """
         Calculate light field for photosynthesis
 
@@ -148,7 +177,7 @@ class Light:
         """
 
         self._update(ts, dt=dt, par=par, quanta=LYMOLQ, dk=None, latitude=latitude)
-        extinction = depth * (self._base + biology)
+        extinction = depth * (self.base + biology)
         result = zeros(depth.shape, dtype=float)
         local = self._surface
         ii = 0
@@ -163,7 +192,15 @@ class Light:
 
         return result
 
-    def _update(self, ts, dt=None, par=None, quanta=None, dk=None, latitude=None):
+    def update(
+        self, 
+        ts: datetime, 
+        dt=None, 
+        par=None, 
+        quanta=None, 
+        dk=None, 
+        latitude=None
+    ) -> self:
         """
         Update light state
 
@@ -181,7 +218,7 @@ class Light:
                 self._base += dk * dt
 
             if None not in (par, quanta):
-                self._intensity += (self._slope * dt) * quanta * par  # adjust source intensity
+                self.intensity += (self.slope * dt) * quanta * par  # adjust source intensity
 
         if latitude is not None:
             self._latitude = latitude
@@ -190,8 +227,7 @@ class Light:
         time = (tt.tm_hour + (tt.tm_min + tt.tm_sec / 60) / 60) / 24
         self._period = self._daylight(tt.tm_yday, self._latitude)  # calculate new photo-period
         self._surface = self._par(time, self._period, self._intensity)
-
-        return True
+        return self
 
     @staticmethod
     def _daylight(yd, latitude, constant=0.833):
@@ -210,21 +246,7 @@ class Light:
 
         return 0.0 if isnan(result) else result
 
-    @staticmethod
-    def _par(time, period, source):
-        """
-        Surface irradiance at the given time of day pure sinusoid (continuous for photosynthesis)
-
-        :param time: fraction of the day
-
-        """
-
-        if 1 + period > 2 * time > 1 - period:
-            delay = (1 - period)/2
-            x = (time - delay) / period
-            return source * 0.5 * (1 - cos(2 * pi * x))
-
-        return 0.0
+ 
 
 
 class Physics:
@@ -267,6 +289,31 @@ class Physics:
             flux[indices, ii] = flux[indices, ii].clip(min=_minimum, max=_maximum)  # keep within bounds
 
         return flux
+
+
+    @classmethod
+    def calc_omega(cls, layers, edges, nodes, cells, uu, vv, dt, dtype=float):
+        """
+        Calculate vertical water velocity in sigma units 
+        
+        :param layers: 
+        :param edges: 
+        :param nodes: 
+        :param cells: 
+        :param dt: timestep in seconds (pre-multiplied by SEC2DAY
+        :param dtype: floating point type
+        
+        :return: free surface height change
+        """
+        
+        influx = cls._influx(nodes, cells, edges, uu, vv, dtype)
+        dzdt = cells.depth - dt * influx.sum(axis=0) / cells.area  # change in elevation
+        omega = cls._omega(layers, nodes, cells, dzdt, influx, dt, dtype)
+        
+        flux = omega[:, layers.n + 1] * dt / layers.dz[0]
+        anomaly = dzdt - nodes.z
+
+        return anomaly - flux / layers.n
 
     @staticmethod
     def _omega(layers, nodes, cells, dzdt, exchange, dt, dtype=float):
@@ -324,33 +371,10 @@ class Physics:
         
         return exchange
 
-    @classmethod
-    def calc_omega(cls, layers, edges, nodes, cells, uu, vv, dt, dtype=float):
-        """
-        Calculate vertical water velocity in sigma units 
-        
-        :param layers: 
-        :param edges: 
-        :param nodes: 
-        :param cells: 
-        :param dt: timestep in seconds (pre-multiplied by SEC2DAY
-        :param dtype: floating point type
-        
-        :return: free surface height change
-        """
-        
-        influx = cls._influx(nodes, cells, edges, uu, vv, dtype)
-        dzdt = cells.depth - dt * influx.sum(axis=0) / cells.area  # change in elevation
-        omega = cls._omega(layers, nodes, cells, dzdt, influx, dt, dtype)
-        
-        flux = omega[:, layers.n + 1] * dt / layers.dz[0]
-        anomaly = dzdt - nodes.z
-
-        return anomaly - flux / layers.n
 
 
-
-class Advection:
+@attr.s
+class Advection(object):
 
     @staticmethod
     def vertical(system, flux, layers):

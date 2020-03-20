@@ -17,7 +17,7 @@ from bathysphere.tests.conftest import (
 )
 
 
-allTables = ["observations", "messages", "maine_boundaries_town_polygon"]
+allTables = ["observations", "messages", "maine_boundaries_town_polygon", "locations"]
 
 
 @pytest.mark.teardown
@@ -66,13 +66,12 @@ def test_datatypes_cloudsql_table_observations_insert(cloud_sql, testTables, tab
         cursor.execute(query.sql)
 
 @pytest.mark.cloud_sql
-@pytest.mark.xfail
-@pytest.mark.parametrize("table", ["observations",])
+@pytest.mark.parametrize("table", ["locations",])
 def test_datatypes_cloudsql_table_locations_insert(cloud_sql, testTables, table):
     """
     Insert new locations
     """
-    _ = dumps({
+    data = tuple((dumps({
         "type": "Polygon",
         "coordinates": [
             [
@@ -84,14 +83,30 @@ def test_datatypes_cloudsql_table_locations_insert(cloud_sql, testTables, table)
             ]
         ],
         "crs": {"type": "name", "properties": {"name": "EPSG:4326"}},
-    })
-    assert False
+    }),))
+
+    with cloud_sql.engine.connect() as cursor:
+        query:Query = testTables[table].insert(data=data)
+        cursor.execute(query.sql)
     
+@pytest.mark.cloud_sql
+@pytest.mark.parametrize("table", allTables)
+def test_datatypes_cloudsql_table_query(cloud_sql, testTables, table):
+    """
+    "conditions": [
+        "land='n'",
+        "type='coast'",
+        "st_transform(st_setsrid(geom, 2960), 4326) && 'POLYGON((-70.7495 42.2156,  -67.8952 42.2156, -67.8952 44.1929, -70.7495 44.1929, -70.7495 42.2156))'::geography"
+    ],
+    """
+    data = cloud_sql.query(
+        table=testTables[table]
+    )
+    assert data
+
 
 @pytest.mark.graph
-@pytest.mark.cloud_sql
-@pytest.mark.parametrize("table", ["maine_boundaries_town_polygon",])
-def test_datatypes_cloudsql_collection_create(create_entity, testTables, table):
+def test_datatypes_cloudsql_collection_create(create_entity):
     """
     Create collection metadata in graph database
     """
@@ -150,26 +165,6 @@ def test_datatypes_cloudsql_postgis_create_maine_towns(create_entity, county):
     _data = response.get_json()
     assert response.status_code == 200, _data
     IndexedDB[county] = _data["value"]["@iot.id"]
-
-
-@pytest.mark.cloud_sql
-@pytest.mark.xfail
-def test_function_cloudsql_retrieve_polygons():
-
-    _ = dumps(
-        {
-            "table": "maine_boundaries_town_polygon",
-            "fields": ["globalid", "town", "county", "shapestare", "st_asgeojson(st_transform(st_setsrid(geom, 2960), 4326))"],
-            "conditions": [
-                "land='n'",
-                "type='coast'",
-                "st_transform(st_setsrid(geom, 2960), 4326) && 'POLYGON((-70.7495 42.2156,  -67.8952 42.2156, -67.8952 44.1929, -70.7495 44.1929, -70.7495 42.2156))'::geography"
-            ],
-            "encoding": "json",
-            "limit": 1
-        }
-    )
-    assert False
     
 
 @pytest.mark.cloud_sql

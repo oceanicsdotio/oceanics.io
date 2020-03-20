@@ -9,8 +9,8 @@ from flask import request
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
 from bathysphere import appConfig, app
-from bathysphere.graph.drivers import connect, storeJson, Driver
 from bathysphere.datatypes import ResponseJSON
+from bathysphere.graph import connect, Driver
 from bathysphere.graph.models import (
     Actuators,
     Assets,
@@ -249,9 +249,7 @@ def create(
     # declaredLinks = map(
     #     lambda k, v: (each.update({"cls": k}) for each in v), body.pop("links", {}).items()
     # )  
-    # if entity in (Collections.__name__,):
-    #     storeJson(e.name.lower().replace(" ", "-"), data, hmacKey, headers)
-
+    
     return {"message": f"Create {entity}", "value": data}, 200
 
 

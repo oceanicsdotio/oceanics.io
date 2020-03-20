@@ -50,7 +50,6 @@ except:
 DATE = datetime(2014, 4, 12)
 UTMEXT = (360300.000, 4662300.000, 594300.000, 4899600.000)
 WINDOW = (-69.6, 43.8, -69.5, 44.1)
-LOCAL = "../sema-1.0/data/satellite/"
 ROOT = ("users", "misclab", "coastal_sat")
 DATASET = "LC8011030JulyAvLGN00_OSI.nc"
 TOWNS = "Maine_Boundaries_Town_Polygon"

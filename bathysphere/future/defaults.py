@@ -1,3 +1,8 @@
+try:
+    from numpy import array
+except ImportError:
+    array = list
+
 integration_dict = {"explicit-upwind": 1,
                     "split-upwind": 3,
                     "explicit-upwind/smolarkiewicz": 4,
