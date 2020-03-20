@@ -2242,7 +2242,7 @@ class ObjectStorage(Minio):
         session_id = uuid4().hex
         name = "bathysphere"
         lock_file = f"{name}/lock.json"
-        index_file = f"{name}/index.json"
+        # index_file = f"{name}/index.json"
     
 
         def decorator(fcn):
