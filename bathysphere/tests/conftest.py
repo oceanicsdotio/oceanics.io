@@ -24,8 +24,16 @@ except ImportError as ex:
 
 
 from bathysphere import app
-from bathysphere.graph.drivers import connect
-from bathysphere.datatypes import Table, CloudSQL, Query, Schema, Field, PostgresType
+from bathysphere.graph import connect
+from bathysphere.datatypes import (
+    Table, 
+    CloudSQL, 
+    Query, 
+    Schema, 
+    Field, 
+    PostgresType, 
+    ObjectStorage
+)
 from bathysphere.graph.models import Collections
 # from bathysphere.datatypes import Dataset
 
@@ -66,7 +74,7 @@ avhrr_start = datetime(2015, 1, 1)
 avhrr_end = datetime(2015, 1, 30)
 ext = (-69.6, 43.8, -69.5, 44.1)
 
-
+OBJECT_STORAGE_SECRETS = getenv("OBJECT_STORAGE_SECRETS").split(",")
 accessKey, secretKey, instance = getenv("POSTGRES_SECRETS").split(",")
 IndexedDB = dict()
 
@@ -75,19 +83,6 @@ def stripMetadata(item):
     return {
         k: v for k, v in item.items() if "@" not in k
     }
-
-
-@pytest.fixture(scope="session")
-def client():
-    """
-    Connexion Apps are a wrapper around the real Flask App.
-
-    This yields the TestClient for making API calls with pytest.
-    """
-    app.app.config["DEBUG"] = True
-    app.app.config["TESTING"] = True
-    with app.app.test_client() as c:
-        yield c
 
 
 def getCredentials(
@@ -110,6 +105,18 @@ def getCredentials(
             credentials[item.get("name")] = item.get("apiKey")
     return credentials
 
+
+@pytest.fixture(scope="session")
+def client():
+    """
+    Connexion Apps are a wrapper around the real Flask App.
+
+    This yields the TestClient for making API calls with pytest.
+    """
+    app.app.config["DEBUG"] = True
+    app.app.config["TESTING"] = True
+    with app.app.test_client() as c:
+        yield c
 
 
 @pytest.fixture(scope="session")
@@ -196,6 +203,7 @@ def get_entity(client, token):
         return response
     return make_request
 
+
 @pytest.fixture(scope="function")
 def add_link(client, token):
     def _make_request(root: str, root_id: str, auth: (str, str), cls: str, identity: str, **kwargs: dict):
@@ -267,6 +275,22 @@ def testTables():
     return {item["name"]: _parse_item(item) for item in tables}
         
 
+@pytest.fixture(scope="session")
+def object_storage():
+    access_key, secret_key = OBJECT_STORAGE_SECRETS
+
+    def wrappedFunction(prefix: str = None):
+        storage = ObjectStorage(
+            "oceanicsdotio",
+            "nyc3.digitaloceanspaces.com",
+            prefix=prefix,
+            access_key=access_key, 
+            secret_key=secret_key, 
+            secure=True
+        )
+        assert not storage.locked
+        return storage
+    return wrappedFunction
 
 # @pytest.fixture()
 # def signal():
@@ -297,11 +321,7 @@ def testTables():
 #     return (Path(f) for f in f), total
 
 
-# @pytest.fixture(scope="session")
-# def collector(object_storage):
-#     _collect = []
-#     yield _collect
-#     object_storage.create(data=_collect, label="")
+
 
 
 

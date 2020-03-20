@@ -358,7 +358,7 @@ class Condition(object):
         cls,
         nodes: (int) = None,
         layers: (int) = None
-    ) -> cls:
+    ):
         """
         Point source loads are defined at some but not all nodes. Points which are not part of the mesh model
         (locations that are not nodes, or location that ARE elements) are divided amongst nearest neighbors.
@@ -371,7 +371,7 @@ class Condition(object):
     def Surface(
         cls,
         nodes: (int) = None
-    ) -> cls:
+    ):
         """
         Atmospheric loads are non-point sources. They may vary in space.
         """
@@ -383,7 +383,7 @@ class Condition(object):
         cls,
         nodes: (int),
         layers: (int) = None
-    ) -> cls:
+    ):
         """
         Fall-line loads occur where mass enters the system at a boundary, usually a well-mixed freshwater discharge.
         The same concentration is added along a node-defined path, composed of at least two points on the shoreline,
@@ -2025,54 +2025,38 @@ class Memory:
 #         return vertex_array_buffer
 
 
-@attr.s
+
 class ObjectStorage(Minio):
 
-    bucket_name: str = attr.ib()
-
-    def __init__(self, bucket_name, **kwargs):
+    def __init__(
+        self, 
+        bucket_name: str, 
+        endpoint: str,
+        prefix: str = None, 
+        **kwargs
+    ):
         self.bucket_name = bucket_name
-        Minio.__init__(self, **kwargs)
+        self.prefix = prefix
+        super().__init__(endpoint, **kwargs)
         if not self.bucket_exists(bucket_name):
             self.make_bucket(bucket_name)
-
+        
     @property
     def locked(self) -> bool:
-        # TODO: update to check actual storage
-        return False
-
-    def exists(self, cacheKey: str):
+        return self.stat_object("lock.json") is not None
+    
+    def stat_object(self, object_name: str):
         """
         Determine whether an object key exists
         """
         try:
-            return self.stat_object(self.bucket_name, cacheKey)
+            return super().stat_object(self.bucket_name, object_name)
         except NoSuchKey:
             return None
 
-    def _lock(self, session_id: str, object_name: str, headers: dict) -> bool:
-        try:
-            self.upload(
-                label=object_name,
-                data={"session": session_id},
-                metadata=self.metadata_template("lock", headers=headers),
-            )
-        except NoSuchKey:
-            return False
-        else:
-            return True
-
-    def _unlock(self, object_name: str):
-        try:
-            self.remove_object(bucket_name=self.bucket_name, object_name=object_name)
-        except NoSuchKey:
-            return False
-        else:
-            return True
-
-    def upload(
+    def put_object(
         self,
-        label: str,
+        object_name: str,
         data: dict or bytes,
         metadata: dict = None,
         codec: str = "utf-8",
@@ -2084,8 +2068,6 @@ class ObjectStorage(Minio):
         :param data: data to serialize
         :param metadata: headers
         :param codec: how to encode strings
-
-        :return: None
         """
         if isinstance(data, dict):
             content_type = "application/json"
@@ -2096,18 +2078,28 @@ class ObjectStorage(Minio):
         else:
             raise TypeError
 
-        self.put_object(
+        accumulate = []
+        given_parts = object_name.split("/")
+        prefix_parts = (self.prefix or "").split("/")
+        if len(given_parts) > 1 and len(prefix_parts) > 0:
+            for pp in prefix_parts:
+                if pp not in given_parts:
+                    accumulate.append(pp)
+            accumulate.extend(given_parts)
+            object_name = "/".join(accumulate)
+
+        super().put_object(
             bucket_name=self.bucket_name,
-            object_name=label,
+            object_name=object_name,
             data=BytesIO(buffer),
             length=len(buffer),
             metadata=metadata,
             content_type=content_type,
         )
 
-        return label
+        return object_name
 
-    def download(
+    def get_object(
         self, 
         object_name: str,
         stream: bool = False
@@ -2115,7 +2107,7 @@ class ObjectStorage(Minio):
         """
         Download the data, may be streaming if desired
         """
-        data = self.get_object(self.bucket_name, object_name)
+        data = super().get_object(self.bucket_name, object_name)
         if stream:
             def generate():
                 for d in data.stream(32 * 1024):
@@ -2126,6 +2118,43 @@ class ObjectStorage(Minio):
 
         return Response(result, mimetype="application/octet-stream")
 
+
+    def updateIndex(
+        self, 
+        object_name: str, 
+        metadata: dict = None, 
+        entries: [dict] = None, 
+        props: dict = None
+    ):
+        """
+        Update contents of index metadata
+        """
+        
+        if entries:
+            self.put_object(
+                object_name=object_name,
+                data={
+                    **loads(self.get_object(object_name=object_name).data),
+                    **(entries or {}),
+                    **(props or {}),
+                },
+                metadata={
+                    **self.stat_object(object_name).metadata, 
+                    **(metadata or {})
+                }
+            )
+        else:
+             self.copy_object(
+                bucket_name=self.bucket_name,
+                object_name=object_name,
+                object_source=object_name,
+                metadata=metadata,
+            )
+
+        return self
+
+    def list_objects(self, prefix: str):
+        return super().list_objects(self.bucket_name, prefix=prefix)
 
     def delete(
         self, 
@@ -2142,7 +2171,7 @@ class ObjectStorage(Minio):
         remove = ()
         conditions = {"x-amz-meta-service": "bathysphere"}
 
-        objects_iter = self.list_objects(self.bucket_name, prefix=prefix)
+        objects_iter = self.list_objects(prefix=prefix)
         stop = False
         while not stop:
             try:
@@ -2150,7 +2179,7 @@ class ObjectStorage(Minio):
             except StopIteration:
                 stop = True
             else:
-                stat = self.stat_object(self.bucket_name, object_name).metadata
+                stat = self.stat_object(object_name).metadata
                 if all(stat.get(k) == v for k, v in conditions.items()):
                     remove += (object_name,)
 
@@ -2174,12 +2203,29 @@ class ObjectStorage(Minio):
             "x-amz-acl": accessControl,
             "x-amz-meta-parent": parent or "",
             "x-amz-meta-created": datetime.utcnow().isoformat(),
+            "x-amz-meta-extent": "null",
             "x-amz-meta-service-file-type": file_type,
             **(headers or {})
         }
 
-    @classmethod
-    def lock(cls, fcn):
+    def unlock(
+        self, 
+        object_name: str,
+        session: str = None,
+    ) -> bool:
+        """
+        Unlock the dataset or bathysphere_functions_repository IFF it contains the session ID
+        """
+        try:
+            self.remove_object(self.bucket_name, object_name)
+        except NoSuchKey:
+            return False
+        return True
+
+    def session(
+        self, 
+        lock: bool = False
+    ) -> ResponseJSON or ResponseOctet:
         """
         Object storage locking decorator for functions.
 
@@ -2188,174 +2234,55 @@ class ObjectStorage(Minio):
 
         Locks will not block read operations except in special cases. 
         """
-        def wrapper(
-            client: ObjectStorage,
-            session: str,
-            index: dict,
-            lock: str,
-            headers: dict,
-            *args,
-            **kwargs,
-        ):
-            locked, _ = client.exists(lock)
-            if locked:
-                return "Lock in place", 500
-            client._lock(session, object_name=lock, headers=headers)
-            try:
-                result = fcn(
-                    *args, index=index, client=client, session=session, **kwargs
-                )
-            except Exception as ex:
-                result = f"{ex}", 500
-            finally:
-                if lock and not client._unlock(object_name=lock):
-                    result = "Failed to unlock", 500
-            return result
+        
+        # index = load_json(self.get_object(object_name=index_file))
 
-        return wrapper
-
-    @classmethod
-    def session(cls, config: dict = None):
-        """
-        Configurable decorator encapsulating 
-        """
+        headers = {}
+        session_id = uuid4().hex
+        name = "bathysphere"
+        lock_file = f"{name}/lock.json"
+        index_file = f"{name}/index.json"
+    
 
         def decorator(fcn):
+            """
+            Methods applied to the wrapped function
+            """
             def wrapper(*args, **kwargs):
+                """
+                Actual wrapper that calls the decorated function
+                """
+                if self.stat_object(lock_file):
+                    return "Lock in place", 500
+                try:
+                    self.put_object(
+                        object_name=lock_file,
+                        data={"session": session_id},
+                        metadata=self.metadata_template("lock", headers=headers),
+                    )
+                except NoSuchKey:
+                    return "Could not lock repository", 500
 
-                client = cls(bucket_name=config["bucketName"], **config["storage"])
-                buffer = client.download(object_name=config["index"])
-                index = load_json(buffer) if buffer else {"configurations": []}
-                return fcn(
-                    client=client,
-                    session=str(uuid4()).replace("-", ""),
-                    index=index,
-                    lock=config["lock"],
-                    headers=config["headers"],
-                    *args,
-                    **kwargs,
-                )
+                try:
+                    result = fcn(
+                        *args,
+                        index=index,
+                        lock=config["lock"],
+                        headers=config["headers"],
+                        **kwargs,
+                    )
+                except Exception as ex:
+                    result = f"{ex}", 500
+                finally:
+                    if lock and not self.unlock(object_name=lock):
+                        result = "Failed to unlock", 500
+                return result
 
             return wrapper
 
         return decorator
 
-    @staticmethod
-    def main(self, request: Request):
-        """
-        Create an s3 connection if necessary, then create bucket if it doesn't exist.
-
-        :param object_name: label for file
-        :param data: data to serialize
-        :param metadata: headers
-        :param replace:
-        :param bucket_name:
-        :param storage:
-        :param content_type: only required if sending bytes
-        """
-        body = loads(request)
-        bucket_name = body.get("bucket_name")
-        object_name = body.get("object_name")
-        action = body.get("action")
-
-        if not self.bucket_exists(bucket_name):
-            _ = self.make_bucket(bucket_name)
-
-        try:
-            _ = self.stat_object(bucket_name, object_name)
-            existing = True
-        except NoSuchKey:
-            existing = False
-
-        if not existing and action in ("delete", "update"):
-            return dumps({"Error": f"{object_name} not found"}), 404
-        
-        if existing and action == "create":
-            return dumps({"Error": f"{object_name} already exists"}), 403
-
-
-    @staticmethod
-    def listenToEvents(
-        self, 
-        bucket_name: str, 
-        file_type: FileType = None, 
-        channel: str = "bathysphere-events"
-    ):
-        fcns = ("s3:ObjectCreated:*", "s3:ObjectRemoved:*", "s3:ObjectAccessed:*")
-        r = StrictRedis()
-        for event in self.listen_bucket_notification(bucket_name, "", file_type, fcns):
-            r.publish(channel, str(event))
-
-    def unlock(self, session, bucket_name, object_name):
-        # type: (Minio, str, str) -> bool
-        """
-        Unlock the dataset or bathysphere_functions_repository IFF it contains the session ID
-        """
-        try:
-            _ = self.stat_object(bucket_name, object_name)
-        except NoSuchKey:
-            return False
-        self.remove_object(bucket_name, object_name)
-        return True
-
-    @staticmethod
-    def locking(self, fcn):
-        async def wrapper(bucket_name, name, sess, headers, *args, **kwargs):
-            # type: (Minio, str, str, str, dict, list, dict) -> Any
-
-            _lock = {"session": sess, "object_name": f"{name}/lock.json"}
-            ObjectStorage.create(
-                bucket_name=bucket_name,
-                object_name=f"{name}/lock.json",
-                buffer=dumps({sess: []}).encode(),
-                metadata={
-                    "x-amz-meta-created": datetime.utcnow().isoformat(),
-                    "x-amz-acl": "private",
-                    "x-amz-meta-service-file-type": "lock",
-                    **(headers if headers else {}),
-                },
-                storage=self,
-                content_type="application/json"
-            )
-            result = fcn(storage=self, dataset=None, *args, session=sess, **kwargs)
-            self.unlock(**_lock)
-            return result
-        return wrapper
-
-    @staticmethod
-    def updateJson(storage, bucket_name, object_name, metadata, entries, props):
-        # type: (Minio, str, str, dict, dict, dict) -> None
-        """
-        Update contents of index metadata
-        """
-        stat = storage.stat_object(bucket_name, object_name)
-        if not entries:
-            storage.copy_object(
-                bucket_name=bucket_name,
-                object_name=object_name,
-                object_source=object_name,
-                metadata=metadata,
-            )
-        else:
-            ObjectStorage.create(
-                storage=storage,
-                buffer=dumps({
-                    **loads(storage.get_object(bucket_name, object_name).data),
-                    **(entries or {}),
-                    **(props or {}),
-                }).encode(),
-                bucket_name=bucket_name,
-                object_name=object_name,
-                metadata={**stat.metadata, **(metadata or {})},
-                content_type="application/json"
-            )
-
-    
-
-
-
-
-
+ 
 class PostgresType(Enum):
     Numerical = "DOUBLE PRECISION NULL"
     TimeStamp = "TIMESTAMP NOT NULL"

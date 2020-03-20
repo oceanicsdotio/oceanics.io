@@ -477,32 +477,4 @@ def main(req):
     buffer = b.getvalue()
     assert buffer
 
-    host, access_key, secret_key = connection
-    host = "nyc3.digitaloceanspaces.com"
-    try:
-        storage = Minio(host, access_key=access_key, secret_key=secret_key, secure=True)
-    except Exception as ex:
-        print(dumps({"Error": f"{ex}"}))
-        exit(400)
-
-    objectName = body["objectName"]
-    if "png" not in objectName[-4:]:
-        objectName += ".png"
-
-    response = storage.put_object(
-        bucket_name=bucketName,
-        object_name=objectName,
-        data=BytesIO(buffer),
-        length=len(buffer),
-        metadata={
-            "x-amz-meta-created": datetime.utcnow().isoformat(),
-            "x-amz-meta-extent": dumps(extent or []),
-            "x-amz-acl": "public-read",
-        },
-        content_type="bathysphere_functions_image/png",
-    )
-    return dumps({
-        "uuid": response,
-        "objectName": objectName,
-        "url": f"https://{bucketName}.{host}/{objectName}"
-    })
+    

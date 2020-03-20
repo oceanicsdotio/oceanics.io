@@ -538,3 +538,88 @@ if __name__ == "__main__()":
         steps += 1
 
     print(f"Finished after {steps} steps.")
+
+
+
+# @ObjectStorage.session(config=None)
+# @ObjectStorage.lock
+# @staticmethod
+# def runBivalveSimulation(
+#     objectKey: str,
+#     species: str,
+#     client: ObjectStorage,
+#     weight: float,
+#     session: str,
+#     body: dict = None,
+#     **kwargs: dict,
+# ) -> ResponseJSON:
+#     """
+#     Run the model using a versioned configuration.
+
+#     :param objectKey: identity of the configuration to use
+#     :param body: optional request body with forcing
+#     :param species: bivalve species string, in path:
+#     :param session: session UUID used to name experiment
+#     :param weight: initial seed weight
+#     :param client: storage client
+#     """
+#     buffer = client.download(object_name=objectKey)
+#     if buffer is None:
+#         return "Configuration not found", 404
+
+#     config = load_json(buffer)
+#     runs = config.get("runs", 1)  # TODO: calculate from locations
+#     dt = config.get("dt", 3600) / 3600 / 24
+#     workers = config.get("workers", 1)
+#     volume = config.get("volume", 1000.0)  # TODO: look up from grid
+#     steps = config.get("days", 30) * 24  # TODO: calculate from GoodBuoy
+
+#     location = body.get("location", None)
+#     forcing = body.get("forcing")
+
+#     # weight = request.args.get("weight")  # TODO: shell length as alternative
+#     forcing_array = [[body.get("forcing")] * steps] * runs
+
+#     result = batch(
+#         workers=workers,
+#         forcing=tuple(forcing_array),
+#         config={
+#             "species": species,
+#             "culture": "midwater",
+#             "weight": weight,
+#             "dt": dt,
+#             "volume": volume,
+#         },
+#     )
+
+#     result["uid"] = session
+#     result["forcing"] = forcing
+#     result["location"] = location
+
+#     result["logs"] = client.upload(
+#         label=str(uuid4()).replace("-", ""),
+#         data=reduce(lambda a, b: a + b, result.pop("logs")),
+#         metadata=client.metadata_template(
+#             file_type="log", parent=session, headers=config["headers"]
+#         ),
+#     )
+
+#     _ = client.upload(
+#         label=session,
+#         data=result,
+#         metadata=client.metadata_template(
+#             file_type="experiment", parent=objectKey, headers=config["headers"]
+#         ),
+#     )
+
+#     config["experiments"].append(session)
+#     config["metadata"]["totalRuns"] += result["count"]
+#     _ = client.upload(
+#         label=objectKey,
+#         data=config,
+#         metadata=client.metadata_template(
+#             file_type="configuration", headers=config["headers"]
+#         ),
+#     )
+
+#     return result, 200
