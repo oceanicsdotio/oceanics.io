@@ -158,6 +158,59 @@ def validate_shape(shape, proj):
     assert polygon_area(shape) > 0.0
    
 
+def single_index(fname, field, index):
+    nc = Dataset(fname, "r")  # open NetCDF for reading
+    print("Model:", nc.title)
+    print("Format:", nc.Conventions)
+    data = nc.variables[field][0:240, index]
+    return data
+
+
+def subset(xx, yy, field, samples, mask):
+    # type: (array, array, array, array) -> array
+
+    total = (~mask).sum()
+    nsamples = min(samples, total)
+    inds = where(~mask)[0], nsamples
+    xx = xx[inds]
+    yy = yy[inds]
+    zz = interp2d_nearest((xx, yy), field.data.flatten())
+    return [xx, yy, zz]
+
+
+def avgvert(fname, key, mesh, host):
+    nc = Dataset(fname, "r")
+    temp = nc.variables[key]
+    nodes = mesh._GridObject__triangles[host, :]
+    aa = temp[0:240, 0, nodes[0]]
+    bb = temp[0:240, 0, nodes[1]]
+    cc = temp[0:240, 0, nodes[2]]
+    return (aa + bb + cc) / 3.0
+
+
+def scan(dataset, attribute, required=None, verb=False):
+    # type: (Dataset, str, set, bool) -> None
+    flag = required is not None
+    for var in getattr(dataset, attribute).values():
+        if flag:
+            required -= {var.name}
+        if verb and attribute == "dimensions":
+            print(f"{var.name}: {var.size}")
+        if verb and attribute == "variables":
+            print(
+                f"{var.name}: {var.datatype}, {var.dimensions}, {var.size}, {var.shape}"
+            )
+
+
+def validate_remote_dataset(storage, dataset, dtype=(MaskedArray, dict, dict)):
+    # type: (Storage, str, (type,)) -> None
+    fetched = load(storage.get(f"{dataset}/index.json"))
+    assert fetched
+    for each in fetched:
+        for i in unpickle(storage.get(f"{dataset}/{each}").data):
+            assert isinstance(i, dtype)
+
+
 @pytest.fixture(scope="session")
 def client():
     """
@@ -358,17 +411,16 @@ def signal():
 
 
 
-@pytest.fixture(scope="module")
-@pytest.mark.external_call
+@pytest.fixture(scope="session")
 def avhrr():
-    _avhrr = Dataset("")
-    assert _avhrr.isopen()
-    yield _avhrr
+    fid = Dataset("data/avhrr_test_data.nc")
+    assert fid.isopen()
+    return fid
 
 
 @pytest.fixture(scope="session")
 def necofs():
-    yield Dataset("data/necofs_gom3_mesh.nc")
+    return Dataset("data/necofs_gom3_mesh.nc")
 
 
 @pytest.fixture(scope="session")

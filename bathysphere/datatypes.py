@@ -35,27 +35,24 @@ from flask import Response, Request, request
 from redis import StrictRedis
 from redis.client import PubSub
 
+from numpy import (
+    array, append, frombuffer, argmax, argmin, random, where, isnan,
+    cross, argwhere, arange, array, hstack, vstack, repeat, zeros,
+    flip
+)
+from numpy.linalg import norm
+from netCDF4 import Dataset as _Dataset
+from pandas import read_html, date_range, Series, DataFrame
+
+from sklearn.linear_model import LinearRegression
+from sklearn.neighbors import KernelDensity
+from pyproj import transform
 
 try:
-    from numpy import (
-        array, append, frombuffer, argmax, argmin, random, where, isnan,
-        cross, argwhere, arange, array, hstack, vstack, repeat, zeros, norm,
-        flip
-    )
-    from netCDF4 import Dataset as _Dataset
-    from pandas import read_html, date_range, Series, DataFrame
-
-    from sklearn.linear_model import LinearRegression
-    from sklearn.neighbors import KernelDensity
-    from pyproj import transform
-
     import tensorflow as tf
-    from tensorflow import reduce_sum, square, placeholder, Session
-
-except ImportError as ex:
-    KernelDensity = object
-    array = list
-    warn("Numerical libraries unavailable. Avoid big queries.")
+    from tensorflow.keras import reduce_sum, square, placeholder, Session
+except ImportError:
+    pass
 
 
 from bathysphere.utils import (
@@ -397,8 +394,8 @@ class Condition(object):
 
    
 
-class ConvexHull(object):
-    @staticmethod
+def ConvexHull(points):
+
     def segment(u, v, indices, points):
 
         if indices.shape[0] == 0:
@@ -411,20 +408,17 @@ class ConvexHull(object):
         a = indices[argwhere(crossProduct(w, v) < 0).flatten()]
         b = indices[argwhere(crossProduct(u, w) < 0).flatten()]
 
-        return hstack((ConvexHull.segment(w, v, a, points), w, ConvexHull.segment(u, w, b, points)))
+        return hstack((segment(w, v, a, points), w, segment(u, w, b, points)))
 
-    @staticmethod
-    def __call__(points):
+    u = argmin(points[:, 0])
+    v = argmax(points[:, 0])
+    indices = arange(0, points.shape[0])
+    parted = cross(points[indices, :] - points[u, :], points[v, :] - points[u, :]) < 0
 
-        u = argmin(points[:, 0])
-        v = argmax(points[:, 0])
-        indices = arange(0, points.shape[0])
-        parted = cross(points[indices, :] - points[u, :], points[v, :] - points[u, :]) < 0
+    a = indices[argwhere(~parted)]
+    b = indices[argwhere(parted)]
 
-        a = indices[argwhere(~parted)]
-        b = indices[argwhere(parted)]
-
-        return hstack((u, ConvexHull.segment(v, u, a, points), v, ConvexHull.segment(u, v, b, points), u))
+    return hstack((u, segment(v, u, a, points), v, segment(u, v, b, points), u))
 
 
 @attr.s
@@ -2768,10 +2762,12 @@ class TimeStamp(object):
         return datetime.strptime(yyyydddhhmmssmmm, "%Y%j%H%M%S%f")
 
 @attr.s
-class Topology(array):
+class Topology(object):
+    
+    cells: array = attr.ib(default=None)
 
-    @staticmethod
-    def adjacency(topology):
+    @property
+    def adjacency(self):
         """
         Get node parents and node neighbors from topology
 
@@ -2781,8 +2777,8 @@ class Topology(array):
         _parents = dict()
         _neighbors = dict()
 
-        for element in range(topology.__len__()):
-            vertices = topology[element]
+        for element in range(len(self.cells)):
+            vertices = self.cells[element]
             for node in vertices:
                 try:
                     p = _parents[node]
@@ -2810,11 +2806,14 @@ class Topology(array):
                 print("Error. Nonsense dimensions in detecting solid boundary nodes.")
 
     @staticmethod
-    def deduplicate(self, process=False):
-        # type: (Array, bool) -> Array
-        n = len(self)
+    def deduplicate(
+        self, 
+        process: bool = False
+    ) -> array:
+        
+        n = len(self.cells)
         flag = zeros(n, dtype=bool)
-        ordered = sorted(self)
+        ordered = sorted(self.cells)
 
         for ii in range(n - 1):
             match = ordered[ii, :] == ordered[ii + 1 :, :]
@@ -2823,10 +2822,10 @@ class Topology(array):
             flag[rows] = True
 
         if process and flag.any():
-            topology = topology[~flag]
-            assert len(topology) == n - flag.sum()
+            self.cells = self.cells[~flag]
+            assert len(self.cells) == n - flag.sum()
 
-        return topology
+        return self
 
 @attr.s
 class Trie:
@@ -2921,32 +2920,33 @@ class Unit:
 
 
 @attr.s
-class VertexArray(array):
+class VertexArray(object):
+
+    data: array = attr.ib(default=None)
     
     def deduplicate(
         self, 
         topology: Topology = None, 
-        threshold=0.00001
+        threshold: float = 0.00001
     ):
         """
         Scan vertex array for duplicates. If topology is also provided, swap later indices for their lower-index
         equivalents. Can be very expensive!
 
-        :param vertex_array:
         :param topology:
         :param threshold:
 
         :return: deletion flags and modified topology array
         """
-        assert self.shape[1], "Must have explicit dimensionality >= 1"
-        flag = zeros(self.shape[0], dtype=bool)  # mask for indexing
-        delta = zeros(self.shape, dtype=float)
+        assert self.data.shape[1], "Must have explicit dimensionality >= 1"
+        flag = zeros(self.data.shape[0], dtype=bool)  # mask for indexing
+        delta = zeros(self.data.shape, dtype=float)
 
-        for ii in range(self.shape[0] - 1):
+        for ii in range(self.data.shape[0] - 1):
             if flag[ii]:  # already processed
                 continue
             # distance for unchecked vertices
-            delta[ii + 1, :] = self[ii, :] - self[ii + 1 :, :]
+            delta[ii + 1, :] = self.data[ii, :] - self.data[ii + 1 :, :]
             distance = norm(delta[ii + 1, :])  # magnitude of difference vec is distance
             rows, = where(distance < threshold)  # indices of points within threshold
             rows += ii + 1
@@ -2966,17 +2966,17 @@ class VertexArray(array):
                 if first > last:
                     break  # no swaps left
 
-                vertex_array[first, :], vertex_array[last, :] = (
-                    vertex_array[last, :],
-                    vertex_array[first, :],
+                self.data[first, :], self.data[last, :] = (
+                    self.data[last, :],
+                    self.data[first, :],
                 )
                 ri, ci = where(topology == first)
                 rj, cj = where(topology == last)
                 topology[ri, ci] = last
                 topology[rj, cj] = first
 
-            vertex_array = vertex_array[0 : len(retain), :]
-        return vertex_array, topology
+            self.data = self.data[0 : len(retain), :]
+        return self, topology
 
 
 @attr.s

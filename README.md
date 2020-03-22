@@ -305,7 +305,11 @@ or use the script:
 
 `sh src/compile.sh`
 
-
+## Redis
+```
+gcloud compute instances create redis-forwarder --machine-type=f1-micro
+gcloud compute ssh redis-forwarder -- -N -L 6379:10.0.0.3:6379
+```
 
 ## TensorFlow
 

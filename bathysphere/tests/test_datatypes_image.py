@@ -1,11 +1,29 @@
 import pytest
-try:
-    from numpy import random, array, stack, diff, arange
-except ImportError:
-    pass
+
+from numpy import random, array, stack, diff, arange, meshgrid, repeat
+from numpy.random import random
+
 
 from requests import post
 from bathysphere.image import Spatial, Time
+from bathysphere.future.utils import depth, geom_shader, lin_transform
+from bathysphere.tests.conftest import dumpErrors
+
+def shape_preview(object_storage, spatial, config_no_app):
+    def _method(dataset, **kwargs):
+        object_storage.restore(
+            dataset=dataset,
+            fcn=spatial.shape,
+            key="index.json",
+            sequential=False,
+            **kwargs
+        )
+        object_storage.upload_image(
+            f"{dataset}/preview.png",
+            spatial.push(),
+            config_no_app["headers"]
+        )
+    return _method
 
 
 
@@ -44,25 +62,6 @@ def test_function_image_spatial_random_triangles():
     dumpErrors(response)
 
 
-def shape_preview(object_storage, spatial, config_no_app):
-    def _method(dataset, **kwargs):
-        object_storage.restore(
-            dataset=dataset,
-            fcn=spatial.shape,
-            key="index.json",
-            sequential=False,
-            **kwargs
-        )
-        object_storage.upload_image(
-            f"{dataset}/preview.png",
-            spatial.push(),
-            config_no_app["headers"]
-        )
-    return _method
-
-
-
-
 @pytest.mark.spatial
 def test_render_random_points_and_extent_culling(config_no_app, spatial, object_storage):
     """
@@ -83,7 +82,7 @@ def test_render_random_points_and_extent_culling(config_no_app, spatial, object_
     spatial.points(pxy, color="black", alpha=0.1)
     spatial.bbox(extent, edgecolor="black", facecolor="none", alpha=0.5)
 
-    for each in repeat("blue", times=6):
+    for each in ["blue"]*6:
         e1 = list(lin_transform(random.uniform(size=2), *extent[:2]))
         e2 = list(lin_transform(random.uniform(size=2), *extent[2:4]))
         ext = array(e1 + e2)
@@ -93,35 +92,6 @@ def test_render_random_points_and_extent_culling(config_no_app, spatial, object_
 
     object_storage.upload_image(
         "test-render-random-points-and-extent-culling.png", spatial.push(transparent=False), config_no_app
-    )
-
-
-@pytest.mark.spatial
-def test_render_closed_areas(config_no_app, object_storage, shape_preview):
-    shape_preview("MaineDMR_Public_Health__NSSP_2017", edge="none", face="black")
-
-
-@pytest.mark.spatial
-def test_render_maine_towns(object_storage, config_no_app, maine_towns, spatial):
-    shape_preview("Maine_Boundaries_Town_Polygon", edge="none", face="black")
-
-
-@pytest.mark.spatial
-def test_render_osi_simple_extents(object_storage, config_no_app):
-
-    dataset = "bivalve-suitability"
-    extents = object_storage.restore(dataset, "test-extents")
-    shapes = object_storage.restore(dataset, "test-shapes")
-    view = Spatial(style=config_no_app["styles"]["light"])
-    for e in extents:
-        view.bbox(e, edgecolor="red", facecolor="none", alpha=0.5)
-    for s in shapes:
-        view.shape(s, edgecolor="blue", facecolor="none", alpha=0.5)
-    buffer = view.push(transparent=True)
-    object_storage.upload_image(
-        f"{dataset}/test-render-shape-simple-extents.png",
-        buffer,
-        config_no_app,
     )
 
 
@@ -230,39 +200,39 @@ def test_render_osi_final(object_storage, config_no_app):
     )
 
 
-def test_render_osi_overlapping_shapes(object_storage, config_no_app):
+# def test_render_osi_overlapping_shapes(object_storage, config_no_app):
 
-    view = Spatial(style=config_no_app["styles"]["light"])
-    dataset = "bivalve-suitability"
-    matrix = object_storage.restore(dataset, "shapes-water-holes", stack=True, limit=3)
-    shapes = array(object_storage.restore(dataset, "shapes-water", limit=3))
+#     view = Spatial(style=config_no_app["styles"]["light"])
+#     dataset = "bivalve-suitability"
+#     matrix = object_storage.restore(dataset, "shapes-water-holes", stack=True, limit=3)
+#     shapes = array(object_storage.restore(dataset, "shapes-water", limit=3))
 
-    limit = 23
-    indx = 0
-    for each in shapes[:limit]:
-        if indx in matrix:
-            view.shape(
-                each, edgecolor="red", facecolor="none", alpha=0.5, linewidth=1.0
-            )
-        else:
-            view.shape(
-                each, edgecolor="black", facecolor="none", alpha=0.5, linewidth=1.0
-            )
-        view.ax.annotate(
-            f"{indx}",
-            xy=each.mean(axis=0),
-            xytext=(0, 0),
-            textcoords="offset points",
-            va="bottom",
-            ha="center",
-        )
-        indx += 1
+#     limit = 23
+#     indx = 0
+#     for each in shapes[:limit]:
+#         if indx in matrix:
+#             view.shape(
+#                 each, edgecolor="red", facecolor="none", alpha=0.5, linewidth=1.0
+#             )
+#         else:
+#             view.shape(
+#                 each, edgecolor="black", facecolor="none", alpha=0.5, linewidth=1.0
+#             )
+#         view.ax.annotate(
+#             f"{indx}",
+#             xy=each.mean(axis=0),
+#             xytext=(0, 0),
+#             textcoords="offset points",
+#             va="bottom",
+#             ha="center",
+#         )
+#         indx += 1
 
-    object_storage.upload_image(
-        f"{dataset}/test-render-osi-overlapping-shapes.png",
-        view.push(transparent=True),
-        config_no_app,
-    )
+#     object_storage.upload_image(
+#         f"{dataset}/test-render-osi-overlapping-shapes.png",
+#         view.push(transparent=True),
+#         config_no_app,
+#     )
 
 
 def test_render_pixel_histogram(object_storage, config_no_app):
@@ -346,7 +316,7 @@ def test_function_image_time_frequency_random():
         json={
             "view": "frequency",
             "objectName": "test_function_image_time_frequency_random",
-            "data": {"value": (random.random(100) * 10).tolist()},
+            "data": {"value": (random(100) * 10).tolist()},
             "style": {"base": "light", "alpha": 0.5, "marker": 5}
         }
     )
@@ -363,7 +333,7 @@ def test_function_image_time_coverage_random():
         json={
             "view": "coverage",
             "objectName": "test_function_image_time_coverage_random",
-            "data": {"time": (random.random(1000) * 365).tolist()},
+            "data": {"time": (random(1000) * 365).tolist()},
             "style": {"base": "light", "alpha": 0.5, "marker": 5}
         }
     )
