@@ -5,9 +5,8 @@ from organic import CARBON
 
 
 class Array(dict):
-
     def __init__(self, n):
-        
+
         dict.__init__(self, {i: Phytoplankton for i in range(n)})
 
     def all(self, fcn, kwargs=None):
@@ -52,7 +51,11 @@ class Array(dict):
         for each in phytoplankton:
             ratio = nutrient.copy()
             for other in [i for i in phytoplankton if i.id is not each.id]:
-                ratio -= other.ratio[sys] * other.state[CARBON] if other.id < each.id else other.ratio[sys]
+                ratio -= (
+                    other.ratio[sys] * other.state[CARBON]
+                    if other.id < each.id
+                    else other.ratio[sys]
+                )
 
             ratio /= each.state[CARBON]
             if each < 2:
@@ -100,7 +103,11 @@ class Array(dict):
         :return:
         """
         free = pool * dissolved
-        return pool - inorganic + sum(group._invert_ratios(free).sum() for group in self.values())
+        return (
+            pool
+            - inorganic
+            + sum(group._invert_ratios(free).sum() for group in self.values())
+        )
 
     def integrate(self, carbon, phosphorous, nitrogen):
 

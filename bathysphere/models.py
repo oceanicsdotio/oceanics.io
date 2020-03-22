@@ -19,16 +19,35 @@ import attr
 
 try:
     from numpy import (
-        abs, zeros, arange, ones, convolve, isnan, ceil, array, repeat, floor
+        abs,
+        zeros,
+        arange,
+        ones,
+        convolve,
+        isnan,
+        ceil,
+        array,
+        repeat,
+        floor,
     )
     from scipy.fftpack import rfft, irfft, fftfreq
     from pandas import DataFrame, Series
 except ImportError as ex:
     from math import floor
+
     warn("Numerical libraries unavailable. Avoid big queries.")
 
 from bathysphere.utils import interp1d, response, log
-from bathysphere.datatypes import PostgresType, Field, Table, Query, Coordinates, Distance, ResponseJSON, ObjectStorage
+from bathysphere.datatypes import (
+    PostgresType,
+    Field,
+    Table,
+    Query,
+    Coordinates,
+    Distance,
+    ResponseJSON,
+    ObjectStorage,
+)
 
 
 @attr.s(repr=False)
@@ -36,6 +55,7 @@ class Actuators(object):
     """
     Actuators are devices that turn messages into physical effects
     """
+
     name: str = attr.ib(default=None)
     description: str = attr.ib(default=None)
     encodingType: str = attr.ib(default=None)  # metadata encoding
@@ -90,7 +110,11 @@ class Actuators(object):
             "sample_period": 5,
             "log": "logs/controller_server.log",
             "gain": {"p": None, "i": None, "d": None},
-            "constant": {"p": None, "i": None, "d": None},  # persistent integral result term
+            "constant": {
+                "p": None,
+                "i": None,
+                "d": None,
+            },  # persistent integral result term
             "error": None,  # persistent error last step
             "dt": None,  # sample period
             "set": None,
@@ -107,19 +131,13 @@ class Actuators(object):
 
     @staticmethod
     def pulseWidth(
-        signal: float, 
-        maximum: float = None, 
-        width: int = 2, 
-        pid: bool = True
+        signal: float, maximum: float = None, width: int = 2, pid: bool = True
     ) -> int:
         return width * floor(5 * abs(signal) / maximum) if pid else width
 
     @staticmethod
     def signalTransform(
-        config: dict, 
-        state: dict, 
-        raw: float, 
-        offset: float = 0.0
+        config: dict, state: dict, raw: float, offset: float = 0.0
     ) -> float:
         """
         Returns conditioned PID signal
@@ -160,7 +178,6 @@ class Actuators(object):
             state["start"] = 0
         state["current"] = state["start"]
 
-
     @staticmethod
     def startControlLoop(
         relay_id: int,
@@ -195,7 +212,13 @@ class Actuators(object):
         p = Process(
             target=Actuators.addEventListener,
             kwargs={
-                **{"host": host, "port": port, "banks": banks, "file": file, "verb": verb},
+                **{
+                    "host": host,
+                    "port": port,
+                    "banks": banks,
+                    "file": file,
+                    "verb": verb,
+                },
                 **(
                     {"echo": echo, "buffer": buffer}
                     if not send
@@ -205,7 +228,6 @@ class Actuators(object):
         )
         p.start()
         return p
-
 
     @staticmethod
     def addEventListener(
@@ -246,7 +268,10 @@ class Actuators(object):
                     data = connection.recv(buffer)
                     log(message="Received {!r}".format(data), **logging)
                     if not data:
-                        log(message="No data from {} on port {}".format(*client), **logging)
+                        log(
+                            message="No data from {} on port {}".format(*client),
+                            **logging,
+                        )
                         break
 
                     if echo:
@@ -335,20 +360,14 @@ class Actuators(object):
         """
         Turn specified relay off
         """
-        return self.sendMessage(
-            [self.protocol["tasks"]["off"]],
-            identity=relay_id
-        )
+        return self.sendMessage([self.protocol["tasks"]["off"]], identity=relay_id)
 
     async def recover(self):
         """
         Attempt emergency recovery
         """
         return self.sendMessage(
-            [
-                self.protocol["diagnostic"]["board"], 
-                self.protocol["tasks"]["recover"]
-            ]
+            [self.protocol["diagnostic"]["board"], self.protocol["tasks"]["recover"]]
         )
 
     @property
@@ -357,12 +376,8 @@ class Actuators(object):
         Get current state of specified relay
         """
         return self.sendMessage(
-            [self.protocol["diagnostic"]["status"]], 
-            identity=relay_id, 
-            debug=True
+            [self.protocol["diagnostic"]["status"]], identity=relay_id, debug=True
         )
-
-
 
 
 @attr.s(repr=False)
@@ -373,6 +388,7 @@ class Assets(object):
 
     TODO: Assets is an ambiguous name when dealing with real-world systems
     """
+
     description: str = attr.ib(default=None)
     name: str = attr.ib(default=None)  # name of resource
     url: str = attr.ib(default=None)  # address of resource
@@ -381,7 +397,7 @@ class Assets(object):
 @attr.s(repr=False)
 class Collections(object):
     name: str = attr.ib(default=None)
-    description: str = attr.ib(default=None) 
+    description: str = attr.ib(default=None)
     extent: (float,) = attr.ib(default=None)
     keywords: str = attr.ib(default=None)
     license: str = attr.ib(default=None)
@@ -393,14 +409,18 @@ class DataStreams(object):
     """
     DataStreams are collections of Observations.
     """
+
     name: str = attr.ib(default=None)
-    description: str = attr.ib(default=None)  
+    description: str = attr.ib(default=None)
     unitOfMeasurement = attr.ib(default=None)
     observationType = attr.ib(default=None)
     observedArea: dict = attr.ib(default=None)  # boundary geometry, GeoJSON polygon
-    phenomenonTime: (datetime, datetime) = attr.ib(default=None)  # time interval, ISO8601
-    resultTime: (datetime, datetime) = attr.ib(default=None)  # result times interval, ISO8601
-
+    phenomenonTime: (datetime, datetime) = attr.ib(
+        default=None
+    )  # time interval, ISO8601
+    resultTime: (datetime, datetime) = attr.ib(
+        default=None
+    )  # result times interval, ISO8601
 
     @staticmethod
     def fourierTransform(dt=1, lowpass=None, highpass=None, fill=False, compress=True):
@@ -416,48 +436,41 @@ class DataStreams(object):
             highpass, float :: upper cutoff
         """
         series = tuple(item.value for item in request.json)
-        spectrum: dict = DataStreams.frequencySpectrum(series, dt=dt, fill=fill, compress=compress)
+        spectrum: dict = DataStreams.frequencySpectrum(
+            series, dt=dt, fill=fill, compress=compress
+        )
         payload: dict = spectrum.get("payload")
-        
+
         freq = payload["frequency"]
         ww = payload["index"]
 
         if highpass is not None:
-            mask = (ww < highpass)
+            mask = ww < highpass
             freq[mask] = 0.0  # zero out low frequency
 
         if lowpass is not None:
-            mask = (ww > lowpass)
+            mask = ww > lowpass
             freq[mask] = 0.0  # zero out high-frequency
-    
+
         filtered = irfft(freq)
-       
-        return response(
-            200,
-            payload=filtered
-        )
+
+        return response(200, payload=filtered)
 
     @staticmethod
     def frequencySpectrum(req, dt=1, fill=False, compress=True):
 
         series = array(tuple(item.value for item in req.json))
-        
+
         if fill:
             series = series.ffill()  # forward-fill missing values
 
         index = fftfreq(len(series), d=dt)  # frequency indices
         freq = rfft(series)  # transform to frequency domain
         if compress:
-            mask = (index < 0.0)
+            mask = index < 0.0
             freq[mask] = 0.0  # get rid of negative symmetry
-        
-        return response(
-            status=200,
-            payload={
-                "frequency": freq,
-                "index": index
-            }
-        )
+
+        return response(status=200, payload={"frequency": freq, "index": index})
 
     @staticmethod
     def smoothUsingConvolution(bandwidth, mode="same"):
@@ -467,7 +480,7 @@ class DataStreams(object):
         :return:
         """
         series = tuple(item.value for item in request.json)
-        filtered = convolve(series, ones((bandwidth,))/bandwidth, mode=mode)
+        filtered = convolve(series, ones((bandwidth,)) / bandwidth, mode=mode)
         return response(200, payload=filtered)
 
     @staticmethod
@@ -494,7 +507,6 @@ class DataStreams(object):
         if not start:
             start = dates[0]
 
-    
         new = zeros(observations, dtype=float)
         total = 0  # new observations created
         previous = None
@@ -505,7 +517,9 @@ class DataStreams(object):
             signal = series[ii]
             if not isnan(signal):
                 dt = time - start
-                hours = dt.days * 24 + dt.seconds / 60 / 60  # hours elapsed since first sample
+                hours = (
+                    dt.days * 24 + dt.seconds / 60 / 60
+                )  # hours elapsed since first sample
                 if hours > 0:  # reference time is after start time
                     end = min(ceil(hours), observations)  # absolute end index
                     span = end - total  # width of subset
@@ -516,41 +530,43 @@ class DataStreams(object):
                             span += observations - end
 
                         last = total + span  # not including self
-                        new[first:last] = signal if previous is None else previous  # default to back-fill
+                        new[first:last] = (
+                            signal if previous is None else previous
+                        )  # default to back-fill
 
                     elif method is "back":
                         first = total  # including self
                         last = total + span - 1
                         new[first:last] = signal
 
-                    elif method is 'interp':
+                    elif method is "interp":
                         if dtdt is None:
                             fill = signal  # default to forward fill
                         else:
                             delta = end - dtdt  # get step between input obs
-                            coefs = arange(delta) / delta  # inter-step interpolation coefficient
+                            coefs = (
+                                arange(delta) / delta
+                            )  # inter-step interpolation coefficient
                             fill = interp1d(coefs, previous, signal)
 
                         first = max([total - 1, 0])
-                        new[first:total + span - 1] = fill
+                        new[first : total + span - 1] = fill
 
                     dtdt = dt
                     total += span
 
                 previous = signal
-       
+
         return response(200, payload=new)
 
     def statisticalOutlierMask(
-        self,
-        assumeEvenSpacing: bool = False, 
-        threshold: float = 3.5
+        self, assumeEvenSpacing: bool = False, threshold: float = 3.5
     ):
         """
         Return array of logical values, with true indicating that the value or its 
         first derivative are outliers
         """
-   
+
         dates = tuple(item.time for item in request.json)
         series = tuple(item.value for item in request.json)
 
@@ -559,18 +575,19 @@ class DataStreams(object):
         else:
             dydt = [0.0]
             deltat = [0.0]
-            
+
             for nn in range(1, len(series)):
-                deltat.append(dates[nn] - dates[nn-1])
-                dydt.append((series[nn] - series[nn-1])/deltat[nn])
-            
-        diff = abs(series - median(series))  # difference between series and median (anomaly)
+                deltat.append(dates[nn] - dates[nn - 1])
+                dydt.append((series[nn] - series[nn - 1]) / deltat[nn])
+
+        diff = abs(
+            series - median(series)
+        )  # difference between series and median (anomaly)
         mad = median(diff)  # median of anomaly
-        mod_z = 0.6745 * diff / mad 
+        mod_z = 0.6745 * diff / mad
         mask = mod_z > threshold
 
         return response(200, payload=mask)
-
 
     @staticmethod
     def outOfRangeMask(min, max):
@@ -583,12 +600,7 @@ class DataStreams(object):
         return response(200, payload=mask)
 
     def partition(
-        self, 
-        window: int, 
-        horizon: int, 
-        batch_size: int, 
-        ratio: float, 
-        periods: int
+        self, window: int, horizon: int, batch_size: int, ratio: float, periods: int
     ):
         """
 
@@ -615,43 +627,58 @@ class DataStreams(object):
         # TODO: I think this is pandas.Series
         observations = ()
         series = Series(item.result for item in observations)
-        expected = series.rolling(window=window, center=False).mean()  # set the target to moving average
+        expected = series.rolling(
+            window=window, center=False
+        ).mean()  # set the target to moving average
 
         if horizon > 1:
             datastream = DataFrame(repeat(datastream.values, repeats=horizon, axis=1))
             for i, c in enumerate(datastream.columns):
-                datastream[c] = datastream[c].shift(i)  # shift each by one more, "rolling window view" of data
+                datastream[c] = datastream[c].shift(
+                    i
+                )  # shift each by one more, "rolling window view" of data
 
         end = datastream.shape[0] % batch_size  # match with batch_size
 
         return {
             "training": {
-                "x": reshape3d(datastream[start:start+nn]),
-                "y": reshape2d(expected[start:start+nn])
+                "x": reshape3d(datastream[start : start + nn]),
+                "y": reshape2d(expected[start : start + nn]),
             },
             "validation": {
-                "x": reshape3d(datastream[start+nn:-1 * end] if end else datastream[start+nn:]),
-                "y": reshape2d(expected[start+nn:-1 * end] if end else expected[start+nn:])
-            }
+                "x": reshape3d(
+                    datastream[start + nn : -1 * end]
+                    if end
+                    else datastream[start + nn :]
+                ),
+                "y": reshape2d(
+                    expected[start + nn : -1 * end] if end else expected[start + nn :]
+                ),
+            },
         }
+
 
 @attr.s(repr=False)
 class FeaturesOfInterest(object):
     """
     FeaturesOfInterest are usually Locations.
     """
+
     name: str = attr.ib(default=None)
     description: str = attr.ib(default=None)
     encodingType: str = attr.ib(default=None)  # metadata encoding
     feature: Any = attr.ib(default=None)
-    
+
 
 @attr.s(repr=False)
 class HistoricalLocations(object):
     """
     Private and automatic, should be added to sensor when new location is determined
     """
-    time: str = attr.ib(default=None) # time when thing was at location (ISO-8601 string)
+
+    time: str = attr.ib(
+        default=None
+    )  # time when thing was at location (ISO-8601 string)
 
 
 @attr.s(repr=False)
@@ -659,6 +686,7 @@ class Locations(object):
     """
     Last known location of a thing. May be a feature of interest, unless remote sensing.        
     """
+
     name: str = attr.ib(default=None)
     location = attr.ib(default=None)  # GeoJSON
     description: str = attr.ib(default=None)
@@ -666,9 +694,7 @@ class Locations(object):
 
     @staticmethod
     def nearestNeighborQuery(
-        coordinates: Coordinates, 
-        kNeighbors: int, 
-        searchRadius: Distance,
+        coordinates: Coordinates, kNeighbors: int, searchRadius: Distance,
     ) -> Query:
         """
         Format the query and parser required for making k nearest neighbor
@@ -699,15 +725,9 @@ class Locations(object):
                 "message": "Mean Oyster Suitability",
                 "value": {
                     "mean": avg,
-                    "distance": {
-                        "value": searchRadius,
-                        "units": "meters"
-                    },
-                    "observations": {
-                        "requested": kNeighbors,
-                        "found": count
-                    }
-                }
+                    "distance": {"value": searchRadius, "units": "meters"},
+                    "observations": {"requested": kNeighbors, "found": count},
+                },
             }
 
         return Query(queryString, parser)
@@ -718,7 +738,10 @@ class Observations(object):
     """
     Observations are individual time-stamped members of Datastreams
     """
-    phenomenonTime: datetime = attr.ib(default=None)  # timestamp, doesn't enforce specific format
+
+    phenomenonTime: datetime = attr.ib(
+        default=None
+    )  # timestamp, doesn't enforce specific format
     result: Any = attr.ib(default=None)  # value of the observation
     resultTime: datetime = attr.ib(default=None)
     resultQuality: Any = attr.ib(default=None)
@@ -738,6 +761,7 @@ class ObservedProperties(object):
     """
     Create a property, but do not associate any data streams with it
     """
+
     name: str = attr.ib(default=None)
     description: str = attr.ib(default=None)
     definition: str = attr.ib(default=None)  #  URL to reference defining the property
@@ -750,6 +774,7 @@ class Providers(object):
     route ingress and determine implicit permissions for data access, sharing, and
     attribution. 
     """
+
     name: str = attr.ib(default=None)
     description: str = attr.ib(default=None)
     domain: str = attr.ib(default=None)
@@ -763,6 +788,7 @@ class Sensors(object):
     """
     Sensors are devices that observe processes
     """
+
     name: str = attr.ib(default=None)
     description: str = attr.ib(default=None)
     encodingType: str = attr.ib(default=None)  # metadata encoding
@@ -779,6 +805,7 @@ class TaskingCapabilities(object):
     """
     Abstract tasking class mapping I/O and generating signal.
     """
+
     name: str = attr.ib(default=None)
     creationTime: float = attr.ib(default=attr.Factory(time))
     taskingParameters: dict = attr.ib(default=None)
@@ -789,6 +816,7 @@ class Tasks(object):
     """
     Tasks are pieces of work that are done asynchronously by humans or machines.
     """
+
     creationTime: float = attr.ib(default=attr.Factory(time))
     taskingParameters: dict = attr.ib(default=None)
 
@@ -799,6 +827,7 @@ class Things(object):
     A thing is an object of the physical or information world that is capable of of being identified
     and integrated into communication networks.
     """
+
     name: str = attr.ib(default=None)
     description: str = attr.ib(default=None)
     properties: dict = attr.ib(default=None)
@@ -810,6 +839,7 @@ class User(object):
     Create a user entity. Users contain authorization secrets, and do not enter/leave
     the system through the same routes as normal Entities
     """
+
     ip: str = attr.ib(default=None)
     name: str = attr.ib(default=None)
     alias: str = attr.ib(default=None)

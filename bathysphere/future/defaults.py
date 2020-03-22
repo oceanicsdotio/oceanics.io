@@ -3,13 +3,15 @@ try:
 except ImportError:
     array = list
 
-integration_dict = {"explicit-upwind": 1,
-                    "split-upwind": 3,
-                    "explicit-upwind/smolarkiewicz": 4,
-                    "leapfrog-upwind/smolarkiewicz": 5,
-                    "split-upwind/smolarkiewicz": 6}
+integration_dict = {
+    "explicit-upwind": 1,
+    "split-upwind": 3,
+    "explicit-upwind/smolarkiewicz": 4,
+    "leapfrog-upwind/smolarkiewicz": 5,
+    "split-upwind/smolarkiewicz": 6,
+}
 
-R = 1.E-10
+R = 1.0e-10
 IBNRYRDOPT = 0
 NOPAM = 0
 NOCONS = 0
@@ -23,7 +25,7 @@ NSL = 100
 NSLC = 100
 INTGRTYP = integration_dict["explicit-upwind/smolarkiewicz"]  # integration type
 
-INFOFILE = 'screen'  # Info file
+INFOFILE = "screen"  # Info file
 DTI = 0.02  # External time step
 INSTP = 1.00  # time step of flow fields
 DTOUT = 0.10  # output time step
@@ -35,10 +37,10 @@ MONTHLAG = 4  # Input month of run
 DAYLAG = 1  # Input day of run
 HOURLAG = 0
 IRW = 0
-P_SIGMA = 'F'  # vertical location of particles in sigma
-OUT_SIGMA = 'F'
-F_DEPTH = 'F'
-GEOAREA = 'box'  # DIRECTORY FOR INPUT FILES
+P_SIGMA = "F"  # vertical location of particles in sigma
+OUT_SIGMA = "F"
+F_DEPTH = "F"
+GEOAREA = "box"  # DIRECTORY FOR INPUT FILES
 
 use_ncd = False
 strict_integration = False  # set mass transfer

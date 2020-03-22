@@ -68,11 +68,7 @@ def batch(config: dict, forcing: array, workers: int = 1) -> dict:
     }
 
 
-def job(
-    config: dict, 
-    forcing: array, 
-    encoding: str = "utf-8"
-) -> (tuple, bytes):
+def job(config: dict, forcing: array, encoding: str = "utf-8") -> (tuple, bytes):
     """
     Execute single simulation with synchronous callback.
 
@@ -132,7 +128,6 @@ def job(
     return tuple(result), tempfile.getvalue()
 
 
-
 def __preferredOrganicMatter(forcing):
     # type: (Forcing) -> float
     """
@@ -179,7 +174,7 @@ def __energyContentOfRemainingOrganicMatter(forcing):
         return (pom * ((0.632 + 0.086 * poc / pom / 100000) * 4.187) - so * 23.5) / ro
 
     if chl > 0 and pom > 0 and poc == 0:
-        return 8.25 + 21.24 * (1 - exp(-2.79*so)) - 0.174*ro
+        return 8.25 + 21.24 * (1 - exp(-2.79 * so)) - 0.174 * ro
 
     if chl > 0 and pom == 0 and poc > 0:
         return 20.48
@@ -199,7 +194,7 @@ def __temperatureLimitOnHeatLoss(temperature):
     :return:
     """
     A = 0.067
-    return exp(A*temperature) / exp(A*15)
+    return exp(A * temperature) / exp(A * 15)
 
 
 def __netIngestionOfPreferredOrganicMatter(forcing, state, temperatureLimitation):
@@ -233,7 +228,12 @@ def __netIngestionOfRemainingOrganicMatter(forcing, state, temperatureLimitation
     a, b = (8.21, -0.34)
     WS = 1.0
     ro = __remainingOrganicMatter(forcing)
-    return a * (1 - exp(-b * ro)) * temperatureLimitation(forcing.t) * (WS / state.tissueMass) ** 0.062
+    return (
+        a
+        * (1 - exp(-b * ro))
+        * temperatureLimitation(forcing.t)
+        * (WS / state.tissueMass) ** 0.062
+    )
     # TODO: is it WS/WE or WE/WS?
 
 
@@ -247,9 +247,15 @@ def __netEnergyAbsorption(forcing, state, temperatureLimitation):
     """
     args = (forcing, state, temperatureLimitation)
     return (
-       __netIngestionOfPreferredOrganicMatter(*args) * 23.5 +
-       __netIngestionOfRemainingOrganicMatter(*args) * 0.15 * __energyContentOfRemainingOrganicMatter(forcing)
-    ) * 0.82 * 24
+        (
+            __netIngestionOfPreferredOrganicMatter(*args) * 23.5
+            + __netIngestionOfRemainingOrganicMatter(*args)
+            * 0.15
+            * __energyContentOfRemainingOrganicMatter(forcing)
+        )
+        * 0.82
+        * 24
+    )
 
 
 def __maintenanceHeatLoss(forcing, state):
@@ -261,7 +267,11 @@ def __maintenanceHeatLoss(forcing, state):
     :return:
     """
     WS = 1.0
-    return 4.005 * __temperatureLimitOnHeatLoss(forcing.t) * ((WS / state.tissueMass) ** 0.72 * 24)
+    return (
+        4.005
+        * __temperatureLimitOnHeatLoss(forcing.t)
+        * ((WS / state.tissueMass) ** 0.72 * 24)
+    )
 
 
 def __totalHeatLoss(forcing, state, temperatureLimitation):
@@ -271,9 +281,8 @@ def __totalHeatLoss(forcing, state, temperatureLimitation):
 
     :return:WE
     """
-    return (
-            __maintenanceHeatLoss(forcing, state) +
-            0.23 * __netEnergyAbsorption(forcing, state, temperatureLimitation)
+    return __maintenanceHeatLoss(forcing, state) + 0.23 * __netEnergyAbsorption(
+        forcing, state, temperatureLimitation
     )
 
 
@@ -294,7 +303,9 @@ def __oxygenNitrogenRatio(forcing, state, temperatureLimitation):
     """
     MNEA = 1350
 
-    return 10 + ((200 - 10) / MNEA * __netEnergyAbsorption(forcing, state, temperatureLimitation))
+    return 10 + (
+        (200 - 10) / MNEA * __netEnergyAbsorption(forcing, state, temperatureLimitation)
+    )
 
 
 def __excretedAmmonium(forcing, state, temperatureLimitation):
@@ -305,8 +316,12 @@ def __excretedAmmonium(forcing, state, temperatureLimitation):
     :return:
     """
     return (
-            __totalHeatLoss(forcing, state, temperatureLimitation) / 14.06 / 16 /
-            __oxygenNitrogenRatio(forcing, state, temperatureLimitation) * 14 * 1000
+        __totalHeatLoss(forcing, state, temperatureLimitation)
+        / 14.06
+        / 16
+        / __oxygenNitrogenRatio(forcing, state, temperatureLimitation)
+        * 14
+        * 1000
     )
 
 
@@ -323,9 +338,9 @@ def __netEnergyBalance(forcing, state, temperatureLimitation):
     :return:
     """
     return (
-            __netEnergyAbsorption(forcing, state, temperatureLimitation) -
-            __totalHeatLoss(forcing, state, temperatureLimitation) -
-            __excretedAmmonium(forcing, state, temperatureLimitation) * 0.02428
+        __netEnergyAbsorption(forcing, state, temperatureLimitation)
+        - __totalHeatLoss(forcing, state, temperatureLimitation)
+        - __excretedAmmonium(forcing, state, temperatureLimitation) * 0.02428
     )
 
 
@@ -353,7 +368,11 @@ def __spawningLoss(forcing, state):
     SLM, TTS, MTA, PSTL = (5, 19, 0.76, 0.44)
     # NSE = 2
 
-    if shellLengthConversion(state) >= SLM and forcing.t >= TTS and __condition(state) >= 0.95 * MTA:
+    if (
+        shellLengthConversion(state) >= SLM
+        and forcing.t >= TTS
+        and __condition(state) >= 0.95 * MTA
+    ):
         return state.tissueMass * PSTL * 23.5
 
     return 0.0
@@ -405,7 +424,7 @@ def _musselTemperatureLimitation(temperature):
     :return:
     """
     a, b, c = (4.825, 0.013, 18.954)
-    return (a - (b * (temperature-c)**2)) / (a - (b*(15-c)**2))
+    return (a - (b * (temperature - c) ** 2)) / (a - (b * (15 - c) ** 2))
 
 
 def _oysterTemperatureLimitation(temperature):
@@ -416,7 +435,7 @@ def _oysterTemperatureLimitation(temperature):
     :return:
     """
     a, b, c = (0.320, 0.323, -0.011)
-    return (a + b*temperature + c * temperature**2) ** 2
+    return (a + b * temperature + c * temperature ** 2) ** 2
 
 
 def _deltaShellEnergy(forcing, state, temperatureLimitation):
@@ -457,7 +476,9 @@ def _deltaTissueEnergy(forcing, state, temperatureLimitation):
     :param temperatureLimitation:
     :return:
     """
-    return __tissueGrowth(forcing, state, temperatureLimitation) - __spawningLoss(forcing, state)
+    return __tissueGrowth(forcing, state, temperatureLimitation) - __spawningLoss(
+        forcing, state
+    )
 
 
 def _deltaTissueMass(state):
@@ -483,7 +504,7 @@ def totalWetMassConversion(state):
     :param state:
     :return:
     """
-    
+
     WCS, WCT, SCW = (0.189, 0.914, 1.115)
 
     return state.shellMass * (1 + WCS) + state.tissueMass * (1 + WCT) * SCW
@@ -519,8 +540,14 @@ def integrationStep(forcing, state, temperatureLimitation, dt):
     """
     tissueMass = state.tissueMass + _deltaTissueMass(state) * dt
     shellMass = state.shellMass + _deltaShellMass(state) * dt
-    tissueEnergy = state.tissueEnergy + _deltaTissueEnergy(forcing, state, temperatureLimitation) * dt
-    shellEnergy = state.shellEnergy + _deltaShellEnergy(forcing, state, temperatureLimitation) * dt
+    tissueEnergy = (
+        state.tissueEnergy
+        + _deltaTissueEnergy(forcing, state, temperatureLimitation) * dt
+    )
+    shellEnergy = (
+        state.shellEnergy
+        + _deltaShellEnergy(forcing, state, temperatureLimitation) * dt
+    )
 
     return State(tissueEnergy, shellEnergy, tissueMass, shellMass)
 
@@ -533,12 +560,17 @@ if __name__ == "__main__()":
 
     steps = 0
     while shellLengthConversion(oysterState) < 100.0:
-        print(totalWetMassConversion(oysterState), shellLengthConversion(oysterState), oysterState)
-        oysterState = integrationStep(constantForcing, oysterState, _oysterTemperatureLimitation, 1.0)
+        print(
+            totalWetMassConversion(oysterState),
+            shellLengthConversion(oysterState),
+            oysterState,
+        )
+        oysterState = integrationStep(
+            constantForcing, oysterState, _oysterTemperatureLimitation, 1.0
+        )
         steps += 1
 
     print(f"Finished after {steps} steps.")
-
 
 
 # @ObjectStorage.session(config=None)

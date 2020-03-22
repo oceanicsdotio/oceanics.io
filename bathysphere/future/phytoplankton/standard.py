@@ -1,11 +1,19 @@
-from phytoplankton import Phytoplankton, CHLOROPHYLL, CARBON, NUTRIENT, PRODUCTION, LIGHT, TEMPERATURE, RESPIRATION, \
-    SETTLING
+from phytoplankton import (
+    Phytoplankton,
+    CHLOROPHYLL,
+    CARBON,
+    NUTRIENT,
+    PRODUCTION,
+    LIGHT,
+    TEMPERATURE,
+    RESPIRATION,
+    SETTLING,
+)
 
 from numpy import exp
 
 
 class Standard(Phytoplankton):
-
     def __init__(self, mesh=None, variable=False):
         """
         Create a phytoplankton group using RCA style standard eutrophication methods
@@ -21,7 +29,9 @@ class Standard(Phytoplankton):
         self.CCHLS = 0  # PLACEHOLDER
         self.CCHLEQ = 1  # PLACEHOLDER
 
-    def update(self, dt, equilibrium=1.0, systems=None, light=None, mesh=None, temperature=None):
+    def update(
+        self, dt, equilibrium=1.0, systems=None, light=None, mesh=None, temperature=None
+    ):
         """
         Update internal information for time step
 
@@ -71,7 +81,9 @@ class Standard(Phytoplankton):
         base = self._low_temp_adjust(temperature, self.constants["KC"])
         anomaly = temperature - 20.0
 
-        a = self._metabolic(base, anomaly)  # depends on carbon, and light/nutrient limitation
+        a = self._metabolic(
+            base, anomaly
+        )  # depends on carbon, and light/nutrient limitation
         b = self._settling(base)  # depends on nutrient limits being up to date
         c = self._grazing(anomaly)  # depends on carbon
 
@@ -87,7 +99,9 @@ class Standard(Phytoplankton):
         :return: None
         """
 
-        self.rate[PRODUCTION] = self[CARBON] * self.limit[NUTRIENT] * self.limit[LIGHT] * base
+        self.rate[PRODUCTION] = (
+            self[CARBON] * self.limit[NUTRIENT] * self.limit[LIGHT] * base
+        )
         basic = self[CARBON] * self.constants["KRB"] * self.constants["KRT"] ** anomaly
         active = self.constants["KRG"] * self.rate[PRODUCTION]
         self.rate[RESPIRATION] = active + basic
@@ -113,7 +127,9 @@ class Standard(Phytoplankton):
         :return: success
         """
 
-        base = self.constants["VSBAS"] + self.constants["VSNTR"] * (1 - self.limit[NUTRIENT])
+        base = self.constants["VSBAS"] + self.constants["VSNTR"] * (
+            1 - self.limit[NUTRIENT]
+        )
         self.rate[SETTLING][:] = base * self.constants["VSBAST"] ** anomaly
 
         return True
@@ -128,9 +144,11 @@ class Standard(Phytoplankton):
 
         :return: coefficient array or scalar
         """
-        sat = 1 / (light.weights[None, None, :] * light.irradiance).mean(axis=2)  # mol quanta per square meter
+        sat = 1 / (light.weights[None, None, :] * light.irradiance).mean(
+            axis=2
+        )  # mol quanta per square meter
         light = light.irradiance[-1]
-        coefficient = (exp(-light * sat * exp(-attenuation)) - exp(-light * sat))
+        coefficient = exp(-light * sat * exp(-attenuation)) - exp(-light * sat)
         coefficient *= 2.718 / attenuation
 
         return coefficient

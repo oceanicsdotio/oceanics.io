@@ -34,18 +34,18 @@ DEFAULT_CONFIG = {
 }
 
 
-class Mixing(dict):  
+class Mixing(dict):
     def __init__(self, shape=(1, 1)):
         """
         Sub-model for tracking benthic thermal stress and calculating sediment mixing rates
         
         :param shape: shape of sediment arrays
         """
-    
+
         dict.__init__(self, Quantized.create_fields(ARRAYS, shape))
         self.config = DEFAULT_CONFIG
         self.flag = zeros(shape, dtype=bool)  # high temperature flag
-        
+
     def calculate(self, oxygen, carbon, temperature, z, dt):
         """
         Update difference equation processes
@@ -60,7 +60,7 @@ class Mixing(dict):
         """
         assert self.heating(temperature, self.config[DIFFUSION], z, dt)
         assert self._stress(0.5 * oxygen, dt)
-        
+
         turbation = self._turbation(z)
         transport = self._transport(carbon, turbation, z)
 
@@ -77,7 +77,14 @@ class Mixing(dict):
         
         :return success
         """
-        delta = diffusion * 0.0001 * SEC2DAY / z ** 2 * (temperature - self[TEMPERATURE]) * dt
+        delta = (
+            diffusion
+            * 0.0001
+            * SEC2DAY
+            / z ** 2
+            * (temperature - self[TEMPERATURE])
+            * dt
+        )
         self[TEMPERATURE] = (self[TEMPERATURE] + delta).clip(min=0.0, max=34.9)
 
         return True
@@ -90,10 +97,16 @@ class Mixing(dict):
         
         :return: rate array or scalar
         """
-        nominal = self.config[D_MIXING] / z * Sediment.rxn(1, self.config[D_THETA], 1, self[TEMPERATURE])  
-        return nominal * (1 - self.config[KSTRESS] * self[STRESS]) + self.config[D_MIN] / z
+        nominal = (
+            self.config[D_MIXING]
+            / z
+            * Sediment.rxn(1, self.config[D_THETA], 1, self[TEMPERATURE])
+        )
+        return (
+            nominal * (1 - self.config[KSTRESS] * self[STRESS]) + self.config[D_MIN] / z
+        )
 
-    def _transport(self, carbon, turbation, z, scale=1E5):
+    def _transport(self, carbon, turbation, z, scale=1e5):
         """
         Organic carbon stimulates benthic biomass
         
@@ -119,7 +132,7 @@ class Mixing(dict):
         """
         slope = self._gradient(0.5 * oxygen)
         self[STRESS] = (self[STRESS] + dt * slope) / (1 + self.config[KSTRESS] * dt)
-        
+
         return True
 
     def _gradient(self, oxygen):

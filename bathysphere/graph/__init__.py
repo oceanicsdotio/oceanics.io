@@ -7,7 +7,6 @@ from requests import post
 
 
 class polymorphic(object):
-
     def __init__(self, f):
         self.f = f
 
@@ -19,28 +18,27 @@ class polymorphic(object):
 
         def newfunc(*args, **kwargs):
             return self.f(wrt, *args, **kwargs)
+
         return newfunc
 
 
-def processKeyValueOutbound(
-    keyValue: (str, Any), 
-) -> (str, Any):
+def processKeyValueOutbound(keyValue: (str, Any),) -> (str, Any):
     key, value = keyValue
     if key == "location":
-        return key, {
-            "type": "Point",
-            "coordinates": eval(value) if isinstance(value, str) else value,
-        }
+        return (
+            key,
+            {
+                "type": "Point",
+                "coordinates": eval(value) if isinstance(value, str) else value,
+            },
+        )
     if key[0] == "_":
         return key[1:], value
 
     return key, value
-    
 
-def processKeyValueInbound(
-    keyValue: (str, Any),
-    null: bool = False
-) -> str or None:
+
+def processKeyValueInbound(keyValue: (str, Any), null: bool = False) -> str or None:
     """
     Convert a String key and Any value into a Cypher representation
     for making the graph query.
@@ -50,7 +48,7 @@ def processKeyValueInbound(
         return None
 
     if "location" in key and isinstance(value, dict):
-        
+
         if value.get("type") == "Point":
             coord = value["coordinates"]
             if len(coord) == 2:
@@ -69,7 +67,7 @@ def processKeyValueInbound(
         # TODO: This hardcoding is bad, but the $ picks up credentials
         if len(value) < 64:
             return f"{key}: {value}"
-    
+
     if value is not None:
         return f"{key}: {dumps(value)}"
 
@@ -80,10 +78,7 @@ def processKeyValueInbound(
 
 
 def executeQuery(
-    db: Driver, 
-    method: Callable, 
-    kwargs: (dict,) = (), 
-    access_mode: str = "read"
+    db: Driver, method: Callable, kwargs: (dict,) = (), access_mode: str = "read"
 ) -> None or (Any,):
     """
     Execute one or more cypher queries in an equal number of transactions against the
@@ -100,12 +95,7 @@ def executeQuery(
 
 
 @retry(tries=2, delay=1, backoff=1)
-def connect(
-    host: str, 
-    port: int, 
-    accessKey: str,
-    default: str = "neo4j" 
-) -> Driver:
+def connect(host: str, port: int, accessKey: str, default: str = "neo4j") -> Driver:
     """
     Connect to a database manager. Try docker networking, or fallback to local host.
     likely that the db has been accessed and setup previously

@@ -20,10 +20,10 @@ def test_datatypes_object_storage_get_index(object_storage):
 
 @pytest.mark.object_storage
 def test_datatypes_object_storage_list_objects(object_storage):
-    
+
     db = object_storage(prefix=None)
     data = db.list_objects()
-    
+
     for each in data:
         assert isinstance(each, Object)
 
@@ -67,4 +67,3 @@ def test_datatypes_object_storage_session(object_storage):
 
     # db = object_storage(prefix=None)
     assert False
-

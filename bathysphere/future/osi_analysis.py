@@ -1,4 +1,3 @@
-
 from pickle import loads as unpickle, dump as pickle
 from itertools import repeat
 from functools import reduce
@@ -15,7 +14,19 @@ try:
     from matplotlib.patches import Path
     from PIL.Image import fromarray, alpha_composite
     from netCDF4 import Dataset
-    from numpy import array, where, column_stack, uint8, arange, delete, zeros, unique, isnan, abs, sqrt
+    from numpy import (
+        array,
+        where,
+        column_stack,
+        uint8,
+        arange,
+        delete,
+        zeros,
+        unique,
+        isnan,
+        abs,
+        sqrt,
+    )
     from numpy.ma import masked_where
     from matplotlib import pyplot as plt
 except ImportError as _:
@@ -44,29 +55,40 @@ def vertexArray(path="data/LC8011030JulyAvLGN00_OSI.nc"):
 def createJsonLeaseShapes():
 
     with open("openapi/limited-purpose-licenses.json", "w+") as f:
-        f.write(dumps({
-            "type": "FeatureCollection",
-            "features": lpaQuery(clippingExtent, accessKey)
-        }))
+        f.write(
+            dumps(
+                {
+                    "type": "FeatureCollection",
+                    "features": lpaQuery(clippingExtent, accessKey),
+                }
+            )
+        )
 
     with open("openapi/aquaculture-leases.json", "w+") as f:
-        f.write(dumps({
-            "type": "FeatureCollection",
-            "features": leaseQuery(clippingExtent, accessKey)
-        }))
+        f.write(
+            dumps(
+                {
+                    "type": "FeatureCollection",
+                    "features": leaseQuery(clippingExtent, accessKey),
+                }
+            )
+        )
 
 
 def lpaQuery(ext, auth):
     bbox = f"st_makebox2d(st_makepoint({ext[0]},{ext[2]}), st_makepoint({ext[1]},{ext[3]}))"
-    body = dumps({
-        "table": "limited_purpose_aquaculture_sites",
-        "fields": ["species", "st_asgeojson(st_transform(st_setsrid(geom, 2960), 4326))"],
-        "conditions": [
-            f"st_transform(st_setsrid(geom, 2960), 4326) && {bbox}"
-        ],
-        "encoding": "json",
-        "limit": 1000
-    })
+    body = dumps(
+        {
+            "table": "limited_purpose_aquaculture_sites",
+            "fields": [
+                "species",
+                "st_asgeojson(st_transform(st_setsrid(geom, 2960), 4326))",
+            ],
+            "conditions": [f"st_transform(st_setsrid(geom, 2960), 4326) && {bbox}"],
+            "encoding": "json",
+            "limit": 1000,
+        }
+    )
     response = post(
         url="http://graph.oceanics.io/faas/postgres",
         data=body,
@@ -74,27 +96,31 @@ def lpaQuery(ext, auth):
             "hmac": hmac.new(auth.encode(), body.encode(), hashlib.sha1).hexdigest()
         },
     )
-    return [{
-        "type": "Feature",
-        "properties": {
-            "species": each["species"],
-        },
-        "geometry": loads(each["st_asgeojson"])
-    } for each in response.json()]
+    return [
+        {
+            "type": "Feature",
+            "properties": {"species": each["species"],},
+            "geometry": loads(each["st_asgeojson"]),
+        }
+        for each in response.json()
+    ]
 
 
 @retry(tries=3, delay=1)
 def leaseQuery(ext, auth):
     bbox = f"st_makebox2d(st_makepoint({ext[0]},{ext[2]}), st_makepoint({ext[1]},{ext[3]}))"
-    body = dumps({
-        "table": "aquaculture_leases",
-        "fields": ["primarysp", "st_asgeojson(st_transform(st_setsrid(geom, 2960), 4326))"],
-        "conditions": [
-            f"st_transform(st_setsrid(geom, 2960), 4326) && {bbox}"
-        ],
-        "encoding": "json",
-        "limit": 500
-    })
+    body = dumps(
+        {
+            "table": "aquaculture_leases",
+            "fields": [
+                "primarysp",
+                "st_asgeojson(st_transform(st_setsrid(geom, 2960), 4326))",
+            ],
+            "conditions": [f"st_transform(st_setsrid(geom, 2960), 4326) && {bbox}"],
+            "encoding": "json",
+            "limit": 500,
+        }
+    )
     response = post(
         url="http://graph.oceanics.io/faas/postgres",
         data=body,
@@ -102,30 +128,33 @@ def leaseQuery(ext, auth):
             "hmac": hmac.new(auth.encode(), body.encode(), hashlib.sha1).hexdigest()
         },
     )
-    return [{
-        "type": "Feature",
-        "properties": {
-            "species": each["primarysp"],
-        },
-        "geometry": loads(each["st_asgeojson"])
-    } for each in response.json()]
+    return [
+        {
+            "type": "Feature",
+            "properties": {"species": each["primarysp"],},
+            "geometry": loads(each["st_asgeojson"]),
+        }
+        for each in response.json()
+    ]
 
 
 @retry(tries=2, delay=1)
 def townQuery(ext, auth):
     # type: (ExtentType, str) -> dict
     bbox = f"st_makebox2d(st_makepoint({ext[0]},{ext[2]}), st_makepoint({ext[1]},{ext[3]}))"
-    body = dumps({
-        "table": "maine_boundaries_town_polygon",
-        "fields": ["gid", "town", "county", "shapestare"],
-        "conditions": [
-            "land='n'",
-            "type='coast'",
-            f"st_transform(st_setsrid(geom, 2960), 4326) && {bbox}"
-        ],
-        "encoding": "json",
-        "limit": 500
-    })
+    body = dumps(
+        {
+            "table": "maine_boundaries_town_polygon",
+            "fields": ["gid", "town", "county", "shapestare"],
+            "conditions": [
+                "land='n'",
+                "type='coast'",
+                f"st_transform(st_setsrid(geom, 2960), 4326) && {bbox}",
+            ],
+            "encoding": "json",
+            "limit": 500,
+        }
+    )
     response = post(
         url="http://graph.oceanics.io/faas/postgres",
         data=body,
@@ -141,15 +170,15 @@ def nsspQuery(ext, auth):
     # type: (ExtentType, str) -> dict
 
     bbox = f"st_makebox2d(st_makepoint({ext[0]},{ext[2]}), st_makepoint({ext[1]},{ext[3]}))"
-    body = dumps({
-        "table": "nssp_classifications",
-        "fields": ["gid", "pa_number", "acres", "shape_area", "st_asgeojson(geom)"],
-        "conditions": [
-            f"geom && {bbox}"
-        ],
-        "encoding": "json",
-        "limit": 500
-    })
+    body = dumps(
+        {
+            "table": "nssp_classifications",
+            "fields": ["gid", "pa_number", "acres", "shape_area", "st_asgeojson(geom)"],
+            "conditions": [f"geom && {bbox}"],
+            "encoding": "json",
+            "limit": 500,
+        }
+    )
     return post(
         url="http://graph.oceanics.io/faas/postgres",
         data=body,
@@ -166,10 +195,8 @@ def multipolygon(record, auth):
         {
             "table": "maine_boundaries_town_polygon",
             "fields": ["st_asgeojson(st_transform(st_setsrid(geom, 2960), 4326))"],
-            "conditions": [
-                f"gid={_gid}"
-            ],
-            "encoding": "json"
+            "conditions": [f"gid={_gid}"],
+            "encoding": "json",
         }
     )
     response = post(
@@ -192,10 +219,8 @@ def shapeGeometry(record, auth):
         {
             "table": "maine_boundaries_town_polygon",
             "fields": ["st_asgeojson(st_transform(st_setsrid(geom, 2960), 4326))"],
-            "conditions": [
-                f"gid={_gid}"
-            ],
-            "encoding": "json"
+            "conditions": [f"gid={_gid}"],
+            "encoding": "json",
         }
     )
     response = post(
@@ -286,7 +311,9 @@ def createShapeIndex(points, polygonMap, file):
             break
         category[i] = g
         n += 1
-        print("iteration:", n, "gid:", g, "points:", len(i), "time:", int(time() - start))
+        print(
+            "iteration:", n, "gid:", g, "points:", len(i), "time:", int(time() - start)
+        )
     with open(file, "wb+") as f:
         pickle(category, f)
 
@@ -310,16 +337,10 @@ def createMaineTowns(ext, key):
     features = []
     while True:
         try:
-            features.append({
-                "type": "Feature",
-                "geometry": next(generator)
-            })
+            features.append({"type": "Feature", "geometry": next(generator)})
         except StopIteration:
             with open("openapi/maine-towns.json", "w+") as f:
-                f.write(dumps({
-                    "type": "FeatureCollection",
-                    "features": features
-                }))
+                f.write(dumps({"type": "FeatureCollection", "features": features}))
             return
 
 
@@ -336,50 +357,59 @@ def aggregateStatistics(points, file, geojson):
         _osi = sub[where(~isnan(sub[:, 3])), 3]
         valid = len(_osi)
 
-        multiPoints.append({
-            "type": "Feature",
-            "geometry": {
-                "type": "Point",
-                "coordinates": _center.tolist()
-            },
-            "properties": {
-                "gid": float(each),
-                "valid": valid,
-                "nan": count - valid,
-                "histogram": [
-                    [float(b), float((_osi == b).sum())] for b in unique(_osi)
-                ]
+        multiPoints.append(
+            {
+                "type": "Feature",
+                "geometry": {"type": "Point", "coordinates": _center.tolist()},
+                "properties": {
+                    "gid": float(each),
+                    "valid": valid,
+                    "nan": count - valid,
+                    "histogram": [
+                        [float(b), float((_osi == b).sum())] for b in unique(_osi)
+                    ],
+                },
             }
-        })
+        )
     with open(geojson, "w+") as f:
-        f.write(dumps({
-            "type": "FeatureCollection",
-            "features": multiPoints,
-            "properties": {
-                "statistics": histogramReduce(histogramCreate(multiPoints))
-            }
-        }))
+        f.write(
+            dumps(
+                {
+                    "type": "FeatureCollection",
+                    "features": multiPoints,
+                    "properties": {
+                        "statistics": histogramReduce(histogramCreate(multiPoints))
+                    },
+                }
+            )
+        )
 
 
 def createClosureJson(records):
     with open("openapi/nssp-closures.json", "w+") as f:
-        f.write(dumps({
-            "type": "FeatureCollection",
-            "features": [{
-                "type": "Feature",
-                "geometry": loads(cl.get("st_asgeojson"))
-            } for cl in records]
-        }))
+        f.write(
+            dumps(
+                {
+                    "type": "FeatureCollection",
+                    "features": [
+                        {"type": "Feature", "geometry": loads(cl.get("st_asgeojson"))}
+                        for cl in records
+                    ],
+                }
+            )
+        )
 
 
 def createShapeImage(points, a, b, colorMap):
     z = points[:, 3]
     with open(a, "rb") as f:
-        mask_a = (unpickle(f.read()) == 0)
+        mask_a = unpickle(f.read()) == 0
     with open(b, "rb") as f:
-        mask_b = (unpickle(f.read()) != 0)
+        mask_b = unpickle(f.read()) != 0
     double = 0.5 * ((z - 2 * z * mask_b) + 1)
-    colors = get_cmap(colorMap)(masked_where(mask_a | isnan(z), double).reshape(reshape))
+    colors = get_cmap(colorMap)(
+        masked_where(mask_a | isnan(z), double).reshape(reshape)
+    )
     colors[:, :, 3] *= sqrt(abs(double)).reshape(reshape)
     return fromarray(uint8(colors * 255)).rotate(90)
 
@@ -391,24 +421,30 @@ accessKey = "53cr3t50fth3e53@"
 
 createShapeIndex(
     points=ixyz,
-    polygonMap=map(shapeGeometry, townQuery(ext=clippingExtent, key=accessKey), repeat(accessKey)),
-    file="data/category-index-2.npy"
+    polygonMap=map(
+        shapeGeometry, townQuery(ext=clippingExtent, key=accessKey), repeat(accessKey)
+    ),
+    file="data/category-index-2.npy",
 )
 
 closures = nsspQuery(ext=clippingExtent, key=accessKey)
 createShapeIndex(
     points=ixyz,
     polygonMap=map(closureGeometry, closures),
-    file="data/category-index-closures.npy"
+    file="data/category-index-closures.npy",
 )
 createClosureJson(records=closures)
 
 createMaineTowns(ext=clippingExtent, key=accessKey)
-aggregateStatistics(points=ixyz, file="data/category-index-2.npy", geojson="openapi/spatial/suitability.json")
+aggregateStatistics(
+    points=ixyz,
+    file="data/category-index-2.npy",
+    geojson="openapi/spatial/suitability.json",
+)
 aggregateStatistics(
     points=ixyz,
     file="data/category-index-closures.npy",
-    geojson="openapi/spatial/suitability-closures.json"
+    geojson="openapi/spatial/suitability-closures.json",
 )
 
 # Bad: Spectral, PiYG, BrBG
@@ -417,7 +453,7 @@ with open("openapi/osi-composite-rg-2.png", "wb+") as f:
         points=ixyz,
         a="data/category-index-2.npy",
         b="data/category-index-closures.npy",
-        colorMap='RdGy',
+        colorMap="RdGy",
     ).save(f)
 
 with open("openapi/osi-composite-web.png", "wb+") as f:
@@ -425,7 +461,7 @@ with open("openapi/osi-composite-web.png", "wb+") as f:
         points=ixyz,
         a="data/category-index-2.npy",
         b="data/category-index-closures.npy",
-        colorMap='twilight',
+        colorMap="twilight",
     ).save(f)
 
 
@@ -434,18 +470,27 @@ fid = open("bathysphere_functions/bathysphere_functions_image/styles.yml", "r")
 
 z = ixyz[:, 3]
 with open("data/category-index-2.npy", "rb") as f:
-    mask_a = (unpickle(f.read()) == 0)
+    mask_a = unpickle(f.read()) == 0
 with open("data/category-index-closures.npy", "rb") as f:
-    mask_b = (unpickle(f.read()) != 0)
+    mask_b = unpickle(f.read()) != 0
 
 double = 0.5 * ((z - 2 * z * mask_b) + 1)
 colors = get_cmap("RdGy")(masked_where(mask_a | isnan(z), double).reshape(reshape))
 # colors[:, :, 3] *= sqrt(abs(double)).reshape(reshape)
 img = fromarray(uint8(colors * 255)).rotate(90)
 
-view = Spatial(style={**styles["base"], **styles["light"], **{"dpi": 300, "height": 3.0, "width": 4.0}}, extent=(-70.6, -68.5, 42.75, 44.1))
+view = Spatial(
+    style={
+        **styles["base"],
+        **styles["light"],
+        **{"dpi": 300, "height": 3.0, "width": 4.0},
+    },
+    extent=(-70.6, -68.5, 42.75, 44.1),
+)
 
-im = view.ax.imshow(img, origin='upper', extent=clippingExtent, interpolation="gaussian")
+im = view.ax.imshow(
+    img, origin="upper", extent=clippingExtent, interpolation="gaussian"
+)
 buffer = view.push(xlabel="longitude", ylabel="latitude")
 with open("data/test-osi-bathysphere_functions_image.png", "wb+") as fid:
     fid.write(buffer.getvalue())

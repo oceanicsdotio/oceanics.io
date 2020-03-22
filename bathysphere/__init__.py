@@ -20,8 +20,7 @@ CORS(app.app)
 try:
     appConfig = loadAppConfig()
     services = filter(
-        lambda x: "bathysphere-api" == x["spec"]["name"], 
-        appConfig["Locations"]
+        lambda x: "bathysphere-api" == x["spec"]["name"], appConfig["Locations"]
     )
     config = next(services)["metadata"]["config"]
     relativePath = config.get("specPath")

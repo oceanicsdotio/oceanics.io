@@ -1,5 +1,18 @@
-from phytoplankton import Phytoplankton, NUTRIENT, CHLOROPHYLL, RESPIRATION, PRODUCTION, LIGHT, SETTLING, CARBON, TEMPERATURE, \
-    NITROGEN, NOX, PHOSPHOROUS, SILICA
+from phytoplankton import (
+    Phytoplankton,
+    NUTRIENT,
+    CHLOROPHYLL,
+    RESPIRATION,
+    PRODUCTION,
+    LIGHT,
+    SETTLING,
+    CARBON,
+    TEMPERATURE,
+    NITROGEN,
+    NOX,
+    PHOSPHOROUS,
+    SILICA,
+)
 
 from numpy import exp
 
@@ -10,7 +23,9 @@ class LawsChulup(Phytoplankton):
 
         self.ratio[CHLOROPHYLL] = self.constants["CCHL"]  # Nutrient ratios
 
-    def update(self, dt, equilibrium, systems=None, light=None, mesh=None, temperature=None):
+    def update(
+        self, dt, equilibrium, systems=None, light=None, mesh=None, temperature=None
+    ):
         """
         Update internal information for time step
 
@@ -78,8 +93,12 @@ class LawsChulup(Phytoplankton):
         c = self.constants["KC"]
 
         result = self.constants["CRB"][PHOSPHOROUS][0]
-        denominator = 1 - (10.0 - self.constants["CRB"][NITROGEN][1]) * \
-                      (1 - self.limit[NUTRIENT]) - self.constants["CCHL"] - (rate + a) / ((1 - b) * c)
+        denominator = (
+            1
+            - (10.0 - self.constants["CRB"][NITROGEN][1]) * (1 - self.limit[NUTRIENT])
+            - self.constants["CCHL"]
+            - (rate + a) / ((1 - b) * c)
+        )
 
         return result / denominator
 
@@ -144,16 +163,20 @@ class LawsChulup(Phytoplankton):
         """
         rate = self.constants["KC"]
 
-        base = rate * \
-               (1 - self.constants["KRG"]) * \
-               (1 - self.constants["CCHL"]) * \
-               self.limit[LIGHT]
+        base = (
+            rate
+            * (1 - self.constants["KRG"])
+            * (1 - self.constants["CCHL"])
+            * self.limit[LIGHT]
+        )
 
         kt = self.constants["KT"]  # temperature dependence
 
         base /= rate / kt + self.limit[LIGHT] * (1 + rate / self.SATURATION / kt)
 
-        return base - self.constants["KRB"] + self.limit[NUTRIENT]  # remove base respiration amd apply limitation
+        return (
+            base - self.constants["KRB"] + self.limit[NUTRIENT]
+        )  # remove base respiration amd apply limitation
 
     @staticmethod
     def _light_saturation(light, attenuation):

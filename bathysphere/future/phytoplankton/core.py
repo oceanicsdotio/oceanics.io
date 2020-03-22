@@ -66,7 +66,9 @@ class Phytoplankton(dict):
         if mesh is not None:
             nox = mesh.fields[NOX]  # total nitrate and nitrite in the water column
             kin = mesh.fields[NITROGEN]
-            self.limit[AMMONIA] = self._ammonia_preference(nox, kin)  # ammonium preference
+            self.limit[AMMONIA] = self._ammonia_preference(
+                nox, kin
+            )  # ammonium preference
             self.limit[LIGHT] = fcn(light, mesh.attenuation())  # light limitation
 
         else:
@@ -106,7 +108,9 @@ class Phytoplankton(dict):
         :return: array of values
         """
         kk = self.constants["KMN"][self.id]  # rate constant
-        return kin * nox / ((kk + kin) * (kk + nox)) + kin * kk / ((kin + nox) * (kk + nox))
+        return kin * nox / ((kk + kin) * (kk + nox)) + kin * kk / (
+            (kin + nox) * (kk + nox)
+        )
 
     def _stoich_term(self, key, variable):
         """
@@ -132,7 +136,9 @@ class Phytoplankton(dict):
         """
         a = self.constants["CRB"][PHOSPHOROUS][self.id]
         b = self.constants["CRB"][SILICA][self.id]
-        ratio = self.constants["CRB"][NITROGEN][self.id] + a * exp(-(b * free).clip(max=10))
+        ratio = self.constants["CRB"][NITROGEN][self.id] + a * exp(
+            -(b * free).clip(max=10)
+        )
         return self[CARBON] * ratio ** -1
 
     def _production(self, reactor, partition):
@@ -159,13 +165,20 @@ class Phytoplankton(dict):
     def _production_rate(self):
 
         result = 32 / 12 * self.limit[AMMONIA] + (1 - self.limit[AMMONIA])
-        return result * 32 * (1 / 12 + 2 * self.ratio[NITROGEN] / 14) * self.rate[PRODUCTION]
+        return (
+            result
+            * 32
+            * (1 / 12 + 2 * self.ratio[NITROGEN] / 14)
+            * self.rate[PRODUCTION]
+        )
 
     def _grazing(self, anomaly):
         """
         Loss of carbon through grazing
         """
-        self.rate[GRAZING][:] = self[CARBON] * self.constants["KGRZC"] * self.constants["KGRZT"] ** anomaly
+        self.rate[GRAZING][:] = (
+            self[CARBON] * self.constants["KGRZC"] * self.constants["KGRZT"] ** anomaly
+        )
         return True
 
     def _grazing_loss(self, carbon):
@@ -251,7 +264,9 @@ class Phytoplankton(dict):
             reactor.sinking(delta, each)  # stoichiometric ratios
 
         # Remove biogenic mass from bottom water column layer
-        for sys, nutrient in zip([PHOSPHATE, AMMONIUM, SILICATE], [PHOSPHOROUS, NITROGEN, SILICA]):
+        for sys, nutrient in zip(
+            [PHOSPHATE, AMMONIUM, SILICATE], [PHOSPHOROUS, NITROGEN, SILICA]
+        ):
             delta = self.ratio[nutrient][:, -1] * flux
             reactor.deposit(delta, sys, sediment=sediment)
 
@@ -278,7 +293,7 @@ class Phytoplankton(dict):
     def _silica_exchange(self, silica, partition):
 
         delta = self.ratio[SILICA] * self.rate[DEATH]  # Transfer: respiration and death
-        silica.exchange(delta, source=SILICATE, sink=BIOGENIC+SILICA)
+        silica.exchange(delta, source=SILICATE, sink=BIOGENIC + SILICA)
 
         delta = self.ratio[SILICA] * self.rate[PRODUCTION] * (1 - partition)
         silica.exchange(delta, sink=SILICATE)
@@ -287,5 +302,9 @@ class Phytoplankton(dict):
 
     def excrete(self):
 
-        return (1 - self.PNH4) * self.ratio[NITROGEN] * self[CARBON] * self.rate[PRODUCTION]
-
+        return (
+            (1 - self.PNH4)
+            * self.ratio[NITROGEN]
+            * self[CARBON]
+            * self.rate[PRODUCTION]
+        )

@@ -1,29 +1,39 @@
 from numpy import zeros
-from neritics.chemistry.nutrient import NITROGEN, PHOSPHOROUS, AMMONIUM, SILICA, PHOSPHATE, NOX
+from neritics.chemistry.nutrient import (
+    NITROGEN,
+    PHOSPHOROUS,
+    AMMONIUM,
+    SILICA,
+    PHOSPHATE,
+    NOX,
+)
 from neritics.chemistry.organic import CARBON, DIOXIDE
 from bathysphere.graph.mesh.mesh.quantized import Quantized
 from neritics.chemistry.anaerobic.methane import METHANE
 from neritics.chemistry.organic.s import SULFATE, Sulfate
 
 do_pools = ("CH4", "SO4", "HS")
-si_pools = (SILICA)
-p_pools = (PHOSPHATE)
+si_pools = SILICA
+p_pools = PHOSPHATE
 n_pools = (AMMONIUM, "NO3")
 
 
 SETTLING = "settling"
 ITER = 50
 EPS = 0.00005
-CM2M = 2.73791E-5  # convert cm/year to m/day
+CM2M = 2.73791e-5  # convert cm/year to m/day
 
 
 class Sediment(dict):
     def __init__(self, shape=(1, 1)):
 
         keys = [METHANE, SULFATE, PHOSPHATE, AMMONIUM, "NO3", SILICA, "HS", SETTLING]
-        dict.__init__(self,  Quantized.create_fields(keys, shape))
+        dict.__init__(self, Quantized.create_fields(keys, shape))
 
-        self.algal = {nutrient: Quantized.create_fields([0,1,2], shape) for nutrient in [NITROGEN, CARBON, PHOSPHOROUS]}
+        self.algal = {
+            nutrient: Quantized.create_fields([0, 1, 2], shape)
+            for nutrient in [NITROGEN, CARBON, PHOSPHOROUS]
+        }
         self.depth = zeros(shape, dtype=float)  # depth of sediment layer, meters
         self.partition = self._partitioning(shape)
         self.config = dict()
@@ -31,9 +41,11 @@ class Sediment(dict):
     def _partitioning(self, shape):
 
         self.partition = dict()
-        return {SILICA: zeros(shape, dtype=float),
-                PHOSPHATE+"M": zeros(shape, dtype=float),
-                PHOSPHATE+"N": zeros(shape, dtype=float)}
+        return {
+            SILICA: zeros(shape, dtype=float),
+            PHOSPHATE + "M": zeros(shape, dtype=float),
+            PHOSPHATE + "N": zeros(shape, dtype=float),
+        }
 
     @staticmethod
     def rxn(kappa, theta, coefficient, anomaly):
@@ -61,14 +73,16 @@ class Sediment(dict):
         :param systems:
         :return:
         """
-        keys = {PHOSPHATE: None,
-                AMMONIUM: None,
-                "NO3": None,
-                SILICA: None,
-                DIOXIDE: None,
-                "HS": "EqDO",
-                "CH4AQ": "EqDO",
-                "CH4GAS": "EqDO"}
+        keys = {
+            PHOSPHATE: None,
+            AMMONIUM: None,
+            "NO3": None,
+            SILICA: None,
+            DIOXIDE: None,
+            "HS": "EqDO",
+            "CH4AQ": "EqDO",
+            "CH4GAS": "EqDO",
+        }
 
         self.flux(mesh, phytoplankton)  # calculate sediment fluxes
         for sys in keys:

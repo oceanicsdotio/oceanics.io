@@ -14,7 +14,7 @@ import attr
 
 from bathysphere import models
 from bathysphere.graph import (
-    processKeyValueInbound, 
+    processKeyValueInbound,
     processKeyValueOutbound,
     executeQuery,
     polymorphic,
@@ -28,6 +28,7 @@ class Link:
     
     They are directional.
     """
+
     _symbol: str = attr.ib(default="r")
     rank: int = attr.ib(default=None)
     uuid: UUID = attr.ib(default=None)
@@ -42,22 +43,17 @@ class Link:
         [ r:Label { <key>:<value>, <key>:<value> } ]
         """
         labelStr = f":{self.label}" if self.label else ""
-        combined = {
-            "uuid": self.uuid, 
-            "rank": self.rank, 
-            **(self.props or {})
-        }
-        nonNullValues = tuple(filter(lambda x: x, map(processKeyValueInbound, combined.items())))
-        pattern = "" if len(nonNullValues) == 0 else f"""{{ {', '.join(nonNullValues)} }}"""
+        combined = {"uuid": self.uuid, "rank": self.rank, **(self.props or {})}
+        nonNullValues = tuple(
+            filter(lambda x: x, map(processKeyValueInbound, combined.items()))
+        )
+        pattern = (
+            "" if len(nonNullValues) == 0 else f"""{{ {', '.join(nonNullValues)} }}"""
+        )
         return f"[ {self._symbol}{labelStr} {pattern} ]"
 
     @classmethod
-    def drop(
-        cls: Type, 
-        db: Driver, 
-        nodes: (Type, Type), 
-        props: dict
-    ) -> None:
+    def drop(cls: Type, db: Driver, nodes: (Type, Type), props: dict) -> None:
         """
         Drop the link between two node patterns
         """
@@ -68,8 +64,8 @@ class Link:
 
     @polymorphic
     def join(
-        self: Type, 
-        db: Driver, 
+        self: Type,
+        db: Driver,
         nodes: (Any, Any),
         props: dict = None,
         echo: bool = False,
@@ -87,7 +83,9 @@ class Link:
         if isclass(self):
             L = self(**(props or {}))  # pylint: disable=not-callable
         elif props is not None and len(props) > 0:
-            raise ValueError("No additional props allowed when using existing Link instance.")
+            raise ValueError(
+                "No additional props allowed when using existing Link instance."
+            )
         else:
             L = self
         try:
@@ -97,7 +95,7 @@ class Link:
         if a._symbol == b._symbol:
             a._setSymbol("a")
             b._setSymbol("b")
-        
+
         cmd = f"MATCH {repr(a)}, {repr(b)} MERGE ({a._symbol})-{repr(L)}->({b._symbol})"
         if echo:
             print(cmd)
@@ -105,11 +103,11 @@ class Link:
 
     @polymorphic
     def query(
-        self: Type, 
-        db: Driver, 
-        nodes: (Any, Any), 
+        self: Type,
+        db: Driver,
+        nodes: (Any, Any),
         props: dict = None,
-        result: str = "labels(b)", 
+        result: str = "labels(b)",
     ) -> (Any,):
         """
         Match and return the label set for connected entities.
@@ -119,7 +117,9 @@ class Link:
         if isclass(self):
             L = self(**(props or {}))  # pylint: disable=not-callable
         elif props is not None and len(props) > 0:
-            raise ValueError("No additional props allowed when using existing Link instance.")
+            raise ValueError(
+                "No additional props allowed when using existing Link instance."
+            )
         else:
             L = self
         try:
@@ -142,6 +142,7 @@ class Entity(object):
     """
     Primitive object/entity, may have name and location
     """
+
     uuid: UUID = attr.ib(default=None)
     _symbol: str = attr.ib(default="n")
 
@@ -154,12 +155,14 @@ class Entity(object):
         """
         className = str(self)
         entity = "" if className == Entity.__name__ else f":{className}"
-        
+
         try:
-            pattern = tuple(filter(
-                lambda x: x is not None, 
-                map(processKeyValueInbound, self._properties().items())
-            ))
+            pattern = tuple(
+                filter(
+                    lambda x: x is not None,
+                    map(processKeyValueInbound, self._properties().items()),
+                )
+            )
         except ValueError as _:
             raise ValueError(dumps(self._properties()))
 
@@ -169,17 +172,12 @@ class Entity(object):
         return type(self).__name__
 
     def _setSymbol(
-        self, 
-        symbol: str,
+        self, symbol: str,
     ):
         self._symbol = symbol
         return self
 
-    def _properties(
-        self, 
-        select: (str) = (), 
-        private: str = ""
-    ) -> dict:
+    def _properties(self, select: (str) = (), private: str = "") -> dict:
         """
         Create a filtered dictionary from the object properties.
 
@@ -188,6 +186,7 @@ class Entity(object):
         - keys beginning with a private prefix
         - keys not in a selected set, IFF provided
         """
+
         def _filter(keyValue):
             key, value = keyValue
             return (
@@ -196,14 +195,11 @@ class Entity(object):
                 and (key[: len(private)] != private if private else True)
                 and (key in select if select else True)
             )
+
         return {k: v for k, v in filter(_filter, self.__dict__.items())}
 
     @classmethod
-    def addConstraint(
-        cls, 
-        db: Driver, 
-        by: str
-    ) -> Callable:
+    def addConstraint(cls, db: Driver, by: str) -> Callable:
         """
         Create a unique constraint on one type of labeled node.
 
@@ -215,11 +211,7 @@ class Entity(object):
         return executeQuery(db, query, access_mode="write")
 
     @classmethod
-    def addIndex(
-        cls, 
-        db: Driver, 
-        by: str
-    ) -> Callable:
+    def addIndex(cls, db: Driver, by: str) -> Callable:
         """
         Indexes add a unqie constraint as well as speeding up queries
         on the graph database. 
@@ -228,12 +220,7 @@ class Entity(object):
         return executeQuery(db, query, access_mode="write")
 
     @classmethod
-    def addLabel(
-        cls, 
-        db: Driver, 
-        label: str, 
-        **kwargs: dict
-    ) -> list or None:
+    def addLabel(cls, db: Driver, label: str, **kwargs: dict) -> list or None:
         """
         Apply new label to nodes of this class, or a specific node.
         """
@@ -244,11 +231,7 @@ class Entity(object):
         return executeQuery(db, query, access_mode="write")
 
     @classmethod
-    def count(
-        cls, 
-        db: Driver, 
-        **kwargs: dict
-    ) -> int:
+    def count(cls, db: Driver, **kwargs: dict) -> int:
         """
         Count occurrence of a class label or pattern in Neo4j.
         """
@@ -260,14 +243,14 @@ class Entity(object):
 
     @polymorphic
     def create(
-        self, 
+        self,
         db: Driver,
         bind: (Callable) = (),
         uuid: str = uuid4().hex,
         private: str = "_",
-        **kwargs: dict
+        **kwargs: dict,
     ) -> Any or None:
-    
+
         """
         Create a new node(s) in graph. Format object properties dictionary as list of key:"value" strings,
         automatically converting each object to string using its built-in __str__ converter.
@@ -285,12 +268,11 @@ class Entity(object):
 
         executeQuery(db, lambda tx: tx.run(f"MERGE {repr(entity)}"))
 
-
         # for fcn in bind:
         #     setattr(e, fcn.__name__, MethodType(fcn, e))
 
         # existingCapabilities: dict = {x.name: x.uuid for x in TaskingCapabilities.load(db)}
-        
+
         # boundMethods = set(y[0] for y in filter(lambda x: isinstance(x[1], Callable), e.__dict__.items()))
         # classMethods = set(filter(lambda x: x[: len(private)] != private, dir(e)))
         # instanceKeys: set = (boundMethods | classMethods) - set(e._properties())
@@ -298,11 +280,11 @@ class Entity(object):
 
         # for key in (existingKeys & instanceKeys):
         #     Link.join(
-        #         db, 
+        #         db,
         #         (e, TaskingCapabilities(id=existingCapabilities[key])),
         #         props={"label": "Has"}
         #     )
-       
+
         # for key in (instanceKeys - existingKeys):
         #     fcn = eval(f"{cls.__name__}.{key}")
         #     _ = TaskingCapabilities.create(
@@ -321,18 +303,14 @@ class Entity(object):
         #         ),
         #     )
         #     Link.join(
-        #         db, 
+        #         db,
         #         (e, TaskingCapabilities(id=existingCapabilities[key])),
         #         props={"label": "Has"}
         #     )
         return entity
 
     @polymorphic
-    def delete(
-        self, 
-        db: Driver, 
-        pattern: dict = None
-    ) -> None:
+    def delete(self, db: Driver, pattern: dict = None) -> None:
         """
         Remove all nodes from the graph, or optionally specify node-matching parameters.
 
@@ -359,7 +337,6 @@ class Entity(object):
         query = lambda tx: tx.run(f"DROP INDEX ON : {cls.__name__}({by})")
         return executeQuery(db, query, access_mode="write")
 
-    
     @classmethod
     def load(cls, db, user=None, private="_", **kwargs):
         # type: (Driver, User, str, **dict) -> [Entity]
@@ -370,19 +347,18 @@ class Entity(object):
         payload = []
         records = cls.records(db=db, user=user, **kwargs)
         for rec in records:
-            payload.append(cls(**{
-                k: v for k, v in 
-                map(processKeyValueOutbound, dict(rec[0]).items())
-            }))
+            payload.append(
+                cls(
+                    **{
+                        k: v
+                        for k, v in map(processKeyValueOutbound, dict(rec[0]).items())
+                    }
+                )
+            )
         return payload
 
     @polymorphic
-    def mutate(
-        self: Type,
-        db: Driver, 
-        data: dict, 
-        pattern: dict = None
-    ) -> None:
+    def mutate(self: Type, db: Driver, data: dict, pattern: dict = None) -> None:
         """
         Update/add node properties
         """
@@ -392,7 +368,7 @@ class Entity(object):
             raise ValueError("Pattern supplied for delete from entity instance.")
         else:
             entity = self
-        
+
         _updates = ", ".join(map(processKeyValueInbound, data.items()))
         executeQuery(
             db=db,
@@ -404,12 +380,12 @@ class Entity(object):
 
     @classmethod
     def records(
-        cls, 
-        db: Driver, 
-        user: Any = None, 
-        annotate: str = "Get", 
-        result: str = None, 
-        **kwargs: dict
+        cls,
+        db: Driver,
+        user: Any = None,
+        annotate: str = "Get",
+        result: str = None,
+        **kwargs: dict,
     ) -> (Node,):
         """
         Load database nodes as in-memory record.
@@ -430,16 +406,12 @@ class Entity(object):
                 f"RETURN {symbol}{'.{}'.format(result) if result else ''}"
             )
         )
-    
+
         result = executeQuery(db, lambda tx: tx.run(cmd).values(), access_mode="read")
         return result
 
     def serialize(
-        self, 
-        db: Driver, 
-        service: str, 
-        protocol: str = "http", 
-        select: (str) = None
+        self, db: Driver, service: str, protocol: str = "http", select: (str) = None
     ) -> dict:
         """
         Format entity as JSON compatible dictionary from either an object instance or a Neo4j <Node>
@@ -455,9 +427,7 @@ class Entity(object):
         base_url = f"{protocol}://{service}/api/"
         root_url = f"{base_url}/{cls}"
         self_url = (
-            f"{root_url}({uuid})"
-            if isinstance(uuid, int)
-            else f"{base_url}/{uuid}"
+            f"{root_url}({uuid})" if isinstance(uuid, int) else f"{base_url}/{uuid}"
         )
 
         linkedEntities = set()
@@ -475,9 +445,8 @@ class Entity(object):
             **{
                 each + "@iot.navigation": f"{self_url}/{each}"
                 for each in linkedEntities
-            }
+            },
         }
-
 
 
 @attr.s(repr=False)
@@ -487,7 +456,7 @@ class Actuators(Entity, models.Actuators):
 
 @attr.s(repr=False)
 class Assets(Entity, models.Assets):
-   pass
+    pass
 
 
 @attr.s(repr=False)
@@ -503,11 +472,10 @@ class DataStreams(Entity, models.DataStreams):
 @attr.s(repr=False)
 class FeaturesOfInterest(Entity, models.FeaturesOfInterest):
     pass
-    
+
 
 @attr.s(repr=False)
 class Locations(Entity, models.Locations):
-
     def reportWeather(self, ts, api_key, url, exclude=None):
         # type: (Locations, datetime, str, str, (str, )) -> (dict, int)
         """
@@ -533,10 +501,12 @@ class Locations(Entity, models.Locations):
 @attr.s(repr=False)
 class HistoricalLocations(Entity, models.HistoricalLocations):
     pass
-  
+
+
 @attr.s(repr=False)
 class Sensors(Entity, models.Sensors):
     pass
+
 
 @attr.s(repr=False)
 class Observations(Entity, models.Observations):
@@ -560,12 +530,11 @@ class TaskingCapabilities(Entity, models.TaskingCapabilities):
 
 @attr.s(repr=False)
 class Tasks(Entity, models.Tasks):
-   pass
+    pass
 
 
 @attr.s(repr=False)
 class Things(Entity, models.Things):
-
     @staticmethod
     def catalog(year: int, month: int = None, day: int = None):
         try:
@@ -588,4 +557,3 @@ class Things(Entity, models.Things):
 @attr.s(repr=False)
 class User(Entity, models.User):
     _symbol: str = attr.ib(default="u")
-

@@ -14,34 +14,22 @@ from os import getenv
 from subprocess import check_output
 from redis import StrictRedis
 
-from numpy import (
-    arange,
-    column_stack,
-    isnan,
-    pi, 
-    random,
-    sin,
-    where
-)
+from numpy import arange, column_stack, isnan, pi, random, sin, where
 from numpy.ma import MaskedArray
 
 from bathysphere import app
-from bathysphere.graph import (
-    connect
-)
+from bathysphere.graph import connect
 from bathysphere.datatypes import (
-    Table, 
-    CloudSQL, 
-    Query, 
-    Schema, 
-    Field, 
-    PostgresType, 
+    Table,
+    CloudSQL,
+    Query,
+    Schema,
+    Field,
+    PostgresType,
     ObjectStorage,
-    Dataset
+    Dataset,
 )
-from bathysphere.graph.models import (
-    Collections
-)
+from bathysphere.graph.models import Collections
 from bathysphere.future.utils import (
     project,
     center,
@@ -55,7 +43,6 @@ from bathysphere.future.utils import (
     nan_mask,
     arrays2points,
 )
-
 
 
 DATE = datetime(2014, 4, 12)
@@ -86,9 +73,8 @@ IndexedDB = dict()
 
 
 def stripMetadata(item):
-    return {
-        k: v for k, v in item.items() if "@" not in k
-    }
+    return {k: v for k, v in item.items() if "@" not in k}
+
 
 def dumpErrors(response):
     contents = response.content.decode()
@@ -101,9 +87,7 @@ def dumpErrors(response):
         raise AssertionError
 
 
-def getCredentials(
-    select: (str) = ()
-) -> dict:
+def getCredentials(select: (str) = ()) -> dict:
     """
     Use the command line interface to retrieve existing credentials from the
     graph database.
@@ -135,7 +119,6 @@ def dumpToXYZ():
                 fid.write(f"{a},{b},{c}\n")
 
 
-
 def pad(val, n: int = 9):
     if isinstance(val, float):
         val = str(int(val))
@@ -156,9 +139,9 @@ def filter_shapes(region, shapes, extents):
 def validate_shape(shape, proj):
 
     assert len(center(shape)) == 2
-    assert len(extent(shape[:,0], shape[:,1])) == 4
+    assert len(extent(shape[:, 0], shape[:, 1])) == 4
     assert polygon_area(shape) > 0.0
-   
+
 
 def single_index(fname, field, index):
     nc = Dataset(fname, "r")  # open NetCDF for reading
@@ -215,12 +198,8 @@ def validate_remote_dataset(storage, dataset, dtype=(MaskedArray, dict, dict)):
 
 @pytest.fixture(scope="session")
 def cache():
-    return StrictRedis(
-        host="localhost",
-        port=6379,
-        db=0,
-        socket_timeout=3
-    )
+    return StrictRedis(host="localhost", port=6379, db=0, socket_timeout=3)
+
 
 @pytest.fixture(scope="session")
 def client():
@@ -241,15 +220,13 @@ def graph():
     Connect to the test database. The connect method throws an exception if no connection
     is made. So handling here is unnecessary, since we want the bubble up.
     """
+
     def _wrapped(host: str, port: int, accessKey: str):
-        return connect(
-            host=host,
-            port=port,
-            accessKey=accessKey,
-        )
+        return connect(host=host, port=port, accessKey=accessKey,)
+
     yield _wrapped
-    
-    
+
+
 @pytest.fixture(scope="session")
 def token(client) -> Callable:
     """
@@ -269,8 +246,7 @@ def token(client) -> Callable:
         except KeyError:
             user, credential = auth
             response = client.get(
-                "api/auth", 
-                headers={"Authorization": f"{user}:{credential}"}
+                "api/auth", headers={"Authorization": f"{user}:{credential}"}
             )
             data = response.get_json()
             assert response.status_code == 200, data
@@ -292,6 +268,7 @@ def create_entity(client, token):
         data = response.get_json()
         assert response.status_code == 200, data
         return response
+
     return make_request
 
 
@@ -305,6 +282,7 @@ def mutate_entity(client, token):
             headers={"Authorization": ":" + jwtToken},
         )
         return response
+
     return make_request
 
 
@@ -313,16 +291,23 @@ def get_entity(client, token):
     def make_request(cls: str, auth: (str, str), uuid: str):
         jwtToken = token(auth).get("token")
         response = client.get(
-            f"api/{cls}({uuid})", 
-            headers={"Authorization": ":" + jwtToken}
+            f"api/{cls}({uuid})", headers={"Authorization": ":" + jwtToken}
         )
         return response
+
     return make_request
 
 
 @pytest.fixture(scope="function")
 def add_link(client, token):
-    def _make_request(root: str, root_id: str, auth: (str, str), cls: str, identity: str, **kwargs: dict):
+    def _make_request(
+        root: str,
+        root_id: str,
+        auth: (str, str),
+        cls: str,
+        identity: str,
+        **kwargs: dict,
+    ):
         jwtToken = token(auth).get("token")
         response = client.post(
             f"api/{root}({root_id})/{cls}({identity})",
@@ -330,66 +315,65 @@ def add_link(client, token):
             headers={"Authorization": ":" + jwtToken},
         )
         assert response.status_code == 204, response.get_json()
+
     return _make_request
 
 
 @pytest.fixture(scope="session")
 def cloud_sql():
     return CloudSQL(auth=(accessKey, secretKey), instance=instance)
-    
+
 
 @pytest.fixture(scope="session")
 def testTables():
     def _parse_item(data):
         return Table(
             name=data["name"],
-            schema=Schema(
-                fields=[Field(*f) for f in data["schema"]["fields"]]
-            )
+            schema=Schema(fields=[Field(*f) for f in data["schema"]["fields"]]),
         )
 
-    tables = [{
-        "name": "observations",
-        "schema": {
-            "fields": [
-                ("time", PostgresType.TimeStamp.value),
-                ("temperature", PostgresType.Numerical.value),
-                ("salinity", PostgresType.Numerical.value),
-                ("pressure", PostgresType.Numerical.value),
-            ]
-        }
-    },{
-        "name": "locations",
-        "schema": {
-            "fields": [
-                ("id", PostgresType.NullString.value),
-                ("name", PostgresType.NullString.value),
-                ("geo", PostgresType.Geography.value),
-            ]
-        }
-        
-    },{
-        "name": "messages",
-        "schema": {
-            "fields": [
-                ("text", PostgresType.NullString.value),
-            ]
-        }
-    },{
-        "name": "maine_boundaries_town_polygon",
-        "schema": {
-            "fields": [
-                ("globalid", PostgresType.NullString.value),
-                ("town", PostgresType.NullString.value),
-                ("county", PostgresType.NullString.value),
-                ("shapestare", PostgresType.Numerical.value),
-                ("geom", PostgresType.Geography.value)
-            ]
-        }
-    }]
-    
+    tables = [
+        {
+            "name": "observations",
+            "schema": {
+                "fields": [
+                    ("time", PostgresType.TimeStamp.value),
+                    ("temperature", PostgresType.Numerical.value),
+                    ("salinity", PostgresType.Numerical.value),
+                    ("pressure", PostgresType.Numerical.value),
+                ]
+            },
+        },
+        {
+            "name": "locations",
+            "schema": {
+                "fields": [
+                    ("id", PostgresType.NullString.value),
+                    ("name", PostgresType.NullString.value),
+                    ("geo", PostgresType.Geography.value),
+                ]
+            },
+        },
+        {
+            "name": "messages",
+            "schema": {"fields": [("text", PostgresType.NullString.value),]},
+        },
+        {
+            "name": "maine_boundaries_town_polygon",
+            "schema": {
+                "fields": [
+                    ("globalid", PostgresType.NullString.value),
+                    ("town", PostgresType.NullString.value),
+                    ("county", PostgresType.NullString.value),
+                    ("shapestare", PostgresType.Numerical.value),
+                    ("geom", PostgresType.Geography.value),
+                ]
+            },
+        },
+    ]
+
     return {item["name"]: _parse_item(item) for item in tables}
-        
+
 
 @pytest.fixture(scope="session")
 def object_storage():
@@ -400,13 +384,15 @@ def object_storage():
             "oceanicsdotio",
             "nyc3.digitaloceanspaces.com",
             prefix=prefix,
-            access_key=access_key, 
-            secret_key=secret_key, 
-            secure=True
+            access_key=access_key,
+            secret_key=secret_key,
+            secure=True,
         )
         assert not storage.locked
         return storage
+
     return wrappedFunction
+
 
 @pytest.fixture()
 def signal():
@@ -418,8 +404,6 @@ def signal():
         return tuple(zip(x, y))
 
     return _sig
-
-
 
 
 @pytest.fixture(scope="session")
@@ -484,4 +468,3 @@ def osi_vertex_array(osi):
     b = xyz.nbytes
     print(f"{b//1000} kb from {a//1000} kb ({int(100*b/a)}%)")
     yield xyz
-

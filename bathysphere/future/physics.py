@@ -1,14 +1,38 @@
-
 try:
     from numpy import (
-        zeros, where, maximum, minimum, sign, append, array, zeros, exp, sin, pi, cos, arccos, arcsin, tan, arctan, isnan
-    )   
+        zeros,
+        where,
+        maximum,
+        minimum,
+        sign,
+        append,
+        array,
+        zeros,
+        exp,
+        sin,
+        pi,
+        cos,
+        arccos,
+        arcsin,
+        tan,
+        arctan,
+        isnan,
+    )
 except ImportError:
     pass
 
 from pickle import dump, load
 import attr
-from bathysphere.future.chemistry import OXYGEN, CARBON, Nitrogen, NITROGEN, SILICA, PHOSPHOROUS, PHOSPHATE, SILICATE
+from bathysphere.future.chemistry import (
+    OXYGEN,
+    CARBON,
+    Nitrogen,
+    NITROGEN,
+    SILICA,
+    PHOSPHOROUS,
+    PHOSPHATE,
+    SILICATE,
+)
 
 
 POM = "POM"
@@ -25,13 +49,14 @@ DEFAULT_CONFIG = {
     RATIO_CP: 0.0,  # carbon to phosphorus ratio of cso solids
     RATIO_CN: 0.0,  # CARBON TO NITROGEN RATIO OF CSO SOLIDS
     "KAT": 1.024,  # TEMPERATURE CORRECTION COEFFICIENT FOR ATMOSPHERIC REAERATION
-    VS+BAST: 1.027,  # TEMPERATURE CORRECTION
-    VS+POM: 1.0,  # PARTICULATE ORGANIC MATTER SETTLING RATE          M/DAY
-    VS+PMT: 1.027,  # TEMPERATURE CORRECTION
-    VS+SEDT: 1.027,  # TEMPERATURE CORRECTION FOR DEPOSITION TO SEDIMENT
-    VS+PIM: 0.0,  # SETTLING RATE FOR PHOSPHOURS/SILICA SORBED TO SS     M/DAY
-    "KECONST": 0.001  # base chl corrected extinction coefficient (when KEOPT is 0 or 2)
+    VS + BAST: 1.027,  # TEMPERATURE CORRECTION
+    VS + POM: 1.0,  # PARTICULATE ORGANIC MATTER SETTLING RATE          M/DAY
+    VS + PMT: 1.027,  # TEMPERATURE CORRECTION
+    VS + SEDT: 1.027,  # TEMPERATURE CORRECTION FOR DEPOSITION TO SEDIMENT
+    VS + PIM: 0.0,  # SETTLING RATE FOR PHOSPHOURS/SILICA SORBED TO SS     M/DAY
+    "KECONST": 0.001,  # base chl corrected extinction coefficient (when KEOPT is 0 or 2)
 }
+
 
 def create_field():
     return None
@@ -46,14 +71,15 @@ class Settling:
         return self.config["VSPMT"] ** anomaly
 
     def settling(
-        self, 
-        carbon, 
-        phosphorous, 
-        silica, 
-        phytoplankton, 
-        anomaly: array, 
-        mesh=None, 
-        conversion: float = 0.001):
+        self,
+        carbon,
+        phosphorous,
+        silica,
+        phytoplankton,
+        anomaly: array,
+        mesh=None,
+        conversion: float = 0.001,
+    ):
         """
         Move particulate mass due to settling
 
@@ -66,10 +92,12 @@ class Settling:
         (each.settling(mesh, systems, self.sediment) for each in phytoplankton)
 
         base = self.settling * mesh.nodes.area
-        correction = self.config[VS+SEDT] ** anomaly
+        correction = self.config[VS + SEDT] ** anomaly
 
         phosphorous._adsorbed(base, conversion, self.sediment, (PHOSPHATE, PHOSPHATE))
-        self._particulate_organics(base, correction, systems, carbon, phosphorous, silica)
+        self._particulate_organics(
+            base, correction, systems, carbon, phosphorous, silica
+        )
 
         corr = self.config[VS + NET] * correction
         self.sediment.conversion(key, carbon._solids(**kwargs), corr)
@@ -77,13 +105,7 @@ class Settling:
         if self.sediment is not None:
             self.sediment.flux()
 
-    def _adsorbed(
-        self, 
-        base: float, 
-        phosphorous, 
-        silica, 
-        sediment=None
-    ) -> None:
+    def _adsorbed(self, base: float, phosphorous, silica, sediment=None) -> None:
         """
 
         :param base: base rate
@@ -91,12 +113,13 @@ class Settling:
         :param silica: silica system
         :param sediment: optional sediment instance
         """
-        flux = base * self.config[VS+PIM]
+        flux = base * self.config[VS + PIM]
         phosphorous.adsorbed(flux, PHOSPHATE, PHOSPHATE, sediment)
         silica.adsorbed(flux, SILICA, SILICATE, sediment)
 
-
-    def _particulate_organics(self, base, correction, systems, carbon, phosphorous, silica):
+    def _particulate_organics(
+        self, base, correction, systems, carbon, phosphorous, silica
+    ):
         """
         :param base:
         :param correction:
@@ -104,11 +127,11 @@ class Settling:
 
         :return: success
         """
-        flux = base * self.config[VS+POM]
+        flux = base * self.config[VS + POM]
         systems.deposit(base * correction, carbon.key, sediment=self.sediment)
 
-        corr = correction / self.config[VS+POM]
-        delta = flux * self.config[VS+POM]
+        corr = correction / self.config[VS + POM]
+        delta = flux * self.config[VS + POM]
 
         assert silica._sinking(delta, corr, self.sediment)
         phosphorous._sinking(delta, corr, self.sediment)
@@ -126,6 +149,7 @@ class Light:
     :param intensity: photo synthetically active radiation from source (sun or lamp) at surface
     :param base: base extinction rate
     """
+
     intensity: float = attr.ib()
     base: float = attr.ib()
 
@@ -135,7 +159,6 @@ class Light:
     saturation: array = attr.ib(default=array([0.0, 0.0]))
     latitude: float = attr.ib(default=None)
     period: float = attr.ib(default=None)
-
 
     def _par(self, time):
         """
@@ -148,21 +171,13 @@ class Light:
             raise TypeError
 
         if 1 + self.period > 2 * time > 1 - self.period:
-            delay = (1 - self.period)/2
+            delay = (1 - self.period) / 2
             x = (time - delay) / self.period
             return self.intensity * 0.5 * (1 - cos(2 * pi * x))
 
         return 0.0
 
-    def attenuate(
-        self, 
-        ts, 
-        depth, 
-        dt=None, 
-        par=PAR, 
-        biology=0.0, 
-        latitude=None
-    ):
+    def attenuate(self, ts, depth, dt=None, par=PAR, biology=0.0, latitude=None):
         """
         Calculate light field for photosynthesis
 
@@ -193,13 +208,7 @@ class Light:
         return result
 
     def update(
-        self, 
-        ts: datetime, 
-        dt=None, 
-        par=None, 
-        quanta=None, 
-        dk=None, 
-        latitude=None
+        self, ts: datetime, dt=None, par=None, quanta=None, dk=None, latitude=None
     ) -> self:
         """
         Update light state
@@ -218,14 +227,18 @@ class Light:
                 self._base += dk * dt
 
             if None not in (par, quanta):
-                self.intensity += (self.slope * dt) * quanta * par  # adjust source intensity
+                self.intensity += (
+                    (self.slope * dt) * quanta * par
+                )  # adjust source intensity
 
         if latitude is not None:
             self._latitude = latitude
 
         tt = ts.timetuple()
         time = (tt.tm_hour + (tt.tm_min + tt.tm_sec / 60) / 60) / 24
-        self._period = self._daylight(tt.tm_yday, self._latitude)  # calculate new photo-period
+        self._period = self._daylight(
+            tt.tm_yday, self._latitude
+        )  # calculate new photo-period
         self._surface = self._par(time, self._period, self._intensity)
         return self
 
@@ -240,17 +253,16 @@ class Light:
         """
         revolution = 0.2163108 + 2 * arctan(0.9671396 * tan(0.00860 * (yd - 186)))
         declination = arcsin(0.39795 * cos(revolution))
-        numerator = sin(constant * pi / 180) + sin(latitude * pi / 180) * sin(declination)
+        numerator = sin(constant * pi / 180) + sin(latitude * pi / 180) * sin(
+            declination
+        )
         denominator = cos(latitude * pi / 180) * cos(declination)
         result = 1 - arccos(numerator / denominator) / pi
 
         return 0.0 if isnan(result) else result
 
- 
-
 
 class Physics:
-    
     @staticmethod
     def _stencil(salinity, dz, ii, offset):
         stop = ii + offset
@@ -275,7 +287,7 @@ class Physics:
         _minimum = subset.min()
 
         for ii in range(layers.n - 1):  # intra-sigma layers
-            
+
             if ii != 0:  # not surface
                 temp = cls._stencil(subset, layers.dz, ii, -1)
                 _maximum = maximum(_maximum, temp)
@@ -286,10 +298,11 @@ class Physics:
                 _maximum = maximum(_maximum, temp)
                 _minimum = minimum(_minimum, temp)
 
-            flux[indices, ii] = flux[indices, ii].clip(min=_minimum, max=_maximum)  # keep within bounds
+            flux[indices, ii] = flux[indices, ii].clip(
+                min=_minimum, max=_maximum
+            )  # keep within bounds
 
         return flux
-
 
     @classmethod
     def calc_omega(cls, layers, edges, nodes, cells, uu, vv, dt, dtype=float):
@@ -305,11 +318,11 @@ class Physics:
         
         :return: free surface height change
         """
-        
+
         influx = cls._influx(nodes, cells, edges, uu, vv, dtype)
         dzdt = cells.depth - dt * influx.sum(axis=0) / cells.area  # change in elevation
         omega = cls._omega(layers, nodes, cells, dzdt, influx, dt, dtype)
-        
+
         flux = omega[:, layers.n + 1] * dt / layers.dz[0]
         anomaly = dzdt - nodes.z
 
@@ -336,16 +349,16 @@ class Physics:
             omega[:, ii + 1] = omega[:, ii] + exchange[:, ii] / cells.area + delta
 
         # if omega is not below threshold and not on boundary
-        mask = abs(omega[:, layers.n + 1]) > 1E-8 and ~cells.open
+        mask = abs(omega[:, layers.n + 1]) > 1e-8 and ~cells.open
 
         for jj in range(2, layers.n + 1):
             omega[:, jj] -= (jj - 1) / layers.n * omega[:, layers.n + 1]
-            
+
         return omega
 
     @staticmethod
     def _influx(nodes, cells, edges, uu, vv, dtype=float):
-        
+
         """
         Calculate flux of water across each edge
         
@@ -360,22 +373,26 @@ class Physics:
         """
         normal = -uu[edges.cells, :] * edges.dy[:, :, None, None]
         normal += vv[edges.cells, :] * edges.dx[:, :, None, None]
-        flux = cells.depth[edges.cells, None] * normal * nodes.depth[cells.triangles][:, :, :, :]
+        flux = (
+            cells.depth[edges.cells, None]
+            * normal
+            * nodes.depth[cells.triangles][:, :, :, :]
+        )
 
         exchange = zeros(nodes.n, dtype=dtype)
         for nodes in edges.nodes:  # flux into each element
-            exchange[nodes[0]] -= flux[:, ]
+            exchange[nodes[0]] -= flux[
+                :,
+            ]
             exchange[nodes[1]] += flux
 
         exchange[where(nodes.open), :] = 0.0  # zero flux if boundary type
-        
-        return exchange
 
+        return exchange
 
 
 @attr.s
 class Advection(object):
-
     @staticmethod
     def vertical(system, flux, layers):
         """
@@ -393,8 +410,10 @@ class Advection(object):
             dz = layers.dz[layer]  # layer depth in sigma coordinates
 
             if not layer == layers.n - 2:  # flux from layer below
-                depth = dz[layer:layer + 2].sum()
-                below = (dz[layer + 1] * system[:, layer] + dz[layer] * system[:, layer + 1]) / depth
+                depth = dz[layer : layer + 2].sum()
+                below = (
+                    dz[layer + 1] * system[:, layer] + dz[layer] * system[:, layer + 1]
+                ) / depth
                 system.mass[:, layer] -= flux[:, layer + 1] * below
 
             if not layer == 0:  # flux from layer above
@@ -403,7 +422,6 @@ class Advection(object):
                 system.mass[:, layer] += flux[:, layer] * mass
 
         return True
-
 
     @staticmethod
     def horizontal(mesh, sim, key):
@@ -429,17 +447,23 @@ class Advection(object):
         data = mesh.fields[key]
         for triangle in range(mesh.elements.n):
             for node in range(counts[triangle] - 1):
-                indices = mesh.nodes.NBSN[triangle, node:node + 2]  # neighbor nodes
+                indices = mesh.nodes.NBSN[triangle, node : node + 2]  # neighbor nodes
                 values = data[indices, :]  # concentration at neighbors
-                averages = values.sum(axis=0) * 0.5  # average of neighbors for all layers and sim
+                averages = (
+                    values.sum(axis=0) * 0.5
+                )  # average of neighbors for all layers and sim
 
                 dx = mesh.nodes.x[indices[1]] - mesh.nodes.x[indices[0]]
-                dy = mesh.nodes.y[indices[0]] - mesh.nodes.y[indices[1]]  # distance between neighbors
+                dy = (
+                    mesh.nodes.y[indices[0]] - mesh.nodes.y[indices[1]]
+                )  # distance between neighbors
 
                 pfpx[triangle] += averages * dy  # concentration flux along edge
                 pfpy[triangle] += averages * dx
 
-                delta_mean = 0.5 * (sim.mean[indices[0], :, :] - sim.mean[indices[1], :, :])
+                delta_mean = 0.5 * (
+                    sim.mean[indices[0], :, :] - sim.mean[indices[1], :, :]
+                )
                 averages -= delta_mean
 
                 pfpxd[triangle] += averages * dy
@@ -450,7 +474,9 @@ class Advection(object):
 
         for node in range(mesh.nodes.n):  # for each node-based control volume
             indices = mesh.nodes.NIEC[node, :2]  # indices of connected nodes
-            dx = mesh.edges.xc[node, 1] - mesh.nodes.x[indices]  # distances of nodes from edge center
+            dx = (
+                mesh.edges.xc[node, 1] - mesh.nodes.x[indices]
+            )  # distances of nodes from edge center
             dy = mesh.edges.yc[node, 2] - mesh.nodes.y[indices]
 
             viscosity = mesh.fields["viscosity"][indices, :].mean(axis=0)
@@ -480,7 +506,9 @@ class Advection(object):
 
 class Diffusion:
     @classmethod
-    def vertical(cls, layers, depth, open, concentration, turbulence, dt, molecular=1E-4):
+    def vertical(
+        cls, layers, depth, open, concentration, turbulence, dt, molecular=1e-4
+    ):
         """
         Calculate vertical diffusivity for tracer dispersal
 
@@ -499,7 +527,9 @@ class Diffusion:
         rate = turbulence + molecular
         gradient = dt * layers.gradient() * depth[None, :]
         f, p = cls._fluxes(layers, depth, concentration, gradient, rate)
-        return cls._diffuse(layers, depth, concentration, ~open, gradient*rate, f, p, dt)
+        return cls._diffuse(
+            layers, depth, concentration, ~open, gradient * rate, f, p, dt
+        )
 
     @staticmethod
     def _fluxes(layers, depth, concentration, gradient, rate):
@@ -521,10 +551,10 @@ class Diffusion:
         for layer in range(1, layers.nz - 1):
 
             a, b = b, base[:, layer]
-            flux = (a + b * (1 - (b/(b-1))) - 1) * rate  # maybe error here?
+            flux = (a + b * (1 - (b / (b - 1))) - 1) * rate  # maybe error here?
 
             f[:, layer] = a / flux
-            p[:, layer] = (b * p[:, layer-1] - concentration[:, layer]) / flux
+            p[:, layer] = (b * p[:, layer - 1] - concentration[:, layer]) / flux
 
         return f, p
 
@@ -549,14 +579,20 @@ class Diffusion:
             if layer == layers.n:  # bottom layer
                 grad = gradient[mask, layer]
                 delta = grad * p[mask, layer - 1] - concentration[mask, layer]
-                data = delta * (1 - dt / depth[mask] * layers.dz[layer] / (grad * (1 - f[mask, layer - 1]) - 1))
+                data = delta * (
+                    1
+                    - dt
+                    / depth[mask]
+                    * layers.dz[layer]
+                    / (grad * (1 - f[mask, layer - 1]) - 1)
+                )
 
             else:  # subsurface layers
                 data *= f[mask, layer]
                 data += p[mask, layer]
 
             result[mask, layer] = data
-    
+
         return result
 
     @staticmethod
@@ -564,7 +600,7 @@ class Diffusion:
         """
         Generate list of keys to hash
         """
-        return [i+j for j in "xy" for i in "uv"]
+        return [i + j for j in "xy" for i in "uv"]
 
     @classmethod
     def _dict(cls, nodes, layers, dtype):
@@ -577,10 +613,14 @@ class Diffusion:
 
         :return: dictionary
         """
-        return {each: zeros((4, nodes.n, layers.n), dtype=dtype) for each in cls._keys()}
+        return {
+            each: zeros((4, nodes.n, layers.n), dtype=dtype) for each in cls._keys()
+        }
 
     @classmethod
-    def horizontal(cls, elements, nodes, layers, edges, uu, vv, indices=None, dtype=float):
+    def horizontal(
+        cls, elements, nodes, layers, edges, uu, vv, indices=None, dtype=float
+    ):
         """
         Calculate the Advection and Horizontal Diffusion Terms
         
@@ -599,7 +639,7 @@ class Diffusion:
             for pid in nodes.parents[node, :]:  # for each parent triangle
 
                 u, v = uu[pid, :], vv[pid, :]
-                [aa, bb], = where(edges.nodes[pid, :, :].any(axis=1) != node)
+                ([aa, bb],) = where(edges.nodes[pid, :, :].any(axis=1) != node)
 
                 a, dx, dy = cls._single_parent(edges, pid, aa, bb)
                 p[key][node, :] = cls._delta(u, v, dx, dy, precision=float, shape=shape)
@@ -626,7 +666,9 @@ class Diffusion:
         dy = x - a["y"] if pid is 1 else a["y"] - y
         dx = a["x"] - x if pid is 1 else x - a["x"]
 
-        return cls._delta(u[pid, :], v[pid, :], dx, dy, precision=precision, shape=shape)
+        return cls._delta(
+            u[pid, :], v[pid, :], dx, dy, precision=precision, shape=shape
+        )
 
     @classmethod
     def _delta(cls, u, v, dx, dy, precision=float, shape=None):

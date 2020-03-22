@@ -31,18 +31,17 @@ except ImportError as _:
     warn(Warning("Numerical libraries unavailable. Avoid big queries."))
 
 log = getLogger(__name__)
-try:  
+try:
     client = secretmanager.SecretManagerServiceClient()
 except DefaultCredentialsError as ex:
     warn("Could not locate cloud provider credentials. Assets are temporary.")
 
 
-def loadAppConfig(
-    sources: (str) = ("bathysphere.yml", "kubernetes.yml")
-) -> dict:
+def loadAppConfig(sources: (str) = ("bathysphere.yml", "kubernetes.yml")) -> dict:
     """
     Load known entities and services at initialization.
     """
+
     def renderConfig(x: str):
         with open(Path(f"config/{x}"), "r") as fid:
             items = fid.read().split("---")
@@ -52,11 +51,10 @@ def loadAppConfig(
 
         if not isinstance(a, dict):
             raise ValueError(
-                "Expected dictionary values. "
-                "Type is instead {}.".format(type(a))
+                "Expected dictionary values. " "Type is instead {}.".format(type(a))
             )
 
-        if b is not None:    
+        if b is not None:
             key = b.pop("kind")
             if key not in a.keys():
                 a[key] = [b]
@@ -66,7 +64,6 @@ def loadAppConfig(
 
     items = reduce(operator.add, map(renderConfig, sources), [])
     return reduce(reverseDictionary, items, {})
-    
 
 
 def googleCloudSecret(secret_name="my-secret"):
@@ -77,29 +74,26 @@ def googleCloudSecret(secret_name="my-secret"):
         response = client.access_secret_version(resource_name)
     except NameError as _:
         return None
-    return response.payload.data.decode('UTF-8')
+    return response.payload.data.decode("UTF-8")
 
 
 def generateStream(columns, records):
     try:
         prev = next(records)  # get first result
     except:
-        yield '[]'
+        yield "[]"
         raise StopIteration
-    yield '['
+    yield "["
     # Iterate over the releases
     for r in records:
-        yield dumps(dict(zip(columns, r))) + ', '
+        yield dumps(dict(zip(columns, r))) + ", "
         prev = r
     # Now yield the last iteration without comma but with the closing brackets
-    yield dumps(dict(zip(columns, prev))) + ']'
+    yield dumps(dict(zip(columns, prev))) + "]"
 
 
 def avhrr_index(
-    host: str, 
-    start: datetime = None, 
-    end: datetime = None, 
-    fmt: str = "%Y%m%d%H%M%S"
+    host: str, start: datetime = None, end: datetime = None, fmt: str = "%Y%m%d%H%M%S"
 ) -> [[dict]]:
     # type: (str, datetime, datetime, str) -> [list]
     """
@@ -113,9 +107,9 @@ def avhrr_index(
     """
     result = []
     for year in arange(start.year, end.year + 1):
-        names = read_html(
-            f"{host}/pathfinder/Version5.3/L3C/{year}/data/", skiprows=3
-        )[0][1][:-1]
+        names = read_html(f"{host}/pathfinder/Version5.3/L3C/{year}/data/", skiprows=3)[
+            0
+        ][1][:-1]
         dates = [
             datetime.strptime(item[:14], fmt) for item in names
         ]  # date from filename
@@ -123,7 +117,7 @@ def avhrr_index(
         if year in (start.year, end.year):
             data = array(dates)
             mask = (start < data) & (end + timedelta(days=1) > data)
-            indices, = where(mask)
+            (indices,) = where(mask)
             files = [{"name": names[ii], "ts": data[ii]} for ii in indices]
         else:
             files = [{"name": name, "ts": date} for name, date in zip(names, dates)]
@@ -158,10 +152,13 @@ def resolveTaskTree(t) -> tuple:
 
     i, inner = synchronous(t)
     if inner is None:
-        return i,
+        return (i,)
     yields = ()
     while len(inner):
-        yields += tuple([i, *((j,) if type(j) == int else tuple(j))] for j in resolveTaskTree(inner.pop()))
+        yields += tuple(
+            [i, *((j,) if type(j) == int else tuple(j))]
+            for j in resolveTaskTree(inner.pop())
+        )
     return yields
 
 
@@ -180,7 +177,7 @@ def interp1d(coefficient, aa, bb):
     """
     Simple linear interpolation in one dimension
     """
-    return (1.0-coefficient)*aa + coefficient*bb
+    return (1.0 - coefficient) * aa + coefficient * bb
 
 
 def response(status, payload):
@@ -208,8 +205,7 @@ def parsePostgresValueOut(v: Any) -> Any:
 
 
 def join(x: str) -> str:
-        return ", ".join(x)
-
+    return ", ".join(x)
 
 
 def report_buoy_data(request):
@@ -228,11 +224,17 @@ def report_buoy_data(request):
     node = body.get("id", None)
     fields = body.get("observedProperties", None)
 
-    if not any((limit, *interval)) or not any((fields, node)) or encoding not in ("txt", "json"):
+    if (
+        not any((limit, *interval))
+        or not any((fields, node))
+        or encoding not in ("txt", "json")
+    ):
         return dumps({"Error": "Bad Request"}), 400
 
     host = getenv("hostname", "maine.loboviz.com")
-    times = f"&newest={limit}" if limit else "&min_date={}&max_date={}".format(*interval)
+    times = (
+        f"&newest={limit}" if limit else "&min_date={}&max_date={}".format(*interval)
+    )
     url = f"http://{host}/cgi-data/nph-data.cgi?data_format=text&node={node}&y={','.join(fields)}{times}"
     response = get(url)
     content = response.content.decode()
@@ -246,11 +248,13 @@ def report_buoy_data(request):
     name, alias = lines.popleft().split("-")
     data = {
         "name": name,
-        "aliases": list(set(map(str.strip, (alias, lines.popleft()))))
+        "aliases": list(set(map(str.strip, (alias, lines.popleft())))),
     }
     lines = deque(map(lambda x: tuple(x.split("\t")), lines))
     keys = lines.popleft()
-    return dumps({
-        **data,
-        "values": [dict(zip(k, v)) for k, v in zip(repeat(keys), lines)]
-    }), 200
+    return (
+        dumps(
+            {**data, "values": [dict(zip(k, v)) for k, v in zip(repeat(keys), lines)]}
+        ),
+        200,
+    )

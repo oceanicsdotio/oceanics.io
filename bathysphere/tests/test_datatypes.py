@@ -27,19 +27,24 @@ def test_datatypes_tree_trie():
     for word in dictionary:
         trie.insert(word)
 
-
     start = time.time()
     matches = Trie.search(dictionary, test_case, mutations)
     for result in matches:
         print(result)
 
-    simple_search = (time.time() - start)
+    simple_search = time.time() - start
     start = time.time()
 
-    matches = tuple(chain(*chain(
-        Trie.searchRecursive(node, symbol, test_case, tuple(range(len(test_case) + 1)), mutations)
-        for symbol, node in trie.children.items()
-    )))
+    matches = tuple(
+        chain(
+            *chain(
+                Trie.searchRecursive(
+                    node, symbol, test_case, tuple(range(len(test_case) + 1)), mutations
+                )
+                for symbol, node in trie.children.items()
+            )
+        )
+    )
 
     for result in matches:
         print(result)
@@ -47,22 +52,23 @@ def test_datatypes_tree_trie():
 
     assert simple_search > trie_search
 
-    print(f"""
+    print(
+        f"""
         Simple search: {int(simple_search*1000)/1000} s
         Trie search: {int(trie_search*1000)/1000} s
         Speedup: {int(simple_search/trie_search)}x
-    """)
+    """
+    )
 
 
 def test_datatypes_short_clock():
-   
-    clock = Clock(start=0, dt=60*10)
+
+    clock = Clock(start=0, dt=60 * 10)
 
     elapsed = []
     time = []
 
-    for _ in range(6*24*3):
+    for _ in range(6 * 24 * 3):
         clock.tick()
         elapsed.append(clock.elapsed)
         time.append(clock.time)
-

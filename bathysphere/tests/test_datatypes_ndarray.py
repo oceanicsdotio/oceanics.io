@@ -8,7 +8,19 @@ from itertools import chain, repeat
 from functools import reduce
 from collections import deque
 
-from numpy import random, argmax, argmin, arange, array, vstack, pi, all, any, where, array_split
+from numpy import (
+    random,
+    argmax,
+    argmin,
+    arange,
+    array,
+    vstack,
+    pi,
+    all,
+    any,
+    where,
+    array_split,
+)
 from numpy.random import random
 from numpy.ma import MaskedArray
 from matplotlib import pyplot as plt
@@ -36,7 +48,11 @@ from bathysphere.future.utils import (
     subset,
     Array,
     ExtentType,
-    State, RADIANS, DEGREES, polygon_area, center,
+    State,
+    RADIANS,
+    DEGREES,
+    polygon_area,
+    center,
     rectangle,
     square,
     regular_polygon,
@@ -64,8 +80,10 @@ from bathysphere.future.utils import (
 OSI_OBJ = "bivalve-suitability"
 NBYTES = 100
 
+
 def filter_iteration():
     pass
+
 
 def _filter(shapes):
     """
@@ -85,6 +103,7 @@ def _filter(shapes):
         "shapes": shp,
         "records": rec,
     }
+
 
 def polygon_crop_and_save(xyz, shapes, filename, method=multi_polygon_crop):
     print(f"Culling...", flush=True)
@@ -110,8 +129,6 @@ def filter_iteration(vertex_array, shapes, extents, records=None):
     reduced_ext = reduce(reduce_extent, e)
     cropped = extent_crop(reduced_ext, vertex_array)
     return cropped, f, e, r
-
-
 
 
 def test_datatypes_ndarray_convex_hull():
@@ -145,7 +162,7 @@ def test_datatypes_ndarray_memory_buffer_error_allocation():
     Raises memory error if requested buffer too long
     """
     try:
-        _ = Memory(size=NBYTES+1, max_size=NBYTES)
+        _ = Memory(size=NBYTES + 1, max_size=NBYTES)
     except MemoryError:
         assert True
     else:
@@ -232,7 +249,6 @@ def test_datatypes_ndarray_netcdf_dataset_remote_nodc_connection(avhrr):
     scan(avhrr, attribute="variables", verb=True)
 
 
-
 @pytest.mark.network
 def test_datatypes_ndarray_netcdf_dataset_dataset_accessible(object_storage):
     """
@@ -243,20 +259,18 @@ def test_datatypes_ndarray_netcdf_dataset_dataset_accessible(object_storage):
 
 
 @pytest.mark.network
-def test_datatypes_ndarray_osi_dataset_load_clipping_shapes_towns_partition(object_storage):
+def test_datatypes_ndarray_osi_dataset_load_clipping_shapes_towns_partition(
+    object_storage,
+):
     """Try classifying the point cloud with shapes"""
 
     maine_towns = ()  # TODO: make fixture
     db = object_storage(prefix=None)
     data = _filter(maine_towns)
     f, e = extent_overlap_filter(data["extents"][0], data["shapes"], data["extents"])
-    db.octet_stream(
-        data=e, extent="None", dataset=OSI_OBJ, key="test-extents"
-    )
+    db.octet_stream(data=e, extent="None", dataset=OSI_OBJ, key="test-extents")
     e += reduce(reduce_extent, e)
-    db.octet_stream(
-        data=f, extent="None", dataset=OSI_OBJ, key="test-shapes"
-    )
+    db.octet_stream(data=f, extent="None", dataset=OSI_OBJ, key="test-shapes")
 
 
 @pytest.mark.network
@@ -276,7 +290,12 @@ def test_datatypes_ndarray_netcdf_dataset_analysis_extent_culling(
     data = _filter(maine_towns)
 
     xyz, f, e, r = filter_iteration(
-        osi_vertex_array, data["shapes"], data["extents"], data["records"], 0, storage=object_storage
+        osi_vertex_array,
+        data["shapes"],
+        data["extents"],
+        data["records"],
+        0,
+        storage=object_storage,
     )
 
     if object_storage:
@@ -309,9 +328,6 @@ def test_datatypes_ndarray_netcdf_dataset_analysis_extent_culling(
     pickle(chunks, fid)
 
 
-
-
-
 @pytest.mark.network
 def test_datatypes_ndarray_netcdf_dataset_analysis_convex_hulls_upload(object_storage):
     """Create convex hulls from shapes"""
@@ -319,14 +335,10 @@ def test_datatypes_ndarray_netcdf_dataset_analysis_convex_hulls_upload(object_st
     hulls = []
     db = object_storage(prefix=None)
     while db.stat_object(f"{OSI_OBJ}/shapes-water-{part}"):
-        for s in unpickle(
-            db.get_object(f"{OSI_OBJ}/shapes-water-{part}").data
-        ):
+        for s in unpickle(db.get_object(f"{OSI_OBJ}/shapes-water-{part}").data):
             hulls.append(convex_hull(s.data))
         part += 1
-    db.octet_stream(
-        data=hulls, extent="None", dataset=OSI_OBJ, key=f"convex-hulls"
-    )
+    db.octet_stream(data=hulls, extent="None", dataset=OSI_OBJ, key=f"convex-hulls")
 
 
 def test_datatypes_ndarray_netcdf_dataset_analysis_convex_hulls_culling(object_storage):
@@ -362,7 +374,9 @@ def test_datatypes_ndarray_netcdf_dataset_analysis_convex_hulls_culling(object_s
 
 
 @pytest.mark.network
-def test_datatypes_ndarray_netcdf_dataset_analysis_upload_vertex_array_hulls(object_storage):
+def test_datatypes_ndarray_netcdf_dataset_analysis_upload_vertex_array_hulls(
+    object_storage,
+):
     """Upload points cropped to first/outer convex hull"""
     fid = open("data/vertex-array-hulls", "rb")
     db = object_storage(prefix=None)
@@ -380,9 +394,13 @@ def test_datatypes_ndarray_netcdf_dataset_analysis_upload_vertex_array_hulls(obj
 
 @pytest.mark.xfail
 @pytest.mark.network
-def test_datatypes_ndarray_netcdf_dataset_analysis_convex_hull_intersections(object_storage):
+def test_datatypes_ndarray_netcdf_dataset_analysis_convex_hull_intersections(
+    object_storage,
+):
     """Intersect convex hulls with points and bathysphere_functions_cache to local system"""
-    hulls = unpickle(object_storage(prefix=None).get_object(f"{OSI_OBJ}/convex-hulls-2").data)
+    hulls = unpickle(
+        object_storage(prefix=None).get_object(f"{OSI_OBJ}/convex-hulls-2").data
+    )
     with open("data/vertex-array-hulls", "rb") as fid:
         xyz = vstack(load(fid))
     polygon_crop_and_save(xyz, hulls, "vertex-array-hulls-2")
@@ -390,11 +408,15 @@ def test_datatypes_ndarray_netcdf_dataset_analysis_convex_hull_intersections(obj
 
 @pytest.mark.network
 @pytest.mark.xfail
-def test_datatypes_ndarray_netcdf_dataset_analysis_upload_vertex_array_shapes(object_storage):
+def test_datatypes_ndarray_netcdf_dataset_analysis_upload_vertex_array_shapes(
+    object_storage,
+):
     """Send set of intersected points and hulls to object storage"""
     with open("data/vertex-array-hulls-2", "rb") as fid:
         chunks = deque(load(fid))
-    object_storage(prefix=None).vertex_array_buffer(chunks, OSI_OBJ, "vertex-array-shapes")
+    object_storage(prefix=None).vertex_array_buffer(
+        chunks, OSI_OBJ, "vertex-array-shapes"
+    )
 
 
 @pytest.mark.xfail
@@ -406,9 +428,7 @@ def test_datatypes_ndarray_netcdf_dataset_analysis_shape_intersections(object_st
     shapes = ()
     db = object_storage(prefix=None)
     while db.stat_object(f"{OSI_OBJ}/shapes-water-{part}"):
-        shapes += unpickle(
-            db.get_object(f"{OSI_OBJ}/shapes-water-{part}").data
-        )
+        shapes += unpickle(db.get_object(f"{OSI_OBJ}/shapes-water-{part}").data)
         part += 1
 
     with open("data/vertex-array-hulls-2", "rb") as fid:
@@ -419,7 +439,9 @@ def test_datatypes_ndarray_netcdf_dataset_analysis_shape_intersections(object_st
 
 @pytest.mark.xfail
 @pytest.mark.network
-def test_datatypes_ndarray_netcdf_dataset_analysis_upload_vertex_array_final(object_storage):
+def test_datatypes_ndarray_netcdf_dataset_analysis_upload_vertex_array_final(
+    object_storage,
+):
     """Upload vertices that are inside the shapes"""
     with open("data/vertex-array-shapes", "rb") as fid:
         data = deque((vstack(filter(filter_arrays, chain(*load(fid)))),))
@@ -439,7 +461,9 @@ def test_datatypes_ndarray_netcdf_dataset_analysis_subtract_closures():
 
 @pytest.mark.xfail
 @pytest.mark.network
-def test_datatypes_ndarray_netcdf_dataset_analysis_upload_vertex_array_closures(object_storage):
+def test_datatypes_ndarray_netcdf_dataset_analysis_upload_vertex_array_closures(
+    object_storage,
+):
     """Upload vertices that are inside the shapes"""
     key = "data/vertex-array-closures"
     with open(key, "rb") as fid:
@@ -449,7 +473,9 @@ def test_datatypes_ndarray_netcdf_dataset_analysis_upload_vertex_array_closures(
 
 @pytest.mark.xfail
 @pytest.mark.network
-def test_datatypes_ndarray_netcdf_dataset_analysis_island_hole_culling_local(object_storage):
+def test_datatypes_ndarray_netcdf_dataset_analysis_island_hole_culling_local(
+    object_storage,
+):
     """
     Given a set of closed polygons, where some may be holes within others of the set,
     extract all the inner polygons (those which do not contain others)
@@ -487,13 +513,15 @@ def test_datatypes_ndarray_netcdf_dataset_analysis_island_hole_culling_local(obj
 
 @pytest.mark.xfail
 @pytest.mark.network
-def test_datatypes_ndarray_netcdf_dataset_analysis_island_hole_culling_upload(object_storage):
+def test_datatypes_ndarray_netcdf_dataset_analysis_island_hole_culling_upload(
+    object_storage,
+):
     key = "vertex-array-islands"
     with open(key, "rb") as fid:
         data = (vstack(filter(filter_arrays, chain(*load(fid)))),)
-    object_storage(prefix=None).vertex_array_buffer(data, OSI_OBJ, key, strategy="bisect")
-
-
+    object_storage(prefix=None).vertex_array_buffer(
+        data, OSI_OBJ, key, strategy="bisect"
+    )
 
 
 def test_datatypes_ndarray_angle_unit_conversions():
@@ -589,6 +617,7 @@ def test_datatypes_ndarray_shapes_create_add_normals():
 def test_datatypes_ndarray_shapes_extrude():
     vertex_array, _ = extrude(square(1.0))
     assert isinstance(vertex_array.shape, tuple)
+
 
 def test_datatypes_ndarray_shapes_adjacency():
     adj = adjacency(*tetrahedron())

@@ -9,7 +9,7 @@ DEFAULT_CONFIG = {
     "CSISAT": 40000.0,
     "KSI": 0.5,
     "THTASI": 1.1,
-    "KMPSI": 0.5E8,
+    "KMPSI": 0.5e8,
     "O2CRITSI": 2.0,
     "JSIDETR": 50.0,
     "DD0": 0.001,
@@ -38,4 +38,5 @@ DEFAULT_CONFIG = {
     "KAPPCH4": 0.2,
     "THTACH4": 1.08,
     "KMCH4O2": 0.1,
-    "KMSO4": 0.1}
+    "KMSO4": 0.1,
+}

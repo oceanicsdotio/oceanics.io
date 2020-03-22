@@ -5,13 +5,17 @@ from ..chemistry.nutrient.p import PHOSPHOROUS, PHOSPHATE
 
 
 class Anaerobic(Sediment):
-    def __init__(self, shape=(1,1)):
+    def __init__(self, shape=(1, 1)):
         Sediment.__init__(self, shape)
 
-        self.solids = zeros(shape, dtype=float)  # suspended solids carbon in anaerobic layer
+        self.solids = zeros(
+            shape, dtype=float
+        )  # suspended solids carbon in anaerobic layer
 
     def _an_aero(self, flux, scales):
-        anaerobic = flux[PHOSPHOROUS] + scales * deposition[PHOSPHATE + SORBED]  # deposition of adsorbed phosphate
+        anaerobic = (
+            flux[PHOSPHOROUS] + scales * deposition[PHOSPHATE + SORBED]
+        )  # deposition of adsorbed phosphate
         return self.partition[PHOSPHATE + "N"]
 
     def sulfur_methane_fluxes(self, salinity, anomaly, oxygen, marine, nitrate):
@@ -29,19 +33,23 @@ class Anaerobic(Sediment):
         :return:
         """
         conversion = 10 / 8 * 32 / 14 * 1 / 1000
-        aerobic = conversion * self["NO3"].rate ** 2 / self.transfer * nitrate  # aerobic
-        anaerobic = conversion * self["K2NO3"].rate * self["K2NO3"].concentration  # anaerobic
+        aerobic = (
+            conversion * self["NO3"].rate ** 2 / self.transfer * nitrate
+        )  # aerobic
+        anaerobic = (
+            conversion * self["K2NO3"].rate * self["K2NO3"].concentration
+        )  # anaerobic
 
-        equiv = 2.666666666E-3 * self[CA].flux  # Carbon diagenesis as oxygen equivalents units and decrement CO2
+        equiv = (
+            2.666666666e-3 * self[CA].flux
+        )  # Carbon diagenesis as oxygen equivalents units and decrement CO2
         equiv = (equiv - aerobic - anaerobic).clip(min=0.0)
-
 
         indices = where(salinity > marine)
 
         assert self.marine() if salinity > marine else self.fresh()
 
         return Cdemand + self["O2NH4"].flux - demand1  # oxygen demand
-
 
     def _demand(self, transfer, transport, turbation):
 
@@ -63,11 +71,18 @@ class Anaerobic(Sediment):
         J2 = XJC1
         partition = partition["S"]
 
-        self["S"].flux = self["S"].diffusion(HS, HS2AV, HST, HST2AV, HS1TM1, HST1TM1, HST2TM1, 1)
+        self["S"].flux = self["S"].diffusion(
+            HS, HS2AV, HST, HST2AV, HS1TM1, HST1TM1, HST2TM1, 1
+        )
         self["HS"].flux = self.transfer * HS[0]
-        Cdemand = (dissolved_rate ** 2 / self.transfer * dissolved[0] + particulate_rate ** 2 / self.transfer *
-                   particulate[0]) * (
-                          oxygen / KMHSO2) * HST1
+        Cdemand = (
+            (
+                dissolved_rate ** 2 / self.transfer * dissolved[0]
+                + particulate_rate ** 2 / self.transfer * particulate[0]
+            )
+            * (oxygen / KMHSO2)
+            * HST1
+        )
 
         return True
 
@@ -84,13 +99,15 @@ class Anaerobic(Sediment):
         :return:
         """
 
-        saturation = 99.0 * (1 + 0.1 * (depth + self.depth)) * 0.9759 ** (anomaly - 20)  # methane saturation
-        CdemandMX = (2. * self.transport * saturation * equiv) ** 0.5
+        saturation = (
+            99.0 * (1 + 0.1 * (depth + self.depth)) * 0.9759 ** (anomaly - 20)
+        )  # methane saturation
+        CdemandMX = (2.0 * self.transport * saturation * equiv) ** 0.5
         quotient = self[METHANE].rate / self.transfer
         if CdemandMX > equiv:
             CdemandMX = equiv
         if quotient < 80:
-            SECHXC = 2. / (exp(quotient) + exp(-quotient))
+            SECHXC = 2.0 / (exp(quotient) + exp(-quotient))
         else:
             SECHXC = 0.0
 

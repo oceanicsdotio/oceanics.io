@@ -9,6 +9,7 @@ from bathysphere.image import Spatial, Time
 from bathysphere.future.utils import depth, geom_shader, lin_transform
 from bathysphere.tests.conftest import dumpErrors
 
+
 def shape_preview(object_storage, spatial, config_no_app):
     def _method(dataset, **kwargs):
         object_storage.restore(
@@ -16,16 +17,13 @@ def shape_preview(object_storage, spatial, config_no_app):
             fcn=spatial.shape,
             key="index.json",
             sequential=False,
-            **kwargs
+            **kwargs,
         )
         object_storage.upload_image(
-            f"{dataset}/preview.png",
-            spatial.push(),
-            config_no_app["headers"]
+            f"{dataset}/preview.png", spatial.push(), config_no_app["headers"]
         )
+
     return _method
-
-
 
 
 def test_function_image_spatial_random_points():
@@ -39,8 +37,8 @@ def test_function_image_spatial_random_points():
             "view": "spatial",
             "objectName": "test_function_image_spatial_random_points",
             "data": {"points": points},
-            "style": {"base": "light", "alpha": 0.5, "marker": 5}
-        }
+            "style": {"base": "light", "alpha": 0.5, "marker": 5},
+        },
     )
     dumpErrors(response)
 
@@ -56,14 +54,16 @@ def test_function_image_spatial_random_triangles():
             "view": "spatial",
             "objectName": "test_function_image_spatial_random_triangles",
             "data": {"polygons": tri},
-            "style": {"base": "light", "alpha": 0.5}
-        }
+            "style": {"base": "light", "alpha": 0.5},
+        },
     )
     dumpErrors(response)
 
 
 @pytest.mark.spatial
-def test_render_random_points_and_extent_culling(config_no_app, spatial, object_storage):
+def test_render_random_points_and_extent_culling(
+    config_no_app, spatial, object_storage
+):
     """
     Should be front facing (CCW per OpenGL)
 
@@ -82,7 +82,7 @@ def test_render_random_points_and_extent_culling(config_no_app, spatial, object_
     spatial.points(pxy, color="black", alpha=0.1)
     spatial.bbox(extent, edgecolor="black", facecolor="none", alpha=0.5)
 
-    for each in ["blue"]*6:
+    for each in ["blue"] * 6:
         e1 = list(lin_transform(random.uniform(size=2), *extent[:2]))
         e2 = list(lin_transform(random.uniform(size=2), *extent[2:4]))
         ext = array(e1 + e2)
@@ -91,7 +91,9 @@ def test_render_random_points_and_extent_culling(config_no_app, spatial, object_
         spatial.shape(shp, edgecolor=each, facecolor="none", alpha=0.5)
 
     object_storage.upload_image(
-        "test-render-random-points-and-extent-culling.png", spatial.push(transparent=False), config_no_app
+        "test-render-random-points-and-extent-culling.png",
+        spatial.push(transparent=False),
+        config_no_app,
     )
 
 
@@ -108,12 +110,13 @@ def test_render_osi_water_shapes(object_storage, config_no_app):
         fcn=view.shape,
         edgecolor="blue",
         facecolor="none",
-        alpha=0.5
+        alpha=0.5,
     )
 
     object_storage.upload_image(
         f"{dataset}/test-render-shapes-water.png",
-        view.push(transparent=True), config_no_app,
+        view.push(transparent=True),
+        config_no_app,
     )
 
 
@@ -128,32 +131,37 @@ def test_render_osi_points_and_shape_extents(object_storage, config_no_app):
 
     dataset = "bivalve-suitability"
     view = Spatial(style=config_no_app["styles"]["light"])
-    objects = ({
-        "key": "shapes-water",
-        "sequential": True,
-        "fcn": view.shape,
-        "edgecolor": "blue",
-        "facecolor": "none",
-        "alpha": 0.5,
-    }, {
-        "key": "extents-iter-1",
-        "fcn": view.bbox,
-        "edgecolor": "red",
-        "facecolor": "none",
-        "alpha": 0.25,
-    }, {
-        "key": "convex-hulls-2",
-        "fcn": view.shape,
-        "edgecolor": "green",
-        "facecolor": "none",
-        "alpha": 0.25,
-    }, {
-        "key": "vertex-array-closures",
-        "sequential": True,
-        "fcn": view.points,
-        "alpha": 0.02,
-        "m": 0.05
-    })
+    objects = (
+        {
+            "key": "shapes-water",
+            "sequential": True,
+            "fcn": view.shape,
+            "edgecolor": "blue",
+            "facecolor": "none",
+            "alpha": 0.5,
+        },
+        {
+            "key": "extents-iter-1",
+            "fcn": view.bbox,
+            "edgecolor": "red",
+            "facecolor": "none",
+            "alpha": 0.25,
+        },
+        {
+            "key": "convex-hulls-2",
+            "fcn": view.shape,
+            "edgecolor": "green",
+            "facecolor": "none",
+            "alpha": 0.25,
+        },
+        {
+            "key": "vertex-array-closures",
+            "sequential": True,
+            "fcn": view.points,
+            "alpha": 0.02,
+            "m": 0.05,
+        },
+    )
 
     for each in objects:
         object_storage.restore(dataset=dataset, **each)
@@ -162,7 +170,7 @@ def test_render_osi_points_and_shape_extents(object_storage, config_no_app):
     object_storage.upload(
         "bivalve-suitability/test-render-shape-culling-extents.png",
         buffer,
-        config_no_app
+        config_no_app,
     )
 
 
@@ -196,7 +204,7 @@ def test_render_osi_final(object_storage, config_no_app):
     object_storage.upload_image(
         f"{dataset}/test-render-osi-final.png",
         view.push(transparent=True),
-        config_no_app
+        config_no_app,
     )
 
 
@@ -279,10 +287,8 @@ def test_render_pixel_histogram(object_storage, config_no_app):
             ylab="area (billions of oysters)",
             rescale=(pix_bi_oyster,),
         ),
-        config_no_app
+        config_no_app,
     )
-
-
 
 
 def test_function_image_time_series_scatter_plot():
@@ -301,8 +307,8 @@ def test_function_image_time_series_scatter_plot():
             "extent": [0, n, 0, maximum],
             "data": {"series": [[time, series]]},
             "style": {"base": "light", "alpha": 0.5, "marker": 5},
-            "args": {"unwind": False, "labels": ["a"]}
-        }
+            "args": {"unwind": False, "labels": ["a"]},
+        },
     )
     dumpErrors(response)
 
@@ -317,8 +323,8 @@ def test_function_image_time_frequency_random():
             "view": "frequency",
             "objectName": "test_function_image_time_frequency_random",
             "data": {"value": (random(100) * 10).tolist()},
-            "style": {"base": "light", "alpha": 0.5, "marker": 5}
-        }
+            "style": {"base": "light", "alpha": 0.5, "marker": 5},
+        },
     )
     dumpErrors(response)
 
@@ -334,8 +340,8 @@ def test_function_image_time_coverage_random():
             "view": "coverage",
             "objectName": "test_function_image_time_coverage_random",
             "data": {"time": (random(1000) * 365).tolist()},
-            "style": {"base": "light", "alpha": 0.5, "marker": 5}
-        }
+            "style": {"base": "light", "alpha": 0.5, "marker": 5},
+        },
     )
     dumpErrors(response)
 
@@ -350,19 +356,13 @@ def test_function_image_time_series_by_object_key(client):
         json={
             "view": "series",
             "objectName": "test_function_image_time_series_by_object_key",
-            "data": {
-                "objectKey": "896dbc7c09cb47b48cbcb15b5c5361c8"
-            },
-            "style": {
-                "base": "light",
-                "alpha": 0.5,
-                "marker": 5
-            },
+            "data": {"objectKey": "896dbc7c09cb47b48cbcb15b5c5361c8"},
+            "style": {"base": "light", "alpha": 0.5, "marker": 5},
             "labels": {
                 "x": "Days",
                 "y": "Weight (g)",
                 "series": "Simulated oyster growth",
-            }
-        }
+            },
+        },
     )
     dumpErrors(response)

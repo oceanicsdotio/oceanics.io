@@ -37,7 +37,6 @@ def test_simulation_bivalve_api_as_job_no_forcing():
         },
         forcing=forces,
     )
- 
 
 
 def test_simulation_bivalve_api_as_batch():
@@ -70,7 +69,6 @@ def test_simulation_bivalve_api_as_batch():
     logs = result.get("logs")
     assert logs
     _ = result.get("data")
-   
 
 
 def test_simulation_configuration_create(client):

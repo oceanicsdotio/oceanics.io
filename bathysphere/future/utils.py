@@ -69,11 +69,11 @@ try:
         unique,
         vstack,
         where,
-        zeros,   
+        zeros,
     )
 
     # use ndarray as stand-in for GPU memory
-    texture = af if af is not None else array   
+    texture = af if af is not None else array
 
     from numpy.linalg import norm
     from numpy.ma import MaskedArray

@@ -3,7 +3,6 @@ from .aerobic import Aerobic
 
 
 class TwoLayer:
-
     def __init__(self, shape):
         self.aerobic = Aerobic(shape)
         self.anaerobic = Anaerobic(shape)
@@ -31,7 +30,9 @@ class TwoLayer:
 
         XK = KHD * dissolved + KHP * particulate
         if self.tracers[AMMONIUM].rate > 0.0:
-            XK[0] += (K0H1D * dissolved1 + K0H1P * particulate1) / (self.tracer["NH4"].rate + C1TM1)
+            XK[0] += (K0H1D * dissolved1 + K0H1P * particulate1) / (
+                self.tracer["NH4"].rate + C1TM1
+            )
 
         delta = (XDD0 * oxygen - DD0TM1 * O20TM1) / self.clock.dt
         upper = (-self.aerobic.depth * (demand1 - demand_prev) / dt + delta) / demand1
@@ -39,10 +40,22 @@ class TwoLayer:
         upperM = -0.5 * (upper - abs(upper))
 
         anaerobic = self.depth - self.aerobic
-        A11 = -upperM - upper - self.aerobic / dt - flux[:, 0] - XK[0] - settling  # linear equation coefficients
+        A11 = (
+            -upperM - upper - self.aerobic / dt - flux[:, 0] - XK[0] - settling
+        )  # linear equation coefficients
         A12 = flux[:, -1] + upperP
         A21 = flux[:, 0] + settling + upperM
-        A22 = -upperP + upper - self.anaerobic.depth / dt - flux[:, -1] - XK[-1] - settling - K3
+        A22 = (
+            -upperP
+            + upper
+            - self.anaerobic.depth / dt
+            - flux[:, -1]
+            - XK[-1]
+            - settling
+            - K3
+        )
         B = -J - self.depth / dt * sys.previous
 
-        return [cross(B, [A12, A22]), cross([A11, A21], B)] / cross([A11, A12], [A21, A22])  # solve linear equations
+        return [cross(B, [A12, A22]), cross([A11, A21], B)] / cross(
+            [A11, A12], [A21, A22]
+        )  # solve linear equations

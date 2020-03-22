@@ -21,11 +21,7 @@ def test_datatypes_redis_queue_connection(cache):
 def test_datatypes_redis_queue_pubsub(cache):
 
     channel = "bathysphere-messages"
-    sequence = (
-        "hello",
-        "how are you?",
-        "goodbye"
-    )
+    sequence = ("hello", "how are you?", "goodbye")
 
     pubsub = cache.pubsub()
     pubsub.subscribe(channel)
@@ -39,6 +35,5 @@ def test_datatypes_redis_queue_pubsub(cache):
         if message is None:
             break
         received.append(message)
-        
-    assert len(received) == len(sequence)
 
+    assert len(received) == len(sequence)

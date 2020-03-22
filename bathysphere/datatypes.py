@@ -36,9 +36,23 @@ from redis import StrictRedis
 from redis.client import PubSub
 
 from numpy import (
-    array, append, frombuffer, argmax, argmin, random, where, isnan,
-    cross, argwhere, arange, array, hstack, vstack, repeat, zeros,
-    flip
+    array,
+    append,
+    frombuffer,
+    argmax,
+    argmin,
+    random,
+    where,
+    isnan,
+    cross,
+    argwhere,
+    arange,
+    array,
+    hstack,
+    vstack,
+    repeat,
+    zeros,
+    flip,
 )
 from numpy.linalg import norm
 from netCDF4 import Dataset as _Dataset
@@ -56,7 +70,12 @@ except ImportError:
 
 
 from bathysphere.utils import (
-    join, parsePostgresValueIn, _parse_str_to_float, resolveTaskTree, synchronous, googleCloudSecret
+    join,
+    parsePostgresValueIn,
+    _parse_str_to_float,
+    resolveTaskTree,
+    synchronous,
+    googleCloudSecret,
 )
 
 SEC2DAY = 86400
@@ -108,7 +127,7 @@ class ChemicalSystem(object):
 
     # def clamp(
     #     self,
-    #     future: array, 
+    #     future: array,
     #     volume: array
     # ):
     #     """
@@ -137,6 +156,7 @@ class Clock:
     """
     Timekeeper object with integer clock
     """
+
     dt = attr.ib()
     start: int = attr.ib()  # time in seconds
     elapsed: int = attr.ib(default=0)
@@ -148,15 +168,15 @@ class Clock:
     @property
     def time(self) -> float:
         return self.days % 1.0
-        
+
     @property
     def days(self) -> float:
         return (self.start + self.elapsed) / SEC2DAY  # current time in days
-       
+
     @property
     def next(self) -> int:
         return self.start + self.elapsed + SEC2DAY
-       
+
     def tick(self, dt: int = None) -> int:
         """
         Update clock
@@ -171,11 +191,12 @@ class Clock:
 
 
 @attr.s
-class CloudSQL():
+class CloudSQL:
     """
     This class encapsulates a connection pool to a cloud based PostgreSQL provider.
     By default it expects a Google CloudSQL database. 
     """
+
     auth: (str, str) = attr.ib()
     instance: str = attr.ib()
     port: int = attr.ib(default=5432)
@@ -184,7 +205,6 @@ class CloudSQL():
     pool_timeout: int = attr.ib(default=5)
     pool_recycle: int = attr.ib(default=1800)
 
-    
     @property
     def engine(self) -> Engine:
         """
@@ -194,13 +214,11 @@ class CloudSQL():
         user, password = self.auth
         return create_engine(
             URL(
-                drivername='postgres+pg8000',
+                drivername="postgres+pg8000",
                 username=user,
                 password=password,
                 database="postgres",
-                query={
-                    'unix_sock': f'/cloudsql/{self.instance}/.s.PGSQL.{self.port}'
-                }
+                query={"unix_sock": f"/cloudsql/{self.instance}/.s.PGSQL.{self.port}"},
             ),
             pool_size=self.pool_size,
             max_overflow=self.max_overflow,
@@ -208,43 +226,43 @@ class CloudSQL():
             pool_recycle=self.pool_recycle,
         )
 
-
     def query(self, table, **kwargs) -> [dict]:
         """
         Execute an arbitrary query.
         """
         with self.engine.connect() as cursor:
-            query:Query = table.select(**kwargs)
+            query: Query = table.select(**kwargs)
             return [query.parser(row) for row in cursor.execute(query.sql).fetchall()]
-
 
     def handle(self, request: Request) -> ResponseJSON:
         """
         Do some postgres stuff
         """
         conf = request.body["table"]
-        fields = [Field(f["name"], f.get("type", None)) for f in conf["schema"]["fields"]]
+        fields = [
+            Field(f["name"], f.get("type", None)) for f in conf["schema"]["fields"]
+        ]
         table = Table(name=conf["name"], schema=Schema(fields=fields))
 
         try:
             records = self.query(table=table)
         except Exception as ex:
-            return dumps({
-                "Error":"Problem executing query",
-                "detail": str(ex)
-            }), 500
+            return dumps({"Error": "Problem executing query", "detail": str(ex)}), 500
 
-        try: 
-            return dumps({
-                "count": len(records),
-                "data": records,
-                "method": str(request.method),
-                "query_string": str(request.query_string)
-            }), 200
+        try:
+            return (
+                dumps(
+                    {
+                        "count": len(records),
+                        "data": records,
+                        "method": str(request.method),
+                        "query_string": str(request.query_string),
+                    }
+                ),
+                200,
+            )
         except Exception as ex:
-            return dumps({
-                "Error": "Could not serialize result of query"
-            }), 500
+            return dumps({"Error": "Could not serialize result of query"}), 500
 
 
 @attr.s
@@ -255,6 +273,7 @@ class Condition(object):
     :param nodes: optional node indices, if None same value applied universally (non-point)
     :param layers: optional layer indices, if None same value applied over column
     """
+
     value: array = attr.ib()
     shape: (int) = attr.ib()
     mapping: (array, array) = attr.ib()
@@ -267,17 +286,13 @@ class Condition(object):
     def delta(self):
         return self.value * self.scale
 
-    def boundary(
-        self, 
-        system
-    ) -> None:
+    def boundary(self, system) -> None:
         """
         Boundaries are conditions which override the current state, and impose a new value. They may be a time-varying
         function, constant, or may be controlled by an external simulation.
         """
         system[self.mapping] = self.value
         return system
-
 
     def mark(self, nodes):
         """
@@ -299,11 +314,7 @@ class Condition(object):
         self.value += self.delta * dt
         return self
 
-    def read(
-        self, 
-        path: str, 
-        conversion: float = 1000
-    ):
+    def read(self, path: str, conversion: float = 1000):
         """
         Read forcing conditions from CSV file, and update difference equation.
         Will fail silently if condition was declared constant
@@ -316,20 +327,22 @@ class Condition(object):
 
         try:
             fid = open(path, "r")
-            data = array(fid.readline().split(',')).astype(float)
+            data = array(fid.readline().split(",")).astype(float)
             fid.close()
 
-            self.last, self.next = self.next, data[0]  # simulation time or reads in integer seconds
-            self.delta = (data[1:] * conversion * self.scale - self.value) / (self.next - self.last)
+            self.last, self.next = (
+                self.next,
+                data[0],
+            )  # simulation time or reads in integer seconds
+            self.delta = (data[1:] * conversion * self.scale - self.value) / (
+                self.next - self.last
+            )
         except AttributeError:
             return False
         else:
             return True
 
-    def source(
-        self, 
-        system: ChemicalSystem
-    ) -> None:
+    def source(self, system: ChemicalSystem) -> None:
         """
         Source are a type of condition. They are added to their parent state array.
 
@@ -350,13 +363,8 @@ class Condition(object):
         """
         return cls()
 
-
     @classmethod
-    def PointSource(
-        cls,
-        nodes: (int) = None,
-        layers: (int) = None
-    ):
+    def PointSource(cls, nodes: (int) = None, layers: (int) = None):
         """
         Point source loads are defined at some but not all nodes. Points which are not part of the mesh model
         (locations that are not nodes, or location that ARE elements) are divided amongst nearest neighbors.
@@ -364,24 +372,16 @@ class Condition(object):
         such as Lagrangian particle models with vertical dynamics.
         """
         return cls(mapping=(nodes, layers))
-        
+
     @classmethod
-    def Surface(
-        cls,
-        nodes: (int) = None
-    ):
+    def Surface(cls, nodes: (int) = None):
         """
         Atmospheric loads are non-point sources. They may vary in space.
         """
         return cls(mapping=(nodes, (0,)))
-    
 
     @classmethod
-    def FallLine(
-        cls,
-        nodes: (int),
-        layers: (int) = None
-    ):
+    def FallLine(cls, nodes: (int), layers: (int) = None):
         """
         Fall-line loads occur where mass enters the system at a boundary, usually a well-mixed freshwater discharge.
         The same concentration is added along a node-defined path, composed of at least two points on the shoreline,
@@ -392,10 +392,8 @@ class Condition(object):
         """
         cls(mapping=(nodes, layers))
 
-   
 
 def ConvexHull(points):
-
     def segment(u, v, indices, points):
 
         if indices.shape[0] == 0:
@@ -424,6 +422,7 @@ def ConvexHull(points):
 @attr.s
 class Coordinates:
     """Point coordinates for spatial applications"""
+
     x: float = attr.ib()
     y: float = attr.ib()
 
@@ -454,12 +453,13 @@ class Dataset(_Dataset):
     * Query: Get an array of a single variable
     * Cache: Save chunk in object storage or local filesystem
     """
+
     def query(
-        self, 
-        observed_property: str, 
-        samples: int = None, 
-        reduce_dim: bool = False, 
-        kind: str = "float64"
+        self,
+        observed_property: str,
+        samples: int = None,
+        reduce_dim: bool = False,
+        kind: str = "float64",
     ) -> array:
         """
         Extract an observedProperty, and optionally extract pixel samples from it.
@@ -475,15 +475,12 @@ class Dataset(_Dataset):
                 for i, j in samples
             )
         return (
-            self.variables[observed_property][:, 0].astype(kind) if reduce_dim
+            self.variables[observed_property][:, 0].astype(kind)
+            if reduce_dim
             else self.variables[observed_property][:].astype(kind)
         )
 
-    def copy(
-        self, 
-        path: str, 
-        observed_properties: (str) = None
-    ):
+    def copy(self, path: str, observed_properties: (str) = None):
         fid = _Dataset(path=path)
         if isfile(path=path) and not self.policy():
             return False
@@ -507,15 +504,13 @@ class Distance(object):
 @attr.s
 class Field(object):
     """Column for Postgres table"""
+
     name: Any = attr.ib()
     type: str = attr.ib()
 
     @staticmethod
     def autoCorrect(
-        key: str, 
-        lookup: bidict, 
-        maximum: float=0.0, 
-        threshold: float=0.25
+        key: str, lookup: bidict, maximum: float = 0.0, threshold: float = 0.25
     ) -> str:
         """
         Match fieldnames probabilistically
@@ -538,7 +533,9 @@ class Field(object):
         """
         Get the original header name back by reversing clean_fields() operation.
         """
-        names = map(lambda n: n.replace("_plus", "(0+)").replace("_minus", "(0-)"), final)
+        names = map(
+            lambda n: n.replace("_plus", "(0+)").replace("_minus", "(0-)"), final
+        )
         return tuple(
             map(
                 lambda f, u: f"{f} [{u}]".replace("_", " ").replace("percent", "%"),
@@ -547,16 +544,19 @@ class Field(object):
         )
 
     @staticmethod
-    def clean(fields: (str,)) -> ((str, ), (str, )):
+    def clean(fields: (str,)) -> ((str,), (str,)):
         """
         Make friendly formats for object and table naming. The inverse is restore_fields().
         """
+
         def _clean(x):
-            return x.strip()\
-                    .replace(" ", "_")\
-                    .replace("%", "_percent")\
-                    .replace("+", "_plus")\
-                    .replace("-", "_minus")
+            return (
+                x.strip()
+                .replace(" ", "_")
+                .replace("%", "_percent")
+                .replace("+", "_plus")
+                .replace("-", "_minus")
+            )
 
         return tuple(*zip(map(lambda u, v: (_clean(u), _clean(v)), fields.split("["))))
 
@@ -591,7 +591,7 @@ class File:
     def sort_key(self):
         return self.time
 
-    async def get_and_decode(self, headers, auth, span=32, sn=None ):
+    async def get_and_decode(self, headers, auth, span=32, sn=None):
         # type: (dict, str, int, int) -> str or list
         """
         Run a batch of jobs with processor pool and collapse results. This will use the file descriptions to
@@ -641,14 +641,8 @@ class File:
         self.content = response.content
 
     @classmethod
-    def metadata(
-        cls,
-        url: str, 
-        filename: str, 
-        ts: str, 
-        size: str
-    ):
-       
+    def metadata(cls, url: str, filename: str, ts: str, size: str):
+
         fields = filename.split(".")
         encoding = None
         if len(fields) > 1:
@@ -690,11 +684,11 @@ class File:
             encoding=encoding,
         )
 
-
     def _match(self, fmt=None, identity=None):
         # type: (File, set, set) -> bool
-        return (not identity or self.sn in identity) and (not fmt or self.encoding in fmt)
-
+        return (not identity or self.sn in identity) and (
+            not fmt or self.encoding in fmt
+        )
 
     @staticmethod
     async def metadata_promise(url, auth):
@@ -715,7 +709,6 @@ class File:
 
 @attr.s
 class FileSystem:
-
     @attr.s
     class OverwritePolicy:
         policy: str = attr.ib(default="never")
@@ -780,6 +773,7 @@ class FileSystem:
         into nested tuples of (index, <coroutine>). The coroutine is then resolved to another (index, <coroutine>) tuple,
         using the `render()` method, until the specified depth is reached.
         """
+
         def __parse(value):
             return value if type(value) == int else int(value[:-1])
 
@@ -833,13 +827,12 @@ class FileSystem:
                 return f"{key}/{result}"
         return None
 
-
     # @staticmethod
     # def search(
-    #     queue: deque, 
-    #     pool: Pool, 
-    #     fmt: set = None, 
-    #     identity: set = None, 
+    #     queue: deque,
+    #     pool: Pool,
+    #     fmt: set = None,
+    #     identity: set = None,
     #     ts: datetime = None
     # ) -> list or None:
     #     """
@@ -890,7 +883,6 @@ class FileSystem:
     #         queue.append(file)  # put the file back if unused
 
     #     return collector, queue
-
 
     # def get_files(queue: deque, pool: Pool, **kwargs):
     #     """
@@ -977,8 +969,6 @@ class FileSystem:
 
     #     return result
 
-
-
     # @staticmethod
     # def syncFtp(ftp, remote, local, filesystem=None):
     #     # type: (FTP, str, str, dict) -> int
@@ -1000,7 +990,7 @@ class FileSystem:
     #     :param parent:
     #     :return:
     #     """
-               
+
     #     body = loads(req)
     #     host = body.get("host", None)
     #     root = body.get("root", None)
@@ -1080,17 +1070,13 @@ class Frame(dict):
     schema: dict = attr.ib()
     key: str = attr.ib(default=None)
     span: int = attr.ib(default=32)
-    ts: datetime =  attr.ib(default=None)
+    ts: datetime = attr.ib(default=None)
     _dict: dict = attr.ib(default=attr.Factory(dict))
 
     def goto(self, pattern: bytes, root: str = "SensorFieldGroup"):
         return [self._dict[key][root] for key in self._dict.keys() if pattern in key][0]
 
-
-    def wqm(
-        self, 
-        keys: (str,)
-    ) -> dict:
+    def wqm(self, keys: (str,)) -> dict:
         """
         Decode dataframe form water quality monitor instrument
         """
@@ -1105,13 +1091,7 @@ class Frame(dict):
         }
         return self
 
-
-    def seafet(
-        self, 
-        brk: int, 
-        keys: list, 
-        sep: bytes = b","
-    ) -> None:
+    def seafet(self, brk: int, keys: list, sep: bytes = b",") -> None:
         self.sensor = self.bytes[:brk].decode()
         assert self.sensor[3:6] == "PHA"
         data = self.bytes[brk + 1 :].split(sep)
@@ -1119,19 +1099,17 @@ class Frame(dict):
             hours=float(data[2].decode())
         )
         self.data = {key: value.decode() for key, value in zip(keys, data[3:])}
-        
-    def by_key(
-        self, 
-        frames: dict, 
-        headers: dict
-    ):
+
+    def by_key(self, frames: dict, headers: dict):
         sn = int(self.label[-4:])
         pattern = self.bytes[:10].decode()
         if pattern[:3] == "SAT":
             pattern = pattern
 
         key = [
-            headers[sn][key] for key in headers[sn].keys() if pattern in headers[sn][key]
+            headers[sn][key]
+            for key in headers[sn].keys()
+            if pattern in headers[sn][key]
         ][0]
         loc = self.bytes.find(key.encode())
         buffer = self.bytes[loc + len(key) :]
@@ -1156,13 +1134,7 @@ class Frame(dict):
         self.bytes = extra[loc + 9 :]
         self.size: len(self.bytes)
 
-
-    def analog(
-        self, 
-        headers: dict, 
-        width: int = 35, 
-        key: str = "STORX"
-    ):
+    def analog(self, headers: dict, width: int = 35, key: str = "STORX"):
         """
         Parse analog frame
 
@@ -1180,14 +1152,8 @@ class Frame(dict):
         self.ts = TimeStamp.parseBinary(extra[:7])
         self.bytes = self.bytes[width:]
         self.size = len(self.bytes)
-        
 
-
-    def gps(
-        self, 
-        headers: dict, 
-        key: bytes = b"$GPRMC"
-    ):
+    def gps(self, headers: dict, key: bytes = b"$GPRMC"):
         """Decode bytes as GPGGA or GPRMC location stream"""
         sn = int(self.key[-4:])
         loc = self.bytes.find(key)
@@ -1196,10 +1162,13 @@ class Frame(dict):
         buffer = self.bytes[loc + len(key) + 1 :]
         f = headers[sn].goto("MODEM")
         nav, extra = Frame.ascii_xml(buffer, f)
-        self.data = {"content": nav, "ts": TimeStamp.parseBinary(extra[2:9]), "type": "nav"}
+        self.data = {
+            "content": nav,
+            "ts": TimeStamp.parseBinary(extra[2:9]),
+            "type": "nav",
+        }
         self.bytes = extra[9:]
         self["size"] = len(self.bytes)
-    
 
     @staticmethod
     def line(txt: str, bytes_string: bytes):
@@ -1238,11 +1207,7 @@ class Frame(dict):
         return result, buffer[end:]
 
     @staticmethod
-    def binary_xml(
-        buffer: bytes, 
-        frames: list, 
-        byteorder: str = ">"
-    ) -> (dict, bytes):
+    def binary_xml(buffer: bytes, frames: list, byteorder: str = ">") -> (dict, bytes):
         """
         Parse raw bytes according to format described in XML frames
         """
@@ -1252,7 +1217,9 @@ class Frame(dict):
 
         for each in frames:
             keys = each.keys()
-            dtype_key = [key for key in keys if ("Binary" in key and "Data" in key)].pop()
+            dtype_key = [
+                key for key in keys if ("Binary" in key and "Data" in key)
+            ].pop()
 
             if "BinaryFloatingPoint" in dtype_key:
                 txt = each[dtype_key]
@@ -1273,12 +1240,8 @@ class Frame(dict):
 
         return result, buffer[offset:]
 
-
     def storx(
-        self, 
-        fields: (Field,), 
-        name_length: int = 10, 
-        verb: bool = False
+        self, fields: (Field,), name_length: int = 10, verb: bool = False
     ) -> None:
         """
         Decode and process Satlantic sensor frames if format is known, or fail silently
@@ -1291,7 +1254,10 @@ class Frame(dict):
         :return: possibly processed frame
         """
 
-        delim = {"PHA": b",", "CST": b"\t"}  # SEAFET pH instrument  # CSTAR transmissometer
+        delim = {
+            "PHA": b",",
+            "CST": b"\t",
+        }  # SEAFET pH instrument  # CSTAR transmissometer
 
         brk = self.bytes.find(b"\t")
         if brk == -1 or brk > name_length:
@@ -1329,10 +1295,7 @@ class Frame(dict):
 
     @staticmethod
     def parse_buffer_queue(
-        queue: deque, 
-        sequence: list, 
-        pool: Pool, 
-        frames: list
+        queue: deque, sequence: list, pool: Pool, frames: list
     ) -> (list, list):
         """
         Create a job queue and use pool of workers to process byte strings until consumed
@@ -1340,10 +1303,11 @@ class Frame(dict):
         processed = deque()
         for job in sequence:
             queue = pool.starmap(job, zip(queue, repeat(frames, len(queue))))
-            processed.append(queue.pop(buffer) for buffer in queue if buffer["size"] == 0)
+            processed.append(
+                queue.pop(buffer) for buffer in queue if buffer["size"] == 0
+            )
 
         return processed, queue
-
 
     @staticmethod
     def _tree_depth(xml: str) -> int:
@@ -1372,9 +1336,9 @@ class Frame(dict):
 
     # def parse_xml_frames(
     #     self,
-    #     config: dict, 
-    #     key: str = "sensor", 
-    #     depth: int = 10, 
+    #     config: dict,
+    #     key: str = "sensor",
+    #     depth: int = 10,
     #     verb: bool = False
     # ) -> dict:
     #     """
@@ -1450,7 +1414,7 @@ class Frame(dict):
 
         return collector
 
-     
+
 class Graph:
     @staticmethod
     def register(config: dict):
@@ -1483,7 +1447,7 @@ class Graph:
     def create(cls, obj: dict, url: str, token: str) -> tuple or None:
         url = f"{url}/{cls}"
         return post(url=url, json=obj, headers={"Authorization": f"Bearer {token}"})
- 
+
 
 class JSONIOWrapper(TextIOWrapper):
     @staticmethod
@@ -1545,7 +1509,6 @@ class JSONIOWrapper(TextIOWrapper):
 
 @attr.s
 class KernelDensityEstimator(KernelDensity):
-    
     @staticmethod
     def glm():
         return LinearRegression()  # create linear regression model object
@@ -1601,7 +1564,7 @@ class KernelDensityEstimator(KernelDensity):
 
         total = 0
         passes = 0
-        while total < count and passes < count*10:
+        while total < count and passes < count * 10:
 
             sample = kde.sample()
             xx = sample[0][0]
@@ -1830,6 +1793,7 @@ class Memory:
             if start == len(self.mask) - size:
                 return None
 
+
 #     @staticmethod
 #     def cache(data, path, free=False):
 #         # type: (bytes, str, bool) -> int
@@ -1978,36 +1942,25 @@ class Memory:
 #         return vertex_array_buffer
 
 
-
 class ObjectStorage(Minio):
-
-    def __init__(
-        self, 
-        bucket_name: str, 
-        endpoint: str,
-        prefix: str = None, 
-        **kwargs
-    ):
+    def __init__(self, bucket_name: str, endpoint: str, prefix: str = None, **kwargs):
         self.bucket_name = bucket_name
         self.prefix = prefix
         super().__init__(endpoint, **kwargs)
         if not self.bucket_exists(bucket_name):
             self.make_bucket(bucket_name)
-    
+
     @property
     def locked(self) -> bool:
         return self.stat_object("lock.json") is not None
-    
 
-    def publish_events(
-        self,  
-        pubsub_channel: str
-    ):
+    def publish_events(self, pubsub_channel: str):
         fcns = ("s3:ObjectCreated:*", "s3:ObjectRemoved:*", "s3:ObjectAccessed:*")
         with StrictRedis() as queue:
-            for event in self.listen_bucket_notification(self.bucket_name, "", None, fcns):
+            for event in self.listen_bucket_notification(
+                self.bucket_name, "", None, fcns
+            ):
                 queue.publish(pubsub_channel, str(event))
-
 
     def stat_object(self, object_name: str):
         """
@@ -2066,37 +2019,34 @@ class ObjectStorage(Minio):
 
         return object_name
 
-    def get_object(
-        self, 
-        object_name: str,
-        stream: bool = False
-    ) -> Response:
+    def get_object(self, object_name: str, stream: bool = False) -> Response:
         """
         Download the data, may be streaming if desired
         """
         data = super().get_object(self.bucket_name, object_name)
         if stream:
+
             def generate():
                 for d in data.stream(32 * 1024):
                     yield d
+
             result = generate
         else:
             result = data
 
         return Response(result, mimetype="application/octet-stream")
 
-
     def updateIndex(
-        self, 
-        object_name: str, 
-        metadata: dict = None, 
-        entries: [dict] = None, 
-        props: dict = None
+        self,
+        object_name: str,
+        metadata: dict = None,
+        entries: [dict] = None,
+        props: dict = None,
     ):
         """
         Update contents of index metadata
         """
-        
+
         if entries:
             self.put_object(
                 object_name=object_name,
@@ -2105,13 +2055,10 @@ class ObjectStorage(Minio):
                     **(entries or {}),
                     **(props or {}),
                 },
-                metadata={
-                    **self.stat_object(object_name).metadata, 
-                    **(metadata or {})
-                }
+                metadata={**self.stat_object(object_name).metadata, **(metadata or {})},
             )
         else:
-             self.copy_object(
+            self.copy_object(
                 bucket_name=self.bucket_name,
                 object_name=object_name,
                 object_source=object_name,
@@ -2120,12 +2067,7 @@ class ObjectStorage(Minio):
 
         return self
 
-
-    def delete(
-        self, 
-        prefix: str, 
-        batch: int = 10
-    ):
+    def delete(self, prefix: str, batch: int = 10):
         """
         Delete all objects within a subdirectory or abstract collection
 
@@ -2151,33 +2093,27 @@ class ObjectStorage(Minio):
             if len(remove) >= batch or stop:
                 self.remove_objects(bucket_name=self.bucket_name, objects_iter=remove)
                 remove = ()
-                
+
             if stop:
                 break
 
     @staticmethod
     def metadata_template(
-        file_type: str = None, 
-        parent: str = None,
-        headers: dict = None
+        file_type: str = None, parent: str = None, headers: dict = None
     ) -> dict:
 
         accessControl = "private" if file_type == "lock" else "public-read"
-     
+
         return {
             "x-amz-acl": accessControl,
             "x-amz-meta-parent": parent or "",
             "x-amz-meta-created": datetime.utcnow().isoformat(),
             "x-amz-meta-extent": "null",
             "x-amz-meta-service-file-type": file_type,
-            **(headers or {})
+            **(headers or {}),
         }
 
-    def unlock(
-        self, 
-        object_name: str,
-        session: str = None,
-    ) -> bool:
+    def unlock(self, object_name: str, session: str = None,) -> bool:
         """
         Unlock the dataset or bathysphere_functions_repository IFF it contains the session ID
         """
@@ -2187,10 +2123,7 @@ class ObjectStorage(Minio):
             return False
         return True
 
-    def session(
-        self, 
-        lock: bool = False
-    ) -> ResponseJSON or ResponseOctet:
+    def session(self, lock: bool = False) -> ResponseJSON or ResponseOctet:
         """
         Object storage locking decorator for functions.
 
@@ -2199,7 +2132,7 @@ class ObjectStorage(Minio):
 
         Locks will not block read operations except in special cases. 
         """
-        
+
         # index = load_json(self.get_object(object_name=index_file))
 
         headers = {}
@@ -2207,12 +2140,12 @@ class ObjectStorage(Minio):
         name = "bathysphere"
         lock_file = f"{name}/lock.json"
         # index_file = f"{name}/index.json"
-    
 
         def decorator(fcn):
             """
             Methods applied to the wrapped function
             """
+
             def wrapper(*args, **kwargs):
                 """
                 Actual wrapper that calls the decorated function
@@ -2235,10 +2168,12 @@ class ObjectStorage(Minio):
                     if lock and not self.unlock(object_name=lock):
                         result = "Failed to unlock", 500
                 return result
+
             return wrapper
+
         return decorator
 
- 
+
 class PostgresType(Enum):
     Numerical = "DOUBLE PRECISION NULL"
     TimeStamp = "TIMESTAMP NOT NULL"
@@ -2249,17 +2184,16 @@ class PostgresType(Enum):
 
 @attr.s
 class Query:
-    
+
     sql: str = attr.ib()
     parser: Callable = attr.ib()
 
 
 @attr.s
 class Reactor(object):
-    
+
     systems: () = attr.ib()
     mesh: None = attr.ib()
-
 
     def update(self, volume: array):
         """
@@ -2267,16 +2201,8 @@ class Reactor(object):
         """
         assert all(each.transfer(conversion=volume) for each in self.systems.values())
 
-
     def integrate(
-        self, 
-        anomaly, 
-        nutrients,
-        carbon,
-        oxygen,
-        phyto_c=0.0, 
-        phyto_n=0.0, 
-        volume=1.0
+        self, anomaly, nutrients, carbon, oxygen, phyto_c=0.0, phyto_n=0.0, volume=1.0
     ) -> None:
         """
             
@@ -2289,16 +2215,20 @@ class Reactor(object):
         :param phyto_c: carbon supplied by biology
         :param phyto_n: nitrogen supplied by biology
         """
-        limit = carbon.integrate(anomaly, oxygen, phyto_c)  # available carbon as proxy, consumes oxygen
+        limit = carbon.integrate(
+            anomaly, oxygen, phyto_c
+        )  # available carbon as proxy, consumes oxygen
         assert oxygen.integrate(limit, anomaly)  # oxygen consumption
 
         assert all(nutrient.mineralize(limit, anomaly) for nutrient in nutrients)
 
         for each in nutrients:
             if each.__class__.__name__ == "Nitrogen":
-                assert each.integrate(oxygen, carbon, phyto_n, anomaly)  # consumes oxygen and carbon
+                assert each.integrate(
+                    oxygen, carbon, phyto_n, anomaly
+                )  # consumes oxygen and carbon
                 break
-            
+
         self.update(volume)
 
 
@@ -2313,7 +2243,7 @@ class RecurrentNeuralNetwork:
     output = attr.ib(default=1)  # out put dimensions
     horizon = attr.ib(default=1)  # future steps to predict
     input = attr.ib(default=1)
-    file = attr.ib(default=None) # path for persisting data
+    file = attr.ib(default=None)  # path for persisting data
 
     # saver = tf.train.Saver
 
@@ -2321,10 +2251,8 @@ class RecurrentNeuralNetwork:
     def shape(self):
         return (-1, self.periods, 1)
 
-
     @staticmethod
     def from_cache(fcn):
-
         def wrapper(*args, **kwargs):
 
             cache = kwargs.pop("cache")
@@ -2334,7 +2262,9 @@ class RecurrentNeuralNetwork:
             # check key
 
             try:
-                request.model = tf.keras.models.load_model("/".join(["", cache, key]))  # load and inject object
+                request.model = tf.keras.models.load_model(
+                    "/".join(["", cache, key])
+                )  # load and inject object
             except:
                 return 500, {"message": "Server error while loading model"}
 
@@ -2343,13 +2273,21 @@ class RecurrentNeuralNetwork:
         return wrapper
 
     @classmethod
-    def createAndCache(cls, stateful: bool, horizon: int, layers: int, batch_size: int, cache: str, key: str):
+    def createAndCache(
+        cls,
+        stateful: bool,
+        horizon: int,
+        layers: int,
+        batch_size: int,
+        cache: str,
+        key: str,
+    ):
         """
         Create and cache the model structure
         """
         neural_net = cls.create(stateful, horizon, layers, batch_size)
         neural_net.save("/".join(["", cache, key]))
-        return 200, {'message': 'model created and cached'}
+        return 200, {"message": "model created and cached"}
 
     @classmethod
     def train_cached_model(
@@ -2360,7 +2298,7 @@ class RecurrentNeuralNetwork:
         batch_size: int,
         ratio: float,
         periods: int,
-        epochs: int
+        epochs: int,
     ):
         """
         Load and feed the model training data
@@ -2372,10 +2310,10 @@ class RecurrentNeuralNetwork:
             batch_size=batch_size,
             training=datasets.get("training"),
             epochs=epochs,
-            validation=datasets.get("validation")
+            validation=datasets.get("validation"),
         )
 
-        return 200, {'message': 'model trained and cached'}
+        return 200, {"message": "model trained and cached"}
 
     @staticmethod
     def get_prediction(datastream: object, batch_size: int = 32):
@@ -2386,24 +2324,15 @@ class RecurrentNeuralNetwork:
         :return:
         """
         predicted = request.model.predict(
-            datastream,
-            batch_size=batch_size,
-            workers=1,
-            use_multiprocessing=False
+            datastream, batch_size=batch_size, workers=1, use_multiprocessing=False
         )
         return 200, {"payload": predicted.flatten()}
 
     @staticmethod
-    def train(
-        model, 
-        batch_size: int, 
-        training: dict, 
-        validation: dict, 
-        epochs: int
-    ):
+    def train(model, batch_size: int, training: dict, validation: dict, epochs: int):
 
         for i in range(epochs):
-            print('Epoch', i + 1, '/', epochs)
+            print("Epoch", i + 1, "/", epochs)
             model.fit(
                 training["x"],
                 training["y"],
@@ -2413,19 +2342,14 @@ class RecurrentNeuralNetwork:
                 validation_data=(validation["x"], validation["y"]),
                 shuffle=False,  # order is important
                 workers=1,
-                use_multiprocessing=False
+                use_multiprocessing=False,
             )
 
             model.reset_states()
 
-
     @staticmethod
     def create(
-        stateful: bool, 
-        horizon: int, 
-        units: int, 
-        batch_size: int,
-        variables: int = 1
+        stateful: bool, horizon: int, units: int, batch_size: int, variables: int = 1
     ):
         """
         Create the Keras-Tensorflow model
@@ -2445,14 +2369,13 @@ class RecurrentNeuralNetwork:
                 units=units,
                 input_shape=(horizon, variables),
                 batch_size=batch_size,
-                stateful=stateful
+                stateful=stateful,
             )
         )
         model.add(tf.keras.layers.Dense(1))
-        model.compile(loss='mse', optimizer='adam')
+        model.compile(loss="mse", optimizer="adam")
 
         return model
-
 
     @staticmethod
     def series(n=365, show=False):
@@ -2477,8 +2400,8 @@ class RecurrentNeuralNetwork:
         """
         start = self.periods + self.horizon
         setup = data[-start:]
-        x = setup[:self.periods].reshape(self.shape)
-        y = data[-self.periods:].reshape(self.shape)
+        x = setup[: self.periods].reshape(self.shape)
+        y = data[-self.periods :].reshape(self.shape)
         return x, y
 
     def x_train(self, opt, feed, loss, verb):
@@ -2545,7 +2468,7 @@ class RecurrentNeuralNetwork:
         n = len(data)
         end = n - n % self.periods
 
-        subset = data[1:end + self.horizon]
+        subset = data[1 : end + self.horizon]
         return subset.reshape(self.shape)
 
     def predictor(self, X, lstm=True):
@@ -2557,8 +2480,11 @@ class RecurrentNeuralNetwork:
         :return:
         """
 
-        cell = tf.keras.layers.LSTMCell(units=self.hidden) if lstm else \
-               tf.keras.layers.SimpleRNNCell(units=self.hidden)
+        cell = (
+            tf.keras.layers.LSTMCell(units=self.hidden)
+            if lstm
+            else tf.keras.layers.SimpleRNNCell(units=self.hidden)
+        )
 
         out, _ = tf.nn.dynamic_rnn(cell, X, dtype=tf.float32)
         stacked = tf.reshape(out, [-1, self.hidden])
@@ -2586,13 +2512,7 @@ class RecurrentNeuralNetwork:
         Y = placeholder(tf.float32, [None, self.periods, self.output])
         return X, Y
 
-    def feed(
-        self, 
-        ts: array, 
-        x: array, 
-        y: array, 
-        xp: array
-    ) -> dict:
+    def feed(self, ts: array, x: array, y: array, xp: array) -> dict:
         """
         Format data dictionaries to feed into model
 
@@ -2602,18 +2522,10 @@ class RecurrentNeuralNetwork:
         :param xp: x data for prediction
         :return:
         """
-        return {
-            "train": {x: self.x(ts), y: self.y(ts)},
-            "predict": {x: xp}
-        }
+        return {"train": {x: self.x(ts), y: self.y(ts)}, "predict": {x: xp}}
 
     @classmethod
-    def run(
-        cls, 
-        config, 
-        lstm: bool = True, 
-        verb: bool = True
-    ):
+    def run(cls, config, lstm: bool = True, verb: bool = True):
         """
         Create and run the model
 
@@ -2635,7 +2547,9 @@ class RecurrentNeuralNetwork:
         loss = reduce_sum(square(predictor - y))  # mean square error tensor node
         optimizer = network.optimizer(loss)  # learning model — minimize error
 
-        network.model.train(optimizer, feed["train"], loss, verb)  # train and get error series over epochs
+        network.model.train(
+            optimizer, feed["train"], loss, verb
+        )  # train and get error series over epochs
         prediction = network.predict(predictor, feed["predict"])  # make prediction
         return yt, prediction
 
@@ -2661,27 +2575,23 @@ class Table(object):
 
     @staticmethod
     def _unwrap(x):
-        return {'record': x[0]}
+        return {"record": x[0]}
 
-    def declare(
-        self
-    ) -> Query:
-        fieldString = join(f'{f.name} {f.type}' for f in self.schema.fields)
+    def declare(self) -> Query:
+        fieldString = join(f"{f.name} {f.type}" for f in self.schema.fields)
         queryString = f"""
         CREATE TABLE IF NOT EXISTS {self.name}({fieldString});
         """
         return Query(queryString, None)
 
-
-    def insert(
-        self, 
-        data: ()
-    ) -> Query:
+    def insert(self, data: ()) -> Query:
         """
         Generate the query to insert new rows into database.
         """
         _parsedValues = (f"({join(map(parsePostgresValueIn, row))})" for row in data)
-        columns, values = map(join, ((field.name for field in self.schema.fields), _parsedValues))
+        columns, values = map(
+            join, ((field.name for field in self.schema.fields), _parsedValues)
+        )
 
         queryString = f"""
         INSERT INTO {self.name} ({columns}) VALUES {values};
@@ -2689,14 +2599,14 @@ class Table(object):
         return Query(queryString, None)
 
     def select(
-        self, 
-        order_by: str = None, 
-        limit: int = 100, 
-        fields: (str) = ("*",), 
-        order: str ="DESC", 
-        conditions: ((str)) = ()
+        self,
+        order_by: str = None,
+        limit: int = 100,
+        fields: (str) = ("*",),
+        order: str = "DESC",
+        conditions: ((str)) = (),
     ) -> Query:
-    
+
         """
         Read back values/rows.
         """
@@ -2715,14 +2625,11 @@ class Table(object):
         """
         return Query(f"DROP TABLE {self.name};", None)
 
+
 @attr.s
 class TimeStamp(object):
-
     @staticmethod
-    def parseBinary(
-        buffer: bytes, 
-        byteorder: str = "big"
-    ) -> datetime:
+    def parseBinary(buffer: bytes, byteorder: str = "big") -> datetime:
         """
         Convert two byte words into integer strings, and then date time. Only works for Satlantic date formats.
         """
@@ -2733,9 +2640,10 @@ class TimeStamp(object):
         )
         return datetime.strptime(yyyydddhhmmssmmm, "%Y%j%H%M%S%f")
 
+
 @attr.s
 class Topology(object):
-    
+
     cells: array = attr.ib(default=None)
 
     @property
@@ -2762,7 +2670,7 @@ class Topology(object):
                     n = _neighbors[node]
                 except KeyError:
                     n = _neighbors[node] = []
-                mask, = where(node != vertices)
+                (mask,) = where(node != vertices)
                 others = vertices[mask]
 
                 for neighbor in others:
@@ -2778,18 +2686,15 @@ class Topology(object):
                 print("Error. Nonsense dimensions in detecting solid boundary nodes.")
 
     @staticmethod
-    def deduplicate(
-        self, 
-        process: bool = False
-    ) -> array:
-        
+    def deduplicate(self, process: bool = False) -> array:
+
         n = len(self.cells)
         flag = zeros(n, dtype=bool)
         ordered = sorted(self.cells)
 
         for ii in range(n - 1):
             match = ordered[ii, :] == ordered[ii + 1 :, :]
-            rows, = where(match)
+            (rows,) = where(match)
             rows += ii + 1
             flag[rows] = True
 
@@ -2799,16 +2704,14 @@ class Topology(object):
 
         return self
 
+
 @attr.s
 class Trie:
 
     word = attr.ib(default=None)
     children = attr.ib(default=attr.Factory(dict))
-  
-    def insert(
-        self, 
-        key: str
-    ) -> None:
+
+    def insert(self, key: str) -> None:
         node = self
         for letter in key:
             if letter not in node.children:
@@ -2817,33 +2720,36 @@ class Trie:
         node.word = key
 
     @staticmethod
-    def searchRecursive(
-        node, 
-        symbol: str, 
-        pattern: str, 
-        previous: (int,), 
-        cost: int
-    ):
+    def searchRecursive(node, symbol: str, pattern: str, previous: (int,), cost: int):
         _filter = lambda x: len(x)
         row = (previous[0] + 1,)
         for column in range(1, len(pattern) + 1):
-            row += min(
-                row[column - 1] + 1,
-                previous[column] + 1,
-                previous[column - 1] + int(pattern[column - 1] != symbol)
-            ),
+            row += (
+                min(
+                    row[column - 1] + 1,
+                    previous[column] + 1,
+                    previous[column - 1] + int(pattern[column - 1] != symbol),
+                ),
+            )
 
         return (
             ((node.word, row[-1]),) if row[-1] <= cost and node.word is not None else ()
-        ) + tuple(chain(
-            *filter(_filter, tuple(Trie.searchRecursive(v, k, pattern, row, cost) for k, v in node.children.items())))
-            if min(row) <= cost else ())
+        ) + tuple(
+            chain(
+                *filter(
+                    _filter,
+                    tuple(
+                        Trie.searchRecursive(v, k, pattern, row, cost)
+                        for k, v in node.children.items()
+                    ),
+                )
+            )
+            if min(row) <= cost
+            else ()
+        )
 
     @staticmethod
-    def levenshteinDistance(
-        word1: str, 
-        word2: str
-    ) -> int:
+    def levenshteinDistance(word1: str, word2: str) -> int:
         columns = len(word1) + 1
         rows = len(word2) + 1
 
@@ -2871,11 +2777,7 @@ class Trie:
         return currentRow[-1]
 
     @staticmethod
-    def search(
-        words: {str}, 
-        pattern: str, 
-        maxCost: int
-    ) -> ((str, int)):
+    def search(words: {str}, pattern: str, maxCost: int) -> ((str, int)):
         _results = ()
         for word in words:
             cost = Trie.levenshteinDistance(pattern, word)
@@ -2888,19 +2790,17 @@ class Trie:
 class Unit:
     name: str = attr.ib(default=None)  # canonical reference name
     symbol: Any = attr.ib(default=None)  # symbol when displayed
-    definition: str = attr.ib(default=None)  # reference to an external formal definition
+    definition: str = attr.ib(
+        default=None
+    )  # reference to an external formal definition
 
 
 @attr.s
 class VertexArray(object):
 
     data: array = attr.ib(default=None)
-    
-    def deduplicate(
-        self, 
-        topology: Topology = None, 
-        threshold: float = 0.00001
-    ):
+
+    def deduplicate(self, topology: Topology = None, threshold: float = 0.00001):
         """
         Scan vertex array for duplicates. If topology is also provided, swap later indices for their lower-index
         equivalents. Can be very expensive!
@@ -2920,7 +2820,7 @@ class VertexArray(object):
             # distance for unchecked vertices
             delta[ii + 1, :] = self.data[ii, :] - self.data[ii + 1 :, :]
             distance = norm(delta[ii + 1, :])  # magnitude of difference vec is distance
-            rows, = where(distance < threshold)  # indices of points within threshold
+            (rows,) = where(distance < threshold)  # indices of points within threshold
             rows += ii + 1
             flag[rows] = True  # set look-ahead flags true for deletion
 
@@ -2931,7 +2831,7 @@ class VertexArray(object):
                     topology[re, ce] = ii  # replace duplicate indices
 
         if flag.any():  # there are duplicates
-            retain, = where(~flag)  # first occurrences
+            (retain,) = where(~flag)  # first occurrences
             # reversed un-flagged points
             iterator = zip(retain, flip(retain, axis=0)[0 : len(retain)])
             for first, last in iterator:
@@ -2956,21 +2856,17 @@ class Wind:
     """
     Simulate wind speed and mixing.
     """
+
     speed: float or array = attr.ib(default=0.0)
     delta: float or array = attr.ib(default=0.0)
     validRange: (float, float) = attr.ib(default=0.0)
 
     @property
-    def simpleMixing(
-        self,
-    ) -> float or array:
+    def simpleMixing(self,) -> float or array:
         """
         Basic wind mixing rate.
         """
-        return (
-            0.728 * self.speed ** 0.5 - 
-            0.317 * self.speed + 
-            0.0372 * self.speed ** 2)
+        return 0.728 * self.speed ** 0.5 - 0.317 * self.speed + 0.0372 * self.speed ** 2
 
     def update(self, dt: float):
         """
@@ -2980,11 +2876,7 @@ class Wind:
         return self
 
     @staticmethod
-    def shear(
-        velocity: array, 
-        topology: array, 
-        precision: type = float
-    ) -> array:
+    def shear(velocity: array, topology: array, precision: type = float) -> array:
         """
         Calculate current velocity shear vector for selected cells
 
@@ -3000,16 +2892,20 @@ class Wind:
 
         for ii in range(n):
             parents = topology[ii]
-            sq = velocity[parents, :, :].mean(axis=0) ** 2  # shape is (points, 3, layers, dim)
-            vectors[ii] += sq.sum(axis=0) ** 0.5  # reduce to root of the sums, shape is (dim)
+            sq = (
+                velocity[parents, :, :].mean(axis=0) ** 2
+            )  # shape is (points, 3, layers, dim)
+            vectors[ii] += (
+                sq.sum(axis=0) ** 0.5
+            )  # reduce to root of the sums, shape is (dim)
 
         return abs(vectors[:, 0] - vectors[:, 1])
 
     def dynamicMixing(
         self,
-        mapping: ((int),(int)), 
-        velocity: array, 
-        diffusivity: float or array = 0.0
+        mapping: ((int), (int)),
+        velocity: array,
+        diffusivity: float or array = 0.0,
     ) -> array:
         """
 
@@ -3023,4 +2919,6 @@ class Wind:
         nodes, layers = mapping
         depth = nodes.depth * layers.z[:2].mean()
         subset = velocity[:, :2, :2]
-        return ((diffusivity * Wind.shear(subset, nodes.parents)) / depth ** 0.5).clip(min=self.validRange[0])
+        return ((diffusivity * Wind.shear(subset, nodes.parents)) / depth ** 0.5).clip(
+            min=self.validRange[0]
+        )

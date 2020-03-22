@@ -12,6 +12,7 @@ from yaml import load, Loader
 
 try:
     from matplotlib import use
+
     use("agg")
     from matplotlib.pyplot import subplots, subplots_adjust
     from matplotlib import rc
@@ -115,8 +116,15 @@ class View:
 
 
 class Time(View):
-
-    def _envelope(self, time, mean=None, deviation=None, facecolor=None, edgecolor="none", zorder=3):
+    def _envelope(
+        self,
+        time,
+        mean=None,
+        deviation=None,
+        facecolor=None,
+        edgecolor="none",
+        zorder=3,
+    ):
         # type: (array, array, array, str, str, int) -> None
         """
         Add envelope to time series plot
@@ -276,7 +284,6 @@ class Time(View):
 
 
 class Spatial(View):
-
     def push(self, encoding="png", transparent=False, **kwargs):
         # type: (str, bool, dict) -> BytesIO
         """
@@ -411,11 +418,7 @@ def series(figure, data, labels=None, extent=None, unwind=True, scatter=True):
             extent[a] = min((extent[a], new[a]))
             extent[b] = max((extent[b], new[b]))
 
-    return (
-        30, 5
-    ) if extent else (
-        None, None
-    )
+    return (30, 5) if extent else (None, None)
 
 
 def coverage(figure, data, bins=20):
@@ -434,8 +437,18 @@ def spatial(fig, data, **kwargs):
     # type: (Spatial, dict, dict) -> BytesIO or None
     imageHandles = []
     for image, imageExtent in data.get("images", ()):
-        imageHandles.append(fig.ax.imshow(image, extent=imageExtent, interpolation=fig.style["imageInterp"]))
-    shapeHandles = tuple(map(fig.shape, data.pop("polygons", ()), repeat({"edgecolor": "black", "facecolor": "none"})))
+        imageHandles.append(
+            fig.ax.imshow(
+                image, extent=imageExtent, interpolation=fig.style["imageInterp"]
+            )
+        )
+    shapeHandles = tuple(
+        map(
+            fig.shape,
+            data.pop("polygons", ()),
+            repeat({"edgecolor": "black", "facecolor": "none"}),
+        )
+    )
     pointHandles = tuple(map(fig.points, (array(p) for p in data.pop("points", ()))))
     return None if not any((imageHandles, shapeHandles, pointHandles)) else fig.push()
 
@@ -476,5 +489,3 @@ def main(req):
 
     buffer = b.getvalue()
     assert buffer
-
-    

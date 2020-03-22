@@ -4,7 +4,7 @@ from json import dump
 
 from bathysphere import appConfig
 from bathysphere.tests.conftest import (
-    getCredentials, 
+    getCredentials,
     CREDENTIALS,
     DARKSKY_API_KEY,
 )
@@ -34,8 +34,10 @@ def test_graph_teardown(graph):
     """
     Destroy the graph.
     """
-    Entity.delete(graph("localhost", 7687, testAuth[1]))  # pylint: disable=no-value-for-parameter
-    
+    Entity.delete(
+        graph("localhost", 7687, testAuth[1])
+    )  # pylint: disable=no-value-for-parameter
+
 
 def test_graph_account_create_user(client):
     """
@@ -46,10 +48,9 @@ def test_graph_account_create_user(client):
         "username": testAuth[0],
         "password": testAuth[1],
         "secret": testAuth[2],
-        "apiKey": apiKeys["Oceanicsdotio"]
+        "apiKey": apiKeys["Oceanicsdotio"],
     }
-    response = client.post(
-        "api/auth", json=payload)
+    response = client.post("api/auth", json=payload)
     assert response.status_code == 200, response.get_json()
 
 
@@ -83,9 +84,7 @@ def test_graph_account_delete_user(client, token):
     """
     jwtToken = token(CREDENTIALS).get("token")
     response = client.put(
-        "api/auth",
-        json={"delete": True},
-        headers={"Authorization": ":" + jwtToken},
+        "api/auth", json={"delete": True}, headers={"Authorization": ":" + jwtToken},
     )
     assert response.status_code == 204, response.get_json()
 
@@ -96,15 +95,25 @@ def test_graph_account_delete_user(client, token):
             "username": testAuth[0],
             "password": testAuth[1],
             "secret": testAuth[2],
-            "apiKey": credentials["Oceanicsdotio"]
+            "apiKey": credentials["Oceanicsdotio"],
         },
     )
     assert response.status_code == 200, response.get_json()
 
+
 classes = [
-    Locations, Sensors, Things, ObservedProperties, FeaturesOfInterest, Tasks, 
-    TaskingCapabilities, Actuators, Collections
+    Locations,
+    Sensors,
+    Things,
+    ObservedProperties,
+    FeaturesOfInterest,
+    Tasks,
+    TaskingCapabilities,
+    Actuators,
+    Collections,
 ]
+
+
 @pytest.mark.parametrize("cls", classes)
 def test_graph_sensorthings_create(create_entity, cls):
     """
@@ -118,22 +127,21 @@ def test_graph_sensorthings_create(create_entity, cls):
     for each in build:
         location = create_entity(cls.__name__, CREDENTIALS, each["spec"])
         results.append(location)
-   
+
 
 @pytest.mark.external_call
 def test_graph_sensorthings_locations_weather_report(graph):
 
-    response = Locations(
-        name="Upper Damariscotta Estuary"
-    ).load(
-        db=graph("localhost", 7687, testAuth[1])
-    ).pop().reportWeather(
-        url="https://api.darksky.net/forecast",
-        ts=datetime(2016, 2, 1, 0, 0, 0),
-        api_key=DARKSKY_API_KEY,
+    response = (
+        Locations(name="Upper Damariscotta Estuary")
+        .load(db=graph("localhost", 7687, testAuth[1]))
+        .pop()
+        .reportWeather(
+            url="https://api.darksky.net/forecast",
+            ts=datetime(2016, 2, 1, 0, 0, 0),
+            api_key=DARKSKY_API_KEY,
+        )
     )
     assert response.ok, response.json()
     with open("data/test_darksky.json", "w+") as fid:
         dump(response.json(), fid)
-
-   

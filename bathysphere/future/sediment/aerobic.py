@@ -4,10 +4,8 @@ from .chemistry.c import CARBON
 
 
 class Aerobic(Sediment):
-
-    def __init__(self, shape=(1,1)):
+    def __init__(self, shape=(1, 1)):
         Sediment.__init__(self, shape)
-
 
     def deposition(self, mesh, phytoplankton):
         """
@@ -29,7 +27,9 @@ class Aerobic(Sediment):
             flux[SILICA] = self.deposition[SILICA]
 
             for each in [carbon, nitrogen, phosphorus]:
-                flux[each.key] = each.deposition(FRAC[each.key][reactivity], labile_only)
+                flux[each.key] = each.deposition(
+                    FRAC[each.key][reactivity], labile_only
+                )
 
             for group in phytoplankton:
                 flux = self._adjust_dep(flux, group)
@@ -62,12 +62,18 @@ class Aerobic(Sediment):
     def _silica_diagenesis(self, temperature):
 
         silica = self[SILICA]
-        silica.rate = silica.rxn(1, temperature) * self.depth  # reaction rate constant for silica dissolution
+        silica.rate = (
+            silica.rxn(1, temperature) * self.depth
+        )  # reaction rate constant for silica dissolution
 
         XKJSI = rxn(1, silica.theta, 1, temperature)
 
         dissolved[:, -1] = (1 + self.solids * self.partition[SILICA][:, -1]) ** -1
-        K3 = silica.rate * (CSISAT - dissolved[-1] * dissolved.previous[-1]) / (PSITM1 + KMPSI)
+        K3 = (
+            silica.rate
+            * (CSISAT - dissolved[-1] * dissolved.previous[-1])
+            / (PSITM1 + KMPSI)
+        )
 
         return True
 
@@ -78,13 +84,18 @@ class Aerobic(Sediment):
 
         for system in vector:
             flux = self.rxn(1, temperature) * self.depth
-            delta = (system.flux / depth * dt + system.previous) / (1 + (system.flux + self[settling]) * dt / depth)
+            delta = (system.flux / depth * dt + system.previous) / (
+                1 + (system.flux + self[settling]) * dt / depth
+            )
 
             self[key].flux += delta
 
     def phosphate(self, oxygen, free):
         aerobic = self.transfer * free  # surface layer diffusion
-        phosphate = self.partition[PHOSPHATE + "N"][:, 0] * self.partition[PHOSPHATE + "M"][:, 0]
+        phosphate = (
+            self.partition[PHOSPHATE + "N"][:, 0]
+            * self.partition[PHOSPHATE + "M"][:, 0]
+        )
         indices, exponents = oxygen.critical()
         phosphate[indices] *= self.partition[PHOSPHATE + "M"][indices, -1] ** exponents
         return phosphate

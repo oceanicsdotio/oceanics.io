@@ -45,17 +45,17 @@ def context(fcn) -> Callable:
     db = connect(host, port, accessKey)
     if db is None:
         return {"message": "no graph backend"}, 500
-    
+
     def _wrapper(*args, **kwargs) -> Any:
 
         username, password = request.headers.get("authorization", ":").split(":")
-    
+
         if username and "@" in username:
             accounts = User.load(db, **{"name": username})
             if len(accounts) != 1:
                 raise ValueError
             user = accounts.pop()
-            
+
             if not custom_app_context.verify(password, user.credential):
                 raise Exception
         else:
@@ -81,10 +81,7 @@ def context(fcn) -> Callable:
     return _wrapper if DEBUG else handleUncaughtExceptions
 
 
-def register(
-    body: dict, 
-    **kwargs: dict
-) -> ResponseJSON:
+def register(body: dict, **kwargs: dict) -> ResponseJSON:
     """
     Register a new user account
     """
@@ -100,14 +97,14 @@ def register(
             "account with a public or private ingress."
         )
         return {"message": message}, 403
-    
+
     providers = Providers.load(db=db, apiKey=apiKey)
     if len(providers) != 1:
         return {"message": "Bad API key."}, 403
 
     entryPoint = providers.pop()
     username = body.get("username")
-    
+
     if not ("@" in username and "." in username):
         return {"message": "use email"}, 403
     _, domain = username.split("@")
@@ -127,17 +124,11 @@ def register(
         name=username,
         uuid=uuid4().hex,
         credential=custom_app_context.hash(body.get("password")),
-        ip=request.remote_addr
+        ip=request.remote_addr,
     ).create(db=db)
 
     try:
-        Link(
-            label="Member", 
-            rank=0
-        ).join(
-            db=db, 
-            nodes=(user, entryPoint)
-        )
+        Link(label="Member", rank=0).join(db=db, nodes=(user, entryPoint))
     except Exception as ex:
         user.delete(db=db)  # make sure not to leave an orphaned User
         raise ex
@@ -146,12 +137,7 @@ def register(
 
 
 @context
-def manage(
-    db: Driver, 
-    user: User, 
-    body: dict,
-    **kwargs: dict
-) -> ResponseJSON:
+def manage(db: Driver, user: User, body: dict, **kwargs: dict) -> ResponseJSON:
     """
     Change account settings. You can only delete a user or change the
     alias.
@@ -168,35 +154,23 @@ def manage(
 
 @context
 def token(
-    db: Driver, 
-    user: User, 
-    provider: Providers, 
-    secretKey: str = "salt", 
-    **kwargs: dict
+    db: Driver, user: User, provider: Providers, secretKey: str = "salt", **kwargs: dict
 ) -> ResponseJSON:
     """
     Send a JavaScript Web Token back to authorize future sessions
     """
-    _token = Serializer(
-        secret_key=secretKey, 
-        expires_in=provider.tokenDuration
-    ).dumps(
-        {"uuid": user.uuid}
-    ).decode("ascii")
-    
-    return {
-        "token": _token,
-        "duration": provider.tokenDuration,
-    }, 200
+    _token = (
+        Serializer(secret_key=secretKey, expires_in=provider.tokenDuration)
+        .dumps({"uuid": user.uuid})
+        .decode("ascii")
+    )
+
+    return {"token": _token, "duration": provider.tokenDuration,}, 200
 
 
 @context
 def catalog(
-    db: Driver, 
-    user: User, 
-    host: str, 
-    port: str, 
-    **kwargs: dict
+    db: Driver, user: User, host: str, port: str, **kwargs: dict
 ) -> ResponseJSON:
     """
     Usage 1. Get references to all entity sets, or optionally filter
@@ -215,15 +189,15 @@ def catalog(
 
 @context
 def create(
-    db: Driver, 
-    user: User, 
+    db: Driver,
+    user: User,
     entity: str,
-    body: dict, 
-    provider: Providers, 
-    service: str = "localhost", 
-    hmacKey: str = None, 
-    headers: str = None, 
-    **kwargs
+    body: dict,
+    provider: Providers,
+    service: str = "localhost",
+    hmacKey: str = None,
+    headers: str = None,
+    **kwargs,
 ) -> ResponseJSON:
     """
     Attach to db, and find available ID number to register the entity.
@@ -231,37 +205,28 @@ def create(
     _ = body.pop("entityClass")  # only used for API discriminator
     entity = eval(entity)(**body).create(db=db)
     data = entity.serialize(db, service=service)
-    linkPattern = Link(
-        label="Post",
-        props={"confidence": 1.0},
-    )
-    
-    linkPattern.join(
-        db=db, 
-        nodes=(user, entity)
-    )
+    linkPattern = Link(label="Post", props={"confidence": 1.0},)
 
-    linkPattern.join(
-        db=db, 
-        nodes=(provider, entity)
-    )
-    
+    linkPattern.join(db=db, nodes=(user, entity))
+
+    linkPattern.join(db=db, nodes=(provider, entity))
+
     # declaredLinks = map(
     #     lambda k, v: (each.update({"cls": k}) for each in v), body.pop("links", {}).items()
-    # )  
-    
+    # )
+
     return {"message": f"Create {entity}", "value": data}, 200
 
 
 @context
 def mutate(
-    body: dict, 
+    body: dict,
     db: Driver,
     provider: Providers,
-    entity: str, 
-    id: str, 
-    user: User, 
-    **kwargs
+    entity: str,
+    id: str,
+    user: User,
+    **kwargs,
 ) -> ResponseJSON:
     """
     Give new values for the properties of an existing entity.
@@ -273,12 +238,8 @@ def mutate(
         ({"cls": repr(user), "id": user.id, "label": "Put"},),
         (
             {"cls": Providers.__name__, "id": r[0], "label": "Provider"}
-            for r in Link(
-                label="Member"
-            ).query(
-                db=db,
-                nodes=(user, provider),
-                result="b.id"
+            for r in Link(label="Member").query(
+                db=db, nodes=(user, provider), result="b.id"
             )
         )
         if entity != Providers.__name__
@@ -318,10 +279,8 @@ def query(db, root, rootId, entity, service, **kwargs):
     items = tuple(
         item.serialize(db=db, service=service)
         for item in Link().query(
-                db=db, 
-                nodes=({"cls": root, "id": rootId}, {"cls": entity}), 
-                result="b"
-            )
+            db=db, nodes=({"cls": root, "id": rootId}, {"cls": entity}), result="b"
+        )
     )
     return {"@iot.count": len(items), "value": items}, 200
 
@@ -336,7 +295,9 @@ def delete(db, entity, uuid, **kwargs):
 @context
 def join(db, root, rootId, entity, uuid, body, **kwargs):
     # type: (Driver, str, int, str, int, dict, dict) -> (None, int)
-    Link.join(db, (eval(root)(uuid=rootId), eval(entity)(uuid=uuid)), body.get("props", None))
+    Link.join(
+        db, (eval(root)(uuid=rootId), eval(entity)(uuid=uuid)), body.get("props", None)
+    )
     return None, 204
 
 
@@ -345,4 +306,3 @@ def drop(db, root, rootId, entity, uuid, props, **kwargs):
     # type: (Driver, str, int, str, int, dict, dict) -> (None, int)
     Link.drop(db, (eval(root)(uuid=rootId), eval(entity)(uuid=uuid)), props)
     return None, 204
-

@@ -14,14 +14,15 @@ EXCRETED = "Ex"
 RECYCLED = "Re"
 
 
-
 class Chemistry(dict):
 
     sources = None
     key = None  # key is usually the element symbol
     max = None  # only set if range enforcement is on
     min = None  # only set if range enforcement is on
-    negatives = False  # allow negative concentrations, False forces mass to be added to system
+    negatives = (
+        False  # allow negative concentrations, False forces mass to be added to system
+    )
     flux = None  # transfer of concentration
 
     def __init__(self, keys, shape, kappa=None, theta=None, coef=None, verb=False):
@@ -39,13 +40,20 @@ class Chemistry(dict):
         self.shape = shape  # shape of the quantized fields
         self.delta = create_fields(keys, shape, precision=float)  # difference equation
         self.mass = create_fields(keys, shape, precision=float)  # mass tracking
-        self.added = create_fields(keys, shape, precision=float)  # mass created in simulation
+        self.added = create_fields(
+            keys, shape, precision=float
+        )  # mass created in simulation
         self.previous = create_fields(keys, shape, precision=float)
 
         self.kappa = {"marine": kappa, "fresh": None}  # reaction constant
-        self.theta = {"marine": theta, "fresh": None}  # temperature dependent reaction rate parameter
+        self.theta = {
+            "marine": theta,
+            "fresh": None,
+        }  # temperature dependent reaction rate parameter
 
-    def _sed_rxn(self, coefficient, exponent, regime="marine"):  # reaction rate for tracer class
+    def _sed_rxn(
+        self, coefficient, exponent, regime="marine"
+    ):  # reaction rate for tracer class
         """Reaction rate for tracer class"""
         return self.kappa[regime] * self.theta[regime] ** (coefficient * exponent)
 
@@ -65,16 +73,25 @@ class Chemistry(dict):
 
         :return:
         """
-        assert not (concentration is None and mesh is None), "Concentration or mesh required."
-        concentration = mesh.fields[self.key] if concentration is None else concentration
-        predicted = volume * concentration + dt / future * self.mass  # expected future system mass
+        assert not (
+            concentration is None and mesh is None
+        ), "Concentration or mesh required."
+        concentration = (
+            mesh.fields[self.key] if concentration is None else concentration
+        )
+        predicted = (
+            volume * concentration + dt / future * self.mass
+        )  # expected future system mass
 
         if mesh is None:
             mesh.salinity_flux_control(predicted, concentration)
             mesh.vertical_diffusivity(predicted)
 
-        return predicted if self.negatives else self._enforce_range(concentration, predicted, future)
-
+        return (
+            predicted
+            if self.negatives
+            else self._enforce_range(concentration, predicted, future)
+        )
 
     def exchange(self, delta, source=None, sink=None, layer=None, conversion=None):
         """
@@ -103,7 +120,7 @@ class Chemistry(dict):
         """
         Short hand for one-directional scaled exchange
         """
-        self.exchange(delta*sink, sink=sink, conversion=scale, layer=layer)
+        self.exchange(delta * sink, sink=sink, conversion=scale, layer=layer)
         return True
 
     @staticmethod
@@ -173,7 +190,6 @@ class Chemistry(dict):
         return export
 
 
-
 from neritics.chemistry.core import Chemistry
 from .o import OXYGEN, OCRB, Oxygen
 
@@ -223,9 +239,21 @@ class Carbon(Chemistry):
         :param config: JSON like dictionary of config options and constants
         """
         self.config = DEFAULT_CONFIG if config is None else config
-        self._particulate = (self.labile, self.recycled, self.refractory)  # particulate pool label functions
-        self._dissolved = (self.labile, self.excreted, self.recycled, self.refractory)  # dissolved label functions
-        self._settling = (self.refractory(self.particulate), self.labile(self.particulate))
+        self._particulate = (
+            self.labile,
+            self.recycled,
+            self.refractory,
+        )  # particulate pool label functions
+        self._dissolved = (
+            self.labile,
+            self.excreted,
+            self.recycled,
+            self.refractory,
+        )  # dissolved label functions
+        self._settling = (
+            self.refractory(self.particulate),
+            self.labile(self.particulate),
+        )
         self._available = (self.excreted(self.dissolved), self.recycled(self.dissolved))
         self.internal = 1 - self.config[EXCRETED]
 
@@ -237,12 +265,16 @@ class Carbon(Chemistry):
 
         :return: tuple of keys
         """
-        return [fcn(self.particulate) for fcn in self._particulate] + [fcn(self.dissolved) for fcn in self._dissolved]
+        return [fcn(self.particulate) for fcn in self._particulate] + [
+            fcn(self.dissolved) for fcn in self._dissolved
+        ]
 
     def integrate(self, anomaly, oxygen, phyto=0.0):
 
         assert self.hydrolyze(anomaly)  #
-        assert self.oxidize(oxygen, anomaly)  # destroy DOC, consumes oxygen if given a chemistry instance
+        assert self.oxidize(
+            oxygen, anomaly
+        )  # destroy DOC, consumes oxygen if given a chemistry instance
 
         return self._limit(phyto)
 
@@ -254,7 +286,10 @@ class Carbon(Chemistry):
 
         :return: success
         """
-        return all(self._hydrolysis(anomaly, fcn, key) for key, fcn in zip(P_MAP, self._particulate))
+        return all(
+            self._hydrolysis(anomaly, fcn, key)
+            for key, fcn in zip(P_MAP, self._particulate)
+        )
 
     def _hydrolysis(self, anomaly, fcn, key):
 
@@ -274,8 +309,15 @@ class Carbon(Chemistry):
 
         :return: cumulative oxygen demand or success
         """
-        total = sum(self._oxidization(fcn, k, anomaly, oxygen) for k, fcn in zip(D_MAP, self._dissolved))
-        return oxygen.exchange(total * OCRB, source=OXYGEN) if oxygen.__class__ == Oxygen else total
+        total = sum(
+            self._oxidization(fcn, k, anomaly, oxygen)
+            for k, fcn in zip(D_MAP, self._dissolved)
+        )
+        return (
+            oxygen.exchange(total * OCRB, source=OXYGEN)
+            if oxygen.__class__ == Oxygen
+            else total
+        )
 
     def _oxidization(self, fcn, key, anomaly, oxygen):
         """
@@ -307,7 +349,9 @@ class Carbon(Chemistry):
 
         range = self.config[VMAX] - self.config[VMIN]
         term = (self[self.key] / self.config[CRIT_COEF]) ** self.config[POWER_COEF]
-        return (self.config[VMIN] + range * term ** self.config[POWER_COEF]).clip(max=self.config[VMAX])
+        return (self.config[VMIN] + range * term ** self.config[POWER_COEF]).clip(
+            max=self.config[VMAX]
+        )
 
     def _solids(self, base):
         """
@@ -334,7 +378,11 @@ class Carbon(Chemistry):
         l = self.labile(self.particulate)
         r = self.refractory(self.particulate)
 
-        return self._deposition[10:12].sum() if labile_only else self._deposition[r] * fraction
+        return (
+            self._deposition[10:12].sum()
+            if labile_only
+            else self._deposition[r] * fraction
+        )
 
     def _limit(self, phyto=None):
         """
@@ -361,7 +409,7 @@ EQUIVALENTS = "EqDO"
 E_CONST = "KO2EQ"
 RATES = "K250"
 DIOXIDE = "O2"
-OCRB = 2*16/12  # OXYGEN TO CARBON RATIO
+OCRB = 2 * 16 / 12  # OXYGEN TO CARBON RATIO
 
 DEFAULT_CONFIG = {
     RATES: [0.15, 1.08],
@@ -425,7 +473,14 @@ class Oxygen(Chemistry):
         """
         Calculate base oxygen saturation from temperature and salinity
         """
-        return 14.6244 - 0.36713 * t + 0.0044972 * t ** 2 - 0.0966 * s + 0.00205 * s * t + 0.0002739 * s ** 2
+        return (
+            14.6244
+            - 0.36713 * t
+            + 0.0044972 * t ** 2
+            - 0.0966 * s
+            + 0.00205 * s * t
+            + 0.0002739 * s ** 2
+        )
 
     def critical(self, threshold=2.0):
         """
@@ -435,7 +490,7 @@ class Oxygen(Chemistry):
         """
 
         indices = where(self < threshold)
-        exponents = (self[self.key][indices] / threshold - 1)
+        exponents = self[self.key][indices] / threshold - 1
         return indices, exponents
 
 
@@ -461,7 +516,15 @@ class Nutrient(Chemistry):
 
         for (const, temp_const, source, sink) in self.pools:
             if self.verb:
-                print("Rate constants for", source, "to", sink+", base:", const, "temp:", temp_const)
+                print(
+                    "Rate constants for",
+                    source,
+                    "to",
+                    sink + ", base:",
+                    const,
+                    "temp:",
+                    temp_const,
+                )
 
             delta = self.rxn(const, temp_const, source, anomaly) * limit
             self.exchange(delta, source=source, sink=sink)
@@ -477,7 +540,7 @@ class Nutrient(Chemistry):
         :param sediment:
         :return: success or export to sediment
         """
-        export = self._sinking(flux * self[key+SORBED], pool)
+        export = self._sinking(flux * self[key + SORBED], pool)
         return export if sediment is None else sediment.conversion(pool, export)
 
     def _nutrient_dep(self, fraction, labile_only=False):
@@ -491,7 +554,11 @@ class Nutrient(Chemistry):
         l = self.labile(self.particulate)
         r = self.refractory(self.particulate)
 
-        return self._deposition[l] if labile_only else self._deposition[l] + self._deposition[r] * fraction
+        return (
+            self._deposition[l]
+            if labile_only
+            else self._deposition[l] + self._deposition[r] * fraction
+        )
 
 
 from numpy import where, ndarray, ones, array
@@ -508,10 +575,12 @@ KNO3 = "KNO3"
 RATES = "K1415"
 K2NOX = "K2NO23"
 
-POOLS = ((0.008, 1.08, "RPON", "RDON"),
-         (0.05, 1.08, "LPON", LABILE+DISSOLVED+ORGANIC+NITROGEN),
-         (0.008, 1.08, "RDON", AMMONIUM),
-         (0.05, 1.08, "LDON", AMMONIUM))
+POOLS = (
+    (0.008, 1.08, "RPON", "RDON"),
+    (0.05, 1.08, "LPON", LABILE + DISSOLVED + ORGANIC + NITROGEN),
+    (0.008, 1.08, "RDON", AMMONIUM),
+    (0.05, 1.08, "LDON", AMMONIUM),
+)
 
 DEFAULT_CONFIG = {
     "K1012": (0.008, 1.08),
@@ -553,17 +622,24 @@ class Nitrogen(Nutrient):
         :param verb: optional verbose mode
         """
 
-        self._particulate = (self.labile, self.refractory)  # particulate pool label functions
+        self._particulate = (
+            self.labile,
+            self.refractory,
+        )  # particulate pool label functions
         self._dissolved = (self.labile, self.refractory)  # dissolved label functions
         self.config = DEFAULT_CONFIG if config is None else config
 
-        Nutrient.__init__(self, keys=self._keys() + [AMMONIUM, NOX], shape=shape, verb=verb)
+        Nutrient.__init__(
+            self, keys=self._keys() + [AMMONIUM, NOX], shape=shape, verb=verb
+        )
 
     def _keys(self):
         """
         Generate pool keys for array data.
         """
-        return [fcn(self.particulate) for fcn in self._particulate] + [fcn(self.dissolved) for fcn in self._dissolved]
+        return [fcn(self.particulate) for fcn in self._particulate] + [
+            fcn(self.dissolved) for fcn in self._dissolved
+        ]
 
     def integrate(self, oxygen, carbon, anomaly, phyto=None):
         """
@@ -580,7 +656,9 @@ class Nitrogen(Nutrient):
             assert self.exchange(phyto, source=NOX, sink=AMMONIUM)  # excreted ammonium
 
         a = self._nitrify(oxygen, anomaly)  # ammonium to nitrate, consumes oxygen
-        b = self._denitrify(oxygen, carbon, anomaly)  # nitrate to gas, consumes labile carbon
+        b = self._denitrify(
+            oxygen, carbon, anomaly
+        )  # nitrate to gas, consumes labile carbon
 
         o_is_obj = True if oxygen.__class__ is Oxygen else False
         c_is_obj = True if carbon.__class__ is Carbon else False
@@ -598,10 +676,16 @@ class Nitrogen(Nutrient):
         :return: boolean success, or oxygen consumed
         """
         delta = self._nitrification(oxygen, anomaly) if delta is None else delta
-        assert self.exchange(delta, source=AMMONIUM, sink=NOX), "Problem with nitrification exchange."
+        assert self.exchange(
+            delta, source=AMMONIUM, sink=NOX
+        ), "Problem with nitrification exchange."
 
         consumed = 64 / 14 * delta
-        return oxygen.exchange(consumed, source=oxygen.key) if oxygen.__class__ == Oxygen else consumed
+        return (
+            oxygen.exchange(consumed, source=oxygen.key)
+            if oxygen.__class__ == Oxygen
+            else consumed
+        )
 
     def _denitrify(self, oxygen, carbon, anomaly):
         """
@@ -614,7 +698,12 @@ class Nitrogen(Nutrient):
         :return: success, or carbon consumption
         """
         a, b = self.config[DENITRIFICATION]
-        delta = self.rate(a, b, anomaly) * self[NOX] * self.config[KNO3] / (oxygen + self.config[KNO3])
+        delta = (
+            self.rate(a, b, anomaly)
+            * self[NOX]
+            * self.config[KNO3]
+            / (oxygen + self.config[KNO3])
+        )
         delta *= carbon.available() if carbon.__class__ == Carbon else carbon
 
         assert self.exchange(delta, source=NOX), "Problem in de-nitrification transfer."
@@ -641,7 +730,16 @@ class Nitrogen(Nutrient):
         kinetic, adsorbed = self._kinetic()
 
         if self.verb:
-            print("Rate:", rate, "Kinetic:", kinetic, "Adsorbed:", adsorbed, "Available:", available)
+            print(
+                "Rate:",
+                rate,
+                "Kinetic:",
+                kinetic,
+                "Adsorbed:",
+                adsorbed,
+                "Available:",
+                available,
+            )
 
         nitrification = rate * kinetic * available
 
@@ -706,7 +804,11 @@ class Sediment(dict):
         :return:
         """
         ammonium.rate = ammonium.rxn(0.5, temperature)
-        reaction = ammonium.rate ** 2 / transfer * (oxygen / (self.constants["KMNH4O2"] + oxygen))
+        reaction = (
+            ammonium.rate ** 2
+            / transfer
+            * (oxygen / (self.constants["KMNH4O2"] + oxygen))
+        )
 
         ammonium.flux[:, 0] = transfer * ammonium[:, 0]
         ammonium.flux[:, -1] = J[NITROGEN]
@@ -716,7 +818,9 @@ class Sediment(dict):
         K2H2D = tracers["K2NO3"].rate
 
         # Oxygen consumed by nitrification
-        demand = 64 / 14 / 1000 * ammonium.concentration[:, 0]  # mole ratio and mg/m2-day to gm/m2-day
+        demand = (
+            64 / 14 / 1000 * ammonium.concentration[:, 0]
+        )  # mole ratio and mg/m2-day to gm/m2-day
         K0H1D = reaction * ammonium.rate  # water column
         K1H1D = transfer  # aerobic layer
 
@@ -724,8 +828,6 @@ class Sediment(dict):
             demand *= K0H1D / (ammonium.rate + ammonium.previous[:, 0])
         else:
             demand *= K1H1D - transfer
-
-
 
     def ammonium_diffusion(self, mesh):
 
@@ -764,18 +866,25 @@ class Sediment(dict):
         # source = carbon.labile(carbon.dissolved)
         # return carbon.exchange(consumed, source=source) if carbon.__class__ == Carbon else consumed
 
-
         anaerobic = self.depth - self.aerobic
 
         regime = "marine" if salinity > marine else "fresh"
         self[NOX][0].rate = self[NOX][0].rxn(0.5, anomaly, regime=regime)
         self[NOX][1].rate = self[NOX][1].rxn(1.0, anomaly, regime=regime) * anaerobic
 
-        denitrification = (self[NOX][0].rate ** 2 / transfer + self[NOX][1].rate) * self[NOX][0].concentration
+        denitrification = (
+            self[NOX][0].rate ** 2 / transfer + self[NOX][1].rate
+        ) * self[NOX][0].concentration
 
         # denitrification
         nitrate = self[NOX][:, -1] * 1000
-        J1 = S * nitrate + self[AMMONIUM].rate ** 2 / transfer * (oxygen / (KMNH4O2 + oxygen)) * self[AMMONIUM]
+        J1 = (
+            S * nitrate
+            + self[AMMONIUM].rate ** 2
+            / transfer
+            * (oxygen / (KMNH4O2 + oxygen))
+            * self[AMMONIUM]
+        )
         if self[AMMONIUM].rate > 0.0:
             J1 *= self[AMMONIUM].rate / (self[AMMONIUM].rate + self[AMMONIUM].previous)
 
@@ -791,7 +900,9 @@ class Sediment(dict):
         particulate_rate = self.rxn(KAPPP1, THTAPD1, 0.5, temperature)
 
         oxidation = rxn(DD0, THTADD0, 1, temperature)
-        bottom = self.depth - (oxidation / self.transfer).clip(min=0.0)  # limit to depth of sediment
+        bottom = self.depth - (oxidation / self.transfer).clip(
+            min=0.0
+        )  # limit to depth of sediment
         self.aerobic = self.depth - bottom
 
         self.ammonium_diffusion(mesh)
@@ -833,10 +944,12 @@ from numpy import where
 
 PHOSPHATE = "PO4"
 PHOSPHOROUS = "P"
-POOLS = ((0.01, 1.08, "RPOP", "RDOP"),
-         (0.05, 1.08, "LPOP", "LDOP"),
-         (0.01, 1.08, "RDOP", PHOSPHATE),
-         (0.01, 1.08, "LDOP", PHOSPHATE))
+POOLS = (
+    (0.01, 1.08, "RPOP", "RDOP"),
+    (0.05, 1.08, "LPOP", "LDOP"),
+    (0.01, 1.08, "RDOP", PHOSPHATE),
+    (0.01, 1.08, "LDOP", PHOSPHATE),
+)
 
 PARTITION = "KADPO4"
 DEFAULT_CONFIG = {
@@ -863,7 +976,10 @@ class Phosphorus(Nutrient):
             config = DEFAULT_CONFIG
 
         self.config = config
-        self._particulate = (self.labile, self.refractory)  # particulate pool label functions
+        self._particulate = (
+            self.labile,
+            self.refractory,
+        )  # particulate pool label functions
         self._dissolved = (self.labile, self.refractory)  # dissolved label functions
 
         Nutrient.__init__(self, keys=self._keys() + [PHOSPHATE], shape=shape, verb=verb)
@@ -872,7 +988,9 @@ class Phosphorus(Nutrient):
         """
         Generate pool keys for array data.
         """
-        return [fcn(self.particulate) for fcn in self._particulate] + [fcn(self.dissolved) for fcn in self._dissolved]
+        return [fcn(self.particulate) for fcn in self._particulate] + [
+            fcn(self.dissolved) for fcn in self._dissolved
+        ]
 
     def kinetic(self, fields, phyto, particles):
         """
@@ -914,7 +1032,6 @@ class Phosphorus(Nutrient):
         lower = anaerobic.phosphate(J[PHOSPHOROUS], scales)
         upper = aerobic.phosphate(oxygen, free)
 
-
         self[PHOSPHATE].diffusion(1, K3, [])
         self[PHOSPHATE].flux = self.transfer * (phosphate.concentration[:, 0] - free)
 
@@ -924,12 +1041,12 @@ class Phosphorus(Nutrient):
 from neritics.chemistry.nutrient.core import Nutrient
 
 SILICA = "Si"
-BIOGENIC= "B"
+BIOGENIC = "B"
 SILICATE = "SiO3"
 PARTITION = "KADSI"
 MINERALIZATION = "K1617"
 
-POOLS = (MINERALIZATION+"C", MINERALIZATION+"T", BIOGENIC+SILICA, SILICATE)
+POOLS = (MINERALIZATION + "C", MINERALIZATION + "T", BIOGENIC + SILICA, SILICATE)
 
 DEFAULT_CONFIG = {
     MINERALIZATION: [0.08, 1.08],  # SI MINERALIZATION TEMPERATURE COEFFICIENT
@@ -944,7 +1061,6 @@ SULPHUR = "S"
 
 
 class Sulphur:
-
     @staticmethod
     def regress(salinity):
         """
@@ -980,13 +1096,11 @@ class Silica(Nutrient):
 
     @staticmethod
     def _keys():
-        return [SILICA, BIOGENIC+SILICA, SILICATE]
+        return [SILICA, BIOGENIC + SILICA, SILICATE]
 
     def _sinking(self, delta, corr, sediment):
         export = self.sinking(delta * self["BSi"], "BSi")
         assert sediment._conversion("BSi", export, corr)
-
-
 
     def silica_flux(self, mesh, systems, dt):
         """
@@ -1001,18 +1115,24 @@ class Silica(Nutrient):
         oxygen = mesh.fields["oxygen"][:, -1]
 
         flux[SILICA][-1] = scales * deposition["SISS"]  # adsorbed silica
-        K3 = self.tracers[SILICA].rate * PSI / (PSITM1 + KMPSI) * dissolved[-1]  # silica dissolution kinetics
-        PSI = ((self.FLXPOS + JSIDETR) * dt / self.depth + PSITM1) / (1.0 + (K3 + settling) * dt / self.depth)  # biogenic si
+        K3 = (
+            self.tracers[SILICA].rate * PSI / (PSITM1 + KMPSI) * dissolved[-1]
+        )  # silica dissolution kinetics
+        PSI = ((self.FLXPOS + JSIDETR) * dt / self.depth + PSITM1) / (
+            1.0 + (K3 + settling) * dt / self.depth
+        )  # biogenic si
 
         partition = self.partition["Si"]
         partition[:, 0] *= self.partition["Si"][:, 1]
         if oxygen < O2CRITSI:  # oxygen dependency of partitioning
-            partition[0] *= self.partition["SI"][:, 0]**(oxygen/O2CRITSI - 1)
+            partition[0] *= self.partition["SI"][:, 0] ** (oxygen / O2CRITSI - 1)
 
         dissolved[-1] = 1.0 / (1.0 + self.solids * partition[-1])
 
         upper = self.transfer * free
-        lower = self.tracers["Si"].rate * PSI / (PSITM1 + KMPSI) * CSISAT + flux["Si"][-1]
+        lower = (
+            self.tracers["Si"].rate * PSI / (PSITM1 + KMPSI) * CSISAT + flux["Si"][-1]
+        )
 
         self.tracers[SILICA].flux = self.tracers[SILICA].diffusion(1, K3, J)
 
