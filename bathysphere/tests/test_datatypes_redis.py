@@ -1,10 +1,6 @@
 from time import sleep, time
 from redis import StrictRedis
 from pickle import dumps as pickle, loads as unpickle
-from rq import Queue, Connection, Worker
-
-from bathysphere import app
-from bathysphere.datatypes import ObjectStorage
 
 
 def test_datatypes_redis_queue_connection(cache):
@@ -44,5 +40,5 @@ def test_datatypes_redis_queue_pubsub(cache):
             break
         received.append(message)
         
-    assert len(received) >= len(sequence)
+    assert len(received) == len(sequence)
 
