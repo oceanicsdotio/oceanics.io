@@ -3,7 +3,7 @@ from json import load
 from pickle import loads as unpickle
 
 try:
-    from numpy import random, argmax, argmin, arange, array, vstack, pi
+    from numpy import random, argmax, argmin, arange, array, vstack, pi, all, any
     from numpy.random import random
     from numpy import where
     from numpy.ma import MaskedArray
@@ -12,53 +12,48 @@ except ImportError as _:
     pi = 3.1415926
 
 from bathysphere.datatypes import Memory, ConvexHull
-from bathysphere.future.utils import interp2d_nearest
-
-
-def test_datatypes_convex_hull():
-    groups = (
-        random((100, 2)),
-        0.5 * random((100, 2)) + 1,
-        0.5 * random((100, 2)) - 1,
-    )
-
-    hulls = tuple(map(ConvexHull, groups))
-    hullsUnion = vstack(tuple(group[hi, :] for hi, group in zip(hulls, groups)))
-    union = ConvexHull(hullsUnion)
-    pts = vstack(groups)
-    subset = ConvexHull(pts)
-
-    fig, ax = plt.subplots(1, 2)
-    ax[0].set_title("Convex hull of all points")
-    ax[0].axis("equal")
-    ax[0].scatter(pts[:, 0], pts[:, 1], color="black")
-    ax[0].plot(pts[subset, 0], pts[subset, 1], color="black")
-
-    ax[1].set_title("Convex hull of hulls")
-    ax[1].axis("equal")
-    ax[1].plot(hullsUnion[union, 0], hullsUnion[union, 1], color="black")
-    for hull, group in zip(hulls, groups):
-        ax[1].plot(group[hull, 0], group[hull, 1], color="black")
-
-    fig.tight_layout()
-    fig.savefig(fname="convex-hull.png", bgcolor="none")
+from bathysphere.future.utils import State, RADIANS, DEGREES, polygon_area, center
+from bathysphere.future.utils import (
+    rectangle,
+    square,
+    regular_polygon,
+    wedge,
+    point_arc,
+    parallelogram,
+    XAXIS,
+    YAXIS,
+    ZAXIS,
+    ORIGIN,
+    normal,
+    tetrahedron,
+    hexagon,
+    cube,
+    shell,
+    icosahedron,
+    globe,
+    vertex_array_normals,
+    extrude,
+    adjacency,
+    subdivide,
+    interp2d_nearest
+)
 
 
 NBYTES = 100
 
 
-# def single_index(fname, field, index):
-#     nc = Dataset(fname, "r")  # open NetCDF for reading
-#     print("Model:", nc.title)
-#     print("Format:", nc.Conventions)
-#     data = nc.variables[field][0:240, index]
-#     return data
+
+def single_index(fname, field, index):
+    nc = Dataset(fname, "r")  # open NetCDF for reading
+    print("Model:", nc.title)
+    print("Format:", nc.Conventions)
+    data = nc.variables[field][0:240, index]
+    return data
 
 
 def subset(xx, yy, field, samples, mask):
     # type: (array, array, array, array) -> array
-    
-    
+
     total = (~mask).sum()
     nsamples = min(samples, total)
     inds = where(~mask)[0], nsamples
@@ -68,14 +63,14 @@ def subset(xx, yy, field, samples, mask):
     return [xx, yy, zz]
 
 
-# def avgvert(fname, key, mesh, host):
-#     nc = Dataset(fname, "r")
-#     temp = nc.variables[key]
-#     nodes = mesh._GridObject__triangles[host, :]
-#     aa = temp[0:240, 0, nodes[0]]
-#     bb = temp[0:240, 0, nodes[1]]
-#     cc = temp[0:240, 0, nodes[2]]
-#     return (aa + bb + cc) / 3.0
+def avgvert(fname, key, mesh, host):
+    nc = Dataset(fname, "r")
+    temp = nc.variables[key]
+    nodes = mesh._GridObject__triangles[host, :]
+    aa = temp[0:240, 0, nodes[0]]
+    bb = temp[0:240, 0, nodes[1]]
+    cc = temp[0:240, 0, nodes[2]]
+    return (aa + bb + cc) / 3.0
 
 
 def scan(dataset, attribute, required=None, verb=False):
@@ -99,6 +94,37 @@ def validate_remote_dataset(storage, dataset, dtype=(MaskedArray, dict, dict)):
     for each in fetched:
         for i in unpickle(storage.get(f"{dataset}/{each}").data):
             assert isinstance(i, dtype)
+
+
+
+def test_datatypes_ndarray_convex_hull():
+    groups = (
+        random((100, 2)),
+        0.5 * random((100, 2)) + 1,
+        0.5 * random((100, 2)) - 1,
+    )
+
+    hulls = tuple(map(ConvexHull, groups))
+    hullsUnion = vstack(tuple(group[hi, :] for hi, group in zip(hulls, groups)))
+    _ = ConvexHull(hullsUnion)
+    pts = vstack(groups)
+    _ = ConvexHull(pts)
+
+    # fig, ax = plt.subplots(1, 2)
+    # ax[0].set_title("Convex hull of all points")
+    # ax[0].axis("equal")
+    # ax[0].scatter(pts[:, 0], pts[:, 1], color="black")
+    # ax[0].plot(pts[subset, 0], pts[subset, 1], color="black")
+
+    # ax[1].set_title("Convex hull of hulls")
+    # ax[1].axis("equal")
+    # ax[1].plot(hullsUnion[union, 0], hullsUnion[union, 1], color="black")
+    # for hull, group in zip(hulls, groups):
+    #     ax[1].plot(group[hull, 0], group[hull, 1], color="black")
+
+    # fig.tight_layout()
+    # fig.savefig(fname="convex-hull.png", bgcolor="none")
+
 
 
 def test_datatypes_memory_setup_mem_class():
@@ -469,7 +495,7 @@ def test_osi_dataset_load_clipping_shapes_closures(nssp_closures):
 @pytest.mark.network
 def test_osi_dataset_analysis_subtract_closures(object_storage, nssp_closures):
     """Remove closures and save locally"""
-    shp, meta, rec = zip(*tuple(chain(*nssp_closures)))
+    shp, _, _ = zip(*tuple(chain(*nssp_closures)))
     with open("vertex-array-shapes", "rb") as fid:
         data = vstack(filter(filter_arrays, chain(*load(fid))))
     polygon_crop_and_save(data, shp, "vertex-array-closures", method=multi_polygon_cull)
@@ -526,3 +552,160 @@ def test_osi_dataset_analysis_island_hole_culling_upload(object_storage):
     with open(key, "rb") as fid:
         data = (vstack(filter(filter_arrays, chain(*load(fid)))),)
     object_storage.vertex_array_buffer(data, OSI_OBJ, key, strategy="bisect")
+
+
+
+
+def test_angle_unit_conversions():
+    """Radian <-> degree conversions are correct"""
+    assert RADIANS == 1 / DEGREES
+    assert 2 * pi * DEGREES == 360
+    assert 360 * RADIANS == 2 * pi
+
+
+def test_axes_and_origin():
+    """Axes are normalized and origin is zero to start"""
+    assert XAXIS.sum() == 1
+    assert YAXIS.sum() == 1
+    assert ZAXIS.sum() == 1
+    assert ORIGIN.sum() == 0
+
+
+def test_make_vector_primitive():
+    """Vector initializes, and normalization works."""
+    v = State()
+    assert all(v.orientation == XAXIS)
+    v.orientation += XAXIS
+    assert any(v.orientation != XAXIS)
+    v.orientation = normal(v.orientation)
+    assert all(v.orientation == XAXIS)
+
+
+def test_datatypes_ndarray_shapes_create_rectangle():
+    vertex_array = rectangle(ww=1.0, hh=1.0)
+    assert polygon_area(vertex_array)
+    assert center(vertex_array)
+
+
+def test_datatypes_ndarray_shapes_create_square():
+    vertex_array = square(0.5)
+    assert polygon_area(vertex_array)
+    assert center(vertex_array)
+
+
+def test_datatypes_ndarray_shapes_create_parallelogram():
+    vertex_array = parallelogram(dh=1.0, dw=1.0, ww=1.0, hh=1.0)
+    assert polygon_area(vertex_array)
+    assert center(vertex_array)
+
+
+def test_datatypes_ndarray_shapes_create_polygon():
+    vertex_array = regular_polygon(10)
+    assert polygon_area(vertex_array)
+    assert center(vertex_array)
+
+
+def test_datatypes_ndarray_shapes_create_wedge():
+    vertex_array = wedge(5, 0.0, 0.5)
+    assert polygon_area(vertex_array)
+    assert center(vertex_array)
+
+
+def test_datatypes_ndarray_shapes_create_point_arc():
+    vertex_array = point_arc(5, 0.0, 1.0)
+    assert center(vertex_array)
+
+
+def test_datatypes_ndarray_shapes_create_tetrahedron():
+    vertex_array, _ = tetrahedron()
+    assert center(vertex_array)
+
+
+def test_datatypes_ndarray_shapes_create_hexagon_from_cube():
+    vertex_array, _ = hexagon()
+    assert center(vertex_array)
+
+
+def test_datatypes_ndarray_shapes_create_cube():
+    vertex_array, _ = cube()
+    assert center(vertex_array)
+
+
+def test_datatypes_ndarray_shapes_create_icosahedron():
+    vertex_array, _ = icosahedron()
+    assert center(vertex_array)
+
+
+def test_datatypes_ndarray_shapes_create_globe():
+    vertex_array, _ = globe()
+    assert center(vertex_array)
+
+
+def test_datatypes_ndarray_shapes_create_add_normals():
+    normals = vertex_array_normals(*globe(), s=1.0)
+    assert isinstance(normals.shape, tuple)
+
+
+def test_datatypes_ndarray_shapes_extrude():
+    vertex_array, _ = extrude(square(1.0))
+    assert isinstance(vertex_array.shape, tuple)
+
+def test_datatypes_ndarray_shapes_adjacency():
+    adj = adjacency(*tetrahedron())
+    assert isinstance(adj, list) and len(adj) > 1
+
+
+def test_datatypes_ndarray_shapes_subdivide():
+    vertex_array, topology = tetrahedron()
+    subdivide(vertex_array, topology, punch=True)
+    assert isinstance(vertex_array.shape, tuple)
+
+
+def test_datatypes_ndarray_shapes_shell():
+    shl = shell(points=10, start=0.0, dh=0.0, dw=0.5, sweep=pi / 6, ww=1.0, hh=2.0)
+    assert isinstance(shl.shape, tuple)
+
+
+@pytest.mark.xfail
+def test_datatypes_ndarray_shapes_stitch():
+    assert False
+
+
+@pytest.mark.xfail
+def test_datatypes_ndarray_shapes_deduplicate_vertices():
+    assert False
+
+
+@pytest.mark.xfail
+def test_datatypes_ndarray_shapes_deduplicate_topology():
+    assert False
+
+
+@pytest.mark.xfail
+def test_geometric_calculus_intersect():
+    assert False
+
+
+@pytest.mark.xfail
+def test_datatypes_ndarray_shapes_bevel():
+    assert False
+
+
+@pytest.mark.xfail
+def test_datatypes_ndarray_shapes_roughen():
+    assert False
+
+
+@pytest.mark.xfail
+def test_datatypes_ndarray_shapes_smooth_surface():
+    assert False
+
+
+@pytest.mark.xfail
+def test_datatypes_ndarray_shapes_impact_surface():
+    assert False
+
+
+@pytest.mark.xfail
+def test_datatypes_ndarray_shapes_degrade_epochs():
+    assert False
