@@ -11,7 +11,7 @@ try:
 except ImportError as _:
     pi = 3.1415926
 
-from bathysphere.datatypes import Memory, ConvexHull
+from bathysphere.datatypes import Memory, ConvexHull, Dataset
 from bathysphere.future.utils import State, RADIANS, DEGREES, polygon_area, center
 from bathysphere.future.utils import (
     rectangle,
@@ -295,17 +295,26 @@ def filter_iteration(vertex_array, shapes, extents, records=None):
 
 @pytest.mark.network
 def test_osi_dataset_accessible(object_storage):
-    """Remote dataset exists"""
+    """
+    Remote dataset exists
+    """
     metadata = object_storage.head(DATASET)
     assert metadata is not None
 
 
 def _filter(shapes):
+    """
+    Special filter for geopolitical boundaries
+    """
     f = filter(lambda x: x[2]["LAND"] == "n", chain(*shapes))
     shp, meta, rec = zip(*tuple(f))
     assert len(shp) == len(rec) == len(meta)
 
-    extents = tuple(extent(*array_split(s, 2, axis=1)) for s in shp)
+    extents = ()
+    for s in shp:
+        x, y = array_split(s, 2, axis=1)
+        extents += (extent(x,y),)
+
     return {
         "extents": extents,
         "shapes": shp,

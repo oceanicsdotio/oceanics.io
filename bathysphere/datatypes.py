@@ -6,6 +6,7 @@ from json import dumps, loads, decoder, load as load_json
 from collections import deque
 from uuid import uuid4
 from os import getpid, getenv
+from os.path import isfile
 from io import BytesIO, TextIOWrapper
 from difflib import SequenceMatcher
 from functools import reduce
@@ -15,7 +16,7 @@ from re import sub
 from xml.etree import ElementTree
 from itertools import repeat, chain
 from multiprocessing import Pool
-from warnings import warn
+from warnings import warn, simplefilter
 
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
@@ -451,59 +452,56 @@ class DataFormat(Enum):
     ArrayfireTexture = 7
 
 
-# class Dataset(_Dataset):
-#     """
-#     Wrapper for NetCDF Dataset that does back-off in case of remote connection errors
-#     or drop-outs.
+class Dataset(_Dataset):
+    """
+    Wrapper for NetCDF Dataset that does back-off in case of remote connection errors
+    or drop-outs.
 
-#     * Query: Get an array of a single variable
-#     * Cache: Save chunk in object storage or local filesystem
-#     """
+    * Query: Get an array of a single variable
+    * Cache: Save chunk in object storage or local filesystem
+    """
+    def query(
+        self, 
+        observed_property: str, 
+        samples: int = None, 
+        reduce_dim: bool = False, 
+        kind: str = "float64"
+    ) -> array:
+        """
+        Extract an observedProperty, and optionally extract pixel samples from it.
+        :param observed_property: field to extract
+        :param samples: buffer of pixel indices to sample
+        :param reduce_dim: if a single dim is stored as double dim, use this to avoid weirdness
+        :param kind: format for numerical data
+        """
+        simplefilter("ignore")  # ignore known NaN warning
+        if samples:
+            return array(
+                self.variables[observed_property][0, i, j].astype(kind)
+                for i, j in samples
+            )
+        return (
+            self.variables[observed_property][:, 0].astype(kind) if reduce_dim
+            else self.variables[observed_property][:].astype(kind)
+        )
 
-#     def __init__(self, *args, retries=3, delay=0.5, **kwargs):
-#         while retries:
-#             try:
-#                 _Dataset.__init__(self, *args, **kwargs)
-#                 return
-#             except IOError:
-#                 retries -= 1
-#                 sleep(delay)
-#         raise TimeoutError
-
-#     def query(self, observed_property, samples=None, reduce_dim=False, kind="float64"):
-#         # type: (str, ((int, int),), bool, str) -> Array
-#         """
-#         Extract an observedProperty, and optionally extract pixel samples from it.
-#         :param observed_property: field to extract
-#         :param samples: buffer of pixel indices to sample
-#         :param reduce_dim: if a single dim is stored as double dim, use this to avoid weirdness
-#         :param kind: format for numerical data
-#         """
-#         simplefilter("ignore")  # ignore known NaN warning
-#         if samples:
-#             return array(
-#                 self.variables[observed_property][0, i, j].astype(kind)
-#                 for i, j in samples
-#             )
-#         return (
-#             self.variables[observed_property][:, 0].astype(kind) if reduce_dim
-#             else self.variables[observed_property][:].astype(kind)
-#         )
-
-#     def copy(self, path, observed_properties=None):
-#         # type: (str, set) -> Dataset
-#         fid = Dataset(path=path)
-#         if isfile(path=path) and not self.policy():
-#             return False
-#         for name, obj in self.dimensions.items():
-#             fid.createDimension(name, obj)
-#         for name, obj in self.variables.items():
-#             if observed_properties and str(name) not in observed_properties:
-#                 continue  # not matching variables in source data
-#             fid.createVariable(name, obj.datatype, obj.dimensions)  # add headers
-#             fid.variables[name][:] = self.variables[name][:]
-#         fid.close()
-#         return fid
+    def copy(
+        self, 
+        path: str, 
+        observed_properties: (str) = None
+    ):
+        fid = _Dataset(path=path)
+        if isfile(path=path) and not self.policy():
+            return False
+        for name, obj in self.dimensions.items():
+            fid.createDimension(name, obj)
+        for name, obj in self.variables.items():
+            if observed_properties and str(name) not in observed_properties:
+                continue  # not matching variables in source data
+            fid.createVariable(name, obj.datatype, obj.dimensions)  # add headers
+            fid.variables[name][:] = self.variables[name][:]
+        fid.close()
+        return fid
 
 
 @attr.s

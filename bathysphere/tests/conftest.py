@@ -32,7 +32,8 @@ from bathysphere.datatypes import (
     Schema, 
     Field, 
     PostgresType, 
-    ObjectStorage
+    ObjectStorage,
+    Dataset
 )
 from bathysphere.graph.models import Collections
 # from bathysphere.datatypes import Dataset
@@ -118,6 +119,44 @@ def getCredentials(
             credentials[item.get("name")] = item.get("apiKey")
     return credentials
 
+
+def dumpToXYZ():
+    path = f"data/LC8011030JulyAvLGN00_OSI.nc"
+    osi = Dataset(path)
+    x = osi.query("lon").flatten()
+    y = osi.query("lat").flatten()
+    z = osi.query("OSI").flatten()
+    with open("data/xyz.csv", "w+") as fid:
+        fid.write(f"lon,lat,osi\n")
+        for a, b, c in zip(x, y, z):
+            if not isnan(c):
+                fid.write(f"{a},{b},{c}\n")
+
+
+
+def pad(val, n: int = 9):
+    if isinstance(val, float):
+        val = str(int(val))
+    elif isinstance(val, int):
+        val = str(val)
+    return " " * (n - len(val))
+
+
+def filter_shapes(region, shapes, extents):
+    start = time()
+    f, e = extent_overlap_filter(region, shapes, extents)
+    total = reduce(reduce_extent, e)
+    print(f"{time() - start} seconds to find {len(f)} overlapping shapes")
+    print("Extent =", total)
+    return (Path(f) for f in f), total
+
+
+def validate_shape(shape, proj):
+
+    assert len(center(shape)) == 2
+    assert len(extent(shape[:,0], shape[:,1])) == 4
+    assert polygon_area(shape) > 0.0
+   
 
 @pytest.fixture(scope="session")
 def client():
@@ -305,121 +344,81 @@ def object_storage():
         return storage
     return wrappedFunction
 
-# @pytest.fixture()
-# def signal():
-#     def _sig(m: int = 1):
-#         f = 24 * m
-#         n = 365 * f
-#         x = arange(0, n) / f
-#         y = 5 * sin(x / 2 * pi) + random.normal(size=n)
-#         return tuple(zip(x, y))
+@pytest.fixture()
+def signal():
+    def _sig(m: int = 1):
+        f = 24 * m
+        n = 365 * f
+        x = arange(0, n) / f
+        y = 5 * sin(x / 2 * pi) + random.normal(size=n)
+        return tuple(zip(x, y))
 
-#     return _sig
-
-
-# def pad(val, n: int = 9):
-#     if isinstance(val, float):
-#         val = str(int(val))
-#     elif isinstance(val, int):
-#         val = str(val)
-#     return " " * (n - len(val))
-
-
-# def filter_shapes(region, shapes, extents):
-#     start = time()
-#     f, e = extent_overlap_filter(region, shapes, extents)
-#     total = reduce(reduce_extent, e)
-#     print(f"{time() - start} seconds to find {len(f)} overlapping shapes")
-#     print("Extent =", total)
-#     return (Path(f) for f in f), total
+    return _sig
 
 
 
 
+@pytest.fixture(scope="module")
+@pytest.mark.external_call
+def avhrr():
+    _avhrr = Dataset("")
+    assert _avhrr.isopen()
+    yield _avhrr
 
 
-# def validate_shape(shape, proj):
-#     assert len(center(shape)) == 2
-#     assert len(extent(shape)) == 4
-#     assert polygon_area(shape) > 0.0
-#     shape = project(shape, proj)
-#     assert len(shape.center()) == 2
-#     assert len(shape.extent()) == 4
+@pytest.fixture(scope="session")
+def necofs():
+    yield Dataset("data/necofs_gom3_mesh.nc")
 
 
-# @pytest.fixture(scope="module")
-# @pytest.mark.external_call
-# def avhrr():
-#     _avhrr = Dataset("")
-#     assert _avhrr.isopen()
-#     yield _avhrr
+@pytest.fixture(scope="session")
+def mesh(necofs):
+
+    x = necofs.variables[LONGITUDE_NAME][:]
+    y = necofs.variables[LATITUDE_NAME][:]
+    z = necofs.variables["h"][:]
+    nv = necofs.variables["nv"][:]
+    vert = column_stack((x, y, z))
+
+    for ii in range(3):
+        vert[:, ii] -= vert[:, ii].min()
+        vert[:, ii] /= vert[:, ii].max()
+
+    yield {"vertices": vert, "data": necofs, "topology": nv}
 
 
-# @pytest.fixture(scope="session")
-# def necofs():
-#     yield Dataset("data/necofs_gom3_mesh.nc")
+@pytest.fixture(scope="session")
+def osi():
+
+    path = f"data/LC8011030JulyAvLGN00_OSI.nc"
+    assert isfile(path)
+
+    osi = Dataset(path)
+    yield osi
 
 
-# @pytest.fixture(scope="session")
-# def mesh(necofs):
+@pytest.fixture(scope="function")
+def osi_vertex_array(osi):
+    start = time()
+    x = osi.query("lon")
+    y = osi.query("lat")
+    z = osi.query("OSI")
 
-#     x = necofs.variables[LONGITUDE_NAME][:]
-#     y = necofs.variables[LATITUDE_NAME][:]
-#     z = necofs.variables["h"][:]
-#     nv = necofs.variables["nv"][:]
-#     vert = column_stack((x, y, z))
+    _ = x.nbytes + y.nbytes + z.nbytes
 
-#     for ii in range(3):
-#         vert[:, ii] -= vert[:, ii].min()
-#         vert[:, ii] /= vert[:, ii].max()
+    cart = project(x, y, native=SphericalWGS84, view=CartesianNAD83)
+    assert z.shape == x.shape == y.shape
+    z.mask = nan_mask(z)
+    xyz = arrays2points(*cart, z)
+    b = len(xyz)
+    a = z.shape[0] * z.shape[1]
+    assert b < a
+    c = a - b
+    print(f"{int(time() - start)} seconds to unpack pixels")
+    print(f"{c} NaN values removed ({int(100*c/a)}%)")
 
-#     yield {"vertices": vert, "data": necofs, "topology": nv}
+    a = x.nbytes + y.nbytes + z.nbytes
+    b = xyz.nbytes
+    print(f"{b//1000} kb from {a//1000} kb ({int(100*b/a)}%)")
+    yield xyz
 
-
-# @pytest.fixture(scope="session")
-# def osi():
-
-#     path = f"data/LC8011030JulyAvLGN00_OSI.nc"
-#     assert isfile(path)
-
-#     osi = Dataset(path)
-#     yield osi
-
-
-# @pytest.fixture(scope="function")
-# def osi_vertex_array(osi):
-#     start = time()
-#     x = osi.query("lon")
-#     y = osi.query("lat")
-#     z = osi.query("OSI")
-
-#     s = x.nbytes + y.nbytes + z.nbytes
-
-#     cart = project(x, y, native=SphericalWGS84, view=CartesianNAD83)
-#     assert z.shape == x.shape == y.shape
-#     z.mask = nan_mask(z)
-#     xyz = arrays2points(*cart, z)
-#     b = len(xyz)
-#     a = z.shape[0] * z.shape[1]
-#     assert b < a
-#     c = a - b
-#     print(f"{int(time() - start)} seconds to unpack pixels")
-#     print(f"{c} NaN values removed ({int(100*c/a)}%)")
-
-#     a = x.nbytes + y.nbytes + z.nbytes
-#     b = xyz.nbytes
-#     print(f"{b//1000} kb from {a//1000} kb ({int(100*b/a)}%)")
-#     yield xyz
-
-
-# def dumpToXYZ():
-#     path = f"data/LC8011030JulyAvLGN00_OSI.nc"
-#     osi = Dataset(path)
-#     x = osi.query("lon").flatten()
-#     y = osi.query("lat").flatten()
-#     z = osi.query("OSI").flatten()
-#     with open("data/xyz.csv", "w+") as fid:
-#         fid.write(f"lon,lat,osi\n")
-#         for a, b, c in zip(x, y, z):
-#             if not isnan(c):
-#                 fid.write(f"{a},{b},{c}\n")
