@@ -11,7 +11,7 @@ apiVersion: extensions/catalog
 kind: Collections
 metadata:
 spec:
-  title: Oysters
+  name: Oysters
   description: Oyster data
   license:
   version: 1
@@ -21,7 +21,7 @@ apiVersion: extensions/catalog
 kind: Collections
 metadata:
 spec:
-  title: Limited purpose aquaculture sites
+  name: Limited purpose aquaculture sites
   description: Temporary sites with a small footprint
 ---
 apiVersion: extensions/sensing
