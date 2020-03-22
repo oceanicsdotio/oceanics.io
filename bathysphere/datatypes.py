@@ -805,27 +805,27 @@ class FileSystem:
 
         return enum, collector
 
-    @staticmethod
-    def search(pattern, filesystem):
-        # type: (str, dict) -> None or str
-        """
-        Recursively search a directory structure for a key.
-        Call this on the result of `index`
+    # @staticmethod
+    # def search(pattern, filesystem):
+    #     # type: (str, dict) -> None or str
+    #     """
+    #     Recursively search a directory structure for a key.
+    #     Call this on the result of `index`
 
-        :param filesystem: paths
-        :param pattern: search key
-        :return:
-        """
-        for key, level in filesystem.items():
-            if key == pattern:
-                return key
-            try:
-                result = FileSystem.search(pattern, level)
-            except AttributeError:
-                result = None
-            if result:
-                return f"{key}/{result}"
-        return None
+    #     :param filesystem: paths
+    #     :param pattern: search key
+    #     :return:
+    #     """
+    #     for key, level in filesystem.items():
+    #         if key == pattern:
+    #             return key
+    #         try:
+    #             result = FileSystem.search(pattern, level)
+    #         except AttributeError:
+    #             result = None
+    #         if result:
+    #             return f"{key}/{result}"
+    #     return None
 
     # @staticmethod
     # def search(
@@ -884,7 +884,12 @@ class FileSystem:
 
     #     return collector, queue
 
-    # def get_files(queue: deque, pool: Pool, **kwargs):
+    # @staticmethod
+    # def get_files(
+    #     queue: deque, 
+    #     pool: Pool, 
+    #     **kwargs
+    # ):
     #     """
     #     Create and process a day of raw files
     #     """
@@ -972,7 +977,7 @@ class FileSystem:
     # @staticmethod
     # def syncFtp(ftp, remote, local, filesystem=None):
     #     # type: (FTP, str, str, dict) -> int
-    #     path = FileSystem().search(pattern=remote)
+    #     path = FileSystem.search(pattern=remote, filesystem=filesystem)
     #     with open(local, "wb+") as fid:
     #         return int(ftp.retrbinary(f"RETR {path}", fid.write))
 
