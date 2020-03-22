@@ -212,6 +212,15 @@ def validate_remote_dataset(storage, dataset, dtype=(MaskedArray, dict, dict)):
 
 
 @pytest.fixture(scope="session")
+def redis_cache():
+    return StrictRedis(
+        host="localhost",
+        port=6379,
+        db=0,
+        socket_timeout=3
+    )
+
+@pytest.fixture(scope="session")
 def client():
     """
     Connexion Apps are a wrapper around the real Flask App.

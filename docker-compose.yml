@@ -7,19 +7,19 @@ networks:
 
 services:
 
-  bathysphere:
-    build:
-      context: .
-    image: oceanicsdotio/bathysphere
-    ports:
-      - 5000:5000
-    networks:
-      - bathysphere
-    volumes:
-      - ./logs:/logs
-    depends_on: 
-      - neo4j
-      - redis
+#   bathysphere:
+#     build:
+#       context: .
+#     image: oceanicsdotio/bathysphere
+#     ports:
+#       - 5000:5000
+#     networks:
+#       - bathysphere
+#     volumes:
+#       - ./logs:/logs
+#     depends_on: 
+#       - neo4j
+#       - redis
     
   neo4j:
     image: neo4j:3.5

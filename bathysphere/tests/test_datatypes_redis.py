@@ -23,16 +23,9 @@ def theUltimateAnswer(a, b):
     return 42, a, b
 
 
-def test_queue_redis_connection():
+def test_datatypes_redis_queue_connection(redis_cache):
 
-    cache = StrictRedis(
-        host=app.app.config["REDIS_HOST"],
-        port=app.app.config["REDIS_PORT"],
-        db=0,
-        password=app.app.config["REDIS_KEY"],
-        socket_timeout=3,
-        ssl=True,
-    )
+
 
     assert cache.time()
     key = "test-obj"
