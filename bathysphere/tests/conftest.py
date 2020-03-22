@@ -1,7 +1,6 @@
 import pytest
 
 from time import sleep, time
-
 from json import load, loads
 from json.decoder import JSONDecodeError
 from pickle import loads as unpickle
@@ -13,18 +12,23 @@ from pathlib import Path
 from yaml import load as load_yml, Loader
 from os import getenv
 from subprocess import check_output
+from redis import StrictRedis
 
-
-try:
-    from numpy import arange, sin, pi, random, column_stack
-    from numpy.ma import MaskedArray
-    from numpy import where, isnan
-except ImportError as ex:
-    MaskedArray = list
-
+from numpy import (
+    arange,
+    column_stack,
+    isnan,
+    pi, 
+    random,
+    sin,
+    where
+)
+from numpy.ma import MaskedArray
 
 from bathysphere import app
-from bathysphere.graph import connect
+from bathysphere.graph import (
+    connect
+)
 from bathysphere.datatypes import (
     Table, 
     CloudSQL, 
@@ -35,25 +39,23 @@ from bathysphere.datatypes import (
     ObjectStorage,
     Dataset
 )
-from bathysphere.graph.models import Collections
-# from bathysphere.datatypes import Dataset
+from bathysphere.graph.models import (
+    Collections
+)
+from bathysphere.future.utils import (
+    project,
+    center,
+    extent,
+    polygon_area,
+    interp2d_nearest,
+    extent_overlap_filter,
+    reduce_extent,
+    CartesianNAD83,
+    SphericalWGS84,
+    nan_mask,
+    arrays2points,
+)
 
-try:
-    from bathysphere.future.utils import (
-        project,
-        center,
-        extent,
-        polygon_area,
-        interp2d_nearest,
-        extent_overlap_filter,
-        reduce_extent,
-        CartesianNAD83,
-        SphericalWGS84,
-        nan_mask,
-        arrays2points,
-    )
-except:
-    pass
 
 
 DATE = datetime(2014, 4, 12)
@@ -212,7 +214,7 @@ def validate_remote_dataset(storage, dataset, dtype=(MaskedArray, dict, dict)):
 
 
 @pytest.fixture(scope="session")
-def redis_cache():
+def cache():
     return StrictRedis(
         host="localhost",
         port=6379,

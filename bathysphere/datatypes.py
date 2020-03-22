@@ -1745,45 +1745,6 @@ class DoublyLinkedList(LinkedList):
         ...
 
 
-class MemCache(object):
-    
-    db = StrictRedis(
-        host=googleCloudSecret("redis-host"),
-        port=googleCloudSecret("redis-port"),
-        db=0,
-        password=googleCloudSecret("redis-key"),
-        socket_timeout=3,
-        ssl=True,
-    )  # inject db session
-
-
-    def main(self, request: Request) -> ResponseJSON:
-        """handle a request to the function
-        Args:
-            req (str): request body
-        """
-        db = self.db
-        if getenv("Http_Method") != "POST":
-            return dumps({"Error": "Require POST"}), 403
-        try:
-            body = loads(request.body)
-        except Exception as ex:
-            return dumps({"Error": f"Deserialization, {ex}"}), 500
-
-        key = body.get("key")
-        data = body.get("data", None)
-
-        if data is None:
-            binary = db.get(key)
-            if binary:
-                db.incr("get")
-                return loads(binary), 200
-            db.incr("hit")
-
-        db.set(key, dumps(data), ex=3600)
-        return dumps({"Message": "Success"}), 200
-
-
 class Memory:
     def __init__(self, size, max_size=int(1e6)):
         # type: (int, int) -> None
@@ -2032,11 +1993,22 @@ class ObjectStorage(Minio):
         super().__init__(endpoint, **kwargs)
         if not self.bucket_exists(bucket_name):
             self.make_bucket(bucket_name)
-        
+    
     @property
     def locked(self) -> bool:
         return self.stat_object("lock.json") is not None
     
+
+    def publish_events(
+        self,  
+        pubsub_channel: str
+    ):
+        fcns = ("s3:ObjectCreated:*", "s3:ObjectRemoved:*", "s3:ObjectAccessed:*")
+        with StrictRedis() as queue:
+            for event in self.listen_bucket_notification(self.bucket_name, "", None, fcns):
+                queue.publish(pubsub_channel, str(event))
+
+
     def stat_object(self, object_name: str):
         """
         Determine whether an object key exists
