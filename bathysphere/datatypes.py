@@ -2604,8 +2604,19 @@ class RelationshipLabels(Enum):
 
 
 @attr.s
-class Schema:
+class Schema(object):
     fields: [Field] = attr.ib(default=attr.Factory(list))
+
+
+@attr.s
+class State(object):
+
+    orientation: array = attr.ib()  # facing
+    axis: array = attr.ib()  # rotation
+    speed: float = attr.ib(default=0.0)
+    state3: array = zeros((1, 3), dtype=float)  # 3-axis rotation state
+    state4: array = zeros((1, 4), dtype=float)  # 3-axis rotation state
+    increment: array = zeros((1, 3), dtype=float)  # transformation increment
 
 
 @attr.s
@@ -2616,9 +2627,15 @@ class Table(object):
 
     @staticmethod
     def _unwrap(x):
+        """
+        Some queries return iterables that need to be unpacked
+        """
         return {"record": x[0]}
 
     def declare(self) -> Query:
+        """
+        Generate a query to create a new table but do not execute
+        """
         fieldString = join(f"{f.name} {f.type}" for f in self.schema.fields)
         queryString = f"""
         CREATE TABLE IF NOT EXISTS {self.name}({fieldString});
@@ -2647,7 +2664,6 @@ class Table(object):
         order: str = "DESC",
         conditions: ((str)) = (),
     ) -> Query:
-
         """
         Read back values/rows.
         """

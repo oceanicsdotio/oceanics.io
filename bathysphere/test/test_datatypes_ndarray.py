@@ -27,8 +27,8 @@ from matplotlib import pyplot as plt
 
 from bathysphere.datatypes import Memory, ConvexHull, Dataset
 
-from bathysphere.tests.conftest import DATASET, ext, scan
-from bathysphere.future.utils import (
+from bathysphere.test.conftest import DATASET, ext, scan
+from bathysphere.utils import (
     extent,
     reduce_extent,
     extent_overlap_filter,

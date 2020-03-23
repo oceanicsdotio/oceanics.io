@@ -3,7 +3,7 @@ from datetime import datetime
 from json import dump
 
 from bathysphere import appConfig
-from bathysphere.tests.conftest import (
+from bathysphere.test.conftest import (
     getCredentials,
     CREDENTIALS,
     DARKSKY_API_KEY,
@@ -34,9 +34,10 @@ def test_graph_teardown(graph):
     """
     Destroy the graph.
     """
+    # pylint: disable=no-value-for-parameter
     Entity.delete(
-        graph("localhost", 7687, testAuth[1])
-    )  # pylint: disable=no-value-for-parameter
+        db=graph("localhost", 7687, testAuth[1])
+    )  
 
 
 def test_graph_account_create_user(client):

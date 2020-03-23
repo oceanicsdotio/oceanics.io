@@ -34,7 +34,7 @@ from numpy.ma import masked_where
 from matplotlib import pyplot as plt
 from datetime import datetime
 
-from bathysphere.future.utils import (
+from bathysphere.utils import (
     extent,
     reduce_extent,
     extent_crop,

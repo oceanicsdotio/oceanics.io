@@ -1,6 +1,6 @@
 import pytest
 from requests import get, post
-from bathysphere.shellfish import batch, job
+from bathysphere.models import Simulations
 
 conf = dict()
 
@@ -10,7 +10,7 @@ def test_simulation_bivalve_api_as_job():
     Run a single job with user supplied forcing conditions
     """
     forces = [{"temperature": 20.0}] * 24 * 30
-    _ = job(
+    _ = Simulations.job(
         config={
             "species": "oyster",
             "culture": "midwater",
@@ -55,7 +55,7 @@ def test_simulation_bivalve_api_as_batch():
 
     forcing = [forces] * 2
 
-    result = batch(
+    result = Simulations.batch(
         workers=2,
         forcing=forcing,
         config={

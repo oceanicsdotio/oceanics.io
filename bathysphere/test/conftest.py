@@ -31,7 +31,7 @@ from bathysphere.datatypes import (
     FeatureCollection
 )
 from bathysphere.graph.models import Collections
-from bathysphere.future.utils import (
+from bathysphere.utils import (
     project,
     center,
     extent,

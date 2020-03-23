@@ -6,8 +6,8 @@ from numpy.random import random
 
 from requests import post
 from bathysphere.image import Spatial, Time
-from bathysphere.future.utils import depth, geom_shader, lin_transform
-from bathysphere.tests.conftest import dumpErrors
+from bathysphere.utils import depth, geom_shader, lin_transform
+from bathysphere.test.conftest import dumpErrors
 
 
 def shape_preview(object_storage, spatial, config_no_app):

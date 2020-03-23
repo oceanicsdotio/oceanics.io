@@ -5,7 +5,7 @@ from multiprocessing import Pool
 from itertools import repeat, chain
 from enum import Enum
 from decimal import Decimal
-from typing import Coroutine, Any, Callable
+from typing import Coroutine, Any, Callable, Type
 from asyncio import new_event_loop, set_event_loop, BaseEventLoop
 from json import loads as load_json, dumps
 from pickle import dump, load as unpickle
@@ -285,6 +285,7 @@ def response(status, payload):
 
 
 def parsePostgresValueIn(value: Any) -> str:
+    """Convert python to sql values"""
     parsingTable = {
         datetime: lambda x: x.isoformat(),
         float: lambda x: str(x),
@@ -296,17 +297,19 @@ def parsePostgresValueIn(value: Any) -> str:
 
 
 def parsePostgresValueOut(v: Any) -> Any:
+    """Convert sql driver output to python"""
     if isinstance(v, Decimal):
         return float(v)
     return v
 
 
 def join(x: str) -> str:
+    """Convenience method for mapping query formatting when whitespace is needed"""
     return ", ".join(x)
 
 
 def report_buoy_data(request):
-    # We receive the hashed message in form of a header
+    """We receive the hashed message in form of a header"""
 
     if getenv("Http_Method") != "POST":
         return dumps({"Error": "Require POST"}), 400
@@ -355,17 +358,6 @@ def report_buoy_data(request):
         ),
         200,
     )
-
-
-
-
-class State:
-    orientation = XAXIS.copy()  # facing
-    axis = ZAXIS.copy()  # rotation
-    speed = 0.0
-    state3 = zeros((1, 3), dtype=float)  # 3-axis rotation state
-    state4 = zeros((1, 4), dtype=float)  # 3-axis rotation state
-    increment = zeros((1, 3), dtype=float)  # transformation increment
 
 
 def hc2pH(hc):
@@ -2127,7 +2119,10 @@ def tetrahedron(dtype=float):
     return vertex_array, topology
 
 
-def globe(n=24, dtype=float):
+def globe(
+    n: int = 24, 
+    dtype: Type = float
+):
     # type: (int, type) -> Array
 
     # vertex_array = zeros((R * (R // 2 - 1) + 2, 3), dtype=dtype)

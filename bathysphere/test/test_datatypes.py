@@ -1,8 +1,10 @@
 import time
 from itertools import chain
-from bathysphere.datatypes import Trie
-from bathysphere.datatypes import LinkedList
-from bathysphere.datatypes import Clock
+from bathysphere.datatypes import (
+    Trie, 
+    LinkedList, 
+    Clock
+)
 
 
 def test_datatypes_tree_linked_list():

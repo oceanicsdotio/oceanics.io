@@ -1,14 +1,14 @@
 from datetime import datetime
 from time import time, sleep
 from json import dumps
-from typing import Any, Callable
+from typing import Any, Callable, Union
 from decimal import Decimal
 from enum import Enum
 from uuid import uuid4
 from json import load as load_json
 from functools import reduce
 from statistics import median
-from multiprocessing import Process
+from multiprocessing import Process, Pool, cpu_count
 from socket import AF_INET, SOCK_STREAM, socket, create_connection
 from time import time, sleep
 from warnings import warn
@@ -17,25 +17,30 @@ from yaml import load as load_yml, Loader
 from connexion import request
 import attr
 
-try:
-    from numpy import (
-        abs,
-        zeros,
-        arange,
-        ones,
-        convolve,
-        isnan,
-        ceil,
-        array,
-        repeat,
-        floor,
-    )
-    from scipy.fftpack import rfft, irfft, fftfreq
-    from pandas import DataFrame, Series
-except ImportError as ex:
-    from math import floor
+from math import exp
+from typing import Callable
+from collections import namedtuple
 
-    warn("Numerical libraries unavailable. Avoid big queries.")
+from time import time
+from subprocess import Popen, PIPE, STDOUT
+from itertools import repeat
+from io import BytesIO
+
+from numpy import (
+    abs,
+    zeros,
+    arange,
+    ones,
+    convolve,
+    isnan,
+    ceil,
+    array,
+    repeat,
+    floor,
+)
+from scipy.fftpack import rfft, irfft, fftfreq
+from pandas import DataFrame, Series
+
 
 from bathysphere.utils import interp1d, response, log
 from bathysphere.datatypes import (
@@ -47,6 +52,7 @@ from bathysphere.datatypes import (
     Distance,
     ResponseJSON,
     ObjectStorage,
+    JSONIOWrapper,
 )
 
 
@@ -767,7 +773,119 @@ class Sensors(object):
 
 @attr.s(repr=False)
 class Simulations(object):
-    pass
+    
+    @staticmethod
+    def batch(config: dict, forcing: array, workers: int = 1) -> dict:
+        """
+        Run a batch, and generate some statistics about execution
+
+        :param config: kwarg dictionary of single or iterable values
+        :param forcing: pre-processed data for all simulations, an iterable of iterables
+        :param workers: maximum number of workers to request, will be reduced if necessary
+
+        :return: batch of responses with metadata as JSON-like dictionary
+        """
+
+        def _repeat(value):
+            try:
+                assert len(value) > 0
+                assert type(value) != str
+                return value
+            except TypeError:
+                return repeat(value, n)
+            except AssertionError:
+                return repeat(value, n)
+
+        def _expand(json):
+            new = {key: _repeat(value) for key, value in json.items()}
+            return tuple(
+                [dict(zip(new, item)) for item in zip(*new.values()) for _ in range(n)]
+            )
+
+        processes = min(cpu_count(), workers)
+        tempfile = BytesIO()
+
+        with Pool(processes) as pool:
+            start = time()
+            n = len(forcing)
+            JSONIOWrapper.log("Scheduler ready", f"spawning {n} workers", log=tempfile)
+            result = pool.starmap(job, zip(_expand(config), forcing))
+            data, logs = zip(*result)
+            finish = time()
+            JSONIOWrapper.log(
+                "Scheduler done", f"completed {n} jobs in {finish-start} s", log=tempfile
+            )
+
+        return {
+            "data": data,
+            "logs": logs + (tempfile.getvalue(),),
+            "workers": processes,
+            "config": config,
+            "count": n,
+            "start": start,
+            "finish": finish,
+        }
+
+    @staticmethod
+    def job(
+        config: dict, 
+        forcing: array,
+        encoding: str = "utf-8"
+    ) -> (tuple, bytes):
+        """
+        Execute single simulation with synchronous callback.
+
+        :param config: simulation configuration
+        :param forcing: list of forcing vectors
+        :param encoding: input/output encoding
+
+        :return: output variables of C# methods, or None
+        """
+        n = len(forcing)
+        tempfile = BytesIO()
+        process = None
+    
+        command = [config.get("executable"), __path__[0] + "/.." + config.get("exePath")]
+        process = Popen(command, stdin=PIPE, stdout=PIPE, stderr=STDOUT, bufsize=1)
+       
+        if process is None:
+            JSONIOWrapper.log(message="Mono", data="not found", log=tempfile)
+            return ({"status": "error", "message": "mono not found"},)
+
+        JSONIOWrapper.log(
+            message=f"Spawned process {process.pid}", data=process.args, log=tempfile
+        )
+        console = JSONIOWrapper(process.stdin, encoding=encoding, line_buffering=True)
+        output = JSONIOWrapper(process.stdout, encoding=encoding, line_buffering=False)
+
+        result = [output.receive(log=tempfile) for _ in range(2)]
+        console.send(config, log=tempfile)
+
+        JSONIOWrapper.log(
+            message="Worker ready", data=f"expecting {n} transactions", log=tempfile
+        )
+
+        for item in forcing:
+            console.send(item, log=tempfile)  # send data as serialized dictionary
+            state = output.receive(log=tempfile)
+            if state["status"] == "error":
+                JSONIOWrapper.log(message="Runtime", data=state["message"], log=tempfile)
+                result += [state]
+                break
+            result += [state]
+
+        JSONIOWrapper.log(
+            message="Worker done",
+            data=f"completed {len(result)} transactions",
+            log=tempfile,
+        )
+        process.kill()
+        process.wait()
+        console.close()
+        output.close()
+        return tuple(result), tempfile.getvalue()
+
+
 
 
 @attr.s(repr=False)
