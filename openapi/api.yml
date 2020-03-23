@@ -125,7 +125,7 @@ paths:
 
     post:
       tags: [ Account ]
-      operationId: bathysphere.graph.handlers.register
+      operationId: bathysphere.graph.functions.register
       summary: Register
       description: |
 
@@ -148,7 +148,7 @@ paths:
 
     get:
       tags: [ Account ]
-      operationId: bathysphere.graph.handlers.token
+      operationId: bathysphere.graph.functions.token
       summary: Token
       description: |
 
@@ -170,7 +170,7 @@ paths:
 
     put:
       tags: [Account]
-      operationId: bathysphere.graph.handlers.manage
+      operationId: bathysphere.graph.functions.manage
       summary: Manage
       description: |
 
@@ -189,7 +189,7 @@ paths:
 
     get:
       tags: [Catalog]
-      operationId: bathysphere.graph.handlers.catalog
+      operationId: bathysphere.graph.functions.catalog
       summary: Catalog
       description: |
         Get all entity types in database as collections following the SpatioTemporal Asset Catalog specification
@@ -228,7 +228,7 @@ paths:
 
     post:
       tags: [Catalog]
-      operationId: bathysphere.graph.handlers.create
+      operationId: bathysphere.graph.functions.create
       summary: Create
       description: |
         Create a new entity.
@@ -244,7 +244,7 @@ paths:
 
     get:
       tags: [Catalog]
-      operationId: bathysphere.graph.handlers.collection
+      operationId: bathysphere.graph.functions.collection
       summary: Collection
       description: |
         Get all entities of one type
@@ -263,7 +263,7 @@ paths:
 
     get:
       tags: [Catalog]
-      operationId: bathysphere.graph.handlers.metadata
+      operationId: bathysphere.graph.functions.metadata
       summary: Metadata
       description: |
         Get entity
@@ -280,7 +280,7 @@ paths:
 
     put:
       tags: [ Catalog ]
-      operationId: bathysphere.graph.handlers.mutate
+      operationId: bathysphere.graph.functions.mutate
       summary: Update
       description: Update entity
       requestBody:
@@ -298,7 +298,7 @@ paths:
 
     delete:
       tags: [ Catalog ]
-      operationId: bathysphere.graph.handlers.delete
+      operationId: bathysphere.graph.functions.delete
       summary: Delete
       description: Delete entity and orphans recursively.
       parameters:
@@ -316,7 +316,7 @@ paths:
 
     get:
       tags: [ Topology ]
-      operationId: bathysphere.graph.handlers.query
+      operationId: bathysphere.graph.functions.query
       summary: Query
       description: |
         Get related entities
@@ -338,7 +338,7 @@ paths:
 
     post:
       tags: [ Topology ]
-      operationId: bathysphere.graph.handlers.join
+      operationId: bathysphere.graph.functions.join
       summary: Join
       description: Create a labeled relationship between entities.
       parameters:
@@ -356,7 +356,7 @@ paths:
 
     delete:
       tags: [Topology]
-      operationId: bathysphere.graph.handlers.drop
+      operationId: bathysphere.graph.functions.drop
       summary: Drop
       description: |
         Remove a labeled relationship between entities. If no `label` is specified, remove all
@@ -919,7 +919,7 @@ paths:
 #     post:
 #       tags: [Bivalve]
 #       summary: Configure
-#       operationId: neritics_bivalve.handlers.configure
+#       operationId: neritics_bivalve.functions.configure
 #       description: |
 
 #         Upload a model configuration that will be associated with you and your organization. The settings will later be
@@ -940,7 +940,7 @@ paths:
 #     get:
 #       tags: [Bivalve]
 #       summary: Get configurations
-#       operationId: neritics_bivalve.handlers.get_index
+#       operationId: neritics_bivalve.functions.get_index
 #       description: |
 #         Get metadata for all model configurations.
 
@@ -953,7 +953,7 @@ paths:
 #     get:
 #       tags: [Bivalve]
 #       summary: Get saved object by UUID
-#       operationId: neritics_bivalve.handlers.get_object
+#       operationId: neritics_bivalve.functions.get_object
 #       description: |
 #         Retrieve details about a model configuration or simulation. This includes links to and summary statistics
 #         of the individual simulations using these settings.
@@ -976,7 +976,7 @@ paths:
 #         Posting with `configId` will use an existing configuration as a reference. Any supplied parameters will override
 #         defaults, creating a derived copy of the simulation configuration if necessary.
 
-#       operationId: neritics_bivalve.handlers.run_batch
+#       operationId: neritics_bivalve.functions.run_batch
 #       parameters:
 #         - $ref: '#/components/parameters/ObjectKey'
 #         - $ref: '#/components/parameters/species'
@@ -2670,13 +2670,13 @@ components:
     #   minimum: 1
     #   default: 2
 
-    # Ratio:
-    #   name: ratio
-    #   description: |
-    #     Fraction of observations to use for training. The rest are left for validation.
-    #   type: number
-    #   format: float
-    #   default: 0.8
+    Ratio:
+      name: ratio
+      description: |
+        Fraction of observations to use for training. The rest are left for validation.
+      type: number
+      format: float
+      default: 0.8
 
   
 

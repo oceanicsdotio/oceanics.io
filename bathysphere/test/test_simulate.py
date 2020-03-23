@@ -27,7 +27,7 @@ def test_simulation_bivalve_api_as_job_no_forcing():
     Run a single job with default forcing
     """
     forces = [{}] * 24 * 30
-    _ = job(
+    _ = Simulations.job(
         config={
             "species": "oyster",
             "culture": "midwater",

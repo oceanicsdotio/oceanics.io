@@ -2908,6 +2908,93 @@ class VertexArray(object):
         return self, topology
 
 
+
+class View:
+    count = 0
+
+    def __init__(self, style, extent=None):
+        # type: (dict, (float,)) -> View
+        """
+        Setup and return figure and axis instances
+        """
+        rc("text", usetex=False)
+        # rc("font", **{"family": "sans-serif", "sans-serif": ["Arial"]})
+        rc("mathtext", default="sf")
+        rc("lines", markeredgewidth=1, linewidth=style["line"])
+        rc("axes", labelsize=style["text"], linewidth=(style["line"] + 1) // 2)
+        rc("xtick", labelsize=style["text"])
+        rc("ytick", labelsize=style["text"])
+        rc("xtick.major", pad=5)
+        rc("ytick.major", pad=5)
+
+        self.style = style
+        self.extent = extent
+        self.fig, self.ax = subplots(
+            facecolor=style["bg"], figsize=(style["width"], style["height"])
+        )
+        padding = style["padding"]
+        subplots_adjust(
+            left=padding[0], bottom=padding[1], right=1 - padding[2], top=1 - padding[3]
+        )
+
+    def format(self, bg: str, contrast: str, **kwargs):
+        """
+        Setup color styles for figure
+        """
+        self.ax.patch.set_facecolor(bg)  # background colors
+        self.ax.edgecolor = contrast  # plotting area border
+        self.format_axis("x", contrast, **kwargs)
+        self.format_axis("y", contrast, **kwargs)
+
+    def format_axis(
+        self, axis: str, contrast: str, label: str, grid: bool, **kwargs: dict
+    ):
+        if axis in ("x", "X"):
+            apply = self.ax.xaxis
+            spines = ("left", "right")
+        elif axis in ("y", "Y"):
+            apply = self.ax.yaxis
+            spines = ("top", "bottom")
+        else:
+            raise ValueError
+
+        apply.label.set_color(label)
+        self.ax.tick_params(axis=axis.lower(), colors=label)
+        for each in spines:
+            self.ax.spines[each].set_color(contrast)
+        apply.grid(grid)
+
+    def pre_push(self):
+        self.fig.canvas.draw()
+        self.format(**self.style)
+        self.ax.set_frame_on(True)
+
+    def push(self, encoding="png", transparent=False, **kwargs):
+        # type: (str, bool, dict) -> BytesIO
+        buffer = BytesIO()
+        self.fig.savefig(buffer, format=encoding, transparent=transparent, **kwargs)
+        buffer.seek(0)
+        return buffer
+
+    def legend(self, loc: str = "best", fc: str = "none", ec: str = "none"):
+        """
+        Format figure legend
+
+        Kwargs:
+            loc, str -- location on plotting area
+            fc, str/arr -- string or RGBA color for face
+            ec, str/arr -- string or RGBA color for edges
+
+        Returns: matplotlib legend object
+        """
+        legend = self.ax.legend(loc=loc)
+        frame = legend.get_frame()
+        frame.set_facecolor(fc)
+        frame.set_edgecolor(ec)
+
+        for text in legend.get_texts():
+            text.set_color(self.style["contrast"])
+
 @attr.s
 class Wind:
     """
