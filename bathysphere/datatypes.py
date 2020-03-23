@@ -528,7 +528,7 @@ def Feature(
 
 def FeatureCollection(
     features: [Feature] = None,
-    properties: properties = None
+    properties: dict = None
 ) -> dict:
     return {
         "type": "FeatureCollection",

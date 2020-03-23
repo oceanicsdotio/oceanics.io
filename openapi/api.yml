@@ -2662,7 +2662,6 @@ components:
     #   default: 1
 
     # Window:
-    #   name: window
     #   description: |
     #     Number of observations in moving window for calculating the expected value from input datastream.
 
@@ -2671,7 +2670,6 @@ components:
     #   default: 2
 
     Ratio:
-      name: ratio
       description: |
         Fraction of observations to use for training. The rest are left for validation.
       type: number

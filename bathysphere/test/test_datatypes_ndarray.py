@@ -32,7 +32,6 @@ from bathysphere.utils import (
     extent,
     reduce_extent,
     extent_overlap_filter,
-    convex_hull,
     multi_polygon_crop,
     hull_overlap,
     center,
@@ -81,10 +80,6 @@ OSI_OBJ = "bivalve-suitability"
 NBYTES = 100
 
 
-def filter_iteration():
-    pass
-
-
 def _filter(shapes):
     """
     Special filter for geopolitical boundaries
@@ -121,8 +116,12 @@ def polygon_crop_and_save(xyz, shapes, filename, method=multi_polygon_crop):
     print(len(chunks), "vertex array chunks")
 
 
-def filter_iteration(vertex_array, shapes, extents, records=None):
-    # type: (Array, (Array, ), (ExtentType, ), (dict, )) -> ()
+def filter_iteration(
+    vertex_array: Array, 
+    shapes: (Array), 
+    extents: (ExtentType), 
+    records: (dict) =None
+) -> ():
     """Use extents"""
     data_ext = extent(*vertex_array)
     f, e, r = extent_overlap_filter(data_ext, shapes, extents, rec=records)
@@ -336,7 +335,7 @@ def test_datatypes_ndarray_netcdf_dataset_analysis_convex_hulls_upload(object_st
     db = object_storage(prefix=None)
     while db.stat_object(f"{OSI_OBJ}/shapes-water-{part}"):
         for s in unpickle(db.get_object(f"{OSI_OBJ}/shapes-water-{part}").data):
-            hulls.append(convex_hull(s.data))
+            hulls.append(ConvexHull(s.data))
         part += 1
     db.octet_stream(data=hulls, extent="None", dataset=OSI_OBJ, key=f"convex-hulls")
 
@@ -349,7 +348,7 @@ def test_datatypes_ndarray_netcdf_dataset_analysis_convex_hulls_culling(object_s
     fid = open("data/vertex-array", "rb")
     chunks = load(fid)
     xyz = vstack(chunks)
-    hull = convex_hull(xyz.data[:, :2])
+    hull = ConvexHull(xyz.data[:, :2])
     print("Hull shape:", hull.shape)
     print("Hull center:", center(hull))
 

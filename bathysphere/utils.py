@@ -16,10 +16,10 @@ from os.path import isfile
 from warnings import simplefilter, warn, catch_warnings
 from functools import reduce
 from logging import getLogger
-from pathlib import Path
 from time import sleep
 
 import operator
+import pathlib
 
 from requests import get, head
 from yaml import Loader, load as load_yml
@@ -140,7 +140,7 @@ def loadAppConfig(sources: (str) = ("bathysphere.yml", "kubernetes.yml")) -> dic
     """
 
     def renderConfig(x: str):
-        with open(Path(f"config/{x}"), "r") as fid:
+        with open(pathlib.Path(f"config/{x}"), "r") as fid:
             items = fid.read().split("---")
         return list(map(load_yml, items, repeat(Loader, len(items))))
 

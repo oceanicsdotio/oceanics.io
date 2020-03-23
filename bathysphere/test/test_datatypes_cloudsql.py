@@ -38,15 +38,14 @@ from bathysphere.utils import (
     extent,
     reduce_extent,
     extent_crop,
-    polygon_area,
-    ExtentType,
+    polygon_area
 )
 
 
 from bathysphere.image import Spatial
 from bathysphere.datatypes import (
     Table, CloudSQL, Query, Schema, Field, PostgresType,
-    FeatureCollection, Feature, Dataset
+    FeatureCollection, Feature, Dataset, ExtentType
 )
 from bathysphere.graph.models import Collections, Locations
 from bathysphere.tests.conftest import (

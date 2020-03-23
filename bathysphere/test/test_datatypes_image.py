@@ -5,7 +5,7 @@ from numpy.random import random
 
 
 from requests import post
-from bathysphere.image import Spatial, Time
+from bathysphere.image.models import Spatial, Time
 from bathysphere.utils import depth, geom_shader, lin_transform
 from bathysphere.test.conftest import dumpErrors
 
