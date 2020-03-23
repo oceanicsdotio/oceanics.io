@@ -1,25 +1,23 @@
-try:
-    from numpy import (
-        zeros,
-        where,
-        maximum,
-        minimum,
-        sign,
-        append,
-        array,
-        zeros,
-        exp,
-        sin,
-        pi,
-        cos,
-        arccos,
-        arcsin,
-        tan,
-        arctan,
-        isnan,
-    )
-except ImportError:
-    pass
+from numpy import (
+    zeros,
+    where,
+    maximum,
+    minimum,
+    sign,
+    append,
+    array,
+    zeros,
+    exp,
+    sin,
+    pi,
+    cos,
+    arccos,
+    arcsin,
+    tan,
+    arctan,
+    isnan,
+)
+
 
 from pickle import dump, load
 import attr
@@ -58,7 +56,7 @@ DEFAULT_CONFIG = {
 }
 
 
-def create_field():
+def create_fields():
     return None
 
 

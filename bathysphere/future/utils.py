@@ -13,88 +13,80 @@ try:
 except ImportError:
     af = None
 
-try:
-    """
-    Not strictly required to have image processing capabilities.
-    """
-    from PIL.Image import Image, fromarray
-except ImportError:
-    Image = lambda: None
-    fromarray = lambda x: None
 
-try:
-    from scipy.spatial import ConvexHull
-    from pyproj import Proj, transform
+"""
+Not strictly required to have image processing capabilities.
+"""
+from PIL.Image import Image, fromarray
 
-    from numpy import (
-        abs,
-        append,
-        arange,
-        arccos,
-        arctan2,
-        argsort,
-        array,
-        array_split,
-        asarray,
-        ceil,
-        cos,
-        cross,
-        dot,
-        diff,
-        empty_like,
-        flip,
-        floor,
-        hstack,
-        intersect1d,
-        isnan,
-        log,
-        log10,
-        mean,
-        ma,
-        max,
-        min,
-        NaN,
-        ones,
-        pi,
-        random,
-        repeat,
-        roll,
-        sign,
-        sin,
-        sort,
-        stack,
-        std,
-        sum,
-        uint8,
-        unique,
-        vstack,
-        where,
-        zeros,
-    )
 
-    # use ndarray as stand-in for GPU memory
-    texture = af if af is not None else array
+from scipy.spatial import ConvexHull
+from pyproj import Proj, transform
 
-    from numpy.linalg import norm
-    from numpy.ma import MaskedArray
-    from scipy.interpolate import NearestNDInterpolator
-    from scipy.stats import linregress
-    from scipy import ndimage
-    from shapefile import Reader
-    from pandas import read_csv, read_html
-    from netCDF4 import Dataset
+from numpy import (
+    abs,
+    append,
+    arange,
+    arccos,
+    arctan2,
+    argsort,
+    array,
+    array_split,
+    asarray,
+    ceil,
+    cos,
+    cross,
+    dot,
+    diff,
+    empty_like,
+    flip,
+    floor,
+    hstack,
+    intersect1d,
+    isnan,
+    log,
+    log10,
+    mean,
+    ma,
+    max,
+    min,
+    NaN,
+    ones,
+    pi,
+    random,
+    repeat,
+    roll,
+    sign,
+    sin,
+    sort,
+    stack,
+    std,
+    sum,
+    uint8,
+    unique,
+    vstack,
+    where,
+    zeros,
+)
 
-    from matplotlib.cm import get_cmap
-    from matplotlib.patches import Path
-    from matplotlib.tri import CubicTriInterpolator, LinearTriInterpolator
+# use ndarray as stand-in for GPU memory
+texture = af if af is not None else array
 
-    from sklearn.linear_model import LinearRegression
-    from sklearn.metrics import r2_score
+from numpy.linalg import norm
+from numpy.ma import MaskedArray
+from scipy.interpolate import NearestNDInterpolator
+from scipy.stats import linregress
+from scipy import ndimage
+from shapefile import Reader
+from pandas import read_csv, read_html
+from netCDF4 import Dataset
 
-except ImportError:
-    from math import ceil, pi
-    from itertools import repeat
+from matplotlib.cm import get_cmap
+from matplotlib.patches import Path
+from matplotlib.tri import CubicTriInterpolator, LinearTriInterpolator
 
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import r2_score
 
 from bathysphere.datatypes import ExtentType, IntervalType, DataFormat
 

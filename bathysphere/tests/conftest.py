@@ -1,7 +1,7 @@
 import pytest
 
 from time import sleep, time
-from json import load, loads
+from json import load, loads, dumps
 from json.decoder import JSONDecodeError
 from pickle import loads as unpickle
 from os.path import isfile
@@ -28,6 +28,7 @@ from bathysphere.datatypes import (
     PostgresType,
     ObjectStorage,
     Dataset,
+    FeatureCollection
 )
 from bathysphere.graph.models import Collections
 from bathysphere.future.utils import (
@@ -71,6 +72,10 @@ DARKSKY_API_KEY = getenv("DARKSKY_API_KEY")
 accessKey, secretKey, instance = getenv("POSTGRES_SECRETS").split(",")
 IndexedDB = dict()
 
+
+def featureCollectionJSON(features: [dict], properties: dict, path: str):
+    with open(path, "w+") as f:
+        f.write(dumps(FeatureCollection(features=features, properties=properties)))
 
 def stripMetadata(item):
     return {k: v for k, v in item.items() if "@" not in k}

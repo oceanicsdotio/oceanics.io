@@ -1,7 +1,4 @@
-try:
-    from numpy import where, roll
-except ImportError:
-    pass
+from numpy import where, roll
 
 from bathysphere.future.utils import create_fields
 
@@ -12,6 +9,55 @@ DISSOLVED = "D"
 LABILE = "L"
 EXCRETED = "Ex"
 RECYCLED = "Re"
+CARBON = "C"
+METHANE = "CH4"
+EXCRETED = "FLOCEX"
+P_MAP = ("K1921", "K2324", "K1820")
+D_MAP = ("K210", "K220", "K240", "K200")
+CONST = "KMDOC"
+L_CONST = "KMLDOC"
+VMIN = "VMINCSO"
+VMAX = "VMAXCSO"
+POWER_COEF = "BVCSO"
+CRIT_COEF = "CRCSO"
+VS = "VS"
+NET = "NET"
+KMPHYT = "KMPHYT"
+SULFATE = "SO4"
+SULPHUR = "S"
+SILICA = "Si"
+BIOGENIC = "B"
+SILICATE = "SiO3"
+PARTITION = "KADSI"
+MINERALIZATION = "K1617"
+
+POOLS = (MINERALIZATION + "C", MINERALIZATION + "T", BIOGENIC + SILICA, SILICATE)
+
+DEFAULT_CONFIG = {
+    MINERALIZATION: [0.08, 1.08],  # SI MINERALIZATION TEMPERATURE COEFFICIENT
+    PARTITION: 6.0,  # PARTITION COEFFICIENT FOR SORBED SILICA L/MG SS
+}
+
+
+DEFAULT_CONFIG = {
+    KMPHYT: 0.05,
+    "K1820": [0.01, 1.08],
+    "K2324": [0.01, 1.0],  # temperature coefficient
+    "K1921": [0.07, 1.08],
+    "K200": [0.008, 1.08],
+    "K210": [0.1, 1.08],
+    "K220": [0.3, 1.047],  # TEMPERATURE COEFFICIENT
+    "K240": [0.15, 1.047],  # temperature coefficient
+    EXCRETED: 0.1,  # FRACTION OF PP GOING TO LOC VIA EXUDATION
+    L_CONST: 0.1,
+    CONST: 0.2,
+    POWER_COEF: 1.0,  # BVCSO POWER COEFF. FOR CSO SOLID SETTLING RATE (>=1) UNITLESS
+    CRIT_COEF: 1.0,  # CRITICAL REPOC CONC. FOR CSO SETTLING FUNCTION   MG C/L
+    VMIN: 0.0,  # MINIMUM SETTLING RATE FOR CSO SOLIDS
+    VMAX: 0.0,  # VMAXCSO MAXIMUM SETTLING RATE FOR CSO SOLIDS              M/DAY
+}
+
+
 
 
 class Chemistry(dict):
@@ -188,43 +234,6 @@ class Chemistry(dict):
         self.delta[key] += roll(delta, 1, axis=1)  # add mass to layer below
 
         return export
-
-
-from neritics.chemistry.core import Chemistry
-from .o import OXYGEN, OCRB, Oxygen
-
-CARBON = "C"
-METHANE = "CH4"
-EXCRETED = "FLOCEX"
-P_MAP = ("K1921", "K2324", "K1820")
-D_MAP = ("K210", "K220", "K240", "K200")
-CONST = "KMDOC"
-L_CONST = "KMLDOC"
-VMIN = "VMINCSO"
-VMAX = "VMAXCSO"
-POWER_COEF = "BVCSO"
-CRIT_COEF = "CRCSO"
-VS = "VS"
-NET = "NET"
-KMPHYT = "KMPHYT"
-
-DEFAULT_CONFIG = {
-    KMPHYT: 0.05,
-    "K1820": [0.01, 1.08],
-    "K2324": [0.01, 1.0],  # temperature coefficient
-    "K1921": [0.07, 1.08],
-    "K200": [0.008, 1.08],
-    "K210": [0.1, 1.08],
-    "K220": [0.3, 1.047],  # TEMPERATURE COEFFICIENT
-    "K240": [0.15, 1.047],  # temperature coefficient
-    EXCRETED: 0.1,  # FRACTION OF PP GOING TO LOC VIA EXUDATION
-    L_CONST: 0.1,
-    CONST: 0.2,
-    POWER_COEF: 1.0,  # BVCSO POWER COEFF. FOR CSO SOLID SETTLING RATE (>=1) UNITLESS
-    CRIT_COEF: 1.0,  # CRITICAL REPOC CONC. FOR CSO SETTLING FUNCTION   MG C/L
-    VMIN: 0.0,  # MINIMUM SETTLING RATE FOR CSO SOLIDS
-    VMAX: 0.0,  # VMAXCSO MAXIMUM SETTLING RATE FOR CSO SOLIDS              M/DAY
-}
 
 
 class Carbon(Chemistry):
@@ -1037,27 +1046,6 @@ class Phosphorus(Nutrient):
 
         oxygen._demand()
 
-
-from neritics.chemistry.nutrient.core import Nutrient
-
-SILICA = "Si"
-BIOGENIC = "B"
-SILICATE = "SiO3"
-PARTITION = "KADSI"
-MINERALIZATION = "K1617"
-
-POOLS = (MINERALIZATION + "C", MINERALIZATION + "T", BIOGENIC + SILICA, SILICATE)
-
-DEFAULT_CONFIG = {
-    MINERALIZATION: [0.08, 1.08],  # SI MINERALIZATION TEMPERATURE COEFFICIENT
-    PARTITION: 6.0,  # PARTITION COEFFICIENT FOR SORBED SILICA L/MG SS
-}
-
-from numpy import where
-from neritics.chemistry.nutrient import AMMONIUM, NOX
-
-SULFATE = "SO4"
-SULPHUR = "S"
 
 
 class Sulphur:

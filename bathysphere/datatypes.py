@@ -501,6 +501,28 @@ class Distance(object):
     unit: str = attr.ib()
 
 
+def Feature(
+    properties: dict = None,
+    geometry: [[float]] =  None
+) -> dict:
+    return {
+        "type": "Feature", 
+        "geometry": geometry,
+        "properties": properties or {}
+    }
+
+
+def FeatureCollection(
+    features: [Feature] = None,
+    properties: properties = None
+) -> dict:
+    return {
+        "type": "FeatureCollection",
+        "features": features,
+        "properties": properties or {}
+    }
+
+
 @attr.s
 class Field(object):
     """Column for Postgres table"""
