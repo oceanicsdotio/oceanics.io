@@ -153,3 +153,137 @@ def bbox(ll, ur):
 def assets_links(urls):
     """Resource link"""
     return ({"href": url, "title": "", "type": "thumbnail"} for url in urls)
+
+
+
+# def locations(vertex_buffer: array, after=0, before=None, bs=100):
+#     """
+#     Create a bunch of points in the graph
+#     """
+#     cls = "Locations"
+#     n = min(len(vertex_buffer), before)
+#     np = count(cls)
+
+#     while after < n:
+#         size = min(n - after, bs)
+#         indices = [ii + np for ii in range(after, after + size)]
+#         subset = vertex_buffer[indices, :]
+#         batch(cls, list(subset), indices)
+#         after += size
+
+#     return {"after": after, "before": before}
+
+
+# def _edges(points, indices, topology, neighbors, cells):
+#     """Initialize edge arrays"""
+
+#     tri = len(indices)
+#     shape = (tri, 3)
+#     full = (*shape, 2)
+#     nodes = zeros(full, dtype=int) - 1  # indices of side-of nodes
+#     cells = zeros(full, dtype=int) - 1  # indices of side-of elements
+#     center = zeros(full, dtype=float)
+#     ends = zeros((*full, 2), dtype=float)
+#     bound = zeros(shape, dtype=bool)
+
+#     for cell in range(tri):
+#         children = topology[cell, :]
+#         count = 0
+#         for each in neighbors[cell]:  # edges which have been not set already
+
+#             cells[cell, count, :] = [cell, each]
+#             side_of = intersect1d(children, topology[each, :], assume_unique=True)
+#             nodes[cell, count, :] = side_of
+#             center[cell, count, :] = points[side_of, :2].mean(dim=1)  # edge center
+#             ends[cell, count, :, :] = cells[each], center[cell, count]
+#             count += 1
+
+#         boundary[cell, :2] = True  # mark edges as boundaries
+
+#     dx = ends[:, :, 1, 0] - ends[:, :, 0, 0]
+#     dy = ends[:, :, 1, 1] - ends[:, :, 0, 1]
+
+#     return {
+#         "boundary": bound,
+#         "length": (dx ** 2 + dy ** 2) ** 0.5,
+#         "angle": arctan2(dx, dy),
+#         "cells": cells,
+#         "center": center,
+#         "nodes": nodes,
+#         "ends": ends,
+#     }
+
+
+#
+# def vertexNeighbors(cls, tx, node):
+#     """
+#     Get node parents and node neighbors
+#
+#     :param tx:
+#     :param node:
+#     :return:
+#     """
+#     a = cls._match("Nodes", node, "a")
+#     b = cls._match("Nodes", "b")
+#     chain = "(a)-[:SIDE_OF]->(:Element)<-[:SIDE_OF]-"
+#     command = " ".join([a, "MATCH", chain + b, "MERGE", "(a)-[:NEIGHBORS]-(b)"])
+#     tx.run(command, id=node)
+#
+#
+# def _topology(tx, nodes, index):
+#     """
+#     Create parent-child relationships
+#
+#     :param tx: Implicit transmit
+#     :param nodes: vertices, indices
+#     :param index: element identifier
+#     :return:
+#     """
+#     tx.run(
+#         "MATCH (n1:Node {id: $node1}) "
+#         + "MATCH (n2:Node {id: $node2}) "
+#         + "MATCH (n3:Node {id: $node3}) "
+#         + "MATCH (e:Element {id: $index}) "
+#         + "CREATE (n1)-[: SIDE_OF]->(e) "
+#         + "CREATE (n2)-[: SIDE_OF]->(e) "
+#         + "CREATE (n3)-[: SIDE_OF]->(e) ",
+#         node1=int(nodes[0]),
+#         node2=int(nodes[1]),
+#         node3=int(nodes[2]),
+#         index=index,
+#     )
+#
+#
+# def _neighbors(mesh):
+#     """
+#     Make queries and use results to build topological relationships.
+#
+#     :param mesh:
+#     :return:
+#     """
+#     kwargs = [{"identity": ii for ii in range(mesh.nodes.n)}]
+#     _write(_neighbors, kwargs)
+#
+#
+# def _create_blanks(graph, nn, ne):
+#     """
+#     Setup new sphere
+#     """
+#     graph.create("Elements", range(ne), repeat(None, ne))
+#     graph.index("Elements", "id")
+#     graph.create("Nodes", range(nn), repeat(None, nn))
+#     graph.index("Nodes", "id")
+#
+# #
+# def _neighbor(root, cls, tx, id):
+#     """
+#     Get node parents and node neighbors
+#
+#     :param tx:
+#     :param node:
+#     :return:
+#     """
+#     a = _node("a", cls, id)
+#     b = _node("b", cls, id)
+#     command = f"MATCH {a}-[:SIDE_OF]->(:{root})<-{b} MERGE (a)-[:Neighbors]-(b)"
+#     tx.run(command, id=id)

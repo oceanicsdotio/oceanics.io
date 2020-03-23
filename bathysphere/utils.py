@@ -1,3 +1,4 @@
+#pylint: disable=unused-variable,invalid-name,unused-import
 from datetime import datetime, date, timedelta
 from collections import deque
 from multiprocessing import Pool
@@ -9,26 +10,122 @@ from asyncio import new_event_loop, set_event_loop, BaseEventLoop
 from json import loads as load_json, dumps
 from pickle import dump, load as unpickle
 from shutil import copyfileobj
-from os.path import isfile
-from warnings import simplefilter, warn
-from functools import reduce
+
 from os import getenv
+from os.path import isfile
+from warnings import simplefilter, warn, catch_warnings
+from functools import reduce
 from logging import getLogger
 from pathlib import Path
-import operator
+from time import sleep
 
+import operator
 
 from requests import get, head
 from yaml import Loader, load as load_yml
 from google.cloud import secretmanager
 from google.auth.exceptions import DefaultCredentialsError
 
+    
+from numpy import (
+    abs,
+    append,
+    arange,
+    arccos,
+    arctan2,
+    argsort,
+    array,
+    array_split,
+    asarray,
+    ceil,
+    cos,
+    cross,
+    dot,
+    diff,
+    empty_like,
+    flip,
+    floor,
+    hstack,
+    intersect1d,
+    isnan,
+    log,
+    log10,
+    mean,
+    ma,
+    max,
+    min,
+    NaN,
+    ones,
+    pi,
+    repeat,
+    roll,
+    sign,
+    sin,
+    sort,
+    stack,
+    std,
+    sum,
+    uint8,
+    unique,
+    vstack,
+    where,
+    zeros,
+)
+
+
+from numpy.linalg import norm
+from numpy.ma import MaskedArray
+from numpy.random import random
+
+from scipy.interpolate import NearestNDInterpolator
+from scipy.stats import linregress
+from scipy import ndimage
+
+from shapefile import Reader
+from pandas import read_csv, read_html
+from netCDF4 import Dataset
+from PIL.Image import Image, fromarray
+from pyproj import Proj, transform
+
+from matplotlib.cm import get_cmap
+from matplotlib.patches import Path
+from matplotlib.tri import CubicTriInterpolator, LinearTriInterpolator
+
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import r2_score
+
 try:
-    from pandas import read_html
-    from numpy import zeros, arange, array, where, array_split, vstack
-except ImportError as _:
-    read_html = None
-    warn(Warning("Numerical libraries unavailable. Avoid big queries."))
+    import arrayfire as af
+except:
+    af = None
+    gpu = False
+
+
+
+DEGREES = 180 / pi
+RADIANS = pi / 180
+ORIGIN = zeros((1, 3), dtype=float)
+XAXIS = array([1.0, 0.0, 0.0]).reshape(1, 3)
+YAXIS = array([0.0, 1.0, 0.0]).reshape(1, 3)
+ZAXIS = array([0.0, 0.0, 1.0]).reshape(1, 3)
+MONTHS = {
+    1: "january",
+    2: "february",
+    3: "march",
+    4: "april",
+    5: "may",
+    6: "june",
+    7: "july",
+    8: "august",
+    9: "september",
+    10: "october",
+    11: "november",
+    12: "december",
+}
+
+CartesianNAD83 = Proj(init="epsg:2960")
+SphericalWGS84 = Proj(init="epsg:4326")
+
 
 log = getLogger(__name__)
 try:
@@ -45,7 +142,7 @@ def loadAppConfig(sources: (str) = ("bathysphere.yml", "kubernetes.yml")) -> dic
     def renderConfig(x: str):
         with open(Path(f"config/{x}"), "r") as fid:
             items = fid.read().split("---")
-        return list(map(load_yml, items, repeat(Loader)))
+        return list(map(load_yml, items, repeat(Loader, len(items))))
 
     def reverseDictionary(a: dict, b: dict) -> dict:
 
@@ -254,114 +351,10 @@ def report_buoy_data(request):
     keys = lines.popleft()
     return (
         dumps(
-            {**data, "values": [dict(zip(k, v)) for k, v in zip(repeat(keys), lines)]}
+            {**data, "values": [dict(zip(k, v)) for k, v in zip(repeat(keys, len(lines)), lines)]}
         ),
         200,
     )
-
-
-from enum import Enum
-from datetime import datetime
-from warnings import warn, catch_warnings, simplefilter
-from typing import Any
-from functools import reduce
-from multiprocessing import Pool
-from time import sleep
-
-from PIL.Image import Image, fromarray
-from scipy.spatial import ConvexHull
-from pyproj import Proj, transform
-
-from numpy import (
-    abs,
-    append,
-    arange,
-    arccos,
-    arctan2,
-    argsort,
-    array,
-    array_split,
-    asarray,
-    ceil,
-    cos,
-    cross,
-    dot,
-    diff,
-    empty_like,
-    flip,
-    floor,
-    hstack,
-    intersect1d,
-    isnan,
-    log,
-    log10,
-    mean,
-    ma,
-    max,
-    min,
-    NaN,
-    ones,
-    pi,
-    random,
-    repeat,
-    roll,
-    sign,
-    sin,
-    sort,
-    stack,
-    std,
-    sum,
-    uint8,
-    unique,
-    vstack,
-    where,
-    zeros,
-)
-
-
-
-from numpy.linalg import norm
-from numpy.ma import MaskedArray
-from scipy.interpolate import NearestNDInterpolator
-from scipy.stats import linregress
-from scipy import ndimage
-from shapefile import Reader
-from pandas import read_csv, read_html
-from netCDF4 import Dataset
-
-from matplotlib.cm import get_cmap
-from matplotlib.patches import Path
-from matplotlib.tri import CubicTriInterpolator, LinearTriInterpolator
-
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import r2_score
-
-from bathysphere.datatypes import ExtentType, IntervalType, DataFormat
-
-
-DEGREES = 180 / pi
-RADIANS = pi / 180
-ORIGIN = zeros((1, 3), dtype=float)
-XAXIS = array([1.0, 0.0, 0.0]).reshape(1, 3)
-YAXIS = array([0.0, 1.0, 0.0]).reshape(1, 3)
-ZAXIS = array([0.0, 0.0, 1.0]).reshape(1, 3)
-MONTHS = {
-    1: "january",
-    2: "february",
-    3: "march",
-    4: "april",
-    5: "may",
-    6: "june",
-    7: "july",
-    8: "august",
-    9: "september",
-    10: "october",
-    11: "november",
-    12: "december",
-}
-
-CartesianNAD83 = Proj(init="epsg:2960")
-SphericalWGS84 = Proj(init="epsg:4326")
 
 
 
@@ -402,11 +395,6 @@ def days(date):
     delta = date - datetime(date.year, 1, 1, 0, 0, 0)
     result = delta.total_seconds() / 24 / 60 / 60
     return result
-
-
-def interp1d(coefficient, aa, bb):
-    """Simple linear interpolation in one dimension"""
-    return (1.0 - coefficient) * aa + coefficient * bb
 
 
 # noinspection PyCallingNonCallable
@@ -705,14 +693,18 @@ def extent_overlap_automatic(xyz, shapes, extents, max_passes=3, rec=None):
 def extent(x, y):
     # type: (Array, Array) -> ExtentType
     """Create an extent struct"""
+    def array_range(data: array, gpu: bool=False) -> (float, float):
+        """Get range of an array, which may be in GPU memory"""
+        if gpu:
+            tex = af.np_to_af_array(data)
+            mn = af.min(tex)
+            mx = af.max(tex)
+        else:
+            mn = min(data)
+            mx = max(data)
+        return mn, mx
+        
     return array_range(x) + array_range(y)
-
-
-def reduce_hulls(hulls):
-    # type: ((Array,)) -> Array
-    """Create a convex hull from a group of convex hulls"""
-    xy = vstack(hulls)
-    return convex_hull(xy)
 
 
 def hull_overlap(a, b):
@@ -744,7 +736,7 @@ def partition_points_by_shape(path, vertex_array):
     mask = points_in_path(path, xy)
     _subset = where(mask)[0]
     inside = vertex_array[_subset, :]
-    _subset = where(~mask)[0]
+    _subset = where(~mask)[0]  # pylint: disable=invalid-unary-operand-type
     outside = vertex_array[_subset, :]
     return inside, outside
 
@@ -815,17 +807,7 @@ def filter_arrays(x) -> bool:
         return False
 
 
-def array_range(data, gpu=False):
-    # type: (Array, bool) -> (float, float)
-    """Get range of an array, which may be in GPU memory"""
-    if gpu:
-        tex = af.np_to_af_array(data)
-        mn = af.min(tex)
-        mx = af.max(tex)
-    else:
-        mn = min(data)
-        mx = max(data)
-    return mn, mx
+
 
 
 def crop(x, y, ext, mask=None, gpu=False):
@@ -851,14 +833,6 @@ def nan_mask(arr, gpu=False):
     if isinstance(mask, MaskedArray):
         return mask.data
     return mask
-
-
-def convex_hull(arr):
-    # type: (Array) -> Array
-    """
-    Calculate and return convex hull object using QHull
-    """
-    return arr[ConvexHull(arr).vertices, :]
 
 
 def blank(shape, gpu=False, fill=False):
@@ -1175,70 +1149,70 @@ def rk4(fcn, y0, t0, dt):
     return y0 + dt * (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6
 
 
-def polygon_topology(vertex_arrays, extents=None, processes=1):
-    # type: ((Array, ), (ExtentType, ), int) -> Array
-    """
-    Not working correctly.
+# def polygon_topology(vertex_arrays, extents=None, processes=1):
+#     # type: ((Array, ), (ExtentType, ), int) -> Array
+#     """
+#     Not working correctly.
 
-    :param vertex_arrays: tuple of shape vertex arrays
-    :param extents: tuple of pre-calculated extents
-    :param processes: parallelism
-    :return:
-    """
-    warn("Brute force polygon topology is too intensive", DeprecationWarning)
+#     :param vertex_arrays: tuple of shape vertex arrays
+#     :param extents: tuple of pre-calculated extents
+#     :param processes: parallelism
+#     :return:
+#     """
+#     warn("Brute force polygon topology is too expensive", DeprecationWarning)
 
-    pool = Pool(processes=processes)
-    s, e, areas, inverse = area_sort((vertex_arrays, extents), pool, reverse=True)
-    paths = array(tuple(Path(convex_hull(s.data)) for s in vertex_arrays))
-    nva = len(s)
-    matrix = zeros((nva, nva), dtype=bool)
-    memo = {}
-    print(areas)
-    ii = -1
-    found = 0
-    span = 100
+#     pool = Pool(processes=processes)
+#     s, e, areas, inverse = area_sort((vertex_arrays, extents), pool, reverse=True)
+#     paths = array(tuple(Path(convex_hull(s.data)) for s in vertex_arrays))
+#     nva = len(s)
+#     matrix = zeros((nva, nva), dtype=bool)
+#     memo = {}
+#     print(areas)
+#     ii = -1
+#     found = 0
+#     span = 100
 
-    while ii > 1 - len(s):
-        n = len(s) + 1 + ii
-        if n % span == 0:
-            print(
-                f"{n} remaining at area index {areas[ii]} ({found} overlaps)",
-                flush=True,
-            )
-        iterable = zip(e[:ii], repeat((e[ii],), n - 1, axis=0))
-        a = array(pool.starmap(extent_contains, iterable))
-        indices = where(a)[0]
+#     while ii > 1 - len(s):
+#         n = len(s) + 1 + ii
+#         if n % span == 0:
+#             print(
+#                 f"{n} remaining at area index {areas[ii]} ({found} overlaps)",
+#                 flush=True,
+#             )
+#         iterable = zip(e[:ii], repeat((e[ii],), n - 1, axis=0))
+#         a = array(pool.starmap(extent_contains, iterable))
+#         indices = where(a)[0]
 
-        iterable = zip(paths[indices], repeat((paths[ii],), len(indices), axis=0))
-        b = array(pool.starmap(hull_contains, iterable))
-        sub = where(b)[0]
+#         iterable = zip(paths[indices], repeat((paths[ii],), len(indices), axis=0))
+#         b = array(pool.starmap(hull_contains, iterable))
+#         sub = where(b)[0]
 
-        for jj in indices[sub]:  # may be empty, still works
-            points = vertex_arrays[ii]
-            if (
-                not paths[jj].contains_points(points).all()
-            ):  # shape is wholly inside the convex hull
-                continue
-            try:
-                boundary = memo[jj]
-            except KeyError:
-                boundary = memo[jj] = Path(vertex_arrays[jj])
-            if not boundary.contains_points(points).any():
-                continue
+#         for jj in indices[sub]:  # may be empty, still works
+#             points = vertex_arrays[ii]
+#             if (
+#                 not paths[jj].contains_points(points).all()
+#             ):  # shape is wholly inside the convex hull
+#                 continue
+#             try:
+#                 boundary = memo[jj]
+#             except KeyError:
+#                 boundary = memo[jj] = Path(vertex_arrays[jj])
+#             if not boundary.contains_points(points).any():
+#                 continue
 
-        if len(sub):
-            _ = indices[sub]
+#         if len(sub):
+#             _ = indices[sub]
 
-        found += len(indices)
-        matrix[ii, inverse[indices]] = True
-        ii -= 1
+#         found += len(indices)
+#         matrix[ii, inverse[indices]] = True
+#         ii -= 1
 
-        try:
-            del memo[ii]
-        except KeyError:
-            pass
+#         try:
+#             del memo[ii]
+#         except KeyError:
+#             pass
 
-    return array(tuple(zip(*where(matrix))))
+#     return array(tuple(zip(*where(matrix))))
 
 
 def thematic_mapping(shapes, extent, key, value):
@@ -1262,11 +1236,17 @@ def thematic_mapping(shapes, extent, key, value):
     def _filter(x) -> bool:
         return not x["hide"] and x["type"] == "analytical"
 
-    shapes = shapes.collect(extent=extent, flags=(~_match_field()))
+    shapes = shapes.collect(extent=extent, flags=(~_match_field()))  # pylint: disable=invalid-unary-operand-type
     return filter(_filter, shapes)
 
 
-def _loc(s: int, view: str, mx_x=None, mn_x=None, x=None):
+def _loc(
+    s: int, 
+    view: str, 
+    mx_x=None, 
+    mn_x=None, 
+    x=None
+):
 
     assert (mx_x is not None and mn_x is not None) or x is not None
     if x is not None:
@@ -1280,18 +1260,22 @@ def _loc(s: int, view: str, mx_x=None, mn_x=None, x=None):
 
 
 def ext2shp(e):
+    """Convert an Extent to a VertexArray"""
     return array([[e[0], e[2]], [e[1], e[2]], [e[1], e[3]], [e[0], e[3]]])
 
 
 def ext2llur(e):
+    """Convert an Extent to a BoundingBox"""
     return array([[e[0], e[2]], [e[1], e[3]]])
 
 
 def lin_transform(u, a, b):
+    """Linear tranformation"""
     return u * (b - a) + a
 
 
 def geom_shader(e):
+    """Emulate geometry shader, create points from single reference"""
     return array(
         (
             (lin_transform(random.uniform(), *e[:2]), e[2]),
@@ -1444,6 +1428,7 @@ def avhrr_sst(files, locations, processes=1, chunk=4, delay=1):
 
 def kelvin2celsius(data):
     # type: (Array) -> Array
+    """Convert kelvin degrees to celsious degrees"""
     return data - 272.15
 
 
@@ -1523,7 +1508,7 @@ def lagrangian_diffusion(
 
 
 def layers(count: int):
-
+    """Compute evenly space layers"""
     z = -arange(count) / (count - 1)
     dz = z[:-1] - z[1:]  # distance between sigma layers
     zz = zeros(count)  # intra-level sigma
@@ -1725,139 +1710,6 @@ def calc_areas(vertex_buffer: array, topology: array, parents: list, verb=True):
         area[node] = art2[node] / 3
 
     return {"parents": art2, "triangles": tri_area, "control volume": area}
-
-
-# def locations(vertex_buffer: array, after=0, before=None, bs=100):
-#     """
-#     Create a bunch of points in the graph
-#     """
-#     cls = "Locations"
-#     n = min(len(vertex_buffer), before)
-#     np = count(cls)
-
-#     while after < n:
-#         size = min(n - after, bs)
-#         indices = [ii + np for ii in range(after, after + size)]
-#         subset = vertex_buffer[indices, :]
-#         batch(cls, list(subset), indices)
-#         after += size
-
-#     return {"after": after, "before": before}
-
-
-# def _edges(points, indices, topology, neighbors, cells):
-#     """Initialize edge arrays"""
-
-#     tri = len(indices)
-#     shape = (tri, 3)
-#     full = (*shape, 2)
-#     nodes = zeros(full, dtype=int) - 1  # indices of side-of nodes
-#     cells = zeros(full, dtype=int) - 1  # indices of side-of elements
-#     center = zeros(full, dtype=float)
-#     ends = zeros((*full, 2), dtype=float)
-#     bound = zeros(shape, dtype=bool)
-
-#     for cell in range(tri):
-#         children = topology[cell, :]
-#         count = 0
-#         for each in neighbors[cell]:  # edges which have been not set already
-
-#             cells[cell, count, :] = [cell, each]
-#             side_of = intersect1d(children, topology[each, :], assume_unique=True)
-#             nodes[cell, count, :] = side_of
-#             center[cell, count, :] = points[side_of, :2].mean(dim=1)  # edge center
-#             ends[cell, count, :, :] = cells[each], center[cell, count]
-#             count += 1
-
-#         boundary[cell, :2] = True  # mark edges as boundaries
-
-#     dx = ends[:, :, 1, 0] - ends[:, :, 0, 0]
-#     dy = ends[:, :, 1, 1] - ends[:, :, 0, 1]
-
-#     return {
-#         "boundary": bound,
-#         "length": (dx ** 2 + dy ** 2) ** 0.5,
-#         "angle": arctan2(dx, dy),
-#         "cells": cells,
-#         "center": center,
-#         "nodes": nodes,
-#         "ends": ends,
-#     }
-
-
-#
-# def vertexNeighbors(cls, tx, node):
-#     """
-#     Get node parents and node neighbors
-#
-#     :param tx:
-#     :param node:
-#     :return:
-#     """
-#     a = cls._match("Nodes", node, "a")
-#     b = cls._match("Nodes", "b")
-#     chain = "(a)-[:SIDE_OF]->(:Element)<-[:SIDE_OF]-"
-#     command = " ".join([a, "MATCH", chain + b, "MERGE", "(a)-[:NEIGHBORS]-(b)"])
-#     tx.run(command, id=node)
-#
-#
-# def _topology(tx, nodes, index):
-#     """
-#     Create parent-child relationships
-#
-#     :param tx: Implicit transmit
-#     :param nodes: vertices, indices
-#     :param index: element identifier
-#     :return:
-#     """
-#     tx.run(
-#         "MATCH (n1:Node {id: $node1}) "
-#         + "MATCH (n2:Node {id: $node2}) "
-#         + "MATCH (n3:Node {id: $node3}) "
-#         + "MATCH (e:Element {id: $index}) "
-#         + "CREATE (n1)-[: SIDE_OF]->(e) "
-#         + "CREATE (n2)-[: SIDE_OF]->(e) "
-#         + "CREATE (n3)-[: SIDE_OF]->(e) ",
-#         node1=int(nodes[0]),
-#         node2=int(nodes[1]),
-#         node3=int(nodes[2]),
-#         index=index,
-#     )
-#
-#
-# def _neighbors(mesh):
-#     """
-#     Make queries and use results to build topological relationships.
-#
-#     :param mesh:
-#     :return:
-#     """
-#     kwargs = [{"identity": ii for ii in range(mesh.nodes.n)}]
-#     _write(_neighbors, kwargs)
-#
-#
-# def _create_blanks(graph, nn, ne):
-#     """
-#     Setup new sphere
-#     """
-#     graph.create("Elements", range(ne), repeat(None, ne))
-#     graph.index("Elements", "id")
-#     graph.create("Nodes", range(nn), repeat(None, nn))
-#     graph.index("Nodes", "id")
-#
-# #
-# def _neighbor(root, cls, tx, id):
-#     """
-#     Get node parents and node neighbors
-#
-#     :param tx:
-#     :param node:
-#     :return:
-#     """
-#     a = _node("a", cls, id)
-#     b = _node("b", cls, id)
-#     command = f"MATCH {a}-[:SIDE_OF]->(:{root})<-{b} MERGE (a)-[:Neighbors]-(b)"
-#     tx.run(command, id=id)
 
 
 def extrude(vertex_array, closed=False, loop=True, dtype=float, **kwargs):
@@ -2109,7 +1961,7 @@ def shapefile(path, gpu=False):
     for shape, record in reader.iterShapeRecords():
         assert len(fields) == len(record), (fields, record)
         meta = {key[0]: rec for key, rec in zip(fields, record)}
-        vertices = (texture if gpu else array)(shape.points)
+        vertices = array(shape.points)
         parts = array_split(vertices, shape.parts[1:])
         result.extend(zip(parts, repeat(meta, len(parts))))
     return result
