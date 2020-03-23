@@ -68,6 +68,17 @@ try:
 except ImportError:
     pass
 
+# Use ArrayFire for multiple GPU bindings if available, else use ndarray as stand-in
+try:
+    from arrayfire import array as texture
+    import arrayfire as af
+except ImportError:
+    af = None
+texture = af if af is not None else array
+if af:
+    Array = af.Array or array
+else:
+    Array = array
 
 from bathysphere.utils import (
     join,
@@ -92,7 +103,7 @@ class ChemicalSystem(object):
 
     sources = None
     value = None
-    massAdded = None
+    massAdded: Array = None
     symbol = None
     validRange = (0.0, None)
 
@@ -106,6 +117,10 @@ class ChemicalSystem(object):
     @property
     def mass(self) -> None:
         return None
+
+    @property
+    def delta(self):
+        return 0.0
 
     def __add__(self, other):
         try:
@@ -125,30 +140,30 @@ class ChemicalSystem(object):
     def __gt__(self, other):
         return self.value > other
 
-    # def clamp(
-    #     self,
-    #     future: array,
-    #     volume: array
-    # ):
-    #     """
+    def clamp(
+        self,
+        future: array,
+        volume: array
+    ):
+        """
 
-    #     :param concentration:
-    #     :param future:
-    #     :param volume:
-    #     """
-    #     nodes, layers = where(self.value < self.validRange[0])
-    #     self.massAdded[nodes, layers] += volume * (self.value - future)
-    #     return future.clip(max=self.validRange[1])
+        :param concentration:
+        :param future:
+        :param volume:
+        """
+        nodes, layers = where(self.value < self.validRange[0])
+        self.massAdded[nodes, layers] += volume * (self.value - future)
+        return future.clip(max=self.validRange[1])
 
-    # def transfer(self, conversion: float = 1.0):
-    #     """
-    #     :param conversion:
+    def transfer(self, conversion: float = 1.0):
+        """
+        :param conversion:
 
-    #     :return:
-    #     """
-    #     # Transport.horizontal(mesh, reactor, self.key)  # Mass flux, advection and diffusion
-    #     # Transport.vertical(mesh, reactor, self.key)  # Mass flux, vertical sigma velocity
-    #     self.mass += self.delta * conversion  # update state from reaction equations
+        :return:
+        """
+        # Transport.horizontal(mesh, reactor, self.key)  # Mass flux, advection and diffusion
+        # Transport.vertical(mesh, reactor, self.key)  # Mass flux, vertical sigma velocity
+        self.mass += self.delta * conversion  # update state from reaction equations
 
 
 @attr.s
@@ -263,7 +278,6 @@ class CloudSQL:
             )
         except Exception as ex:
             return dumps({"Error": "Could not serialize result of query"}), 500
-
 
 @attr.s
 class Condition(object):

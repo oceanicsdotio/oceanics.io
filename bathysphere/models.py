@@ -383,19 +383,28 @@ class Actuators(object):
 @attr.s(repr=False)
 class Assets(object):
     """
-    Assets are references to data objects, which may or may not
+    Assets are references to externaldata objects, which may or may not
     be accessible at the time of query.
 
-    TODO: Assets is an ambiguous name when dealing with real-world systems
-    """
+    These are most likely ndarray/raster or json blobs in object storage, or
 
+
+    TODO: Assets is an ambiguous name, other options: Data, File
+
+    name: name of resource
+    description: annotation
+    location: address of resource, including protocol (e.g. postgres://)
+    """
+    name: str = attr.ib(default=None)
     description: str = attr.ib(default=None)
-    name: str = attr.ib(default=None)  # name of resource
-    url: str = attr.ib(default=None)  # address of resource
+    location: str = attr.ib(default=None)
 
 
 @attr.s(repr=False)
 class Collections(object):
+    """
+    Collections are arbitrary groupings of entities.
+    """
     name: str = attr.ib(default=None)
     description: str = attr.ib(default=None)
     extent: (float,) = attr.ib(default=None)
@@ -684,53 +693,14 @@ class HistoricalLocations(object):
 @attr.s(repr=False)
 class Locations(object):
     """
-    Last known location of a thing. May be a feature of interest, unless remote sensing.        
-    """
+    Last known `Locations` of `Things`. May be `FeaturesOfInterest`, unless remote sensing.
 
-    name: str = attr.ib(default=None)
-    location = attr.ib(default=None)  # GeoJSON
+    location encoding may be `application/vnd.geo+json` or `application/json`
+    """
     description: str = attr.ib(default=None)
     encodingType: str = attr.ib(default="application/vnd.geo+json")
-
-    @staticmethod
-    def nearestNeighborQuery(
-        coordinates: Coordinates, kNeighbors: int, searchRadius: Distance,
-    ) -> Query:
-        """
-        Format the query and parser required for making k nearest neighbor
-        queries to a database running PostGIS, with the appropriate
-        spatial indices already in place.
-        """
-
-        x, y = coordinates
-        targetTable = "landsat_points"
-        targetColumn, alias = "oyster_suitability_index", "osi"
-
-        queryString = f"""
-        SELECT AVG({alias}), COUNT({alias}) FROM (
-            SELECT {alias} FROM (
-                SELECT {targetColumn} as {alias}, geo
-                FROM {targetTable}
-                ORDER BY geo <-> 'POINT({x} {y})'
-                LIMIT {kNeighbors}
-            ) AS knn
-            WHERE st_distance(geo, 'POINT({x} {y})') < {searchRadius}
-        ) as points;
-        """
-
-        def parser(fetchAll):
-
-            avg, count = fetchAll[0]
-            return {
-                "message": "Mean Oyster Suitability",
-                "value": {
-                    "mean": avg,
-                    "distance": {"value": searchRadius, "units": "meters"},
-                    "observations": {"requested": kNeighbors, "found": count},
-                },
-            }
-
-        return Query(queryString, parser)
+    location = attr.ib(default=None)  # GeoJSON
+    name: str = attr.ib(default=None)
 
 
 @attr.s(repr=False)
@@ -796,7 +766,7 @@ class Sensors(object):
 
 
 @attr.s(repr=False)
-class Simulation(object):
+class Simulations(object):
     pass
 
 

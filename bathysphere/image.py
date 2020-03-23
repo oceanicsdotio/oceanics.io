@@ -10,20 +10,22 @@ from warnings import warn
 from minio import Minio
 from yaml import load, Loader
 
-try:
-    from matplotlib import use
 
-    use("agg")
-    from matplotlib.pyplot import subplots, subplots_adjust
-    from matplotlib import rc
-    from matplotlib.ticker import MultipleLocator, FormatStrFormatter
-    from matplotlib.patches import Polygon
-    from matplotlib.dates import DateFormatter, MonthLocator, DayLocator
-    from numpy import ceil, max, min, arange, isnan, array, hstack, array
-    from matplotlib import cm
-except ImportError as _:
-    warn("Numerical libraries unavailable. Avoid big queries.")
-
+from matplotlib import use; use("agg")  # this has to come first
+from matplotlib import rc, cm
+from matplotlib.pyplot import subplots, subplots_adjust
+from matplotlib.ticker import MultipleLocator, FormatStrFormatter
+from matplotlib.patches import Polygon
+from matplotlib.dates import DateFormatter, MonthLocator, DayLocator
+from numpy import (
+    array,
+    arange,
+    ceil, 
+    hstack,
+    isnan,
+    max, 
+    min, 
+)
 
 from bathysphere.datatypes import ResponseJSON, ResponseOctet
 
@@ -453,7 +455,7 @@ def spatial(fig, data, **kwargs):
     return None if not any((imageHandles, shapeHandles, pointHandles)) else fig.push()
 
 
-def main(req):
+def main(req, styles):
     """handle a request to the function
     Args:
         req (str): request body

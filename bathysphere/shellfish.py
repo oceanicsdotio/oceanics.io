@@ -9,7 +9,7 @@ from itertools import repeat
 from typing import Union
 from io import BytesIO
 
-from bathysphere.datatypes import JSONIOWrapper
+from bathysphere.datatypes import JSONIOWrapper, Query, Distance, Coordinates
 
 array = Union[list, tuple]
 Forcing = namedtuple("Forcing", "t chl poc pom")
@@ -551,6 +551,47 @@ def integrationStep(forcing, state, temperatureLimitation, dt):
 
     return State(tissueEnergy, shellEnergy, tissueMass, shellMass)
 
+
+def nearestNeighborQuery(
+    coordinates: Coordinates, 
+    kNeighbors: int, 
+    searchRadius: Distance,
+) -> Query:
+    """
+    Format the query and parser required for making k nearest neighbor
+    queries to a database running PostGIS, with the appropriate
+    spatial indices already in place.
+    """
+
+    x, y = coordinates
+    targetTable = "landsat_points"
+    targetColumn, alias = "oyster_suitability_index", "osi"
+
+    queryString = f"""
+    SELECT AVG({alias}), COUNT({alias}) FROM (
+        SELECT {alias} FROM (
+            SELECT {targetColumn} as {alias}, geo
+            FROM {targetTable}
+            ORDER BY geo <-> 'POINT({x} {y})'
+            LIMIT {kNeighbors}
+        ) AS knn
+        WHERE st_distance(geo, 'POINT({x} {y})') < {searchRadius}
+    ) as points;
+    """
+
+    def parser(fetchAll):
+
+        avg, count = fetchAll[0]
+        return {
+            "message": "Mean Oyster Suitability",
+            "value": {
+                "mean": avg,
+                "distance": {"value": searchRadius, "units": "meters"},
+                "observations": {"requested": kNeighbors, "found": count},
+            },
+        }
+
+    return Query(queryString, parser)
 
 if __name__ == "__main__()":
 
