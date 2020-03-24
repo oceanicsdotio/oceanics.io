@@ -1,18 +1,15 @@
-from json import loads, dumps
-from collections import deque
-from itertools import repeat
-from os import getenv
-from datetime import datetime
+# pylint: disable=bad-continuation,redefined-builtin,invalid-name,wrong-import-position,arguments-differ
+"""
+Image module models encapulate methods for visualing spatiotemporal data.
+"""
 from io import BytesIO
 from typing import Any
-from warnings import warn
+from datetime import datetime
 
-from minio import Minio
-from yaml import load, Loader
+from matplotlib import use
 
-
-from matplotlib import use; use("agg")  # this has to come first
-from matplotlib import rc, cm
+use("agg")  # this has to come first
+from matplotlib import rc
 from matplotlib.pyplot import subplots, subplots_adjust
 from matplotlib.ticker import MultipleLocator, FormatStrFormatter
 from matplotlib.patches import Polygon
@@ -20,17 +17,20 @@ from matplotlib.dates import DateFormatter, MonthLocator, DayLocator
 from numpy import (
     array,
     arange,
-    ceil, 
+    ceil,
     hstack,
     isnan,
-    max, 
-    min, 
+    max,
+    min,
 )
-
-from bathysphere.datatypes import ResponseJSON, ResponseOctet
 
 
 class View:
+    """
+    Views are abstract implementations of plotting contexts, which
+    are extended by Spatial and Time
+    """
+
     count = 0
 
     def __init__(self, style, extent=None):
@@ -70,10 +70,13 @@ class View:
     def format_axis(
         self, axis: str, contrast: str, label: str, grid: bool, **kwargs: dict
     ):
-        if axis in ("x", "X"):
+        """
+        Style the plotting area
+        """
+        if axis.lower() == "x":
             apply = self.ax.xaxis
             spines = ("left", "right")
-        elif axis in ("y", "Y"):
+        elif axis.lower() == "y":
             apply = self.ax.yaxis
             spines = ("top", "bottom")
         else:
@@ -86,18 +89,26 @@ class View:
         apply.grid(grid)
 
     def pre_push(self):
+        """
+        Convenience method for just-in-time formatting of image
+        appearance before saving
+        """
         self.fig.canvas.draw()
         self.format(**self.style)
         self.ax.set_frame_on(True)
 
-    def push(self, encoding="png", transparent=False, **kwargs):
-        # type: (str, bool, dict) -> BytesIO
+    def push(
+        self, encoding: str = "png", transparent: bool = False, **kwargs: dict
+    ) -> BytesIO:
+        """
+        Create and save the file buffer
+        """
         buffer = BytesIO()
         self.fig.savefig(buffer, format=encoding, transparent=transparent, **kwargs)
         buffer.seek(0)
         return buffer
 
-    def legend(self, loc: str = "best", fc: str = "none", ec: str = "none"):
+    def legend(self, loc: str = "best", fc: str = "none", ec: str = "none") -> None:
         """
         Format figure legend
 
@@ -118,27 +129,22 @@ class View:
 
 
 class Time(View):
+    """Special case of view for time series data"""
+
     def _envelope(
-        self,
-        time,
-        mean=None,
-        deviation=None,
-        facecolor=None,
-        edgecolor="none",
-        zorder=3,
+        self, time: array, mean: array = None, deviation: array = None, **kwargs,
     ):
         # type: (array, array, array, str, str, int) -> None
         """
         Add envelope to time series plot
         """
-        _ = facecolor if facecolor else self.style["face"]
         return self.ax.fill_between(
             time,
             mean + deviation,
             mean - deviation,
-            facecolor=facecolor,
-            edgecolor="none",
-            zorder=3,
+            facecolor=kwargs.get("facecolor") or self.style["face"],
+            edgecolor=kwargs.get("edgecolor") or "none",
+            zorder=kwargs.get("zorder") or 3,
         )
 
     def __fmt_time_axis(self, label, ticks, dates=False):
@@ -182,35 +188,25 @@ class Time(View):
         self.ax.yaxis.set_major_locator(MultipleLocator(ticks))
 
     def plot(
-        self,
-        time,
-        series,
-        label: str = "Unnamed",
-        scatter: bool = True,
-        color: str = None,
-        alpha: float = None,
-        marker: float = None,
+        self, time, series, label: str = "Unnamed", scatter: bool = True, **kwargs: dict
     ):
         """Draw times series as scatter plot"""
         kwargs = {
             "color": self.style["colors"][self.count % len(self.style["colors"])],
             "label": label,
             "alpha": self.style["alpha"],
+            **kwargs,
         }
         if scatter:
             kwargs["s"] = self.style["marker"]
-        if color:
-            kwargs["color"] = color
-        if alpha:
-            kwargs["color"] = alpha
-        if marker:
-            kwargs["color"] = color
 
         (self.ax.scatter if scatter else self.ax.plot)(time, series, **kwargs)
         self.count += 1
 
-    def coverage(self, timestamps, color=None, bins=366):
-        # type: (list, str, int) -> None
+    def coverage(
+        self, timestamps: [datetime], color: str = None, bins: int = 366
+    ) -> None:
+
         """
         Render histogram of calendar coverage
         """
@@ -220,8 +216,7 @@ class Time(View):
             facecolor=color if color else self.style["contrast"],
         )
 
-    def frequency(self, datastream, bins=10, **kwargs):
-        # type: (Time, Any, int, dict) -> None
+    def frequency(self, datastream: Any, bins: int = 10, **kwargs: dict) -> None:
         """
         render histogram of value distribution
         """
@@ -286,6 +281,10 @@ class Time(View):
 
 
 class Spatial(View):
+    """
+    Special case of View that implements mapping capabilties
+    """
+
     def push(self, encoding="png", transparent=False, **kwargs):
         # type: (str, bool, dict) -> BytesIO
         """
@@ -335,7 +334,7 @@ class Spatial(View):
             label=kwargs.get("label", self.style["label"]),
         )
 
-    def bbox(self, ext, **kwargs):
+    def bbox(self, ext: array, **kwargs: dict):
         """
         Add extent as styled Polygon
         """
@@ -343,7 +342,7 @@ class Spatial(View):
         xy = array([[e[0], e[2]], [e[1], e[2]], [e[1], e[3]], [e[0], e[3]]])
         self.shape(xy, kwargs)
 
-    def shape(self, xy, kwargs):
+    def shape(self, xy: array, kwargs: dict) -> array:
         # type: (array, dict) -> Polygon
         """
         Add shape to figure axis
@@ -353,16 +352,8 @@ class Spatial(View):
         return patch
 
     def topology(
-        self,
-        vertex_array,
-        topology,
-        z,
-        cmap="binary_r",
-        shading="gouraud",
-        edgecolor="none",
-        **kwargs,
-    ):
-        # type: (array, array, array, str, str, str, dict) -> None
+        self, vertex_array: array, topology: array, z: str, **kwargs: dict,
+    ) -> None:
         """
         Add triangular mesh to figure axis
         """
@@ -371,10 +362,10 @@ class Spatial(View):
             *vertex_array,
             topology,
             z,
-            cmap=cmap,
-            shading=shading,
-            edgecolor=edgecolor,
-            vmin=z.min(),
-            vmax=z.max(),
+            cmap=kwargs.pop("cmap") or "binary_r",
+            shading=kwargs.pop("shading") or "gouraud",
+            edgecolor=kwargs.pop("edgecolor") or "none",
+            vmin=kwargs.pop("vmin") or z.min(),
+            vmax=kwargs.pop("vmax") or z.max(),
             **kwargs,
         )

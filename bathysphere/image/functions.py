@@ -1,52 +1,27 @@
-
+# pylint: disable=invalid-name,
+"""
+Handlers for Web API.
+"""
 from json import loads, dumps
-from collections import deque
 from itertools import repeat
 from os import getenv
-from datetime import datetime
 from io import BytesIO
-from typing import Any
-from warnings import warn
 
-from minio import Minio
-from yaml import load, Loader
+from numpy import array
 
-
-from numpy import array, arange
-from matplotlib import cm
-
-from bathysphere.datatypes import ResponseJSON, ResponseOctet
 from bathysphere.image.models import Spatial, Time
+from bathysphere.datatypes import ExtentType
 
 
-def consume(streams, select=None):
-    # type: (list, set) -> dict
-    d = dict()
-    _series = deque(streams)
-    _inits = _series.popleft()
-    _defaults = _series.popleft()
-    while _series:
-        for key, val in _series.popleft().items():
-            if select is not None and key not in select:
-                continue
-            if d.get(key) is None:
-                d[key] = [val]
-            else:
-                d[key].append(val)
-    return d
-
-
-def palette(keys, colorMap="Spectral"):
-    # type: ({str}, str) -> dict
-    """create color dictionary for visualization"""
-    nc = len(keys)
-    colors = arange(nc) / (nc - 1)
-    scale = array([1, 1, 1, 0.5])
-    return dict(zip(keys, (cm.get_cmap(colorMap))(colors) * scale))
-
-
-def series(figure, data, labels=None, extent=None, unwind=True, scatter=True):
-
+def series(
+    figure,
+    data: dict,
+    labels: [str] = None,
+    extent: ExtentType = None,
+    unwind: bool = True,
+    scatter: bool = True,
+):
+    """Create image of time series"""
     for dataset, label in zip(data.get("series", ()), labels or repeat("none")):
         x, y = zip(*dataset) if unwind else dataset
         figure.plot(x, y, label=label, scatter=scatter)
@@ -62,36 +37,38 @@ def series(figure, data, labels=None, extent=None, unwind=True, scatter=True):
     return (30, 5) if extent else (None, None)
 
 
-def coverage(figure, data, bins=20):
+def coverage(figure, data: dict, bins: int = 20):
+    """Image of the time coverage"""
     t = data.get("time")
     _ = figure.coverage(t, bins=bins)
     return (int(max(t) - min(t)) // 6), (len(t) // bins // 2)
 
 
-def frequency(figure, data, bins=10):
+def frequency(figure, data: dict, bins: int = 10):
+    """Image of value coverage"""
     y = data.get("value")
     _ = figure.frequency(y, bins=bins)
     return int(max(y) - min(y)) // 6, len(y) // bins // 2
 
 
-def spatial(fig, data, **kwargs):
-    # type: (Spatial, dict, dict) -> BytesIO or None
+def spatial(figure, data: dict) -> BytesIO or None:
+    """Image of spatial entities"""
     imageHandles = []
     for image, imageExtent in data.get("images", ()):
         imageHandles.append(
-            fig.ax.imshow(
-                image, extent=imageExtent, interpolation=fig.style["imageInterp"]
+            figure.ax.imshow(
+                image, extent=imageExtent, interpolation=figure.style["imageInterp"]
             )
         )
     shapeHandles = tuple(
         map(
-            fig.shape,
+            figure.shape,
             data.pop("polygons", ()),
             repeat({"edgecolor": "black", "facecolor": "none"}),
         )
     )
-    pointHandles = tuple(map(fig.points, (array(p) for p in data.pop("points", ()))))
-    return None if not any((imageHandles, shapeHandles, pointHandles)) else fig.push()
+    pointHandles = tuple(map(figure.points, (array(p) for p in data.pop("points", ()))))
+    return None if not any((imageHandles, shapeHandles, pointHandles)) else figure.push()
 
 
 def main(req, styles):
@@ -100,8 +77,7 @@ def main(req, styles):
         req (str): request body
     """
     if getenv("Http_Method") != "POST" or not req:
-        print(dumps({"Error": "Requires POST with payload"}))
-        exit(400)
+        return dumps({"Error": "Requires POST with payload"}), 400
 
     body = loads(req)
     labels = body.pop("labels", {})
@@ -112,9 +88,10 @@ def main(req, styles):
     style = {**styles["base"], **styles[base.pop("base", "dark")]}
     style.update(**base)
     extent = body.pop("extent", None)
-    if view in {"spatial", "geo", "map", "cartographic"}:
+    if view == "spatial":
         fig = Spatial(style=style, extent=extent)
         b = spatial(fig, data, **body.pop("args", {}))
+
     elif view in {"series", "coverage", "frequency"}:
         fig = Time(style=style, extent=extent)
         xloc, yloc = eval(view)(fig, data, **body.pop("args", {}))
@@ -130,3 +107,4 @@ def main(req, styles):
 
     buffer = b.getvalue()
     assert buffer
+    return dumps({"image": buffer}), 200

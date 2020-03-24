@@ -349,6 +349,7 @@ class Entity(object):
         private: str = "_",
         annotate: str = "Get",
         result: str = None,
+        echo: bool = False,
         **kwargs: dict
     ) -> [Type]:
         """
@@ -377,7 +378,8 @@ class Entity(object):
             )
         )
 
-        print(cmd)
+        if echo:
+            print(cmd)
 
         payload = []
         for rec in executeQuery(
