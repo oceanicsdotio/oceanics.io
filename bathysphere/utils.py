@@ -123,8 +123,8 @@ MONTHS = {
     12: "december",
 }
 
-CartesianNAD83 = Proj(init="epsg:2960")
-SphericalWGS84 = Proj(init="epsg:4326")
+CartesianNAD83 = Proj("epsg:2960")
+SphericalWGS84 = Proj("epsg:4326")
 
 
 log = getLogger(__name__)

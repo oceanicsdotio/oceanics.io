@@ -219,6 +219,7 @@ def client():
         yield c
 
 
+
 @pytest.fixture(scope="session")
 def graph():
     """
@@ -241,11 +242,16 @@ def token(client) -> Callable:
 
     storedValues = dict()
 
-    def wrappedFunction(auth: (str, str)) -> dict:
+    def wrappedFunction(auth: (str, str), purge: bool = False) -> dict:
         """
         Inner function is yielded into test function. When called it memoizes
         access credentials into the test fixture. 
+
+        Provides option to purge existing tokens, for instance if deleting
+        and recreating an account with the same auth tuple. 
         """
+        if purge:
+            _ = storedValues.pop(auth)
         try:
             data = storedValues[auth]
         except KeyError:
@@ -255,6 +261,7 @@ def token(client) -> Callable:
             )
             data = response.get_json()
             assert response.status_code == 200, data
+            print(f"Updating stored token for {user}.")
             storedValues[auth] = data
         return data
 

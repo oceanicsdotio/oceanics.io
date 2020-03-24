@@ -178,7 +178,7 @@ def providers(host: str, port: int) -> None:
 
     existing = dict()
     existingDomains = set()
-    for each in Providers.load(db):
+    for each in Providers().load(db):
         existing[each.name.lower().strip()] = each
         loggerData = {
             "name": each.name,

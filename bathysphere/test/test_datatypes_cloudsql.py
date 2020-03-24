@@ -42,13 +42,13 @@ from bathysphere.utils import (
 )
 
 
-from bathysphere.image import Spatial
+from bathysphere.image.models import Spatial
 from bathysphere.datatypes import (
     Table, CloudSQL, Query, Schema, Field, PostgresType,
     FeatureCollection, Feature, Dataset, ExtentType
 )
 from bathysphere.graph.models import Collections, Locations
-from bathysphere.tests.conftest import (
+from bathysphere.test.conftest import (
     IndexedDB,
     accessKey,
     secretKey,

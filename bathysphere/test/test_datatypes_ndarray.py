@@ -25,7 +25,14 @@ from numpy.random import random
 from numpy.ma import MaskedArray
 from matplotlib import pyplot as plt
 
-from bathysphere.datatypes import Memory, ConvexHull, Dataset
+from bathysphere.datatypes import (
+    Memory, 
+    ConvexHull, 
+    Dataset, 
+    Array, 
+    ExtentType,
+    State
+)
 
 from bathysphere.test.conftest import DATASET, ext, scan
 from bathysphere.utils import (
@@ -36,18 +43,13 @@ from bathysphere.utils import (
     hull_overlap,
     center,
     extent_crop,
-    reduce_hulls,
     multi_polygon_cull,
     polygon_area,
     filter_arrays,
     nan_mask,
     array2image,
-    array_range,
     crop,
     subset,
-    Array,
-    ExtentType,
-    State,
     RADIANS,
     DEGREES,
     polygon_area,
@@ -342,9 +344,12 @@ def test_datatypes_ndarray_netcdf_dataset_analysis_convex_hulls_upload(object_st
 
 def test_datatypes_ndarray_netcdf_dataset_analysis_convex_hulls_culling(object_storage):
 
+    def reduce_hulls(h):
+        return h
+
     db = object_storage(prefix=None)
     hulls = unpickle(db.get_object(f"{OSI_OBJ}/convex-hulls").data)
-    outer = reduce_hulls(hulls)
+    outer = reduce_hulls(hulls)  # TODO: implement reduce fcn
     fid = open("data/vertex-array", "rb")
     chunks = load(fid)
     xyz = vstack(chunks)

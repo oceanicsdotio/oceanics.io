@@ -292,6 +292,16 @@ docker run -d --name timescaledb -p 5432:5432 -e
 docker exec -it timescaledb-postgis psql -U postgres
 ```
 
+### CloudSQL
+
+By default, the postgres interface uses unix sockets and a local proxy to talk to Google CloudSQL instances. 
+
+If you have the `glcoud` command line utility authorized and have done this before, you should be able to start the local proxy with,
+
+```
+~/cloud_sql_proxy -dir=/cloudsql/
+```
+
 
 ## Biological models
 

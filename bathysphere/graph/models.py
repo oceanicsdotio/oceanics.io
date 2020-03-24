@@ -20,6 +20,10 @@ from bathysphere.graph import (
     polymorphic,
 )
 
+from bathysphere.datatypes import (
+    ResponseJSON,
+)
+
 
 @attr.s(repr=False)
 class Link:
@@ -337,16 +341,50 @@ class Entity(object):
         query = lambda tx: tx.run(f"DROP INDEX ON : {cls.__name__}({by})")
         return executeQuery(db, query, access_mode="write")
 
-    @classmethod
-    def load(cls, db, user=None, private="_", **kwargs):
-        # type: (Driver, User, str, **dict) -> [Entity]
+    @polymorphic
+    def load(
+        self, 
+        db: Driver, 
+        user: Type = None, 
+        private: str = "_",
+        annotate: str = "Get",
+        result: str = None,
+        **kwargs: dict
+    ) -> [Type]:
         """
         Create entity instance from a dictionary or Neo4j <Node>, which has an items() method
         that works the same as the dictionary method.
         """
+        if isclass(self):
+            entity = self(**(kwargs or {}))  # pylint: disable=not-callable
+            cls =  self
+        else:
+            entity = self
+            cls = type(self)
+
+        cmd = (
+            (
+                f"MATCH {repr(entity)}, {repr(user)} "
+                f"MERGE ({entity._symbol})<-[r:{annotate}]-({user._symbol}) "
+                f"ON CREATE SET r.rank = 1 "
+                f"ON MATCH SET r.rank = r.rank + 1 "
+                f"RETURN {entity._symbol}{'.{}'.format(result) if result else ''}"
+            )
+            if user
+            else (
+                f"MATCH {repr(entity)} "
+                f"RETURN {entity._symbol}{'.{}'.format(result) if result else ''}"
+            )
+        )
+
+        print(cmd)
+
         payload = []
-        records = cls.records(db=db, user=user, **kwargs)
-        for rec in records:
+        for rec in executeQuery(
+            db=db, 
+            method=lambda tx: tx.run(cmd).values(), 
+            access_mode="read"
+        ):
             payload.append(
                 cls(
                     **{
@@ -377,38 +415,6 @@ class Entity(object):
                 f"MATCH {repr(entity)} SET {entity._symbol} += {{ {_updates} }}"
             ),
         )
-
-    @classmethod
-    def records(
-        cls,
-        db: Driver,
-        user: Any = None,
-        annotate: str = "Get",
-        result: str = None,
-        **kwargs: dict,
-    ) -> (Node,):
-        """
-        Load database nodes as in-memory record.
-        """
-        entity = cls(**kwargs)
-        symbol = entity._symbol
-        cmd = (
-            (
-                f"MATCH {repr(entity)}, {repr(user._setSymbol('u'))} "
-                f"MERGE ({symbol})<-[r:{annotate}]-({user._symbol}) "
-                f"ON CREATE SET r.rank = 1 "
-                f"ON MATCH SET r.rank = r.rank + 1 "
-                f"RETURN {symbol}{'.{}'.format(result) if result else ''}"
-            )
-            if user
-            else (
-                f"MATCH {repr(entity)} "
-                f"RETURN {symbol}{'.{}'.format(result) if result else ''}"
-            )
-        )
-
-        result = executeQuery(db, lambda tx: tx.run(cmd).values(), access_mode="read")
-        return result
 
     def serialize(
         self, db: Driver, service: str, protocol: str = "http", select: (str) = None
@@ -476,8 +482,13 @@ class FeaturesOfInterest(Entity, models.FeaturesOfInterest):
 
 @attr.s(repr=False)
 class Locations(Entity, models.Locations):
-    def reportWeather(self, ts, api_key, url, exclude=None):
-        # type: (Locations, datetime, str, str, (str, )) -> (dict, int)
+    def reportWeather(
+        self, 
+        ts: datetime, 
+        api_key: str, 
+        url: str = "https://api.darksky.net/forecast", 
+        exclude: (str) = None
+    ) -> ResponseJSON:
         """
         Get meteorological conditions in past/present/future.
 
@@ -491,7 +502,10 @@ class Locations(Entity, models.Locations):
         """
         if self.location["type"] != "Point":
             return {"message": "Only GeoJSON Point types are supported"}, 400
-        inference = "{},{},{}".format(*self.location["coordinates"][:2], ts.isoformat())
+
+        x, y = self.location["coordinates"][0], self.location["coordinates"][1]
+
+        inference = f"{x},{y},{ts.isoformat()}"
         return get(
             f"{url}/{api_key}/{inference}?units=si"
             + (f"&exclude={','.join(exclude)}" if exclude else "")

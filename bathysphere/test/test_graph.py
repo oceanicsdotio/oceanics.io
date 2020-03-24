@@ -1,6 +1,6 @@
 import pytest
 from datetime import datetime
-from json import dump
+from json import dumps
 
 from bathysphere import appConfig
 from bathysphere.test.conftest import (
@@ -27,7 +27,17 @@ YEAR = 2019
 COLLECTION = "test-handlers-data-collection"
 ASSET = "test-handlers-data-asset"
 testAuth = ("testing@oceanics.io", "n0t_passw0rd", "something secret")
-
+classes = [
+    Locations,
+    Sensors,
+    Things,
+    ObservedProperties,
+    FeaturesOfInterest,
+    Tasks,
+    TaskingCapabilities,
+    Actuators,
+    Collections,
+]
 
 @pytest.mark.teardown
 def test_graph_teardown(graph):
@@ -88,7 +98,7 @@ def test_graph_account_delete_user(client, token):
         "api/auth", json={"delete": True}, headers={"Authorization": ":" + jwtToken},
     )
     assert response.status_code == 204, response.get_json()
-
+    
     credentials = getCredentials()
     response = client.post(
         "api/auth",
@@ -100,19 +110,7 @@ def test_graph_account_delete_user(client, token):
         },
     )
     assert response.status_code == 200, response.get_json()
-
-
-classes = [
-    Locations,
-    Sensors,
-    Things,
-    ObservedProperties,
-    FeaturesOfInterest,
-    Tasks,
-    TaskingCapabilities,
-    Actuators,
-    Collections,
-]
+    _ = token(auth=CREDENTIALS, purge=True)
 
 
 @pytest.mark.parametrize("cls", classes)
@@ -133,16 +131,23 @@ def test_graph_sensorthings_create(create_entity, cls):
 @pytest.mark.external_call
 def test_graph_sensorthings_locations_weather_report(graph):
 
+    locations = Locations(
+        name="Upper Damariscotta Estuary"
+    ).load(
+        db=graph("localhost", 7687, testAuth[1])
+    )
+
+    if len(locations) != 1:
+        for L in locations:
+            print(dumps(L.serialize(db=None, service=None)))
+        raise AssertionError
+
     response = (
-        Locations(name="Upper Damariscotta Estuary")
-        .load(db=graph("localhost", 7687, testAuth[1]))
+        locations
         .pop()
         .reportWeather(
-            url="https://api.darksky.net/forecast",
             ts=datetime(2016, 2, 1, 0, 0, 0),
             api_key=DARKSKY_API_KEY,
         )
     )
     assert response.ok, response.json()
-    with open("data/test_darksky.json", "w+") as fid:
-        dump(response.json(), fid)

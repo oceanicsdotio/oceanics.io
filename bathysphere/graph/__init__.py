@@ -25,13 +25,16 @@ class polymorphic(object):
 def processKeyValueOutbound(keyValue: (str, Any),) -> (str, Any):
     key, value = keyValue
     if key == "location":
-        return (
-            key,
-            {
-                "type": "Point",
-                "coordinates": eval(value) if isinstance(value, str) else value,
-            },
-        )
+        try:
+            return (
+                key,
+                {
+                    "type": "Point",
+                    "coordinates": eval(value) if isinstance(value, str) else value,
+                },
+            )
+        except NameError:
+            return key, None
     if key[0] == "_":
         return key[1:], value
 

@@ -51,7 +51,7 @@ def context(fcn) -> Callable:
         username, password = request.headers.get("authorization", ":").split(":")
 
         if username and "@" in username:
-            accounts = User.load(db, **{"name": username})
+            accounts = User(name=username).load(db=db)
             if len(accounts) != 1:
                 raise ValueError
             user = accounts.pop()
@@ -61,12 +61,13 @@ def context(fcn) -> Callable:
         else:
             secretKey = request.headers.get("x-api-key", "salt")
             decoded = Serializer(secretKey).loads(password)
-            accounts = User(uuid=decoded["uuid"]).load(db=db)
+            uuid = decoded["uuid"]
+            accounts = User(uuid=uuid).load(db=db)
             if len(accounts) != 1:
-                raise ValueError
+                raise ValueError(f"There are {len(accounts)} matching accounts matching UUID {uuid}")
             user = accounts.pop()
 
-        provider = Providers.load(db, domain=user.name.split("@").pop())
+        provider = Providers(domain=user.name.split("@").pop()).load(db=db)
         if len(provider) != 1:
             raise ValueError
 
@@ -98,7 +99,7 @@ def register(body: dict, **kwargs: dict) -> ResponseJSON:
         )
         return {"message": message}, 403
 
-    providers = Providers.load(db=db, apiKey=apiKey)
+    providers = Providers(apiKey=apiKey).load(db=db)
     if len(providers) != 1:
         return {"message": "Bad API key."}, 403
 
@@ -109,7 +110,7 @@ def register(body: dict, **kwargs: dict) -> ResponseJSON:
         return {"message": "use email"}, 403
     _, domain = username.split("@")
 
-    if User.records(db=db, name=username, result="id"):
+    if User(name=username).load(db=db, result="id"):
         return {"message": "invalid email"}, 403
 
     if entryPoint.name != "Public" and domain != entryPoint.domain:
