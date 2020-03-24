@@ -1,11 +1,10 @@
-from time import time
-from inspect import signature, isclass
-from types import MethodType
+# pylint: disable=invalid-name,bad-continuation,protected-access,bad-whitespace
+from inspect import isclass
 from typing import Type, Callable, Any
+from types import MethodType
 from datetime import datetime
 from pickle import load as unpickle
 from uuid import uuid4, UUID
-from itertools import chain
 from json import dumps
 
 from requests import get
@@ -20,16 +19,13 @@ from bathysphere.graph import (
     polymorphic,
 )
 
-from bathysphere.datatypes import (
-    ResponseJSON,
-)
+from bathysphere.datatypes import ResponseJSON
 
 
 @attr.s(repr=False)
 class Link:
     """
-    Links are the relationships between two entities. 
-    
+    Links are the relationships between two entities.
     They are directional.
     """
 
@@ -76,7 +72,7 @@ class Link:
     ) -> None:
         """
         Create a link between two node patterns. This uses the `polymorphic` decorator
-        to work on either classes or isntances. 
+        to work on either classes or isntances.
 
         If calling as an instance of `Link`, no addtional properties should be supplied.
         Otherwise, a `Link` will be constructed from the `props` arguement.
@@ -142,7 +138,7 @@ class Link:
 
 
 @attr.s(repr=False)
-class Entity(object):
+class Entity:
     """
     Primitive object/entity, may have name and location
     """
@@ -178,6 +174,11 @@ class Entity(object):
     def _setSymbol(
         self, symbol: str,
     ):
+        """
+        Convenience setter for changing symbol if there are multiple patterns.
+
+        Some common classes have special symbols, e.g. User is `u`
+        """
         self._symbol = symbol
         return self
 
@@ -185,13 +186,14 @@ class Entity(object):
         """
         Create a filtered dictionary from the object properties.
 
-        Remove not serializable or resticted members: 
+        Remove not serializable or resticted members:
         - functions
         - keys beginning with a private prefix
         - keys not in a selected set, IFF provided
         """
 
         def _filter(keyValue):
+            """Remove private or non-serializable data"""
             key, value = keyValue
             return (
                 not isinstance(value, Callable)
@@ -200,14 +202,14 @@ class Entity(object):
                 and (key in select if select else True)
             )
 
-        return {k: v for k, v in filter(_filter, self.__dict__.items())}
+        return dict(filter(_filter, self.__dict__.items()))
 
     @classmethod
     def addConstraint(cls, db: Driver, by: str) -> Callable:
         """
         Create a unique constraint on one type of labeled node.
 
-        Usually this will be by name. 
+        Usually this will be by name.
         """
         query = lambda tx: tx.run(
             f"CREATE CONSTRAINT ON (n:{cls.__name__}) ASSERT n.{by} IS UNIQUE"
@@ -218,7 +220,7 @@ class Entity(object):
     def addIndex(cls, db: Driver, by: str) -> Callable:
         """
         Indexes add a unqie constraint as well as speeding up queries
-        on the graph database. 
+        on the graph database.
         """
         query = lambda tx: tx.run(f"CREATE INDEX ON : {cls.__name__}({by})")
         return executeQuery(db, query, access_mode="write")
@@ -256,7 +258,8 @@ class Entity(object):
     ) -> Any or None:
 
         """
-        Create a new node(s) in graph. Format object properties dictionary as list of key:"value" strings,
+        Create a new node(s) in graph. 
+        Format object properties dictionary as list of key:"value" strings,
         automatically converting each object to string using its built-in __str__ converter.
         Special values can be given unique string serialization methods by overloading __str__.
 
@@ -272,15 +275,16 @@ class Entity(object):
 
         executeQuery(db, lambda tx: tx.run(f"MERGE {repr(entity)}"))
 
-        # for fcn in bind:
-        #     setattr(e, fcn.__name__, MethodType(fcn, e))
+        for fcn in bind:
+            setattr(entity, fcn.__name__, MethodType(fcn, entity))
 
-        # existingCapabilities: dict = {x.name: x.uuid for x in TaskingCapabilities.load(db)}
+        existingCapabilities: dict = {x.name: x.uuid for x in TaskingCapabilities().load(db)}
 
-        # boundMethods = set(y[0] for y in filter(lambda x: isinstance(x[1], Callable), e.__dict__.items()))
-        # classMethods = set(filter(lambda x: x[: len(private)] != private, dir(e)))
-        # instanceKeys: set = (boundMethods | classMethods) - set(e._properties())
-        # existingKeys = set(existingCapabilities.keys())
+        _generator = filter(lambda x: isinstance(x[1], Callable), entity.__dict__.items())
+        boundMethods = set(y[0] for y in _generator)
+        classMethods = set(filter(lambda x: x[: len(private)] != private, dir(entity)))
+        instanceKeys: set = (boundMethods | classMethods) - set(entity._properties())
+        existingKeys = set(existingCapabilities.keys())
 
         # for key in (existingKeys & instanceKeys):
         #     Link.join(
@@ -336,21 +340,21 @@ class Entity(object):
         )
 
     @classmethod
-    def dropIndex(cls, db, by):
-        # type: (Entity, Driver, str) -> Callable
+    def dropIndex(cls, db: Driver, by: str) -> None:
+        """Drop an existing index"""
         query = lambda tx: tx.run(f"DROP INDEX ON : {cls.__name__}({by})")
-        return executeQuery(db, query, access_mode="write")
+        executeQuery(db, query, access_mode="write")
 
     @polymorphic
     def load(
-        self, 
-        db: Driver, 
-        user: Type = None, 
+        self,
+        db: Driver,
+        user: Type = None,
         private: str = "_",
         annotate: str = "Get",
         result: str = None,
         echo: bool = False,
-        **kwargs: dict
+        **kwargs: dict,
     ) -> [Type]:
         """
         Create entity instance from a dictionary or Neo4j <Node>, which has an items() method
@@ -358,7 +362,7 @@ class Entity(object):
         """
         if isclass(self):
             entity = self(**(kwargs or {}))  # pylint: disable=not-callable
-            cls =  self
+            cls = self
         else:
             entity = self
             cls = type(self)
@@ -383,17 +387,10 @@ class Entity(object):
 
         payload = []
         for rec in executeQuery(
-            db=db, 
-            method=lambda tx: tx.run(cmd).values(), 
-            access_mode="read"
+            db=db, method=lambda tx: tx.run(cmd).values(), access_mode="read"
         ):
             payload.append(
-                cls(
-                    **{
-                        k: v
-                        for k, v in map(processKeyValueOutbound, dict(rec[0]).items())
-                    }
-                )
+                cls(**dict(map(processKeyValueOutbound, dict(rec[0]).items())))
             )
         return payload
 
@@ -459,37 +456,39 @@ class Entity(object):
 
 @attr.s(repr=False)
 class Actuators(Entity, models.Actuators):
-    pass
+    """Graph extension to base model"""
 
 
 @attr.s(repr=False)
 class Assets(Entity, models.Assets):
-    pass
+    """Graph extension to base model"""
 
 
 @attr.s(repr=False)
 class Collections(Entity, models.Collections):
-    pass
+    """Graph extension to base model"""
 
 
 @attr.s(repr=False)
 class DataStreams(Entity, models.DataStreams):
-    pass
+    """Graph extension to base model"""
 
 
 @attr.s(repr=False)
 class FeaturesOfInterest(Entity, models.FeaturesOfInterest):
-    pass
+    """Graph extension to base model"""
 
 
 @attr.s(repr=False)
 class Locations(Entity, models.Locations):
+    """Graph extension to base model"""
+
     def reportWeather(
-        self, 
-        ts: datetime, 
-        api_key: str, 
-        url: str = "https://api.darksky.net/forecast", 
-        exclude: (str) = None
+        self,
+        ts: datetime,
+        api_key: str,
+        url: str = "https://api.darksky.net/forecast",
+        exclude: (str) = None,
     ) -> ResponseJSON:
         """
         Get meteorological conditions in past/present/future.
@@ -516,43 +515,49 @@ class Locations(Entity, models.Locations):
 
 @attr.s(repr=False)
 class HistoricalLocations(Entity, models.HistoricalLocations):
-    pass
+    """Graph extension to base model"""
 
 
 @attr.s(repr=False)
 class Sensors(Entity, models.Sensors):
-    pass
+    """Graph extension to base model"""
 
 
 @attr.s(repr=False)
 class Observations(Entity, models.Observations):
-    pass
+    """Graph extension to base model"""
 
 
 @attr.s(repr=False)
 class ObservedProperties(Entity, models.ObservedProperties):
-    pass
+    """Graph extension to base model"""
 
 
 @attr.s(repr=False)
 class Providers(models.Providers, Entity):
-    pass
+    """Graph extension to base model"""
 
 
 @attr.s(repr=False)
 class TaskingCapabilities(Entity, models.TaskingCapabilities):
-    pass
+    """Graph extension to base model"""
 
 
 @attr.s(repr=False)
 class Tasks(Entity, models.Tasks):
-    pass
+    """Graph extension to base model"""
 
 
 @attr.s(repr=False)
 class Things(Entity, models.Things):
+    """Graph extension to base model"""
+
     @staticmethod
     def catalog(year: int, month: int = None, day: int = None):
+        """
+        Special catalog method for displaying data conforming to STAC spec, 
+        not currently in use
+        """
         try:
             fid = open("data/remoteCache-{}".format(year), "rb")
             data = list(unpickle(fid))
@@ -572,4 +577,6 @@ class Things(Entity, models.Things):
 
 @attr.s(repr=False)
 class User(Entity, models.User):
+    """Graph extension to base model"""
+
     _symbol: str = attr.ib(default="u")
