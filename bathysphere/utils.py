@@ -1131,16 +1131,6 @@ def _loc(s: int, view: str, mx_x=None, mn_x=None, x=None):
     return dx if span < 3 else int(ceil(dx))
 
 
-def ext2shp(e):
-    """Convert an Extent to a VertexArray"""
-    return array([[e[0], e[2]], [e[1], e[2]], [e[1], e[3]], [e[0], e[3]]])
-
-
-def ext2llur(e):
-    """Convert an Extent to a BoundingBox"""
-    return array([[e[0], e[2]], [e[1], e[3]]])
-
-
 def lin_transform(u, a, b):
     """Linear tranformation"""
     return u * (b - a) + a
@@ -1156,20 +1146,6 @@ def geom_shader(e):
             (e[0], lin_transform(random.uniform(), *e[2:4])),
         )
     )
-
-
-def colorize(data):
-    # type: (Array) -> Array
-    """
-    Convert data field to color and transparency components
-    """
-    normalized = (data - data.min()) / (data.max() - data.min())
-    colors = zeros((*data.shape, 4), dtype=int) + 255
-    colors[:, :, :, 0] *= normalized  # red
-    colors[:, :, :, 1] *= 0  # green
-    colors[:, :, :, 2] *= 1 - normalized  # blue
-    colors[:, :, :, 3] *= 0.5 * normalized  # alpha
-    return colors
 
 
 def landsat_sst_regression(raw, lon, lat, roi, samples, outliers, nsub=10):

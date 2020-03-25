@@ -103,8 +103,9 @@ ResponseOctet = (dict, int)
 
 
 @attr.s
-class Array:
+class Array(Array):
 
+    data: array = attr.ib(default=None)
     gpu: bool = attr.ib(default=False)
 
     @property
@@ -113,19 +114,50 @@ class Array:
         Get range of an array, which may be in GPU memory
         """
         if self.gpu:
-            tex = af.np_to_af_array(data)
+            tex = af.np_to_af_array(self.data)
             mn = af.min(tex)
             mx = af.max(tex)
         else:
-            mn = min(data)
-            mx = max(data)
+            mn = min(self.data)
+            mx = max(self.data)
         return mn, mx
 
+    @property
+    def range(self):
+        """Calculate range of data, used in other properties and functions"""
+        return self.data.max() - self.data.min()
+
+
+    @property
+    def normalized(self):
+        """Transform to (0,1) range"""
+        return (self.data - self.data.min()) / self.range
+
+
+    @property
+    def colorize(simplefilter):
+        # type: (Array) -> Array
+        """
+        Convert data field to color and transparency components
+        """
+        normalized = self.normalized
+        colors = zeros((*data.shape, 4), dtype=int) + 255
+        colors[:, :, :, 0] *= normalized  # red
+        colors[:, :, :, 1] *= 0  # green
+        colors[:, :, :, 2] *= 1 - normalized  # blue
+        colors[:, :, :, 3] *= 0.5 * normalized  # alpha
+        return colors
 
 @attr.s
 class Bound:
     value: Any = attr.ib()
-    closed: bool = attr.ib(closed=False)
+    closed: bool = attr.ib(default=False)
+
+
+@attr.s
+class BoundingBox:
+    lower_left: (float, float) = attr.ib()
+    uppper_right: (float, float) =  attr.ib()
 
 
 @attr.s
@@ -551,6 +583,22 @@ class Extent:
 
     def __call__(self):
         return self.value
+
+    @property
+    def vertex_array(self):
+        """
+        Convert an Extent to a VertexArray
+        """
+        e = self.value
+        return array([[e[0], e[2]], [e[1], e[2]], [e[1], e[3]], [e[0], e[3]]])
+
+    @property
+    def bounding_box(self):
+        """
+        Convert an Extent to a BoundingBox
+        """
+        e = self.value
+        return array([[e[0], e[2]], [e[1], e[3]]])
 
     @property
     def path(self) -> Path:
