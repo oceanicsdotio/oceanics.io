@@ -1,4 +1,4 @@
-#pylint: disable=unused-variable,invalid-name,unused-import
+# pylint: disable=unused-variable,invalid-name,unused-import
 from datetime import datetime, date, timedelta
 from collections import deque
 from multiprocessing import Pool
@@ -26,7 +26,7 @@ from yaml import Loader, load as load_yml
 from google.cloud import secretmanager
 from google.auth.exceptions import DefaultCredentialsError
 
-    
+
 from numpy import (
     abs,
     append,
@@ -99,7 +99,6 @@ try:
 except:
     af = None
     gpu = False
-
 
 
 DEGREES = 180 / pi
@@ -354,7 +353,12 @@ def report_buoy_data(request):
     keys = lines.popleft()
     return (
         dumps(
-            {**data, "values": [dict(zip(k, v)) for k, v in zip(repeat(keys, len(lines)), lines)]}
+            {
+                **data,
+                "values": [
+                    dict(zip(k, v)) for k, v in zip(repeat(keys, len(lines)), lines)
+                ],
+            }
         ),
         200,
     )
@@ -574,42 +578,6 @@ def geo2dist(lat1, long1, lat2, long2):
     return arc * 6373000
 
 
-def reduce_extent(a, b):
-    # type: (ExtentType, ExtentType) -> ExtentType
-    dat = zip(a, b)
-    return min(next(dat)), max(next(dat)), min(next(dat)), max(next(dat))
-
-
-def interval_overlap(a, b):
-    # type: (IntervalType, IntervalType) -> bool
-    """A wholly or partially contains B"""
-    return a[0] <= b[1] and a[1] >= b[0]
-
-
-def interval_contains(a, b):
-    # type: (IntervalType, IntervalType) -> bool
-    """A wholly or partially contains B"""
-    return a[0] <= b[0] and a[1] >= b[1]
-
-
-def extent2path(ext):
-    # type: (ExtentType) -> Path
-    xy = array([[ext[0], ext[2]], [ext[0], ext[3]], [ext[1], ext[3]], [ext[1], ext[2]]])
-    return Path(xy)
-
-
-def extent_overlap(a, b):
-    # type: (ExtentType, ExtentType) -> bool
-    """A wholly or partially contains B"""
-    return interval_overlap(a[:2], b[:2]) and interval_overlap(a[2:4], b[2:4])
-
-
-def extent_contains(a, b):
-    # type: (ExtentType, ExtentType) -> bool
-    """A wholly contains B"""
-    return interval_contains(a[:2], b[:2]) and interval_contains(a[2:4], b[2:4])
-
-
 def extent_overlap_filter(ext, shapes, extents, rec=None):
     # type: (ExtentType, (Array,), (ExtentType,), (dict,)) -> ((Array,), (ExtentType,))
     """
@@ -681,22 +649,6 @@ def extent_overlap_automatic(xyz, shapes, extents, max_passes=3, rec=None):
 
     return xyz, f, e, r
 
-
-def extent(x, y):
-    # type: (Array, Array) -> ExtentType
-    """Create an extent struct"""
-    def array_range(data: array, gpu: bool=False) -> (float, float):
-        """Get range of an array, which may be in GPU memory"""
-        if gpu:
-            tex = af.np_to_af_array(data)
-            mn = af.min(tex)
-            mx = af.max(tex)
-        else:
-            mn = min(data)
-            mx = max(data)
-        return mn, mx
-        
-    return array_range(x) + array_range(y)
 
 
 def hull_overlap(a, b):
@@ -797,9 +749,6 @@ def filter_arrays(x) -> bool:
         return isinstance(x.shape, tuple)
     except AttributeError:
         return False
-
-
-
 
 
 def crop(x, y, ext, mask=None, gpu=False):
@@ -1141,71 +1090,6 @@ def rk4(fcn, y0, t0, dt):
     return y0 + dt * (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6
 
 
-# def polygon_topology(vertex_arrays, extents=None, processes=1):
-#     # type: ((Array, ), (ExtentType, ), int) -> Array
-#     """
-#     Not working correctly.
-
-#     :param vertex_arrays: tuple of shape vertex arrays
-#     :param extents: tuple of pre-calculated extents
-#     :param processes: parallelism
-#     :return:
-#     """
-#     warn("Brute force polygon topology is too expensive", DeprecationWarning)
-
-#     pool = Pool(processes=processes)
-#     s, e, areas, inverse = area_sort((vertex_arrays, extents), pool, reverse=True)
-#     paths = array(tuple(Path(convex_hull(s.data)) for s in vertex_arrays))
-#     nva = len(s)
-#     matrix = zeros((nva, nva), dtype=bool)
-#     memo = {}
-#     print(areas)
-#     ii = -1
-#     found = 0
-#     span = 100
-
-#     while ii > 1 - len(s):
-#         n = len(s) + 1 + ii
-#         if n % span == 0:
-#             print(
-#                 f"{n} remaining at area index {areas[ii]} ({found} overlaps)",
-#                 flush=True,
-#             )
-#         iterable = zip(e[:ii], repeat((e[ii],), n - 1, axis=0))
-#         a = array(pool.starmap(extent_contains, iterable))
-#         indices = where(a)[0]
-
-#         iterable = zip(paths[indices], repeat((paths[ii],), len(indices), axis=0))
-#         b = array(pool.starmap(hull_contains, iterable))
-#         sub = where(b)[0]
-
-#         for jj in indices[sub]:  # may be empty, still works
-#             points = vertex_arrays[ii]
-#             if (
-#                 not paths[jj].contains_points(points).all()
-#             ):  # shape is wholly inside the convex hull
-#                 continue
-#             try:
-#                 boundary = memo[jj]
-#             except KeyError:
-#                 boundary = memo[jj] = Path(vertex_arrays[jj])
-#             if not boundary.contains_points(points).any():
-#                 continue
-
-#         if len(sub):
-#             _ = indices[sub]
-
-#         found += len(indices)
-#         matrix[ii, inverse[indices]] = True
-#         ii -= 1
-
-#         try:
-#             del memo[ii]
-#         except KeyError:
-#             pass
-
-#     return array(tuple(zip(*where(matrix))))
-
 
 def thematic_mapping(shapes, extent, key, value):
     """
@@ -1228,18 +1112,14 @@ def thematic_mapping(shapes, extent, key, value):
     def _filter(x) -> bool:
         return not x["hide"] and x["type"] == "analytical"
 
-    shapes = shapes.collect(extent=extent, flags=(~_match_field()))  # pylint: disable=invalid-unary-operand-type
+    shapes = shapes.collect(
+        extent=extent, flags=(~_match_field())
+    )  # pylint: disable=invalid-unary-operand-type
     return filter(_filter, shapes)
 
 
-def _loc(
-    s: int, 
-    view: str, 
-    mx_x=None, 
-    mn_x=None, 
-    x=None
-):
-
+def _loc(s: int, view: str, mx_x=None, mn_x=None, x=None):
+    """Calculate locators"""
     assert (mx_x is not None and mn_x is not None) or x is not None
     if x is not None:
         mx_x = max(x)
@@ -1449,28 +1329,6 @@ def attenuation(bathymetry, elevation, sigma, coefficients):
     return (elevation - bathymetry) * sigma[:, None] * coefficients
 
 
-def lagrangian_displacement(delta, window=10):
-    # type: (Array, int) -> Array
-    """
-    Average displacement over one hour time window
-
-    :param window: steps for boxcar filter
-    :param delta: movement vectors
-    :return: average displacement of group over time
-    """
-
-    def reduce(start, end):
-        indices = arange(start, end)
-        mean_sq_displacement = delta[:, :, indices].sum(axis=2) ** 2
-        return 0.25 / 60 * mean_sq_displacement.sum(axis=0)
-
-    steps = delta.shape[2]
-    displace = zeros((delta.shape[1], steps))
-    for time in range(window, steps):  # per particle time series
-        displace[:, time] = reduce(time - window, time)
-    return displace.mean(axis=0)
-
-
 def lagrangian_diffusion(
     vertex_array_buffer, window, bins, groups, threshold, wrap, steps=240
 ):
@@ -1492,7 +1350,18 @@ def lagrangian_diffusion(
         delta -= wrap * (delta > threshold)
         delta += wrap * (delta < -threshold)
 
-    displace = lagrangian_displacement(delta, window=window)
+    def _reduce(start, end):
+        indices = arange(start, end)
+        mean_sq_displacement = delta[:, :, indices].sum(axis=2) ** 2
+        return 0.25 / 60 * mean_sq_displacement.sum(axis=0)
+
+    steps = delta.shape[2]
+    displace = zeros((delta.shape[1], steps))
+    for time in range(window, steps):  # per particle time series
+        displace[:, time] = _reduce(time - window, time)
+    displace = displace.mean(axis=0)
+
+    
     ii = arange(bins) * steps
     return tuple(
         displace[indices, ii : ii + steps - 1].mean(axis=0) for indices in groups
@@ -1523,35 +1392,6 @@ def gradient(dz: array, dzz: array) -> array:
     return -1 / dz / roll(dzz, 1)
 
 
-def reindex(indices, basis=0, enforce=None):
-    """Adjust to zero-indexed or other basis"""
-    minimum = indices.min()
-    if (minimum != enforce) if enforce else True:
-        indices -= minimum + basis  # zero-index
-    return indices
-
-
-def topology(path: str, indexed: bool = True) -> dict:
-    """
-    Read in grid topology of unstructured triangular grid
-    """
-    if path[-3:] == ".nc":
-        fid = Dataset(path)
-        topo = fid.variables["nv"][:].T
-    else:
-        fid = open(path, "r")
-        df = read_csv(fid, sep=",", usecols=arange(4 if indexed else 3), header=None)
-        topo = df.__array__()
-
-    n = len(topo)
-    topo = reindex(topo, basis=0, enforce=1)
-
-    return {
-        "indices": topo[:, 0] if indexed else arange(n),
-        "topology": topo[:, 0] if indexed else arange(n),
-    }
-
-
 def boundary(solid: array, open: array, topology: array) -> dict:
     """
     Collect nodes and set boundary for element
@@ -1562,21 +1402,6 @@ def boundary(solid: array, open: array, topology: array) -> dict:
         "porosity": 2 - solids.clip(min=1),
         "open": open[topology].max(axis=1),
     }
-
-
-def cell_adjacency(parents: dict, indices: list, topology: array) -> (dict, list):
-    """
-    Get element neighbors
-    """
-    queue = dict()
-    while indices:
-        cell = indices.pop()
-        nodes = [set(parents[key]) - {cell} for key in topology[cell, :]]
-        buffer = [nodes[ii] & nodes[ii - 1] for ii in range(3)]
-        key = "neighbor" if 0 < len(buffer) <= 3 else "error"
-        queue[key][cell] = buffer
-
-    return queue
 
 
 def _advection_terms(solid, open, x, y, AU, neighbors):
@@ -1628,10 +1453,6 @@ def mask(shape, masked=None):
     if masked is not None:
         m[masked] = True
     return m
-
-
-def _test_duplicate_adjacency(indices, data: dict or list):
-    return [key for key in indices if len(data[key]) > len(unique(data[key]))]
 
 
 def _reorder(
@@ -1693,6 +1514,8 @@ def calc_areas(vertex_buffer: array, topology: array, parents: list, verb=True):
     Calculate triangle area and correct windings
     """
     vertex_positions = vertex_buffer[topology]
+
+
     tri_area = _caclulate_area_with_cross_product(*vertex_positions, topology)
     shape = len(vertex_buffer)
     area = zeros(shape, dtype=float)
@@ -1764,39 +1587,6 @@ def extrude(vertex_array, closed=False, loop=True, dtype=float, **kwargs):
     return vertex_array, topology
 
 
-def topology_normals(vertex_array, topology):
-    uu = vertex_array[topology[:, 1], :] - vertex_array[topology[:, 0], :]
-    vv = vertex_array[topology[:, 2], :] - vertex_array[topology[:, 0], :]
-    return cross(uu, vv)
-
-
-def vertex_array_normals(vertex_array, topology, s=0.05):
-    # type: (Array, Array, float) -> Array
-    """
-    Add vertex list to batch for rendering
-    """
-    f = topology_normals(vertex_array, topology)
-    assert f.shape == (topology.size, 3)
-    v = f[topology, :]
-    assert v.shape[:2] == (topology.size, 3)
-    assert 3 <= v.shape[2] <= 4
-    v_avg = v.mean(axis=1)
-    assert v_avg.shape == (vertex_array.size, 3)
-    return vstack((vertex_array, s * normal(v_avg) + vertex_array))
-
-
-def adjacency(vertex_array, topology):
-    # type: (Array, Array) -> Array
-    """
-    Calculate adjacent vertices
-    """
-    adj = []
-    for ii, _ in enumerate(vertex_array):
-        rows, cols = where(topology == ii)
-        uni = unique(topology[rows, :])
-        new_adj = uni[where(uni != ii)]
-        adj.append(new_adj)
-    return adj
 
 
 def subdivide(vertex_array, topology, punch=True):
@@ -2119,11 +1909,7 @@ def tetrahedron(dtype=float):
     return vertex_array, topology
 
 
-def globe(
-    n: int = 24, 
-    dtype: Type = float
-):
-    # type: (int, type) -> Array
+def globe(n: int = 24, dtype: Type = float):
 
     # vertex_array = zeros((R * (R // 2 - 1) + 2, 3), dtype=dtype)
     # topology = zeros((2 * R * (R // 2 - 1), 3), dtype=int)

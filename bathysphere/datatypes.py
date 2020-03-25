@@ -1,3 +1,4 @@
+from __future__ import annotations
 from enum import Enum
 from typing import Callable, Any, Coroutine
 from datetime import datetime, date, timedelta
@@ -53,6 +54,7 @@ from numpy import (
     repeat,
     zeros,
     flip,
+    unique,
 )
 from numpy.linalg import norm
 from netCDF4 import Dataset as _Dataset
@@ -87,6 +89,8 @@ from bathysphere.utils import (
     resolveTaskTree,
     synchronous,
     googleCloudSecret,
+    normal,
+    Path
 )
 
 SEC2DAY = 86400
@@ -99,7 +103,33 @@ ResponseOctet = (dict, int)
 
 
 @attr.s
-class ChemicalSystem(object):
+class Array:
+
+    gpu: bool = attr.ib(default=False)
+
+    @property
+    def interval(self) -> Interval:
+        """
+        Get range of an array, which may be in GPU memory
+        """
+        if self.gpu:
+            tex = af.np_to_af_array(data)
+            mn = af.min(tex)
+            mx = af.max(tex)
+        else:
+            mn = min(data)
+            mx = max(data)
+        return mn, mx
+
+
+@attr.s
+class Bound:
+    value: Any = attr.ib()
+    closed: bool = attr.ib(closed=False)
+
+
+@attr.s
+class ChemicalSystem:
 
     sources = None
     value = None
@@ -280,7 +310,7 @@ class CloudSQL:
             return dumps({"Error": "Could not serialize result of query"}), 500
 
 @attr.s
-class Condition(object):
+class Condition:
     """
     Conditions are a base class for BOUNDARY and SOURCE types.
 
@@ -510,10 +540,57 @@ class Dataset(_Dataset):
 
 
 @attr.s
-class Distance(object):
+class Distance:
     value: float = attr.ib()
     unit: str = attr.ib()
 
+
+@attr.s
+class Extent:
+    value: ExtentType = attr.ib()
+
+    def __call__(self):
+        return self.value
+
+    @property
+    def path(self) -> Path:
+        """Get extent as a closed Path"""
+        ext = self.value
+        xy = array([[ext[0], ext[2]], [ext[0], ext[3]], [ext[1], ext[3]], [ext[1], ext[2]]])
+        return Path(xy)
+
+    @property
+    def intervals(self):
+        return (
+            Interval(Bound(self.value[0]), Bound(self.value[1])),
+            Interval(Bound(self.value[2]), Bound(self.value[3]))
+        )
+
+
+    def __add__(self, other: Extent) -> Extent:
+        """
+        Reduce extents through addition
+        """
+        dat = zip(self.value, other.value)
+        return min(next(dat)), max(next(dat)), min(next(dat)), max(next(dat))
+
+
+    def overlaps(self, other: Extent) -> bool:
+        """
+        A wholly or partially contains B
+        """
+        def _mapped(item: (Extent, Extent)):
+            a, b = item
+            return item[0].overlaps(item[1])
+
+        return all(map(_mapped, zip(self.intervals, other.intervals)))
+
+
+    def __contains__(self, other: Extent) -> bool:
+        """
+        A wholly contains B
+        """
+        return interval_contains(a[:2], b[:2]) and interval_contains(a[2:4], b[2:4])
 
 def Feature(
     properties: dict = None,
@@ -538,7 +615,7 @@ def FeatureCollection(
 
 
 @attr.s
-class Field(object):
+class Field:
     """Column for Postgres table"""
 
     name: Any = attr.ib()
@@ -1490,6 +1567,32 @@ class Graph:
         return post(url=url, json=obj, headers={"Authorization": f"Bearer {token}"})
 
 
+@attr.s
+class Interval:
+    lower: Bound = attr.ib(default=None)
+    upper: Bound = attr.ib(default=None)
+
+
+    def overlaps(self, other: Interval) -> bool:
+        """
+        A wholly or partially contains B
+        """
+        return (
+            self.lower.value <= other.upper.value and 
+            self.upper.value >= other.lower.value
+        )
+
+
+    def __contains__(self, other: Interval):
+        """
+        A wholly or partially contains B
+        """
+        return (
+            self.lower.value <= other.lower.value and 
+            self.upper.value >= other.upper.value
+        )
+
+
 class JSONIOWrapper(TextIOWrapper):
     @staticmethod
     def log(message: str, data: str, log: BytesIO = None, arrow: str = "->") -> None:
@@ -1983,6 +2086,51 @@ class Memory:
 #         return vertex_array_buffer
 
 
+@attr.s
+class Mesh:
+    """
+    Meshes are collections of points and their topology
+    """
+    vertex_array: VertexArray = attr.ib(default=None)
+    topology: Topology = attr.ib(default=None)  # Topology
+
+
+    def cell_normals(self) -> Array:
+        """Normals of faces"""
+        topo = self.topology
+        uu = self.vertex_array[topo[:, 1], :] - self.vertex_array[topo[:, 0], :]
+        vv = self.vertex_array[topo[:, 2], :] - self.vertex_array[topo[:, 0], :]
+        return cross(uu, vv)
+
+
+    def vertex_normals(self, s: float = 0.05) -> Array:
+        """
+        Add vertex list to batch for rendering
+        """
+        f = self.cell_normals()
+        assert f.shape == (self.topology.size, 3)
+        v = f[self.topology, :]
+        assert v.shape[:2] == (self.topology.size, 3)
+        assert 3 <= v.shape[2] <= 4
+        v_avg = v.mean(axis=1)
+        assert v_avg.shape == (self.vertex_array.size, 3)
+        return vstack((self.vertex_array, s * normal(v_avg) + self.vertex_array))
+
+
+    def adjacency(self) -> Array:
+        # type: (Array, Array) -> Array
+        """
+        Calculate adjacent vertices
+        """
+        adj = []
+        for ii, _ in enumerate(self.vertex_array):
+            rows, _ = where(self.topology == ii)
+            uni = unique(self.topology[rows, :])
+            new_adj = uni[where(uni != ii)]
+            adj.append(new_adj)
+        return adj
+
+
 class ObjectStorage(Minio):
     def __init__(self, bucket_name: str, endpoint: str, prefix: str = None, **kwargs):
         self.bucket_name = bucket_name
@@ -2231,7 +2379,7 @@ class Query:
 
 
 @attr.s
-class Reactor(object):
+class Reactor:
 
     systems: () = attr.ib()
     mesh: None = attr.ib()
@@ -2604,12 +2752,12 @@ class RelationshipLabels(Enum):
 
 
 @attr.s
-class Schema(object):
+class Schema:
     fields: [Field] = attr.ib(default=attr.Factory(list))
 
 
 @attr.s
-class State(object):
+class State:
 
     orientation: array = attr.ib()  # facing
     axis: array = attr.ib()  # rotation
@@ -2620,7 +2768,7 @@ class State(object):
 
 
 @attr.s
-class Table(object):
+class Table:
 
     name: str = attr.ib()
     schema: Schema = attr.ib(default=Schema())
@@ -2684,7 +2832,7 @@ class Table(object):
 
 
 @attr.s
-class TimeStamp(object):
+class TimeStamp:
     @staticmethod
     def parseBinary(buffer: bytes, byteorder: str = "big") -> datetime:
         """
@@ -2699,9 +2847,50 @@ class TimeStamp(object):
 
 
 @attr.s
-class Topology(object):
+class Topology:
 
     cells: array = attr.ib(default=None)
+
+
+    def cell_adjacency(self, parents: dict, indices: [int]) -> dict:
+        """
+        Get element neighbors
+        """
+        queue = dict()
+        while indices:
+            cell = indices.pop()
+            nodes = [set(parents[key]) - {cell} for key in self.cells[cell, :]]
+            buffer = [nodes[ii] & nodes[ii - 1] for ii in range(3)]
+            key = "neighbor" if 0 < len(buffer) <= 3 else "error"
+            queue[key][cell] = buffer
+
+        return queue
+
+
+    def read(path: str, indexed: bool = True) -> dict:
+        """
+        Read in grid topology of unstructured triangular grid
+        """
+        if path[-3:] == ".nc":
+            fid = Dataset(path)
+            topo = fid.variables["nv"][:].T
+        else:
+            fid = open(path, "r")
+            df = read_csv(fid, sep=",", usecols=arange(4 if indexed else 3), header=None)
+            topo = df.__array__()
+
+        n = len(topo)
+
+        basis = 0
+        enforce = 1
+        minimum = topo.min()
+        if (minimum != enforce) if enforce else True:
+            topo -= minimum + basis  # zero-index
+        
+        return {
+            "indices": topo[:, 0] if indexed else arange(n),
+            "topology": topo[:, 0] if indexed else arange(n),
+        }
 
     @property
     def adjacency(self):
@@ -2853,7 +3042,7 @@ class Unit:
 
 
 @attr.s
-class VertexArray(object):
+class VertexArray:
 
     data: array = attr.ib(default=None)
 
