@@ -1112,9 +1112,10 @@ def thematic_mapping(shapes, extent, key, value):
     def _filter(x) -> bool:
         return not x["hide"] and x["type"] == "analytical"
 
+    # pylint: disable=invalid-unary-operand-type
     shapes = shapes.collect(
-        extent=extent, flags=(~_match_field())
-    )  # pylint: disable=invalid-unary-operand-type
+        extent=extent, flags=(~_match_field()) 
+    )  
     return filter(_filter, shapes)
 
 

@@ -1,5 +1,8 @@
-from functools import reduce
-from os import getenv
+# pylint: disable=invalid-name,line-too-long,bad-continuation,eval-used,unused-import
+"""
+The functions module of the graph API contains handlers for secure
+calls. These are exposed as a Cloud Function calling Connexion/Flask.
+"""
 from itertools import chain
 from datetime import datetime
 from uuid import uuid4
@@ -8,7 +11,6 @@ from passlib.apps import custom_app_context
 from flask import request
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
-from bathysphere import appConfig, app
 from bathysphere.datatypes import ResponseJSON
 from bathysphere.graph import connect, Driver
 from bathysphere.graph.models import (
@@ -46,8 +48,10 @@ def context(fcn) -> Callable:
     if db is None:
         return {"message": "no graph backend"}, 500
 
-    def _wrapper(*args, **kwargs) -> Any:
-
+    def _wrapper(**kwargs) -> Any:
+        """
+        The produced decorator
+        """
         username, password = request.headers.get("authorization", ":").split(":")
 
         if username and "@" in username:
@@ -64,7 +68,9 @@ def context(fcn) -> Callable:
             uuid = decoded["uuid"]
             accounts = User(uuid=uuid).load(db=db)
             if len(accounts) != 1:
-                raise ValueError(f"There are {len(accounts)} matching accounts matching UUID {uuid}")
+                raise ValueError(
+                    f"There are {len(accounts)} matching accounts matching UUID {uuid}"
+                )
             user = accounts.pop()
 
         provider = Providers(domain=user.name.split("@").pop()).load(db=db)
@@ -74,18 +80,22 @@ def context(fcn) -> Callable:
         return fcn(db=db, user=user, provider=provider.pop(), **kwargs)
 
     def handleUncaughtExceptions(*args, **kwargs):
+        """
+        Utility function
+        """
         try:
             return _wrapper(*args, **kwargs)
-        except Exception:
+        except Exception:  # pylint: disable=broad-except
             return {"message": "Unhandled error"}, 500
 
     return _wrapper if DEBUG else handleUncaughtExceptions
 
 
-def register(body: dict, **kwargs: dict) -> ResponseJSON:
+def register(body: dict) -> ResponseJSON:
     """
     Register a new user account
     """
+    # pylint: disable=too-many-return-statements
     db = connect(host, port, accessKey)
     if db is None:
         return {"message": "No graph backend."}, 500
@@ -138,7 +148,7 @@ def register(body: dict, **kwargs: dict) -> ResponseJSON:
 
 
 @context
-def manage(db: Driver, user: User, body: dict, **kwargs: dict) -> ResponseJSON:
+def manage(db: Driver, user: User, body: dict) -> ResponseJSON:
     """
     Change account settings. You can only delete a user or change the
     alias.
@@ -155,7 +165,7 @@ def manage(db: Driver, user: User, body: dict, **kwargs: dict) -> ResponseJSON:
 
 @context
 def token(
-    db: Driver, user: User, provider: Providers, secretKey: str = "salt", **kwargs: dict
+    db: Driver, user: User, provider: Providers, secretKey: str = "salt"
 ) -> ResponseJSON:
     """
     Send a JavaScript Web Token back to authorize future sessions
@@ -170,9 +180,7 @@ def token(
 
 
 @context
-def catalog(
-    db: Driver, user: User, host: str, port: str, **kwargs: dict
-) -> ResponseJSON:
+def catalog(db: Driver, user: User) -> ResponseJSON:
     """
     Usage 1. Get references to all entity sets, or optionally filter
     """
@@ -196,9 +204,6 @@ def create(
     body: dict,
     provider: Providers,
     service: str = "localhost",
-    hmacKey: str = None,
-    headers: str = None,
-    **kwargs,
 ) -> ResponseJSON:
     """
     Attach to db, and find available ID number to register the entity.
@@ -209,7 +214,6 @@ def create(
     linkPattern = Link(label="Post", props={"confidence": 1.0},)
 
     linkPattern.join(db=db, nodes=(user, entity))
-
     linkPattern.join(db=db, nodes=(provider, entity))
 
     # declaredLinks = map(
@@ -225,35 +229,33 @@ def mutate(
     db: Driver,
     provider: Providers,
     entity: str,
-    id: str,
-    user: User,
-    **kwargs,
+    uuid: str,
+    user: User
 ) -> ResponseJSON:
     """
     Give new values for the properties of an existing entity.
     """
     _ = body.pop("entityClass")  # only used for API discriminator
     cls = eval(entity)
-    _ = cls.mutate(db=db, data=body, identity=id, props={})
+    _ = cls.mutate(db=db, data=body, identity=uuid, props={})
     createLinks = chain(
-        ({"cls": repr(user), "id": user.id, "label": "Put"},),
+        ({"cls": repr(user), "uuid": user.uuid, "label": "Put"},),
         (
-            {"cls": Providers.__name__, "id": r[0], "label": "Provider"}
+            {"cls": Providers.__name__, "uuid": r[0], "label": "Provider"}
             for r in Link(label="Member").query(
-                db=db, nodes=(user, provider), result="b.id"
+                db=db, nodes=(user, provider), result="b.uuid"
             )
         )
         if entity != Providers.__name__
         else (),
     )
 
-    Link().join(db=db, nodes=(cls(id=id), createLinks))
+    Link().join(db=db, nodes=(cls(uuid=uuid), createLinks))
     return None, 204
 
 
 @context
-def collection(db, user, entity, service, **kwargs):
-    # type: (Driver, User, str, str, **dict) -> (dict, int)
+def collection(db: Driver, user: User, entity: str, service: str) -> ResponseJSON:
     """
     Usage 2. Get all entities of a single class
     """
@@ -265,18 +267,26 @@ def collection(db, user, entity, service, **kwargs):
 
 
 @context
-def metadata(db, user, entity, id, service, key=None, **kwargs):
-    # type: (Driver, User, str, int, str, str, **dict)  -> (dict, int)
+def metadata(
+    db: Driver, user: User, entity: str, uuid: str, service: str, key=None
+) -> ResponseJSON:
+    """
+    Format the entity metadata response.
+    """
     value = tuple(
         getattr(item, key) if key else item.serialize(db=db, service=service)
-        for item in (eval(entity).load(db=db, user=user, id=id) or ())
+        for item in (eval(entity).load(db=db, user=user, uuid=uuid) or ())
     )
     return {"@iot.count": len(value), "value": value}, 200
 
 
 @context
-def query(db, root, rootId, entity, service, **kwargs):
-    # type: (Driver, str, int, str, str, dict) -> (dict, int)
+def query(
+    db: Driver, root: str, rootId: str, entity: str, service: str
+) -> ResponseJSON:
+    """
+    Get the related entities of a certain type.
+    """
     items = tuple(
         item.serialize(db=db, service=service)
         for item in Link().query(
@@ -287,15 +297,21 @@ def query(db, root, rootId, entity, service, **kwargs):
 
 
 @context
-def delete(db, entity, uuid, **kwargs):
-    # type: (Driver, str, int, dict) -> (None, int)
+def delete(db: Driver, entity: str, uuid: str) -> ResponseJSON:
+    """
+    Delete a pattern from the graph
+    """
     eval(entity).delete(db, uuid=uuid)
     return None, 204
 
 
 @context
-def join(db, root, rootId, entity, uuid, body, **kwargs):
-    # type: (Driver, str, int, str, int, dict, dict) -> (None, int)
+def join(
+    db: Driver, root: str, rootId: str, entity: str, uuid: str, body: dict
+) -> ResponseJSON:
+    """
+    Create relationships between existing nodes
+    """
     Link.join(
         db, (eval(root)(uuid=rootId), eval(entity)(uuid=uuid)), body.get("props", None)
     )
@@ -303,7 +319,11 @@ def join(db, root, rootId, entity, uuid, body, **kwargs):
 
 
 @context
-def drop(db, root, rootId, entity, uuid, props, **kwargs):
-    # type: (Driver, str, int, str, int, dict, dict) -> (None, int)
+def drop(
+    db: Driver, root: str, rootId: str, entity: str, uuid: str, props: dict
+) -> ResponseJSON:
+    """
+    Break connections between linked nodes.
+    """
     Link.drop(db, (eval(root)(uuid=rootId), eval(entity)(uuid=uuid)), props)
     return None, 204

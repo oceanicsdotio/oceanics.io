@@ -1,4 +1,8 @@
 # pylint: disable=invalid-name,bad-continuation,protected-access,bad-whitespace
+"""
+The models module of the graph API contains extensions to the common
+models, for storing and accessing data in a Neo4j database.
+"""
 from inspect import isclass
 from typing import Type, Callable, Any
 from types import MethodType
@@ -8,7 +12,7 @@ from uuid import uuid4, UUID
 from json import dumps
 
 from requests import get
-from neo4j import Node, Driver
+from neo4j import Driver
 import attr
 
 from bathysphere import models
@@ -78,7 +82,7 @@ class Link:
         Otherwise, a `Link` will be constructed from the `props` arguement.
 
         There must be exactly 2 entities to link. In the future this will support N-body
-        symmetric linking. 
+        symmetric linking.
         """
         if isclass(self):
             L = self(**(props or {}))  # pylint: disable=not-callable
@@ -258,7 +262,8 @@ class Entity:
     ) -> Any or None:
 
         """
-        Create a new node(s) in graph. 
+        Create a new node(s) in graph.
+
         Format object properties dictionary as list of key:"value" strings,
         automatically converting each object to string using its built-in __str__ converter.
         Special values can be given unique string serialization methods by overloading __str__.
@@ -278,9 +283,13 @@ class Entity:
         for fcn in bind:
             setattr(entity, fcn.__name__, MethodType(fcn, entity))
 
-        existingCapabilities: dict = {x.name: x.uuid for x in TaskingCapabilities().load(db)}
+        existingCapabilities: dict = {
+            x.name: x.uuid for x in TaskingCapabilities().load(db)
+        }
 
-        _generator = filter(lambda x: isinstance(x[1], Callable), entity.__dict__.items())
+        _generator = filter(
+            lambda x: isinstance(x[1], Callable), entity.__dict__.items()
+        )
         boundMethods = set(y[0] for y in _generator)
         classMethods = set(filter(lambda x: x[: len(private)] != private, dir(entity)))
         instanceKeys: set = (boundMethods | classMethods) - set(entity._properties())
@@ -322,7 +331,7 @@ class Entity:
         """
         Remove all nodes from the graph, or optionally specify node-matching parameters.
 
-        This method works on both classes and instances. 
+        This method works on both classes and instances.
         """
         if isclass(self):
             entity = self(**(pattern or {}))  # pylint: disable=not-callable
@@ -555,7 +564,7 @@ class Things(Entity, models.Things):
     @staticmethod
     def catalog(year: int, month: int = None, day: int = None):
         """
-        Special catalog method for displaying data conforming to STAC spec, 
+        Special catalog method for displaying data conforming to STAC spec,
         not currently in use
         """
         try:
