@@ -1,3 +1,8 @@
+# pylint: disable=invalid-name,too-few-public-methods,bad-continuation,eval-used
+"""
+The basic building blocks and utilities for graph queries are
+contained in this default import.
+"""
 from json import dumps
 from typing import Callable, Generator, Any
 
@@ -6,23 +11,39 @@ from retry import retry
 from requests import post
 
 
-class polymorphic(object):
+class polymorphic:
+    """
+    Class decorator for allowing methods to be class or instance
+    """
+
     def __init__(self, f):
+        """
+        Wrap the object
+        """
         self.f = f
 
     def __get__(self, instance, owner):
+        """
+        Hoist the function is necessary
+        """
         if instance is not None:
             wrt = instance
         else:
             wrt = owner
 
         def newfunc(*args, **kwargs):
+            """
+            Wrapped function that calls the reference method
+            """
             return self.f(wrt, *args, **kwargs)
 
         return newfunc
 
 
 def processKeyValueOutbound(keyValue: (str, Any),) -> (str, Any):
+    """
+    Special parsing for serialization on query
+    """
     key, value = keyValue
     if key == "location":
         try:
@@ -81,17 +102,14 @@ def processKeyValueInbound(keyValue: (str, Any), null: bool = False) -> str or N
 
 
 def executeQuery(
-    db: Driver, method: Callable, kwargs: (dict,) = (), access_mode: str = "read"
+    db: Driver, method: Callable, kwargs: (dict,)=(), read_only: bool = True
 ) -> None or (Any,):
     """
     Execute one or more cypher queries in an equal number of transactions against the
-    Neo4j graph database. 
+    Neo4j graph database.
     """
     with db.session(access_mode="read") as session:
-        if access_mode == "read":
-            _transact = session.read_transaction
-        else:
-            _transact = session.write_transaction
+        _transact = session.read_transaction if read_only else session.write_transaction
         if kwargs:
             return [_transact(method, **each) for each in kwargs]
         return _transact(method)
@@ -107,7 +125,7 @@ def connect(host: str, port: int, accessKey: str, default: str = "neo4j") -> Dri
     for auth in ((default, accessKey), (default, default)):
         try:
             db = Driver(uri=f"bolt://{host}:{port}", auth=auth)
-        except Exception as ex:
+        except Exception as ex:  # pylint: disable=broad-except
             print(f"{ex} on {host}:{port}")
             continue
         if auth == (default, default):
@@ -120,18 +138,28 @@ def connect(host: str, port: int, accessKey: str, default: str = "neo4j") -> Dri
         return db
 
     if db is None:
+        # pylint: disable=broad-except
         raise Exception(f"Could not connect to Neo4j database @ {host}:{port}")
 
 
-def jdbcRecords(db, query, auth, connection, database="bathysphere"):
-    # type: (Driver, str, (str, str), (str, str), str) -> (dict, )
+def jdbcRecords(
+    db: Driver,
+    query: str,
+    auth: (str, str),
+    connection: (str, str),
+    database="bathysphere",
+) -> (dict):
+    """
+    Make SQL call from Neo4j
+    """
     host, port = connection
     user, password = auth
+    endpoint = f"{host}:{port}/{database}?user={user}&password={password}"
     return executeQuery(
         db,
         lambda tx: tx.run(
             (
-                f"CALL apoc.load.jdbc('jdbc:postgresql://{host}:{port}/{database}?user={user}&password={password}','{query}') "
+                f"CALL apoc.load.jdbc('jdbc:postgresql://{endpoint}','{query}') "
                 f"YIELD row "
                 f"MERGE n: ()"
                 f"RETURN row"
@@ -140,8 +168,7 @@ def jdbcRecords(db, query, auth, connection, database="bathysphere"):
     )
 
 
-def links(urls):
-    # type: ([str]) -> Generator[dict]
+def links(urls: [str]) -> Generator[dict]:
     """Catalog nav links"""
     return (
         {"href": url, "rel": "", "type": "application/json", "title": ""}
@@ -150,13 +177,13 @@ def links(urls):
 
 
 def bbox(ll, ur):
+    """Format two points as a bounding box"""
     return [ll["lon"], ll["lat"], ur["lon"], ur["lat"]]
 
 
 def assets_links(urls):
     """Resource link"""
     return ({"href": url, "title": "", "type": "thumbnail"} for url in urls)
-
 
 
 # def locations(vertex_buffer: array, after=0, before=None, bs=100):
