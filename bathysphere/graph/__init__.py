@@ -168,7 +168,7 @@ def jdbcRecords(
     )
 
 
-def links(urls: [str]) -> Generator[dict]:
+def links(urls: [str]) -> Generator:
     """Catalog nav links"""
     return (
         {"href": url, "rel": "", "type": "application/json", "title": ""}

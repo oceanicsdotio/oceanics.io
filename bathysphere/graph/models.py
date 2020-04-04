@@ -16,14 +16,13 @@ from neo4j import Driver
 import attr
 
 from bathysphere import models
+from bathysphere.datatypes import ResponseJSON
 from bathysphere.graph import (
     processKeyValueInbound,
     processKeyValueOutbound,
     executeQuery,
     polymorphic,
 )
-
-from bathysphere.datatypes import ResponseJSON
 
 
 @attr.s(repr=False)
@@ -64,7 +63,7 @@ class Link:
         r = cls(**props)
         a, b = nodes
         cmd = f"MATCH {repr(a)}-{repr(r)}-{repr(b)} DELETE {r._symbol}"
-        return executeQuery(db, lambda tx: tx.run(cmd), access_mode="write")
+        return executeQuery(db, lambda tx: tx.run(cmd), read_only=False)
 
     @polymorphic
     def join(
@@ -103,7 +102,7 @@ class Link:
         cmd = f"MATCH {repr(a)}, {repr(b)} MERGE ({a._symbol})-{repr(L)}->({b._symbol})"
         if echo:
             print(cmd)
-        executeQuery(db, lambda tx: tx.run(cmd), access_mode="write")
+        executeQuery(db, lambda tx: tx.run(cmd), read_only=False)
 
     @polymorphic
     def query(
@@ -138,7 +137,7 @@ class Link:
             f"SET r.rank = r.rank + 1 "
             f"RETURN {result}"
         )
-        return executeQuery(db, lambda tx: tx.run(cmd).values(), access_mode="read")
+        return executeQuery(db, lambda tx: tx.run(cmd).values(), read_only=True)
 
 
 @attr.s(repr=False)
@@ -218,7 +217,7 @@ class Entity:
         query = lambda tx: tx.run(
             f"CREATE CONSTRAINT ON (n:{cls.__name__}) ASSERT n.{by} IS UNIQUE"
         )
-        return executeQuery(db, query, access_mode="write")
+        return executeQuery(db, query, read_only=False)
 
     @classmethod
     def addIndex(cls, db: Driver, by: str) -> Callable:
@@ -227,7 +226,7 @@ class Entity:
         on the graph database.
         """
         query = lambda tx: tx.run(f"CREATE INDEX ON : {cls.__name__}({by})")
-        return executeQuery(db, query, access_mode="write")
+        return executeQuery(db, query, read_only=False)
 
     @classmethod
     def addLabel(cls, db: Driver, label: str, **kwargs: dict) -> list or None:
@@ -238,7 +237,7 @@ class Entity:
         query = lambda tx: tx.run(
             f"MATCH {repr(entity)} SET {entity._symbol}:{label}"
         ).values()
-        return executeQuery(db, query, access_mode="write")
+        return executeQuery(db, query, read_only=False)
 
     @classmethod
     def count(cls, db: Driver, **kwargs: dict) -> int:
@@ -249,7 +248,7 @@ class Entity:
         query = lambda tx: tx.run(
             f"MATCH {repr(entity)} RETURN count({entity._symbol})"
         ).single()[0]
-        return executeQuery(db, query, access_mode="read")
+        return executeQuery(db, query, read_only=True)
 
     @polymorphic
     def create(
@@ -342,7 +341,7 @@ class Entity:
 
         return executeQuery(
             db=db,
-            access_mode="write",
+            read_only=False,
             method=lambda tx: tx.run(
                 f"MATCH {repr(entity)} DETACH DELETE {entity._symbol}"
             ).values(),
@@ -352,7 +351,7 @@ class Entity:
     def dropIndex(cls, db: Driver, by: str) -> None:
         """Drop an existing index"""
         query = lambda tx: tx.run(f"DROP INDEX ON : {cls.__name__}({by})")
-        executeQuery(db, query, access_mode="write")
+        executeQuery(db, query, read_only=False)
 
     @polymorphic
     def load(
@@ -396,7 +395,7 @@ class Entity:
 
         payload = []
         for rec in executeQuery(
-            db=db, method=lambda tx: tx.run(cmd).values(), access_mode="read"
+            db=db, method=lambda tx: tx.run(cmd).values(), read_only=True
         ):
             payload.append(
                 cls(**dict(map(processKeyValueOutbound, dict(rec[0]).items())))
@@ -418,7 +417,7 @@ class Entity:
         _updates = ", ".join(map(processKeyValueInbound, data.items()))
         executeQuery(
             db=db,
-            access_mode="write",
+            read_only=False,
             method=lambda tx: tx.run(
                 f"MATCH {repr(entity)} SET {entity._symbol} += {{ {_updates} }}"
             ),

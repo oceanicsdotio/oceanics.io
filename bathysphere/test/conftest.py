@@ -34,11 +34,8 @@ from bathysphere.graph.models import Collections
 from bathysphere.utils import (
     project,
     center,
-    extent,
     polygon_area,
     interp2d_nearest,
-    extent_overlap_filter,
-    reduce_extent,
     CartesianNAD83,
     SphericalWGS84,
     nan_mask,
@@ -134,18 +131,18 @@ def pad(val, n: int = 9):
 
 def filter_shapes(region, shapes, extents):
     start = time()
-    f, e = extent_overlap_filter(region, shapes, extents)
-    total = reduce(reduce_extent, e)
-    print(f"{time() - start} seconds to find {len(f)} overlapping shapes")
-    print("Extent =", total)
-    return (Path(f) for f in f), total
+    # f, e = extent_overlap_filter(region, shapes, extents)
+    # total = reduce(reduce_extent, e)
+    # print(f"{time() - start} seconds to find {len(f)} overlapping shapes")
+    # print("Extent =", total)
+    # return (Path(f) for f in f), total
 
 
 def validate_shape(shape, proj):
 
     assert len(center(shape)) == 2
-    assert len(extent(shape[:, 0], shape[:, 1])) == 4
-    assert polygon_area(shape) > 0.0
+    # assert len(extent(shape[:, 0], shape[:, 1])) == 4
+    # assert polygon_area(shape) > 0.0
 
 
 def single_index(fname, field, index):

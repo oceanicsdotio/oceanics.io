@@ -35,9 +35,6 @@ from matplotlib import pyplot as plt
 from datetime import datetime
 
 from bathysphere.utils import (
-    extent,
-    reduce_extent,
-    extent_crop,
     polygon_area
 )
 
@@ -282,6 +279,7 @@ def leaseQuery(ext, auth):
             "limit": 500,
         }
     )
+
   
     return [
         {

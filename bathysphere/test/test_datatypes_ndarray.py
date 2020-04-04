@@ -36,9 +36,6 @@ from bathysphere.datatypes import (
 
 from bathysphere.test.conftest import DATASET, ext, scan
 from bathysphere.utils import (
-    extent,
-    reduce_extent,
-    extent_overlap_filter,
     multi_polygon_crop,
     hull_overlap,
     center,
@@ -71,9 +68,7 @@ from bathysphere.utils import (
     shell,
     icosahedron,
     globe,
-    vertex_array_normals,
     extrude,
-    adjacency,
     subdivide,
     interp2d_nearest,
 )

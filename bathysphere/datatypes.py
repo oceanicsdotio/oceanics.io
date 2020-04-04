@@ -1,3 +1,4 @@
+# pylint: disable=line-too-long,invalid-name
 from __future__ import annotations
 from enum import Enum
 from typing import Callable, Any, Coroutine
@@ -63,6 +64,8 @@ from pandas import read_html, date_range, Series, DataFrame
 from sklearn.linear_model import LinearRegression
 from sklearn.neighbors import KernelDensity
 from pyproj import transform
+from matplotlib import rc
+from matplotlib.pyplot import subplots, subplots_adjust
 
 try:
     import tensorflow as tf
@@ -78,9 +81,9 @@ except ImportError:
     af = None
 texture = af if af is not None else array
 if af:
-    Array = af.Array or array
+    _Array = af.Array or array
 else:
-    Array = array
+    _Array = array
 
 from bathysphere.utils import (
     join,
@@ -103,8 +106,11 @@ ResponseOctet = (dict, int)
 
 
 @attr.s
-class Array(Array):
-
+class Array:
+    """
+    Encapsulates ND Array IO and operations, using either
+    numpy or arrayfire as a backend. 
+    """
     data: array = attr.ib(default=None)
     gpu: bool = attr.ib(default=False)
 
@@ -123,25 +129,24 @@ class Array(Array):
         return mn, mx
 
     @property
-    def range(self):
+    def range(self) -> float:
         """Calculate range of data, used in other properties and functions"""
         return self.data.max() - self.data.min()
 
 
     @property
-    def normalized(self):
+    def normalized(self) -> Array:
         """Transform to (0,1) range"""
         return (self.data - self.data.min()) / self.range
 
 
     @property
-    def colorize(simplefilter):
-        # type: (Array) -> Array
+    def colorize(self) -> Array:
         """
         Convert data field to color and transparency components
         """
         normalized = self.normalized
-        colors = zeros((*data.shape, 4), dtype=int) + 255
+        colors = zeros((*self.data.shape, 4), dtype=int) + 255
         colors[:, :, :, 0] *= normalized  # red
         colors[:, :, :, 1] *= 0  # green
         colors[:, :, :, 2] *= 1 - normalized  # blue
@@ -150,19 +155,28 @@ class Array(Array):
 
 @attr.s
 class Bound:
+    """
+    A bound is on an interval, may ne upper or lower, closed or open
+    """
     value: Any = attr.ib()
     closed: bool = attr.ib(default=False)
 
 
 @attr.s
 class BoundingBox:
+    """
+    A bounding box is similar to an extent, but is define by two points instead of intervals
+    """
     lower_left: (float, float) = attr.ib()
     uppper_right: (float, float) =  attr.ib()
 
 
 @attr.s
 class ChemicalSystem:
-
+    """
+    ChemicalSystems encapuslate conservative mass transport for a single
+    tracked species of reactant
+    """
     sources = None
     value = None
     massAdded: Array = None
@@ -178,28 +192,34 @@ class ChemicalSystem:
 
     @property
     def mass(self) -> None:
+        """Calculate mass from concentration"""
         return None
 
     @property
     def delta(self):
+        """Current rate of changed, dynamically calculated"""
         return 0.0
 
     def __add__(self, other):
+        """Add two systems"""
         try:
             return self.value + other.value
         except:
             return self.value + other
 
     def __truediv__(self, other):
+        """Divide, such as for unit conversion"""
         try:
             return self.value / other.value
         except:
             return self.value / other
 
     def __lt__(self, other):
+        """Array compare"""
         return self.value < other
 
     def __gt__(self, other):
+        """Array compare"""
         return self.value > other
 
     def clamp(
@@ -208,6 +228,7 @@ class ChemicalSystem:
         volume: array
     ):
         """
+        Enforce range
 
         :param concentration:
         :param future:
@@ -315,6 +336,7 @@ class CloudSQL:
         """
         Do some postgres stuff
         """
+        # pylint: disable=broad-exception
         conf = request.body["table"]
         fields = [
             Field(f["name"], f.get("type", None)) for f in conf["schema"]["fields"]
@@ -323,7 +345,7 @@ class CloudSQL:
 
         try:
             records = self.query(table=table)
-        except Exception as ex:
+        except Exception as ex:  
             return dumps({"Error": "Problem executing query", "detail": str(ex)}), 500
 
         try:
@@ -360,7 +382,10 @@ class Condition:
 
     @property
     def delta(self):
-        return self.value * self.scale
+        """
+        Convenient property to auto
+        """
+        return self.value * self.scale if self.scale is not None else self.value
 
     def boundary(self, system) -> None:
         """
@@ -470,12 +495,16 @@ class Condition:
 
 
 def ConvexHull(points):
+    """
+    Convex hulls are used to speed up spatial relation queries
+    """
     def segment(u, v, indices, points):
-
+        """Bisect the points"""
         if indices.shape[0] == 0:
             return array([], dtype=int)
 
         def crossProduct(i, j):
+            """Calculate angles"""
             return cross(points[indices, :] - points[i, :], points[j, :] - points[i, :])
 
         w = indices[argmin(crossProduct(u, v))]
@@ -504,6 +533,7 @@ class Coordinates:
 
 
 class CoordinateSystem(Enum):
+    """Well Known Coordinate Systems"""
     Sigma = 1
     Cartesian = 2
     Gaussian = 3
@@ -512,6 +542,7 @@ class CoordinateSystem(Enum):
 
 
 class DataFormat(Enum):
+    """Well Knonw NDArray formats"""
     NETCDF3_CLASSIC = 1
     NETCDF4 = 2
     NETCDF5 = 3
@@ -557,6 +588,9 @@ class Dataset(_Dataset):
         )
 
     def copy(self, path: str, observed_properties: (str) = None):
+        """
+        Copy parts into a new file
+        """
         fid = _Dataset(path=path)
         if isfile(path=path) and not self.policy():
             return False
@@ -573,15 +607,18 @@ class Dataset(_Dataset):
 
 @attr.s
 class Distance:
+    """Special distance type"""
     value: float = attr.ib()
     unit: str = attr.ib()
 
 
 @attr.s
 class Extent:
+    """Extents speed up relational queries"""
     value: ExtentType = attr.ib()
 
     def __call__(self):
+        """Unwrap the extent value when calling instance"""
         return self.value
 
     @property
@@ -609,6 +646,7 @@ class Extent:
 
     @property
     def intervals(self):
+        """Split extent into two intervals for easier parametric comparison"""
         return (
             Interval(Bound(self.value[0]), Bound(self.value[1])),
             Interval(Bound(self.value[2]), Bound(self.value[3]))
@@ -629,7 +667,7 @@ class Extent:
         """
         def _mapped(item: (Extent, Extent)):
             a, b = item
-            return item[0].overlaps(item[1])
+            return a.overlaps(b)
 
         return all(map(_mapped, zip(self.intervals, other.intervals)))
 
@@ -638,12 +676,18 @@ class Extent:
         """
         A wholly contains B
         """
-        return interval_contains(a[:2], b[:2]) and interval_contains(a[2:4], b[2:4])
+        a, b = self.intervals
+        c, d = other.intervals
+
+        return c in a and d in b
 
 def Feature(
     properties: dict = None,
     geometry: [[float]] =  None
 ) -> dict:
+    """
+    Format as GeoJSON feature
+    """
     return {
         "type": "Feature", 
         "geometry": geometry,
@@ -655,6 +699,9 @@ def FeatureCollection(
     features: [Feature] = None,
     properties: dict = None
 ) -> dict:
+    """
+    Format as GeoJSON feature collection
+    """
     return {
         "type": "FeatureCollection",
         "features": features,
@@ -724,6 +771,11 @@ class Field:
 
 @attr.s
 class File:
+    """
+    Originally used for Satlantic files, repurposed as general file system object.
+
+    Very similar to Assets.
+    """
     name: str = attr.ib(default="")
     sn: int = attr.ib(default=None)
     url: str = attr.ib(default=None)
@@ -734,13 +786,16 @@ class File:
     content: Any = attr.ib(default=None)
 
     def __repr__(self):
+        """Print formatting"""
         return "{} ({}): {}".format(self.__class__.__name__, self.encoding, self.name)
 
     def __cmp__(self, other):
+        """Compare wrapper"""
         if hasattr(other, "sort_key"):
             return self.sort_key().__cmp__(other.sort_key())
 
     def serialize(self):
+        """Format as JSON style dictionary"""
         return {
             "url": self.url,
             "ts": self.ts,
@@ -750,6 +805,7 @@ class File:
         }
 
     def sort_key(self):
+        """Compare by time"""
         return self.time
 
     async def get_and_decode(self, headers, auth, span=32, sn=None):
@@ -803,7 +859,9 @@ class File:
 
     @classmethod
     def metadata(cls, url: str, filename: str, ts: str, size: str):
-
+        """
+        Create a file metadata object
+        """
         fields = filename.split(".")
         encoding = None
         if len(fields) > 1:
@@ -847,6 +905,7 @@ class File:
 
     def _match(self, fmt=None, identity=None):
         # type: (File, set, set) -> bool
+        """Filter for file objects"""
         return (not identity or self.sn in identity) and (
             not fmt or self.encoding in fmt
         )
@@ -870,8 +929,14 @@ class File:
 
 @attr.s
 class FileSystem:
+    """
+    File systems are made up of files!
+    """
     @attr.s
     class OverwritePolicy:
+        """
+        Basic logical unit for allowing/preventing mutability
+        """
         policy: str = attr.ib(default="never")
 
         def __call__(self, *args, **kwargs):
@@ -936,6 +1001,7 @@ class FileSystem:
         """
 
         def __parse(value):
+            """Convenience method for integer type conversion"""
             return value if type(value) == int else int(value[:-1])
 
         if count == depth:
@@ -966,258 +1032,261 @@ class FileSystem:
 
         return enum, collector
 
-    # @staticmethod
-    # def search(pattern, filesystem):
-    #     # type: (str, dict) -> None or str
-    #     """
-    #     Recursively search a directory structure for a key.
-    #     Call this on the result of `index`
+    @staticmethod
+    def search(pattern, filesystem):
+        # type: (str, dict) -> None or str
+        """
+        Recursively search a directory structure for a key.
+        Call this on the result of `index`
 
-    #     :param filesystem: paths
-    #     :param pattern: search key
-    #     :return:
-    #     """
-    #     for key, level in filesystem.items():
-    #         if key == pattern:
-    #             return key
-    #         try:
-    #             result = FileSystem.search(pattern, level)
-    #         except AttributeError:
-    #             result = None
-    #         if result:
-    #             return f"{key}/{result}"
-    #     return None
+        :param filesystem: paths
+        :param pattern: search key
+        :return:
+        """
+        for key, level in filesystem.items():
+            if key == pattern:
+                return key
+            try:
+                result = FileSystem._search(pattern, level)
+            except AttributeError:
+                result = None
+            if result:
+                return f"{key}/{result}"
+        return None
 
-    # @staticmethod
-    # def search(
-    #     queue: deque,
-    #     pool: Pool,
-    #     fmt: set = None,
-    #     identity: set = None,
-    #     ts: datetime = None
-    # ) -> list or None:
-    #     """
-    #     Get all XML and configuration files within a directory
+    @staticmethod
+    def _search(
+        queue: deque,
+        pool: Pool,
+        fmt: set = None,
+        identity: set = None,
+        ts: datetime = None
+    ) -> list or None:
+        """
+        Get all XML and configuration files within a directory
 
-    #     Find configurations from metadata by serial number and date.
+        Find configurations from metadata by serial number and date.
 
-    #     The files can be:
-    #     - On a remote server
-    #     - In the bathysphere_functions_cache
-    #     - Supplied as a list of dictionaries
-    #     """
-    #     iterators = []
-    #     if identity:
-    #         iterators.append(repeat(identity))
-    #     if fmt:
-    #         iterators.append(repeat(fmt))
-    #     if ts:
-    #         iterators.append(repeat(ts))
+        The files can be:
+        - On a remote server
+        - In the bathysphere_functions_cache
+        - Supplied as a list of dictionaries
+        """
+        iterators = []
+        if identity:
+            iterators.append(repeat(identity))
+        if fmt:
+            iterators.append(repeat(fmt))
+        if ts:
+            iterators.append(repeat(ts))
 
-    #     def _chrono(x: File, ts: datetime = None):
-    #         return (
-    #             (x.time is None if ts else x.time is not None),
-    #             (ts - x.time if ts else x.time),
-    #         )
+        def _chrono(x: File, ts: datetime = None):
+            """Chronoloigcal sorting method"""
+            return (
+                (x.time is None if ts else x.time is not None),
+                (ts - x.time if ts else x.time),
+            )
 
-    #     queue = sorted(queue, key=_chrono, reverse=(False if ts else True))
-    #     if fmt or identity:
-    #         matching = pool.starmap(self._match, zip(queue, *iterators))
-    #         queue = deque(queue)
-    #     else:
-    #         return {}, queue
+        queue = sorted(queue, key=_chrono, reverse=(False if ts else True))
+        if fmt or identity:
+            matching = pool.starmap(self._match, zip(queue, *iterators))
+            queue = deque(queue)
+        else:
+            return {}, queue
 
-    #     collector = dict()
-    #     for condition in matching:
-    #         if not condition:
-    #             queue.rotate(1)
-    #             continue
-    #         file = queue.popleft()
-    #         if not collector.get(file.sn, None):
-    #             collector[file.sn] = deque()
-    #         if (
-    #             not ts or len(collector[file.sn]) == 0
-    #         ):  # limit to length 1 for getting most recent
-    #             collector[file.sn].append(file)
-    #             continue
+        collector = dict()
+        for condition in matching:
+            if not condition:
+                queue.rotate(1)
+                continue
+            file = queue.popleft()
+            if not collector.get(file.sn, None):
+                collector[file.sn] = deque()
+            if (
+                not ts or len(collector[file.sn]) == 0
+            ):  # limit to length 1 for getting most recent
+                collector[file.sn].append(file)
+                continue
 
-    #         queue.append(file)  # put the file back if unused
+            queue.append(file)  # put the file back if unused
 
-    #     return collector, queue
+        return collector, queue
 
-    # @staticmethod
-    # def get_files(
-    #     queue: deque, 
-    #     pool: Pool, 
-    #     **kwargs
-    # ):
-    #     """
-    #     Create and process a day of raw files
-    #     """
-    #     extracted, queue = FileSystem.search(
-    #         queue=queue, pool=pool, **kwargs
-    #     )  # get active configuration files
-    #     headers = dict()
-    #     for sn, files in extracted.keys():
-    #         headers[sn] = deque()
-    #         for file in files:
-    #             synchronous(file.get_and_decode())
-    #             if file.encoding == FileType.Config:
-    #                 headers[sn].append(file.frames)
+    @staticmethod
+    def get_files(
+        queue: deque, 
+        pool: Pool, 
+        **kwargs
+    ):
+        """
+        Create and process a day of raw files
+        """
+        extracted, queue = FileSystem.search(
+            queue=queue, pool=pool, **kwargs
+        )  # get active configuration files
+        headers = dict()
+        for sn, files in extracted.keys():
+            headers[sn] = deque()
+            for file in files:
+                synchronous(file.get_and_decode())
+                if file.encoding == FileType.Config:
+                    headers[sn].append(file.frames)
 
-    #     return extracted, headers, queue
+        return extracted, headers, queue
 
-    # @staticmethod
-    # def download(url, prefix=""):
-    #     # type: (str, str) -> str
-    #     """
-    #     Download a file accessible through HTTP/S.
-    #     :param url: location of remote data
-    #     :param prefix: local file path
-    #     """
-    #     response = get(url, stream=True)
-    #     filename = url.split("/").pop()
-    #     if not response.ok:
-    #         raise ConnectionError
-    #     with open(f"{prefix}{filename}", "wb") as fid:
-    #         copyfileobj(response.raw, fid)
-    #     return filename
+    @staticmethod
+    def download(url, prefix=""):
+        # type: (str, str) -> str
+        """
+        Download a file accessible through HTTP/S.
+        :param url: location of remote data
+        :param prefix: local file path
+        """
+        response = get(url, stream=True)
+        filename = url.split("/").pop()
+        if not response.ok:
+            raise ConnectionError
+        with open(f"{prefix}{filename}", "wb") as fid:
+            copyfileobj(response.raw, fid)
+        return filename
 
-    # def get(
-    #     self,
-    #     observed_properties,
-    #     path=None,
-    #     transpose=True,
-    #     dataset=None,
-    #     kind="float64",
-    #     date=None,
-    # ):
-    #     # type: (str or [str] or dict, str, bool, Dataset, str, datetime) -> dict
-    #     """
-    #     Load variables from NetCDF or pickled files into memory. For NetCDF, each variable is accessed
-    #     by name, resulting in an array. For previously processed internal data, arrays are stored as
-    #     binary data in either `.pkl` or `.bathysphere_functions_cache` files.
+    def get(
+        self,
+        observed_properties,
+        path=None,
+        transpose=True,
+        dataset=None,
+        kind="float64",
+        date=None,
+    ):
+        # type: (str or [str] or dict, str, bool, Dataset, str, datetime) -> dict
+        """
+        Load variables from NetCDF or pickled files into memory. For NetCDF, each variable is accessed
+        by name, resulting in an array. For previously processed internal data, arrays are stored as
+        binary data in either `.pkl` or `.bathysphere_functions_cache` files.
 
-    #     :param observed_properties: lookup field names
-    #     :param path: path to local files if loading
-    #     :param transpose: transpose the array before saving, makes join later easier
-    #     :param dataset: NetCDF reference as in-memory object
-    #     :param kind: numerical format for arrays
-    #     :param date: specific timestamp to sample
-    #     """
-    #     result = dict()
+        :param observed_properties: lookup field names
+        :param path: path to local files if loading
+        :param transpose: transpose the array before saving, makes join later easier
+        :param dataset: NetCDF reference as in-memory object
+        :param kind: numerical format for arrays
+        :param date: specific timestamp to sample
+        """
+        result = dict()
 
-    #     if isinstance(observed_properties, str):
-    #         fields = keys = [observed_properties]
-    #     elif isinstance(observed_properties, dict):
-    #         keys = observed_properties.keys()
-    #         fields = observed_properties.values()
-    #     else:
-    #         fields = keys = observed_properties
-    #     iterator = zip(*(keys, fields))
+        if isinstance(observed_properties, str):
+            fields = keys = [observed_properties]
+        elif isinstance(observed_properties, dict):
+            keys = observed_properties.keys()
+            fields = observed_properties.values()
+        else:
+            fields = keys = observed_properties
+        iterator = zip(*(keys, fields))
 
-    #     for key, rename in iterator:
-    #         if path:
-    #             try:
-    #                 fid = open(key, "rb")
-    #             except FileNotFoundError:
-    #                 continue
-    #             data = self.load_year_cache(fid).transpose() if transpose else self.load_year_cache(fid)
-    #             fid.close()
+        for key, rename in iterator:
+            if path:
+                try:
+                    fid = open(key, "rb")
+                except FileNotFoundError:
+                    continue
+                data = self.load_year_cache(fid).transpose() if transpose else self.load_year_cache(fid)
+                fid.close()
 
-    #         elif dataset:
-    #             data = dataset.variables[key][:].astype(kind)
-    #             self.set(date, data, key)
-    #         else:
-    #             data = None
+            elif dataset:
+                data = dataset.variables[key][:].astype(kind)
+                self.set(date, data, key)
+            else:
+                data = None
 
-    #         result[rename] = data
+            result[rename] = data
 
-    #     return result
+        return result
 
-    # @staticmethod
-    # def syncFtp(ftp, remote, local, filesystem=None):
-    #     # type: (FTP, str, str, dict) -> int
-    #     path = FileSystem.search(pattern=remote, filesystem=filesystem)
-    #     with open(local, "wb+") as fid:
-    #         return int(ftp.retrbinary(f"RETR {path}", fid.write))
+    @staticmethod
+    def syncFtp(ftp, remote, local, filesystem=None):
+        # type: (FTP, str, str, dict) -> int
+        """Find and copy a file"""
+        path = FileSystem.search(pattern=remote, filesystem=filesystem)
+        with open(local, "wb+") as fid:
+            return int(ftp.retrbinary(f"RETR {path}", fid.write))
 
-    # @staticmethod
-    # def indexFtp(req, node=".", depth=0, limit=None, metadata=None, parent=None):
-    #     # type: (FTP, str, int, int or None, dict or None, dict) -> None
-    #     """
-    #     Build directory structure recursively.
+    @staticmethod
+    def indexFtp(req, node=".", depth=0, limit=None, metadata=None, parent=None):
+        # type: (FTP, str, int, int or None, dict or None, dict) -> None
+        """
+        Build directory structure recursively.
 
-    #     :param ftp: persistent ftp connection
-    #     :param node: node in current working directory
-    #     :param depth: current depth, do not set
-    #     :param limit: maximum depth,
-    #     :param metadata: pass the object metadata down one level
-    #     :param parent:
-    #     :return:
-    #     """
+        :param ftp: persistent ftp connection
+        :param node: node in current working directory
+        :param depth: current depth, do not set
+        :param limit: maximum depth,
+        :param metadata: pass the object metadata down one level
+        :param parent:
+        :return:
+        """
 
-    #     body = loads(req)
-    #     host = body.get("host", None)
-    #     root = body.get("root", None)
-    #     ftp = FTP(host, timeout=4)
-    #     assert "230" in ftp.login()  # attach if no open socket
-    #     assert ftp.sock
-    #     if root is not None:
-    #         _ = ftp.cwd(root)
+        body = loads(req)
+        host = body.get("host", None)
+        root = body.get("root", None)
+        ftp = FTP(host, timeout=4)
+        assert "230" in ftp.login()  # attach if no open socket
+        assert ftp.sock
+        if root is not None:
+            _ = ftp.cwd(root)
 
-    #     def _map(rec):
-    #         values = rec.split()
-    #         key = values.pop().strip()
-    #         return {key: values}
+        def _map(rec):
+            values = rec.split()
+            key = values.pop().strip()
+            return {key: values}
 
-    #     if depth == 0 and parent is None:
-    #         parent = create(
-    #             db=graph,
-    #             obj=Locations(
-    #                 **{"name": "FTP Server", "description": "Autogenerated FTP Server"}
-    #             ),
-    #         )
+        if depth == 0 and parent is None:
+            parent = create(
+                db=graph,
+                obj=Locations(
+                    **{"name": "FTP Server", "description": "Autogenerated FTP Server"}
+                ),
+            )
 
-    #     if limit is None or depth <= limit:
-    #         try:
-    #             _ = ftp.cwd(node)  # target is a file
-    #         except:
-    #             create(
-    #                 db=graph,
-    #                 obj=Proxy(
-    #                     **{"name": node, "description": "Autogenerated", "url": node}
-    #                 ),
-    #                 links=[parent],
-    #             )
+        if limit is None or depth <= limit:
+            try:
+                _ = ftp.cwd(node)  # target is a file
+            except:
+                create(
+                    db=graph,
+                    obj=Proxy(
+                        **{"name": node, "description": "Autogenerated", "url": node}
+                    ),
+                    links=[parent],
+                )
 
-    #         else:
-    #             collection = create(
-    #                 db=graph,
-    #                 obj=Proxy(
-    #                     **{"name": node, "description": "Autogenerated", "url": node}
-    #                 ),
-    #                 links=[parent],
-    #             )
+            else:
+                collection = create(
+                    db=graph,
+                    obj=Proxy(
+                        **{"name": node, "description": "Autogenerated", "url": node}
+                    ),
+                    links=[parent],
+                )
 
-    #             files = []
-    #             ftp.retrlines("LIST", files.append)
-    #             for k, v in reduce(lambda x, y: {**x, **y}, map(_map, files), {}).items():
-    #                 indexFtp(
-    #                     ftp=ftp,
-    #                     graph=graph,
-    #                     node=k,
-    #                     depth=depth + 1,
-    #                     limit=limit,
-    #                     metadata=v,
-    #                     parent=collection,
-    #                 )
+                files = []
+                ftp.retrlines("LIST", files.append)
+                for k, v in reduce(lambda x, y: {**x, **y}, map(_map, files), {}).items():
+                    indexFtp(
+                        ftp=ftp,
+                        graph=graph,
+                        node=k,
+                        depth=depth + 1,
+                        limit=limit,
+                        metadata=v,
+                        parent=collection,
+                    )
 
-    #             if node != ".":
-    #                 _ = ftp.cwd("..")
+                if node != ".":
+                    _ = ftp.cwd("..")
 
 
 class FileType(Enum):
+    """Well known file types"""
     Schema = 1
     Config = 2
     Log = 3
@@ -1229,6 +1298,9 @@ class FileType(Enum):
 
 @attr.s
 class Frame(dict):
+    """
+    Data frames are partially parsed binary messages, usually from sensor streams
+    """
     data: bytes = attr.ib()
     label: bytes = attr.ib()
     headers: dict = attr.ib()
@@ -1240,6 +1312,7 @@ class Frame(dict):
     _dict: dict = attr.ib(default=attr.Factory(dict))
 
     def goto(self, pattern: bytes, root: str = "SensorFieldGroup"):
+        """Move cursor"""
         return [self._dict[key][root] for key in self._dict.keys() if pattern in key][0]
 
     def wqm(self, keys: (str,)) -> dict:
@@ -1258,6 +1331,7 @@ class Frame(dict):
         return self
 
     def seafet(self, brk: int, keys: list, sep: bytes = b",") -> None:
+        """vendor specific frame"""
         self.sensor = self.bytes[:brk].decode()
         assert self.sensor[3:6] == "PHA"
         data = self.bytes[brk + 1 :].split(sep)
@@ -1267,6 +1341,7 @@ class Frame(dict):
         self.data = {key: value.decode() for key, value in zip(keys, data[3:])}
 
     def by_key(self, frames: dict, headers: dict):
+        """sort frames by sensor id"""
         sn = int(self.label[-4:])
         pattern = self.bytes[:10].decode()
         if pattern[:3] == "SAT":
@@ -1338,6 +1413,7 @@ class Frame(dict):
 
     @staticmethod
     def line(txt: str, bytes_string: bytes):
+        """Single line"""
         keys = [b"SAT", b"WQM"]
         lines = txt.split(bytes_string, keys)
         results = []
@@ -1357,7 +1433,7 @@ class Frame(dict):
 
     @staticmethod
     def ascii_xml(buffer: str, frames: list):
-
+        """XML"""
         result = dict()
         offset = 0
         delims = [each["SensorField"]["Delimiter"].encode() for each in frames]
@@ -1500,42 +1576,42 @@ class Frame(dict):
         parser.feed(xml)
         return parser.close()
 
-    # def parse_xml_frames(
-    #     self,
-    #     config: dict,
-    #     key: str = "sensor",
-    #     depth: int = 10,
-    #     verb: bool = False
-    # ) -> dict:
-    #     """
-    #     Get frames for all sensors on platform
+    def parse_xml_frames(
+        self,
+        config: dict,
+        key: str = "sensor",
+        depth: int = 10,
+        verb: bool = False
+    ) -> dict:
+        """
+        Get frames for all sensors on platform
 
-    #     :param config: xml style dictionary format with all configuration data for sensor platform
-    #     :param key: key for configured items
-    #     :return: dictionary of with sensors as keys, and dataframe schema as value
-    #     """
+        :param config: xml style dictionary format with all configuration data for sensor platform
+        :param key: key for configured items
+        :return: dictionary of with sensors as keys, and dataframe schema as value
+        """
 
-    #     def _goto(item):
-    #         """
-    #         Start node of frame
-    #         """
-    #         sensor = root.findall("./*/[@identifier='" + item["sensor"] + "']")[0]
-    #         frame = sensor.findall("./*/[@identifier='" + item["frame"] + "']")[0]
-    #         if verb:
-    #             print(
-    #                 "Parsing from: . >",
-    #                 sensor.identifier,
-    #                 ">",
-    #                 self.identifier,
-    #             )
-    #         return frame
+        def _goto(item):
+            """
+            Start node of frame
+            """
+            sensor = root.findall("./*/[@identifier='" + item["sensor"] + "']")[0]
+            frame = sensor.findall("./*/[@identifier='" + item["frame"] + "']")[0]
+            if verb:
+                print(
+                    "Parsing from: . >",
+                    sensor.identifier,
+                    ">",
+                    self.identifier,
+                )
+            return frame
 
-    #     ns = "{http://www.satlantic.com/instrument}"
-    #     root = ElementTree.fromstring(config["xml"]["content"])
-    #     return {
-    #         item[key]: Frame._collect(_goto(item), depth=depth, namespace=ns, verb=verb)
-    #         for item in config["config"]["content"]
-    #     }
+        ns = "{http://www.satlantic.com/instrument}"
+        root = ElementTree.fromstring(config["xml"]["content"])
+        return {
+            item[key]: Frame._collect(_goto(item), depth=depth, namespace=ns, verb=verb)
+            for item in config["config"]["content"]
+        }
 
     @staticmethod
     def parse_xml(xml, depth=None, verb=False):
@@ -1582,6 +1658,9 @@ class Frame(dict):
 
 
 class Graph:
+    """
+    Abstract graphDB 
+    """
     @staticmethod
     def register(config: dict):
 
@@ -1617,6 +1696,7 @@ class Graph:
 
 @attr.s
 class Interval:
+    """Intervals are convenience data structs for sorting and numerical queries"""
     lower: Bound = attr.ib(default=None)
     upper: Bound = attr.ib(default=None)
 
@@ -1642,6 +1722,9 @@ class Interval:
 
 
 class JSONIOWrapper(TextIOWrapper):
+    """
+    Use JSON messages piped between between processes
+    """
     @staticmethod
     def log(message: str, data: str, log: BytesIO = None, arrow: str = "->") -> None:
         """
@@ -1701,13 +1784,15 @@ class JSONIOWrapper(TextIOWrapper):
 
 @attr.s
 class KernelDensityEstimator(KernelDensity):
+    """Predict events in space"""
     @staticmethod
     def glm():
-        return LinearRegression()  # create linear regression model object
+        """create linear regression model object"""
+        return LinearRegression()  
 
     @staticmethod
     def get_epsilon_from_mesh(mesh: object, key: str, xx, yy):
-
+        """Retrieve probability field"""
         epsilon = mesh.fields[key]
         field = mesh.nodes.xye(epsilon)
         target = mesh.interp2d(xx, yy, epsilon)  # location suitability
@@ -1715,7 +1800,7 @@ class KernelDensityEstimator(KernelDensity):
         return field, target
 
     def intensity(self, field: object):
-
+        """Calculate density of observations"""
         intensity = self.score_samples(field)  # create intensity field
         maximum = intensity.max()
         minimum = intensity.min()
@@ -1774,16 +1859,16 @@ class KernelDensityEstimator(KernelDensity):
 
 
 class LinkedListNode:
+    """Node in linked list"""
     def __init__(self, value):
+        """create a node"""
         self.next = None
         self.prev = None
         self.value = value
 
-    def __del__(self):
-        print(f"Node with value {self.value} removed")
-
 
 class LinkedList:
+    """LL abstraction"""
     def __init__(self, data: (float,) = ()):
 
         self.head = None
@@ -1799,12 +1884,14 @@ class LinkedList:
         self.tail = prev
 
     def traverse(self) -> None:
+        """Move across nodes"""
         cursor = self.head
         while cursor is not None:
             print(cursor.value)
             cursor = cursor.next
 
     def deduplicate(self):
+        """Remove duplicates"""
         cursor, last, exists = self.head, None, set()
         while cursor is not None:
             if last is not None and cursor.value in exists:
@@ -1815,6 +1902,7 @@ class LinkedList:
         return last
 
     def k_from_head(self, k: int) -> None or LinkedListNode:
+        """Get selected"""
         cursor = self.head
         while cursor.next is not None and k:
             cursor = cursor.next
@@ -1986,152 +2074,152 @@ class Memory:
                 return None
 
 
-#     @staticmethod
-#     def cache(data, path, free=False):
-#         # type: (bytes, str, bool) -> int
-#         fid = open(path, "wb+")  # open pickled file to read
-#         dump(data, fid)  # save array
-#         fid.close()
-#         if free:
-#             del data
-#         return len(data)
+    @staticmethod
+    def cache(data, path, free=False):
+        # type: (bytes, str, bool) -> int
+        fid = open(path, "wb+")  # open pickled file to read
+        dump(data, fid)  # save array
+        fid.close()
+        if free:
+            del data
+        return len(data)
 
 
-#     @staticmethod
-#     def vertex_array_buffer(data, dataset, key, strategy, sequential=False, nb=None, headers=None):
-#         # type: (deque or (Array, ), str, str, str, bool, float, dict) -> set
-#         """
-#         Take an iterable of arrays, and chunk them for upload.
+    @staticmethod
+    def vertex_array_buffer(data, dataset, key, strategy, sequential=False, nb=None, headers=None):
+        # type: (deque or (Array, ), str, str, str, bool, float, dict) -> set
+        """
+        Take an iterable of arrays, and chunk them for upload.
 
-#         :param data: deque or iterable
-#         :param dataset: prefix for object storage
-#         :param key: key for object storage
-#         :param strategy: how to chunk (aggregate or bisect)
-#         :param sequential: create an index if False
-#         :param nb: max number of bytes
-#         :param headers: headers!
-#         """
-#         _data = data if isinstance(data, deque) else deque(data)
-#         if strategy not in ("aggregate", "bisect"):
-#             raise ValueError
-#         if strategy == "aggregate" and nb is None:
-#             raise ValueError
+        :param data: deque or iterable
+        :param dataset: prefix for object storage
+        :param key: key for object storage
+        :param strategy: how to chunk (aggregate or bisect)
+        :param sequential: create an index if False
+        :param nb: max number of bytes
+        :param headers: headers!
+        """
+        _data = data if isinstance(data, deque) else deque(data)
+        if strategy not in ("aggregate", "bisect"):
+            raise ValueError
+        if strategy == "aggregate" and nb is None:
+            raise ValueError
 
-#         last = 0
-#         indx = 0
-#         real = len(_data)
-#         index = set()
+        last = 0
+        indx = 0
+        real = len(_data)
+        index = set()
 
-#         while _data:
-#             current = int(100 * indx / real)
-#             if current != last:
-#                 print(current, "%")
+        while _data:
+            current = int(100 * indx / real)
+            if current != last:
+                print(current, "%")
 
-#             c = ()
-#             if strategy == "aggregate":
-#                 size = 0
-#                 while size < nb and _data:
-#                     c += (_data.popleft(),)
-#                     size += c[-1].nbytes
-#             if strategy == "bisect":
-#                 c += (_data.popleft(),)
+            c = ()
+            if strategy == "aggregate":
+                size = 0
+                while size < nb and _data:
+                    c += (_data.popleft(),)
+                    size += c[-1].nbytes
+            if strategy == "bisect":
+                c += (_data.popleft(),)
 
-#             _key = f"{key}-{indx}" if sequential else None
-#             ext = reduce(reduce_extent, (extent(*s) for s in c))
+            _key = f"{key}-{indx}" if sequential else None
+            ext = reduce(reduce_extent, (extent(*s) for s in c))
 
-#             try:
-#                 assert False  # post here
-#             except SignatureDoesNotMatch:
-#                 to_append = ()
-#                 if strategy == "bisect":
-#                     to_append = array_split(c[0], 2, axis=0)
-#                 if strategy == "aggregate":
-#                     tilt = len(c) // 2 + 1
-#                     to_append = c[:tilt], c[tilt:]
-#                 _data.extend(to_append)
-#                 real += 1
-#             else:
-#                 index |= {_key}
-#                 indx += 1
+            try:
+                assert False  # post here
+            except SignatureDoesNotMatch:
+                to_append = ()
+                if strategy == "bisect":
+                    to_append = array_split(c[0], 2, axis=0)
+                if strategy == "aggregate":
+                    tilt = len(c) // 2 + 1
+                    to_append = c[:tilt], c[tilt:]
+                _data.extend(to_append)
+                real += 1
+            else:
+                index |= {_key}
+                indx += 1
 
-#         return index
-
-
-#     @staticmethod
-#     def parts(dataset, key):
-#         part = 0
-#         result = []
-#         while True:
-#             k = f"{dataset}/{key}-{part}"
-#             stat = head(k)
-#             if stat is None:
-#                 break
-#             result.append(k)
-#             part += 1
-#         return result
+        return index
 
 
-#     @staticmethod
-#     def restore(dataset, key, fcn=None, sequential=True, stack=False, limit=None, **kwargs):
-#         # type: (str, str, Callable, bool, bool, int, dict) -> (Array, ) or Array
-#         """
-#         Reconstruct a single or multi-part array dataset
+    @staticmethod
+    def parts(dataset, key):
+        part = 0
+        result = []
+        while True:
+            k = f"{dataset}/{key}-{part}"
+            stat = head(k)
+            if stat is None:
+                break
+            result.append(k)
+            part += 1
+        return result
 
-#         :param dataset: object storage prefix
-#         :param key: object name, lat part
-#         :param fcn: method to perform on
-#         :param sequential: use a sequential naming scheme rather than an index file
-#         :param stack: append all array chunks into one
-#         :param limit: max number to process
-#         :param kwargs: arguments for the function
 
-#         :return: transformed array, or none, if the method return no results
-#         """
-#         base = f"{dataset}/{key}"
-#         stat = head(base)
-#         if stat is None and not sequential:
-#             raise ValueError
+    @staticmethod
+    def restore(dataset, key, fcn=None, sequential=True, stack=False, limit=None, **kwargs):
+        # type: (str, str, Callable, bool, bool, int, dict) -> (Array, ) or Array
+        """
+        Reconstruct a single or multi-part array dataset
 
-#         if stat is not None:
-#             if sequential:
-#                 for s in unpickle(get(base).content):
-#                     fcn(s, **kwargs)
-#                 return
-#         elif sequential:
-#             raise ValueError
+        :param dataset: object storage prefix
+        :param key: object name, lat part
+        :param fcn: method to perform on
+        :param sequential: use a sequential naming scheme rather than an index file
+        :param stack: append all array chunks into one
+        :param limit: max number to process
+        :param kwargs: arguments for the function
 
-#         index = (
-#             Memory.parts(dataset, key) if sequential else
-#             tuple(f"{dataset}/{key}" for key in load_json(get(base)))
-#         )
+        :return: transformed array, or none, if the method return no results
+        """
+        base = f"{dataset}/{key}"
+        stat = head(base)
+        if stat is None and not sequential:
+            raise ValueError
 
-#         if len(index) == 0:
-#             raise ValueError
+        if stat is not None:
+            if sequential:
+                for s in unpickle(get(base).content):
+                    fcn(s, **kwargs)
+                return
+        elif sequential:
+            raise ValueError
 
-#         vertex_array_buffer = ()
-#         part = 0
-#         for key in index:
-#             if part > limit:
-#                 break
-#             c = unpickle(get(key).content)
-#             if isinstance(c, list):
-#                 c = tuple(c)
-#             if not isinstance(c, tuple):
-#                 raise TypeError
+        index = (
+            Memory.parts(dataset, key) if sequential else
+            tuple(f"{dataset}/{key}" for key in load_json(get(base)))
+        )
 
-#             part += 1
-#             if fcn is None:
-#                 vertex_array_buffer += c
-#                 continue
+        if len(index) == 0:
+            raise ValueError
 
-#             y = (fcn(x[0] if isinstance(x, tuple) else x, **kwargs) for x in c)
-#             vertex_array_buffer += tuple(yi for yi in y if yi is not None)
+        vertex_array_buffer = ()
+        part = 0
+        for key in index:
+            if part > limit:
+                break
+            c = unpickle(get(key).content)
+            if isinstance(c, list):
+                c = tuple(c)
+            if not isinstance(c, tuple):
+                raise TypeError
 
-#         if not len(vertex_array_buffer):
-#             return None
-#         if stack:
-#             return vstack(vertex_array_buffer)
-#         return vertex_array_buffer
+            part += 1
+            if fcn is None:
+                vertex_array_buffer += c
+                continue
+
+            y = (fcn(x[0] if isinstance(x, tuple) else x, **kwargs) for x in c)
+            vertex_array_buffer += tuple(yi for yi in y if yi is not None)
+
+        if not len(vertex_array_buffer):
+            return None
+        if stack:
+            return vstack(vertex_array_buffer)
+        return vertex_array_buffer
 
 
 @attr.s
@@ -2304,17 +2392,24 @@ class ObjectStorage(Minio):
 
         return self
 
-    def delete(self, prefix: str, batch: int = 10):
+    def delete(
+        self, 
+        prefix: str, 
+        batch: int = 10, 
+        conditions: dict = None
+    ) -> (Any):
         """
-        Delete all objects within a subdirectory or abstract collection
+        Delete all objects within a subdirectory or abstract collection.
 
-        :param bucket_name: file prefix/dataset
-        :param prefix: most to process at once
+        The remove_objects method is a bit tricky. It returns a generator which is not evaulated by
+        default, and therefore needs to be iterated through before returning any errors. 
+
+        :param prefic: file prefix/dataset
         :param batch:  number to delete at a time
         """
         remove = ()
-        conditions = {"x-amz-meta-service": "bathysphere"}
-
+        errors = ()
+        
         objects_iter = self.list_objects(prefix=prefix)
         stop = False
         while not stop:
@@ -2323,16 +2418,18 @@ class ObjectStorage(Minio):
             except StopIteration:
                 stop = True
             else:
-                stat = self.stat_object(object_name).metadata
-                if all(stat.get(k) == v for k, v in conditions.items()):
+                stat = self.stat_object(object_name)
+                if isinstance(conditions, dict):
+                    if all(stat.metadata.get(k) == v for k, v in conditions.items()):
+                        remove += (object_name,)
+                else:
                     remove += (object_name,)
 
             if len(remove) >= batch or stop:
-                self.remove_objects(bucket_name=self.bucket_name, objects_iter=remove)
-                remove = ()
+                for error in self.remove_objects(bucket_name=self.bucket_name, objects_iter=remove):
+                    errors += (error,)
+                return errors
 
-            if stop:
-                break
 
     @staticmethod
     def metadata_template(
@@ -2915,6 +3012,7 @@ class Topology:
         return queue
 
 
+    @classmethod
     def read(path: str, indexed: bool = True) -> dict:
         """
         Read in grid topology of unstructured triangular grid

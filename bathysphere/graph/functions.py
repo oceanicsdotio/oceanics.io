@@ -5,6 +5,7 @@ calls. These are exposed as a Cloud Function calling Connexion/Flask.
 """
 from itertools import chain
 from datetime import datetime
+from inspect import signature
 from uuid import uuid4
 from typing import Callable, Any
 from passlib.apps import custom_app_context
@@ -39,7 +40,7 @@ accessKey = "n0t_passw0rd"
 DEBUG = True
 
 
-def context(fcn) -> Callable:
+def context(fcn: Callable) -> Callable:
     """
     Decorator to authenticate and inject user into request.
     Validate/verify JWT token.
@@ -48,7 +49,7 @@ def context(fcn) -> Callable:
     if db is None:
         return {"message": "no graph backend"}, 500
 
-    def _wrapper(**kwargs) -> Any:
+    def _wrapper(**kwargs: dict) -> Any:
         """
         The produced decorator
         """
@@ -76,8 +77,11 @@ def context(fcn) -> Callable:
         provider = Providers(domain=user.name.split("@").pop()).load(db=db)
         if len(provider) != 1:
             raise ValueError
+        arg = "provider"
+        if arg in signature(fcn).parameters.keys():
+            kwargs[arg] = provider.pop()
 
-        return fcn(db=db, user=user, provider=provider.pop(), **kwargs)
+        return fcn(db=db, user=user, **kwargs)
 
     def handleUncaughtExceptions(*args, **kwargs):
         """
@@ -157,7 +161,7 @@ def manage(db: Driver, user: User, body: dict) -> ResponseJSON:
     if any(k not in allowed for k in body.keys()):
         return "Bad request", 400
     if body.get("delete", False):
-        user.delete(db)
+        user.delete(db=db)
     else:
         user.mutate(db=db, data=body)  # pylint: disable=no-value-for-parameter
     return None, 204
@@ -188,8 +192,8 @@ def catalog(db: Driver, user: User) -> ResponseJSON:
     path = f"http://{host+show_port}/api"
     collections = ()
 
-    def _item(name):
-        # type: (str) -> dict
+    def _item(name: str) -> dict:
+        """Item formatter"""
         key = f"{name}-{datetime.utcnow().isoformat()}"
         return {key: {"name": name, "url": f"{path}/{name}"}}
 

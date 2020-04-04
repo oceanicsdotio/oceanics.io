@@ -34,6 +34,10 @@ def test_datatypes_redis_queue_pubsub(cache):
         message = pubsub.get_message()
         if message is None:
             break
-        received.append(message)
+        if message['type'] == "message":
+            received.append(message)
 
-    assert len(received) == len(sequence)
+    if len(received) != len(sequence):
+        print("Received", received)
+        print("Sequence", sequence)
+        raise AssertionError

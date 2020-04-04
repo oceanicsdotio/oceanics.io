@@ -259,7 +259,7 @@ paths:
           $ref: '#/components/responses/NotFound'
 
 
-  /{entity}({id}):
+  /{entity}({uuid}):
 
     get:
       tags: [Catalog]
@@ -334,7 +334,7 @@ paths:
           $ref: '#/components/responses/BadRequest'
 
 
-  /{root}({rootId})/{entity}({id}):
+  /{root}({rootId})/{entity}({uuid}):
 
     post:
       tags: [ Topology ]
@@ -375,18 +375,8 @@ paths:
         '400':
           $ref: '#/components/responses/BadRequest'
 
-#
-#  /bathysphere_functions_archive:
-#
-#    post:
-#      tags: [ Admin ]
-#      summary: Archive
-#      description: Index an external data or storage system
-#
-#      responses:
-#        '200':
-#          description: Success
-#
+
+
 #  /buoys:
 #
 #    post:
@@ -550,29 +540,8 @@ paths:
 #                    items:
 #                      type: object
 #
-#  /bathysphere_functions_cache:
-#
-#    post:
-#      tags: [ Storage ]
-#      summary: Cache
-#      description: Redis integration
-#
-#      responses:
-#        '200':
-#          description: Success
-#
-#  /bathysphere_functions_controller:
-#
-#    post:
-#      tags: [ IoT ]
-#      summary: Controller
-#      description: Deploy control loops
-#
-#
-#      responses:
-#        '200':
-#          description: Success
-#  /bathysphere_functions_image:
+
+#  /image:
 #
 #    post:
 #
@@ -797,28 +766,7 @@ paths:
 #                    format: uri
 #                    example: https://data.oceanics.io/example.png
 #
-#  /bathysphere_functions_notify:
-#
-#    post:
-#      tags: [ Admin ]
-#      summary: Notify
-#      description: Send notification by e-mail or Slack
-#
-#      responses:
-#        '200':
-#          description: Success
-#
-#  /bathysphere_functions_parse:
-#
-#    post:
-#      tags: [ Analysis ]
-#      summary: Parse
-#      description: Heuristic XML/JSON parser
-#
-#      responses:
-#        '200':
-#          description: Success
-#
+
 #  /bathysphere_functions_postgres:
 #
 #    post:
@@ -901,17 +849,7 @@ paths:
 #                  Error:
 #                    type: string
 #                    example: Requires POST with payload
-#
-#  /bathysphere_functions_repository:
-#
-#    post:
-#      tags: [ Storage ]
-#      summary: Repository
-#      description: S3 object storage integration
-#
-#      responses:
-#        '200':
-#          description: Success
+
 
 
 #   '/bivalve/':
@@ -1528,11 +1466,11 @@ components:
     entityId:
       in: path
       required: true
-      name: id
+      name: uuid
       description: |
-        Unique integer identifier of the resource to be retrieved.
+        Unique identifier of the resource to be retrieved.
       schema:
-        type: integer
+        type: string
 
 
     label:
@@ -1717,12 +1655,12 @@ components:
           schema:
             $ref: '#/components/schemas/Asset'
 
-    # TrainRequest:
-    #   description: Training data
-    #   content:
-    #     application/json:
-    #       schema:
-    #         $ref: '#/components/schemas/TrainSchema'
+    TrainRequest:
+      description: Training data
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Datastream'
 
     CreateRequest:
       description: Initialization data
@@ -1832,12 +1770,12 @@ components:
           schema:
             $ref: '#/components/schemas/Message'
          
-    # Prediction:
-    #   description: Success
-    #   content:
-    #     application/json:
-    #       schema:
-    #         $ref: '#/components/schemas/Prediction'
+    Prediction:
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Datastream'
                 
     NotFound:
       description: Not found
@@ -2623,18 +2561,6 @@ components:
                   - processor
                   - host
 
-    # Prediction:
-    #   type: object
-    #   properties:
-    #     - name: count
-    #       type: integer
-    #     - $ref: '#/components/schemas/Datastream'
-
-    # TrainSchema:
-    #   type: object
-    #   properties:
-    #     $ref: '#/components/schemas/Datastream'
-
     CreateSchema:
       type: object
 
@@ -2644,30 +2570,27 @@ components:
     Value:
       type: number
 
-    # Periods:
-    #   name: periods
-    #   type: int
-    #   minimum: 1
-    #   maximum: 1000
-    #   default: 1000
+    Periods:
+      type: integer
+      minimum: 1
+      maximum: 1000
+      default: 1000
 
-    # Horizon:
-    #   name: horizon
-    #   description: |
-    #     Sequence length the LSTM is trained on for each output point
+    Horizon:
+      description: |
+        Sequence length the LSTM is trained on for each output point
+      type: integer
+      minimum: 1
+      maximum: 4
+      default: 1
 
-    #   type: int
-    #   minimum: 1
-    #   maximum: 4
-    #   default: 1
+    Window:
+      description: |
+        Number of observations in moving window for calculating the expected value from input datastream.
 
-    # Window:
-    #   description: |
-    #     Number of observations in moving window for calculating the expected value from input datastream.
-
-    #   type: int
-    #   minimum: 1
-    #   default: 2
+      type: integer
+      minimum: 1
+      default: 2
 
     Ratio:
       description: |
