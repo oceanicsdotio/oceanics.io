@@ -1,6 +1,7 @@
 import pytest
 from datetime import datetime
 from json import dumps
+from minio import Object
 
 from bathysphere import appConfig
 from bathysphere.test.conftest import (
@@ -21,6 +22,8 @@ from bathysphere.graph.models import (
     TaskingCapabilities,
     Tasks,
     Actuators,
+    Assets,
+    Link
 )
 
 YEAR = 2019
@@ -36,7 +39,7 @@ classes = [
     Tasks,
     TaskingCapabilities,
     Actuators,
-    Collections,
+    Collections
 ]
 
 @pytest.mark.teardown
@@ -124,8 +127,8 @@ def test_graph_sensorthings_create(create_entity, cls):
     except KeyError:
         build = []
     for each in build:
-        location = create_entity(cls.__name__, CREDENTIALS, each["spec"])
-        results.append(location)
+        entity = create_entity(cls.__name__, CREDENTIALS, each["spec"])
+        results.append(entity)
 
 
 @pytest.mark.external_call
@@ -151,3 +154,45 @@ def test_graph_sensorthings_locations_weather_report(graph):
         )
     )
     assert response.ok, response.json()
+
+
+@pytest.mark.object_storage
+def test_graph_sensorthings_assets_from_object_storage(object_storage, graph):
+
+    db = object_storage(prefix=None)
+    data = db.list_objects()
+    graphdb = graph("localhost", 7687, testAuth[1])
+
+    created = []
+    directories = []
+
+    root = Collections(
+        name=db.bucket_name,
+        description="S3 bucket",
+        version=1
+    ).create(
+        db=graphdb
+    )
+
+    for each in data:
+        assert isinstance(each, Object)
+        if each.is_dir:
+            directory = Collections(
+                name=each.object_name,
+                version=1
+            ).create(
+                db=graphdb
+            )
+            directories.append(directory)
+
+        entity = Assets(
+            name=each.object_name,
+            uuid=each.etag,
+            location=f"s3://{db.bucket_name}.{db.endpoint}/"
+        ).create(
+            db=graphdb
+        )
+        created.append(entity)
+
+        Link(label="Member").join(db=graphdb, nodes=(root, entity))
+

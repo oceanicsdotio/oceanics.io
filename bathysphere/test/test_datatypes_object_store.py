@@ -4,6 +4,9 @@ from bathysphere.datatypes import ObjectStorage
 from flask import Response
 from json import loads
 
+from bathysphere.test.conftest import CREDENTIALS
+from bathysphere.graph.models import Assets
+
 
 @pytest.mark.object_storage
 def test_datatypes_object_storage_metadata_template(object_storage):
@@ -27,6 +30,9 @@ def test_datatypes_object_storage_list_objects(object_storage):
 
     for each in data:
         assert isinstance(each, Object)
+
+
+
 
 
 @pytest.mark.object_storage

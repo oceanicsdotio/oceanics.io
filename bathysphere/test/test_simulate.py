@@ -5,6 +5,7 @@ from bathysphere.models import Simulations
 conf = dict()
 
 
+@pytest.mark.xfail
 def test_simulation_bivalve_api_as_job():
     """
     Run a single job with user supplied forcing conditions
@@ -22,6 +23,7 @@ def test_simulation_bivalve_api_as_job():
     )
 
 
+@pytest.mark.xfail
 def test_simulation_bivalve_api_as_job_no_forcing():
     """
     Run a single job with default forcing
@@ -39,6 +41,7 @@ def test_simulation_bivalve_api_as_job_no_forcing():
     )
 
 
+@pytest.mark.xfail
 def test_simulation_bivalve_api_as_batch():
     """
     Run a parallel batch of simulations
@@ -69,6 +72,7 @@ def test_simulation_bivalve_api_as_batch():
     logs = result.get("logs")
     assert logs
     _ = result.get("data")
+
 
 
 def test_simulation_configuration_create(client):

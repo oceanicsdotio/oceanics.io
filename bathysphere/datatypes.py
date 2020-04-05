@@ -2271,6 +2271,8 @@ class ObjectStorage(Minio):
     def __init__(self, bucket_name: str, endpoint: str, prefix: str = None, **kwargs):
         self.bucket_name = bucket_name
         self.prefix = prefix
+        self.endpoint = endpoint
+        
         super().__init__(endpoint, **kwargs)
         if not self.bucket_exists(bucket_name):
             self.make_bucket(bucket_name)

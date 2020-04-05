@@ -59,7 +59,7 @@ def test_datatypes_tree_trie():
         Simple search: {int(simple_search*1000)/1000} s
         Trie search: {int(trie_search*1000)/1000} s
         Speedup: {int(simple_search/trie_search)}x
-    """
+        """
     )
 
 

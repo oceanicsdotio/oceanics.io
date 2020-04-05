@@ -387,15 +387,12 @@ class Actuators(object):
 
 
 @attr.s(repr=False)
-class Assets(object):
+class Assets:
     """
     Assets are references to externaldata objects, which may or may not
     be accessible at the time of query.
 
-    These are most likely ndarray/raster or json blobs in object storage, or
-
-
-    TODO: Assets is an ambiguous name, other options: Data, File
+    These are most likely ndarray/raster or json blobs in object storage
 
     name: name of resource
     description: annotation
@@ -407,7 +404,7 @@ class Assets(object):
 
 
 @attr.s(repr=False)
-class Collections(object):
+class Collections:
     """
     Collections are arbitrary groupings of entities.
     """
@@ -420,7 +417,7 @@ class Collections(object):
 
 
 @attr.s(repr=False)
-class DataStreams(object):
+class DataStreams:
     """
     DataStreams are collections of Observations.
     """
