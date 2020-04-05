@@ -47,7 +47,7 @@ test_cases = {
         "view": "series",
         "objectName": "test_function_image_time_series_scatter_plot",
         "extent": {"generic": [0, 365, 0, 10]},
-        "data": {"series": [[arange(365).tolist(), (random.random(365) * 10).tolist()]]},
+        "data": {"series": [[arange(365).tolist(), (random.random(365) * 10).tolist()]]},  # pylint: disable=no-member
         "style": {"base": "light", "alpha": 0.5, "marker": 5},
         "args": {"unwind": False, "labels": ["a"]},
     },
@@ -65,13 +65,13 @@ test_cases = {
     "time_series_frequency": {
         "view": "frequency",
         "objectName": "test_function_image_time_frequency_random",
-        "data": {"value": (random.random(100) * 10).tolist()},
+        "data": {"value": (random.random(100) * 10).tolist()},  # pylint: disable=no-member
         "style": {"base": "light", "alpha": 0.5, "marker": 5},
     },
     "time_series_coverage": {
         "view": "coverage",
         "objectName": "test_function_image_time_coverage_random",
-        "data": {"time": (random.random(1000) * 365).tolist()},
+        "data": {"time": (random.random(1000) * 365).tolist()},  # pylint: disable=no-member
         "style": {"base": "light", "alpha": 0.5, "marker": 5},
     }
 }
