@@ -160,18 +160,18 @@ class Time(View):
             self.ax.set_xlim(*self.extent[:2])
 
         self.ax.set_xlabel(label)
+        if ticks is not None:
+            if dates:
+                self.ax.xaxis.set_major_locator(
+                    MonthLocator() if ticks >= 30 else DayLocator()
+                )
 
-        if dates:
-            self.ax.xaxis.set_major_locator(
-                MonthLocator() if ticks >= 30 else DayLocator()
-            )
+                self.ax.xaxis.set_major_formatter(
+                    DateFormatter("%m/%y") if ticks >= 30 else DateFormatter("%m/%d")
+                )
 
-            self.ax.xaxis.set_major_formatter(
-                DateFormatter("%m/%y") if ticks >= 30 else DateFormatter("%m/%d")
-            )
-
-        else:
-            self.ax.xaxis.set_major_locator(MultipleLocator(ticks))
+            else:
+                self.ax.xaxis.set_major_locator(MultipleLocator(ticks))
 
     def __fmt_y_axis(self, label, ticks):
         # type: (Spatial, str, float) -> None
@@ -185,7 +185,8 @@ class Time(View):
         if self.extent is not None:
             self.ax.set_ylim(*self.extent[2:4])
         self.ax.set_ylabel(label)
-        self.ax.yaxis.set_major_locator(MultipleLocator(ticks))
+        if ticks is not None:
+            self.ax.yaxis.set_major_locator(MultipleLocator(ticks))
 
     def plot(
         self, time, series, label: str = "Unnamed", scatter: bool = True, **kwargs: dict

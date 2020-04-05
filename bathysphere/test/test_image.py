@@ -1,7 +1,6 @@
 import pytest
 
 from numpy import random, array, stack, diff, arange, meshgrid, repeat
-from numpy.random import random
 
 
 from requests import post
@@ -25,40 +24,72 @@ def shape_preview(object_storage, spatial, config_no_app):
 
     return _method
 
+@pytest.fixture
+def image_post(client):
+    def wrapper(data):
+        return client.post("/api/image", json=data)
+    return wrapper
 
-def test_function_image_spatial_random_points():
-    """
-    Create random points
-    """
-    points = [random.uniform(size=(10, 2)).tolist() for _ in range(4)]
-    response = post(
-        "http://faas.oceanics.io:8080/function/image",
-        json={
-            "view": "spatial",
-            "objectName": "test_function_image_spatial_random_points",
-            "data": {"points": points},
-            "style": {"base": "light", "alpha": 0.5, "marker": 5},
-        },
-    )
-    dumpErrors(response)
+test_cases = {
+    "spatial_points": {
+        "view": "spatial",
+        "objectName": "test_function_image_spatial_random_points",
+        "data": {"points": [random.uniform(size=(10, 2)).tolist() for _ in range(4)]},
+        "style": {"base": "light", "alpha": 0.5, "marker": 5},
+    },
+    "spatial_triangles": {
+        "view": "spatial",
+        "objectName": "test_function_image_spatial_random_triangles",
+        "data": {"polygons": [random.uniform(size=(3, 2)).tolist() for _ in range(10)]},
+        "style": {"base": "light", "alpha": 0.5},
+    },
+    "time_series_scatter_plot": {
+        "view": "series",
+        "objectName": "test_function_image_time_series_scatter_plot",
+        "extent": {"generic": [0, 365, 0, 10]},
+        "data": {"series": [[arange(365).tolist(), (random.random(365) * 10).tolist()]]},
+        "style": {"base": "light", "alpha": 0.5, "marker": 5},
+        "args": {"unwind": False, "labels": ["a"]},
+    },
+    "time_series_by_object_key": {
+        "view": "series",
+        "objectName": "test_function_image_time_series_by_object_key",
+        "data": {"objectKey": "896dbc7c09cb47b48cbcb15b5c5361c8"},
+        "style": {"base": "light", "alpha": 0.5, "marker": 5},
+        "labels": {
+            "x": "Days",
+            "y": "Weight (g)",
+            "series": "Simulated oyster growth",
+        }
+    },
+    "time_series_frequency": {
+        "view": "frequency",
+        "objectName": "test_function_image_time_frequency_random",
+        "data": {"value": (random.random(100) * 10).tolist()},
+        "style": {"base": "light", "alpha": 0.5, "marker": 5},
+    },
+    "time_series_coverage": {
+        "view": "coverage",
+        "objectName": "test_function_image_time_coverage_random",
+        "data": {"time": (random.random(1000) * 365).tolist()},
+        "style": {"base": "light", "alpha": 0.5, "marker": 5},
+    }
+}
 
 
-def test_function_image_spatial_random_triangles():
+@pytest.mark.graph
+@pytest.mark.parametrize("test_case", test_cases.keys())
+def test_image_random_shapes_and_series(image_post, test_case):
     """
-    Create random triangles
+    Create image of random points/shapes
     """
-    tri = [random.uniform(size=(3, 2)).tolist() for _ in range(10)]
-    response = post(
-        "http://faas.oceanics.io:8080/function/image",
-        json={
-            "view": "spatial",
-            "objectName": "test_function_image_spatial_random_triangles",
-            "data": {"polygons": tri},
-            "style": {"base": "light", "alpha": 0.5},
-        },
-    )
-    dumpErrors(response)
-
+    response = image_post(test_cases[test_case])
+    assert response.status_code == 200, response.json
+    filename = next(filter(lambda x: "filename" in x, response.headers["Content-Disposition"].split(";"))).split("=").pop()
+    print(filename)
+    with open(f"tmp/{filename}", "wb+") as fid:
+        fid.write(response.data)
+    
 
 @pytest.mark.spatial
 def test_render_random_points_and_extent_culling(
@@ -291,78 +322,3 @@ def test_render_pixel_histogram(object_storage, config_no_app):
     )
 
 
-def test_function_image_time_series_scatter_plot():
-    """
-    Create a time series plot
-    """
-    n = 365
-    maximum = 10
-    series = (random.random(n) * maximum).tolist()
-    time = arange(n).tolist()
-    response = post(
-        "http://faas.oceanics.io:8080/function/image",
-        json={
-            "view": "series",
-            "objectName": "test_function_image_time_series_scatter_plot",
-            "extent": [0, n, 0, maximum],
-            "data": {"series": [[time, series]]},
-            "style": {"base": "light", "alpha": 0.5, "marker": 5},
-            "args": {"unwind": False, "labels": ["a"]},
-        },
-    )
-    dumpErrors(response)
-
-
-def test_function_image_time_frequency_random():
-    """
-    Create histogram bathysphere_functions_image of the probability of magnitude values
-    """
-    response = post(
-        "http://faas.oceanics.io:8080/function/image",
-        json={
-            "view": "frequency",
-            "objectName": "test_function_image_time_frequency_random",
-            "data": {"value": (random(100) * 10).tolist()},
-            "style": {"base": "light", "alpha": 0.5, "marker": 5},
-        },
-    )
-    dumpErrors(response)
-
-
-@pytest.mark.xfail
-def test_function_image_time_coverage_random():
-    """
-    Create histogram bathysphere_functions_image of occurrences in time
-    """
-    response = post(
-        "http://faas.oceanics.io:8080/function/image",
-        json={
-            "view": "coverage",
-            "objectName": "test_function_image_time_coverage_random",
-            "data": {"time": (random(1000) * 365).tolist()},
-            "style": {"base": "light", "alpha": 0.5, "marker": 5},
-        },
-    )
-    dumpErrors(response)
-
-
-@pytest.mark.xfail
-def test_function_image_time_series_by_object_key(client):
-    """
-    Render a JSON object stored in s3
-    """
-    response = post(
-        "http://faas.oceanics.io:8080/function/image",
-        json={
-            "view": "series",
-            "objectName": "test_function_image_time_series_by_object_key",
-            "data": {"objectKey": "896dbc7c09cb47b48cbcb15b5c5361c8"},
-            "style": {"base": "light", "alpha": 0.5, "marker": 5},
-            "labels": {
-                "x": "Days",
-                "y": "Weight (g)",
-                "series": "Simulated oyster growth",
-            },
-        },
-    )
-    dumpErrors(response)

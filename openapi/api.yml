@@ -56,7 +56,7 @@ x-tagGroups:
     tags: [ Account, Catalog, Topology ]
 
   - name: FUNCTIONS
-    tags: [ Bivalve ]
+    tags: [ Bivalve, Image ]
 
   - name: NERITICS
     tags: [ ML, Filter, Frequency, Mask ]
@@ -99,6 +99,11 @@ tags:
     x-displayName: Mask
     description: |
       Time series and raster masking
+
+  - name: Image
+    x-displayName: Image
+    description: |
+      Anti-grain graphics
 
   - name: Bivalve
     x-displayName: Bivalve
@@ -376,231 +381,250 @@ paths:
           $ref: '#/components/responses/BadRequest'
 
 
-#  /image:
+  /image:
 
-#    post:
+    post:
 
-#      tags: [ Analysis ]
-#      summary: Image
-#      description: |
-#        Create PNG images from data sources and references and bathysphere_functions_cache it.
-#        The service call methods from the `matplotlib` library,
-#        which uses the anti-grain graphics backend (`AGG`). The images are portable network graphics (`.png`)
-#        by default, but `.pdf` and `.tiff` are available for print media.
+      tags: [ Image ]
+      summary: Render
+      operationId: bathysphere.image.functions.render
+      description: |
+        Create PNG images from data sources and references and bathysphere_functions_cache it.
+        The service call methods from the `matplotlib` library,
+        which uses the anti-grain graphics backend (`AGG`). The images are portable network graphics (`.png`)
+        by default, but `.pdf` and `.tiff` are available for print media.
 
-#      parameters:
-#        - $ref: "#/components/parameters/HMAC"
+      requestBody:
 
-#      requestBody:
+        description: | 
+          Image request
 
-#        description: Image request
-#        content:
-#          application/json:
-#            schema:
-#              type: object
-#              description: Image function request
-#              properties:
+        content:
+          application/json:
+            schema:
 
-#                labels:
-#                  type: object
-#                  nullable: true
-#                  properties:
-#                    x:
-#                      type: string
-#                      nullable: true
-#                    y:
-#                      type: string
-#                      nullable: true
+              type: object
+              description: | 
+                Image function request
 
-#                style:
-#                  type: object
-#                  nullable: true
-#                  description: |
-#                    Style is used change the appearance of the rendered bathysphere_functions_image.
+              properties:
 
-#                  properties:
+                labels:
+                  type: object
+                  nullable: true
+                  properties:
+                    x:
+                      type: string
+                      nullable: true
+                    y:
+                      type: string
+                      nullable: true
 
-#                    template:
-#                      type: string
-#                      enum: [dark, light]
-#                      default: dark
-#                      description: |
-#                        Select between light and dark templates depending on whether the bathysphere_functions_image is intended for display
-#                        on a screen or for printed media.
+                style:
+                  type: object
+                  nullable: true
+                  description: |
+                    Style is used change the appearance of the rendered image.
 
-#                    bg:
-#                      type: string
-#                      default: black
-#                      description: |
-#                        Override the default background color for the chosen or default template. Dark themes have a `black`
-#                        background by default, and light themes have a `white` background. Use this to match the background
-#                        color when embedding in a web page. This can also be transparent for bathysphere_functions_image compositing.
+                  properties:
 
-#                    contrast:
-#                      type: string
-#                      default: white
-#                      description: |
-#                        Contrast color for rendering over background.
+                    template:
+                      type: string
+                      enum: [dark, light]
+                      default: dark
+                      description: |
+                        Select between light and dark templates depending on whether the image is intended for display
+                        on a screen or for printed media.
 
-#                    flag:
-#                      type: string
-#                      default: red
-#                      description: |
-#                        Highlight color for marking selected or masked data.
+                    bg:
+                      type: string
+                      default: black
+                      description: |
+                        Override the default background color for the chosen or default template. Dark themes have a `black`
+                        background by default, and light themes have a `white` background. Use this to match the background
+                        color when embedding in a web page. This can also be transparent for bathysphere_functions_image compositing.
 
-#                    label:
-#                      type: string
-#                      description: |
-#                        Color for text and labels. The default is the same as the `contrast` color.
+                    contrast:
+                      type: string
+                      default: white
+                      description: |
+                        Contrast color for rendering over background.
 
-#                    dpi:
-#                      type: integer
-#                      default: 150
-#                      minimum: 90
-#                      maximum: 300
-#                      description: |
-#                        Image resolution. Be careful, `dpi=300` images can be very large.
+                    flag:
+                      type: string
+                      default: red
+                      description: |
+                        Highlight color for marking selected or masked data.
 
-#                    format:
-#                      type: string
-#                      enum: [png, pdf, tiff]
-#                      default: png
-#                      description: |
-#                        Image file format. Only `png` is available through the API.
+                    label:
+                      type: string
+                      description: |
+                        Color for text and labels. The default is the same as the `contrast` color.
 
-#                    alpha:
-#                      type: number
-#                      format: float
-#                      default: 1.0
-#                      maximum: 1.0
-#                      minimum: 0.0
-#                      description: |
-#                        Transparency of drawn objects. Useful for rendering Monte Carlo simulations.
+                    dpi:
+                      type: integer
+                      default: 150
+                      minimum: 90
+                      maximum: 300
+                      description: |
+                        Image resolution. Be careful, `dpi=300` images can be very large.
 
-#                    padding:
-#                      type: array
-#                      minLength: 4
-#                      maxLength: 4
-#                      items:
-#                        type: number
-#                        format: float
-#                      default: [0.1, 0.2, 0.05, 0.1]
-#                      description: |
-#                        Content padding from edges of bathysphere_functions_image to make room for labels and title.
+                    format:
+                      type: string
+                      enum: [png, pdf, tiff]
+                      default: png
+                      description: |
+                        Image file format. Only `png` is available through the API.
 
-#                    marker:
-#                      type: integer
-#                      default: 1
-#                      description: |
-#                        Size of markers if rendering scatter plots or points on a map
+                    alpha:
+                      type: number
+                      format: float
+                      default: 1.0
+                      maximum: 1.0
+                      minimum: 0.0
+                      description: |
+                        Transparency of drawn objects. Useful for rendering Monte Carlo simulations.
 
-#                    font:
-#                      type: integer
-#                      default: 10
-#                      description: |
-#                        Font size
+                    padding:
+                      type: array
+                      minLength: 4
+                      maxLength: 4
+                      items:
+                        type: number
+                        format: float
+                      default: [0.1, 0.2, 0.05, 0.1]
+                      description: |
+                        Content padding from edges of bathysphere_functions_image to make room for labels and title.
 
-#                    text:
-#                      type: number
-#                      format: float
-#                      default: 1.0
-#                      description: |
-#                        Size of labels relative to font size.
+                    marker:
+                      type: integer
+                      default: 1
+                      description: |
+                        Size of markers if rendering scatter plots or points on a map
 
-#                    width:
-#                      type: number
-#                      format: float
-#                      default: 6.5
-#                      description: |
-#                        Width of bathysphere_functions_image in inches
+                    font:
+                      type: integer
+                      default: 10
+                      description: |
+                        Font size
 
-#                    height:
-#                      type: number
-#                      format: float
-#                      description: |
-#                        Height of bathysphere_functions_image in inches
+                    text:
+                      type: number
+                      format: float
+                      default: 1.0
+                      description: |
+                        Size of labels relative to font size.
 
-#                data:
-#                  title: data container
-#                  type: object
+                    width:
+                      type: number
+                      format: float
+                      default: 6.5
+                      description: |
+                        Width of bathysphere_functions_image in inches
 
-#                view:
-#                  type: string
-#                  description: The type of data view
-#                  enum: [series, coverage, frequency, scatter]
+                    height:
+                      type: number
+                      format: float
+                      description: |
+                        Height of bathysphere_functions_image in inches
 
-#                extent:
-#                  title: extent
-#                  type: object
-#                  readOnly: true
-#                  nullable: true
-#                  description: |
+                data:
+                  title: data container
+                  type: object
 
-#                    Spatiotemporal extent of a data `Collection`. Contains a 2 or 3-D `spatial` extent, and a `temporal`
-#                    interval.
+                view:
+                  type: string
+                  description: The type of data view
+                  enum: [spatial, series, coverage, frequency, scatter]
 
-#                  properties:
+                extent:
+                  title: extent
+                  type: object
+                  nullable: true
+                  description: |
 
-#                    spatial:
-#                      type: array
-#                      minLength: 4
-#                      maxLength: 6
-#                      items:
-#                        type: number
-#                        format: float
+                    Spatiotemporal extent of a data `Collection`. Contains a 2 or 3-D `spatial` extent, and a `temporal`
+                    interval.
 
-#                    temporal:
-#                      type: string
-#                      description: ISO format timestamp interval
-#                args:
-#                  title: arguments
-#                  type: object
-#                  nullable: true
+                  properties:
 
-#      responses:
+                    spatial:
+                      type: array
+                      minLength: 4
+                      maxLength: 6
+                      nullable: true
+                      items:
+                        type: number
+                        format: float
 
-#        '202':
-#          description: Accepted
+                    temporal:
+                      type: string
+                      nullable: true
+                      description: ISO format timestamp interval
 
-#        '403':
-#          description: Unauthorized
-#          content:
-#            application/json:
-#              schema:
-#                type: object
-#                properties:
-#                  Error:
-#                    type: string
-#                    example: HMAC validation
+                    generic:
+                      type: array
+                      minLength: 4
+                      maxLength: 4
+                      nullable: true
+                      items:
+                        type: number
+                        format: float
 
-#        '400':
-#          description: Bad request
-#          content:
-#            application/json:
-#              schema:
-#                type: object
-#                properties:
-#                  Error:
-#                    type: string
-#                    example: Requires POST with payload
+                args:
+                  title: arguments
+                  type: object
+                  nullable: true
 
-#        '200':
-#          description: Image reference
-#          content:
-#            application/json:
-#              schema:
-#                type: object
-#                properties:
-#                  uui:
-#                    type: string
-#                    format: uuid
-#                  objectName:
-#                    type: string
-#                    example: example.png
-#                  url:
-#                    type: string
-#                    format: uri
-#                    example: https://data.oceanics.io/example.png
+      responses:
+
+        '202':
+          description: Accepted
+
+        '403':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  Error:
+                    type: string
+                    example: HMAC validation
+
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  Error:
+                    type: string
+                    example: Requires POST with payload
+
+        '200':
+          description: Image reference
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+
+            # application/json:
+            #   schema:
+            #     type: object
+            #     properties:
+            #       uuid:
+            #         type: string
+            #         format: uuid
+            #       objectName:
+            #         type: string
+            #         example: example.png
+            #       url:
+            #         type: string
+            #         format: uri
+            #         example: https://data.oceanics.io/example.png
 
 
 

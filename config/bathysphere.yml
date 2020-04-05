@@ -458,12 +458,12 @@ metadata:
   Providers@iot.navigation:
     - domain: [ oceanics.io ]
   config:
-     specification: ../openapi/
-     logging: "logs/{}"
-     basePath: "/api"
-     specPath: "openapi/api.yml"
-     healthcheck: "http://{}/api/Things"
-     image:      
+    specification: ../openapi/
+    logging: "logs/{}"
+    basePath: "/api"
+    specPath: "openapi/api.yml"
+    healthcheck: "http://{}/api/Things"
+    image:      
       styles:
         base:
             padding: [0.1, 0.2, 0.05, 0.1]

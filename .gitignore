@@ -118,3 +118,4 @@ build
 service.key
 *.crt
 logs/
+tmp/

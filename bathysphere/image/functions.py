@@ -6,9 +6,11 @@ from json import loads, dumps
 from itertools import repeat
 from os import getenv
 from io import BytesIO
+from flask import send_file
 
 from numpy import array
 
+from bathysphere import config
 from bathysphere.image.models import Spatial, Time
 from bathysphere.datatypes import ExtentType
 
@@ -71,31 +73,34 @@ def spatial(figure, data: dict) -> BytesIO or None:
     return None if not any((imageHandles, shapeHandles, pointHandles)) else figure.push()
 
 
-def main(req, styles):
-    """handle a request to the function
-    Args:
-        req (str): request body
+def render(body: dict):
     """
-    if getenv("Http_Method") != "POST" or not req:
-        return dumps({"Error": "Requires POST with payload"}), 400
+    Handle a request to the function
+    """
+    style_overrides = body.pop("style", {})
+    default_style = config["image"]["styles"]["base"]
+    display_style = style_overrides.pop("template", "dark")
 
-    body = loads(req)
-    labels = body.pop("labels", {})
-    base = body.pop("style", {})
+    style = {
+        **default_style,
+        **config["image"]["styles"][display_style],
+        **style_overrides
+    }
+
+
     data = body.pop("data")
     view = body.pop("view")
+    labels = body.pop("labels", {})
+    extent = body.pop("extent", {}).get("generic")
 
-    style = {**styles["base"], **styles[base.pop("base", "dark")]}
-    style.update(**base)
-    extent = body.pop("extent", None)
     if view == "spatial":
         fig = Spatial(style=style, extent=extent)
-        b = spatial(fig, data, **body.pop("args", {}))
+        image_buffer = spatial(fig, data, **body.pop("args", {}))
 
     elif view in {"series", "coverage", "frequency"}:
         fig = Time(style=style, extent=extent)
         xloc, yloc = eval(view)(fig, data, **body.pop("args", {}))
-        b = fig.push(
+        image_buffer = fig.push(
             legend=fig.style["legend"],
             xloc=xloc,
             yloc=yloc,
@@ -105,6 +110,14 @@ def main(req, styles):
     else:
         return dumps({"Error": f"View '{view}' not found"}), 400
 
-    buffer = b.getvalue()
-    assert buffer
-    return dumps({"image": buffer}), 200
+    return send_file(
+        image_buffer,
+        mimetype='image/png',
+        as_attachment=True,
+        attachment_filename=f'{body.pop("objectName")}.png'
+    )
+
+
+def main(req):
+    """Wrapper to deploy to Google Cloud Functions"""
+    return render(loads(req.body))

@@ -174,6 +174,7 @@ def test_graph_sensorthings_assets_from_object_storage(object_storage, graph):
         db=graphdb
     )
 
+
     for each in data:
         assert isinstance(each, Object)
         if each.is_dir:
