@@ -57,6 +57,7 @@ from numpy import (
     NaN,
     ones,
     pi,
+    random,
     repeat,
     roll,
     sign,
@@ -75,7 +76,6 @@ from numpy import (
 
 from numpy.linalg import norm
 from numpy.ma import MaskedArray
-from numpy.random import random
 
 from scipy.interpolate import NearestNDInterpolator
 from scipy.stats import linregress
@@ -1641,7 +1641,7 @@ def roughen(vertex_array, scalar=0.01):
     """
     Subtractive roughing maintains maximum radius.
     """
-    return vertex_array * (1 - random(vertex_array.shape) * scalar)
+    return vertex_array * (1 - random.random(vertex_array.shape) * scalar)
 
 
 def smooth(vertex_array, neighbors, weight=0.5):

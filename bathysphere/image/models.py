@@ -2,9 +2,11 @@
 """
 Image module models encapulate methods for visualing spatiotemporal data.
 """
+from __future__ import annotations
 from io import BytesIO
 from typing import Any
 from datetime import datetime
+from itertools import repeat
 
 from matplotlib import use
 
@@ -370,3 +372,27 @@ class Spatial(View):
             vmax=kwargs.pop("vmax") or z.max(),
             **kwargs,
         )
+
+    def draw(
+        self: Spatial, 
+        data: dict
+    ) -> Spatial:
+        """Image of spatial entities"""
+        imageHandles = []
+        for image, imageExtent in data.get("images", ()):
+            imageHandles.append(
+                self.ax.imshow(
+                    image, extent=imageExtent, interpolation=self.style["imageInterp"]
+                )
+            )
+        shapeHandles = tuple(
+            map(
+                self.shape,
+                data.pop("polygons", ()),
+                repeat({"edgecolor": "black", "facecolor": "none"}),
+            )
+        )
+        pointHandles = tuple(map(self.points, (array(p) for p in data.pop("points", ()))))
+        if not any((imageHandles, shapeHandles, pointHandles)):
+            raise ValueError("Figure contains no data")
+        return self

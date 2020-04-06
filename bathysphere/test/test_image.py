@@ -4,6 +4,7 @@ from numpy import random, array, stack, diff, arange, meshgrid, repeat
 
 
 from requests import post
+from bathysphere import config
 from bathysphere.image.models import Spatial, Time
 from bathysphere.utils import depth, geom_shader, lin_transform
 from bathysphere.test.conftest import dumpErrors
@@ -92,16 +93,17 @@ def test_image_random_shapes_and_series(image_post, test_case):
     
 
 @pytest.mark.spatial
-def test_render_random_points_and_extent_culling(
-    config_no_app, spatial, object_storage
-):
+def test_image_random_points_and_extent_culling(object_storage):
     """
     Should be front facing (CCW per OpenGL)
 
     :param config_no_app:
     :return:
     """
-
+    style = {
+        **config["image"]["styles"]["base"],
+        **config["image"]["styles"]["dark"],
+    }
     extent = array((-1, 1, -1, 1))
 
     n = 100
@@ -109,6 +111,8 @@ def test_render_random_points_and_extent_culling(
     y = lin_transform(arange(0, n + 1) / n, *extent[2:4])
     xv, yv = meshgrid(x, y)
     pxy = stack((xv, yv), axis=1)
+
+    spatial = Spatial(style=style)
 
     spatial.points(pxy, color="black", alpha=0.1)
     spatial.bbox(extent, edgecolor="black", facecolor="none", alpha=0.5)
@@ -124,7 +128,7 @@ def test_render_random_points_and_extent_culling(
     object_storage.upload_image(
         "test-render-random-points-and-extent-culling.png",
         spatial.push(transparent=False),
-        config_no_app,
+        config,
     )
 
 

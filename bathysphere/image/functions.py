@@ -9,9 +9,10 @@ from io import BytesIO
 from flask import send_file
 
 from numpy import array
+from matplotlib.pyplot import Figure
 
 from bathysphere import config
-from bathysphere.image.models import Spatial, Time
+from bathysphere.image.models import Spatial, Time, View
 from bathysphere.datatypes import ExtentType
 
 
@@ -20,16 +21,15 @@ def series(
     data: dict,
     labels: [str] = None,
     extent: ExtentType = None,
-    unwind: bool = True,
     scatter: bool = True,
-):
+) -> (int, int) or (None, None):
     """Create image of time series"""
     for dataset, label in zip(data.get("series", ()), labels or repeat("none")):
-        x, y = zip(*dataset) if unwind else dataset
+        x, y = zip(*dataset)
         figure.plot(x, y, label=label, scatter=scatter)
         new = [min(x), max(x), min(y), max(y)]
-        if extent is None:
-            extent = new.copy()
+
+        extent = extent or new.copy()
         for ii in range(len(new) // 2):
             a = ii * 2
             b = a + 1
@@ -39,38 +39,17 @@ def series(
     return (30, 5) if extent else (None, None)
 
 
-def coverage(figure, data: dict, bins: int = 20):
+def coverage(
+    figure: Time, 
+    data: dict, 
+    bins: int = 20
+) -> (int, int):
     """Image of the time coverage"""
     t = data.get("time")
     _ = figure.coverage(t, bins=bins)
-    return (int(max(t) - min(t)) // 6), (len(t) // bins // 2)
+    return int(max(t) - min(t)) // 6, len(t) // bins // 2
 
 
-def frequency(figure, data: dict, bins: int = 10):
-    """Image of value coverage"""
-    y = data.get("value")
-    _ = figure.frequency(y, bins=bins)
-    return int(max(y) - min(y)) // 6, len(y) // bins // 2
-
-
-def spatial(figure, data: dict) -> BytesIO or None:
-    """Image of spatial entities"""
-    imageHandles = []
-    for image, imageExtent in data.get("images", ()):
-        imageHandles.append(
-            figure.ax.imshow(
-                image, extent=imageExtent, interpolation=figure.style["imageInterp"]
-            )
-        )
-    shapeHandles = tuple(
-        map(
-            figure.shape,
-            data.pop("polygons", ()),
-            repeat({"edgecolor": "black", "facecolor": "none"}),
-        )
-    )
-    pointHandles = tuple(map(figure.points, (array(p) for p in data.pop("points", ()))))
-    return None if not any((imageHandles, shapeHandles, pointHandles)) else figure.push()
 
 
 def render(body: dict):
@@ -87,19 +66,27 @@ def render(body: dict):
         **style_overrides
     }
 
-
     data = body.pop("data")
     view = body.pop("view")
     labels = body.pop("labels", {})
     extent = body.pop("extent", {}).get("generic")
 
     if view == "spatial":
-        fig = Spatial(style=style, extent=extent)
-        image_buffer = spatial(fig, data, **body.pop("args", {}))
+        image_buffer = Spatial(style=style, extent=extent).draw(data).push()
+    
+    elif view == "coverage":
+        key = "time"
+    elif view == "frequency":
+        bins = 10
+        y = data.get("value")
+        _ = Time(style=style, extent=extent).frequency(y, bins=bins)
+        xloc, yloc = int(max(y) - min(y)) // 6, len(y) // bins // 2
 
-    elif view in {"series", "coverage", "frequency"}:
-        fig = Time(style=style, extent=extent)
+
+        fig = Time(style=style, extent=extent).__dict__[view](data)
         xloc, yloc = eval(view)(fig, data, **body.pop("args", {}))
+
+    if view in {"series", "coverage", "frequency"}:
         image_buffer = fig.push(
             legend=fig.style["legend"],
             xloc=xloc,
@@ -107,9 +94,7 @@ def render(body: dict):
             xlab=labels.pop("x", "Time"),
             ylab=labels.pop("y", None),
         )
-    else:
-        return dumps({"Error": f"View '{view}' not found"}), 400
-
+    
     return send_file(
         image_buffer,
         mimetype='image/png',
