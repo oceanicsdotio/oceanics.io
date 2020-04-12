@@ -681,33 +681,26 @@ class Extent:
 
         return c in a and d in b
 
-def Feature(
-    properties: dict = None,
-    geometry: [[float]] =  None
-) -> dict:
+
+@attr.s
+class Feature:
     """
     Format as GeoJSON feature
     """
-    return {
-        "type": "Feature", 
-        "geometry": geometry,
-        "properties": properties or {}
-    }
+    type: str = "FeatureCollection"
+    geometry: [[float]] = attr.Factory(list)
+    properties: dict = attr.Factory(dict)
+   
 
-
-def FeatureCollection(
-    features: [Feature] = None,
-    properties: dict = None
-) -> dict:
+@attr.s
+class FeatureCollection:
     """
-    Format as GeoJSON feature collection
+    GeoJSON feature collection
     """
-    return {
-        "type": "FeatureCollection",
-        "features": features,
-        "properties": properties or {}
-    }
-
+    type: str = "FeatureCollection"
+    features: [Feature] = attr.Factory(list)
+    properties: dict = attr.Factory(dict)
+        
 
 @attr.s
 class Field:

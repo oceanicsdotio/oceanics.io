@@ -328,6 +328,7 @@ class Spatial(View):
         """
         Add collection of identical points to figure axis
         """
+
         return self.ax.scatter(
             xy[:, 0],
             xy[:, 1],
@@ -343,16 +344,7 @@ class Spatial(View):
         """
         e = ext
         xy = array([[e[0], e[2]], [e[1], e[2]], [e[1], e[3]], [e[0], e[3]]])
-        self.shape(xy, kwargs)
-
-    def shape(self, xy: array, kwargs: dict) -> array:
-        # type: (array, dict) -> Polygon
-        """
-        Add shape to figure axis
-        """
-        patch = Polygon(xy, **kwargs)
-        self.ax.add_patch(patch)  # add polygon to figure
-        return patch
+        self.shape(xy, **kwargs)
 
     def topology(
         self, vertex_array: array, topology: array, z: str, **kwargs: dict,
@@ -377,22 +369,46 @@ class Spatial(View):
         self: Spatial, 
         data: dict
     ) -> Spatial:
-        """Image of spatial entities"""
-        imageHandles = []
-        for image, imageExtent in data.get("images", ()):
-            imageHandles.append(
+        """
+        Image of spatial entities. Two formats are accepted. 
+        
+        Points and Polygons must be given in GeoJSON formats. 
+        These are enclosed as a list of Features withing a
+        FeatureCollection. 
+        
+        Raster images, which may be remote sensing data, or actual images,
+        are given as external references or hex strings (future). 
+
+        Images are drawn first, then polygons, then points. 
+        
+        """
+
+        collection = data.get("FeatureCollection", None)
+        images = data.get("Images", ())
+
+        if images:
+            def composite(imageTuple):
+                image, extent = imageTuple
                 self.ax.imshow(
-                    image, extent=imageExtent, interpolation=self.style["imageInterp"]
+                    image, extent=extent, interpolation=self.style["imageInterp"]
+                )
+            _ = tuple(map(composite, images))
+
+        if collection:
+            features = collection.features
+            _ = tuple(
+                map(
+                    lambda xy, kwargs: self.ax.add_patch(Polygon(xy.geometry["coordinates"], **kwargs)),
+                    filter(lambda x: x.geometry["type"] == "Polygon", features),
+                    repeat({"edgecolor": "black", "facecolor": "none"}),
                 )
             )
-        shapeHandles = tuple(
-            map(
-                self.shape,
-                data.pop("polygons", ()),
-                repeat({"edgecolor": "black", "facecolor": "none"}),
+
+            _ = tuple(
+                map(
+                    self.points, 
+                    filter(lambda x: x.geometry["type"] == "Point", features)
+                )
             )
-        )
-        pointHandles = tuple(map(self.points, (array(p) for p in data.pop("points", ()))))
-        if not any((imageHandles, shapeHandles, pointHandles)):
-            raise ValueError("Figure contains no data")
+    
         return self

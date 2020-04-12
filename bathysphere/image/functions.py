@@ -16,42 +16,6 @@ from bathysphere.image.models import Spatial, Time, View
 from bathysphere.datatypes import ExtentType
 
 
-def series(
-    figure,
-    data: dict,
-    labels: [str] = None,
-    extent: ExtentType = None,
-    scatter: bool = True,
-) -> (int, int) or (None, None):
-    """Create image of time series"""
-    for dataset, label in zip(data.get("series", ()), labels or repeat("none")):
-        x, y = zip(*dataset)
-        figure.plot(x, y, label=label, scatter=scatter)
-        new = [min(x), max(x), min(y), max(y)]
-
-        extent = extent or new.copy()
-        for ii in range(len(new) // 2):
-            a = ii * 2
-            b = a + 1
-            extent[a] = min((extent[a], new[a]))
-            extent[b] = max((extent[b], new[b]))
-
-    return (30, 5) if extent else (None, None)
-
-
-def coverage(
-    figure: Time, 
-    data: dict, 
-    bins: int = 20
-) -> (int, int):
-    """Image of the time coverage"""
-    t = data.get("time")
-    _ = figure.coverage(t, bins=bins)
-    return int(max(t) - min(t)) // 6, len(t) // bins // 2
-
-
-
-
 def render(body: dict):
     """
     Handle a request to the function
@@ -73,18 +37,37 @@ def render(body: dict):
 
     if view == "spatial":
         image_buffer = Spatial(style=style, extent=extent).draw(data).push()
-    
-    elif view == "coverage":
-        key = "time"
-    elif view == "frequency":
-        bins = 10
-        y = data.get("value")
-        _ = Time(style=style, extent=extent).frequency(y, bins=bins)
-        xloc, yloc = int(max(y) - min(y)) // 6, len(y) // bins // 2
+    else:
 
+        fig = Time(style=style, extent=extent)
 
-        fig = Time(style=style, extent=extent).__dict__[view](data)
-        xloc, yloc = eval(view)(fig, data, **body.pop("args", {}))
+        if view == "coverage":
+            bins = 20
+            t = data.get("time")
+            fig.coverage(t, bins=bins)
+            xloc, yloc = int(max(t) - min(t)) // 6, len(t) // bins // 2
+
+        elif view == "frequency":
+            bins = 10
+            y = data.get("value")
+            _ = fig.frequency(y, bins=bins)
+            xloc, yloc = int(max(y) - min(y)) // 6, len(y) // bins // 2
+
+        elif view == "series":
+            for dataset, label in zip(data.get("series", ()), labels or repeat("none")):
+                x, y = zip(*dataset)
+                fig.plot(x, y, label=label, scatter=True)
+            new = [min(x), max(x), min(y), max(y)]
+
+            extent = extent or new.copy()
+            for ii in range(len(new) // 2):
+                a = ii * 2
+                b = a + 1
+                extent[a] = min((extent[a], new[a]))
+                extent[b] = max((extent[b], new[b]))
+
+            xloc, yloc = (30, 5) if extent else (None, None)
+
 
     if view in {"series", "coverage", "frequency"}:
         image_buffer = fig.push(
