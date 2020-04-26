@@ -3,7 +3,7 @@
 Handlers for Web API.
 """
 from json import loads, dumps
-from itertools import repeat
+from itertools import repeat, chain
 from os import getenv
 from io import BytesIO
 from flask import send_file
@@ -38,35 +38,38 @@ def render(body: dict):
     if view == "spatial":
         image_buffer = Spatial(style=style, extent=extent).draw(data).push()
     else:
-
         fig = Time(style=style, extent=extent)
+        series = data.get("DataStreams", ())
 
         if view == "coverage":
+            t, _ = zip(*chain(*series))
             bins = 20
-            t = data.get("time")
             fig.coverage(t, bins=bins)
             xloc, yloc = int(max(t) - min(t)) // 6, len(t) // bins // 2
 
         elif view == "frequency":
+            _, y = zip(*chain(*series))
             bins = 10
-            y = data.get("value")
             _ = fig.frequency(y, bins=bins)
             xloc, yloc = int(max(y) - min(y)) // 6, len(y) // bins // 2
 
         elif view == "series":
-            for dataset, label in zip(data.get("series", ()), labels or repeat("none")):
+            for dataset, label in zip(series, labels or repeat("none")):
                 x, y = zip(*dataset)
                 fig.plot(x, y, label=label, scatter=True)
-            new = [min(x), max(x), min(y), max(y)]
+                new = [min(x), max(x), min(y), max(y)]
+                extent = extent or new.copy()
 
-            extent = extent or new.copy()
-            for ii in range(len(new) // 2):
-                a = ii * 2
-                b = a + 1
-                extent[a] = min((extent[a], new[a]))
-                extent[b] = max((extent[b], new[b]))
+                for ii in range(len(new) // 2):
+                    a = ii * 2
+                    b = a + 1
+                    extent[a] = min((extent[a], new[a]))
+                    extent[b] = max((extent[b], new[b]))
 
             xloc, yloc = (30, 5) if extent else (None, None)
+        
+        else:
+            raise ValueError
 
 
     if view in {"series", "coverage", "frequency"}:

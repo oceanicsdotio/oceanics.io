@@ -20,7 +20,7 @@ jobs:
         pip install pipenv
         pipenv install --deploy --dev
   
-    - name: Test with pytest
-      run: |
-        pipenv shell
-        pytest -svk test_graph
+    # - name: Test with pytest
+    #   run: |
+    #     pipenv shell
+    #     pytest -svk test_graph

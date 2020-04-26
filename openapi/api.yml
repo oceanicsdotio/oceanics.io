@@ -16,10 +16,6 @@ info:
     from NASA managing their [lessons-learned](https://neo4j.com/blog/nasa-lesson-learned-database-using-neo4j-linkurious/)
     mission database, to modeling a virtual [economy](https://www.airpair.com/neo4j/posts/modelling-game-economy-with-neo4j).
 
-    Bathypshere uses an OpenFaaS cluster for asynchoronous processing, and to securely access external data sources.
-    Direct access can be provided for use in third-party services by request. These are described in the
-    `FUNCTIONS` section.
-
     You probably have to share data anyway. Our middleware can enhance your data science and management experience by
     providing representation state transfer (REST) and graph-based services for:
 
@@ -28,7 +24,6 @@ info:
     - [SpatioTemporal Assets Catalog](https://stacspec.org/) (STAC) standard
     - Provenance tracking
     - Granular access control and auditing
-
 
     By assessing availability over the whole domain, projects can target resources to fill coverage gaps. This supports
     an open marketplace data sharing model, which may be preferable to redundant collection.
@@ -55,11 +50,11 @@ x-tagGroups:
   - name: BATHYSPHERE API
     tags: [ Account, Catalog, Topology ]
 
-  - name: FUNCTIONS
-    tags: [ Bivalve, Image ]
+#   - name: FUNCTIONS
+#     tags: [ Bivalve, Image ]
 
-  - name: NERITICS
-    tags: [ ML, Filter, Frequency, Mask ]
+#   - name: NERITICS
+#     tags: [ ML, Filter, Frequency, Mask ]
 
 tags:
 
@@ -79,43 +74,43 @@ tags:
     description: |
       Build topological relationships and access metadata.
 
-  - name: ML
-    x-displayName: ML
-    description: |
-      The machine learning service implements multivariate time series prediction using recurrent neural networks with
-      long short-term memory. The backend is `Keras` and `TensorFlow`.
+#   - name: ML
+#     x-displayName: ML
+#     description: |
+#       The machine learning service implements multivariate time series prediction using recurrent neural networks with
+#       long short-term memory. The backend is `Keras` and `TensorFlow`.
 
-  - name: Filter
-    x-displayName: Filter
-    description: |
-      Time series filtering
+#   - name: Filter
+#     x-displayName: Filter
+#     description: |
+#       Time series filtering
 
-  - name: Frequency
-    x-displayName: Frequency
-    description: |
-      Frequency domain manipulation
+#   - name: Frequency
+#     x-displayName: Frequency
+#     description: |
+#       Frequency domain manipulation
 
-  - name: Mask
-    x-displayName: Mask
-    description: |
-      Time series and raster masking
+#   - name: Mask
+#     x-displayName: Mask
+#     description: |
+#       Time series and raster masking
 
-  - name: Image
-    x-displayName: Image
-    description: |
-      Anti-grain graphics
+#   - name: Image
+#     x-displayName: Image
+#     description: |
+#       Anti-grain graphics
 
-  - name: Bivalve
-    x-displayName: Bivalve
-    description: |
-      Simulation and analysis API for aquaculture planning. This API implements a machine-oriented RESTful API service
-      in Python, C#, and Mono that runs batches of parallel processes. Modeling with `ShellSIM` requires a licensed copy
-      of the v3.0.0.2 `.dll` from Plymouth Marine Laboratory. The community version replaces `ShellSIM` with multiple
-      regression or neural netowrks trained on Monte Carlo simulations and empirical data.
+#   - name: Bivalve
+#     x-displayName: Bivalve
+#     description: |
+#       Simulation and analysis API for aquaculture planning. This API implements a machine-oriented RESTful API service
+#       in Python, C#, and Mono that runs batches of parallel processes. Modeling with `ShellSIM` requires a licensed copy
+#       of the v3.0.0.2 `.dll` from Plymouth Marine Laboratory. The community version replaces `ShellSIM` with multiple
+#       regression or neural netowrks trained on Monte Carlo simulations and empirical data.
   
-      You can setup and run simulations in multiple ways. The recommended way is to create re-usable configurations,
-      and then request runs by referencing these and supplying any required forcing parameters. Configurations are
-      locked after their first run, unless used in `test` mode.
+#       You can setup and run simulations in multiple ways. The recommended way is to create re-usable configurations,
+#       and then request runs by referencing these and supplying any required forcing parameters. Configurations are
+#       locked after their first run, unless used in `test` mode.
 
 servers:
 - url: https://graph.oceanics.io/{basePath}
@@ -531,6 +526,38 @@ paths:
                 data:
                   title: data container
                   type: object
+                  properties:
+                    DataStreams:
+                      type: array
+                      items:
+                    
+                        title: asset
+                        type: object
+                        properties:
+                          objectName:
+                            type: string
+                            nullable: true
+                          objectKey:
+                            type: string
+                            nullable: true
+                          args:
+                            type: object
+                            nullable: true
+
+                    FeatureCollections:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          features:
+                            type: array
+                            items:
+                              type: object
+                              
+                            
+
+
+                    
 
                 view:
                   type: string

@@ -32,32 +32,63 @@ def image_post(client):
         return client.post("/api/image", json=data)
     return wrapper
 
+
+def data_streams(n=365, y_magnitude=10, repeat=1):
+    # pylint: disable=no-member
+    result = []
+    for _ in range(repeat):
+        generator = zip(arange(n).tolist(), (random.random(n) * y_magnitude).tolist())
+        result.append(list(generator))
+    
+    return {
+        "DataStreams": result
+    }
+
 test_cases = {
     "spatial_points": {
         "view": "spatial",
         "objectName": "test_function_image_spatial_random_points",
-        "data": {"points": [random.uniform(size=(10, 2)).tolist() for _ in range(4)]},
-        "style": {"base": "light", "alpha": 0.5, "marker": 5},
+        "data": {
+            "points": [random.uniform(size=(10, 2)).tolist() for _ in range(4)]
+        },
+        "style": {
+            "base": "dark", 
+            "alpha": 0.5, 
+            "marker": 5
+        },
     },
     "spatial_triangles": {
         "view": "spatial",
         "objectName": "test_function_image_spatial_random_triangles",
         "data": {"polygons": [random.uniform(size=(3, 2)).tolist() for _ in range(10)]},
-        "style": {"base": "light", "alpha": 0.5},
+        "style": {
+            "base": "dark", 
+            "alpha": 0.5
+        },
     },
     "time_series_scatter_plot": {
         "view": "series",
         "objectName": "test_function_image_time_series_scatter_plot",
         "extent": {"generic": [0, 365, 0, 10]},
-        "data": {"series": [[list(zip(arange(365).tolist(), (random.random(365) * 10).tolist()))]]},  # pylint: disable=no-member
-        "style": {"base": "light", "alpha": 0.5, "marker": 5},
+        "data": {
+            "DataStreams": data_streams(365, 10)
+        },
+        "style": {
+            "base": "dark", 
+            "alpha": 0.5, 
+            "marker": 5
+        },
         "args": {"unwind": False, "labels": ["a"]},
     },
     "time_series_by_object_key": {
         "view": "series",
         "objectName": "test_function_image_time_series_by_object_key",
         "data": {"objectKey": "896dbc7c09cb47b48cbcb15b5c5361c8"},
-        "style": {"base": "light", "alpha": 0.5, "marker": 5},
+        "style": {
+            "base": "dark", 
+            "alpha": 0.5, 
+            "marker": 5
+        },
         "labels": {
             "x": "Days",
             "y": "Weight (g)",
@@ -67,19 +98,35 @@ test_cases = {
     "time_series_frequency": {
         "view": "frequency",
         "objectName": "test_function_image_time_frequency_random",
-        "data": {"value": (random.random(100) * 10).tolist()},  # pylint: disable=no-member
-        "style": {"base": "light", "alpha": 0.5, "marker": 5},
+        "data": {
+            "DataStreams": data_streams(365, 100)
+        },
+        "style": {
+            "base": "dark", 
+            "alpha": 0.5, 
+            "marker": 5
+        },
     },
     "time_series_coverage": {
         "view": "coverage",
         "objectName": "test_function_image_time_coverage_random",
-        "data": {"time": (random.random(1000) * 365).tolist()},  # pylint: disable=no-member
-        "style": {"base": "light", "alpha": 0.5, "marker": 5},
+        "data": {
+            "DataStreams": data_streams(365, 1000)
+        },
+        "style": {
+            "base": "dark", 
+            "alpha": 0.5, 
+            "marker": 5
+        },
     },
-     "spatial_water_shapes": {
+    "spatial_water_shapes": {
         "view": "spatial",
         "objectName": "test_render_shapes_water",
-        "style": {"base": "light", "alpha": 0.5, "transparent": True},
+        "style": {
+            "base": "dark", 
+            "alpha": 0.5, 
+            "transparent": True
+        },
         "data": {
             "objectKey": "bivalve-suitability/shapes-water"
         }
