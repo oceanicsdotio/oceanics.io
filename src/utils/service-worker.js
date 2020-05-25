@@ -1,13 +1,11 @@
 let CACHE_NAME = 'bathysphere';
 let urlsToCache = [
-    './spatial/osi-composite-web.png',
-    './spatial/limited-purpose-licenses.json',
-    './spatial/aquaculture-leases.json',
-    './spatial/maine-towns.json',
-    './spatial/nssp-closures.json',
-    './spatial/suitability.json',
-    './style.json',
-    './bathysphere.png',
+    '../../static/osi-composite-web.png',
+    '../../static/limited-purpose-licenses.json',
+    '../../static/aquaculture-leases.json',
+    '../../static/maine-towns.json',
+    '../../static/nssp-closures.json',
+    '../../static/suitability.json'
 ];
 
 self.addEventListener('install', function(event) {

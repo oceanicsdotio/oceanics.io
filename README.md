@@ -49,6 +49,3 @@ The structure of the library is:
 `series.rs` - Time series manipulation, string methods, linked lists, tries, and such
 `tessellate.rs` - Model generation, triangulation, and other discretization methods
 `webgl.rs` - WebGL handlers and utilities for compiling client side (GPU) shaders
-
- 
-
