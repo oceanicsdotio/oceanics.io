@@ -5,14 +5,14 @@
     <title>WebGL and Canvas</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 </head>
-<link rel="stylesheet" href="../styles/global.css" type="text/css"/>
+<link rel="stylesheet" href="global.css" type="text/css"/>
 <body>
 
 <script type="module">
 
-    import init, {panic_hook} from "./space";
+    import init, {panic_hook} from "./space.js";
     import {DataStreamLoop} from "./stream.js";
-    import {RenderingContext, LagrangianParticles} from './cadet.js';
+    import {RenderingContext} from './cadet.js';
 
     (async () => {
 

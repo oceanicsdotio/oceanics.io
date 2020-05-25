@@ -10,7 +10,7 @@
 
 <script type="module">
 
-    import init, {panic_hook} from "./space";
+    import init, {panic_hook} from "./space.js";
     import {DataStreamLoop} from "./stream.js";
     import {Particles, CursorLoop} from "./agent.js";
     import {RenderingContext, LagrangianParticles} from './cadet.js';
@@ -21,7 +21,7 @@
         await init();
         panic_hook();
 
-        [   [CursorLoop, {
+        [[CursorLoop, {
             eid: "reticule",
             context: "2d",
             caption: "Reticule cursor",
@@ -54,8 +54,8 @@
         }], [LagrangianParticles, {
             eid: "wind",
             context: "webgl",
-            source: "../content/assets/wind.png",
-            metadataFile: "../content/assets/wind.json",
+            source: "wind.png",
+            metadataFile: "wind.json",
             shaders: {
                 draw: ["draw-vertex", "draw-fragment"],
                 screen: ["quad-vertex", "screen-fragment"],

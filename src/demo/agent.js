@@ -1,5 +1,5 @@
-import {draw_caption, draw_fps, Cursor, clear_rect_blending, Spring, Agent} from "./space.js.js";
-import {magnitude, rgba, uniform} from "./cadet.js.js";
+import {draw_caption, draw_fps, Cursor, clear_rect_blending, Spring, Agent} from "./space.js";
+import {magnitude, rgba, uniform} from "./cadet.js";
 
 //
 // const addMouseEvents = (e) => {
