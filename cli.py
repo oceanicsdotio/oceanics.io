@@ -85,14 +85,14 @@ def build(service: str) -> None:
 @click.option("--service", default='', help="Docker image")
 def up(service: str) -> None:
     """
-    Build images.
+    Run images.
     """
     click.secho(f"docker-compose up -d {service}", fg="green")
 
 @click.command()
 def neo4j() -> None:
     """
-    Build images.
+    Run only neo4j.
     """
     run(["docker-compose", "up", "-d", "neo4j"])
     sleep(5)

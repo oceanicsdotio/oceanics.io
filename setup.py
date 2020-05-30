@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='bathysphere',
-    version='1.5',
+    version='1.6',
     description='Marine geospatial data and analytics services',
     url='https://graph.oceanics.io',
     author='Oceanicsdotio',
@@ -40,31 +40,50 @@ setup(
         "google-cloud-secret-manager",
         "pytz",
         "urllib3<1.25,>=1.21.1",
+
+        "pytest", # TODO: comment out once extra_require bugs are fixed
+        "pytest_dependency",
+        "pytest-cov",
+        "docker-compose",
+        "colorama",
+        "numpy",
+        "scipy",
+        "pandas",
+        "matplotlib",
+        "tensorflow",
+        "pyshp",
+        "pyproj",
+        "netCDF4",
+        "pillow",
+        "scikit-learn",
+        "rdp",
+  
     ],
     entry_points="""
         [console_scripts]
         bathysphere=cli:cli
     """,
     zip_safe=False,
-    extra_requires={
-        "dev": [
-            "pytest", 
-            "pytest_dependency",
-            "pytest-cov",
-            "docker-compose",
-            "colorama"
-        ],
-        "numerical": [
-            "numpy",
-            "scipy",
-            "pandas",
-            "matplotlib",
-            "tensorflow",
-            "pyshp",
-            "pyproj",
-            "netCDF4",
-            "pillow",
-            "scikit-learn",
-            "rdp",
-        ]
-    })
+    # extra_requires={
+    #     "dev": [
+    #         "pytest", 
+    #         "pytest_dependency",
+    #         "pytest-cov",
+    #         "docker-compose",
+    #         "colorama"
+    #     ],
+    #     "numerical": [
+    #         "numpy",
+    #         "scipy",
+    #         "pandas",
+    #         "matplotlib",
+    #         "tensorflow",
+    #         "pyshp",
+    #         "pyproj",
+    #         "netCDF4",
+    #         "pillow",
+    #         "scikit-learn",
+    #         "rdp",
+    #     ]
+    # }
+    )

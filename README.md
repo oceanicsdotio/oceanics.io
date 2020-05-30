@@ -8,8 +8,7 @@
 - [Cypher](#cypher)
 - [Ingestion tips](#ingestion-tips)
 - [Postgres](#postgres)
-- [Biological models](#postgres)
-- [TensorFlow](#tensorflow)
+- [Biological models](#biological-models)
 
 Bathysphere is a distributed store and registry for public and proprietary geospatial data. It was originally designed to support aquaculture research in the Gulf of Maine, but is intentionally generic. 
 
@@ -27,9 +26,7 @@ The development environment is deployed locally with `docker-compose up -d`, and
 
 | Service             | Port   | Description                                 |
 | ------------------- | ------ | ------------------------------------------- |
-| `nginx`             | `80`   | OpenAPI specification                       |
-| `bathysphere-graph` | `5000` | Graph API gateway                           |
-| `bathysphere-array` | `5000` | Array processing service                    |
+| `bathysphere`       | `5000` | Graph API gateway                           |
 | `neo4j`             | `7687` | Graph database `bolt` protocol access       |
 | `neo4j`             | `7474` | Graph database built-in browser and console |
 
@@ -37,13 +34,33 @@ The development environment is deployed locally with `docker-compose up -d`, and
 
 The Python application provides configurations and management tools through `click`. 
 
-This is a work in progress and will be documented more fully in the future.
+The commands are:
+* `test` - run developer tests
+* `serve` - Serve documentation or testing coverage on the local machine
+* `start` - Start the API server in the local environment
+* `build` - Build Docker containers
+* `redis_worker` - Start a worker process in remote redis instance
+* `up` - Run Docker images
+* `neo4j` - Run neo4j in Docker and open a browser interface to the management page
+* `providers` - Manage API keys for accessing the databases
+* `object_storage` - List the contents of S3 repositories
+* `cloud_sql_proxy` - Run local proxy to communicate with CloudSQL databases
+
+
+
+## Testing
+
+The `bathysphere/tests` directory contains unit and integration test code. This uses `pytest` for the testing framework.
+
+Tests can be run though the command line interface, once the package has been installed locally. You may also wish to devise your own subset of tests. 
+
+The command for the default tests is `bathysphere --kw=KEYWORD_STRING`.
 
 
 
 ## Functions
 
-Extensions to the core API are provided through the `/functions` end point. This is provided either by an `openfaas` [gateway](https://github.com/openfaas/workshop/blob/master), or by cloud vender-specific
+Extensions to the core API are provided through the `/functions` end point. This is provided by an `openfaas` [gateway](https://github.com/openfaas/workshop/blob/master), or vender-specific
 Functions-as-a-Service platforms. 
 
 The current version expects to have access to Google Cloud Functions. Functions use hash-based message authentication codes (HMAC) for cryptographic verification. The key is stored in a secret manager and is loaded to validate requests.
@@ -51,7 +68,7 @@ The current version expects to have access to Google Cloud Functions. Functions 
 
 ## Neo4j
 
-The database manager runs in an extension of the [official container image](https://hub.docker.com/_/neo4j/), and maps the server ports to an external interface. The [built-in GUI](http://localhost:7474/browser/) is at  `hostname:7474`, and the `bolt` [interface](https://boltprotocol.org/) defaults to  `hostname:7687`. 
+The database manager runs in an extension of the [official container image](https://hub.docker.com/_/neo4j/), and maps the server ports to an external interface. The [built-in GUI](http://localhost:7474/browser/) is at `hostname:7474`, and the `bolt` [interface](https://boltprotocol.org/) defaults to `hostname:7687`. 
 
 The `bolt` protocol is used for API calls from Python scripts. User authorization requires the environment variable `NEO4J_AUTH`. 
 
@@ -100,7 +117,7 @@ sudo apt-get install -y certbot
 
 ## Cypher
 
-[Cypher](https://neo4j.com/docs/cypher-refcard/current/) is the Neo4j query language. Either can be used to build the database, traverse nodes and edges, and return data. You can manage the database with the Python `neo4j-driver` package, installed with `pip install neo4j-driver`. 
+[Cypher](https://neo4j.com/docs/cypher-refcard/current/) is the Neo4j query language. Either cypher or `graphql` can be used to build the database, traverse nodes and edges, and return data. You can manage the database with the Python `neo4j-driver` package, installed with `pip install neo4j-driver`. 
 
 Establish a connection to the database using Bolt, and start a session:
 
@@ -139,8 +156,6 @@ Return the center coordinates of a triangle,
 MATCH (v:Vertex)-[]-(:Triangle {id: 10000})
 RETURN avg(v.x), 
 ```
-
-
 
 Nodes are neighbors if they share a parent. Each node gets a **non-directional** neighbor relationship with unique nodes that joined by a parent:
 
@@ -183,7 +198,9 @@ RETURN nb.id, b.id, e.id
 
 ### Mount remote NetCDF files with NFS
 
-Meshes are often stored as NetCDF, which can be read remotely by mounting the host volume to your local environment (e.g. using [fuse](https://github.com/osxfuse/osxfuse/releases) and [sshfs](https://github.com/libfuse/sshfs)). On macOS `meson` and `ninja` are required, before downloading and install the `sshfs` tarball:
+Meshes and model data are often stored as NetCDF, which can be read remotely by mounting the host volume to your local environment (e.g. using [fuse](https://github.com/osxfuse/osxfuse/releases) and [sshfs](https://github.com/libfuse/sshfs)). 
+
+On macOS `meson` and `ninja` are required, before downloading and install the `sshfs` tarball:
 
 ```bash
 pip install meson
@@ -206,7 +223,7 @@ sshfs username@hostname:/nfs-home/username/>>export ~/remote/
 
 ### Import bulk CSV data with Neo4j 
 
-Topology may also be saved in CSV files which require pre-processing. Space-delimited files can be converted to comma-delimited using `sed`, `cat`, and `cut`:
+Topology and spatial data may also be saved in CSV files which require pre-processing. Space-delimited files can be converted to comma-delimited using `sed`, `cat`, and `cut`:
 
 ```bash
 sed 's/[[:blank:]]/,/g' midcoast_nodes.csv > neo4j_nodes.csv
