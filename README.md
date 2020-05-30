@@ -39,13 +39,14 @@ The commands are:
 * `serve` - Serve documentation or testing coverage on the local machine
 * `start` - Start the API server in the local environment
 * `build` - Build Docker containers
-* `redis_worker` - Start a worker process in remote redis instance
+* `redis-worker` - Start a worker process in remote redis instance
 * `up` - Run Docker images
 * `neo4j` - Run neo4j in Docker and open a browser interface to the management page
-* `providers` - Manage API keys for accessing the databases
-* `object_storage` - List the contents of S3 repositories
-* `cloud_sql_proxy` - Run local proxy to communicate with CloudSQL databases
+* `providers` - Manage API keys for accessing the databases, there must already be a database
+* `object-storage` - List the contents of S3 repositories
+* `cloud-sql-proxy` - Run local proxy to communicate with CloudSQL databases
 
+Some of these will execute a subroutine, for example reading the contents of a remote S3 bucket. Commands with potential side effects simply print the command to the terminal. This allows you to see the generated command without running it. The evaluate it instead, wrap with `$()`.
 
 
 ## Testing
@@ -54,7 +55,7 @@ The `bathysphere/tests` directory contains unit and integration test code. This 
 
 Tests can be run though the command line interface, once the package has been installed locally. You may also wish to devise your own subset of tests. 
 
-The command for the default tests is `bathysphere --kw=KEYWORD_STRING`.
+The command for the default tests is `$(bathysphere --kw=KEYWORD_STRING)`.
 
 
 
