@@ -115,6 +115,20 @@ sudo apt-get install -y certbot
 ```
 
 
+### Browser settings
+
+The browser interface for the graph database is useful for debugging logical errors in the database structure. There is official documentation at the neo4j [website](https://neo4j.com/developer/neo4j-browser/).
+
+Important features that are not obvious at first:
+* `:sysinfo` will return status and storage statistics
+* The command interface can execute queries through `bolt` or `http` REST queries
+* Everything can be styled with a `.grass` file
+* You can create guided introductions and presentations by creating a [custom browser guide](https://neo4j.com/developer/guide-create-neo4j-browser-guide/).
+
+
+
+
+
 
 ## Cypher
 
@@ -233,57 +247,6 @@ sed 's/,,/,/g' neo4j_elements.csv > new_elements.csv
 cat new_elements.csv | cut -c 2- > neo4j_elements.csv
 ```
 
-A single triangular element/cell in a 2-D mesh consists of seven graph nodes: three vertices, three edges, and one element. The former are related to the latter by the `SIDE_OF` relationship. The vertices and edges are shared by other edges and elements, which they are also `SIDE_OF`.
-
-CSV data are ingested with `LOAD CSV`, which [loads data](https://neo4j.com/developer/guide-import-csv/) from a uniform resource identifier (URI). Vertices are loaded first, and relationships built in the second call. The process calls `CREATE` for each line of the input file. Explicit IDs are used for mapping between global and local domains when partitioning the graph. The files need to be in `/var/lib/neo4j/import` of the database container. At this point, it it worth noting, that if data entry goes wrong, you can abort and remove all nodes and relationships with `MATCH (n) DETACH DELETE n`.
-
-Create vertices:
-
-```sql
-USING PERIODIC COMMIT
-LOAD CSV FROM "file:///neo4j_nodes.csv" AS line
-CREATE (n:Node { id: toInteger(line[0]), latitude: toFloat(line[1]), longitude: toFloat(line[2]), depth: toFloat(line[3]) })
-```
-
-Create elements:
-
-```sql
-USING PERIODIC COMMIT
-LOAD CSV FROM "file:///neo4j_elements.csv" AS line
-CREATE ( e:Element { id: toInteger(line[0]) } )
-```
-
-### Build graph in multiple passes
-
-To limit future results to non-duplicates, enforce:
-
-```sql
-CREATE CONSTRAINT ON (e:Element) ASSERT e.id IS UNIQUE
-CREATE CONSTRAINT ON (n:Node) ASSERT n.id IS UNIQUE
-```
-
-This automatically creates an index on ID. Depending on the structure of your queries, it may be useful to manually index a property, such as the node ID. Adding an index is quick and speeds up queries, but takes up more memory, so de-index when not in use,
-
-```sql
-CREATE INDEX ON :Node(id)
-CREATE INDEX ON :Element(id)
-DROP INDEX ON :Node(id)
-DROP INDEX ON :Element(id)
-```
-
-Parent-child relationships are created in an additional pass. This reads the elements file again, and sets vertices `SIDE_OF` elements.
-
-```sql
-USING PERIODIC COMMIT
-LOAD CSV FROM "file:///neo4j_elements.csv" AS line
-MATCH ( n1:Node { id: toInteger(line[1]) } ), \
-( n2:Node { id: toInteger(line[2]) } ), \
-( n3:Node { id: toInteger(line[3]) } ), \
-( e:Element { id: toInteger(line[0]) } )
-CREATE (n1)-[:SIDE_OF]->(e)
-CREATE (n2)-[:SIDE_OF]->(e)
-CREATE (n3)-[:SIDE_OF]->(e)
-```
 
 
 

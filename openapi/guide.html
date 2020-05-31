@@ -1,0 +1,120 @@
+<article class="guide">
+    <carousel class="deck container-fluid">
+
+        <slide class="row-fluid">
+
+            <div class="col-sm-3">
+                <h3>Bathysphere API</h3>
+                <p class="lead">Geospatial graph database</p>
+            </div>
+            <div class="col-sm-9">
+                <p>
+                    The Bathypshere API uses Neo4j as backend to store spatiotemporal data.
+                    This guide introduces core concepts in the design of the framework,
+                    and common methods for working with domain-specific data formats and
+                    models.
+                </p>
+                <ol class="big">
+                    <li>Load: create data from external CSV files</li>
+                    <li>Index: index nodes based on label</li>
+                    <li>Relate: transform foreign key references into data relationships</li>
+                    <li>Promote: transform join records into relationships</li>
+                </ol>
+            </div>
+        </slide>
+
+        <slide class="row-fluid">
+            <div class="col-sm-3">
+                <h3>Geospatial data</h3>
+                <p class="lead">Example with topological mesh</p>
+            </div>
+            <div class="col-sm-9">
+                <p>
+                    A single triangular element/cell in a 2D mesh consists of seven graph nodes: 
+                    three vertices, three edges, and one element. 
+                    The former are related to the latter by the `SIDE_OF` relationship. 
+                    The vertices and edges are shared by other edges and elements, which they are also `SIDE_OF`.
+                </p>
+                <p>
+                    CSV data are ingested from data at a uniform resource identifier.
+                    Vertices are loaded first, and relationships built in the second call. 
+                    The process calls `CREATE` for each line of the input file. 
+                    Explicit IDs are used for mapping between global and local domains when partitioning the graph. 
+                    The files need to be in `/var/lib/neo4j/import` of the database container. 
+                </p>
+                <figure>
+                    <pre class="pre-scrollable code runnable">
+USING PERIODIC COMMIT
+LOAD CSV FROM "file:///neo4j_nodes.csv" AS line
+CREATE (n:Node { id: toInteger(line[0]), latitude: toFloat(line[1]), longitude: toFloat(line[2]), depth: toFloat(line[3]) })
+                    </pre>
+                    <figcaption>Create vertices</figcaption>
+                </figure>
+                <figure>
+                    <pre class="pre-scrollable code runnable">
+USING PERIODIC COMMIT
+LOAD CSV FROM "file:///neo4j_elements.csv" AS line
+CREATE ( e:Element { id: toInteger(line[0]) } )
+                    </pre>
+                    <figcaption>Create elements</figcaption>
+                </figure>
+               
+            </div>
+        </slide>
+
+
+        <slide class="row-fluid">
+            <div class="col-sm-3">
+                <h3>Topology</h3>
+                <p class="lead">Build graph in multiple passes</p>
+            </div>
+            <div class="col-sm-9">
+                <figure>
+                    <pre class="pre-scrollable code runnable">
+CREATE CONSTRAINT ON (e:Element) ASSERT e.id IS UNIQUE
+CREATE CONSTRAINT ON (n:Node) ASSERT n.id IS UNIQUE
+                    </pre>
+                    <figcaption>Enforce unique records</figcaption>
+                </figure>
+                <p>
+                    This automatically creates an index on ID. 
+                    Depending on the structure of your queries, it may be useful to manually index a property, 
+                    such as the node ID. 
+                    Adding an index is quick and speeds up queries, but takes up more memory, 
+                    so de-index when not in use,
+
+                </p>
+                <figure>
+                    <pre class="pre-scrollable code runnable">
+CREATE INDEX ON :Node(id)
+CREATE INDEX ON :Element(id)
+DROP INDEX ON :Node(id)
+DROP INDEX ON :Element(id)
+                    </pre>
+                    <figcaption>Create or drop indices</figcaption>
+                </figure>
+
+                <p>
+                    Parent-child relationships are created in an additional pass. 
+                    This reads the elements file again, and sets vertices `SIDE_OF` elements.
+                </p>
+
+                <figure>
+                    <pre class="pre-scrollable code runnable">
+USING PERIODIC COMMIT
+LOAD CSV FROM "file:///neo4j_elements.csv" AS line
+MATCH ( n1:Node { id: toInteger(line[1]) } ), \
+( n2:Node { id: toInteger(line[2]) } ), \
+( n3:Node { id: toInteger(line[3]) } ), \
+( e:Element { id: toInteger(line[0]) } )
+CREATE (n1)-[:SIDE_OF]->(e)
+CREATE (n2)-[:SIDE_OF]->(e)
+CREATE (n3)-[:SIDE_OF]->(e)
+                    </pre>
+                    <figcaption>Create relationships</figcaption>
+                </figure>
+               
+            </div>
+        </slide>
+    </carousel>
+</article>
