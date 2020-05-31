@@ -22,11 +22,7 @@ services:
       - redis
     
   neo4j:
-    image: neo4j:4.0
-    # build:
-    #   context: .
-    #   dockerfile: config/neo4j-dockerfile
-    # image: oceanicsdotio/neo4j
+    image: neo4j:3.5  # TODO: bump to 4.0 when there is graphql support
     ports:
       - 7474:7474 # http
       - 7473:7473 # https
@@ -37,7 +33,11 @@ services:
       - ./data/import:/var/lib/neo4j/import
     networks:
       - bathysphere
-    environment: 
+    environment:
+      - NEO4JLABS_PLUGINS=["graphql", "apoc"]
+      - NEO4J_dbms_security_procedures_unrestricted=apoc.*,graphql.*
+      - NEO4J_dbms_security_procedures_whitelist=apoc.*,graphql.*
+      - NEO4J_apoc_import_file_enabled=true
       - NEO4J_AUTH=neo4j/n0t_passw0rd
       - NEO4J_browser_remote__content__hostname__whitelist=localhost,https://graph.oceanics.io
       - NEO4J_dbms_memory_pagecache_size=2G

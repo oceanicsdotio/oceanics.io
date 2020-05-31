@@ -89,6 +89,7 @@ def up(service: str) -> None:
     """
     click.secho(f"docker-compose up -d {service}", fg="green")
 
+
 @click.command()
 def neo4j() -> None:
     """
