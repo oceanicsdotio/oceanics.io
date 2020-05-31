@@ -68,7 +68,7 @@ def test(kw: str):
     Command to run developer tests.
     """
     opt = f"-k {kw}" if kw else ""
-    cmd = f"pytest --cov-report html:htmlcov --cov=bathysphere {opt} --ignore=bathysphere/tests/future"
+    cmd = f"pytest --cov-report html:htmlcov --cov=bathysphere {opt} --ignore=bathysphere/tests/future --ignore=data"
     click.secho(cmd, fg="green")
 
 
