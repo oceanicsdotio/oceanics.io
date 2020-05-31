@@ -91,6 +91,8 @@ Important features that are not obvious at first:
 * Everything can be styled with a `.grass` file
 * You can create guided introductions and presentations by creating a [custom browser guide](https://neo4j.com/developer/guide-create-neo4j-browser-guide/).
 
+Our custom guide is an html slide deck in `/openapi/guide.html` and hosted at https://graph.oceanics.io/guide.html. This can be played within the browser by serving it locally, and loading with `:play localhost:<PORT>/openapi/guide.html`. 
+
 
 ### Python client
 

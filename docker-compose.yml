@@ -22,7 +22,7 @@ services:
       - redis
     
   neo4j:
-    image: neo4j:3.5
+    image: neo4j:4.0
     # build:
     #   context: .
     #   dockerfile: config/neo4j-dockerfile
@@ -39,6 +39,7 @@ services:
       - bathysphere
     environment: 
       - NEO4J_AUTH=neo4j/n0t_passw0rd
+      - NEO4J_browser_remote__content__hostname__whitelist=localhost,https://graph.oceanics.io
 
       
   redis:
