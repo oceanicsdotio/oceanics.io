@@ -48,7 +48,7 @@ Developer documentation is generated from the code base using `pdoc3`. The comma
 pdoc --html --output-dir openapi/docs bathysphere
 ```
 
-A live version of these are available at https://graph.oceanics.io/docs
+A live version of these are available at https://graph.oceanics.io/docs/bathysphere
 
 ### Deploy
 
