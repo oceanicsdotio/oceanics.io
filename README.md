@@ -45,11 +45,7 @@ We recommend `direnv` to manage local environment variables in a `.envrc` file.
 
 Developer documentation is generated from the code base using `pdoc3`. The command is:
 ```bash
-pdoc --html --output-dir openapi/docs bathysphere/graph &&
-pdoc --html --output-dir openapi/docs bathysphere/image &&
-pdoc --html --output-dir openapi/docs bathysphere/datatypes.py &&
-pdoc --html --output-dir openapi/docs bathysphere/models.py &&
-pdoc --html --output-dir openapi/docs bathysphere/utils.py
+pdoc --html --output-dir openapi/docs bathysphere
 ```
 
 A live version of these are available at https://graph.oceanics.io/docs
