@@ -52,6 +52,8 @@ pdoc --html --output-dir openapi/docs bathysphere/models.py &&
 pdoc --html --output-dir openapi/docs bathysphere/utils.py
 ```
 
+A live version of these are available at https://graph.oceanics.io/docs
+
 ### Deploy
 
 The development environment is deployed locally with `docker-compose up -d`, and the production environment with `kubectl`.

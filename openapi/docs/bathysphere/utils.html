@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.8.1" />
-<title>utils API documentation</title>
+<title>bathysphere.utils API documentation</title>
 <meta name="description" content="" />
 <link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
 <link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
@@ -17,7 +17,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>utils</code></h1>
+<h1 class="title">Module <code>bathysphere.utils</code></h1>
 </header>
 <section id="section-intro">
 <details class="source">
@@ -2021,7 +2021,7 @@ def swarm(vertex_array, vector_array, orientations, omega):
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="utils.angle2d"><code class="name flex">
+<dt id="bathysphere.utils.angle2d"><code class="name flex">
 <span>def <span class="ident">angle2d</span></span>(<span>u, v)</span>
 </code></dt>
 <dd>
@@ -2042,7 +2042,7 @@ def swarm(vertex_array, vector_array, orientations, omega):
     return theta</code></pre>
 </details>
 </dd>
-<dt id="utils.angle3d"><code class="name flex">
+<dt id="bathysphere.utils.angle3d"><code class="name flex">
 <span>def <span class="ident">angle3d</span></span>(<span>u, v)</span>
 </code></dt>
 <dd>
@@ -2058,7 +2058,7 @@ def swarm(vertex_array, vector_array, orientations, omega):
     return arccos(theta) if (-1.0 &lt;= theta &lt;= 1.0) else 0.0</code></pre>
 </details>
 </dd>
-<dt id="utils.area_sort"><code class="name flex">
+<dt id="bathysphere.utils.area_sort"><code class="name flex">
 <span>def <span class="ident">area_sort</span></span>(<span>data, pool=None, processes=1, reverse=False)</span>
 </code></dt>
 <dd>
@@ -2091,7 +2091,7 @@ def swarm(vertex_array, vector_array, orientations, omega):
     return tuple(array(x)[sorting] for x in data + (areas,)) + (inverse,)</code></pre>
 </details>
 </dd>
-<dt id="utils.array2image"><code class="name flex">
+<dt id="bathysphere.utils.array2image"><code class="name flex">
 <span>def <span class="ident">array2image</span></span>(<span>z, cmap)</span>
 </code></dt>
 <dd>
@@ -2108,7 +2108,7 @@ def swarm(vertex_array, vector_array, orientations, omega):
     return fromarray(uint8(get_cmap(cmap)(z) * 255)).rotate(90)</code></pre>
 </details>
 </dd>
-<dt id="utils.arrays2points"><code class="name flex">
+<dt id="bathysphere.utils.arrays2points"><code class="name flex">
 <span>def <span class="ident">arrays2points</span></span>(<span>x, y, z=None, dilate=0)</span>
 </code></dt>
 <dd>
@@ -2140,7 +2140,7 @@ Optionally dilate the mask by some number of pixels.</p></div>
     return stack(columns, axis=1)</code></pre>
 </details>
 </dd>
-<dt id="utils.attenuation"><code class="name flex">
+<dt id="bathysphere.utils.attenuation"><code class="name flex">
 <span>def <span class="ident">attenuation</span></span>(<span>bathymetry, elevation, sigma, coefficients)</span>
 </code></dt>
 <dd>
@@ -2155,7 +2155,7 @@ Optionally dilate the mask by some number of pixels.</p></div>
     return (elevation - bathymetry) * sigma[:, None] * coefficients</code></pre>
 </details>
 </dd>
-<dt id="utils.avhrr_index"><code class="name flex">
+<dt id="bathysphere.utils.avhrr_index"><code class="name flex">
 <span>def <span class="ident">avhrr_index</span></span>(<span>host: str, start: datetime.datetime = None, end: datetime.datetime = None, fmt: str = '%Y%m%d%H%M%S') -> [[<class 'dict'>]]</span>
 </code></dt>
 <dd>
@@ -2202,7 +2202,7 @@ Optionally dilate the mask by some number of pixels.</p></div>
     return result</code></pre>
 </details>
 </dd>
-<dt id="utils.avhrr_sst"><code class="name flex">
+<dt id="bathysphere.utils.avhrr_sst"><code class="name flex">
 <span>def <span class="ident">avhrr_sst</span></span>(<span>files, locations, processes=1, chunk=4, delay=1)</span>
 </code></dt>
 <dd>
@@ -2272,7 +2272,7 @@ Optionally dilate the mask by some number of pixels.</p></div>
     return sst</code></pre>
 </details>
 </dd>
-<dt id="utils.bevel"><code class="name flex">
+<dt id="bathysphere.utils.bevel"><code class="name flex">
 <span>def <span class="ident">bevel</span></span>(<span>arr, points, radius, num=None)</span>
 </code></dt>
 <dd>
@@ -2327,7 +2327,7 @@ Optionally dilate the mask by some number of pixels.</p></div>
     return out</code></pre>
 </details>
 </dd>
-<dt id="utils.blank"><code class="name flex">
+<dt id="bathysphere.utils.blank"><code class="name flex">
 <span>def <span class="ident">blank</span></span>(<span>shape, gpu=False, fill=False)</span>
 </code></dt>
 <dd>
@@ -2348,7 +2348,7 @@ Optionally dilate the mask by some number of pixels.</p></div>
         return template</code></pre>
 </details>
 </dd>
-<dt id="utils.boundary"><code class="name flex">
+<dt id="bathysphere.utils.boundary"><code class="name flex">
 <span>def <span class="ident">boundary</span></span>(<span>solid: <built-in function array>, open: <built-in function array>, topology: <built-in function array>) -> dict</span>
 </code></dt>
 <dd>
@@ -2369,7 +2369,7 @@ Optionally dilate the mask by some number of pixels.</p></div>
     }</code></pre>
 </details>
 </dd>
-<dt id="utils.brightness_temperature"><code class="name flex">
+<dt id="bathysphere.utils.brightness_temperature"><code class="name flex">
 <span>def <span class="ident">brightness_temperature</span></span>(<span>x, m=0.0003342, b=0.1, k1=774.89, k2=1321.08)</span>
 </code></dt>
 <dd>
@@ -2385,7 +2385,7 @@ Optionally dilate the mask by some number of pixels.</p></div>
     return (k2 / log((k1 / radiance) + 1)) - 272.15</code></pre>
 </details>
 </dd>
-<dt id="utils.c_array"><code class="name flex">
+<dt id="bathysphere.utils.c_array"><code class="name flex">
 <span>def <span class="ident">c_array</span></span>(<span>kind, *args)</span>
 </code></dt>
 <dd>
@@ -2402,7 +2402,7 @@ Optionally dilate the mask by some number of pixels.</p></div>
     return (kind * len(args))(*args)</code></pre>
 </details>
 </dd>
-<dt id="utils.calc_areas"><code class="name flex">
+<dt id="bathysphere.utils.calc_areas"><code class="name flex">
 <span>def <span class="ident">calc_areas</span></span>(<span>vertex_buffer: <built-in function array>, topology: <built-in function array>, parents: list, verb=True)</span>
 </code></dt>
 <dd>
@@ -2429,7 +2429,7 @@ Optionally dilate the mask by some number of pixels.</p></div>
     return {&#34;parents&#34;: art2, &#34;triangles&#34;: tri_area, &#34;control volume&#34;: area}</code></pre>
 </details>
 </dd>
-<dt id="utils.center"><code class="name flex">
+<dt id="bathysphere.utils.center"><code class="name flex">
 <span>def <span class="ident">center</span></span>(<span>arr)</span>
 </code></dt>
 <dd>
@@ -2446,7 +2446,7 @@ Optionally dilate the mask by some number of pixels.</p></div>
     return tuple(mean(arr.data, axis=0))</code></pre>
 </details>
 </dd>
-<dt id="utils.crop"><code class="name flex">
+<dt id="bathysphere.utils.crop"><code class="name flex">
 <span>def <span class="ident">crop</span></span>(<span>x, y, ext, mask=None, gpu=False)</span>
 </code></dt>
 <dd>
@@ -2469,7 +2469,7 @@ Optionally dilate the mask by some number of pixels.</p></div>
     return mask</code></pre>
 </details>
 </dd>
-<dt id="utils.cube"><code class="name flex">
+<dt id="bathysphere.utils.cube"><code class="name flex">
 <span>def <span class="ident">cube</span></span>(<span>size=1.0)</span>
 </code></dt>
 <dd>
@@ -2485,7 +2485,7 @@ Optionally dilate the mask by some number of pixels.</p></div>
     return extrude(square(size))</code></pre>
 </details>
 </dd>
-<dt id="utils.days"><code class="name flex">
+<dt id="bathysphere.utils.days"><code class="name flex">
 <span>def <span class="ident">days</span></span>(<span>date)</span>
 </code></dt>
 <dd>
@@ -2501,7 +2501,7 @@ Optionally dilate the mask by some number of pixels.</p></div>
     return result</code></pre>
 </details>
 </dd>
-<dt id="utils.degrade"><code class="name flex">
+<dt id="bathysphere.utils.degrade"><code class="name flex">
 <span>def <span class="ident">degrade</span></span>(<span>vertex_array, neighbors)</span>
 </code></dt>
 <dd>
@@ -2537,7 +2537,7 @@ Optionally dilate the mask by some number of pixels.</p></div>
     smooth(vertex_array, neighbors, weight=0.25)  # final smoothing</code></pre>
 </details>
 </dd>
-<dt id="utils.depth"><code class="name flex">
+<dt id="bathysphere.utils.depth"><code class="name flex">
 <span>def <span class="ident">depth</span></span>(<span>bathymetry: <built-in function array>, elevation: <built-in function array> = None, dry: float = 1e-07) -> numpy.ma.core.MaskedArray</span>
 </code></dt>
 <dd>
@@ -2556,7 +2556,7 @@ Optionally dilate the mask by some number of pixels.</p></div>
     return ma.masked_array(depth, mask=(data &gt; dry))  # depth threshold to consider dry</code></pre>
 </details>
 </dd>
-<dt id="utils.depth2sigma"><code class="name flex">
+<dt id="bathysphere.utils.depth2sigma"><code class="name flex">
 <span>def <span class="ident">depth2sigma</span></span>(<span>elevation, bathymetry, z)</span>
 </code></dt>
 <dd>
@@ -2571,7 +2571,7 @@ Optionally dilate the mask by some number of pixels.</p></div>
     return -abs(z - elevation) / abs(elevation - bathymetry)</code></pre>
 </details>
 </dd>
-<dt id="utils.extent_area"><code class="name flex">
+<dt id="bathysphere.utils.extent_area"><code class="name flex">
 <span>def <span class="ident">extent_area</span></span>(<span>ext)</span>
 </code></dt>
 <dd>
@@ -2588,7 +2588,7 @@ Optionally dilate the mask by some number of pixels.</p></div>
     return (ext[1] - ext[0]) * (ext[3] - ext[2])</code></pre>
 </details>
 </dd>
-<dt id="utils.extent_crop"><code class="name flex">
+<dt id="bathysphere.utils.extent_crop"><code class="name flex">
 <span>def <span class="ident">extent_crop</span></span>(<span>ext, xyz)</span>
 </code></dt>
 <dd>
@@ -2609,7 +2609,7 @@ Optionally dilate the mask by some number of pixels.</p></div>
     return xyz[select, :]</code></pre>
 </details>
 </dd>
-<dt id="utils.extent_overlap_automatic"><code class="name flex">
+<dt id="bathysphere.utils.extent_overlap_automatic"><code class="name flex">
 <span>def <span class="ident">extent_overlap_automatic</span></span>(<span>xyz, shapes, extents, max_passes=3, rec=None)</span>
 </code></dt>
 <dd>
@@ -2658,7 +2658,7 @@ Repeat until extent stops changing.</p></div>
     return xyz, f, e, r</code></pre>
 </details>
 </dd>
-<dt id="utils.extent_overlap_filter"><code class="name flex">
+<dt id="bathysphere.utils.extent_overlap_filter"><code class="name flex">
 <span>def <span class="ident">extent_overlap_filter</span></span>(<span>ext, shapes, extents, rec=None)</span>
 </code></dt>
 <dd>
@@ -2683,7 +2683,7 @@ Repeat until extent stops changing.</p></div>
     return tuple(zip(*filter(lambda x: extent_overlap(ext, x[1]), iterator)))</code></pre>
 </details>
 </dd>
-<dt id="utils.extent_overlap_iteration"><code class="name flex">
+<dt id="bathysphere.utils.extent_overlap_iteration"><code class="name flex">
 <span>def <span class="ident">extent_overlap_iteration</span></span>(<span>vertex_array, shapes, extents, records=None)</span>
 </code></dt>
 <dd>
@@ -2701,7 +2701,7 @@ Repeat until extent stops changing.</p></div>
     return (cropped, *filtered)</code></pre>
 </details>
 </dd>
-<dt id="utils.extrude"><code class="name flex">
+<dt id="bathysphere.utils.extrude"><code class="name flex">
 <span>def <span class="ident">extrude</span></span>(<span>vertex_array, closed=False, loop=True, dtype=builtins.float, **kwargs)</span>
 </code></dt>
 <dd>
@@ -2775,7 +2775,7 @@ Repeat until extent stops changing.</p></div>
     return vertex_array, topology</code></pre>
 </details>
 </dd>
-<dt id="utils.fahr2cel"><code class="name flex">
+<dt id="bathysphere.utils.fahr2cel"><code class="name flex">
 <span>def <span class="ident">fahr2cel</span></span>(<span>data)</span>
 </code></dt>
 <dd>
@@ -2788,7 +2788,7 @@ Repeat until extent stops changing.</p></div>
     return (data - 32.0) / 1.8</code></pre>
 </details>
 </dd>
-<dt id="utils.filter_arrays"><code class="name flex">
+<dt id="bathysphere.utils.filter_arrays"><code class="name flex">
 <span>def <span class="ident">filter_arrays</span></span>(<span>x) -> bool</span>
 </code></dt>
 <dd>
@@ -2805,7 +2805,7 @@ Repeat until extent stops changing.</p></div>
         return False</code></pre>
 </details>
 </dd>
-<dt id="utils.filter_in_range"><code class="name flex">
+<dt id="bathysphere.utils.filter_in_range"><code class="name flex">
 <span>def <span class="ident">filter_in_range</span></span>(<span>mask, data, minimum=None, maximum=None, gpu=False)</span>
 </code></dt>
 <dd>
@@ -2824,7 +2824,7 @@ Repeat until extent stops changing.</p></div>
     return mask</code></pre>
 </details>
 </dd>
-<dt id="utils.generateStream"><code class="name flex">
+<dt id="bathysphere.utils.generateStream"><code class="name flex">
 <span>def <span class="ident">generateStream</span></span>(<span>columns, records)</span>
 </code></dt>
 <dd>
@@ -2848,7 +2848,7 @@ Repeat until extent stops changing.</p></div>
     yield dumps(dict(zip(columns, prev))) + &#34;]&#34;</code></pre>
 </details>
 </dd>
-<dt id="utils.geo2dist"><code class="name flex">
+<dt id="bathysphere.utils.geo2dist"><code class="name flex">
 <span>def <span class="ident">geo2dist</span></span>(<span>lat1, long1, lat2, long2)</span>
 </code></dt>
 <dd>
@@ -2872,7 +2872,7 @@ Repeat until extent stops changing.</p></div>
     return arc * 6373000</code></pre>
 </details>
 </dd>
-<dt id="utils.geom_shader"><code class="name flex">
+<dt id="bathysphere.utils.geom_shader"><code class="name flex">
 <span>def <span class="ident">geom_shader</span></span>(<span>e)</span>
 </code></dt>
 <dd>
@@ -2893,7 +2893,7 @@ Repeat until extent stops changing.</p></div>
     )</code></pre>
 </details>
 </dd>
-<dt id="utils.globe"><code class="name flex">
+<dt id="bathysphere.utils.globe"><code class="name flex">
 <span>def <span class="ident">globe</span></span>(<span>n: int = 24, dtype: Type = builtins.float)</span>
 </code></dt>
 <dd>
@@ -2915,7 +2915,7 @@ Repeat until extent stops changing.</p></div>
     )</code></pre>
 </details>
 </dd>
-<dt id="utils.googleCloudSecret"><code class="name flex">
+<dt id="bathysphere.utils.googleCloudSecret"><code class="name flex">
 <span>def <span class="ident">googleCloudSecret</span></span>(<span>secret_name='my-secret')</span>
 </code></dt>
 <dd>
@@ -2935,7 +2935,7 @@ Repeat until extent stops changing.</p></div>
     return response.payload.data.decode(&#34;UTF-8&#34;)</code></pre>
 </details>
 </dd>
-<dt id="utils.gradient"><code class="name flex">
+<dt id="bathysphere.utils.gradient"><code class="name flex">
 <span>def <span class="ident">gradient</span></span>(<span>dz: <built-in function array>, dzz: <built-in function array>) -> <built-in function array></span>
 </code></dt>
 <dd>
@@ -2951,7 +2951,7 @@ Repeat until extent stops changing.</p></div>
     return -1 / dz / roll(dzz, 1)</code></pre>
 </details>
 </dd>
-<dt id="utils.hc2pH"><code class="name flex">
+<dt id="bathysphere.utils.hc2pH"><code class="name flex">
 <span>def <span class="ident">hc2pH</span></span>(<span>hc)</span>
 </code></dt>
 <dd>
@@ -2965,7 +2965,7 @@ Repeat until extent stops changing.</p></div>
     return pH</code></pre>
 </details>
 </dd>
-<dt id="utils.hexagon"><code class="name flex">
+<dt id="bathysphere.utils.hexagon"><code class="name flex">
 <span>def <span class="ident">hexagon</span></span>(<span>point_up=True, dim=2)</span>
 </code></dt>
 <dd>
@@ -2997,7 +2997,7 @@ Repeat until extent stops changing.</p></div>
     return vertex_array, topology</code></pre>
 </details>
 </dd>
-<dt id="utils.hull_contains"><code class="name flex">
+<dt id="bathysphere.utils.hull_contains"><code class="name flex">
 <span>def <span class="ident">hull_contains</span></span>(<span>a, b)</span>
 </code></dt>
 <dd>
@@ -3013,7 +3013,7 @@ Repeat until extent stops changing.</p></div>
     return _a.contains_path(_b)</code></pre>
 </details>
 </dd>
-<dt id="utils.hull_overlap"><code class="name flex">
+<dt id="bathysphere.utils.hull_overlap"><code class="name flex">
 <span>def <span class="ident">hull_overlap</span></span>(<span>a, b)</span>
 </code></dt>
 <dd>
@@ -3030,7 +3030,7 @@ Repeat until extent stops changing.</p></div>
     return _a.contains_points(_bv).any() or _b.contains_points(_av).any()</code></pre>
 </details>
 </dd>
-<dt id="utils.icosahedron"><code class="name flex">
+<dt id="bathysphere.utils.icosahedron"><code class="name flex">
 <span>def <span class="ident">icosahedron</span></span>(<span>dtype=builtins.float)</span>
 </code></dt>
 <dd>
@@ -3094,7 +3094,7 @@ Repeat until extent stops changing.</p></div>
     return vertex_array, topology</code></pre>
 </details>
 </dd>
-<dt id="utils.identity"><code class="name flex">
+<dt id="bathysphere.utils.identity"><code class="name flex">
 <span>def <span class="ident">identity</span></span>(<span>)</span>
 </code></dt>
 <dd>
@@ -3112,7 +3112,7 @@ Repeat until extent stops changing.</p></div>
     return matrix</code></pre>
 </details>
 </dd>
-<dt id="utils.image2arrays"><code class="name flex">
+<dt id="bathysphere.utils.image2arrays"><code class="name flex">
 <span>def <span class="ident">image2arrays</span></span>(<span>path, utm_extent, native=Proj('+proj=utm +zone=19 +ellps=GRS80 +units=m +no_defs', preserve_units=True), view=Proj('+proj=longlat +datum=WGS84 +no_defs', preserve_units=True))</span>
 </code></dt>
 <dd>
@@ -3143,7 +3143,7 @@ run in the same context.</p></div>
     return (*project(*utm, native=native, view=view), asarray(image))</code></pre>
 </details>
 </dd>
-<dt id="utils.image_to_masked"><code class="name flex">
+<dt id="bathysphere.utils.image_to_masked"><code class="name flex">
 <span>def <span class="ident">image_to_masked</span></span>(<span>image: <built-in function array>, m: float = 0.125, b: float = 2.0, hide: bool = True)</span>
 </code></dt>
 <dd>
@@ -3175,7 +3175,7 @@ run in the same context.</p></div>
     return sst</code></pre>
 </details>
 </dd>
-<dt id="utils.impact"><code class="name flex">
+<dt id="bathysphere.utils.impact"><code class="name flex">
 <span>def <span class="ident">impact</span></span>(<span>vertex_array, neighbors, ind, s=0.05)</span>
 </code></dt>
 <dd>
@@ -3203,7 +3203,7 @@ run in the same context.</p></div>
     return vertex_array</code></pre>
 </details>
 </dd>
-<dt id="utils.impulse"><code class="name flex">
+<dt id="bathysphere.utils.impulse"><code class="name flex">
 <span>def <span class="ident">impulse</span></span>(<span>uv, direction, mag=0.0, stop=False)</span>
 </code></dt>
 <dd>
@@ -3222,7 +3222,7 @@ run in the same context.</p></div>
     return uv + direction * mag</code></pre>
 </details>
 </dd>
-<dt id="utils.interp1d"><code class="name flex">
+<dt id="bathysphere.utils.interp1d"><code class="name flex">
 <span>def <span class="ident">interp1d</span></span>(<span>coefficient, aa, bb)</span>
 </code></dt>
 <dd>
@@ -3238,7 +3238,7 @@ run in the same context.</p></div>
     return (1.0 - coefficient) * aa + coefficient * bb</code></pre>
 </details>
 </dd>
-<dt id="utils.interp1d_lin"><code class="name flex">
+<dt id="bathysphere.utils.interp1d_lin"><code class="name flex">
 <span>def <span class="ident">interp1d_lin</span></span>(<span>x, y, samples, clamp=False)</span>
 </code></dt>
 <dd>
@@ -3259,7 +3259,7 @@ run in the same context.</p></div>
     return predicted</code></pre>
 </details>
 </dd>
-<dt id="utils.interp2d_nearest"><code class="name flex">
+<dt id="bathysphere.utils.interp2d_nearest"><code class="name flex">
 <span>def <span class="ident">interp2d_nearest</span></span>(<span>xy, samples)</span>
 </code></dt>
 <dd>
@@ -3288,7 +3288,7 @@ from <code>scipy.spatial</code></p>
     return interp(samples)</code></pre>
 </details>
 </dd>
-<dt id="utils.interp2d_tri"><code class="name flex">
+<dt id="bathysphere.utils.interp2d_tri"><code class="name flex">
 <span>def <span class="ident">interp2d_tri</span></span>(<span>xy, z, cubic=False, **kwargs)</span>
 </code></dt>
 <dd>
@@ -3304,7 +3304,7 @@ from <code>scipy.spatial</code></p>
     return engine(xy[:, 0], xy[:, 1])</code></pre>
 </details>
 </dd>
-<dt id="utils.interp2d_uv"><code class="name flex">
+<dt id="bathysphere.utils.interp2d_uv"><code class="name flex">
 <span>def <span class="ident">interp2d_uv</span></span>(<span>cells, train, neighbors, layer, shape_coefficient)</span>
 </code></dt>
 <dd>
@@ -3349,7 +3349,7 @@ from <code>scipy.spatial</code></p>
     return expected</code></pre>
 </details>
 </dd>
-<dt id="utils.interp3d_slice"><code class="name flex">
+<dt id="bathysphere.utils.interp3d_slice"><code class="name flex">
 <span>def <span class="ident">interp3d_slice</span></span>(<span>z, scalar, layer, clamp=True)</span>
 </code></dt>
 <dd>
@@ -3384,7 +3384,7 @@ from <code>scipy.spatial</code></p>
     )</code></pre>
 </details>
 </dd>
-<dt id="utils.interp3d_tri"><code class="name flex">
+<dt id="bathysphere.utils.interp3d_tri"><code class="name flex">
 <span>def <span class="ident">interp3d_tri</span></span>(<span>xy, z, scalar, layer, cubic=False, clamp=True, **kwargs)</span>
 </code></dt>
 <dd>
@@ -3406,7 +3406,7 @@ from <code>scipy.spatial</code></p>
     )</code></pre>
 </details>
 </dd>
-<dt id="utils.join"><code class="name flex">
+<dt id="bathysphere.utils.join"><code class="name flex">
 <span>def <span class="ident">join</span></span>(<span>x: str) -> str</span>
 </code></dt>
 <dd>
@@ -3420,7 +3420,7 @@ from <code>scipy.spatial</code></p>
     return &#34;, &#34;.join(x)</code></pre>
 </details>
 </dd>
-<dt id="utils.kelvin2celsius"><code class="name flex">
+<dt id="bathysphere.utils.kelvin2celsius"><code class="name flex">
 <span>def <span class="ident">kelvin2celsius</span></span>(<span>data)</span>
 </code></dt>
 <dd>
@@ -3435,7 +3435,7 @@ from <code>scipy.spatial</code></p>
     return data - 272.15</code></pre>
 </details>
 </dd>
-<dt id="utils.lagrangian_diffusion"><code class="name flex">
+<dt id="bathysphere.utils.lagrangian_diffusion"><code class="name flex">
 <span>def <span class="ident">lagrangian_diffusion</span></span>(<span>vertex_array_buffer, window, bins, groups, threshold, wrap, steps=240)</span>
 </code></dt>
 <dd>
@@ -3490,7 +3490,7 @@ from <code>scipy.spatial</code></p>
     )</code></pre>
 </details>
 </dd>
-<dt id="utils.landsat_sst_regression"><code class="name flex">
+<dt id="bathysphere.utils.landsat_sst_regression"><code class="name flex">
 <span>def <span class="ident">landsat_sst_regression</span></span>(<span>raw, lon, lat, roi, samples, outliers, nsub=10)</span>
 </code></dt>
 <dd>
@@ -3557,7 +3557,7 @@ from <code>scipy.spatial</code></p>
     return sst</code></pre>
 </details>
 </dd>
-<dt id="utils.layers"><code class="name flex">
+<dt id="bathysphere.utils.layers"><code class="name flex">
 <span>def <span class="ident">layers</span></span>(<span>count: int)</span>
 </code></dt>
 <dd>
@@ -3576,7 +3576,7 @@ from <code>scipy.spatial</code></p>
     dzz = zz[:-1] - zz[1:]  # distance between intra-sigma layers</code></pre>
 </details>
 </dd>
-<dt id="utils.lin_transform"><code class="name flex">
+<dt id="bathysphere.utils.lin_transform"><code class="name flex">
 <span>def <span class="ident">lin_transform</span></span>(<span>u, a, b)</span>
 </code></dt>
 <dd>
@@ -3590,7 +3590,7 @@ from <code>scipy.spatial</code></p>
     return u * (b - a) + a</code></pre>
 </details>
 </dd>
-<dt id="utils.linear_regression_predict"><code class="name flex">
+<dt id="bathysphere.utils.linear_regression_predict"><code class="name flex">
 <span>def <span class="ident">linear_regression_predict</span></span>(<span>model, predict, order=1)</span>
 </code></dt>
 <dd>
@@ -3631,7 +3631,7 @@ from <code>scipy.spatial</code></p>
     return model.predict(expected)</code></pre>
 </details>
 </dd>
-<dt id="utils.linear_regression_train"><code class="name flex">
+<dt id="bathysphere.utils.linear_regression_train"><code class="name flex">
 <span>def <span class="ident">linear_regression_train</span></span>(<span>train, target)</span>
 </code></dt>
 <dd>
@@ -3659,7 +3659,7 @@ from <code>scipy.spatial</code></p>
     return model, r_squared</code></pre>
 </details>
 </dd>
-<dt id="utils.loadAppConfig"><code class="name flex">
+<dt id="bathysphere.utils.loadAppConfig"><code class="name flex">
 <span>def <span class="ident">loadAppConfig</span></span>(<span>sources: str = ('bathysphere.yml', 'kubernetes.yml')) -> dict</span>
 </code></dt>
 <dd>
@@ -3697,7 +3697,7 @@ from <code>scipy.spatial</code></p>
     return reduce(reverseDictionary, items, {})</code></pre>
 </details>
 </dd>
-<dt id="utils.mask"><code class="name flex">
+<dt id="bathysphere.utils.mask"><code class="name flex">
 <span>def <span class="ident">mask</span></span>(<span>shape, masked=None)</span>
 </code></dt>
 <dd>
@@ -3713,7 +3713,7 @@ from <code>scipy.spatial</code></p>
     return m</code></pre>
 </details>
 </dd>
-<dt id="utils.multi_polygon_crop"><code class="name flex">
+<dt id="bathysphere.utils.multi_polygon_crop"><code class="name flex">
 <span>def <span class="ident">multi_polygon_crop</span></span>(<span>xyz, shapes)</span>
 </code></dt>
 <dd>
@@ -3739,7 +3739,7 @@ from <code>scipy.spatial</code></p>
     return hstack(found)</code></pre>
 </details>
 </dd>
-<dt id="utils.multi_polygon_cull"><code class="name flex">
+<dt id="bathysphere.utils.multi_polygon_cull"><code class="name flex">
 <span>def <span class="ident">multi_polygon_cull</span></span>(<span>xyz, shapes)</span>
 </code></dt>
 <dd>
@@ -3763,7 +3763,7 @@ from <code>scipy.spatial</code></p>
     return xyz</code></pre>
 </details>
 </dd>
-<dt id="utils.multiply"><code class="name flex">
+<dt id="bathysphere.utils.multiply"><code class="name flex">
 <span>def <span class="ident">multiply</span></span>(<span>u, v)</span>
 </code></dt>
 <dd>
@@ -3802,7 +3802,7 @@ cross(u,v) + A</em>v + B*u</p></div>
     return result</code></pre>
 </details>
 </dd>
-<dt id="utils.nan_mask"><code class="name flex">
+<dt id="bathysphere.utils.nan_mask"><code class="name flex">
 <span>def <span class="ident">nan_mask</span></span>(<span>arr, gpu=False)</span>
 </code></dt>
 <dd>
@@ -3822,7 +3822,7 @@ cross(u,v) + A</em>v + B*u</p></div>
     return mask</code></pre>
 </details>
 </dd>
-<dt id="utils.normal"><code class="name flex">
+<dt id="bathysphere.utils.normal"><code class="name flex">
 <span>def <span class="ident">normal</span></span>(<span>u)</span>
 </code></dt>
 <dd>
@@ -3837,7 +3837,7 @@ cross(u,v) + A</em>v + B*u</p></div>
     return u / norm(u, axis=1).reshape((-1, 1))</code></pre>
 </details>
 </dd>
-<dt id="utils.oc3algorithms"><code class="name flex">
+<dt id="bathysphere.utils.oc3algorithms"><code class="name flex">
 <span>def <span class="ident">oc3algorithms</span></span>(<span>)</span>
 </code></dt>
 <dd>
@@ -3864,7 +3864,7 @@ regress AV filter 2 and LS filter 2 for R2 and P values</p></div>
     ...</code></pre>
 </details>
 </dd>
-<dt id="utils.pH2hc"><code class="name flex">
+<dt id="bathysphere.utils.pH2hc"><code class="name flex">
 <span>def <span class="ident">pH2hc</span></span>(<span>pH)</span>
 </code></dt>
 <dd>
@@ -3878,7 +3878,7 @@ regress AV filter 2 and LS filter 2 for R2 and P values</p></div>
     return hc * (10 ** 9)</code></pre>
 </details>
 </dd>
-<dt id="utils.parallelogram"><code class="name flex">
+<dt id="bathysphere.utils.parallelogram"><code class="name flex">
 <span>def <span class="ident">parallelogram</span></span>(<span>ww, hh, dw=0.0, dh=0.0)</span>
 </code></dt>
 <dd>
@@ -3896,7 +3896,7 @@ regress AV filter 2 and LS filter 2 for R2 and P values</p></div>
     return shape</code></pre>
 </details>
 </dd>
-<dt id="utils.parsePostgresValueIn"><code class="name flex">
+<dt id="bathysphere.utils.parsePostgresValueIn"><code class="name flex">
 <span>def <span class="ident">parsePostgresValueIn</span></span>(<span>value: Any) -> str</span>
 </code></dt>
 <dd>
@@ -3917,7 +3917,7 @@ regress AV filter 2 and LS filter 2 for R2 and P values</p></div>
     return parsingTable.get(type(value), lambda x: &#34;NULL&#34;)(value)</code></pre>
 </details>
 </dd>
-<dt id="utils.parsePostgresValueOut"><code class="name flex">
+<dt id="bathysphere.utils.parsePostgresValueOut"><code class="name flex">
 <span>def <span class="ident">parsePostgresValueOut</span></span>(<span>v: Any) -> Any</span>
 </code></dt>
 <dd>
@@ -3933,7 +3933,7 @@ regress AV filter 2 and LS filter 2 for R2 and P values</p></div>
     return v</code></pre>
 </details>
 </dd>
-<dt id="utils.partition_points_by_shape"><code class="name flex">
+<dt id="bathysphere.utils.partition_points_by_shape"><code class="name flex">
 <span>def <span class="ident">partition_points_by_shape</span></span>(<span>path, vertex_array)</span>
 </code></dt>
 <dd>
@@ -3961,7 +3961,7 @@ regress AV filter 2 and LS filter 2 for R2 and P values</p></div>
     return inside, outside</code></pre>
 </details>
 </dd>
-<dt id="utils.pix2utm"><code class="name flex">
+<dt id="bathysphere.utils.pix2utm"><code class="name flex">
 <span>def <span class="ident">pix2utm</span></span>(<span>px, py, ext)</span>
 </code></dt>
 <dd>
@@ -3980,7 +3980,7 @@ regress AV filter 2 and LS filter 2 for R2 and P values</p></div>
     return utmx, utmy</code></pre>
 </details>
 </dd>
-<dt id="utils.pixel_area"><code class="name flex">
+<dt id="bathysphere.utils.pixel_area"><code class="name flex">
 <span>def <span class="ident">pixel_area</span></span>(<span>arr, resolution, gpu=False)</span>
 </code></dt>
 <dd>
@@ -3998,7 +3998,7 @@ regress AV filter 2 and LS filter 2 for R2 and P values</p></div>
     return None</code></pre>
 </details>
 </dd>
-<dt id="utils.point_arc"><code class="name flex">
+<dt id="bathysphere.utils.point_arc"><code class="name flex">
 <span>def <span class="ident">point_arc</span></span>(<span>points, start, sweep)</span>
 </code></dt>
 <dd>
@@ -4018,7 +4018,7 @@ regress AV filter 2 and LS filter 2 for R2 and P values</p></div>
     return shape</code></pre>
 </details>
 </dd>
-<dt id="utils.points_in_path"><code class="name flex">
+<dt id="bathysphere.utils.points_in_path"><code class="name flex">
 <span>def <span class="ident">points_in_path</span></span>(<span>path, vertex_array, max_size=10000, processes=1, pool=None)</span>
 </code></dt>
 <dd>
@@ -4039,7 +4039,7 @@ regress AV filter 2 and LS filter 2 for R2 and P values</p></div>
     return hstack(pool.starmap(_points_in_path, iterable))</code></pre>
 </details>
 </dd>
-<dt id="utils.polygon_area"><code class="name flex">
+<dt id="bathysphere.utils.polygon_area"><code class="name flex">
 <span>def <span class="ident">polygon_area</span></span>(<span>arr)</span>
 </code></dt>
 <dd>
@@ -4055,7 +4055,7 @@ regress AV filter 2 and LS filter 2 for R2 and P values</p></div>
     return 0.5 * (dot(xx, roll(yy, 1)) - dot(yy, roll(xx, 1)))</code></pre>
 </details>
 </dd>
-<dt id="utils.project"><code class="name flex">
+<dt id="bathysphere.utils.project"><code class="name flex">
 <span>def <span class="ident">project</span></span>(<span>xx, yy, native, view)</span>
 </code></dt>
 <dd>
@@ -4072,7 +4072,7 @@ regress AV filter 2 and LS filter 2 for R2 and P values</p></div>
     return xo.reshape(xx.shape), yo.reshape(yy.shape)</code></pre>
 </details>
 </dd>
-<dt id="utils.raster2mesh"><code class="name flex">
+<dt id="bathysphere.utils.raster2mesh"><code class="name flex">
 <span>def <span class="ident">raster2mesh</span></span>(<span>train, predict, order=1)</span>
 </code></dt>
 <dd>
@@ -4115,7 +4115,7 @@ regress AV filter 2 and LS filter 2 for R2 and P values</p></div>
     return linear_regression_predict(model, predict=predict, order=order)</code></pre>
 </details>
 </dd>
-<dt id="utils.rectangle"><code class="name flex">
+<dt id="bathysphere.utils.rectangle"><code class="name flex">
 <span>def <span class="ident">rectangle</span></span>(<span>ww, hh)</span>
 </code></dt>
 <dd>
@@ -4129,7 +4129,7 @@ regress AV filter 2 and LS filter 2 for R2 and P values</p></div>
     return parallelogram(ww, hh)</code></pre>
 </details>
 </dd>
-<dt id="utils.reflect"><code class="name flex">
+<dt id="bathysphere.utils.reflect"><code class="name flex">
 <span>def <span class="ident">reflect</span></span>(<span>arr, dim)</span>
 </code></dt>
 <dd>
@@ -4144,7 +4144,7 @@ regress AV filter 2 and LS filter 2 for R2 and P values</p></div>
     arr[:, dim] *= -1.0</code></pre>
 </details>
 </dd>
-<dt id="utils.regular_polygon"><code class="name flex">
+<dt id="bathysphere.utils.regular_polygon"><code class="name flex">
 <span>def <span class="ident">regular_polygon</span></span>(<span>points)</span>
 </code></dt>
 <dd>
@@ -4164,7 +4164,7 @@ regress AV filter 2 and LS filter 2 for R2 and P values</p></div>
     return shape</code></pre>
 </details>
 </dd>
-<dt id="utils.report_buoy_data"><code class="name flex">
+<dt id="bathysphere.utils.report_buoy_data"><code class="name flex">
 <span>def <span class="ident">report_buoy_data</span></span>(<span>request)</span>
 </code></dt>
 <dd>
@@ -4230,7 +4230,7 @@ regress AV filter 2 and LS filter 2 for R2 and P values</p></div>
     )</code></pre>
 </details>
 </dd>
-<dt id="utils.resolveTaskTree"><code class="name flex">
+<dt id="bathysphere.utils.resolveTaskTree"><code class="name flex">
 <span>def <span class="ident">resolveTaskTree</span></span>(<span>t) -> tuple</span>
 </code></dt>
 <dd>
@@ -4263,7 +4263,7 @@ see <code>_map_by_date</code>.</p></div>
     return yields</code></pre>
 </details>
 </dd>
-<dt id="utils.response"><code class="name flex">
+<dt id="bathysphere.utils.response"><code class="name flex">
 <span>def <span class="ident">response</span></span>(<span>status, payload)</span>
 </code></dt>
 <dd>
@@ -4279,7 +4279,7 @@ see <code>_map_by_date</code>.</p></div>
     }</code></pre>
 </details>
 </dd>
-<dt id="utils.rk4"><code class="name flex">
+<dt id="bathysphere.utils.rk4"><code class="name flex">
 <span>def <span class="ident">rk4</span></span>(<span>fcn, y0, t0, dt)</span>
 </code></dt>
 <dd>
@@ -4300,7 +4300,7 @@ see <code>_map_by_date</code>.</p></div>
     return y0 + dt * (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6</code></pre>
 </details>
 </dd>
-<dt id="utils.rotate"><code class="name flex">
+<dt id="bathysphere.utils.rotate"><code class="name flex">
 <span>def <span class="ident">rotate</span></span>(<span>vertex_array: <built-in function array>, angle: float, axis: <built-in function array> = array([[0., 0., 1.]])) -> <built-in function array></span>
 </code></dt>
 <dd>
@@ -4328,7 +4328,7 @@ see <code>_map_by_date</code>.</p></div>
     return multiply(state, matrix)[:, 1:4]  # final step, omit w coordinates</code></pre>
 </details>
 </dd>
-<dt id="utils.roughen"><code class="name flex">
+<dt id="bathysphere.utils.roughen"><code class="name flex">
 <span>def <span class="ident">roughen</span></span>(<span>vertex_array, scalar=0.01)</span>
 </code></dt>
 <dd>
@@ -4345,7 +4345,7 @@ see <code>_map_by_date</code>.</p></div>
     return vertex_array * (1 - random.random(vertex_array.shape) * scalar)</code></pre>
 </details>
 </dd>
-<dt id="utils.rxnConstant_gen"><code class="name flex">
+<dt id="bathysphere.utils.rxnConstant_gen"><code class="name flex">
 <span>def <span class="ident">rxnConstant_gen</span></span>(<span>initial_concentration, final_concentration, residence_time)</span>
 </code></dt>
 <dd>
@@ -4358,7 +4358,7 @@ see <code>_map_by_date</code>.</p></div>
     return -log(final_concentration - initial_concentration) / residence_time</code></pre>
 </details>
 </dd>
-<dt id="utils.rxnConstant_pH"><code class="name flex">
+<dt id="bathysphere.utils.rxnConstant_pH"><code class="name flex">
 <span>def <span class="ident">rxnConstant_pH</span></span>(<span>pH0, pH1, residence_time)</span>
 </code></dt>
 <dd>
@@ -4371,7 +4371,7 @@ see <code>_map_by_date</code>.</p></div>
     return -log(10 ** (pH0 - pH1)) / residence_time</code></pre>
 </details>
 </dd>
-<dt id="utils.scale"><code class="name flex">
+<dt id="bathysphere.utils.scale"><code class="name flex">
 <span>def <span class="ident">scale</span></span>(<span>arr, sx, sy, sz)</span>
 </code></dt>
 <dd>
@@ -4386,7 +4386,7 @@ see <code>_map_by_date</code>.</p></div>
     arr[:, :] *= (af.Array if isinstance(arr, af.Array) else array)([sx, sy, sz])</code></pre>
 </details>
 </dd>
-<dt id="utils.shapefile"><code class="name flex">
+<dt id="bathysphere.utils.shapefile"><code class="name flex">
 <span>def <span class="ident">shapefile</span></span>(<span>path, gpu=False)</span>
 </code></dt>
 <dd>
@@ -4417,7 +4417,7 @@ see <code>_map_by_date</code>.</p></div>
     return result</code></pre>
 </details>
 </dd>
-<dt id="utils.shell"><code class="name flex">
+<dt id="bathysphere.utils.shell"><code class="name flex">
 <span>def <span class="ident">shell</span></span>(<span>points, start, sweep, ww, hh, dw, dh)</span>
 </code></dt>
 <dd>
@@ -4445,7 +4445,7 @@ see <code>_map_by_date</code>.</p></div>
     return shape</code></pre>
 </details>
 </dd>
-<dt id="utils.sigma2depth"><code class="name flex">
+<dt id="bathysphere.utils.sigma2depth"><code class="name flex">
 <span>def <span class="ident">sigma2depth</span></span>(<span>elevation, bathymetry, sigma)</span>
 </code></dt>
 <dd>
@@ -4460,7 +4460,7 @@ see <code>_map_by_date</code>.</p></div>
     return sigma * (elevation - bathymetry) + elevation</code></pre>
 </details>
 </dd>
-<dt id="utils.smooth"><code class="name flex">
+<dt id="bathysphere.utils.smooth"><code class="name flex">
 <span>def <span class="ident">smooth</span></span>(<span>vertex_array, neighbors, weight=0.5)</span>
 </code></dt>
 <dd>
@@ -4486,7 +4486,7 @@ weighted stencil.</p></div>
     return vertex_array</code></pre>
 </details>
 </dd>
-<dt id="utils.spherical_nearest_neighbor"><code class="name flex">
+<dt id="bathysphere.utils.spherical_nearest_neighbor"><code class="name flex">
 <span>def <span class="ident">spherical_nearest_neighbor</span></span>(<span>lon, lat, reference)</span>
 </code></dt>
 <dd>
@@ -4504,7 +4504,7 @@ weighted stencil.</p></div>
     return dxy, dxy.argmin()</code></pre>
 </details>
 </dd>
-<dt id="utils.square"><code class="name flex">
+<dt id="bathysphere.utils.square"><code class="name flex">
 <span>def <span class="ident">square</span></span>(<span>ww)</span>
 </code></dt>
 <dd>
@@ -4518,7 +4518,7 @@ weighted stencil.</p></div>
     return rectangle(ww, ww)</code></pre>
 </details>
 </dd>
-<dt id="utils.stitch"><code class="name flex">
+<dt id="bathysphere.utils.stitch"><code class="name flex">
 <span>def <span class="ident">stitch</span></span>(<span>inner, outer)</span>
 </code></dt>
 <dd>
@@ -4567,7 +4567,7 @@ weighted stencil.</p></div>
             nn += 1</code></pre>
 </details>
 </dd>
-<dt id="utils.subdivide"><code class="name flex">
+<dt id="bathysphere.utils.subdivide"><code class="name flex">
 <span>def <span class="ident">subdivide</span></span>(<span>vertex_array, topology, punch=True)</span>
 </code></dt>
 <dd>
@@ -4606,7 +4606,7 @@ weighted stencil.</p></div>
         topology[ii] = [nvi - 3, nvi - 2, nvi - 1]  # replace original face</code></pre>
 </details>
 </dd>
-<dt id="utils.subset"><code class="name flex">
+<dt id="bathysphere.utils.subset"><code class="name flex">
 <span>def <span class="ident">subset</span></span>(<span>arr, stride)</span>
 </code></dt>
 <dd>
@@ -4621,7 +4621,7 @@ weighted stencil.</p></div>
     return arr[1:-1:stride, 1:-1:stride]</code></pre>
 </details>
 </dd>
-<dt id="utils.swarm"><code class="name flex">
+<dt id="bathysphere.utils.swarm"><code class="name flex">
 <span>def <span class="ident">swarm</span></span>(<span>vertex_array, vector_array, orientations, omega)</span>
 </code></dt>
 <dd>
@@ -4664,7 +4664,7 @@ weighted stencil.</p></div>
     impulse(uv=final, direction=orientations)</code></pre>
 </details>
 </dd>
-<dt id="utils.synchronous"><code class="name flex">
+<dt id="bathysphere.utils.synchronous"><code class="name flex">
 <span>def <span class="ident">synchronous</span></span>(<span>task, loop=None, close=False)</span>
 </code></dt>
 <dd>
@@ -4690,7 +4690,7 @@ and then render the result of the Co-routines in-place.</p></div>
     return result</code></pre>
 </details>
 </dd>
-<dt id="utils.tetrahedron"><code class="name flex">
+<dt id="bathysphere.utils.tetrahedron"><code class="name flex">
 <span>def <span class="ident">tetrahedron</span></span>(<span>dtype=builtins.float)</span>
 </code></dt>
 <dd>
@@ -4716,7 +4716,7 @@ and then render the result of the Co-routines in-place.</p></div>
     return vertex_array, topology</code></pre>
 </details>
 </dd>
-<dt id="utils.thematic_mapping"><code class="name flex">
+<dt id="bathysphere.utils.thematic_mapping"><code class="name flex">
 <span>def <span class="ident">thematic_mapping</span></span>(<span>shapes, extent, key, value)</span>
 </code></dt>
 <dd>
@@ -4757,7 +4757,7 @@ and then render the result of the Co-routines in-place.</p></div>
     return filter(_filter, shapes)</code></pre>
 </details>
 </dd>
-<dt id="utils.translate"><code class="name flex">
+<dt id="bathysphere.utils.translate"><code class="name flex">
 <span>def <span class="ident">translate</span></span>(<span>arr, delta)</span>
 </code></dt>
 <dd>
@@ -4772,7 +4772,7 @@ and then render the result of the Co-routines in-place.</p></div>
     arr[:, :] += delta</code></pre>
 </details>
 </dd>
-<dt id="utils.vertical_flux"><code class="name flex">
+<dt id="bathysphere.utils.vertical_flux"><code class="name flex">
 <span>def <span class="ident">vertical_flux</span></span>(<span>omega, area)</span>
 </code></dt>
 <dd>
@@ -4787,7 +4787,7 @@ and then render the result of the Co-routines in-place.</p></div>
     return omega * area[:, None]</code></pre>
 </details>
 </dd>
-<dt id="utils.viscosity"><code class="name flex">
+<dt id="bathysphere.utils.viscosity"><code class="name flex">
 <span>def <span class="ident">viscosity</span></span>(<span>temperature)</span>
 </code></dt>
 <dd>
@@ -4802,7 +4802,7 @@ and then render the result of the Co-routines in-place.</p></div>
     return 10.0 ** (-3.0) * 10.0 ** (-1.65 + 262.0 / (temperature + 169.0))</code></pre>
 </details>
 </dd>
-<dt id="utils.wedge"><code class="name flex">
+<dt id="bathysphere.utils.wedge"><code class="name flex">
 <span>def <span class="ident">wedge</span></span>(<span>points, start, sweep)</span>
 </code></dt>
 <dd>
@@ -4818,7 +4818,7 @@ and then render the result of the Co-routines in-place.</p></div>
     return shape</code></pre>
 </details>
 </dd>
-<dt id="utils.xye"><code class="name flex">
+<dt id="bathysphere.utils.xye"><code class="name flex">
 <span>def <span class="ident">xye</span></span>(<span>x, y, z)</span>
 </code></dt>
 <dd>
@@ -4832,7 +4832,7 @@ and then render the result of the Co-routines in-place.</p></div>
     return hstack((x.reshape(-1, 1), y.reshape(-1, 1), z.reshape(-1, 1)))</code></pre>
 </details>
 </dd>
-<dt id="utils.z_index"><code class="name flex">
+<dt id="bathysphere.utils.z_index"><code class="name flex">
 <span>def <span class="ident">z_index</span></span>(<span>sigma: <built-in function array>, count: int) -> int</span>
 </code></dt>
 <dd>
@@ -4859,120 +4859,125 @@ and then render the result of the Co-routines in-place.</p></div>
 <ul></ul>
 </div>
 <ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="bathysphere" href="index.html">bathysphere</a></code></li>
+</ul>
+</li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="utils.angle2d" href="#utils.angle2d">angle2d</a></code></li>
-<li><code><a title="utils.angle3d" href="#utils.angle3d">angle3d</a></code></li>
-<li><code><a title="utils.area_sort" href="#utils.area_sort">area_sort</a></code></li>
-<li><code><a title="utils.array2image" href="#utils.array2image">array2image</a></code></li>
-<li><code><a title="utils.arrays2points" href="#utils.arrays2points">arrays2points</a></code></li>
-<li><code><a title="utils.attenuation" href="#utils.attenuation">attenuation</a></code></li>
-<li><code><a title="utils.avhrr_index" href="#utils.avhrr_index">avhrr_index</a></code></li>
-<li><code><a title="utils.avhrr_sst" href="#utils.avhrr_sst">avhrr_sst</a></code></li>
-<li><code><a title="utils.bevel" href="#utils.bevel">bevel</a></code></li>
-<li><code><a title="utils.blank" href="#utils.blank">blank</a></code></li>
-<li><code><a title="utils.boundary" href="#utils.boundary">boundary</a></code></li>
-<li><code><a title="utils.brightness_temperature" href="#utils.brightness_temperature">brightness_temperature</a></code></li>
-<li><code><a title="utils.c_array" href="#utils.c_array">c_array</a></code></li>
-<li><code><a title="utils.calc_areas" href="#utils.calc_areas">calc_areas</a></code></li>
-<li><code><a title="utils.center" href="#utils.center">center</a></code></li>
-<li><code><a title="utils.crop" href="#utils.crop">crop</a></code></li>
-<li><code><a title="utils.cube" href="#utils.cube">cube</a></code></li>
-<li><code><a title="utils.days" href="#utils.days">days</a></code></li>
-<li><code><a title="utils.degrade" href="#utils.degrade">degrade</a></code></li>
-<li><code><a title="utils.depth" href="#utils.depth">depth</a></code></li>
-<li><code><a title="utils.depth2sigma" href="#utils.depth2sigma">depth2sigma</a></code></li>
-<li><code><a title="utils.extent_area" href="#utils.extent_area">extent_area</a></code></li>
-<li><code><a title="utils.extent_crop" href="#utils.extent_crop">extent_crop</a></code></li>
-<li><code><a title="utils.extent_overlap_automatic" href="#utils.extent_overlap_automatic">extent_overlap_automatic</a></code></li>
-<li><code><a title="utils.extent_overlap_filter" href="#utils.extent_overlap_filter">extent_overlap_filter</a></code></li>
-<li><code><a title="utils.extent_overlap_iteration" href="#utils.extent_overlap_iteration">extent_overlap_iteration</a></code></li>
-<li><code><a title="utils.extrude" href="#utils.extrude">extrude</a></code></li>
-<li><code><a title="utils.fahr2cel" href="#utils.fahr2cel">fahr2cel</a></code></li>
-<li><code><a title="utils.filter_arrays" href="#utils.filter_arrays">filter_arrays</a></code></li>
-<li><code><a title="utils.filter_in_range" href="#utils.filter_in_range">filter_in_range</a></code></li>
-<li><code><a title="utils.generateStream" href="#utils.generateStream">generateStream</a></code></li>
-<li><code><a title="utils.geo2dist" href="#utils.geo2dist">geo2dist</a></code></li>
-<li><code><a title="utils.geom_shader" href="#utils.geom_shader">geom_shader</a></code></li>
-<li><code><a title="utils.globe" href="#utils.globe">globe</a></code></li>
-<li><code><a title="utils.googleCloudSecret" href="#utils.googleCloudSecret">googleCloudSecret</a></code></li>
-<li><code><a title="utils.gradient" href="#utils.gradient">gradient</a></code></li>
-<li><code><a title="utils.hc2pH" href="#utils.hc2pH">hc2pH</a></code></li>
-<li><code><a title="utils.hexagon" href="#utils.hexagon">hexagon</a></code></li>
-<li><code><a title="utils.hull_contains" href="#utils.hull_contains">hull_contains</a></code></li>
-<li><code><a title="utils.hull_overlap" href="#utils.hull_overlap">hull_overlap</a></code></li>
-<li><code><a title="utils.icosahedron" href="#utils.icosahedron">icosahedron</a></code></li>
-<li><code><a title="utils.identity" href="#utils.identity">identity</a></code></li>
-<li><code><a title="utils.image2arrays" href="#utils.image2arrays">image2arrays</a></code></li>
-<li><code><a title="utils.image_to_masked" href="#utils.image_to_masked">image_to_masked</a></code></li>
-<li><code><a title="utils.impact" href="#utils.impact">impact</a></code></li>
-<li><code><a title="utils.impulse" href="#utils.impulse">impulse</a></code></li>
-<li><code><a title="utils.interp1d" href="#utils.interp1d">interp1d</a></code></li>
-<li><code><a title="utils.interp1d_lin" href="#utils.interp1d_lin">interp1d_lin</a></code></li>
-<li><code><a title="utils.interp2d_nearest" href="#utils.interp2d_nearest">interp2d_nearest</a></code></li>
-<li><code><a title="utils.interp2d_tri" href="#utils.interp2d_tri">interp2d_tri</a></code></li>
-<li><code><a title="utils.interp2d_uv" href="#utils.interp2d_uv">interp2d_uv</a></code></li>
-<li><code><a title="utils.interp3d_slice" href="#utils.interp3d_slice">interp3d_slice</a></code></li>
-<li><code><a title="utils.interp3d_tri" href="#utils.interp3d_tri">interp3d_tri</a></code></li>
-<li><code><a title="utils.join" href="#utils.join">join</a></code></li>
-<li><code><a title="utils.kelvin2celsius" href="#utils.kelvin2celsius">kelvin2celsius</a></code></li>
-<li><code><a title="utils.lagrangian_diffusion" href="#utils.lagrangian_diffusion">lagrangian_diffusion</a></code></li>
-<li><code><a title="utils.landsat_sst_regression" href="#utils.landsat_sst_regression">landsat_sst_regression</a></code></li>
-<li><code><a title="utils.layers" href="#utils.layers">layers</a></code></li>
-<li><code><a title="utils.lin_transform" href="#utils.lin_transform">lin_transform</a></code></li>
-<li><code><a title="utils.linear_regression_predict" href="#utils.linear_regression_predict">linear_regression_predict</a></code></li>
-<li><code><a title="utils.linear_regression_train" href="#utils.linear_regression_train">linear_regression_train</a></code></li>
-<li><code><a title="utils.loadAppConfig" href="#utils.loadAppConfig">loadAppConfig</a></code></li>
-<li><code><a title="utils.mask" href="#utils.mask">mask</a></code></li>
-<li><code><a title="utils.multi_polygon_crop" href="#utils.multi_polygon_crop">multi_polygon_crop</a></code></li>
-<li><code><a title="utils.multi_polygon_cull" href="#utils.multi_polygon_cull">multi_polygon_cull</a></code></li>
-<li><code><a title="utils.multiply" href="#utils.multiply">multiply</a></code></li>
-<li><code><a title="utils.nan_mask" href="#utils.nan_mask">nan_mask</a></code></li>
-<li><code><a title="utils.normal" href="#utils.normal">normal</a></code></li>
-<li><code><a title="utils.oc3algorithms" href="#utils.oc3algorithms">oc3algorithms</a></code></li>
-<li><code><a title="utils.pH2hc" href="#utils.pH2hc">pH2hc</a></code></li>
-<li><code><a title="utils.parallelogram" href="#utils.parallelogram">parallelogram</a></code></li>
-<li><code><a title="utils.parsePostgresValueIn" href="#utils.parsePostgresValueIn">parsePostgresValueIn</a></code></li>
-<li><code><a title="utils.parsePostgresValueOut" href="#utils.parsePostgresValueOut">parsePostgresValueOut</a></code></li>
-<li><code><a title="utils.partition_points_by_shape" href="#utils.partition_points_by_shape">partition_points_by_shape</a></code></li>
-<li><code><a title="utils.pix2utm" href="#utils.pix2utm">pix2utm</a></code></li>
-<li><code><a title="utils.pixel_area" href="#utils.pixel_area">pixel_area</a></code></li>
-<li><code><a title="utils.point_arc" href="#utils.point_arc">point_arc</a></code></li>
-<li><code><a title="utils.points_in_path" href="#utils.points_in_path">points_in_path</a></code></li>
-<li><code><a title="utils.polygon_area" href="#utils.polygon_area">polygon_area</a></code></li>
-<li><code><a title="utils.project" href="#utils.project">project</a></code></li>
-<li><code><a title="utils.raster2mesh" href="#utils.raster2mesh">raster2mesh</a></code></li>
-<li><code><a title="utils.rectangle" href="#utils.rectangle">rectangle</a></code></li>
-<li><code><a title="utils.reflect" href="#utils.reflect">reflect</a></code></li>
-<li><code><a title="utils.regular_polygon" href="#utils.regular_polygon">regular_polygon</a></code></li>
-<li><code><a title="utils.report_buoy_data" href="#utils.report_buoy_data">report_buoy_data</a></code></li>
-<li><code><a title="utils.resolveTaskTree" href="#utils.resolveTaskTree">resolveTaskTree</a></code></li>
-<li><code><a title="utils.response" href="#utils.response">response</a></code></li>
-<li><code><a title="utils.rk4" href="#utils.rk4">rk4</a></code></li>
-<li><code><a title="utils.rotate" href="#utils.rotate">rotate</a></code></li>
-<li><code><a title="utils.roughen" href="#utils.roughen">roughen</a></code></li>
-<li><code><a title="utils.rxnConstant_gen" href="#utils.rxnConstant_gen">rxnConstant_gen</a></code></li>
-<li><code><a title="utils.rxnConstant_pH" href="#utils.rxnConstant_pH">rxnConstant_pH</a></code></li>
-<li><code><a title="utils.scale" href="#utils.scale">scale</a></code></li>
-<li><code><a title="utils.shapefile" href="#utils.shapefile">shapefile</a></code></li>
-<li><code><a title="utils.shell" href="#utils.shell">shell</a></code></li>
-<li><code><a title="utils.sigma2depth" href="#utils.sigma2depth">sigma2depth</a></code></li>
-<li><code><a title="utils.smooth" href="#utils.smooth">smooth</a></code></li>
-<li><code><a title="utils.spherical_nearest_neighbor" href="#utils.spherical_nearest_neighbor">spherical_nearest_neighbor</a></code></li>
-<li><code><a title="utils.square" href="#utils.square">square</a></code></li>
-<li><code><a title="utils.stitch" href="#utils.stitch">stitch</a></code></li>
-<li><code><a title="utils.subdivide" href="#utils.subdivide">subdivide</a></code></li>
-<li><code><a title="utils.subset" href="#utils.subset">subset</a></code></li>
-<li><code><a title="utils.swarm" href="#utils.swarm">swarm</a></code></li>
-<li><code><a title="utils.synchronous" href="#utils.synchronous">synchronous</a></code></li>
-<li><code><a title="utils.tetrahedron" href="#utils.tetrahedron">tetrahedron</a></code></li>
-<li><code><a title="utils.thematic_mapping" href="#utils.thematic_mapping">thematic_mapping</a></code></li>
-<li><code><a title="utils.translate" href="#utils.translate">translate</a></code></li>
-<li><code><a title="utils.vertical_flux" href="#utils.vertical_flux">vertical_flux</a></code></li>
-<li><code><a title="utils.viscosity" href="#utils.viscosity">viscosity</a></code></li>
-<li><code><a title="utils.wedge" href="#utils.wedge">wedge</a></code></li>
-<li><code><a title="utils.xye" href="#utils.xye">xye</a></code></li>
-<li><code><a title="utils.z_index" href="#utils.z_index">z_index</a></code></li>
+<li><code><a title="bathysphere.utils.angle2d" href="#bathysphere.utils.angle2d">angle2d</a></code></li>
+<li><code><a title="bathysphere.utils.angle3d" href="#bathysphere.utils.angle3d">angle3d</a></code></li>
+<li><code><a title="bathysphere.utils.area_sort" href="#bathysphere.utils.area_sort">area_sort</a></code></li>
+<li><code><a title="bathysphere.utils.array2image" href="#bathysphere.utils.array2image">array2image</a></code></li>
+<li><code><a title="bathysphere.utils.arrays2points" href="#bathysphere.utils.arrays2points">arrays2points</a></code></li>
+<li><code><a title="bathysphere.utils.attenuation" href="#bathysphere.utils.attenuation">attenuation</a></code></li>
+<li><code><a title="bathysphere.utils.avhrr_index" href="#bathysphere.utils.avhrr_index">avhrr_index</a></code></li>
+<li><code><a title="bathysphere.utils.avhrr_sst" href="#bathysphere.utils.avhrr_sst">avhrr_sst</a></code></li>
+<li><code><a title="bathysphere.utils.bevel" href="#bathysphere.utils.bevel">bevel</a></code></li>
+<li><code><a title="bathysphere.utils.blank" href="#bathysphere.utils.blank">blank</a></code></li>
+<li><code><a title="bathysphere.utils.boundary" href="#bathysphere.utils.boundary">boundary</a></code></li>
+<li><code><a title="bathysphere.utils.brightness_temperature" href="#bathysphere.utils.brightness_temperature">brightness_temperature</a></code></li>
+<li><code><a title="bathysphere.utils.c_array" href="#bathysphere.utils.c_array">c_array</a></code></li>
+<li><code><a title="bathysphere.utils.calc_areas" href="#bathysphere.utils.calc_areas">calc_areas</a></code></li>
+<li><code><a title="bathysphere.utils.center" href="#bathysphere.utils.center">center</a></code></li>
+<li><code><a title="bathysphere.utils.crop" href="#bathysphere.utils.crop">crop</a></code></li>
+<li><code><a title="bathysphere.utils.cube" href="#bathysphere.utils.cube">cube</a></code></li>
+<li><code><a title="bathysphere.utils.days" href="#bathysphere.utils.days">days</a></code></li>
+<li><code><a title="bathysphere.utils.degrade" href="#bathysphere.utils.degrade">degrade</a></code></li>
+<li><code><a title="bathysphere.utils.depth" href="#bathysphere.utils.depth">depth</a></code></li>
+<li><code><a title="bathysphere.utils.depth2sigma" href="#bathysphere.utils.depth2sigma">depth2sigma</a></code></li>
+<li><code><a title="bathysphere.utils.extent_area" href="#bathysphere.utils.extent_area">extent_area</a></code></li>
+<li><code><a title="bathysphere.utils.extent_crop" href="#bathysphere.utils.extent_crop">extent_crop</a></code></li>
+<li><code><a title="bathysphere.utils.extent_overlap_automatic" href="#bathysphere.utils.extent_overlap_automatic">extent_overlap_automatic</a></code></li>
+<li><code><a title="bathysphere.utils.extent_overlap_filter" href="#bathysphere.utils.extent_overlap_filter">extent_overlap_filter</a></code></li>
+<li><code><a title="bathysphere.utils.extent_overlap_iteration" href="#bathysphere.utils.extent_overlap_iteration">extent_overlap_iteration</a></code></li>
+<li><code><a title="bathysphere.utils.extrude" href="#bathysphere.utils.extrude">extrude</a></code></li>
+<li><code><a title="bathysphere.utils.fahr2cel" href="#bathysphere.utils.fahr2cel">fahr2cel</a></code></li>
+<li><code><a title="bathysphere.utils.filter_arrays" href="#bathysphere.utils.filter_arrays">filter_arrays</a></code></li>
+<li><code><a title="bathysphere.utils.filter_in_range" href="#bathysphere.utils.filter_in_range">filter_in_range</a></code></li>
+<li><code><a title="bathysphere.utils.generateStream" href="#bathysphere.utils.generateStream">generateStream</a></code></li>
+<li><code><a title="bathysphere.utils.geo2dist" href="#bathysphere.utils.geo2dist">geo2dist</a></code></li>
+<li><code><a title="bathysphere.utils.geom_shader" href="#bathysphere.utils.geom_shader">geom_shader</a></code></li>
+<li><code><a title="bathysphere.utils.globe" href="#bathysphere.utils.globe">globe</a></code></li>
+<li><code><a title="bathysphere.utils.googleCloudSecret" href="#bathysphere.utils.googleCloudSecret">googleCloudSecret</a></code></li>
+<li><code><a title="bathysphere.utils.gradient" href="#bathysphere.utils.gradient">gradient</a></code></li>
+<li><code><a title="bathysphere.utils.hc2pH" href="#bathysphere.utils.hc2pH">hc2pH</a></code></li>
+<li><code><a title="bathysphere.utils.hexagon" href="#bathysphere.utils.hexagon">hexagon</a></code></li>
+<li><code><a title="bathysphere.utils.hull_contains" href="#bathysphere.utils.hull_contains">hull_contains</a></code></li>
+<li><code><a title="bathysphere.utils.hull_overlap" href="#bathysphere.utils.hull_overlap">hull_overlap</a></code></li>
+<li><code><a title="bathysphere.utils.icosahedron" href="#bathysphere.utils.icosahedron">icosahedron</a></code></li>
+<li><code><a title="bathysphere.utils.identity" href="#bathysphere.utils.identity">identity</a></code></li>
+<li><code><a title="bathysphere.utils.image2arrays" href="#bathysphere.utils.image2arrays">image2arrays</a></code></li>
+<li><code><a title="bathysphere.utils.image_to_masked" href="#bathysphere.utils.image_to_masked">image_to_masked</a></code></li>
+<li><code><a title="bathysphere.utils.impact" href="#bathysphere.utils.impact">impact</a></code></li>
+<li><code><a title="bathysphere.utils.impulse" href="#bathysphere.utils.impulse">impulse</a></code></li>
+<li><code><a title="bathysphere.utils.interp1d" href="#bathysphere.utils.interp1d">interp1d</a></code></li>
+<li><code><a title="bathysphere.utils.interp1d_lin" href="#bathysphere.utils.interp1d_lin">interp1d_lin</a></code></li>
+<li><code><a title="bathysphere.utils.interp2d_nearest" href="#bathysphere.utils.interp2d_nearest">interp2d_nearest</a></code></li>
+<li><code><a title="bathysphere.utils.interp2d_tri" href="#bathysphere.utils.interp2d_tri">interp2d_tri</a></code></li>
+<li><code><a title="bathysphere.utils.interp2d_uv" href="#bathysphere.utils.interp2d_uv">interp2d_uv</a></code></li>
+<li><code><a title="bathysphere.utils.interp3d_slice" href="#bathysphere.utils.interp3d_slice">interp3d_slice</a></code></li>
+<li><code><a title="bathysphere.utils.interp3d_tri" href="#bathysphere.utils.interp3d_tri">interp3d_tri</a></code></li>
+<li><code><a title="bathysphere.utils.join" href="#bathysphere.utils.join">join</a></code></li>
+<li><code><a title="bathysphere.utils.kelvin2celsius" href="#bathysphere.utils.kelvin2celsius">kelvin2celsius</a></code></li>
+<li><code><a title="bathysphere.utils.lagrangian_diffusion" href="#bathysphere.utils.lagrangian_diffusion">lagrangian_diffusion</a></code></li>
+<li><code><a title="bathysphere.utils.landsat_sst_regression" href="#bathysphere.utils.landsat_sst_regression">landsat_sst_regression</a></code></li>
+<li><code><a title="bathysphere.utils.layers" href="#bathysphere.utils.layers">layers</a></code></li>
+<li><code><a title="bathysphere.utils.lin_transform" href="#bathysphere.utils.lin_transform">lin_transform</a></code></li>
+<li><code><a title="bathysphere.utils.linear_regression_predict" href="#bathysphere.utils.linear_regression_predict">linear_regression_predict</a></code></li>
+<li><code><a title="bathysphere.utils.linear_regression_train" href="#bathysphere.utils.linear_regression_train">linear_regression_train</a></code></li>
+<li><code><a title="bathysphere.utils.loadAppConfig" href="#bathysphere.utils.loadAppConfig">loadAppConfig</a></code></li>
+<li><code><a title="bathysphere.utils.mask" href="#bathysphere.utils.mask">mask</a></code></li>
+<li><code><a title="bathysphere.utils.multi_polygon_crop" href="#bathysphere.utils.multi_polygon_crop">multi_polygon_crop</a></code></li>
+<li><code><a title="bathysphere.utils.multi_polygon_cull" href="#bathysphere.utils.multi_polygon_cull">multi_polygon_cull</a></code></li>
+<li><code><a title="bathysphere.utils.multiply" href="#bathysphere.utils.multiply">multiply</a></code></li>
+<li><code><a title="bathysphere.utils.nan_mask" href="#bathysphere.utils.nan_mask">nan_mask</a></code></li>
+<li><code><a title="bathysphere.utils.normal" href="#bathysphere.utils.normal">normal</a></code></li>
+<li><code><a title="bathysphere.utils.oc3algorithms" href="#bathysphere.utils.oc3algorithms">oc3algorithms</a></code></li>
+<li><code><a title="bathysphere.utils.pH2hc" href="#bathysphere.utils.pH2hc">pH2hc</a></code></li>
+<li><code><a title="bathysphere.utils.parallelogram" href="#bathysphere.utils.parallelogram">parallelogram</a></code></li>
+<li><code><a title="bathysphere.utils.parsePostgresValueIn" href="#bathysphere.utils.parsePostgresValueIn">parsePostgresValueIn</a></code></li>
+<li><code><a title="bathysphere.utils.parsePostgresValueOut" href="#bathysphere.utils.parsePostgresValueOut">parsePostgresValueOut</a></code></li>
+<li><code><a title="bathysphere.utils.partition_points_by_shape" href="#bathysphere.utils.partition_points_by_shape">partition_points_by_shape</a></code></li>
+<li><code><a title="bathysphere.utils.pix2utm" href="#bathysphere.utils.pix2utm">pix2utm</a></code></li>
+<li><code><a title="bathysphere.utils.pixel_area" href="#bathysphere.utils.pixel_area">pixel_area</a></code></li>
+<li><code><a title="bathysphere.utils.point_arc" href="#bathysphere.utils.point_arc">point_arc</a></code></li>
+<li><code><a title="bathysphere.utils.points_in_path" href="#bathysphere.utils.points_in_path">points_in_path</a></code></li>
+<li><code><a title="bathysphere.utils.polygon_area" href="#bathysphere.utils.polygon_area">polygon_area</a></code></li>
+<li><code><a title="bathysphere.utils.project" href="#bathysphere.utils.project">project</a></code></li>
+<li><code><a title="bathysphere.utils.raster2mesh" href="#bathysphere.utils.raster2mesh">raster2mesh</a></code></li>
+<li><code><a title="bathysphere.utils.rectangle" href="#bathysphere.utils.rectangle">rectangle</a></code></li>
+<li><code><a title="bathysphere.utils.reflect" href="#bathysphere.utils.reflect">reflect</a></code></li>
+<li><code><a title="bathysphere.utils.regular_polygon" href="#bathysphere.utils.regular_polygon">regular_polygon</a></code></li>
+<li><code><a title="bathysphere.utils.report_buoy_data" href="#bathysphere.utils.report_buoy_data">report_buoy_data</a></code></li>
+<li><code><a title="bathysphere.utils.resolveTaskTree" href="#bathysphere.utils.resolveTaskTree">resolveTaskTree</a></code></li>
+<li><code><a title="bathysphere.utils.response" href="#bathysphere.utils.response">response</a></code></li>
+<li><code><a title="bathysphere.utils.rk4" href="#bathysphere.utils.rk4">rk4</a></code></li>
+<li><code><a title="bathysphere.utils.rotate" href="#bathysphere.utils.rotate">rotate</a></code></li>
+<li><code><a title="bathysphere.utils.roughen" href="#bathysphere.utils.roughen">roughen</a></code></li>
+<li><code><a title="bathysphere.utils.rxnConstant_gen" href="#bathysphere.utils.rxnConstant_gen">rxnConstant_gen</a></code></li>
+<li><code><a title="bathysphere.utils.rxnConstant_pH" href="#bathysphere.utils.rxnConstant_pH">rxnConstant_pH</a></code></li>
+<li><code><a title="bathysphere.utils.scale" href="#bathysphere.utils.scale">scale</a></code></li>
+<li><code><a title="bathysphere.utils.shapefile" href="#bathysphere.utils.shapefile">shapefile</a></code></li>
+<li><code><a title="bathysphere.utils.shell" href="#bathysphere.utils.shell">shell</a></code></li>
+<li><code><a title="bathysphere.utils.sigma2depth" href="#bathysphere.utils.sigma2depth">sigma2depth</a></code></li>
+<li><code><a title="bathysphere.utils.smooth" href="#bathysphere.utils.smooth">smooth</a></code></li>
+<li><code><a title="bathysphere.utils.spherical_nearest_neighbor" href="#bathysphere.utils.spherical_nearest_neighbor">spherical_nearest_neighbor</a></code></li>
+<li><code><a title="bathysphere.utils.square" href="#bathysphere.utils.square">square</a></code></li>
+<li><code><a title="bathysphere.utils.stitch" href="#bathysphere.utils.stitch">stitch</a></code></li>
+<li><code><a title="bathysphere.utils.subdivide" href="#bathysphere.utils.subdivide">subdivide</a></code></li>
+<li><code><a title="bathysphere.utils.subset" href="#bathysphere.utils.subset">subset</a></code></li>
+<li><code><a title="bathysphere.utils.swarm" href="#bathysphere.utils.swarm">swarm</a></code></li>
+<li><code><a title="bathysphere.utils.synchronous" href="#bathysphere.utils.synchronous">synchronous</a></code></li>
+<li><code><a title="bathysphere.utils.tetrahedron" href="#bathysphere.utils.tetrahedron">tetrahedron</a></code></li>
+<li><code><a title="bathysphere.utils.thematic_mapping" href="#bathysphere.utils.thematic_mapping">thematic_mapping</a></code></li>
+<li><code><a title="bathysphere.utils.translate" href="#bathysphere.utils.translate">translate</a></code></li>
+<li><code><a title="bathysphere.utils.vertical_flux" href="#bathysphere.utils.vertical_flux">vertical_flux</a></code></li>
+<li><code><a title="bathysphere.utils.viscosity" href="#bathysphere.utils.viscosity">viscosity</a></code></li>
+<li><code><a title="bathysphere.utils.wedge" href="#bathysphere.utils.wedge">wedge</a></code></li>
+<li><code><a title="bathysphere.utils.xye" href="#bathysphere.utils.xye">xye</a></code></li>
+<li><code><a title="bathysphere.utils.z_index" href="#bathysphere.utils.z_index">z_index</a></code></li>
 </ul>
 </li>
 </ul>

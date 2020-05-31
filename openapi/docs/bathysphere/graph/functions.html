@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.8.1" />
-<title>graph.functions API documentation</title>
+<title>bathysphere.graph.functions API documentation</title>
 <meta name="description" content="The functions module of the graph API contains handlers for secure
 calls. These are exposed as a Cloud Function calling Connexion/Flask." />
 <link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
@@ -18,7 +18,7 @@ calls. These are exposed as a Cloud Function calling Connexion/Flask." />
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>graph.functions</code></h1>
+<h1 class="title">Module <code>bathysphere.graph.functions</code></h1>
 </header>
 <section id="section-intro">
 <p>The functions module of the graph API contains handlers for secure
@@ -369,7 +369,7 @@ def drop(
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="graph.functions.catalog"><code class="name flex">
+<dt id="bathysphere.graph.functions.catalog"><code class="name flex">
 <span>def <span class="ident">catalog</span></span>(<span>**kwargs: dict) -> Any</span>
 </code></dt>
 <dd>
@@ -413,7 +413,7 @@ def drop(
     return fcn(db=db, user=user, **kwargs)</code></pre>
 </details>
 </dd>
-<dt id="graph.functions.collection"><code class="name flex">
+<dt id="bathysphere.graph.functions.collection"><code class="name flex">
 <span>def <span class="ident">collection</span></span>(<span>**kwargs: dict) -> Any</span>
 </code></dt>
 <dd>
@@ -457,7 +457,7 @@ def drop(
     return fcn(db=db, user=user, **kwargs)</code></pre>
 </details>
 </dd>
-<dt id="graph.functions.context"><code class="name flex">
+<dt id="bathysphere.graph.functions.context"><code class="name flex">
 <span>def <span class="ident">context</span></span>(<span>fcn: Callable) -> Callable</span>
 </code></dt>
 <dd>
@@ -522,7 +522,7 @@ Validate/verify JWT token.</p></div>
     return _wrapper if DEBUG else handleUncaughtExceptions</code></pre>
 </details>
 </dd>
-<dt id="graph.functions.create"><code class="name flex">
+<dt id="bathysphere.graph.functions.create"><code class="name flex">
 <span>def <span class="ident">create</span></span>(<span>**kwargs: dict) -> Any</span>
 </code></dt>
 <dd>
@@ -566,7 +566,7 @@ Validate/verify JWT token.</p></div>
     return fcn(db=db, user=user, **kwargs)</code></pre>
 </details>
 </dd>
-<dt id="graph.functions.delete"><code class="name flex">
+<dt id="bathysphere.graph.functions.delete"><code class="name flex">
 <span>def <span class="ident">delete</span></span>(<span>**kwargs: dict) -> Any</span>
 </code></dt>
 <dd>
@@ -610,7 +610,7 @@ Validate/verify JWT token.</p></div>
     return fcn(db=db, user=user, **kwargs)</code></pre>
 </details>
 </dd>
-<dt id="graph.functions.drop"><code class="name flex">
+<dt id="bathysphere.graph.functions.drop"><code class="name flex">
 <span>def <span class="ident">drop</span></span>(<span>**kwargs: dict) -> Any</span>
 </code></dt>
 <dd>
@@ -654,7 +654,7 @@ Validate/verify JWT token.</p></div>
     return fcn(db=db, user=user, **kwargs)</code></pre>
 </details>
 </dd>
-<dt id="graph.functions.join"><code class="name flex">
+<dt id="bathysphere.graph.functions.join"><code class="name flex">
 <span>def <span class="ident">join</span></span>(<span>**kwargs: dict) -> Any</span>
 </code></dt>
 <dd>
@@ -698,7 +698,7 @@ Validate/verify JWT token.</p></div>
     return fcn(db=db, user=user, **kwargs)</code></pre>
 </details>
 </dd>
-<dt id="graph.functions.manage"><code class="name flex">
+<dt id="bathysphere.graph.functions.manage"><code class="name flex">
 <span>def <span class="ident">manage</span></span>(<span>**kwargs: dict) -> Any</span>
 </code></dt>
 <dd>
@@ -742,7 +742,7 @@ Validate/verify JWT token.</p></div>
     return fcn(db=db, user=user, **kwargs)</code></pre>
 </details>
 </dd>
-<dt id="graph.functions.metadata"><code class="name flex">
+<dt id="bathysphere.graph.functions.metadata"><code class="name flex">
 <span>def <span class="ident">metadata</span></span>(<span>**kwargs: dict) -> Any</span>
 </code></dt>
 <dd>
@@ -786,7 +786,7 @@ Validate/verify JWT token.</p></div>
     return fcn(db=db, user=user, **kwargs)</code></pre>
 </details>
 </dd>
-<dt id="graph.functions.mutate"><code class="name flex">
+<dt id="bathysphere.graph.functions.mutate"><code class="name flex">
 <span>def <span class="ident">mutate</span></span>(<span>**kwargs: dict) -> Any</span>
 </code></dt>
 <dd>
@@ -830,7 +830,7 @@ Validate/verify JWT token.</p></div>
     return fcn(db=db, user=user, **kwargs)</code></pre>
 </details>
 </dd>
-<dt id="graph.functions.query"><code class="name flex">
+<dt id="bathysphere.graph.functions.query"><code class="name flex">
 <span>def <span class="ident">query</span></span>(<span>**kwargs: dict) -> Any</span>
 </code></dt>
 <dd>
@@ -874,7 +874,7 @@ Validate/verify JWT token.</p></div>
     return fcn(db=db, user=user, **kwargs)</code></pre>
 </details>
 </dd>
-<dt id="graph.functions.register"><code class="name flex">
+<dt id="bathysphere.graph.functions.register"><code class="name flex">
 <span>def <span class="ident">register</span></span>(<span>body: dict) -> (<class 'dict'>, <class 'int'>)</span>
 </code></dt>
 <dd>
@@ -939,7 +939,7 @@ Validate/verify JWT token.</p></div>
     return {&#34;message&#34;: f&#34;Registered as a member of {entryPoint.name}.&#34;}, 200</code></pre>
 </details>
 </dd>
-<dt id="graph.functions.token"><code class="name flex">
+<dt id="bathysphere.graph.functions.token"><code class="name flex">
 <span>def <span class="ident">token</span></span>(<span>**kwargs: dict) -> Any</span>
 </code></dt>
 <dd>
@@ -996,24 +996,24 @@ Validate/verify JWT token.</p></div>
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="graph" href="index.html">graph</a></code></li>
+<li><code><a title="bathysphere.graph" href="index.html">bathysphere.graph</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="two-column">
-<li><code><a title="graph.functions.catalog" href="#graph.functions.catalog">catalog</a></code></li>
-<li><code><a title="graph.functions.collection" href="#graph.functions.collection">collection</a></code></li>
-<li><code><a title="graph.functions.context" href="#graph.functions.context">context</a></code></li>
-<li><code><a title="graph.functions.create" href="#graph.functions.create">create</a></code></li>
-<li><code><a title="graph.functions.delete" href="#graph.functions.delete">delete</a></code></li>
-<li><code><a title="graph.functions.drop" href="#graph.functions.drop">drop</a></code></li>
-<li><code><a title="graph.functions.join" href="#graph.functions.join">join</a></code></li>
-<li><code><a title="graph.functions.manage" href="#graph.functions.manage">manage</a></code></li>
-<li><code><a title="graph.functions.metadata" href="#graph.functions.metadata">metadata</a></code></li>
-<li><code><a title="graph.functions.mutate" href="#graph.functions.mutate">mutate</a></code></li>
-<li><code><a title="graph.functions.query" href="#graph.functions.query">query</a></code></li>
-<li><code><a title="graph.functions.register" href="#graph.functions.register">register</a></code></li>
-<li><code><a title="graph.functions.token" href="#graph.functions.token">token</a></code></li>
+<li><code><a title="bathysphere.graph.functions.catalog" href="#bathysphere.graph.functions.catalog">catalog</a></code></li>
+<li><code><a title="bathysphere.graph.functions.collection" href="#bathysphere.graph.functions.collection">collection</a></code></li>
+<li><code><a title="bathysphere.graph.functions.context" href="#bathysphere.graph.functions.context">context</a></code></li>
+<li><code><a title="bathysphere.graph.functions.create" href="#bathysphere.graph.functions.create">create</a></code></li>
+<li><code><a title="bathysphere.graph.functions.delete" href="#bathysphere.graph.functions.delete">delete</a></code></li>
+<li><code><a title="bathysphere.graph.functions.drop" href="#bathysphere.graph.functions.drop">drop</a></code></li>
+<li><code><a title="bathysphere.graph.functions.join" href="#bathysphere.graph.functions.join">join</a></code></li>
+<li><code><a title="bathysphere.graph.functions.manage" href="#bathysphere.graph.functions.manage">manage</a></code></li>
+<li><code><a title="bathysphere.graph.functions.metadata" href="#bathysphere.graph.functions.metadata">metadata</a></code></li>
+<li><code><a title="bathysphere.graph.functions.mutate" href="#bathysphere.graph.functions.mutate">mutate</a></code></li>
+<li><code><a title="bathysphere.graph.functions.query" href="#bathysphere.graph.functions.query">query</a></code></li>
+<li><code><a title="bathysphere.graph.functions.register" href="#bathysphere.graph.functions.register">register</a></code></li>
+<li><code><a title="bathysphere.graph.functions.token" href="#bathysphere.graph.functions.token">token</a></code></li>
 </ul>
 </li>
 </ul>

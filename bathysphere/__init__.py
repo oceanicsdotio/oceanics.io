@@ -11,6 +11,11 @@ from prance import ResolvingParser, ValidationError
 
 from bathysphere.utils import loadAppConfig
 
+__pdoc__ = {
+    "simulate": False,
+    "test": False
+    # submodules will be skipped in doc generation
+}
 app = App(__name__, options={"swagger_ui": False})
 CORS(app.app)
 

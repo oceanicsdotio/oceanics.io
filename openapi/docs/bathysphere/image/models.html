@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.8.1" />
-<title>image.models API documentation</title>
+<title>bathysphere.image.models API documentation</title>
 <meta name="description" content="Image module models encapulate methods for visualing spatiotemporal data." />
 <link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
 <link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
@@ -17,7 +17,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>image.models</code></h1>
+<h1 class="title">Module <code>bathysphere.image.models</code></h1>
 </header>
 <section id="section-intro">
 <p>Image module models encapulate methods for visualing spatiotemporal data.</p>
@@ -450,7 +450,7 @@ class Spatial(View):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="image.models.Spatial"><code class="flex name class">
+<dt id="bathysphere.image.models.Spatial"><code class="flex name class">
 <span>class <span class="ident">Spatial</span></span>
 <span>(</span><span>style, extent=None)</span>
 </code></dt>
@@ -593,11 +593,11 @@ class Spatial(View):
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="image.models.View" href="#image.models.View">View</a></li>
+<li><a title="bathysphere.image.models.View" href="#bathysphere.image.models.View">View</a></li>
 </ul>
 <h3>Methods</h3>
 <dl>
-<dt id="image.models.Spatial.bbox"><code class="name flex">
+<dt id="bathysphere.image.models.Spatial.bbox"><code class="name flex">
 <span>def <span class="ident">bbox</span></span>(<span>self, ext: array, **kwargs: dict)</span>
 </code></dt>
 <dd>
@@ -615,8 +615,8 @@ class Spatial(View):
     self.shape(xy, **kwargs)</code></pre>
 </details>
 </dd>
-<dt id="image.models.Spatial.draw"><code class="name flex">
-<span>def <span class="ident">draw</span></span>(<span>self: Spatial, data: dict) -> <a title="image.models.Spatial" href="#image.models.Spatial">Spatial</a></span>
+<dt id="bathysphere.image.models.Spatial.draw"><code class="name flex">
+<span>def <span class="ident">draw</span></span>(<span>self: Spatial, data: dict) -> <a title="bathysphere.image.models.Spatial" href="#bathysphere.image.models.Spatial">Spatial</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Image of spatial entities. Two formats are accepted. </p>
@@ -679,7 +679,7 @@ are given as external references or hex strings (future). </p>
     return self</code></pre>
 </details>
 </dd>
-<dt id="image.models.Spatial.points"><code class="name flex">
+<dt id="bathysphere.image.models.Spatial.points"><code class="name flex">
 <span>def <span class="ident">points</span></span>(<span>self, xy, **kwargs)</span>
 </code></dt>
 <dd>
@@ -704,7 +704,7 @@ are given as external references or hex strings (future). </p>
     )</code></pre>
 </details>
 </dd>
-<dt id="image.models.Spatial.push"><code class="name flex">
+<dt id="bathysphere.image.models.Spatial.push"><code class="name flex">
 <span>def <span class="ident">push</span></span>(<span>self, encoding='png', transparent=False, **kwargs)</span>
 </code></dt>
 <dd>
@@ -749,7 +749,7 @@ are given as external references or hex strings (future). </p>
     )</code></pre>
 </details>
 </dd>
-<dt id="image.models.Spatial.topology"><code class="name flex">
+<dt id="bathysphere.image.models.Spatial.topology"><code class="name flex">
 <span>def <span class="ident">topology</span></span>(<span>self, vertex_array: array, topology: array, z: str, **kwargs: dict) -> NoneType</span>
 </code></dt>
 <dd>
@@ -781,17 +781,17 @@ are given as external references or hex strings (future). </p>
 </dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
-<li><code><b><a title="image.models.View" href="#image.models.View">View</a></b></code>:
+<li><code><b><a title="bathysphere.image.models.View" href="#bathysphere.image.models.View">View</a></b></code>:
 <ul class="hlist">
-<li><code><a title="image.models.View.format" href="#image.models.View.format">format</a></code></li>
-<li><code><a title="image.models.View.format_axis" href="#image.models.View.format_axis">format_axis</a></code></li>
-<li><code><a title="image.models.View.legend" href="#image.models.View.legend">legend</a></code></li>
-<li><code><a title="image.models.View.pre_push" href="#image.models.View.pre_push">pre_push</a></code></li>
+<li><code><a title="bathysphere.image.models.View.format" href="#bathysphere.image.models.View.format">format</a></code></li>
+<li><code><a title="bathysphere.image.models.View.format_axis" href="#bathysphere.image.models.View.format_axis">format_axis</a></code></li>
+<li><code><a title="bathysphere.image.models.View.legend" href="#bathysphere.image.models.View.legend">legend</a></code></li>
+<li><code><a title="bathysphere.image.models.View.pre_push" href="#bathysphere.image.models.View.pre_push">pre_push</a></code></li>
 </ul>
 </li>
 </ul>
 </dd>
-<dt id="image.models.Time"><code class="flex name class">
+<dt id="bathysphere.image.models.Time"><code class="flex name class">
 <span>class <span class="ident">Time</span></span>
 <span>(</span><span>style, extent=None)</span>
 </code></dt>
@@ -956,11 +956,11 @@ are given as external references or hex strings (future). </p>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="image.models.View" href="#image.models.View">View</a></li>
+<li><a title="bathysphere.image.models.View" href="#bathysphere.image.models.View">View</a></li>
 </ul>
 <h3>Methods</h3>
 <dl>
-<dt id="image.models.Time.coverage"><code class="name flex">
+<dt id="bathysphere.image.models.Time.coverage"><code class="name flex">
 <span>def <span class="ident">coverage</span></span>(<span>self, timestamps: [datetime], color: str = None, bins: int = 366) -> 'None'</span>
 </code></dt>
 <dd>
@@ -983,7 +983,7 @@ are given as external references or hex strings (future). </p>
     )</code></pre>
 </details>
 </dd>
-<dt id="image.models.Time.frequency"><code class="name flex">
+<dt id="bathysphere.image.models.Time.frequency"><code class="name flex">
 <span>def <span class="ident">frequency</span></span>(<span>self, datastream: Any, bins: int = 10, **kwargs: dict) -> NoneType</span>
 </code></dt>
 <dd>
@@ -1012,7 +1012,7 @@ are given as external references or hex strings (future). </p>
     )</code></pre>
 </details>
 </dd>
-<dt id="image.models.Time.plot"><code class="name flex">
+<dt id="bathysphere.image.models.Time.plot"><code class="name flex">
 <span>def <span class="ident">plot</span></span>(<span>self, time, series, label: str = 'Unnamed', scatter: bool = True, **kwargs: dict)</span>
 </code></dt>
 <dd>
@@ -1038,7 +1038,7 @@ are given as external references or hex strings (future). </p>
     self.count += 1</code></pre>
 </details>
 </dd>
-<dt id="image.models.Time.push"><code class="name flex">
+<dt id="bathysphere.image.models.Time.push"><code class="name flex">
 <span>def <span class="ident">push</span></span>(<span>self, ylab: str = None, yloc: int or float = 10, xlab: str = 'Date', xloc: int or float = 30, legend: bool = True, title: str = None, rescale: tuple = None) -> _io.BytesIO</span>
 </code></dt>
 <dd>
@@ -1100,17 +1100,17 @@ geo :: is a map</p></div>
 </dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
-<li><code><b><a title="image.models.View" href="#image.models.View">View</a></b></code>:
+<li><code><b><a title="bathysphere.image.models.View" href="#bathysphere.image.models.View">View</a></b></code>:
 <ul class="hlist">
-<li><code><a title="image.models.View.format" href="#image.models.View.format">format</a></code></li>
-<li><code><a title="image.models.View.format_axis" href="#image.models.View.format_axis">format_axis</a></code></li>
-<li><code><a title="image.models.View.legend" href="#image.models.View.legend">legend</a></code></li>
-<li><code><a title="image.models.View.pre_push" href="#image.models.View.pre_push">pre_push</a></code></li>
+<li><code><a title="bathysphere.image.models.View.format" href="#bathysphere.image.models.View.format">format</a></code></li>
+<li><code><a title="bathysphere.image.models.View.format_axis" href="#bathysphere.image.models.View.format_axis">format_axis</a></code></li>
+<li><code><a title="bathysphere.image.models.View.legend" href="#bathysphere.image.models.View.legend">legend</a></code></li>
+<li><code><a title="bathysphere.image.models.View.pre_push" href="#bathysphere.image.models.View.pre_push">pre_push</a></code></li>
 </ul>
 </li>
 </ul>
 </dd>
-<dt id="image.models.View"><code class="flex name class">
+<dt id="bathysphere.image.models.View"><code class="flex name class">
 <span>class <span class="ident">View</span></span>
 <span>(</span><span>style, extent=None)</span>
 </code></dt>
@@ -1226,19 +1226,19 @@ are extended by Spatial and Time</p>
 </details>
 <h3>Subclasses</h3>
 <ul class="hlist">
-<li><a title="image.models.Spatial" href="#image.models.Spatial">Spatial</a></li>
-<li><a title="image.models.Time" href="#image.models.Time">Time</a></li>
+<li><a title="bathysphere.image.models.Spatial" href="#bathysphere.image.models.Spatial">Spatial</a></li>
+<li><a title="bathysphere.image.models.Time" href="#bathysphere.image.models.Time">Time</a></li>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="image.models.View.count"><code class="name">var <span class="ident">count</span></code></dt>
+<dt id="bathysphere.image.models.View.count"><code class="name">var <span class="ident">count</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="image.models.View.format"><code class="name flex">
+<dt id="bathysphere.image.models.View.format"><code class="name flex">
 <span>def <span class="ident">format</span></span>(<span>self, bg: str, contrast: str, **kwargs)</span>
 </code></dt>
 <dd>
@@ -1257,7 +1257,7 @@ are extended by Spatial and Time</p>
     self.format_axis(&#34;y&#34;, contrast, **kwargs)</code></pre>
 </details>
 </dd>
-<dt id="image.models.View.format_axis"><code class="name flex">
+<dt id="bathysphere.image.models.View.format_axis"><code class="name flex">
 <span>def <span class="ident">format_axis</span></span>(<span>self, axis: str, contrast: str, label: str, grid: bool, **kwargs: dict)</span>
 </code></dt>
 <dd>
@@ -1288,7 +1288,7 @@ are extended by Spatial and Time</p>
     apply.grid(grid)</code></pre>
 </details>
 </dd>
-<dt id="image.models.View.legend"><code class="name flex">
+<dt id="bathysphere.image.models.View.legend"><code class="name flex">
 <span>def <span class="ident">legend</span></span>(<span>self, loc: str = 'best', fc: str = 'none', ec: str = 'none') -> NoneType</span>
 </code></dt>
 <dd>
@@ -1322,7 +1322,7 @@ ec, str/arr &ndash; string or RGBA color for edges</p>
         text.set_color(self.style[&#34;contrast&#34;])</code></pre>
 </details>
 </dd>
-<dt id="image.models.View.pre_push"><code class="name flex">
+<dt id="bathysphere.image.models.View.pre_push"><code class="name flex">
 <span>def <span class="ident">pre_push</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -1342,7 +1342,7 @@ appearance before saving</p></div>
     self.ax.set_frame_on(True)</code></pre>
 </details>
 </dd>
-<dt id="image.models.View.push"><code class="name flex">
+<dt id="bathysphere.image.models.View.push"><code class="name flex">
 <span>def <span class="ident">push</span></span>(<span>self, encoding: str = 'png', transparent: bool = False, **kwargs: dict) -> _io.BytesIO</span>
 </code></dt>
 <dd>
@@ -1376,39 +1376,39 @@ appearance before saving</p></div>
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="image" href="index.html">image</a></code></li>
+<li><code><a title="bathysphere.image" href="index.html">bathysphere.image</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="image.models.Spatial" href="#image.models.Spatial">Spatial</a></code></h4>
+<h4><code><a title="bathysphere.image.models.Spatial" href="#bathysphere.image.models.Spatial">Spatial</a></code></h4>
 <ul class="">
-<li><code><a title="image.models.Spatial.bbox" href="#image.models.Spatial.bbox">bbox</a></code></li>
-<li><code><a title="image.models.Spatial.draw" href="#image.models.Spatial.draw">draw</a></code></li>
-<li><code><a title="image.models.Spatial.points" href="#image.models.Spatial.points">points</a></code></li>
-<li><code><a title="image.models.Spatial.push" href="#image.models.Spatial.push">push</a></code></li>
-<li><code><a title="image.models.Spatial.topology" href="#image.models.Spatial.topology">topology</a></code></li>
+<li><code><a title="bathysphere.image.models.Spatial.bbox" href="#bathysphere.image.models.Spatial.bbox">bbox</a></code></li>
+<li><code><a title="bathysphere.image.models.Spatial.draw" href="#bathysphere.image.models.Spatial.draw">draw</a></code></li>
+<li><code><a title="bathysphere.image.models.Spatial.points" href="#bathysphere.image.models.Spatial.points">points</a></code></li>
+<li><code><a title="bathysphere.image.models.Spatial.push" href="#bathysphere.image.models.Spatial.push">push</a></code></li>
+<li><code><a title="bathysphere.image.models.Spatial.topology" href="#bathysphere.image.models.Spatial.topology">topology</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="image.models.Time" href="#image.models.Time">Time</a></code></h4>
+<h4><code><a title="bathysphere.image.models.Time" href="#bathysphere.image.models.Time">Time</a></code></h4>
 <ul class="">
-<li><code><a title="image.models.Time.coverage" href="#image.models.Time.coverage">coverage</a></code></li>
-<li><code><a title="image.models.Time.frequency" href="#image.models.Time.frequency">frequency</a></code></li>
-<li><code><a title="image.models.Time.plot" href="#image.models.Time.plot">plot</a></code></li>
-<li><code><a title="image.models.Time.push" href="#image.models.Time.push">push</a></code></li>
+<li><code><a title="bathysphere.image.models.Time.coverage" href="#bathysphere.image.models.Time.coverage">coverage</a></code></li>
+<li><code><a title="bathysphere.image.models.Time.frequency" href="#bathysphere.image.models.Time.frequency">frequency</a></code></li>
+<li><code><a title="bathysphere.image.models.Time.plot" href="#bathysphere.image.models.Time.plot">plot</a></code></li>
+<li><code><a title="bathysphere.image.models.Time.push" href="#bathysphere.image.models.Time.push">push</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="image.models.View" href="#image.models.View">View</a></code></h4>
+<h4><code><a title="bathysphere.image.models.View" href="#bathysphere.image.models.View">View</a></code></h4>
 <ul class="two-column">
-<li><code><a title="image.models.View.count" href="#image.models.View.count">count</a></code></li>
-<li><code><a title="image.models.View.format" href="#image.models.View.format">format</a></code></li>
-<li><code><a title="image.models.View.format_axis" href="#image.models.View.format_axis">format_axis</a></code></li>
-<li><code><a title="image.models.View.legend" href="#image.models.View.legend">legend</a></code></li>
-<li><code><a title="image.models.View.pre_push" href="#image.models.View.pre_push">pre_push</a></code></li>
-<li><code><a title="image.models.View.push" href="#image.models.View.push">push</a></code></li>
+<li><code><a title="bathysphere.image.models.View.count" href="#bathysphere.image.models.View.count">count</a></code></li>
+<li><code><a title="bathysphere.image.models.View.format" href="#bathysphere.image.models.View.format">format</a></code></li>
+<li><code><a title="bathysphere.image.models.View.format_axis" href="#bathysphere.image.models.View.format_axis">format_axis</a></code></li>
+<li><code><a title="bathysphere.image.models.View.legend" href="#bathysphere.image.models.View.legend">legend</a></code></li>
+<li><code><a title="bathysphere.image.models.View.pre_push" href="#bathysphere.image.models.View.pre_push">pre_push</a></code></li>
+<li><code><a title="bathysphere.image.models.View.push" href="#bathysphere.image.models.View.push">push</a></code></li>
 </ul>
 </li>
 </ul>

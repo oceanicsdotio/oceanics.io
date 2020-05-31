@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.8.1" />
-<title>models API documentation</title>
+<title>bathysphere.models API documentation</title>
 <meta name="description" content="" />
 <link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
 <link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
@@ -17,7 +17,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>models</code></h1>
+<h1 class="title">Module <code>bathysphere.models</code></h1>
 </header>
 <section id="section-intro">
 <details class="source">
@@ -968,7 +968,7 @@ class User(object):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="models.Actuators"><code class="flex name class">
+<dt id="bathysphere.models.Actuators"><code class="flex name class">
 <span>class <span class="ident">Actuators</span></span>
 <span>(</span><span>name: str = None, description: str = None, encodingType: str = None, metadata: Any = None, networkAddress: (<class 'str'>, <class 'int'>) = (None, None))</span>
 </code></dt>
@@ -1306,9 +1306,13 @@ class User(object):
             [self.protocol[&#34;diagnostic&#34;][&#34;status&#34;]], identity=relay_id, debug=True
         )</code></pre>
 </details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="bathysphere.graph.models.Actuators" href="graph/models.html#bathysphere.graph.models.Actuators">Actuators</a></li>
+</ul>
 <h3>Static methods</h3>
 <dl>
-<dt id="models.Actuators.addEventListener"><code class="name flex">
+<dt id="bathysphere.models.Actuators.addEventListener"><code class="name flex">
 <span>def <span class="ident">addEventListener</span></span>(<span>self, banks: int = 1, echo: bool = False, buffer: int = 16, file: str = None, verb: bool = False)</span>
 </code></dt>
 <dd>
@@ -1396,7 +1400,7 @@ def addEventListener(
             connection.close()</code></pre>
 </details>
 </dd>
-<dt id="models.Actuators.pulseWidth"><code class="name flex">
+<dt id="bathysphere.models.Actuators.pulseWidth"><code class="name flex">
 <span>def <span class="ident">pulseWidth</span></span>(<span>signal: float, maximum: float = None, width: int = 2, pid: bool = True) -> int</span>
 </code></dt>
 <dd>
@@ -1412,7 +1416,7 @@ def pulseWidth(
     return width * floor(5 * abs(signal) / maximum) if pid else width</code></pre>
 </details>
 </dd>
-<dt id="models.Actuators.rewindControlLoop"><code class="name flex">
+<dt id="bathysphere.models.Actuators.rewindControlLoop"><code class="name flex">
 <span>def <span class="ident">rewindControlLoop</span></span>(<span>state: dict, reset: bool = False) -> NoneType</span>
 </code></dt>
 <dd>
@@ -1435,7 +1439,7 @@ def rewindControlLoop(state: dict, reset: bool = False) -&gt; None:
     state[&#34;current&#34;] = state[&#34;start&#34;]</code></pre>
 </details>
 </dd>
-<dt id="models.Actuators.sendMessage"><code class="name flex">
+<dt id="bathysphere.models.Actuators.sendMessage"><code class="name flex">
 <span>async def <span class="ident">sendMessage</span></span>(<span>self, commands: list = None, identity: int = None, buffer: int = 16, debug: bool = False) -> bool</span>
 </code></dt>
 <dd>
@@ -1494,7 +1498,7 @@ async def sendMessage(
     return False</code></pre>
 </details>
 </dd>
-<dt id="models.Actuators.signalTransform"><code class="name flex">
+<dt id="bathysphere.models.Actuators.signalTransform"><code class="name flex">
 <span>def <span class="ident">signalTransform</span></span>(<span>config: dict, state: dict, raw: float, offset: float = 0.0) -> float</span>
 </code></dt>
 <dd>
@@ -1541,7 +1545,7 @@ def signalTransform(
     return c[&#34;p&#34;] + (k[&#34;i&#34;] * c[&#34;i&#34;]) + (k[&#34;d&#34;] * c[&#34;d&#34;])</code></pre>
 </details>
 </dd>
-<dt id="models.Actuators.startControlLoop"><code class="name flex">
+<dt id="bathysphere.models.Actuators.startControlLoop"><code class="name flex">
 <span>def <span class="ident">startControlLoop</span></span>(<span>relay_id: int, host: str, port: int, send: bool = False, refresh: int = 10, banks: int = 1, relays: int = 1, buffer: int = 16, file: str = None, echo: bool = False, verb: bool = False)</span>
 </code></dt>
 <dd>
@@ -1617,7 +1621,7 @@ def startControlLoop(
 </dl>
 <h3>Instance variables</h3>
 <dl>
-<dt id="models.Actuators.defaults"><code class="name">var <span class="ident">defaults</span></code></dt>
+<dt id="bathysphere.models.Actuators.defaults"><code class="name">var <span class="ident">defaults</span></code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
@@ -1652,7 +1656,7 @@ def defaults(self):
     }</code></pre>
 </details>
 </dd>
-<dt id="models.Actuators.protocol"><code class="name">var <span class="ident">protocol</span></code></dt>
+<dt id="bathysphere.models.Actuators.protocol"><code class="name">var <span class="ident">protocol</span></code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
@@ -1664,7 +1668,7 @@ def protocol(self):
     return dict()</code></pre>
 </details>
 </dd>
-<dt id="models.Actuators.state"><code class="name">var <span class="ident">state</span></code></dt>
+<dt id="bathysphere.models.Actuators.state"><code class="name">var <span class="ident">state</span></code></dt>
 <dd>
 <div class="desc"><p>Get current state of specified relay</p></div>
 <details class="source">
@@ -1684,7 +1688,7 @@ async def state(self, relay_id=None):
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="models.Actuators.off"><code class="name flex">
+<dt id="bathysphere.models.Actuators.off"><code class="name flex">
 <span>async def <span class="ident">off</span></span>(<span>self, relay_id=None)</span>
 </code></dt>
 <dd>
@@ -1700,7 +1704,7 @@ async def state(self, relay_id=None):
     return self.sendMessage([self.protocol[&#34;tasks&#34;][&#34;off&#34;]], identity=relay_id)</code></pre>
 </details>
 </dd>
-<dt id="models.Actuators.on"><code class="name flex">
+<dt id="bathysphere.models.Actuators.on"><code class="name flex">
 <span>async def <span class="ident">on</span></span>(<span>self, relay_id, timer_id, duration=None)</span>
 </code></dt>
 <dd>
@@ -1726,7 +1730,7 @@ async def state(self, relay_id=None):
     return self.sendMessage(commands, identity=relay_id)</code></pre>
 </details>
 </dd>
-<dt id="models.Actuators.recover"><code class="name flex">
+<dt id="bathysphere.models.Actuators.recover"><code class="name flex">
 <span>async def <span class="ident">recover</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -1744,7 +1748,7 @@ async def state(self, relay_id=None):
     )</code></pre>
 </details>
 </dd>
-<dt id="models.Actuators.startController"><code class="name flex">
+<dt id="bathysphere.models.Actuators.startController"><code class="name flex">
 <span>def <span class="ident">startController</span></span>(<span>self, host: str, port: int, relay_id: int, banks: int, relays: int, refresh: int, file: str = None, verb: bool = False) -> bool</span>
 </code></dt>
 <dd>
@@ -1799,7 +1803,7 @@ async def state(self, relay_id=None):
 </dd>
 </dl>
 </dd>
-<dt id="models.Assets"><code class="flex name class">
+<dt id="bathysphere.models.Assets"><code class="flex name class">
 <span>class <span class="ident">Assets</span></span>
 <span>(</span><span>name: str = None, description: str = None, location: str = None)</span>
 </code></dt>
@@ -1829,8 +1833,12 @@ location: address of resource, including protocol (e.g. postgres://)</p></div>
     description: str = attr.ib(default=None)
     location: str = attr.ib(default=None)</code></pre>
 </details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="bathysphere.graph.models.Assets" href="graph/models.html#bathysphere.graph.models.Assets">Assets</a></li>
+</ul>
 </dd>
-<dt id="models.Collections"><code class="flex name class">
+<dt id="bathysphere.models.Collections"><code class="flex name class">
 <span>class <span class="ident">Collections</span></span>
 <span>(</span><span>name: str = None, description: str = None, extent: (<class 'float'>,) = None, keywords: str = None, license: str = None, version: int = None)</span>
 </code></dt>
@@ -1851,8 +1859,12 @@ location: address of resource, including protocol (e.g. postgres://)</p></div>
     license: str = attr.ib(default=None)
     version: int = attr.ib(default=None)</code></pre>
 </details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="bathysphere.graph.models.Collections" href="graph/models.html#bathysphere.graph.models.Collections">Collections</a></li>
+</ul>
 </dd>
-<dt id="models.DataStreams"><code class="flex name class">
+<dt id="bathysphere.models.DataStreams"><code class="flex name class">
 <span>class <span class="ident">DataStreams</span></span>
 <span>(</span><span>name: str = None, description: str = None, unitOfMeasurement=None, observationType=None, observedArea: dict = None, phenomenonTime: (<class 'datetime.datetime'>, <class 'datetime.datetime'>) = None, resultTime: (<class 'datetime.datetime'>, <class 'datetime.datetime'>) = None)</span>
 </code></dt>
@@ -2114,9 +2126,13 @@ location: address of resource, including protocol (e.g. postgres://)</p></div>
             },
         }</code></pre>
 </details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="bathysphere.graph.models.DataStreams" href="graph/models.html#bathysphere.graph.models.DataStreams">DataStreams</a></li>
+</ul>
 <h3>Static methods</h3>
 <dl>
-<dt id="models.DataStreams.fourierTransform"><code class="name flex">
+<dt id="bathysphere.models.DataStreams.fourierTransform"><code class="name flex">
 <span>def <span class="ident">fourierTransform</span></span>(<span>dt=1, lowpass=None, highpass=None, fill=False, compress=True)</span>
 </code></dt>
 <dd>
@@ -2166,7 +2182,7 @@ def fourierTransform(dt=1, lowpass=None, highpass=None, fill=False, compress=Tru
     return response(200, payload=filtered)</code></pre>
 </details>
 </dd>
-<dt id="models.DataStreams.frequencySpectrum"><code class="name flex">
+<dt id="bathysphere.models.DataStreams.frequencySpectrum"><code class="name flex">
 <span>def <span class="ident">frequencySpectrum</span></span>(<span>req, dt=1, fill=False, compress=True)</span>
 </code></dt>
 <dd>
@@ -2192,7 +2208,7 @@ def frequencySpectrum(req, dt=1, fill=False, compress=True):
     return response(status=200, payload={&#34;frequency&#34;: freq, &#34;index&#34;: index})</code></pre>
 </details>
 </dd>
-<dt id="models.DataStreams.outOfRangeMask"><code class="name flex">
+<dt id="bathysphere.models.DataStreams.outOfRangeMask"><code class="name flex">
 <span>def <span class="ident">outOfRangeMask</span></span>(<span>min, max)</span>
 </code></dt>
 <dd>
@@ -2212,7 +2228,7 @@ def outOfRangeMask(min, max):
     return response(200, payload=mask)</code></pre>
 </details>
 </dd>
-<dt id="models.DataStreams.resampleSparseSeries"><code class="name flex">
+<dt id="bathysphere.models.DataStreams.resampleSparseSeries"><code class="name flex">
 <span>def <span class="ident">resampleSparseSeries</span></span>(<span>method='forward', observations=None, start=None)</span>
 </code></dt>
 <dd>
@@ -2306,7 +2322,7 @@ def resampleSparseSeries(method=&#34;forward&#34;, observations=None, start=None
     return response(200, payload=new)</code></pre>
 </details>
 </dd>
-<dt id="models.DataStreams.smoothUsingConvolution"><code class="name flex">
+<dt id="bathysphere.models.DataStreams.smoothUsingConvolution"><code class="name flex">
 <span>def <span class="ident">smoothUsingConvolution</span></span>(<span>bandwidth, mode='same')</span>
 </code></dt>
 <dd>
@@ -2331,7 +2347,7 @@ def smoothUsingConvolution(bandwidth, mode=&#34;same&#34;):
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="models.DataStreams.partition"><code class="name flex">
+<dt id="bathysphere.models.DataStreams.partition"><code class="name flex">
 <span>def <span class="ident">partition</span></span>(<span>self, window: int, horizon: int, batch_size: int, ratio: float, periods: int)</span>
 </code></dt>
 <dd>
@@ -2404,7 +2420,7 @@ def smoothUsingConvolution(bandwidth, mode=&#34;same&#34;):
     }</code></pre>
 </details>
 </dd>
-<dt id="models.DataStreams.statisticalOutlierMask"><code class="name flex">
+<dt id="bathysphere.models.DataStreams.statisticalOutlierMask"><code class="name flex">
 <span>def <span class="ident">statisticalOutlierMask</span></span>(<span>self, assumeEvenSpacing: bool = False, threshold: float = 3.5)</span>
 </code></dt>
 <dd>
@@ -2447,7 +2463,7 @@ first derivative are outliers</p></div>
 </dd>
 </dl>
 </dd>
-<dt id="models.FeaturesOfInterest"><code class="flex name class">
+<dt id="bathysphere.models.FeaturesOfInterest"><code class="flex name class">
 <span>class <span class="ident">FeaturesOfInterest</span></span>
 <span>(</span><span>name: str = None, description: str = None, encodingType: str = None, feature: Any = None)</span>
 </code></dt>
@@ -2467,8 +2483,12 @@ first derivative are outliers</p></div>
     encodingType: str = attr.ib(default=None)  # metadata encoding
     feature: Any = attr.ib(default=None)</code></pre>
 </details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="bathysphere.graph.models.FeaturesOfInterest" href="graph/models.html#bathysphere.graph.models.FeaturesOfInterest">FeaturesOfInterest</a></li>
+</ul>
 </dd>
-<dt id="models.HistoricalLocations"><code class="flex name class">
+<dt id="bathysphere.models.HistoricalLocations"><code class="flex name class">
 <span>class <span class="ident">HistoricalLocations</span></span>
 <span>(</span><span>time: str = None)</span>
 </code></dt>
@@ -2487,13 +2507,17 @@ first derivative are outliers</p></div>
         default=None
     )  # time when thing was at location (ISO-8601 string)</code></pre>
 </details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="bathysphere.graph.models.HistoricalLocations" href="graph/models.html#bathysphere.graph.models.HistoricalLocations">HistoricalLocations</a></li>
+</ul>
 </dd>
-<dt id="models.Locations"><code class="flex name class">
+<dt id="bathysphere.models.Locations"><code class="flex name class">
 <span>class <span class="ident">Locations</span></span>
 <span>(</span><span>description: str = None, encodingType: str = 'application/vnd.geo+json', location=None, name: str = None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Last known <code><a title="models.Locations" href="#models.Locations">Locations</a></code> of <code><a title="models.Things" href="#models.Things">Things</a></code>. May be <code><a title="models.FeaturesOfInterest" href="#models.FeaturesOfInterest">FeaturesOfInterest</a></code>, unless remote sensing.</p>
+<div class="desc"><p>Last known <code><a title="bathysphere.models.Locations" href="#bathysphere.models.Locations">Locations</a></code> of <code><a title="bathysphere.models.Things" href="#bathysphere.models.Things">Things</a></code>. May be <code><a title="bathysphere.models.FeaturesOfInterest" href="#bathysphere.models.FeaturesOfInterest">FeaturesOfInterest</a></code>, unless remote sensing.</p>
 <p>location encoding may be <code>application/vnd.geo+json</code> or <code>application/json</code></p></div>
 <details class="source">
 <summary>
@@ -2510,8 +2534,12 @@ first derivative are outliers</p></div>
     location = attr.ib(default=None)  # GeoJSON
     name: str = attr.ib(default=None)</code></pre>
 </details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="bathysphere.graph.models.Locations" href="graph/models.html#bathysphere.graph.models.Locations">Locations</a></li>
+</ul>
 </dd>
-<dt id="models.Observations"><code class="flex name class">
+<dt id="bathysphere.models.Observations"><code class="flex name class">
 <span>class <span class="ident">Observations</span></span>
 <span>(</span><span>phenomenonTime: datetime.datetime = None, result: Any = None, resultTime: datetime.datetime = None, resultQuality: Any = None, validTime: (<class 'datetime.datetime'>, <class 'datetime.datetime'>) = None, parameters: dict = None)</span>
 </code></dt>
@@ -2542,9 +2570,13 @@ first derivative are outliers</p></div>
         &#34;&#34;&#34;
         return (self.result &gt; maximum) | (self.result &lt; minimum)</code></pre>
 </details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="bathysphere.graph.models.Observations" href="graph/models.html#bathysphere.graph.models.Observations">Observations</a></li>
+</ul>
 <h3>Instance variables</h3>
 <dl>
-<dt id="models.Observations.outOfRange"><code class="name">var <span class="ident">outOfRange</span></code></dt>
+<dt id="bathysphere.models.Observations.outOfRange"><code class="name">var <span class="ident">outOfRange</span></code></dt>
 <dd>
 <div class="desc"><p>True if value is outside the given range</p></div>
 <details class="source">
@@ -2561,7 +2593,7 @@ def outOfRange(self, maximum, minimum=0.0):
 </dd>
 </dl>
 </dd>
-<dt id="models.ObservedProperties"><code class="flex name class">
+<dt id="bathysphere.models.ObservedProperties"><code class="flex name class">
 <span>class <span class="ident">ObservedProperties</span></span>
 <span>(</span><span>name: str = None, description: str = None, definition: str = None)</span>
 </code></dt>
@@ -2580,8 +2612,12 @@ def outOfRange(self, maximum, minimum=0.0):
     description: str = attr.ib(default=None)
     definition: str = attr.ib(default=None)  #  URL to reference defining the property</code></pre>
 </details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="bathysphere.graph.models.ObservedProperties" href="graph/models.html#bathysphere.graph.models.ObservedProperties">ObservedProperties</a></li>
+</ul>
 </dd>
-<dt id="models.Providers"><code class="flex name class">
+<dt id="bathysphere.models.Providers"><code class="flex name class">
 <span>class <span class="ident">Providers</span></span>
 <span>(</span><span>name: str = None, description: str = None, domain: str = None, secretKey: str = None, apiKey: str = None, tokenDuration: int = None)</span>
 </code></dt>
@@ -2607,8 +2643,12 @@ attribution.</p></div>
     apiKey: str = attr.ib(default=None)
     tokenDuration: int = attr.ib(default=None)</code></pre>
 </details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="bathysphere.graph.models.Providers" href="graph/models.html#bathysphere.graph.models.Providers">Providers</a></li>
+</ul>
 </dd>
-<dt id="models.Sensors"><code class="flex name class">
+<dt id="bathysphere.models.Sensors"><code class="flex name class">
 <span>class <span class="ident">Sensors</span></span>
 <span>(</span><span>name: str = None, description: str = None, encodingType: str = None, metadata: Any = None)</span>
 </code></dt>
@@ -2628,8 +2668,12 @@ attribution.</p></div>
     encodingType: str = attr.ib(default=None)  # metadata encoding
     metadata: Any = attr.ib(default=None)</code></pre>
 </details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="bathysphere.graph.models.Sensors" href="graph/models.html#bathysphere.graph.models.Sensors">Sensors</a></li>
+</ul>
 </dd>
-<dt id="models.Simulations"><code class="flex name class">
+<dt id="bathysphere.models.Simulations"><code class="flex name class">
 <span>class <span class="ident">Simulations</span></span>
 </code></dt>
 <dd>
@@ -2753,7 +2797,7 @@ attribution.</p></div>
 </details>
 <h3>Static methods</h3>
 <dl>
-<dt id="models.Simulations.batch"><code class="name flex">
+<dt id="bathysphere.models.Simulations.batch"><code class="name flex">
 <span>def <span class="ident">batch</span></span>(<span>config: dict, forcing: <built-in function array>, workers: int = 1) -> dict</span>
 </code></dt>
 <dd>
@@ -2819,7 +2863,7 @@ def batch(config: dict, forcing: array, workers: int = 1) -&gt; dict:
     }</code></pre>
 </details>
 </dd>
-<dt id="models.Simulations.job"><code class="name flex">
+<dt id="bathysphere.models.Simulations.job"><code class="name flex">
 <span>def <span class="ident">job</span></span>(<span>config: dict, forcing: <built-in function array>, encoding: str = 'utf-8') -> (<class 'tuple'>, <class 'bytes'>)</span>
 </code></dt>
 <dd>
@@ -2894,7 +2938,7 @@ def job(
 </dd>
 </dl>
 </dd>
-<dt id="models.TaskingCapabilities"><code class="flex name class">
+<dt id="bathysphere.models.TaskingCapabilities"><code class="flex name class">
 <span>class <span class="ident">TaskingCapabilities</span></span>
 <span>(</span><span>name: str = None, creationTime: float = NOTHING, taskingParameters: dict = None)</span>
 </code></dt>
@@ -2913,8 +2957,12 @@ def job(
     creationTime: float = attr.ib(default=attr.Factory(time))
     taskingParameters: dict = attr.ib(default=None)</code></pre>
 </details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="bathysphere.graph.models.TaskingCapabilities" href="graph/models.html#bathysphere.graph.models.TaskingCapabilities">TaskingCapabilities</a></li>
+</ul>
 </dd>
-<dt id="models.Tasks"><code class="flex name class">
+<dt id="bathysphere.models.Tasks"><code class="flex name class">
 <span>class <span class="ident">Tasks</span></span>
 <span>(</span><span>creationTime: float = NOTHING, taskingParameters: dict = None)</span>
 </code></dt>
@@ -2932,8 +2980,12 @@ def job(
     creationTime: float = attr.ib(default=attr.Factory(time))
     taskingParameters: dict = attr.ib(default=None)</code></pre>
 </details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="bathysphere.graph.models.Tasks" href="graph/models.html#bathysphere.graph.models.Tasks">Tasks</a></li>
+</ul>
 </dd>
-<dt id="models.Things"><code class="flex name class">
+<dt id="bathysphere.models.Things"><code class="flex name class">
 <span>class <span class="ident">Things</span></span>
 <span>(</span><span>name: str = None, description: str = None, properties: dict = None)</span>
 </code></dt>
@@ -2954,8 +3006,12 @@ and integrated into communication networks.</p></div>
     description: str = attr.ib(default=None)
     properties: dict = attr.ib(default=None)</code></pre>
 </details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="bathysphere.graph.models.Things" href="graph/models.html#bathysphere.graph.models.Things">Things</a></li>
+</ul>
 </dd>
-<dt id="models.User"><code class="flex name class">
+<dt id="bathysphere.models.User"><code class="flex name class">
 <span>class <span class="ident">User</span></span>
 <span>(</span><span>ip: str = None, name: str = None, alias: str = None, credential: str = None, validated: bool = True, description: str = None)</span>
 </code></dt>
@@ -2979,6 +3035,10 @@ the system through the same routes as normal Entities</p></div>
     validated: bool = attr.ib(default=True)
     description: str = attr.ib(default=None)</code></pre>
 </details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="bathysphere.graph.models.User" href="graph/models.html#bathysphere.graph.models.User">User</a></li>
+</ul>
 </dd>
 </dl>
 </section>
@@ -2989,86 +3049,91 @@ the system through the same routes as normal Entities</p></div>
 <ul></ul>
 </div>
 <ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="bathysphere" href="index.html">bathysphere</a></code></li>
+</ul>
+</li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="models.Actuators" href="#models.Actuators">Actuators</a></code></h4>
+<h4><code><a title="bathysphere.models.Actuators" href="#bathysphere.models.Actuators">Actuators</a></code></h4>
 <ul class="two-column">
-<li><code><a title="models.Actuators.addEventListener" href="#models.Actuators.addEventListener">addEventListener</a></code></li>
-<li><code><a title="models.Actuators.defaults" href="#models.Actuators.defaults">defaults</a></code></li>
-<li><code><a title="models.Actuators.off" href="#models.Actuators.off">off</a></code></li>
-<li><code><a title="models.Actuators.on" href="#models.Actuators.on">on</a></code></li>
-<li><code><a title="models.Actuators.protocol" href="#models.Actuators.protocol">protocol</a></code></li>
-<li><code><a title="models.Actuators.pulseWidth" href="#models.Actuators.pulseWidth">pulseWidth</a></code></li>
-<li><code><a title="models.Actuators.recover" href="#models.Actuators.recover">recover</a></code></li>
-<li><code><a title="models.Actuators.rewindControlLoop" href="#models.Actuators.rewindControlLoop">rewindControlLoop</a></code></li>
-<li><code><a title="models.Actuators.sendMessage" href="#models.Actuators.sendMessage">sendMessage</a></code></li>
-<li><code><a title="models.Actuators.signalTransform" href="#models.Actuators.signalTransform">signalTransform</a></code></li>
-<li><code><a title="models.Actuators.startControlLoop" href="#models.Actuators.startControlLoop">startControlLoop</a></code></li>
-<li><code><a title="models.Actuators.startController" href="#models.Actuators.startController">startController</a></code></li>
-<li><code><a title="models.Actuators.state" href="#models.Actuators.state">state</a></code></li>
+<li><code><a title="bathysphere.models.Actuators.addEventListener" href="#bathysphere.models.Actuators.addEventListener">addEventListener</a></code></li>
+<li><code><a title="bathysphere.models.Actuators.defaults" href="#bathysphere.models.Actuators.defaults">defaults</a></code></li>
+<li><code><a title="bathysphere.models.Actuators.off" href="#bathysphere.models.Actuators.off">off</a></code></li>
+<li><code><a title="bathysphere.models.Actuators.on" href="#bathysphere.models.Actuators.on">on</a></code></li>
+<li><code><a title="bathysphere.models.Actuators.protocol" href="#bathysphere.models.Actuators.protocol">protocol</a></code></li>
+<li><code><a title="bathysphere.models.Actuators.pulseWidth" href="#bathysphere.models.Actuators.pulseWidth">pulseWidth</a></code></li>
+<li><code><a title="bathysphere.models.Actuators.recover" href="#bathysphere.models.Actuators.recover">recover</a></code></li>
+<li><code><a title="bathysphere.models.Actuators.rewindControlLoop" href="#bathysphere.models.Actuators.rewindControlLoop">rewindControlLoop</a></code></li>
+<li><code><a title="bathysphere.models.Actuators.sendMessage" href="#bathysphere.models.Actuators.sendMessage">sendMessage</a></code></li>
+<li><code><a title="bathysphere.models.Actuators.signalTransform" href="#bathysphere.models.Actuators.signalTransform">signalTransform</a></code></li>
+<li><code><a title="bathysphere.models.Actuators.startControlLoop" href="#bathysphere.models.Actuators.startControlLoop">startControlLoop</a></code></li>
+<li><code><a title="bathysphere.models.Actuators.startController" href="#bathysphere.models.Actuators.startController">startController</a></code></li>
+<li><code><a title="bathysphere.models.Actuators.state" href="#bathysphere.models.Actuators.state">state</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="models.Assets" href="#models.Assets">Assets</a></code></h4>
+<h4><code><a title="bathysphere.models.Assets" href="#bathysphere.models.Assets">Assets</a></code></h4>
 </li>
 <li>
-<h4><code><a title="models.Collections" href="#models.Collections">Collections</a></code></h4>
+<h4><code><a title="bathysphere.models.Collections" href="#bathysphere.models.Collections">Collections</a></code></h4>
 </li>
 <li>
-<h4><code><a title="models.DataStreams" href="#models.DataStreams">DataStreams</a></code></h4>
+<h4><code><a title="bathysphere.models.DataStreams" href="#bathysphere.models.DataStreams">DataStreams</a></code></h4>
 <ul class="">
-<li><code><a title="models.DataStreams.fourierTransform" href="#models.DataStreams.fourierTransform">fourierTransform</a></code></li>
-<li><code><a title="models.DataStreams.frequencySpectrum" href="#models.DataStreams.frequencySpectrum">frequencySpectrum</a></code></li>
-<li><code><a title="models.DataStreams.outOfRangeMask" href="#models.DataStreams.outOfRangeMask">outOfRangeMask</a></code></li>
-<li><code><a title="models.DataStreams.partition" href="#models.DataStreams.partition">partition</a></code></li>
-<li><code><a title="models.DataStreams.resampleSparseSeries" href="#models.DataStreams.resampleSparseSeries">resampleSparseSeries</a></code></li>
-<li><code><a title="models.DataStreams.smoothUsingConvolution" href="#models.DataStreams.smoothUsingConvolution">smoothUsingConvolution</a></code></li>
-<li><code><a title="models.DataStreams.statisticalOutlierMask" href="#models.DataStreams.statisticalOutlierMask">statisticalOutlierMask</a></code></li>
+<li><code><a title="bathysphere.models.DataStreams.fourierTransform" href="#bathysphere.models.DataStreams.fourierTransform">fourierTransform</a></code></li>
+<li><code><a title="bathysphere.models.DataStreams.frequencySpectrum" href="#bathysphere.models.DataStreams.frequencySpectrum">frequencySpectrum</a></code></li>
+<li><code><a title="bathysphere.models.DataStreams.outOfRangeMask" href="#bathysphere.models.DataStreams.outOfRangeMask">outOfRangeMask</a></code></li>
+<li><code><a title="bathysphere.models.DataStreams.partition" href="#bathysphere.models.DataStreams.partition">partition</a></code></li>
+<li><code><a title="bathysphere.models.DataStreams.resampleSparseSeries" href="#bathysphere.models.DataStreams.resampleSparseSeries">resampleSparseSeries</a></code></li>
+<li><code><a title="bathysphere.models.DataStreams.smoothUsingConvolution" href="#bathysphere.models.DataStreams.smoothUsingConvolution">smoothUsingConvolution</a></code></li>
+<li><code><a title="bathysphere.models.DataStreams.statisticalOutlierMask" href="#bathysphere.models.DataStreams.statisticalOutlierMask">statisticalOutlierMask</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="models.FeaturesOfInterest" href="#models.FeaturesOfInterest">FeaturesOfInterest</a></code></h4>
+<h4><code><a title="bathysphere.models.FeaturesOfInterest" href="#bathysphere.models.FeaturesOfInterest">FeaturesOfInterest</a></code></h4>
 </li>
 <li>
-<h4><code><a title="models.HistoricalLocations" href="#models.HistoricalLocations">HistoricalLocations</a></code></h4>
+<h4><code><a title="bathysphere.models.HistoricalLocations" href="#bathysphere.models.HistoricalLocations">HistoricalLocations</a></code></h4>
 </li>
 <li>
-<h4><code><a title="models.Locations" href="#models.Locations">Locations</a></code></h4>
+<h4><code><a title="bathysphere.models.Locations" href="#bathysphere.models.Locations">Locations</a></code></h4>
 </li>
 <li>
-<h4><code><a title="models.Observations" href="#models.Observations">Observations</a></code></h4>
+<h4><code><a title="bathysphere.models.Observations" href="#bathysphere.models.Observations">Observations</a></code></h4>
 <ul class="">
-<li><code><a title="models.Observations.outOfRange" href="#models.Observations.outOfRange">outOfRange</a></code></li>
+<li><code><a title="bathysphere.models.Observations.outOfRange" href="#bathysphere.models.Observations.outOfRange">outOfRange</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="models.ObservedProperties" href="#models.ObservedProperties">ObservedProperties</a></code></h4>
+<h4><code><a title="bathysphere.models.ObservedProperties" href="#bathysphere.models.ObservedProperties">ObservedProperties</a></code></h4>
 </li>
 <li>
-<h4><code><a title="models.Providers" href="#models.Providers">Providers</a></code></h4>
+<h4><code><a title="bathysphere.models.Providers" href="#bathysphere.models.Providers">Providers</a></code></h4>
 </li>
 <li>
-<h4><code><a title="models.Sensors" href="#models.Sensors">Sensors</a></code></h4>
+<h4><code><a title="bathysphere.models.Sensors" href="#bathysphere.models.Sensors">Sensors</a></code></h4>
 </li>
 <li>
-<h4><code><a title="models.Simulations" href="#models.Simulations">Simulations</a></code></h4>
+<h4><code><a title="bathysphere.models.Simulations" href="#bathysphere.models.Simulations">Simulations</a></code></h4>
 <ul class="">
-<li><code><a title="models.Simulations.batch" href="#models.Simulations.batch">batch</a></code></li>
-<li><code><a title="models.Simulations.job" href="#models.Simulations.job">job</a></code></li>
+<li><code><a title="bathysphere.models.Simulations.batch" href="#bathysphere.models.Simulations.batch">batch</a></code></li>
+<li><code><a title="bathysphere.models.Simulations.job" href="#bathysphere.models.Simulations.job">job</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="models.TaskingCapabilities" href="#models.TaskingCapabilities">TaskingCapabilities</a></code></h4>
+<h4><code><a title="bathysphere.models.TaskingCapabilities" href="#bathysphere.models.TaskingCapabilities">TaskingCapabilities</a></code></h4>
 </li>
 <li>
-<h4><code><a title="models.Tasks" href="#models.Tasks">Tasks</a></code></h4>
+<h4><code><a title="bathysphere.models.Tasks" href="#bathysphere.models.Tasks">Tasks</a></code></h4>
 </li>
 <li>
-<h4><code><a title="models.Things" href="#models.Things">Things</a></code></h4>
+<h4><code><a title="bathysphere.models.Things" href="#bathysphere.models.Things">Things</a></code></h4>
 </li>
 <li>
-<h4><code><a title="models.User" href="#models.User">User</a></code></h4>
+<h4><code><a title="bathysphere.models.User" href="#bathysphere.models.User">User</a></code></h4>
 </li>
 </ul>
 </li>

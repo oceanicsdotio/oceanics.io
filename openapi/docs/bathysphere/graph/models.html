@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.8.1" />
-<title>graph.models API documentation</title>
+<title>bathysphere.graph.models API documentation</title>
 <meta name="description" content="The models module of the graph API contains extensions to the common
 models, for storing and accessing data in a Neo4j database." />
 <link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
@@ -18,7 +18,7 @@ models, for storing and accessing data in a Neo4j database." />
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>graph.models</code></h1>
+<h1 class="title">Module <code>bathysphere.graph.models</code></h1>
 </header>
 <section id="section-intro">
 <p>The models module of the graph API contains extensions to the common
@@ -628,7 +628,7 @@ class User(Entity, models.User):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="graph.models.Actuators"><code class="flex name class">
+<dt id="bathysphere.graph.models.Actuators"><code class="flex name class">
 <span>class <span class="ident">Actuators</span></span>
 <span>(</span><span>uuid: uuid.UUID = None, symbol: str = 'n', name: str = None, description: str = None, encodingType: str = None, metadata: Any = None, networkAddress: (<class 'str'>, <class 'int'>) = (None, None))</span>
 </code></dt>
@@ -643,28 +643,42 @@ class User(Entity, models.User):
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="graph.models.Entity" href="#graph.models.Entity">Entity</a></li>
-<li>bathysphere.models.Actuators</li>
+<li><a title="bathysphere.graph.models.Entity" href="#bathysphere.graph.models.Entity">Entity</a></li>
+<li><a title="bathysphere.models.Actuators" href="../models.html#bathysphere.models.Actuators">Actuators</a></li>
 </ul>
 <h3>Inherited members</h3>
 <ul class="hlist">
-<li><code><b><a title="graph.models.Entity" href="#graph.models.Entity">Entity</a></b></code>:
+<li><code><b><a title="bathysphere.graph.models.Entity" href="#bathysphere.graph.models.Entity">Entity</a></b></code>:
 <ul class="hlist">
-<li><code><a title="graph.models.Entity.addConstraint" href="#graph.models.Entity.addConstraint">addConstraint</a></code></li>
-<li><code><a title="graph.models.Entity.addIndex" href="#graph.models.Entity.addIndex">addIndex</a></code></li>
-<li><code><a title="graph.models.Entity.addLabel" href="#graph.models.Entity.addLabel">addLabel</a></code></li>
-<li><code><a title="graph.models.Entity.count" href="#graph.models.Entity.count">count</a></code></li>
-<li><code><a title="graph.models.Entity.create" href="#graph.models.Entity.create">create</a></code></li>
-<li><code><a title="graph.models.Entity.delete" href="#graph.models.Entity.delete">delete</a></code></li>
-<li><code><a title="graph.models.Entity.dropIndex" href="#graph.models.Entity.dropIndex">dropIndex</a></code></li>
-<li><code><a title="graph.models.Entity.load" href="#graph.models.Entity.load">load</a></code></li>
-<li><code><a title="graph.models.Entity.mutate" href="#graph.models.Entity.mutate">mutate</a></code></li>
-<li><code><a title="graph.models.Entity.serialize" href="#graph.models.Entity.serialize">serialize</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.addConstraint" href="#bathysphere.graph.models.Entity.addConstraint">addConstraint</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.addIndex" href="#bathysphere.graph.models.Entity.addIndex">addIndex</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.addLabel" href="#bathysphere.graph.models.Entity.addLabel">addLabel</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.count" href="#bathysphere.graph.models.Entity.count">count</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.create" href="#bathysphere.graph.models.Entity.create">create</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.delete" href="#bathysphere.graph.models.Entity.delete">delete</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.dropIndex" href="#bathysphere.graph.models.Entity.dropIndex">dropIndex</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.load" href="#bathysphere.graph.models.Entity.load">load</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.mutate" href="#bathysphere.graph.models.Entity.mutate">mutate</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.serialize" href="#bathysphere.graph.models.Entity.serialize">serialize</a></code></li>
+</ul>
+</li>
+<li><code><b><a title="bathysphere.models.Actuators" href="../models.html#bathysphere.models.Actuators">Actuators</a></b></code>:
+<ul class="hlist">
+<li><code><a title="bathysphere.models.Actuators.addEventListener" href="../models.html#bathysphere.models.Actuators.addEventListener">addEventListener</a></code></li>
+<li><code><a title="bathysphere.models.Actuators.off" href="../models.html#bathysphere.models.Actuators.off">off</a></code></li>
+<li><code><a title="bathysphere.models.Actuators.on" href="../models.html#bathysphere.models.Actuators.on">on</a></code></li>
+<li><code><a title="bathysphere.models.Actuators.recover" href="../models.html#bathysphere.models.Actuators.recover">recover</a></code></li>
+<li><code><a title="bathysphere.models.Actuators.rewindControlLoop" href="../models.html#bathysphere.models.Actuators.rewindControlLoop">rewindControlLoop</a></code></li>
+<li><code><a title="bathysphere.models.Actuators.sendMessage" href="../models.html#bathysphere.models.Actuators.sendMessage">sendMessage</a></code></li>
+<li><code><a title="bathysphere.models.Actuators.signalTransform" href="../models.html#bathysphere.models.Actuators.signalTransform">signalTransform</a></code></li>
+<li><code><a title="bathysphere.models.Actuators.startControlLoop" href="../models.html#bathysphere.models.Actuators.startControlLoop">startControlLoop</a></code></li>
+<li><code><a title="bathysphere.models.Actuators.startController" href="../models.html#bathysphere.models.Actuators.startController">startController</a></code></li>
+<li><code><a title="bathysphere.models.Actuators.state" href="../models.html#bathysphere.models.Actuators.state">state</a></code></li>
 </ul>
 </li>
 </ul>
 </dd>
-<dt id="graph.models.Assets"><code class="flex name class">
+<dt id="bathysphere.graph.models.Assets"><code class="flex name class">
 <span>class <span class="ident">Assets</span></span>
 <span>(</span><span>uuid: uuid.UUID = None, symbol: str = 'n', name: str = None, description: str = None, location: str = None)</span>
 </code></dt>
@@ -679,28 +693,28 @@ class User(Entity, models.User):
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="graph.models.Entity" href="#graph.models.Entity">Entity</a></li>
-<li>bathysphere.models.Assets</li>
+<li><a title="bathysphere.graph.models.Entity" href="#bathysphere.graph.models.Entity">Entity</a></li>
+<li><a title="bathysphere.models.Assets" href="../models.html#bathysphere.models.Assets">Assets</a></li>
 </ul>
 <h3>Inherited members</h3>
 <ul class="hlist">
-<li><code><b><a title="graph.models.Entity" href="#graph.models.Entity">Entity</a></b></code>:
+<li><code><b><a title="bathysphere.graph.models.Entity" href="#bathysphere.graph.models.Entity">Entity</a></b></code>:
 <ul class="hlist">
-<li><code><a title="graph.models.Entity.addConstraint" href="#graph.models.Entity.addConstraint">addConstraint</a></code></li>
-<li><code><a title="graph.models.Entity.addIndex" href="#graph.models.Entity.addIndex">addIndex</a></code></li>
-<li><code><a title="graph.models.Entity.addLabel" href="#graph.models.Entity.addLabel">addLabel</a></code></li>
-<li><code><a title="graph.models.Entity.count" href="#graph.models.Entity.count">count</a></code></li>
-<li><code><a title="graph.models.Entity.create" href="#graph.models.Entity.create">create</a></code></li>
-<li><code><a title="graph.models.Entity.delete" href="#graph.models.Entity.delete">delete</a></code></li>
-<li><code><a title="graph.models.Entity.dropIndex" href="#graph.models.Entity.dropIndex">dropIndex</a></code></li>
-<li><code><a title="graph.models.Entity.load" href="#graph.models.Entity.load">load</a></code></li>
-<li><code><a title="graph.models.Entity.mutate" href="#graph.models.Entity.mutate">mutate</a></code></li>
-<li><code><a title="graph.models.Entity.serialize" href="#graph.models.Entity.serialize">serialize</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.addConstraint" href="#bathysphere.graph.models.Entity.addConstraint">addConstraint</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.addIndex" href="#bathysphere.graph.models.Entity.addIndex">addIndex</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.addLabel" href="#bathysphere.graph.models.Entity.addLabel">addLabel</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.count" href="#bathysphere.graph.models.Entity.count">count</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.create" href="#bathysphere.graph.models.Entity.create">create</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.delete" href="#bathysphere.graph.models.Entity.delete">delete</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.dropIndex" href="#bathysphere.graph.models.Entity.dropIndex">dropIndex</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.load" href="#bathysphere.graph.models.Entity.load">load</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.mutate" href="#bathysphere.graph.models.Entity.mutate">mutate</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.serialize" href="#bathysphere.graph.models.Entity.serialize">serialize</a></code></li>
 </ul>
 </li>
 </ul>
 </dd>
-<dt id="graph.models.Collections"><code class="flex name class">
+<dt id="bathysphere.graph.models.Collections"><code class="flex name class">
 <span>class <span class="ident">Collections</span></span>
 <span>(</span><span>uuid: uuid.UUID = None, symbol: str = 'n', name: str = None, description: str = None, extent: (<class 'float'>,) = None, keywords: str = None, license: str = None, version: int = None)</span>
 </code></dt>
@@ -715,28 +729,28 @@ class User(Entity, models.User):
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="graph.models.Entity" href="#graph.models.Entity">Entity</a></li>
-<li>bathysphere.models.Collections</li>
+<li><a title="bathysphere.graph.models.Entity" href="#bathysphere.graph.models.Entity">Entity</a></li>
+<li><a title="bathysphere.models.Collections" href="../models.html#bathysphere.models.Collections">Collections</a></li>
 </ul>
 <h3>Inherited members</h3>
 <ul class="hlist">
-<li><code><b><a title="graph.models.Entity" href="#graph.models.Entity">Entity</a></b></code>:
+<li><code><b><a title="bathysphere.graph.models.Entity" href="#bathysphere.graph.models.Entity">Entity</a></b></code>:
 <ul class="hlist">
-<li><code><a title="graph.models.Entity.addConstraint" href="#graph.models.Entity.addConstraint">addConstraint</a></code></li>
-<li><code><a title="graph.models.Entity.addIndex" href="#graph.models.Entity.addIndex">addIndex</a></code></li>
-<li><code><a title="graph.models.Entity.addLabel" href="#graph.models.Entity.addLabel">addLabel</a></code></li>
-<li><code><a title="graph.models.Entity.count" href="#graph.models.Entity.count">count</a></code></li>
-<li><code><a title="graph.models.Entity.create" href="#graph.models.Entity.create">create</a></code></li>
-<li><code><a title="graph.models.Entity.delete" href="#graph.models.Entity.delete">delete</a></code></li>
-<li><code><a title="graph.models.Entity.dropIndex" href="#graph.models.Entity.dropIndex">dropIndex</a></code></li>
-<li><code><a title="graph.models.Entity.load" href="#graph.models.Entity.load">load</a></code></li>
-<li><code><a title="graph.models.Entity.mutate" href="#graph.models.Entity.mutate">mutate</a></code></li>
-<li><code><a title="graph.models.Entity.serialize" href="#graph.models.Entity.serialize">serialize</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.addConstraint" href="#bathysphere.graph.models.Entity.addConstraint">addConstraint</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.addIndex" href="#bathysphere.graph.models.Entity.addIndex">addIndex</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.addLabel" href="#bathysphere.graph.models.Entity.addLabel">addLabel</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.count" href="#bathysphere.graph.models.Entity.count">count</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.create" href="#bathysphere.graph.models.Entity.create">create</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.delete" href="#bathysphere.graph.models.Entity.delete">delete</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.dropIndex" href="#bathysphere.graph.models.Entity.dropIndex">dropIndex</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.load" href="#bathysphere.graph.models.Entity.load">load</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.mutate" href="#bathysphere.graph.models.Entity.mutate">mutate</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.serialize" href="#bathysphere.graph.models.Entity.serialize">serialize</a></code></li>
 </ul>
 </li>
 </ul>
 </dd>
-<dt id="graph.models.DataStreams"><code class="flex name class">
+<dt id="bathysphere.graph.models.DataStreams"><code class="flex name class">
 <span>class <span class="ident">DataStreams</span></span>
 <span>(</span><span>uuid: uuid.UUID = None, symbol: str = 'n', name: str = None, description: str = None, unitOfMeasurement=None, observationType=None, observedArea: dict = None, phenomenonTime: (<class 'datetime.datetime'>, <class 'datetime.datetime'>) = None, resultTime: (<class 'datetime.datetime'>, <class 'datetime.datetime'>) = None)</span>
 </code></dt>
@@ -751,28 +765,38 @@ class User(Entity, models.User):
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="graph.models.Entity" href="#graph.models.Entity">Entity</a></li>
-<li>bathysphere.models.DataStreams</li>
+<li><a title="bathysphere.graph.models.Entity" href="#bathysphere.graph.models.Entity">Entity</a></li>
+<li><a title="bathysphere.models.DataStreams" href="../models.html#bathysphere.models.DataStreams">DataStreams</a></li>
 </ul>
 <h3>Inherited members</h3>
 <ul class="hlist">
-<li><code><b><a title="graph.models.Entity" href="#graph.models.Entity">Entity</a></b></code>:
+<li><code><b><a title="bathysphere.graph.models.Entity" href="#bathysphere.graph.models.Entity">Entity</a></b></code>:
 <ul class="hlist">
-<li><code><a title="graph.models.Entity.addConstraint" href="#graph.models.Entity.addConstraint">addConstraint</a></code></li>
-<li><code><a title="graph.models.Entity.addIndex" href="#graph.models.Entity.addIndex">addIndex</a></code></li>
-<li><code><a title="graph.models.Entity.addLabel" href="#graph.models.Entity.addLabel">addLabel</a></code></li>
-<li><code><a title="graph.models.Entity.count" href="#graph.models.Entity.count">count</a></code></li>
-<li><code><a title="graph.models.Entity.create" href="#graph.models.Entity.create">create</a></code></li>
-<li><code><a title="graph.models.Entity.delete" href="#graph.models.Entity.delete">delete</a></code></li>
-<li><code><a title="graph.models.Entity.dropIndex" href="#graph.models.Entity.dropIndex">dropIndex</a></code></li>
-<li><code><a title="graph.models.Entity.load" href="#graph.models.Entity.load">load</a></code></li>
-<li><code><a title="graph.models.Entity.mutate" href="#graph.models.Entity.mutate">mutate</a></code></li>
-<li><code><a title="graph.models.Entity.serialize" href="#graph.models.Entity.serialize">serialize</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.addConstraint" href="#bathysphere.graph.models.Entity.addConstraint">addConstraint</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.addIndex" href="#bathysphere.graph.models.Entity.addIndex">addIndex</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.addLabel" href="#bathysphere.graph.models.Entity.addLabel">addLabel</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.count" href="#bathysphere.graph.models.Entity.count">count</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.create" href="#bathysphere.graph.models.Entity.create">create</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.delete" href="#bathysphere.graph.models.Entity.delete">delete</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.dropIndex" href="#bathysphere.graph.models.Entity.dropIndex">dropIndex</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.load" href="#bathysphere.graph.models.Entity.load">load</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.mutate" href="#bathysphere.graph.models.Entity.mutate">mutate</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.serialize" href="#bathysphere.graph.models.Entity.serialize">serialize</a></code></li>
+</ul>
+</li>
+<li><code><b><a title="bathysphere.models.DataStreams" href="../models.html#bathysphere.models.DataStreams">DataStreams</a></b></code>:
+<ul class="hlist">
+<li><code><a title="bathysphere.models.DataStreams.fourierTransform" href="../models.html#bathysphere.models.DataStreams.fourierTransform">fourierTransform</a></code></li>
+<li><code><a title="bathysphere.models.DataStreams.outOfRangeMask" href="../models.html#bathysphere.models.DataStreams.outOfRangeMask">outOfRangeMask</a></code></li>
+<li><code><a title="bathysphere.models.DataStreams.partition" href="../models.html#bathysphere.models.DataStreams.partition">partition</a></code></li>
+<li><code><a title="bathysphere.models.DataStreams.resampleSparseSeries" href="../models.html#bathysphere.models.DataStreams.resampleSparseSeries">resampleSparseSeries</a></code></li>
+<li><code><a title="bathysphere.models.DataStreams.smoothUsingConvolution" href="../models.html#bathysphere.models.DataStreams.smoothUsingConvolution">smoothUsingConvolution</a></code></li>
+<li><code><a title="bathysphere.models.DataStreams.statisticalOutlierMask" href="../models.html#bathysphere.models.DataStreams.statisticalOutlierMask">statisticalOutlierMask</a></code></li>
 </ul>
 </li>
 </ul>
 </dd>
-<dt id="graph.models.Entity"><code class="flex name class">
+<dt id="bathysphere.graph.models.Entity"><code class="flex name class">
 <span>class <span class="ident">Entity</span></span>
 <span>(</span><span>uuid: uuid.UUID = None, symbol: str = 'n')</span>
 </code></dt>
@@ -1104,25 +1128,25 @@ class User(Entity, models.User):
 </details>
 <h3>Subclasses</h3>
 <ul class="hlist">
-<li><a title="graph.models.Actuators" href="#graph.models.Actuators">Actuators</a></li>
-<li><a title="graph.models.Assets" href="#graph.models.Assets">Assets</a></li>
-<li><a title="graph.models.Collections" href="#graph.models.Collections">Collections</a></li>
-<li><a title="graph.models.DataStreams" href="#graph.models.DataStreams">DataStreams</a></li>
-<li><a title="graph.models.FeaturesOfInterest" href="#graph.models.FeaturesOfInterest">FeaturesOfInterest</a></li>
-<li><a title="graph.models.HistoricalLocations" href="#graph.models.HistoricalLocations">HistoricalLocations</a></li>
-<li><a title="graph.models.Locations" href="#graph.models.Locations">Locations</a></li>
-<li><a title="graph.models.Observations" href="#graph.models.Observations">Observations</a></li>
-<li><a title="graph.models.ObservedProperties" href="#graph.models.ObservedProperties">ObservedProperties</a></li>
-<li><a title="graph.models.Providers" href="#graph.models.Providers">Providers</a></li>
-<li><a title="graph.models.Sensors" href="#graph.models.Sensors">Sensors</a></li>
-<li><a title="graph.models.TaskingCapabilities" href="#graph.models.TaskingCapabilities">TaskingCapabilities</a></li>
-<li><a title="graph.models.Tasks" href="#graph.models.Tasks">Tasks</a></li>
-<li><a title="graph.models.Things" href="#graph.models.Things">Things</a></li>
-<li><a title="graph.models.User" href="#graph.models.User">User</a></li>
+<li><a title="bathysphere.graph.models.Actuators" href="#bathysphere.graph.models.Actuators">Actuators</a></li>
+<li><a title="bathysphere.graph.models.Assets" href="#bathysphere.graph.models.Assets">Assets</a></li>
+<li><a title="bathysphere.graph.models.Collections" href="#bathysphere.graph.models.Collections">Collections</a></li>
+<li><a title="bathysphere.graph.models.DataStreams" href="#bathysphere.graph.models.DataStreams">DataStreams</a></li>
+<li><a title="bathysphere.graph.models.FeaturesOfInterest" href="#bathysphere.graph.models.FeaturesOfInterest">FeaturesOfInterest</a></li>
+<li><a title="bathysphere.graph.models.HistoricalLocations" href="#bathysphere.graph.models.HistoricalLocations">HistoricalLocations</a></li>
+<li><a title="bathysphere.graph.models.Locations" href="#bathysphere.graph.models.Locations">Locations</a></li>
+<li><a title="bathysphere.graph.models.Observations" href="#bathysphere.graph.models.Observations">Observations</a></li>
+<li><a title="bathysphere.graph.models.ObservedProperties" href="#bathysphere.graph.models.ObservedProperties">ObservedProperties</a></li>
+<li><a title="bathysphere.graph.models.Providers" href="#bathysphere.graph.models.Providers">Providers</a></li>
+<li><a title="bathysphere.graph.models.Sensors" href="#bathysphere.graph.models.Sensors">Sensors</a></li>
+<li><a title="bathysphere.graph.models.TaskingCapabilities" href="#bathysphere.graph.models.TaskingCapabilities">TaskingCapabilities</a></li>
+<li><a title="bathysphere.graph.models.Tasks" href="#bathysphere.graph.models.Tasks">Tasks</a></li>
+<li><a title="bathysphere.graph.models.Things" href="#bathysphere.graph.models.Things">Things</a></li>
+<li><a title="bathysphere.graph.models.User" href="#bathysphere.graph.models.User">User</a></li>
 </ul>
 <h3>Static methods</h3>
 <dl>
-<dt id="graph.models.Entity.addConstraint"><code class="name flex">
+<dt id="bathysphere.graph.models.Entity.addConstraint"><code class="name flex">
 <span>def <span class="ident">addConstraint</span></span>(<span>db: neo4j.Driver, by: str) -> Callable</span>
 </code></dt>
 <dd>
@@ -1145,7 +1169,7 @@ def addConstraint(cls, db: Driver, by: str) -&gt; Callable:
     return executeQuery(db, query, read_only=False)</code></pre>
 </details>
 </dd>
-<dt id="graph.models.Entity.addIndex"><code class="name flex">
+<dt id="bathysphere.graph.models.Entity.addIndex"><code class="name flex">
 <span>def <span class="ident">addIndex</span></span>(<span>db: neo4j.Driver, by: str) -> Callable</span>
 </code></dt>
 <dd>
@@ -1165,7 +1189,7 @@ def addIndex(cls, db: Driver, by: str) -&gt; Callable:
     return executeQuery(db, query, read_only=False)</code></pre>
 </details>
 </dd>
-<dt id="graph.models.Entity.addLabel"><code class="name flex">
+<dt id="bathysphere.graph.models.Entity.addLabel"><code class="name flex">
 <span>def <span class="ident">addLabel</span></span>(<span>db: neo4j.Driver, label: str, **kwargs: dict) -> list</span>
 </code></dt>
 <dd>
@@ -1186,7 +1210,7 @@ def addLabel(cls, db: Driver, label: str, **kwargs: dict) -&gt; list or None:
     return executeQuery(db, query, read_only=False)</code></pre>
 </details>
 </dd>
-<dt id="graph.models.Entity.count"><code class="name flex">
+<dt id="bathysphere.graph.models.Entity.count"><code class="name flex">
 <span>def <span class="ident">count</span></span>(<span>db: neo4j.Driver, **kwargs: dict) -> int</span>
 </code></dt>
 <dd>
@@ -1207,7 +1231,7 @@ def count(cls, db: Driver, **kwargs: dict) -&gt; int:
     return executeQuery(db, query, read_only=True)</code></pre>
 </details>
 </dd>
-<dt id="graph.models.Entity.dropIndex"><code class="name flex">
+<dt id="bathysphere.graph.models.Entity.dropIndex"><code class="name flex">
 <span>def <span class="ident">dropIndex</span></span>(<span>db: neo4j.Driver, by: str) -> NoneType</span>
 </code></dt>
 <dd>
@@ -1226,7 +1250,7 @@ def dropIndex(cls, db: Driver, by: str) -&gt; None:
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="graph.models.Entity.create"><code class="name flex">
+<dt id="bathysphere.graph.models.Entity.create"><code class="name flex">
 <span>def <span class="ident">create</span></span>(<span>*args, **kwargs)</span>
 </code></dt>
 <dd>
@@ -1242,7 +1266,7 @@ def dropIndex(cls, db: Driver, by: str) -&gt; None:
     return self.f(wrt, *args, **kwargs)</code></pre>
 </details>
 </dd>
-<dt id="graph.models.Entity.delete"><code class="name flex">
+<dt id="bathysphere.graph.models.Entity.delete"><code class="name flex">
 <span>def <span class="ident">delete</span></span>(<span>*args, **kwargs)</span>
 </code></dt>
 <dd>
@@ -1258,7 +1282,7 @@ def dropIndex(cls, db: Driver, by: str) -&gt; None:
     return self.f(wrt, *args, **kwargs)</code></pre>
 </details>
 </dd>
-<dt id="graph.models.Entity.load"><code class="name flex">
+<dt id="bathysphere.graph.models.Entity.load"><code class="name flex">
 <span>def <span class="ident">load</span></span>(<span>*args, **kwargs)</span>
 </code></dt>
 <dd>
@@ -1274,7 +1298,7 @@ def dropIndex(cls, db: Driver, by: str) -&gt; None:
     return self.f(wrt, *args, **kwargs)</code></pre>
 </details>
 </dd>
-<dt id="graph.models.Entity.mutate"><code class="name flex">
+<dt id="bathysphere.graph.models.Entity.mutate"><code class="name flex">
 <span>def <span class="ident">mutate</span></span>(<span>*args, **kwargs)</span>
 </code></dt>
 <dd>
@@ -1290,7 +1314,7 @@ def dropIndex(cls, db: Driver, by: str) -&gt; None:
     return self.f(wrt, *args, **kwargs)</code></pre>
 </details>
 </dd>
-<dt id="graph.models.Entity.serialize"><code class="name flex">
+<dt id="bathysphere.graph.models.Entity.serialize"><code class="name flex">
 <span>def <span class="ident">serialize</span></span>(<span>self, db: neo4j.Driver, service: str, protocol: str = 'http', select: str = None) -> dict</span>
 </code></dt>
 <dd>
@@ -1343,7 +1367,7 @@ since SensorThings notation is title case</p></div>
 </dd>
 </dl>
 </dd>
-<dt id="graph.models.FeaturesOfInterest"><code class="flex name class">
+<dt id="bathysphere.graph.models.FeaturesOfInterest"><code class="flex name class">
 <span>class <span class="ident">FeaturesOfInterest</span></span>
 <span>(</span><span>uuid: uuid.UUID = None, symbol: str = 'n', name: str = None, description: str = None, encodingType: str = None, feature: Any = None)</span>
 </code></dt>
@@ -1358,28 +1382,28 @@ since SensorThings notation is title case</p></div>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="graph.models.Entity" href="#graph.models.Entity">Entity</a></li>
-<li>bathysphere.models.FeaturesOfInterest</li>
+<li><a title="bathysphere.graph.models.Entity" href="#bathysphere.graph.models.Entity">Entity</a></li>
+<li><a title="bathysphere.models.FeaturesOfInterest" href="../models.html#bathysphere.models.FeaturesOfInterest">FeaturesOfInterest</a></li>
 </ul>
 <h3>Inherited members</h3>
 <ul class="hlist">
-<li><code><b><a title="graph.models.Entity" href="#graph.models.Entity">Entity</a></b></code>:
+<li><code><b><a title="bathysphere.graph.models.Entity" href="#bathysphere.graph.models.Entity">Entity</a></b></code>:
 <ul class="hlist">
-<li><code><a title="graph.models.Entity.addConstraint" href="#graph.models.Entity.addConstraint">addConstraint</a></code></li>
-<li><code><a title="graph.models.Entity.addIndex" href="#graph.models.Entity.addIndex">addIndex</a></code></li>
-<li><code><a title="graph.models.Entity.addLabel" href="#graph.models.Entity.addLabel">addLabel</a></code></li>
-<li><code><a title="graph.models.Entity.count" href="#graph.models.Entity.count">count</a></code></li>
-<li><code><a title="graph.models.Entity.create" href="#graph.models.Entity.create">create</a></code></li>
-<li><code><a title="graph.models.Entity.delete" href="#graph.models.Entity.delete">delete</a></code></li>
-<li><code><a title="graph.models.Entity.dropIndex" href="#graph.models.Entity.dropIndex">dropIndex</a></code></li>
-<li><code><a title="graph.models.Entity.load" href="#graph.models.Entity.load">load</a></code></li>
-<li><code><a title="graph.models.Entity.mutate" href="#graph.models.Entity.mutate">mutate</a></code></li>
-<li><code><a title="graph.models.Entity.serialize" href="#graph.models.Entity.serialize">serialize</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.addConstraint" href="#bathysphere.graph.models.Entity.addConstraint">addConstraint</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.addIndex" href="#bathysphere.graph.models.Entity.addIndex">addIndex</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.addLabel" href="#bathysphere.graph.models.Entity.addLabel">addLabel</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.count" href="#bathysphere.graph.models.Entity.count">count</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.create" href="#bathysphere.graph.models.Entity.create">create</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.delete" href="#bathysphere.graph.models.Entity.delete">delete</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.dropIndex" href="#bathysphere.graph.models.Entity.dropIndex">dropIndex</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.load" href="#bathysphere.graph.models.Entity.load">load</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.mutate" href="#bathysphere.graph.models.Entity.mutate">mutate</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.serialize" href="#bathysphere.graph.models.Entity.serialize">serialize</a></code></li>
 </ul>
 </li>
 </ul>
 </dd>
-<dt id="graph.models.HistoricalLocations"><code class="flex name class">
+<dt id="bathysphere.graph.models.HistoricalLocations"><code class="flex name class">
 <span>class <span class="ident">HistoricalLocations</span></span>
 <span>(</span><span>uuid: uuid.UUID = None, symbol: str = 'n', time: str = None)</span>
 </code></dt>
@@ -1394,28 +1418,28 @@ since SensorThings notation is title case</p></div>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="graph.models.Entity" href="#graph.models.Entity">Entity</a></li>
-<li>bathysphere.models.HistoricalLocations</li>
+<li><a title="bathysphere.graph.models.Entity" href="#bathysphere.graph.models.Entity">Entity</a></li>
+<li><a title="bathysphere.models.HistoricalLocations" href="../models.html#bathysphere.models.HistoricalLocations">HistoricalLocations</a></li>
 </ul>
 <h3>Inherited members</h3>
 <ul class="hlist">
-<li><code><b><a title="graph.models.Entity" href="#graph.models.Entity">Entity</a></b></code>:
+<li><code><b><a title="bathysphere.graph.models.Entity" href="#bathysphere.graph.models.Entity">Entity</a></b></code>:
 <ul class="hlist">
-<li><code><a title="graph.models.Entity.addConstraint" href="#graph.models.Entity.addConstraint">addConstraint</a></code></li>
-<li><code><a title="graph.models.Entity.addIndex" href="#graph.models.Entity.addIndex">addIndex</a></code></li>
-<li><code><a title="graph.models.Entity.addLabel" href="#graph.models.Entity.addLabel">addLabel</a></code></li>
-<li><code><a title="graph.models.Entity.count" href="#graph.models.Entity.count">count</a></code></li>
-<li><code><a title="graph.models.Entity.create" href="#graph.models.Entity.create">create</a></code></li>
-<li><code><a title="graph.models.Entity.delete" href="#graph.models.Entity.delete">delete</a></code></li>
-<li><code><a title="graph.models.Entity.dropIndex" href="#graph.models.Entity.dropIndex">dropIndex</a></code></li>
-<li><code><a title="graph.models.Entity.load" href="#graph.models.Entity.load">load</a></code></li>
-<li><code><a title="graph.models.Entity.mutate" href="#graph.models.Entity.mutate">mutate</a></code></li>
-<li><code><a title="graph.models.Entity.serialize" href="#graph.models.Entity.serialize">serialize</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.addConstraint" href="#bathysphere.graph.models.Entity.addConstraint">addConstraint</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.addIndex" href="#bathysphere.graph.models.Entity.addIndex">addIndex</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.addLabel" href="#bathysphere.graph.models.Entity.addLabel">addLabel</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.count" href="#bathysphere.graph.models.Entity.count">count</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.create" href="#bathysphere.graph.models.Entity.create">create</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.delete" href="#bathysphere.graph.models.Entity.delete">delete</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.dropIndex" href="#bathysphere.graph.models.Entity.dropIndex">dropIndex</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.load" href="#bathysphere.graph.models.Entity.load">load</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.mutate" href="#bathysphere.graph.models.Entity.mutate">mutate</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.serialize" href="#bathysphere.graph.models.Entity.serialize">serialize</a></code></li>
 </ul>
 </li>
 </ul>
 </dd>
-<dt id="graph.models.Link"><code class="flex name class">
+<dt id="bathysphere.graph.models.Link"><code class="flex name class">
 <span>class <span class="ident">Link</span></span>
 <span>(</span><span>symbol: str = 'r', rank: int = None, uuid: uuid.UUID = None, props: dict = None, label: str = None)</span>
 </code></dt>
@@ -1541,7 +1565,7 @@ They are directional.</p></div>
 </details>
 <h3>Static methods</h3>
 <dl>
-<dt id="graph.models.Link.drop"><code class="name flex">
+<dt id="bathysphere.graph.models.Link.drop"><code class="name flex">
 <span>def <span class="ident">drop</span></span>(<span>db: neo4j.Driver, nodes: (typing.Type, typing.Type), props: dict) -> NoneType</span>
 </code></dt>
 <dd>
@@ -1564,7 +1588,7 @@ def drop(cls: Type, db: Driver, nodes: (Type, Type), props: dict) -&gt; None:
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="graph.models.Link.join"><code class="name flex">
+<dt id="bathysphere.graph.models.Link.join"><code class="name flex">
 <span>def <span class="ident">join</span></span>(<span>*args, **kwargs)</span>
 </code></dt>
 <dd>
@@ -1580,7 +1604,7 @@ def drop(cls: Type, db: Driver, nodes: (Type, Type), props: dict) -&gt; None:
     return self.f(wrt, *args, **kwargs)</code></pre>
 </details>
 </dd>
-<dt id="graph.models.Link.query"><code class="name flex">
+<dt id="bathysphere.graph.models.Link.query"><code class="name flex">
 <span>def <span class="ident">query</span></span>(<span>*args, **kwargs)</span>
 </code></dt>
 <dd>
@@ -1598,7 +1622,7 @@ def drop(cls: Type, db: Driver, nodes: (Type, Type), props: dict) -&gt; None:
 </dd>
 </dl>
 </dd>
-<dt id="graph.models.Locations"><code class="flex name class">
+<dt id="bathysphere.graph.models.Locations"><code class="flex name class">
 <span>class <span class="ident">Locations</span></span>
 <span>(</span><span>uuid: uuid.UUID = None, symbol: str = 'n', description: str = None, encodingType: str = 'application/vnd.geo+json', location=None, name: str = None)</span>
 </code></dt>
@@ -1642,12 +1666,12 @@ def drop(cls: Type, db: Driver, nodes: (Type, Type), props: dict) -&gt; None:
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="graph.models.Entity" href="#graph.models.Entity">Entity</a></li>
-<li>bathysphere.models.Locations</li>
+<li><a title="bathysphere.graph.models.Entity" href="#bathysphere.graph.models.Entity">Entity</a></li>
+<li><a title="bathysphere.models.Locations" href="../models.html#bathysphere.models.Locations">Locations</a></li>
 </ul>
 <h3>Methods</h3>
 <dl>
-<dt id="graph.models.Locations.reportWeather"><code class="name flex">
+<dt id="bathysphere.graph.models.Locations.reportWeather"><code class="name flex">
 <span>def <span class="ident">reportWeather</span></span>(<span>self, ts: datetime.datetime, api_key: str, url: str = 'https://api.darksky.net/forecast', exclude: str = None) -> (<class 'dict'>, <class 'int'>)</span>
 </code></dt>
 <dd>
@@ -1695,23 +1719,23 @@ def drop(cls: Type, db: Driver, nodes: (Type, Type), props: dict) -&gt; None:
 </dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
-<li><code><b><a title="graph.models.Entity" href="#graph.models.Entity">Entity</a></b></code>:
+<li><code><b><a title="bathysphere.graph.models.Entity" href="#bathysphere.graph.models.Entity">Entity</a></b></code>:
 <ul class="hlist">
-<li><code><a title="graph.models.Entity.addConstraint" href="#graph.models.Entity.addConstraint">addConstraint</a></code></li>
-<li><code><a title="graph.models.Entity.addIndex" href="#graph.models.Entity.addIndex">addIndex</a></code></li>
-<li><code><a title="graph.models.Entity.addLabel" href="#graph.models.Entity.addLabel">addLabel</a></code></li>
-<li><code><a title="graph.models.Entity.count" href="#graph.models.Entity.count">count</a></code></li>
-<li><code><a title="graph.models.Entity.create" href="#graph.models.Entity.create">create</a></code></li>
-<li><code><a title="graph.models.Entity.delete" href="#graph.models.Entity.delete">delete</a></code></li>
-<li><code><a title="graph.models.Entity.dropIndex" href="#graph.models.Entity.dropIndex">dropIndex</a></code></li>
-<li><code><a title="graph.models.Entity.load" href="#graph.models.Entity.load">load</a></code></li>
-<li><code><a title="graph.models.Entity.mutate" href="#graph.models.Entity.mutate">mutate</a></code></li>
-<li><code><a title="graph.models.Entity.serialize" href="#graph.models.Entity.serialize">serialize</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.addConstraint" href="#bathysphere.graph.models.Entity.addConstraint">addConstraint</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.addIndex" href="#bathysphere.graph.models.Entity.addIndex">addIndex</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.addLabel" href="#bathysphere.graph.models.Entity.addLabel">addLabel</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.count" href="#bathysphere.graph.models.Entity.count">count</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.create" href="#bathysphere.graph.models.Entity.create">create</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.delete" href="#bathysphere.graph.models.Entity.delete">delete</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.dropIndex" href="#bathysphere.graph.models.Entity.dropIndex">dropIndex</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.load" href="#bathysphere.graph.models.Entity.load">load</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.mutate" href="#bathysphere.graph.models.Entity.mutate">mutate</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.serialize" href="#bathysphere.graph.models.Entity.serialize">serialize</a></code></li>
 </ul>
 </li>
 </ul>
 </dd>
-<dt id="graph.models.Observations"><code class="flex name class">
+<dt id="bathysphere.graph.models.Observations"><code class="flex name class">
 <span>class <span class="ident">Observations</span></span>
 <span>(</span><span>uuid: uuid.UUID = None, symbol: str = 'n', phenomenonTime: datetime.datetime = None, result: Any = None, resultTime: datetime.datetime = None, resultQuality: Any = None, validTime: (<class 'datetime.datetime'>, <class 'datetime.datetime'>) = None, parameters: dict = None)</span>
 </code></dt>
@@ -1726,28 +1750,33 @@ def drop(cls: Type, db: Driver, nodes: (Type, Type), props: dict) -&gt; None:
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="graph.models.Entity" href="#graph.models.Entity">Entity</a></li>
-<li>bathysphere.models.Observations</li>
+<li><a title="bathysphere.graph.models.Entity" href="#bathysphere.graph.models.Entity">Entity</a></li>
+<li><a title="bathysphere.models.Observations" href="../models.html#bathysphere.models.Observations">Observations</a></li>
 </ul>
 <h3>Inherited members</h3>
 <ul class="hlist">
-<li><code><b><a title="graph.models.Entity" href="#graph.models.Entity">Entity</a></b></code>:
+<li><code><b><a title="bathysphere.graph.models.Entity" href="#bathysphere.graph.models.Entity">Entity</a></b></code>:
 <ul class="hlist">
-<li><code><a title="graph.models.Entity.addConstraint" href="#graph.models.Entity.addConstraint">addConstraint</a></code></li>
-<li><code><a title="graph.models.Entity.addIndex" href="#graph.models.Entity.addIndex">addIndex</a></code></li>
-<li><code><a title="graph.models.Entity.addLabel" href="#graph.models.Entity.addLabel">addLabel</a></code></li>
-<li><code><a title="graph.models.Entity.count" href="#graph.models.Entity.count">count</a></code></li>
-<li><code><a title="graph.models.Entity.create" href="#graph.models.Entity.create">create</a></code></li>
-<li><code><a title="graph.models.Entity.delete" href="#graph.models.Entity.delete">delete</a></code></li>
-<li><code><a title="graph.models.Entity.dropIndex" href="#graph.models.Entity.dropIndex">dropIndex</a></code></li>
-<li><code><a title="graph.models.Entity.load" href="#graph.models.Entity.load">load</a></code></li>
-<li><code><a title="graph.models.Entity.mutate" href="#graph.models.Entity.mutate">mutate</a></code></li>
-<li><code><a title="graph.models.Entity.serialize" href="#graph.models.Entity.serialize">serialize</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.addConstraint" href="#bathysphere.graph.models.Entity.addConstraint">addConstraint</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.addIndex" href="#bathysphere.graph.models.Entity.addIndex">addIndex</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.addLabel" href="#bathysphere.graph.models.Entity.addLabel">addLabel</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.count" href="#bathysphere.graph.models.Entity.count">count</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.create" href="#bathysphere.graph.models.Entity.create">create</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.delete" href="#bathysphere.graph.models.Entity.delete">delete</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.dropIndex" href="#bathysphere.graph.models.Entity.dropIndex">dropIndex</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.load" href="#bathysphere.graph.models.Entity.load">load</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.mutate" href="#bathysphere.graph.models.Entity.mutate">mutate</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.serialize" href="#bathysphere.graph.models.Entity.serialize">serialize</a></code></li>
+</ul>
+</li>
+<li><code><b><a title="bathysphere.models.Observations" href="../models.html#bathysphere.models.Observations">Observations</a></b></code>:
+<ul class="hlist">
+<li><code><a title="bathysphere.models.Observations.outOfRange" href="../models.html#bathysphere.models.Observations.outOfRange">outOfRange</a></code></li>
 </ul>
 </li>
 </ul>
 </dd>
-<dt id="graph.models.ObservedProperties"><code class="flex name class">
+<dt id="bathysphere.graph.models.ObservedProperties"><code class="flex name class">
 <span>class <span class="ident">ObservedProperties</span></span>
 <span>(</span><span>uuid: uuid.UUID = None, symbol: str = 'n', name: str = None, description: str = None, definition: str = None)</span>
 </code></dt>
@@ -1762,28 +1791,28 @@ def drop(cls: Type, db: Driver, nodes: (Type, Type), props: dict) -&gt; None:
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="graph.models.Entity" href="#graph.models.Entity">Entity</a></li>
-<li>bathysphere.models.ObservedProperties</li>
+<li><a title="bathysphere.graph.models.Entity" href="#bathysphere.graph.models.Entity">Entity</a></li>
+<li><a title="bathysphere.models.ObservedProperties" href="../models.html#bathysphere.models.ObservedProperties">ObservedProperties</a></li>
 </ul>
 <h3>Inherited members</h3>
 <ul class="hlist">
-<li><code><b><a title="graph.models.Entity" href="#graph.models.Entity">Entity</a></b></code>:
+<li><code><b><a title="bathysphere.graph.models.Entity" href="#bathysphere.graph.models.Entity">Entity</a></b></code>:
 <ul class="hlist">
-<li><code><a title="graph.models.Entity.addConstraint" href="#graph.models.Entity.addConstraint">addConstraint</a></code></li>
-<li><code><a title="graph.models.Entity.addIndex" href="#graph.models.Entity.addIndex">addIndex</a></code></li>
-<li><code><a title="graph.models.Entity.addLabel" href="#graph.models.Entity.addLabel">addLabel</a></code></li>
-<li><code><a title="graph.models.Entity.count" href="#graph.models.Entity.count">count</a></code></li>
-<li><code><a title="graph.models.Entity.create" href="#graph.models.Entity.create">create</a></code></li>
-<li><code><a title="graph.models.Entity.delete" href="#graph.models.Entity.delete">delete</a></code></li>
-<li><code><a title="graph.models.Entity.dropIndex" href="#graph.models.Entity.dropIndex">dropIndex</a></code></li>
-<li><code><a title="graph.models.Entity.load" href="#graph.models.Entity.load">load</a></code></li>
-<li><code><a title="graph.models.Entity.mutate" href="#graph.models.Entity.mutate">mutate</a></code></li>
-<li><code><a title="graph.models.Entity.serialize" href="#graph.models.Entity.serialize">serialize</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.addConstraint" href="#bathysphere.graph.models.Entity.addConstraint">addConstraint</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.addIndex" href="#bathysphere.graph.models.Entity.addIndex">addIndex</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.addLabel" href="#bathysphere.graph.models.Entity.addLabel">addLabel</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.count" href="#bathysphere.graph.models.Entity.count">count</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.create" href="#bathysphere.graph.models.Entity.create">create</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.delete" href="#bathysphere.graph.models.Entity.delete">delete</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.dropIndex" href="#bathysphere.graph.models.Entity.dropIndex">dropIndex</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.load" href="#bathysphere.graph.models.Entity.load">load</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.mutate" href="#bathysphere.graph.models.Entity.mutate">mutate</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.serialize" href="#bathysphere.graph.models.Entity.serialize">serialize</a></code></li>
 </ul>
 </li>
 </ul>
 </dd>
-<dt id="graph.models.Providers"><code class="flex name class">
+<dt id="bathysphere.graph.models.Providers"><code class="flex name class">
 <span>class <span class="ident">Providers</span></span>
 <span>(</span><span>name: str = None, description: str = None, domain: str = None, secretKey: str = None, apiKey: str = None, tokenDuration: int = None, uuid: uuid.UUID = None, symbol: str = 'n')</span>
 </code></dt>
@@ -1798,28 +1827,28 @@ def drop(cls: Type, db: Driver, nodes: (Type, Type), props: dict) -&gt; None:
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li>bathysphere.models.Providers</li>
-<li><a title="graph.models.Entity" href="#graph.models.Entity">Entity</a></li>
+<li><a title="bathysphere.models.Providers" href="../models.html#bathysphere.models.Providers">Providers</a></li>
+<li><a title="bathysphere.graph.models.Entity" href="#bathysphere.graph.models.Entity">Entity</a></li>
 </ul>
 <h3>Inherited members</h3>
 <ul class="hlist">
-<li><code><b><a title="graph.models.Entity" href="#graph.models.Entity">Entity</a></b></code>:
+<li><code><b><a title="bathysphere.graph.models.Entity" href="#bathysphere.graph.models.Entity">Entity</a></b></code>:
 <ul class="hlist">
-<li><code><a title="graph.models.Entity.addConstraint" href="#graph.models.Entity.addConstraint">addConstraint</a></code></li>
-<li><code><a title="graph.models.Entity.addIndex" href="#graph.models.Entity.addIndex">addIndex</a></code></li>
-<li><code><a title="graph.models.Entity.addLabel" href="#graph.models.Entity.addLabel">addLabel</a></code></li>
-<li><code><a title="graph.models.Entity.count" href="#graph.models.Entity.count">count</a></code></li>
-<li><code><a title="graph.models.Entity.create" href="#graph.models.Entity.create">create</a></code></li>
-<li><code><a title="graph.models.Entity.delete" href="#graph.models.Entity.delete">delete</a></code></li>
-<li><code><a title="graph.models.Entity.dropIndex" href="#graph.models.Entity.dropIndex">dropIndex</a></code></li>
-<li><code><a title="graph.models.Entity.load" href="#graph.models.Entity.load">load</a></code></li>
-<li><code><a title="graph.models.Entity.mutate" href="#graph.models.Entity.mutate">mutate</a></code></li>
-<li><code><a title="graph.models.Entity.serialize" href="#graph.models.Entity.serialize">serialize</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.addConstraint" href="#bathysphere.graph.models.Entity.addConstraint">addConstraint</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.addIndex" href="#bathysphere.graph.models.Entity.addIndex">addIndex</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.addLabel" href="#bathysphere.graph.models.Entity.addLabel">addLabel</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.count" href="#bathysphere.graph.models.Entity.count">count</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.create" href="#bathysphere.graph.models.Entity.create">create</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.delete" href="#bathysphere.graph.models.Entity.delete">delete</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.dropIndex" href="#bathysphere.graph.models.Entity.dropIndex">dropIndex</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.load" href="#bathysphere.graph.models.Entity.load">load</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.mutate" href="#bathysphere.graph.models.Entity.mutate">mutate</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.serialize" href="#bathysphere.graph.models.Entity.serialize">serialize</a></code></li>
 </ul>
 </li>
 </ul>
 </dd>
-<dt id="graph.models.Sensors"><code class="flex name class">
+<dt id="bathysphere.graph.models.Sensors"><code class="flex name class">
 <span>class <span class="ident">Sensors</span></span>
 <span>(</span><span>uuid: uuid.UUID = None, symbol: str = 'n', name: str = None, description: str = None, encodingType: str = None, metadata: Any = None)</span>
 </code></dt>
@@ -1834,28 +1863,28 @@ def drop(cls: Type, db: Driver, nodes: (Type, Type), props: dict) -&gt; None:
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="graph.models.Entity" href="#graph.models.Entity">Entity</a></li>
-<li>bathysphere.models.Sensors</li>
+<li><a title="bathysphere.graph.models.Entity" href="#bathysphere.graph.models.Entity">Entity</a></li>
+<li><a title="bathysphere.models.Sensors" href="../models.html#bathysphere.models.Sensors">Sensors</a></li>
 </ul>
 <h3>Inherited members</h3>
 <ul class="hlist">
-<li><code><b><a title="graph.models.Entity" href="#graph.models.Entity">Entity</a></b></code>:
+<li><code><b><a title="bathysphere.graph.models.Entity" href="#bathysphere.graph.models.Entity">Entity</a></b></code>:
 <ul class="hlist">
-<li><code><a title="graph.models.Entity.addConstraint" href="#graph.models.Entity.addConstraint">addConstraint</a></code></li>
-<li><code><a title="graph.models.Entity.addIndex" href="#graph.models.Entity.addIndex">addIndex</a></code></li>
-<li><code><a title="graph.models.Entity.addLabel" href="#graph.models.Entity.addLabel">addLabel</a></code></li>
-<li><code><a title="graph.models.Entity.count" href="#graph.models.Entity.count">count</a></code></li>
-<li><code><a title="graph.models.Entity.create" href="#graph.models.Entity.create">create</a></code></li>
-<li><code><a title="graph.models.Entity.delete" href="#graph.models.Entity.delete">delete</a></code></li>
-<li><code><a title="graph.models.Entity.dropIndex" href="#graph.models.Entity.dropIndex">dropIndex</a></code></li>
-<li><code><a title="graph.models.Entity.load" href="#graph.models.Entity.load">load</a></code></li>
-<li><code><a title="graph.models.Entity.mutate" href="#graph.models.Entity.mutate">mutate</a></code></li>
-<li><code><a title="graph.models.Entity.serialize" href="#graph.models.Entity.serialize">serialize</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.addConstraint" href="#bathysphere.graph.models.Entity.addConstraint">addConstraint</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.addIndex" href="#bathysphere.graph.models.Entity.addIndex">addIndex</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.addLabel" href="#bathysphere.graph.models.Entity.addLabel">addLabel</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.count" href="#bathysphere.graph.models.Entity.count">count</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.create" href="#bathysphere.graph.models.Entity.create">create</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.delete" href="#bathysphere.graph.models.Entity.delete">delete</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.dropIndex" href="#bathysphere.graph.models.Entity.dropIndex">dropIndex</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.load" href="#bathysphere.graph.models.Entity.load">load</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.mutate" href="#bathysphere.graph.models.Entity.mutate">mutate</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.serialize" href="#bathysphere.graph.models.Entity.serialize">serialize</a></code></li>
 </ul>
 </li>
 </ul>
 </dd>
-<dt id="graph.models.TaskingCapabilities"><code class="flex name class">
+<dt id="bathysphere.graph.models.TaskingCapabilities"><code class="flex name class">
 <span>class <span class="ident">TaskingCapabilities</span></span>
 <span>(</span><span>uuid: uuid.UUID = None, symbol: str = 'n', name: str = None, creationTime: float = NOTHING, taskingParameters: dict = None)</span>
 </code></dt>
@@ -1870,28 +1899,28 @@ def drop(cls: Type, db: Driver, nodes: (Type, Type), props: dict) -&gt; None:
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="graph.models.Entity" href="#graph.models.Entity">Entity</a></li>
-<li>bathysphere.models.TaskingCapabilities</li>
+<li><a title="bathysphere.graph.models.Entity" href="#bathysphere.graph.models.Entity">Entity</a></li>
+<li><a title="bathysphere.models.TaskingCapabilities" href="../models.html#bathysphere.models.TaskingCapabilities">TaskingCapabilities</a></li>
 </ul>
 <h3>Inherited members</h3>
 <ul class="hlist">
-<li><code><b><a title="graph.models.Entity" href="#graph.models.Entity">Entity</a></b></code>:
+<li><code><b><a title="bathysphere.graph.models.Entity" href="#bathysphere.graph.models.Entity">Entity</a></b></code>:
 <ul class="hlist">
-<li><code><a title="graph.models.Entity.addConstraint" href="#graph.models.Entity.addConstraint">addConstraint</a></code></li>
-<li><code><a title="graph.models.Entity.addIndex" href="#graph.models.Entity.addIndex">addIndex</a></code></li>
-<li><code><a title="graph.models.Entity.addLabel" href="#graph.models.Entity.addLabel">addLabel</a></code></li>
-<li><code><a title="graph.models.Entity.count" href="#graph.models.Entity.count">count</a></code></li>
-<li><code><a title="graph.models.Entity.create" href="#graph.models.Entity.create">create</a></code></li>
-<li><code><a title="graph.models.Entity.delete" href="#graph.models.Entity.delete">delete</a></code></li>
-<li><code><a title="graph.models.Entity.dropIndex" href="#graph.models.Entity.dropIndex">dropIndex</a></code></li>
-<li><code><a title="graph.models.Entity.load" href="#graph.models.Entity.load">load</a></code></li>
-<li><code><a title="graph.models.Entity.mutate" href="#graph.models.Entity.mutate">mutate</a></code></li>
-<li><code><a title="graph.models.Entity.serialize" href="#graph.models.Entity.serialize">serialize</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.addConstraint" href="#bathysphere.graph.models.Entity.addConstraint">addConstraint</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.addIndex" href="#bathysphere.graph.models.Entity.addIndex">addIndex</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.addLabel" href="#bathysphere.graph.models.Entity.addLabel">addLabel</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.count" href="#bathysphere.graph.models.Entity.count">count</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.create" href="#bathysphere.graph.models.Entity.create">create</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.delete" href="#bathysphere.graph.models.Entity.delete">delete</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.dropIndex" href="#bathysphere.graph.models.Entity.dropIndex">dropIndex</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.load" href="#bathysphere.graph.models.Entity.load">load</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.mutate" href="#bathysphere.graph.models.Entity.mutate">mutate</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.serialize" href="#bathysphere.graph.models.Entity.serialize">serialize</a></code></li>
 </ul>
 </li>
 </ul>
 </dd>
-<dt id="graph.models.Tasks"><code class="flex name class">
+<dt id="bathysphere.graph.models.Tasks"><code class="flex name class">
 <span>class <span class="ident">Tasks</span></span>
 <span>(</span><span>uuid: uuid.UUID = None, symbol: str = 'n', creationTime: float = NOTHING, taskingParameters: dict = None)</span>
 </code></dt>
@@ -1906,28 +1935,28 @@ def drop(cls: Type, db: Driver, nodes: (Type, Type), props: dict) -&gt; None:
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="graph.models.Entity" href="#graph.models.Entity">Entity</a></li>
-<li>bathysphere.models.Tasks</li>
+<li><a title="bathysphere.graph.models.Entity" href="#bathysphere.graph.models.Entity">Entity</a></li>
+<li><a title="bathysphere.models.Tasks" href="../models.html#bathysphere.models.Tasks">Tasks</a></li>
 </ul>
 <h3>Inherited members</h3>
 <ul class="hlist">
-<li><code><b><a title="graph.models.Entity" href="#graph.models.Entity">Entity</a></b></code>:
+<li><code><b><a title="bathysphere.graph.models.Entity" href="#bathysphere.graph.models.Entity">Entity</a></b></code>:
 <ul class="hlist">
-<li><code><a title="graph.models.Entity.addConstraint" href="#graph.models.Entity.addConstraint">addConstraint</a></code></li>
-<li><code><a title="graph.models.Entity.addIndex" href="#graph.models.Entity.addIndex">addIndex</a></code></li>
-<li><code><a title="graph.models.Entity.addLabel" href="#graph.models.Entity.addLabel">addLabel</a></code></li>
-<li><code><a title="graph.models.Entity.count" href="#graph.models.Entity.count">count</a></code></li>
-<li><code><a title="graph.models.Entity.create" href="#graph.models.Entity.create">create</a></code></li>
-<li><code><a title="graph.models.Entity.delete" href="#graph.models.Entity.delete">delete</a></code></li>
-<li><code><a title="graph.models.Entity.dropIndex" href="#graph.models.Entity.dropIndex">dropIndex</a></code></li>
-<li><code><a title="graph.models.Entity.load" href="#graph.models.Entity.load">load</a></code></li>
-<li><code><a title="graph.models.Entity.mutate" href="#graph.models.Entity.mutate">mutate</a></code></li>
-<li><code><a title="graph.models.Entity.serialize" href="#graph.models.Entity.serialize">serialize</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.addConstraint" href="#bathysphere.graph.models.Entity.addConstraint">addConstraint</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.addIndex" href="#bathysphere.graph.models.Entity.addIndex">addIndex</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.addLabel" href="#bathysphere.graph.models.Entity.addLabel">addLabel</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.count" href="#bathysphere.graph.models.Entity.count">count</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.create" href="#bathysphere.graph.models.Entity.create">create</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.delete" href="#bathysphere.graph.models.Entity.delete">delete</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.dropIndex" href="#bathysphere.graph.models.Entity.dropIndex">dropIndex</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.load" href="#bathysphere.graph.models.Entity.load">load</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.mutate" href="#bathysphere.graph.models.Entity.mutate">mutate</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.serialize" href="#bathysphere.graph.models.Entity.serialize">serialize</a></code></li>
 </ul>
 </li>
 </ul>
 </dd>
-<dt id="graph.models.Things"><code class="flex name class">
+<dt id="bathysphere.graph.models.Things"><code class="flex name class">
 <span>class <span class="ident">Things</span></span>
 <span>(</span><span>uuid: uuid.UUID = None, symbol: str = 'n', name: str = None, description: str = None, properties: dict = None)</span>
 </code></dt>
@@ -1964,12 +1993,12 @@ def drop(cls: Type, db: Driver, nodes: (Type, Type), props: dict) -&gt; None:
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="graph.models.Entity" href="#graph.models.Entity">Entity</a></li>
-<li>bathysphere.models.Things</li>
+<li><a title="bathysphere.graph.models.Entity" href="#bathysphere.graph.models.Entity">Entity</a></li>
+<li><a title="bathysphere.models.Things" href="../models.html#bathysphere.models.Things">Things</a></li>
 </ul>
 <h3>Static methods</h3>
 <dl>
-<dt id="graph.models.Things.catalog"><code class="name flex">
+<dt id="bathysphere.graph.models.Things.catalog"><code class="name flex">
 <span>def <span class="ident">catalog</span></span>(<span>year: int, month: int = None, day: int = None)</span>
 </code></dt>
 <dd>
@@ -2005,23 +2034,23 @@ def catalog(year: int, month: int = None, day: int = None):
 </dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
-<li><code><b><a title="graph.models.Entity" href="#graph.models.Entity">Entity</a></b></code>:
+<li><code><b><a title="bathysphere.graph.models.Entity" href="#bathysphere.graph.models.Entity">Entity</a></b></code>:
 <ul class="hlist">
-<li><code><a title="graph.models.Entity.addConstraint" href="#graph.models.Entity.addConstraint">addConstraint</a></code></li>
-<li><code><a title="graph.models.Entity.addIndex" href="#graph.models.Entity.addIndex">addIndex</a></code></li>
-<li><code><a title="graph.models.Entity.addLabel" href="#graph.models.Entity.addLabel">addLabel</a></code></li>
-<li><code><a title="graph.models.Entity.count" href="#graph.models.Entity.count">count</a></code></li>
-<li><code><a title="graph.models.Entity.create" href="#graph.models.Entity.create">create</a></code></li>
-<li><code><a title="graph.models.Entity.delete" href="#graph.models.Entity.delete">delete</a></code></li>
-<li><code><a title="graph.models.Entity.dropIndex" href="#graph.models.Entity.dropIndex">dropIndex</a></code></li>
-<li><code><a title="graph.models.Entity.load" href="#graph.models.Entity.load">load</a></code></li>
-<li><code><a title="graph.models.Entity.mutate" href="#graph.models.Entity.mutate">mutate</a></code></li>
-<li><code><a title="graph.models.Entity.serialize" href="#graph.models.Entity.serialize">serialize</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.addConstraint" href="#bathysphere.graph.models.Entity.addConstraint">addConstraint</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.addIndex" href="#bathysphere.graph.models.Entity.addIndex">addIndex</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.addLabel" href="#bathysphere.graph.models.Entity.addLabel">addLabel</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.count" href="#bathysphere.graph.models.Entity.count">count</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.create" href="#bathysphere.graph.models.Entity.create">create</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.delete" href="#bathysphere.graph.models.Entity.delete">delete</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.dropIndex" href="#bathysphere.graph.models.Entity.dropIndex">dropIndex</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.load" href="#bathysphere.graph.models.Entity.load">load</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.mutate" href="#bathysphere.graph.models.Entity.mutate">mutate</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.serialize" href="#bathysphere.graph.models.Entity.serialize">serialize</a></code></li>
 </ul>
 </li>
 </ul>
 </dd>
-<dt id="graph.models.User"><code class="flex name class">
+<dt id="bathysphere.graph.models.User"><code class="flex name class">
 <span>class <span class="ident">User</span></span>
 <span>(</span><span>uuid: uuid.UUID = None, ip: str = None, name: str = None, alias: str = None, credential: str = None, validated: bool = True, description: str = None, symbol: str = 'u')</span>
 </code></dt>
@@ -2038,23 +2067,23 @@ def catalog(year: int, month: int = None, day: int = None):
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="graph.models.Entity" href="#graph.models.Entity">Entity</a></li>
-<li>bathysphere.models.User</li>
+<li><a title="bathysphere.graph.models.Entity" href="#bathysphere.graph.models.Entity">Entity</a></li>
+<li><a title="bathysphere.models.User" href="../models.html#bathysphere.models.User">User</a></li>
 </ul>
 <h3>Inherited members</h3>
 <ul class="hlist">
-<li><code><b><a title="graph.models.Entity" href="#graph.models.Entity">Entity</a></b></code>:
+<li><code><b><a title="bathysphere.graph.models.Entity" href="#bathysphere.graph.models.Entity">Entity</a></b></code>:
 <ul class="hlist">
-<li><code><a title="graph.models.Entity.addConstraint" href="#graph.models.Entity.addConstraint">addConstraint</a></code></li>
-<li><code><a title="graph.models.Entity.addIndex" href="#graph.models.Entity.addIndex">addIndex</a></code></li>
-<li><code><a title="graph.models.Entity.addLabel" href="#graph.models.Entity.addLabel">addLabel</a></code></li>
-<li><code><a title="graph.models.Entity.count" href="#graph.models.Entity.count">count</a></code></li>
-<li><code><a title="graph.models.Entity.create" href="#graph.models.Entity.create">create</a></code></li>
-<li><code><a title="graph.models.Entity.delete" href="#graph.models.Entity.delete">delete</a></code></li>
-<li><code><a title="graph.models.Entity.dropIndex" href="#graph.models.Entity.dropIndex">dropIndex</a></code></li>
-<li><code><a title="graph.models.Entity.load" href="#graph.models.Entity.load">load</a></code></li>
-<li><code><a title="graph.models.Entity.mutate" href="#graph.models.Entity.mutate">mutate</a></code></li>
-<li><code><a title="graph.models.Entity.serialize" href="#graph.models.Entity.serialize">serialize</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.addConstraint" href="#bathysphere.graph.models.Entity.addConstraint">addConstraint</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.addIndex" href="#bathysphere.graph.models.Entity.addIndex">addIndex</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.addLabel" href="#bathysphere.graph.models.Entity.addLabel">addLabel</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.count" href="#bathysphere.graph.models.Entity.count">count</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.create" href="#bathysphere.graph.models.Entity.create">create</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.delete" href="#bathysphere.graph.models.Entity.delete">delete</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.dropIndex" href="#bathysphere.graph.models.Entity.dropIndex">dropIndex</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.load" href="#bathysphere.graph.models.Entity.load">load</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.mutate" href="#bathysphere.graph.models.Entity.mutate">mutate</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.serialize" href="#bathysphere.graph.models.Entity.serialize">serialize</a></code></li>
 </ul>
 </li>
 </ul>
@@ -2070,84 +2099,84 @@ def catalog(year: int, month: int = None, day: int = None):
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="graph" href="index.html">graph</a></code></li>
+<li><code><a title="bathysphere.graph" href="index.html">bathysphere.graph</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="graph.models.Actuators" href="#graph.models.Actuators">Actuators</a></code></h4>
+<h4><code><a title="bathysphere.graph.models.Actuators" href="#bathysphere.graph.models.Actuators">Actuators</a></code></h4>
 </li>
 <li>
-<h4><code><a title="graph.models.Assets" href="#graph.models.Assets">Assets</a></code></h4>
+<h4><code><a title="bathysphere.graph.models.Assets" href="#bathysphere.graph.models.Assets">Assets</a></code></h4>
 </li>
 <li>
-<h4><code><a title="graph.models.Collections" href="#graph.models.Collections">Collections</a></code></h4>
+<h4><code><a title="bathysphere.graph.models.Collections" href="#bathysphere.graph.models.Collections">Collections</a></code></h4>
 </li>
 <li>
-<h4><code><a title="graph.models.DataStreams" href="#graph.models.DataStreams">DataStreams</a></code></h4>
+<h4><code><a title="bathysphere.graph.models.DataStreams" href="#bathysphere.graph.models.DataStreams">DataStreams</a></code></h4>
 </li>
 <li>
-<h4><code><a title="graph.models.Entity" href="#graph.models.Entity">Entity</a></code></h4>
+<h4><code><a title="bathysphere.graph.models.Entity" href="#bathysphere.graph.models.Entity">Entity</a></code></h4>
 <ul class="two-column">
-<li><code><a title="graph.models.Entity.addConstraint" href="#graph.models.Entity.addConstraint">addConstraint</a></code></li>
-<li><code><a title="graph.models.Entity.addIndex" href="#graph.models.Entity.addIndex">addIndex</a></code></li>
-<li><code><a title="graph.models.Entity.addLabel" href="#graph.models.Entity.addLabel">addLabel</a></code></li>
-<li><code><a title="graph.models.Entity.count" href="#graph.models.Entity.count">count</a></code></li>
-<li><code><a title="graph.models.Entity.create" href="#graph.models.Entity.create">create</a></code></li>
-<li><code><a title="graph.models.Entity.delete" href="#graph.models.Entity.delete">delete</a></code></li>
-<li><code><a title="graph.models.Entity.dropIndex" href="#graph.models.Entity.dropIndex">dropIndex</a></code></li>
-<li><code><a title="graph.models.Entity.load" href="#graph.models.Entity.load">load</a></code></li>
-<li><code><a title="graph.models.Entity.mutate" href="#graph.models.Entity.mutate">mutate</a></code></li>
-<li><code><a title="graph.models.Entity.serialize" href="#graph.models.Entity.serialize">serialize</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.addConstraint" href="#bathysphere.graph.models.Entity.addConstraint">addConstraint</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.addIndex" href="#bathysphere.graph.models.Entity.addIndex">addIndex</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.addLabel" href="#bathysphere.graph.models.Entity.addLabel">addLabel</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.count" href="#bathysphere.graph.models.Entity.count">count</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.create" href="#bathysphere.graph.models.Entity.create">create</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.delete" href="#bathysphere.graph.models.Entity.delete">delete</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.dropIndex" href="#bathysphere.graph.models.Entity.dropIndex">dropIndex</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.load" href="#bathysphere.graph.models.Entity.load">load</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.mutate" href="#bathysphere.graph.models.Entity.mutate">mutate</a></code></li>
+<li><code><a title="bathysphere.graph.models.Entity.serialize" href="#bathysphere.graph.models.Entity.serialize">serialize</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="graph.models.FeaturesOfInterest" href="#graph.models.FeaturesOfInterest">FeaturesOfInterest</a></code></h4>
+<h4><code><a title="bathysphere.graph.models.FeaturesOfInterest" href="#bathysphere.graph.models.FeaturesOfInterest">FeaturesOfInterest</a></code></h4>
 </li>
 <li>
-<h4><code><a title="graph.models.HistoricalLocations" href="#graph.models.HistoricalLocations">HistoricalLocations</a></code></h4>
+<h4><code><a title="bathysphere.graph.models.HistoricalLocations" href="#bathysphere.graph.models.HistoricalLocations">HistoricalLocations</a></code></h4>
 </li>
 <li>
-<h4><code><a title="graph.models.Link" href="#graph.models.Link">Link</a></code></h4>
+<h4><code><a title="bathysphere.graph.models.Link" href="#bathysphere.graph.models.Link">Link</a></code></h4>
 <ul class="">
-<li><code><a title="graph.models.Link.drop" href="#graph.models.Link.drop">drop</a></code></li>
-<li><code><a title="graph.models.Link.join" href="#graph.models.Link.join">join</a></code></li>
-<li><code><a title="graph.models.Link.query" href="#graph.models.Link.query">query</a></code></li>
+<li><code><a title="bathysphere.graph.models.Link.drop" href="#bathysphere.graph.models.Link.drop">drop</a></code></li>
+<li><code><a title="bathysphere.graph.models.Link.join" href="#bathysphere.graph.models.Link.join">join</a></code></li>
+<li><code><a title="bathysphere.graph.models.Link.query" href="#bathysphere.graph.models.Link.query">query</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="graph.models.Locations" href="#graph.models.Locations">Locations</a></code></h4>
+<h4><code><a title="bathysphere.graph.models.Locations" href="#bathysphere.graph.models.Locations">Locations</a></code></h4>
 <ul class="">
-<li><code><a title="graph.models.Locations.reportWeather" href="#graph.models.Locations.reportWeather">reportWeather</a></code></li>
+<li><code><a title="bathysphere.graph.models.Locations.reportWeather" href="#bathysphere.graph.models.Locations.reportWeather">reportWeather</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="graph.models.Observations" href="#graph.models.Observations">Observations</a></code></h4>
+<h4><code><a title="bathysphere.graph.models.Observations" href="#bathysphere.graph.models.Observations">Observations</a></code></h4>
 </li>
 <li>
-<h4><code><a title="graph.models.ObservedProperties" href="#graph.models.ObservedProperties">ObservedProperties</a></code></h4>
+<h4><code><a title="bathysphere.graph.models.ObservedProperties" href="#bathysphere.graph.models.ObservedProperties">ObservedProperties</a></code></h4>
 </li>
 <li>
-<h4><code><a title="graph.models.Providers" href="#graph.models.Providers">Providers</a></code></h4>
+<h4><code><a title="bathysphere.graph.models.Providers" href="#bathysphere.graph.models.Providers">Providers</a></code></h4>
 </li>
 <li>
-<h4><code><a title="graph.models.Sensors" href="#graph.models.Sensors">Sensors</a></code></h4>
+<h4><code><a title="bathysphere.graph.models.Sensors" href="#bathysphere.graph.models.Sensors">Sensors</a></code></h4>
 </li>
 <li>
-<h4><code><a title="graph.models.TaskingCapabilities" href="#graph.models.TaskingCapabilities">TaskingCapabilities</a></code></h4>
+<h4><code><a title="bathysphere.graph.models.TaskingCapabilities" href="#bathysphere.graph.models.TaskingCapabilities">TaskingCapabilities</a></code></h4>
 </li>
 <li>
-<h4><code><a title="graph.models.Tasks" href="#graph.models.Tasks">Tasks</a></code></h4>
+<h4><code><a title="bathysphere.graph.models.Tasks" href="#bathysphere.graph.models.Tasks">Tasks</a></code></h4>
 </li>
 <li>
-<h4><code><a title="graph.models.Things" href="#graph.models.Things">Things</a></code></h4>
+<h4><code><a title="bathysphere.graph.models.Things" href="#bathysphere.graph.models.Things">Things</a></code></h4>
 <ul class="">
-<li><code><a title="graph.models.Things.catalog" href="#graph.models.Things.catalog">catalog</a></code></li>
+<li><code><a title="bathysphere.graph.models.Things.catalog" href="#bathysphere.graph.models.Things.catalog">catalog</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="graph.models.User" href="#graph.models.User">User</a></code></h4>
+<h4><code><a title="bathysphere.graph.models.User" href="#bathysphere.graph.models.User">User</a></code></h4>
 </li>
 </ul>
 </li>

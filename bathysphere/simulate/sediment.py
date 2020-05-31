@@ -1,5 +1,5 @@
 from numpy import zeros
-from neritics.chemistry.nutrient import (
+from bathysphere.simulate.chemistry import (
     NITROGEN,
     PHOSPHOROUS,
     AMMONIUM,
@@ -30,7 +30,7 @@ from .core import Sediment
 from neritics.simulation.defaults import SEC2DAY
 from .defaults import DEFAULT_CONFIG
 from bathysphere.graph.mesh.mesh.quantized import Quantized
-from neritics.physics.defaults import TEMPERATURE
+from bathysphere.simulate.physics import TEMPERATURE
 
 
 D_MIXING = "VDMIX"

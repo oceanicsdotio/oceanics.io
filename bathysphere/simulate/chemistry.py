@@ -1,6 +1,6 @@
 from numpy import where, roll
 
-from bathysphere.future.utils import create_fields
+from bathysphere.utils import create_fields
 
 REFRACTORY = "R"
 PARTICULATE = "P"

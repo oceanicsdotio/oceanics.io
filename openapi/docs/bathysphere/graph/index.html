@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.8.1" />
-<title>graph API documentation</title>
+<title>bathysphere.graph API documentation</title>
 <meta name="description" content="The basic building blocks and utilities for graph queries are
 contained in this default import." />
 <link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
@@ -18,7 +18,7 @@ contained in this default import." />
 <main>
 <article id="content">
 <header>
-<h1 class="title">Package <code>graph</code></h1>
+<h1 class="title">Module <code>bathysphere.graph</code></h1>
 </header>
 <section id="section-intro">
 <p>The basic building blocks and utilities for graph queries are
@@ -354,12 +354,12 @@ def assets_links(urls):
 <section>
 <h2 class="section-title" id="header-submodules">Sub-modules</h2>
 <dl>
-<dt><code class="name"><a title="graph.functions" href="functions.html">graph.functions</a></code></dt>
+<dt><code class="name"><a title="bathysphere.graph.functions" href="functions.html">bathysphere.graph.functions</a></code></dt>
 <dd>
 <div class="desc"><p>The functions module of the graph API contains handlers for secure
 calls. These are exposed as a Cloud Function calling Connexion/Flask.</p></div>
 </dd>
-<dt><code class="name"><a title="graph.models" href="models.html">graph.models</a></code></dt>
+<dt><code class="name"><a title="bathysphere.graph.models" href="models.html">bathysphere.graph.models</a></code></dt>
 <dd>
 <div class="desc"><p>The models module of the graph API contains extensions to the common
 models, for storing and accessing data in a Neo4j database.</p></div>
@@ -371,7 +371,7 @@ models, for storing and accessing data in a Neo4j database.</p></div>
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="graph.assets_links"><code class="name flex">
+<dt id="bathysphere.graph.assets_links"><code class="name flex">
 <span>def <span class="ident">assets_links</span></span>(<span>urls)</span>
 </code></dt>
 <dd>
@@ -385,7 +385,7 @@ models, for storing and accessing data in a Neo4j database.</p></div>
     return ({&#34;href&#34;: url, &#34;title&#34;: &#34;&#34;, &#34;type&#34;: &#34;thumbnail&#34;} for url in urls)</code></pre>
 </details>
 </dd>
-<dt id="graph.bbox"><code class="name flex">
+<dt id="bathysphere.graph.bbox"><code class="name flex">
 <span>def <span class="ident">bbox</span></span>(<span>ll, ur)</span>
 </code></dt>
 <dd>
@@ -399,7 +399,7 @@ models, for storing and accessing data in a Neo4j database.</p></div>
     return [ll[&#34;lon&#34;], ll[&#34;lat&#34;], ur[&#34;lon&#34;], ur[&#34;lat&#34;]]</code></pre>
 </details>
 </dd>
-<dt id="graph.connect"><code class="name flex">
+<dt id="bathysphere.graph.connect"><code class="name flex">
 <span>def <span class="ident">connect</span></span>(<span>host: str, port: int, accessKey: str, default: str = 'neo4j') -> neo4j.Driver</span>
 </code></dt>
 <dd>
@@ -441,7 +441,7 @@ def connect(host: str, port: int, accessKey: str, default: str = &#34;neo4j&#34;
         raise Exception(f&#34;Could not connect to Neo4j database @ {host}:{port}&#34;)</code></pre>
 </details>
 </dd>
-<dt id="graph.executeQuery"><code class="name flex">
+<dt id="bathysphere.graph.executeQuery"><code class="name flex">
 <span>def <span class="ident">executeQuery</span></span>(<span>db: neo4j.Driver, method: Callable, kwargs: (<class 'dict'>,) = (), read_only: bool = True) -> (typing.Any,)</span>
 </code></dt>
 <dd>
@@ -465,7 +465,7 @@ Neo4j graph database.</p></div>
         return _transact(method)</code></pre>
 </details>
 </dd>
-<dt id="graph.jdbcRecords"><code class="name flex">
+<dt id="bathysphere.graph.jdbcRecords"><code class="name flex">
 <span>def <span class="ident">jdbcRecords</span></span>(<span>db: neo4j.Driver, query: str, auth: (<class 'str'>, <class 'str'>), connection: (<class 'str'>, <class 'str'>), database='bathysphere') -> dict</span>
 </code></dt>
 <dd>
@@ -500,7 +500,7 @@ Neo4j graph database.</p></div>
     )</code></pre>
 </details>
 </dd>
-<dt id="graph.links"><code class="name flex">
+<dt id="bathysphere.graph.links"><code class="name flex">
 <span>def <span class="ident">links</span></span>(<span>urls: [<class 'str'>]) -> Generator</span>
 </code></dt>
 <dd>
@@ -517,7 +517,7 @@ Neo4j graph database.</p></div>
     )</code></pre>
 </details>
 </dd>
-<dt id="graph.processKeyValueInbound"><code class="name flex">
+<dt id="bathysphere.graph.processKeyValueInbound"><code class="name flex">
 <span>def <span class="ident">processKeyValueInbound</span></span>(<span>keyValue: (<class 'str'>, typing.Any), null: bool = False) -> str</span>
 </code></dt>
 <dd>
@@ -566,7 +566,7 @@ for making the graph query.</p></div>
     return None</code></pre>
 </details>
 </dd>
-<dt id="graph.processKeyValueOutbound"><code class="name flex">
+<dt id="bathysphere.graph.processKeyValueOutbound"><code class="name flex">
 <span>def <span class="ident">processKeyValueOutbound</span></span>(<span>keyValue: (<class 'str'>, typing.Any)) -> (<class 'str'>, typing.Any)</span>
 </code></dt>
 <dd>
@@ -602,7 +602,7 @@ for making the graph query.</p></div>
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="graph.polymorphic"><code class="flex name class">
+<dt id="bathysphere.graph.polymorphic"><code class="flex name class">
 <span>class <span class="ident">polymorphic</span></span>
 <span>(</span><span>f)</span>
 </code></dt>
@@ -651,28 +651,33 @@ for making the graph query.</p></div>
 <ul></ul>
 </div>
 <ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="bathysphere" href="../index.html">bathysphere</a></code></li>
+</ul>
+</li>
 <li><h3><a href="#header-submodules">Sub-modules</a></h3>
 <ul>
-<li><code><a title="graph.functions" href="functions.html">graph.functions</a></code></li>
-<li><code><a title="graph.models" href="models.html">graph.models</a></code></li>
+<li><code><a title="bathysphere.graph.functions" href="functions.html">bathysphere.graph.functions</a></code></li>
+<li><code><a title="bathysphere.graph.models" href="models.html">bathysphere.graph.models</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="graph.assets_links" href="#graph.assets_links">assets_links</a></code></li>
-<li><code><a title="graph.bbox" href="#graph.bbox">bbox</a></code></li>
-<li><code><a title="graph.connect" href="#graph.connect">connect</a></code></li>
-<li><code><a title="graph.executeQuery" href="#graph.executeQuery">executeQuery</a></code></li>
-<li><code><a title="graph.jdbcRecords" href="#graph.jdbcRecords">jdbcRecords</a></code></li>
-<li><code><a title="graph.links" href="#graph.links">links</a></code></li>
-<li><code><a title="graph.processKeyValueInbound" href="#graph.processKeyValueInbound">processKeyValueInbound</a></code></li>
-<li><code><a title="graph.processKeyValueOutbound" href="#graph.processKeyValueOutbound">processKeyValueOutbound</a></code></li>
+<li><code><a title="bathysphere.graph.assets_links" href="#bathysphere.graph.assets_links">assets_links</a></code></li>
+<li><code><a title="bathysphere.graph.bbox" href="#bathysphere.graph.bbox">bbox</a></code></li>
+<li><code><a title="bathysphere.graph.connect" href="#bathysphere.graph.connect">connect</a></code></li>
+<li><code><a title="bathysphere.graph.executeQuery" href="#bathysphere.graph.executeQuery">executeQuery</a></code></li>
+<li><code><a title="bathysphere.graph.jdbcRecords" href="#bathysphere.graph.jdbcRecords">jdbcRecords</a></code></li>
+<li><code><a title="bathysphere.graph.links" href="#bathysphere.graph.links">links</a></code></li>
+<li><code><a title="bathysphere.graph.processKeyValueInbound" href="#bathysphere.graph.processKeyValueInbound">processKeyValueInbound</a></code></li>
+<li><code><a title="bathysphere.graph.processKeyValueOutbound" href="#bathysphere.graph.processKeyValueOutbound">processKeyValueOutbound</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="graph.polymorphic" href="#graph.polymorphic">polymorphic</a></code></h4>
+<h4><code><a title="bathysphere.graph.polymorphic" href="#bathysphere.graph.polymorphic">polymorphic</a></code></h4>
 </li>
 </ul>
 </li>
