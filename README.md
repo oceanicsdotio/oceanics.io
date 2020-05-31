@@ -2,6 +2,7 @@
 # Bathysphere API
 
 - [Developers](#developers)
+    - [Develop](#develop)
     - [Deploy](#deploy)
     - [Manage](#manage)
     - [Test](#test)
@@ -27,6 +28,20 @@ The runtime supports parallelism, and the web infrastructure scales to meet high
 This document provides guidance for testing and developing Bathysphere. For instructions on interacting with an existing deployment, please see the [API specification](https://graph.oceanics.io).
 
 ## Developers
+
+### Develop
+
+We use `pipenv` to manage Python dependencies. Thesre are found in `Pipfile` and `Pipfile.lock`. A new shell is activated with `pipenv shell`. This will be necessary for local testing. 
+
+There must be several environment variables active for things to work. These are:
+
+
+* `NEO4J_ACCESS_KEY` is the password for Neo4j instance
+* `POSTGRES_SECRETS` is comma separated strings <username>,<password>,<cloudsqlInstance>
+* `OBJECT_STORAGE_SECRETS` is comma separated strings <accessKey>,<secretKey>
+* `DARKSKY_API_KEY` is the API key for an optional thrid party weather service that will be deprecated
+
+We recommend `direnv` to manage local environment variables in a `.envrc` file.
 
 ### Deploy
 
