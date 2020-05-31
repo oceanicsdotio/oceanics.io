@@ -120,15 +120,18 @@ def connect(host: str, port: int, accessKey: str, default: str = "neo4j") -> Dri
     """
     Connect to a database manager. Try docker networking, or fallback to local host.
     likely that the db has been accessed and setup previously
+
+    TODO: should use SSL, but Neo4j 4.0 introduced some bugs
+    https://community.neo4j.com/t/neo4j-python-driver-throwing-errors/13822/2
     """
     db = None
     for auth in ((default, accessKey), (default, default)):
         try:
-            db = Driver(uri=f"bolt://{host}:{port}", auth=auth)
+            db = Driver(uri=f"bolt://{host}:{port}", auth=auth, encrypted=False)
         except Exception as ex:  # pylint: disable=broad-except
-            print(f"{ex} on {host}:{port}")
+            print(f"{ex} on {host}:{port} with {auth}")
             continue
-        if auth == (default, default):
+        if auth == (default, default) and accessKey != default:
             response = post(
                 f"http://{host}:7474/user/neo4j/password",
                 auth=auth,

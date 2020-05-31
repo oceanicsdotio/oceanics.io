@@ -32,9 +32,6 @@ def test_datatypes_object_storage_list_objects(object_storage):
         assert isinstance(each, Object)
 
 
-
-
-
 @pytest.mark.object_storage
 def test_datatypes_object_storage_put_object(object_storage):
 

@@ -55,3 +55,8 @@ sqlalchemy = "*"
 google-cloud-secret-manager = "*"
 pytz = "*"
 urllib3 = "<1.25,>=1.21.1"
+pdoc3 = "*"
+
+[packages.e1839a8]
+path = "."
+editable = true

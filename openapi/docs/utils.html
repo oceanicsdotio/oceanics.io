@@ -1,0 +1,4987 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.8.1" />
+<title>utils API documentation</title>
+<meta name="description" content="" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>utils</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python"># pylint: disable=unused-variable,invalid-name,unused-import
+from datetime import datetime, date, timedelta
+from collections import deque
+from multiprocessing import Pool
+from itertools import repeat, chain
+from enum import Enum
+from decimal import Decimal
+from typing import Coroutine, Any, Callable, Type
+from asyncio import new_event_loop, set_event_loop, BaseEventLoop
+from json import loads as load_json, dumps
+from pickle import dump, load as unpickle
+from shutil import copyfileobj
+
+from os import getenv
+from os.path import isfile
+from warnings import simplefilter, warn, catch_warnings
+from functools import reduce
+from logging import getLogger
+from time import sleep
+
+import operator
+import pathlib
+
+from requests import get, head
+from yaml import Loader, load as load_yml
+from google.cloud import secretmanager
+from google.auth.exceptions import DefaultCredentialsError
+
+
+from numpy import (
+    abs,
+    append,
+    arange,
+    arccos,
+    arctan2,
+    argsort,
+    array,
+    array_split,
+    asarray,
+    ceil,
+    cos,
+    cross,
+    dot,
+    diff,
+    empty_like,
+    flip,
+    floor,
+    hstack,
+    intersect1d,
+    isnan,
+    log,
+    log10,
+    mean,
+    ma,
+    max,
+    min,
+    NaN,
+    ones,
+    pi,
+    random,
+    repeat,
+    roll,
+    sign,
+    sin,
+    sort,
+    stack,
+    std,
+    sum,
+    uint8,
+    unique,
+    vstack,
+    where,
+    zeros,
+)
+
+
+from numpy.linalg import norm
+from numpy.ma import MaskedArray
+
+from scipy.interpolate import NearestNDInterpolator
+from scipy.stats import linregress
+from scipy import ndimage
+
+from shapefile import Reader
+from pandas import read_csv, read_html
+from netCDF4 import Dataset
+from PIL.Image import Image, fromarray
+from pyproj import Proj, transform
+
+from matplotlib.cm import get_cmap
+from matplotlib.patches import Path
+from matplotlib.tri import CubicTriInterpolator, LinearTriInterpolator
+
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import r2_score
+
+try:
+    import arrayfire as af
+except:
+    af = None
+    gpu = False
+
+
+DEGREES = 180 / pi
+RADIANS = pi / 180
+ORIGIN = zeros((1, 3), dtype=float)
+XAXIS = array([1.0, 0.0, 0.0]).reshape(1, 3)
+YAXIS = array([0.0, 1.0, 0.0]).reshape(1, 3)
+ZAXIS = array([0.0, 0.0, 1.0]).reshape(1, 3)
+MONTHS = {
+    1: &#34;january&#34;,
+    2: &#34;february&#34;,
+    3: &#34;march&#34;,
+    4: &#34;april&#34;,
+    5: &#34;may&#34;,
+    6: &#34;june&#34;,
+    7: &#34;july&#34;,
+    8: &#34;august&#34;,
+    9: &#34;september&#34;,
+    10: &#34;october&#34;,
+    11: &#34;november&#34;,
+    12: &#34;december&#34;,
+}
+
+CartesianNAD83 = Proj(&#34;epsg:2960&#34;)
+SphericalWGS84 = Proj(&#34;epsg:4326&#34;)
+
+
+log = getLogger(__name__)
+try:
+    client = secretmanager.SecretManagerServiceClient()
+except DefaultCredentialsError as ex:
+    warn(&#34;Could not locate cloud provider credentials. Assets are temporary.&#34;)
+
+
+def loadAppConfig(sources: (str) = (&#34;bathysphere.yml&#34;, &#34;kubernetes.yml&#34;)) -&gt; dict:
+    &#34;&#34;&#34;
+    Load known entities and services at initialization.
+    &#34;&#34;&#34;
+
+    def renderConfig(x: str):
+        with open(pathlib.Path(f&#34;config/{x}&#34;), &#34;r&#34;) as fid:
+            items = fid.read().split(&#34;---&#34;)
+        return list(map(load_yml, items, repeat(Loader, len(items))))
+
+    def reverseDictionary(a: dict, b: dict) -&gt; dict:
+
+        if not isinstance(a, dict):
+            raise ValueError(
+                &#34;Expected dictionary values. &#34; &#34;Type is instead {}.&#34;.format(type(a))
+            )
+
+        if b is not None:
+            key = b.pop(&#34;kind&#34;)
+            if key not in a.keys():
+                a[key] = [b]
+            else:
+                a[key].append(b)
+        return a
+
+    items = reduce(operator.add, map(renderConfig, sources), [])
+    return reduce(reverseDictionary, items, {})
+
+
+def googleCloudSecret(secret_name=&#34;my-secret&#34;):
+    # type: (str) -&gt; str
+    project_id = getenv(&#34;GCP_PROJECT&#34;)  # Google Compute default param
+    resource_name = f&#34;projects/{project_id}/secrets/{secret_name}/versions/latest&#34;
+    try:
+        response = client.access_secret_version(resource_name)
+    except NameError as _:
+        return None
+    return response.payload.data.decode(&#34;UTF-8&#34;)
+
+
+def generateStream(columns, records):
+    try:
+        prev = next(records)  # get first result
+    except:
+        yield &#34;[]&#34;
+        raise StopIteration
+    yield &#34;[&#34;
+    # Iterate over the releases
+    for r in records:
+        yield dumps(dict(zip(columns, r))) + &#34;, &#34;
+        prev = r
+    # Now yield the last iteration without comma but with the closing brackets
+    yield dumps(dict(zip(columns, prev))) + &#34;]&#34;
+
+
+def avhrr_index(
+    host: str, start: datetime = None, end: datetime = None, fmt: str = &#34;%Y%m%d%H%M%S&#34;
+) -&gt; [[dict]]:
+    # type: (str, datetime, datetime, str) -&gt; [list]
+    &#34;&#34;&#34;
+    Get the entries for all remote files on server in years of interest.
+
+    :param host: hostname
+    :param start: datetime object
+    :param end: datetime object
+    :param fmt: datetime str formatter
+    :return:
+    &#34;&#34;&#34;
+    result = []
+    for year in arange(start.year, end.year + 1):
+        names = read_html(f&#34;{host}/pathfinder/Version5.3/L3C/{year}/data/&#34;, skiprows=3)[
+            0
+        ][1][:-1]
+        dates = [
+            datetime.strptime(item[:14], fmt) for item in names
+        ]  # date from filename
+
+        if year in (start.year, end.year):
+            data = array(dates)
+            mask = (start &lt; data) &amp; (end + timedelta(days=1) &gt; data)
+            (indices,) = where(mask)
+            files = [{&#34;name&#34;: names[ii], &#34;ts&#34;: data[ii]} for ii in indices]
+        else:
+            files = [{&#34;name&#34;: name, &#34;ts&#34;: date} for name, date in zip(names, dates)]
+        result += files
+    return result
+
+
+def synchronous(task, loop=None, close=False):
+    # type: (Coroutine, BaseEventLoop, bool) -&gt; Any
+    &#34;&#34;&#34;
+    Run an asynchronous tasks in serial. First build JSON structures with Co-routines in place of data,
+    and then render the result of the Co-routines in-place.
+    &#34;&#34;&#34;
+    if loop is None:
+        close = True
+        loop = new_event_loop()
+    set_event_loop(loop)  # create the event loop
+    result = loop.run_until_complete(task)
+    if close:
+        loop.close()
+    return result
+
+
+def resolveTaskTree(t) -&gt; tuple:
+    &#34;&#34;&#34;
+    Recursively run and REDUCE an asynchronous task tree which returns an (index, &lt;coroutine&gt;) tuple. The process
+    stops when the final inner method is evaluated.
+
+    This is used internally by `metadata()`. The depth of the task structure is set before runtime, for example,
+    see `_map_by_date`.
+    &#34;&#34;&#34;
+
+    i, inner = synchronous(t)
+    if inner is None:
+        return (i,)
+    yields = ()
+    while len(inner):
+        yields += tuple(
+            [i, *((j,) if type(j) == int else tuple(j))]
+            for j in resolveTaskTree(inner.pop())
+        )
+    return yields
+
+
+def _parse_str_to_float(string):
+    # type: (str) -&gt; float
+    try:
+        if &#34;K&#34; in string:
+            return float(string.replace(&#34;K&#34;, &#34;&#34;))
+        else:
+            return float(string) / 1000
+    except TypeError:
+        return -1
+
+
+def interp1d(coefficient, aa, bb):
+    &#34;&#34;&#34;
+    Simple linear interpolation in one dimension
+    &#34;&#34;&#34;
+    return (1.0 - coefficient) * aa + coefficient * bb
+
+
+def response(status, payload):
+    return {
+        &#34;status&#34;: status,
+        &#34;payload&#34;: list(payload),
+    }
+
+
+def parsePostgresValueIn(value: Any) -&gt; str:
+    &#34;&#34;&#34;Convert python to sql values&#34;&#34;&#34;
+    parsingTable = {
+        datetime: lambda x: x.isoformat(),
+        float: lambda x: str(x),
+        int: lambda x: f&#34;{x}.0&#34;,
+        str: lambda x: f&#34;&#39;{x}&#39;&#34;,
+        dict: lambda x: f&#34;ST_GeomFromGeoJSON(&#39;{dumps(x)}&#39;)&#34;,
+    }
+    return parsingTable.get(type(value), lambda x: &#34;NULL&#34;)(value)
+
+
+def parsePostgresValueOut(v: Any) -&gt; Any:
+    &#34;&#34;&#34;Convert sql driver output to python&#34;&#34;&#34;
+    if isinstance(v, Decimal):
+        return float(v)
+    return v
+
+
+def join(x: str) -&gt; str:
+    &#34;&#34;&#34;Convenience method for mapping query formatting when whitespace is needed&#34;&#34;&#34;
+    return &#34;, &#34;.join(x)
+
+
+def report_buoy_data(request):
+    &#34;&#34;&#34;We receive the hashed message in form of a header&#34;&#34;&#34;
+
+    if getenv(&#34;Http_Method&#34;) != &#34;POST&#34;:
+        return dumps({&#34;Error&#34;: &#34;Require POST&#34;}), 400
+    if not request.body:
+        return dumps({&#34;Error&#34;: &#34;No request body&#34;}), 400
+
+    body = request.body
+
+    interval = body.get(&#34;interval&#34;, (None, None))
+    limit = body.get(&#34;limit&#34;, None)
+    encoding = body.get(&#34;encoding&#34;, &#34;txt&#34;)
+    node = body.get(&#34;id&#34;, None)
+    fields = body.get(&#34;observedProperties&#34;, None)
+
+    if (
+        not any((limit, *interval))
+        or not any((fields, node))
+        or encoding not in (&#34;txt&#34;, &#34;json&#34;)
+    ):
+        return dumps({&#34;Error&#34;: &#34;Bad Request&#34;}), 400
+
+    host = getenv(&#34;hostname&#34;, &#34;maine.loboviz.com&#34;)
+    times = (
+        f&#34;&amp;newest={limit}&#34; if limit else &#34;&amp;min_date={}&amp;max_date={}&#34;.format(*interval)
+    )
+    url = f&#34;http://{host}/cgi-data/nph-data.cgi?data_format=text&amp;node={node}&amp;y={&#39;,&#39;.join(fields)}{times}&#34;
+    response = get(url)
+    content = response.content.decode()
+    if not response.ok:
+        return response
+
+    if encoding == &#34;txt&#34;:
+        return content, 200
+
+    lines = deque(filter(lambda x: len(x), content.split(&#34;\n&#34;)))
+    name, alias = lines.popleft().split(&#34;-&#34;)
+    data = {
+        &#34;name&#34;: name,
+        &#34;aliases&#34;: list(set(map(str.strip, (alias, lines.popleft())))),
+    }
+    lines = deque(map(lambda x: tuple(x.split(&#34;\t&#34;)), lines))
+    keys = lines.popleft()
+    return (
+        dumps(
+            {
+                **data,
+                &#34;values&#34;: [
+                    dict(zip(k, v)) for k, v in zip(repeat(keys, len(lines)), lines)
+                ],
+            }
+        ),
+        200,
+    )
+
+
+def hc2pH(hc):
+    pH = -log10(hc / 10 ** 9)
+    return pH
+
+
+def pH2hc(pH):
+    hc = 10 ** (-pH)
+    return hc * (10 ** 9)
+
+
+def rxnConstant_pH(pH0, pH1, residence_time):
+    return -log(10 ** (pH0 - pH1)) / residence_time
+
+
+def rxnConstant_gen(initial_concentration, final_concentration, residence_time):
+    return -log(final_concentration - initial_concentration) / residence_time
+
+
+def fahr2cel(data):
+    return (data - 32.0) / 1.8
+
+
+def days(date):
+    &#34;&#34;&#34;Convert a single datetime to a Julian day number&#34;&#34;&#34;
+    delta = date - datetime(date.year, 1, 1, 0, 0, 0)
+    result = delta.total_seconds() / 24 / 60 / 60
+    return result
+
+
+# noinspection PyCallingNonCallable
+def c_array(kind, *args):
+    # type: (type, list) -&gt; Any
+    &#34;&#34;&#34;
+    Convert input to ctypes array
+    &#34;&#34;&#34;
+    return (kind * len(args))(*args)
+
+
+def depth2sigma(elevation, bathymetry, z):
+    # type: (Array, Array, Array) -&gt; Array
+    &#34;&#34;&#34;Unit depth to sigma coordinates&#34;&#34;&#34;
+    return -abs(z - elevation) / abs(elevation - bathymetry)
+
+
+def sigma2depth(elevation, bathymetry, sigma):
+    # type: (Array, Array, Array) -&gt; Array
+    &#34;&#34;&#34;Sigma coordinates to unit depth&#34;&#34;&#34;
+    return sigma * (elevation - bathymetry) + elevation
+
+
+def image_to_masked(image: array, m: float = 0.125, b: float = 2.0, hide: bool = True):
+    &#34;&#34;&#34;
+    Calculate value from greyscale color
+
+    :param image: color value of bathysphere_functions_image
+    :param m: slope
+    :param b: offset
+    :param hide: sometimes there are things like color map bars and shit
+    :return: sea surface temperature bathysphere_functions_image
+    &#34;&#34;&#34;
+
+    sst = m * image - b
+    if hide:
+        a, b, c, d = 250, 700, 1, 75
+        sst[a:b, c:d] = NaN  # mask color bar
+    return sst
+
+
+def image2arrays(
+    path, utm_extent, native=Proj(init=&#34;epsg:2960&#34;), view=Proj(init=&#34;epsg:4326&#34;)
+):
+    # type: (str, list, Proj, Proj) -&gt; (Array, Array, Array)
+    &#34;&#34;&#34;
+    Load landsat bathysphere_functions_image and convert to arrays for processing.
+
+    Including the Projection definitions should memoize the defaults between calls
+    run in the same context.
+    &#34;&#34;&#34;
+    fid = open(path, &#34;r&#34;)
+    image = Image()
+    image.frombytes(data=fid.read())  # read bathysphere_functions_image file
+    px = repeat(arange(image.width).reshape(1, image.width), image.height, axis=0)
+    py = repeat(arange(image.height).reshape(image.height, 1), image.width, axis=1)
+
+    utm = pix2utm(px, py, utm_extent)
+    return (*project(*utm, native=native, view=view), asarray(image))
+
+
+def array2image(z, cmap):
+    # type: (Array, str) -&gt; Image
+    &#34;&#34;&#34;
+    Create bathysphere_functions_image object in memory
+    &#34;&#34;&#34;
+    return fromarray(uint8(get_cmap(cmap)(z) * 255)).rotate(90)
+
+
+def arrays2points(x, y, z=None, dilate=0):
+    # type: (Array, Array, Array, int) -&gt; Array
+    &#34;&#34;&#34;
+    Extract all unmasked pixels as an array of (x,y) points, and an array of (z) values.
+    Optionally dilate the mask by some number of pixels.
+    &#34;&#34;&#34;
+    if z is None:
+        return stack((x.reshape(-1, 1), y.reshape(-1, 1)), axis=1)
+    if isinstance(dilate, int) and dilate &gt; 0:
+        z.mask = ndimage.binary_dilation(ndimage.binary_dilation(z.mask))
+    if isinstance(z.mask, bool or None):
+        columns = (x.reshape(-1, 1), y.reshape(-1, 1), z.reshape(-1, 1))
+    else:
+        indices = where(~z.mask.reshape(-1, 1))
+        columns = (
+            x.reshape(-1, 1)[indices],
+            y.reshape(-1, 1)[indices],
+            z.reshape(-1, 1)[indices],
+        )
+    return stack(columns, axis=1)
+
+
+def angle3d(u, v):
+    # type: (Array, Array) -&gt; Array
+    &#34;&#34;&#34;Calculate angle between pairs of 3d vectors&#34;&#34;&#34;
+    theta = dot(u, v.T) / (norm(u) * norm(v))
+    return arccos(theta) if (-1.0 &lt;= theta &lt;= 1.0) else 0.0
+
+
+def angle2d(u, v):
+    # type: (Array, Array) -&gt; Array
+    &#34;&#34;&#34;Angle relative to origin, between pairs of 2d vectors&#34;&#34;&#34;
+    delta = u - v
+    theta = arctan2(delta[1], delta[0])
+    (ind,) = where(theta &lt; -pi)
+    theta[ind] += 2 * pi
+    (ind,) = where(theta &gt; pi)
+    theta[ind] -= 2 * pi
+    return theta
+
+
+def normal(u):
+    # type: (Array) -&gt; Array
+    &#34;&#34;&#34;Normalize array of vectors&#34;&#34;&#34;
+    return u / norm(u, axis=1).reshape((-1, 1))
+
+
+def identity():
+    # type: () -&gt; Array
+    &#34;&#34;&#34;identity matrix&#34;&#34;&#34;
+    matrix = zeros((4, 4))
+    for ii in range(4):
+        matrix[ii, ii] = 1.0
+    return matrix
+
+
+def multiply(u, v):
+    # type: (Array, Array) -&gt; Array
+    &#34;&#34;&#34;
+    Quaternion matrix multiplication for one or more vertices
+
+    A*B - dotProduct(u,v)
+    cross(u,v) + A*v + B*u
+    &#34;&#34;&#34;
+    ur, _ = u.shape
+    vr, _ = v.shape
+    rows = max([ur, vr])
+    result = zeros((rows, 4), dtype=float)
+
+    result[:, 0] = (
+        u[:, 0] * v[:, 0] - u[:, 1] * v[:, 1] - u[:, 2] * v[:, 2] - u[:, 3] * v[:, 3]
+    )
+    result[:, 1] = (
+        u[:, 2] * v[:, 3] - u[:, 3] * v[:, 2] + u[:, 0] * v[:, 1] + v[:, 0] * u[:, 1]
+    )
+    result[:, 2] = (
+        u[:, 3] * v[:, 1] - u[:, 1] * v[:, 3] + u[:, 0] * v[:, 2] + v[:, 0] * u[:, 2]
+    )
+    result[:, 3] = (
+        u[:, 1] * v[:, 2] - u[:, 2] * v[:, 1] + u[:, 0] * v[:, 3] + v[:, 0] * u[:, 3]
+    )
+    return result
+
+
+def rotate(vertex_array: array, angle: float, axis: array = ZAXIS) -&gt; array:
+    &#34;&#34;&#34;
+    Rotate list of vectors(/vertices) about any axis by angle in radians. Default to Z-AXIS
+    &#34;&#34;&#34;
+    a = cos(0.5 * angle)
+    b = sin(0.5 * angle) * normal(axis)
+
+    if vertex_array.shape[1] == 4:
+        state = vertex_array
+    else:
+        state = zeros((len(vertex_array), 4), dtype=float)
+        state[:, 1:4] = vertex_array[:, :]
+
+    matrix = append(a, b).reshape(1, 4)
+    state = multiply(matrix, state)  # intermediate multiplication
+    matrix = append(a, -b).reshape(1, 4)  # conjugation
+    return multiply(state, matrix)[:, 1:4]  # final step, omit w coordinates
+
+
+def geo2dist(lat1, long1, lat2, long2):
+    # type: (Array or float, Array or float, float, float) -&gt; (Array or float)
+    &#34;&#34;&#34;
+    Calculate distance on unit sphere and scale up
+    &#34;&#34;&#34;
+    degrees_to_radians = pi / 180.0
+    phi1 = (90.0 - lat1) * degrees_to_radians
+    phi2 = (90.0 - lat2) * degrees_to_radians
+    theta1 = long1 * degrees_to_radians
+    theta2 = long2 * degrees_to_radians
+    cosine = sin(phi1) * sin(phi2) * cos(theta1 - theta2) + cos(phi1) * cos(phi2)
+    arc = arccos(cosine)
+    return arc * 6373000
+
+
+def extent_overlap_filter(ext, shapes, extents, rec=None):
+    # type: (ExtentType, (Array,), (ExtentType,), (dict,)) -&gt; ((Array,), (ExtentType,))
+    &#34;&#34;&#34;
+
+    :param ext: data extent
+    :param shapes: shapes are passed through
+    :param extents: extents to compare
+    :param rec: records are passed through
+    &#34;&#34;&#34;
+    iterator = zip(*((shapes, extents, rec) if rec else (shapes, extents)))
+    return tuple(zip(*filter(lambda x: extent_overlap(ext, x[1]), iterator)))
+
+
+def extent_crop(ext, xyz):
+    # type: (ExtentType, Array) -&gt; Array
+    &#34;&#34;&#34;Return only the pixels inside the cropping extent&#34;&#34;&#34;
+    if xyz.shape[1] &gt; 3:
+        a, b = 1, 2
+    else:
+        a, b = 0, 1
+    mask = crop(xyz[:, a], xyz[:, b], ext)
+    select = where(~mask)[0]
+    return xyz[select, :]
+
+
+def extent_overlap_iteration(vertex_array, shapes, extents, records=None):
+    # type: (Array, (Array, ), (ExtentType, ), (dict, )) -&gt; (Array, (tuple, ))
+    &#34;&#34;&#34;Find overlapping extents, and return only pixels inside their bounding extent&#34;&#34;&#34;
+    data_ext = extent(*vertex_array)
+    filtered = extent_overlap_filter(data_ext, shapes, extents, rec=records)
+    cropped = extent_crop(reduce(reduce_extent, filtered[1]), vertex_array)
+    return (cropped, *filtered)
+
+
+def extent_overlap_automatic(xyz, shapes, extents, max_passes=3, rec=None):
+    # type: (Array, (Array,), (ExtentType,), int, (dict, )) -&gt; (Array, (Path,))
+    &#34;&#34;&#34;
+    Use with sparse rasters. Get overall extent, and find shapes with overlapping extent.
+    Reduce these to a single extent, and remove xyz values not within that union.
+    Repeat until extent stops changing.
+    &#34;&#34;&#34;
+    warn(
+        &#34;Recursive extent culling is unstable. Use looped `extent_overlap_iteration`&#34;,
+        DeprecationWarning,
+    )
+
+    previous, current = None, extent(xyz[:, 0], xyz[:, 1])
+    dat = extent_overlap_filter(current, shapes, extents, rec=rec)
+    if rec:
+        f, e, r = dat
+    else:
+        f, e = dat
+        r = None
+
+    passes = 0
+
+    while previous != current and passes &lt; max_passes:
+
+        xyz = extent_crop(reduce(reduce_extent, e), xyz)
+        previous, current = current, extent(xyz[:, 0], xyz[:, 1])
+        dat = extent_overlap_filter(current, f, e, rec=r)
+        if rec:
+            f, e, r = dat
+        else:
+            f, e = dat
+            r = None
+
+        passes += 1
+
+    return xyz, f, e, r
+
+
+
+def hull_overlap(a, b):
+    # type: (Array or Path, Array or Path) -&gt; bool
+    &#34;&#34;&#34;Two convex hulls overlap&#34;&#34;&#34;
+    _a, _b = tuple((x if isinstance(x, Path) else Path(x) for x in (a, b)))
+    _av, _bv = tuple((x.vertices if isinstance(x, Path) else x for x in (a, b)))
+    return _a.contains_points(_bv).any() or _b.contains_points(_av).any()
+
+
+def hull_contains(a, b):
+    # type: (Path or Array, Path or Array) -&gt; bool
+    &#34;&#34;&#34;First convex hull contains second&#34;&#34;&#34;
+    _a, _b = tuple((x if isinstance(x, Path) else Path(x) for x in (a, b)))
+    return _a.contains_path(_b)
+
+
+def partition_points_by_shape(path, vertex_array):
+    # type: (Path, Array) -&gt; (Array, Array)
+    &#34;&#34;&#34;&#34;Split vertex array into points inside and outside of shape&#34;&#34;&#34;
+    cols = vertex_array.shape[1]
+    if cols == 2:
+        xy = vertex_array
+    elif cols == 3:
+        xy = vertex_array[:2]
+    else:
+        xy = vertex_array[1:3]
+
+    mask = points_in_path(path, xy)
+    _subset = where(mask)[0]
+    inside = vertex_array[_subset, :]
+    _subset = where(~mask)[0]  # pylint: disable=invalid-unary-operand-type
+    outside = vertex_array[_subset, :]
+    return inside, outside
+
+
+def _points_in_path(p, vertex_array):
+    # type: ((Path, ), Array) -&gt; Array
+    &#34;&#34;&#34;Mask of points inside the Path, used for map parallelism&#34;&#34;&#34;
+    return p[0].contains_points(vertex_array)
+
+
+def points_in_path(path, vertex_array, max_size=10000, processes=1, pool=None):
+    # type: (Path, Array, int, int, Pool) -&gt; (Array, Array)
+    &#34;&#34;&#34;Break up point stream into chunks by intersecting with polygon collection&#34;&#34;&#34;
+    if pool is None:
+        pool = Pool(processes=processes)
+    sections = len(vertex_array) // max_size + 1
+    iterable = zip(
+        repeat((path,), sections), array_split(vertex_array, sections, axis=0)
+    )
+    return hstack(pool.starmap(_points_in_path, iterable))
+
+
+def multi_polygon_crop(xyz, shapes):
+    &#34;&#34;&#34;
+    Retain points inside the shapes, along with the shape index that they belong to.
+
+    WARNING: In-place memory operation.
+    &#34;&#34;&#34;
+    found = []
+    for i, s in enumerate(shapes):
+        p = Path(s)
+        ins, xyz = partition_points_by_shape(p, xyz)
+        found.append((ins, i))
+        if len(xyz) == 0:
+            break
+    return hstack(found)
+
+
+def multi_polygon_cull(xyz, shapes):
+    &#34;&#34;&#34;
+    Retain only points which are not in any polygon.
+
+    WARNING: In-place memory operation.
+    &#34;&#34;&#34;
+    for s in shapes:
+        p = Path(s)
+        _, xyz = partition_points_by_shape(p, xyz)
+        if len(xyz) == 0:
+            break
+    return xyz
+
+
+def filter_in_range(mask, data, minimum=None, maximum=None, gpu=False):
+    # type: (Array, Array, float, float, bool) -&gt; Array
+    &#34;&#34;&#34;Mask if outside interval&#34;&#34;&#34;
+    if minimum is not None:
+        mask |= af.np_to_af_array(data &lt; minimum) if gpu else data &lt; minimum
+    if maximum is not None:
+        mask |= af.np_to_af_array(data &gt; maximum) if gpu else data &gt; maximum
+    return mask
+
+
+def filter_arrays(x) -&gt; bool:
+    &#34;&#34;&#34;Process an iterable of Array-likes to remove null values, used in map parallelism&#34;&#34;&#34;
+    try:
+        return isinstance(x.shape, tuple)
+    except AttributeError:
+        return False
+
+
+def crop(x, y, ext, mask=None, gpu=False):
+    # type: (Array, Array, list or tuple, Array, bool) -&gt; Array
+    &#34;&#34;&#34;Mask positions outside the given extent&#34;&#34;&#34;
+    assert x.shape == y.shape
+    if mask is None:
+        mask = blank(x.shape)
+
+    mask |= af.np_to_af_array(x &lt; ext[0]) if gpu else x &lt; ext[0]
+    mask |= af.np_to_af_array(x &gt; ext[1]) if gpu else x &gt; ext[1]
+    mask |= af.np_to_af_array(y &lt; ext[2]) if gpu else y &lt; ext[2]
+    mask |= af.np_to_af_array(y &gt; ext[3]) if gpu else y &gt; ext[3]
+    return mask
+
+
+def nan_mask(arr, gpu=False):
+    # type: (Array, bool) -&gt; Array
+    &#34;&#34;&#34;Reset mask&#34;&#34;&#34;
+    if gpu:
+        return af.isnan(arr)
+    mask = isnan(arr)
+    if isinstance(mask, MaskedArray):
+        return mask.data
+    return mask
+
+
+def blank(shape, gpu=False, fill=False):
+    # type: (tuple, bool, bool) -&gt; Array
+    &#34;&#34;&#34;
+    Create mask in shape of data, optionally using GPU
+    &#34;&#34;&#34;
+    template = (ones if fill else zeros)(shape, dtype=bool)
+    if gpu:
+        return af.Array(src=template.ctypes.data, dims=template.shape, dtype=&#34;b&#34;)
+    else:
+        return template
+
+
+def pix2utm(px, py, ext):
+    # type: (Array, Array, list) -&gt; (Array, Array)
+    &#34;&#34;&#34;
+    Convert from pixel indices to UTM coordinates. Technically also works with lon/lat
+    &#34;&#34;&#34;
+    utmx = px / max(px) * (ext[2] - ext[0]) + ext[0]
+    utmy = py / max(py) * (ext[3] - ext[1]) + ext[1]
+    return utmx, utmy
+
+
+def project(xx, yy, native, view):
+    # type: (Array, Array, Proj, Proj) -&gt; (Array, Array)
+    &#34;&#34;&#34;Re-project coordinates to/from spherical or cartesian&#34;&#34;&#34;
+    assert xx.shape == yy.shape
+    xo, yo = transform(native, view, xx.flatten(order=&#34;F&#34;), yy.flatten(order=&#34;F&#34;))
+    return xo.reshape(xx.shape), yo.reshape(yy.shape)
+
+
+def interp1d_lin(x, y, samples, clamp=False):
+    # type: ((Array, Array), (Array, Array), Array, bool) -&gt; Array
+    &#34;&#34;&#34;Simple linear interpolation, requires pre-calculated coefficients for points&#34;&#34;&#34;
+    predicted = (y[1] - y[0]) / (x[1] - x[0]) * (samples - x[0]) + y[0]
+    if clamp:
+        i = where(x &lt; x[0])
+        j = where(x &gt; x[1])
+        predicted[i] = y[0]
+        predicted[j] = y[1]
+    return predicted
+
+
+def interp2d_tri(xy, z, cubic=False, **kwargs):
+    # type: (Array, Array, bool, dict) -&gt; Array
+    &#34;&#34;&#34; interpolate 2D field on triangular grid &#34;&#34;&#34;
+    engine = (CubicTriInterpolator if cubic else LinearTriInterpolator)(z, **kwargs)
+    return engine(xy[:, 0], xy[:, 1])
+
+
+def interp2d_uv(cells, train, neighbors, layer, shape_coefficient):
+    # type: (Array, (Array,), Array, int, Array) -&gt; Array
+    &#34;&#34;&#34;
+    Interpolate
+
+    :param cells:
+    :param neighbors: pre-computed adjacency
+    :param train: sample points
+    :param layer:
+    :param shape_coefficient: pre-computing shape coefficients for static meshes
+    &#34;&#34;&#34;
+    x, y, e = train
+    expected = zeros((len(x), 3), dtype=float)
+
+    for index in unique(cells):
+        children = where((cells == index))
+        s = shape_coefficient[index, :, :]
+
+        for each in children:
+            dx = x[each] - x[index]
+            dy = y[each] - y[index]
+            indices = append(neighbors[index], index)  # self and neighbors
+
+            for dim in range(3):
+                e_i = e[indices, layer, dim]
+                expected[each, dim] = e[index, layer, dim] + (s * e_i) * array([dx, dy])
+            continue
+
+    return expected
+
+
+def interp2d_nearest(xy, samples):
+    # type: (Array, Array) -&gt; Array
+    &#34;&#34;&#34;
+    Load low-resolution data (e.g. AVHRR) and interpolate it to pixels of higher-resolution imagery
+    (e.g. Landsat) using nearest neighbors. Uses nearest neighbor indexing and search with kd-trees
+    from `scipy.spatial`
+
+    - setting `rescale=True` will normalize all dimensions to 0-1
+    - `tree_options` allows you to configure the kd-tree
+    &#34;&#34;&#34;
+    interp = NearestNDInterpolator(xy[:, 0], xy[:, 1], rescale=False, tree_options=None)
+    return interp(samples)
+
+
+def interp3d_tri(xy, z, scalar, layer, cubic=False, clamp=True, **kwargs):
+    # type: (Array, Array, Array, int, bool, bool, dict) -&gt; Array
+    &#34;&#34;&#34; Interpolate 3D field on triangular grid &#34;&#34;&#34;
+    above = interp2d_tri(xy, z=scalar[:, layer], cubic=cubic, **kwargs)
+    below = interp2d_tri(xy, z=scalar[:, layer + 1], cubic=cubic, **kwargs)
+    return interp1d_lin(
+        x=tuple(i for i in z[layer : layer + 2]),
+        y=(above, below),
+        samples=z,
+        clamp=clamp,
+    )
+
+
+def interp3d_slice(z, scalar, layer, clamp=True):
+    # type: (Array, Array, int, bool) -&gt; Array
+    &#34;&#34;&#34;
+    Depth-based interpolation
+
+    :param z: sample depths
+    :param scalar: the scalar field
+    :param layer: vertical layer in triangular mesh
+    :param clamp: values outside the interpolation range are fixed at end member values
+    :return: values at sample points
+    &#34;&#34;&#34;
+    above = scalar[:, layer]
+    below = scalar[:, layer + 1]
+    return interp1d_lin(
+        x=tuple(i for i in z[layer : layer + 2]),
+        y=(above, below),
+        samples=z,
+        clamp=clamp,
+    )
+
+
+def subset(arr, stride):
+    # type: (Array, int) -&gt; Array
+    &#34;&#34;&#34;Regular-spaced sparse subset of an array&#34;&#34;&#34;
+    return arr[1:-1:stride, 1:-1:stride]
+
+
+def pixel_area(arr, resolution, gpu=False):
+    # type: (Array, float, bool) -&gt; Array or None
+    &#34;&#34;&#34;Calculate pixel area assuming fixed resolution, may be in GPU memory&#34;&#34;&#34;
+    if resolution is not None and arr.mask is not None:
+        add = af.sum if gpu else sum
+        return add(~arr.mask) * resolution * resolution
+    return None
+
+
+def translate(arr, delta):
+    # type: (Array, Array) -&gt; None
+    &#34;&#34;&#34;Move an array. Delta may be of the same shape as data, or a single dimension&#34;&#34;&#34;
+    arr[:, :] += delta
+
+
+def scale(arr, sx, sy, sz):
+    # type: (Array, float, float, float) -&gt; None
+    &#34;&#34;&#34;Rescale an array, usually vertices&#34;&#34;&#34;
+    arr[:, :] *= (af.Array if isinstance(arr, af.Array) else array)([sx, sy, sz])
+
+
+def reflect(arr, dim):
+    # type: (Array, (int,)) -&gt; None
+    &#34;&#34;&#34;Reflect a single dimension&#34;&#34;&#34;
+    arr[:, dim] *= -1.0
+
+
+def polygon_area(arr):
+    # type: (Array) -&gt; float
+    &#34;&#34;&#34;Polygon area, may be negative depending on winding, but this is retaining for shape culling&#34;&#34;&#34;
+    xx, yy = arr[:, :2].T
+    return 0.5 * (dot(xx, roll(yy, 1)) - dot(yy, roll(xx, 1)))
+
+
+def extent_area(ext):
+    # type: (ExtentType) -&gt; float
+    &#34;&#34;&#34;
+    Area of a shape extent
+    &#34;&#34;&#34;
+    return (ext[1] - ext[0]) * (ext[3] - ext[2])
+
+
+def area_sort(data, pool=None, processes=1, reverse=False):
+    # type: (((Array, ),), Pool, int, bool) -&gt; (Array, )
+    &#34;&#34;&#34;
+    Sort by shape area or extent area.
+    &#34;&#34;&#34;
+    if pool is None:
+        pool = Pool(processes)
+    eval_shps = data[0]
+
+    if isinstance(eval_shps[0], tuple) and len(eval_shps[0]) == 4:
+        method = extent_area
+    else:
+        method = polygon_area
+
+    areas = array(pool.starmap(method, ((s,) for s in eval_shps)))
+    sorting = argsort(areas)
+    if reverse:
+        sorting = sorting[::-1]
+
+    inverse = empty_like(sorting)
+    inverse[sorting] = arange(sorting.size)
+    return tuple(array(x)[sorting] for x in data + (areas,)) + (inverse,)
+
+
+def center(arr):
+    # type: (Array) -&gt; (float, float)
+    &#34;&#34;&#34;
+    Geometric center
+    &#34;&#34;&#34;
+    return tuple(mean(arr.data, axis=0))
+
+
+def spherical_nearest_neighbor(lon, lat, reference):
+    # type: (Array, Array, (float, float)) -&gt; (Array, Array)
+    &#34;&#34;&#34;
+    Calculate distance matrix and indices of closet points
+    &#34;&#34;&#34;
+    dxy = geo2dist(lat, lon, *reference)
+    return dxy, dxy.argmin()
+
+
+def linear_regression_train(train, target):
+    # type: ((Array,), Array) -&gt; (LinearRegression, float)
+    &#34;&#34;&#34;
+    Train a linear regression model to fit the array data
+
+    :param train: x-value
+    :param target: y-value
+    :return:
+    &#34;&#34;&#34;
+    model = LinearRegression()
+    model.fit(train, target)
+    auto_regress = model.predict(train)
+    r_squared = r2_score(target, auto_regress)
+    return model, r_squared
+
+
+def linear_regression_predict(model, predict, order=1):
+    # type: (LinearRegression, (Array,), int) -&gt; (Array, float)
+    &#34;&#34;&#34;
+    Use trained model to predict new values
+
+    :param model:
+    :param predict: x-values
+    :param order: order of linear model terms (1 or 2)
+    :return: y-values
+    &#34;&#34;&#34;
+    if not 0 &lt; order &lt; 3:
+        raise ValueError
+    if len(predict) == 2:
+        x, y = predict
+        z = None
+    elif len(predict) == 3:
+        x, y, z = predict
+    else:
+        raise ValueError
+
+    expected = stack((x, y), axis=1)
+    if order == 2:
+        expected = stack((expected, x * y, x * x, y * y), axis=1)
+    if z is not None:
+        expected = stack((expected, z), axis=1)
+    return model.predict(expected)
+
+
+def raster2mesh(train, predict, order=1):
+    # type: ((Array,), (Array,), int) -&gt; Array
+    &#34;&#34;&#34;
+    Interpolate 2D field to triangular mesh
+
+    :param train: training points (raster)
+    :param predict: prediction points (mesh)
+    :param order: order of linear model terms (1 or 2)
+    &#34;&#34;&#34;
+    if not 0 &lt; order &lt; 3:
+        raise ValueError
+    if len(train) == 4:
+        x, y, z, e = train
+        mask = isnan(z) | isnan(e)
+    elif len(train) == 3:
+        z = None
+        x, y, e = train
+        mask = isnan(e)
+    else:
+        raise ValueError
+
+    (ind,) = where(~mask)
+
+    def extract_valid(arr):
+        return arr[ind].reshape(-1, 1) if arr is not None else None
+
+    train = (extract_valid(item) for item in (x, y, z, e))
+    model, _ = linear_regression_train(train=train, target=e)
+    return linear_regression_predict(model, predict=predict, order=order)
+
+
+def impulse(uv, direction, mag=0.0, stop=False):
+    # type: (Array, Array, Array or float, bool) -&gt; Array
+    &#34;&#34;&#34;
+    Instantaneously accelerate in the given direction
+    &#34;&#34;&#34;
+    if stop:
+        return uv - uv
+    return uv + direction * mag
+
+
+def rk4(fcn, y0, t0, dt):
+    &#34;&#34;&#34;
+    Simple 4th-order Runge-Kutta integration, non boundary checking
+    &#34;&#34;&#34;
+    k1 = fcn(t0, y0)
+    k2 = fcn(t0 + 0.5 * dt, y0 + 0.5 * k1)
+    k3 = fcn(t0 + 0.5 * dt, y0 + 0.5 * k2)
+    k4 = fcn(t0 + dt, y0 + k3)
+
+    return y0 + dt * (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6
+
+
+
+def thematic_mapping(shapes, extent, key, value):
+    &#34;&#34;&#34;
+
+    :param shapes:
+    :param extent:
+    :param key: &#34;LAND&#34;, &#34;ISLAND
+    :param value:
+    :return:
+    &#34;&#34;&#34;
+
+    def _match_field():
+        ind = None
+        for ii, field in enumerate(shapes.fields):  # find the position of the field
+            if shapes.fields[0] == key:
+                ind = ii
+                break
+        return array(map(lambda x: x[ind] == value, shapes.records))
+
+    def _filter(x) -&gt; bool:
+        return not x[&#34;hide&#34;] and x[&#34;type&#34;] == &#34;analytical&#34;
+
+    # pylint: disable=invalid-unary-operand-type
+    shapes = shapes.collect(
+        extent=extent, flags=(~_match_field()) 
+    )  
+    return filter(_filter, shapes)
+
+
+def _loc(s: int, view: str, mx_x=None, mn_x=None, x=None):
+    &#34;&#34;&#34;Calculate locators&#34;&#34;&#34;
+    assert (mx_x is not None and mn_x is not None) or x is not None
+    if x is not None:
+        mx_x = max(x)
+        mn_x = min(x)
+    if view == &#34;coverage&#34;:
+        return int(mx_x - mn_x) / 10
+    span = mx_x - mn_x
+    dx = span / s
+    return dx if span &lt; 3 else int(ceil(dx))
+
+
+def lin_transform(u, a, b):
+    &#34;&#34;&#34;Linear tranformation&#34;&#34;&#34;
+    return u * (b - a) + a
+
+
+def geom_shader(e):
+    &#34;&#34;&#34;Emulate geometry shader, create points from single reference&#34;&#34;&#34;
+    return array(
+        (
+            (lin_transform(random.uniform(), *e[:2]), e[2]),
+            (e[1], lin_transform(random.uniform(), *e[2:4])),
+            (lin_transform(random.uniform(), *e[:2]), e[3]),
+            (e[0], lin_transform(random.uniform(), *e[2:4])),
+        )
+    )
+
+
+def landsat_sst_regression(raw, lon, lat, roi, samples, outliers, nsub=10):
+    # type: (Array, Array, Array, (Array,), tuple, tuple, int ) -&gt; Array or None
+    &#34;&#34;&#34;
+    Calculate SST by removing outliers
+    &#34;&#34;&#34;
+
+    # Load satellite data and subset it
+    btemp = brightness_temperature(raw)
+    subbt = subset(btemp, nsub)
+    samples = interp2d_nearest((lon, lat, btemp), samples=samples)
+
+    # Generate masks
+    mask = crop(lon, lat, roi)
+    mask = filter_in_range(mask, btemp, maximum=-10)  # mask clouds 124.6
+    mask |= (
+        (samples &lt; outliers[0]) | (samples &gt; outliers[1]) | (btemp &lt; min(subbt))
+    )  # combine masks
+    indices = where(~mask)  # get unmasked linear indices
+    avhrr_filtered = samples[indices].reshape(-1, 1)  # extract unmasked AVHRR values
+    ls_filtered = btemp[indices].reshape(-1, 1)  # extract
+
+    # Regress Landsat and AVHRR
+    fit = 0.0
+    intercept = None
+    slope = None
+
+    while True:
+        pairs = hstack((avhrr_filtered, ls_filtered))
+        _slope, _intercept, r, pval, stderr = linregress(pairs)  # regress
+        if (abs(r) - abs(fit)) &lt; 0.000001:  # if r-value is improving
+            break
+
+        slope = _slope
+        intercept = _intercept
+        fit = r
+        gtruth = avhrr_filtered * _slope + _intercept  # &#34;true&#34; values
+        residual = abs(ls_filtered - gtruth)  # difference between observations
+        stdv = std(ls_filtered)  # landsat standard deviation
+        keepers, junk = where(residual &lt; stdv)
+        if len(keepers) == 0:
+            break
+
+        ls_filtered = ls_filtered[keepers]
+        avhrr_filtered = avhrr_filtered[keepers]
+
+    if not slope or not intercept:
+        return None
+    sst = (btemp - intercept) / slope  # full resolution version for output
+
+    # if crop:  # sparse sub-sampling
+    #     submask = subset(mask, nsub)
+    #     subsst = subset(sst, nsub)
+    #     sublat = subset(lat, nsub)
+    #     sublon = subset(lon, nsub)
+
+    return sst
+
+
+def oc3algorithms():
+    &#34;&#34;&#34;
+    read OC3 chlorophyll from netcdf for land mask
+    chl_sub = subset(chl, n)
+    mask land using chl_oc3 NaN land mask
+    Save results to NetCDF file
+    Plot: SST, AVHRR interp, landsat versus AVHRR;  w/ bounding box overlay
+    regress AV filter 2 and LS filter 2 for R2 and P values
+    &#34;&#34;&#34;
+    ...
+
+
+def avhrr_sst(files, locations, processes=1, chunk=4, delay=1):
+    # type: (dict, dict, int, int, int) -&gt; Array
+    &#34;&#34;&#34;
+    Get year time series of AVHRR temperature
+
+    :param files: files to scrap
+    :param locations: get nearest neighbors of these locations
+    :param chunk: number to retrieve per batch
+    :param delay: Ending (inclusive) datetime day
+    :param processes: number of processes to use
+    &#34;&#34;&#34;
+
+    total = len(files)
+    sst = {key: zeros(total, dtype=float) for key in locations.keys()}
+    found = zeros(total, dtype=bool)
+    indices = arange(total, dtype=int)
+
+    iteration = 0
+    while True:
+        pool = Pool(processes)
+        jobs = len(indices)
+        batches = ceil(jobs / chunk)
+        with catch_warnings():
+            simplefilter(&#34;ignore&#34;)
+            failures = 0
+            for ii in range(batches):
+
+                a = ii * chunk
+                b = (ii + 1) * chunk
+                new = indices[a:b] if b &lt; len(indices) else indices[a:]
+                results = pool.map(Dataset.query, files[new])
+
+                for jj in range(len(new)):
+                    if results[jj] is not None:
+                        _index = new[jj]
+                        found[_index] = True
+                        for key in results[jj].keys():
+                            sst[key][_index] = results[jj][key]
+                    else:
+                        failures += 1
+
+        (indices,) = where(~found)
+        count = sum(found)
+
+        try:
+            assert count + failures == total
+        except AssertionError:
+            break
+        if found.all():
+            break
+        iteration += 1
+        sleep(delay)
+
+    return sst
+
+
+def kelvin2celsius(data):
+    # type: (Array) -&gt; Array
+    &#34;&#34;&#34;Convert kelvin degrees to celsious degrees&#34;&#34;&#34;
+    return data - 272.15
+
+
+def brightness_temperature(x, m=3.3420e-04, b=0.1, k1=774.89, k2=1321.08):
+    # type: (Array, float, float, float, float) -&gt; Array
+    &#34;&#34;&#34;Brightness temperature from Band 10 raw counts&#34;&#34;&#34;
+    radiance = m * x + b
+    return (k2 / log((k1 / radiance) + 1)) - 272.15
+
+
+def viscosity(temperature):
+    # type: (Array) -&gt; Array
+    &#34;&#34;&#34;Viscosity from temperature&#34;&#34;&#34;
+    return 10.0 ** (-3.0) * 10.0 ** (-1.65 + 262.0 / (temperature + 169.0))
+
+
+def vertical_flux(omega, area):
+    # type: (Array, Array) -&gt; Array
+    &#34;&#34;&#34;Vertical flux density&#34;&#34;&#34;
+    return omega * area[:, None]
+
+
+def attenuation(bathymetry, elevation, sigma, coefficients):
+    # type: (Array, Array, Array, Array) -&gt; Array
+    &#34;&#34;&#34;Attenuated light&#34;&#34;&#34;
+    return (elevation - bathymetry) * sigma[:, None] * coefficients
+
+
+def lagrangian_diffusion(
+    vertex_array_buffer, window, bins, groups, threshold, wrap, steps=240
+):
+    # type: ((Array, ), int, int, Array, float, bool, int) -&gt; (Array,)
+    &#34;&#34;&#34;
+    Mean diffusion over time
+
+    :param vertex_array_buffer:
+    :param window: number of steps to average for displacement
+    :param bins: days/bins per experiment
+    :param groups: groups by array index
+    :param steps: steps per day/bin
+    :param threshold: distance to trigger wrap
+    :param wrap: amount to compensate for periodic domains
+    &#34;&#34;&#34;
+
+    delta = diff(vertex_array_buffer, axis=2)
+    if threshold is not None and wrap is not None:
+        delta -= wrap * (delta &gt; threshold)
+        delta += wrap * (delta &lt; -threshold)
+
+    def _reduce(start, end):
+        indices = arange(start, end)
+        mean_sq_displacement = delta[:, :, indices].sum(axis=2) ** 2
+        return 0.25 / 60 * mean_sq_displacement.sum(axis=0)
+
+    steps = delta.shape[2]
+    displace = zeros((delta.shape[1], steps))
+    for time in range(window, steps):  # per particle time series
+        displace[:, time] = _reduce(time - window, time)
+    displace = displace.mean(axis=0)
+
+    
+    ii = arange(bins) * steps
+    return tuple(
+        displace[indices, ii : ii + steps - 1].mean(axis=0) for indices in groups
+    )
+
+
+def layers(count: int):
+    &#34;&#34;&#34;Compute evenly space layers&#34;&#34;&#34;
+    z = -arange(count) / (count - 1)
+    dz = z[:-1] - z[1:]  # distance between sigma layers
+    zz = zeros(count)  # intra-level sigma
+    zz[:-1] = 0.5 * (z[:-1] + z[1:])  # intra-sigma layers
+    zz[-1] = 2 * zz[-2] - zz[-3]
+    dzz = zz[:-1] - zz[1:]  # distance between intra-sigma layers
+
+
+def z_index(sigma: array, count: int) -&gt; int:
+    &#34;&#34;&#34;
+    Convert from (negative) sigma coordinates to intra-layer indices
+    &#34;&#34;&#34;
+    return floor((1 - count) * sigma).astype(int)  # sigma layer index above position
+
+
+def gradient(dz: array, dzz: array) -&gt; array:
+    &#34;&#34;&#34;
+    Slopes for segments on either side of sigma layer, purely numerical, concentration independent
+    &#34;&#34;&#34;
+    return -1 / dz / roll(dzz, 1)
+
+
+def boundary(solid: array, open: array, topology: array) -&gt; dict:
+    &#34;&#34;&#34;
+    Collect nodes and set boundary for element
+    &#34;&#34;&#34;
+    solids = solid[topology].sum(axis=1)
+    return {
+        &#34;solid&#34;: (solids - 1).clip(max=1, min=0).astype(bool),
+        &#34;porosity&#34;: 2 - solids.clip(min=1),
+        &#34;open&#34;: open[topology].max(axis=1),
+    }
+
+
+def _advection_terms(solid, open, x, y, AU, neighbors):
+    &#34;&#34;&#34;Element terms for calculating advection&#34;&#34;&#34;
+    mask = solid + open
+    for element in where(~mask):  # for non-boundaries
+
+        indices = neighbors[element]
+        dx = x[indices] - x[element]  # distances to neighbor centers
+        dy = y[indices] - y[element]
+        dxdx = sum(dx ** 2)
+        dxdy = sum(dx * dy)
+        dydy = sum(dy ** 2)
+        average = [sum(dx), sum(dy)]
+
+        AU[element, 0, 0] = cross([dxdy, dydy], average)
+        AU[element, 0, 1] = cross(average, [dxdx, dxdy])
+
+        for index in range(3):
+            center = [dx[index], dy[index]]
+            AU[element, index, 0] = cross(center, [dxdx, dydy])
+            AU[element, index, 1] = cross([dxdx, dxdx], center)
+
+        positions = hstack((dx, dy))
+        aa = positions[[0, 0, 1], :]
+        bb = positions[[1, 2, 2], :]
+        delta = sum(cross(aa, bb) ** 2)
+
+        AU[element, :, :] /= delta
+
+
+def depth(bathymetry: array, elevation: array = None, dry: float = 1e-7) -&gt; MaskedArray:
+    &#34;&#34;&#34;
+    Time-varying property, free surface height from water level, meters
+    &#34;&#34;&#34;
+    data = (
+        bathymetry if elevation is None else bathymetry + elevation
+    )  # water depth, meters
+    return ma.masked_array(depth, mask=(data &gt; dry))  # depth threshold to consider dry
+
+
+def xye(x, y, z):
+    &#34;&#34;&#34;Return height-mapped vertex array&#34;&#34;&#34;
+    return hstack((x.reshape(-1, 1), y.reshape(-1, 1), z.reshape(-1, 1)))
+
+
+def mask(shape, masked=None):
+    m = zeros(shape, dtype=bool)
+    if masked is not None:
+        m[masked] = True
+    return m
+
+
+def _reorder(
+    node: int, parents: list, neighbors: list, topology: array, tri_neighbors, tri_solid
+):
+    &#34;&#34;&#34;Reorder elements around a node to clockwise&#34;&#34;&#34;
+    parents = parents[node]  # triangle neighbors
+    neighbors = neighbors[node]
+    start = 0
+    (ends,) = where(tri_solid[parents])
+    for ii in ends:
+        pid = parents[ii]
+        pos, _, _ = where(node == topology[pid, :])
+        bb = topology[pid, pos - 1]
+        shared = intersect1d(parents, parents[bb])
+        queue = intersect1d(tri_neighbors[pid], shared)
+
+        if len(queue) &gt; 0:
+            parents = roll(parents, -ii)
+            neighbors[0] = topology[pid, pos - 2]
+            start += 1
+        else:
+            neighbors[-1] = bb
+
+    np = len(parents)
+    if np &gt; 2:
+        for ii in range(start, np - 1):
+            pid = parents[ii]
+            pos, _, _ = where(node == topology[pid, :])
+            bb = topology[pid, pos - 1]
+            shared = intersect1d(parents, parents[bb])
+
+            while parents[ii + 1] not in shared:
+                parents[ii + 1 :] = roll(parents[ii + 1 :], -1)
+
+            neighbors[ii] = topology[pid, pos - 2]
+
+
+def _caclulate_area_with_cross_product(x: array, y: array, topology: array):
+    &#34;&#34;&#34;
+    Use numpy cross product of 2 legs to calculate area.
+    May be negative still, so correct windings in place
+    &#34;&#34;&#34;
+    dx = (x[:, 1] - x[:, 0]).reshape(-1, 1)
+    dy = (y[:, 1] - y[:, 0]).reshape(-1, 1)
+    aa = hstack((dx, dy))
+
+    dx = (x[:, 2] - x[:, 0]).reshape(-1, 1)
+    dy = (y[:, 2] - y[:, 0]).reshape(-1, 1)
+    bb = hstack((dx, dy))
+
+    area = 0.5 * cross(bb, aa)
+    (indices,) = where(area &lt; 0)
+    return abs(area), roll(topology[indices, 1:3], 1, axis=1)
+
+
+def calc_areas(vertex_buffer: array, topology: array, parents: list, verb=True):
+    &#34;&#34;&#34;
+    Calculate triangle area and correct windings
+    &#34;&#34;&#34;
+    vertex_positions = vertex_buffer[topology]
+
+
+    tri_area = _caclulate_area_with_cross_product(*vertex_positions, topology)
+    shape = len(vertex_buffer)
+    area = zeros(shape, dtype=float)
+    art2 = zeros(shape, dtype=float)
+    for node in range(shape):  # for each control volume
+        art2[node] = tri_area[parents[node]].sum()
+        area[node] = art2[node] / 3
+
+    return {&#34;parents&#34;: art2, &#34;triangles&#34;: tri_area, &#34;control volume&#34;: area}
+
+
+def extrude(vertex_array, closed=False, loop=True, dtype=float, **kwargs):
+    # type: (Array, bool, bool, type, dict) -&gt; Array
+    &#34;&#34;&#34;
+    Extrude geometric primitive into 3D model/surface
+    :param vertex_array: line or polygon
+    :param closed: the the faces created by the ends will be tessellated and close
+    :param loop: the extruded primitive is a closed loop (without duplicate points)
+    :param dtype: type of resulting Array
+    :param kwargs: other optional things we may need
+    &#34;&#34;&#34;
+    radii = kwargs.get(&#34;radii&#34;, [1.0, 1.0])
+    offsets = kwargs.get(&#34;offsets&#34;, [0.0, 1.0])
+    if len(radii) != len(offsets):
+        return None
+
+    nrings = len(radii)
+    count = len(vertex_array)
+    nv = count if loop else count - 1
+    faces = base = 2 * nv * (nrings - 1)
+    if closed:
+        faces += 2 * (len(vertex_array) - 2)
+
+    vertex_array = zeros((count * nrings, 3), dtype=dtype)
+    topology = zeros((faces, 3), dtype=int)
+
+    for ii in arange(nrings):
+
+        start = ii * count
+        for jj in range(count):
+            index = start + jj
+
+            vertex_array[index, 0:2] = radii[ii] * vertex_array[jj, 0:2]
+            vertex_array[index, 2] = vertex_array[jj, 2] + offsets[ii]
+
+            if ii &lt; nrings - 1:
+
+                v1i = index
+                v4i = index + count
+
+                if jj &gt;= count - 1 and loop:
+                    v2i = start
+                    v3i = start + count
+                    topology[index, 0:3] = [v3i, v2i, v1i]
+                    topology[index + faces // 2, 0:3] = [v4i, v3i, v1i]
+                else:
+                    v2i = index + 1
+                    v3i = index + count + 1
+                    topology[index, 0:3] = [v3i, v2i, v1i]
+                    topology[index + faces // 2, 0:3] = [v4i, v3i, v1i]
+
+    if closed:
+        for ii in range(count - 2):
+            topology[base + ii, 0:3] = [0, ii + 1, ii + 2]  # base
+            index = nv - 1
+            previous = index - ii - 1
+            topology[faces - 1 - ii, 0:3] = [index, previous, previous - 1]  # cap
+
+    return vertex_array, topology
+
+
+
+
+def subdivide(vertex_array, topology, punch=True):
+    # type: (Array, Array, bool) -&gt; None
+    &#34;&#34;&#34;
+    Divide each triangle into 4 smaller ones
+    &#34;&#34;&#34;
+    nvi = len(vertex_array)
+    for ii, tri in enumerate(topology):  # for each triangle face
+        for jj in range(3):  # for each vertex in each face
+
+            vi = (jj + 1) if jj &lt; 2 else 0  # next vert, loop back to first
+
+            indices = [jj, vi]
+            midpoint = vertex_array[tri[indices], :].mean(axis=1)
+
+            if punch:  # scale mid point to same radius as others
+                midpoint = normal(midpoint)
+                midpoint *= 0.5 * (
+                    norm(vertex_array[tri[jj], :].reshape(1, 3))
+                    + norm(vertex_array[tri[vi], :].reshape(1, 3))
+                )
+            vertex_array = vstack((vertex_array, midpoint))
+
+            new_face = array([topology[ii, jj], nvi, 0])
+            new_face[2] = nvi + 2 if jj &lt; 1 else nvi - 1
+            topology = vstack((topology, new_face))
+            nvi += 1
+
+        topology[ii] = [nvi - 3, nvi - 2, nvi - 1]  # replace original face
+
+
+def stitch(inner, outer):
+    # type: (Array, Array) -&gt; Array
+    &#34;&#34;&#34;
+    Surface joining edges of two shapes
+    &#34;&#34;&#34;
+    aa = len(inner)
+    cc = len(outer)
+    deltas = norm(outer[0, :] - inner[:, :])
+
+    topology = zeros((cc + aa, 3), dtype=int)
+
+    nn = 0
+    lines = aa // cc
+    (start,) = where(deltas == min(deltas))  # find closest of inner circle
+    start -= lines // 2  # shift back by half the number of lines
+
+    for ii in range(cc):  # for each vertex in outer ring
+        # for the number of lines drawn from each vertex
+        for jj in range(lines + 1):
+
+            if start &gt;= aa:
+                start -= aa  # reset index cycle if too large
+            elif start &lt; 0:
+                start += aa  # reset index cycle if too large
+
+            if jj &lt; lines:  # for all except last
+
+                topology[nn, :] = [ii, cc + start + 1, cc + start]
+                if (start + 1) &gt;= aa:
+                    topology[nn, 1] -= aa
+                start += 1
+
+            else:  # for last in pattern
+                topology[nn, :] = [ii, ii + 1, cc + start]
+                if (ii + 1) &gt;= cc:
+                    topology[nn, 1] -= cc
+
+            nn += 1
+
+
+def roughen(vertex_array, scalar=0.01):
+    # type: (Array, float) -&gt; Array
+    &#34;&#34;&#34;
+    Subtractive roughing maintains maximum radius.
+    &#34;&#34;&#34;
+    return vertex_array * (1 - random.random(vertex_array.shape) * scalar)
+
+
+def smooth(vertex_array, neighbors, weight=0.5):
+    # type: (Array, Array, float) -&gt; array
+    &#34;&#34;&#34;
+    Smooth surface by randomly traversing all vertices with a 1-lag
+    weighted stencil.
+    &#34;&#34;&#34;
+    arr = arange(len(vertex_array))  # create index array of vertices
+    random.shuffle(arange(len(vertex_array)))  # create random array of indices
+    for ii in arr:
+        imag = norm(vertex_array[ii, :].reshape(1, 3))  # self magnitude
+        jmag = mean(norm(vertex_array[neighbors[ii], :]))  # mean of neighbors
+        dmag = 1 + weight * (jmag - imag) / imag  # final scalar from weight
+        vertex_array[ii, :] *= dmag  # adjust self magnitude
+    return vertex_array
+
+
+def impact(vertex_array, neighbors, ind, s=0.05):
+    # type: (array, array, array, float) -&gt; array
+    &#34;&#34;&#34;
+    Create impact crate effect with raised rim
+    &#34;&#34;&#34;
+    vertex_array[ind, :] -= s * normal(vertex_array[ind, :].reshape(1, 3))[0]
+
+    for vi in neighbors[ind]:
+        vertex_array[vi, :] -= s * normal(vertex_array[vi, :].reshape(1, 3))[0]
+        for vj in neighbors[vi]:
+            if vj == ind:
+                continue
+            vertex_array[vj, :] += (
+                0.25 * s * normal(vertex_array[vj, :].reshape(1, 3))[0]
+            )
+
+    return vertex_array
+
+
+def degrade(vertex_array, neighbors):
+    &#34;&#34;&#34;
+    Turn globe/geoid into asteroid-like mesh
+    &#34;&#34;&#34;
+    vertex_array = normal(vertex_array)  # ensure unit sphere
+    niter = 3  # number of epochs
+    zones = (-1.5, -0.2, 0.7)  # all, half, zone
+    hits = 1000  # craters per zone per epoch
+
+    for ii in range(niter):  # for each epoch
+        for jj in zones:  # for each frequency zone
+            (arr,) = where((vertex_array[:, 2] &gt; jj))  # hemisphere
+            ns = len(arr)
+            for kk in range(hits):  # randomly create impact craters
+                impact(
+                    arr,
+                    s=0.02 * random.random(),
+                    neighbors=neighbors,
+                    ind=int(random.random() * ns),
+                )
+
+        smooth(vertex_array, neighbors, weight=0.1)  # smooth crater rim
+        roughen(vertex_array, scalar=(0.01 / niter))  # add roughness (erosion)
+
+    smooth(vertex_array, neighbors, weight=0.25)  # final smoothing
+
+
+def shapefile(path, gpu=False):
+    # type: (str, bool) -&gt; (Array,)
+    &#34;&#34;&#34;
+    Get array of objects from Shapefile
+
+    :param path:
+    :param gpu:
+    &#34;&#34;&#34;
+    reader = Reader(path)
+    fields = reader.fields[1:]  # remove deletion flag
+    result = []
+    for shape, record in reader.iterShapeRecords():
+        assert len(fields) == len(record), (fields, record)
+        meta = {key[0]: rec for key, rec in zip(fields, record)}
+        vertices = array(shape.points)
+        parts = array_split(vertices, shape.parts[1:])
+        result.extend(zip(parts, repeat(meta, len(parts))))
+    return result
+
+
+def parallelogram(ww, hh, dw=0.0, dh=0.0):
+    # type: (float, float, float, float) -&gt; Array
+    shape = zeros(shape=(4, 3), dtype=float)
+    shape[1, 0:3] = array([dw, hh, 0.0])
+    shape[2, 0:3] = array([ww + dw, hh + dh, 0.0])
+    shape[3, 0:3] = array([ww + dw, dh, 0.0])
+    return shape
+
+
+def rectangle(ww, hh):
+    # type: (float, float) -&gt; Array
+    return parallelogram(ww, hh)
+
+
+def square(ww):
+    # type: (float) -&gt; Array
+    return rectangle(ww, ww)
+
+
+def regular_polygon(points):
+    # type: (int) -&gt; Array
+    shape = zeros(shape=(points, 3))
+    inc = -2.0 * pi / points  # rotation increment
+    new = XAXIS.copy()  # initial point at 0 radians
+    for ii in range(points):
+        shape[ii, 0:3] = new  # copy point to polygon
+        new = rotate(new, angle=inc, axis=ZAXIS)
+    return shape
+
+
+def point_arc(points, start, sweep):
+    # type: (int, float, float) -&gt; Array
+    shape = zeros(shape=(points, 3))
+    inc = -1.0 * sweep / (points - 1)  # rotation increment
+    new = rotate(XAXIS, angle=start, axis=ZAXIS)
+    for ii in range(points):
+        shape[ii, 0:3] = new  # copy point to polygon
+        new = rotate(new, angle=inc, axis=ZAXIS)
+    return shape
+
+
+def wedge(points, start, sweep):
+    # type: (int, float, float) -&gt; Array
+    shape = point_arc(points, start, sweep)
+    shape = vstack((shape, ORIGIN))
+    return shape
+
+
+def bevel(arr, points, radius, num=None):
+    # type: (Array, int, float, list) -&gt; Array
+    &#34;&#34;&#34;
+    Bevel corners
+    &#34;&#34;&#34;
+    nv = len(arr)
+    if num is None:
+        num = []
+
+    index = arange(-1, nv + 1, dtype=int)
+    index[0] = nv - 1  # first index
+    index[-1] = 0  # last index is zero
+    if not num:
+        num = nv
+
+    out = zeros(((points - 1) * num + nv, 3), dtype=float)
+
+    # forward and backward vectors for arbitrary angle calc
+    for ii in arange(1, num + 1):  # for each corner in original
+
+        _slice = arr[index[ii], :]
+        back = (arr[index[ii - 1], :] - _slice).reshape(1, 3)
+        fore = (arr[index[ii + 1], :] - _slice).reshape(1, 3)
+
+        theta = angle3d(back, fore)  # angle between segments
+        base = arctan2(back[:, 1], back[:, 0])  # angle of  back segment
+        _next = arctan2(fore[:, 1], fore[:, 0])  # angle of  forward segment
+        start = base - pi / 2.0  # starting angle
+        sweep = pi - theta  # angle to sweep
+        _memo = radius / sin(theta / 2.0) * cos(_next - theta / 2.0)
+
+        offx = arr[index[ii], 0] + _memo  # TODO: think this is wrong
+        offy = arr[index[ii], 1] + _memo
+
+        arc = point_arc(points, start, sweep)  # create arc
+        scale(arc, radius, radius, radius)  # scale arc to radius size
+        translate(arc, (offx, offy, 0.0))
+
+        aa = (ii - 1) * points
+        bb = ii * points
+        out[aa:bb, :] = arc
+
+    nv += (points - 1) * num  # copy back to input
+    return out
+
+
+def shell(points, start, sweep, ww, hh, dw, dh):
+    # type: (int, float, float, float, float, float, float) -&gt; Array
+    &#34;&#34;&#34;
+    Parallel arcs forming a closed space
+    &#34;&#34;&#34;
+    total = 2 * points
+    shape = zeros(shape=(total, 3))
+    outer = point_arc(points, start, sweep)
+    scale(outer, ww, hh, 0)
+    inner = point_arc(points, start, sweep)
+    scale(inner, ww - dw, hh - dh, 0)
+
+    for ii in arange(points):
+        shape[ii, :] = outer[ii, :]
+        shape[total - ii - 1, :] = inner[ii, :]
+
+    return shape
+
+
+def cube(size=1.0):
+    &#34;&#34;&#34;
+    Orthogonal unit cube
+    &#34;&#34;&#34;
+    return extrude(square(size))
+
+
+def hexagon(point_up=True, dim=2):
+    # type: (bool, int) -&gt; (Array, Array) or Array
+    &#34;&#34;&#34;
+    Flattened hex-like surface by rotating a cube
+    &#34;&#34;&#34;
+    if not (2 &lt;= dim &lt;= 3):
+        raise ValueError
+    if dim == 2:
+        return regular_polygon(6)
+
+    diag = 2 ** (-1.5)
+    vertex_array, topology = cube(diag)  # create cube instance
+    scale(vertex_array, diag, diag, diag)  # scale to unit diagonal
+    snap = vertex_array[0, :].reshape((1, 3))
+    # turn laterally, view down roll
+    vertex_array = rotate(vertex_array, -pi / 4, (YAXIS if point_up else ZAXIS))
+    rot = angle3d(snap, (ZAXIS if point_up else -ZAXIS))
+    vertex_array = rotate(
+        vertex_array, rot, norm(snap) * (XAXIS if point_up else YAXIS)
+    )
+    return vertex_array, topology
+
+
+def tetrahedron(dtype=float):
+    vertex_array = zeros((4, 3), dtype=dtype)
+    topology = zeros((4, 3), dtype=int)
+
+    vertex_array[0, :] = [-1.0 * (2.0 / 3.0) ** 0.5, 0.0, (1.0 / 3.0) ** 0.5]
+    vertex_array[1, :] = [(2.0 / 3.0) ** 0.5, 0.0, (1.0 / 3.0) ** 0.5]
+    vertex_array[2, :] = [0.0, -1.0 * (2.0 / 3.0) ** 0.5, -1.0 * (1.0 / 3.0) ** 0.5]
+    vertex_array[3, :] = [0.0, (2.0 / 3.0) ** 0.5, -1.0 * (1.0 / 3.0) ** 0.5]
+
+    topology[0, :] = [0, 1, 3]
+    topology[1, :] = [0, 3, 2]
+    topology[2, :] = [0, 2, 1]
+    topology[3, :] = [1, 2, 3]
+
+    return vertex_array, topology
+
+
+def globe(n: int = 24, dtype: Type = float):
+
+    # vertex_array = zeros((R * (R // 2 - 1) + 2, 3), dtype=dtype)
+    # topology = zeros((2 * R * (R // 2 - 1), 3), dtype=int)
+    lats = 0.5 * pi * (2.0 * arange(n, dtype=float) / (n - 1) - 1.0)
+    offsets = sin(lats)
+    radii = cos(lats)
+    ring = regular_polygon(n)
+    return extrude(
+        ring, radii=radii, offsets=offsets, closed=False, loop=True, dtype=dtype
+    )
+
+
+def icosahedron(dtype=float):
+    # type: (type) -&gt; Array
+    &#34;&#34;&#34;
+    Create icosahedron model as base for recursively fragmented geoid.
+    &#34;&#34;&#34;
+    phi = 0.5 * (1.0 + 5.0 ** 0.5)
+    vertex_array = zeros((6, 3), dtype=dtype)
+    topology = zeros((5, 3), dtype=int)
+    vertex_array[0, 0:3] = [0.0, 1.0 / phi, 1.0]  # first vertex
+    vertex_array[1, 0:3] = [0.0, -1.0 / phi, 1.0]
+    ind = 2
+
+    for ii in arange(5):
+        if ii &lt; 4:
+            topology[ii, 0:3] = [0, ii + 1, ii + 2]
+            vertex_array[ind, 0:3] = rotate(
+                vertex_array[0, 0:3].reshape(1, 3),
+                2.0 * pi / 5.0,
+                vertex_array[ind - 1, 0:3].reshape(1, 3),
+            )
+            ind += 1
+        else:
+            topology[ii, 0:3] = [0, ii + 1, 1]
+
+    vertex_array_2 = vertex_array.copy()
+    topology_2 = topology.copy() + 6  # TODO: this might be wrong
+    rotate(vertex_array_2, pi, XAXIS)
+    rotate(vertex_array_2, -2.0 * pi / 5.0, vertex_array[0, 0:3].reshape(1, 3))
+
+    a = 1
+    b = 9
+    nn = 10
+    for ii in range(5):
+        topology = vstack((topology, array([0, 0, 0])))
+        topology[nn, 0] = a
+        topology[nn, 1] = b
+        b -= 1
+        if b &lt; 7:
+            b = 11
+        topology[nn, 2] = b
+        nn += 1
+
+        topology = vstack((topology, array([0, 0, 0])))
+        topology[nn, 0] = a
+        a += 1
+        if a &gt; 5:
+            a = 1
+        topology[nn, 1] = b
+        topology[nn, 2] = a
+
+        nn += 1
+
+    return vertex_array, topology
+
+
+def swarm(vertex_array, vector_array, orientations, omega):
+    &#34;&#34;&#34;
+    Steer members of swarm
+    &#34;&#34;&#34;
+    position = vertex_array.mean(axis=1)
+    offsets = position - vertex_array
+    attractor = normal(offsets)
+    inverse = -offsets
+    mask = norm(inverse, axis=0) &lt; 0.5
+    repulsor = normal(inverse * where(mask))
+    orientation = orientations.mean(axis=1)
+    alignment = normal(orientation)
+
+    final = normal(alignment + repulsor + attractor)
+
+    normv = normal(vector_array)
+    # normo = normal(orientations)
+
+    # brake/adjust speed here -&gt;
+
+    course_error = angle2d(vector_array, final)  # angleOffset reaches NaN
+    steering_force = cross(normv, course_error)
+
+    torque = (
+        -omega + sign(steering_force[:, 2]) * 0.5 * course_error
+    )  # critically damped oscillator
+    orientations = orientations + torque
+
+    # rotate(orientations)
+
+    # accelerate
+    impulse(uv=final, direction=orientations)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="utils.angle2d"><code class="name flex">
+<span>def <span class="ident">angle2d</span></span>(<span>u, v)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Angle relative to origin, between pairs of 2d vectors</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def angle2d(u, v):
+    # type: (Array, Array) -&gt; Array
+    &#34;&#34;&#34;Angle relative to origin, between pairs of 2d vectors&#34;&#34;&#34;
+    delta = u - v
+    theta = arctan2(delta[1], delta[0])
+    (ind,) = where(theta &lt; -pi)
+    theta[ind] += 2 * pi
+    (ind,) = where(theta &gt; pi)
+    theta[ind] -= 2 * pi
+    return theta</code></pre>
+</details>
+</dd>
+<dt id="utils.angle3d"><code class="name flex">
+<span>def <span class="ident">angle3d</span></span>(<span>u, v)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate angle between pairs of 3d vectors</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def angle3d(u, v):
+    # type: (Array, Array) -&gt; Array
+    &#34;&#34;&#34;Calculate angle between pairs of 3d vectors&#34;&#34;&#34;
+    theta = dot(u, v.T) / (norm(u) * norm(v))
+    return arccos(theta) if (-1.0 &lt;= theta &lt;= 1.0) else 0.0</code></pre>
+</details>
+</dd>
+<dt id="utils.area_sort"><code class="name flex">
+<span>def <span class="ident">area_sort</span></span>(<span>data, pool=None, processes=1, reverse=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sort by shape area or extent area.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def area_sort(data, pool=None, processes=1, reverse=False):
+    # type: (((Array, ),), Pool, int, bool) -&gt; (Array, )
+    &#34;&#34;&#34;
+    Sort by shape area or extent area.
+    &#34;&#34;&#34;
+    if pool is None:
+        pool = Pool(processes)
+    eval_shps = data[0]
+
+    if isinstance(eval_shps[0], tuple) and len(eval_shps[0]) == 4:
+        method = extent_area
+    else:
+        method = polygon_area
+
+    areas = array(pool.starmap(method, ((s,) for s in eval_shps)))
+    sorting = argsort(areas)
+    if reverse:
+        sorting = sorting[::-1]
+
+    inverse = empty_like(sorting)
+    inverse[sorting] = arange(sorting.size)
+    return tuple(array(x)[sorting] for x in data + (areas,)) + (inverse,)</code></pre>
+</details>
+</dd>
+<dt id="utils.array2image"><code class="name flex">
+<span>def <span class="ident">array2image</span></span>(<span>z, cmap)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Create bathysphere_functions_image object in memory</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def array2image(z, cmap):
+    # type: (Array, str) -&gt; Image
+    &#34;&#34;&#34;
+    Create bathysphere_functions_image object in memory
+    &#34;&#34;&#34;
+    return fromarray(uint8(get_cmap(cmap)(z) * 255)).rotate(90)</code></pre>
+</details>
+</dd>
+<dt id="utils.arrays2points"><code class="name flex">
+<span>def <span class="ident">arrays2points</span></span>(<span>x, y, z=None, dilate=0)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Extract all unmasked pixels as an array of (x,y) points, and an array of (z) values.
+Optionally dilate the mask by some number of pixels.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def arrays2points(x, y, z=None, dilate=0):
+    # type: (Array, Array, Array, int) -&gt; Array
+    &#34;&#34;&#34;
+    Extract all unmasked pixels as an array of (x,y) points, and an array of (z) values.
+    Optionally dilate the mask by some number of pixels.
+    &#34;&#34;&#34;
+    if z is None:
+        return stack((x.reshape(-1, 1), y.reshape(-1, 1)), axis=1)
+    if isinstance(dilate, int) and dilate &gt; 0:
+        z.mask = ndimage.binary_dilation(ndimage.binary_dilation(z.mask))
+    if isinstance(z.mask, bool or None):
+        columns = (x.reshape(-1, 1), y.reshape(-1, 1), z.reshape(-1, 1))
+    else:
+        indices = where(~z.mask.reshape(-1, 1))
+        columns = (
+            x.reshape(-1, 1)[indices],
+            y.reshape(-1, 1)[indices],
+            z.reshape(-1, 1)[indices],
+        )
+    return stack(columns, axis=1)</code></pre>
+</details>
+</dd>
+<dt id="utils.attenuation"><code class="name flex">
+<span>def <span class="ident">attenuation</span></span>(<span>bathymetry, elevation, sigma, coefficients)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Attenuated light</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def attenuation(bathymetry, elevation, sigma, coefficients):
+    # type: (Array, Array, Array, Array) -&gt; Array
+    &#34;&#34;&#34;Attenuated light&#34;&#34;&#34;
+    return (elevation - bathymetry) * sigma[:, None] * coefficients</code></pre>
+</details>
+</dd>
+<dt id="utils.avhrr_index"><code class="name flex">
+<span>def <span class="ident">avhrr_index</span></span>(<span>host: str, start: datetime.datetime = None, end: datetime.datetime = None, fmt: str = '%Y%m%d%H%M%S') -> [[<class 'dict'>]]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get the entries for all remote files on server in years of interest.</p>
+<p>:param host: hostname
+:param start: datetime object
+:param end: datetime object
+:param fmt: datetime str formatter
+:return:</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def avhrr_index(
+    host: str, start: datetime = None, end: datetime = None, fmt: str = &#34;%Y%m%d%H%M%S&#34;
+) -&gt; [[dict]]:
+    # type: (str, datetime, datetime, str) -&gt; [list]
+    &#34;&#34;&#34;
+    Get the entries for all remote files on server in years of interest.
+
+    :param host: hostname
+    :param start: datetime object
+    :param end: datetime object
+    :param fmt: datetime str formatter
+    :return:
+    &#34;&#34;&#34;
+    result = []
+    for year in arange(start.year, end.year + 1):
+        names = read_html(f&#34;{host}/pathfinder/Version5.3/L3C/{year}/data/&#34;, skiprows=3)[
+            0
+        ][1][:-1]
+        dates = [
+            datetime.strptime(item[:14], fmt) for item in names
+        ]  # date from filename
+
+        if year in (start.year, end.year):
+            data = array(dates)
+            mask = (start &lt; data) &amp; (end + timedelta(days=1) &gt; data)
+            (indices,) = where(mask)
+            files = [{&#34;name&#34;: names[ii], &#34;ts&#34;: data[ii]} for ii in indices]
+        else:
+            files = [{&#34;name&#34;: name, &#34;ts&#34;: date} for name, date in zip(names, dates)]
+        result += files
+    return result</code></pre>
+</details>
+</dd>
+<dt id="utils.avhrr_sst"><code class="name flex">
+<span>def <span class="ident">avhrr_sst</span></span>(<span>files, locations, processes=1, chunk=4, delay=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get year time series of AVHRR temperature</p>
+<p>:param files: files to scrap
+:param locations: get nearest neighbors of these locations
+:param chunk: number to retrieve per batch
+:param delay: Ending (inclusive) datetime day
+:param processes: number of processes to use</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def avhrr_sst(files, locations, processes=1, chunk=4, delay=1):
+    # type: (dict, dict, int, int, int) -&gt; Array
+    &#34;&#34;&#34;
+    Get year time series of AVHRR temperature
+
+    :param files: files to scrap
+    :param locations: get nearest neighbors of these locations
+    :param chunk: number to retrieve per batch
+    :param delay: Ending (inclusive) datetime day
+    :param processes: number of processes to use
+    &#34;&#34;&#34;
+
+    total = len(files)
+    sst = {key: zeros(total, dtype=float) for key in locations.keys()}
+    found = zeros(total, dtype=bool)
+    indices = arange(total, dtype=int)
+
+    iteration = 0
+    while True:
+        pool = Pool(processes)
+        jobs = len(indices)
+        batches = ceil(jobs / chunk)
+        with catch_warnings():
+            simplefilter(&#34;ignore&#34;)
+            failures = 0
+            for ii in range(batches):
+
+                a = ii * chunk
+                b = (ii + 1) * chunk
+                new = indices[a:b] if b &lt; len(indices) else indices[a:]
+                results = pool.map(Dataset.query, files[new])
+
+                for jj in range(len(new)):
+                    if results[jj] is not None:
+                        _index = new[jj]
+                        found[_index] = True
+                        for key in results[jj].keys():
+                            sst[key][_index] = results[jj][key]
+                    else:
+                        failures += 1
+
+        (indices,) = where(~found)
+        count = sum(found)
+
+        try:
+            assert count + failures == total
+        except AssertionError:
+            break
+        if found.all():
+            break
+        iteration += 1
+        sleep(delay)
+
+    return sst</code></pre>
+</details>
+</dd>
+<dt id="utils.bevel"><code class="name flex">
+<span>def <span class="ident">bevel</span></span>(<span>arr, points, radius, num=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Bevel corners</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def bevel(arr, points, radius, num=None):
+    # type: (Array, int, float, list) -&gt; Array
+    &#34;&#34;&#34;
+    Bevel corners
+    &#34;&#34;&#34;
+    nv = len(arr)
+    if num is None:
+        num = []
+
+    index = arange(-1, nv + 1, dtype=int)
+    index[0] = nv - 1  # first index
+    index[-1] = 0  # last index is zero
+    if not num:
+        num = nv
+
+    out = zeros(((points - 1) * num + nv, 3), dtype=float)
+
+    # forward and backward vectors for arbitrary angle calc
+    for ii in arange(1, num + 1):  # for each corner in original
+
+        _slice = arr[index[ii], :]
+        back = (arr[index[ii - 1], :] - _slice).reshape(1, 3)
+        fore = (arr[index[ii + 1], :] - _slice).reshape(1, 3)
+
+        theta = angle3d(back, fore)  # angle between segments
+        base = arctan2(back[:, 1], back[:, 0])  # angle of  back segment
+        _next = arctan2(fore[:, 1], fore[:, 0])  # angle of  forward segment
+        start = base - pi / 2.0  # starting angle
+        sweep = pi - theta  # angle to sweep
+        _memo = radius / sin(theta / 2.0) * cos(_next - theta / 2.0)
+
+        offx = arr[index[ii], 0] + _memo  # TODO: think this is wrong
+        offy = arr[index[ii], 1] + _memo
+
+        arc = point_arc(points, start, sweep)  # create arc
+        scale(arc, radius, radius, radius)  # scale arc to radius size
+        translate(arc, (offx, offy, 0.0))
+
+        aa = (ii - 1) * points
+        bb = ii * points
+        out[aa:bb, :] = arc
+
+    nv += (points - 1) * num  # copy back to input
+    return out</code></pre>
+</details>
+</dd>
+<dt id="utils.blank"><code class="name flex">
+<span>def <span class="ident">blank</span></span>(<span>shape, gpu=False, fill=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Create mask in shape of data, optionally using GPU</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def blank(shape, gpu=False, fill=False):
+    # type: (tuple, bool, bool) -&gt; Array
+    &#34;&#34;&#34;
+    Create mask in shape of data, optionally using GPU
+    &#34;&#34;&#34;
+    template = (ones if fill else zeros)(shape, dtype=bool)
+    if gpu:
+        return af.Array(src=template.ctypes.data, dims=template.shape, dtype=&#34;b&#34;)
+    else:
+        return template</code></pre>
+</details>
+</dd>
+<dt id="utils.boundary"><code class="name flex">
+<span>def <span class="ident">boundary</span></span>(<span>solid: <built-in function array>, open: <built-in function array>, topology: <built-in function array>) -> dict</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Collect nodes and set boundary for element</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def boundary(solid: array, open: array, topology: array) -&gt; dict:
+    &#34;&#34;&#34;
+    Collect nodes and set boundary for element
+    &#34;&#34;&#34;
+    solids = solid[topology].sum(axis=1)
+    return {
+        &#34;solid&#34;: (solids - 1).clip(max=1, min=0).astype(bool),
+        &#34;porosity&#34;: 2 - solids.clip(min=1),
+        &#34;open&#34;: open[topology].max(axis=1),
+    }</code></pre>
+</details>
+</dd>
+<dt id="utils.brightness_temperature"><code class="name flex">
+<span>def <span class="ident">brightness_temperature</span></span>(<span>x, m=0.0003342, b=0.1, k1=774.89, k2=1321.08)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Brightness temperature from Band 10 raw counts</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def brightness_temperature(x, m=3.3420e-04, b=0.1, k1=774.89, k2=1321.08):
+    # type: (Array, float, float, float, float) -&gt; Array
+    &#34;&#34;&#34;Brightness temperature from Band 10 raw counts&#34;&#34;&#34;
+    radiance = m * x + b
+    return (k2 / log((k1 / radiance) + 1)) - 272.15</code></pre>
+</details>
+</dd>
+<dt id="utils.c_array"><code class="name flex">
+<span>def <span class="ident">c_array</span></span>(<span>kind, *args)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Convert input to ctypes array</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def c_array(kind, *args):
+    # type: (type, list) -&gt; Any
+    &#34;&#34;&#34;
+    Convert input to ctypes array
+    &#34;&#34;&#34;
+    return (kind * len(args))(*args)</code></pre>
+</details>
+</dd>
+<dt id="utils.calc_areas"><code class="name flex">
+<span>def <span class="ident">calc_areas</span></span>(<span>vertex_buffer: <built-in function array>, topology: <built-in function array>, parents: list, verb=True)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate triangle area and correct windings</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def calc_areas(vertex_buffer: array, topology: array, parents: list, verb=True):
+    &#34;&#34;&#34;
+    Calculate triangle area and correct windings
+    &#34;&#34;&#34;
+    vertex_positions = vertex_buffer[topology]
+
+
+    tri_area = _caclulate_area_with_cross_product(*vertex_positions, topology)
+    shape = len(vertex_buffer)
+    area = zeros(shape, dtype=float)
+    art2 = zeros(shape, dtype=float)
+    for node in range(shape):  # for each control volume
+        art2[node] = tri_area[parents[node]].sum()
+        area[node] = art2[node] / 3
+
+    return {&#34;parents&#34;: art2, &#34;triangles&#34;: tri_area, &#34;control volume&#34;: area}</code></pre>
+</details>
+</dd>
+<dt id="utils.center"><code class="name flex">
+<span>def <span class="ident">center</span></span>(<span>arr)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Geometric center</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def center(arr):
+    # type: (Array) -&gt; (float, float)
+    &#34;&#34;&#34;
+    Geometric center
+    &#34;&#34;&#34;
+    return tuple(mean(arr.data, axis=0))</code></pre>
+</details>
+</dd>
+<dt id="utils.crop"><code class="name flex">
+<span>def <span class="ident">crop</span></span>(<span>x, y, ext, mask=None, gpu=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Mask positions outside the given extent</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def crop(x, y, ext, mask=None, gpu=False):
+    # type: (Array, Array, list or tuple, Array, bool) -&gt; Array
+    &#34;&#34;&#34;Mask positions outside the given extent&#34;&#34;&#34;
+    assert x.shape == y.shape
+    if mask is None:
+        mask = blank(x.shape)
+
+    mask |= af.np_to_af_array(x &lt; ext[0]) if gpu else x &lt; ext[0]
+    mask |= af.np_to_af_array(x &gt; ext[1]) if gpu else x &gt; ext[1]
+    mask |= af.np_to_af_array(y &lt; ext[2]) if gpu else y &lt; ext[2]
+    mask |= af.np_to_af_array(y &gt; ext[3]) if gpu else y &gt; ext[3]
+    return mask</code></pre>
+</details>
+</dd>
+<dt id="utils.cube"><code class="name flex">
+<span>def <span class="ident">cube</span></span>(<span>size=1.0)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Orthogonal unit cube</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def cube(size=1.0):
+    &#34;&#34;&#34;
+    Orthogonal unit cube
+    &#34;&#34;&#34;
+    return extrude(square(size))</code></pre>
+</details>
+</dd>
+<dt id="utils.days"><code class="name flex">
+<span>def <span class="ident">days</span></span>(<span>date)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Convert a single datetime to a Julian day number</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def days(date):
+    &#34;&#34;&#34;Convert a single datetime to a Julian day number&#34;&#34;&#34;
+    delta = date - datetime(date.year, 1, 1, 0, 0, 0)
+    result = delta.total_seconds() / 24 / 60 / 60
+    return result</code></pre>
+</details>
+</dd>
+<dt id="utils.degrade"><code class="name flex">
+<span>def <span class="ident">degrade</span></span>(<span>vertex_array, neighbors)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Turn globe/geoid into asteroid-like mesh</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def degrade(vertex_array, neighbors):
+    &#34;&#34;&#34;
+    Turn globe/geoid into asteroid-like mesh
+    &#34;&#34;&#34;
+    vertex_array = normal(vertex_array)  # ensure unit sphere
+    niter = 3  # number of epochs
+    zones = (-1.5, -0.2, 0.7)  # all, half, zone
+    hits = 1000  # craters per zone per epoch
+
+    for ii in range(niter):  # for each epoch
+        for jj in zones:  # for each frequency zone
+            (arr,) = where((vertex_array[:, 2] &gt; jj))  # hemisphere
+            ns = len(arr)
+            for kk in range(hits):  # randomly create impact craters
+                impact(
+                    arr,
+                    s=0.02 * random.random(),
+                    neighbors=neighbors,
+                    ind=int(random.random() * ns),
+                )
+
+        smooth(vertex_array, neighbors, weight=0.1)  # smooth crater rim
+        roughen(vertex_array, scalar=(0.01 / niter))  # add roughness (erosion)
+
+    smooth(vertex_array, neighbors, weight=0.25)  # final smoothing</code></pre>
+</details>
+</dd>
+<dt id="utils.depth"><code class="name flex">
+<span>def <span class="ident">depth</span></span>(<span>bathymetry: <built-in function array>, elevation: <built-in function array> = None, dry: float = 1e-07) -> numpy.ma.core.MaskedArray</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Time-varying property, free surface height from water level, meters</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def depth(bathymetry: array, elevation: array = None, dry: float = 1e-7) -&gt; MaskedArray:
+    &#34;&#34;&#34;
+    Time-varying property, free surface height from water level, meters
+    &#34;&#34;&#34;
+    data = (
+        bathymetry if elevation is None else bathymetry + elevation
+    )  # water depth, meters
+    return ma.masked_array(depth, mask=(data &gt; dry))  # depth threshold to consider dry</code></pre>
+</details>
+</dd>
+<dt id="utils.depth2sigma"><code class="name flex">
+<span>def <span class="ident">depth2sigma</span></span>(<span>elevation, bathymetry, z)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Unit depth to sigma coordinates</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def depth2sigma(elevation, bathymetry, z):
+    # type: (Array, Array, Array) -&gt; Array
+    &#34;&#34;&#34;Unit depth to sigma coordinates&#34;&#34;&#34;
+    return -abs(z - elevation) / abs(elevation - bathymetry)</code></pre>
+</details>
+</dd>
+<dt id="utils.extent_area"><code class="name flex">
+<span>def <span class="ident">extent_area</span></span>(<span>ext)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Area of a shape extent</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def extent_area(ext):
+    # type: (ExtentType) -&gt; float
+    &#34;&#34;&#34;
+    Area of a shape extent
+    &#34;&#34;&#34;
+    return (ext[1] - ext[0]) * (ext[3] - ext[2])</code></pre>
+</details>
+</dd>
+<dt id="utils.extent_crop"><code class="name flex">
+<span>def <span class="ident">extent_crop</span></span>(<span>ext, xyz)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return only the pixels inside the cropping extent</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def extent_crop(ext, xyz):
+    # type: (ExtentType, Array) -&gt; Array
+    &#34;&#34;&#34;Return only the pixels inside the cropping extent&#34;&#34;&#34;
+    if xyz.shape[1] &gt; 3:
+        a, b = 1, 2
+    else:
+        a, b = 0, 1
+    mask = crop(xyz[:, a], xyz[:, b], ext)
+    select = where(~mask)[0]
+    return xyz[select, :]</code></pre>
+</details>
+</dd>
+<dt id="utils.extent_overlap_automatic"><code class="name flex">
+<span>def <span class="ident">extent_overlap_automatic</span></span>(<span>xyz, shapes, extents, max_passes=3, rec=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Use with sparse rasters. Get overall extent, and find shapes with overlapping extent.
+Reduce these to a single extent, and remove xyz values not within that union.
+Repeat until extent stops changing.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def extent_overlap_automatic(xyz, shapes, extents, max_passes=3, rec=None):
+    # type: (Array, (Array,), (ExtentType,), int, (dict, )) -&gt; (Array, (Path,))
+    &#34;&#34;&#34;
+    Use with sparse rasters. Get overall extent, and find shapes with overlapping extent.
+    Reduce these to a single extent, and remove xyz values not within that union.
+    Repeat until extent stops changing.
+    &#34;&#34;&#34;
+    warn(
+        &#34;Recursive extent culling is unstable. Use looped `extent_overlap_iteration`&#34;,
+        DeprecationWarning,
+    )
+
+    previous, current = None, extent(xyz[:, 0], xyz[:, 1])
+    dat = extent_overlap_filter(current, shapes, extents, rec=rec)
+    if rec:
+        f, e, r = dat
+    else:
+        f, e = dat
+        r = None
+
+    passes = 0
+
+    while previous != current and passes &lt; max_passes:
+
+        xyz = extent_crop(reduce(reduce_extent, e), xyz)
+        previous, current = current, extent(xyz[:, 0], xyz[:, 1])
+        dat = extent_overlap_filter(current, f, e, rec=r)
+        if rec:
+            f, e, r = dat
+        else:
+            f, e = dat
+            r = None
+
+        passes += 1
+
+    return xyz, f, e, r</code></pre>
+</details>
+</dd>
+<dt id="utils.extent_overlap_filter"><code class="name flex">
+<span>def <span class="ident">extent_overlap_filter</span></span>(<span>ext, shapes, extents, rec=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:param ext: data extent
+:param shapes: shapes are passed through
+:param extents: extents to compare
+:param rec: records are passed through</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def extent_overlap_filter(ext, shapes, extents, rec=None):
+    # type: (ExtentType, (Array,), (ExtentType,), (dict,)) -&gt; ((Array,), (ExtentType,))
+    &#34;&#34;&#34;
+
+    :param ext: data extent
+    :param shapes: shapes are passed through
+    :param extents: extents to compare
+    :param rec: records are passed through
+    &#34;&#34;&#34;
+    iterator = zip(*((shapes, extents, rec) if rec else (shapes, extents)))
+    return tuple(zip(*filter(lambda x: extent_overlap(ext, x[1]), iterator)))</code></pre>
+</details>
+</dd>
+<dt id="utils.extent_overlap_iteration"><code class="name flex">
+<span>def <span class="ident">extent_overlap_iteration</span></span>(<span>vertex_array, shapes, extents, records=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Find overlapping extents, and return only pixels inside their bounding extent</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def extent_overlap_iteration(vertex_array, shapes, extents, records=None):
+    # type: (Array, (Array, ), (ExtentType, ), (dict, )) -&gt; (Array, (tuple, ))
+    &#34;&#34;&#34;Find overlapping extents, and return only pixels inside their bounding extent&#34;&#34;&#34;
+    data_ext = extent(*vertex_array)
+    filtered = extent_overlap_filter(data_ext, shapes, extents, rec=records)
+    cropped = extent_crop(reduce(reduce_extent, filtered[1]), vertex_array)
+    return (cropped, *filtered)</code></pre>
+</details>
+</dd>
+<dt id="utils.extrude"><code class="name flex">
+<span>def <span class="ident">extrude</span></span>(<span>vertex_array, closed=False, loop=True, dtype=builtins.float, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Extrude geometric primitive into 3D model/surface
+:param vertex_array: line or polygon
+:param closed: the the faces created by the ends will be tessellated and close
+:param loop: the extruded primitive is a closed loop (without duplicate points)
+:param dtype: type of resulting Array
+:param kwargs: other optional things we may need</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def extrude(vertex_array, closed=False, loop=True, dtype=float, **kwargs):
+    # type: (Array, bool, bool, type, dict) -&gt; Array
+    &#34;&#34;&#34;
+    Extrude geometric primitive into 3D model/surface
+    :param vertex_array: line or polygon
+    :param closed: the the faces created by the ends will be tessellated and close
+    :param loop: the extruded primitive is a closed loop (without duplicate points)
+    :param dtype: type of resulting Array
+    :param kwargs: other optional things we may need
+    &#34;&#34;&#34;
+    radii = kwargs.get(&#34;radii&#34;, [1.0, 1.0])
+    offsets = kwargs.get(&#34;offsets&#34;, [0.0, 1.0])
+    if len(radii) != len(offsets):
+        return None
+
+    nrings = len(radii)
+    count = len(vertex_array)
+    nv = count if loop else count - 1
+    faces = base = 2 * nv * (nrings - 1)
+    if closed:
+        faces += 2 * (len(vertex_array) - 2)
+
+    vertex_array = zeros((count * nrings, 3), dtype=dtype)
+    topology = zeros((faces, 3), dtype=int)
+
+    for ii in arange(nrings):
+
+        start = ii * count
+        for jj in range(count):
+            index = start + jj
+
+            vertex_array[index, 0:2] = radii[ii] * vertex_array[jj, 0:2]
+            vertex_array[index, 2] = vertex_array[jj, 2] + offsets[ii]
+
+            if ii &lt; nrings - 1:
+
+                v1i = index
+                v4i = index + count
+
+                if jj &gt;= count - 1 and loop:
+                    v2i = start
+                    v3i = start + count
+                    topology[index, 0:3] = [v3i, v2i, v1i]
+                    topology[index + faces // 2, 0:3] = [v4i, v3i, v1i]
+                else:
+                    v2i = index + 1
+                    v3i = index + count + 1
+                    topology[index, 0:3] = [v3i, v2i, v1i]
+                    topology[index + faces // 2, 0:3] = [v4i, v3i, v1i]
+
+    if closed:
+        for ii in range(count - 2):
+            topology[base + ii, 0:3] = [0, ii + 1, ii + 2]  # base
+            index = nv - 1
+            previous = index - ii - 1
+            topology[faces - 1 - ii, 0:3] = [index, previous, previous - 1]  # cap
+
+    return vertex_array, topology</code></pre>
+</details>
+</dd>
+<dt id="utils.fahr2cel"><code class="name flex">
+<span>def <span class="ident">fahr2cel</span></span>(<span>data)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def fahr2cel(data):
+    return (data - 32.0) / 1.8</code></pre>
+</details>
+</dd>
+<dt id="utils.filter_arrays"><code class="name flex">
+<span>def <span class="ident">filter_arrays</span></span>(<span>x) -> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Process an iterable of Array-likes to remove null values, used in map parallelism</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def filter_arrays(x) -&gt; bool:
+    &#34;&#34;&#34;Process an iterable of Array-likes to remove null values, used in map parallelism&#34;&#34;&#34;
+    try:
+        return isinstance(x.shape, tuple)
+    except AttributeError:
+        return False</code></pre>
+</details>
+</dd>
+<dt id="utils.filter_in_range"><code class="name flex">
+<span>def <span class="ident">filter_in_range</span></span>(<span>mask, data, minimum=None, maximum=None, gpu=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Mask if outside interval</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def filter_in_range(mask, data, minimum=None, maximum=None, gpu=False):
+    # type: (Array, Array, float, float, bool) -&gt; Array
+    &#34;&#34;&#34;Mask if outside interval&#34;&#34;&#34;
+    if minimum is not None:
+        mask |= af.np_to_af_array(data &lt; minimum) if gpu else data &lt; minimum
+    if maximum is not None:
+        mask |= af.np_to_af_array(data &gt; maximum) if gpu else data &gt; maximum
+    return mask</code></pre>
+</details>
+</dd>
+<dt id="utils.generateStream"><code class="name flex">
+<span>def <span class="ident">generateStream</span></span>(<span>columns, records)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def generateStream(columns, records):
+    try:
+        prev = next(records)  # get first result
+    except:
+        yield &#34;[]&#34;
+        raise StopIteration
+    yield &#34;[&#34;
+    # Iterate over the releases
+    for r in records:
+        yield dumps(dict(zip(columns, r))) + &#34;, &#34;
+        prev = r
+    # Now yield the last iteration without comma but with the closing brackets
+    yield dumps(dict(zip(columns, prev))) + &#34;]&#34;</code></pre>
+</details>
+</dd>
+<dt id="utils.geo2dist"><code class="name flex">
+<span>def <span class="ident">geo2dist</span></span>(<span>lat1, long1, lat2, long2)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate distance on unit sphere and scale up</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def geo2dist(lat1, long1, lat2, long2):
+    # type: (Array or float, Array or float, float, float) -&gt; (Array or float)
+    &#34;&#34;&#34;
+    Calculate distance on unit sphere and scale up
+    &#34;&#34;&#34;
+    degrees_to_radians = pi / 180.0
+    phi1 = (90.0 - lat1) * degrees_to_radians
+    phi2 = (90.0 - lat2) * degrees_to_radians
+    theta1 = long1 * degrees_to_radians
+    theta2 = long2 * degrees_to_radians
+    cosine = sin(phi1) * sin(phi2) * cos(theta1 - theta2) + cos(phi1) * cos(phi2)
+    arc = arccos(cosine)
+    return arc * 6373000</code></pre>
+</details>
+</dd>
+<dt id="utils.geom_shader"><code class="name flex">
+<span>def <span class="ident">geom_shader</span></span>(<span>e)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Emulate geometry shader, create points from single reference</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def geom_shader(e):
+    &#34;&#34;&#34;Emulate geometry shader, create points from single reference&#34;&#34;&#34;
+    return array(
+        (
+            (lin_transform(random.uniform(), *e[:2]), e[2]),
+            (e[1], lin_transform(random.uniform(), *e[2:4])),
+            (lin_transform(random.uniform(), *e[:2]), e[3]),
+            (e[0], lin_transform(random.uniform(), *e[2:4])),
+        )
+    )</code></pre>
+</details>
+</dd>
+<dt id="utils.globe"><code class="name flex">
+<span>def <span class="ident">globe</span></span>(<span>n: int = 24, dtype: Type = builtins.float)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def globe(n: int = 24, dtype: Type = float):
+
+    # vertex_array = zeros((R * (R // 2 - 1) + 2, 3), dtype=dtype)
+    # topology = zeros((2 * R * (R // 2 - 1), 3), dtype=int)
+    lats = 0.5 * pi * (2.0 * arange(n, dtype=float) / (n - 1) - 1.0)
+    offsets = sin(lats)
+    radii = cos(lats)
+    ring = regular_polygon(n)
+    return extrude(
+        ring, radii=radii, offsets=offsets, closed=False, loop=True, dtype=dtype
+    )</code></pre>
+</details>
+</dd>
+<dt id="utils.googleCloudSecret"><code class="name flex">
+<span>def <span class="ident">googleCloudSecret</span></span>(<span>secret_name='my-secret')</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def googleCloudSecret(secret_name=&#34;my-secret&#34;):
+    # type: (str) -&gt; str
+    project_id = getenv(&#34;GCP_PROJECT&#34;)  # Google Compute default param
+    resource_name = f&#34;projects/{project_id}/secrets/{secret_name}/versions/latest&#34;
+    try:
+        response = client.access_secret_version(resource_name)
+    except NameError as _:
+        return None
+    return response.payload.data.decode(&#34;UTF-8&#34;)</code></pre>
+</details>
+</dd>
+<dt id="utils.gradient"><code class="name flex">
+<span>def <span class="ident">gradient</span></span>(<span>dz: <built-in function array>, dzz: <built-in function array>) -> <built-in function array></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Slopes for segments on either side of sigma layer, purely numerical, concentration independent</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def gradient(dz: array, dzz: array) -&gt; array:
+    &#34;&#34;&#34;
+    Slopes for segments on either side of sigma layer, purely numerical, concentration independent
+    &#34;&#34;&#34;
+    return -1 / dz / roll(dzz, 1)</code></pre>
+</details>
+</dd>
+<dt id="utils.hc2pH"><code class="name flex">
+<span>def <span class="ident">hc2pH</span></span>(<span>hc)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def hc2pH(hc):
+    pH = -log10(hc / 10 ** 9)
+    return pH</code></pre>
+</details>
+</dd>
+<dt id="utils.hexagon"><code class="name flex">
+<span>def <span class="ident">hexagon</span></span>(<span>point_up=True, dim=2)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Flattened hex-like surface by rotating a cube</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def hexagon(point_up=True, dim=2):
+    # type: (bool, int) -&gt; (Array, Array) or Array
+    &#34;&#34;&#34;
+    Flattened hex-like surface by rotating a cube
+    &#34;&#34;&#34;
+    if not (2 &lt;= dim &lt;= 3):
+        raise ValueError
+    if dim == 2:
+        return regular_polygon(6)
+
+    diag = 2 ** (-1.5)
+    vertex_array, topology = cube(diag)  # create cube instance
+    scale(vertex_array, diag, diag, diag)  # scale to unit diagonal
+    snap = vertex_array[0, :].reshape((1, 3))
+    # turn laterally, view down roll
+    vertex_array = rotate(vertex_array, -pi / 4, (YAXIS if point_up else ZAXIS))
+    rot = angle3d(snap, (ZAXIS if point_up else -ZAXIS))
+    vertex_array = rotate(
+        vertex_array, rot, norm(snap) * (XAXIS if point_up else YAXIS)
+    )
+    return vertex_array, topology</code></pre>
+</details>
+</dd>
+<dt id="utils.hull_contains"><code class="name flex">
+<span>def <span class="ident">hull_contains</span></span>(<span>a, b)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>First convex hull contains second</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def hull_contains(a, b):
+    # type: (Path or Array, Path or Array) -&gt; bool
+    &#34;&#34;&#34;First convex hull contains second&#34;&#34;&#34;
+    _a, _b = tuple((x if isinstance(x, Path) else Path(x) for x in (a, b)))
+    return _a.contains_path(_b)</code></pre>
+</details>
+</dd>
+<dt id="utils.hull_overlap"><code class="name flex">
+<span>def <span class="ident">hull_overlap</span></span>(<span>a, b)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Two convex hulls overlap</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def hull_overlap(a, b):
+    # type: (Array or Path, Array or Path) -&gt; bool
+    &#34;&#34;&#34;Two convex hulls overlap&#34;&#34;&#34;
+    _a, _b = tuple((x if isinstance(x, Path) else Path(x) for x in (a, b)))
+    _av, _bv = tuple((x.vertices if isinstance(x, Path) else x for x in (a, b)))
+    return _a.contains_points(_bv).any() or _b.contains_points(_av).any()</code></pre>
+</details>
+</dd>
+<dt id="utils.icosahedron"><code class="name flex">
+<span>def <span class="ident">icosahedron</span></span>(<span>dtype=builtins.float)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Create icosahedron model as base for recursively fragmented geoid.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def icosahedron(dtype=float):
+    # type: (type) -&gt; Array
+    &#34;&#34;&#34;
+    Create icosahedron model as base for recursively fragmented geoid.
+    &#34;&#34;&#34;
+    phi = 0.5 * (1.0 + 5.0 ** 0.5)
+    vertex_array = zeros((6, 3), dtype=dtype)
+    topology = zeros((5, 3), dtype=int)
+    vertex_array[0, 0:3] = [0.0, 1.0 / phi, 1.0]  # first vertex
+    vertex_array[1, 0:3] = [0.0, -1.0 / phi, 1.0]
+    ind = 2
+
+    for ii in arange(5):
+        if ii &lt; 4:
+            topology[ii, 0:3] = [0, ii + 1, ii + 2]
+            vertex_array[ind, 0:3] = rotate(
+                vertex_array[0, 0:3].reshape(1, 3),
+                2.0 * pi / 5.0,
+                vertex_array[ind - 1, 0:3].reshape(1, 3),
+            )
+            ind += 1
+        else:
+            topology[ii, 0:3] = [0, ii + 1, 1]
+
+    vertex_array_2 = vertex_array.copy()
+    topology_2 = topology.copy() + 6  # TODO: this might be wrong
+    rotate(vertex_array_2, pi, XAXIS)
+    rotate(vertex_array_2, -2.0 * pi / 5.0, vertex_array[0, 0:3].reshape(1, 3))
+
+    a = 1
+    b = 9
+    nn = 10
+    for ii in range(5):
+        topology = vstack((topology, array([0, 0, 0])))
+        topology[nn, 0] = a
+        topology[nn, 1] = b
+        b -= 1
+        if b &lt; 7:
+            b = 11
+        topology[nn, 2] = b
+        nn += 1
+
+        topology = vstack((topology, array([0, 0, 0])))
+        topology[nn, 0] = a
+        a += 1
+        if a &gt; 5:
+            a = 1
+        topology[nn, 1] = b
+        topology[nn, 2] = a
+
+        nn += 1
+
+    return vertex_array, topology</code></pre>
+</details>
+</dd>
+<dt id="utils.identity"><code class="name flex">
+<span>def <span class="ident">identity</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>identity matrix</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def identity():
+    # type: () -&gt; Array
+    &#34;&#34;&#34;identity matrix&#34;&#34;&#34;
+    matrix = zeros((4, 4))
+    for ii in range(4):
+        matrix[ii, ii] = 1.0
+    return matrix</code></pre>
+</details>
+</dd>
+<dt id="utils.image2arrays"><code class="name flex">
+<span>def <span class="ident">image2arrays</span></span>(<span>path, utm_extent, native=Proj('+proj=utm +zone=19 +ellps=GRS80 +units=m +no_defs', preserve_units=True), view=Proj('+proj=longlat +datum=WGS84 +no_defs', preserve_units=True))</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Load landsat bathysphere_functions_image and convert to arrays for processing.</p>
+<p>Including the Projection definitions should memoize the defaults between calls
+run in the same context.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def image2arrays(
+    path, utm_extent, native=Proj(init=&#34;epsg:2960&#34;), view=Proj(init=&#34;epsg:4326&#34;)
+):
+    # type: (str, list, Proj, Proj) -&gt; (Array, Array, Array)
+    &#34;&#34;&#34;
+    Load landsat bathysphere_functions_image and convert to arrays for processing.
+
+    Including the Projection definitions should memoize the defaults between calls
+    run in the same context.
+    &#34;&#34;&#34;
+    fid = open(path, &#34;r&#34;)
+    image = Image()
+    image.frombytes(data=fid.read())  # read bathysphere_functions_image file
+    px = repeat(arange(image.width).reshape(1, image.width), image.height, axis=0)
+    py = repeat(arange(image.height).reshape(image.height, 1), image.width, axis=1)
+
+    utm = pix2utm(px, py, utm_extent)
+    return (*project(*utm, native=native, view=view), asarray(image))</code></pre>
+</details>
+</dd>
+<dt id="utils.image_to_masked"><code class="name flex">
+<span>def <span class="ident">image_to_masked</span></span>(<span>image: <built-in function array>, m: float = 0.125, b: float = 2.0, hide: bool = True)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate value from greyscale color</p>
+<p>:param image: color value of bathysphere_functions_image
+:param m: slope
+:param b: offset
+:param hide: sometimes there are things like color map bars and shit
+:return: sea surface temperature bathysphere_functions_image</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def image_to_masked(image: array, m: float = 0.125, b: float = 2.0, hide: bool = True):
+    &#34;&#34;&#34;
+    Calculate value from greyscale color
+
+    :param image: color value of bathysphere_functions_image
+    :param m: slope
+    :param b: offset
+    :param hide: sometimes there are things like color map bars and shit
+    :return: sea surface temperature bathysphere_functions_image
+    &#34;&#34;&#34;
+
+    sst = m * image - b
+    if hide:
+        a, b, c, d = 250, 700, 1, 75
+        sst[a:b, c:d] = NaN  # mask color bar
+    return sst</code></pre>
+</details>
+</dd>
+<dt id="utils.impact"><code class="name flex">
+<span>def <span class="ident">impact</span></span>(<span>vertex_array, neighbors, ind, s=0.05)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Create impact crate effect with raised rim</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def impact(vertex_array, neighbors, ind, s=0.05):
+    # type: (array, array, array, float) -&gt; array
+    &#34;&#34;&#34;
+    Create impact crate effect with raised rim
+    &#34;&#34;&#34;
+    vertex_array[ind, :] -= s * normal(vertex_array[ind, :].reshape(1, 3))[0]
+
+    for vi in neighbors[ind]:
+        vertex_array[vi, :] -= s * normal(vertex_array[vi, :].reshape(1, 3))[0]
+        for vj in neighbors[vi]:
+            if vj == ind:
+                continue
+            vertex_array[vj, :] += (
+                0.25 * s * normal(vertex_array[vj, :].reshape(1, 3))[0]
+            )
+
+    return vertex_array</code></pre>
+</details>
+</dd>
+<dt id="utils.impulse"><code class="name flex">
+<span>def <span class="ident">impulse</span></span>(<span>uv, direction, mag=0.0, stop=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Instantaneously accelerate in the given direction</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def impulse(uv, direction, mag=0.0, stop=False):
+    # type: (Array, Array, Array or float, bool) -&gt; Array
+    &#34;&#34;&#34;
+    Instantaneously accelerate in the given direction
+    &#34;&#34;&#34;
+    if stop:
+        return uv - uv
+    return uv + direction * mag</code></pre>
+</details>
+</dd>
+<dt id="utils.interp1d"><code class="name flex">
+<span>def <span class="ident">interp1d</span></span>(<span>coefficient, aa, bb)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Simple linear interpolation in one dimension</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def interp1d(coefficient, aa, bb):
+    &#34;&#34;&#34;
+    Simple linear interpolation in one dimension
+    &#34;&#34;&#34;
+    return (1.0 - coefficient) * aa + coefficient * bb</code></pre>
+</details>
+</dd>
+<dt id="utils.interp1d_lin"><code class="name flex">
+<span>def <span class="ident">interp1d_lin</span></span>(<span>x, y, samples, clamp=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Simple linear interpolation, requires pre-calculated coefficients for points</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def interp1d_lin(x, y, samples, clamp=False):
+    # type: ((Array, Array), (Array, Array), Array, bool) -&gt; Array
+    &#34;&#34;&#34;Simple linear interpolation, requires pre-calculated coefficients for points&#34;&#34;&#34;
+    predicted = (y[1] - y[0]) / (x[1] - x[0]) * (samples - x[0]) + y[0]
+    if clamp:
+        i = where(x &lt; x[0])
+        j = where(x &gt; x[1])
+        predicted[i] = y[0]
+        predicted[j] = y[1]
+    return predicted</code></pre>
+</details>
+</dd>
+<dt id="utils.interp2d_nearest"><code class="name flex">
+<span>def <span class="ident">interp2d_nearest</span></span>(<span>xy, samples)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Load low-resolution data (e.g. AVHRR) and interpolate it to pixels of higher-resolution imagery
+(e.g. Landsat) using nearest neighbors. Uses nearest neighbor indexing and search with kd-trees
+from <code>scipy.spatial</code></p>
+<ul>
+<li>setting <code>rescale=True</code> will normalize all dimensions to 0-1</li>
+<li><code>tree_options</code> allows you to configure the kd-tree</li>
+</ul></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def interp2d_nearest(xy, samples):
+    # type: (Array, Array) -&gt; Array
+    &#34;&#34;&#34;
+    Load low-resolution data (e.g. AVHRR) and interpolate it to pixels of higher-resolution imagery
+    (e.g. Landsat) using nearest neighbors. Uses nearest neighbor indexing and search with kd-trees
+    from `scipy.spatial`
+
+    - setting `rescale=True` will normalize all dimensions to 0-1
+    - `tree_options` allows you to configure the kd-tree
+    &#34;&#34;&#34;
+    interp = NearestNDInterpolator(xy[:, 0], xy[:, 1], rescale=False, tree_options=None)
+    return interp(samples)</code></pre>
+</details>
+</dd>
+<dt id="utils.interp2d_tri"><code class="name flex">
+<span>def <span class="ident">interp2d_tri</span></span>(<span>xy, z, cubic=False, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>interpolate 2D field on triangular grid</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def interp2d_tri(xy, z, cubic=False, **kwargs):
+    # type: (Array, Array, bool, dict) -&gt; Array
+    &#34;&#34;&#34; interpolate 2D field on triangular grid &#34;&#34;&#34;
+    engine = (CubicTriInterpolator if cubic else LinearTriInterpolator)(z, **kwargs)
+    return engine(xy[:, 0], xy[:, 1])</code></pre>
+</details>
+</dd>
+<dt id="utils.interp2d_uv"><code class="name flex">
+<span>def <span class="ident">interp2d_uv</span></span>(<span>cells, train, neighbors, layer, shape_coefficient)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Interpolate</p>
+<p>:param cells:
+:param neighbors: pre-computed adjacency
+:param train: sample points
+:param layer:
+:param shape_coefficient: pre-computing shape coefficients for static meshes</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def interp2d_uv(cells, train, neighbors, layer, shape_coefficient):
+    # type: (Array, (Array,), Array, int, Array) -&gt; Array
+    &#34;&#34;&#34;
+    Interpolate
+
+    :param cells:
+    :param neighbors: pre-computed adjacency
+    :param train: sample points
+    :param layer:
+    :param shape_coefficient: pre-computing shape coefficients for static meshes
+    &#34;&#34;&#34;
+    x, y, e = train
+    expected = zeros((len(x), 3), dtype=float)
+
+    for index in unique(cells):
+        children = where((cells == index))
+        s = shape_coefficient[index, :, :]
+
+        for each in children:
+            dx = x[each] - x[index]
+            dy = y[each] - y[index]
+            indices = append(neighbors[index], index)  # self and neighbors
+
+            for dim in range(3):
+                e_i = e[indices, layer, dim]
+                expected[each, dim] = e[index, layer, dim] + (s * e_i) * array([dx, dy])
+            continue
+
+    return expected</code></pre>
+</details>
+</dd>
+<dt id="utils.interp3d_slice"><code class="name flex">
+<span>def <span class="ident">interp3d_slice</span></span>(<span>z, scalar, layer, clamp=True)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Depth-based interpolation</p>
+<p>:param z: sample depths
+:param scalar: the scalar field
+:param layer: vertical layer in triangular mesh
+:param clamp: values outside the interpolation range are fixed at end member values
+:return: values at sample points</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def interp3d_slice(z, scalar, layer, clamp=True):
+    # type: (Array, Array, int, bool) -&gt; Array
+    &#34;&#34;&#34;
+    Depth-based interpolation
+
+    :param z: sample depths
+    :param scalar: the scalar field
+    :param layer: vertical layer in triangular mesh
+    :param clamp: values outside the interpolation range are fixed at end member values
+    :return: values at sample points
+    &#34;&#34;&#34;
+    above = scalar[:, layer]
+    below = scalar[:, layer + 1]
+    return interp1d_lin(
+        x=tuple(i for i in z[layer : layer + 2]),
+        y=(above, below),
+        samples=z,
+        clamp=clamp,
+    )</code></pre>
+</details>
+</dd>
+<dt id="utils.interp3d_tri"><code class="name flex">
+<span>def <span class="ident">interp3d_tri</span></span>(<span>xy, z, scalar, layer, cubic=False, clamp=True, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Interpolate 3D field on triangular grid</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def interp3d_tri(xy, z, scalar, layer, cubic=False, clamp=True, **kwargs):
+    # type: (Array, Array, Array, int, bool, bool, dict) -&gt; Array
+    &#34;&#34;&#34; Interpolate 3D field on triangular grid &#34;&#34;&#34;
+    above = interp2d_tri(xy, z=scalar[:, layer], cubic=cubic, **kwargs)
+    below = interp2d_tri(xy, z=scalar[:, layer + 1], cubic=cubic, **kwargs)
+    return interp1d_lin(
+        x=tuple(i for i in z[layer : layer + 2]),
+        y=(above, below),
+        samples=z,
+        clamp=clamp,
+    )</code></pre>
+</details>
+</dd>
+<dt id="utils.join"><code class="name flex">
+<span>def <span class="ident">join</span></span>(<span>x: str) -> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Convenience method for mapping query formatting when whitespace is needed</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def join(x: str) -&gt; str:
+    &#34;&#34;&#34;Convenience method for mapping query formatting when whitespace is needed&#34;&#34;&#34;
+    return &#34;, &#34;.join(x)</code></pre>
+</details>
+</dd>
+<dt id="utils.kelvin2celsius"><code class="name flex">
+<span>def <span class="ident">kelvin2celsius</span></span>(<span>data)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Convert kelvin degrees to celsious degrees</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def kelvin2celsius(data):
+    # type: (Array) -&gt; Array
+    &#34;&#34;&#34;Convert kelvin degrees to celsious degrees&#34;&#34;&#34;
+    return data - 272.15</code></pre>
+</details>
+</dd>
+<dt id="utils.lagrangian_diffusion"><code class="name flex">
+<span>def <span class="ident">lagrangian_diffusion</span></span>(<span>vertex_array_buffer, window, bins, groups, threshold, wrap, steps=240)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Mean diffusion over time</p>
+<p>:param vertex_array_buffer:
+:param window: number of steps to average for displacement
+:param bins: days/bins per experiment
+:param groups: groups by array index
+:param steps: steps per day/bin
+:param threshold: distance to trigger wrap
+:param wrap: amount to compensate for periodic domains</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def lagrangian_diffusion(
+    vertex_array_buffer, window, bins, groups, threshold, wrap, steps=240
+):
+    # type: ((Array, ), int, int, Array, float, bool, int) -&gt; (Array,)
+    &#34;&#34;&#34;
+    Mean diffusion over time
+
+    :param vertex_array_buffer:
+    :param window: number of steps to average for displacement
+    :param bins: days/bins per experiment
+    :param groups: groups by array index
+    :param steps: steps per day/bin
+    :param threshold: distance to trigger wrap
+    :param wrap: amount to compensate for periodic domains
+    &#34;&#34;&#34;
+
+    delta = diff(vertex_array_buffer, axis=2)
+    if threshold is not None and wrap is not None:
+        delta -= wrap * (delta &gt; threshold)
+        delta += wrap * (delta &lt; -threshold)
+
+    def _reduce(start, end):
+        indices = arange(start, end)
+        mean_sq_displacement = delta[:, :, indices].sum(axis=2) ** 2
+        return 0.25 / 60 * mean_sq_displacement.sum(axis=0)
+
+    steps = delta.shape[2]
+    displace = zeros((delta.shape[1], steps))
+    for time in range(window, steps):  # per particle time series
+        displace[:, time] = _reduce(time - window, time)
+    displace = displace.mean(axis=0)
+
+    
+    ii = arange(bins) * steps
+    return tuple(
+        displace[indices, ii : ii + steps - 1].mean(axis=0) for indices in groups
+    )</code></pre>
+</details>
+</dd>
+<dt id="utils.landsat_sst_regression"><code class="name flex">
+<span>def <span class="ident">landsat_sst_regression</span></span>(<span>raw, lon, lat, roi, samples, outliers, nsub=10)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate SST by removing outliers</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def landsat_sst_regression(raw, lon, lat, roi, samples, outliers, nsub=10):
+    # type: (Array, Array, Array, (Array,), tuple, tuple, int ) -&gt; Array or None
+    &#34;&#34;&#34;
+    Calculate SST by removing outliers
+    &#34;&#34;&#34;
+
+    # Load satellite data and subset it
+    btemp = brightness_temperature(raw)
+    subbt = subset(btemp, nsub)
+    samples = interp2d_nearest((lon, lat, btemp), samples=samples)
+
+    # Generate masks
+    mask = crop(lon, lat, roi)
+    mask = filter_in_range(mask, btemp, maximum=-10)  # mask clouds 124.6
+    mask |= (
+        (samples &lt; outliers[0]) | (samples &gt; outliers[1]) | (btemp &lt; min(subbt))
+    )  # combine masks
+    indices = where(~mask)  # get unmasked linear indices
+    avhrr_filtered = samples[indices].reshape(-1, 1)  # extract unmasked AVHRR values
+    ls_filtered = btemp[indices].reshape(-1, 1)  # extract
+
+    # Regress Landsat and AVHRR
+    fit = 0.0
+    intercept = None
+    slope = None
+
+    while True:
+        pairs = hstack((avhrr_filtered, ls_filtered))
+        _slope, _intercept, r, pval, stderr = linregress(pairs)  # regress
+        if (abs(r) - abs(fit)) &lt; 0.000001:  # if r-value is improving
+            break
+
+        slope = _slope
+        intercept = _intercept
+        fit = r
+        gtruth = avhrr_filtered * _slope + _intercept  # &#34;true&#34; values
+        residual = abs(ls_filtered - gtruth)  # difference between observations
+        stdv = std(ls_filtered)  # landsat standard deviation
+        keepers, junk = where(residual &lt; stdv)
+        if len(keepers) == 0:
+            break
+
+        ls_filtered = ls_filtered[keepers]
+        avhrr_filtered = avhrr_filtered[keepers]
+
+    if not slope or not intercept:
+        return None
+    sst = (btemp - intercept) / slope  # full resolution version for output
+
+    # if crop:  # sparse sub-sampling
+    #     submask = subset(mask, nsub)
+    #     subsst = subset(sst, nsub)
+    #     sublat = subset(lat, nsub)
+    #     sublon = subset(lon, nsub)
+
+    return sst</code></pre>
+</details>
+</dd>
+<dt id="utils.layers"><code class="name flex">
+<span>def <span class="ident">layers</span></span>(<span>count: int)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Compute evenly space layers</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def layers(count: int):
+    &#34;&#34;&#34;Compute evenly space layers&#34;&#34;&#34;
+    z = -arange(count) / (count - 1)
+    dz = z[:-1] - z[1:]  # distance between sigma layers
+    zz = zeros(count)  # intra-level sigma
+    zz[:-1] = 0.5 * (z[:-1] + z[1:])  # intra-sigma layers
+    zz[-1] = 2 * zz[-2] - zz[-3]
+    dzz = zz[:-1] - zz[1:]  # distance between intra-sigma layers</code></pre>
+</details>
+</dd>
+<dt id="utils.lin_transform"><code class="name flex">
+<span>def <span class="ident">lin_transform</span></span>(<span>u, a, b)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Linear tranformation</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def lin_transform(u, a, b):
+    &#34;&#34;&#34;Linear tranformation&#34;&#34;&#34;
+    return u * (b - a) + a</code></pre>
+</details>
+</dd>
+<dt id="utils.linear_regression_predict"><code class="name flex">
+<span>def <span class="ident">linear_regression_predict</span></span>(<span>model, predict, order=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Use trained model to predict new values</p>
+<p>:param model:
+:param predict: x-values
+:param order: order of linear model terms (1 or 2)
+:return: y-values</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def linear_regression_predict(model, predict, order=1):
+    # type: (LinearRegression, (Array,), int) -&gt; (Array, float)
+    &#34;&#34;&#34;
+    Use trained model to predict new values
+
+    :param model:
+    :param predict: x-values
+    :param order: order of linear model terms (1 or 2)
+    :return: y-values
+    &#34;&#34;&#34;
+    if not 0 &lt; order &lt; 3:
+        raise ValueError
+    if len(predict) == 2:
+        x, y = predict
+        z = None
+    elif len(predict) == 3:
+        x, y, z = predict
+    else:
+        raise ValueError
+
+    expected = stack((x, y), axis=1)
+    if order == 2:
+        expected = stack((expected, x * y, x * x, y * y), axis=1)
+    if z is not None:
+        expected = stack((expected, z), axis=1)
+    return model.predict(expected)</code></pre>
+</details>
+</dd>
+<dt id="utils.linear_regression_train"><code class="name flex">
+<span>def <span class="ident">linear_regression_train</span></span>(<span>train, target)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Train a linear regression model to fit the array data</p>
+<p>:param train: x-value
+:param target: y-value
+:return:</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def linear_regression_train(train, target):
+    # type: ((Array,), Array) -&gt; (LinearRegression, float)
+    &#34;&#34;&#34;
+    Train a linear regression model to fit the array data
+
+    :param train: x-value
+    :param target: y-value
+    :return:
+    &#34;&#34;&#34;
+    model = LinearRegression()
+    model.fit(train, target)
+    auto_regress = model.predict(train)
+    r_squared = r2_score(target, auto_regress)
+    return model, r_squared</code></pre>
+</details>
+</dd>
+<dt id="utils.loadAppConfig"><code class="name flex">
+<span>def <span class="ident">loadAppConfig</span></span>(<span>sources: str = ('bathysphere.yml', 'kubernetes.yml')) -> dict</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Load known entities and services at initialization.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def loadAppConfig(sources: (str) = (&#34;bathysphere.yml&#34;, &#34;kubernetes.yml&#34;)) -&gt; dict:
+    &#34;&#34;&#34;
+    Load known entities and services at initialization.
+    &#34;&#34;&#34;
+
+    def renderConfig(x: str):
+        with open(pathlib.Path(f&#34;config/{x}&#34;), &#34;r&#34;) as fid:
+            items = fid.read().split(&#34;---&#34;)
+        return list(map(load_yml, items, repeat(Loader, len(items))))
+
+    def reverseDictionary(a: dict, b: dict) -&gt; dict:
+
+        if not isinstance(a, dict):
+            raise ValueError(
+                &#34;Expected dictionary values. &#34; &#34;Type is instead {}.&#34;.format(type(a))
+            )
+
+        if b is not None:
+            key = b.pop(&#34;kind&#34;)
+            if key not in a.keys():
+                a[key] = [b]
+            else:
+                a[key].append(b)
+        return a
+
+    items = reduce(operator.add, map(renderConfig, sources), [])
+    return reduce(reverseDictionary, items, {})</code></pre>
+</details>
+</dd>
+<dt id="utils.mask"><code class="name flex">
+<span>def <span class="ident">mask</span></span>(<span>shape, masked=None)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def mask(shape, masked=None):
+    m = zeros(shape, dtype=bool)
+    if masked is not None:
+        m[masked] = True
+    return m</code></pre>
+</details>
+</dd>
+<dt id="utils.multi_polygon_crop"><code class="name flex">
+<span>def <span class="ident">multi_polygon_crop</span></span>(<span>xyz, shapes)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Retain points inside the shapes, along with the shape index that they belong to.</p>
+<p>WARNING: In-place memory operation.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def multi_polygon_crop(xyz, shapes):
+    &#34;&#34;&#34;
+    Retain points inside the shapes, along with the shape index that they belong to.
+
+    WARNING: In-place memory operation.
+    &#34;&#34;&#34;
+    found = []
+    for i, s in enumerate(shapes):
+        p = Path(s)
+        ins, xyz = partition_points_by_shape(p, xyz)
+        found.append((ins, i))
+        if len(xyz) == 0:
+            break
+    return hstack(found)</code></pre>
+</details>
+</dd>
+<dt id="utils.multi_polygon_cull"><code class="name flex">
+<span>def <span class="ident">multi_polygon_cull</span></span>(<span>xyz, shapes)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Retain only points which are not in any polygon.</p>
+<p>WARNING: In-place memory operation.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def multi_polygon_cull(xyz, shapes):
+    &#34;&#34;&#34;
+    Retain only points which are not in any polygon.
+
+    WARNING: In-place memory operation.
+    &#34;&#34;&#34;
+    for s in shapes:
+        p = Path(s)
+        _, xyz = partition_points_by_shape(p, xyz)
+        if len(xyz) == 0:
+            break
+    return xyz</code></pre>
+</details>
+</dd>
+<dt id="utils.multiply"><code class="name flex">
+<span>def <span class="ident">multiply</span></span>(<span>u, v)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Quaternion matrix multiplication for one or more vertices</p>
+<p>A<em>B - dotProduct(u,v)
+cross(u,v) + A</em>v + B*u</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def multiply(u, v):
+    # type: (Array, Array) -&gt; Array
+    &#34;&#34;&#34;
+    Quaternion matrix multiplication for one or more vertices
+
+    A*B - dotProduct(u,v)
+    cross(u,v) + A*v + B*u
+    &#34;&#34;&#34;
+    ur, _ = u.shape
+    vr, _ = v.shape
+    rows = max([ur, vr])
+    result = zeros((rows, 4), dtype=float)
+
+    result[:, 0] = (
+        u[:, 0] * v[:, 0] - u[:, 1] * v[:, 1] - u[:, 2] * v[:, 2] - u[:, 3] * v[:, 3]
+    )
+    result[:, 1] = (
+        u[:, 2] * v[:, 3] - u[:, 3] * v[:, 2] + u[:, 0] * v[:, 1] + v[:, 0] * u[:, 1]
+    )
+    result[:, 2] = (
+        u[:, 3] * v[:, 1] - u[:, 1] * v[:, 3] + u[:, 0] * v[:, 2] + v[:, 0] * u[:, 2]
+    )
+    result[:, 3] = (
+        u[:, 1] * v[:, 2] - u[:, 2] * v[:, 1] + u[:, 0] * v[:, 3] + v[:, 0] * u[:, 3]
+    )
+    return result</code></pre>
+</details>
+</dd>
+<dt id="utils.nan_mask"><code class="name flex">
+<span>def <span class="ident">nan_mask</span></span>(<span>arr, gpu=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Reset mask</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def nan_mask(arr, gpu=False):
+    # type: (Array, bool) -&gt; Array
+    &#34;&#34;&#34;Reset mask&#34;&#34;&#34;
+    if gpu:
+        return af.isnan(arr)
+    mask = isnan(arr)
+    if isinstance(mask, MaskedArray):
+        return mask.data
+    return mask</code></pre>
+</details>
+</dd>
+<dt id="utils.normal"><code class="name flex">
+<span>def <span class="ident">normal</span></span>(<span>u)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Normalize array of vectors</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def normal(u):
+    # type: (Array) -&gt; Array
+    &#34;&#34;&#34;Normalize array of vectors&#34;&#34;&#34;
+    return u / norm(u, axis=1).reshape((-1, 1))</code></pre>
+</details>
+</dd>
+<dt id="utils.oc3algorithms"><code class="name flex">
+<span>def <span class="ident">oc3algorithms</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>read OC3 chlorophyll from netcdf for land mask
+chl_sub = subset(chl, n)
+mask land using chl_oc3 NaN land mask
+Save results to NetCDF file
+Plot: SST, AVHRR interp, landsat versus AVHRR;
+w/ bounding box overlay
+regress AV filter 2 and LS filter 2 for R2 and P values</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def oc3algorithms():
+    &#34;&#34;&#34;
+    read OC3 chlorophyll from netcdf for land mask
+    chl_sub = subset(chl, n)
+    mask land using chl_oc3 NaN land mask
+    Save results to NetCDF file
+    Plot: SST, AVHRR interp, landsat versus AVHRR;  w/ bounding box overlay
+    regress AV filter 2 and LS filter 2 for R2 and P values
+    &#34;&#34;&#34;
+    ...</code></pre>
+</details>
+</dd>
+<dt id="utils.pH2hc"><code class="name flex">
+<span>def <span class="ident">pH2hc</span></span>(<span>pH)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def pH2hc(pH):
+    hc = 10 ** (-pH)
+    return hc * (10 ** 9)</code></pre>
+</details>
+</dd>
+<dt id="utils.parallelogram"><code class="name flex">
+<span>def <span class="ident">parallelogram</span></span>(<span>ww, hh, dw=0.0, dh=0.0)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def parallelogram(ww, hh, dw=0.0, dh=0.0):
+    # type: (float, float, float, float) -&gt; Array
+    shape = zeros(shape=(4, 3), dtype=float)
+    shape[1, 0:3] = array([dw, hh, 0.0])
+    shape[2, 0:3] = array([ww + dw, hh + dh, 0.0])
+    shape[3, 0:3] = array([ww + dw, dh, 0.0])
+    return shape</code></pre>
+</details>
+</dd>
+<dt id="utils.parsePostgresValueIn"><code class="name flex">
+<span>def <span class="ident">parsePostgresValueIn</span></span>(<span>value: Any) -> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Convert python to sql values</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def parsePostgresValueIn(value: Any) -&gt; str:
+    &#34;&#34;&#34;Convert python to sql values&#34;&#34;&#34;
+    parsingTable = {
+        datetime: lambda x: x.isoformat(),
+        float: lambda x: str(x),
+        int: lambda x: f&#34;{x}.0&#34;,
+        str: lambda x: f&#34;&#39;{x}&#39;&#34;,
+        dict: lambda x: f&#34;ST_GeomFromGeoJSON(&#39;{dumps(x)}&#39;)&#34;,
+    }
+    return parsingTable.get(type(value), lambda x: &#34;NULL&#34;)(value)</code></pre>
+</details>
+</dd>
+<dt id="utils.parsePostgresValueOut"><code class="name flex">
+<span>def <span class="ident">parsePostgresValueOut</span></span>(<span>v: Any) -> Any</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Convert sql driver output to python</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def parsePostgresValueOut(v: Any) -&gt; Any:
+    &#34;&#34;&#34;Convert sql driver output to python&#34;&#34;&#34;
+    if isinstance(v, Decimal):
+        return float(v)
+    return v</code></pre>
+</details>
+</dd>
+<dt id="utils.partition_points_by_shape"><code class="name flex">
+<span>def <span class="ident">partition_points_by_shape</span></span>(<span>path, vertex_array)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>"Split vertex array into points inside and outside of shape</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def partition_points_by_shape(path, vertex_array):
+    # type: (Path, Array) -&gt; (Array, Array)
+    &#34;&#34;&#34;&#34;Split vertex array into points inside and outside of shape&#34;&#34;&#34;
+    cols = vertex_array.shape[1]
+    if cols == 2:
+        xy = vertex_array
+    elif cols == 3:
+        xy = vertex_array[:2]
+    else:
+        xy = vertex_array[1:3]
+
+    mask = points_in_path(path, xy)
+    _subset = where(mask)[0]
+    inside = vertex_array[_subset, :]
+    _subset = where(~mask)[0]  # pylint: disable=invalid-unary-operand-type
+    outside = vertex_array[_subset, :]
+    return inside, outside</code></pre>
+</details>
+</dd>
+<dt id="utils.pix2utm"><code class="name flex">
+<span>def <span class="ident">pix2utm</span></span>(<span>px, py, ext)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Convert from pixel indices to UTM coordinates. Technically also works with lon/lat</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def pix2utm(px, py, ext):
+    # type: (Array, Array, list) -&gt; (Array, Array)
+    &#34;&#34;&#34;
+    Convert from pixel indices to UTM coordinates. Technically also works with lon/lat
+    &#34;&#34;&#34;
+    utmx = px / max(px) * (ext[2] - ext[0]) + ext[0]
+    utmy = py / max(py) * (ext[3] - ext[1]) + ext[1]
+    return utmx, utmy</code></pre>
+</details>
+</dd>
+<dt id="utils.pixel_area"><code class="name flex">
+<span>def <span class="ident">pixel_area</span></span>(<span>arr, resolution, gpu=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate pixel area assuming fixed resolution, may be in GPU memory</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def pixel_area(arr, resolution, gpu=False):
+    # type: (Array, float, bool) -&gt; Array or None
+    &#34;&#34;&#34;Calculate pixel area assuming fixed resolution, may be in GPU memory&#34;&#34;&#34;
+    if resolution is not None and arr.mask is not None:
+        add = af.sum if gpu else sum
+        return add(~arr.mask) * resolution * resolution
+    return None</code></pre>
+</details>
+</dd>
+<dt id="utils.point_arc"><code class="name flex">
+<span>def <span class="ident">point_arc</span></span>(<span>points, start, sweep)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def point_arc(points, start, sweep):
+    # type: (int, float, float) -&gt; Array
+    shape = zeros(shape=(points, 3))
+    inc = -1.0 * sweep / (points - 1)  # rotation increment
+    new = rotate(XAXIS, angle=start, axis=ZAXIS)
+    for ii in range(points):
+        shape[ii, 0:3] = new  # copy point to polygon
+        new = rotate(new, angle=inc, axis=ZAXIS)
+    return shape</code></pre>
+</details>
+</dd>
+<dt id="utils.points_in_path"><code class="name flex">
+<span>def <span class="ident">points_in_path</span></span>(<span>path, vertex_array, max_size=10000, processes=1, pool=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Break up point stream into chunks by intersecting with polygon collection</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def points_in_path(path, vertex_array, max_size=10000, processes=1, pool=None):
+    # type: (Path, Array, int, int, Pool) -&gt; (Array, Array)
+    &#34;&#34;&#34;Break up point stream into chunks by intersecting with polygon collection&#34;&#34;&#34;
+    if pool is None:
+        pool = Pool(processes=processes)
+    sections = len(vertex_array) // max_size + 1
+    iterable = zip(
+        repeat((path,), sections), array_split(vertex_array, sections, axis=0)
+    )
+    return hstack(pool.starmap(_points_in_path, iterable))</code></pre>
+</details>
+</dd>
+<dt id="utils.polygon_area"><code class="name flex">
+<span>def <span class="ident">polygon_area</span></span>(<span>arr)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Polygon area, may be negative depending on winding, but this is retaining for shape culling</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def polygon_area(arr):
+    # type: (Array) -&gt; float
+    &#34;&#34;&#34;Polygon area, may be negative depending on winding, but this is retaining for shape culling&#34;&#34;&#34;
+    xx, yy = arr[:, :2].T
+    return 0.5 * (dot(xx, roll(yy, 1)) - dot(yy, roll(xx, 1)))</code></pre>
+</details>
+</dd>
+<dt id="utils.project"><code class="name flex">
+<span>def <span class="ident">project</span></span>(<span>xx, yy, native, view)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Re-project coordinates to/from spherical or cartesian</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def project(xx, yy, native, view):
+    # type: (Array, Array, Proj, Proj) -&gt; (Array, Array)
+    &#34;&#34;&#34;Re-project coordinates to/from spherical or cartesian&#34;&#34;&#34;
+    assert xx.shape == yy.shape
+    xo, yo = transform(native, view, xx.flatten(order=&#34;F&#34;), yy.flatten(order=&#34;F&#34;))
+    return xo.reshape(xx.shape), yo.reshape(yy.shape)</code></pre>
+</details>
+</dd>
+<dt id="utils.raster2mesh"><code class="name flex">
+<span>def <span class="ident">raster2mesh</span></span>(<span>train, predict, order=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Interpolate 2D field to triangular mesh</p>
+<p>:param train: training points (raster)
+:param predict: prediction points (mesh)
+:param order: order of linear model terms (1 or 2)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def raster2mesh(train, predict, order=1):
+    # type: ((Array,), (Array,), int) -&gt; Array
+    &#34;&#34;&#34;
+    Interpolate 2D field to triangular mesh
+
+    :param train: training points (raster)
+    :param predict: prediction points (mesh)
+    :param order: order of linear model terms (1 or 2)
+    &#34;&#34;&#34;
+    if not 0 &lt; order &lt; 3:
+        raise ValueError
+    if len(train) == 4:
+        x, y, z, e = train
+        mask = isnan(z) | isnan(e)
+    elif len(train) == 3:
+        z = None
+        x, y, e = train
+        mask = isnan(e)
+    else:
+        raise ValueError
+
+    (ind,) = where(~mask)
+
+    def extract_valid(arr):
+        return arr[ind].reshape(-1, 1) if arr is not None else None
+
+    train = (extract_valid(item) for item in (x, y, z, e))
+    model, _ = linear_regression_train(train=train, target=e)
+    return linear_regression_predict(model, predict=predict, order=order)</code></pre>
+</details>
+</dd>
+<dt id="utils.rectangle"><code class="name flex">
+<span>def <span class="ident">rectangle</span></span>(<span>ww, hh)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def rectangle(ww, hh):
+    # type: (float, float) -&gt; Array
+    return parallelogram(ww, hh)</code></pre>
+</details>
+</dd>
+<dt id="utils.reflect"><code class="name flex">
+<span>def <span class="ident">reflect</span></span>(<span>arr, dim)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Reflect a single dimension</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def reflect(arr, dim):
+    # type: (Array, (int,)) -&gt; None
+    &#34;&#34;&#34;Reflect a single dimension&#34;&#34;&#34;
+    arr[:, dim] *= -1.0</code></pre>
+</details>
+</dd>
+<dt id="utils.regular_polygon"><code class="name flex">
+<span>def <span class="ident">regular_polygon</span></span>(<span>points)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def regular_polygon(points):
+    # type: (int) -&gt; Array
+    shape = zeros(shape=(points, 3))
+    inc = -2.0 * pi / points  # rotation increment
+    new = XAXIS.copy()  # initial point at 0 radians
+    for ii in range(points):
+        shape[ii, 0:3] = new  # copy point to polygon
+        new = rotate(new, angle=inc, axis=ZAXIS)
+    return shape</code></pre>
+</details>
+</dd>
+<dt id="utils.report_buoy_data"><code class="name flex">
+<span>def <span class="ident">report_buoy_data</span></span>(<span>request)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>We receive the hashed message in form of a header</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def report_buoy_data(request):
+    &#34;&#34;&#34;We receive the hashed message in form of a header&#34;&#34;&#34;
+
+    if getenv(&#34;Http_Method&#34;) != &#34;POST&#34;:
+        return dumps({&#34;Error&#34;: &#34;Require POST&#34;}), 400
+    if not request.body:
+        return dumps({&#34;Error&#34;: &#34;No request body&#34;}), 400
+
+    body = request.body
+
+    interval = body.get(&#34;interval&#34;, (None, None))
+    limit = body.get(&#34;limit&#34;, None)
+    encoding = body.get(&#34;encoding&#34;, &#34;txt&#34;)
+    node = body.get(&#34;id&#34;, None)
+    fields = body.get(&#34;observedProperties&#34;, None)
+
+    if (
+        not any((limit, *interval))
+        or not any((fields, node))
+        or encoding not in (&#34;txt&#34;, &#34;json&#34;)
+    ):
+        return dumps({&#34;Error&#34;: &#34;Bad Request&#34;}), 400
+
+    host = getenv(&#34;hostname&#34;, &#34;maine.loboviz.com&#34;)
+    times = (
+        f&#34;&amp;newest={limit}&#34; if limit else &#34;&amp;min_date={}&amp;max_date={}&#34;.format(*interval)
+    )
+    url = f&#34;http://{host}/cgi-data/nph-data.cgi?data_format=text&amp;node={node}&amp;y={&#39;,&#39;.join(fields)}{times}&#34;
+    response = get(url)
+    content = response.content.decode()
+    if not response.ok:
+        return response
+
+    if encoding == &#34;txt&#34;:
+        return content, 200
+
+    lines = deque(filter(lambda x: len(x), content.split(&#34;\n&#34;)))
+    name, alias = lines.popleft().split(&#34;-&#34;)
+    data = {
+        &#34;name&#34;: name,
+        &#34;aliases&#34;: list(set(map(str.strip, (alias, lines.popleft())))),
+    }
+    lines = deque(map(lambda x: tuple(x.split(&#34;\t&#34;)), lines))
+    keys = lines.popleft()
+    return (
+        dumps(
+            {
+                **data,
+                &#34;values&#34;: [
+                    dict(zip(k, v)) for k, v in zip(repeat(keys, len(lines)), lines)
+                ],
+            }
+        ),
+        200,
+    )</code></pre>
+</details>
+</dd>
+<dt id="utils.resolveTaskTree"><code class="name flex">
+<span>def <span class="ident">resolveTaskTree</span></span>(<span>t) -> tuple</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Recursively run and REDUCE an asynchronous task tree which returns an (index, <coroutine>) tuple. The process
+stops when the final inner method is evaluated.</p>
+<p>This is used internally by <code>metadata()</code>. The depth of the task structure is set before runtime, for example,
+see <code>_map_by_date</code>.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def resolveTaskTree(t) -&gt; tuple:
+    &#34;&#34;&#34;
+    Recursively run and REDUCE an asynchronous task tree which returns an (index, &lt;coroutine&gt;) tuple. The process
+    stops when the final inner method is evaluated.
+
+    This is used internally by `metadata()`. The depth of the task structure is set before runtime, for example,
+    see `_map_by_date`.
+    &#34;&#34;&#34;
+
+    i, inner = synchronous(t)
+    if inner is None:
+        return (i,)
+    yields = ()
+    while len(inner):
+        yields += tuple(
+            [i, *((j,) if type(j) == int else tuple(j))]
+            for j in resolveTaskTree(inner.pop())
+        )
+    return yields</code></pre>
+</details>
+</dd>
+<dt id="utils.response"><code class="name flex">
+<span>def <span class="ident">response</span></span>(<span>status, payload)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def response(status, payload):
+    return {
+        &#34;status&#34;: status,
+        &#34;payload&#34;: list(payload),
+    }</code></pre>
+</details>
+</dd>
+<dt id="utils.rk4"><code class="name flex">
+<span>def <span class="ident">rk4</span></span>(<span>fcn, y0, t0, dt)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Simple 4th-order Runge-Kutta integration, non boundary checking</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def rk4(fcn, y0, t0, dt):
+    &#34;&#34;&#34;
+    Simple 4th-order Runge-Kutta integration, non boundary checking
+    &#34;&#34;&#34;
+    k1 = fcn(t0, y0)
+    k2 = fcn(t0 + 0.5 * dt, y0 + 0.5 * k1)
+    k3 = fcn(t0 + 0.5 * dt, y0 + 0.5 * k2)
+    k4 = fcn(t0 + dt, y0 + k3)
+
+    return y0 + dt * (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6</code></pre>
+</details>
+</dd>
+<dt id="utils.rotate"><code class="name flex">
+<span>def <span class="ident">rotate</span></span>(<span>vertex_array: <built-in function array>, angle: float, axis: <built-in function array> = array([[0., 0., 1.]])) -> <built-in function array></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Rotate list of vectors(/vertices) about any axis by angle in radians. Default to Z-AXIS</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def rotate(vertex_array: array, angle: float, axis: array = ZAXIS) -&gt; array:
+    &#34;&#34;&#34;
+    Rotate list of vectors(/vertices) about any axis by angle in radians. Default to Z-AXIS
+    &#34;&#34;&#34;
+    a = cos(0.5 * angle)
+    b = sin(0.5 * angle) * normal(axis)
+
+    if vertex_array.shape[1] == 4:
+        state = vertex_array
+    else:
+        state = zeros((len(vertex_array), 4), dtype=float)
+        state[:, 1:4] = vertex_array[:, :]
+
+    matrix = append(a, b).reshape(1, 4)
+    state = multiply(matrix, state)  # intermediate multiplication
+    matrix = append(a, -b).reshape(1, 4)  # conjugation
+    return multiply(state, matrix)[:, 1:4]  # final step, omit w coordinates</code></pre>
+</details>
+</dd>
+<dt id="utils.roughen"><code class="name flex">
+<span>def <span class="ident">roughen</span></span>(<span>vertex_array, scalar=0.01)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Subtractive roughing maintains maximum radius.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def roughen(vertex_array, scalar=0.01):
+    # type: (Array, float) -&gt; Array
+    &#34;&#34;&#34;
+    Subtractive roughing maintains maximum radius.
+    &#34;&#34;&#34;
+    return vertex_array * (1 - random.random(vertex_array.shape) * scalar)</code></pre>
+</details>
+</dd>
+<dt id="utils.rxnConstant_gen"><code class="name flex">
+<span>def <span class="ident">rxnConstant_gen</span></span>(<span>initial_concentration, final_concentration, residence_time)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def rxnConstant_gen(initial_concentration, final_concentration, residence_time):
+    return -log(final_concentration - initial_concentration) / residence_time</code></pre>
+</details>
+</dd>
+<dt id="utils.rxnConstant_pH"><code class="name flex">
+<span>def <span class="ident">rxnConstant_pH</span></span>(<span>pH0, pH1, residence_time)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def rxnConstant_pH(pH0, pH1, residence_time):
+    return -log(10 ** (pH0 - pH1)) / residence_time</code></pre>
+</details>
+</dd>
+<dt id="utils.scale"><code class="name flex">
+<span>def <span class="ident">scale</span></span>(<span>arr, sx, sy, sz)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Rescale an array, usually vertices</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def scale(arr, sx, sy, sz):
+    # type: (Array, float, float, float) -&gt; None
+    &#34;&#34;&#34;Rescale an array, usually vertices&#34;&#34;&#34;
+    arr[:, :] *= (af.Array if isinstance(arr, af.Array) else array)([sx, sy, sz])</code></pre>
+</details>
+</dd>
+<dt id="utils.shapefile"><code class="name flex">
+<span>def <span class="ident">shapefile</span></span>(<span>path, gpu=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get array of objects from Shapefile</p>
+<p>:param path:
+:param gpu:</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def shapefile(path, gpu=False):
+    # type: (str, bool) -&gt; (Array,)
+    &#34;&#34;&#34;
+    Get array of objects from Shapefile
+
+    :param path:
+    :param gpu:
+    &#34;&#34;&#34;
+    reader = Reader(path)
+    fields = reader.fields[1:]  # remove deletion flag
+    result = []
+    for shape, record in reader.iterShapeRecords():
+        assert len(fields) == len(record), (fields, record)
+        meta = {key[0]: rec for key, rec in zip(fields, record)}
+        vertices = array(shape.points)
+        parts = array_split(vertices, shape.parts[1:])
+        result.extend(zip(parts, repeat(meta, len(parts))))
+    return result</code></pre>
+</details>
+</dd>
+<dt id="utils.shell"><code class="name flex">
+<span>def <span class="ident">shell</span></span>(<span>points, start, sweep, ww, hh, dw, dh)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parallel arcs forming a closed space</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def shell(points, start, sweep, ww, hh, dw, dh):
+    # type: (int, float, float, float, float, float, float) -&gt; Array
+    &#34;&#34;&#34;
+    Parallel arcs forming a closed space
+    &#34;&#34;&#34;
+    total = 2 * points
+    shape = zeros(shape=(total, 3))
+    outer = point_arc(points, start, sweep)
+    scale(outer, ww, hh, 0)
+    inner = point_arc(points, start, sweep)
+    scale(inner, ww - dw, hh - dh, 0)
+
+    for ii in arange(points):
+        shape[ii, :] = outer[ii, :]
+        shape[total - ii - 1, :] = inner[ii, :]
+
+    return shape</code></pre>
+</details>
+</dd>
+<dt id="utils.sigma2depth"><code class="name flex">
+<span>def <span class="ident">sigma2depth</span></span>(<span>elevation, bathymetry, sigma)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sigma coordinates to unit depth</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def sigma2depth(elevation, bathymetry, sigma):
+    # type: (Array, Array, Array) -&gt; Array
+    &#34;&#34;&#34;Sigma coordinates to unit depth&#34;&#34;&#34;
+    return sigma * (elevation - bathymetry) + elevation</code></pre>
+</details>
+</dd>
+<dt id="utils.smooth"><code class="name flex">
+<span>def <span class="ident">smooth</span></span>(<span>vertex_array, neighbors, weight=0.5)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Smooth surface by randomly traversing all vertices with a 1-lag
+weighted stencil.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def smooth(vertex_array, neighbors, weight=0.5):
+    # type: (Array, Array, float) -&gt; array
+    &#34;&#34;&#34;
+    Smooth surface by randomly traversing all vertices with a 1-lag
+    weighted stencil.
+    &#34;&#34;&#34;
+    arr = arange(len(vertex_array))  # create index array of vertices
+    random.shuffle(arange(len(vertex_array)))  # create random array of indices
+    for ii in arr:
+        imag = norm(vertex_array[ii, :].reshape(1, 3))  # self magnitude
+        jmag = mean(norm(vertex_array[neighbors[ii], :]))  # mean of neighbors
+        dmag = 1 + weight * (jmag - imag) / imag  # final scalar from weight
+        vertex_array[ii, :] *= dmag  # adjust self magnitude
+    return vertex_array</code></pre>
+</details>
+</dd>
+<dt id="utils.spherical_nearest_neighbor"><code class="name flex">
+<span>def <span class="ident">spherical_nearest_neighbor</span></span>(<span>lon, lat, reference)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate distance matrix and indices of closet points</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def spherical_nearest_neighbor(lon, lat, reference):
+    # type: (Array, Array, (float, float)) -&gt; (Array, Array)
+    &#34;&#34;&#34;
+    Calculate distance matrix and indices of closet points
+    &#34;&#34;&#34;
+    dxy = geo2dist(lat, lon, *reference)
+    return dxy, dxy.argmin()</code></pre>
+</details>
+</dd>
+<dt id="utils.square"><code class="name flex">
+<span>def <span class="ident">square</span></span>(<span>ww)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def square(ww):
+    # type: (float) -&gt; Array
+    return rectangle(ww, ww)</code></pre>
+</details>
+</dd>
+<dt id="utils.stitch"><code class="name flex">
+<span>def <span class="ident">stitch</span></span>(<span>inner, outer)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Surface joining edges of two shapes</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def stitch(inner, outer):
+    # type: (Array, Array) -&gt; Array
+    &#34;&#34;&#34;
+    Surface joining edges of two shapes
+    &#34;&#34;&#34;
+    aa = len(inner)
+    cc = len(outer)
+    deltas = norm(outer[0, :] - inner[:, :])
+
+    topology = zeros((cc + aa, 3), dtype=int)
+
+    nn = 0
+    lines = aa // cc
+    (start,) = where(deltas == min(deltas))  # find closest of inner circle
+    start -= lines // 2  # shift back by half the number of lines
+
+    for ii in range(cc):  # for each vertex in outer ring
+        # for the number of lines drawn from each vertex
+        for jj in range(lines + 1):
+
+            if start &gt;= aa:
+                start -= aa  # reset index cycle if too large
+            elif start &lt; 0:
+                start += aa  # reset index cycle if too large
+
+            if jj &lt; lines:  # for all except last
+
+                topology[nn, :] = [ii, cc + start + 1, cc + start]
+                if (start + 1) &gt;= aa:
+                    topology[nn, 1] -= aa
+                start += 1
+
+            else:  # for last in pattern
+                topology[nn, :] = [ii, ii + 1, cc + start]
+                if (ii + 1) &gt;= cc:
+                    topology[nn, 1] -= cc
+
+            nn += 1</code></pre>
+</details>
+</dd>
+<dt id="utils.subdivide"><code class="name flex">
+<span>def <span class="ident">subdivide</span></span>(<span>vertex_array, topology, punch=True)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Divide each triangle into 4 smaller ones</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def subdivide(vertex_array, topology, punch=True):
+    # type: (Array, Array, bool) -&gt; None
+    &#34;&#34;&#34;
+    Divide each triangle into 4 smaller ones
+    &#34;&#34;&#34;
+    nvi = len(vertex_array)
+    for ii, tri in enumerate(topology):  # for each triangle face
+        for jj in range(3):  # for each vertex in each face
+
+            vi = (jj + 1) if jj &lt; 2 else 0  # next vert, loop back to first
+
+            indices = [jj, vi]
+            midpoint = vertex_array[tri[indices], :].mean(axis=1)
+
+            if punch:  # scale mid point to same radius as others
+                midpoint = normal(midpoint)
+                midpoint *= 0.5 * (
+                    norm(vertex_array[tri[jj], :].reshape(1, 3))
+                    + norm(vertex_array[tri[vi], :].reshape(1, 3))
+                )
+            vertex_array = vstack((vertex_array, midpoint))
+
+            new_face = array([topology[ii, jj], nvi, 0])
+            new_face[2] = nvi + 2 if jj &lt; 1 else nvi - 1
+            topology = vstack((topology, new_face))
+            nvi += 1
+
+        topology[ii] = [nvi - 3, nvi - 2, nvi - 1]  # replace original face</code></pre>
+</details>
+</dd>
+<dt id="utils.subset"><code class="name flex">
+<span>def <span class="ident">subset</span></span>(<span>arr, stride)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Regular-spaced sparse subset of an array</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def subset(arr, stride):
+    # type: (Array, int) -&gt; Array
+    &#34;&#34;&#34;Regular-spaced sparse subset of an array&#34;&#34;&#34;
+    return arr[1:-1:stride, 1:-1:stride]</code></pre>
+</details>
+</dd>
+<dt id="utils.swarm"><code class="name flex">
+<span>def <span class="ident">swarm</span></span>(<span>vertex_array, vector_array, orientations, omega)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Steer members of swarm</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def swarm(vertex_array, vector_array, orientations, omega):
+    &#34;&#34;&#34;
+    Steer members of swarm
+    &#34;&#34;&#34;
+    position = vertex_array.mean(axis=1)
+    offsets = position - vertex_array
+    attractor = normal(offsets)
+    inverse = -offsets
+    mask = norm(inverse, axis=0) &lt; 0.5
+    repulsor = normal(inverse * where(mask))
+    orientation = orientations.mean(axis=1)
+    alignment = normal(orientation)
+
+    final = normal(alignment + repulsor + attractor)
+
+    normv = normal(vector_array)
+    # normo = normal(orientations)
+
+    # brake/adjust speed here -&gt;
+
+    course_error = angle2d(vector_array, final)  # angleOffset reaches NaN
+    steering_force = cross(normv, course_error)
+
+    torque = (
+        -omega + sign(steering_force[:, 2]) * 0.5 * course_error
+    )  # critically damped oscillator
+    orientations = orientations + torque
+
+    # rotate(orientations)
+
+    # accelerate
+    impulse(uv=final, direction=orientations)</code></pre>
+</details>
+</dd>
+<dt id="utils.synchronous"><code class="name flex">
+<span>def <span class="ident">synchronous</span></span>(<span>task, loop=None, close=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Run an asynchronous tasks in serial. First build JSON structures with Co-routines in place of data,
+and then render the result of the Co-routines in-place.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def synchronous(task, loop=None, close=False):
+    # type: (Coroutine, BaseEventLoop, bool) -&gt; Any
+    &#34;&#34;&#34;
+    Run an asynchronous tasks in serial. First build JSON structures with Co-routines in place of data,
+    and then render the result of the Co-routines in-place.
+    &#34;&#34;&#34;
+    if loop is None:
+        close = True
+        loop = new_event_loop()
+    set_event_loop(loop)  # create the event loop
+    result = loop.run_until_complete(task)
+    if close:
+        loop.close()
+    return result</code></pre>
+</details>
+</dd>
+<dt id="utils.tetrahedron"><code class="name flex">
+<span>def <span class="ident">tetrahedron</span></span>(<span>dtype=builtins.float)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def tetrahedron(dtype=float):
+    vertex_array = zeros((4, 3), dtype=dtype)
+    topology = zeros((4, 3), dtype=int)
+
+    vertex_array[0, :] = [-1.0 * (2.0 / 3.0) ** 0.5, 0.0, (1.0 / 3.0) ** 0.5]
+    vertex_array[1, :] = [(2.0 / 3.0) ** 0.5, 0.0, (1.0 / 3.0) ** 0.5]
+    vertex_array[2, :] = [0.0, -1.0 * (2.0 / 3.0) ** 0.5, -1.0 * (1.0 / 3.0) ** 0.5]
+    vertex_array[3, :] = [0.0, (2.0 / 3.0) ** 0.5, -1.0 * (1.0 / 3.0) ** 0.5]
+
+    topology[0, :] = [0, 1, 3]
+    topology[1, :] = [0, 3, 2]
+    topology[2, :] = [0, 2, 1]
+    topology[3, :] = [1, 2, 3]
+
+    return vertex_array, topology</code></pre>
+</details>
+</dd>
+<dt id="utils.thematic_mapping"><code class="name flex">
+<span>def <span class="ident">thematic_mapping</span></span>(<span>shapes, extent, key, value)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:param shapes:
+:param extent:
+:param key: "LAND", "ISLAND
+:param value:
+:return:</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def thematic_mapping(shapes, extent, key, value):
+    &#34;&#34;&#34;
+
+    :param shapes:
+    :param extent:
+    :param key: &#34;LAND&#34;, &#34;ISLAND
+    :param value:
+    :return:
+    &#34;&#34;&#34;
+
+    def _match_field():
+        ind = None
+        for ii, field in enumerate(shapes.fields):  # find the position of the field
+            if shapes.fields[0] == key:
+                ind = ii
+                break
+        return array(map(lambda x: x[ind] == value, shapes.records))
+
+    def _filter(x) -&gt; bool:
+        return not x[&#34;hide&#34;] and x[&#34;type&#34;] == &#34;analytical&#34;
+
+    # pylint: disable=invalid-unary-operand-type
+    shapes = shapes.collect(
+        extent=extent, flags=(~_match_field()) 
+    )  
+    return filter(_filter, shapes)</code></pre>
+</details>
+</dd>
+<dt id="utils.translate"><code class="name flex">
+<span>def <span class="ident">translate</span></span>(<span>arr, delta)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Move an array. Delta may be of the same shape as data, or a single dimension</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def translate(arr, delta):
+    # type: (Array, Array) -&gt; None
+    &#34;&#34;&#34;Move an array. Delta may be of the same shape as data, or a single dimension&#34;&#34;&#34;
+    arr[:, :] += delta</code></pre>
+</details>
+</dd>
+<dt id="utils.vertical_flux"><code class="name flex">
+<span>def <span class="ident">vertical_flux</span></span>(<span>omega, area)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Vertical flux density</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def vertical_flux(omega, area):
+    # type: (Array, Array) -&gt; Array
+    &#34;&#34;&#34;Vertical flux density&#34;&#34;&#34;
+    return omega * area[:, None]</code></pre>
+</details>
+</dd>
+<dt id="utils.viscosity"><code class="name flex">
+<span>def <span class="ident">viscosity</span></span>(<span>temperature)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Viscosity from temperature</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def viscosity(temperature):
+    # type: (Array) -&gt; Array
+    &#34;&#34;&#34;Viscosity from temperature&#34;&#34;&#34;
+    return 10.0 ** (-3.0) * 10.0 ** (-1.65 + 262.0 / (temperature + 169.0))</code></pre>
+</details>
+</dd>
+<dt id="utils.wedge"><code class="name flex">
+<span>def <span class="ident">wedge</span></span>(<span>points, start, sweep)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def wedge(points, start, sweep):
+    # type: (int, float, float) -&gt; Array
+    shape = point_arc(points, start, sweep)
+    shape = vstack((shape, ORIGIN))
+    return shape</code></pre>
+</details>
+</dd>
+<dt id="utils.xye"><code class="name flex">
+<span>def <span class="ident">xye</span></span>(<span>x, y, z)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return height-mapped vertex array</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def xye(x, y, z):
+    &#34;&#34;&#34;Return height-mapped vertex array&#34;&#34;&#34;
+    return hstack((x.reshape(-1, 1), y.reshape(-1, 1), z.reshape(-1, 1)))</code></pre>
+</details>
+</dd>
+<dt id="utils.z_index"><code class="name flex">
+<span>def <span class="ident">z_index</span></span>(<span>sigma: <built-in function array>, count: int) -> int</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Convert from (negative) sigma coordinates to intra-layer indices</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def z_index(sigma: array, count: int) -&gt; int:
+    &#34;&#34;&#34;
+    Convert from (negative) sigma coordinates to intra-layer indices
+    &#34;&#34;&#34;
+    return floor((1 - count) * sigma).astype(int)  # sigma layer index above position</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="utils.angle2d" href="#utils.angle2d">angle2d</a></code></li>
+<li><code><a title="utils.angle3d" href="#utils.angle3d">angle3d</a></code></li>
+<li><code><a title="utils.area_sort" href="#utils.area_sort">area_sort</a></code></li>
+<li><code><a title="utils.array2image" href="#utils.array2image">array2image</a></code></li>
+<li><code><a title="utils.arrays2points" href="#utils.arrays2points">arrays2points</a></code></li>
+<li><code><a title="utils.attenuation" href="#utils.attenuation">attenuation</a></code></li>
+<li><code><a title="utils.avhrr_index" href="#utils.avhrr_index">avhrr_index</a></code></li>
+<li><code><a title="utils.avhrr_sst" href="#utils.avhrr_sst">avhrr_sst</a></code></li>
+<li><code><a title="utils.bevel" href="#utils.bevel">bevel</a></code></li>
+<li><code><a title="utils.blank" href="#utils.blank">blank</a></code></li>
+<li><code><a title="utils.boundary" href="#utils.boundary">boundary</a></code></li>
+<li><code><a title="utils.brightness_temperature" href="#utils.brightness_temperature">brightness_temperature</a></code></li>
+<li><code><a title="utils.c_array" href="#utils.c_array">c_array</a></code></li>
+<li><code><a title="utils.calc_areas" href="#utils.calc_areas">calc_areas</a></code></li>
+<li><code><a title="utils.center" href="#utils.center">center</a></code></li>
+<li><code><a title="utils.crop" href="#utils.crop">crop</a></code></li>
+<li><code><a title="utils.cube" href="#utils.cube">cube</a></code></li>
+<li><code><a title="utils.days" href="#utils.days">days</a></code></li>
+<li><code><a title="utils.degrade" href="#utils.degrade">degrade</a></code></li>
+<li><code><a title="utils.depth" href="#utils.depth">depth</a></code></li>
+<li><code><a title="utils.depth2sigma" href="#utils.depth2sigma">depth2sigma</a></code></li>
+<li><code><a title="utils.extent_area" href="#utils.extent_area">extent_area</a></code></li>
+<li><code><a title="utils.extent_crop" href="#utils.extent_crop">extent_crop</a></code></li>
+<li><code><a title="utils.extent_overlap_automatic" href="#utils.extent_overlap_automatic">extent_overlap_automatic</a></code></li>
+<li><code><a title="utils.extent_overlap_filter" href="#utils.extent_overlap_filter">extent_overlap_filter</a></code></li>
+<li><code><a title="utils.extent_overlap_iteration" href="#utils.extent_overlap_iteration">extent_overlap_iteration</a></code></li>
+<li><code><a title="utils.extrude" href="#utils.extrude">extrude</a></code></li>
+<li><code><a title="utils.fahr2cel" href="#utils.fahr2cel">fahr2cel</a></code></li>
+<li><code><a title="utils.filter_arrays" href="#utils.filter_arrays">filter_arrays</a></code></li>
+<li><code><a title="utils.filter_in_range" href="#utils.filter_in_range">filter_in_range</a></code></li>
+<li><code><a title="utils.generateStream" href="#utils.generateStream">generateStream</a></code></li>
+<li><code><a title="utils.geo2dist" href="#utils.geo2dist">geo2dist</a></code></li>
+<li><code><a title="utils.geom_shader" href="#utils.geom_shader">geom_shader</a></code></li>
+<li><code><a title="utils.globe" href="#utils.globe">globe</a></code></li>
+<li><code><a title="utils.googleCloudSecret" href="#utils.googleCloudSecret">googleCloudSecret</a></code></li>
+<li><code><a title="utils.gradient" href="#utils.gradient">gradient</a></code></li>
+<li><code><a title="utils.hc2pH" href="#utils.hc2pH">hc2pH</a></code></li>
+<li><code><a title="utils.hexagon" href="#utils.hexagon">hexagon</a></code></li>
+<li><code><a title="utils.hull_contains" href="#utils.hull_contains">hull_contains</a></code></li>
+<li><code><a title="utils.hull_overlap" href="#utils.hull_overlap">hull_overlap</a></code></li>
+<li><code><a title="utils.icosahedron" href="#utils.icosahedron">icosahedron</a></code></li>
+<li><code><a title="utils.identity" href="#utils.identity">identity</a></code></li>
+<li><code><a title="utils.image2arrays" href="#utils.image2arrays">image2arrays</a></code></li>
+<li><code><a title="utils.image_to_masked" href="#utils.image_to_masked">image_to_masked</a></code></li>
+<li><code><a title="utils.impact" href="#utils.impact">impact</a></code></li>
+<li><code><a title="utils.impulse" href="#utils.impulse">impulse</a></code></li>
+<li><code><a title="utils.interp1d" href="#utils.interp1d">interp1d</a></code></li>
+<li><code><a title="utils.interp1d_lin" href="#utils.interp1d_lin">interp1d_lin</a></code></li>
+<li><code><a title="utils.interp2d_nearest" href="#utils.interp2d_nearest">interp2d_nearest</a></code></li>
+<li><code><a title="utils.interp2d_tri" href="#utils.interp2d_tri">interp2d_tri</a></code></li>
+<li><code><a title="utils.interp2d_uv" href="#utils.interp2d_uv">interp2d_uv</a></code></li>
+<li><code><a title="utils.interp3d_slice" href="#utils.interp3d_slice">interp3d_slice</a></code></li>
+<li><code><a title="utils.interp3d_tri" href="#utils.interp3d_tri">interp3d_tri</a></code></li>
+<li><code><a title="utils.join" href="#utils.join">join</a></code></li>
+<li><code><a title="utils.kelvin2celsius" href="#utils.kelvin2celsius">kelvin2celsius</a></code></li>
+<li><code><a title="utils.lagrangian_diffusion" href="#utils.lagrangian_diffusion">lagrangian_diffusion</a></code></li>
+<li><code><a title="utils.landsat_sst_regression" href="#utils.landsat_sst_regression">landsat_sst_regression</a></code></li>
+<li><code><a title="utils.layers" href="#utils.layers">layers</a></code></li>
+<li><code><a title="utils.lin_transform" href="#utils.lin_transform">lin_transform</a></code></li>
+<li><code><a title="utils.linear_regression_predict" href="#utils.linear_regression_predict">linear_regression_predict</a></code></li>
+<li><code><a title="utils.linear_regression_train" href="#utils.linear_regression_train">linear_regression_train</a></code></li>
+<li><code><a title="utils.loadAppConfig" href="#utils.loadAppConfig">loadAppConfig</a></code></li>
+<li><code><a title="utils.mask" href="#utils.mask">mask</a></code></li>
+<li><code><a title="utils.multi_polygon_crop" href="#utils.multi_polygon_crop">multi_polygon_crop</a></code></li>
+<li><code><a title="utils.multi_polygon_cull" href="#utils.multi_polygon_cull">multi_polygon_cull</a></code></li>
+<li><code><a title="utils.multiply" href="#utils.multiply">multiply</a></code></li>
+<li><code><a title="utils.nan_mask" href="#utils.nan_mask">nan_mask</a></code></li>
+<li><code><a title="utils.normal" href="#utils.normal">normal</a></code></li>
+<li><code><a title="utils.oc3algorithms" href="#utils.oc3algorithms">oc3algorithms</a></code></li>
+<li><code><a title="utils.pH2hc" href="#utils.pH2hc">pH2hc</a></code></li>
+<li><code><a title="utils.parallelogram" href="#utils.parallelogram">parallelogram</a></code></li>
+<li><code><a title="utils.parsePostgresValueIn" href="#utils.parsePostgresValueIn">parsePostgresValueIn</a></code></li>
+<li><code><a title="utils.parsePostgresValueOut" href="#utils.parsePostgresValueOut">parsePostgresValueOut</a></code></li>
+<li><code><a title="utils.partition_points_by_shape" href="#utils.partition_points_by_shape">partition_points_by_shape</a></code></li>
+<li><code><a title="utils.pix2utm" href="#utils.pix2utm">pix2utm</a></code></li>
+<li><code><a title="utils.pixel_area" href="#utils.pixel_area">pixel_area</a></code></li>
+<li><code><a title="utils.point_arc" href="#utils.point_arc">point_arc</a></code></li>
+<li><code><a title="utils.points_in_path" href="#utils.points_in_path">points_in_path</a></code></li>
+<li><code><a title="utils.polygon_area" href="#utils.polygon_area">polygon_area</a></code></li>
+<li><code><a title="utils.project" href="#utils.project">project</a></code></li>
+<li><code><a title="utils.raster2mesh" href="#utils.raster2mesh">raster2mesh</a></code></li>
+<li><code><a title="utils.rectangle" href="#utils.rectangle">rectangle</a></code></li>
+<li><code><a title="utils.reflect" href="#utils.reflect">reflect</a></code></li>
+<li><code><a title="utils.regular_polygon" href="#utils.regular_polygon">regular_polygon</a></code></li>
+<li><code><a title="utils.report_buoy_data" href="#utils.report_buoy_data">report_buoy_data</a></code></li>
+<li><code><a title="utils.resolveTaskTree" href="#utils.resolveTaskTree">resolveTaskTree</a></code></li>
+<li><code><a title="utils.response" href="#utils.response">response</a></code></li>
+<li><code><a title="utils.rk4" href="#utils.rk4">rk4</a></code></li>
+<li><code><a title="utils.rotate" href="#utils.rotate">rotate</a></code></li>
+<li><code><a title="utils.roughen" href="#utils.roughen">roughen</a></code></li>
+<li><code><a title="utils.rxnConstant_gen" href="#utils.rxnConstant_gen">rxnConstant_gen</a></code></li>
+<li><code><a title="utils.rxnConstant_pH" href="#utils.rxnConstant_pH">rxnConstant_pH</a></code></li>
+<li><code><a title="utils.scale" href="#utils.scale">scale</a></code></li>
+<li><code><a title="utils.shapefile" href="#utils.shapefile">shapefile</a></code></li>
+<li><code><a title="utils.shell" href="#utils.shell">shell</a></code></li>
+<li><code><a title="utils.sigma2depth" href="#utils.sigma2depth">sigma2depth</a></code></li>
+<li><code><a title="utils.smooth" href="#utils.smooth">smooth</a></code></li>
+<li><code><a title="utils.spherical_nearest_neighbor" href="#utils.spherical_nearest_neighbor">spherical_nearest_neighbor</a></code></li>
+<li><code><a title="utils.square" href="#utils.square">square</a></code></li>
+<li><code><a title="utils.stitch" href="#utils.stitch">stitch</a></code></li>
+<li><code><a title="utils.subdivide" href="#utils.subdivide">subdivide</a></code></li>
+<li><code><a title="utils.subset" href="#utils.subset">subset</a></code></li>
+<li><code><a title="utils.swarm" href="#utils.swarm">swarm</a></code></li>
+<li><code><a title="utils.synchronous" href="#utils.synchronous">synchronous</a></code></li>
+<li><code><a title="utils.tetrahedron" href="#utils.tetrahedron">tetrahedron</a></code></li>
+<li><code><a title="utils.thematic_mapping" href="#utils.thematic_mapping">thematic_mapping</a></code></li>
+<li><code><a title="utils.translate" href="#utils.translate">translate</a></code></li>
+<li><code><a title="utils.vertical_flux" href="#utils.vertical_flux">vertical_flux</a></code></li>
+<li><code><a title="utils.viscosity" href="#utils.viscosity">viscosity</a></code></li>
+<li><code><a title="utils.wedge" href="#utils.wedge">wedge</a></code></li>
+<li><code><a title="utils.xye" href="#utils.xye">xye</a></code></li>
+<li><code><a title="utils.z_index" href="#utils.z_index">z_index</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.8.1</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>
