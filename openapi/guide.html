@@ -116,5 +116,98 @@ CREATE (n3)-[:SIDE_OF]->(e)
                
             </div>
         </slide>
+
+        
+        <slide class="row-fluid">
+            <div class="col-sm-3">
+                <h3>Queries</h3>
+                <p class="lead">Get derived information</p>
+            </div>
+
+            <div class="col-sm-9">
+                <p>
+                    Using a 3D model as an example, here are some basic queries.
+                </p>
+                <figure>
+                    <pre class="pre-scrollable code runnable">MATCH (v:Vertex)-[]->(t:Triangle {id: 100}) RETURN v, t</pre>
+                    <figcaption>Return a specific triangle, child vertices, and their relationships</figcaption>
+                </figure>
+
+                <figure>
+                    <pre class="pre-scrollable code runnable">MATCH (:Vertex {id: 118})-[]->(:Triangle {id: 100})<-[]-(v:Vertex) RETURN n.id</pre>
+                    <figcaption>Return neighbor indices of vertices connected to a named vertex through a named parent</figcaption>
+                </figure>
+
+                <figure>
+                    <pre class="pre-scrollable code runnable">MATCH (v:Vertex)-[*1..3]-(t:Triangle {id: 152}) RETURN count(DISTINCT v)</pre>
+                    <figcaption>Return the number of  within 2 strides of named element</figcaption>
+                </figure>
+
+                <figure>
+                    <pre class="pre-scrollable code runnable">MATCH (v:Vertex)-[]-(:Triangle {id: 10000}) RETURN avg(v.x)</pre>
+                    <figcaption>Return the center coordinates of a triangle</figcaption>
+                </figure>
+           
+            </div>
+        </slide>
+
+        <slide class="row-fluid">
+            <div class="col-sm-3">
+                <h3>Neighbors</h3>
+                <p class="lead">Pre-compute neighbors to speed up local area search.</p>
+            </div>
+
+            <div class="col-sm-9">
+               
+                <p>Nodes are neighbors if they share a parent. Each node gets a <b>non-directional</b> neighbor relationship with unique nodes that joined by a parent.</p>
+                <figure>
+                    <pre class="pre-scrollable code runnable">
+MATCH (a:Node)-[:SIDE_OF]->(:Cell)<-[:SIDE_OF]-(b:Node) 
+MERGE (a)-[:NEIGHBORS]-(b)
+                    </pre>
+                    <figcaption>Encode implicit neighbor relationships in the graph</figcaption>
+                </figure>
+
+                <p>
+                    Cells are neighbors if they share two child nodes. 
+                    Crawling all node and cell combinations would be really slow, 
+                    and we already created edges as neighbor relationships between nodes. 
+                    Use those to create cell neighbors, since they are one-to-one, **with one notable exception**. 
+                    Edges joining boundary nodes will not have cell-cell neighbor relationships.
+                </p>
+
+                <figure>
+                    <pre class="pre-scrollable code runnable">
+
+MATCH (a:Node {id: 0})
+MATCH (a)-->(b)-[:SIDE_OF]->(c:Element)<-[:SIDE_OF]-(a)
+WITH collect(DISTINCT c.id) AS candidates
+MATCH 
+RETURN candidates
+
+MATCH (a)-->(b)--(c)--(a)
+MATCH (b)-->(candidates:Element)<--(c)
+WITH DISTINCT candidates AS unique, parents
+WITH collect(unique.id) AS cans, collect(parents.id) AS pars
+RETURN apoc.coll.intersection(cans, pars)
+
+RETURN a.id, b.id, c.id
+
+WITH a, b
+MATCH (a)-[:SIDE_OF]->(e:Element)
+UNWIND b.id AS nb
+MATCH p = (:Node {id: nb})-[:SIDE_OF]->(e)<--(a)
+RETURN e.id
+
+UNWIND b.id as nb
+MATCH (:Node {id: nb})-->(start:Element)<--(a)-[:NEIGHBORS]->(:Node {id: nb})->(end:Element)<--(a)
+RETURN nb.id, b.id, e.id
+                    </pre>
+                    <figcaption>Calculate element neighbors</figcaption>
+                </figure>
+               
+            </div>
+        </slide>
+
     </carousel>
 </article>
