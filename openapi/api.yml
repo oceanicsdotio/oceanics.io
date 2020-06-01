@@ -50,8 +50,8 @@ x-tagGroups:
   - name: BATHYSPHERE API
     tags: [ Account, Catalog, Topology ]
 
-#   - name: FUNCTIONS
-#     tags: [ Bivalve, Image ]
+  - name: FUNCTIONS
+    tags: [ Image ]
 
 #   - name: NERITICS
 #     tags: [ ML, Filter, Frequency, Mask ]
@@ -95,10 +95,10 @@ tags:
 #     description: |
 #       Time series and raster masking
 
-#   - name: Image
-#     x-displayName: Image
-#     description: |
-#       Anti-grain graphics
+  - name: Image
+    x-displayName: Image
+    description: |
+      Anti-grain graphics
 
 #   - name: Bivalve
 #     x-displayName: Bivalve
@@ -527,38 +527,46 @@ paths:
                   title: data container
                   type: object
                   properties:
+
                     DataStreams:
                       type: array
                       items:
-                    
-                        title: asset
-                        type: object
-                        properties:
-                          objectName:
-                            type: string
-                            nullable: true
-                          objectKey:
-                            type: string
-                            nullable: true
-                          args:
-                            type: object
-                            nullable: true
+                        oneOf:
+                        
+                        # - $ref: "#/components/schemas/Datastream"
 
-                    FeatureCollections:
-                      type: array
-                      items:
-                        type: object
-                        properties:
-                          features:
+                        - title: lazyStructure
+                          type: array
+                          items: 
                             type: array
+                            minLength: 2
+                            maxLength: 2
                             items:
-                              type: object
-                              
-                            
-
+                              type: number
+                              format: float
 
                     
+                        # - title: asset
+                        #   type: object
+                        #   properties:
+                        #     objectName:
+                        #       type: string
+                        #       nullable: true
+                        #     objectKey:
+                        #       type: string
+                        #       nullable: true
+                        #     args:
+                        #       type: object
+                        #       nullable: true
 
+                    FeatureCollection:
+                      type: object
+                      properties:
+                        features:
+                          type: array
+                          items:
+                            type: object
+                              
                 view:
                   type: string
                   description: The type of data view

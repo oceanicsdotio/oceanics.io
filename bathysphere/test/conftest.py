@@ -267,6 +267,10 @@ def token(client) -> Callable:
 
 @pytest.fixture(scope="function")
 def create_entity(client, token):
+    """
+    Make an HTTP request through the local test client to create a single
+    entity.
+    """
     def make_request(cls: str, auth: (str, str), properties: dict):
         jwtToken = token(auth).get("token")
         response = client.post(
@@ -283,6 +287,9 @@ def create_entity(client, token):
 
 @pytest.fixture(scope="function")
 def mutate_entity(client, token):
+    """
+    Make an HTTP request through the local test client to modify an enity node.
+    """
     def make_request(cls: str, auth: (str, str), uuid: str, properties: dict):
         jwtToken = token(auth).get("token")
         response = client.put(
@@ -297,6 +304,9 @@ def mutate_entity(client, token):
 
 @pytest.fixture(scope="function")
 def get_entity(client, token):
+    """
+    Retrieve by UUID
+    """
     def make_request(cls: str, auth: (str, str), uuid: str):
         jwtToken = token(auth).get("token")
         response = client.get(

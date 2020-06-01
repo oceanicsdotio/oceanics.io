@@ -1,6 +1,6 @@
 # pylint: disable=invalid-name,
 """
-Handlers for Web API.
+Handlers for Image API. Includes `main()` routine to deploy as cloud function.
 """
 from json import loads, dumps
 from itertools import repeat, chain
@@ -55,7 +55,13 @@ def render(body: dict):
 
         elif view == "series":
             for dataset, label in zip(series, labels or repeat("none")):
-                x, y = zip(*dataset)
+                try:
+                    x, y = zip(*dataset)
+                except ValueError:
+                    return {
+                        "detail": f"Invalid shape of Datastreams: {len(dataset)}, {len(dataset[0])}, {len(dataset[0][0])}"
+                    }, 400
+
                 fig.plot(x, y, label=label, scatter=True)
                 new = [min(x), max(x), min(y), max(y)]
                 extent = extent or new.copy()

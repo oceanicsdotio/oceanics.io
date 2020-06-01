@@ -395,7 +395,7 @@ class Spatial(View):
             _ = tuple(map(composite, images))
 
         if collection:
-            features = collection.features
+            features = collection["features"]
             _ = tuple(
                 map(
                     lambda xy, kwargs: self.ax.add_patch(Polygon(xy.geometry["coordinates"], **kwargs)),

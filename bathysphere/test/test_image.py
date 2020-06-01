@@ -70,9 +70,7 @@ test_cases = {
         "view": "series",
         "objectName": "test_function_image_time_series_scatter_plot",
         "extent": {"generic": [0, 365, 0, 10]},
-        "data": {
-            "DataStreams": data_streams(365, 10)
-        },
+        "data": data_streams(365, 10),
         "style": {
             "base": "dark", 
             "alpha": 0.5, 
@@ -98,9 +96,7 @@ test_cases = {
     "time_series_frequency": {
         "view": "frequency",
         "objectName": "test_function_image_time_frequency_random",
-        "data": {
-            "DataStreams": data_streams(365, 100)
-        },
+        "data": data_streams(365, 100),
         "style": {
             "base": "dark", 
             "alpha": 0.5, 
@@ -110,9 +106,7 @@ test_cases = {
     "time_series_coverage": {
         "view": "coverage",
         "objectName": "test_function_image_time_coverage_random",
-        "data": {
-            "DataStreams": data_streams(365, 1000)
-        },
+        "data": data_streams(365, 1000),
         "style": {
             "base": "dark", 
             "alpha": 0.5, 
@@ -134,71 +128,74 @@ test_cases = {
     "spatial_extent_culling": {
         "view": "spatial",
         "objectName": "spatial_extent_culling",
-        "data": [
-            {
-                "objectKey": "bivalve-suitability/shapes-water",
-                "type": "shape",
-                "args": {
-                    "edgecolor": "blue",
-                    "facecolor": "none",
-                    "sequential": True,
-                    "alpha": 0.5
-                }
-            },{
-                "objectKey": "bivalve-suitability/extents-iter-1",
-                "type": "bbox",
-                "args": {
-                    "edgecolor": "red",
-                    "facecolor": "none",
-                    "sequential": True,
-                    "alpha": 0.25
-                }
-            },{
-                "objectKey": "bivalve-suitability/convex-hulls-2",
-                "type": "shape",
-                "args": {
-                    "edgecolor": "green",
-                    "facecolor": "none",
-                    "alpha": 0.25,
-                }
-            },{
-                "objectKey": "bivalve-suitability/vertex-array-closures",
-                "type": "points",
-                "args": {
-                    "sequential": True,
-                    "alpha": 0.02,
-                    "m": 0.05
-                }
+        "data": {
+            "FeatureCollection": {
+                "features": [{
+                    "objectKey": "bivalve-suitability/shapes-water",
+                    "type": "shape",
+                    "args": {
+                        "edgecolor": "blue",
+                        "facecolor": "none",
+                        "sequential": True,
+                        "alpha": 0.5
+                    }
+                },{
+                    "objectKey": "bivalve-suitability/extents-iter-1",
+                    "type": "bbox",
+                    "args": {
+                        "edgecolor": "red",
+                        "facecolor": "none",
+                        "sequential": True,
+                        "alpha": 0.25
+                    }
+                },{
+                    "objectKey": "bivalve-suitability/convex-hulls-2",
+                    "type": "shape",
+                    "args": {
+                        "edgecolor": "green",
+                        "facecolor": "none",
+                        "alpha": 0.25,
+                    }
+                },{
+                    "objectKey": "bivalve-suitability/vertex-array-closures",
+                    "type": "points",
+                    "args": {
+                        "sequential": True,
+                        "alpha": 0.02,
+                        "m": 0.05
+                    }
+                }]
             }
-        ]
+        }
     },
     "spatial_overlapping_shapes": {
         "view": "spatial",
         "objectName": "test-render-osi-overlapping-shapes",
-        "data": [
-            {
-                "objectKey": "bivalve-suitability/shapes-water-hole",
-                "args": {
-                    "stack": True,
-                    "limit": 3,
-                    "edgecolor": "red",
-                    "facecolor": "none",
-                    "transparent": True,
-                    "alpha": 0.5
-                }
-            },
-            {
-                "objectKey": "bivalve-suitability/shapes-water",
-                "args": {
-                    "stack": True,
-                    "limit": 23,
-                    "edgecolor": "red",
-                    "facecolor": "none",
-                    "transparent": True,
-                    "alpha": 0.5
-                }
+        "data": {
+            "FeatureCollection": {
+                "features": [{
+                    "objectKey": "bivalve-suitability/shapes-water-hole",
+                    "args": {
+                        "stack": True,
+                        "limit": 3,
+                        "edgecolor": "red",
+                        "facecolor": "none",
+                        "transparent": True,
+                        "alpha": 0.5
+                    }
+                },{
+                    "objectKey": "bivalve-suitability/shapes-water",
+                    "args": {
+                        "stack": True,
+                        "limit": 23,
+                        "edgecolor": "red",
+                        "facecolor": "none",
+                        "transparent": True,
+                        "alpha": 0.5
+                    }
+                }]
             }
-        ]
+        }
     }
 }
 
