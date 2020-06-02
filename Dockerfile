@@ -11,4 +11,4 @@ RUN pip install pipenv
 RUN pipenv install -e .
 
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD "curl -f localhost:5000/api"
-CMD gunicorn bathysphere.graph:app --bind 0.0.0.0:5000
+CMD pipenv shell && gunicorn bathysphere:app --bind 0.0.0.0:5000
