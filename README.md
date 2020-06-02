@@ -113,7 +113,7 @@ Using these credentials you should be able to get a JWT for further authorizatio
 
 ### Deploy
 
-Build the necessary containers with `$(bathysphere build)`. This may take a while to resolve dependencies and conflicts. The actual installation is pretty quick. 
+First generate a `requirements.txt` file from `Pipfile` with `pipenv lock -r > requirements.txt`. This may take a while to resolve dependencies and conflicts. The actual installation is pretty quick. Build the necessary containers with `$(bathysphere build)`. 
 
 The development environment is deployed locally with `$(bathysphere up)`, and the production environment with `kubectl`.
 

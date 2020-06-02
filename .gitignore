@@ -119,3 +119,4 @@ service.key
 *.crt
 logs/
 tmp/
+requirements.txt
