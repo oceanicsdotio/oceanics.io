@@ -30,7 +30,7 @@ def start(port: int):
     """
     Command to start the graph database access service.
     """
-    click.secho(f"gunicorn bathysphere.graph:app --bind 0.0.0.0:{port}", fg="green")
+    click.secho(f"gunicorn bathysphere:app --bind 0.0.0.0:{port}", fg="green")
 
 
 @click.command()

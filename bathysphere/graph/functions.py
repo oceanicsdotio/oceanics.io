@@ -11,6 +11,7 @@ from typing import Callable, Any
 from passlib.apps import custom_app_context
 from flask import request
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+from itsdangerous.exc import BadSignature
 
 from bathysphere.datatypes import ResponseJSON
 from bathysphere.graph import connect, Driver
@@ -31,7 +32,6 @@ from bathysphere.graph.models import (
     TaskingCapabilities,
     Things,
 )
-
 
 NamedIndex = (Providers, Collections, User)
 host = "localhost"
@@ -65,7 +65,10 @@ def context(fcn: Callable) -> Callable:
                 raise Exception
         else:
             secretKey = request.headers.get("x-api-key", "salt")
-            decoded = Serializer(secretKey).loads(password)
+            try:
+                decoded = Serializer(secretKey).loads(password)
+            except BadSignature:
+                return {"Error": "Missing authorization and/or x-api-key headers"}, 403
             uuid = decoded["uuid"]
             accounts = User(uuid=uuid).load(db=db)
             if len(accounts) != 1:
