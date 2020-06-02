@@ -4,6 +4,7 @@ The functions module of the graph API contains handlers for secure
 calls. These are exposed as a Cloud Function calling Connexion/Flask.
 """
 from itertools import chain
+from os import getenv
 from datetime import datetime
 from inspect import signature
 from uuid import uuid4
@@ -33,11 +34,25 @@ from bathysphere.graph.models import (
     Things,
 )
 
-NamedIndex = (Providers, Collections, User)
-host = "localhost"
-port = 7687
-accessKey = "n0t_passw0rd"
+NamedIndex = (Providers, Collections, User)  # as core Nodes these are treated differently than other entities
+
+try:
+    host = getenv("NEO4J_HOSTNAME")
+    if not host:
+        raise ValueError
+except Exception:
+    raise EnvironmentError("NEO4J_HOSTNAME must be declared in run time environment for Docker networking to work.")
+
+try:
+    accessKey = getenv("NEO4J_ACCESS_KEY")
+    if not accessKey:
+        raise ValueError
+except Exception:
+    raise EnvironmentError("NEO4J_ACCESS_KEY must be declared in run time environment if not using a secrets service.")
+    
 DEBUG = True
+port = 7687
+# accessKey = "n0t_passw0rd"
 
 
 def context(fcn: Callable) -> Callable:

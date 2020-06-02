@@ -10,4 +10,4 @@ COPY requirements.txt ./requirements.txt
 RUN pip install -r requirements.txt
 
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD "curl -f localhost:5000/api"
-CMD gunicorn bathysphere:app --bind 0.0.0.0:5000
+CMD $(bathysphere start)
