@@ -79,8 +79,6 @@ Some of these will execute a subroutine, for example reading the contents of a r
 
 ### Test
 
-Build the necessary containers with `$(bathysphere build)`.
-
 Deploy just the graph database backend with `docker-compose up neo4j`. This should work! Follow the local link printed to the terminal, and follow the instructions below to familiarize yourself with Neo4j.
 
 The `bathysphere/tests` directory contains unit and integration test code. This uses `pytest` for the testing framework. Tests can be run though the command line interface, once the package has been installed locally. You may also wish to devise your own subset of tests. 
@@ -97,7 +95,9 @@ If you get permission errors, `pytest` is probably crawling a directory in use b
 
 ### Deploy
 
-The development environment is deployed locally with `docker-compose up -d`, and the production environment with `kubectl`.
+Build the necessary containers with `$(bathysphere build)`. This may take a while to resolve dependencies.
+
+The development environment is deployed locally with `$(bathysphere up)`, and the production environment with `kubectl`.
 
 | Service             | Port   | Description                                 |
 | ------------------- | ------ | ------------------------------------------- |
@@ -116,7 +116,7 @@ The database manager runs in an extension of the [official container image](http
 
 [Cypher](https://neo4j.com/docs/cypher-refcard/current/) is the Neo4j query language. Either cypher or `graphql` can be used to build the database, traverse nodes and edges, and return data. 
 
-The `bolt` protocol is used for API calls from Python scripts. User authorization requires the environment variable `NEO4J_AUTH`. 
+The `bolt` protocol is used for API calls from Python scripts. User authorization requires the environment variable `NEO4J_AUTH` to be declared in `docker-compose.yml`.
 
 ### Browser interface
 
