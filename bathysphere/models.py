@@ -916,6 +916,7 @@ class Things(object):
     name: str = attr.ib(default=None)
     description: str = attr.ib(default=None)
     properties: dict = attr.ib(default=None)
+    entityClass: str = attr.ib(default=None)
 
 
 @attr.s(repr=False)
