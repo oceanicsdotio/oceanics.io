@@ -52,8 +52,6 @@ except Exception:
     
 DEBUG = True
 port = 7687
-# accessKey = "n0t_passw0rd"
-
 
 def context(fcn: Callable) -> Callable:
     """
