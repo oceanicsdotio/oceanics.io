@@ -57,5 +57,7 @@ google-cloud-secret-manager = "*"
 pytz = "*"
 urllib3 = "<1.25,>=1.21.1"
 pdoc3 = "*"
-e1839a8 = {path = ".", editable = true}
-bathysphere = {editable = true, path = "."}
+
+[packages.e1839a8]
+path = "."
+editable = true
