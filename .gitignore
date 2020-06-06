@@ -120,3 +120,4 @@ service.key
 logs/
 tmp/
 requirements.txt
+Pipfile.lock
