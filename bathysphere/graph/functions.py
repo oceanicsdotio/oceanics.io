@@ -15,7 +15,7 @@ from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from itsdangerous.exc import BadSignature
 
 from bathysphere.datatypes import ResponseJSON
-from bathysphere.graph import connect, Driver
+from bathysphere.graph import connect, Driver, executeQuery
 from bathysphere.graph.models import (
     Actuators,
     Assets,
@@ -34,25 +34,21 @@ from bathysphere.graph.models import (
     Things,
 )
 
-NamedIndex = (Providers, Collections, User)  # as core Nodes these are treated differently than other entities
-
-try:
-    host = getenv("NEO4J_HOSTNAME")
-    if not host:
-        raise ValueError
-except Exception:
-    raise EnvironmentError("NEO4J_HOSTNAME must be declared in run time environment for Docker networking to work.")
-
-try:
-    accessKey = getenv("NEO4J_ACCESS_KEY")
-    if not accessKey:
-        raise ValueError
-except Exception:
-    raise EnvironmentError("NEO4J_ACCESS_KEY must be declared in run time environment if not using a secrets service.")
-    
+NamedIndex = (Providers, Collections, User)  # core Nodes are treated differently than other entities
 DEBUG = True
 port = 7687
-# accessKey = "n0t_passw0rd"
+
+host = getenv("NEO4J_HOSTNAME")
+if not host:
+    raise EnvironmentError("NEO4J_HOSTNAME must be declared in run time environment for Docker networking to work.")
+
+accessKey = getenv("NEO4J_ACCESS_KEY")
+if not accessKey:
+    raise EnvironmentError("NEO4J_ACCESS_KEY must be declared in run time environment if not using a secrets service.")
+
+
+api_port = 5000
+default_service = host + (f":{api_port}" if api_port else "")
 
 
 def context(fcn: Callable) -> Callable:
@@ -99,8 +95,14 @@ def context(fcn: Callable) -> Callable:
         if arg in signature(fcn).parameters.keys():
             kwargs[arg] = provider.pop()
 
-        print("kwargs",kwargs)
-        return fcn(db=db, user=user, **kwargs)
+
+        try:
+            return fcn(db=db, user=user, **kwargs)
+        except TypeError as ex:
+            return {
+                "message": "Bad inputs passed to API function",
+                "detail": f"{ex}"
+            }, 400
 
     def handleUncaughtExceptions(*args, **kwargs):
         """
@@ -203,20 +205,24 @@ def token(
 
 
 @context
-def catalog(db: Driver, user: User) -> ResponseJSON:
+def catalog(db: Driver, user: User, **kwargs) -> ResponseJSON:
     """
     Usage 1. Get references to all entity sets, or optionally filter
     """
-    show_port = f":{port}" if port else ""
-    path = f"http://{host+show_port}/api"
-    collections = ()
+
+    query = lambda tx: tx.run(
+        f"CALL db.labels()"
+    )
+    
+    records = executeQuery(db, query, read_only=True)
+    labels = [r["label"] for r in records]
 
     def _item(name: str) -> dict:
         """Item formatter"""
         key = f"{name}-{datetime.utcnow().isoformat()}"
-        return {key: {"name": name, "url": f"{path}/{name}"}}
+        return {key: {"name": name, "url": f"http://{default_service}/api/{name}"}}
 
-    return {"value": _item(each) for each in collections}, 200
+    return {"value": list(map(_item, labels))}, 200
 
 
 @context
@@ -282,12 +288,12 @@ def mutate(
 
 
 @context
-def collection(db: Driver, user: User, entity: str, service: str) -> ResponseJSON:
+def collection(db: Driver, user: User, entity: str) -> ResponseJSON:
     """
     Usage 2. Get all entities of a single class
     """
     items = tuple(
-        item.serialize(db=db, service=service)
+        item.serialize(db=db, service=default_service)
         for item in (eval(entity).load(db=db, user=user) or ())
     )
     return {"@iot.count": len(items), "value": items}, 200

@@ -58,6 +58,118 @@ Not everything is documented or tested, and not everything works! Here are some 
 If you have problems because of docker versions (destructive!):
 * `docker system prune -a`
 
+
+### Modifying the web API
+
+We use a multilayered, fail fast approach to validating and handling requests. Most of the validation happens before a request even reaches our code, by using the `connexion` and `prance` packages to enforce the OpenAPI specification.
+
+This means that changes need to be made in at least two places if you want to add or modify a data model. This is the intended behavior, as it allows the specification to act as contract with front end clients.
+
+Suppose you want a new graph entity `Missions`, as a high-level container for managing data from a series of operations. This could be implemented with `Collections`, or it could be a new subtype of `Entity` that logically connects `Things`, `Locations`, and either `DataStreams` for post-hoc anaylsis or `TaskingCapabilties` for planning.
+
+First declare this in `openapi/api.yml` under `components/schemas`. 
+
+1. Inherit from `Entity`
+2. Add properties (already has `id`, `name`, and `description`). For instance, `conditions` could define go/no-go rules for starting a mission
+3. Declare allowed linked types as `readOnly` and define multiplicity rules
+
+** Pay careful attention to pluralization and case sensitivity **
+
+Here is an example:
+
+```yml
+    Mission:
+
+      allOf:
+        - $ref: '#/components/schemas/Entity'
+        - type: object
+          properties:
+
+            conditions:
+              type: array
+              items:
+                type: object
+                properties:
+                  script:  # some command to extract a single value for comparison
+                    type: string
+                    default: "curl https://some-service-endpoints | ./blah.sh"
+                  threshold:
+                    type: float
+                  flag"
+                    type: bool
+
+                
+            
+            Locations:
+              readOnly: true
+              oneOf:
+
+                - type: array
+                  title: references
+                  minItems: 1
+                  items:
+                    type: string
+
+                - type: array
+                  title: objects
+                  minItems: 1
+                  items:
+                    type: object
+
+            Things:
+              readOnly: true
+              oneOf:
+
+                - type: array
+                  title: references
+                  minItems: 1
+                  items:
+                    type: string
+
+                - type: array
+                  title: objects
+                  minItems: 1
+                  items:
+                    type: object
+
+            TaskingCapabilities:
+              readOnly: true
+              oneOf:
+
+                - type: array
+                  title: references
+                  minItems: 1
+                  items:
+                    type: string
+
+                - type: array
+                  title: objects
+                  minItems: 1
+                  items:
+                    type: object
+```
+
+This now need to be referenced in `EntityCollection:` and `EntityClass:` schemas, as well the the `Entity:` entries in `requestBodies:` and `responses:` so that the API will allow requests carrying `Mission` records. 
+
+Now add the class definitions to `bathysphere/models.py` and `bathysphere/graph/models.py`. The first makes the data model available to all parts of bathysphere. The second inherits from the first, and makes the data model available in the graph database service. 
+
+Default values **should always be `default=None`** to allow search algorithms to use an basic instance, `Missions()` or `Missions(name="Operation Ivy")`, to be used as a matching pattern. Hard coding values will restrict search to parts of the graph that have been created with that default.
+
+```python
+# bathysphere/models.py
+@attr.s(repr=False)
+class Missions:  # note plural
+    """Base model with minimum properties required to work"""
+    name: str = attr.ib(default=None)
+    description: str = attr.ib(default=None)
+    conditions: [dict] =  attr.ib(default=None)
+
+# bathysphere/graph/models.py
+@attr.s(repr=False)
+class Missions(Entity, models.Missions):
+    """Graph extension to base model"""
+```
+
 ### Manage
 
 The Python application provides configurations and management tools through `click`. 

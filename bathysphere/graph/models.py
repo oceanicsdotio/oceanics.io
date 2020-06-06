@@ -10,6 +10,8 @@ from datetime import datetime
 from pickle import load as unpickle
 from uuid import uuid4, UUID
 from json import dumps
+from inspect import signature
+from time import time
 
 from requests import get
 from neo4j import Driver
@@ -231,7 +233,7 @@ class Entity:
     @classmethod
     def addIndex(cls, db: Driver, by: str) -> Callable:
         """
-        Indexes add a unqie constraint as well as speeding up queries
+        Indexes add a unique constraint as well as speeding up queries
         on the graph database.
         """
         query = lambda tx: tx.run(f"CREATE INDEX ON : {cls.__name__}({by})")
@@ -276,9 +278,17 @@ class Entity:
         automatically converting each object to string using its built-in __str__ converter.
         Special values can be given unique string serialization methods by overloading __str__.
 
+        The bind tuple items are external methods that are bound as instance methods to allow
+        for extending capabilities in an adhov way.
+
         Blank values are ignored and will not result in graph attributes. Blank values are:
         - None (python value)
         - "None" (string)
+
+        Writing transactions are recursive, and can take a long time if the tasking graph
+        has not yet been built. For this reason it is desirable to populate the graph
+        with at least one instance of each data type. 
+
         """
 
         if isclass(self):
@@ -287,51 +297,60 @@ class Entity:
             entity = self
 
         executeQuery(db, lambda tx: tx.run(f"MERGE {repr(entity)}"))
+        if isinstance(entity, TaskingCapabilities):  # prevent recursion
+            return entity
 
-        for fcn in bind:
+        for fcn in bind:  # bind user defined methods
             setattr(entity, fcn.__name__, MethodType(fcn, entity))
 
         existingCapabilities: dict = {
-            x.name: x.uuid for x in TaskingCapabilities().load(db)
+            x.name: x.uuid for x in TaskingCapabilities().load(db=db)
         }
 
         _generator = filter(
             lambda x: isinstance(x[1], Callable), entity.__dict__.items()
         )
+
+        def _is_not_private_or_property(x: str):
+            return (
+                x[: len(private)] != private and 
+                not isinstance(getattr(type(entity), x, None), property)
+            )
+
         boundMethods = set(y[0] for y in _generator)
-        classMethods = set(filter(lambda x: x[: len(private)] != private, dir(entity)))
+        classMethods = set(filter(_is_not_private_or_property, dir(entity)))
         instanceKeys: set = (boundMethods | classMethods) - set(entity._properties())
         existingKeys = set(existingCapabilities.keys())
 
-        # for key in (existingKeys & instanceKeys):
-        #     Link.join(
-        #         db,
-        #         (e, TaskingCapabilities(id=existingCapabilities[key])),
-        #         props={"label": "Has"}
-        #     )
+        for name in (instanceKeys - existingKeys):
+            fcn = eval(f"{type(entity).__name__}.{name}")
+            tcUuid = uuid4().hex
+            existingCapabilities[name] = tcUuid
+            _ = TaskingCapabilities(
+                name=name,
+                creationTime=time(),
+                uuid=tcUuid,
+                description=fcn.__doc__,
+                taskingParameters=list(
+                    {
+                        "name": b.name,
+                        "description": "",
+                        "type": "",
+                        "allowedTokens": [""],
+                    }
+                    for b in signature(fcn).parameters.values()
+                )
+            ).create(
+                db=db
+            )
 
-        # for key in (instanceKeys - existingKeys):
-        #     fcn = eval(f"{cls.__name__}.{key}")
-        #     _ = TaskingCapabilities.create(
-        #         db=db,
-        #         link=(),
-        #         name=key,
-        #         description=fcn.__doc__,
-        #         taskingParameters=(
-        #             {
-        #                 "name": b.name,
-        #                 "description": "",
-        #                 "type": "",
-        #                 "allowedTokens": [""],
-        #             }
-        #             for b in signature(fcn).parameters.values()
-        #         ),
-        #     )
-        #     Link.join(
-        #         db,
-        #         (e, TaskingCapabilities(id=existingCapabilities[key])),
-        #         props={"label": "Has"}
-        #     )
+        linkPattern = Link(label="Has")
+        for tcUuid in existingCapabilities.values():
+            linkPattern.join(
+                db=db,
+                nodes=(entity, TaskingCapabilities(uuid=tcUuid))
+            )
+        
         return entity
 
     @polymorphic
@@ -446,7 +465,7 @@ class Entity:
         props = self._properties(select=select, private="_")
         uuid = props.pop("uuid")
         cls: str = type(self).__name__
-        base_url = f"{protocol}://{service}/api/"
+        base_url = f"{protocol}://{service}/api"
         root_url = f"{base_url}/{cls}"
         self_url = (
             f"{root_url}({uuid})" if isinstance(uuid, int) else f"{base_url}/{uuid}"

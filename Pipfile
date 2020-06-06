@@ -11,6 +11,7 @@ pytest_dependency = "*"
 pytest-cov = "*"
 docker-compose = "*"
 colorama = "*"
+pytest-parallel = "*"
 
 [requires]
 python_version = "3.7"
