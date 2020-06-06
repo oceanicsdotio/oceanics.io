@@ -6,6 +6,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
     
     - uses: actions/checkout@v2
@@ -21,6 +22,10 @@ jobs:
         pipenv install -e .
         pipenv install --dev
   
+    - name: Run database container in the background
+      run: |
+        docker-compose up -d neo4j
+
     - name: Test with pytest
       run: |
         pipenv shell
