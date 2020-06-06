@@ -28,4 +28,4 @@ jobs:
 
     - name: Test with pytest
       run: |
-        pipenv run $(bathysphere test --kw=test_graph)
+        pipenv run pytest -svk test_graph
