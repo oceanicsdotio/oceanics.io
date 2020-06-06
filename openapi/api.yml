@@ -157,7 +157,7 @@ paths:
         here to authenticate login and hash the token.
 
       parameters:
-        - name: secret
+        - name: secretKey
           in: query
           schema:
             $ref: '#/components/schemas/SecretKey'
@@ -334,7 +334,7 @@ paths:
           $ref: '#/components/responses/BadRequest'
 
 
-  /{root}({rootId})/{entity}({uuid}):
+  /{root}/{rootId}/join/{entity}/{uuid}:
 
     post:
       tags: [ Topology ]
@@ -1728,7 +1728,7 @@ components:
       type: object
       properties:
 
-        email:
+        username:
           description: |
             Registration requires an e-mail that can be used to validate non-profit or educational affiliation.
           type: string
@@ -1741,6 +1741,10 @@ components:
           type: string
           minLength: 10
           maxLength: 128
+        api-key:
+          description: |
+            This key must have been previously provided to you you
+          type: string
 
         secret:
           $ref: '#/components/schemas/SecretKey'
@@ -1853,6 +1857,14 @@ components:
               writeOnly: true
               enum: [thing]
               default: thing
+            
+            entityType:
+              type: string
+              description: The type of thing this is. Typically a duplicate of entityClass
+            
+            uuid:
+              type: string
+              description: The unique identifier for the object
 
             properties:
               type: object

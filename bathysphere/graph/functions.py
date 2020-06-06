@@ -95,6 +95,7 @@ def context(fcn: Callable) -> Callable:
         if arg in signature(fcn).parameters.keys():
             kwargs[arg] = provider.pop()
 
+
         try:
             return fcn(db=db, user=user, **kwargs)
         except TypeError as ex:
@@ -226,9 +227,9 @@ def catalog(db: Driver, user: User, **kwargs) -> ResponseJSON:
 
 @context
 def create(
-    db: Driver,
-    user: User,
-    entity: str,
+    db: Driver,    
+    user: User,    
+    entity: str,    
     body: dict,
     provider: Providers,
     service: str = "localhost",
@@ -236,7 +237,11 @@ def create(
     """
     Attach to db, and find available ID number to register the entity.
     """
-    _ = body.pop("entityClass")  # only used for API discriminator
+    print("entity")
+    print(entity)
+    print("body")
+    print(body)
+    # _ = body.pop("entityClass")  # only used for API discriminator
     entity = eval(entity)(**body).create(db=db)
     data = entity.serialize(db, service=service)
     linkPattern = Link(label="Post", props={"confidence": 1.0},)
@@ -335,7 +340,7 @@ def delete(db: Driver, entity: str, uuid: str) -> ResponseJSON:
 
 @context
 def join(
-    db: Driver, root: str, rootId: str, entity: str, uuid: str, body: dict
+    db: Driver, user: User, root: str, rootId: str, entity: str, uuid: str, body: dict
 ) -> ResponseJSON:
     """
     Create relationships between existing nodes

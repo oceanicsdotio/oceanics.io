@@ -85,6 +85,12 @@ class Link:
         There must be exactly 2 entities to link. In the future this will support N-body
         symmetric linking.
         """
+        print("is Class")
+        print(isclass(self))
+
+        print("props")
+        print("props", props)        
+
         if isclass(self):
             L = self(**(props or {}))  # pylint: disable=not-callable
         elif props is not None and len(props) > 0:
@@ -100,6 +106,9 @@ class Link:
         if a._symbol == b._symbol:
             a._setSymbol("a")
             b._setSymbol("b")
+
+        print("L")
+        print(L)
 
         cmd = f"MATCH {repr(a)}, {repr(b)} MERGE ({a._symbol})-{repr(L)}->({b._symbol})"
         if echo:
