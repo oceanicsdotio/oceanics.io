@@ -25,12 +25,13 @@ def redis_worker(host: str, port: int):
 
 
 @click.command()
-@click.option("--port", default=5000, help="Port to connect to")
-def start(port: int):
+@click.option("--port", default=5000, help="Port on which to serve the API")
+@click.option("--dev", default=False, help="")
+def start(port: int, dev: bool):
     """
     Command to start the graph database access service.
     """
-    click.secho(f"gunicorn bathysphere:app --bind 0.0.0.0:{port}", fg="green")
+    click.secho(f"gunicorn bathysphere:app {'--reload' if dev else ''} --bind 0.0.0.0:{port}", fg="green")
 
 
 @click.command()
@@ -38,7 +39,7 @@ def start(port: int):
 @click.option("--port", default=8000, help="Port number")
 def serve(group: str, port: int):
     """
-    Serve the ReDoc OpenAPI specification on localhost.
+    Serve the ReDoc OpenAPI specification or testing coverage reports on localhost.
     """
     class HTTPHandler(SimpleHTTPRequestHandler):
         """This handler uses server.base_path instead of always using os.getcwd()"""
@@ -63,12 +64,16 @@ def serve(group: str, port: int):
 
 @click.command()
 @click.option("--kw", default=None, help="Pytest keyword string")
-def test(kw: str):
+@click.option("--verbose", default=False, help="Print stuff")
+@click.option("--parallel", default=False, help="Enable parallelism if subset of tests allows it")
+def test(kw: str, verbose: bool, parallel: bool,):
     """
-    Command to run developer tests.
+    Command to run developer tests. This uses `pytest-cov` and `pytest-parallel`.
+
     """
-    opt = f"-k {kw}" if kw else ""
-    cmd = f"pytest --cov-report html:htmlcov --cov=bathysphere {opt} --ignore=bathysphere/tests/future --ignore=data"
+    parallelism = "--workers auto" if parallel else ""
+    opt = f"-{'sv' if verbose else ''}k {kw}" if kw else ""
+    cmd = f"pytest {parallelism} --cov-report html:htmlcov --cov=bathysphere {opt} --ignore=bathysphere/tests/future --ignore=data"
     click.secho(cmd, fg="green")
 
 

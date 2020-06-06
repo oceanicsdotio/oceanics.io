@@ -890,9 +890,9 @@ class TaskingCapabilities(object):
     """
     Abstract tasking class mapping I/O and generating signal.
     """
-
     name: str = attr.ib(default=None)
-    creationTime: float = attr.ib(default=attr.Factory(time))
+    description: str =  attr.ib(default=None)
+    creationTime: float = attr.ib(default=None)
     taskingParameters: dict = attr.ib(default=None)
 
 
@@ -902,7 +902,7 @@ class Tasks(object):
     Tasks are pieces of work that are done asynchronously by humans or machines.
     """
 
-    creationTime: float = attr.ib(default=attr.Factory(time))
+    creationTime: float = attr.ib(default=None)
     taskingParameters: dict = attr.ib(default=None)
 
 

@@ -18,9 +18,10 @@ jobs:
     - name: Install dependencies
       run: |
         pip install pipenv
-        pipenv install --deploy --dev
+        pipenv install -e .
+        pipenv install --dev
   
-    # - name: Test with pytest
-    #   run: |
-    #     pipenv shell
-    #     pytest -svk test_graph
+    - name: Test with pytest
+      run: |
+        pipenv shell
+        $(bathysphere test --kw=test_graph)
