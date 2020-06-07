@@ -454,10 +454,9 @@ class Entity:
         """
         restricted = {"User", "Providers", "Root"}
         props = self._properties(select=select, private="_")
-        uuid = props.pop("uuid")
-        cls: str = type(self).__name__
+        uuid = self.uuid
         base_url = f"{protocol}://{service}/api"
-        root_url = f"{base_url}/{cls}"
+        root_url = f"{base_url}/{type(self).__name__}"
         self_url = (
             f"{root_url}({uuid})" if isinstance(uuid, int) else f"{base_url}/{uuid}"
         )

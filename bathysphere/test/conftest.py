@@ -324,16 +324,17 @@ def add_link(client, token):
         root_id: str,
         auth: (str, str),
         cls: str,
-        identity: str,
+        uuid: str,
         **kwargs: dict,
     ):
         jwtToken = token(auth).get("token")
+        uri = f"api/{root}({root_id})/{cls}({uuid})"
         response = client.post(
-            f"api/{root}({root_id})/{cls}({identity})",
+            uri,
             json=kwargs,
             headers={"Authorization": ":" + jwtToken},
         )
-        assert response.status_code == 204, response.get_json()
+        assert response.status_code == 204, f"{response.get_json()} @ {uri}"
 
     return _make_request
 

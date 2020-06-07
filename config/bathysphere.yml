@@ -9,7 +9,6 @@ spec:
 ---
 apiVersion: extensions/catalog
 kind: Collections
-metadata:
 spec:
   name: Oysters
   description: Oyster data
@@ -19,7 +18,6 @@ spec:
 ---
 apiVersion: extensions/catalog
 kind: Collections
-metadata:
 spec:
   name: Limited purpose aquaculture sites
   description: Temporary sites with a small footprint
@@ -30,7 +28,7 @@ metadata:
   Things@iot.navigation:
     - name: [ Land Ocean Biogeochemical Observatory ]
   Sensors@iot.navigation:
-    - id: [ 0 ]
+    - name: [ "SeaBird Electronics CTD" ]
   ObservedProperties@iot.navigation:
     - name: [ temperature ]
 spec:
@@ -42,8 +40,6 @@ kind: Datastreams
 metadata:
   Things@iot.navigation:
     - name: [ Land Ocean Biogeochemical Observatory ]
-  Sensors@iot.navigation:
-    - id: [ 0 ]
   ObservedProperties@iot.navigation:
     - name: [ chlorophyll ]
 spec:
@@ -69,8 +65,8 @@ spec:
 apiVersion: extensions/sensing
 kind: Locations
 metadata:
-  Things@iot.navigation:
-    - name: [ loboviz ]
+  Locations@iot.navigation:
+    - name: [ Maine Loboviz Data ]
       props:
         node: 65
 spec:
@@ -82,8 +78,8 @@ spec:
 apiVersion: extensions/sensing
 kind: Locations
 metadata:
-  Things@iot.navigation:
-    - name: [ loboviz ]
+  Locations@iot.navigation:
+    - name: [ Maine Loboviz Data ]
       props:
         node: 66
 spec:
@@ -96,8 +92,8 @@ spec:
 apiVersion: extensions/sensing
 kind: Locations
 metadata:
-  Things@iot.navigation:
-    - name: [ loboviz ]
+  Locations@iot.navigation:
+    - name: [ Maine Loboviz Data ]
       props:
         node: 64
 spec:
@@ -109,8 +105,8 @@ spec:
 apiVersion: extensions/sensing
 kind: Locations
 metadata:
-  Things@iot.navigation:
-    - name: [ loboviz ]
+  Locations@iot.navigation:
+    - name: [ Maine Loboviz Data ]
       props:
         node: 67
 spec:
@@ -122,8 +118,8 @@ spec:
 apiVersion: extensions/sensing
 kind: Locations
 metadata:
-  Things@iot.navigation:
-    - name: [ loboviz ]
+  Locations@iot.navigation:
+    - name: [ Maine Loboviz Data ]
       props:
         node: 70
 spec:
@@ -135,8 +131,8 @@ spec:
 apiVersion: extensions/sensing
 kind: Locations
 metadata:
-  Things@iot.navigation:
-    - name: [ loboviz ]
+  Locations@iot.navigation:
+    - name: [ Maine Loboviz Data ]
       props:
         node: 71
 spec:
@@ -148,8 +144,8 @@ spec:
 apiVersion: extensions/sensing
 kind: Locations
 metadata:
-  Things@iot.navigation:
-    - name: [ loboviz ]
+  Locations@iot.navigation:
+    - name: [ Maine Loboviz Data ]
       props:
         node: 72
 spec:
@@ -161,8 +157,8 @@ spec:
 apiVersion: extensions/sensing
 kind: Locations
 metadata:
-  Things@iot.navigation:
-    - name: [ loboviz ]
+  Locations@iot.navigation:
+    - name: [ Maine Loboviz Data ]
       props:
         node: 73
 spec:
@@ -174,8 +170,8 @@ spec:
 apiVersion: extensions/sensing
 kind: Locations
 metadata:
-  Things@iot.navigation:
-    - name: [ loboviz ]
+  Locations@iot.navigation:
+    - name: [ Maine Loboviz Data ]
       props:
         node: 74
 spec:
@@ -187,8 +183,8 @@ spec:
 apiVersion: extensions/sensing
 kind: Locations
 metadata:
-  Things@iot.navigation:
-    - name: [ loboviz ]
+  Locations@iot.navigation:
+    - name: [ Maine Loboviz Data ]
       props:
         node: 75
 
@@ -205,8 +201,8 @@ spec:
 apiVersion: extensions/sensing
 kind: Locations
 metadata:
-  Things@iot.navigation:
-    - name: [ loboviz ]
+  Locations@iot.navigation:
+    - name: [ Maine Loboviz Data ]
       props:
         node: 52
 spec:
@@ -530,8 +526,6 @@ kind: Observations
 metadata:
   Datastreams@iot.navigation:
     - name: [ temperature ]
-  FeaturesOfInterest@iot.navigation:
-    - id: [ 0 ]
 spec:
   ts: 1000.234
   val: 10.0
@@ -541,8 +535,6 @@ kind: Observations
 metadata:
   Datastreams@iot.navigation:
     - name: [ temperature ]
-  FeaturesOfInterest@iot.navigation:
-    - id: [ 0 ]
 spec:
   ts: 1100.194
   val: 11.7
@@ -620,7 +612,7 @@ metadata:
   Providers@iot.navigation:
     - label: Alias
       props:
-         name: [ par0plus, par0minus ]
+        name: [ par0plus, par0minus ]
 spec:
   name: photosynthetically active radiation
 ---
@@ -647,9 +639,9 @@ apiVersion: extensions/sensing
 kind: ObservedProperties
 metadata:
   Providers@iot.navigation:
-     - label: Alias
-       props:
-         name: [ uv, u, ww, omega, current_speed_cm, current_direction ]
+    - label: Alias
+      props:
+        name: [ uv, u, ww, omega, current_speed_cm, current_direction ]
 spec:
   name: water velocity
 ---
@@ -704,9 +696,6 @@ spec:
 ---
 apiVersion: extensions/sensing
 kind: Things
-metadata:
-  Locations@iot.navigation:
-     - id: [ 0 ]
 spec:
   name: Land Ocean Biogeochemical Observatory
   description: Moored buoy deployment of the Sustainable Ecological Aquaculture Network

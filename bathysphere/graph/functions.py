@@ -237,10 +237,9 @@ def create(
     Attach to db, and find available ID number to register the entity.
     """
     _ = body.pop("entityClass")  # only used for API discriminator
-    entity = eval(entity)(**body).create(db=db)
+    entity = eval(entity)(uuid=uuid4().hex, **body).create(db=db)
     data = entity.serialize(db, service=service)
     linkPattern = Link(label="Post", props={"confidence": 1.0},)
-
     linkPattern.join(db=db, nodes=(user, entity))
     linkPattern.join(db=db, nodes=(provider, entity))
 
@@ -335,14 +334,29 @@ def delete(db: Driver, entity: str, uuid: str) -> ResponseJSON:
 
 @context
 def join(
-    db: Driver, root: str, rootId: str, entity: str, uuid: str, body: dict
+    db: Driver, user: User, root: str, rootId: str, entity: str, uuid: str, body: dict
 ) -> ResponseJSON:
     """
     Create relationships between existing nodes
     """
-    Link.join(
-        db, (eval(root)(uuid=rootId), eval(entity)(uuid=uuid)), body.get("props", None)
+    # pylint: disable=no-value-for-parameter
+
+    rootPattern = eval(root)(uuid=rootId)
+    childPattern = eval(entity)(uuid=uuid)
+    Link(
+        label="Linked",
+        props={
+            "confidence": 1.0,
+            "cost": 1.0,
+            **body.get("props", dict())
+            }
+    ).join(
+        db=db, 
+        nodes=(rootPattern, childPattern)
     )
+    linkPattern = Link(label="Put", props={"confidence": 1.0},)
+    linkPattern.join(db=db, nodes=(user, rootPattern))
+    linkPattern.join(db=db, nodes=(user, childPattern))
     return None, 204
 
 

@@ -337,6 +337,7 @@ paths:
   /{root}({rootId})/{entity}({uuid}):
 
     post:
+
       tags: [ Topology ]
       operationId: bathysphere.graph.functions.join
       summary: Join
@@ -1249,7 +1250,7 @@ components:
       description: |
         Unique integer identifier of the parent entity.
       schema:
-        type: integer
+        type: string
 
     entityClass:
       in: path
