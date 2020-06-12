@@ -5,7 +5,7 @@
                 "id": "osi-composite",
                 "source": {
                     "type": "image",
-                    "url": "../../static/osi-composite-web.png",
+                    "url": "/osi-composite-web.png",
                     "coordinates": [
                         [-70.7495, 44.1929],
                         [-67.8952, 44.1929],

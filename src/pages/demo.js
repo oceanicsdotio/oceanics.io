@@ -1,8 +1,9 @@
 import React from "react"
-import { Link, graphql } from "gatsby"
+import { graphql } from "gatsby"
 
-import Layout from "../components/layout"
 import SEO from "../components/seo"
+import Map from "../components/map"
+
 // import init, {panic_hook} from "../utils/space.js";
 // import {DataStreamLoop} from "../utils/stream.js";
 // import {Particles, CursorLoop} from "../utils/agent.js";
@@ -17,11 +18,11 @@ export default class extends React.Component {
         const siteTitle = data.site.siteMetadata.title;
        
         return (
-            <Layout location={this.props.location} title={siteTitle}>
+            <>
                 <SEO title={"Demo"} />
-                <h1>Placeholder</h1>
-            </Layout>
-        )
+                <Map />
+            </>
+        )   
     }
 }
 

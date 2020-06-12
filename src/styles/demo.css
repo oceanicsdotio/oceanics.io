@@ -35,37 +35,6 @@ body, html{
     overflow-y: scroll;
 }
 
-.mapContainer {
-    position: relative;
-    top: 0;
-    right: 0;
-    left: 0;
-    bottom: 0;
-}
-
-#map {
-    position: absolute;
-    height: 100%;
-    width: 100%;
-    top: 0;
-    left: 0;
-    z-index: 1;
-}
-
-.mapboxgl-popup-content {
-    background: #101010AA;
-    border: solid 1px;
-    font-size: inherit;
-    width: auto;
-    padding: 10px;
-    float: left;
-    margin: 0;
-    color: #ccc;
-}
-
-.mapboxgl-popup-content ol {
-    padding-left: 20px;
-}
 
 form {
     display: inline-block;
@@ -323,28 +292,4 @@ input[type=range]::-moz-range-thumb {
     width: 100%;
     height: auto;
     z-index: 2;
-}
-
-#map {
-    position: absolute;
-    height: 100%;
-    width: 100%;
-    top: 0;
-    left: 0;
-    z-index: 1;
-}
-
-#map .mapboxgl-popup-content {
-    background: #101010AA;
-    border: solid 1px;
-    font-family:inherit;
-    font-size: inherit;
-    width: auto;
-    padding: 10px;
-    float: left;
-    margin: 0;
-    color: #ccc;
-}
-#map .mapboxgl-popup-content ol {
-    padding-left: 20px;
 }

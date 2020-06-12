@@ -36,7 +36,8 @@ body, html{
 }
 
 .mapContainer {
-    position: relative;
+    position: absolute;
+    display: block;
     top: 0;
     right: 0;
     left: 0;
@@ -44,7 +45,7 @@ body, html{
 }
 
 #map {
-    position: absolute;
+    position: relative;
     height: 100%;
     width: 100%;
     top: 0;
@@ -52,9 +53,11 @@ body, html{
     z-index: 1;
 }
 
-.mapboxgl-popup-content {
+
+#map .mapboxgl-popup-content {
     background: #101010AA;
     border: solid 1px;
+    font-family:inherit;
     font-size: inherit;
     width: auto;
     padding: 10px;
@@ -62,10 +65,10 @@ body, html{
     margin: 0;
     color: #ccc;
 }
-
-.mapboxgl-popup-content ol {
+#map .mapboxgl-popup-content ol {
     padding-left: 20px;
 }
+
 
 form {
     display: inline-block;
@@ -323,28 +326,4 @@ input[type=range]::-moz-range-thumb {
     width: 100%;
     height: auto;
     z-index: 2;
-}
-
-#map {
-    position: absolute;
-    height: 100%;
-    width: 100%;
-    top: 0;
-    left: 0;
-    z-index: 1;
-}
-
-#map .mapboxgl-popup-content {
-    background: #101010AA;
-    border: solid 1px;
-    font-family:inherit;
-    font-size: inherit;
-    width: auto;
-    padding: 10px;
-    float: left;
-    margin: 0;
-    color: #ccc;
-}
-#map .mapboxgl-popup-content ol {
-    padding-left: 20px;
 }
