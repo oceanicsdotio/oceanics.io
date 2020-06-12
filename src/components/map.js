@@ -25,12 +25,13 @@ const loadGeoJSON = async (map, layers) => {
   }));
 };
 
-const popup = new mapboxgl.Popup({
-  closeButton: false,
-  closeOnClick: true
-}); 
 
 const addFeatureEvent = (map) => {
+
+  const popup = new map.Popup({
+    closeButton: false,
+    closeOnClick: true
+  }); 
 
   map.on('mouseenter', 'limited-purpose-licenses', function(e) {
       map.getCanvas().style.cursor = 'pointer';
