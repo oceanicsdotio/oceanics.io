@@ -35,26 +35,8 @@ body, html{
     overflow-y: scroll;
 }
 
-.mapContainer {
-    position: absolute;
-    display: block;
-    top: 0;
-    right: 0;
-    left: 0;
-    bottom: 0;
-}
 
-#map {
-    position: relative;
-    height: 100%;
-    width: 100%;
-    top: 0;
-    left: 0;
-    z-index: 1;
-}
-
-
-#map .mapboxgl-popup-content {
+.mapboxgl-popup-content {
     background: #101010AA;
     border: solid 1px;
     font-family:inherit;
@@ -64,9 +46,6 @@ body, html{
     float: left;
     margin: 0;
     color: #ccc;
-}
-#map .mapboxgl-popup-content ol {
-    padding-left: 20px;
 }
 
 
@@ -140,7 +119,6 @@ input[type=range]::-moz-range-thumb {
 }
 
 
-
 table {
     table-layout: fixed; /* by headings to make behavior more predictable */
     width: 100%;
@@ -161,7 +139,6 @@ th {
 hr {
     border-top: 1px solid #ccc;
 }
-
 
 
 tfoot td {

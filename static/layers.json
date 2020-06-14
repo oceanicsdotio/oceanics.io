@@ -76,7 +76,9 @@
             "id": "maine-towns",
             "type": "line",
             "paint": {
-                "line-color": "rgba(255,255,255,0.5)"
+                "line-color": ["case",
+                    ["boolean", ["feature-state", "hover"], false],
+                    "rgba(255,255,255,0.5)", "rgba(255,100,255,0.5)"]
             }
         },
         "behind": "aquaculture-leases"

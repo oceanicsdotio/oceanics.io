@@ -1,8 +1,7 @@
 import React from "react"
-import { Link, graphql } from "gatsby"
 import Layout from "./layout"
 import SEO from "./seo"
-import Map from "./map"
+import Map from "./Map"
 import PropTypes from "prop-types"
 import Table from "./table"
 
@@ -72,17 +71,6 @@ DataPage.propTypes = {
     }),
   }),
 }
-
-
-export const pageQuery = graphql`
-    query {
-        site {
-            siteMetadata {
-                title
-            }
-        }
-    }
-`
 
 
 const controls = [
