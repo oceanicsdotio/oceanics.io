@@ -93,6 +93,7 @@ canvas {
     width: 100%;
 }
 
+
 input[type=range] {
     margin: 10px;
     width: 50px;
@@ -189,10 +190,7 @@ label {
     color: #ccc;
 }
 
-canvas {
-    border-radius: 3px;
-    border: 1px solid #FF00FF;
-}
+
 
 body, html{
     background: #000000;

@@ -2,7 +2,7 @@ import React from "react"
 import { graphql } from "gatsby"
 
 import SEO from "../components/seo"
-import Map from "../components/Map"
+import Canvas from "../components/Canvas"
 
 
 export default class extends React.Component {
@@ -12,7 +12,7 @@ export default class extends React.Component {
         return (
             <>
                 <SEO title={"Graphics Demo"} />
-                <Map />
+                <Canvas />
             </>
         )   
     }

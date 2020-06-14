@@ -1,9 +1,9 @@
 import React from "react"
-import Layout from "./layout"
+import Layout from "./Layout"
 import SEO from "./seo"
 import Map from "./Map"
 import PropTypes from "prop-types"
-import Table from "./table"
+import Table from "./Table"
 
 
 const state = {

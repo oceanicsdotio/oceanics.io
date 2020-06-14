@@ -1,6 +1,6 @@
 import {DataStream, draw_caption, draw_fps} from "./demo/space.js";
 
-export const DataStreamLoop = (props) => {
+export default (props) => {
 
     let {canvas, ctx, caption, font} = props;
     let {height, width} = canvas;

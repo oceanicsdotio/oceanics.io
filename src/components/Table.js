@@ -23,7 +23,7 @@ export const recordRow = (schema, record, ind) => {
   )
 };
 
-export default function Table(props) {
+export default (props) => {
   const { schema, records, order } = props;
   return (
     <table>

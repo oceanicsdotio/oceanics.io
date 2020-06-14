@@ -4,7 +4,7 @@ import { navigate } from "gatsby"
 import { useIdentityContext } from "react-netlify-identity-widget"
 
 import { Router } from "@reach/router"
-import Layout from "../components/layout"
+import Layout from "../components/Layout"
 import Settings from "./settings"
 import Main from "./main"
 
