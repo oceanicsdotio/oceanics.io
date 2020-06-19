@@ -1,8 +1,8 @@
-import React from "react"
-import { graphql } from "gatsby"
+import React from "react";
+import { graphql } from "gatsby";
 
-import SEO from "../components/seo"
-import Canvas from "../components/Canvas"
+import SEO from "../components/seo";
+import Canvas from "../components/Canvas";
 
 
 export default class extends React.Component {

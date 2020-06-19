@@ -4,10 +4,10 @@ import Header from "./header";
 import NavBar from "./NavBar";
 
 
-export default () => {
+export default (props) => {
   
-    const { location, title, children } = this.props;
-    const rootPath = `${__PATH_PREFIX__}/`;
+    const { children } = props;
+    // const rootPath = `${__PATH_PREFIX__}/`;
 
     return (
         <div
