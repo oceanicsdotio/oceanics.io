@@ -11,7 +11,7 @@ export default class extends React.Component {
 
         return (
             <>
-                <SEO title={"Graphics Demo"} />
+                <SEO title={"Graphics"} />
                 <Canvas />
             </>
         )   

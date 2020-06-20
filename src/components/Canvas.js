@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
-// import { DataStream, draw_fps, draw_caption } from "../utils/space";
 
 
 const GLSL_DIRECTORY = "../../glsl-src";
@@ -33,6 +32,7 @@ export default (props) => {
             props = renderProps;
             const wasm = await import('../utils/space');
             console.log(wasm);
+
             if (!props.canvas) throw Error(`No canvas element "${props.eid}".`);
 
             const ctx = props.ctx = canvasRef.current.getContext(props.context);

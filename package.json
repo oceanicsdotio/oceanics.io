@@ -64,7 +64,7 @@
     "url": "git+https://bitbucket.org/oceanicsdotio/oceanics.io.git"
   },
   "scripts": {
-    "build-wasm": "wasm-pack build --target bundler --out-dir src/utils && rm src/utils/.gitignore src/utils/README.md src/utils/package.json",
+    "build-wasm": "wasm-pack build --no-typescript --target nodejs --out-dir src/utils && rm src/utils/.gitignore src/utils/README.md src/utils/package.json",
     "build": "gatsby build",
     "develop": "gatsby develop",
     "format": "prettier --write \"**/*.{js,jsx,json,md}\"",

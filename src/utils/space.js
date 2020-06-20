@@ -1,8 +1,9 @@
-import * as wasm from './space_bg.wasm';
+let imports = {};
+imports['__wbindgen_placeholder__'] = module.exports;
+let wasm;
+const { TextDecoder } = require(String.raw`util`);
 
-const lTextDecoder = typeof TextDecoder === 'undefined' ? require('util').TextDecoder : TextDecoder;
-
-let cachedTextDecoder = new lTextDecoder('utf-8', { ignoreBOM: true, fatal: true });
+let cachedTextDecoder = new TextDecoder('utf-8', { ignoreBOM: true, fatal: true });
 
 cachedTextDecoder.decode();
 
@@ -18,9 +19,7 @@ function getStringFromWasm0(ptr, len) {
     return cachedTextDecoder.decode(getUint8Memory0().subarray(ptr, ptr + len));
 }
 
-const heap = new Array(32);
-
-heap.fill(undefined);
+const heap = new Array(32).fill(undefined);
 
 heap.push(undefined, null, true, false);
 
@@ -51,58 +50,20 @@ function takeObject(idx) {
 
 let WASM_VECTOR_LEN = 0;
 
-const lTextEncoder = typeof TextEncoder === 'undefined' ? require('util').TextEncoder : TextEncoder;
-
-let cachedTextEncoder = new lTextEncoder('utf-8');
-
-const encodeString = (typeof cachedTextEncoder.encodeInto === 'function'
-    ? function (arg, view) {
-    return cachedTextEncoder.encodeInto(arg, view);
+let cachegetNodeBufferMemory0 = null;
+function getNodeBufferMemory0() {
+    if (cachegetNodeBufferMemory0 === null || cachegetNodeBufferMemory0.buffer !== wasm.memory.buffer) {
+        cachegetNodeBufferMemory0 = Buffer.from(wasm.memory.buffer);
+    }
+    return cachegetNodeBufferMemory0;
 }
-    : function (arg, view) {
-    const buf = cachedTextEncoder.encode(arg);
-    view.set(buf);
-    return {
-        read: arg.length,
-        written: buf.length
-    };
-});
 
-function passStringToWasm0(arg, malloc, realloc) {
+function passStringToWasm0(arg, malloc) {
 
-    if (realloc === undefined) {
-        const buf = cachedTextEncoder.encode(arg);
-        const ptr = malloc(buf.length);
-        getUint8Memory0().subarray(ptr, ptr + buf.length).set(buf);
-        WASM_VECTOR_LEN = buf.length;
-        return ptr;
-    }
-
-    let len = arg.length;
-    let ptr = malloc(len);
-
-    const mem = getUint8Memory0();
-
-    let offset = 0;
-
-    for (; offset < len; offset++) {
-        const code = arg.charCodeAt(offset);
-        if (code > 0x7F) break;
-        mem[ptr + offset] = code;
-    }
-
-    if (offset !== len) {
-        if (offset !== 0) {
-            arg = arg.slice(offset);
-        }
-        ptr = realloc(ptr, len, len = offset + arg.length * 3);
-        const view = getUint8Memory0().subarray(ptr + offset, ptr + len);
-        const ret = encodeString(arg, view);
-
-        offset += ret.written;
-    }
-
-    WASM_VECTOR_LEN = offset;
+    const len = Buffer.byteLength(arg);
+    const ptr = malloc(len);
+    getNodeBufferMemory0().write(arg, ptr, len);
+    WASM_VECTOR_LEN = len;
     return ptr;
 }
 
@@ -182,8 +143,28 @@ function debugString(val) {
     // TODO we could test for more things here, like `Set`s and `Map`s.
     return className;
 }
+
+function makeMutClosure(arg0, arg1, dtor, f) {
+    const state = { a: arg0, b: arg1, cnt: 1 };
+    const real = (...args) => {
+        // First up with a closure we increment the internal reference
+        // count. This ensures that the Rust closure environment won't
+        // be deallocated while we're invoking it.
+        state.cnt++;
+        const a = state.a;
+        state.a = 0;
+        try {
+            return f(a, state.b, ...args);
+        } finally {
+            if (--state.cnt === 0) wasm.__wbindgen_export_2.get(dtor)(a, state.b);
+            else state.a = a;
+        }
+    };
+    real.original = state;
+    return real;
+}
 function __wbg_adapter_22(arg0, arg1, arg2) {
-    wasm._dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h9a9f3efc86f4423b(arg0, arg1, addHeapObject(arg2));
+    wasm._dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__hfeecaee99bf12646(arg0, arg1, addHeapObject(arg2));
 }
 
 let stack_pointer = 32;
@@ -194,20 +175,20 @@ function addBorrowedObject(obj) {
     return stack_pointer;
 }
 /**
-* @param {any} ctx
+* @param {CanvasRenderingContext2D} ctx
 * @param {number} w
 * @param {number} h
 * @param {number} mx
 * @param {number} my
 * @param {any} color
 */
-export function draw_hex_grid(ctx, w, h, mx, my, color) {
+module.exports.draw_hex_grid = function(ctx, w, h, mx, my, color) {
     try {
         wasm.draw_hex_grid(addBorrowedObject(ctx), w, h, mx, my, addHeapObject(color));
     } finally {
         heap[stack_pointer++] = undefined;
     }
-}
+};
 
 let cachegetFloat64Memory0 = null;
 function getFloat64Memory0() {
@@ -224,69 +205,69 @@ function getArrayF64FromWasm0(ptr, len) {
 * @param {number} np
 * @returns {Float64Array}
 */
-export function random_series(np) {
+module.exports.random_series = function(np) {
     wasm.random_series(8, np);
     var r0 = getInt32Memory0()[8 / 4 + 0];
     var r1 = getInt32Memory0()[8 / 4 + 1];
     var v0 = getArrayF64FromWasm0(r0, r1).slice();
     wasm.__wbindgen_free(r0, r1 * 8);
     return v0;
-}
+};
 
 /**
 */
-export function panic_hook() {
+module.exports.panic_hook = function() {
     wasm.panic_hook();
-}
+};
 
 /**
 * @param {any} _color
-* @returns {any}
+* @returns {CanvasRenderingContext2D}
 */
-export function create_color_map_canvas(_color) {
+module.exports.create_color_map_canvas = function(_color) {
     var ret = wasm.create_color_map_canvas(addHeapObject(_color));
     return takeObject(ret);
-}
+};
 
 /**
-* @param {any} ctx
+* @param {CanvasRenderingContext2D} ctx
 * @param {number} w
 * @param {number} h
 * @param {any} color
 */
-export function clear_rect_blending(ctx, w, h, color) {
+module.exports.clear_rect_blending = function(ctx, w, h, color) {
     try {
         wasm.clear_rect_blending(addBorrowedObject(ctx), w, h, addHeapObject(color));
     } finally {
         heap[stack_pointer++] = undefined;
     }
-}
+};
 
 /**
-* @param {any} ctx
+* @param {CanvasRenderingContext2D} ctx
 * @param {number} frames
 * @param {number} time
 * @param {any} color
 * @returns {number}
 */
-export function draw_fps(ctx, frames, time, color) {
+module.exports.draw_fps = function(ctx, frames, time, color) {
     try {
         var ret = wasm.draw_fps(addBorrowedObject(ctx), frames, time, addHeapObject(color));
         return ret >>> 0;
     } finally {
         heap[stack_pointer++] = undefined;
     }
-}
+};
 
 /**
-* @param {any} ctx
+* @param {CanvasRenderingContext2D} ctx
 * @param {string} caption
 * @param {number} x
 * @param {number} y
 * @param {any} color
 * @param {string} font
 */
-export function draw_caption(ctx, caption, x, y, color, font) {
+module.exports.draw_caption = function(ctx, caption, x, y, color, font) {
     try {
         var ptr0 = passStringToWasm0(caption, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         var len0 = WASM_VECTOR_LEN;
@@ -296,50 +277,50 @@ export function draw_caption(ctx, caption, x, y, color, font) {
     } finally {
         heap[stack_pointer++] = undefined;
     }
-}
+};
 
 /**
-* @param {any} ctx
+* @param {CanvasRenderingContext2D} ctx
 * @param {number} x
 * @param {number} y
 * @param {number} scale
 * @param {any} color
 */
-export function draw_single_pixel(ctx, x, y, scale, color) {
+module.exports.draw_single_pixel = function(ctx, x, y, scale, color) {
     try {
         wasm.draw_single_pixel(addBorrowedObject(ctx), x, y, scale, addHeapObject(color));
     } finally {
         heap[stack_pointer++] = undefined;
     }
-}
+};
 
 /**
 * @param {number} size
 * @returns {number}
 */
-export function alloc(size) {
+module.exports.alloc = function(size) {
     var ret = wasm.alloc(size);
     return ret;
-}
+};
 
 /**
 * @param {number} ptr
 * @param {number} cap
 */
-export function dealloc(ptr, cap) {
+module.exports.dealloc = function(ptr, cap) {
     wasm.dealloc(ptr, cap);
-}
+};
 
 /**
 * @param {string} path
 * @returns {any}
 */
-export function fetch_text(path) {
+module.exports.fetch_text = function(path) {
     var ptr0 = passStringToWasm0(path, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
     var len0 = WASM_VECTOR_LEN;
     var ret = wasm.fetch_text(ptr0, len0);
     return takeObject(ret);
-}
+};
 
 function passArrayF64ToWasm0(arg, malloc) {
     const ptr = malloc(arg.length * 8);
@@ -351,7 +332,7 @@ function passArrayF64ToWasm0(arg, malloc) {
 * @param {Float64Array} series
 * @returns {Float64Array}
 */
-export function make_vertex_array(series) {
+module.exports.make_vertex_array = function(series) {
     var ptr0 = passArrayF64ToWasm0(series, wasm.__wbindgen_malloc);
     var len0 = WASM_VECTOR_LEN;
     wasm.make_vertex_array(8, ptr0, len0);
@@ -360,23 +341,23 @@ export function make_vertex_array(series) {
     var v1 = getArrayF64FromWasm0(r0, r1).slice();
     wasm.__wbindgen_free(r0, r1 * 8);
     return v1;
-}
+};
 
 /**
 * @param {number} x
 * @param {number} y
 */
-export function mouse_move(x, y) {
+module.exports.mouse_move = function(x, y) {
     wasm.mouse_move(x, y);
-}
+};
 
 /**
-* @param {any} ctx
+* @param {WebGLRenderingContext} ctx
 * @param {string} vertex
 * @param {string} fragment
-* @returns {any}
+* @returns {WebGLProgram}
 */
-export function create_program(ctx, vertex, fragment) {
+module.exports.create_program = function(ctx, vertex, fragment) {
     try {
         var ptr0 = passStringToWasm0(vertex, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         var len0 = WASM_VECTOR_LEN;
@@ -387,7 +368,7 @@ export function create_program(ctx, vertex, fragment) {
     } finally {
         heap[stack_pointer++] = undefined;
     }
-}
+};
 
 let cachegetFloat32Memory0 = null;
 function getFloat32Memory0() {
@@ -404,11 +385,11 @@ function passArrayF32ToWasm0(arg, malloc) {
     return ptr;
 }
 /**
-* @param {any} ctx
+* @param {WebGLRenderingContext} ctx
 * @param {Float32Array} data
-* @returns {any}
+* @returns {WebGLBuffer}
 */
-export function create_buffer(ctx, data) {
+module.exports.create_buffer = function(ctx, data) {
     try {
         var ptr0 = passArrayF32ToWasm0(data, wasm.__wbindgen_malloc);
         var len0 = WASM_VECTOR_LEN;
@@ -417,30 +398,30 @@ export function create_buffer(ctx, data) {
     } finally {
         heap[stack_pointer++] = undefined;
     }
-}
+};
 
 /**
-* @param {any} ctx
-* @param {any} texture
+* @param {WebGLRenderingContext} ctx
+* @param {WebGLTexture} texture
 * @param {number} unit
 */
-export function bind_texture(ctx, texture, unit) {
+module.exports.bind_texture = function(ctx, texture, unit) {
     try {
         wasm.bind_texture(addBorrowedObject(ctx), addHeapObject(texture), unit);
     } finally {
         heap[stack_pointer++] = undefined;
     }
-}
+};
 
 /**
-* @param {any} ctx
-* @param {any} data
+* @param {WebGLRenderingContext} ctx
+* @param {ImageData} data
 * @param {number} filter
 * @param {number} _width
 * @param {number} _height
-* @returns {any}
+* @returns {WebGLTexture}
 */
-export function create_texture(ctx, data, filter, _width, _height) {
+module.exports.create_texture = function(ctx, data, filter, _width, _height) {
     try {
         var ret = wasm.create_texture(addBorrowedObject(ctx), addBorrowedObject(data), filter, _width, _height);
         return takeObject(ret);
@@ -448,10 +429,17 @@ export function create_texture(ctx, data, filter, _width, _height) {
         heap[stack_pointer++] = undefined;
         heap[stack_pointer++] = undefined;
     }
-}
+};
 
-function handleError(e) {
-    wasm.__wbindgen_exn_store(addHeapObject(e));
+function handleError(f) {
+    return function () {
+        try {
+            return f.apply(this, arguments);
+
+        } catch (e) {
+            wasm.__wbindgen_exn_store(addHeapObject(e));
+        }
+    };
 }
 
 let cachegetUint8ClampedMemory0 = null;
@@ -466,13 +454,13 @@ function getClampedArrayU8FromWasm0(ptr, len) {
     return getUint8ClampedMemory0().subarray(ptr / 1, ptr / 1 + len);
 }
 function __wbg_adapter_194(arg0, arg1, arg2, arg3) {
-    wasm.wasm_bindgen__convert__closures__invoke2_mut__hc5676375af21edd9(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
+    wasm.wasm_bindgen__convert__closures__invoke2_mut__hb4400c257b00210c(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
 }
 
 function notDefined(what) { return () => { throw new Error(`${what} is not defined`); }; }
 /**
 */
-export class Agent {
+class Agent {
 
     static __wrap(ptr) {
         const obj = Object.create(Agent.prototype);
@@ -514,7 +502,7 @@ export class Agent {
         wasm.agent_clamp_motion(this.ptr, speed, bounce, pad, tx, ty, tz);
     }
     /**
-    * @param {any} ctx
+    * @param {CanvasRenderingContext2D} ctx
     * @param {number} _n
     * @param {number} w
     * @param {number} h
@@ -535,9 +523,10 @@ export class Agent {
         }
     }
 }
+module.exports.Agent = Agent;
 /**
 */
-export class Axis {
+class Axis {
 
     free() {
         const ptr = this.ptr;
@@ -546,9 +535,10 @@ export class Axis {
         wasm.__wbg_axis_free(ptr);
     }
 }
+module.exports.Axis = Axis;
 /**
 */
-export class Cursor {
+class Cursor {
 
     static __wrap(ptr) {
         const obj = Object.create(Cursor.prototype);
@@ -570,7 +560,7 @@ export class Cursor {
         return Cursor.__wrap(ret);
     }
     /**
-    * @param {any} ctx
+    * @param {CanvasRenderingContext2D} ctx
     * @param {number} displacement
     * @param {number} radius
     * @param {number} n
@@ -584,7 +574,7 @@ export class Cursor {
         }
     }
     /**
-    * @param {any} ctx
+    * @param {CanvasRenderingContext2D} ctx
     * @param {number} theta
     * @param {number} n
     * @param {number} a
@@ -598,7 +588,7 @@ export class Cursor {
         }
     }
     /**
-    * @param {any} ctx
+    * @param {CanvasRenderingContext2D} ctx
     * @param {number} w
     * @param {number} h
     * @param {number} time
@@ -616,9 +606,10 @@ export class Cursor {
         }
     }
 }
+module.exports.Cursor = Cursor;
 /**
 */
-export class CursorState {
+class CursorState {
 
     free() {
         const ptr = this.ptr;
@@ -627,9 +618,10 @@ export class CursorState {
         wasm.__wbg_cursorstate_free(ptr);
     }
 }
+module.exports.CursorState = CursorState;
 /**
 */
-export class DataStream {
+class DataStream {
 
     static __wrap(ptr) {
         const obj = Object.create(DataStream.prototype);
@@ -659,7 +651,7 @@ export class DataStream {
         wasm.datastream_push(this.ptr, x, y);
     }
     /**
-    * @param {any} ctx
+    * @param {CanvasRenderingContext2D} ctx
     * @param {number} w
     * @param {number} h
     * @param {any} color
@@ -668,9 +660,10 @@ export class DataStream {
         wasm.datastream_draw(this.ptr, addHeapObject(ctx), w, h, addHeapObject(color));
     }
 }
+module.exports.DataStream = DataStream;
 /**
 */
-export class DrawingCanvas {
+class DrawingCanvas {
 
     free() {
         const ptr = this.ptr;
@@ -679,9 +672,10 @@ export class DrawingCanvas {
         wasm.__wbg_drawingcanvas_free(ptr);
     }
 }
+module.exports.DrawingCanvas = DrawingCanvas;
 /**
 */
-export class Group {
+class Group {
 
     static __wrap(ptr) {
         const obj = Object.create(Group.prototype);
@@ -703,9 +697,10 @@ export class Group {
         return Group.__wrap(ret);
     }
 }
+module.exports.Group = Group;
 /**
 */
-export class Link {
+class Link {
 
     static __wrap(ptr) {
         const obj = Object.create(Link.prototype);
@@ -728,9 +723,10 @@ export class Link {
         return Link.__wrap(ret);
     }
 }
+module.exports.Link = Link;
 /**
 */
-export class Observation {
+class Observation {
 
     free() {
         const ptr = this.ptr;
@@ -739,9 +735,10 @@ export class Observation {
         wasm.__wbg_observation_free(ptr);
     }
 }
+module.exports.Observation = Observation;
 /**
 */
-export class ObservedProperty {
+class ObservedProperty {
 
     free() {
         const ptr = this.ptr;
@@ -750,9 +747,10 @@ export class ObservedProperty {
         wasm.__wbg_observedproperty_free(ptr);
     }
 }
+module.exports.ObservedProperty = ObservedProperty;
 /**
 */
-export class RectilinearGrid {
+class RectilinearGrid {
 
     static __wrap(ptr) {
         const obj = Object.create(RectilinearGrid.prototype);
@@ -776,7 +774,7 @@ export class RectilinearGrid {
         return RectilinearGrid.__wrap(ret);
     }
     /**
-    * @param {any} ctx
+    * @param {CanvasRenderingContext2D} ctx
     * @param {number} w
     * @param {number} h
     * @param {any} color
@@ -803,7 +801,7 @@ export class RectilinearGrid {
         wasm.rectilineargrid_clear(this.ptr);
     }
     /**
-    * @param {any} ctx
+    * @param {CanvasRenderingContext2D} ctx
     * @param {number} w
     * @param {number} h
     * @param {number} frames
@@ -818,9 +816,10 @@ export class RectilinearGrid {
         }
     }
 }
+module.exports.RectilinearGrid = RectilinearGrid;
 /**
 */
-export class Spring {
+class Spring {
 
     static __wrap(ptr) {
         const obj = Object.create(Spring.prototype);
@@ -896,9 +895,10 @@ export class Spring {
         return ret;
     }
 }
+module.exports.Spring = Spring;
 /**
 */
-export class Texture2D {
+class Texture2D {
 
     free() {
         const ptr = this.ptr;
@@ -907,7 +907,7 @@ export class Texture2D {
         wasm.__wbg_texture2d_free(ptr);
     }
     /**
-    * @param {any} ctx
+    * @param {CanvasRenderingContext2D} ctx
     * @param {number} _w
     * @param {number} _h
     * @param {number} _frame
@@ -921,9 +921,10 @@ export class Texture2D {
         }
     }
 }
+module.exports.Texture2D = Texture2D;
 /**
 */
-export class TriangularMesh {
+class TriangularMesh {
 
     static __wrap(ptr) {
         const obj = Object.create(TriangularMesh.prototype);
@@ -949,7 +950,7 @@ export class TriangularMesh {
         return TriangularMesh.__wrap(ret);
     }
     /**
-    * @param {any} ctx
+    * @param {CanvasRenderingContext2D} ctx
     * @param {number} w
     * @param {number} h
     * @param {any} color
@@ -962,7 +963,7 @@ export class TriangularMesh {
         }
     }
     /**
-    * @param {any} ctx
+    * @param {CanvasRenderingContext2D} ctx
     * @param {number} w
     * @param {number} h
     * @param {number} frame
@@ -990,17 +991,18 @@ export class TriangularMesh {
         wasm.triangularmesh_clear(this.ptr);
     }
 }
+module.exports.TriangularMesh = TriangularMesh;
 
-export const __wbindgen_string_new = function(arg0, arg1) {
+module.exports.__wbindgen_string_new = function(arg0, arg1) {
     var ret = getStringFromWasm0(arg0, arg1);
     return addHeapObject(ret);
 };
 
-export const __wbindgen_object_drop_ref = function(arg0) {
+module.exports.__wbindgen_object_drop_ref = function(arg0) {
     takeObject(arg0);
 };
 
-export const __wbindgen_cb_drop = function(arg0) {
+module.exports.__wbindgen_cb_drop = function(arg0) {
     const obj = takeObject(arg0).original;
     if (obj.cnt-- == 1) {
         obj.a = 0;
@@ -1010,258 +1012,122 @@ export const __wbindgen_cb_drop = function(arg0) {
     return ret;
 };
 
-export const __widl_instanceof_Window = function(arg0) {
+module.exports.__wbg_instanceof_Window_d64060d13377409b = function(arg0) {
     var ret = getObject(arg0) instanceof Window;
     return ret;
 };
 
-export const __widl_instanceof_CanvasRenderingContext2D = function(arg0) {
-    var ret = getObject(arg0) instanceof CanvasRenderingContext2D;
-    return ret;
+module.exports.__wbg_document_bcf9d67bc56e8c6d = function(arg0) {
+    var ret = getObject(arg0).document;
+    return isLikeNone(ret) ? 0 : addHeapObject(ret);
 };
 
-export const __widl_f_set_global_alpha_CanvasRenderingContext2D = function(arg0, arg1) {
-    getObject(arg0).globalAlpha = arg1;
-};
-
-export const __widl_f_begin_path_CanvasRenderingContext2D = function(arg0) {
-    getObject(arg0).beginPath();
-};
-
-export const __widl_f_fill_CanvasRenderingContext2D = function(arg0) {
-    getObject(arg0).fill();
-};
-
-export const __widl_f_stroke_CanvasRenderingContext2D = function(arg0) {
-    getObject(arg0).stroke();
-};
-
-export const __widl_f_create_linear_gradient_CanvasRenderingContext2D = function(arg0, arg1, arg2, arg3, arg4) {
-    var ret = getObject(arg0).createLinearGradient(arg1, arg2, arg3, arg4);
+module.exports.__wbg_fetch_b3f48cf99ebd282a = function(arg0, arg1) {
+    var ret = getObject(arg0).fetch(getObject(arg1));
     return addHeapObject(ret);
 };
 
-export const __widl_f_set_stroke_style_CanvasRenderingContext2D = function(arg0, arg1) {
-    getObject(arg0).strokeStyle = getObject(arg1);
-};
+module.exports.__wbg_createElement_467bb064d2ae5833 = handleError(function(arg0, arg1, arg2) {
+    var ret = getObject(arg0).createElement(getStringFromWasm0(arg1, arg2));
+    return addHeapObject(ret);
+});
 
-export const __widl_f_set_fill_style_CanvasRenderingContext2D = function(arg0, arg1) {
-    getObject(arg0).fillStyle = getObject(arg1);
-};
+module.exports.__wbg_set_234288aa11f3e098 = handleError(function(arg0, arg1, arg2, arg3, arg4) {
+    getObject(arg0).set(getStringFromWasm0(arg1, arg2), getStringFromWasm0(arg3, arg4));
+});
 
-export const __widl_f_put_image_data_CanvasRenderingContext2D = function(arg0, arg1, arg2, arg3) {
-    try {
-        getObject(arg0).putImageData(getObject(arg1), arg2, arg3);
-    } catch (e) {
-        handleError(e)
-    }
-};
-
-export const __widl_f_set_line_width_CanvasRenderingContext2D = function(arg0, arg1) {
-    getObject(arg0).lineWidth = arg1;
-};
-
-export const __widl_f_set_line_cap_CanvasRenderingContext2D = function(arg0, arg1, arg2) {
-    getObject(arg0).lineCap = getStringFromWasm0(arg1, arg2);
-};
-
-export const __widl_f_arc_CanvasRenderingContext2D = function(arg0, arg1, arg2, arg3, arg4, arg5) {
-    try {
-        getObject(arg0).arc(arg1, arg2, arg3, arg4, arg5);
-    } catch (e) {
-        handleError(e)
-    }
-};
-
-export const __widl_f_close_path_CanvasRenderingContext2D = function(arg0) {
-    getObject(arg0).closePath();
-};
-
-export const __widl_f_line_to_CanvasRenderingContext2D = function(arg0, arg1, arg2) {
-    getObject(arg0).lineTo(arg1, arg2);
-};
-
-export const __widl_f_move_to_CanvasRenderingContext2D = function(arg0, arg1, arg2) {
-    getObject(arg0).moveTo(arg1, arg2);
-};
-
-export const __widl_f_rect_CanvasRenderingContext2D = function(arg0, arg1, arg2, arg3, arg4) {
-    getObject(arg0).rect(arg1, arg2, arg3, arg4);
-};
-
-export const __widl_f_clear_rect_CanvasRenderingContext2D = function(arg0, arg1, arg2, arg3, arg4) {
-    getObject(arg0).clearRect(arg1, arg2, arg3, arg4);
-};
-
-export const __widl_f_fill_rect_CanvasRenderingContext2D = function(arg0, arg1, arg2, arg3, arg4) {
-    getObject(arg0).fillRect(arg1, arg2, arg3, arg4);
-};
-
-export const __widl_f_restore_CanvasRenderingContext2D = function(arg0) {
-    getObject(arg0).restore();
-};
-
-export const __widl_f_save_CanvasRenderingContext2D = function(arg0) {
-    getObject(arg0).save();
-};
-
-export const __widl_f_fill_text_CanvasRenderingContext2D = function(arg0, arg1, arg2, arg3, arg4) {
-    try {
-        getObject(arg0).fillText(getStringFromWasm0(arg1, arg2), arg3, arg4);
-    } catch (e) {
-        handleError(e)
-    }
-};
-
-export const __widl_f_set_font_CanvasRenderingContext2D = function(arg0, arg1, arg2) {
-    getObject(arg0).font = getStringFromWasm0(arg1, arg2);
-};
-
-export const __widl_f_rotate_CanvasRenderingContext2D = function(arg0, arg1) {
-    try {
-        getObject(arg0).rotate(arg1);
-    } catch (e) {
-        handleError(e)
-    }
-};
-
-export const __widl_f_translate_CanvasRenderingContext2D = function(arg0, arg1, arg2) {
-    try {
-        getObject(arg0).translate(arg1, arg2);
-    } catch (e) {
-        handleError(e)
-    }
-};
-
-export const __widl_f_create_element_Document = function(arg0, arg1, arg2) {
-    try {
-        var ret = getObject(arg0).createElement(getStringFromWasm0(arg1, arg2));
-        return addHeapObject(ret);
-    } catch (e) {
-        handleError(e)
-    }
-};
-
-export const __widl_instanceof_HTMLCanvasElement = function(arg0) {
-    var ret = getObject(arg0) instanceof HTMLCanvasElement;
-    return ret;
-};
-
-export const __widl_f_get_context_HTMLCanvasElement = function(arg0, arg1, arg2) {
-    try {
-        var ret = getObject(arg0).getContext(getStringFromWasm0(arg1, arg2));
-        return isLikeNone(ret) ? 0 : addHeapObject(ret);
-    } catch (e) {
-        handleError(e)
-    }
-};
-
-export const __widl_f_set_width_HTMLCanvasElement = function(arg0, arg1) {
-    getObject(arg0).width = arg1 >>> 0;
-};
-
-export const __widl_f_set_height_HTMLCanvasElement = function(arg0, arg1) {
-    getObject(arg0).height = arg1 >>> 0;
-};
-
-export const __widl_f_set_Headers = function(arg0, arg1, arg2, arg3, arg4) {
-    try {
-        getObject(arg0).set(getStringFromWasm0(arg1, arg2), getStringFromWasm0(arg3, arg4));
-    } catch (e) {
-        handleError(e)
-    }
-};
-
-export const __widl_f_new_with_u8_clamped_array_ImageData = function(arg0, arg1, arg2) {
-    try {
-        var ret = new ImageData(getClampedArrayU8FromWasm0(arg0, arg1), arg2 >>> 0);
-        return addHeapObject(ret);
-    } catch (e) {
-        handleError(e)
-    }
-};
-
-export const __widl_f_new_with_str_and_init_Request = function(arg0, arg1, arg2) {
-    try {
-        var ret = new Request(getStringFromWasm0(arg0, arg1), getObject(arg2));
-        return addHeapObject(ret);
-    } catch (e) {
-        handleError(e)
-    }
-};
-
-export const __widl_f_headers_Request = function(arg0) {
-    var ret = getObject(arg0).headers;
+module.exports.__wbindgen_object_clone_ref = function(arg0) {
+    var ret = getObject(arg0);
     return addHeapObject(ret);
 };
 
-export const __widl_instanceof_Response = function(arg0) {
+module.exports.__wbg_instanceof_Response_acb554d7c391aef7 = function(arg0) {
     var ret = getObject(arg0) instanceof Response;
     return ret;
 };
 
-export const __widl_f_text_Response = function(arg0) {
-    try {
-        var ret = getObject(arg0).text();
-        return addHeapObject(ret);
-    } catch (e) {
-        handleError(e)
-    }
+module.exports.__wbg_text_83594a5e8d9e514a = handleError(function(arg0) {
+    var ret = getObject(arg0).text();
+    return addHeapObject(ret);
+});
+
+module.exports.__wbg_headers_1edd511ef1b065ca = function(arg0) {
+    var ret = getObject(arg0).headers;
+    return addHeapObject(ret);
 };
 
-export const __widl_f_buffer_data_with_array_buffer_view_WebGLRenderingContext = function(arg0, arg1, arg2, arg3) {
+module.exports.__wbg_newwithstrandinit_54427750de69ea87 = handleError(function(arg0, arg1, arg2) {
+    var ret = new Request(getStringFromWasm0(arg0, arg1), getObject(arg2));
+    return addHeapObject(ret);
+});
+
+module.exports.__wbg_instanceof_HtmlCanvasElement_308a7fa689ff20ef = function(arg0) {
+    var ret = getObject(arg0) instanceof HTMLCanvasElement;
+    return ret;
+};
+
+module.exports.__wbg_setwidth_568dfd10a534fefd = function(arg0, arg1) {
+    getObject(arg0).width = arg1 >>> 0;
+};
+
+module.exports.__wbg_setheight_f95890a4f65f1ed9 = function(arg0, arg1) {
+    getObject(arg0).height = arg1 >>> 0;
+};
+
+module.exports.__wbg_getContext_554fc171434d411b = handleError(function(arg0, arg1, arg2) {
+    var ret = getObject(arg0).getContext(getStringFromWasm0(arg1, arg2));
+    return isLikeNone(ret) ? 0 : addHeapObject(ret);
+});
+
+module.exports.__wbg_bufferData_e135b678b6ef2433 = function(arg0, arg1, arg2, arg3) {
     getObject(arg0).bufferData(arg1 >>> 0, getObject(arg2), arg3 >>> 0);
 };
 
-export const __widl_f_tex_image_2d_with_u32_and_u32_and_image_data_WebGLRenderingContext = function(arg0, arg1, arg2, arg3, arg4, arg5, arg6) {
-    try {
-        getObject(arg0).texImage2D(arg1 >>> 0, arg2, arg3, arg4 >>> 0, arg5 >>> 0, getObject(arg6));
-    } catch (e) {
-        handleError(e)
-    }
-};
+module.exports.__wbg_texImage2D_154146e05cef429c = handleError(function(arg0, arg1, arg2, arg3, arg4, arg5, arg6) {
+    getObject(arg0).texImage2D(arg1 >>> 0, arg2, arg3, arg4 >>> 0, arg5 >>> 0, getObject(arg6));
+});
 
-export const __widl_f_active_texture_WebGLRenderingContext = function(arg0, arg1) {
+module.exports.__wbg_activeTexture_a4d9c550dcacf795 = function(arg0, arg1) {
     getObject(arg0).activeTexture(arg1 >>> 0);
 };
 
-export const __widl_f_attach_shader_WebGLRenderingContext = function(arg0, arg1, arg2) {
+module.exports.__wbg_attachShader_9958cc9636fc8494 = function(arg0, arg1, arg2) {
     getObject(arg0).attachShader(getObject(arg1), getObject(arg2));
 };
 
-export const __widl_f_bind_buffer_WebGLRenderingContext = function(arg0, arg1, arg2) {
+module.exports.__wbg_bindBuffer_c96c99b259d952f4 = function(arg0, arg1, arg2) {
     getObject(arg0).bindBuffer(arg1 >>> 0, getObject(arg2));
 };
 
-export const __widl_f_bind_texture_WebGLRenderingContext = function(arg0, arg1, arg2) {
+module.exports.__wbg_bindTexture_998c063ed7315afd = function(arg0, arg1, arg2) {
     getObject(arg0).bindTexture(arg1 >>> 0, getObject(arg2));
 };
 
-export const __widl_f_compile_shader_WebGLRenderingContext = function(arg0, arg1) {
+module.exports.__wbg_compileShader_82966bc7f1d070fe = function(arg0, arg1) {
     getObject(arg0).compileShader(getObject(arg1));
 };
 
-export const __widl_f_create_buffer_WebGLRenderingContext = function(arg0) {
+module.exports.__wbg_createBuffer_501da6aef1c4b91c = function(arg0) {
     var ret = getObject(arg0).createBuffer();
     return isLikeNone(ret) ? 0 : addHeapObject(ret);
 };
 
-export const __widl_f_create_program_WebGLRenderingContext = function(arg0) {
+module.exports.__wbg_createProgram_531dab3c15c28e4f = function(arg0) {
     var ret = getObject(arg0).createProgram();
     return isLikeNone(ret) ? 0 : addHeapObject(ret);
 };
 
-export const __widl_f_create_shader_WebGLRenderingContext = function(arg0, arg1) {
+module.exports.__wbg_createShader_376b269548a48c7a = function(arg0, arg1) {
     var ret = getObject(arg0).createShader(arg1 >>> 0);
     return isLikeNone(ret) ? 0 : addHeapObject(ret);
 };
 
-export const __widl_f_create_texture_WebGLRenderingContext = function(arg0) {
+module.exports.__wbg_createTexture_77f1141b79fa578d = function(arg0) {
     var ret = getObject(arg0).createTexture();
     return isLikeNone(ret) ? 0 : addHeapObject(ret);
 };
 
-export const __widl_f_get_program_info_log_WebGLRenderingContext = function(arg0, arg1, arg2) {
+module.exports.__wbg_getProgramInfoLog_5def5bb3d8d30e1f = function(arg0, arg1, arg2) {
     var ret = getObject(arg1).getProgramInfoLog(getObject(arg2));
     var ptr0 = isLikeNone(ret) ? 0 : passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
     var len0 = WASM_VECTOR_LEN;
@@ -1269,12 +1135,12 @@ export const __widl_f_get_program_info_log_WebGLRenderingContext = function(arg0
     getInt32Memory0()[arg0 / 4 + 0] = ptr0;
 };
 
-export const __widl_f_get_program_parameter_WebGLRenderingContext = function(arg0, arg1, arg2) {
+module.exports.__wbg_getProgramParameter_c021157c5817259f = function(arg0, arg1, arg2) {
     var ret = getObject(arg0).getProgramParameter(getObject(arg1), arg2 >>> 0);
     return addHeapObject(ret);
 };
 
-export const __widl_f_get_shader_info_log_WebGLRenderingContext = function(arg0, arg1, arg2) {
+module.exports.__wbg_getShaderInfoLog_b619769ff40aac70 = function(arg0, arg1, arg2) {
     var ret = getObject(arg1).getShaderInfoLog(getObject(arg2));
     var ptr0 = isLikeNone(ret) ? 0 : passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
     var len0 = WASM_VECTOR_LEN;
@@ -1282,71 +1148,151 @@ export const __widl_f_get_shader_info_log_WebGLRenderingContext = function(arg0,
     getInt32Memory0()[arg0 / 4 + 0] = ptr0;
 };
 
-export const __widl_f_get_shader_parameter_WebGLRenderingContext = function(arg0, arg1, arg2) {
+module.exports.__wbg_getShaderParameter_d03718a8c98a4d23 = function(arg0, arg1, arg2) {
     var ret = getObject(arg0).getShaderParameter(getObject(arg1), arg2 >>> 0);
     return addHeapObject(ret);
 };
 
-export const __widl_f_link_program_WebGLRenderingContext = function(arg0, arg1) {
+module.exports.__wbg_linkProgram_9e60adcb42d34c3c = function(arg0, arg1) {
     getObject(arg0).linkProgram(getObject(arg1));
 };
 
-export const __widl_f_shader_source_WebGLRenderingContext = function(arg0, arg1, arg2, arg3) {
+module.exports.__wbg_shaderSource_c208cc7a688e8923 = function(arg0, arg1, arg2, arg3) {
     getObject(arg0).shaderSource(getObject(arg1), getStringFromWasm0(arg2, arg3));
 };
 
-export const __widl_f_tex_parameteri_WebGLRenderingContext = function(arg0, arg1, arg2, arg3) {
+module.exports.__wbg_texParameteri_d819847181bb4c5a = function(arg0, arg1, arg2, arg3) {
     getObject(arg0).texParameteri(arg1 >>> 0, arg2 >>> 0, arg3);
 };
 
-export const __widl_f_document_Window = function(arg0) {
-    var ret = getObject(arg0).document;
-    return isLikeNone(ret) ? 0 : addHeapObject(ret);
-};
-
-export const __widl_f_fetch_with_request_Window = function(arg0, arg1) {
-    var ret = getObject(arg0).fetch(getObject(arg1));
-    return addHeapObject(ret);
-};
-
-export const __wbindgen_object_clone_ref = function(arg0) {
-    var ret = getObject(arg0);
-    return addHeapObject(ret);
-};
-
-export const __widl_f_log_1_ = function(arg0) {
+module.exports.__wbg_log_cc6b9ddc6ca5449d = function(arg0) {
     console.log(getObject(arg0));
 };
 
-export const __wbg_call_12b949cfc461d154 = function(arg0, arg1) {
-    try {
-        var ret = getObject(arg0).call(getObject(arg1));
-        return addHeapObject(ret);
-    } catch (e) {
-        handleError(e)
-    }
+module.exports.__wbg_instanceof_CanvasRenderingContext2d_1112667cc1f23532 = function(arg0) {
+    var ret = getObject(arg0) instanceof CanvasRenderingContext2D;
+    return ret;
 };
 
-export const __wbg_newnoargs_c4b2cbbd30e2d057 = function(arg0, arg1) {
+module.exports.__wbg_setglobalAlpha_38e9b8a563afafa7 = function(arg0, arg1) {
+    getObject(arg0).globalAlpha = arg1;
+};
+
+module.exports.__wbg_setstrokeStyle_4af370453cc9beef = function(arg0, arg1) {
+    getObject(arg0).strokeStyle = getObject(arg1);
+};
+
+module.exports.__wbg_setfillStyle_379229e7549f4190 = function(arg0, arg1) {
+    getObject(arg0).fillStyle = getObject(arg1);
+};
+
+module.exports.__wbg_setlineWidth_791bd882f2c95620 = function(arg0, arg1) {
+    getObject(arg0).lineWidth = arg1;
+};
+
+module.exports.__wbg_setlineCap_f80e51156fa227b9 = function(arg0, arg1, arg2) {
+    getObject(arg0).lineCap = getStringFromWasm0(arg1, arg2);
+};
+
+module.exports.__wbg_setfont_02a2069b464f8be9 = function(arg0, arg1, arg2) {
+    getObject(arg0).font = getStringFromWasm0(arg1, arg2);
+};
+
+module.exports.__wbg_beginPath_3fa944f9f04ab627 = function(arg0) {
+    getObject(arg0).beginPath();
+};
+
+module.exports.__wbg_fill_591769697a512b9a = function(arg0) {
+    getObject(arg0).fill();
+};
+
+module.exports.__wbg_stroke_80ff74c82b2000f2 = function(arg0) {
+    getObject(arg0).stroke();
+};
+
+module.exports.__wbg_createLinearGradient_813e324ba7a40ba2 = function(arg0, arg1, arg2, arg3, arg4) {
+    var ret = getObject(arg0).createLinearGradient(arg1, arg2, arg3, arg4);
+    return addHeapObject(ret);
+};
+
+module.exports.__wbg_putImageData_b290181a4e24024c = handleError(function(arg0, arg1, arg2, arg3) {
+    getObject(arg0).putImageData(getObject(arg1), arg2, arg3);
+});
+
+module.exports.__wbg_arc_a76d718c10697300 = handleError(function(arg0, arg1, arg2, arg3, arg4, arg5) {
+    getObject(arg0).arc(arg1, arg2, arg3, arg4, arg5);
+});
+
+module.exports.__wbg_closePath_645de671318f9598 = function(arg0) {
+    getObject(arg0).closePath();
+};
+
+module.exports.__wbg_lineTo_2f564751588d678e = function(arg0, arg1, arg2) {
+    getObject(arg0).lineTo(arg1, arg2);
+};
+
+module.exports.__wbg_moveTo_7b8c1f8d728e56d3 = function(arg0, arg1, arg2) {
+    getObject(arg0).moveTo(arg1, arg2);
+};
+
+module.exports.__wbg_rect_a45a5e48878e40ce = function(arg0, arg1, arg2, arg3, arg4) {
+    getObject(arg0).rect(arg1, arg2, arg3, arg4);
+};
+
+module.exports.__wbg_clearRect_5163a03172c6613a = function(arg0, arg1, arg2, arg3, arg4) {
+    getObject(arg0).clearRect(arg1, arg2, arg3, arg4);
+};
+
+module.exports.__wbg_fillRect_45e261a0d8e4d566 = function(arg0, arg1, arg2, arg3, arg4) {
+    getObject(arg0).fillRect(arg1, arg2, arg3, arg4);
+};
+
+module.exports.__wbg_restore_28d621c4540ffa99 = function(arg0) {
+    getObject(arg0).restore();
+};
+
+module.exports.__wbg_save_0bee05b6d23ded8e = function(arg0) {
+    getObject(arg0).save();
+};
+
+module.exports.__wbg_fillText_20e548df14499144 = handleError(function(arg0, arg1, arg2, arg3, arg4) {
+    getObject(arg0).fillText(getStringFromWasm0(arg1, arg2), arg3, arg4);
+});
+
+module.exports.__wbg_rotate_43a9ff93afb49de2 = handleError(function(arg0, arg1) {
+    getObject(arg0).rotate(arg1);
+});
+
+module.exports.__wbg_translate_882094cd23d918c7 = handleError(function(arg0, arg1, arg2) {
+    getObject(arg0).translate(arg1, arg2);
+});
+
+module.exports.__wbg_newwithu8clampedarray_4799da77eec42ad7 = handleError(function(arg0, arg1, arg2) {
+    var ret = new ImageData(getClampedArrayU8FromWasm0(arg0, arg1), arg2 >>> 0);
+    return addHeapObject(ret);
+});
+
+module.exports.__wbg_call_20c04382b27a4486 = handleError(function(arg0, arg1) {
+    var ret = getObject(arg0).call(getObject(arg1));
+    return addHeapObject(ret);
+});
+
+module.exports.__wbg_newnoargs_bfddd41728ab0b9c = function(arg0, arg1) {
     var ret = new Function(getStringFromWasm0(arg0, arg1));
     return addHeapObject(ret);
 };
 
-export const __wbg_call_ce7cf17fc6380443 = function(arg0, arg1, arg2) {
-    try {
-        var ret = getObject(arg0).call(getObject(arg1), getObject(arg2));
-        return addHeapObject(ret);
-    } catch (e) {
-        handleError(e)
-    }
-};
+module.exports.__wbg_call_49bac88c9eff93af = handleError(function(arg0, arg1, arg2) {
+    var ret = getObject(arg0).call(getObject(arg1), getObject(arg2));
+    return addHeapObject(ret);
+});
 
-export const __wbg_new_7dd9b384a913884d = function() {
+module.exports.__wbg_new_f46e6afe0b8a862e = function() {
     var ret = new Object();
     return addHeapObject(ret);
 };
 
-export const __wbg_new_d3eff62d5c013634 = function(arg0, arg1) {
+module.exports.__wbg_new_261626435fed913c = function(arg0, arg1) {
     try {
         var state0 = {a: arg0, b: arg1};
         var cb0 = (arg0, arg1) => {
@@ -1365,91 +1311,71 @@ export const __wbg_new_d3eff62d5c013634 = function(arg0, arg1) {
     }
 };
 
-export const __wbg_resolve_6885947099a907d3 = function(arg0) {
+module.exports.__wbg_resolve_430b2f40a51592cc = function(arg0) {
     var ret = Promise.resolve(getObject(arg0));
     return addHeapObject(ret);
 };
 
-export const __wbg_then_b6fef331fde5cf0a = function(arg0, arg1) {
+module.exports.__wbg_then_a9485ea9ef567f90 = function(arg0, arg1) {
     var ret = getObject(arg0).then(getObject(arg1));
     return addHeapObject(ret);
 };
 
-export const __wbg_then_7d828a330efec051 = function(arg0, arg1, arg2) {
+module.exports.__wbg_then_b114127b40814c36 = function(arg0, arg1, arg2) {
     var ret = getObject(arg0).then(getObject(arg1), getObject(arg2));
     return addHeapObject(ret);
 };
 
-export const __wbg_globalThis_22e06d4bea0084e3 = function() {
-    try {
-        var ret = globalThis.globalThis;
-        return addHeapObject(ret);
-    } catch (e) {
-        handleError(e)
-    }
-};
+module.exports.__wbg_self_944d201f31e01c91 = handleError(function() {
+    var ret = self.self;
+    return addHeapObject(ret);
+});
 
-export const __wbg_self_00b0599bca667294 = function() {
-    try {
-        var ret = self.self;
-        return addHeapObject(ret);
-    } catch (e) {
-        handleError(e)
-    }
-};
+module.exports.__wbg_window_993fd51731b86960 = handleError(function() {
+    var ret = window.window;
+    return addHeapObject(ret);
+});
 
-export const __wbg_window_aa795c5aad79b8ac = function() {
-    try {
-        var ret = window.window;
-        return addHeapObject(ret);
-    } catch (e) {
-        handleError(e)
-    }
-};
+module.exports.__wbg_globalThis_8379563d70fab135 = handleError(function() {
+    var ret = globalThis.globalThis;
+    return addHeapObject(ret);
+});
 
-export const __wbg_global_cc239dc2303f417c = function() {
-    try {
-        var ret = global.global;
-        return addHeapObject(ret);
-    } catch (e) {
-        handleError(e)
-    }
-};
+module.exports.__wbg_global_073eb4249a3a8c12 = handleError(function() {
+    var ret = global.global;
+    return addHeapObject(ret);
+});
 
-export const __wbindgen_is_undefined = function(arg0) {
+module.exports.__wbindgen_is_undefined = function(arg0) {
     var ret = getObject(arg0) === undefined;
     return ret;
 };
 
-export const __wbg_buffer_1bb127df6348017b = function(arg0) {
+module.exports.__wbg_buffer_985803c87989344b = function(arg0) {
     var ret = getObject(arg0).buffer;
     return addHeapObject(ret);
 };
 
-export const __wbg_newwithbyteoffsetandlength_07654e7af606fce0 = function(arg0, arg1, arg2) {
+module.exports.__wbg_newwithbyteoffsetandlength_3c83a6445776097f = function(arg0, arg1, arg2) {
     var ret = new Float32Array(getObject(arg0), arg1 >>> 0, arg2 >>> 0);
     return addHeapObject(ret);
 };
 
-export const __wbg_set_8d5fd23e838df6b0 = function(arg0, arg1, arg2) {
-    try {
-        var ret = Reflect.set(getObject(arg0), getObject(arg1), getObject(arg2));
-        return ret;
-    } catch (e) {
-        handleError(e)
-    }
-};
+module.exports.__wbg_set_6db0a4cb6e322f85 = handleError(function(arg0, arg1, arg2) {
+    var ret = Reflect.set(getObject(arg0), getObject(arg1), getObject(arg2));
+    return ret;
+});
 
-export const __wbg_floor_25c84bba53058144 = typeof Math.floor == 'function' ? Math.floor : notDefined('Math.floor');
+module.exports.__wbg_floor_2ed266d3eec8ae77 = typeof Math.floor == 'function' ? Math.floor : notDefined('Math.floor');
 
-export const __wbg_random_624219ee110d74d6 = typeof Math.random == 'function' ? Math.random : notDefined('Math.random');
+module.exports.__wbg_random_5f96f58bd6257873 = typeof Math.random == 'function' ? Math.random : notDefined('Math.random');
 
-export const __wbg_new_59cb74e423758ede = function() {
+module.exports.__wbg_new_59cb74e423758ede = function() {
     var ret = new Error();
     return addHeapObject(ret);
 };
 
-export const __wbg_stack_558ba5917b466edd = function(arg0, arg1) {
+module.exports.__wbg_stack_558ba5917b466edd = function(arg0, arg1) {
     var ret = getObject(arg1).stack;
     var ptr0 = passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
     var len0 = WASM_VECTOR_LEN;
@@ -1457,7 +1383,7 @@ export const __wbg_stack_558ba5917b466edd = function(arg0, arg1) {
     getInt32Memory0()[arg0 / 4 + 0] = ptr0;
 };
 
-export const __wbg_error_4bb6c2a97407129a = function(arg0, arg1) {
+module.exports.__wbg_error_4bb6c2a97407129a = function(arg0, arg1) {
     try {
         console.error(getStringFromWasm0(arg0, arg1));
     } finally {
@@ -1465,7 +1391,7 @@ export const __wbg_error_4bb6c2a97407129a = function(arg0, arg1) {
     }
 };
 
-export const __wbindgen_string_get = function(arg0, arg1) {
+module.exports.__wbindgen_string_get = function(arg0, arg1) {
     const obj = getObject(arg1);
     var ret = typeof(obj) === 'string' ? obj : undefined;
     var ptr0 = isLikeNone(ret) ? 0 : passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
@@ -1474,13 +1400,13 @@ export const __wbindgen_string_get = function(arg0, arg1) {
     getInt32Memory0()[arg0 / 4 + 0] = ptr0;
 };
 
-export const __wbindgen_boolean_get = function(arg0) {
+module.exports.__wbindgen_boolean_get = function(arg0) {
     const v = getObject(arg0);
     var ret = typeof(v) === 'boolean' ? (v ? 1 : 0) : 2;
     return ret;
 };
 
-export const __wbindgen_debug_string = function(arg0, arg1) {
+module.exports.__wbindgen_debug_string = function(arg0, arg1) {
     var ret = debugString(getObject(arg1));
     var ptr0 = passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
     var len0 = WASM_VECTOR_LEN;
@@ -1488,32 +1414,25 @@ export const __wbindgen_debug_string = function(arg0, arg1) {
     getInt32Memory0()[arg0 / 4 + 0] = ptr0;
 };
 
-export const __wbindgen_throw = function(arg0, arg1) {
+module.exports.__wbindgen_throw = function(arg0, arg1) {
     throw new Error(getStringFromWasm0(arg0, arg1));
 };
 
-export const __wbindgen_memory = function() {
+module.exports.__wbindgen_memory = function() {
     var ret = wasm.memory;
     return addHeapObject(ret);
 };
 
-export const __wbindgen_closure_wrapper283 = function(arg0, arg1, arg2) {
-
-    const state = { a: arg0, b: arg1, cnt: 1 };
-    const real = (arg0) => {
-        state.cnt++;
-        const a = state.a;
-        state.a = 0;
-        try {
-            return __wbg_adapter_22(a, state.b, arg0);
-        } finally {
-            if (--state.cnt === 0) wasm.__wbindgen_export_2.get(54)(a, state.b);
-            else state.a = a;
-        }
-    }
-    ;
-    real.original = state;
-    var ret = real;
+module.exports.__wbindgen_closure_wrapper283 = function(arg0, arg1, arg2) {
+    var ret = makeMutClosure(arg0, arg1, 54, __wbg_adapter_22);
     return addHeapObject(ret);
 };
+
+const path = require('path').join(__dirname, 'space_bg.wasm');
+const bytes = require('fs').readFileSync(path);
+
+const wasmModule = new WebAssembly.Module(bytes);
+const wasmInstance = new WebAssembly.Instance(wasmModule, imports);
+wasm = wasmInstance.exports;
+module.exports.__wasm = wasm;
 
