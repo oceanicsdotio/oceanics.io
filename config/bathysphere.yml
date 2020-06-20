@@ -71,6 +71,7 @@ metadata:
         node: 65
 spec:
   name: Lower Damariscotta
+  encodingType: application/vnd.geo+json
   location:
     type: Point
     coordinates: [43.93354, -69.58344]
@@ -84,6 +85,7 @@ metadata:
         node: 66
 spec:
   name: Upper Damariscotta Estuary
+  encodingType: application/vnd.geo+json
   description: Buoy deployment
   location:
     type: Point
@@ -98,6 +100,7 @@ metadata:
         node: 64
 spec:
   name: Wood Island Harbor
+  encodingType: application/vnd.geo+json
   location:
     type: Point
     coordinates: [ 43.456550, -70.344432 ]
@@ -111,6 +114,7 @@ metadata:
         node: 67
 spec:
   name: Ram Island Saco Bay
+  encodingType: application/vnd.geo+json
   location:
     type: Point
     coordinates: [ 43.465934, -70.359646 ]
@@ -124,6 +128,7 @@ metadata:
         node: 70
 spec:
   name: Upper New Meadows
+  encodingType: application/vnd.geo+json
   location:
     type: Point
     coordinates: [ 43.863669, -69.8984055 ]  # Bombazine / New Meadows
@@ -137,6 +142,7 @@ metadata:
         node: 71
 spec:
   name: Lower New Meadows
+  encodingType: application/vnd.geo+json
   location:
     type: Point
     coordinates: [ 43.77643055, -69.89196944 ]  # Sand Cove / New Meadows
@@ -150,6 +156,7 @@ metadata:
         node: 72
 spec:
   name: Bagaduce River
+  encodingType: application/vnd.geo+json
   location:
     type: Point
     coordinates: [ 44.40156667, -68.7738333 ]
@@ -163,6 +170,7 @@ metadata:
         node: 73
 spec:
   name: Machias Bay
+  encodingType: application/vnd.geo+json
   location:
     type: Point
     coordinates: [ 44.618517, -67.318033 ]
@@ -176,6 +184,7 @@ metadata:
         node: 74
 spec:
   name: Cobscook Bay
+  encodingType: application/vnd.geo+json
   location:
     type: Point
     coordinates: [ 44.8968, -67.0651 ]
@@ -194,6 +203,7 @@ metadata:
         name: [ Passamaquoddy Bay ]
 spec:
   name: Western Passage
+  encodingType: application/vnd.geo+json
   location:
     type: Point
     coordinates: [ 44.92017, -66.995833 ]
@@ -202,11 +212,12 @@ apiVersion: extensions/sensing
 kind: Locations
 metadata:
   Locations@iot.navigation:
-    - name: [ Maine Loboviz Data ]
+    - name: [ Bowdoin Loboviz Data ]
       props:
         node: 52
 spec:
   name: Harpswell Sound
+  encodingType: application/vnd.geo+json
 ---
 apiVersion: extensions/sensing
 kind: Locations
@@ -218,8 +229,8 @@ metadata:
       - 20170709140704-NCEI-L3C_GHRSST-SSTskin-AVHRR_Pathfinder-PFV5.3_NOAA19_G_2017190_day-v02.0-fv01.0.nc
 spec:
   name: National Oceanography Data Center
+  encodingType: application/vnd.network+json
   location:
-    type: Network
     protocol: https
     host: data.nodc.noaa.gov
     port: 80
@@ -232,8 +243,8 @@ metadata:
     - domain: [ maine.edu, loboviz.com ]
 spec:
   name: Maine Loboviz Data
+  encodingType: application/vnd.network+json
   location:
-    type: Network
     protocol: http
     host: maine.loboviz.com
     port: 80
@@ -247,8 +258,8 @@ metadata:
 
 spec:
   name: Maine Loboviz Archive
+  encodingType: application/vnd.network+json
   location:
-    type: Network
     protocol: http
     host: maine.loboviz.com
     port: 80
@@ -264,8 +275,8 @@ metadata:
   
 spec:
   name: Maine Loboviz Sensor Metadata
+  encodingType: application/vnd.network+json
   location:
-    type: Network
     protocol: http
     host: maine.loboviz.com
     port: 80
@@ -287,8 +298,8 @@ metadata:
         format: geotiff
 spec:
   name: University of Maine Satellite Data
+  encodingType: application/vnd.network+json
   location:
-    type: Network
     protocol: ftp
     host: misclab.umeoce.maine.edu
     port: 80
@@ -301,8 +312,8 @@ metadata:
     - domain: [ bowdoin.edu, loboviz.com ]
 spec:
   name: Bowdoin Loboviz Data
+  encodingType: application/vnd.network+json
   location:
-    type: Network
     protocol: http
     host: bowdoin.loboviz.com
     port: 80
@@ -318,8 +329,8 @@ metadata:
       format: netcdf
 spec:
   name: NECOFS data
+  encodingType: application/vnd.network+json
   location:
-    type: Network
     protocol: http
     host: www.smast.umassd.edu
     port: 8080
@@ -337,8 +348,8 @@ metadata:
 
 spec:
   name: Object Storage
+  encodingType: application/vnd.network+json
   location:
-    type: Network
     protocol: https
     host: nyc3.digitaloceanspaces.com
     port:
@@ -361,8 +372,8 @@ metadata:
         readOnly: true
 spec:
   name: Object Storage
+  encodingType: application/vnd.network+json
   location:
-    type: Network
     protocol: https
     host: nyc3.digitaloceanspaces.com
     port:
@@ -383,8 +394,8 @@ metadata:
   
 spec:
   name: Spatiotemporal Database
+  encodingType: application/vnd.network+json
   location:
-    type: Network
     protocol: https
     host:
     port:
@@ -402,8 +413,8 @@ metadata:
   
 spec:
   name: API Cache
+  encodingType: application/vnd.network+json
   location:
-    type: Network
     protocol: https
     host:
     port:
@@ -420,8 +431,8 @@ metadata:
     - domain: [ oceanics.io ]
 spec:
   name: neo4j-local
+  encodingType: application/vnd.network+json
   location:
-    type: Network
     protocol: bolt
     host: localhost
     port: 7687
@@ -440,8 +451,8 @@ metadata:
         maxCalls: 1000
 spec:
   name: weather-service
+  encodingType: application/vnd.network+json
   location:
-    type: Network
     protocol: https
     host: darksky.com
     port: 80
@@ -491,8 +502,8 @@ metadata:
         
 spec:
   name: bathysphere-api
+  encodingType: application/vnd.network+json
   location:
-    type: Network
     protocol: https
     host: graph.oceanics.io
     service: /api
@@ -511,8 +522,8 @@ metadata:
     - domain: [ oceanics.io ]
 spec:
   name: bathysphere-api-proxy
+  encodingType: application/vnd.network+json
   location:
-    type: Network
     protocol: http
     host: localhost
     service: /api

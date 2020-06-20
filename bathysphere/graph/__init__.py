@@ -53,7 +53,7 @@ def processKeyValueOutbound(keyValue: (str, Any),) -> (str, Any):
                     "type": "Point",
                     "coordinates": eval(value) if isinstance(value, str) else value,
                 },
-            )
+            ) 
         except NameError:
             return key, None
     if key[0] == "_":
@@ -76,9 +76,11 @@ def processKeyValueInbound(keyValue: (str, Any), null: bool = False) -> str or N
         if value.get("type") == "Point":
             coord = value["coordinates"]
             if len(coord) == 2:
-                values = f"x: {coord[1]}, y: {coord[0]}, crs:'wgs-84'"
-            else:
+                values = f"x: {coord[1]}, y: {coord[0]}, crs:'wgs-84'"  
+            elif len(coord) == 3:
                 values = f"x: {coord[1]}, y: {coord[0]}, z: {coord[2]}, crs:'wgs-84-3d'"
+            else:
+                raise ValueError(f"Location coordinates are of invalid format: {coord}")
             return f"{key}: point({{{values}}})"
 
         if value.get("type") == "Polygon":

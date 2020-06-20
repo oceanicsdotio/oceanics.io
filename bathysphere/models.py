@@ -701,7 +701,7 @@ class Locations(object):
     location encoding may be `application/vnd.geo+json` or `application/json`
     """
     description: str = attr.ib(default=None)
-    encodingType: str = attr.ib(default="application/vnd.geo+json")
+    encodingType: str = attr.ib(default=None)
     location = attr.ib(default=None)  # GeoJSON
     name: str = attr.ib(default=None)
 

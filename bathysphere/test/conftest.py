@@ -318,6 +318,21 @@ def get_entity(client, token):
 
 
 @pytest.fixture(scope="function")
+def get_collection(client, token):
+    """
+    Get an implicit collection
+    """
+    def make_request(cls: str, auth: (str, str)):
+        jwtToken = token(auth).get("token")
+        response = client.get(
+            f"api/{cls}", headers={"Authorization": ":" + jwtToken}
+        )
+        return response
+
+    return make_request
+
+
+@pytest.fixture(scope="function")
 def add_link(client, token):
     def _make_request(
         root: str,

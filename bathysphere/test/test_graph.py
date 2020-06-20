@@ -174,6 +174,20 @@ def test_graph_sensorthings_get(get_entity, cls):
             entity = get_entity(cls.__name__, CREDENTIALS, uuid)
         results.append(entity)
 
+@pytest.mark.parametrize("cls", set(classes) - {Tasks})
+def test_graph_sensorthings_get_collection(get_collection, cls):
+    """
+    Get all entities of a single type
+    """
+    response = get_collection(cls=cls.__name__, auth=CREDENTIALS)
+    assert response.status_code == 200, response.json
+    try:
+        count = response.json["@iot.count"]
+    except KeyError as ex:
+        print(f"Response has no count: {response.json}")
+        raise ex
+    assert count > 0, f"Count for {cls} in {count}"
+
 
 @pytest.mark.parametrize("cls", set(classes) - {TaskingCapabilities, Tasks})
 def test_graph_sensorthings_join(add_link, cls):
@@ -215,29 +229,30 @@ def test_graph_sensorthings_join(add_link, cls):
                     results.append(response)
 
 
-# @pytest.mark.external_call
-# def test_graph_sensorthings_locations_weather_report(graph):
 
-#     locations = Locations(
-#         name="Upper Damariscotta Estuary"
-#     ).load(
-#         db=graph("localhost", 7687, testAuth[1])
-#     )
+@pytest.mark.external_call
+def test_graph_sensorthings_locations_weather_report(graph):
 
-#     if len(locations) != 1:
-#         for L in locations:
-#             print(dumps(L.serialize(db=None, service=None)))
-#         raise AssertionError
+    locations = Locations(
+        name="Upper Damariscotta Estuary"
+    ).load(
+        db=graph("localhost", 7687, testAuth[1])
+    )
 
-#     response = (
-#         locations
-#         .pop()
-#         .reportWeather(
-#             ts=datetime(2016, 2, 1, 0, 0, 0),
-#             api_key=DARKSKY_API_KEY,
-#         )
-#     )
-#     assert response.ok, response.json()
+    if len(locations) != 1:
+        for L in locations:
+            print(dumps(L.serialize(db=None, service=None)))
+        raise AssertionError
+
+    response = (
+        locations
+        .pop()
+        .reportWeather(
+            ts=datetime(2016, 2, 1, 0, 0, 0),
+            api_key=DARKSKY_API_KEY,
+        )
+    )
+    assert response.ok, response.json()
 
 
 # @pytest.mark.object_storage

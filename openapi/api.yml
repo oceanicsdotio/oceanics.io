@@ -1904,7 +1904,9 @@ components:
 
     LocationEncodingType:
       type: string
-      enum: ["application/vnd.geo+json"]
+      enum:
+        - "application/vnd.geo+json"
+        - "application/vnd.network+json"
       default: "application/vnd.geo+json"
       description: The encoding rendered in the location response
 
@@ -1930,8 +1932,7 @@ components:
               properties:
                 type:
                   type: string
-                  default: "Point"
-                  enum: ["Point"]
+                  enum: ["Point", "Polygon"]
                 coordinates:
                   type: array
                   minLength: 2
