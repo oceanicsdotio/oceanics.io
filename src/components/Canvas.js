@@ -30,7 +30,7 @@ export default (props) => {
 
         async function run () {
             props = renderProps;
-            const wasm = await import('../utils/space');
+            const wasm = await import('../wasm/space');
             console.log(wasm);
 
             if (!props.canvas) throw Error(`No canvas element "${props.eid}".`);

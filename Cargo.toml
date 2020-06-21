@@ -4,6 +4,8 @@ version = "0.2.0"
 authors = ["Oceanicsdotio <business@oceanics.io>"]
 edition = "2018"
 description = "Spatial stuff"
+license = "MIT"
+repository = "git+https://bitbucket.org/oceanicsdotio/oceanics.io.git"
 
 [lib]
 path = "rust-src/lib.rs"
