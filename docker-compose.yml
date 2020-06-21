@@ -37,9 +37,11 @@ services:
     networks:
       - bathysphere
     environment:
-      - NEO4JLABS_PLUGINS=["graphql", "apoc"]
-      - NEO4J_dbms_security_procedures_unrestricted=apoc.*,graphql.*
-      - NEO4J_dbms_security_procedures_whitelist=apoc.*,graphql.*
+      - NEO4JLABS_PLUGINS=["apoc"]
+      - NEO4J_dbms_security_procedures_whitelist=apoc.*
+      - NEO4J_dbmd_security_auth__enabled=true
+    #   - NEO4J_dbms_security_http__access__control__allow__origin=http://localhost:8000
+      - NEO4J_dbms_connector_bolt_advertised__address=0.0.0.0:7687
       - NEO4J_apoc_import_file_enabled=true
       - NEO4J_AUTH=neo4j/n0t_passw0rd
       - NEO4J_browser_remote__content__hostname__whitelist=localhost,https://graph.oceanics.io

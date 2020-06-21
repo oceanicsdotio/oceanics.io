@@ -273,6 +273,19 @@ driver = GraphDatabase.driver("bolt://localhost:7687", auth=("neo4j", "neo4j"))
 session = driver.session()
 ```
 
+### Extensions
+
+We use extensions to the database to enable interfacing with RDMS and exposing specific subsets of raw data as graphql queries.
+
+### Using GraphQL
+
+Neo4j Labs gives detailed [instructions](https://neo4j.com/developer/graphql/) on how to use `graphql`.
+
+
+
+
+
+
 ### Managed instances
 
 We recommend a managed cluster for the production service, like the official Aura platform from Neo4j. Other methods for provisioning are given below to get you started. 

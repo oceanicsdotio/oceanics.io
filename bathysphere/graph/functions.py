@@ -66,15 +66,16 @@ def context(fcn: Callable) -> Callable:
         """
         username, password = request.headers.get("authorization", ":").split(":")
 
-        if username and "@" in username:
+        if username and "@" in username:  # Basic Auth
             accounts = User(name=username).load(db=db)
-            if len(accounts) != 1:
-                raise ValueError
-            user = accounts.pop()
+            user = accounts.pop() if len(accounts) == 1 else None
 
-            if not custom_app_context.verify(password, user.credential):
-                raise Exception
-        else:
+            if user is None or not custom_app_context.verify(password, user.credential):
+                return {
+                    "message": f"Invalid username or password"
+                }, 403
+
+        else: # Bearer Token
             secretKey = request.headers.get("x-api-key", "salt")
             try:
                 decoded = Serializer(secretKey).loads(password)
@@ -82,10 +83,11 @@ def context(fcn: Callable) -> Callable:
                 return {"Error": "Missing authorization and/or x-api-key headers"}, 403
             uuid = decoded["uuid"]
             accounts = User(uuid=uuid).load(db=db)
-            if len(accounts) != 1:
-                raise ValueError(
-                    f"There are {len(accounts)} matching accounts matching UUID {uuid}"
-                )
+            candidates = len(accounts)
+            if candidates != 1:
+                return {
+                    "Message": f"There are {candidates} accounts matching UUID {uuid}"
+                }, 403
             user = accounts.pop()
 
         provider = Providers(domain=user.name.split("@").pop()).load(db=db)
@@ -155,10 +157,12 @@ def register(body: dict) -> ResponseJSON:
         )
         return {"message": message}, 403
 
+    _hash = custom_app_context.hash(body.get("password"))
+
     user = User(
         name=username,
         uuid=uuid4().hex,
-        credential=custom_app_context.hash(body.get("password")),
+        credential=_hash,
         ip=request.remote_addr,
     ).create(db=db)
 
