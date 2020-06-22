@@ -1,4 +1,23 @@
 import React from "react";
+import styled from "styled-components";
+
+const StyledCell = styled.td``;
+
+const StyledRow = styled.tr``;
+
+const StyledTable = styled.table`
+    table-layout: fixed; /* by headings to make behavior more predictable */
+    width: 100%;
+    border-collapse: collapse; /* remove duplicate borders */
+    border: 3px solid black;
+`;
+
+const StyledHead = styled.th`
+    padding: 10px;
+    border: 1px solid black;
+`;
+
+const StyledFoot = styled.tfoot``;
 
 const evt = () => {
   console.log("onBlur trigger");
@@ -24,9 +43,11 @@ export const recordRow = (schema, record, ind) => {
 };
 
 export default (props) => {
+
   const { schema, records, order } = props;
+
   return (
-    <table>
+    <StyledTable>
       <thead>
       {
         <tr>
@@ -45,6 +66,6 @@ export default (props) => {
           })
       }
       </tbody>
-    </table>
+    </StyledTable>
   )
 }

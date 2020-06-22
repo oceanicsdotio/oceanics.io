@@ -86,14 +86,6 @@ li:hover{
     z-index: 2;
 }
 
-canvas {
-    border-radius: 3px;
-    border: 1px solid #FF00FF;
-    position: relative;
-    width: 100%;
-}
-
-
 input[type=range] {
     margin: 10px;
     width: 50px;
@@ -120,22 +112,11 @@ input[type=range]::-moz-range-thumb {
 }
 
 
-table {
-    table-layout: fixed; /* by headings to make behavior more predictable */
-    width: 100%;
-    border-collapse: collapse; /* remove duplicate borders */
-    border: 3px solid black;
-}
-
-
-th, td, tfoot {
+td, tfoot {
     border: 1px solid black;
     padding: 0;
 }
 
-th {
-    padding: 10px;
-}
 
 hr {
     border-top: 1px solid #ccc;
