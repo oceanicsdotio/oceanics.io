@@ -7,7 +7,9 @@ const StyledRow = styled.tr``;
 
 const StyledTable = styled.table`
     table-layout: fixed; /* by headings to make behavior more predictable */
-    width: 100%;
+    width: 90vw;
+    position: relative;
+    left: calc(-45vw + 45%);
     border-collapse: collapse; /* remove duplicate borders */
     border: 3px solid black;
 `;
@@ -34,7 +36,7 @@ const editableCell = (record, col, ind) => {
 };
 
 export const recordRow = (schema, record, ind) => {
-  const callback = (key, ii) => {return editableCell(record, key, ii)};
+  const callback = (key, ii) => editableCell(record, key, ii);
   return (
     <tr key={ind}>
       <th key={ind} scope={"row"}>{ind}</th>{schema.map(callback)}

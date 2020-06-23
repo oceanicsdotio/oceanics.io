@@ -8,7 +8,7 @@ import Graph from "../components/Graph";
 import Storage from "../components/Storage";
 
 export default () => {
-
+    
     return (
         <Layout>
             <SEO title={"Graphics"} />
