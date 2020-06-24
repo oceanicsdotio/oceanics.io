@@ -40,28 +40,6 @@ class polymorphic:
         return newfunc
 
 
-def processKeyValueOutbound(keyValue: (str, Any),) -> (str, Any):
-    """
-    Special parsing for serialization on query
-    """
-    key, value = keyValue
-    if key == "location":
-        try:
-            return (
-                key,
-                {
-                    "type": "Point",
-                    "coordinates": eval(value) if isinstance(value, str) else value,
-                },
-            ) 
-        except NameError:
-            return key, None
-    if key[0] == "_":
-        return key[1:], value
-
-    return key, value
-
-
 def processKeyValueInbound(keyValue: (str, Any), null: bool = False) -> str or None:
     """
     Convert a String key and Any value into a Cypher representation
@@ -74,17 +52,25 @@ def processKeyValueInbound(keyValue: (str, Any), null: bool = False) -> str or N
     if "location" in key and isinstance(value, dict):
 
         if value.get("type") == "Point":
+
             coord = value["coordinates"]
             if len(coord) == 2:
                 values = f"x: {coord[1]}, y: {coord[0]}, crs:'wgs-84'"  
             elif len(coord) == 3:
                 values = f"x: {coord[1]}, y: {coord[0]}, z: {coord[2]}, crs:'wgs-84-3d'"
             else:
-                raise ValueError(f"Location coordinates are of invalid format: {coord}")
+                # TODO: deal with location stuff in a different way, and don't auto include
+                # the point type in processKeyValueOutbound. Seems to work for matching now.
+                # raise ValueError(f"Location coordinates are of invalid format: {coord}")
+                return None
             return f"{key}: point({{{values}}})"
 
         if value.get("type") == "Polygon":
             return f"{key}: '{dumps(value)}'"
+
+        if value.get("type") == "Network":
+            return f"{key}: '{dumps(value)}'"
+
 
     if isinstance(value, (list, tuple, dict)):
         return f"{key}: '{dumps(value)}'"

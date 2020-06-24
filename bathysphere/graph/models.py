@@ -21,7 +21,6 @@ from bathysphere import models
 from bathysphere.datatypes import ResponseJSON
 from bathysphere.graph import (
     processKeyValueInbound,
-    processKeyValueOutbound,
     executeQuery,
     polymorphic,
 )
@@ -160,17 +159,13 @@ class Entity:
         """
         className = str(self)
         entity = "" if className == Entity.__name__ else f":{className}"
-
-        try:
-            pattern = tuple(
-                filter(
-                    lambda x: x is not None,
-                    map(processKeyValueInbound, self._properties().items()),
-                )
+        pattern = tuple(
+            filter(
+                lambda x: x is not None,
+                map(processKeyValueInbound, self._properties().items()),
             )
-        except ValueError as _:
-            raise ValueError(dumps(self._properties()))
-
+        )
+       
         return f"( {self._symbol}{entity} {{ {', '.join(pattern)} }} )"
 
     def __str__(self):
@@ -411,6 +406,25 @@ class Entity:
 
         if echo:
             print(cmd)
+
+        def processKeyValueOutbound(keyValue: (str, Any),) -> (str, Any):
+            """
+            Special parsing for serialization on query
+            """
+            key, value = keyValue
+            if key == "location":
+                try:
+                    return (
+                        key,
+                        {
+                            "type": "Point",
+                            "coordinates": eval(value) if isinstance(value, str) else value,
+                        },
+                    ) 
+                except NameError:
+                    return key, None
+            
+            return key[1:] if key[0] == "_" else key, value
 
         payload = []
         for rec in executeQuery(
