@@ -38,12 +38,11 @@ const StyledOrderedList = styled.ol`
 `;
 
 const StyledMapContainer = styled.div`
-    position: absolute;
+    position: relative;
     display: block;
-    top: 0;
-    right: 0;
-    left: 0;
-    bottom: 0;
+    height: 500px;
+    width: 100vw;
+    left: calc(-50vw + 50%);
 `;
 
 const PopUpContent = styled.div`
@@ -149,10 +148,10 @@ export default () => {
                 addFeatureEvent(map);
 
                 // Highlight shellfish closures on hover
-                addHighlightEvent(map, "nssp-closures");
+                // addHighlightEvent(map, "nssp-closures");
 
                 // Highlight town boundaries on hover
-                addHighlightEvent(map, "maine-towns");
+                // addHighlightEvent(map, "maine-towns");
 
                 // Set breakpoints for point location detail markers
                 setInterval(() => {

@@ -1,20 +1,21 @@
 import React from "react"
-import { graphql } from "gatsby"
+import { graphql } from "gatsby";
 
-import SEO from "../components/seo"
-import Map from "../components/Map"
+import SEO from "../components/seo";
+import Layout from "../components/Layout";
+import Map from "../components/Map";
+
 
 
 export default class extends React.Component {
 
     render() {
-
         return (
-            <>
-                <SEO title={"Map Demo"} />
+            <Layout>
+                <SEO title={"Geospatial visualization"} />
                 <Map />
-            </>
-        )   
+            </Layout>
+        )      
     }
 }
 
