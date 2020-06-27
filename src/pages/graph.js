@@ -13,8 +13,8 @@ export default () => {
         <Layout>
             <SEO title={"Graphics"} />
             {/* <Canvas /> */}
-            <Storage />
             <Graph />
+            <Storage />
         </Layout>
     )   
     

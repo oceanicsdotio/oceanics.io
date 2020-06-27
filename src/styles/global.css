@@ -1,10 +1,5 @@
 @charset "UTF-8";
 
-body {
-    margin:0;
-    padding:0;
-}
-
 a {
     color: #DD66DD;
 }
@@ -19,6 +14,11 @@ ul li {
     font-size: inherit;
     text-decoration: none;
     margin: 3px;
+}
+
+li:hover{
+    color: #EF5FA1;
+    transition:color 0.5s;
 }
 
 body, html{
@@ -71,20 +71,6 @@ input, button{
     text-decoration: none;
 }
 
-li:hover{
-    color: #EF5FA1;
-    transition:color 0.5s;
-}
-
-.container{
-    background: #EF5FA155;
-    position: absolute;
-    margin: 0;
-    padding: 5px;
-    width: 100%;
-    height: auto;
-    z-index: 2;
-}
 
 input[type=range] {
     margin: 10px;
@@ -112,16 +98,10 @@ input[type=range]::-moz-range-thumb {
 }
 
 
-td, tfoot {
+tfoot {
     border: 1px solid black;
     padding: 0;
 }
-
-
-hr {
-    border-top: 1px solid #ccc;
-}
-
 
 tfoot td {
     position: inherit;
@@ -129,16 +109,9 @@ tfoot td {
     text-align: right;
 }
 
-td input {
-    position: relative;
-    width: 95%;
-    height: 100%;
-    padding: 5px;
-    margin: 0;
-    text-align: right;
-    border: none;
+hr {
+    border-top: 1px solid #ccc;
 }
-
 
 
 .required:after {
@@ -187,31 +160,6 @@ body, html{
     overflow-y: scroll;
 }
 
-input[type=range] {
-    margin: 10px;
-    width: 50px;
-    background: none;
-}
-
-input[type=range]::-moz-range-track {
-    width: 100%;
-    height: 8px;
-    cursor: pointer;
-    box-shadow: none;
-    background: none;
-    border-radius: 3px;
-    border: 1px solid #FF00FF;
-}
-
-input[type=range]::-moz-range-thumb {
-    box-shadow: none;
-    border: 1px solid #FF00FF;
-    height: 16px;
-    width: 2px;
-    border-radius: 3px;
-    background: #000000;
-}
-
 
 .container {
     display: inline-flex;
@@ -230,27 +178,11 @@ input[type=range]::-moz-range-thumb {
 
 }
 
-#bathysphere ul {
-    display: block;
-    padding: 0;
-    margin: 0;
-}
-
-#bathysphere ul li {
-    background: #101010;
-    font-family: inherit;
-    display: inline-block;
-    font-size: inherit;
-    text-decoration: none;
-    border: solid 1px;
-    margin: 3px;
-}
-
-#bathysphere form {
+form {
     display: inline-block;
 }
 
-#bathysphere select{
+select{
     background: #101010AA;
     border: solid 1px;
     display: inline-block;
@@ -261,25 +193,4 @@ input[type=range]::-moz-range-thumb {
     -moz-appearance: none;  /*Removes default style Firefox*/
 }
 
-#bathysphere input, button{
-    background: #101010;
-    border: solid 1px;
-    font-family:inherit;
-    color: #ccc;
-    text-decoration: none;
-}
 
-#bathysphere li:hover{
-    color: #EF5FA1;
-    transition:color 0.5s;
-}
-
-#bathysphere.container{
-    background: #EF5FA155;
-    position: absolute;
-    margin: 0;
-    padding: 5px;
-    width: 100%;
-    height: auto;
-    z-index: 2;
-}

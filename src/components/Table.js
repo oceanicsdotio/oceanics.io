@@ -3,7 +3,26 @@ import styled from "styled-components";
 
 const StyledCell = styled.td``;
 
+const StyledInput = styled.input`
+    position: relative;
+    width: 95%;
+    height: 100%;
+    padding: 5px;
+    margin: 0;
+    text-align: left;
+    border: none;
+    background: #202020;
+    /* border: solid 1px; */
+    font-family: inherit;
+    color: #ccc;
+    text-decoration: none;
+`;
+
 const StyledRow = styled.tr``;
+
+const StyledCol = styled.col`
+    width: 10%;
+`;
 
 const StyledTable = styled.table`
     table-layout: fixed; /* by headings to make behavior more predictable */
@@ -16,7 +35,8 @@ const StyledTable = styled.table`
 
 const StyledHead = styled.th`
     padding: 10px;
-    border: 1px solid black;
+    /* background: #202020; */
+    /* border: 1px solid black; */
 `;
 
 const StyledFoot = styled.tfoot``;
@@ -25,21 +45,29 @@ const evt = () => {
   console.log("onBlur trigger");
 }
 
-const editableCell = (record, col, ind) => {
-  const value = record[col.label];
+const EditableCell = (props) => {
+
+  const {record, col, ind} = props;
+  let value = record[col.label];
+  if (typeof value === typeof "") {
+    value = value.trim();
+  }
   const update = e => record[col.label] = col.parse ? col.parse(e.target.value) : e.target.value;
   return (
-    <td key={ind}>
-      <input onBlur={update} defaultValue={col.format ? col.format(value) : value} />
-    </td>
+    <StyledCell key={ind}>
+      <StyledInput onBlur={update} defaultValue={col.format ? col.format(value) : value} />
+    </StyledCell>
   )
 };
 
-export const recordRow = (schema, record, ind) => {
-  const callback = (key, ii) => editableCell(record, key, ii);
+export const RecordRow = (props) => {
+
+  const {schema, record, ind} = props;
+
   return (
     <tr key={ind}>
-      <th key={ind} scope={"row"}>{ind}</th>{schema.map(callback)}
+      <StyledHead key={ind} scope={"row"}>{ind}</StyledHead>
+      {schema.map((key, ii) => <EditableCell record={record} col={key} ind={ii} />)}
     </tr>
   )
 };
@@ -50,22 +78,22 @@ export default (props) => {
 
   return (
     <StyledTable>
+        <colgroup>
+      <StyledCol class={"index"}/>
+      {schema.map((item, ii) => <StyledCol class={"data"} />)}
+      </colgroup>
       <thead>
       {
         <tr>
-          <th>{"INDEX"}</th>
-          {schema.map((item, ii) => {
-            return <th key={ii} scope={"col"} onClick={evt}>{item.label.toUpperCase()}</th>
-          })}
+          <StyledHead>{"INDEX"}</StyledHead>
+          {schema.map((item, ii) => <StyledHead key={ii} scope={"col"} onClick={evt}>{item.label.toUpperCase()}</StyledHead>)}
         </tr>
       }
       </thead>
       <tbody>
       {
         records.sort((a, b) => a[order] > b[order] ? 1 : -1)
-          .map((r, i) => {
-            return recordRow(schema, r, i)
-          })
+          .map((r, i) => <RecordRow schema={schema} record={r} ind={i} />)
       }
       </tbody>
     </StyledTable>

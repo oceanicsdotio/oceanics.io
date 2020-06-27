@@ -1,4 +1,34 @@
 import React, { useState, useEffect } from 'react';
+import Table from "../components/Table";
+
+
+const TaskingCapabilities = (props) => {
+
+    const {entities} = props;
+    const order = "name";
+
+    const _implicitSchema = entities.map(e => {
+        return new Set(Object.keys(e).filter(key => !key.includes("@")))
+    }).reduce(
+        (acc, current) => new Set([...acc, ...current])
+    );
+
+    let priority = [];
+    ["uuid", "name"].forEach(key => {
+        if (_implicitSchema.delete(key)) {
+            priority.push(key);
+        }
+    });
+
+    
+    return (
+        <Table 
+            order={order} 
+            schema={priority.concat(Array.from(_implicitSchema)).map(x => {return {label: x, type: "string"}})} 
+            records={entities}
+        />
+    );
+};
 
 
 export default (props) => {
@@ -17,7 +47,7 @@ export default (props) => {
 
     const queryBathysphere = async (uri, auth) => {
 
-        const response = await fetch(uri, {
+        return await fetch(uri, {
             method: 'GET',
             mode: 'cors',
             cache: 'no-cache',
@@ -26,7 +56,6 @@ export default (props) => {
                 'Authorization': auth
             }
         });
-        return await response.json();
     };
 
     const serialize = (obj) => {
@@ -52,7 +81,7 @@ export default (props) => {
 
     const onClickHandler = async (props) => {
         const {url, name} = props;
-        const collection = await queryBathysphere(url, ":" + state.token.token);
+        const collection = await (await queryBathysphere(url, ":" + state.token.token)).json();
         let entities = state.entities;
         entities[name] = collection.value;
         
@@ -64,16 +93,26 @@ export default (props) => {
 
 
     const Collection = (key, props) => {
+        /*
+        The key is the Entity subclass. The props are the properties of the 
+        collection itself.
 
-        const entities = state.entities.hasOwnProperty(props.name) ? 
-            state.entities[props.name] : [];
+        1. check that there is data stored in React state.
+        2. if not return an empty list
+        3. serialize the items, if any, and create a table within the outer list. 
+        */
 
+        const entities = (
+            state.entities.hasOwnProperty(props.name) ? state.entities[props.name] : []
+        );
+
+        const {name, ...newProps} = props;
+        
         return (
             <>
-            <li key={key} onClick={() => {onClickHandler(props)}}>
-                {serialize(props)}
-                <ul>{entities.map(obj => <><li key={obj.uuid}>{serialize(obj)}</li><hr/></>)}</ul>
-            </li>
+            <h3 onClick={() => {onClickHandler(props)}}>{name}</h3>
+            <p>{serialize(newProps)}</p>
+            {entities.length ? <TaskingCapabilities entities={entities}/> : <></>}
             <hr/>
             </>
         )
@@ -81,8 +120,8 @@ export default (props) => {
 
     useEffect(() => {
         (async function () {
-            const token = await queryBathysphere(baseUrl + "auth", auth);
-            const catalog = await queryBathysphere(baseUrl, ":" + token.token);
+            const token = await (await queryBathysphere(baseUrl + "auth", auth)).json();
+            const catalog = await (await queryBathysphere(baseUrl, ":" + token.token)).json();
             setState(state => ({
                 ...state,
                 token: token,
@@ -93,12 +132,8 @@ export default (props) => {
 
     return (
         <div>
-            <h2>Geospatial graph interface</h2>
-            <p>Your token is valid for {state.token.duration} seconds.</p>
-            <p>You can access these collections:</p>
-            <ol>
+            <h2>Geospatial graph</h2>
             {state.catalog.map(([k, v]) => [Collection(k, v)]).flat()}
-            </ol>
         </div>
     );
 
