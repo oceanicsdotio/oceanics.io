@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import Form from "../components/Form";
 import Table from "../components/Table";
 
@@ -65,6 +65,9 @@ const getObjectStore = (db, name, mode = "readonly") => {
 };
 
 const clearObservations = (db) => {
+    /*
+    Purge object store
+    */
     let store = getObjectStore(db, DB_STORE, "readwrite");
     let request = store.clear();
     request.onsuccess = (_) => {
@@ -76,36 +79,39 @@ const clearObservations = (db) => {
 };
 
 
-const createObservations = (db) => {
+const createObservations = (obs) => {
 
-    let objStore = getObjectStore(db, DB_STORE, "readwrite");
+    return (db) => {
 
-    Observations.forEach((obs) => {
+        let objStore = getObjectStore(db, DB_STORE, "readwrite");
 
-        let request = objStore.openCursor(obs.id);
-        request.onsuccess = (event) => {
-            let cursor = event.target.result;
-            if (cursor) {
-                console.log("Key already exists");
-                cursor.update(obs);
-            } else {
-                logging.push("Added key");
-                objStore.add(obs)
-            }
-        };
+        obs.forEach((obs) => {
 
-        request.onerror = (event) => {
-            throw Error(event.target);
-        };
+            let request = objStore.openCursor(obs.id);
+            request.onsuccess = (event) => {
+                let cursor = event.target.result;
+                if (cursor) {
+                    console.log("Key already exists");
+                    cursor.update(obs);
+                } else {
+                    logging.push("Added key");
+                    objStore.add(obs)
+                }
+            };
 
-    });
+            request.onerror = (event) => {
+                throw Error(event.target);
+            };
+
+        });
+    }
 };
 
 const deleteObservation = (key) => {
     /*
     Delete a single object by key
     */
-    return (db) => {
+    return db => {
         let deleteRequest = db.transaction(DB_STORE, "readwrite").objectStore(DB_STORE).delete(key);
         deleteRequest.onsuccess = (_) => {
             logging.push(`Deleted ${key}`);
@@ -117,7 +123,7 @@ const getObservation = (key) => {
     /*
     Get a single object by the key
     */
-    return (db) => {
+    return db => {
         const transaction = db.transaction(DB_STORE);
         const objectStore = transaction.objectStore(DB_STORE);
         let request = objectStore.get(key);
@@ -188,7 +194,7 @@ const searchObservations = (indexName, value = null, bounds = null) => {
 
 const InterfaceBlock = (props) => {
 
-    const {header, form} = props;
+    const { header, form } = props;
 
     return (
         <>
@@ -202,7 +208,8 @@ const InterfaceBlock = (props) => {
 
 export default (props) => {
 
-    
+    const [obs, setObs] = useState([]);
+
     const interfaces = [{
         header: "Add observations",
         form: {
@@ -211,7 +218,7 @@ export default (props) => {
                 id: "new-observation-id",
                 name: "ID",
                 required: true
-    
+
             }, {
                 id: "observed-value",
                 name: "Value",
@@ -227,10 +234,10 @@ export default (props) => {
             }, {
                 id: "populate",
                 value: "Populate",
-                onClick: (event) => openDatabase(createObservations)
+                onClick: (event) => openDatabase(createObservations(Observations))
             }]
         }
-    },{
+    }, {
         header: "Delete observations",
         form: {
             id: "delete-form",
@@ -250,10 +257,10 @@ export default (props) => {
                 id: "clear-store",
                 value: "Delete all",
                 destructive: true,
-                onClick: (event) => openDatabase(clearObservations)
+                onClick: () => openDatabase(clearObservations)
             }]
         }
-    },{
+    }, {
         header: "Search observations",
         form: {
             id: "search-form",
@@ -263,7 +270,7 @@ export default (props) => {
                 onClick: event => openDatabase(getObservation(1234))
             }, {
                 id: "list-all",
-                value: "Dump records",
+                value: "List all",
                 onClick: (event) => openDatabase(getObservations())
             }, {
                 id: "search-list",
@@ -272,13 +279,15 @@ export default (props) => {
             }]
         }
     }];
-   
-     
+
+
+
     return (
         <>
-        {interfaces.map(block => <InterfaceBlock {...block} />)}
-        <h3>Database</h3>
-        <Table order="value" records={Observations}/>
+            <h2>Local storage</h2>
+            {interfaces.map(block => <InterfaceBlock {...block} />)}
+            <h3>Database</h3>
+            {obs.length ? <Table order="value" records={obs} /> : <></>}
         </>
     );
 };

@@ -1,24 +1,30 @@
 import React from "react";
 import styled from "styled-components";
 
-const StyledCell = styled.td``;
+const StyledCell = styled.td`
+    padding: 5px;
+    margin: 0;
+`;
 
 const StyledInput = styled.input`
     position: relative;
-    width: 95%;
+    width: 100%;
     height: 100%;
-    padding: 5px;
+    padding: 0;
     margin: 0;
     text-align: left;
     border: none;
     background: #202020;
     /* border: solid 1px; */
     font-family: inherit;
-    color: #ccc;
+    color: #CCCCCC;
     text-decoration: none;
 `;
 
-const StyledRow = styled.tr``;
+const StyledRow = styled.tr`
+    padding: 0;
+    margin: 0;
+`;
 
 const StyledCol = styled.col`
     width: 10%;

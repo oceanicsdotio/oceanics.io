@@ -21,6 +21,7 @@ const StyledInputButton = styled.input`
 const StyledInputButtonDestructive = styled.input`
     display: block;
     background-color: orange;
+    color: #CC2244
 `;
 
 const StyledInputWrapperRequired = styled.div({
