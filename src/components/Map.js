@@ -3,7 +3,13 @@ import ReactDOM from "react-dom";
 import mapboxgl from "mapbox-gl";
 import styled from "styled-components";
 import "mapbox-gl/dist/mapbox-gl.css";
+import queryBathysphere from "../utils/bathysphere";
 
+
+const loadBathysphere = async (mapInstance, layer) => {
+    const data = await queryBathysphere();
+    
+}
 
 const loadGeoJSON = async (mapInstance, layers) => {
     /*
@@ -144,8 +150,10 @@ export default () => {
                 (await loadGeoJSON(map, layers.json)).map(({ layer, behind }) => map.moveLayer(layer, behind));
                 layers.image.map(({ render, behind }) => map.addLayer(render, behind));
 
+                map.addLayer();
+
                 // Popup events on collection of locations
-                addFeatureEvent(map);
+                // addFeatureEvent(map);
 
                 // Highlight shellfish closures on hover
                 // addHighlightEvent(map, "nssp-closures");

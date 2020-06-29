@@ -1,30 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import Table from "../components/Table";
+import {queryBathysphere} from "../utils/bathysphere";
 
 
 const TaskingCapabilities = (props) => {
 
-    const {entities} = props;
+    const {entities, schema} = props;
     const order = "name";
 
-    const _implicitSchema = entities.map(e => {
-        return new Set(Object.keys(e).filter(key => !key.includes("@")))
-    }).reduce(
-        (acc, current) => new Set([...acc, ...current])
-    );
-
-    let priority = [];
-    ["uuid", "name"].forEach(key => {
-        if (_implicitSchema.delete(key)) {
-            priority.push(key);
-        }
-    });
-
-    
     return (
         <Table 
             order={order} 
-            schema={priority.concat(Array.from(_implicitSchema)).map(x => {return {label: x, type: "string"}})} 
+            schema={schema} 
             records={entities}
         />
     );
@@ -44,19 +31,6 @@ export default (props) => {
         catalog: [],
         entities: {}
     });
-
-    const queryBathysphere = async (uri, auth) => {
-
-        return await fetch(uri, {
-            method: 'GET',
-            mode: 'cors',
-            cache: 'no-cache',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': auth
-            }
-        });
-    };
 
     const serialize = (obj) => {
 
@@ -119,13 +93,13 @@ export default (props) => {
     };
 
     useEffect(() => {
-        (async function () {
-            const token = await (await queryBathysphere(baseUrl + "auth", auth)).json();
-            const catalog = await (await queryBathysphere(baseUrl, ":" + token.token)).json();
+        (async () => {
+            const token = await queryBathysphere(baseUrl + "auth", auth).then(x => {return x.json()});
+            const catalog = await queryBathysphere(baseUrl, ":" + token.token).then(x => {return x.json()});
             setState(state => ({
                 ...state,
                 token: token,
-                catalog: catalog.value.map(x => Object.entries(x)).flat()
+                catalog: catalog.value.map(x => Object.entries(x)).flat(),
             }));
         })()
     }, []); 

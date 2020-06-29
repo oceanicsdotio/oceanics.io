@@ -1,13 +1,5 @@
 @charset "UTF-8";
 
-a {
-    color: #DD66DD;
-}
-
-ul {
-    display: block;
-}
-
 ul li {
     background: inherit;
     display: inline-block;
@@ -16,16 +8,17 @@ ul li {
     margin: 3px;
 }
 
-li:hover{
+a, li:hover{
     color: #EF5FA1;
     transition:color 0.5s;
 }
 
+
 body, html{
-    background: #222222;
+    background: #000000;
     font-size: large;
     font-family: monospace;
-    color: #cccccc;
+    color: #CCCCCC;
     margin: 0;
     position: relative;
     padding: 0;
@@ -36,38 +29,16 @@ body, html{
 }
 
 
-.mapboxgl-popup-content {
-    background: #101010AA;
-    border: solid 1px;
-    font-family:inherit;
-    font-size: inherit;
-    width: auto;
-    padding: 10px;
-    float: left;
-    margin: 0;
-    color: #ccc;
+hr {
+    border-top: 1px solid #CCCCCC;
 }
 
-
-form {
-    display: inline-block;
-}
-
-select{
-    background: #101010AA;
-    border: solid 1px;
-    display: inline-block;
-    font-size: inherit;
-    color: #ccc;
-    -webkit-appearance: none;  /*Removes default chrome and safari style*/
-    -moz-appearance: none;  /*Removes default style Firefox*/
-}
 
 input, button{
     background: #101010;
     border: solid 1px;
     font-family:inherit;
-    color: #ccc;
+    color: #CCCCCC;
     text-decoration: none;
 }
 
@@ -98,27 +69,6 @@ input[type=range]::-moz-range-thumb {
 }
 
 
-tfoot {
-    border: 1px solid black;
-    padding: 0;
-}
-
-tfoot td {
-    position: inherit;
-    padding-right: 5px;
-    text-align: right;
-}
-
-hr {
-    border-top: 1px solid #ccc;
-}
-
-
-.required:after {
-    content: " R";
-    color: red;
-    font-size: smaller;
-}
 
 .action-success {
     padding: 0.5em;
@@ -134,31 +84,6 @@ hr {
     border-radius: 0.2em;
 }
 
-.destructive {
-    background-color: orange;
-}
-
-
-p,
-label {
-    color: #ccc;
-}
-
-
-
-body, html{
-    background: #000000;
-    font-size: large;
-    font-family: monospace;
-    color: #cccccc;
-    margin: 0;
-    position: relative;
-    padding: 0;
-    width: 100%;
-    height: 100%;
-    overflow-x: hidden;
-    overflow-y: scroll;
-}
 
 
 .container {
@@ -178,19 +103,19 @@ body, html{
 
 }
 
-form {
-    display: inline-block;
-}
 
-select{
+
+.mapboxgl-popup-content {
     background: #101010AA;
     border: solid 1px;
-    display: inline-block;
     font-family:inherit;
     font-size: inherit;
-    color: #ccc;
-    -webkit-appearance: none;  /*Removes default chrome and safari style*/
-    -moz-appearance: none;  /*Removes default style Firefox*/
+    width: auto;
+    padding: 10px;
+    float: left;
+    margin: 0;
+    color: #CCCCCC;
 }
+
 
 

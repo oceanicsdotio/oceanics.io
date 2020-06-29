@@ -42,60 +42,78 @@ const StyledHead = styled.th`
 const StyledFoot = styled.tfoot``;
 
 const evt = () => {
-  console.log("onBlur trigger");
+    console.log("onBlur trigger");
 }
 
 const EditableCell = (props) => {
 
-  const {record, col, ind} = props;
-  let value = record[col.label];
-  if (typeof value === typeof "") {
-    value = value.trim();
-  }
-  const update = e => record[col.label] = col.parse ? col.parse(e.target.value) : e.target.value;
-  return (
-    <StyledCell key={ind}>
-      <StyledInput onBlur={update} defaultValue={col.format ? col.format(value) : value} />
-    </StyledCell>
-  )
+    const { record, col, ind } = props;
+    let value = record[col.label];
+    if (typeof value === typeof "") {
+        value = value.trim();
+    }
+    const update = e => record[col.label] = col.parse ? col.parse(e.target.value) : e.target.value;
+    return (
+        <StyledCell key={ind}>
+            <StyledInput onBlur={update} defaultValue={col.format ? col.format(value) : value} />
+        </StyledCell>
+    )
 };
 
 export const RecordRow = (props) => {
 
-  const {schema, record, ind} = props;
+    const { schema, record, ind } = props;
 
-  return (
-    <tr key={ind}>
-      <StyledHead key={ind} scope={"row"}>{ind}</StyledHead>
-      {schema.map((key, ii) => <EditableCell record={record} col={key} ind={ii} />)}
-    </tr>
-  )
+    return (
+        <tr key={ind}>
+            <StyledHead key={ind} scope={"row"}>{ind}</StyledHead>
+            {schema.map((key, ii) => <EditableCell record={record} col={key} ind={ii} />)}
+        </tr>
+    )
 };
 
 export default (props) => {
 
-  const { schema, records, order } = props;
+    const { records, order } = props;
+    let { schema } = props;
 
-  return (
-    <StyledTable>
-        <colgroup>
-      <StyledCol class={"index"}/>
-      {schema.map((item, ii) => <StyledCol class={"data"} />)}
-      </colgroup>
-      <thead>
-      {
-        <tr>
-          <StyledHead>{"INDEX"}</StyledHead>
-          {schema.map((item, ii) => <StyledHead key={ii} scope={"col"} onClick={evt}>{item.label.toUpperCase()}</StyledHead>)}
-        </tr>
-      }
-      </thead>
-      <tbody>
-      {
-        records.sort((a, b) => a[order] > b[order] ? 1 : -1)
-          .map((r, i) => <RecordRow schema={schema} record={r} ind={i} />)
-      }
-      </tbody>
-    </StyledTable>
-  )
+    if (schema === undefined) {
+        const _implicitSchema = records.map(e => {
+            return new Set(Object.keys(e).filter(key => !key.includes("@")))
+        }).reduce(
+            (acc, current) => new Set([...acc, ...current])
+        );
+
+        let priority = [];
+        ["uuid", "name"].forEach(key => {
+            if (_implicitSchema.delete(key)) {
+                priority.push(key);
+            }
+        });
+
+        schema = priority.concat(Array.from(_implicitSchema)).map(x => {return {label: x, type: "string"}});
+    }
+
+    return (
+        <StyledTable>
+            <colgroup>
+                <StyledCol class={"index"} />
+                {schema.map((item, ii) => <StyledCol class={"data"} />)}
+            </colgroup>
+            <thead>
+                {
+                    <tr>
+                        <StyledHead>{"INDEX"}</StyledHead>
+                        {schema.map((item, ii) => <StyledHead key={ii} scope={"col"} onClick={evt}>{item.label.toUpperCase()}</StyledHead>)}
+                    </tr>
+                }
+            </thead>
+            <tbody>
+                {
+                    records.sort((a, b) => a[order] > b[order] ? 1 : -1)
+                        .map((r, i) => <RecordRow schema={schema} record={r} ind={i} />)
+                }
+            </tbody>
+        </StyledTable>
+    )
 }
