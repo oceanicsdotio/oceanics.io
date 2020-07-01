@@ -9,7 +9,6 @@ from datetime import datetime
 from functools import reduce
 from typing import Callable
 from pathlib import Path
-from yaml import load as load_yml, Loader
 from os import getenv
 from subprocess import check_output
 from redis import StrictRedis

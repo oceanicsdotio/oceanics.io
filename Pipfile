@@ -57,6 +57,8 @@ google-cloud-secret-manager = "*"
 pytz = "*"
 urllib3 = "<1.25,>=1.21.1"
 pdoc3 = "*"
+lxml = "*"
+html5lib = "*"
 
 [packages.e1839a8]
 path = "."

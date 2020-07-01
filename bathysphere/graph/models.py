@@ -12,6 +12,7 @@ from uuid import uuid4, UUID
 from json import dumps
 from inspect import signature
 from time import time
+from functools import reduce
 
 from requests import get
 from neo4j import Driver
@@ -23,6 +24,7 @@ from bathysphere.graph import (
     processKeyValueInbound,
     executeQuery,
     polymorphic,
+    RESTRICTED
 )
 
 
@@ -466,7 +468,6 @@ class Entity:
         Remove private members that include a underscore,
         since SensorThings notation is title case
         """
-        restricted = {"User", "Providers", "Root"}
         props = self._properties(select=select, private="_")
         uuid = self.uuid
         base_url = f"{protocol}://{service}/api"
@@ -477,10 +478,10 @@ class Entity:
 
         linkedEntities = set()
         if db is not None:
-            for each in Link().query(db=db, nodes=(self, Entity())):
-                label = each[0][0]
-                if label not in restricted:
-                    linkedEntities |= {label}
+            _filter = lambda x: len(set(x[0]) & RESTRICTED) == 0
+            _reduce = lambda y, z: y | {z[0][0]}
+            safe = filter(_filter, Link().query(db=db, nodes=(self, Entity())))
+            linkedEntities = reduce(_reduce, safe, linkedEntities)
 
         return {
             "@iot.id": uuid,
@@ -523,7 +524,8 @@ class FeaturesOfInterest(Entity, models.FeaturesOfInterest):
 class Locations(Entity, models.Locations):
     """Graph extension to base model"""
 
-    def reportWeather(
+    @property
+    def weather(
         self,
         ts: datetime,
         api_key: str,
@@ -580,12 +582,24 @@ class Providers(models.Providers, Entity):
 
 @attr.s(repr=False)
 class TaskingCapabilities(Entity, models.TaskingCapabilities):
-    """Graph extension to base model"""
+    """
+    Graph extension to base model. TaskingCapabilities may be called
+    by defining graph patterns that supply all of their inputs.
 
+    Execution creates one or more Tasks. 
+    """
+    def serialize(self, *args, **kwargs):
+        _default = super(TaskingCapabilities, self).serialize(*args, **kwargs)
+        _default["creationTime"] = f'{datetime.fromtimestamp(_default["creationTime"])}'
+        return _default
 
 @attr.s(repr=False)
 class Tasks(Entity, models.Tasks):
-    """Graph extension to base model"""
+    """
+    Tasks are connected to `Things` and `TaskingCapabilities`.
+
+    These are asynchronous, and are sent to a redis to be processed.
+    """
 
 
 @attr.s(repr=False)

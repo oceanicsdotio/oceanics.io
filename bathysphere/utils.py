@@ -139,15 +139,20 @@ def loadAppConfig(sources: (str) = ("bathysphere.yml", "kubernetes.yml")) -> dic
     """
 
     def renderConfig(x: str):
+        """
+        Open the local config directory and process entries into dict structures
+        """
         with open(pathlib.Path(f"config/{x}"), "r") as fid:
             items = fid.read().split("---")
         return list(map(load_yml, items, repeat(Loader, len(items))))
 
     def reverseDictionary(a: dict, b: dict) -> dict:
-
+        """
+        Flip the nestedness of the dict from a list to have top level keys for each `kind`
+        """
         if not isinstance(a, dict):
             raise ValueError(
-                "Expected dictionary values. " "Type is instead {}.".format(type(a))
+                "Expected dictionary values. Type is instead {}.".format(type(a))
             )
 
         if b is not None:
@@ -437,14 +442,14 @@ def image2arrays(
 ):
     # type: (str, list, Proj, Proj) -> (Array, Array, Array)
     """
-    Load landsat bathysphere_functions_image and convert to arrays for processing.
+    Load landsat image and convert to arrays for processing.
 
     Including the Projection definitions should memoize the defaults between calls
     run in the same context.
     """
     fid = open(path, "r")
     image = Image()
-    image.frombytes(data=fid.read())  # read bathysphere_functions_image file
+    image.frombytes(data=fid.read())  # read image file
     px = repeat(arange(image.width).reshape(1, image.width), image.height, axis=0)
     py = repeat(arange(image.height).reshape(image.height, 1), image.width, axis=1)
 
@@ -791,7 +796,7 @@ def blank(shape, gpu=False, fill=False):
 def pix2utm(px, py, ext):
     # type: (Array, Array, list) -> (Array, Array)
     """
-    Convert from pixel indices to UTM coordinates. Technically also works with lon/lat
+    Convert from pixel indices to UTM coordinates. Technically also works with lon/lat.
     """
     utmx = px / max(px) * (ext[2] - ext[0]) + ext[0]
     utmy = py / max(py) * (ext[3] - ext[1]) + ext[1]

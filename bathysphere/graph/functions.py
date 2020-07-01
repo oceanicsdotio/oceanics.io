@@ -15,7 +15,7 @@ from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from itsdangerous.exc import BadSignature
 
 from bathysphere.datatypes import ResponseJSON
-from bathysphere.graph import connect, Driver, executeQuery
+from bathysphere.graph import connect, Driver, executeQuery, RESTRICTED
 from bathysphere.graph.models import (
     Actuators,
     Assets,
@@ -218,7 +218,7 @@ def catalog(db: Driver, user: User, **kwargs) -> ResponseJSON:
     )
     
     records = executeQuery(db, query, read_only=True)
-    labels = [r["label"] for r in records]
+    labels = list(set(r["label"] for r in records) - RESTRICTED)
 
     def _item(name: str) -> dict:
         """Item formatter"""

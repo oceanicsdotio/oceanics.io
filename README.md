@@ -367,12 +367,30 @@ If you have the `glcoud` command line utility authorized and have done this befo
 
 We use `redis` for simple caching, pubsub style message queues, and asynchronous job execution.
 
+### Cloud instances
+
 This can use a local instance, but normally expects a Google Cloud instance to be available.
 
 ```
 gcloud compute instances create redis-forwarder --machine-type=f1-micro
 gcloud compute ssh redis-forwarder -- -N -L 6379:10.0.0.3:6379
 ```
+
+### Directed acyclic graph exection
+
+There are many powerful third-party data pipelining tools which can be used independently of `bathysphere`.
+
+Workflows are directed acyclic graphs, which take inputs and result in equal or fewer outputs.
+
+We provide the ability to perform common operations for ocean data within the graph native framework.
+
+To perform these types of computations you need to define a subgraph in the database that connects all the data sources.
+
+`TaskingCapabilties` are joined with high-level container entities. A common scenario is wanting to combine multiple environmental variables and generate a proxy variable. In this case `TaskingCapabilities` are connected to N `DataStreams`. 
+
+Calling these `TaskingCapabilities` will find child `Observations` of the `DataStreams` and link these to a `Task`. The `Task` is added to an asynchronous queue, and these are resolved as compute resources become available.
+
+Artifacts are saved in the graph and in S3-compatible object storage.
 
 
 ## Ingestion tips

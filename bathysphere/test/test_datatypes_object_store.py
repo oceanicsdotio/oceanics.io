@@ -5,7 +5,6 @@ from flask import Response
 from json import loads
 
 from bathysphere.test.conftest import CREDENTIALS
-from bathysphere.graph.models import Assets
 
 
 @pytest.mark.object_storage

@@ -6,10 +6,11 @@ contained in this default import.
 from json import dumps
 from typing import Callable, Generator, Any
 
-from neo4j import Driver
+from neo4j import Driver, GraphDatabase
 from retry import retry
 from requests import post
 
+RESTRICTED = {"User", "Providers", "Root"}
 
 class polymorphic:
     """
@@ -115,7 +116,7 @@ def connect(host: str, port: int, accessKey: str, default: str = "neo4j") -> Dri
     db = None
     for auth in ((default, accessKey), (default, default)):
         try:
-            db = Driver(uri=f"bolt://{host}:{port}", auth=auth, encrypted=False)
+            db = GraphDatabase.driver(uri=f"bolt://{host}:{port}", auth=auth, encrypted=False)
         except Exception as ex:  # pylint: disable=broad-except
             print(f"{ex} on {host}:{port} with {auth}")
             continue

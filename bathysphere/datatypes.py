@@ -2262,6 +2262,9 @@ class Mesh:
 
 
 class ObjectStorage(Minio):
+    """
+    S3 compatible object storage interface using Minio as the client. 
+    """
     def __init__(self, bucket_name: str, endpoint: str, prefix: str = None, **kwargs):
         self.bucket_name = bucket_name
         self.prefix = prefix
@@ -2273,9 +2276,16 @@ class ObjectStorage(Minio):
 
     @property
     def locked(self) -> bool:
+        """
+        Object sub-tree is locked. Denoted by placing a `lock.json` object with the same
+        prefix.
+        """
         return self.stat_object("lock.json") is not None
 
     def publish_events(self, pubsub_channel: str):
+        """
+        Listener for bucket events which then sends confirmation to a redis message queue
+        """
         fcns = ("s3:ObjectCreated:*", "s3:ObjectRemoved:*", "s3:ObjectAccessed:*")
         with StrictRedis() as queue:
             for event in self.listen_bucket_notification(
@@ -2293,6 +2303,9 @@ class ObjectStorage(Minio):
             return None
 
     def list_objects(self, prefix: str = None):
+        """
+        Return a list of objects in the bucket with the same optional prefix/
+        """
         return super().list_objects(self.bucket_name, prefix=(prefix or self.prefix))
 
     def put_object(

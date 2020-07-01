@@ -27,6 +27,8 @@ setup(
         "prance",
         "rq",
         "attrs",
+        "lxml",
+        "html5lib",
         "click>=6.7",
         "colorama",
         "minio",

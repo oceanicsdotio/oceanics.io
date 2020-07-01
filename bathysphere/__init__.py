@@ -5,9 +5,7 @@ from json import dumps
 
 from connexion import App
 from flask_cors import CORS
-from yaml import Loader, load as load_yml
 from prance import ResolvingParser, ValidationError
-
 
 from bathysphere.utils import loadAppConfig
 
