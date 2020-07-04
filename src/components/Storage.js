@@ -1,10 +1,10 @@
 import React, {useEffect, useState} from "react";
 import Table from "../components/Table";
 
-export default () => {
+export default ({uri="https://oceanicsdotio.nyc3.digitaloceanspaces.com?delimiter=/"}) => {
+
 
     const [ fileSystem, setFileSystem ] = useState([]);
-
 
     const order = "size";
     const schema = [{
@@ -24,7 +24,7 @@ export default () => {
         
         (async () => {
             fetch(
-                "https://oceanicsdotio.nyc3.digitaloceanspaces.com?delimiter=/",
+                uri,
                 {
                     method: 'GET',
                     mode: 'cors',

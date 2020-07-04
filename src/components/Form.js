@@ -39,7 +39,18 @@ const StyledLabel = styled.label`
 const StyledSelect = styled.select`
     background: #101010AA;
     border: solid 1px;
-    display: inline-block;
+    display: block;
+    font-family:inherit;
+    font-size: inherit;
+    color: #ccc;
+    -webkit-appearance: none;  /*Removes default chrome and safari style*/
+    -moz-appearance: none;  /*Removes default style Firefox*/
+`;
+
+const StyledTextArea = styled.textarea`
+    background: #101010AA;
+    border: solid 1px;
+    display: block;
     font-family:inherit;
     font-size: inherit;
     color: #ccc;
@@ -71,7 +82,7 @@ const TextInput = (props) => {
         <>
             <Label id={id} name={useName} />
             {(long ?
-                <textarea id={id} required name={useName} placeholder={placeholder}></textarea>
+                <StyledTextArea id={id} required name={useName} placeholder={placeholder}></StyledTextArea>
                 : <StyledInput type={inputType} required name={useName} placeholder={placeholder}></StyledInput>
             )}
         </>

@@ -2,7 +2,7 @@ import React from "react";
 import styled from "styled-components";
 
 const StyledCell = styled.td`
-    padding: 5px;
+    padding: 3px;
     margin: 0;
 `;
 
@@ -10,37 +10,41 @@ const StyledInput = styled.input`
     position: relative;
     width: 100%;
     height: 100%;
-    padding: 0;
-    margin: 0;
+    padding: 2px;;
+    margin: 1px;
     text-align: left;
-    border: none;
+    border: solid 1px #333333;
+    border-radius: 5px;
     background: #202020;
-    /* border: solid 1px; */
     font-family: inherit;
+    font-size: smaller;
     color: #CCCCCC;
     text-decoration: none;
+
+    &:hover {
+        border: solid 1px orange;
+    }
+
 `;
 
 const StyledRow = styled.tr`
     padding: 0;
-    margin: 0;
+    margin: 0; 
 `;
 
 const StyledCol = styled.col`
-    width: 10%;
+    width: auto;
 `;
 
 const StyledTable = styled.table`
     table-layout: fixed; /* by headings to make behavior more predictable */
-    width: 90vw;
     position: relative;
-    left: calc(-45vw + 45%);
-    border-collapse: collapse; /* remove duplicate borders */
-    border: 3px solid black;
+    width: 90vw;
+    left: calc(-45vw + 50%);
 `;
 
 const StyledHead = styled.th`
-    padding: 10px;
+    padding: 0px;
     /* background: #202020; */
     /* border: 1px solid black; */
 `;
@@ -54,14 +58,22 @@ const evt = () => {
 const EditableCell = (props) => {
 
     const { record, col, ind } = props;
-    let value = record[col.label];
+    const { label, format, parse } = col;
+
+    
+    let value = record[label];
+
+  
     if (typeof value === typeof "") {
         value = value.trim();
+    } else if (typeof value === "object" && value !== null) {
+        value = JSON.stringify(value);
     }
-    const update = e => record[col.label] = col.parse ? col.parse(e.target.value) : e.target.value;
     return (
         <StyledCell key={ind}>
-            <StyledInput onBlur={update} defaultValue={col.format ? col.format(value) : value} />
+            <StyledInput 
+                onBlur={({target}) => record[label] = parse ? parse(target.value) : target.value } 
+                defaultValue={format ? format(value) : value} />
         </StyledCell>
     )
 };
@@ -71,10 +83,10 @@ export const RecordRow = (props) => {
     const { schema, record, ind } = props;
 
     return (
-        <tr key={ind}>
-            <StyledHead key={ind} scope={"row"}>{ind}</StyledHead>
+        <StyledRow key={ind}>
+            {/* <StyledHead key={ind} scope={"row"}>{ind}</StyledHead> */}
             {schema.map((key, ii) => <EditableCell record={record} col={key} ind={ii} />)}
-        </tr>
+        </StyledRow>
     )
 };
 
@@ -82,6 +94,7 @@ export default (props) => {
 
     const { records, order } = props;
     let { schema } = props;
+    
 
     if (schema === undefined) {
         const _implicitSchema = records.map(e => {
@@ -103,16 +116,12 @@ export default (props) => {
     return (
         <StyledTable>
             <colgroup>
-                <StyledCol class={"index"} />
                 {schema.map((item, ii) => <StyledCol class={"data"} />)}
             </colgroup>
             <thead>
-                {
-                    <tr>
-                        <StyledHead>{"INDEX"}</StyledHead>
-                        {schema.map((item, ii) => <StyledHead key={ii} scope={"col"} onClick={evt}>{item.label.toUpperCase()}</StyledHead>)}
-                    </tr>
-                }
+                <tr>
+                    {schema.map((item, ii) => <StyledHead key={ii} scope={"col"} onClick={evt}>{item.label.toUpperCase()}</StyledHead>)}
+                </tr>
             </thead>
             <tbody>
                 {
