@@ -30,6 +30,7 @@ pub mod tessellate {
             }
         }
 
+        #[allow(unused_variables)]
         pub fn insert(&mut self, new_value: T) {
             match self {
                 RightTriangulatedIrregularNetwork::Node {
@@ -323,7 +324,7 @@ pub mod tessellate {
                 }
 
                 ctx.save();
-                ctx.translate(x, y);
+                let _ = ctx.translate(x, y);
                 ctx.begin_path();
 //                ctx.arc(0.0, 0.0, 0.5*dx, 0.0, 2.0*std::f64::consts::PI).unwrap();
                 ctx.move_to(0.0, diag);
