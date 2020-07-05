@@ -1,7 +1,7 @@
 import React from "react"
 import PropTypes from "prop-types"
 import Layout from "../components/Layout"
-import SEO from "../components/seo"
+import SEO from "../components/SEO"
 import { Link, graphql } from "gatsby"
 
 const Tags = ({ data: { allMarkdownRemark: {edges}}, location }) => {
@@ -29,7 +29,6 @@ Tags.propTypes = {
     }),
     data: PropTypes.shape({
         allMarkdownRemark: PropTypes.shape({
-            totalCount: PropTypes.number.isRequired,
             edges: PropTypes.arrayOf(
                 PropTypes.shape({
                     node: PropTypes.shape({
@@ -55,7 +54,6 @@ export const pageQuery = graphql`
             sort: { fields: [frontmatter___date], order: DESC }
             filter: { frontmatter: { tags: { in: [$tag] } } }
         ) {
-            totalCount
             edges {
                 node {
                     fields {

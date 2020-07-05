@@ -1,47 +1,9 @@
-import {create_program, bind_texture, fetch_text, mouse_move} from './space.js'
+import React from "react";
+import Canvas from "../components/Canvas";
 
-const GLSL_DIRECTORY = "../../glsl-src";
 
-export const RenderingContext = async (f, props) => {
 
-    if (!props.canvas) throw Error(`No canvas element "${props.eid}".`);
-
-    const ctx = props.ctx = props.canvas.getContext(props.context);
-    if (!ctx) throw Error(`No "${props.context}" rendering context for ${props.eid}.`);
-
-    if (props.context === "webgl" && typeof props.shaders == "undefined") {
-        throw Error(`Shaders required to start "${props.context}" rendering context.`);
-    } else if (props.context === "webgl") {
-        let source = null;
-        try {
-            source = Object.fromEntries(await Promise.all([...new Set(Object.values(props.shaders).flat())]
-                .map(async key => [key, await fetch_text(`${GLSL_DIRECTORY}/${key}.glsl`)])));
-        } catch (e) {
-            throw Error(`Could not load shaders from ./${GLSL_DIRECTORY}`);
-        }
-
-        props.programs = Object.keys(props.shaders).reduce((obj, key) => {
-            let [vs, fs] = props.shaders[key];
-            const program = create_program(ctx, source[vs], source[fs]);
-            let wrapper = {program: program};
-            for (let i = 0; i < ctx.getProgramParameter(program, ctx.ACTIVE_ATTRIBUTES); i++) {
-                let attribute = ctx.getActiveAttrib(program, i);
-                wrapper[attribute.name] = ctx.getAttribLocation(program, attribute.name);
-            }
-            for (let i = 0; i < ctx.getProgramParameter(program, ctx.ACTIVE_UNIFORMS); i++) {
-                let uniform = ctx.getActiveUniform(program, i);
-                wrapper[uniform.name] = ctx.getUniformLocation(program, uniform.name);
-            }
-            obj[key] = wrapper;
-            return obj;
-        }, {});
-    }
-
-    props.start = performance.now() | 0.0;
-    f(props);
-};
-
-export const createTexture = (gl, filter, data, width=null, height=null) => {
+const createTexture = (gl, filter, data, width=null, height=null) => {
     let texture = gl.createTexture();
     const textureType = gl.TEXTURE_2D;
     const args = data instanceof Uint8Array ? [width, height, 0] : [];
@@ -61,34 +23,21 @@ export const createTexture = (gl, filter, data, width=null, height=null) => {
 };
 
 
-export const getColorRamp = (colors) => {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    canvas.width = 256;
-    canvas.height = 1;
-
-    let gradient = ctx.createLinearGradient(0, 0, 256, 0);
-    for (let stop in colors) {
-        gradient.addColorStop(+stop, colors[stop]);
+class ArrayBuffer {
+    constructor(ctx, data) {
+        this.buffer = ctx.createBuffer();
+        ctx.bindBuffer(ctx.ARRAY_BUFFER, this.buffer);
+        ctx.bufferData(ctx.ARRAY_BUFFER, new Float32Array(data), ctx.STATIC_DRAW);
     }
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, 256, 1);
-    return new Uint8Array(ctx.getImageData(0, 0, 256, 1).data);
-};
+}
 
-
-export const magnitude = (vec) => {
+const magnitude = (vec) => {
     return Math.sqrt(
         vec.map(x => x*x).reduce((a, b) => a+b, 0.0)
     )
 };
 
-export const uniform = (a, b) => {
-    return Math.random() * (b - a) + a;
-};
-
-
-export const rgba = (x, z, fade) => {
+const rgba = (x, z, fade) => {
     const color = x > 0.0 ? "255, 0, 0" : "0, 0, 255";
     const alpha = 1.0 - fade * z;
     return "rgba("+color+", "+alpha+")";
@@ -150,27 +99,28 @@ const bindAndDrawArrays = (ctx, program, components, draw_as, viewport, callback
     }
 };
 
+const getColorRamp = (colors) => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = 256;
+    canvas.height = 1;
 
-class ArrayBuffer {
-    constructor(ctx, data) {
-        this.buffer = ctx.createBuffer();
-        ctx.bindBuffer(ctx.ARRAY_BUFFER, this.buffer);
-        ctx.bufferData(ctx.ARRAY_BUFFER, new Float32Array(data), ctx.STATIC_DRAW);
+    let gradient = ctx.createLinearGradient(0, 0, 256, 0);
+    for (let stop in colors) {
+        gradient.addColorStop(+stop, colors[stop]);
     }
-}
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 256, 1);
+    return new Uint8Array(ctx.getImageData(0, 0, 256, 1).data);
+};
 
 
-export const LagrangianParticles = async (props) => {
-
-    const {canvas, ctx, res, programs, metadataFile} = props;
-    const {width, height} = canvas;
-
-    // console.log("Here");
+export default async ({canvas: {width, height}, ctx, res, programs, metadataFile}) => {
 
     const metadata = await fetch(metadataFile).then(r => r.json());
     console.log(metadata);
 
-    let particles = new ParticleSystem(res);
+    const particles = new ParticleSystem(res);
     const framebuffer = ctx.createFramebuffer();
     const textures = Object.fromEntries(Object.entries({
         screen: [ctx.NEAREST, new Uint8Array(width * height * 4), width, height],
@@ -185,7 +135,7 @@ export const LagrangianParticles = async (props) => {
         index: new ArrayBuffer(ctx, particles.state)
     };
 
-    function render() {
+    const exec = () => {
 
         const world = [0, 0, width, height];
         const positions = [0, 0, res, res];
@@ -286,14 +236,11 @@ export const LagrangianParticles = async (props) => {
         steps.forEach(({components, program, draw_as, viewport, callback}) => {
             bindAndDrawArrays(ctx, program, components, draw_as, viewport, callback);
         });
-        requestAnimationFrame(render);
     }
 
     const img = new Image();
     img.src = props.source;
     img.onload = () => {
         textures.uv = createTexture(ctx, ctx.LINEAR, img);
-        render();
     };
 };
-

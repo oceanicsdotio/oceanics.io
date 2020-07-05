@@ -1,12 +1,11 @@
 import React, {useEffect, useState} from "react";
 import Table from "../components/Table";
 
-export default ({uri="https://oceanicsdotio.nyc3.digitaloceanspaces.com?delimiter=/"}) => {
+export default () => {
 
+    const [ fileSystem, setFileSystem ] = useState(null);
 
-    const [ fileSystem, setFileSystem ] = useState([]);
-
-    const order = "size";
+    const order = "key";
     const schema = [{
         label: "key",
         type: "string"
@@ -24,7 +23,7 @@ export default ({uri="https://oceanicsdotio.nyc3.digitaloceanspaces.com?delimite
         
         (async () => {
             fetch(
-                uri,
+                "https://oceanicsdotio.nyc3.digitaloceanspaces.com?delimiter=/",
                 {
                     method: 'GET',
                     mode: 'cors',
@@ -53,7 +52,6 @@ export default ({uri="https://oceanicsdotio.nyc3.digitaloceanspaces.com?delimite
                         }
                         
                     });
-                    // console.log(collections);
                     setFileSystem(objects);
                 })
                 .catch(err => console.log(err))
@@ -63,7 +61,7 @@ export default ({uri="https://oceanicsdotio.nyc3.digitaloceanspaces.com?delimite
     return (
         <>
             <h2>Object storage</h2>
-            <Table order={order} records={fileSystem} schema={schema}/> 
+            {fileSystem ? <Table order={order} records={fileSystem} schema={schema}/> : null}
         </>
     );
 };

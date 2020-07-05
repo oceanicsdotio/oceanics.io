@@ -3,32 +3,9 @@ import ReactDOM from "react-dom";
 import mapboxgl from "mapbox-gl";
 import styled, {keyframes} from "styled-components";
 import "mapbox-gl/dist/mapbox-gl.css";
+import {loadGeoJSON} from "../bathysphere";
 
 mapboxgl.accessToken = 'pk.eyJ1Ijoib2NlYW5pY3Nkb3RpbyIsImEiOiJjazMwbnRndWkwMGNxM21wYWVuNm1nY3VkIn0.5N7C9UKLKHla4I5UdbOi2Q';
-
-
-const loadGeoJSON = async (mapInstance, layers) => {
-    /*
-    Asynchronously retrieve the geospatial data files and parse them
-     */
-    return await Promise.all(layers.map(async ({ render, behind }) => {
-
-        const url = "/" + render.id + ".json";
-
-        try {
-            render.source = {
-                'type': 'geojson',
-                'data': await fetch(url).then(r => r.json()),
-                'generateId': true,
-            };
-        } catch {
-            console.log("Error fetching " + url);
-            return { layer: null, behind: null };
-        }
-        mapInstance.addLayer(render);
-        return { layer: render.id, behind };
-    }));
-};
 
 
 const StyledListItem = styled.li`
@@ -65,6 +42,7 @@ const StyledMapContainer = styled.div`
         margin-right: -50%;
         transform: translate(-50%, -50%);
         animation: none;
+        z-index: 1;
     }
 `;
 

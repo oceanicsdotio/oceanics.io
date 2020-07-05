@@ -2,19 +2,32 @@ import React, { useEffect, useState } from "react"
 import styled from "styled-components";
 import { navigate } from "gatsby"
 import { Router } from "@reach/router"
-import Layout from "../components/Layout";
-import SEO from "../components/seo";
+import Layout, {StatefulButton}  from "../components/Layout";
+import SEO from "../components/SEO";
 import Map from "../components/Map";
 import Table from "../components/Table";
-import {queryBathysphere} from "../utils/bathysphere";
-import Form from "../components/Form";
+import {queryBathysphere} from "../bathysphere";
+import Canvas from "../components/Canvas";
 import Storage from "../components/Storage";
-import {StatefulButton} from "../components/NavBar";
 
 const DB_NAME = "indexed-db-testing";
 const DB_VERSION = 2;
 const DB_STORE = "bathysphere";
 
+const StyledTip = styled.div`
+    color: orange;
+    text-align: center;
+    &:hover {
+        animation: scroll 0.1s linear 3;
+        @keyframes scroll {
+            0% {text-indent: 0%;}
+            25% {text-indent: 1%;}
+            50% {text-indent: 3%;}
+            75% {text-indent: 2%;}
+            100% {text-indent: 1%;}
+        }
+    }
+`;
 
 const StyledCaret = styled.div`
     display: inline-block;
@@ -30,12 +43,13 @@ const StyledCaretActive = styled.div`
 const StyledHighlight = styled.div`
     display: inline-block;
     font-size: smaller;
-    border: solid 1px;
     padding: 5px;
-    color: #888888;
-    background: #111111;
+    color: #666666;
     border-radius: 5px;
+    padding: 3px;
 `;
+
+
 
 
 export default (props) => {
@@ -45,6 +59,7 @@ export default (props) => {
 
     const [ showMap, setShowMap ] = useState(false);
     const [ showCatalog, setShowCatalog ] = useState(false);
+    const [ showCanvas, setShowCanvas ] = useState(false);
     const [ showObjectStorage, setShowObjectStorage ] = useState(false);
     const [ state, setState ] = useState({
         catalog: [],
@@ -175,7 +190,6 @@ export default (props) => {
         */
  
         let {entities} = state;
-        const [active, setActive] = useState(false);
         const [highlight, setHighlight] = useState(false);
 
         const table = {
@@ -185,35 +199,41 @@ export default (props) => {
             order: "name"
         };
 
+
+            // openDatabase({callback: ({db}) => {
+            //     let objStore = db.transaction(DB_STORE, "readwrite").objectStore(DB_STORE);
+            //     let request = objStore.openCursor(url);
+
+            //     request.onsuccess = (event) => {
+            //         let cursor = event.target.result;
+            //         if (cursor) {
+            //             cursor.update(value);
+            //         } else {
+            //             objStore.add(value)
+            //         }
+            //     };
+
+            //     request.onerror = (event) => {
+            //         throw Error(event.target);
+            // };}});
+            
+
         const onClickHandler = async () => {
             
-            const response = await (await queryBathysphere(url, ":" + accessToken)).json();
-            const {value} = response;
-
-            if (value === undefined) {
-                console.log("There was a problem fetching "+url, response);
-                localStorage.removeItem("accessToken");
-                accessToken = null;
-                return;
+            let value;
+            if (entities[name] && entities[name].length) {
+                value = []
+            } else {
+                const response = await (await queryBathysphere(url, ":" + accessToken)).json();
+                value = response.value;
+                if (value === undefined) {
+                    console.log("There was a problem fetching "+url, response);
+                    localStorage.removeItem("accessToken");
+                    accessToken = null;
+                    navigate('/');
+                }
             }
-            
-            openDatabase({callback: ({db}) => {
-                let objStore = db.transaction(DB_STORE, "readwrite").objectStore(DB_STORE);
-                let request = objStore.openCursor(url);
 
-                request.onsuccess = (event) => {
-                    let cursor = event.target.result;
-                    if (cursor) {
-                        cursor.update(value);
-                    } else {
-                        objStore.add(value)
-                    }
-                };
-
-                request.onerror = (event) => {
-                    throw Error(event.target);
-            };}});
-            
             setState({
                 ...state,
                 entities: {
@@ -227,7 +247,6 @@ export default (props) => {
         return (
             <>
             <h3 
-                onClick={onClickHandler}
                 onMouseEnter={() => {
                     setHighlight(true);
                 }}
@@ -235,15 +254,22 @@ export default (props) => {
                     setHighlight(false);
                 }}
             >
-                {`${name} `} 
+                {`${name.replace(/([a-z](?=[A-Z]))/g, '$1 ')} `} 
                 {table.records.length ? `(${table.records.length})`: null} 
-                {active ? <StyledCaretActive>➤</StyledCaretActive> : <StyledCaret>➤</StyledCaret>}
-                {highlight ? <StyledHighlight>{url}</StyledHighlight> : null}
+                {table.records.length ? <StyledCaretActive>➤</StyledCaretActive> : <StyledCaret>➤</StyledCaret>}
+                {highlight ? (
+                    <StyledHighlight>
+                        <StatefulButton 
+                            onClick={onClickHandler} 
+                            active={table.records.length} 
+                            text={"↻"} 
+                            altText={"⤫"}
+                        />
+                        {url}
+                    </StyledHighlight>
+                ) : null}
             </h3>
-            
-            <p>{serialize({...props})}</p>
-            {table.records.length ? <Table {...table}/> : <></>}
-            <hr/>
+            {table.records.length ? <Table {...table}/> : null}
             </>
         )
     };
@@ -270,44 +296,48 @@ export default (props) => {
 
     const Catalog = () => {
         return (
-        <div>
-
-            <h2>Catalog</h2>
             
+        <div>
+            <hr/>
             <div>
             <StatefulButton 
                 onClick={() => setShowCatalog(!showCatalog)} 
                 active={showCatalog} 
-                text={"Catalog"} 
-                altText={"Hide catalog"} 
+                text={"Graph ↻"} 
+                altText={"Graph ⤫"} 
             />
 
             <StatefulButton 
                 onClick={() => setShowMap(!showMap)} 
                 active={showMap} 
-                text={"Map"} 
-                altText={"Hide map"} 
+                text={"Map ↻"} 
+                altText={"Map ⤫"} 
             />
 
-            
+            <StatefulButton 
+                onClick={() => setShowCanvas(!showCanvas)} 
+                active={showCanvas} 
+                text={"Canvas ↻"} 
+                altText={"Canvas ⤫"} 
+            />
+
             <StatefulButton 
                 onClick={() => setShowObjectStorage(!showObjectStorage)} 
                 active={showObjectStorage} 
-                text={"Repository"} 
-                altText={"Hide repository"} 
+                text={"Objects ↻"} 
+                altText={"Objects ⤫"} 
             />
             </div>
-
-            <Form {...{
-                id: "catalog-options",
-                actions: [{
-                    id: "clear-store",
-                    value: "Clear",
-                    destructive: true,
-                    onClick: () => openDatabase(({db}) => db.transaction(DB_STORE, "readwrite").objectStore(DB_STORE).clear())
-                }]
-            }}/>
-
+            {showCanvas?(
+                <>
+                <Canvas caption="DataStream" dataType="DataStream"/>
+                <Canvas caption="TriangularMesh" dataType="TriangularMesh"/>
+                <Canvas caption="RectilinearGrid" dataType="RectilinearGrid"/>
+                <Canvas caption="Cursor" dataType="Cursor"/>
+                <Canvas caption="HexagonalGrid" dataType="HexagonalGrid"/>
+                </>
+            ):null}
+            {!showMap && !showCatalog && !showObjectStorage && !showCanvas ? <StyledTip>↑ Select some data sources and sinks    to get started.</StyledTip> : null}
             {showMap ? <Map layers={state.layers} style={state.style}/> : null}
             {showCatalog ? state.catalog.map(([k, v]) => <Collection {...v}/>).flat() : null}
             {showObjectStorage ? <Storage /> : null}

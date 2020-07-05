@@ -1,34 +1,30 @@
-import React from "react"
-import { Link, graphql } from "gatsby"
+import React from "react";
+import { Link, graphql } from "gatsby";
+import styled from "styled-components";
+import Layout from "../components/Layout";
+import SEO from "../components/SEO";
+import { rhythm } from "../typography";
 
-import Layout from "../components/Layout"
-import SEO from "../components/seo"
-import { rhythm } from "../utils/typography"
+const StyledHeader = styled.h3`
+    margin-bottom: ${rhythm(0.25)};
+`;
 
-class BlogIndex extends React.Component {
-  render() {
-    const { data } = this.props
-    const siteTitle = data.site.siteMetadata.title
-    const posts = data.allMarkdownRemark.edges
-
+export default ({data: {allMarkdownRemark: {edges}, site: {siteMetadata: {title}}}, location}) => {
+  
     return (
-      <Layout location={this.props.location} title={siteTitle}>
+      <Layout location={location} title={title}>
         <SEO title="Situational awareness for a changing ocean" />
         <img src={"shrimpers-web.png"} alt={"Agents@Rest"} />
-        {posts.map(({ node }) => {
+        {edges.map(({ node }) => {
           const title = node.frontmatter.title || node.fields.slug
           return (
             <article key={node.fields.slug}>
               <header>
-                <h3
-                  style={{
-                    marginBottom: rhythm(1 / 4),
-                  }}
-                >
+                <StyledHeader>
                   <Link style={{ boxShadow: `none` }} to={node.fields.slug}>
                     {title}
                   </Link>
-                </h3>
+                </StyledHeader>
                 <small>{node.frontmatter.date}</small>
               </header>
               <section>
@@ -43,10 +39,8 @@ class BlogIndex extends React.Component {
         })}
       </Layout>
     )
-  }
-}
+};
 
-export default BlogIndex
 
 export const pageQuery = graphql`
   query {

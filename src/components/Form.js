@@ -2,7 +2,9 @@ import React from "react";
 import styled from "styled-components";
 
 
-const StyledButtonPane = styled.div``;
+const StyledButtonPane = styled.div`
+    margin-top: 10px;
+`;
 
 const StyledForm = styled.form`
     display: inline-block;
@@ -14,19 +16,16 @@ const StyledInput = styled.input`
 
 const StyledInputWrapper = styled.div``;
 
+
 const StyledInputButton = styled.input`
     display: block;
-`;
-
-const StyledInputButtonDestructive = styled.input`
-    display: block;
-    background-color: orange;
-    color: #CC2244
+    background-color: ${props => props.destructive ? "orange" : "black"};
+    color: ${props => props.destructive ? "#CC2244" : "#CCCCCC"};
 `;
 
 const StyledInputWrapperRequired = styled.div({
     "::after": {
-        "content": "'Required'",  // requires extra quotes to render
+        "content": "'required ↑'",  // requires extra quotes to render
         "color": "orange",
         "font-size": "smaller",
     }
@@ -34,6 +33,7 @@ const StyledInputWrapperRequired = styled.div({
 
 const StyledLabel = styled.label`
     display: block;
+    font-size: smaller;
 `;
 
 const StyledSelect = styled.select`
@@ -59,24 +59,20 @@ const StyledTextArea = styled.textarea`
 `;
 
 
-const Label = (props) => {
-    const {id, name} = props;
+const Label = ({id, name}) => {
     return <StyledLabel htmlFor={id}>{name.toUpperCase()}:</StyledLabel>;
 };
 
-const TextInput = (props) => {
-
-    const { 
-        id, 
-        inputType = "text", 
-        name = "", 
-        placeholder, 
-        long = false,
-        required = false,
-    } = props;
+const TextInput = ({ 
+    id, 
+    inputType = "text", 
+    name = "", 
+    placeholder, 
+    long = false,
+    required = false,
+}) => {
 
     const useName = name.length ? name : id;
-
 
     const contents = (
         <>
@@ -94,8 +90,8 @@ const TextInput = (props) => {
 };
 
 
-const SelectInput = (props) => {
-    const { id, name="", options, required=false } = props;
+const SelectInput = ({ id, name="", options, required=false }) => {
+    
     const useName = name.length ? name : id;
 
     const contents = (
@@ -112,33 +108,21 @@ const SelectInput = (props) => {
 }
 
 
-const Button = (props) => {
-    const { action, destructive=false, ...newProps } = props;
+const Button = ({ action, destructive=false, ...props }) => {
+    
     const buttonProps = {
         type: "button",
         id: action + "-button",
-        ...newProps
+        destructive,
+        ...props
     };
-    return destructive ? 
-        <StyledInputButtonDestructive {...buttonProps}/>:
-        <StyledInputButton {...buttonProps}/>;
+    return <StyledInputButton {...buttonProps}/>;
 };
 
 
 
-const ButtonPane = (props) => {
-    const { actions } = props;
-    return (
-        <StyledButtonPane>
-            {actions.map(action => <Button {...action} />)}
-        </StyledButtonPane>
-    )
-};
-
-
-export default (props) => {
-    const { id, fields = null, actions } = props;
-
+export default ({ id, fields = null, actions }) => {
+  
     const matchInputType = (f) => {
         return "options" in f?
             <SelectInput {...f} />:
@@ -147,8 +131,12 @@ export default (props) => {
 
     return (
         <StyledForm id={id}>
-            {fields !== null ? fields.map(matchInputType) : <></>}
-            {actions ? <ButtonPane actions={actions} /> : <></>}
+            {fields !== null ? fields.map(matchInputType) : null}
+            {actions ? (
+                <StyledButtonPane>
+                    {actions.map(action => <Button {...action} />)}
+                </StyledButtonPane>
+            ) : null}
         </StyledForm>
     )
 };

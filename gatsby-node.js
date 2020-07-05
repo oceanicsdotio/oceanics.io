@@ -19,23 +19,17 @@ exports.onCreateWebpackConfig = ({ stage, loaders, actions }) => {
       actions.setWebpackConfig({
         devtool: 'eval-source-map',
         stats: 'verbose',
-        // plugins: [
-        //   new WasmPackPlugin({
-        //     crateDirectory: path.resolve(__dirname, "rust-src"),
-        //     args: "--log-level warn --verbose",
-        //     extraArgs: "--target nodejs --no-typescript",
-        //     outDir: "src/wasm",
-        //     outName: "space",
-        //     pluginLogLevel: "error"  // default 'info'
-      
-        //     // If defined, `forceMode` will force the compilation mode for `wasm-pack`
-        //     // the mode `development` makes `wasm-pack` build in `debug` mode.
-        //     // the mode `production` makes `wasm-pack` build in `release` mode.
-        //     // forceMode: "development",
-      
-            
-        //   }),
-        // ]
+        plugins: [
+          new WasmPackPlugin({
+            crateDirectory: path.resolve(__dirname, "rust-src"),
+            args: "--log-level warn --verbose",
+            extraArgs: "--no-typescript --target bundler",
+            outDir: "src/wasm",
+            outName: "space",
+            pluginLogLevel: "error",
+            forceMode: "development",
+          }),
+        ]
       });
     }
   }
