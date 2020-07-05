@@ -1,3 +1,4 @@
+#[allow(dead_code)]
 pub mod agent_system {
 
     use wasm_bindgen::prelude::*;
@@ -22,20 +23,24 @@ pub mod agent_system {
         }
     }
 
+    #[allow(dead_code)]
     struct CoordinatesXY {
         x: f64,
         y: f64
     }
 
+    #[allow(dead_code)]
     struct CoordinatesUV {
         u: f64,
         v: f64
     }
 
+    #[allow(dead_code)]
     struct Target {
         active: bool
     }
 
+    #[allow(dead_code)]
     #[wasm_bindgen]
     pub struct CursorState {
         reticule: CoordinatesXY,

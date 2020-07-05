@@ -1,3 +1,4 @@
+#[allow(dead_code)]
 pub mod plotting_system {
     /*
     Enable plotting 2D data series to a canvas.
@@ -8,6 +9,7 @@ pub mod plotting_system {
     use web_sys::{CanvasRenderingContext2d};
     use wasm_bindgen::{JsValue};
 
+    #[allow(dead_code)]
     #[wasm_bindgen]
     pub fn random_series(np: i32) -> Vec<f64> {
         let mut series = vec![0.0; np as usize];

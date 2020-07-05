@@ -1,3 +1,4 @@
+
 mod agent;
 mod tessellate;
 mod webgl;
@@ -39,6 +40,7 @@ fn context2d (canvas: HtmlCanvasElement) -> CanvasRenderingContext2d {
         .unwrap()
 }
 
+#[allow(dead_code)]
 fn context_ref(target: &str) -> CanvasRenderingContext2d {
     context2d(
         web_sys::
@@ -116,6 +118,7 @@ pub fn draw_single_pixel(ctx: &CanvasRenderingContext2d, x: f64, y: f64, scale: 
 }
 
 
+#[allow(dead_code)]
 fn signal (time: f64, period: f64) -> f64 {
     let _period = period * 1000.0;
     return (time % _period) / _period;
@@ -218,7 +221,7 @@ pub fn mouse_move(x: f64, y: f64) {
     web_sys::console::log_1(&format!("{}, {}", x, y).into());
 }
 
-
+#[allow(dead_code)]
 #[wasm_bindgen]
 pub struct DrawingCanvas {
     /*
@@ -235,10 +238,13 @@ pub struct DrawingCanvas {
 }
 
 
+#[allow(dead_code)]
 struct Segment {
     points: VecDeque<(f64, f64)>
 }
 
+
+#[allow(dead_code)]
 impl Segment {
     pub fn new() -> Segment {
         Segment {

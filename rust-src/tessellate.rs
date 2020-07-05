@@ -1,3 +1,4 @@
+#[allow(dead_code)]
 pub mod tessellate {
 
     use wasm_bindgen::prelude::*;

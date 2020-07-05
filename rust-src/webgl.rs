@@ -85,7 +85,7 @@ pub mod graphics_system {
         return buffer.unwrap();
     }
 
-
+    #[allow(dead_code)]
     #[wasm_bindgen]
     pub fn bind_texture (ctx: &WebGlRenderingContext, texture: WebGlTexture, unit: u32) {
         ctx.active_texture(WebGlRenderingContext::TEXTURE0 + unit);
