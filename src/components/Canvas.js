@@ -8,14 +8,176 @@ const StyledCanvas = styled.canvas`
     height: 400px;
 `;
 
+
+const magnitude = (vec) => {
+    return Math.sqrt(
+        vec.map(x => x*x).reduce((a, b) => a+b, 0.0)
+    )
+};
+
+const uniform = (a, b) => {
+    return Math.random() * (b - a) + a;
+};
+
 export default ({context="2d", key, shaders, caption, dataType, font="12px Arial"}) => {
 
     const ref = useRef(null);
-    const [run, setRun] = useState(false);
     const [runtime, setRuntime] = useState(null);
     const [cursor, setCursor] = useState([0.0, 0.0]);
 
     const DataStructures = {
+
+        Particles: (ctx, width, height) => {
+
+            const count = 24;
+            const dim = "xyz;"
+            const padding = 0.0;
+            const shape = [width, height, 200];
+        
+            let struct = {
+                particles: (() => {
+                    
+                    let particles = [];
+                    for (let ii=0; ii<count; ii++) {
+                        particles.push({
+                            heading: [0.0, 0.0, 0.0],
+                            coordinates: "xyz".split('').map(
+                                d => dim.includes(d) ? uniform(padding, 1.0 - padding) : 0.5
+                            ),
+                            velocity: [0.1, 0.0, 0.0],
+                            links: {}
+                        })
+                    }
+                
+                    particles.forEach((p, ii) => {
+                        for (let jj=ii+1; jj<count; jj++) {
+                            p.links[jj] = {
+                                vec: p.coordinates.map((x, dd) => x - particles[jj].coordinates[dd]),
+                                spring: new runtime.Spring(0.002, 0.0, 0.0, 0.25, 0.1, 1 / Math.log(count))
+                            };
+                        }
+                    });
+                    return particles;
+                })(),
+                fade: 0.0,
+                count: count,
+                zero: 0.0, // performance.now(),
+                cursor: [0, 0, 0],
+                padding: padding,
+                streamline: true,
+                radius: 16,
+                torque: 3.0,
+                bounce: 0.2,
+                depth: Math.min(width, height),
+                control: 0.0,
+                color: "#ff00ff",
+                delta: {
+                    x: 0,
+                    y: 0,
+                    drag: 0.0,
+                    t: 0.0
+                }
+            };
+        
+            return () => {
+
+                ctx.lineWidth = 1;
+                ctx.strokeStyle = "#FFFFFF";
+
+                runtime.clear_rect_blending(ctx, ...shape.slice(0, 2), `#00000077`);
+                const {radius, particles, fade, bounce, padding, cursor} = struct;
+              
+        
+                struct.particles = particles.map(({links, heading, ...props}) => {
+                
+                    let {velocity, coordinates} = props;
+                    const speed = magnitude(velocity);
+                    const torque = cursor.map(item => item * struct.torque * (0.5 - coordinates[2]));
+                    
+                    runtime.Agent.draw_agent(
+                        ctx,
+                        particles.length,
+                        ...shape.slice(0, 2),
+                        ...coordinates,
+                        ...heading.slice(0, 2),
+                        fade,
+                        Math.max((shape[2] - coordinates[2])/shape[2] + 0.5, 0.0) * radius,
+                        "#FFFFFF"
+                    );
+            
+                    if (links) {
+                        Object.entries(links).forEach((link, jj)=>{
+                            const neighbor = particles[jj];
+                            const {spring, vec} = link;
+                            // const scale = spring.size(scale);
+                            
+                            // if (spring.drop()) return;
+                            // const dist = magnitude(vec);
+                            // spring.update(dist);
+                
+                            // const force = spring.force();
+                        });
+                    }
+                    
+                        
+                    
+            
+                        // let scaled = [];
+                        // Object.assign(link, {
+                        //     vec: vec.map((k, index) => {
+                        //         const delta = k / dist * force / struct.particles.length;
+                        //         velocity[index] += delta;
+                        //         neighbor.velocity[index] -= delta;
+                        //         const val = coordinates[index] - neighbor.coordinates[index];
+                        //         scaled.push(val * scale);
+                        //         return val;
+                        //     }),
+                        // });
+            
+                        // const start = coordinates.map((v, k) => v * shape[k] - scaled[k]);
+                        // const end = neighbor.coordinates.map((v, k) => v * shape[k] + scaled[k]);
+            
+                        // try {
+                        //     const grad = ctx.createLinearGradient(
+                        //         ...start.slice(0, 2),
+                        //         ...end.slice(0, 2)
+                        //     );
+                        //     grad.addColorStop(0, rgba(force, coordinates[2], fade));
+                        //     grad.addColorStop(1, rgba(force, end[2], fade));
+                        //     ctx.strokeStyle = grad;
+                        // } catch (e) {
+                        //     ctx.strokeStyle = "#FFFFFF";
+                        // } finally {
+                        //     ctx.globalAlpha = 1.0 / Math.log2(particles.length);
+                        //     ctx.beginPath();
+                        //     ctx.moveTo(...start.slice(0, 2));
+                        //     ctx.lineTo(...end.slice(0, 2));
+                        //     ctx.stroke();
+                        // }     
+                    
+            
+                    return ({
+                        coordinates: coordinates.map((X, kk) => {
+                            velocity[kk] += torque[kk];
+                            X += velocity[kk];
+                            if (X > 1.0 - padding) {
+                                X -= 2*(X - 1.0 - padding);
+                                velocity[kk] *= -bounce;
+                            } else if (X < padding) {
+                                X -= 2*(X - padding);
+                                velocity[kk] *= -bounce;
+                            }
+                            heading[kk] = speed > 0.00001 ? velocity[kk] / speed : heading[kk];
+                            return X
+                        }),
+                        heading, 
+                        velocity,
+                        torque,
+                        links,
+                    });
+                });
+            }
+        },
 
         HexagonalGrid: (ctx, width, height) => {
             return () => runtime.draw_hex_grid(ctx, width, height, ...cursor, "#FF00FF");
@@ -122,7 +284,7 @@ export default ({context="2d", key, shaders, caption, dataType, font="12px Arial
 
     useEffect(() => {
         
-        if (!run || !runtime) return;
+        if (!runtime) return;
 
         let requestId;
         let canvas = ref.current;
@@ -146,13 +308,11 @@ export default ({context="2d", key, shaders, caption, dataType, font="12px Arial
             requestId = requestAnimationFrame(render);
         })()
 
-        return () => {
-            cancelAnimationFrame(requestId);
-        }
-    }, [run]);
+        return () => cancelAnimationFrame(requestId);
+    
+    });
 
     return <StyledCanvas
-        onClick={()=>{setRun(!run)}}
         id={key}
         ref={ref} />;
 };

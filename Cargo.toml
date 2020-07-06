@@ -8,7 +8,7 @@ license = "MIT"
 repository = "git+https://bitbucket.org/oceanicsdotio/oceanics.io.git"
 
 [lib]
-path = "rust-src/lib.rs"
+path = "src/rust/lib.rs"
 crate-type = ["cdylib"]
 
 [dependencies]

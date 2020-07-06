@@ -330,11 +330,12 @@ export default (props) => {
             </div>
             {showCanvas?(
                 <>
-                <Canvas caption="DataStream" dataType="DataStream"/>
+                <Canvas caption="Particles" dataType="Particles"/>
+                {/* <Canvas caption="DataStream" dataType="DataStream"/>
                 <Canvas caption="TriangularMesh" dataType="TriangularMesh"/>
                 <Canvas caption="RectilinearGrid" dataType="RectilinearGrid"/>
                 <Canvas caption="Cursor" dataType="Cursor"/>
-                <Canvas caption="HexagonalGrid" dataType="HexagonalGrid"/>
+                <Canvas caption="HexagonalGrid" dataType="HexagonalGrid"/> */}
                 </>
             ):null}
             {!showMap && !showCatalog && !showObjectStorage && !showCanvas ? <StyledTip>↑ Select some data sources and sinks    to get started.</StyledTip> : null}

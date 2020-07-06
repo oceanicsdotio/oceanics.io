@@ -21,7 +21,7 @@
     "gatsby-link": "^2.2.30",
     "gatsby-plugin-create-client-paths": "^2.1.6",
     "gatsby-plugin-manifest": "^2.2.39",
-    "gatsby-plugin-offline": "^3.0.32",
+    "gatsby-plugin-offline": "^3.2.16",
     "gatsby-plugin-react-helmet": "^3.1.21",
     "gatsby-plugin-sharp": "^2.4.3",
     "gatsby-react-router-scroll": "^2.1.23",
@@ -66,7 +66,6 @@
     "develop": "gatsby develop",
     "start": "npm run develop",
     "serve": "gatsby serve",
-    "clean": "gatsby clean",
-    "test": "echo \"Write tests! -> https://gatsby.dev/unit-testing\" && exit 1"
+    "clean": "gatsby clean"
   }
 }

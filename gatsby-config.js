@@ -70,6 +70,7 @@ module.exports = {
     {
       resolve: `gatsby-plugin-create-client-paths`,
       options: { prefixes: [`/catalog/*`] },
-    }
+    },
+     `gatsby-plugin-offline`,  // service worker implementation
   ],
 }

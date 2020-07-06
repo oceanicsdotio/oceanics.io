@@ -31,11 +31,6 @@ class ArrayBuffer {
     }
 }
 
-const magnitude = (vec) => {
-    return Math.sqrt(
-        vec.map(x => x*x).reduce((a, b) => a+b, 0.0)
-    )
-};
 
 const rgba = (x, z, fade) => {
     const color = x > 0.0 ? "255, 0, 0" : "0, 0, 255";
