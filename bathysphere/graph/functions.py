@@ -11,6 +11,7 @@ from uuid import uuid4
 from typing import Callable, Any
 from passlib.apps import custom_app_context
 from flask import request
+from neo4j import Record
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from itsdangerous.exc import BadSignature
 
@@ -204,7 +205,7 @@ def token(
         .decode("ascii")
     )
 
-    return {"token": _token, "duration": provider.tokenDuration,}, 200
+    return {"token": _token, "duration": provider.tokenDuration}, 200
 
 
 @context
@@ -212,20 +213,18 @@ def catalog(db: Driver, user: User, **kwargs) -> ResponseJSON:
     """
     Usage 1. Get references to all entity sets, or optionally filter
     """
-
-    query = lambda tx: tx.run(
-        f"CALL db.labels()"
-    )
+    def labelQuery(tx) -> [Record]:
+        return [r for r in tx.run(f"CALL db.labels()")]
     
-    records = executeQuery(db, query, read_only=True)
+    records = executeQuery(db=db, method=labelQuery, read_only=True)
     labels = list(set(r["label"] for r in records) - RESTRICTED)
 
-    def _item(name: str) -> dict:
+    def transducer(name: str) -> dict:
         """Item formatter"""
         key = f"{name}-{datetime.utcnow().isoformat()}"
         return {key: {"name": name, "url": f"http://{default_service}/api/{name}"}}
 
-    return {"value": list(map(_item, labels))}, 200
+    return {"value": list(map(transducer, labels))}, 200
 
 
 @context
@@ -290,10 +289,14 @@ def collection(db: Driver, user: User, entity: str) -> ResponseJSON:
     """
     Usage 2. Get all entities of a single class
     """
+
+    result: (Record) = eval(entity).load(db=db, user=user)
+
     items = tuple(
         item.serialize(db=db, service=default_service)
-        for item in (eval(entity).load(db=db, user=user) or ())
+        for item in result
     )
+    
     return {"@iot.count": len(items), "value": items}, 200
 
 

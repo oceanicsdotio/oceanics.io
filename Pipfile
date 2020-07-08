@@ -59,6 +59,7 @@ urllib3 = "<1.25,>=1.21.1"
 pdoc3 = "*"
 lxml = "*"
 html5lib = "*"
+bs4 = "*"
 
 [packages.e1839a8]
 path = "."

@@ -983,6 +983,43 @@ class FileSystem:
         return collector
 
     @staticmethod
+    def indexFromHtmlTable(
+        uriPattern: str, 
+        start: datetime = None, 
+        end: datetime = None, fmt: 
+        str = "%Y%m%d%H%M%S"
+    ) -> [[dict]]:
+        """
+        Get the entries for all remote files on server in years of interest.
+
+        :param host: hostname
+        :param start: datetime object
+        :param end: datetime object
+        :param fmt: datetime str formatter
+        :return:
+        """
+        
+        def fetch(year: int):
+            nameFilter = lambda x: isinstance(x[1], str) and f"{year}" in x[1]
+            table = array(read_html(uriPattern.format(year)).pop())
+            filtered = array(list(filter(nameFilter, table))).T
+            names = filtered[1, :]
+            dates = array([datetime.strptime(name[:14], fmt) for name in names])
+            timestamps = filtered[2, :]
+            size = filtered[3,:]
+
+            if year in (start.year, end.year):
+                (indices,) = where((start < dates) & (end + timedelta(days=1) > dates))
+                iterator = zip(names[indices], dates[indices], timestamps[indices], size[indices])
+            else:
+                iterator = zip(names, dates, timestamps, size)
+    
+            return [File(name=name, time=date, ts=ts, kb=sz) for name, date, ts, sz in iterator]
+
+        return list(map(fetch, range(start.year, end.year+1)))
+        
+
+    @staticmethod
     async def indexTaskTree(url, enum, count=0, depth=2, auth=None):
         # type: (str, int, int, int, (str, )) -> datetime or None
         """

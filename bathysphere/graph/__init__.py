@@ -97,7 +97,7 @@ def executeQuery(
     Execute one or more cypher queries in an equal number of transactions against the
     Neo4j graph database.
     """
-    with db.session(access_mode="read") as session:
+    with db.session() as session:
         _transact = session.read_transaction if read_only else session.write_transaction
         if kwargs:
             return [_transact(method, **each) for each in kwargs]

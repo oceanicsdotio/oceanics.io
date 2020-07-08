@@ -15,7 +15,8 @@ from time import time
 from functools import reduce
 
 from requests import get
-from neo4j import Driver
+from neo4j import Driver, Record, Result, GraphDatabase
+from neo4j.spatial import WGS84Point
 import attr
 
 from bathysphere import models
@@ -140,7 +141,11 @@ class Link:
             f"SET r.rank = r.rank + 1 "
             f"RETURN {result}"
         )
-        return executeQuery(db, lambda tx: tx.run(cmd).values(), read_only=True)
+
+        def runQuery(tx):
+            return [r for r in tx.run(cmd)]
+
+        return executeQuery(db=db, method=runQuery, read_only=True)
 
 
 @attr.s(repr=False)
@@ -414,28 +419,29 @@ class Entity:
             Special parsing for serialization on query
             """
             key, value = keyValue
-            if key == "location":
-                try:
-                    return (
-                        key,
-                        {
-                            "type": "Point",
-                            "coordinates": eval(value) if isinstance(value, str) else value,
-                        },
-                    ) 
-                except NameError:
-                    return key, None
-            
-            return key[1:] if key[0] == "_" else key, value
 
-        payload = []
-        for rec in executeQuery(
-            db=db, method=lambda tx: tx.run(cmd).values(), read_only=True
-        ):
-            payload.append(
-                cls(**dict(map(processKeyValueOutbound, dict(rec[0]).items())))
-            )
-        return payload
+            if key[0] == "_":
+                key = key[1:]
+
+            if isinstance(value, WGS84Point):
+
+                value = {
+                    "type": "Point",
+                    "coordinates": f"{[value.longitude, value.latitude]}"
+                }
+                 
+            return key, value
+
+        def transducer(record: Record):
+            return cls(**dict(map(processKeyValueOutbound, dict(record[0]).items())))
+
+        def runQuery(tx):
+            result = tx.run(cmd)
+            return [r for r in result]
+
+        return list(map(transducer, executeQuery(
+            db=db, method=runQuery, read_only=True
+        )))
 
     @polymorphic
     def mutate(self: Type, db: Driver, data: dict, pattern: dict = None) -> None:

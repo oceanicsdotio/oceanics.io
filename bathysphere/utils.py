@@ -193,39 +193,6 @@ def generateStream(columns, records):
     yield dumps(dict(zip(columns, prev))) + "]"
 
 
-def avhrr_index(
-    host: str, start: datetime = None, end: datetime = None, fmt: str = "%Y%m%d%H%M%S"
-) -> [[dict]]:
-    # type: (str, datetime, datetime, str) -> [list]
-    """
-    Get the entries for all remote files on server in years of interest.
-
-    :param host: hostname
-    :param start: datetime object
-    :param end: datetime object
-    :param fmt: datetime str formatter
-    :return:
-    """
-    result = []
-    for year in arange(start.year, end.year + 1):
-        names = read_html(f"{host}/pathfinder/Version5.3/L3C/{year}/data/", skiprows=3)[
-            0
-        ][1][:-1]
-        dates = [
-            datetime.strptime(item[:14], fmt) for item in names
-        ]  # date from filename
-
-        if year in (start.year, end.year):
-            data = array(dates)
-            mask = (start < data) & (end + timedelta(days=1) > data)
-            (indices,) = where(mask)
-            files = [{"name": names[ii], "ts": data[ii]} for ii in indices]
-        else:
-            files = [{"name": name, "ts": date} for name, date in zip(names, dates)]
-        result += files
-    return result
-
-
 def synchronous(task, loop=None, close=False):
     # type: (Coroutine, BaseEventLoop, bool) -> Any
     """
