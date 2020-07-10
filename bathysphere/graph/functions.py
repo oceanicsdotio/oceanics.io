@@ -15,6 +15,7 @@ from neo4j import Record
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from itsdangerous.exc import BadSignature
 
+from bathysphere import Lexicon
 from bathysphere.datatypes import ResponseJSON
 from bathysphere.graph import connect, Driver, executeQuery, RESTRICTED
 from bathysphere.graph.models import (
@@ -207,6 +208,26 @@ def token(
 
     return {"token": _token, "duration": provider.tokenDuration}, 200
 
+
+@context
+def codex(
+    db: Driver, 
+    user: User,
+    word: str,
+    mutations: int = 2,
+    **kwargs
+) -> ResponseJSON:
+   
+    return {"value": tuple(
+        chain(
+            *chain(
+                Lexicon.searchRecursive(
+                    node, symbol, word, tuple(range(len(word) + 1)), mutations
+                )
+                for symbol, node in Lexicon.children.items()
+            )
+        )
+    )}, 200
 
 @context
 def catalog(db: Driver, user: User, **kwargs) -> ResponseJSON:

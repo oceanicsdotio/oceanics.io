@@ -185,6 +185,29 @@ paths:
         '400':
           $ref: '#/components/responses/BadRequest'
 
+  /codex:
+
+    get:
+      tags: [Catalog]
+      operationId: bathysphere.graph.functions.codex
+      summary: Codex
+      description: |
+        Look up a word or phrase
+      parameters:
+        - name: word
+          in: query
+          schema:
+            type: string
+        
+        - name: mutations
+          in: query
+          schema:
+            type: integer
+
+      responses:
+        '200':
+          description: Codex
+            
   /:
 
     get:
