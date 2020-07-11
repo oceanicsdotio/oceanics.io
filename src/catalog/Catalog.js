@@ -53,7 +53,8 @@ const StyledHighlight = styled.div`
 
 export default ({edges}) => {
 
-    const [ accessToken, setAccessToken ] = useState(null);
+    let accessToken = localStorage.getItem("accessToken");
+    const baseUrl = "http://localhost:5000/api/";
 
     const [ visibility, setVisibility ] = useState({
         map: false,
@@ -73,44 +74,39 @@ export default ({edges}) => {
         style: {}
     });
 
-    const baseUrl = "http://localhost:5000/api/";
 
-    useEffect(()=>{
-        setAccessToken(localStorage.getItem("accessToken"))
-    },[]);
+    function openDatabase({callback, ...args}) {
 
-    // function openDatabase({callback, ...args}) {
+        let request = indexedDB.open(DB_NAME, DB_VERSION); // IDBOpenDBRequest
+        let db;
 
-    //     let request = indexedDB.open(DB_NAME, DB_VERSION); // IDBOpenDBRequest
-    //     let db;
+        request.onerror = (event) => {
+            console.log(event);
+        };
 
-    //     request.onerror = (event) => {
-    //         console.log(event);
-    //     };
+        request.onsuccess = (event) => {
+            db = event.target.result;
+            callback({db, ...args});
+        };
 
-    //     request.onsuccess = (event) => {
-    //         db = event.target.result;
-    //         callback({db, ...args});
-    //     };
+        request.onblocked = (_) => {
+            console.log("Close other open tabs to allow database upgrade");
+        };
 
-    //     request.onblocked = (_) => {
-    //         console.log("Close other open tabs to allow database upgrade");
-    //     };
+        // only implemented in recent browsers
+        request.onupgradeneeded = (event) => {
+            db = event.target.result;
+            let objectStore;
+            if (!db.objectStoreNames.contains(DB_STORE)) {
+                objectStore = db.createObjectStore(DB_STORE, { keyPath: "url" });
+            } else {
+                objectStore = request.transaction.objectStore(DB_STORE);
+            }
 
-    //     // only implemented in recent browsers
-    //     request.onupgradeneeded = (event) => {
-    //         db = event.target.result;
-    //         let objectStore;
-    //         if (!db.objectStoreNames.contains(DB_STORE)) {
-    //             objectStore = db.createObjectStore(DB_STORE, { keyPath: "url" });
-    //         } else {
-    //             objectStore = request.transaction.objectStore(DB_STORE);
-    //         }
+            // objectStore.createIndex("value", "value", { unique: false });
 
-    //         // objectStore.createIndex("value", "value", { unique: false });
-
-    //     };
-    // }
+        };
+    }
 
 
     // const deleteObservation = ({key}) => {
@@ -239,7 +235,7 @@ export default ({edges}) => {
                 if (value === undefined) {
                     console.log("There was a problem fetching "+url, response);
                     localStorage.removeItem("accessToken");
-                    setAccessToken(null);
+                    accessToken = null;
                     navigate('/');
                 }
             }
@@ -292,7 +288,7 @@ export default ({edges}) => {
             if (catalog.value === undefined) {
                 console.log("Error fetching catalog", catalog);
                 localStorage.removeItem("accessToken");
-                setAccessToken(null);
+                accessToken = null;
             } else {
                 setState(state => ({
                     ...state,
