@@ -9,6 +9,7 @@ import Table from "../components/Table";
 import {queryBathysphere} from "../bathysphere";
 import Canvas from "../components/Canvas";
 import Storage from "../components/Storage";
+import Codex from "../components/Codex";
 
 const DB_NAME = "indexed-db-testing";
 const DB_VERSION = 2;
@@ -50,17 +51,21 @@ const StyledHighlight = styled.div`
 `;
 
 
+export default ({edges}) => {
 
+    const [ accessToken, setAccessToken ] = useState(null);
 
-export default (props) => {
+    const [ visibility, setVisibility ] = useState({
+        map: false,
+        graph: false,
+        meshes: false,
+        objectStorage: false,
+        codex: false,
+        datastream: false,
+        particles: false,
+        cursor: false,
+    });
 
-    let accessToken = localStorage.getItem("accessToken");
-    const baseUrl = "http://localhost:5000/api/";
-
-    const [ showMap, setShowMap ] = useState(false);
-    const [ showCatalog, setShowCatalog ] = useState(false);
-    const [ showCanvas, setShowCanvas ] = useState(false);
-    const [ showObjectStorage, setShowObjectStorage ] = useState(false);
     const [ state, setState ] = useState({
         catalog: [],
         entities: {},
@@ -68,39 +73,44 @@ export default (props) => {
         style: {}
     });
 
+    const baseUrl = "http://localhost:5000/api/";
 
-    function openDatabase({callback, ...args}) {
+    useEffect(()=>{
+        setAccessToken(localStorage.getItem("accessToken"))
+    },[]);
 
-        let request = indexedDB.open(DB_NAME, DB_VERSION); // IDBOpenDBRequest
-        let db;
+    // function openDatabase({callback, ...args}) {
 
-        request.onerror = (event) => {
-            console.log(event);
-        };
+    //     let request = indexedDB.open(DB_NAME, DB_VERSION); // IDBOpenDBRequest
+    //     let db;
 
-        request.onsuccess = (event) => {
-            db = event.target.result;
-            callback({db, ...args});
-        };
+    //     request.onerror = (event) => {
+    //         console.log(event);
+    //     };
 
-        request.onblocked = (_) => {
-            console.log("Close other open tabs to allow database upgrade");
-        };
+    //     request.onsuccess = (event) => {
+    //         db = event.target.result;
+    //         callback({db, ...args});
+    //     };
 
-        // only implemented in recent browsers
-        request.onupgradeneeded = (event) => {
-            db = event.target.result;
-            let objectStore;
-            if (!db.objectStoreNames.contains(DB_STORE)) {
-                objectStore = db.createObjectStore(DB_STORE, { keyPath: "url" });
-            } else {
-                objectStore = request.transaction.objectStore(DB_STORE);
-            }
+    //     request.onblocked = (_) => {
+    //         console.log("Close other open tabs to allow database upgrade");
+    //     };
 
-            // objectStore.createIndex("value", "value", { unique: false });
+    //     // only implemented in recent browsers
+    //     request.onupgradeneeded = (event) => {
+    //         db = event.target.result;
+    //         let objectStore;
+    //         if (!db.objectStoreNames.contains(DB_STORE)) {
+    //             objectStore = db.createObjectStore(DB_STORE, { keyPath: "url" });
+    //         } else {
+    //             objectStore = request.transaction.objectStore(DB_STORE);
+    //         }
 
-        };
-    }
+    //         // objectStore.createIndex("value", "value", { unique: false });
+
+    //     };
+    // }
 
 
     // const deleteObservation = ({key}) => {
@@ -229,7 +239,7 @@ export default (props) => {
                 if (value === undefined) {
                     console.log("There was a problem fetching "+url, response);
                     localStorage.removeItem("accessToken");
-                    accessToken = null;
+                    setAccessToken(null);
                     navigate('/');
                 }
             }
@@ -282,7 +292,7 @@ export default (props) => {
             if (catalog.value === undefined) {
                 console.log("Error fetching catalog", catalog);
                 localStorage.removeItem("accessToken");
-                accessToken = null;
+                setAccessToken(null);
             } else {
                 setState(state => ({
                     ...state,
@@ -295,64 +305,46 @@ export default (props) => {
     }, []); 
 
     const Catalog = () => {
+
         return (
             
-        <div>
-            <hr/>
             <div>
-            <StatefulButton 
-                onClick={() => setShowCatalog(!showCatalog)} 
-                active={showCatalog} 
-                text={"Graph ↻"} 
-                altText={"Graph ⤫"} 
-            />
-
-            <StatefulButton 
-                onClick={() => setShowMap(!showMap)} 
-                active={showMap} 
-                text={"Map ↻"} 
-                altText={"Map ⤫"} 
-            />
-
-            <StatefulButton 
-                onClick={() => setShowCanvas(!showCanvas)} 
-                active={showCanvas} 
-                text={"Canvas ↻"} 
-                altText={"Canvas ⤫"} 
-            />
-
-            <StatefulButton 
-                onClick={() => setShowObjectStorage(!showObjectStorage)} 
-                active={showObjectStorage} 
-                text={"Objects ↻"} 
-                altText={"Objects ⤫"} 
-            />
+                <hr/>
+                <div>
+                    {Object.keys(visibility).map((key)=>{
+                        const displayText = key;
+                        return <StatefulButton 
+                            onClick={() => setVisibility({...visibility, [key]: !visibility[key]})} 
+                            active={visibility[key]} 
+                            text={`${displayText} ↻`} 
+                            altText={`${displayText} ⤫`}  
+                        />
+                    }
+                    )}
+                </div>
+                {visibility.map ? <Map layers={state.layers} style={state.style}/> : null}
+                {visibility.codex?<Codex edges={edges} token={accessToken} baseUrl={baseUrl}/>:null}
+                {visibility.datastream?<Canvas caption="DataStream" dataType="DataStream"/>:null}
+                {visibility.particles?<Canvas caption="Particles" dataType="Particles"/>:null}
+                {visibility.cursor?<Canvas caption="Cursor" dataType="Cursor"/>:null}
+                {visibility.meshes?(
+                    <>
+                    <Canvas caption="TriangularMesh" dataType="TriangularMesh"/>
+                    <Canvas caption="RectilinearGrid" dataType="RectilinearGrid"/>
+                    <Canvas caption="HexagonalGrid" dataType="HexagonalGrid"/>
+                    </>
+                ):null}
+                {visibility.graph ? state.catalog.map(([k, v]) => <Collection {...v}/>).flat() : null}
+                {visibility.objectStorage ? <Storage /> : null}
+                {!Object.values(visibility).some(x => x) ? <StyledTip>↑ Select some data sources and sinks to get started.</StyledTip> : null}
+                
             </div>
-            {showCanvas?(
-                <>
-                <Canvas caption="Particles" dataType="Particles"/>
-                {/* <Canvas caption="DataStream" dataType="DataStream"/>
-                <Canvas caption="TriangularMesh" dataType="TriangularMesh"/>
-                <Canvas caption="RectilinearGrid" dataType="RectilinearGrid"/>
-                <Canvas caption="Cursor" dataType="Cursor"/>
-                <Canvas caption="HexagonalGrid" dataType="HexagonalGrid"/> */}
-                </>
-            ):null}
-            {!showMap && !showCatalog && !showObjectStorage && !showCanvas ? <StyledTip>↑ Select some data sources and sinks    to get started.</StyledTip> : null}
-            {showMap ? <Map layers={state.layers} style={state.style}/> : null}
-            {showCatalog ? state.catalog.map(([k, v]) => <Collection {...v}/>).flat() : null}
-            {showObjectStorage ? <Storage /> : null}
-            
-        </div>
-    )
+        )
     };
 
     return (
-        <Layout>
-            <SEO title="Situational awareness for a changing ocean" />
-            <Router>
-                <PrivateRoute path="/catalog/" component={Catalog} />
-            </Router>
-        </Layout>
+        <Router>
+            <PrivateRoute path="/catalog/" component={Catalog} />
+        </Router>
     )
 }

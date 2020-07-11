@@ -1,9 +1,8 @@
 
 import { rhythm } from "../typography";
 import styled from "styled-components";
-import Header from "./Header";
 
-import React, {useState}  from "react"
+import React, {useState, useEffect}  from "react"
 import { Link, navigate } from "gatsby"
 import Form from "../components/Form"
 import {queryBathysphere} from "../bathysphere";
@@ -65,6 +64,22 @@ const StyledNavBar = styled.nav`
     margin-bottom: 1.45rem;
 `;
 
+const StyledHeaderDiv = styled.div`
+    margin: 0 auto;
+    max-width: 960;
+    padding: 1.45rem 1.0875rem;
+`;
+
+const StyledHeader = styled.header`
+    background: none;
+    margin-bottom: 0;
+`;
+
+const StyledSiteTitle = styled.h1`
+    margin: 0;
+`;
+
+
 const cultureMethods = ["Bottom", "Rope (Horizontal)", "Rope (Vertical)", "Ear hang (Scallop)", "Midwater (Cage/Basket)"];
 const cultureSpecies = ["Oysters", "Scallops", "Mussels", "Macroalgae", "Finfish"];
 const stages = ['Prospecting', "Applying", "Operating", "Renewing", "Expanding"];
@@ -84,9 +99,9 @@ export const StatefulButton = ({text, active=false, onClick, altText}) => {
     return <StyledButton onClick={onClick} active={active}>{active ? altText : text}</StyledButton>
 };
 
-const LoginContainer = (props) => {
 
-    const {callbacks} = props;
+const LoginContainer = ({callbacks}) => {
+
     const [register, setRegister] = useState(false);
     
     const fields = [
@@ -151,59 +166,73 @@ const LoginContainer = (props) => {
 export default ({ children }) => {
 
     const [dialog, setDialog] = useState(false);
-    let accessToken = localStorage.getItem("accessToken");
+    const [accessToken, setAccessToken] = useState(null);
 
     const baseUrl = "http://localhost:5000/api/";
     const auth = "bathysphere@oceanics.io:n0t_passw0rd";
     let itemIndex = 0;
   
+
+    useEffect(()=>{
+        setAccessToken(localStorage.getItem("accessToken"));
+    },[]);
+
+    const setRestriction = async () => {
+        if (accessToken) {
+            setAccessToken(null);
+            localStorage.removeItem("accessToken");
+            navigate(`/`);
+        } else {
+            setDialog(!accessToken && !dialog);
+        }       
+    };
+
+    const login = async () => {
+        const token = await queryBathysphere(baseUrl + "auth", auth).then(x => x.json());
+        if (!("token" in token)) {
+            console.log("Error authorizing", token);
+        } else {
+            console.log("Successfully retrieved token", token.token);
+            localStorage.setItem("accessToken", token.token);
+            setAccessToken(token.token);
+            setDialog(false);
+            navigate(`/catalog/`);
+        }  
+    };
+
     return (
         <StyledLayout>
-            <Header siteTitle={"Oceanicsdotio"}/>
+              <StyledHeader>
+                <StyledHeaderDiv>
+                <StyledSiteTitle>
+                    <Link
+                    to="/"
+                    style={{
+                        boxShadow: `none`,
+                        color: `inherit`
+                    }}
+                    >
+                    {"Oceanicsdotio"}
+                    </Link>
+                </StyledSiteTitle>
+                </StyledHeaderDiv>
+            </StyledHeader>
             <StyledNavBar>
                 <ul>
-                <ListLink key={itemIndex++} to="/tags">Tags</ListLink>
-                <ListLink key={itemIndex++} href="https://graph.oceanics.io" external={true}>API</ListLink>
-                <ListLink key={itemIndex++} to="/legal">Legal</ListLink>
-                {accessToken ? <ListLink key={itemIndex++} to="/catalog">Catalog</ListLink> : null}
-            
-                <StatefulButton 
-                    key={itemIndex++}
-                    onClick={async () => {
-                        if (accessToken) {
-                            accessToken = null;
-                            localStorage.removeItem("accessToken");
-                            navigate(`/`);
-                        } else {
-                            setDialog(!accessToken && !dialog);
-                        }
-                            
-                    }} 
-                    active={dialog} 
-                    text={accessToken ? "Logout" : "Login"} 
-                    altText={"Close"} 
-                />
+                    <ListLink key={itemIndex++} to="/tags">Tags</ListLink>
+                    <ListLink key={itemIndex++} href="https://graph.oceanics.io" external={true}>API</ListLink>
+                    <ListLink key={itemIndex++} to="/legal">Legal</ListLink>
+                    {accessToken ? <ListLink key={itemIndex++} to="/catalog/"><img src="/boat.gif"/></ListLink> : null}
+                
+                    <StatefulButton 
+                        key={itemIndex++}
+                        onClick={setRestriction} 
+                        active={dialog} 
+                        text={accessToken ? "Logout" : "Login"} 
+                        altText={"Close"} 
+                    />
                 </ul>
-                
-
-                {dialog && !accessToken ? 
-                    <LoginContainer 
-                        callbacks={{login: async () => {
-                            const token = await queryBathysphere(baseUrl + "auth", auth).then(x => {return x.json()});
-                            if (!("token" in token)) {
-                                console.log("Error authorizing", token);
-                            } else {
-                                console.log("Successfully retrieved token", token.token);
-                                localStorage.setItem("accessToken", token.token);
-                                accessToken = token.token;
-                                setDialog(false);
-                                navigate(`/catalog/`);
-                            }  
-                        }}}
-                    /> : null
-                }
-
-                
+                {dialog && !accessToken ? <LoginContainer callbacks={{login}}/> : null}
             </StyledNavBar>
             <main>{children}</main>
             <footer>

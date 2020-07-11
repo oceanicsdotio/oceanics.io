@@ -3,6 +3,9 @@ const _ = require("lodash");
 const { createFilePath } = require(`gatsby-source-filesystem`);
 const WasmPackPlugin = require("@wasm-tool/wasm-pack-plugin");
 
+// https://www.gatsbyjs.org/docs/debugging-html-builds/
+// https://loadable-components.com/
+
 exports.onCreateWebpackConfig = ({ stage, loaders, actions }) => {
     if (stage === 'build-html') {
         actions.setWebpackConfig({
@@ -11,7 +14,10 @@ exports.onCreateWebpackConfig = ({ stage, loaders, actions }) => {
                     {
                         test: /mapbox-gl/,
                         use: loaders.null(),
-                    }
+                    },{
+                        test: /wasm/,
+                        use: loaders.null(),
+                    },
                 ]
             }
         })

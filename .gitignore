@@ -72,3 +72,6 @@ yarn-error.log
 .idea/
 target/
 Cargo.lock
+
+# Local Netlify folder
+.netlify
