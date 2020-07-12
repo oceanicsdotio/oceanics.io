@@ -202,21 +202,21 @@ export default ({ children }) => {
 
     return (
         <StyledLayout>
-              <StyledHeader>
+              {/* <StyledHeader>
                 <StyledHeaderDiv>
-                <StyledSiteTitle>
-                    <Link
-                    to="/"
-                    style={{
-                        boxShadow: `none`,
-                        color: `inherit`
-                    }}
-                    >
-                    {"Oceanicsdotio"}
-                    </Link>
-                </StyledSiteTitle>
+                    <StyledSiteTitle>
+                        <Link
+                            to="/"
+                            style={{
+                                boxShadow: `none`,
+                                color: `inherit`
+                            }}
+                            >
+                            {"Oceanicsdotio"}
+                        </Link>
+                    </StyledSiteTitle>
                 </StyledHeaderDiv>
-            </StyledHeader>
+            </StyledHeader> */}
             <StyledNavBar>
                 <ul>
                     <ListLink key={itemIndex++} to="/tags">Tags</ListLink>
