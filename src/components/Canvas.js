@@ -230,15 +230,15 @@ export default ({context="2d", key, shaders, caption, dataType, font="12px Arial
         }
     };
     
-    useEffect(()=>{
-        /*
-        Import the WebAssembly module and set the runtime of the Component.
-        */
-        (async () => {
-            const wasm = await import('../wasm');
-            setRuntime(wasm);
-        })()
-    },[]);
+    // useEffect(()=>{
+    //     /*
+    //     Import the WebAssembly module and set the runtime of the Component.
+    //     */
+    //     (async () => {
+    //         const wasm = await import('../wasm');
+    //         setRuntime(wasm);
+    //     })()
+    // },[]);
 
     useEffect(()=>{
         /*

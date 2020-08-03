@@ -53,7 +53,7 @@ const StyledHighlight = styled.div`
 
 export default ({edges}) => {
 
-    let accessToken = localStorage.getItem("accessToken");
+    let accessToken = null; //localStorage.getItem("accessToken");
     const baseUrl = "http://localhost:5000/api/";
 
     const [ visibility, setVisibility ] = useState({
