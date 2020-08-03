@@ -1,28 +1,24 @@
-import React from "react"
-import { Link, graphql } from "gatsby"
+import React from "react";
+import { Link, graphql } from "gatsby";
 
-import Layout from "../components/Layout"
-import SEO from "../components/seo"
-import { rhythm, scale } from "../utils/typography"
+import Layout from "../components/Layout";
+import SEO from "../components/SEO";
+import { rhythm, scale } from "../typography";
 require(`katex/dist/katex.min.css`)
 
-class BlogPostTemplate extends React.Component {
-  render() {
-    const post = this.props.data.markdownRemark
-    const siteTitle = this.props.data.site.siteMetadata.title
-    const { previous, next } = this.props.pageContext
-
+const BlogPostTemplate = ({data: {markdownRemark: {frontmatter, excerpt, html}, site: {siteMetadata: {title}}}, pageContext: {next, previous}, location}) => {
+ 
     return (
-      <Layout location={this.props.location} title={siteTitle}>
+      <Layout location={location} title={title}>
         <SEO
-          title={post.frontmatter.title}
-          description={post.frontmatter.description || post.excerpt}
+          title={frontmatter.title}
+          description={frontmatter.description || excerpt}
         />
         <article>
 
           <header>
             <h1 style={{marginTop: rhythm(1), marginBottom: 0}}>
-              {post.frontmatter.title}
+              {frontmatter.title}
             </h1>
             <p
               style={{
@@ -31,11 +27,11 @@ class BlogPostTemplate extends React.Component {
                 marginBottom: rhythm(1),
               }}
             >
-              {post.frontmatter.date}
+              {frontmatter.date}
             </p>
           </header>
           <hr/>
-          <section dangerouslySetInnerHTML={{ __html: post.html }} />
+          <section dangerouslySetInnerHTML={{ __html: html }} />
           <hr
             style={{
               marginBottom: rhythm(1),
@@ -72,7 +68,6 @@ class BlogPostTemplate extends React.Component {
         </nav>
       </Layout>
     )
-  }
 }
 
 export default BlogPostTemplate

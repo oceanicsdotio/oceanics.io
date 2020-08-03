@@ -1,32 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import mapboxgl from "mapbox-gl";
-import styled from "styled-components";
+import styled, {keyframes} from "styled-components";
 import "mapbox-gl/dist/mapbox-gl.css";
+import {loadGeoJSON} from "../bathysphere";
 
-
-const loadGeoJSON = async (mapInstance, layers) => {
-    /*
-    Asynchronously retrieve the geospatial data files and parse them
-     */
-    return await Promise.all(layers.map(async ({ render, behind }) => {
-
-        const url = "/" + render.id + ".json";
-
-        try {
-            render.source = {
-                'type': 'geojson',
-                'data': await fetch(url).then(r => r.json()),
-                'generateId': true,
-            };
-        } catch {
-            console.log("Error fetching " + url);
-            return { layer: null, behind: null };
-        }
-        mapInstance.addLayer(render);
-        return { layer: render.id, behind };
-    }));
-};
+mapboxgl.accessToken = 'pk.eyJ1Ijoib2NlYW5pY3Nkb3RpbyIsImEiOiJjazMwbnRndWkwMGNxM21wYWVuNm1nY3VkIn0.5N7C9UKLKHla4I5UdbOi2Q';
 
 
 const StyledListItem = styled.li`
@@ -37,13 +16,34 @@ const StyledOrderedList = styled.ol`
     padding-left: 20px;
 `;
 
+const shift = keyframes`
+    0%     {border-color:#CCCCCC;}
+    50.0%  {border-color:#77CCFF;}
+    100.0%  {border-color:#CCCCCC;}
+`;
+
+
 const StyledMapContainer = styled.div`
-    position: absolute;
+    position: relative;
     display: block;
-    top: 0;
-    right: 0;
-    left: 0;
-    bottom: 0;
+    height: 200px;
+    width: 100%;
+    border: solid 1px;
+    color: #CCCCCC;
+    padding: 3%;
+    animation: ${shift} 1s linear infinite;
+     
+    &:hover {
+        position: fixed;
+        height: 90%;
+        width: 90%;
+        top: 50%;
+        left: 50%;
+        margin-right: -50%;
+        transform: translate(-50%, -50%);
+        animation: none;
+        z-index: 1;
+    }
 `;
 
 const PopUpContent = styled.div`
@@ -92,7 +92,7 @@ const addFeatureEvent = (mapInstance) => {
 };
 
 
-const addHighlightEvent = (mapInstance, featureSet) => {
+const addHighlightEvent = (map, featureSet) => {
     /*
     When the cursor position interesects with the space
     defined by a feature set, set the hover state to true.
@@ -103,73 +103,76 @@ const addHighlightEvent = (mapInstance, featureSet) => {
 
     let featureId = null;
 
-    mapInstance.on('mouseenter', featureSet, function (e) {
+    map.on('mouseenter', featureSet, (e) => {
         featureId = e.features[0].id;
-        mapInstance.setFeatureState({ source: featureSet, id: featureId }, { hover: true });
+        map.setFeatureState({ source: featureSet, id: featureId }, { hover: true });
     });
 
-    mapInstance.on('mouseleave', featureSet, function () {
-        mapInstance.setFeatureState({ source: featureSet, id: featureId }, { hover: false });
+    map.on('mouseleave', featureSet, () => {
+        map.setFeatureState({ source: featureSet, id: featureId }, { hover: false });
         featureId = null;
     });
 };
 
 
-export default () => {
+export default ({layers, style, radius=0}) => {
 
-    let radius = 0;
     const [map, setMap] = useState(null);
-    const mapContainer = useRef(null);
+    const container = useRef(null);
 
     useEffect(() => {
+  
+        if (!map) {
+            (async () => {
 
-        mapboxgl.accessToken = 'pk.eyJ1Ijoib2NlYW5pY3Nkb3RpbyIsImEiOiJjazMwbnRndWkwMGNxM21wYWVuNm1nY3VkIn0.5N7C9UKLKHla4I5UdbOi2Q';
+                const map = new mapboxgl.Map({
+                    container: container.current,
+                    style,
+                    bearing: -30,
+                    center: [-69, 44],
+                    zoom: 7,
+                    antialias: false,
+                });
 
-        const initializeMap = async ({ setMap, mapContainer }) => {
+            
+                map.on("mouseover", () => {
+                    map.resize();
+                });
 
-            const map = new mapboxgl.Map({
-                container: mapContainer.current,
-                style: await fetch("/style.json").then(r => r.json()),
-                bearing: -30,
-                center: [-69, 44],
-                zoom: 7,
-                antialias: false,
-            });
-
-            map.on("load", async () => {
+                map.on("mouseleave", () => {
+                    map.resize();
+                });
+    
+                map.on("load", async () => {
+                    
+                    (await loadGeoJSON(map, layers.json)).map(({ layer, behind }) => map.moveLayer(layer, behind));
+                    
+                    // Popup events on collection of locations
+                    // addFeatureEvent(map);
+    
+                    // Highlight shellfish closures on hover
+                    addHighlightEvent(map, "nssp-closures");
+    
+                    // Highlight town boundaries on hover
+                    addHighlightEvent(map, "maine-towns");
+    
+                    // Set breakpoints for point location detail markers
+                    setInterval(() => {
+                        const period = 64;
+                        let base = radius / 16;
+                        radius = (++radius) % period;
+                        map.setPaintProperty(
+                            'limited-purpose-licenses',
+                            'circle-radius', {
+                            "stops": [[base, 1], [base, 10]]
+                        });
+                    }, 10);
+                });
 
                 setMap(map);
-                // map.resize();
+            })();
+        }   
+    }, []);
 
-                const layers = await fetch("/layers.json").then(r => r.json());
-                (await loadGeoJSON(map, layers.json)).map(({ layer, behind }) => map.moveLayer(layer, behind));
-                layers.image.map(({ render, behind }) => map.addLayer(render, behind));
-
-                // Popup events on collection of locations
-                addFeatureEvent(map);
-
-                // Highlight shellfish closures on hover
-                addHighlightEvent(map, "nssp-closures");
-
-                // Highlight town boundaries on hover
-                addHighlightEvent(map, "maine-towns");
-
-                // Set breakpoints for point location detail markers
-                setInterval(() => {
-                    const period = 64;
-                    let base = radius / 16;
-                    radius = (++radius) % period;
-                    map.setPaintProperty(
-                        'limited-purpose-licenses',
-                        'circle-radius', {
-                        "stops": [[base, 1], [base, 10]]
-                    });
-                }, 10);
-            })
-        };
-
-        if (!map) initializeMap({ setMap, mapContainer });
-    }, [map]);
-
-    return <StyledMapContainer ref={el => (mapContainer.current = el)} />;
+    return <StyledMapContainer ref={el => (container.current = el)} />;
 };

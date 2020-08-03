@@ -1,18 +1,5 @@
 @charset "UTF-8";
 
-body {
-    margin:0;
-    padding:0;
-}
-
-a {
-    color: #DD66DD;
-}
-
-ul {
-    display: block;
-}
-
 ul li {
     background: inherit;
     display: inline-block;
@@ -21,11 +8,17 @@ ul li {
     margin: 3px;
 }
 
+a, li:hover{
+    color: #EF5FA1;
+    transition:color 0.5s;
+}
+
+
 body, html{
-    background: #222222;
+    background: #000000;
     font-size: large;
     font-family: monospace;
-    color: #cccccc;
+    color: #CCCCCC;
     margin: 0;
     position: relative;
     padding: 0;
@@ -36,55 +29,19 @@ body, html{
 }
 
 
-.mapboxgl-popup-content {
-    background: #101010AA;
-    border: solid 1px;
-    font-family:inherit;
-    font-size: inherit;
-    width: auto;
-    padding: 10px;
-    float: left;
-    margin: 0;
-    color: #ccc;
+hr {
+    border-top: 1px solid #CCCCCC;
 }
 
-
-form {
-    display: inline-block;
-}
-
-select{
-    background: #101010AA;
-    border: solid 1px;
-    display: inline-block;
-    font-size: inherit;
-    color: #ccc;
-    -webkit-appearance: none;  /*Removes default chrome and safari style*/
-    -moz-appearance: none;  /*Removes default style Firefox*/
-}
 
 input, button{
     background: #101010;
     border: solid 1px;
     font-family:inherit;
-    color: #ccc;
+    color: #CCCCCC;
     text-decoration: none;
 }
 
-li:hover{
-    color: #EF5FA1;
-    transition:color 0.5s;
-}
-
-.container{
-    background: #EF5FA155;
-    position: absolute;
-    margin: 0;
-    padding: 5px;
-    width: 100%;
-    height: auto;
-    z-index: 2;
-}
 
 input[type=range] {
     margin: 10px;
@@ -112,40 +69,6 @@ input[type=range]::-moz-range-thumb {
 }
 
 
-td, tfoot {
-    border: 1px solid black;
-    padding: 0;
-}
-
-
-hr {
-    border-top: 1px solid #ccc;
-}
-
-
-tfoot td {
-    position: inherit;
-    padding-right: 5px;
-    text-align: right;
-}
-
-td input {
-    position: relative;
-    width: 95%;
-    height: 100%;
-    padding: 5px;
-    margin: 0;
-    text-align: right;
-    border: none;
-}
-
-
-
-.required:after {
-    content: " R";
-    color: red;
-    font-size: smaller;
-}
 
 .action-success {
     padding: 0.5em;
@@ -161,56 +84,6 @@ td input {
     border-radius: 0.2em;
 }
 
-.destructive {
-    background-color: orange;
-}
-
-
-p,
-label {
-    color: #ccc;
-}
-
-
-
-body, html{
-    background: #000000;
-    font-size: large;
-    font-family: monospace;
-    color: #cccccc;
-    margin: 0;
-    position: relative;
-    padding: 0;
-    width: 100%;
-    height: 100%;
-    overflow-x: hidden;
-    overflow-y: scroll;
-}
-
-input[type=range] {
-    margin: 10px;
-    width: 50px;
-    background: none;
-}
-
-input[type=range]::-moz-range-track {
-    width: 100%;
-    height: 8px;
-    cursor: pointer;
-    box-shadow: none;
-    background: none;
-    border-radius: 3px;
-    border: 1px solid #FF00FF;
-}
-
-input[type=range]::-moz-range-thumb {
-    box-shadow: none;
-    border: 1px solid #FF00FF;
-    height: 16px;
-    width: 2px;
-    border-radius: 3px;
-    background: #000000;
-}
 
 
 .container {
@@ -230,56 +103,19 @@ input[type=range]::-moz-range-thumb {
 
 }
 
-#bathysphere ul {
-    display: block;
-    padding: 0;
-    margin: 0;
-}
 
-#bathysphere ul li {
-    background: #101010;
-    font-family: inherit;
-    display: inline-block;
-    font-size: inherit;
-    text-decoration: none;
-    border: solid 1px;
-    margin: 3px;
-}
 
-#bathysphere form {
-    display: inline-block;
-}
-
-#bathysphere select{
+.mapboxgl-popup-content {
     background: #101010AA;
     border: solid 1px;
-    display: inline-block;
     font-family:inherit;
     font-size: inherit;
-    color: #ccc;
-    -webkit-appearance: none;  /*Removes default chrome and safari style*/
-    -moz-appearance: none;  /*Removes default style Firefox*/
-}
-
-#bathysphere input, button{
-    background: #101010;
-    border: solid 1px;
-    font-family:inherit;
-    color: #ccc;
-    text-decoration: none;
-}
-
-#bathysphere li:hover{
-    color: #EF5FA1;
-    transition:color 0.5s;
-}
-
-#bathysphere.container{
-    background: #EF5FA155;
-    position: absolute;
+    width: auto;
+    padding: 10px;
+    float: left;
     margin: 0;
-    padding: 5px;
-    width: 100%;
-    height: auto;
-    z-index: 2;
+    color: #CCCCCC;
 }
+
+
+

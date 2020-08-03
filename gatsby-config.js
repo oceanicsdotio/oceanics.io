@@ -1,4 +1,3 @@
-const netlifyInstance = "https://oceanicsdotio.netlify.com";
 
 module.exports = {
   siteMetadata: {
@@ -48,7 +47,6 @@ module.exports = {
               wrapperStyle: `margin-bottom: 1.0725rem`,
             },
           },
-          `gatsby-remark-prismjs`,
           `gatsby-remark-copy-linked-files`,
           `gatsby-remark-smartypants`,
         ],
@@ -56,34 +54,24 @@ module.exports = {
     },
     `gatsby-transformer-sharp`,
     `gatsby-plugin-sharp`,
+    'gatsby-plugin-styled-components',
     {
       resolve: `gatsby-plugin-manifest`,
       options: {
         name: `Oceanicsdotio`,
         short_name: `GatsbyJS`,
         start_url: `/`,
-        background_color: `#ffffff`,
-        theme_color: `#663399`,
+        background_color: `#000000`,
+        theme_color: `#EF5FA1`,
         display: `minimal-ui`,
         icon: `src/images/favicon.png`,
       },
     },
     `gatsby-plugin-react-helmet`,
     {
-      resolve: `gatsby-plugin-typography`,
-      options: {
-        pathToConfigModule: `src/utils/typography`,
-      },
-    },
-    {
-      resolve: `gatsby-plugin-netlify-identity`,
-      options: {
-        url: netlifyInstance,
-      },
-    },
-    {
       resolve: `gatsby-plugin-create-client-paths`,
-      options: { prefixes: [`/app/*`] },
+      options: { prefixes: [`/catalog/*`] },
     },
+     `gatsby-plugin-offline`,  // service worker implementation
   ],
 }

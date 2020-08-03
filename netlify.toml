@@ -1,9 +1,8 @@
 [build]
-  command = "npm run build"
-  functions = "functions-src"
+  command = "npm run develop"
   publish = "public"
 
 [[redirects]]
-  from = "/app/*"
-  to = "/app.html"
+  from = "/catalog/*"
+  to = "/catalog.html"
   status = 200

@@ -1,17 +1,29 @@
 import React, {useEffect, useState} from "react";
+import Table from "../components/Table";
 
 export default () => {
 
-    const nullState = {};
-    const [ summary, setSummary ] = useState(nullState);
-    const [ fileSystem, setFileSystem ] = useState(nullState);
+    const [ fileSystem, setFileSystem ] = useState(null);
 
-
+    const order = "key";
+    const schema = [{
+        label: "key",
+        type: "string"
+    },{
+        label: "size",
+        type: "float",
+        parse: (x) => { return parseInt(x) },
+        // format: (x) => { return `${x.toFixed(1)}` }
+    },{
+        label: "updated",
+        type: "datetime"
+    }];
+    
     useEffect(() => {
         
         (async () => {
             fetch(
-                "https://oceanicsdotio.nyc3.digitaloceanspaces.com",
+                "https://oceanicsdotio.nyc3.digitaloceanspaces.com?delimiter=/",
                 {
                     method: 'GET',
                     mode: 'cors',
@@ -23,50 +35,33 @@ export default () => {
                     const parser = new DOMParser();
                     const xmlDoc = parser.parseFromString(text,"text/xml");
 
-                    let nodes = {};
+                    let objects = [];
+                    let collections = [];
                     
                     xmlDoc.childNodes[0].childNodes.forEach(node => {
-                        if (node.tagName == "Contents") {
 
-                            const key = node.childNodes[0].textContent;
-                            const path = key.split("/");
-                            const _node = {
-                                key: key,
+                        if (node.tagName == "Contents") {
+                            objects.push({
+                                key: node.childNodes[0].textContent,
                                 updated: node.childNodes[1].textContent,
                                 size: node.childNodes[3].textContent,
-                            }
-
-                            if (path[0] in nodes) {
-                                nodes[path[0]].push(_node);
-                            } else {
-                                nodes[path[0]] = [_node];
-                            }
+                            })
                             
+                        } else if (node.tagName == "CommonPrefixes") {
+                            collections.push(node);
                         }
                         
-                        
                     });
-                    setFileSystem(nodes);
+                    setFileSystem(objects);
                 })
                 .catch(err => console.log(err))
         })()
     }, []);
 
     return (
-        <div>
-            <h2>Object storage interface</h2>
-            <ol>
-            {Object.entries(fileSystem).map(([collection, nodes]) => {
-                return (
-                    <li key={collection}>
-                        <ul>
-                            {nodes.map(node => <li>{node.key} ({(parseFloat(node.size) / 1000.0).toFixed(1)} kb)</li>)}
-                        </ul>
-                    </li>
-                );
-            })}
-            </ol>
-            
-        </div>
+        <>
+            <h2>Object storage</h2>
+            {fileSystem ? <Table order={order} records={fileSystem} schema={schema}/> : null}
+        </>
     );
 };

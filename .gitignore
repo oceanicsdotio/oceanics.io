@@ -56,7 +56,7 @@ typings/
 
 # gatsby files
 .cache/
-public
+public/
 
 # Mac files
 .DS_Store
@@ -68,6 +68,10 @@ yarn-error.log
 # Yarn Integrity file
 .yarn-integrity
 
+
 .idea/
 target/
 Cargo.lock
+
+# Local Netlify folder
+.netlify
