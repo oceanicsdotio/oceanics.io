@@ -13,7 +13,7 @@ export default ({data: {allMarkdownRemark: {edges}, site: {siteMetadata: {title}
   
     return (
       <Layout location={location} title={title}>
-        {/* <SEO title="Situational awareness for a changing ocean" /> */}
+        <SEO title="Situational awareness for a changing ocean" />
         <img src={"shrimpers-web.png"} alt={"Agents@Rest"} />
         {edges.map(({ node }) => {
           const title = node.frontmatter.title || node.fields.slug

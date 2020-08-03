@@ -202,7 +202,7 @@ export default ({ children }) => {
 
     return (
         <StyledLayout>
-              {/* <StyledHeader>
+              <StyledHeader>
                 <StyledHeaderDiv>
                     <StyledSiteTitle>
                         <Link
@@ -216,7 +216,7 @@ export default ({ children }) => {
                         </Link>
                     </StyledSiteTitle>
                 </StyledHeaderDiv>
-            </StyledHeader> */}
+            </StyledHeader>
             <StyledNavBar>
                 <ul>
                     <ListLink key={itemIndex++} to="/tags">Tags</ListLink>
