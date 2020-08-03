@@ -1,5 +1,5 @@
 [build]
-  command = "npm run develop"
+  command = "yarn build"
   publish = "public"
 
 [[redirects]]
