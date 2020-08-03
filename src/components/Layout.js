@@ -221,6 +221,7 @@ export default ({ children }) => {
                 <ul>
                     <ListLink key={itemIndex++} to="/tags">Tags</ListLink>
                     <ListLink key={itemIndex++} href="https://graph.oceanics.io" external={true}>API</ListLink>
+                    <ListLink key={itemIndex++} href="https://oceanside.oceanics.io" external={true}>Game</ListLink>
                     <ListLink key={itemIndex++} to="/legal">Legal</ListLink>
                     {accessToken ? <ListLink key={itemIndex++} to="/catalog/"><img src="/boat.gif"/></ListLink> : null}
                 
