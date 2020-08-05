@@ -21,6 +21,12 @@ pub mod plotting_system {
 
     #[wasm_bindgen]
     struct Axis {
+        /*
+        An axis struct describes one index of an ND array. For visualization purposes
+        it maps a data dimension into a screen position.
+
+        Methods on Axis are defined in the `impl` block. 
+        */
         dimension: u8,
         extent: (f64, f64),
         observed_property: ObservedProperty,
@@ -28,20 +34,29 @@ pub mod plotting_system {
 
     #[wasm_bindgen]
     struct Observation {
+        /*
+        Observations are N-dimensional points mapped into 2-D screen space.
+        */
         x: f64,
         y: f64,
     }
 
     #[wasm_bindgen]
     struct ObservedProperty {
+        /*
+        Observed properties describe a data dimesion. They are a child of Axis. 
+        */
         name: String,
         unit: String,
     }
 
     #[wasm_bindgen]
     pub struct DataStream {
+        /*
+        Datastreams are containers of observations. They keep track of data, metadata, and
+        summary statistics about their child Observations.
+        */
         capacity: usize,
-
         data: VecDeque<Observation>,
         mean: VecDeque<f64>,
         axes: Vec<Axis>
@@ -49,7 +64,13 @@ pub mod plotting_system {
 
 
     impl Axis {
+        /*
+        Implemented methods of the Axis struct
+        */
         pub fn new(dimension: u8, extent: (f64, f64)) -> Axis {
+            /*
+            Create a new Axis struct
+            */
             Axis {
                 dimension,
                 extent,
@@ -63,8 +84,14 @@ pub mod plotting_system {
 
     #[wasm_bindgen]
     impl DataStream {
+        /*
+        Implementation of DataStream.
+        */
         #[wasm_bindgen(constructor)]
         pub fn new(capacity: usize) -> DataStream {
+            /*
+            Factory method for datastreams
+            */
             DataStream {
                 capacity,
                 data: VecDeque::new(),
@@ -77,6 +104,9 @@ pub mod plotting_system {
         }
 
         pub fn push(&mut self, x: f64, y: f64) {
+            /*
+            Add a new observation to the datastream
+            */
 
             let size = self.data.len();
             let new_val;
@@ -95,6 +125,9 @@ pub mod plotting_system {
         }
 
         fn draw_mean_line(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64) {
+            /*
+            Display summary statistics for the current window
+            */
             ctx.begin_path();
             ctx.move_to(0.0, self.mean[0]);
             let mut ii = 0.0;
@@ -107,10 +140,18 @@ pub mod plotting_system {
         }
 
         fn rescale(&self, y: f64) -> f64 {
+            /*
+            Transform the y-dimension to pixel dimensions
+            */
             (y - self.axes[1].extent.0) / (self.axes[1].extent.1 - self.axes[1].extent.0)
         }
 
         fn draw_as_points(&self, ctx: &CanvasRenderingContext2d, w: f64, h:f64) {
+            /*
+            Draw observations as points. This is the recommended use,
+            as connecting dots without further logical or visual indcators
+            can be misleading. 
+            */
             let scale = 3.0;
             let mut ii = 0.0;
             let size = self.data.len();
@@ -122,6 +163,10 @@ pub mod plotting_system {
         }
 
         fn draw_as_lines(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64) {
+            /*
+            Draw observations with connectings lines. This can be misleading in terms
+            of indicating continuity. Generally this should be avoided. 
+             */
             ctx.move_to(0.0, self.data[0].y);
             let mut ii = 1.0;
             let size = self.data.len();
@@ -134,7 +179,9 @@ pub mod plotting_system {
         }
 
         pub fn draw(&self, ctx: CanvasRenderingContext2d, w: f64, h: f64, color: JsValue) {
-
+            /*
+            Routine to draw the structure to an HTML5 canvas element
+            */
             let current_size = self.data.len();
             if current_size == 0 {
                 return
@@ -145,7 +192,7 @@ pub mod plotting_system {
             ctx.set_fill_style(&color);
 
             ctx.begin_path();
-//            self.draw_as_lines(ctx, w);
+            // self.draw_as_lines(&ctx, w, h);
             self.draw_as_points(&ctx, w, h);
             self.draw_mean_line(&ctx, w, h);
         }
