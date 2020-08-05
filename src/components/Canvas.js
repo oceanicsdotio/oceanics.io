@@ -230,15 +230,19 @@ export default ({context="2d", key, shaders, caption, dataType, font="12px Arial
         }
     };
     
-    // useEffect(()=>{
-    //     /*
-    //     Import the WebAssembly module and set the runtime of the Component.
-    //     */
-    //     (async () => {
-    //         const wasm = await import('../wasm');
-    //         setRuntime(wasm);
-    //     })()
-    // },[]);
+    useEffect(()=>{
+        /*
+        Import the WebAssembly module and set the runtime of the Component.
+        */
+        try {
+            (async () => {
+                const wasm = await import('../wasm');
+                setRuntime(wasm);
+            })()
+        } catch (err) {
+            console.log("Unable to load WASM runtime")
+        }
+    },[]);
 
     useEffect(()=>{
         /*
@@ -249,21 +253,24 @@ export default ({context="2d", key, shaders, caption, dataType, font="12px Arial
             const shaderSource = [...new Set(shaders.flat())].map(runtime.fetch_text(`/${key}.glsl`));
             const source = await Promise.all(shaderSource);
             
-            // const compiled = shaders.reduce(pair => {
-            //     let [vs, fs] = shaders[key];
-            //     const program = wasm.create_program(ctx, source[vs], source[fs]);
-            //     let wrapper = {program};
-            //     for (let i = 0; i < ctx.getProgramParameter(program, ctx.ACTIVE_ATTRIBUTES); i++) {
-            //         const {name} = ctx.getActiveAttrib(program, i);
-            //         wrapper[name] = ctx.getAttribLocation(program, name);
-            //     }
-            //     for (let i = 0; i < ctx.getProgramParameter(program, ctx.ACTIVE_UNIFORMS); i++) {
-            //         const {name} = ctx.getActiveUniform(program, i);
-            //         wrapper[name] = ctx.getUniformLocation(program, name);
-            //     }
-            //     obj[key] = wrapper;
-            //     return obj;
-            // }, {});
+            if (runtime) {
+                const compiled = shaders.reduce(pair => {
+                    let [vs, fs] = shaders[key];
+                    const program = runtime.create_program(ctx, source[vs], source[fs]);
+                    let wrapper = {program};
+                    for (let i = 0; i < ctx.getProgramParameter(program, ctx.ACTIVE_ATTRIBUTES); i++) {
+                        const {name} = ctx.getActiveAttrib(program, i);
+                        wrapper[name] = ctx.getAttribLocation(program, name);
+                    }
+                    for (let i = 0; i < ctx.getProgramParameter(program, ctx.ACTIVE_UNIFORMS); i++) {
+                        const {name} = ctx.getActiveUniform(program, i);
+                        wrapper[name] = ctx.getUniformLocation(program, name);
+                    }
+                    obj[key] = wrapper;
+                    return obj;
+                }, {});
+            }
+            
         })()
     },[]);
 

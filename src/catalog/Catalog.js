@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from "react"
 import styled from "styled-components";
 import { navigate } from "gatsby"
-import { Router } from "@reach/router"
-import Layout, {StatefulButton}  from "../components/Layout";
-import SEO from "../components/SEO";
+import {StatefulButton}  from "../components/Layout";
 import Map from "../components/Map";
 import Table from "../components/Table";
 import {queryBathysphere} from "../bathysphere";
@@ -53,8 +51,9 @@ const StyledHighlight = styled.div`
 
 export default ({edges}) => {
 
-    let accessToken = null; //localStorage.getItem("accessToken");
-    const baseUrl = "http://localhost:5000/api/";
+    const [accessToken, setAccessToken] = useState(null);
+    
+    const [baseUrl, setBaseUrl] = useState("http://localhost:5000/api/");
 
     const [ visibility, setVisibility ] = useState({
         map: false,
@@ -109,63 +108,56 @@ export default ({edges}) => {
     }
 
 
-    // const deleteObservation = ({key}) => {
-    //     db.transaction(DB_STORE, "readwrite").objectStore(DB_STORE).delete(key);
-    // };
-
-
-    // const getObservations = () => {
-    //     db
-    //         .transaction(DB_STORE, "readwrite")
-    //         .objectStore(DB_STORE)
-    //         .openCursor()
-    //         .onsuccess = (event) => {
-    //             let cursor = event.target.result;
-    //             if (cursor) {
-    //                 console.log([cursor.key, cursor.value]);
-    //                 cursor.continue();
-    //             }
-    //         };
-    // };
-
-    // const searchObservations = (indexName, value = null, bounds = null) => {
-
-    //     const direction = "next"; // "prev", "nextunique", "prevunique"
-    //     const returnValue = true;
-
-    //     if (value === null ? bounds !== null : bounds === null) {
-    //         throw Error("ValueError");
-    //     }
-    //     let keyRange;
-    //     if (bounds) {
-    //         const [lower, upper] = bounds;
-    //         keyRange = IDBKeyRange.bound(lower, upper, false, false); // inclusive
-    //     }
-
-    //     if (value !== null) {
-    //         keyRange = IDBKeyRange.only(value);
-    //     }
-
-    //     const index = db.transaction(DB_STORE).objectStore(DB_STORE).index(indexName);
-    //     let cursorRequest = returnValue ?
-    //         index.openCursor(keyRange, direction) : index.openKeyCursor(keyRange, direction);
-
-    //     cursorRequest.onsuccess = (event) => {
-    //         let cursor = event.target.result;
-    //         if (cursor) {
-    //             console.log([cursor.key, cursor[returnValue ? "value" : "primaryKey"]]);
-    //             cursor.continue();
-    //         }
-    //     };
-    // };
-
-    const PrivateRoute = ({ component: Component, location, ...props }) => {
-        useEffect(
-            () => {if (!accessToken && location.pathname !== `/`) navigate(`/`)},
-            [location]
-        )
-        return accessToken ? <Component {...props} /> : null
+    const deleteObservation = ({key}) => {
+        db.transaction(DB_STORE, "readwrite").objectStore(DB_STORE).delete(key);
     };
+
+
+    const getObservations = () => {
+        db
+            .transaction(DB_STORE, "readwrite")
+            .objectStore(DB_STORE)
+            .openCursor()
+            .onsuccess = (event) => {
+                let cursor = event.target.result;
+                if (cursor) {
+                    console.log([cursor.key, cursor.value]);
+                    cursor.continue();
+                }
+            };
+    };
+
+    const searchObservations = (indexName, value = null, bounds = null) => {
+
+        const direction = "next"; // "prev", "nextunique", "prevunique"
+        const returnValue = true;
+
+        if (value === null ? bounds !== null : bounds === null) {
+            throw Error("ValueError");
+        }
+        let keyRange;
+        if (bounds) {
+            const [lower, upper] = bounds;
+            keyRange = IDBKeyRange.bound(lower, upper, false, false); // inclusive
+        }
+
+        if (value !== null) {
+            keyRange = IDBKeyRange.only(value);
+        }
+
+        const index = db.transaction(DB_STORE).objectStore(DB_STORE).index(indexName);
+        let cursorRequest = returnValue ?
+            index.openCursor(keyRange, direction) : index.openKeyCursor(keyRange, direction);
+
+        cursorRequest.onsuccess = (event) => {
+            let cursor = event.target.result;
+            if (cursor) {
+                console.log([cursor.key, cursor[returnValue ? "value" : "primaryKey"]]);
+                cursor.continue();
+            }
+        };
+    };
+
 
     const serialize = (obj) => {
 
@@ -206,22 +198,22 @@ export default ({edges}) => {
         };
 
 
-            // openDatabase({callback: ({db}) => {
-            //     let objStore = db.transaction(DB_STORE, "readwrite").objectStore(DB_STORE);
-            //     let request = objStore.openCursor(url);
+        // openDatabase({callback: ({db}) => {
+        //     let objStore = db.transaction(DB_STORE, "readwrite").objectStore(DB_STORE);
+        //     let request = objStore.openCursor(url);
 
-            //     request.onsuccess = (event) => {
-            //         let cursor = event.target.result;
-            //         if (cursor) {
-            //             cursor.update(value);
-            //         } else {
-            //             objStore.add(value)
-            //         }
-            //     };
+        //     request.onsuccess = (event) => {
+        //         let cursor = event.target.result;
+        //         if (cursor) {
+        //             cursor.update(value);
+        //         } else {
+        //             objStore.add(value)
+        //         }
+        //     };
 
-            //     request.onerror = (event) => {
-            //         throw Error(event.target);
-            // };}});
+        //     request.onerror = (event) => {
+        //         throw Error(event.target);
+        // };}});
             
 
         const onClickHandler = async () => {
@@ -280,67 +272,67 @@ export default ({edges}) => {
         )
     };
 
+
+    useEffect(()=>{
+        setAccessToken(localStorage.getItem("accessToken"));
+    },[]);
+
+
     useEffect(() => {
-        (async () => {
-            const style = await fetch("/style.json").then(r => r.json())
-            const layerData = await fetch("/layers.json").then(r => r.json());
-            const catalog = await queryBathysphere(baseUrl, ":" + accessToken).then(x => {return x.json()});
-            if (catalog.value === undefined) {
-                console.log("Error fetching catalog", catalog);
-                localStorage.removeItem("accessToken");
-                accessToken = null;
-            } else {
-                setState(state => ({
-                    ...state,
-                    catalog: catalog.value.map(x => Object.entries(x)).flat(),
-                    layers: layerData,
-                    style
-                }));
-            }
-        })()
+        if (accessToken) {
+            (async () => {
+                const style = await fetch("/style.json").then(r => r.json())
+                const layerData = await fetch("/layers.json").then(r => r.json());
+                const catalog = await queryBathysphere(baseUrl, ":" + accessToken).then(x => {return x.json()});
+                if (catalog.value === undefined) {
+                    console.log("Error fetching catalog", catalog);
+                    localStorage.removeItem("accessToken");
+                    setAccessToken(null);
+                } else {
+                    setState(state => ({
+                        ...state,
+                        catalog: catalog.value.map(x => Object.entries(x)).flat(),
+                        layers: layerData,
+                        style
+                    }));
+                }
+            })()
+        }
     }, []); 
 
-    const Catalog = () => {
-
-        return (
-            
-            <div>
-                <hr/>
-                <div>
-                    {Object.keys(visibility).map((key)=>{
-                        const displayText = key;
-                        return <StatefulButton 
-                            onClick={() => setVisibility({...visibility, [key]: !visibility[key]})} 
-                            active={visibility[key]} 
-                            text={`${displayText} ↻`} 
-                            altText={`${displayText} ⤫`}  
-                        />
-                    }
-                    )}
-                </div>
-                {visibility.map ? <Map layers={state.layers} style={state.style}/> : null}
-                {visibility.codex?<Codex edges={edges} token={accessToken} baseUrl={baseUrl}/>:null}
-                {visibility.datastream?<Canvas caption="DataStream" dataType="DataStream"/>:null}
-                {visibility.particles?<Canvas caption="Particles" dataType="Particles"/>:null}
-                {visibility.cursor?<Canvas caption="Cursor" dataType="Cursor"/>:null}
-                {visibility.meshes?(
-                    <>
-                    <Canvas caption="TriangularMesh" dataType="TriangularMesh"/>
-                    <Canvas caption="RectilinearGrid" dataType="RectilinearGrid"/>
-                    <Canvas caption="HexagonalGrid" dataType="HexagonalGrid"/>
-                    </>
-                ):null}
-                {visibility.graph ? state.catalog.map(([k, v]) => <Collection {...v}/>).flat() : null}
-                {visibility.objectStorage ? <Storage /> : null}
-                {!Object.values(visibility).some(x => x) ? <StyledTip>↑ Select some data sources and sinks to get started.</StyledTip> : null}
-                
-            </div>
-        )
-    };
 
     return (
-        <Router>
-            <PrivateRoute path="/catalog/" component={Catalog} />
-        </Router>
+        
+        <div>
+            <hr/>
+            <div>
+                {Object.keys(visibility).map((key)=>{
+                    const displayText = key;
+                    return <StatefulButton 
+                        onClick={() => setVisibility({...visibility, [key]: !visibility[key]})} 
+                        active={visibility[key]} 
+                        text={`${displayText} ↻`} 
+                        altText={`${displayText} ⤫`}  
+                    />
+                }
+                )}
+            </div>
+            {visibility.map ? <Map layers={state.layers} style={state.style}/> : null}
+            {visibility.codex?<Codex edges={edges} token={accessToken} baseUrl={baseUrl}/>:null}
+            {visibility.datastream?<Canvas caption="DataStream" dataType="DataStream"/>:null}
+            {visibility.particles?<Canvas caption="Particles" dataType="Particles"/>:null}
+            {visibility.cursor?<Canvas caption="Cursor" dataType="Cursor"/>:null}
+            {visibility.meshes?(
+                <>
+                <Canvas caption="TriangularMesh" dataType="TriangularMesh"/>
+                <Canvas caption="RectilinearGrid" dataType="RectilinearGrid"/>
+                <Canvas caption="HexagonalGrid" dataType="HexagonalGrid"/>
+                </>
+            ):null}
+            {visibility.graph ? state.catalog.map(([k, v]) => <Collection {...v}/>).flat() : null}
+            {visibility.objectStorage ? <Storage /> : null}
+            {!Object.values(visibility).some(x => x) ? <StyledTip>↑ Select some data sources and sinks to get started.</StyledTip> : null}
+            
+        </div>
     )
 }
