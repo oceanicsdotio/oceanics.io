@@ -89,7 +89,7 @@ const EditableCell = ({ record, col: { label, format, parse }, ind }) => {
 export const RecordRow = ({ schema, record, ind }) => {
     return (
         <StyledRow key={ind}>
-            {schema.map((key, ii) => <EditableCell record={record} col={key} ind={ii} />)}
+            {schema.map((key, ii) => <EditableCell record={record} col={key} ind={ii} key={ii}/>)}
         </StyledRow>
     )
 };
@@ -134,17 +134,15 @@ export default (props) => {
         <StyledTable>
             <thead>
                 <tr>
-                    {schema.map(({label}, key) => 
-                        <CallbackHeader 
-                            label={label} 
-                            key={key}
-                            onClick={() => sortTable(label)}
-                        />
+                    {schema.map(({label}, key) =>
+                        <StyledHead key={key} scope={"col"} onClick={() => sortTable(label)}>
+                            {label.replace(/([a-z](?=[A-Z]))/g, '$1 ').toLowerCase()}
+                        </StyledHead>
                     )}
                 </tr>
             </thead>
             <tbody>
-                {records.map((r, i) => <RecordRow schema={schema} record={r} ind={i}/>)}
+                {records.map((r, i) => <RecordRow schema={schema} record={r} ind={i} key={i}/>)}
             </tbody>
         </StyledTable>
     ) : null;

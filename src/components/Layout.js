@@ -2,9 +2,9 @@
 import { rhythm } from "../typography";
 import styled from "styled-components";
 
-import React, {useState, useEffect}  from "react"
-import { Link, navigate } from "gatsby"
-import Form from "../components/Form"
+import React, {useState, useEffect}  from "react";
+import { Link, navigate } from "gatsby";
+import Form from "../components/Form";
 import {queryBathysphere} from "../bathysphere";
 
 const StyledLayout = styled.div`
@@ -51,7 +51,7 @@ const StyledButton = styled.button`
     border: solid 1px;
     margin-right: 5px;
     border-radius: 5px 5px 0px 0px;
-    color: ${props => props.active ? "#77CCFF" : "#EF5FA1"};
+    color: ${({active}) => active ? "#77CCFF" : "#EF5FA1"};
     text-decoration: none;
 `;
 
@@ -64,19 +64,21 @@ const StyledNavBar = styled.nav`
     margin-bottom: 1.45rem;
 `;
 
-const StyledHeaderDiv = styled.div`
-    margin: 0 auto;
-    max-width: 960;
-    padding: 1.45rem 1.0875rem;
-`;
+// const StyledHeaderDiv = styled.div`
+//     margin: 0 auto;
+//     max-width: 960;
+//     padding: 1.45rem 1.0875rem;
+// `;
 
 const StyledHeader = styled.header`
     background: none;
     margin-bottom: 0;
 `;
 
-const StyledSiteTitle = styled.h1`
-    margin: 0;
+const StyledSiteTitle = styled(Link)`
+    position: relative;
+    color: #ccc;
+    font-size: x-large;
 `;
 
 
@@ -167,20 +169,22 @@ export default ({ children }) => {
 
     const [dialog, setDialog] = useState(false);
     const [accessToken, setAccessToken] = useState(null);
+    const [baseUrl, setBaseUrl] = useState("http://localhost:5000/api/"); 
 
-    const baseUrl = "http://localhost:5000/api/";
     const auth = "bathysphere@oceanics.io:n0t_passw0rd";
     let itemIndex = 0;
   
 
     useEffect(()=>{
         setAccessToken(localStorage.getItem("accessToken"));
+        console.log(`Set access token (layout): ${accessToken}`);
     },[]);
 
     const setRestriction = async () => {
         if (accessToken) {
             setAccessToken(null);
             localStorage.removeItem("accessToken");
+            console.log(`Purge access token (layout): ${accessToken}`)
             navigate(`/`);
         } else {
             setDialog(!accessToken && !dialog);
@@ -192,49 +196,33 @@ export default ({ children }) => {
         if (!("token" in token)) {
             console.log("Error authorizing", token);
         } else {
-            console.log("Successfully retrieved token", token.token);
+            console.log(`Successfully retrieved token: ${token.token}`);
             localStorage.setItem("accessToken", token.token);
             setAccessToken(token.token);
             setDialog(false);
-            navigate(`/catalog/`);
+            // navigate(`/catalog/`);
         }  
     };
 
     return (
         <StyledLayout>
-              <StyledHeader>
-                <StyledHeaderDiv>
-                    <StyledSiteTitle>
-                        <Link
-                            to="/"
-                            style={{
-                                boxShadow: `none`,
-                                color: `inherit`
-                            }}
-                            >
-                            {"Oceanicsdotio"}
-                        </Link>
-                    </StyledSiteTitle>
-                </StyledHeaderDiv>
-            </StyledHeader>
+            <StyledSiteTitle to="/">{"Oceanicsdotio"}</StyledSiteTitle> 
             <StyledNavBar>
-                <ul>
-                    <ListLink key={itemIndex++} to="/tags">Tags</ListLink>
-                    <ListLink key={itemIndex++} href="https://graph.oceanics.io" external={true}>API</ListLink>
-                    <ListLink key={itemIndex++} href="https://oceanside.oceanics.io" external={true}>Game</ListLink>
-                    <ListLink key={itemIndex++} to="/legal">Legal</ListLink>
-                    {accessToken ? <ListLink key={itemIndex++} to="/catalog/"><img src="/boat.gif"/></ListLink> : null}
-                
-                    <StatefulButton 
-                        key={itemIndex++}
-                        onClick={setRestriction} 
-                        active={dialog} 
-                        text={accessToken ? "Logout" : "Login"} 
-                        altText={"Close"} 
-                    />
-                </ul>
+                <ListLink to="/tags">Tags</ListLink>
+                <ListLink href="https://graph.oceanics.io" external={true}>API</ListLink>
+                <ListLink href="https://oceanside.oceanics.io" external={true}>Game</ListLink>
+                <ListLink to="/legal">Legal</ListLink>
+                {accessToken ? <ListLink to="/catalog"><img src="/boat.gif"/></ListLink> : null}
+            
+                <StatefulButton 
+                    onClick={setRestriction} 
+                    active={dialog} 
+                    text={accessToken ? "Logout" : "Login"} 
+                    altText={"Close"} 
+                />
                 {dialog && !accessToken ? <LoginContainer callbacks={{login}}/> : null}
             </StyledNavBar>
+            
             <main>{children}</main>
             <footer>
                 <hr/>

@@ -58,8 +58,8 @@ exports.onCreateWebpackConfig = ({ stage, loaders, actions }) => {
 
 exports.createPages = async ({ graphql, actions: {createPage} }) => {
    
-    const blogPost = path.resolve(`./src/templates/blog-post.js`);
-    const tagTemplate = path.resolve("src/templates/tags.js");
+    const blogPost = path.resolve(`src/templates/blog-post.js`);
+    const tagTemplate = path.resolve(`src/templates/tags.js`);
 
     const {errors, data: {allMarkdownRemark: {edges}, tagsGroup: {group}}} = await graphql(`{
         allMarkdownRemark(

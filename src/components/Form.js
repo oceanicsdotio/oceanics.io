@@ -123,10 +123,10 @@ const Button = ({ action, destructive=false, ...props }) => {
 
 export default ({ id, fields = null, actions }) => {
   
-    const matchInputType = (f) => {
-        return "options" in f?
-            <SelectInput {...f} />:
-            <TextInput {...f} />;
+    const matchInputType = (ff, ii) => {
+        return "options" in ff?
+            <SelectInput {...ff} key={ii}/>:
+            <TextInput {...ff} key={ii}/>;
     };
 
     return (
@@ -134,7 +134,7 @@ export default ({ id, fields = null, actions }) => {
             {fields !== null ? fields.map(matchInputType) : null}
             {actions ? (
                 <StyledButtonPane>
-                    {actions.map(action => <Button {...action} />)}
+                    {actions.map((action, key) => <Button {...action} key={key}/>)}
                 </StyledButtonPane>
             ) : null}
         </StyledForm>
