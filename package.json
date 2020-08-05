@@ -16,7 +16,7 @@
     "babel-plugin-syntax-dynamic-import": "^6.18.0",
     "babel-preset-gatsby": "^0.4.9",
     "gatsby": "^2.22.9",
-    "gatsby-cli": "^2.12.58",
+    "gatsby-cli": "^2.12.72",
     "gatsby-image": "^2.2.39",
     "gatsby-link": "^2.2.30",
     "gatsby-plugin-create-client-paths": "^2.1.6",
