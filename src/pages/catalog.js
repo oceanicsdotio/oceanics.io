@@ -59,8 +59,10 @@ export default ({data: {allMarkdownRemark: {edges}, site: {siteMetadata: {title}
     
     
     const [accessToken, setAccessToken] = useState(null);
-    
     const [baseUrl, setBaseUrl] = useState("http://localhost:5000/api/");
+    const [catalog, setCatalog] = useState([]);
+    const [mapData, setMapData] = useState(null);
+    const [entities, setEntities] = useState({});
 
     const [ visibility, setVisibility ] = useState({
         map: false,
@@ -72,14 +74,6 @@ export default ({data: {allMarkdownRemark: {edges}, site: {siteMetadata: {title}
         particles: false,
         cursor: false,
     });
-
-    const [ state, setState ] = useState({
-        catalog: [],
-        entities: {},
-        layers: [],
-        style: {}
-    });
-
 
     function openDatabase({callback, ...args}) {
 
@@ -184,7 +178,7 @@ export default ({data: {allMarkdownRemark: {edges}, site: {siteMetadata: {title}
         ).join(", ")
     };
 
-    const Collection = ({name, url, ...props}) => {
+    const Collection = ({name, url}) => {
         /*
         The key is the Entity subclass. The props are the properties of the 
         collection itself.
@@ -194,7 +188,6 @@ export default ({data: {allMarkdownRemark: {edges}, site: {siteMetadata: {title}
         3. serialize the items, if any, and create a table within the outer list. 
         */
  
-        let {entities} = state;
         const [highlight, setHighlight] = useState(false);
 
         const table = {
@@ -237,12 +230,9 @@ export default ({data: {allMarkdownRemark: {edges}, site: {siteMetadata: {title}
                 }
             }
 
-            setState({
-                ...state,
-                entities: {
-                    ...entities,
-                    [name]: value
-                }
+            setEntities({
+                ...entities,
+                [name]: value
             });
         };
 
@@ -278,48 +268,44 @@ export default ({data: {allMarkdownRemark: {edges}, site: {siteMetadata: {title}
     };
 
 
-    useEffect(()=>{
+    useEffect(() => {
         /*
         Get the last saved access token from the Local Storage API and put it in React State.
         This will be used to authenticate API data requests, and to attribute added data.
         */
         setAccessToken(localStorage.getItem("accessToken"));
-    },[]);
+    }, []);
 
-    useEffect(()=>{
+    useEffect(() => {
         /*
         If access token is set in React state, use it to get the catalog index from Bathysphere
         */
         if (accessToken) {
             (async () => {
-                const catalog = await queryBathysphere(baseUrl, ":" + accessToken).then(x => {return x.json()});
-                if (catalog.value === undefined) {
-                    console.log("Error fetching catalog", catalog);
+                const catalogData = await queryBathysphere(baseUrl, ":" + accessToken).then(x => {return x.json()});
+                if (catalogData.value === undefined) {
+                    console.log("Error fetching catalog", catalogData);
                     localStorage.removeItem("accessToken");
                     setAccessToken(null);
                 } else {
-                    setState(state => ({
-                        ...state,
-                        catalog: catalog.value.map(x => Object.entries(x)).flat()
-                    }));
+                    setCatalog(catalogData.value.map(x => Object.entries(x)).flat());
                 }
             })()   
         }
-    },[accessToken]);
+    }, [accessToken]);
 
     
     useEffect(() => {
+        /*
+        Fetch static configuration data for using Mapbox. This includes JSON descriptions
+        of the map style, and the data layers. 
+        */
         (async () => {
-            const style = await fetch("/style.json").then(r => r.json())
-            const layerData = await fetch("/layers.json").then(r => r.json());
-            
-            setState(state => ({
-                ...state,
-                layers: layerData,
-                style
-            }));
+            setMapData({
+                style: await fetch("/style.json").then(r => r.json()),
+                layers: await fetch("/layers.json").then(r => r.json())
+            });
         })();
-        console.log("Set map config.");
     }, []); 
     
     
@@ -341,7 +327,7 @@ export default ({data: {allMarkdownRemark: {edges}, site: {siteMetadata: {title}
             }
             )}
         </div>
-        {visibility.map ? <Map layers={state.layers} style={state.style}/> : null}
+        {(visibility.map && mapData) ? <Map {...mapData}/> : null}
         {visibility.codex ? <Codex edges={edges} token={accessToken} baseUrl={baseUrl}/>:null}
         {visibility.datastream ? <Canvas caption="DataStream" dataType="DataStream"/>:null}
         {visibility.particles ? <Canvas caption="Particles" dataType="Particles"/>:null}
@@ -353,7 +339,7 @@ export default ({data: {allMarkdownRemark: {edges}, site: {siteMetadata: {title}
             <Canvas caption="HexagonalGrid" dataType="HexagonalGrid"/>
             </>
         ):null}
-        {visibility.graph ? state.catalog.map(([k, v]) => <Collection {...v} key={k}/>).flat() : null}
+        {visibility.graph ? catalog.map(([k, v]) => <Collection {...v} key={k}/>).flat() : null}
         {visibility.objectStorage ? <Storage /> : null}
         {!Object.values(visibility).some(x => x) ? <StyledTip>↑ Select some data sources and sinks to get started.</StyledTip> : null}
       </Layout>
