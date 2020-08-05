@@ -26,6 +26,9 @@ export default ({context="2d", key, shaders, caption, dataType, font="12px Arial
     const [cursor, setCursor] = useState([0.0, 0.0]);
 
     const DataStructures = {
+        /*
+        Data structures table built inside component to use the runtime related effects. 
+        */
 
         Particles: (ctx, width, height) => {
 
@@ -246,10 +249,13 @@ export default ({context="2d", key, shaders, caption, dataType, font="12px Arial
 
     useEffect(()=>{
         /*
-        Fetch the GLSL code and compile the shaders as programs.
+        IFF the canvas context is WebGL and we need shaders, fetch the GLSL code and compile the 
+        shaders as programs.
         */
+
+        if (context !== "webgl" || !shaders || !runtime) return;
+
         (async () => {
-            if (context !== "webgl" || !shaders || !runtime) return;
             const shaderSource = [...new Set(shaders.flat())].map(runtime.fetch_text(`/${key}.glsl`));
             const source = await Promise.all(shaderSource);
             
@@ -275,7 +281,13 @@ export default ({context="2d", key, shaders, caption, dataType, font="12px Arial
     },[]);
 
     useEffect(() => {
+        /*
+        If the WASM runtime has been loaded, get the canvas reference and add a mouse event
+        listener to update the cursor position for interacting with objects within the 
+        canvas rendering context.
+        */
         if (!runtime) return;
+
         let canvas = ref.current;
         const {left, top} = canvas.getBoundingClientRect();
         canvas.addEventListener('mousemove', async ({clientX, clientY}) => {
@@ -284,6 +296,10 @@ export default ({context="2d", key, shaders, caption, dataType, font="12px Arial
     }, []);
 
     useEffect(() => {
+        /*
+        If the WASM runtime has been loaded, get the size of the displayed canvas
+        and draw the data structure that has been passed as a prop. 
+        */
         
         if (!runtime) return;
 

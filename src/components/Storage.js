@@ -3,6 +3,7 @@ import Table from "../components/Table";
 
 export default () => {
 
+    const [ source, setSource ] = useState("https://oceanicsdotio.nyc3.digitaloceanspaces.com?delimiter=/"); 
     const [ fileSystem, setFileSystem ] = useState(null);
 
     const order = "key";
@@ -23,7 +24,7 @@ export default () => {
         
         (async () => {
             fetch(
-                "https://oceanicsdotio.nyc3.digitaloceanspaces.com?delimiter=/",
+                source,
                 {
                     method: 'GET',
                     mode: 'cors',
@@ -61,6 +62,7 @@ export default () => {
     return (
         <>
             <h2>Object storage</h2>
+            <p>{source}</p>
             {fileSystem ? <Table order={order} records={fileSystem} schema={schema}/> : null}
         </>
     );
