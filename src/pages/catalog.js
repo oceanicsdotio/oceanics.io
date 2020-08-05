@@ -1,7 +1,6 @@
 
 import React, { useEffect, useState } from "react"
 import { graphql } from "gatsby";
-import { rhythm } from "../typography";
 import styled from "styled-components";
 
 import Layout from "../components/Layout";
