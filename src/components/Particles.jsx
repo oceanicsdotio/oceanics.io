@@ -121,7 +121,6 @@ export default ({ key, font = "12px Arial" }) => {
             }
         });
 
-
         let frames = 0;
         (function render() {
             const time = performance.now() - start;
@@ -149,54 +148,54 @@ export default ({ key, font = "12px Arial" }) => {
                     "#FFFFFF"
                 );
 
-                if (links) {
-                    links = Object.entries(links).map((link, jj) => {
-                        const neighbor = particles[jj];
-                        const { spring, vec } = link;
+                // if (links) {
+                //     links = Object.entries(links).map((link, jj) => {
+                //         const neighbor = particles[jj];
+                //         const { spring, vec } = link;
 
 
-                        if (spring && vec) {
-                            const scale = spring.size(scale);
-                            if (spring.drop()) return;
-                            const dist = magnitude(vec);
-                            spring.update(dist);
-                            const force = spring.force();
-                            let scaled = [];
-                            let newLink = {
-                                ...link,
-                                vec: vec.map((k, index) => {
-                                    const delta = k / dist * force / particles.length;
-                                    velocity[index] += delta;
-                                    neighbor.velocity[index] -= delta;
-                                    const val = coordinates[index] - neighbor.coordinates[index];
-                                    scaled.push(val * scale);
-                                    return val;
-                                }),
-                                spring,
-                            };
-                            const start = coordinates.map((v, k) => v * shape[k] - scaled[k]);
-                            const end = neighbor.coordinates.map((v, k) => v * shape[k] + scaled[k]);
-                            try {
-                                const grad = ctx.createLinearGradient(
-                                    ...start.slice(0, 2),
-                                    ...end.slice(0, 2)
-                                );
-                                grad.addColorStop(0, rgba(force, coordinates[2], fade));
-                                grad.addColorStop(1, rgba(force, end[2], fade));
-                                ctx.strokeStyle = grad;
-                            } catch (e) {
-                                ctx.strokeStyle = "#FFFFFF";
-                            } finally {
-                                ctx.globalAlpha = 1.0 / Math.log2(particles.length);
-                                ctx.beginPath();
-                                ctx.moveTo(...start.slice(0, 2));
-                                ctx.lineTo(...end.slice(0, 2));
-                                ctx.stroke();
-                            }
-                        }
+                //         if (spring && vec) {
+                //             const scale = spring.size(scale);
+                //             if (spring.drop()) return;
+                //             const dist = magnitude(vec);
+                //             spring.update(dist);
+                //             const force = spring.force();
+                //             let scaled = [];
+                //             let newLink = {
+                //                 ...link,
+                //                 vec: vec.map((k, index) => {
+                //                     const delta = k / dist * force / particles.length;
+                //                     velocity[index] += delta;
+                //                     neighbor.velocity[index] -= delta;
+                //                     const val = coordinates[index] - neighbor.coordinates[index];
+                //                     scaled.push(val * scale);
+                //                     return val;
+                //                 }),
+                //                 spring,
+                //             };
+                //             const start = coordinates.map((v, k) => v * shape[k] - scaled[k]);
+                //             const end = neighbor.coordinates.map((v, k) => v * shape[k] + scaled[k]);
+                //             try {
+                //                 const grad = ctx.createLinearGradient(
+                //                     ...start.slice(0, 2),
+                //                     ...end.slice(0, 2)
+                //                 );
+                //                 grad.addColorStop(0, rgba(force, coordinates[2], fade));
+                //                 grad.addColorStop(1, rgba(force, end[2], fade));
+                //                 ctx.strokeStyle = grad;
+                //             } catch (e) {
+                //                 ctx.strokeStyle = "#FFFFFF";
+                //             } finally {
+                //                 ctx.globalAlpha = 1.0 / Math.log2(particles.length);
+                //                 ctx.beginPath();
+                //                 ctx.moveTo(...start.slice(0, 2));
+                //                 ctx.lineTo(...end.slice(0, 2));
+                //                 ctx.stroke();
+                //             }
+                //         }
 
-                    });
-                }
+                //     });
+                // }
 
                 // return ({
                 //     coordinates: coordinates.map((X, kk) => {
@@ -217,8 +216,8 @@ export default ({ key, font = "12px Arial" }) => {
                 //     links,
                 // });
             });
-            frames = runtime.draw_fps(ctx, frames, time, "#77CCFF");
-            if (caption) runtime.draw_caption(ctx, caption, 0.0, height, "#77CCFF", font);
+            // frames = runtime.draw_fps(ctx, frames, time, "#77CCFF");
+            // if (caption) runtime.draw_caption(ctx, caption, 0.0, height, "#77CCFF", font);
             requestId = requestAnimationFrame(render);
         })()
 
