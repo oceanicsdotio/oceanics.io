@@ -10,6 +10,7 @@ import Map from "../components/Map";
 import Table from "../components/Table";
 import { queryBathysphere } from "../bathysphere";
 import Canvas from "../components/Canvas";
+import Particles from "../components/Particles";
 import Storage from "../components/Storage";
 import Codex from "../components/Codex";
 
@@ -329,7 +330,7 @@ export default ({data: {allMarkdownRemark: {edges}, site: {siteMetadata: {title}
         {(visibility.map && mapData) ? <Map {...mapData}/> : null}
         {visibility.codex ? <Codex edges={edges} token={accessToken} baseUrl={baseUrl}/>:null}
         {visibility.datastream ? <Canvas caption="DataStream" dataType="DataStream"/>:null}
-        {visibility.particles ? <Canvas caption="Particles" dataType="Particles"/>:null}
+        {visibility.particles ? <Particles/>:null}
         {visibility.cursor ? <Canvas caption="Cursor" dataType="Cursor"/>:null}
         {visibility.meshes ? (
             <>
