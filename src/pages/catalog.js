@@ -13,6 +13,7 @@ import Canvas from "../components/Canvas";
 import Particles from "../components/Particles";
 import Storage from "../components/Storage";
 import Codex from "../components/Codex";
+import Lagrangian from "../components/Lagrangian";
 
 const DB_NAME = "indexed-db-testing";
 const DB_VERSION = 2;
@@ -71,9 +72,12 @@ export default ({data: {allMarkdownRemark: {edges}, site: {siteMetadata: {title}
         objectStorage: false,
         codex: false,
         datastream: false,
-        particles: true,
+        particles: false,
         cursor: false,
+        lagrangian: true
     });
+
+
 
     function openDatabase({callback, ...args}) {
 
@@ -328,6 +332,7 @@ export default ({data: {allMarkdownRemark: {edges}, site: {siteMetadata: {title}
             )}
         </div>
         {(visibility.map && mapData) ? <Map {...mapData}/> : null}
+        {visibility.lagrangian ? <Lagrangian source={"/wind.png"}/> : null}
         {visibility.codex ? <Codex edges={edges} token={accessToken} baseUrl={baseUrl}/>:null}
         {visibility.datastream ? <Canvas caption="DataStream" dataType="DataStream"/>:null}
         {visibility.particles ? <Particles/>:null}

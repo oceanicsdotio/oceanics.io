@@ -1,5 +1,5 @@
-import React from "react";
-import Canvas from "../components/Canvas";
+import React, {useEffect, useState, useRef} from "react";
+import {StyledCanvas, loadRuntime} from "../components/Canvas";
 
 
 
@@ -109,26 +109,104 @@ const getColorRamp = (colors) => {
     return new Uint8Array(ctx.getImageData(0, 0, 256, 1).data);
 };
 
+const shaders = [
+    ["quad-vertex", "screen-fragment"],
+    ["draw-vertex", "draw-fragment"]
+]
 
-export default async ({canvas: {width, height}, ctx, res, programs, metadataFile}) => {
+export default ({res=32, programs, metadataFile, source, colors}) => {
 
-    const metadata = await fetch(metadataFile).then(r => r.json());
-    console.log(metadata);
+    // const metadata = await fetch(metadataFile).then(r => r.json());
+    // console.log(metadata);
+
+    const [assets, setAssets] = useState(null);
+
+    const ref = useRef(null);
+    const [runtime, setRuntime] = useState(null);
+    const [programs, setPrograms] = useState(null);
 
     const particles = new ParticleSystem(res);
-    const framebuffer = ctx.createFramebuffer();
-    const textures = Object.fromEntries(Object.entries({
-        screen: [ctx.NEAREST, new Uint8Array(width * height * 4), width, height],
-        back: [ctx.NEAREST, new Uint8Array(width * height * 4), width, height],
-        state: [ctx.NEAREST, particles.state, res, res],
-        previous: [ctx.NEAREST, particles.state, res, res],
-        color: [ctx.LINEAR, getColorRamp(props.colors), 16, 16],
-    }).map(([k, v]) => {return [k, createTexture(ctx, ...v)]}));
 
-    const buffers = {
-        quad: new ArrayBuffer(ctx, [0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1]),
-        index: new ArrayBuffer(ctx, particles.state)
-    };
+
+    useEffect(loadRuntime(setRuntime), []);  // web assembly binaries
+
+    useEffect(()=>{
+
+        if (!ref.current) return;
+
+        const ctx = ref.current.getContext("webgl");
+        const {width, height} = ref.current;
+
+        const textures = Object.fromEntries(Object.entries({
+            screen: [ctx.NEAREST, new Uint8Array(width * height * 4), width, height],
+            back: [ctx.NEAREST, new Uint8Array(width * height * 4), width, height],
+            state: [ctx.NEAREST, particles.state, res, res],
+            previous: [ctx.NEAREST, particles.state, res, res],
+            color: [ctx.LINEAR, getColorRamp(colors), 16, 16],
+        }).map(([k, v]) => [k, createTexture(ctx, ...v)]));
+
+        const img = new Image();
+        img.src = source;
+        
+        img.onload = () => {
+            console.log(`Loaded image data: ${source}`);  // TODO: remove print
+            textures.uv = createTexture(ctx, ctx.LINEAR, img);
+        };
+
+        const buffers = {
+            quad: new ArrayBuffer(ctx, [0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1]),
+            index: new ArrayBuffer(ctx, particles.state)
+        };
+
+        setAssets({
+            textures,
+            buffers,
+            frameBuffer: ctx.createFramebuffer()
+        });
+
+    }, [ref]);
+
+
+    useEffect(()=>{
+        /*
+        IFF the canvas context is WebGL and we need shaders, fetch the GLSL code and compile the 
+        shaders as programs.
+        */
+    
+        if (!shaders || !runtime || !ref.current) return;
+        console.log("loading shaders...");
+
+        (async () => {
+
+            const canvas = ref.current;
+            const ctx = canvas.getContext("webgl");
+        
+            let shaderSource = {};
+            let compiled = {};
+            
+            shaders.forEach(async (pair) => {
+                
+                let [vs, fs] = pair.map(async (file)=>{
+                    if (!(file in shaderSource)) {
+                        shaderSource[file] = await runtime.fetch_text(`/${file}.glsl`)
+                    }
+                    return shaderSource[file];
+                });
+                const program = runtime.create_program(ctx, await vs, await fs);
+                let wrapper = {program};
+                for (let ii = 0; ii < ctx.getProgramParameter(program, ctx.ACTIVE_ATTRIBUTES); ii++) {
+                    const {name} = ctx.getActiveAttrib(program, ii);
+                    wrapper[name] = ctx.getAttribLocation(program, name);
+                }
+                for (let ii = 0; ii < ctx.getProgramParameter(program, ctx.ACTIVE_UNIFORMS); ii++) {
+                    const {name} = ctx.getActiveUniform(program, ii);
+                    wrapper[name] = ctx.getUniformLocation(program, name);
+                }
+                compiled[[...pair]] = wrapper;
+            });
+
+        })()
+    },[runtime]);
 
     const exec = () => {
 
@@ -149,7 +227,7 @@ export default async ({canvas: {width, height}, ctx, res, programs, metadataFile
                     ],
                     uniforms: [
                         ["i", "u_screen", 2],
-                        ["f", "u_opacity", props.opacity]
+                        ["f", "u_opacity", opacity]
                     ],
                     framebuffer: [framebuffer, textures.screen]
                 },
@@ -169,13 +247,13 @@ export default async ({canvas: {width, height}, ctx, res, programs, metadataFile
                         ["i", "u_wind", 0],
                         ["i", "u_particles", 1],
                         ["i", "u_color_ramp", 2],
-                        ["f", "u_particles_res", props.res],
+                        ["f", "u_particles_res", res],
                         ["f", "u_wind_max", [metadata.u.max, metadata.v.max]],
                         ["f", "u_wind_min", [metadata.u.min, metadata.v.min]]
                     ],
                     framebuffer: [framebuffer, textures.screen]
                 },
-                draw_as: [ctx.POINTS, props.res * props.res],
+                draw_as: [ctx.POINTS, res * res],
                 viewport: world
             },
             {
@@ -208,9 +286,9 @@ export default async ({canvas: {width, height}, ctx, res, programs, metadataFile
                         ["i", "u_wind", 0],
                         ["i", "u_particles", 1],
                         ["i", "u_color_ramp", 2],
-                        ["f", "speed", props.speed],
-                        ["f", "drop", props.drop],
-                        ["f", "bump", props.bump],
+                        ["f", "speed", speed],
+                        ["f", "drop", drop],
+                        ["f", "bump", bump],
                         ["f", "seed", Math.random()],
                         ["f", "u_wind_res", [width, height]],
                         ["f", "u_wind_max", [metadata.u.max, metadata.v.max]],
@@ -233,9 +311,5 @@ export default async ({canvas: {width, height}, ctx, res, programs, metadataFile
         });
     }
 
-    const img = new Image();
-    img.src = props.source;
-    img.onload = () => {
-        textures.uv = createTexture(ctx, ctx.LINEAR, img);
-    };
+    return <StyledCanvas ref={ref} />
 };

@@ -130,33 +130,41 @@ export default ({context="2d", key, shaders, caption, dataType, font="12px Arial
         IFF the canvas context is WebGL and we need shaders, fetch the GLSL code and compile the 
         shaders as programs.
         */
-
-        if (context !== "webgl" || !shaders || !runtime) return;
+    
+        if (context !== "webgl" || !shaders || !runtime || !ref.current) return;
+        console.log("loading shaders...");
 
         (async () => {
-            const shaderSource = [...new Set(shaders.flat())].map(runtime.fetch_text(`/${key}.glsl`));
-            const source = await Promise.all(shaderSource);
+
+            const canvas = ref.current;
+            const ctx = canvas.getContext(context);
+        
+            let shaderSource = {};
+            let compiled = {};
             
-            if (runtime) {
-                const compiled = shaders.reduce(pair => {
-                    let [vs, fs] = shaders[key];
-                    const program = runtime.create_program(ctx, source[vs], source[fs]);
-                    let wrapper = {program};
-                    for (let i = 0; i < ctx.getProgramParameter(program, ctx.ACTIVE_ATTRIBUTES); i++) {
-                        const {name} = ctx.getActiveAttrib(program, i);
-                        wrapper[name] = ctx.getAttribLocation(program, name);
+            shaders.forEach(async (pair) => {
+                
+                let [vs, fs] = pair.map(async (file)=>{
+                    if (!(file in shaderSource)) {
+                        shaderSource[file] = await runtime.fetch_text(`/${file}.glsl`)
                     }
-                    for (let i = 0; i < ctx.getProgramParameter(program, ctx.ACTIVE_UNIFORMS); i++) {
-                        const {name} = ctx.getActiveUniform(program, i);
-                        wrapper[name] = ctx.getUniformLocation(program, name);
-                    }
-                    obj[key] = wrapper;
-                    return obj;
-                }, {});
-            }
-            
+                    return shaderSource[file];
+                });
+                const program = runtime.create_program(ctx, await vs, await fs);
+                let wrapper = {program};
+                for (let ii = 0; ii < ctx.getProgramParameter(program, ctx.ACTIVE_ATTRIBUTES); ii++) {
+                    const {name} = ctx.getActiveAttrib(program, ii);
+                    wrapper[name] = ctx.getAttribLocation(program, name);
+                }
+                for (let ii = 0; ii < ctx.getProgramParameter(program, ctx.ACTIVE_UNIFORMS); ii++) {
+                    const {name} = ctx.getActiveUniform(program, ii);
+                    wrapper[name] = ctx.getUniformLocation(program, name);
+                }
+                compiled[[...pair]] = wrapper;
+            });
+
         })()
-    },[]);
+    },[runtime]);
 
     useEffect(() => {
         /*
@@ -175,7 +183,7 @@ export default ({context="2d", key, shaders, caption, dataType, font="12px Arial
 
     
 
-    useEffect(animationLoop(runtime, ref, context, DataStructures[dataType], dataType));
+    useEffect(dataType ? animationLoop(runtime, ref, context, DataStructures[dataType], dataType) : ()=>{});
 
     return <StyledCanvas
         id={key}
