@@ -4,37 +4,6 @@ import {StyledCanvas, loadRuntime} from "../components/Canvas";
 
 
 
-const createTexture = ({ctx, filter=null, data, width=null, height=null}) => {
-    /*
-    
-    */
-    let texture = ctx.createTexture();
-    if (!filter) {
-        filter = ctx.NEAREST;
-    }
-    const textureType = ctx.TEXTURE_2D;
-    const args = data instanceof Uint8Array ? [width, height, 0] : [];
-
-    ctx.bindTexture(textureType, texture);
-
-    try {
-        ctx.texImage2D(textureType, 0, ctx.RGBA, ...args, ctx.RGBA, ctx.UNSIGNED_BYTE, data);
-    } catch (err) {
-        console.log(err);
-    }
-    
-    [
-        [ctx.TEXTURE_WRAP_S, ctx.CLAMP_TO_EDGE],
-        [ctx.TEXTURE_WRAP_T, ctx.CLAMP_TO_EDGE],
-        [ctx.TEXTURE_MIN_FILTER, filter],
-        [ctx.TEXTURE_MAG_FILTER, filter]
-    ].forEach(
-        ([a, b]) => {ctx.texParameteri(textureType, a, b)}
-    );
-    ctx.bindTexture(textureType, null);  // prevent accidental use
-    return texture;
-};
-
 
 class ArrayBuffer {
     constructor(ctx, data) {
@@ -44,12 +13,6 @@ class ArrayBuffer {
     }
 }
 
-
-const rgba = (x, z, fade) => {
-    const color = x > 0.0 ? "255, 0, 0" : "0, 0, 255";
-    const alpha = 1.0 - fade * z;
-    return "rgba("+color+", "+alpha+")";
-};
 
 
 
@@ -69,11 +32,10 @@ const getColorRamp = (colors) => {
 };
 
 
-
 export default ({
     res=Math.ceil(Math.sqrt(1000)), 
-    metadataFile="/wind.json", 
-    source="/wind.png", 
+    metadataFile, 
+    source, 
     colors={
         0.0: '#dd7700',
         1.0: '#660066'
@@ -83,21 +45,15 @@ export default ({
     drop=0.003, // how often the particles move to a random place
     bump=0.01, // drop rate increase relative to individual particle speed 
 }) => {
+    /*
+    Use WebGL to calculate particle trajectories from velocity data. This example uses wind
+    data to move particles around the globe. 
 
-    
+    The velocity field is static, but in the future the component will support pulling frames
+    from video or gif formats. 
+    */
 
     const positions = [0, 0, res, res];
-
-
-    const [assets, setAssets] = useState(null);
-
-    const ref = useRef(null);
-    const [runtime, setRuntime] = useState(null);
-    const [programs, setPrograms] = useState(null);
-    const [particles, setParticles] = useState(null);
-    const [metadata, setMetadata] = useState(null);
-
-
     const shaders = {
         draw: ["draw-vertex", "draw-fragment"],
         screen: ["quad-vertex", "screen-fragment"],
@@ -105,8 +61,16 @@ export default ({
         triangle: ["triangle-vertex", "triangle-fragment"],
     };
 
+    const ref = useRef(null);
+    const preview = useRef(null);
 
-    
+    const [assets, setAssets] = useState(null);
+    const [runtime, setRuntime] = useState(null);
+    const [programs, setPrograms] = useState(null);
+    const [particles, setParticles] = useState(null);
+    const [metadata, setMetadata] = useState(null);
+
+
     useEffect(() => {
         /*
         Create a random distribution of particle positions encoded as 4-byte colors.
@@ -121,9 +85,14 @@ export default ({
     }, []);
 
     useEffect(() => {
+        /*
+        Fetch the metadata file. This has no dependencies and will probably be executed first. 
+
+        In the future this should support loading either static files, or making database queries. 
+        */
         (async () => {
             setMetadata(await fetch(metadataFile).then(r => r.json()));
-            console.log(`Loaded metadata from ${metadataFile}`);
+            console.log(`Loaded metadata (${metadataFile}).`);
         })() 
     }, []);
 
@@ -132,63 +101,96 @@ export default ({
     useEffect(() => {
         /*
         Generate assets and handles for rendering once the canvas has loaded.
+
+        use transducer to replace configs with texture instances.
+
+        This is executed exactly once after the canvas has been created and the initial positions have been
+        loaded or generated
         */
 
-        if (!ref.current) return;
-
-        const ctx = ref.current.getContext("webgl");
-        const {width, height} = ref.current;
-        const shape = {width, height};
-    
-        // use transducer to replace configs with texture instances
-        const textures = Object.fromEntries(Object.entries({
-            screen: {data: new Uint8Array(width * height * 4), ...shape},
-            back: {data: new Uint8Array(width * height * 4), ...shape},
-            state: {data: particles, width: res, height: res},
-            previous: {data: particles, width: res, height: res},
-            color: {filter: ctx.LINEAR, data: getColorRamp(colors), width: 16, height: 16},
-        }).map(([k, v]) => [k, createTexture({ctx, ...v})]));
+        if (!ref.current || !particles) return;
 
         const img = new Image();
+        img.addEventListener('load', () => {
+
+            const {width, height} = ref.current;
+            const ctx = ref.current.getContext("webgl");
+            const shape = [width, height];
+
+            const textures = Object.fromEntries(Object.entries({
+                screen: {data: new Uint8Array(width * height * 4), shape},
+                back: {data: new Uint8Array(width * height * 4), shape},
+                state: {data: particles, shape: [res, res]},
+                previous: {data: particles, shape: [res, res]},
+                color: {filter: ctx.LINEAR, data: getColorRamp(colors), shape: [16, 16]},
+                uv: {ctx, filter: ctx.LINEAR, data: img},
+            }).map(([k, {filter=ctx.NEAREST, data, shape=[null, null]}]) => {
+
+                let texture = ctx.createTexture();
+             
+                const textureType = ctx.TEXTURE_2D;
+                const args = data instanceof Uint8Array ? [...shape, 0] : [];
+
+                ctx.bindTexture(textureType, texture);
+                const textureArgs = [textureType, 0, ctx.RGBA, ...args, ctx.RGBA, ctx.UNSIGNED_BYTE, data];
+
+                try {
+                    ctx.texImage2D(...textureArgs);
+                } catch (err) {
+                    throw TypeError;
+                }
+                
+                [
+                    [ctx.TEXTURE_WRAP_S, ctx.CLAMP_TO_EDGE],
+                    [ctx.TEXTURE_WRAP_T, ctx.CLAMP_TO_EDGE],
+                    [ctx.TEXTURE_MIN_FILTER, filter],
+                    [ctx.TEXTURE_MAG_FILTER, filter]
+                ].forEach(
+                    ([a, b]) => {ctx.texParameteri(textureType, a, b)}
+                );
+                ctx.bindTexture(textureType, null);  // prevent accidental use
+              
+                return [k, texture]
+            }));
+
+            setAssets({
+                image: img,
+                textures,
+                buffers: {
+                    quad: new ArrayBuffer(ctx, [0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1]),
+                    index: new ArrayBuffer(ctx, particles)
+                },
+                frameBuffer: ctx.createFramebuffer()
+            });
+
+            console.log(`Loaded image data (${source}) and created GPU assets.`);
+        }, {
+            capture: true,
+            once: true,
+        });
         img.src = source;
         
-        img.onload = () => {
-            console.log(`Loaded image data: ${source}`);  // TODO: remove print
-            textures.uv = createTexture({ctx, filter: ctx.LINEAR, data: img});
-        };
-
-        const buffers = {
-            quad: new ArrayBuffer(ctx, [0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1]),
-            index: new ArrayBuffer(ctx, particles)
-        };
-
-        setAssets({
-            textures,
-            buffers,
-            frameBuffer: ctx.createFramebuffer()
-        });
-
-    }, [ref]);
+    }, [ref, particles]);
 
 
     useEffect(()=>{
         /*
         IFF the canvas context is WebGL and we need shaders, fetch the GLSL code and compile the 
         shaders as programs.
+
+        This is executed only once, after the WASM runtime is loaded. 
         */
     
         if (!shaders || !runtime || !ref.current) return;
-        console.log("loading shaders...");
-
+        
         (async () => {
 
             const canvas = ref.current;
             const ctx = canvas.getContext("webgl");
-        
-            let shaderSource = {};
-            let compiled = {};
+            const shaderSource = {};
+            const compiled = {};
             
-            Object.entries(shaders).forEach(async (programName, pair) => {
+            Object.entries(shaders).forEach(async ([programName, pair]) => {
                 
                 let [vs, fs] = pair.map(async (file)=>{
                     if (!(file in shaderSource)) {
@@ -210,6 +212,7 @@ export default ({
             });
 
             setPrograms(compiled);
+            console.log("Compiled shader programs to offload to GPU.");
 
         })()
     },[runtime]);
@@ -217,12 +220,13 @@ export default ({
 
     useEffect(()=>{
 
-        const canvas = ref.current;
-        if (!programs || !canvas) return;
-
-        const {width, height} = canvas;
+        const eject = (typeof programs !== 'object' || programs === null || !Object.entries(programs).length );
+        
+        if (eject) return;
+        
+        const {width, height} = ref.current;
         const {screen, draw, update} = programs;
-        const ctx = canvas.getContext("webgl");
+        const ctx = ref.current.getContext("webgl");
     
         const world = [0, 0, width, height];
         const {
@@ -230,8 +234,10 @@ export default ({
             buffers: {quad, index},
             framebuffer
         } = assets;
-        
 
+        console.log("Programs", programs);
+
+        
         const steps = [
             {
                 program: screen,
@@ -326,8 +332,8 @@ export default ({
         ]
         
         
-        steps.forEach(({components, program, draw_as, viewport, callback=null}) => {
-
+        steps.forEach((props) => {
+            const {components, program, draw_as, viewport, callback=null} = props;
             const { tex, attrib, uniforms, framebuffer } = components;
             const [handle, fb_tex] = framebuffer;
             const [type, count] = draw_as;
@@ -337,8 +343,13 @@ export default ({
             if (fb_tex) {
                 ctx.framebufferTexture2D(ctx.FRAMEBUFFER, ctx.COLOR_ATTACHMENT0, ctx.TEXTURE_2D, fb_tex, 0);
             }
-
-            ctx.useProgram(program.program);
+            try {
+                ctx.useProgram(program.program);
+            } catch (TypeError) {
+                console.log("Error loading program", program)
+                return;
+            }
+            
             tex.forEach(([tex, slot]) => bind_texture(ctx, tex, slot));
             attrib.forEach(([buffer, handle, numComponents]) => {
                 ctx.bindBuffer(ctx.ARRAY_BUFFER, buffer);
@@ -360,7 +371,26 @@ export default ({
        
         });
     }, [programs]);
+
+
+    useEffect(() => {
+        /*
+        Display the wind data in a 2D HTML canvas, for debugging
+        and interpretation. 
+        */
+        if (!preview.current || !assets || !assets.image) return;
+
+        const { width, height } = preview.current;
+        let ctx = preview.current.getContext('2d');
+        ctx.drawImage(assets.image, 0, 0, width, height);
+
+    }, [preview, assets]);
    
 
-    return <StyledCanvas ref={ref} />
+    return (
+        <>
+            <StyledCanvas ref={ref} />
+            <StyledCanvas ref={preview} />
+        </>
+    )
 };

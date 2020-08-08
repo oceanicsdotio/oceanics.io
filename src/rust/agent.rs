@@ -227,29 +227,29 @@ pub mod agent_system {
                 vec: vec![0.0, 0.0, 0.0]
             }
         }
-//
-//        #[wasm_bindgen]
-//        pub fn update(&mut self, neighbor: &mut Agent, count: usize) {
-//
-//            let mut dist = 0.0;
-//            for dim in 0..3 {
-//                dist += link.vec[dim];
-//            }
-//            dist = dist.sqrt();
-//            self.spring.update(dist);
-//
-//            let force = link.spring.force();
-//            state.energy.potential += link.spring.potential_energy();
-//
-//            let mut scaled: Vec<f64> = vec![];
-//            for ii in 0..3 {
-//                let delta = k / dist * force / count as f64;
-//                self.velocity[ii] += delta;
-//                neighbor.velocity[ii] -= delta;
-//                let val = self.coordinates[ii] - neighbor.coordinates[index];
-//                scaled.push(val * scale);
-//            }
-//        }
+
+    //    #[wasm_bindgen]
+    //    pub fn update(&mut self, neighbor: &mut Agent, count: usize) {
+
+    //        let mut dist = 0.0;
+    //        for dim in 0..3 {
+    //            dist += link.vec[dim];
+    //        }
+    //        dist = dist.sqrt();
+    //        self.spring.update(dist);
+
+    //        let force = link.spring.force();
+    //        state.energy.potential += link.spring.potential_energy();
+
+    //        let mut scaled: Vec<f64> = vec![];
+    //        for ii in 0..3 {
+    //            let delta = k / dist * force / count as f64;
+    //            self.velocity[ii] += delta;
+    //            neighbor.velocity[ii] -= delta;
+    //            let val = self.coordinates[ii] - neighbor.coordinates[index];
+    //            scaled.push(val * scale);
+    //        }
+    //    }
     }
 
     #[wasm_bindgen]
