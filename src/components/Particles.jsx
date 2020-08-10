@@ -1,6 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
-import { StyledCanvas, loadRuntime } from "../components/Canvas";
+import { loadRuntime } from "../components/Canvas";
+import styled from "styled-components";
 
+const StyledCanvas = styled.canvas`
+    position: relative;
+    width: 100%;
+    height: 400px;
+`;
 
 const magnitude = (vec) => {
     return Math.sqrt(
@@ -20,22 +26,17 @@ const uniform = (a, b) => {
     return Math.random() * (b - a) + a;
 };
 
-export default ({ count=8, key, font = "24px Arial" }) => {
-
-    const ref = useRef(null);
-    const [runtime, setRuntime] = useState(null);
-    const [cursor, setCursor] = useState([0.0, 0.0]);
-    const [particleSystem, setParticleSystem] = useState(null);
-
-    const caption = "Particles";
-    const dim = "xyz";
-
-    const config = {
-        fade: 0.1,
+export default ({ 
+    count=27, 
+    key, 
+    font = "24px Arial", 
+    dim="xyz", 
+    config = {
+        fade: 0.5,
         zero: 0.0,
         cursor: [0, 0, 0],
         padding: 0.0,
-        radius: 8,
+        radius: 10,
         drag: 0.001,
         torque: 3.0,
         bounce: 0.2,
@@ -44,7 +45,14 @@ export default ({ count=8, key, font = "24px Arial" }) => {
             y: 0,
             drag: 0.0,
             t: 0.0
-        }
+    }
+}) => {
+
+    const ref = useRef(null);
+    const [runtime, setRuntime] = useState(null);
+    const [particleSystem, setParticleSystem] = useState(null);
+
+    const 
     };
 
     useEffect(loadRuntime(setRuntime), []);  // web assembly binaries
@@ -69,11 +77,12 @@ export default ({ count=8, key, font = "24px Arial" }) => {
             })
         }
 
+        // spring constant, displacement, velocity, zero length, stop, probability
         particles.forEach((p, ii) => {
             for (let jj = ii + 1; jj < count; jj++) {
                 p.links[jj] = {
                     vec: p.coordinates.map((x, dd) => x - particles[jj].coordinates[dd]),
-                    spring: new runtime.Spring(0.002, 0.0, 0.0, 0.5, 0.4, 1 / Math.log(count))
+                    spring: new runtime.Spring(0.002, 0.0, 0.0, 0.2, 0.4, 1 / Math.log(count))
                 };
             }
         });
@@ -108,11 +117,9 @@ export default ({ count=8, key, font = "24px Arial" }) => {
         canvas.height = height;
 
         let frames = 0;
-        let offset = particleSystem.map(({coordinates}) => Array.from(coordinates).fill(0.0));
         let positions = particleSystem;
-        let newPosition = null;
 
-              
+    
         (function render() {
             const time = performance.now() - start;
             
@@ -122,65 +129,64 @@ export default ({ count=8, key, font = "24px Arial" }) => {
             runtime.clear_rect_blending(ctx, ...shape.slice(0, 2), `#00000066`);
             const { radius, fade, bounce, padding, cursor, drag } = config;
 
-            positions.forEach(({ velocity, coordinates, heading, links }, ii) => {
-
-                const speed = magnitude(velocity);
-                const torque = cursor.map(item => item * config.torque * (0.5 - coordinates[2]));
-                
+            // Draw each particle position, with a heading indicator.
+            positions.forEach(({coordinates, heading}) => {
                 runtime.Agent.draw_agent(
                     ctx,
                     particleSystem.length,
                     ...shape.slice(0, 2),
-                    ...coordinates.map((dim, jj) => dim + offset[ii][jj]),
+                    ...coordinates,
                     ...heading.slice(0, 2),
                     fade,
                     Math.max((shape[2] - coordinates[2]) / shape[2] + 0.5, 0.0) * radius,
                     "#FFFFFF"
                 );
+            });
 
-                const newLinks = Object.entries(links).map(([jj, link]) => {
+            positions.forEach(({ velocity, coordinates, heading, links }, ii) => {
 
-                    if (!link || !link.spring || !link.vec) return link;
+                const speed = magnitude(velocity);
+                const torque = cursor.map(item => item * config.torque * (0.5 - coordinates[2]));
+               
+                const newLinks = Object.fromEntries(Object.entries(links).map(([jj, link]) => {
+                    
+                    if (!link || !link.spring || !link.vec) return [jj, link];
 
                     const {spring, vec} = link;
-                    const scale = spring.size(1.0);
-                    let neighbor = positions[jj];
-                    const newVec = coordinates.map((dim, index) => dim - neighbor.coordinates[index]);
+                    const newVec = coordinates.map((dim, index) => dim - positions[jj].coordinates[index]);
                     const dist = magnitude(newVec);
                     spring.update(dist);
 
-                    if ( spring.drop()) {
-                        return {
-                            vec: newVec,
-                            spring: spring,
-                        };
-                    };
+                    // if ( spring.drop()) {
+                    //     return [jj, {
+                    //         vec: newVec,
+                    //         spring: spring,
+                    //     }];
+                    // };
                     
                     const force = spring.force();
+                    const scale = spring.size(1.0);
 
                     if (isNaN(dist) || isNaN(force)) {
-                        console.log([neighbor, jj, coordinates, newPosition]);
+                        console.log([positions[jj], jj, coordinates, positions[ii]]);
                         throw Error(`Bad value for dist=${dist}, vec=${newVec}`);
                     }
 
-                    let scaled = [];
-
-            
-                    let newLink = {
+                    const scaled = [];
+                    const newLink = {
                         vec: vec.map((k, index) => {
-                            
                             const delta = dist ? k / dist * force : 0.0;
-                            
                             velocity[index] += delta;
-                            neighbor.velocity[index] -= delta;
-                            const val = coordinates[index] - neighbor.coordinates[index];
+                            positions[jj].velocity[index] -= delta;
+                            const val = coordinates[index] - positions[jj].coordinates[index];
                             scaled.push(val * scale);
                             return val;
                         }),
                         spring: spring,
                     };
+                    
                     const start = coordinates.map((v, k) => v * shape[k] - scaled[k]);
-                    const end = neighbor.coordinates.map((v, k) => v * shape[k] + scaled[k]);
+                    const end = positions[jj].coordinates.map((v, k) => v * shape[k] + scaled[k]);
                     
                     try {
                         const grad = ctx.createLinearGradient(
@@ -193,19 +199,17 @@ export default ({ count=8, key, font = "24px Arial" }) => {
                     } catch (e) {
                         ctx.strokeStyle = "#FFFFFFFF";
                     } 
-                    ctx.globalAlpha = 1.0;
+                    ctx.globalAlpha = 0.75;
                     ctx.beginPath();
                     ctx.moveTo(...start.slice(0, 2));
                     ctx.lineTo(...end.slice(0, 2));
                     ctx.stroke();
-
-                    // positions[jj] = neighbor;
-                    
-                    return newLink;
-                });
+  
+                    return [jj, newLink];
+                }));
                 
 
-                newPosition = {
+                positions[ii] = {
                     coordinates: coordinates.map((X, kk) => {
                         velocity[kk] += torque[kk];
                         velocity[kk] *= (1.0 - drag);
@@ -224,13 +228,14 @@ export default ({ count=8, key, font = "24px Arial" }) => {
                     velocity: velocity,
                     links: newLinks,
                 };
-
-                positions[ii] = newPosition;
     
             });
+
+            // Draw overlay
             frames = runtime.draw_fps(ctx, frames, time, "#77CCFF");
-            if (caption) runtime.draw_caption(ctx, caption, 0.0, height, "#77CCFF", font);
-            sleep(100);
+            runtime.draw_caption(ctx, `Particles: ${count}`, 0.0, height, "#77CCFF", font);
+            sleep(5000);
+            
             requestId = requestAnimationFrame(render);
         })()
 
