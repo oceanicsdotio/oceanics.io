@@ -26,34 +26,33 @@ const uniform = (a, b) => {
     return Math.random() * (b - a) + a;
 };
 
-export default ({ 
-    count=27, 
-    key, 
-    font = "24px Arial", 
+
+export default ({
+    count=24, 
+    font="24px Arial", 
     dim="xyz", 
-    config = {
-        fade: 0.5,
-        zero: 0.0,
-        cursor: [0, 0, 0],
-        padding: 0.0,
-        radius: 10,
-        drag: 0.001,
-        torque: 3.0,
-        bounce: 0.2,
-        delta: {
-            x: 0,
-            y: 0,
-            drag: 0.0,
-            t: 0.0
-    }
+    fade=0.5,
+    zero=0.2,
+    cursor=[0, 0, 0],
+    padding=0.0,
+    radius=10,
+    drag=0.001,
+    torque=3.0,
+    bounce=0.2 
 }) => {
+    /*
+    The Particles component creates a Canvas element and data structure representing
+    a fully connected network of N particles.
+
+    The default behavior is to be a passive spring system. The properties and rules interact
+    and can create complex emergent behaviors depending on their configuration.
+
+    The spring physics are handled by a Rust/WASM library.
+    */
 
     const ref = useRef(null);
     const [runtime, setRuntime] = useState(null);
     const [particleSystem, setParticleSystem] = useState(null);
-
-    const 
-    };
 
     useEffect(loadRuntime(setRuntime), []);  // web assembly binaries
 
@@ -63,7 +62,6 @@ export default ({
         */
 
         if (!runtime) return;
-        const {padding} = config;
 
         let particles = [];
         for (let ii = 0; ii < count; ii++) {
@@ -82,7 +80,7 @@ export default ({
             for (let jj = ii + 1; jj < count; jj++) {
                 p.links[jj] = {
                     vec: p.coordinates.map((x, dd) => x - particles[jj].coordinates[dd]),
-                    spring: new runtime.Spring(0.002, 0.0, 0.0, 0.2, 0.4, 1 / Math.log(count))
+                    spring: new runtime.Spring(0.002, 0.0, 0.0, zero, 0.4, 1 / Math.log(count))
                 };
             }
         });
@@ -117,18 +115,15 @@ export default ({
         canvas.height = height;
 
         let frames = 0;
-        let positions = particleSystem;
+        const positions = particleSystem;
 
     
         (function render() {
-            const time = performance.now() - start;
             
             ctx.lineWidth = 1;
             ctx.strokeStyle = "#FFFFFF";
-
             runtime.clear_rect_blending(ctx, ...shape.slice(0, 2), `#00000066`);
-            const { radius, fade, bounce, padding, cursor, drag } = config;
-
+         
             // Draw each particle position, with a heading indicator.
             positions.forEach(({coordinates, heading}) => {
                 runtime.Agent.draw_agent(
@@ -146,7 +141,7 @@ export default ({
             positions.forEach(({ velocity, coordinates, heading, links }, ii) => {
 
                 const speed = magnitude(velocity);
-                const torque = cursor.map(item => item * config.torque * (0.5 - coordinates[2]));
+                const _torque = cursor.map(item => item * torque * (0.5 - coordinates[2]));
                
                 const newLinks = Object.fromEntries(Object.entries(links).map(([jj, link]) => {
                     
@@ -157,12 +152,12 @@ export default ({
                     const dist = magnitude(newVec);
                     spring.update(dist);
 
-                    // if ( spring.drop()) {
-                    //     return [jj, {
-                    //         vec: newVec,
-                    //         spring: spring,
-                    //     }];
-                    // };
+                    if ( count > 64 && spring.drop()) {
+                        return [jj, {
+                            vec: newVec,
+                            spring: spring,
+                        }];
+                    };
                     
                     const force = spring.force();
                     const scale = spring.size(1.0);
@@ -201,8 +196,8 @@ export default ({
                     } 
                     ctx.globalAlpha = 0.75;
                     ctx.beginPath();
-                    ctx.moveTo(...start.slice(0, 2));
-                    ctx.lineTo(...end.slice(0, 2));
+                    ctx.moveTo(...start.slice(0, 2).map((val, dim) => val - 4*radius*newLink.vec[dim]));
+                    ctx.lineTo(...end.slice(0, 2).map((val, dim) => val + 4*radius*newLink.vec[dim]));
                     ctx.stroke();
   
                     return [jj, newLink];
@@ -211,7 +206,7 @@ export default ({
 
                 positions[ii] = {
                     coordinates: coordinates.map((X, kk) => {
-                        velocity[kk] += torque[kk];
+                        velocity[kk] += _torque[kk];
                         velocity[kk] *= (1.0 - drag);
                         X += velocity[kk];
                         if (X > 1.0 - padding) {
@@ -232,8 +227,9 @@ export default ({
             });
 
             // Draw overlay
+            const time = performance.now() - start;
             frames = runtime.draw_fps(ctx, frames, time, "#77CCFF");
-            runtime.draw_caption(ctx, `Particles: ${count}`, 0.0, height, "#77CCFF", font);
+            runtime.draw_caption(ctx, `N=${count}`, 0.0, height, "#77CCFF", font);
             sleep(5000);
             
             requestId = requestAnimationFrame(render);
@@ -242,5 +238,5 @@ export default ({
         return () => cancelAnimationFrame(requestId);
     }, [particleSystem]);
 
-    return <StyledCanvas id={key} ref={ref} />;
+    return <StyledCanvas ref={ref} />;
 };
