@@ -1,8 +1,5 @@
-import React, {useEffect, useState, useRef} from "react";
-import {StyledCanvas, loadRuntime} from "../components/Canvas";
-
-
-
+import React, { useEffect, useState, useRef } from "react";
+import { StyledCanvas, loadRuntime } from "../components/Canvas";
 
 
 class ArrayBuffer {
@@ -12,8 +9,6 @@ class ArrayBuffer {
         ctx.bufferData(ctx.ARRAY_BUFFER, new Float32Array(data), ctx.STATIC_DRAW);
     }
 }
-
-
 
 
 const getColorRamp = (colors) => {
@@ -33,17 +28,17 @@ const getColorRamp = (colors) => {
 
 
 export default ({
-    res=Math.ceil(Math.sqrt(1000)), 
-    metadataFile, 
-    source, 
-    colors={
+    res = Math.ceil(Math.sqrt(1000)),
+    metadataFile,
+    source,
+    colors = {
         0.0: '#dd7700',
         1.0: '#660066'
     },
-    opacity=0.996, // how fast the particle trails fade on each frame
-    speed=0.25, // how fast the particles move
-    drop=0.003, // how often the particles move to a random place
-    bump=0.01, // drop rate increase relative to individual particle speed 
+    opacity = 0.996, // how fast the particle trails fade on each frame
+    speed = 0.25, // how fast the particles move
+    drop = 0.003, // how often the particles move to a random place
+    bump = 0.01 // drop rate increase relative to individual particle speed 
 }) => {
     /*
     Use WebGL to calculate particle trajectories from velocity data. This example uses wind
@@ -54,22 +49,15 @@ export default ({
     */
 
     const positions = [0, 0, res, res];
-    const shaders = {
-        draw: ["draw-vertex", "draw-fragment"],
-        screen: ["quad-vertex", "screen-fragment"],
-        update: ["quad-vertex", "update-fragment"],
-        triangle: ["triangle-vertex", "triangle-fragment"],
-    };
-
     const ref = useRef(null);
     const preview = useRef(null);
 
+    const [ready, setReady] = useState(false);
     const [assets, setAssets] = useState(null);
     const [runtime, setRuntime] = useState(null);
     const [programs, setPrograms] = useState(null);
     const [particles, setParticles] = useState(null);
     const [metadata, setMetadata] = useState(null);
-
 
     useEffect(() => {
         /*
@@ -80,8 +68,8 @@ export default ({
         
         */
         const count = res * res;
-        setParticles(new Uint8Array(Array.from({length: count*4}, () => Math.floor(Math.random() * 256))));
-        console.log(`Generated ${count} particle positions.`);
+        setParticles(new Uint8Array(Array.from({ length: count * 4 }, () => Math.floor(Math.random() * 256))));
+        console.log(`Prefetch ${count} particle positions.`);
     }, []);
 
     useEffect(() => {
@@ -92,8 +80,8 @@ export default ({
         */
         (async () => {
             setMetadata(await fetch(metadataFile).then(r => r.json()));
-            console.log(`Loaded metadata (${metadataFile}).`);
-        })() 
+            console.log(`Prefetch metadata (${metadataFile}).`);
+        })()
     }, []);
 
     useEffect(loadRuntime(setRuntime), []);  // web assembly binaries
@@ -113,21 +101,21 @@ export default ({
         const img = new Image();
         img.addEventListener('load', () => {
 
-            const {width, height} = ref.current;
+            const { width, height } = ref.current;
             const ctx = ref.current.getContext("webgl");
             const shape = [width, height];
 
             const textures = Object.fromEntries(Object.entries({
-                screen: {data: new Uint8Array(width * height * 4), shape},
-                back: {data: new Uint8Array(width * height * 4), shape},
-                state: {data: particles, shape: [res, res]},
-                previous: {data: particles, shape: [res, res]},
-                color: {filter: ctx.LINEAR, data: getColorRamp(colors), shape: [16, 16]},
-                uv: {ctx, filter: ctx.LINEAR, data: img},
-            }).map(([k, {filter=ctx.NEAREST, data, shape=[null, null]}]) => {
+                screen: { data: new Uint8Array(width * height * 4), shape },
+                back: { data: new Uint8Array(width * height * 4), shape },
+                state: { data: particles, shape: [res, res] },
+                previous: { data: particles, shape: [res, res] },
+                color: { filter: ctx.LINEAR, data: getColorRamp(colors), shape: [16, 16] },
+                uv: { filter: ctx.LINEAR, data: img },
+            }).map(([k, { filter = ctx.NEAREST, data, shape = [null, null] }]) => {
 
                 let texture = ctx.createTexture();
-             
+
                 const textureType = ctx.TEXTURE_2D;
                 const args = data instanceof Uint8Array ? [...shape, 0] : [];
 
@@ -139,17 +127,17 @@ export default ({
                 } catch (err) {
                     throw TypeError;
                 }
-                
+
                 [
                     [ctx.TEXTURE_WRAP_S, ctx.CLAMP_TO_EDGE],
                     [ctx.TEXTURE_WRAP_T, ctx.CLAMP_TO_EDGE],
                     [ctx.TEXTURE_MIN_FILTER, filter],
                     [ctx.TEXTURE_MAG_FILTER, filter]
                 ].forEach(
-                    ([a, b]) => {ctx.texParameteri(textureType, a, b)}
+                    ([a, b]) => { ctx.texParameteri(textureType, a, b) }
                 );
                 ctx.bindTexture(textureType, null);  // prevent accidental use
-              
+
                 return [k, texture]
             }));
 
@@ -160,20 +148,20 @@ export default ({
                     quad: new ArrayBuffer(ctx, [0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1]),
                     index: new ArrayBuffer(ctx, particles)
                 },
-                frameBuffer: ctx.createFramebuffer()
+                framebuffer: ctx.createFramebuffer()
             });
 
-            console.log(`Loaded image data (${source}) and created GPU assets.`);
+            console.log(`Prefetch image data (${source}) and create GPU assets.`);
         }, {
             capture: true,
             once: true,
         });
         img.src = source;
-        
+
     }, [ref, particles]);
 
 
-    useEffect(()=>{
+    useEffect(() => {
         /*
         IFF the canvas context is WebGL and we need shaders, fetch the GLSL code and compile the 
         shaders as programs.
@@ -181,65 +169,123 @@ export default ({
         This is executed only once, after the WASM runtime is loaded. 
         */
     
-        if (!shaders || !runtime || !ref.current) return;
-        
-        (async () => {
+        if (!runtime || !ref.current || !assets || !metadata) return;
+        const ctx = ref.current.getContext("webgl");
+        if (!ctx) return;
 
-            const canvas = ref.current;
-            const ctx = canvas.getContext("webgl");
-            const shaderSource = {};
-            const compiled = {};
+        const shaders = {
+            draw: ["draw-vertex", "draw-fragment"],
+            screen: ["quad-vertex", "screen-fragment"],
+            update: ["quad-vertex", "update-fragment"],
+            triangle: ["triangle-vertex", "triangle-fragment"],
+        };
+
+        (async () => {
             
-            Object.entries(shaders).forEach(async ([programName, pair]) => {
-                
-                let [vs, fs] = pair.map(async (file)=>{
-                    if (!(file in shaderSource)) {
-                        shaderSource[file] = await runtime.fetch_text(`/${file}.glsl`)
-                    }
+            const shaderSource = {};  // memoize the shaders as they are loeaded
+            const compiled = Object.fromEntries(await Promise.all(Object.entries(shaders).map(async ([programName, pair]) => {
+
+                let [vs, fs] = pair.map(async (file) => {
+                    if (!(file in shaderSource)) shaderSource[file] = await runtime.fetch_text(`/${file}.glsl`)
                     return shaderSource[file];
                 });
                 const program = runtime.create_program(ctx, await vs, await fs);
-                let wrapper = {program};
+                let wrapper = { program };
                 for (let ii = 0; ii < ctx.getProgramParameter(program, ctx.ACTIVE_ATTRIBUTES); ii++) {
-                    const {name} = ctx.getActiveAttrib(program, ii);
+                    const { name } = ctx.getActiveAttrib(program, ii);
                     wrapper[name] = ctx.getAttribLocation(program, name);
                 }
                 for (let ii = 0; ii < ctx.getProgramParameter(program, ctx.ACTIVE_UNIFORMS); ii++) {
-                    const {name} = ctx.getActiveUniform(program, ii);
+                    const { name } = ctx.getActiveUniform(program, ii);
                     wrapper[name] = ctx.getUniformLocation(program, name);
                 }
-                compiled[programName] = wrapper;
-            });
+                return [programName, wrapper];
+            })));
+
+            console.log("Compiled shader programs to GPU.");
 
             setPrograms(compiled);
-            console.log("Compiled shader programs to offload to GPU.");
-
-        })()
-    },[runtime]);
+            setReady(true);
 
 
-    useEffect(()=>{
+        })();
 
-        const eject = (typeof programs !== 'object' || programs === null || !Object.entries(programs).length );
-        
-        if (eject) return;
-        
-        const {width, height} = ref.current;
-        const {screen, draw, update} = programs;
+    }, [runtime, assets, metadata]);
+
+    useEffect(() => {
+
+        let requestId;
+        if (!runtime || !ref.current || !assets || !metadata || !ready) return;
+
+        const { width, height } = ref.current;
         const ctx = ref.current.getContext("webgl");
-    
+
+        if (!ctx) return;
+
         const world = [0, 0, width, height];
         const {
-            textures: {uv, state, back, color, previous, ...textures},
-            buffers: {quad, index},
+            textures: { uv, color, ...textures },
+            buffers: { quad, index },
             framebuffer
         } = assets;
+        const { screen, draw, update } = programs;
 
-        console.log("Programs", programs);
+        let { back, previous, state } = textures;
+
+
+        const exec = ({
+            components: {
+                tex,
+                attrib,
+                uniforms,
+                framebuffer: [handle, fb_tex]
+            },
+            program,
+            draw_as: [type, count],
+            viewport,
+            callback = null
+        }) => {
+
+            ctx.viewport(...viewport);
+            ctx.bindFramebuffer(ctx.FRAMEBUFFER, handle);
+            if (fb_tex) {
+                ctx.framebufferTexture2D(ctx.FRAMEBUFFER, ctx.COLOR_ATTACHMENT0, ctx.TEXTURE_2D, fb_tex, 0); 
+            }
+            try {
+                ctx.useProgram(program.program);
+            } catch (TypeError) {
+                console.log("Error loading program", program)
+                return;
+            }
+
+            tex.forEach(([tex, slot]) => runtime.bind_texture(ctx, tex, slot));  // TODO: this was changed?
+            attrib.forEach(([buffer, handle, numComponents]) => {
+                ctx.bindBuffer(ctx.ARRAY_BUFFER, buffer);
+                ctx.enableVertexAttribArray(handle);
+                ctx.vertexAttribPointer(handle, numComponents, ctx.FLOAT, false, 0, 0);
+            });
+            uniforms.forEach(([T, k, v]) => {
+                const L = v.length || 1;
+                if (L === 1) {
+                    ctx[`uniform${L}${T}`](program[k], v);
+                } else {
+                    ctx[`uniform${L}${T}`](program[k], ...v);
+                }
+            });
+            ctx.drawArrays(type, 0, count);
+            if (callback) callback();
+
+        }
+
+        (function render() {
 
         
-        const steps = [
-            {
+            /*
+            
+            Draw trajectories to screen
+
+            */
+            exec({
                 program: screen,
                 components: {
                     tex: [
@@ -258,8 +304,13 @@ export default ({
                 },
                 draw_as: [ctx.TRIANGLES, 6],
                 viewport: world
-            },
-            {
+            });
+
+
+            /*
+            Draw the particles as points to the screen. 
+            */
+            exec({
                 program: draw,
                 components: {
                     tex: [
@@ -280,8 +331,11 @@ export default ({
                 },
                 draw_as: [ctx.POINTS, res * res],
                 viewport: world
-            },
-            {
+            });
+
+
+
+            exec({
                 program: screen,
                 components: {
                     tex: [
@@ -300,8 +354,13 @@ export default ({
                 draw_as: [ctx.TRIANGLES, 6],
                 viewport: world,
                 callback: () => [back, textures.screen] = [textures.screen, back]  // ! blend alternate frames
-            },
-            {
+            });
+
+
+            /*
+            
+            */
+            exec({
                 program: update,
                 components: {
                     tex: [
@@ -323,54 +382,17 @@ export default ({
                     attrib: [
                         [quad.buffer, "a_pos", 2]
                     ],
-                    framebuffer: [framebuffer, textures.previous]
+                    framebuffer: [framebuffer, previous]
                 },
                 draw_as: [ctx.TRIANGLES, 6],
                 viewport: positions,
                 callback: () => [state, previous] = [previous, state] // use previous pass to calculate next position
-            }
-        ]
-        
-        
-        steps.forEach((props) => {
-            const {components, program, draw_as, viewport, callback=null} = props;
-            const { tex, attrib, uniforms, framebuffer } = components;
-            const [handle, fb_tex] = framebuffer;
-            const [type, count] = draw_as;
+            });
 
-            ctx.viewport(...viewport);
-            ctx.bindFramebuffer(ctx.FRAMEBUFFER, handle);
-            if (fb_tex) {
-                ctx.framebufferTexture2D(ctx.FRAMEBUFFER, ctx.COLOR_ATTACHMENT0, ctx.TEXTURE_2D, fb_tex, 0);
-            }
-            try {
-                ctx.useProgram(program.program);
-            } catch (TypeError) {
-                console.log("Error loading program", program)
-                return;
-            }
-            
-            tex.forEach(([tex, slot]) => bind_texture(ctx, tex, slot));
-            attrib.forEach(([buffer, handle, numComponents]) => {
-                ctx.bindBuffer(ctx.ARRAY_BUFFER, buffer);
-                ctx.enableVertexAttribArray(handle);
-                ctx.vertexAttribPointer(handle, numComponents, ctx.FLOAT, false, 0, 0);
-            });
-            uniforms.forEach(([T, k, v]) => {
-                const L = v.length || 1;
-                if (L === 1) {
-                    ctx[`uniform${L}${T}`](program[k], v);
-                } else {
-                    ctx[`uniform${L}${T}`](program[k], ...v);
-                }
-            });
-            ctx.drawArrays(type, 0, count);
-            if (callback) {
-                callback();
-            }
-       
-        });
-    }, [programs]);
+            requestId = requestAnimationFrame(render);
+        })()
+        return () => cancelAnimationFrame(requestId);
+    }, [programs, ready]);
 
 
     useEffect(() => {
@@ -385,7 +407,7 @@ export default ({
         ctx.drawImage(assets.image, 0, 0, width, height);
 
     }, [preview, assets]);
-   
+
 
     return (
         <>
