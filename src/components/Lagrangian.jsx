@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
-import { StyledCanvas, loadRuntime } from "../components/Canvas";
+import { loadRuntime } from "../components/Canvas";
+import { StyledCanvas } from "../components/Particles";
 
 
 class ArrayBuffer {
@@ -30,14 +31,15 @@ const getColorRamp = (colors) => {
 export default ({
     res = Math.ceil(Math.sqrt(1000)),
     metadataFile,
+    showVelocityField=false,
     source,
     colors = {
         0.0: '#dd7700',
         1.0: '#660066'
     },
-    opacity = 0.996, // how fast the particle trails fade on each frame
-    speed = 0.25, // how fast the particles move
-    drop = 0.003, // how often the particles move to a random place
+    opacity = 0.98, // how fast the particle trails fade on each frame
+    speed = 0.3, // how fast the particles move
+    drop = 0.01, // how often the particles move to a random place
     bump = 0.01 // drop rate increase relative to individual particle speed 
 }) => {
     /*
@@ -412,7 +414,7 @@ export default ({
     return (
         <>
             <StyledCanvas ref={ref} />
-            <StyledCanvas ref={preview} />
+            {showVelocityField ? <StyledCanvas ref={preview} /> : null}
         </>
     )
 };

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { loadRuntime } from "../components/Canvas";
 import styled from "styled-components";
 
-const StyledCanvas = styled.canvas`
+export const StyledCanvas = styled.canvas`
     position: relative;
     width: 100%;
     height: 400px;

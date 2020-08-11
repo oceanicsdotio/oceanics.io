@@ -332,7 +332,7 @@ export default ({data: {allMarkdownRemark: {edges}, site: {siteMetadata: {title}
             )}
         </div>
         {(visibility.map && mapData) ? <Map {...mapData}/> : null}
-        {visibility.lagrangian ? <Lagrangian source={"/wind.png"} metadataFile={"/wind.json"}/> : null}
+        {visibility.lagrangian ? <Lagrangian res={1000} source={"/wind.png"} metadataFile={"/wind.json"}/> : null}
         {visibility.codex ? <Codex edges={edges} token={accessToken} baseUrl={baseUrl}/>:null}
         {visibility.datastream ? <Canvas caption="DataStream" dataType="DataStream"/>:null}
         {visibility.particles ? <Particles/>:null}
