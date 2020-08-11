@@ -208,12 +208,12 @@ export default ({ children }) => {
         <StyledLayout>
             <StyledSiteTitle to="/">{"Oceanicsdotio"}</StyledSiteTitle> 
             <StyledNavBar>
-                <ListLink to="/tags">Tags</ListLink>
                 <ListLink href="https://graph.oceanics.io" external={true}>API</ListLink>
+                <ListLink to="/catalog">Catalog</ListLink>
                 <ListLink href="https://oceanside.oceanics.io" external={true}>Game</ListLink>
+                <ListLink to="/tags">Tags</ListLink>
                 <ListLink to="/legal">Legal</ListLink>
-                {accessToken ? <ListLink to="/catalog"><img src="/boat.gif"/></ListLink> : null}
-            
+        
                 <StatefulButton 
                     onClick={setRestriction} 
                     active={dialog} 
