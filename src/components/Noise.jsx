@@ -1,31 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { loadRuntime } from "../components/Canvas";
 import { StyledCanvas } from "../components/Particles";
-
-
-export class ArrayBuffer {
-    constructor(ctx, data) {
-        this.buffer = ctx.createBuffer();
-        ctx.bindBuffer(ctx.ARRAY_BUFFER, this.buffer);
-        ctx.bufferData(ctx.ARRAY_BUFFER, new Float32Array(data), ctx.STATIC_DRAW);
-    }
-}
-
-
-export const getColorRamp = (colors) => {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    canvas.width = 256;
-    canvas.height = 1;
-
-    let gradient = ctx.createLinearGradient(0, 0, 256, 0);
-    for (let stop in colors) {
-        gradient.addColorStop(+stop, colors[stop]);
-    }
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, 256, 1);
-    return new Uint8Array(ctx.getImageData(0, 0, 256, 1).data);
-};
+import { getColorRamp, ArrayBuffer } from "../components/Lagrangian";
 
 
 export default ({
@@ -180,6 +156,7 @@ export default ({
             screen: ["quad-vertex", "screen-fragment"],
             update: ["quad-vertex", "update-fragment"],
             triangle: ["triangle-vertex", "triangle-fragment"],
+            noise: ["noise-vertex", "noise-fragment"]
         };
 
         (async () => {

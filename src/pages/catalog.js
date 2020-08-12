@@ -14,6 +14,7 @@ import Particles from "../components/Particles";
 import Storage from "../components/Storage";
 import Codex from "../components/Codex";
 import Lagrangian from "../components/Lagrangian";
+import Noise from "../components/Noise";
 
 const DB_NAME = "indexed-db-testing";
 const DB_VERSION = 2;
@@ -74,7 +75,8 @@ export default ({data: {allMarkdownRemark: {edges}, site: {siteMetadata: {title}
         datastream: false,
         particles: false,
         cursor: false,
-        lagrangian: true
+        lagrangian: false,
+        noise: true
     });
 
 
@@ -333,6 +335,7 @@ export default ({data: {allMarkdownRemark: {edges}, site: {siteMetadata: {title}
         </div>
         {(visibility.map && mapData) ? <Map {...mapData}/> : null}
         {visibility.lagrangian ? <Lagrangian res={1000} source={"/wind.png"} metadataFile={"/wind.json"}/> : null}
+        {visibility.noise ? <Noise res={1000} source={"/wind.png"} metadataFile={"/wind.json"}/> : null}
         {visibility.codex ? <Codex edges={edges} token={accessToken} baseUrl={baseUrl}/>:null}
         {visibility.datastream ? <Canvas caption="DataStream" dataType="DataStream"/>:null}
         {visibility.particles ? <Particles/>:null}

@@ -254,11 +254,13 @@ function addBorrowedObject(obj) {
 */
 export function create_program(ctx, vertex, fragment) {
     try {
+        
         var ptr0 = passStringToWasm0(vertex, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         var len0 = WASM_VECTOR_LEN;
         var ptr1 = passStringToWasm0(fragment, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         var len1 = WASM_VECTOR_LEN;
         var ret = wasm.create_program(addBorrowedObject(ctx), ptr0, len0, ptr1, len1);
+        
         return takeObject(ret);
     } finally {
         heap[stack_pointer++] = undefined;
