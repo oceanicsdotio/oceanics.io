@@ -211,15 +211,32 @@ export default ({
 
         let { back, previous, state } = textures;
 
+        const { u, v } = metadata;
+
+        const uniforms = {
+            "u_screen" : ["i", 2],
+            "u_opacity": ["f", opacity],
+            "u_wind": ["i", 0],
+            "u_particles": ["i", 1],
+            "u_color_ramp": ["i", 2],
+            "u_particles_res": ["f", res],
+            "u_wind_max": ["f", [u.max, v.max]],
+            "u_wind_min": ["f", [u.min, v.min]],
+            "speed": ["f", speed],
+            "drop": ["f", drop],
+            "bump": ["f", bump],
+            "seed": ["f", Math.random()],
+            "u_wind_res": ["f", [width, height]]
+        };
 
         const exec = ({
             components: {
-                tex,
-                attrib,
-                uniforms,
-                framebuffer: [handle, fb_tex]
+                tex=[],
+                attrib=[],
+                framebuffer: [handle=null, fb_tex=null],
+                ...components
             },
-            program,
+            program={},
             draw_as: [type, count],
             viewport,
             callback = null
@@ -243,14 +260,14 @@ export default ({
                 ctx.enableVertexAttribArray(handle);
                 ctx.vertexAttribPointer(handle, numComponents, ctx.FLOAT, false, 0, 0);
             });
-            uniforms.forEach(([T, k, v]) => {
-                const L = v.length || 1;
-                if (L === 1) {
-                    ctx[`uniform${L}${T}`](program[k], v);
-                } else {
-                    ctx[`uniform${L}${T}`](program[k], ...v);
-                }
+
+            // Format and bind a value to each uniform variable in the context
+            (components.uniforms || []).forEach((key) => {
+                const [type, value] = uniforms[key];
+                const size = value.length || 1;
+                ctx[`uniform${size}${type}`](program[key], ...(size === 1 ? [value]: value))
             });
+
             ctx.drawArrays(type, 0, count);
             if (callback) callback();
 
@@ -260,10 +277,14 @@ export default ({
 
         
             /*
-            
-            Draw trajectories to screen
-
+            Draw to front buffer
             */
+
+            const quadBuffer = [
+                [quad.buffer, "a_pos", 2]
+            ];
+
+
             exec({
                 program: screen,
                 components: {
@@ -272,13 +293,8 @@ export default ({
                         [state, 1],
                         [back, 2]
                     ],
-                    attrib: [
-                        [quad.buffer, "a_pos", 2]
-                    ],
-                    uniforms: [
-                        ["i", "u_screen", 2],
-                        ["f", "u_opacity", opacity]
-                    ],
+                    attrib: quadBuffer,
+                    uniforms: ["u_screen", "u_opacity"],
                     framebuffer: [framebuffer, textures.screen]
                 },
                 draw_as: [ctx.TRIANGLES, 6],
@@ -292,42 +308,21 @@ export default ({
             exec({
                 program: draw,
                 components: {
-                    tex: [
-                        [color, 2],
-                    ],
-                    attrib: [
-                        [index.buffer, "a_index", 1]
-                    ],
-                    uniforms: [
-                        ["i", "u_wind", 0],
-                        ["i", "u_particles", 1],
-                        ["i", "u_color_ramp", 2],
-                        ["f", "u_particles_res", res],
-                        ["f", "u_wind_max", [metadata.u.max, metadata.v.max]],
-                        ["f", "u_wind_min", [metadata.u.min, metadata.v.min]]
-                    ],
+                    tex: [[color, 2]],
+                    attrib: [[index.buffer, "a_index", 1]],
+                    uniforms: ["u_wind", "u_particles", "u_color_ramp", "u_particles_res", "u_wind_max", "u_wind_min"],
                     framebuffer: [framebuffer, textures.screen]
                 },
                 draw_as: [ctx.POINTS, res * res],
                 viewport: world
             });
 
-
-
             exec({
                 program: screen,
                 components: {
-                    tex: [
-                        [textures.screen, 2],
-                    ],
-                    uniforms: [
-                        ["i", "u_color_ramp", 2],
-                        ["f", "u_opacity", 1.0],
-                    ],
-
-                    attrib: [
-                        [quad.buffer, "a_pos", 2]
-                    ],
+                    tex: [[textures.screen, 2]],
+                    uniforms: ["u_color_ramp", "u_opacity"],
+                    attrib: quadBuffer,
                     framebuffer: [null, null]
                 },
                 draw_as: [ctx.TRIANGLES, 6],
@@ -342,25 +337,10 @@ export default ({
             exec({
                 program: update,
                 components: {
-                    tex: [
-                        [textures.color, 2],
-                    ],
-                    uniforms: [
-                        ["i", "u_wind", 0],
-                        ["i", "u_particles", 1],
-                        ["i", "u_color_ramp", 2],
-                        ["f", "speed", speed],
-                        ["f", "drop", drop],
-                        ["f", "bump", bump],
-                        ["f", "seed", Math.random()],
-                        ["f", "u_wind_res", [width, height]],
-                        ["f", "u_wind_max", [metadata.u.max, metadata.v.max]],
-                        ["f", "u_wind_min", [metadata.u.min, metadata.v.min]]
-
-                    ],
-                    attrib: [
-                        [quad.buffer, "a_pos", 2]
-                    ],
+                    tex: [[textures.color, 2]],
+                    uniforms: ["u_wind", "u_particles", "u_color_ramp", "u_particles_res", "u_wind_max", "u_wind_min","speed",  "drop", 
+                     "bump", "seed", "u_wind_res"],
+                    attrib: quadBuffer,
                     framebuffer: [framebuffer, previous]
                 },
                 draw_as: [ctx.TRIANGLES, 6],
