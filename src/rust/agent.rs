@@ -3,6 +3,7 @@ pub mod agent_system {
 
     use wasm_bindgen::prelude::*;
     use wasm_bindgen::{JsValue};
+    use std::collections::HashMap;
     use web_sys::{CanvasRenderingContext2d};
     use std::f64::consts::{PI};
     use std::i64;
@@ -21,6 +22,14 @@ pub mod agent_system {
         } else {
             255 as i64
         }
+    }
+
+    fn magnitude (vector: &Vec<f64>) -> f64 {
+        let mut sum = 0.0;
+        for ii in 0..vector.len() {
+            sum += vector[ii]*vector[ii];
+        }
+        sum.powf(0.5)
     }
 
     #[allow(dead_code)]
@@ -161,8 +170,6 @@ pub mod agent_system {
                     ctx.stroke();
                 }
                 ctx.restore();
-
-                ctx.restore();
             }
         }
     }
@@ -228,6 +235,33 @@ pub mod agent_system {
             }
         }
 
+        #[wasm_bindgen]
+        pub fn update(&mut self, dx: f64, dy: f64, dz: f64) -> Vec<f64> {
+
+            let newVec = vec![dx, dy, dz];
+
+            let dist = magnitude(&newVec);
+            self.spring.update(dist);
+
+            let force = self.spring.force();
+            let mut delta: Vec<f64> = vec![];
+           
+            for dim in 0..3 {
+
+                if dist > 0.00001 {
+                    delta.push(self.vec[dim] / dist * force);
+                    
+                } else {
+                    delta.push(0.0);
+                }
+                
+                self.vec[dim] = newVec[dim];         
+            };
+
+            return delta;
+
+        }
+
     //    #[wasm_bindgen]
     //    pub fn update(&mut self, neighbor: &mut Agent, count: usize) {
 
@@ -257,7 +291,7 @@ pub mod agent_system {
         heading: Vec<f64>,
         coordinates: Vec<f64>,
         velocity: Vec<f64>,
-        links: Vec<Link>,
+        links: HashMap<usize,Link>,
     }
 
     #[wasm_bindgen]
@@ -265,43 +299,42 @@ pub mod agent_system {
         #[wasm_bindgen(constructor)]
         pub fn new (x: f64, y: f64, z: f64) -> Agent {
             Agent {
-                heading: vec![0.0, 0.0, 0.0],
+                heading: vec![0.0, 0.0, 1.0],
                 coordinates: vec![x, y, z],
                 velocity: vec![0.0, 0.0, 0.0],
-                links: vec![]
+                links: HashMap::new()
             }
         }
 
-        #[wasm_bindgen]
-        pub fn push_link(&mut self, p: f64) {
-            self.links.push(Link::new(p))
-        }
+        pub fn update_position(&mut self) {
 
+            let padding = 0.0;
+            let drag = 0.0;
+            let bounce = 0.5;
 
-        #[wasm_bindgen]
-        pub fn clamp_motion(&mut self, speed: f64, bounce: f64, pad: f64, tx: f64, ty: f64, tz: f64) {
-
-            let torque = vec![tx, ty, tz];
-
-            for kk in 0..3 {
-                self.velocity[kk] += torque[kk];
-                self.coordinates[kk] += self.velocity[kk];
-                if self.coordinates[kk] > 1.0 - pad {
-                    self.coordinates[kk] -= 2.0*(self.coordinates[kk] - 1.0 - pad);
-                    self.velocity[kk] *= -bounce;
-                } else if self.coordinates[kk] < pad {
-                    self.coordinates[kk] -= 2.0*(self.coordinates[kk] - pad);
-                    self.velocity[kk] *= -bounce;
+            for dim in 0..3 {
+                let mut X = self.coordinates[dim];
+                
+                self.velocity[dim] *= 1.0 - drag;
+                X += self.velocity[dim];
+                if X > 1.0 - padding {
+                    X -= 2.0*(X - 1.0 - padding);
+                    self.velocity[dim] *= -bounce;
+                } else if X < padding {
+                    X -= 2.0*(X - padding);
+                    self.velocity[dim] *= -bounce;
                 }
-                if speed > 0.00001 {
-                    self.heading[kk] = self.velocity[kk] / speed;
+                if magnitude(&self.velocity) > 0.00001 {
+                    self.heading[dim] = self.velocity[dim]
                 }
+                self.coordinates[dim] = X;
             }
 
         }
+
         
         #[wasm_bindgen]
-        pub fn draw_agent(ctx: &CanvasRenderingContext2d, _n: u32, w: f64, h: f64, x: f64, y: f64, z: f64, u: f64, v: f64, fade: f64, scale: f64, color: JsValue) {
+        pub fn draw(ctx: &CanvasRenderingContext2d, _n: u32, w: f64, h: f64, x: f64, y: f64, z: f64, u: f64, v: f64, fade: f64, scale: f64, color: &JsValue) {
 
             ctx.set_global_alpha((1.0 - fade * z).powf(2.0));
             ctx.set_fill_style(&color);
@@ -328,12 +361,104 @@ pub mod agent_system {
     #[wasm_bindgen]
     impl Group {
         #[wasm_bindgen(constructor)]
-        pub fn new() -> Group {
-            Group {
+        pub fn new(count: usize) -> Group {
+            let mut group = Group {
                 particles: vec![]
+            };
+
+            for _ii in 0..count {
+                group.particles.push(
+                    Agent::new(
+                        js_sys::Math::random(),
+                        js_sys::Math::random(),
+                        js_sys::Math::random()
+                    )
+                )
+            }
+
+            for ii in 0..count {
+                for jj in (ii+1)..count {
+                    let mut vec = vec![0.0, 0.0, 0.0];
+                    for dim in 0..3 {
+                        vec[dim] = group.particles[ii].coordinates[dim] - group.particles[jj].coordinates[dim];
+                    }
+                    
+                    group.particles[ii].links.insert(jj, Link{
+                        vec: vec,
+                        spring: Spring::new(0.002, 0.0, 0.0, 0.0, 0.4, 0.0)
+                    });
+                }
+            }
+
+            return group;
+        }
+
+
+        #[wasm_bindgen]
+        pub fn draw(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, fade: f64, scale: f64, color: JsValue) {
+            
+            /*
+            Draw the entire group of particles to an HTML canvas using the 2D context.
+            */
+            let count = self.particles.len();
+            
+            for ii in 0..count {
+                let xyz = &self.particles[ii].coordinates;
+                let uv = &self.particles[ii].heading;
+                
+                Agent::draw(ctx, count as u32, w, h, xyz[0], xyz[1], xyz[2], uv[0], uv[1], fade, scale, &color);
             }
         }
 
-    }
+        #[wasm_bindgen]
+        pub fn update_and_draw_links(&mut self) {
 
+            for ii in 0..self.particles.len() {
+
+                for (jj, mut link) in &self.particles[ii].links {
+
+                    let mut newVec = vec![];
+                    for dim in 0..3 {
+                        newVec.push(&self.particles[ii].coordinates[dim] - self.particles[*jj].coordinates[dim]);
+                    }
+
+                    let delta = link.update(newVec[0], newVec[1], newVec[2]);
+
+            
+                    let scale = link.spring.size(1.0);
+                    let mut scaled = vec![];
+
+                    for dim in 0..3 {
+                        scaled.push(link.vec[dim] * scale);
+                        self.particles[ii].velocity[dim] += delta[dim];
+                        self.particles[*jj].velocity[dim] -= delta[dim];
+                    }
+                    
+                    // let start = self.particles[ii].coordinates.map((v, k) => v * shape[k] - scaled[k]);
+                    // let end = positions[jj].coordinates.map((v, k) => v * shape[k] + scaled[k]);
+                
+        //         try {
+        //             const grad = ctx.createLinearGradient(
+        //                 ...start.slice(0, 2),
+        //                 ...end.slice(0, 2)
+        //             );
+        //             grad.addColorStop(0, rgba(force, coordinates[2], fade));
+        //             grad.addColorStop(1, rgba(force, end[2], fade));
+        //             ctx.strokeStyle = grad;
+        //         } catch (e) {
+        //             ctx.strokeStyle = "#FFFFFFFF";
+        //         } 
+        //         ctx.globalAlpha = 0.75;
+        //         ctx.beginPath();
+        //         ctx.moveTo(...start.slice(0, 2).map((val, dim) => val - 4*radius*newLink.vec[dim]));
+        //         ctx.lineTo(...end.slice(0, 2).map((val, dim) => val + 4*radius*newLink.vec[dim]));
+        //         ctx.stroke();
+
+                }
+
+                self.particles[ii].update_position();
+
+            }
+        }
+    }
 }

@@ -338,7 +338,7 @@ export default ({data: {allMarkdownRemark: {edges}, site: {siteMetadata: {title}
         {visibility.noise ? <Noise res={1000} source={"/wind.png"} metadataFile={"/wind.json"}/> : null}
         {visibility.codex ? <Codex edges={edges} token={accessToken} baseUrl={baseUrl}/>:null}
         {visibility.datastream ? <Canvas caption="DataStream" dataType="DataStream"/>:null}
-        {visibility.particles ? <Particles/>:null}
+        {visibility.particles ? <Particles count={16}/>:null}
         {visibility.cursor ? <Canvas caption="Cursor" dataType="Cursor"/>:null}
         {visibility.meshes ? (
             <>

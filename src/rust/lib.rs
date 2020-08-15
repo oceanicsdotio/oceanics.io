@@ -266,6 +266,7 @@ impl Segment {
     }
 }
 
+// #[allow(dead_code)]
 // #[wasm_bindgen]
 // impl DrawingCanvas {
 
@@ -283,13 +284,13 @@ impl Segment {
 
 //     pub fn extend(&mut self, x: f64, y: f64) {
 //         let n = self.segments.len();
-//         let mut seg = self.segments[n];
-//         if seg.points.len() > 100 {
-//             let (_, _) = seg.points.pop_front().unwrap();
+//         let points = self.segments[n].points;
+//         if points.len() > 100 {
+//             let (_, _) = points.pop_front().unwrap();
 //         }
-//         let _xy = seg.points.back().unwrap();
+//         let _xy = points.back().unwrap();
 //         if (_xy.0 - x).abs() < 0.001 && (_xy.1 - y).abs() < 0.001 {
-//             seg.points.push_back((x, y));
+//             points.push_back((x, y));
 //         }
 //     }
 

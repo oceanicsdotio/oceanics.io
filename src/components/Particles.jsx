@@ -54,6 +54,7 @@ export default ({
     const ref = useRef(null);
     const [runtime, setRuntime] = useState(null);
     const [particleSystem, setParticleSystem] = useState(null);
+    const [experimental, setExperimental] = useState(null);
 
     useEffect(loadRuntime(setRuntime), []);  // web assembly binaries
 
@@ -63,6 +64,9 @@ export default ({
         */
 
         if (!runtime) return;
+
+        const group = new runtime.Group(count);
+        console.log("Trying to create Rust Group", group);
 
         let particles = [];
         for (let ii = 0; ii < count; ii++) {
@@ -86,6 +90,7 @@ export default ({
             }
         });
         setParticleSystem(particles);
+        setExperimental(group);
     
     }, [runtime]);
 
@@ -96,7 +101,7 @@ export default ({
         and draw the data structure that has been passed as a prop. 
         */
 
-        if (!runtime || !particleSystem) return;
+        if (!runtime || !particleSystem || !experimental) return;
 
         let requestId;
         let canvas = ref.current;
@@ -117,17 +122,25 @@ export default ({
 
         let frames = 0;
         const positions = particleSystem;
-
-    
+        
+       
         (function render() {
             
             ctx.lineWidth = 1;
             ctx.strokeStyle = "#FFFFFF";
             runtime.clear_rect_blending(ctx, ...shape.slice(0, 2), `#00000066`);
+
+            experimental.draw(
+                ctx,
+                ...shape.slice(0, 2),
+                fade,
+                radius,
+                "#777777"
+            );
          
             // Draw each particle position, with a heading indicator.
             positions.forEach(({coordinates, heading}) => {
-                runtime.Agent.draw_agent(
+                runtime.Agent.draw(
                     ctx,
                     particleSystem.length,
                     ...shape.slice(0, 2),
@@ -138,6 +151,7 @@ export default ({
                     "#FFFFFF"
                 );
             });
+
 
             positions.forEach(({ velocity, coordinates, heading, links }, ii) => {
 
@@ -237,7 +251,7 @@ export default ({
         })()
 
         return () => cancelAnimationFrame(requestId);
-    }, [particleSystem]);
+    }, [particleSystem, experimental]);
 
     return <StyledCanvas ref={ref} />;
 };

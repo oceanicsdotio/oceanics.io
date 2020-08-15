@@ -568,14 +568,6 @@ export class Agent {
         return Agent.__wrap(ret);
     }
     /**
-    * @param {number} p
-    */
-    push_link(p) {
-        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.ptr);
-        wasm.agent_push_link(this.ptr, p);
-    }
-    /**
     * @param {number} speed
     * @param {number} bounce
     * @param {number} pad
@@ -602,11 +594,12 @@ export class Agent {
     * @param {number} scale
     * @param {any} color
     */
-    static draw_agent(ctx, _n, w, h, x, y, z, u, v, fade, scale, color) {
+    static draw(ctx, _n, w, h, x, y, z, u, v, fade, scale, color) {
         try {
             _assertNum(_n);
-            wasm.agent_draw_agent(addBorrowedObject(ctx), _n, w, h, x, y, z, u, v, fade, scale, addHeapObject(color));
+            wasm.agent_draw(addBorrowedObject(ctx), _n, w, h, x, y, z, u, v, fade, scale, addBorrowedObject(color));
         } finally {
+            heap[stack_pointer++] = undefined;
             heap[stack_pointer++] = undefined;
         }
     }
@@ -792,10 +785,29 @@ export class Group {
         wasm.__wbg_group_free(ptr);
     }
     /**
+    * @param {number} count
     */
-    constructor() {
-        var ret = wasm.group_new();
+    constructor(count) {
+        _assertNum(count);
+        var ret = wasm.group_new(count);
         return Group.__wrap(ret);
+    }
+    /**
+    * @param {CanvasRenderingContext2D} ctx
+    * @param {number} w
+    * @param {number} h
+    * @param {number} fade
+    * @param {number} scale
+    * @param {any} color
+    */
+    draw(ctx, w, h, fade, scale, color) {
+        try {
+            if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+            _assertNum(this.ptr);
+            wasm.group_draw(this.ptr, addBorrowedObject(ctx), w, h, fade, scale, addHeapObject(color));
+        } finally {
+            heap[stack_pointer++] = undefined;
+        }
     }
 }
 /**
@@ -1579,7 +1591,7 @@ export const __wbindgen_memory = function() {
     return addHeapObject(ret);
 };
 
-export const __wbindgen_closure_wrapper1850 = logError(function(arg0, arg1, arg2) {
+export const __wbindgen_closure_wrapper1939 = logError(function(arg0, arg1, arg2) {
     var ret = makeMutClosure(arg0, arg1, 41, __wbg_adapter_22);
     return addHeapObject(ret);
 });
