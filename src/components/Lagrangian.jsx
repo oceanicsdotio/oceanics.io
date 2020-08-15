@@ -179,9 +179,7 @@ export default ({
         const shaders = {
             draw: ["draw-vertex", "draw-fragment"],
             screen: ["quad-vertex", "screen-fragment"],
-            update: ["quad-vertex", "update-fragment"],
-            triangle: ["triangle-vertex", "triangle-fragment"],
-            noise: ["noise-vertex", "noise-fragment"]
+            update: ["quad-vertex", "update-fragment"]
         };
 
         (async () => {

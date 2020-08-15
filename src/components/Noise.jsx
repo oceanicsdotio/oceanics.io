@@ -154,9 +154,7 @@ export default ({
         const shaders = {
             draw: ["draw-vertex", "draw-fragment"],
             screen: ["quad-vertex", "screen-fragment"],
-            update: ["quad-vertex", "update-fragment"],
-            triangle: ["triangle-vertex", "triangle-fragment"],
-            noise: ["noise-vertex", "noise-fragment"]
+            update: ["quad-vertex", "update-fragment"]
         };
 
         (async () => {
@@ -338,8 +336,9 @@ export default ({
                 program: update,
                 components: {
                     tex: [[textures.color, 2]],
-                    uniforms: ["u_wind", "u_particles", "u_color_ramp", "u_particles_res", "u_wind_max", "u_wind_min","speed",  "drop", 
-                     "bump", "seed", "u_wind_res"],
+                    uniforms: [
+                        "u_wind", "u_particles", "u_color_ramp", "u_particles_res", "u_wind_max", "u_wind_min","speed",  "drop", 
+                        "bump", "seed", "u_wind_res"],
                     attrib: quadBuffer,
                     framebuffer: [framebuffer, previous]
                 },

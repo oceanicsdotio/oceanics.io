@@ -73,10 +73,10 @@ export default ({data: {allMarkdownRemark: {edges}, site: {siteMetadata: {title}
         objectStorage: false,
         codex: false,
         datastream: false,
-        particles: false,
+        particles: true,
         cursor: false,
         lagrangian: false,
-        noise: true
+        noise: false
     });
 
 
