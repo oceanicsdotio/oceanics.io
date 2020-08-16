@@ -534,7 +534,7 @@ function getUint8ClampedMemory0() {
 function getClampedArrayU8FromWasm0(ptr, len) {
     return getUint8ClampedMemory0().subarray(ptr / 1, ptr / 1 + len);
 }
-function __wbg_adapter_194(arg0, arg1, arg2, arg3) {
+function __wbg_adapter_197(arg0, arg1, arg2, arg3) {
     _assertNum(arg0);
     _assertNum(arg1);
     wasm.wasm_bindgen__convert__closures__invoke2_mut__h96984aac8d17c2af(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
@@ -568,17 +568,11 @@ export class Agent {
         return Agent.__wrap(ret);
     }
     /**
-    * @param {number} speed
-    * @param {number} bounce
-    * @param {number} pad
-    * @param {number} tx
-    * @param {number} ty
-    * @param {number} tz
     */
-    clamp_motion(speed, bounce, pad, tx, ty, tz) {
+    update_position() {
         if (this.ptr == 0) throw new Error('Attempt to use a moved value');
         _assertNum(this.ptr);
-        wasm.agent_clamp_motion(this.ptr, speed, bounce, pad, tx, ty, tz);
+        wasm.agent_update_position(this.ptr);
     }
     /**
     * @param {CanvasRenderingContext2D} ctx
@@ -809,6 +803,24 @@ export class Group {
             heap[stack_pointer++] = undefined;
         }
     }
+    /**
+    * @param {CanvasRenderingContext2D} ctx
+    * @param {number} width
+    * @param {number} height
+    * @param {number} depth
+    * @param {number} fade
+    * @param {number} radius
+    * @param {any} color
+    */
+    update_and_draw_links(ctx, width, height, depth, fade, radius, color) {
+        try {
+            if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+            _assertNum(this.ptr);
+            wasm.group_update_and_draw_links(this.ptr, addBorrowedObject(ctx), width, height, depth, fade, radius, addHeapObject(color));
+        } finally {
+            heap[stack_pointer++] = undefined;
+        }
+    }
 }
 /**
 */
@@ -833,6 +845,42 @@ export class Link {
     constructor(p) {
         var ret = wasm.link_new(p);
         return Link.__wrap(ret);
+    }
+    /**
+    * @param {number} dx
+    * @param {number} dy
+    * @param {number} dz
+    * @returns {Float64Array}
+    */
+    update(dx, dy, dz) {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        wasm.link_update(8, this.ptr, dx, dy, dz);
+        var r0 = getInt32Memory0()[8 / 4 + 0];
+        var r1 = getInt32Memory0()[8 / 4 + 1];
+        var v0 = getArrayF64FromWasm0(r0, r1).slice();
+        wasm.__wbindgen_free(r0, r1 * 8);
+        return v0;
+    }
+    /**
+    * @param {CanvasRenderingContext2D} ctx
+    * @param {number} ax
+    * @param {number} ay
+    * @param {number} az
+    * @param {number} radius
+    * @param {number} fade
+    * @param {number} force
+    * @param {any} color
+    */
+    draw(ctx, ax, ay, az, radius, fade, force, color) {
+        try {
+            if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+            _assertNum(this.ptr);
+            wasm.link_draw(this.ptr, addBorrowedObject(ctx), ax, ay, az, radius, fade, force, addBorrowedObject(color));
+        } finally {
+            heap[stack_pointer++] = undefined;
+            heap[stack_pointer++] = undefined;
+        }
     }
 }
 /**
@@ -1464,7 +1512,7 @@ export const __wbg_new_261626435fed913c = logError(function(arg0, arg1) {
             const a = state0.a;
             state0.a = 0;
             try {
-                return __wbg_adapter_194(a, state0.b, arg0, arg1);
+                return __wbg_adapter_197(a, state0.b, arg0, arg1);
             } finally {
                 state0.a = a;
             }
@@ -1591,7 +1639,7 @@ export const __wbindgen_memory = function() {
     return addHeapObject(ret);
 };
 
-export const __wbindgen_closure_wrapper1939 = logError(function(arg0, arg1, arg2) {
+export const __wbindgen_closure_wrapper1969 = logError(function(arg0, arg1, arg2) {
     var ret = makeMutClosure(arg0, arg1, 41, __wbg_adapter_22);
     return addHeapObject(ret);
 });

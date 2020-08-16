@@ -64,9 +64,7 @@ export default ({
         */
 
         if (!runtime) return;
-
         const group = new runtime.Group(count);
-        console.log("Trying to create Rust Group", group);
 
         let particles = [];
         for (let ii = 0; ii < count; ii++) {
@@ -131,6 +129,14 @@ export default ({
             runtime.clear_rect_blending(ctx, ...shape.slice(0, 2), `#00000066`);
 
             experimental.draw(
+                ctx,
+                ...shape.slice(0, 2),
+                fade,
+                radius,
+                "#777777"
+            );
+
+            experimental.update_and_draw_links(
                 ctx,
                 ...shape.slice(0, 2),
                 fade,

@@ -32,6 +32,18 @@ pub mod agent_system {
         sum.powf(0.5)
     }
 
+
+    fn rgba (force: f64, z: f64, fade: f64) -> String {
+        let mut color: String = "rgba(".to_owned();
+        if force < 0.0 {
+            color.push_str("0, 0, 255,");
+        } else {
+            color.push_str("255, 0, 0,");
+        }
+        color.push_str(&format!("{alpha:.*})", 2, alpha=(1.0 - fade * z)));
+        return color;
+    }
+
     #[allow(dead_code)]
     struct CoordinatesXY {
         x: f64,
@@ -175,6 +187,7 @@ pub mod agent_system {
     }
 
     #[wasm_bindgen]
+    #[derive(Copy, Clone)]
     pub struct Spring {
         k: f64,
         // spring constant
@@ -206,7 +219,9 @@ pub mod agent_system {
 
         pub fn drop(&self) -> bool {
             let sqrt2 = (2 as f64).sqrt();
-            js_sys::Math::random() > self.p * (sqrt2 - self.x) / sqrt2
+            unsafe {
+                js_sys::Math::random() > self.p * (sqrt2 - self.x) / sqrt2
+            }
         }
 
         pub fn update(&mut self, distance: f64) {
@@ -238,9 +253,9 @@ pub mod agent_system {
         #[wasm_bindgen]
         pub fn update(&mut self, dx: f64, dy: f64, dz: f64) -> Vec<f64> {
 
-            let newVec = vec![dx, dy, dz];
+            let new_vec = vec![dx, dy, dz];
 
-            let dist = magnitude(&newVec);
+            let dist = magnitude(&new_vec);
             self.spring.update(dist);
 
             let force = self.spring.force();
@@ -255,11 +270,32 @@ pub mod agent_system {
                     delta.push(0.0);
                 }
                 
-                self.vec[dim] = newVec[dim];         
+                self.vec[dim] = new_vec[dim];         
             };
 
-            return delta;
+            delta
 
+        }
+
+        #[wasm_bindgen]
+        pub fn draw(&self, ctx: &CanvasRenderingContext2d, ax: f64, ay: f64, az: f64, radius: f64, fade: f64, force: f64, color: &JsValue) {
+                        
+            let bx = ax + self.vec[0];
+            let by  = ay + self.vec[1];
+            // let grad = ctx.create_linear_gradient(ax, ay, bx, by);
+            let offset = 4.0*radius;
+            
+            // assert!(grad.add_color_stop(0.0, &rgba(force, az, fade)).is_ok());
+            // assert!(grad.add_color_stop(1.0, &rgba(force, az + self.vec[2], fade)).is_ok());
+            
+            // ctx.set_stroke_style(&grad);
+            ctx.set_stroke_style(&color);
+            
+            ctx.set_global_alpha(1.0);
+            ctx.begin_path();
+            ctx.move_to(ax - offset*self.vec[0], ay - offset*self.vec[1]);
+            ctx.line_to(bx + offset*self.vec[0], by + offset*self.vec[1]);
+            ctx.stroke();
         }
 
     //    #[wasm_bindgen]
@@ -313,21 +349,21 @@ pub mod agent_system {
             let bounce = 0.5;
 
             for dim in 0..3 {
-                let mut X = self.coordinates[dim];
+                let mut coord = self.coordinates[dim];
                 
                 self.velocity[dim] *= 1.0 - drag;
-                X += self.velocity[dim];
-                if X > 1.0 - padding {
-                    X -= 2.0*(X - 1.0 - padding);
+                coord += self.velocity[dim];
+                if coord > 1.0 - padding {
+                    coord -= 2.0*(coord - 1.0 - padding);
                     self.velocity[dim] *= -bounce;
-                } else if X < padding {
-                    X -= 2.0*(X - padding);
+                } else if coord < padding {
+                    coord -= 2.0*(coord - padding);
                     self.velocity[dim] *= -bounce;
                 }
                 if magnitude(&self.velocity) > 0.00001 {
                     self.heading[dim] = self.velocity[dim]
                 }
-                self.coordinates[dim] = X;
+                self.coordinates[dim] = coord;
             }
 
         }
@@ -366,16 +402,17 @@ pub mod agent_system {
                 particles: vec![]
             };
 
-            for _ii in 0..count {
-                group.particles.push(
-                    Agent::new(
-                        js_sys::Math::random(),
-                        js_sys::Math::random(),
-                        js_sys::Math::random()
+            unsafe {
+                for _ii in 0..count {
+                    group.particles.push(
+                        Agent::new(
+                            js_sys::Math::random(),
+                            js_sys::Math::random(),
+                            js_sys::Math::random()
+                        )
                     )
-                )
+                }
             }
-
             for ii in 0..count {
                 for jj in (ii+1)..count {
                     let mut vec = vec![0.0, 0.0, 0.0];
@@ -385,7 +422,7 @@ pub mod agent_system {
                     
                     group.particles[ii].links.insert(jj, Link{
                         vec: vec,
-                        spring: Spring::new(0.002, 0.0, 0.0, 0.0, 0.4, 0.0)
+                        spring: Spring::new(0.002, 0.0, 0.0, 0.0, 0.4, 1.0)
                     });
                 }
             }
@@ -411,52 +448,39 @@ pub mod agent_system {
         }
 
         #[wasm_bindgen]
-        pub fn update_and_draw_links(&mut self) {
+        pub fn update_and_draw_links(&self, ctx: &CanvasRenderingContext2d, width: f64, height: f64, depth: f64, fade: f64, radius: f64, color: JsValue) {
+            /*
+            Update link forces and vectors. 
+            */
+            for particle in &self.particles {
+                for (_jj, link) in &particle.links {
 
-            for ii in 0..self.particles.len() {
+                    // let mut newVec = vec![];
+                    // for dim in 0..3 {
+                    //     newVec.push(self.particles[ii].coordinates[dim] - self.particles[*jj].coordinates[dim]);
+                    // }
 
-                for (jj, mut link) in &self.particles[ii].links {
+                    // let delta = link.update(newVec[0], newVec[1], newVec[2]);
+                    // let scale = link.spring.size(1.0);
+                    // let mut scaled = vec![];
 
-                    let mut newVec = vec![];
-                    for dim in 0..3 {
-                        newVec.push(&self.particles[ii].coordinates[dim] - self.particles[*jj].coordinates[dim]);
-                    }
-
-                    let delta = link.update(newVec[0], newVec[1], newVec[2]);
-
-            
-                    let scale = link.spring.size(1.0);
-                    let mut scaled = vec![];
-
-                    for dim in 0..3 {
-                        scaled.push(link.vec[dim] * scale);
-                        self.particles[ii].velocity[dim] += delta[dim];
-                        self.particles[*jj].velocity[dim] -= delta[dim];
-                    }
+                    // for dim in 0..3 {
+                    //     scaled.push(link.vec[dim] * scale);
+                    //     self.particles[ii].velocity[dim] += delta[dim];
+                    //     self.particles[*jj].velocity[dim] -= delta[dim];
+                    // }
                     
                     // let start = self.particles[ii].coordinates.map((v, k) => v * shape[k] - scaled[k]);
                     // let end = positions[jj].coordinates.map((v, k) => v * shape[k] + scaled[k]);
                 
-        //         try {
-        //             const grad = ctx.createLinearGradient(
-        //                 ...start.slice(0, 2),
-        //                 ...end.slice(0, 2)
-        //             );
-        //             grad.addColorStop(0, rgba(force, coordinates[2], fade));
-        //             grad.addColorStop(1, rgba(force, end[2], fade));
-        //             ctx.strokeStyle = grad;
-        //         } catch (e) {
-        //             ctx.strokeStyle = "#FFFFFFFF";
-        //         } 
-        //         ctx.globalAlpha = 0.75;
-        //         ctx.beginPath();
-        //         ctx.moveTo(...start.slice(0, 2).map((val, dim) => val - 4*radius*newLink.vec[dim]));
-        //         ctx.lineTo(...end.slice(0, 2).map((val, dim) => val + 4*radius*newLink.vec[dim]));
-        //         ctx.stroke();
+                    let x = particle.coordinates[0] * width;
+                    let y = particle.coordinates[1] * height;
+                    let z = particle.coordinates[2] * depth;
 
+                    link.draw(ctx, x, y, z, radius, fade, link.spring.force(), &color);
                 }
 
-                self.particles[ii].update_position();
+                // self.particles[ii].update_position();
 
             }
         }
