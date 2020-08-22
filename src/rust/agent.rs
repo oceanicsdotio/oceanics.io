@@ -37,9 +37,6 @@ pub mod agent_system {
     }
 
 
-
-
-
     #[derive(Copy, Clone)]
     pub struct Vec3 {
         value: [f64; 3]
@@ -281,7 +278,7 @@ pub mod agent_system {
             Energy conservation is used to constrain some simulations to realistic
             physics, and to classify configurations of agents
             */
-            0.5 * self.k * self.x * self.x
+            0.5 * self.k * self.x.powi(2)
         }
 
         pub fn force(&self) -> f64 {
@@ -292,7 +289,7 @@ pub mod agent_system {
             -2.0 * self.k.sqrt() * self.v - self.k * (self.x - self.l)
         }
 
-        pub fn drop(&self, shape: [f64; 3]) -> bool {
+        pub fn drop(&self) -> bool {
             /*
             Use the spring extension and intrinsic dropout probability
             to determine whether the spring instance should contribute
@@ -305,17 +302,16 @@ pub mod agent_system {
             Higher drop rates speed up the animation loop, but make 
             N-body calculations less deterministic. 
             */
-            let max_distance = (2 as f64).sqrt();
+            let max_distance = (3 as f64).sqrt();
             rand::random::<f64>() > self.p * (max_distance - self.x) / max_distance
         }
 
         pub fn update(&mut self, distance: f64) {
+            /*
+            If the distance is too close, the spring behaves as a rod.
+            */
             self.x = distance.max(self.stop);
             self.v = distance - self.x;
-        }
-
-        pub fn size(&self, s: f64) -> f64 {
-            s / self.x
         }
     }
 
@@ -364,12 +360,16 @@ pub mod agent_system {
     
             */
             let mut color: String = "rgba(".to_owned();
-            if self.spring.force() < 0.0 {
+            let force = self.spring.force();
+            let alpha = (1.0 - fade * z) * (force.abs().sqrt() * 10.0).min(1.0);
+
+            if force < 0.0 {
                 color.push_str("0, 0, 255,");
             } else {
                 color.push_str("255, 0, 0,");
             }
-            color.push_str(&format!("{alpha:.*})", 2, alpha=(1.0 - fade * z)));
+
+            color.push_str(&format!("{alpha:.*})", 2, alpha=alpha));
     
             return color;
         }
@@ -432,11 +432,9 @@ pub mod agent_system {
             }
         }
 
-        pub fn update_position(&mut self) {
+        pub fn update_position(&mut self, padding: f64, drag: f64, bounce: f64) {
 
-            let padding = 0.0;
-            let drag = 0.0;
-            let bounce = 0.5;
+        
             let speed = self.velocity.magnitude();
 
             for dim in 0..3 {
@@ -492,19 +490,21 @@ pub mod agent_system {
     #[wasm_bindgen]
     impl Group {
         #[wasm_bindgen(constructor)]
-        pub fn new(count: usize) -> Group {
+        pub fn new(count: usize, zero: f64, stop: f64) -> Group {
             let mut group = Group {
                 particles: vec![]
             };
 
             for _ii in 0..count {
-                group.particles.push(
-                    Agent::new(
-                        js_sys::Math::random(),
-                        js_sys::Math::random(),
-                        js_sys::Math::random()
+                unsafe {
+                    group.particles.push(
+                        Agent::new(
+                            js_sys::Math::random(),
+                            js_sys::Math::random(),
+                            js_sys::Math::random()
+                        )
                     )
-                )
+                }
             }
             
             for ii in 0..count {
@@ -513,7 +513,7 @@ pub mod agent_system {
                     
                     group.particles[ii].links.insert(jj, Link{
                         vec: vec,
-                        spring: Spring{k: 0.002, x: 0.0, v: 0.0, l: 0.0, stop: 0.4, p: 1.0}
+                        spring: Spring{k: 0.002, x: 0.0, v: 0.0, l: zero, stop, p: 1.0}
                     });
                 }
             }
@@ -543,7 +543,7 @@ pub mod agent_system {
         }
 
         #[wasm_bindgen]
-        pub fn update_links(&mut self) {
+        pub fn update_links(&mut self, padding: f64, drag: f64, bounce: f64) {
             /*
             Update link forces and vectors. 
 
@@ -558,13 +558,14 @@ pub mod agent_system {
                 let particle = &mut head[ii];
                 
                 for (jj, link) in &mut particle.links {
+                    
                     let mut neighbor = &mut tail[jj - ii - 1];
                     let delta = link.update(particle.coordinates - neighbor.coordinates);
                     
                     particle.velocity = particle.velocity + delta;
                     neighbor.velocity = neighbor.velocity - delta;
                 }
-                particle.update_position();
+                particle.update_position(padding, drag, bounce);
             }
         }
     }

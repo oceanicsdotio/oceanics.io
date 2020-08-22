@@ -1,4 +1,4 @@
-import * as wasm from './space_bg.wasm';
+import * as wasm from './neritics_bg.wasm';
 
 const lTextDecoder = typeof TextDecoder === 'undefined' ? (0, module.require)('util').TextDecoder : TextDecoder;
 
@@ -1422,7 +1422,7 @@ export const __wbindgen_memory = function() {
     return addHeapObject(ret);
 };
 
-export const __wbindgen_closure_wrapper1842 = logError(function(arg0, arg1, arg2) {
+export const __wbindgen_closure_wrapper1840 = logError(function(arg0, arg1, arg2) {
     var ret = makeMutClosure(arg0, arg1, 42, __wbg_adapter_22);
     return addHeapObject(ret);
 });
