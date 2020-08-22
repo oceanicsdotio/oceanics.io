@@ -185,8 +185,10 @@ export class Group {
   free(): void;
 /**
 * @param {number} count 
+* @param {number} zero 
+* @param {number} stop 
 */
-  constructor(count: number);
+  constructor(count: number, zero: number, stop: number);
 /**
 * @param {CanvasRenderingContext2D} ctx 
 * @param {number} width 
@@ -197,8 +199,11 @@ export class Group {
 */
   draw(ctx: CanvasRenderingContext2D, width: number, height: number, fade: number, scale: number, color: any): void;
 /**
+* @param {number} padding 
+* @param {number} drag 
+* @param {number} bounce 
 */
-  update_links(): void;
+  update_links(padding: number, drag: number, bounce: number): void;
 }
 /**
 */
@@ -229,9 +234,10 @@ export class RectilinearGrid {
 /**
 * @param {number} ii 
 * @param {number} jj 
+* @param {any} color 
 * @returns {boolean} 
 */
-  mark(ii: number, jj: number): boolean;
+  insert(ii: number, jj: number, color: any): boolean;
 /**
 */
   clear(): void;

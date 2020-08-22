@@ -56,12 +56,7 @@ pub mod tessellate {
     }
 
 
-    #[wasm_bindgen]
-    pub struct RectilinearGrid {
-        nx: usize,
-        ny: usize,
-        cells: HashMap<(usize,usize),bool>,
-    }
+
 
 
     #[wasm_bindgen]
@@ -100,25 +95,59 @@ pub mod tessellate {
         }
     }
 
+    struct Cell {
+        selected: bool,
+        color: String,
+    }
+
+    impl Cell {
+        pub fn draw(&self, ctx: &CanvasRenderingContext2d, shape: &(usize, usize), size: [f64; 2]) {
+            let [dx, dy] = size;
+            let (ii, jj) = shape;
+            ctx.set_fill_style(&JsValue::from(&self.color));
+            ctx.fill_rect(dx*(*ii as f64), dy*(*jj as f64), dx, dy);
+        } 
+    }
+
+    #[wasm_bindgen]
+    pub struct RectilinearGrid {
+        shape: [usize; 2],
+        cells: HashMap<(usize,usize), Cell>,
+    }
+
     #[wasm_bindgen]
     impl RectilinearGrid {
 
+        /*
+        Grid is both rectilinear and rectangular. 
+        */
+
+        fn w(&self) -> f64 {self.shape[0] as f64}
+        fn h(&self) -> f64 {self.shape[1] as f64}
+
+        fn size(&self) -> usize {
+            let mut result: usize = 1;
+            for dim in &self.shape {
+                result *= dim;
+            }
+            result
+        }
+
         #[wasm_bindgen(constructor)]
         pub fn new(nx: usize, ny: usize) -> RectilinearGrid {
-            RectilinearGrid { nx, ny, cells: HashMap::new() }
+            RectilinearGrid { shape: [nx, ny], cells: HashMap::new() }
         }
 
         #[wasm_bindgen]
-        pub fn draw(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, color: JsValue) {
-            let dx = w / (self.nx as f64);
-            let dy = h / (self.ny as f64);
+        pub fn draw(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, color: &JsValue) {
+            let dx = w / self.w();
+            let dy = h / self.h();
 
             ctx.set_stroke_style(&color);
-            ctx.clear_rect(0.0, 0.0, w as f64, h as f64);
+            ctx.clear_rect(0.0, 0.0, w, h);
             ctx.set_line_width(1.0);
-            ctx.set_global_alpha(0.75);
 
-            for ii in 0..(self.nx as u32) + 1 {
+            for ii in 0..(self.shape[0] + 1) {
                 let delta = dx * ii as f64;
                 ctx.begin_path();
                 ctx.move_to(delta, 0.0);
@@ -126,26 +155,30 @@ pub mod tessellate {
                 ctx.stroke();
             }
 
-            for jj in 0..(self.ny as u32) + 1 {
+            for jj in 0..(self.shape[1] + 1) {
                 let delta = dy * jj as f64;
                 ctx.begin_path();
                 ctx.move_to(0.0, delta);
-                ctx.line_to(w as f64, delta);
+                ctx.line_to(w, delta);
                 ctx.stroke();
             }
 
-            for ((ii, jj), _mark) in self.cells.iter() {
-                ctx.fill_rect(dx*(*ii as f64), dy*(*jj as f64), dx, dy);
+            ctx.set_fill_style(&color);
+            for (index, cell) in self.cells.iter() {
+                cell.draw(ctx, index, [dx, dy])
             }
         }
 
-        #[wasm_bindgen]
-        pub fn mark(&mut self, ii: usize, jj: usize) -> bool {
-            let mark = !self.cells.contains_key(&(ii, jj));
-            if mark {
-                self.cells.insert((ii, jj), true);
+        pub fn insert(&mut self, ii: usize, jj: usize, color: &JsValue) -> bool {
+            /*
+            Add a tracked cell to the grid
+            */
+            let insert = !self.cells.contains_key(&(ii, jj));
+            let color_string = color.as_string().unwrap();
+            if insert {
+                self.cells.insert((ii, jj), Cell { selected: true, color: color_string});
             }
-            return mark;
+            return insert;
         }
 
         #[wasm_bindgen]
@@ -153,33 +186,27 @@ pub mod tessellate {
             self.cells = HashMap::new();
         }
 
-
-        fn encode(&self, ii: usize, jj: usize) -> usize {
-            ii*self.nx + jj
-        }
-
-        fn decode(&self, li: usize) -> (usize, usize) {
-            let jj = li % self.nx;
-            let ii = (li - jj) / self.nx;
-            (ii, jj)
-        }
-
         fn random_cell(&self) -> (usize, usize) {
-            (
-                (js_sys::Math::random()*(self.nx as f64)).floor() as usize,
-                (js_sys::Math::random()*(self.ny as f64)).floor() as usize
-            )
+            unsafe {
+                let index = (
+                    (js_sys::Math::random()*self.w()).floor() as usize,
+                    (js_sys::Math::random()*self.h()).floor() as usize
+                );
+                index
+            }
+            
         }
 
         #[wasm_bindgen]
         pub fn animation_frame(&mut self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, frames: u32, _time: f64, color: JsValue) {
-            let (a, b) = self.random_cell();
-            if (frames as usize) % (self.nx*self.ny) > 0 {
-                let _ = self.mark(a, b);
+            
+            if frames as usize % self.size() > 0 {
+                let (a, b) = self.random_cell();
+                let _ = self.insert(a, b, &color);
             } else {
                 self.clear();
             }
-            self.draw(ctx, w, h, color);
+            self.draw(ctx, w, h, &color);
         }
     }
 
@@ -271,7 +298,9 @@ pub mod tessellate {
             self.draw(ctx, w, h, color);
             let current_size = self.indices.len() as u32 / 3;
             if (frame % current_size) > 0 {
-                let _ = &self.mark((js_sys::Math::random()*(current_size as f64)) as usize);
+                unsafe {
+                    let _ = &self.mark((js_sys::Math::random()*(current_size as f64)) as usize);
+                }
             } else {
                 &self.clear();
             }

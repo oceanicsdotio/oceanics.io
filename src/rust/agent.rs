@@ -395,7 +395,7 @@ pub mod agent_system {
             */
             
             let target = xyz - self.vec;
-            let offset = -4.0 * radius; // this scalar might just be for retina display???
+            let offset = -2.0 * radius; // this scalar might just be for retina display???
            
             let gradient = self.gradient(ctx, &xyz, &target, fade);
             ctx.set_stroke_style(&gradient);

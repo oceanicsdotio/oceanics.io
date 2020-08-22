@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
-import { loadRuntime } from "../components/Canvas";
+import { loadRuntime, targetHtmlCanvas } from "../components/Canvas";
 import styled from "styled-components";
-
 
 export const StyledCanvas = styled.canvas`
     position: relative;
@@ -10,15 +9,18 @@ export const StyledCanvas = styled.canvas`
 `;
 
 export default ({
-    count=32, 
+    count=16, 
     font="24px Arial",
     fade=0.75,
-    zero=0.1,
+    zero=0.9,
     stop=0.35,
     padding=0.0,
-    radius=10,
+    radius=16,
     drag=0.001,
-    bounce=0.5
+    bounce=0.5,
+    particleColor="#FFFFFFFF",
+    backgroundColor="#00000088",
+
 }) => {
     /*
     Particles component creates a Canvas element and data structure representing
@@ -53,16 +55,16 @@ export default ({
 
         if (!runtime || !particleSystem) return;
 
-        [ref.current.width, ref.current.height] = ["width", "height"].map(
-            dim => getComputedStyle(ref.current).getPropertyValue(dim).slice(0, -2)
-        );
+        let {
+            start,
+            ctx,
+            shape,
+            requestId, 
+            frames
+        } = targetHtmlCanvas(ref, "2d");
 
-        let requestId;
-        let frames = 0;
+        shape = [...shape, 200];
 
-        const start = performance.now();
-        const ctx = ref.current.getContext("2d");
-        const shape = [ref.current.width, ref.current.height, 200];
         const overlayColor = "#77CCFF";
         
         (function render() {
@@ -71,9 +73,9 @@ export default ({
             particleSystem.update_links(padding, drag, bounce);
 
             // draw steps
-            runtime.clear_rect_blending(ctx, ...shape.slice(0, 2), `#000000CC`);
-            particleSystem.draw(ctx, ...shape.slice(0, 2), fade, radius, "#FFFFFF");
-            runtime.draw_caption(ctx, `N=${count}`, 0.0, ref.current.height, overlayColor, font);
+            runtime.clear_rect_blending(ctx, ...shape.slice(0, 2), backgroundColor);
+            particleSystem.draw(ctx, ...shape.slice(0, 2), fade, radius, particleColor);
+            runtime.draw_caption(ctx, `N=${count}`, 0.0, shape[1], overlayColor, font);
 
             frames = runtime.draw_fps(ctx, frames, performance.now() - start, overlayColor);
             requestId = requestAnimationFrame(render);; 

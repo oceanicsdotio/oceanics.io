@@ -11,9 +11,9 @@
     "url": "git+https://bitbucket.org/oceanicsdotio/oceanics.io.git"
   },
   "files": [
-    "space_bg.wasm",
-    "space.js"
+    "neritics_bg.wasm",
+    "neritics.js"
   ],
-  "module": "space.js",
+  "module": "neritics.js",
   "sideEffects": false
 }

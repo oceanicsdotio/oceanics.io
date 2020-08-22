@@ -21,6 +21,22 @@ export const loadRuntime = (setter) => {
     }
 };
 
+
+export const targetHtmlCanvas = (ref, context) => {
+
+    [ref.current.width, ref.current.height] = ["width", "height"].map(
+        dim => getComputedStyle(ref.current).getPropertyValue(dim).slice(0, -2)
+    );
+
+    return {
+        start: performance.now(),
+        ctx: ref.current.getContext(context),
+        shape: [ref.current.width, ref.current.height],
+        requestId: null,
+        frames: 0
+    }
+};
+
 export const animationLoop = (runtime, ref, context, drawGenerator, caption, font="12px Arial") => () => {
     /*
     If the WASM runtime has been loaded, get the size of the displayed canvas
@@ -29,25 +45,21 @@ export const animationLoop = (runtime, ref, context, drawGenerator, caption, fon
 
     if (!(runtime && ref.current)) return;
 
-    let requestId;
-    let canvas = ref.current;
+    let {
+        start,
+        ctx,
+        shape,
+        requestId, 
+        frames
+    } = targetHtmlCanvas(ref, context);
 
-    const width = getComputedStyle(canvas).getPropertyValue('width').slice(0, -2);
-    const height = getComputedStyle(canvas).getPropertyValue('height').slice(0, -2);
+    const draw = drawGenerator(ctx, ...shape);
 
-    canvas.width = width;
-    canvas.height = height;
-
-    const start = performance.now();
-    const ctx = canvas.getContext(context);
-    const draw = drawGenerator(ctx, width, height);
-
-    let frames = 0;
     (function render() {
         const time = performance.now() - start;
         draw({ frames, time });
         frames = runtime.draw_fps(ctx, frames, time, "#77CCFF");
-        if (caption) runtime.draw_caption(ctx, caption, 0.0, height, "#77CCFF", font);
+        if (caption) runtime.draw_caption(ctx, caption, 0.0, shape[1], "#77CCFF", font);
         requestId = requestAnimationFrame(render);
     })()
 
@@ -91,16 +103,6 @@ export default ({context="2d", key, shaders, caption, dataType, font="12px Arial
             };
         },
         
-        RectilinearGrid: (ctx, width, height) => {
-            /*
-            Rectiinear grid
-            */
-            const struct = new runtime.RectilinearGrid(10, 10);
-            return ({frames, time}) => {
-                struct.animation_frame(ctx, width, height, frames, time, "#FF00FF");
-            }
-        },
-    
         DataStream: (ctx, width, height) => {
             /*
             DataStream animation

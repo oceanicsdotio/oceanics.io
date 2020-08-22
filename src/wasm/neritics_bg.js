@@ -723,10 +723,12 @@ export class Group {
     }
     /**
     * @param {number} count
+    * @param {number} zero
+    * @param {number} stop
     */
-    constructor(count) {
+    constructor(count, zero, stop) {
         _assertNum(count);
-        var ret = wasm.group_new(count);
+        var ret = wasm.group_new(count, zero, stop);
         return Group.__wrap(ret);
     }
     /**
@@ -747,11 +749,14 @@ export class Group {
         }
     }
     /**
+    * @param {number} padding
+    * @param {number} drag
+    * @param {number} bounce
     */
-    update_links() {
+    update_links(padding, drag, bounce) {
         if (this.ptr == 0) throw new Error('Attempt to use a moved value');
         _assertNum(this.ptr);
-        wasm.group_update_links(this.ptr);
+        wasm.group_update_links(this.ptr, padding, drag, bounce);
     }
 }
 /**
@@ -821,23 +826,29 @@ export class RectilinearGrid {
         try {
             if (this.ptr == 0) throw new Error('Attempt to use a moved value');
             _assertNum(this.ptr);
-            wasm.rectilineargrid_draw(this.ptr, addBorrowedObject(ctx), w, h, addHeapObject(color));
+            wasm.rectilineargrid_draw(this.ptr, addBorrowedObject(ctx), w, h, addBorrowedObject(color));
         } finally {
+            heap[stack_pointer++] = undefined;
             heap[stack_pointer++] = undefined;
         }
     }
     /**
     * @param {number} ii
     * @param {number} jj
+    * @param {any} color
     * @returns {boolean}
     */
-    mark(ii, jj) {
-        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.ptr);
-        _assertNum(ii);
-        _assertNum(jj);
-        var ret = wasm.rectilineargrid_mark(this.ptr, ii, jj);
-        return ret !== 0;
+    insert(ii, jj, color) {
+        try {
+            if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+            _assertNum(this.ptr);
+            _assertNum(ii);
+            _assertNum(jj);
+            var ret = wasm.rectilineargrid_insert(this.ptr, ii, jj, addBorrowedObject(color));
+            return ret !== 0;
+        } finally {
+            heap[stack_pointer++] = undefined;
+        }
     }
     /**
     */
@@ -1422,7 +1433,7 @@ export const __wbindgen_memory = function() {
     return addHeapObject(ret);
 };
 
-export const __wbindgen_closure_wrapper1840 = logError(function(arg0, arg1, arg2) {
+export const __wbindgen_closure_wrapper1865 = logError(function(arg0, arg1, arg2) {
     var ret = makeMutClosure(arg0, arg1, 42, __wbg_adapter_22);
     return addHeapObject(ret);
 });

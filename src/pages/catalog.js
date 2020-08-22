@@ -11,6 +11,7 @@ import Table from "../components/Table";
 import { queryBathysphere } from "../bathysphere";
 import Canvas from "../components/Canvas";
 import Particles from "../components/Particles";
+import RectilinearGrid from "../components/RectilinearGrid";
 import Storage from "../components/Storage";
 import Codex from "../components/Codex";
 import Lagrangian from "../components/Lagrangian";
@@ -69,11 +70,13 @@ export default ({data: {allMarkdownRemark: {edges}, site: {siteMetadata: {title}
     const [ visibility, setVisibility ] = useState({
         map: false,
         graph: false,
-        meshes: false,
+        rectilinearGrid: true,
+        triangularMesh: false,
+        hexGrid: false,
         objectStorage: false,
         codex: false,
         datastream: false,
-        particles: true,
+        particles: false,
         cursor: false,
         lagrangian: false,
         noise: false
@@ -333,6 +336,7 @@ export default ({data: {allMarkdownRemark: {edges}, site: {siteMetadata: {title}
             }
             )}
         </div>
+        {!Object.values(visibility).some(x => x) ? <StyledTip>↑ Select some data sources and sinks to get started.</StyledTip> : null}
         {(visibility.map && mapData) ? <Map {...mapData}/> : null}
         {visibility.lagrangian ? <Lagrangian res={1000} source={"/wind.png"} metadataFile={"/wind.json"}/> : null}
         {visibility.noise ? <Noise res={1000} source={"/wind.png"} metadataFile={"/wind.json"}/> : null}
@@ -340,16 +344,12 @@ export default ({data: {allMarkdownRemark: {edges}, site: {siteMetadata: {title}
         {visibility.datastream ? <Canvas caption="DataStream" dataType="DataStream"/>:null}
         {visibility.particles ? <Particles/>:null}
         {visibility.cursor ? <Canvas caption="Cursor" dataType="Cursor"/>:null}
-        {visibility.meshes ? (
-            <>
-            <Canvas caption="TriangularMesh" dataType="TriangularMesh"/>
-            <Canvas caption="RectilinearGrid" dataType="RectilinearGrid"/>
-            <Canvas caption="HexagonalGrid" dataType="HexagonalGrid"/>
-            </>
-        ):null}
+        {visibility.rectilinearGrid ? <RectilinearGrid/> :null }
+        {visibility.triangularMesh ? <Canvas caption="TriangularMesh" dataType="TriangularMesh"/> :null }
+        {visibility.hexGrid ? <Canvas caption="HexagonalGrid" dataType="HexagonalGrid"/> :null }
         {visibility.graph ? catalog.map(([k, v]) => <Collection {...v} key={k}/>).flat() : null}
         {visibility.objectStorage ? <Storage /> : null}
-        {!Object.values(visibility).some(x => x) ? <StyledTip>↑ Select some data sources and sinks to get started.</StyledTip> : null}
+        
       </Layout>
     )
 };
