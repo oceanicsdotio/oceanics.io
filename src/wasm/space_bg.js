@@ -247,6 +247,22 @@ function addBorrowedObject(obj) {
     return stack_pointer;
 }
 /**
+* @param {CanvasRenderingContext2D} ctx
+* @param {number} w
+* @param {number} h
+* @param {number} mx
+* @param {number} my
+* @param {any} color
+*/
+export function draw_hex_grid(ctx, w, h, mx, my, color) {
+    try {
+        wasm.draw_hex_grid(addBorrowedObject(ctx), w, h, mx, my, addHeapObject(color));
+    } finally {
+        heap[stack_pointer++] = undefined;
+    }
+}
+
+/**
 * @param {WebGLRenderingContext} ctx
 * @param {string} vertex
 * @param {string} fragment
@@ -496,22 +512,6 @@ export function mouse_move(x, y) {
     wasm.mouse_move(x, y);
 }
 
-/**
-* @param {CanvasRenderingContext2D} ctx
-* @param {number} w
-* @param {number} h
-* @param {number} mx
-* @param {number} my
-* @param {any} color
-*/
-export function draw_hex_grid(ctx, w, h, mx, my, color) {
-    try {
-        wasm.draw_hex_grid(addBorrowedObject(ctx), w, h, mx, my, addHeapObject(color));
-    } finally {
-        heap[stack_pointer++] = undefined;
-    }
-}
-
 function handleError(f) {
     return function () {
         try {
@@ -534,70 +534,13 @@ function getUint8ClampedMemory0() {
 function getClampedArrayU8FromWasm0(ptr, len) {
     return getUint8ClampedMemory0().subarray(ptr / 1, ptr / 1 + len);
 }
-function __wbg_adapter_197(arg0, arg1, arg2, arg3) {
+function __wbg_adapter_185(arg0, arg1, arg2, arg3) {
     _assertNum(arg0);
     _assertNum(arg1);
     wasm.wasm_bindgen__convert__closures__invoke2_mut__h96984aac8d17c2af(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
 }
 
 function notDefined(what) { return () => { throw new Error(`${what} is not defined`); }; }
-/**
-*/
-export class Agent {
-
-    static __wrap(ptr) {
-        const obj = Object.create(Agent.prototype);
-        obj.ptr = ptr;
-
-        return obj;
-    }
-
-    free() {
-        const ptr = this.ptr;
-        this.ptr = 0;
-
-        wasm.__wbg_agent_free(ptr);
-    }
-    /**
-    * @param {number} x
-    * @param {number} y
-    * @param {number} z
-    */
-    constructor(x, y, z) {
-        var ret = wasm.agent_new(x, y, z);
-        return Agent.__wrap(ret);
-    }
-    /**
-    */
-    update_position() {
-        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.ptr);
-        wasm.agent_update_position(this.ptr);
-    }
-    /**
-    * @param {CanvasRenderingContext2D} ctx
-    * @param {number} _n
-    * @param {number} w
-    * @param {number} h
-    * @param {number} x
-    * @param {number} y
-    * @param {number} z
-    * @param {number} u
-    * @param {number} v
-    * @param {number} fade
-    * @param {number} scale
-    * @param {any} color
-    */
-    static draw(ctx, _n, w, h, x, y, z, u, v, fade, scale, color) {
-        try {
-            _assertNum(_n);
-            wasm.agent_draw(addBorrowedObject(ctx), _n, w, h, x, y, z, u, v, fade, scale, addBorrowedObject(color));
-        } finally {
-            heap[stack_pointer++] = undefined;
-            heap[stack_pointer++] = undefined;
-        }
-    }
-}
 /**
 */
 export class Axis {
@@ -788,99 +731,27 @@ export class Group {
     }
     /**
     * @param {CanvasRenderingContext2D} ctx
-    * @param {number} w
-    * @param {number} h
+    * @param {number} width
+    * @param {number} height
     * @param {number} fade
     * @param {number} scale
     * @param {any} color
     */
-    draw(ctx, w, h, fade, scale, color) {
+    draw(ctx, width, height, fade, scale, color) {
         try {
             if (this.ptr == 0) throw new Error('Attempt to use a moved value');
             _assertNum(this.ptr);
-            wasm.group_draw(this.ptr, addBorrowedObject(ctx), w, h, fade, scale, addHeapObject(color));
+            wasm.group_draw(this.ptr, addBorrowedObject(ctx), width, height, fade, scale, addHeapObject(color));
         } finally {
             heap[stack_pointer++] = undefined;
         }
     }
     /**
-    * @param {CanvasRenderingContext2D} ctx
-    * @param {number} width
-    * @param {number} height
-    * @param {number} depth
-    * @param {number} fade
-    * @param {number} radius
-    * @param {any} color
     */
-    update_and_draw_links(ctx, width, height, depth, fade, radius, color) {
-        try {
-            if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-            _assertNum(this.ptr);
-            wasm.group_update_and_draw_links(this.ptr, addBorrowedObject(ctx), width, height, depth, fade, radius, addHeapObject(color));
-        } finally {
-            heap[stack_pointer++] = undefined;
-        }
-    }
-}
-/**
-*/
-export class Link {
-
-    static __wrap(ptr) {
-        const obj = Object.create(Link.prototype);
-        obj.ptr = ptr;
-
-        return obj;
-    }
-
-    free() {
-        const ptr = this.ptr;
-        this.ptr = 0;
-
-        wasm.__wbg_link_free(ptr);
-    }
-    /**
-    * @param {number} p
-    */
-    constructor(p) {
-        var ret = wasm.link_new(p);
-        return Link.__wrap(ret);
-    }
-    /**
-    * @param {number} dx
-    * @param {number} dy
-    * @param {number} dz
-    * @returns {Float64Array}
-    */
-    update(dx, dy, dz) {
+    update_links() {
         if (this.ptr == 0) throw new Error('Attempt to use a moved value');
         _assertNum(this.ptr);
-        wasm.link_update(8, this.ptr, dx, dy, dz);
-        var r0 = getInt32Memory0()[8 / 4 + 0];
-        var r1 = getInt32Memory0()[8 / 4 + 1];
-        var v0 = getArrayF64FromWasm0(r0, r1).slice();
-        wasm.__wbindgen_free(r0, r1 * 8);
-        return v0;
-    }
-    /**
-    * @param {CanvasRenderingContext2D} ctx
-    * @param {number} ax
-    * @param {number} ay
-    * @param {number} az
-    * @param {number} radius
-    * @param {number} fade
-    * @param {number} force
-    * @param {any} color
-    */
-    draw(ctx, ax, ay, az, radius, fade, force, color) {
-        try {
-            if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-            _assertNum(this.ptr);
-            wasm.link_draw(this.ptr, addBorrowedObject(ctx), ax, ay, az, radius, fade, force, addBorrowedObject(color));
-        } finally {
-            heap[stack_pointer++] = undefined;
-            heap[stack_pointer++] = undefined;
-        }
+        wasm.group_update_links(this.ptr);
     }
 }
 /**
@@ -992,98 +863,6 @@ export class RectilinearGrid {
         } finally {
             heap[stack_pointer++] = undefined;
         }
-    }
-}
-/**
-*/
-export class Spring {
-
-    static __wrap(ptr) {
-        const obj = Object.create(Spring.prototype);
-        obj.ptr = ptr;
-
-        return obj;
-    }
-
-    free() {
-        const ptr = this.ptr;
-        this.ptr = 0;
-
-        wasm.__wbg_spring_free(ptr);
-    }
-    /**
-    * @returns {number}
-    */
-    get x() {
-        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.ptr);
-        var ret = wasm.__wbg_get_spring_x(this.ptr);
-        return ret;
-    }
-    /**
-    * @param {number} arg0
-    */
-    set x(arg0) {
-        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.ptr);
-        wasm.__wbg_set_spring_x(this.ptr, arg0);
-    }
-    /**
-    * @param {number} k
-    * @param {number} x
-    * @param {number} v
-    * @param {number} l
-    * @param {number} stop
-    * @param {number} p
-    */
-    constructor(k, x, v, l, stop, p) {
-        var ret = wasm.spring_new(k, x, v, l, stop, p);
-        return Spring.__wrap(ret);
-    }
-    /**
-    * @returns {number}
-    */
-    potential_energy() {
-        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.ptr);
-        var ret = wasm.spring_potential_energy(this.ptr);
-        return ret;
-    }
-    /**
-    * @returns {number}
-    */
-    force() {
-        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.ptr);
-        var ret = wasm.spring_force(this.ptr);
-        return ret;
-    }
-    /**
-    * @returns {boolean}
-    */
-    drop() {
-        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.ptr);
-        var ret = wasm.spring_drop(this.ptr);
-        return ret !== 0;
-    }
-    /**
-    * @param {number} distance
-    */
-    update(distance) {
-        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.ptr);
-        wasm.spring_update(this.ptr, distance);
-    }
-    /**
-    * @param {number} s
-    * @returns {number}
-    */
-    size(s) {
-        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.ptr);
-        var ret = wasm.spring_size(this.ptr, s);
-        return ret;
     }
 }
 /**
@@ -1461,6 +1240,10 @@ export const __wbg_translate_882094cd23d918c7 = handleError(function(arg0, arg1,
     getObject(arg0).translate(arg1, arg2);
 });
 
+export const __wbg_addColorStop_c75d1d727f815743 = handleError(function(arg0, arg1, arg2, arg3) {
+    getObject(arg0).addColorStop(arg1, getStringFromWasm0(arg2, arg3));
+});
+
 export const __wbg_instanceof_HtmlCanvasElement_308a7fa689ff20ef = logError(function(arg0) {
     var ret = getObject(arg0) instanceof HTMLCanvasElement;
     _assertBoolean(ret);
@@ -1512,7 +1295,7 @@ export const __wbg_new_261626435fed913c = logError(function(arg0, arg1) {
             const a = state0.a;
             state0.a = 0;
             try {
-                return __wbg_adapter_197(a, state0.b, arg0, arg1);
+                return __wbg_adapter_185(a, state0.b, arg0, arg1);
             } finally {
                 state0.a = a;
             }
@@ -1639,8 +1422,8 @@ export const __wbindgen_memory = function() {
     return addHeapObject(ret);
 };
 
-export const __wbindgen_closure_wrapper1969 = logError(function(arg0, arg1, arg2) {
-    var ret = makeMutClosure(arg0, arg1, 41, __wbg_adapter_22);
+export const __wbindgen_closure_wrapper1842 = logError(function(arg0, arg1, arg2) {
+    var ret = makeMutClosure(arg0, arg1, 42, __wbg_adapter_22);
     return addHeapObject(ret);
 });
 

@@ -89,4 +89,22 @@ export default function quickSort(arr, low, high, col) {
 }
 
 
+const magnitude = (vec) => {
+    return Math.sqrt(
+        vec.map(x => x * x).reduce((a, b) => a + b, 0.0)
+    )
+};
+
+
+const rgba = (x, z, fade) => {
+    const color = x > 0.0 ? "255, 0, 0" : "0, 0, 255";
+    const alpha = 1.0 - fade * z;
+    return "rgba("+color+", "+alpha+")";
+};
+
+
+export const sleep = (ms) => {
+    return new Promise(resolve => setTimeout(resolve, ms));
+};
+
 

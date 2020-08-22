@@ -64,6 +64,7 @@
     "build": "gatsby build",
     "develop": "gatsby develop",
     "serve": "gatsby serve",
-    "clean": "gatsby clean"
+    "clean": "gatsby clean",
+    "compile": "wasm-pack build --out-dir src/wasm --dev --target bundler"
   }
 }

@@ -4,9 +4,13 @@ pub mod agent_system {
     use wasm_bindgen::prelude::*;
     use wasm_bindgen::{JsValue};
     use std::collections::HashMap;
-    use web_sys::{CanvasRenderingContext2d};
+    use web_sys::{CanvasRenderingContext2d, CanvasGradient};
     use std::f64::consts::{PI};
     use std::i64;
+    use std::ops::Add;
+    use std::ops::Sub;
+    use std::ops::Mul;
+    use rand::prelude::*;
 
     fn signal (time: f64, period: f64) -> f64 {
         let _period = period * 1000.0;
@@ -33,15 +37,84 @@ pub mod agent_system {
     }
 
 
-    fn rgba (force: f64, z: f64, fade: f64) -> String {
-        let mut color: String = "rgba(".to_owned();
-        if force < 0.0 {
-            color.push_str("0, 0, 255,");
-        } else {
-            color.push_str("255, 0, 0,");
+
+
+
+    #[derive(Copy, Clone)]
+    pub struct Vec3 {
+        value: [f64; 3]
+    }
+
+
+    impl Vec3 {
+        pub fn magnitude(&self) -> f64 {
+            let mut sum = 0.0;
+            for ii in 0..3 {
+                sum += self.value[ii]*self.value[ii];
+            }
+            sum.powf(0.5)
         }
-        color.push_str(&format!("{alpha:.*})", 2, alpha=(1.0 - fade * z)));
-        return color;
+
+        pub fn x(&self) -> f64 { self.value[0] }
+
+        pub fn y(&self) -> f64 { self.value[1] }
+
+        pub fn z(&self) -> f64 { self.value[2] }
+    }
+
+    impl std::ops::Add<Vec3> for Vec3 {
+        type Output = Vec3;
+        fn add(self, _rhs: Vec3) -> Vec3 {
+            let mut v = [0.0; 3];
+            for ii in 0..3 {
+                v[ii] = self.value[ii] + _rhs.value[ii];
+            }
+            Vec3{ value: v }
+        }
+    }
+
+    impl std::ops::Sub<Vec3> for Vec3 {
+        type Output = Vec3;
+        fn sub(self, _rhs: Vec3) -> Vec3 {
+            let mut v = [0.0; 3];
+            for ii in 0..3 {
+                v[ii] = self.value[ii] - _rhs.value[ii];
+            }
+            Vec3{ value: v }
+        }
+    }
+
+    impl std::ops::Mul<Vec3> for Vec3 {
+        type Output = Vec3;
+        fn mul(self, _rhs: Vec3) -> Vec3 {
+            let mut v = [0.0; 3];
+            for ii in 0..3 {
+                v[ii] = self.value[ii] * _rhs.value[ii];
+            }
+            Vec3{ value: v }
+        }
+    }
+
+    impl std::ops::Mul<f64> for Vec3 {
+        type Output = Vec3;
+        fn mul(self, _rhs: f64) -> Vec3 {
+            let mut v = [0.0; 3];
+            for ii in 0..3 {
+                v[ii] = self.value[ii] * _rhs;
+            }
+            Vec3{ value: v }
+        }
+    }
+
+    impl std::ops::Mul<Vec3> for &Vec3 {
+        type Output = Vec3;
+        fn mul(self, _rhs: Vec3) -> Vec3 {
+            let mut v = [0.0; 3];
+            for ii in 0..3 {
+                v[ii] = self.value[ii] * _rhs.value[ii];
+            }
+            Vec3{ value: v }
+        }
     }
 
     #[allow(dead_code)]
@@ -186,7 +259,6 @@ pub mod agent_system {
         }
     }
 
-    #[wasm_bindgen]
     #[derive(Copy, Clone)]
     pub struct Spring {
         k: f64,
@@ -202,26 +274,39 @@ pub mod agent_system {
         p: f64  // probability of dropout during physics loop
     }
 
-    #[wasm_bindgen]
     impl Spring {
-        #[wasm_bindgen(constructor)]
-        pub fn new(k: f64, x: f64, v: f64, l: f64, stop: f64, p: f64) -> Spring {
-            Spring { k, x, v, l, stop, p }
-        }
-
+        
         pub fn potential_energy(&self) -> f64 {
+            /*
+            Energy conservation is used to constrain some simulations to realistic
+            physics, and to classify configurations of agents
+            */
             0.5 * self.k * self.x * self.x
         }
 
         pub fn force(&self) -> f64 {
+            /*
+            Basic spring force for calculating the acceleration
+            on objects
+            */
             -2.0 * self.k.sqrt() * self.v - self.k * (self.x - self.l)
         }
 
-        pub fn drop(&self) -> bool {
-            let sqrt2 = (2 as f64).sqrt();
-            unsafe {
-                js_sys::Math::random() > self.p * (sqrt2 - self.x) / sqrt2
-            }
+        pub fn drop(&self, shape: [f64; 3]) -> bool {
+            /*
+            Use the spring extension and intrinsic dropout probability
+            to determine whether the spring instance should contribute
+            to this iteration of force calculations.
+            
+            The bounding box is used to normalize. The effect is that
+            long springs create a small RHS in the comparison, so it is
+            more likely that they dropout.
+
+            Higher drop rates speed up the animation loop, but make 
+            N-body calculations less deterministic. 
+            */
+            let max_distance = (2 as f64).sqrt();
+            rand::random::<f64>() > self.p * (max_distance - self.x) / max_distance
         }
 
         pub fn update(&mut self, distance: f64) {
@@ -234,110 +319,115 @@ pub mod agent_system {
         }
     }
 
-    #[wasm_bindgen]
     pub struct Link {
         spring: Spring,
-        vec: Vec<f64>
+        vec: Vec3
     }
 
-    #[wasm_bindgen]
     impl Link {
-        #[wasm_bindgen(constructor)]
-        pub fn new(p: f64) -> Link {
-            Link {
-                spring: Spring { k: 0.002, x: 0.0, v: 0.0, l: 0.2, stop: 0.1, p },
-                vec: vec![0.0, 0.0, 0.0]
-            }
-        }
+       
+        pub fn update(&mut self, new_vec: Vec3) -> Vec3 {
 
-        #[wasm_bindgen]
-        pub fn update(&mut self, dx: f64, dy: f64, dz: f64) -> Vec<f64> {
-
-            let new_vec = vec![dx, dy, dz];
-
-            let dist = magnitude(&new_vec);
-            self.spring.update(dist);
-
+            let distance = new_vec.magnitude();
+            self.spring.update(distance);
             let force = self.spring.force();
-            let mut delta: Vec<f64> = vec![];
+            let mut delta = Vec3{ value: [0.0; 3]};
            
             for dim in 0..3 {
-
-                if dist > 0.00001 {
-                    delta.push(self.vec[dim] / dist * force);
-                    
-                } else {
-                    delta.push(0.0);
-                }
-                
-                self.vec[dim] = new_vec[dim];         
+                if distance > 0.00001 {
+                    delta.value[dim] = self.vec.value[dim] / distance * force;
+                } 
+                self.vec.value[dim] = new_vec.value[dim];         
             };
 
             delta
 
         }
-
-        #[wasm_bindgen]
-        pub fn draw(&self, ctx: &CanvasRenderingContext2d, ax: f64, ay: f64, az: f64, radius: f64, fade: f64, force: f64, color: &JsValue) {
-                        
-            let bx = ax + self.vec[0];
-            let by  = ay + self.vec[1];
-            // let grad = ctx.create_linear_gradient(ax, ay, bx, by);
-            let offset = 4.0*radius;
-            
-            // assert!(grad.add_color_stop(0.0, &rgba(force, az, fade)).is_ok());
-            // assert!(grad.add_color_stop(1.0, &rgba(force, az + self.vec[2], fade)).is_ok());
-            
-            // ctx.set_stroke_style(&grad);
-            ctx.set_stroke_style(&color);
-            
-            ctx.set_global_alpha(1.0);
-            ctx.begin_path();
-            ctx.move_to(ax - offset*self.vec[0], ay - offset*self.vec[1]);
-            ctx.line_to(bx + offset*self.vec[0], by + offset*self.vec[1]);
-            ctx.stroke();
-        }
-
-    //    #[wasm_bindgen]
-    //    pub fn update(&mut self, neighbor: &mut Agent, count: usize) {
-
-    //        let mut dist = 0.0;
-    //        for dim in 0..3 {
-    //            dist += link.vec[dim];
-    //        }
-    //        dist = dist.sqrt();
-    //        self.spring.update(dist);
-
-    //        let force = link.spring.force();
-    //        state.energy.potential += link.spring.potential_energy();
-
-    //        let mut scaled: Vec<f64> = vec![];
-    //        for ii in 0..3 {
-    //            let delta = k / dist * force / count as f64;
-    //            self.velocity[ii] += delta;
-    //            neighbor.velocity[ii] -= delta;
-    //            let val = self.coordinates[ii] - neighbor.coordinates[index];
-    //            scaled.push(val * scale);
-    //        }
-    //    }
     }
 
-    #[wasm_bindgen]
+    impl Link {
+        
+        pub fn new(p: f64) -> Link {
+            Link {
+                spring: Spring { k: 0.002, x: 0.0, v: 0.0, l: 0.2, stop: 0.1, p },
+                vec: Vec3{ value: [0.0, 0.0, 0.0]}
+            }
+        }
+
+        fn rgba (&self, z: f64, fade: f64) -> String {
+            /*
+            Colormap a value in (-inf, inf). 
+            
+            - Negative values are blue
+            - Positive values are red
+            - Alpha is 255 in front, and (0,1) in
+    
+            */
+            let mut color: String = "rgba(".to_owned();
+            if self.spring.force() < 0.0 {
+                color.push_str("0, 0, 255,");
+            } else {
+                color.push_str("255, 0, 0,");
+            }
+            color.push_str(&format!("{alpha:.*})", 2, alpha=(1.0 - fade * z)));
+    
+            return color;
+        }
+
+
+        fn gradient(&self, ctx: &CanvasRenderingContext2d, xyz: &Vec3, target: &Vec3, fade: f64) -> CanvasGradient {
+
+            let gradient: CanvasGradient = ctx.create_linear_gradient(xyz.x(), xyz.y(), target.x(), target.y());
+            
+            assert!(gradient.add_color_stop(0.0, &self.rgba(xyz.z(), fade)).is_ok());
+            assert!(gradient.add_color_stop(1.0, &self.rgba(target.z(), fade)).is_ok());
+
+            return gradient
+        }
+
+        pub fn draw(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, xyz: Vec3, radius: f64, fade: f64) {
+            /*
+            Links are rendered as rays originating at the linked particle, and terminating
+            at a point defined by the source plus the `vec` attribute of Link.
+
+            Display size for agents is used to calculate an offset, so that the ray begins
+            on the surface of a 3D sphere, projected into the X,Y plane.
+            */
+            
+            let target = xyz - self.vec;
+            let offset = -4.0 * radius; // this scalar might just be for retina display???
+           
+            let gradient = self.gradient(ctx, &xyz, &target, fade);
+            ctx.set_stroke_style(&gradient);
+            ctx.begin_path();
+            ctx.move_to(
+                xyz.x() * w + offset * self.vec.x(), 
+                xyz.y() * h + offset * self.vec.y()
+            );
+            ctx.line_to(
+                target.x() * w - offset * self.vec.x(), 
+                target.y() * h - offset * self.vec.y()
+            );
+            ctx.stroke();
+        }
+    }
+
+    
     pub struct Agent {
-        heading: Vec<f64>,
-        coordinates: Vec<f64>,
-        velocity: Vec<f64>,
+        heading: Vec3,
+        coordinates: Vec3,
+        velocity: Vec3,
         links: HashMap<usize,Link>,
     }
 
-    #[wasm_bindgen]
+   
     impl Agent {
-        #[wasm_bindgen(constructor)]
+        
         pub fn new (x: f64, y: f64, z: f64) -> Agent {
             Agent {
-                heading: vec![0.0, 0.0, 1.0],
-                coordinates: vec![x, y, z],
-                velocity: vec![0.0, 0.0, 0.0],
+                heading: Vec3 {value: [1.0, 0.0, 0.0]},
+                coordinates: Vec3 {value: [x, y, z]},
+                velocity: Vec3 {value: [0.0, 0.0, 0.0]},
                 links: HashMap::new()
             }
         }
@@ -347,43 +437,48 @@ pub mod agent_system {
             let padding = 0.0;
             let drag = 0.0;
             let bounce = 0.5;
+            let speed = self.velocity.magnitude();
 
             for dim in 0..3 {
-                let mut coord = self.coordinates[dim];
+                let mut coord = self.coordinates.value[dim];
                 
-                self.velocity[dim] *= 1.0 - drag;
-                coord += self.velocity[dim];
+                self.velocity.value[dim] *= 1.0 - drag;
+                coord += self.velocity.value[dim];
                 if coord > 1.0 - padding {
                     coord -= 2.0*(coord - 1.0 - padding);
-                    self.velocity[dim] *= -bounce;
+                    self.velocity.value[dim] *= -bounce;
                 } else if coord < padding {
                     coord -= 2.0*(coord - padding);
-                    self.velocity[dim] *= -bounce;
+                    self.velocity.value[dim] *= -bounce;
                 }
-                if magnitude(&self.velocity) > 0.00001 {
-                    self.heading[dim] = self.velocity[dim]
+                if speed > 0.00001 {
+                    self.heading.value[dim] = self.velocity.value[dim] / self.velocity.magnitude();
                 }
-                self.coordinates[dim] = coord;
+                self.coordinates.value[dim] = coord;
             }
 
         }
 
         
-        #[wasm_bindgen]
         pub fn draw(ctx: &CanvasRenderingContext2d, _n: u32, w: f64, h: f64, x: f64, y: f64, z: f64, u: f64, v: f64, fade: f64, scale: f64, color: &JsValue) {
-
-            ctx.set_global_alpha((1.0 - fade * z).powf(2.0));
+            /*
+            Render the current state of single Agent to HTML canvas. The basic
+            representation includes a scaled circle indicating the position, 
+            and a heading indicator for the current direction of travel.
+            */
+            ctx.set_global_alpha(1.0 - fade * z);
             ctx.set_fill_style(&color);
             ctx.set_stroke_style(&color);
 
-            // Draw entity
+            let radius = scale * (1.0 - 0.5*z);
+
             ctx.begin_path();
-            if let Err(_e) = ctx.arc(x * w, y * h, scale, 0.0, std::f64::consts::PI*2.0) {
+            if let Err(_e) = ctx.arc(x * w, y * h, radius, 0.0, std::f64::consts::PI*2.0) {
                 ctx.close_path();
                 panic!("Problem drawing agent, probably negative scale value");
             }
             ctx.move_to(x * w, y * h);
-            ctx.line_to(x * w + u * scale, y * h + v * scale);
+            ctx.line_to(x * w + u * radius, y * h + v * radius);
             ctx.stroke();
             ctx.close_path();
         }
@@ -402,27 +497,23 @@ pub mod agent_system {
                 particles: vec![]
             };
 
-            unsafe {
-                for _ii in 0..count {
-                    group.particles.push(
-                        Agent::new(
-                            js_sys::Math::random(),
-                            js_sys::Math::random(),
-                            js_sys::Math::random()
-                        )
+            for _ii in 0..count {
+                group.particles.push(
+                    Agent::new(
+                        js_sys::Math::random(),
+                        js_sys::Math::random(),
+                        js_sys::Math::random()
                     )
-                }
+                )
             }
+            
             for ii in 0..count {
                 for jj in (ii+1)..count {
-                    let mut vec = vec![0.0, 0.0, 0.0];
-                    for dim in 0..3 {
-                        vec[dim] = group.particles[ii].coordinates[dim] - group.particles[jj].coordinates[dim];
-                    }
+                    let vec = group.particles[jj].coordinates - group.particles[ii].coordinates;
                     
                     group.particles[ii].links.insert(jj, Link{
                         vec: vec,
-                        spring: Spring::new(0.002, 0.0, 0.0, 0.0, 0.4, 1.0)
+                        spring: Spring{k: 0.002, x: 0.0, v: 0.0, l: 0.0, stop: 0.4, p: 1.0}
                     });
                 }
             }
@@ -432,56 +523,48 @@ pub mod agent_system {
 
 
         #[wasm_bindgen]
-        pub fn draw(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, fade: f64, scale: f64, color: JsValue) {
+        pub fn draw(&self, ctx: &CanvasRenderingContext2d, width: f64, height: f64, fade: f64, scale: f64, color: JsValue) {
             
             /*
             Draw the entire group of particles to an HTML canvas using the 2D context.
-            */
-            let count = self.particles.len();
-            
-            for ii in 0..count {
-                let xyz = &self.particles[ii].coordinates;
-                let uv = &self.particles[ii].heading;
-                
-                Agent::draw(ctx, count as u32, w, h, xyz[0], xyz[1], xyz[2], uv[0], uv[1], fade, scale, &color);
+            */ 
+            // let count = self.particles.len();
+            let count: u32 = 1;
+            for particle in &self.particles {
+                let [x,y, z] = particle.coordinates.value;
+                let [u, v, _w] = particle.heading.value;
+                Agent::draw(ctx, count as u32, width, height, x, y, z, u, v, fade, scale, &color);
+
+                for link in particle.links.values() {
+                    link.draw(ctx, width, height, particle.coordinates, scale, fade); 
+                }
             }
+
         }
 
         #[wasm_bindgen]
-        pub fn update_and_draw_links(&self, ctx: &CanvasRenderingContext2d, width: f64, height: f64, depth: f64, fade: f64, radius: f64, color: JsValue) {
+        pub fn update_links(&mut self) {
             /*
             Update link forces and vectors. 
+
+            Have to split Vec<Agents>, because each index op of `self.particles` will attempt 
+            to borrow and collide. This works for current implementation, because
+            the graph is initialized by linking only other particles with a greater
+            index. 
             */
-            for particle in &self.particles {
-                for (_jj, link) in &particle.links {
+            for ii in 0..self.particles.len() {
 
-                    // let mut newVec = vec![];
-                    // for dim in 0..3 {
-                    //     newVec.push(self.particles[ii].coordinates[dim] - self.particles[*jj].coordinates[dim]);
-                    // }
-
-                    // let delta = link.update(newVec[0], newVec[1], newVec[2]);
-                    // let scale = link.spring.size(1.0);
-                    // let mut scaled = vec![];
-
-                    // for dim in 0..3 {
-                    //     scaled.push(link.vec[dim] * scale);
-                    //     self.particles[ii].velocity[dim] += delta[dim];
-                    //     self.particles[*jj].velocity[dim] -= delta[dim];
-                    // }
-                    
-                    // let start = self.particles[ii].coordinates.map((v, k) => v * shape[k] - scaled[k]);
-                    // let end = positions[jj].coordinates.map((v, k) => v * shape[k] + scaled[k]);
+                let (head, tail) = self.particles.split_at_mut(ii + 1);
+                let particle = &mut head[ii];
                 
-                    let x = particle.coordinates[0] * width;
-                    let y = particle.coordinates[1] * height;
-                    let z = particle.coordinates[2] * depth;
-
-                    link.draw(ctx, x, y, z, radius, fade, link.spring.force(), &color);
+                for (jj, link) in &mut particle.links {
+                    let mut neighbor = &mut tail[jj - ii - 1];
+                    let delta = link.update(particle.coordinates - neighbor.coordinates);
+                    
+                    particle.velocity = particle.velocity + delta;
+                    neighbor.velocity = neighbor.velocity - delta;
                 }
-
-                // self.particles[ii].update_position();
-
+                particle.update_position();
             }
         }
     }
