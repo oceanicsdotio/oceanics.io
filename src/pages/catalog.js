@@ -341,7 +341,7 @@ export default ({data: {allMarkdownRemark: {edges}, site: {siteMetadata: {title}
         {!Object.values(visibility).some(x => x) ? <StyledTip>↑ Select some data sources and sinks to get started.</StyledTip> : null}
         {(visibility.map && mapData) ? <Map {...mapData}/> : null}
         {visibility.lagrangian ? <Lagrangian res={1000} source={"/wind.png"} metadataFile={"/wind.json"}/> : null}
-        {visibility.noise ? <Noise res={1000} source={"/wind.png"} metadataFile={"/wind.json"}/> : null}
+        {visibility.noise ? <Noise source={"/wind.png"}/> : null}
         {visibility.codex ? <Codex edges={edges} token={accessToken} baseUrl={baseUrl}/>:null}
         {visibility.datastream ? <DataStream/> : null}
         {visibility.particles ? <Particles/> : null}

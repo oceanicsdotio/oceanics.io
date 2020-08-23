@@ -5,6 +5,7 @@ varying vec2 v_tex_pos;
 
 void main() {
     /*
+    Sample a 2D texture to determine the color
 
     TODO: multiply only alpha channel by opacity uniform.
     */

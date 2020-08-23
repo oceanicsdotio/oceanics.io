@@ -28,6 +28,126 @@ export const getColorRamp = (colors) => {
 };
 
 
+export const compileShaders = (runtime, ref, assets, shaders, setPrograms, setReady) => {
+    /*
+    IFF the canvas context is WebGL and we need shaders, fetch the GLSL code and compile the 
+    shaders as programs.
+
+    This is executed only once, after the WASM runtime is loaded. 
+    */
+
+    return () => {
+        if (!runtime || !ref.current || !assets) return;
+        const ctx = ref.current.getContext("webgl");
+        if (!ctx) return;
+    
+        (async () => {
+            
+            const shaderSource = {};  // memoize the shaders as they are loeaded
+            const compiled = Object.fromEntries(await Promise.all(Object.entries(shaders).map(async ([programName, pair]) => {
+    
+                let [vs, fs] = pair.map(async (file) => {
+                    if (!(file in shaderSource)) shaderSource[file] = await runtime.fetch_text(`/${file}.glsl`)
+                    return shaderSource[file];
+                });
+                const program = runtime.create_program(ctx, await vs, await fs);
+                let wrapper = { program };
+                for (let ii = 0; ii < ctx.getProgramParameter(program, ctx.ACTIVE_ATTRIBUTES); ii++) {
+                    const { name } = ctx.getActiveAttrib(program, ii);
+                    wrapper[name] = ctx.getAttribLocation(program, name);
+                }
+                for (let ii = 0; ii < ctx.getProgramParameter(program, ctx.ACTIVE_UNIFORMS); ii++) {
+                    const { name } = ctx.getActiveUniform(program, ii);
+                    wrapper[name] = ctx.getUniformLocation(program, name);
+                }
+                return [programName, wrapper];
+            })));
+    
+            console.log("Compiled shader programs to GPU.");
+    
+            setPrograms(compiled);
+            setReady(true);
+    
+        })();
+    }
+}
+
+
+export const exec = (runtime, ctx, uniforms, {
+    components: {
+        tex=[],
+        attrib=[],
+        framebuffer: [handle=null, fb_tex=null],
+        ...components
+    },
+    program={},
+    draw_as: [type, count],
+    viewport,
+    callback = null
+}) => {
+
+    ctx.viewport(...viewport);
+    ctx.bindFramebuffer(ctx.FRAMEBUFFER, handle);
+    if (fb_tex) {
+        ctx.framebufferTexture2D(ctx.FRAMEBUFFER, ctx.COLOR_ATTACHMENT0, ctx.TEXTURE_2D, fb_tex, 0); 
+    }
+    try {
+        ctx.useProgram(program.program);
+    } catch (TypeError) {
+        console.log("Error loading program", program)
+        return;
+    }
+
+    tex.forEach(([tex, slot]) => runtime.bind_texture(ctx, tex, slot));  // TODO: this was changed?
+    attrib.forEach(([buffer, handle, numComponents]) => {
+        ctx.bindBuffer(ctx.ARRAY_BUFFER, buffer);
+        ctx.enableVertexAttribArray(handle);
+        ctx.vertexAttribPointer(handle, numComponents, ctx.FLOAT, false, 0, 0);
+    });
+
+    // Format and bind a value to each uniform variable in the context
+    (components.uniforms || []).forEach((key) => {
+        const [type, value] = uniforms[key];
+        const size = value.length || 1;
+        ctx[`uniform${size}${type}`](program[key], ...(size === 1 ? [value]: value))
+    });
+
+    ctx.drawArrays(type, 0, count);
+    if (callback) callback();
+
+}
+
+export const createTexture = (ctx) => {
+    return ([k, { filter = ctx.NEAREST, data, shape = [null, null] }]) => {
+
+        let texture = ctx.createTexture();
+
+        const textureType = ctx.TEXTURE_2D;
+        const args = data instanceof Uint8Array ? [...shape, 0] : [];
+
+        ctx.bindTexture(textureType, texture);
+        const textureArgs = [textureType, 0, ctx.RGBA, ...args, ctx.RGBA, ctx.UNSIGNED_BYTE, data];
+
+        try {
+            ctx.texImage2D(...textureArgs);
+        } catch (err) {
+            throw TypeError;
+        }
+
+        [
+            [ctx.TEXTURE_WRAP_S, ctx.CLAMP_TO_EDGE],
+            [ctx.TEXTURE_WRAP_T, ctx.CLAMP_TO_EDGE],
+            [ctx.TEXTURE_MIN_FILTER, filter],
+            [ctx.TEXTURE_MAG_FILTER, filter]
+        ].forEach(
+            ([a, b]) => { ctx.texParameteri(textureType, a, b) }
+        );
+        ctx.bindTexture(textureType, null);  // prevent accidental use
+
+        return [k, texture]
+    }
+};
+
 export default ({
     res = Math.ceil(Math.sqrt(1000)),
     metadataFile,
@@ -60,6 +180,14 @@ export default ({
     const [programs, setPrograms] = useState(null);
     const [particles, setParticles] = useState(null);
     const [metadata, setMetadata] = useState(null);
+
+    const shaders = {
+        draw: ["draw-vertex", "draw-fragment"],
+        screen: ["quad-vertex", "screen-fragment"],
+        update: ["quad-vertex", "update-fragment"]
+    };
+
+
 
     useEffect(() => {
         /*
@@ -114,34 +242,7 @@ export default ({
                 previous: { data: particles, shape: [res, res] },
                 color: { filter: ctx.LINEAR, data: getColorRamp(colors), shape: [16, 16] },
                 uv: { filter: ctx.LINEAR, data: img },
-            }).map(([k, { filter = ctx.NEAREST, data, shape = [null, null] }]) => {
-
-                let texture = ctx.createTexture();
-
-                const textureType = ctx.TEXTURE_2D;
-                const args = data instanceof Uint8Array ? [...shape, 0] : [];
-
-                ctx.bindTexture(textureType, texture);
-                const textureArgs = [textureType, 0, ctx.RGBA, ...args, ctx.RGBA, ctx.UNSIGNED_BYTE, data];
-
-                try {
-                    ctx.texImage2D(...textureArgs);
-                } catch (err) {
-                    throw TypeError;
-                }
-
-                [
-                    [ctx.TEXTURE_WRAP_S, ctx.CLAMP_TO_EDGE],
-                    [ctx.TEXTURE_WRAP_T, ctx.CLAMP_TO_EDGE],
-                    [ctx.TEXTURE_MIN_FILTER, filter],
-                    [ctx.TEXTURE_MAG_FILTER, filter]
-                ].forEach(
-                    ([a, b]) => { ctx.texParameteri(textureType, a, b) }
-                );
-                ctx.bindTexture(textureType, null);  // prevent accidental use
-
-                return [k, texture]
-            }));
+            }).map(x => createTexture(ctx)(x)));
 
             setAssets({
                 image: img,
@@ -162,57 +263,7 @@ export default ({
 
     }, [ref, particles]);
 
-
-    
-    useEffect(() => {
-        /*
-        IFF the canvas context is WebGL and we need shaders, fetch the GLSL code and compile the 
-        shaders as programs.
-
-        This is executed only once, after the WASM runtime is loaded. 
-        */
-    
-        if (!runtime || !ref.current || !assets || !metadata) return;
-        const ctx = ref.current.getContext("webgl");
-        if (!ctx) return;
-
-        const shaders = {
-            draw: ["draw-vertex", "draw-fragment"],
-            screen: ["quad-vertex", "screen-fragment"],
-            update: ["quad-vertex", "update-fragment"]
-        };
-
-        (async () => {
-            
-            const shaderSource = {};  // memoize the shaders as they are loeaded
-            const compiled = Object.fromEntries(await Promise.all(Object.entries(shaders).map(async ([programName, pair]) => {
-
-                let [vs, fs] = pair.map(async (file) => {
-                    if (!(file in shaderSource)) shaderSource[file] = await runtime.fetch_text(`/${file}.glsl`)
-                    return shaderSource[file];
-                });
-                const program = runtime.create_program(ctx, await vs, await fs);
-                let wrapper = { program };
-                for (let ii = 0; ii < ctx.getProgramParameter(program, ctx.ACTIVE_ATTRIBUTES); ii++) {
-                    const { name } = ctx.getActiveAttrib(program, ii);
-                    wrapper[name] = ctx.getAttribLocation(program, name);
-                }
-                for (let ii = 0; ii < ctx.getProgramParameter(program, ctx.ACTIVE_UNIFORMS); ii++) {
-                    const { name } = ctx.getActiveUniform(program, ii);
-                    wrapper[name] = ctx.getUniformLocation(program, name);
-                }
-                return [programName, wrapper];
-            })));
-
-            console.log("Compiled shader programs to GPU.");
-
-            setPrograms(compiled);
-            setReady(true);
-
-
-        })();
-
-    }, [runtime, assets, metadata]);
+    useEffect(compileShaders(runtime, ref, assets, shaders, setPrograms, setReady), [runtime, assets]);
 
     useEffect(() => {
 
@@ -252,49 +303,7 @@ export default ({
             "u_wind_res": ["f", [width, height]]
         };
 
-        const exec = ({
-            components: {
-                tex=[],
-                attrib=[],
-                framebuffer: [handle=null, fb_tex=null],
-                ...components
-            },
-            program={},
-            draw_as: [type, count],
-            viewport,
-            callback = null
-        }) => {
-
-            ctx.viewport(...viewport);
-            ctx.bindFramebuffer(ctx.FRAMEBUFFER, handle);
-            if (fb_tex) {
-                ctx.framebufferTexture2D(ctx.FRAMEBUFFER, ctx.COLOR_ATTACHMENT0, ctx.TEXTURE_2D, fb_tex, 0); 
-            }
-            try {
-                ctx.useProgram(program.program);
-            } catch (TypeError) {
-                console.log("Error loading program", program)
-                return;
-            }
-
-            tex.forEach(([tex, slot]) => runtime.bind_texture(ctx, tex, slot));  // TODO: this was changed?
-            attrib.forEach(([buffer, handle, numComponents]) => {
-                ctx.bindBuffer(ctx.ARRAY_BUFFER, buffer);
-                ctx.enableVertexAttribArray(handle);
-                ctx.vertexAttribPointer(handle, numComponents, ctx.FLOAT, false, 0, 0);
-            });
-
-            // Format and bind a value to each uniform variable in the context
-            (components.uniforms || []).forEach((key) => {
-                const [type, value] = uniforms[key];
-                const size = value.length || 1;
-                ctx[`uniform${size}${type}`](program[key], ...(size === 1 ? [value]: value))
-            });
-
-            ctx.drawArrays(type, 0, count);
-            if (callback) callback();
-
-        }
+       
 
         (function render() {
 
@@ -308,7 +317,7 @@ export default ({
             ];
 
 
-            exec({
+            exec(runtime, ctx, uniforms, {
                 program: screen,
                 components: {
                     tex: [
@@ -328,7 +337,7 @@ export default ({
             /*
             Draw the particles as points to the screen. 
             */
-            exec({
+            exec(runtime, ctx, uniforms, {
                 program: draw,
                 components: {
                     tex: [[color, 2]],
@@ -340,7 +349,7 @@ export default ({
                 viewport: world
             });
 
-            exec({
+            exec(runtime, ctx, uniforms, {
                 program: screen,
                 components: {
                     tex: [[textures.screen, 2]],
@@ -357,7 +366,7 @@ export default ({
             /*
             
             */
-            exec({
+            exec(runtime, ctx, uniforms, {
                 program: update,
                 components: {
                     tex: [[textures.color, 2]],

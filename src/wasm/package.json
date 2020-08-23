@@ -12,10 +12,8 @@
   },
   "files": [
     "neritics_bg.wasm",
-    "neritics.js",
-    "neritics.d.ts"
+    "neritics.js"
   ],
   "module": "neritics.js",
-  "types": "neritics.d.ts",
   "sideEffects": false
 }
