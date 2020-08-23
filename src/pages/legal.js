@@ -7,7 +7,7 @@ export default ({location, data: {site: {siteMetadata: {title}}}}) => {
 
     return (
         <Layout location={location} title={title}>
-            <SEO title={"Code of conduct"} />
+            <SEO title={"Legal"} />
             <h1>Legal</h1>
             <hr />
 

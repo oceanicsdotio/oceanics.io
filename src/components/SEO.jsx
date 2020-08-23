@@ -16,23 +16,23 @@ const SEO = ({ description, lang, meta, title }) => {
         graphql`
             query {
                 site {
-                siteMetadata {
-                    title
-                    description
-                    author
-                }
+                    siteMetadata {
+                        title
+                        description
+                        author
+                    }
                 }
             }
-            `
+        `
     )
 
     const display = description || siteMetadata.description;
-    const displayTitle = title || siteMetadata.description;
+    const displayTitle = title || siteMetadata.title;
 
     return (
         <Helmet
             htmlAttributes={{lang}}
-            title={title}
+            title={"Oceanicsdotio"}
             titleTemplate={`%s | ${title}`}
             meta={[
                 {
