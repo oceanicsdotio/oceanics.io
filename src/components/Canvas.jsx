@@ -23,6 +23,10 @@ export const loadRuntime = (setter) => {
 
 
 export const targetHtmlCanvas = (ref, context) => {
+    /*
+    Convenience method that generates the variables needed
+    for common animation loops. 
+    */
 
     [ref.current.width, ref.current.height] = ["width", "height"].map(
         dim => getComputedStyle(ref.current).getPropertyValue(dim).slice(0, -2)
@@ -36,6 +40,27 @@ export const targetHtmlCanvas = (ref, context) => {
         frames: 0
     }
 };
+
+export const addMouseEvents = (ref, cursor) => {
+    /*
+    If the WASM runtime has been loaded, get the canvas reference and add a mouse event
+    listener to update the cursor position for interacting with objects within the 
+    canvas rendering context.
+    */
+    return () => {
+        if (!ref.current || !cursor || cursor === undefined) return;
+        
+        ref.current.addEventListener('mousemove', ({clientX, clientY}) => {
+
+            const {left, top} = ref.current.getBoundingClientRect();
+            try {
+                cursor.update(clientX-left, clientY-top);
+            } catch (err) {
+                console.log("Cursor error");
+            }
+        });
+    }
+}
 
 export const animationLoop = (runtime, ref, context, drawGenerator, caption, font="12px Arial") => () => {
     /*
@@ -66,56 +91,13 @@ export const animationLoop = (runtime, ref, context, drawGenerator, caption, fon
     return () => cancelAnimationFrame(requestId);
 };
 
-export default ({context="2d", key, shaders, caption, dataType, font="12px Arial"}) => {
+export default ({context="2d", key, shaders}) => {
 
     const ref = useRef(null);
     const [runtime, setRuntime] = useState(null);
-    const [cursor, setCursor] = useState([0.0, 0.0]);
-
-    const DataStructures = {
-        /*
-        Data structures table built inside component to use the runtime related effects. 
-
-        Used for simple deterministic effects.
-        */
-        HexagonalGrid: (ctx, width, height) => {
-            return () => runtime.draw_hex_grid(ctx, width, height, ...cursor, "#FF00FF");
-        },
-
-        Cursor: (ctx, width, height) => {
-            /*
-            Draw an animated reticule cursor using Rust/WebAssembly.
-            */
-            let state = {
-                x: null,
-                y: null,
-                dx: 0.0,
-                dy: 0.0,
-                drag: false,
-            };
-         
-            return ({time}) => {
-                runtime.Cursor.draw(ctx, width, height, time, state.x, state.y, state.dx, state.dy, "#FF00FFCC");
-                Object.assign(state, {
-                    dx: state.dx + 0.1*(state.x - state.dx),
-                    dy: state.dy + 0.1*(state.y - state.dy)
-                });
-            };
-        },
-        
-        DataStream: (ctx, width, height) => {
-            /*
-            DataStream animation
-            */
-            const struct = new runtime.DataStream(500);
-            return ({time}) => {
-                struct.push(time, Math.random());
-                struct.draw(ctx, width, height, "#FFFFFF");
-            }
-        },
-    };
     
-    useEffect(loadRuntime(setRuntime),[]);
+    useEffect(loadRuntime(setRuntime),[]);  // load WASM binaries
+    // useEffect(addMouseEvents(ref, setCursor), [runtime]);  // track cursor when on canvas
 
     useEffect(()=>{
         /*
@@ -157,25 +139,6 @@ export default ({context="2d", key, shaders, caption, dataType, font="12px Arial
 
         })()
     },[runtime]);
-
-    useEffect(() => {
-        /*
-        If the WASM runtime has been loaded, get the canvas reference and add a mouse event
-        listener to update the cursor position for interacting with objects within the 
-        canvas rendering context.
-        */
-        if (!runtime) return;
-
-        let canvas = ref.current;
-        const {left, top} = canvas.getBoundingClientRect();
-        canvas.addEventListener('mousemove', async ({clientX, clientY}) => {
-            setCursor([clientX-left, clientY-top]);
-        });
-    }, []);
-
-    
-
-    useEffect(dataType ? animationLoop(runtime, ref, context, DataStructures[dataType], dataType) : ()=>{});
 
     return <StyledCanvas
         id={key}

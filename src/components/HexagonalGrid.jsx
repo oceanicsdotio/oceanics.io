@@ -14,7 +14,7 @@ export default ({
     gridColor=`#EF5FA1FF`,
     overlayColor=`#77CCFFFF`,
     backgroundColor=`#00000088`,
-    caption=`TriangularMesh`,
+    caption=`HexagonalGrid`,
     alpha=1.0,
     lineWidth=1.0,
 }) => {
@@ -24,13 +24,13 @@ export default ({
 
     const ref = useRef(null);
     const [runtime, setRuntime] = useState(null);
-    const [mesh, setMesh] = useState(null);
+    const [grid, setGrid] = useState(null);
     const [cursor, setCursor] = useState(null);
 
     useEffect(loadRuntime(setRuntime), []);  // load WASM binaries
 
     useEffect(() => {
-        if (runtime) setMesh(new runtime.TriangularMesh(...shape)); // Create mesh
+        if (runtime) setGrid(new runtime.HexagonalGrid(shape[0])); // Create mesh
     }, [runtime]);
 
     useEffect(() => {
@@ -46,23 +46,26 @@ export default ({
         Draw the mesh
         */
 
-        if (!runtime || !mesh) return;
+        if (!runtime || !grid || !cursor) return;
 
         let {start, ctx, shape, requestId, frames} = targetHtmlCanvas(ref, `2d`);
 
         (function render() {
-            let time = performance.now() - start
+
+            const time = performance.now() - start;
             
             runtime.clear_rect_blending(ctx, ...shape, backgroundColor);
-            mesh.draw(ctx, ...shape, gridColor, alpha, lineWidth);
+            grid.draw(ctx, ...shape, 0, 0, gridColor, lineWidth, alpha);
+
             cursor.draw(ctx, ...shape, overlayColor, time, lineWidth);
+
             runtime.draw_caption(ctx, caption, 0.0, shape[1], overlayColor, font);
             frames = runtime.draw_fps(ctx, frames, time, overlayColor);
             requestId = requestAnimationFrame(render);
         })()
 
         return () => cancelAnimationFrame(requestId);
-    }, [mesh]);
+    }, [grid, cursor]);
 
     return <StyledCanvas ref={ref} />;
 };

@@ -1,15 +1,6 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
-* @param {CanvasRenderingContext2D} ctx 
-* @param {number} w 
-* @param {number} h 
-* @param {number} mx 
-* @param {number} my 
-* @param {any} color 
-*/
-export function draw_hex_grid(ctx: CanvasRenderingContext2D, w: number, h: number, mx: number, my: number, color: any): void;
-/**
 * @param {WebGLRenderingContext} ctx 
 * @param {string} vertex 
 * @param {string} fragment 
@@ -119,19 +110,13 @@ export class CellIndex {
 }
 /**
 */
-export class Cursor {
+export class ContextCursor {
   free(): void;
 /**
+* @param {number} x 
+* @param {number} y 
 */
-  constructor();
-/**
-* @param {CanvasRenderingContext2D} ctx 
-* @param {number} displacement 
-* @param {number} radius 
-* @param {number} n 
-* @param {number} radians 
-*/
-  static keyring(ctx: CanvasRenderingContext2D, displacement: number, radius: number, n: number, radians: number): void;
+  constructor(x: number, y: number);
 /**
 * @param {CanvasRenderingContext2D} ctx 
 * @param {number} theta 
@@ -141,17 +126,19 @@ export class Cursor {
 */
   static ticks(ctx: CanvasRenderingContext2D, theta: number, n: number, a: number, b: number): void;
 /**
+* @param {number} x 
+* @param {number} y 
+*/
+  update(x: number, y: number): void;
+/**
 * @param {CanvasRenderingContext2D} ctx 
 * @param {number} w 
 * @param {number} h 
-* @param {number} time 
-* @param {number} x 
-* @param {number} y 
-* @param {number} dx 
-* @param {number} dy 
 * @param {any} color 
+* @param {number} time 
+* @param {number} line_width 
 */
-  static draw(ctx: CanvasRenderingContext2D, w: number, h: number, time: number, x: number, y: number, dx: number, dy: number, color: any): void;
+  draw(ctx: CanvasRenderingContext2D, w: number, h: number, color: any, time: number, line_width: number): void;
 }
 /**
 */
@@ -176,8 +163,11 @@ export class DataStream {
 * @param {number} w 
 * @param {number} h 
 * @param {any} color 
+* @param {number} point_size 
+* @param {number} line_width 
+* @param {number} alpha 
 */
-  draw(ctx: CanvasRenderingContext2D, w: number, h: number, color: any): void;
+  draw(ctx: CanvasRenderingContext2D, w: number, h: number, color: any, point_size: number, line_width: number, alpha: number): void;
 }
 /**
 */
@@ -214,6 +204,26 @@ export class Group {
 * @param {number} bounce 
 */
   update_links(padding: number, drag: number, bounce: number): void;
+}
+/**
+*/
+export class HexagonalGrid {
+  free(): void;
+/**
+* @param {number} nx 
+*/
+  constructor(nx: number);
+/**
+* @param {CanvasRenderingContext2D} ctx 
+* @param {number} w 
+* @param {number} h 
+* @param {number} mx 
+* @param {number} my 
+* @param {any} color 
+* @param {number} line_width 
+* @param {number} alpha 
+*/
+  draw(ctx: CanvasRenderingContext2D, w: number, h: number, mx: number, my: number, color: any, line_width: number, alpha: number): void;
 }
 /**
 */
@@ -258,6 +268,30 @@ export class RectilinearGrid {
 * @param {any} color 
 */
   animation_frame(ctx: CanvasRenderingContext2D, w: number, h: number, frames: number, color: any): void;
+}
+/**
+*/
+export class SimpleCursor {
+  free(): void;
+/**
+* @param {number} x 
+* @param {number} y 
+*/
+  constructor(x: number, y: number);
+/**
+* @param {number} x 
+* @param {number} y 
+*/
+  update(x: number, y: number): void;
+/**
+* @param {CanvasRenderingContext2D} ctx 
+* @param {number} w 
+* @param {number} h 
+* @param {any} color 
+* @param {number} _time 
+* @param {number} line_width 
+*/
+  draw(ctx: CanvasRenderingContext2D, w: number, h: number, color: any, _time: number, line_width: number): void;
 }
 /**
 */

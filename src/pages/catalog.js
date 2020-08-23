@@ -10,9 +10,11 @@ import Map from "../components/Map";
 import Table from "../components/Table";
 import { queryBathysphere } from "../bathysphere";
 import Canvas from "../components/Canvas";
+import DataStream from "../components/DataStream";
 import Particles from "../components/Particles";
 import RectilinearGrid from "../components/RectilinearGrid";
 import TriangularMesh from "../components/TriangularMesh";
+import HexagonalGrid from "../components/HexagonalGrid";
 import Storage from "../components/Storage";
 import Codex from "../components/Codex";
 import Lagrangian from "../components/Lagrangian";
@@ -72,13 +74,12 @@ export default ({data: {allMarkdownRemark: {edges}, site: {siteMetadata: {title}
         map: false,
         graph: false,
         rectilinearGrid: false,
-        triangularMesh: true,
+        triangularMesh: false,
         hexGrid: false,
         objectStorage: false,
         codex: false,
-        datastream: false,
+        datastream: true,
         particles: false,
-        cursor: false,
         lagrangian: false,
         noise: false
     });
@@ -342,12 +343,11 @@ export default ({data: {allMarkdownRemark: {edges}, site: {siteMetadata: {title}
         {visibility.lagrangian ? <Lagrangian res={1000} source={"/wind.png"} metadataFile={"/wind.json"}/> : null}
         {visibility.noise ? <Noise res={1000} source={"/wind.png"} metadataFile={"/wind.json"}/> : null}
         {visibility.codex ? <Codex edges={edges} token={accessToken} baseUrl={baseUrl}/>:null}
-        {visibility.datastream ? <Canvas caption="DataStream" dataType="DataStream"/>:null}
-        {visibility.particles ? <Particles/>:null}
-        {visibility.cursor ? <Canvas caption="Cursor" dataType="Cursor"/>:null}
+        {visibility.datastream ? <DataStream/> : null}
+        {visibility.particles ? <Particles/> : null}
         {visibility.rectilinearGrid ? <RectilinearGrid/> :null }
         {visibility.triangularMesh ? <TriangularMesh/> : null }
-        {visibility.hexGrid ? <Canvas caption="HexagonalGrid" dataType="HexagonalGrid"/> :null }
+        {visibility.hexGrid ? <HexagonalGrid/> : null }
         {visibility.graph ? catalog.map(([k, v]) => <Collection {...v} key={k}/>).flat() : null}
         {visibility.objectStorage ? <Storage /> : null}
         

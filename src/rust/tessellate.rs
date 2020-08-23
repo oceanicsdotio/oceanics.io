@@ -377,52 +377,65 @@ pub mod tessellate {
     }
 
     #[wasm_bindgen]
-    pub fn draw_hex_grid(ctx: &CanvasRenderingContext2d, w: f64, h:f64, mx: f64, my: f64, color: JsValue) {
+    pub struct HexagonalGrid {
+        nx: usize
+    }
 
-        ctx.set_stroke_style(&color);
-        ctx.clear_rect(0.0, 0.0, w, h);
-        ctx.set_line_width(1.0);
-        ctx.set_global_alpha(0.75);
+    
 
-        let nx: usize = 10;
+    #[wasm_bindgen]
+    impl HexagonalGrid {
 
-        let dx = w / nx as f64;
-        let diag = dx / 3.0_f64.sqrt();
-        let dy = 1.5*diag;
-        let y_extra = 0.5*diag;
+        #[wasm_bindgen(constructor)]
+        pub fn new (nx: usize) -> HexagonalGrid {
+            HexagonalGrid {nx}
+        }
 
-        let ny = ((h - y_extra) / dy).floor() as usize;
-        let mut swap = false;
+        #[wasm_bindgen]
+        pub fn draw(&self, ctx: &CanvasRenderingContext2d, w: f64, h:f64, mx: f64, my: f64, color: JsValue, line_width: f64, alpha: f64) {
 
-        for jj in 0..ny { // row
-            for ii in 0..(nx - (swap as usize)) {
-                let x = 0.5*dx*(1.0 + swap as i32 as f64) + (ii as f64)*dx;
-                let y = diag + (jj as f64)*dy;
+            ctx.set_stroke_style(&color);
+            ctx.clear_rect(0.0, 0.0, w, h);
+            ctx.set_line_width(line_width);
+            ctx.set_global_alpha(alpha);
+     
+            let dx = w / self.nx as f64;
+            let diag = dx / 3.0_f64.sqrt();
+            let dy = 1.5*diag;
+            let ny = ((h - 0.5*diag) / dy).floor() as usize;
 
-                if ((x - mx).powi(2)  + (y - my).powi(2)).sqrt() > diag {
-                    ctx.set_stroke_style(&color);
-                } else {
-                    ctx.set_stroke_style(&"red".to_string().into());
+            let mut swap = false;
+    
+            for jj in 0..ny { // row
+                for ii in 0..(self.nx - (swap as usize)) {
+                    let x = 0.5*dx*(1.0 + swap as i32 as f64) + (ii as f64)*dx;
+                    let y = diag + (jj as f64)*dy;
+    
+                    if ((x - mx).powi(2)  + (y - my).powi(2)).sqrt() > diag {
+                        ctx.set_stroke_style(&color);
+                    } else {
+                        ctx.set_stroke_style(&"red".to_string().into());
+                    }
+    
+                    ctx.save();
+                    ctx.translate(x, y).unwrap();
+                    ctx.begin_path();
+                    ctx.move_to(0.0, diag);
+                    for _kk in 0..5 {
+                        ctx.rotate(2.0*std::f64::consts::PI/6.0).unwrap();
+                        ctx.line_to(0.0, diag);
+                    }
+                    ctx.close_path();
+    
+                    ctx.stroke();
+                    ctx.restore();
                 }
-
-                ctx.save();
-                let _ = ctx.translate(x, y);
-                ctx.begin_path();
-//                ctx.arc(0.0, 0.0, 0.5*dx, 0.0, 2.0*std::f64::consts::PI).unwrap();
-                ctx.move_to(0.0, diag);
-                for _kk in 0..5 {
-                    ctx.rotate(2.0*std::f64::consts::PI/6.0).unwrap();
-                    ctx.line_to(0.0, diag);
-                }
-                ctx.close_path();
-
-                ctx.stroke();
-                ctx.restore();
+    
+                swap = !swap;
             }
-
-            swap = !swap;
         }
     }
+    
 
 
     // Creates a 3D torus in the XY plane

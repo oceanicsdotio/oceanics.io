@@ -19,7 +19,7 @@ export default ({
     drag=0.001,
     bounce=0.5,
     particleColor="#FFFFFFFF",
-    backgroundColor="#00000088",
+    backgroundColor="#00000033",
     overlayColor="#77CCFFFF"
 }) => {
     /*

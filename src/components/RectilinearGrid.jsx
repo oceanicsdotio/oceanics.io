@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { loadRuntime, targetHtmlCanvas } from "../components/Canvas";
+import { loadRuntime, targetHtmlCanvas, addMouseEvents } from "../components/Canvas";
 import styled from "styled-components";
 
 export const StyledCanvas = styled.canvas`
@@ -11,10 +11,11 @@ export const StyledCanvas = styled.canvas`
 export default ({
     font="24px Arial",
     shape=[25,25],
-    gridColor="#FF00FFFF",
-    overlayColor="#77CCFFFF",
+    gridColor=`#EF5FA1FF`,
+    overlayColor=`#77CCFFFF`,
     backgroundColor=`#00000088`,
     caption=`RectilinearGrid`,
+    lineWidth=2.0
 }) => {
     /*
     Rectangles
@@ -23,15 +24,21 @@ export default ({
     const ref = useRef(null);
     const [runtime, setRuntime] = useState(null);
     const [grid, setGrid] = useState(null);
+    const [cursor, setCursor] = useState(null);
 
     useEffect(loadRuntime(setRuntime), []);  // load WASM binaries
 
     useEffect(() => {
-        /*
-        Create grid
-        */
+        // Create grid
         if (runtime) setGrid(new runtime.RectilinearGrid(...shape));
     }, [runtime]);
+
+    useEffect(() => {
+        if (!runtime) return;
+        setCursor(new runtime.SimpleCursor(0.0, 0.0)); // Create cursor
+    }, [runtime]);
+
+    useEffect(addMouseEvents(ref, cursor), [cursor]);  // track cursor when on canvas
 
 
     useEffect(() => {
@@ -44,11 +51,14 @@ export default ({
         let {start, ctx, shape, requestId, frames} = targetHtmlCanvas(ref, "2d");
 
         (function render() {
+
+            let time = performance.now() - start
             
-            runtime.clear_rect_blending(ctx, ...shape.slice(0, 2), backgroundColor);
-            grid.animation_frame(ctx, ...shape.slice(0, 2), frames, gridColor);
+            runtime.clear_rect_blending(ctx, ...shape, backgroundColor);
+            grid.animation_frame(ctx, ...shape, frames, gridColor);
+            cursor.draw(ctx, ...shape, overlayColor, time, lineWidth);
             runtime.draw_caption(ctx, caption, 0.0, shape[1], overlayColor, font);
-            frames = runtime.draw_fps(ctx, frames, performance.now() - start, overlayColor);
+            frames = runtime.draw_fps(ctx, frames, time, overlayColor);
             requestId = requestAnimationFrame(render);
         })()
 

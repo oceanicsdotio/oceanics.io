@@ -10,13 +10,12 @@ export const StyledCanvas = styled.canvas`
 
 export default ({
     font=`24px Arial`,
-    shape=[25,25],
-    gridColor=`#EF5FA1FF`,
     overlayColor=`#77CCFFFF`,
     backgroundColor=`#00000088`,
-    caption=`TriangularMesh`,
+    caption=`DataStream`,
     alpha=1.0,
-    lineWidth=1.0,
+    lineWidth=2.0,
+    pointSize=4.0
 }) => {
     /*
     Triangles
@@ -24,13 +23,14 @@ export default ({
 
     const ref = useRef(null);
     const [runtime, setRuntime] = useState(null);
-    const [mesh, setMesh] = useState(null);
+    const [stream, setStream] = useState(null);
     const [cursor, setCursor] = useState(null);
 
     useEffect(loadRuntime(setRuntime), []);  // load WASM binaries
-
+    
     useEffect(() => {
-        if (runtime) setMesh(new runtime.TriangularMesh(...shape)); // Create mesh
+        if (!runtime) return;
+        setStream(new runtime.DataStream(500)); // Create mesh
     }, [runtime]);
 
     useEffect(() => {
@@ -40,29 +40,31 @@ export default ({
 
     useEffect(addMouseEvents(ref, cursor), [cursor]);  // track cursor when on canvas
 
-
     useEffect(() => {
         /*
         Draw the mesh
         */
 
-        if (!runtime || !mesh) return;
+        if (!runtime || !stream || !cursor) return;
+        const fcn = x => Math.sin(x/800.0)**2 + Math.random()*0.05
 
         let {start, ctx, shape, requestId, frames} = targetHtmlCanvas(ref, `2d`);
 
         (function render() {
-            let time = performance.now() - start
             
+            const time = performance.now() - start;
             runtime.clear_rect_blending(ctx, ...shape, backgroundColor);
-            mesh.draw(ctx, ...shape, gridColor, alpha, lineWidth);
+            stream.push(time, fcn(time));
+            stream.draw(ctx, ...shape, "#FFFFFF", pointSize, lineWidth, alpha);
             cursor.draw(ctx, ...shape, overlayColor, time, lineWidth);
+            
             runtime.draw_caption(ctx, caption, 0.0, shape[1], overlayColor, font);
             frames = runtime.draw_fps(ctx, frames, time, overlayColor);
             requestId = requestAnimationFrame(render);
         })()
 
         return () => cancelAnimationFrame(requestId);
-    }, [mesh]);
+    }, [stream, cursor]);
 
     return <StyledCanvas ref={ref} />;
 };

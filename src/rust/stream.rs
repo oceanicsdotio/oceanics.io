@@ -1,4 +1,3 @@
-#[allow(dead_code)]
 pub mod plotting_system {
     /*
     Enable plotting 2D data series to a canvas.
@@ -38,7 +37,7 @@ pub mod plotting_system {
         Observations are N-dimensional points mapped into 2-D screen space.
         */
         x: f64,
-        y: f64,
+        y: f64
     }
 
     #[wasm_bindgen]
@@ -48,18 +47,6 @@ pub mod plotting_system {
         */
         name: String,
         unit: String,
-    }
-
-    #[wasm_bindgen]
-    pub struct DataStream {
-        /*
-        Datastreams are containers of observations. They keep track of data, metadata, and
-        summary statistics about their child Observations.
-        */
-        capacity: usize,
-        data: VecDeque<Observation>,
-        mean: VecDeque<f64>,
-        axes: Vec<Axis>
     }
 
 
@@ -81,6 +68,19 @@ pub mod plotting_system {
             }
         }
     }
+
+    #[wasm_bindgen]
+    pub struct DataStream {
+        /*
+        Datastreams are containers of observations. They keep track of data, metadata, and
+        summary statistics about their child Observations.
+        */
+        capacity: usize,
+        data: VecDeque<Observation>,
+        mean: VecDeque<f64>,
+        axes: Vec<Axis>
+    }
+
 
     #[wasm_bindgen]
     impl DataStream {
@@ -132,7 +132,7 @@ pub mod plotting_system {
             ctx.move_to(0.0, self.mean[0]);
             let mut ii = 0.0;
             let size = self.data.len();
-            for value in self.mean.iter() {
+            for value in &self.mean {
                 ctx.line_to(ii*w/size as f64, self.rescale(*value)*h);
                 ii += 1.0;
             }
@@ -146,13 +146,12 @@ pub mod plotting_system {
             (y - self.axes[1].extent.0) / (self.axes[1].extent.1 - self.axes[1].extent.0)
         }
 
-        fn draw_as_points(&self, ctx: &CanvasRenderingContext2d, w: f64, h:f64) {
+        fn draw_as_points(&self, ctx: &CanvasRenderingContext2d, w: f64, h:f64, scale: f64) {
             /*
             Draw observations as points. This is the recommended use,
             as connecting dots without further logical or visual indcators
             can be misleading. 
             */
-            let scale = 3.0;
             let mut ii = 0.0;
             let size = self.data.len();
             for obs in self.data.iter() {
@@ -178,7 +177,7 @@ pub mod plotting_system {
             ctx.stroke();
         }
 
-        pub fn draw(&self, ctx: CanvasRenderingContext2d, w: f64, h: f64, color: JsValue) {
+        pub fn draw(&self, ctx: CanvasRenderingContext2d, w: f64, h: f64, color: JsValue, point_size: f64, line_width: f64, alpha: f64) {
             /*
             Routine to draw the structure to an HTML5 canvas element
             */
@@ -187,13 +186,14 @@ pub mod plotting_system {
                 return
             }
             ctx.clear_rect(0.0, 0.0, w, h);
-            ctx.set_global_alpha(1.0);
+            ctx.set_global_alpha(alpha);
             ctx.set_stroke_style(&color);
             ctx.set_fill_style(&color);
+            ctx.set_line_width(line_width);
 
             ctx.begin_path();
             // self.draw_as_lines(&ctx, w, h);
-            self.draw_as_points(&ctx, w, h);
+            self.draw_as_points(&ctx, w, h, point_size);
             self.draw_mean_line(&ctx, w, h);
         }
     }

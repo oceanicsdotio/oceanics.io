@@ -5,9 +5,8 @@ mod webgl;
 mod stream;
 
 
-pub use tessellate::tessellate::{make_torus, draw_hex_grid};
+pub use tessellate::tessellate::{make_torus};
 pub use webgl::graphics_system::{create_buffer, create_program, create_texture};
-pub use agent::agent_system::{Cursor};
 
 
 use wasm_bindgen::prelude::*;
@@ -100,6 +99,47 @@ pub fn draw_fps(ctx: &CanvasRenderingContext2d, frames: u32, time: f64, color: J
     );
     return frames+1;
 }
+
+
+#[wasm_bindgen]
+pub struct SimpleCursor {
+    x: f64,
+    y: f64
+}
+
+#[wasm_bindgen]
+impl SimpleCursor {
+
+    #[wasm_bindgen(constructor)]
+    pub fn new(x: f64, y: f64) -> SimpleCursor {
+        SimpleCursor {x, y}
+    }
+
+    #[wasm_bindgen]
+    pub fn update(&mut self, x: f64, y: f64) {
+        self.x = x;
+        self.y = y;
+    }
+
+    #[wasm_bindgen]
+    pub fn draw(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, color: JsValue, _time: f64, line_width: f64) {
+        ctx.set_stroke_style(&color);
+        ctx.set_line_width(line_width);
+        ctx.set_global_alpha(1.0);
+    
+        ctx.begin_path();
+        ctx.move_to(0.0, self.y);
+        ctx.line_to(w, self.y);
+        ctx.stroke();
+        ctx.begin_path();
+        ctx.move_to(self.x, 0.0);
+        ctx.line_to(self.x, h);
+        ctx.stroke();
+    
+    }
+} 
+
+
 
 
 #[wasm_bindgen]
@@ -218,7 +258,9 @@ pub fn calculate_rotation(ax: f32, ay: f32, az: f32, dx: f32, dy: f32, dz: f32, 
 
 #[wasm_bindgen]
 pub fn mouse_move(x: f64, y: f64) {
-    web_sys::console::log_1(&format!("{}, {}", x, y).into());
+    unsafe {
+        web_sys::console::log_1(&format!("{}, {}", x, y).into());
+    }
 }
 
 #[allow(dead_code)]

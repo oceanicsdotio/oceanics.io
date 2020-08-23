@@ -143,42 +143,32 @@ pub mod agent_system {
     }
 
     #[wasm_bindgen]
-    pub struct Cursor {
-
+    pub struct ContextCursor {
+        x: f64,
+        y: f64
     }
 
     #[wasm_bindgen]
-    impl Cursor {
+    impl ContextCursor {
 
         #[wasm_bindgen(constructor)]
-        pub fn new() -> Cursor {
-            Cursor {
-
-            }
-        }
-
-        #[wasm_bindgen]
-        pub fn keyring (ctx: &CanvasRenderingContext2d, displacement: f64, radius: f64, n: u32, radians: f64) {
-            /*
-            Ring of circles around the center.
-            */
-            ctx.save();
-            for _ in 0..n {
-                ctx.rotate(2.0 * PI / n as f64).unwrap();
-                ctx.begin_path();
-                let offset = PI - radians / 2.0;
-                ctx.arc(displacement, 0.0, radius, -offset, radians).unwrap();
-                ctx.stroke();
-            }
-            ctx.restore();
+        pub fn new(x: f64, y: f64) -> ContextCursor {
+            ContextCursor {x, y}
         }
 
         #[wasm_bindgen]
         pub fn ticks (ctx: &CanvasRenderingContext2d, theta: f64, n: u32, a: f64, b: f64) {
+            /*
+            Draw radial ticks
+             - theta: angle of rotation for set of all ticks
+             - n: the number of ticks
+             - a, b: the inner and outer radiuses
+            */
+            let inc: f64 = 2.0 * PI / n as f64;
 
             ctx.save();
             ctx.rotate(theta).unwrap();
-            let inc = 2.0 * PI / n as f64;
+            
             for _ in 0..n {
                 ctx.begin_path();
                 ctx.rotate(inc).unwrap();
@@ -190,70 +180,80 @@ pub mod agent_system {
         }
 
         #[wasm_bindgen]
-        pub fn draw (ctx: &CanvasRenderingContext2d, w: f64, h: f64, time: f64, x: f64, y: f64, dx: f64, dy: f64, color: JsValue) {
+        pub fn update(&mut self, x: f64, y: f64) {
+            self.x = x;
+            self.y = y;
+        }
+
+        #[wasm_bindgen]
+        pub fn draw (&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, color: JsValue, time: f64, line_width: f64) {
 
             const PULSE_RINGS: usize = 7;
             const ICON: f64 = 16.0;
+            const RADIANS: f64 = 2.0 * PI;
+            const OFFSET: f64 = PI - 0.5 * RADIANS;
+            
+            let dx = 0.0;
+            let dy = 0.0;
+            let x = self.x;
+            let y = self.y;
 
-            // fraction of complete circle for tool icons
-            let completeness = signal(time, 2.0);
-            let rad = w.max(h) / 2.5; // outer radius
-
-            ctx.set_global_alpha((alpha(&color) as f64)/255.0);
-            ctx.set_stroke_style(&color);
-            ctx.clear_rect(0.0, 0.0, w, h);
-            ctx.set_line_width(1.0);
-            ctx.set_line_cap("round");
-
-            {
-                const RADIANS: f64 = 2.0 * PI;
-                const OFFSET: f64 = PI - 0.5 * RADIANS;
-                ctx.save();
-                ctx.translate(x, y).unwrap();
-                ctx.begin_path();
-                ctx.arc(0.0, 0.0, ICON, OFFSET, RADIANS).unwrap();  // inner circle
-                ctx.stroke();
-                ctx.restore();
-            }
-
+        
             let _dx = x - (dx+0.5*w);
             let _dy = y - (dy+0.5*h);
             let dxy = (_dx.powi(2) + _dy.powi(2)).sqrt();
             let theta = _dy.atan2(_dx);
+            let displacement = 3.0*ICON + signal(time, 0.5) / 10.0;
+            let radians = signal(time, 2.0) * PI * 2.0;
+            let sig = signal(time, 2.0);
 
-            {
-                let displacement = 3.0*ICON + signal(time, 0.5) / 10.0;
-                ctx.save();
-                ctx.translate(0.5*w, 0.5*h).unwrap();
+            // ctx.set_global_alpha((alpha(&color) as f64)/255.0);
+            ctx.set_stroke_style(&color);
+            ctx.set_line_width(line_width);
+            ctx.set_line_cap("round");
 
-                Cursor::ticks(&ctx, time / 10000.0, 8, 1.1*ICON, 1.3*ICON);
-                Cursor::ticks(&ctx, time / 10000.0, 16, rad - 0.5 * ICON, rad - 0.25 * ICON);
-                Cursor::ticks(&ctx, -(time / 30000.0), 16, rad - 0.5 * ICON, rad - 0.75 * ICON);
-                Cursor::keyring(&ctx, displacement, ICON, 6, completeness * PI * 2.0);
+            ctx.save();
+            ctx.translate(self.x, self.y).unwrap();
+            ctx.begin_path();
+            ctx.arc(0.0, 0.0, ICON, OFFSET, RADIANS).unwrap();  // inner circle
+            ctx.stroke();
 
-                ctx.save();
-                ctx.rotate(theta).unwrap();
 
-                let sig = signal(time, 2.0);
+            for ii in 0..PULSE_RINGS {
+                ctx.begin_path();
+                const RADIANS: f64 = 2.0 * PI;
+                const OFFSET: f64 = 0.0;
 
-                for ii in 0..PULSE_RINGS {
-                    ctx.begin_path();
-                    const RADIANS: f64 = 2.0 * PI;
-                    const OFFSET: f64 = 0.0;
-
-                    let radius = rad + ICON * sig * (ii as f64).log(3.0);
-                    let gap: f64;
-                    let delta = dxy - radius;
-                    if delta.abs() < ICON {
-                        gap = (2.0*ICON*(0.5*PI - delta/ICON).sin()/radius).asin();
-                    } else {
-                        gap = 0.0;
-                    }
-                    ctx.arc(0.0, 0.0, radius, gap/2.0, RADIANS-gap/2.0).unwrap();
-                    ctx.stroke();
+                let radius = 4.5*ICON + ICON * sig * (ii as f64).log(3.0);
+                let gap: f64;
+                let delta = dxy - radius;
+                if delta.abs() < ICON {
+                    gap = (2.0*ICON*(0.5*PI - delta/ICON).sin()/radius).asin();
+                } else {
+                    gap = 0.0;
                 }
-                ctx.restore();
+                ctx.arc(0.0, 0.0, radius, gap/2.0, RADIANS-gap/2.0).unwrap();
+                ctx.stroke();
             }
+           
+            
+            ContextCursor::ticks(&ctx, time / 10000.0, 8, 1.1*ICON, 1.3*ICON);
+            ContextCursor::ticks(&ctx, -(time / 40000.0), 16, 1.4 * ICON, 1.5 * ICON);
+            ContextCursor::ticks(&ctx, time / 10000.0, 16, 1.6 * ICON, 1.7 * ICON);
+            
+           
+            for _ in 0..6 {
+                ctx.rotate(2.0 * PI / 6 as f64).unwrap();
+                ctx.begin_path();
+                let offset = PI - radians / 2.0;
+                ctx.arc(displacement, 0.0, ICON, -offset, radians).unwrap();
+                ctx.stroke();
+            }
+
+            ctx.restore();
+            
+           
+        
         }
     }
 
