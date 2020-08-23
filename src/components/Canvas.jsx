@@ -113,16 +113,6 @@ export default ({context="2d", key, shaders, caption, dataType, font="12px Arial
                 struct.draw(ctx, width, height, "#FFFFFF");
             }
         },
-    
-        TriangularMesh: (ctx, width, height) => {
-            /*
-            Triangular Mesh
-            */
-            const struct = new runtime.TriangularMesh(10, 10, width, height);
-            return ({frames, time}) => {
-                struct.animation_frame(ctx, parseInt(width), parseInt(height), frames, time, "#FF00FF");
-            }
-        }
     };
     
     useEffect(loadRuntime(setRuntime),[]);

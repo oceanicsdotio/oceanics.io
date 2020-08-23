@@ -12,6 +12,7 @@ import { queryBathysphere } from "../bathysphere";
 import Canvas from "../components/Canvas";
 import Particles from "../components/Particles";
 import RectilinearGrid from "../components/RectilinearGrid";
+import TriangularMesh from "../components/TriangularMesh";
 import Storage from "../components/Storage";
 import Codex from "../components/Codex";
 import Lagrangian from "../components/Lagrangian";
@@ -70,8 +71,8 @@ export default ({data: {allMarkdownRemark: {edges}, site: {siteMetadata: {title}
     const [ visibility, setVisibility ] = useState({
         map: false,
         graph: false,
-        rectilinearGrid: true,
-        triangularMesh: false,
+        rectilinearGrid: false,
+        triangularMesh: true,
         hexGrid: false,
         objectStorage: false,
         codex: false,
@@ -345,7 +346,7 @@ export default ({data: {allMarkdownRemark: {edges}, site: {siteMetadata: {title}
         {visibility.particles ? <Particles/>:null}
         {visibility.cursor ? <Canvas caption="Cursor" dataType="Cursor"/>:null}
         {visibility.rectilinearGrid ? <RectilinearGrid/> :null }
-        {visibility.triangularMesh ? <Canvas caption="TriangularMesh" dataType="TriangularMesh"/> :null }
+        {visibility.triangularMesh ? <TriangularMesh/> : null }
         {visibility.hexGrid ? <Canvas caption="HexagonalGrid" dataType="HexagonalGrid"/> :null }
         {visibility.graph ? catalog.map(([k, v]) => <Collection {...v} key={k}/>).flat() : null}
         {visibility.objectStorage ? <Storage /> : null}

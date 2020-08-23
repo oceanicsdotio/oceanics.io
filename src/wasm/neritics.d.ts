@@ -114,6 +114,11 @@ export class Axis {
 }
 /**
 */
+export class CellIndex {
+  free(): void;
+}
+/**
+*/
 export class Cursor {
   free(): void;
 /**
@@ -181,6 +186,11 @@ export class DrawingCanvas {
 }
 /**
 */
+export class EdgeIndex {
+  free(): void;
+}
+/**
+*/
 export class Group {
   free(): void;
 /**
@@ -234,10 +244,9 @@ export class RectilinearGrid {
 /**
 * @param {number} ii 
 * @param {number} jj 
-* @param {any} color 
 * @returns {boolean} 
 */
-  insert(ii: number, jj: number, color: any): boolean;
+  insert(ii: number, jj: number): boolean;
 /**
 */
   clear(): void;
@@ -246,10 +255,9 @@ export class RectilinearGrid {
 * @param {number} w 
 * @param {number} h 
 * @param {number} frames 
-* @param {number} _time 
 * @param {any} color 
 */
-  animation_frame(ctx: CanvasRenderingContext2D, w: number, h: number, frames: number, _time: number, color: any): void;
+  animation_frame(ctx: CanvasRenderingContext2D, w: number, h: number, frames: number, color: any): void;
 }
 /**
 */
@@ -271,32 +279,15 @@ export class TriangularMesh {
 /**
 * @param {number} nx 
 * @param {number} ny 
-* @param {number} w 
-* @param {number} h 
 */
-  constructor(nx: number, ny: number, w: number, h: number);
+  constructor(nx: number, ny: number);
 /**
 * @param {CanvasRenderingContext2D} ctx 
 * @param {number} w 
 * @param {number} h 
 * @param {any} color 
+* @param {number} alpha 
+* @param {number} line_width 
 */
-  draw(ctx: CanvasRenderingContext2D, w: number, h: number, color: any): void;
-/**
-* @param {CanvasRenderingContext2D} ctx 
-* @param {number} w 
-* @param {number} h 
-* @param {number} frame 
-* @param {number} _time 
-* @param {any} color 
-*/
-  animation_frame(ctx: CanvasRenderingContext2D, w: number, h: number, frame: number, _time: number, color: any): void;
-/**
-* @param {number} index 
-* @returns {boolean} 
-*/
-  mark(index: number): boolean;
-/**
-*/
-  clear(): void;
+  draw(ctx: CanvasRenderingContext2D, w: number, h: number, color: any, alpha: number, line_width: number): void;
 }

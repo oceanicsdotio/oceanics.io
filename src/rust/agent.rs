@@ -39,11 +39,12 @@ pub mod agent_system {
 
     #[derive(Copy, Clone)]
     pub struct Vec3 {
-        value: [f64; 3]
+        pub value: [f64; 3]
     }
 
 
     impl Vec3 {
+
         pub fn magnitude(&self) -> f64 {
             let mut sum = 0.0;
             for ii in 0..3 {

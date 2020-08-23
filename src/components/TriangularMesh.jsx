@@ -9,51 +9,50 @@ export const StyledCanvas = styled.canvas`
 `;
 
 export default ({
-    font="24px Arial",
+    font=`24px Arial`,
     shape=[25,25],
-    gridColor="#FF00FFFF",
-    overlayColor="#77CCFFFF",
+    gridColor=`#EF5FA1FF`,
+    overlayColor=`#77CCFFFF`,
     backgroundColor=`#00000088`,
-    caption=`RectilinearGrid`,
+    caption=`TriangularMesh`,
+    alpha=1.0,
+    lineWidth=1.0,
 }) => {
     /*
-    Rectangles
+    Triangles
     */
 
     const ref = useRef(null);
     const [runtime, setRuntime] = useState(null);
-    const [grid, setGrid] = useState(null);
+    const [mesh, setMesh] = useState(null);
 
     useEffect(loadRuntime(setRuntime), []);  // load WASM binaries
 
     useEffect(() => {
-        /*
-        Create grid
-        */
-        if (runtime) setGrid(new runtime.RectilinearGrid(...shape));
+        if (runtime) setMesh(new runtime.TriangularMesh(...shape)); // Create mesh
     }, [runtime]);
 
 
     useEffect(() => {
         /*
-        Draw the grid
+        Draw the mesh
         */
 
-        if (!runtime || !grid) return;
+        if (!runtime || !mesh) return;
 
-        let {start, ctx, shape, requestId, frames} = targetHtmlCanvas(ref, "2d");
+        let {start, ctx, shape, requestId, frames} = targetHtmlCanvas(ref, `2d`);
 
         (function render() {
             
-            runtime.clear_rect_blending(ctx, ...shape.slice(0, 2), backgroundColor);
-            grid.animation_frame(ctx, ...shape.slice(0, 2), frames, gridColor);
+            runtime.clear_rect_blending(ctx, ...shape, backgroundColor);
+            mesh.draw(ctx, ...shape, gridColor, alpha, lineWidth);
             runtime.draw_caption(ctx, caption, 0.0, shape[1], overlayColor, font);
             frames = runtime.draw_fps(ctx, frames, performance.now() - start, overlayColor);
             requestId = requestAnimationFrame(render);
         })()
 
         return () => cancelAnimationFrame(requestId);
-    }, [grid]);
+    }, [mesh]);
 
     return <StyledCanvas ref={ref} />;
 };

@@ -20,7 +20,7 @@ export default ({
     bounce=0.5,
     particleColor="#FFFFFFFF",
     backgroundColor="#00000088",
-
+    overlayColor="#77CCFFFF"
 }) => {
     /*
     Particles component creates a Canvas element and data structure representing
@@ -52,29 +52,15 @@ export default ({
         get the size of the displayed canvas
         and draw the data structure passed as a prop. 
         */
-
         if (!runtime || !particleSystem) return;
 
-        let {
-            start,
-            ctx,
-            shape,
-            requestId, 
-            frames
-        } = targetHtmlCanvas(ref, "2d");
+        let {start, ctx, shape, requestId, frames} = targetHtmlCanvas(ref, "2d");
 
-        shape = [...shape, 200];
-
-        const overlayColor = "#77CCFF";
-        
         (function render() {
-            
-            // solve the N-body forces
+            // solve the N-body forces, then draw scene
             particleSystem.update_links(padding, drag, bounce);
-
-            // draw steps
-            runtime.clear_rect_blending(ctx, ...shape.slice(0, 2), backgroundColor);
-            particleSystem.draw(ctx, ...shape.slice(0, 2), fade, radius, particleColor);
+            runtime.clear_rect_blending(ctx, ...shape, backgroundColor);
+            particleSystem.draw(ctx, ...shape, fade, radius, particleColor);
             runtime.draw_caption(ctx, `N=${count}`, 0.0, shape[1], overlayColor, font);
 
             frames = runtime.draw_fps(ctx, frames, performance.now() - start, overlayColor);

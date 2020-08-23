@@ -534,7 +534,7 @@ function getUint8ClampedMemory0() {
 function getClampedArrayU8FromWasm0(ptr, len) {
     return getUint8ClampedMemory0().subarray(ptr / 1, ptr / 1 + len);
 }
-function __wbg_adapter_185(arg0, arg1, arg2, arg3) {
+function __wbg_adapter_182(arg0, arg1, arg2, arg3) {
     _assertNum(arg0);
     _assertNum(arg1);
     wasm.wasm_bindgen__convert__closures__invoke2_mut__h96984aac8d17c2af(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
@@ -554,6 +554,21 @@ export class Axis {
         this.ptr = 0;
 
         wasm.__wbg_axis_free(ptr);
+    }
+}
+/**
+*/
+export class CellIndex {
+
+    constructor() {
+        throw new Error('cannot invoke `new` directly');
+    }
+
+    free() {
+        const ptr = this.ptr;
+        this.ptr = 0;
+
+        wasm.__wbg_cellindex_free(ptr);
     }
 }
 /**
@@ -706,6 +721,21 @@ export class DrawingCanvas {
 }
 /**
 */
+export class EdgeIndex {
+
+    constructor() {
+        throw new Error('cannot invoke `new` directly');
+    }
+
+    free() {
+        const ptr = this.ptr;
+        this.ptr = 0;
+
+        wasm.__wbg_edgeindex_free(ptr);
+    }
+}
+/**
+*/
 export class Group {
 
     static __wrap(ptr) {
@@ -835,20 +865,15 @@ export class RectilinearGrid {
     /**
     * @param {number} ii
     * @param {number} jj
-    * @param {any} color
     * @returns {boolean}
     */
-    insert(ii, jj, color) {
-        try {
-            if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-            _assertNum(this.ptr);
-            _assertNum(ii);
-            _assertNum(jj);
-            var ret = wasm.rectilineargrid_insert(this.ptr, ii, jj, addBorrowedObject(color));
-            return ret !== 0;
-        } finally {
-            heap[stack_pointer++] = undefined;
-        }
+    insert(ii, jj) {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        _assertNum(ii);
+        _assertNum(jj);
+        var ret = wasm.rectilineargrid_insert(this.ptr, ii, jj);
+        return ret !== 0;
     }
     /**
     */
@@ -862,15 +887,14 @@ export class RectilinearGrid {
     * @param {number} w
     * @param {number} h
     * @param {number} frames
-    * @param {number} _time
     * @param {any} color
     */
-    animation_frame(ctx, w, h, frames, _time, color) {
+    animation_frame(ctx, w, h, frames, color) {
         try {
             if (this.ptr == 0) throw new Error('Attempt to use a moved value');
             _assertNum(this.ptr);
             _assertNum(frames);
-            wasm.rectilineargrid_animation_frame(this.ptr, addBorrowedObject(ctx), w, h, frames, _time, addHeapObject(color));
+            wasm.rectilineargrid_animation_frame(this.ptr, addBorrowedObject(ctx), w, h, frames, addHeapObject(color));
         } finally {
             heap[stack_pointer++] = undefined;
         }
@@ -925,13 +949,11 @@ export class TriangularMesh {
     /**
     * @param {number} nx
     * @param {number} ny
-    * @param {number} w
-    * @param {number} h
     */
-    constructor(nx, ny, w, h) {
+    constructor(nx, ny) {
         _assertNum(nx);
         _assertNum(ny);
-        var ret = wasm.triangularmesh_new(nx, ny, w, h);
+        var ret = wasm.triangularmesh_new(nx, ny);
         return TriangularMesh.__wrap(ret);
     }
     /**
@@ -939,55 +961,19 @@ export class TriangularMesh {
     * @param {number} w
     * @param {number} h
     * @param {any} color
+    * @param {number} alpha
+    * @param {number} line_width
     */
-    draw(ctx, w, h, color) {
+    draw(ctx, w, h, color, alpha, line_width) {
         try {
             if (this.ptr == 0) throw new Error('Attempt to use a moved value');
             _assertNum(this.ptr);
             _assertNum(w);
             _assertNum(h);
-            wasm.triangularmesh_draw(this.ptr, addBorrowedObject(ctx), w, h, addHeapObject(color));
+            wasm.triangularmesh_draw(this.ptr, addBorrowedObject(ctx), w, h, addHeapObject(color), alpha, line_width);
         } finally {
             heap[stack_pointer++] = undefined;
         }
-    }
-    /**
-    * @param {CanvasRenderingContext2D} ctx
-    * @param {number} w
-    * @param {number} h
-    * @param {number} frame
-    * @param {number} _time
-    * @param {any} color
-    */
-    animation_frame(ctx, w, h, frame, _time, color) {
-        try {
-            if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-            _assertNum(this.ptr);
-            _assertNum(w);
-            _assertNum(h);
-            _assertNum(frame);
-            wasm.triangularmesh_animation_frame(this.ptr, addBorrowedObject(ctx), w, h, frame, _time, addHeapObject(color));
-        } finally {
-            heap[stack_pointer++] = undefined;
-        }
-    }
-    /**
-    * @param {number} index
-    * @returns {boolean}
-    */
-    mark(index) {
-        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.ptr);
-        _assertNum(index);
-        var ret = wasm.triangularmesh_mark(this.ptr, index);
-        return ret !== 0;
-    }
-    /**
-    */
-    clear() {
-        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.ptr);
-        wasm.triangularmesh_clear(this.ptr);
     }
 }
 
@@ -1306,7 +1292,7 @@ export const __wbg_new_261626435fed913c = logError(function(arg0, arg1) {
             const a = state0.a;
             state0.a = 0;
             try {
-                return __wbg_adapter_185(a, state0.b, arg0, arg1);
+                return __wbg_adapter_182(a, state0.b, arg0, arg1);
             } finally {
                 state0.a = a;
             }
@@ -1433,7 +1419,7 @@ export const __wbindgen_memory = function() {
     return addHeapObject(ret);
 };
 
-export const __wbindgen_closure_wrapper1865 = logError(function(arg0, arg1, arg2) {
+export const __wbindgen_closure_wrapper2247 = logError(function(arg0, arg1, arg2) {
     var ret = makeMutClosure(arg0, arg1, 42, __wbg_adapter_22);
     return addHeapObject(ret);
 });

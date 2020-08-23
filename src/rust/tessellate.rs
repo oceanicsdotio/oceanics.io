@@ -1,10 +1,12 @@
 #[allow(dead_code)]
 pub mod tessellate {
 
+    
+    use crate::agent::agent_system::{Vec3};
     use wasm_bindgen::prelude::*;
     use wasm_bindgen::{JsValue, Clamped};
     use web_sys::{CanvasRenderingContext2d, ImageData};
-    use std::collections::{HashMap};
+    use std::collections::{HashMap,HashSet};
 
 
     pub enum RightTriangulatedIrregularNetwork<T: Ord> {
@@ -56,17 +58,6 @@ pub mod tessellate {
     }
 
 
-
-
-
-    #[wasm_bindgen]
-    pub struct TriangularMesh {
-        points: Vec<f64>,
-        indices: Vec<usize>,
-        cells: HashMap<usize,bool>
-    }
-
-
     #[wasm_bindgen]
     pub struct Texture2D {
         size: (usize, usize),
@@ -96,21 +87,23 @@ pub mod tessellate {
     }
 
     struct Cell {
-        selected: bool,
-        color: String,
+        select: bool
     }
 
     impl Cell {
-        pub fn draw(&self, ctx: &CanvasRenderingContext2d, shape: &(usize, usize), size: [f64; 2]) {
+        pub fn draw(&self, ctx: &CanvasRenderingContext2d, shape: &(usize, usize), size: [f64; 2], color: String) {
             let [dx, dy] = size;
             let (ii, jj) = shape;
-            ctx.set_fill_style(&JsValue::from(&self.color));
+            ctx.set_fill_style(&JsValue::from(color));
             ctx.fill_rect(dx*(*ii as f64), dy*(*jj as f64), dx, dy);
         } 
     }
 
     #[wasm_bindgen]
     pub struct RectilinearGrid {
+        /*
+        
+        */
         shape: [usize; 2],
         cells: HashMap<(usize,usize), Cell>,
     }
@@ -165,28 +158,33 @@ pub mod tessellate {
 
             ctx.set_fill_style(&color);
             for (index, cell) in self.cells.iter() {
-                cell.draw(ctx, index, [dx, dy])
+                cell.draw(ctx, index, [dx, dy], color.as_string().unwrap())
             }
         }
 
-        pub fn insert(&mut self, ii: usize, jj: usize, color: &JsValue) -> bool {
+        pub fn insert(&mut self, ii: usize, jj: usize) -> bool {
             /*
-            Add a tracked cell to the grid
+            Add a tracked cell to the grid.
             */
             let insert = !self.cells.contains_key(&(ii, jj));
-            let color_string = color.as_string().unwrap();
             if insert {
-                self.cells.insert((ii, jj), Cell { selected: true, color: color_string});
+                self.cells.insert((ii, jj), Cell { select: true });
             }
             return insert;
         }
 
         #[wasm_bindgen]
         pub fn clear(&mut self) {
-            self.cells = HashMap::new();
+            /*
+            Clear cell data but keep memory allocated.
+            */
+            self.cells.clear();
         }
 
-        fn random_cell(&self) -> (usize, usize) {
+        fn random_cell_index(&self) -> (usize, usize) {
+            /*
+            Pick a random cell, no guarentee it is not already selected
+            */
             unsafe {
                 let index = (
                     (js_sys::Math::random()*self.w()).floor() as usize,
@@ -194,56 +192,141 @@ pub mod tessellate {
                 );
                 index
             }
-            
         }
 
         #[wasm_bindgen]
-        pub fn animation_frame(&mut self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, frames: u32, _time: f64, color: JsValue) {
-            
-            if frames as usize % self.size() > 0 {
-                let (a, b) = self.random_cell();
-                let _ = self.insert(a, b, &color);
-            } else {
-                self.clear();
-            }
+        pub fn animation_frame(&mut self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, frames: u32, color: JsValue) {
+            /*
+            Animation frame is used as a visual feedback test that utilizes most public methods
+            of the data structure.
+            */
+            let restart = frames as usize % self.size() <= 0;
+            match restart {
+                true => {
+                    self.clear();
+                },
+                false => {
+                    let (ii, jj) = self.random_cell_index();
+                    let _ = self.insert(ii, jj);
+                }
+            };
             self.draw(ctx, w, h, &color);
+        }
+    }
+
+    #[wasm_bindgen]
+    #[derive(Hash, Eq, PartialEq, Debug)]
+    pub struct CellIndex {
+        /*
+        A hashable cell index is necessary because a HashSet cannot
+        be used as the key to a HashMap.
+        */
+        a: usize,
+        b: usize,
+        c: usize,
+    }
+
+    impl CellIndex {
+        pub fn new(a: usize, b: usize, c: usize) -> CellIndex {
+            /*
+            Sort the indices and create a CellIndex.
+
+            TODO: ensure uniqueness to avoid degenerate scenarios
+            */
+            let mut v = vec![a, b, c];
+            v.sort();
+            CellIndex {
+                a: v[0],
+                b: v[1],
+                c: v[2],
+            }
         }
     }
 
 
     #[wasm_bindgen]
-    impl TriangularMesh {
-        #[wasm_bindgen(constructor)]
-        pub fn new(nx: usize, ny: usize, w: f64, h: f64) -> TriangularMesh {
+    #[derive(Hash, Eq, PartialEq, Debug)]
+    struct EdgeIndex {
+        a: usize,
+        b: usize
+    }
 
-            let dx = w / (nx as f64);
-            let dy = h / (ny as f64);
+    impl EdgeIndex {
+        pub fn new(a: usize, b: usize) -> EdgeIndex {
+            /*
+            Sort the indices and create a EdgeIndex.
+
+            TODO: ensure uniqueness to avoid degenerate scenarios
+            */
+            let mut v = vec![a, b];
+            v.sort();
+            EdgeIndex {
+                a: v[0],
+                b: v[1]
+            }
+        }
+    }
+
+    #[wasm_bindgen]
+    pub struct TriangularMesh {
+        points: HashMap<usize,Vec3>,
+        cells: HashMap<CellIndex,Cell>,
+        edges: HashSet<EdgeIndex>
+    }
+
+    #[wasm_bindgen]
+    impl TriangularMesh {
+
+        fn insert_cell(&mut self, index: [usize; 3]) {
+            /*
+            Take an unordered array of point indices, and 
+            */
+
+            let [a, b, c] = index;
+            self.cells.insert(CellIndex::new(a, b, c), Cell{select: false});
+            self.edges.insert(EdgeIndex::new(a, b));
+            self.edges.insert(EdgeIndex::new(b, c));
+            self.edges.insert(EdgeIndex::new(c, a));
+        }
+
+        #[wasm_bindgen(constructor)]
+        pub fn new(nx: usize, ny: usize) -> TriangularMesh {
+
+            /*
+            Create a simple RTIN type mesh
+            */
+
+            let dx = 1.0 / (nx as f64);
+            let dy = 1.0 / (ny as f64);
 
             let mut ni = 0;
-            // let mut ti = 0;
             let mut start_pattern = false;
 
-            let mut points: Vec<f64> = vec![];
-            let mut indices: Vec<usize> = vec![];
+            let mut mesh = TriangularMesh { 
+                points: HashMap::with_capacity((nx+1)*(ny+1)), 
+                cells: HashMap::with_capacity(nx*ny*2),
+                edges: HashSet::new()
+            };
 
             for jj in 0..(ny+1) {
                 let mut alternate_pattern = start_pattern;
                 for ii in 0..(nx+1) {
-                    points.push(dx * ii as f64);
-                    points.push(dy * jj as f64);
-                    points.push(0.0);
-
+                    mesh.points.insert(ni, Vec3 { value: [ dx * ii as f64, dy * jj as f64, 0.0]});
+                
                     if (jj + 1 < (ny+1)) && (ii + 1 < (nx+1)) {
-                        indices.push(ni);
-                        indices.push(ni + nx + 1 + alternate_pattern as usize);
-                        indices.push(ni + 1);
-                        // ti += 1;
 
-                        indices.push(ni + nx + 1);
-                        indices.push(ni + nx + 2);
-                        indices.push(ni + !alternate_pattern as usize);
-
-                        // ti += 1;
+                        mesh.insert_cell([
+                            ni, 
+                            ni + nx + 1 + alternate_pattern as usize,
+                            ni + 1
+                        ]);
+                        
+                        mesh.insert_cell([
+                            ni + nx + 1, 
+                            ni + nx + 2,
+                            ni + !alternate_pattern as usize
+                        ]);
+                        
                         alternate_pattern = !alternate_pattern;
                     }
 
@@ -252,75 +335,45 @@ pub mod tessellate {
                 start_pattern = !start_pattern;
             }
 
-            TriangularMesh { points, indices, cells: HashMap::new() }
+            mesh
         }
 
-        fn triangle_path (&self, ctx: &CanvasRenderingContext2d, ii: usize, num_components: usize) {
-            
-            for jj in 0..3 {  // can set to 2 if nice regular mesh, 1 degenerates
-                let cursor = self.indices[ii * 3 + (jj + 1) % 3] * num_components;
-                ctx.line_to(self.points[cursor], self.points[cursor + 1]);
-            }
-        }
 
         #[wasm_bindgen]
-        pub fn draw (&self, ctx: &CanvasRenderingContext2d, w: u32, h: u32, color: JsValue) {
+        pub fn draw (&self, ctx: &CanvasRenderingContext2d, w: u32, h: u32, color: JsValue, alpha: f64, line_width: f64) {
+            /*
+            Draw an arbitrary triangulation network.
+            */
+
+            let wf64 = w as f64;
+            let hf64 = h as f64;
 
             ctx.set_stroke_style(&color);
-            ctx.clear_rect(0.0, 0.0, w as f64, h as f64);
-            ctx.set_line_width(1.0);
-            ctx.set_global_alpha(0.75);
-
-            let num_components = 3;
-            ctx.begin_path();
-            for ii in 0..(self.indices.len()/3) {
-                let cursor = self.indices[ii * 3] * num_components;
-                ctx.move_to(self.points[cursor], self.points[cursor + 1]);
-                self.triangle_path(ctx, ii, num_components);
+            ctx.set_fill_style(&color);
+            ctx.clear_rect(0.0, 0.0, wf64, hf64);
+            ctx.set_line_width(line_width);
+            ctx.set_global_alpha(alpha);
+ 
+            for (index, cell) in &self.cells {
+                if cell.select {     
+                    ctx.begin_path();
+                    ctx.move_to(self.points[&index.a].x()*wf64, self.points[&index.a].y()*hf64);
+                    ctx.line_to(self.points[&index.b].x()*wf64, self.points[&index.b].y()*hf64);
+                    ctx.line_to(self.points[&index.c].x()*wf64, self.points[&index.c].y()*hf64);
+                    ctx.line_to(self.points[&index.a].x()*wf64, self.points[&index.a].y()*hf64);
+                    ctx.fill();
+                    ctx.close_path();
+                }
             }
-            ctx.stroke();
-            ctx.close_path();
 
-            for (index, _mark) in self.cells.iter() {
+            for index in &self.edges {
                 ctx.begin_path();
-                let cursor = self.indices[index * 3] * num_components;
-                ctx.move_to(self.points[cursor], self.points[cursor + 1]);
-                self.triangle_path(ctx, *index, num_components);
-                ctx.fill();
+                ctx.move_to(self.points[&index.a].x()*wf64, self.points[&index.a].y()*hf64);
+                ctx.line_to(self.points[&index.b].x()*wf64, self.points[&index.b].y()*hf64);
+                ctx.stroke();
                 ctx.close_path();
             }
         }
-
-
-        #[wasm_bindgen]
-        pub fn animation_frame(&mut self, ctx: &CanvasRenderingContext2d, w: u32, h: u32, frame: u32, _time: f64, color: JsValue) {
-
-            self.draw(ctx, w, h, color);
-            let current_size = self.indices.len() as u32 / 3;
-            if (frame % current_size) > 0 {
-                unsafe {
-                    let _ = &self.mark((js_sys::Math::random()*(current_size as f64)) as usize);
-                }
-            } else {
-                &self.clear();
-            }
-        }
-
-
-        #[wasm_bindgen]
-        pub fn mark(&mut self, index: usize) -> bool {
-            let mark = !self.cells.contains_key(&index);
-            if mark {
-                self.cells.insert(index, true);
-            }
-            return mark;
-        }
-
-        #[wasm_bindgen]
-        pub fn clear(&mut self) {
-            self.cells = HashMap::new();
-        }
-
     }
 
     #[wasm_bindgen]
