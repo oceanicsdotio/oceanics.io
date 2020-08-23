@@ -3,12 +3,13 @@ import React, { useEffect, useState } from "react"
 import { graphql } from "gatsby";
 import styled from "styled-components";
 
+import { queryBathysphere } from "../bathysphere";
+
 import Layout from "../components/Layout";
 import SEO from "../components/SEO";
 import { StatefulButton }  from "../components/Layout";
 import Map from "../components/Map";
 import Table from "../components/Table";
-import { queryBathysphere } from "../bathysphere";
 import DataStream from "../components/DataStream";
 import Particles from "../components/Particles";
 import RectilinearGrid from "../components/RectilinearGrid";
