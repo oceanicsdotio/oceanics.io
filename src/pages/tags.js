@@ -19,7 +19,7 @@ const TagsPage = ({
     },
 }) => (
         <Layout location={location} title={title}>
-            <SEO title="Situational awareness for a changing ocean" />
+            <SEO title="Content tags" />
 
             <h2>Tags</h2>
             <ul>

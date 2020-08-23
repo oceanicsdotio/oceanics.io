@@ -7,7 +7,6 @@ import { getColorRamp, ArrayBuffer } from "../components/Lagrangian";
 export default ({
     res = Math.ceil(Math.sqrt(1000)),
     metadataFile,
-    showVelocityField=false,
     source,
     colors = {
         0.0: '#dd7700',
@@ -273,15 +272,9 @@ export default ({
 
         (function render() {
 
-        
-            /*
-            Draw to front buffer
-            */
-
             const quadBuffer = [
                 [quad.buffer, "a_pos", 2]
             ];
-
 
             exec({
                 program: screen,
@@ -328,49 +321,10 @@ export default ({
                 callback: () => [back, textures.screen] = [textures.screen, back]  // ! blend alternate frames
             });
 
-
-            /*
-            
-            */
-            exec({
-                program: update,
-                components: {
-                    tex: [[textures.color, 2]],
-                    uniforms: [
-                        "u_wind", "u_particles", "u_color_ramp", "u_particles_res", "u_wind_max", "u_wind_min","speed",  "drop", 
-                        "bump", "seed", "u_wind_res"],
-                    attrib: quadBuffer,
-                    framebuffer: [framebuffer, previous]
-                },
-                draw_as: [ctx.TRIANGLES, 6],
-                viewport: positions,
-                callback: () => [state, previous] = [previous, state] // use previous pass to calculate next position
-            });
-
             requestId = requestAnimationFrame(render);
         })()
         return () => cancelAnimationFrame(requestId);
     }, [programs, ready]);
 
-
-    useEffect(() => {
-        /*
-        Display the wind data in a 2D HTML canvas, for debugging
-        and interpretation. 
-        */
-        if (!showVelocityField || !preview.current || !assets || !assets.image) return;
-
-        const { width, height } = preview.current;
-        let ctx = preview.current.getContext('2d');
-        ctx.drawImage(assets.image, 0, 0, width, height);
-
-    }, [preview, assets]);
-
-
-    return (
-        <>
-            <StyledCanvas ref={ref} />
-            {showVelocityField ? <StyledCanvas ref={preview} /> : null}
-        </>
-    )
+    return <StyledCanvas ref={ref} />
 };

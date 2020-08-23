@@ -78,10 +78,10 @@ export default ({data: {allMarkdownRemark: {edges}, site: {siteMetadata: {title}
         hexGrid: false,
         objectStorage: false,
         codex: false,
-        datastream: true,
+        datastream: false,
         particles: false,
         lagrangian: false,
-        noise: false
+        noise: true
     });
 
 
@@ -322,7 +322,7 @@ export default ({data: {allMarkdownRemark: {edges}, site: {siteMetadata: {title}
     
     return (
       <Layout location={location} title={title}>
-        <SEO title="Situational awareness for a changing ocean" />
+        <SEO title="Ocean analytics as a service" />
     
         <hr/>
         <div>
