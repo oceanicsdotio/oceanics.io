@@ -112,6 +112,10 @@ export const exec = (runtime, ctx, uniforms, {
         ctx[`uniform${size}${type}`](program[key], ...(size === 1 ? [value]: value))
     });
 
+    if ("u_time" in program) {
+        ctx[`uniform1f`](program["u_time"], performance.now());
+    }
+
     ctx.drawArrays(type, 0, count);
     if (callback) callback();
 

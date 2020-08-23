@@ -5,8 +5,8 @@ import { createTexture, ArrayBuffer, compileShaders, exec } from "../components/
 
 
 export default ({
-    res = 100,
-    opacity = 0.98 // how fast the particle trails fade on each frame
+    res = 10,
+    opacity = 1.0 // how fast the particle trails fade on each frame
 }) => {
     /*
     Use WebGL to calculate particle trajectories from velocity data. This example uses wind
@@ -122,11 +122,10 @@ export default ({
         },{
             program: draw,
             components: {
-                attrib: [[index.buffer, "a_index", 1]],
-                uniforms: ["u_particles", "u_particles_res"],
+                attrib: quadBuffer,
                 framebuffer: screenBuffer
             },
-            draw_as: [ctx.POINTS, res * res],
+            draw_as: triangles,
             viewport: world
         },{
             program: screen,
