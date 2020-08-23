@@ -86,18 +86,23 @@ pub fn clear_rect_blending(ctx: &CanvasRenderingContext2d, w: f64, h: f64, color
 }
 
 #[wasm_bindgen]
+#[allow(unused_unsafe)]
 pub fn draw_fps(ctx: &CanvasRenderingContext2d, frames: u32, time: f64, color: JsValue ) -> u32 {
 
     let font_size = 20;
-    let fps = js_sys::Math::floor((1000 *(frames+1)) as f64 / time);
-    draw_caption(
-        &ctx,
-        fps.to_string()+" fps".into(),
-        0.0,
-        font_size as f64, color,
-        font_size.to_string()+"px Arial".into()
-    );
-    return frames+1;
+    let next = frames + 1;
+   
+    unsafe {
+        let fps = js_sys::Math::floor((1000*next) as f64 / time);
+        draw_caption(
+            &ctx,
+            fps.to_string()+" fps".into(),
+            0.0,
+            font_size as f64, color,
+            font_size.to_string()+"px Arial".into()
+        );
+    } 
+    next
 }
 
 
@@ -257,6 +262,7 @@ pub fn calculate_rotation(ax: f32, ay: f32, az: f32, dx: f32, dy: f32, dz: f32, 
 
 
 #[wasm_bindgen]
+#[allow(unused_unsafe)]
 pub fn mouse_move(x: f64, y: f64) {
     unsafe {
         web_sys::console::log_1(&format!("{}, {}", x, y).into());

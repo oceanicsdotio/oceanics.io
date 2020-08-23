@@ -19,6 +19,7 @@ pub mod plotting_system {
     }
 
     #[wasm_bindgen]
+    #[allow(dead_code)]
     struct Axis {
         /*
         An axis struct describes one index of an ND array. For visualization purposes
@@ -32,6 +33,7 @@ pub mod plotting_system {
     }
 
     #[wasm_bindgen]
+    #[allow(dead_code)]
     struct Observation {
         /*
         Observations are N-dimensional points mapped into 2-D screen space.
@@ -41,6 +43,7 @@ pub mod plotting_system {
     }
 
     #[wasm_bindgen]
+    #[allow(dead_code)]
     struct ObservedProperty {
         /*
         Observed properties describe a data dimesion. They are a child of Axis. 
@@ -83,6 +86,7 @@ pub mod plotting_system {
 
 
     #[wasm_bindgen]
+    #[allow(dead_code)]
     impl DataStream {
         /*
         Implementation of DataStream.

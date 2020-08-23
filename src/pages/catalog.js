@@ -9,7 +9,6 @@ import { StatefulButton }  from "../components/Layout";
 import Map from "../components/Map";
 import Table from "../components/Table";
 import { queryBathysphere } from "../bathysphere";
-import Canvas from "../components/Canvas";
 import DataStream from "../components/DataStream";
 import Particles from "../components/Particles";
 import RectilinearGrid from "../components/RectilinearGrid";

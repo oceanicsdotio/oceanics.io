@@ -1498,8 +1498,8 @@ export const __wbindgen_memory = function() {
     return addHeapObject(ret);
 };
 
-export const __wbindgen_closure_wrapper2330 = logError(function(arg0, arg1, arg2) {
-    var ret = makeMutClosure(arg0, arg1, 40, __wbg_adapter_22);
+export const __wbindgen_closure_wrapper2439 = logError(function(arg0, arg1, arg2) {
+    var ret = makeMutClosure(arg0, arg1, 47, __wbg_adapter_22);
     return addHeapObject(ret);
 });
 

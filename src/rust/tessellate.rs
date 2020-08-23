@@ -181,6 +181,7 @@ pub mod tessellate {
             self.cells.clear();
         }
 
+        #[allow(unused_unsafe)]
         fn random_cell_index(&self) -> (usize, usize) {
             /*
             Pick a random cell, no guarentee it is not already selected

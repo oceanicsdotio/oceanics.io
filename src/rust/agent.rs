@@ -7,10 +7,6 @@ pub mod agent_system {
     use web_sys::{CanvasRenderingContext2d, CanvasGradient};
     use std::f64::consts::{PI};
     use std::i64;
-    use std::ops::Add;
-    use std::ops::Sub;
-    use std::ops::Mul;
-    use rand::prelude::*;
 
     fn signal (time: f64, period: f64) -> f64 {
         let _period = period * 1000.0;
@@ -202,7 +198,7 @@ pub mod agent_system {
             let _dx = x - (dx+0.5*w);
             let _dy = y - (dy+0.5*h);
             let dxy = (_dx.powi(2) + _dy.powi(2)).sqrt();
-            let theta = _dy.atan2(_dx);
+            // let theta = _dy.atan2(_dx);
             let displacement = 3.0*ICON + signal(time, 0.5) / 10.0;
             let radians = signal(time, 2.0) * PI * 2.0;
             let sig = signal(time, 2.0);
@@ -491,6 +487,7 @@ pub mod agent_system {
     #[wasm_bindgen]
     impl Group {
         #[wasm_bindgen(constructor)]
+        #[allow(unused_unsafe)]
         pub fn new(count: usize, zero: f64, stop: f64) -> Group {
             let mut group = Group {
                 particles: vec![]
