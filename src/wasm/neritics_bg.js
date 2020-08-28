@@ -518,7 +518,7 @@ function getUint8ClampedMemory0() {
 function getClampedArrayU8FromWasm0(ptr, len) {
     return getUint8ClampedMemory0().subarray(ptr / 1, ptr / 1 + len);
 }
-function __wbg_adapter_191(arg0, arg1, arg2, arg3) {
+function __wbg_adapter_199(arg0, arg1, arg2, arg3) {
     _assertNum(arg0);
     _assertNum(arg1);
     wasm.wasm_bindgen__convert__closures__invoke2_mut__h96984aac8d17c2af(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
@@ -840,27 +840,17 @@ export class Model {
         return Model.__wrap(ret);
     }
     /**
+    * @param {number} angle
+    * @param {number} ax
+    * @param {number} ay
+    * @param {number} az
+    * @returns {Model}
     */
-    icosahedron() {
+    rotate_from_js(angle, ax, ay, az) {
         if (this.ptr == 0) throw new Error('Attempt to use a moved value');
         _assertNum(this.ptr);
-        wasm.model_icosahedron(this.ptr);
-    }
-    /**
-    */
-    tetrahedron() {
-        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.ptr);
-        wasm.model_tetrahedron(this.ptr);
-    }
-    /**
-    * @param {number} resolution
-    */
-    sphere(resolution) {
-        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.ptr);
-        _assertNum(resolution);
-        wasm.model_sphere(this.ptr, resolution);
+        var ret = wasm.model_rotate_from_js(this.ptr, angle, ax, ay, az);
+        return Model.__wrap(ret);
     }
     /**
     * @param {CanvasRenderingContext2D} ctx
@@ -880,6 +870,50 @@ export class Model {
         } finally {
             heap[stack_pointer++] = undefined;
         }
+    }
+    /**
+    * @param {number} sx
+    * @param {number} sy
+    * @param {number} sz
+    * @returns {Model}
+    */
+    scale(sx, sy, sz) {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        var ret = wasm.model_scale(this.ptr, sx, sy, sz);
+        return Model.__wrap(ret);
+    }
+    /**
+    * @param {number} resolution
+    */
+    sphere(resolution) {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        _assertNum(resolution);
+        wasm.model_sphere(this.ptr, resolution);
+    }
+    /**
+    * @param {number} dx
+    * @param {number} dy
+    * @param {number} dz
+    * @returns {Model}
+    */
+    shift(dx, dy, dz) {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        var ret = wasm.model_shift(this.ptr, dx, dy, dz);
+        return Model.__wrap(ret);
+    }
+    /**
+    * @param {number} dim
+    * @returns {Model}
+    */
+    reflect(dim) {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        _assertNum(dim);
+        var ret = wasm.model_reflect(this.ptr, dim);
+        return Model.__wrap(ret);
     }
 }
 /**
@@ -910,6 +944,21 @@ export class ObservedProperty {
         this.ptr = 0;
 
         wasm.__wbg_observedproperty_free(ptr);
+    }
+}
+/**
+*/
+export class Primitive {
+
+    constructor() {
+        throw new Error('cannot invoke `new` directly');
+    }
+
+    free() {
+        const ptr = this.ptr;
+        this.ptr = 0;
+
+        wasm.__wbg_primitive_free(ptr);
     }
 }
 /**
@@ -991,6 +1040,78 @@ export class RectilinearGrid {
         } finally {
             heap[stack_pointer++] = undefined;
         }
+    }
+}
+/**
+*/
+export class Shipyard {
+
+    constructor() {
+        throw new Error('cannot invoke `new` directly');
+    }
+
+    free() {
+        const ptr = this.ptr;
+        this.ptr = 0;
+
+        wasm.__wbg_shipyard_free(ptr);
+    }
+    /**
+    * @returns {Model}
+    */
+    static build_body() {
+        var ret = wasm.shipyard_build_body();
+        return Model.__wrap(ret);
+    }
+    /**
+    * @returns {Model}
+    */
+    static build_arm() {
+        var ret = wasm.shipyard_build_arm();
+        return Model.__wrap(ret);
+    }
+    /**
+    * @param {number} S
+    * @param {number} A
+    * @param {number} B
+    * @param {number} C
+    * @returns {Model}
+    */
+    static build_engine(S, A, B, C) {
+        var ret = wasm.shipyard_build_engine(S, A, B, C);
+        return Model.__wrap(ret);
+    }
+    /**
+    * @param {number} A
+    * @param {number} B
+    * @param {number} C
+    * @returns {Model}
+    */
+    static build_thruster(A, B, C) {
+        var ret = wasm.shipyard_build_thruster(A, B, C);
+        return Model.__wrap(ret);
+    }
+    /**
+    * @param {number} S
+    * @param {number} A
+    * @param {number} B
+    * @param {number} C
+    * @returns {Model}
+    */
+    static build_tube(S, A, B, C) {
+        var ret = wasm.shipyard_build_tube(S, A, B, C);
+        return Model.__wrap(ret);
+    }
+    /**
+    * @param {number} S
+    * @param {number} A
+    * @param {number} B
+    * @param {number} C
+    * @returns {Model}
+    */
+    static build_tube_cover(S, A, B, C) {
+        var ret = wasm.shipyard_build_tube_cover(S, A, B, C);
+        return Model.__wrap(ret);
     }
 }
 /**
@@ -1437,7 +1558,7 @@ export const __wbg_new_261626435fed913c = logError(function(arg0, arg1) {
             const a = state0.a;
             state0.a = 0;
             try {
-                return __wbg_adapter_191(a, state0.b, arg0, arg1);
+                return __wbg_adapter_199(a, state0.b, arg0, arg1);
             } finally {
                 state0.a = a;
             }
@@ -1564,8 +1685,8 @@ export const __wbindgen_memory = function() {
     return addHeapObject(ret);
 };
 
-export const __wbindgen_closure_wrapper2730 = logError(function(arg0, arg1, arg2) {
-    var ret = makeMutClosure(arg0, arg1, 48, __wbg_adapter_22);
+export const __wbindgen_closure_wrapper2877 = logError(function(arg0, arg1, arg2) {
+    var ret = makeMutClosure(arg0, arg1, 49, __wbg_adapter_22);
     return addHeapObject(ret);
 });
 

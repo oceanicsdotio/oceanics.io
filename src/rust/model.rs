@@ -192,6 +192,28 @@ pub mod model_system {
         }
     }
 
+    impl std::ops::Add<i32> for Face {
+        type Output = Face;
+        fn add(self, rhs: i32) -> Face {
+            let mut result = self.copy();
+            for mut index in self.indices {
+                index += rhs;
+            }
+            result
+        }
+    }
+
+    impl std::ops::Add<i32> for &Face {
+        type Output = Face;
+        fn add(self, rhs: i32) -> Face {
+            let mut result = self.copy();
+            for ii in 0..self.indices.len() {
+                result.indices[ii] += rhs;
+            }
+            result
+        }
+    }
+
     #[wasm_bindgen]
     pub struct Model {
         vert: Vec<Vec3>,
@@ -261,6 +283,25 @@ pub mod model_system {
             }
         }
 
+        // #[wasm_bindgen]
+        // pub fn normal_form(&mut self) {
+
+        //     let mut maximum = 0.0;
+        //     for vert in &self.vert {
+        //         if vert.magnitude() > maximum {
+        //             maximum = vert.magnitude();
+        //         }
+        //     }
+        //     for vert in &mut self.vert {
+        //         vert = vert / maximum
+        //     }
+        // }
+
+        #[wasm_bindgen]
+        pub fn rotate_from_js(&self, angle: f64, ax: f64, ay: f64, az: f64) -> Model {
+            self.rotate(&angle, &Vec3{value: [ax, ay, az]})
+        }
+
         #[wasm_bindgen]
         pub fn draw_edges(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, color: JsValue, time: f64, line_width: f64) -> usize {
 
@@ -270,26 +311,27 @@ pub mod model_system {
             ctx.set_line_width(line_width);
             let mut triangles: usize = 0;
 
-            let rotated = self.rotate(&45.0, &Vec3{value: [1.0,1.0,1.0]});
+            // let rotated = self.rotate(&45.0, &Vec3{value: [1.0,1.0,1.0]});
 
-            for vert in &rotated.vert {
+            for vert in &self.vert {
                 let target = vert.normal_form();
                 ctx.fill_rect(w*target.x()-3.0, h*target.y()-3.0, 6.0, 6.0);
             }
 
-            for face in &rotated.face {
+            for face in &self.face {
 
                 let mut origin: bool = true;
                 ctx.begin_path();
 
-            
-                for ii in &face.indices {
-                    if *ii > rotated.vert.len() as i32 {
-                        panic!("Index exceeds vertex array length");
-                    } else if *ii < 0 {
-                        panic!("Vertex array index is negative");
+                for ii in face.copy().indices {
+
+                    if ii >= self.vert.len() as i32 {
+                        break;
+                        // panic!("(`draw_edges`) Index exceeds vertex array length");
+                    } else if ii < 0 {
+                        panic!("(`draw_edges`) Vertex array index is negative");
                     }
-                    let target = rotated.vert[*ii as usize].normal_form();
+                    let target = self.vert[ii as usize].normal_form();
                     if origin {
                         ctx.move_to(w*target.x(), h*target.y());
                         origin = !origin;
@@ -304,12 +346,107 @@ pub mod model_system {
                 triangles += 1;
             }
 
-            triangles
-           
+            triangles // for metadata
+        }
 
+        #[wasm_bindgen]
+        pub fn scale(&self, sx: f64, sy: f64, sz: f64) -> Model {
+            let mut model = self.copy();
+            for vert in &mut model.vert {
+                vert.value = [
+                    vert.x()*sx, 
+                    vert.y()*sy, 
+                    vert.z()*sz
+                ];
+            }
+            model
+        }
+
+        #[wasm_bindgen]
+        pub fn sphere(&mut self, resolution: usize) {
+
+            if resolution % 2 != 0 || resolution < 6 {
+                panic!("Resolution must be an even integer greater than 6")
+            }
+            
+            let ires = resolution as i32;
+            
+            // let nv: usize = resolution * (resolution / 2 - 1) + 2;
+            // let nf: usize = resolution * resolution / 2;
+            let step = 2.0 * PI / (resolution as f64);
+
+            
+            self.vert.push(Vec3 { value: [0.0, 0.0, 1.0]}); // north pole
+            for band in 0..ires/2-1 {
+                for slice in 0..ires {
+                    let azimuth = 0.5 * PI - step * ((1+band) as f64);
+                    let theta = step * (slice as f64);
+                    self.vert.push(Vec3 { value: [
+                        theta.cos() * azimuth.cos().abs(),
+                        theta.sin() * azimuth.cos().abs(),
+                        azimuth.sin()
+                    ]});
+                }
+            }
+            self.vert.push(Vec3{value:[0.0, 0.0, -1.0]}); // south pole
+
+    
+            for band in 0..ires/2-3 {
+                for slice in 0..ires {
+
+                    let indices: Vec<i32>;
+                    let bottom_left = band * ires + slice + 1;
+                    let bottom_right = band * ires + ((slice+1) % ires) + 1;
+                    let top_left = (band - 1) * ires + slice + 1;
+                    let top_right = (band - 1) * ires + ((slice+1) % ires) + 1;
+
+
+                    if band == 0 {
+                        // top
+                        indices = vec![0, bottom_right, bottom_left];  
+                    // } else if band == ires/2-3 {
+                    //     indices = vec![top_left, top_right, nv as i32];
+                    } else {
+                        // "interior"
+                        indices = vec![top_left, top_right, bottom_right, bottom_left];
+                    }
+                    
+                    self.face.push(Face::new(indices));
+                    
+                }
+
+            }
+        }
+
+        #[wasm_bindgen]
+        pub fn shift(&self, dx: f64, dy: f64, dz: f64) -> Model {
+            let mut model = self.copy();
+            for vert in &mut model.vert {
+                vert.value = [
+                    vert.x()+dx, 
+                    vert.y()+dy, 
+                    vert.z()+dz
+                ];
+            }
+            model
+        }
+        
+        #[wasm_bindgen]
+        pub fn reflect(&self, dim: usize) -> Model {
+            let mut model = self.copy();
+            for vert in &mut model.vert {
+                vert.value[0] *= -1.0;
+                vert.value[1] *= -1.0;
+                vert.value[2] *= -1.0;
+            }
+            for face in &mut model.face {
+                let temp = face.indices[0];
+                face.indices[0] = face.indices[2];
+                face.indices[2] = temp;
+            }
+            model
         }
     }
-
     
     impl Model {
 
@@ -326,12 +463,14 @@ pub mod model_system {
 
         fn append(&mut self, model: Model) {
            
-            for vert in &model.vert {
-                self.insert_vertex(vert);
+            for vert in model.vert {
+                self.insert_vertex(&vert.copy());
             }
+
+            let offset = self.vert.len() as i32;
             for face in &model.face {
                 // TODO: these need to be re-indexed?
-                self.insert_face(face)
+                self.insert_face(&(face + offset));
             }
         }
 
@@ -394,100 +533,6 @@ pub mod model_system {
             self.face.push(Face::new(vec![0, 3, 2]));
             self.face.push(Face::new(vec![0, 2, 1]));
             self.face.push(Face::new(vec![1, 2, 3]));
-        }
-
-        pub fn sphere(&mut self, resolution: usize) {
-
-            if resolution % 2 != 0 || resolution < 6 {
-                panic!("Resolution must be an even integer greater than 6")
-            }
-            
-            let ires = resolution as i32;
-            
-            // let nv: usize = resolution * (resolution / 2 - 1) + 2;
-            // let nf: usize = resolution * resolution / 2;
-            let step = 2.0 * PI / (resolution as f64);
-
-            
-            self.vert.push(Vec3 { value: [0.0, 0.0, 1.0]}); // north pole
-            for band in 0..ires/2-1 {
-                for slice in 0..ires {
-                    let azimuth = 0.5 * PI - step * ((1+band) as f64);
-                    let theta = step * (slice as f64);
-                    self.vert.push(Vec3 { value: [
-                        theta.cos() * azimuth.cos().abs(),
-                        theta.sin() * azimuth.cos().abs(),
-                        azimuth.sin()
-                    ]});
-                }
-            }
-            self.vert.push(Vec3{value:[0.0, 0.0, -1.0]}); // south pole
-
-    
-            for band in 0..ires/2-3 {
-                for slice in 0..ires {
-
-                    let indices: Vec<i32>;
-                    let bottom_left = band * ires + slice + 1;
-                    let bottom_right = band * ires + ((slice+1) % ires) + 1;
-                    let top_left = (band - 1) * ires + slice + 1;
-                    let top_right = (band - 1) * ires + ((slice+1) % ires) + 1;
-
-
-                    if band == 0 {
-                        // top
-                        indices = vec![0, bottom_right, bottom_left];  
-                    // } else if band == ires/2-3 {
-                    //     indices = vec![top_left, top_right, nv as i32];
-                    } else {
-                        // "interior"
-                        indices = vec![top_left, top_right, bottom_right, bottom_left];
-                    }
-                    
-                    self.face.push(Face::new(indices));
-                    
-                }
-
-            }
-        }
-
-        pub fn shift(&self, dx: f64, dy: f64, dz: f64) -> Model {
-            let mut model = self.copy();
-            for vert in &mut model.vert {
-                vert.value = [
-                    vert.x()+dx, 
-                    vert.y()+dy, 
-                    vert.z()+dz
-                ];
-            }
-            model
-        }
-
-        pub fn scale(&self, sx: f64, sy: f64, sz: f64) -> Model {
-            let mut model = self.copy();
-            for vert in &mut model.vert {
-                vert.value = [
-                    vert.x()*sx, 
-                    vert.y()*sy, 
-                    vert.z()*sz
-                ];
-            }
-            model
-        }
-
-        pub fn reflect(&self, dim: usize) -> Model {
-            let mut model = self.copy();
-            for vert in &mut model.vert {
-                vert.value[0] *= -1.0;
-                vert.value[1] *= -1.0;
-                vert.value[2] *= -1.0;
-            }
-            for face in &mut model.face {
-                let temp = face.indices[0];
-                face.indices[0] = face.indices[2];
-                face.indices[2] = temp;
-            }
-            model
         }
 
         pub fn extrude (nRings: &usize, radius: &Vec<f64>, offset: &Vec<f64>, P: &Primitive, close_state: &bool) -> Model {
@@ -811,282 +856,15 @@ pub mod model_system {
 
     }
 
+    #[wasm_bindgen]
     pub struct Shipyard {}
 
     impl Shipyard {
-
         const CLOSE: bool = true;
         const OPEN: bool = false;
 
-      
-        // fn dock (slope, ringNum) {
-
-        //     pointCount = 9;
-        //     float D, C, H;
-        //     float Y[pointCount], Z[pointCount];
-
-        //     if (ringNum == 1)
-        //     {
-        //         Y = {0.50, 1.00, 1.00, 1.75, 2.25, 2.25, 1.50, 1.50, 0.50};
-        //         Z = {1.25, 1.25, 1.50, 1.50, 0.50, 0.00, 0.00, 0.25, 0.75};
-        //     }
-        //     if (ringNum == 2)
-        //     {
-        //         D = 1.5 - slope*0.75;
-        //         Y = {0.50, 1.00, 1.00, 1.75, 2.25, 2.25, 1.00, 1.00, 0.50};
-        //         Z = {1.25, 1.25, 1.50,   D , 0.50, 0.00, 0.00, 0.25, 0.75};
-        //     }
-        //     if (ringNum ==3)
-        //     {
-        //         D = 1.5 - slope*0.75;
-        //         C = 1.25;
-        //         H = 0.75;
-        //         Y = {0.50, 1.00, 1.00, 1.75, 2.25, 2.25, 1.00, 1.00, 0.50};
-        //         Z = {1.25, 1.25, C   , D   , 0.50, 0.00, 0.00, H   , 0.75};
-        //     }
-        // }
-
-        pub fn build_body() -> Model {
-
-            let mut tempMod = Model::new();
-            let mut result = Model::new();
-
-
-            // bridges
-            let mut radius = vec![1.0, 1.0];
-            let mut offset = vec![0.0, 0.75];
- 
-            result.append(
-                Model::extrude(&2, &radius, &offset, &Primitive::rectangle(0.5, 0.25), &Shipyard::CLOSE)
-                .shift(0.0, 1.5, 0.0)
-            );
-
-            
-            result.append(
-                Model::extrude(&2, &radius, &offset, &Primitive::parallelogram(0.5,0.25,0.0, -0.25), &Shipyard::CLOSE)
-                .shift(0.5, 1.5, 0.0)
-            );
-
-            result.append(
-                result.copy()
-                .shift(0.0, 0.0, -2.0)
-            );
-
-            // fore block
-            offset[1] = 2.75;        
-            result.append(
-                Model::extrude(&2, &radius, &offset, &Primitive::rectangle(0.25, 0.75), &Shipyard::CLOSE)
-                .shift(2.0, 0.0, -2.0)
-            );
-
-            // forward shell
-            offset[1] = 2.75;
-            result.append(
-                Model::extrude(&2, &radius, &offset, &Primitive::shell(8, 90.0, 90.0, 1.25, 0.75, 0.25, 0.25), &Shipyard::OPEN)
-                .shift(1.0, 0.75, -2.0)
-            );
-
-            radius = vec![0.75, 1.0];
-            offset = vec![0.0, 0.0];
-            
-            result.append(
-                    Model::extrude_planar(&2, &radius, &offset, &Primitive::arc(8, 90.0, 90.0, 1.0))
-                .scale(1.25, 0.75, 1.0)
-                .shift(1.0, 0.75, -2.0)
-            );
-            result
-
-        }
-
-
-        fn build_arm () -> Model {
-
-           
-            let mut tempMod = Model::new();
-            let mut result = Model::new();
-            let mut offset = vec![0.0, 1.0];
-            let mut radius = vec![1.0, 1.0];
-
-            // ARM+SHIELD
-            //main panels
-            let polygon = Primitive::parallelogram(1.25, 0.25, 0.0, -1.0);
-            offset[1] = 1.75;
-            result.append(
-                Model::extrude(&2, &radius, &offset, &polygon, &Shipyard::CLOSE)
-                    .shift(1.0, 1.25, 0.75)
-            );
-
-            offset[1] = 2.25;
-            result.append(
-                Model::extrude(&2, &radius, &offset, &polygon, &Shipyard::CLOSE)
-                    .shift(1.0, 1.25, 3.0)
-            );
-
-           
-            offset[1] = 0.5;
-            result.append(
-                Model::extrude(&2, &radius, &offset, &Primitive::parallelogram(1.0, 0.25, 0.0, -0.8), &Shipyard::OPEN)
-                    .shift(1.0, 1.25, 2.5)
-            );
-
-            //lower joiner
-            offset[1] = 1.75;
-            result.append(
-                Model::extrude (&2, &radius, &offset, &Primitive::rectangle (0.25, 0.5), &Shipyard::CLOSE)
-                    .shift(2.0, 0.0, 0.75)
-            );
-
-            // upper overhangs
-            let rect = Primitive::rectangle(0.5, 0.25).bevel(10, 0.1);  // TODO: bevel half
-            offset[1] = 2.5;
-            result.append(
-                Model::extrude(&2, &radius, &offset, &rect, &Shipyard::CLOSE)
-                    .shift(0.5, 1.25, 0.0)
-            );
-
-            offset[1] = 0.5;
-            result.append(
-                Model::extrude(&2, &radius, &offset, &rect, &Shipyard::CLOSE)
-                    .shift(0.5, 1.25, 3.0)
-            );
-
-            offset[1] = 0.5;
-            result.append(
-                Model::extrude(&2, &radius, &offset, &rect, &Shipyard::CLOSE)
-                    .shift(0.5, 1.25, 3.75)
-            );
-
-            // Pipe
-            let pipe = Primitive::regular_polygon(10, Vec3::ZAXIS);
-            radius = vec![0.1, 0.1];
-            offset[1] = 3.5;
-            result.append(
-                Model::extrude(&2, &radius, &offset, &pipe, &Shipyard::OPEN)
-                    .shift(0.65, 1.35, 0.25)
-            );
-
-            result.append(
-                Model::extrude(&2, &radius, &offset, &pipe, &Shipyard::OPEN)
-                    .shift(0.85, 1.35, 0.25)
-            );
-            result
-        }
-
-
-        fn build_engine (S: f64, A: f64, B: f64, C: f64) -> Model {
-           
-            let mut tempMod = Model::new();
-            let mut result = Model::new();
-            let offset = vec![0.0, 1.0];
-            let radius = vec![1.0, 1.0];
-
-            let w_radius = vec![0.3, 0.3, 1.0, 1.0, 3.0, 3.0];
-            let w_offset = vec![-12.0, 2.0, 3.0, 4.0, 6.0, 7.0];
-            let e_offset = vec![-12.0, -12.0, -11.0, -4.0, -3.0, 1.0, 2.0, 5.0, 5.0]; //{5.0, 5.0, 2.0, 1.0,-3.0, -4.0, -11.0, -12.0, -12.0};
-            let e_radius = vec![0.3, 2.0, 3.0, 3.0, 2.5, 2.5, 3.0, 3.0, 2.0]; //{2.0, 3.0, 3.0, 2.5, 2.5,  3.0,   3.0,   2.0,   0.3};
-
-            let poly = Primitive::regular_polygon(72, Vec3::ZAXIS);
-            
-            result.append(Model::extrude(&9, &e_radius, &e_offset, &poly, &Shipyard::OPEN));
-            result.append(Model::extrude (&6, &w_radius, &w_offset, &poly, &Shipyard::OPEN));
-            
-            result
-                .shift(0.0, 0.0, 12.0)
-                .scale(S, S, S)
-                .shift(A, B, C)
-        }
-
-
-        fn build_thruster (A: f64, B: f64, C: f64) -> Model {
-            
-           
-            let mut result = Model::new();
-            let t_radius = vec![0.6, 0.75, 1.0, 1.0, 0.75, 0.6];
-            let t_offset = vec![-0.75, -0.75, -0.5, 0.5, 0.75, 0.75];
-        
-            let tempMod = Model::extrude(&6, &t_radius, &t_offset, &Primitive::rectangle(0.5, 0.8).bevel(10, 0.15), &Shipyard::OPEN)
-                .shift(-0.5, 0.0, 0.0);
-            
-            result.append(tempMod.copy());
-            result.append(tempMod.reflect(1));
-            
-            result.shift(A, B, C)
-        }
-
-
-
-        fn build_tube (S: f64, A: f64, B: f64, C: f64) -> Model {
-
-
-            let mut result = Model::new();
-  
-            let tubeLength = 3.0;
-            let radius = vec![1.0, 1.0];
-            let mut offset = vec![0.0, tubeLength];
-
-            let hexagon = Primitive::regular_polygon(6, Vec3::ZAXIS) // hexagon
-                .scale((2.0/3.0 as f64).sqrt(), (2.0/3.0 as f64).sqrt(), 1.0);
-            
-            let tube = Primitive::regular_polygon(72, Vec3::ZAXIS) // tube poly
-                .scale(0.75, 0.75, 1.0)
-                .shift(0.0, 0.0, 0.5); // depth of funnel, shift tube
-            
-            let tempMod = Model::stitch(&hexagon, &tube); // create front funnel
-            result.append(tempMod.copy()); // add to model
-           
-            result.append(
-                tempMod
-                    .reflect(2)
-                    .shift(0.0, 0.0, tubeLength+0.5)
-            ); // create back
- 
-            result.append(
-                Model::extrude (&2, &radius, &offset, &tube, &Shipyard::OPEN) // inner tube
-            );
-
-            offset = vec![0.0, 3.5];
-            
-            result.append(
-                Model::extrude (&2, &radius, &offset, &hexagon, &Shipyard::OPEN) // inner tube
-            );
-            
-            result.scale(S, S, S).shift(A, B, C)
-
-        }
-
-
-        fn build_tube_cover (S: f64, A: f64, B: f64, C: f64) -> Model {
-
-            let mut result = Model::new();
-            let radius = vec![1.0, 1.0];
-            let offset = vec![0.0, 0.0];
-            
-
-            let outer = Primitive::regular_polygon(6, Vec3::ZAXIS)
-                .scale((2.0/3.0 as f64).sqrt(), (2.0/3.0 as f64).sqrt(), 1.0);
-            
-            
-            let inner = Primitive::regular_polygon(72, Vec3::ZAXIS)
-                .scale(0.75, 0.75, 1.0)
-                .shift(0.0, 0.0, 0.5);
-            
-            let tempMod = Model::stitch (&outer, &inner);
-            result.append(tempMod);
-            
-            result.append(
-                Model::extrude(&2, &radius, &offset, &outer, &Shipyard::CLOSE)
-            );
-            
-            result.append(
-                Model::extrude (&2, &radius, &offset, &inner, &Shipyard::CLOSE)
-            );
-            
-            result.scale(S, S, S).shift(A, B, C)
-
-        }
-
-
-        fn build_ship () -> Vec<Model> {
+       
+        pub fn build_ship () -> Vec<Model> {
            
             let mut models: Vec<Model> = vec![];
 
@@ -1303,5 +1081,276 @@ pub mod model_system {
         //     rotateModel(90, XAXIS, M);
         //     rotateModel(-90, ZAXIS, M);
         // }
+    }
+
+    #[wasm_bindgen]
+    impl Shipyard {
+      
+        // fn dock (slope, ringNum) {
+
+        //     pointCount = 9;
+        //     float D, C, H;
+        //     float Y[pointCount], Z[pointCount];
+
+        //     if (ringNum == 1)
+        //     {
+        //         Y = {0.50, 1.00, 1.00, 1.75, 2.25, 2.25, 1.50, 1.50, 0.50};
+        //         Z = {1.25, 1.25, 1.50, 1.50, 0.50, 0.00, 0.00, 0.25, 0.75};
+        //     }
+        //     if (ringNum == 2)
+        //     {
+        //         D = 1.5 - slope*0.75;
+        //         Y = {0.50, 1.00, 1.00, 1.75, 2.25, 2.25, 1.00, 1.00, 0.50};
+        //         Z = {1.25, 1.25, 1.50,   D , 0.50, 0.00, 0.00, 0.25, 0.75};
+        //     }
+        //     if (ringNum ==3)
+        //     {
+        //         D = 1.5 - slope*0.75;
+        //         C = 1.25;
+        //         H = 0.75;
+        //         Y = {0.50, 1.00, 1.00, 1.75, 2.25, 2.25, 1.00, 1.00, 0.50};
+        //         Z = {1.25, 1.25, C   , D   , 0.50, 0.00, 0.00, H   , 0.75};
+        //     }
+        // }
+
+        #[wasm_bindgen]
+        pub fn build_body() -> Model {
+
+            
+            let mut result = Model::new();
+
+            // bridges
+            let mut radius = vec![1.0, 1.0];
+            let mut offset = vec![0.0, 0.75];
+ 
+            result.append(
+                Model::extrude(&2, &radius, &offset, &Primitive::rectangle(0.5, 0.25), &Shipyard::CLOSE)
+                .shift(0.0, 1.5, 0.0)
+            );
+
+            result.append(
+                Model::extrude(&2, &radius, &offset, &Primitive::parallelogram(0.5,0.25,0.0, -0.25), &Shipyard::CLOSE)
+                .shift(0.5, 1.5, 0.0)
+            );
+
+            result.append(
+                result.copy()
+                .shift(0.0, 0.0, -2.0)
+            );
+
+            // fore block
+            offset[1] = 2.75;        
+            result.append(
+                Model::extrude(&2, &radius, &offset, &Primitive::rectangle(0.25, 0.75), &Shipyard::CLOSE)
+                .shift(2.0, 0.0, -2.0)
+            );
+
+            // forward shell
+            offset[1] = 2.75;
+            result.append(
+                Model::extrude(&2, &radius, &offset, &Primitive::shell(8, 90.0, 90.0, 1.25, 0.75, 0.25, 0.25), &Shipyard::OPEN)
+                .shift(1.0, 0.75, -2.0)
+            );
+
+            radius = vec![0.75, 1.0];
+            offset = vec![0.0, 0.0];
+            result.append(
+                    Model::extrude_planar(&2, &radius, &offset, &Primitive::arc(8, 90.0, 90.0, 1.0))
+                .scale(1.25, 0.75, 1.0)
+                .shift(1.0, 0.75, -2.0)
+            );
+
+            result
+
+        }
+
+        #[wasm_bindgen]
+        pub fn build_arm () -> Model {
+
+           
+            let mut tempMod = Model::new();
+            let mut result = Model::new();
+            let mut offset = vec![0.0, 1.0];
+            let mut radius = vec![1.0, 1.0];
+
+            // ARM+SHIELD
+            //main panels
+            let polygon = Primitive::parallelogram(1.25, 0.25, 0.0, -1.0);
+            offset[1] = 1.75;
+            result.append(
+                Model::extrude(&2, &radius, &offset, &polygon, &Shipyard::CLOSE)
+                    .shift(1.0, 1.25, 0.75)
+            );
+
+            offset[1] = 2.25;
+            result.append(
+                Model::extrude(&2, &radius, &offset, &polygon, &Shipyard::CLOSE)
+                    .shift(1.0, 1.25, 3.0)
+            );
+
+           
+            offset[1] = 0.5;
+            result.append(
+                Model::extrude(&2, &radius, &offset, &Primitive::parallelogram(1.0, 0.25, 0.0, -0.8), &Shipyard::OPEN)
+                    .shift(1.0, 1.25, 2.5)
+            );
+
+            //lower joiner
+            offset[1] = 1.75;
+            result.append(
+                Model::extrude (&2, &radius, &offset, &Primitive::rectangle (0.25, 0.5), &Shipyard::CLOSE)
+                    .shift(2.0, 0.0, 0.75)
+            );
+
+            // upper overhangs
+            let rect = Primitive::rectangle(0.5, 0.25).bevel(10, 0.1);  // TODO: bevel half
+            offset[1] = 2.5;
+            result.append(
+                Model::extrude(&2, &radius, &offset, &rect, &Shipyard::CLOSE)
+                    .shift(0.5, 1.25, 0.0)
+            );
+
+            offset[1] = 0.5;
+            result.append(
+                Model::extrude(&2, &radius, &offset, &rect, &Shipyard::CLOSE)
+                    .shift(0.5, 1.25, 3.0)
+            );
+
+            offset[1] = 0.5;
+            result.append(
+                Model::extrude(&2, &radius, &offset, &rect, &Shipyard::CLOSE)
+                    .shift(0.5, 1.25, 3.75)
+            );
+
+            // Pipe
+            let pipe = Primitive::regular_polygon(10, Vec3::ZAXIS);
+            radius = vec![0.1, 0.1];
+            offset[1] = 3.5;
+            result.append(
+                Model::extrude(&2, &radius, &offset, &pipe, &Shipyard::OPEN)
+                    .shift(0.65, 1.35, 0.25)
+            );
+
+            result.append(
+                Model::extrude(&2, &radius, &offset, &pipe, &Shipyard::OPEN)
+                    .shift(0.85, 1.35, 0.25)
+            );
+            result
+        }
+
+        #[wasm_bindgen]
+        pub fn build_engine (S: f64, A: f64, B: f64, C: f64) -> Model {
+           
+            let mut tempMod = Model::new();
+            let mut result = Model::new();
+            let offset = vec![0.0, 1.0];
+            let radius = vec![1.0, 1.0];
+
+            let w_radius = vec![0.3, 0.3, 1.0, 1.0, 3.0, 3.0];
+            let w_offset = vec![-12.0, 2.0, 3.0, 4.0, 6.0, 7.0];
+            let e_offset = vec![-12.0, -12.0, -11.0, -4.0, -3.0, 1.0, 2.0, 5.0, 5.0]; //{5.0, 5.0, 2.0, 1.0,-3.0, -4.0, -11.0, -12.0, -12.0};
+            let e_radius = vec![0.3, 2.0, 3.0, 3.0, 2.5, 2.5, 3.0, 3.0, 2.0]; //{2.0, 3.0, 3.0, 2.5, 2.5,  3.0,   3.0,   2.0,   0.3};
+
+            let poly = Primitive::regular_polygon(72, Vec3::ZAXIS);
+            
+            result.append(Model::extrude(&9, &e_radius, &e_offset, &poly, &Shipyard::OPEN));
+            result.append(Model::extrude (&6, &w_radius, &w_offset, &poly, &Shipyard::OPEN));
+            
+            result
+                .shift(0.0, 0.0, 12.0)
+                .scale(S, S, S)
+                .shift(A, B, C)
+        }
+
+        #[wasm_bindgen]
+        pub fn build_thruster (A: f64, B: f64, C: f64) -> Model {
+            
+           
+            let mut result = Model::new();
+            let t_radius = vec![0.6, 0.75, 1.0, 1.0, 0.75, 0.6];
+            let t_offset = vec![-0.75, -0.75, -0.5, 0.5, 0.75, 0.75];
+        
+            let tempMod = Model::extrude(&6, &t_radius, &t_offset, &Primitive::rectangle(0.5, 0.8).bevel(10, 0.15), &Shipyard::OPEN)
+                .shift(-0.5, 0.0, 0.0);
+            
+            result.append(tempMod.copy());
+            result.append(tempMod.reflect(1));
+            
+            result.shift(A, B, C)
+        }
+
+
+        
+        pub fn build_tube (S: f64, A: f64, B: f64, C: f64) -> Model {
+
+
+            let mut result = Model::new();
+  
+            let tubeLength = 3.0;
+            let radius = vec![1.0, 1.0];
+            let mut offset = vec![0.0, tubeLength];
+
+            let hexagon = Primitive::regular_polygon(6, Vec3::ZAXIS) // hexagon
+                .scale((2.0/3.0 as f64).sqrt(), (2.0/3.0 as f64).sqrt(), 1.0);
+            
+            let tube = Primitive::regular_polygon(72, Vec3::ZAXIS) // tube poly
+                .scale(0.75, 0.75, 1.0)
+                .shift(0.0, 0.0, 0.5); // depth of funnel, shift tube
+            
+            let tempMod = Model::stitch(&hexagon, &tube); // create front funnel
+            result.append(tempMod.copy()); // add to model
+           
+            result.append(
+                tempMod
+                    .reflect(2)
+                    .shift(0.0, 0.0, tubeLength+0.5)
+            ); // create back
+ 
+            result.append(
+                Model::extrude (&2, &radius, &offset, &tube, &Shipyard::OPEN) // inner tube
+            );
+
+            offset = vec![0.0, 3.5];
+            
+            result.append(
+                Model::extrude (&2, &radius, &offset, &hexagon, &Shipyard::OPEN) // inner tube
+            );
+            
+            result.scale(S, S, S).shift(A, B, C)
+
+        }
+
+        #[wasm_bindgen]
+        pub fn build_tube_cover (S: f64, A: f64, B: f64, C: f64) -> Model {
+
+            let mut result = Model::new();
+            let radius = vec![1.0, 1.0];
+            let offset = vec![0.0, 0.0];
+            
+
+            let outer = Primitive::regular_polygon(6, Vec3::ZAXIS)
+                .scale((2.0/3.0 as f64).sqrt(), (2.0/3.0 as f64).sqrt(), 1.0);
+            
+            
+            let inner = Primitive::regular_polygon(72, Vec3::ZAXIS)
+                .scale(0.75, 0.75, 1.0)
+                .shift(0.0, 0.0, 0.5);
+            
+            let tempMod = Model::stitch (&outer, &inner);
+            result.append(tempMod);
+            
+            result.append(
+                Model::extrude(&2, &radius, &offset, &outer, &Shipyard::CLOSE)
+            );
+            
+            result.append(
+                Model::extrude (&2, &radius, &offset, &inner, &Shipyard::CLOSE)
+            );
+            
+            result.scale(S, S, S).shift(A, B, C)
+
+        }
+
+        
     }
 }
