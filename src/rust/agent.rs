@@ -260,6 +260,17 @@ pub mod agent_system {
         }
     }
 
+    impl std::ops::Mul<f64> for &Vec3 {
+        type Output = Vec3;
+        fn mul(self, _rhs: f64) -> Vec3 {
+            let mut v = [0.0; 3];
+            for ii in 0..3 {
+                v[ii] = self.value[ii] * _rhs;
+            }
+            Vec3{ value: v }
+        }
+    }
+
     impl std::ops::Mul<Vec3> for &Vec3 {
         type Output = Vec3;
         fn mul(self, _rhs: Vec3) -> Vec3 {
@@ -629,10 +640,9 @@ pub mod agent_system {
         pub fn response(&mut self, msg: Message) -> Message {
 
             let alignment = msg.heading;
-            let offset = self.coordinates - msg.coordinates;
-            let mut repulsor: Vec3;
+            let offset = &self.coordinates - &msg.coordinates;
+            let repulsor: Vec3;
 
-            
             if offset.magnitude() < 0.5 { 
                 repulsor = offset.normalized();
             } else {
@@ -650,8 +660,8 @@ pub mod agent_system {
             // self.model = self.model.rotate(&rot_v, &rotaxis);
 
             Message{
-                coordinates: self.coordinates, 
-                heading: self.heading
+                coordinates: self.coordinates.copy(), 
+                heading: self.heading.copy()
             }
         
 
@@ -659,8 +669,8 @@ pub mod agent_system {
 
         pub fn message(&self) -> Message {
             return Message{
-                coordinates: self.coordinates, 
-                heading: self.heading
+                coordinates: self.coordinates.copy(), 
+                heading: self.heading.copy()
             };
         }
 
@@ -762,8 +772,8 @@ pub mod agent_system {
 
         fn message(&self) -> Message {
             Message{
-                coordinates: self.center,
-                heading: self.heading
+                coordinates: self.center.copy(),
+                heading: self.heading.copy()
             }
         }
 
@@ -772,8 +782,8 @@ pub mod agent_system {
             // self.heading += msg.heading / self.particles.len();
             // self.center += msg.coordinates / self.particles.len();
             Message{
-                coordinates: self.center, 
-                heading: self.heading
+                coordinates: self.center.copy(), 
+                heading: self.heading.copy()
             }
         }
    

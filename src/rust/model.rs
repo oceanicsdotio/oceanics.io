@@ -175,6 +175,7 @@ pub mod model_system {
     }
 
 
+    
     struct Face {
         indices: Vec<i32>
     }
@@ -221,18 +222,18 @@ pub mod model_system {
             let faces_at_start = self.face.len();
             
             for ii in 0..faces_at_start {
-                let face = &self.face[ii];
+              
                 for jj in 0..3 {
-                    let ai: usize = face.indices[jj] as usize;
-                    let a: Vec3 = self.vert[ai];
+                    let ai: usize = self.face[ii].indices[jj] as usize;
+                    let a: Vec3 = self.vert[ai].copy();
                     let mut bi = 0;
                     if jj < 2 {
                         bi += jj+1;
                     }
                     
-                    let b: Vec3 = self.vert[bi];
-                    let midpoint: Vec3 = (a + b) * 0.5;
-                    self.vert.push(midpoint * (0.5 * (a.magnitude() + b.magnitude()) / midpoint.magnitude()));
+                    let b = self.vert[bi].copy();
+                    let midpoint: Vec3 = (&a + &b) * 0.5;
+                    self.vert.push(&midpoint * (0.5 * (a.magnitude() + b.magnitude()) / midpoint.magnitude()));
                     let nv = self.vert.len();
                     if jj < 1 {
                         self.face.push(Face::new(vec![ai as i32, nv as i32, (nv+2) as i32]));
@@ -451,35 +452,37 @@ pub mod model_system {
         }
 
         pub fn shift(&self, dx: f64, dy: f64, dz: f64) -> Model {
-            let model = self.copy();
-            for mut vert in model.vert {
-                vert = Vec3{value:[
+            let mut model = self.copy();
+            for vert in &mut model.vert {
+                vert.value = [
                     vert.x()+dx, 
                     vert.y()+dy, 
                     vert.z()+dz
-                ]};
+                ];
             }
             model
         }
 
         pub fn scale(&self, sx: f64, sy: f64, sz: f64) -> Model {
-            let model = self.copy();
-            for mut vert in model.vert {
-                vert = Vec3{value:[
+            let mut model = self.copy();
+            for vert in &mut model.vert {
+                vert.value = [
                     vert.x()*sx, 
                     vert.y()*sy, 
                     vert.z()*sz
-                ]};
+                ];
             }
             model
         }
 
         pub fn reflect(&self, dim: usize) -> Model {
-            let model = self.copy();
-            for mut vert in model.vert {
-                vert = vert * -1.0;
+            let mut model = self.copy();
+            for vert in &mut model.vert {
+                vert.value[0] *= -1.0;
+                vert.value[1] *= -1.0;
+                vert.value[2] *= -1.0;
             }
-            for mut face in self.face {
+            for face in &mut model.face {
                 let temp = face.indices[0];
                 face.indices[0] = face.indices[2];
                 face.indices[2] = temp;
@@ -487,7 +490,7 @@ pub mod model_system {
             model
         }
 
-        pub fn extrude (nRings: usize, radius: Vec<f64>, offset: Vec<f64>, P: &Primitive, close_state: bool) -> Model {
+        pub fn extrude (nRings: &usize, radius: &Vec<f64>, offset: &Vec<f64>, P: &Primitive, close_state: &bool) -> Model {
             
             
             let np: usize = P.vert.len();
@@ -496,7 +499,7 @@ pub mod model_system {
             let mut model = Model::new();
 
 
-            for ii in 0..nRings {
+            for ii in 0..(*nRings) {
                 let start = np * ii;
                 for jj in 0..np {
                     let index = ii * np + jj;
@@ -526,7 +529,7 @@ pub mod model_system {
                     
                 }
             }
-            if close_state {
+            if *close_state {
                 
                 for ii in 0..np-2 {
                     model.face.push(Face::new(vec![
@@ -547,7 +550,7 @@ pub mod model_system {
         }
 
 
-        pub fn extrude_planar (nArcs: usize, radius: Vec<f64>, offset: Vec<f64>, P: &Primitive) -> Model {
+        pub fn extrude_planar (nArcs: &usize, radius: &Vec<f64>, offset: &Vec<f64>, P: &Primitive) -> Model {
             
             let mut model = Model::new();
 
@@ -556,7 +559,7 @@ pub mod model_system {
             // let nTriangles = 2 * (np-1) * (nArcs-1);
 
         
-            for ii in 0..nArcs {
+            for ii in 0..(*nArcs) {
                 for jj in 0..np {
                     let index = ii * np + jj;
                     model.vert.push(Vec3{value:[
@@ -640,7 +643,7 @@ pub mod model_system {
         } 
 
 
-        pub fn normals (&self) -> Vec<Vec3> {
+        pub fn normals (&mut self) -> Vec<Vec3> {
 
             let mut normals = Vec::with_capacity(self.vert.len());
             let mut count: Vec<usize> = Vec::with_capacity(self.vert.len());
@@ -650,21 +653,21 @@ pub mod model_system {
             }
 
             for ii in 0..self.face.len() {
-                let face = self.face[ii];
+                let face = &self.face[ii];
 
                 for jj in 0..3 {
                     let vid = face.indices[jj] as usize;
                     let vi = face.indices[(jj + 1) % 3] as usize;
                     let ui = face.indices[(jj + 2) % 3] as usize;
 
-                    let V: Vec3 = self.vert[vi] - self.vert[vid];
-                    let U: Vec3 = self.vert[ui] - self.vert[vid];
-                    let normal: Vec3 = Vec3::cross_product(V, U).normalized();
+                    let V: Vec3 = self.vert[vi].copy() - self.vert[vid].copy();
+                    let U: Vec3 = self.vert[ui].copy() - self.vert[vid].copy();
+                    let normal = Vec3::cross_product(&V, &U).normalized();
                     if jj == 0 { 
-                        self.norf[ii] = normal;
+                        self.norf[ii] = normal.copy();
                     };
                     
-                    normals[vid] = (normals[vid] * jj as f64 + normal) / ((count[vid]+1) as f64);
+                    normals[vid] = (&normals[vid] * jj as f64 + normal.copy()) / ((count[vid]+1) as f64);
                     count[vid] += 1;
 
                 }
@@ -684,8 +687,8 @@ pub mod model_system {
                 let length = model.vert[ii].magnitude();
                 let mut runningSum = 4.0 * length;
                 
-                for index in model.neighbors[ii] {
-                    runningSum += model.vert[ index ].magnitude();
+                for index in &model.neighbors[ii] {
+                    runningSum += model.vert[ *index ].magnitude();
                 }
                 model.vert[ii] *= runningSum / length / 9.0;
             }
@@ -699,10 +702,9 @@ pub mod model_system {
             let mut model = self.copy();
             
             model.vert[root] *= coef;
-            let adj = self.neighbors[root];
             if distance > 0 {
-                for ii in 0..adj.len() {
-                    model = model.impact(distance-1, adj[ii], coef);
+                for ii in 0..model.neighbors[root].len() {
+                    model = model.copy().impact(distance-1, model.neighbors[root][ii], coef);
                 }
             }
             return model;
@@ -711,9 +713,9 @@ pub mod model_system {
         pub fn fuzz (&self) -> Model {
             let mut model = self.copy();
             
-            for vert in model.vert {
+            for ii in 0..model.vert.len() {
                 unsafe {
-                    vert *= 1.0 + (js_sys::Math::random()%100.0-45.0)/4000.0;
+                    model.vert[ii] *= 1.0 + (js_sys::Math::random()%100.0-45.0)/4000.0;
                 }
             }
             return model;
@@ -723,7 +725,7 @@ pub mod model_system {
 
         pub fn neighbors(&self) -> Vec<Vec<usize>> {
 
-            let value: Vec<Vec<usize>> = vec![];
+            let mut value: Vec<Vec<usize>> = vec![];
 
             for ii in 0..self.vert.len() {
                 let count = 0;
@@ -731,13 +733,13 @@ pub mod model_system {
                 value.push(vec![]);
 
                 for jj in 0..self.face.len() {
-                    let face = self.face[jj];
                     for kk in 0..3 as usize {
-                        if ii != face.indices[kk] as usize {continue;} // find the current index
+                        if ii != self.face[jj].indices[kk] as usize {continue;} // find the current index
+                        
                         for mm in 0..3 {
                             if mm == kk {continue;}
-                            let fid = face.indices[mm] as usize;
-                            let flag = false;
+                            let fid = self.face[jj].indices[mm] as usize;
+                            let mut flag = false;
                             for nn in 0..count {
                                 if fid == value[ii][nn] as usize {
                                     flag = true;
@@ -765,10 +767,10 @@ pub mod model_system {
             for ii in 0..model.vert.len()-1 { // all vertices except last
                
                 for jj in ii+1..model.vert.len() { // remaining vertices
-                    if (self.vert[ii] - self.vert[jj]).magnitude() >= threshold {break;}
+                    if (self.vert[ii].copy() - self.vert[jj].copy()).magnitude() >= threshold {break;}
                     
-                    self.vert.remove(jj);
-                    for mut face in self.face { // loop faces
+                    model.vert.remove(jj);
+                    for face in &mut model.face { // loop faces
                         for dim in 0..3 { // loop face dimension
                             if face.indices[dim] as usize == jj { // if duplicate vertex
                                 face.indices[dim] = ii as i32; // change
@@ -783,8 +785,8 @@ pub mod model_system {
 
             for ii in 0..self.face.len()-1 {
                 for jj in ii+1..self.face.len() {
-                    let a = self.face[ii].indices;
-                    let b = self.face[jj].indices;
+                    let a = model.face[ii].copy().indices;
+                    let b = model.face[jj].copy().indices;
 
                     if  ((a[0]==b[0]) && (a[1]==b[1]) && (a[2]==b[2])) ||
                         ((a[0]==b[0]) && (a[1]==b[2]) && (a[2]==b[1])) ||
@@ -794,7 +796,7 @@ pub mod model_system {
                         ((a[0]==b[2]) && (a[1]==b[0]) && (a[2]==b[1]))  
 
                     {
-                        self.face.remove(jj); 
+                        model.face.remove(jj); 
                     }
                 }
             }
@@ -851,17 +853,17 @@ pub mod model_system {
 
 
             // bridges
-            let radius = vec![1.0, 1.0];
+            let mut radius = vec![1.0, 1.0];
             let mut offset = vec![0.0, 0.75];
  
             result.append(
-                Model::extrude(2, radius, offset, &Primitive::rectangle(0.5, 0.25), Shipyard::CLOSE)
+                Model::extrude(&2, &radius, &offset, &Primitive::rectangle(0.5, 0.25), &Shipyard::CLOSE)
                 .shift(0.0, 1.5, 0.0)
             );
 
             
             result.append(
-                Model::extrude(2, radius, offset, &Primitive::parallelogram(0.5,0.25,0.0, -0.25), Shipyard::CLOSE)
+                Model::extrude(&2, &radius, &offset, &Primitive::parallelogram(0.5,0.25,0.0, -0.25), &Shipyard::CLOSE)
                 .shift(0.5, 1.5, 0.0)
             );
 
@@ -873,14 +875,14 @@ pub mod model_system {
             // fore block
             offset[1] = 2.75;        
             result.append(
-                Model::extrude(2, radius, offset, &Primitive::rectangle(0.25, 0.75), Shipyard::CLOSE)
+                Model::extrude(&2, &radius, &offset, &Primitive::rectangle(0.25, 0.75), &Shipyard::CLOSE)
                 .shift(2.0, 0.0, -2.0)
             );
 
             // forward shell
             offset[1] = 2.75;
             result.append(
-                Model::extrude(2, radius, offset, &Primitive::shell(8, 90.0, 90.0, 1.25, 0.75, 0.25, 0.25), Shipyard::OPEN)
+                Model::extrude(&2, &radius, &offset, &Primitive::shell(8, 90.0, 90.0, 1.25, 0.75, 0.25, 0.25), &Shipyard::OPEN)
                 .shift(1.0, 0.75, -2.0)
             );
 
@@ -888,7 +890,7 @@ pub mod model_system {
             offset = vec![0.0, 0.0];
             
             result.append(
-                    Model::extrude_planar(2,radius,offset, &Primitive::arc(8, 90.0, 90.0, 1.0))
+                    Model::extrude_planar(&2, &radius, &offset, &Primitive::arc(8, 90.0, 90.0, 1.0))
                 .scale(1.25, 0.75, 1.0)
                 .shift(1.0, 0.75, -2.0)
             );
@@ -902,55 +904,55 @@ pub mod model_system {
            
             let mut tempMod = Model::new();
             let mut result = Model::new();
-            let offset = vec![0.0, 1.0];
-            let radius = vec![1.0, 1.0];
+            let mut offset = vec![0.0, 1.0];
+            let mut radius = vec![1.0, 1.0];
 
             // ARM+SHIELD
             //main panels
             let polygon = Primitive::parallelogram(1.25, 0.25, 0.0, -1.0);
             offset[1] = 1.75;
             result.append(
-                Model::extrude(2, radius, offset, &polygon, Shipyard::CLOSE)
+                Model::extrude(&2, &radius, &offset, &polygon, &Shipyard::CLOSE)
                     .shift(1.0, 1.25, 0.75)
             );
 
             offset[1] = 2.25;
             result.append(
-                Model::extrude(2, radius, offset, &polygon, Shipyard::CLOSE)
+                Model::extrude(&2, &radius, &offset, &polygon, &Shipyard::CLOSE)
                     .shift(1.0, 1.25, 3.0)
             );
 
            
             offset[1] = 0.5;
             result.append(
-                Model::extrude(2, radius, offset, &Primitive::parallelogram(1.0, 0.25, 0.0, -0.8), Shipyard::OPEN)
+                Model::extrude(&2, &radius, &offset, &Primitive::parallelogram(1.0, 0.25, 0.0, -0.8), &Shipyard::OPEN)
                     .shift(1.0, 1.25, 2.5)
             );
 
             //lower joiner
             offset[1] = 1.75;
             result.append(
-                Model::extrude (2, radius, offset, &Primitive::rectangle (0.25, 0.5), Shipyard::CLOSE)
+                Model::extrude (&2, &radius, &offset, &Primitive::rectangle (0.25, 0.5), &Shipyard::CLOSE)
                     .shift(2.0, 0.0, 0.75)
             );
 
             // upper overhangs
-            let rect = Primitive::rectangle(0.5, 0.25).bevel_half(10, 0.1);
+            let rect = Primitive::rectangle(0.5, 0.25).bevel(10, 0.1);  // TODO: bevel half
             offset[1] = 2.5;
             result.append(
-                Model::extrude(2, radius, offset, rect, Shipyard::CLOSE)
+                Model::extrude(&2, &radius, &offset, &rect, &Shipyard::CLOSE)
                     .shift(0.5, 1.25, 0.0)
             );
 
             offset[1] = 0.5;
             result.append(
-                Model::extrude(2, radius, offset, rect, Shipyard::CLOSE)
+                Model::extrude(&2, &radius, &offset, &rect, &Shipyard::CLOSE)
                     .shift(0.5, 1.25, 3.0)
             );
 
             offset[1] = 0.5;
             result.append(
-                Model::extrude(2, radius, offset, rect, Shipyard::CLOSE)
+                Model::extrude(&2, &radius, &offset, &rect, &Shipyard::CLOSE)
                     .shift(0.5, 1.25, 3.75)
             );
 
@@ -959,12 +961,12 @@ pub mod model_system {
             radius = vec![0.1, 0.1];
             offset[1] = 3.5;
             result.append(
-                Model::extrude(2, radius, offset, &pipe, Shipyard::OPEN)
+                Model::extrude(&2, &radius, &offset, &pipe, &Shipyard::OPEN)
                     .shift(0.65, 1.35, 0.25)
             );
 
             result.append(
-                Model::extrude(2, radius, offset, &pipe, Shipyard::OPEN)
+                Model::extrude(&2, &radius, &offset, &pipe, &Shipyard::OPEN)
                     .shift(0.85, 1.35, 0.25)
             );
             result
@@ -985,8 +987,8 @@ pub mod model_system {
 
             let poly = Primitive::regular_polygon(72, Vec3::ZAXIS);
             
-            result.append(Model::extrude(9, e_radius, e_offset, &poly, Shipyard::OPEN));
-            result.append(Model::extrude (6, w_radius, w_offset, &poly, Shipyard::OPEN));
+            result.append(Model::extrude(&9, &e_radius, &e_offset, &poly, &Shipyard::OPEN));
+            result.append(Model::extrude (&6, &w_radius, &w_offset, &poly, &Shipyard::OPEN));
             
             result
                 .shift(0.0, 0.0, 12.0)
@@ -1002,10 +1004,10 @@ pub mod model_system {
             let t_radius = vec![0.6, 0.75, 1.0, 1.0, 0.75, 0.6];
             let t_offset = vec![-0.75, -0.75, -0.5, 0.5, 0.75, 0.75];
         
-            let tempMod = Model::extrude(6, t_radius, t_offset, &Primitive::rectangle(0.5, 0.8).bevel(10, 0.15), Shipyard::OPEN)
+            let tempMod = Model::extrude(&6, &t_radius, &t_offset, &Primitive::rectangle(0.5, 0.8).bevel(10, 0.15), &Shipyard::OPEN)
                 .shift(-0.5, 0.0, 0.0);
             
-            result.append(tempMod);
+            result.append(tempMod.copy());
             result.append(tempMod.reflect(1));
             
             result.shift(A, B, C)
@@ -1020,7 +1022,7 @@ pub mod model_system {
   
             let tubeLength = 3.0;
             let radius = vec![1.0, 1.0];
-            let offset = vec![0.0, tubeLength];
+            let mut offset = vec![0.0, tubeLength];
 
             let hexagon = Primitive::regular_polygon(6, Vec3::ZAXIS) // hexagon
                 .scale((2.0/3.0 as f64).sqrt(), (2.0/3.0 as f64).sqrt(), 1.0);
@@ -1030,7 +1032,7 @@ pub mod model_system {
                 .shift(0.0, 0.0, 0.5); // depth of funnel, shift tube
             
             let tempMod = Model::stitch(&hexagon, &tube); // create front funnel
-            result.append(tempMod); // add to model
+            result.append(tempMod.copy()); // add to model
            
             result.append(
                 tempMod
@@ -1039,13 +1041,13 @@ pub mod model_system {
             ); // create back
  
             result.append(
-                Model::extrude (2, radius, offset, &tube, Shipyard::OPEN) // inner tube
+                Model::extrude (&2, &radius, &offset, &tube, &Shipyard::OPEN) // inner tube
             );
 
             offset = vec![0.0, 3.5];
             
             result.append(
-                Model::extrude (2, radius, offset, &hexagon, Shipyard::OPEN) // inner tube
+                Model::extrude (&2, &radius, &offset, &hexagon, &Shipyard::OPEN) // inner tube
             );
             
             result.scale(S, S, S).shift(A, B, C)
@@ -1072,11 +1074,11 @@ pub mod model_system {
             result.append(tempMod);
             
             result.append(
-                Model::extrude(2, radius, offset, &outer, Shipyard::CLOSE)
+                Model::extrude(&2, &radius, &offset, &outer, &Shipyard::CLOSE)
             );
             
             result.append(
-                Model::extrude (2, radius, offset, &inner, Shipyard::CLOSE)
+                Model::extrude (&2, &radius, &offset, &inner, &Shipyard::CLOSE)
             );
             
             result.scale(S, S, S).shift(A, B, C)
@@ -1086,7 +1088,7 @@ pub mod model_system {
 
         fn build_ship () -> Vec<Model> {
            
-            let models: Vec<Model> = vec![];
+            let mut models: Vec<Model> = vec![];
 
             
 
@@ -1144,7 +1146,7 @@ pub mod model_system {
                 offset[1] = 0.5;
 
                 models.push(
-                    Model::extrude(2, radius, offset, &Primitive::rectangle(0.5, 0.5), Shipyard::CLOSE)
+                    Model::extrude(&2, &radius, &offset, &Primitive::rectangle(0.5, 0.5), &Shipyard::CLOSE)
                     .rotate(&-45.0, &Vec3::ZAXIS)
                     .scale(LRShift*(2.0 as f64).sqrt(), (2.0 as f64).sqrt()/2.0, (2.0 as f64).sqrt()/2.07)
                     .shift(LRShift, 0.0, 0.0)
@@ -1157,7 +1159,7 @@ pub mod model_system {
             radius = vec![2.0*tubeScale*2.0/(3.0 as f64).sqrt(), 2.0*1.25*tubeScale*2.0/(3.0 as f64).sqrt()];
             offset = vec![0.0, 0.1];
             models.push(
-                Model::extrude(2, radius, offset, &Primitive::regular_polygon(6, Vec3::ZAXIS), Shipyard::OPEN)
+                Model::extrude(&2, &radius, &offset, &Primitive::regular_polygon(6, Vec3::ZAXIS), &Shipyard::OPEN)
                 .shift(testOffset+1.2, 0.0, -2.0)
             );
             
@@ -1165,7 +1167,7 @@ pub mod model_system {
             radius = vec![0.025, 0.025];
             offset = vec![-2.0, 0.0];
             models.push(
-                Model::extrude(2, radius, offset, &Primitive::regular_polygon(6, Vec3::ZAXIS), Shipyard::OPEN)
+                Model::extrude(&2, &radius, &offset, &Primitive::regular_polygon(6, Vec3::ZAXIS), &Shipyard::OPEN)
                 .shift(testOffset+1.2, 0.0, 0.0)
             );
             
@@ -1173,11 +1175,11 @@ pub mod model_system {
             let thetaA = 30.0;
             radius = vec![1.0, 1.0];
             offset = vec![-1.0, -0.8];
-            let clamp = Model::extrude(2, radius, offset, &Primitive::shell(36, 90.0, 180.0, 1.0, 1.0, 0.25, 0.25), Shipyard::OPEN) 
+            let clamp = Model::extrude(&2, &radius, &offset, &Primitive::shell(36, 90.0, 180.0, 1.0, 1.0, 0.25, 0.25), &Shipyard::OPEN) 
                 .scale(tubeScale, tubeScale, 1.0); // clamp
 
 
-            models.push(clamp);
+            models.push(clamp.copy());
 
             models.push(
                 clamp.copy()
@@ -1200,14 +1202,14 @@ pub mod model_system {
             // plunger
             offset = vec![-0.25, -0.2];
             models.push(
-                Model::extrude(2, radius, offset, &Primitive::regular_polygon(72, Vec3::ZAXIS), Shipyard::CLOSE)
+                Model::extrude(&2, &radius, &offset, &Primitive::regular_polygon(72, Vec3::ZAXIS), &Shipyard::CLOSE)
                 .scale(0.75*tubeScale, 0.75*tubeScale, 1.0)
                 .shift(testOffset+1.2-tubeScale, 0.0, 0.0)
             );
            
             offset = vec![-1.0, -0.25];
             models.push(
-                Model::extrude(2, radius, offset, &Primitive::regular_polygon(3, Vec3::ZAXIS).bevel(10, 0.3), Shipyard::OPEN)
+                Model::extrude(&2, &radius, &offset, &Primitive::regular_polygon(3, Vec3::ZAXIS).bevel(10, 0.3), &Shipyard::OPEN)
                 .scale(0.75*tubeScale, 0.75*tubeScale, 1.0)
                 .shift(testOffset+1.2-tubeScale, 1.0, 0.0)
             );
@@ -1229,8 +1231,8 @@ pub mod model_system {
             let tempModel = Model::new();
            
             let res = 24;
-            let radius: Vec<f64> = vec![];
-            let offset: Vec<f64> = vec![];
+            let mut radius: Vec<f64> = vec![];
+            let mut offset: Vec<f64> = vec![];
             let mut slope = 0.0;
 
             for ii in 0..res {
@@ -1255,7 +1257,7 @@ pub mod model_system {
             let vertPosition = Vec3{value:[1.0, 0.0, 0.0]}; // initial point
            
          
-            let sbPolygon = Primitive::new(0);
+            let mut sbPolygon = Primitive::new(0);
             for ii in 0..nPts {
                 let inc = (3.0 * ii as f64 * rotIncrement / 2.0).sin();
                 let srad = 1.0 + 0.3*inc.powi(8);
@@ -1264,7 +1266,7 @@ pub mod model_system {
                 sbPolygon.vert.push(vertPosition.rotate(&(rotIncrement * ii as f64), &Vec3::ZAXIS) * srad);
             }
 
-            Model::extrude_planar(2*res, radius, offset, &sbPolygon)
+            Model::extrude_planar(&(2*res), &radius, &offset, &sbPolygon)
                 .deduplicate(0.001)
             
         }
