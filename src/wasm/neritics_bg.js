@@ -518,7 +518,7 @@ function getUint8ClampedMemory0() {
 function getClampedArrayU8FromWasm0(ptr, len) {
     return getUint8ClampedMemory0().subarray(ptr / 1, ptr / 1 + len);
 }
-function __wbg_adapter_186(arg0, arg1, arg2, arg3) {
+function __wbg_adapter_191(arg0, arg1, arg2, arg3) {
     _assertNum(arg0);
     _assertNum(arg1);
     wasm.wasm_bindgen__convert__closures__invoke2_mut__h96984aac8d17c2af(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
@@ -811,6 +811,72 @@ export class HexagonalGrid {
             if (this.ptr == 0) throw new Error('Attempt to use a moved value');
             _assertNum(this.ptr);
             wasm.hexagonalgrid_draw(this.ptr, addBorrowedObject(ctx), w, h, mx, my, addHeapObject(color), line_width, alpha);
+        } finally {
+            heap[stack_pointer++] = undefined;
+        }
+    }
+}
+/**
+*/
+export class Model {
+
+    static __wrap(ptr) {
+        const obj = Object.create(Model.prototype);
+        obj.ptr = ptr;
+
+        return obj;
+    }
+
+    free() {
+        const ptr = this.ptr;
+        this.ptr = 0;
+
+        wasm.__wbg_model_free(ptr);
+    }
+    /**
+    */
+    constructor() {
+        var ret = wasm.model_new();
+        return Model.__wrap(ret);
+    }
+    /**
+    */
+    icosahedron() {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        wasm.model_icosahedron(this.ptr);
+    }
+    /**
+    */
+    tetrahedron() {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        wasm.model_tetrahedron(this.ptr);
+    }
+    /**
+    * @param {number} resolution
+    */
+    sphere(resolution) {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        _assertNum(resolution);
+        wasm.model_sphere(this.ptr, resolution);
+    }
+    /**
+    * @param {CanvasRenderingContext2D} ctx
+    * @param {number} w
+    * @param {number} h
+    * @param {any} color
+    * @param {number} time
+    * @param {number} line_width
+    * @returns {number}
+    */
+    draw_edges(ctx, w, h, color, time, line_width) {
+        try {
+            if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+            _assertNum(this.ptr);
+            var ret = wasm.model_draw_edges(this.ptr, addBorrowedObject(ctx), w, h, addHeapObject(color), time, line_width);
+            return ret >>> 0;
         } finally {
             heap[stack_pointer++] = undefined;
         }
@@ -1371,7 +1437,7 @@ export const __wbg_new_261626435fed913c = logError(function(arg0, arg1) {
             const a = state0.a;
             state0.a = 0;
             try {
-                return __wbg_adapter_186(a, state0.b, arg0, arg1);
+                return __wbg_adapter_191(a, state0.b, arg0, arg1);
             } finally {
                 state0.a = a;
             }
@@ -1498,8 +1564,8 @@ export const __wbindgen_memory = function() {
     return addHeapObject(ret);
 };
 
-export const __wbindgen_closure_wrapper2439 = logError(function(arg0, arg1, arg2) {
-    var ret = makeMutClosure(arg0, arg1, 47, __wbg_adapter_22);
+export const __wbindgen_closure_wrapper2730 = logError(function(arg0, arg1, arg2) {
+    var ret = makeMutClosure(arg0, arg1, 48, __wbg_adapter_22);
     return addHeapObject(ret);
 });
 

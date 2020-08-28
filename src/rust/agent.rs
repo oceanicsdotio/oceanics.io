@@ -32,14 +32,42 @@ pub mod agent_system {
         sum.powf(0.5)
     }
 
+    fn quaternion(U: [f64;4], V: [f64;4]) -> [f64;4] {
+            
+        //Quaternion Multiplication
+           
+       let mut R = [0.0;4];
 
-    #[derive(Copy, Clone)]
+       R[0] = U[0]*V[0] - U[1]*V[1] - U[2]*V[2] - U[3]*V[3];   // A*B - dotProduct(U,V)
+       R[1] = U[2]*V[3] - U[3]*V[2] + U[0]*V[1] + V[0]*U[1];   // crossProduct(U,V) + A*V + B*U;
+       R[2] = U[3]*V[1] - U[1]*V[3] + U[0]*V[2] + V[0]*U[2];
+       R[3] = U[1]*V[2] - U[2]*V[1] + U[0]*V[3] + V[0]*U[3];
+
+       R
+   }
+
+
     pub struct Vec3 {
         pub value: [f64; 3]
     }
 
 
     impl Vec3 {
+
+        pub fn normal_form(&self) -> Vec3 {
+
+            let [a,b,c] = self.value;
+
+            Vec3 {
+                value: [0.5*(a+1.0), 0.5*(b+1.0), 0.5*(c+1.0)]
+            }
+        }
+
+        pub fn copy(&self) -> Vec3 {
+            Vec3 {
+                value: self.value
+            }
+        }
 
         pub fn magnitude(&self) -> f64 {
             let mut sum = 0.0;
@@ -54,6 +82,75 @@ pub mod agent_system {
         pub fn y(&self) -> f64 { self.value[1] }
 
         pub fn z(&self) -> f64 { self.value[2] }
+
+        fn normalized(&self) -> Vec3 {
+
+            let mag = self.magnitude();
+
+            Vec3 { value: [
+                self.x() / mag,
+                self.y() / mag,
+                self.z() / mag
+            ]}
+        }
+
+        fn sum(&self) -> f64 {
+            let mut sum = 0.0;
+            for val in &self.value{
+                sum += val;
+            }
+            sum
+        }
+
+    
+        pub fn rotate(&self, angle: &f64, axis: &Vec3) -> Vec3 {
+
+        
+            // normalize rotation axis
+            let rot_axis = axis.normalized();
+            let memo = (angle/2.0).sin();
+    
+            let rot_quaternion = [ (angle/2.0).cos(),  rot_axis.x()*memo,  rot_axis.y()*memo,  rot_axis.z()*memo ];
+            let conj_quaternion = [ (angle/2.0).cos(), -rot_axis.x()*memo, -rot_axis.y()*memo, -rot_axis.z()*memo ];
+            let mut pos_quaternion = [0.0, self.x(), self.y(), self.z()];
+            let new_quaternion = quaternion(rot_quaternion, pos_quaternion);
+            pos_quaternion = quaternion( new_quaternion, conj_quaternion);
+    
+            Vec3{
+                value: [pos_quaternion[1], pos_quaternion[2], pos_quaternion[3]]
+            }
+        }
+
+        pub fn dot_product(u: &Vec3, v: &Vec3) -> f64 {
+            (u*v).sum()
+        }
+
+
+        pub fn vec_angle (u: &Vec3, v: &Vec3) -> f64 {
+            let yy = Vec3::dot_product(u, v) / (u.magnitude() * v.magnitude());
+            if yy <= 1.0 && yy >= -1.0 {
+                yy.acos()
+            } else {
+                0.0
+            }
+        }
+
+        pub fn cross_product (u: Vec3, v: Vec3) -> Vec3{
+            Vec3{
+                value: [
+                    u.y()*v.z() - u.z()*v.y(),
+                    u.z()*v.x() - u.x()*v.z(),
+                    u.x()*v.y() - u.y()*v.x()
+                ]
+            }
+        }
+        
+        
+        pub const XAXIS: Vec3 = Vec3{value: [1.0, 0.0, 0.0]};
+        pub const YAXIS: Vec3 = Vec3{value: [0.0, 1.0, 0.0]};
+        pub const ZAXIS: Vec3 = Vec3{value: [0.0, 0.0, 1.0]};
+        pub const ORIGIN: Vec3 = Vec3{value: [0.0, 0.0, 0.0]};
+
     }
 
     impl std::ops::Add<Vec3> for Vec3 {
@@ -62,6 +159,17 @@ pub mod agent_system {
             let mut v = [0.0; 3];
             for ii in 0..3 {
                 v[ii] = self.value[ii] + _rhs.value[ii];
+            }
+            Vec3{ value: v }
+        }
+    }
+
+    impl std::ops::Add<f64> for Vec3 {
+        type Output = Vec3;
+        fn add(self, _rhs: f64) -> Vec3 {
+            let mut v = [0.0; 3];
+            for ii in 0..3 {
+                v[ii] = self.value[ii] + _rhs;
             }
             Vec3{ value: v }
         }
@@ -78,9 +186,42 @@ pub mod agent_system {
         }
     }
 
+    impl std::ops::Sub<&Vec3> for &Vec3 {
+        type Output = Vec3;
+        fn sub(self, _rhs: &Vec3) -> Vec3 {
+            let mut v = [0.0; 3];
+            for ii in 0..3 {
+                v[ii] = self.value[ii] - _rhs.value[ii];
+            }
+            Vec3{ value: v }
+        }
+    }
+
+    impl std::ops::Add<&Vec3> for &Vec3 {
+        type Output = Vec3;
+        fn add(self, _rhs: &Vec3) -> Vec3 {
+            let mut v = [0.0; 3];
+            for ii in 0..3 {
+                v[ii] = self.value[ii] + _rhs.value[ii];
+            }
+            Vec3{ value: v }
+        }
+    }
+
     impl std::ops::Mul<Vec3> for Vec3 {
         type Output = Vec3;
         fn mul(self, _rhs: Vec3) -> Vec3 {
+            let mut v = [0.0; 3];
+            for ii in 0..3 {
+                v[ii] = self.value[ii] * _rhs.value[ii];
+            }
+            Vec3{ value: v }
+        }
+    }
+
+    impl std::ops::Mul<&Vec3> for &Vec3 {
+        type Output = Vec3;
+        fn mul(self, _rhs: &Vec3) -> Vec3 {
             let mut v = [0.0; 3];
             for ii in 0..3 {
                 v[ii] = self.value[ii] * _rhs.value[ii];
@@ -110,6 +251,7 @@ pub mod agent_system {
             Vec3{ value: v }
         }
     }
+
 
     #[allow(dead_code)]
     struct CoordinatesXY {
@@ -382,7 +524,7 @@ pub mod agent_system {
             return gradient
         }
 
-        pub fn draw(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, xyz: Vec3, radius: f64, fade: f64) {
+        pub fn draw(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, xyz: &Vec3, radius: f64, fade: f64) {
             /*
             Links are rendered as rays originating at the linked particle, and terminating
             at a point defined by the source plus the `vec` attribute of Link.
@@ -391,7 +533,7 @@ pub mod agent_system {
             on the surface of a 3D sphere, projected into the X,Y plane.
             */
             
-            let target = xyz - self.vec;
+            let target = xyz - &self.vec;
             let offset = -2.0 * radius; // this scalar might just be for retina display???
            
             let gradient = self.gradient(ctx, &xyz, &target, fade);
@@ -507,7 +649,7 @@ pub mod agent_system {
             
             for ii in 0..count {
                 for jj in (ii+1)..count {
-                    let vec = group.particles[jj].coordinates - group.particles[ii].coordinates;
+                    let vec = &group.particles[jj].coordinates - &group.particles[ii].coordinates;
                     
                     group.particles[ii].links.insert(jj, Link{
                         vec: vec,
@@ -534,7 +676,7 @@ pub mod agent_system {
                 Agent::draw(ctx, count as u32, width, height, x, y, z, u, v, fade, scale, &color);
 
                 for link in particle.links.values() {
-                    link.draw(ctx, width, height, particle.coordinates, scale, fade); 
+                    link.draw(ctx, width, height, &particle.coordinates, scale, fade); 
                 }
             }
 
@@ -558,13 +700,26 @@ pub mod agent_system {
                 for (jj, link) in &mut particle.links {
                     
                     let mut neighbor = &mut tail[jj - ii - 1];
-                    let delta = link.update(particle.coordinates - neighbor.coordinates);
+                    let delta = link.update(&particle.coordinates - &neighbor.coordinates);
                     
-                    particle.velocity = particle.velocity + delta;
-                    neighbor.velocity = neighbor.velocity - delta;
+                    particle.velocity = &particle.velocity + &delta;
+                    neighbor.velocity = &neighbor.velocity - &delta;
                 }
                 particle.update_position(padding, drag, bounce);
             }
         }
     }
+
+
+    struct Action {
+        active: bool,
+        timer: i32
+    }
+
+    struct Message {
+        coordinates: Vec3,
+        heading: Vec3
+    }
+
+
 }

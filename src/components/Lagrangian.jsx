@@ -73,6 +73,9 @@ export const compileShaders = (runtime, ref, assets, shaders, setPrograms, setRe
 }
 
 
+export const extractUniforms = (keys, uniforms) => keys.map(k => [k, uniforms[k]]);
+
+
 export const exec = (runtime, ctx, uniforms, {
     components: {
         tex=[],
@@ -98,7 +101,7 @@ export const exec = (runtime, ctx, uniforms, {
         return;
     }
 
-    tex.forEach(([tex, slot]) => runtime.bind_texture(ctx, tex, slot));  // TODO: this was changed?
+    tex.forEach(([tex, slot]) => runtime.bind_texture(ctx, tex, slot));
     attrib.forEach(([buffer, handle, numComponents]) => {
         ctx.bindBuffer(ctx.ARRAY_BUFFER, buffer);
         ctx.enableVertexAttribArray(handle);
@@ -120,6 +123,8 @@ export const exec = (runtime, ctx, uniforms, {
     if (callback) callback();
 
 }
+
+
 
 export const createTexture = (ctx) => {
     return ([k, { filter = ctx.NEAREST, data, shape = [null, null] }]) => {
@@ -230,7 +235,7 @@ export default ({
         loaded or generated
         */
 
-        if (!ref.current || !particles) return;
+        if (!ref.current || !particles || !metadata) return;
 
         const img = new Image();
         img.addEventListener('load', () => {
@@ -238,6 +243,7 @@ export default ({
             const { width, height } = ref.current;
             const ctx = ref.current.getContext("webgl");
             const shape = [width, height];
+            const { u, v } = metadata;
 
             const textures = Object.fromEntries(Object.entries({
                 screen: { data: new Uint8Array(width * height * 4), shape },
@@ -255,7 +261,22 @@ export default ({
                     quad: new ArrayBuffer(ctx, [0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1]),
                     index: new ArrayBuffer(ctx, particles)
                 },
-                framebuffer: ctx.createFramebuffer()
+                framebuffer: ctx.createFramebuffer(),
+                uniforms: {
+                    "u_screen" : ["i", 2],
+                    "u_opacity": ["f", opacity],
+                    "u_wind": ["i", 0],
+                    "u_particles": ["i", 1],
+                    "u_color_ramp": ["i", 2],
+                    "u_particles_res": ["f", res],
+                    "u_wind_max": ["f", [u.max, v.max]],
+                    "u_wind_min": ["f", [u.min, v.min]],
+                    "speed": ["f", speed],
+                    "drop": ["f", drop],
+                    "bump": ["f", bump],
+                    "seed": ["f", Math.random()],
+                    "u_wind_res": ["f", [width, height]]
+                }
             });
 
             console.log(`Prefetch image data (${source}) and create GPU assets.`);
@@ -265,7 +286,7 @@ export default ({
         });
         img.src = source;
 
-    }, [ref, particles]);
+    }, [ref, particles, metadata]);
 
     useEffect(compileShaders(runtime, ref, assets, shaders, setPrograms, setReady), [runtime, assets]);
 
@@ -283,31 +304,17 @@ export default ({
         const {
             textures: { uv, color, ...textures },
             buffers: { quad, index },
-            framebuffer
+            framebuffer,
+            uniforms
         } = assets;
         const { screen, draw, update } = programs;
 
         let { back, previous, state } = textures;
+        const quadBuffer = [
+            [quad.buffer, "a_pos", 2]
+        ];
+        const triangles = [ctx.TRIANGLES, 6];
 
-        const { u, v } = metadata;
-
-        const uniforms = {
-            "u_screen" : ["i", 2],
-            "u_opacity": ["f", opacity],
-            "u_wind": ["i", 0],
-            "u_particles": ["i", 1],
-            "u_color_ramp": ["i", 2],
-            "u_particles_res": ["f", res],
-            "u_wind_max": ["f", [u.max, v.max]],
-            "u_wind_min": ["f", [u.min, v.min]],
-            "speed": ["f", speed],
-            "drop": ["f", drop],
-            "bump": ["f", bump],
-            "seed": ["f", Math.random()],
-            "u_wind_res": ["f", [width, height]]
-        };
-
-       
 
         (function render() {
 
@@ -316,12 +323,8 @@ export default ({
             Draw to front buffer
             */
 
-            const quadBuffer = [
-                [quad.buffer, "a_pos", 2]
-            ];
-
-
-            exec(runtime, ctx, uniforms, {
+            
+            const steps_a = [{
                 program: screen,
                 components: {
                     tex: [
@@ -333,15 +336,9 @@ export default ({
                     uniforms: ["u_screen", "u_opacity"],
                     framebuffer: [framebuffer, textures.screen]
                 },
-                draw_as: [ctx.TRIANGLES, 6],
+                draw_as: triangles,
                 viewport: world
-            });
-
-
-            /*
-            Draw the particles as points to the screen. 
-            */
-            exec(runtime, ctx, uniforms, {
+            },{
                 program: draw,
                 components: {
                     tex: [[color, 2]],
@@ -351,9 +348,9 @@ export default ({
                 },
                 draw_as: [ctx.POINTS, res * res],
                 viewport: world
-            });
-
-            exec(runtime, ctx, uniforms, {
+            }];
+            
+            const steps_b = [{
                 program: screen,
                 components: {
                     tex: [[textures.screen, 2]],
@@ -361,16 +358,10 @@ export default ({
                     attrib: quadBuffer,
                     framebuffer: [null, null]
                 },
-                draw_as: [ctx.TRIANGLES, 6],
+                draw_as: triangles,
                 viewport: world,
                 callback: () => [back, textures.screen] = [textures.screen, back]  // ! blend alternate frames
-            });
-
-
-            /*
-            
-            */
-            exec(runtime, ctx, uniforms, {
+            },{
                 program: update,
                 components: {
                     tex: [[textures.color, 2]],
@@ -379,10 +370,12 @@ export default ({
                     attrib: quadBuffer,
                     framebuffer: [framebuffer, previous]
                 },
-                draw_as: [ctx.TRIANGLES, 6],
+                draw_as: triangles,
                 viewport: positions,
                 callback: () => [state, previous] = [previous, state] // use previous pass to calculate next position
-            });
+            }];
+            
+            [...steps_a, ...steps_b].forEach(x => exec(runtime, ctx, uniforms, x));
 
             requestId = requestAnimationFrame(render);
         })()

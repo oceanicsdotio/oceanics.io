@@ -14,7 +14,12 @@ export const loadRuntime = (setter) => {
     */
     return () => {
         try {
-            (async () => setter(await import('../wasm')))()
+            (async () => {
+                const runtime = await import('../wasm');
+                runtime.panic_hook();
+                setter(runtime);
+            })()
+            
         } catch (err) {
             console.log("Unable to load WASM runtime")
         }

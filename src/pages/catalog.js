@@ -19,6 +19,7 @@ import Storage from "../components/Storage";
 import Codex from "../components/Codex";
 import Lagrangian from "../components/Lagrangian";
 import Noise from "../components/Noise";
+import Model from "../components/Model";
 
 const DB_NAME = "indexed-db-testing";
 const DB_VERSION = 2;
@@ -81,7 +82,8 @@ export default ({data: {allMarkdownRemark: {edges}, site: {siteMetadata: {title}
         datastream: false,
         particles: false,
         lagrangian: false,
-        noise: true
+        noise: false,
+        model: true
     });
 
 
@@ -350,6 +352,7 @@ export default ({data: {allMarkdownRemark: {edges}, site: {siteMetadata: {title}
         {visibility.hexGrid ? <HexagonalGrid/> : null }
         {visibility.graph ? catalog.map(([k, v]) => <Collection {...v} key={k}/>).flat() : null}
         {visibility.objectStorage ? <Storage /> : null}
+        {visibility.model ? <Model /> : null}
         
       </Layout>
     )

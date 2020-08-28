@@ -3,6 +3,7 @@ mod agent;
 mod tessellate;
 mod webgl;
 mod stream;
+mod model;
 
 
 pub use tessellate::tessellate::{make_torus};

@@ -1,19 +1,120 @@
 import React, { useEffect, useState, useRef } from "react";
 import { loadRuntime } from "../components/Canvas";
 import { StyledCanvas } from "../components/Particles";
-import { createTexture, ArrayBuffer, compileShaders, exec } from "../components/Lagrangian";
+import { createTexture, ArrayBuffer, compileShaders, extractUniforms } from "../components/Lagrangian";
 
+
+const exec = (
+    runtime, 
+    ctx, 
+    {
+        uniforms={},
+        tex=[],
+        attrib=[],
+        framebuffer=[null, null],
+        program={},
+        draw_as,
+        viewport,
+        callback = null
+    }
+    
+) => {
+
+    const [handle, fb_tex] = framebuffer;
+    const [type, count] = draw_as;
+
+    ctx.viewport(...viewport);
+    ctx.bindFramebuffer(ctx.FRAMEBUFFER, handle);
+    if (fb_tex) {
+        ctx.framebufferTexture2D(ctx.FRAMEBUFFER, ctx.COLOR_ATTACHMENT0, ctx.TEXTURE_2D, fb_tex, 0); 
+    }
+    try {
+        ctx.useProgram(program.program);
+    } catch (TypeError) {
+        console.log("Error loading program", program)
+        return;
+    }
+
+    tex.forEach(([tex, slot]) => runtime.bind_texture(ctx, tex, slot));
+    attrib.forEach(([buffer, handle, numComponents]) => {
+        ctx.bindBuffer(ctx.ARRAY_BUFFER, buffer);
+        ctx.enableVertexAttribArray(handle);
+        ctx.vertexAttribPointer(handle, numComponents, ctx.FLOAT, false, 0, 0);
+    });
+
+    // Format and bind a value to each uniform variable in the context
+    Object.entries(uniforms).forEach(([_, [key, [type, value]]]) => {
+        const size = value.length || 1;
+        if (key in program) {
+            ctx[`uniform${size}${type}`](program[key], ...(size === 1 ? [value]: value));
+        } else {
+            throw Error(`${key} is not a uniform of the shader program.`);
+        }
+    });
+
+    if ("u_time" in program) {
+        ctx[`uniform1f`](program["u_time"], performance.now());
+    }
+
+    ctx.drawArrays(type, 0, count);
+    if (callback) callback();
+
+};
+
+const doubleBufferedPipeline = (ref, ctx, assets, programs) => {
+
+    const { width, height } = ref.current;
+    
+    const world = [0, 0, width, height];
+    const {
+        textures,
+        buffers: { quad },
+        framebuffer,
+        uniforms
+    } = assets;
+    const { screen, draw } = programs;
+    const triangles = [ctx.TRIANGLES, 6];
+    const screenBuffer = [framebuffer, textures.screen];
+    const quadBuffer = [
+        [quad.buffer, "a_pos", 2]
+    ];
+
+    let { back, state } = textures;
+    
+    return [{
+        program: screen,
+        tex: [
+            [state, 1],
+            [back, 2]
+        ],
+        attrib: quadBuffer,
+        uniforms: extractUniforms(["u_screen", "u_opacity"], uniforms),
+        framebuffer: screenBuffer,
+        draw_as: triangles,
+        viewport: world
+    },{
+        program: draw,
+        attrib: quadBuffer,
+        framebuffer: screenBuffer,
+        draw_as: triangles,
+        viewport: world
+    },{
+        program: screen,
+        tex: [[textures.screen, 2]],
+        uniforms: extractUniforms(["u_opacity"], uniforms),
+        attrib: quadBuffer,
+        framebuffer: [null, null],
+        draw_as: triangles,
+        viewport: world,
+        callback: () => [back, textures.screen] = [textures.screen, back]  // ! blend alternate frames
+    }];
+};
 
 export default ({
-    res = 10,
-    opacity = 1.0 // how fast the particle trails fade on each frame
+    opacity = 1.0 // how fast the image blends
 }) => {
     /*
-    Use WebGL to calculate particle trajectories from velocity data. This example uses wind
-    data to move particles around the globe. 
-
-    The velocity field is static, but in the future the component will support pulling frames
-    from video or gif formats. 
+    Make some noise
     */
 
     const ref = useRef(null);
@@ -22,55 +123,37 @@ export default ({
     const [assets, setAssets] = useState(null);
     const [runtime, setRuntime] = useState(null);
     const [programs, setPrograms] = useState(null);
-    const [particles, setParticles] = useState(null);
 
     const shaders = {
         draw: ["noise-vertex", "noise-fragment"],
         screen: ["quad-vertex", "screen-fragment"]
     };
 
-    useEffect(() => {
-        /*
-        Create a random distribution of particle positions encoded as 4-byte colors.
-
-        This is the default behavior, but it is broken out as a effect so that additional logic
-        can be applied, or initial positions can be loaded from a database or static file.
-        
-        */
-        const count = res * res;
-        setParticles(new Uint8Array(Array.from({ length: count * 4 }, () => Math.floor(Math.random() * 256))));
-        console.log(`Prefetch ${count} particle positions.`);
-    }, []);
-
     useEffect(loadRuntime(setRuntime), []);  // web assembly binaries
 
     useEffect(() => {
     
-        if (!ref.current || !particles) return;
-
-        const { width, height } = ref.current;
+        if (!ref.current) return;
         const ctx = ref.current.getContext("webgl");
+        const { width, height } = ref.current;
         const shape = [width, height];
 
-        const textures = Object.fromEntries(Object.entries({
-            screen: { data: new Uint8Array(width * height * 4), shape },
-            back: { data: new Uint8Array(width * height * 4), shape },
-            state: { data: particles, shape: [res, res] },
-            previous: { data: particles, shape: [res, res] },
-        }).map(x => createTexture(ctx)(x)));
-
         setAssets({
-            textures,
+            textures: Object.fromEntries(Object.entries({
+                screen: { data: new Uint8Array(width * height * 4), shape },
+                back: { data: new Uint8Array(width * height * 4), shape }
+            }).map(x => createTexture(ctx)(x))),
             buffers: {
                 quad: new ArrayBuffer(ctx, [0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1]),
-                index: new ArrayBuffer(ctx, particles)
             },
-            framebuffer: ctx.createFramebuffer()
+            framebuffer: ctx.createFramebuffer(),
+            uniforms: {
+                "u_screen" : ["i", 2],
+                "u_opacity": ["f", opacity]
+            }
         });
 
-        
-
-    }, [ref, particles]);
+    }, [ref]);
 
     useEffect(compileShaders(runtime, ref, assets, shaders, setPrograms, setReady), [runtime, assets]);
 
@@ -78,70 +161,12 @@ export default ({
 
         let requestId;
         if (!runtime || !ref.current || !assets || !ready) return;
-
-        const { width, height } = ref.current;
         const ctx = ref.current.getContext("webgl");
-
         if (!ctx) return;
 
-        const world = [0, 0, width, height];
-        const {
-            textures,
-            buffers: { quad, index },
-            framebuffer
-        } = assets;
-        const { screen, draw } = programs;
-        const triangles = [ctx.TRIANGLES, 6];
-        const screenBuffer = [framebuffer, textures.screen];
-        const quadBuffer = [
-            [quad.buffer, "a_pos", 2]
-        ];
-
-        let { back, state } = textures;
-
-        const uniforms = {
-            "u_screen" : ["i", 2],
-            "u_opacity": ["f", opacity],
-            "u_particles": ["i", 1],
-            "u_particles_res": ["f", res]
-        };
-
-        const steps = [{
-            program: screen,
-            components: {
-                tex: [
-                    [state, 1],
-                    [back, 2]
-                ],
-                attrib: quadBuffer,
-                uniforms: ["u_screen", "u_opacity"],
-                framebuffer: screenBuffer
-            },
-            draw_as: triangles,
-            viewport: world
-        },{
-            program: draw,
-            components: {
-                attrib: quadBuffer,
-                framebuffer: screenBuffer
-            },
-            draw_as: triangles,
-            viewport: world
-        },{
-            program: screen,
-            components: {
-                tex: [[textures.screen, 2]],
-                uniforms: ["u_opacity"],
-                attrib: quadBuffer,
-                framebuffer: [null, null]
-            },
-            draw_as: triangles,
-            viewport: world,
-            callback: () => [back, textures.screen] = [textures.screen, back]  // ! blend alternate frames
-        }];
-
+        const steps = doubleBufferedPipeline(ref, ctx, assets, programs);
         (function render() {
-            steps.map(x => exec(runtime, ctx, uniforms, x));
+            steps.forEach(x => exec(runtime, ctx, x));
             requestId = requestAnimationFrame(render);
         })()
         return () => cancelAnimationFrame(requestId);
