@@ -461,13 +461,13 @@ pub mod model_system {
             working_copy
         }
 
-        fn append(&mut self, model: Model) {
+        fn append(&mut self, model: &Model) {
            
-            for vert in model.vert {
+            let offset = self.vert.len() as i32;
+            for vert in &model.vert {
                 self.insert_vertex(&vert.copy());
             }
 
-            let offset = self.vert.len() as i32;
             for face in &model.face {
                 // TODO: these need to be re-indexed?
                 self.insert_face(&(face + offset));
@@ -874,19 +874,19 @@ pub mod model_system {
             let mut radius = vec![1.0, 1.0];
 
             let mut body = Shipyard::build_body();
-            body.append(body.reflect(1));
-            body.append(body.reflect(0));
+            body.append(&body.reflect(1));
+            body.append(&body.reflect(0));
             models.push(body);
             
 
             let mut arm = Shipyard::build_arm();
-            arm.append(arm.reflect(1));
-            arm.append(arm.reflect(0));
+            arm.append(&arm.reflect(1));
+            arm.append(&arm.reflect(0));
             models.push(arm);
 
             let mut temp_model = Model::new();
             while models.len() > 0 {
-                temp_model.append(models.pop().unwrap());
+                temp_model.append(&models.pop().unwrap());
             }
 
             temp_model = temp_model
@@ -1124,41 +1124,41 @@ pub mod model_system {
             let mut offset = vec![0.0, 0.75];
  
             result.append(
-                Model::extrude(&2, &radius, &offset, &Primitive::rectangle(0.5, 0.25), &Shipyard::CLOSE)
+                &Model::extrude(&2, &radius, &offset, &Primitive::rectangle(0.5, 0.25), &Shipyard::CLOSE)
                 .shift(0.0, 1.5, 0.0)
             );
 
             result.append(
-                Model::extrude(&2, &radius, &offset, &Primitive::parallelogram(0.5,0.25,0.0, -0.25), &Shipyard::CLOSE)
+                &Model::extrude(&2, &radius, &offset, &Primitive::parallelogram(0.5,0.25,0.0, -0.25), &Shipyard::CLOSE)
                 .shift(0.5, 1.5, 0.0)
             );
 
             result.append(
-                result.copy()
+                &result.copy()
                 .shift(0.0, 0.0, -2.0)
             );
 
-            // fore block
-            offset[1] = 2.75;        
-            result.append(
-                Model::extrude(&2, &radius, &offset, &Primitive::rectangle(0.25, 0.75), &Shipyard::CLOSE)
-                .shift(2.0, 0.0, -2.0)
-            );
+            // // fore block
+            // offset[1] = 2.75;        
+            // result.append(
+            //     Model::extrude(&2, &radius, &offset, &Primitive::rectangle(0.25, 0.75), &Shipyard::CLOSE)
+            //     .shift(2.0, 0.0, -2.0)
+            // );
 
-            // forward shell
-            offset[1] = 2.75;
-            result.append(
-                Model::extrude(&2, &radius, &offset, &Primitive::shell(8, 90.0, 90.0, 1.25, 0.75, 0.25, 0.25), &Shipyard::OPEN)
-                .shift(1.0, 0.75, -2.0)
-            );
+            // // forward shell
+            // offset[1] = 2.75;
+            // result.append(
+            //     Model::extrude(&2, &radius, &offset, &Primitive::shell(8, 90.0, 90.0, 1.25, 0.75, 0.25, 0.25), &Shipyard::OPEN)
+            //     .shift(1.0, 0.75, -2.0)
+            // );
 
-            radius = vec![0.75, 1.0];
-            offset = vec![0.0, 0.0];
-            result.append(
-                    Model::extrude_planar(&2, &radius, &offset, &Primitive::arc(8, 90.0, 90.0, 1.0))
-                .scale(1.25, 0.75, 1.0)
-                .shift(1.0, 0.75, -2.0)
-            );
+            // radius = vec![0.75, 1.0];
+            // offset = vec![0.0, 0.0];
+            // result.append(
+            //         Model::extrude_planar(&2, &radius, &offset, &Primitive::arc(8, 90.0, 90.0, 1.0))
+            //     .scale(1.25, 0.75, 1.0)
+            //     .shift(1.0, 0.75, -2.0)
+            // );
 
             result
 
@@ -1178,27 +1178,27 @@ pub mod model_system {
             let polygon = Primitive::parallelogram(1.25, 0.25, 0.0, -1.0);
             offset[1] = 1.75;
             result.append(
-                Model::extrude(&2, &radius, &offset, &polygon, &Shipyard::CLOSE)
+                &Model::extrude(&2, &radius, &offset, &polygon, &Shipyard::CLOSE)
                     .shift(1.0, 1.25, 0.75)
             );
 
             offset[1] = 2.25;
             result.append(
-                Model::extrude(&2, &radius, &offset, &polygon, &Shipyard::CLOSE)
+                &Model::extrude(&2, &radius, &offset, &polygon, &Shipyard::CLOSE)
                     .shift(1.0, 1.25, 3.0)
             );
 
            
             offset[1] = 0.5;
             result.append(
-                Model::extrude(&2, &radius, &offset, &Primitive::parallelogram(1.0, 0.25, 0.0, -0.8), &Shipyard::OPEN)
+                &Model::extrude(&2, &radius, &offset, &Primitive::parallelogram(1.0, 0.25, 0.0, -0.8), &Shipyard::OPEN)
                     .shift(1.0, 1.25, 2.5)
             );
 
             //lower joiner
             offset[1] = 1.75;
             result.append(
-                Model::extrude (&2, &radius, &offset, &Primitive::rectangle (0.25, 0.5), &Shipyard::CLOSE)
+                &Model::extrude (&2, &radius, &offset, &Primitive::rectangle (0.25, 0.5), &Shipyard::CLOSE)
                     .shift(2.0, 0.0, 0.75)
             );
 
@@ -1206,19 +1206,19 @@ pub mod model_system {
             let rect = Primitive::rectangle(0.5, 0.25).bevel(10, 0.1);  // TODO: bevel half
             offset[1] = 2.5;
             result.append(
-                Model::extrude(&2, &radius, &offset, &rect, &Shipyard::CLOSE)
+                &Model::extrude(&2, &radius, &offset, &rect, &Shipyard::CLOSE)
                     .shift(0.5, 1.25, 0.0)
             );
 
             offset[1] = 0.5;
             result.append(
-                Model::extrude(&2, &radius, &offset, &rect, &Shipyard::CLOSE)
+                &Model::extrude(&2, &radius, &offset, &rect, &Shipyard::CLOSE)
                     .shift(0.5, 1.25, 3.0)
             );
 
             offset[1] = 0.5;
             result.append(
-                Model::extrude(&2, &radius, &offset, &rect, &Shipyard::CLOSE)
+                &Model::extrude(&2, &radius, &offset, &rect, &Shipyard::CLOSE)
                     .shift(0.5, 1.25, 3.75)
             );
 
@@ -1227,12 +1227,12 @@ pub mod model_system {
             radius = vec![0.1, 0.1];
             offset[1] = 3.5;
             result.append(
-                Model::extrude(&2, &radius, &offset, &pipe, &Shipyard::OPEN)
+                &Model::extrude(&2, &radius, &offset, &pipe, &Shipyard::OPEN)
                     .shift(0.65, 1.35, 0.25)
             );
 
             result.append(
-                Model::extrude(&2, &radius, &offset, &pipe, &Shipyard::OPEN)
+                &Model::extrude(&2, &radius, &offset, &pipe, &Shipyard::OPEN)
                     .shift(0.85, 1.35, 0.25)
             );
             result
@@ -1253,8 +1253,8 @@ pub mod model_system {
 
             let poly = Primitive::regular_polygon(72, Vec3::ZAXIS);
             
-            result.append(Model::extrude(&9, &e_radius, &e_offset, &poly, &Shipyard::OPEN));
-            result.append(Model::extrude (&6, &w_radius, &w_offset, &poly, &Shipyard::OPEN));
+            result.append(&Model::extrude(&9, &e_radius, &e_offset, &poly, &Shipyard::OPEN));
+            result.append(&Model::extrude (&6, &w_radius, &w_offset, &poly, &Shipyard::OPEN));
             
             result
                 .shift(0.0, 0.0, 12.0)
@@ -1273,8 +1273,8 @@ pub mod model_system {
             let tempMod = Model::extrude(&6, &t_radius, &t_offset, &Primitive::rectangle(0.5, 0.8).bevel(10, 0.15), &Shipyard::OPEN)
                 .shift(-0.5, 0.0, 0.0);
             
-            result.append(tempMod.copy());
-            result.append(tempMod.reflect(1));
+            result.append(&tempMod.copy());
+            result.append(&tempMod.reflect(1));
             
             result.shift(A, B, C)
         }
@@ -1298,22 +1298,22 @@ pub mod model_system {
                 .shift(0.0, 0.0, 0.5); // depth of funnel, shift tube
             
             let tempMod = Model::stitch(&hexagon, &tube); // create front funnel
-            result.append(tempMod.copy()); // add to model
+            result.append(&tempMod.copy()); // add to model
            
             result.append(
-                tempMod
+                &tempMod
                     .reflect(2)
                     .shift(0.0, 0.0, tubeLength+0.5)
             ); // create back
  
             result.append(
-                Model::extrude (&2, &radius, &offset, &tube, &Shipyard::OPEN) // inner tube
+                &Model::extrude (&2, &radius, &offset, &tube, &Shipyard::OPEN) // inner tube
             );
 
             offset = vec![0.0, 3.5];
             
             result.append(
-                Model::extrude (&2, &radius, &offset, &hexagon, &Shipyard::OPEN) // inner tube
+                &Model::extrude (&2, &radius, &offset, &hexagon, &Shipyard::OPEN) // inner tube
             );
             
             result.scale(S, S, S).shift(A, B, C)
@@ -1337,14 +1337,14 @@ pub mod model_system {
                 .shift(0.0, 0.0, 0.5);
             
             let tempMod = Model::stitch (&outer, &inner);
-            result.append(tempMod);
+            result.append(&tempMod);
             
             result.append(
-                Model::extrude(&2, &radius, &offset, &outer, &Shipyard::CLOSE)
+                &Model::extrude(&2, &radius, &offset, &outer, &Shipyard::CLOSE)
             );
             
             result.append(
-                Model::extrude (&2, &radius, &offset, &inner, &Shipyard::CLOSE)
+                &Model::extrude (&2, &radius, &offset, &inner, &Shipyard::CLOSE)
             );
             
             result.scale(S, S, S).shift(A, B, C)
