@@ -83,7 +83,7 @@ pub mod agent_system {
 
         pub fn z(&self) -> f64 { self.value[2] }
 
-        fn normalized(&self) -> Vec3 {
+        pub fn normalized(&self) -> Vec3 {
 
             let mag = self.magnitude();
 
@@ -135,7 +135,7 @@ pub mod agent_system {
             }
         }
 
-        pub fn cross_product (u: Vec3, v: Vec3) -> Vec3{
+        pub fn cross_product (u: &Vec3, v: &Vec3) -> Vec3{
             Vec3{
                 value: [
                     u.y()*v.z() - u.z()*v.y(),
@@ -216,6 +216,25 @@ pub mod agent_system {
                 v[ii] = self.value[ii] * _rhs.value[ii];
             }
             Vec3{ value: v }
+        }
+    }
+
+    impl std::ops::Div<f64> for Vec3 {
+        type Output = Vec3;
+        fn div(self, rhs: f64) -> Vec3 {
+            let mut v = [0.0; 3];
+            for ii in 0..3 {
+                v[ii] = self.value[ii] / rhs;
+            }
+            Vec3{ value: v }
+        }
+    }
+
+    impl std::ops::MulAssign<f64> for Vec3 {
+        fn mul_assign(&mut self, rhs: f64) {
+            for ii in 0..3 {
+                self.value[ii] *= rhs;
+            }
         }
     }
 
@@ -395,6 +414,40 @@ pub mod agent_system {
         }
     }
 
+    struct Action {
+        active: bool,
+        timer: usize
+    }
+
+    impl Action {
+        fn new() -> Action {
+            Action {
+                active: false,
+                timer: 60
+            }
+        }
+    }
+
+    struct Message {
+        coordinates: Vec3,
+        heading: Vec3
+    }
+
+    struct Rotation {
+        velocity: f64,
+        axis: Vec3
+    }
+
+    impl Rotation {
+        fn new() -> Rotation {
+            Rotation {
+                velocity: 0.0,
+                axis: Vec3::ZAXIS
+            }
+        }
+    }
+
+
     #[derive(Copy, Clone)]
     pub struct Spring {
         k: f64,
@@ -571,6 +624,46 @@ pub mod agent_system {
             }
         }
 
+
+
+        pub fn response(&mut self, msg: Message) -> Message {
+
+            let alignment = msg.heading;
+            let offset = self.coordinates - msg.coordinates;
+            let mut repulsor: Vec3;
+
+            
+            if offset.magnitude() < 0.5 { 
+                repulsor = offset.normalized();
+            } else {
+                repulsor = Vec3{value:[0.0, 0.0, 0.0]};
+            }
+
+            let attractor = offset.normalized() * -1.0;
+            let total = alignment + attractor + repulsor;
+
+            let angleOffset = Vec3::vec_angle(&self.heading, &total); // angleOffset reaches NaN
+            let normal = Vec3::cross_product(&self.heading, &total);
+            let rot_v = normal.z().signum()*0.5*angleOffset;  // critically damped oscillator
+            
+            // self.heading = self.heading.rotate(rot_v * PI_RADIANS, &rotaxis);
+            // self.model = self.model.rotate(&rot_v, &rotaxis);
+
+            Message{
+                coordinates: self.coordinates, 
+                heading: self.heading
+            }
+        
+
+        }
+
+        pub fn message(&self) -> Message {
+            return Message{
+                coordinates: self.coordinates, 
+                heading: self.heading
+            };
+        }
+
         pub fn update_position(&mut self, padding: f64, drag: f64, bounce: f64) {
 
         
@@ -623,8 +716,12 @@ pub mod agent_system {
 
     #[wasm_bindgen]
     pub struct Group {
-        particles: Vec<Agent>
+        particles: Vec<Agent>,
+        center: Vec3,
+        heading: Vec3
     }
+
+   
 
     #[wasm_bindgen]
     impl Group {
@@ -632,7 +729,9 @@ pub mod agent_system {
         #[allow(unused_unsafe)]
         pub fn new(count: usize, zero: f64, stop: f64) -> Group {
             let mut group = Group {
-                particles: vec![]
+                particles: vec![],
+                heading: Vec3::ORIGIN,
+                center: Vec3::ORIGIN
             };
 
             for _ii in 0..count {
@@ -661,6 +760,23 @@ pub mod agent_system {
             return group;
         }
 
+        fn message(&self) -> Message {
+            Message{
+                coordinates: self.center,
+                heading: self.heading
+            }
+        }
+
+        fn response(&self, msg: Message) -> Message {
+
+            // self.heading += msg.heading / self.particles.len();
+            // self.center += msg.coordinates / self.particles.len();
+            Message{
+                coordinates: self.center, 
+                heading: self.heading
+            }
+        }
+   
 
         #[wasm_bindgen]
         pub fn draw(&self, ctx: &CanvasRenderingContext2d, width: f64, height: f64, fade: f64, scale: f64, color: JsValue) {
@@ -709,17 +825,5 @@ pub mod agent_system {
             }
         }
     }
-
-
-    struct Action {
-        active: bool,
-        timer: i32
-    }
-
-    struct Message {
-        coordinates: Vec3,
-        heading: Vec3
-    }
-
 
 }
