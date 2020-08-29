@@ -90,7 +90,7 @@ pub mod shellfish {
                 exp(self.temperature_limit_on_heat_loss_coefficient*reference_temperature)
         }
 
-        fn
+        
     }
 
 }
