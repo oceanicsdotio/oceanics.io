@@ -1,10 +1,10 @@
 pub mod model_system {
 
     use wasm_bindgen::prelude::*;
-    use wasm_bindgen::{JsValue};
-    use web_sys::{CanvasRenderingContext2d};
-    use std::f64::consts::{PI};
-    use crate::agent::agent_system::{Vec3};
+    use wasm_bindgen::JsValue;
+    use web_sys::CanvasRenderingContext2d;
+    use std::f64::consts::PI;
+    use crate::agent::agent_system::Vec3;
 
     const PI_RADIANS: f64 = 180.0;
 

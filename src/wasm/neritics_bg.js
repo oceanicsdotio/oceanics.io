@@ -868,16 +868,16 @@ export class Model {
     * @param {number} w
     * @param {number} h
     * @param {any} color
-    * @param {number} time
+    * @param {number} _time
     * @param {number} line_width
     * @param {number} point_size
     * @returns {number}
     */
-    draw_edges(ctx, w, h, color, time, line_width, point_size) {
+    draw_edges(ctx, w, h, color, _time, line_width, point_size) {
         try {
             if (this.ptr == 0) throw new Error('Attempt to use a moved value');
             _assertNum(this.ptr);
-            var ret = wasm.model_draw_edges(this.ptr, addBorrowedObject(ctx), w, h, addHeapObject(color), time, line_width, point_size);
+            var ret = wasm.model_draw_edges(this.ptr, addBorrowedObject(ctx), w, h, addHeapObject(color), _time, line_width, point_size);
             return ret >>> 0;
         } finally {
             heap[stack_pointer++] = undefined;
@@ -1152,28 +1152,28 @@ export class Shipyard {
     }
     /**
     * @param {number} res
-    * @param {number} S
-    * @param {number} A
-    * @param {number} B
-    * @param {number} C
+    * @param {number} s
+    * @param {number} a
+    * @param {number} b
+    * @param {number} c
     * @returns {Model}
     */
-    static build_tube(res, S, A, B, C) {
+    static build_tube(res, s, a, b, c) {
         _assertNum(res);
-        var ret = wasm.shipyard_build_tube(res, S, A, B, C);
+        var ret = wasm.shipyard_build_tube(res, s, a, b, c);
         return Model.__wrap(ret);
     }
     /**
     * @param {number} res
-    * @param {number} S
-    * @param {number} A
-    * @param {number} B
-    * @param {number} C
+    * @param {number} s
+    * @param {number} a
+    * @param {number} b
+    * @param {number} c
     * @returns {Model}
     */
-    static build_tube_cover(res, S, A, B, C) {
+    static build_tube_cover(res, s, a, b, c) {
         _assertNum(res);
-        var ret = wasm.shipyard_build_tube_cover(res, S, A, B, C);
+        var ret = wasm.shipyard_build_tube_cover(res, s, a, b, c);
         return Model.__wrap(ret);
     }
 }
