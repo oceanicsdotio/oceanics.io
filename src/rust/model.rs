@@ -39,6 +39,9 @@ pub mod model_system {
     }
 
     impl Primitive {
+
+        const NEG_TWO_PI: f64 = -2.0 * PI;
+
         pub fn new(size: usize) -> Primitive {
             let mut p = Primitive {
                 vert: Vec::with_capacity(size)
@@ -49,11 +52,19 @@ pub mod model_system {
             p
 
         }
+        
+        fn with_capacity(capacity: usize) -> Primitive {
+            Primitive{
+                vert: Vec::with_capacity(capacity)
+            }
+        }
 
         pub fn shift(&self, dx: f64, dy: f64, dz: f64) -> Primitive {
-            let mut vertex_array = Primitive::new(self.vert.len());
-            for ii in 0..self.vert.len() {
-                vertex_array.vert[ii] = &self.vert[ii] + &Vec3{value:[dx,dy,dz]};
+            let mut vertex_array = Primitive::with_capacity(self.vert.len());
+            let offset = Vec3{value:[dx,dy,dz]};
+
+            for vert in &self.vert {
+                vertex_array.vert.push(vert + &offset);
             }
             vertex_array
         }
@@ -70,13 +81,31 @@ pub mod model_system {
         pub fn copy_face() {}
 
         pub fn regular_polygon(count: usize, axis: Vec3) -> Primitive {
-            let mut shape = Primitive::new(count);
-            let inc = -1.0 * 360.0 / count as f64 * PI_RADIANS;
-            let position = Vec3{value:[1.0, 0.0, 0.0]};
+            /*
+            Create a regular polygon in the X,Y plane, with the first point
+            at (1,0,0)
+            */
+            
+            let mut polygon = Primitive::new(0);
+            let inc: f64 = Primitive::NEG_TWO_PI / count as f64;
+            
             for ii in 0..count {
-                shape.vert[ii] = position.rotate(&inc, &axis);
+                polygon.vert.push(Vec3::XAXIS.rotate(&(inc*ii as f64), &axis));
             }
-            shape
+            polygon
+        }
+
+        pub fn arc(count: usize, start_angle: f64, sweep_angle: f64, radius: f64) -> Primitive {
+            
+            let mut arc = Primitive::new(0);
+            let inc = Primitive::NEG_TWO_PI * sweep_angle / (count - 1) as f64;
+            let ray: Vec3 = Vec3::XAXIS * radius;
+
+            for ii in 0..count {
+                let angle = start_angle*PI_RADIANS + inc*ii as f64;
+                arc.vert.push(ray.rotate(&angle, &Vec3::ZAXIS));
+            }
+            arc
         }
 
         pub fn parallelogram(ww: f64, hh: f64, dw: f64, dh: f64) -> Primitive {
@@ -100,23 +129,14 @@ pub mod model_system {
             shape
         }
 
-        pub fn arc(count: usize, start_angle: f64, sweep_angle: f64, radius: f64) -> Primitive {
-            let inc = -1.0 * sweep_angle / (count - 1) as f64 * PI_RADIANS;
-            let position = Vec3{value:[radius, 0.0, 0.0]};
-            let mut shape = Primitive::new(count);
-            for ii in 0..count {
-                let angle = start_angle*PI_RADIANS + inc*ii as f64;
-                shape.vert[ii] = position.rotate(&angle, &Vec3::ZAXIS);
-            }
-            shape
-        }
+        
 
 
         pub fn bevel(&self, count: usize, radius: f64) -> Primitive {
             /*
             For each corner, insert count points.
             */
-            let mut result = Primitive::new(count+2); // hold the anchor points also
+            let mut result = Primitive::new(0); // hold the anchor points also
             let mut index = Vec::with_capacity(count+2);
 
             index.push(count-1);
@@ -159,17 +179,17 @@ pub mod model_system {
         pub fn shell(count: usize, start: f64, sweep:f64, w: f64, h: f64, dw: f64, dh: f64) -> Primitive {
 
         
-            let mut tempPoly = Primitive::arc(count, start, sweep, 1.0)
+            let mut polygon = Primitive::arc(count, start, sweep, 1.0)
                 .scale(w, h, 0.0);
 
             let work_poly = Primitive::arc(count, start, sweep, 1.0)
                 .scale(w-dw, h-dh, 0.0);
                 
             for ii in 0..count {
-                tempPoly.vert.push(work_poly.vert[count-ii-1].copy());
+                polygon.vert.push(work_poly.vert[count-ii-1].copy());
             }
 
-            tempPoly
+            polygon
            
         }
     }
@@ -303,7 +323,14 @@ pub mod model_system {
         }
 
         #[wasm_bindgen]
-        pub fn draw_edges(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, color: JsValue, time: f64, line_width: f64) -> usize {
+        pub fn rotate_in_place(&mut self, angle: f64, ax: f64, ay: f64, az: f64) {
+            for ii in 0..self.vert.len() {
+                self.vert[ii] = self.vert[ii].rotate(&angle, &Vec3{value:[ax,ay,az]});
+            }
+        }
+
+        #[wasm_bindgen]
+        pub fn draw_edges(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, color: JsValue, time: f64, line_width: f64, point_size: f64) -> usize {
 
             
             ctx.set_stroke_style(&color);
@@ -313,11 +340,13 @@ pub mod model_system {
 
             // let rotated = self.rotate(&45.0, &Vec3{value: [1.0,1.0,1.0]});
 
-            for vert in &self.vert {
-                let target = vert.normal_form();
-                ctx.fill_rect(w*target.x()-3.0, h*target.y()-3.0, 6.0, 6.0);
+            if point_size > 0.01 {
+                for vert in &self.vert {
+                    let target = vert.normal_form();
+                    ctx.fill_rect(w*target.x()-point_size/2.0, h*target.y()-point_size/2.0, point_size, point_size);
+                }
             }
-
+            
             for face in &self.face {
 
                 let mut origin: bool = true;
@@ -326,8 +355,8 @@ pub mod model_system {
                 for ii in face.copy().indices {
 
                     if ii >= self.vert.len() as i32 {
-                        break;
-                        // panic!("(`draw_edges`) Index exceeds vertex array length");
+                        // break;
+                        panic!("(`draw_edges`) Index exceeds vertex array length");
                     } else if ii < 0 {
                         panic!("(`draw_edges`) Vertex array index is negative");
                     }
@@ -435,9 +464,7 @@ pub mod model_system {
         pub fn reflect(&self, dim: usize) -> Model {
             let mut model = self.copy();
             for vert in &mut model.vert {
-                vert.value[0] *= -1.0;
-                vert.value[1] *= -1.0;
-                vert.value[2] *= -1.0;
+                vert.value[dim] *= -1.0;
             }
             for face in &mut model.face {
                 let temp = face.indices[0];
@@ -474,6 +501,11 @@ pub mod model_system {
             }
         }
 
+        fn extend(&mut self, models: Vec<&Model>) {
+            for model in models {
+                self.append(model);
+            }
+        }
         
 
         fn insert_face(&mut self, face: &Face) {
@@ -544,14 +576,14 @@ pub mod model_system {
             let mut model = Model::new();
 
 
-            for ii in 0..(*nRings) {
+            for ii in 0..(*nRings) { // loop through rings
                 let start = np * ii;
-                for jj in 0..np {
+                for jj in 0..np {  // loop through points in shape
                     let index = ii * np + jj;
                     model.vert.push(Vec3{value:[
                         radius[ii] * P.vert[jj].x(),
                         radius[ii] * P.vert[jj].y(),
-                                        P.vert[jj].y() + offset[ii]
+                                     P.vert[jj].z() + offset[ii]
                     ]}); 
 
                     if ii >= (nRings - 1) {continue};
@@ -847,168 +879,109 @@ pub mod model_system {
             }
 
             model
-
         }
-        
-    
+    }
 
-        
+    pub struct Component {
+        /*
+        Components are mechanical assemblies or spatial graphs with an 
+        assigned appearance. 
+        */
+        model: Model,
+        color: String,
+    }
 
+    impl Component {
+        /*
+        Components simply act as zero cost containers for holding metadata
+        and visualization information for a model
+        */
+        pub fn new(model: Model, color: String) -> Component {
+            Component {
+                model, 
+                color
+            }
+        }
+
+        pub fn draw(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, time: f64, line_width: f64, point_size: f64) -> usize {
+            /*
+            Draw the component's model using the stored color to identify it 
+            as a distinct sub-graph.
+            */
+            self.model.draw_edges(ctx, w, h, JsValue::from(&self.color), time, line_width, point_size)
+        }
+
+        pub fn thruster(color: &String) -> Component {
+            
+            let mut model = Model::new();
+            let t_radius = vec![0.6, 0.75, 1.0, 1.0, 0.75, 0.6];
+            let t_offset = vec![-0.75, -0.75, -0.5, 0.5, 0.75, 0.75];
+        
+            let tempMod = Model::extrude(&6, &t_radius, &t_offset, &Primitive::rectangle(0.5, 0.8), &Shipyard::OPEN)
+                .shift(-0.5, 0.0, 0.0);
+            
+                model.append(&tempMod.copy());
+                model.append(&tempMod.reflect(1));
+            
+            Component { model, color: color.clone() }
+        }
+
+        pub fn engine(res: usize, a: f64, b: f64, c: f64, color: &String) -> Component {
+
+            /*
+            The engine component provides fixed directional thrust.
+            */
+            
+            let mut model = Model::new();
+            let poly = Primitive::regular_polygon(res, Vec3::ZAXIS);
+            
+            model.append(&Model::extrude(
+                &9, 
+                &vec![0.03, 0.2, 0.3, 0.3, 0.25, 0.25, 0.3, 0.3, 0.2], 
+                &vec![-1.2, -1.2, -1.1, -0.4, -0.3, 0.1, 0.2, 0.5, 0.5], 
+                &poly, 
+                &Shipyard::OPEN
+            ));
+            
+            model.append(&Model::extrude(
+                &6, 
+                &vec![0.03, 0.03, 0.1, 0.1, 0.3, 0.3], 
+                &vec![-1.2, 0.3, 0.3, 0.4, 0.6, 0.7], 
+                &poly, 
+                &Shipyard::OPEN
+            ));
+            
+            Component {
+                model: model
+                    .shift(0.0, 0.0, 1.2)
+                    .shift(a, b, c),
+                color: color.clone()
+            }
+        
+        }
     }
 
     #[wasm_bindgen]
-    pub struct Shipyard {}
+    pub struct Shipyard {
+        /*
+        Shipyards create components and control the rendering pipeline or scene graph for
+        visualizing the data.
+
+        There are multiple implementations, for methods accessibile from JavaScript,
+        and for local methods in Rust/WASM. 
+        */
+        components: Vec<Component>
+    }
 
     impl Shipyard {
-        const CLOSE: bool = true;
+
+        const CLOSE: bool = true;  // convenient short hand for reducing ambiguity
         const OPEN: bool = false;
 
-       
-        pub fn build_ship () -> Vec<Model> {
+        fn build_drone (res: usize) -> Model {
            
-            let mut models: Vec<Model> = vec![];
+            const NP: i32 = 49;
 
-            
-
-            let mut offset = vec![0.0, 1.0];
-            let mut radius = vec![1.0, 1.0];
-
-            let mut body = Shipyard::build_body();
-            body.append(&body.reflect(1));
-            body.append(&body.reflect(0));
-            models.push(body);
-            
-
-            let mut arm = Shipyard::build_arm();
-            arm.append(&arm.reflect(1));
-            arm.append(&arm.reflect(0));
-            models.push(arm);
-
-            let mut temp_model = Model::new();
-            while models.len() > 0 {
-                temp_model.append(&models.pop().unwrap());
-            }
-
-            temp_model = temp_model
-                .deduplicate(0.001)
-                .shift(0.0, 0.0, 2.0-2.75/2.0)
-                .rotate(&90.0, &Vec3::XAXIS)
-                .rotate(&-90.0, &Vec3::ZAXIS);
-
-            // smaller engines
-            models.push(Shipyard::build_engine(0.1, 0.6, 0.70, 2.75/2.0));
-            models.push(Shipyard::build_thruster(2.75,0.0, 0.0));
-            models.push(Shipyard::build_engine(0.2, 1.2, 0.0, 2.75/2.0)); //large engines x2
-            // models.push(Shipyard::build_launcher());
-
-            let testOffset=0.0;
-            let tubeScale = 0.25;
-            let LRShift = tubeScale*(2.0/3.0 as f64).sqrt();
-            for ii in 0..3 {
-                models.push(
-                    Shipyard::build_tube(tubeScale, LRShift, 0.0, 0.0) // missile tubes
-                    .rotate(&(ii as f64 * 120.0 + 180.0), &Vec3::ZAXIS)
-                    .shift(testOffset+1.2, 0.0, -2.0)
-                );
-                
-                models.push(
-                    Shipyard::build_tube_cover(tubeScale, LRShift, 0.0, 0.0) // tube cover
-                    .shift(0.0, -tubeScale, 0.0)
-                    .rotate(&0.0, &Vec3::XAXIS)
-                    .shift(0.0, tubeScale, 0.0)
-                    .rotate(&(ii as f64 * 120.0 + 180.0), &Vec3::ZAXIS)
-                    .shift(testOffset+1.2, 0.0, -2.0)
-                );
-
-                Primitive::rectangle(0.5, 0.5); // fill between
-                offset[1] = 0.5;
-
-                models.push(
-                    Model::extrude(&2, &radius, &offset, &Primitive::rectangle(0.5, 0.5), &Shipyard::CLOSE)
-                    .rotate(&-45.0, &Vec3::ZAXIS)
-                    .scale(LRShift*(2.0 as f64).sqrt(), (2.0 as f64).sqrt()/2.0, (2.0 as f64).sqrt()/2.07)
-                    .shift(LRShift, 0.0, 0.0)
-                    .rotate(&(ii as f64 * 120.0), &Vec3::ZAXIS)
-                    .shift(testOffset+1.2, 0.0, -2.0,)
-                );
-            }
-
-            // Skirt
-            radius = vec![2.0*tubeScale*2.0/(3.0 as f64).sqrt(), 2.0*1.25*tubeScale*2.0/(3.0 as f64).sqrt()];
-            offset = vec![0.0, 0.1];
-            models.push(
-                Model::extrude(&2, &radius, &offset, &Primitive::regular_polygon(6, Vec3::ZAXIS), &Shipyard::OPEN)
-                .shift(testOffset+1.2, 0.0, -2.0)
-            );
-            
-            // Pipe
-            radius = vec![0.025, 0.025];
-            offset = vec![-2.0, 0.0];
-            models.push(
-                Model::extrude(&2, &radius, &offset, &Primitive::regular_polygon(6, Vec3::ZAXIS), &Shipyard::OPEN)
-                .shift(testOffset+1.2, 0.0, 0.0)
-            );
-            
-            // Loader
-            let thetaA = 30.0;
-            radius = vec![1.0, 1.0];
-            offset = vec![-1.0, -0.8];
-            let clamp = Model::extrude(&2, &radius, &offset, &Primitive::shell(36, 90.0, 180.0, 1.0, 1.0, 0.25, 0.25), &Shipyard::OPEN) 
-                .scale(tubeScale, tubeScale, 1.0); // clamp
-
-
-            models.push(clamp.copy());
-
-            models.push(
-                clamp.copy()
-                .rotate(&thetaA, &Vec3::ZAXIS)
-                .shift(testOffset+1.2-tubeScale, 0.0, 0.0)
-            );
-
-            models.push(
-                clamp.copy()
-                .rotate(&-thetaA, &Vec3::ZAXIS)
-                .shift(testOffset+1.2-tubeScale, 0.0, 0.25)
-            );
-
-            models.push(
-                clamp
-                .rotate(&thetaA, &Vec3::ZAXIS)
-                .shift(testOffset+1.2-tubeScale, 0.0, 0.5)
-            );
-            
-            // plunger
-            offset = vec![-0.25, -0.2];
-            models.push(
-                Model::extrude(&2, &radius, &offset, &Primitive::regular_polygon(72, Vec3::ZAXIS), &Shipyard::CLOSE)
-                .scale(0.75*tubeScale, 0.75*tubeScale, 1.0)
-                .shift(testOffset+1.2-tubeScale, 0.0, 0.0)
-            );
-           
-            offset = vec![-1.0, -0.25];
-            models.push(
-                Model::extrude(&2, &radius, &offset, &Primitive::regular_polygon(3, Vec3::ZAXIS).bevel(10, 0.3), &Shipyard::OPEN)
-                .scale(0.75*tubeScale, 0.75*tubeScale, 1.0)
-                .shift(testOffset+1.2-tubeScale, 1.0, 0.0)
-            );
-
-            models
-
-            // for model in &mut models {
-            //     model = model
-            //         .rotate(90.0, Vec3::XAXIS)
-            //         .rotate(-90.0, Vec3::ZAXIS);
-               
-            // }
-        }
-
-
-
-        fn build_drone () -> Model {
-           
-            let tempModel = Model::new();
-           
-            let res = 24;
             let mut radius: Vec<f64> = vec![];
             let mut offset: Vec<f64> = vec![];
             let mut slope = 0.0;
@@ -1029,22 +1002,21 @@ pub mod model_system {
                 radius[ii] = radius[ii-1] - slope*1.0/(res - 6) as f64;
             }
 
-
-            let nPts = 49;
-            let rotIncrement = -1.0 * 120.0 / (nPts-1) as f64 * PI_RADIANS; // rotation increment
-            let vertPosition = Vec3{value:[1.0, 0.0, 0.0]}; // initial point
+            let rot_inc = -1.0 * 120.0 / (NP-1) as f64 * PI_RADIANS; // rotation increment
+            let position = Vec3{value:[1.0, 0.0, 0.0]}; // initial point
            
          
-            let mut sbPolygon = Primitive::new(0);
-            for ii in 0..nPts {
-                let inc = (3.0 * ii as f64 * rotIncrement / 2.0).sin();
+            // copy points to polygon
+            let mut polygon = Primitive::new(0);// copy point to polygon
+            
+            for ii in 0..NP {
+                let inc = (3.0 * ii as f64 * rot_inc / 2.0).sin();
                 let srad = 1.0 + 0.3*inc.powi(8);
 
-                // copy point to polygon
-                sbPolygon.vert.push(vertPosition.rotate(&(rotIncrement * ii as f64), &Vec3::ZAXIS) * srad);
+                polygon.vert.push(position.rotate(&(rot_inc * ii as f64), &Vec3::ZAXIS) * srad);
             }
 
-            Model::extrude_planar(&(2*res), &radius, &offset, &sbPolygon)
+            Model::extrude_planar(&(2*res), &radius, &offset, &polygon)
                 .deduplicate(0.001)
             
         }
@@ -1113,6 +1085,235 @@ pub mod model_system {
         //     }
         // }
 
+        #[wasm_bindgen(constructor)]
+        pub fn new() -> Shipyard {
+            Shipyard {
+                components: vec![]
+            }
+        }
+
+        #[wasm_bindgen]
+        pub fn rotate_in_place(&mut self, angle: f64, ax: f64, ay: f64, az: f64) {
+            for ii in 0..self.components.len() {
+                self.components[ii].model.rotate_in_place(angle, ax, ay, az);
+            }
+        }
+
+        #[wasm_bindgen]
+        pub fn shift(&mut self, dx: f64, dy: f64, dz: f64) {
+            for ii in 0..self.components.len() {
+                self.components[ii].model = self.components[ii].model.shift(dx, dy, dz);
+            }
+        }
+
+        #[wasm_bindgen]
+        pub fn scale(&mut self, sx: f64, sy: f64, sz: f64) {
+            for ii in 0..self.components.len() {
+                self.components[ii].model = self.components[ii].model.scale(sx, sy, sz);
+            }
+        }
+
+        #[wasm_bindgen]
+        pub fn draw(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, time: f64, line_width: f64, point_size: f64) -> usize {
+            let mut triangles: usize = 0;
+            for component in &self.components {
+                triangles += component.draw(ctx, w, h, time, line_width, point_size);
+            }
+            triangles
+        }
+    
+
+        #[wasm_bindgen]
+        pub fn build_ship (&mut self, res: usize) {
+           
+            let mut ship_model = Model::new();
+            
+            let mut models: Vec<Model> = vec![];
+            let mut offset = vec![0.0, 1.0];
+            let mut radius = vec![1.0, 1.0];
+
+            {
+                /*
+                Add individual components for rotating thrusters that can be individually
+                controlled to apply torque
+                */
+                let color = "#FFFF00FF".to_string();
+                let mut component = Component::thruster(&color);
+                component.model = component.model.shift(2.75,0.0, 0.0);
+                let reflection = component.model.reflect(0);
+                self.components.push(component);
+                self.components.push(Component {
+                    model: reflection,
+                    color: color.clone()
+                });           
+            }
+
+            {
+                // let mut temp_model = Model::new();
+                // let mut component_model = Model::new();
+
+
+                // smaller engines
+                // let engine = Component::engine(res, 0.6, 0.70, 2.75/2.0);
+
+                let engine = Component::engine(res, 0.0, 0.0, 0.0, &"#FFFF00FF".to_string());
+
+                
+                // temp_model.append(&engine);
+                // temp_model.append(&engine.reflect(1));
+                // temp_model.append(&Component::engine(res, 0.2, 1.2, 0.0, 2.75/2.0)); //large engines x2
+                
+                // component_model.append(&temp_model);
+                // component_model.append(&temp_model.reflect(0));
+
+                self.components.push(engine);
+
+            }
+
+  
+            {
+                let mut temp_model = Model::new();
+                let mut component_model = Model::new();
+
+                let body = Shipyard::build_body();
+                let arm = Shipyard::build_arm();
+               
+
+                temp_model.append(&body);
+                temp_model.append(&body.reflect(1));
+
+                temp_model.append(&arm);
+                temp_model.append(&arm.reflect(1));
+
+                component_model.append(&temp_model);
+                component_model.append(&temp_model.reflect(0));
+
+                self.components.push(Component::new(component_model, "#33CCFF44".to_string()));
+
+            }
+            
+            {
+                let testOffset = 0.0;
+                let tubeScale = 0.25;
+                let LRShift = tubeScale*(2.0/3.0 as f64).sqrt();
+
+                for ii in 0..3 {
+                    ship_model.append(
+                        &Shipyard::build_tube(res, tubeScale, LRShift, 0.0, 0.0) // missile tubes
+                        .rotate(&(ii as f64 * 120.0 + 180.0), &Vec3::ZAXIS)
+                        .shift(testOffset+1.2, 0.0, -2.0)
+                    );
+                    
+                    ship_model.append(
+                        &Shipyard::build_tube_cover(res, tubeScale, LRShift, 0.0, 0.0) // tube cover
+                        .shift(0.0, -tubeScale, 0.0)
+                        .rotate(&0.0, &Vec3::XAXIS)
+                        .shift(0.0, tubeScale, 0.0)
+                        .rotate(&(ii as f64 * 120.0 + 180.0), &Vec3::ZAXIS)
+                        .shift(testOffset+1.2, 0.0, -2.0)
+                    );
+
+    
+                    offset[1] = 0.5;
+
+                    ship_model.append(
+                        &Model::extrude(&2, &radius, &offset, &Primitive::rectangle(0.5, 0.5), &Shipyard::CLOSE)
+                        .rotate(&-45.0, &Vec3::ZAXIS)
+                        .scale(LRShift*(2.0 as f64).sqrt(), (2.0 as f64).sqrt()/2.0, (2.0 as f64).sqrt()/2.07)
+                        .shift(LRShift, 0.0, 0.0)
+                        .rotate(&(ii as f64 * 120.0), &Vec3::ZAXIS)
+                        .shift(testOffset+1.2, 0.0, -2.0,)
+                    );
+                }
+
+                // Skirt
+                radius = vec![2.0*tubeScale*2.0/(3.0 as f64).sqrt(), 2.0*1.25*tubeScale*2.0/(3.0 as f64).sqrt()];
+                offset = vec![0.0, 0.1];
+                models.push(
+                    Model::extrude(&2, &radius, &offset, &Primitive::regular_polygon(6, Vec3::ZAXIS), &Shipyard::OPEN)
+                    .shift(testOffset+1.2, 0.0, -2.0)
+                );
+                
+                // Pipe
+                radius = vec![0.025, 0.025];
+                offset = vec![-2.0, 0.0];
+                ship_model.append(
+                    &Model::extrude(&2, &radius, &offset, &Primitive::regular_polygon(6, Vec3::ZAXIS), &Shipyard::OPEN)
+                    .shift(testOffset+1.2, 0.0, 0.0)
+                );
+                
+                // Loader
+                let thetaA = 30.0;
+                radius = vec![1.0, 1.0];
+                offset = vec![-1.0, -0.8];
+                
+
+                {
+                    /*
+                    
+                    */
+                    let mut temp_model = Model::new();
+                    let polygon = Primitive::shell(16, 90.0, 180.0, 1.0, 1.0, 0.25, 0.25);
+                    let mut direction = 1.0;
+                    let clamp_offset = testOffset + 1.2 - tubeScale;
+                    let sxy = 0.75 * tubeScale;
+
+                    let clamp = Model::extrude(&2, &radius, &offset, &polygon, &Shipyard::OPEN) 
+                        .scale(tubeScale, tubeScale, 1.0);
+
+                    temp_model.append(&clamp);
+                    
+
+                    for dz in vec![0.0, 0.25, 0.5] {
+                        temp_model.append(
+                            &clamp
+                            .rotate(&(direction*thetaA), &Vec3::ZAXIS)
+                            .shift(clamp_offset, 0.0, dz)
+                        );
+                        direction *= -1.0;
+                    }
+
+                    temp_model.extend(vec![
+
+                        &Model::extrude(&2, &radius, &vec![-0.25, -0.2], &Primitive::regular_polygon(res, Vec3::ZAXIS), &Shipyard::CLOSE)
+                        .scale(sxy, sxy, 1.0)
+                        .shift(clamp_offset, 0.0, 0.0),
+
+                        &Model::extrude(&2, &radius, &vec![-1.0, -0.25], &Primitive::regular_polygon(3, Vec3::ZAXIS), &Shipyard::OPEN)
+                        .scale(sxy, sxy, 1.0)
+                        .shift(clamp_offset, 1.0, 0.0),
+
+                    ]);
+                
+                    self.components.push(Component {
+                        model: temp_model,
+                        color: "#FF0000FF".to_string()
+                    });
+                }
+
+                
+                // plunger
+                {
+                    
+                    ship_model.append(
+                        &Model::extrude(&2, &radius, &vec![-0.25, -0.2], &Primitive::regular_polygon(res, Vec3::ZAXIS), &Shipyard::CLOSE)
+                        .scale(0.75*tubeScale, 0.75*tubeScale, 1.0)
+                        .shift(testOffset+1.2-tubeScale, 0.0, 0.0)
+                    );
+                
+                    ship_model.append(
+                        &Model::extrude(&2, &radius, &vec![-1.0, -0.25], &Primitive::regular_polygon(3, Vec3::ZAXIS), &Shipyard::OPEN)
+                        .scale(0.75*tubeScale, 0.75*tubeScale, 1.0)
+                        .shift(testOffset+1.2-tubeScale, 1.0, 0.0)
+                    );
+                }
+                
+                self.components.push(Component::new(ship_model, "#FFFFFF33".to_string()));
+            }
+
+        }
+
+
         #[wasm_bindgen]
         pub fn build_body() -> Model {
 
@@ -1138,27 +1339,27 @@ pub mod model_system {
                 .shift(0.0, 0.0, -2.0)
             );
 
-            // // fore block
-            // offset[1] = 2.75;        
-            // result.append(
-            //     Model::extrude(&2, &radius, &offset, &Primitive::rectangle(0.25, 0.75), &Shipyard::CLOSE)
-            //     .shift(2.0, 0.0, -2.0)
-            // );
+            // fore block
+            offset[1] = 2.75;        
+            result.append(
+                &Model::extrude(&2, &radius, &offset, &Primitive::rectangle(0.25, 0.75), &Shipyard::CLOSE)
+                .shift(2.0, 0.0, -2.0)
+            );
 
-            // // forward shell
-            // offset[1] = 2.75;
-            // result.append(
-            //     Model::extrude(&2, &radius, &offset, &Primitive::shell(8, 90.0, 90.0, 1.25, 0.75, 0.25, 0.25), &Shipyard::OPEN)
-            //     .shift(1.0, 0.75, -2.0)
-            // );
+            // forward shell
+            offset[1] = 2.75;
+            result.append(
+                &Model::extrude(&2, &radius, &offset, &Primitive::shell(8, 90.0, 90.0, 1.25, 0.75, 0.25, 0.25), &Shipyard::OPEN)
+                .shift(1.0, 0.75, -2.0)
+            );
 
-            // radius = vec![0.75, 1.0];
-            // offset = vec![0.0, 0.0];
-            // result.append(
-            //         Model::extrude_planar(&2, &radius, &offset, &Primitive::arc(8, 90.0, 90.0, 1.0))
-            //     .scale(1.25, 0.75, 1.0)
-            //     .shift(1.0, 0.75, -2.0)
-            // );
+            radius = vec![0.75, 1.0];
+            offset = vec![0.0, 0.0];
+            result.append(
+                    &Model::extrude_planar(&2, &radius, &offset, &Primitive::arc(8, 90.0, 90.0, 1.0))
+                .scale(1.25, 0.75, 1.0)
+                .shift(1.0, 0.75, -2.0)
+            );
 
             result
 
@@ -1166,25 +1367,23 @@ pub mod model_system {
 
         #[wasm_bindgen]
         pub fn build_arm () -> Model {
-
            
-            let mut tempMod = Model::new();
             let mut result = Model::new();
             let mut offset = vec![0.0, 1.0];
             let mut radius = vec![1.0, 1.0];
 
             // ARM+SHIELD
-            //main panels
-            let polygon = Primitive::parallelogram(1.25, 0.25, 0.0, -1.0);
+            // main panels
+           
             offset[1] = 1.75;
             result.append(
-                &Model::extrude(&2, &radius, &offset, &polygon, &Shipyard::CLOSE)
+                &Model::extrude(&2, &radius, &offset, &Primitive::parallelogram(1.25, 0.25, 0.0, -1.0), &Shipyard::CLOSE)
                     .shift(1.0, 1.25, 0.75)
             );
 
             offset[1] = 2.25;
             result.append(
-                &Model::extrude(&2, &radius, &offset, &polygon, &Shipyard::CLOSE)
+                &Model::extrude(&2, &radius, &offset, &Primitive::parallelogram(1.25, 0.25, 0.0, -1.0), &Shipyard::CLOSE)
                     .shift(1.0, 1.25, 3.0)
             );
 
@@ -1203,85 +1402,44 @@ pub mod model_system {
             );
 
             // upper overhangs
-            let rect = Primitive::rectangle(0.5, 0.25).bevel(10, 0.1);  // TODO: bevel half
+            
             offset[1] = 2.5;
             result.append(
-                &Model::extrude(&2, &radius, &offset, &rect, &Shipyard::CLOSE)
+                &Model::extrude(&2, &radius, &offset, &Primitive::rectangle(0.5, 0.25), &Shipyard::CLOSE)
                     .shift(0.5, 1.25, 0.0)
             );
 
             offset[1] = 0.5;
             result.append(
-                &Model::extrude(&2, &radius, &offset, &rect, &Shipyard::CLOSE)
+                &Model::extrude(&2, &radius, &offset, &Primitive::rectangle(0.5, 0.25), &Shipyard::CLOSE)
                     .shift(0.5, 1.25, 3.0)
             );
 
             offset[1] = 0.5;
             result.append(
-                &Model::extrude(&2, &radius, &offset, &rect, &Shipyard::CLOSE)
+                &Model::extrude(&2, &radius, &offset, &Primitive::rectangle(0.5, 0.25), &Shipyard::CLOSE)
                     .shift(0.5, 1.25, 3.75)
             );
 
             // Pipe
-            let pipe = Primitive::regular_polygon(10, Vec3::ZAXIS);
+
             radius = vec![0.1, 0.1];
             offset[1] = 3.5;
-            result.append(
-                &Model::extrude(&2, &radius, &offset, &pipe, &Shipyard::OPEN)
-                    .shift(0.65, 1.35, 0.25)
-            );
-
-            result.append(
-                &Model::extrude(&2, &radius, &offset, &pipe, &Shipyard::OPEN)
-                    .shift(0.85, 1.35, 0.25)
-            );
+            let pipe_primitive = Primitive::regular_polygon(10, Vec3::ZAXIS);
+            let pipe= &Model::extrude(&2, &radius, &offset, &pipe_primitive, &Shipyard::OPEN);
+            
+            result.append(&pipe.shift(0.65, 1.35, 0.25));
+            result.append(&pipe.shift(0.85, 1.35, 0.25));
             result
         }
 
-        #[wasm_bindgen]
-        pub fn build_engine (S: f64, A: f64, B: f64, C: f64) -> Model {
-           
-            let mut tempMod = Model::new();
-            let mut result = Model::new();
-            let offset = vec![0.0, 1.0];
-            let radius = vec![1.0, 1.0];
-
-            let w_radius = vec![0.3, 0.3, 1.0, 1.0, 3.0, 3.0];
-            let w_offset = vec![-12.0, 2.0, 3.0, 4.0, 6.0, 7.0];
-            let e_offset = vec![-12.0, -12.0, -11.0, -4.0, -3.0, 1.0, 2.0, 5.0, 5.0]; //{5.0, 5.0, 2.0, 1.0,-3.0, -4.0, -11.0, -12.0, -12.0};
-            let e_radius = vec![0.3, 2.0, 3.0, 3.0, 2.5, 2.5, 3.0, 3.0, 2.0]; //{2.0, 3.0, 3.0, 2.5, 2.5,  3.0,   3.0,   2.0,   0.3};
-
-            let poly = Primitive::regular_polygon(72, Vec3::ZAXIS);
-            
-            result.append(&Model::extrude(&9, &e_radius, &e_offset, &poly, &Shipyard::OPEN));
-            result.append(&Model::extrude (&6, &w_radius, &w_offset, &poly, &Shipyard::OPEN));
-            
-            result
-                .shift(0.0, 0.0, 12.0)
-                .scale(S, S, S)
-                .shift(A, B, C)
-        }
-
-        #[wasm_bindgen]
-        pub fn build_thruster (A: f64, B: f64, C: f64) -> Model {
-            
-           
-            let mut result = Model::new();
-            let t_radius = vec![0.6, 0.75, 1.0, 1.0, 0.75, 0.6];
-            let t_offset = vec![-0.75, -0.75, -0.5, 0.5, 0.75, 0.75];
         
-            let tempMod = Model::extrude(&6, &t_radius, &t_offset, &Primitive::rectangle(0.5, 0.8).bevel(10, 0.15), &Shipyard::OPEN)
-                .shift(-0.5, 0.0, 0.0);
-            
-            result.append(&tempMod.copy());
-            result.append(&tempMod.reflect(1));
-            
-            result.shift(A, B, C)
-        }
+
+        
 
 
         
-        pub fn build_tube (S: f64, A: f64, B: f64, C: f64) -> Model {
+        pub fn build_tube (res: usize, S: f64, A: f64, B: f64, C: f64) -> Model {
 
 
             let mut result = Model::new();
@@ -1293,7 +1451,7 @@ pub mod model_system {
             let hexagon = Primitive::regular_polygon(6, Vec3::ZAXIS) // hexagon
                 .scale((2.0/3.0 as f64).sqrt(), (2.0/3.0 as f64).sqrt(), 1.0);
             
-            let tube = Primitive::regular_polygon(72, Vec3::ZAXIS) // tube poly
+            let tube = Primitive::regular_polygon(res, Vec3::ZAXIS) // tube poly
                 .scale(0.75, 0.75, 1.0)
                 .shift(0.0, 0.0, 0.5); // depth of funnel, shift tube
             
@@ -1321,7 +1479,7 @@ pub mod model_system {
         }
 
         #[wasm_bindgen]
-        pub fn build_tube_cover (S: f64, A: f64, B: f64, C: f64) -> Model {
+        pub fn build_tube_cover (res: usize, S: f64, A: f64, B: f64, C: f64) -> Model {
 
             let mut result = Model::new();
             let radius = vec![1.0, 1.0];
@@ -1332,7 +1490,7 @@ pub mod model_system {
                 .scale((2.0/3.0 as f64).sqrt(), (2.0/3.0 as f64).sqrt(), 1.0);
             
             
-            let inner = Primitive::regular_polygon(72, Vec3::ZAXIS)
+            let inner = Primitive::regular_polygon(res, Vec3::ZAXIS)
                 .scale(0.75, 0.75, 1.0)
                 .shift(0.0, 0.0, 0.5);
             

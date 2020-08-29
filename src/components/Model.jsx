@@ -10,12 +10,11 @@ export const StyledCanvas = styled.canvas`
 
 export default ({
     font=`16px Arial`,
-    meshColor=`#EF5FA1FF`,
+    meshColor=`#AFFFD6FF`,
     overlayColor=`#77CCFFFF`,
-    backgroundColor=`#00000088`,
-    caption=``,
-    alpha=1.0,
-    lineWidth=1.0,
+    backgroundColor=`#000000CC`,
+    alpha=0.25,
+    lineWidth=0.1,
 }) => {
     /*
     Triangles
@@ -39,10 +38,15 @@ export default ({
         The model structure is populated on demand during the draw effect.
         */
         if (!runtime) return;
+        let assembly = new runtime.Shipyard();
+
+        assembly.build_ship(16);
+        // assembly.scale(0.35, 0.35, 0.35);
+        assembly.scale(0.5, 0.5, 0.5);
+        assembly.shift(0.0, 0.0, -0.4);
+
         setMesh(
-            runtime.Shipyard.build_body()
-                .scale(0.25, 0.25, 0.25)
-                .shift(-0.5, -0.5, 0.0)
+            assembly
         ); 
     }, [runtime]);
 
@@ -74,19 +78,33 @@ export default ({
         //     console.log(`There was a problem populating mesh:`, {mesh});
         // }
         
+        let previous;
 
         (function render() {
-            let time = performance.now() - start
-            
+            const time = performance.now() - start;
+
             runtime.clear_rect_blending(ctx, ...shape, backgroundColor);
-            let triangles = mesh
-                .rotate_from_js(time/3000.0 % 360.0, 0.0, 1.0, 0.0)
-                .draw_edges(ctx, ...shape, meshColor, alpha, lineWidth);
+            let elapsed = (time-(previous||0.0));
+            
+            mesh.rotate_in_place(-0.00005*elapsed, 0.0, 1.0, 0.0);
+            mesh.rotate_in_place(0.000025*elapsed, 1.0, 0.0, 0.0);
+            mesh.rotate_in_place(-0.0003*elapsed, 0.0, 0.0, 1.0);
+               
+            let triangles = mesh.draw(ctx, ...shape, alpha, lineWidth*2.0, 0.0);
+
+            // mesh.rotate_in_place(-0.00015*(elapsed+10.0), 0.0, 1.0, 0.0);
+            // mesh.rotate_in_place(0.0001*(elapsed+10.0), 1.0, 0.0, 0.0);
+            // mesh.rotate_in_place(-0.0003*(elapsed+10.0), 0.0, 0.0, 1.0);
+
+            // triangles = mesh.draw_edges(ctx, ...shape, `#FFFFFFFF`, 1.0, lineWidth, 0.0);
 
             cursor.draw(ctx, ...shape, overlayColor, time, lineWidth);
             runtime.draw_caption(ctx, `Triangles=${triangles}`, 0.0, shape[1], overlayColor, font);
             frames = runtime.draw_fps(ctx, frames, time, overlayColor);
             requestId = requestAnimationFrame(render);
+
+            previous = time;
+
         })()
 
         return () => cancelAnimationFrame(requestId);

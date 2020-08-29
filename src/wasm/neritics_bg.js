@@ -518,7 +518,7 @@ function getUint8ClampedMemory0() {
 function getClampedArrayU8FromWasm0(ptr, len) {
     return getUint8ClampedMemory0().subarray(ptr / 1, ptr / 1 + len);
 }
-function __wbg_adapter_199(arg0, arg1, arg2, arg3) {
+function __wbg_adapter_204(arg0, arg1, arg2, arg3) {
     _assertNum(arg0);
     _assertNum(arg1);
     wasm.wasm_bindgen__convert__closures__invoke2_mut__h96984aac8d17c2af(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
@@ -853,19 +853,31 @@ export class Model {
         return Model.__wrap(ret);
     }
     /**
+    * @param {number} angle
+    * @param {number} ax
+    * @param {number} ay
+    * @param {number} az
+    */
+    rotate_in_place(angle, ax, ay, az) {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        wasm.model_rotate_in_place(this.ptr, angle, ax, ay, az);
+    }
+    /**
     * @param {CanvasRenderingContext2D} ctx
     * @param {number} w
     * @param {number} h
     * @param {any} color
     * @param {number} time
     * @param {number} line_width
+    * @param {number} point_size
     * @returns {number}
     */
-    draw_edges(ctx, w, h, color, time, line_width) {
+    draw_edges(ctx, w, h, color, time, line_width, point_size) {
         try {
             if (this.ptr == 0) throw new Error('Attempt to use a moved value');
             _assertNum(this.ptr);
-            var ret = wasm.model_draw_edges(this.ptr, addBorrowedObject(ctx), w, h, addHeapObject(color), time, line_width);
+            var ret = wasm.model_draw_edges(this.ptr, addBorrowedObject(ctx), w, h, addHeapObject(color), time, line_width, point_size);
             return ret >>> 0;
         } finally {
             heap[stack_pointer++] = undefined;
@@ -1046,8 +1058,11 @@ export class RectilinearGrid {
 */
 export class Shipyard {
 
-    constructor() {
-        throw new Error('cannot invoke `new` directly');
+    static __wrap(ptr) {
+        const obj = Object.create(Shipyard.prototype);
+        obj.ptr = ptr;
+
+        return obj;
     }
 
     free() {
@@ -1055,6 +1070,71 @@ export class Shipyard {
         this.ptr = 0;
 
         wasm.__wbg_shipyard_free(ptr);
+    }
+    /**
+    */
+    constructor() {
+        var ret = wasm.shipyard_new();
+        return Shipyard.__wrap(ret);
+    }
+    /**
+    * @param {number} angle
+    * @param {number} ax
+    * @param {number} ay
+    * @param {number} az
+    */
+    rotate_in_place(angle, ax, ay, az) {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        wasm.shipyard_rotate_in_place(this.ptr, angle, ax, ay, az);
+    }
+    /**
+    * @param {number} dx
+    * @param {number} dy
+    * @param {number} dz
+    */
+    shift(dx, dy, dz) {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        wasm.shipyard_shift(this.ptr, dx, dy, dz);
+    }
+    /**
+    * @param {number} sx
+    * @param {number} sy
+    * @param {number} sz
+    */
+    scale(sx, sy, sz) {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        wasm.shipyard_scale(this.ptr, sx, sy, sz);
+    }
+    /**
+    * @param {CanvasRenderingContext2D} ctx
+    * @param {number} w
+    * @param {number} h
+    * @param {number} time
+    * @param {number} line_width
+    * @param {number} point_size
+    * @returns {number}
+    */
+    draw(ctx, w, h, time, line_width, point_size) {
+        try {
+            if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+            _assertNum(this.ptr);
+            var ret = wasm.shipyard_draw(this.ptr, addBorrowedObject(ctx), w, h, time, line_width, point_size);
+            return ret >>> 0;
+        } finally {
+            heap[stack_pointer++] = undefined;
+        }
+    }
+    /**
+    * @param {number} res
+    */
+    build_ship(res) {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        _assertNum(res);
+        wasm.shipyard_build_ship(this.ptr, res);
     }
     /**
     * @returns {Model}
@@ -1071,46 +1151,29 @@ export class Shipyard {
         return Model.__wrap(ret);
     }
     /**
+    * @param {number} res
     * @param {number} S
     * @param {number} A
     * @param {number} B
     * @param {number} C
     * @returns {Model}
     */
-    static build_engine(S, A, B, C) {
-        var ret = wasm.shipyard_build_engine(S, A, B, C);
+    static build_tube(res, S, A, B, C) {
+        _assertNum(res);
+        var ret = wasm.shipyard_build_tube(res, S, A, B, C);
         return Model.__wrap(ret);
     }
     /**
-    * @param {number} A
-    * @param {number} B
-    * @param {number} C
-    * @returns {Model}
-    */
-    static build_thruster(A, B, C) {
-        var ret = wasm.shipyard_build_thruster(A, B, C);
-        return Model.__wrap(ret);
-    }
-    /**
+    * @param {number} res
     * @param {number} S
     * @param {number} A
     * @param {number} B
     * @param {number} C
     * @returns {Model}
     */
-    static build_tube(S, A, B, C) {
-        var ret = wasm.shipyard_build_tube(S, A, B, C);
-        return Model.__wrap(ret);
-    }
-    /**
-    * @param {number} S
-    * @param {number} A
-    * @param {number} B
-    * @param {number} C
-    * @returns {Model}
-    */
-    static build_tube_cover(S, A, B, C) {
-        var ret = wasm.shipyard_build_tube_cover(S, A, B, C);
+    static build_tube_cover(res, S, A, B, C) {
+        _assertNum(res);
+        var ret = wasm.shipyard_build_tube_cover(res, S, A, B, C);
         return Model.__wrap(ret);
     }
 }
@@ -1558,7 +1621,7 @@ export const __wbg_new_261626435fed913c = logError(function(arg0, arg1) {
             const a = state0.a;
             state0.a = 0;
             try {
-                return __wbg_adapter_199(a, state0.b, arg0, arg1);
+                return __wbg_adapter_204(a, state0.b, arg0, arg1);
             } finally {
                 state0.a = a;
             }
@@ -1685,8 +1748,8 @@ export const __wbindgen_memory = function() {
     return addHeapObject(ret);
 };
 
-export const __wbindgen_closure_wrapper2875 = logError(function(arg0, arg1, arg2) {
-    var ret = makeMutClosure(arg0, arg1, 49, __wbg_adapter_22);
+export const __wbindgen_closure_wrapper3069 = logError(function(arg0, arg1, arg2) {
+    var ret = makeMutClosure(arg0, arg1, 48, __wbg_adapter_22);
     return addHeapObject(ret);
 });
 
