@@ -51,12 +51,6 @@ from bathysphere.utils import (
     DEGREES,
     polygon_area,
     center,
-    rectangle,
-    square,
-    regular_polygon,
-    wedge,
-    point_arc,
-    parallelogram,
     XAXIS,
     YAXIS,
     ZAXIS,
@@ -538,48 +532,3 @@ def test_datatypes_ndarray_make_vector_primitive():
     assert any(v.orientation != XAXIS)
     v.orientation = normal(v.orientation)
     assert all(v.orientation == XAXIS)
-
-
-def test_datatypes_ndarray_shapes_create_rectangle():
-    vertex_array = rectangle(ww=1.0, hh=1.0)
-    assert polygon_area(vertex_array)
-    assert center(vertex_array)
-
-
-def test_datatypes_ndarray_shapes_create_square():
-    vertex_array = square(0.5)
-    assert polygon_area(vertex_array)
-    assert center(vertex_array)
-
-
-def test_datatypes_ndarray_shapes_create_parallelogram():
-    vertex_array = parallelogram(dh=1.0, dw=1.0, ww=1.0, hh=1.0)
-    assert polygon_area(vertex_array)
-    assert center(vertex_array)
-
-
-def test_datatypes_ndarray_shapes_create_polygon():
-    vertex_array = regular_polygon(10)
-    assert polygon_area(vertex_array)
-    assert center(vertex_array)
-
-
-def test_datatypes_ndarray_shapes_create_wedge():
-    vertex_array = wedge(5, 0.0, 0.5)
-    assert polygon_area(vertex_array)
-    assert center(vertex_array)
-
-
-def test_datatypes_ndarray_shapes_create_point_arc():
-    vertex_array = point_arc(5, 0.0, 1.0)
-    assert center(vertex_array)
-
-
-@pytest.mark.xfail
-def test_datatypes_ndarray_shapes_deduplicate_topology():
-    assert False
-
-
-@pytest.mark.xfail
-def test_geometric_calculus_intersect():
-    assert False
