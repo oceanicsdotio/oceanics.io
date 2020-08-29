@@ -62,14 +62,6 @@ from bathysphere.utils import (
     ZAXIS,
     ORIGIN,
     normal,
-    tetrahedron,
-    hexagon,
-    cube,
-    shell,
-    icosahedron,
-    globe,
-    extrude,
-    subdivide,
     interp2d_nearest,
 )
 
@@ -583,67 +575,6 @@ def test_datatypes_ndarray_shapes_create_point_arc():
     assert center(vertex_array)
 
 
-def test_datatypes_ndarray_shapes_create_tetrahedron():
-    vertex_array, _ = tetrahedron()
-    assert center(vertex_array)
-
-
-def test_datatypes_ndarray_shapes_create_hexagon_from_cube():
-    vertex_array, _ = hexagon()
-    assert center(vertex_array)
-
-
-def test_datatypes_ndarray_shapes_create_cube():
-    vertex_array, _ = cube()
-    assert center(vertex_array)
-
-
-def test_datatypes_ndarray_shapes_create_icosahedron():
-    vertex_array, _ = icosahedron()
-    assert center(vertex_array)
-
-
-def test_datatypes_ndarray_shapes_create_globe():
-    vertex_array, _ = globe()
-    assert center(vertex_array)
-
-
-def test_datatypes_ndarray_shapes_create_add_normals():
-    normals = vertex_array_normals(*globe(), s=1.0)
-    assert isinstance(normals.shape, tuple)
-
-
-def test_datatypes_ndarray_shapes_extrude():
-    vertex_array, _ = extrude(square(1.0))
-    assert isinstance(vertex_array.shape, tuple)
-
-
-def test_datatypes_ndarray_shapes_adjacency():
-    adj = adjacency(*tetrahedron())
-    assert isinstance(adj, list) and len(adj) > 1
-
-
-def test_datatypes_ndarray_shapes_subdivide():
-    vertex_array, topology = tetrahedron()
-    subdivide(vertex_array, topology, punch=True)
-    assert isinstance(vertex_array.shape, tuple)
-
-
-def test_datatypes_ndarray_shapes_shell():
-    shl = shell(points=10, start=0.0, dh=0.0, dw=0.5, sweep=pi / 6, ww=1.0, hh=2.0)
-    assert isinstance(shl.shape, tuple)
-
-
-@pytest.mark.xfail
-def test_datatypes_ndarray_shapes_stitch():
-    assert False
-
-
-@pytest.mark.xfail
-def test_datatypes_ndarray_shapes_deduplicate_vertices():
-    assert False
-
-
 @pytest.mark.xfail
 def test_datatypes_ndarray_shapes_deduplicate_topology():
     assert False
@@ -651,29 +582,4 @@ def test_datatypes_ndarray_shapes_deduplicate_topology():
 
 @pytest.mark.xfail
 def test_geometric_calculus_intersect():
-    assert False
-
-
-@pytest.mark.xfail
-def test_datatypes_ndarray_shapes_bevel():
-    assert False
-
-
-@pytest.mark.xfail
-def test_datatypes_ndarray_shapes_roughen():
-    assert False
-
-
-@pytest.mark.xfail
-def test_datatypes_ndarray_shapes_smooth_surface():
-    assert False
-
-
-@pytest.mark.xfail
-def test_datatypes_ndarray_shapes_impact_surface():
-    assert False
-
-
-@pytest.mark.xfail
-def test_datatypes_ndarray_shapes_degrade_epochs():
     assert False
