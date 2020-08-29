@@ -1,16 +1,82 @@
 from numpy import where, roll
+from numpy import ndarray, ones, array
+from numpy import exp
+
 
 from bathysphere.utils import create_fields
 
-REFRACTORY = "R"
-PARTICULATE = "P"
-ORGANIC = "O"
-DISSOLVED = "D"
-LABILE = "L"
-EXCRETED = "Ex"
-RECYCLED = "Re"
-CARBON = "C"
-METHANE = "CH4"
+
+
+DENITRIFICATION = "K150"
+FRAC = "KNIT"
+KNO3 = "KNO3"
+RATES = "K1415"
+K2NOX = "K2NO23"
+
+POOLS = (
+    (0.008, 1.08, "RPON", "RDON"),
+    (0.05, 1.08, "LPON", LABILE + DISSOLVED + ORGANIC + NITROGEN),
+    (0.008, 1.08, "RDON", AMMONIUM),
+    (0.05, 1.08, "LDON", AMMONIUM),
+)
+
+DEFAULT_CONFIG = {
+    "K1012": (0.008, 1.08),
+    "K1113": (0.05, 1.08),
+    "K1214": (0.008, 1.08),
+    "K1314": (0.05, 1.08),
+    "K1415": (0.1, 1.08),
+    "K150": (0.05, 1.045),
+    KNO3: 0.1,
+    FRAC: 1.0,
+    "KAPPNH4S": 0.131,
+    "PIENH4": 1.0,
+    "THTANH4S": 1.12,
+    "KMNH4": 728.0,
+    "THTAKMNH4": 1.13,
+    "KMNH4O2": 0.74,
+    "KAPPNH4F": 0.2,
+    "THTANH4F": 1.08,
+    "KAPP1NO3S": 0.1,
+    K2NOX: 0.25,
+    "THTANO3S": 1.08,
+    "KAPP1NO3F": 0.1,
+    "K2NO3F": 0.25,
+    "THTANO3F": 1.08,
+}
+
+PHOSPHATE = "PO4"
+PHOSPHOROUS = "P"
+POOLS = (
+    (0.01, 1.08, "RPOP", "RDOP"),
+    (0.05, 1.08, "LPOP", "LDOP"),
+    (0.01, 1.08, "RDOP", PHOSPHATE),
+    (0.01, 1.08, "LDOP", PHOSPHATE),
+)
+
+PARTITION = "KADPO4"
+DEFAULT_CONFIG = {
+    "K57": (0.01, 1.08),
+    "K68": (0.05, 1.08),
+    "K710": (0.01, 1.08),
+    "K89": (0.01, 1.08),
+    PARTITION: 6.0,  # PARTITION COEFFICIENT FOR SORBED PHOSPHORUS     L/MG SS
+}
+
+
+OXYGEN = "oxygen"
+EQUIVALENTS = "EqDO"
+E_CONST = "KO2EQ"
+RATES = "K250"
+DIOXIDE = "O2"
+OCRB = 2 * 16 / 12  # OXYGEN TO CARBON RATIO
+
+DEFAULT_CONFIG = {
+    RATES: [0.15, 1.08],
+    E_CONST: 0.1,  # Half saturation constant MG O2/L
+}
+
+
 EXCRETED = "FLOCEX"
 P_MAP = ("K1921", "K2324", "K1820")
 D_MAP = ("K210", "K220", "K240", "K200")
@@ -23,11 +89,7 @@ CRIT_COEF = "CRCSO"
 VS = "VS"
 NET = "NET"
 KMPHYT = "KMPHYT"
-SULFATE = "SO4"
-SULPHUR = "S"
-SILICA = "Si"
-BIOGENIC = "B"
-SILICATE = "SiO3"
+
 PARTITION = "KADSI"
 MINERALIZATION = "K1617"
 
@@ -59,42 +121,7 @@ DEFAULT_CONFIG = {
 
 
 
-
 class Chemistry(dict):
-
-    sources = None
-    key = None  # key is usually the element symbol
-    max = None  # only set if range enforcement is on
-    min = None  # only set if range enforcement is on
-    negatives = (
-        False  # allow negative concentrations, False forces mass to be added to system
-    )
-    flux = None  # transfer of concentration
-
-    def __init__(self, keys, shape, kappa=None, theta=None, coef=None):
-        """
-        Base class that holds all pools for a chemical system
-
-        :param keys: keys for accessing numpy memory arrays
-        :param shape: shape of
-        """
-
-        dict.__init__(self, create_fields(keys, shape, precision=float))
-      
-        self.coef = coef
-        self.shape = shape  # shape of the quantized fields
-        self.delta = create_fields(keys, shape, precision=float)  # difference equation
-        self.mass = create_fields(keys, shape, precision=float)  # mass tracking
-        self.added = create_fields(
-            keys, shape, precision=float
-        )  # mass created in simulation
-        self.previous = create_fields(keys, shape, precision=float)
-
-        self.kappa = {"marine": kappa, "fresh": None}  # reaction constant
-        self.theta = {
-            "marine": theta,
-            "fresh": None,
-        }  # temperature dependent reaction rate parameter
 
     def _sed_rxn(
         self, coefficient, exponent, regime="marine"
@@ -337,21 +364,6 @@ class Carbon(Chemistry):
         return total if total == 0.0 else labile / total
 
 
-from numpy import exp, where
-from neritics.chemistry.core import Chemistry
-
-OXYGEN = "oxygen"
-EQUIVALENTS = "EqDO"
-E_CONST = "KO2EQ"
-RATES = "K250"
-DIOXIDE = "O2"
-OCRB = 2 * 16 / 12  # OXYGEN TO CARBON RATIO
-
-DEFAULT_CONFIG = {
-    RATES: [0.15, 1.08],
-    E_CONST: 0.1,  # Half saturation constant MG O2/L
-}
-
 
 class Oxygen(Chemistry):
 
@@ -430,55 +442,9 @@ class Oxygen(Chemistry):
         return indices, exponents
 
 
-from ..core import Chemistry
-
-NUTRIENT = "nutrient"
-SORBED = "SS"
-
 
 class Nutrient(Chemistry):
-
-    pools = ()  # tuple of tuples with keys for retrieving data/constants
-
-    def mineralize(self, limit, anomaly):
-        """
-        Perform mineralization step for each internal pool. Sources and sinks are defined during initialization.
-
-        :param limit: available carbon
-        :param anomaly: water temperature anomaly
-
-        :return: success
-        """
-
-        for (const, temp_const, source, sink) in self.pools:
-            if self.verb:
-                print(
-                    "Rate constants for",
-                    source,
-                    "to",
-                    sink + ", base:",
-                    const,
-                    "temp:",
-                    temp_const,
-                )
-
-            delta = self.rxn(const, temp_const, source, anomaly) * limit
-            self.exchange(delta, source=source, sink=sink)
-
-        return True
-
-    def adsorbed(self, flux, key, pool, sediment=None):
-        """
-
-        :param flux:
-        :param key:
-        :param pool:
-        :param sediment:
-        :return: success or export to sediment
-        """
-        export = self._sinking(flux * self[key + SORBED], pool)
-        return export if sediment is None else sediment.conversion(pool, export)
-
+  
     def _nutrient_dep(self, fraction, labile_only=False):
         """
         Nutrient deposition
@@ -497,51 +463,6 @@ class Nutrient(Chemistry):
         )
 
 
-from numpy import where, ndarray, ones, array
-from .core import Nutrient
-from ...chemistry.core import DISSOLVED, LABILE, ORGANIC
-from ..organic import Oxygen, Carbon, OXYGEN
-
-NITROGEN = "N"
-NOX = "NO23"
-AMMONIUM = "NH4"
-DENITRIFICATION = "K150"
-FRAC = "KNIT"
-KNO3 = "KNO3"
-RATES = "K1415"
-K2NOX = "K2NO23"
-
-POOLS = (
-    (0.008, 1.08, "RPON", "RDON"),
-    (0.05, 1.08, "LPON", LABILE + DISSOLVED + ORGANIC + NITROGEN),
-    (0.008, 1.08, "RDON", AMMONIUM),
-    (0.05, 1.08, "LDON", AMMONIUM),
-)
-
-DEFAULT_CONFIG = {
-    "K1012": (0.008, 1.08),
-    "K1113": (0.05, 1.08),
-    "K1214": (0.008, 1.08),
-    "K1314": (0.05, 1.08),
-    "K1415": (0.1, 1.08),
-    "K150": (0.05, 1.045),
-    KNO3: 0.1,
-    FRAC: 1.0,
-    "KAPPNH4S": 0.131,
-    "PIENH4": 1.0,
-    "THTANH4S": 1.12,
-    "KMNH4": 728.0,
-    "THTAKMNH4": 1.13,
-    "KMNH4O2": 0.74,
-    "KAPPNH4F": 0.2,
-    "THTANH4F": 1.08,
-    "KAPP1NO3S": 0.1,
-    K2NOX: 0.25,
-    "THTANO3S": 1.08,
-    "KAPP1NO3F": 0.1,
-    "K2NO3F": 0.25,
-    "THTANO3F": 1.08,
-}
 
 
 class Nitrogen(Nutrient):
@@ -873,28 +794,6 @@ class Sediment(dict):
         self[K2NOX].rate[indices] = self[K2NOX].rxn(1, subset, regime=regime) * z
         return ~mask  # swap to fresh water nodes
 
-
-from neritics.chemistry.nutrient.core import Nutrient
-from numpy import where
-
-
-PHOSPHATE = "PO4"
-PHOSPHOROUS = "P"
-POOLS = (
-    (0.01, 1.08, "RPOP", "RDOP"),
-    (0.05, 1.08, "LPOP", "LDOP"),
-    (0.01, 1.08, "RDOP", PHOSPHATE),
-    (0.01, 1.08, "LDOP", PHOSPHATE),
-)
-
-PARTITION = "KADPO4"
-DEFAULT_CONFIG = {
-    "K57": (0.01, 1.08),
-    "K68": (0.05, 1.08),
-    "K710": (0.01, 1.08),
-    "K89": (0.01, 1.08),
-    PARTITION: 6.0,  # PARTITION COEFFICIENT FOR SORBED PHOSPHORUS     L/MG SS
-}
 
 
 class Phosphorus(Nutrient):
