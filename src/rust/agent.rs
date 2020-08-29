@@ -2,10 +2,10 @@
 pub mod agent_system {
 
     use wasm_bindgen::prelude::*;
-    use wasm_bindgen::{JsValue};
+    use wasm_bindgen::JsValue;
     use std::collections::HashMap;
     use web_sys::{CanvasRenderingContext2d, CanvasGradient};
-    use std::f64::consts::{PI};
+    use std::f64::consts::PI;
     use std::i64;
 
     fn signal (time: f64, period: f64) -> f64 {
