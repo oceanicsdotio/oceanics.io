@@ -71,7 +71,7 @@ class Chemistry(dict):
     )
     flux = None  # transfer of concentration
 
-    def __init__(self, keys, shape, kappa=None, theta=None, coef=None, verb=False):
+    def __init__(self, keys, shape, kappa=None, theta=None, coef=None):
         """
         Base class that holds all pools for a chemical system
 
@@ -80,8 +80,7 @@ class Chemistry(dict):
         """
 
         dict.__init__(self, create_fields(keys, shape, precision=float))
-        self.verb = verb
-
+      
         self.coef = coef
         self.shape = shape  # shape of the quantized fields
         self.delta = create_fields(keys, shape, precision=float)  # difference equation
@@ -139,61 +138,7 @@ class Chemistry(dict):
             else self._enforce_range(concentration, predicted, future)
         )
 
-    def exchange(self, delta, source=None, sink=None, layer=None, conversion=None):
-        """
-        Update difference equation
 
-        :param delta: amount to move between pools
-        :param source: key for source pool if tracked, otherwise created
-        :param sink: key for destination pool if tracked, otherwise destroyed
-        :param layer: limit to single layer
-        :param conversion:
-
-        :return: success
-        """
-
-        if source is not None:
-            target = self.delta[source] if layer is None else self.delta[source][layer]
-            target -= delta if conversion is None else delta * conversion
-
-        if sink is not None:
-            target = self.delta[sink] if layer is None else self.delta[sink][layer]
-            target += delta if conversion is None else delta * conversion
-
-        return True
-
-    def convert(self, sink, delta, scale, layer=None):
-        """
-        Short hand for one-directional scaled exchange
-        """
-        self.exchange(delta * sink, sink=sink, conversion=scale, layer=layer)
-        return True
-
-    @staticmethod
-    def rate(a, b, exponents):
-        """
-        Calculate temperature-dependent reaction rate.
-
-        :param a: base constant
-        :param b: temperature constant
-        :param exponents: temperature dependence
-
-        :return: rate
-        """
-        return a * b ** exponents
-
-    def rxn(self, a, b, pool, anomaly):
-        """
-        Calculate reaction kinetic potential.
-
-        :param a: base constant
-        :param b: temperature constant
-        :param pool: tracer name for self look-up
-        :param anomaly: reaction temperature
-
-        :return: mass transfer
-        """
-        return self[pool] * self.rate(a, b, anomaly)
 
     @staticmethod
     def refractory(fcn, sep=""):
@@ -216,24 +161,6 @@ class Chemistry(dict):
     @staticmethod
     def excreted(fcn, sep=""):
         return sep.join([EXCRETED, fcn(sep)])
-
-    def _sinking(self, delta, key):
-        """
-        Update difference equation between layers and sediment
-
-        :param delta: mass transfer
-        :param key: system/tracer key
-
-        :return: success
-        """
-
-        self.delta[key] -= delta  # remove from layer
-        export = delta[:, -1]
-
-        delta[:, -1] = 0.0  # zero out bottom layer
-        self.delta[key] += roll(delta, 1, axis=1)  # add mass to layer below
-
-        return export
 
 
 class Carbon(Chemistry):
