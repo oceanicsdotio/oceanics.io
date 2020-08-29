@@ -21,7 +21,7 @@ from numpy import (
 
 from pickle import dump, load
 import attr
-from bathysphere.future.chemistry import (
+from bathysphere.simulate.chemistry import (
     OXYGEN,
     CARBON,
     Nitrogen,
