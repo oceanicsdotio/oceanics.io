@@ -11,7 +11,6 @@ from bathysphere.utils import loadAppConfig
 from bathysphere.datatypes import Trie
 
 __pdoc__ = {
-    "simulate": False,
     "test": False
     # submodules will be skipped in doc generation
 }
