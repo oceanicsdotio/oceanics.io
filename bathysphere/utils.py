@@ -1497,27 +1497,3 @@ def shapefile(path, gpu=False):
         result.extend(zip(parts, repeat(meta, len(parts))))
     return result
 
-
-
-
-def hexagon(point_up=True, dim=2):
-    # type: (bool, int) -> (Array, Array) or Array
-    """
-    Flattened hex-like surface by rotating a cube
-    """
-    if not (2 <= dim <= 3):
-        raise ValueError
-    if dim == 2:
-        return regular_polygon(6)
-
-    diag = 2 ** (-1.5)
-    vertex_array, topology = cube(diag)  # create cube instance
-    scale(vertex_array, diag, diag, diag)  # scale to unit diagonal
-    snap = vertex_array[0, :].reshape((1, 3))
-    # turn laterally, view down roll
-    vertex_array = rotate(vertex_array, -pi / 4, (YAXIS if point_up else ZAXIS))
-    rot = angle3d(snap, (ZAXIS if point_up else -ZAXIS))
-    vertex_array = rotate(
-        vertex_array, rot, norm(snap) * (XAXIS if point_up else YAXIS)
-    )
-    return vertex_array, topology
