@@ -895,12 +895,14 @@ class FileSystem:
         - Supplied as a list of dictionaries
         """
         iterators = []
+        queue_size = len(queue)
+
         if identity:
-            iterators.append(repeat(identity))
+            iterators.append(repeat(identity, queue_size))
         if fmt:
-            iterators.append(repeat(fmt))
+            iterators.append(repeat(fmt, queue_size))
         if ts:
-            iterators.append(repeat(ts))
+            iterators.append(repeat(ts, queue_size))
 
         def _chrono(x: File, ts: datetime = None):
             """Chronoloigcal sorting method"""

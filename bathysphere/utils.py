@@ -95,6 +95,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score
 
 try:
+    # pylint: disable=import-error
     import arrayfire as af
 except:
     af = None
