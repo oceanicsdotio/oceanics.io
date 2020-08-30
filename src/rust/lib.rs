@@ -4,9 +4,10 @@ mod tessellate;
 mod webgl;
 mod stream;
 mod model;
+mod physics;
 
 
-pub use tessellate::tessellate::{make_torus};
+pub use tessellate::tessellate::make_torus;
 pub use webgl::graphics_system::{create_buffer, create_program, create_texture};
 
 
@@ -18,7 +19,7 @@ use std::mem;
 use std::os::raw::c_void;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{Request, RequestInit, RequestMode, Response};
-use std::collections::{VecDeque};
+use std::collections::VecDeque;
 
 
 

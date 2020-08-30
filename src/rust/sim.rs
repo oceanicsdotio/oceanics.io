@@ -133,6 +133,8 @@ pub mod water_quality {
     // SCALRY = 1.0
     // SCALRZ = 1.0
 
+
+
     pub struct Limit {
         lower: f64,
         upper: f64
@@ -310,6 +312,11 @@ pub mod water_quality {
     }
 
     impl Phosphorus {
+
+
+        const PHOSPHATE: &'static str = "PO4";
+        const PHOSPHOROUS: &'static str = "P";
+
         fn new() -> Phosphorus {
 
         }
@@ -323,6 +330,12 @@ pub mod water_quality {
 
     impl Nitrogen {
 
+        const DENITRIFICATION: &'static str = "K150";
+        const FRAC: &'static str = "KNIT";
+        const KNO3: &'static str = "KNO3";
+        const RATES: &'static str = "K1415";
+        const K2NOX: &'static str = "K2NO23";
+
     }
 
     struct Silica {
@@ -332,6 +345,29 @@ pub mod water_quality {
     impl Silica {
 
     }
+
+    struct Sulphur {
+
+    }
+
+    impl Sulphur {
+        fn regress(salinity: Vec<f64>) -> Vec<f64> {
+            /*
+            Regression to get SO4 concentration from salinity
+            */
+            let mut sulfate = Vec::with_capacity(salinity.len());
+            for val in &salinity {
+                let mut sulf = 20.0;
+                if val < 0.0099 {  // 1 ppt = 607.445 mg/L Cl
+                    sulf += + 27.0 / 190.0 * 607.445 * salinity;  // mg/L for [Cl] > 6 mg/L
+                }
+                sulfate.push(sulf);
+            }
+            sulfate  
+        }
+    }
+
+
 
 
 

@@ -1,28 +1,32 @@
-// POM = "POM"
-// PIM = "PIM"
-// VS = "VS"
-// SEDT = "SEDT"
-// PMT = "PMT"
-// NET = "NET"
-// BAST = "BAST"
-// RATIO_CN = "CTONCSO"
-// RATIO_CP = "CTOPCSO"
-
-// DEFAULT_CONFIG = {
-//     RATIO_CP: 0.0,  # carbon to phosphorus ratio of cso solids
-//     RATIO_CN: 0.0,  # CARBON TO NITROGEN RATIO OF CSO SOLIDS
-//     "KAT": 1.024,  # TEMPERATURE CORRECTION COEFFICIENT FOR ATMOSPHERIC REAERATION
-//     VS + BAST: 1.027,  # TEMPERATURE CORRECTION
-//     VS + POM: 1.0,  # PARTICULATE ORGANIC MATTER SETTLING RATE          M/DAY
-//     VS + PMT: 1.027,  # TEMPERATURE CORRECTION
-//     VS + SEDT: 1.027,  # TEMPERATURE CORRECTION FOR DEPOSITION TO SEDIMENT
-//     VS + PIM: 0.0,  # SETTLING RATE FOR PHOSPHOURS/SILICA SORBED TO SS     M/DAY
-//     "KECONST": 0.001,  # base chl corrected extinction coefficient (when KEOPT is 0 or 2)
-// }
-
-
 pub mod physics_system {
-    pub struct Light {
+
+    use std::f64::consts::PI;
+    use std::collections::HashMap;
+
+
+    const POM: &'static str = "POM";
+    const PIM: &'static str = "PIM";
+    const VS: &'static str = "VS";
+    const SEDT: &'static str = "SEDT";
+    const PMT: &'static str = "PMT";
+    const NET: &'static str = "NET";
+    const BAST: &'static str = "BAST";
+    const RATIO_CN: &'static str = "CTONCSO";
+    const RATIO_CP: &'static str = "CTOPCSO";
+
+    // DEFAULT_CONFIG = {
+    //     RATIO_CP: 0.0,  # carbon to phosphorus ratio of cso solids
+    //     RATIO_CN: 0.0,  # CARBON TO NITROGEN RATIO OF CSO SOLIDS
+    //     "KAT": 1.024,  # TEMPERATURE CORRECTION COEFFICIENT FOR ATMOSPHERIC REAERATION
+    //     VS + BAST: 1.027,  # TEMPERATURE CORRECTION
+    //     VS + POM: 1.0,  # PARTICULATE ORGANIC MATTER SETTLING RATE          M/DAY
+    //     VS + PMT: 1.027,  # TEMPERATURE CORRECTION
+    //     VS + SEDT: 1.027,  # TEMPERATURE CORRECTION FOR DEPOSITION TO SEDIMENT
+    //     VS + PIM: 0.0,  # SETTLING RATE FOR PHOSPHOURS/SILICA SORBED TO SS     M/DAY
+    //     "KECONST": 0.001,  # base chl corrected extinction coefficient (when KEOPT is 0 or 2)
+    // }
+
+    struct Light {
         /*
         Simulate the submarine light field. Automatically updates when attenuation is calculated.
 
@@ -33,200 +37,211 @@ pub mod physics_system {
 
         intensity: f64,
         base: f64,
-        slope: f64
+        slope: f64,
+        period: f64
         
     }
 
     impl Light {
-        fn new(intensity: f64, base: f64, slope: f64 ) -> Light {
+        pub fn new(intensity: f64, base: f64, slope: f64, period: f64) -> Light {
             Light {
                 intensity,
                 base,
-                slope
+                slope,
+                period,
             }
         }
+
+        fn par(self, time: f64) -> f64 {
+            /*
+            Surface irradiance at the given time of day pure sinusoid (continuous for photosynthesis)
+
+            :param time: fraction of the day
+
+            */
+            
+            let t = 2.0 * time - 1.0;
+            if t < self.period && t > -self.period {
+                let delay = (1.0 - self.period) / 2.0;
+                let x = (time - delay) / self.period;
+                self.intensity * 0.5 * (1.0 - (2.0 * PI * x).cos())
+            }
+            else {
+                0.0
+            }
+                
+        }
+
+        fn daylight(yd: f64, latitude: f64) -> f64 {
+            /*
+            Calculate fraction of daylight based on current day of year and latitude
+
+            :param latitude:
+            :param constant:
+            :return:
+            */
+            let revolution = 0.2163108 + 2.0 * (0.9671396 * (0.00860 * (yd - 186.0)).tan()).atan();
+            let declination = (0.39795 * revolution.cos()).asin();
+            let numerator = (0.833 * PI / 180.0).sin() + (latitude * PI / 180.0).sin() * 
+                declination.sin();
+            
+            let denominator = (latitude * PI / 180.0).cos() * declination.cos();
+            1.0 - (numerator / denominator).acos() / PI
+        }
+
+        pub fn update(&mut self, dt: f64, dk: f64, quanta: f64, par: f64, latitude: f64) {
+            /*
+            Update light state
+
+            :param ts: datetime object
+            :param dt: optional, timestep for updates
+            :param par: optional, irradiance
+            :param quanta: optional, conversion rate
+            :param dk: change in extinction coefficients
+            :param latitude:
+            */
+            self.base += dk * dt;
+            self.intensity += self.slope * dt * quanta * par;
+
+            //     tt = ts.timetuple()
+            //     time = (tt.tm_hour + (tt.tm_min + tt.tm_sec / 60) / 60) / 24
+            //     self._period = self._daylight(
+            //         tt.tm_yday, self._latitude
+            //     )  # calculate new photo-period
+            //     self._surface = self._par(time, self._period, self._intensity)
+
+
+        }
+
+        pub fn attentuate() {
+            /*
+            Calculate light field for photosynthesis
+
+            :param ts: datetime object
+            :param dt: time step
+            :param depth: node-bound depth field
+            :param par: fraction of light
+            :param biology: optional cumulative extinction coefficient field for phytoplankton
+            :param latitude: optional, for photo-period calculation
+
+            def attenuate(self, ts, depth, dt=None, par=PAR, biology=0.0, latitude=None):
+    
+
+                self._update(ts, dt=dt, par=par, quanta=LYMOLQ, dk=None, latitude=latitude)
+                extinction = depth * (self.base + biology)
+                result = zeros(depth.shape, dtype=float)
+                local = self._surface
+                ii = 0
+
+                while True:
+                    result[:, ii] = local
+                    ii += 1
+                    if ii == depth.shape[1]:
+                        break
+
+                    local *= exp(-extinction[:, ii])
+
+                return result
+            */
+
+                
+        }
+    
+    }
+
+
+    struct Sediment {
+
+    }
+
+    struct Settling {
+
+        sediment: Sediment,
+        config: HashMap<String,f64>
+
+    }
+
+    impl Settling {
+        fn base() {
+            /*
+            def base(self, anomaly):
+                return self.config["VSPMT"] ** anomaly
+            */
+
+        }
+
+        fn settling() {
+            /*
+            Move particulate mass due to settling
+
+                :param mesh: mesh instance
+                :param anomaly: temperature anomaly
+
+
+            def settling(
+                self,
+                carbon,
+                phosphorous,
+                silica,
+                phytoplankton,
+                anomaly: array,
+                mesh=None,
+                conversion: float = 0.001,
+            ):
+              
+                (each.settling(mesh, systems, self.sediment) for each in phytoplankton)
+
+                base = self.settling * mesh.nodes.area
+                correction = self.config[VS + SEDT] ** anomaly
+
+                phosphorous._adsorbed(base, conversion, self.sediment, (PHOSPHATE, PHOSPHATE))
+                self._particulate_organics(
+                    base, correction, systems, carbon, phosphorous, silica
+                )
+
+                corr = self.config[VS + NET] * correction
+                self.sediment.conversion(key, carbon._solids(**kwargs), corr)
+
+                if self.sediment is not None:
+                    self.sediment.flux()
+            */
+        }
+
+        fn adsorbed(&self, base: f64, phosphorus: Phosphorus, silica: Silica, sediment: Sediment) {
+            /*
+            :param base: base rate
+            :param phosphorous: phosphorous system
+            :param silica: silica system
+            :param sediment: optional sediment instance  
+            */
+
+            flux = base * self.config[VS + PIM];
+            phosphorous.adsorbed(flux, PHOSPHATE, PHOSPHATE, sediment);
+            silica.adsorbed(flux, SILICA, SILICATE, sediment);
+        }
+
+        fn particulate_organics(self, base, correction, systems, carbon, phosphorous, silica) {
+            /*            
+            
+            flux = base * self.config[VS + POM]
+            systems.deposit(base * correction, carbon.key, sediment=self.sediment)
+
+            corr = correction / self.config[VS + POM]
+            delta = flux * self.config[VS + POM]
+
+            assert silica._sinking(delta, corr, self.sediment)
+            phosphorous._sinking(delta, corr, self.sediment)
+            carbon._sinking(delta, corr, self.sediment)
+
+            */
+        }
+
     }
 }
 
-        // def _par(self, time):
-        //     """
-        //     Surface irradiance at the given time of day pure sinusoid (continuous for photosynthesis)
 
-        //     :param time: fraction of the day
+ 
 
-        //     """
-        //     if self.period is None:
-        //         raise TypeError
-
-        //     if 1 + self.period > 2 * time > 1 - self.period:
-        //         delay = (1 - self.period) / 2
-        //         x = (time - delay) / self.period
-        //         return self.intensity * 0.5 * (1 - cos(2 * pi * x))
-
-        //     return 0.0
-
-        // def attenuate(self, ts, depth, dt=None, par=PAR, biology=0.0, latitude=None):
-        //     """
-        //     Calculate light field for photosynthesis
-
-        //     :param ts: datetime object
-        //     :param dt: time step
-        //     :param depth: node-bound depth field
-        //     :param par: fraction of light
-        //     :param biology: optional cumulative extinction coefficient field for phytoplankton
-        //     :param latitude: optional, for photo-period calculation
-
-        //     :return:
-        //     """
-
-        //     self._update(ts, dt=dt, par=par, quanta=LYMOLQ, dk=None, latitude=latitude)
-        //     extinction = depth * (self.base + biology)
-        //     result = zeros(depth.shape, dtype=float)
-        //     local = self._surface
-        //     ii = 0
-
-        //     while True:
-        //         result[:, ii] = local
-        //         ii += 1
-        //         if ii == depth.shape[1]:
-        //             break
-
-        //         local *= exp(-extinction[:, ii])
-
-        //     return result
-
-        // def update(
-        //     self, ts: datetime, dt=None, par=None, quanta=None, dk=None, latitude=None
-        // ) -> self:
-        //     """
-        //     Update light state
-
-        //     :param ts: datetime object
-        //     :param dt: optional, timestep for updates
-        //     :param par: optional, irradiance
-        //     :param quanta: optional, conversion rate
-        //     :param dk: change in extinction coefficients
-        //     :param latitude:
-
-        //     :return: success
-        //     """
-        //     if dt is not None:
-        //         if dk is not None:
-        //             self._base += dk * dt
-
-        //         if None not in (par, quanta):
-        //             self.intensity += (
-        //                 (self.slope * dt) * quanta * par
-        //             )  # adjust source intensity
-
-        //     if latitude is not None:
-        //         self._latitude = latitude
-
-        //     tt = ts.timetuple()
-        //     time = (tt.tm_hour + (tt.tm_min + tt.tm_sec / 60) / 60) / 24
-        //     self._period = self._daylight(
-        //         tt.tm_yday, self._latitude
-        //     )  # calculate new photo-period
-        //     self._surface = self._par(time, self._period, self._intensity)
-        //     return self
-
-        // @staticmethod
-        // def _daylight(yd, latitude, constant=0.833):
-        //     """
-        //     Calculate fraction of daylight based on current day of year and latitude
-
-        //     :param latitude:
-        //     :param constant:
-        //     :return:
-        //     """
-        //     revolution = 0.2163108 + 2 * arctan(0.9671396 * tan(0.00860 * (yd - 186)))
-        //     declination = arcsin(0.39795 * cos(revolution))
-        //     numerator = sin(constant * pi / 180) + sin(latitude * pi / 180) * sin(
-        //         declination
-        //     )
-        //     denominator = cos(latitude * pi / 180) * cos(declination)
-        //     result = 1 - arccos(numerator / denominator) / pi
-
-        //     return 0.0 if isnan(result) else result
-        // }
-
-
-// class Settling:
-
-//     sediment = None
-//     config = DEFAULT_CONFIG
-
-//     def base(self, anomaly):
-//         return self.config["VSPMT"] ** anomaly
-
-//     def settling(
-//         self,
-//         carbon,
-//         phosphorous,
-//         silica,
-//         phytoplankton,
-//         anomaly: array,
-//         mesh=None,
-//         conversion: float = 0.001,
-//     ):
-//         """
-//         Move particulate mass due to settling
-
-//         :param mesh: mesh instance
-//         :param anomaly: temperature anomaly
-
-//         :return:
-//         """
-
-//         (each.settling(mesh, systems, self.sediment) for each in phytoplankton)
-
-//         base = self.settling * mesh.nodes.area
-//         correction = self.config[VS + SEDT] ** anomaly
-
-//         phosphorous._adsorbed(base, conversion, self.sediment, (PHOSPHATE, PHOSPHATE))
-//         self._particulate_organics(
-//             base, correction, systems, carbon, phosphorous, silica
-//         )
-
-//         corr = self.config[VS + NET] * correction
-//         self.sediment.conversion(key, carbon._solids(**kwargs), corr)
-
-//         if self.sediment is not None:
-//             self.sediment.flux()
-
-//     def _adsorbed(self, base: float, phosphorous, silica, sediment=None) -> None:
-//         """
-
-//         :param base: base rate
-//         :param phosphorous: phosphorous system
-//         :param silica: silica system
-//         :param sediment: optional sediment instance
-//         """
-//         flux = base * self.config[VS + PIM]
-//         phosphorous.adsorbed(flux, PHOSPHATE, PHOSPHATE, sediment)
-//         silica.adsorbed(flux, SILICA, SILICATE, sediment)
-
-//     def _particulate_organics(
-//         self, base, correction, systems, carbon, phosphorous, silica
-//     ):
-//         """
-//         :param base:
-//         :param correction:
-//         :param systems:
-
-//         :return: success
-//         """
-//         flux = base * self.config[VS + POM]
-//         systems.deposit(base * correction, carbon.key, sediment=self.sediment)
-
-//         corr = correction / self.config[VS + POM]
-//         delta = flux * self.config[VS + POM]
-
-//         assert silica._sinking(delta, corr, self.sediment)
-//         phosphorous._sinking(delta, corr, self.sediment)
-//         carbon._sinking(delta, corr, self.sediment)
-
-//         return True
 
 
 
