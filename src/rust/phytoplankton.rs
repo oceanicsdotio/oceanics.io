@@ -1,124 +1,79 @@
-from numpy import exp, where, array, zeros
+pub mod phytoplankton_system {
 
-from bathysphere.future.chemistry import (
-    NITROGEN, 
-    PHOSPHOROUS, 
-    SILICA, 
-    AMMONIUM, 
-    SILICATE, 
-    BIOGENIC, 
-    Silica,
-    CARBON,
-    NUTRIENT
-)
+    const RESPIRATION: &'static str = "respiration";
+    const PRODUCTION: &'static str = "production";
+    const EXUDATE: &'static str = "ExDOC";
+    const CHLOROPHYLL: &'static str = "chlorophyll";
+    const CARBON: &'static str = "carbon";
+    const LIGHT: &'static str = "light";
+    const AMMONIA: &'static str = "preference";
+    const DEATH: &'static str = "death";
+    const SETTLING: &'static str = "settling";
+    const TEMPERATURE: &'static str = "temperature";
+    const PHYTOPLANKTON: &'static str = "phyto";
+    const OXYGEN: &'static str = "oxygen";
+    const NOX: &'static str = "NO23";
+    const GRAZING: &'static str = "grazing";
+    const PHOSPHATE: &'static str = "PO4";
+    const SORBED: &'static str = "SS";
 
-RESPIRATION = "respiration"
-PRODUCTION = "production"
-EXUDATE = "ExDOC"
-CHLOROPHYLL = "chlorophyll"
-CARBON = "carbon"
-LIGHT = "light"
-AMMONIA = "preference"
-DEATH = "death"
-SETTLING = "settling"
-TEMPERATURE = "temperature"
-PHYTOPLANKTON = "phyto"
-OXYGEN = "oxygen"
-NOX = "NO23"
-GRAZING = "grazing"
-PHOSPHATE = "PO4"
-SORBED = "SS"
+    const STATE: [&'static str; 2] = [CARBON, CHLOROPHYLL];
+    const NUTRIENTS:  [&'static str; 3] = [NITROGEN, PHOSPHOROUS, SILICA];
+    const FACTORS:  [&'static str; 3] = [LIGHT, AMMONIA, NUTRIENT];
+    const RATES:  [&'static str; 4] = [PRODUCTION, DEATH, RESPIRATION, SETTLING];
 
 
-parameters = {
-    "TOPT": [8, 18, 14],
-    "KBETA1": 0.004,
-    "KBETA2": 0.006,
-    "KC": [2.5, 3.0, 2.5],
-    "KT": [0.64, 0.64, 0.64],
-    "IS": [0.0, 0.0, 0.0],
-    "KMN": [0.01, 0.01, 0.005],
-    "KMP": [0.001, 0.001, 0.001],
-    "KMS": [0.02, 0.005, 0.04],
-    "KRB": [0.03, 0.036, 0.03],
-    "KRT": [1.0, 1.0, 1.0],
-    "KRG": [0.28, 0.28, 0.28],
-    "KGRZC": [0.1, 0.1, 0.1],
-    "KGRZT": [1.1, 1.1, 1.1],
-    "FSC": [0.1, 0.1, 0.1],
-    "QF": [0.85, 0.85, 0.85],
-    "CCHL": [40.0, 65.0, 16.0],
-    "CRB": {
-        PHOSPHOROUS: [40.0, 40.0, 40.0],
-        NITROGEN: [5.0, 5.67, 5.67],
-        SILICA: [2.5, 7.0, 2.5],
-    },
-    "XKC": [0.17, 0.17, 0.17],
-    "VSBAS": [0.5, 0.3, 0.3],
-    "VSNTR": [1.0, 0.7, 1.0],
-    "FRPOP": 0.15,
-    "FLPOP": 0.3,
-    "FRDOP": 0.1,
-    "FLDOP": 0.15,
-    "FPO4": 0.3,
-    "FRPON": 0.15,
-    "FLPON": 0.325,
-    "FRDON": 0.15,
-    "FLDON": 0.175,
-    "FNH4": 0.2,
-    "FRPOC": 0.15,
-    "FLPOC": 0.35,
-    "FRDOC": 0.1,
-    "FLDOC": 0.4,
-}
-
-
-
-STATE = (CARBON, CHLOROPHYLL)
-NUTRIENTS = (NITROGEN, PHOSPHOROUS, SILICA)
-FACTORS = (LIGHT, AMMONIA, NUTRIENT)
-RATES = (PRODUCTION, DEATH, RESPIRATION, SETTLING)
-
-
-class Phytoplankton(dict):
-
-    CCHLS = 1  # THIS IS A PLACHOLDER
-    SATURATION = 1  # THIS IS A PLACHOLDER
-    CCHLEQ = 1
-
-    def __init__(self, group, constants=None, mesh=None):
-        """
+    struct Phytoplankton {
+        /*
         Phytoplankton system
+        */
+        id: usize,
+        flag: bool,
+        carbon: Carbon,
+        chlorophyll: Vec<f64>
+    }
 
-        :param mesh: quantized mesh object instance
-        """
-        self.shape = shape = (1, 10) if mesh is None else (mesh.nodes.n, mesh.layers.n)
-        dict.__init__(self, Quantize.create_fields(NUTRIENTS + STATE, shape))
+    impl Phytoplankton {
 
-        self.id = group
-        self.flag = False
-        self.constants = constants if constants is not None else parameters
-        self.nutrients = NUTRIENTS
 
-        self.limit = Quantize.create_fields(NUTRIENTS + FACTORS, shape)
-        self.rate = Quantize.create_fields(RATES, shape)
-        self.ratio = Quantize.create_fields(NUTRIENTS + (CHLOROPHYLL,), shape)
+        const CCHLS: usize = 1;  // THIS IS A PLACHOLDER
+        const SATURATION: usize = 1;  // THIS IS A PLACHOLDER
+        const CCHLEQ: usize = 1;
 
-    def _state(self, conversion=1000):
-        """
-        Calculate state variables from carbon and nutrient ratios.
+        fn new(group: usize) -> Phytoplankton {
+            /*
+            
+            
+            self.shape = shape = (1, 10) if mesh is None else (mesh.nodes.n, mesh.layers.n)
+            dict.__init__(self, Quantize.create_fields(NUTRIENTS + STATE, shape))
+            self.constants = constants if constants is not None else parameters
+            self.nutrients = NUTRIENTS
+            self.limit = create_fields(NUTRIENTS + FACTORS, shape)
+            self.rate = create_fields(RATES, shape)
+            self.ratio = create_fields(NUTRIENTS + (CHLOROPHYLL,), shape)
+            */
+            Phytoplankton {
+                id: group,
+                flag: false
+            }
+        }
 
-        :param conversion: carbon to chlorophyll unit conversion
+        fn state(&self, conversion: f64) {
+            /*
+             Calculate state variables from carbon and nutrient ratios.
 
-        :return: success
-        """
-        self[CHLOROPHYLL] = conversion * self[CARBON] / self.ratio[CHLOROPHYLL]
+            :param conversion: carbon to chlorophyll unit conversion
+            */
+            self.chlorophyll = conversion * self.carbon / self.ratio.chlorophyll;
+            for each in self.nutrients {
+                self[each] = self.ratio[each] * self[CARBON]  // Nutrients in biomass
+            }
+        }
+    }
 
-        for each in self.nutrients:
-            self[each] = self.ratio[each] * self[CARBON]  # Nutrients in biomass
 
-        return True
-
+   
+    
     def _init_limits(self, light, fcn, mesh=None):
         """
         Set initial limitation terms.
@@ -378,6 +333,52 @@ class Phytoplankton(dict):
             * self.rate[PRODUCTION]
         )
 
+
+}
+
+
+
+parameters = {
+    "TOPT": [8, 18, 14],
+    "KBETA1": 0.004,
+    "KBETA2": 0.006,
+    "KC": [2.5, 3.0, 2.5],
+    "KT": [0.64, 0.64, 0.64],
+    "IS": [0.0, 0.0, 0.0],
+    "KMN": [0.01, 0.01, 0.005],
+    "KMP": [0.001, 0.001, 0.001],
+    "KMS": [0.02, 0.005, 0.04],
+    "KRB": [0.03, 0.036, 0.03],
+    "KRT": [1.0, 1.0, 1.0],
+    "KRG": [0.28, 0.28, 0.28],
+    "KGRZC": [0.1, 0.1, 0.1],
+    "KGRZT": [1.1, 1.1, 1.1],
+    "FSC": [0.1, 0.1, 0.1],
+    "QF": [0.85, 0.85, 0.85],
+    "CCHL": [40.0, 65.0, 16.0],
+    "CRB": {
+        PHOSPHOROUS: [40.0, 40.0, 40.0],
+        NITROGEN: [5.0, 5.67, 5.67],
+        SILICA: [2.5, 7.0, 2.5],
+    },
+    "XKC": [0.17, 0.17, 0.17],
+    "VSBAS": [0.5, 0.3, 0.3],
+    "VSNTR": [1.0, 0.7, 1.0],
+    "FRPOP": 0.15,
+    "FLPOP": 0.3,
+    "FRDOP": 0.1,
+    "FLDOP": 0.15,
+    "FPO4": 0.3,
+    "FRPON": 0.15,
+    "FLPON": 0.325,
+    "FRDON": 0.15,
+    "FLDON": 0.175,
+    "FNH4": 0.2,
+    "FRPOC": 0.15,
+    "FLPOC": 0.35,
+    "FRDOC": 0.1,
+    "FLDOC": 0.4,
+}
 
 
 class LawsChulup(Phytoplankton):
