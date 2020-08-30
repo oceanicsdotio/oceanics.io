@@ -25,7 +25,7 @@ class polymorphic:
 
     def __get__(self, instance, owner):
         """
-        Hoist the function is necessary
+        Hoist the function if necessary
         """
         if instance is not None:
             wrt = instance

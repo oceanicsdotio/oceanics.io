@@ -806,7 +806,7 @@ class Simulations(object):
             start = time()
             n = len(forcing)
             JSONIOWrapper.log("Scheduler ready", f"spawning {n} workers", log=tempfile)
-            result = pool.starmap(job, zip(_expand(config), forcing))
+            result = pool.starmap(Simulations.job, zip(_expand(config), forcing))
             data, logs = zip(*result)
             finish = time()
             JSONIOWrapper.log(

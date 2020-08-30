@@ -903,12 +903,6 @@ def scale(arr, sx, sy, sz):
     arr[:, :] *= (af.Array if isinstance(arr, af.Array) else array)([sx, sy, sz])
 
 
-def reflect(arr, dim):
-    # type: (Array, (int,)) -> None
-    """Reflect a single dimension"""
-    arr[:, dim] *= -1.0
-
-
 def polygon_area(arr):
     # type: (Array) -> float
     """Polygon area, may be negative depending on winding, but this is retaining for shape culling"""
@@ -1039,15 +1033,6 @@ def raster2mesh(train, predict, order=1):
     model, _ = linear_regression_train(train=train, target=e)
     return linear_regression_predict(model, predict=predict, order=order)
 
-
-def impulse(uv, direction, mag=0.0, stop=False):
-    # type: (Array, Array, Array or float, bool) -> Array
-    """
-    Instantaneously accelerate in the given direction
-    """
-    if stop:
-        return uv - uv
-    return uv + direction * mag
 
 
 def rk4(fcn, y0, t0, dt):
