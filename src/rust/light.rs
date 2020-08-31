@@ -1,12 +1,21 @@
 pub mod light_system {
  
-    use wasm_bindgen::{JsValue, prelude::*};
+    use wasm_bindgen::prelude::*;
+    use std::f64::consts::PI;
+
+    const LIGHT: &'static str = "light";
+    const WEIGHTS: [f64; 3] = [0.1, 0.2, 0.7];
+    const EXTINCTION: f64 = 0.001;
+    const LYMOLQ: f64 = 41840.0 / 217400.0;  // LIGHT SATURATION, MOL QUANTA/M2 UNITS
+    const PAR: f64 = 0.437;
+    const SOURCE: f64 = 650.0;
 
     /*
     The light system module encapsulates simulation algorithms and data structures
     related to the behavior of natural and synthetic light sources in water.
     */
 
+    #[wasm_bindgen]
     struct Light {
         /*
         Simulate the submarine light field. 
@@ -14,67 +23,28 @@ pub mod light_system {
         Automatically memoizes internal state when attenuation is calculated.
 
         :param latitude: for photo-period calculation
-        :param intensity: photosynthetically active radiation from source (sun or lamp) at surface
+        :param intensity: maximum photosynthetically active radiation from source (sun or lamp) at surface
         :param base: base extinction rate
         */
 
         intensity: f64,
         base_extinction_rate: f64,
-        slope: f64,
-        period: f64,
+        slope: f64
         
     }
 
+    #[wasm_bindgen]
     impl Light {
-        // pub fn new(intensity: f64, base: f64, slope: f64, period: f64) -> Light {
-        //     Light {
-        //         intensity,
-        //         base,
-        //         slope,
-        //         period,
-        //     }
-        // }
+        #[wasm_bindgen(constructor)]
+        pub fn new(intensity: f64, base_extinction_rate: f64, slope: f64) -> Light {
+            Light {
+                intensity,
+                base_extinction_rate,
+                slope
+            }
+        }
 
-        // fn par(self, time: f64) -> f64 {
-        //     /*
-        //     Surface irradiance at the given time of day pure sinusoid (continuous for photosynthesis)
-
-        //     :param time: fraction of the day
-
-        //     */
-            
-        //     let t = 2.0 * time - 1.0;
-        //     if t < self.period && t > -self.period {
-        //         let delay = (1.0 - self.period) / 2.0;
-        //         let x = (time - delay) / self.period;
-        //         self.intensity * 0.5 * (1.0 - (2.0 * PI * x).cos())
-        //     }
-        //     else {
-        //         0.0
-        //     }
-                
-        // }
-
-        // fn daylight(yd: f64, latitude: f64) -> f64 {
-        //     /*
-        //     Calculate fraction of daylight based on current day of year and latitude
-
-        //     :param latitude:
-        //     :param constant:
-        //     */
-        //     let revolution = 0.2163108 + 2.0 * (0.9671396 * (0.00860 * (yd - 186.0)).tan()).atan();
-        //     let declination = (0.39795 * revolution.cos()).asin();
-        //     let numerator = (0.833 * PI / 180.0).sin() + (latitude * PI / 180.0).sin() * 
-        //         declination.sin();
-            
-        //     let denominator = (latitude * PI / 180.0).cos() * declination.cos();
-        //     1.0 - (numerator / denominator).acos() / PI
-        // }
-
-       
-    /*
-    
- pub fn update(&mut self, dt: f64, dk: f64, quanta: f64, par: f64, latitude: f64) {
+        pub fn update(&mut self, elapsed: f64, dk: f64, quanta: f64, par: f64, dt: f64) {
             /*
             Update light state
 
@@ -83,52 +53,61 @@ pub mod light_system {
             :param par: optional, irradiance
             :param quanta: optional, conversion rate
             :param dk: change in extinction coefficients
-            :param latitude:
             */
-            self.base += dk * dt;
+            self.base_extinction_rate += dk * dt;
             self.intensity += self.slope * dt * quanta * par;
-
-            //     tt = ts.timetuple()
-            //     time = (tt.tm_hour + (tt.tm_min + tt.tm_sec / 60) / 60) / 24
-            //     self._period = self._daylight(
-            //         tt.tm_yday, self._latitude
-            //     )  # calculate new photo-period
-            //     self._surface = self._par(time, self._period, self._intensity)
-
 
         }
 
-        pub fn attentuate(&self, ts: f64, depth: Vec<f64>, dt: f64, par: f64, biology: f64, latitude: f64) {
+        fn photosynthetically_active_radiation(self, day_of_year: f64, latitude: f64, time_of_day: f64) -> f64 {
+            /*
+            Surface irradiance at the given time of day,
+            pure sinusoid is continuous for photosynthesis
+            */
+            let t: f64 = 2.0 * time_of_day - 1.0;
+            let period: f64 = Light::daylight_period(day_of_year, latitude);
+
+            if t < period && t > -period {
+                let delay = (1.0 - period) / 2.0;
+                return self.intensity * 0.5 * (1.0 - (2.0 * PI * (time_of_day - delay) / period).cos())
+            }
+            0.0                
+        }
+
+        fn daylight_period(day_of_year: f64, latitude: f64) -> f64 {
+            /*
+            Calculate fraction of daylight based on current day of year and latitude
+            */
+            let revolution = 0.2163108 + 2.0 * (0.9671396 * (0.00860 * (day_of_year - 186.0)).tan()).atan();
+            let declination = (0.39795 * revolution.cos()).asin();
+            let numerator = (0.833 * PI / 180.0).sin() + (latitude * PI / 180.0).sin() * 
+                declination.sin();
+            
+            let denominator = (latitude * PI / 180.0).cos() * declination.cos();
+            
+            1.0 - (numerator / denominator).acos() / PI
+        }
+
+        pub fn attentuated_light_profile(&self, day_of_year: f64, latitude: f64, time_of_day: f64, depth: Vec<f64>, biological_extinction_rate: Vec<f64>) -> Vec<f64> {
             /*
             Calculate light field for photosynthesis
 
             :param ts: datetime object
-            :param dt: time step
             :param depth: node-bound depth field
-            :param par: fraction of light
-            :param biology: optional cumulative extinction coefficient field for phytoplankton
+            :param biology: cumulative extinction coefficient field for phytoplankton
             :param latitude: optional, for photo-period calculation
             */
-
-            self._update(ts, dt, par, LYMOLQ, 0.0, latitude);
+            let light_profile: Vec<f64> = Vec::with_capacity(depth.len());
+            let mut local = self.photosynthetically_active_radiation(day_of_year, latitude, time_of_day);
             
-            let extinction = depth * (self.base + biology);
-            let result = zeros(depth.shape, dtype=float);
-            let mut local = self._surface;
-            ii = 0;
-
-            loop {
-
-                result[:, ii] = local;
-                ii += 1;
-                if ii == depth.shape[1] {break;}
-                   
-                local *= exp(-extinction[:, ii]);
+            for layer in 0..depth.len() {
+                let extinction = depth[layer] * (self.base_extinction_rate + biological_extinction_rate[layer]);
+                light_profile.push(extinction);
+                if layer < depth.len() - 1 {
+                    local *= (-extinction).exp();
+                }
             }
-
-            result
+            light_profile
         }
-
-    */
     }
 }

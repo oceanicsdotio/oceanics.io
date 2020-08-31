@@ -8,6 +8,17 @@ pub mod tessellate {
     use web_sys::{CanvasRenderingContext2d, ImageData};
     use std::collections::{HashMap,HashSet};
 
+    pub struct Node {}
+
+    impl Node {}
+
+    pub struct Layers {
+        n: usize,
+        z: Vec<f64>,
+        dz: Vec<f64>
+    }
+
+    impl Layers {}
 
     pub enum RightTriangulatedIrregularNetwork<T: Ord> {
         Node {

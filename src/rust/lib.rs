@@ -5,7 +5,9 @@ mod webgl;
 mod stream;
 mod model;
 mod physics;
-
+mod light;
+mod wind;
+mod simulate;
 
 pub use tessellate::tessellate::make_torus;
 pub use webgl::graphics_system::{create_buffer, create_program, create_texture};
@@ -24,6 +26,37 @@ use std::collections::VecDeque;
 
 
 extern crate console_error_panic_hook;
+
+
+pub struct Array {
+
+}
+
+impl Array {
+    pub fn mean(axis: usize) -> Array {
+        Array {
+
+        }
+    }
+
+    pub fn len(&self) -> usize {
+        0
+    }
+}
+
+pub struct Limit {
+    lower: f64,
+    upper: f64
+}
+
+impl Limit {
+    pub fn new(lower: f64, upper: f64) -> Limit {
+        Limit {
+            lower,
+            upper
+        }
+    }
+}
 
 
 #[wasm_bindgen]

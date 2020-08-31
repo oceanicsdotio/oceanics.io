@@ -552,9 +552,11 @@ pub mod sediment_system {
     }
 
     struct Sediment {
-
+        kappa: f64,
+        theta: f64
     }
 
+    
     impl Sediment {
         fn new(shape: Vec<usize>) -> Sediment {
             /*
@@ -677,5 +679,163 @@ pub mod sediment_system {
 
             */
         }
+
+        fn nitrify(self) {
+            /*
+            
+            */
+        }
+
+//     def nitrify(self, temperature, oxygen, ammonium, partition):
+//         """
+//         SEDIMENT
+
+//         :param temperature:
+//         :param oxygen:
+//         :param ammonium:
+//         :return:
+//         """
+//         ammonium.rate = ammonium.rxn(0.5, temperature)
+//         reaction = (
+//             ammonium.rate ** 2
+//             / transfer
+//             * (oxygen / (self.constants["KMNH4O2"] + oxygen))
+//         )
+
+//         ammonium.flux[:, 0] = transfer * ammonium[:, 0]
+//         ammonium.flux[:, -1] = J[NITROGEN]
+//         partition[0] = partition[AMMONIUM]
+
+//         K1H1D = tracers["NO3"].rate ** 2 / transfer + transfer
+//         K2H2D = tracers["K2NO3"].rate
+
+//         # Oxygen consumed by nitrification
+//         demand = (
+//             64 / 14 / 1000 * ammonium.concentration[:, 0]
+//         )  # mole ratio and mg/m2-day to gm/m2-day
+//         K0H1D = reaction * ammonium.rate  # water column
+//         K1H1D = transfer  # aerobic layer
+
+//         if reaction != 0.0:
+//             demand *= K0H1D / (ammonium.rate + ammonium.previous[:, 0])
+//         else:
+//             demand *= K1H1D - transfer
+
+        fn ammonium_diffusion() {
+            /*
+            */
+        }
+//     def ammonium_diffusion(self, mesh):
+
+//         ammonium = self[AMMONIUM]
+
+//         # Diffusion across layers
+//         internal = ammonium.diffusion(1)
+//         ammonium.delta[:, 0] += internal
+//         ammonium.delta[:, -1] -= internal
+
+//         # Diffusion across surface
+//         surface = transfer * (ammonium.concentration[:, 0] - mesh.fields["NH4"][:, -1])
+//         ammonium.delta[:, 0] -= surface
+//         mesh.delta[AMMONIUM][:, -1] += surface
+
+//         # Sources: Diagenesis/ammonification of PON in anaerobic layer\
+
+//         # Kinetics
+//         self.nitrification(mesh, ammonium)
+
+//         return True
+
+            fn denitrify() {
+                /*
+                Sediment denitrification flux
+                */
+            }
+//     def denitrify(self, oxygen, salinity, transfer, anomaly, marine):
+//         # a, b = self.config[DENITRIFICATION]
+//         # delta = self.rate(a, b, anomaly) * self[NOX] * self.config[KNO3] / (oxygen + self.config[KNO3])
+//         # delta *= carbon.available()
+//         # assert self.exchange(delta, source=NOX), "Problem in de-nitrification transfer."
+//         #
+//         # consumed = 60 / 4 / 14 * delta
+//         # source = carbon.labile(carbon.dissolved)
+//         # return carbon.exchange(consumed, source=source) if carbon.__class__ == Carbon else consumed
+
+//         anaerobic = self.depth - self.aerobic
+
+//         regime = "marine" if salinity > marine else "fresh"
+//         self[NOX][0].rate = self[NOX][0].rxn(0.5, anomaly, regime=regime)
+//         self[NOX][1].rate = self[NOX][1].rxn(1.0, anomaly, regime=regime) * anaerobic
+
+//         denitrification = (
+//             self[NOX][0].rate ** 2 / transfer + self[NOX][1].rate
+//         ) * self[NOX][0].concentration
+
+//         # denitrification
+//         nitrate = self[NOX][:, -1] * 1000
+//         J1 = (
+//             S * nitrate
+//             + self[AMMONIUM].rate ** 2
+//             / transfer
+//             * (oxygen / (KMNH4O2 + oxygen))
+//             * self[AMMONIUM]
+//         )
+//         if self[AMMONIUM].rate > 0.0:
+//             J1 *= self[AMMONIUM].rate / (self[AMMONIUM].rate + self[AMMONIUM].previous)
+
+//         return denitrification
+
+        fn _flux() {}
+//     def _flux(self, temperature):
+//         """ammonium, nitrate, and sediment oxygen demand fluxes"""
+
+//         nitrate = self[NOX][:, -1] * 1000
+//         oxygen = self[OXYGEN][:, -1]
+
+//         dissolved_rate = self.rxn(KAPPD1, THTAPD1, 0.5, temperature)
+//         particulate_rate = self.rxn(KAPPP1, THTAPD1, 0.5, temperature)
+
+//         oxidation = rxn(DD0, THTADD0, 1, temperature)
+//         bottom = self.depth - (oxidation / self.transfer).clip(
+//             min=0.0
+//         )  # limit to depth of sediment
+//         self.aerobic = self.depth - bottom
+
+//         self.ammonium_diffusion(mesh)
+//         self.nitrification(ammonium, oxygen, temperature)
+
+//         self.nitrate.flux = self.nitrate.diffusion(1)  # diffusion
+//         return self.transfer * (self.nitrate - nitrate)  # surface transfer
+
+        fn regime() {}
+//     def _regime(self, anomaly, salinity, threshold, z):
+//         mask = salinity > threshold  # marine nodes
+//         for regime in ["marine", "fresh"]:
+//             mask = self._flux_regime_switch(mask, anomaly, regime, z)
+
+//         return True
+
+        fn _flux_regime_switch() {
+            /*
+             Calculate for one salinity regime, and then invert the mask
+
+            :param mask:
+            :param anomaly:
+            :param regime:
+            :param z: sediment depth
+             */
+
+
+//         indices = where(mask)
+//         subset = anomaly[indices]
+//         self[AMMONIUM].rate[indices] = self[AMMONIUM].rxn(0.5, subset, regime=regime)
+//         self[NOX].rate[indices] = self[NOX].rxn(0.5, subset, regime=regime) * z
+//         self[K2NOX].rate[indices] = self[K2NOX].rxn(1, subset, regime=regime) * z
+//         return ~mask  # swap to fresh water nodes
+        }
+
+
+
+
     }
 }
