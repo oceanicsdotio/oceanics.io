@@ -9,6 +9,8 @@ mod light;
 mod wind;
 mod simulate;
 mod sediment;
+mod phytoplankton;
+mod shellfish;
 
 pub use tessellate::tessellate::make_torus;
 pub use webgl::graphics_system::{create_buffer, create_program, create_texture};
@@ -17,7 +19,7 @@ pub use webgl::graphics_system::{create_buffer, create_program, create_texture};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::{JsCast, JsValue};
 use web_sys::{HtmlCanvasElement, CanvasRenderingContext2d};
-use std::f32::consts::{PI};
+use std::f32::consts::PI;
 use std::mem;
 use std::os::raw::c_void;
 use wasm_bindgen_futures::JsFuture;
