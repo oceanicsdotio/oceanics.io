@@ -4,9 +4,9 @@ pub mod plotting_system {
     */
 
     use wasm_bindgen::prelude::*;
-    use std::collections::{VecDeque};
-    use web_sys::{CanvasRenderingContext2d};
-    use wasm_bindgen::{JsValue};
+    use std::collections::VecDeque;
+    use web_sys::CanvasRenderingContext2d;
+    use wasm_bindgen::JsValue;
 
     #[allow(dead_code)]
     #[wasm_bindgen]
@@ -125,21 +125,6 @@ pub mod plotting_system {
             self.data.push_back(Observation{x, y});
         }
 
-        fn draw_mean_line(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64) {
-            /*
-            Display summary statistics for the current window
-            */
-            ctx.begin_path();
-            ctx.move_to(0.0, self.mean[0]);
-            let mut ii = 0.0;
-            let size = self.data.len();
-            for value in &self.mean {
-                ctx.line_to(ii*w/size as f64, self.rescale(*value)*h);
-                ii += 1.0;
-            }
-            ctx.stroke();
-        }
-
         fn rescale(&self, y: f64) -> f64 {
             /*
             Transform the y-dimension to pixel dimensions
@@ -178,6 +163,21 @@ pub mod plotting_system {
             ctx.stroke();
         }
 
+        fn draw_mean_line(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64) {
+            /*
+            Display summary statistics for the current window
+            */
+            ctx.begin_path();
+            ctx.move_to(0.0, self.mean[1]);
+            let mut ii = 0.0;
+            let size = self.data.len();
+            for value in &self.mean {
+                ctx.line_to(ii*w/size as f64, self.rescale(*value)*h);
+                ii += 1.0;
+            }
+            ctx.stroke();
+        }
+
         pub fn draw(&self, ctx: CanvasRenderingContext2d, w: f64, h: f64, color: JsValue, point_size: f64, line_width: f64, alpha: f64) {
             /*
             Routine to draw the structure to an HTML5 canvas element
@@ -186,6 +186,7 @@ pub mod plotting_system {
             if current_size == 0 {
                 return
             }
+
             ctx.clear_rect(0.0, 0.0, w, h);
             ctx.set_global_alpha(alpha);
             ctx.set_stroke_style(&color);

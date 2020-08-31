@@ -79,11 +79,11 @@ export default ({data: {allMarkdownRemark: {edges}, site: {siteMetadata: {title}
         hexGrid: false,
         objectStorage: false,
         codex: false,
-        datastream: false,
+        datastream: true,
         particles: false,
         lagrangian: false,
         noise: false,
-        model: true
+        model: false
     });
 
 
