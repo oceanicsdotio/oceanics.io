@@ -8,6 +8,7 @@ mod physics;
 mod light;
 mod wind;
 mod simulate;
+mod sediment;
 
 pub use tessellate::tessellate::make_torus;
 pub use webgl::graphics_system::{create_buffer, create_program, create_texture};
@@ -23,13 +24,54 @@ use wasm_bindgen_futures::JsFuture;
 use web_sys::{Request, RequestInit, RequestMode, Response};
 use std::collections::VecDeque;
 
+use std::ops::{Index, Mul, SubAssign};
+
 
 
 extern crate console_error_panic_hook;
 
 
 pub struct Array {
+    data: Vec<f64>
+}
 
+impl Index<usize> for Array {
+    type Output = f64;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        return &self.data[index]
+    }
+}
+
+impl Mul<f64> for &Array {
+    type Output = Array;
+    fn mul(self, rhs: f64) -> Array {
+        let mut v = Vec::with_capacity(self.data.len());
+        for value in self.data {
+            v.push(value * rhs);
+        }
+        Array{ data: v }
+    }
+}
+
+impl Mul<f64> for Array {
+    type Output = Array;
+    fn mul(self, rhs: f64) -> Array {
+        let mut v = Vec::with_capacity(self.data.len());
+        for value in self.data {
+            v.push(value * rhs);
+        }
+        Array{ data: v }
+    }
+}
+
+impl SubAssign<f64> for Array {
+    fn sub_assign(&mut self, rhs: f64) {
+        
+        for mut value in self.data {
+            value -= rhs;
+        }
+    }
 }
 
 impl Array {

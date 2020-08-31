@@ -22,6 +22,16 @@ pub mod phytoplankton_system {
     const FACTORS:  [&'static str; 3] = [LIGHT, AMMONIA, NUTRIENT];
     const RATES:  [&'static str; 4] = [PRODUCTION, DEATH, RESPIRATION, SETTLING];
 
+    // parameters["constants"] = {
+    //     "KL": 2.0,
+    //     "VSNET": 1.0,
+    //     "AGMOPT": 1,
+    //     "ACTALG": 3,
+    //     "KAOPT": 3,
+    //     "KEOPT": 1,
+    //     "OPTION5": 0.437,  // light conversion factor, PAR
+    //     "OPTION6": None,
+    // }
 
     struct Phytoplankton {
         /*

@@ -3,17 +3,13 @@ pub mod sediment_system {
 
     use std::collections::HashMap;
 
-    /*
-    do_pools = ("CH4", "SO4", "HS")
-    si_pools = SILICA
-    p_pools = PHOSPHATE
-    n_pools = (AMMONIUM, "NO3")
-    
-    XEFAULT_CONFIG = {
-        "DEPTH": 10.0,  # centimeters
+
+    const DEFAULT_CONFIG: HashMap<&'static str, usize> = vec![
+        
+        "DEPTH": 10.0,  // centimeters
         "TSCALE": 1,
-        "DIFFT": 0.0018,  # Water column TEMPERATURE DIFFUSION COEFFICIENT, cm2/sec
-        "SALTSW": 0,  # salinity switch, affects nitrification/de-nit (PPT)
+        "DIFFT": 0.0018,  // Water column TEMPERATURE DIFFUSION COEFFICIENT, cm2/sec
+        "SALTSW": 0,  // salinity switch, affects nitrification/de-nit (PPT)
         "FRPOP": [0.65, 0.2, 0.15],
         "FRPON": [0.65, 0.25, 0.1],
         "FRPOC": [0.65, 0.2, 0.15],
@@ -50,12 +46,20 @@ pub mod sediment_system {
         "THTACH4": 1.08,
         "KMCH4O2": 0.1,
         "KMSO4": 0.1,
-    }
+    ].into_iter().collect();
+
+    /*
+    do_pools = ("CH4", "SO4", "HS")
+    si_pools = SILICA
+    p_pools = PHOSPHATE
+    n_pools = (AMMONIUM, "NO3")
+    
+
 
 
     DEFAULT_CONFIG = {
-        DEPTH: 10.0,  # centimeters
-        DIFFUSION: 0.0018,  # Water column TEMPERATURE DIFFUSION COEFFICIENT, cm2/sec
+        DEPTH: 10.0,  // centimeters
+        DIFFUSION: 0.0018,  // Water column TEMPERATURE DIFFUSION COEFFICIENT, cm2/sec
         P_MIXING: 0.00012,
         D_MIXING: 0.00025,
         TRANSPORT: 0.0,
@@ -66,7 +70,7 @@ pub mod sediment_system {
     }
     */
 
-
+    const SEC2DAY: f64 = 60.0 * 60.0 * 24.0;
     const SETTLING: &'static str = "settling";
     const ITER: usize = 50;
     const EPS: f64 = 0.00005;
@@ -106,14 +110,18 @@ pub mod sediment_system {
         const D_MIN: f64 = 0.0;
         const KBNTHSTR: f64 = 0.03;
 
-        pub fn new(shape: Vec<usize>) -> Mixing {
+        pub fn new(shape: [usize; 2]) -> Mixing {
             /*
 
             Sub-model for tracking benthic thermal stress and calculating sediment mixing rates
             
             */
+            let size = shape[0] * shape[1];
             Mixing {
-                
+                temperature: Vec::with_capacity(size),
+                max: Vec::with_capacity(size),
+                stress: Vec::with_capacity(size),
+                flag: Vec::with_capacity(size)
             }
         }
 
@@ -147,7 +155,7 @@ pub mod sediment_system {
             :param z: total sediment depth
             :param dt: time-step
             */
-            let delta = difussion * 0.0001 * SEC2DAY / z.powi(2) * (temperature - self.temperature) * dt;
+            let delta = diffusion * 0.0001 * SEC2DAY / z.powi(2) * (temperature - self.temperature) * dt;
             self.temperature = (self.temperature + delta).max(0.0).min(34.9);
         }
 
@@ -233,26 +241,23 @@ pub mod sediment_system {
             /*
             
             */
-            Aerobic{}
-        }
-        fn deposition() {
-            /*
-            
-            def deposition(self, mesh, phytoplankton):
-                """
-                Deposition of particulate matter from overlying water column
+            Aerobic{
 
-                :param mesh:
-                :param phytoplankton:
-                :return:
-                """
+            }
+        }
+        fn deposition(&self, area: f64, phytoplankton: f64) {
+            /*
+            Deposition of particulate matter from overlying water column
+            */
+
+           
                 FRAC = dict()
                 FRAC["P"] = FRPOP / (FRPOP[2] + FRPOP[3])
                 FRAC["N"] = FRPON / (FRPON[2] + FRPON[3])
                 FRAC["C"] = FRPOC / (FRPOC[2] + FRPOC[3])
 
                 flux = dict()
-                for reactivity in range(3):
+                for reactivity in 0..3 {
                     labile_only = True if reactivity is 1 else False
 
                     flux[SILICA] = self.deposition[SILICA]
@@ -262,61 +267,43 @@ pub mod sediment_system {
                             FRAC[each.key][reactivity], labile_only
                         )
 
-                    for group in phytoplankton:
+                    for group in phytoplankton {
+                        flux["P"] += group.deposition * group.ratio["P"][:, -1] * group.fraction["P"]
+                        flux["N"] += group.deposition * group.ratio["N"][:, -1] * group.fraction["N"]
+                        flux["Si"] += group.deposition * group.ratio["Si"][:, -1]
+                        flux["C"] += group.deposition * group.fraction["C"]
                         flux = self._adjust_dep(flux, group)
+                    }
+                }
 
-                for key in flux.keys():
+                for key in flux.keys() {
                     flux[key] *= 1000 / mesh.nodes.area
-            */
+                }
         }
-        fn _adjust_dep() {
+        
+        fn diagenesis(&self, dt: f64) {
             /*
-            def _adjust_dep(self, flux, group):
-                flux["P"] += group.deposition * group.ratio["P"][:, -1] * group.fraction["P"]
-                flux["N"] += group.deposition * group.ratio["N"][:, -1] * group.fraction["N"]
-                flux["Si"] += group.deposition * group.ratio["Si"][:, -1]
-                flux["C"] += group.deposition * group.fraction["C"]
-
-                return flux
-            */
-        }
-        fn diagenesis() {
-            /*
-                def diagenesis(self, dt):
-            """
             Calculate the release of nutrients from organic matter
 
-            :param temperature:
-            :param dt:
-            :return:
-            """
+            */
+            silica = self[SILICA]
+            silica.rate = (
+                silica.rxn(1, temperature) * self.depth
+            )  // reaction rate constant for silica dissolution
 
-            assert self._silica_diagenesis()
+            XKJSI = rxn(1, silica.theta, 1, temperature)
+
+            dissolved[:, -1] = (1 + self.solids * self.partition[SILICA][:, -1]) ** -1
+            K3 = (
+                silica.rate
+                * (CSISAT - dissolved[-1] * dissolved.previous[-1])
+                / (PSITM1 + KMPSI)
+            )
+
             (self._diagenesis(key, dt) for key in [NITROGEN, CARBON, PHOSPHOROUS])
-            */
         }
-        fn _silica_diagenesis() {
-            /*
-            
-
-            def _silica_diagenesis(self, temperature):
-
-                silica = self[SILICA]
-                silica.rate = (
-                    silica.rxn(1, temperature) * self.depth
-                )  # reaction rate constant for silica dissolution
-
-                XKJSI = rxn(1, silica.theta, 1, temperature)
-
-                dissolved[:, -1] = (1 + self.solids * self.partition[SILICA][:, -1]) ** -1
-                K3 = (
-                    silica.rate
-                    * (CSISAT - dissolved[-1] * dissolved.previous[-1])
-                    / (PSITM1 + KMPSI)
-                )
-            */
-        }
-        fn _diagenesis() {
+       
+        fn _diagenesis(&self, temperature: f64) {
             /*
              def _diagenesis(self, temperature, key, dt, an_depth):
                 vector = self.algal["PO" + key]
@@ -332,18 +319,20 @@ pub mod sediment_system {
                     self[key].flux += delta
             */
         }
-        fn phosphate() {
+
+        fn phosphate(&self, oxygen: Oxygen, free: f64) -> f64 {
             /*
-            def phosphate(self, oxygen, free):
-                aerobic = self.transfer * free  # surface layer diffusion
-                phosphate = (
-                    self.partition[PHOSPHATE + "N"][:, 0]
-                    * self.partition[PHOSPHATE + "M"][:, 0]
-                )
-                indices, exponents = oxygen.critical()
-                phosphate[indices] *= self.partition[PHOSPHATE + "M"][indices, -1] ** exponents
-                return phosphate
+           
             */
+
+            let aerobic = self.transfer * free;  // surface layer diffusion
+            let phosphate = (
+                self.partition[PHOSPHATE + "N"][:, 0]
+                * self.partition[PHOSPHATE + "M"][:, 0]
+            );
+            let [indices, exponents] = oxygen.critical();
+            phosphate[indices] *= self.partition[PHOSPHATE + "M"][indices, -1].powf(exponents)
+            phosphate
         }
     }
 
@@ -360,7 +349,7 @@ pub mod sediment_system {
 
                 self.solids = zeros(
                     shape, dtype=float
-                )  # suspended solids carbon in anaerobic layer
+                )  // suspended solids carbon in anaerobic layer
             */
         }
 
@@ -369,7 +358,7 @@ pub mod sediment_system {
             def _an_aero(self, flux, scales):
                 anaerobic = (
                     flux[PHOSPHOROUS] + scales * deposition[PHOSPHATE + SORBED]
-                )  # deposition of adsorbed phosphate
+                )  // deposition of adsorbed phosphate
                 return self.partition[PHOSPHATE + "N"]
             */
         }
@@ -390,21 +379,21 @@ pub mod sediment_system {
                 conversion = 10 / 8 * 32 / 14 * 1 / 1000
                 aerobic = (
                     conversion * self["NO3"].rate ** 2 / self.transfer * nitrate
-                )  # aerobic
+                )  // aerobic
                 anaerobic = (
                     conversion * self["K2NO3"].rate * self["K2NO3"].concentration
-                )  # anaerobic
+                )  // anaerobic
 
                 equiv = (
                     2.666666666e-3 * self[CA].flux
-                )  # Carbon diagenesis as oxygen equivalents units and decrement CO2
+                )  // Carbon diagenesis as oxygen equivalents units and decrement CO2
                 equiv = (equiv - aerobic - anaerobic).clip(min=0.0)
 
                 indices = where(salinity > marine)
 
                 assert self.marine() if salinity > marine else self.fresh()
 
-                return Cdemand + self["O2NH4"].flux - demand1  # oxygen demand
+                return Cdemand + self["O2NH4"].flux - demand1  // oxygen demand
 
             */
         }
@@ -464,7 +453,7 @@ pub mod sediment_system {
 
                 saturation = (
                     99.0 * (1 + 0.1 * (depth + self.depth)) * 0.9759 ** (anomaly - 20)
-                )  # methane saturation
+                )  // methane saturation
                 CdemandMX = (2.0 * self.transport * saturation * equiv) ** 0.5
                 quotient = self[METHANE].rate / self.transfer
                 if CdemandMX > equiv:
@@ -508,7 +497,7 @@ pub mod sediment_system {
         :return:
         """
 
-        # diffusion(HS, HS2AV, HST, HST2AV, HS1TM1, HST1TM1, HST2TM1, 1)
+        // diffusion(HS, HS2AV, HST, HST2AV, HS1TM1, HST1TM1, HST2TM1, 1)
 
         dissolved = (1 + self.solids * self.partition) ** -1
         particulate = self.solids * self.partition * dissolved
@@ -522,13 +511,13 @@ pub mod sediment_system {
 
         delta = (XDD0 * oxygen - DD0TM1 * O20TM1) / self.clock.dt
         upper = (-self.aerobic.depth * (demand1 - demand_prev) / dt + delta) / demand1
-        upperP = 0.5 * (upper + abs(upper))  # aerobic layer displacement flux
+        upperP = 0.5 * (upper + abs(upper))  // aerobic layer displacement flux
         upperM = -0.5 * (upper - abs(upper))
 
         anaerobic = self.depth - self.aerobic
         A11 = (
             -upperM - upper - self.aerobic / dt - flux[:, 0] - XK[0] - settling
-        )  # linear equation coefficients
+        )  // linear equation coefficients
         A12 = flux[:, -1] + upperP
         A21 = flux[:, 0] + settling + upperM
         A22 = (
@@ -544,14 +533,14 @@ pub mod sediment_system {
 
         return [cross(B, [A12, A22]), cross([A11, A21], B)] / cross(
             [A11, A12], [A21, A22]
-        )  # solve linear equations
+        )  // solve linear equations
             */
         }
 
 
     }
 
-    struct Sediment {
+    pub struct Sediment {
         kappa: f64,
         theta: f64
     }
@@ -570,7 +559,7 @@ pub mod sediment_system {
                     nutrient: Quantized.create_fields([0, 1, 2], shape)
                     for nutrient in [NITROGEN, CARBON, PHOSPHOROUS]
                 }
-                self.depth = zeros(shape, dtype=float)  # depth of sediment layer, meters
+                self.depth = zeros(shape, dtype=float)  // depth of sediment layer, meters
                 self.partition = self._partitioning(shape)
                 self.config = dict()
             */
@@ -619,7 +608,7 @@ pub mod sediment_system {
                     "CH4GAS": "EqDO",
                 }
 
-                self.flux(mesh, phytoplankton)  # calculate sediment fluxes
+                self.flux(mesh, phytoplankton)  // calculate sediment fluxes
                 for sys in keys:
                     delta = self[sys].flux * mesh.nodes.area
                     if sys is "O2":
@@ -646,14 +635,14 @@ pub mod sediment_system {
                 
 
                 anomaly = temperature - 20.0
-                # temperature and stress dependent rates of particulate organics to sediment
-                self.transfer = demand / oxygen.clip(min=0.001)  # surface mass transfer
+                // temperature and stress dependent rates of particulate organics to sediment
+                self.transfer = demand / oxygen.clip(min=0.001)  // surface mass transfer
 
-                # Regression to get SO4 concentration from salinity
+                // Regression to get SO4 concentration from salinity
                 assert nitrogen.set_regime(anomaly, salinity, marine, z)
                 sulfate = Sulfate.regress(salinity)
 
-                # Rates for sediment processes
+                // Rates for sediment processes
                 self[METHANE].rate = self[METHANE].rxn(0.5, anomaly)
                 self[SILICA].rate = self[SILICA].rxn(1.0, anomaly) * self.aerobic
 
@@ -663,7 +652,7 @@ pub mod sediment_system {
                 demand = find_roots(sediment_fluxes, 0.0001, 100.0, EPS, IERR)
 
                 self["HS"][:, 0] = self.aerobic[:]
-                self.silica_flux(demand)  # evaluate the po4,si equations
+                self.silica_flux(demand)  // evaluate the po4,si equations
 
 
             */
@@ -709,12 +698,12 @@ pub mod sediment_system {
 //         K1H1D = tracers["NO3"].rate ** 2 / transfer + transfer
 //         K2H2D = tracers["K2NO3"].rate
 
-//         # Oxygen consumed by nitrification
+//         // Oxygen consumed by nitrification
 //         demand = (
 //             64 / 14 / 1000 * ammonium.concentration[:, 0]
-//         )  # mole ratio and mg/m2-day to gm/m2-day
-//         K0H1D = reaction * ammonium.rate  # water column
-//         K1H1D = transfer  # aerobic layer
+//         )  // mole ratio and mg/m2-day to gm/m2-day
+//         K0H1D = reaction * ammonium.rate  // water column
+//         K1H1D = transfer  // aerobic layer
 
 //         if reaction != 0.0:
 //             demand *= K0H1D / (ammonium.rate + ammonium.previous[:, 0])
@@ -729,19 +718,19 @@ pub mod sediment_system {
 
 //         ammonium = self[AMMONIUM]
 
-//         # Diffusion across layers
+//         // Diffusion across layers
 //         internal = ammonium.diffusion(1)
 //         ammonium.delta[:, 0] += internal
 //         ammonium.delta[:, -1] -= internal
 
-//         # Diffusion across surface
+//         // Diffusion across surface
 //         surface = transfer * (ammonium.concentration[:, 0] - mesh.fields["NH4"][:, -1])
 //         ammonium.delta[:, 0] -= surface
 //         mesh.delta[AMMONIUM][:, -1] += surface
 
-//         # Sources: Diagenesis/ammonification of PON in anaerobic layer\
+//         // Sources: Diagenesis/ammonification of PON in anaerobic layer\
 
-//         # Kinetics
+//         // Kinetics
 //         self.nitrification(mesh, ammonium)
 
 //         return True
@@ -752,14 +741,14 @@ pub mod sediment_system {
                 */
             }
 //     def denitrify(self, oxygen, salinity, transfer, anomaly, marine):
-//         # a, b = self.config[DENITRIFICATION]
-//         # delta = self.rate(a, b, anomaly) * self[NOX] * self.config[KNO3] / (oxygen + self.config[KNO3])
-//         # delta *= carbon.available()
-//         # assert self.exchange(delta, source=NOX), "Problem in de-nitrification transfer."
-//         #
-//         # consumed = 60 / 4 / 14 * delta
-//         # source = carbon.labile(carbon.dissolved)
-//         # return carbon.exchange(consumed, source=source) if carbon.__class__ == Carbon else consumed
+//         // a, b = self.config[DENITRIFICATION]
+//         // delta = self.rate(a, b, anomaly) * self[NOX] * self.config[KNO3] / (oxygen + self.config[KNO3])
+//         // delta *= carbon.available()
+//         // assert self.exchange(delta, source=NOX), "Problem in de-nitrification transfer."
+//         //
+//         // consumed = 60 / 4 / 14 * delta
+//         // source = carbon.labile(carbon.dissolved)
+//         // return carbon.exchange(consumed, source=source) if carbon.__class__ == Carbon else consumed
 
 //         anaerobic = self.depth - self.aerobic
 
@@ -771,7 +760,7 @@ pub mod sediment_system {
 //             self[NOX][0].rate ** 2 / transfer + self[NOX][1].rate
 //         ) * self[NOX][0].concentration
 
-//         # denitrification
+//         // denitrification
 //         nitrate = self[NOX][:, -1] * 1000
 //         J1 = (
 //             S * nitrate
@@ -785,57 +774,57 @@ pub mod sediment_system {
 
 //         return denitrification
 
-        fn _flux() {}
-//     def _flux(self, temperature):
-//         """ammonium, nitrate, and sediment oxygen demand fluxes"""
-
-//         nitrate = self[NOX][:, -1] * 1000
-//         oxygen = self[OXYGEN][:, -1]
-
-//         dissolved_rate = self.rxn(KAPPD1, THTAPD1, 0.5, temperature)
-//         particulate_rate = self.rxn(KAPPP1, THTAPD1, 0.5, temperature)
-
-//         oxidation = rxn(DD0, THTADD0, 1, temperature)
-//         bottom = self.depth - (oxidation / self.transfer).clip(
-//             min=0.0
-//         )  # limit to depth of sediment
-//         self.aerobic = self.depth - bottom
-
-//         self.ammonium_diffusion(mesh)
-//         self.nitrification(ammonium, oxygen, temperature)
-
-//         self.nitrate.flux = self.nitrate.diffusion(1)  # diffusion
-//         return self.transfer * (self.nitrate - nitrate)  # surface transfer
-
-        fn regime() {}
-//     def _regime(self, anomaly, salinity, threshold, z):
-//         mask = salinity > threshold  # marine nodes
-//         for regime in ["marine", "fresh"]:
-//             mask = self._flux_regime_switch(mask, anomaly, regime, z)
-
-//         return True
-
-        fn _flux_regime_switch() {
+        fn _flux(&self, temperature: f64) {
             /*
-             Calculate for one salinity regime, and then invert the mask
+            ammonium, nitrate, and sediment oxygen demand fluxes
+            */
+
+            // nitrate = self[NOX][:, -1] * 1000
+            // oxygen = self[OXYGEN][:, -1]
+
+            // dissolved_rate = self.rxn(KAPPD1, THTAPD1, 0.5, temperature)
+            // particulate_rate = self.rxn(KAPPP1, THTAPD1, 0.5, temperature)
+
+            // oxidation = rxn(DD0, THTADD0, 1, temperature)
+            // bottom = self.depth - (oxidation / self.transfer).clip(
+            //     min=0.0
+            // )  // limit to depth of sediment
+            // self.aerobic = self.depth - bottom
+
+            // self.ammonium_diffusion(mesh)
+            // self.nitrification(ammonium, oxygen, temperature)
+
+            // self.nitrate.flux = self.nitrate.diffusion(1)  // diffusion
+            // return self.transfer * (self.nitrate - nitrate)  // surface transfer
+        }
+
+
+        fn regime(&self, anomaly: f64, salinity: f64, threshold: f64, sediment_depth: f64) {
+            
+            //         mask = salinity > threshold  // marine nodes
+            //         for regime in ["marine", "fresh"]:
+            //             mask = self._flux_regime_switch(mask, anomaly, regime, z)
+
+        }
+
+
+        fn _flux_regime_switch(&self, anomaly: f64, sediment_depth: f64) {
+            /*
+            Calculate for one salinity regime, and then invert the mask
 
             :param mask:
             :param anomaly:
             :param regime:
             :param z: sediment depth
-             */
+            */
 
 
-//         indices = where(mask)
-//         subset = anomaly[indices]
-//         self[AMMONIUM].rate[indices] = self[AMMONIUM].rxn(0.5, subset, regime=regime)
-//         self[NOX].rate[indices] = self[NOX].rxn(0.5, subset, regime=regime) * z
-//         self[K2NOX].rate[indices] = self[K2NOX].rxn(1, subset, regime=regime) * z
-//         return ~mask  # swap to fresh water nodes
+            indices = where(mask);
+            subset = anomaly[indices];
+            self[AMMONIUM].rate[indices] = self[AMMONIUM].rxn(0.5, subset, regime=regime);
+            self[NOX].rate[indices] = self[NOX].rxn(0.5, subset, regime=regime) * z;
+            self[K2NOX].rate[indices] = self[K2NOX].rxn(1, subset, regime=regime) * z;
+            return ~mask  // swap to fresh water nodes
         }
-
-
-
-
     }
 }
