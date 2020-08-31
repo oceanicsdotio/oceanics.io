@@ -1,7 +1,12 @@
 pub mod light_system {
- 
+    /*
+    The light system module encapsulates simulation algorithms and data structures
+    related to the behavior of natural and synthetic light sources in water.
+    */
+
     use wasm_bindgen::prelude::*;
     use std::f64::consts::PI;
+    use crate::stream::plotting_system::DataStream;
 
     const LIGHT: &'static str = "light";
     const WEIGHTS: [f64; 3] = [0.1, 0.2, 0.7];
@@ -10,13 +15,8 @@ pub mod light_system {
     const PAR: f64 = 0.437;
     const SOURCE: f64 = 650.0;
 
-    /*
-    The light system module encapsulates simulation algorithms and data structures
-    related to the behavior of natural and synthetic light sources in water.
-    */
-
     #[wasm_bindgen]
-    struct Light {
+    pub struct Light {
         /*
         Simulate the submarine light field. 
         
@@ -26,40 +26,39 @@ pub mod light_system {
         :param intensity: maximum photosynthetically active radiation from source (sun or lamp) at surface
         :param base: base extinction rate
         */
-
         intensity: f64,
         base_extinction_rate: f64,
-        slope: f64
-        
+        slope: f64,
+        stream: DataStream 
     }
 
     #[wasm_bindgen]
     impl Light {
+
         #[wasm_bindgen(constructor)]
         pub fn new(intensity: f64, base_extinction_rate: f64, slope: f64) -> Light {
             Light {
                 intensity,
                 base_extinction_rate,
-                slope
+                slope,
+                stream: DataStream::new(200)
             }
         }
 
-        pub fn update(&mut self, elapsed: f64, dk: f64, quanta: f64, par: f64, dt: f64) {
+        #[wasm_bindgen]
+        pub fn update(&mut self, dk: f64, dt: f64) {
             /*
             Update light state
 
             :param ts: datetime object
             :param dt: optional, timestep for updates
-            :param par: optional, irradiance
-            :param quanta: optional, conversion rate
             :param dk: change in extinction coefficients
             */
             self.base_extinction_rate += dk * dt;
-            self.intensity += self.slope * dt * quanta * par;
-
+            self.intensity += self.slope * dt * LYMOLQ * PAR;
         }
 
-        fn photosynthetically_active_radiation(self, day_of_year: f64, latitude: f64, time_of_day: f64) -> f64 {
+        fn photosynthetically_active_radiation(&self, day_of_year: f64, latitude: f64, time_of_day: f64) -> f64 {
             /*
             Surface irradiance at the given time of day,
             pure sinusoid is continuous for photosynthesis
@@ -97,12 +96,12 @@ pub mod light_system {
             :param biology: cumulative extinction coefficient field for phytoplankton
             :param latitude: optional, for photo-period calculation
             */
-            let light_profile: Vec<f64> = Vec::with_capacity(depth.len());
+            let mut light_profile: Vec<f64> = Vec::with_capacity(depth.len());
             let mut local = self.photosynthetically_active_radiation(day_of_year, latitude, time_of_day);
             
             for layer in 0..depth.len() {
                 let extinction = depth[layer] * (self.base_extinction_rate + biological_extinction_rate[layer]);
-                light_profile.push(extinction);
+                light_profile.push(local);
                 if layer < depth.len() - 1 {
                     local *= (-extinction).exp();
                 }

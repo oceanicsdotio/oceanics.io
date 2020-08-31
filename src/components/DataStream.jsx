@@ -30,7 +30,7 @@ export default ({
     
     useEffect(() => {
         if (!runtime) return;
-        setStream(new runtime.DataStream(500)); // Create mesh
+        setStream(new runtime.DataStream(500));
     }, [runtime]);
 
     useEffect(() => {

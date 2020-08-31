@@ -109,19 +109,12 @@ pub mod water_quality_system {
 
     // const EXCRETED: &'static str = "FLOCEX";
     const P_MAP: [&'static str; 3] = ["K1921", "K2324", "K1820"];
-    const D_MAP: [&'static str; 4] = ["K210", "K220", "K240", "K200"];
-    const CONST: &'static str = "KMDOC";
-    const L_CONST: &'static str = "KMLDOC";
-    const VMIN: &'static str = "VMINCSO";
-    const VMAX: &'static str = "VMAXCSO";
-    const POWER_COEF: &'static str = "BVCSO";
-    const CRIT_COEF: &'static str = "CRCSO";
+    
     const VS: &'static str = "VS";
     const NET: &'static str = "NET";
     const KMPHYT: &'static str = "KMPHYT";
 
-    const STATE_MAP: HashMap<&'static str, usize> = vec![
-        
+    const STATE_MAP: HashMap<&'static str, usize> = vec![   
         ("salinity", 1),  // ppt
         ("RPOP", 5),  // mg P per liter
         ("LPOP", 6),  // mg P per liter
@@ -434,27 +427,26 @@ pub mod water_quality_system {
 
         fn new(shape: [usize; 2]) -> Phosphorus {
 
-
 //         self._particulate = (
 //             self.labile,
 //             self.refractory,
 //         )  // particulate pool label functions
 //         self._dissolved = (self.labile, self.refractory)  // dissolved label functions
+            // _keys [fcn(self.particulate) for fcn in self._particulate] + [
+            //     fcn(self.dissolved) for fcn in self._dissolved
+            // ] + [PHOSPHATE]
 
-//         Nutrient.__init__(self, keys=self._keys() + [PHOSPHATE], shape=shape, verb=verb)
             Phosphorus {
-                chemistry: Chemistry::new()
+                chemistry: Chemistry::new(
+                    Phosphorus::PHOSPHOROUS, 
+                    keys, 
+                    shape, 
+                    kappa, 
+                    theta, 
+                    coef
+                )
             }
         }   
-
-        fn _keys() {
-            /*
-            Generate pool keys for array data
-            */
-            // return [fcn(self.particulate) for fcn in self._particulate] + [
-            //     fcn(self.dissolved) for fcn in self._dissolved
-            // ]
-        }
 
 
 
@@ -495,15 +487,15 @@ pub mod water_quality_system {
             Calculate flux of phosphate
             */
 
-            let free = self.kinetic[:, -1] * 1000.0;  // convert concentrations to mg/m**3
+            let free = self.kinetic[-1] * 1000.0;  // convert concentrations to mg/m**3
 
-            let phosphate = self[PHOSPHATE];
+            let phosphate = self.chemistry.data[Phosphorus::PHOSPHATE];
 
             let lower = anaerobic.phosphate(J[PHOSPHOROUS], scales);
             let upper = aerobic.phosphate(oxygen, free);
 
-            self[PHOSPHATE].diffusion(1, K3, []);
-            self[PHOSPHATE].flux = self.transfer * (phosphate.concentration[:, 0] - free);
+            self.chemistry.data[PHOSPHATE].diffusion(1, K3, []);
+            self.chemistry.data[PHOSPHATE].flux = self.transfer * (phosphate.concentration[0] - free);
 
             oxygen._demand()
         }
@@ -657,7 +649,7 @@ pub mod water_quality_system {
 
             :param oxygen: oxygen instance, array ot scale
             :param anomaly: temperature anomaly
-             */
+            */
 
             let [a, b] = Nitrogen::DEFAULT_CONFIG[Nitrogen::RATES][0..2];
             let o2frac = Nitrogen::DEFAULT_CONFIG[Nitrogen::FRAC][0];
@@ -712,31 +704,29 @@ pub mod water_quality_system {
 
     impl Silica {
 
-        // POOLS = (MINERALIZATION + "C", MINERALIZATION + "T", BIOGENIC + SILICA, SILICATE)
-        // DEFAULT_CONFIG = {
-        //     MINERALIZATION: [0.08, 1.08],  // SI MINERALIZATION TEMPERATURE COEFFICIENT
-        //     PARTITION: 6.0,  // PARTITION COEFFICIENT FOR SORBED SILICA L/MG SS
-        // }
-
-        
-
+        /*
+        Type of Nutrient
+        */
 
         const PARTITION: &'static str = "KADSI";
         const MINERALIZATION: &'static str = "K1617";
+        const POOLS: [&'static str; 3 ] = [Silica::MINERALIZATION + "C", Silica::MINERALIZATION + "T", BIOGENIC + SILICA, SILICATE];
         const KEYS: [&'static str; 3 ] = [SILICA, BIOGENIC + SILICA, SILICATE];
+        const DEFAULT_CONFIG: HashMap<&'static str, Vec<f64>> = vec![   
+            Silica::MINERALIZATION: [0.08, 1.08],  // SI MINERALIZATION TEMPERATURE COEFFICIENT
+            Silica::PARTITION: 6.0,  // PARTITION COEFFICIENT FOR SORBED SILICA L/MG SS
+        ].into_iter().collect();
 
         fn new (shape: [usize; 2]) -> Silica {
             Silica {
                 pools: Silica::KEYS
             }
-            // Nutrient.__init__(self, keys=self._keys(), shape=shape, verb=verb)
         }
 
         fn kinetic (&self, particles: f64, kinetic: &mut Vec<f64>) -> [Array; 2] {
 
-            // kinetic = phyto.kinetic(SILICATE, mesh.fields[SILICA])
-            let clipped = kinetic.clip(min=0.0)
-    
+            let kinetic = phyto.kinetic(SILICATE, mesh.fields[SILICA])
+            let clipped = kinetic.max(0.0);
             kinetic *= (1 + Silica::DEFAULT_CONFIG[Silica::PARTITION] * particles).powi(-1);
             let adsorbed = kinetic - clipped;
     
@@ -749,7 +739,7 @@ pub mod water_quality_system {
             sediment._conversion("BSi", export, corr);
         }
 
-        fn silica_flux(&self, mesh, systems, dt: f64) {
+        fn silica_flux(&self, mesh: Array, systems: Array, dt: f64) {
             /*
             Calculate flux of silica across sediment interface
             */
@@ -787,6 +777,13 @@ pub mod water_quality_system {
 
     impl Carbon {
 
+        const D_MAP: [&'static str; 4] = ["K210", "K220", "K240", "K200"];
+        const CONST: &'static str = "KMDOC";
+        const L_CONST: &'static str = "KMLDOC";
+        const VMIN: &'static str = "VMINCSO";
+        const VMAX: &'static str = "VMAXCSO";
+        const POWER_COEF: &'static str = "BVCSO";
+        const CRIT_COEF: &'static str = "CRCSO";
         const KMPHYT: f64 = 0.05;
 
         // DEFAULT_CONFIG = {
@@ -845,21 +842,21 @@ pub mod water_quality_system {
 
             :param anomaly: temperature anomaly, numpy array or scalar
              */
-       
-            for [key, fcn] in 
-//         (
-//             self._hydrolysis(anomaly, fcn, key)
-//             for key, fcn in zip(P_MAP, self._particulate)
-//         );
+            for ii in 0..P_MAP.len() {
+                let key = P_MAP[ii];
+                let particulate = self.particulate[ii];
+                let [a, b] = Carbon::DEFAULT_CONFIG[key];
+                let delta = a * b ** anomaly * self.chemistry.data[particulate] * self.internal;
+                self.exchange(delta, particulate, dissolved_pool);
+            }
         }
 
 
-        fn _hydrolysis(&self, anomaly: f64, fcn, key) {
+        fn _hydrolysis(&self, anomaly: f64, key: &'static str) {
 
-            source = fcn(self.particulate);
-            a, b = self.config[key];
-            delta = a * b ** anomaly * self[source] * self.internal;
-            self.exchange(delta, source=source, sink=fcn(self.dissolved));
+            let [a, b] = Carbon::DEFAULT_CONFIG[key];
+            let delta = a * b ** anomaly * self.chemistry.data[particulate] * self.internal;
+            self.exchange(delta, particulate, dissolved_pool);
 
         }
 
@@ -883,16 +880,14 @@ pub mod water_quality_system {
 
 
 
-        fn _oxidization(&self, fcn, key: &'static str, anomaly: f64, oxygen: Oxygen) {
+        fn _oxidization(&self, dissolved_pool: &'static str, key: &'static str, anomaly: f64, oxygen: Oxygen) {
             /*
             Calculate rates and reduce carbon pools
              */
 
-            pool = fcn(self.dissolved);
-            oxidation = self._rate(pool, anomaly, oxygen, key);
-            assert self.exchange(oxidation, source=pool);
+            let oxidation = self._rate(dissolved_pool, anomaly, oxygen, key);
+            self.exchange(oxidation, pool, null);
             oxidation
-
         }
 
         fn _rate(&self, pool: String, anomaly: f64, oxygen: Oxygen, key: &'static str) {
@@ -940,7 +935,6 @@ pub mod water_quality_system {
 
             let export = self._sinking(delta * self[each], each);
             sediment.conversion(each, export, corr);
-            
         }
 
 
@@ -950,7 +944,7 @@ pub mod water_quality_system {
             r = self.refractory(self.particulate);
 
             if labile_only {
-                self._deposition[10:12].sum()
+                self._deposition[10..12].sum()
             } else {
                 self._deposition[r] * fraction
             }
@@ -1022,56 +1016,46 @@ pub mod water_quality_system {
             }
         }
 
-
-        fn integrate(&self, limit: f64, anomaly: f64) {
+        fn integrate(&self, available: f64, anomaly: f64) -> f64 {
             /*
             Calculate rates and make oxygen exchanges
 
-            :param anomaly: temperature anomaly scalar or array
-            :param limit: available material to oxidize
+            :param anomaly: temperature anomaly scalar
+            :param available: available material to oxidize
 
             :return: hydrogen sulfide (HS) contribution to oxygen demand
             */
 
-            let rate = self._rate(anomaly);
-            let delta = self._transfer(limit, rate);
+            let [a, b] = Oxygen::DEFAULT_CONFIG[Oxygen::RATES];
+            let rate = self.rate(a, b, anomaly);
+            let delta = rate * self.data[Oxygen::EQUIVALENTS] * limit * self.oxygen / (Oxygen::DEFAULT_CONFIG[Oxygen::E_CONST] + self.oxygen);
 
             self.exchange(delta, source=Oxygen::OXYGEN);
             self.exchange(delta, source=Oxygen::EQUIVALENTS);
-
-            self.hs_fraction = self.data[Oxygen::EQUIVALENTS] * (1 - exp(-5 * rate));
-        }
-
-        fn _rate(self, anomaly: f64) -> f64 {
-            let [a, b] = self.config.get(RATES).unwrap();
-            self.rate(a, b, anomaly)
-        }
-
-        fn _transfer(self, limit: f64, rate: f64) -> f64 {
-            let inverse = self.oxygen / (self.config[E_CONST] + self.oxygen);
-            rate * self[EQUIVALENTS] * limit * inverse
+            self.data[Oxygen::EQUIVALENTS] * (1 - exp(-5 * rate));
         }
 
         fn saturation(&self, temperature: f64, salinity: f64, volume: f64) -> f64 {
             /*
             Oxygen saturation state from scalars or numpy arrays
             */
-            Oxygen::_saturation(temperature, salinity) - self.data[Oxygen::OXYGEN] / volume
+            Oxygen::saturation_potential(temperature, salinity) - self.data[Oxygen::OXYGEN] / volume
         }
 
-        fn _saturation(t: f64, s: f64) -> f64 {
+        fn saturation_potential(t: f64, s: f64) -> f64 {
             /*
             Calculate base oxygen saturation from temperature and salinity
             */  
             14.6244 - 0.36713 * t + 0.0044972 * t.powi(2) - 0.0966 * s + 0.00205 * s * t + 0.0002739 * s.powi(2)
         }
            
-
-        fn critical(&self, threshold: f64) {
+        fn critical(&self, threshold: f64) -> f64{
             // Mask and exponents for critical SEDIMENT oxygen level
 
-            // indices = where(self < threshold); // default value is 2.0
-            // exponents = self[self.key][indices] / threshold - 1
+            if self < threshold {
+
+            }; // default value is 2.0
+            let exponents = self[self.key][indices] / threshold - 1.0;
             // return indices, exponents
         }
     }
@@ -1079,197 +1063,197 @@ pub mod water_quality_system {
 
 
 
-    /*
-    @attr.s
-    class ChemicalSystem:
+/*
+@attr.s
+class ChemicalSystem:
+    """
+    ChemicalSystems encapuslate conservative mass transport for a single
+    tracked species of reactant
+    """
+    sources = None
+    value = None
+    massAdded: Array = None
+    symbol = None
+    validRange = (0.0, None)
+
+    def clamp(
+        self,
+        future: array,
+        volume: array
+    ):
         """
-        ChemicalSystems encapuslate conservative mass transport for a single
-        tracked species of reactant
+        Enforce range
+
+        :param concentration:
+        :param future:
+        :param volume:
         """
-        sources = None
-        value = None
-        massAdded: Array = None
-        symbol = None
-        validRange = (0.0, None)
+        nodes, layers = where(self.value < self.validRange[0])
+        self.massAdded[nodes, layers] += volume * (self.value - future)
+        return future.clip(max=self.validRange[1])
 
-        def clamp(
-            self,
-            future: array,
-            volume: array
-        ):
-            """
-            Enforce range
-
-            :param concentration:
-            :param future:
-            :param volume:
-            """
-            nodes, layers = where(self.value < self.validRange[0])
-            self.massAdded[nodes, layers] += volume * (self.value - future)
-            return future.clip(max=self.validRange[1])
-
-        def transfer(self, conversion: float = 1.0):
-            """
-            :param conversion:
-
-            :return:
-            """
-            // Transport.horizontal(mesh, reactor, self.key)  // Mass flux, advection and diffusion
-            // Transport.vertical(mesh, reactor, self.key)  // Mass flux, vertical sigma velocity
-            self.mass += self.delta * conversion  // update state from reaction equations
-
-
-    @attr.s
-    class Condition:
+    def transfer(self, conversion: float = 1.0):
         """
-        Conditions are a base class for BOUNDARY and SOURCE types.
+        :param conversion:
 
-        :param nodes: optional node indices, if None same value applied universally (non-point)
-        :param layers: optional layer indices, if None same value applied over column
+        :return:
+        """
+        // Transport.horizontal(mesh, reactor, self.key)  // Mass flux, advection and diffusion
+        // Transport.vertical(mesh, reactor, self.key)  // Mass flux, vertical sigma velocity
+        self.mass += self.delta * conversion  // update state from reaction equations
+
+
+@attr.s
+class Condition:
+    """
+    Conditions are a base class for BOUNDARY and SOURCE types.
+
+    :param nodes: optional node indices, if None same value applied universally (non-point)
+    :param layers: optional layer indices, if None same value applied over column
+    """
+
+    value: array = attr.ib()
+    shape: (int) = attr.ib()
+    mapping: (array, array) = attr.ib()
+    scale: float = attr.ib(default=1.0)
+    mass: float = attr.ib(default=0.0)
+    next: float = attr.ib(default=None)
+    last: float = attr.ib(default=None)
+
+    @property
+    def delta(self):
+        """
+        Convenient property to auto
+        """
+        return self.value * self.scale if self.scale is not None else self.value
+
+    def boundary(self, system) -> None:
+        """
+        Boundaries are conditions which override the current state, and impose a new value. They may be a time-varying
+        function, constant, or may be controlled by an external simulation.
+        """
+        system[self.mapping] = self.value
+        return system
+
+    def mark(self, nodes):
+        """
+        flag nodes as source
+
+        :param nodes:
+        :return:
+        """
+        nodes.source[self.mapping] = True
+
+    def update(self, dt: float):
+        """
+        Update values from slope, and calculate new slope
+
+        :param dt:
+        :return:
         """
 
-        value: array = attr.ib()
-        shape: (int) = attr.ib()
-        mapping: (array, array) = attr.ib()
-        scale: float = attr.ib(default=1.0)
-        mass: float = attr.ib(default=0.0)
-        next: float = attr.ib(default=None)
-        last: float = attr.ib(default=None)
+        self.value += self.delta * dt
+        return self
 
-        @property
-        def delta(self):
-            """
-            Convenient property to auto
-            """
-            return self.value * self.scale if self.scale is not None else self.value
+    def read(self, path: str, conversion: float = 1000):
+        """
+        Read forcing conditions from CSV file, and update difference equation.
+        Will fail silently if condition was declared constant
 
-        def boundary(self, system) -> None:
-            """
-            Boundaries are conditions which override the current state, and impose a new value. They may be a time-varying
-            function, constant, or may be controlled by an external simulation.
-            """
-            system[self.mapping] = self.value
-            return system
+        :param path: path to CSV file
+        :param conversion: unit conversion factor
 
-        def mark(self, nodes):
-            """
-            flag nodes as source
+        :return: success
+        """
 
-            :param nodes:
-            :return:
-            """
-            nodes.source[self.mapping] = True
+        try:
+            fid = open(path, "r")
+            data = array(fid.readline().split(",")).astype(float)
+            fid.close()
 
-        def update(self, dt: float):
-            """
-            Update values from slope, and calculate new slope
+            self.last, self.next = (
+                self.next,
+                data[0],
+            )  // simulation time or reads in integer seconds
+            self.delta = (data[1:] * conversion * self.scale - self.value) / (
+                self.next - self.last
+            )
+        except AttributeError:
+            return False
+        else:
+            return True
 
-            :param dt:
-            :return:
-            """
+    def source(self, system: ChemicalSystem) -> None:
+        """
+        Source are a type of condition. They are added to their parent state array.
 
-            self.value += self.delta * dt
-            return self
+        :param system: chemistry instance
+        :param key: internal pool key of tracer
+        :param scale: optional conversion factor, used primarily for surface area correction
+        """
+        system.mass[self.mapping] += self.delta
+        self.mass += self.delta.sum()  // add to mass balance counter
+        return system
 
-        def read(self, path: str, conversion: float = 1000):
-            """
-            Read forcing conditions from CSV file, and update difference equation.
-            Will fail silently if condition was declared constant
+    @classmethod
+    def NonPointSource(cls):
+        """
+        Uniform by default. Can also be vertically or horizontally uniform if desired.
 
-            :param path: path to CSV file
-            :param conversion: unit conversion factor
+        Atmospheric and sediment sources are special cases.
+        """
+        return cls()
 
-            :return: success
-            """
+    @classmethod
+    def PointSource(cls, nodes: (int) = None, layers: (int) = None):
+        """
+        Point source loads are defined at some but not all nodes. Points which are not part of the mesh model
+        (locations that are not nodes, or location that ARE elements) are divided amongst nearest neighbors.
+        This is also true when mass is released between sigma layers,
+        such as Lagrangian particle models with vertical dynamics.
+        """
+        return cls(mapping=(nodes, layers))
 
-            try:
-                fid = open(path, "r")
-                data = array(fid.readline().split(",")).astype(float)
-                fid.close()
+    @classmethod
+    def Surface(cls, nodes: (int) = None):
+        """
+        Atmospheric loads are non-point sources. They may vary in space.
+        """
+        return cls(mapping=(nodes, (0,)))
 
-                self.last, self.next = (
-                    self.next,
-                    data[0],
-                )  // simulation time or reads in integer seconds
-                self.delta = (data[1:] * conversion * self.scale - self.value) / (
-                    self.next - self.last
-                )
-            except AttributeError:
-                return False
-            else:
-                return True
+    @classmethod
+    def FallLine(cls, nodes: (int), layers: (int) = None):
+        """
+        Fall-line loads occur where mass enters the system at a boundary, usually a well-mixed freshwater discharge.
+        The same concentration is added along a node-defined path, composed of at least two points on the shoreline,
+        which are joined by edges either transecting the discharge stream, or following the shoreline (e.g. ground
+        water).
 
-        def source(self, system: ChemicalSystem) -> None:
-            """
-            Source are a type of condition. They are added to their parent state array.
+        They are a special type of point source.
+        """
+        cls(mapping=(nodes, layers))
 
-            :param system: chemistry instance
-            :param key: internal pool key of tracer
-            :param scale: optional conversion factor, used primarily for surface area correction
-            """
-            system.mass[self.mapping] += self.delta
-            self.mass += self.delta.sum()  // add to mass balance counter
-            return system
+    @staticmethod
+    def refractory(fcn, sep=""):
+        return sep.join([REFRACTORY, fcn(sep)])
 
-        @classmethod
-        def NonPointSource(cls):
-            """
-            Uniform by default. Can also be vertically or horizontally uniform if desired.
+    def dissolved(self, sep=""):
+        return sep.join([DISSOLVED, ORGANIC, self.key])
 
-            Atmospheric and sediment sources are special cases.
-            """
-            return cls()
+    def particulate(self, sep=""):
+        return sep.join([PARTICULATE, ORGANIC, self.key])
 
-        @classmethod
-        def PointSource(cls, nodes: (int) = None, layers: (int) = None):
-            """
-            Point source loads are defined at some but not all nodes. Points which are not part of the mesh model
-            (locations that are not nodes, or location that ARE elements) are divided amongst nearest neighbors.
-            This is also true when mass is released between sigma layers,
-            such as Lagrangian particle models with vertical dynamics.
-            """
-            return cls(mapping=(nodes, layers))
+    @staticmethod
+    def labile(fcn, sep=""):
+        return sep.join([LABILE, fcn(sep)])
 
-        @classmethod
-        def Surface(cls, nodes: (int) = None):
-            """
-            Atmospheric loads are non-point sources. They may vary in space.
-            """
-            return cls(mapping=(nodes, (0,)))
+    @staticmethod
+    def recycled(fcn, sep=""):
+        return sep.join([RECYCLED, fcn(sep)])
 
-        @classmethod
-        def FallLine(cls, nodes: (int), layers: (int) = None):
-            """
-            Fall-line loads occur where mass enters the system at a boundary, usually a well-mixed freshwater discharge.
-            The same concentration is added along a node-defined path, composed of at least two points on the shoreline,
-            which are joined by edges either transecting the discharge stream, or following the shoreline (e.g. ground
-            water).
-
-            They are a special type of point source.
-            """
-            cls(mapping=(nodes, layers))
-
-        @staticmethod
-        def refractory(fcn, sep=""):
-            return sep.join([REFRACTORY, fcn(sep)])
-
-        def dissolved(self, sep=""):
-            return sep.join([DISSOLVED, ORGANIC, self.key])
-
-        def particulate(self, sep=""):
-            return sep.join([PARTICULATE, ORGANIC, self.key])
-
-        @staticmethod
-        def labile(fcn, sep=""):
-            return sep.join([LABILE, fcn(sep)])
-
-        @staticmethod
-        def recycled(fcn, sep=""):
-            return sep.join([RECYCLED, fcn(sep)])
-
-        @staticmethod
-        def excreted(fcn, sep=""):
-            return sep.join([EXCRETED, fcn(sep)])
+    @staticmethod
+    def excreted(fcn, sep=""):
+        return sep.join([EXCRETED, fcn(sep)])
 
 
 @attr.s

@@ -37,6 +37,8 @@ pub mod plotting_system {
     struct Observation {
         /*
         Observations are N-dimensional points mapped into 2-D screen space.
+
+        DataStreams are made up of Observations.
         */
         x: f64,
         y: f64
@@ -52,11 +54,7 @@ pub mod plotting_system {
         unit: String,
     }
 
-
     impl Axis {
-        /*
-        Implemented methods of the Axis struct
-        */
         pub fn new(dimension: u8, extent: (f64, f64)) -> Axis {
             /*
             Create a new Axis struct
@@ -84,7 +82,6 @@ pub mod plotting_system {
         axes: Vec<Axis>
     }
 
-
     #[wasm_bindgen]
     #[allow(dead_code)]
     impl DataStream {
@@ -94,12 +91,12 @@ pub mod plotting_system {
         #[wasm_bindgen(constructor)]
         pub fn new(capacity: usize) -> DataStream {
             /*
-            Factory method for datastreams
+            Constructor for datastreams
             */
             DataStream {
                 capacity,
-                data: VecDeque::new(),
-                mean: VecDeque::new(),
+                data: VecDeque::with_capacity(capacity),
+                mean: VecDeque::with_capacity(capacity),
                 axes: vec![
                     Axis::new(0, (0.0, 200.0)),
                     Axis::new(1, (0.0, 1.0))

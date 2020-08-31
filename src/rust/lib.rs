@@ -4,13 +4,13 @@ mod tessellate;
 mod webgl;
 mod stream;
 mod model;
-mod physics;
+// mod physics;
 mod light;
-mod wind;
-mod simulate;
-mod sediment;
-mod phytoplankton;
-mod shellfish;
+// mod wind;
+// mod simulate;
+// mod sediment;
+// mod phytoplankton;
+// mod shellfish;
 
 pub use tessellate::tessellate::make_torus;
 pub use webgl::graphics_system::{create_buffer, create_program, create_texture};
@@ -49,7 +49,7 @@ impl Mul<f64> for &Array {
     type Output = Array;
     fn mul(self, rhs: f64) -> Array {
         let mut v = Vec::with_capacity(self.data.len());
-        for value in self.data {
+        for value in &self.data {
             v.push(value * rhs);
         }
         Array{ data: v }
@@ -69,18 +69,15 @@ impl Mul<f64> for Array {
 
 impl SubAssign<f64> for Array {
     fn sub_assign(&mut self, rhs: f64) {
-        
-        for mut value in self.data {
-            value -= rhs;
+        for ii in 0..self.data.len() {
+            self.data[ii] += rhs;
         }
     }
 }
 
 impl Array {
-    pub fn mean(axis: usize) -> Array {
-        Array {
-
-        }
+    pub fn mean(axis: usize) -> f64 {
+        0.0
     }
 
     pub fn len(&self) -> usize {

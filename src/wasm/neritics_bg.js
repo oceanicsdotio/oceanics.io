@@ -246,6 +246,25 @@ function addBorrowedObject(obj) {
     heap[--stack_pointer] = obj;
     return stack_pointer;
 }
+
+let cachegetFloat64Memory0 = null;
+function getFloat64Memory0() {
+    if (cachegetFloat64Memory0 === null || cachegetFloat64Memory0.buffer !== wasm.memory.buffer) {
+        cachegetFloat64Memory0 = new Float64Array(wasm.memory.buffer);
+    }
+    return cachegetFloat64Memory0;
+}
+
+function passArrayF64ToWasm0(arg, malloc) {
+    const ptr = malloc(arg.length * 8);
+    getFloat64Memory0().set(arg, ptr / 8);
+    WASM_VECTOR_LEN = arg.length;
+    return ptr;
+}
+
+function getArrayF64FromWasm0(ptr, len) {
+    return getFloat64Memory0().subarray(ptr / 8, ptr / 8 + len);
+}
 /**
 * @param {WebGLRenderingContext} ctx
 * @param {string} vertex
@@ -330,17 +349,6 @@ export function create_texture(ctx, data, filter, _width, _height) {
     }
 }
 
-let cachegetFloat64Memory0 = null;
-function getFloat64Memory0() {
-    if (cachegetFloat64Memory0 === null || cachegetFloat64Memory0.buffer !== wasm.memory.buffer) {
-        cachegetFloat64Memory0 = new Float64Array(wasm.memory.buffer);
-    }
-    return cachegetFloat64Memory0;
-}
-
-function getArrayF64FromWasm0(ptr, len) {
-    return getFloat64Memory0().subarray(ptr / 8, ptr / 8 + len);
-}
 /**
 * @param {number} np
 * @returns {Float64Array}
@@ -467,12 +475,6 @@ export function fetch_text(path) {
     return takeObject(ret);
 }
 
-function passArrayF64ToWasm0(arg, malloc) {
-    const ptr = malloc(arg.length * 8);
-    getFloat64Memory0().set(arg, ptr / 8);
-    WASM_VECTOR_LEN = arg.length;
-    return ptr;
-}
 /**
 * @param {Float64Array} series
 * @returns {Float64Array}
@@ -518,7 +520,7 @@ function getUint8ClampedMemory0() {
 function getClampedArrayU8FromWasm0(ptr, len) {
     return getUint8ClampedMemory0().subarray(ptr / 1, ptr / 1 + len);
 }
-function __wbg_adapter_204(arg0, arg1, arg2, arg3) {
+function __wbg_adapter_207(arg0, arg1, arg2, arg3) {
     _assertNum(arg0);
     _assertNum(arg1);
     wasm.wasm_bindgen__convert__closures__invoke2_mut__h96984aac8d17c2af(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
@@ -814,6 +816,64 @@ export class HexagonalGrid {
         } finally {
             heap[stack_pointer++] = undefined;
         }
+    }
+}
+/**
+*/
+export class Light {
+
+    static __wrap(ptr) {
+        const obj = Object.create(Light.prototype);
+        obj.ptr = ptr;
+
+        return obj;
+    }
+
+    free() {
+        const ptr = this.ptr;
+        this.ptr = 0;
+
+        wasm.__wbg_light_free(ptr);
+    }
+    /**
+    * @param {number} intensity
+    * @param {number} base_extinction_rate
+    * @param {number} slope
+    */
+    constructor(intensity, base_extinction_rate, slope) {
+        var ret = wasm.light_new(intensity, base_extinction_rate, slope);
+        return Light.__wrap(ret);
+    }
+    /**
+    * @param {number} dk
+    * @param {number} dt
+    */
+    update(dk, dt) {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        wasm.light_update(this.ptr, dk, dt);
+    }
+    /**
+    * @param {number} day_of_year
+    * @param {number} latitude
+    * @param {number} time_of_day
+    * @param {Float64Array} depth
+    * @param {Float64Array} biological_extinction_rate
+    * @returns {Float64Array}
+    */
+    attentuated_light_profile(day_of_year, latitude, time_of_day, depth, biological_extinction_rate) {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        var ptr0 = passArrayF64ToWasm0(depth, wasm.__wbindgen_malloc);
+        var len0 = WASM_VECTOR_LEN;
+        var ptr1 = passArrayF64ToWasm0(biological_extinction_rate, wasm.__wbindgen_malloc);
+        var len1 = WASM_VECTOR_LEN;
+        wasm.light_attentuated_light_profile(8, this.ptr, day_of_year, latitude, time_of_day, ptr0, len0, ptr1, len1);
+        var r0 = getInt32Memory0()[8 / 4 + 0];
+        var r1 = getInt32Memory0()[8 / 4 + 1];
+        var v2 = getArrayF64FromWasm0(r0, r1).slice();
+        wasm.__wbindgen_free(r0, r1 * 8);
+        return v2;
     }
 }
 /**
@@ -1621,7 +1681,7 @@ export const __wbg_new_261626435fed913c = logError(function(arg0, arg1) {
             const a = state0.a;
             state0.a = 0;
             try {
-                return __wbg_adapter_204(a, state0.b, arg0, arg1);
+                return __wbg_adapter_207(a, state0.b, arg0, arg1);
             } finally {
                 state0.a = a;
             }
@@ -1748,7 +1808,7 @@ export const __wbindgen_memory = function() {
     return addHeapObject(ret);
 };
 
-export const __wbindgen_closure_wrapper3069 = logError(function(arg0, arg1, arg2) {
+export const __wbindgen_closure_wrapper3119 = logError(function(arg0, arg1, arg2) {
     var ret = makeMutClosure(arg0, arg1, 48, __wbg_adapter_22);
     return addHeapObject(ret);
 });
