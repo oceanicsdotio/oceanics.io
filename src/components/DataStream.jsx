@@ -10,10 +10,10 @@ export const StyledCanvas = styled.canvas`
 `;
 
 export default ({
-    streamColor=`#BBCC8888`,
+    streamColor=`#BBCC88FF`,
     overlayColor=`#CCCCCCFF`,
     backgroundColor=`#001010CC`,
-    lineWidth=2.0,
+    lineWidth=1.5,
     pointSize=2.0,
     capacity=500,
     tickSize=10.0,
@@ -56,8 +56,8 @@ export default ({
             dim => getComputedStyle(ref.current).getPropertyValue(dim).slice(0, -2)
         );
 
-        let requestId = null;
         const start = performance.now();
+        let requestId = null;
 
         (function render() {
             const time = performance.now() - start;

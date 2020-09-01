@@ -9,14 +9,14 @@ export const StyledCanvas = styled.canvas`
 `;
 
 export default ({
-    font=`24px Arial`,
-    shape=[25,25],
-    gridColor=`#EF5FA1FF`,
-    overlayColor=`#77CCFFFF`,
+    fontSize=12.0,
+    shape=[32,32],
+    meshColor=`#EF5FA188`,
+    overlayColor=`#CCCCCCFF`,
     backgroundColor=`#00000088`,
-    caption=`TriangularMesh`,
-    alpha=1.0,
     lineWidth=1.0,
+    labelPadding=2.0,
+    tickSize=10.0
 }) => {
     /*
     Triangles
@@ -25,39 +25,35 @@ export default ({
     const ref = useRef(null);
     const [runtime, setRuntime] = useState(null);
     const [mesh, setMesh] = useState(null);
-    const [cursor, setCursor] = useState(null);
+    const style = [backgroundColor, meshColor, overlayColor, lineWidth, fontSize, tickSize, labelPadding];
 
     useEffect(loadRuntime(setRuntime), []);  // load WASM binaries
 
     useEffect(() => {
-        if (runtime) setMesh(new runtime.TriangularMesh(...shape)); // Create mesh
+        if (runtime) setMesh(new runtime.InteractiveMesh(...shape)); // Create mesh
     }, [runtime]);
-
-    useEffect(() => {
-        if (!runtime) return;
-        setCursor(new runtime.SimpleCursor(0.0, 0.0)); // Create cursor
-    }, [runtime]);
-
-    useEffect(addMouseEvents(ref, cursor), [cursor]);  // track cursor when on canvas
-
 
     useEffect(() => {
         /*
         Draw the mesh
         */
-
         if (!runtime || !mesh) return;
 
-        let {start, ctx, shape, requestId, frames} = targetHtmlCanvas(ref, `2d`);
+        ref.current.addEventListener('mousemove', ({clientX, clientY}) => {
+            const {left, top} = ref.current.getBoundingClientRect();
+            mesh.update_cursor(clientX-left, clientY-top);
+        });
+
+        [ref.current.width, ref.current.height] = ["width", "height"].map(
+            dim => getComputedStyle(ref.current).getPropertyValue(dim).slice(0, -2)
+        );
+
+        const start = performance.now();
+        let requestId = null;
 
         (function render() {
-            let time = performance.now() - start
-            
-            runtime.clear_rect_blending(ctx, ...shape, backgroundColor);
-            mesh.draw(ctx, ...shape, gridColor, alpha, lineWidth);
-            cursor.draw(ctx, ...shape, overlayColor, time, lineWidth);
-            runtime.draw_caption(ctx, caption, 0.0, shape[1], overlayColor, font);
-            frames = runtime.draw_fps(ctx, frames, time, overlayColor);
+            const time = performance.now() - start;
+            mesh.draw(ref.current, ...style, time);
             requestId = requestAnimationFrame(render);
         })()
 

@@ -5,8 +5,10 @@ pub mod tessellate {
     use crate::agent::agent_system::{Vec3};
     use wasm_bindgen::prelude::*;
     use wasm_bindgen::{JsValue, Clamped};
-    use web_sys::{CanvasRenderingContext2d, ImageData};
+    use web_sys::{CanvasRenderingContext2d, ImageData, HtmlCanvasElement};
     use std::collections::{HashMap,HashSet};
+
+    use crate::cursor::cursor_system::SimpleCursor;
 
     pub struct Node {}
 
@@ -233,13 +235,13 @@ pub mod tessellate {
         A hashable cell index is necessary because a HashSet cannot
         be used as the key to a HashMap.
         */
-        a: usize,
-        b: usize,
-        c: usize,
+        a: u16,
+        b: u16,
+        c: u16,
     }
 
     impl CellIndex {
-        pub fn new(a: usize, b: usize, c: usize) -> CellIndex {
+        pub fn new(a: u16, b: u16, c: u16) -> CellIndex {
             /*
             Sort the indices and create a CellIndex.
 
@@ -259,12 +261,12 @@ pub mod tessellate {
     #[wasm_bindgen]
     #[derive(Hash, Eq, PartialEq, Debug)]
     struct EdgeIndex {
-        a: usize,
-        b: usize
+        a: u16,
+        b: u16
     }
 
     impl EdgeIndex {
-        pub fn new(a: usize, b: usize) -> EdgeIndex {
+        pub fn new(a: u16, b: u16) -> EdgeIndex {
             /*
             Sort the indices and create a EdgeIndex.
 
@@ -281,7 +283,7 @@ pub mod tessellate {
 
     #[wasm_bindgen]
     pub struct TriangularMesh {
-        points: HashMap<usize,Vec3>,
+        points: HashMap<u16,Vec3>,
         cells: HashMap<CellIndex,Cell>,
         edges: HashSet<EdgeIndex>
     }
@@ -289,7 +291,7 @@ pub mod tessellate {
     #[wasm_bindgen]
     impl TriangularMesh {
 
-        fn insert_cell(&mut self, index: [usize; 3]) {
+        fn insert_cell(&mut self, index: [u16; 3]) {
             /*
             Take an unordered array of point indices, and 
             */
@@ -317,7 +319,7 @@ pub mod tessellate {
             let mut mesh = TriangularMesh { 
                 points: HashMap::with_capacity((nx+1)*(ny+1)), 
                 cells: HashMap::with_capacity(nx*ny*2),
-                edges: HashSet::new()
+                edges: HashSet::with_capacity(nx*ny*2*3)
             };
 
             for jj in 0..(ny+1) {
@@ -328,15 +330,15 @@ pub mod tessellate {
                     if (jj + 1 < (ny+1)) && (ii + 1 < (nx+1)) {
 
                         mesh.insert_cell([
-                            ni, 
-                            ni + nx + 1 + alternate_pattern as usize,
-                            ni + 1
+                            ni as u16, 
+                            (ni + nx as u16 + 1 + alternate_pattern as u16),
+                            (ni + 1)
                         ]);
                         
                         mesh.insert_cell([
-                            ni + nx + 1, 
-                            ni + nx + 2,
-                            ni + !alternate_pattern as usize
+                            (ni + nx as u16 + 1) as u16, 
+                            (ni + nx as u16 + 2) as u16,
+                            (ni + !alternate_pattern as u16)
                         ]);
                         
                         alternate_pattern = !alternate_pattern;
@@ -347,44 +349,100 @@ pub mod tessellate {
                 start_pattern = !start_pattern;
             }
 
+            mesh.edges.shrink_to_fit();
+
             mesh
         }
 
 
-        #[wasm_bindgen]
-        pub fn draw (&self, ctx: &CanvasRenderingContext2d, w: u32, h: u32, color: JsValue, alpha: f64, line_width: f64) {
-            /*
-            Draw an arbitrary triangulation network.
-            */
-
-            let wf64 = w as f64;
-            let hf64 = h as f64;
-
-            ctx.set_stroke_style(&color);
+        pub fn draw_cells(&self, ctx: &CanvasRenderingContext2d, wf64: f64, hf64: f64, color: &JsValue) {
+            
             ctx.set_fill_style(&color);
             ctx.clear_rect(0.0, 0.0, wf64, hf64);
-            ctx.set_line_width(line_width);
-            ctx.set_global_alpha(alpha);
- 
+           
             for (index, cell) in &self.cells {
+                
                 if cell.select {     
                     ctx.begin_path();
                     ctx.move_to(self.points[&index.a].x()*wf64, self.points[&index.a].y()*hf64);
                     ctx.line_to(self.points[&index.b].x()*wf64, self.points[&index.b].y()*hf64);
                     ctx.line_to(self.points[&index.c].x()*wf64, self.points[&index.c].y()*hf64);
-                    ctx.line_to(self.points[&index.a].x()*wf64, self.points[&index.a].y()*hf64);
-                    ctx.fill();
                     ctx.close_path();
+                    ctx.fill();  
                 }
             }
+        }
 
+        pub fn draw_edges(&self, ctx: &CanvasRenderingContext2d, wf64: f64, hf64: f64, color: &JsValue, line_width: f64) {
+            /*
+            Draw an arbitrary triangulation network.
+            */
+            ctx.set_stroke_style(&color);
+            ctx.set_line_width(line_width);
+        
+            ctx.begin_path();
             for index in &self.edges {
-                ctx.begin_path();
                 ctx.move_to(self.points[&index.a].x()*wf64, self.points[&index.a].y()*hf64);
                 ctx.line_to(self.points[&index.b].x()*wf64, self.points[&index.b].y()*hf64);
-                ctx.stroke();
-                ctx.close_path();
             }
+            ctx.stroke();
+        }
+    }
+
+    #[wasm_bindgen]
+    pub struct InteractiveMesh{
+        mesh: TriangularMesh,
+        cursor: SimpleCursor,
+        frames: usize
+    }
+
+    #[wasm_bindgen]
+    impl InteractiveMesh {
+        #[wasm_bindgen(constructor)]
+        pub fn new(nx: usize, ny: usize) -> InteractiveMesh {
+            InteractiveMesh {
+                mesh: TriangularMesh::new(nx, ny),
+                cursor: SimpleCursor::new(0.0, 0.0),
+                frames: 0
+            }
+        }
+
+        pub fn draw(&mut self, canvas: HtmlCanvasElement, background: JsValue, color: JsValue, overlay: JsValue, line_width: f64, font_size: f64, tick_size: f64, label_padding: f64, time: f64) {
+            
+          
+            let ctx: &CanvasRenderingContext2d = &crate::context2d(&canvas);
+            let w = canvas.width() as f64;
+            let h = canvas.height() as f64;
+            let font = format!("{:.0} Arial", font_size);
+            let inset = tick_size * 0.5;
+
+            crate::clear_rect_blending(ctx, w, h, background);
+            self.mesh.draw_cells(ctx, w, h, &color);
+            self.mesh.draw_edges(ctx, w, h, &overlay, line_width);
+            self.cursor.draw(ctx, w, h, &overlay, font_size, line_width, tick_size, 0.0, label_padding);
+            
+            let fps = (1000.0 * (self.frames + 1) as f64).floor() / time;
+   
+            if time < 10000.0 || fps < 55.0 {
+
+                let caption = format!("Mesh ({},{},{})", self.mesh.points.len(), self.mesh.cells.len(), self.mesh.edges.len());
+                crate::draw_caption(ctx, caption, inset, h-inset, &overlay, font.clone());
+            
+                crate::draw_caption(
+                    &ctx,
+                    format!("{:.0} fps", fps),
+                    inset,
+                    font_size + inset, 
+                    &overlay,
+                    font
+                );
+            }
+            
+            self.frames += 1;
+        }
+
+        pub fn update_cursor(&mut self, x: f64, y: f64) {
+            self.cursor.update(x, y);
         }
     }
 

@@ -265,7 +265,7 @@ pub mod plotting_system {
 
             crate::clear_rect_blending(ctx, w, h, background);
             self.data_stream.draw_as_points(ctx, w, h, &color, point_size);
-            self.data_stream.draw_mean_line(ctx, w, h, &color, line_width);
+            self.data_stream.draw_mean_line(ctx, w, h, &overlay, line_width);
             self.data_stream.draw_axes(ctx, w, h, &overlay, line_width, tick_size*0.5);
             self.cursor.draw(ctx, w, h, &overlay, font_size, line_width, tick_size, 0.0, label_padding);
             
