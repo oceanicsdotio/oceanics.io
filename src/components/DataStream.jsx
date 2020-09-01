@@ -9,12 +9,12 @@ export const StyledCanvas = styled.canvas`
 `;
 
 export default ({
-    font=`18px Arial`,
-    streamColor=`#FFFFCCFF`,
-    overlayColor=`#77CCFFFF`,
-    backgroundColor=`#000000FF`,
+    font=`12px Arial`,
+    streamColor=`#DDDD66FF`,
+    overlayColor=`#DFDFCDFF`,
+    backgroundColor=`#001714CC`,
     lineWidth=2.0,
-    pointSize=3.0,
+    pointSize=2.0,
     capacity=1000
 }) => {
     /*
@@ -50,7 +50,7 @@ export default ({
 
         let light = new runtime.Light();
         const fcn = t => {
-            let days = t / 100.0 % 365.0;
+            let days = t / 5000.0 % 365.0;
             let hours = days % 1.0;
             return (light.photosynthetically_active_radiation(days, 46.0, hours));
         };
@@ -61,15 +61,16 @@ export default ({
         (function render() {
             
             const time = performance.now() - start;
-            stream.push(time, fcn(time/10.0 % 365.0));
+            stream.push(time, fcn(time));
 
             runtime.clear_rect_blending(ctx, ...shape, backgroundColor);
             stream.draw_as_points(ctx, ...shape, streamColor, pointSize);
             stream.draw_mean_line(ctx, ...shape, streamColor, lineWidth);
+            stream.draw_axes(ctx, ...shape, overlayColor, 2.0, 5.0)
 
             cursor.draw(ctx, ...shape, overlayColor, time, 1.0, `${cursor.x},${cursor.y}`);
             
-            runtime.draw_caption(ctx, `DataStream (${stream.size()}/${capacity})`, 0.0, shape[1], overlayColor, font);
+            runtime.draw_caption(ctx, `DataStream (${stream.size()}/${capacity})`, 5.0, shape[1]-5.0, overlayColor, font);
             frames = runtime.draw_fps(ctx, frames, time, overlayColor);
             requestId = requestAnimationFrame(render);
         })()

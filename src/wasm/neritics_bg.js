@@ -506,7 +506,7 @@ function getUint8ClampedMemory0() {
 function getClampedArrayU8FromWasm0(ptr, len) {
     return getUint8ClampedMemory0().subarray(ptr / 1, ptr / 1 + len);
 }
-function __wbg_adapter_216(arg0, arg1, arg2, arg3) {
+function __wbg_adapter_217(arg0, arg1, arg2, arg3) {
     _assertNum(arg0);
     _assertNum(arg1);
     wasm.wasm_bindgen__convert__closures__invoke2_mut__h96984aac8d17c2af(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
@@ -714,6 +714,24 @@ export class DataStream {
             if (this.ptr == 0) throw new Error('Attempt to use a moved value');
             _assertNum(this.ptr);
             wasm.datastream_draw_mean_line(this.ptr, addBorrowedObject(ctx), w, h, addBorrowedObject(color), line_width);
+        } finally {
+            heap[stack_pointer++] = undefined;
+            heap[stack_pointer++] = undefined;
+        }
+    }
+    /**
+    * @param {CanvasRenderingContext2D} ctx
+    * @param {number} w
+    * @param {number} h
+    * @param {any} color
+    * @param {number} line_width
+    * @param {number} tick_size
+    */
+    draw_axes(ctx, w, h, color, line_width, tick_size) {
+        try {
+            if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+            _assertNum(this.ptr);
+            wasm.datastream_draw_axes(this.ptr, addBorrowedObject(ctx), w, h, addBorrowedObject(color), line_width, tick_size);
         } finally {
             heap[stack_pointer++] = undefined;
             heap[stack_pointer++] = undefined;
@@ -1776,7 +1794,7 @@ export const __wbg_new_261626435fed913c = logError(function(arg0, arg1) {
             const a = state0.a;
             state0.a = 0;
             try {
-                return __wbg_adapter_216(a, state0.b, arg0, arg1);
+                return __wbg_adapter_217(a, state0.b, arg0, arg1);
             } finally {
                 state0.a = a;
             }
@@ -1903,7 +1921,7 @@ export const __wbindgen_memory = function() {
     return addHeapObject(ret);
 };
 
-export const __wbindgen_closure_wrapper3139 = logError(function(arg0, arg1, arg2) {
+export const __wbindgen_closure_wrapper3142 = logError(function(arg0, arg1, arg2) {
     var ret = makeMutClosure(arg0, arg1, 48, __wbg_adapter_22);
     return addHeapObject(ret);
 });

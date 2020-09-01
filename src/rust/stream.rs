@@ -56,24 +56,7 @@ pub mod plotting_system {
             }
         }
 
-        pub fn draw(&self, ctx: &CanvasRenderingContext2d, w: f64, h:f64, color: &JsValue) {
-            
-            
-            ctx.set_stroke_style(color);
-            ctx.set_line_width(1.0);
-            
-            let mut start = true;
-            let inc: f64 = (self.extent.1 - self.extent.0) / 10.0;
-
-            ctx.begin_path();
-            for ii in 0..11 {
-                
-                let y = inc * ii as f64;
-                ctx.move_to(0.0, h - y*h);
-                ctx.line_to(10.0, h - y*h); 
-            }
-            ctx.stroke();
-        }
+        
     }
 
     #[wasm_bindgen]
@@ -154,7 +137,6 @@ pub mod plotting_system {
                 return
             }
 
-            self.axes[0].draw(ctx,w, h, color);
             ctx.set_fill_style(color);
 
             for obs in self.data.iter() {
@@ -210,6 +192,46 @@ pub mod plotting_system {
                     ctx.line_to(x*w, h - y*h);
                 }
             }
+            ctx.stroke();
+        }
+
+        pub fn draw_axes(&self, ctx: &CanvasRenderingContext2d, w: f64, h:f64, color: &JsValue, line_width: f64, tick_size: f64) {
+            
+            ctx.set_stroke_style(color);
+            ctx.set_line_width(line_width);
+            
+            let mut inc: f64 = 1.0 / 10.0;
+
+            ctx.begin_path();
+            for ii in 0..11 {
+                
+                let y = inc * ii as f64;
+                ctx.move_to(0.0, h - y*h);
+                ctx.line_to(tick_size, h - y*h); 
+
+                ctx.move_to(w, h - y*h);
+                ctx.line_to(w-tick_size, h - y*h);
+            }
+
+        
+            for ii in 0..11 {
+                
+                let x = inc * ii as f64;
+
+                ctx.move_to(x*w, 0.0);
+                ctx.line_to(x*w, tick_size); 
+
+                ctx.move_to(x*w, h);
+                ctx.line_to(x*w, h-tick_size); 
+            }
+           
+
+            ctx.move_to(0.0, 0.0);
+            ctx.line_to(0.0, h);
+            ctx.line_to(w, h);
+            ctx.line_to(w, 0.0);
+            ctx.line_to(0.0, 0.0);
+            
             ctx.stroke();
         }
     }
