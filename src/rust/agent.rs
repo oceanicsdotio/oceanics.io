@@ -1,19 +1,12 @@
-#[allow(dead_code)]
 pub mod agent_system {
 
     use wasm_bindgen::prelude::*;
     use wasm_bindgen::JsValue;
     use std::collections::HashMap;
     use web_sys::{CanvasRenderingContext2d, CanvasGradient};
-    use std::f64::consts::PI;
     use std::i64;
 
-    fn signal (time: f64, period: f64) -> f64 {
-        let _period = period * 1000.0;
-        return (time % _period) / _period;
-    }
-
-    fn alpha (color: &JsValue) -> i64 {
+    fn alpha(color: &JsValue) -> i64 {
 
         let cstring = color.as_string().unwrap();
         if cstring.len() == 9 {
@@ -24,7 +17,7 @@ pub mod agent_system {
         }
     }
 
-    fn magnitude (vector: &Vec<f64>) -> f64 {
+    fn magnitude(vector: &Vec<f64>) -> f64 {
         let mut sum = 0.0;
         for ii in 0..vector.len() {
             sum += vector[ii]*vector[ii];
@@ -46,11 +39,9 @@ pub mod agent_system {
        R
    }
 
-
     pub struct Vec3 {
         pub value: [f64; 3]
     }
-
 
     impl Vec3 {
 
@@ -280,150 +271,7 @@ pub mod agent_system {
             }
             Vec3{ value: v }
         }
-    }
-
-
-    #[allow(dead_code)]
-    struct CoordinatesXY {
-        x: f64,
-        y: f64
-    }
-
-    #[allow(dead_code)]
-    struct CoordinatesUV {
-        u: f64,
-        v: f64
-    }
-
-    #[allow(dead_code)]
-    struct Target {
-        active: bool
-    }
-
-    #[allow(dead_code)]
-    #[wasm_bindgen]
-    pub struct CursorState {
-        reticule: CoordinatesXY,
-        target: Target,
-        cursor: CoordinatesUV,
-        delta: CoordinatesXY,
-        dragging: bool
-    }
-
-    #[wasm_bindgen]
-    pub struct ContextCursor {
-        x: f64,
-        y: f64
-    }
-
-    #[wasm_bindgen]
-    impl ContextCursor {
-
-        #[wasm_bindgen(constructor)]
-        pub fn new(x: f64, y: f64) -> ContextCursor {
-            ContextCursor {x, y}
-        }
-
-        #[wasm_bindgen]
-        pub fn ticks (ctx: &CanvasRenderingContext2d, theta: f64, n: u32, a: f64, b: f64) {
-            /*
-            Draw radial ticks
-             - theta: angle of rotation for set of all ticks
-             - n: the number of ticks
-             - a, b: the inner and outer radiuses
-            */
-            let inc: f64 = 2.0 * PI / n as f64;
-
-            ctx.save();
-            ctx.rotate(theta).unwrap();
-            
-            for _ in 0..n {
-                ctx.begin_path();
-                ctx.rotate(inc).unwrap();
-                ctx.move_to(a, 0.0);
-                ctx.line_to(b, 0.0);
-                ctx.stroke();
-            }
-            ctx.restore();
-        }
-
-        #[wasm_bindgen]
-        pub fn update(&mut self, x: f64, y: f64) {
-            self.x = x;
-            self.y = y;
-        }
-
-        #[wasm_bindgen]
-        pub fn draw (&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, color: JsValue, time: f64, line_width: f64) {
-
-            const PULSE_RINGS: usize = 7;
-            const ICON: f64 = 16.0;
-            const RADIANS: f64 = 2.0 * PI;
-            const OFFSET: f64 = PI - 0.5 * RADIANS;
-            
-            let dx = 0.0;
-            let dy = 0.0;
-            let x = self.x;
-            let y = self.y;
-
-        
-            let _dx = x - (dx+0.5*w);
-            let _dy = y - (dy+0.5*h);
-            let dxy = (_dx.powi(2) + _dy.powi(2)).sqrt();
-            // let theta = _dy.atan2(_dx);
-            let displacement = 3.0*ICON + signal(time, 0.5) / 10.0;
-            let radians = signal(time, 2.0) * PI * 2.0;
-            let sig = signal(time, 2.0);
-
-            // ctx.set_global_alpha((alpha(&color) as f64)/255.0);
-            ctx.set_stroke_style(&color);
-            ctx.set_line_width(line_width);
-            ctx.set_line_cap("round");
-
-            ctx.save();
-            ctx.translate(self.x, self.y).unwrap();
-            ctx.begin_path();
-            ctx.arc(0.0, 0.0, ICON, OFFSET, RADIANS).unwrap();  // inner circle
-            ctx.stroke();
-
-
-            for ii in 0..PULSE_RINGS {
-                ctx.begin_path();
-                const RADIANS: f64 = 2.0 * PI;
-                const OFFSET: f64 = 0.0;
-
-                let radius = 4.5*ICON + ICON * sig * (ii as f64).log(3.0);
-                let gap: f64;
-                let delta = dxy - radius;
-                if delta.abs() < ICON {
-                    gap = (2.0*ICON*(0.5*PI - delta/ICON).sin()/radius).asin();
-                } else {
-                    gap = 0.0;
-                }
-                ctx.arc(0.0, 0.0, radius, gap/2.0, RADIANS-gap/2.0).unwrap();
-                ctx.stroke();
-            }
-           
-            
-            ContextCursor::ticks(&ctx, time / 10000.0, 8, 1.1*ICON, 1.3*ICON);
-            ContextCursor::ticks(&ctx, -(time / 40000.0), 16, 1.4 * ICON, 1.5 * ICON);
-            ContextCursor::ticks(&ctx, time / 10000.0, 16, 1.6 * ICON, 1.7 * ICON);
-            
-           
-            for _ in 0..6 {
-                ctx.rotate(2.0 * PI / 6 as f64).unwrap();
-                ctx.begin_path();
-                let offset = PI - radians / 2.0;
-                ctx.arc(displacement, 0.0, ICON, -offset, radians).unwrap();
-                ctx.stroke();
-            }
-
-            ctx.restore();
-            
-           
-        
-        }
-    }
+    }    
 
     struct Action {
         active: bool,
@@ -439,7 +287,7 @@ pub mod agent_system {
         }
     }
 
-    struct Message {
+    pub struct Message {
         coordinates: Vec3,
         heading: Vec3
     }
@@ -635,8 +483,6 @@ pub mod agent_system {
             }
         }
 
-
-
         pub fn response(&mut self, msg: Message) -> Message {
 
             let alignment = msg.heading;
@@ -699,7 +545,6 @@ pub mod agent_system {
 
         }
 
-        
         pub fn draw(ctx: &CanvasRenderingContext2d, _n: u32, w: f64, h: f64, x: f64, y: f64, z: f64, u: f64, v: f64, fade: f64, scale: f64, color: &JsValue) {
             /*
             Render the current state of single Agent to HTML canvas. The basic
@@ -731,7 +576,6 @@ pub mod agent_system {
         heading: Vec3
     }
 
-   
 
     #[wasm_bindgen]
     impl Group {
@@ -835,5 +679,4 @@ pub mod agent_system {
             }
         }
     }
-
 }

@@ -4,6 +4,7 @@ mod tessellate;
 mod webgl;
 mod stream;
 mod model;
+mod cursor;
 // mod physics;
 mod light;
 // mod wind;
@@ -12,7 +13,7 @@ mod light;
 // mod phytoplankton;
 // mod shellfish;
 
-pub use tessellate::tessellate::make_torus;
+
 pub use webgl::graphics_system::{create_buffer, create_program, create_texture};
 
 
@@ -24,11 +25,8 @@ use std::mem;
 use std::os::raw::c_void;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{Request, RequestInit, RequestMode, Response};
-use std::collections::VecDeque;
 
 use std::ops::{Index, Mul, SubAssign};
-
-
 
 extern crate console_error_panic_hook;
 
@@ -106,8 +104,8 @@ pub fn panic_hook() {
 }
 
 
-fn context2d (canvas: HtmlCanvasElement) -> CanvasRenderingContext2d {
-    canvas
+fn context2d (canvas: &HtmlCanvasElement) -> CanvasRenderingContext2d {
+    (*canvas)
         .get_context("2d")
         .unwrap()
         .unwrap()
@@ -115,21 +113,6 @@ fn context2d (canvas: HtmlCanvasElement) -> CanvasRenderingContext2d {
         .unwrap()
 }
 
-#[allow(dead_code)]
-fn context_ref(target: &str) -> CanvasRenderingContext2d {
-    context2d(
-        web_sys::
-        window()
-        .unwrap()
-        .document()
-        .unwrap()
-        .get_element_by_id(target)
-        .unwrap()
-        .dyn_into::<HtmlCanvasElement>()
-        .map_err(|_| ())
-        .unwrap()
-    )
-}
 
 #[wasm_bindgen]
 pub fn create_color_map_canvas(_color: JsValue) -> CanvasRenderingContext2d {
@@ -143,7 +126,7 @@ pub fn create_color_map_canvas(_color: JsValue) -> CanvasRenderingContext2d {
     canvas.set_width(256);
     canvas.set_height(1);
 
-    let ctx = context2d(canvas);
+    let ctx = context2d(&canvas);
     let gradient = ctx.create_linear_gradient(0.0, 0.0, 256.0, 0.0);
 //    for (let stop in colors) {
 //        gradient.add_color_stop(+stop, colors[stop]);
@@ -162,15 +145,15 @@ pub fn clear_rect_blending(ctx: &CanvasRenderingContext2d, w: f64, h: f64, color
 }
 
 #[wasm_bindgen]
-pub fn draw_caption(ctx: &CanvasRenderingContext2d, caption: String, x: f64, y: f64, color: JsValue, font: String) {
-    ctx.set_fill_style(&color);
+pub fn draw_caption(ctx: &CanvasRenderingContext2d, caption: String, x: f64, y: f64, color: &JsValue, font: String) {
+    ctx.set_fill_style(color);
     ctx.set_font(&font);
     ctx.fill_text(&caption, x, y).unwrap();
 }
 
 #[wasm_bindgen]
 #[allow(unused_unsafe)]
-pub fn draw_fps(ctx: &CanvasRenderingContext2d, frames: u32, time: f64, color: JsValue) -> u32 {
+pub fn draw_fps(ctx: &CanvasRenderingContext2d, frames: u32, time: f64, color: &JsValue) -> u32 {
 
     let font_size = 12;
     let next = frames + 1;
@@ -181,7 +164,8 @@ pub fn draw_fps(ctx: &CanvasRenderingContext2d, frames: u32, time: f64, color: J
             &ctx,
             fps.to_string()+" fps".into(),
             0.0,
-            font_size as f64, color,
+            font_size as f64, 
+            color,
             font_size.to_string()+"px Arial".into()
         );
     } 
@@ -190,63 +174,10 @@ pub fn draw_fps(ctx: &CanvasRenderingContext2d, frames: u32, time: f64, color: J
 
 
 #[wasm_bindgen]
-pub struct SimpleCursor {
-    pub x: f64,
-    pub y: f64
-}
-
-#[wasm_bindgen]
-impl SimpleCursor {
-
-    #[wasm_bindgen(constructor)]
-    pub fn new(x: f64, y: f64) -> SimpleCursor {
-        SimpleCursor {x, y}
-    }
-
-    #[wasm_bindgen]
-    pub fn update(&mut self, x: f64, y: f64) {
-        self.x = x;
-        self.y = y;
-    }
-
-    #[wasm_bindgen]
-    pub fn draw(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, color: JsValue, _time: f64, line_width: f64, caption: String) {
-        ctx.set_stroke_style(&color);
-        ctx.set_line_width(line_width);
-    
-        ctx.begin_path();
-        ctx.move_to(0.0, self.y);
-        ctx.line_to(w, self.y);
-        ctx.stroke();
-        
-        ctx.begin_path();
-        ctx.move_to(self.x, 0.0);
-        ctx.line_to(self.x, h);
-        ctx.stroke();
-
-        draw_caption(ctx, caption, self.x - 5.0, self.y + 5.0, color, "12px Arial".into());
-    
-    }
-} 
-
-
-
-
-
-
-
-#[wasm_bindgen]
 pub fn draw_single_pixel(ctx: &CanvasRenderingContext2d, x: f64, y: f64, scale: f64, color: JsValue) {
     ctx.set_global_alpha(0.5);
     ctx.set_fill_style(&color);
     ctx.fill_rect(x, y, scale, scale);
-}
-
-
-#[allow(dead_code)]
-fn signal (time: f64, period: f64) -> f64 {
-    let _period = period * 1000.0;
-    return (time % _period) / _period;
 }
 
 
@@ -339,92 +270,3 @@ pub fn calculate_rotation(ax: f32, ay: f32, az: f32, dx: f32, dy: f32, dz: f32, 
 
     return transformation_matrix(ox, oy, oz, ax, ay, az, s, d, f, n, aspect);
 }
-
-
-#[wasm_bindgen]
-#[allow(unused_unsafe)]
-pub fn mouse_move(x: f64, y: f64) {
-    unsafe {
-        web_sys::console::log_1(&format!("{}, {}", x, y).into());
-    }
-}
-
-#[allow(dead_code)]
-#[wasm_bindgen]
-pub struct DrawingCanvas {
-    /*
-    The canvas here is used to capture mouse movement (gestures) and convert it into
-    corrected shapes with lower vertex counts than a full path.
-
-    circle (or polygon approximation thereof)
-    triangle
-    parallelogram
-
-    */
-    segments: Vec<Segment>
-
-}
-
-
-#[allow(dead_code)]
-struct Segment {
-    points: VecDeque<(f64, f64)>
-}
-
-
-#[allow(dead_code)]
-impl Segment {
-    pub fn new() -> Segment {
-        Segment {
-            points: VecDeque::new()
-        }
-    }
-
-    pub fn draw(&self, ctx: &CanvasRenderingContext2d, _w: f64, _h: f64) {
-        let n = self.points.len();
-        if n == 0 {
-            return
-        }
-        ctx.begin_path();
-        ctx.move_to(self.points[0].0, self.points[0].1);
-        for ii in 1..n {
-            ctx.line_to(self.points[ii].0, self.points[ii].1);
-        }
-        ctx.stroke();
-    }
-}
-
-// #[allow(dead_code)]
-// #[wasm_bindgen]
-// impl DrawingCanvas {
-
-
-//     pub fn new() -> DrawingCanvas {
-//         DrawingCanvas {
-//             segments: vec![]
-//         }
-//     }
-
-//     pub fn start_segment(&mut self, _x: f64, _y: f64) {
-//         self.segments.push(Segment::new());
-
-//     }
-
-//     pub fn extend(&mut self, x: f64, y: f64) {
-//         let n = self.segments.len();
-//         let points = self.segments[n].points;
-//         if points.len() > 100 {
-//             let (_, _) = points.pop_front().unwrap();
-//         }
-//         let _xy = points.back().unwrap();
-//         if (_xy.0 - x).abs() < 0.001 && (_xy.1 - y).abs() < 0.001 {
-//             points.push_back((x, y));
-//         }
-//     }
-
-//     pub fn draw(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64) {
-//         for seg in &self.segments {
-//             seg.draw(ctx, w, h);
-//         }
-//     }
-// }

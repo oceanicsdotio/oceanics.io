@@ -5,8 +5,9 @@ pub mod plotting_system {
 
     use wasm_bindgen::prelude::*;
     use std::collections::VecDeque;
-    use web_sys::CanvasRenderingContext2d;
+    use web_sys::{CanvasRenderingContext2d,HtmlCanvasElement};
     use wasm_bindgen::JsValue;
+    use crate::cursor::cursor_system::SimpleCursor;
 
     #[wasm_bindgen]
     struct Observation {
@@ -159,7 +160,6 @@ pub mod plotting_system {
             ctx.set_stroke_style(color);
             ctx.set_line_width(line_width);
             
-
             let mut start = true;
             for obs in self.data.iter() {
                 let x = self.rescale(obs.x, 0);
@@ -200,7 +200,7 @@ pub mod plotting_system {
             ctx.set_stroke_style(color);
             ctx.set_line_width(line_width);
             
-            let mut inc: f64 = 1.0 / 10.0;
+            let inc: f64 = 1.0 / 10.0;
 
             ctx.begin_path();
             for ii in 0..11 {
@@ -234,5 +234,49 @@ pub mod plotting_system {
             
             ctx.stroke();
         }
+    }
+
+    #[wasm_bindgen]
+    pub struct InteractiveDataStream {
+        data_stream: DataStream,
+        cursor: SimpleCursor,
+        frames: usize
+    }
+
+    #[wasm_bindgen]
+    impl InteractiveDataStream {
+        #[wasm_bindgen(constructor)]
+        pub fn new(capacity: usize) -> InteractiveDataStream {
+            InteractiveDataStream {
+                data_stream: DataStream::new(capacity),
+                cursor: SimpleCursor::new(0.0, 0.0),
+                frames: 0
+            }
+        }
+
+        pub fn draw(&mut self, canvas: HtmlCanvasElement, background: JsValue, color: JsValue, overlay: JsValue, line_width: f64, point_size: f64, font_size: f64, tick_size: f64, label_padding: f64, time: f64) {
+            // let font_size = 12.0;
+            // let tick_size = 10.0;
+            // let label_padding = 2.0;
+            let ctx: &CanvasRenderingContext2d = &crate::context2d(&canvas);
+            let w = canvas.width() as f64;
+            let h = canvas.height() as f64;
+            crate::clear_rect_blending(ctx, w, h, background);
+            self.data_stream.draw_as_points(ctx, w, h, &color, point_size);
+            self.data_stream.draw_mean_line(ctx, w, h, &color, line_width);
+            self.data_stream.draw_axes(ctx, w, h, &overlay, line_width, tick_size*0.5);
+            self.cursor.draw(ctx, w, h, &overlay, font_size, line_width, tick_size, 0.0, label_padding);
+            let caption = format!("DataStream ({}/{})", self.size(), self.data_stream.capacity);
+            crate::draw_caption(ctx, caption, tick_size*0.5, h-tick_size*0.5, &overlay, format!("{:.0}px Arial", font_size));
+            self.frames = crate::draw_fps(ctx, self.frames as u32, time, &overlay) as usize;
+        }
+
+        pub fn push(&mut self, x: f64, y: f64) {
+            self.data_stream.push(x, y);
+        }
+
+        pub fn size(&self) -> usize {self.data_stream.size()}
+
+        pub fn update_cursor(&mut self, x: f64, y: f64) {self.cursor.update(x, y);}
     }
 }

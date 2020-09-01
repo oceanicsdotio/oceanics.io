@@ -246,25 +246,17 @@ function addBorrowedObject(obj) {
     heap[--stack_pointer] = obj;
     return stack_pointer;
 }
-
-let cachegetFloat64Memory0 = null;
-function getFloat64Memory0() {
-    if (cachegetFloat64Memory0 === null || cachegetFloat64Memory0.buffer !== wasm.memory.buffer) {
-        cachegetFloat64Memory0 = new Float64Array(wasm.memory.buffer);
-    }
-    return cachegetFloat64Memory0;
+/**
+* @param {number} day_of_year
+* @param {number} latitude
+* @param {number} time_of_day
+* @returns {number}
+*/
+export function photosynthetically_active_radiation(day_of_year, latitude, time_of_day) {
+    var ret = wasm.photosynthetically_active_radiation(day_of_year, latitude, time_of_day);
+    return ret;
 }
 
-function passArrayF64ToWasm0(arg, malloc) {
-    const ptr = malloc(arg.length * 8);
-    getFloat64Memory0().set(arg, ptr / 8);
-    WASM_VECTOR_LEN = arg.length;
-    return ptr;
-}
-
-function getArrayF64FromWasm0(ptr, len) {
-    return getFloat64Memory0().subarray(ptr / 8, ptr / 8 + len);
-}
 /**
 * @param {WebGLRenderingContext} ctx
 * @param {string} vertex
@@ -392,8 +384,9 @@ export function draw_caption(ctx, caption, x, y, color, font) {
         var len0 = WASM_VECTOR_LEN;
         var ptr1 = passStringToWasm0(font, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         var len1 = WASM_VECTOR_LEN;
-        wasm.draw_caption(addBorrowedObject(ctx), ptr0, len0, x, y, addHeapObject(color), ptr1, len1);
+        wasm.draw_caption(addBorrowedObject(ctx), ptr0, len0, x, y, addBorrowedObject(color), ptr1, len1);
     } finally {
+        heap[stack_pointer++] = undefined;
         heap[stack_pointer++] = undefined;
     }
 }
@@ -408,9 +401,10 @@ export function draw_caption(ctx, caption, x, y, color, font) {
 export function draw_fps(ctx, frames, time, color) {
     try {
         _assertNum(frames);
-        var ret = wasm.draw_fps(addBorrowedObject(ctx), frames, time, addHeapObject(color));
+        var ret = wasm.draw_fps(addBorrowedObject(ctx), frames, time, addBorrowedObject(color));
         return ret >>> 0;
     } finally {
+        heap[stack_pointer++] = undefined;
         heap[stack_pointer++] = undefined;
     }
 }
@@ -461,6 +455,24 @@ export function fetch_text(path) {
     return takeObject(ret);
 }
 
+let cachegetFloat64Memory0 = null;
+function getFloat64Memory0() {
+    if (cachegetFloat64Memory0 === null || cachegetFloat64Memory0.buffer !== wasm.memory.buffer) {
+        cachegetFloat64Memory0 = new Float64Array(wasm.memory.buffer);
+    }
+    return cachegetFloat64Memory0;
+}
+
+function passArrayF64ToWasm0(arg, malloc) {
+    const ptr = malloc(arg.length * 8);
+    getFloat64Memory0().set(arg, ptr / 8);
+    WASM_VECTOR_LEN = arg.length;
+    return ptr;
+}
+
+function getArrayF64FromWasm0(ptr, len) {
+    return getFloat64Memory0().subarray(ptr / 8, ptr / 8 + len);
+}
 /**
 * @param {Float64Array} series
 * @returns {Float64Array}
@@ -506,7 +518,7 @@ function getUint8ClampedMemory0() {
 function getClampedArrayU8FromWasm0(ptr, len) {
     return getUint8ClampedMemory0().subarray(ptr / 1, ptr / 1 + len);
 }
-function __wbg_adapter_217(arg0, arg1, arg2, arg3) {
+function __wbg_adapter_225(arg0, arg1, arg2, arg3) {
     _assertNum(arg0);
     _assertNum(arg1);
     wasm.wasm_bindgen__convert__closures__invoke2_mut__h96984aac8d17c2af(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
@@ -604,8 +616,9 @@ export class ContextCursor {
         try {
             if (this.ptr == 0) throw new Error('Attempt to use a moved value');
             _assertNum(this.ptr);
-            wasm.contextcursor_draw(this.ptr, addBorrowedObject(ctx), w, h, addHeapObject(color), time, line_width);
+            wasm.contextcursor_draw(this.ptr, addBorrowedObject(ctx), w, h, addBorrowedObject(color), time, line_width);
         } finally {
+            heap[stack_pointer++] = undefined;
             heap[stack_pointer++] = undefined;
         }
     }
@@ -740,21 +753,6 @@ export class DataStream {
 }
 /**
 */
-export class DrawingCanvas {
-
-    constructor() {
-        throw new Error('cannot invoke `new` directly');
-    }
-
-    free() {
-        const ptr = this.ptr;
-        this.ptr = 0;
-
-        wasm.__wbg_drawingcanvas_free(ptr);
-    }
-}
-/**
-*/
 export class EdgeIndex {
 
     constructor() {
@@ -870,10 +868,10 @@ export class HexagonalGrid {
 }
 /**
 */
-export class Light {
+export class InteractiveDataStream {
 
     static __wrap(ptr) {
-        const obj = Object.create(Light.prototype);
+        const obj = Object.create(InteractiveDataStream.prototype);
         obj.ptr = ptr;
 
         return obj;
@@ -883,73 +881,59 @@ export class Light {
         const ptr = this.ptr;
         this.ptr = 0;
 
-        wasm.__wbg_light_free(ptr);
+        wasm.__wbg_interactivedatastream_free(ptr);
+    }
+    /**
+    * @param {number} capacity
+    */
+    constructor(capacity) {
+        _assertNum(capacity);
+        var ret = wasm.interactivedatastream_new(capacity);
+        return InteractiveDataStream.__wrap(ret);
+    }
+    /**
+    * @param {HTMLCanvasElement} canvas
+    * @param {any} background
+    * @param {any} color
+    * @param {any} overlay
+    * @param {number} line_width
+    * @param {number} point_size
+    * @param {number} font_size
+    * @param {number} tick_size
+    * @param {number} label_padding
+    * @param {number} time
+    */
+    draw(canvas, background, color, overlay, line_width, point_size, font_size, tick_size, label_padding, time) {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        wasm.interactivedatastream_draw(this.ptr, addHeapObject(canvas), addHeapObject(background), addHeapObject(color), addHeapObject(overlay), line_width, point_size, font_size, tick_size, label_padding, time);
+    }
+    /**
+    * @param {number} x
+    * @param {number} y
+    */
+    push(x, y) {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        wasm.interactivedatastream_push(this.ptr, x, y);
     }
     /**
     * @returns {number}
     */
-    get intensity() {
+    size() {
         if (this.ptr == 0) throw new Error('Attempt to use a moved value');
         _assertNum(this.ptr);
-        var ret = wasm.__wbg_get_light_intensity(this.ptr);
-        return ret;
+        var ret = wasm.interactivedatastream_size(this.ptr);
+        return ret >>> 0;
     }
     /**
-    * @param {number} arg0
+    * @param {number} x
+    * @param {number} y
     */
-    set intensity(arg0) {
+    update_cursor(x, y) {
         if (this.ptr == 0) throw new Error('Attempt to use a moved value');
         _assertNum(this.ptr);
-        wasm.__wbg_set_light_intensity(this.ptr, arg0);
-    }
-    /**
-    */
-    constructor() {
-        var ret = wasm.light_new();
-        return Light.__wrap(ret);
-    }
-    /**
-    * @param {number} day_of_year
-    * @param {number} latitude
-    * @param {number} time_of_day
-    * @returns {number}
-    */
-    photosynthetically_active_radiation(day_of_year, latitude, time_of_day) {
-        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.ptr);
-        var ret = wasm.light_photosynthetically_active_radiation(this.ptr, day_of_year, latitude, time_of_day);
-        return ret;
-    }
-    /**
-    * @param {number} day_of_year
-    * @param {number} latitude
-    * @returns {number}
-    */
-    static daylight_period(day_of_year, latitude) {
-        var ret = wasm.light_daylight_period(day_of_year, latitude);
-        return ret;
-    }
-    /**
-    * @param {number} day_of_year
-    * @param {number} latitude
-    * @param {number} time_of_day
-    * @param {Float64Array} depth
-    * @param {Float64Array} biological_extinction_rate
-    * @returns {Float64Array}
-    */
-    attentuated_light_profile(day_of_year, latitude, time_of_day, depth, biological_extinction_rate) {
-        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.ptr);
-        var ptr0 = passArrayF64ToWasm0(depth, wasm.__wbindgen_malloc);
-        var len0 = WASM_VECTOR_LEN;
-        var ptr1 = passArrayF64ToWasm0(biological_extinction_rate, wasm.__wbindgen_malloc);
-        var len1 = WASM_VECTOR_LEN;
-        wasm.light_attentuated_light_profile(8, this.ptr, day_of_year, latitude, time_of_day, ptr0, len0, ptr1, len1);
-        var r0 = getInt32Memory0()[8 / 4 + 0];
-        var r1 = getInt32Memory0()[8 / 4 + 1];
-        var v2 = getArrayF64FromWasm0(r0, r1).slice();
-        wasm.__wbindgen_free(r0, r1 * 8);
-        return v2;
+        wasm.interactivedatastream_update_cursor(this.ptr, x, y);
     }
 }
 /**
@@ -1386,18 +1370,19 @@ export class SimpleCursor {
     * @param {number} w
     * @param {number} h
     * @param {any} color
-    * @param {number} _time
+    * @param {number} font_size
     * @param {number} line_width
-    * @param {string} caption
+    * @param {number} tick_size
+    * @param {number} completeness
+    * @param {number} label_padding
     */
-    draw(ctx, w, h, color, _time, line_width, caption) {
+    draw(ctx, w, h, color, font_size, line_width, tick_size, completeness, label_padding) {
         try {
             if (this.ptr == 0) throw new Error('Attempt to use a moved value');
             _assertNum(this.ptr);
-            var ptr0 = passStringToWasm0(caption, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-            var len0 = WASM_VECTOR_LEN;
-            wasm.simplecursor_draw(this.ptr, addBorrowedObject(ctx), w, h, addHeapObject(color), _time, line_width, ptr0, len0);
+            wasm.simplecursor_draw(this.ptr, addBorrowedObject(ctx), w, h, addBorrowedObject(color), font_size, line_width, tick_size, completeness, label_padding);
         } finally {
+            heap[stack_pointer++] = undefined;
             heap[stack_pointer++] = undefined;
         }
     }
@@ -1520,14 +1505,23 @@ export const __wbg_createElement_467bb064d2ae5833 = handleError(function(arg0, a
     return addHeapObject(ret);
 });
 
-export const __wbg_set_234288aa11f3e098 = handleError(function(arg0, arg1, arg2, arg3, arg4) {
-    getObject(arg0).set(getStringFromWasm0(arg1, arg2), getStringFromWasm0(arg3, arg4));
-});
-
 export const __wbindgen_object_clone_ref = function(arg0) {
     var ret = getObject(arg0);
     return addHeapObject(ret);
 };
+
+export const __wbg_addColorStop_c75d1d727f815743 = handleError(function(arg0, arg1, arg2, arg3) {
+    getObject(arg0).addColorStop(arg1, getStringFromWasm0(arg2, arg3));
+});
+
+export const __wbg_width_900ad1fe25297a68 = logError(function(arg0) {
+    var ret = getObject(arg0).width;
+    return ret;
+});
+
+export const __wbg_set_234288aa11f3e098 = handleError(function(arg0, arg1, arg2, arg3, arg4) {
+    getObject(arg0).set(getStringFromWasm0(arg1, arg2), getStringFromWasm0(arg3, arg4));
+});
 
 export const __wbg_instanceof_Response_acb554d7c391aef7 = logError(function(arg0) {
     var ret = getObject(arg0) instanceof Response;
@@ -1731,6 +1725,11 @@ export const __wbg_fillText_20e548df14499144 = handleError(function(arg0, arg1, 
     getObject(arg0).fillText(getStringFromWasm0(arg1, arg2), arg3, arg4);
 });
 
+export const __wbg_measureText_0cf2621ea8e44df5 = handleError(function(arg0, arg1, arg2) {
+    var ret = getObject(arg0).measureText(getStringFromWasm0(arg1, arg2));
+    return addHeapObject(ret);
+});
+
 export const __wbg_rotate_43a9ff93afb49de2 = handleError(function(arg0, arg1) {
     getObject(arg0).rotate(arg1);
 });
@@ -1739,18 +1738,26 @@ export const __wbg_translate_882094cd23d918c7 = handleError(function(arg0, arg1,
     getObject(arg0).translate(arg1, arg2);
 });
 
-export const __wbg_addColorStop_c75d1d727f815743 = handleError(function(arg0, arg1, arg2, arg3) {
-    getObject(arg0).addColorStop(arg1, getStringFromWasm0(arg2, arg3));
-});
-
 export const __wbg_instanceof_HtmlCanvasElement_308a7fa689ff20ef = logError(function(arg0) {
     var ret = getObject(arg0) instanceof HTMLCanvasElement;
     _assertBoolean(ret);
     return ret;
 });
 
+export const __wbg_width_fe8c60ee753fcbd0 = logError(function(arg0) {
+    var ret = getObject(arg0).width;
+    _assertNum(ret);
+    return ret;
+});
+
 export const __wbg_setwidth_568dfd10a534fefd = logError(function(arg0, arg1) {
     getObject(arg0).width = arg1 >>> 0;
+});
+
+export const __wbg_height_144b34836e4e98e5 = logError(function(arg0) {
+    var ret = getObject(arg0).height;
+    _assertNum(ret);
+    return ret;
 });
 
 export const __wbg_setheight_f95890a4f65f1ed9 = logError(function(arg0, arg1) {
@@ -1794,7 +1801,7 @@ export const __wbg_new_261626435fed913c = logError(function(arg0, arg1) {
             const a = state0.a;
             state0.a = 0;
             try {
-                return __wbg_adapter_217(a, state0.b, arg0, arg1);
+                return __wbg_adapter_225(a, state0.b, arg0, arg1);
             } finally {
                 state0.a = a;
             }
@@ -1921,7 +1928,7 @@ export const __wbindgen_memory = function() {
     return addHeapObject(ret);
 };
 
-export const __wbindgen_closure_wrapper3142 = logError(function(arg0, arg1, arg2) {
+export const __wbindgen_closure_wrapper3083 = logError(function(arg0, arg1, arg2) {
     var ret = makeMutClosure(arg0, arg1, 48, __wbg_adapter_22);
     return addHeapObject(ret);
 });

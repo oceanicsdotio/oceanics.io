@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { loadRuntime, targetHtmlCanvas, addMouseEvents } from "../components/Canvas";
+import { loadRuntime } from "../components/Canvas";
 import styled from "styled-components";
 
 export const StyledCanvas = styled.canvas`
@@ -9,74 +9,64 @@ export const StyledCanvas = styled.canvas`
 `;
 
 export default ({
-    font=`12px Arial`,
     streamColor=`#DDDD66FF`,
     overlayColor=`#DFDFCDFF`,
     backgroundColor=`#001714CC`,
     lineWidth=2.0,
     pointSize=2.0,
-    capacity=1000
+    capacity=1000,
+    tickSize=10.0,
+    fontSize=12.0,
+    labelPadding=2.0,
 }) => {
     /*
-    Triangles
+    Time series data
     */
 
     const ref = useRef(null);
     const [runtime, setRuntime] = useState(null);
     const [stream, setStream] = useState(null);
-    const [cursor, setCursor] = useState(null);
+    const style = [backgroundColor, streamColor, overlayColor, lineWidth, pointSize, fontSize, tickSize, labelPadding]; 
 
     useEffect(loadRuntime(setRuntime), []);  // load WASM binaries
     
     useEffect(() => {
-        if (!runtime) return;
-        setStream(new runtime.DataStream(capacity));
+        if (runtime) {setStream(new runtime.InteractiveDataStream(capacity))};
     }, [runtime]);
 
     useEffect(() => {
-        if (!runtime) return;
-        setCursor(new runtime.SimpleCursor(0.0, 0.0)); // Create cursor
-    }, [runtime]);
+       
+        if (!runtime || !stream) return;
 
-    useEffect(addMouseEvents(ref, cursor), [cursor]);  // track cursor when on canvas
-
-    useEffect(() => {
-        /*
-        Draw the mesh
-        */
-
-        if (!runtime || !stream || !cursor) return;
-        // const fcn = x => Math.sin(x/800.0)**2 + Math.random()*0.05;
-
-        let light = new runtime.Light();
+        // use location based sunlight function
         const fcn = t => {
             let days = t / 5000.0 % 365.0;
             let hours = days % 1.0;
-            return (light.photosynthetically_active_radiation(days, 46.0, hours));
+            let latitude = 46.0;
+            return (runtime.photosynthetically_active_radiation(days, latitude, hours));
         };
 
-        let {start, ctx, shape, requestId, frames} = targetHtmlCanvas(ref, `2d`);
-        
+        ref.current.addEventListener('mousemove', ({clientX, clientY}) => {
+            const {left, top} = ref.current.getBoundingClientRect();
+            stream.update_cursor(clientX-left, clientY-top);
+        });
+
+        [ref.current.width, ref.current.height] = ["width", "height"].map(
+            dim => getComputedStyle(ref.current).getPropertyValue(dim).slice(0, -2)
+        );
+
+        let requestId = null;
+        let start = performance.now();
 
         (function render() {
-            
             const time = performance.now() - start;
             stream.push(time, fcn(time));
-
-            runtime.clear_rect_blending(ctx, ...shape, backgroundColor);
-            stream.draw_as_points(ctx, ...shape, streamColor, pointSize);
-            stream.draw_mean_line(ctx, ...shape, streamColor, lineWidth);
-            stream.draw_axes(ctx, ...shape, overlayColor, 2.0, 5.0)
-
-            cursor.draw(ctx, ...shape, overlayColor, time, 1.0, `${cursor.x},${cursor.y}`);
-            
-            runtime.draw_caption(ctx, `DataStream (${stream.size()}/${capacity})`, 5.0, shape[1]-5.0, overlayColor, font);
-            frames = runtime.draw_fps(ctx, frames, time, overlayColor);
+            stream.draw(ref.current, ...style, time);
             requestId = requestAnimationFrame(render);
         })()
 
         return () => cancelAnimationFrame(requestId);
-    }, [stream, cursor]);
+    }, [stream]);
 
     return <StyledCanvas ref={ref} />;
 };

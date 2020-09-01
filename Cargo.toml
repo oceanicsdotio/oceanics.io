@@ -46,7 +46,8 @@ features = [
     'RequestInit',
     'RequestMode',
     'Response',
-    'Performance'
+    'Performance',
+    'TextMetrics'
 ]
 
 
