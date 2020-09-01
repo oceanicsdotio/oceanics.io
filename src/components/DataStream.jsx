@@ -5,17 +5,17 @@ import styled from "styled-components";
 export const StyledCanvas = styled.canvas`
     position: relative;
     width: 100%;
-    height: 400px;
+    height: 100px;
 `;
 
 export default ({
-    font=`24px Arial`,
+    font=`18px Arial`,
+    streamColor=`#FFFFCCFF`,
     overlayColor=`#77CCFFFF`,
-    backgroundColor=`#00000088`,
-    caption=`DataStream`,
-    alpha=1.0,
+    backgroundColor=`#000000FF`,
     lineWidth=2.0,
-    pointSize=4.0
+    pointSize=3.0,
+    capacity=1000
 }) => {
     /*
     Triangles
@@ -30,7 +30,7 @@ export default ({
     
     useEffect(() => {
         if (!runtime) return;
-        setStream(new runtime.DataStream(500));
+        setStream(new runtime.DataStream(capacity));
     }, [runtime]);
 
     useEffect(() => {
@@ -46,19 +46,30 @@ export default ({
         */
 
         if (!runtime || !stream || !cursor) return;
-        const fcn = x => Math.sin(x/800.0)**2 + Math.random()*0.05
+        // const fcn = x => Math.sin(x/800.0)**2 + Math.random()*0.05;
+
+        let light = new runtime.Light();
+        const fcn = t => {
+            let days = t / 100.0 % 365.0;
+            let hours = days % 1.0;
+            return (light.photosynthetically_active_radiation(days, 46.0, hours));
+        };
 
         let {start, ctx, shape, requestId, frames} = targetHtmlCanvas(ref, `2d`);
+        
 
         (function render() {
             
             const time = performance.now() - start;
+            stream.push(time, fcn(time/10.0 % 365.0));
+
             runtime.clear_rect_blending(ctx, ...shape, backgroundColor);
-            stream.push(time, fcn(time));
-            stream.draw(ctx, ...shape, "#FFFFFF", pointSize, lineWidth, alpha);
-            cursor.draw(ctx, ...shape, overlayColor, time, lineWidth);
+            stream.draw_as_points(ctx, ...shape, streamColor, pointSize);
+            stream.draw_mean_line(ctx, ...shape, streamColor, lineWidth);
+
+            cursor.draw(ctx, ...shape, overlayColor, time, 1.0, `${cursor.x},${cursor.y}`);
             
-            runtime.draw_caption(ctx, caption, 0.0, shape[1], overlayColor, font);
+            runtime.draw_caption(ctx, `DataStream (${stream.size()}/${capacity})`, 0.0, shape[1], overlayColor, font);
             frames = runtime.draw_fps(ctx, frames, time, overlayColor);
             requestId = requestAnimationFrame(render);
         })()

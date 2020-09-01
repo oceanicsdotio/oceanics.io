@@ -6,10 +6,8 @@ pub mod light_system {
 
     use wasm_bindgen::prelude::*;
     use std::f64::consts::PI;
-    use crate::stream::plotting_system::DataStream;
 
-    const LIGHT: &'static str = "light";
-    const WEIGHTS: [f64; 3] = [0.1, 0.2, 0.7];
+    // const WEIGHTS: [f64; 3] = [0.1, 0.2, 0.7];
     const EXTINCTION: f64 = 0.001;
     const LYMOLQ: f64 = 41840.0 / 217400.0;  // LIGHT SATURATION, MOL QUANTA/M2 UNITS
     const PAR: f64 = 0.437;
@@ -20,45 +18,27 @@ pub mod light_system {
         /*
         Simulate the submarine light field. 
         
-        Automatically memoizes internal state when attenuation is calculated.
-
         :param latitude: for photo-period calculation
         :param intensity: maximum photosynthetically active radiation from source (sun or lamp) at surface
         :param base: base extinction rate
         */
-        intensity: f64,
-        base_extinction_rate: f64,
-        slope: f64,
-        stream: DataStream 
+        pub intensity: f64,
+        base_extinction_rate: f64
     }
 
     #[wasm_bindgen]
     impl Light {
 
         #[wasm_bindgen(constructor)]
-        pub fn new(intensity: f64, base_extinction_rate: f64, slope: f64) -> Light {
+        pub fn new() -> Light {
             Light {
-                intensity,
-                base_extinction_rate,
-                slope,
-                stream: DataStream::new(200)
+                intensity: SOURCE,
+                base_extinction_rate: EXTINCTION
             }
         }
 
         #[wasm_bindgen]
-        pub fn update(&mut self, dk: f64, dt: f64) {
-            /*
-            Update light state
-
-            :param ts: datetime object
-            :param dt: optional, timestep for updates
-            :param dk: change in extinction coefficients
-            */
-            self.base_extinction_rate += dk * dt;
-            self.intensity += self.slope * dt * LYMOLQ * PAR;
-        }
-
-        fn photosynthetically_active_radiation(&self, day_of_year: f64, latitude: f64, time_of_day: f64) -> f64 {
+        pub fn photosynthetically_active_radiation(&self, day_of_year: f64, latitude: f64, time_of_day: f64) -> f64 {
             /*
             Surface irradiance at the given time of day,
             pure sinusoid is continuous for photosynthesis
@@ -73,7 +53,8 @@ pub mod light_system {
             0.0                
         }
 
-        fn daylight_period(day_of_year: f64, latitude: f64) -> f64 {
+        #[wasm_bindgen]
+        pub fn daylight_period(day_of_year: f64, latitude: f64) -> f64 {
             /*
             Calculate fraction of daylight based on current day of year and latitude
             */

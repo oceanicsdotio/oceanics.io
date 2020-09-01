@@ -162,10 +162,17 @@ pub fn clear_rect_blending(ctx: &CanvasRenderingContext2d, w: f64, h: f64, color
 }
 
 #[wasm_bindgen]
-#[allow(unused_unsafe)]
-pub fn draw_fps(ctx: &CanvasRenderingContext2d, frames: u32, time: f64, color: JsValue ) -> u32 {
+pub fn draw_caption(ctx: &CanvasRenderingContext2d, caption: String, x: f64, y: f64, color: JsValue, font: String) {
+    ctx.set_fill_style(&color);
+    ctx.set_font(&font);
+    ctx.fill_text(&caption, x, y).unwrap();
+}
 
-    let font_size = 20;
+#[wasm_bindgen]
+#[allow(unused_unsafe)]
+pub fn draw_fps(ctx: &CanvasRenderingContext2d, frames: u32, time: f64, color: JsValue) -> u32 {
+
+    let font_size = 12;
     let next = frames + 1;
    
     unsafe {
@@ -184,8 +191,8 @@ pub fn draw_fps(ctx: &CanvasRenderingContext2d, frames: u32, time: f64, color: J
 
 #[wasm_bindgen]
 pub struct SimpleCursor {
-    x: f64,
-    y: f64
+    pub x: f64,
+    pub y: f64
 }
 
 #[wasm_bindgen]
@@ -203,19 +210,21 @@ impl SimpleCursor {
     }
 
     #[wasm_bindgen]
-    pub fn draw(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, color: JsValue, _time: f64, line_width: f64) {
+    pub fn draw(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, color: JsValue, _time: f64, line_width: f64, caption: String) {
         ctx.set_stroke_style(&color);
         ctx.set_line_width(line_width);
-        ctx.set_global_alpha(1.0);
     
         ctx.begin_path();
         ctx.move_to(0.0, self.y);
         ctx.line_to(w, self.y);
         ctx.stroke();
+        
         ctx.begin_path();
         ctx.move_to(self.x, 0.0);
         ctx.line_to(self.x, h);
         ctx.stroke();
+
+        draw_caption(ctx, caption, self.x - 5.0, self.y + 5.0, color, "12px Arial".into());
     
     }
 } 
@@ -223,12 +232,7 @@ impl SimpleCursor {
 
 
 
-#[wasm_bindgen]
-pub fn draw_caption(ctx: &CanvasRenderingContext2d, caption: String, x: f64, y: f64, color: JsValue, font: String) {
-    ctx.set_fill_style(&color);
-    ctx.set_font(&font);
-    ctx.fill_text(&caption, x, y).unwrap();
-}
+
 
 
 #[wasm_bindgen]

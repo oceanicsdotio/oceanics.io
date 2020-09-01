@@ -350,20 +350,6 @@ export function create_texture(ctx, data, filter, _width, _height) {
 }
 
 /**
-* @param {number} np
-* @returns {Float64Array}
-*/
-export function random_series(np) {
-    _assertNum(np);
-    wasm.random_series(8, np);
-    var r0 = getInt32Memory0()[8 / 4 + 0];
-    var r1 = getInt32Memory0()[8 / 4 + 1];
-    var v0 = getArrayF64FromWasm0(r0, r1).slice();
-    wasm.__wbindgen_free(r0, r1 * 8);
-    return v0;
-}
-
-/**
 */
 export function panic_hook() {
     wasm.panic_hook();
@@ -394,23 +380,6 @@ export function clear_rect_blending(ctx, w, h, color) {
 
 /**
 * @param {CanvasRenderingContext2D} ctx
-* @param {number} frames
-* @param {number} time
-* @param {any} color
-* @returns {number}
-*/
-export function draw_fps(ctx, frames, time, color) {
-    try {
-        _assertNum(frames);
-        var ret = wasm.draw_fps(addBorrowedObject(ctx), frames, time, addHeapObject(color));
-        return ret >>> 0;
-    } finally {
-        heap[stack_pointer++] = undefined;
-    }
-}
-
-/**
-* @param {CanvasRenderingContext2D} ctx
 * @param {string} caption
 * @param {number} x
 * @param {number} y
@@ -424,6 +393,23 @@ export function draw_caption(ctx, caption, x, y, color, font) {
         var ptr1 = passStringToWasm0(font, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         var len1 = WASM_VECTOR_LEN;
         wasm.draw_caption(addBorrowedObject(ctx), ptr0, len0, x, y, addHeapObject(color), ptr1, len1);
+    } finally {
+        heap[stack_pointer++] = undefined;
+    }
+}
+
+/**
+* @param {CanvasRenderingContext2D} ctx
+* @param {number} frames
+* @param {number} time
+* @param {any} color
+* @returns {number}
+*/
+export function draw_fps(ctx, frames, time, color) {
+    try {
+        _assertNum(frames);
+        var ret = wasm.draw_fps(addBorrowedObject(ctx), frames, time, addHeapObject(color));
+        return ret >>> 0;
     } finally {
         heap[stack_pointer++] = undefined;
     }
@@ -520,7 +506,7 @@ function getUint8ClampedMemory0() {
 function getClampedArrayU8FromWasm0(ptr, len) {
     return getUint8ClampedMemory0().subarray(ptr / 1, ptr / 1 + len);
 }
-function __wbg_adapter_207(arg0, arg1, arg2, arg3) {
+function __wbg_adapter_216(arg0, arg1, arg2, arg3) {
     _assertNum(arg0);
     _assertNum(arg1);
     wasm.wasm_bindgen__convert__closures__invoke2_mut__h96984aac8d17c2af(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
@@ -665,6 +651,15 @@ export class DataStream {
         return DataStream.__wrap(ret);
     }
     /**
+    * @returns {number}
+    */
+    size() {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        var ret = wasm.datastream_size(this.ptr);
+        return ret >>> 0;
+    }
+    /**
     * @param {number} x
     * @param {number} y
     */
@@ -678,14 +673,51 @@ export class DataStream {
     * @param {number} w
     * @param {number} h
     * @param {any} color
-    * @param {number} point_size
-    * @param {number} line_width
-    * @param {number} alpha
+    * @param {number} scale
     */
-    draw(ctx, w, h, color, point_size, line_width, alpha) {
-        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.ptr);
-        wasm.datastream_draw(this.ptr, addHeapObject(ctx), w, h, addHeapObject(color), point_size, line_width, alpha);
+    draw_as_points(ctx, w, h, color, scale) {
+        try {
+            if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+            _assertNum(this.ptr);
+            wasm.datastream_draw_as_points(this.ptr, addBorrowedObject(ctx), w, h, addBorrowedObject(color), scale);
+        } finally {
+            heap[stack_pointer++] = undefined;
+            heap[stack_pointer++] = undefined;
+        }
+    }
+    /**
+    * @param {CanvasRenderingContext2D} ctx
+    * @param {number} w
+    * @param {number} h
+    * @param {any} color
+    * @param {number} line_width
+    */
+    draw_as_lines(ctx, w, h, color, line_width) {
+        try {
+            if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+            _assertNum(this.ptr);
+            wasm.datastream_draw_as_lines(this.ptr, addBorrowedObject(ctx), w, h, addBorrowedObject(color), line_width);
+        } finally {
+            heap[stack_pointer++] = undefined;
+            heap[stack_pointer++] = undefined;
+        }
+    }
+    /**
+    * @param {CanvasRenderingContext2D} ctx
+    * @param {number} w
+    * @param {number} h
+    * @param {any} color
+    * @param {number} line_width
+    */
+    draw_mean_line(ctx, w, h, color, line_width) {
+        try {
+            if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+            _assertNum(this.ptr);
+            wasm.datastream_draw_mean_line(this.ptr, addBorrowedObject(ctx), w, h, addBorrowedObject(color), line_width);
+        } finally {
+            heap[stack_pointer++] = undefined;
+            heap[stack_pointer++] = undefined;
+        }
     }
 }
 /**
@@ -836,22 +868,48 @@ export class Light {
         wasm.__wbg_light_free(ptr);
     }
     /**
-    * @param {number} intensity
-    * @param {number} base_extinction_rate
-    * @param {number} slope
+    * @returns {number}
     */
-    constructor(intensity, base_extinction_rate, slope) {
-        var ret = wasm.light_new(intensity, base_extinction_rate, slope);
+    get intensity() {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        var ret = wasm.__wbg_get_light_intensity(this.ptr);
+        return ret;
+    }
+    /**
+    * @param {number} arg0
+    */
+    set intensity(arg0) {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        wasm.__wbg_set_light_intensity(this.ptr, arg0);
+    }
+    /**
+    */
+    constructor() {
+        var ret = wasm.light_new();
         return Light.__wrap(ret);
     }
     /**
-    * @param {number} dk
-    * @param {number} dt
+    * @param {number} day_of_year
+    * @param {number} latitude
+    * @param {number} time_of_day
+    * @returns {number}
     */
-    update(dk, dt) {
+    photosynthetically_active_radiation(day_of_year, latitude, time_of_day) {
         if (this.ptr == 0) throw new Error('Attempt to use a moved value');
         _assertNum(this.ptr);
-        wasm.light_update(this.ptr, dk, dt);
+        var ret = wasm.light_photosynthetically_active_radiation(this.ptr, day_of_year, latitude, time_of_day);
+        return ret;
+    }
+    /**
+    * @param {number} day_of_year
+    * @param {number} latitude
+    * @returns {number}
+    */
+    static daylight_period(day_of_year, latitude) {
+        var ret = wasm.light_daylight_period(day_of_year, latitude);
+        return ret;
     }
     /**
     * @param {number} day_of_year
@@ -1255,6 +1313,40 @@ export class SimpleCursor {
         wasm.__wbg_simplecursor_free(ptr);
     }
     /**
+    * @returns {number}
+    */
+    get x() {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        var ret = wasm.__wbg_get_simplecursor_x(this.ptr);
+        return ret;
+    }
+    /**
+    * @param {number} arg0
+    */
+    set x(arg0) {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        wasm.__wbg_set_simplecursor_x(this.ptr, arg0);
+    }
+    /**
+    * @returns {number}
+    */
+    get y() {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        var ret = wasm.__wbg_get_simplecursor_y(this.ptr);
+        return ret;
+    }
+    /**
+    * @param {number} arg0
+    */
+    set y(arg0) {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        wasm.__wbg_set_simplecursor_y(this.ptr, arg0);
+    }
+    /**
     * @param {number} x
     * @param {number} y
     */
@@ -1278,12 +1370,15 @@ export class SimpleCursor {
     * @param {any} color
     * @param {number} _time
     * @param {number} line_width
+    * @param {string} caption
     */
-    draw(ctx, w, h, color, _time, line_width) {
+    draw(ctx, w, h, color, _time, line_width, caption) {
         try {
             if (this.ptr == 0) throw new Error('Attempt to use a moved value');
             _assertNum(this.ptr);
-            wasm.simplecursor_draw(this.ptr, addBorrowedObject(ctx), w, h, addHeapObject(color), _time, line_width);
+            var ptr0 = passStringToWasm0(caption, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+            var len0 = WASM_VECTOR_LEN;
+            wasm.simplecursor_draw(this.ptr, addBorrowedObject(ctx), w, h, addHeapObject(color), _time, line_width, ptr0, len0);
         } finally {
             heap[stack_pointer++] = undefined;
         }
@@ -1681,7 +1776,7 @@ export const __wbg_new_261626435fed913c = logError(function(arg0, arg1) {
             const a = state0.a;
             state0.a = 0;
             try {
-                return __wbg_adapter_207(a, state0.b, arg0, arg1);
+                return __wbg_adapter_216(a, state0.b, arg0, arg1);
             } finally {
                 state0.a = a;
             }
@@ -1808,7 +1903,7 @@ export const __wbindgen_memory = function() {
     return addHeapObject(ret);
 };
 
-export const __wbindgen_closure_wrapper3119 = logError(function(arg0, arg1, arg2) {
+export const __wbindgen_closure_wrapper3139 = logError(function(arg0, arg1, arg2) {
     var ret = makeMutClosure(arg0, arg1, 48, __wbg_adapter_22);
     return addHeapObject(ret);
 });
