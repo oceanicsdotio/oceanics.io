@@ -1853,8 +1853,6 @@ export const __wbg_newwithbyteoffsetandlength_3c83a6445776097f = logError(functi
     return addHeapObject(ret);
 });
 
-export const __wbg_floor_2ed266d3eec8ae77 = typeof Math.floor == 'function' ? Math.floor : notDefined('Math.floor');
-
 export const __wbg_random_5f96f58bd6257873 = typeof Math.random == 'function' ? Math.random : notDefined('Math.random');
 
 export const __wbg_buffer_985803c87989344b = logError(function(arg0) {
@@ -1928,8 +1926,8 @@ export const __wbindgen_memory = function() {
     return addHeapObject(ret);
 };
 
-export const __wbindgen_closure_wrapper3083 = logError(function(arg0, arg1, arg2) {
-    var ret = makeMutClosure(arg0, arg1, 48, __wbg_adapter_22);
+export const __wbindgen_closure_wrapper3074 = logError(function(arg0, arg1, arg2) {
+    var ret = makeMutClosure(arg0, arg1, 47, __wbg_adapter_22);
     return addHeapObject(ret);
 });
 

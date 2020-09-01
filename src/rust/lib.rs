@@ -152,24 +152,21 @@ pub fn draw_caption(ctx: &CanvasRenderingContext2d, caption: String, x: f64, y: 
 }
 
 #[wasm_bindgen]
-#[allow(unused_unsafe)]
 pub fn draw_fps(ctx: &CanvasRenderingContext2d, frames: u32, time: f64, color: &JsValue) -> u32 {
 
-    let font_size = 12;
-    let next = frames + 1;
+    let font_size: f64 = 12.0;
+    let fps = (1000.0 * (frames + 1) as f64).floor() / time;
    
-    unsafe {
-        let fps = js_sys::Math::floor((1000*next) as f64 / time);
-        draw_caption(
-            &ctx,
-            fps.to_string()+" fps".into(),
-            0.0,
-            font_size as f64, 
-            color,
-            font_size.to_string()+"px Arial".into()
-        );
-    } 
-    next
+    draw_caption(
+        &ctx,
+        format!("{:.0} fps", fps),
+        0.0,
+        font_size as f64, 
+        color,
+        format!("{:.0} Arial", font_size)
+    );
+    
+    frames + 1
 }
 
 

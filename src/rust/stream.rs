@@ -245,6 +245,7 @@ pub mod plotting_system {
 
     #[wasm_bindgen]
     impl InteractiveDataStream {
+
         #[wasm_bindgen(constructor)]
         pub fn new(capacity: usize) -> InteractiveDataStream {
             InteractiveDataStream {
@@ -255,20 +256,37 @@ pub mod plotting_system {
         }
 
         pub fn draw(&mut self, canvas: HtmlCanvasElement, background: JsValue, color: JsValue, overlay: JsValue, line_width: f64, point_size: f64, font_size: f64, tick_size: f64, label_padding: f64, time: f64) {
-            // let font_size = 12.0;
-            // let tick_size = 10.0;
-            // let label_padding = 2.0;
+            
             let ctx: &CanvasRenderingContext2d = &crate::context2d(&canvas);
             let w = canvas.width() as f64;
             let h = canvas.height() as f64;
+            let font = format!("{:.0} Arial", font_size);
+            let inset = tick_size * 0.5;
+
             crate::clear_rect_blending(ctx, w, h, background);
             self.data_stream.draw_as_points(ctx, w, h, &color, point_size);
             self.data_stream.draw_mean_line(ctx, w, h, &color, line_width);
             self.data_stream.draw_axes(ctx, w, h, &overlay, line_width, tick_size*0.5);
             self.cursor.draw(ctx, w, h, &overlay, font_size, line_width, tick_size, 0.0, label_padding);
-            let caption = format!("DataStream ({}/{})", self.size(), self.data_stream.capacity);
-            crate::draw_caption(ctx, caption, tick_size*0.5, h-tick_size*0.5, &overlay, format!("{:.0}px Arial", font_size));
-            self.frames = crate::draw_fps(ctx, self.frames as u32, time, &overlay) as usize;
+            
+            let fps = (1000.0 * (self.frames + 1) as f64).floor() / time;
+   
+            if time < 10000.0 || fps < 55.0 || self.size() < self.data_stream.capacity {
+
+                let caption = format!("DataStream ({}/{})", self.size(), self.data_stream.capacity);
+                crate::draw_caption(ctx, caption, inset, h-inset, &overlay, font.clone());
+            
+                crate::draw_caption(
+                    &ctx,
+                    format!("{:.0} fps", fps),
+                    inset,
+                    font_size + inset, 
+                    &overlay,
+                    font
+                );
+            }
+            
+            self.frames += 1;
         }
 
         pub fn push(&mut self, x: f64, y: f64) {

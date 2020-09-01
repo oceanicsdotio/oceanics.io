@@ -6,15 +6,16 @@ export const StyledCanvas = styled.canvas`
     position: relative;
     width: 100%;
     height: 100px;
+    cursor: none;
 `;
 
 export default ({
-    streamColor=`#DDDD66FF`,
-    overlayColor=`#DFDFCDFF`,
-    backgroundColor=`#001714CC`,
+    streamColor=`#BBCC8888`,
+    overlayColor=`#CCCCCCFF`,
+    backgroundColor=`#001010CC`,
     lineWidth=2.0,
     pointSize=2.0,
-    capacity=1000,
+    capacity=500,
     tickSize=10.0,
     fontSize=12.0,
     labelPadding=2.0,
@@ -56,7 +57,7 @@ export default ({
         );
 
         let requestId = null;
-        let start = performance.now();
+        const start = performance.now();
 
         (function render() {
             const time = performance.now() - start;

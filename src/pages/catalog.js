@@ -79,7 +79,7 @@ export default ({data: {allMarkdownRemark: {edges}, site: {siteMetadata: {title}
         hexGrid: false,
         objectStorage: false,
         codex: false,
-        datastream: true,
+        dataStream: true,
         particles: false,
         lagrangian: false,
         noise: false,
@@ -345,7 +345,7 @@ export default ({data: {allMarkdownRemark: {edges}, site: {siteMetadata: {title}
         {visibility.lagrangian ? <Lagrangian res={1000} source={"/wind.png"} metadataFile={"/wind.json"}/> : null}
         {visibility.noise ? <Noise source={"/wind.png"}/> : null}
         {visibility.codex ? <Codex edges={edges} token={accessToken} baseUrl={baseUrl}/>:null}
-        {visibility.datastream ? <DataStream/> : null}
+        {visibility.dataStream ? <DataStream/> : null}
         {visibility.particles ? <Particles/> : null}
         {visibility.rectilinearGrid ? <RectilinearGrid/> :null }
         {visibility.triangularMesh ? <TriangularMesh/> : null }
