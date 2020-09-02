@@ -1,5 +1,5 @@
 #[allow(dead_code)]  // only used from JavaScript currently
-pub mod light_system {
+pub mod light {
     /*
     The light system module encapsulates simulation algorithms and data structures
     related to the behavior of natural and synthetic light sources in water.

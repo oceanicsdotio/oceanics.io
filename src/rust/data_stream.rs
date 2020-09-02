@@ -279,7 +279,7 @@ pub mod data_stream {
             }
         }
 
-        pub fn draw(&mut self, canvas: HtmlCanvasElement, style: JsValue, time: f64) {
+        pub fn draw(&mut self, canvas: HtmlCanvasElement, time: f64, style: JsValue) {
             /*
             Compose the data-driven visualization and draw to the target HtmlCanvasElement.
             */

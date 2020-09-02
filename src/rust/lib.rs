@@ -3,7 +3,7 @@ mod agent;  // particle, behavior, and moving object simulation methods
 mod tessellate;  // some core spatial methods
 mod webgl;  // shader magic
 
-mod model;  // 2D object modelling
+mod model;  // 3D object modelling
 mod cursor;  // cursor replacements and canvas event handling system
 mod light;  // submarine light simulation system
 
