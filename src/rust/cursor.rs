@@ -10,30 +10,25 @@ pub mod cursor_system {
         return (time % _period) / _period;
     }
 
-    #[wasm_bindgen]
-    #[allow(unused_unsafe)]
-    pub fn mouse_move(x: f64, y: f64) {
-        unsafe {
-            web_sys::console::log_1(&format!("{}, {}", x, y).into());
-        }
-    }
-
+    #[allow(dead_code)]
     struct CoordinatesXY {
         x: f64,
         y: f64
     }
     
+    #[allow(dead_code)]
     struct CoordinatesUV {
         u: f64,
         v: f64
     }
     
+    #[allow(dead_code)]
     struct Target {
         active: bool
     }
 
-    #[wasm_bindgen]
-    pub struct CursorState {
+    #[allow(dead_code)]
+    struct CursorState {
         reticule: CoordinatesXY,
         target: Target,
         cursor: CoordinatesUV,

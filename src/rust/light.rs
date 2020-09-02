@@ -1,3 +1,4 @@
+#[allow(dead_code)]  // only used from JavaScript currently
 pub mod light_system {
     /*
     The light system module encapsulates simulation algorithms and data structures

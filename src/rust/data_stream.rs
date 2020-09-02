@@ -6,7 +6,8 @@ pub mod data_stream {
     use std::collections::VecDeque;
     use web_sys::{CanvasRenderingContext2d,HtmlCanvasElement};
     use wasm_bindgen::JsValue;
-    
+    use serde::{Serialize, Deserialize};
+
     use crate::cursor::cursor_system::SimpleCursor;
 
     #[wasm_bindgen]
@@ -238,6 +239,21 @@ pub mod data_stream {
         }
     }
 
+
+    #[derive(Deserialize)]
+    pub struct DataStreamStyle {
+        pub background: String, 
+        pub color: String, 
+        pub overlay: String, 
+        pub line_width: f64, 
+        pub point_size: f64, 
+        pub font_size: f64, 
+        pub tick_size: f64, 
+        pub label_padding: f64
+    }
+
+    
+
     #[wasm_bindgen]
     pub struct InteractiveDataStream {
         data_stream: DataStream,
@@ -257,19 +273,25 @@ pub mod data_stream {
             }
         }
 
-        pub fn draw(&mut self, canvas: HtmlCanvasElement, background: JsValue, color: JsValue, overlay: JsValue, line_width: f64, point_size: f64, font_size: f64, tick_size: f64, label_padding: f64, time: f64) {
+        pub fn draw(&mut self, canvas: HtmlCanvasElement, style: JsValue, time: f64) {
             
+            let rstyle: DataStreamStyle = style.into_serde().unwrap();
+
             let ctx: &CanvasRenderingContext2d = &crate::context2d(&canvas);
             let w = canvas.width() as f64;
             let h = canvas.height() as f64;
-            let font = format!("{:.0} Arial", font_size);
-            let inset = tick_size * 0.5;
+            let font = format!("{:.0} Arial", rstyle.font_size);
+            let inset = rstyle.tick_size * 0.5;
 
-            crate::clear_rect_blending(ctx, w, h, background);
-            self.data_stream.draw_as_points(ctx, w, h, &color, point_size);
-            self.data_stream.draw_mean_line(ctx, w, h, &overlay, line_width);
-            self.data_stream.draw_axes(ctx, w, h, &overlay, line_width, tick_size*0.5);
-            self.cursor.draw(ctx, w, h, &overlay, font_size, line_width, tick_size, 0.0, label_padding);
+            let color = JsValue::from_str(&rstyle.color);
+            let bg = JsValue::from_str(&rstyle.background);
+            let overlay = JsValue::from_str(&rstyle.overlay);
+
+            crate::clear_rect_blending(ctx, w, h, bg);
+            self.data_stream.draw_as_points(ctx, w, h, &color, rstyle.point_size);
+            self.data_stream.draw_mean_line(ctx, w, h, &overlay, rstyle.line_width);
+            self.data_stream.draw_axes(ctx, w, h, &overlay, rstyle.line_width, rstyle.tick_size*0.5);
+            self.cursor.draw(ctx, w, h, &overlay, rstyle.font_size, rstyle.line_width, rstyle.tick_size, 0.0, rstyle.label_padding);
             
             let fps = (1000.0 * (self.frames + 1) as f64).floor() / time;
    
@@ -282,7 +304,7 @@ pub mod data_stream {
                     &ctx,
                     format!("{:.0} fps", fps),
                     inset,
-                    font_size + inset, 
+                    rstyle.font_size + inset, 
                     &overlay,
                     font
                 );
