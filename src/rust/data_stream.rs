@@ -1,12 +1,12 @@
-pub mod plotting_system {
+pub mod data_stream {
     /*
     Enable plotting 2D data series to a canvas.
     */
-
     use wasm_bindgen::prelude::*;
     use std::collections::VecDeque;
     use web_sys::{CanvasRenderingContext2d,HtmlCanvasElement};
     use wasm_bindgen::JsValue;
+    
     use crate::cursor::cursor_system::SimpleCursor;
 
     #[wasm_bindgen]
@@ -21,6 +21,7 @@ pub mod plotting_system {
     }
 
     #[wasm_bindgen]
+    #[allow(dead_code)]
     struct ObservedProperty {
         /*
         Observed properties describe a data dimesion. They are a child of Axis. 
@@ -30,6 +31,7 @@ pub mod plotting_system {
     }
 
     #[wasm_bindgen]
+    #[allow(dead_code)]
     struct Axis {
         /*
         An axis struct describes one index of an ND array. For visualization purposes

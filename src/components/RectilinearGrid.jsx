@@ -10,7 +10,7 @@ export const StyledCanvas = styled.canvas`
 `;
 
 export default ({
-    shape=[32,32,1],
+    shape=[32, 32, 1],
     gridColor=`#421F33FF`,
     overlayColor=`#CCCCCCFF`,
     backgroundColor=`#00000066`,

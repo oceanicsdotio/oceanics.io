@@ -2,11 +2,15 @@
 mod agent;  // particle, behavior, and moving object simulation methods
 mod tessellate;  // some core spatial methods
 mod webgl;  // shader magic
-mod stream;  // data stream structs and visualization methods
+
 mod model;  // 2D object modelling
 mod cursor;  // cursor replacements and canvas event handling system
 mod light;  // submarine light simulation system
-mod rectilinear;  // 3D rectilinear grid methods and structures
+
+
+mod data_stream;  // data stream structs and visualization methods
+mod triangular_mesh;  // 3D unstructured triangular network used for surface and object modelling
+mod rectilinear_grid;  // 3D rectilinear grid methods and structures
 
 
 // mod physics;

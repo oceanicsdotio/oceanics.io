@@ -1,4 +1,4 @@
-pub mod rectilinear_grid_system {
+pub mod rectilinear_grid {
     
     use wasm_bindgen::prelude::*;
     use wasm_bindgen::JsValue;
@@ -6,7 +6,16 @@ pub mod rectilinear_grid_system {
     use std::collections::HashMap;
 
     use crate::cursor::cursor_system::SimpleCursor;
-    use crate::tessellate::tessellate::Cell;
+
+    struct Cell {
+        /*
+        An interior space define by joined vertices.
+
+        This is duplicated in all topological models to reduce cross boundary
+        imports.
+        */
+        pub select: bool
+    }
 
     pub struct RectilinearGrid {
         /*
