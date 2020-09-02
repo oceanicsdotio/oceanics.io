@@ -518,7 +518,7 @@ function getUint8ClampedMemory0() {
 function getClampedArrayU8FromWasm0(ptr, len) {
     return getUint8ClampedMemory0().subarray(ptr / 1, ptr / 1 + len);
 }
-function __wbg_adapter_229(arg0, arg1, arg2, arg3) {
+function __wbg_adapter_225(arg0, arg1, arg2, arg3) {
     _assertNum(arg0);
     _assertNum(arg1);
     wasm.wasm_bindgen__convert__closures__invoke2_mut__h96984aac8d17c2af(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
@@ -957,12 +957,14 @@ export class InteractiveGrid {
     * @param {number} nx
     * @param {number} ny
     * @param {number} nz
+    * @param {number} stencil
     */
-    constructor(nx, ny, nz) {
+    constructor(nx, ny, nz, stencil) {
         _assertNum(nx);
         _assertNum(ny);
         _assertNum(nz);
-        var ret = wasm.interactivegrid_new(nx, ny, nz);
+        _assertNum(stencil);
+        var ret = wasm.interactivegrid_new(nx, ny, nz, stencil);
         return InteractiveGrid.__wrap(ret);
     }
     /**
@@ -1199,81 +1201,6 @@ export class Primitive {
         this.ptr = 0;
 
         wasm.__wbg_primitive_free(ptr);
-    }
-}
-/**
-*/
-export class RectilinearGrid {
-
-    static __wrap(ptr) {
-        const obj = Object.create(RectilinearGrid.prototype);
-        obj.ptr = ptr;
-
-        return obj;
-    }
-
-    free() {
-        const ptr = this.ptr;
-        this.ptr = 0;
-
-        wasm.__wbg_rectilineargrid_free(ptr);
-    }
-    /**
-    * @param {number} nx
-    * @param {number} ny
-    * @param {number} nz
-    */
-    constructor(nx, ny, nz) {
-        _assertNum(nx);
-        _assertNum(ny);
-        _assertNum(nz);
-        var ret = wasm.rectilineargrid_new(nx, ny, nz);
-        return RectilinearGrid.__wrap(ret);
-    }
-    /**
-    * @param {CanvasRenderingContext2D} ctx
-    * @param {number} w
-    * @param {number} h
-    * @param {any} color
-    */
-    draw_edges(ctx, w, h, color) {
-        try {
-            if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-            _assertNum(this.ptr);
-            wasm.rectilineargrid_draw_edges(this.ptr, addBorrowedObject(ctx), w, h, addBorrowedObject(color));
-        } finally {
-            heap[stack_pointer++] = undefined;
-            heap[stack_pointer++] = undefined;
-        }
-    }
-    /**
-    * @param {CanvasRenderingContext2D} ctx
-    * @param {number} w
-    * @param {number} h
-    * @param {any} color
-    */
-    draw_cells(ctx, w, h, color) {
-        try {
-            if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-            _assertNum(this.ptr);
-            wasm.rectilineargrid_draw_cells(this.ptr, addBorrowedObject(ctx), w, h, addBorrowedObject(color));
-        } finally {
-            heap[stack_pointer++] = undefined;
-            heap[stack_pointer++] = undefined;
-        }
-    }
-    /**
-    * @param {number} ii
-    * @param {number} jj
-    * @returns {boolean}
-    */
-    insert(ii, jj) {
-        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.ptr);
-        _assertNum(ii);
-        _assertNum(jj);
-        var ret = wasm.rectilineargrid_insert(this.ptr, ii, jj);
-        return ret !== 0;
     }
 }
 /**
@@ -1917,7 +1844,7 @@ export const __wbg_new_261626435fed913c = logError(function(arg0, arg1) {
             const a = state0.a;
             state0.a = 0;
             try {
-                return __wbg_adapter_229(a, state0.b, arg0, arg1);
+                return __wbg_adapter_225(a, state0.b, arg0, arg1);
             } finally {
                 state0.a = a;
             }
@@ -2033,7 +1960,7 @@ export const __wbindgen_memory = function() {
     return addHeapObject(ret);
 };
 
-export const __wbindgen_closure_wrapper3194 = logError(function(arg0, arg1, arg2) {
+export const __wbindgen_closure_wrapper3152 = logError(function(arg0, arg1, arg2) {
     var ret = makeMutClosure(arg0, arg1, 47, __wbg_adapter_20);
     return addHeapObject(ret);
 });

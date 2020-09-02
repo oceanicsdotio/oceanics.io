@@ -1,19 +1,20 @@
 import React, { useState, useEffect, useRef } from "react";
-import { loadRuntime, targetHtmlCanvas, addMouseEvents } from "../components/Canvas";
+import { loadRuntime } from "../components/Canvas";
 import styled from "styled-components";
 
 export const StyledCanvas = styled.canvas`
     position: relative;
     width: 100%;
     height: 400px;
+    cursor: none;
 `;
 
 export default ({
-    shape=[25,25,1],
-    gridColor=`#444488FF`,
-    overlayColor=`#77CCFFFF`,
-    backgroundColor=`#00000088`,
-    lineWidth=2.0,
+    shape=[32,32,1],
+    gridColor=`#421F33FF`,
+    overlayColor=`#CCCCCCFF`,
+    backgroundColor=`#00000066`,
+    lineWidth=1.5,
     tickSize=10.0,
     fontSize=12.0,
     labelPadding=2.0,
@@ -29,10 +30,7 @@ export default ({
 
     useEffect(loadRuntime(setRuntime), []);  // load WASM binaries
 
-    useEffect(() => {
-        // Create grid
-        if (runtime) setGrid(new runtime.InteractiveGrid(...shape));
-    }, [runtime]);
+    useEffect(() => {if (runtime) setGrid(new runtime.InteractiveGrid(...shape, 1));}, [runtime]);
 
     useEffect(() => {
         /*
