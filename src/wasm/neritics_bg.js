@@ -49,6 +49,73 @@ function takeObject(idx) {
     return ret;
 }
 
+let WASM_VECTOR_LEN = 0;
+
+const lTextEncoder = typeof TextEncoder === 'undefined' ? (0, module.require)('util').TextEncoder : TextEncoder;
+
+let cachedTextEncoder = new lTextEncoder('utf-8');
+
+const encodeString = (typeof cachedTextEncoder.encodeInto === 'function'
+    ? function (arg, view) {
+    return cachedTextEncoder.encodeInto(arg, view);
+}
+    : function (arg, view) {
+    const buf = cachedTextEncoder.encode(arg);
+    view.set(buf);
+    return {
+        read: arg.length,
+        written: buf.length
+    };
+});
+
+function passStringToWasm0(arg, malloc, realloc) {
+
+    if (typeof(arg) !== 'string') throw new Error('expected a string argument');
+
+    if (realloc === undefined) {
+        const buf = cachedTextEncoder.encode(arg);
+        const ptr = malloc(buf.length);
+        getUint8Memory0().subarray(ptr, ptr + buf.length).set(buf);
+        WASM_VECTOR_LEN = buf.length;
+        return ptr;
+    }
+
+    let len = arg.length;
+    let ptr = malloc(len);
+
+    const mem = getUint8Memory0();
+
+    let offset = 0;
+
+    for (; offset < len; offset++) {
+        const code = arg.charCodeAt(offset);
+        if (code > 0x7F) break;
+        mem[ptr + offset] = code;
+    }
+
+    if (offset !== len) {
+        if (offset !== 0) {
+            arg = arg.slice(offset);
+        }
+        ptr = realloc(ptr, len, len = offset + arg.length * 3);
+        const view = getUint8Memory0().subarray(ptr + offset, ptr + len);
+        const ret = encodeString(arg, view);
+        if (ret.read !== arg.length) throw new Error('failed to pass whole string');
+        offset += ret.written;
+    }
+
+    WASM_VECTOR_LEN = offset;
+    return ptr;
+}
+
+let cachegetInt32Memory0 = null;
+function getInt32Memory0() {
+    if (cachegetInt32Memory0 === null || cachegetInt32Memory0.buffer !== wasm.memory.buffer) {
+        cachegetInt32Memory0 = new Int32Array(wasm.memory.buffer);
+    }
+    return cachegetInt32Memory0;
+}
+
 function _assertBoolean(n) {
     if (typeof(n) !== 'boolean') {
         throw new Error('expected a boolean argument');
@@ -124,73 +191,6 @@ function debugString(val) {
     return className;
 }
 
-let WASM_VECTOR_LEN = 0;
-
-const lTextEncoder = typeof TextEncoder === 'undefined' ? (0, module.require)('util').TextEncoder : TextEncoder;
-
-let cachedTextEncoder = new lTextEncoder('utf-8');
-
-const encodeString = (typeof cachedTextEncoder.encodeInto === 'function'
-    ? function (arg, view) {
-    return cachedTextEncoder.encodeInto(arg, view);
-}
-    : function (arg, view) {
-    const buf = cachedTextEncoder.encode(arg);
-    view.set(buf);
-    return {
-        read: arg.length,
-        written: buf.length
-    };
-});
-
-function passStringToWasm0(arg, malloc, realloc) {
-
-    if (typeof(arg) !== 'string') throw new Error('expected a string argument');
-
-    if (realloc === undefined) {
-        const buf = cachedTextEncoder.encode(arg);
-        const ptr = malloc(buf.length);
-        getUint8Memory0().subarray(ptr, ptr + buf.length).set(buf);
-        WASM_VECTOR_LEN = buf.length;
-        return ptr;
-    }
-
-    let len = arg.length;
-    let ptr = malloc(len);
-
-    const mem = getUint8Memory0();
-
-    let offset = 0;
-
-    for (; offset < len; offset++) {
-        const code = arg.charCodeAt(offset);
-        if (code > 0x7F) break;
-        mem[ptr + offset] = code;
-    }
-
-    if (offset !== len) {
-        if (offset !== 0) {
-            arg = arg.slice(offset);
-        }
-        ptr = realloc(ptr, len, len = offset + arg.length * 3);
-        const view = getUint8Memory0().subarray(ptr + offset, ptr + len);
-        const ret = encodeString(arg, view);
-        if (ret.read !== arg.length) throw new Error('failed to pass whole string');
-        offset += ret.written;
-    }
-
-    WASM_VECTOR_LEN = offset;
-    return ptr;
-}
-
-let cachegetInt32Memory0 = null;
-function getInt32Memory0() {
-    if (cachegetInt32Memory0 === null || cachegetInt32Memory0.buffer !== wasm.memory.buffer) {
-        cachegetInt32Memory0 = new Int32Array(wasm.memory.buffer);
-    }
-    return cachegetInt32Memory0;
-}
-
 function makeMutClosure(arg0, arg1, dtor, f) {
     const state = { a: arg0, b: arg1, cnt: 1 };
     const real = (...args) => {
@@ -229,7 +229,7 @@ function logError(f) {
         }
     };
 }
-function __wbg_adapter_20(arg0, arg1, arg2) {
+function __wbg_adapter_22(arg0, arg1, arg2) {
     _assertNum(arg0);
     _assertNum(arg1);
     wasm._dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__hec2f2516977eb204(arg0, arg1, addHeapObject(arg2));
@@ -484,14 +484,6 @@ export function make_vertex_array(series) {
     return v1;
 }
 
-/**
-* @param {number} x
-* @param {number} y
-*/
-export function mouse_move(x, y) {
-    wasm.mouse_move(x, y);
-}
-
 function isLikeNone(x) {
     return x === undefined || x === null;
 }
@@ -518,28 +510,13 @@ function getUint8ClampedMemory0() {
 function getClampedArrayU8FromWasm0(ptr, len) {
     return getUint8ClampedMemory0().subarray(ptr / 1, ptr / 1 + len);
 }
-function __wbg_adapter_225(arg0, arg1, arg2, arg3) {
+function __wbg_adapter_217(arg0, arg1, arg2, arg3) {
     _assertNum(arg0);
     _assertNum(arg1);
     wasm.wasm_bindgen__convert__closures__invoke2_mut__h96984aac8d17c2af(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
 }
 
 function notDefined(what) { return () => { throw new Error(`${what} is not defined`); }; }
-/**
-*/
-export class Axis {
-
-    constructor() {
-        throw new Error('cannot invoke `new` directly');
-    }
-
-    free() {
-        const ptr = this.ptr;
-        this.ptr = 0;
-
-        wasm.__wbg_axis_free(ptr);
-    }
-}
 /**
 */
 export class CellIndex {
@@ -617,134 +594,6 @@ export class ContextCursor {
             if (this.ptr == 0) throw new Error('Attempt to use a moved value');
             _assertNum(this.ptr);
             wasm.contextcursor_draw(this.ptr, addBorrowedObject(ctx), w, h, addBorrowedObject(color), time, line_width);
-        } finally {
-            heap[stack_pointer++] = undefined;
-            heap[stack_pointer++] = undefined;
-        }
-    }
-}
-/**
-*/
-export class CursorState {
-
-    constructor() {
-        throw new Error('cannot invoke `new` directly');
-    }
-
-    free() {
-        const ptr = this.ptr;
-        this.ptr = 0;
-
-        wasm.__wbg_cursorstate_free(ptr);
-    }
-}
-/**
-*/
-export class DataStream {
-
-    static __wrap(ptr) {
-        const obj = Object.create(DataStream.prototype);
-        obj.ptr = ptr;
-
-        return obj;
-    }
-
-    free() {
-        const ptr = this.ptr;
-        this.ptr = 0;
-
-        wasm.__wbg_datastream_free(ptr);
-    }
-    /**
-    * @param {number} capacity
-    */
-    constructor(capacity) {
-        _assertNum(capacity);
-        var ret = wasm.datastream_new(capacity);
-        return DataStream.__wrap(ret);
-    }
-    /**
-    * @returns {number}
-    */
-    size() {
-        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.ptr);
-        var ret = wasm.datastream_size(this.ptr);
-        return ret >>> 0;
-    }
-    /**
-    * @param {number} x
-    * @param {number} y
-    */
-    push(x, y) {
-        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.ptr);
-        wasm.datastream_push(this.ptr, x, y);
-    }
-    /**
-    * @param {CanvasRenderingContext2D} ctx
-    * @param {number} w
-    * @param {number} h
-    * @param {any} color
-    * @param {number} scale
-    */
-    draw_as_points(ctx, w, h, color, scale) {
-        try {
-            if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-            _assertNum(this.ptr);
-            wasm.datastream_draw_as_points(this.ptr, addBorrowedObject(ctx), w, h, addBorrowedObject(color), scale);
-        } finally {
-            heap[stack_pointer++] = undefined;
-            heap[stack_pointer++] = undefined;
-        }
-    }
-    /**
-    * @param {CanvasRenderingContext2D} ctx
-    * @param {number} w
-    * @param {number} h
-    * @param {any} color
-    * @param {number} line_width
-    */
-    draw_as_lines(ctx, w, h, color, line_width) {
-        try {
-            if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-            _assertNum(this.ptr);
-            wasm.datastream_draw_as_lines(this.ptr, addBorrowedObject(ctx), w, h, addBorrowedObject(color), line_width);
-        } finally {
-            heap[stack_pointer++] = undefined;
-            heap[stack_pointer++] = undefined;
-        }
-    }
-    /**
-    * @param {CanvasRenderingContext2D} ctx
-    * @param {number} w
-    * @param {number} h
-    * @param {any} color
-    * @param {number} line_width
-    */
-    draw_mean_line(ctx, w, h, color, line_width) {
-        try {
-            if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-            _assertNum(this.ptr);
-            wasm.datastream_draw_mean_line(this.ptr, addBorrowedObject(ctx), w, h, addBorrowedObject(color), line_width);
-        } finally {
-            heap[stack_pointer++] = undefined;
-            heap[stack_pointer++] = undefined;
-        }
-    }
-    /**
-    * @param {CanvasRenderingContext2D} ctx
-    * @param {number} w
-    * @param {number} h
-    * @param {any} color
-    * @param {number} line_width
-    * @param {number} tick_size
-    */
-    draw_axes(ctx, w, h, color, line_width, tick_size) {
-        try {
-            if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-            _assertNum(this.ptr);
-            wasm.datastream_draw_axes(this.ptr, addBorrowedObject(ctx), w, h, addBorrowedObject(color), line_width, tick_size);
         } finally {
             heap[stack_pointer++] = undefined;
             heap[stack_pointer++] = undefined;
@@ -854,13 +703,13 @@ export class HexagonalGrid {
     * @param {number} my
     * @param {any} color
     * @param {number} line_width
-    * @param {number} alpha
+    * @param {number} _alpha
     */
-    draw(ctx, w, h, mx, my, color, line_width, alpha) {
+    draw(ctx, w, h, mx, my, color, line_width, _alpha) {
         try {
             if (this.ptr == 0) throw new Error('Attempt to use a moved value');
             _assertNum(this.ptr);
-            wasm.hexagonalgrid_draw(this.ptr, addBorrowedObject(ctx), w, h, mx, my, addHeapObject(color), line_width, alpha);
+            wasm.hexagonalgrid_draw(this.ptr, addBorrowedObject(ctx), w, h, mx, my, addHeapObject(color), line_width, _alpha);
         } finally {
             heap[stack_pointer++] = undefined;
         }
@@ -893,20 +742,13 @@ export class InteractiveDataStream {
     }
     /**
     * @param {HTMLCanvasElement} canvas
-    * @param {any} background
-    * @param {any} color
-    * @param {any} overlay
-    * @param {number} line_width
-    * @param {number} point_size
-    * @param {number} font_size
-    * @param {number} tick_size
-    * @param {number} label_padding
+    * @param {any} style
     * @param {number} time
     */
-    draw(canvas, background, color, overlay, line_width, point_size, font_size, tick_size, label_padding, time) {
+    draw(canvas, style, time) {
         if (this.ptr == 0) throw new Error('Attempt to use a moved value');
         _assertNum(this.ptr);
-        wasm.interactivedatastream_draw(this.ptr, addHeapObject(canvas), addHeapObject(background), addHeapObject(color), addHeapObject(overlay), line_width, point_size, font_size, tick_size, label_padding, time);
+        wasm.interactivedatastream_draw(this.ptr, addHeapObject(canvas), addHeapObject(style), time);
     }
     /**
     * @param {number} x
@@ -1023,7 +865,7 @@ export class InteractiveMesh {
     /**
     * @param {HTMLCanvasElement} canvas
     * @param {any} background
-    * @param {any} color
+    * @param {any} _color
     * @param {any} overlay
     * @param {number} line_width
     * @param {number} font_size
@@ -1031,10 +873,10 @@ export class InteractiveMesh {
     * @param {number} label_padding
     * @param {number} time
     */
-    draw(canvas, background, color, overlay, line_width, font_size, tick_size, label_padding, time) {
+    draw(canvas, background, _color, overlay, line_width, font_size, tick_size, label_padding, time) {
         if (this.ptr == 0) throw new Error('Attempt to use a moved value');
         _assertNum(this.ptr);
-        wasm.interactivemesh_draw(this.ptr, addHeapObject(canvas), addHeapObject(background), addHeapObject(color), addHeapObject(overlay), line_width, font_size, tick_size, label_padding, time);
+        wasm.interactivemesh_draw(this.ptr, addHeapObject(canvas), addHeapObject(background), addHeapObject(_color), addHeapObject(overlay), line_width, font_size, tick_size, label_padding, time);
     }
     /**
     * @param {number} x
@@ -1156,36 +998,6 @@ export class Model {
         _assertNum(dim);
         var ret = wasm.model_reflect(this.ptr, dim);
         return Model.__wrap(ret);
-    }
-}
-/**
-*/
-export class Observation {
-
-    constructor() {
-        throw new Error('cannot invoke `new` directly');
-    }
-
-    free() {
-        const ptr = this.ptr;
-        this.ptr = 0;
-
-        wasm.__wbg_observation_free(ptr);
-    }
-}
-/**
-*/
-export class ObservedProperty {
-
-    constructor() {
-        throw new Error('cannot invoke `new` directly');
-    }
-
-    free() {
-        const ptr = this.ptr;
-        this.ptr = 0;
-
-        wasm.__wbg_observedproperty_free(ptr);
     }
 }
 /**
@@ -1516,6 +1328,15 @@ export const __wbindgen_object_drop_ref = function(arg0) {
     takeObject(arg0);
 };
 
+export const __wbindgen_json_serialize = function(arg0, arg1) {
+    const obj = getObject(arg1);
+    var ret = JSON.stringify(obj === undefined ? null : obj);
+    var ptr0 = passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    var len0 = WASM_VECTOR_LEN;
+    getInt32Memory0()[arg0 / 4 + 1] = len0;
+    getInt32Memory0()[arg0 / 4 + 0] = ptr0;
+};
+
 export const __wbindgen_cb_drop = function(arg0) {
     const obj = takeObject(arg0).original;
     if (obj.cnt-- == 1) {
@@ -1671,10 +1492,6 @@ export const __wbg_shaderSource_c208cc7a688e8923 = logError(function(arg0, arg1,
 
 export const __wbg_texParameteri_d819847181bb4c5a = logError(function(arg0, arg1, arg2, arg3) {
     getObject(arg0).texParameteri(arg1 >>> 0, arg2 >>> 0, arg3);
-});
-
-export const __wbg_log_cc6b9ddc6ca5449d = logError(function(arg0) {
-    console.log(getObject(arg0));
 });
 
 export const __wbg_instanceof_CanvasRenderingContext2d_1112667cc1f23532 = logError(function(arg0) {
@@ -1844,7 +1661,7 @@ export const __wbg_new_261626435fed913c = logError(function(arg0, arg1) {
             const a = state0.a;
             state0.a = 0;
             try {
-                return __wbg_adapter_225(a, state0.b, arg0, arg1);
+                return __wbg_adapter_217(a, state0.b, arg0, arg1);
             } finally {
                 state0.a = a;
             }
@@ -1960,8 +1777,8 @@ export const __wbindgen_memory = function() {
     return addHeapObject(ret);
 };
 
-export const __wbindgen_closure_wrapper3183 = logError(function(arg0, arg1, arg2) {
-    var ret = makeMutClosure(arg0, arg1, 52, __wbg_adapter_20);
+export const __wbindgen_closure_wrapper3203 = logError(function(arg0, arg1, arg2) {
+    var ret = makeMutClosure(arg0, arg1, 66, __wbg_adapter_22);
     return addHeapObject(ret);
 });
 

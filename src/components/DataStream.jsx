@@ -27,7 +27,7 @@ export default ({
     const ref = useRef(null);
     const [runtime, setRuntime] = useState(null);
     const [stream, setStream] = useState(null);
-    const style = [backgroundColor, streamColor, overlayColor, lineWidth, pointSize, fontSize, tickSize, labelPadding]; 
+    const style = {backgroundColor, streamColor, overlayColor, lineWidth, pointSize, fontSize, tickSize, labelPadding}; 
 
     useEffect(loadRuntime(setRuntime), []);  // load WASM binaries
     
@@ -62,7 +62,7 @@ export default ({
         (function render() {
             const time = performance.now() - start;
             stream.push(time, fcn(time));
-            stream.draw(ref.current, ...style, time);
+            stream.draw(ref.current, style, time);
             requestId = requestAnimationFrame(render);
         })()
 

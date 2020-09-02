@@ -6,11 +6,10 @@ pub mod data_stream {
     use std::collections::VecDeque;
     use web_sys::{CanvasRenderingContext2d,HtmlCanvasElement};
     use wasm_bindgen::JsValue;
-    use serde::{Serialize, Deserialize};
+    use serde::Deserialize;
 
     use crate::cursor::cursor_system::SimpleCursor;
 
-    #[wasm_bindgen]
     struct Observation {
         /*
         Observations are N-dimensional points mapped into 2-D screen space.
@@ -21,7 +20,6 @@ pub mod data_stream {
         y: f64
     }
 
-    #[wasm_bindgen]
     #[allow(dead_code)]
     struct ObservedProperty {
         /*
@@ -31,7 +29,6 @@ pub mod data_stream {
         unit: String,
     }
 
-    #[wasm_bindgen]
     #[allow(dead_code)]
     struct Axis {
         /*
@@ -63,7 +60,6 @@ pub mod data_stream {
         
     }
 
-    #[wasm_bindgen]
     pub struct DataStream {
         /*
         Datastreams are containers of observations. They keep track of data, metadata, and
@@ -75,12 +71,11 @@ pub mod data_stream {
         axes: Vec<Axis>
     }
 
-    #[wasm_bindgen]
+
     impl DataStream {
         /*
         Implementation of DataStream.
         */
-        #[wasm_bindgen(constructor)]
         pub fn new(capacity: usize) -> DataStream {
             /*
             Constructor for datastreams
@@ -150,11 +145,14 @@ pub mod data_stream {
             }
         }
 
-        pub fn draw_as_lines(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, color: &JsValue, line_width: f64) {
+        #[allow(dead_code)]
+        fn draw_as_lines(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, color: &JsValue, line_width: f64) {
             /*
             Draw observations with connectings lines. This can be misleading in terms
-            of indicating continuity. Generally this should be avoided. 
-             */
+            of indicating continuity. 
+            
+            Generally this should be avoided. 
+            */
             if self.data.len() == 0 {
                 return
             }
@@ -199,7 +197,9 @@ pub mod data_stream {
         }
 
         pub fn draw_axes(&self, ctx: &CanvasRenderingContext2d, w: f64, h:f64, color: &JsValue, line_width: f64, tick_size: f64) {
-            
+            /*
+            Draw the axes and ticks
+            */
             ctx.set_stroke_style(color);
             ctx.set_line_width(line_width);
             
@@ -239,23 +239,25 @@ pub mod data_stream {
         }
     }
 
-
     #[derive(Deserialize)]
-    pub struct DataStreamStyle {
-        pub background: String, 
-        pub color: String, 
-        pub overlay: String, 
+    #[serde(rename_all = "camelCase")]
+    pub struct Style {
+        pub background_color: String, 
+        pub stream_color: String, 
+        pub overlay_color: String, 
         pub line_width: f64, 
         pub point_size: f64, 
         pub font_size: f64, 
         pub tick_size: f64, 
         pub label_padding: f64
     }
-
-    
-
+   
     #[wasm_bindgen]
     pub struct InteractiveDataStream {
+        /*
+        Interactive data streams are containers with an additional reference
+        to a cursor for interactivity and feeback
+        */
         data_stream: DataStream,
         cursor: SimpleCursor,
         frames: usize
@@ -263,9 +265,13 @@ pub mod data_stream {
 
     #[wasm_bindgen]
     impl InteractiveDataStream {
-
         #[wasm_bindgen(constructor)]
         pub fn new(capacity: usize) -> InteractiveDataStream {
+            /*
+            Create a new container without making too many assumptions
+            abour how it will be used. Mostly streams are dynamically
+            constructed on the JavaScript side.
+            */
             InteractiveDataStream {
                 data_stream: DataStream::new(capacity),
                 cursor: SimpleCursor::new(0.0, 0.0),
@@ -274,18 +280,20 @@ pub mod data_stream {
         }
 
         pub fn draw(&mut self, canvas: HtmlCanvasElement, style: JsValue, time: f64) {
+            /*
+            Compose the data-driven visualization and draw to the target HtmlCanvasElement.
+            */
             
-            let rstyle: DataStreamStyle = style.into_serde().unwrap();
+            let rstyle: Style = style.into_serde().unwrap();
+            let color = JsValue::from_str(&rstyle.stream_color);
+            let bg = JsValue::from_str(&rstyle.background_color);
+            let overlay = JsValue::from_str(&rstyle.overlay_color);
 
             let ctx: &CanvasRenderingContext2d = &crate::context2d(&canvas);
             let w = canvas.width() as f64;
             let h = canvas.height() as f64;
             let font = format!("{:.0} Arial", rstyle.font_size);
             let inset = rstyle.tick_size * 0.5;
-
-            let color = JsValue::from_str(&rstyle.color);
-            let bg = JsValue::from_str(&rstyle.background);
-            let overlay = JsValue::from_str(&rstyle.overlay);
 
             crate::clear_rect_blending(ctx, w, h, bg);
             self.data_stream.draw_as_points(ctx, w, h, &color, rstyle.point_size);
@@ -314,11 +322,24 @@ pub mod data_stream {
         }
 
         pub fn push(&mut self, x: f64, y: f64) {
+            /*
+            Hoist the datastream push method, needed to ensure JavaScript binding
+            */
             self.data_stream.push(x, y);
         }
 
-        pub fn size(&self) -> usize {self.data_stream.size()}
+        pub fn size(&self) -> usize {
+            /*
+            Hoist data stream size getter, needed to ensure JavaScript binding
+            */
+            self.data_stream.size()
+        }
 
-        pub fn update_cursor(&mut self, x: f64, y: f64) {self.cursor.update(x, y);}
+        pub fn update_cursor(&mut self, x: f64, y: f64) {
+            /*
+            Hoist cursor setter, needed to ensure JavaScript binding
+            */
+            self.cursor.update(x, y);
+        }
     }
 }
