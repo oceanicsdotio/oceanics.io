@@ -74,7 +74,7 @@ export default ({data: {allMarkdownRemark: {edges}, site: {siteMetadata: {title}
     const [ visibility, setVisibility ] = useState({
         map: false,
         graph: false,
-        rectilinearGrid: false,
+        rectilinearGrid: true,
         triangularMesh: true,
         hexGrid: false,
         objectStorage: false,

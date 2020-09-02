@@ -22,55 +22,6 @@ pub mod tessellate {
 
     impl Layers {}
 
-    pub enum RightTriangulatedIrregularNetwork<T: Ord> {
-        Node {
-            value: T,
-            left: Box<RightTriangulatedIrregularNetwork<T>>,
-            right: Box<RightTriangulatedIrregularNetwork<T>>,
-        },
-        Empty,
-    }
-
-    impl<T: Ord> RightTriangulatedIrregularNetwork<T> {
-
-        pub fn new() -> Self {
-            RightTriangulatedIrregularNetwork::Empty
-        }
-
-        pub fn create(value: T) -> Self {
-            RightTriangulatedIrregularNetwork::Node {
-                value,
-                left: Box::new(RightTriangulatedIrregularNetwork::Empty),
-                right: Box::new(RightTriangulatedIrregularNetwork::Empty),
-            }
-        }
-
-        #[allow(unused_variables)]
-        pub fn insert(&mut self, new_value: T) {
-            match self {
-                RightTriangulatedIrregularNetwork::Node {
-                    ref value,
-                    ref mut left,
-                    ref mut right,
-                } => match new_value.cmp(value) {
-                    // do stuff here
-                    _ => return,
-                },
-                RightTriangulatedIrregularNetwork::Empty => {
-                    *self = RightTriangulatedIrregularNetwork::create(new_value);
-                }
-            }
-        }
-
-        pub fn is_empty(&self) -> bool {
-            match self {
-                RightTriangulatedIrregularNetwork::Empty => true,
-                RightTriangulatedIrregularNetwork::Node { .. } => false,
-            }
-        }
-    }
-
-
     #[wasm_bindgen]
     pub struct Texture2D {
         size: (usize, usize),
@@ -100,25 +51,19 @@ pub mod tessellate {
     }
 
     struct Cell {
+        /*
+        An interior space define by joined vertices
+        */
         select: bool
-    }
-
-    impl Cell {
-        pub fn draw(&self, ctx: &CanvasRenderingContext2d, shape: &(usize, usize), size: [f64; 2], color: String) {
-            let [dx, dy] = size;
-            let (ii, jj) = shape;
-            ctx.set_fill_style(&JsValue::from(color));
-            ctx.fill_rect(dx*(*ii as f64), dy*(*jj as f64), dx, dy);
-        } 
     }
 
     #[wasm_bindgen]
     pub struct RectilinearGrid {
         /*
-        
+        Good old fashion 3D grid, usually projected into the X,Y plane.
         */
-        shape: [usize; 2],
-        cells: HashMap<(usize,usize), Cell>,
+        shape: [u16; 3],
+        cells: HashMap<(u16,u16,u16), Cell>,
     }
 
     #[wasm_bindgen]
@@ -130,9 +75,13 @@ pub mod tessellate {
 
         fn w(&self) -> f64 {self.shape[0] as f64}
         fn h(&self) -> f64 {self.shape[1] as f64}
+        fn d(&self) -> f64 {self.shape[2] as f64}
 
-        fn size(&self) -> usize {
-            let mut result: usize = 1;
+        fn size(&self) -> u16 {
+            /*
+            Fleixble sizing, in case implementing with vector instead of array
+            */
+            let mut result: u16 = 1;
             for dim in &self.shape {
                 result *= dim;
             }
@@ -140,93 +89,156 @@ pub mod tessellate {
         }
 
         #[wasm_bindgen(constructor)]
-        pub fn new(nx: usize, ny: usize) -> RectilinearGrid {
-            RectilinearGrid { shape: [nx, ny], cells: HashMap::new() }
+        pub fn new(nx: u16, ny: u16, nz: u16) -> RectilinearGrid {
+            /*
+            Only the number of desired cells in each dimension
+            */
+            RectilinearGrid { 
+                shape: [nx, ny, nz], 
+                cells: HashMap::with_capacity((nx*ny*nz) as usize) 
+            }
         }
 
         #[wasm_bindgen]
-        pub fn draw(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, color: &JsValue) {
+        pub fn draw_edges(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, color: &JsValue) {
+            /*
+            Draw the lines and any selected cells
+            */
             let dx = w / self.w();
             let dy = h / self.h();
 
             ctx.set_stroke_style(&color);
-            ctx.clear_rect(0.0, 0.0, w, h);
             ctx.set_line_width(1.0);
 
+            ctx.begin_path();
             for ii in 0..(self.shape[0] + 1) {
                 let delta = dx * ii as f64;
-                ctx.begin_path();
                 ctx.move_to(delta, 0.0);
                 ctx.line_to(delta, h as f64);
-                ctx.stroke();
             }
 
             for jj in 0..(self.shape[1] + 1) {
                 let delta = dy * jj as f64;
-                ctx.begin_path();
                 ctx.move_to(0.0, delta);
                 ctx.line_to(w, delta);
-                ctx.stroke();
             }
+            ctx.stroke();
+           
+        }
+
+        #[wasm_bindgen]
+        pub fn draw_cells(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, color: &JsValue) {
+            /*
+            Draw the lines and any selected cells
+            */
+            let dx = w / self.w();
+            let dy = h / self.h();
 
             ctx.set_fill_style(&color);
             for (index, cell) in self.cells.iter() {
-                cell.draw(ctx, index, [dx, dy], color.as_string().unwrap())
+                if cell.select {
+                    let (ii, jj, _) = index;
+                    ctx.fill_rect(dx*(*ii as f64), dy*(*jj as f64), dx, dy);
+                }
             }
         }
 
-        pub fn insert(&mut self, ii: usize, jj: usize) -> bool {
+        pub fn insert(&mut self, ii: u16, jj: u16) -> bool {
             /*
             Add a tracked cell to the grid.
             */
-            let insert = !self.cells.contains_key(&(ii, jj));
+            let insert = !self.cells.contains_key(&(ii, jj, 1));
             if insert {
-                self.cells.insert((ii, jj), Cell { select: true });
+                self.cells.insert((ii, jj, 1), Cell { select: true });
             }
             return insert;
         }
+    }
 
-        #[wasm_bindgen]
-        pub fn clear(&mut self) {
-            /*
-            Clear cell data but keep memory allocated.
-            */
-            self.cells.clear();
-        }
+    #[wasm_bindgen]
+    pub struct InteractiveGrid {
+        grid: RectilinearGrid,
+        cursor: SimpleCursor,
+        frames: usize
+    }
 
-        #[allow(unused_unsafe)]
-        fn random_cell_index(&self) -> (usize, usize) {
-            /*
-            Pick a random cell, no guarentee it is not already selected
-            */
-            unsafe {
-                let index = (
-                    (js_sys::Math::random()*self.w()).floor() as usize,
-                    (js_sys::Math::random()*self.h()).floor() as usize
-                );
-                index
+    
+    #[wasm_bindgen]
+    impl InteractiveGrid {
+        #[wasm_bindgen(constructor)]
+        pub fn new(nx: u16, ny: u16, nz: u16) -> InteractiveGrid {
+            InteractiveGrid {
+                grid: RectilinearGrid::new(nx, ny, nz),
+                cursor: SimpleCursor::new(0.0, 0.0),
+                frames: 0
             }
         }
 
-        #[wasm_bindgen]
-        pub fn animation_frame(&mut self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, frames: u32, color: JsValue) {
+        pub fn update_cursor(&mut self, x: f64, y: f64) {
+            /*
+            Hoisting function for cursor updates from JavaScript. 
+            Prevents null references in some cases
+            */
+            self.cursor.update(x, y);
+        }
+
+        pub fn draw(&mut self, canvas: HtmlCanvasElement, background: JsValue, color: JsValue, overlay: JsValue, line_width: f64, font_size: f64, tick_size: f64, label_padding: f64, time: f64) {
+            
             /*
             Animation frame is used as a visual feedback test that utilizes most public methods
             of the data structure.
             */
-            let restart = frames as usize % self.size() <= 0;
+            let ctx: &CanvasRenderingContext2d = &crate::context2d(&canvas);
+            let w = canvas.width() as f64;
+            let h = canvas.height() as f64;
+            let font = format!("{:.0} Arial", 12.0);
+            let inset = tick_size * 0.5;
+
+            let restart = self.frames as u16 % self.grid.size() <= 0;
             match restart {
                 true => {
-                    self.clear();
+                    self.grid.cells.clear();
                 },
-                false => {
-                    let (ii, jj) = self.random_cell_index();
-                    let _ = self.insert(ii, jj);
+                false => loop {
+                    unsafe {
+                        let (ii, jj) = (
+                            (js_sys::Math::random()*self.grid.w()).floor() as u16,
+                            (js_sys::Math::random()*self.grid.h()).floor() as u16
+                        );
+                        if self.grid.insert(ii, jj) {break;}
+                    }
                 }
             };
-            self.draw(ctx, w, h, &color);
+
+            crate::clear_rect_blending(ctx, w, h, background);
+            self.grid.draw_cells(ctx, w, h, &color);
+            self.grid.draw_edges(ctx, w, h, &overlay);
+            
+            self.cursor.draw(ctx, w, h, &overlay, font_size, line_width, tick_size, 0.0, label_padding);
+            
+            let fps = (1000.0 * (self.frames + 1) as f64).floor() / time;
+   
+            if time < 10000.0 || fps < 55.0 {
+
+                let caption = format!("Rectilinear Grid ({},{})", self.grid.w(), self.grid.h());
+                crate::draw_caption(ctx, caption, inset, h-inset, &overlay, font.clone());
+            
+                crate::draw_caption(
+                    &ctx,
+                    format!("{:.0} fps", fps),
+                    inset,
+                    font_size + inset, 
+                    &overlay,
+                    font
+                );
+            }
+            
+            self.frames += 1;
         }
+    
     }
+
+
 
     #[wasm_bindgen]
     #[derive(Hash, Eq, PartialEq, Debug)]
@@ -283,6 +295,15 @@ pub mod tessellate {
 
     #[wasm_bindgen]
     pub struct TriangularMesh {
+        /*
+        Unstructured triangular mesh, commonly used in finite element simulations
+        and visualizing three dimension objects.
+
+        - points: vertices
+        - cells: topology
+        - edges: memoized edges to not double draw or calculate
+
+        */
         points: HashMap<u16,Vec3>,
         cells: HashMap<CellIndex,Cell>,
         edges: HashSet<EdgeIndex>
@@ -305,11 +326,9 @@ pub mod tessellate {
 
         #[wasm_bindgen(constructor)]
         pub fn new(nx: usize, ny: usize) -> TriangularMesh {
-
             /*
             Create a simple RTIN type mesh
             */
-
             let dx = 1.0 / (nx as f64);
             let dy = 1.0 / (ny as f64);
 
@@ -356,9 +375,10 @@ pub mod tessellate {
 
 
         pub fn draw_cells(&self, ctx: &CanvasRenderingContext2d, wf64: f64, hf64: f64, color: &JsValue) {
-            
+            /*
+            Draw filled triangles
+            */
             ctx.set_fill_style(&color);
-            ctx.clear_rect(0.0, 0.0, wf64, hf64);
            
             for (index, cell) in &self.cells {
                 
@@ -391,6 +411,9 @@ pub mod tessellate {
 
     #[wasm_bindgen]
     pub struct InteractiveMesh{
+        /*
+        Container for mesh that also contains cursor and rendering target infromation
+        */
         mesh: TriangularMesh,
         cursor: SimpleCursor,
         frames: usize
@@ -400,6 +423,9 @@ pub mod tessellate {
     impl InteractiveMesh {
         #[wasm_bindgen(constructor)]
         pub fn new(nx: usize, ny: usize) -> InteractiveMesh {
+            /*
+            By default create a simple RTIN graph and initial the cursor
+            */
             InteractiveMesh {
                 mesh: TriangularMesh::new(nx, ny),
                 cursor: SimpleCursor::new(0.0, 0.0),
@@ -408,7 +434,9 @@ pub mod tessellate {
         }
 
         pub fn draw(&mut self, canvas: HtmlCanvasElement, background: JsValue, color: JsValue, overlay: JsValue, line_width: f64, font_size: f64, tick_size: f64, label_padding: f64, time: f64) {
-            
+            /*
+            Compose a data-driven interactive canvas for the triangular network. 
+            */
           
             let ctx: &CanvasRenderingContext2d = &crate::context2d(&canvas);
             let w = canvas.width() as f64;
@@ -417,7 +445,7 @@ pub mod tessellate {
             let inset = tick_size * 0.5;
 
             crate::clear_rect_blending(ctx, w, h, background);
-            self.mesh.draw_cells(ctx, w, h, &color);
+            // self.mesh.draw_cells(ctx, w, h, &color);
             self.mesh.draw_edges(ctx, w, h, &overlay, line_width);
             self.cursor.draw(ctx, w, h, &overlay, font_size, line_width, tick_size, 0.0, label_padding);
             
@@ -442,6 +470,10 @@ pub mod tessellate {
         }
 
         pub fn update_cursor(&mut self, x: f64, y: f64) {
+            /*
+            Hoisting function for cursor updates from JavaScript. 
+            Prevents null references in some cases
+            */
             self.cursor.update(x, y);
         }
     }
@@ -504,26 +536,5 @@ pub mod tessellate {
                 swap = !swap;
             }
         }
-    }
-    
-
-
-    // Creates a 3D torus in the XY plane
-    pub fn make_torus(r: f32, sr: f32, k: i32, n: i32, sn: i32) -> Vec<f32> {
-        use std::f32::consts::{PI};
-
-        let mut tv: Vec<f32> = vec![];
-        for i in 0..n {
-            for j in 0..(sn + 1 * ((i == n) as i32 - 1)) {
-                for v in 0..2 {
-                    let a: f32 = 2.0 * PI * ((i + j / (sn + k) * v) as f32) / (n as f32);
-                    let sa: f32 = 2.0 * PI * (j as f32) / (sn as f32);
-                    tv.push((r + sr * sa.cos()) * a.cos());
-                    tv.push((r + sr * sa.cos()) * a.sin());
-                    tv.push(sr * sa.sin());
-                }
-            }
-        }
-        return tv
     }
 }

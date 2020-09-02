@@ -11,7 +11,7 @@ export const StyledCanvas = styled.canvas`
 export default ({
     fontSize=12.0,
     shape=[32,32],
-    meshColor=`#EF5FA188`,
+    meshColor=`#EF5FA1CC`,
     overlayColor=`#CCCCCCFF`,
     backgroundColor=`#00000088`,
     lineWidth=1.0,

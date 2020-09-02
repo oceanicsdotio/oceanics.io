@@ -9,13 +9,14 @@ export const StyledCanvas = styled.canvas`
 `;
 
 export default ({
-    font="24px Arial",
-    shape=[25,25],
-    gridColor=`#EF5FA1FF`,
+    shape=[25,25,1],
+    gridColor=`#444488FF`,
     overlayColor=`#77CCFFFF`,
     backgroundColor=`#00000088`,
-    caption=`RectilinearGrid`,
-    lineWidth=2.0
+    lineWidth=2.0,
+    tickSize=10.0,
+    fontSize=12.0,
+    labelPadding=2.0,
 }) => {
     /*
     Rectangles
@@ -24,22 +25,14 @@ export default ({
     const ref = useRef(null);
     const [runtime, setRuntime] = useState(null);
     const [grid, setGrid] = useState(null);
-    const [cursor, setCursor] = useState(null);
+    const style = [backgroundColor, gridColor, overlayColor, lineWidth, fontSize, tickSize, labelPadding];
 
     useEffect(loadRuntime(setRuntime), []);  // load WASM binaries
 
     useEffect(() => {
         // Create grid
-        if (runtime) setGrid(new runtime.RectilinearGrid(...shape));
+        if (runtime) setGrid(new runtime.InteractiveGrid(...shape));
     }, [runtime]);
-
-    useEffect(() => {
-        if (!runtime) return;
-        setCursor(new runtime.SimpleCursor(0.0, 0.0)); // Create cursor
-    }, [runtime]);
-
-    useEffect(addMouseEvents(ref, cursor), [cursor]);  // track cursor when on canvas
-
 
     useEffect(() => {
         /*
@@ -48,17 +41,21 @@ export default ({
 
         if (!runtime || !grid) return;
 
-        let {start, ctx, shape, requestId, frames} = targetHtmlCanvas(ref, "2d");
+        ref.current.addEventListener('mousemove', ({clientX, clientY}) => {
+            const {left, top} = ref.current.getBoundingClientRect();
+            grid.update_cursor(clientX-left, clientY-top);
+        });
+
+        [ref.current.width, ref.current.height] = ["width", "height"].map(
+            dim => getComputedStyle(ref.current).getPropertyValue(dim).slice(0, -2)
+        );
+
+        const start = performance.now();
+        let requestId = null;
 
         (function render() {
-
-            let time = performance.now() - start
-            
-            runtime.clear_rect_blending(ctx, ...shape, backgroundColor);
-            grid.animation_frame(ctx, ...shape, frames, gridColor);
-            cursor.draw(ctx, ...shape, overlayColor, time, lineWidth);
-            runtime.draw_caption(ctx, caption, 0.0, shape[1], overlayColor, font);
-            frames = runtime.draw_fps(ctx, frames, time, overlayColor);
+            const time = performance.now() - start;
+            grid.draw(ref.current, ...style, time);
             requestId = requestAnimationFrame(render);
         })()
 
