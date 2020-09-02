@@ -136,6 +136,7 @@ pub mod rectilinear_grid_system {
             self.cursor.update(x, y);
         }
 
+        #[allow(unused_unsafe)]
         pub fn draw(&mut self, canvas: HtmlCanvasElement, background: JsValue, color: JsValue, overlay: JsValue, line_width: f64, font_size: f64, tick_size: f64, label_padding: f64, time: f64) {
             /*
             Animation frame is used as a visual feedback test that utilizes most public methods
