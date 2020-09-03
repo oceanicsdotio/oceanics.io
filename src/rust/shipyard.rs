@@ -1,218 +1,22 @@
-pub mod model_system {
+pub mod shipyard {
 
     use wasm_bindgen::prelude::*;
     use wasm_bindgen::JsValue;
     use web_sys::CanvasRenderingContext2d;
     use std::f64::consts::PI;
+
     use crate::agent::agent_system::Vec3;
+    use crate::triangular_mesh::triangular_mesh::{TriangularMesh};
+    use crate::primitive::primitive::{Primitive};
 
     const PI_RADIANS: f64 = 180.0;
 
-    #[wasm_bindgen]
-    pub struct Primitive {
-        vert: Vec<Vec3>
-
-    }
-
-    impl Primitive {
-
-        const NEG_TWO_PI: f64 = -2.0 * PI;
-
-        pub fn new(size: usize) -> Primitive {
-            let mut p = Primitive {
-                vert: Vec::with_capacity(size)
-            };
-            for _ in 0..size {
-                p.vert.push(Vec3{value: [0.0, 0.0, 0.0]});
-            }
-            p
-
-        }
-        
-        fn with_capacity(capacity: usize) -> Primitive {
-            Primitive{
-                vert: Vec::with_capacity(capacity)
-            }
-        }
-
-        pub fn shift(&self, dx: f64, dy: f64, dz: f64) -> Primitive {
-            let mut vertex_array = Primitive::with_capacity(self.vert.len());
-            let offset = Vec3{value:[dx,dy,dz]};
-
-            for vert in &self.vert {
-                vertex_array.vert.push(vert + &offset);
-            }
-            vertex_array
-        }
-
-        pub fn scale(&self, sx: f64, sy: f64, sz: f64) -> Primitive {
-            let mut vertex_array = Primitive::new(self.vert.len());
-            for ii in 0..self.vert.len() {
-                vertex_array.vert[ii] = &self.vert[ii] * Vec3{value:[sx,sy,sz]};
-            }
-            vertex_array
-        }
-        
-
-        pub fn copy_face() {}
-
-        pub fn regular_polygon(count: usize, axis: Vec3) -> Primitive {
-            /*
-            Create a regular polygon in the X,Y plane, with the first point
-            at (1,0,0)
-            */
-            
-            let mut polygon = Primitive::new(0);
-            let inc: f64 = Primitive::NEG_TWO_PI / count as f64;
-            
-            for ii in 0..count {
-                polygon.vert.push(Vec3::XAXIS.rotate(&(inc*ii as f64), &axis));
-            }
-            polygon
-        }
-
-        pub fn arc(count: usize, start_angle: f64, sweep_angle: f64, radius: f64) -> Primitive {
-            
-            let mut arc = Primitive::new(0);
-            let inc = (Primitive::NEG_TWO_PI * sweep_angle / 360.0) / (count - 1) as f64;
-            let ray: Vec3 = Vec3::XAXIS * radius;
-
-            for ii in 0..count {
-                let angle = start_angle*PI_RADIANS + inc*ii as f64;
-                arc.vert.push(ray.rotate(&angle, &Vec3::ZAXIS));
-            }
-            arc
-        }
-
-        pub fn parallelogram(ww: f64, hh: f64, dw: f64, dh: f64) -> Primitive {
-
-            // panel with lower left corner at origin, clockwise
-            let mut shape = Primitive::new(4);
-            shape.vert[0] = Vec3::ORIGIN;
-            shape.vert[1] = Vec3{value:[dw, hh, 0.0]};
-            shape.vert[2] = Vec3{value:[ww+dw, hh+dh, 0.0]};
-            shape.vert[3] = Vec3{value:[ww+dw, dh, 0.0]};
-            shape
-        }
-
-        pub fn rectangle(ww: f64, hh: f64) -> Primitive {
-            Primitive::parallelogram(ww, hh, 0.0, 0.0)
-        }
-
-        pub fn wedge(count: usize, start_angle: f64, sweep_angle: f64, radius: f64) -> Primitive {
-            let mut shape = Primitive::arc(count, start_angle, sweep_angle, radius);
-            shape.vert.push(Vec3::ORIGIN);
-            shape
-        }
-
-        pub fn bevel(&self, count: usize, radius: f64) -> Primitive {
-            /*
-            For each corner, insert count points.
-            */
-            let mut result = Primitive::new(0); // hold the anchor points also
-            let mut index = Vec::with_capacity(count+2);
-
-            index.push(count-1);
-            index.extend(0..count);
-            index.push(0);
-
-            // forward and backward vectors for arbitrary angle calc
-            for ii in 1..count+1 {
-                
-                let back: Vec3 = &self.vert[index[ii-1]] - &self.vert[index[ii]];
-                let fore: Vec3 = &self.vert[index[ii+1]] - &self.vert[index[ii]];
-                let theta = Vec3::vec_angle(&back, &fore); // angle between segments, radians
-                let base_angle = (back.y() as f64).atan2(back.x()); // start angle derived from angle of back segment, radians
-                let next_angle = (fore.y() as f64).atan2(fore.x());
-
-                let offset_x = self.vert[index[ii]].x() + radius / (theta/2.0).sin() * (next_angle - theta/2.0).cos();
-                let offset_y = self.vert[index[ii]].y() + radius / (theta/2.0).sin() * (next_angle - theta/2.0).sin();
-
-                // Create an arc
-                let temp_poly = Primitive::arc(
-                    count, 
-                    base_angle, 
-                    (PI - theta)*180.0/PI, 
-                    radius
-                ).shift( 
-                    offset_x, 
-                    offset_y, 
-                    0.0
-                );
-
-                for vert in temp_poly.vert {
-                    result.vert.push(vert);
-                }
-            }
-
-            result
-        }
-
-
-        pub fn shell(count: usize, start: f64, sweep:f64, w: f64, h: f64, dw: f64, dh: f64) -> Primitive {
-
-        
-            let mut polygon = Primitive::arc(count, start, sweep, 1.0)
-                .scale(w, h, 0.0);
-
-            let work_poly = Primitive::arc(count, start, sweep, 1.0)
-                .scale(w-dw, h-dh, 0.0);
-                
-            for ii in 0..count {
-                polygon.vert.push(work_poly.vert[count-ii-1].copy());
-            }
-
-            polygon
-           
-        }
-    }
-
-
     
-    struct Face {
-        indices: Vec<i32>
-    }
-
-
-    impl Face {
-
-        fn new(indices: Vec<i32>) -> Face {
-            Face { indices }
-        }
-
-        fn copy(&self) -> Face {
-            Face::new(self.indices.clone())
-        }
-    }
-
-    impl std::ops::Add<i32> for Face {
-        type Output = Face;
-        fn add(self, rhs: i32) -> Face {
-            let mut result = self.copy();
-            for ii in 0..result.indices.len() {
-                result.indices[ii] += rhs;
-            }
-            result
-        }
-    }
-
-    impl std::ops::Add<i32> for &Face {
-        type Output = Face;
-        fn add(self, rhs: i32) -> Face {
-            let mut result = self.copy();
-            for ii in 0..self.indices.len() {
-                result.indices[ii] += rhs;
-            }
-            result
-        }
-    }
-
     #[wasm_bindgen]
     pub struct Model {
+        mesh: TriangularMesh,
         vert: Vec<Vec3>,
-        norm: Vec<Vec3>,
         norf: Vec<Vec3>,
-        face: Vec<Face>,
         neighbors: Vec<Vec<usize>>
     }
 
@@ -223,9 +27,9 @@ pub mod model_system {
             for vertex in &_rhs.vert {
                 working_copy.insert_vertex(vertex);
             }
-            for face in &_rhs.face {
+            for (index, cell) in &_rhs.mesh.topology.cells {
                 // TODO: these need to be re-indexed?
-                working_copy.insert_face(face)
+                working_copy.mesh.topology.insert_cell(index, cell);
             }
             working_copy
         }
@@ -272,8 +76,8 @@ pub mod model_system {
         #[wasm_bindgen(constructor)]
         pub fn new() -> Model {
             Model {
+                vertex_array: VertexArray::new(),
                 vert: vec![],
-                norm: vec![],
                 norf: vec![],
                 face: vec![],
                 neighbors: vec![]
@@ -294,17 +98,7 @@ pub mod model_system {
         //     }
         // }
 
-        #[wasm_bindgen]
-        pub fn rotate_from_js(&self, angle: f64, ax: f64, ay: f64, az: f64) -> Model {
-            self.rotate(&angle, &Vec3{value: [ax, ay, az]})
-        }
-
-        #[wasm_bindgen]
-        pub fn rotate_in_place(&mut self, angle: f64, ax: f64, ay: f64, az: f64) {
-            for ii in 0..self.vert.len() {
-                self.vert[ii] = self.vert[ii].rotate(&angle, &Vec3{value:[ax,ay,az]});
-            }
-        }
+        
 
         #[wasm_bindgen]
         pub fn draw_edges(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, color: JsValue, _time: f64, line_width: f64, point_size: f64) -> usize {
@@ -355,195 +149,12 @@ pub mod model_system {
             triangles // for metadata
         }
 
-        #[wasm_bindgen]
-        pub fn scale(&self, sx: f64, sy: f64, sz: f64) -> Model {
-            let mut model = self.copy();
-            for vert in &mut model.vert {
-                vert.value = [
-                    vert.x()*sx, 
-                    vert.y()*sy, 
-                    vert.z()*sz
-                ];
-            }
-            model
-        }
-
-        #[wasm_bindgen]
-        pub fn sphere(&mut self, resolution: usize) {
-
-            if resolution % 2 != 0 || resolution < 6 {
-                panic!("Resolution must be an even integer greater than 6")
-            }
-            
-            let ires = resolution as i32;
-            
-            // let nv: usize = resolution * (resolution / 2 - 1) + 2;
-            // let nf: usize = resolution * resolution / 2;
-            let step = 2.0 * PI / (resolution as f64);
-
-            
-            self.vert.push(Vec3 { value: [0.0, 0.0, 1.0]}); // north pole
-            for band in 0..ires/2-1 {
-                for slice in 0..ires {
-                    let azimuth = 0.5 * PI - step * ((1+band) as f64);
-                    let theta = step * (slice as f64);
-                    self.vert.push(Vec3 { value: [
-                        theta.cos() * azimuth.cos().abs(),
-                        theta.sin() * azimuth.cos().abs(),
-                        azimuth.sin()
-                    ]});
-                }
-            }
-            self.vert.push(Vec3{value:[0.0, 0.0, -1.0]}); // south pole
-
-    
-            for band in 0..ires/2-3 {
-                for slice in 0..ires {
-
-                    let indices: Vec<i32>;
-                    let bottom_left = band * ires + slice + 1;
-                    let bottom_right = band * ires + ((slice+1) % ires) + 1;
-                    let top_left = (band - 1) * ires + slice + 1;
-                    let top_right = (band - 1) * ires + ((slice+1) % ires) + 1;
-
-
-                    if band == 0 {
-                        // top
-                        indices = vec![0, bottom_right, bottom_left];  
-                    // } else if band == ires/2-3 {
-                    //     indices = vec![top_left, top_right, nv as i32];
-                    } else {
-                        // "interior"
-                        indices = vec![top_left, top_right, bottom_right, bottom_left];
-                    }
-                    
-                    self.face.push(Face::new(indices));
-                    
-                }
-
-            }
-        }
-
-        #[wasm_bindgen]
-        pub fn shift(&self, dx: f64, dy: f64, dz: f64) -> Model {
-            let mut model = self.copy();
-            for vert in &mut model.vert {
-                vert.value = [
-                    vert.x()+dx, 
-                    vert.y()+dy, 
-                    vert.z()+dz
-                ];
-            }
-            model
-        }
         
-        #[wasm_bindgen]
-        pub fn reflect(&self, dim: usize) -> Model {
-            let mut model = self.copy();
-            for vert in &mut model.vert {
-                vert.value[dim] *= -1.0;
-            }
-            for face in &mut model.face {
-                let temp = face.indices[0];
-                face.indices[0] = face.indices[2];
-                face.indices[2] = temp;
-            }
-            model
-        }
     }
     
     impl Model {
 
-        fn copy(&self) -> Model {
-            let mut working_copy = Model::new();
-            for vertex in &self.vert {
-                working_copy.insert_vertex(vertex)
-            }
-            for face in &self.face {
-                working_copy.insert_face(face)
-            }
-            working_copy
-        }
-
-        fn append(&mut self, model: &Model) {
-           
-            let offset = self.vert.len() as i32;
-            for vert in &model.vert {
-                self.insert_vertex(&vert.copy());
-            }
-
-            for face in &model.face {
-                // TODO: these need to be re-indexed?
-                self.insert_face(&(face + offset));
-            }
-        }
-
-        fn extend(&mut self, models: Vec<&Model>) {
-            for model in models {
-                self.append(model);
-            }
-        }
-        
-
-        fn insert_face(&mut self, face: &Face) {
-            self.face.push(face.copy());
-        }
-
-        fn insert_vertex(&mut self, vertex: &Vec3) {
-            self.vert.push(vertex.copy());
-        }
-
-        fn rotate(&self, angle: &f64, axis: &Vec3) -> Model {
-            let mut working_copy: Model = self.copy();
-            for ii in 0..working_copy.vert.len() {
-                working_copy.vert[ii] = working_copy.vert[ii].rotate(angle, axis);
-            }
-            working_copy
-        }
-
-        pub fn icosahedron(&mut self) {
-
-            const BASE_ANGLE: f64 = 72.0;
-            
-            let inc: f64 = BASE_ANGLE*PI/PI_RADIANS;
-
-            let xaxis = Vec3 { value: [1.0, 0.0, 0.0] };
-            
-            let phi = 0.5*(1.0 + (5.0 as f64).sqrt());
-            let next = Vec3{ value: [0.0, -1.0/phi, 1.0] };
-            
-            self.vert.push(xaxis);
-            for ii in 0..5 {
-                let angle = inc*(ii as f64);
-                let mut c = 1;
-                if ii < 4 {
-                    c += 4;
-                }
-
-                self.face.push(Face::new(vec![0, ii, c]));
-                self.vert.push(next.rotate(&angle, &self.vert[0]).copy());
-            }
-
-            // let concat_model = self.rotate(&PI_RADIANS, &xaxis);
-            // self.append(concat_model.rotate(&-BASE_ANGLE, &concat_model.vert[0]))
-        }
-
-        pub fn tetrahedron(&mut self) {
-            
-            let one_third_root = (1.0/3.0 as f64).sqrt();
-            let two_third_root = (2.0/3.0 as f64).sqrt();
-    
-            self.vert.push( Vec3{value: [two_third_root, 0.0, one_third_root]} );
-            self.vert.push( Vec3{value: [two_third_root, 0.0, one_third_root]} );
-            self.vert.push( Vec3{value: [0.0, -two_third_root, -one_third_root]} );
-            self.vert.push( Vec3{value: [0.0, two_third_root, -one_third_root]} );
-    
-            self.face.push(Face::new(vec![0, 1, 3]));
-            self.face.push(Face::new(vec![0, 3, 2]));
-            self.face.push(Face::new(vec![0, 2, 1]));
-            self.face.push(Face::new(vec![1, 2, 3]));
-        }
-
+       
         pub fn extrude (n_rings: &usize, radius: &Vec<f64>, offset: &Vec<f64>, p: &Primitive, close_state: &bool) -> Model {
             
             
@@ -694,166 +305,7 @@ pub mod model_system {
                 }
             }
             model
-        } 
-
-
-        pub fn normals (&mut self) -> Vec<Vec3> {
-
-            let mut normals = Vec::with_capacity(self.vert.len());
-            let mut count: Vec<usize> = Vec::with_capacity(self.vert.len());
-            for _ in 0..self.vert.len() {
-                normals.push(Vec3{value:[0.0, 0.0, 0.0]});
-                count.push(0);
-            }
-
-            for ii in 0..self.face.len() {
-                let face = &self.face[ii];
-
-                for jj in 0..3 {
-                    let vid = face.indices[jj] as usize;
-                    let vi = face.indices[(jj + 1) % 3] as usize;
-                    let ui = face.indices[(jj + 2) % 3] as usize;
-
-                    let v: Vec3 = self.vert[vi].copy() - self.vert[vid].copy();
-                    let u: Vec3 = self.vert[ui].copy() - self.vert[vid].copy();
-                    let normal = Vec3::cross_product(&v, &u).normalized();
-                    if jj == 0 { 
-                        self.norf[ii] = normal.copy();
-                    };
-                    
-                    normals[vid] = (&normals[vid] * jj as f64 + normal.copy()) / ((count[vid]+1) as f64);
-                    count[vid] += 1;
-
-                }
-            }
-
-            normals
-        }
-
-
-
-
-        pub fn smooth(&self) -> Model {
-
-            let mut model = self.copy();
-
-            for ii in 0..model.vert.len() {
-                let length = model.vert[ii].magnitude();
-                let mut sum = 4.0 * length;
-                
-                for index in &model.neighbors[ii] {
-                    sum += model.vert[ *index ].magnitude();
-                }
-                model.vert[ii] *= sum / length / 9.0;
-            }
-            return model;
-        }
-
-
-
-        pub fn impact (&self, root: usize, distance: usize, coef: f64) -> Model {
-            // Create impact sites recursively
-            let mut model = self.copy();
-            
-            model.vert[root] *= coef;
-            if distance > 0 {
-                for ii in 0..model.neighbors[root].len() {
-                    model = model.copy().impact(distance-1, model.neighbors[root][ii], coef);
-                }
-            }
-            return model;
-        }
-
-        pub fn fuzz (&self) -> Model {
-            let mut model = self.copy();
-            
-            for ii in 0..model.vert.len() {
-                unsafe {
-                    model.vert[ii] *= 1.0 + (js_sys::Math::random()%100.0-45.0)/4000.0;
-                }
-            }
-            return model;
-        }
-
-        
-
-        pub fn neighbors(&self) -> Vec<Vec<usize>> {
-
-            let mut value: Vec<Vec<usize>> = vec![];
-
-            for ii in 0..self.vert.len() {
-                let count = 0;
-                // search faces by each member vertex
-                value.push(vec![]);
-
-                for jj in 0..self.face.len() {
-                    for kk in 0..3 as usize {
-                        if ii != self.face[jj].indices[kk] as usize {continue;} // find the current index
-                        
-                        for mm in 0..3 {
-                            if mm == kk {continue;}
-                            let fid = self.face[jj].indices[mm] as usize;
-                            let mut flag = false;
-                            for nn in 0..count {
-                                if fid == value[ii][nn] as usize {
-                                    flag = true;
-                                    break;
-                                }
-                            }
-                            if flag {continue;}
-                            value[ii].push(fid);
-                        }
-                    }
-                }
-            }
-
-            return value;
-        }
-
-
-        pub fn deduplicate(&self, threshold: f64) -> Model {
-
-            let mut model = self.copy();
-
-            for ii in 0..model.vert.len()-1 { // all vertices except last
-               
-                for jj in ii+1..model.vert.len() { // remaining vertices
-                    if (self.vert[ii].copy() - self.vert[jj].copy()).magnitude() >= threshold {break;}
-                    
-                    model.vert.remove(jj);
-                    for face in &mut model.face { // loop faces
-                        for dim in 0..3 { // loop face dimension
-                            if face.indices[dim] as usize == jj { // if duplicate vertex
-                                face.indices[dim] = ii as i32; // change
-                            } else if face.indices[dim] as usize > jj {
-                                face.indices[dim] -= 1; // shift face data
-                            }
-                        }
-                    }
-                }
-            }
-
-
-            for ii in 0..self.face.len()-1 {
-                for jj in ii+1..self.face.len() {
-                    let a = model.face[ii].copy().indices;
-                    let b = model.face[jj].copy().indices;
-
-                    if  ((a[0]==b[0]) && (a[1]==b[1]) && (a[2]==b[2])) ||
-                        ((a[0]==b[0]) && (a[1]==b[2]) && (a[2]==b[1])) ||
-                        ((a[0]==b[1]) && (a[1]==b[2]) && (a[2]==b[0])) ||
-                        ((a[0]==b[1]) && (a[1]==b[0]) && (a[2]==b[2])) ||
-                        ((a[0]==b[2]) && (a[1]==b[1]) && (a[2]==b[0])) ||
-                        ((a[0]==b[2]) && (a[1]==b[0]) && (a[2]==b[1]))  
-
-                    {
-                        model.face.remove(jj); 
-                    }
-                }
-            }
-
-            model
-        }
+        }         
     }
 
     pub struct Component {

@@ -6,6 +6,7 @@ export const StyledCanvas = styled.canvas`
     position: relative;
     width: 100%;
     height: 400px;
+    cursor: none;
 `;
 
 export default ({

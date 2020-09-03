@@ -4,8 +4,21 @@ pub mod rectilinear_grid {
     use wasm_bindgen::JsValue;
     use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
     use std::collections::HashMap;
+    use serde::Deserialize;
 
     use crate::cursor::cursor_system::SimpleCursor;
+
+    #[derive(Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Style {
+        pub background_color: String, 
+        pub grid_color: String, 
+        pub overlay_color: String, 
+        pub line_width: f64,
+        pub font_size: f64, 
+        pub tick_size: f64, 
+        pub label_padding: f64
+    }
 
     struct Cell {
         /*
@@ -146,17 +159,12 @@ pub mod rectilinear_grid {
         }
 
         #[allow(unused_unsafe)]
-        pub fn draw(&mut self, canvas: HtmlCanvasElement, background: JsValue, color: JsValue, overlay: JsValue, line_width: f64, font_size: f64, tick_size: f64, label_padding: f64, time: f64) {
+        pub fn unsafe_animate(&mut self) {
             /*
-            Animation frame is used as a visual feedback test that utilizes most public methods
-            of the data structure.
-            */
-            let ctx: &CanvasRenderingContext2d = &crate::context2d(&canvas);
-            let w = canvas.width() as f64;
-            let h = canvas.height() as f64;
-            let font = format!("{:.0} Arial", 12.0);
-            let inset = tick_size * 0.5;
+            Insert a cell that is guarenteed to not exist, or if full, empty it.
 
+            For very large meshes the uniqueness guarentee makes it slow
+            */
             let restart = self.frames as u16 % self.grid.size() <= 0;
             match restart {
                 true => {
@@ -172,10 +180,28 @@ pub mod rectilinear_grid {
                     }
                 }
             };
+        }
+        
+        pub fn draw(&mut self, canvas: HtmlCanvasElement, time: f64, style: JsValue) {
+            /*
+            Animation frame is used as a visual feedback test that utilizes most public methods
+            of the data structure.
+            */
+
+            let rstyle: Style = style.into_serde().unwrap();
+            let color = JsValue::from_str(&rstyle.grid_color);
+            let bg = JsValue::from_str(&rstyle.background_color);
+            let overlay = JsValue::from_str(&rstyle.overlay_color);
+
+            let ctx: &CanvasRenderingContext2d = &crate::context2d(&canvas);
+            let w = canvas.width() as f64;
+            let h = canvas.height() as f64;
+            let font = format!("{:.0} Arial", 12.0);
+            let inset = rstyle.tick_size * 0.5;
 
             ctx.set_global_alpha(1.0);
 
-            crate::clear_rect_blending(ctx, w, h, background);
+            crate::clear_rect_blending(ctx, w, h, bg);
             self.grid.draw_cells(ctx, w, h, &color);
             self.grid.draw_edges(ctx, w, h, &overlay);
             
@@ -186,8 +212,8 @@ pub mod rectilinear_grid {
 
             let focus_x = ((self.cursor.x / dx).floor() - radius) * dx;
             let focus_y = ((self.cursor.y / dy).floor() - radius) * dy;
-
-            ctx.set_line_width(line_width*1.5);
+            
+            ctx.set_line_width(rstyle.line_width*1.5);
             ctx.begin_path();
             ctx.move_to(focus_x, focus_y);
             ctx.line_to(focus_x + dx*diameter, focus_y);
@@ -196,7 +222,7 @@ pub mod rectilinear_grid {
             ctx.close_path();
             ctx.stroke();
 
-            self.cursor.draw(ctx, w, h, &overlay, font_size, line_width, tick_size, 0.0, label_padding);
+            self.cursor.draw(ctx, w, h, &overlay, rstyle.font_size, rstyle.line_width, rstyle.tick_size, 0.0, rstyle.label_padding);
         
             let fps = (1000.0 * (self.frames + 1) as f64).floor() / time;
    
@@ -209,7 +235,7 @@ pub mod rectilinear_grid {
                     &ctx,
                     format!("{:.0} fps", fps),
                     inset,
-                    font_size + inset, 
+                    rstyle.font_size + inset, 
                     &overlay,
                     font
                 );

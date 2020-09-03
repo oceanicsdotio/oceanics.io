@@ -75,15 +75,15 @@ export default ({data: {allMarkdownRemark: {edges}, site: {siteMetadata: {title}
         map: false,
         graph: false,
         rectilinearGrid: false,
-        triangularMesh: true,
+        triangularMesh: false,
         hexGrid: false,
         objectStorage: false,
         codex: false,
         dataStream: false,
-        particles: false,
+        particles: true,
         lagrangian: false,
         noise: false,
-        model: false
+        // model: true
     });
 
 
@@ -352,7 +352,7 @@ export default ({data: {allMarkdownRemark: {edges}, site: {siteMetadata: {title}
         {visibility.hexGrid ? <HexagonalGrid/> : null }
         {visibility.graph ? catalog.map(([k, v]) => <Collection {...v} key={k}/>).flat() : null}
         {visibility.objectStorage ? <Storage /> : null}
-        {visibility.model ? <Model /> : null}
+        {/* {visibility.model ? <Model /> : null} */}
         
       </Layout>
     )

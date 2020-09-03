@@ -18,19 +18,20 @@ export default ({
     tickSize=10.0,
     fontSize=12.0,
     labelPadding=2.0,
+    stencil=0,
 }) => {
     /*
     Rectangles
     */
-
+    const layers = 1;
     const ref = useRef(null);
     const [runtime, setRuntime] = useState(null);
     const [grid, setGrid] = useState(null);
-    const style = [backgroundColor, gridColor, overlayColor, lineWidth, fontSize, tickSize, labelPadding];
+    const style = {backgroundColor, gridColor, overlayColor, lineWidth, fontSize, tickSize, labelPadding};
 
     useEffect(loadRuntime(setRuntime), []);  // load WASM binaries
 
-    useEffect(() => {if (runtime) setGrid(new runtime.InteractiveGrid(...shape, 1));}, [runtime]);
+    useEffect(() => {if (runtime) setGrid(new runtime.InteractiveGrid(...shape, stencil));}, [runtime]);
 
     useEffect(() => {
         /*
@@ -53,7 +54,8 @@ export default ({
 
         (function render() {
             const time = performance.now() - start;
-            grid.draw(ref.current, ...style, time);
+            grid.unsafe_animate();
+            grid.draw(ref.current, time, style);
             requestId = requestAnimationFrame(render);
         })()
 

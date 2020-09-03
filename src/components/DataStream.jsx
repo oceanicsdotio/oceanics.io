@@ -62,7 +62,7 @@ export default ({
         (function render() {
             const time = performance.now() - start;
             stream.push(time, fcn(time));
-            stream.draw(ref.current, style, time);
+            stream.draw(ref.current, time, style);
             requestId = requestAnimationFrame(render);
         })()
 

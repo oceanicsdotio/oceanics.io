@@ -243,17 +243,6 @@ function addBorrowedObject(obj) {
     return stack_pointer;
 }
 /**
-* @param {number} day_of_year
-* @param {number} latitude
-* @param {number} time_of_day
-* @returns {number}
-*/
-export function photosynthetically_active_radiation(day_of_year, latitude, time_of_day) {
-    var ret = wasm.photosynthetically_active_radiation(day_of_year, latitude, time_of_day);
-    return ret;
-}
-
-/**
 * @param {WebGLRenderingContext} ctx
 * @param {string} vertex
 * @param {string} fragment
@@ -484,6 +473,17 @@ export function make_vertex_array(series) {
     return v1;
 }
 
+/**
+* @param {number} day_of_year
+* @param {number} latitude
+* @param {number} time_of_day
+* @returns {number}
+*/
+export function photosynthetically_active_radiation(day_of_year, latitude, time_of_day) {
+    var ret = wasm.photosynthetically_active_radiation(day_of_year, latitude, time_of_day);
+    return ret;
+}
+
 function isLikeNone(x) {
     return x === undefined || x === null;
 }
@@ -510,28 +510,13 @@ function getUint8ClampedMemory0() {
 function getClampedArrayU8FromWasm0(ptr, len) {
     return getUint8ClampedMemory0().subarray(ptr / 1, ptr / 1 + len);
 }
-function __wbg_adapter_217(arg0, arg1, arg2, arg3) {
+function __wbg_adapter_201(arg0, arg1, arg2, arg3) {
     _assertNum(arg0);
     _assertNum(arg1);
     wasm.wasm_bindgen__convert__closures__invoke2_mut__h96984aac8d17c2af(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
 }
 
 function notDefined(what) { return () => { throw new Error(`${what} is not defined`); }; }
-/**
-*/
-export class CellIndex {
-
-    constructor() {
-        throw new Error('cannot invoke `new` directly');
-    }
-
-    free() {
-        const ptr = this.ptr;
-        this.ptr = 0;
-
-        wasm.__wbg_cellindex_free(ptr);
-    }
-}
 /**
 */
 export class ContextCursor {
@@ -598,76 +583,6 @@ export class ContextCursor {
             heap[stack_pointer++] = undefined;
             heap[stack_pointer++] = undefined;
         }
-    }
-}
-/**
-*/
-export class EdgeIndex {
-
-    constructor() {
-        throw new Error('cannot invoke `new` directly');
-    }
-
-    free() {
-        const ptr = this.ptr;
-        this.ptr = 0;
-
-        wasm.__wbg_edgeindex_free(ptr);
-    }
-}
-/**
-*/
-export class Group {
-
-    static __wrap(ptr) {
-        const obj = Object.create(Group.prototype);
-        obj.ptr = ptr;
-
-        return obj;
-    }
-
-    free() {
-        const ptr = this.ptr;
-        this.ptr = 0;
-
-        wasm.__wbg_group_free(ptr);
-    }
-    /**
-    * @param {number} count
-    * @param {number} zero
-    * @param {number} stop
-    */
-    constructor(count, zero, stop) {
-        _assertNum(count);
-        var ret = wasm.group_new(count, zero, stop);
-        return Group.__wrap(ret);
-    }
-    /**
-    * @param {CanvasRenderingContext2D} ctx
-    * @param {number} width
-    * @param {number} height
-    * @param {number} fade
-    * @param {number} scale
-    * @param {any} color
-    */
-    draw(ctx, width, height, fade, scale, color) {
-        try {
-            if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-            _assertNum(this.ptr);
-            wasm.group_draw(this.ptr, addBorrowedObject(ctx), width, height, fade, scale, addHeapObject(color));
-        } finally {
-            heap[stack_pointer++] = undefined;
-        }
-    }
-    /**
-    * @param {number} padding
-    * @param {number} drag
-    * @param {number} bounce
-    */
-    update_links(padding, drag, bounce) {
-        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.ptr);
-        wasm.group_update_links(this.ptr, padding, drag, bounce);
     }
 }
 /**
@@ -742,13 +657,13 @@ export class InteractiveDataStream {
     }
     /**
     * @param {HTMLCanvasElement} canvas
-    * @param {any} style
     * @param {number} time
+    * @param {any} style
     */
-    draw(canvas, style, time) {
+    draw(canvas, time, style) {
         if (this.ptr == 0) throw new Error('Attempt to use a moved value');
         _assertNum(this.ptr);
-        wasm.interactivedatastream_draw(this.ptr, addHeapObject(canvas), addHeapObject(style), time);
+        wasm.interactivedatastream_draw(this.ptr, addHeapObject(canvas), time, addHeapObject(style));
     }
     /**
     * @param {number} x
@@ -819,20 +734,115 @@ export class InteractiveGrid {
         wasm.interactivegrid_update_cursor(this.ptr, x, y);
     }
     /**
-    * @param {HTMLCanvasElement} canvas
-    * @param {any} background
-    * @param {any} color
-    * @param {any} overlay
-    * @param {number} line_width
-    * @param {number} font_size
-    * @param {number} tick_size
-    * @param {number} label_padding
-    * @param {number} time
     */
-    draw(canvas, background, color, overlay, line_width, font_size, tick_size, label_padding, time) {
+    unsafe_animate() {
         if (this.ptr == 0) throw new Error('Attempt to use a moved value');
         _assertNum(this.ptr);
-        wasm.interactivegrid_draw(this.ptr, addHeapObject(canvas), addHeapObject(background), addHeapObject(color), addHeapObject(overlay), line_width, font_size, tick_size, label_padding, time);
+        wasm.interactivegrid_unsafe_animate(this.ptr);
+    }
+    /**
+    * @param {HTMLCanvasElement} canvas
+    * @param {number} time
+    * @param {any} style
+    */
+    draw(canvas, time, style) {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        wasm.interactivegrid_draw(this.ptr, addHeapObject(canvas), time, addHeapObject(style));
+    }
+}
+/**
+*/
+export class InteractiveGroup {
+
+    static __wrap(ptr) {
+        const obj = Object.create(InteractiveGroup.prototype);
+        obj.ptr = ptr;
+
+        return obj;
+    }
+
+    free() {
+        const ptr = this.ptr;
+        this.ptr = 0;
+
+        wasm.__wbg_interactivegroup_free(ptr);
+    }
+    /**
+    * @param {number} count
+    * @param {number} zero
+    * @param {number} stop
+    */
+    constructor(count, zero, stop) {
+        _assertNum(count);
+        var ret = wasm.interactivegroup_new(count, zero, stop);
+        return InteractiveGroup.__wrap(ret);
+    }
+    /**
+    * @param {number} x
+    * @param {number} y
+    */
+    update_cursor(x, y) {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        wasm.interactivegroup_update_cursor(this.ptr, x, y);
+    }
+    /**
+    * @param {number} drag
+    * @param {number} bounce
+    */
+    update_links_and_positions(drag, bounce) {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        wasm.interactivegroup_update_links_and_positions(this.ptr, drag, bounce);
+    }
+    /**
+    * @param {CanvasRenderingContext2D} ctx
+    * @param {number} w
+    * @param {number} h
+    * @param {number} fade
+    * @param {number} scale
+    * @param {any} color
+    * @returns {number}
+    */
+    draw_agents(ctx, w, h, fade, scale, color) {
+        try {
+            if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+            _assertNum(this.ptr);
+            var ret = wasm.interactivegroup_draw_agents(this.ptr, addBorrowedObject(ctx), w, h, fade, scale, addBorrowedObject(color));
+            return ret >>> 0;
+        } finally {
+            heap[stack_pointer++] = undefined;
+            heap[stack_pointer++] = undefined;
+        }
+    }
+    /**
+    * @param {CanvasRenderingContext2D} ctx
+    * @param {number} w
+    * @param {number} h
+    * @param {number} radius
+    * @param {number} fade
+    * @returns {number}
+    */
+    draw_edges(ctx, w, h, radius, fade) {
+        try {
+            if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+            _assertNum(this.ptr);
+            var ret = wasm.interactivegroup_draw_edges(this.ptr, addBorrowedObject(ctx), w, h, radius, fade);
+            return ret >>> 0;
+        } finally {
+            heap[stack_pointer++] = undefined;
+        }
+    }
+    /**
+    * @param {HTMLCanvasElement} canvas
+    * @param {number} time
+    * @param {any} style
+    */
+    draw(canvas, time, style) {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        wasm.interactivegroup_draw(this.ptr, addHeapObject(canvas), time, addHeapObject(style));
     }
 }
 /**
@@ -887,255 +897,16 @@ export class InteractiveMesh {
         _assertNum(this.ptr);
         wasm.interactivemesh_update_cursor(this.ptr, x, y);
     }
-}
-/**
-*/
-export class Model {
-
-    static __wrap(ptr) {
-        const obj = Object.create(Model.prototype);
-        obj.ptr = ptr;
-
-        return obj;
-    }
-
-    free() {
-        const ptr = this.ptr;
-        this.ptr = 0;
-
-        wasm.__wbg_model_free(ptr);
-    }
-    /**
-    */
-    constructor() {
-        var ret = wasm.model_new();
-        return Model.__wrap(ret);
-    }
-    /**
-    * @param {number} angle
-    * @param {number} ax
-    * @param {number} ay
-    * @param {number} az
-    * @returns {Model}
-    */
-    rotate_from_js(angle, ax, ay, az) {
-        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.ptr);
-        var ret = wasm.model_rotate_from_js(this.ptr, angle, ax, ay, az);
-        return Model.__wrap(ret);
-    }
     /**
     * @param {number} angle
     * @param {number} ax
     * @param {number} ay
     * @param {number} az
     */
-    rotate_in_place(angle, ax, ay, az) {
+    rotate(angle, ax, ay, az) {
         if (this.ptr == 0) throw new Error('Attempt to use a moved value');
         _assertNum(this.ptr);
-        wasm.model_rotate_in_place(this.ptr, angle, ax, ay, az);
-    }
-    /**
-    * @param {CanvasRenderingContext2D} ctx
-    * @param {number} w
-    * @param {number} h
-    * @param {any} color
-    * @param {number} _time
-    * @param {number} line_width
-    * @param {number} point_size
-    * @returns {number}
-    */
-    draw_edges(ctx, w, h, color, _time, line_width, point_size) {
-        try {
-            if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-            _assertNum(this.ptr);
-            var ret = wasm.model_draw_edges(this.ptr, addBorrowedObject(ctx), w, h, addHeapObject(color), _time, line_width, point_size);
-            return ret >>> 0;
-        } finally {
-            heap[stack_pointer++] = undefined;
-        }
-    }
-    /**
-    * @param {number} sx
-    * @param {number} sy
-    * @param {number} sz
-    * @returns {Model}
-    */
-    scale(sx, sy, sz) {
-        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.ptr);
-        var ret = wasm.model_scale(this.ptr, sx, sy, sz);
-        return Model.__wrap(ret);
-    }
-    /**
-    * @param {number} resolution
-    */
-    sphere(resolution) {
-        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.ptr);
-        _assertNum(resolution);
-        wasm.model_sphere(this.ptr, resolution);
-    }
-    /**
-    * @param {number} dx
-    * @param {number} dy
-    * @param {number} dz
-    * @returns {Model}
-    */
-    shift(dx, dy, dz) {
-        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.ptr);
-        var ret = wasm.model_shift(this.ptr, dx, dy, dz);
-        return Model.__wrap(ret);
-    }
-    /**
-    * @param {number} dim
-    * @returns {Model}
-    */
-    reflect(dim) {
-        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.ptr);
-        _assertNum(dim);
-        var ret = wasm.model_reflect(this.ptr, dim);
-        return Model.__wrap(ret);
-    }
-}
-/**
-*/
-export class Primitive {
-
-    constructor() {
-        throw new Error('cannot invoke `new` directly');
-    }
-
-    free() {
-        const ptr = this.ptr;
-        this.ptr = 0;
-
-        wasm.__wbg_primitive_free(ptr);
-    }
-}
-/**
-*/
-export class Shipyard {
-
-    static __wrap(ptr) {
-        const obj = Object.create(Shipyard.prototype);
-        obj.ptr = ptr;
-
-        return obj;
-    }
-
-    free() {
-        const ptr = this.ptr;
-        this.ptr = 0;
-
-        wasm.__wbg_shipyard_free(ptr);
-    }
-    /**
-    */
-    constructor() {
-        var ret = wasm.shipyard_new();
-        return Shipyard.__wrap(ret);
-    }
-    /**
-    * @param {number} angle
-    * @param {number} ax
-    * @param {number} ay
-    * @param {number} az
-    */
-    rotate_in_place(angle, ax, ay, az) {
-        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.ptr);
-        wasm.shipyard_rotate_in_place(this.ptr, angle, ax, ay, az);
-    }
-    /**
-    * @param {number} dx
-    * @param {number} dy
-    * @param {number} dz
-    */
-    shift(dx, dy, dz) {
-        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.ptr);
-        wasm.shipyard_shift(this.ptr, dx, dy, dz);
-    }
-    /**
-    * @param {number} sx
-    * @param {number} sy
-    * @param {number} sz
-    */
-    scale(sx, sy, sz) {
-        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.ptr);
-        wasm.shipyard_scale(this.ptr, sx, sy, sz);
-    }
-    /**
-    * @param {CanvasRenderingContext2D} ctx
-    * @param {number} w
-    * @param {number} h
-    * @param {number} time
-    * @param {number} line_width
-    * @param {number} point_size
-    * @returns {number}
-    */
-    draw(ctx, w, h, time, line_width, point_size) {
-        try {
-            if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-            _assertNum(this.ptr);
-            var ret = wasm.shipyard_draw(this.ptr, addBorrowedObject(ctx), w, h, time, line_width, point_size);
-            return ret >>> 0;
-        } finally {
-            heap[stack_pointer++] = undefined;
-        }
-    }
-    /**
-    * @param {number} res
-    */
-    build_ship(res) {
-        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.ptr);
-        _assertNum(res);
-        wasm.shipyard_build_ship(this.ptr, res);
-    }
-    /**
-    * @returns {Model}
-    */
-    static build_body() {
-        var ret = wasm.shipyard_build_body();
-        return Model.__wrap(ret);
-    }
-    /**
-    * @returns {Model}
-    */
-    static build_arm() {
-        var ret = wasm.shipyard_build_arm();
-        return Model.__wrap(ret);
-    }
-    /**
-    * @param {number} res
-    * @param {number} s
-    * @param {number} a
-    * @param {number} b
-    * @param {number} c
-    * @returns {Model}
-    */
-    static build_tube(res, s, a, b, c) {
-        _assertNum(res);
-        var ret = wasm.shipyard_build_tube(res, s, a, b, c);
-        return Model.__wrap(ret);
-    }
-    /**
-    * @param {number} res
-    * @param {number} s
-    * @param {number} a
-    * @param {number} b
-    * @param {number} c
-    * @returns {Model}
-    */
-    static build_tube_cover(res, s, a, b, c) {
-        _assertNum(res);
-        var ret = wasm.shipyard_build_tube_cover(res, s, a, b, c);
-        return Model.__wrap(ret);
+        wasm.interactivemesh_rotate(this.ptr, angle, ax, ay, az);
     }
 }
 /**
@@ -1253,67 +1024,6 @@ export class Texture2D {
         try {
             wasm.texture2d_fill_canvas(addBorrowedObject(ctx), _w, _h, _frame, time);
         } finally {
-            heap[stack_pointer++] = undefined;
-        }
-    }
-}
-/**
-*/
-export class TriangularMesh {
-
-    static __wrap(ptr) {
-        const obj = Object.create(TriangularMesh.prototype);
-        obj.ptr = ptr;
-
-        return obj;
-    }
-
-    free() {
-        const ptr = this.ptr;
-        this.ptr = 0;
-
-        wasm.__wbg_triangularmesh_free(ptr);
-    }
-    /**
-    * @param {number} nx
-    * @param {number} ny
-    */
-    constructor(nx, ny) {
-        _assertNum(nx);
-        _assertNum(ny);
-        var ret = wasm.triangularmesh_new(nx, ny);
-        return TriangularMesh.__wrap(ret);
-    }
-    /**
-    * @param {CanvasRenderingContext2D} ctx
-    * @param {number} wf64
-    * @param {number} hf64
-    * @param {any} color
-    */
-    draw_cells(ctx, wf64, hf64, color) {
-        try {
-            if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-            _assertNum(this.ptr);
-            wasm.triangularmesh_draw_cells(this.ptr, addBorrowedObject(ctx), wf64, hf64, addBorrowedObject(color));
-        } finally {
-            heap[stack_pointer++] = undefined;
-            heap[stack_pointer++] = undefined;
-        }
-    }
-    /**
-    * @param {CanvasRenderingContext2D} ctx
-    * @param {number} wf64
-    * @param {number} hf64
-    * @param {any} color
-    * @param {number} line_width
-    */
-    draw_edges(ctx, wf64, hf64, color, line_width) {
-        try {
-            if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-            _assertNum(this.ptr);
-            wasm.triangularmesh_draw_edges(this.ptr, addBorrowedObject(ctx), wf64, hf64, addBorrowedObject(color), line_width);
-        } finally {
-            heap[stack_pointer++] = undefined;
             heap[stack_pointer++] = undefined;
         }
     }
@@ -1661,7 +1371,7 @@ export const __wbg_new_261626435fed913c = logError(function(arg0, arg1) {
             const a = state0.a;
             state0.a = 0;
             try {
-                return __wbg_adapter_217(a, state0.b, arg0, arg1);
+                return __wbg_adapter_201(a, state0.b, arg0, arg1);
             } finally {
                 state0.a = a;
             }
@@ -1777,8 +1487,8 @@ export const __wbindgen_memory = function() {
     return addHeapObject(ret);
 };
 
-export const __wbindgen_closure_wrapper3203 = logError(function(arg0, arg1, arg2) {
-    var ret = makeMutClosure(arg0, arg1, 66, __wbg_adapter_22);
+export const __wbindgen_closure_wrapper2693 = logError(function(arg0, arg1, arg2) {
+    var ret = makeMutClosure(arg0, arg1, 71, __wbg_adapter_22);
     return addHeapObject(ret);
 });
 
