@@ -1,5 +1,8 @@
 pub mod vec3 {
 
+    
+    use std::ops::{Add, AddAssign, Sub, Mul, MulAssign, Div};
+
     fn quaternion(U: [f64;4], V: [f64;4]) -> [f64;4] {
             
         //Quaternion Multiplication
@@ -13,7 +16,6 @@ pub mod vec3 {
 
        R
    }
-
 
    #[derive(Copy, Clone)]
     pub struct Vec3 {
@@ -121,7 +123,7 @@ pub mod vec3 {
 
     }
 
-    impl std::ops::Add<Vec3> for Vec3 {
+    impl Add<Vec3> for Vec3 {
         type Output = Vec3;
         fn add(self, _rhs: Vec3) -> Vec3 {
             let mut v = [0.0; 3];
@@ -132,40 +134,7 @@ pub mod vec3 {
         }
     }
 
-    impl std::ops::Add<f64> for Vec3 {
-        type Output = Vec3;
-        fn add(self, _rhs: f64) -> Vec3 {
-            let mut v = [0.0; 3];
-            for ii in 0..3 {
-                v[ii] = self.value[ii] + _rhs;
-            }
-            Vec3{ value: v }
-        }
-    }
-
-    impl std::ops::Sub<Vec3> for Vec3 {
-        type Output = Vec3;
-        fn sub(self, _rhs: Vec3) -> Vec3 {
-            let mut v = [0.0; 3];
-            for ii in 0..3 {
-                v[ii] = self.value[ii] - _rhs.value[ii];
-            }
-            Vec3{ value: v }
-        }
-    }
-
-    impl std::ops::Sub<&Vec3> for &Vec3 {
-        type Output = Vec3;
-        fn sub(self, _rhs: &Vec3) -> Vec3 {
-            let mut v = [0.0; 3];
-            for ii in 0..3 {
-                v[ii] = self.value[ii] - _rhs.value[ii];
-            }
-            Vec3{ value: v }
-        }
-    }
-
-    impl std::ops::Add<&Vec3> for &Vec3 {
+    impl Add<&Vec3> for Vec3 {
         type Output = Vec3;
         fn add(self, _rhs: &Vec3) -> Vec3 {
             let mut v = [0.0; 3];
@@ -176,7 +145,72 @@ pub mod vec3 {
         }
     }
 
-    impl std::ops::Mul<Vec3> for Vec3 {
+    impl Add<Vec3> for &Vec3 {
+        type Output = Vec3;
+        fn add(self, _rhs: Vec3) -> Vec3 {
+            let mut v = [0.0; 3];
+            for ii in 0..3 {
+                v[ii] = self.value[ii] + _rhs.value[ii];
+            }
+            Vec3{ value: v }
+        }
+    }
+
+    impl Add<&Vec3> for &Vec3 {
+        type Output = Vec3;
+        fn add(self, _rhs: &Vec3) -> Vec3 {
+            let mut v = [0.0; 3];
+            for ii in 0..3 {
+                v[ii] = self.value[ii] + _rhs.value[ii];
+            }
+            Vec3{ value: v }
+        }
+    }
+
+    impl Add<f64> for Vec3 {
+        type Output = Vec3;
+        fn add(self, _rhs: f64) -> Vec3 {
+            let mut v = [0.0; 3];
+            for ii in 0..3 {
+                v[ii] = self.value[ii] + _rhs;
+            }
+            Vec3{ value: v }
+        }
+    }
+
+    impl AddAssign<&Vec3> for Vec3 {
+        fn add_assign(&mut self, rhs: &Vec3) {
+            for (v, x) in self.value.iter_mut().zip(rhs.value.iter()) {
+                *v += x;
+            }
+        }
+    }
+
+    impl Sub<Vec3> for Vec3 {
+        type Output = Vec3;
+        fn sub(self, _rhs: Vec3) -> Vec3 {
+            let mut v = [0.0; 3];
+            for ii in 0..3 {
+                v[ii] = self.value[ii] - _rhs.value[ii];
+            }
+            Vec3{ value: v }
+        }
+    }
+
+    impl Sub<&Vec3> for &Vec3 {
+        type Output = Vec3;
+        fn sub(self, _rhs: &Vec3) -> Vec3 {
+            let mut v = [0.0; 3];
+            for ii in 0..3 {
+                v[ii] = self.value[ii] - _rhs.value[ii];
+            }
+            Vec3{ value: v }
+        }
+    }
+
+    
+
+    impl Mul<Vec3> for Vec3 {
         type Output = Vec3;
         fn mul(self, _rhs: Vec3) -> Vec3 {
             let mut v = [0.0; 3];
@@ -187,7 +221,7 @@ pub mod vec3 {
         }
     }
 
-    impl std::ops::Div<f64> for Vec3 {
+    impl Div<f64> for Vec3 {
         type Output = Vec3;
         fn div(self, rhs: f64) -> Vec3 {
             let mut v = [0.0; 3];
@@ -198,7 +232,7 @@ pub mod vec3 {
         }
     }
 
-    impl std::ops::MulAssign<f64> for Vec3 {
+    impl MulAssign<f64> for Vec3 {
         fn mul_assign(&mut self, rhs: f64) {
             for ii in 0..3 {
                 self.value[ii] *= rhs;
@@ -206,7 +240,15 @@ pub mod vec3 {
         }
     }
 
-    impl std::ops::Mul<&Vec3> for &Vec3 {
+    impl MulAssign<&Vec3> for Vec3 {
+        fn mul_assign(&mut self, rhs: &Vec3) {
+            for (v, x) in self.value.iter_mut().zip(rhs.value.iter()) {
+                *v *= x;
+            }
+        }
+    }
+
+    impl Mul<&Vec3> for &Vec3 {
         type Output = Vec3;
         fn mul(self, _rhs: &Vec3) -> Vec3 {
             let mut v = [0.0; 3];
@@ -217,7 +259,7 @@ pub mod vec3 {
         }
     }
 
-    impl std::ops::Mul<f64> for Vec3 {
+    impl Mul<f64> for Vec3 {
         type Output = Vec3;
         fn mul(self, _rhs: f64) -> Vec3 {
             let mut v = [0.0; 3];
@@ -228,7 +270,7 @@ pub mod vec3 {
         }
     }
 
-    impl std::ops::Mul<f64> for &Vec3 {
+    impl Mul<f64> for &Vec3 {
         type Output = Vec3;
         fn mul(self, _rhs: f64) -> Vec3 {
             let mut v = [0.0; 3];
@@ -239,7 +281,7 @@ pub mod vec3 {
         }
     }
 
-    impl std::ops::Mul<Vec3> for &Vec3 {
+    impl Mul<Vec3> for &Vec3 {
         type Output = Vec3;
         fn mul(self, _rhs: Vec3) -> Vec3 {
             let mut v = [0.0; 3];

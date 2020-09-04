@@ -132,6 +132,10 @@ pub mod triangular_mesh {
             }
         }
 
+        pub fn contains_key(&self, index: &u16) -> bool {
+            self.points.contains_key(index)
+        }
+
         pub fn get(&self, index: &u16) -> Option<&Vec3> {
             self.points.get(index)
         }
