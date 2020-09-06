@@ -28,7 +28,6 @@ from numpy import (
     append,
     arange,
     arccos,
-    arctan2,
     argsort,
     array,
     array_split,
