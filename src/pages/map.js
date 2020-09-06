@@ -40,7 +40,7 @@ export const pageQuery = graphql`
         title
       }
     }
-    allMarkdownRemark {
+    allMdx {
       edges {
         node {
           fields {

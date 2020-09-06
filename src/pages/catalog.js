@@ -58,7 +58,7 @@ const StyledHighlight = styled.div`
 `;
 
 
-export default ({data: {allMarkdownRemark: {edges}, site: {siteMetadata: {title}}}, location}) => {
+export default ({location, data: {site: {siteMetadata: {title}}}}) => {
     
     
     const [accessToken, setAccessToken] = useState(null);
@@ -313,23 +313,10 @@ export default ({data: {allMarkdownRemark: {edges}, site: {siteMetadata: {title}
 
 
 export const pageQuery = graphql`
-  query {
+ query {
     site {
       siteMetadata {
         title
-      }
-    }
-    allMarkdownRemark {
-      edges {
-        node {
-          fields {
-            slug
-          }
-          frontmatter {
-            tags
-            description
-          }
-        }
       }
     }
   }

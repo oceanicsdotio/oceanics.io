@@ -4,9 +4,10 @@ import { Link, graphql } from "gatsby";
 import Layout from "../components/Layout";
 import SEO from "../components/SEO";
 import { rhythm, scale } from "../typography";
+import { MDXRenderer } from "gatsby-plugin-mdx";
 require(`katex/dist/katex.min.css`)
 
-const BlogPostTemplate = ({data: {markdownRemark: {frontmatter, excerpt, html}, site: {siteMetadata: {title}}}, pageContext: {next, previous}, location}) => {
+const BlogPostTemplate = ({data: {mdx: {frontmatter, excerpt, body}, site: {siteMetadata: {title}}}, pageContext: {next, previous}, location}) => {
  
     return (
       <Layout location={location} title={title}>
@@ -31,7 +32,7 @@ const BlogPostTemplate = ({data: {markdownRemark: {frontmatter, excerpt, html}, 
             </p>
           </header>
           <hr/>
-          <section dangerouslySetInnerHTML={{ __html: html }} />
+          <MDXRenderer>{body}</MDXRenderer>
           <hr
             style={{
               marginBottom: rhythm(1),
@@ -79,10 +80,10 @@ export const pageQuery = graphql`
         title
       }
     }
-    markdownRemark(fields: { slug: { eq: $slug } }) {
+    mdx(fields: { slug: { eq: $slug } }) {
       id
       excerpt(pruneLength: 160)
-      html
+      body
       frontmatter {
         title
         date(formatString: "MMMM DD, YYYY")

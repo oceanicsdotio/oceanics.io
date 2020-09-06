@@ -61,8 +61,8 @@ exports.createPages = async ({ graphql, actions: {createPage} }) => {
     const blogPost = path.resolve(`src/templates/blog-post.js`);
     const tagTemplate = path.resolve(`src/templates/tags.js`);
 
-    const {errors, data: {allMarkdownRemark: {edges}, tagsGroup: {group}}} = await graphql(`{
-        allMarkdownRemark(
+    const {errors, data: {allMdx: {edges}, tagsGroup: {group}}} = await graphql(`{
+        allMdx(
         sort: { fields: [frontmatter___date], order: DESC }
         limit: 1000
         ) {
@@ -79,7 +79,7 @@ exports.createPages = async ({ graphql, actions: {createPage} }) => {
         }
     
         }
-        tagsGroup: allMarkdownRemark(limit: 2000) {
+        tagsGroup: allMdx(limit: 2000) {
         group(field: frontmatter___tags) {
         fieldValue
     }
@@ -111,7 +111,7 @@ exports.createPages = async ({ graphql, actions: {createPage} }) => {
 }
 
 exports.onCreateNode = ({ node, actions: { createNodeField }, getNode }) => {
-    if (node.internal.type === `MarkdownRemark`) {
+    if (node.internal.type === `Mdx`) {
         const value = createFilePath({ node, getNode })
         createNodeField({
             name: `slug`,

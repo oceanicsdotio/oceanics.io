@@ -9,7 +9,7 @@ const StyledHeader = styled.h3`
     margin-bottom: ${rhythm(0.25)};
 `;
 
-export default ({data: {allMarkdownRemark: {edges}, site: {siteMetadata: {title}}}, location}) => {
+export default ({data: {allMdx: {edges}, site: {siteMetadata: {title}}}, location}) => {
   
     return (
       <Layout location={location} title={title}>
@@ -49,7 +49,7 @@ export const pageQuery = graphql`
         title
       }
     }
-    allMarkdownRemark(sort: { fields: [frontmatter___date], order: DESC }) {
+    allMdx(sort: { fields: [frontmatter___date], order: DESC }) {
       edges {
         node {
           excerpt

@@ -4,7 +4,7 @@ import Layout from "../components/Layout"
 import SEO from "../components/SEO"
 import { Link, graphql } from "gatsby"
 
-const Tags = ({ data: { allMarkdownRemark: {edges}}, location }) => {
+const Tags = ({ data: { allMdx: {edges}}, location }) => {
     
     return (
         <Layout location={location} title={null}>
@@ -28,7 +28,7 @@ Tags.propTypes = {
         tag: PropTypes.string.isRequired,
     }),
     data: PropTypes.shape({
-        allMarkdownRemark: PropTypes.shape({
+        allMdx: PropTypes.shape({
             edges: PropTypes.arrayOf(
                 PropTypes.shape({
                     node: PropTypes.shape({
@@ -49,7 +49,7 @@ export default Tags
 
 export const pageQuery = graphql`
     query($tag: String) {
-        allMarkdownRemark(
+        allMdx(
             limit: 2000
             sort: { fields: [frontmatter___date], order: DESC }
             filter: { frontmatter: { tags: { in: [$tag] } } }
