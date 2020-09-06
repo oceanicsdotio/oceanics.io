@@ -157,54 +157,6 @@ class Bound:
 
 
 @attr.s
-class BoundingBox:
-    """
-    A bounding box is similar to an extent, but is define by two points instead of intervals
-    """
-    lower_left: (float, float) = attr.ib()
-    upper_right: (float, float) =  attr.ib()
-
-
-@attr.s
-class Clock:
-    """
-    Timekeeper object with integer clock
-    """
-
-    dt = attr.ib()
-    start: int = attr.ib()  # time in seconds
-    elapsed: int = attr.ib(default=0)
-
-    @property
-    def yd(self):
-        return self.days % 365
-
-    @property
-    def time(self) -> float:
-        return self.days % 1.0
-
-    @property
-    def days(self) -> float:
-        return (self.start + self.elapsed) / SEC2DAY  # current time in days
-
-    @property
-    def next(self) -> int:
-        return self.start + self.elapsed + SEC2DAY
-
-    def tick(self, dt: int = None) -> int:
-        """
-        Update clock
-
-        :param dt: Optional parameter to assign new time step (integer seconds)
-        :return: None
-        """
-        if dt is not None:
-            self.dt = dt
-        self.elapsed += self.dt
-        return self.start + self.elapsed
-
-
-@attr.s
 class CloudSQL:
     """
     This class encapsulates a connection pool to a cloud based PostgreSQL provider.
@@ -846,7 +798,7 @@ class FileSystem:
 
         queue = sorted(queue, key=_chrono, reverse=(False if ts else True))
         if fmt or identity:
-            matching = pool.starmap(self._match, zip(queue, *iterators))
+            matching = pool.starmap(FileSystem._match, zip(queue, *iterators))
             queue = deque(queue)
         else:
             return {}, queue
@@ -890,22 +842,6 @@ class FileSystem:
                     headers[sn].append(file.frames)
 
         return extracted, headers, queue
-
-    @staticmethod
-    def download(url, prefix=""):
-        # type: (str, str) -> str
-        """
-        Download a file accessible through HTTP/S.
-        :param url: location of remote data
-        :param prefix: local file path
-        """
-        response = get(url, stream=True)
-        filename = url.split("/").pop()
-        if not response.ok:
-            raise ConnectionError
-        with open(f"{prefix}{filename}", "wb") as fid:
-            copyfileobj(response.raw, fid)
-        return filename
 
     def get(
         self,
@@ -1214,136 +1150,6 @@ class KernelDensityEstimator(KernelDensity):
 
                 else:
                     passes += 1
-
-
-class LinkedListNode:
-    """Node in linked list"""
-    def __init__(self, value):
-        """create a node"""
-        self.next = None
-        self.prev = None
-        self.value = value
-
-
-class LinkedList:
-    """LL abstraction"""
-    def __init__(self, data: (float,) = ()):
-
-        self.head = None
-        prev = None
-        for value in data:
-            n = LinkedListNode(value)
-            if prev is None:
-                self.head = n
-            else:
-                prev.next = n
-            prev = n
-
-        self.tail = prev
-
-    def traverse(self) -> None:
-        """Move across nodes"""
-        cursor = self.head
-        while cursor is not None:
-            print(cursor.value)
-            cursor = cursor.next
-
-    def deduplicate(self):
-        """Remove duplicates"""
-        cursor, last, exists = self.head, None, set()
-        while cursor is not None:
-            if last is not None and cursor.value in exists:
-                last.next = cursor.next.next if cursor.next is not None else None
-            else:
-                exists |= {cursor.value}
-            last, cursor = cursor, cursor.next
-        return last
-
-    def k_from_head(self, k: int) -> None or LinkedListNode:
-        """Get selected"""
-        cursor = self.head
-        while cursor.next is not None and k:
-            cursor = cursor.next
-            k -= 1
-        return cursor.value
-
-    def k_from_end(self, k: int) -> None or LinkedListNode:
-        cursor = self.head
-        total = -k
-        while cursor is not None:
-            cursor = cursor.next
-            total += 1
-
-        assert total > 0
-
-        cursor = self.head
-        while cursor is not None and total:
-            cursor.next = cursor.next
-            total -= 1
-        return cursor.value
-
-    def prepend(self, value: float) -> None:
-        n = LinkedListNode(value)
-        n.next, self.head = self.head, n
-
-    def append(self, value: float) -> None:
-        n = LinkedListNode(value)
-        if self.head is None:
-            self.head = n
-        if self.tail is not None:
-            self.tail.next = n
-        self.tail = n
-
-    def add(self, other):
-        ...
-
-
-class DoublyLinkedList(LinkedList):
-    prev = None  # only for doubly-linked
-
-    def __init__(self, data: (float,) = ()):
-        LinkedList.__init__(self, data)
-        cursor = self.head
-        while cursor.next is not None:
-            cursor.next.prev = cursor
-
-    def k_from_end(self, n: int = None) -> None or LinkedListNode:
-
-        _next = self.tail
-        _last = None
-        while _next is not None and (n is None or n):
-            _last = _next
-            _next = _next.prev
-            if n:
-                n -= 1
-        return _last
-
-    def traverse_backward(self) -> None:
-        cursor = self.tail
-        while cursor is not None:
-            print(cursor.value)
-            cursor = cursor.prev
-
-    def push_front(self, value: float) -> None:
-        n = LinkedListNode(value)
-        n.next = self.head
-        self.head.prev = n
-        self.head = n
-
-    def push_back(self, value: float) -> None:
-        n = LinkedListNode(value)
-        n.prev = self.tail
-        if self.head is None:
-            self.head = n
-        if self.tail is not None:
-            self.tail.next = n
-        self.tail = n
-
-    def insert_after(self, insert: LinkedListNode, ref: LinkedListNode):
-        ...
-
-    def insert_before(self, insert: LinkedListNode, ref: LinkedListNode):
-        ...
 
 
 class Memory:
@@ -2186,14 +1992,6 @@ class RecurrentNeuralNetwork:
         )  # train and get error series over epochs
         prediction = network.predict(predictor, feed["predict"])  # make prediction
         return yt, prediction
-
-
-class RelationshipLabels(Enum):
-    Self = 1
-    Root = 2
-    Parent = 3
-    Collection = 4
-    Derived = 5
 
 
 @attr.s

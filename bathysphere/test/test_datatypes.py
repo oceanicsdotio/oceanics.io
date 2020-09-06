@@ -1,22 +1,9 @@
 import time
 from itertools import chain
 from bathysphere.datatypes import (
-    Trie, 
-    LinkedList, 
-    Clock
+    Trie
 )
 
-
-def test_datatypes_tree_linked_list():
-    LL = LinkedList(tuple(range(4)))
-    LL.traverse()
-    LL.k_from_head(1)
-    LL.k_from_end(1)
-    LL.prepend(0)
-    LL.append(3)
-    LL.traverse()
-    LL.deduplicate()
-    LL.traverse()
 
 
 def test_datatypes_tree_trie():
@@ -63,14 +50,3 @@ def test_datatypes_tree_trie():
     )
 
 
-def test_datatypes_short_clock():
-
-    clock = Clock(start=0, dt=60 * 10)
-
-    elapsed = []
-    time = []
-
-    for _ in range(6 * 24 * 3):
-        clock.tick()
-        elapsed.append(clock.elapsed)
-        time.append(clock.time)
