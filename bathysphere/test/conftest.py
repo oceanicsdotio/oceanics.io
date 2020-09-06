@@ -64,7 +64,6 @@ ext = (-69.6, 43.8, -69.5, 44.1)
 
 OSI_DATASET = "bivalve-suitability"
 OBJECT_STORAGE_SECRETS = getenv("OBJECT_STORAGE_SECRETS").split(",")
-DARKSKY_API_KEY = getenv("DARKSKY_API_KEY")
 accessKey, secretKey, instance = getenv("POSTGRES_SECRETS").split(",")
 IndexedDB = dict()
 

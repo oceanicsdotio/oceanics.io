@@ -3,15 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.8.1" />
+<meta name="generator" content="pdoc 0.9.1" />
 <title>bathysphere.models API documentation</title>
-<meta name="description" content="" />
-<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
-<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
-<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<meta name="description" content="Base persistence models that can be inherited by services. Classes are listed alphabetically." />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
 <style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
 <style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
 </head>
 <body>
 <main>
@@ -20,32 +22,24 @@
 <h1 class="title">Module <code>bathysphere.models</code></h1>
 </header>
 <section id="section-intro">
+<p>Base persistence models that can be inherited by services. Classes are listed alphabetically.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from datetime import datetime
+<pre><code class="python">&#34;&#34;&#34;
+Base persistence models that can be inherited by services. Classes are listed alphabetically.
+&#34;&#34;&#34;
+from datetime import datetime
 from time import time, sleep
-from json import dumps
-from typing import Any, Callable, Union
-from decimal import Decimal
-from enum import Enum
-from uuid import uuid4
-from json import load as load_json
-from functools import reduce
+from typing import Any, Callable
 from statistics import median
 from multiprocessing import Process, Pool, cpu_count
 from socket import AF_INET, SOCK_STREAM, socket, create_connection
 from time import time, sleep
-from warnings import warn
 
-from yaml import load as load_yml, Loader
 from connexion import request
 import attr
-
-from math import exp
-from typing import Callable
-from collections import namedtuple
 
 from time import time
 from subprocess import Popen, PIPE, STDOUT
@@ -69,15 +63,7 @@ from pandas import DataFrame, Series
 
 
 from bathysphere.utils import interp1d, response, log
-from bathysphere.datatypes import (
-    PostgresType,
-    Field,
-    Table,
-    Query,
-    Coordinates,
-    Distance,
-    ResponseJSON,
-    ObjectStorage,
+from bathysphere.datatypes import (    
     JSONIOWrapper,
 )
 
@@ -727,7 +713,7 @@ class Locations(object):
     location encoding may be `application/vnd.geo+json` or `application/json`
     &#34;&#34;&#34;
     description: str = attr.ib(default=None)
-    encodingType: str = attr.ib(default=&#34;application/vnd.geo+json&#34;)
+    encodingType: str = attr.ib(default=None)
     location = attr.ib(default=None)  # GeoJSON
     name: str = attr.ib(default=None)
 
@@ -832,7 +818,7 @@ class Simulations(object):
             start = time()
             n = len(forcing)
             JSONIOWrapper.log(&#34;Scheduler ready&#34;, f&#34;spawning {n} workers&#34;, log=tempfile)
-            result = pool.starmap(job, zip(_expand(config), forcing))
+            result = pool.starmap(Simulations.job, zip(_expand(config), forcing))
             data, logs = zip(*result)
             finish = time()
             JSONIOWrapper.log(
@@ -916,9 +902,9 @@ class TaskingCapabilities(object):
     &#34;&#34;&#34;
     Abstract tasking class mapping I/O and generating signal.
     &#34;&#34;&#34;
-
     name: str = attr.ib(default=None)
-    creationTime: float = attr.ib(default=attr.Factory(time))
+    description: str =  attr.ib(default=None)
+    creationTime: float = attr.ib(default=None)
     taskingParameters: dict = attr.ib(default=None)
 
 
@@ -927,8 +913,7 @@ class Tasks(object):
     &#34;&#34;&#34;
     Tasks are pieces of work that are done asynchronously by humans or machines.
     &#34;&#34;&#34;
-
-    creationTime: float = attr.ib(default=attr.Factory(time))
+    creationTime: float = attr.ib(default=None)
     taskingParameters: dict = attr.ib(default=None)
 
 
@@ -970,10 +955,11 @@ class User(object):
 <dl>
 <dt id="bathysphere.models.Actuators"><code class="flex name class">
 <span>class <span class="ident">Actuators</span></span>
-<span>(</span><span>name: str = None, description: str = None, encodingType: str = None, metadata: Any = None, networkAddress: (<class 'str'>, <class 'int'>) = (None, None))</span>
+<span>(</span><span>name: str = None, description: str = None, encodingType: str = None, metadata: Any = None, networkAddress: (<class 'str'>, <class 'int'>) = (None, None))</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Actuators are devices that turn messages into physical effects</p></div>
+<div class="desc"><p>Actuators are devices that turn messages into physical effects</p>
+<p>Method generated by attrs for class Actuators.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -1310,6 +1296,29 @@ class User(object):
 <ul class="hlist">
 <li><a title="bathysphere.graph.models.Actuators" href="graph/models.html#bathysphere.graph.models.Actuators">Actuators</a></li>
 </ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="bathysphere.models.Actuators.description"><code class="name">var <span class="ident">description</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Actuators.encodingType"><code class="name">var <span class="ident">encodingType</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Actuators.metadata"><code class="name">var <span class="ident">metadata</span> : Any</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Actuators.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Actuators.networkAddress"><code class="name">var <span class="ident">networkAddress</span> : (<class 'str'>, <class 'int'>)</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
 <h3>Static methods</h3>
 <dl>
 <dt id="bathysphere.models.Actuators.addEventListener"><code class="name flex">
@@ -1401,7 +1410,7 @@ def addEventListener(
 </details>
 </dd>
 <dt id="bathysphere.models.Actuators.pulseWidth"><code class="name flex">
-<span>def <span class="ident">pulseWidth</span></span>(<span>signal: float, maximum: float = None, width: int = 2, pid: bool = True) -> int</span>
+<span>def <span class="ident">pulseWidth</span></span>(<span>signal: float, maximum: float = None, width: int = 2, pid: bool = True) ‑> int</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1417,7 +1426,7 @@ def pulseWidth(
 </details>
 </dd>
 <dt id="bathysphere.models.Actuators.rewindControlLoop"><code class="name flex">
-<span>def <span class="ident">rewindControlLoop</span></span>(<span>state: dict, reset: bool = False) -> NoneType</span>
+<span>def <span class="ident">rewindControlLoop</span></span>(<span>state: dict, reset: bool = False) ‑> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Return to playback start position
@@ -1440,7 +1449,7 @@ def rewindControlLoop(state: dict, reset: bool = False) -&gt; None:
 </details>
 </dd>
 <dt id="bathysphere.models.Actuators.sendMessage"><code class="name flex">
-<span>async def <span class="ident">sendMessage</span></span>(<span>self, commands: list = None, identity: int = None, buffer: int = 16, debug: bool = False) -> bool</span>
+<span>async def <span class="ident">sendMessage</span></span>(<span>self, commands: list = None, identity: int = None, buffer: int = 16, debug: bool = False) ‑> bool</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Send a DIAGNOSTIC query</p>
@@ -1499,7 +1508,7 @@ async def sendMessage(
 </details>
 </dd>
 <dt id="bathysphere.models.Actuators.signalTransform"><code class="name flex">
-<span>def <span class="ident">signalTransform</span></span>(<span>config: dict, state: dict, raw: float, offset: float = 0.0) -> float</span>
+<span>def <span class="ident">signalTransform</span></span>(<span>config: dict, state: dict, raw: float, offset: float = 0.0) ‑> float</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Returns conditioned PID signal</p>
@@ -1749,7 +1758,7 @@ async def state(self, relay_id=None):
 </details>
 </dd>
 <dt id="bathysphere.models.Actuators.startController"><code class="name flex">
-<span>def <span class="ident">startController</span></span>(<span>self, host: str, port: int, relay_id: int, banks: int, relays: int, refresh: int, file: str = None, verb: bool = False) -> bool</span>
+<span>def <span class="ident">startController</span></span>(<span>self, host: str, port: int, relay_id: int, banks: int, relays: int, refresh: int, file: str = None, verb: bool = False) ‑> bool</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Communicate with a single relay</p>
@@ -1813,7 +1822,8 @@ be accessible at the time of query.</p>
 <p>These are most likely ndarray/raster or json blobs in object storage</p>
 <p>name: name of resource
 description: annotation
-location: address of resource, including protocol (e.g. postgres://)</p></div>
+location: address of resource, including protocol (e.g. postgres://)</p>
+<p>Method generated by attrs for class Assets.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -1837,13 +1847,29 @@ location: address of resource, including protocol (e.g. postgres://)</p></div>
 <ul class="hlist">
 <li><a title="bathysphere.graph.models.Assets" href="graph/models.html#bathysphere.graph.models.Assets">Assets</a></li>
 </ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="bathysphere.models.Assets.description"><code class="name">var <span class="ident">description</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Assets.location"><code class="name">var <span class="ident">location</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Assets.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
 </dd>
 <dt id="bathysphere.models.Collections"><code class="flex name class">
 <span>class <span class="ident">Collections</span></span>
 <span>(</span><span>name: str = None, description: str = None, extent: (<class 'float'>,) = None, keywords: str = None, license: str = None, version: int = None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Collections are arbitrary groupings of entities.</p></div>
+<div class="desc"><p>Collections are arbitrary groupings of entities.</p>
+<p>Method generated by attrs for class Collections.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -1863,13 +1889,41 @@ location: address of resource, including protocol (e.g. postgres://)</p></div>
 <ul class="hlist">
 <li><a title="bathysphere.graph.models.Collections" href="graph/models.html#bathysphere.graph.models.Collections">Collections</a></li>
 </ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="bathysphere.models.Collections.description"><code class="name">var <span class="ident">description</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Collections.extent"><code class="name">var <span class="ident">extent</span> : (<class 'float'>,)</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Collections.keywords"><code class="name">var <span class="ident">keywords</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Collections.license"><code class="name">var <span class="ident">license</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Collections.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Collections.version"><code class="name">var <span class="ident">version</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
 </dd>
 <dt id="bathysphere.models.DataStreams"><code class="flex name class">
 <span>class <span class="ident">DataStreams</span></span>
 <span>(</span><span>name: str = None, description: str = None, unitOfMeasurement=None, observationType=None, observedArea: dict = None, phenomenonTime: (<class 'datetime.datetime'>, <class 'datetime.datetime'>) = None, resultTime: (<class 'datetime.datetime'>, <class 'datetime.datetime'>) = None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>DataStreams are collections of Observations.</p></div>
+<div class="desc"><p>DataStreams are collections of Observations.</p>
+<p>Method generated by attrs for class DataStreams.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -2130,6 +2184,29 @@ location: address of resource, including protocol (e.g. postgres://)</p></div>
 <ul class="hlist">
 <li><a title="bathysphere.graph.models.DataStreams" href="graph/models.html#bathysphere.graph.models.DataStreams">DataStreams</a></li>
 </ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="bathysphere.models.DataStreams.description"><code class="name">var <span class="ident">description</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.DataStreams.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.DataStreams.observedArea"><code class="name">var <span class="ident">observedArea</span> : dict</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.DataStreams.phenomenonTime"><code class="name">var <span class="ident">phenomenonTime</span> : (<class 'datetime.datetime'>, <class 'datetime.datetime'>)</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.DataStreams.resultTime"><code class="name">var <span class="ident">resultTime</span> : (<class 'datetime.datetime'>, <class 'datetime.datetime'>)</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
 <h3>Static methods</h3>
 <dl>
 <dt id="bathysphere.models.DataStreams.fourierTransform"><code class="name flex">
@@ -2468,7 +2545,8 @@ first derivative are outliers</p></div>
 <span>(</span><span>name: str = None, description: str = None, encodingType: str = None, feature: Any = None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>FeaturesOfInterest are usually Locations.</p></div>
+<div class="desc"><p>FeaturesOfInterest are usually Locations.</p>
+<p>Method generated by attrs for class FeaturesOfInterest.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -2487,13 +2565,33 @@ first derivative are outliers</p></div>
 <ul class="hlist">
 <li><a title="bathysphere.graph.models.FeaturesOfInterest" href="graph/models.html#bathysphere.graph.models.FeaturesOfInterest">FeaturesOfInterest</a></li>
 </ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="bathysphere.models.FeaturesOfInterest.description"><code class="name">var <span class="ident">description</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.FeaturesOfInterest.encodingType"><code class="name">var <span class="ident">encodingType</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.FeaturesOfInterest.feature"><code class="name">var <span class="ident">feature</span> : Any</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.FeaturesOfInterest.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
 </dd>
 <dt id="bathysphere.models.HistoricalLocations"><code class="flex name class">
 <span>class <span class="ident">HistoricalLocations</span></span>
 <span>(</span><span>time: str = None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Private and automatic, should be added to sensor when new location is determined</p></div>
+<div class="desc"><p>Private and automatic, should be added to sensor when new location is determined</p>
+<p>Method generated by attrs for class HistoricalLocations.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -2511,14 +2609,22 @@ first derivative are outliers</p></div>
 <ul class="hlist">
 <li><a title="bathysphere.graph.models.HistoricalLocations" href="graph/models.html#bathysphere.graph.models.HistoricalLocations">HistoricalLocations</a></li>
 </ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="bathysphere.models.HistoricalLocations.time"><code class="name">var <span class="ident">time</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
 </dd>
 <dt id="bathysphere.models.Locations"><code class="flex name class">
 <span>class <span class="ident">Locations</span></span>
-<span>(</span><span>description: str = None, encodingType: str = 'application/vnd.geo+json', location=None, name: str = None)</span>
+<span>(</span><span>description: str = None, encodingType: str = None, location=None, name: str = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Last known <code><a title="bathysphere.models.Locations" href="#bathysphere.models.Locations">Locations</a></code> of <code><a title="bathysphere.models.Things" href="#bathysphere.models.Things">Things</a></code>. May be <code><a title="bathysphere.models.FeaturesOfInterest" href="#bathysphere.models.FeaturesOfInterest">FeaturesOfInterest</a></code>, unless remote sensing.</p>
-<p>location encoding may be <code>application/vnd.geo+json</code> or <code>application/json</code></p></div>
+<p>location encoding may be <code>application/vnd.geo+json</code> or <code>application/json</code></p>
+<p>Method generated by attrs for class Locations.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -2530,7 +2636,7 @@ first derivative are outliers</p></div>
     location encoding may be `application/vnd.geo+json` or `application/json`
     &#34;&#34;&#34;
     description: str = attr.ib(default=None)
-    encodingType: str = attr.ib(default=&#34;application/vnd.geo+json&#34;)
+    encodingType: str = attr.ib(default=None)
     location = attr.ib(default=None)  # GeoJSON
     name: str = attr.ib(default=None)</code></pre>
 </details>
@@ -2538,13 +2644,29 @@ first derivative are outliers</p></div>
 <ul class="hlist">
 <li><a title="bathysphere.graph.models.Locations" href="graph/models.html#bathysphere.graph.models.Locations">Locations</a></li>
 </ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="bathysphere.models.Locations.description"><code class="name">var <span class="ident">description</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Locations.encodingType"><code class="name">var <span class="ident">encodingType</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Locations.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
 </dd>
 <dt id="bathysphere.models.Observations"><code class="flex name class">
 <span>class <span class="ident">Observations</span></span>
 <span>(</span><span>phenomenonTime: datetime.datetime = None, result: Any = None, resultTime: datetime.datetime = None, resultQuality: Any = None, validTime: (<class 'datetime.datetime'>, <class 'datetime.datetime'>) = None, parameters: dict = None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Observations are individual time-stamped members of Datastreams</p></div>
+<div class="desc"><p>Observations are individual time-stamped members of Datastreams</p>
+<p>Method generated by attrs for class Observations.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -2574,6 +2696,33 @@ first derivative are outliers</p></div>
 <ul class="hlist">
 <li><a title="bathysphere.graph.models.Observations" href="graph/models.html#bathysphere.graph.models.Observations">Observations</a></li>
 </ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="bathysphere.models.Observations.parameters"><code class="name">var <span class="ident">parameters</span> : dict</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Observations.phenomenonTime"><code class="name">var <span class="ident">phenomenonTime</span> : datetime.datetime</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Observations.result"><code class="name">var <span class="ident">result</span> : Any</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Observations.resultQuality"><code class="name">var <span class="ident">resultQuality</span> : Any</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Observations.resultTime"><code class="name">var <span class="ident">resultTime</span> : datetime.datetime</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Observations.validTime"><code class="name">var <span class="ident">validTime</span> : (<class 'datetime.datetime'>, <class 'datetime.datetime'>)</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
 <h3>Instance variables</h3>
 <dl>
 <dt id="bathysphere.models.Observations.outOfRange"><code class="name">var <span class="ident">outOfRange</span></code></dt>
@@ -2598,7 +2747,8 @@ def outOfRange(self, maximum, minimum=0.0):
 <span>(</span><span>name: str = None, description: str = None, definition: str = None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Create a property, but do not associate any data streams with it</p></div>
+<div class="desc"><p>Create a property, but do not associate any data streams with it</p>
+<p>Method generated by attrs for class ObservedProperties.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -2616,6 +2766,21 @@ def outOfRange(self, maximum, minimum=0.0):
 <ul class="hlist">
 <li><a title="bathysphere.graph.models.ObservedProperties" href="graph/models.html#bathysphere.graph.models.ObservedProperties">ObservedProperties</a></li>
 </ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="bathysphere.models.ObservedProperties.definition"><code class="name">var <span class="ident">definition</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.ObservedProperties.description"><code class="name">var <span class="ident">description</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.ObservedProperties.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
 </dd>
 <dt id="bathysphere.models.Providers"><code class="flex name class">
 <span>class <span class="ident">Providers</span></span>
@@ -2624,7 +2789,8 @@ def outOfRange(self, maximum, minimum=0.0):
 <dd>
 <div class="desc"><p>Providers are generally organization or enterprise sub-units. This is used to
 route ingress and determine implicit permissions for data access, sharing, and
-attribution.</p></div>
+attribution. </p>
+<p>Method generated by attrs for class Providers.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -2647,13 +2813,41 @@ attribution.</p></div>
 <ul class="hlist">
 <li><a title="bathysphere.graph.models.Providers" href="graph/models.html#bathysphere.graph.models.Providers">Providers</a></li>
 </ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="bathysphere.models.Providers.apiKey"><code class="name">var <span class="ident">apiKey</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Providers.description"><code class="name">var <span class="ident">description</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Providers.domain"><code class="name">var <span class="ident">domain</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Providers.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Providers.secretKey"><code class="name">var <span class="ident">secretKey</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Providers.tokenDuration"><code class="name">var <span class="ident">tokenDuration</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
 </dd>
 <dt id="bathysphere.models.Sensors"><code class="flex name class">
 <span>class <span class="ident">Sensors</span></span>
 <span>(</span><span>name: str = None, description: str = None, encodingType: str = None, metadata: Any = None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Sensors are devices that observe processes</p></div>
+<div class="desc"><p>Sensors are devices that observe processes</p>
+<p>Method generated by attrs for class Sensors.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -2672,12 +2866,31 @@ attribution.</p></div>
 <ul class="hlist">
 <li><a title="bathysphere.graph.models.Sensors" href="graph/models.html#bathysphere.graph.models.Sensors">Sensors</a></li>
 </ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="bathysphere.models.Sensors.description"><code class="name">var <span class="ident">description</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Sensors.encodingType"><code class="name">var <span class="ident">encodingType</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Sensors.metadata"><code class="name">var <span class="ident">metadata</span> : Any</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Sensors.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
 </dd>
 <dt id="bathysphere.models.Simulations"><code class="flex name class">
 <span>class <span class="ident">Simulations</span></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Method generated by attrs for class Simulations.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -2719,7 +2932,7 @@ attribution.</p></div>
             start = time()
             n = len(forcing)
             JSONIOWrapper.log(&#34;Scheduler ready&#34;, f&#34;spawning {n} workers&#34;, log=tempfile)
-            result = pool.starmap(job, zip(_expand(config), forcing))
+            result = pool.starmap(Simulations.job, zip(_expand(config), forcing))
             data, logs = zip(*result)
             finish = time()
             JSONIOWrapper.log(
@@ -2798,7 +3011,7 @@ attribution.</p></div>
 <h3>Static methods</h3>
 <dl>
 <dt id="bathysphere.models.Simulations.batch"><code class="name flex">
-<span>def <span class="ident">batch</span></span>(<span>config: dict, forcing: <built-in function array>, workers: int = 1) -> dict</span>
+<span>def <span class="ident">batch</span></span>(<span>config: dict, forcing: <built-in function array>, workers: int = 1) ‑> dict</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Run a batch, and generate some statistics about execution</p>
@@ -2845,7 +3058,7 @@ def batch(config: dict, forcing: array, workers: int = 1) -&gt; dict:
         start = time()
         n = len(forcing)
         JSONIOWrapper.log(&#34;Scheduler ready&#34;, f&#34;spawning {n} workers&#34;, log=tempfile)
-        result = pool.starmap(job, zip(_expand(config), forcing))
+        result = pool.starmap(Simulations.job, zip(_expand(config), forcing))
         data, logs = zip(*result)
         finish = time()
         JSONIOWrapper.log(
@@ -2864,7 +3077,7 @@ def batch(config: dict, forcing: array, workers: int = 1) -&gt; dict:
 </details>
 </dd>
 <dt id="bathysphere.models.Simulations.job"><code class="name flex">
-<span>def <span class="ident">job</span></span>(<span>config: dict, forcing: <built-in function array>, encoding: str = 'utf-8') -> (<class 'tuple'>, <class 'bytes'>)</span>
+<span>def <span class="ident">job</span></span>(<span>config: dict, forcing: <built-in function array>, encoding: str = 'utf-8') ‑> (<class 'tuple'>, <class 'bytes'>)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Execute single simulation with synchronous callback.</p>
@@ -2940,10 +3153,11 @@ def job(
 </dd>
 <dt id="bathysphere.models.TaskingCapabilities"><code class="flex name class">
 <span>class <span class="ident">TaskingCapabilities</span></span>
-<span>(</span><span>name: str = None, creationTime: float = NOTHING, taskingParameters: dict = None)</span>
+<span>(</span><span>name: str = None, description: str = None, creationTime: float = None, taskingParameters: dict = None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Abstract tasking class mapping I/O and generating signal.</p></div>
+<div class="desc"><p>Abstract tasking class mapping I/O and generating signal.</p>
+<p>Method generated by attrs for class TaskingCapabilities.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -2952,22 +3166,42 @@ def job(
     &#34;&#34;&#34;
     Abstract tasking class mapping I/O and generating signal.
     &#34;&#34;&#34;
-
     name: str = attr.ib(default=None)
-    creationTime: float = attr.ib(default=attr.Factory(time))
+    description: str =  attr.ib(default=None)
+    creationTime: float = attr.ib(default=None)
     taskingParameters: dict = attr.ib(default=None)</code></pre>
 </details>
 <h3>Subclasses</h3>
 <ul class="hlist">
 <li><a title="bathysphere.graph.models.TaskingCapabilities" href="graph/models.html#bathysphere.graph.models.TaskingCapabilities">TaskingCapabilities</a></li>
 </ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="bathysphere.models.TaskingCapabilities.creationTime"><code class="name">var <span class="ident">creationTime</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.TaskingCapabilities.description"><code class="name">var <span class="ident">description</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.TaskingCapabilities.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.TaskingCapabilities.taskingParameters"><code class="name">var <span class="ident">taskingParameters</span> : dict</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
 </dd>
 <dt id="bathysphere.models.Tasks"><code class="flex name class">
 <span>class <span class="ident">Tasks</span></span>
-<span>(</span><span>creationTime: float = NOTHING, taskingParameters: dict = None)</span>
+<span>(</span><span>creationTime: float = None, taskingParameters: dict = None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Tasks are pieces of work that are done asynchronously by humans or machines.</p></div>
+<div class="desc"><p>Tasks are pieces of work that are done asynchronously by humans or machines.</p>
+<p>Method generated by attrs for class Tasks.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -2976,14 +3210,24 @@ def job(
     &#34;&#34;&#34;
     Tasks are pieces of work that are done asynchronously by humans or machines.
     &#34;&#34;&#34;
-
-    creationTime: float = attr.ib(default=attr.Factory(time))
+    creationTime: float = attr.ib(default=None)
     taskingParameters: dict = attr.ib(default=None)</code></pre>
 </details>
 <h3>Subclasses</h3>
 <ul class="hlist">
 <li><a title="bathysphere.graph.models.Tasks" href="graph/models.html#bathysphere.graph.models.Tasks">Tasks</a></li>
 </ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="bathysphere.models.Tasks.creationTime"><code class="name">var <span class="ident">creationTime</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Tasks.taskingParameters"><code class="name">var <span class="ident">taskingParameters</span> : dict</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
 </dd>
 <dt id="bathysphere.models.Things"><code class="flex name class">
 <span>class <span class="ident">Things</span></span>
@@ -2991,7 +3235,8 @@ def job(
 </code></dt>
 <dd>
 <div class="desc"><p>A thing is an object of the physical or information world that is capable of of being identified
-and integrated into communication networks.</p></div>
+and integrated into communication networks.</p>
+<p>Method generated by attrs for class Things.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -3010,6 +3255,21 @@ and integrated into communication networks.</p></div>
 <ul class="hlist">
 <li><a title="bathysphere.graph.models.Things" href="graph/models.html#bathysphere.graph.models.Things">Things</a></li>
 </ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="bathysphere.models.Things.description"><code class="name">var <span class="ident">description</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Things.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Things.properties"><code class="name">var <span class="ident">properties</span> : dict</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
 </dd>
 <dt id="bathysphere.models.User"><code class="flex name class">
 <span>class <span class="ident">User</span></span>
@@ -3017,7 +3277,8 @@ and integrated into communication networks.</p></div>
 </code></dt>
 <dd>
 <div class="desc"><p>Create a user entity. Users contain authorization secrets, and do not enter/leave
-the system through the same routes as normal Entities</p></div>
+the system through the same routes as normal Entities</p>
+<p>Method generated by attrs for class User.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -3039,6 +3300,33 @@ the system through the same routes as normal Entities</p></div>
 <ul class="hlist">
 <li><a title="bathysphere.graph.models.User" href="graph/models.html#bathysphere.graph.models.User">User</a></li>
 </ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="bathysphere.models.User.alias"><code class="name">var <span class="ident">alias</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.User.credential"><code class="name">var <span class="ident">credential</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.User.description"><code class="name">var <span class="ident">description</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.User.ip"><code class="name">var <span class="ident">ip</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.User.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.User.validated"><code class="name">var <span class="ident">validated</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
 </dd>
 </dl>
 </section>
@@ -3061,6 +3349,11 @@ the system through the same routes as normal Entities</p></div>
 <ul class="two-column">
 <li><code><a title="bathysphere.models.Actuators.addEventListener" href="#bathysphere.models.Actuators.addEventListener">addEventListener</a></code></li>
 <li><code><a title="bathysphere.models.Actuators.defaults" href="#bathysphere.models.Actuators.defaults">defaults</a></code></li>
+<li><code><a title="bathysphere.models.Actuators.description" href="#bathysphere.models.Actuators.description">description</a></code></li>
+<li><code><a title="bathysphere.models.Actuators.encodingType" href="#bathysphere.models.Actuators.encodingType">encodingType</a></code></li>
+<li><code><a title="bathysphere.models.Actuators.metadata" href="#bathysphere.models.Actuators.metadata">metadata</a></code></li>
+<li><code><a title="bathysphere.models.Actuators.name" href="#bathysphere.models.Actuators.name">name</a></code></li>
+<li><code><a title="bathysphere.models.Actuators.networkAddress" href="#bathysphere.models.Actuators.networkAddress">networkAddress</a></code></li>
 <li><code><a title="bathysphere.models.Actuators.off" href="#bathysphere.models.Actuators.off">off</a></code></li>
 <li><code><a title="bathysphere.models.Actuators.on" href="#bathysphere.models.Actuators.on">on</a></code></li>
 <li><code><a title="bathysphere.models.Actuators.protocol" href="#bathysphere.models.Actuators.protocol">protocol</a></code></li>
@@ -3076,45 +3369,102 @@ the system through the same routes as normal Entities</p></div>
 </li>
 <li>
 <h4><code><a title="bathysphere.models.Assets" href="#bathysphere.models.Assets">Assets</a></code></h4>
+<ul class="">
+<li><code><a title="bathysphere.models.Assets.description" href="#bathysphere.models.Assets.description">description</a></code></li>
+<li><code><a title="bathysphere.models.Assets.location" href="#bathysphere.models.Assets.location">location</a></code></li>
+<li><code><a title="bathysphere.models.Assets.name" href="#bathysphere.models.Assets.name">name</a></code></li>
+</ul>
 </li>
 <li>
 <h4><code><a title="bathysphere.models.Collections" href="#bathysphere.models.Collections">Collections</a></code></h4>
+<ul class="two-column">
+<li><code><a title="bathysphere.models.Collections.description" href="#bathysphere.models.Collections.description">description</a></code></li>
+<li><code><a title="bathysphere.models.Collections.extent" href="#bathysphere.models.Collections.extent">extent</a></code></li>
+<li><code><a title="bathysphere.models.Collections.keywords" href="#bathysphere.models.Collections.keywords">keywords</a></code></li>
+<li><code><a title="bathysphere.models.Collections.license" href="#bathysphere.models.Collections.license">license</a></code></li>
+<li><code><a title="bathysphere.models.Collections.name" href="#bathysphere.models.Collections.name">name</a></code></li>
+<li><code><a title="bathysphere.models.Collections.version" href="#bathysphere.models.Collections.version">version</a></code></li>
+</ul>
 </li>
 <li>
 <h4><code><a title="bathysphere.models.DataStreams" href="#bathysphere.models.DataStreams">DataStreams</a></code></h4>
 <ul class="">
+<li><code><a title="bathysphere.models.DataStreams.description" href="#bathysphere.models.DataStreams.description">description</a></code></li>
 <li><code><a title="bathysphere.models.DataStreams.fourierTransform" href="#bathysphere.models.DataStreams.fourierTransform">fourierTransform</a></code></li>
 <li><code><a title="bathysphere.models.DataStreams.frequencySpectrum" href="#bathysphere.models.DataStreams.frequencySpectrum">frequencySpectrum</a></code></li>
+<li><code><a title="bathysphere.models.DataStreams.name" href="#bathysphere.models.DataStreams.name">name</a></code></li>
+<li><code><a title="bathysphere.models.DataStreams.observedArea" href="#bathysphere.models.DataStreams.observedArea">observedArea</a></code></li>
 <li><code><a title="bathysphere.models.DataStreams.outOfRangeMask" href="#bathysphere.models.DataStreams.outOfRangeMask">outOfRangeMask</a></code></li>
 <li><code><a title="bathysphere.models.DataStreams.partition" href="#bathysphere.models.DataStreams.partition">partition</a></code></li>
+<li><code><a title="bathysphere.models.DataStreams.phenomenonTime" href="#bathysphere.models.DataStreams.phenomenonTime">phenomenonTime</a></code></li>
 <li><code><a title="bathysphere.models.DataStreams.resampleSparseSeries" href="#bathysphere.models.DataStreams.resampleSparseSeries">resampleSparseSeries</a></code></li>
+<li><code><a title="bathysphere.models.DataStreams.resultTime" href="#bathysphere.models.DataStreams.resultTime">resultTime</a></code></li>
 <li><code><a title="bathysphere.models.DataStreams.smoothUsingConvolution" href="#bathysphere.models.DataStreams.smoothUsingConvolution">smoothUsingConvolution</a></code></li>
 <li><code><a title="bathysphere.models.DataStreams.statisticalOutlierMask" href="#bathysphere.models.DataStreams.statisticalOutlierMask">statisticalOutlierMask</a></code></li>
 </ul>
 </li>
 <li>
 <h4><code><a title="bathysphere.models.FeaturesOfInterest" href="#bathysphere.models.FeaturesOfInterest">FeaturesOfInterest</a></code></h4>
+<ul class="">
+<li><code><a title="bathysphere.models.FeaturesOfInterest.description" href="#bathysphere.models.FeaturesOfInterest.description">description</a></code></li>
+<li><code><a title="bathysphere.models.FeaturesOfInterest.encodingType" href="#bathysphere.models.FeaturesOfInterest.encodingType">encodingType</a></code></li>
+<li><code><a title="bathysphere.models.FeaturesOfInterest.feature" href="#bathysphere.models.FeaturesOfInterest.feature">feature</a></code></li>
+<li><code><a title="bathysphere.models.FeaturesOfInterest.name" href="#bathysphere.models.FeaturesOfInterest.name">name</a></code></li>
+</ul>
 </li>
 <li>
 <h4><code><a title="bathysphere.models.HistoricalLocations" href="#bathysphere.models.HistoricalLocations">HistoricalLocations</a></code></h4>
+<ul class="">
+<li><code><a title="bathysphere.models.HistoricalLocations.time" href="#bathysphere.models.HistoricalLocations.time">time</a></code></li>
+</ul>
 </li>
 <li>
 <h4><code><a title="bathysphere.models.Locations" href="#bathysphere.models.Locations">Locations</a></code></h4>
+<ul class="">
+<li><code><a title="bathysphere.models.Locations.description" href="#bathysphere.models.Locations.description">description</a></code></li>
+<li><code><a title="bathysphere.models.Locations.encodingType" href="#bathysphere.models.Locations.encodingType">encodingType</a></code></li>
+<li><code><a title="bathysphere.models.Locations.name" href="#bathysphere.models.Locations.name">name</a></code></li>
+</ul>
 </li>
 <li>
 <h4><code><a title="bathysphere.models.Observations" href="#bathysphere.models.Observations">Observations</a></code></h4>
-<ul class="">
+<ul class="two-column">
 <li><code><a title="bathysphere.models.Observations.outOfRange" href="#bathysphere.models.Observations.outOfRange">outOfRange</a></code></li>
+<li><code><a title="bathysphere.models.Observations.parameters" href="#bathysphere.models.Observations.parameters">parameters</a></code></li>
+<li><code><a title="bathysphere.models.Observations.phenomenonTime" href="#bathysphere.models.Observations.phenomenonTime">phenomenonTime</a></code></li>
+<li><code><a title="bathysphere.models.Observations.result" href="#bathysphere.models.Observations.result">result</a></code></li>
+<li><code><a title="bathysphere.models.Observations.resultQuality" href="#bathysphere.models.Observations.resultQuality">resultQuality</a></code></li>
+<li><code><a title="bathysphere.models.Observations.resultTime" href="#bathysphere.models.Observations.resultTime">resultTime</a></code></li>
+<li><code><a title="bathysphere.models.Observations.validTime" href="#bathysphere.models.Observations.validTime">validTime</a></code></li>
 </ul>
 </li>
 <li>
 <h4><code><a title="bathysphere.models.ObservedProperties" href="#bathysphere.models.ObservedProperties">ObservedProperties</a></code></h4>
+<ul class="">
+<li><code><a title="bathysphere.models.ObservedProperties.definition" href="#bathysphere.models.ObservedProperties.definition">definition</a></code></li>
+<li><code><a title="bathysphere.models.ObservedProperties.description" href="#bathysphere.models.ObservedProperties.description">description</a></code></li>
+<li><code><a title="bathysphere.models.ObservedProperties.name" href="#bathysphere.models.ObservedProperties.name">name</a></code></li>
+</ul>
 </li>
 <li>
 <h4><code><a title="bathysphere.models.Providers" href="#bathysphere.models.Providers">Providers</a></code></h4>
+<ul class="two-column">
+<li><code><a title="bathysphere.models.Providers.apiKey" href="#bathysphere.models.Providers.apiKey">apiKey</a></code></li>
+<li><code><a title="bathysphere.models.Providers.description" href="#bathysphere.models.Providers.description">description</a></code></li>
+<li><code><a title="bathysphere.models.Providers.domain" href="#bathysphere.models.Providers.domain">domain</a></code></li>
+<li><code><a title="bathysphere.models.Providers.name" href="#bathysphere.models.Providers.name">name</a></code></li>
+<li><code><a title="bathysphere.models.Providers.secretKey" href="#bathysphere.models.Providers.secretKey">secretKey</a></code></li>
+<li><code><a title="bathysphere.models.Providers.tokenDuration" href="#bathysphere.models.Providers.tokenDuration">tokenDuration</a></code></li>
+</ul>
 </li>
 <li>
 <h4><code><a title="bathysphere.models.Sensors" href="#bathysphere.models.Sensors">Sensors</a></code></h4>
+<ul class="">
+<li><code><a title="bathysphere.models.Sensors.description" href="#bathysphere.models.Sensors.description">description</a></code></li>
+<li><code><a title="bathysphere.models.Sensors.encodingType" href="#bathysphere.models.Sensors.encodingType">encodingType</a></code></li>
+<li><code><a title="bathysphere.models.Sensors.metadata" href="#bathysphere.models.Sensors.metadata">metadata</a></code></li>
+<li><code><a title="bathysphere.models.Sensors.name" href="#bathysphere.models.Sensors.name">name</a></code></li>
+</ul>
 </li>
 <li>
 <h4><code><a title="bathysphere.models.Simulations" href="#bathysphere.models.Simulations">Simulations</a></code></h4>
@@ -3125,15 +3475,38 @@ the system through the same routes as normal Entities</p></div>
 </li>
 <li>
 <h4><code><a title="bathysphere.models.TaskingCapabilities" href="#bathysphere.models.TaskingCapabilities">TaskingCapabilities</a></code></h4>
+<ul class="">
+<li><code><a title="bathysphere.models.TaskingCapabilities.creationTime" href="#bathysphere.models.TaskingCapabilities.creationTime">creationTime</a></code></li>
+<li><code><a title="bathysphere.models.TaskingCapabilities.description" href="#bathysphere.models.TaskingCapabilities.description">description</a></code></li>
+<li><code><a title="bathysphere.models.TaskingCapabilities.name" href="#bathysphere.models.TaskingCapabilities.name">name</a></code></li>
+<li><code><a title="bathysphere.models.TaskingCapabilities.taskingParameters" href="#bathysphere.models.TaskingCapabilities.taskingParameters">taskingParameters</a></code></li>
+</ul>
 </li>
 <li>
 <h4><code><a title="bathysphere.models.Tasks" href="#bathysphere.models.Tasks">Tasks</a></code></h4>
+<ul class="">
+<li><code><a title="bathysphere.models.Tasks.creationTime" href="#bathysphere.models.Tasks.creationTime">creationTime</a></code></li>
+<li><code><a title="bathysphere.models.Tasks.taskingParameters" href="#bathysphere.models.Tasks.taskingParameters">taskingParameters</a></code></li>
+</ul>
 </li>
 <li>
 <h4><code><a title="bathysphere.models.Things" href="#bathysphere.models.Things">Things</a></code></h4>
+<ul class="">
+<li><code><a title="bathysphere.models.Things.description" href="#bathysphere.models.Things.description">description</a></code></li>
+<li><code><a title="bathysphere.models.Things.name" href="#bathysphere.models.Things.name">name</a></code></li>
+<li><code><a title="bathysphere.models.Things.properties" href="#bathysphere.models.Things.properties">properties</a></code></li>
+</ul>
 </li>
 <li>
 <h4><code><a title="bathysphere.models.User" href="#bathysphere.models.User">User</a></code></h4>
+<ul class="two-column">
+<li><code><a title="bathysphere.models.User.alias" href="#bathysphere.models.User.alias">alias</a></code></li>
+<li><code><a title="bathysphere.models.User.credential" href="#bathysphere.models.User.credential">credential</a></code></li>
+<li><code><a title="bathysphere.models.User.description" href="#bathysphere.models.User.description">description</a></code></li>
+<li><code><a title="bathysphere.models.User.ip" href="#bathysphere.models.User.ip">ip</a></code></li>
+<li><code><a title="bathysphere.models.User.name" href="#bathysphere.models.User.name">name</a></code></li>
+<li><code><a title="bathysphere.models.User.validated" href="#bathysphere.models.User.validated">validated</a></code></li>
+</ul>
 </li>
 </ul>
 </li>
@@ -3141,9 +3514,7 @@ the system through the same routes as normal Entities</p></div>
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.8.1</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
 </footer>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-<script>hljs.initHighlightingOnLoad()</script>
 </body>
 </html>

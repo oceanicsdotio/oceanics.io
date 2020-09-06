@@ -7,7 +7,6 @@ from bathysphere import appConfig
 from bathysphere.test.conftest import (
     getCredentials,
     CREDENTIALS,
-    DARKSKY_API_KEY,
     IndexedDB
 )
 from bathysphere.graph.models import (
