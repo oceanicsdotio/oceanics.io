@@ -1277,11 +1277,16 @@ def _reorder(
             neighbors[ii] = topology[pid, pos - 2]
 
 
-def _caclulate_area_with_cross_product(x: array, y: array, topology: array):
+def calc_areas(vertex_buffer: array, topology: array, parents: list, verb=True):
     """
+    Calculate triangle area and correct windings
+
     Use numpy cross product of 2 legs to calculate area.
     May be negative still, so correct windings in place
     """
+    vertex_positions = vertex_buffer[topology]
+    x, y = vertex_positions
+
     dx = (x[:, 1] - x[:, 0]).reshape(-1, 1)
     dy = (y[:, 1] - y[:, 0]).reshape(-1, 1)
     aa = hstack((dx, dy))
@@ -1292,17 +1297,8 @@ def _caclulate_area_with_cross_product(x: array, y: array, topology: array):
 
     area = 0.5 * cross(bb, aa)
     (indices,) = where(area < 0)
-    return abs(area), roll(topology[indices, 1:3], 1, axis=1)
+    tri_area = abs(area), roll(topology[indices, 1:3], 1, axis=1)
 
-
-def calc_areas(vertex_buffer: array, topology: array, parents: list, verb=True):
-    """
-    Calculate triangle area and correct windings
-    """
-    vertex_positions = vertex_buffer[topology]
-
-
-    tri_area = _caclulate_area_with_cross_product(*vertex_positions, topology)
     shape = len(vertex_buffer)
     area = zeros(shape, dtype=float)
     art2 = zeros(shape, dtype=float)

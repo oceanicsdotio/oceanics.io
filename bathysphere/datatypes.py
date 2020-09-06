@@ -310,23 +310,6 @@ def ConvexHull(points):
     return hstack((u, segment(v, u, a, points), v, segment(u, v, b, points), u))
 
 
-@attr.s
-class Coordinates:
-    """Point coordinates for spatial applications"""
-
-    x: float = attr.ib()
-    y: float = attr.ib()
-
-
-class CoordinateSystem(Enum):
-    """Well Known Coordinate Systems"""
-    Sigma = 1
-    Cartesian = 2
-    Gaussian = 3
-    Spherical = 4
-    Periodic = 5
-
-
 class Dataset(_Dataset):
     """
     Wrapper for NetCDF Dataset that does back-off in case of remote connection errors
@@ -378,14 +361,6 @@ class Dataset(_Dataset):
             fid.variables[name][:] = self.variables[name][:]
         fid.close()
         return fid
-
-
-@attr.s
-class Distance:
-    """Special distance type"""
-    value: float = attr.ib()
-    unit: str = attr.ib()
-
 
 @attr.s
 class Extent:
@@ -2517,36 +2492,6 @@ class RecurrentNeuralNetwork:
         x = setup[: self.periods].reshape(self.shape)
         y = data[-self.periods :].reshape(self.shape)
         return x, y
-
-    def x_train(self, opt, feed, loss, verb):
-        """
-        Initialize and train the neural net.
-
-        :param opt: optimizer
-        :param feed:
-        :param loss: skill assessment, in this case mean squared error
-        :param verb: verbose mode
-
-        :return: time series of error terms
-        """
-        init = tf.global_variables_initializer()
-        err = []
-
-        with Session() as session:
-            init.run()
-
-            for ep in range(self.epochs):
-                session.run(opt, feed_dict=feed)
-
-                if ep % 100 == 0:
-                    mse = loss.eval(feed_dict=feed)
-                    err.append(mse)
-                    mse = loss.eval(feed_dict=feed)
-                    if verb:
-                        print(ep, "\tMSE:", mse)
-
-            self.model.saver().save(session, self.file)
-            return err
 
     def predict(self, predictor, feed):
         """
