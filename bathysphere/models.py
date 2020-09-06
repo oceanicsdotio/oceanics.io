@@ -1,25 +1,16 @@
+"""
+Base persistence models that can be inherited by services. Classes are listed alphabetically.
+"""
 from datetime import datetime
 from time import time, sleep
-from json import dumps
-from typing import Any, Callable, Union
-from decimal import Decimal
-from enum import Enum
-from uuid import uuid4
-from json import load as load_json
-from functools import reduce
+from typing import Any, Callable
 from statistics import median
 from multiprocessing import Process, Pool, cpu_count
 from socket import AF_INET, SOCK_STREAM, socket, create_connection
 from time import time, sleep
-from warnings import warn
 
-from yaml import load as load_yml, Loader
 from connexion import request
 import attr
-
-from math import exp
-from typing import Callable
-from collections import namedtuple
 
 from time import time
 from subprocess import Popen, PIPE, STDOUT
@@ -43,15 +34,7 @@ from pandas import DataFrame, Series
 
 
 from bathysphere.utils import interp1d, response, log
-from bathysphere.datatypes import (
-    PostgresType,
-    Field,
-    Table,
-    Query,
-    Coordinates,
-    Distance,
-    ResponseJSON,
-    ObjectStorage,
+from bathysphere.datatypes import (    
     JSONIOWrapper,
 )
 

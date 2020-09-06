@@ -1,18 +1,14 @@
-# pylint: disable=unused-variable,invalid-name,unused-import
-from datetime import datetime, date, timedelta
+# pylint: disable=unused-variable,invalid-name
+from datetime import datetime, date
 from collections import deque
 from multiprocessing import Pool
-from itertools import repeat, chain
-from enum import Enum
+from itertools import repeat
 from decimal import Decimal
-from typing import Coroutine, Any, Callable, Type
+from typing import Coroutine, Any
 from asyncio import new_event_loop, set_event_loop, BaseEventLoop
-from json import loads as load_json, dumps
-from pickle import dump, load as unpickle
-from shutil import copyfileobj
+from json import dumps
 
 from os import getenv
-from os.path import isfile
 from warnings import simplefilter, warn, catch_warnings
 from functools import reduce
 from logging import getLogger
@@ -21,7 +17,7 @@ from time import sleep
 import operator
 import pathlib
 
-from requests import get, head
+from requests import get
 from yaml import Loader, load as load_yml
 from google.cloud import secretmanager
 from google.auth.exceptions import DefaultCredentialsError
@@ -43,7 +39,6 @@ from numpy import (
     dot,
     diff,
     empty_like,
-    flip,
     floor,
     hstack,
     intersect1d,
@@ -60,15 +55,12 @@ from numpy import (
     random,
     repeat,
     roll,
-    sign,
     sin,
-    sort,
     stack,
     std,
     sum,
     uint8,
     unique,
-    vstack,
     where,
     zeros,
 )
@@ -82,8 +74,7 @@ from scipy.stats import linregress
 from scipy import ndimage
 
 from shapefile import Reader
-from pandas import read_csv, read_html
-from netCDF4 import Dataset
+from netCDF4 import Dataset  # pylint: disable=no-name-in-module
 from PIL.Image import Image, fromarray
 from pyproj import Proj, transform
 

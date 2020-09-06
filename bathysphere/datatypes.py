@@ -1,13 +1,12 @@
 # pylint: disable=line-too-long,invalid-name
 from __future__ import annotations
 from enum import Enum
-from typing import Callable, Any, Coroutine
+from typing import Callable, Any
 from datetime import datetime, date, timedelta
-from math import floor
 from json import dumps, loads, decoder, load as load_json
 from collections import deque
 from uuid import uuid4
-from os import getpid, getenv
+from os import getpid
 from os.path import isfile
 from io import BytesIO, TextIOWrapper
 from difflib import SequenceMatcher
@@ -18,13 +17,11 @@ from re import sub
 from xml.etree import ElementTree
 from itertools import repeat, chain
 from multiprocessing import Pool
-from warnings import warn, simplefilter
+from warnings import simplefilter
 
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.engine.url import URL
-import hmac
-import hashlib
 
 from bidict import bidict
 import attr
@@ -35,7 +32,6 @@ from requests.exceptions import ConnectionError
 from urllib3.exceptions import MaxRetryError
 from flask import Response, Request, request
 from redis import StrictRedis
-from redis.client import PubSub
 
 from numpy import (
     array,
@@ -58,8 +54,8 @@ from numpy import (
     unique,
 )
 from numpy.linalg import norm
-from netCDF4 import Dataset as _Dataset
-from pandas import read_html, date_range, Series, DataFrame
+from netCDF4 import Dataset as _Dataset # pylint: disable=no-name-in-module
+from pandas import read_html, date_range, Series
 
 from sklearn.linear_model import LinearRegression
 from sklearn.neighbors import KernelDensity
@@ -91,7 +87,6 @@ from bathysphere.utils import (
     _parse_str_to_float,
     resolveTaskTree,
     synchronous,
-    googleCloudSecret,
     normal,
     Path
 )
@@ -258,7 +253,7 @@ class CloudSQL:
         """
         Do some postgres stuff
         """
-        # pylint: disable=broad-exception
+        # pylint: disable=broad-except
         conf = request.body["table"]
         fields = [
             Field(f["name"], f.get("type", None)) for f in conf["schema"]["fields"]

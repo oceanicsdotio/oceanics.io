@@ -1,4 +1,4 @@
-# pylint: disable=invalid-name,line-too-long,bad-continuation,eval-used,unused-import
+# pylint: disable=invalid-name,line-too-long,eval-used,unused-import
 """
 The functions module of the graph API contains handlers for secure
 calls. These are exposed as a Cloud Function calling Connexion/Flask.
@@ -36,7 +36,6 @@ from bathysphere.graph.models import (
     Things,
 )
 
-NamedIndex = (Providers, Collections, User)  # core Nodes are treated differently than other entities
 DEBUG = True
 port = 7687
 
@@ -217,7 +216,7 @@ def codex(
     mutations: int = 2,
     **kwargs
 ) -> ResponseJSON:
-   
+
     return {"value": tuple(
         chain(
             *chain(

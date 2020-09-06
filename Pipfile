@@ -12,6 +12,7 @@ pytest-cov = "*"
 docker-compose = "*"
 colorama = "*"
 pytest-parallel = "*"
+vulture = "*"
 
 [requires]
 python_version = "3.7"

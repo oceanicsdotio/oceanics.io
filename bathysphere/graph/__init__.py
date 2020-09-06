@@ -1,4 +1,4 @@
-# pylint: disable=invalid-name,too-few-public-methods,bad-continuation,eval-used
+# pylint: disable=invalid-name,too-few-public-methods,eval-used
 """
 The basic building blocks and utilities for graph queries are
 contained in this default import.
@@ -10,7 +10,7 @@ from neo4j import Driver, GraphDatabase
 from retry import retry
 from requests import post
 
-RESTRICTED = {"User", "Providers", "Root"}
+RESTRICTED = {"User", "Providers", "Root"}  # core Nodes are treated differently than other entities
 
 class polymorphic:
     """
@@ -132,50 +132,6 @@ def connect(host: str, port: int, accessKey: str, default: str = "neo4j") -> Dri
     if db is None:
         # pylint: disable=broad-except
         raise Exception(f"Could not connect to Neo4j database @ {host}:{port}")
-
-
-def jdbcRecords(
-    db: Driver,
-    query: str,
-    auth: (str, str),
-    connection: (str, str),
-    database="bathysphere",
-) -> (dict):
-    """
-    Make SQL call from Neo4j
-    """
-    host, port = connection
-    user, password = auth
-    endpoint = f"{host}:{port}/{database}?user={user}&password={password}"
-    return executeQuery(
-        db,
-        lambda tx: tx.run(
-            (
-                f"CALL apoc.load.jdbc('jdbc:postgresql://{endpoint}','{query}') "
-                f"YIELD row "
-                f"MERGE n: ()"
-                f"RETURN row"
-            )
-        ),
-    )
-
-
-def links(urls: [str]) -> Generator:
-    """Catalog nav links"""
-    return (
-        {"href": url, "rel": "", "type": "application/json", "title": ""}
-        for url in urls
-    )
-
-
-def bbox(ll, ur):
-    """Format two points as a bounding box"""
-    return [ll["lon"], ll["lat"], ur["lon"], ur["lat"]]
-
-
-def assets_links(urls):
-    """Resource link"""
-    return ({"href": url, "title": "", "type": "thumbnail"} for url in urls)
 
 
 # def locations(vertex_buffer: array, after=0, before=None, bs=100):

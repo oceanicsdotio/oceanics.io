@@ -1,4 +1,4 @@
-# pylint: disable=invalid-name,bad-continuation,protected-access,bad-whitespace
+# pylint: disable=invalid-name,protected-access
 """
 The models module of the graph API contains extensions to the common
 models, for storing and accessing data in a Neo4j database.
@@ -14,8 +14,7 @@ from inspect import signature
 from time import time
 from functools import reduce
 
-from requests import get
-from neo4j import Driver, Record, Result, GraphDatabase
+from neo4j import Driver, Record, GraphDatabase
 from neo4j.spatial import WGS84Point
 import attr
 
@@ -529,36 +528,6 @@ class FeaturesOfInterest(Entity, models.FeaturesOfInterest):
 @attr.s(repr=False)
 class Locations(Entity, models.Locations):
     """Graph extension to base model"""
-
-    @property
-    def weather(
-        self,
-        ts: datetime,
-        api_key: str,
-        url: str = "https://api.darksky.net/forecast",
-        exclude: (str) = None,
-    ) -> ResponseJSON:
-        """
-        Get meteorological conditions in past/present/future.
-
-        :param ts: time stamp, as date time object
-        :param api_key: API key to charge against account quotas
-        :param url: base route for requests
-        :param exclude:
-        ("minutely", "hourly", "daily", "flags", "alerts")
-
-        :return: calls, timestamp, JSON of conditions
-        """
-        if self.location["type"] != "Point":
-            return {"message": "Only GeoJSON Point types are supported"}, 400
-
-        x, y = self.location["coordinates"][0], self.location["coordinates"][1]
-
-        inference = f"{x},{y},{ts.isoformat()}"
-        return get(
-            f"{url}/{api_key}/{inference}?units=si"
-            + (f"&exclude={','.join(exclude)}" if exclude else "")
-        )
 
 
 @attr.s(repr=False)
