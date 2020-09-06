@@ -41,7 +41,8 @@
     "react-router-dom": "^5.2.0",
     "react-typography": "^0.16.19",
     "styled-components": "^5.1.1",
-    "typography": "^0.16.19"
+    "typography": "^0.16.19",
+    "snyk": "^1.389.0"
   },
   "devDependencies": {
     "eslint": "^7.4.0",
@@ -68,6 +69,9 @@
     "develop": "gatsby develop",
     "serve": "gatsby serve",
     "clean": "gatsby clean",
-    "compile": "wasm-pack build --out-dir src/wasm --dev --target bundler --no-typescript"
-  }
+    "compile": "wasm-pack build --out-dir src/wasm --dev --target bundler --no-typescript",
+    "snyk-protect": "snyk protect",
+    "prepare": "yarn run snyk-protect"
+  },
+  "snyk": true
 }
