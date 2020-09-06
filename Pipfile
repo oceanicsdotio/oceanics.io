@@ -53,6 +53,7 @@ wheel = "*"
 SQLAlchemy = "*"
 google-cloud-secret-manager = "*"
 pdoc3 = "*"
+urllib3 = "*"
 
 [packages.e1839a8]
 path = "."

@@ -31,7 +31,7 @@ This document provides guidance for testing and developing Bathysphere. For inst
 
 ### Develop
 
-We use `pipenv` to manage Python dependencies. Thesre are found in `Pipfile` and `Pipfile.lock`. A new shell is activated with `pipenv shell`. Then:
+We use `pipenv` to manage Python dependencies. These are found in `Pipfile` and `Pipfile.lock`. A new shell is activated with `pipenv shell`. Then:
 
 1. `pipenv install -e .`
 2. `pipenv install --dev`
