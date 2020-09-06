@@ -30,8 +30,7 @@ from bathysphere.datatypes import (
     ConvexHull, 
     Dataset, 
     Array, 
-    ExtentType,
-    State
+    ExtentType
 )
 
 from bathysphere.test.conftest import DATASET, ext, scan
@@ -515,20 +514,3 @@ def test_datatypes_ndarray_angle_unit_conversions():
     assert 2 * pi * DEGREES == 360
     assert 360 * RADIANS == 2 * pi
 
-
-def test_datatypes_ndarray_axes_and_origin():
-    """Axes are normalized and origin is zero to start"""
-    assert XAXIS.sum() == 1
-    assert YAXIS.sum() == 1
-    assert ZAXIS.sum() == 1
-    assert ORIGIN.sum() == 0
-
-
-def test_datatypes_ndarray_make_vector_primitive():
-    """Vector initializes, and normalization works."""
-    v = State()
-    assert all(v.orientation == XAXIS)
-    v.orientation += XAXIS
-    assert any(v.orientation != XAXIS)
-    v.orientation = normal(v.orientation)
-    assert all(v.orientation == XAXIS)

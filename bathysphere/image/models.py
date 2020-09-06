@@ -1,4 +1,4 @@
-# pylint: disable=bad-continuation,redefined-builtin,invalid-name,wrong-import-position,arguments-differ
+# pylint: disable=redefined-builtin,invalid-name,wrong-import-position,arguments-differ
 """
 Image module models encapulate methods for visualing spatiotemporal data.
 """
@@ -338,14 +338,7 @@ class Spatial(View):
             label=kwargs.get("label", self.style["label"]),
         )
 
-    def bbox(self, ext: array, **kwargs: dict):
-        """
-        Add extent as styled Polygon
-        """
-        e = ext
-        xy = array([[e[0], e[2]], [e[1], e[2]], [e[1], e[3]], [e[0], e[3]]])
-        self.shape(xy, **kwargs)
-
+    
     def topology(
         self, vertex_array: array, topology: array, z: str, **kwargs: dict,
     ) -> None:

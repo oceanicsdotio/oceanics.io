@@ -2,14 +2,12 @@
 """
 Handlers for Image API. Includes `main()` routine to deploy as cloud function.
 """
-from json import loads, dumps
+from json import loads
 from itertools import repeat, chain
-from os import getenv
 from io import BytesIO
 from flask import send_file
 
 from numpy import array
-from matplotlib.pyplot import Figure
 
 from bathysphere import config
 from bathysphere.image.models import Spatial, Time, View

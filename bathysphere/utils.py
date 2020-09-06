@@ -44,7 +44,6 @@ from numpy import (
     intersect1d,
     isnan,
     log,
-    log10,
     mean,
     ma,
     max,
@@ -99,20 +98,6 @@ ORIGIN = zeros((1, 3), dtype=float)
 XAXIS = array([1.0, 0.0, 0.0]).reshape(1, 3)
 YAXIS = array([0.0, 1.0, 0.0]).reshape(1, 3)
 ZAXIS = array([0.0, 0.0, 1.0]).reshape(1, 3)
-MONTHS = {
-    1: "january",
-    2: "february",
-    3: "march",
-    4: "april",
-    5: "may",
-    6: "june",
-    7: "july",
-    8: "august",
-    9: "september",
-    10: "october",
-    11: "november",
-    12: "december",
-}
 
 CartesianNAD83 = Proj("epsg:2960")
 SphericalWGS84 = Proj("epsg:4326")
@@ -171,6 +156,9 @@ def googleCloudSecret(secret_name="my-secret"):
 
 
 def generateStream(columns, records):
+    """
+    Send database records as a stream of JSON text
+    """
     try:
         prev = next(records)  # get first result
     except:
@@ -328,54 +316,11 @@ def report_buoy_data(request):
     )
 
 
-def hc2pH(hc):
-    pH = -log10(hc / 10 ** 9)
-    return pH
-
-
-def pH2hc(pH):
-    hc = 10 ** (-pH)
-    return hc * (10 ** 9)
-
-
-def rxnConstant_pH(pH0, pH1, residence_time):
-    return -log(10 ** (pH0 - pH1)) / residence_time
-
-
-def rxnConstant_gen(initial_concentration, final_concentration, residence_time):
-    return -log(final_concentration - initial_concentration) / residence_time
-
-
-def fahr2cel(data):
-    return (data - 32.0) / 1.8
-
-
 def days(date):
     """Convert a single datetime to a Julian day number"""
     delta = date - datetime(date.year, 1, 1, 0, 0, 0)
     result = delta.total_seconds() / 24 / 60 / 60
     return result
-
-
-# noinspection PyCallingNonCallable
-def c_array(kind, *args):
-    # type: (type, list) -> Any
-    """
-    Convert input to ctypes array
-    """
-    return (kind * len(args))(*args)
-
-
-def depth2sigma(elevation, bathymetry, z):
-    # type: (Array, Array, Array) -> Array
-    """Unit depth to sigma coordinates"""
-    return -abs(z - elevation) / abs(elevation - bathymetry)
-
-
-def sigma2depth(elevation, bathymetry, sigma):
-    # type: (Array, Array, Array) -> Array
-    """Sigma coordinates to unit depth"""
-    return sigma * (elevation - bathymetry) + elevation
 
 
 def image_to_masked(image: array, m: float = 0.125, b: float = 2.0, hide: bool = True):
@@ -883,18 +828,6 @@ def pixel_area(arr, resolution, gpu=False):
     return None
 
 
-def translate(arr, delta):
-    # type: (Array, Array) -> None
-    """Move an array. Delta may be of the same shape as data, or a single dimension"""
-    arr[:, :] += delta
-
-
-def scale(arr, sx, sy, sz):
-    # type: (Array, float, float, float) -> None
-    """Rescale an array, usually vertices"""
-    arr[:, :] *= (af.Array if isinstance(arr, af.Array) else array)([sx, sy, sz])
-
-
 def polygon_area(arr):
     # type: (Array) -> float
     """Polygon area, may be negative depending on winding, but this is retaining for shape culling"""
@@ -1039,48 +972,6 @@ def rk4(fcn, y0, t0, dt):
     return y0 + dt * (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6
 
 
-
-def thematic_mapping(shapes, extent, key, value):
-    """
-
-    :param shapes:
-    :param extent:
-    :param key: "LAND", "ISLAND
-    :param value:
-    :return:
-    """
-
-    def _match_field():
-        ind = None
-        for ii, field in enumerate(shapes.fields):  # find the position of the field
-            if shapes.fields[0] == key:
-                ind = ii
-                break
-        return array(map(lambda x: x[ind] == value, shapes.records))
-
-    def _filter(x) -> bool:
-        return not x["hide"] and x["type"] == "analytical"
-
-    # pylint: disable=invalid-unary-operand-type
-    shapes = shapes.collect(
-        extent=extent, flags=(~_match_field()) 
-    )  
-    return filter(_filter, shapes)
-
-
-def _loc(s: int, view: str, mx_x=None, mn_x=None, x=None):
-    """Calculate locators"""
-    assert (mx_x is not None and mn_x is not None) or x is not None
-    if x is not None:
-        mx_x = max(x)
-        mn_x = min(x)
-    if view == "coverage":
-        return int(mx_x - mn_x) / 10
-    span = mx_x - mn_x
-    dx = span / s
-    return dx if span < 3 else int(ceil(dx))
-
-
 def lin_transform(u, a, b):
     """Linear tranformation"""
     return u * (b - a) + a
@@ -1136,7 +1027,7 @@ def landsat_sst_regression(raw, lon, lat, roi, samples, outliers, nsub=10):
         gtruth = avhrr_filtered * _slope + _intercept  # "true" values
         residual = abs(ls_filtered - gtruth)  # difference between observations
         stdv = std(ls_filtered)  # landsat standard deviation
-        keepers, junk = where(residual < stdv)
+        keepers, _ = where(residual < stdv)
         if len(keepers) == 0:
             break
 
@@ -1224,12 +1115,6 @@ def avhrr_sst(files, locations, processes=1, chunk=4, delay=1):
     return sst
 
 
-def kelvin2celsius(data):
-    # type: (Array) -> Array
-    """Convert kelvin degrees to celsious degrees"""
-    return data - 272.15
-
-
 def brightness_temperature(x, m=3.3420e-04, b=0.1, k1=774.89, k2=1321.08):
     # type: (Array, float, float, float, float) -> Array
     """Brightness temperature from Band 10 raw counts"""
@@ -1247,12 +1132,6 @@ def vertical_flux(omega, area):
     # type: (Array, Array) -> Array
     """Vertical flux density"""
     return omega * area[:, None]
-
-
-def attenuation(bathymetry, elevation, sigma, coefficients):
-    # type: (Array, Array, Array, Array) -> Array
-    """Attenuated light"""
-    return (elevation - bathymetry) * sigma[:, None] * coefficients
 
 
 def lagrangian_diffusion(
@@ -1304,30 +1183,11 @@ def layers(count: int):
     dzz = zz[:-1] - zz[1:]  # distance between intra-sigma layers
 
 
-def z_index(sigma: array, count: int) -> int:
-    """
-    Convert from (negative) sigma coordinates to intra-layer indices
-    """
-    return floor((1 - count) * sigma).astype(int)  # sigma layer index above position
-
-
 def gradient(dz: array, dzz: array) -> array:
     """
     Slopes for segments on either side of sigma layer, purely numerical, concentration independent
     """
     return -1 / dz / roll(dzz, 1)
-
-
-def boundary(solid: array, open: array, topology: array) -> dict:
-    """
-    Collect nodes and set boundary for element
-    """
-    solids = solid[topology].sum(axis=1)
-    return {
-        "solid": (solids - 1).clip(max=1, min=0).astype(bool),
-        "porosity": 2 - solids.clip(min=1),
-        "open": open[topology].max(axis=1),
-    }
 
 
 def _advection_terms(solid, open, x, y, AU, neighbors):

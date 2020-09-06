@@ -71,11 +71,10 @@ except ImportError:
 
 # Use ArrayFire for multiple GPU bindings if available, else use ndarray as stand-in
 try:
-    from arrayfire import array as texture
     import arrayfire as af
 except ImportError:
     af = None
-texture = af if af is not None else array
+
 if af:
     _Array = af.Array or array
 else:
@@ -163,7 +162,7 @@ class BoundingBox:
     A bounding box is similar to an extent, but is define by two points instead of intervals
     """
     lower_left: (float, float) = attr.ib()
-    uppper_right: (float, float) =  attr.ib()
+    upper_right: (float, float) =  attr.ib()
 
 
 @attr.s
@@ -326,17 +325,6 @@ class CoordinateSystem(Enum):
     Gaussian = 3
     Spherical = 4
     Periodic = 5
-
-
-class DataFormat(Enum):
-    """Well Knonw NDArray formats"""
-    NETCDF3_CLASSIC = 1
-    NETCDF4 = 2
-    NETCDF5 = 3
-    Custom = 4
-    Binary = 5
-    NumpyArray = 6
-    ArrayfireTexture = 7
 
 
 class Dataset(_Dataset):
@@ -2691,17 +2679,6 @@ class RelationshipLabels(Enum):
 @attr.s
 class Schema:
     fields: [Field] = attr.ib(default=attr.Factory(list))
-
-
-@attr.s
-class State:
-
-    orientation: array = attr.ib()  # facing
-    axis: array = attr.ib()  # rotation
-    speed: float = attr.ib(default=0.0)
-    state3: array = zeros((1, 3), dtype=float)  # 3-axis rotation state
-    state4: array = zeros((1, 4), dtype=float)  # 3-axis rotation state
-    increment: array = zeros((1, 3), dtype=float)  # transformation increment
 
 
 @attr.s
