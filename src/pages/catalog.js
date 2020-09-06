@@ -304,6 +304,8 @@ export default ({data: {allMarkdownRemark: {edges}, site: {siteMetadata: {title}
                     setCatalog(catalogData.value.map(x => Object.entries(x)).flat());
                 }
             })()   
+        } else {
+            console.log("No access token is available in App context.");
         }
     }, [accessToken]);
 
@@ -320,6 +322,10 @@ export default ({data: {allMarkdownRemark: {edges}, site: {siteMetadata: {title}
             });
         })();
     }, []); 
+
+    const Catalog = () => {
+        
+    }
     
     
     return (
