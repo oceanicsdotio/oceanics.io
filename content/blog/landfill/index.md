@@ -12,7 +12,7 @@ suggested an escape
 beyond a map,
 an endless anti-place
 of absolution from sin, carbon, and the eternal waste of sun gods.
-Blood, history, and adventure literature told us — 
+Blood, history, adventure literature told us — 
 This is the realm of blue collar philosophy, where character matters, 
 flags are matters of convenience, a landlessness of opportunity.
 So we capitulated the shores for coursing brine
