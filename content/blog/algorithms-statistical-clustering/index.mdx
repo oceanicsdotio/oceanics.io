@@ -9,9 +9,10 @@ tags: ["algorithms", "clustering", "data", "unsupervised learning"]
 
 I want to provide a high level view of some statistical methods and data structures we use in our work. 
 These are meant to be living notes, and may contain stubs or incomplete information. 
-There are plenty of exhaustive resources, but I highly recommend Matteo Matteucci's <a href="https://home.deib.polimi.it/matteucc/Clustering/tutorial_html/index.html">work</a>.</p>
+There are plenty of exhaustive resources, but I highly recommend Matteo Matteucci's 
+<a href={"https://home.deib.polimi.it/matteucc/Clustering/tutorial_html/index.html"}>work</a>.
 
-K-means (or medians) is an <strong>exclusive</strong> model that associates observations with clusters. 
+K-means (or medians) is an *exclusive* model that associates observations with clusters. 
 The number of clusters cannot be determined analytically. Instead $k$ is chosen based on domain knowledge and refined 
 iteratively according to the Schwarz Criterion. The model is sensitive to initial positions, so the choice matters, 
 and Monte Carlo replication should be used, otherwise it tends to find local maxima. The steps are:
