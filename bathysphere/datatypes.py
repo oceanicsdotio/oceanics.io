@@ -884,7 +884,6 @@ class FileType(Enum):
     Schema = 1
     Config = 2
     Log = 3
-    XML = 7
 
 
 @attr.s
