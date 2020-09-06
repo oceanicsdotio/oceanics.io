@@ -14,7 +14,6 @@ from functools import reduce
 from ftplib import FTP
 from pickle import loads as unpickle
 from re import sub
-from xml.etree import ElementTree
 from itertools import repeat, chain
 from multiprocessing import Pool
 from warnings import simplefilter
@@ -28,15 +27,12 @@ import attr
 from minio import Minio
 from minio.error import NoSuchKey
 from requests import get, post
-from requests.exceptions import ConnectionError
-from urllib3.exceptions import MaxRetryError
 from flask import Response, Request, request
 from redis import StrictRedis
 
 from numpy import (
     array,
     append,
-    frombuffer,
     argmax,
     argmin,
     random,
@@ -50,24 +46,17 @@ from numpy import (
     vstack,
     repeat,
     zeros,
-    flip,
     unique,
 )
 from numpy.linalg import norm
 from netCDF4 import Dataset as _Dataset # pylint: disable=no-name-in-module
-from pandas import read_html, date_range, read_csv, Series
+from pandas import read_html, read_csv, Series
 
 from sklearn.linear_model import LinearRegression
 from sklearn.neighbors import KernelDensity
 from pyproj import transform
 from matplotlib import rc
 from matplotlib.pyplot import subplots, subplots_adjust
-
-try:
-    import tensorflow as tf
-    from tensorflow.keras import reduce_sum, square, placeholder, Session
-except ImportError:
-    pass
 
 # Use ArrayFire for multiple GPU bindings if available, else use ndarray as stand-in
 try:
@@ -90,11 +79,8 @@ from bathysphere.utils import (
     Path
 )
 
-SEC2DAY = 86400
-
 
 ExtentType = (float, float, float, float)
-IntervalType = (float, float)
 ResponseJSON = (dict, int)
 ResponseOctet = (dict, int)
 
@@ -317,14 +303,6 @@ class Extent:
         """
         e = self.value
         return array([[e[0], e[2]], [e[1], e[2]], [e[1], e[3]], [e[0], e[3]]])
-
-    @property
-    def bounding_box(self):
-        """
-        Convert an Extent to a BoundingBox
-        """
-        e = self.value
-        return array([[e[0], e[2]], [e[1], e[3]]])
 
     @property
     def path(self) -> Path:
@@ -869,12 +847,12 @@ class FileSystem:
                     fid = open(key, "rb")
                 except FileNotFoundError:
                     continue
-                data = self.load_year_cache(fid).transpose() if transpose else self.load_year_cache(fid)
+                data = FileSystem.load_year_cache(fid).transpose() if transpose else FileSystem.load_year_cache(fid)
                 fid.close()
 
             elif dataset:
                 data = dataset.variables[key][:].astype(kind)
-                self.set(date, data, key)
+                FileSystem.set(date, data, key)
             else:
                 data = None
 
@@ -970,8 +948,6 @@ class FileType(Enum):
     Schema = 1
     Config = 2
     Log = 3
-    CSV = 5
-    JSON = 6
     XML = 7
 
 
@@ -1748,7 +1724,7 @@ class Topology:
         return queue
 
 
-    @classmethod
+    @staticmethod
     def read(path: str, indexed: bool = True) -> dict:
         """
         Read in grid topology of unstructured triangular grid
@@ -1812,25 +1788,6 @@ class Topology:
                 solid[node] = True
             elif difference != 0:
                 print("Error. Nonsense dimensions in detecting solid boundary nodes.")
-
-    @staticmethod
-    def deduplicate(self, process: bool = False) -> array:
-
-        n = len(self.cells)
-        flag = zeros(n, dtype=bool)
-        ordered = sorted(self.cells)
-
-        for ii in range(n - 1):
-            match = ordered[ii, :] == ordered[ii + 1 :, :]
-            (rows,) = where(match)
-            rows += ii + 1
-            flag[rows] = True
-
-        if process and flag.any():
-            self.cells = self.cells[~flag]
-            assert len(self.cells) == n - flag.sum()
-
-        return self
 
 
 @attr.s
@@ -1937,63 +1894,6 @@ class Trie:
             if cost <= maxCost:
                 _results += ((word, cost),)
         return _results
-
-
-@attr.s
-class VertexArray:
-
-    data: array = attr.ib(default=None)
-
-    def deduplicate(self, topology: Topology = None, threshold: float = 0.00001):
-        """
-        Scan vertex array for duplicates. If topology is also provided, swap later indices for their lower-index
-        equivalents. Can be very expensive!
-
-        :param topology:
-        :param threshold:
-
-        :return: deletion flags and modified topology array
-        """
-        assert self.data.shape[1], "Must have explicit dimensionality >= 1"
-        flag = zeros(self.data.shape[0], dtype=bool)  # mask for indexing
-        delta = zeros(self.data.shape, dtype=float)
-
-        for ii in range(self.data.shape[0] - 1):
-            if flag[ii]:  # already processed
-                continue
-            # distance for unchecked vertices
-            delta[ii + 1, :] = self.data[ii, :] - self.data[ii + 1 :, :]
-            distance = norm(delta[ii + 1, :])  # magnitude of difference vec is distance
-            (rows,) = where(distance < threshold)  # indices of points within threshold
-            rows += ii + 1
-            flag[rows] = True  # set look-ahead flags true for deletion
-
-            if topology:
-                for jj in rows:
-                    # get rows and columns indices of duplicates
-                    re, ce = where(topology == jj)
-                    topology[re, ce] = ii  # replace duplicate indices
-
-        if flag.any():  # there are duplicates
-            (retain,) = where(~flag)  # first occurrences
-            # reversed un-flagged points
-            iterator = zip(retain, flip(retain, axis=0)[0 : len(retain)])
-            for first, last in iterator:
-                if first > last:
-                    break  # no swaps left
-
-                self.data[first, :], self.data[last, :] = (
-                    self.data[last, :],
-                    self.data[first, :],
-                )
-                ri, ci = where(topology == first)
-                rj, cj = where(topology == last)
-                topology[ri, ci] = last
-                topology[rj, cj] = first
-
-            self.data = self.data[0 : len(retain), :]
-        return self, topology
-
 
 
 class View:
