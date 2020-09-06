@@ -1,11 +1,22 @@
 
 import { rhythm } from "../typography";
 import styled from "styled-components";
+import { MDXProvider } from "@mdx-js/react";
 
 import React, {useState, useEffect}  from "react";
 import { Link, navigate } from "gatsby";
 import Form from "../components/Form";
 import {queryBathysphere} from "../bathysphere";
+import Noise from "../components/Noise";
+import Lagrangian from "../components/Lagrangian";
+import {StyledCaption} from "../components/Canvas";
+import DataStream from "../components/DataStream";
+import Particles from "../components/Particles";
+import RectilinearGrid from "../components/RectilinearGrid";
+import TriangularMesh from "../components/TriangularMesh";
+import HexagonalGrid from "../components/HexagonalGrid";
+import Model from "../components/Model";
+
 
 const StyledLayout = styled.div`
     margin-left: auto;
@@ -86,7 +97,7 @@ const cultureMethods = ["Bottom", "Rope (Horizontal)", "Rope (Vertical)", "Ear h
 const cultureSpecies = ["Oysters", "Scallops", "Mussels", "Macroalgae", "Finfish"];
 const stages = ['Prospecting', "Applying", "Operating", "Renewing", "Expanding"];
 const reason = ["Shellfish sanitation", "Lease hearing", "Lawsuit", "Exploring"];
-
+const shortcodes = {Noise, StyledCaption, Lagrangian, DataStream, Particles, RectilinearGrid, TriangularMesh, HexagonalGrid, Model};
 
 const ListLink = ({external=false, children, key, ...props}) => {
     return (
@@ -211,7 +222,6 @@ export default ({ children }) => {
                 <ListLink href="https://graph.oceanics.io" external={true}>API</ListLink>
                 <ListLink to="/catalog">Catalog</ListLink>
                 <ListLink to="/map">Map</ListLink>
-                <ListLink to="/graphics">Graphics</ListLink>
                 <ListLink href="https://oceanside.oceanics.io" external={true}>Game</ListLink>
                 <ListLink to="/tags">Tags</ListLink>
                 <ListLink to="/legal">Legal</ListLink>
@@ -224,8 +234,9 @@ export default ({ children }) => {
                 />
                 {dialog && !accessToken ? <LoginContainer callbacks={{login}}/> : null}
             </StyledNavBar>
-            
-            <main>{children}</main>
+            <main>
+                <MDXProvider components={shortcodes}>{children}</MDXProvider>
+            </main>
             <footer>
                 <hr/>
                 <p>Copyleft 2018-{new Date().getFullYear()}. No rights reserved.</p>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { loadRuntime, StyledCaption } from "../components/Canvas";
+import { loadRuntime } from "../components/Canvas";
 import { StyledCanvas } from "../components/Particles";
 import { createTexture, ArrayBuffer, compileShaders, extractUniforms } from "../components/Lagrangian";
 
@@ -171,12 +171,5 @@ export default ({
         return () => cancelAnimationFrame(requestId);
     }, [programs, ready]);
 
-    return (
-        <div>
-            <hr/>
-            <h2>{"Randomness"}</h2>
-            <StyledCanvas ref={ref} />
-            <StyledCaption>Fractal noise calculated on your GPU.</StyledCaption>
-        </div>
-    )
+    return <StyledCanvas ref={ref}/>
 };
