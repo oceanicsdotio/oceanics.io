@@ -10,23 +10,22 @@ export const StyledCanvas = styled.canvas`
 `;
 
 export default ({
-    count=27, 
-    fade=0.7,
-    zero=0.6,
+    count=9,
+    zero=0.2,
     radius=8.0,
-    drag=0.95,
-    bounce=0.6,
+    drag=0.05,
+    bounce=0.95,
+    springConstant=0.2,
+    timeConstant=0.000001,
+    collisionThreshold=0.001,
+    fade=0.7,
     lineWidth=1.0,
     fontSize=16.0,
     tickSize=10.0,
     labelPadding=5.0,
     particleColor="#FFFFFFFF",
-    backgroundColor="#00000022",
+    backgroundColor="#00000033",
     overlayColor="#77CCFFFF",
-    springConstant=0.01,
-    timeConstant=0.001,
-    collisionThreshold=0.00001,
-    maxAcceleration=0.0001,
 }) => {
     /*
     Particles component creates a Canvas element and data structure representing
@@ -89,8 +88,8 @@ export default ({
         (function render() {
             const time = performance.now() - start;
             
-            particleSystem.updateState(drag, bounce, timeConstant, collisionThreshold, maxAcceleration);
-            particleSystem.draw(canvas, time, style);
+            particleSystem.updateState(drag, bounce, timeConstant, collisionThreshold);
+            particleSystem.draw(canvas, time, collisionThreshold, style);
             requestId = requestAnimationFrame(render);
         })()
         return () => cancelAnimationFrame(requestId);

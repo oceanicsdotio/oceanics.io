@@ -32,26 +32,21 @@ pub mod agent_system {
         Higher drop rates speed up the animation loop, but make 
         N-body calculations less deterministic. 
         */
-        fn displacement(&self, extension: f64) -> f64 {
+       
+        fn force(&self, extension: f64, velocity_differential: f64, collision: f64) -> f64 {
             /*
+            Basic spring force for calculating the acceleration on objects.
             Distance from current X to local zero of spring reference frame.
 
             May be positive or negative in the range (-sqrt(3),sqrt(3)).
 
             If the sign is positive, the spring is overextended, and exerts
             a positive force on the root object.
-            */
-            extension - self.length
-        }
-
-        fn force(&self, extension: f64) -> f64 {
-            /*
-            Basic spring force for calculating the acceleration on objects.
-
             Force is along the (jj-ii) vector
             */
-            // -2.0 * self.k.sqrt() * self.v - self.k * (self.x - self.l)
-            self.spring_constant * self.displacement(extension)
+            let mass = 1.0;
+            let k1 = self.spring_constant;
+            -2.0 * (mass * k1).sqrt() * velocity_differential + k1 * (extension - self.length - 2.0*collision) / mass
         }
     }
 
@@ -93,7 +88,7 @@ pub mod agent_system {
         }
 
                 
-        pub fn next_state(coordinates: &Vec3, velocity: &Vec3, drag: f64, bounce: f64, time_scale: f64) -> [[f64; 3]; 2] {
+        pub fn next_state(coordinates: &Vec3, velocity: &Vec3, drag: f64, bounce: f64, dt: f64) -> [[f64; 3]; 2] {
             /*
             Update the agent position from velocity. 
 
@@ -103,20 +98,17 @@ pub mod agent_system {
             */
             
             let mut new_v: Vec3 = velocity * (1.0 - drag);
-            let mut new_c: Vec3 = coordinates + new_v * time_scale;
+            let mut new_c: Vec3 = coordinates + new_v * dt;
 
             for dim in 0..3 {
                 let val = new_c.value[dim];
                 if val > 1.0 {
-                    //
-                    // let delta = val - 1.0;
-
-                    // new_c.value[dim] -= 2.0*delta;
-                    new_c.value[dim] = 1.0;
+                    let delta = val - 1.0;
+                    new_c.value[dim] -= 2.0*delta;
+                    
                     new_v.value[dim] *= -bounce;
                 } else if val < 0.0 {
-                    // new_c.value[dim] -= 2.0*val;
-                    new_c.value[dim] = 0.0;
+                    new_c.value[dim] -= 2.0*val;
                     new_v.value[dim] *= -bounce;
                 }
             }
@@ -203,7 +195,7 @@ pub mod agent_system {
         }
 
         #[wasm_bindgen(js_name=updateState)]
-        pub fn update_links_and_positions(&mut self, drag: f64, bounce: f64, time_scale: f64, collision_threshold: f64, max_acceleration: f64) {
+        pub fn update_links_and_positions(&mut self, drag: f64, bounce: f64, dt: f64, collision_threshold: f64) {
             /*
             Update link forces and vectors. 
 
@@ -212,32 +204,32 @@ pub mod agent_system {
             */
             for (index, edge) in self.group.edges.iter_mut() {
                 let [ii, jj] = index.items();
+
+                // vector from ii to jj, and it's magnitude
                 let delta = self.group.vertex_array.vector(ii, jj);
                 let extension = delta.magnitude();
               
-                // positive along (jj-ii) vector
-                let force = edge.force(extension).min(max_acceleration).max(-max_acceleration);
-               
-                let force_vector: Vec3 =  delta * time_scale * 0.5 / force;
-                let va = self.group.velocity.get_mut(ii).unwrap();
-                if extension < collision_threshold {
-                    // collison detected, so reflect velocity attenuated by elasticity
-                    va.value = (va.clone() + force_vector * force.signum() * bounce).value;
-                } else {
-                    va.value = ((va.clone() + force_vector)).value;
-                }
+                // predicted delta at next integration step, positive along (jj-ii) vector
+                let predicted: f64 = (
+                    (self.group.vertex_array.get(jj).unwrap() + &self.group.velocity[jj] * dt) - 
+                    (self.group.vertex_array.get(ii).unwrap() + &self.group.velocity[ii] * dt)
+                ).magnitude();
 
-                let vb = self.group.velocity.get_mut(jj).unwrap();
-                if extension < collision_threshold {
-                    vb.value = (vb.clone() - force_vector * force.signum() * bounce).value;
-                } else {
-                    vb.value = (vb.clone() - force_vector).value;
+                let acceleration: Vec3 = delta.normalized() * edge.force(
+                    extension, 
+                    (predicted-extension)/dt,
+                    collision_threshold
+                );
+
+                for particle in index.items().iter() {
+                    let velocity = self.group.velocity.get_mut(particle).unwrap();
+                    velocity.value = (velocity.clone() + acceleration).value;
                 }
             }
 
             for (index, velocity) in self.group.velocity.iter_mut() {
                 let coords = self.group.vertex_array.get_mut(index).unwrap();
-                let [new_c, new_v] = Group::next_state(coords, velocity, drag, bounce, time_scale);
+                let [new_c, new_v] = Group::next_state(coords, velocity, drag, bounce, dt);
                 coords.value = new_c;
                 velocity.value = new_v;
             }
@@ -276,7 +268,7 @@ pub mod agent_system {
             self.group.velocity.len() as u32
         }
 
-        fn draw_edges(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, radius: f64, _fade: f64, _color: &JsValue) -> u16 {
+        fn draw_edges(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, radius: f64, fade: f64, _color: &JsValue, collision: f64) -> u16 {
             /*
             Edges are rendered as rays originating at the linked particle, and terminating
             at a point defined by the source plus the `vec` attribute of Edge.
@@ -295,43 +287,46 @@ pub mod agent_system {
                 let b = self.group.vertex_array.get(jj).expect(&format!("Target point missing {}", jj));
                 let vec = b - a;
                 let extension = vec.magnitude();
-
-                let force = edge.force(extension);
+                let predicted: f64 = ((self.group.vertex_array.get(jj).unwrap() + &self.group.velocity[jj]) - (self.group.vertex_array.get(jj).unwrap() + &self.group.velocity[ii])).magnitude();
+                let differential = predicted - extension;
+                let force = edge.force(extension, differential, collision);
                 let max_distance = ((3.0 as f64).sqrt() - edge.length).abs();
-                let max_force = edge.force(max_distance).abs();
+                let max_force = edge.force(max_distance, differential, collision).abs();
                 let force_frac = force / max_force;
 
-                
+            
                 let a_color = format!(
                     "rgba({},{},{},{:.2}", 
                     255 * (force > 0.0) as u16,
-                    255,
+                    0,
                     255 * (force <= 0.0) as u16,
-                    force_frac.abs().powi(2)*0.5
+                    force_frac.abs()*(1.0 - fade * a.z()) // * (force.abs().sqrt() * 10.0).min(1.0);
                 );
 
-                // let a_color = format!(
-                //     "rgba({},{},{},{:.2}", 
-                //     255 * (force > 0.0) as u16,
-                //     0,
-                //     255 * (force <= 0.0) as u16,
-                //     1.0 - fade * a.z() // * (force.abs().sqrt() * 10.0).min(1.0);
-                // );
-
-                // let b_color = format!(
-                //     "rgba({},{},{},{:.2}", 
-                //     255 * (force > 0.0) as u16,
-                //     0,
-                //     255 * (force <= 0.0) as u16,
-                //     1.0 - fade * b.z() // * (force.abs().sqrt() * 10.0).min(1.0);
-                // );
+                let b_color = format!(
+                    "rgba({},{},{},{:.2}", 
+                    255 * (force > 0.0) as u16,
+                    0,
+                    255 * (force <= 0.0) as u16,
+                    force_frac.abs()*(1.0 - fade * b.z()) // * (force.abs().sqrt() * 10.0).min(1.0);
+                );
         
-                // let gradient = ctx.create_linear_gradient(a.x(), a.y(), b.x(), b.y());
+                let gradient = ctx.create_linear_gradient(a.x(), a.y(), b.x(), b.y());
                     
-                // let _ = gradient.add_color_stop(0.0, &a_color);
-                // let _ = gradient.add_color_stop(1.0, &b_color);
-        
-                ctx.set_stroke_style(&JsValue::from_str(&a_color));
+                if !(gradient.add_color_stop(0.0, &a_color).is_ok() &&
+                    gradient.add_color_stop(0.0, &b_color).is_ok()) {
+                    ctx.set_stroke_style(&gradient);
+                } else {
+                    let a_color = format!(
+                        "rgba({},{},{},{:.2}", 
+                        255 * (force_frac > 0.0) as u16,
+                        255,
+                        255 * (force_frac <= 0.0) as u16,
+                        force_frac.abs()
+                    );
+                    ctx.set_stroke_style(&JsValue::from_str(&a_color));
+                };
+               
                 
                 ctx.begin_path();
                 ctx.move_to(
@@ -348,7 +343,7 @@ pub mod agent_system {
             count
         }
 
-        pub fn draw(&mut self, canvas: HtmlCanvasElement, time: f64, style: JsValue) {
+        pub fn draw(&mut self, canvas: HtmlCanvasElement, time: f64, collision: f64, style: JsValue) {
             /*
             Compose a data-driven interactive canvas for the triangular network. 
             */
@@ -365,7 +360,7 @@ pub mod agent_system {
             let inset = rstyle.tick_size * 0.5;
             
             crate::clear_rect_blending(ctx, w, h, bg);
-            let edges = self.draw_edges(ctx, w, h, rstyle.radius, rstyle.fade, &overlay);
+            let edges = self.draw_edges(ctx, w, h, rstyle.radius, rstyle.fade, &overlay, collision);
             let agents = self.draw_agents(ctx, w, h, rstyle.fade, rstyle.radius, &color);
             self.cursor.draw(ctx, w, h, &overlay, rstyle.font_size, rstyle.line_width, rstyle.tick_size, 0.0, rstyle.label_padding);
             

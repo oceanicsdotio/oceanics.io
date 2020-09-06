@@ -510,7 +510,7 @@ function getUint8ClampedMemory0() {
 function getClampedArrayU8FromWasm0(ptr, len) {
     return getUint8ClampedMemory0().subarray(ptr / 1, ptr / 1 + len);
 }
-function __wbg_adapter_197(arg0, arg1, arg2, arg3) {
+function __wbg_adapter_199(arg0, arg1, arg2, arg3) {
     _assertNum(arg0);
     _assertNum(arg1);
     wasm.wasm_bindgen__convert__closures__invoke2_mut__h96984aac8d17c2af(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
@@ -791,24 +791,24 @@ export class InteractiveGroup {
     /**
     * @param {number} drag
     * @param {number} bounce
-    * @param {number} time_scale
+    * @param {number} dt
     * @param {number} collision_threshold
-    * @param {number} max_acceleration
     */
-    updateState(drag, bounce, time_scale, collision_threshold, max_acceleration) {
+    updateState(drag, bounce, dt, collision_threshold) {
         if (this.ptr == 0) throw new Error('Attempt to use a moved value');
         _assertNum(this.ptr);
-        wasm.interactivegroup_updateState(this.ptr, drag, bounce, time_scale, collision_threshold, max_acceleration);
+        wasm.interactivegroup_updateState(this.ptr, drag, bounce, dt, collision_threshold);
     }
     /**
     * @param {HTMLCanvasElement} canvas
     * @param {number} time
+    * @param {number} collision
     * @param {any} style
     */
-    draw(canvas, time, style) {
+    draw(canvas, time, collision, style) {
         if (this.ptr == 0) throw new Error('Attempt to use a moved value');
         _assertNum(this.ptr);
-        wasm.interactivegroup_draw(this.ptr, addHeapObject(canvas), time, addHeapObject(style));
+        wasm.interactivegroup_draw(this.ptr, addHeapObject(canvas), time, collision, addHeapObject(style));
     }
 }
 /**
@@ -1049,6 +1049,10 @@ export const __wbindgen_object_clone_ref = function(arg0) {
     var ret = getObject(arg0);
     return addHeapObject(ret);
 };
+
+export const __wbg_addColorStop_c75d1d727f815743 = handleError(function(arg0, arg1, arg2, arg3) {
+    getObject(arg0).addColorStop(arg1, getStringFromWasm0(arg2, arg3));
+});
 
 export const __wbg_width_900ad1fe25297a68 = logError(function(arg0) {
     var ret = getObject(arg0).width;
@@ -1333,7 +1337,7 @@ export const __wbg_new_261626435fed913c = logError(function(arg0, arg1) {
             const a = state0.a;
             state0.a = 0;
             try {
-                return __wbg_adapter_197(a, state0.b, arg0, arg1);
+                return __wbg_adapter_199(a, state0.b, arg0, arg1);
             } finally {
                 state0.a = a;
             }
@@ -1449,7 +1453,7 @@ export const __wbindgen_memory = function() {
     return addHeapObject(ret);
 };
 
-export const __wbindgen_closure_wrapper2494 = logError(function(arg0, arg1, arg2) {
+export const __wbindgen_closure_wrapper2501 = logError(function(arg0, arg1, arg2) {
     var ret = makeMutClosure(arg0, arg1, 66, __wbg_adapter_22);
     return addHeapObject(ret);
 });
