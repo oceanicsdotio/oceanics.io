@@ -1,9 +1,9 @@
 import React, {useEffect, useState} from "react";
 import Table from "../components/Table";
 
-export default () => {
+export default ({target}) => {
 
-    const [ source, setSource ] = useState("https://oceanicsdotio.nyc3.digitaloceanspaces.com?delimiter=/"); 
+    const [ source, setSource ] = useState(target); 
     const [ fileSystem, setFileSystem ] = useState(null);
 
     const order = "key";
@@ -61,9 +61,7 @@ export default () => {
 
     return (
         <>
-            <h2>Object storage</h2>
-            <p>{source}</p>
-            {fileSystem ? <Table order={order} records={fileSystem} schema={schema}/> : null}
+        {fileSystem ? <Table order={order} records={fileSystem} schema={schema}/> : null}
         </>
     );
 };

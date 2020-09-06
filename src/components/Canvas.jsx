@@ -8,6 +8,11 @@ export const StyledCanvas = styled.canvas`
     height: 400px;
 `;
 
+export const StyledCaption = styled.div`
+    color: #666;
+    font-style: italic;
+`;
+
 export const loadRuntime = (setter) => {
     /*
     Import the WebAssembly module and set the runtime of the Component.

@@ -8,23 +8,19 @@ import { queryBathysphere } from "../bathysphere";
 import Layout from "../components/Layout";
 import SEO from "../components/SEO";
 import { StatefulButton }  from "../components/Layout";
-import Map from "../components/Map";
 import Table from "../components/Table";
-import DataStream from "../components/DataStream";
-import Particles from "../components/Particles";
-import RectilinearGrid from "../components/RectilinearGrid";
-import TriangularMesh from "../components/TriangularMesh";
-import HexagonalGrid from "../components/HexagonalGrid";
 import Storage from "../components/Storage";
-import Codex from "../components/Codex";
-import Lagrangian from "../components/Lagrangian";
-import Noise from "../components/Noise";
-import Model from "../components/Model";
 
 const DB_NAME = "indexed-db-testing";
 const DB_VERSION = 2;
 const DB_STORE = "bathysphere";
 
+const StyledError = styled.div`
+    color: orange;
+    text-align: center;
+    border: 1px solid;
+    margin: 5px;
+`;
 
 const StyledTip = styled.div`
     color: orange;
@@ -68,24 +64,8 @@ export default ({data: {allMarkdownRemark: {edges}, site: {siteMetadata: {title}
     const [accessToken, setAccessToken] = useState(null);
     const [baseUrl, setBaseUrl] = useState("http://localhost:5000/api/");
     const [catalog, setCatalog] = useState([]);
-    const [mapData, setMapData] = useState(null);
+    const [errors, setErrors] = useState([]);
     const [entities, setEntities] = useState({});
-
-    const [ visibility, setVisibility ] = useState({
-        map: false,
-        graph: false,
-        rectilinearGrid: false,
-        triangularMesh: false,
-        hexGrid: false,
-        objectStorage: false,
-        codex: false,
-        dataStream: false,
-        // particles: true,
-        lagrangian: false,
-        noise: false,
-        // model: true
-    });
-
 
 
     function openDatabase({callback, ...args}) {
@@ -309,57 +289,24 @@ export default ({data: {allMarkdownRemark: {edges}, site: {siteMetadata: {title}
         }
     }, [accessToken]);
 
-    
-    useEffect(() => {
-        /*
-        Fetch static configuration data for using Mapbox. This includes JSON descriptions
-        of the map style, and the data layers. 
-        */
-        (async () => {
-            setMapData({
-                style: await fetch("/style.json").then(r => r.json()),
-                layers: await fetch("/layers.json").then(r => r.json())
-            });
-        })();
-    }, []); 
-
-    const Catalog = () => {
-        
-    }
-    
-    
+     
     return (
       <Layout location={location} title={title}>
         <SEO title="Ocean analytics as a service" />
     
         <hr/>
-        <div>
-            {Object.keys(visibility).map((text, key)=>{
-                const displayText = text;
-                return <StatefulButton 
-                    key={key}
-                    onClick={() => setVisibility({...visibility, [text]: !visibility[text]})} 
-                    active={visibility[text]} 
-                    text={`${displayText} ↻`} 
-                    altText={`${displayText} ⤫`}  
-                />
-            }
-            )}
-        </div>
-        {!Object.values(visibility).some(x => x) ? <StyledTip>↑ Select some data sources and sinks to get started.</StyledTip> : null}
-        {(visibility.map && mapData) ? <Map {...mapData}/> : null}
-        {visibility.lagrangian ? <Lagrangian res={1000} source={"/wind.png"} metadataFile={"/wind.json"}/> : null}
-        {visibility.noise ? <Noise source={"/wind.png"}/> : null}
-        {visibility.codex ? <Codex edges={edges} token={accessToken} baseUrl={baseUrl}/>:null}
-        {visibility.dataStream ? <DataStream/> : null}
-        {/* {visibility.particles ? <Particles/> : null} */}
-        {visibility.rectilinearGrid ? <RectilinearGrid/> :null }
-        {visibility.triangularMesh ? <TriangularMesh/> : null }
-        {visibility.hexGrid ? <HexagonalGrid/> : null }
-        {visibility.graph ? catalog.map(([k, v]) => <Collection {...v} key={k}/>).flat() : null}
-        {visibility.objectStorage ? <Storage /> : null}
-        {/* {visibility.model ? <Model /> : null} */}
+        {accessToken ? catalog.map(([k, v]) => <Collection {...v} key={k}/>).flat() : <StyledError>{"(!) No graph access token available"}</StyledError>}
         
+        <h3>
+            {"Assets"} 
+            <StyledCaretActive>➤</StyledCaretActive>
+            <StyledHighlight>
+                {"https://oceanicsdotio.nyc3.digitaloceanspaces.com?delimiter=/"}
+            </StyledHighlight>
+            
+        </h3>
+        <Storage target={"https://oceanicsdotio.nyc3.digitaloceanspaces.com?delimiter=/"}/>
+       
       </Layout>
     )
 };
