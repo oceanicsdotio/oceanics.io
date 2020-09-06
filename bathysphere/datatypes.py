@@ -55,7 +55,7 @@ from numpy import (
 )
 from numpy.linalg import norm
 from netCDF4 import Dataset as _Dataset # pylint: disable=no-name-in-module
-from pandas import read_html, date_range, Series
+from pandas import read_html, date_range, read_csv, Series
 
 from sklearn.linear_model import LinearRegression
 from sklearn.neighbors import KernelDensity
@@ -133,19 +133,6 @@ class Array:
         """Transform to (0,1) range"""
         return (self.data - self.data.min()) / self.range
 
-
-    @property
-    def colorize(self) -> Array:
-        """
-        Convert data field to color and transparency components
-        """
-        normalized = self.normalized
-        colors = zeros((*self.data.shape, 4), dtype=int) + 255
-        colors[:, :, :, 0] *= normalized  # red
-        colors[:, :, :, 1] *= 0  # green
-        colors[:, :, :, 2] *= 1 - normalized  # blue
-        colors[:, :, :, 3] *= 0.5 * normalized  # alpha
-        return colors
 
 @attr.s
 class Bound:
@@ -1386,51 +1373,6 @@ class Memory:
         return vertex_array_buffer
 
 
-@attr.s
-class Mesh:
-    """
-    Meshes are collections of points and their topology
-    """
-    vertex_array: VertexArray = attr.ib(default=None)
-    topology: Topology = attr.ib(default=None)  # Topology
-
-
-    def cell_normals(self) -> Array:
-        """Normals of faces"""
-        topo = self.topology
-        uu = self.vertex_array[topo[:, 1], :] - self.vertex_array[topo[:, 0], :]
-        vv = self.vertex_array[topo[:, 2], :] - self.vertex_array[topo[:, 0], :]
-        return cross(uu, vv)
-
-
-    def vertex_normals(self, s: float = 0.05) -> Array:
-        """
-        Add vertex list to batch for rendering
-        """
-        f = self.cell_normals()
-        assert f.shape == (self.topology.size, 3)
-        v = f[self.topology, :]
-        assert v.shape[:2] == (self.topology.size, 3)
-        assert 3 <= v.shape[2] <= 4
-        v_avg = v.mean(axis=1)
-        assert v_avg.shape == (self.vertex_array.size, 3)
-        return vstack((self.vertex_array, s * normal(v_avg) + self.vertex_array))
-
-
-    def adjacency(self) -> Array:
-        # type: (Array, Array) -> Array
-        """
-        Calculate adjacent vertices
-        """
-        adj = []
-        for ii, _ in enumerate(self.vertex_array):
-            rows, _ = where(self.topology == ii)
-            uni = unique(self.topology[rows, :])
-            new_adj = uni[where(uni != ii)]
-            adj.append(new_adj)
-        return adj
-
-
 class ObjectStorage(Minio):
     """
     S3 compatible object storage interface using Minio as the client. 
@@ -1791,7 +1733,6 @@ class Topology:
 
     cells: array = attr.ib(default=None)
 
-
     def cell_adjacency(self, parents: dict, indices: [int]) -> dict:
         """
         Get element neighbors
@@ -1996,15 +1937,6 @@ class Trie:
             if cost <= maxCost:
                 _results += ((word, cost),)
         return _results
-
-
-@attr.s
-class Unit:
-    name: str = attr.ib(default=None)  # canonical reference name
-    symbol: Any = attr.ib(default=None)  # symbol when displayed
-    definition: str = attr.ib(
-        default=None
-    )  # reference to an external formal definition
 
 
 @attr.s
