@@ -13,7 +13,6 @@ docker-compose = "*"
 colorama = "*"
 pytest-parallel = "*"
 vulture = "*"
-important = "*"
 
 [requires]
 python_version = "3.7"

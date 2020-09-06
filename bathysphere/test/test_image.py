@@ -249,13 +249,12 @@ def test_image_random_points_and_extent_culling(object_storage):
     spatial = Spatial(style=style)
 
     spatial.points(pxy, color="black", alpha=0.1)
-    spatial.bbox(extent, edgecolor="black", facecolor="none", alpha=0.5)
 
     for each in ["blue"] * 6:
         e1 = list(lin_transform(random.uniform(size=2), *extent[:2]))
         e2 = list(lin_transform(random.uniform(size=2), *extent[2:4]))
         ext = array(e1 + e2)
-        spatial.bbox(ext, edgecolor=each, facecolor="none", alpha=0.5)
+       
         spatial.shape(xy=geom_shader(ext), edgecolor=each, facecolor="none", alpha=0.5)
 
     object_storage.upload_image(

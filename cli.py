@@ -15,16 +15,6 @@ def cli():
 
 
 @click.command()
-@click.argument("host")
-@click.argument("port")
-def redis_worker(host: str, port: int):
-    """
-    Command to start a redis worker.
-    """
-    click.secho(f"rq worker -u redis://:{host}:{port}/0", fg="green")
-
-
-@click.command()
 @click.option("--port", default=5000, help="Port on which to serve the API")
 @click.option("--dev", default=False, help="")
 def start(port: int, dev: bool):
@@ -267,7 +257,6 @@ def parse_ichthyotox(source: str, particle_type: str, out: str, mode: str):
     click.secho(f"Processed {total} total {particle_type} records", fg="blue")
 
 
-cli.add_command(redis_worker)
 cli.add_command(serve)
 cli.add_command(start)
 cli.add_command(parse_ichthyotox)
