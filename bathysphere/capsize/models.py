@@ -88,3 +88,4 @@ class Memory:
 
             if start == len(self.mask) - size:
                 return None
+
