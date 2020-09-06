@@ -94,5 +94,7 @@ def render(body: dict):
 
 
 def main(req):
-    """Wrapper to deploy to Google Cloud Functions"""
+    """
+    Wrapper to deploy to Google Cloud Functions
+    """
     return render(loads(req.body))

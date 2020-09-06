@@ -92,13 +92,6 @@ except:
     gpu = False
 
 
-DEGREES = 180 / pi
-RADIANS = pi / 180
-ORIGIN = zeros((1, 3), dtype=float)
-XAXIS = array([1.0, 0.0, 0.0]).reshape(1, 3)
-YAXIS = array([0.0, 1.0, 0.0]).reshape(1, 3)
-ZAXIS = array([0.0, 0.0, 1.0]).reshape(1, 3)
-
 CartesianNAD83 = Proj("epsg:2960")
 SphericalWGS84 = Proj("epsg:4326")
 
@@ -453,7 +446,7 @@ def multiply(u, v):
     return result
 
 
-def rotate(vertex_array: array, angle: float, axis: array = ZAXIS) -> array:
+def rotate(vertex_array: array, angle: float, axis: array) -> array:
     """
     Rotate list of vectors(/vertices) about any axis by angle in radians. Default to Z-AXIS
     """

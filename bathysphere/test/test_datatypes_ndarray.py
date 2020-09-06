@@ -46,14 +46,8 @@ from bathysphere.utils import (
     array2image,
     crop,
     subset,
-    RADIANS,
-    DEGREES,
     polygon_area,
     center,
-    XAXIS,
-    YAXIS,
-    ZAXIS,
-    ORIGIN,
     normal,
     interp2d_nearest,
 )
@@ -506,11 +500,3 @@ def test_datatypes_ndarray_netcdf_dataset_analysis_island_hole_culling_upload(
     object_storage(prefix=None).vertex_array_buffer(
         data, OSI_OBJ, key, strategy="bisect"
     )
-
-
-def test_datatypes_ndarray_angle_unit_conversions():
-    """Radian <-> degree conversions are correct"""
-    assert RADIANS == 1 / DEGREES
-    assert 2 * pi * DEGREES == 360
-    assert 360 * RADIANS == 2 * pi
-
