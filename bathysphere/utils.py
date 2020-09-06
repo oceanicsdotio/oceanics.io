@@ -1,4 +1,4 @@
-# pylint: disable=unused-variable,invalid-name
+# pylint: disable=invalid-name
 from datetime import datetime, date
 from collections import deque
 from multiprocessing import Pool
@@ -382,25 +382,6 @@ def arrays2points(x, y, z=None, dilate=0):
             z.reshape(-1, 1)[indices],
         )
     return stack(columns, axis=1)
-
-
-def angle3d(u, v):
-    # type: (Array, Array) -> Array
-    """Calculate angle between pairs of 3d vectors"""
-    theta = dot(u, v.T) / (norm(u) * norm(v))
-    return arccos(theta) if (-1.0 <= theta <= 1.0) else 0.0
-
-
-def angle2d(u, v):
-    # type: (Array, Array) -> Array
-    """Angle relative to origin, between pairs of 2d vectors"""
-    delta = u - v
-    theta = arctan2(delta[1], delta[0])
-    (ind,) = where(theta < -pi)
-    theta[ind] += 2 * pi
-    (ind,) = where(theta > pi)
-    theta[ind] -= 2 * pi
-    return theta
 
 
 def normal(u):
@@ -987,6 +968,11 @@ def landsat_sst_regression(raw, lon, lat, roi, samples, outliers, nsub=10):
     """
     Calculate SST by removing outliers
     """
+    def brightness_temperature(x, m=3.3420e-04, b=0.1, k1=774.89, k2=1321.08):
+        # type: (Array, float, float, float, float) -> Array
+        """Brightness temperature from Band 10 raw counts"""
+        radiance = m * x + b
+        return (k2 / log((k1 / radiance) + 1)) - 272.15
 
     # Load satellite data and subset it
     btemp = brightness_temperature(raw)
@@ -1010,7 +996,7 @@ def landsat_sst_regression(raw, lon, lat, roi, samples, outliers, nsub=10):
 
     while True:
         pairs = hstack((avhrr_filtered, ls_filtered))
-        _slope, _intercept, r, pval, stderr = linregress(pairs)  # regress
+        _slope, _intercept, r, _, _ = linregress(pairs)  # regress
         if (abs(r) - abs(fit)) < 0.000001:  # if r-value is improving
             break
 
@@ -1038,18 +1024,6 @@ def landsat_sst_regression(raw, lon, lat, roi, samples, outliers, nsub=10):
     #     sublon = subset(lon, nsub)
 
     return sst
-
-
-def oc3algorithms():
-    """
-    read OC3 chlorophyll from netcdf for land mask
-    chl_sub = subset(chl, n)
-    mask land using chl_oc3 NaN land mask
-    Save results to NetCDF file
-    Plot: SST, AVHRR interp, landsat versus AVHRR;  w/ bounding box overlay
-    regress AV filter 2 and LS filter 2 for R2 and P values
-    """
-    ...
 
 
 def avhrr_sst(files, locations, processes=1, chunk=4, delay=1):
@@ -1108,79 +1082,7 @@ def avhrr_sst(files, locations, processes=1, chunk=4, delay=1):
     return sst
 
 
-def brightness_temperature(x, m=3.3420e-04, b=0.1, k1=774.89, k2=1321.08):
-    # type: (Array, float, float, float, float) -> Array
-    """Brightness temperature from Band 10 raw counts"""
-    radiance = m * x + b
-    return (k2 / log((k1 / radiance) + 1)) - 272.15
 
-
-def viscosity(temperature):
-    # type: (Array) -> Array
-    """Viscosity from temperature"""
-    return 10.0 ** (-3.0) * 10.0 ** (-1.65 + 262.0 / (temperature + 169.0))
-
-
-def vertical_flux(omega, area):
-    # type: (Array, Array) -> Array
-    """Vertical flux density"""
-    return omega * area[:, None]
-
-
-def lagrangian_diffusion(
-    vertex_array_buffer, window, bins, groups, threshold, wrap, steps=240
-):
-    # type: ((Array, ), int, int, Array, float, bool, int) -> (Array,)
-    """
-    Mean diffusion over time
-
-    :param vertex_array_buffer:
-    :param window: number of steps to average for displacement
-    :param bins: days/bins per experiment
-    :param groups: groups by array index
-    :param steps: steps per day/bin
-    :param threshold: distance to trigger wrap
-    :param wrap: amount to compensate for periodic domains
-    """
-
-    delta = diff(vertex_array_buffer, axis=2)
-    if threshold is not None and wrap is not None:
-        delta -= wrap * (delta > threshold)
-        delta += wrap * (delta < -threshold)
-
-    def _reduce(start, end):
-        indices = arange(start, end)
-        mean_sq_displacement = delta[:, :, indices].sum(axis=2) ** 2
-        return 0.25 / 60 * mean_sq_displacement.sum(axis=0)
-
-    steps = delta.shape[2]
-    displace = zeros((delta.shape[1], steps))
-    for time in range(window, steps):  # per particle time series
-        displace[:, time] = _reduce(time - window, time)
-    displace = displace.mean(axis=0)
-
-    
-    ii = arange(bins) * steps
-    return tuple(
-        displace[indices, ii : ii + steps - 1].mean(axis=0) for indices in groups
-    )
-
-
-def layers(count: int):
-    """Compute evenly space layers"""
-    z = -arange(count) / (count - 1)
-    dz = z[:-1] - z[1:]  # distance between sigma layers
-    zz = zeros(count)  # intra-level sigma
-    zz[:-1] = 0.5 * (z[:-1] + z[1:])  # intra-sigma layers
-    zz[-1] = 2 * zz[-2] - zz[-3]
-    dzz = zz[:-1] - zz[1:]  # distance between intra-sigma layers
-
-
-def gradient(dz: array, dzz: array) -> array:
-    """
-    Slopes for segments on either side of sigma layer, purely numerical, concentration independent
-    """
-    return -1 / dz / roll(dzz, 1)
 
 
 def _advection_terms(solid, open, x, y, AU, neighbors):

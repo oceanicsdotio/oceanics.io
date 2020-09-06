@@ -229,32 +229,6 @@ def test_graph_sensorthings_join(add_link, cls):
                     results.append(response)
 
 
-
-# @pytest.mark.external_call
-# def test_graph_sensorthings_locations_weather_report(graph):
-
-#     locations = Locations(
-#         name="Upper Damariscotta Estuary"
-#     ).load(
-#         db=graph("localhost", 7687, testAuth[1])
-#     )
-
-#     if len(locations) != 1:
-#         for L in locations:
-#             print(dumps(L.serialize(db=None, service=None)))
-#         raise AssertionError
-
-#     response = (
-#         locations
-#         .pop()
-#         .reportWeather(
-#             ts=datetime(2016, 2, 1, 0, 0, 0),
-#             api_key=DARKSKY_API_KEY,
-#         )
-#     )
-#     assert response.ok, response.json()
-
-
 # @pytest.mark.object_storage
 # def test_graph_sensorthings_assets_from_object_storage(object_storage, graph):
 
