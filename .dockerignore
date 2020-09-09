@@ -1,0 +1,6 @@
+data/
+htmlcov/
+logs/
+tmp/
+.github/
+.coverage
