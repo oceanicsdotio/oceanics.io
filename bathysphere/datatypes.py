@@ -1316,13 +1316,21 @@ class PostgresType(Enum):
 
 @attr.s
 class Query:
-
+    """
+    Queries are pre-generated pairs of complete SQL strings, along with
+    a parser that will turn the Postgres result into a data structure
+    that can be handled by the system
+    """
     sql: str = attr.ib()
     parser: Callable = attr.ib()
 
 
 @attr.s
 class Schema:
+    """
+    Schemata describe the ordering and content of the columns in a
+    Postgres database or response
+    """
     fields: [Field] = attr.ib(default=attr.Factory(list))
 
 

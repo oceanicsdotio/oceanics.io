@@ -241,7 +241,7 @@ def exportJSON(clippingExtent, accessKey):
 
 def lpaQuery(ext, auth):
     bbox = f"st_makebox2d(st_makepoint({ext[0]},{ext[2]}), st_makepoint({ext[1]},{ext[3]}))"
-    body = dumps(
+    response = dumps(
         {
             "table": "limited_purpose_aquaculture_sites",
             "fields": [
@@ -267,7 +267,7 @@ def lpaQuery(ext, auth):
 @retry(tries=3, delay=1)
 def leaseQuery(ext, auth):
     bbox = f"st_makebox2d(st_makepoint({ext[0]},{ext[2]}), st_makepoint({ext[1]},{ext[3]}))"
-    body = dumps(
+    response = dumps(
         {
             "table": "aquaculture_leases",
             "fields": [
