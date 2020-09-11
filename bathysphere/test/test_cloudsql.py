@@ -62,35 +62,39 @@ allTables = ["observations", "messages", "maine_boundaries_town_polygon", "locat
 
 def test_cloudsql_pubsub_notify_listen():
 
-    con = connect(user="postgres", password="n0t_passw0rd", host="localhost")
-    con.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
-    listener = connect(user="postgres", password="n0t_passw0rd", host="localhost")
-    listener.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
     messages = ["Hello!", "Hi", "How are you?"]
     channel = "bathysphere"
 
-    curs = con.cursor()
-    listen_curs = listener.cursor()
+    def connection():
+        con = connect(user="postgres", password="n0t_passw0rd", host="localhost")
+        con.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+        return con
 
-    curs.execute(f"LISTEN {channel}")
-    listen_curs.execute(f"LISTEN {channel}")
-    
-    for message in messages:
-        curs.execute(f"NOTIFY {channel}, '{message}'")
+    def notify_channel():
+        con = connection()
+        curs = con.cursor()
+        for message in messages:
+            curs.execute(f"NOTIFY {channel}, '{message}'")
+        return con
 
+    def watch_channel():
+        con = connection()
+        curs = con.cursor()
+        curs.execute(f"LISTEN {channel}")
+        return con
+
+    listener = watch_channel()
+    sender = notify_channel()
     # listener.commit()
     listener.poll()
-    con.poll()
+    
     messages.reverse()
-
     for message in messages:
-
-        received = con.notifies.pop()
-        assert received.payload == message, (con.close(), listener.close())
-           
         received = listener.notifies.pop()
-        assert received.payload == message, (con.close(), listener.close())
+        assert received.payload == message, (sender.close(), listener.close())
 
+    sender.close()
+    listener.close()
 
 
 
