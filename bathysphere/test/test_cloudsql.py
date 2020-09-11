@@ -3,7 +3,7 @@ import pytest
 from datetime import datetime
 from random import random
 from requests import post, get
-from pg8000 import ProgrammingError
+from pg8000 import ProgrammingError, connect
 from json import dumps
 from pickle import loads as unpickle, dump as pickle
 from itertools import repeat
@@ -58,9 +58,31 @@ from bathysphere.test.conftest import (
 allTables = ["observations", "messages", "maine_boundaries_town_polygon", "locations"]
 
 
+def test_cloudsql_pubsub_notify_listen():
+
+    con = connect("postgres", password="n0t_passw0rd")
+    listener = connect("postgres", password="n0t_passw0rd")
+    messages = ["Hello!", "Hi", "How are you?"]
+    channel = "bathysphere"
+
+    con.run(f"LISTEN {channel}")
+    listener.run(f"LISTEN {channel}")
+    
+    for message in messages:
+        con.run(f"NOTIFY {channel}, '{message}'")
+        con.commit()
+
+    for message in messages:
+        _, _, received = con.notifications.popleft()
+        assert received == message
+
+        _, _, received = listener.notifications.popleft()
+        assert received == message
+
+
 @pytest.mark.teardown
 @pytest.mark.parametrize("table", allTables)
-def test_datatypes_cloudsql_table_teardown(cloud_sql, testTables, table):
+def test_cloudsql_table_teardown(cloud_sql, testTables, table):
     """
     Teardown test tables.
     """
@@ -75,7 +97,7 @@ def test_datatypes_cloudsql_table_teardown(cloud_sql, testTables, table):
 
 @pytest.mark.cloud_sql
 @pytest.mark.parametrize("table", allTables)
-def test_datatypes_cloudsql_table_declare(cloud_sql, testTables, table):
+def test_cloudsql_table_declare(cloud_sql, testTables, table):
     """
     Create the known test tables.
     """
@@ -86,7 +108,7 @@ def test_datatypes_cloudsql_table_declare(cloud_sql, testTables, table):
 
 @pytest.mark.cloud_sql
 @pytest.mark.parametrize("table", ["observations",])
-def test_datatypes_cloudsql_table_observations_insert(cloud_sql, testTables, table):
+def test_cloudsql_table_observations_insert(cloud_sql, testTables, table):
     """
     Insert new observations.
     """
@@ -107,7 +129,7 @@ def test_datatypes_cloudsql_table_observations_insert(cloud_sql, testTables, tab
 
 @pytest.mark.cloud_sql
 @pytest.mark.parametrize("table", ["locations",])
-def test_datatypes_cloudsql_table_locations_insert(cloud_sql, testTables, table):
+def test_cloudsql_table_locations_insert(cloud_sql, testTables, table):
     """
     Insert new locations
     """
@@ -138,7 +160,7 @@ def test_datatypes_cloudsql_table_locations_insert(cloud_sql, testTables, table)
 
 @pytest.mark.cloud_sql
 @pytest.mark.parametrize("table", allTables)
-def test_datatypes_cloudsql_table_query(cloud_sql, testTables, table):
+def test_cloudsql_table_query(cloud_sql, testTables, table):
     """
     "conditions": [
         "land='n'",
@@ -152,7 +174,7 @@ def test_datatypes_cloudsql_table_query(cloud_sql, testTables, table):
 
 @pytest.mark.graph
 @pytest.mark.cloud_sql
-def test_datatypes_cloudsql_collection_create(create_entity):
+def test_cloudsql_collection_create(create_entity):
     """
     Create collection metadata in graph database
     """
@@ -172,7 +194,7 @@ def test_datatypes_cloudsql_collection_create(create_entity):
 @pytest.mark.graph
 @pytest.mark.cloud_sql
 @pytest.mark.parametrize("county", ["Cumberland"])
-def test_datatypes_cloudsql_postgis_create_maine_towns(create_entity, county):
+def test_cloudsql_postgis_create_maine_towns(create_entity, county):
     """
     Create graph Collections to keep track of topology of shapes in database.
     Unless the shapes are changed, which is likely to be infrequent,
@@ -203,13 +225,6 @@ def test_datatypes_cloudsql_postgis_create_maine_towns(create_entity, county):
     _data = response.get_json()
     assert response.status_code == 200, _data
     IndexedDB[county] = _data["value"]["@iot.id"]
-
-
-@pytest.mark.cloud_sql
-@pytest.mark.xfail
-def test_datatypes_cloudsql_table_query_nearest_neighbor():
-    assert False
-
 
 
 def vertexArray(path="data/LC8011030JulyAvLGN00_OSI.nc"):

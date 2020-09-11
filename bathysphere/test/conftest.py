@@ -11,7 +11,6 @@ from typing import Callable
 from pathlib import Path
 from os import getenv
 from subprocess import check_output
-from redis import StrictRedis
 
 from numpy import arange, column_stack, isnan, pi, random, sin, where
 from numpy.ma import MaskedArray
@@ -194,11 +193,6 @@ def validate_remote_dataset(storage, dataset, dtype=(MaskedArray, dict, dict)):
     for each in fetched:
         for i in unpickle(storage.get(f"{dataset}/{each}").data):
             assert isinstance(i, dtype)
-
-
-@pytest.fixture(scope="session")
-def cache():
-    return StrictRedis(host="localhost", port=6379, db=0, socket_timeout=3)
 
 
 @pytest.fixture(scope="session")

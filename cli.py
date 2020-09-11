@@ -63,7 +63,7 @@ def test(kw: str, verbose: bool, parallel: bool,):
     """
     parallelism = "--workers auto" if parallel else ""
     opt = f"-{'sv' if verbose else ''}k {kw}" if kw else ""
-    cmd = f"pytest {parallelism} --cov-report html:htmlcov --cov=bathysphere {opt} --ignore=bathysphere/tests/future --ignore=data"
+    cmd = f"pytest {parallelism} --cov-report html:htmlcov --cov=bathysphere {opt} --ignore=data"
     click.secho(cmd, fg="green")
 
 

@@ -21,6 +21,7 @@ from warnings import simplefilter
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.engine.url import URL
+from pg8000 import connect
 
 from bidict import bidict
 import attr
@@ -165,6 +166,24 @@ class CloudSQL:
             pool_recycle=self.pool_recycle,
         )
 
+    def listen(auth: (str, str), channel: str, callback: Callable) -> None:
+        """
+        Enter a listening loop on the specified channel and process
+        any messages that are received
+        """
+        con = connect(auth[0], password=auth[1])
+        con.run(f'''LISTEN {channel}''')
+        while True:
+            if con.notifications:
+                pid, channel, message = con.notifications.popleft()
+                callback(message)
+
+    def notify(auth: (str, str), channel: str, message: str) -> None:
+        """
+        """
+        con = connect(auth[0], password=auth[1])
+        con.run(f'''NOTIFY {channel}, {message}''')
+
     def query(self, table, **kwargs) -> [dict]:
         """
         Execute an arbitrary query.
@@ -203,6 +222,7 @@ class CloudSQL:
             )
         except Exception as ex:
             return dumps({"Error": "Could not serialize result of query"}), 500
+
 
 
 def ConvexHull(points):
