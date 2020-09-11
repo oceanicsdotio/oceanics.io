@@ -68,16 +68,21 @@ def test_cloudsql_pubsub_notify_listen():
     con.run(f"LISTEN {channel}")
     listener.run(f"LISTEN {channel}")
     
+    
     for message in messages:
         con.run(f"NOTIFY {channel}, '{message}'")
         con.commit()
 
+    listener.commit()
+
     for message in messages:
         _, _, received = con.notifications.popleft()
-        assert received == message
-
+        assert received == message, (con.close(), listener.close())
+           
         _, _, received = listener.notifications.popleft()
-        assert received == message
+        assert received == message, (con.close(), listener.close())
+
+
 
 
 @pytest.mark.teardown

@@ -21,8 +21,7 @@ setup(
         "pyyaml",
         "requests",
         "retry",
-        "redis",
-        "pg8000",
+        "psycopg2-binary",
         "bidict",
         "prance",
         "rq",
@@ -61,13 +60,11 @@ setup(
             "scipy",
             "pandas",
             "matplotlib",
-            "tensorflow",
             "pyshp",
             "pyproj",
             "netCDF4",
             "pillow",
-            "scikit-learn",
-            "rdp",
+            "scikit-learn"
         ]
     }
     )
