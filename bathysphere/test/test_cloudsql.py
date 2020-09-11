@@ -3,7 +3,9 @@ import pytest
 from datetime import datetime
 from random import random
 from requests import post, get
-from pg8000 import ProgrammingError, connect
+from pg8000 import ProgrammingError
+from psycopg2 import connect
+from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from json import dumps
 from pickle import loads as unpickle, dump as pickle
 from itertools import repeat
@@ -60,27 +62,34 @@ allTables = ["observations", "messages", "maine_boundaries_town_polygon", "locat
 
 def test_cloudsql_pubsub_notify_listen():
 
-    con = connect("postgres", password="n0t_passw0rd")
-    listener = connect("postgres", password="n0t_passw0rd")
+    con = connect(user="postgres", password="n0t_passw0rd", host="localhost")
+    con.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+    listener = connect(user="postgres", password="n0t_passw0rd", host="localhost")
+    listener.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
     messages = ["Hello!", "Hi", "How are you?"]
     channel = "bathysphere"
 
-    con.run(f"LISTEN {channel}")
-    listener.run(f"LISTEN {channel}")
-    
+    curs = con.cursor()
+    listen_curs = listener.cursor()
+
+    curs.execute(f"LISTEN {channel}")
+    listen_curs.execute(f"LISTEN {channel}")
     
     for message in messages:
-        con.run(f"NOTIFY {channel}, '{message}'")
-        con.commit()
+        curs.execute(f"NOTIFY {channel}, '{message}'")
 
-    listener.commit()
+    # listener.commit()
+    listener.poll()
+    con.poll()
+    messages.reverse()
 
     for message in messages:
-        _, _, received = con.notifications.popleft()
-        assert received == message, (con.close(), listener.close())
+
+        received = con.notifies.pop()
+        assert received.payload == message, (con.close(), listener.close())
            
-        _, _, received = listener.notifications.popleft()
-        assert received == message, (con.close(), listener.close())
+        received = listener.notifies.pop()
+        assert received.payload == message, (con.close(), listener.close())
 
 
 
