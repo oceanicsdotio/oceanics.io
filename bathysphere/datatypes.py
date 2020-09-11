@@ -166,6 +166,7 @@ class CloudSQL:
             pool_recycle=self.pool_recycle,
         )
 
+    @staticmethod
     def listen(auth: (str, str), channel: str, callback: Callable) -> None:
         """
         Enter a listening loop on the specified channel and process
@@ -178,6 +179,7 @@ class CloudSQL:
                 pid, channel, message = con.notifications.popleft()
                 callback(message)
 
+    @staticmethod
     def notify(auth: (str, str), channel: str, message: str) -> None:
         """
         """

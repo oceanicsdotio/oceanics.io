@@ -15,7 +15,6 @@ from neo4j import Record
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from itsdangerous.exc import BadSignature
 
-from bathysphere import Lexicon
 from bathysphere.datatypes import ResponseJSON
 from bathysphere.graph import connect, Driver, executeQuery, RESTRICTED
 from bathysphere.graph.models import (
@@ -50,21 +49,24 @@ if not accessKey:
 
 api_port = 5000
 default_service = host + (f":{api_port}" if api_port else "")
-
+graph_error_response = ({"Error": "No graph backend"}, 500)
 
 def context(fcn: Callable) -> Callable:
     """
     Decorator to authenticate and inject user into request.
     Validate/verify JWT token.
+
     """
     db = connect(host, port, accessKey)
-    if db is None:
-        return {"message": "no graph backend"}, 500
-
+  
     def _wrapper(**kwargs: dict) -> Any:
         """
         The produced decorator
         """
+
+        if db is None:
+            return graph_error_response
+
         username, password = request.headers.get("authorization", ":").split(":")
 
         if username and "@" in username:  # Basic Auth
@@ -125,7 +127,7 @@ def register(body: dict) -> ResponseJSON:
     # pylint: disable=too-many-return-statements
     db = connect(host, port, accessKey)
     if db is None:
-        return {"message": "No graph backend."}, 500
+        return {"message": "no graph backend"}, 500
 
     apiKey = request.headers.get("x-api-key") or body.get("apiKey")
     if not apiKey:
@@ -207,26 +209,6 @@ def token(
 
     return {"token": _token, "duration": provider.tokenDuration}, 200
 
-
-@context
-def codex(
-    db: Driver, 
-    user: User,
-    word: str,
-    mutations: int = 2,
-    **kwargs
-) -> ResponseJSON:
-
-    return {"value": tuple(
-        chain(
-            *chain(
-                Lexicon.searchRecursive(
-                    node, symbol, word, tuple(range(len(word) + 1)), mutations
-                )
-                for symbol, node in Lexicon.children.items()
-            )
-        )
-    )}, 200
 
 @context
 def catalog(db: Driver, user: User, **kwargs) -> ResponseJSON:

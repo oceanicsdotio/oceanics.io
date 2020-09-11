@@ -25,8 +25,9 @@ from numpy.random import random
 from numpy.ma import MaskedArray
 from matplotlib import pyplot as plt
 
+from bathysphere.capsize.models import Memory
+
 from bathysphere.datatypes import (
-    Memory, 
     ConvexHull, 
     Dataset, 
     Array, 

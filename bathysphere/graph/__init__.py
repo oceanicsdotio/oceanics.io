@@ -131,7 +131,7 @@ def connect(host: str, port: int, accessKey: str, default: str = "neo4j") -> Dri
 
     if db is None:
         # pylint: disable=broad-except
-        raise Exception(f"Could not connect to Neo4j database @ {host}:{port}")
+        print(f"Could not connect to Neo4j database @ {host}:{port}")
 
 
 # def locations(vertex_buffer: array, after=0, before=None, bs=100):

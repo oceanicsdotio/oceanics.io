@@ -189,7 +189,7 @@ paths:
 
     get:
       tags: [Catalog]
-      operationId: bathysphere.graph.functions.codex
+      operationId: bathysphere.codex.functions.codex
       summary: Codex
       description: |
         Look up a word or phrase

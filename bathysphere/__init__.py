@@ -8,7 +8,6 @@ from flask_cors import CORS
 from prance import ResolvingParser, ValidationError
 
 from bathysphere.utils import loadAppConfig
-from bathysphere.datatypes import Trie
 
 __pdoc__ = {
     "test": False
@@ -32,14 +31,7 @@ try:
 except FileNotFoundError as ex:
     raise FileNotFoundError(f"Specification not found: {relativePath}")
 
-try:
-    with open("/usr/share/dict/words", "rt") as fid:
-        dictionary = fid.read().split()
-    Lexicon = Trie()
-    for word in dictionary:
-        Lexicon.insert(word)
-except:
-    Lexicon = None
+
 
 try:
     parser = ResolvingParser(absolutePath, lazy=True, strict=True)
