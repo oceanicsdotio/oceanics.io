@@ -24,7 +24,6 @@ setup(
         "psycopg2-binary",
         "bidict",
         "prance",
-        "rq",
         "attrs",
         "lxml",
         "html5lib",
