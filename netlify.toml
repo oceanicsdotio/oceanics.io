@@ -1,6 +1,7 @@
 [build]
   command = "yarn build"
   publish = "public"
+  functions = "src/functions/"
 
 [[redirects]]
   from = "/catalog/*"
