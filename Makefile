@@ -1,5 +1,6 @@
 build:
 	mkdir -p functions
+	echo ${GOOGLE_CREDENTIALS} > functions/credentials.json
 	GOOS=linux
 	GOARCH=amd64
 	GO111MODULE=on
