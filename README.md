@@ -8,7 +8,6 @@ The static sites are hosted on Netlify: [![Netlify Status](https://api.netlify.c
 
 Backend services are provided by the Bathysphere API geospatial graph, which is documented elsewhere.
 
-
 ## Development
 
 ### Production pipeline
