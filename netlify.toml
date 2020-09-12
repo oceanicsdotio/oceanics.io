@@ -1,6 +1,6 @@
 [build]
   base ="/"
-  command = "make build"
+  command = "CI= make build"
   publish = "public"
   functions = "functions"
 
