@@ -3,8 +3,7 @@ import pytest
 from datetime import datetime
 from random import random
 from requests import post, get
-from pg8000 import ProgrammingError
-from psycopg2 import connect
+from psycopg2 import connect, ProgrammingError
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from json import dumps
 from pickle import loads as unpickle, dump as pickle

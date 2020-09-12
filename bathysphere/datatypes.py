@@ -21,7 +21,6 @@ from warnings import simplefilter
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.engine.url import URL
-from pg8000 import connect
 
 from bidict import bidict
 import attr
@@ -124,7 +123,7 @@ class Array:
 @attr.s
 class Bound:
     """
-    A bound is on an interval, may ne upper or lower, closed or open
+    A bound is on an interval, may be upper or lower, closed or open
     """
     value: Any = attr.ib()
     closed: bool = attr.ib(default=False)
@@ -135,6 +134,11 @@ class CloudSQL:
     """
     This class encapsulates a connection pool to a cloud based PostgreSQL provider.
     By default it expects a Google CloudSQL database. 
+
+    The default driver uses `pyscopg2`. We used to use `pg8000`, 
+    because it is pure python and makes builds easier. However,
+    it did not seem to work for pub/sub, nad the former is better
+    documented since it is considered standard.
     """
 
     auth: (str, str) = attr.ib()
@@ -144,6 +148,21 @@ class CloudSQL:
     max_overflow: int = attr.ib(default=2)
     pool_timeout: int = attr.ib(default=5)
     pool_recycle: int = attr.ib(default=1800)
+    driver: str = attr.ib(default="postgresql")
+    database: str = attr.ib(default="postgres")
+
+    @property
+    def local_proxy_unix_socket(self) -> str:
+        """
+        Connections to Google CloudSQL from localhost for testing requires
+        a Unix socket proxy.
+        """
+        return f"/cloudsql/{self.instance}/.s.PGSQL.{self.port}"
+        
+    @property
+    def docker_unix_socket(self) -> str:
+        """"""
+        return f"/var/run/postgresql/.s.PGSQL.{self.port}"
 
     @property
     def engine(self) -> Engine:
@@ -154,37 +173,17 @@ class CloudSQL:
         user, password = self.auth
         return create_engine(
             URL(
-                drivername="postgres+pg8000",
+                drivername=self.driver,
                 username=user,
                 password=password,
-                database="postgres",
-                query={"unix_sock": f"/cloudsql/{self.instance}/.s.PGSQL.{self.port}"},
+                database=self.database,
+                query={"unix_sock": self.local_proxy_unix_socket},
             ),
             pool_size=self.pool_size,
             max_overflow=self.max_overflow,
             pool_timeout=self.pool_timeout,
             pool_recycle=self.pool_recycle,
         )
-
-    @staticmethod
-    def listen(auth: (str, str), channel: str, callback: Callable) -> None:
-        """
-        Enter a listening loop on the specified channel and process
-        any messages that are received
-        """
-        con = connect(auth[0], password=auth[1])
-        con.run(f'''LISTEN {channel}''')
-        while True:
-            if con.notifications:
-                pid, channel, message = con.notifications.popleft()
-                callback(message)
-
-    @staticmethod
-    def notify(auth: (str, str), channel: str, message: str) -> None:
-        """
-        """
-        con = connect(auth[0], password=auth[1])
-        con.run(f'''NOTIFY {channel}, {message}''')
 
     def query(self, table, **kwargs) -> [dict]:
         """
@@ -311,11 +310,15 @@ class Dataset(_Dataset):
 
 @attr.s
 class Extent:
-    """Extents speed up relational queries"""
+    """
+    Extents speed up relational queries
+    """
     value: ExtentType = attr.ib()
 
     def __call__(self):
-        """Unwrap the extent value when calling instance"""
+        """
+        Unwrap the extent value when calling instance
+        """
         return self.value
 
     @property
@@ -328,14 +331,18 @@ class Extent:
 
     @property
     def path(self) -> Path:
-        """Get extent as a closed Path"""
+        """
+        Get extent as a closed Path
+        """
         ext = self.value
         xy = array([[ext[0], ext[2]], [ext[0], ext[3]], [ext[1], ext[3]], [ext[1], ext[2]]])
         return Path(xy)
 
     @property
     def intervals(self):
-        """Split extent into two intervals for easier parametric comparison"""
+        """
+        Split extent into two intervals for easier parametric comparison
+        """
         return (
             Interval(Bound(self.value[0]), Bound(self.value[1])),
             Interval(Bound(self.value[2]), Bound(self.value[3]))
