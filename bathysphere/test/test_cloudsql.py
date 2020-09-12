@@ -60,41 +60,43 @@ allTables = ["observations", "messages", "maine_boundaries_town_polygon", "locat
 
 
 @pytest.mark.cloud_sql
-def test_cloudsql_pubsub_notify_listen():
+def test_cloudsql_pubsub_notify_listen(cloud_sql_docker):
 
     messages = ["Hello!", "Hi", "How are you?"]
     channel = "bathysphere"
 
     def connection():
-        con = connect(user="postgres", password="n0t_passw0rd", host="localhost")
-        con.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
-        return con
+        curs = cloud_sql_docker.engine.connect()
+        curs.connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+        return curs
 
     def notify_channel():
-        con = connection()
-        curs = con.cursor()
+        curs = connection()
         for message in messages:
             curs.execute(f"NOTIFY {channel}, '{message}'")
-        return con
+        return curs
+
 
     def watch_channel():
-        con = connection()
-        curs = con.cursor()
+        curs = connection()
         curs.execute(f"LISTEN {channel}")
-        return con
-
+        return curs
+    
     listener = watch_channel()
     sender = notify_channel()
     # listener.commit()
-    listener.poll()
+    listener.connection.poll()
+
+    def close():
+        sender.connection.close()
+        listener.connection.close()
     
     messages.reverse()
     for message in messages:
-        received = listener.notifies.pop()
-        assert received.payload == message, (sender.close(), listener.close())
+        received = listener.connection.notifies.pop()
+        assert received.payload == message, close()
 
-    sender.close()
-    listener.close()
+    close()
 
 
 

@@ -52,6 +52,8 @@ services:
     image: postgis/postgis
     ports:
       - 5432:5432
+    volumes:
+      - /var/run/postgresql/:/var/run/postgresql
     networks:
       - bathysphere
     environment: 

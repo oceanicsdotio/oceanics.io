@@ -109,13 +109,17 @@ class Array:
 
     @property
     def range(self) -> float:
-        """Calculate range of data, used in other properties and functions"""
+        """
+        Calculate range of data, used in other properties and functions
+        """
         return self.data.max() - self.data.min()
 
 
     @property
     def normalized(self) -> Array:
-        """Transform to (0,1) range"""
+        """
+        Transform to (0,1) range
+        """
         return (self.data - self.data.min()) / self.range
 
 
@@ -138,17 +142,21 @@ class CloudSQL:
     because it is pure python and makes builds easier. However,
     it did not seem to work for pub/sub, nad the former is better
     documented since it is considered standard.
+
+    If `instance` is provided, the engine will try to connect to Google CloudSQL, 
+    otherwise it will try looking for a local docker connection.
     """
 
     auth: (str, str) = attr.ib()
-    instance: str = attr.ib()
+    instance: str = attr.ib(default=None)
     port: int = attr.ib(default=5432)
     pool_size: int = attr.ib(default=4)
     max_overflow: int = attr.ib(default=2)
     pool_timeout: int = attr.ib(default=5)
     pool_recycle: int = attr.ib(default=1800)
-    driver: str = attr.ib(default="postgresql")
+    driver: str = attr.ib(default="postgresql+psycopg2")
     database: str = attr.ib(default="postgres")
+    
 
     @property
     def local_proxy_unix_socket(self) -> str:
@@ -160,8 +168,11 @@ class CloudSQL:
         
     @property
     def docker_unix_socket(self) -> str:
-        """"""
-        return f"/var/run/postgresql/.s.PGSQL.{self.port}"
+        """
+        Allow connecting to local docker instance for testing
+        and development.
+        """
+        return f"/var/run/postgresql"
 
     @property
     def engine(self) -> Engine:
@@ -170,13 +181,18 @@ class CloudSQL:
         can safely be generated as a property. 
         """
         user, password = self.auth
+        unix_sock = (
+            self.local_proxy_unix_socket if self.instance else
+            self.docker_unix_socket
+        ) 
+
         return create_engine(
             URL(
                 drivername=self.driver,
                 username=user,
                 password=password,
                 database=self.database,
-                query={"unix_sock": self.local_proxy_unix_socket},
+                host=unix_sock,
             ),
             pool_size=self.pool_size,
             max_overflow=self.max_overflow,
