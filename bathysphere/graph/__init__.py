@@ -130,7 +130,6 @@ def connect(host: str, port: int, accessKey: str, default: str = "neo4j") -> Dri
         return db
 
     if db is None:
-        # pylint: disable=broad-except
         print(f"Could not connect to Neo4j database @ {host}:{port}")
 
 

@@ -28,7 +28,6 @@ from minio import Minio
 from minio.error import NoSuchKey
 from requests import get, post
 from flask import Response, Request, request
-from redis import StrictRedis
 
 from numpy import (
     array,
@@ -1099,17 +1098,6 @@ class ObjectStorage(Minio):
         prefix.
         """
         return self.stat_object("lock.json") is not None
-
-    def publish_events(self, pubsub_channel: str):
-        """
-        Listener for bucket events which then sends confirmation to a redis message queue
-        """
-        fcns = ("s3:ObjectCreated:*", "s3:ObjectRemoved:*", "s3:ObjectAccessed:*")
-        with StrictRedis() as queue:
-            for event in self.listen_bucket_notification(
-                self.bucket_name, "", None, fcns
-            ):
-                queue.publish(pubsub_channel, str(event))
 
     def stat_object(self, object_name: str):
         """

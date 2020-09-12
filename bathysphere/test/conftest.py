@@ -348,7 +348,8 @@ def add_link(client, token):
 
 @pytest.fixture(scope="session")
 def cloud_sql():
-    return CloudSQL(auth=(accessKey, secretKey), instance=instance)
+    return CloudSQL(
+        auth=(accessKey, secretKey), instance=instance)
 
 
 @pytest.fixture(scope="session")

@@ -10,7 +10,8 @@ from prance import ResolvingParser, ValidationError
 from bathysphere.utils import loadAppConfig
 
 __pdoc__ = {
-    "test": False
+    "test": False,
+    "capsize": False
     # submodules will be skipped in doc generation
 }
 app = App(__name__, options={"swagger_ui": False})
@@ -31,8 +32,6 @@ try:
 except FileNotFoundError as ex:
     raise FileNotFoundError(f"Specification not found: {relativePath}")
 
-
-
 try:
     parser = ResolvingParser(absolutePath, lazy=True, strict=True)
     parser.parse()
@@ -41,4 +40,3 @@ except ValidationError as ex:
     raise Exception("Could not parse OpenAPI specification.")
 else:
     app.add_api(parser.specification, base_path=config.get("basePath"))
-
