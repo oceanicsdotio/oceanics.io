@@ -170,7 +170,8 @@ class CloudSQL:
     def docker_unix_socket(self) -> str:
         """
         Allow connecting to local docker instance for testing
-        and development.
+        and development. This socket path must be mounted as a volume
+        in the container.
         """
         return f"/var/run/postgresql"
 

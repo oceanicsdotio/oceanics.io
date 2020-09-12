@@ -84,7 +84,6 @@ def test_cloudsql_pubsub_notify_listen(cloud_sql_docker):
     
     listener = watch_channel()
     sender = notify_channel()
-    # listener.commit()
     listener.connection.poll()
 
     def close():
@@ -99,14 +98,15 @@ def test_cloudsql_pubsub_notify_listen(cloud_sql_docker):
     close()
 
 
-
 @pytest.mark.teardown
 @pytest.mark.parametrize("table", allTables)
-def test_cloudsql_table_teardown(cloud_sql, testTables, table):
+def test_cloudsql_table_teardown(cloud_sql_docker, testTables, table):
     """
-    Teardown test tables.
+    Teardown test tables. This happens before new data are built up,
+    so it will fail on the first run. Omit the `teardown` mark to
+    skip it.
     """
-    with cloud_sql.engine.connect() as cursor:
+    with cloud_sql_docker.engine.connect() as cursor:
 
         query: Query = testTables[table].drop()
         try:
@@ -117,18 +117,18 @@ def test_cloudsql_table_teardown(cloud_sql, testTables, table):
 
 @pytest.mark.cloud_sql
 @pytest.mark.parametrize("table", allTables)
-def test_cloudsql_table_declare(cloud_sql, testTables, table):
+def test_cloudsql_table_declare(cloud_sql_docker, testTables, table):
     """
     Create the known test tables.
     """
-    with cloud_sql.engine.connect() as cursor:
+    with cloud_sql_docker.engine.connect() as cursor:
         query: Query = testTables[table].declare()
         cursor.execute(query.sql)
 
 
 @pytest.mark.cloud_sql
 @pytest.mark.parametrize("table", ["observations",])
-def test_cloudsql_table_observations_insert(cloud_sql, testTables, table):
+def test_cloudsql_table_observations_insert(cloud_sql_docker, testTables, table):
     """
     Insert new observations.
     """
@@ -142,40 +142,40 @@ def test_cloudsql_table_observations_insert(cloud_sql, testTables, table):
         for _ in range(10)
     )
 
-    with cloud_sql.engine.connect() as cursor:
+    with cloud_sql_docker.engine.connect() as cursor:
         query: Query = testTables[table].insert(data=data)
         cursor.execute(query.sql)
 
 
-@pytest.mark.cloud_sql
-@pytest.mark.parametrize("table", ["locations",])
-def test_cloudsql_table_locations_insert(cloud_sql, testTables, table):
-    """
-    Insert new locations
-    """
-    data = tuple(
-        (
-            dumps(
-                {
-                    "type": "Polygon",
-                    "coordinates": [
-                        [
-                            [0, 45],
-                            [45 + random(), 45 + random()],
-                            [45 + random(), 0 + random()],
-                            [0 + random(), 0 + random()],
-                            [0, 45],
-                        ]
-                    ],
-                    "crs": {"type": "name", "properties": {"name": "EPSG:4326"}},
-                }
-            ),
-        )
-    )
+# @pytest.mark.cloud_sql
+# @pytest.mark.parametrize("table", ["locations",])
+# def test_cloudsql_table_locations_insert(cloud_sql_docker, testTables, table):
+#     """
+#     Insert new locations
+#     """
+#     data = tuple(
+#         (
+#             dumps(
+#                 {
+#                     "type": "Polygon",
+#                     "coordinates": [
+#                         [
+#                             [0, 45],
+#                             [45 + random(), 45 + random()],
+#                             [45 + random(), 0 + random()],
+#                             [0 + random(), 0 + random()],
+#                             [0, 45],
+#                         ]
+#                     ],
+#                     "crs": {"type": "name", "properties": {"name": "EPSG:4326"}},
+#                 }
+#             ),
+#         )
+#     )
 
-    with cloud_sql.engine.connect() as cursor:
-        query: Query = testTables[table].insert(data=data)
-        cursor.execute(query.sql)
+#     with cloud_sql_docker.engine.connect() as cursor:
+#         query: Query = testTables[table].insert(data=data)
+#         cursor.execute(query.sql)
 
 
 @pytest.mark.cloud_sql
@@ -192,59 +192,59 @@ def test_cloudsql_table_query(cloud_sql, testTables, table):
     assert data
 
 
-@pytest.mark.graph
-@pytest.mark.cloud_sql
-def test_cloudsql_collection_create(create_entity):
-    """
-    Create collection metadata in graph database
-    """
-    # conditions = ["land='n'", "type='coast'"]
-    key = "Maine"
-    collection = stripMetadata(
-        Collections(
-            name=key, description="Data pertaining to the state of Maine"
-        ).serialize(db=None, service="localhost")
-    )
+# @pytest.mark.graph
+# @pytest.mark.cloud_sql
+# def test_cloudsql_collection_create(create_entity):
+#     """
+#     Create collection metadata in graph database
+#     """
+#     # conditions = ["land='n'", "type='coast'"]
+#     key = "Maine"
+#     collection = stripMetadata(
+#         Collections(
+#             name=key, description="Data pertaining to the state of Maine"
+#         ).serialize(db=None, service="localhost")
+#     )
 
-    response = create_entity(Collections.__name__, CREDENTIALS, collection,)
-    assert response.status_code == 200, response.get_json()
-    IndexedDB[key] = response.get_json()["value"]["@iot.id"]
+#     response = create_entity(Collections.__name__, CREDENTIALS, collection,)
+#     assert response.status_code == 200, response.get_json()
+#     IndexedDB[key] = response.get_json()["value"]["@iot.id"]
 
 
-@pytest.mark.graph
-@pytest.mark.cloud_sql
-@pytest.mark.parametrize("county", ["Cumberland"])
-def test_cloudsql_postgis_create_maine_towns(create_entity, county):
-    """
-    Create graph Collections to keep track of topology of shapes in database.
-    Unless the shapes are changed, which is likely to be infrequent,
-    then keeping this information in the graph is a great bargain. 
-    """
-    collection = stripMetadata(
-        Collections(
-            name=county,
-            description=f"Coastal polygons in {county} County"
-            # providers="Maine Office of GIS"
-        ).serialize(db=None, service="localhost")
-    )
+# @pytest.mark.graph
+# @pytest.mark.cloud_sql
+# @pytest.mark.parametrize("county", ["Cumberland"])
+# def test_cloudsql_postgis_create_maine_towns(create_entity, county):
+#     """
+#     Create graph Collections to keep track of topology of shapes in database.
+#     Unless the shapes are changed, which is likely to be infrequent,
+#     then keeping this information in the graph is a great bargain. 
+#     """
+#     collection = stripMetadata(
+#         Collections(
+#             name=county,
+#             description=f"Coastal polygons in {county} County"
+#             # providers="Maine Office of GIS"
+#         ).serialize(db=None, service="localhost")
+#     )
 
-    response = create_entity(Collections.__name__, CREDENTIALS, collection)
-    _data = response.get_json()
-    assert response.status_code == 200, _data
-    IndexedDB[county] = _data["value"]["@iot.id"]
+#     response = create_entity(Collections.__name__, CREDENTIALS, collection)
+#     _data = response.get_json()
+#     assert response.status_code == 200, _data
+#     IndexedDB[county] = _data["value"]["@iot.id"]
 
-    town = "Portland"
-    location = stripMetadata(
-        Locations(location={"type": "Polygon"}, name=f"{town} Coast",).serialize(
-            db=None, service="localhost"
-        )
-    )
+#     town = "Portland"
+#     location = stripMetadata(
+#         Locations(location={"type": "Polygon"}, name=f"{town} Coast",).serialize(
+#             db=None, service="localhost"
+#         )
+#     )
 
-    response = create_entity(Locations.__name__, CREDENTIALS, location)
-    # TODO: link to Maine collection
-    _data = response.get_json()
-    assert response.status_code == 200, _data
-    IndexedDB[county] = _data["value"]["@iot.id"]
+#     response = create_entity(Locations.__name__, CREDENTIALS, location)
+#     # TODO: link to Maine collection
+#     _data = response.get_json()
+#     assert response.status_code == 200, _data
+#     IndexedDB[county] = _data["value"]["@iot.id"]
 
 
 # def vertexArray(path="data/LC8011030JulyAvLGN00_OSI.nc"):
