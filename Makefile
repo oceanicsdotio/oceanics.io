@@ -1,5 +1,6 @@
 build:
 	mkdir -p functions
+	mkdir -p functions/cloudsql
 	echo ${GOOGLE_CREDENTIALS} > ${PWD}/functions/cloudsql/credentials.json
 	GOOS=linux
 	GOARCH=amd64
