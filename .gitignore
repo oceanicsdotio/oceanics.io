@@ -75,3 +75,6 @@ Cargo.lock
 
 # Local Netlify folder
 .netlify
+
+# Go binaries
+functions/
