@@ -3,9 +3,11 @@ package main
 import (
 	"fmt"
 	"os"
+	"log"
+	"database/sql"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/GoogleCloudPlatform/cloudsql-proxy/proxy/dialers/postgres"
+	_ "github.com/GoogleCloudPlatform/cloudsql-proxy/proxy/dialers/postgres"
 
 )
 
@@ -19,9 +21,28 @@ func Handler(request events.APIGatewayProxyRequest) (*events.APIGatewayProxyResp
 				   os.Getenv("PASSWORD"))
 				   
 	db, err := sql.Open("cloudsqlpostgres", dsn)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+	
+	err = db.Ping()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	// name := request.QueryStringParameters["name"]
-	response := fmt.Sprintf("Hello %s!", "World")
+	stmt, err := db.Prepare("select now()")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer stmt.Close()
+	var time string
+	err = stmt.QueryRow(1).Scan(&time)
+	if err != nil {
+		log.Fatal(err)
+	}
+	
+	response := fmt.Sprintf("The time is %s", time)
 
 	return &events.APIGatewayProxyResponse{
 		StatusCode: 200,
