@@ -32,7 +32,7 @@ import operator
 import pathlib
 from yaml import Loader, load as load_yml
 
-def loadAppConfig(sources: (str) = ("bathysphere.yml", "kubernetes.yml")) -> dict:
+def loadAppConfig(sources: (str) = ("bathysphere.yml", )) -> dict:
     """
     Load known entities and services at initialization.
     """
