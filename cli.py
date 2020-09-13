@@ -59,7 +59,6 @@ def serve(group: str, port: int):
 def test(kw: str, verbose: bool, parallel: bool,):
     """
     Command to run developer tests. This uses `pytest-cov` and `pytest-parallel`.
-
     """
     parallelism = "--workers auto" if parallel else ""
     opt = f"-{'sv' if verbose else ''}k {kw}" if kw else ""
@@ -83,28 +82,6 @@ def up(service: str) -> None:
     Run images.
     """
     click.secho(f"docker-compose up -d {service}", fg="green")
-
-
-@click.command()
-def neo4j() -> None:
-    """
-    Run only neo4j.
-    """
-    run(["docker-compose", "up", "-d", "neo4j"])
-    sleep(5)
-    run(["sensible-browser", "localhost:7474/browser"])
-    
-@click.command()
-@click.argument("instances")
-@click.option("--port", default=5432, help="Localhost port for proxy")
-def cloud_sql_proxy(
-    instances: str, 
-    port: int
-) -> None:
-    """
-    Build images.
-    """
-    click.secho(f"~/cloud_sql_proxy -dir=/cloudsql/ -instances={instances}=tcp:{port}", fg= "green")
 
 
 # @click.command()
@@ -258,14 +235,10 @@ def providers(host: str, port: int) -> None:
 
 cli.add_command(serve)
 cli.add_command(start)
-# cli.add_command(parse_ichthyotox)
 cli.add_command(build)
 cli.add_command(up)
-cli.add_command(neo4j)
 cli.add_command(providers)
 cli.add_command(test)
-cli.add_command(cloud_sql_proxy)
-# cli.add_command(object_storage)
 
 if __name__ == "__main__":
     cli()

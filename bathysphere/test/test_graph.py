@@ -225,7 +225,6 @@ def test_graph_sensorthings_join(add_link, cls):
                     results.append(response)
 
 
-# @pytest.mark.object_storage
 # def test_graph_sensorthings_assets_from_object_storage(object_storage, graph):
 
 #     db = object_storage(prefix=None)
