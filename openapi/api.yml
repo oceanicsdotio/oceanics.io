@@ -185,28 +185,28 @@ paths:
         '400':
           $ref: '#/components/responses/BadRequest'
 
-  /codex:
+  # /codex:
 
-    get:
-      tags: [Catalog]
-      operationId: lexicon.functions.lexicon
-      summary: Lexicon
-      description: |
-        Look up a word or phrase
-      parameters:
-        - name: word
-          in: query
-          schema:
-            type: string
+  #   get:
+  #     tags: [Catalog]
+  #     operationId: lexicon.functions.lexicon
+  #     summary: Lexicon
+  #     description: |
+  #       Look up a word or phrase
+  #     parameters:
+  #       - name: word
+  #         in: query
+  #         schema:
+  #           type: string
         
-        - name: mutations
-          in: query
-          schema:
-            type: integer
+  #       - name: mutations
+  #         in: query
+  #         schema:
+  #           type: integer
 
-      responses:
-        '200':
-          description: Lexicon
+  #     responses:
+  #       '200':
+  #         description: Lexicon
             
   /:
 
@@ -400,290 +400,290 @@ paths:
           $ref: '#/components/responses/BadRequest'
 
 
-  /image:
+  # /image:
 
-    post:
+  #   post:
 
-      tags: [ Image ]
-      summary: Render
-      operationId: image.functions.render
-      description: |
-        Create PNG images from data sources and references and bathysphere_functions_cache it.
-        The service call methods from the `matplotlib` library,
-        which uses the anti-grain graphics backend (`AGG`). The images are portable network graphics (`.png`)
-        by default, but `.pdf` and `.tiff` are available for print media.
+  #     tags: [ Image ]
+  #     summary: Render
+  #     operationId: image.functions.render
+  #     description: |
+  #       Create PNG images from data sources and references and bathysphere_functions_cache it.
+  #       The service call methods from the `matplotlib` library,
+  #       which uses the anti-grain graphics backend (`AGG`). The images are portable network graphics (`.png`)
+  #       by default, but `.pdf` and `.tiff` are available for print media.
 
-      requestBody:
+  #     requestBody:
 
-        description: | 
-          Image request
+  #       description: | 
+  #         Image request
 
-        content:
-          application/json:
-            schema:
+  #       content:
+  #         application/json:
+  #           schema:
 
-              type: object
-              description: | 
-                Image function request
+  #             type: object
+  #             description: | 
+  #               Image function request
 
-              properties:
+  #             properties:
 
-                labels:
-                  type: object
-                  nullable: true
-                  properties:
-                    x:
-                      type: string
-                      nullable: true
-                    y:
-                      type: string
-                      nullable: true
+  #               labels:
+  #                 type: object
+  #                 nullable: true
+  #                 properties:
+  #                   x:
+  #                     type: string
+  #                     nullable: true
+  #                   y:
+  #                     type: string
+  #                     nullable: true
 
-                style:
-                  type: object
-                  nullable: true
-                  description: |
-                    Style is used change the appearance of the rendered image.
+  #               style:
+  #                 type: object
+  #                 nullable: true
+  #                 description: |
+  #                   Style is used change the appearance of the rendered image.
 
-                  properties:
+  #                 properties:
 
-                    template:
-                      type: string
-                      enum: [dark, light]
-                      default: dark
-                      description: |
-                        Select between light and dark templates depending on whether the image is intended for display
-                        on a screen or for printed media.
+  #                   template:
+  #                     type: string
+  #                     enum: [dark, light]
+  #                     default: dark
+  #                     description: |
+  #                       Select between light and dark templates depending on whether the image is intended for display
+  #                       on a screen or for printed media.
 
-                    bg:
-                      type: string
-                      default: black
-                      description: |
-                        Override the default background color for the chosen or default template. Dark themes have a `black`
-                        background by default, and light themes have a `white` background. Use this to match the background
-                        color when embedding in a web page. This can also be transparent for bathysphere_functions_image compositing.
+  #                   bg:
+  #                     type: string
+  #                     default: black
+  #                     description: |
+  #                       Override the default background color for the chosen or default template. Dark themes have a `black`
+  #                       background by default, and light themes have a `white` background. Use this to match the background
+  #                       color when embedding in a web page. This can also be transparent for bathysphere_functions_image compositing.
 
-                    contrast:
-                      type: string
-                      default: white
-                      description: |
-                        Contrast color for rendering over background.
+  #                   contrast:
+  #                     type: string
+  #                     default: white
+  #                     description: |
+  #                       Contrast color for rendering over background.
 
-                    flag:
-                      type: string
-                      default: red
-                      description: |
-                        Highlight color for marking selected or masked data.
+  #                   flag:
+  #                     type: string
+  #                     default: red
+  #                     description: |
+  #                       Highlight color for marking selected or masked data.
 
-                    label:
-                      type: string
-                      description: |
-                        Color for text and labels. The default is the same as the `contrast` color.
+  #                   label:
+  #                     type: string
+  #                     description: |
+  #                       Color for text and labels. The default is the same as the `contrast` color.
 
-                    dpi:
-                      type: integer
-                      default: 150
-                      minimum: 90
-                      maximum: 300
-                      description: |
-                        Image resolution. Be careful, `dpi=300` images can be very large.
+  #                   dpi:
+  #                     type: integer
+  #                     default: 150
+  #                     minimum: 90
+  #                     maximum: 300
+  #                     description: |
+  #                       Image resolution. Be careful, `dpi=300` images can be very large.
 
-                    format:
-                      type: string
-                      enum: [png, pdf, tiff]
-                      default: png
-                      description: |
-                        Image file format. Only `png` is available through the API.
+  #                   format:
+  #                     type: string
+  #                     enum: [png, pdf, tiff]
+  #                     default: png
+  #                     description: |
+  #                       Image file format. Only `png` is available through the API.
 
-                    alpha:
-                      type: number
-                      format: float
-                      default: 1.0
-                      maximum: 1.0
-                      minimum: 0.0
-                      description: |
-                        Transparency of drawn objects. Useful for rendering Monte Carlo simulations.
+  #                   alpha:
+  #                     type: number
+  #                     format: float
+  #                     default: 1.0
+  #                     maximum: 1.0
+  #                     minimum: 0.0
+  #                     description: |
+  #                       Transparency of drawn objects. Useful for rendering Monte Carlo simulations.
 
-                    padding:
-                      type: array
-                      minLength: 4
-                      maxLength: 4
-                      items:
-                        type: number
-                        format: float
-                      default: [0.1, 0.2, 0.05, 0.1]
-                      description: |
-                        Content padding from edges of bathysphere_functions_image to make room for labels and title.
+  #                   padding:
+  #                     type: array
+  #                     minLength: 4
+  #                     maxLength: 4
+  #                     items:
+  #                       type: number
+  #                       format: float
+  #                     default: [0.1, 0.2, 0.05, 0.1]
+  #                     description: |
+  #                       Content padding from edges of bathysphere_functions_image to make room for labels and title.
 
-                    marker:
-                      type: integer
-                      default: 1
-                      description: |
-                        Size of markers if rendering scatter plots or points on a map
+  #                   marker:
+  #                     type: integer
+  #                     default: 1
+  #                     description: |
+  #                       Size of markers if rendering scatter plots or points on a map
 
-                    font:
-                      type: integer
-                      default: 10
-                      description: |
-                        Font size
+  #                   font:
+  #                     type: integer
+  #                     default: 10
+  #                     description: |
+  #                       Font size
 
-                    text:
-                      type: number
-                      format: float
-                      default: 1.0
-                      description: |
-                        Size of labels relative to font size.
+  #                   text:
+  #                     type: number
+  #                     format: float
+  #                     default: 1.0
+  #                     description: |
+  #                       Size of labels relative to font size.
 
-                    width:
-                      type: number
-                      format: float
-                      default: 6.5
-                      description: |
-                        Width of bathysphere_functions_image in inches
+  #                   width:
+  #                     type: number
+  #                     format: float
+  #                     default: 6.5
+  #                     description: |
+  #                       Width of bathysphere_functions_image in inches
 
-                    height:
-                      type: number
-                      format: float
-                      description: |
-                        Height of bathysphere_functions_image in inches
+  #                   height:
+  #                     type: number
+  #                     format: float
+  #                     description: |
+  #                       Height of bathysphere_functions_image in inches
 
-                data:
-                  title: data container
-                  type: object
-                  properties:
+  #               data:
+  #                 title: data container
+  #                 type: object
+  #                 properties:
 
-                    DataStreams:
-                      type: array
-                      items:
-                        oneOf:
+  #                   DataStreams:
+  #                     type: array
+  #                     items:
+  #                       oneOf:
                         
-                        # - $ref: "#/components/schemas/Datastream"
+  #                       # - $ref: "#/components/schemas/Datastream"
 
-                        - title: lazyStructure
-                          type: array
-                          items: 
-                            type: array
-                            minLength: 2
-                            maxLength: 2
-                            items:
-                              type: number
-                              format: float
+  #                       - title: lazyStructure
+  #                         type: array
+  #                         items: 
+  #                           type: array
+  #                           minLength: 2
+  #                           maxLength: 2
+  #                           items:
+  #                             type: number
+  #                             format: float
 
                     
-                        # - title: asset
-                        #   type: object
-                        #   properties:
-                        #     objectName:
-                        #       type: string
-                        #       nullable: true
-                        #     objectKey:
-                        #       type: string
-                        #       nullable: true
-                        #     args:
-                        #       type: object
-                        #       nullable: true
+  #                       # - title: asset
+  #                       #   type: object
+  #                       #   properties:
+  #                       #     objectName:
+  #                       #       type: string
+  #                       #       nullable: true
+  #                       #     objectKey:
+  #                       #       type: string
+  #                       #       nullable: true
+  #                       #     args:
+  #                       #       type: object
+  #                       #       nullable: true
 
-                    FeatureCollection:
-                      type: object
-                      properties:
-                        features:
-                          type: array
-                          items:
-                            type: object
+  #                   FeatureCollection:
+  #                     type: object
+  #                     properties:
+  #                       features:
+  #                         type: array
+  #                         items:
+  #                           type: object
                               
-                view:
-                  type: string
-                  description: The type of data view
-                  enum: [spatial, series, coverage, frequency, scatter]
+  #               view:
+  #                 type: string
+  #                 description: The type of data view
+  #                 enum: [spatial, series, coverage, frequency, scatter]
 
-                extent:
-                  title: extent
-                  type: object
-                  nullable: true
-                  description: |
+  #               extent:
+  #                 title: extent
+  #                 type: object
+  #                 nullable: true
+  #                 description: |
 
-                    Spatiotemporal extent of a data `Collection`. Contains a 2 or 3-D `spatial` extent, and a `temporal`
-                    interval.
+  #                   Spatiotemporal extent of a data `Collection`. Contains a 2 or 3-D `spatial` extent, and a `temporal`
+  #                   interval.
 
-                  properties:
+  #                 properties:
 
-                    spatial:
-                      type: array
-                      minLength: 4
-                      maxLength: 6
-                      nullable: true
-                      items:
-                        type: number
-                        format: float
+  #                   spatial:
+  #                     type: array
+  #                     minLength: 4
+  #                     maxLength: 6
+  #                     nullable: true
+  #                     items:
+  #                       type: number
+  #                       format: float
 
-                    temporal:
-                      type: string
-                      nullable: true
-                      description: ISO format timestamp interval
+  #                   temporal:
+  #                     type: string
+  #                     nullable: true
+  #                     description: ISO format timestamp interval
 
-                    generic:
-                      type: array
-                      minLength: 4
-                      maxLength: 4
-                      nullable: true
-                      items:
-                        type: number
-                        format: float
+  #                   generic:
+  #                     type: array
+  #                     minLength: 4
+  #                     maxLength: 4
+  #                     nullable: true
+  #                     items:
+  #                       type: number
+  #                       format: float
 
-                args:
-                  title: arguments
-                  type: object
-                  nullable: true
+  #               args:
+  #                 title: arguments
+  #                 type: object
+  #                 nullable: true
 
-      responses:
+  #     responses:
 
-        '202':
-          description: Accepted
+  #       '202':
+  #         description: Accepted
 
-        '403':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  Error:
-                    type: string
-                    example: HMAC validation
+  #       '403':
+  #         description: Unauthorized
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                 Error:
+  #                   type: string
+  #                   example: HMAC validation
 
-        '400':
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  Error:
-                    type: string
-                    example: Requires POST with payload
+  #       '400':
+  #         description: Bad request
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                 Error:
+  #                   type: string
+  #                   example: Requires POST with payload
 
-        '200':
-          description: Image reference
-          content:
-            image/png:
-              schema:
-                type: string
-                format: binary
+  #       '200':
+  #         description: Image reference
+  #         content:
+  #           image/png:
+  #             schema:
+  #               type: string
+  #               format: binary
 
-            # application/json:
-            #   schema:
-            #     type: object
-            #     properties:
-            #       uuid:
-            #         type: string
-            #         format: uuid
-            #       objectName:
-            #         type: string
-            #         example: example.png
-            #       url:
-            #         type: string
-            #         format: uri
-            #         example: https://data.oceanics.io/example.png
+  #           # application/json:
+  #           #   schema:
+  #           #     type: object
+  #           #     properties:
+  #           #       uuid:
+  #           #         type: string
+  #           #         format: uuid
+  #           #       objectName:
+  #           #         type: string
+  #           #         example: example.png
+  #           #       url:
+  #           #         type: string
+  #           #         format: uri
+  #           #         example: https://data.oceanics.io/example.png
 
 
 

@@ -18,6 +18,7 @@ services:
     environment:
       - NEO4J_HOSTNAME=bathysphere_neo4j_1  # replaces localhost in Docker networking setup
       - NEO4J_ACCESS_KEY=n0t_passw0rd  # must match value declared in neo4j image below
+      - PORT=5000
     volumes:
       - ./logs:/logs
     depends_on: 

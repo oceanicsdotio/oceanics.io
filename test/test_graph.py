@@ -1,15 +1,15 @@
 import pytest
 from datetime import datetime
 from json import dumps
-from minio import Object
+# from minio import Object
 
 from bathysphere import appConfig
-from bathysphere.test.conftest import (
+from test.conftest import (
     getCredentials,
     CREDENTIALS,
     IndexedDB
 )
-from bathysphere.graph.models import (
+from bathysphere.models import (
     Locations,
     Sensors,
     Things,
@@ -27,9 +27,6 @@ from bathysphere.graph.models import (
     Providers
 )
 
-YEAR = 2019
-COLLECTION = "test-handlers-data-collection"
-ASSET = "test-handlers-data-asset"
 testAuth = ("testing@oceanics.io", "n0t_passw0rd", "something secret")
 classes = [
     Locations,

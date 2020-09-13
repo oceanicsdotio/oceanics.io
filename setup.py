@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='bathysphere',
-    version='1.6',
+    version='1.7',
     description='Marine geospatial data and analytics services',
     url='https://graph.oceanics.io',
     author='Oceanicsdotio',
@@ -10,60 +10,9 @@ setup(
     packages=["bathysphere"],
     include_package_data=True,
     license='MIT',
-    install_requires=[
-        "flask",
-        "flask_cors",
-        "gunicorn",
-        "connexion",
-        "neo4j-driver",
-        "itsdangerous",
-        "passlib",
-        "pyyaml",
-        "requests",
-        "retry",
-        "psycopg2-binary",
-        "bidict",
-        "prance",
-        "attrs",
-        "lxml",
-        "html5lib",
-        "click>=6.7",
-        "colorama",
-        "minio",
-        "Jinja2",
-        "MarkupSafe",
-        "pip",
-        "setuptools",
-        "Werkzeug",
-        "wheel",
-        "sqlalchemy",
-        "google-cloud-secret-manager",
-        "pytz",
-        "urllib3<1.25,>=1.21.1",
-    ],
     entry_points="""
         [console_scripts]
         bathysphere=cli:cli
     """,
-    zip_safe=False,
-    extra_requires={
-        "dev": [
-            "pytest", 
-            "pytest_dependency",
-            "pytest-cov",
-            "docker-compose",
-            "colorama"
-        ],
-        "numerical": [
-            "numpy",
-            "scipy",
-            "pandas",
-            "matplotlib",
-            "pyshp",
-            "pyproj",
-            "netCDF4",
-            "pillow",
-            "scikit-learn"
-        ]
-    }
+    zip_safe=False
     )
