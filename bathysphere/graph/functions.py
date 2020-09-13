@@ -38,13 +38,13 @@ from bathysphere.graph.models import (
 DEBUG = True
 port = 7687
 
-host = getenv("NEO4J_HOSTNAME")
+host = getenv("NEO4J_HOSTNAME", "")
 if not host:
-    raise EnvironmentError("NEO4J_HOSTNAME must be declared in run time environment for Docker networking to work.")
-
-accessKey = getenv("NEO4J_ACCESS_KEY")
+    raise (Warning if DEBUG else EnvironmentError)("NEO4J_HOSTNAME must be declared in run time environment for Docker networking to work.")
+    
+accessKey = getenv("NEO4J_ACCESS_KEY", "")
 if not accessKey:
-    raise EnvironmentError("NEO4J_ACCESS_KEY must be declared in run time environment if not using a secrets service.")
+    raise (Warning if DEBUG else EnvironmentError)("NEO4J_ACCESS_KEY must be declared in run time environment if not using a secrets service.")
 
 
 api_port = 5000
