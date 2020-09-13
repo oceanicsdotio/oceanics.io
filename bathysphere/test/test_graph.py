@@ -4,7 +4,7 @@ from json import dumps
 # from minio import Object
 
 from bathysphere import appConfig
-from test.conftest import (
+from bathysphere.test.conftest import (
     getCredentials,
     CREDENTIALS,
     IndexedDB

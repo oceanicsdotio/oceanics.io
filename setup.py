@@ -15,4 +15,4 @@ setup(
         bathysphere=cli:cli
     """,
     zip_safe=False
-    )
+)
