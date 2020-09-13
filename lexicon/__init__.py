@@ -1,4 +1,4 @@
-from bathysphere.datatypes import Trie
+from lexicon.models import Trie
 
 try:
     with open("/usr/share/dict/words", "rt") as fid:

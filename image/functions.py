@@ -10,8 +10,7 @@ from flask import send_file
 from numpy import array
 
 from bathysphere import config
-from bathysphere.image.models import Spatial, Time, View
-from bathysphere.datatypes import ExtentType
+from image.models import Spatial, Time, View
 
 
 def render(body: dict):

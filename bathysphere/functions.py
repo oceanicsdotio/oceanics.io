@@ -15,9 +15,8 @@ from neo4j import Record
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from itsdangerous.exc import BadSignature
 
-from bathysphere.datatypes import ResponseJSON
-from bathysphere.graph import connect, Driver, executeQuery, RESTRICTED
-from bathysphere.graph.models import (
+from bathysphere import connect, Driver, executeQuery, RESTRICTED
+from bathysphere.models import (
     Actuators,
     Assets,
     Collections,
@@ -37,6 +36,7 @@ from bathysphere.graph.models import (
 
 DEBUG = True
 port = 7687
+ResponseJSON = (dict, int)
 
 host = getenv("NEO4J_HOSTNAME", "")
 if not host:

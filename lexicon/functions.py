@@ -2,17 +2,13 @@
 The codex function translates between aliases
 """
 from itertools import chain
+from lexicon import Lexicon
 
-
-from bathysphere.datatypes import ResponseJSON
-from bathysphere.codex import Lexicon
-
-
-def codex(
+def lexicon(
     word: str,
     mutations: int = 2,
     **kwargs
-) -> ResponseJSON:
+) -> (dict, int):
 
     return {"value": tuple(
         chain(

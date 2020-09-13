@@ -107,42 +107,42 @@ def cloud_sql_proxy(
     click.secho(f"~/cloud_sql_proxy -dir=/cloudsql/ -instances={instances}=tcp:{port}", fg= "green")
 
 
-@click.command()
-@click.option("--prefix", default=None)
-def object_storage(prefix):
-    """
-    List the contents of a repository
-    """
-    from bathysphere.datatypes import ObjectStorage
-    from os import getenv
+# @click.command()
+# @click.option("--prefix", default=None)
+# def object_storage(prefix):
+#     """
+#     List the contents of a repository
+#     """
+#     from bathysphere.datatypes import ObjectStorage
+#     from os import getenv
 
-    access_key, secret_key = getenv("OBJECT_STORAGE_SECRETS").split(",")
-    data = ObjectStorage(
-        "oceanicsdotio",
-        "nyc3.digitaloceanspaces.com",
-        prefix=prefix,
-        access_key=access_key, 
-        secret_key=secret_key, 
-        secure=True
-    ).list_objects()
+#     access_key, secret_key = getenv("OBJECT_STORAGE_SECRETS").split(",")
+#     data = ObjectStorage(
+#         "oceanicsdotio",
+#         "nyc3.digitaloceanspaces.com",
+#         prefix=prefix,
+#         access_key=access_key, 
+#         secret_key=secret_key, 
+#         secure=True
+#     ).list_objects()
     
-    total = 0
-    dir_count = 0
-    file_count = 0
-    for obj in data:
-        color = "blue" if obj.is_dir else "green"
-        stop = min(len(obj.object_name), 50)
-        fields = (
-            "{0:50}".format(obj.object_name[:stop]),
-            "{0:>10}".format(obj.size)
-        )
+#     total = 0
+#     dir_count = 0
+#     file_count = 0
+#     for obj in data:
+#         color = "blue" if obj.is_dir else "green"
+#         stop = min(len(obj.object_name), 50)
+#         fields = (
+#             "{0:50}".format(obj.object_name[:stop]),
+#             "{0:>10}".format(obj.size)
+#         )
 
-        total += obj.size
-        if obj.is_dir:
-            dir_count += 1
-        else:
-            file_count += 1
-        click.secho(", ".join(fields), fg=color)
+#         total += obj.size
+#         if obj.is_dir:
+#             dir_count += 1
+#         else:
+#             file_count += 1
+#         click.secho(", ".join(fields), fg=color)
     
 
 @click.command()
@@ -156,9 +156,8 @@ def providers(host: str, port: int) -> None:
     This is the only way to show and create API keys. 
     """
     from os import getenv
-    from bathysphere.graph import connect
-    from bathysphere.graph.models import Providers
-    from bathysphere.utils import loadAppConfig
+    from bathysphere import connect, loadAppConfig
+    from bathysphere.models import Providers
 
     appConfig = loadAppConfig()
     secretKeyAlias = "NEO4J_ACCESS_KEY"
@@ -211,62 +210,62 @@ def providers(host: str, port: int) -> None:
         click.secho(f"Created {count} access methods, remember to save them!", fg="yellow")
 
 
-@click.command()
-@click.argument("source")
-@click.argument("particle_type")
-@click.option("--out", default="./particles.csv", help="Output target")
-@click.option("--mode", default="w+", help="Write(w+) or Append(a)")
-def parse_ichthyotox(source: str, particle_type: str, out: str, mode: str):
-    """
-    Convert lagrangian particle data stored in table format to a format
-    for ingestion into the databases
-    """
-    from csv import writer
-    from pathlib import Path
-    from os import listdir
+# @click.command()
+# @click.argument("source")
+# @click.argument("particle_type")
+# @click.option("--out", default="./particles.csv", help="Output target")
+# @click.option("--mode", default="w+", help="Write(w+) or Append(a)")
+# def parse_ichthyotox(source: str, particle_type: str, out: str, mode: str):
+#     """
+#     Convert lagrangian particle data stored in table format to a format
+#     for ingestion into the databases
+#     """
+#     from csv import writer
+#     from pathlib import Path
+#     from os import listdir
 
-    path = Path(source)
-    total = 0
-    with open(out, mode) as target:
-        csv = writer(target, delimiter=',')
-        for simulation in listdir(str(path.absolute())):
-            try:
-                _ = int(simulation)
-            except ValueError:
-                continue
-            filename = "/".join((str(path.absolute()), simulation, source))
-            try:
-                lines = list(reversed(open(filename, "r").readlines()))
-            except FileNotFoundError:
-                continue
-            while lines:
-                q = list(map(str.strip, lines.pop().split()))
-                t = q[0]
-                q = q[1:]
-                records = []
-                while q:
-                    pid, x, y, z = q[:4]
-                    records.append([simulation, particle_type, t, pid, f"POINT({x} {y} {z})"])
-                    q = q[4:]
+#     path = Path(source)
+#     total = 0
+#     with open(out, mode) as target:
+#         csv = writer(target, delimiter=',')
+#         for simulation in listdir(str(path.absolute())):
+#             try:
+#                 _ = int(simulation)
+#             except ValueError:
+#                 continue
+#             filename = "/".join((str(path.absolute()), simulation, source))
+#             try:
+#                 lines = list(reversed(open(filename, "r").readlines()))
+#             except FileNotFoundError:
+#                 continue
+#             while lines:
+#                 q = list(map(str.strip, lines.pop().split()))
+#                 t = q[0]
+#                 q = q[1:]
+#                 records = []
+#                 while q:
+#                     pid, x, y, z = q[:4]
+#                     records.append([simulation, particle_type, t, pid, f"POINT({x} {y} {z})"])
+#                     q = q[4:]
 
-                subtotal = len(records)
-                total += subtotal
-                csv.writerows(records)
-            click.secho(f"Simulation {simulation} yielded {subtotal} {particle_type} records", fg="blue")
+#                 subtotal = len(records)
+#                 total += subtotal
+#                 csv.writerows(records)
+#             click.secho(f"Simulation {simulation} yielded {subtotal} {particle_type} records", fg="blue")
    
-    click.secho(f"Processed {total} total {particle_type} records", fg="blue")
+#     click.secho(f"Processed {total} total {particle_type} records", fg="blue")
 
 
 cli.add_command(serve)
 cli.add_command(start)
-cli.add_command(parse_ichthyotox)
+# cli.add_command(parse_ichthyotox)
 cli.add_command(build)
 cli.add_command(up)
 cli.add_command(neo4j)
 cli.add_command(providers)
 cli.add_command(test)
 cli.add_command(cloud_sql_proxy)
-cli.add_command(object_storage)
+# cli.add_command(object_storage)
 
 if __name__ == "__main__":
     cli()

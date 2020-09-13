@@ -125,7 +125,7 @@ paths:
 
     post:
       tags: [ Account ]
-      operationId: bathysphere.graph.functions.register
+      operationId: bathysphere.functions.register
       summary: Register
       description: |
 
@@ -148,7 +148,7 @@ paths:
 
     get:
       tags: [ Account ]
-      operationId: bathysphere.graph.functions.token
+      operationId: bathysphere.functions.token
       summary: Token
       description: |
 
@@ -170,7 +170,7 @@ paths:
 
     put:
       tags: [Account]
-      operationId: bathysphere.graph.functions.manage
+      operationId: bathysphere.functions.manage
       summary: Manage
       description: |
 
@@ -189,8 +189,8 @@ paths:
 
     get:
       tags: [Catalog]
-      operationId: bathysphere.codex.functions.codex
-      summary: Codex
+      operationId: lexicon.functions.lexicon
+      summary: Lexicon
       description: |
         Look up a word or phrase
       parameters:
@@ -206,13 +206,13 @@ paths:
 
       responses:
         '200':
-          description: Codex
+          description: Lexicon
             
   /:
 
     get:
       tags: [Catalog]
-      operationId: bathysphere.graph.functions.catalog
+      operationId: bathysphere.functions.catalog
       summary: Catalog
       description: |
         Get all entity types in database as collections following the SpatioTemporal Asset Catalog specification
@@ -251,7 +251,7 @@ paths:
 
     post:
       tags: [Catalog]
-      operationId: bathysphere.graph.functions.create
+      operationId: bathysphere.functions.create
       summary: Create
       description: |
         Create a new entity.
@@ -267,7 +267,7 @@ paths:
 
     get:
       tags: [Catalog]
-      operationId: bathysphere.graph.functions.collection
+      operationId: bathysphere.functions.collection
       summary: Collection
       description: |
         Get all entities of one type
@@ -286,7 +286,7 @@ paths:
 
     get:
       tags: [Catalog]
-      operationId: bathysphere.graph.functions.metadata
+      operationId: bathysphere.functions.metadata
       summary: Metadata
       description: |
         Get entity
@@ -303,7 +303,7 @@ paths:
 
     put:
       tags: [ Catalog ]
-      operationId: bathysphere.graph.functions.mutate
+      operationId: bathysphere.functions.mutate
       summary: Update
       description: Update entity
       requestBody:
@@ -321,7 +321,7 @@ paths:
 
     delete:
       tags: [ Catalog ]
-      operationId: bathysphere.graph.functions.delete
+      operationId: bathysphere.functions.delete
       summary: Delete
       description: Delete entity and orphans recursively.
       parameters:
@@ -339,7 +339,7 @@ paths:
 
     get:
       tags: [ Topology ]
-      operationId: bathysphere.graph.functions.query
+      operationId: bathysphere.functions.query
       summary: Query
       description: |
         Get related entities
@@ -362,7 +362,7 @@ paths:
     post:
 
       tags: [ Topology ]
-      operationId: bathysphere.graph.functions.join
+      operationId: bathysphere.functions.join
       summary: Join
       description: Create a labeled relationship between entities.
       parameters:
@@ -380,7 +380,7 @@ paths:
 
     delete:
       tags: [Topology]
-      operationId: bathysphere.graph.functions.drop
+      operationId: bathysphere.functions.drop
       summary: Drop
       description: |
         Remove a labeled relationship between entities. If no `label` is specified, remove all
@@ -406,7 +406,7 @@ paths:
 
       tags: [ Image ]
       summary: Render
-      operationId: bathysphere.image.functions.render
+      operationId: image.functions.render
       description: |
         Create PNG images from data sources and references and bathysphere_functions_cache it.
         The service call methods from the `matplotlib` library,

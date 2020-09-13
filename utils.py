@@ -102,38 +102,7 @@ except DefaultCredentialsError as ex:
     warn("Could not locate cloud provider credentials. Assets are temporary.")
 
 
-def loadAppConfig(sources: (str) = ("bathysphere.yml", "kubernetes.yml")) -> dict:
-    """
-    Load known entities and services at initialization.
-    """
 
-    def renderConfig(x: str):
-        """
-        Open the local config directory and process entries into dict structures
-        """
-        with open(pathlib.Path(f"config/{x}"), "r") as fid:
-            items = fid.read().split("---")
-        return list(map(load_yml, items, repeat(Loader, len(items))))
-
-    def reverseDictionary(a: dict, b: dict) -> dict:
-        """
-        Flip the nestedness of the dict from a list to have top level keys for each `kind`
-        """
-        if not isinstance(a, dict):
-            raise ValueError(
-                "Expected dictionary values. Type is instead {}.".format(type(a))
-            )
-
-        if b is not None:
-            key = b.pop("kind")
-            if key not in a.keys():
-                a[key] = [b]
-            else:
-                a[key].append(b)
-        return a
-
-    items = reduce(operator.add, map(renderConfig, sources), [])
-    return reduce(reverseDictionary, items, {})
 
 
 def googleCloudSecret(secret_name="my-secret"):
