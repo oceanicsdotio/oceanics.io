@@ -39,12 +39,12 @@ port = 7687
 ResponseJSON = (dict, int)
 
 host = getenv("NEO4J_HOSTNAME", "")
-if not host:
-    raise (Warning if DEBUG else EnvironmentError)("NEO4J_HOSTNAME must be declared in run time environment for Docker networking to work.")
+if not host and not DEBUG:
+    raise EnvironmentError("NEO4J_HOSTNAME must be declared in run time environment for Docker networking to work.")
     
 accessKey = getenv("NEO4J_ACCESS_KEY", "")
-if not accessKey:
-    raise (Warning if DEBUG else EnvironmentError)("NEO4J_ACCESS_KEY must be declared in run time environment if not using a secrets service.")
+if not accessKey and not DEBUG:
+    raise EnvironmentError("NEO4J_ACCESS_KEY must be declared in run time environment if not using a secrets service.")
 
 
 api_port = 5000
