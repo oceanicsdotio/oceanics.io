@@ -119,5 +119,5 @@ service.key
 *.crt
 logs/
 tmp/
-requirements.txt
+# requirements.txt
 Pipfile.lock
