@@ -49,7 +49,7 @@
     "typography": "^0.16.19"
   },
   "devDependencies": {
-    "eslint": "^7.4.0",
+    "eslint": "^7.9.0",
     "prettier": "^2.1.1"
   },
   "homepage": "https://www.oceanics.io",
