@@ -122,6 +122,21 @@ const Day = ({
 };
 
 export default (props) => {
+    /*
+    This is a test service meant to enable automatic reminders and scheduling assistance.
+
+    The service maintains a record of upcoming operations. 
+
+    This includes the missions for vessels, personnel responsibly for that action, and the location
+    of the actions. There are many features that can be added, but this is a minimal effort.
+
+    Requirements:
+    1. Allow input from pre-populated items
+    2. Display next 7 days
+    3. Send e-mail or text reminders with SendGrid
+    4. Allow recipients to adjust personal settings (optional)
+
+    */
     
     let today = new Date();
     let schedule = [];
