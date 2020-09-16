@@ -19,7 +19,7 @@
     "gatsby-link": "^2.4.14",
     "gatsby-plugin-create-client-paths": "^2.1.6",
     "gatsby-plugin-manifest": "^2.2.39",
-    "gatsby-plugin-mdx": "^1.2.37",
+    "gatsby-plugin-mdx": "^1.2.40",
     "gatsby-plugin-offline": "^3.2.16",
     "gatsby-plugin-react-helmet": "^3.1.21",
     "gatsby-plugin-sharp": "^2.4.3",
