@@ -182,7 +182,8 @@ def connect(host: str, port: int, accessKey: str, default: str = "neo4j") -> Dri
                 auth=auth,
                 json={"password": accessKey},
             )
-            assert response.ok
+            if not response.ok:
+                raise ConnectionError(f"Problem changing Neo4j default password: {response}") 
         return db
 
     if db is None:
