@@ -428,49 +428,6 @@ components:
       schema:
         type: integer
 
-    
-
-    workers:
-      in: query
-      name: workers
-      schema:
-        $ref: "#/components/schemas/Workers"
-
-    days:
-      in: query
-      name: days
-      description: Length of simulation in days
-      schema:
-        $ref: "#/components/schemas/Days"
-
-    runs:
-      in: query
-      name: runs
-      schema:
-        $ref: "#/components/schemas/Runs"
-
-    dt:
-      in: query
-      name: dt
-      description: Timestep, integer seconds
-      schema:
-        $ref: "#/components/schemas/dt"
-
-    volume:
-      in: query
-      name: volume
-      description: Control volume for density-dependence
-      schema:
-        $ref: "#/components/schemas/volume"
-
-    weight:
-      name: weight
-      in: query
-      required: true
-      schema:
-        $ref: "#/components/schemas/Weight"
-    
-
 
   requestBodies:
 
@@ -524,49 +481,7 @@ components:
           schema:
             $ref: '#/components/schemas/Asset'
 
-    TrainRequest:
-      description: Training data
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Datastream'
-
-    CreateRequest:
-      description: Initialization data
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/CreateSchema'
-
-    Series:
-      description: Time series to filter or convert
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Datastream'
-
-
-    ConfigurationCollection:
-      description: Configurations
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ConfigurationCollection'
-
-    Configuration:
-      description: Model configuration
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Configuration'
-
-    Experiment:
-      description: Optional JSON object containing forcing information
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/RunSimulation'
-        
+    
 
 
   responses:
@@ -638,13 +553,6 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Message'
-         
-    Prediction:
-      description: Success
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Datastream'
                 
     NotFound:
       description: Not found
@@ -660,27 +568,6 @@ components:
           schema:
             $ref: '#/components/schemas/Error'
 
-    Frequency:
-      description: New time series
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/FFT'
-
-    Filtered:
-      description: New time series
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Datastream'
-
-    Mask:
-      description: Mask of time series
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Mask'
-
     Unauthorized:
       description: Not authorized
       content:
@@ -694,29 +581,6 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
-
-
-    ConfigurationCollection:
-      description: Model configurations
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ConfigurationCollection'
-
-    Configuration:
-      description: Model configuration
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Configuration'
-
-    Experiment:
-      description: Return simulations
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Experiment'
-        
 
   schemas:
 
