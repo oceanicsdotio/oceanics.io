@@ -11,3 +11,6 @@
   from = "/catalog/*"
   to = "/catalog.html"
   status = 200
+
+[[plugins]]
+  package = "netlify-plugin-gatsby-cache"
