@@ -1,20 +1,18 @@
 
 # Bathysphere API
 
+![Test](https://github.com/oceanicsdotio/bathysphere/workflows/Test/badge.svg)
+
 - [Developers](#developers)
     - [Develop](#develop)
-    - [Deploy](#deploy)
+    - [Modifying the web API](#modifying-the-web-api)
     - [Manage](#manage)
     - [Test](#test)
+    - [Deploy](#deploy)
 - [Neo4j](#neo4j)
-    - [Introduction](#introduction)
     - [Browser interface](#browser-interface)
     - [Python client](#python-client)
-- [Postgres](#postgres)
-    - [Extensions](#extensions)
-    - [CloudSQL proxy](#cloudsql-proxy)
-- [Redis](#redis)
-- [Ingestion tips](#ingestion-tips)
+    - [Preprocessing text files](#preprocessing-text-files)
 
 
 Bathysphere is a distributed store and registry for public and proprietary geospatial data. It was originally designed to support aquaculture research in the Gulf of Maine, but is intentionally generic. 
@@ -179,12 +177,10 @@ The commands are:
 * `serve` - Serve documentation or testing coverage on the local machine
 * `start` - Start the API server in the local environment
 * `build` - Build Docker containers
-* `redis-worker` - Start a worker process in remote redis instance
 * `up` - Run Docker images
 * `neo4j` - Run neo4j in Docker and open a browser interface to the management page
 * `providers` - Manage API keys for accessing the databases, there must already be a database
 * `object-storage` - List the contents of S3 repositories
-* `cloud-sql-proxy` - Run local proxy to communicate with CloudSQL databases
 
 Some of these will execute a subroutine, for example reading the contents of a remote S3 bucket. Commands with potential side effects simply print the command to the terminal. This allows you to see the generated command without running it. The evaluate it instead, wrap with `$()`.
 
@@ -240,13 +236,22 @@ The current version expects to have access to Google Cloud Functions. Functions 
 
 ## Neo4j
 
-### Introduction
-
 The database manager runs in an extension of the [official container image](https://hub.docker.com/_/neo4j/), and maps the server ports to an external interface. The [built-in GUI](http://localhost:7474/browser/) is at `hostname:7474`, and the `bolt` [interface](https://boltprotocol.org/) defaults to `hostname:7687`. 
 
 [Cypher](https://neo4j.com/docs/cypher-refcard/current/) is the Neo4j query language. Either cypher or `graphql` can be used to build the database, traverse nodes and edges, and return data. 
 
 The `bolt` protocol is used for API calls from Python scripts. User authorization requires the environment variable `NEO4J_AUTH` to be declared in `docker-compose.yml`.
+
+If you are new to Neo4j, try deploying a local container to experiment:
+
+```bash
+docker run \
+    --publish=7474:7474 \
+    --publish=7473:7473 \
+    --publish=7687:7687 \
+    --volume=$HOME/neo4j/data:/data \
+	neo4j/neo4j
+```
 
 ### Browser interface
 
@@ -271,153 +276,6 @@ Establish a connection to the database using Bolt, and start a session:
 from neo4j.v1 import GraphDatabase
 driver = GraphDatabase.driver("bolt://localhost:7687", auth=("neo4j", "neo4j"))
 session = driver.session()
-```
-
-### Extensions
-
-We use extensions to the database to enable interfacing with RDMS and exposing specific subsets of raw data as graphql queries.
-
-### Using GraphQL
-
-Neo4j Labs gives detailed [instructions](https://neo4j.com/developer/graphql/) on how to use `graphql`.
-
-
-
-
-
-
-### Managed instances
-
-We recommend a managed cluster for the production service, like the official Aura platform from Neo4j. Other methods for provisioning are given below to get you started. 
-
-### Docker
-
-If you are new to Neo4j, try deploying a local container to experiment:
-
-```bash
-docker run \
-    --publish=7474:7474 \
-    --publish=7473:7473 \
-    --publish=7687:7687 \
-    --volume=$HOME/neo4j/data:/data \
-	oceanicsdotio/neo4j
-```
-
-### Docker Machine
-
-Most cloud providers have an endpoint for docker. You can create a new node and deploy to it by use third party drivers with `docker-machine`:
-
-```bash
-# src/docker-machine-create.sh
-docker-machine create \
---driver digitalocean \
---digitalocean-size s-2vcpu-4gb \
---digitalocean-access-token $DOCKER_MACHINE_PAK \
-bathysphere-api-neo4j
-```
-
-Connect to your local environment to issue commands to the remote docker service, and then setup the node remotely through an `ssh` tunnel, and install `certbot`:
-
-```bash
-eval $(docker-machine env bathysphere-api-neo4j)
-docker-machine ssh
-sudo apt-get update
-sudo apt-get upgrade
-sudo apt-get install software-properties-common
-sudo add-apt-repository ppa:certbot/certbot
-sudo apt-get update
-sudo apt-get install -y certbot
-```
-
-
-## Postgres
-
-### Extensions
-
-The back-end uses the `postgres` relational database, with the `timescaledb` and `postgis` extensions for time series and spatial data, respectively. A database is manually created and extended through queries with,
-
-```sql
-CREATE database bathysphere;
-CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;
-```
-
-### Localhost
-
-To develop with a local relational database, run and enter a `postgres` instance with the `exec` command:
-
-```bash
-docker run -d --name timescaledb -p 5432:5432 -e
-	POSTGRES_PASSWORD=n0t_passw0rd
-	timescale/timescaledb-postgis
-	
-docker exec -it timescaledb-postgis psql -U postgres
-```
-
-### CloudSQL Proxy
-
-By default, the postgres interface uses unix sockets and a local proxy to talk to Google CloudSQL instances. 
-
-If you have the `glcoud` command line utility authorized and have done this before, you should be able to start the local proxy with,
-
-```
-~/cloud_sql_proxy -dir=/cloudsql/
-```
-
-## Redis
-
-We use `redis` for simple caching, pubsub style message queues, and asynchronous job execution.
-
-### Cloud instances
-
-This can use a local instance, but normally expects a Google Cloud instance to be available.
-
-```
-gcloud compute instances create redis-forwarder --machine-type=f1-micro
-gcloud compute ssh redis-forwarder -- -N -L 6379:10.0.0.3:6379
-```
-
-### Directed acyclic graph exection
-
-There are many powerful third-party data pipelining tools which can be used independently of `bathysphere`.
-
-Workflows are directed acyclic graphs, which take inputs and result in equal or fewer outputs.
-
-We provide the ability to perform common operations for ocean data within the graph native framework.
-
-To perform these types of computations you need to define a subgraph in the database that connects all the data sources.
-
-`TaskingCapabilties` are joined with high-level container entities. A common scenario is wanting to combine multiple environmental variables and generate a proxy variable. In this case `TaskingCapabilities` are connected to N `DataStreams`. 
-
-Calling these `TaskingCapabilities` will find child `Observations` of the `DataStreams` and link these to a `Task`. The `Task` is added to an asynchronous queue, and these are resolved as compute resources become available.
-
-Artifacts are saved in the graph and in S3-compatible object storage.
-
-
-## Ingestion tips
-
-### Mount remote NetCDF files
-
-Meshes and model data are often stored as NetCDF, which can be read remotely by mounting the host volume to your local environment (e.g. using [fuse](https://github.com/osxfuse/osxfuse/releases) and [sshfs](https://github.com/libfuse/sshfs)). 
-
-On macOS `meson` and `ninja` are required, before downloading and install the `sshfs` tarball:
-
-```bash
-pip install meson
-brew install ninja
-gzip -d sshfs-3.3.2.tar.gz
-tar -xvf sshfs-3.3.2.tar
-cd sshfs-3.3.2
-mkdir build
-cd build
-meson ..
-sudo ninja install 
-```
-
-To mount the remote file system locally,
-
-```bash
-mkdir ~/remote/
-sshfs username@hostname:/nfs-home/username/>>export ~/remote/
 ```
 
 ### Preprocess text files 
