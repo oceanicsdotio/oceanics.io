@@ -1,0 +1,41 @@
+name: Test
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+   
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      
+      neo4j:
+        # Same setup as in docker-compose.yml
+        image: neo4j
+        ports:
+          - 7474:7474 # http
+          - 7473:7473 # https
+          - 7687:7687 # bolt
+        env:
+          POSTGRES_PASSWORD: n0t_passw0rd
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.7
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest
+          pip install -r requirements.txt
+          
+      - name: Pytest
+        # may need to wait here for Neo4j test db to be ready
+        run: pytest -vv
