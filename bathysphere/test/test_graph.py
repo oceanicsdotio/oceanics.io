@@ -77,41 +77,41 @@ def test_graph_account_get_token(token):
     assert duration is not None and duration > 30
 
 
-def test_graph_account_update_user(client, token):
-    """
-    Give the user an alias.
-    """
-    jwtToken = token(CREDENTIALS).get("token")
-    response = client.put(
-        "api/auth",
-        json={"alias": "By another name"},
-        headers={"Authorization": ":" + jwtToken},
-    )
-    assert response.status_code == 204, response.get_json()
+# def test_graph_account_update_user(client, token):
+#     """
+#     Give the user an alias.
+#     """
+#     jwtToken = token(CREDENTIALS).get("token")
+#     response = client.put(
+#         "api/auth",
+#         json={"alias": "By another name"},
+#         headers={"Authorization": ":" + jwtToken},
+#     )
+#     assert response.status_code == 204, response.get_json()
 
 
-def test_graph_account_delete_user(client, token):
-    """
-    Delete a user, and then recreate it
-    """
-    jwtToken = token(CREDENTIALS).get("token")
-    response = client.put(
-        "api/auth", json={"delete": True}, headers={"Authorization": ":" + jwtToken},
-    )
-    assert response.status_code == 204, response.get_json()
+# def test_graph_account_delete_user(client, token):
+#     """
+#     Delete a user, and then recreate it
+#     """
+#     jwtToken = token(CREDENTIALS).get("token")
+#     response = client.put(
+#         "api/auth", json={"delete": True}, headers={"Authorization": ":" + jwtToken},
+#     )
+#     assert response.status_code == 204, response.get_json()
     
-    credentials = getCredentials()
-    response = client.post(
-        "api/auth",
-        json={
-            "username": testAuth[0],
-            "password": testAuth[1],
-            "secret": testAuth[2],
-            "apiKey": credentials["Oceanicsdotio"],
-        },
-    )
-    assert response.status_code == 200, response.get_json()
-    _ = token(auth=CREDENTIALS, purge=True)
+#     credentials = getCredentials()
+#     response = client.post(
+#         "api/auth",
+#         json={
+#             "username": testAuth[0],
+#             "password": testAuth[1],
+#             "secret": testAuth[2],
+#             "apiKey": credentials["Oceanicsdotio"],
+#         },
+#     )
+#     assert response.status_code == 200, response.get_json()
+#     _ = token(auth=CREDENTIALS, purge=True)
 
 
 @pytest.mark.parametrize("cls", classes)
