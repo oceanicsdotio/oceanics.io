@@ -51,11 +51,6 @@ pdoc --html --output-dir openapi/docs bathysphere
 
 A live version of these are available at https://graph.oceanics.io/docs/bathysphere
 
-Not everything is documented or tested, and not everything works! Here are some tips to make that not an awful experience.
-
-If you have problems because of docker versions (destructive!):
-* `docker system prune -a`
-
 
 ### Modifying the web API
 
