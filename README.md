@@ -13,7 +13,7 @@ Backend services are provided by the Bathysphere API geospatial graph, which is 
 
 The static sites are hosted on Netlify: [![Netlify Status](https://api.netlify.com/api/v1/badges/ad77195f-da0a-428f-ad2d-8dc5f45b3858/deploy-status)](https://app.netlify.com/sites/oceanicsdotio/deploys)
 
-When new commits are checked into the repository, the site is deployed to `oceanicsdotio.netlify.com`, which has the custom domain `www.oceanics.io`.
+When new commits are checked into the repository, the site is deployed to [`oceanicsdotio.netlify.com`](oceanicsdotio.netlify.com), which has the custom domain [`www.oceanics.io`](https://www.oceanics.io).
 
 ### JavaScript
 
@@ -21,7 +21,7 @@ JavaScript dependencies and builds are managed with `yarn`.
 
 The local development version is deployed with `yarn develop`, or `netlify dev`. The ports are `:8000` and `:8080` respectively.
 
-See the `package.json` file for build scripts, etc.
+See [`package.json`](/package.json) for build scripts, etc.
 
 
 ### Rust/WASM
@@ -35,6 +35,6 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 ```
 
-The `wasm-bindgen` tooling packages WASM as an importable JavaScript library. This allows the binaries to be served along with the other static assets by compiling [without a bundler](https://github.com/rustwasm/wasm-bindgen/tree/master/examples/without-a-bundler).
+Gatsby triggers the build pipeline automatically! But, only on the excution of `yarn build` or `yarn develop`! There is no hot loading or automatic recompiling. This is decribed in [`gatsby-nodes.js`](/gatsby-node.js)
 
-The `Cargo.toml` config file describes the Rust dependencies. The build command is in the package. Use `yarn compile` to compile rust to webassembly and generate the necessary JavaScript bindings.
+The [`Cargo.toml`](/Cargo.toml) config file describes the Rust dependencies. The `wasm-bindgen` and `wasm-pack` package WASM as an importable JavaScript library named `neritics`. Use `yarn compile` to compile rust to WASM and generate necessary JavaScript bindings, or see the command in [`package.json`](/package.json). 
