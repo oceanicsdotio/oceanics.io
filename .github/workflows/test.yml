@@ -14,7 +14,7 @@ jobs:
       
       neo4j:
         # Same setup as in docker-compose.yml
-        image: neo4j
+        image: neo4j:3.5.16
         ports:
           - 7474:7474 # http
           - 7473:7473 # https
