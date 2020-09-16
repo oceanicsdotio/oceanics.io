@@ -42,7 +42,7 @@ info:
 
 externalDocs:
 
-  description: See the bathysphere_functions_repository for more information
+  description: See the `bathysphere` repository for more information
   url: https://github.com/oceanicsdotio/bathysphere
 
 x-tagGroups:
