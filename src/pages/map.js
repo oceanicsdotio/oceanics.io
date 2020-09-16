@@ -32,25 +32,11 @@ export default ({data: {site: {siteMetadata: {title}}}, location}) => {
     )
 };
 
-
 export const pageQuery = graphql`
   query {
     site {
       siteMetadata {
         title
-      }
-    }
-    allMdx {
-      edges {
-        node {
-          fields {
-            slug
-          }
-          frontmatter {
-            tags
-            description
-          }
-        }
       }
     }
   }
