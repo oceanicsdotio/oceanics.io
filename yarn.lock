@@ -6806,7 +6806,7 @@ gatsby-legacy-polyfills@^0.0.4:
   dependencies:
     core-js-compat "^3.6.5"
 
-gatsby-link@^2.4.14:
+gatsby-link@^2.2.30, gatsby-link@^2.4.14:
   version "2.4.14"
   resolved "https://registry.yarnpkg.com/gatsby-link/-/gatsby-link-2.4.14.tgz#655ba6a436b0eca7b7d8c63d9dcab17310059c35"
   integrity sha512-JLF7pb5E8flmsH2oQvGmGV1mMEuaQCzLFOXFj6FZOcG/JuOEXSb5N/Z/cp2MAlAVCyLLeYI7Ru/+o0TOpQMwkQ==
@@ -6965,13 +6965,6 @@ gatsby-plugin-typescript@^2.4.20:
     "@babel/preset-typescript" "^7.10.4"
     "@babel/runtime" "^7.11.2"
     babel-plugin-remove-graphql-queries "^2.9.19"
-
-gatsby-react-router-scroll@^3.0.12:
-  version "3.0.12"
-  resolved "https://registry.yarnpkg.com/gatsby-react-router-scroll/-/gatsby-react-router-scroll-3.0.12.tgz#1c6a7c3fd2d54ec618f42a6e793ff8293070b6bc"
-  integrity sha512-rA7qe/LjKAPnwI4KdKjvx94XIV9a4hCPT+BzKBiifTkm5sFpQyXsfEWmaFfzIaxpKxOwrWsJGpW0OA39yunL8g==
-  dependencies:
-    "@babel/runtime" "^7.10.3"
 
 gatsby-react-router-scroll@^3.0.13:
   version "3.0.13"
