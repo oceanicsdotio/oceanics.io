@@ -1,11 +1,13 @@
 # Oceanics.io
 
-![](content/assets/dagan.png)
+<p align="center">
+  <img width="50%" height="50%" src="content/assets/dagan.png">
+</p>
 
-The site is Oceanic.io homepage, and an application for analuzing and visualizing ocean data
+The site is the Oceanics.io homepage, and an application for analyzing and visualizing ocean data
 in your browser using a modern serverless approach. The languages are JavaScript and Rust. Static rendering is with GatsbyJS and React. 
 
-Backend services are provided by the Bathysphere API geospatial graph, which is documented elsewhere.
+Backend services are provided by our APIs, which are documented elsewhere.
 
 ## Development
 
