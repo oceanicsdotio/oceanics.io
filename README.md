@@ -1,20 +1,21 @@
 # Oceanics.io
 
-<p align="center">
-  <img width="50%" height="50%" src="content/assets/dagan.png">
-</p>
+[![Netlify Status](https://api.netlify.com/api/v1/badges/ad77195f-da0a-428f-ad2d-8dc5f45b3858/deploy-status)](https://app.netlify.com/sites/oceanicsdotio/deploys)
+
 
 Oceanics.io is a website and framework for running high-performance computing and visualization workloads for ocean science. Models run in the browser, using a combination of Rust/WASM and GLSL hardware acceleration.
 
 Backend services are provided by our APIs, which are documented elsewhere.
 
+<p align="center">
+  <img width="50%" height="50%" src="content/assets/dagan.png">
+</p>
+
 ## Development
 
 ### Production pipeline
 
-The static sites are hosted on Netlify: [![Netlify Status](https://api.netlify.com/api/v1/badges/ad77195f-da0a-428f-ad2d-8dc5f45b3858/deploy-status)](https://app.netlify.com/sites/oceanicsdotio/deploys)
-
-When new commits are checked into the repository, the site is deployed to [`oceanicsdotio.netlify.com`](oceanicsdotio.netlify.com), which has the custom domain [`www.oceanics.io`](https://www.oceanics.io).
+The static sites are hosted on Netlify. When new commits are checked into the repository, the site is deployed to [oceanicsdotio.netlify.com](oceanicsdotio.netlify.com), which has the custom domain [www.oceanics.io](https://www.oceanics.io).
 
 ### JavaScript
 
