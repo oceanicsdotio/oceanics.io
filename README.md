@@ -4,8 +4,7 @@
   <img width="50%" height="50%" src="content/assets/dagan.png">
 </p>
 
-The site is the Oceanics.io homepage, and an application for analyzing and visualizing ocean data
-in your browser using a modern serverless approach. The languages are JavaScript and Rust. Static rendering is with GatsbyJS and React. 
+Oceanics.io is a website and framework for running high-performance computing and visualization workloads for ocean science. Models run in the browser, using a combination of Rust/WASM and GLSL hardware acceleration.
 
 Backend services are provided by our APIs, which are documented elsewhere.
 
