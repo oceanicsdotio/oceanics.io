@@ -229,7 +229,7 @@ function logError(f) {
         }
     };
 }
-function __wbg_adapter_22(arg0, arg1, arg2) {
+function __wbg_adapter_24(arg0, arg1, arg2) {
     _assertNum(arg0);
     _assertNum(arg1);
     wasm._dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__hec2f2516977eb204(arg0, arg1, addHeapObject(arg2));
@@ -474,6 +474,17 @@ export function make_vertex_array(series) {
 }
 
 /**
+* @param {number} world_size
+* @param {number} water_level
+* @returns {ImageData}
+*/
+export function image_data(world_size, water_level) {
+    _assertNum(world_size);
+    var ret = wasm.image_data(world_size, water_level);
+    return takeObject(ret);
+}
+
+/**
 * @param {number} day_of_year
 * @param {number} latitude
 * @param {number} time_of_day
@@ -499,6 +510,13 @@ function handleError(f) {
     };
 }
 
+function passArray8ToWasm0(arg, malloc) {
+    const ptr = malloc(arg.length * 1);
+    getUint8Memory0().set(arg, ptr / 1);
+    WASM_VECTOR_LEN = arg.length;
+    return ptr;
+}
+
 let cachegetUint8ClampedMemory0 = null;
 function getUint8ClampedMemory0() {
     if (cachegetUint8ClampedMemory0 === null || cachegetUint8ClampedMemory0.buffer !== wasm.memory.buffer) {
@@ -510,7 +528,7 @@ function getUint8ClampedMemory0() {
 function getClampedArrayU8FromWasm0(ptr, len) {
     return getUint8ClampedMemory0().subarray(ptr / 1, ptr / 1 + len);
 }
-function __wbg_adapter_199(arg0, arg1, arg2, arg3) {
+function __wbg_adapter_234(arg0, arg1, arg2, arg3) {
     _assertNum(arg0);
     _assertNum(arg1);
     wasm.wasm_bindgen__convert__closures__invoke2_mut__h96984aac8d17c2af(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
@@ -583,6 +601,51 @@ export class ContextCursor {
             heap[stack_pointer++] = undefined;
             heap[stack_pointer++] = undefined;
         }
+    }
+}
+/**
+*/
+export class Diagonal {
+
+    constructor() {
+        throw new Error('cannot invoke `new` directly');
+    }
+
+    free() {
+        const ptr = this.ptr;
+        this.ptr = 0;
+
+        wasm.__wbg_diagonal_free(ptr);
+    }
+}
+/**
+*/
+export class Diagonals {
+
+    constructor() {
+        throw new Error('cannot invoke `new` directly');
+    }
+
+    free() {
+        const ptr = this.ptr;
+        this.ptr = 0;
+
+        wasm.__wbg_diagonals_free(ptr);
+    }
+}
+/**
+*/
+export class Feature {
+
+    constructor() {
+        throw new Error('cannot invoke `new` directly');
+    }
+
+    free() {
+        const ptr = this.ptr;
+        this.ptr = 0;
+
+        wasm.__wbg_feature_free(ptr);
     }
 }
 /**
@@ -877,6 +940,225 @@ export class InteractiveMesh {
 }
 /**
 */
+export class IslandKernel {
+
+    constructor() {
+        throw new Error('cannot invoke `new` directly');
+    }
+
+    free() {
+        const ptr = this.ptr;
+        this.ptr = 0;
+
+        wasm.__wbg_islandkernel_free(ptr);
+    }
+    /**
+    * @returns {number}
+    */
+    get mask() {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        var ret = wasm.__wbg_get_islandkernel_mask(this.ptr);
+        return ret;
+    }
+    /**
+    * @param {number} arg0
+    */
+    set mask(arg0) {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        wasm.__wbg_set_islandkernel_mask(this.ptr, arg0);
+    }
+    /**
+    * @returns {number}
+    */
+    get depth() {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        var ret = wasm.__wbg_get_islandkernel_depth(this.ptr);
+        return ret;
+    }
+    /**
+    * @param {number} arg0
+    */
+    set depth(arg0) {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        wasm.__wbg_set_islandkernel_depth(this.ptr, arg0);
+    }
+}
+/**
+*/
+export class MiniMap {
+
+    static __wrap(ptr) {
+        const obj = Object.create(MiniMap.prototype);
+        obj.ptr = ptr;
+
+        return obj;
+    }
+
+    free() {
+        const ptr = this.ptr;
+        this.ptr = 0;
+
+        wasm.__wbg_minimap_free(ptr);
+    }
+    /**
+    * @param {number} vx
+    * @param {number} vy
+    * @param {number} world_size
+    * @param {number} water_level
+    * @param {CanvasRenderingContext2D} ctx
+    * @param {number} grid_size
+    */
+    constructor(vx, vy, world_size, water_level, ctx, grid_size) {
+        _assertNum(world_size);
+        _assertNum(grid_size);
+        var ret = wasm.minimap_new(vx, vy, world_size, water_level, addHeapObject(ctx), grid_size);
+        return MiniMap.__wrap(ret);
+    }
+    /**
+    * @param {any} feature
+    */
+    insert_feature(feature) {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        wasm.minimap_insert_feature(this.ptr, addHeapObject(feature));
+    }
+    /**
+    * @returns {number}
+    */
+    score() {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        var ret = wasm.minimap_score(this.ptr);
+        return ret;
+    }
+    /**
+    * @param {number} index
+    * @returns {any}
+    */
+    get_tile(index) {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        _assertNum(index);
+        var ret = wasm.minimap_get_tile(this.ptr, index);
+        return takeObject(ret);
+    }
+    /**
+    * @param {number} ii
+    * @param {number} jj
+    */
+    replace_tile(ii, jj) {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        _assertNum(ii);
+        _assertNum(jj);
+        wasm.minimap_replace_tile(this.ptr, ii, jj);
+    }
+    /**
+    */
+    clear() {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        wasm.minimap_clear(this.ptr);
+    }
+    /**
+    * @param {number} ind
+    * @param {number} ii
+    * @param {number} jj
+    * @returns {number}
+    */
+    insert_tile(ind, ii, jj) {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        _assertNum(ind);
+        _assertNum(ii);
+        _assertNum(jj);
+        var ret = wasm.minimap_insert_tile(this.ptr, ind, ii, jj);
+        return ret >>> 0;
+    }
+    /**
+    * @param {number} index
+    * @returns {number}
+    */
+    get_mask(index) {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        _assertNum(index);
+        var ret = wasm.minimap_get_mask(this.ptr, index);
+        return ret;
+    }
+    /**
+    * @param {CanvasRenderingContext2D} ctx
+    * @returns {ImageData}
+    */
+    visible(ctx) {
+        try {
+            if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+            _assertNum(this.ptr);
+            var ret = wasm.minimap_visible(this.ptr, addBorrowedObject(ctx));
+            return takeObject(ret);
+        } finally {
+            heap[stack_pointer++] = undefined;
+        }
+    }
+    /**
+    * @returns {number}
+    */
+    view_x() {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        var ret = wasm.minimap_view_x(this.ptr);
+        return ret;
+    }
+    /**
+    * @returns {number}
+    */
+    view_y() {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        var ret = wasm.minimap_view_y(this.ptr);
+        return ret;
+    }
+    /**
+    * @param {CanvasRenderingContext2D} ctx
+    * @param {number} vx
+    * @param {number} vy
+    */
+    update_view(ctx, vx, vy) {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        wasm.minimap_update_view(this.ptr, addHeapObject(ctx), vx, vy);
+    }
+    /**
+    * @param {CanvasRenderingContext2D} ctx
+    */
+    draw_bbox(ctx) {
+        try {
+            if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+            _assertNum(this.ptr);
+            wasm.minimap_draw_bbox(this.ptr, addBorrowedObject(ctx));
+        } finally {
+            heap[stack_pointer++] = undefined;
+        }
+    }
+    /**
+    * @param {CanvasRenderingContext2D} ctx
+    */
+    draw_image_data(ctx) {
+        try {
+            if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+            _assertNum(this.ptr);
+            wasm.minimap_draw_image_data(this.ptr, addBorrowedObject(ctx));
+        } finally {
+            heap[stack_pointer++] = undefined;
+        }
+    }
+}
+/**
+*/
 export class SimpleCursor {
 
     static __wrap(ptr) {
@@ -994,6 +1276,119 @@ export class Texture2D {
         }
     }
 }
+/**
+*/
+export class Tile {
+
+    constructor() {
+        throw new Error('cannot invoke `new` directly');
+    }
+
+    free() {
+        const ptr = this.ptr;
+        this.ptr = 0;
+
+        wasm.__wbg_tile_free(ptr);
+    }
+}
+/**
+*/
+export class TileSet {
+
+    static __wrap(ptr) {
+        const obj = Object.create(TileSet.prototype);
+        obj.ptr = ptr;
+
+        return obj;
+    }
+
+    free() {
+        const ptr = this.ptr;
+        this.ptr = 0;
+
+        wasm.__wbg_tileset_free(ptr);
+    }
+    /**
+    * @param {number} count
+    */
+    constructor(count) {
+        _assertNum(count);
+        var ret = wasm.tileset_new(count);
+        return TileSet.__wrap(ret);
+    }
+    /**
+    */
+    clear() {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        wasm.tileset_clear(this.ptr);
+    }
+    /**
+    * @returns {number}
+    */
+    score() {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        var ret = wasm.tileset_score(this.ptr);
+        return ret;
+    }
+    /**
+    * @param {any} feature
+    */
+    insert_feature(feature) {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        wasm.tileset_insert_feature(this.ptr, addHeapObject(feature));
+    }
+    /**
+    * @param {number} index
+    * @returns {any}
+    */
+    get_tile(index) {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        _assertNum(index);
+        var ret = wasm.tileset_get_tile(this.ptr, index);
+        return takeObject(ret);
+    }
+    /**
+    * @param {number} ii
+    * @param {number} jj
+    */
+    replace_tile(ii, jj) {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        _assertNum(ii);
+        _assertNum(jj);
+        wasm.tileset_replace_tile(this.ptr, ii, jj);
+    }
+    /**
+    * @param {number} ii
+    * @param {number} jj
+    * @returns {number}
+    */
+    insert_land_tile(ii, jj) {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        _assertNum(ii);
+        _assertNum(jj);
+        var ret = wasm.tileset_insert_land_tile(this.ptr, ii, jj);
+        return ret >>> 0;
+    }
+    /**
+    * @param {number} ii
+    * @param {number} jj
+    * @returns {number}
+    */
+    insert_water_tile(ii, jj) {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        _assertNum(ii);
+        _assertNum(jj);
+        var ret = wasm.tileset_insert_water_tile(this.ptr, ii, jj);
+        return ret >>> 0;
+    }
+}
 
 export const __wbindgen_string_new = function(arg0, arg1) {
     var ret = getStringFromWasm0(arg0, arg1);
@@ -1002,6 +1397,11 @@ export const __wbindgen_string_new = function(arg0, arg1) {
 
 export const __wbindgen_object_drop_ref = function(arg0) {
     takeObject(arg0);
+};
+
+export const __wbindgen_json_parse = function(arg0, arg1) {
+    var ret = JSON.parse(getStringFromWasm0(arg0, arg1));
+    return addHeapObject(ret);
 };
 
 export const __wbindgen_json_serialize = function(arg0, arg1) {
@@ -1217,6 +1617,11 @@ export const __wbg_createLinearGradient_813e324ba7a40ba2 = logError(function(arg
     return addHeapObject(ret);
 });
 
+export const __wbg_getImageData_3ed5d135de4d3339 = handleError(function(arg0, arg1, arg2, arg3, arg4) {
+    var ret = getObject(arg0).getImageData(arg1, arg2, arg3, arg4);
+    return addHeapObject(ret);
+});
+
 export const __wbg_putImageData_b290181a4e24024c = handleError(function(arg0, arg1, arg2, arg3) {
     getObject(arg0).putImageData(getObject(arg1), arg2, arg3);
 });
@@ -1305,8 +1710,21 @@ export const __wbg_getContext_554fc171434d411b = handleError(function(arg0, arg1
     return isLikeNone(ret) ? 0 : addHeapObject(ret);
 });
 
+export const __wbg_data_2f716d6abc9ed79e = logError(function(arg0, arg1) {
+    var ret = getObject(arg1).data;
+    var ptr0 = passArray8ToWasm0(ret, wasm.__wbindgen_malloc);
+    var len0 = WASM_VECTOR_LEN;
+    getInt32Memory0()[arg0 / 4 + 1] = len0;
+    getInt32Memory0()[arg0 / 4 + 0] = ptr0;
+});
+
 export const __wbg_newwithu8clampedarray_4799da77eec42ad7 = handleError(function(arg0, arg1, arg2) {
     var ret = new ImageData(getClampedArrayU8FromWasm0(arg0, arg1), arg2 >>> 0);
+    return addHeapObject(ret);
+});
+
+export const __wbg_newwithu8clampedarrayandsh_e53f440c9ae68467 = handleError(function(arg0, arg1, arg2, arg3) {
+    var ret = new ImageData(getClampedArrayU8FromWasm0(arg0, arg1), arg2 >>> 0, arg3 >>> 0);
     return addHeapObject(ret);
 });
 
@@ -1337,7 +1755,7 @@ export const __wbg_new_261626435fed913c = logError(function(arg0, arg1) {
             const a = state0.a;
             state0.a = 0;
             try {
-                return __wbg_adapter_199(a, state0.b, arg0, arg1);
+                return __wbg_adapter_234(a, state0.b, arg0, arg1);
             } finally {
                 state0.a = a;
             }
@@ -1453,8 +1871,8 @@ export const __wbindgen_memory = function() {
     return addHeapObject(ret);
 };
 
-export const __wbindgen_closure_wrapper2501 = logError(function(arg0, arg1, arg2) {
-    var ret = makeMutClosure(arg0, arg1, 66, __wbg_adapter_22);
+export const __wbindgen_closure_wrapper3403 = logError(function(arg0, arg1, arg2) {
+    var ret = makeMutClosure(arg0, arg1, 70, __wbg_adapter_24);
     return addHeapObject(ret);
 });
 

@@ -2,6 +2,8 @@
 import React, { useEffect, useState, useRef } from "react";
 import styled, { keyframes } from "styled-components";
 
+import { loadRuntime } from "../components/Canvas";
+
 import buoys from "../../content/assets/lobster-buoys.gif";
 import oysters from "../../content/assets/oyster.gif";
 import boat from "../../content/assets/boat.gif";
@@ -13,8 +15,101 @@ import mussels from "../../content/assets/mussels.gif";
 import platform from "../../content/assets/platform.gif";
 import empty from "../../content/assets/empty.gif";
 import wharf from "../../content/assets/wharf.gif";
+import land from "../../content/assets/land.gif";
 
 
+const TileSet = {
+    oysters: {
+        data: oysters,
+        value: 10,
+        probability: 0.05,
+        cost: 50,
+        becomes: "empty",
+        dialog: "Yum!"
+    },
+    mussels: {
+        data: mussels,
+        value: 5,
+        probability: 0.05,
+        cost: 25,
+        becomes: "empty",
+        dialog: "Yum!"
+    },
+    platform: {
+        data: platform,
+        value: 40,
+        probability: 0.01,
+        daialog: "beep boop, science",
+        limit: 1
+    },
+    fish: {
+        data: fish,
+        value: 20,
+        cost: 100,
+        probability: 0.02,
+        becomes: "empty",
+        dialog: "Yum!"
+    },
+    lighthouse: {
+        data: lighthouse,
+        value: 50,
+        probability: 0.01,
+        dialog: "sure is lonely out here",
+        limit: 1
+    },
+    gull: {
+        data: gull,
+        probability: 0.1,
+        becomes: ["fish", "oysters", "mussels"],
+        dialog: "Caaaawwww."
+    },
+    boat: {
+        data: boat,
+        value: -10,
+        probability: 0.03,
+        limit: 1,
+        becomes: "diver",
+        dialog: "Diver down!"
+    },
+    empty: {
+        data: empty,
+        cost: 5,
+        becomes: "buoys",
+        dialog: "Maybe there are some bugs around?"
+    },
+    land: {
+        data: land,
+        probability: 0.0,
+        cost: 0,
+        dialog: "Can't get there from here."
+    },
+    buoys: {
+        data: buoys,
+        probability: 0.03,
+        cost: 10,
+        becomes: "empty"
+    },
+    wharf: {
+        data: wharf,
+        value: 0,
+        probability: 0.02,
+        dialog: "'ey you hear about that fire last night?",
+        limit: 1
+    },
+    diver: {
+        data: diver,
+        value: -10,
+        probability: 0.0,
+        cost: 0,
+        becomes: "boat",
+        dialog: "brr, that's cold."
+    }
+};
+
+
+/*
+Canvas uses crisp-edges to preserve pixelated style of map
+*/
 const StyledCanvas = styled.canvas`
     display: inline-block;
     image-rendering: crisp-edges;
@@ -35,7 +130,7 @@ const StyledContainer = styled.div`
 
 
 const TileDiagonal = styled.div`
-    display: block;
+    display: block; 
     align-content: center;
     width: fit-content;
     margin-right: auto;
@@ -73,293 +168,91 @@ const GameTile = styled.img`
 `;
 
 
-const Spacer = styled.div`
-    position: relative;
-    display: inline-block;
-    width: 96px;
-    height: 96px;
-`;
-
-
 const StyledText = styled.div`
     font-size: larger;
     display: inline-block;
 `;
 
 
-export default ({ gridSize = 8, worldSize = 32, waterLevel = 0.7 }) => {
+export default ({ 
+    gridSize = 6, 
+    worldSize = 32, 
+    waterLevel = 0.7,
+    actionsPerDay = 6,
+ }) => {
+
+    const offset = (worldSize - gridSize) / 2;
 
     const [tiles, setTiles] = useState(null);
-    const [world, setWorld] = useState(null);
-    const [view, setView] = useState(null);
-    const [visible, setVisible] = useState(null);
     const [score, setScore] = useState(0);
     const [date, setDate] = useState(new Date(2025, 3, 1));
     const [actions, setActions] = useState(6);
+    const [runtime, setRuntime] = useState(null);
 
     const canvasRef = useRef(null);
-
-    const offset = (worldSize - gridSize) / 2;
+    const [map, setMap] = useState(null);
 
     const distanceFunction = (length, index) => {
         return 10 * (Math.sin(length / 2 - index) + 1);
     };
 
-    const swapTiles = (ii, jj, feature=null, cost=0) => {
-        return () => {
-            if (tiles && actions) {
-                const newTiles = [...tiles];
-                const [previous, flip] = newTiles[ii][jj];
-                const _feature = feature ? feature : Feature();
-                
-                newTiles[ii][jj] = [_feature, flip];
+    useEffect(loadRuntime(setRuntime), []);  // load WASM binaries
 
-                setTiles(newTiles);
-                setScore(score - TileSet[previous].value + TileSet[_feature].value - cost);
-                setActions(actions - 1);
-
-            } else {
-                console.log("bettah wait 'til tomorrow")
+    const build = (miniMap) => {
+        const diagonals = gridSize * 2 - 1;
+        const _build = [];
+        let count = 0;
+        miniMap.clear();
+        for (let row = 0; row < diagonals; row++) {
+            _build.push([]);
+            const columns = (row + (row < gridSize ? 1 : diagonals - 2 * row));
+            for (let column = 0; column < columns; column++) {
+                let col = columns - 1 - column; // reverse the order in the index
+                _build[row].push(miniMap.insert_tile(count++, row, col));
             }
+            _build[row] = _build[row].reverse();
         }
-    };
+        return _build
+    }
 
 
-    const TileSet = {
-        oysters: {
-            data: oysters,
-            value: 10,
-            probability: 0.05,
-            onClick: (ii, jj) => swapTiles(ii, jj, "empty", -50)
-        },
-        mussels: {
-            data: mussels,
-            value: 5,
-            probability: 0.05,
-            onClick: (ii, jj) => swapTiles(ii, jj, "empty", -25)
-        },
-        platform: {
-            data: platform,
-            value: 40,
-            probability: 0.01,
-            onClick:  () => () => {console.log("beep boop, science")},
-            limit: 1
-        },
-        fish: {
-            data: fish,
-            value: 20,
-            probability: 0.02,
-            onClick: (ii, jj) => swapTiles(ii, jj, "empty", -100)
-        },
-        lighthouse: {
-            data: lighthouse,
-            value: 50,
-            probability: 0.01,
-            onClick:  () => () => {console.log("sure is lonely out here")},
-            limit: 1
-        },
-        gull: {
-            data: gull,
-            value: 0,
-            probability: 0.1,
-            onClick: swapTiles
-        },
-        boat: {
-            data: boat,
-            value: -10,
-            probability: 0.03,
-            limit: 1,
-            onClick: (ii, jj) => swapTiles(ii, jj, "diver")
-        },
-        empty: {
-            data: empty,
-            value: 0,
-            probability: null,
-            onClick: (ii, jj) => swapTiles(ii, jj, "buoys", 5)
-        },
-        buoys: {
-            data: buoys,
-            value: 0,
-            probability: 0.03,
-            onClick: (ii, jj) => swapTiles(ii, jj, "empty", -10)
-        },
-        wharf: {
-            data: wharf,
-            value: 0,
-            probability: 0.02,
-            onClick: () => () => {console.log("'ey you hear about that fire last night?")},
-            limit: 1
-        },
-        diver: {
-            data: diver,
-            value: -10,
-            probability: null,
-            onClick: (ii, jj) => swapTiles(ii, jj, "boat")
-        }
-    };
-
-    const Feature = (counts=null) => {
+    useEffect(() => {
         /*
-        Use TileSet object as a probability table. Generate a random number
-        and iterate through the table until a feature is chosen. Assign the empty
-        tile by default.
-        
-        Need to scan over the whole thing to check if the
-        probability > 1.0. That would indicate a logical error in the TileSet
-        configuration.
+        When the runtime loads for the first time, create a pixel map instance
+        and draw the generated world to the canvas, then save the map reference
+        to react state.
+
+        Build the tileset from the random Feature table, or leave space for land.
+       
+        Create the probability table by accumulative discreet probabilities,
+        and save the object that will be query for tile selections to react state.
+
+        The same data structure will hold the selected tiles. 
         */
-        const random = Math.random();
-        let cummulativeProbability = 0.0;
-        let feature = "empty";
-        let setFeature = true;
-
+        if (!runtime || !canvasRef) return;
+        let _map = new runtime.MiniMap(
+            offset, 
+            offset/2, 
+            worldSize, 
+            waterLevel, 
+            canvasRef.current.getContext("2d"), 
+            gridSize
+        );
         Object.entries(TileSet).forEach(
-            ([key, { probability, limit }], ii) => {
-                if (counts && key in counts && counts[key] >= limit) {
-                    return;
-                }
-
-                if (probability && (random < (cummulativeProbability + probability))) {
-                    if (setFeature) {
-                        feature = key;
-                        setFeature = false;
-                    }
-                }
-                cummulativeProbability += probability;
+            ([key, {value=0.0, probability=0.0, limit=worldSize*worldSize}]) => {
+                _map.insert_feature({
+                    key,
+                    value, 
+                    probability,
+                    limit
+                });
             }
         );
-
-        if (cummulativeProbability > 1.0) {
-            console.log(`Total probability (${cummulativeProbability}) is greater than 1.0`);
-        }
-
-        return feature;
-    };
-
-
-    useEffect(() => {
-        /*
-        If canvas is ready, create an image buffer and randomly generate
-        the world.
-
-        A noise term and a object function are combined to create a land/water mask. This
-        approximates an island. 
-        
-        The alpha channel is used when rendering the game board to
-        determine whether or not to create a water feature.
-        */
-
-        if (canvasRef) {
-
-            const canvas = canvasRef.current;
-            const ctx = canvas.getContext("2d");
-            const imagedata = ctx.createImageData(worldSize, worldSize);
-            const quadrant = worldSize / 2;
-            const limit = Math.sqrt(2 * quadrant ** 2);
-
-            for (let ii = 0; ii < worldSize; ii++) {
-                for (let jj = 0; jj < worldSize; jj++) {
-
-                    const noise = 0.1 * Math.random();
-                    const distance = 1.0 - Math.sqrt((quadrant - ii) ** 2 + (quadrant - jj) ** 2) / limit;
-                    const elevation = Math.min(distance ** 2 + noise, 1.0);
-                    const mask = 255 * (elevation < waterLevel);
-                    const pixelIndex = (jj * worldSize + ii) * 4;
-
-                    imagedata.data[pixelIndex] = mask * Math.random() * 0.4;
-                    imagedata.data[pixelIndex + 1] = mask * 0.8 * (1.0 - (waterLevel - elevation));
-                    imagedata.data[pixelIndex + 2] = mask * (1.0 - (waterLevel - elevation));
-                    imagedata.data[pixelIndex + 3] = mask;
-                }
-            }
-            setView([offset, offset / 2]);
-            setWorld(imagedata);
-        }
-    }, []);
-
-    useEffect(() => {
-        /*
-        Once the navigation minimap has loaded, draw the world and the current view.
-        */
-        if (canvasRef && world && view) {
-            const boundingBox = gridSize + 2;
-            const canvas = canvasRef.current;
-            const ctx = canvas.getContext("2d");
-
-            ctx.putImageData(world, 0, 0);
-
-            const viewPort = ctx.getImageData(view[0] + 1, view[1] + 1, gridSize, gridSize);
-            const imageData = ctx.createImageData(boundingBox, boundingBox);
-            for (let ii = 0; ii < boundingBox; ii++) {
-                for (let jj = 0; jj < boundingBox; jj++) {
-                    const pixelindex = (jj * boundingBox + ii) * 4;
-                    imageData.data[pixelindex] = 0;
-                    imageData.data[pixelindex + 1] = 0;
-                    imageData.data[pixelindex + 2] = 0;
-                    imageData.data[pixelindex + 3] = 255;
-                }
-            }
-            ctx.putImageData(imageData, ...view);
-            ctx.putImageData(viewPort, view[0] + 1, view[1] + 1);
-            setVisible(viewPort);
-        }
-    }, [view]);
-
-    useEffect(() => {
-        /*
-        Build the tileset from the random Feature table, or leave space for land.
-        */
-        if (!visible) return;
+        setTiles(build(_map));
+        setMap(_map);
+    }, [runtime]);
     
-        let landMask = [];
-        const diagonals = gridSize * 2 - 1;
-        const build = [];
-        const featureCount = {};
-
-        for (let ii = 1; ii < 2 * gridSize; ii++) {
-            const column = Math.max(0, ii - gridSize);
-            const count = Math.min(ii, (gridSize - column), gridSize);
-            for (let jj = 0; jj < count; jj++) {
-                const index = ((column + jj) * gridSize + Math.min(gridSize, ii) - jj - 1) * 4 + 3;
-                landMask.push(visible.data[index] / 1000);
-            }
-        }
-
-        let count = 0;
-        let total = 0;
-        for (let ii = 0; ii < diagonals; ii++) {
-            build.push([]);
-            const stop = (ii + (ii < gridSize ? 1 : diagonals - 2 * ii));
-            for (let jj = 0; jj < stop; jj++) {
-                let data;
-                if (landMask[count++]) {
-                    const flip = Math.random() > 0.5;
-                    const feature = Feature(featureCount);
-                    if (!(feature in featureCount)) featureCount[feature] = 0;
-                    featureCount[feature]++
-                    data = [feature, flip];
-                    total += TileSet[feature].value;
-                } else {
-                    data = [null, null];
-                }
-                build[ii].push(data);
-            }
-            build[ii] = build[ii].reverse();
-        }
-
-        setTiles(build);
-        setScore(total);
-
-    }, [visible]);
-
-    useEffect(()=>{
-        if (date && !actions) {
-            setDate(new Date(date.setDate(date.getDate()+1)));
-            setActions(6);
-        }
-    },[actions]);
-
-
+    
     return (
         <StyledContainer>
             <StyledCanvas
@@ -367,31 +260,49 @@ export default ({ gridSize = 8, worldSize = 32, waterLevel = 0.7 }) => {
                 width={worldSize}
                 height={worldSize}
                 onClick={({ clientX, clientY }) => {
-                    setView([clientX * worldSize / 128, clientY * worldSize / 128]);
+                    const {left, top} = canvasRef.current.getBoundingClientRect();
+                    const ctx = canvasRef.current.getContext("2d");
+                    map.update_view(
+                        ctx,
+                        (clientX - left) * worldSize / 128, 
+                        (clientY - top) * worldSize / 128,
+                        worldSize,
+                        gridSize,
+                    );
+                    setTiles(build(map));
                 }}
             />
+
             <StyledText>
                 <p>{date.toLocaleDateString()}</p>
                 <p>Actions: {actions}</p>
-                <p>Score: {score}</p>
+                <p>Score: {map ? map.score() : 0.0 }</p>
             </StyledText>
 
-            {(tiles || []).map((diagonal, ii) =>
+            {((tiles || []).map((diagonal, ii) =>
                 <TileDiagonal key={ii}>{
-                    diagonal.map(([tile], jj) => (
-                        tile ?
-                            <GameTile
-                                phase={distanceFunction(diagonal.length, jj)}
-                                key={jj}
-                                src={TileSet[tile].data}
-                                onClick={TileSet[tile].onClick(ii, jj)}
-                            /> :
-                            <Spacer key={jj} />
-                    ))
-                }</TileDiagonal>
-            )}
+                    diagonal.map((tile, jj) => {
+                        const selection = TileSet[map.get_tile(tile).feature];
+
+                        return (<GameTile
+                            phase={distanceFunction(diagonal.length, jj)}
+                            key={jj}
+                            src={selection.data}
+                            onClick={() => {
+                                if (actions) {
+                                    map.replace_tile(ii, jj);
+                                    setActions(actions - 1);
+                                } else {
+                                    console.log("bettah wait 'til tomorrow");
+                                    setDate(new Date(date.setDate(date.getDate()+1)));
+                                    setActions(actionsPerDay);
+                                }
+                                if (selection.dialog) console.log(selection.dialog);
+                            }}
+                        />)
+                    })
+                }</TileDiagonal>))}
+            
         </StyledContainer>
     );
 };
-
-

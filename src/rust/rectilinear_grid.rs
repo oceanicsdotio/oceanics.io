@@ -1,10 +1,10 @@
 pub mod rectilinear_grid {
     
     use wasm_bindgen::prelude::*;
-    use wasm_bindgen::JsValue;
-    use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
+    use wasm_bindgen::{JsValue,Clamped};
+    use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement, ImageData};
     use std::collections::HashMap;
-    use serde::Deserialize;
+    use serde::{Deserialize,Serialize};
 
     use crate::cursor::cursor_system::SimpleCursor;
 
@@ -20,6 +20,14 @@ pub mod rectilinear_grid {
         pub label_padding: f64
     }
 
+    #[wasm_bindgen]
+    #[derive(Serialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct IslandKernel {
+        pub mask: f64, 
+        pub depth: f64
+    }
+
     struct Cell {
         /*
         An interior space define by joined vertices.
@@ -30,12 +38,13 @@ pub mod rectilinear_grid {
         pub select: bool
     }
 
+
     pub struct RectilinearGrid {
         /*
         Good old fashion 3D grid, usually projected into the X,Y plane.
         */
-        shape: [u16; 3],
-        cells: HashMap<(u16,u16,u16), Cell>,
+        shape: [u32; 3],
+        cells: HashMap<(u32,u32,u32), Cell>,
     }
 
 
@@ -43,7 +52,7 @@ pub mod rectilinear_grid {
         /*
         Grid is both rectilinear and rectangular. 
         */
-        pub fn new(nx: u16, ny: u16, nz: u16) -> RectilinearGrid {
+        pub fn new(nx: u32, ny: u32, nz: u32) -> RectilinearGrid {
             /*
             Only the number of desired cells in each dimension
             */
@@ -57,11 +66,11 @@ pub mod rectilinear_grid {
         fn h(&self) -> f64 {self.shape[1] as f64}
         fn d(&self) -> f64 {self.shape[2] as f64}
 
-        fn size(&self) -> u16 {
+        fn size(&self) -> u32 {
             /*
             Flexible sizing, in case implementing with vector instead of array
             */
-            let mut result: u16 = 1;
+            let mut result: u32 = 1;
             for dim in &self.shape {
                 result *= dim;
             }
@@ -110,7 +119,7 @@ pub mod rectilinear_grid {
             }
         }
 
-        pub fn insert(&mut self, ii: u16, jj: u16) -> bool {
+        pub fn insert(&mut self, ii: u32, jj: u32) -> bool {
             /*
             Add a tracked cell to the grid.
             */
@@ -131,14 +140,14 @@ pub mod rectilinear_grid {
         grid: RectilinearGrid,
         cursor: SimpleCursor,
         frames: usize,
-        stencil_radius: u8,
+        stencil_radius: u8
     }
 
 
     #[wasm_bindgen]
     impl InteractiveGrid {
         #[wasm_bindgen(constructor)]
-        pub fn new(nx: u16, ny: u16, nz: u16, stencil: u8) -> InteractiveGrid {
+        pub fn new(nx: u32, ny: u32, nz: u32, stencil: u8) -> InteractiveGrid {
             /*
             JavaScript binding for creating a new interactive grid container
             */
@@ -165,7 +174,7 @@ pub mod rectilinear_grid {
 
             For very large meshes the uniqueness guarentee makes it slow
             */
-            let restart = self.frames as u16 % self.grid.size() <= 0;
+            let restart = self.frames as u32 % self.grid.size() <= 0;
             match restart {
                 true => {
                     self.grid.cells.clear();
@@ -173,8 +182,8 @@ pub mod rectilinear_grid {
                 false => loop {
                     unsafe {
                         let (ii, jj) = (
-                            (js_sys::Math::random()*self.grid.w()).floor() as u16,
-                            (js_sys::Math::random()*self.grid.h()).floor() as u16
+                            (js_sys::Math::random()*self.grid.w()).floor() as u32,
+                            (js_sys::Math::random()*self.grid.h()).floor() as u32
                         );
                         if self.grid.insert(ii, jj) {break;}
                     }
@@ -243,6 +252,447 @@ pub mod rectilinear_grid {
             
             self.frames += 1;
         }
+    }
+
+    #[wasm_bindgen]
+    pub struct MiniMap {
+        view: [f64; 2],
+        data: Vec<u8>,
+        mask: Vec<f64>,
+        world_size: u32,
+        grid_size: u32,
+        tile_set: TileSet
+    }
+
+    fn island_kernel(ii: u32, jj: u32, world_size: f64, water_level: f64) -> [f64; 2] {
+            
+        let quadrant: f64 = world_size / 2.0;
+        let limit: f64 = (2.0 * quadrant.powi(2)).sqrt();
+
+        let noise: f64 = 0.1 * js_sys::Math::random();
+        let distance: f64 = 1.0 - ((quadrant - ii as f64).powi(2) + (quadrant - jj as f64).powi(2)).sqrt() / limit;
+        let elevation: f64 = (distance.powi(2) + noise).min(1.0);
+        let mask: f64 = 255.0 * (elevation < water_level) as u8 as f64;
     
+        [
+            mask,
+            1.0 - (water_level - elevation)
+        ]
+    }
+
+
+    fn image_data_data(world_size: u32, water_level: f64) -> Vec<u8> {
+        let data = &mut Vec::with_capacity((world_size*world_size*4) as usize);
+        for ii in 0..world_size {
+            for jj in 0..world_size {
+                let index: usize = ((ii * world_size + jj) * 4) as usize;
+                let [mask, depth] = island_kernel(ii, jj, world_size as f64, water_level);
+
+                let red = (mask * js_sys::Math::random() * 0.4).floor() as u8;
+                let green = (mask * 0.8 * depth).floor() as u8;
+                let blue = (mask * depth).floor() as u8;
+                let alpha = mask.floor() as u8;
+
+                data.push(red);
+                data.push(green);
+                data.push(blue);
+                data.push(alpha);
+            }
+        }
+        data.to_vec()
+    }
+
+
+    #[wasm_bindgen]
+    pub fn image_data(world_size: u32, water_level: f64) -> ImageData {
+        
+        let data = &mut image_data_data(world_size.clone(), water_level);
+        ImageData::new_with_u8_clamped_array(Clamped(data), world_size as u32).unwrap()
+    }
+
+
+    fn visible(view: &[f64; 2], ctx: &CanvasRenderingContext2d, grid_size: &usize) -> ImageData {
+        ctx.get_image_data(
+            view[0] + 1.0, 
+            view[1] + 1.0, 
+            *grid_size as f64, 
+            *grid_size as f64
+        ).unwrap()
+    }
+
+
+    #[wasm_bindgen]
+    impl MiniMap {
+        #[wasm_bindgen(constructor)]
+        pub fn new(vx: f64, vy: f64, world_size: u32, water_level: f64, ctx: CanvasRenderingContext2d, grid_size: u32) -> MiniMap {
+            
+            let view = [vx, vy];
+            
+
+            let mut map = MiniMap{
+                view: [vx, vy],
+                data: image_data_data(world_size, water_level).to_vec(),
+                mask: Vec::new(), //land_mask(vis, grid_size)
+                world_size,
+                grid_size,
+                tile_set: TileSet::new((grid_size*grid_size) as usize)
+            };
+            {
+                map.draw_image_data(&ctx);
+                map.create_land_mask(&ctx);
+            }
+            map
+        }
+
+        pub fn insert_feature(&mut self, feature: JsValue) {
+            self.tile_set.insert_feature(feature);
+        }
+
+        pub fn score(&self) -> f64 {
+            self.tile_set.score()
+        }
+
+        pub fn get_tile(&self, index: usize) -> JsValue {
+            self.tile_set.get_tile(index)
+        }
+
+        pub fn replace_tile(&mut self, ii: usize, jj:usize) {
+            self.tile_set.replace_tile(ii, jj);
+        }
+
+        pub fn clear(&mut self) {
+            self.tile_set.clear();
+        }
+
+        pub fn insert_tile(&mut self, ind: usize, ii: usize, jj: usize) -> usize {
+            let mut index: usize = 0;
+            if self.mask[ind] > 0.000001 {
+                index = self.tile_set.insert_water_tile(ii, jj);
+            } else {
+                index = self.tile_set.insert_land_tile(ii, jj);
+            }
+            index
+        }
+       
+        fn create_land_mask(&mut self, ctx: &CanvasRenderingContext2d) {
+            /*
+            Map the alpha channel of the image data into a land_mask. 
+            */
+
+            let mut mask: Vec<f64> = vec![];
+            let data = self.visible(ctx).data();
+            for ii in 1..2*self.grid_size {
+                let column = ii - self.grid_size.min(ii);
+                let count = (ii).min(self.grid_size  - column).min(self.grid_size);
+                for jj in 0..count {
+                    let alpha_index = ((column + jj) * self.grid_size + self.grid_size.min(ii) - jj - 1) * 4 + 3;
+                    self.mask.push(data[alpha_index as usize] as f64 / 1000.0);
+                }
+            }
+        }
+
+        pub fn get_mask(&self, index: usize) -> f64 {
+            /*
+            Access an element of the mask by index
+            */
+            *self.mask.get(index).unwrap()
+        }
+
+        pub fn visible(&self, ctx: &CanvasRenderingContext2d) -> ImageData {
+            visible(&self.view, ctx, &(self.grid_size as usize))
+        }
+
+        pub fn view_x(&self) -> f64 {
+            /*
+            Access method for current view
+            */
+            self.view[0]
+        }
+
+        pub fn view_y(&self) -> f64 {
+            /*
+            Access method for current view
+            */
+            self.view[1]
+        }
+
+        pub fn update_view(&mut self, ctx: CanvasRenderingContext2d, vx: f64, vy: f64) {
+            /*
+            Move the field of view in the overall world image. Input is used 
+            my onClick events to navigate around the map.
+            */
+            self.view = [vx.floor(), vy.floor()];
+            self.draw_image_data(&ctx);
+            self.create_land_mask(&ctx);
+        }
+
+        pub fn draw_bbox(&self, ctx: &CanvasRenderingContext2d) {
+            /*
+            Make a white box, that will be filled in with image
+            data to form a frame. 
+            */
+            
+            let bbox = self.grid_size + 2;
+            let bbox_u32 = bbox as u32;
+            let data: &mut Vec<u8> = &mut vec![255; (bbox*bbox*4) as usize];
+            ctx.put_image_data(
+                &ImageData::new_with_u8_clamped_array_and_sh(
+                    Clamped(data), bbox_u32, bbox_u32
+                ).unwrap(), 
+                self.view[0], 
+                self.view[1]
+            );
+        }
+
+        pub fn draw_image_data(&mut self, ctx: &CanvasRenderingContext2d) {
+    
+            /*
+            Draw the image data, then a square, and then fill the square with part of the image data again to form
+            a frame
+            */
+            let [vx, vy] = self.view;
+            let data = &mut self.data;
+            let world = ImageData::new_with_u8_clamped_array(Clamped(data), self.world_size as u32).unwrap();
+            ctx.put_image_data(&world, 0.0, 0.0);
+            let viewPort = ctx.get_image_data(vx + 1.0, vy + 1.0, self.grid_size as f64, self.grid_size as f64).unwrap(); 
+
+            self.draw_bbox(&ctx);
+            ctx.put_image_data(&viewPort, vx + 1.0, vy + 1.0);
+        }   
+    }
+
+    #[wasm_bindgen]
+    #[derive(Serialize,Deserialize,Clone)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Tile {
+        feature: String,
+        flip: bool,
+        value: f64,
+    }
+
+    #[wasm_bindgen]
+    pub struct TileSet {
+        /*
+        Tileset collects data structures related to generating and saving
+        features in the game
+        */
+        tiles: Vec<Tile>,
+        probability_table: ProbabilityTable,
+        count: HashMap<String, u32>,
+        index: HashMap<DiagonalIndex,usize>
+    }
+
+    
+    #[wasm_bindgen]
+    #[derive(Serialize,Deserialize,Clone)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Feature {
+        /*
+        Features are used in multiple ways. Both by the probability table.
+        and by the game interface. 
+        */
+        key: String,
+        value: f64,
+        probability: f64,
+        limit: u32
+    }
+
+    #[derive(Hash,Eq,PartialEq)]
+    struct DiagonalIndex{
+        /*
+        Used as index in the lookup functions that 
+        translate between reference frames.
+        */
+        row: usize,
+        column: usize
+    }
+    
+    impl TileSet {
+       
+        pub fn new(count: usize) -> TileSet {
+            TileSet{
+                tiles: Vec::with_capacity(count),
+                probability_table: ProbabilityTable::new(),
+                count: HashMap::new(),
+                index: HashMap::with_capacity(count)
+            }
+        }
+
+        pub fn clear(&mut self) {
+            /*
+            Drain the bookkeeping collections before rebuilding
+            the selected features.
+            */
+            self.count.clear();
+            self.tiles.clear();
+            self.index.clear();
+        }
+
+        pub fn score(&self) -> f64 {
+            /*
+            Accumulate score from all tiles in the
+            current selection
+            */
+            let mut total = 0.0;
+            for tile in &self.tiles {
+                total += tile.value;
+            }
+            total
+        }
+
+        pub fn insert_feature(&mut self, feature: JsValue) {
+            /*
+            Hoist the table insert function.
+
+            Deserialize JS objects into Rust Features, and insert these into
+            the probability table.
+            */
+            let rfeature: Feature = feature.into_serde().unwrap();
+            self.probability_table.insert(rfeature);
+        }
+
+        pub fn get_tile(&self, index: usize) -> JsValue {
+            /*
+            Get tile as a JSON object
+            */
+            JsValue::from_serde(&self.tiles.get(index).unwrap()).unwrap()
+        }
+
+        pub fn replace_tile(&mut self, ii: usize, jj: usize) {
+            /*
+            Change the existing feature to a new one
+            */
+
+            let index: &usize = self.index.get(&DiagonalIndex{row:ii, column:jj}).unwrap();
+            let previous = self.tiles[*index].clone();
+            loop {
+                let feature: Feature = self.probability_table.pick_one();
+                let mut count: u32 = 0;
+                if self.count.contains_key(&feature.key) { 
+                    count = self.count.get(&feature.key).unwrap().clone();
+                }
+                if count >= feature.limit { continue; }
+                
+                self.count.insert(feature.key.clone(), count + 1);
+                self.tiles[*index] = Tile{
+                    feature: feature.key,
+                    flip: previous.flip,
+                    value: feature.value
+                };
+                break;
+            }
+        }
+
+        pub fn insert_land_tile(&mut self, ii: usize, jj: usize) -> usize {
+            /*
+            Invisbible placeholder for land tile, so that all spaces are
+            treated the same way
+            */
+            let current_size = self.tiles.len();
+            self.index.insert(DiagonalIndex{row: ii,column: jj}, current_size);
+            self.tiles.push(Tile{
+                feature: "land".to_string(),
+                flip: false,
+                value: 0.0
+            });
+            current_size
+        }
+
+        pub fn insert_water_tile(&mut self, ii: usize, jj: usize) -> usize {
+            /*
+            Choose a water feature to add to the map
+            */
+            let current_size = self.tiles.len();
+            loop {
+                let feature: Feature = self.probability_table.pick_one();
+                let mut count: u32 = 0;
+                if self.count.contains_key(&feature.key) { 
+                    count = self.count.get(&feature.key).unwrap().clone();
+                }
+                if count >= feature.limit { continue; }
+                
+                self.count.insert(feature.key.clone(), count + 1);
+                self.tiles.push(Tile{
+                    feature: feature.key,
+                    flip: false,
+                    value: feature.value
+                });
+                break;
+            }
+            self.index.insert(DiagonalIndex{row: ii, column: jj}, current_size);
+            current_size
+        }
+
+    }
+
+    
+    pub struct ProbabilityTable {
+        /*
+        Generate features randomly
+        */
+        lookup: HashMap<String, usize>,
+        table: Vec<Feature>
+    }
+
+    
+    impl ProbabilityTable {
+        /*
+        Use TileSet object as a probability table. Generate a random number
+        and iterate through the table until a feature is chosen. Assign the empty
+        tile by default.
+        
+        Need to scan over the whole thing to check if the
+        probability > 1.0. That would indicate a logical error in the TileSet
+        configuration.
+        */
+        pub fn new() -> ProbabilityTable {
+            /*
+            Create a new empty table, that will be programmatically filled. 
+            */
+            ProbabilityTable {
+                lookup: HashMap::new(),
+                table: Vec::new()
+            }
+        }
+
+        pub fn insert(&mut self, feature: Feature) {
+            /*
+            Insert a feature instance into the probability table. 
+
+            The table is always built up from empty, and cannot be drained.
+            */
+
+            if !self.lookup.contains_key(&feature.key) {
+                let current_size = self.table.len();
+                let mut current_total = 0.0;
+
+                if current_size > 0 {
+                    current_total = self.table.get(current_size-1).unwrap().probability;
+                }
+
+                self.table.push(Feature {
+                    key: feature.key.clone(),
+                    value: feature.value,
+                    limit: feature.limit,
+                    probability: current_total + feature.probability
+                });
+                self.lookup.insert(feature.key.clone(), current_size);
+            }
+        }
+
+        pub fn pick_one(&self) -> Feature {
+            /*
+            Pick a random feature, defaulting to empty ocean space
+            */
+
+            let probability = js_sys::Math::random();
+            let mut feature: Feature = Feature{key: "empty".to_string(), value: 0.0, probability: 0.0, limit: 1000};
+            for ii in 0..self.table.len() {
+                if probability < self.table[ii].probability {
+                    feature = (*self.table.get(ii).unwrap()).clone()
+                }
+            }
+            feature
+        }
     }
 }

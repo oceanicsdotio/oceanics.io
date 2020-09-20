@@ -1,22 +1,14 @@
 
-import React, { useEffect, useState } from "react"
-import { graphql } from "gatsby";
-
+import React from "react"
+import SEO from "../components/SEO";
 import Oceanside from "../components/Oceanside";
 
-export default ({data: {site: {siteMetadata: {title}}}, location}) => {
-       
+export default () => {     
     return (
-      <Oceanside />
+        <>
+        <SEO title="Take a break ocean side" />
+        <Oceanside />
+        </>
     )
 };
 
-export const pageQuery = graphql`
-  query {
-    site {
-      siteMetadata {
-        title
-      }
-    }
-  }
-`
