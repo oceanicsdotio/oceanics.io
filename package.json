@@ -27,7 +27,7 @@
     "gatsby-react-router-scroll": "^3.0.13",
     "gatsby-remark-copy-linked-files": "^2.1.36",
     "gatsby-remark-images": "^3.1.42",
-    "gatsby-remark-katex": "^3.1.23",
+    "gatsby-remark-katex": "^3.3.12",
     "gatsby-remark-responsive-iframe": "^2.4.14",
     "gatsby-remark-smartypants": "^2.1.20",
     "gatsby-source-filesystem": "^2.3.30",
