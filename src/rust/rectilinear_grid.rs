@@ -261,7 +261,8 @@ pub mod rectilinear_grid {
         mask: Vec<f64>,
         world_size: u32,
         grid_size: u32,
-        tile_set: TileSet
+        tile_set: TileSet,
+        actions: u32,
     }
 
     fn island_kernel(ii: u32, jj: u32, world_size: f64, water_level: f64) -> [f64; 2] {
@@ -325,23 +326,31 @@ pub mod rectilinear_grid {
     impl MiniMap {
         #[wasm_bindgen(constructor)]
         pub fn new(vx: f64, vy: f64, world_size: u32, water_level: f64, ctx: CanvasRenderingContext2d, grid_size: u32) -> MiniMap {
-            
-            let view = [vx, vy];
-            
-
+            /*
+            COnstructor to init the data structure from JavaScript. 
+            */
             let mut map = MiniMap{
                 view: [vx, vy],
                 data: image_data_data(world_size, water_level).to_vec(),
-                mask: Vec::new(), //land_mask(vis, grid_size)
+                mask: Vec::new(),
                 world_size,
                 grid_size,
-                tile_set: TileSet::new((grid_size*grid_size) as usize)
+                tile_set: TileSet::new((grid_size*grid_size) as usize),
+                actions: 6,
             };
             {
                 map.draw_image_data(&ctx);
                 map.create_land_mask(&ctx);
             }
             map
+        }
+
+        pub fn set_actions(&mut self, actions: u32) {
+            self.actions = actions;
+        }
+
+        pub fn actions(&self) -> u32 {
+            self.actions
         }
 
         pub fn insert_feature(&mut self, feature: JsValue) {
@@ -378,15 +387,13 @@ pub mod rectilinear_grid {
             /*
             Map the alpha channel of the image data into a land_mask. 
             */
-
-            let mut mask: Vec<f64> = vec![];
             let data = self.visible(ctx).data();
             for ii in 1..2*self.grid_size {
                 let column = ii - self.grid_size.min(ii);
                 let count = (ii).min(self.grid_size  - column).min(self.grid_size);
                 for jj in 0..count {
                     let alpha_index = ((column + jj) * self.grid_size + self.grid_size.min(ii) - jj - 1) * 4 + 3;
-                    self.mask.push(data[alpha_index as usize] as f64 / 1000.0);
+                    self.mask.push(data[alpha_index as usize] as f64 / 255.0);
                 }
             }
         }
@@ -624,7 +631,6 @@ pub mod rectilinear_grid {
         }
 
     }
-
     
     pub struct ProbabilityTable {
         /*
@@ -665,7 +671,6 @@ pub mod rectilinear_grid {
             if !self.lookup.contains_key(&feature.key) {
                 let current_size = self.table.len();
                 let mut current_total = 0.0;
-
                 if current_size > 0 {
                     current_total = self.table.get(current_size-1).unwrap().probability;
                 }
@@ -689,7 +694,8 @@ pub mod rectilinear_grid {
             let mut feature: Feature = Feature{key: "empty".to_string(), value: 0.0, probability: 0.0, limit: 1000};
             for ii in 0..self.table.len() {
                 if probability < self.table[ii].probability {
-                    feature = (*self.table.get(ii).unwrap()).clone()
+                    feature = (*self.table.get(ii).unwrap()).clone();
+                    break;
                 }
             }
             feature

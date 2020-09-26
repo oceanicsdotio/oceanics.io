@@ -528,7 +528,7 @@ function getUint8ClampedMemory0() {
 function getClampedArrayU8FromWasm0(ptr, len) {
     return getUint8ClampedMemory0().subarray(ptr / 1, ptr / 1 + len);
 }
-function __wbg_adapter_234(arg0, arg1, arg2, arg3) {
+function __wbg_adapter_228(arg0, arg1, arg2, arg3) {
     _assertNum(arg0);
     _assertNum(arg1);
     wasm.wasm_bindgen__convert__closures__invoke2_mut__h96984aac8d17c2af(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
@@ -601,36 +601,6 @@ export class ContextCursor {
             heap[stack_pointer++] = undefined;
             heap[stack_pointer++] = undefined;
         }
-    }
-}
-/**
-*/
-export class Diagonal {
-
-    constructor() {
-        throw new Error('cannot invoke `new` directly');
-    }
-
-    free() {
-        const ptr = this.ptr;
-        this.ptr = 0;
-
-        wasm.__wbg_diagonal_free(ptr);
-    }
-}
-/**
-*/
-export class Diagonals {
-
-    constructor() {
-        throw new Error('cannot invoke `new` directly');
-    }
-
-    free() {
-        const ptr = this.ptr;
-        this.ptr = 0;
-
-        wasm.__wbg_diagonals_free(ptr);
     }
 }
 /**
@@ -1019,6 +989,24 @@ export class MiniMap {
         return MiniMap.__wrap(ret);
     }
     /**
+    * @param {number} actions
+    */
+    set_actions(actions) {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        _assertNum(actions);
+        wasm.minimap_set_actions(this.ptr, actions);
+    }
+    /**
+    * @returns {number}
+    */
+    actions() {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        var ret = wasm.minimap_actions(this.ptr);
+        return ret >>> 0;
+    }
+    /**
     * @param {any} feature
     */
     insert_feature(feature) {
@@ -1295,11 +1283,8 @@ export class Tile {
 */
 export class TileSet {
 
-    static __wrap(ptr) {
-        const obj = Object.create(TileSet.prototype);
-        obj.ptr = ptr;
-
-        return obj;
+    constructor() {
+        throw new Error('cannot invoke `new` directly');
     }
 
     free() {
@@ -1307,86 +1292,6 @@ export class TileSet {
         this.ptr = 0;
 
         wasm.__wbg_tileset_free(ptr);
-    }
-    /**
-    * @param {number} count
-    */
-    constructor(count) {
-        _assertNum(count);
-        var ret = wasm.tileset_new(count);
-        return TileSet.__wrap(ret);
-    }
-    /**
-    */
-    clear() {
-        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.ptr);
-        wasm.tileset_clear(this.ptr);
-    }
-    /**
-    * @returns {number}
-    */
-    score() {
-        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.ptr);
-        var ret = wasm.tileset_score(this.ptr);
-        return ret;
-    }
-    /**
-    * @param {any} feature
-    */
-    insert_feature(feature) {
-        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.ptr);
-        wasm.tileset_insert_feature(this.ptr, addHeapObject(feature));
-    }
-    /**
-    * @param {number} index
-    * @returns {any}
-    */
-    get_tile(index) {
-        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.ptr);
-        _assertNum(index);
-        var ret = wasm.tileset_get_tile(this.ptr, index);
-        return takeObject(ret);
-    }
-    /**
-    * @param {number} ii
-    * @param {number} jj
-    */
-    replace_tile(ii, jj) {
-        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.ptr);
-        _assertNum(ii);
-        _assertNum(jj);
-        wasm.tileset_replace_tile(this.ptr, ii, jj);
-    }
-    /**
-    * @param {number} ii
-    * @param {number} jj
-    * @returns {number}
-    */
-    insert_land_tile(ii, jj) {
-        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.ptr);
-        _assertNum(ii);
-        _assertNum(jj);
-        var ret = wasm.tileset_insert_land_tile(this.ptr, ii, jj);
-        return ret >>> 0;
-    }
-    /**
-    * @param {number} ii
-    * @param {number} jj
-    * @returns {number}
-    */
-    insert_water_tile(ii, jj) {
-        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.ptr);
-        _assertNum(ii);
-        _assertNum(jj);
-        var ret = wasm.tileset_insert_water_tile(this.ptr, ii, jj);
-        return ret >>> 0;
     }
 }
 
@@ -1755,7 +1660,7 @@ export const __wbg_new_261626435fed913c = logError(function(arg0, arg1) {
             const a = state0.a;
             state0.a = 0;
             try {
-                return __wbg_adapter_234(a, state0.b, arg0, arg1);
+                return __wbg_adapter_228(a, state0.b, arg0, arg1);
             } finally {
                 state0.a = a;
             }
@@ -1871,7 +1776,7 @@ export const __wbindgen_memory = function() {
     return addHeapObject(ret);
 };
 
-export const __wbindgen_closure_wrapper3403 = logError(function(arg0, arg1, arg2) {
+export const __wbindgen_closure_wrapper3317 = logError(function(arg0, arg1, arg2) {
     var ret = makeMutClosure(arg0, arg1, 70, __wbg_adapter_24);
     return addHeapObject(ret);
 });

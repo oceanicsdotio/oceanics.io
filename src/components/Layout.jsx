@@ -16,6 +16,7 @@ import RectilinearGrid from "../components/RectilinearGrid";
 import TriangularMesh from "../components/TriangularMesh";
 import HexagonalGrid from "../components/HexagonalGrid";
 import Model from "../components/Model";
+import {AllTiles} from "../components/Oceanside";
 
 
 const StyledLayout = styled.div`
@@ -97,7 +98,19 @@ const cultureMethods = ["Bottom", "Rope (Horizontal)", "Rope (Vertical)", "Ear h
 const cultureSpecies = ["Oysters", "Scallops", "Mussels", "Macroalgae", "Finfish"];
 const stages = ['Prospecting', "Applying", "Operating", "Renewing", "Expanding"];
 const reason = ["Shellfish sanitation", "Lease hearing", "Lawsuit", "Exploring"];
-const shortcodes = {Noise, StyledCaption, Lagrangian, DataStream, Particles, RectilinearGrid, TriangularMesh, HexagonalGrid, Model};
+
+const shortcodes = {
+    Noise, 
+    StyledCaption, 
+    Lagrangian, 
+    DataStream, 
+    Particles, 
+    RectilinearGrid, 
+    TriangularMesh, 
+    HexagonalGrid, 
+    Model,
+    AllTiles
+};
 
 const ListLink = ({external=false, children, key, ...props}) => {
     return (
