@@ -1,9 +1,7 @@
-
 import React, { useEffect, useState, useRef } from "react";
 import styled from "styled-components";
 
 import { loadRuntime } from "../components/Canvas";
-
 
 const createImageRef = (data) => {
     let img = new Image();
@@ -234,7 +232,7 @@ const StyledBoard = styled.canvas`
     left: 0;
     top: 0;
     width: 600px;
-    height: 450px;
+    height: 600px;
     margin: 0 0 0 0;
     border: 1px solid orange;
 `;
@@ -402,10 +400,35 @@ export default ({
         if (!canvasRef2 || !tiles) return;
 
         let start = performance.now();
+        let view = [[null, null, null, null], [null, null, null, null]];
 
         canvasRef2.current.addEventListener('mousemove', ({clientX, clientY}) => {
             const {left, top} = canvasRef2.current.getBoundingClientRect();
-            // do something
+            const rescale = canvasRef2.current.width/gridSize;
+
+            const rescale2 = rescale/Math.sqrt(2);
+
+            // scale back to square
+            let [xx, yy] = [clientX - left, clientY - top];
+            let [cx, cy] = [xx/2.0, yy/2.0];
+
+            // translate point back to origin:
+            xx -= cx;
+            yy -= cy;
+
+            // get rotation components
+            let s = Math.sin(-90.0);
+            let c = Math.cos(-90.0);
+
+            // rotate point
+            // xx = (xx * c - yy * s);
+            // yy = (xx * s + yy * c);
+
+            view = [
+                [Math.floor((xx+cx)*dpi/rescale)*rescale, Math.floor((yy+cy)*dpi/rescale)*rescale, rescale, rescale],
+                [Math.floor((xx+cx)*dpi/rescale)*rescale2, Math.floor((yy+cy)*dpi/rescale)*rescale2, rescale2, rescale2]
+            ];
+
         });
 
         const dpi = window.devicePixelRatio;
@@ -419,12 +442,13 @@ export default ({
         ctx.imageSmoothingEnabled = false;  // disable nearest neighbor interpolation
         let requestId = null;
         const frameOffset = Array.from({length: gridSize*gridSize}, () => Math.floor(Math.random() * 4));
+        
 
         (function render() {
 
             ctx.clearRect(0, 0, canvasRef2.current.width, canvasRef2.current.height);
             const time = performance.now() - start;
-            const phase = (time / 50000.0) % 1.0;
+            const phase = (time / 10000.0) % 1.0;
             let count = 0;
             const dryThreshold = -0.75*SPRITE_SIZE;
 
@@ -437,8 +461,6 @@ export default ({
                     const xx = (SPRITE_SIZE*jj + (gridSize - (diagonal.length-1)/2)*SPRITE_SIZE) - SPRITE_SIZE*(gridSize+1)/2;
                     let zz = -(Math.sin((phase + xx/canvasRef2.current.width)*2*Math.PI) + 1.0) * SPRITE_SIZE / 2;
                     let feature = map.get_tile(tile).feature;
-                    let depth = map.get_mask(tile);
-                    console.log(depth);
                     if (zz < dryThreshold && feature === "empty") {
                         feature = "mud";
                         zz = dryThreshold;
@@ -456,6 +478,28 @@ export default ({
                 });
             });
 
+           
+            const rescale2 = canvasRef2.current.width/gridSize/Math.sqrt(2);
+
+            ctx.strokeStyle="#FFFFFFFF";
+            ctx.beginPath();
+            ctx.rect(...view[0]);
+            ctx.stroke();
+
+            ctx.strokeStyle="#FF00FFFF";
+
+            ctx.translate((Math.floor(0.5*gridSize) + 0.75)*rescale2, rescale2*0.25);
+            ctx.scale(1.0, 0.5);
+            ctx.translate(rescale2/2.0, 0.0);
+            ctx.rotate(45 * Math.PI / 180);
+            
+            ctx.beginPath();
+            ctx.rect(...view[1]);
+            ctx.stroke();
+
+            // Reset transformation matrix to the identity matrix
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+           
             requestId = requestAnimationFrame(render);
         })()
 
