@@ -2,8 +2,9 @@ pub mod rectilinear_grid {
     
     use wasm_bindgen::prelude::*;
     use wasm_bindgen::{JsValue,Clamped};
-    use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement, ImageData};
+    use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement, HtmlImageElement, ImageData};
     use std::collections::HashMap;
+    use std::f64::consts::PI;
     use serde::{Deserialize,Serialize};
 
     use crate::cursor::cursor_system::SimpleCursor;
@@ -266,7 +267,9 @@ pub mod rectilinear_grid {
     }
 
     fn island_kernel(ii: u32, jj: u32, world_size: f64, water_level: f64) -> [f64; 2] {
-            
+        /*
+        Create an island-like feature in an image format
+        */
         let quadrant: f64 = world_size / 2.0;
         let limit: f64 = (2.0 * quadrant.powi(2)).sqrt();
 
@@ -283,6 +286,9 @@ pub mod rectilinear_grid {
 
 
     fn image_data_data(world_size: u32, water_level: f64) -> Vec<u8> {
+        /*
+        Create image data
+        */
         let data = &mut Vec::with_capacity((world_size*world_size*4) as usize);
         for ii in 0..world_size {
             for jj in 0..world_size {
@@ -321,7 +327,20 @@ pub mod rectilinear_grid {
         ).unwrap()
     }
 
+    #[wasm_bindgen]
+    pub fn x_transform (jj: f64, length: f64, grid_size: usize) -> f64 {
+        const SPRITE_SIZE: f64 = 32.0;
+        SPRITE_SIZE*((jj + (grid_size as f64 - (length-1.0)/2.0)) - (grid_size as f64+1.0)/2.0)
 
+    }
+    
+    #[wasm_bindgen]
+    pub fn z_transform(xx: f64, phase: f64, width: f64) -> f64 {
+        const SPRITE_SIZE: f64 = 32.0;
+        -1.0 * (((phase + xx/width)*2.0*PI).sin() + 1.0) * SPRITE_SIZE / 2.0
+    }
+  
+    
     #[wasm_bindgen]
     impl MiniMap {
         #[wasm_bindgen(constructor)]
@@ -345,6 +364,55 @@ pub mod rectilinear_grid {
             map
         }
 
+        pub fn get_dynamic_tile(&self, jj: f64, index: usize, length: f64, width: f64, phase: f64) -> String {
+            /*
+            
+            */
+            const SPRITE_SIZE: f64 = 32.0;
+            const DRY_THRESHOLD: f64 = -0.75*SPRITE_SIZE;
+            let mut feature: &str = &self.tile_set.tiles.get(index).unwrap().feature;
+                    
+            let xx = x_transform(jj, length, self.grid_size as usize);
+            let zz = z_transform(xx, phase, width);
+         
+            if zz < DRY_THRESHOLD && feature == "empty" {
+                feature = &"mud"
+            }
+            String::from(feature)
+        }
+
+        pub fn draw_tile(&self, ctx: CanvasRenderingContext2d, ii: f64, jj: f64, length: f64, time: f64, width: f64, tile: usize) {
+
+            const SPRITE_SIZE: f64 = 32.0;
+            const DRY_THRESHOLD: f64 = -0.75*SPRITE_SIZE;
+
+            let sprite_scale = width / SPRITE_SIZE / self.grid_size as f64;
+            let phase = (time / 10000.0) % 1.0;
+            let offset: f64 = self.tile_set.tiles.get(tile).unwrap().frame_offset;
+
+            let yy = SPRITE_SIZE/4.0*ii;
+            let xx = x_transform(jj, length, self.grid_size as usize);
+            let mut zz = z_transform(xx, phase, width);
+            
+            let feature = self.get_dynamic_tile(jj, tile, length, width, phase);
+            if feature == "mud".to_string() {
+                zz = (zz).max(DRY_THRESHOLD);
+            }
+
+            let image_data_url: &String = &self.tile_set.probability_table.get_by_key(&feature).data_url;
+            let image_sprite = HtmlImageElement::new().unwrap();
+            image_sprite.set_src(image_data_url);
+
+            let frames: f64 = image_sprite.width() as f64 / image_sprite.height() as f64;
+            let keyframe: f64 = ((offset + 0.01*time) % frames).floor() % frames;
+            
+            let _ = ctx.draw_image_with_html_image_element_and_sw_and_sh_and_dx_and_dy_and_dw_and_dh(
+                &image_sprite, 
+                SPRITE_SIZE*keyframe, 0.0, SPRITE_SIZE, SPRITE_SIZE, 
+                sprite_scale*xx, sprite_scale*(yy - zz), sprite_scale*SPRITE_SIZE, sprite_scale*SPRITE_SIZE
+            ).unwrap();
+        }
+
         pub fn set_actions(&mut self, actions: u32) {
             self.actions = actions;
         }
@@ -362,10 +430,17 @@ pub mod rectilinear_grid {
         }
 
         pub fn get_tile(&self, index: usize) -> JsValue {
+            /*
+            Get the JSON serialized tile data from a linear index. 
+            */
             self.tile_set.get_tile(index)
         }
 
         pub fn replace_tile(&mut self, ii: usize, jj:usize) {
+            /*
+            Hoist the replace tile function to make it available from JavaScript interface.
+            This swaps out a tile for another tile.
+            */
             self.tile_set.replace_tile(ii, jj);
         }
 
@@ -475,6 +550,7 @@ pub mod rectilinear_grid {
         feature: String,
         flip: bool,
         value: f64,
+        frame_offset: f64
     }
 
     #[wasm_bindgen]
@@ -501,7 +577,8 @@ pub mod rectilinear_grid {
         key: String,
         value: f64,
         probability: f64,
-        limit: u32
+        limit: u32,
+        data_url: String
     }
 
     #[derive(Hash,Eq,PartialEq)]
@@ -584,7 +661,8 @@ pub mod rectilinear_grid {
                 self.tiles[*index] = Tile{
                     feature: feature.key,
                     flip: previous.flip,
-                    value: feature.value
+                    value: feature.value,
+                    frame_offset: previous.frame_offset
                 };
                 break;
             }
@@ -600,7 +678,8 @@ pub mod rectilinear_grid {
             self.tiles.push(Tile{
                 feature: "land".to_string(),
                 flip: false,
-                value: 0.0
+                value: 0.0,
+                frame_offset: 0.0
             });
             current_size
         }
@@ -622,7 +701,9 @@ pub mod rectilinear_grid {
                 self.tiles.push(Tile{
                     feature: feature.key,
                     flip: false,
-                    value: feature.value
+                    value: feature.value,
+                    frame_offset: (js_sys::Math::random()*4.0).floor()
+
                 });
                 break;
             }
@@ -679,19 +760,35 @@ pub mod rectilinear_grid {
                     key: feature.key.clone(),
                     value: feature.value,
                     limit: feature.limit,
-                    probability: current_total + feature.probability
+                    probability: current_total + feature.probability,
+                    data_url: feature.data_url.clone()
                 });
                 self.lookup.insert(feature.key.clone(), current_size);
             }
         }
 
+        pub fn get_by_key(&self, key: &String) -> &Feature {
+            /*
+            Retrieve feature template data from the probability table using
+            the name key to get the linear index into the table. 
+
+            This is used to retrieve image data for the sprite sheets when
+            each tile is being drawn.
+            */
+            self.table.get(self.lookup[key]).unwrap()
+        }
+
         pub fn pick_one(&self) -> Feature {
             /*
-            Pick a random feature, defaulting to empty ocean space
+            Pick a random feature, defaulting to empty ocean space. Copy the
+            feature template object that was inserted, and return the copy.
+
+            This is used when populating the world or replaceing tiles with
+            others randomly. 
             */
 
             let probability = js_sys::Math::random();
-            let mut feature: Feature = Feature{key: "empty".to_string(), value: 0.0, probability: 0.0, limit: 1000};
+            let mut feature = (*self.table.get(self.lookup[&"empty".to_string()]).unwrap()).clone();
             for ii in 0..self.table.len() {
                 if probability < self.table[ii].probability {
                     feature = (*self.table.get(ii).unwrap()).clone();

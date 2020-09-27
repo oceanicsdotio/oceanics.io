@@ -5,18 +5,19 @@ import { MDXProvider } from "@mdx-js/react";
 
 import React, {useState, useEffect}  from "react";
 import { Link, navigate } from "gatsby";
-import Form from "../components/Form";
 import {queryBathysphere} from "../bathysphere";
-import Noise from "../components/Noise";
-import Lagrangian from "../components/Lagrangian";
-import {StyledCaption} from "../components/Canvas";
-import DataStream from "../components/DataStream";
-import Particles from "../components/Particles";
-import RectilinearGrid from "../components/RectilinearGrid";
-import TriangularMesh from "../components/TriangularMesh";
-import HexagonalGrid from "../components/HexagonalGrid";
-import Model from "../components/Model";
-import {AllTiles} from "../components/Oceanside";
+
+import Form from "./Form";
+import Noise from "./Noise";
+import Lagrangian from "./Lagrangian";
+import {StyledCaption} from "./Canvas";
+import DataStream from "./DataStream";
+import Particles from "./Particles";
+import RectilinearGrid from "./RectilinearGrid";
+import TriangularMesh from "./TriangularMesh";
+import HexagonalGrid from "./HexagonalGrid";
+import Model from "./Model";
+import OceansideManual from "./OceansideManual";
 
 
 const StyledLayout = styled.div`
@@ -109,7 +110,7 @@ const shortcodes = {
     TriangularMesh, 
     HexagonalGrid, 
     Model,
-    AllTiles
+    OceansideManual
 };
 
 const ListLink = ({external=false, children, key, ...props}) => {

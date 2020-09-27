@@ -485,6 +485,29 @@ export function image_data(world_size, water_level) {
 }
 
 /**
+* @param {number} jj
+* @param {number} length
+* @param {number} grid_size
+* @returns {number}
+*/
+export function x_transform(jj, length, grid_size) {
+    _assertNum(grid_size);
+    var ret = wasm.x_transform(jj, length, grid_size);
+    return ret;
+}
+
+/**
+* @param {number} xx
+* @param {number} phase
+* @param {number} width
+* @returns {number}
+*/
+export function z_transform(xx, phase, width) {
+    var ret = wasm.z_transform(xx, phase, width);
+    return ret;
+}
+
+/**
 * @param {number} day_of_year
 * @param {number} latitude
 * @param {number} time_of_day
@@ -528,7 +551,7 @@ function getUint8ClampedMemory0() {
 function getClampedArrayU8FromWasm0(ptr, len) {
     return getUint8ClampedMemory0().subarray(ptr / 1, ptr / 1 + len);
 }
-function __wbg_adapter_228(arg0, arg1, arg2, arg3) {
+function __wbg_adapter_242(arg0, arg1, arg2, arg3) {
     _assertNum(arg0);
     _assertNum(arg1);
     wasm.wasm_bindgen__convert__closures__invoke2_mut__h96984aac8d17c2af(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
@@ -989,6 +1012,42 @@ export class MiniMap {
         return MiniMap.__wrap(ret);
     }
     /**
+    * @param {number} jj
+    * @param {number} index
+    * @param {number} length
+    * @param {number} width
+    * @param {number} phase
+    * @returns {string}
+    */
+    get_dynamic_tile(jj, index, length, width, phase) {
+        try {
+            if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+            _assertNum(this.ptr);
+            _assertNum(index);
+            wasm.minimap_get_dynamic_tile(8, this.ptr, jj, index, length, width, phase);
+            var r0 = getInt32Memory0()[8 / 4 + 0];
+            var r1 = getInt32Memory0()[8 / 4 + 1];
+            return getStringFromWasm0(r0, r1);
+        } finally {
+            wasm.__wbindgen_free(r0, r1);
+        }
+    }
+    /**
+    * @param {CanvasRenderingContext2D} ctx
+    * @param {number} ii
+    * @param {number} jj
+    * @param {number} length
+    * @param {number} time
+    * @param {number} width
+    * @param {number} tile
+    */
+    draw_tile(ctx, ii, jj, length, time, width, tile) {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        _assertNum(tile);
+        wasm.minimap_draw_tile(this.ptr, addHeapObject(ctx), ii, jj, length, time, width, tile);
+    }
+    /**
     * @param {number} actions
     */
     set_actions(actions) {
@@ -1359,11 +1418,6 @@ export const __wbg_addColorStop_c75d1d727f815743 = handleError(function(arg0, ar
     getObject(arg0).addColorStop(arg1, getStringFromWasm0(arg2, arg3));
 });
 
-export const __wbg_width_900ad1fe25297a68 = logError(function(arg0) {
-    var ret = getObject(arg0).width;
-    return ret;
-});
-
 export const __wbg_set_234288aa11f3e098 = handleError(function(arg0, arg1, arg2, arg3, arg4) {
     getObject(arg0).set(getStringFromWasm0(arg1, arg2), getStringFromWasm0(arg3, arg4));
 });
@@ -1379,14 +1433,9 @@ export const __wbg_text_83594a5e8d9e514a = handleError(function(arg0) {
     return addHeapObject(ret);
 });
 
-export const __wbg_headers_1edd511ef1b065ca = logError(function(arg0) {
-    var ret = getObject(arg0).headers;
-    return addHeapObject(ret);
-});
-
-export const __wbg_newwithstrandinit_54427750de69ea87 = handleError(function(arg0, arg1, arg2) {
-    var ret = new Request(getStringFromWasm0(arg0, arg1), getObject(arg2));
-    return addHeapObject(ret);
+export const __wbg_width_900ad1fe25297a68 = logError(function(arg0) {
+    var ret = getObject(arg0).width;
+    return ret;
 });
 
 export const __wbg_bufferData_e135b678b6ef2433 = logError(function(arg0, arg1, arg2, arg3) {
@@ -1505,6 +1554,10 @@ export const __wbg_setfont_02a2069b464f8be9 = logError(function(arg0, arg1, arg2
     getObject(arg0).font = getStringFromWasm0(arg1, arg2);
 });
 
+export const __wbg_drawImage_0bd4e512109731d5 = handleError(function(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9) {
+    getObject(arg0).drawImage(getObject(arg1), arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
+});
+
 export const __wbg_beginPath_3fa944f9f04ab627 = logError(function(arg0) {
     getObject(arg0).beginPath();
 });
@@ -1584,6 +1637,16 @@ export const __wbg_translate_882094cd23d918c7 = handleError(function(arg0, arg1,
     getObject(arg0).translate(arg1, arg2);
 });
 
+export const __wbg_headers_1edd511ef1b065ca = logError(function(arg0) {
+    var ret = getObject(arg0).headers;
+    return addHeapObject(ret);
+});
+
+export const __wbg_newwithstrandinit_54427750de69ea87 = handleError(function(arg0, arg1, arg2) {
+    var ret = new Request(getStringFromWasm0(arg0, arg1), getObject(arg2));
+    return addHeapObject(ret);
+});
+
 export const __wbg_instanceof_HtmlCanvasElement_308a7fa689ff20ef = logError(function(arg0) {
     var ret = getObject(arg0) instanceof HTMLCanvasElement;
     _assertBoolean(ret);
@@ -1633,6 +1696,27 @@ export const __wbg_newwithu8clampedarrayandsh_e53f440c9ae68467 = handleError(fun
     return addHeapObject(ret);
 });
 
+export const __wbg_setsrc_8344c3fd87c4000e = logError(function(arg0, arg1, arg2) {
+    getObject(arg0).src = getStringFromWasm0(arg1, arg2);
+});
+
+export const __wbg_width_f19cefd2befc2573 = logError(function(arg0) {
+    var ret = getObject(arg0).width;
+    _assertNum(ret);
+    return ret;
+});
+
+export const __wbg_height_ef9e2e94b747d464 = logError(function(arg0) {
+    var ret = getObject(arg0).height;
+    _assertNum(ret);
+    return ret;
+});
+
+export const __wbg_new_f57d0c99c6a125c7 = handleError(function() {
+    var ret = new Image();
+    return addHeapObject(ret);
+});
+
 export const __wbg_newnoargs_bfddd41728ab0b9c = logError(function(arg0, arg1) {
     var ret = new Function(getStringFromWasm0(arg0, arg1));
     return addHeapObject(ret);
@@ -1660,7 +1744,7 @@ export const __wbg_new_261626435fed913c = logError(function(arg0, arg1) {
             const a = state0.a;
             state0.a = 0;
             try {
-                return __wbg_adapter_228(a, state0.b, arg0, arg1);
+                return __wbg_adapter_242(a, state0.b, arg0, arg1);
             } finally {
                 state0.a = a;
             }
@@ -1776,7 +1860,7 @@ export const __wbindgen_memory = function() {
     return addHeapObject(ret);
 };
 
-export const __wbindgen_closure_wrapper3317 = logError(function(arg0, arg1, arg2) {
+export const __wbindgen_closure_wrapper3343 = logError(function(arg0, arg1, arg2) {
     var ret = makeMutClosure(arg0, arg1, 70, __wbg_adapter_24);
     return addHeapObject(ret);
 });

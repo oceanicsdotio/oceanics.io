@@ -3,16 +3,31 @@ import styled from "styled-components";
 
 import { loadRuntime } from "../components/Canvas";
 
-const createImageRef = (data) => {
+
+let dataUris = {};
+
+
+const createImageRef = (collector, key, data) => {
     let img = new Image();
+    img.onload = function () {
+        const canvas = document.createElement('canvas');
+        canvas.width = this.naturalWidth; // or 'width' if you want a special/scaled size
+        canvas.height = this.naturalHeight; // or 'height' if you want a special/scaled size
+        canvas.getContext('2d').drawImage(img, 0, 0);
+
+        // Get raw image data
+        collector[key] = canvas.toDataURL('image/png');
+    };
     img.src = data;
     return img
 };
 
+
+
 export const TileSet = {
     oysters: {
         data: require("../../content/assets/oyster.gif"),
-        spriteSheet: createImageRef(require("../../content/assets/oyster.png")),
+        spriteSheet: createImageRef(dataUris, "oysters", require("../../content/assets/oyster.png")),
         name: "Oysters",
         value: 10,
         probability: 0.05,
@@ -26,7 +41,7 @@ export const TileSet = {
     },
     mussels: {
         data: require("../../content/assets/mussels.gif"),
-        spriteSheet: createImageRef(require("../../content/assets/mussels.png")),
+        spriteSheet: createImageRef(dataUris, "mussels", require("../../content/assets/mussels.png")),
         name: "Mussels",
         value: 5,
         probability: 0.05,
@@ -37,7 +52,7 @@ export const TileSet = {
     },
     platform: {
         data: require("../../content/assets/platform.gif"),
-        spriteSheet: createImageRef(require("../../content/assets/platform.png")),
+        spriteSheet: createImageRef(dataUris, "platform", require("../../content/assets/platform.png")),
         name: "Laboratory",
         value: 40,
         probability: 0.01,
@@ -50,7 +65,7 @@ export const TileSet = {
     },
     fish: {
         data: require("../../content/assets/fish-pen.gif"),
-        spriteSheet: createImageRef(require("../../content/assets/fish-pen.png")),
+        spriteSheet: createImageRef(dataUris, "fish", require("../../content/assets/fish-pen.png")),
         name: "Fish Pen",
         value: 20,
         cost: 100,
@@ -65,7 +80,7 @@ export const TileSet = {
     },
     lighthouse: {
         data: require("../../content/assets/lighthouse.gif"),
-        spriteSheet: createImageRef(require("../../content/assets/lighthouse.png")),
+        spriteSheet: createImageRef(dataUris, "lighthouse", require("../../content/assets/lighthouse.png")),
         name: "Lighthouse",
         value: 50,
         probability: 0.01,
@@ -79,7 +94,7 @@ export const TileSet = {
     },
     gull: {
         data: require("../../content/assets/herring-gull.gif"),
-        spriteSheet: createImageRef(require("../../content/assets/herring-gull.png")),
+        spriteSheet: createImageRef(dataUris, "gull", require("../../content/assets/herring-gull.png")),
         name: "Herring Gull",
         probability: 0.1,
         becomes: ["fish", "oysters", "mussels"],
@@ -90,7 +105,7 @@ export const TileSet = {
     },
     boat: {
         data: require("../../content/assets/boat.gif"),
-        spriteSheet: createImageRef(require("../../content/assets/boat.png")),
+        spriteSheet: createImageRef(dataUris, "boat", require("../../content/assets/boat.png")),
         name: "Boat",
         value: -10,
         probability: 0.03,
@@ -103,7 +118,7 @@ export const TileSet = {
     },
     empty: {
         data: require("../../content/assets/empty.gif"),
-        spriteSheet: createImageRef(require("../../content/assets/empty.png")),
+        spriteSheet: createImageRef(dataUris, "empty", require("../../content/assets/empty.png")),
         name: "Ocean",
         cost: 5,
         becomes: ["buoys", "mud"],
@@ -115,7 +130,7 @@ export const TileSet = {
     },
     land: {
         data: require("../../content/assets/land.gif"),
-        spriteSheet: createImageRef(require("../../content/assets/land.png")),
+        spriteSheet: createImageRef(dataUris, "land", require("../../content/assets/land.png")),
         name: "Land",
         probability: 0.0,
         cost: 0,
@@ -124,7 +139,7 @@ export const TileSet = {
     },
     buoys: {
         data: require("../../content/assets/lobster-buoys.gif"),
-        spriteSheet: createImageRef(require("../../content/assets/lobster-buoys.png")),
+        spriteSheet: createImageRef(dataUris, "buoys", require("../../content/assets/lobster-buoys.png")),
         name: "Lobster Buoys",
         probability: 0.03,
         cost: 10,
@@ -138,7 +153,7 @@ export const TileSet = {
     },
     wharf: {
         data: require("../../content/assets/wharf.gif"),
-        spriteSheet: createImageRef(require("../../content/assets/wharf.png")),
+        spriteSheet: createImageRef(dataUris, "wharf", require("../../content/assets/wharf.png")),
         name: "Wharf",
         value: 0,
         probability: 0.02,
@@ -151,7 +166,7 @@ export const TileSet = {
     },
     diver: {
         data: require("../../content/assets/diver-down.gif"),
-        spriteSheet: createImageRef(require("../../content/assets/diver-down.png")),
+        spriteSheet: createImageRef(dataUris, "diver", require("../../content/assets/diver-down.png")),
         value: -10,
         name: "Diver",
         probability: 0.0,
@@ -165,7 +180,7 @@ export const TileSet = {
     },
     turbine: {
         data: require("../../content/assets/turbine.gif"),
-        spriteSheet: createImageRef(require("../../content/assets/turbine.png")),
+        spriteSheet: createImageRef(dataUris, "turbine", require("../../content/assets/turbine.png")),
         value: 50,
         probability: 0.1,
         name: "Wind Turbine",
@@ -176,7 +191,7 @@ export const TileSet = {
     },
     turbineFire: {
         data: require("../../content/assets/turbine-fire.gif"),
-        spriteSheet: createImageRef(require("../../content/assets/turbine-fire.png")),
+        spriteSheet: createImageRef(dataUris, "turbineFire", require("../../content/assets/turbine-fire.png")),
         name: "Damaged Wind Turbine",
         value: 0,
         probability: 0.0,
@@ -190,7 +205,7 @@ export const TileSet = {
     },
     mud: {
         data: require("../../content/assets/mud.gif"),
-        spriteSheet: createImageRef(require("../../content/assets/mud.png")),
+        spriteSheet: createImageRef(dataUris, "mud", require("../../content/assets/mud.png")),
         name: "Mud Flat",
         value: 10,
         probability: 0.0,
@@ -201,7 +216,7 @@ export const TileSet = {
     },
     oil: {
         data: require("../../content/assets/oil-spill.gif"),
-        spriteSheet: createImageRef(require("../../content/assets/oil-spill.png")),
+        spriteSheet: createImageRef(dataUris, "oil", require("../../content/assets/oil-spill.png")),
         name: "Oil Spill",
         value: -100.0,
         probability: 0.0,
@@ -245,26 +260,20 @@ const StyledContainer = styled.div`
     padding: 0;
 `;
 
-const TileTitle = styled.h3`
-    color: orange;
-`;
 
 const StyledText = styled.div`
     font-size: larger;
-    display: inline-block;
+    display: block;
 `;
-  
-const GameTile = styled.img`
-    position: relative;
-    display: inline-block;
-    image-rendering: crisp-edges;
-    width: 96px;
-    height: 96px;
-`;
-
-const transformName = (name) => name.toLowerCase().split(" ").join("-");
-const refFromName = (name) => <a href={`#${transformName(name)}`}>{name}</a>
-const refListItem = (name, end) => <>{refFromName(name)}{end ? "" : ", "}</>
+ 
+const pathFromBox = (v) => {
+    return [
+        [...v.slice(0, 2)],
+        [v[0] + v[2], v[1]],
+        [v[0] + v[2], v[1] + v[3]],
+        [v[0], v[1] + v[3]]
+    ]
+};
 
 const build = (miniMap, gridSize) => {
     const diagonals = gridSize * 2 - 1;
@@ -284,74 +293,50 @@ const build = (miniMap, gridSize) => {
 }
 
 
-const TileInfo = ({tile}) => {
-    /*
-    Art and information for single tile feature. This is used by AllTiles component
-    to render documentation for the game.
-    */
-    if (!tile.name || !tile.data) {
-        throw Exception(`Missing data:${tile}`);
-    }
-    let becomes = [];
-    let keys = tile.becomes;
-    if (keys) {
-        becomes = keys.map((kk) => {
-            try {
-                return TileSet[kk].name;
-            } catch (err) {
-                throw Error(`Error on key = ${kk}`);
-            }
-        });
-    }
-   
-    return (<>
-        <TileTitle><a id={transformName(tile.name)}/>{tile.name}</TileTitle>
-        <GameTile src={tile.data}/>
-        {tile.description ? <p>{tile.description}</p> : null}
-        {becomes && becomes.length ? 
-            <p>{"Becomes > "}{becomes.map((bb, ii) => refListItem(bb, ii === becomes.length - 1))}</p> : 
-            null
-        }
-        <hr/>
-    </>)
-
-};
-
-export const AllTiles = () => {
-    /*
-    Generate a helpful description of each type of tile. First alphabetize by the display name, and then
-    render the individual elements.
-    */    
-    let sortedByName = Object.values(TileSet).sort((a, b) => {
-        [a, b] = [a, b].map(x => transformName(x.name));
-        if (a < b) return -1;
-        if (a > b) return 1;
-        return 0;
-    });
-
-    return (<>
-        {sortedByName.map((x, ii) => refListItem(x.name, ii === sortedByName.length))}
-        {sortedByName.map((x, ii) => <TileInfo key={ii} tile={x}/>)}
-    </>)
-}
 
 export default ({ 
     gridSize = 6, 
     worldSize = 32, 
     waterLevel = 0.7,
     actionsPerDay = 6,
+    startDate = [2025, 3, 1]
  }) => {
 
-    const offset = (worldSize - gridSize) / 2;
-
-    const canvasRef = useRef(null);
-    const canvasRef2 = useRef(null);
+    const nav = useRef(null);
+    const board = useRef(null);
 
     const [runtime, setRuntime] = useState(null);
     const [tiles, setTiles] = useState(null);
-    const [date, setDate] = useState(new Date(2025, 3, 1));
-    const [actions, setActions] = useState(6);
+    const [date, setDate] = useState(new Date(...startDate));
+    const [actions, setActions] = useState(actionsPerDay);
     const [map, setMap] = useState(null);
+
+    const mapClickHandler = ({ clientX, clientY }) => {
+        /*
+        Update visible tiles
+        */
+        const {left, top} = nav.current.getBoundingClientRect();
+        map.update_view(nav.current.getContext("2d"), ...[clientX - left, clientY - top].map(x => x*worldSize/128));
+        setTiles(build(map, gridSize));
+    };
+
+    const boardClickHandler = ({ clientX, clientY }) => {
+        /*
+        Perform an action if possible.
+        */
+        if (actions) {
+            setActions(actions - 1);
+            // const {left, top} = board.current.getBoundingClientRect();
+            // const rescale = board.current.width/gridSize;
+            // let origin = [clientX - left, clientY - top].map(dim => Math.floor(dim*window.devicePixelRatio/rescale));
+            // console.log(origin);
+            map.replace_tile(0, 0);
+        } else {
+            console.log("bettah wait 'til tomorrow");
+            setDate(new Date(date.setDate(date.getDate()+1)));
+            setActions(actionsPerDay);
+        }
+    };
 
     useEffect(loadRuntime(setRuntime), []);  // load WASM binaries
 
@@ -368,13 +353,14 @@ export default ({
 
         The same data structure will hold the selected tiles. 
         */
-        if (!runtime || !canvasRef) return;
-        let _map = new runtime.MiniMap(
+        if (!runtime || !nav) return;
+        const offset = (worldSize - gridSize) / 2;
+        const _map = new runtime.MiniMap(
             offset, 
             offset/2, 
             worldSize, 
             waterLevel, 
-            canvasRef.current.getContext("2d"), 
+            nav.current.getContext("2d"), 
             gridSize
         );
         Object.entries(TileSet).forEach(
@@ -383,7 +369,8 @@ export default ({
                     key,
                     value, 
                     probability,
-                    limit
+                    limit,
+                    dataUrl: dataUris[key]
                 });
             }
         );
@@ -397,160 +384,101 @@ export default ({
         pixel data and apply it.
         */
 
-        if (!canvasRef2 || !tiles) return;
+        if (!board || !tiles) return;
 
-        let start = performance.now();
-        let view = [[null, null, null, null], [null, null, null, null]];
+        const start = performance.now();
+        let view = [
+            pathFromBox([null, null, null, null]), 
+            pathFromBox([null, null, null, null])
+        ];
 
-        canvasRef2.current.addEventListener('mousemove', ({clientX, clientY}) => {
-            const {left, top} = canvasRef2.current.getBoundingClientRect();
-            const rescale = canvasRef2.current.width/gridSize;
-
-            const rescale2 = rescale/Math.sqrt(2);
-
-            // scale back to square
-            let [xx, yy] = [clientX - left, clientY - top];
-            let [cx, cy] = [xx/2.0, yy/2.0];
-
-            // translate point back to origin:
-            xx -= cx;
-            yy -= cy;
-
-            // get rotation components
-            let s = Math.sin(-90.0);
-            let c = Math.cos(-90.0);
-
-            // rotate point
-            // xx = (xx * c - yy * s);
-            // yy = (xx * s + yy * c);
-
-            view = [
-                [Math.floor((xx+cx)*dpi/rescale)*rescale, Math.floor((yy+cy)*dpi/rescale)*rescale, rescale, rescale],
-                [Math.floor((xx+cx)*dpi/rescale)*rescale2, Math.floor((yy+cy)*dpi/rescale)*rescale2, rescale2, rescale2]
-            ];
-
+        board.current.addEventListener('mousemove', ({clientX, clientY}) => {
+            const {left, top} = board.current.getBoundingClientRect();
+            const rescale = board.current.width/gridSize;
+            let origin = [clientX - left, clientY - top].map(dim => Math.floor(dim*window.devicePixelRatio/rescale));
+            view = [rescale, rescale/Math.sqrt(2)].map(size => pathFromBox([...origin, 1, 1].map(x => x*size)));
         });
 
-        const dpi = window.devicePixelRatio;
-        [canvasRef2.current.width, canvasRef2.current.height] = ["width", "height"].map(
-            dim => getComputedStyle(canvasRef2.current).getPropertyValue(dim).slice(0, -2)
-        ).map(x => x * dpi);
-
-        const SPRITE_SIZE = 32;
-        const spriteScale = canvasRef2.current.width / SPRITE_SIZE / gridSize;
-        const ctx = canvasRef2.current.getContext("2d");
+        [board.current.width, board.current.height] = ["width", "height"].map(
+            dim => getComputedStyle(board.current).getPropertyValue(dim).slice(0, -2)
+        ).map(x => x * window.devicePixelRatio);
+        
+        const ctx = board.current.getContext("2d");
         ctx.imageSmoothingEnabled = false;  // disable nearest neighbor interpolation
         let requestId = null;
-        const frameOffset = Array.from({length: gridSize*gridSize}, () => Math.floor(Math.random() * 4));
         
+        const rotatePath = (pts, angle) => {
+            let [s, c] = [Math.sin, Math.cos].map(fcn => fcn(angle));
+            return pts.map(([xx, yy]) => [(xx * c - yy * s), (xx * s + yy * c)]);
+        }
+
+        const drawConnections = (a, b) => {
+            ctx.beginPath();
+            for (let ii=0; ii<4; ii++) {
+                ctx.moveTo(...a[ii]);
+                ctx.lineTo(...b[ii]);
+            }
+            ctx.stroke();
+        }
+
+        const drawView = (pts) => {
+
+            ctx.beginPath();
+            ctx.moveTo(...pts[0]);
+            ctx.lineTo(...pts[1]);
+            ctx.lineTo(...pts[2]);
+            ctx.lineTo(...pts[3]);
+            ctx.closePath();
+            ctx.stroke();
+        }
 
         (function render() {
 
-            ctx.clearRect(0, 0, canvasRef2.current.width, canvasRef2.current.height);
-            const time = performance.now() - start;
-            const phase = (time / 10000.0) % 1.0;
-            let count = 0;
-            const dryThreshold = -0.75*SPRITE_SIZE;
-
+            ctx.clearRect(0, 0, board.current.width, board.current.height);
             tiles.forEach((diagonal, ii) => {
-
-                const yy = SPRITE_SIZE/4*ii;
-                
                 diagonal.forEach((tile, jj) => {
-            
-                    const xx = (SPRITE_SIZE*jj + (gridSize - (diagonal.length-1)/2)*SPRITE_SIZE) - SPRITE_SIZE*(gridSize+1)/2;
-                    let zz = -(Math.sin((phase + xx/canvasRef2.current.width)*2*Math.PI) + 1.0) * SPRITE_SIZE / 2;
-                    let feature = map.get_tile(tile).feature;
-                    if (zz < dryThreshold && feature === "empty") {
-                        feature = "mud";
-                        zz = dryThreshold;
-                    }
-
-                    const sprite = TileSet[feature].spriteSheet;
-                    const frames = sprite.width/sprite.height;
-                    const keyframe = (frameOffset[count++] + Math.floor((time/100.0)%frames))%frames;
-                    
-                    ctx.drawImage(
-                        sprite, 
-                        SPRITE_SIZE*keyframe, 0, SPRITE_SIZE, SPRITE_SIZE, 
-                        spriteScale*xx, spriteScale*(yy - zz), spriteScale*SPRITE_SIZE, spriteScale*SPRITE_SIZE
-                    );
+                    map.draw_tile(ctx, ii, jj, diagonal.length, performance.now() - start, board.current.width, tile);
                 });
             });
-
            
-            const rescale2 = canvasRef2.current.width/gridSize/Math.sqrt(2);
+            const rescale = board.current.width/gridSize;
+            const rescale2 = rescale/Math.sqrt(2);
+            ctx.strokeStyle="#FFAA00FF";
+            ctx.lineWidth = 2.0;
 
-            ctx.strokeStyle="#FFFFFFFF";
-            ctx.beginPath();
-            ctx.rect(...view[0]);
-            ctx.stroke();
+            const temp = rotatePath(view[1], Math.PI/4).map(([x,y])=>[
+                1.0*(x + rescale2/2.0) + (Math.floor(0.5*gridSize) + 0.75)*rescale2, 
+                0.5*(y + 0.0) 
+            ]);
 
-            ctx.strokeStyle="#FF00FFFF";
+            drawView(view[0]);
+            drawView(temp);
+            drawConnections(view[0], temp);
 
-            ctx.translate((Math.floor(0.5*gridSize) + 0.75)*rescale2, rescale2*0.25);
-            ctx.scale(1.0, 0.5);
-            ctx.translate(rescale2/2.0, 0.0);
-            ctx.rotate(45 * Math.PI / 180);
-            
-            ctx.beginPath();
-            ctx.rect(...view[1]);
-            ctx.stroke();
-
-            // Reset transformation matrix to the identity matrix
-            ctx.setTransform(1, 0, 0, 1, 0, 0);
-           
             requestId = requestAnimationFrame(render);
         })()
 
         return () => cancelAnimationFrame(requestId);
-
-
     }, [tiles])
 
     
     return (
         <StyledContainer>
-                        
+            <StyledText>
+                {`${date.toLocaleDateString()} ${18-2*(actions ? actions : 0)}:00, Balance: $${map ? map.score() : 0.0}`}
+            </StyledText>
+
             <StyledBoard
-                ref={canvasRef2}
-                width={32*gridSize}
-                height={32*gridSize}
-                onClick={() => {
-                    if (actions) {
-                        setActions(actions - 1);
-                    } else {
-                        console.log("bettah wait 'til tomorrow");
-                        setDate(new Date(date.setDate(date.getDate()+1)));
-                        setActions(actionsPerDay);
-                    }
-                }}
+                ref={board}
+                onClick={boardClickHandler}
             />
 
             <StyledCanvas
-                ref={canvasRef}
+                ref={nav}
                 width={worldSize}
                 height={worldSize}
-                onClick={({ clientX, clientY }) => {
-                    const {left, top} = canvasRef.current.getBoundingClientRect();
-                    const ctx = canvasRef.current.getContext("2d");
-                    map.update_view(
-                        ctx,
-                        (clientX - left) * worldSize / 128, 
-                        (clientY - top) * worldSize / 128,
-                        worldSize,
-                        gridSize,
-                    );
-                    setTiles(build(map, gridSize));
-                }}
-            />
-
-            <StyledText>
-                <p>{date.toLocaleDateString()}</p>
-                <p>Actions: {actions}</p>
-                <p>Score: {map ? map.score() : 0.0 }</p>
-            </StyledText>
+                onClick={mapClickHandler}
+            />    
         </StyledContainer>
-        
     );
 };

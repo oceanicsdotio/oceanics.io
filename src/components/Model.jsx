@@ -70,39 +70,25 @@ export default ({
 
         if (!runtime || !mesh) return;
 
-        let {start, ctx, shape, requestId, frames} = targetHtmlCanvas(ref, `2d`);
-
-        // try {
-        //     mesh.sphere(24);
-        // } catch (err) {
-        //     console.log(`There was a problem populating mesh:`, {mesh});
-        // }
-        
-        let previous;
+        let {start, ctx, shape, requestId, frames} = targetHtmlCanvas(ref, `2d`);    
+        let previous;  // memoize time to use in smoothing real-time rotation 
 
         (function render() {
             const time = performance.now() - start;
+            const elapsed = time - (previous || 0.0);
 
             runtime.clear_rect_blending(ctx, ...shape, backgroundColor);
-            let elapsed = (time-(previous||0.0));
             
             mesh.rotate_in_place(-0.00005*elapsed, 0.0, 1.0, 0.0);
             mesh.rotate_in_place(0.000025*elapsed, 1.0, 0.0, 0.0);
             mesh.rotate_in_place(-0.0003*elapsed, 0.0, 0.0, 1.0);
                
-            let triangles = mesh.draw(ctx, ...shape, alpha, lineWidth*2.0, 0.0);
-
-            // mesh.rotate_in_place(-0.00015*(elapsed+10.0), 0.0, 1.0, 0.0);
-            // mesh.rotate_in_place(0.0001*(elapsed+10.0), 1.0, 0.0, 0.0);
-            // mesh.rotate_in_place(-0.0003*(elapsed+10.0), 0.0, 0.0, 1.0);
-
-            // triangles = mesh.draw_edges(ctx, ...shape, `#FFFFFFFF`, 1.0, lineWidth, 0.0);
-
+            const triangles = mesh.draw(ctx, ...shape, alpha, lineWidth*2.0, 0.0);
             cursor.draw(ctx, ...shape, overlayColor, time, lineWidth);
             runtime.draw_caption(ctx, `Triangles=${triangles}`, 0.0, shape[1], overlayColor, font);
+
             frames = runtime.draw_fps(ctx, frames, time, overlayColor);
             requestId = requestAnimationFrame(render);
-
             previous = time;
 
         })()
