@@ -73,6 +73,6 @@
     "develop": "rm -rf .cache && gatsby develop",
     "serve": "gatsby serve",
     "clean": "gatsby clean",
-    "compile": "wasm-pack build --out-dir src/wasm --dev --target bundler --no-typescript"
+    "compile": "wasm-pack build --out-dir src/wasm --dev --target bundler --no-typescript && rm src/wasm/.gitignore"
   }
 }
