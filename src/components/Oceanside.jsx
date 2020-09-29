@@ -1,33 +1,11 @@
 import React, { useEffect, useState, useRef } from "react";
 import styled from "styled-components";
-
 import { loadRuntime } from "../components/Canvas";
-
-
-let dataUris = {};
-
-
-const createImageRef = (collector, key, data) => {
-    let img = new Image();
-    img.onload = function () {
-        const canvas = document.createElement('canvas');
-        canvas.width = this.naturalWidth; // or 'width' if you want a special/scaled size
-        canvas.height = this.naturalHeight; // or 'height' if you want a special/scaled size
-        canvas.getContext('2d').drawImage(img, 0, 0);
-
-        // Get raw image data
-        collector[key] = canvas.toDataURL('image/png');
-    };
-    img.src = data;
-    return img
-};
-
-
 
 export const TileSet = {
     oysters: {
         data: require("../../content/assets/oyster.gif"),
-        spriteSheet: createImageRef(dataUris, "oysters", require("../../content/assets/oyster.png")),
+        spriteSheet: require("../../content/assets/oyster.png"),
         name: "Oysters",
         value: 10,
         probability: 0.05,
@@ -41,7 +19,7 @@ export const TileSet = {
     },
     mussels: {
         data: require("../../content/assets/mussels.gif"),
-        spriteSheet: createImageRef(dataUris, "mussels", require("../../content/assets/mussels.png")),
+        spriteSheet: require("../../content/assets/mussels.png"),
         name: "Mussels",
         value: 5,
         probability: 0.05,
@@ -52,7 +30,7 @@ export const TileSet = {
     },
     platform: {
         data: require("../../content/assets/platform.gif"),
-        spriteSheet: createImageRef(dataUris, "platform", require("../../content/assets/platform.png")),
+        spriteSheet: require("../../content/assets/platform.png"),
         name: "Laboratory",
         value: 40,
         probability: 0.01,
@@ -65,7 +43,7 @@ export const TileSet = {
     },
     fish: {
         data: require("../../content/assets/fish-pen.gif"),
-        spriteSheet: createImageRef(dataUris, "fish", require("../../content/assets/fish-pen.png")),
+        spriteSheet: require("../../content/assets/fish-pen.png"),
         name: "Fish Pen",
         value: 20,
         cost: 100,
@@ -80,7 +58,7 @@ export const TileSet = {
     },
     lighthouse: {
         data: require("../../content/assets/lighthouse.gif"),
-        spriteSheet: createImageRef(dataUris, "lighthouse", require("../../content/assets/lighthouse.png")),
+        spriteSheet: require("../../content/assets/lighthouse.png"),
         name: "Lighthouse",
         value: 50,
         probability: 0.01,
@@ -94,7 +72,7 @@ export const TileSet = {
     },
     gull: {
         data: require("../../content/assets/herring-gull.gif"),
-        spriteSheet: createImageRef(dataUris, "gull", require("../../content/assets/herring-gull.png")),
+        spriteSheet: require("../../content/assets/herring-gull.png"),
         name: "Herring Gull",
         probability: 0.1,
         becomes: ["fish", "oysters", "mussels"],
@@ -105,7 +83,7 @@ export const TileSet = {
     },
     boat: {
         data: require("../../content/assets/boat.gif"),
-        spriteSheet: createImageRef(dataUris, "boat", require("../../content/assets/boat.png")),
+        spriteSheet: require("../../content/assets/boat.png"),
         name: "Boat",
         value: -10,
         probability: 0.03,
@@ -118,7 +96,7 @@ export const TileSet = {
     },
     empty: {
         data: require("../../content/assets/empty.gif"),
-        spriteSheet: createImageRef(dataUris, "empty", require("../../content/assets/empty.png")),
+        spriteSheet: require("../../content/assets/empty.png"),
         name: "Ocean",
         cost: 5,
         becomes: ["buoys", "mud"],
@@ -130,7 +108,7 @@ export const TileSet = {
     },
     land: {
         data: require("../../content/assets/land.gif"),
-        spriteSheet: createImageRef(dataUris, "land", require("../../content/assets/land.png")),
+        spriteSheet: require("../../content/assets/land.png"),
         name: "Land",
         probability: 0.0,
         cost: 0,
@@ -139,7 +117,7 @@ export const TileSet = {
     },
     buoys: {
         data: require("../../content/assets/lobster-buoys.gif"),
-        spriteSheet: createImageRef(dataUris, "buoys", require("../../content/assets/lobster-buoys.png")),
+        spriteSheet: require("../../content/assets/lobster-buoys.png"),
         name: "Lobster Buoys",
         probability: 0.03,
         cost: 10,
@@ -153,7 +131,7 @@ export const TileSet = {
     },
     wharf: {
         data: require("../../content/assets/wharf.gif"),
-        spriteSheet: createImageRef(dataUris, "wharf", require("../../content/assets/wharf.png")),
+        spriteSheet: require("../../content/assets/wharf.png"),
         name: "Wharf",
         value: 0,
         probability: 0.02,
@@ -166,7 +144,7 @@ export const TileSet = {
     },
     diver: {
         data: require("../../content/assets/diver-down.gif"),
-        spriteSheet: createImageRef(dataUris, "diver", require("../../content/assets/diver-down.png")),
+        spriteSheet: require("../../content/assets/diver-down.png"),
         value: -10,
         name: "Diver",
         probability: 0.0,
@@ -180,7 +158,7 @@ export const TileSet = {
     },
     turbine: {
         data: require("../../content/assets/turbine.gif"),
-        spriteSheet: createImageRef(dataUris, "turbine", require("../../content/assets/turbine.png")),
+        spriteSheet: require("../../content/assets/turbine.png"),
         value: 50,
         probability: 0.1,
         name: "Wind Turbine",
@@ -191,7 +169,7 @@ export const TileSet = {
     },
     turbineFire: {
         data: require("../../content/assets/turbine-fire.gif"),
-        spriteSheet: createImageRef(dataUris, "turbineFire", require("../../content/assets/turbine-fire.png")),
+        spriteSheet: require("../../content/assets/turbine-fire.png"),
         name: "Damaged Wind Turbine",
         value: 0,
         probability: 0.0,
@@ -205,7 +183,7 @@ export const TileSet = {
     },
     mud: {
         data: require("../../content/assets/mud.gif"),
-        spriteSheet: createImageRef(dataUris, "mud", require("../../content/assets/mud.png")),
+        spriteSheet: require("../../content/assets/mud.png"),
         name: "Mud Flat",
         value: 10,
         probability: 0.0,
@@ -216,7 +194,7 @@ export const TileSet = {
     },
     oil: {
         data: require("../../content/assets/oil-spill.gif"),
-        spriteSheet: createImageRef(dataUris, "oil", require("../../content/assets/oil-spill.png")),
+        spriteSheet: require("../../content/assets/oil-spill.png"),
         name: "Oil Spill",
         value: -100.0,
         probability: 0.0,
@@ -226,7 +204,6 @@ export const TileSet = {
         description: "Looks like somebody messed up big time. "
     }
 };
-
 
 /*
 Canvas uses crisp-edges to preserve pixelated style of map
@@ -363,15 +340,17 @@ export default ({
             nav.current.getContext("2d"), 
             gridSize
         );
+      
         Object.entries(TileSet).forEach(
-            ([key, {value=0.0, probability=0.0, limit=worldSize*worldSize}]) => {
+            ([key, {value=0.0, probability=0.0, limit=worldSize*worldSize, spriteSheet}]) => {            
                 _map.insert_feature({
                     key,
                     value, 
                     probability,
                     limit,
-                    dataUrl: dataUris[key]
+                    dataUrl: spriteSheet
                 });
+                // Get raw image data
             }
         );
         setTiles(build(_map, gridSize));  // visible tiles data structure
