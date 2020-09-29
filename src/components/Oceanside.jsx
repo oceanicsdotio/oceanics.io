@@ -2,208 +2,80 @@ import React, { useEffect, useState, useRef } from "react";
 import styled from "styled-components";
 import { loadRuntime } from "../components/Canvas";
 
-export const TileSet = {
+import tileSetJSON from "../../static/oceanside.json";
+
+
+const TileSetAssets = {
     oysters: {
         data: require("../../content/assets/oyster.gif"),
-        spriteSheet: require("../../content/assets/oyster.png"),
-        name: "Oysters",
-        value: 10,
-        probability: 0.05,
-        cost: 50,
-        becomes: ["empty"],
-        dialog: "Yum!",
-        description: (
-            "Oysters are delicious! Leave them in the water and collect the reward, or harvest the whole bed and sell it. " +
-            ""
-        )
+        sprite: require("../../content/assets/oyster.png")
     },
     mussels: {
         data: require("../../content/assets/mussels.gif"),
-        spriteSheet: require("../../content/assets/mussels.png"),
-        name: "Mussels",
-        value: 5,
-        probability: 0.05,
-        cost: 25,
-        becomes: ["empty"],
-        dialog: "Yum!",
-        description: "Mussels are good! If they are too close to oysters though, they will eventually take over."
+        sprite: require("../../content/assets/mussels.png")
     },
     platform: {
         data: require("../../content/assets/platform.gif"),
-        spriteSheet: require("../../content/assets/platform.png"),
-        name: "Laboratory",
-        value: 40,
-        probability: 0.01,
-        dialog: "beep boop, science",
-        limit: 1,
-        description: (
-            "The laboratory reveals gulls. Sometime if you are really nice and bring the scientists seafood they will " +
-            "publish a paper revealing the nature of things. " 
-        )
+        sprite: require("../../content/assets/platform.png")
     },
     fish: {
         data: require("../../content/assets/fish-pen.gif"),
-        spriteSheet: require("../../content/assets/fish-pen.png"),
-        name: "Fish Pen",
-        value: 20,
-        cost: 100,
-        probability: 0.02,
-        becomes: ["empty"],
-        dialog: "Yum!",
-        description: (
-            "Finfish are valuable, but be careful, bad things can happen if they escape. "+
-            "If the sea lice get to be too much, you should talk to the scientists at the laboratory "+
-            "about collaborating on a paper."
-        )
+        sprite: require("../../content/assets/fish-pen.png")
     },
     lighthouse: {
         data: require("../../content/assets/lighthouse.gif"),
-        spriteSheet: require("../../content/assets/lighthouse.png"),
-        name: "Lighthouse",
-        value: 50,
-        probability: 0.01,
-        dialog: "Sure is lonely out here.",
-        limit: 1,
-        description: (
-            "The Lighthouse has been around forever. "+
-            "It provides a bonus to nearby activities, and protects boats from being lost at sea. "+
-            ""
-        )
+        sprite: require("../../content/assets/lighthouse.png")
     },
     gull: {
         data: require("../../content/assets/herring-gull.gif"),
-        spriteSheet: require("../../content/assets/herring-gull.png"),
-        name: "Herring Gull",
-        probability: 0.1,
-        becomes: ["fish", "oysters", "mussels"],
-        dialog: "Caaaawwww.",
-        description: (
-            "Gulls indicate that there is a hidden feature on a tile. These can be converted to activity tiles by being near a laboratory, or being visited by a boat."
-        )
+        sprite: require("../../content/assets/herring-gull.png")
     },
     boat: {
         data: require("../../content/assets/boat.gif"),
-        spriteSheet: require("../../content/assets/boat.png"),
-        name: "Boat",
-        value: -10,
-        probability: 0.03,
-        limit: 1,
-        becomes: ["diver", "oil"],
-        dialog: "Fine day to go yachting.",
-        description: (
-            "Gotta have a boat to work on the water."
-        )
+        sprite: require("../../content/assets/boat.png")
     },
     empty: {
         data: require("../../content/assets/empty.gif"),
-        spriteSheet: require("../../content/assets/empty.png"),
-        name: "Ocean",
-        cost: 5,
-        becomes: ["buoys", "mud"],
-        dialog: "Maybe there are some bugs around?",
-        description: (
-            "Ocean tiles aren't empty. "+
-            "They are worth points, but only next to other ocean tiles. "
-        )
+        sprite: require("../../content/assets/empty.png")
     },
     land: {
         data: require("../../content/assets/land.gif"),
-        spriteSheet: require("../../content/assets/land.png"),
-        name: "Land",
-        probability: 0.0,
-        cost: 0,
-        dialog: "Can't get there from here.",
-        description: "Don't go there."
+        sprite: require("../../content/assets/land.png")
     },
     buoys: {
         data: require("../../content/assets/lobster-buoys.gif"),
-        spriteSheet: require("../../content/assets/lobster-buoys.png"),
-        name: "Lobster Buoys",
-        probability: 0.03,
-        cost: 10,
-        becomes: ["empty"],
-        dialog: "Yum!",
-        description: (
-            "Boats can put out and recover lobster traps! "+
-            "Don't molest yuor neighbors traps, or you'll get in trouble."+ 
-            "Karmicly and physically."
-        )
+        sprite: require("../../content/assets/lobster-buoys.png")
     },
     wharf: {
         data: require("../../content/assets/wharf.gif"),
-        spriteSheet: require("../../content/assets/wharf.png"),
-        name: "Wharf",
-        value: 0,
-        probability: 0.02,
-        dialog: "'ey you hear about that fire last night?",
-        limit: 1,
-        description: (
-            "Every good day starts at the dock! You'll have to fuel up here before you can go out and save the world. "+
-            "Gah, but look at all that trash in water, sure wish someone would take care of this place"
-        )
+        sprite: require("../../content/assets/wharf.png")
     },
     diver: {
         data: require("../../content/assets/diver-down.gif"),
-        spriteSheet: require("../../content/assets/diver-down.png"),
-        value: -10,
-        name: "Diver",
-        probability: 0.0,
-        cost: 0,
-        becomes: ["boat"],
-        dialog: "brr, that's cold.",
-        description: (
-            "Your boats can turn into a diver to investigate underwater secrets or do harvest activities. " +
-            "It's not polite to run over divers, that's why they fly such brightly colored flags."
-        )
+        sprite: require("../../content/assets/diver-down.png")
     },
     turbine: {
         data: require("../../content/assets/turbine.gif"),
-        spriteSheet: require("../../content/assets/turbine.png"),
-        value: 50,
-        probability: 0.1,
-        name: "Wind Turbine",
-        cost: 0,
-        becomes: ["turbineFire"],
-        dialog: "Whoosh",
-        description: "Wind turbines make electricity"
+        sprite: require("../../content/assets/turbine.png")
     },
     turbineFire: {
         data: require("../../content/assets/turbine-fire.gif"),
-        spriteSheet: require("../../content/assets/turbine-fire.png"),
-        name: "Damaged Wind Turbine",
-        value: 0,
-        probability: 0.0,
-        cost: 50,
-        becomes: ["turbine"],
-        dialog: "Clang, clank, clang, clank.",
-        description: (
-            "Things break down on the water. If you're going to do business out there you better "+
-            "be ready to respond quickly. "
-        )
+        sprite: require("../../content/assets/turbine-fire.png")
     },
     mud: {
         data: require("../../content/assets/mud.gif"),
-        spriteSheet: require("../../content/assets/mud.png"),
-        name: "Mud Flat",
-        value: 10,
-        probability: 0.0,
-        cost: 0.0,
-        becomes: ["empty"],
-        dialog: "Lost my boot.",
-        description: "Ooey gooey, sticky, smelly mud. Full of tasty treats. Doesn't Jimmy's uncle have a fan boat or something?"
+        sprite: require("../../content/assets/mud.png")
     },
     oil: {
         data: require("../../content/assets/oil-spill.gif"),
-        spriteSheet: require("../../content/assets/oil-spill.png"),
-        name: "Oil Spill",
-        value: -100.0,
-        probability: 0.0,
-        cost: 0.0,
-        becomes: ["empty"],
-        dialog: "What's a blowout preventer?",
-        description: "Looks like somebody messed up big time. "
+        sprite: require("../../content/assets/oil-spill.png")
     }
 };
+
+export const TileSet = Object.fromEntries(Object.entries(tileSetJSON).map(([key, {data, sprite, ...value}]) => 
+    [key, {data: TileSetAssets[key].data, sprite: TileSetAssets[key].sprite, ...value}]
+));
+
 
 /*
 Canvas uses crisp-edges to preserve pixelated style of map
@@ -342,13 +214,13 @@ export default ({
         );
       
         Object.entries(TileSet).forEach(
-            ([key, {value=0.0, probability=0.0, limit=worldSize*worldSize, spriteSheet}]) => {            
+            ([key, {value=0.0, probability=0.0, limit=worldSize*worldSize, sprite}]) => {            
                 _map.insert_feature({
                     key,
                     value, 
                     probability,
                     limit,
-                    dataUrl: spriteSheet
+                    dataUrl: sprite
                 });
                 // Get raw image data
             }
