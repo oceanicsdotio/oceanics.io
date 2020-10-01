@@ -1,7 +1,6 @@
 import React from "react";
 import styled from "styled-components";
 
-
 const StyledButtonPane = styled.div`
     margin-top: 10px;
 `;

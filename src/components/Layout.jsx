@@ -18,6 +18,7 @@ import TriangularMesh from "./TriangularMesh";
 import HexagonalGrid from "./HexagonalGrid";
 import Model from "./Model";
 import OceansideManual from "./OceansideManual";
+import {Rubric, Score, RubricBlock} from "./Rubric";
 
 
 const StyledLayout = styled.div`
@@ -110,7 +111,10 @@ const shortcodes = {
     TriangularMesh, 
     HexagonalGrid, 
     Model,
-    OceansideManual
+    OceansideManual,
+    Rubric,
+    Score,
+    RubricBlock
 };
 
 const ListLink = ({external=false, children, key, ...props}) => {
