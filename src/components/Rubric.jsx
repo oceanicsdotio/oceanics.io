@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import YAML from "yaml";
 
@@ -19,13 +19,13 @@ const Score = styled.div`
     border: 1px orange solid;
     border-radius: 5px;
     color: orange;
-    position: fixed;
-    top: 50%;
-    left: 20%;
 `;
 
 const RubricStatement = ({children, onClick}) => {
-
+    /*
+    A single clickable statement or merit with a check box. The text node is passed as
+    a child, and the onClick handler uses a state setter from the parent element.
+     */
     return (
         <Container>
             <Input type={"checkbox"} onClick={onClick}/>
@@ -35,11 +35,24 @@ const RubricStatement = ({children, onClick}) => {
 }
 
 export default ({target="/rubric.yml"}) => {
+    /*
+    A Rubric is a collection of true/false statements in which an affirmative is consider good (merits). 
 
+    This style is used to try to focus on positive traits that could be present in an evaluated
+    thing, rather than on hunting for negatives. 
+
+    The score element keeps track of the total number selected, and the setter is passed to child checkbox inputs
+    to update the current score. 
+    */
+
+    const BASE_SCORE = 0;
     const [score, setScore] = useState(0);
     const [rubric, setRubric] = useState({});
 
     useEffect(()=>{
+        /*
+        Retrieve and parse the YAML file that describes the assessment areas and merits
+        */
         fetch(target)
             .then(data => data.text())
             .then(yml => setRubric(YAML.parse(yml)));
@@ -50,14 +63,18 @@ export default ({target="/rubric.yml"}) => {
         setScore(score + (e.target.checked ? 1 : -1));
     }
 
+    const reducer = (accumulator, currentValue) => accumulator + currentValue;  // Accumulating the total number of merits
+
     return (
         <>
-            <Score>{score}</Score>
+            <Score>
+                {`You have selected ${score} of ${Object.values(rubric).map(x=>x.merits.length).reduce(reducer, BASE_SCORE)} merits.`}
+            </Score>
             {rubric ? Object.entries(rubric).map(([key, value]) => 
                 <div key={key}>
                     <h3>{key}</h3>
                     <p>{value.description}</p>
-                    {value.criteria.map((statement, key2) => <RubricStatement onClick={onClick} key={key2}>{statement}</RubricStatement>)}
+                    {value.merits.map((merit, key2) => <RubricStatement onClick={onClick} key={key2}>{merit}</RubricStatement>)}
                 </div>    
         ) : null}
         </>

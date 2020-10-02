@@ -1,19 +1,19 @@
 Content:
-  criteria:
+  merits:
     - Content and visual media help understand and use the product or service
     - Written materials have few errors
     - Text is in a standard and consistent format
     - Uses sans serif font
 
 Features:
-  criteria:
+  merits:
     - You can do the same things more easily that you could before
     - Front-end consumes an API that can be accessed by third party services
     - The product integrates with any tools you use, or plan to use
     - The product or service is available offline
 
 Design:
-  criteria:
+  merits:
     - You want to use the tool every day forever
     - The background and foreground are contrasting colors
     - Red and green do not indicate important information
@@ -21,7 +21,7 @@ Design:
     - Abstractions of processes and things are meaningful to operators
 
 Forms:
-  criteria:
+  merits:
     - Multi-selection inputs are easy to understand
     - Form inputs are validated before submitted
     - Labels and placeholders provide useful guidance
@@ -31,7 +31,7 @@ Forms:
 Accessibility:
   description: |
     Choosing tools which do not take accessibility into mind will make it harder to hire people to use it in the future.
-  criteria:
+  merits:
     - Your collaborators speak the same languages as the tool
     - You can imagine any employee regularly using the product
 
@@ -39,7 +39,7 @@ Keeping your secrets safe:
   description: |
     Software can be your competetive advantage, but it can expose to risk and invalidate practices you used previously
     to maintain trade secrets. 
-  criteria:
+  merits:
     - SSL is kept up to date
     - Data are encrypted at rest and in transit
     - Registration requires a strong password
@@ -57,7 +57,7 @@ Getting help:
     Maybe there is a user community that you can go to for extra help. The truth is though, no everyone is outgoing or has 
     the time to track down info. In those cases, you'll want to be able to reach support. If support is not in your language
     or time zone, or if you are a small fry that doesn't warrant the trouble, you'll be on your own. 
-  criteria:
+  merits:
     - Support is available in your time zone
     - A team supports the product
     - Support is provided by the creator of the product
@@ -75,7 +75,7 @@ License/Legal:
     that is OK. For bespoke software costing hundreds or thousands of dollars per month, 
     that is going to help run your operation and keep you people safe, it is entirely appropriate to
     negotiate the terms. 
-  criteria:
+  merits:
     - You own the data you put into the system
     - You can make changes to the code
     - You can provide secure access to data for third parties
@@ -89,7 +89,7 @@ Working in the field:
     Maps and charts are an important part of life on the water. 
     Tools with good geospatial data visualization features will make you life easier. 
     Most mapping software is intended for 2D land applications. 
-  criteria:
+  merits:
     - The style of the map is adapted to a marine setting
     - Satellite and aerial imagery is off by default
     - You can find locations with and without coordinates or names
