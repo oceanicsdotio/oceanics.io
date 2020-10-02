@@ -64,11 +64,12 @@ export default ({target="/rubric.yml"}) => {
     }
 
     const reducer = (accumulator, currentValue) => accumulator + currentValue;  // Accumulating the total number of merits
+    const possible = Object.values(rubric).map(x=>x.merits.length).reduce(reducer, BASE_SCORE); // total possible points
 
     return (
         <>
             <Score>
-                {`You have selected ${score} of ${Object.values(rubric).map(x=>x.merits.length).reduce(reducer, BASE_SCORE)} merits.`}
+                {`You selected ${score} of ${possible} possible merits (${Math.ceil(100*score/possible)}%).`}
             </Score>
             {rubric ? Object.entries(rubric).map(([key, value]) => 
                 <div key={key}>

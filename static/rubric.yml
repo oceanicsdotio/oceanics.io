@@ -1,39 +1,31 @@
-Content:
-  merits:
-    - Content and visual media help understand and use the product or service
-    - Written materials have few errors
-    - Text is in a standard and consistent format
-    - Uses sans serif font
 
-Features:
+Getting it done:
   merits:
     - You can do the same things more easily that you could before
     - Front-end consumes an API that can be accessed by third party services
     - The product integrates with any tools you use, or plan to use
     - The product or service is available offline
-
-Design:
-  merits:
     - You want to use the tool every day forever
-    - The background and foreground are contrasting colors
-    - Red and green do not indicate important information
     - Ontology can adapt to new processes and scenarios
     - Abstractions of processes and things are meaningful to operators
-
-Forms:
-  merits:
-    - Multi-selection inputs are easy to understand
-    - Form inputs are validated before submitted
-    - Labels and placeholders provide useful guidance
     - Data and analytics services follow a(ny) standard
-    - Text forms allow auto-complete and fuzzy matching
-
-Accessibility:
+    
+Loving your interface:
   description: |
     Choosing tools which do not take accessibility into mind will make it harder to hire people to use it in the future.
   merits:
+    - Content and visual media help understand and use the product or service
+    - Written materials have few errors
+    - Text is in a standard and consistent format
+    - Uses sans serif font
+    - The background and foreground are contrasting colors
+    - Red and green do not indicate important information
     - Your collaborators speak the same languages as the tool
     - You can imagine any employee regularly using the product
+    - Multi-selection inputs are easy to understand
+    - Form inputs are validated before submitted
+    - Labels and placeholders provide useful guidance
+    - Text forms allow auto-complete and fuzzy matching
 
 Keeping your secrets safe:
   description: |
@@ -49,7 +41,6 @@ Keeping your secrets safe:
     - The developer does will not own copies of your data without consent and renumeration
     - Provider makes it easy to exfiltrate your data or stop service at any time for any reason
     - There are no backdoors for the developers
-
 
 Getting help:
   description: |
@@ -67,8 +58,7 @@ Getting help:
     - Documentation includes a UML diagram or explanation of how database models are related
     - There is self-service documentation, external to the application
 
-
-License/Legal:
+Respecting your rights:
   description: |
     Read the license, or the End User License Agreeement. It's probably a standard thing. 
     For a mobile application that costs a few dollars
@@ -82,7 +72,6 @@ License/Legal:
     - Terms are governed by accessible courts
     - The reverse engineering clause will not prevent you from using or making tools you need
     - Non-compete clauses have geographic and time boundaries
-
 
 Working in the field:
   description: |
