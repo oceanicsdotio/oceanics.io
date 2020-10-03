@@ -170,7 +170,7 @@ without making too many assumptions about their formatting. No one is likely to 
 
 ```JavaScript
 const referenceHash = ({authors, title, year, journal}) => {
-    const stringRepr = `${authors.join("").toLowerCase()} ${year} ${title.toLowerCase()} ${journal.toLowerCase()}`.replace(/\s/g, "");
+    const stringRepr = `${authors.join("").toLowerCase()} ${year} ${title.toLowerCase()}`.replace(/\s/g, "");
     const hashCode = s => s.split('').reduce((a,b) => (((a << 5) - a) + b.charCodeAt(0))|0, 0);
     return hashCode(stringRepr);
 }
@@ -178,3 +178,34 @@ const referenceHash = ({authors, title, year, journal}) => {
 
 This is used when we create pages at build time, and when we render links to citations. You can follow the links between pages and the
 reference index to feel it out. 
+
+## Bringing it home
+
+In addition to a references section, inline references are extremely helpful. In office productivity software that has integrations
+with reference managers you usually insert a citation, and then it matches what you type to help autocomplete. 
+
+You have to provide just enough information to disambiguate between article by the same authors in the same years, cause wouldn't ya know, science
+is a weird incestuous community.
+
+We'll use the hash function again to create links, and introduce a new `<Inline/>` component. Not elegant, but it's a start.
+
+The article 
+<Inline
+    authors={["Audet D", "Miron G", "Moriyasu M"]} 
+    year={2008} 
+    title={"Biological characteristics of a newly established green crab (Carcinus maenas) population in the Southern Gulf of St. Lawrence, Canada"} 
+/> 
+
+has some interesting traits:
+* There is a place: Gulf of St. Lawrence
+* There is a species: ~Carcinus maenas~
+* It is about shellfish
+
+But I know that because I know how to interpret the journal information and have a background in marine science. We could tag every
+reference with keywords, like the articles themselves, but that requires a lot of effort and thought. 
+
+Much better to automate a general solution.
+
+This will allow us to enrich documents with contextual information about locations and species for example. We can provide also link through
+words or phrases that are already present in the system. A hybrid trie/hash structure will be built during page generation to cross-reference
+terminology. 

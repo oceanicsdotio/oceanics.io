@@ -5,18 +5,31 @@ import {Link} from "gatsby";
 const StyledBlock = styled.div`
     color: #AACCCCCC;
 `
-export const REFERENCES_ROOT = "references"
+export const REFERENCES_ROOT = "references";
 
 const referenceHash = ({authors, title, year, journal}) => {
     /*
     Some of the canonical fields do not contain uniquely identifying information. Technically,
     the same content might appear in two places. 
     */
-    const stringRepr = (`${authors.join("").toLowerCase()} ${year} ${title.toLowerCase()} ${journal.toLowerCase()}`).replace(/\s/g, "");
+    const stringRepr = (`${authors.join("").toLowerCase()} ${year} ${title.toLowerCase()}`).replace(/\s/g, "");
     const hashCode = s => s.split('').reduce((a,b) => (((a << 5) - a) + b.charCodeAt(0))|0, 0);
     const hash =  hashCode(stringRepr);
     return hash;
-}
+};
+
+
+export const Inline = ({
+    authors,
+    year,
+    title
+}) => {
+
+    const text = `(${authors.join(", ")} ${year})`;
+    const hash = referenceHash({authors, title, year});
+
+    return <Link to={`/${REFERENCES_ROOT}/${hash}/`}>{text}</Link>;
+};
 
 export const Reference = ({
     authors,
@@ -29,7 +42,7 @@ export const Reference = ({
 
     const pages = pageRange ? `:${pageRange[0]}–${pageRange[1]}.` : ``;
     const text = `${authors.join(", ")}. ${year}. ${title.trim()}. ${journal} ${volume}${pages}`;
-    const hash = referenceHash({authors, title, year, journal});
+    const hash = referenceHash({authors, title, year});
 
     return (
         <StyledBlock key={hash}>
@@ -37,7 +50,7 @@ export const Reference = ({
             <Link to={`/${REFERENCES_ROOT}/${hash}/`}>{"[links]"}</Link>
         </StyledBlock>
     )
-}
+};
 
 export default ({heading, references}) => {
     return (

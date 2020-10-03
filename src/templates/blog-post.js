@@ -3,7 +3,7 @@ import { Link, graphql } from "gatsby";
 
 import Layout from "../components/Layout";
 import SEO from "../components/SEO";
-import References, {Reference} from "../components/References";
+import References from "../components/References";
 import { rhythm, scale } from "../typography";
 import { MDXRenderer } from "gatsby-plugin-mdx";
 require(`katex/dist/katex.min.css`);

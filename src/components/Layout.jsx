@@ -19,7 +19,7 @@ import HexagonalGrid from "./HexagonalGrid";
 import Model from "./Model";
 import OceansideManual from "./OceansideManual";
 import Rubric from "./Rubric";
-import References, {Reference} from "./References"
+import References, {Reference, Inline} from "./References"
 
 
 const StyledLayout = styled.div`
@@ -115,7 +115,8 @@ const shortcodes = {
     OceansideManual,
     Rubric,
     Reference,
-    References
+    References,
+    Inline
 };
 
 const ListLink = ({external=false, children, key, ...props}) => {

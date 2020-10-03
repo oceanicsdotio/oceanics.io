@@ -11,7 +11,7 @@ const referenceHash = ({authors, title, year, journal}) => {
     Some of the canonical fields do not contain uniquely identifying information. Technically,
     the same content might appear in two places. 
     */
-    const stringRepr = `${authors.join("").toLowerCase()} ${year} ${title.toLowerCase()} ${journal.toLowerCase()}`.replace(/\s/g, "");
+    const stringRepr = `${authors.join("").toLowerCase()} ${year} ${title.toLowerCase()}`.replace(/\s/g, "");
     const hashCode = s => s.split('').reduce((a,b) => (((a << 5) - a) + b.charCodeAt(0))|0, 0);
     return hashCode(stringRepr);
 }
