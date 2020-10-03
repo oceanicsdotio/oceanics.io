@@ -1,5 +1,5 @@
 import React from "react"
-import PropTypes from "prop-types"
+import {shape, arrayOf, string} from "prop-types"
 import Layout from "../components/Layout"
 import SEO from "../components/SEO"
 import { Link, graphql } from "gatsby"
@@ -24,19 +24,19 @@ const Tags = ({ data: { allMdx: {edges}}, location }) => {
 }
 
 Tags.propTypes = {
-    pageContext: PropTypes.shape({
-        tag: PropTypes.string.isRequired,
+    pageContext: shape({
+        tag: string.isRequired,
     }),
-    data: PropTypes.shape({
-        allMdx: PropTypes.shape({
-            edges: PropTypes.arrayOf(
-                PropTypes.shape({
-                    node: PropTypes.shape({
-                        frontmatter: PropTypes.shape({
-                            title: PropTypes.string.isRequired,
+    data: shape({
+        allMdx: shape({
+            edges: arrayOf(
+                shape({
+                    node: shape({
+                        frontmatter: shape({
+                            title: string.isRequired,
                         }),
-                        fields: PropTypes.shape({
-                            slug: PropTypes.string.isRequired,
+                        fields: shape({
+                            slug: string.isRequired,
                         }),
                     }),
                 }).isRequired

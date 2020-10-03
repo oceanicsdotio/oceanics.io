@@ -1,11 +1,10 @@
 import React from "react"
 import {shape, arrayOf, string, number} from "prop-types"
-import kebabCase from "lodash/kebabCase"
 import Layout from "../components/Layout"
 import SEO from "../components/SEO"
 import { Link, graphql } from "gatsby"
 
-const TagsPage = ({
+const Page = ({
     location,
     data: {
         allMdx: { group },
@@ -15,14 +14,14 @@ const TagsPage = ({
     },
 }) => (
         <Layout location={location} title={title}>
-            <SEO title="Content tags" />
+            <SEO title="References" />
 
-            <h2>Tags</h2>
+            <h2>{"References"}</h2>
             <ul>
-                {group.map(tag => (
-                    <li key={tag.fieldValue}>
-                        <Link to={`/tags/${kebabCase(tag.fieldValue)}/`}>
-                            {tag.fieldValue} ({tag.totalCount})
+                {group.map(({fieldValue, totalCount}, key) => (
+                    <li key={fieldValue}>
+                        <Link to={`/references/${key}/`}>
+                            {fieldValue} ({totalCount})
                         </Link>
                     </li>
                 ))}
@@ -30,7 +29,7 @@ const TagsPage = ({
         </Layout>
     )
 
-TagsPage.propTypes = {
+Page.propTypes = {
     data: shape({
         allMdx: shape({
             group: arrayOf(
@@ -48,7 +47,7 @@ TagsPage.propTypes = {
     }),
 }
 
-export default TagsPage
+export default Page
 
 export const pageQuery = graphql`
     query {
@@ -57,8 +56,8 @@ export const pageQuery = graphql`
                 title
             }
         }
-        allMdx(limit: 2000) {
-            group(field: frontmatter___tags) {
+        allMdx(limit: 100) {
+            group(field: frontmatter___citations) {
                 fieldValue
                 totalCount
             }

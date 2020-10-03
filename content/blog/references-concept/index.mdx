@@ -1,0 +1,150 @@
+---
+title: References proof of concept
+date: "2020-10-03T12:00:00.000Z"
+description: "Testing out support for referencing scientific literatue"
+tags: ["interface", "research", "ux", "citation"]
+citations:
+  - authors: [Audet D, Miron G, Moriyasu M]
+    year: 2008
+    title: |
+      Biological characteristics of a newly established green crab 
+      (Carcinus maenas) population in the Southern Gulf of St. Lawrence, Canada
+    journal: Journal of Shellfish Research
+    volume: 27
+    pageRange: [427, 441]
+---
+
+Most technical and scientific writing references external sources liberally. 
+
+I've needed to add support for this, and have had an annoying time finding
+a reference manager I actually like and want to integrate with. So in the spirit
+of making the platform richer, I'm experimenting with the site itself being
+my reference manager.
+
+Let's start with a bit about our viridian friends from away:
+
+Audet D, Miron G, Moriyasu M. 2008. Biological characteristics of a newly established green crab 
+(Carcinus maenas) population in the Southern Gulf of St. Lawrence, Canada. Journal of Shellfish Research 27:427–441.
+
+## Inline method
+
+As a component this looks like:
+```JSX
+const Reference = ({authors, title, year, pageRange, volume, journal}) => {
+    const [start, end] = pageRange;
+    return <StyledParagraph>{`${authors.join(", ")}. ${year}. ${title.trim()}. ${journal} ${volume}:${start}–${end}.`}</StyledParagraph>
+}
+```
+
+Called like:
+```JSX
+<Reference
+    authors={["Audet D", "Miron G", "Moriyasu M"]} 
+    year={2008} 
+    title={"Biological characteristics of a newly established green crab (Carcinus maenas) population in the Southern Gulf of St. Lawrence, Canada"} 
+    journal={"Journal of Shellfish Research"} 
+    volume={27} 
+    pageRange={[427, 441]}
+/>
+```
+
+That renders to:
+
+<Reference
+    authors={["Audet D", "Miron G", "Moriyasu M"]} 
+    year={2008} 
+    title={"Biological characteristics of a newly established green crab (Carcinus maenas) population in the Southern Gulf of St. Lawrence, Canada"} 
+    journal={"Journal of Shellfish Research"} 
+    volume={27} 
+    pageRange={[427, 441]}
+/>
+
+Nice. But I don't want to inline all that information, even though I could theoretically pull references through GraphQL.
+
+## Page metadata
+
+Our GatsbyJS setup builds pages from (extended) Markdown using templates. The Markdown is Data and can be queried through
+GraphQL. The content is prefaced by a YAML metadata block. Like this: 
+
+```yaml
+title: References proof of concept
+date: "2020-10-03T12:00:00.000Z"
+description: "Testing out support for referencing scientific literatue"
+tags: ["interface", "research", "ux", "citation"]
+```
+
+Were going to extend this with a `citations` array:
+
+```yaml
+citations:
+  - authors: [Audet D, Miron G, Moriyasu M]
+    year: 2008
+    title: |
+      Biological characteristics of a newly established green crab 
+      (Carcinus maenas) population in the Southern Gulf of St. Lawrence, Canada
+    journal: Journal of Shellfish Research
+    volume: 27
+    pageRange: [427, 441]
+```
+
+Then we have to pick this data up from JavaScript. This is getting closer to a format I actually want to use.
+
+Because it's GraphQL we have to explicit request
+all the fields, like a chump:
+
+```JavaScript
+export const pageQuery = graphql`
+  query BlogPostBySlug($slug: String!) {
+    site {
+      siteMetadata {
+        title
+      }
+    }
+    mdx(fields: { slug: { eq: $slug } }) {
+      id
+      excerpt(pruneLength: 160)
+      body
+      frontmatter {
+        title
+        date(formatString: "MMMM DD, YYYY")
+        description
+        citations {
+            authors, year, title, journal, volume, pageRange
+        }
+      }
+    }
+  }
+`
+```
+
+
+## Consuming references as a footer
+
+Now we get the references as inputs to the page component, and can process it however we want! That work will
+all be done during bundling, so we can validate or pull in additional information, and have checks that need to pass.
+
+Quality control is good. 
+
+We'll render a reference list after the article, typical of scientific literatue. We pick up the data
+from `data.mdx.frontmatter.citations` and map this array in JSX:
+
+```JSX
+<MDXRenderer>{body}</MDXRenderer>
+{frontmatter.citations ? <h2>{"References"}</h2> : null}
+{(frontmatter.citations || []).map((props, key) => <Reference {...props} key={key}/>)}
+```
+
+You can see from the [final section](#references) below that it works!
+
+## Indexing all references
+
+In addition to creating pages, the build process creates a [/tags](/tags) page that gives all content tags, and child pages
+for each tag. For example, [/tags/ux](/tags/ux) links back to this page. 
+
+We can do a similar thing with references! We'll end up with a [/references][/references] endpoint, and then we want a page
+for each reference that links back to the articles containing that reference. 
+
+We also want the `<Reference/>` component to link to it's index page. The trick will be creating a unique URL for each reference
+without making too many assumptions about their formatting. No one is likely to access the page directly, so maybe a data oriented
+"name" like a base 64 hash is a good approach.
+
