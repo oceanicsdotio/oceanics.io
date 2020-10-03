@@ -1,11 +1,10 @@
 import React from "react"
-import PropTypes from "prop-types"
 import kebabCase from "lodash/kebabCase"
 import Layout from "../components/Layout"
 import SEO from "../components/SEO"
 import { Link, graphql } from "gatsby"
 
-const TagsPage = ({
+export default ({
     location,
     data: {
         allMdx: { group },
@@ -14,41 +13,21 @@ const TagsPage = ({
         },
     },
 }) => (
-        <Layout location={location} title={title}>
-            <SEO title="Content tags" />
+    <Layout location={location} title={title}>
+        <SEO title="Content tags" />
 
-            <h2>Tags</h2>
-            <ul>
-                {group.map(tag => (
-                    <li key={tag.fieldValue}>
-                        <Link to={`/tags/${kebabCase(tag.fieldValue)}/`}>
-                            {tag.fieldValue} ({tag.totalCount})
-                        </Link>
-                    </li>
-                ))}
-            </ul>
-        </Layout>
-    )
-
-TagsPage.propTypes = {
-    data: PropTypes.shape({
-        allMdx: PropTypes.shape({
-            group: PropTypes.arrayOf(
-                PropTypes.shape({
-                    fieldValue: PropTypes.string.isRequired,
-                    totalCount: PropTypes.number.isRequired,
-                }).isRequired
-            ),
-        }),
-        site: PropTypes.shape({
-            siteMetadata: PropTypes.shape({
-                title: PropTypes.string.isRequired,
-            }),
-        }),
-    }),
-}
-
-export default TagsPage
+        <h2>Tags</h2>
+        <ul>
+            {group.map(tag => (
+                <li key={tag.fieldValue}>
+                    <Link to={`/tags/${kebabCase(tag.fieldValue)}/`}>
+                        {tag.fieldValue} ({tag.totalCount})
+                    </Link>
+                </li>
+            ))}
+        </ul>
+    </Layout>
+)
 
 export const pageQuery = graphql`
     query {

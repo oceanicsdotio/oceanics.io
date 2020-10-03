@@ -15,10 +15,10 @@
     "babel-preset-gatsby": "^0.5.10",
     "gatsby": "^2.24.66",
     "gatsby-cli": "^2.12.101",
-    "gatsby-image": "^2.4.18",
+    "gatsby-image": "^2.4.20",
     "gatsby-link": "^2.4.15",
-    "gatsby-plugin-create-client-paths": "^2.3.11",
     "gatsby-plugin-manifest": "^2.4.33",
+    "gatsby-plugin-create-client-paths": "^2.3.12",
     "gatsby-plugin-mdx": "^1.2.41",
     "gatsby-plugin-offline": "^3.2.29",
     "gatsby-plugin-react-helmet": "^3.3.12",
@@ -28,7 +28,8 @@
     "gatsby-remark-copy-linked-files": "^2.3.16",
     "gatsby-remark-images": "^3.3.30",
     "gatsby-remark-katex": "^3.3.13",
-    "gatsby-remark-responsive-iframe": "^2.4.14",
+    "gatsby-remark-prismjs": "^3.5.15",
+    "gatsby-remark-responsive-iframe": "^2.4.16",
     "gatsby-remark-smartypants": "^2.3.11",
     "gatsby-source-filesystem": "^2.3.31",
     "gatsby-transformer-remark": "^2.8.36",
@@ -50,7 +51,7 @@
     "yaml": "^1.10.0"
   },
   "devDependencies": {
-    "eslint": "^7.9.0",
+    "eslint": "^7.10.0",
     "prettier": "^2.1.2"
   },
   "homepage": "https://www.oceanics.io",
@@ -71,7 +72,7 @@
   },
   "scripts": {
     "build": "GATSBY_EXPERIMENTAL_PAGE_BUILD_ON_DATA_CHANGES=true gatsby build --log-pages",
-    "develop": "rm -rf .cache && gatsby develop",
+    "develop": "rm -rf .cache && GATSBY_GRAPHQL_IDE=playground gatsby develop",
     "serve": "gatsby serve",
     "clean": "gatsby clean",
     "compile": "wasm-pack build --out-dir src/wasm --dev --target bundler --no-typescript && rm src/wasm/.gitignore"
