@@ -141,10 +141,16 @@ You can see from the [final section](#references) below that it works!
 In addition to creating pages, the build process creates a [/tags](/tags) page that gives all content tags, and child pages
 for each tag. For example, [/tags/ux](/tags/ux) links back to this page. 
 
-We can do a similar thing with references! We'll end up with a [/references][/references] endpoint, and then we want a page
+We can do a similar thing with references! We'll end up with a [/references](/references) endpoint, and then we want a page
 for each reference that links back to the articles containing that reference. 
 
 We also want the `<Reference/>` component to link to it's index page. The trick will be creating a unique URL for each reference
-without making too many assumptions about their formatting. No one is likely to access the page directly, so maybe a data oriented
-"name" like a base 64 hash is a good approach.
+without making too many assumptions about their formatting. No one is likely to access the page directly, so a data oriented
+"name" like a hash is a good approach. This means we can extend the component itself to do the hashing:
+
+```JSX
+
+```
+
+
 

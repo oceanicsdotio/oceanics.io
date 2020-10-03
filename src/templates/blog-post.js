@@ -3,10 +3,11 @@ import { Link, graphql } from "gatsby";
 
 import Layout from "../components/Layout";
 import SEO from "../components/SEO";
-import {Reference} from "../components/References";
+import References, {Reference} from "../components/References";
 import { rhythm, scale } from "../typography";
 import { MDXRenderer } from "gatsby-plugin-mdx";
-require(`katex/dist/katex.min.css`)
+require(`katex/dist/katex.min.css`);
+
 
 const BlogPostTemplate = ({ 
     data: { 
@@ -43,8 +44,8 @@ const BlogPostTemplate = ({
                 </header>
                 <hr />
                 <MDXRenderer>{body}</MDXRenderer>
-                {frontmatter.citations ? <h2>{"References"}</h2> : null}
-                {(frontmatter.citations || []).map((props, key) => <Reference {...props} key={key}/>)}
+
+                {frontmatter.citations ? <References heading={"References"} references={(frontmatter.citations || [])} /> : null }
                 <hr
                     style={{
                         marginBottom: rhythm(1),

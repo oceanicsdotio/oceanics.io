@@ -2,9 +2,18 @@ const path = require(`path`);
 const _ = require("lodash");
 const { createFilePath } = require(`gatsby-source-filesystem`);
 const WasmPackPlugin = require("@wasm-tool/wasm-pack-plugin");
+const { SHA1 } = require("crypto-js");
 
 // https://www.gatsbyjs.org/docs/debugging-html-builds/
 // https://loadable-components.com/
+
+const referenceHash = ({authors, title, year, journal}) => {
+    /*
+    Some of the canonical fields do not contain uniquely identifying information. Technically,
+    the same content might appear in two places. 
+    */
+    return SHA1(`${authors.join("").toLowerCase()} ${year} ${title.toLowerCase()} ${journal.toLowerCase()}`.replace(" ", ""))
+}
 
 exports.onCreateWebpackConfig = ({ stage, loaders, actions }) => {
     if (stage === 'build-html') {
@@ -60,34 +69,31 @@ exports.createPages = async ({ graphql, actions: {createPage} }) => {
    
     const blogPost = path.resolve(`src/templates/blog-post.js`);
     const tagTemplate = path.resolve(`src/templates/tags.js`);
+    const referenceTemplate = path.resolve(`src/templates/references.js`);
+    const pages = {};
 
-    const {errors, data: {allMdx: {edges}, tagsGroup: {group}}} = await graphql(`{
+    const {errors, data: {allMdx: {edges}}} = await graphql(`{
         allMdx(
-        sort: { fields: [frontmatter___date], order: DESC }
-        limit: 1000
+            sort: { fields: [frontmatter___date], order: DESC }
+            limit: 1000
         ) {
-        edges {
-            node {
-            fields {
-                slug
+            edges {
+                node {
+                    fields { slug }
+                    frontmatter { 
+                        title, 
+                        tags, 
+                        citations {
+                            authors, year, title, journal, volume, pageRange
+                        }
+                    }
+                }
             }
-            frontmatter {
-                title,
-                tags
-            }
-            }
-        }
-    
-        }
-        tagsGroup: allMdx(limit: 2000) {
-        group(field: frontmatter___tags) {
-        fieldValue
-    }
         }
     }`)
 
     if (errors) throw errors;
-    edges.forEach(({node: {fields: {slug}}}, index) => {
+    edges.forEach(({node: {fields: {slug}, frontmatter: {tags, citations}}}, index) => {
         createPage({
             path: slug,
             component: blogPost,
@@ -96,17 +102,37 @@ exports.createPages = async ({ graphql, actions: {createPage} }) => {
                 previous: index === edges.length - 1 ? null : edges[index + 1].node,
                 next: index === 0 ? null : edges[index - 1].node
             },
-        })
-    })
+        });
 
-    group.forEach(({fieldValue}) => {
-        createPage({
-            path: `/tags/${_.kebabCase(fieldValue)}/`,
-            component: tagTemplate,
-            context: {
-                tag: fieldValue,
-            },
-        })
+        (tags || []).forEach(tag => {
+            const formattedTag = _.kebabCase(tag);
+            const path = `/tags/${formattedTag}/`;
+            if (path in pages) return;  // skip building pages if there is a duplicate url
+
+            const page = {
+                path,
+                component: tagTemplate,
+                context: {tag}
+            }
+            createPage(page);
+            pages[path] = page;
+        });
+
+        (citations || []).forEach(citation => {
+            const hash = referenceHash(citation);
+            const path = `/references/${hash}/`;
+            if (path in pages) return;  // skip building pages if there is a duplicate url
+
+            const page = {
+                path,
+                component: referenceTemplate,
+                context: {
+                    title: citation.title
+                }
+            }
+            createPage(page);
+            pages[path] = page;
+        });
     })
 }
 

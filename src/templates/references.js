@@ -20,7 +20,7 @@ export default ({ data: { allMdx: {edges}}, location }) => {
             </ul>
         </Layout>
     )
-};
+}
 
 export const pageQuery = graphql`
     query($tag: String) {

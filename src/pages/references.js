@@ -1,53 +1,29 @@
-import React from "react"
-import {shape, arrayOf, string, number} from "prop-types"
-import Layout from "../components/Layout"
-import SEO from "../components/SEO"
-import { Link, graphql } from "gatsby"
+import React from "react";
+import Layout from "../components/Layout";
+import SEO from "../components/SEO";
+import {graphql } from "gatsby";
+import References from "../components/References";
 
-const Page = ({
+export default ({
     location,
     data: {
-        allMdx: { group },
+        allMdx: { nodes },
         site: {
             siteMetadata: { title },
         },
     },
-}) => (
-        <Layout location={location} title={title}>
-            <SEO title="References" />
+}) => {
 
-            <h2>{"References"}</h2>
-            <ul>
-                {group.map(({fieldValue, totalCount}, key) => (
-                    <li key={fieldValue}>
-                        <Link to={`/references/${key}/`}>
-                            {fieldValue} ({totalCount})
-                        </Link>
-                    </li>
-                ))}
-            </ul>
+    const heading = "References";
+    const citations = nodes.flatMap(node => node.frontmatter.citations).filter(x => !!x)
+
+    return (
+        <Layout location={location} title={title}>
+            <SEO title={heading}/>
+            <References heading={heading} references={citations}/>
         </Layout>
     )
-
-Page.propTypes = {
-    data: shape({
-        allMdx: shape({
-            group: arrayOf(
-                shape({
-                    fieldValue: string.isRequired,
-                    totalCount: number.isRequired,
-                }).isRequired
-            ),
-        }),
-        site: shape({
-            siteMetadata: shape({
-                title: string.isRequired,
-            }),
-        }),
-    }),
-}
-
-export default Page
+};
 
 export const pageQuery = graphql`
     query {
@@ -56,11 +32,14 @@ export const pageQuery = graphql`
                 title
             }
         }
-        allMdx(limit: 100) {
-            group(field: frontmatter___citations) {
-                fieldValue
-                totalCount
+        allMdx(
+            limit: 1000
+        ) {
+            nodes {
+                    frontmatter { 
+                        citations { authors, year, title, journal, volume, pageRange }
+                    }  
             }
         }
     }
-`
+`;
