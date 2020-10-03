@@ -1,8 +1,8 @@
-import React from "react";
+import React, {Fragment} from "react";
 import styled from "styled-components";
 import {Link} from "gatsby";
 
-const StyledParagraph = styled.p`
+const StyledBlock = styled.div`
     color: #AACCCCCC;
 `
 export const REFERENCES_ROOT = "references"
@@ -15,8 +15,6 @@ const referenceHash = ({authors, title, year, journal}) => {
     const stringRepr = (`${authors.join("").toLowerCase()} ${year} ${title.toLowerCase()} ${journal.toLowerCase()}`).replace(/\s/g, "");
     const hashCode = s => s.split('').reduce((a,b) => (((a << 5) - a) + b.charCodeAt(0))|0, 0);
     const hash =  hashCode(stringRepr);
-
-    console.log(hash, stringRepr);
     return hash;
 }
 
@@ -34,20 +32,25 @@ export const Reference = ({
     const hash = referenceHash({authors, title, year, journal});
 
     return (
-        <StyledParagraph>
+        <StyledBlock key={hash}>
             {text}
             <Link to={`/${REFERENCES_ROOT}/${hash}/`}>{"[links]"}</Link>
-        </StyledParagraph>
+        </StyledBlock>
     )
 }
 
 export default ({heading, references}) => {
     return (
-        <>
-        <h2>{heading}</h2>
-        {references.map((props) => {
-            return <Reference {...props}/>;
-        })}
-        </>
+            <>
+            <h2>{heading}</h2>
+            {references.map((props) => {
+                return (
+                    <Fragment key={referenceHash(props)}>
+                        <Reference {...props}/>
+                    </Fragment>
+                );
+            })}
+            </>
+       
     )
 };

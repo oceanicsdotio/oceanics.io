@@ -16,9 +16,9 @@ citations:
 
 Most technical and scientific writing references external sources liberally. 
 
-I've needed to add support for this, and have had an annoying time finding
-a reference manager I actually like and want to integrate with. So in the spirit
-of making the platform richer, I'm experimenting with the site itself being
+I need support for this, and have had an annoying time finding
+a reference manager I like and want to integrate with. So in the spirit
+of making this platform richer, I'm experimenting with the site itself being
 my reference manager.
 
 Let's start with a bit about our viridian friends from away:
@@ -28,15 +28,32 @@ Audet D, Miron G, Moriyasu M. 2008. Biological characteristics of a newly establ
 
 ## Inline method
 
-As a component this looks like:
+As a component, this looks like:
 ```JSX
-const Reference = ({authors, title, year, pageRange, volume, journal}) => {
-    const [start, end] = pageRange;
-    return <StyledParagraph>{`${authors.join(", ")}. ${year}. ${title.trim()}. ${journal} ${volume}:${start}–${end}.`}</StyledParagraph>
+// components/References.jsx
+const Reference = ({
+    authors,
+    year,
+    title,
+    pageRange, 
+    volume, 
+    journal
+}) => {
+
+    const pages = pageRange ? `:${pageRange[0]}–${pageRange[1]}.` : ``;
+    const text = `${authors.join(", ")}. ${year}. ${title.trim()}. ${journal} ${volume}${pages}`;
+    const hash = referenceHash({authors, title, year, journal});
+
+    return (
+        <StyledParagraph>
+            {text}
+            <Link to={`/${REFERENCES_ROOT}/${hash}/`}>{"[links]"}</Link>
+        </StyledParagraph>
+    )
 }
 ```
 
-Called like:
+It is called from extended Markdown (`.mdx`) by passing it to an `<MDXRenderer/>`, and inlining it like so:
 ```JSX
 <Reference
     authors={["Audet D", "Miron G", "Moriyasu M"]} 
@@ -59,7 +76,9 @@ That renders to:
     pageRange={[427, 441]}
 />
 
-Nice. But I don't want to inline all that information, even though I could theoretically pull references through GraphQL.
+Nice. But I don't want to inline all that information, even though I could theoretically pull references through GraphQL. 
+
+Notice that there's a link generated, and some hashing function. More on this [later](#indexing-all-references). 
 
 ## Page metadata
 
@@ -67,6 +86,7 @@ Our GatsbyJS setup builds pages from (extended) Markdown using templates. The Ma
 GraphQL. The content is prefaced by a YAML metadata block. Like this: 
 
 ```yaml
+# index.mdx
 title: References proof of concept
 date: "2020-10-03T12:00:00.000Z"
 description: "Testing out support for referencing scientific literatue"
@@ -76,6 +96,7 @@ tags: ["interface", "research", "ux", "citation"]
 Were going to extend this with a `citations` array:
 
 ```yaml
+# index.mdx
 citations:
   - authors: [Audet D, Miron G, Moriyasu M]
     year: 2008
@@ -87,51 +108,49 @@ citations:
     pageRange: [427, 441]
 ```
 
-Then we have to pick this data up from JavaScript. This is getting closer to a format I actually want to use.
+This is getting closer to a format I actually want to use, just have to pick this data up from JavaScript. 
 
-Because it's GraphQL we have to explicit request
-all the fields, like a chump:
+Because it's GraphQL we have to explicit request all the fields, like a chump:
 
-```JavaScript
-export const pageQuery = graphql`
-  query BlogPostBySlug($slug: String!) {
+```GraphQL
+// templates/blog-post.js
+query BlogPostBySlug($slug: String!) {
     site {
-      siteMetadata {
-        title
-      }
+        siteMetadata { title }
     }
     mdx(fields: { slug: { eq: $slug } }) {
-      id
-      excerpt(pruneLength: 160)
-      body
-      frontmatter {
-        title
-        date(formatString: "MMMM DD, YYYY")
-        description
-        citations {
-            authors, year, title, journal, volume, pageRange
+        id
+        excerpt(pruneLength: 160)
+        body
+        frontmatter {
+            title
+            date(formatString: "MMMM DD, YYYY")
+            description
+            citations {
+                authors, year, title, journal, volume, pageRange
+            }
         }
-      }
     }
-  }
-`
+}
 ```
+
+Now all of the local citations are available in the GatsbyJS page component. 
 
 
 ## Consuming references as a footer
 
-Now we get the references as inputs to the page component, and can process it however we want! That work will
-all be done during bundling, so we can validate or pull in additional information, and have checks that need to pass.
+Now that we get citations as inputs to the page component, we can process it however we want! That work will
+all be done during bundling, so we can validate or pull in additional information before anything gets pushed
+to production.
 
 Quality control is good. 
 
-We'll render a reference list after the article, typical of scientific literatue. We pick up the data
-from `data.mdx.frontmatter.citations` and map this array in JSX:
-
+We'll render a reference list after any article with citations, typical of scientific literatue. We pick up the data
+from `data.mdx.frontmatter.citations` and map this array in JSX. The `<References/>` component is just a basic wrapper
+that adds a heading and container:
 ```JSX
-<MDXRenderer>{body}</MDXRenderer>
-{frontmatter.citations ? <h2>{"References"}</h2> : null}
-{(frontmatter.citations || []).map((props, key) => <Reference {...props} key={key}/>)}
+// templates/blog-post.js
+{frontmatter.citations ? <References heading={"References"} references={(frontmatter.citations || [])} /> : null }
 ```
 
 You can see from the [final section](#references) below that it works!
@@ -142,15 +161,20 @@ In addition to creating pages, the build process creates a [/tags](/tags) page t
 for each tag. For example, [/tags/ux](/tags/ux) links back to this page. 
 
 We can do a similar thing with references! We'll end up with a [/references](/references) endpoint, and then we want a page
-for each reference that links back to the articles containing that reference. 
+for each reference that links back to the articles containing that reference. It's just a little bit more complicated because 
+of nested objects.
 
 We also want the `<Reference/>` component to link to it's index page. The trick will be creating a unique URL for each reference
 without making too many assumptions about their formatting. No one is likely to access the page directly, so a data oriented
-"name" like a hash is a good approach. This means we can extend the component itself to do the hashing:
+"name" like a hash is a good approach. That's what the function mentioned before does:
 
-```JSX
-
+```JavaScript
+const referenceHash = ({authors, title, year, journal}) => {
+    const stringRepr = `${authors.join("").toLowerCase()} ${year} ${title.toLowerCase()} ${journal.toLowerCase()}`.replace(/\s/g, "");
+    const hashCode = s => s.split('').reduce((a,b) => (((a << 5) - a) + b.charCodeAt(0))|0, 0);
+    return hashCode(stringRepr);
+}
 ```
 
-
-
+This is used when we create pages at build time, and when we render links to citations. You can follow the links between pages and the
+reference index to feel it out. 
