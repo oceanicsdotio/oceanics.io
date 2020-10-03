@@ -2,7 +2,6 @@ const path = require(`path`);
 const _ = require("lodash");
 const { createFilePath } = require(`gatsby-source-filesystem`);
 const WasmPackPlugin = require("@wasm-tool/wasm-pack-plugin");
-const { SHA1 } = require("crypto-js");
 
 // https://www.gatsbyjs.org/docs/debugging-html-builds/
 // https://loadable-components.com/
@@ -12,7 +11,9 @@ const referenceHash = ({authors, title, year, journal}) => {
     Some of the canonical fields do not contain uniquely identifying information. Technically,
     the same content might appear in two places. 
     */
-    return SHA1(`${authors.join("").toLowerCase()} ${year} ${title.toLowerCase()} ${journal.toLowerCase()}`.replace(" ", ""))
+    const stringRepr = `${authors.join("").toLowerCase()} ${year} ${title.toLowerCase()} ${journal.toLowerCase()}`.replace(/\s/g, "");
+    const hashCode = s => s.split('').reduce((a,b) => (((a << 5) - a) + b.charCodeAt(0))|0, 0);
+    return hashCode(stringRepr);
 }
 
 exports.onCreateWebpackConfig = ({ stage, loaders, actions }) => {
@@ -70,70 +71,70 @@ exports.createPages = async ({ graphql, actions: {createPage} }) => {
     const blogPost = path.resolve(`src/templates/blog-post.js`);
     const tagTemplate = path.resolve(`src/templates/tags.js`);
     const referenceTemplate = path.resolve(`src/templates/references.js`);
-    const pages = {};
+    const pagesQueue = {};
 
-    const {errors, data: {allMdx: {edges}}} = await graphql(`{
+    const {errors, data: {allMdx: {nodes}}} = await graphql(`{
         allMdx(
             sort: { fields: [frontmatter___date], order: DESC }
             limit: 1000
         ) {
-            edges {
-                node {
-                    fields { slug }
-                    frontmatter { 
-                        title, 
-                        tags, 
-                        citations {
-                            authors, year, title, journal, volume, pageRange
-                        }
+            nodes {
+                fields { slug }
+                frontmatter { 
+                    title, 
+                    tags, 
+                    citations {
+                        authors, year, title, journal, volume, pageRange
                     }
                 }
-            }
+            }  
         }
-    }`)
+    }`);
 
     if (errors) throw errors;
-    edges.forEach(({node: {fields: {slug}, frontmatter: {tags, citations}}}, index) => {
+    nodes.forEach(({fields: {slug}, frontmatter: {tags, title, citations}}, index) => {
         createPage({
             path: slug,
             component: blogPost,
             context: {
                 slug,
-                previous: index === edges.length - 1 ? null : edges[index + 1].node,
-                next: index === 0 ? null : edges[index - 1].node
+                previous: index === nodes.length - 1 ? null : nodes[index + 1].node,
+                next: index === 0 ? null : nodes[index - 1].node
             },
         });
 
         (tags || []).forEach(tag => {
             const formattedTag = _.kebabCase(tag);
             const path = `/tags/${formattedTag}/`;
-            if (path in pages) return;  // skip building pages if there is a duplicate url
+            if (path in pagesQueue) return;  // skip building pages if there is a duplicate url
 
-            const page = {
+            pagesQueue[path] = {
                 path,
                 component: tagTemplate,
                 context: {tag}
             }
-            createPage(page);
-            pages[path] = page;
         });
 
         (citations || []).forEach(citation => {
             const hash = referenceHash(citation);
             const path = `/references/${hash}/`;
-            if (path in pages) return;  // skip building pages if there is a duplicate url
-
-            const page = {
-                path,
-                component: referenceTemplate,
-                context: {
-                    title: citation.title
+            if (path in pagesQueue) {
+                pagesQueue[path].context.backLinks[slug] = title
+            } else {
+                pagesQueue[path] = {
+                    path,
+                    component: referenceTemplate,
+                    context: {
+                        backLinks: {[slug]: title}
+                    }
                 }
             }
-            createPage(page);
-            pages[path] = page;
         });
-    })
+    });
+
+    Object.values(pagesQueue).map((page) => {
+        createPage(page);
+    });
 }
 
 exports.onCreateNode = ({ node, actions: { createNodeField }, getNode }) => {

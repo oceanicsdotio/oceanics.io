@@ -1,6 +1,5 @@
 import React from "react";
 import styled from "styled-components";
-import {SHA1} from "crypto-js";
 import {Link} from "gatsby";
 
 const StyledParagraph = styled.p`
@@ -8,18 +7,23 @@ const StyledParagraph = styled.p`
 `
 export const REFERENCES_ROOT = "references"
 
-export const referenceHash = ({authors, title, year, journal}) => {
+const referenceHash = ({authors, title, year, journal}) => {
     /*
     Some of the canonical fields do not contain uniquely identifying information. Technically,
     the same content might appear in two places. 
     */
-    return SHA1(`${authors.join("").toLowerCase()} ${year} ${title.toLowerCase()} ${journal.toLowerCase()}`.replace(" ", ""))
+    const stringRepr = (`${authors.join("").toLowerCase()} ${year} ${title.toLowerCase()} ${journal.toLowerCase()}`).replace(/\s/g, "");
+    const hashCode = s => s.split('').reduce((a,b) => (((a << 5) - a) + b.charCodeAt(0))|0, 0);
+    const hash =  hashCode(stringRepr);
+
+    console.log(hash, stringRepr);
+    return hash;
 }
 
 export const Reference = ({
-    authors, 
-    title, 
-    year, 
+    authors,
+    year,
+    title,
     pageRange, 
     volume, 
     journal

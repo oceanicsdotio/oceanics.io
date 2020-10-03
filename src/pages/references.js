@@ -28,17 +28,13 @@ export default ({
 export const pageQuery = graphql`
     query {
         site {
-            siteMetadata {
-                title
-            }
+            siteMetadata { title }
         }
-        allMdx(
-            limit: 1000
-        ) {
+        allMdx {
             nodes {
-                    frontmatter { 
-                        citations { authors, year, title, journal, volume, pageRange }
-                    }  
+                frontmatter { 
+                    citations { authors, year, title, journal, volume, pageRange }
+                }  
             }
         }
     }
