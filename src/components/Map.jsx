@@ -2,7 +2,9 @@ import React, { useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import mapboxgl from "mapbox-gl";
 import styled, {keyframes} from "styled-components";
+
 import "mapbox-gl/dist/mapbox-gl.css";
+
 import {loadGeoJSON} from "../bathysphere";
 
 mapboxgl.accessToken = 'pk.eyJ1Ijoib2NlYW5pY3Nkb3RpbyIsImEiOiJjazMwbnRndWkwMGNxM21wYWVuNm1nY3VkIn0.5N7C9UKLKHla4I5UdbOi2Q';
@@ -116,63 +118,67 @@ const addHighlightEvent = (map, featureSet) => {
 
 
 export default ({layers, style, radius=0}) => {
+    /*
+    The Map component. 
+    */
 
-    const [map, setMap] = useState(null);
-    const container = useRef(null);
+    const [map, setMap] = useState(null);  // MapboxGL Map instance
+    const container = useRef(null);  // the element that Map is going into, in this case a <div/>
 
     useEffect(() => {
-  
-        if (!map) {
-            (async () => {
 
-                const map = new mapboxgl.Map({
-                    container: container.current,
-                    style,
-                    bearing: -30,
-                    center: [-69, 44],
-                    zoom: 7,
-                    antialias: false,
-                });
+        if (map) return;  // only one map context please
+       
+        (async () => {
 
-            
-                map.on("mouseover", () => {
-                    map.resize();
-                });
+            const map = new mapboxgl.Map({
+                container: container.current,
+                style,
+                bearing: -30,
+                center: [-69, 44],
+                zoom: 7,
+                antialias: false,
+            });
 
-                map.on("mouseleave", () => {
-                    map.resize();
-                });
-    
-                map.on("load", async () => {
-                    
-                    (await loadGeoJSON(map, layers.json)).map(({ layer, behind }) => map.moveLayer(layer, behind));
-                    
-                    // Popup events on collection of locations
-                    // addFeatureEvent(map);
-    
-                    // Highlight shellfish closures on hover
-                    addHighlightEvent(map, "nssp-closures");
-    
-                    // Highlight town boundaries on hover
-                    addHighlightEvent(map, "maine-towns");
-    
-                    // Set breakpoints for point location detail markers
-                    setInterval(() => {
-                        const period = 64;
-                        let base = radius / 16;
-                        radius = (++radius) % period;
-                        map.setPaintProperty(
-                            'limited-purpose-licenses',
-                            'circle-radius', {
-                            "stops": [[base, 1], [base, 10]]
-                        });
-                    }, 10);
-                });
+        
+            map.on("mouseover", () => {
+                map.resize();
+            });
 
-                setMap(map);
-            })();
-        }   
+            map.on("mouseleave", () => {
+                map.resize();
+            });
+
+            map.on("load", async () => {
+                
+                (await loadGeoJSON(map, layers.json)).map(({ layer, behind }) => map.moveLayer(layer, behind));
+                
+                // Popup events on collection of locations
+                // addFeatureEvent(map);
+
+                // Highlight shellfish closures on hover
+                addHighlightEvent(map, "nssp-closures");
+
+                // Highlight town boundaries on hover
+                addHighlightEvent(map, "maine-towns");
+
+                // Set breakpoints for point location detail markers
+                setInterval(() => {
+                    const period = 64;
+                    let base = radius / 16;
+                    radius = (++radius) % period;
+                    map.setPaintProperty(
+                        'limited-purpose-licenses',
+                        'circle-radius', {
+                        "stops": [[base, 1], [base, 10]]
+                    });
+                }, 10);
+            });
+
+            setMap(map);
+        })();
+         
     }, []);
 
-    return <StyledMapContainer ref={el => (container.current = el)} />;
+    return <StyledMapContainer ref={container} />;
 };
