@@ -96,7 +96,7 @@ const addFeatureEvent = (mapInstance) => {
 
 const addHighlightEvent = (map, featureSet) => {
     /*
-    When the cursor position interesects with the space
+    When the cursor position intersects with the space
     defined by a feature set, set the hover state to true.
 
     When the cursor no longer intersects the shapes, stop
@@ -117,17 +117,52 @@ const addHighlightEvent = (map, featureSet) => {
 };
 
 
-export default ({layers, style, radius=0}) => {
+export default ({
+    layers, 
+    style, 
+    radius=0,
+    allowGeolocation=true
+}) => {
     /*
     The Map component. 
     */
-
+    const [useClientLocation, setUseClientLocation] = useState(false);
+    const [center, setCenter] = useState(null);
     const [map, setMap] = useState(null);  // MapboxGL Map instance
     const container = useRef(null);  // the element that Map is going into, in this case a <div/>
 
     useEffect(() => {
+        /*
+        Use the Geolocation API to retieve the location of the client,
+        and set the map center to those coordinates, and flag that the interface
+        should use the client location on refresh.
 
-        if (map) return;  // only one map context please
+        This will also trigger a greater initial zoom level.
+        */
+        const DEFAULT_CENTER = [-69, 44];
+
+        if (allowGeolocation && navigator.geolocation) {
+            const success = ({coords: {latitude, longitude}}) => {
+                setUseClientLocation(true);
+                setCenter([longitude, latitude]);
+            };
+            navigator.geolocation.getCurrentPosition(success, () => {setCenter(DEFAULT_CENTER)});
+        } else {
+            setCenter(DEFAULT_CENTER);  // not supported
+        }
+    }, []);
+
+    useEffect(() => {
+
+        /*
+        If the map element has not been created yet, create it with a custom style, and user
+        provided layer definitions. 
+
+        Generally these will be prefetched from static assets, but it can
+        also be sourced from an API or database.
+        */
+
+        if (map || !center) return;  // only one map context please, need center to have been set
        
         (async () => {
 
@@ -135,8 +170,8 @@ export default ({layers, style, radius=0}) => {
                 container: container.current,
                 style,
                 bearing: -30,
-                center: [-69, 44],
-                zoom: 7,
+                center: center,
+                zoom: useClientLocation ? 13 : 7,
                 antialias: false,
             });
 
@@ -156,16 +191,12 @@ export default ({layers, style, radius=0}) => {
                 // Popup events on collection of locations
                 // addFeatureEvent(map);
 
-                // Highlight shellfish closures on hover
-                addHighlightEvent(map, "nssp-closures");
-
-                // Highlight town boundaries on hover
-                addHighlightEvent(map, "maine-towns");
+                ["nssp-closures", "maine-towns"].forEach(layer => addHighlightEvent(map, layer)) // Highlight on hover
 
                 // Set breakpoints for point location detail markers
                 setInterval(() => {
                     const period = 64;
-                    let base = radius / 16;
+                    let base = radius / 32;
                     radius = (++radius) % period;
                     map.setPaintProperty(
                         'limited-purpose-licenses',
@@ -178,7 +209,7 @@ export default ({layers, style, radius=0}) => {
             setMap(map);
         })();
          
-    }, []);
+    }, [center]);
 
     return <StyledMapContainer ref={container} />;
 };
