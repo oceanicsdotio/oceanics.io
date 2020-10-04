@@ -52,14 +52,14 @@ export const Reference = ({
     authors,
     year,
     title,
-    pageRange, 
-    volume, 
     journal,
+    volume = null, 
+    pageRange = null, 
     hash = null
 }) => {
 
     const pages = pageRange ? `:${pageRange[0]}–${pageRange[1]}.` : ``;
-    const text = `${authors.join(", ")}. ${year}. ${title.trim()}. ${journal} ${volume}${pages}`;
+    const text = `${authors.join(", ")}. ${year}. ${title.trim()}. ${journal} ${volume||""}${pages}`;
     const _hash = hash || referenceHash({authors, title, year});
 
     return (
