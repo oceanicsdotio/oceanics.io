@@ -68,11 +68,6 @@ exports.onCreateWebpackConfig = ({ stage, loaders, actions }) => {
 
 exports.createPages = async ({ graphql, actions: {createPage} }) => {
    
-    const blogPost = path.resolve(`src/templates/blog-post.js`);
-    const tagTemplate = path.resolve(`src/templates/tags.js`);
-    const referenceTemplate = path.resolve(`src/templates/references.js`);
-    const pagesQueue = {};
-
     const {errors, data: {allMdx: {nodes}}} = await graphql(`{
         allMdx(
             sort: { fields: [frontmatter___date], order: DESC }
@@ -92,10 +87,13 @@ exports.createPages = async ({ graphql, actions: {createPage} }) => {
     }`);
 
     if (errors) throw errors;
+
+    const pagesQueue = {};
+
     nodes.forEach(({fields: {slug}, frontmatter: {tags, title, citations}}, index) => {
         createPage({
             path: slug,
-            component: blogPost,
+            component: path.resolve(`src/templates/article.js`),
             context: {
                 slug,
                 previous: index === nodes.length - 1 ? null : nodes[index + 1].node,
@@ -105,25 +103,25 @@ exports.createPages = async ({ graphql, actions: {createPage} }) => {
 
         (tags || []).forEach(tag => {
             const formattedTag = _.kebabCase(tag);
-            const path = `/tags/${formattedTag}/`;
-            if (path in pagesQueue) return;  // skip building pages if there is a duplicate url
+            const route = `/tags/${formattedTag}/`;
+            if (route in pagesQueue) return;  // skip building pages if there is a duplicate url
 
-            pagesQueue[path] = {
-                path,
-                component: tagTemplate,
+            pagesQueue[route] = {
+                path: route,
+                component: path.resolve(`src/templates/tags.js`),
                 context: {tag}
             }
         });
 
         (citations || []).forEach(citation => {
             const hash = referenceHash(citation);
-            const path = `/references/${hash}/`;
-            if (path in pagesQueue) {
-                pagesQueue[path].context.backLinks[slug] = title
+            const route = `/references/${hash}/`;
+            if (route in pagesQueue) {
+                pagesQueue[route].context.backLinks[slug] = title
             } else {
-                pagesQueue[path] = {
-                    path,
-                    component: referenceTemplate,
+                pagesQueue[route] = {
+                    path: route,
+                    component: path.resolve(`src/templates/references.js`),
                     context: {
                         backLinks: {[slug]: title}
                     }
@@ -132,9 +130,7 @@ exports.createPages = async ({ graphql, actions: {createPage} }) => {
         });
     });
 
-    Object.values(pagesQueue).map((page) => {
-        createPage(page);
-    });
+    Object.values(pagesQueue).map(page => createPage(page));
 }
 
 exports.onCreateNode = ({ node, actions: { createNodeField }, getNode }) => {

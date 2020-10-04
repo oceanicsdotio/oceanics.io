@@ -4,7 +4,11 @@ import SEO from "../components/SEO"
 import { Link, graphql } from "gatsby"
 
 export default ({ data: { allMdx: {nodes}}, location }) => {
-    
+    /*
+    Tag pages link single tags back to many articles. This provides a many-to-many
+    mapping that can help traverse the content graph and find related data or
+    information. 
+    */
     return (
         <Layout location={location} title={null}>
             <SEO title="Situational awareness for a changing ocean" />

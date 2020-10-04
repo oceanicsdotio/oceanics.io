@@ -12,6 +12,13 @@ citations:
     journal: Journal of Shellfish Research
     volume: 27
     pageRange: [427, 441]
+
+  - authors: [Baeta A, Cabral HN, Neto JM, Marques JC, Pardal MÂ]
+    year: 2005
+    title: Biology, population dynamics and secondary production of the green crab Carcinus maenas (L.) in a temperate estuary
+    journal: Estuarine and Coastal Shelf Science
+    volume: 65
+    pageRange: [43, 52]
 ---
 
 Most technical and scientific writing references external sources liberally. 
@@ -31,26 +38,27 @@ Audet D, Miron G, Moriyasu M. 2008. Biological characteristics of a newly establ
 As a component, this looks like:
 ```JSX
 // components/References.jsx
-const Reference = ({
+export const Reference = ({
     authors,
     year,
     title,
     pageRange, 
     volume, 
-    journal
+    journal,
+    hash = null
 }) => {
 
     const pages = pageRange ? `:${pageRange[0]}–${pageRange[1]}.` : ``;
     const text = `${authors.join(", ")}. ${year}. ${title.trim()}. ${journal} ${volume}${pages}`;
-    const hash = referenceHash({authors, title, year, journal});
+    const _hash = hash || referenceHash({authors, title, year});
 
     return (
-        <StyledParagraph>
+        <StyledBlock key={hash}>
             {text}
-            <Link to={`/${REFERENCES_ROOT}/${hash}/`}>{"[links]"}</Link>
-        </StyledParagraph>
+            <Link to={`/${REFERENCES_ROOT}/${_hash}/`}>{"[links]"}</Link>
+        </StyledBlock>
     )
-}
+};
 ```
 
 It is called from extended Markdown (`.mdx`) by passing it to an `<MDXRenderer/>`, and inlining it like so:
@@ -189,13 +197,7 @@ is a weird incestuous community.
 
 We'll use the hash function again to create links, and introduce a new `<Inline/>` component. Not elegant, but it's a start.
 
-The article 
-<Inline
-    authors={["Audet D", "Miron G", "Moriyasu M"]} 
-    year={2008} 
-    title={"Biological characteristics of a newly established green crab (Carcinus maenas) population in the Southern Gulf of St. Lawrence, Canada"} 
-/> 
-
+The article <Inline authors={["Audet D", "Miron G", "Moriyasu M"]} year={2008} title={"Biological characteristics of a newly established green crab (Carcinus maenas) population in the Southern Gulf of St. Lawrence, Canada"}/> 
 has some interesting traits:
 * There is a place: Gulf of St. Lawrence
 * There is a species: ~Carcinus maenas~

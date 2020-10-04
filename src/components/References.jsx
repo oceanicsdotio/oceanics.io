@@ -4,7 +4,13 @@ import {Link} from "gatsby";
 
 const StyledBlock = styled.div`
     color: #AACCCCCC;
+    margin-bottom: 1em;
 `
+
+const StyledAnchor = styled.a`
+    color: inherit;
+`
+
 export const REFERENCES_ROOT = "references";
 
 const referenceHash = ({authors, title, year, journal}) => {
@@ -24,11 +30,19 @@ export const Inline = ({
     year,
     title
 }) => {
-
-    const text = `(${authors.join(", ")} ${year})`;
-    const hash = referenceHash({authors, title, year});
-
-    return <Link to={`/${REFERENCES_ROOT}/${hash}/`}>{text}</Link>;
+    const NAMED_AUTHORS = 3;
+    const nAuthors = authors.length;
+    const names = authors.slice(0, Math.min(nAuthors, NAMED_AUTHORS)).map(x => x.split(" ")[0]);
+    let nameString;
+    if (nAuthors > NAMED_AUTHORS) {
+        nameString = `${names[0]} et al `;
+    } else {
+        nameString = [names.slice(0, names.length-1).join(", "), names[names.length-1]].join(" & ")
+    }
+    
+    const text = `(${nameString} ${year})`;
+   
+    return <a href={`#${referenceHash({authors, title, year})}`}>{text}</a>;
 };
 
 export const Reference = ({
@@ -37,28 +51,32 @@ export const Reference = ({
     title,
     pageRange, 
     volume, 
-    journal
+    journal,
+    hash = null
 }) => {
 
     const pages = pageRange ? `:${pageRange[0]}–${pageRange[1]}.` : ``;
     const text = `${authors.join(", ")}. ${year}. ${title.trim()}. ${journal} ${volume}${pages}`;
-    const hash = referenceHash({authors, title, year});
+    const _hash = hash || referenceHash({authors, title, year});
 
     return (
         <StyledBlock key={hash}>
             {text}
-            <Link to={`/${REFERENCES_ROOT}/${hash}/`}>{"[links]"}</Link>
+            <Link to={`/${REFERENCES_ROOT}/${_hash}/`}>{"[links]"}</Link>
         </StyledBlock>
     )
 };
 
 export default ({heading, references}) => {
+
     return (
             <>
-            <h2>{heading}</h2>
+            {references ? <StyledAnchor id={"references"}><h2>{heading}</h2></StyledAnchor> : null}
             {references.map((props) => {
+                const hash = referenceHash(props);
                 return (
-                    <Fragment key={referenceHash(props)}>
+                    <Fragment key={hash}>
+                        <a id={hash} />
                         <Reference {...props}/>
                     </Fragment>
                 );
