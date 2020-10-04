@@ -79,12 +79,6 @@ const StyledNavBar = styled.nav`
     margin-bottom: 1.45rem;
 `;
 
-// const StyledHeaderDiv = styled.div`
-//     margin: 0 auto;
-//     max-width: 960;
-//     padding: 1.45rem 1.0875rem;
-// `;
-
 const StyledHeader = styled.header`
     background: none;
     margin-bottom: 0;

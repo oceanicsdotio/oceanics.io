@@ -28,19 +28,22 @@ const referenceHash = ({authors, title, year, journal}) => {
 export const Inline = ({
     authors,
     year,
-    title
+    title,
+    unwrap=false
 }) => {
     const NAMED_AUTHORS = 3;
     const nAuthors = authors.length;
     const names = authors.slice(0, Math.min(nAuthors, NAMED_AUTHORS)).map(x => x.split(" ")[0]);
     let nameString;
-    if (nAuthors > NAMED_AUTHORS) {
+    if (nAuthors === 1) {
+        nameString = names[0];
+    } else if (nAuthors > NAMED_AUTHORS) {
         nameString = `${names[0]} et al `;
     } else {
         nameString = [names.slice(0, names.length-1).join(", "), names[names.length-1]].join(" & ")
     }
     
-    const text = `(${nameString} ${year})`;
+    const text = unwrap ? `${nameString} (${year})` : `(${nameString} ${year})`;
    
     return <a href={`#${referenceHash({authors, title, year})}`}>{text}</a>;
 };
