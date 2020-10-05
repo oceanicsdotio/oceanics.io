@@ -1,27 +1,23 @@
 import React, { useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import mapboxgl from "mapbox-gl";
-import styled, {keyframes} from "styled-components";
+import styled from "styled-components";
+import MapPopUp from "../components/MapPopUp";
 
 import "mapbox-gl/dist/mapbox-gl.css";
-
-import {loadGeoJSON} from "../bathysphere";
 
 mapboxgl.accessToken = 'pk.eyJ1Ijoib2NlYW5pY3Nkb3RpbyIsImEiOiJjazMwbnRndWkwMGNxM21wYWVuNm1nY3VkIn0.5N7C9UKLKHla4I5UdbOi2Q';
 
 
-const StyledListItem = styled.li`
-    color: red;
-`;
-
-const StyledOrderedList = styled.ol`
-    padding-left: 20px;
-`;
-
-const shift = keyframes`
-    0%     {border-color:#CCCCCC;}
-    50.0%  {border-color:#77CCFF;}
-    100.0%  {border-color:#CCCCCC;}
+const StyledPreformattedText = styled.pre`
+    display: block;
+    position: relative;
+    padding: 0;
+    border: 1px solid;
+    border-radius: 1px;
+    color: #CCCCCCFF;
+    background-color: #00000066;
+    z-index: 2;
 `;
 
 
@@ -30,15 +26,13 @@ const StyledMapContainer = styled.div`
     display: block;
     height: 200px;
     width: 100%;
-    border: solid 1px;
-    color: #CCCCCC;
-    padding: 3%;
-    animation: ${shift} 1s linear infinite;
+    border: solid 1px #CCCCCC;
+    padding: 0;
      
     &:hover {
         position: fixed;
-        height: 90%;
-        width: 90%;
+        height: 75%;
+        width: 100%;
         top: 50%;
         left: 50%;
         margin-right: -50%;
@@ -47,75 +41,6 @@ const StyledMapContainer = styled.div`
         z-index: 1;
     }
 `;
-
-const PopUpContent = styled.div`
-    background: #101010AA;
-    font-family:inherit;
-    font-size: inherit;
-    height: 100%;
-    width: 100%;
-`;
-
-const addFeatureEvent = (mapInstance) => {
-    /*
-    When mouse position intersects the feature set, show a pop up that
-    contains metadata information about the item.
-     */
-
-    mapInstance.on('click', 'limited-purpose-licenses', (e) => {
-        mapInstance.getCanvas().style.cursor = 'pointer';
-        let coordinates = e.features[0].geometry.coordinates.slice();
-        const species = e.features[0].properties.species;
-        while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
-            coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
-        }
-
-        const preprocessed = species.replace('and', ',').replace(';', ',').split(',');
-        const placeholder = document.createElement('div');
-        
-        ReactDOM.render(
-            <PopUpContent>
-                <StyledOrderedList>
-                    {preprocessed.map(s => <StyledListItem>{s.trim()}</StyledListItem>)}
-                </StyledOrderedList>
-            </PopUpContent>, 
-            placeholder
-        );
-
-        new mapboxgl.Popup({
-            closeButton: false,
-            closeOnClick: true,
-        })
-            .setLngLat(coordinates)
-            .setDOMContent(placeholder)
-            .addTo(mapInstance);
-    });
-
-};
-
-
-const addHighlightEvent = (map, featureSet) => {
-    /*
-    When the cursor position intersects with the space
-    defined by a feature set, set the hover state to true.
-
-    When the cursor no longer intersects the shapes, stop
-    highlighting the features. 
-    */
-
-    let featureId = null;
-
-    map.on('mouseenter', featureSet, (e) => {
-        featureId = e.features[0].id;
-        map.setFeatureState({ source: featureSet, id: featureId }, { hover: true });
-    });
-
-    map.on('mouseleave', featureSet, () => {
-        map.setFeatureState({ source: featureSet, id: featureId }, { hover: false });
-        featureId = null;
-    });
-};
-
 
 export default ({
     layers, 
@@ -127,9 +52,13 @@ export default ({
     The Map component. 
     */
     const [useClientLocation, setUseClientLocation] = useState(false);
+    const [clientLocation, setClientLocation] = useState(null);
     const [center, setCenter] = useState(null);
     const [map, setMap] = useState(null);  // MapboxGL Map instance
+    const [layerData, setLayerData] = useState(null);
+    const [direction, setDirection] = useState(-30);
     const container = useRef(null);  // the element that Map is going into, in this case a <div/>
+
 
     useEffect(() => {
         /*
@@ -142,9 +71,11 @@ export default ({
         const DEFAULT_CENTER = [-69, 44];
 
         if (allowGeolocation && navigator.geolocation) {
-            const success = ({coords: {latitude, longitude}}) => {
+            const success = ({coords: {latitude, longitude, heading}}) => {
                 setUseClientLocation(true);
+                setClientLocation([longitude, latitude]);
                 setCenter([longitude, latitude]);
+                setDirection(heading);
             };
             navigator.geolocation.getCurrentPosition(success, () => {setCenter(DEFAULT_CENTER)});
         } else {
@@ -152,8 +83,8 @@ export default ({
         }
     }, []);
 
-    useEffect(() => {
 
+    useEffect(() => {
         /*
         If the map element has not been created yet, create it with a custom style, and user
         provided layer definitions. 
@@ -161,55 +92,256 @@ export default ({
         Generally these will be prefetched from static assets, but it can
         also be sourced from an API or database.
         */
-
         if (map || !center) return;  // only one map context please, need center to have been set
        
-        (async () => {
-
-            const map = new mapboxgl.Map({
-                container: container.current,
-                style,
-                bearing: -30,
-                center: center,
-                zoom: useClientLocation ? 13 : 7,
-                antialias: false,
-            });
-
-        
-            map.on("mouseover", () => {
-                map.resize();
-            });
-
-            map.on("mouseleave", () => {
-                map.resize();
-            });
-
-            map.on("load", async () => {
-                
-                (await loadGeoJSON(map, layers.json)).map(({ layer, behind }) => map.moveLayer(layer, behind));
-                
-                // Popup events on collection of locations
-                // addFeatureEvent(map);
-
-                ["nssp-closures", "maine-towns"].forEach(layer => addHighlightEvent(map, layer)) // Highlight on hover
-
-                // Set breakpoints for point location detail markers
-                setInterval(() => {
-                    const period = 64;
-                    let base = radius / 32;
-                    radius = (++radius) % period;
-                    map.setPaintProperty(
-                        'limited-purpose-licenses',
-                        'circle-radius', {
-                        "stops": [[base, 1], [base, 10]]
-                    });
-                }, 10);
-            });
-
-            setMap(map);
-        })();
-         
+        setMap(new mapboxgl.Map({
+            container: container.current,
+            style,
+            bearing: direction,
+            center: center,
+            zoom: useClientLocation ? 12 : 7,
+            antialias: false,
+        }));
     }, [center]);
 
-    return <StyledMapContainer ref={container} />;
+
+    useEffect(() => {
+        /*
+        Provide cursor context information
+        */
+        if (!map) return;
+        map.on('mousemove', (e) => {
+            document.getElementById('info').innerHTML = JSON.stringify(e.lngLat.wrap());
+        });
+
+    }, [map]);
+
+
+    useEffect(() => {
+        /*
+        Expand the map when the mouse enters the element, and then shrink it again when
+        it leaves.
+        */
+        if (map) ["mouseover", "mouseleave"].forEach(event => map.on(event, () => {map.resize()}));
+    }, [map]);
+
+    useEffect(() => {
+        /*
+        Mark the client location
+        */
+        if (!clientLocation || !map) return;
+        
+        const size = 64;
+       
+        map.addImage('pulsing-dot', {
+            
+            width: size,
+            height: size,
+            data: new Uint8Array(size * size * 4),
+
+            // get rendering context for the map canvas when layer is added to the map
+            onAdd: function () {
+                var canvas = document.createElement('canvas');
+                canvas.width = size;
+                canvas.height = size;
+                this.context = canvas.getContext('2d');
+            },
+
+            // called once before every frame where the icon will be used
+            render: function () {
+                var duration = 1000;
+                var time = (performance.now() % duration) / duration;
+
+                var radius = (size / 2) * 0.3;
+                var outerRadius = (size / 2) * 0.7 * time + radius;
+                var context = this.context;
+
+                // draw outer circle
+                context.clearRect(0, 0, size, size);
+               
+                // draw inner circle
+                context.beginPath();
+                context.arc(
+                    size / 2,
+                    size / 2,
+                    outerRadius,
+                    0,
+                    Math.PI * 2
+                );
+                
+                context.strokeStyle = 'orange';
+                context.lineWidth = 2 + 4 * (1 - time);
+                context.stroke();
+
+                // update this image's data with data from the canvas
+                this.data = context.getImageData(
+                    0,
+                    0,
+                    size,
+                    size
+                ).data;
+
+                map.triggerRepaint();
+                return true;
+            }
+        }, { pixelRatio: 2 });
+
+        map.addSource('home', {
+            'type': 'geojson',
+            'data': {
+                'type': 'FeatureCollection',
+                'features': [
+                    {
+                        'type': 'Feature',
+                        'geometry': {
+                            'type': 'Point',
+                            'coordinates': clientLocation
+                        }
+                    }
+                ]
+            }
+        });
+        map.addLayer({
+            'id': 'home',
+            'type': 'symbol',
+            'source': 'home',
+            'layout': {
+                'icon-image': 'pulsing-dot'
+            }
+        });
+       
+
+    }, [clientLocation, map]);
+
+
+
+    useEffect(() => {
+        /*
+        Asynchronously retrieve the geospatial data files and parse them.
+
+        Skip this if the layer data has already been loaded, or if the map doesn't exist yet
+         */
+        if (layerData || !map) return;
+        const layerMetadata = [];
+
+        (async () => {
+            const jobs = Object.values(layers.json).map(async (props) => {
+                
+                const {render: {id, ...render}, behind} = props;
+                const source = await fetch(`/${id}.json`)
+                    .then(async r => {
+                        let jsonData = null;
+                        try {
+                            jsonData = await r.json();
+                        } catch {
+                            console.log(r);
+                        }
+                        return jsonData;
+                    })
+                    .then(data => {
+                        return {data, type: "geojson", generateId: true}
+                    });
+
+                const metadata = {id, ...render};
+                map.addLayer({...metadata, source});
+                layerMetadata.push({id, behind});
+            });
+
+            const _ = await Promise.all(jobs)
+        })()
+        setLayerData(layerMetadata);
+    }, [map]);
+
+    useEffect(() => {
+        /*
+        Swap layers to be in the correct order after they have all been created.
+        */
+        (layerData || []).forEach(({ id, behind }) => {map.moveLayer(id, behind)});
+    }, [layerData]);
+
+    useEffect(() => {
+        /*
+        Add Popup event to some layers
+
+        When mouse position intersects the feature set, show a pop up that
+        contains metadata information about the item.
+        */
+        if (!layerData) return;
+        const placeholder = document.createElement('div');
+
+        const addPopupContent = (featureSet, polygon=false) => {
+        
+            map.on('click', featureSet, (e) => {
+        
+                if (e.features.length === 0) return;
+
+                const features = e.features.map((props) => {
+                    const {geometry: {coordinates}, properties: {species}} = props;
+                    while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+                        coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+                    }
+                    return {
+                        species: species.replace('and', ',').replace(';', ',').split(',').map(each => each.trim()),
+                        coordinates
+                    }
+                })
+                
+                ReactDOM.render(<MapPopUp features={features}/>, placeholder);
+        
+                new mapboxgl.Popup({
+                    className: "map-popup",
+                    closeButton: true,
+                    closeOnClick: true
+                })
+                    .setLngLat(
+                        features
+                            .map(({coordinates})=>coordinates)
+                            .reduce((a,b)=>[a[0]+b[0]/features.length, a[1]+b[1]/features.length], [0, 0])
+                    )
+                    .setDOMContent(placeholder)
+                    .addTo(map);
+            });
+        
+        };
+        addPopupContent('limited-purpose-licenses');
+    }, [layerData]);
+
+    useEffect(() => {
+        /*
+        Highlight layers
+
+        When the cursor position intersects with the space
+        defined by a feature set, set the hover state to true.
+    
+        When the cursor no longer intersects the shapes, stop
+        highlighting the features. 
+        */
+
+        if (!layerData) return;
+
+        const addHighlightEvent = (featureSet, featureIds) => {
+        
+            map.on('mousemove', featureSet, (e) => {
+                if (e.features.length > 0) {
+                    (featureIds || []).forEach(feature => {map.setFeatureState({ source: featureSet, id: feature }, { hover: false })});
+                    featureIds = e.features.map(feature => feature.id);
+                    (featureIds || []).forEach(feature => {map.setFeatureState({ source: featureSet, id: feature }, { hover: true })});
+                }
+            });
+                
+            map.on('mouseleave', featureSet, () => {
+                (featureIds || []).forEach(feature => {map.setFeatureState({ source: featureSet, id: feature }, { hover: false })});
+                featureIds = [];
+            });
+        };
+        
+        ["nssp-closures", "maine-towns"].forEach(layer => addHighlightEvent(layer)); // Highlight on hover
+
+    }, [layerData]);
+
+    return (<>
+        <p>{"Hover for a bigger map."}</p>
+        <StyledMapContainer ref={container} />
+        <StyledPreformattedText id={"info"}></StyledPreformattedText>
+    </>);
 };

@@ -36,28 +36,6 @@ export const loadTileImage = (url, ref) => {
     img.src = url;
 };
 
-export const loadGeoJSON = async (mapInstance, layers) => {
-    /*
-    Asynchronously retrieve the geospatial data files and parse them
-     */
-    return await Promise.all(layers.map(async ({ render, behind }) => {
-
-        const url = "/" + render.id + ".json";
-
-        try {
-            render.source = {
-                'type': 'geojson',
-                'data': await fetch(url).then(r => r.json()),
-                'generateId': true,
-            };
-        } catch {
-            console.log("Error fetching " + url);
-            return { layer: null, behind: null };
-        }
-        mapInstance.addLayer(render);
-        return { layer: render.id, behind };
-    }));
-};
 
 function partition(arr, low, high, col) {
     let ii = low - 1;

@@ -103,19 +103,18 @@ input[type=range]::-moz-range-thumb {
 
 }
 
-
-
-.mapboxgl-popup-content {
-    background: #101010AA;
+.map-popup {
+    background: #10101077;
     border: solid 1px;
     font-family:inherit;
     font-size: inherit;
-    width: auto;
-    padding: 10px;
-    float: left;
-    margin: 0;
+    padding: 0;
     color: #CCCCCC;
 }
 
-
-
+.map-popup div {
+    background: #10101077;
+    border: none;
+    margin: 0;
+    float: left;
+}
