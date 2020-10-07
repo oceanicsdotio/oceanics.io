@@ -4,5 +4,8 @@
         "ecmaFeatures": {
             "jsx": true
         }
-    }
+    },
+    "extends": [
+        "plugin:react-hooks/recommended"
+    ]
 }

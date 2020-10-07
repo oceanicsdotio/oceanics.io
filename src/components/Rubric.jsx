@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useReducer } from "react";
 import styled from "styled-components";
 import YAML from "yaml";
 
@@ -21,20 +21,7 @@ const Score = styled.div`
     color: orange;
 `;
 
-const RubricStatement = ({children, onClick}) => {
-    /*
-    A single clickable statement or merit with a check box. The text node is passed as
-    a child, and the onClick handler uses a state setter from the parent element.
-     */
-    return (
-        <Container>
-            <Input type={"checkbox"} onClick={onClick}/>
-            <Statement>{children}</Statement>
-        </Container>
-    )
-}
-
-export default ({target="/rubric.yml"}) => {
+export default ({target="/rubric.yml", baseScore=0, scoreMultiplier=1}) => {
     /*
     A Rubric is a collection of true/false statements in which an affirmative is consider good (merits). 
 
@@ -44,27 +31,24 @@ export default ({target="/rubric.yml"}) => {
     The score element keeps track of the total number selected, and the setter is passed to child checkbox inputs
     to update the current score. 
     */
-
-    const BASE_SCORE = 0;
-    const [score, setScore] = useState(0);
+    const [score, dispatchScore] = useReducer(
+        (count, checked) => count + (checked ? 1*scoreMultiplier : -1*scoreMultiplier), baseScore
+    );
     const [rubric, setRubric] = useState({});
 
     useEffect(()=>{
         /*
-        Retrieve and parse the YAML file that describes the assessment areas and merits
+        Retrieve and parse the YAML file that describes the assessment areas and merits. Do this exactly once.
         */
         fetch(target)
             .then(data => data.text())
             .then(yml => setRubric(YAML.parse(yml)));
     },[]);
 
-    const onClick = (e) => {
-        // Increment or decrement based on DOM state
-        setScore(score + (e.target.checked ? 1 : -1));
-    }
-
-    const reducer = (accumulator, currentValue) => accumulator + currentValue;  // Accumulating the total number of merits
-    const possible = Object.values(rubric).map(x=>x.merits.length).reduce(reducer, BASE_SCORE); // total possible points
+    // Accumulating total merits across all categories
+    const possible = Object.values(rubric)
+        .map(x=>x.merits.length)
+        .reduce((accumulator, currentValue) => accumulator + currentValue, baseScore);
 
     return (
         <>
@@ -75,10 +59,15 @@ export default ({target="/rubric.yml"}) => {
                 <div key={key}>
                     <h3>{key}</h3>
                     <p>{value.description}</p>
-                    {value.merits.map((merit, key2) => <RubricStatement onClick={onClick} key={key2}>{merit}</RubricStatement>)}
+                    {value.merits.map(merit => 
+                        <Container key={merit}>
+                            <Input type={"checkbox"} onClick={(e) => dispatchScore(e.target.checked)}/>
+                            <Statement>{merit}</Statement>
+                        </Container>  
+                    )}
                 </div>    
         ) : null}
         </>
     )
-    
+
 }
