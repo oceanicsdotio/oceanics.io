@@ -86,21 +86,24 @@ Canvas uses crisp-edges to preserve pixelated style of map
 const StyledCanvas = styled.canvas`
     display: inline-block;
     image-rendering: crisp-edges;
+    position: fixed;
     left: 0;
-    top: 0;
+    bottom: 0;
     width: 128px;
     height: 128px;
-    margin: 0 0 0 0;
+    margin: 10px;
+    border: orange 1px solid;
 `;
 
 const StyledBoard = styled.canvas`
     display: inline-block;
     image-rendering: pixelated;
+    position: absolute;
     left: 0;
     top: 0;
     width: 600px;
     height: 600px;
-    margin: 0 0 0 0;
+    margin: 0;
     border: 1px solid orange;
 `;
 
@@ -109,6 +112,7 @@ const StyledContainer = styled.div`
     align-content: center;
     display: block;
     width: 100%;
+    height: 600px;
     padding: 0;
 `;
 
@@ -116,6 +120,8 @@ const StyledContainer = styled.div`
 const StyledText = styled.div`
     font-size: larger;
     display: block;
+    position: absolute;
+    margin: 5px;
 `;
  
 const pathFromBox = (v) => {
@@ -166,6 +172,7 @@ export default ({
             Update currently visible tiles from map view
             */
             console.log(event);
+            console.log(nav.current);
 
             if (event && nav.current) {
                 const { clientX, clientY } = event;
