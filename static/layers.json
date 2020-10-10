@@ -32,7 +32,7 @@
                 },
                 "circle-color": "rgba(0,0,0,0)",
                 "circle-stroke-width": 1,
-                "circle-stroke-color": "#0ff"
+                "circle-stroke-color": "rgba(0,255,255,0.75)"
             }
         }, "behind": "cities"
     }, {
@@ -45,7 +45,7 @@
                 },
                 "circle-color": "rgba(0,0,0,0)",
                 "circle-stroke-width": 1,
-                "circle-stroke-color": "#fff"
+                "circle-stroke-color": "rgba(255,255,255,0.75)"
             }
         },
         "behind": "limited-purpose-licenses"
@@ -54,20 +54,20 @@
             "id": "nssp-closures",
             "type": "fill",
             "paint": {
-                "fill-color": "#f0f",
-                "fill-opacity": ["case",
+                "fill-antialias": false,
+                "fill-color": ["case",
                     ["boolean", ["feature-state", "hover"], false],
-                    0.5, 0.2]
+                    "rgba(255,0,255,0.3)", "rgba(255,0,255,0.1)"]
             }
         },
         "behind": "suitability"
     },{
         "render": {
             "id": "aquaculture-leases",
-            "type": "line",
+            "type": "fill",
             "paint": {
-                "line-color": "#00FF99",
-                "line-opacity": 0.75
+                "fill-antialias": false,
+                "fill-color": "rgba(0,255,255,0.75)"
             }
         },
         "behind": "suitability"
@@ -76,9 +76,7 @@
             "id": "maine-towns",
             "type": "line",
             "paint": {
-                "line-color": ["case",
-                    ["boolean", ["feature-state", "hover"], false],
-                    "rgba(255,255,255,0.5)", "rgba(255,100,255,0.5)"]
+                "line-color": "rgba(255,255,255,0.3)"
             }
         },
         "behind": "aquaculture-leases"

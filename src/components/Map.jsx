@@ -1,8 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
-import ReactDOM from "react-dom";
 import mapboxgl from "mapbox-gl";
 import styled from "styled-components";
-import MapPopUp from "../components/MapPopUp";
+import {suitabilityHandler, licenseHandler, leaseHandler, nsspHandler} from "../components/MapPopUp";
 
 import "mapbox-gl/dist/mapbox-gl.css";
 
@@ -13,13 +12,13 @@ const StyledPreformattedText = styled.pre`
     display: block;
     position: relative;
     padding: 0;
+    width: fit-content;
     border: 1px solid;
-    border-radius: 1px;
-    color: #CCCCCCFF;
-    background-color: #00000066;
+    border-radius: 3px;
+    color: orange;
+    background-color: #00000044;
     z-index: 2;
 `;
-
 
 const StyledMapContainer = styled.div`
     position: relative;
@@ -44,8 +43,7 @@ const StyledMapContainer = styled.div`
 
 export default ({
     layers, 
-    style, 
-    radius=0,
+    style,
     allowGeolocation=true
 }) => {
     /*
@@ -58,7 +56,6 @@ export default ({
     const [layerData, setLayerData] = useState(null);
     const [direction, setDirection] = useState(-30);
     const container = useRef(null);  // the element that Map is going into, in this case a <div/>
-
 
     useEffect(() => {
         /*
@@ -89,7 +86,7 @@ export default ({
         If the map element has not been created yet, create it with a custom style, and user
         provided layer definitions. 
 
-        Generally these will be prefetched from static assets, but it can
+        Generally these will be pre-fetched from static assets, but it can
         also be sourced from an API or database.
         */
         if (map || !center) return;  // only one map context please, need center to have been set
@@ -110,8 +107,8 @@ export default ({
         Provide cursor context information
         */
         if (!map) return;
-        map.on('mousemove', (e) => {
-            document.getElementById('info').innerHTML = JSON.stringify(e.lngLat.wrap());
+        map.on('mousemove', ({lngLat: {lng, lat}}) => {
+            document.getElementById('info').innerHTML = `Location: ${lng.toFixed(4)}, ${lat.toFixed(4)}`;
         });
 
     }, [map]);
@@ -214,7 +211,6 @@ export default ({
     }, [clientLocation, map]);
 
 
-
     useEffect(() => {
         /*
         Asynchronously retrieve the geospatial data files and parse them.
@@ -226,101 +222,60 @@ export default ({
 
         (async () => {
             const jobs = Object.values(layers.json).map(async (props) => {
-                
                 const {render: {id, ...render}, behind} = props;
                 const source = await fetch(`/${id}.json`)
-                    .then(async r => {
-                        let jsonData = null;
-                        try {
-                            jsonData = await r.json();
-                        } catch {
-                            console.log(r);
-                        }
-                        return jsonData;
-                    })
+                    .then(r => r.json())
                     .then(data => {
                         return {data, type: "geojson", generateId: true}
                     });
-
-                const metadata = {id, ...render};
-                map.addLayer({...metadata, source});
+                map.addLayer({id, ...render, source});
                 layerMetadata.push({id, behind});
             });
 
-            const _ = await Promise.all(jobs)
+            const _ = await Promise.all(jobs);  // resolve the queue
         })()
         setLayerData(layerMetadata);
     }, [map]);
 
+
     useEffect(() => {
-        /*
-        Swap layers to be in the correct order after they have all been created.
-        */
+        // Swap layers to be in the correct order after they have all been created.
         (layerData || []).forEach(({ id, behind }) => {map.moveLayer(id, behind)});
     }, [layerData]);
 
     useEffect(() => {
-        /*
-        Add Popup event to some layers
-
-        When mouse position intersects the feature set, show a pop up that
-        contains metadata information about the item.
-        */
-        if (!layerData) return;
-        const placeholder = document.createElement('div');
-
-        const addPopupContent = (featureSet, polygon=false) => {
-        
-            map.on('click', featureSet, (e) => {
-        
-                if (e.features.length === 0) return;
-
-                const features = e.features.map((props) => {
-                    const {geometry: {coordinates}, properties: {species}} = props;
-                    while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
-                        coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
-                    }
-                    return {
-                        species: species.replace('and', ',').replace(';', ',').split(',').map(each => each.trim()),
-                        coordinates
-                    }
-                })
-                
-                ReactDOM.render(<MapPopUp features={features}/>, placeholder);
-        
-                new mapboxgl.Popup({
-                    className: "map-popup",
-                    closeButton: true,
-                    closeOnClick: true
-                })
-                    .setLngLat(
-                        features
-                            .map(({coordinates})=>coordinates)
-                            .reduce((a,b)=>[a[0]+b[0]/features.length, a[1]+b[1]/features.length], [0, 0])
-                    )
-                    .setDOMContent(placeholder)
-                    .addTo(map);
-            });
-        
-        };
-        addPopupContent('limited-purpose-licenses');
+        // LPA PopUps
+        if (layerData) map.on('click', 'limited-purpose-licenses', (e) => {licenseHandler(e).addTo(map)});       
     }, [layerData]);
 
     useEffect(() => {
-        /*
-        Highlight layers
+        // LPA PopUps
+        if (layerData) map.on('click', 'aquaculture-leases', (e) => {leaseHandler(e).addTo(map)});       
+    }, [layerData]);
 
-        When the cursor position intersects with the space
-        defined by a feature set, set the hover state to true.
+    useEffect(() => {
+        // Suitability aggregates PopUps
+        if (layerData) map.on('click', 'suitability', (e) => {suitabilityHandler(e).addTo(map)});
+    }, [layerData]);
+
+    useEffect(() => {
+        // Closure PopUps
+        if (layerData) map.on('click', 'nssp-closures', (e) => {nsspHandler(e).addTo(map)});
+    }, [layerData]);
+
+    useEffect(() => {
+        // Highlight closures on hover
+
+        const addHighlightEvent = (map, featureSet, featureIds) => {
+            /*
+            Highlight layers
     
-        When the cursor no longer intersects the shapes, stop
-        highlighting the features. 
-        */
-
-        if (!layerData) return;
-
-        const addHighlightEvent = (featureSet, featureIds) => {
+            When the cursor position intersects with the space
+            defined by a feature set, set the hover state to true.
         
+            When the cursor no longer intersects the shapes, stop
+            highlighting the features. 
+            */
             map.on('mousemove', featureSet, (e) => {
                 if (e.features.length > 0) {
                     (featureIds || []).forEach(feature => {map.setFeatureState({ source: featureSet, id: feature }, { hover: false })});
@@ -334,9 +289,8 @@ export default ({
                 featureIds = [];
             });
         };
-        
-        ["nssp-closures", "maine-towns"].forEach(layer => addHighlightEvent(layer)); // Highlight on hover
 
+        if (layerData) addHighlightEvent(map, "nssp-closures");
     }, [layerData]);
 
     return (<>

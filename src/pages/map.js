@@ -1,33 +1,26 @@
 
-import React, { useEffect, useState } from "react"
+import React from "react"
 import { graphql } from "gatsby";
 
 import Layout from "../components/Layout";
 import SEO from "../components/SEO";
 import Map from "../components/Map";
+import style from "../../static/style.json";
+import layers from "../../static/layers.json";
 
-export default ({data: {site: {siteMetadata: {title}}}, location}) => {
-    
-    const [mapData, setMapData] = useState(null);
-    
-    useEffect(() => {
-        /*
-        Fetch static configuration data for using Mapbox. This includes JSON descriptions
-        of the map style, and the data layers. 
-        */
-        (async () => {
-            setMapData({
-                style: await fetch("/style.json").then(r => r.json()),
-                layers: await fetch("/layers.json").then(r => r.json())
-            });
-        })();
-    }, []); 
-
-    
+export default ({
+    data: {
+        site: {
+            siteMetadata: {title}
+        }
+    }, 
+    location,
+}) => {
+        
     return (
       <Layout location={location} title={title}>
         <SEO title="Ocean analytics as a service" /> 
-        { mapData ? <Map {...mapData}/> : null}
+        <Map style={style} layers={layers}/>
       </Layout>
     )
 };

@@ -84,8 +84,6 @@ input[type=range]::-moz-range-thumb {
     border-radius: 0.2em;
 }
 
-
-
 .container {
     display: inline-flex;
     flex-direction: row;
@@ -105,6 +103,7 @@ input[type=range]::-moz-range-thumb {
 
 .map-popup {
     background: #10101077;
+    height: fit-content;
     border: solid 1px;
     font-family:inherit;
     font-size: inherit;
@@ -113,8 +112,10 @@ input[type=range]::-moz-range-thumb {
 }
 
 .map-popup div {
-    background: #10101077;
+    background: none;
+    height: fit-content;
     border: none;
     margin: 0;
+    padding: 2px;
     float: left;
 }
