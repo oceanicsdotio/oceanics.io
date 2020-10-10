@@ -32,7 +32,7 @@ export default ({target="/rubric.yml", baseScore=0, scoreMultiplier=1}) => {
     to update the current score. 
     */
     const [score, dispatchScore] = useReducer(
-        (count, checked) => count + (checked ? 1*scoreMultiplier : -1*scoreMultiplier), baseScore
+        (score, checked) => score + (checked ? 1*scoreMultiplier : -1*scoreMultiplier), baseScore
     );
     const [rubric, setRubric] = useState({});
 

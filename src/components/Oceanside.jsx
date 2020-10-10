@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useReducer } from "react";
 import styled from "styled-components";
 import { loadRuntime } from "../components/Canvas";
 
@@ -72,6 +72,9 @@ const TileSetAssets = {
     }
 };
 
+/*
+Exported for manual/documentation
+*/
 export const TileSet = Object.fromEntries(Object.entries(tileSetJSON).map(([key, {data, sprite, ...value}]) => 
     [key, {data: TileSetAssets[key].data, sprite: TileSetAssets[key].sprite, ...value}]
 ));
@@ -124,24 +127,6 @@ const pathFromBox = (v) => {
     ]
 };
 
-const build = (miniMap, gridSize) => {
-    const diagonals = gridSize * 2 - 1;
-    const _build = [];
-    let count = 0;
-    miniMap.clear();
-    for (let row = 0; row < diagonals; row++) {
-        _build.push([]);
-        const columns = (row + (row < gridSize ? 1 : diagonals - 2 * row));
-        for (let column = 0; column < columns; column++) {
-            let col = columns - 1 - column; // reverse the order in the index
-            _build[row].push(miniMap.insert_tile(count++, row, col));
-        }
-        _build[row] = _build[row].reverse();
-    }
-    return _build
-}
-
-
 
 export default ({ 
     gridSize = 6, 
@@ -151,44 +136,64 @@ export default ({
     startDate = [2025, 3, 1]
  }) => {
 
-    const nav = useRef(null);
-    const board = useRef(null);
+    const nav = useRef(null);  // minimap for navigation
+    const board = useRef(null);  // animated GIF tiles
 
-    const [runtime, setRuntime] = useState(null);
-    const [tiles, setTiles] = useState(null);
-    const [date, setDate] = useState(new Date(...startDate));
-    const [actions, setActions] = useState(actionsPerDay);
-    const [map, setMap] = useState(null);
+    const [runtime, setRuntime] = useState(null);  // wasm binaries, set once async
+    const [map, setMap] = useState(null);  // map data structure reference from rust, set once
 
-    const mapClickHandler = ({ clientX, clientY }) => {
-        /*
-        Update visible tiles
-        */
-        const {left, top} = nav.current.getBoundingClientRect();
-        map.update_view(nav.current.getContext("2d"), ...[clientX - left, clientY - top].map(x => x*worldSize/128));
-        setTiles(build(map, gridSize));
-    };
+    const [clock, takeAnActionOrWait] = useReducer(
+        ({date, actions})=>{
+            /*
+            Take an action (swap a tile) or advance to the next day. 
+            */
+            if (actions) map.replace_tile(0, 0);
+            else console.log("bettah wait 'til tomorrow");
 
-    const boardClickHandler = ({ clientX, clientY }) => {
-        /*
-        Perform an action if possible.
-        */
-        if (actions) {
-            setActions(actions - 1);
-            // const {left, top} = board.current.getBoundingClientRect();
-            // const rescale = board.current.width/gridSize;
-            // let origin = [clientX - left, clientY - top].map(dim => Math.floor(dim*window.devicePixelRatio/rescale));
-            // console.log(origin);
-            map.replace_tile(0, 0);
-        } else {
-            console.log("bettah wait 'til tomorrow");
-            setDate(new Date(date.setDate(date.getDate()+1)));
-            setActions(actionsPerDay);
+            return {
+                date: actions ? date : new Date(date.setDate(date.getDate()+1)),
+                actions: actions ? actions - 1 : actionsPerDay
+            }
+        }, {
+            actions: actionsPerDay, 
+            date: new Date(...startDate)
         }
-    };
+    );
+
+    const [tiles, populateVisibleTiles] = useReducer(
+        (tiles, map, event) => {
+            /*
+            Update currently visible tiles from map view
+            */
+            console.log(event);
+
+            if (event && nav.current) {
+                const { clientX, clientY } = event;
+                const {left, top} = nav.current.getBoundingClientRect();
+                map.update_view(nav.current.getContext("2d"), ...[clientX - left, clientY - top].map(x => x*worldSize/128));
+            }
+
+            const diagonals = gridSize * 2 - 1;
+            const build = [];
+            let count = 0;
+            map.clear();
+
+            for (let row = 0; row < diagonals; row++) {
+                build.push([]);
+                const columns = (row + (row < gridSize ? 1 : diagonals - 2 * row));
+                for (let column = 0; column < columns; column++) {
+                    let col = columns - 1 - column; // reverse the order in the index
+                    build[row].push(map.insert_tile(count++, row, col));
+                }
+                build[row] = build[row].reverse();
+            }
+            return build
+        
+        },  null
+    );
 
     useEffect(loadRuntime(setRuntime), []);  // load WASM binaries
-
+    
     useEffect(() => {
         /*
         When the runtime loads for the first time, create a pixel map instance
@@ -225,9 +230,13 @@ export default ({
                 // Get raw image data
             }
         );
-        setTiles(build(_map, gridSize));  // visible tiles data structure
+        populateVisibleTiles(_map, null);  // visible tiles data structure
         setMap(_map);  // mini-map data structure 
     }, [runtime]);
+
+    // useEffect(() => {
+
+    // }, []);
 
     useEffect(() => {
         /*
@@ -316,19 +325,22 @@ export default ({
     return (
         <StyledContainer>
             <StyledText>
-                {`${date.toLocaleDateString()} ${18-2*(actions ? actions : 0)}:00, Balance: $${map ? map.score() : 0.0}`}
+                {`${clock.date.toLocaleDateString()} ${18-2*(clock.actions ? clock.actions : 0)}:00, Balance: $${map ? map.score() : 0.0}`}
             </StyledText>
 
             <StyledBoard
                 ref={board}
-                onClick={boardClickHandler}
+                onClick={takeAnActionOrWait}
             />
 
             <StyledCanvas
                 ref={nav}
                 width={worldSize}
                 height={worldSize}
-                onClick={mapClickHandler}
+                onClick={(event) => {
+                    populateVisibleTiles(map, event);
+                    console.log(event);
+                }}
             />    
         </StyledContainer>
     );
