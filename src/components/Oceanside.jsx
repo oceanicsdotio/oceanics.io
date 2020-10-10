@@ -339,7 +339,7 @@ export default ({
                 ref={board}
                 onClick={takeAnActionOrWait}
             />
-
+            
             <StyledCanvas
                 ref={nav}
                 width={worldSize}
