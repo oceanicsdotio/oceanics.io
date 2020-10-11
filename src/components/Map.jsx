@@ -294,6 +294,16 @@ export default ({
     }, [layerData]);
 
     useEffect(() => {
+        // Minor Ports
+        if (layerData) map.on('click', 'navigation', (e) => {portHandler(e).addTo(map)});       
+    }, [layerData]);
+
+    useEffect(() => {
+        // Minor Ports
+        if (layerData) map.on('click', 'wrecks', (e) => {portHandler(e).addTo(map)});       
+    }, [layerData]);
+
+    useEffect(() => {
         // LPA PopUps
         if (layerData) map.on('click', 'aquaculture-leases', (e) => {leaseHandler(e).addTo(map)});       
     }, [layerData]);

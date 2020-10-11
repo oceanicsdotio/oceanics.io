@@ -61,7 +61,7 @@ json:
         text-halo-width: 3
         text-halo-color: "rgba(0, 0, 0, 0.85)"
 
-    behind: suitability
+    behind: major-ports
     info: https://hifld-geoplatform.opendata.arcgis.com/datasets/port-facilities
 
   - render:
@@ -86,8 +86,48 @@ json:
         text-halo-width: 3
         text-halo-color: "rgba(0, 0, 0, 0.85)"
      
-    behind: ports
+    behind: suitability
     info: https://hifld-geoplatform.opendata.arcgis.com/datasets/major-us-port-facilities
+
+  # - render: 
+  #     id: submarine-cables
+  #     type: line
+  #     url: https://coast.noaa.gov/arcgis/rest/services/MarineCadastre/NavigationAndMarineTransportation/MapServer/4/query?where=1%3D1&outFields=*&geometry=-71.190%2C40.975%2C-63.598%2C46.525&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=json
+  #     paint: 
+  #       line-color: "rgba(0,255,0,1.0)"
+  #   behind: aquaculture-leases
+  #   info: https://hifld-geoplatform.opendata.arcgis.com/datasets/submarine-cables
+
+  - render:
+      id: navigation
+      type: circle
+      format: esri
+      url:  https://coast.noaa.gov/arcgis/rest/services/MarineCadastre/NavigationAndMarineTransportation/MapServer/0/query?where=1%3D1&outFields=*&geometry=-70.7%2C42.546%2C-63.589%2C45.314&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=json
+      paint: 
+        circle-radius: 
+            stops: [[8, 1], [12, 2], [16, 6]]
+        circle-color: "rgba(0,0,0,0)"
+        circle-stroke-width: 1
+        circle-stroke-color: "rgba(255,165,0,0.5)"
+    behind: ports
+    info: https://hifld-geoplatform.opendata.arcgis.com/datasets/nautical-navigation-aids-navaid-locations/geoservice?geometry=43.528%2C-71.756%2C-59.128%2C80.293
+    
+    
+  - render:
+      id: wrecks
+      type: circle
+      format: esri
+      url: https://coast.noaa.gov/arcgis/rest/services/OceanReportingTool/WrecksAndObstructions/MapServer/0/query?where=1%3D1&outFields=*&geometry=-70.7%2C42.546%2C-63.589%2C45.314&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=json
+      paint: 
+        circle-radius: 
+            stops: [[8, 1], [12, 2], [16, 6]]
+        circle-color: "rgba(255,165,0,0.5)"
+        circle-stroke-width: 1
+        circle-stroke-color: "rgba(255,165,0,0.5)"
+    behind: ports
+    info: https://hifld-geoplatform.opendata.arcgis.com/datasets/wrecks-and-obstructions-1/geoservice?geometry=-79.504%2C40.527%2C-60.212%2C46.116
+
+   
 
   - render: 
       id: limited-purpose-licenses

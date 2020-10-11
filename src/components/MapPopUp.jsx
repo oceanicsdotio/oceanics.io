@@ -197,8 +197,6 @@ export const portHandler = (e) => {
         }
     });
 
-    console.log(features);
-
     return genericPopUp({
         closeButton: false,
         jsx: <PortInfo features={features}/>,
