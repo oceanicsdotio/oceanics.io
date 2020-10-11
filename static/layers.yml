@@ -17,15 +17,87 @@ image:
     behind: maine-towns
    
 json:
+
+  - render: 
+      id: nssp-closures
+      type: fill
+      paint: 
+        fill-antialias: false
+        fill-color: [case,
+          [boolean, [feature-state, hover], false],
+          "rgba(255,0,255,0.3)", "rgba(255,0,255,0.1)"]
+    behind: suitability
+
+  - render:
+      id: ports
+      format: esri
+      url: https://geo.dot.gov/server/rest/services/Hosted/Ports_DS/FeatureServer/0/query?where=1%3D1&outFields=*&geometry=-71.%2C42.546%2C-63.589%2C45.314&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=json
+      
+      type: symbol
+      layout:
+        text-field: [
+          "match",
+          ["get", "facility_t"],
+          " ",
+          ["get","nav_unit_n"],
+          ["concat",
+            ["get","nav_unit_n"],
+            "\n(",
+            ["downcase", ["get", "facility_t"]],
+            ")"
+          ],
+        ]
+        text-variable-anchor: ['top', 'bottom', 'left', 'right']
+        text-font: [DIN Offc Pro Bold, Arial Unicode MS Bold]
+        text-size: [
+            interpolate,
+            [linear],
+            [zoom],
+            4, 4,
+            6, 8
+        ]
+      paint: 
+        text-color: "rgba(255,165,0,1.0)"
+        text-halo-width: 3
+        text-halo-color: "rgba(0, 0, 0, 0.85)"
+
+    behind: suitability
+    info: https://hifld-geoplatform.opendata.arcgis.com/datasets/port-facilities
+
+  - render:
+      id: major-ports
+      format: esri
+      url: https://geo.dot.gov/server/rest/services/Hosted/Ports_Major_DS/FeatureServer/0/query?where=1%3D1&outFields=*&geometry=-71.%2C42.546%2C-63.589%2C45.314&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=json
+      
+      type: symbol
+      layout:
+        text-field: 'Port of {port_name}'
+        text-variable-anchor: ['top', 'bottom', 'left', 'right']
+        text-font: [DIN Offc Pro Bold, Arial Unicode MS Bold]
+        text-size: [
+            interpolate,
+            [linear],
+            [zoom],
+            4, 9,
+            6, 12
+        ]
+      paint: 
+        text-color: "rgba(255,165,0,1.0)"
+        text-halo-width: 3
+        text-halo-color: "rgba(0, 0, 0, 0.85)"
+     
+    behind: ports
+    info: https://hifld-geoplatform.opendata.arcgis.com/datasets/major-us-port-facilities
+
   - render: 
       id: limited-purpose-licenses
       type: circle
       paint: 
-          circle-radius: 
-              stops: [[8, 1], [12, 4], [16, 10]]
-          circle-color: "rgba(0,0,0,0)"
-          circle-stroke-width: 1
-          circle-stroke-color: "rgba(0,255,255,0.75)"
+        circle-radius: 
+            stops: [[8, 1], [12, 4], [16, 10]]
+        circle-color: "rgba(0,0,0,0)"
+        circle-stroke-width: 1
+        circle-stroke-color: "rgba(0,255,255,0.75)"
     behind: cities
  
   - render: 
@@ -39,27 +111,19 @@ json:
         circle-stroke-color: "rgba(255,255,255,0.75)"
     behind: limited-purpose-licenses
 
-  - render: 
-      id: nssp-closures
-      type: fill
-      paint: 
-        fill-antialias: false
-        fill-color: [case,
-          [boolean, [feature-state, hover], false],
-          "rgba(255,0,255,0.3)", "rgba(255,0,255,0.1)"]
-    behind: suitability
+
 
   - render: 
       id: aquaculture-leases
       type: fill
       paint: 
-          fill-antialias: false
-          fill-color: "rgba(0,255,255,0.75)"
+        fill-antialias: false
+        fill-color: "rgba(0,255,255,0.75)"
     behind: suitability
 
   - render: 
       id: maine-towns
       type: line
       paint: 
-          line-color: "rgba(255,255,255,0.3)"
+        line-color: "rgba(255,255,255,0.3)"
     behind: aquaculture-leases

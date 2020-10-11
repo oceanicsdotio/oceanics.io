@@ -12,6 +12,13 @@ const PopUpContent = styled.div`
     width: fit-content;
     margin: 0;
     padding: 0;
+    overflow: hidden;
+`;
+
+const ScrollBox = styled.div`
+    overflow-y: scroll;
+    max-height: 300px;
+    height: fit-content;
 `;
 
 const StyledListItem = styled.li`
@@ -63,6 +70,24 @@ const LeaseInformation = ({ features }) => {
                     </StyledUnorderedList>
                 </div>)
             })}
+        </PopUpContent>
+    )
+};
+
+const PortInfo = ({ features }) => {
+
+    return (
+        <PopUpContent>
+            <ScrollBox>
+            {features.map(({ properties, coordinates: [lon, lat] }, key) => {
+                return (<div key={key}>
+                    <p>{`@ lat: ${lat.toFixed(4)}, lon: ${lon.toFixed(4)}`}</p>
+                    <StyledUnorderedList>
+                        {Object.entries(properties).map(([jj, item]) => <StyledListItem key={jj}>{`${jj}: ${item}`}</StyledListItem>)}
+                    </StyledUnorderedList>
+                </div>)
+            })}
+            </ScrollBox>
         </PopUpContent>
     )
 };
@@ -156,6 +181,31 @@ export const licenseHandler = (e) => {
     });
 }
 
+export const portHandler = (e) => {
+    /*
+    
+    */
+    let center = [0, 0];
+    const features = e.features.map(({geometry: {coordinates}, properties}) => {
+       
+        while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+        coordinates.forEach((dim, ii)=>{center[ii] += dim / e.features.length});
+
+        return {
+            properties,
+            coordinates
+        }
+    });
+
+    console.log(features);
+
+    return genericPopUp({
+        closeButton: false,
+        jsx: <PortInfo features={features}/>,
+        coordinates: center
+    });
+}
+
 export const suitabilityHandler = (e) => {
 
     const {properties: {histogram}, geometry: {coordinates}} = e.features[0]; 
@@ -178,6 +228,7 @@ export const nsspHandler = (e) => {
     });
         
 }
+
 
 
 export const leaseHandler = (e) => {

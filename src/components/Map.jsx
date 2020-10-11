@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import styled from "styled-components";
-import {suitabilityHandler, licenseHandler, leaseHandler, nsspHandler} from "../components/MapPopUp";
+import {suitabilityHandler, licenseHandler, leaseHandler, nsspHandler, portHandler} from "../components/MapPopUp";
 
 import "mapbox-gl/dist/mapbox-gl.css";
 
@@ -55,6 +55,7 @@ export default ({
     const [map, setMap] = useState(null);  // MapboxGL Map instance
     const [layerData, setLayerData] = useState(null);
     const [direction, setDirection] = useState(-30);
+    const [ports, setPorts] = useState(null);
     const container = useRef(null);  // the element that Map is going into, in this case a <div/>
 
     useEffect(() => {
@@ -210,7 +211,7 @@ export default ({
 
     }, [clientLocation, map]);
 
-
+    
     useEffect(() => {
         /*
         Asynchronously retrieve the geospatial data files and parse them.
@@ -222,16 +223,50 @@ export default ({
 
         (async () => {
             const jobs = Object.values(layers.json).map(async (props) => {
-                const {render: {id, ...render}, behind} = props;
-                const source = await fetch(`/${id}.json`)
-                    .then(r => r.json())
-                    .then(data => {
-                        return {data, type: "geojson", generateId: true}
+                const {render: {id, url=null, format="geojson", ...render}, behind} = props;
+
+                const source = await fetch(url ? url : `/${id}.json`)
+                    .then(async (r) => {
+                        let textData = await r.text();
+                        let jsonData = {};
+                        try {
+                            jsonData = JSON.parse(textData);
+                        } catch {
+                            console.log("Layer Error", r);
+                        }
+                        return jsonData;
+                    })
+                    .then(({features, properties, type="FeatureCollection"}) => {
+                        let transformed = null;
+                        if (format === "esri") {
+                            transformed = features.map((feat) => {
+                                return {
+                                    type: 'Feature',
+                                    geometry: {
+                                        type: 'Point',
+                                        coordinates: [feat.geometry.x, feat.geometry.y]
+                                    },
+                                    properties: feat.attributes
+                                }
+                            });
+                        } else {
+                            transformed = features;
+                        }
+  
+                        return {
+                            data: {
+                                features: transformed,
+                                properties, 
+                                type
+                            }, 
+                            type: "geojson", 
+                            generateId: true
+                        }
                     });
                 map.addLayer({id, ...render, source});
                 layerMetadata.push({id, behind});
             });
-
+            
             const _ = await Promise.all(jobs);  // resolve the queue
         })()
         setLayerData(layerMetadata);
@@ -244,8 +279,18 @@ export default ({
     }, [layerData]);
 
     useEffect(() => {
-        // LPA PopUps
+        // Limited Purpose Aquaculture License info
         if (layerData) map.on('click', 'limited-purpose-licenses', (e) => {licenseHandler(e).addTo(map)});       
+    }, [layerData]);
+
+    useEffect(() => {
+        // Minor Ports
+        if (layerData) map.on('click', 'ports', (e) => {portHandler(e).addTo(map)});       
+    }, [layerData]);
+
+    useEffect(() => {
+        // Minor Ports
+        if (layerData) map.on('click', 'major-ports', (e) => {portHandler(e).addTo(map)});       
     }, [layerData]);
 
     useEffect(() => {
