@@ -272,6 +272,25 @@ export default ({
         setLayerData(layerMetadata);
     }, [map]);
 
+    useEffect(() => {
+        // Fetch tide data from NOAA
+        const extent = [-71.190, 40.975, -63.598, 46.525];
+        (async () => {
+            const queue = await fetch("https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json?type=waterlevels")
+                .then(r => r.json())
+                .then(({stations}) => {
+                    return stations.filter(({lat, lng}) => {
+                        return lng >= extent[0] && lng <= extent[2] && lat >= extent[1] && lat <= extent[3];
+                    }).map(({id})=>{
+                        return fetch(`https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=${id}&product=water_level&datum=mllw&units=metric&time_zone=lst_ldt&application=oceanics.io&format=json`).then(r => r.json())
+                        }
+                    );
+                });
+            
+            const resolved = await Promise.all(queue);
+            console.log("Tidal stations", resolved);
+        })();
+    }, []);
 
     useEffect(() => {
         // Swap layers to be in the correct order after they have all been created.
