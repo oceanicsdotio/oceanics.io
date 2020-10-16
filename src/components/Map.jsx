@@ -54,9 +54,9 @@ export default ({
     const [center, setCenter] = useState(null);
     const [map, setMap] = useState(null);  // MapboxGL Map instance
     const [layerData, setLayerData] = useState(null);
-    const [direction, setDirection] = useState(-30);
-    const [ports, setPorts] = useState(null);
+    const [animatedIcons, setAnimatedIcons] = useState(null);
     const container = useRef(null);  // the element that Map is going into, in this case a <div/>
+
 
     useEffect(() => {
         /*
@@ -69,11 +69,10 @@ export default ({
         const DEFAULT_CENTER = [-69, 44];
 
         if (allowGeolocation && navigator.geolocation) {
-            const success = ({coords: {latitude, longitude, heading}}) => {
+            const success = ({coords: {latitude, longitude}}) => {
                 setUseClientLocation(true);
                 setClientLocation([longitude, latitude]);
                 setCenter([longitude, latitude]);
-                setDirection(heading);
             };
             navigator.geolocation.getCurrentPosition(success, () => {setCenter(DEFAULT_CENTER)});
         } else {
@@ -95,7 +94,6 @@ export default ({
         setMap(new mapboxgl.Map({
             container: container.current,
             style,
-            bearing: direction,
             center: center,
             zoom: useClientLocation ? 12 : 7,
             antialias: false,
@@ -124,94 +122,168 @@ export default ({
     }, [map]);
 
     useEffect(() => {
+        if (!map) return;
+
+        const size = 64;
+       
+        setAnimatedIcons({
+            pulsingDot: {
+            
+                width: size,
+                height: size,
+                data: new Uint8Array(size * size * 4),
+
+                // get rendering context for the map canvas when layer is added to the map
+                onAdd: function () {
+                    var canvas = document.createElement('canvas');
+                    canvas.width = size;
+                    canvas.height = size;
+                    this.context = canvas.getContext('2d');
+                },
+
+                // called once before every frame where the icon will be used
+                render: function () {
+                    var duration = 1000;
+                    var time = (performance.now() % duration) / duration;
+
+                    var radius = (size / 2) * 0.3;
+                    var outerRadius = (size / 2) * 0.7 * time + radius;
+                    var ctx = this.context;
+
+                
+                    ctx.clearRect(0, 0, size, size);
+                    ctx.beginPath();
+                    ctx.arc(
+                        size / 2,
+                        size / 2,
+                        outerRadius,
+                        0,
+                        Math.PI * 2
+                    );
+                    
+                    ctx.strokeStyle = 'orange';
+                    ctx.lineWidth = 2 + 4 * (1 - time);
+                    ctx.stroke();
+
+                    // update this image's data with data from the canvas
+                    this.data = ctx.getImageData(
+                        0,
+                        0,
+                        size,
+                        size
+                    ).data;
+
+                    map.triggerRepaint();
+                    return true;
+                }
+            },
+            waterLevel: {
+
+                width: size,
+                height: size,
+                data: new Uint8Array(size * size * 4),
+
+                // get rendering context for the map canvas when layer is added to the map
+                onAdd: function () {
+                    var canvas = document.createElement('canvas');
+                    canvas.width = size;
+                    canvas.height = size;
+                    this.context = canvas.getContext('2d');
+                    
+                    ctx.clearRect(0, 0, size, size);
+                    ctx.beginPath();
+                    ctx.rect(0, 0, size, size);
+                
+                    ctx.strokeStyle = 'cyan';
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+
+                    // update this image's data with data from the canvas
+                    
+                },
+
+                // called once before every frame where the icon will be used
+                render: () => {
+                    var ctx = this.context;
+                    this.data = ctx.getImageData(
+                        0,
+                        0,
+                        size,
+                        size
+                    ).data;
+                }
+            }
+        });
+    }, [map])
+
+    // Formatting function, generic to all providers
+    const Feature = (lon, lat, props) => Object({
+        type: 'Feature',
+        geometry: {
+            type: 'Point',
+            coordinates: [lon, lat]
+        },
+        properties: props
+    });
+
+    // Out ready for Mapbox as a Layer object description
+    const GeoJsonLayer = ({features, properties=null, type="FeatureCollection"}) => Object({
+        data: {
+            features,
+            properties, 
+            type
+        }, 
+        type: "geojson", 
+        generateId: true
+    });
+
+    useEffect(() => {
         /*
         Mark the client location
         */
-        if (!clientLocation || !map) return;
+        if (!clientLocation || !map || !animatedIcons) return;
         
-        const size = 64;
-       
-        map.addImage('pulsing-dot', {
-            
-            width: size,
-            height: size,
-            data: new Uint8Array(size * size * 4),
-
-            // get rendering context for the map canvas when layer is added to the map
-            onAdd: function () {
-                var canvas = document.createElement('canvas');
-                canvas.width = size;
-                canvas.height = size;
-                this.context = canvas.getContext('2d');
-            },
-
-            // called once before every frame where the icon will be used
-            render: function () {
-                var duration = 1000;
-                var time = (performance.now() % duration) / duration;
-
-                var radius = (size / 2) * 0.3;
-                var outerRadius = (size / 2) * 0.7 * time + radius;
-                var context = this.context;
-
-                // draw outer circle
-                context.clearRect(0, 0, size, size);
-               
-                // draw inner circle
-                context.beginPath();
-                context.arc(
-                    size / 2,
-                    size / 2,
-                    outerRadius,
-                    0,
-                    Math.PI * 2
-                );
-                
-                context.strokeStyle = 'orange';
-                context.lineWidth = 2 + 4 * (1 - time);
-                context.stroke();
-
-                // update this image's data with data from the canvas
-                this.data = context.getImageData(
-                    0,
-                    0,
-                    size,
-                    size
-                ).data;
-
-                map.triggerRepaint();
-                return true;
-            }
-        }, { pixelRatio: 2 });
-
-        map.addSource('home', {
-            'type': 'geojson',
-            'data': {
-                'type': 'FeatureCollection',
-                'features': [
-                    {
-                        'type': 'Feature',
-                        'geometry': {
-                            'type': 'Point',
-                            'coordinates': clientLocation
-                        }
-                    }
-                ]
-            }
-        });
+        map.addImage('pulsing-dot', animatedIcons.pulsingDot, { pixelRatio: 2 });
+    
         map.addLayer({
-            'id': 'home',
-            'type': 'symbol',
-            'source': 'home',
-            'layout': {
+            id: 'home',
+            type: 'symbol',
+            source: GeoJsonLayer({
+                features: [Feature(...clientLocation)]
+            }),
+            layout: {
                 'icon-image': 'pulsing-dot'
             }
         });
-       
-
-    }, [clientLocation, map]);
-
     
+    }, [clientLocation, map, animatedIcons]);
+
+    const parseFeatureData = ({features, properties=null, standard="geojson"}) => 
+        GeoJsonLayer((()=>{
+            let feat = null;
+            switch(standard) {
+                // ESRI does things their own special way.
+                case "esri":
+                    feat = features.map(({geometry: {x, y}, attributes}) => Feature(x, y, attributes));
+                    break;
+                // NOAA also does things their own special way
+                case "noaa":
+                    feat = features.map(({data: [head], metadata: {lon, lat, ...metadata}}) => Feature(lon, lat, {...head, ...metadata}));
+                    break;
+                // Otherwise let us hope it is GeoJSON
+                case "geojson":
+                    feat = features;
+                    break;
+                default:
+                    throw Error(`Unknown Spatial Standard: ${standard}`);
+            };
+            return {
+                features: feat,
+                properties
+            }
+        })());
+    
+
     useEffect(() => {
         /*
         Asynchronously retrieve the geospatial data files and parse them.
@@ -222,51 +294,30 @@ export default ({
         const layerMetadata = [];
 
         (async () => {
-            const jobs = Object.values(layers.json).map(async (props) => {
-                const {render: {id, url=null, format="geojson", ...render}, behind} = props;
+            const jobs = Object.values(layers.json).map(
+                async ({render: {id, url=null, standard="geojson", ...render}, behind}) => {
+                
+                    const source = await fetch(url ? url : `/${id}.json`)
+                        .then(async (r) => {
+                            let textData = await r.text();
+                            let jsonData = {};
+                            try {
+                                jsonData = JSON.parse(textData);
+                            } catch {
+                                console.log("Layer Error", r);
+                            }
+                            return jsonData;
+                        })
+                        .then(data => parseFeatureData({...data, standard}));
 
-                const source = await fetch(url ? url : `/${id}.json`)
-                    .then(async (r) => {
-                        let textData = await r.text();
-                        let jsonData = {};
-                        try {
-                            jsonData = JSON.parse(textData);
-                        } catch {
-                            console.log("Layer Error", r);
-                        }
-                        return jsonData;
-                    })
-                    .then(({features, properties, type="FeatureCollection"}) => {
-                        let transformed = null;
-                        if (format === "esri") {
-                            transformed = features.map((feat) => {
-                                return {
-                                    type: 'Feature',
-                                    geometry: {
-                                        type: 'Point',
-                                        coordinates: [feat.geometry.x, feat.geometry.y]
-                                    },
-                                    properties: feat.attributes
-                                }
-                            });
-                        } else {
-                            transformed = features;
-                        }
-  
-                        return {
-                            data: {
-                                features: transformed,
-                                properties, 
-                                type
-                            }, 
-                            type: "geojson", 
-                            generateId: true
-                        }
-                    });
-                map.addLayer({id, ...render, source});
-                layerMetadata.push({id, behind});
-            });
-            
+                    try {
+                        map.addLayer({id, ...render, source});
+                    } catch (err) {
+                        console.log(source);
+                    }
+                    layerMetadata.push({id, behind});
+                }
+            );
             const _ = await Promise.all(jobs);  // resolve the queue
         })()
         setLayerData(layerMetadata);
@@ -274,6 +325,9 @@ export default ({
 
     useEffect(() => {
         // Fetch tide data from NOAA
+        if (!map || !animatedIcons) return;
+        const id = "tidal-stations";
+        map.addImage(id, animatedIcons.waterLevel, { pixelRatio: 4 });
         const extent = [-71.190, 40.975, -63.598, 46.525];
         (async () => {
             const queue = await fetch("https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json?type=waterlevels")
@@ -287,55 +341,51 @@ export default ({
                     );
                 });
             
-            const resolved = await Promise.all(queue);
-            console.log("Tidal stations", resolved);
+            const source = parseFeatureData({
+                features: await Promise.all(queue), 
+                standard: "noaa"
+            });
+
+            console.log(id, source);
+
+            map.addLayer({
+                id,
+                type: 'symbol',
+                source: source,
+                layout: {
+                    'icon-image': id
+                }
+            });     
         })();
-    }, []);
+    }, [map, animatedIcons]);
 
     useEffect(() => {
         // Swap layers to be in the correct order after they have all been created.
         (layerData || []).forEach(({ id, behind }) => {map.moveLayer(id, behind)});
     }, [layerData]);
 
-    useEffect(() => {
-        // Limited Purpose Aquaculture License info
-        if (layerData) map.on('click', 'limited-purpose-licenses', (e) => {licenseHandler(e).addTo(map)});       
-    }, [layerData]);
-
-    useEffect(() => {
-        // Minor Ports
-        if (layerData) map.on('click', 'ports', (e) => {portHandler(e).addTo(map)});       
-    }, [layerData]);
-
-    useEffect(() => {
-        // Minor Ports
-        if (layerData) map.on('click', 'major-ports', (e) => {portHandler(e).addTo(map)});       
-    }, [layerData]);
-
-    useEffect(() => {
-        // Minor Ports
-        if (layerData) map.on('click', 'navigation', (e) => {portHandler(e).addTo(map)});       
-    }, [layerData]);
-
-    useEffect(() => {
-        // Minor Ports
-        if (layerData) map.on('click', 'wrecks', (e) => {portHandler(e).addTo(map)});       
-    }, [layerData]);
-
-    useEffect(() => {
-        // LPA PopUps
-        if (layerData) map.on('click', 'aquaculture-leases', (e) => {leaseHandler(e).addTo(map)});       
-    }, [layerData]);
-
-    useEffect(() => {
-        // Suitability aggregates PopUps
-        if (layerData) map.on('click', 'suitability', (e) => {suitabilityHandler(e).addTo(map)});
-    }, [layerData]);
-
-    useEffect(() => {
-        // Closure PopUps
-        if (layerData) map.on('click', 'nssp-closures', (e) => {nsspHandler(e).addTo(map)});
-    }, [layerData]);
+    [{
+        collections: ['ports', 'major-ports', 'navigation', 'wrecks'],
+        callback: portHandler
+    }, {
+        collections: ['limited-purpose-licenses'],
+        callback: licenseHandler
+    }, {
+        collections: ['aquaculture-leases'],
+        callback: leaseHandler
+    }, {
+        collections: ['suitability'],
+        callback: suitabilityHandler
+    }, {
+        collections: ['nssp-closures'],
+        callback: nsspHandler
+    }].forEach(({collections, callback})=>{
+        collections.forEach(x => {
+            useEffect(() => {
+                if (layerData) map.on('click', x, (e) => {callback(e).addTo(map)});       
+            }, [layerData]);
+        })
+    });
 
     useEffect(() => {
         // Highlight closures on hover
