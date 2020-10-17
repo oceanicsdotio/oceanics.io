@@ -360,26 +360,24 @@ export default ({
     }, [map, animatedIcons]);
 
     useEffect(() => {
-        // Swap layers to be in the correct order after they have all been created.
+        /* 
+        Swap layers to be in the correct order after they have all been created. 
+        
+        This is so that you can resolve them all asynchronously
+        without worrying about the order of creation
+        */
         (layerData || []).forEach(({ id, behind }) => {map.moveLayer(id, behind)});
     }, [layerData]);
 
-    [{
-        collections: ['ports', 'major-ports', 'navigation', 'wrecks'],
-        callback: portHandler
-    }, {
-        collections: ['limited-purpose-licenses'],
-        callback: licenseHandler
-    }, {
-        collections: ['aquaculture-leases'],
-        callback: leaseHandler
-    }, {
-        collections: ['suitability'],
-        callback: suitabilityHandler
-    }, {
-        collections: ['nssp-closures'],
-        callback: nsspHandler
-    }].forEach(({collections, callback})=>{
+
+    // Generate effect hooks for each layer that has an onclick event handler
+    [
+        [['ports', 'major-ports', 'navigation', 'wrecks'], portHandler],
+        [['limited-purpose-licenses'], licenseHandler],
+        [['aquaculture-leases'], leaseHandler],
+        [['suitability'], suitabilityHandler],
+        [['nssp-closures'], nsspHandler]
+    ].forEach(([collections, callback])=>{
         collections.forEach(x => {
             useEffect(() => {
                 if (layerData) map.on('click', x, (e) => {callback(e).addTo(map)});       
