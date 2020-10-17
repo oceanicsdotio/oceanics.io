@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import styled from "styled-components";
 import {suitabilityHandler, licenseHandler, leaseHandler, nsspHandler, portHandler} from "../components/MapPopUp";
-import {Feature, GeoJsonSource, pulsingDot} from "../bathysphere.js";
+import {Feature, GeoJsonSource, pulsingDot, parseFeatureData, waterLevel} from "../bathysphere.js";
 import "mapbox-gl/dist/mapbox-gl.css";
 
 const PreformattedText = styled.pre`
@@ -59,6 +59,29 @@ export default ({
     const [contextInfo, setContextInfo] = useState("");
     const container = useRef(null);  // the element that Map is going into, in this case a <div/>
 
+    const addHighlightEvent = (map, featureSet, featureIds) => {
+        /*
+        Highlight layers
+
+        When the cursor position intersects with the space
+        defined by a feature set, set the hover state to true.
+    
+        When the cursor no longer intersects the shapes, stop
+        highlighting the features. 
+        */
+        map.on('mousemove', featureSet, (e) => {
+            if (e.features.length > 0) {
+                (featureIds || []).forEach(feature => {map.setFeatureState({ source: featureSet, id: feature }, { hover: false })});
+                featureIds = e.features.map(feature => feature.id);
+                (featureIds || []).forEach(feature => {map.setFeatureState({ source: featureSet, id: feature }, { hover: true })});
+            }
+        });
+            
+        map.on('mouseleave', featureSet, () => {
+            (featureIds || []).forEach(feature => {map.setFeatureState({ source: featureSet, id: feature }, { hover: false })});
+            featureIds = [];
+        });
+    };
 
     useEffect(() => {
         /*
@@ -131,45 +154,7 @@ export default ({
        
         setAnimatedIcons({
             pulsingDot: pulsingDot(map),
-            waterLevel: {
-
-                width: size,
-                height: size,
-                data: new Uint8Array(size * size * 4),
-
-                // get rendering context for the map canvas when layer is added to the map
-                onAdd: function () {
-                    var canvas = document.createElement('canvas');
-                    canvas.width = size;
-                    canvas.height = size;
-                    this.context = canvas.getContext('2d');
-                    
-                    // update this image's data with data from the canvas
-                    
-                },
-
-                // called once before every frame where the icon will be used
-                render: function () {
-                    var ctx = this.context;
-                    ctx.clearRect(0, 0, size, size);
-                    ctx.beginPath();
-                    ctx.rect(0, 0, size, size);
-                
-                    ctx.strokeStyle = 'cyan';
-                    ctx.lineWidth = 3;
-                    ctx.stroke();
-
-                    this.data = ctx.getImageData(
-                        0,
-                        0,
-                        size,
-                        size
-                    ).data;
-                    map.triggerRepaint();
-                    return true;
-                    
-                }
-            }
+            waterLevel: waterLevel(map)
         });
     }, [map])
 
@@ -193,35 +178,6 @@ export default ({
         });
     
     }, [clientLocation, map, animatedIcons]);
-
-    const parseFeatureData = ({features, properties=null, standard="geojson"}) => 
-        GeoJsonSource((()=>{
-            let feat = null;
-            switch(standard) {
-                // ESRI does things their own special way.
-                case "esri":
-                    feat = features.map(({geometry: {x, y}, attributes}) => Feature(x, y, attributes));
-                    break;
-                // NOAA also does things their own special way
-                case "noaa":
-                    
-                    feat = features
-                        .filter(x => "data" in x && "metadata" in x)
-                        .map(({data: [head], metadata: {lon, lat, ...metadata}}) => Feature(lon, lat, {...head, ...metadata}));
-                    break;
-                // Otherwise let us hope it is GeoJSON
-                case "geojson":
-                    feat = features;
-                    break;
-                default:
-                    throw Error(`Unknown Spatial Standard: ${standard}`);
-            };
-            return {
-                features: feat,
-                properties
-            }
-        })());
-    
 
     useEffect(() => {
         /*
@@ -328,35 +284,10 @@ export default ({
         })
     });
 
+
+
     useEffect(() => {
-        /*
-        Highlight closures on hover
-        */
-
-        const addHighlightEvent = (map, featureSet, featureIds) => {
-            /*
-            Highlight layers
-    
-            When the cursor position intersects with the space
-            defined by a feature set, set the hover state to true.
-        
-            When the cursor no longer intersects the shapes, stop
-            highlighting the features. 
-            */
-            map.on('mousemove', featureSet, (e) => {
-                if (e.features.length > 0) {
-                    (featureIds || []).forEach(feature => {map.setFeatureState({ source: featureSet, id: feature }, { hover: false })});
-                    featureIds = e.features.map(feature => feature.id);
-                    (featureIds || []).forEach(feature => {map.setFeatureState({ source: featureSet, id: feature }, { hover: true })});
-                }
-            });
-                
-            map.on('mouseleave', featureSet, () => {
-                (featureIds || []).forEach(feature => {map.setFeatureState({ source: featureSet, id: feature }, { hover: false })});
-                featureIds = [];
-            });
-        };
-
+        // Highlight closures on hover
         if (layerData) addHighlightEvent(map, "nssp-closures");
     }, [layerData]);
 

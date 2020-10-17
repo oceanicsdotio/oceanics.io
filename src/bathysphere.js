@@ -151,3 +151,71 @@ export const pulsingDot = (map) => Object({
         return true;
     }
 });
+
+export const waterLevel = (map) => Object({
+
+    width: size,
+    height: size,
+    data: new Uint8Array(size * size * 4),
+
+    // get rendering context for the map canvas when layer is added to the map
+    onAdd: function () {
+        var canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        this.context = canvas.getContext('2d');
+        
+        // update this image's data with data from the canvas
+        
+    },
+
+    // called once before every frame where the icon will be used
+    render: function () {
+        var ctx = this.context;
+        ctx.clearRect(0, 0, size, size);
+        ctx.beginPath();
+        ctx.rect(0, 0, size, size);
+    
+        ctx.strokeStyle = 'cyan';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        this.data = ctx.getImageData(
+            0,
+            0,
+            size,
+            size
+        ).data;
+        map.triggerRepaint();
+        return true;
+        
+    }
+});
+
+export const parseFeatureData = ({features, properties=null, standard="geojson"}) => 
+    GeoJsonSource((()=>{
+        let feat = null;
+        switch(standard) {
+            // ESRI does things their own special way.
+            case "esri":
+                feat = features.map(({geometry: {x, y}, attributes}) => Feature(x, y, attributes));
+                break;
+            // NOAA also does things their own special way
+            case "noaa":
+                
+                feat = features
+                    .filter(x => "data" in x && "metadata" in x)
+                    .map(({data: [head], metadata: {lon, lat, ...metadata}}) => Feature(lon, lat, {...head, ...metadata}));
+                break;
+            // Otherwise let us hope it is GeoJSON
+            case "geojson":
+                feat = features;
+                break;
+            default:
+                throw Error(`Unknown Spatial Standard: ${standard}`);
+        };
+        return {
+            features: feat,
+            properties
+        }
+    })());
