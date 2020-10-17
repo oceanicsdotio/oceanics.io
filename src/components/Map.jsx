@@ -2,13 +2,10 @@ import React, { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import styled from "styled-components";
 import {suitabilityHandler, licenseHandler, leaseHandler, nsspHandler, portHandler} from "../components/MapPopUp";
-
+import {Feature, GeoJsonSource, pulsingDot} from "../bathysphere.js";
 import "mapbox-gl/dist/mapbox-gl.css";
 
-mapboxgl.accessToken = 'pk.eyJ1Ijoib2NlYW5pY3Nkb3RpbyIsImEiOiJjazMwbnRndWkwMGNxM21wYWVuNm1nY3VkIn0.5N7C9UKLKHla4I5UdbOi2Q';
-
-
-const StyledPreformattedText = styled.pre`
+const PreformattedText = styled.pre`
     display: block;
     position: relative;
     padding: 0;
@@ -20,7 +17,7 @@ const StyledPreformattedText = styled.pre`
     z-index: 2;
 `;
 
-const StyledMapContainer = styled.div`
+const MapContainer = styled.div`
     position: relative;
     display: block;
     height: 200px;
@@ -44,17 +41,22 @@ const StyledMapContainer = styled.div`
 export default ({
     layers, 
     style,
-    allowGeolocation=true
+    allowGeolocation=true,
+    accessToken
 }) => {
     /*
     The Map component. 
     */
+
+    mapboxgl.accessToken = accessToken;
+
     const [useClientLocation, setUseClientLocation] = useState(false);
     const [clientLocation, setClientLocation] = useState(null);
     const [center, setCenter] = useState(null);
     const [map, setMap] = useState(null);  // MapboxGL Map instance
     const [layerData, setLayerData] = useState(null);
     const [animatedIcons, setAnimatedIcons] = useState(null);
+    const [contextInfo, setContextInfo] = useState("");
     const container = useRef(null);  // the element that Map is going into, in this case a <div/>
 
 
@@ -88,9 +90,11 @@ export default ({
 
         Generally these will be pre-fetched from static assets, but it can
         also be sourced from an API or database.
+
+        only one map context please, need center to have been set.
         */
-        if (map || !center) return;  // only one map context please, need center to have been set
-       
+        if (map || !center) return;
+    
         setMap(new mapboxgl.Map({
             container: container.current,
             style,
@@ -107,7 +111,7 @@ export default ({
         */
         if (!map) return;
         map.on('mousemove', ({lngLat: {lng, lat}}) => {
-            document.getElementById('info').innerHTML = `Location: ${lng.toFixed(4)}, ${lat.toFixed(4)}`;
+            setContextInfo(`Location: ${lng.toFixed(4)}, ${lat.toFixed(4)}`);
         });
 
     }, [map]);
@@ -115,8 +119,7 @@ export default ({
 
     useEffect(() => {
         /*
-        Expand the map when the mouse enters the element, and then shrink it again when
-        it leaves.
+        Expand the map when the mouse enters the element, and then shrink it again when it leaves.
         */
         if (map) ["mouseover", "mouseleave"].forEach(event => map.on(event, () => {map.resize()}));
     }, [map]);
@@ -127,56 +130,7 @@ export default ({
         const size = 64;
        
         setAnimatedIcons({
-            pulsingDot: {
-            
-                width: size,
-                height: size,
-                data: new Uint8Array(size * size * 4),
-
-                // get rendering context for the map canvas when layer is added to the map
-                onAdd: function () {
-                    var canvas = document.createElement('canvas');
-                    canvas.width = size;
-                    canvas.height = size;
-                    this.context = canvas.getContext('2d');
-                },
-
-                // called once before every frame where the icon will be used
-                render: function () {
-                    var duration = 1000;
-                    var time = (performance.now() % duration) / duration;
-
-                    var radius = (size / 2) * 0.3;
-                    var outerRadius = (size / 2) * 0.7 * time + radius;
-                    var ctx = this.context;
-
-                
-                    ctx.clearRect(0, 0, size, size);
-                    ctx.beginPath();
-                    ctx.arc(
-                        size / 2,
-                        size / 2,
-                        outerRadius,
-                        0,
-                        Math.PI * 2
-                    );
-                    
-                    ctx.strokeStyle = 'orange';
-                    ctx.lineWidth = 2 + 4 * (1 - time);
-                    ctx.stroke();
-
-                    // update this image's data with data from the canvas
-                    this.data = ctx.getImageData(
-                        0,
-                        0,
-                        size,
-                        size
-                    ).data;
-
-                    map.triggerRepaint();
-                    return true;
-                }
-            },
+            pulsingDot: pulsingDot(map),
             waterLevel: {
 
                 width: size,
@@ -190,6 +144,13 @@ export default ({
                     canvas.height = size;
                     this.context = canvas.getContext('2d');
                     
+                    // update this image's data with data from the canvas
+                    
+                },
+
+                // called once before every frame where the icon will be used
+                render: function () {
+                    var ctx = this.context;
                     ctx.clearRect(0, 0, size, size);
                     ctx.beginPath();
                     ctx.rect(0, 0, size, size);
@@ -198,48 +159,23 @@ export default ({
                     ctx.lineWidth = 3;
                     ctx.stroke();
 
-                    // update this image's data with data from the canvas
-                    
-                },
-
-                // called once before every frame where the icon will be used
-                render: () => {
-                    var ctx = this.context;
                     this.data = ctx.getImageData(
                         0,
                         0,
                         size,
                         size
                     ).data;
+                    map.triggerRepaint();
+                    return true;
+                    
                 }
             }
         });
     }, [map])
 
-    // Formatting function, generic to all providers
-    const Feature = (lon, lat, props) => Object({
-        type: 'Feature',
-        geometry: {
-            type: 'Point',
-            coordinates: [lon, lat]
-        },
-        properties: props
-    });
-
-    // Out ready for Mapbox as a Layer object description
-    const GeoJsonLayer = ({features, properties=null, type="FeatureCollection"}) => Object({
-        data: {
-            features,
-            properties, 
-            type
-        }, 
-        type: "geojson", 
-        generateId: true
-    });
-
     useEffect(() => {
         /*
-        Mark the client location
+        Mark the client location with an eye-catching animation.
         */
         if (!clientLocation || !map || !animatedIcons) return;
         
@@ -248,7 +184,7 @@ export default ({
         map.addLayer({
             id: 'home',
             type: 'symbol',
-            source: GeoJsonLayer({
+            source: GeoJsonSource({
                 features: [Feature(...clientLocation)]
             }),
             layout: {
@@ -259,7 +195,7 @@ export default ({
     }, [clientLocation, map, animatedIcons]);
 
     const parseFeatureData = ({features, properties=null, standard="geojson"}) => 
-        GeoJsonLayer((()=>{
+        GeoJsonSource((()=>{
             let feat = null;
             switch(standard) {
                 // ESRI does things their own special way.
@@ -268,7 +204,10 @@ export default ({
                     break;
                 // NOAA also does things their own special way
                 case "noaa":
-                    feat = features.map(({data: [head], metadata: {lon, lat, ...metadata}}) => Feature(lon, lat, {...head, ...metadata}));
+                    
+                    feat = features
+                        .filter(x => "data" in x && "metadata" in x)
+                        .map(({data: [head], metadata: {lon, lat, ...metadata}}) => Feature(lon, lat, {...head, ...metadata}));
                     break;
                 // Otherwise let us hope it is GeoJSON
                 case "geojson":
@@ -324,11 +263,17 @@ export default ({
     }, [map]);
 
     useEffect(() => {
-        // Fetch tide data from NOAA
+        /* 
+        Fetch tide data from NOAA. 
+        
+        Render a tide gauge animated icon at each position. 
+        */
         if (!map || !animatedIcons) return;
         const id = "tidal-stations";
-        map.addImage(id, animatedIcons.waterLevel, { pixelRatio: 4 });
         const extent = [-71.190, 40.975, -63.598, 46.525];
+
+        map.addImage(id, animatedIcons.waterLevel, { pixelRatio: 4 });
+
         (async () => {
             const queue = await fetch("https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json?type=waterlevels")
                 .then(r => r.json())
@@ -341,22 +286,18 @@ export default ({
                     );
                 });
             
-            const source = parseFeatureData({
-                features: await Promise.all(queue), 
-                standard: "noaa"
-            });
-
-            console.log(id, source);
-
             map.addLayer({
                 id,
                 type: 'symbol',
-                source: source,
+                source: parseFeatureData({
+                    features: await Promise.all(queue), 
+                    standard: "noaa"
+                }),
                 layout: {
                     'icon-image': id
                 }
             });     
-        })();
+       })();
     }, [map, animatedIcons]);
 
     useEffect(() => {
@@ -370,7 +311,9 @@ export default ({
     }, [layerData]);
 
 
-    // Generate effect hooks for each layer that has an onclick event handler
+    /* 
+    Generate effect hooks for each layer that has an onclick event handler 
+    */
     [
         [['ports', 'major-ports', 'navigation', 'wrecks'], portHandler],
         [['limited-purpose-licenses'], licenseHandler],
@@ -386,7 +329,9 @@ export default ({
     });
 
     useEffect(() => {
-        // Highlight closures on hover
+        /*
+        Highlight closures on hover
+        */
 
         const addHighlightEvent = (map, featureSet, featureIds) => {
             /*
@@ -417,7 +362,7 @@ export default ({
 
     return (<>
         <p>{"Hover for a bigger map."}</p>
-        <StyledMapContainer ref={container} />
-        <StyledPreformattedText id={"info"}></StyledPreformattedText>
+        <MapContainer ref={container} />
+        {contextInfo ? <PreformattedText>{contextInfo}</PreformattedText> : null}
     </>);
 };

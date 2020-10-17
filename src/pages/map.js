@@ -19,7 +19,10 @@ export default ({
     return (
         <Layout location={location} title={title}>
             <SEO title="Ocean analytics as a service" />
-            <Map style={style} layers={layers} />
+            <Map 
+                style={style} 
+                layers={layers} 
+                accessToken={'pk.eyJ1Ijoib2NlYW5pY3Nkb3RpbyIsImEiOiJjazMwbnRndWkwMGNxM21wYWVuNm1nY3VkIn0.5N7C9UKLKHla4I5UdbOi2Q'}/>
         </Layout>
     )
 };
