@@ -5,7 +5,7 @@
   "version": "0.1.0",
   "author": "Nicholas Keeney <nkeeney@oceanics.io>",
   "dependencies": {
-    "@babel/core": "^7.10.4",
+    "@babel/core": "^7.12.3",
     "@babel/plugin-syntax-import-meta": "^7.10.1",
     "@mdx-js/mdx": "^1.6.18",
     "@mdx-js/react": "^1.6.18",
