@@ -80,7 +80,9 @@ export default ({doc, scale=1, pageNumber=1}) => {
 
     useEffect(()=>{
         // Show top 10 most frequent words
-        if (lexicon) console.log(lexicon.slice(0,10));
+        if (!lexicon) return;
+        console.log(lexicon.slice(0,10));
+        console.log(GlobalWorkerOptions.workerSrc);
     },[lexicon]);
             
     const [opRefs, setOpRefs] = useState(null);
