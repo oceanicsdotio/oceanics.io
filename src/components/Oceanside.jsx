@@ -169,7 +169,11 @@ export default ({
     const [tiles, populateVisibleTiles] = useReducer(
         (tiles, map, event) => {
             /*
-            Update currently visible tiles from map view
+            Update currently visible tiles from map view.
+
+            The `useReducer` hook takes the old value as an input,
+            so we can diff the sets of tiles, and only generate or
+            retrieve the ones that are coming into view.
             */
             console.log(event);
             console.log(nav.current);
