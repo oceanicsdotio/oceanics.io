@@ -54,14 +54,14 @@ Most of the code is used in generating text and image content.
 * `gatsby-react-router-scroll` - Scrolling support
 * `gatsby-remark-copy-linked-files` - Copy files to public directory as necessary
 * `gatsby-remark-images` - Process markdown images
-* `gatsby-remark-katex` - Support for $\latex$
+* `gatsby-remark-katex` - Support for $\LaTeX$
 * `gatsby-remark-prismjs` - Code block formatting in markdown
 * `gatsby-remark-responsive-iframe` - Container for iFrames in Markdown
 * `gatsby-remark-smartypants` - Support for em dash and ellipsis from ASCII
 * `gatsby-source-filesystem` - Data from local files
 * `gatsby-transformer-remark` - Parse markdown
 * `gatsby-transformer-sharp` - GraphQL support for image processing
-* `katex` - $\latex$ rendering
+* `katex` - $\LaTeX$ rendering
 * `mapbox-gl` - Client side WebGL based map application
 * `pdfjs-dist` - Client side PDF manipulation
 * `pg` - Serverside Postgres access
