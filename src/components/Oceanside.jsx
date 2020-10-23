@@ -133,6 +133,11 @@ const pathFromBox = (v) => {
     ]
 };
 
+const rotatePath = (pts, angle) => {
+    let [s, c] = [Math.sin, Math.cos].map(fcn => fcn(angle));
+    return pts.map(([xx, yy]) => [(xx * c - yy * s), (xx * s + yy * c)]);
+}
+
 
 export default ({ 
     gridSize = 6, 
@@ -149,11 +154,17 @@ export default ({
     const [map, setMap] = useState(null);  // map data structure reference from rust, set once
 
     const [clock, takeAnActionOrWait] = useReducer(
-        ({date, actions})=>{
+        ({date, actions}, {clientX, clientY})=>{
             /*
             Take an action (swap a tile) or advance to the next day. 
             */
-            if (actions) map.replace_tile(0, 0);
+            if (actions) {
+                const pts = [[clientX, clientY]];
+                console.log("Click @", pts);
+                
+                console.log("Transform @", temp);
+                map.replace_tile(0, 0);
+            }
             else console.log("bettah wait 'til tomorrow");
 
             return {
@@ -207,14 +218,11 @@ export default ({
     
     useEffect(() => {
         /*
-        When the runtime loads for the first time, create a pixel map instance
-        and draw the generated world to the canvas, then save the map reference
-        to react state.
+        When the runtime loads for the first time, create a pixel map instance and draw the generated world to the canvas, then save the map reference to react state.
 
         Build the tileset from the random Feature table, or leave space for land.
        
-        Create the probability table by accumulative discreet probabilities,
-        and save the object that will be query for tile selections to react state.
+        Create the probability table by accumulative discreet probabilities, and save the object that will be query for tile selections to react state.
 
         The same data structure will hold the selected tiles. 
         */
@@ -245,9 +253,6 @@ export default ({
         setMap(_map);  // mini-map data structure 
     }, [runtime]);
 
-    // useEffect(() => {
-
-    // }, []);
 
     useEffect(() => {
         /*
@@ -278,10 +283,7 @@ export default ({
         ctx.imageSmoothingEnabled = false;  // disable nearest neighbor interpolation
         let requestId = null;
         
-        const rotatePath = (pts, angle) => {
-            let [s, c] = [Math.sin, Math.cos].map(fcn => fcn(angle));
-            return pts.map(([xx, yy]) => [(xx * c - yy * s), (xx * s + yy * c)]);
-        }
+        
 
         const drawConnections = (a, b) => {
             ctx.beginPath();
@@ -317,14 +319,27 @@ export default ({
             ctx.strokeStyle="#FFAA00FF";
             ctx.lineWidth = 2.0;
 
-            const temp = rotatePath(view[1], Math.PI/4).map(([x,y])=>[
-                1.0*(x + rescale2/2.0) + (Math.floor(0.5*gridSize) + 0.75)*rescale2, 
-                0.5*(y + 0.0) 
-            ]);
+           
+            const xform = ([x,y])=>[
+                x + rescale2/2.0 + (Math.floor(0.5*gridSize) + 0.75)*rescale2, 
+                0.5*y 
+            ];
+
+            const inverse = ([x,y])=>[
+                (x - rescale2/2.0 - (Math.floor(0.5*gridSize) + 0.75)*rescale2), 
+                2*y 
+            ];
+
+            const temp = rotatePath(view[1], Math.PI/4).map(xform);
+            const temp2 = rotatePath(temp.map(inverse), -Math.PI/4);
 
             drawView(view[0]);
             drawView(temp);
             drawConnections(view[0], temp);
+
+            ctx.lineWidth = 1.0;
+            ctx.strokeStyle="#FFFFFFFF";
+            drawView(temp2);
 
             requestId = requestAnimationFrame(render);
         })()
@@ -341,7 +356,10 @@ export default ({
 
             <StyledBoard
                 ref={board}
-                onClick={takeAnActionOrWait}
+                onClick={(event) => {
+                    event.persist();
+                    takeAnActionOrWait(event);
+                }}
             />
             
             <StyledCanvas
