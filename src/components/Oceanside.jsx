@@ -173,9 +173,9 @@ const drawCursor = ({width}, gridSize, ctx, view) => {
     drawView(ctx, temp);
     drawConnections(ctx, view[0], temp);
 
-    ctx.lineWidth = 1.0;
-    ctx.strokeStyle="#FFFFFFFF";
-    drawView(ctx, temp2);
+    // ctx.lineWidth = 1.0;
+    // ctx.strokeStyle="#FFFFFFFF";
+    // drawView(ctx, temp2);
 };
  
 export default ({ 
@@ -215,15 +215,12 @@ export default ({
     The `startDate` and `endTurnMessage` props currently have no 
     effect on game play. 
     */
-
-    const [clamp, setClamp] = useState(false);
-
     const [keys, setKeys] = useReducer(
         (state, {type, key}) => {
             switch (type) {
-                case "down":
+                case "keydown":
                     return { ...state, [key]: true };
-                case "up":
+                case "keyup":
                     return { ...state, [key]: false };
                 default:
                     return state;
@@ -237,43 +234,44 @@ export default ({
             }, {})
     );
 
+    const dog = (type) => 
+        ({key, repeat}) => {
+            const symbol = key.toLowerCase();
+            if (repeat || !keys.hasOwnProperty(symbol)) return;
+            if (keys[symbol] === false)
+                setKeys({ type, key: symbol });
+        
+    };
 
+
+    useEffect(() => {
+
+        const type = "keyup";
+        const listen = ({key, repeat}) => {
+            const symbol = key.toLowerCase();
+            console.log(reapeat);
+            if (keys[symbol] === undefined) return;
+            if (keys[symbol] === true)
+                setKeys({ type, key: symbol });
+        };
+
+        window.addEventListener(type, listen, true);
+        return () => window.removeEventListener(type, listen, true);
+    }, [keys]);
+
+    useEffect(() => {
+
+        const type = "keydown";
+        const listen = dog(type);
+        window.addEventListener(type, listen, true);
+        return () => window.removeEventListener(type, listen, true);
+    }, [keys]);
+  
+    const [clamp, setClamp] = useState(false);
     useEffect(() => {
         if (!Object.values(keys).filter(value => !value).length) 
             setClamp(!clamp);
     }, [keys]);
-
-    useEffect(() => {
-        const keydownListener = ({key, repeat}) => {
-            
-            const loweredKey = key.toLowerCase();
-
-            if (repeat) return;
-            if (keys[loweredKey] === undefined) return;
-
-            if (keys[loweredKey] === false)
-                setKeys({ type: "down", key: loweredKey });
-        };
-        window.addEventListener("keydown", keydownListener, true);
-        return () => window.removeEventListener("keydown", keydownListener, true);
-    }, [keys]);
-
-    useEffect(() => {
-
-        const keyupListener = ({key}) => {
-           
-            const loweredKey = key.toLowerCase();
-
-            if (keys[loweredKey] === undefined) return;
-
-            if (keys[loweredKey] === true)
-                setKeys({ type: "up", key: loweredKey });
-        };
-
-        window.addEventListener("keyup", keyupListener, true);
-        return () => window.removeEventListener("keyup", keyupListener, true);
-    }, [keys]);
-  
 
 
     const tomorrow = (date) => new Date(date.setDate(date.getDate()+1));
