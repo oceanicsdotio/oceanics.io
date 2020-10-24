@@ -221,9 +221,9 @@ export default ({
     const [keys, setKeys] = useReducer(
         (state, {type, key}) => {
             switch (type) {
-                case "keydown":
+                case "down":
                     return { ...state, [key]: true };
-                case "keyup":
+                case "up":
                     return { ...state, [key]: false };
                 default:
                     return state;
@@ -237,26 +237,45 @@ export default ({
             }, {})
     );
 
+
     useEffect(() => {
         if (!Object.values(keys).filter(value => !value).length) 
             setClamp(!clamp);
     }, [keys]);
 
-    const keystrokeListener = (lookup, type, setter) => 
-        ({key, repeat=null}) => {
-            const lower = key.toLowerCase();
-            if (repeat || lookup[lower] === undefined) return;
-            if (lookup[lower] === false) setter({ type, key: lower });
+    useEffect(() => {
+        const keydownListener = ({key, repeat}) => {
+            
+            const loweredKey = key.toLowerCase();
+
+            if (repeat) return;
+            if (keys[loweredKey] === undefined) return;
+
+            if (keys[loweredKey] === false)
+                setKeys({ type: "down", key: loweredKey });
+        };
+        window.addEventListener("keydown", keydownListener, true);
+        return () => window.removeEventListener("keydown", keydownListener, true);
+    }, [keys]);
+
+    useEffect(() => {
+
+        const keyupListener = ({key}) => {
+           
+            const loweredKey = key.toLowerCase();
+
+            if (keys[loweredKey] === undefined) return;
+
+            if (keys[loweredKey] === true)
+                setKeys({ type: "up", key: loweredKey });
         };
 
-    ["keydown", "keyup"].map(type => {
-        useEffect(() => {
-            const listener = keystrokeListener(keys, type, setKeys)
-            window.addEventListener(type, listener, true);
-            return () => window.removeEventListener(type, listener, true);
-        }, [keys]);
-    });
-    
+        window.addEventListener("keyup", keyupListener, true);
+        return () => window.removeEventListener("keyup", keyupListener, true);
+    }, [keys]);
+  
+
+
     const tomorrow = (date) => new Date(date.setDate(date.getDate()+1));
 
     const [runtime, setRuntime] = useState(null);
