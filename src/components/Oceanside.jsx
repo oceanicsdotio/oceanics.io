@@ -234,54 +234,31 @@ export default ({
             }, {})
     );
 
-    const dog = (type) => 
-        ({key, repeat}) => {
-            const symbol = key.toLowerCase();
-            if (repeat || !keys.hasOwnProperty(symbol)) return;
-            if (keys[symbol] === false)
-                setKeys({ type, key: symbol });
-        
-    };
-
-
-    useEffect(() => {
-
-        const type = "keyup";
-        const listen = ({key, repeat}) => {
-            const symbol = key.toLowerCase();
-            console.log(reapeat);
-            if (keys[symbol] === undefined) return;
-            if (keys[symbol] === true)
-                setKeys({ type, key: symbol });
-        };
-
-        window.addEventListener(type, listen, true);
-        return () => window.removeEventListener(type, listen, true);
-    }, [keys]);
-
-    useEffect(() => {
-
-        const type = "keydown";
-        const listen = dog(type);
-        window.addEventListener(type, listen, true);
-        return () => window.removeEventListener(type, listen, true);
-    }, [keys]);
+    ["keyup", "keydown"].map(type => {
+        useEffect(() => {
+            const listen = ({key, repeat}) => {
+                const symbol = key.toLowerCase();
+                if (repeat || !keys.hasOwnProperty(symbol)) return;
+                if (keys[symbol] === ("keyup" === type))
+                    setKeys({ type, key: symbol });  
+            };
+            window.addEventListener(type, listen, true);
+            return () => window.removeEventListener(type, listen, true);
+        }, [keys]);
+    });
   
     const [clamp, setClamp] = useState(false);
     useEffect(() => {
-        if (!Object.values(keys).filter(value => !value).length) 
-            setClamp(!clamp);
+        if (Object.values(keys).every(x => x)) setClamp(!clamp);
     }, [keys]);
 
-
     const tomorrow = (date) => new Date(date.setDate(date.getDate()+1));
+    const [map, setMap] = useState(null);  // map data from rust
+    const nav = useRef(null);  // minimap for navigation
 
     const [runtime, setRuntime] = useState(null);
     useEffect(loadRuntime(setRuntime), []);  // load WASM binaries
 
-    const [map, setMap] = useState(null);  // map data from rust
-    const nav = useRef(null);  // minimap for navigation
-    
     const [clock, takeAnActionOrWait] = useReducer(
         ({date, actions}, {clientX, clientY})=>{
             /*
