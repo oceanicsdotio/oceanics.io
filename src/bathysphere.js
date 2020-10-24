@@ -219,3 +219,30 @@ export const parseFeatureData = ({features, properties=null, standard="geojson"}
             properties
         }
     })());
+
+
+export const rotatePath = (pts, angle) => {
+    /*
+    Rotate a path of any number of points about the origin.
+
+    You need to translate first to the desired origin, and then translate back once the rotation is complete.
+
+    Not as flexible as quaternion rotation.
+    */
+    let [s, c] = [Math.sin, Math.cos].map(fcn => fcn(angle));
+    return pts.map(([xx, yy]) => [(xx * c - yy * s), (xx * s + yy * c)]);
+}
+
+
+export const pathFromBox = (v) => {
+    /*
+    Convenience method to create a bounding box polygon
+    from a upper-left, lower-right type extent. 
+    */
+    return [
+        [...v.slice(0, 2)],
+        [v[0] + v[2], v[1]],
+        [v[0] + v[2], v[1] + v[3]],
+        [v[0], v[1] + v[3]]
+    ]
+};

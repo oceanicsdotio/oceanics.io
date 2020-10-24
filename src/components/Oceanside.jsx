@@ -1,10 +1,16 @@
 import React, { useEffect, useState, useRef, useReducer } from "react";
 import styled from "styled-components";
 import { loadRuntime } from "../components/Canvas";
+import { rotatePath, pathFromBox } from "../bathysphere";
 
 import tileSetJSON from "../../static/oceanside.json";
 
-
+/*
+Tile asset references are used to pre-load all of the
+sprite data for animations. Needs to happen outside of
+a function so that it is evavulated during build and
+the image data are bundled into the application.
+*/
 const TileSetAssets = {
     oysters: {
         data: require("../../content/assets/oyster.gif"),
@@ -73,15 +79,16 @@ const TileSetAssets = {
 };
 
 /*
-Exported for manual/documentation
+Export a "compiled" tile set with image data and game rules to
+use in the manual and documentation. This allows the tiles to be used
+as content in other applications, such as map glyphs. 
 */
 export const TileSet = Object.fromEntries(Object.entries(tileSetJSON).map(([key, {data, sprite, ...value}]) => 
     [key, {data: TileSetAssets[key].data, sprite: TileSetAssets[key].sprite, ...value}]
 ));
 
-
 /*
-Canvas uses crisp-edges to preserve pixelated style of map
+Canvas uses crisp-edges to preserve pixelated style of map.
 */
 const StyledCanvas = styled.canvas`
     display: inline-block;
@@ -107,7 +114,6 @@ const StyledBoard = styled.canvas`
     border: 1px solid orange;
 `;
 
-
 const StyledContainer = styled.div`
     align-content: center;
     display: block;
@@ -116,7 +122,6 @@ const StyledContainer = styled.div`
     padding: 0;
 `;
 
-
 const StyledText = styled.div`
     font-size: larger;
     display: block;
@@ -124,21 +129,6 @@ const StyledText = styled.div`
     margin: 5px;
 `;
  
-const pathFromBox = (v) => {
-    return [
-        [...v.slice(0, 2)],
-        [v[0] + v[2], v[1]],
-        [v[0] + v[2], v[1] + v[3]],
-        [v[0], v[1] + v[3]]
-    ]
-};
-
-const rotatePath = (pts, angle) => {
-    let [s, c] = [Math.sin, Math.cos].map(fcn => fcn(angle));
-    return pts.map(([xx, yy]) => [(xx * c - yy * s), (xx * s + yy * c)]);
-}
-
-
 export default ({ 
     gridSize = 6, 
     worldSize = 32, 
@@ -146,11 +136,39 @@ export default ({
     actionsPerDay = 6,
     startDate = [2025, 3, 1]
  }) => {
+    /*
+    The `Oceanside` component contains all of the functionality to
+    embed the game in any web page using React.
+    
+    It consists of two canvases and a text block inside a container 
+    <div>. One canvas displays the navigation minimap, and the other
+    is where the animated game tiles are rendered. The text block
+    displays the current datetime and score. 
+
+    The properties change game play in the following ways.
+
+    The number of tiles visible is the square of `gridSize`, 
+    so scores are higher for larger values.
+
+    The total number of tiles, and therefore the probability of 
+    finding certain features, is the square of `worldSize`. 
+
+    Each tile has an elevation value. Tiles above `waterLevel` 
+    are always land, and therfore worth nothing. 
+    Other wet tiles become mud depending on the tidal cycle and their
+    elevation.
+
+    The `actionsPerDay` property determines how quickly time passes,
+    and how many things you can interact with per day. This ultimately
+    puts a limit on the score you can earn.
+
+    The `startDate` currently has no effect on game play. 
+    */
 
     const nav = useRef(null);  // minimap for navigation
     const board = useRef(null);  // animated GIF tiles
 
-    const [runtime, setRuntime] = useState(null);  // wasm binaries, set once async
+    const [runtime, setRuntime] = useState(null);  // wasm binaries
     const [map, setMap] = useState(null);  // map data structure reference from rust, set once
 
     const [clock, takeAnActionOrWait] = useReducer(
@@ -162,7 +180,7 @@ export default ({
                 const pts = [[clientX, clientY]];
                 console.log("Click @", pts);
                 
-                console.log("Transform @", temp);
+                // console.log("Transform @", temp);
                 map.replace_tile(0, 0);
             }
             else console.log("bettah wait 'til tomorrow");
@@ -256,8 +274,8 @@ export default ({
 
     useEffect(() => {
         /*
-        Draw the visible world to the canvas using the tile set object to get
-        pixel data and apply it.
+        Draw the visible area to the board canvas using the 
+        tile set object. 
         */
 
         if (!board || !tiles) return;
@@ -271,8 +289,14 @@ export default ({
         board.current.addEventListener('mousemove', ({clientX, clientY}) => {
             const {left, top} = board.current.getBoundingClientRect();
             const rescale = board.current.width/gridSize;
-            let origin = [clientX - left, clientY - top].map(dim => Math.floor(dim*window.devicePixelRatio/rescale));
-            view = [rescale, rescale/Math.sqrt(2)].map(size => pathFromBox([...origin, 1, 1].map(x => x*size)));
+
+            let origin = [clientX - left, clientY - top].map(
+                dim => Math.floor(dim*window.devicePixelRatio/rescale)
+            );
+
+            view = [rescale, rescale/Math.sqrt(2)].map(
+                size => pathFromBox([...origin, 1, 1].map(x => x*size))
+            );
         });
 
         [board.current.width, board.current.height] = ["width", "height"].map(
