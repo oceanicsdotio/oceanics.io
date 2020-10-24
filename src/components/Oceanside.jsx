@@ -221,9 +221,9 @@ export default ({
     const [keys, setKeys] = useReducer(
         (state, {type, key}) => {
             switch (type) {
-                case "set-key-down":
+                case "keydown":
                     return { ...state, [key]: true };
-                case "set-key-up":
+                case "keyup":
                     return { ...state, [key]: false };
                 default:
                     return state;
@@ -237,46 +237,26 @@ export default ({
             }, {})
     );
 
-
     useEffect(() => {
         if (!Object.values(keys).filter(value => !value).length) 
             setClamp(!clamp);
     }, [keys]);
 
-    useEffect(() => {
-        const keydownListener = (keydownEvent) => {
-            const { key, repeat } = keydownEvent;
-            const loweredKey = key.toLowerCase();
-
-            if (repeat) return;
-            if (keys[loweredKey] === undefined) return;
-
-            if (keys[loweredKey] === false)
-                setKeys({ type: "set-key-down", key: loweredKey });
-        };
-        window.addEventListener("keydown", keydownListener, true);
-        return () => window.removeEventListener("keydown", keydownListener, true);
-    }, [keys]);
-
-    useEffect(() => {
-
-        const keyupListener = 
-        (keyupEvent) => {
-            const { key } = keyupEvent;
-            const loweredKey = key.toLowerCase();
-
-            if (keys[loweredKey] === undefined) return;
-
-            if (keys[loweredKey] === true)
-                setKeys({ type: "set-key-up", key: loweredKey });
+    const keystrokeListener = (lookup, type, setter) => 
+        ({key, repeat=null}) => {
+            const lower = key.toLowerCase();
+            if (repeat || lookup[lower] === undefined) return;
+            if (lookup[lower] === false) setter({ type, key: lower });
         };
 
-        window.addEventListener("keyup", keyupListener, true);
-        return () => window.removeEventListener("keyup", keyupListener, true);
-    }, [keys]);
-  
-
-
+    ["keydown", "keyup"].map(type => {
+        useEffect(() => {
+            const listener = keystrokeListener(keys, type, setKeys)
+            window.addEventListener(type, listener, true);
+            return () => window.removeEventListener(type, listener, true);
+        }, [keys]);
+    });
+    
     const tomorrow = (date) => new Date(date.setDate(date.getDate()+1));
 
     const [runtime, setRuntime] = useState(null);
