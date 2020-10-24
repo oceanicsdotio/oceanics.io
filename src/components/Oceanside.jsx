@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useReducer } from "react";
+import React, { useEffect, useState, useRef, useReducer, useCallback } from "react";
 import styled from "styled-components";
 import { loadRuntime } from "../components/Canvas";
 import { rotatePath, pathFromBox } from "../bathysphere";
@@ -128,13 +128,63 @@ const StyledText = styled.div`
     position: absolute;
     margin: 5px;
 `;
+
+const drawConnections = (ctx, a, b) => {
+    ctx.beginPath();
+    for (let ii=0; ii<4; ii++) {
+        ctx.moveTo(...a[ii]);
+        ctx.lineTo(...b[ii]);
+    }
+    ctx.stroke();
+};
+
+const drawView = (ctx, pts) => {
+
+    ctx.beginPath();
+    ctx.moveTo(...pts[0]);
+    ctx.lineTo(...pts[1]);
+    ctx.lineTo(...pts[2]);
+    ctx.lineTo(...pts[3]);
+    ctx.closePath();
+    ctx.stroke();
+};
+
+const drawCursor = ({width}, gridSize, ctx, view) => {
+    const rescale = width/gridSize;
+    const rescale2 = rescale/Math.sqrt(2);
+    ctx.strokeStyle="#FFAA00FF";
+    ctx.lineWidth = 2.0;
+
+   
+    const xform = ([x,y])=>[
+        x + rescale2/2.0 + (Math.floor(0.5*gridSize) + 0.75)*rescale2, 
+        0.5*y 
+    ];
+
+    const inverse = ([x,y])=>[
+        (x - rescale2/2.0 - (Math.floor(0.5*gridSize) + 0.75)*rescale2), 
+        2*y 
+    ];
+
+    const temp = rotatePath(view[1], Math.PI/4).map(xform);
+    const temp2 = rotatePath(temp.map(inverse), -Math.PI/4);
+
+    drawView(ctx, view[0]);
+    drawView(ctx, temp);
+    drawConnections(ctx, view[0], temp);
+
+    ctx.lineWidth = 1.0;
+    ctx.strokeStyle="#FFFFFFFF";
+    drawView(ctx, temp2);
+};
  
 export default ({ 
     gridSize = 6, 
     worldSize = 32, 
     waterLevel = 0.7,
     actionsPerDay = 6,
-    startDate = [2025, 3, 1]
+    startDate = [2025, 3, 1],
+    endTurnMessage = "Bettah wait 'til tomorrow."
  }) => {
     /*
     The `Oceanside` component contains all of the functionality to
@@ -162,20 +212,85 @@ export default ({
     and how many things you can interact with per day. This ultimately
     puts a limit on the score you can earn.
 
-    The `startDate` currently has no effect on game play. 
+    The `startDate` and `endTurnMessage` props currently have no 
+    effect on game play. 
     */
 
+    const [clamp, setClamp] = useState(false);
+
+    const [keys, setKeys] = useReducer(
+        (state, {type, key}) => {
+            switch (type) {
+                case "set-key-down":
+                    return { ...state, [key]: true };
+                case "set-key-up":
+                    return { ...state, [key]: false };
+                default:
+                    return state;
+            }
+        }, 
+        ["Shift", "C"]
+            .map(key => key.toLowerCase())
+            .reduce((currentKeys, key) => {
+                currentKeys[key] = false;
+                return currentKeys;
+            }, {})
+    );
+
+
+    useEffect(() => {
+        if (!Object.values(keys).filter(value => !value).length) 
+            setClamp(!clamp);
+    }, [keys]);
+
+    useEffect(() => {
+        const keydownListener = (keydownEvent) => {
+            const { key, repeat } = keydownEvent;
+            const loweredKey = key.toLowerCase();
+
+            if (repeat) return;
+            if (keys[loweredKey] === undefined) return;
+
+            if (keys[loweredKey] === false)
+                setKeys({ type: "set-key-down", key: loweredKey });
+        };
+        window.addEventListener("keydown", keydownListener, true);
+        return () => window.removeEventListener("keydown", keydownListener, true);
+    }, [keys]);
+
+    useEffect(() => {
+
+        const keyupListener = 
+        (keyupEvent) => {
+            const { key } = keyupEvent;
+            const loweredKey = key.toLowerCase();
+
+            if (keys[loweredKey] === undefined) return;
+
+            if (keys[loweredKey] === true)
+                setKeys({ type: "set-key-up", key: loweredKey });
+        };
+
+        window.addEventListener("keyup", keyupListener, true);
+        return () => window.removeEventListener("keyup", keyupListener, true);
+    }, [keys]);
+  
+
+
+    const tomorrow = (date) => new Date(date.setDate(date.getDate()+1));
+
+    const [runtime, setRuntime] = useState(null);
+    useEffect(loadRuntime(setRuntime), []);  // load WASM binaries
+
+    const [map, setMap] = useState(null);  // map data from rust
     const nav = useRef(null);  // minimap for navigation
-    const board = useRef(null);  // animated GIF tiles
-
-    const [runtime, setRuntime] = useState(null);  // wasm binaries
-    const [map, setMap] = useState(null);  // map data structure reference from rust, set once
-
+    
     const [clock, takeAnActionOrWait] = useReducer(
         ({date, actions}, {clientX, clientY})=>{
             /*
             Take an action (swap a tile) or advance to the next day. 
             */
+            
             if (actions) {
                 const pts = [[clientX, clientY]];
                 console.log("Click @", pts);
@@ -183,11 +298,14 @@ export default ({
                 // console.log("Transform @", temp);
                 map.replace_tile(0, 0);
             }
-            else console.log("bettah wait 'til tomorrow");
-
-            return {
-                date: actions ? date : new Date(date.setDate(date.getDate()+1)),
-                actions: actions ? actions - 1 : actionsPerDay
+            else console.log(endTurnMessage);
+            
+            return actions ? {
+                date,
+                actions: actions - 1
+            } : {
+                date: tomorrow(date),
+                actions: actionsPerDay
             }
         }, {
             actions: actionsPerDay, 
@@ -195,8 +313,9 @@ export default ({
         }
     );
 
+
     const [tiles, populateVisibleTiles] = useReducer(
-        (tiles, map, event) => {
+        (tiles, map, event, nav) => {
             /*
             Update currently visible tiles from map view.
 
@@ -205,12 +324,12 @@ export default ({
             retrieve the ones that are coming into view.
             */
             console.log(event);
-            console.log(nav.current);
+            console.log(nav);
 
-            if (event && nav.current) {
+            if (event && nav) {
                 const { clientX, clientY } = event;
-                const {left, top} = nav.current.getBoundingClientRect();
-                map.update_view(nav.current.getContext("2d"), ...[clientX - left, clientY - top].map(x => x*worldSize/128));
+                const {left, top} = nav.getBoundingClientRect();
+                map.update_view(nav.getContext("2d"), ...[clientX - left, clientY - top].map(x => x*worldSize/128));
             }
 
             const diagonals = gridSize * 2 - 1;
@@ -232,7 +351,6 @@ export default ({
         },  null
     );
 
-    useEffect(loadRuntime(setRuntime), []);  // load WASM binaries
     
     useEffect(() => {
         /*
@@ -244,7 +362,7 @@ export default ({
 
         The same data structure will hold the selected tiles. 
         */
-        if (!runtime || !nav) return;
+        if (!runtime || !nav.current) return;
         const offset = (worldSize - gridSize) / 2;
         const _map = new runtime.MiniMap(
             offset, 
@@ -267,109 +385,65 @@ export default ({
                 // Get raw image data
             }
         );
-        populateVisibleTiles(_map, null);  // visible tiles data structure
+        populateVisibleTiles(_map, null, nav);  // visible tiles data structure
         setMap(_map);  // mini-map data structure 
     }, [runtime]);
 
 
+    const board = useRef(null);  // animated GIF tiles
+    
     useEffect(() => {
         /*
         Draw the visible area to the board canvas using the 
         tile set object. 
         */
 
-        if (!board || !tiles) return;
+        if (!board.current || !tiles) return;
 
+        const canvas = board.current;
         const start = performance.now();
         let view = [
             pathFromBox([null, null, null, null]), 
             pathFromBox([null, null, null, null])
         ];
 
-        board.current.addEventListener('mousemove', ({clientX, clientY}) => {
-            const {left, top} = board.current.getBoundingClientRect();
-            const rescale = board.current.width/gridSize;
-
-            let origin = [clientX - left, clientY - top].map(
-                dim => Math.floor(dim*window.devicePixelRatio/rescale)
-            );
+        canvas.addEventListener('mousemove', ({clientX, clientY}) => {
+            const {left, top} = canvas.getBoundingClientRect();
+            const rescale = canvas.width/gridSize;
+           
+            let origin = [clientX - left, clientY - top]
+                .map(dim => dim*window.devicePixelRatio/rescale)
+                .map(x => clamp ? Math.floor(x) : x);
 
             view = [rescale, rescale/Math.sqrt(2)].map(
                 size => pathFromBox([...origin, 1, 1].map(x => x*size))
             );
         });
 
-        [board.current.width, board.current.height] = ["width", "height"].map(
-            dim => getComputedStyle(board.current).getPropertyValue(dim).slice(0, -2)
-        ).map(x => x * window.devicePixelRatio);
+        [canvas.width, canvas.height] = ["width", "height"]
+            .map(dim => getComputedStyle(canvas).getPropertyValue(dim))
+            .map(arr => arr.slice(0, -2))
+            .map(x => x * window.devicePixelRatio);
         
-        const ctx = board.current.getContext("2d");
+        const ctx = canvas.getContext("2d");
         ctx.imageSmoothingEnabled = false;  // disable nearest neighbor interpolation
         let requestId = null;
         
-        
-
-        const drawConnections = (a, b) => {
-            ctx.beginPath();
-            for (let ii=0; ii<4; ii++) {
-                ctx.moveTo(...a[ii]);
-                ctx.lineTo(...b[ii]);
-            }
-            ctx.stroke();
-        }
-
-        const drawView = (pts) => {
-
-            ctx.beginPath();
-            ctx.moveTo(...pts[0]);
-            ctx.lineTo(...pts[1]);
-            ctx.lineTo(...pts[2]);
-            ctx.lineTo(...pts[3]);
-            ctx.closePath();
-            ctx.stroke();
-        }
-
         (function render() {
-
-            ctx.clearRect(0, 0, board.current.width, board.current.height);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
             tiles.forEach((diagonal, ii) => {
                 diagonal.forEach((tile, jj) => {
-                    map.draw_tile(ctx, ii, jj, diagonal.length, performance.now() - start, board.current.width, tile);
+                    map.draw_tile(ctx, ii, jj, diagonal.length, performance.now() - start, canvas.width, tile);
                 });
             });
+
+            drawCursor(canvas, gridSize, ctx, view);
            
-            const rescale = board.current.width/gridSize;
-            const rescale2 = rescale/Math.sqrt(2);
-            ctx.strokeStyle="#FFAA00FF";
-            ctx.lineWidth = 2.0;
-
-           
-            const xform = ([x,y])=>[
-                x + rescale2/2.0 + (Math.floor(0.5*gridSize) + 0.75)*rescale2, 
-                0.5*y 
-            ];
-
-            const inverse = ([x,y])=>[
-                (x - rescale2/2.0 - (Math.floor(0.5*gridSize) + 0.75)*rescale2), 
-                2*y 
-            ];
-
-            const temp = rotatePath(view[1], Math.PI/4).map(xform);
-            const temp2 = rotatePath(temp.map(inverse), -Math.PI/4);
-
-            drawView(view[0]);
-            drawView(temp);
-            drawConnections(view[0], temp);
-
-            ctx.lineWidth = 1.0;
-            ctx.strokeStyle="#FFFFFFFF";
-            drawView(temp2);
-
             requestId = requestAnimationFrame(render);
         })()
 
         return () => cancelAnimationFrame(requestId);
-    }, [tiles])
+    }, [tiles, clamp])
 
     
     return (
@@ -391,7 +465,7 @@ export default ({
                 width={worldSize}
                 height={worldSize}
                 onClick={(event) => {
-                    populateVisibleTiles(map, event);
+                    populateVisibleTiles(map, event, nav);
                     console.log(event);
                 }}
             />    
