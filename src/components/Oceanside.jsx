@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useReducer, useCallback } from "react";
 import styled from "styled-components";
 import { loadRuntime } from "../components/Canvas";
-import { rotatePath, pathFromGridCell } from "../bathysphere";
+import { drawCursor } from "../bathysphere";
 
 import tileSetJSON from "../../static/oceanside.json";
 
@@ -129,102 +129,6 @@ const StyledText = styled.div`
     margin: 5px;
 `;
 
-const drawConnections = (ctx, a, b) => {
-    ctx.beginPath();
-    for (let ii=0; ii<4; ii++) {
-        ctx.moveTo(...a[ii]);
-        ctx.lineTo(...b[ii]);
-    }
-    ctx.stroke();
-};
-
-const drawView = (ctx, pts) => {
-
-    ctx.beginPath();
-    ctx.moveTo(...pts[0]);
-    ctx.lineTo(...pts[1]);
-    ctx.lineTo(...pts[2]);
-    ctx.lineTo(...pts[3]);
-    ctx.closePath();
-    ctx.stroke();
-};
-
-const inverse = (points, width, gridSize) => {
-    /*
-    Translate x and scale y, rotate CCW, scale points.
-
-    Points must be in the canvas coordinate reference frame. 
-    The width is the width of the canvas drawing area, and 
-    gridSize is the number of squares per side of the world.
-    */
-    return rotatePath(points.map(([x,y])=> [
-            x - (Math.floor(0.5*gridSize) + 1.25)*width/gridSize/Math.sqrt(2), 
-            2*y 
-        ]
-), -Math.PI/4).map(pt => pt.map(dim => dim*Math.sqrt(2)))};
-
-const transform = (points, width, gridSize) => {
-    /*
-    Scale points, rotate CW, translate x and scale y.
-
-    */
-    const _points = points.map(pt => pt.map(x => x/Math.sqrt(2)));
-    return rotatePath(_points, Math.PI/4).map(([x,y])=>[
-    x + (Math.floor(0.5*gridSize) + 1.25)*width/gridSize/Math.sqrt(2), 
-    0.5*y 
-])};
-
-const drawProjectionPrism = ({
-    width,
-    gridSize,
-    upperLeft,
-    clamp,
-    color,
-    lineWidth,
-    ctx
-}) => {
-    
-    const cellA = pathFromGridCell({
-        upperLeft,
-        clamp, 
-        cellSize: width/gridSize
-    })
-    const cellB = transform(cellA, width, gridSize);
-
-    ctx.strokeStyle=color;
-    ctx.lineWidth = lineWidth;
-    drawView(ctx, cellA);
-    drawView(ctx, cellB);
-    drawConnections(ctx, cellA, cellB);
-};
-
-const drawCursor = (width, gridSize, ctx, cursor, time, clamp) => {
-    /*
-    Cursor is given as grid coordinates, in the interval [0.0, gridSize).
-    Grid cell boxes are width and height 1 in this reference frame.
-
-    The grid coordinates are transformed into canvas coordinates, and 
-    then reprojected to an isomorphic view.
-    */
-   
-    const cellSize = width/gridSize;
-    const [inverted] = inverse([cursor.map(x=>x*cellSize)], width, gridSize).map(pt => pt.map(x=>x/cellSize));
- 
-    [
-        {upperLeft: cursor, color: "#FFAA00FF"},
-        {upperLeft: inverted, color: "#AAFF00FF"}
-    ].map(({upperLeft, color})=>{
-        drawProjectionPrism({
-            width, 
-            gridSize,
-            clamp,
-            upperLeft,
-            color,
-            lineWidth: 2.0,
-            ctx
-        });
-    });
-};
  
 export default ({ 
     gridSize = 6, 
@@ -464,7 +368,7 @@ export default ({
             });
 
             if (cursor)
-                drawCursor(width, gridSize, ctx, cursor, time, clamp);
+                drawCursor(width, gridSize, ctx, cursor, clamp);
             requestId = requestAnimationFrame(render);
         })()
 
