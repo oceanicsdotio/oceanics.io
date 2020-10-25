@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useReducer, useCallback } from "react";
 import styled from "styled-components";
 import { loadRuntime } from "../components/Canvas";
-import { rotatePath, pathFromBox } from "../bathysphere";
+import { rotatePath, pathFromGridCell } from "../bathysphere";
 
 import tileSetJSON from "../../static/oceanside.json";
 
@@ -151,7 +151,11 @@ const drawView = (ctx, pts) => {
 
 const inverse = (points, width, gridSize) => {
     /*
-    Translate x and scale y, rotate CCW, scale points
+    Translate x and scale y, rotate CCW, scale points.
+
+    Points must be in the canvas coordinate reference frame. 
+    The width is the width of the canvas drawing area, and 
+    gridSize is the number of squares per side of the world.
     */
     return rotatePath(points.map(([x,y])=> [
             x - (Math.floor(0.5*gridSize) + 1.25)*width/gridSize/Math.sqrt(2), 
@@ -161,13 +165,38 @@ const inverse = (points, width, gridSize) => {
 
 const transform = (points, width, gridSize) => {
     /*
-    Scale points, rotate CW, translate x and scale y
+    Scale points, rotate CW, translate x and scale y.
+
     */
     const _points = points.map(pt => pt.map(x => x/Math.sqrt(2)));
     return rotatePath(_points, Math.PI/4).map(([x,y])=>[
     x + (Math.floor(0.5*gridSize) + 1.25)*width/gridSize/Math.sqrt(2), 
     0.5*y 
 ])};
+
+const drawProjectionPrism = ({
+    width,
+    gridSize,
+    upperLeft,
+    clamp,
+    color,
+    lineWidth,
+    ctx
+}) => {
+    
+    const cellA = pathFromGridCell({
+        upperLeft,
+        clamp, 
+        cellSize: width/gridSize
+    })
+    const cellB = transform(cellA, width, gridSize);
+
+    ctx.strokeStyle=color;
+    ctx.lineWidth = lineWidth;
+    drawView(ctx, cellA);
+    drawView(ctx, cellB);
+    drawConnections(ctx, cellA, cellB);
+};
 
 const drawCursor = (width, gridSize, ctx, cursor, time, clamp) => {
     /*
@@ -179,40 +208,22 @@ const drawCursor = (width, gridSize, ctx, cursor, time, clamp) => {
     */
    
     const cellSize = width/gridSize;
-    const cellA = pathFromBox([...cursor, 1, 1])
-        .map(pt => 
-            pt
-                .map(x => clamp ? Math.floor(x) : x)
-                .map(x => x*cellSize)
-        );
-
-    const cellB = transform(cellA, width, gridSize);
-
-    ctx.strokeStyle="#FFAA00FF";
-    ctx.lineWidth = 2.0;
-    drawView(ctx, cellA);
-    drawView(ctx, cellB);
-    drawConnections(ctx, cellA, cellB);
-
-
-    ctx.lineWidth = 1.0;
-    ctx.strokeStyle="#AAFF00FF";
-
-    const [inverted] = inverse([cursor.map(x=>x*cellSize)], width, gridSize);
-
-    const cellC = pathFromBox([...inverted.map(x=>x/cellSize), 1, 1])
-    .map(pt => 
-        pt
-            .map(x => clamp ? Math.floor(x) : x)
-            .map(x => x*cellSize)
-    );
-
-    const cellD = transform(cellC, width, gridSize);
-
-    drawView(ctx, cellC);
-    drawView(ctx, cellD);
-    drawConnections(ctx, cellC, cellD);
-
+    const [inverted] = inverse([cursor.map(x=>x*cellSize)], width, gridSize).map(pt => pt.map(x=>x/cellSize));
+ 
+    [
+        {upperLeft: cursor, color: "#FFAA00FF"},
+        {upperLeft: inverted, color: "#AAFF00FF"}
+    ].map(({upperLeft, color})=>{
+        drawProjectionPrism({
+            width, 
+            gridSize,
+            clamp,
+            upperLeft,
+            color,
+            lineWidth: 2.0,
+            ctx
+        });
+    });
 };
  
 export default ({ 

@@ -234,15 +234,28 @@ export const rotatePath = (pts, angle) => {
 }
 
 
-export const pathFromBox = (v) => {
+export const pathFromGridCell = ({
+    upperLeft: [x, y], 
+    width=1, 
+    height=1, 
+    clamp=false, 
+    cellSize=1.0
+}) => {
     /*
     Convenience method to create a bounding box polygon
-    from a upper-left, lower-right type extent. 
+    from a upper-left, width/height type extent. 
+
+    Upperleft is given in grid coordinates, and width and height
+    are integers corresponded to the number of grid cells per
+    side of the selected region.
     */
+    const [_x, _y] = [x, y].map(dim => clamp ? Math.floor(dim) : dim);
     return [
-        [...v.slice(0, 2)],
-        [v[0] + v[2], v[1]],
-        [v[0] + v[2], v[1] + v[3]],
-        [v[0], v[1] + v[3]]
-    ]
+        [_x, _y],
+        [_x + width, _y],
+        [_x + width, _y + height],
+        [_x, _y + height]
+    ].map(pt => 
+        pt.map(x => x*cellSize)
+    );
 };
