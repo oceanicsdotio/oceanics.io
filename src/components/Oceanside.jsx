@@ -149,33 +149,70 @@ const drawView = (ctx, pts) => {
     ctx.stroke();
 };
 
-const drawCursor = ({width}, gridSize, ctx, view) => {
-    const rescale = width/gridSize;
-    const rescale2 = rescale/Math.sqrt(2);
+const inverse = (points, width, gridSize) => {
+    /*
+    Translate x and scale y, rotate CCW, scale points
+    */
+    return rotatePath(points.map(([x,y])=> [
+            x - (Math.floor(0.5*gridSize) + 1.25)*width/gridSize/Math.sqrt(2), 
+            2*y 
+        ]
+), -Math.PI/4).map(pt => pt.map(dim => dim*Math.sqrt(2)))};
+
+const transform = (points, width, gridSize) => {
+    /*
+    Scale points, rotate CW, translate x and scale y
+    */
+    const _points = points.map(pt => pt.map(x => x/Math.sqrt(2)));
+    return rotatePath(_points, Math.PI/4).map(([x,y])=>[
+    x + (Math.floor(0.5*gridSize) + 1.25)*width/gridSize/Math.sqrt(2), 
+    0.5*y 
+])};
+
+const drawCursor = (width, gridSize, ctx, cursor, time, clamp) => {
+    /*
+    Cursor is given as grid coordinates, in the interval [0.0, gridSize).
+    Grid cell boxes are width and height 1 in this reference frame.
+
+    The grid coordinates are transformed into canvas coordinates, and 
+    then reprojected to an isomorphic view.
+    */
+   
+    const cellSize = width/gridSize;
+    const cellA = pathFromBox([...cursor, 1, 1])
+        .map(pt => 
+            pt
+                .map(x => clamp ? Math.floor(x) : x)
+                .map(x => x*cellSize)
+        );
+
+    const cellB = transform(cellA, width, gridSize);
+
     ctx.strokeStyle="#FFAA00FF";
     ctx.lineWidth = 2.0;
+    drawView(ctx, cellA);
+    drawView(ctx, cellB);
+    drawConnections(ctx, cellA, cellB);
 
-   
-    const xform = ([x,y])=>[
-        x + rescale2/2.0 + (Math.floor(0.5*gridSize) + 0.75)*rescale2, 
-        0.5*y 
-    ];
 
-    const inverse = ([x,y])=>[
-        (x - rescale2/2.0 - (Math.floor(0.5*gridSize) + 0.75)*rescale2), 
-        2*y 
-    ];
+    ctx.lineWidth = 1.0;
+    ctx.strokeStyle="#AAFF00FF";
 
-    const temp = rotatePath(view[1], Math.PI/4).map(xform);
-    const temp2 = rotatePath(temp.map(inverse), -Math.PI/4);
+    const [inverted] = inverse([cursor.map(x=>x*cellSize)], width, gridSize);
 
-    drawView(ctx, view[0]);
-    drawView(ctx, temp);
-    drawConnections(ctx, view[0], temp);
+    const cellC = pathFromBox([...inverted.map(x=>x/cellSize), 1, 1])
+    .map(pt => 
+        pt
+            .map(x => clamp ? Math.floor(x) : x)
+            .map(x => x*cellSize)
+    );
 
-    // ctx.lineWidth = 1.0;
-    // ctx.strokeStyle="#FFFFFFFF";
-    // drawView(ctx, temp2);
+    const cellD = transform(cellC, width, gridSize);
+
+    drawView(ctx, cellC);
+    drawView(ctx, cellD);
+    drawConnections(ctx, cellC, cellD);
+
 };
  
 export default ({ 
@@ -217,6 +254,9 @@ export default ({
     */
     const [keys, setKeys] = useReducer(
         (state, {type, key}) => {
+            /*
+            
+            */
             switch (type) {
                 case "keydown":
                     return { ...state, [key]: true };
@@ -255,6 +295,7 @@ export default ({
     const tomorrow = (date) => new Date(date.setDate(date.getDate()+1));
     const [map, setMap] = useState(null);  // map data from rust
     const nav = useRef(null);  // minimap for navigation
+    const board = useRef(null);  // animated GIF tiles
 
     const [runtime, setRuntime] = useState(null);
     useEffect(loadRuntime(setRuntime), []);  // load WASM binaries
@@ -264,10 +305,19 @@ export default ({
             /*
             Take an action (swap a tile) or advance to the next day. 
             */
-            
             if (actions) {
-                const pts = [[clientX, clientY]];
-                console.log("Click @", pts);
+                const canvas = board.current
+                
+                const {width} = canvas;
+                const {left, top} = board.current.getBoundingClientRect();
+                const pts = [[clientX - left, clientY - top]];
+                const [inverted] = inverse(pts, 600, gridSize);
+                console.log({
+                    pts: pts[0],
+                    inverted,
+                    width
+                });
+                console.log("Transform @", inverted);
                 
                 // console.log("Transform @", temp);
                 map.replace_tile(0, 0);
@@ -359,12 +409,9 @@ export default ({
                 // Get raw image data
             }
         );
-        populateVisibleTiles(_map, null, nav);  // visible tiles data structure
-        setMap(_map);  // mini-map data structure 
+        populateVisibleTiles(_map, null, nav);  
+        setMap(_map); 
     }, [runtime]);
-
-
-    const board = useRef(null);  // animated GIF tiles
     
     useEffect(() => {
         /*
@@ -375,44 +422,38 @@ export default ({
         if (!board.current || !tiles) return;
 
         const canvas = board.current;
+        
         const start = performance.now();
-        let view = [
-            pathFromBox([null, null, null, null]), 
-            pathFromBox([null, null, null, null])
-        ];
-
-        canvas.addEventListener('mousemove', ({clientX, clientY}) => {
-            const {left, top} = canvas.getBoundingClientRect();
-            const rescale = canvas.width/gridSize;
-           
-            let origin = [clientX - left, clientY - top]
-                .map(dim => dim*window.devicePixelRatio/rescale)
-                .map(x => clamp ? Math.floor(x) : x);
-
-            view = [rescale, rescale/Math.sqrt(2)].map(
-                size => pathFromBox([...origin, 1, 1].map(x => x*size))
-            );
-        });
+        let cursor = null;
 
         [canvas.width, canvas.height] = ["width", "height"]
             .map(dim => getComputedStyle(canvas).getPropertyValue(dim))
             .map(arr => arr.slice(0, -2))
             .map(x => x * window.devicePixelRatio);
-        
+
+        const {width, height} = canvas;
+
+        canvas.addEventListener('mousemove', ({clientX, clientY}) => {
+            const {left, top} = canvas.getBoundingClientRect();
+            cursor = [clientX - left, clientY - top]
+                .map(dim => dim*window.devicePixelRatio/(width/gridSize))
+        });
+
         const ctx = canvas.getContext("2d");
         ctx.imageSmoothingEnabled = false;  // disable nearest neighbor interpolation
         let requestId = null;
         
         (function render() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.clearRect(0, 0, width, height);
+            const time = performance.now() - start;
             tiles.forEach((diagonal, ii) => {
                 diagonal.forEach((tile, jj) => {
-                    map.draw_tile(ctx, ii, jj, diagonal.length, performance.now() - start, canvas.width, tile);
+                    map.draw_tile(ctx, ii, jj, diagonal.length, time, width, tile);
                 });
             });
 
-            drawCursor(canvas, gridSize, ctx, view);
-           
+            if (cursor)
+                drawCursor(width, gridSize, ctx, cursor, time, clamp);
             requestId = requestAnimationFrame(render);
         })()
 
