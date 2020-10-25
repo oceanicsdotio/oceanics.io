@@ -13,6 +13,16 @@ export const StyledCaption = styled.div`
     font-style: italic;
 `;
 
+export const eventCoordinates = ({clientX, clientY}, canvas) => {
+    // Short hand for element reference frame
+    const {left, top} = canvas.getBoundingClientRect();
+    return [clientX - left, clientY - top]
+}
+export const eventGridCell = (coordinates, width, gridSize) => 
+    // short hand for getting location in grid coordinates
+    coordinates
+        .map(dim => dim*window.devicePixelRatio/(width/gridSize));
+
 export const loadRuntime = (setter) => {
     /*
     Import the WebAssembly module and set the runtime of the Component.
