@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useReducer, useCallback } from "react";
+import React, { useEffect, useState, useRef, useReducer } from "react";
 import styled from "styled-components";
 import { loadRuntime } from "../components/Canvas";
 import { drawCursor } from "../bathysphere";
@@ -129,7 +129,6 @@ const StyledText = styled.div`
     margin: 5px;
 `;
 
- 
 export default ({ 
     gridSize = 6, 
     worldSize = 32, 
@@ -147,31 +146,30 @@ export default ({
     is where the animated game tiles are rendered. The text block
     displays the current datetime and score. 
 
-    The properties change game play in the following ways.
+    The properties change game play in the following ways...
 
-    The number of tiles visible is the square of `gridSize`, 
+    * The number of tiles visible is the square of `gridSize`, 
     so scores are higher for larger values.
 
-    The total number of tiles, and therefore the probability of 
+    * The total number of tiles, and therefore the probability of 
     finding certain features, is the square of `worldSize`. 
 
-    Each tile has an elevation value. Tiles above `waterLevel` 
+    * Each tile has an elevation value. Tiles above `waterLevel` 
     are always land, and therfore worth nothing. 
     Other wet tiles become mud depending on the tidal cycle and their
     elevation.
 
-    The `actionsPerDay` property determines how quickly time passes,
+    * The `actionsPerDay` property determines how quickly time passes,
     and how many things you can interact with per day. This ultimately
     puts a limit on the score you can earn.
 
-    The `startDate` and `endTurnMessage` props currently have no 
+    * The `startDate` and `endTurnMessage` props currently have no 
     effect on game play. 
+
     */
+
     const [keys, setKeys] = useReducer(
         (state, {type, key}) => {
-            /*
-            
-            */
             switch (type) {
                 case "keydown":
                     return { ...state, [key]: true };
@@ -337,9 +335,9 @@ export default ({
         if (!board.current || !tiles) return;
 
         const canvas = board.current;
-        
         const start = performance.now();
         let cursor = null;
+        let requestId = null;
 
         [canvas.width, canvas.height] = ["width", "height"]
             .map(dim => getComputedStyle(canvas).getPropertyValue(dim))
@@ -347,6 +345,8 @@ export default ({
             .map(x => x * window.devicePixelRatio);
 
         const {width, height} = canvas;
+        const ctx = canvas.getContext("2d");
+        ctx.imageSmoothingEnabled = false;  // disable interpolation
 
         canvas.addEventListener('mousemove', ({clientX, clientY}) => {
             const {left, top} = canvas.getBoundingClientRect();
@@ -354,10 +354,6 @@ export default ({
                 .map(dim => dim*window.devicePixelRatio/(width/gridSize))
         });
 
-        const ctx = canvas.getContext("2d");
-        ctx.imageSmoothingEnabled = false;  // disable nearest neighbor interpolation
-        let requestId = null;
-        
         (function render() {
             ctx.clearRect(0, 0, width, height);
             const time = performance.now() - start;
@@ -367,8 +363,7 @@ export default ({
                 });
             });
 
-            if (cursor)
-                drawCursor(width, gridSize, ctx, cursor, clamp);
+            if (cursor) drawCursor(width, gridSize, ctx, cursor, clamp);
             requestId = requestAnimationFrame(render);
         })()
 
@@ -385,7 +380,7 @@ export default ({
             <StyledBoard
                 ref={board}
                 onClick={(event) => {
-                    event.persist();
+                    event.persist(); // otherwise React eats it
                     takeAnActionOrWait(event);
                 }}
             />
@@ -395,8 +390,8 @@ export default ({
                 width={worldSize}
                 height={worldSize}
                 onClick={(event) => {
+                    event.persist();
                     populateVisibleTiles(map, event, nav);
-                    console.log(event);
                 }}
             />    
         </StyledContainer>

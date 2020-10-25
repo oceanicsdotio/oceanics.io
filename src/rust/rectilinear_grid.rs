@@ -268,7 +268,7 @@ pub mod rectilinear_grid {
 
     fn island_kernel(ii: u32, jj: u32, world_size: f64, water_level: f64) -> [f64; 2] {
         /*
-        Create an island-like feature in an image format
+        Create an island-like feature in an image format.
         */
         let quadrant: f64 = world_size / 2.0;
         let limit: f64 = (2.0 * quadrant.powi(2)).sqrt();
@@ -287,7 +287,13 @@ pub mod rectilinear_grid {
 
     fn image_data_data(world_size: u32, water_level: f64) -> Vec<u8> {
         /*
-        Create image data
+        Create raw image data based on the size of the world and the
+        given water level.
+
+        Essentially this is a digital elevation model of a fictious
+        island. Other geomorphology kernels can be used in place or
+        in combination with `island_kernel` to achieve other desired
+        features.
         */
         let data = &mut Vec::with_capacity((world_size*world_size*4) as usize);
         for ii in 0..world_size {
@@ -312,13 +318,22 @@ pub mod rectilinear_grid {
 
     #[wasm_bindgen]
     pub fn image_data(world_size: u32, water_level: f64) -> ImageData {
-        
+        /*
+        After generating the base data array, clamp it and create a new
+        array as a JavaScript/HTML image data element.
+        */
         let data = &mut image_data_data(world_size.clone(), water_level);
         ImageData::new_with_u8_clamped_array(Clamped(data), world_size as u32).unwrap()
     }
 
 
     fn visible(view: &[f64; 2], ctx: &CanvasRenderingContext2d, grid_size: &usize) -> ImageData {
+        /*
+        Extract the visible pixels from a canvas element's 2D 
+        context. These will be used to render a localized
+        map with a greater level of visual detail and contextual
+        information
+        */
         ctx.get_image_data(
             view[0] + 1.0, 
             view[1] + 1.0, 
