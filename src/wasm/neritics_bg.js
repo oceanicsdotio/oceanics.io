@@ -1041,11 +1041,11 @@ export class MiniMap {
     * @param {number} width
     * @param {number} tile
     */
-    draw_tile(ctx, ii, jj, length, time, width, tile) {
+    drawTile(ctx, ii, jj, length, time, width, tile) {
         if (this.ptr == 0) throw new Error('Attempt to use a moved value');
         _assertNum(this.ptr);
         _assertNum(tile);
-        wasm.minimap_draw_tile(this.ptr, addHeapObject(ctx), ii, jj, length, time, width, tile);
+        wasm.minimap_drawTile(this.ptr, addHeapObject(ctx), ii, jj, length, time, width, tile);
     }
     /**
     * @param {number} actions
@@ -1068,10 +1068,10 @@ export class MiniMap {
     /**
     * @param {any} feature
     */
-    insert_feature(feature) {
+    insertFeature(feature) {
         if (this.ptr == 0) throw new Error('Attempt to use a moved value');
         _assertNum(this.ptr);
-        wasm.minimap_insert_feature(this.ptr, addHeapObject(feature));
+        wasm.minimap_insertFeature(this.ptr, addHeapObject(feature));
     }
     /**
     * @returns {number}
@@ -1097,12 +1097,12 @@ export class MiniMap {
     * @param {number} ii
     * @param {number} jj
     */
-    replace_tile(ii, jj) {
+    replaceTile(ii, jj) {
         if (this.ptr == 0) throw new Error('Attempt to use a moved value');
         _assertNum(this.ptr);
         _assertNum(ii);
         _assertNum(jj);
-        wasm.minimap_replace_tile(this.ptr, ii, jj);
+        wasm.minimap_replaceTile(this.ptr, ii, jj);
     }
     /**
     */
@@ -1117,13 +1117,13 @@ export class MiniMap {
     * @param {number} jj
     * @returns {number}
     */
-    insert_tile(ind, ii, jj) {
+    insertTile(ind, ii, jj) {
         if (this.ptr == 0) throw new Error('Attempt to use a moved value');
         _assertNum(this.ptr);
         _assertNum(ind);
         _assertNum(ii);
         _assertNum(jj);
-        var ret = wasm.minimap_insert_tile(this.ptr, ind, ii, jj);
+        var ret = wasm.minimap_insertTile(this.ptr, ind, ii, jj);
         return ret >>> 0;
     }
     /**
@@ -1174,10 +1174,10 @@ export class MiniMap {
     * @param {number} vx
     * @param {number} vy
     */
-    update_view(ctx, vx, vy) {
+    updateView(ctx, vx, vy) {
         if (this.ptr == 0) throw new Error('Attempt to use a moved value');
         _assertNum(this.ptr);
-        wasm.minimap_update_view(this.ptr, addHeapObject(ctx), vx, vy);
+        wasm.minimap_updateView(this.ptr, addHeapObject(ctx), vx, vy);
     }
     /**
     * @param {CanvasRenderingContext2D} ctx

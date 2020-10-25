@@ -281,7 +281,7 @@ const drawView = (ctx, pts) => {
     ctx.stroke();
 };
 
-const inverse = (points, width, gridSize) => {
+export const inverse = (points, width, gridSize) => {
     /*
     Translate x and scale y, rotate CCW, scale points.
 

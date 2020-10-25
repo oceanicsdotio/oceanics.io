@@ -33,8 +33,8 @@ pub mod rectilinear_grid {
         /*
         An interior space define by joined vertices.
 
-        This is duplicated in all topological models to reduce cross boundary
-        imports.
+        This is duplicated in all topological models to 
+        reduce cross boundary imports.
         */
         pub select: bool
     }
@@ -257,6 +257,12 @@ pub mod rectilinear_grid {
 
     #[wasm_bindgen]
     pub struct MiniMap {
+        /*
+        The MiniMap is a data structure and interactive container.
+
+        It contains persistent world data as a raster, and exposes
+        selection and subsetting methods to explore subareas. 
+        */
         view: [f64; 2],
         data: Vec<u8>,
         mask: Vec<f64>,
@@ -353,8 +359,7 @@ pub mod rectilinear_grid {
     pub fn z_transform(xx: f64, phase: f64, width: f64) -> f64 {
         const SPRITE_SIZE: f64 = 32.0;
         -1.0 * (((phase + xx/width)*2.0*PI).sin() + 1.0) * SPRITE_SIZE / 2.0
-    }
-  
+    } 
     
     #[wasm_bindgen]
     impl MiniMap {
@@ -396,6 +401,7 @@ pub mod rectilinear_grid {
             String::from(feature)
         }
 
+        #[wasm_bindgen(js_name = drawTile)]
         pub fn draw_tile(&self, ctx: CanvasRenderingContext2d, ii: f64, jj: f64, length: f64, time: f64, width: f64, tile: usize) {
 
             const SPRITE_SIZE: f64 = 32.0;
@@ -436,6 +442,7 @@ pub mod rectilinear_grid {
             self.actions
         }
 
+        #[wasm_bindgen(js_name = insertFeature)]
         pub fn insert_feature(&mut self, feature: JsValue) {
             self.tile_set.insert_feature(feature);
         }
@@ -451,9 +458,12 @@ pub mod rectilinear_grid {
             self.tile_set.get_tile(index)
         }
 
+        #[wasm_bindgen(js_name = replaceTile)]
         pub fn replace_tile(&mut self, ii: usize, jj:usize) {
             /*
-            Hoist the replace tile function to make it available from JavaScript interface.
+            Hoist the replace tile function to make it 
+            available from JavaScript interface.
+            
             This swaps out a tile for another tile.
             */
             self.tile_set.replace_tile(ii, jj);
@@ -463,6 +473,7 @@ pub mod rectilinear_grid {
             self.tile_set.clear();
         }
 
+        #[wasm_bindgen(js_name = insertTile)]
         pub fn insert_tile(&mut self, ind: usize, ii: usize, jj: usize) -> usize {
             let mut index: usize = 0;
             if self.mask[ind] > 0.000001 {
@@ -513,6 +524,7 @@ pub mod rectilinear_grid {
             self.view[1]
         }
 
+        #[wasm_bindgen(js_name = updateView)]
         pub fn update_view(&mut self, ctx: CanvasRenderingContext2d, vx: f64, vy: f64) {
             /*
             Move the field of view in the overall world image. Input is used 
@@ -555,30 +567,35 @@ pub mod rectilinear_grid {
 
             self.draw_bbox(&ctx);
             ctx.put_image_data(&viewPort, vx + 1.0, vy + 1.0);
-        }   
+        }
+        
+
     }
 
     #[wasm_bindgen]
     #[derive(Serialize,Deserialize,Clone)]
     #[serde(rename_all = "camelCase")]
     pub struct Tile {
+        /*
+        Tiles are individual features, aka the instance of
+        a type of feature, which is stored in memory and may be 
+        modified to deviate from the basic rules.
+
+        These are used in the TileSet struct.
+
+        These have:
+        - feature: unique string identifying the base type
+        - flip: render left or right facing sprite
+        - value: passive value toward total score
+        - frame_offset: start frame to desync animations
+        */
         feature: String,
         flip: bool,
         value: f64,
         frame_offset: f64
     }
 
-    #[wasm_bindgen]
-    pub struct TileSet {
-        /*
-        Tileset collects data structures related to generating and saving
-        features in the game
-        */
-        tiles: Vec<Tile>,
-        probability_table: ProbabilityTable,
-        count: HashMap<String, u32>,
-        index: HashMap<DiagonalIndex,usize>
-    }
+    
 
     
     #[wasm_bindgen]
@@ -605,10 +622,31 @@ pub mod rectilinear_grid {
         row: usize,
         column: usize
     }
+
+    #[wasm_bindgen]
+    pub struct TileSet {
+        /*
+        Tileset collects data structures related to generating and saving
+        features in the game.
+
+        Tiles are stored in `tiles`. Current count of each type is stored
+        in a HashMap indexed by tile type, and mapping of diagonal indices
+        to linear indices is stored in a another HashMap.
+        */
+        tiles: Vec<Tile>,
+        probability_table: ProbabilityTable,
+        count: HashMap<String, u32>,
+        index: HashMap<DiagonalIndex, usize>
+    }
     
     impl TileSet {
        
         pub fn new(count: usize) -> TileSet {
+            /*
+            Create a new struct, initializing with known
+            capacity. The size will be the square of the
+            grid size normally. 
+            */
             TileSet{
                 tiles: Vec::with_capacity(count),
                 probability_table: ProbabilityTable::new(),
@@ -621,6 +659,9 @@ pub mod rectilinear_grid {
             /*
             Drain the bookkeeping collections before rebuilding
             the selected features.
+
+            If we want to retain items from the overlapping area,
+            this needs to be modified.
             */
             self.count.clear();
             self.tiles.clear();
@@ -629,8 +670,7 @@ pub mod rectilinear_grid {
 
         pub fn score(&self) -> f64 {
             /*
-            Accumulate score from all tiles in the
-            current selection
+            Accumulate score from all tiles in the selection
             */
             let mut total = 0.0;
             for tile in &self.tiles {
@@ -639,12 +679,13 @@ pub mod rectilinear_grid {
             total
         }
 
+        
         pub fn insert_feature(&mut self, feature: JsValue) {
             /*
             Hoist the table insert function.
 
-            Deserialize JS objects into Rust Features, and insert these into
-            the probability table.
+            Deserialize JS objects into Rust Features, and insert these 
+            into the probability table.
             */
             let rfeature: Feature = feature.into_serde().unwrap();
             self.probability_table.insert(rfeature);
@@ -659,9 +700,10 @@ pub mod rectilinear_grid {
 
         pub fn replace_tile(&mut self, ii: usize, jj: usize) {
             /*
-            Change the existing feature to a new one
-            */
+            Change the existing feature to a new one.
 
+            The supplied indices are in Diagonal Row reference frame.
+            */
             let index: &usize = self.index.get(&DiagonalIndex{row:ii, column:jj}).unwrap();
             let previous = self.tiles[*index].clone();
             loop {

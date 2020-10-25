@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useReducer } from "react";
 import styled from "styled-components";
 import { loadRuntime } from "../components/Canvas";
-import { drawCursor } from "../bathysphere";
+import { drawCursor, inverse } from "../bathysphere";
 
 import tileSetJSON from "../../static/oceanside.json";
 
@@ -200,6 +200,14 @@ export default ({
         }, [keys]);
     });
   
+    const eventCoordinates = ({clientX, clientY}, canvas) => {
+        const {left, top} = canvas.getBoundingClientRect();
+        return [clientX - left, clientY - top]
+    }
+    const eventGridCell = (coordinates, width, gridSize) => 
+        coordinates
+            .map(dim => dim*window.devicePixelRatio/(width/gridSize));
+
     const [clamp, setClamp] = useState(false);
     useEffect(() => {
         if (Object.values(keys).every(x => x)) setClamp(!clamp);
@@ -214,36 +222,30 @@ export default ({
     useEffect(loadRuntime(setRuntime), []);  // load WASM binaries
 
     const [clock, takeAnActionOrWait] = useReducer(
-        ({date, actions}, {clientX, clientY})=>{
+        ({date, actions}, event)=>{
             /*
             Take an action (swap a tile) or advance to the next day. 
             */
             if (actions) {
                 const canvas = board.current
-                
                 const {width} = canvas;
-                const {left, top} = board.current.getBoundingClientRect();
-                const pts = [[clientX - left, clientY - top]];
-                const [inverted] = inverse(pts, 600, gridSize);
-                console.log({
-                    pts: pts[0],
-                    inverted,
-                    width
-                });
-                console.log("Transform @", inverted);
-                
-                // console.log("Transform @", temp);
-                map.replace_tile(0, 0);
-            }
-            else console.log(endTurnMessage);
-            
-            return actions ? {
-                date,
-                actions: actions - 1
-            } : {
-                date: tomorrow(date),
-                actions: actionsPerDay
-            }
+                const inverted = inverse([eventCoordinates(event, canvas)], 600, gridSize).pop();
+                const cell = eventGridCell(inverted, width, gridSize).map(x=>Math.floor(x));
+               
+                if (cell.every(dim => dim < gridSize && dim >= 0)) {
+                    map.replaceTile(...cell);
+                    return {
+                        date,
+                        actions: actions - 1
+                    }
+                }    
+            } else {
+                console.log(endTurnMessage)
+                return {
+                    date: tomorrow(date),
+                    actions: actionsPerDay
+                }
+            };
         }, {
             actions: actionsPerDay, 
             date: new Date(...startDate)
@@ -266,7 +268,7 @@ export default ({
             if (event && nav) {
                 const { clientX, clientY } = event;
                 const {left, top} = nav.getBoundingClientRect();
-                map.update_view(nav.getContext("2d"), ...[clientX - left, clientY - top].map(x => x*worldSize/128));
+                map.updateView(nav.getContext("2d"), ...[clientX - left, clientY - top].map(x => x*worldSize/128));
             }
 
             const diagonals = gridSize * 2 - 1;
@@ -279,7 +281,7 @@ export default ({
                 const columns = (row + (row < gridSize ? 1 : diagonals - 2 * row));
                 for (let column = 0; column < columns; column++) {
                     let col = columns - 1 - column; // reverse the order in the index
-                    build[row].push(map.insert_tile(count++, row, col));
+                    build[row].push(map.insertTile(count++, row, col));
                 }
                 build[row] = build[row].reverse();
             }
@@ -312,7 +314,7 @@ export default ({
       
         Object.entries(TileSet).forEach(
             ([key, {value=0.0, probability=0.0, limit=worldSize*worldSize, sprite}]) => {            
-                _map.insert_feature({
+                _map.insertFeature({
                     key,
                     value, 
                     probability,
@@ -325,6 +327,9 @@ export default ({
         populateVisibleTiles(_map, null, nav);  
         setMap(_map); 
     }, [runtime]);
+
+
+    
     
     useEffect(() => {
         /*
@@ -348,10 +353,8 @@ export default ({
         const ctx = canvas.getContext("2d");
         ctx.imageSmoothingEnabled = false;  // disable interpolation
 
-        canvas.addEventListener('mousemove', ({clientX, clientY}) => {
-            const {left, top} = canvas.getBoundingClientRect();
-            cursor = [clientX - left, clientY - top]
-                .map(dim => dim*window.devicePixelRatio/(width/gridSize))
+        canvas.addEventListener('mousemove', (event) => {
+            cursor = eventGridCell(eventCoordinates(event, canvas), width, gridSize);
         });
 
         (function render() {
@@ -359,7 +362,7 @@ export default ({
             const time = performance.now() - start;
             tiles.forEach((diagonal, ii) => {
                 diagonal.forEach((tile, jj) => {
-                    map.draw_tile(ctx, ii, jj, diagonal.length, time, width, tile);
+                    map.drawTile(ctx, ii, jj, diagonal.length, time, width, tile);
                 });
             });
 
