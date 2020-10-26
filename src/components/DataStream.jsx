@@ -32,7 +32,7 @@ export default ({
     useEffect(loadRuntime(setRuntime), []);  // load WASM binaries
     
     useEffect(() => {
-        if (runtime) {setStream(new runtime.InteractiveDataStream(capacity))};
+        if (runtime) setStream(new runtime.InteractiveDataStream(capacity));
     }, [runtime]);
 
     useEffect(() => {

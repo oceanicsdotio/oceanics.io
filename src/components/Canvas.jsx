@@ -50,7 +50,7 @@ export const targetHtmlCanvas = (ref, context) => {
 
     [ref.current.width, ref.current.height] = ["width", "height"].map(
         dim => getComputedStyle(ref.current).getPropertyValue(dim).slice(0, -2)
-    );
+    ).map(x => x * window.devicePixelRatio);
 
     return {
         start: performance.now(),
@@ -71,7 +71,6 @@ export const addMouseEvents = (ref, cursor) => {
         if (!ref.current || !cursor || cursor === undefined) return;
         
         ref.current.addEventListener('mousemove', ({clientX, clientY}) => {
-
             const {left, top} = ref.current.getBoundingClientRect();
             try {
                 cursor.update(clientX-left, clientY-top);
