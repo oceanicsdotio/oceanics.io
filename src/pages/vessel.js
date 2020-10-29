@@ -1,10 +1,9 @@
 
-import React from "react"
+import React, {useReducer} from "react"
 import { graphql } from "gatsby";
 
 import Layout from "../components/Layout";
 import SEO from "../components/SEO";
-import Vessel from "../components/Vessel";
 import Schedule from "../components/Schedule";
 
 
@@ -16,12 +15,22 @@ export default ({
     },
     location,
 }) => {
-    return (
+
+    const [fullscreen, setFullscreen] = useReducer((prev)=>{
+        return !prev;
+    }, false);
+
+    return !fullscreen ? (
         <Layout location={location} title={title}>
-            <SEO title="Ocean analytics as a service" />
-            <Vessel/>
-            <Schedule/>
+            <SEO title={"Ocean analytics as a service"} />
+            <h1 onClick={setFullscreen}>{"Schedule"}</h1>
+            <Schedule days={2}/>
         </Layout>
+    ) : (
+        <>
+            <SEO title={"Ocean analytics as a service"} />
+            <Schedule days={2}/>
+        </>
     )
 };
 

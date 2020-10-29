@@ -50,6 +50,7 @@
     "remark-parse": "^8.0.3",
     "styled-components": "^5.1.1",
     "typography": "^0.16.19",
+    "uuid": "^8.3.1",
     "yaml": "^1.10.0"
   },
   "devDependencies": {
