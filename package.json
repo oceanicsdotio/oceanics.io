@@ -13,7 +13,7 @@
     "babel-plugin-styled-components": "^1.11.1",
     "babel-plugin-syntax-dynamic-import": "^6.18.0",
     "babel-preset-gatsby": "^0.5.12",
-    "gatsby": "^2.24.80",
+    "gatsby": "^2.24.91",
     "gatsby-cli": "^2.12.101",
     "gatsby-image": "^2.4.21",
     "gatsby-link": "^2.4.15",
