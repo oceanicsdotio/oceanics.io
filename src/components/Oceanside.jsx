@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useReducer } from "react";
 import styled from "styled-components";
-import { loadRuntime, eventCoordinates, eventGridCell } from "../components/Canvas";
+import { loadRuntime, eventCoordinates, eventGridCell, targetHtmlCanvas } from "../components/Canvas";
 import { drawCursor, inverse } from "../bathysphere";
 
 import tileSetJSON from "../../static/oceanside.json";
@@ -181,6 +181,7 @@ const StyledText = styled.div`
     display: block;
     position: absolute;
     margin: 5px;
+    z-index: 1;
 `;
 
 export default ({ 
@@ -349,17 +350,10 @@ export default ({
         if (!board.current || !tiles) return;
 
         const canvas = board.current;
-        const start = performance.now();
         let cursor = null;
-        let requestId = null;
+        let previous; // memoize time
+        let {start, ctx, shape: [width, height], requestId, frames} = targetHtmlCanvas(board, `2d`);
 
-        [canvas.width, canvas.height] = ["width", "height"]
-            .map(dim => getComputedStyle(canvas).getPropertyValue(dim))
-            .map(arr => arr.slice(0, -2))
-            .map(x => x * window.devicePixelRatio);
-
-        const {width, height} = canvas;
-        const ctx = canvas.getContext("2d");
         ctx.imageSmoothingEnabled = false;  // disable interpolation
 
         canvas.addEventListener('mousemove', (event) => {
@@ -367,8 +361,9 @@ export default ({
         });
 
         (function render() {
-            ctx.clearRect(0, 0, width, height);
+
             const time = performance.now() - start;
+            runtime.clear_rect_blending(ctx, width, height, "#000000FF");
             tiles.forEach((diagonal, ii) => {
                 diagonal.forEach((tile, jj) => {
                     map.drawTile(ctx, ii, jj, diagonal.length, time, width, tile);
@@ -376,7 +371,12 @@ export default ({
             });
 
             if (cursor) drawCursor(width, gridSize, ctx, cursor, clamp);
+            
+            runtime.draw_caption(ctx, `Oceanside`, 0.0, height, "#FFFFFFFF", "12px Arial");
+
+            frames = runtime.draw_fps(ctx, frames, time, "#FFFFFFFF");
             requestId = requestAnimationFrame(render);
+            previous = time;
         })()
 
         return () => cancelAnimationFrame(requestId);

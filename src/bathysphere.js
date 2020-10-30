@@ -274,9 +274,7 @@ const drawView = (ctx, pts) => {
 
     ctx.beginPath();
     ctx.moveTo(...pts[0]);
-    ctx.lineTo(...pts[1]);
-    ctx.lineTo(...pts[2]);
-    ctx.lineTo(...pts[3]);
+    pts.slice(1, 4).map(pt => ctx.lineTo(...pt));
     ctx.closePath();
     ctx.stroke();
 };
