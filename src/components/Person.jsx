@@ -33,8 +33,10 @@ export default ({name}) => {
             onClick: toggleAvailability,
             draggable: true,
             onDragStart: (event) => {
+                toggleAvailability();
                 event.dataTransfer.setData("text/plain", event.target.id);
                 event.dataTransfer.dropEffect = "move";
+                
             }
         }}>
             {name}

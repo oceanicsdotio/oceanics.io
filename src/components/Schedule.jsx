@@ -2,8 +2,15 @@ import React, {useState} from "react";
 import styled from "styled-components";
 
 import Person from "../components/Person";
-import {grey, green} from "../palette";
+import {grey, green, ghost} from "../palette";
 import {TileSet} from "./Oceanside";
+
+
+const dateFormat = { 
+    weekday: 'long', 
+    month: 'short', 
+    day: 'numeric' 
+};
 
 const thingLocations = {
     "Wharf": {
@@ -13,7 +20,8 @@ const thingLocations = {
             }
         },
         team: [],
-        icon: TileSet["wharf"]
+        icon: TileSet["wharf"],
+        home: true
     }, 
     "Farm": {
         things: {},
@@ -31,7 +39,7 @@ const Icon = styled.img`
 const DayContainer = styled.div`
     width: 100%;
     min-height: 150px;
-    border: 3px solid ${grey};
+    border: 2px solid ${ghost};
     border-radius: 5px;
     padding: 0;
     margin: 0;
@@ -55,6 +63,7 @@ const StyledTextArea = styled.input`
     background: none;
     border: none;
     display: block;
+    color: ${green};
     width: 100%;
     margin: 10px;
 `;
@@ -68,7 +77,7 @@ const StyledLabel = styled.div`
 const DropTarget = styled.div`
     width: auto;
     min-height: 25px;
-    border: 2px dashed #CCCCCCCC;
+    border: 2px dashed ${ghost};
     border-radius: 3px;
     margin: 3px;
     padding: 2px;
@@ -122,7 +131,7 @@ const TaskList = ({
             {" ⊕"}
         </Expand>
         </StyledLabel>
-        {(tasks || []).map(task => <Task {...{task}}/>)}
+        {(tasks || []).map(task => <Task {...{task, key: task}}/>)}
         </>)
 };
 
@@ -148,37 +157,50 @@ const Note = ({
     )
 };
 
-const Roster = ({people}) => {
+const Roster = ({team}) => {
     /*
     The roster component is an interactive list of the people
     currently assigned to a location, or to a thing, which
     might move between locations. 
     */
 
-    const [crew, setCrew] = useState(people);
+    const [crew, setCrew] = useState(team);
 
     const moveIndicator = (event) => {
+        /*
+        Makes the mouse icon change to drag version
+        while dragging.
+        */
         event.preventDefault();
         event.dataTransfer.dropEffect = "move";
     };
 
     const allocateCrew = (event) => {
+        /*
+        Get the drag event data, and use the element handle
+        to move/copy the content to the drop target.
+        */
         event.preventDefault();
         const data = event.dataTransfer.getData("text/plain");
         const elem = document.getElementById(data);
-        console.log({name: elem.props.name});
         event.target.appendChild(elem);
+        setCrew([...crew, "Clone"]);
     }
 
     return (<DropTarget
         onDragOver={moveIndicator}
         onDrop={allocateCrew}
     >
-        {people.length ? people.map((name, jj) => <Person name={name} key={jj}/>) : "No crew assigned"}
+        {   
+            crew.length ? 
+            crew.map((name, jj) => 
+                <Person name={name} key={`${name}-${jj}`}/>) : 
+            "No crew assigned"
+        }
     </DropTarget>)
 }
 
-const Thing = ({thing, people, statusComponent=null}) => {
+const Thing = ({thing, team, statusComponent=null}) => {
     /*
     A thing is a physical entity in the SensorThings ontology. In 
     this case, thing primarily means a mobile vehicle that may 
@@ -188,7 +210,7 @@ const Thing = ({thing, people, statusComponent=null}) => {
         <StyledThing key={thing}>
             {thing}
             {statusComponent ? statusComponent : null}
-            <Roster {...{people}}/>
+            <Roster {...{team}}/>
         </StyledThing>
     )
 }
@@ -204,10 +226,10 @@ const Location = ({name, things, icon, team}) => {
                 <Icon src={icon.data}/>
             </StyledLabel>
            
-            {Object.entries(things).map(([thing, people], ii) => 
-                <Thing {...{thing, people, key: ii}} />
+            {Object.entries(things).map(([thing, team], ii) => 
+                <Thing {...{thing, team, key: ii}} />
             )}
-            <Roster people={team}/>
+            <Roster team={team}/>
             <TaskList tasks={["do a thing", "fix me", "harvest"]} />
             <Note />
         </StyledLocation>
@@ -248,24 +270,21 @@ const Day = ({
         "CD",
         "EF",
         "GH",
-    ]
+    ],
+    format=dateFormat
 }) => {
 
-    const dateFormat = { 
-        weekday: 'long', 
-        month: 'short', 
-        day: 'numeric' 
-    };
-
     return (
+        <>
+        <StyledLabel>
+            {date.toLocaleDateString(undefined, format)}
+        </StyledLabel>
         <DayContainer>
-            <StyledLabel>
-                {date.toLocaleDateString(undefined, dateFormat)}
-            </StyledLabel>
             <StyledLabel>{"Team"}</StyledLabel>
-            <Roster people={team}/>
+            <Roster team={team}/>
             <Locations />
         </DayContainer>
+        </>
     )
 };
 
