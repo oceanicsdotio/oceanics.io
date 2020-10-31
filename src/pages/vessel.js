@@ -23,13 +23,12 @@ export default ({
     return !fullscreen ? (
         <Layout location={location} title={title}>
             <SEO title={"Ocean analytics as a service"} />
-            <h1 onClick={setFullscreen}>{"Schedule"}</h1>
-            <Schedule days={2}/>
+            <Schedule days={2} callback={setFullscreen}/>
         </Layout>
     ) : (
         <>
             <SEO title={"Ocean analytics as a service"} />
-            <Schedule days={2}/>
+            <Schedule days={2} callback={setFullscreen}/>
         </>
     )
 };

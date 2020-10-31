@@ -1,9 +1,12 @@
-import React, {useState} from "react";
+import React, {useState, useReducer} from "react";
 import styled from "styled-components";
 
 import Person from "../components/Person";
 import {grey, green, ghost} from "../palette";
 import {TileSet} from "./Oceanside";
+import {Vessel} from "./Vessel";
+
+import { v4 as uuid4 } from "uuid";
 
 
 const dateFormat = { 
@@ -12,20 +15,31 @@ const dateFormat = {
     day: 'numeric' 
 };
 
+const defaultThings = {
+    "R/V Lloigor": {
+        icon: TileSet["boat"]
+    },
+    "Sealab": {
+        icon: TileSet["laboratory"],
+        home: "Farm"
+    }
+};
+
+const defaultTeam = [
+    "AB",
+    "CD",
+    "EF",
+    "GH",
+]
+
 const thingLocations = {
     "Wharf": {
-        things: {
-            "R/V Lloigor": {
-                team: []
-            }
-        },
-        team: [],
+        things: defaultThings,
         icon: TileSet["wharf"],
         home: true
     }, 
     "Farm": {
         things: {},
-        team: [],
         icon: TileSet["mussels"]
     }
 };
@@ -39,18 +53,20 @@ const Icon = styled.img`
 const DayContainer = styled.div`
     width: 100%;
     min-height: 150px;
-    border: 2px solid ${ghost};
-    border-radius: 5px;
     padding: 0;
     margin: 0;
-    margin-bottom: 10px;
 `;
 
 const StyledInput = styled.input`
     background: none;
     border: none;
-    max-width: 100px;
-    display: block;
+    display: inline;
+    text-decoration: ${({complete}) => complete ? "line-through" : null};
+    color: ${({emphasize}) => emphasize ? "orange" : "inherit"};
+`;
+
+const CheckBox = styled.input`
+    display: inline;
 `;
 
 const Expand = styled.div`
@@ -59,45 +75,53 @@ const Expand = styled.div`
     display: inline;
 `;
 
-const StyledTextArea = styled.input`
-    background: none;
-    border: none;
-    display: block;
-    color: ${green};
-    width: 100%;
-    margin: 10px;
+const Application = styled.div`
+    display: grid;
+    grid-gap: 5px;
+    grid-template-columns: 3fr 4fr;
+    grid-auto-rows: minmax(50px, auto);
 `;
 
-const StyledLabel = styled.div`
+const Stream = styled.div`
+    padding: 5px;
+    height: 100vh;
+    overflow-y: scroll;
+    overflow-x: hidden;
+`;
+
+const ColumnContainer = styled.div`
+    grid-row: ${({row})=>row+1};
+    grid-column: ${({column})=>column+1};
+`;
+
+const StyledTextArea = styled.div`
+    background: none;
+    border: none;
+    position: relative;
     display: block;
-    font-size: x-large;
-    margin-top: 10px;
+    color: ${green};
+    margin: 0;
+    word-wrap: break-word;
+    word-break: break-all;
+    padding: 5px;
+`;
+
+const StyledLabel = styled.h3`
+    display: block;
 `;
 
 const DropTarget = styled.div`
     width: auto;
-    min-height: 25px;
+    min-height: ${({hidden}) => hidden ? "0px" : "25px"};
     border: 2px dashed ${ghost};
     border-radius: 3px;
     margin: 3px;
     padding: 2px;
-`;
-
-const StyledThing = styled.div`
-    display: inline-block;
-    border-radius: 5px;
-    border: 3px solid;
-    padding: 3px;
-    margin: 5px;
-    background: ${({active=false}) => active ? green : grey};
-    color: ${({active=false}) => active ? grey : green};
-    border-color: ${({active=false}) => active ? grey : green};
+    visibility: ${({hidden}) => hidden ? "hidden": null};
 `;
 
 const StyledLocation = styled.div`
     display: block;
-    border: 2px solid;
-    border-color: ${({active}) => active ? green : grey};
     margin: 0;
     height: auto;
     position: relative;
@@ -109,8 +133,41 @@ const Task = ({task}) => {
     Right now tasks are simply editable text fields. They
     do not have logical concepts for due date, assignment,
     or relations with other data. 
+
+    Status is used to de-emphasize component in CSS. 
     */
-    return <StyledInput type={"text"} defaultValue={task} />
+
+    const [complete, toggleComplete] = useReducer(
+        (prev)=>{return !prev},false
+    );
+
+    const [emphasize, toggleEmphasize] = useReducer(
+        (prev)=>{return !prev},false
+    );
+
+    const [textContent, setTextContent] = useState(task);
+
+    const onBlurHandler = (event) => {
+        setTextContent(event.target.value);
+    };
+ 
+    return (
+        <div>
+        <CheckBox 
+            onClick={toggleComplete} 
+            type={"checkbox"}
+            emphasize={emphasize}
+        />
+        <StyledInput 
+            type={"text"} 
+            defaultValue={textContent}
+            complete={complete}
+            emphasize={emphasize}
+            onBlur={onBlurHandler}
+            onClick={toggleEmphasize}
+        />
+        </div>
+    )
 };
 
 const TaskList = ({
@@ -152,12 +209,17 @@ const Note = ({
         <StyledLabel>
             {heading}
         </StyledLabel>
-        <StyledTextArea {...{type: "textarea", placeholder}}/>
+        <StyledTextArea 
+            contentEditable={true}
+            suppressContentEditableWarning={true}
+        >
+            {placeholder}
+        </StyledTextArea>
         </>
     )
 };
 
-const Roster = ({team}) => {
+const Roster = ({team, hidden=false}) => {
     /*
     The roster component is an interactive list of the people
     currently assigned to a location, or to a thing, which
@@ -184,10 +246,11 @@ const Roster = ({team}) => {
         const data = event.dataTransfer.getData("text/plain");
         const elem = document.getElementById(data);
         event.target.appendChild(elem);
-        setCrew([...crew, "Clone"]);
+        setCrew([...crew]);
     }
 
     return (<DropTarget
+        hidden={hidden}
         onDragOver={moveIndicator}
         onDrop={allocateCrew}
     >
@@ -195,23 +258,74 @@ const Roster = ({team}) => {
             crew.length ? 
             crew.map((name, jj) => 
                 <Person name={name} key={`${name}-${jj}`}/>) : 
-            "No crew assigned"
+            null
         }
     </DropTarget>)
 }
 
-const Thing = ({thing, team, statusComponent=null}) => {
+const Thing = ({className, name, team, statusComponent=null, home=null}) => {
     /*
     A thing is a physical entity in the SensorThings ontology. In 
     this case, thing primarily means a mobile vehicle that may 
     carry people, like a boat or truck. 
     */
+
+    const [expand, toggleExpand] = useReducer((prev, state)=>{
+        return state === undefined ? !prev : state;
+    }, false)
+
+    const defaultHome = Object.entries(thingLocations).filter(([k,v])=>v.home).pop()[0];
+
     return (
-        <StyledThing key={thing}>
-            {thing}
+        <div 
+            className={className} 
+            key={name}
+            onMouseOver={() => toggleExpand(true)}
+            onDragOver={() => toggleExpand(true)}
+            onDragLeave={() => toggleExpand(false)}
+            onMouseLeave={() => toggleExpand(false)}
+        >
+            {name}
+            
+            
             {statusComponent ? statusComponent : null}
-            <Roster {...{team}}/>
-        </StyledThing>
+            <Roster
+                team={team}
+                hidden={!expand}
+            />
+            {expand ? "rebase | route" : null}
+            <br/>
+            {`Home: ${home || defaultHome}`}
+            <br/>
+        </div>
+    )
+}
+
+const StyledThing = styled(Thing)`
+    display: block;
+    border-radius: 5px;
+    border: 3px solid;
+    padding: 3px;
+    margin: 3px;
+    color: ${({active}) => active ? grey : green};
+    border-color: ${({active}) => active ? grey : green};
+`;
+
+const Things = ({things}) => {
+    return Object.entries(things).map(([name, team], ii) => 
+        <StyledThing {...{
+            name, 
+            team, 
+            key: ii,
+            statusComponent: Vessel,
+            id: uuid4(),
+            draggable: true,
+            onDragStart: (event) => {
+                event.dataTransfer.setData("text/plain", event.target.id);
+                event.dataTransfer.dropEffect = "move";
+                
+            }}}
+        />
     )
 }
 
@@ -225,11 +339,8 @@ const Location = ({name, things, icon, team}) => {
                 {`${name} `}
                 <Icon src={icon.data}/>
             </StyledLabel>
-           
-            {Object.entries(things).map(([thing, team], ii) => 
-                <Thing {...{thing, team, key: ii}} />
-            )}
             <Roster team={team}/>
+            <Things things={things}/>
             <TaskList tasks={["do a thing", "fix me", "harvest"]} />
             <Note />
         </StyledLocation>
@@ -238,7 +349,7 @@ const Location = ({name, things, icon, team}) => {
 
 
 const Locations = ({
-    heading="Locations"
+    team=null
 }) => {
     /*
     The locations component displays an array of locations as 
@@ -247,17 +358,18 @@ const Locations = ({
     */
     return (
         <>
-        <StyledLabel>
-            {heading}
-            <Expand 
-            onClick={()=>{console.log("yo")}}>
-            {" ⊕"}
-        </Expand>
-        </StyledLabel>
-       
         {Object.entries(thingLocations)
             .map(([name, props]) => 
-                <Location {...{name, key: name, ...props}}/>
+                <Location 
+                    name={name}
+                    key={name}
+                    {...props}
+                    team={
+                        props.home && team ? 
+                        [...(props.team || []), ...team]: 
+                        []
+                    }
+                />
             )}
         </>
     )
@@ -265,31 +377,26 @@ const Locations = ({
 
 const Day = ({
     date, 
-    team = [
-        "AB",
-        "CD",
-        "EF",
-        "GH",
-    ],
+    team = [],
     format=dateFormat
 }) => {
 
     return (
         <>
-        <StyledLabel>
+        <h2>
             {date.toLocaleDateString(undefined, format)}
-        </StyledLabel>
+        </h2>
         <DayContainer>
-            <StyledLabel>{"Team"}</StyledLabel>
-            <Roster team={team}/>
-            <Locations />
+            <Locations team={team}/>
         </DayContainer>
         </>
     )
 };
 
 export default ({
-    days
+    days,
+    team = defaultTeam,
+    callback
 }) => {
     /*
     This is a test service meant to enable automatic reminders and scheduling assistance.
@@ -308,17 +415,34 @@ export default ({
     */
     
     return (
-        <>
-        {
-            [...Array(days).keys()]
-                .map(offset => {
-                    const today = new Date();
-                    const date = new Date(today.setDate(today.getDate()+offset));
+        <Application>
+            <ColumnContainer
+                row={0}
+                column={0}
+            >
+            <h1 onClick={callback}>{"Mission API"}</h1>
+            <h2>{"Team"}</h2>
+            <Roster team={team} />
 
-                    return <Day date={date}/>
-                })
-        }
-        </>
+            <h2>{"Things"}</h2>
+            <Things things={defaultThings}/>
+            </ColumnContainer>
+            <ColumnContainer
+                row={0}
+                column={1}
+            >
+            <Stream>
+            {
+                [...Array(days).keys()]
+                    .map(offset => {
+                        const today = new Date();
+                        const date = new Date(today.setDate(today.getDate()+offset));
+                        return <Day date={date} team={team}/>
+                    })
+            }
+            </Stream>
+            </ColumnContainer>
+        </Application>
     );
 };
 
