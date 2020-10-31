@@ -32,7 +32,7 @@ const Thing = ({
             onDragLeave={() => toggleHidden(true)}
             onMouseLeave={() => toggleHidden(true)}
         >
-            <div>{name}</div>
+            {name}
             <Roster
                 team={team}
                 hidden={hidden}
@@ -68,6 +68,6 @@ export const Things = ({things, home}) => {
             key,
             id: key,
             ...props
-        }} />
+        }}></StyledThing>
     })
 };

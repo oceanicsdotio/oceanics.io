@@ -6,6 +6,7 @@ import {Things} from "./Thing";
 import {TileSet} from "./Oceanside";
 import {Locations} from "./Location";
 
+import {v4 as uuid4} from "uuid";
 
 const dateFormat = { 
     weekday: 'long', 
@@ -13,7 +14,7 @@ const dateFormat = {
     day: 'numeric' 
 };
 
-const defaultThings = {
+const things = {
     "R/V Lloigor": {
         icon: TileSet["boat"],
         capacity: 2
@@ -31,16 +32,18 @@ const defaultTeam = [
     "Arthur Machen",
 ]
 
-const thingLocations = {
+const locations = {
     "Wharf": {
-        things: defaultThings,
+        name: "Wharf",
         icon: TileSet["wharf"],
         home: true,
-        capacity: 4
+        capacity: 4,
+        tasks: ["do a thing", "fix me"]
     }, 
     "Farm": {
-        things: {},
-        icon: TileSet["mussels"]
+        name: "Farm",
+        icon: TileSet["fish"],
+        tasks: ["harvest"]
     }
 };
 
@@ -64,13 +67,12 @@ const ColumnContainer = styled.div`
     grid-column: ${({column})=>column+1};
 `;
 
- // guess where things should be by default
- const defaultHome = Object.entries(thingLocations)
- .filter(([_,v]) => v.home).pop()[0];
+// guess where things should be by default
+const home = Object.values(locations).filter(({home=false}) => home).pop().name;
 
 const Day = ({
     date, 
-    team = [],
+    children,
     format = dateFormat,
     className = "Day"
 }) => 
@@ -78,7 +80,9 @@ const Day = ({
         <h2>
             {date.toLocaleDateString(undefined, format)}
         </h2>
-        <Locations team={team} thingLocations={thingLocations}/>
+        <div>
+            {children}
+        </div>
     </div>;
 
 const DayContainer = styled(Day)`
@@ -86,6 +90,11 @@ const DayContainer = styled(Day)`
     padding: 0;
     margin: 0;
 `;
+
+const daysFromToday = (day) => {
+    const today = new Date();
+    return new Date(today.setDate(today.getDate()+day));
+}
 
 export default ({
     days,
@@ -110,17 +119,22 @@ export default ({
     
     return (
         <Application>
+
             <ColumnContainer
                 row={0}
                 column={0}
             >
-            <h1 onClick={callback}>{"Mission API"}</h1>
-            <h2>{"Team"}</h2>
-            <Roster team={team} />
+                <h1 onClick={callback}>{"Mission API"}</h1>
+                <h2>{"Team"}</h2>
+                <Roster team={team} />
 
-            <h2>{"Things"}</h2>
-            <Things things={defaultThings} home={defaultHome}/>
+                <h2>{"Things"}</h2>
+                <Things 
+                    things={things}
+                    home={home}
+                />
             </ColumnContainer>
+
             <ColumnContainer
                 row={0}
                 column={1}
@@ -128,11 +142,20 @@ export default ({
             <Stream>
             {
                 [...Array(days).keys()]
-                    .map(offset => {
-                        const today = new Date();
-                        const date = new Date(today.setDate(today.getDate()+offset));
-                        return <DayContainer date={date} team={team}/>
-                    })
+                    .map(daysFromToday)
+                    .map(date => 
+                        <DayContainer 
+                            date={date}     
+                            team={team}
+                            key={uuid4()}
+                        >
+                            <Locations 
+                                team={team} 
+                                home={home}
+                                locations={Object.values(locations)}
+                            />
+                        </DayContainer>
+                    )
             }
             </Stream>
             </ColumnContainer>

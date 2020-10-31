@@ -1,4 +1,4 @@
-import React, {useState, useReducer} from "react";
+import React, {useReducer} from "react";
 import styled from "styled-components";
 import {grey,green} from "../palette";
 

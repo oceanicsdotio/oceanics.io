@@ -6,6 +6,7 @@ import {Things} from "./Thing";
 import Note from "./Note";
 import {grey} from "../palette";
 import {TaskList} from "./Task";
+import {v4 as uuid4} from "uuid";
 
 const StyledLocation = styled.div`
     display: block;
@@ -24,11 +25,8 @@ const Icon = styled.img`
 
 export const Location = ({
     name, 
-    capacity=0,
-    things=null, 
-    icon=null, 
-    team=null, 
-    home=false
+    children,
+    icon=null,
 }) => {
 
     const [active, toggleActive] = useReducer(
@@ -45,20 +43,18 @@ export const Location = ({
                 {`${name} `}
                 <Icon src={icon.data}/>
             </h3>
-            <Roster team={team} capacity={capacity}/>
-            <Things things={things} home={home ? name : null}/>
-            <TaskList tasks={["do a thing", "fix me", "harvest"]} />
-            <Note />
+            
+            {children}
         </StyledLocation>
     )
 };
 
-
 export default Location;
 
 export const Locations = ({
+    locations,
+    home,
     team=null,
-    thingLocations=null
 }) => {
     /*
     The `Locations` component displays an array of locations as 
@@ -67,18 +63,19 @@ export const Locations = ({
     */
     return (
         <>
-        {Object.entries(thingLocations || {})
-            .map(([name, props]) => 
+        {locations.map(
+            ({tasks, things=null, capacity, ...props}) => 
                 <Location 
-                    name={name}
-                    key={name}
+                    key={uuid4()}
                     {...props}
-                    team={
-                        props.home && team ? 
+                >
+                    <Roster team={props.home && team ? 
                         [...(props.team || []), ...team]: 
-                        []
-                    }
-                />
+                        []} capacity={capacity}/>
+                    {things ? <Things things={things} home={home}/> : null}
+                    <TaskList tasks={tasks} />
+                    <Note />
+                </Location>
             )}
         </>
     )
