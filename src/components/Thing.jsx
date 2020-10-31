@@ -2,12 +2,15 @@ import React, {useReducer} from "react";
 import styled from "styled-components";
 import Roster from "./Roster";
 import {ghost} from "../palette";
+import TankSystem from "./TankSystem";
 
 import { v4 as uuid4 } from "uuid";
+
 
 const Thing = ({
     name,
     home,
+    tanks=null,
     className="Thing", 
     team=null,
     capacity
@@ -33,12 +36,13 @@ const Thing = ({
             onMouseLeave={() => toggleHidden(true)}
         >
             {name}
+            <div>{hidden ? null : `Home: ${home}`}</div>
             <Roster
                 team={team}
                 hidden={hidden}
                 capacity={capacity}
             />
-            <div>{hidden ? null : `Home: ${home}`}</div>
+            {(hidden && tanks) ? null : <TankSystem tanks={tanks}/>}
             <div>{hidden ? null : `Actions: rebase | route`}</div>
         </div>
     )

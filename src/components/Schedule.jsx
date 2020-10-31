@@ -17,7 +17,22 @@ const dateFormat = {
 const things = {
     "R/V Lloigor": {
         icon: TileSet["boat"],
-        capacity: 2
+        capacity: 2,
+        tanks: [{
+            name: "SA"
+        },
+        {
+            name: "PA",
+            level: 4,
+        },
+        {
+            name: "SF",
+            level: 5.5,
+        },
+        {
+            name: "PF",
+            level: 8.75,
+        }]
     },
     "Sealab": {
         icon: TileSet["laboratory"],
@@ -32,20 +47,17 @@ const defaultTeam = [
     "Arthur Machen",
 ]
 
-const locations = {
-    "Wharf": {
-        name: "Wharf",
-        icon: TileSet["wharf"],
-        home: true,
-        capacity: 4,
-        tasks: ["do a thing", "fix me"]
-    }, 
-    "Farm": {
-        name: "Farm",
-        icon: TileSet["fish"],
-        tasks: ["harvest"]
-    }
-};
+const locations = [{
+    name: "Wharf",
+    icon: TileSet["wharf"],
+    home: true,
+    capacity: 4,
+    tasks: ["do a thing", "fix me"]
+}, {
+    name: "Farm",
+    icon: TileSet["fish"],
+    tasks: ["harvest"]
+}];
 
 
 const Application = styled.div`
@@ -68,7 +80,7 @@ const ColumnContainer = styled.div`
 `;
 
 // guess where things should be by default
-const home = Object.values(locations).filter(({home=false}) => home).pop().name;
+const home = locations.filter(({home=false}) => home).pop().name;
 
 const Day = ({
     date, 
@@ -152,7 +164,7 @@ export default ({
                             <Locations 
                                 team={team} 
                                 home={home}
-                                locations={Object.values(locations)}
+                                locations={locations}
                             />
                         </DayContainer>
                     )

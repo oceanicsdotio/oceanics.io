@@ -1,6 +1,7 @@
 import React, {useReducer} from "react";
 import styled from "styled-components";
 import {grey,green} from "../palette";
+import {v4 as uuid4} from "uuid";
 
 const TankContainer = styled.div`
     grid-row: ${({row})=>row+1};
@@ -16,33 +17,24 @@ const Wrapper = styled.div`
     display: grid;
     grid-gap: 5px;
     grid-template-columns: repeat(2, 1fr);
-    grid-auto-rows: minmax(100px, auto);
+    grid-auto-rows: minmax(auto, auto);
 `;
 
-const tankInfo = [{
-    name: "SA",
-    level: 20,
-    capacity: 20,
-    grid: [0, 0]
-},
-{
-    name: "PA",
-    level: 4,
-    capacity: 20,
-    grid: [1, 0]
-},
-{
-    name: "SF",
-    level: 5.5,
-    capacity: 20,
-    grid: [0, 1]
-},
-{
-    name: "PF",
-    level: 8.75,
-    capacity: 20,
-    grid: [1, 1]
-}]
+const tankTemplate = ({
+    name,
+    capacity=20,
+    level,
+}) => Object({
+    name,
+    capacity,
+    level: (level === undefined || level === null) ? capacity : level,
+    grid: [
+        name.toLowerCase().includes("f") ? 0 : 1,
+        name.toLowerCase().includes("p") ? 0 : 1
+    ]
+});
+
+
 
 
 const Tank = ({name, active=false, level, grid: [row, column]}) => {
@@ -58,17 +50,18 @@ const Tank = ({name, active=false, level, grid: [row, column]}) => {
         onClick={setTankInUse}
         active={tankInUse}
     >
-        {`${name}: ${level.toFixed(2)}`}
+        {`${name}: ${level.toFixed(1)}`}
     </TankContainer>)
 }
 
-export default () => {  
-
-    return (
-        <Wrapper>{
-            tankInfo.map((props, ii) => <Tank
-                    {...{key: ii, ...props}}
-                />)
-        }</Wrapper>
-    )
-}
+export default ({tanks=null}) => 
+    <Wrapper>{
+        (tanks || [])
+            .map(tankTemplate)
+            .map(props => 
+                <Tank
+                    key={uuid4()}
+                    {...props}
+                />
+            )
+    }</Wrapper>
