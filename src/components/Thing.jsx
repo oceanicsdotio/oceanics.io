@@ -1,13 +1,16 @@
 import React, {useReducer} from "react";
 import styled from "styled-components";
 import Roster from "./Roster";
-import {grey, green} from "../palette";
+import {ghost} from "../palette";
+
+import { v4 as uuid4 } from "uuid";
 
 const Thing = ({
     name,
     home,
     className="Thing", 
-    team=null
+    team=null,
+    capacity
 }) => {
     /*
     A thing is a physical entity in the SensorThings ontology. In 
@@ -29,13 +32,14 @@ const Thing = ({
             onDragLeave={() => toggleHidden(true)}
             onMouseLeave={() => toggleHidden(true)}
         >
-            {name}
+            <div>{name}</div>
             <Roster
                 team={team}
                 hidden={hidden}
+                capacity={capacity}
             />
-            <div>{hidden ? null : "rebase | route"}</div>
-            <div>{`Home: ${home}`}</div>
+            <div>{hidden ? null : `Home: ${home}`}</div>
+            <div>{hidden ? null : `Actions: rebase | route`}</div>
         </div>
     )
 }
@@ -48,6 +52,22 @@ export const StyledThing = styled(Thing)`
     border: 1px solid;
     padding: 3px;
     margin: 0;
-    color: ${({active}) => active ? grey : green};
-    border-color: ${({active}) => active ? grey : green};
+    margin-bottom: 1%;
+    color: ${ghost};
+    border-color: ${ghost};
 `;
+
+
+export const Things = ({things, home}) => {
+    
+    return Object.entries(things).map(([name, props]) => {
+        const key = uuid4();
+        return <StyledThing {...{
+            name, 
+            home,
+            key,
+            id: key,
+            ...props
+        }} />
+    })
+};

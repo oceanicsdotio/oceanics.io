@@ -15,30 +15,37 @@ const StyledPerson = styled.div`
     cursor: default;
 `;
 
-export default ({name}) => {
+export default ({
+    name
+}) => {
     /*
     Used in scheduling and vessel mini-apps to indicate the 
     availability of a person or agent for a scheduled task.
 
     Style toggles with state. Cursor will not recognize as text.
     */
+    const key = uuid4();
     const [available, toggleAvailability] =  useReducer((previous)=>{
         return !previous;
     }, true);
 
     return (
         <StyledPerson {...{
-            id: uuid4(),
+            id: key,
+            key,
             available, 
             onClick: toggleAvailability,
             draggable: true,
             onDragStart: (event) => {
                 event.dataTransfer.setData("text/plain", event.target.id);
                 event.dataTransfer.dropEffect = "move";
-                
             }
         }}>
-            {name}
+            {
+                name.split(" ")
+                    .map((word) => {return word ? word[0] : ""})
+                    .join("")
+            }
         </StyledPerson>
     )
 };

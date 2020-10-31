@@ -39,7 +39,7 @@ const StyledSelect = styled.select`
     background: #101010AA;
     border: solid 1px;
     display: block;
-    font-family:inherit;
+    font-family: inherit;
     font-size: inherit;
     color: #ccc;
     -webkit-appearance: none;  /*Removes default chrome and safari style*/
