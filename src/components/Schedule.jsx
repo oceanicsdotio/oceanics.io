@@ -1,8 +1,9 @@
 import React, {useState, useReducer} from "react";
 import styled from "styled-components";
 
-import Person from "../components/Person";
-import {grey, green, ghost} from "../palette";
+import Roster from "./Roster";
+import {StyledThing} from "./Thing";
+import {grey, green} from "../palette";
 import {TileSet} from "./Oceanside";
 import {Vessel} from "./Vessel";
 
@@ -110,16 +111,6 @@ const StyledLabel = styled.h3`
     display: block;
 `;
 
-const DropTarget = styled.div`
-    width: auto;
-    min-height: ${({hidden}) => hidden ? "0px" : "25px"};
-    border: 2px dashed ${ghost};
-    border-radius: 3px;
-    margin: 3px;
-    padding: 2px;
-    visibility: ${({hidden}) => hidden ? "hidden": null};
-`;
-
 const StyledLocation = styled.div`
     display: block;
     margin: 0;
@@ -219,103 +210,18 @@ const Note = ({
     )
 };
 
-const Roster = ({team, hidden=false}) => {
-    /*
-    The roster component is an interactive list of the people
-    currently assigned to a location, or to a thing, which
-    might move between locations. 
-    */
-
-    const [crew, setCrew] = useState(team);
-
-    const moveIndicator = (event) => {
-        /*
-        Makes the mouse icon change to drag version
-        while dragging.
-        */
-        event.preventDefault();
-        event.dataTransfer.dropEffect = "move";
-    };
-
-    const allocateCrew = (event) => {
-        /*
-        Get the drag event data, and use the element handle
-        to move/copy the content to the drop target.
-        */
-        event.preventDefault();
-        const data = event.dataTransfer.getData("text/plain");
-        const elem = document.getElementById(data);
-        event.target.appendChild(elem);
-        setCrew([...crew]);
-    }
-
-    return (<DropTarget
-        hidden={hidden}
-        onDragOver={moveIndicator}
-        onDrop={allocateCrew}
-    >
-        {   
-            crew.length ? 
-            crew.map((name, jj) => 
-                <Person name={name} key={`${name}-${jj}`}/>) : 
-            null
-        }
-    </DropTarget>)
-}
-
-const Thing = ({className, name, team, statusComponent=null, home=null}) => {
-    /*
-    A thing is a physical entity in the SensorThings ontology. In 
-    this case, thing primarily means a mobile vehicle that may 
-    carry people, like a boat or truck. 
-    */
-
-    const [expand, toggleExpand] = useReducer((prev, state)=>{
-        return state === undefined ? !prev : state;
-    }, false)
-
-    const defaultHome = Object.entries(thingLocations).filter(([k,v])=>v.home).pop()[0];
-
-    return (
-        <div 
-            className={className} 
-            key={name}
-            onMouseOver={() => toggleExpand(true)}
-            onDragOver={() => toggleExpand(true)}
-            onDragLeave={() => toggleExpand(false)}
-            onMouseLeave={() => toggleExpand(false)}
-        >
-            {name}
-            
-            
-            {statusComponent ? statusComponent : null}
-            <Roster
-                team={team}
-                hidden={!expand}
-            />
-            {expand ? "rebase | route" : null}
-            <br/>
-            {`Home: ${home || defaultHome}`}
-            <br/>
-        </div>
-    )
-}
-
-const StyledThing = styled(Thing)`
-    display: block;
-    border-radius: 5px;
-    border: 3px solid;
-    padding: 3px;
-    margin: 3px;
-    color: ${({active}) => active ? grey : green};
-    border-color: ${({active}) => active ? grey : green};
-`;
 
 const Things = ({things}) => {
+
+    // guess where things should be by default
+    const defaultHome = Object.entries(thingLocations)
+        .filter(([_,v]) => v.home).pop()[0];
+
     return Object.entries(things).map(([name, team], ii) => 
         <StyledThing {...{
             name, 
-            team, 
+            team,
+            home: defaultHome,
             key: ii,
             statusComponent: Vessel,
             id: uuid4(),
@@ -327,7 +233,7 @@ const Things = ({things}) => {
             }}}
         />
     )
-}
+};
 
 
 const Location = ({name, things, icon, team}) => {
