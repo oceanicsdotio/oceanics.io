@@ -19,18 +19,18 @@ const things = {
         icon: TileSet["boat"],
         capacity: 2,
         tanks: [{
-            name: "SA"
+            name: "starboard aft"
         },
         {
-            name: "PA",
+            name: "port aft",
             level: 4,
         },
         {
-            name: "SF",
+            name: "starboard forward",
             level: 5.5,
         },
         {
-            name: "PF",
+            name: "port forward",
             level: 8.75,
         }]
     },
