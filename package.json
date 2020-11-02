@@ -47,7 +47,7 @@
     "react-is": "16.13.1",
     "react-router-dom": "^5.2.0",
     "react-typography": "^0.16.19",
-    "remark-parse": "^8.0.3",
+    "remark-parse": "^9.0.0",
     "styled-components": "^5.1.1",
     "typography": "^0.16.19",
     "uuid": "^8.3.1",
