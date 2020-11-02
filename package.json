@@ -44,7 +44,7 @@
     "react": "16.14.0",
     "react-dom": "^16.13.1",
     "react-helmet": "^6.1.0",
-    "react-is": "16.13.1",
+    "react-is": "17.0.1",
     "react-router-dom": "^5.2.0",
     "react-typography": "^0.16.19",
     "remark-parse": "^9.0.0",
