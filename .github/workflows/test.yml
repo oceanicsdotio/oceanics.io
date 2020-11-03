@@ -44,7 +44,7 @@ jobs:
           NEO4J_HOSTNAME: localhost
       
       - name: Generate docs
-        run: pdoc --html --html-dir openapi/docs bathysphere
+        run: pdoc --html --output-dir openapi/docs bathysphere
 
       - name: Commit files
         run: |
