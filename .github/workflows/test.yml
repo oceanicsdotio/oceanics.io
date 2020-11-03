@@ -47,7 +47,7 @@ jobs:
         run: $(bathysphere test)
         env:
           NEO4J_ACCESS_KEY: ${{ secrets.PROD_NEO4J_SECRET }}
-          NEO4J_HOSTNAME: ${{ secret.PROD_NEO4J_HOSTNAME }}
+          NEO4J_HOSTNAME: ${{ secrets.PROD_NEO4J_HOSTNAME }}
       
       - name: Generate docs
         run: pdoc --html --force --output-dir openapi/docs bathysphere
