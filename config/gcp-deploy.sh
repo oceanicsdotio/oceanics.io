@@ -2,7 +2,7 @@
 export PROJECT=lyrical-shore-270522
 export MACHINE=n1-standard-2
 export DISK_TYPE=pd-ssd
-export DISK_SIZE=8GB
+export DISK_SIZE=10GB
 export NEO4J_VERSION=3.5.16
 export STACK_NAME=bathysphere
 export IMAGE=neo4j-community-1-3-5-16-apoc
