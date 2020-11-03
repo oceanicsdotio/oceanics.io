@@ -1,2 +1,8 @@
 [build]
 publish = "openapi"
+
+[[redirects]]
+  from = "/docs"
+  to = "/docs/bathysphere"
+  status = 301
+  force = false
