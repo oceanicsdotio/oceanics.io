@@ -6,3 +6,10 @@ publish = "openapi"
   to = "/docs/bathysphere"
   status = 301
   force = false
+
+[[redirects]]
+  from = "/api"
+  to = "https://bathysphere-f6ccuy4zzq-uc.a.run.app/api"
+  status = 200
+  force = true # COMMENT: ensure that we always redirect
+  headers = {X-From = "Netlify"}
