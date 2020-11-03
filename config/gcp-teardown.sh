@@ -1,5 +1,5 @@
 #!/bin/bash
-export PROJECT=my-google-project-id
+export PROJECT=lyrical-shore-270522
 if [ -z $1 ] ; then
    echo "Missing argument"
    exit 1
