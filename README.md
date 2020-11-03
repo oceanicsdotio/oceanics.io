@@ -28,7 +28,7 @@ This document provides guidance for testing and developing Bathysphere. For inst
 
 ## Developers
 
-### Develop
+### Quickstart
 
 We use `pipenv` to manage Python dependencies. These are found in `Pipfile` and `Pipfile.lock`. A new shell is activated with `pipenv shell`. Then:
 
@@ -38,8 +38,8 @@ We use `pipenv` to manage Python dependencies. These are found in `Pipfile` and 
 There must also be several environment variables active for things to work. These are:
 
 * `NEO4J_ACCESS_KEY` is the password for Neo4j instance
-* `POSTGRES_SECRETS` is comma separated strings <username>,<password>,<cloudsqlInstance>
-* `OBJECT_STORAGE_SECRETS` is comma separated strings <accessKey>,<secretKey>
+* `POSTGRES_SECRETS` is comma separated strings `<username>,<password>,<cloudsqlInstance>`
+* `OBJECT_STORAGE_SECRETS` is comma separated strings `<accessKey>,<secretKey>`
 * `DARKSKY_API_KEY` is the API key for an optional weather service that will be deprecated
 
 We recommend using `direnv` to manage these in `.envrc`.
