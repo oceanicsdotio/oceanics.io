@@ -19,7 +19,4 @@ echo $OUTPUT
 # Pull out the IP addresses, and toss out the private internal one (10.*)
 IP=$(echo $OUTPUT | grep -oE '((1?[0-9][0-9]?|2[0-4][0-9]|25[0-5])\.){3}(1?[0-9][0-9]?|2[0-4][0-9]|25[0-5])' | grep --invert-match "^10\.")
 echo "Discovered new machine IP at $IP"
-
-echo NEO4J_URI=bolt://$IP:7687
-echo STACK_NAME=$STACK_NAME
 exit 0

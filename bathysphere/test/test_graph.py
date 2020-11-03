@@ -1,6 +1,7 @@
 import pytest
 from datetime import datetime
 from json import dumps
+from os import getenv
 # from minio import Object
 
 from bathysphere import appConfig
@@ -40,6 +41,7 @@ classes = [
     Collections
 ]
 
+
 @pytest.mark.teardown
 def test_graph_teardown(graph):
     """
@@ -47,7 +49,11 @@ def test_graph_teardown(graph):
     """
     # pylint: disable=no-value-for-parameter
     Entity.delete(
-        db=graph("localhost", 7687, testAuth[1])
+        db=graph(
+            getenv("NEO4J_HOSTNAME", "localhost"), 
+            7687, 
+            getenv("NEO4J_ACCESS_KEY")
+        )
     )  
 
 

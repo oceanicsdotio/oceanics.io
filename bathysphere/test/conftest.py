@@ -25,7 +25,7 @@ def getCredentials(select: (str) = ()) -> dict:
     graph database.
     """
     credentials = dict()
-    for each in check_output(["bathysphere", "providers"]).split(b"\n"):
+    for each in check_output(["bathysphere", "providers", "--host", getenv("NEO4J_HOSTNAME")]).split(b"\n"):
         if not each:
             continue
         try:

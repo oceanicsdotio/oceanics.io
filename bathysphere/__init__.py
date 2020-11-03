@@ -190,7 +190,6 @@ def connect(host: str, port: int, accessKey: str, default: str = "neo4j") -> Dri
         print(f"Could not connect to Neo4j database @ {host}:{port}")
 
 
-
 __pdoc__ = {
     "test": False
     # submodules will be skipped in doc generation
