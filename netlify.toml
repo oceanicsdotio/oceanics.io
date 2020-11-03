@@ -13,3 +13,17 @@ publish = "openapi"
   status = 200
   force = true
   headers = {X-From = "Netlify"}
+
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+ 
+    Content-Security-Policy = '''
+    graph.oceanics.io,
+    faas.oceanics.io,
+    cdn.jsdelivr.net,
+    *.googleapis.com,
+    *.github.com
+    '''
