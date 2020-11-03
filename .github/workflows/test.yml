@@ -37,11 +37,17 @@ jobs:
           pip install -e .
           pip install -r requirements.txt
           
-      - name: Pytest
+      - name: Pytest localhost
         run: $(bathysphere test)
         env:
           NEO4J_ACCESS_KEY: n0t_passw0rd
           NEO4J_HOSTNAME: localhost
+
+      - name: Pytest cloud
+        run: $(bathysphere test)
+        env:
+          NEO4J_ACCESS_KEY: ${{ secrets.PROD_NEO4J_SECRET }}
+          NEO4J_HOSTNAME: ${{ secret.PROD_NEO4J_HOSTNAME }}
       
       - name: Generate docs
         run: pdoc --html --force --output-dir openapi/docs bathysphere
