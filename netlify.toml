@@ -8,8 +8,8 @@ publish = "openapi"
   force = false
 
 [[redirects]]
-  from = "/api"
-  to = "https://bathysphere-f6ccuy4zzq-uc.a.run.app/api"
+  from = "/api/*"
+  to = "https://bathysphere-f6ccuy4zzq-uc.a.run.app/api/:splat"
   status = 200
-  force = true # COMMENT: ensure that we always redirect
+  force = true
   headers = {X-From = "Netlify"}
