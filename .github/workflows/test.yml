@@ -46,7 +46,7 @@ jobs:
       - name: Pytest cloud
         run: $(bathysphere test)
         env:
-          NEO4J_ACCESS_KEY: ${{ secrets.PROD_NEO4J_SECRET }}
+          NEO4J_ACCESS_KEY: ${{ secrets.PROD_NEO4J_PASSWORD }}
           NEO4J_HOSTNAME: ${{ secrets.PROD_NEO4J_HOSTNAME }}
       
       - name: Generate docs
