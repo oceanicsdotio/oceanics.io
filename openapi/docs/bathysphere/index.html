@@ -212,7 +212,8 @@ def connect(host: str, port: int, accessKey: str, default: str = &#34;neo4j&#34;
                 auth=auth,
                 json={&#34;password&#34;: accessKey},
             )
-            assert response.ok
+            if not response.ok:
+                raise ConnectionError(f&#34;Problem changing Neo4j default password: {response}&#34;) 
         return db
 
     if db is None:
@@ -440,7 +441,8 @@ def connect(host: str, port: int, accessKey: str, default: str = &#34;neo4j&#34;
                 auth=auth,
                 json={&#34;password&#34;: accessKey},
             )
-            assert response.ok
+            if not response.ok:
+                raise ConnectionError(f&#34;Problem changing Neo4j default password: {response}&#34;) 
         return db
 
     if db is None:
