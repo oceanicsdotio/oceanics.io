@@ -1,0 +1,57 @@
+fields:
+- id: name
+  name: person
+  placeholder: Person to contact
+  required: true
+
+- id: company
+  placeholder: Legal entity
+  required: true
+    
+- id: lease
+  placeholder: Maine lease/license code
+  
+- id: website
+  placeholder: URL for company or lease PDF
+  
+- id: location
+  placeholder: 43.998178, -69.54253
+   
+- id: species
+  options:
+    Oysters
+    Scallops
+    Mussels
+    Macroalgae
+    Finfish
+
+- id: method
+  options:
+    Bottom
+    Rope (Horizontal)
+    Rope (Vertical)
+    Ear hang (Scallop) 
+    Midwater (Cage/Basket)
+
+- id: stage 
+  options:
+    - Prospecting 
+    - Applying
+    - Operating
+    - Renewing
+    - Expanding
+   
+- id: urgency
+  options:
+    - Shellfish sanitation
+    - Lease hearing
+    - Lawsuit
+    - Exploring
+  required: true
+
+- id: details 
+  placeholder: | 
+    Provide as much detail as you can about your desired growing area
+  long: true
+  required: true
+    

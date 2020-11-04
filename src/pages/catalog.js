@@ -7,7 +7,6 @@ import { queryBathysphere } from "../bathysphere";
 
 import Layout from "../components/Layout";
 import SEO from "../components/SEO";
-import { StatefulButton }  from "../components/Layout";
 import Table from "../components/Table";
 import Storage from "../components/Storage";
 
@@ -57,14 +56,31 @@ const StyledHighlight = styled.div`
     padding: 3px;
 `;
 
+const StyledButton = styled.button`
+    height: auto;
+    background: #101010;
+    border: solid 1px;
+    margin-right: 5px;
+    border-radius: 5px 5px 0px 0px;
+    color: ${({active}) => active ? blue : pink};
+    text-decoration: none;
+`;
+
+export const StatefulButton = ({text, active=false, onClick, altText}) => {
+    return <StyledButton onClick={onClick} active={active}>{active ? altText : text}</StyledButton>
+};
 
 export default ({location, data: {site: {siteMetadata: {title}}}}) => {
-    
+    /*
+    The catalog page is like a landing page to the api.
+
+    Routes from here correspond to entities and 
+    collections in the graph database.
+    */
     
     const [accessToken, setAccessToken] = useState(null);
     const [baseUrl, setBaseUrl] = useState("http://localhost:5000/api/");
     const [catalog, setCatalog] = useState([]);
-    const [errors, setErrors] = useState([]);
     const [entities, setEntities] = useState({});
 
 

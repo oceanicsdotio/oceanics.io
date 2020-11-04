@@ -1,5 +1,6 @@
 import React from "react";
 import styled from "styled-components";
+import {red, ghost} from "../palette"
 
 const StyledButtonPane = styled.div`
     margin-top: 10px;
@@ -19,7 +20,7 @@ const StyledInputWrapper = styled.div``;
 const StyledInputButton = styled.input`
     display: block;
     background-color: ${props => props.destructive ? "orange" : "black"};
-    color: ${props => props.destructive ? "#CC2244" : "#CCCCCC"};
+    color: ${props => props.destructive ? red : ghost};
 `;
 
 const StyledInputWrapperRequired = styled.div({
@@ -70,44 +71,62 @@ const TextInput = ({
     long = false,
     required = false,
 }) => {
+    /*
+    Text inputs add an additional layer of QA/QC over normal
+    forms. 
+    */
 
     const useName = name.length ? name : id;
 
-    const contents = (
-        <>
-            <Label id={id} name={useName} />
-            {(long ?
-                <StyledTextArea id={id} required name={useName} placeholder={placeholder}></StyledTextArea>
-                : <StyledInput type={inputType} required name={useName} placeholder={placeholder}></StyledInput>
-            )}
-        </>
-    );
+    const contents = <>
+        <Label id={id} name={useName} />
+        {(long ?
+            <StyledTextArea id={id} required name={useName} placeholder={placeholder}></StyledTextArea>
+            : <StyledInput type={inputType} required name={useName} placeholder={placeholder}></StyledInput>
+        )}
+    </>;
     
-    return required? 
-        <StyledInputWrapperRequired>{contents}</StyledInputWrapperRequired>:
-        <StyledInputWrapper>{contents}</StyledInputWrapper>;
+    return required ? 
+        <StyledInputWrapperRequired>
+            {contents}
+        </StyledInputWrapperRequired> :
+        <StyledInputWrapper>
+            {contents}
+        </StyledInputWrapper>;
 };
 
 
-const SelectInput = ({ id, name="", options, required=false }) => {
+const SelectInput = ({
+    id, 
+    name="", 
+    options, 
+    required=false 
+}) => {
+    /*
+    Select inputs are dropdown lists that are populated from 
+    static files or from database records. 
+    */
     
     const useName = name.length ? name : id;
 
-    const contents = (
-        <>
-            <Label id={id} name={useName} />
-            <StyledSelect id={id} name={useName} multiple required>
-                {options.map(x => <option value={x}>{x}</option>)}
-            </StyledSelect>
-        </>
-    );
+    const contents = <>
+        <Label id={id} name={useName} />
+        <StyledSelect id={id} name={useName} multiple required>
+            {options.map(x => <option value={x}>{x}</option>)}
+        </StyledSelect>
+    </>;
+
     return required? 
         <StyledInputWrapperRequired>{contents}</StyledInputWrapperRequired>:
         <StyledInputWrapper>{contents}</StyledInputWrapper>;
 }
 
 
-const Button = ({ action, destructive=false, ...props }) => {
+const Button = ({ 
+    action, 
+    destructive=false, 
+    ...props 
+}) => {
     
     const buttonProps = {
         type: "button",
@@ -119,11 +138,14 @@ const Button = ({ action, destructive=false, ...props }) => {
 };
 
 
-
-export default ({ id, fields = null, actions }) => {
+export default ({ 
+    id, 
+    fields = null, 
+    actions 
+}) => {
   
     const matchInputType = (ff, ii) => {
-        return "options" in ff?
+        return "options" in ff ?
             <SelectInput {...ff} key={ii}/>:
             <TextInput {...ff} key={ii}/>;
     };
