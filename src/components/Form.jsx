@@ -1,163 +1,115 @@
 import React from "react";
 import styled from "styled-components";
-import {red, ghost} from "../palette"
+import {red, ghost, shadow} from "../palette";
 
-const StyledButtonPane = styled.div`
-    margin-top: 10px;
-`;
-
-const StyledForm = styled.form`
-    display: inline-block;
-`;
-
-const StyledInput = styled.input`
-    display: block;
-`;
-
-const StyledInputWrapper = styled.div``;
-
-
-const StyledInputButton = styled.input`
-    display: block;
-    background-color: ${props => props.destructive ? "orange" : "black"};
-    color: ${props => props.destructive ? red : ghost};
-`;
-
-const StyledInputWrapperRequired = styled.div({
-    "::after": {
-        "content": "'required ↑'",  // requires extra quotes to render
-        "color": "orange",
-        "font-size": "smaller",
-    }
-});
-
-const StyledLabel = styled.label`
+const Label = styled.label`
     display: block;
     font-size: smaller;
 `;
 
-const StyledSelect = styled.select`
-    background: #101010AA;
+export const Input = ({
+    id,
+    type,
+    className,
+    name=null,
+    options=null,
+    ...props
+}) => {
+
+    switch (type) {
+        case "long":
+            return <textarea
+                id={id}
+                className={className}
+                name={name || id}
+                {...props}
+            />
+        case "select":
+            return <select 
+                id={id} 
+                className={className}
+                name={name || id} 
+                {...props}
+            >
+                {(options||[]).map(x => <option value={x}>{x}</option>)}
+            </select>
+        case "button":
+            return <input
+                id={id}
+                className={className}
+                type={type}
+                {...props}
+            />
+
+        default:
+            return <input 
+                id={id}
+                className={className}
+                type={type}
+                name={name || id}
+                {...props}  
+            />
+
+    }
+};
+
+const InputWrapper = styled(Input)`
+
+    background-color: ${({destructive}) => destructive ? "orange" : shadow};
+    color: ${({destructive}) => destructive ? red : ghost};
+    width: auto;
     border: solid 1px;
     display: block;
     font-family: inherit;
     font-size: inherit;
-    color: #ccc;
+    
     -webkit-appearance: none;  /*Removes default chrome and safari style*/
     -moz-appearance: none;  /*Removes default style Firefox*/
-`;
 
-const StyledTextArea = styled.textarea`
-    background: #101010AA;
-    border: solid 1px;
-    display: block;
-    font-family:inherit;
-    font-size: inherit;
-    color: #ccc;
-    -webkit-appearance: none;  /*Removes default chrome and safari style*/
-    -moz-appearance: none;  /*Removes default style Firefox*/
+    ::after {
+        content: ${({required})=>required?"'required ↑'":null};
+        color: orange;
+        font-size: smaller;
+    }
 `;
 
 
-const Label = ({id, name}) => {
-    return <StyledLabel htmlFor={id}>{name.toUpperCase()}:</StyledLabel>;
-};
-
-const TextInput = ({ 
-    id, 
-    inputType = "text", 
-    name = "", 
-    placeholder, 
-    long = false,
-    required = false,
-}) => {
-    /*
-    Text inputs add an additional layer of QA/QC over normal
-    forms. 
-    */
-
-    const useName = name.length ? name : id;
-
-    const contents = <>
-        <Label id={id} name={useName} />
-        {(long ?
-            <StyledTextArea id={id} required name={useName} placeholder={placeholder}></StyledTextArea>
-            : <StyledInput type={inputType} required name={useName} placeholder={placeholder}></StyledInput>
-        )}
-    </>;
-    
-    return required ? 
-        <StyledInputWrapperRequired>
-            {contents}
-        </StyledInputWrapperRequired> :
-        <StyledInputWrapper>
-            {contents}
-        </StyledInputWrapper>;
-};
-
-
-const SelectInput = ({
-    id, 
-    name="", 
-    options, 
-    required=false 
-}) => {
-    /*
-    Select inputs are dropdown lists that are populated from 
-    static files or from database records. 
-    */
-    
-    const useName = name.length ? name : id;
-
-    const contents = <>
-        <Label id={id} name={useName} />
-        <StyledSelect id={id} name={useName} multiple required>
-            {options.map(x => <option value={x}>{x}</option>)}
-        </StyledSelect>
-    </>;
-
-    return required? 
-        <StyledInputWrapperRequired>{contents}</StyledInputWrapperRequired>:
-        <StyledInputWrapper>{contents}</StyledInputWrapper>;
-}
-
-
-const Button = ({ 
-    action, 
-    destructive=false, 
-    ...props 
-}) => {
-    
-    const buttonProps = {
-        type: "button",
-        id: action + "-button",
-        destructive,
-        ...props
-    };
-    return <StyledInputButton {...buttonProps}/>;
-};
-
-
-export default ({ 
+export const Form = ({ 
     id, 
     fields = null, 
     actions 
 }) => {
-  
-    const matchInputType = (ff, ii) => {
-        return "options" in ff ?
-            <SelectInput {...ff} key={ii}/>:
-            <TextInput {...ff} key={ii}/>;
-    };
-
-    return (
-        <StyledForm id={id}>
-            {fields !== null ? fields.map(matchInputType) : null}
-            {actions ? (
-                <StyledButtonPane>
-                    {actions.map((action, key) => <Button {...action} key={key}/>)}
-                </StyledButtonPane>
-            ) : null}
-        </StyledForm>
-    )
+    /*
+    Form component encapuslates behavior of user submission forms.
+    */
+    return <form id={id}>
+        {(fields || []).map(({
+            name=null,
+            ...field
+        }, ii) => 
+            <div key={`${id}-field-${ii}`}>
+                <Label htmlFor={field.id}>
+                    {`${(name || field.id).toUpperCase()}: `}
+                </Label>
+                <InputWrapper
+                    {...field}
+                />
+            </div>
+        )}
+        
+        {actions.map((props, ii) => 
+            <InputWrapper 
+                key={`${id}-action-${ii}`}
+                type={"button"} 
+                {...props}
+            />
+        )}
+    
+    </form>
 };
+
+export const StyledForm = styled(Form)`
+    display: inline-block;
+`;
+
+export default StyledForm;

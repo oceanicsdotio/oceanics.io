@@ -19,19 +19,19 @@ fields:
    
 - id: species
   options:
-    Oysters
-    Scallops
-    Mussels
-    Macroalgae
-    Finfish
+    - Oysters
+    - Scallops
+    - Mussels
+    - Macroalgae
+    - Finfish
 
 - id: method
   options:
-    Bottom
-    Rope (Horizontal)
-    Rope (Vertical)
-    Ear hang (Scallop) 
-    Midwater (Cage/Basket)
+    - Bottom
+    - Rope (Horizontal)
+    - Rope (Vertical)
+    - Ear hang (Scallop) 
+    - Midwater (Cage/Basket)
 
 - id: stage 
   options:
