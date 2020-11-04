@@ -2,10 +2,6 @@ import React from "react";
 import styled from "styled-components";
 import {red, ghost, shadow} from "../palette";
 
-const Label = styled.label`
-    display: block;
-    font-size: smaller;
-`;
 
 export const Input = ({
     id,
@@ -77,7 +73,8 @@ const InputWrapper = styled(Input)`
 export const Form = ({ 
     id, 
     fields = null, 
-    actions 
+    actions,
+    callback = null
 }) => {
     /*
     Form component encapuslates behavior of user submission forms.
@@ -88,10 +85,14 @@ export const Form = ({
             ...field
         }, ii) => 
             <div key={`${id}-field-${ii}`}>
-                <Label htmlFor={field.id}>
-                    {`${(name || field.id).toUpperCase()}: `}
-                </Label>
+                <label htmlFor={field.id}>
+                    {`${name || field.id}: `}
+                </label>
                 <InputWrapper
+                    onChange={(event) => {
+                        event.persist();
+                        callback(event);
+                    }}
                     {...field}
                 />
             </div>

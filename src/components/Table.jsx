@@ -1,73 +1,68 @@
-import React, {useState, useEffect} from "react";
+import React from "react";
 import styled from "styled-components";
+import {ghost, shadow, grey, pink, blue} from "../palette"
 
 const StyledCell = styled.td`
-    padding: 1px;
     margin: 0;
+    padding: 0;
+`;
+
+const StyledHead = styled.th`
+    padding: 0;
+    margin: 1px;
+    color: ${ghost};
+    text-align: left;
+    position: relative;
 `;
 
 const StyledInput = styled.input`
-    position: relative;
-    width: 100%;
-    height: 100%;
-    padding: 1px;;
+    padding: 3px;
     margin: 1px;
+    position: inherit;
     text-align: left;
-    border: solid 1px #333333;
-    border-radius: 3px;
-    background: #202020;
+    border: none;
+    
+    background: ${grey};
     font-family: inherit;
-    color: #CCCCCC;
+    color: ${ghost};
     text-decoration: none;
     overflow: hidden;
 
     &:focus {
-        border-color: #77CCFF;
+        border-color: ${blue};
+        border: 1px solid;
+        margin: 0px;
     }
 
     &:hover:not(:focus) {
-
-        border-color: #EF5FA1;
+        border: 1px solid;
+        margin: 0px;
+        border-color: ${pink};
         animation: scroll-left 5s linear 1;
     
         @keyframes scroll-left {
-            0%   { 
-                text-indent: 0; 		
-            }
-            100% {
-                text-indent: -50%; 
-            }
+            0%   {text-indent: 0;}
+            100% {text-indent: -50%;}
         }
-    }
-
-    
-    
-`;
-
-const StyledRow = styled.tr`
-    padding: 0;
-    margin: 0; 
-`;
-
-const StyledCol = styled.col`
-    width: auto;
+    } 
 `;
 
 const StyledTable = styled.table`
-    table-layout: fixed; /* by headings to make behavior more predictable */
     position: relative;
-    width: 90vw;
-    left: calc(-45vw + 50%);
+    width: 100%;
+    visibility: ${({hidden})=>hidden?"hidden":null};
+    overflow: scroll;
 `;
 
-const StyledHead = styled.th`
-    padding: 0px;
-    color: #77CCFF;
-    /* background: #202020; */
-    /* border: 1px solid black; */
-`;
-
-const EditableCell = ({ record, col: { label, format, parse }, ind }) => {
+const EditableCell = ({ 
+    record, 
+    col: { 
+        label, 
+        format, 
+        parse 
+    }, 
+    ind 
+}) => {
 
     let value = record[label];
     if (typeof value === typeof "") {
@@ -75,75 +70,59 @@ const EditableCell = ({ record, col: { label, format, parse }, ind }) => {
     } else if (typeof value === "object" && value !== null) {
         value = JSON.stringify(value);
     }
-    return (
-        <StyledCell key={ind}>
-            <StyledInput 
-                onBlur={({target}) => {
-                    record[label] = parse ? parse(target.value) : target.value;
-                }} 
-                defaultValue={format ? format(value) : value} />
-        </StyledCell>
-    )
+    return <StyledCell key={ind}>
+        <StyledInput 
+            onBlur={({target}) => {
+                record[label] = parse ? parse(target.value) : target.value;
+            }} 
+            defaultValue={format ? format(value) : value} 
+        />
+    </StyledCell>
 };
 
-export const RecordRow = ({ schema, record, ind }) => {
-    return (
-        <StyledRow key={ind}>
-            {schema.map((key, ii) => <EditableCell record={record} col={key} ind={ii} key={ii}/>)}
-        </StyledRow>
-    )
-};
+export default ({
+    records,
+    schema=null, 
+    priority=["uuid", "name"]
+}) => {
 
+    const implicitSchema = schema ? schema : Array.from((records||[]).map(e => {
+        const keys = Object.keys(e)
+            .filter(key => !key.includes("@"));
+        return new Set(keys);
+    }).reduce(
+        (a, b) => new Set([...a, ...b]),
+        []
+    )).map(label => Object({
+        label,
+        type: "string"
+    }));
 
-const CallbackHeader = ({label, key, onClick=null}) => 
-    <StyledHead key={key} scope={"col"} onClick={onClick}>
-        {label.replace(/([a-z](?=[A-Z]))/g, '$1 ').toLowerCase()}
-    </StyledHead>;
-
-
-export default (props) => {
-
-    const [schema, setSchema] = useState(props.schema)
-    const [records, setRecords] = useState(props.records)
- 
-    useEffect(()=>{
-
-        if (schema === undefined) {
-            const _implicitSchema = records.map(e => {
-                return new Set(Object.keys(e).filter(key => !key.includes("@")))
-            }).reduce(
-                (acc, current) => new Set([...acc, ...current])
-            );
+    const hidden = records === undefined || !records;
     
-            let priority = [];
-            ["uuid", "name"].forEach(key => {
-                if (_implicitSchema.delete(key)) {
-                    priority.push(key);
-                }
-            });
-
-            setSchema(priority.concat(Array.from(_implicitSchema)).map(x => {return {label: x, type: "string"}}));
-        }
-    }, []);
-
-    const sortTable = (label) => {
-        setRecords([...records.sort((a, b) => a[label] > b[label] ? 1 : -1)]);
-    }
-
-    return schema ? (
-        <StyledTable>
-            <thead>
-                <tr>
-                    {schema.map(({label}, key) =>
-                        <StyledHead key={key} scope={"col"} onClick={() => sortTable(label)}>
-                            {label.replace(/([a-z](?=[A-Z]))/g, '$1 ').toLowerCase()}
-                        </StyledHead>
-                    )}
-                </tr>
-            </thead>
-            <tbody>
-                {records.map((r, i) => <RecordRow schema={schema} record={r} ind={i} key={i}/>)}
-            </tbody>
-        </StyledTable>
-    ) : null;
+    return <StyledTable hidden={hidden}>
+        <thead>
+            <tr>
+                {implicitSchema.map(({label}, key) =>
+                    <StyledHead key={key} scope={"col"}>
+                        {label}
+                    </StyledHead>
+                )}
+            </tr>
+        </thead>
+        <tbody>
+            {(records || []).map((record, ii) => 
+                <tr key={ii}>
+                {implicitSchema.map((key, jj) => 
+                    <EditableCell 
+                        record={record} 
+                        col={key} 
+                        ind={jj} 
+                        key={jj}
+                    />
+                )}
+            </tr>
+            )}
+        </tbody>
+    </StyledTable>
 }

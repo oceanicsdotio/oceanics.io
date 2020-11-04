@@ -4,9 +4,8 @@ import styled from "styled-components";
 import { MDXProvider } from "@mdx-js/react";
 
 import React  from "react";
-import { Link} from "gatsby";
+import {Link} from "gatsby";
 import Login from "./Login";
-import {pink, blue} from "../palette";
 
 // Shortcode components for MDX child rendering
 import Noise from "./Noise";
@@ -24,19 +23,12 @@ import References, {Reference, Inline} from "./References";
 import PDF from "./PDF";
 
 
-const StyledLayout = styled.div`
-    margin-left: auto;
-    margin-right: auto;
-    max-width: ${rhythm(24)};
-    padding: ${rhythm(1.5)} ${rhythm(0.75)};
-`;
-
-const StyledListItem = styled.div`
+const ListItem = styled.div`
     display: inline-block;
     margin-right: 1rem;
 `;
 
-const StyledNavBar = styled.nav`
+const NavBar = styled.nav`
     display: block;
     width: 100%;
     justify-content: space-between;
@@ -44,10 +36,19 @@ const StyledNavBar = styled.nav`
     margin-bottom: 1.45rem;
 `;
 
-const StyledSiteTitle = styled(Link)`
+const SiteTitle = styled(Link)`
     position: relative;
     color: #ccc;
     font-size: x-large;
+    text-decoration: none;
+`;
+
+const StyledLink = styled(Link)`
+    text-decoration: none;
+`;
+
+const External = styled.a`
+    text-decoration: none;
 `;
 
 const shortcodes = {
@@ -77,42 +78,52 @@ const links = [
     {to: "/legal", label: "Legal"}
 ];
 
+export const Layout = ({ 
+    children, 
+    className,
+    loginCallback=null
+}) => {
 
-export default ({ children }) => {
-
-    return (
-        <StyledLayout>
-            <StyledSiteTitle to="/">
-                {"Oceanicsdotio"}
-            </StyledSiteTitle> 
-            <StyledNavBar>
-                {links.map(({
-                    label, 
-                    external=false, 
-                    ...props
-                }) => 
-                    <StyledListItem key={label}>
-                        {
-                            external ? 
-                            <a {...props}>{label}</a> : 
-                            <Link {...props}>{label}</Link>
-                        }
-                    </StyledListItem>
-                )}
-                <Login />
-            </StyledNavBar>
-            <main>
-                <MDXProvider components={shortcodes}>
-                    {children}
-                </MDXProvider>
-            </main>
-            <footer>
-                <hr/>
-                <p>
-                    {`Copyleft 2018-${new Date().getFullYear()}. `}
-                    {`No rights reserved. `}
-                </p>
-            </footer>
-        </StyledLayout>
-    )
+    return <div className={className}>
+        <SiteTitle to="/">
+            {"Oceanicsdotio"}
+        </SiteTitle> 
+        <NavBar>
+            {links.map(({
+                label, 
+                external=false, 
+                ...props
+            }) => 
+                <ListItem key={label}>
+                    {
+                        external ? 
+                        <External {...props}>{label}</External> : 
+                        <StyledLink {...props}>{label}</StyledLink>
+                    }
+                </ListItem>
+            )}
+            <Login onSuccess={loginCallback}/>
+        </NavBar>
+        <main>
+            <MDXProvider components={shortcodes}>
+                {children}
+            </MDXProvider>
+        </main>
+        <footer>
+            <hr/>
+            <p>
+                {`Copyleft 2018-${new Date().getFullYear()}. `}
+                {`No rights reserved. `}
+            </p>
+        </footer>
+    </div>
 };
+
+export const StyledLayout = styled(Layout)`
+    margin-left: auto;
+    margin-right: auto;
+    max-width: ${rhythm(24)};
+    padding: ${rhythm(1.5)} ${rhythm(0.75)};
+`;
+
+export default StyledLayout;

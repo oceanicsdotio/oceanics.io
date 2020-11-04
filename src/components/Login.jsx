@@ -2,7 +2,6 @@ import React, {useReducer, useState, useEffect}  from "react";
 import styled from "styled-components";
 import Form from "./Form";
 import {pink, ghost, shadow} from "../palette";
-import onboarding from "../../static/onboarding.yml";
 
 const StyledParagraph = styled.p`
     position: relative;
@@ -21,10 +20,16 @@ const StyledButton = styled.button`
     text-decoration: none;
 `;
 
-const Dialog = ({content, form, className, hidden}) => {
+const Dialog = ({content, form, className, hidden, callback}) => {
     return <div className={className} hidden={hidden}>     
-        <Form id={"login-dialog"} {...form}/>
-        <StyledParagraph>{content}</StyledParagraph>
+        <Form 
+            id={"login-dialog"} 
+            callback={callback}
+            {...form}
+        />
+        <StyledParagraph>
+            {content}
+        </StyledParagraph>
     </div>
 };
 
@@ -41,6 +46,7 @@ const StyledLogin = styled(Dialog)`
     top: 50%;
     left: 50%;
     margin-right: -50%;
+    z-index: 10;
     transform: translate(-50%, -50%);
     overflow-y: scroll;
     overflow-x: hidden;
@@ -50,6 +56,7 @@ const StyledLogin = styled(Dialog)`
 
     
 export default ({
+    onSuccess = null,
     baseUrl = "https://graph.oceanics.io/api/"
 }) => {
     /*
@@ -75,23 +82,32 @@ export default ({
     );
 
     // Toggle between registering and logging in
-    const [newUser, toggleNewUser] = useReducer(prev => !prev, true);
+    const [newUser, toggleNewUser] = useReducer(prev => !prev, false);
     const [hidden, toggleHidden] = useReducer(prev => !prev, true);
     const [accessToken, setToken] = useState(null);
 
-    const [buttonContent, setButtonContent] = useState("Login");
+    const [buttonContent, setButtonContent] = useState({
+        content: "Login",
+        callback: ()=>{toggleHidden()}
+    });
+
     useEffect(()=>{
-        setButtonContent(
-            hidden ? (   
+        setButtonContent({
+            content: hidden ? (   
                 accessToken ? 
                 "Logout" : (
                     newUser ?
                     "Register" :
                     "Login"
                 )
-            ) : 
-            "Close"
-        );
+            ) : "Close",
+            callback: accessToken && hidden ? 
+                ()=>{
+                    setToken(null);
+                    if (onSuccess) onSuccess(null);
+                } : 
+                ()=>{toggleHidden()}
+        });
     },[hidden, accessToken]);
 
 
@@ -116,13 +132,14 @@ export default ({
             })
     };
 
-    const login = (event) => {
+    const login = () => {
         fetch(baseUrl+"auth", {
             method: 'GET',
             mode: 'cors',
             cache: 'no-cache',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'authorization': `${formData.email}:${formData.password}`
             }
         })
             .then(response => response.json())
@@ -130,11 +147,9 @@ export default ({
                 if (!("token" in token)) {
                     console.log("Error authorizing", token);
                 } else {
-                    console.log(`Successfully retrieved token: ${token.token}`);
                     toggleHidden();
-
-                    // localStorage.setItem("accessToken", token.token);
                     setToken(token.token);
+                    if (onSuccess) onSuccess(token.token);
                 }  
             })  
     };
@@ -144,19 +159,11 @@ export default ({
         id: "email", 
         placeholder: "name@example.com", 
         required: true,
-        onChange: (event) => {
-            event.persist();
-            updateFormData(event);
-        }
     }, {
         type:"password", 
         id: "password",
         placeholder: "************", 
-        required: true,
-        onChange: (event) => {
-            event.persist();
-            updateFormData(event);
-        }
+        required: true
     }];
 
     const config = {
@@ -189,29 +196,14 @@ export default ({
             content: "Create a new account in your local database. We receive a notification with your contact information."
         }
     }
-
-    
-    // const [accessToken, setRestriction] = useReducer(
-    //     async (token, update=null)=>{
-    //         if (token && update) {
-    //             localStorage.removeItem("accessToken");
-    //             return null;
-    //         } else if (token) {
-
-    //         } else {
-    //             setDialog(!accessToken && !dialog);
-    //             return token
-    //         }    
-    //     }, 
-    //     localStorage.getItem("accessToken")
-    // );
-       
+   
     return <>
-        <StyledButton onClick={()=>toggleHidden()}>
-            {buttonContent}
+        <StyledButton onClick={buttonContent.callback}>
+            {buttonContent.content}
         </StyledButton>
         <StyledLogin 
-            hidden={hidden} 
+            hidden={hidden}
+            callback={updateFormData} 
             {...(newUser ? config.register : config.login)}
         />
     </>

@@ -4,6 +4,7 @@ import styled from "styled-components";
 import Layout from "../components/Layout";
 import SEO from "../components/SEO";
 import { rhythm } from "../typography";
+import {gray} from "../palette"
 
 const StyledHeader = styled.h3`
     margin-bottom: ${rhythm(0.25)};
@@ -11,6 +12,11 @@ const StyledHeader = styled.h3`
 
 const StyledLink = styled(Link)`
     box-shadow: none;
+    text-decoration: none;
+`;
+
+const Date = styled.small`
+
 `;
 
 export default ({ 
