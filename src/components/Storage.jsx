@@ -11,7 +11,7 @@ const StyledError = styled.div`
 
 const useObjectStorageHook = ({target}) => {
 
-    const parser = new DOMParser();
+    
     const [ fileSystem, setFileSystem ] = useState(null);
     
     useEffect(() => {
@@ -24,6 +24,7 @@ const useObjectStorageHook = ({target}) => {
             .then(response => response.text())
             .then(text => {
                 
+                const parser = new DOMParser();
                 const xmlDoc = parser.parseFromString(text, "text/xml");
 
                 let objects = [];
