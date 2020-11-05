@@ -24,6 +24,10 @@ const Date = styled.small`
     color: ${grey};
 `;
 
+const Image = styled.img`
+    width: 100%;
+`;
+
 export default ({ 
     data: { 
         allMdx: {nodes}, 
@@ -39,7 +43,7 @@ export default ({
     return (
         <Layout location={location} title={title}>
             <SEO title={"Situational awareness for a changing ocean"} />
-            <img src={bannerImage} alt={"Agents@Rest"} />
+            <Image src={bannerImage} alt={"Agents@Rest"} />
             {nodes.map(node => {
                 const title = node.frontmatter.title || node.fields.slug;
                 return <article key={node.fields.slug}>
