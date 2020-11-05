@@ -1,15 +1,22 @@
 import React, {Fragment} from "react";
 import styled from "styled-components";
 import {Link} from "gatsby";
+import {ghost, pink} from "../palette";
 
 const StyledBlock = styled.div`
-    color: #AACCCCCC;
+    color: ${ghost};
     margin-bottom: 1em;
-`
+`;
 
 const StyledAnchor = styled.a`
     color: inherit;
-`
+`;
+
+const StyledLink = styled(Link)`
+    text-decoration: none;
+    color: ${pink};
+`;
+
 
 export const REFERENCES_ROOT = "references";
 
@@ -62,29 +69,25 @@ export const Reference = ({
     const text = `${authors.join(", ")}. ${year}. ${title.trim()}. ${journal||""} ${volume||""}${pages}`;
     const _hash = hash || referenceHash({authors, title, year});
 
-    return (
-        <StyledBlock key={hash}>
-            {text}
-            <Link to={`/${REFERENCES_ROOT}/${_hash}/`}>{"[links]"}</Link>
-        </StyledBlock>
-    )
+    return <StyledBlock key={hash}>
+        {text}
+        <StyledLink to={`/${REFERENCES_ROOT}/${_hash}/`}>{"[links]"}</StyledLink>
+    </StyledBlock>
+    
 };
 
 export default ({heading, references}) => {
 
-    return (
-            <>
-            {references ? <StyledAnchor id={"references"}><h2>{heading}</h2></StyledAnchor> : null}
-            {references.map((props) => {
-                const hash = referenceHash(props);
-                return (
-                    <Fragment key={hash}>
-                        <a id={hash} />
-                        <Reference {...props}/>
-                    </Fragment>
-                );
-            })}
-            </>
-       
-    )
+    return <>
+        {references ? <StyledAnchor id={"references"}><h1>{heading}</h1></StyledAnchor> : null}
+        {references.map((props) => {
+            const hash = referenceHash(props);
+            return (
+                <Fragment key={hash}>
+                    <a id={hash} />
+                    <Reference {...props}/>
+                </Fragment>
+            );
+        })}
+    </>
 };

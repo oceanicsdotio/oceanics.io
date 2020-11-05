@@ -16,8 +16,7 @@ export default ({
         <Layout location={location} title={title}>
             <SEO title={"Legal"} />
             <h1>Legal</h1>
-            <hr />
-
+            
             <h2>Privacy</h2>
             
             <h3>Data we collect</h3>
@@ -87,7 +86,7 @@ export default ({
             Physical security is maintained by placing devices in locked enclosures or spaces where appropriate.
             Networked systems are tracked in real-time and self-report anomalies in position and conditions.
             </p>
-            <hr/>
+            
             <h2>Code of Conduct</h2>
             <p>
                 We value full expression of identity, and diversity in ideas, skills, and contributions regardless of
@@ -102,7 +101,7 @@ export default ({
                 and we will take action to resolve the situation safely. If you cannot reach a mediator,
                 you should remove yourself from the situation or notify an appropriate emergency response agency.
             </p>
-            <hr/>
+            
             <h2>Accessibility</h2>
             <p>
                 It is our explicit goal to make data and tools more Accessible.

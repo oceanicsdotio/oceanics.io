@@ -1,7 +1,24 @@
-import React from "react"
-import Layout from "../components/Layout"
-import SEO from "../components/SEO"
-import { Link, graphql } from "gatsby"
+import React from "react";
+import styled from "styled-components";
+import Layout from "../components/Layout";
+import SEO from "../components/SEO";
+import { Link, graphql } from "gatsby";
+import {ghost} from "../palette";
+
+const ListItem = styled.li`
+    display: block;
+    color: ${ghost};
+`;
+
+const StyledLink = styled(Link)`
+    text-decoration: none;
+    color: ${ghost};
+`;
+
+const List = styled.ol`
+    margin: 0;
+    padding: 0;
+`;
 
 export default ({ data: { allMdx: {nodes}}, location }) => {
     /*
@@ -9,21 +26,19 @@ export default ({ data: { allMdx: {nodes}}, location }) => {
     mapping that can help traverse the content graph and find related data or
     information. 
     */
-    return (
-        <Layout location={location} title={null}>
-            <SEO title="Situational awareness for a changing ocean" />
-            <h2>{"Resources"}</h2>
-            <ul>
-                {nodes.map(({fields: {slug}, frontmatter: {title}}) => {
-                    return (
-                        <li key={slug}>
-                            <Link to={slug}>{title}</Link>
-                        </li>
-                    )
-                })}
-            </ul>
-        </Layout>
-    )
+    return <Layout location={location} title={null}>
+        <SEO title="Situational awareness for a changing ocean" />
+        <h1>{"Resources"}</h1>
+        <List>
+            {nodes.map(({fields: {slug}, frontmatter: {title}}) => {
+                return (
+                    <ListItem key={slug}>
+                        <StyledLink to={slug}>{title}</StyledLink>
+                    </ListItem>
+                )
+            })}
+        </List>
+    </Layout>
 };
 
 export const pageQuery = graphql`

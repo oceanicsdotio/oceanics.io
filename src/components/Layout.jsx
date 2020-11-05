@@ -1,4 +1,3 @@
-
 import { rhythm } from "../typography";
 import styled from "styled-components";
 import { MDXProvider } from "@mdx-js/react";
@@ -6,6 +5,7 @@ import { MDXProvider } from "@mdx-js/react";
 import React  from "react";
 import {Link} from "gatsby";
 import Login from "./Login";
+import {pink,ghost} from "../palette";
 
 // Shortcode components for MDX child rendering
 import Noise from "./Noise";
@@ -30,10 +30,8 @@ const ListItem = styled.div`
 
 const NavBar = styled.nav`
     display: block;
-    width: 100%;
     justify-content: space-between;
     text-align: right;
-    margin-bottom: 1.45rem;
 `;
 
 const SiteTitle = styled(Link)`
@@ -45,10 +43,17 @@ const SiteTitle = styled(Link)`
 
 const StyledLink = styled(Link)`
     text-decoration: none;
+    color: ${pink};
+`;
+
+const MinorLink = styled(Link)`
+    display: block;
+    color: ${ghost};
 `;
 
 const External = styled.a`
     text-decoration: none;
+    color: ${pink};
 `;
 
 const shortcodes = {
@@ -73,7 +78,11 @@ const links = [
     {href: "https://graph.oceanics.io", external: true, label: "API"},
     {to: "/catalog", label: "Catalog"},
     {to: "/map", label: "Map"},
-    {to: "/oceanside", label: "Game"},
+    {to: "/oceanside", label: "Game"}
+];
+
+const bottomLinks = [
+    {to: "/references", label: "References"},
     {to: "/tags", label: "Tags"},
     {to: "/legal", label: "Legal"}
 ];
@@ -111,9 +120,20 @@ export const Layout = ({
         </main>
         <footer>
             <hr/>
+            
+            {bottomLinks.map(({
+                label, 
+                external=false, 
+                ...props
+            }) => 
+                <MinorLink key={label} {...props}>{label}</MinorLink>
+            )}
+        
             <p>
-                {`Copyleft 2018-${new Date().getFullYear()}. `}
-                {`No rights reserved. `}
+                {`Made in Maine 🌲 🏴`} <br/>
+                {`No rights reserved, 2018-${new Date().getFullYear()}. `}
+               
+                
             </p>
         </footer>
     </div>

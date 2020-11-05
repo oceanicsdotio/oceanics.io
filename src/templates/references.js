@@ -1,9 +1,29 @@
-import React from "react"
-import Layout from "../components/Layout"
-import SEO from "../components/SEO"
-import { Link } from "gatsby"
+import React from "react";
+import styled from "styled-components";
+import Layout from "../components/Layout";
+import SEO from "../components/SEO";
+import { Link } from "gatsby";
+import {ghost} from "../palette";
 
-export default ({ pageContext: {backLinks}, location }) => {
+const ListItem = styled.li`
+    display: block;
+    color: ${ghost};
+`;
+
+const StyledLink = styled(Link)`
+    text-decoration: none;
+    color: ${ghost};
+`;
+
+const List = styled.ol`
+    margin: 0;
+    padding: 0;
+`;
+
+export default ({ 
+    pageContext: {backLinks}, 
+    location
+}) => {
     /*
     Each references page is built by collect and deduplicating references from all
     markdown content, and then adding an article link for each parent to
@@ -14,15 +34,15 @@ export default ({ pageContext: {backLinks}, location }) => {
     */    
     return (
         <Layout location={location} title={null}>
-            <SEO title="Situational awareness for a changing ocean" />
-            <h2>{"Resources"}</h2>
-            <ul>
+            <SEO title={"Situational awareness for a changing ocean"} />
+            <h1>{"Resources"}</h1>
+            <List>
                 {Object.entries(backLinks).map(([slug, title]) => (
-                    <li key={slug}>
-                        <Link to={slug}>{title}</Link>
-                    </li>
+                    <ListItem key={slug}>
+                        <StyledLink to={slug}>{title}</StyledLink>
+                    </ListItem>
                 ))}
-            </ul>
+            </List>
         </Layout>
     )
 }

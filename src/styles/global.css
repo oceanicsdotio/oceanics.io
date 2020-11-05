@@ -1,19 +1,5 @@
 @charset "UTF-8";
 
-ul li {
-    background: inherit;
-    display: inline-block;
-    font-size: inherit;
-    text-decoration: none;
-    margin: 3px;
-}
-
-a, li:hover{
-    color: #EF5FA1;
-    transition:color 0.5s;
-}
-
-
 body, html{
     background: #000000;
     font-size: large;
