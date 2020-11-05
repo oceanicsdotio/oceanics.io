@@ -70,12 +70,15 @@ export default ({target}) => {
     }];
     
     return <>
+        {fileSystem ? 
+        <>
         <h3>{"Assets"}</h3>
-        {fileSystem ? <Table 
+        <Table 
             order={order} 
             records={fileSystem} 
             schema={schema}
-        /> : <StyledError>
+        />
+        </> : <StyledError>
             {"(!) Object storage unavailable"}
         </StyledError>}
     </>

@@ -4,7 +4,7 @@ import styled from "styled-components";
 import Layout from "../components/Layout";
 import SEO from "../components/SEO";
 import { rhythm } from "../typography";
-import {gray} from "../palette"
+import {grey, pink, ghost} from "../palette"
 
 const StyledHeader = styled.h3`
     margin-bottom: ${rhythm(0.25)};
@@ -13,10 +13,15 @@ const StyledHeader = styled.h3`
 const StyledLink = styled(Link)`
     box-shadow: none;
     text-decoration: none;
+    color: ${pink};
+`;
+
+const Excerpt = styled.p`
+    color: ${ghost};
 `;
 
 const Date = styled.small`
-
+    color: ${grey};
 `;
 
 export default ({ 
@@ -44,10 +49,10 @@ export default ({
                                 {title}
                             </StyledLink>
                         </StyledHeader>
-                        <small>{node.frontmatter.date}</small>
+                        <Date>{node.frontmatter.date}</Date>
                     </header>
                     <section>
-                        <p dangerouslySetInnerHTML={{
+                        <Excerpt dangerouslySetInnerHTML={{
                             __html: node.frontmatter.description || node.excerpt,
                         }} />
                     </section>

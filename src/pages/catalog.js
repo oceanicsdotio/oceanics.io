@@ -12,21 +12,6 @@ import Catalog from "../components/Catalog";
 // const DB_VERSION = 2;
 // const DB_STORE = "bathysphere";
 
-const Caret = styled.div`
-    display: inline;
-    font-size: larger;
-    transform: rotate(45deg);
-`;
-
-const StyledHighlight = styled.div`
-    display: inline-block;
-    font-size: smaller;
-    padding: 5px;
-    color: ${grey};
-    border-radius: 3px;
-    padding: 3px;
-`;
-
 
 // const serialize = (obj) => {
 
