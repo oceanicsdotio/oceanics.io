@@ -9,7 +9,7 @@ publish = "openapi"
 
 [[redirects]]
   from = "/api/*"
-  to = "https://bathysphere-f6ccuy4zzq-uc.a.run.app/api/:splat"
+  to = "https://bivalve-f6ccuy4zzq-uc.a.run.app/api/:splat"
   status = 200
   force = true
   headers = {X-From = "Netlify"}
@@ -22,6 +22,7 @@ publish = "openapi"
  
     Content-Security-Policy = '''
     graph.oceanics.io,
+    oceanicsdotion.nyc3.digitaloceanspaces.com,
     faas.oceanics.io,
     cdn.jsdelivr.net,
     *.googleapis.com,
