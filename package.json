@@ -54,7 +54,7 @@
     "yaml": "^1.10.0"
   },
   "devDependencies": {
-    "eslint": "^7.12.1",
+    "eslint": "^7.13.0",
     "eslint-plugin-react-hooks": "^4.2.0",
     "prettier": "^2.1.2"
   },
