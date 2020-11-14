@@ -8,11 +8,24 @@ export default {
 
 const Template = args => <Roster {...args} />;
 
-export const Example = Template.bind({});
-Example.args = {
-    capacity: 4,
+
+export const Vacancy = Template.bind({});
+Vacancy.args = {
+    capacity: 2,
     team: ["Mary Shelley"], 
     hidden: false,
-    transferCallback: null,
     style: {color: "green"}
+};
+
+export const NoCapacity = Template.bind({});
+NoCapacity.args = {
+    team: ["Mary Shelley"],
+    hidden: false
+};
+
+export const Full = Template.bind({});
+Full.args = {
+    capacity: 2,
+    team: ["Mary Shelley", "HP Lovecraft"],
+    hidden: false
 };

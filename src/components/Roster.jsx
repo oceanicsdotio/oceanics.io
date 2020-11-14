@@ -19,7 +19,11 @@ const DropTarget = styled.div`
 `;
 
 
-
+const StyledRoster = styled.div`
+    color: ${({color=ghost}) => color};
+    margin: 0;
+    padding: 0;
+`;
 
 
 // How many agents the roster will hold
@@ -39,7 +43,7 @@ export const Roster = ({
     team=[], 
     hidden=false,
     transferCallback=null,
-    style={color: ghost}
+    color=ghost
 }) => {
  
     /**
@@ -65,10 +69,7 @@ export const Roster = ({
         Math.floor((team || []).length / capacity) : 
         false;
 
-    return <div 
-        className={"Roster"} 
-        style={style}
-    >
+    return <StyledRoster color={color}>
         <CapacityInfo hidden={!Number.isInteger(capacity)}>
             {isFull ? `Full` : `Crew: ${(team || []).length}/${capacity}`}
         </CapacityInfo>
@@ -79,16 +80,10 @@ export const Roster = ({
         >
             {(team || []).length ? team.map(name => <Person name={name}/>) : null}
         </DropTarget>
-    </div>
+    </StyledRoster>
 };
 
-const StyledRoster = styled(Roster)`
-    color: ${({style: {color}}) => color};
-    margin: 0;
-    padding: 0;
-`;
-
-StyledRoster.propTypes = {
+Roster.propTypes = {
     /**
      * The number of agents that can be assigned to
      * the Roster, initially or by dragging.
@@ -113,8 +108,7 @@ StyledRoster.propTypes = {
     /**
      * Text styling information. Just accepts `color`.
      */
-    style: PropTypes.object.isRequired
+    style: PropTypes.string.isRequired
 }
 
-
-export default StyledRoster;
+export default Roster;
