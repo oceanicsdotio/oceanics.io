@@ -87,6 +87,7 @@ const shortcodes = {
 const links = [
     {to: "/catalog", label: "Catalog"},
     {to: "/map", label: "Map"},
+    {to: "/vessel", label: "Vessel"},
     {to: "/oceanside", label: "Game"}
 ];
 
