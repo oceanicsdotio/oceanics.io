@@ -3,6 +3,7 @@ import styled from "styled-components";
 import Form from "./Form";
 import {pink, ghost, shadow} from "../palette";
 
+
 const StyledParagraph = styled.p`
     position: relative;
     width: 100%;
@@ -11,13 +12,11 @@ const StyledParagraph = styled.p`
 `;
 
 const StyledButton = styled.button`
-    height: auto;
-    background: ${shadow};
-    border: solid 1px;
-    margin-right: 5px;
-    border-radius: 5px 5px 0px 0px;
     color: ${pink};
     text-decoration: none;
+    border: none;
+    font-family: inherit;
+    font-size: inherit;
 `;
 
 const Dialog = ({content, form, className, hidden, callback}) => {

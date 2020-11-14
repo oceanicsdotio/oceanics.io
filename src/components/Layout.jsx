@@ -2,10 +2,10 @@ import { rhythm } from "../typography";
 import styled from "styled-components";
 import { MDXProvider } from "@mdx-js/react";
 
-import React  from "react";
+import React, {useReducer}  from "react";
 import {Link} from "gatsby";
 import Login from "./Login";
-import {pink,ghost} from "../palette";
+import {pink,ghost,grey, blue} from "../palette";
 
 // Shortcode components for MDX child rendering
 import Noise from "./Noise";
@@ -32,6 +32,8 @@ const NavBar = styled.nav`
     display: block;
     justify-content: space-between;
     text-align: right;
+    visibility: ${({hidden=false})=>hidden?"hidden":null};
+    border-top: 1px dashed ${grey};
 `;
 
 const SiteTitle = styled(Link)`
@@ -53,7 +55,15 @@ const MinorLink = styled(Link)`
 
 const External = styled.a`
     text-decoration: none;
+    color: ${({ok=true})=>ok ? blue : grey};
+`;
+
+const Button = styled.button`
     color: ${pink};
+    text-decoration: none;
+    border: none;
+    font-family: inherit;
+    font-size: inherit;
 `;
 
 const shortcodes = {
@@ -75,10 +85,16 @@ const shortcodes = {
 };
 
 const links = [
-    {href: "https://graph.oceanics.io", external: true, label: "API"},
     {to: "/catalog", label: "Catalog"},
     {to: "/map", label: "Map"},
     {to: "/oceanside", label: "Game"}
+];
+
+const apiLinks = [
+    {href: "https://graph.oceanics.io", label: "Bathysphere"},
+    {href: "https://bivalve.oceanics.io", label: "Bivalve"},
+    {href: "https://www.oceanics.io", label: "Capsize", ok: false},
+    {href: "https://www.oceanics.io", label: "Squall", ok: false},
 ];
 
 const bottomLinks = [
@@ -93,44 +109,54 @@ export const Layout = ({
     loginCallback=null
 }) => {
 
+    const apiLabel = "APIs"
+    const [hidden, showGutter] = useReducer(prev=>!prev, true);
+
     return <div className={className}>
-        <SiteTitle to="/">
-            {"Oceanicsdotio"}
-        </SiteTitle> 
+        <SiteTitle to="/">{"Oceanicsdotio"}</SiteTitle> 
         <NavBar>
+            <ListItem key={apiLabel}>
+                <Button onClick={()=>{showGutter()}}>
+                    {apiLabel}
+                </Button>
+            </ListItem>
             {links.map(({
                 label, 
-                external=false, 
-                ...props
+                to
             }) => 
                 <ListItem key={label}>
-                    {
-                        external ? 
-                        <External {...props}>{label}</External> : 
-                        <StyledLink {...props}>{label}</StyledLink>
-                    }
+                    <StyledLink to={to}>{label}</StyledLink>
                 </ListItem>
             )}
             <Login onSuccess={loginCallback}/>
+            
+        </NavBar>
+        <NavBar hidden={hidden}>
+            {apiLinks.map(({
+                label,
+                href,
+                ok
+            }) => 
+                <ListItem key={label}>
+                    <External href={href} ok={ok}>{label}</External>
+                </ListItem>
+            )}
         </NavBar>
         <main>
-            <MDXProvider components={shortcodes}>
-                {children}
-            </MDXProvider>
+            <MDXProvider components={shortcodes}>{children}</MDXProvider>
         </main>
         <footer>
             <hr/>
             
             {bottomLinks.map(({
                 label, 
-                external=false, 
-                ...props
+                to
             }) => 
-                <MinorLink key={label} {...props}>{label}</MinorLink>
+                <MinorLink key={label} to={to}>{label}</MinorLink>
             )}
         
             <p>
-                {`Made in Maine 🌲 🏴`} <br/>
+                {`Made with 🏴 in Maine`} <br/>
                 {`No rights reserved, 2018-${new Date().getFullYear()}. `}
                
                 

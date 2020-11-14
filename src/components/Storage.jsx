@@ -11,7 +11,6 @@ const StyledError = styled.div`
 
 const useObjectStorageHook = ({target}) => {
 
-    
     const [ fileSystem, setFileSystem ] = useState(null);
     
     useEffect(() => {
