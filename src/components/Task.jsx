@@ -1,7 +1,10 @@
 import React, {useState, useReducer} from "react";
+import PropTypes from "prop-types";
 import styled from "styled-components";
 
-const StyledInput = styled.input`
+
+// Allows the task name to be re-written
+const Input = styled.input`
     background: none;
     border: none;
     display: inline;
@@ -10,18 +13,20 @@ const StyledInput = styled.input`
     color: ${({emphasize}) => emphasize ? "orange" : "inherit"};
 `;
 
+
+// UI element to complete, or reset, the task
 const CheckBox = styled.input`
     display: inline;
 `;
 
-const Task = ({task}) => {
-    /*
-    Right now tasks are simply editable text fields. They
-    do not have logical concepts for due date, assignment,
-    or relations with other data. 
 
-    Status is used to (de-)emphasize component in CSS. 
-    */
+/**
+Right now tasks are simply editable text fields. 
+They do not have logical concepts for due date, assignment, or relations with other data. 
+
+Status is used to (de-)emphasize component in CSS. 
+*/
+const Task = ({task}) => {
 
     const [complete, toggleComplete] = useReducer(
         (prev)=>{return !prev},false
@@ -44,7 +49,7 @@ const Task = ({task}) => {
                 type={"checkbox"}
                 emphasize={emphasize}
             />
-            <StyledInput 
+            <Input 
                 type={"text"} 
                 defaultValue={textContent}
                 complete={complete}
@@ -56,22 +61,35 @@ const Task = ({task}) => {
     )
 };
 
+Task.propTypes = {
+    /**
+     Display name of the task.
+     */
+    task: PropTypes.string.isRequired
+}
+
 export default Task;
 
+/**
+The tasklist is an editable list of tasks currently associated with a date and location. 
+*/
 export const TaskList = ({
     heading="Tasks",
     tasks=null,
-}) => {
-    /*
-    The tasklist component is an editable list of tasks currently
-    associated with a date and location. 
-    */
+}) => <>
+    <h3>
+        {tasks ? heading : "New task"}
+    </h3>
+    {(tasks || []).map(task => <Task {...{task, key: task}}/>)}
+</>
 
-    return (
-        <>
-        <h3>
-            {tasks ? heading : "New task"}
-        </h3>
-        {(tasks || []).map(task => <Task {...{task, key: task}}/>)}
-        </>)
-};
+TaskList.propTypes = {
+    /**
+     * Display heading for the container component
+     */
+    heading: PropTypes.string.isRequired,
+    /**
+     * Optional array of task-like strings to render as children
+     */
+    tasks: PropTypes.arrayOf(PropTypes.string)
+}
