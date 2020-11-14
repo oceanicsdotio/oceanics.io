@@ -1,10 +1,11 @@
 import React, {useState, useEffect, useReducer} from "react";
+import PropTypes from "prop-types";
 import styled from "styled-components";
-import {grey, shadow, pink} from "../palette";
+import {grey, pink} from "../palette";
 import Table from "./Table";
 
 
-const StyledHighlight = styled.div`
+export const Highlight = styled.div`
     display: block;
     font-size: smaller;
     padding: 5px;
@@ -14,7 +15,12 @@ const StyledHighlight = styled.div`
     visibility: ${({hidden})=>hidden?"hidden":null};
 `;
 
-const StyledButton = styled.button`
+Highlight.propTypes = {
+    hidden: PropTypes.bool.isRequired
+}
+
+
+export const Button = styled.button`
     height: auto;
     border: solid 1px;
     margin: 0;
@@ -23,22 +29,20 @@ const StyledButton = styled.button`
     text-decoration: none;
 `;
 
+/**
+The key is the Entity subclass. 
+The props are the properties of the collection itself.
 
+1. check that there is data stored in React state.
+2. if not return an empty list
+3. serialize the items, if any, and create a table within the outer list. 
+*/
 const Collection = ({
     name, 
     baseUrl,
-    accessToken,
-    onSuccess=null
+    accessToken
 }) => {
-    /*
-    The key is the Entity subclass. 
-    The props are the properties of the collection itself.
-
-    1. check that there is data stored in React state.
-    2. if not return an empty list
-    3. serialize the items, if any, and create a table within the outer list. 
-    */
-
+   
     const [expand, toggleExpand] = useReducer((prev, state=null)=>
         state!==null?state:!prev,
         false
@@ -76,11 +80,11 @@ const Collection = ({
             {`${name.replace(/([a-z](?=[A-Z]))/g, '$1 ')} `} 
             {entities && entities.length ? `(${entities.length})`: null} 
            
-            <StyledHighlight hidden={!expand}>
-                <StyledButton>
+            <Highlight hidden={!expand}>
+                <Button>
                     {`${entities ? "⤫" : "↻"} ${url}`}
-                </StyledButton>
-            </StyledHighlight>
+                </Button>
+            </Highlight>
         </h3>
         <Table records={entities}/>
     </div>
