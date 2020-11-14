@@ -120,10 +120,7 @@ export const Layout = ({
                     {apiLabel}
                 </Button>
             </ListItem>
-            {links.map(({
-                label, 
-                to
-            }) => 
+            {links.map(({label, to}) => 
                 <ListItem key={label}>
                     <StyledLink to={to}>{label}</StyledLink>
                 </ListItem>
@@ -132,11 +129,7 @@ export const Layout = ({
             
         </NavBar>
         <NavBar hidden={hidden}>
-            {apiLinks.map(({
-                label,
-                href,
-                ok
-            }) => 
+            {apiLinks.map(({label, href, ok}) => 
                 <ListItem key={label}>
                     <External href={href} ok={ok}>{label}</External>
                 </ListItem>
@@ -148,10 +141,7 @@ export const Layout = ({
         <footer>
             <hr/>
             
-            {bottomLinks.map(({
-                label, 
-                to
-            }) => 
+            {bottomLinks.map(({label, to}) => 
                 <MinorLink key={label} to={to}>{label}</MinorLink>
             )}
         
