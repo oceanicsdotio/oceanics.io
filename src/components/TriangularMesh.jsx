@@ -1,14 +1,21 @@
 import React, { useState, useEffect, useRef } from "react";
-import { loadRuntime, targetHtmlCanvas, addMouseEvents } from "../components/Canvas";
+import { loadRuntime } from "../components/Canvas";
 import styled from "styled-components";
+
 
 export const StyledCanvas = styled.canvas`
     position: relative;
-    width: 100%;
-    height: 400px;
+    width: ${({style:{width}})=>width};
+    height: ${({style:{height}})=>height};
     cursor: none;
 `;
 
+
+/**
+Draw a square tessellated by triangles using the 2D context
+of an HTML canvas. This is accomplished primarily in WASM,
+called from the React Hook loop. 
+*/
 export default ({
     fontSize=12.0,
     shape=[32,32],
@@ -17,12 +24,11 @@ export default ({
     backgroundColor=`#00000088`,
     lineWidth=1.0,
     labelPadding=2.0,
-    tickSize=10.0
+    tickSize=10.0,
+    width="100%",
+    height="400px",
 }) => {
-    /*
-    Triangles
-    */
-
+   
     const ref = useRef(null);
     const [runtime, setRuntime] = useState(null);
     const [mesh, setMesh] = useState(null);
@@ -31,7 +37,8 @@ export default ({
     useEffect(loadRuntime(setRuntime), []);  // load WASM binaries
 
     useEffect(() => {
-        if (runtime) setMesh(new runtime.InteractiveMesh(...shape)); // Create mesh
+        // Create mesh
+        if (runtime) setMesh(new runtime.InteractiveMesh(...shape)); 
     }, [runtime]);
 
     useEffect(() => {
@@ -61,5 +68,5 @@ export default ({
         return () => cancelAnimationFrame(requestId);
     }, [mesh]);
 
-    return <StyledCanvas ref={ref} />;
+    return <StyledCanvas ref={ref} style={{width, height}}/>;
 };
