@@ -30,7 +30,6 @@ const BlogPostTemplate = ({
             siteMetadata: { title } 
         } 
     }, 
-    pageContext: { next, previous }, 
     location 
 }) => {
 

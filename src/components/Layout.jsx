@@ -98,12 +98,6 @@ const apiLinks = [
     {href: "https://www.oceanics.io", label: "Squall", ok: false},
 ];
 
-const bottomLinks = [
-    {to: "/references", label: "References"},
-    {to: "/tags", label: "Tags"},
-    {to: "/legal", label: "Legal"}
-];
-
 export const Layout = ({ 
     children, 
     className,
@@ -141,8 +135,11 @@ export const Layout = ({
         </main>
         <footer>
             <hr/>
-            
-            {bottomLinks.map(({label, to}) => 
+            {[
+                {to: "/references", label: "References"},
+                {to: "/tags", label: "Tags"},
+                {to: "/policy", label: "Policy"}
+            ].map(({label, to}) => 
                 <MinorLink key={label} to={to}>{label}</MinorLink>
             )}
         
