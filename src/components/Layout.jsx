@@ -2,10 +2,10 @@ import { rhythm } from "../typography";
 import styled from "styled-components";
 import { MDXProvider } from "@mdx-js/react";
 
-import React, {useReducer}  from "react";
-import {Link} from "gatsby";
+import React, { useReducer }  from "react";
+import { Link } from "gatsby";
 import Login from "./Login";
-import {pink,ghost,grey, blue} from "../palette";
+import { pink, ghost, grey, blue } from "../palette";
 
 // Shortcode components for MDX child rendering
 import Noise from "./Noise";
@@ -64,6 +64,12 @@ const Button = styled.button`
     border: none;
     font-family: inherit;
     font-size: inherit;
+    background: none;
+`;
+
+const Footer = styled.footer`
+    border-top: 1px dashed ${grey};
+    margin-top: 1rem;
 `;
 
 const shortcodes = {
@@ -110,16 +116,16 @@ export const Layout = ({
     return <div className={className}>
         <SiteTitle to="/">{"Oceanicsdotio"}</SiteTitle> 
         <NavBar>
-            <ListItem key={apiLabel}>
-                <Button onClick={()=>{showGutter()}}>
-                    {apiLabel}
-                </Button>
-            </ListItem>
             {links.map(({label, to}) => 
                 <ListItem key={label}>
                     <StyledLink to={to}>{label}</StyledLink>
                 </ListItem>
             )}
+            <ListItem key={apiLabel}>
+                <Button onClick={()=>{showGutter()}}>
+                    {apiLabel}
+                </Button>
+            </ListItem>
             <Login onSuccess={loginCallback}/>
             
         </NavBar>
@@ -133,8 +139,7 @@ export const Layout = ({
         <main>
             <MDXProvider components={shortcodes}>{children}</MDXProvider>
         </main>
-        <footer>
-            <hr/>
+        <Footer>
             {[
                 {to: "/references", label: "References"},
                 {to: "/tags", label: "Tags"},
@@ -147,14 +152,14 @@ export const Layout = ({
                 {`Made with 🏴 in Maine`} <br/>
                 {`No rights reserved, 2018-${new Date().getFullYear()}. `}
             </p>
-        </footer>
+        </Footer>
     </div>
 };
 
 export const StyledLayout = styled(Layout)`
     margin-left: auto;
     margin-right: auto;
-    max-width: ${rhythm(24)};
+    max-width: ${({expand})=>expand?"100%":rhythm(24)};
     padding: ${rhythm(1.5)} ${rhythm(0.75)};
 `;
 

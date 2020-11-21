@@ -152,19 +152,17 @@ export default ({
     const [token, loginCallback] = useState(null);
     const objectStorageApi = "https://oceanicsdotio.nyc3.digitaloceanspaces.com?delimiter=/";
 
-    return (
-        <Layout 
-            location={location} 
-            title={title}
-            loginCallback={loginCallback}
-        >
-            <SEO title={"Ocean analytics as a service"} />
-
-            <hr />
-            <Catalog accessToken={token}/>
-            <Storage target={objectStorageApi} />
-        </Layout>
-    )
+    return <Layout 
+        expand={true}
+        location={location} 
+        title={title}
+        loginCallback={loginCallback}
+    >
+        <SEO title={"Ocean analytics as a service"} />
+        <Catalog accessToken={token}/>
+        <Storage target={objectStorageApi} />
+    </Layout>
+    
 };
 
 

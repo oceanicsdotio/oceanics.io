@@ -1,88 +1,228 @@
-import React, {useState, useEffect} from "react";
+import React, {useState, useEffect, useReducer} from "react";
 import styled from "styled-components";
 import YAML from "yaml";
-import Form from "./Form";
-import SwaggerParser from "@apidevtools/swagger-parser";
+import Form, {InputWrapper} from "./Form";
+import {grey} from "../palette";
+import useOpenApiLoader from "../hooks/useOpenApiLoader";
 
-const StyledInterface = styled.div`
-    visibility: ${({hidden})=>hidden?"hidden":null}; 
+/**
+ * Divvy up blank space
+ */
+const Placeholder = styled.div`
+    border-top: 1px dashed ${grey};
+    border-bottom: 1px dashed ${grey};
+    font-size: x-large;
+    padding: 2rem;
 `;
 
-export default ({
-    specUrl="https://bivalve.oceanics.io/api.yml",
-    path="/{objectKey}",
-    method="post"
+const Collapsible = styled.div`
+    visibility: ${({hidden})=>hidden?"hidden":null};
+`;
+
+/**
+ * Split a camelCase string on capitalized words and rejoin them
+ * as a lower case phrase separated by spaces. 
+ */
+const splitCamel = string => 
+    string
+        .split(/([A-Z][a-z]+)/)
+        .filter(word => word)
+        .map(word => word.toLowerCase())
+        .join(" ");
+
+/** 
+ * Parse a YAML text block that includes arbitrary line breaks
+ * and whitespace
+ */
+const parseYamlText = (text, prefix="title") => 
+    YAML.parse(text)
+        .split("\n")
+        .filter(paragraph => paragraph)
+        .map((text, ii) => <p key={`${prefix}-text-${ii}`}>{text}</p>)
+
+/**
+ * Meta data about the API itself
+ */
+const Header = ({
+    info: {
+        title, 
+        version,
+        description
+    }
+}) => <div>
+    <h1>{`${title}, v${version}`}</h1>
+    {parseYamlText(description, "title")}
+</div>
+
+
+/**
+ * Convert from OpenAPI schema standard to JSX Form component properties
+ */
+const schemaToInput = ({
+    name, 
+    schema, 
+    ...props
+}) => {
+    let type;
+    let options = null;
+    if (schema !== undefined){
+        type = schema.type;
+        if ("enum" in schema) {
+            type = "select";
+            options = schema.enum;
+        } else if (type === "string") {
+            type = "text";
+        } else if (type === "integer") {
+            type = "number";
+        } 
+    }
+
+    return Object({
+        id: splitCamel(name), 
+        type,
+        options,
+        ...props
+    });
+}
+
+
+/**
+ * Operations are URL patterns, containing methods
+ */
+const Operation = ({
+    service,
+    className,
+    path,
+    method,
+    schema: {
+        requestBody=null, 
+        parameters=null,
+        description,
+        summary
+    }
 }) => {
 
-    const [apiSpec, setApiSpec] = useState(null);
-    const [view, setView] = useState(null);
+    const [view, setView] = useState(null); // rendered data
+    const [hidden, toggleHidden] = useReducer(prev=>!prev, false); 
+    const [upload, toggleUpload] = useReducer(prev=>!prev, false);
 
+    const uploadInput = {
+        id: "file upload",
+        type: "file",
+        accept: "application/json"
+    }
+
+    /**
+     * Hook builds the form structure for the component
+     * from the paths in the specification.
+     */
     useEffect(()=>{
-        SwaggerParser.validate(specUrl, (err, api) => {
-            if (err) console.error(err);
-            else setApiSpec(api);
-        });   
+
+        const parseContent = (content) => Object.entries(
+                content["application/json"].schema.properties
+            ).flatMap(([k, v]) => {
+                let value = v;
+                console.log(k, value);
+                while ("items" in value) {
+                    value = value.items;
+                }
+                if ("properties" in value) {
+                    return Object.entries(value.properties);
+                } else {
+                    return [[k, value]];
+                }
+            }).map(
+                ([k, v])=>Object({name: k, ...v})
+            ).filter(({readOnly=null})=>!readOnly);
+       
+        setView({
+            query: (parameters || []).map(schemaToInput),
+            body: requestBody ? parseContent(requestBody.content) : null
+        });
     },[]);
 
-    useEffect(()=>{
-        if (!apiSpec) return;
+    return <div className={className}>
+        <h2 onClick={toggleHidden}>{summary}</h2>
+        <h3>{"Description"}</h3>
+        {parseYamlText(description, path+method)}
+        <Collapsible hidden={hidden}>
+        
+            {
+                view && view.body ? 
+                <>
+                <InputWrapper 
+                    type={"button"}
+                    onClick={toggleUpload}
+                    destructive={"true"}
+                    value={`Use a ${upload ? "form" : "file"} instead`}>
+                </InputWrapper>
+                <h3>{upload ? "Upload JSON file" : "Request body"}</h3></> :
+                null
+            }
 
-        const route = apiSpec.paths[path][method]
-
-        // [{
-        //     type: "email", 
-        //     id: "email", 
-        //     placeholder: "name@example.com", 
-        //     required: true,
-        // }, {
-        //     type:"password", 
-        //     id: "password",
-        //     placeholder: "************", 
-        //     required: true
-        // }]
-
-        const body = route.requestBody.content["application/json"].schema.properties.forcing.items.items;
-        console.log(body);
-
-        const params = route.parameters.concat(body)
-            .map(({name, schema, required, ...props})=>{
-
-                let type;
-                let options = null;
-                if ("enum" in schema) {
-                    type = "select";
-                    options = schema.enum;
-                } else if (schema.type === "string") {
-                    type = "text";
-                } else if (schema.type === "number") {
-                    type = "text";
-                } 
-
-                return Object({
-                    id: name, 
-                    type,
-                    required,
-                    options,
-                });
-            })
-
-        setView(params);
-    },[apiSpec]);
-
-    const Header = ({info: {title, version}}) => <h2>
-        {`${title}, v${version}`}
-    </h2>;
-
-    
-    return <StyledInterface hidden={!apiSpec}>
-        <Header info={apiSpec ? apiSpec.info : {}}/>
-        <Form
-            id={"bivalve-api"}
-            fields={view ? view : null}
-            actions={[{
-                value: "POST"
-            }]}
+            <Form
+                id={`${service}-api-body`}
+                fields={view ? upload ? [uploadInput] : view.body : null}
+                actions={[]}
+            />
             
-        />
-    </StyledInterface>
+            {view && view.query.length ? <h3>{"Query"}</h3> : null}
+            <Form
+                id={`${service}-api-query`}
+                fields={view ? view.query : null}
+                actions={[]}
+            />
+
+            <Form
+                id={`${service}-api-submit`}
+                fields={null}
+                actions={[{
+                    value: method.toUpperCase(),
+                    destructive: "true"
+                }]}
+            />
+        </Collapsible>
+    </div>
+};
+
+
+/**
+ * Styled version of the base component
+ */
+const StyledOperation = styled(Operation)`
+    border-top: 1px dashed ${grey};
+    border-bottom: 1px dashed ${grey};
+`;
+
+/**
+ * The BivalveApi component uses an OpenAPI specification for a 
+ * simulation backend, and uses it to constuct an interface.
+ */
+export default ({
+    specUrl="https://bivalve.oceanics.io/api.yml",
+    service="bivalve",
+}) => {
+
+    const {apiSpec, methods} = useOpenApiLoader({specUrl});
+    
+    return <div> 
+        {
+            !apiSpec ? 
+            <Placeholder>{`Loading ${specUrl}...`}</Placeholder> :
+            <Header info={apiSpec.info}/>
+        }
+        <div>
+        {
+            !methods ? 
+            <Placeholder>{`Loading methods...`}</Placeholder> :
+            methods.map(props => 
+                <StyledOperation {...{
+                    key: props.path+props.method, 
+                    service: service,
+                    ...props
+                }}/>
+            )
+        }
+        </div>
+    </div> 
 }

@@ -17,7 +17,11 @@ export default ({
     location,
 }) => {
     return (
-        <Layout location={location} title={title}>
+        <Layout 
+            expand={true}
+            location={location} 
+            title={title}
+        >
             <SEO title="Ocean analytics as a service" />
             <Map 
                 style={style} 

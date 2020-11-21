@@ -17,6 +17,7 @@ const StyledButton = styled.button`
     border: none;
     font-family: inherit;
     font-size: inherit;
+    background: none;
 `;
 
 const Dialog = ({content, form, className, hidden, callback}) => {

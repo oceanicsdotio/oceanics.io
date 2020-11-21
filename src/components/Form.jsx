@@ -3,6 +3,12 @@ import styled from "styled-components";
 import {red, ghost, shadow} from "../palette";
 
 
+const InputDescription = styled.div`
+    color: ${ghost};
+    font-size: smaller;
+    font-style: italic;
+`;
+
 export const Input = ({
     id,
     type,
@@ -27,9 +33,11 @@ export const Input = ({
                 name={name || id} 
                 {...props}
             >
-                {(options||[]).map(x => <option value={x}>{x}</option>)}
+                {(options||[]).map((x, ii) => 
+                    <option key={`${id}-option-${ii}`} value={x}>{x}</option>
+                )}
             </select>
-        case "button":
+        case "button":  // doesn't use name || id
             return <input
                 id={id}
                 className={className}
@@ -49,11 +57,10 @@ export const Input = ({
     }
 };
 
-const InputWrapper = styled(Input)`
+export const InputWrapper = styled(Input)`
 
     background-color: ${({destructive}) => destructive ? "orange" : shadow};
     color: ${({destructive}) => destructive ? red : ghost};
-    width: auto;
     border: solid 1px;
     display: block;
     font-family: inherit;
@@ -63,12 +70,15 @@ const InputWrapper = styled(Input)`
     -moz-appearance: none;  /*Removes default style Firefox*/
 
     ::after {
-        content: ${({required})=>required?"'required ↑'":null};
+        content: ${({required})=>required?"'(!)'":null};
         color: orange;
         font-size: smaller;
     }
 `;
 
+const FormField = styled.div`
+    margin-bottom: 1rem;    
+`;
 
 export const Form = ({ 
     id, 
@@ -82,9 +92,10 @@ export const Form = ({
     return <form id={id}>
         {(fields || []).map(({
             name=null,
+            description=null,
             ...field
         }, ii) => 
-            <div key={`${id}-field-${ii}`}>
+            <FormField key={`${id}-field-${ii}`}>
                 <label htmlFor={field.id}>
                     {`${name || field.id}: `}
                 </label>
@@ -95,7 +106,8 @@ export const Form = ({
                     }}
                     {...field}
                 />
-            </div>
+                <InputDescription>{description}</InputDescription>
+            </FormField>
         )}
         
         {actions.map((props, ii) => 
