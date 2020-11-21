@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from "react";
+import {useState, useEffect} from "react";
 import SwaggerParser from "@apidevtools/swagger-parser";
 
 
@@ -26,7 +26,6 @@ export default ({
      * It runs once when the component loads
      */
     const [apiSpec, setApiSpec] = useState(null); // OpenAPI spec struct
-
     useEffect(()=>{
         SwaggerParser.validate(specUrl, (err, api) => {
             if (err) console.error(err);

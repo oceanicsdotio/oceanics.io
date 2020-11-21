@@ -21,6 +21,7 @@ import OceansideManual from "./OceansideManual";
 import Rubric from "./Rubric";
 import References, {Reference, Inline} from "./References";
 import PDF from "./PDF";
+import OpenApi from "./OpenApi";
 
 
 const ListItem = styled.div`
@@ -88,7 +89,8 @@ const shortcodes = {
     Reference,
     References,
     Inline,
-    PDF
+    PDF,
+    OpenApi
 };
 
 const links = [

@@ -1,9 +1,10 @@
-import React, {useState, useEffect, useReducer} from "react";
-import styled from "styled-components";
+import React, {useReducer} from "react";
 import YAML from "yaml";
+import styled from "styled-components";
 import Form, {InputWrapper} from "./Form";
 import {grey} from "../palette";
 import useOpenApiLoader from "../hooks/useOpenApiLoader";
+import useOpenApiForm from "../hooks/useOpenApiForm"
 
 /**
  * Divvy up blank space
@@ -19,16 +20,6 @@ const Collapse = styled.div`
     visibility: ${({hidden})=>hidden?"hidden":null};
 `;
 
-/**
- * Split a camelCase string on capitalized words and rejoin them
- * as a lower case phrase separated by spaces. 
- */
-const splitCamel = string => 
-    string
-        .split(/([A-Z][a-z]+)/)
-        .filter(word => word)
-        .map(word => word.toLowerCase())
-        .join(" ");
 
 /** 
  * Parse a YAML text block that includes arbitrary line breaks
@@ -39,6 +30,7 @@ const parseYamlText = (text, prefix="title") =>
         .split("\n")
         .filter(paragraph => paragraph)
         .map((text, ii) => <p key={`${prefix}-text-${ii}`}>{text}</p>)
+
 
 /**
  * Meta data about the API itself
@@ -53,37 +45,6 @@ const Header = ({
     <h1>{`${title}, v${version}`}</h1>
     {parseYamlText(description, "title")}
 </div>
-
-
-/**
- * Convert from OpenAPI schema standard to JSX Form component properties
- */
-const schemaToInput = ({
-    name, 
-    schema, 
-    ...props
-}) => {
-    let type;
-    let options = null;
-    if (schema !== undefined){
-        type = schema.type;
-        if ("enum" in schema) {
-            type = "select";
-            options = schema.enum;
-        } else if (type === "string") {
-            type = "text";
-        } else if (type === "integer") {
-            type = "number";
-        } 
-    }
-
-    return Object({
-        id: splitCamel(name), 
-        type,
-        options,
-        ...props
-    });
-}
 
 
 /**
@@ -102,7 +63,7 @@ const Operation = ({
     }
 }) => {
 
-    const [view, setView] = useState(null); // rendered data
+    const view = useOpenApiForm({parameters, requestBody});
     const [hidden, toggleHidden] = useReducer(prev=>!prev, false); 
     const [upload, toggleUpload] = useReducer(prev=>!prev, false);
 
@@ -111,35 +72,6 @@ const Operation = ({
         type: "file",
         accept: "application/json"
     }
-
-    /**
-     * Hook builds the form structure for the component
-     * from the paths in the specification.
-     */
-    useEffect(()=>{
-
-        const parseContent = (content) => Object.entries(
-                content["application/json"].schema.properties
-            ).flatMap(([k, v]) => {
-                let value = v;
-                console.log(k, value);
-                while ("items" in value) {
-                    value = value.items;
-                }
-                if ("properties" in value) {
-                    return Object.entries(value.properties);
-                } else {
-                    return [[k, value]];
-                }
-            }).map(
-                ([k, v])=>Object({name: k, ...v})
-            ).filter(({readOnly=null})=>!readOnly);
-       
-        setView({
-            query: (parameters || []).map(schemaToInput),
-            body: requestBody ? parseContent(requestBody.content) : null
-        });
-    },[]);
 
     return <div className={className}>
         <h2 onClick={toggleHidden}>{summary}</h2>
