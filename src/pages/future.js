@@ -1,6 +1,7 @@
 import React from "react";
-import BivalveApi from "../components/BivalveApi";
+import OpenApi from "../components/OpenApi";
 
-export default () => {
-    return <BivalveApi/>
-}
+export default () => <OpenApi
+    specUrl={"https://bivalve.oceanics.io/api.yml"}
+    service={"bivalve"}
+/>

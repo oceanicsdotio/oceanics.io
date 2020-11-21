@@ -18,6 +18,7 @@ const StyledButton = styled.button`
     font-family: inherit;
     font-size: inherit;
     background: none;
+    cursor: pointer;
 `;
 
 const Dialog = ({content, form, className, hidden, callback}) => {

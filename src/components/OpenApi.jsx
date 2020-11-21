@@ -15,7 +15,7 @@ const Placeholder = styled.div`
     padding: 2rem;
 `;
 
-const Collapsible = styled.div`
+const Collapse = styled.div`
     visibility: ${({hidden})=>hidden?"hidden":null};
 `;
 
@@ -145,7 +145,7 @@ const Operation = ({
         <h2 onClick={toggleHidden}>{summary}</h2>
         <h3>{"Description"}</h3>
         {parseYamlText(description, path+method)}
-        <Collapsible hidden={hidden}>
+        <Collapse hidden={hidden}>
         
             {
                 view && view.body ? 
@@ -181,7 +181,7 @@ const Operation = ({
                     destructive: "true"
                 }]}
             />
-        </Collapsible>
+        </Collapse>
     </div>
 };
 
@@ -195,12 +195,12 @@ const StyledOperation = styled(Operation)`
 `;
 
 /**
- * The BivalveApi component uses an OpenAPI specification for a 
+ * The OpenApi component uses an OpenAPI specification for a 
  * simulation backend, and uses it to constuct an interface.
  */
 export default ({
-    specUrl="https://bivalve.oceanics.io/api.yml",
-    service="bivalve",
+    specUrl,
+    service,
 }) => {
 
     const {apiSpec, methods} = useOpenApiLoader({specUrl});

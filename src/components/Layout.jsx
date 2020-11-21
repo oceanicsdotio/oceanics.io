@@ -65,6 +65,7 @@ const Button = styled.button`
     font-family: inherit;
     font-size: inherit;
     background: none;
+    cursor: pointer;
 `;
 
 const Footer = styled.footer`

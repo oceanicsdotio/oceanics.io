@@ -65,6 +65,7 @@ export const InputWrapper = styled(Input)`
     display: block;
     font-family: inherit;
     font-size: inherit;
+    cursor: ${({type}) => type==="button" ? "pointer" : null};
     
     -webkit-appearance: none;  /*Removes default chrome and safari style*/
     -moz-appearance: none;  /*Removes default style Firefox*/
