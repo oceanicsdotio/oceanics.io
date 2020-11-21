@@ -481,8 +481,6 @@ components:
           schema:
             $ref: '#/components/schemas/Asset'
 
-    
-
 
   responses:
 
@@ -1267,141 +1265,30 @@ components:
           description: ISO format timestamp interval
 
 
-    Provider:
-      title: dataProvider
-      allOf:
-        - $ref: '#/components/schemas/Entity'
-        - type: object
-          description: |
-            Data providers are organizations or individuals that produce, process, host, or license data.
+    # Provider:
+    #   title: dataProvider
+    #   allOf:
+    #     - $ref: '#/components/schemas/Entity'
+    #     - type: object
+    #       description: |
+    #         Data providers are organizations or individuals that produce, process, host, or license data.
 
-          properties:
+    #       properties:
 
-            url:
-              type: string
-              description: URL to organization website
+    #         url:
+    #           type: string
+    #           description: URL to organization website
 
-            roles:
-              type: array
-              description: |
-                Data providers are labeled with a role, so that attribution and redaction works properly on synthesized
-                datasets. Data in the system m
-              items:
-                title: providerRole
-                type: string
-                enum:
-                  - licensor
-                  - producer
-                  - processor
-                  - host
-
-    CreateSchema:
-      type: object
-
-    Time:
-      type: number
-
-    Value:
-      type: number
-
-    Periods:
-      type: integer
-      minimum: 1
-      maximum: 1000
-      default: 1000
-
-    Horizon:
-      description: |
-        Sequence length the LSTM is trained on for each output point
-      type: integer
-      minimum: 1
-      maximum: 4
-      default: 1
-
-    Window:
-      description: |
-        Number of observations in moving window for calculating the expected value from input datastream.
-
-      type: integer
-      minimum: 1
-      default: 2
-
-    Ratio:
-      description: |
-        Fraction of observations to use for training. The rest are left for validation.
-      type: number
-      format: float
-      default: 0.8
-
-  
-
-    FFT:
-      description: Array of time step responses
-      type: array
-      items:
-        - $ref: '#/components/schemas/transformItem'
-
-    transformItem:
-      type: object
-      properties:
-        frequency:
-          type: number
-          format: float
-          minimum: 0.0
-        index:
-          type: number
-          format: float
-
-    Mask:
-      description: Array of boolean values
-      type: array
-      items:
-        - $ref: '#/components/schemas/MaskItem'
-
-    MaskItem:
-      description: Value of single mask item
-      type: boolean
-
-
-    Temperature:
-      description: |
-        Temperature, degrees Celsius, controls vital rates.
-      type: number
-      format: float
-      minimum: 0
-      maximum: 40
-  
-
-    Weight:
-      description: |
-        The total fresh product weight in grams. There are other conversions depending on your application case.
-        Biogeochemical modelers are likely more interested in carbon and nutrient masses. This will apply best
-        to products sold by weight like mussels.
-
-      type: number
-      format: float
-      minimum: 0.0
-
-
-  
-    dt:
-      description: |
-        Timestep, integer seconds. A one minute time step is probably unnecessary, unless you are validating/comparing
-        a laboratory physiology study. Longer time steps may miss important tidal dynamics. One hour is the recommended
-        value, which is also a common sampling frequency for sensors deplyed near growing areas (and therefore limits
-        interpolation). Integration is by Euler (`euler`) or Runga-Kutta (`rk`).
-
-      type: integer
-      minimum: 60
-      maximum: 3600
-      default: 3600
-
-    volume:
-      description: |
-        Control volume for density-dependence, measure in liters. As the number of organisms per unit volume increases,
-        competition for limited resources like food or oxygen can come into play.
-
-      type: number
-      format: float
-      minimum: 1
-      maximum: 1000
+    #         roles:
+    #           type: array
+    #           description: |
+    #             Data providers are labeled with a role, so that attribution and redaction works properly on synthesized
+    #             datasets. Data in the system m
+    #           items:
+    #             title: providerRole
+    #             type: string
+    #             enum:
+    #               - licensor
+    #               - producer
+    #               - processor
+    #               - host
