@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
-import { loadRuntime } from "../components/Canvas";
 import styled from "styled-components";
+import useWasmRuntime from "../hooks/useWasmRuntime";
 
 export const StyledCanvas = styled.canvas`
     position: relative;
@@ -25,11 +25,9 @@ export default ({
     */
     const layers = 1;
     const ref = useRef(null);
-    const [runtime, setRuntime] = useState(null);
+    const runtime = useWasmRuntime();
     const [grid, setGrid] = useState(null);
     const style = {backgroundColor, gridColor, overlayColor, lineWidth, fontSize, tickSize, labelPadding};
-
-    useEffect(loadRuntime(setRuntime), []);  // load WASM binaries
 
     useEffect(() => {if (runtime) setGrid(new runtime.InteractiveGrid(...shape, stencil));}, [runtime]);
 

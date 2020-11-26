@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { loadRuntime, targetHtmlCanvas, addMouseEvents } from "../components/Canvas";
 import styled from "styled-components";
+import useWasmRuntime from "../hooks/useWasmRuntime";
+
 
 export const StyledCanvas = styled.canvas`
     position: relative;
@@ -21,11 +23,10 @@ export default ({
     */
 
     const ref = useRef(null);
-    const [runtime, setRuntime] = useState(null);
+    const runtime = useWasmRuntime(null);
     const [mesh, setMesh] = useState(null);
     const [cursor, setCursor] = useState(null);
 
-    useEffect(loadRuntime(setRuntime), []);  // load WASM binaries
     useEffect(addMouseEvents(ref, cursor), [cursor]);  // track cursor when mouse interacts with canvas
 
     useEffect(() => {

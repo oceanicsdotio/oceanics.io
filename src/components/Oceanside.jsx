@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useRef, useReducer } from "react";
 import styled from "styled-components";
-import { loadRuntime, eventCoordinates, eventGridCell, targetHtmlCanvas } from "../components/Canvas";
+import { eventCoordinates, eventGridCell, targetHtmlCanvas } from "../components/Canvas";
 import { drawCursor, inverse } from "../bathysphere";
-
+import useWasmRuntime from "../hooks/useWasmRuntime";
 import tileSetJSON from "../../static/oceanside.json";
 
 /*
@@ -147,7 +147,7 @@ Canvas uses crisp-edges to preserve pixelated style of map.
 const StyledCanvas = styled.canvas`
     display: inline-block;
     image-rendering: crisp-edges;
-    position: fixed;
+    position: relative;
     left: 0;
     bottom: 0;
     width: 128px;
@@ -159,13 +159,14 @@ const StyledCanvas = styled.canvas`
 const StyledBoard = styled.canvas`
     display: inline-block;
     image-rendering: pixelated;
-    position: absolute;
+    position: relative;
     left: 0;
     top: 0;
     width: 600px;
     height: 600px;
     margin: 0;
-    border: 1px solid orange;
+    border: none;
+    cursor: none;
 `;
 
 const StyledContainer = styled.div`
@@ -223,14 +224,11 @@ export default ({
 
     */
 
-    
-    
-    
     const nav = useRef(null);  // minimap for navigation
     const board = useRef(null);  // animated GIF tiles
 
     const [map, setMap] = useState(null);  // map from rust
-    const [runtime, setRuntime] = useState(null);
+    const runtime = useWasmRuntime();
     const [clamp, setClamp] = useState(false); // clamp cursor to grid
     
     const [clock, takeAnActionOrWait] = useReducer(
@@ -301,8 +299,6 @@ export default ({
 
     // If shortcut keys are pressed, toggle clamp
     keystrokeReducerHook(["Shift", "C"], () => {setClamp(!clamp)});
-
-    useEffect(loadRuntime(setRuntime), []);  // load WASM binaries
 
     useEffect(() => {
         /*
@@ -383,29 +379,31 @@ export default ({
     }, [tiles, clamp])
 
     
-    return (
-        <StyledContainer>
-            <StyledText>
-                {`${clock.date.toLocaleDateString()} ${18-2*(clock.actions ? clock.actions : 0)}:00, Balance: $${map ? map.score() : 0.0}`}
-            </StyledText>
+    return <StyledContainer>
+        <StyledText>
+            {`${clock.date.toLocaleDateString()} ${18-2*(clock.actions ? clock.actions : 0)}:00, Balance: $${map ? map.score() : 0.0}`}
+        </StyledText>
 
-            <StyledBoard
-                ref={board}
-                onClick={(event) => {
-                    event.persist(); // otherwise React eats it
+        <StyledBoard
+            ref={board}
+            onClick={(event) => {
+                event.persist(); // otherwise React eats it
+                try {
                     takeAnActionOrWait(event);
-                }}
-            />
-            
-            <StyledCanvas
-                ref={nav}
-                width={worldSize}
-                height={worldSize}
-                onClick={(event) => {
-                    event.persist();
-                    populateVisibleTiles(map, event, nav);
-                }}
-            />    
-        </StyledContainer>
-    );
+                } catch (err) {
+                    console.log(err);
+                }
+            }}
+        />
+        
+        <StyledCanvas
+            ref={nav}
+            width={worldSize}
+            height={worldSize}
+            onClick={(event) => {
+                event.persist();
+                populateVisibleTiles(map, event, nav);
+            }}
+        />    
+    </StyledContainer>
 };

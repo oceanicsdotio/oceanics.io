@@ -69,9 +69,15 @@ const Button = styled.button`
     cursor: pointer;
 `;
 
+const Content = styled.main`
+    height: auto;
+    bottom: 0;
+`;
+
 const Footer = styled.footer`
     border-top: 1px dashed ${grey};
     margin-top: 1rem;
+    visibility: ${({hidden})=>hidden?"hidden":null};
 `;
 
 const shortcodes = {
@@ -95,8 +101,6 @@ const shortcodes = {
 
 const links = [
     {to: "/catalog", label: "Catalog"},
-    {to: "/map", label: "Map"},
-    {to: "/vessel", label: "Vessel"},
     {to: "/oceanside", label: "Game"}
 ];
 
@@ -109,6 +113,7 @@ const apiLinks = [
 
 export const Layout = ({ 
     children, 
+    expand=false,
     className,
     loginCallback=null
 }) => {
@@ -139,10 +144,10 @@ export const Layout = ({
                 </ListItem>
             )}
         </NavBar>
-        <main>
+        <Content>
             <MDXProvider components={shortcodes}>{children}</MDXProvider>
-        </main>
-        <Footer>
+        </Content>
+        <Footer hidden={expand}>
             {[
                 {to: "/references", label: "References"},
                 {to: "/tags", label: "Tags"},

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
-import { loadRuntime } from "../components/Canvas";
 import styled from "styled-components";
+import useWasmRuntime from "../hooks/useWasmRuntime";
 
 export const StyledCanvas = styled.canvas`
     position: relative;
@@ -38,11 +38,9 @@ export default ({
     */
 
     const ref = useRef(null);
-    const [runtime, setRuntime] = useState(null);
+    const runtime = useWasmRuntime();
     const [particleSystem, setParticleSystem] = useState(null);
     const style = {backgroundColor, overlayColor, lineWidth, fontSize, tickSize, labelPadding, fade, radius, particleColor, radius};
-
-    useEffect(loadRuntime(setRuntime), []);  // load WASM binaries
 
     useEffect(() => {
         /*

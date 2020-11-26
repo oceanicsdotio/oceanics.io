@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { loadRuntime, targetHtmlCanvas, addMouseEvents } from "../components/Canvas";
 import styled from "styled-components";
 import {pathFromGridCell} from "../bathysphere";
-
+import useWasmRuntime from "../hooks/useWasmRuntime";
 
 export const StyledCanvas = styled.canvas`
     position: relative;
@@ -19,10 +19,7 @@ export default ({
     Triangles
     */
     const ref = useRef(null);
-    const [runtime, setRuntime] = useState(null);
-   
-
-    useEffect(loadRuntime(setRuntime), []);  // load WASM binaries
+    const runtime = useWasmRuntime();
 
     useEffect(() => {
         /*

@@ -113,11 +113,8 @@ export const animationLoop = (runtime, ref, context, drawGenerator, caption, fon
 export default ({context="2d", key, shaders}) => {
 
     const ref = useRef(null);
-    const [runtime, setRuntime] = useState(null);
+    const runtime = useWasmRuntime();
     
-    useEffect(loadRuntime(setRuntime),[]);  // load WASM binaries
-    // useEffect(addMouseEvents(ref, setCursor), [runtime]);  // track cursor when on canvas
-
     useEffect(()=>{
         /*
         IFF the canvas context is WebGL and we need shaders, fetch the GLSL code and compile the 

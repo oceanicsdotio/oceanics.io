@@ -69,17 +69,14 @@ export default ({target}) => {
         type: "datetime"
     }];
     
-    return <>
-        {fileSystem ? 
-        <>
-        <h3>{"Assets"}</h3>
+    return fileSystem ? 
         <Table 
             order={order} 
             records={fileSystem} 
             schema={schema}
-        />
-        </> : <StyledError>
+        /> : 
+        <StyledError>
             {"(!) Object storage unavailable"}
-        </StyledError>}
-    </>
-};
+        </StyledError>
+}; 
+

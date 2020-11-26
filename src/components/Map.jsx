@@ -2,109 +2,32 @@ import React, { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import styled from "styled-components";
 import {suitabilityHandler, licenseHandler, leaseHandler, nsspHandler, portHandler} from "../components/MapPopUp";
-import {Feature, GeoJsonSource, pulsingDot, parseFeatureData, waterLevel} from "../bathysphere.js";
+import {parseFeatureData} from "../bathysphere.js";
 import "mapbox-gl/dist/mapbox-gl.css";
 
-const PreformattedText = styled.pre`
-    display: block;
-    position: relative;
-    padding: 0;
-    width: fit-content;
-    border: 1px solid;
-    border-radius: 3px;
-    color: orange;
-    background-color: #00000044;
-    z-index: 2;
-`;
+import useMapboxHighlightEvent from "../hooks/useMapBoxHighlightEvent";
 
-const MapContainer = styled.div`
-    position: relative;
-    display: block;
-    height: 200px;
-    width: 100%;
-    border: solid 1px #CCCCCC;
-    padding: 0;
-     
-    &:hover {
-        position: fixed;
-        height: 75%;
-        width: 100%;
-        top: 50%;
-        left: 50%;
-        margin-right: -50%;
-        transform: translate(-50%, -50%);
-        animation: none;
-        z-index: 1;
-    }
-`;
-
-export default ({
+/*
+The Map component. 
+*/
+const Map = ({
     layers, 
     style,
-    allowGeolocation=true,
-    accessToken
+    accessToken,
+    className,
+    center = [-69, 44]
 }) => {
-    /*
-    The Map component. 
-    */
 
-    mapboxgl.accessToken = accessToken;
-
-    const [useClientLocation, setUseClientLocation] = useState(false);
-    const [clientLocation, setClientLocation] = useState(null);
-    const [center, setCenter] = useState(null);
     const [map, setMap] = useState(null);  // MapboxGL Map instance
     const [layerData, setLayerData] = useState(null);
-    const [animatedIcons, setAnimatedIcons] = useState(null);
     const [contextInfo, setContextInfo] = useState("");
     const container = useRef(null);  // the element that Map is going into, in this case a <div/>
 
-    const addHighlightEvent = (map, featureSet, featureIds) => {
-        /*
-        Highlight layers
-
-        When the cursor position intersects with the space
-        defined by a feature set, set the hover state to true.
-    
-        When the cursor no longer intersects the shapes, stop
-        highlighting the features. 
-        */
-        map.on('mousemove', featureSet, (e) => {
-            if (e.features.length > 0) {
-                (featureIds || []).forEach(feature => {map.setFeatureState({ source: featureSet, id: feature }, { hover: false })});
-                featureIds = e.features.map(feature => feature.id);
-                (featureIds || []).forEach(feature => {map.setFeatureState({ source: featureSet, id: feature }, { hover: true })});
-            }
-        });
-            
-        map.on('mouseleave', featureSet, () => {
-            (featureIds || []).forEach(feature => {map.setFeatureState({ source: featureSet, id: feature }, { hover: false })});
-            featureIds = [];
-        });
-    };
-
-    useEffect(() => {
-        /*
-        Use the Geolocation API to retieve the location of the client,
-        and set the map center to those coordinates, and flag that the interface
-        should use the client location on refresh.
-
-        This will also trigger a greater initial zoom level.
-        */
-        const DEFAULT_CENTER = [-69, 44];
-
-        if (allowGeolocation && navigator.geolocation) {
-            const success = ({coords: {latitude, longitude}}) => {
-                setUseClientLocation(true);
-                setClientLocation([longitude, latitude]);
-                setCenter([longitude, latitude]);
-            };
-            navigator.geolocation.getCurrentPosition(success, () => {setCenter(DEFAULT_CENTER)});
-        } else {
-            setCenter(DEFAULT_CENTER);  // not supported
-        }
-    }, []);
-
+    useMapboxHighlightEvent({
+        ready: !!layerData, 
+        map, 
+        source: "nssp-closures"
+    });
 
     useEffect(() => {
         /*
@@ -116,22 +39,23 @@ export default ({
 
         only one map context please, need center to have been set.
         */
-        if (map || !center) return;
-    
+        if (map) return;
+        mapboxgl.accessToken = accessToken;
         setMap(new mapboxgl.Map({
             container: container.current,
             style,
-            center: center,
-            zoom: useClientLocation ? 12 : 7,
+            center,
+            zoom: 10,
             antialias: false,
         }));
-    }, [center]);
+    }, []);
 
 
+    /*
+    Provide cursor context information
+    */
     useEffect(() => {
-        /*
-        Provide cursor context information
-        */
+       
         if (!map) return;
         map.on('mousemove', ({lngLat: {lng, lat}}) => {
             setContextInfo(`Location: ${lng.toFixed(4)}, ${lat.toFixed(4)}`);
@@ -139,52 +63,13 @@ export default ({
 
     }, [map]);
 
+    /**
+    Asynchronously retrieve the geospatial data files and parse them.
 
+    Skip this if the layer data has already been loaded, or if the map doesn't exist yet
+    */
     useEffect(() => {
-        /*
-        Expand the map when the mouse enters the element, and then shrink it again when it leaves.
-        */
-        if (map) ["mouseover", "mouseleave"].forEach(event => map.on(event, () => {map.resize()}));
-    }, [map]);
-
-    useEffect(() => {
-        if (!map) return;
-
-        const size = 64;
        
-        setAnimatedIcons({
-            pulsingDot: pulsingDot(map),
-            waterLevel: waterLevel(map)
-        });
-    }, [map])
-
-    useEffect(() => {
-        /*
-        Mark the client location with an eye-catching animation.
-        */
-        if (!clientLocation || !map || !animatedIcons) return;
-        
-        map.addImage('pulsing-dot', animatedIcons.pulsingDot, { pixelRatio: 2 });
-    
-        map.addLayer({
-            id: 'home',
-            type: 'symbol',
-            source: GeoJsonSource({
-                features: [Feature(...clientLocation)]
-            }),
-            layout: {
-                'icon-image': 'pulsing-dot'
-            }
-        });
-    
-    }, [clientLocation, map, animatedIcons]);
-
-    useEffect(() => {
-        /*
-        Asynchronously retrieve the geospatial data files and parse them.
-
-        Skip this if the layer data has already been loaded, or if the map doesn't exist yet
-         */
         if (layerData || !map) return;
         const layerMetadata = [];
 
@@ -218,51 +103,13 @@ export default ({
         setLayerData(layerMetadata);
     }, [map]);
 
+    /**
+    Swap layers to be in the correct order after they have all been created. 
+    
+    This is so that you can resolve them all asynchronously
+    without worrying about the order of creation
+    */
     useEffect(() => {
-        /* 
-        Fetch tide data from NOAA. 
-        
-        Render a tide gauge animated icon at each position. 
-        */
-        if (!map || !animatedIcons) return;
-        const id = "tidal-stations";
-        const extent = [-71.190, 40.975, -63.598, 46.525];
-
-        map.addImage(id, animatedIcons.waterLevel, { pixelRatio: 4 });
-
-        (async () => {
-            const queue = await fetch("https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json?type=waterlevels")
-                .then(r => r.json())
-                .then(({stations}) => {
-                    return stations.filter(({lat, lng}) => {
-                        return lng >= extent[0] && lng <= extent[2] && lat >= extent[1] && lat <= extent[3];
-                    }).map(({id})=>{
-                        return fetch(`https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=${id}&product=water_level&datum=mllw&units=metric&time_zone=lst_ldt&application=oceanics.io&format=json`).then(r => r.json())
-                        }
-                    );
-                });
-            
-            map.addLayer({
-                id,
-                type: 'symbol',
-                source: parseFeatureData({
-                    features: await Promise.all(queue), 
-                    standard: "noaa"
-                }),
-                layout: {
-                    'icon-image': id
-                }
-            });     
-       })();
-    }, [map, animatedIcons]);
-
-    useEffect(() => {
-        /* 
-        Swap layers to be in the correct order after they have all been created. 
-        
-        This is so that you can resolve them all asynchronously
-        without worrying about the order of creation
-        */
         (layerData || []).forEach(({ id, behind }) => {map.moveLayer(id, behind)});
     }, [layerData]);
 
@@ -284,16 +131,15 @@ export default ({
         })
     });
 
-
-
-    useEffect(() => {
-        // Highlight closures on hover
-        if (layerData) addHighlightEvent(map, "nssp-closures");
-    }, [layerData]);
-
-    return (<>
-        <p>{"Hover for a bigger map."}</p>
-        <MapContainer ref={container} />
-        {contextInfo ? <PreformattedText>{contextInfo}</PreformattedText> : null}
-    </>);
+    return <div ref={container} className={className}/>
 };
+
+const MapContainer = styled(Map)`
+    height: 100%;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+`;
+
+export default MapContainer;

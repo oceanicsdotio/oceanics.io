@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
-import { loadRuntime, targetHtmlCanvas, addMouseEvents } from "../components/Canvas";
+import { targetHtmlCanvas, addMouseEvents } from "./Canvas";
 import styled from "styled-components";
+import useWasmRuntime from "../hooks/useWasmRuntime";
 
 export const StyledCanvas = styled.canvas`
     position: relative;
@@ -23,11 +24,9 @@ export default ({
     */
 
     const ref = useRef(null);
-    const [runtime, setRuntime] = useState(null);
+    const runtime = useWasmRuntime();
     const [grid, setGrid] = useState(null);
     const [cursor, setCursor] = useState(null);
-
-    useEffect(loadRuntime(setRuntime), []);  // load WASM binaries
 
     useEffect(() => {
         if (runtime) setGrid(new runtime.HexagonalGrid(shape[0])); // Create mesh

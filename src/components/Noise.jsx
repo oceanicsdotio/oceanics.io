@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
-import { loadRuntime } from "../components/Canvas";
 import { StyledCanvas } from "../components/Particles";
 import { createTexture, ArrayBuffer, compileShaders, extractUniforms } from "../components/Lagrangian";
+import useWasmRuntime from "../hooks/useWasmRuntime";
 
 const exec = (
     runtime, 
@@ -120,15 +120,13 @@ export default ({
 
     const [ready, setReady] = useState(false);
     const [assets, setAssets] = useState(null);
-    const [runtime, setRuntime] = useState(null);
+    const runtime = useWasmRuntime();
     const [programs, setPrograms] = useState(null);
 
     const shaders = {
         draw: ["noise-vertex", "noise-fragment"],
         screen: ["quad-vertex", "screen-fragment"]
     };
-
-    useEffect(loadRuntime(setRuntime), []);  // web assembly binaries
 
     useEffect(() => {
     

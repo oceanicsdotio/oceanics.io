@@ -8,7 +8,6 @@ const StyledEntry = styled.div`
 
 export default ({edges, token, baseUrl}) => {
 
-
     const [state, setState] =  useState(null);
 
     useEffect(()=>{

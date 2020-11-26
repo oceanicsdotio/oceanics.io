@@ -120,7 +120,7 @@ export const References = ({
 }) => {
 
     return <>
-        <Anchor id={"references"} hidden={!!references}>
+        <Anchor id={"references"} hidden={!references}>
             <h1>{heading}</h1>
         </Anchor>
         {

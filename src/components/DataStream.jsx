@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
-import { loadRuntime } from "../components/Canvas";
 import styled from "styled-components";
+import useWasmRuntime from "../hooks/useWasmRuntime";
+import {lichen} from "../palette";
 
 export const StyledCanvas = styled.canvas`
     position: relative;
@@ -10,7 +11,7 @@ export const StyledCanvas = styled.canvas`
 `;
 
 export default ({
-    streamColor=`#BBCC88FF`,
+    streamColor=lichen,
     overlayColor=`#CCCCCCFF`,
     backgroundColor=`#001010CC`,
     lineWidth=1.5,
@@ -25,11 +26,9 @@ export default ({
     */
 
     const ref = useRef(null);
-    const [runtime, setRuntime] = useState(null);
+    const runtime = useWasmRuntime();
     const [stream, setStream] = useState(null);
     const style = {backgroundColor, streamColor, overlayColor, lineWidth, pointSize, fontSize, tickSize, labelPadding}; 
-
-    useEffect(loadRuntime(setRuntime), []);  // load WASM binaries
     
     useEffect(() => {
         if (runtime) setStream(new runtime.InteractiveDataStream(capacity));
