@@ -55,15 +55,14 @@ const Input = ({
 
 export const InputWrapper = styled(Input)`
 
-    background-color: ${({destructive, type}) => {
-        if (type === "button") return red;
+    background-color: ${({destructive}) => {
         if (destructive) return orange;
         return shadow;
     }};
     
     color: ${({destructive, type}) => {
-        if (type === "button") return orange;
         if (destructive) return red;
+        if (type === "button") return orange;
         return ghost;
     }};
 
