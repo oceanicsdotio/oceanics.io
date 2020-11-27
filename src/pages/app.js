@@ -216,6 +216,10 @@ const Tools = styled.div`
     padding: 3rem;
 `;
 
+const Account = ({onSuccess}) => <div>
+    <Login onSuccess={onSuccess}/>
+</div>
+
 export default ({
     location, 
     data:{
@@ -227,9 +231,10 @@ export default ({
     team = defaultTeam
 }) => {
    
-
+    const [token, loginCallback] = useState(null);
     const objectStorageApi = "https://oceanicsdotio.nyc3.digitaloceanspaces.com?delimiter=/";
     const tools = {
+        Account: <Account onSuccess={loginCallback}/>,
         Mission: <Mission {...{team, home, things}}/>,
         Schedule: <Schedule {...{days, team, home, locations}}/>,
         Assets: <Storage target={objectStorageApi}/>,
@@ -243,13 +248,11 @@ export default ({
         ,
         Object.keys(tools)
     );
-    const [token, loginCallback] = useState(null);
+    
 
     return <>
         <SEO title={"Ocean analytics as a service"} />
         <Application>
-
-            <Login onSuccess={loginCallback}/>
             <ColumnContainer 
                 row={0} 
                 column={0}

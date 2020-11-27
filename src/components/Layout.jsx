@@ -23,17 +23,14 @@ import PDF from "./PDF";
 import OpenApi from "./OpenApi";
 
 
-const ListItem = styled.div`
-    display: inline-block;
-    margin-right: 1rem;
-`;
-
 const NavBar = styled.nav`
     display: block;
     justify-content: space-between;
-    text-align: right;
+    text-align: left;
     visibility: ${({hidden=false})=>hidden?"hidden":null};
-    border-top: 1px dashed ${grey};
+    height: ${({hidden=false})=>hidden?"0":"auto"};
+    border-radius: 1rem;
+    border-bottom: 1px solid;
 `;
 
 const SiteTitle = styled(Link)`
@@ -41,11 +38,15 @@ const SiteTitle = styled(Link)`
     color: #ccc;
     font-size: x-large;
     text-decoration: none;
+    display: inline-block;
+    margin: 0.5rem;
 `;
 
 const StyledLink = styled(Link)`
     text-decoration: none;
     color: ${pink};
+    margin: 0.5rem;
+    display: inline-block;
 `;
 
 const MinorLink = styled(Link)`
@@ -56,6 +57,8 @@ const MinorLink = styled(Link)`
 const External = styled.a`
     text-decoration: none;
     color: ${({ok=true})=>ok ? blue : grey};
+    margin: 0.5rem;
+    display: inline-block;
 `;
 
 const Button = styled.button`
@@ -76,7 +79,6 @@ const Content = styled.main`
 const Footer = styled.footer`
     border-top: 1px dashed ${grey};
     margin-top: 1rem;
-    visibility: ${({hidden})=>hidden?"hidden":null};
 `;
 
 const shortcodes = {
@@ -120,31 +122,26 @@ export const Layout = ({
     const [hidden, showGutter] = useReducer(prev=>!prev, true);
 
     return <div className={className}>
-        <SiteTitle to="/">{"Oceanicsdotio"}</SiteTitle> 
+        
         <NavBar>
-            {links.map(({label, to}) => 
-                <ListItem key={label}>
-                    <StyledLink to={to}>{label}</StyledLink>
-                </ListItem>
+            <SiteTitle to="/">{"Oceanics.io"}</SiteTitle>
+            <Button onClick={showGutter}>
+                {apiLabel}
+            </Button>
+            {links.map(({label, to}) =>  
+                <StyledLink to={to}>{label}</StyledLink>
             )}
-            <ListItem key={apiLabel}>
-                <Button onClick={()=>{showGutter()}}>
-                    {apiLabel}
-                </Button>
-            </ListItem>
-            
         </NavBar>
+
         <NavBar hidden={hidden}>
             {apiLinks.map(({label, href, ok}) => 
-                <ListItem key={label}>
-                    <External href={href} ok={ok}>{label}</External>
-                </ListItem>
+                <External href={href} ok={ok}>{label}</External>
             )}
         </NavBar>
         <Content>
             <MDXProvider components={shortcodes}>{children}</MDXProvider>
         </Content>
-        <Footer hidden={expand}>
+        <Footer>
             {[
                 {to: "/references", label: "References"},
                 {to: "/tags", label: "Tags"},

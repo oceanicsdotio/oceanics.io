@@ -43,54 +43,47 @@ const StyledLabel = styled.div`
     color: ${({fg})=>fg};
 `
 
-const LicenseInformation = ({ features }) => {
-    return (
-        <PopUpContent>
-            {features.map(({ species, coordinates: [lon, lat] }, key) => {
-                return (<div key={key}>
-                    <p>{`@ lat: ${lat.toFixed(4)}, lon: ${lon.toFixed(4)}`}</p>
-                    <StyledUnorderedList>
-                        {species.map(each => <StyledListItem key={each}>{each}</StyledListItem>)}
-                    </StyledUnorderedList>
-                </div>)
-            })}
-        </PopUpContent>
-    )
-};
+const LicenseInformation = ({ features }) =>
+   
+    <PopUpContent>
+        {features.map(({ species, coordinates: [lon, lat] }, key) => {
+            return (<div key={key}>
+                <p>{`@ lat: ${lat.toFixed(4)}, lon: ${lon.toFixed(4)}`}</p>
+                <StyledUnorderedList>
+                    {species.map(each => <StyledListItem key={each}>{each}</StyledListItem>)}
+                </StyledUnorderedList>
+            </div>)
+        })}
+    </PopUpContent>;
 
 
-const LeaseInformation = ({ features }) => {
 
-    return (
-        <PopUpContent>
-            {features.map(({ species }, key) => {
-                return (<div key={key}>
-                    <StyledUnorderedList>
-                        {species.map(each => <StyledListItem key={each}>{each}</StyledListItem>)}
-                    </StyledUnorderedList>
-                </div>)
-            })}
-        </PopUpContent>
-    )
-};
+const LeaseInformation = ({ features }) =>
 
-const PortInfo = ({ features }) => {
+    <PopUpContent>
+        {features.map(({ species }, key) => {
+            return (<div key={key}>
+                <StyledUnorderedList>
+                    {species.map(each => <StyledListItem key={each}>{each}</StyledListItem>)}
+                </StyledUnorderedList>
+            </div>)
+        })}
+    </PopUpContent>;
+   
 
-    return (
-        <PopUpContent>
-            <ScrollBox>
-            {features.map(({ properties, coordinates: [lon, lat] }, key) => {
-                return (<div key={key}>
-                    <p>{`@ lat: ${lat.toFixed(4)}, lon: ${lon.toFixed(4)}`}</p>
-                    <StyledUnorderedList>
-                        {Object.entries(properties).map(([jj, item]) => <StyledListItem key={jj}>{`${jj}: ${item}`}</StyledListItem>)}
-                    </StyledUnorderedList>
-                </div>)
-            })}
-            </ScrollBox>
-        </PopUpContent>
-    )
-};
+const PortInfo = ({ features }) => 
+    <PopUpContent>
+        <ScrollBox>
+        {features.map(({ properties, coordinates: [lon, lat] }, key) => {
+            return (<div key={key}>
+                <p>{`@ lat: ${lat.toFixed(4)}, lon: ${lon.toFixed(4)}`}</p>
+                <StyledUnorderedList>
+                    {Object.entries(properties).map(([jj, item]) => <StyledListItem key={jj}>{`${jj}: ${item}`}</StyledListItem>)}
+                </StyledUnorderedList>
+            </div>)
+        })}
+        </ScrollBox>
+    </PopUpContent>;
 
 
 const SuitabilityInfo = ({ histogram, foreground="#CCCCCCFF"}) => {
@@ -127,22 +120,12 @@ const SuitabilityInfo = ({ histogram, foreground="#CCCCCCFF"}) => {
         setTotal(_total);
     },[]);
 
-    return (
-        <PopUpContent>
-            <HistogramCanvas ref={ref} fg={foreground}/>
-            <StyledLabel>{`Oyster Suitability (N=${total})`}</StyledLabel>
-        </PopUpContent>
-    )
+    return <PopUpContent>
+        <HistogramCanvas ref={ref} fg={foreground}/>
+        <StyledLabel>{`Oyster Suitability (N=${total})`}</StyledLabel>
+    </PopUpContent>
+    
 };
-
-
-const ClosedArea = ({features}) => {
-    return (
-        <PopUpContent>
-            <p>{features.length > 1 ? `Shellfish sanitation areas (${features.length})` : "Shellfish sanitation area"}</p>
-        </PopUpContent>
-    )
-}
 
 
 const genericPopUp = ({jsx, coordinates, closeButton=true, closeOnClick=true}) => {
@@ -219,13 +202,20 @@ export const suitabilityHandler = (e) => {
 export const nsspHandler = (e) => {
 
     const {lng, lat} = e.lngLat;
+    const text = 
+        e.features.length > 1 ? 
+        `Shellfish sanitation areas (${e.features.length})` : 
+        `Shellfish sanitation area`
 
     return genericPopUp({
-        jsx: <ClosedArea features={e.features}/>,
+        jsx: 
+            <PopUpContent>
+                <p>{text}</p>
+            </PopUpContent>,
         coordinates: [lng, lat]
     });
         
-}
+};
 
 
 
@@ -243,5 +233,5 @@ export const leaseHandler = (e) => {
         coordinates: [lng, lat]
     });
         
-}
+};
 

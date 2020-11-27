@@ -27,6 +27,7 @@ json:
           [boolean, [feature-state, hover], false],
           "rgba(255,0,255,0.3)", "rgba(255,0,255,0.1)"]
     behind: suitability
+    popup: nssp
 
   - render:
       id: ports
@@ -62,6 +63,7 @@ json:
         text-halo-color: "rgba(0, 0, 0, 0.85)"
 
     behind: major-ports
+    popup: port
     info: https://hifld-geoplatform.opendata.arcgis.com/datasets/port-facilities
 
   - render:
@@ -87,6 +89,7 @@ json:
         text-halo-color: "rgba(0, 0, 0, 0.85)"
      
     behind: suitability
+    popup: port
     info: https://hifld-geoplatform.opendata.arcgis.com/datasets/major-us-port-facilities
 
   # - render: 
@@ -110,6 +113,7 @@ json:
         circle-stroke-width: 1
         circle-stroke-color: "rgba(255,165,0,0.5)"
     behind: ports
+    popup: port
     info: https://hifld-geoplatform.opendata.arcgis.com/datasets/nautical-navigation-aids-navaid-locations/geoservice?geometry=43.528%2C-71.756%2C-59.128%2C80.293
     
     
@@ -125,6 +129,7 @@ json:
         circle-stroke-width: 1
         circle-stroke-color: "rgba(255,165,0,0.5)"
     behind: ports
+    popup: port
     info: https://hifld-geoplatform.opendata.arcgis.com/datasets/wrecks-and-obstructions-1/geoservice?geometry=-79.504%2C40.527%2C-60.212%2C46.116
 
 # https://hifld-geoplatform.opendata.arcgis.com/datasets/outer-continental-shelf-ocs-protraction-diagrams-leasing-maps
@@ -141,6 +146,7 @@ json:
         circle-stroke-width: 1
         circle-stroke-color: "rgba(0,255,255,0.75)"
     behind: cities
+    popup: license
  
   - render: 
       id: suitability
@@ -162,6 +168,7 @@ json:
         fill-antialias: false
         fill-color: "rgba(0,255,255,0.75)"
     behind: suitability
+    popup: lease
 
   - render: 
       id: maine-towns
