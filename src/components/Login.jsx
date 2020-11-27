@@ -1,7 +1,7 @@
-import React, {useReducer, useState}  from "react";
+import React, { useReducer }  from "react";
 import styled from "styled-components";
 import Form from "./Form";
-import {ghost} from "../palette";
+import { ghost } from "../palette";
 import useBathysphereAuth from "../hooks/useBathysphereAuth";
 import fields from "../../static/login.yml";
 

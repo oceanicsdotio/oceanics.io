@@ -1,15 +1,12 @@
 import React from "react";
 import styled from "styled-components";
-import {red, ghost, shadow} from "../palette";
+import {red, ghost, shadow, orange} from "../palette";
 
-
-const InputDescription = styled.div`
-    color: ${ghost};
-    font-size: smaller;
-    font-style: italic;
-`;
-
-export const Input = ({
+/**
+ * Generic form input component that converts to the
+ * appropriate type
+ */
+const Input = ({
     id,
     type,
     className,
@@ -53,18 +50,36 @@ export const Input = ({
                 name={name || id}
                 {...props}  
             />
-
     }
 };
 
 export const InputWrapper = styled(Input)`
 
-    background-color: ${({destructive}) => destructive ? "orange" : shadow};
-    color: ${({destructive}) => destructive ? red : ghost};
-    border: solid 1px;
+    background-color: ${({destructive, type}) => {
+        if (type === "button") return red;
+        if (destructive) return orange;
+        return shadow;
+    }};
+    
+    color: ${({destructive, type}) => {
+        if (type === "button") return orange;
+        if (destructive) return red;
+        return ghost;
+    }};
+
+    border: solid 0.1rem;
+    border-radius: 0.25rem;
+    padding: 0.25rem;
+    margin: 0;
+    margin-bottom: 0.5rem;
+
     display: block;
     font-family: inherit;
     font-size: inherit;
+    width: 100%;
+    
+    box-sizing: border-box;
+
     cursor: ${({type}) => type==="button" ? "pointer" : null};
     
     -webkit-appearance: none;  /*Removes default chrome and safari style*/
@@ -75,10 +90,22 @@ export const InputWrapper = styled(Input)`
         color: orange;
         font-size: smaller;
     }
+
+    & > * {
+        padding: 0;
+        margin: 0;
+    } 
 `;
 
 const FormField = styled.div`
-    margin-bottom: 1rem;    
+
+    margin-bottom: 1rem;  
+
+    & > div {
+        color: ${ghost};
+        font-size: smaller;
+        font-style: italic;
+    }  
 `;
 
 export const Form = ({ 
@@ -107,7 +134,7 @@ export const Form = ({
                     }}
                     {...field}
                 />
-                <InputDescription>{description}</InputDescription>
+                <div>{description}</div>
             </FormField>
         )}
         
@@ -124,6 +151,7 @@ export const Form = ({
 
 export const StyledForm = styled(Form)`
     display: inline-block;
+    align-content: center;
 `;
 
 export default StyledForm;

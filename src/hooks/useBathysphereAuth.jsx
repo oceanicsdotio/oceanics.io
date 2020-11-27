@@ -1,13 +1,12 @@
 import {useReducer}  from "react";
     
 export default ({
-    url = "https://graph.oceanics.io/api/auth",
     apiKey = 'FL_fnXrKrRG1ae3VLpn2oAgeVZrVUn5kXJyTFDQ_1GlpC_xzXYJnU6SDz5stoS4wlts-t9qXljblUJzgK3FcIw'
 }) => {
 
-    const register = ({email, password}) => () => {
+    const register = ({email, password, server}) => () => {
 
-        fetch(url, {
+        fetch(server+"/api/auth", {
             method: 'POST',
             mode: 'cors',
             cache: 'no-cache',
@@ -30,7 +29,7 @@ export default ({
         
         let _token = prev;
 
-        fetch(url, {
+        fetch(server+"/api/auth", {
             method: 'GET',
             mode: 'cors',
             cache: 'no-cache',

@@ -10,3 +10,4 @@ export const bruise = `#421F33FF`;
 export const slate = `#AACCCCCC`;
 export const ghost = `#CCCCCCFF`;
 export const shadow = `#101010AA`;
+export const orange = `#FF8800FF`;
