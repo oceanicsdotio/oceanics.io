@@ -4,7 +4,7 @@ import { MDXProvider } from "@mdx-js/react";
 
 import React, { useReducer }  from "react";
 import { Link } from "gatsby";
-import { pink, ghost, grey, blue } from "../palette";
+import { pink, ghost, grey, blue, bone } from "../palette";
 
 // Shortcode components for MDX child rendering
 import Noise from "./Noise";
@@ -22,139 +22,129 @@ import References, {Reference, Inline} from "./References";
 import PDF from "./PDF";
 import OpenApi from "./OpenApi";
 
+import layout from "../../static/layout.yml";
+
 
 const NavBar = styled.nav`
+
     display: block;
     justify-content: space-between;
     text-align: left;
     visibility: ${({hidden=false})=>hidden?"hidden":null};
     height: ${({hidden=false})=>hidden?"0":"auto"};
-    border-radius: 1rem;
-    border-bottom: 1px solid;
-`;
-
-const SiteTitle = styled(Link)`
-    position: relative;
-    color: #ccc;
-    font-size: x-large;
-    text-decoration: none;
-    display: inline-block;
-    margin: 0.5rem;
-`;
-
-const StyledLink = styled(Link)`
-    text-decoration: none;
-    color: ${pink};
-    margin: 0.5rem;
-    display: inline-block;
-`;
-
-const MinorLink = styled(Link)`
-    display: block;
     color: ${ghost};
+
+    & > * {
+        display: inline-block;
+        margin: 0.5rem;
+        text-decoration: none;
+        font-family: inherit;
+        font-size: inherit;
+        
+    }
+
+    & > button {
+        color: ${pink};
+        background: none;
+        border: none;
+        cursor: pointer;
+    }
 `;
 
-const External = styled.a`
-    text-decoration: none;
+
+const SiteLink = styled(Link)`
+    color: ${({color})=>color};
+`;
+
+const Title = styled(SiteLink)`
+    font-size: x-large;
+`;
+    
+const MinorLink = styled(SiteLink)`
+    display: block;
+`;
+
+const ExternalLink = styled.a`
     color: ${({ok=true})=>ok ? blue : grey};
-    margin: 0.5rem;
-    display: inline-block;
 `;
-
-const Button = styled.button`
-    color: ${pink};
-    text-decoration: none;
-    border: none;
-    font-family: inherit;
-    font-size: inherit;
-    background: none;
-    cursor: pointer;
-`;
-
-const Content = styled.main`
-    height: auto;
-    bottom: 0;
-`;
-
-const Footer = styled.footer`
-    border-top: 1px dashed ${grey};
-    margin-top: 1rem;
-`;
-
-const shortcodes = {
-    Noise, 
-    StyledCaption, 
-    Lagrangian, 
-    DataStream, 
-    Particles, 
-    RectilinearGrid, 
-    TriangularMesh, 
-    HexagonalGrid, 
-    Model,
-    OceansideManual,
-    Rubric,
-    Reference,
-    References,
-    Inline,
-    PDF,
-    OpenApi
-};
-
-const links = [
-    {to: "/app", label: "App"},
-    {to: "/oceanside", label: "Game"}
-];
-
-const apiLinks = [
-    {href: "https://graph.oceanics.io", label: "Bathysphere"},
-    {href: "https://bivalve.oceanics.io", label: "Bivalve"},
-    {href: "https://www.oceanics.io", label: "Capsize", ok: false},
-    {href: "https://www.oceanics.io", label: "Squall", ok: false},
-];
 
 export const Layout = ({ 
-    children, 
-    expand=false,
-    className
+    children,
+    className,
+    apiLabel = "APIs",
+    title = "Oceanics.io"
 }) => {
 
-    const apiLabel = "APIs"
     const [hidden, showGutter] = useReducer(prev=>!prev, true);
 
     return <div className={className}>
         
         <NavBar>
-            <SiteTitle to="/">{"Oceanics.io"}</SiteTitle>
-            <Button onClick={showGutter}>
+            <Title to={"/"} color={ghost}>{title}</Title>
+            <button onClick={showGutter}>
                 {apiLabel}
-            </Button>
-            {links.map(({label, to}) =>  
-                <StyledLink to={to}>{label}</StyledLink>
+            </button>
+            {layout.site.map(({label, to, color=pink}, key) =>  
+                <SiteLink 
+                    to={to} 
+                    color={color}
+                    key={`site-link-${key}`}
+                >
+                    {label}
+                </SiteLink>
             )}
         </NavBar>
 
         <NavBar hidden={hidden}>
-            {apiLinks.map(({label, href, ok}) => 
-                <External href={href} ok={ok}>{label}</External>
+            {layout.api.map(({label, href, ok}, key) => 
+                <ExternalLink 
+                    href={href} 
+                    ok={ok}
+                    key={`api-link-${key}`}
+                >   
+                    {label}
+                </ExternalLink>
             )}
         </NavBar>
-        <Content>
-            <MDXProvider components={shortcodes}>{children}</MDXProvider>
-        </Content>
-        <Footer>
-            {[
-                {to: "/references", label: "References"},
-                {to: "/tags", label: "Tags"},
-                {to: "/policy", label: "Policy"}
-            ].map(({label, to}) => 
-                <MinorLink key={label} to={to}>{label}</MinorLink>
+        <main>
+            <MDXProvider components={{
+                Noise, 
+                StyledCaption, 
+                Lagrangian, 
+                DataStream, 
+                Particles, 
+                RectilinearGrid, 
+                TriangularMesh, 
+                HexagonalGrid, 
+                Model,
+                OceansideManual,
+                Rubric,
+                Reference,
+                References,
+                Inline,
+                PDF,
+                OpenApi
+            }}>
+                {children}
+            </MDXProvider>
+        </main>
+        <footer>
+            {layout.footer.map(({label, to}, key) => 
+                <MinorLink 
+                    key={label} 
+                    to={to}
+                    color={ghost}
+                    key={`footer-link-${key}`}
+                >
+                    {label}
+                </MinorLink>
             )}
         
             <p>
                 {`Made with 🏴 in Maine`} <br/>
                 {`No rights reserved, 2018-${new Date().getFullYear()}. `}
             </p>
-        </Footer>
+        </footer>
     </div>
 };
 
@@ -163,6 +153,20 @@ export const StyledLayout = styled(Layout)`
     margin-right: auto;
     max-width: ${({expand})=>expand?"100%":rhythm(24)};
     padding: ${rhythm(1.5)} ${rhythm(0.75)};
+
+    & > main {
+        height: auto;
+        bottom: 0;
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+        border-top: 0.1rem solid ${ghost};
+        border-bottom: 0.1rem solid ${ghost};
+        border-radius: 1rem;
+    }
+
+    & > footer {
+        margin-top: 2rem;
+    }
 `;
 
 export default StyledLayout;

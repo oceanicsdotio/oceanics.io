@@ -8,5 +8,5 @@ export const purple = '#660066FF';
 export const foam = `#AFFFD6FF`;
 export const bruise = `#421F33FF`;
 export const slate = `#AACCCCCC`;
-export const ghost = `#CCCCCCCC`;
+export const ghost = `#CCCCCCFF`;
 export const shadow = `#101010AA`;
