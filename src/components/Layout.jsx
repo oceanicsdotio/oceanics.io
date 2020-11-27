@@ -106,6 +106,7 @@ export const Layout = ({
                 </ExternalLink>
             )}
         </NavBar>
+
         <main>
             <MDXProvider components={{
                 Noise, 
@@ -142,7 +143,7 @@ export const Layout = ({
         
             <p>
                 {`Made with 🏴 in Maine`} <br/>
-                {`No rights reserved, 2018-${new Date().getFullYear()}. `}
+                {`No rights reserved, 2018-${new Date().getFullYear()}`}
             </p>
         </footer>
     </div>
