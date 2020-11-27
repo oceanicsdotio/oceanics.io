@@ -4,7 +4,6 @@ import { MDXProvider } from "@mdx-js/react";
 
 import React, { useReducer }  from "react";
 import { Link } from "gatsby";
-import Login from "./Login";
 import { pink, ghost, grey, blue } from "../palette";
 
 // Shortcode components for MDX child rendering
@@ -114,8 +113,7 @@ const apiLinks = [
 export const Layout = ({ 
     children, 
     expand=false,
-    className,
-    loginCallback=null
+    className
 }) => {
 
     const apiLabel = "APIs"
@@ -134,7 +132,6 @@ export const Layout = ({
                     {apiLabel}
                 </Button>
             </ListItem>
-            <Login onSuccess={loginCallback}/>
             
         </NavBar>
         <NavBar hidden={hidden}>

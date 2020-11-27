@@ -23,15 +23,17 @@ const Wrapper = styled.div`
     grid-auto-rows: minmax(auto, auto);
 `;
 
+
+/*
+Take basic user provided information about a tank and transform
+it into the the nomenclature of the Vessel layout.
+*/
 const tankTemplate = ({
     name,
     capacity=20,
     level,
 }) => {
-    /*
-    Take basic user provided information about a tank and transform
-    it into the the nomenclature of the Vessel layout.
-    */
+    
     return {
         name,
         capacity,

@@ -6,6 +6,7 @@ import SEO from "../components/SEO";
 import Storage from "../components/Storage";
 import Catalog from "../components/Catalog";
 
+import Login from "../components/Login";
 import Map from "../components/Map";
 import style from "../../static/style.yml";
 import layers from "../../static/layers.yml";
@@ -248,6 +249,7 @@ export default ({
         <SEO title={"Ocean analytics as a service"} />
         <Application>
 
+            <Login onSuccess={loginCallback}/>
             <ColumnContainer 
                 row={0} 
                 column={0}
