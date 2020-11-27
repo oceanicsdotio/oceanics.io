@@ -18,6 +18,7 @@ import {Locations} from "../components/Location";
 
 import style from "../../static/style.yml";  // map style
 import layers from "../../static/layers.yml";  // map layers
+import {pink} from "../palette";
 
 const dateFormat = { 
     weekday: 'long', 
@@ -155,6 +156,7 @@ const Header = styled.h1`
 
 const Nav = styled.button`
     background: none;
+    color: ${pink};
     border: none;
     font-size: large;
     cursor: pointer;
