@@ -79,7 +79,7 @@ export const InputWrapper = styled(Input)`
     
     box-sizing: border-box;
 
-    cursor: ${({type}) => type==="button" ? "pointer" : null};
+    cursor: ${({type}) => type === "button" ? "pointer" : null};
     
     -webkit-appearance: none;  /*Removes default chrome and safari style*/
     -moz-appearance: none;  /*Removes default style Firefox*/
@@ -110,7 +110,7 @@ const FormField = styled.div`
 export const Form = ({ 
     id, 
     fields = null, 
-    actions,
+    actions = null,
     callback = null
 }) => {
     /*
@@ -137,7 +137,7 @@ export const Form = ({
             </FormField>
         )}
         
-        {actions.map((props, ii) => 
+        {(actions || []).map((props, ii) => 
             <InputWrapper 
                 key={`${id}-action-${ii}`}
                 type={"button"} 

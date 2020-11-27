@@ -232,10 +232,12 @@ export default ({
 }) => {
    
     const [token, loginCallback] = useState(null);
-    const objectStorageApi = "https://oceanicsdotio.nyc3.digitaloceanspaces.com?delimiter=/";
     
     const tools = {
-        Assets: <Storage target={objectStorageApi}/>,
+        Assets: <Storage 
+            target={"https://oceanicsdotio.nyc3.digitaloceanspaces.com"} 
+            delimiter={"/"}
+        />,
         Account: <Account onSuccess={loginCallback}/>,
         Mission: <Mission {...{team, home, things}}/>,
         Schedule: <Schedule {...{days, team, home, locations}}/>,

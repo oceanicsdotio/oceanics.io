@@ -1,43 +1,25 @@
 import React from "react";
 import styled from "styled-components";
-import {ghost, shadow, grey, pink, blue} from "../palette"
+import {ghost, grey, shadow, orange} from "../palette"
+import {InputWrapper} from "./Form";
 
-const StyledCell = styled.td`
+const StyledInput = styled(InputWrapper)`
+
+    border-color: ${grey};
+    text-align: left;
+    border-radius: 0.25rem;
     margin: 0;
-    padding: 0;
-`;
-
-const StyledHead = styled.th`
-    padding: 0;
-    margin: 1px;
-    color: ${ghost};
-    text-align: left;
-    position: relative;
-`;
-
-const StyledInput = styled.input`
-    padding: 3px;
-    margin: 1px;
-    position: inherit;
-    text-align: left;
-    border: none;
     
-    background: ${grey};
+    background: ${shadow};
     font-family: inherit;
     color: ${ghost};
-    text-decoration: none;
     overflow: hidden;
 
     &:focus {
-        border-color: ${blue};
-        border: 1px solid;
-        margin: 0px;
+        border-color: ${orange};
     }
 
     &:hover:not(:focus) {
-        border: 1px solid;
-        margin: 0px;
-        border-color: ${pink};
         animation: scroll-left 5s linear 1;
     
         @keyframes scroll-left {
@@ -47,12 +29,6 @@ const StyledInput = styled.input`
     } 
 `;
 
-const StyledTable = styled.table`
-    position: relative;
-    width: 100%;
-    visibility: ${({hidden})=>hidden?"hidden":null};
-    overflow: scroll;
-`;
 
 const EditableCell = ({ 
     record, 
@@ -70,18 +46,19 @@ const EditableCell = ({
     } else if (typeof value === "object" && value !== null) {
         value = JSON.stringify(value);
     }
-    return <StyledCell key={ind}>
+    return <td key={ind}>
         <StyledInput 
             onBlur={({target}) => {
                 record[label] = parse ? parse(target.value) : target.value;
             }} 
             defaultValue={format ? format(value) : value} 
         />
-    </StyledCell>
+    </td>
 };
 
-export default ({
+const Table = ({
     records,
+    className,
     schema=null, 
     priority=["uuid", "name"]
 }) => {
@@ -100,13 +77,13 @@ export default ({
 
     const hidden = records === undefined || !records;
     
-    return <StyledTable hidden={hidden}>
+    return <table hidden={hidden} className={className}>
         <thead>
             <tr>
                 {implicitSchema.map(({label}, key) =>
-                    <StyledHead key={key} scope={"col"}>
+                    <th key={key} scope={"col"}>
                         {label}
-                    </StyledHead>
+                    </th>
                 )}
             </tr>
         </thead>
@@ -124,5 +101,29 @@ export default ({
             </tr>
             )}
         </tbody>
-    </StyledTable>
-}
+    </table>
+};
+
+
+const StyledTable = styled(Table)`
+
+    position: relative;
+    width: 100%;
+    visibility: ${({hidden})=>hidden?"hidden":null};
+    overflow: scroll;
+    box-sizing: border-box;
+
+    & > * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    & > th {
+        color: ${ghost};
+        text-align: left;
+        position: relative;
+    }  
+`;
+
+export default StyledTable;
