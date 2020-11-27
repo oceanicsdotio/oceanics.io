@@ -99,7 +99,7 @@ const shortcodes = {
 };
 
 const links = [
-    {to: "/catalog", label: "Catalog"},
+    {to: "/app", label: "App"},
     {to: "/oceanside", label: "Game"}
 ];
 
