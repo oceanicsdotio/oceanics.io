@@ -1,6 +1,7 @@
-import React, {useEffect, useState} from "react";
+import React from "react";
 import styled from "styled-components";
-import Table from "../components/Table";
+import Table from "./Table";
+import useObjectStorage from "../hooks/useObjectStorage";
 
 const StyledError = styled.div`
     color: orange;
@@ -9,53 +10,13 @@ const StyledError = styled.div`
     margin: 0;
 `;
 
-const useObjectStorageHook = ({target}) => {
+export default ({
+    target,
+    order="key",
+}) => {
 
-    const [ fileSystem, setFileSystem ] = useState(null);
-    
-    useEffect(() => {
+    const fileSystem = useObjectStorage({target});
 
-        fetch(target, {
-            method: 'GET',
-            mode: 'cors',
-            cache: 'no-cache'
-        })
-            .then(response => response.text())
-            .then(text => {
-                
-                const parser = new DOMParser();
-                const xmlDoc = parser.parseFromString(text, "text/xml");
-
-                let objects = [];
-                let collections = [];
-                
-                xmlDoc.childNodes[0].childNodes.forEach(node => {
-
-                    if (node.tagName == "Contents") {
-                        objects.push({
-                            key: node.childNodes[0].textContent,
-                            updated: node.childNodes[1].textContent,
-                            size: node.childNodes[3].textContent,
-                        })
-                        
-                    } else if (node.tagName == "CommonPrefixes") {
-                        collections.push(node);
-                    }
-                });
-                setFileSystem(objects);
-            })
-            .catch(err => console.log(err))
-        
-    }, []);
-
-    return fileSystem;
-}
-
-export default ({target}) => {
-
-    const fileSystem = useObjectStorageHook({target});
-
-    const order = "key";
     const schema = [{
         label: "key",
         type: "string"
@@ -69,10 +30,10 @@ export default ({target}) => {
         type: "datetime"
     }];
     
-    return fileSystem ? 
+    return fileSystem && fileSystem.collections ? 
         <Table 
             order={order} 
-            records={fileSystem} 
+            records={fileSystem.collections} 
             schema={schema}
         /> : 
         <StyledError>

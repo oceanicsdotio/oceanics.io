@@ -36,6 +36,7 @@ json:
       
       type: symbol
       layout:
+        icon-allow-overlap: true
         text-field: [
           "match",
           ["get", "facility_t"],

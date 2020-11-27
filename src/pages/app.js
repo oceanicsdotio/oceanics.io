@@ -2,22 +2,22 @@
 import React, { useState, useReducer } from "react"
 import { graphql } from "gatsby";
 import styled from "styled-components";
-import SEO from "../components/SEO";
-import Storage from "../components/Storage";
-import Catalog from "../components/Catalog";
+import {v4 as uuid4} from "uuid";
 
-import Login from "../components/Login";
-import Map from "../components/Map";
-import style from "../../static/style.yml";
-import layers from "../../static/layers.yml";
+import SEO from "../components/SEO";  // SEO headers
+import Storage from "../components/Storage";  // S3 data lake interface
+import Catalog from "../components/Catalog";  // Graph API interface
+import Login from "../components/Login";  // API JWT authorizatio
+import Map from "../components/Map";  // MapBox interface
+import Roster from "../components/Roster";  // People management
+import DataStream from "../components/DataStream";  // visualization
 
-import Roster from "../components/Roster";
 import {Things} from "../components/Thing";
 import {TileSet} from "../components/Oceanside";
 import {Locations} from "../components/Location";
-import DataStream from "../components/DataStream";
 
-import {v4 as uuid4} from "uuid";
+import style from "../../static/style.yml";  // map style
+import layers from "../../static/layers.yml";  // map layers
 
 const dateFormat = { 
     weekday: 'long', 
@@ -88,7 +88,7 @@ const ColumnContainer = styled.div`
     grid-row: ${({row})=>row+1};
     grid-column: ${({column})=>column+1};
     bottom: 0;
-    overflow-x: hidden;
+    overflow-x: scroll;
     margin: 0;
     padding: 0;
 `;
@@ -233,11 +233,12 @@ export default ({
    
     const [token, loginCallback] = useState(null);
     const objectStorageApi = "https://oceanicsdotio.nyc3.digitaloceanspaces.com?delimiter=/";
+    
     const tools = {
+        Assets: <Storage target={objectStorageApi}/>,
         Account: <Account onSuccess={loginCallback}/>,
         Mission: <Mission {...{team, home, things}}/>,
         Schedule: <Schedule {...{days, team, home, locations}}/>,
-        Assets: <Storage target={objectStorageApi}/>,
         Catalog: <Catalog accessToken={token}/>
     };
 
