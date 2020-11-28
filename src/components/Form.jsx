@@ -1,6 +1,6 @@
 import React from "react";
 import styled from "styled-components";
-import {red, ghost, shadow, orange} from "../palette";
+import {red, ghost, shadow, orange, pink, grey} from "../palette";
 
 /**
  * Generic form input component that converts to the
@@ -53,6 +53,10 @@ const Input = ({
     }
 };
 
+/**
+ * The InputWrapper component is a styled version of the standard
+ * Input
+ */
 export const InputWrapper = styled(Input)`
 
     background-color: ${({destructive}) => {
@@ -93,29 +97,61 @@ export const InputWrapper = styled(Input)`
     & > * {
         padding: 0;
         margin: 0;
+        max-width: 100%;
     } 
 `;
 
+
+/**
+ * FormField is the container for a form input
+ * and its metadata.
+ */
 const FormField = styled.div`
 
     margin-bottom: 1rem;  
+    box-sizing: border-box;
 
     & > div {
         color: ${ghost};
         font-size: smaller;
         font-style: italic;
     }  
+
+    & > select {
+        -moz-appearance: none;
+        -webkit-appearance: none;
+        appearance: none;
+        background-color: ${shadow};
+
+        & > option {
+            font-size: inherit;
+            font-family: inherit;
+            color: ${pink};
+        }
+
+        &:focus {
+            border-color: ${orange};
+            box-shadow: none;
+            color: ${orange}; 
+            outline: none;
+        }
+
+        &::-ms-expand {
+            display: none;
+        }
+    }
 `;
 
+/**
+Form component encapuslates behavior of user submission forms.
+*/
 export const Form = ({ 
     id, 
     fields = null, 
     actions = null,
     callback = null
 }) => {
-    /*
-    Form component encapuslates behavior of user submission forms.
-    */
+    
     return <form id={id}>
         {(fields || []).map(({
             name=null,
@@ -148,6 +184,10 @@ export const Form = ({
     </form>
 };
 
+
+/**
+Styled version of the Form component
+*/
 export const StyledForm = styled(Form)`
     display: inline-block;
     align-content: center;

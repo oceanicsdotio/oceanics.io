@@ -6,7 +6,7 @@ import {Popup} from "mapbox-gl";
 
 const PopUpContent = styled.div`
     background: #101010AA;
-    font-family:inherit;
+    font-family: inherit;
     font-size: larger;
     height: fit-content;
     width: fit-content;
