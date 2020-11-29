@@ -2,36 +2,6 @@ import React from "react";
 import PropTypes from "prop-types";
 import styled from "styled-components";
 import Person from "./Person";
-import {ghost} from "../palette";
-
-
-/**
- Area that accepts draggable elements representing, for example, people
- */ 
-const DropTarget = styled.div`
-    width: auto;
-    min-height: ${({hidden}) => hidden ? "0px" : "25px"};
-    border: 2px dashed;
-    border-radius: 3px;
-    margin-bottom: 1%;
-    padding: 2px;
-    visibility: ${({hidden}) => hidden ? "hidden": null};
-`;
-
-
-const StyledRoster = styled.div`
-    color: ${({color=ghost}) => color};
-    margin: 0;
-    padding: 0;
-`;
-
-
-// How many agents the roster will hold
-const CapacityInfo = styled.div`
-    visibility: ${({hidden}) => hidden ? "hidden": null};
-    min-height: ${({hidden}) => hidden ? "0px" : null};
-`;
-
 
 /** 
 The roster component is an interactive list of the people
@@ -40,15 +10,14 @@ might move between locations.
 */
 export const Roster = ({
     capacity,
+    className,
     team=[], 
     hidden=false,
-    transferCallback=null,
-    color=ghost
+    transferCallback=null
 }) => {
  
     /**
-    Makes the mouse icon change to drag version
-    while dragging.
+    Makes the mouse icon change to drag version while dragging.
     */
     const moveIndicator = (event) => {
         event.preventDefault();
@@ -66,21 +35,25 @@ export const Roster = ({
     }
 
     const isFull = Number.isInteger(capacity) ? 
-        Math.floor((team || []).length / capacity) : 
+        Math.floor(team.length / capacity) : 
         false;
 
-    return <StyledRoster color={color}>
-        <CapacityInfo hidden={!Number.isInteger(capacity)}>
-            {isFull ? `Full` : `Crew: ${(team || []).length}/${capacity}`}
-        </CapacityInfo>
-        <DropTarget  
+    return <div className={className}>
+        {
+            Number.isInteger(capacity) ? 
+            isFull ? 
+            `Full` : 
+            `Crew: ${team.length}/${capacity}` : 
+            null
+        }
+        <div  
             hidden={hidden}
             onDragOver={moveIndicator}
             onDrop={allocateCrew}
         >
-            {(team || []).length ? team.map(name => <Person name={name}/>) : null}
-        </DropTarget>
-    </StyledRoster>
+            {team.map(name => <Person name={name} key={name}/>)}
+        </div>
+    </div>
 };
 
 Roster.propTypes = {
@@ -99,7 +72,7 @@ Roster.propTypes = {
      * This allows some control of the amount of data displayed
      * from the client application.
      */
-    hidden: PropTypes.bool.isRequired,
+    hidden: PropTypes.bool,
     /**
      * Callback function that is called whenever a resource
      * is transferred into the roster
@@ -108,7 +81,17 @@ Roster.propTypes = {
     /**
      * Text styling information. Just accepts `color`.
      */
-    style: PropTypes.string.isRequired
+    color: PropTypes.string
 }
 
-export default Roster;
+const StyledRoster = styled(Roster)`
+
+    & > div {
+        visibility: ${({hidden}) => hidden ? "hidden": null};
+        min-height: ${({hidden}) => hidden ? "0px" : "25px"};
+        margin-bottom: 1%;
+        width: 100%;
+    }
+`;
+
+export default StyledRoster;

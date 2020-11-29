@@ -1,13 +1,13 @@
 import React from "react";
 import styled from "styled-components";
-import {green} from "../palette";
+import {green, ghost} from "../palette";
 
 const StyledTextArea = styled.div`
     background: none;
     border: none;
     position: relative;
     display: block;
-    color: ${green};
+    color: ${ghost};
     margin: 0;
     word-wrap: break-word;
     word-break: break-all;
@@ -23,8 +23,7 @@ export default ({
     to collaborativle update information that does not cleanly fit
     into the schema as it currently exists.
     */
-    return (
-        <>
+    return <>
         <h3>
             {heading}
         </h3>
@@ -34,6 +33,6 @@ export default ({
         >
             {placeholder}
         </StyledTextArea>
-        </>
-    )
+    </>
+    
 };

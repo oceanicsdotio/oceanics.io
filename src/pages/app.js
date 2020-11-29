@@ -12,15 +12,16 @@ import Roster from "../components/Roster";  // People management
 import DataStream from "../components/DataStream";  // visualization
 import Calendar from "../components/Calendar";
 import RawBar from "../components/RawBar";
-
-import {Locations} from "../components/Location";
-
-import {Things} from "../components/Thing";
+import {TaskList} from "../components/Task";
+import Location from "../components/Location";
+import TriangularMesh from "../components/TriangularMesh";
+import Thing from "../components/Thing";
+import Note from "../components/Note";
 import {TileSet} from "../components/Oceanside";
 
-import style from "../../static/style.yml";  // map style
-import layers from "../../static/layers.yml";  // map layers
-import {pink} from "../palette";
+// import style from "../../static/style.yml";  // map style
+// import layers from "../../static/layers.yml";  // map layers
+// import {pink} from "../palette";
 
 
 const things = {
@@ -28,7 +29,8 @@ const things = {
         icon: TileSet["boat"],
         capacity: 2,
         tanks: [{
-            name: "starboard aft"
+            name: "starboard aft",
+            capacity: 20,
         },
         {
             name: "port aft",
@@ -54,6 +56,7 @@ const defaultTeam = [
     "HP Lovecraft",
     "Mary Shelley",
     "Arthur Machen",
+    "Octavia Butler"
 ]
 
 const locations = [{
@@ -94,116 +97,104 @@ const ColumnContainer = styled.div`
 // guess where things should be by default
 const home = locations.filter(({home=false}) => home).pop().name;
 
-const Header = styled.h1`
-    margin: auto;
-    margin-bottom: 2rem;
-    border-bottom: 1px solid;
-    border-radius: 2rem;
-    font-size: larger;
-    font-family: inherit;
-
-    & > button {
-        background: none;
-        color: ${pink};
-        border: none;
-        font-size: large;
-        cursor: pointer;
-        margin: 0.5rem;
-        font-family: inherit;
-    }
-`;
-
-
-const Mission = ({team, things, home}) => {
-    return <>
-
-    <h2>{"Daylight"}</h2>
-    <DataStream />
-
-    <h2>{"Team"}</h2>
-    <Roster team={team} />
-
-    <h2>{"Things"}</h2>
-    <Things 
-        things={things}
-        home={home}
-    />
-
-    
-    </>
-};
-
-
-const NavHeader = ({prev, next, children, onPrev, onNext, className}) => {
-    return <div className={className}>
-        <Header >
-            <button onClick={onPrev}>{`< ${prev}`}</button>
-                {children}
-            <button onClick={onNext}>{`${next} >`}</button>
-        </Header>
-    </div>
-}
-
-const RotateSelection = styled(NavHeader)`
-    align-content: center;
-    width: 100%;
-    display: flex; 
-`;
-
 
 const Account = ({onSuccess}) => <div>
     <Login onSuccess={onSuccess}/>
 </div>
 
 
+const Locations = ({
+    locations,
+    home,
+    team=null
+}) => 
+    <>
+        {locations.map(
+            ({tasks, things=null, capacity, ...props}, ii) => 
+                <Location 
+                    key={`location-${ii}`}
+                    {...props}
+                >
+                    <Roster team={props.home && team ? 
+                        [...(props.team || []), ...team]: 
+                        []} capacity={capacity}/>
+                    {things ? <Things things={things} home={home}/> : null}
+                    <TaskList tasks={tasks} heading={"Tasks"}/>
+                </Location>
+            )}
+    </>
+
+
 export default ({ 
     days,
-    team = defaultTeam
+    team = defaultTeam,
+    title ="Ocean analytics as a service",
 }) => {
    
     const [token, loginCallback] = useState(null);
     
-    const tools = [
-        
-        {
-            name: "Calendar",
-            component: <Calendar {...{days, team, home, locations}}>
-                        
-                <Locations 
-                    team={team} 
-                    home={home}
-                    locations={locations}
-                />
+    const tools = [{
+        name: "Calendar",
+        component: 
+            <Calendar {...{days, team, home, locations}}>
+              
+                {Object.entries(things).map(([name, props], ii) => 
+                    <Thing {...{
+                        name, 
+                        home,
+                        key: `things-${ii}`,
+                        ...props
+                    }}/>
+                )}
+                {locations.map(({tasks, things=null, capacity, ...props}, ii) => 
+                    <Location 
+                        key={`location-${ii}`}
+                        {...props}
+                    >
+                        <Roster team={props.home && team ? 
+                            [...(props.team || []), ...team]: 
+                            []} capacity={capacity}/>
+                        {things ? <Things things={things} home={home}/> : null}
+                        <TaskList tasks={tasks} heading={"Tasks"}/>
+                    </Location>
+                )}
+                <Note/>
             </Calendar>
-        },
-        
-        {name: "Account", component: <Account onSuccess={loginCallback}/>},
-        {name: "Mission", component: <Mission {...{team, home, things}}/>},
-        {name: "Catalog", component: <Catalog accessToken={token}/>},
-        {name: "Assets", component: <Storage 
-            target={"https://oceanicsdotio.nyc3.digitaloceanspaces.com"} 
-            delimiter={"/"}
-        />},
-    ];
+    },{
+        name: "Account", 
+        component: 
+            <Account 
+                onSuccess={loginCallback}
+            />
+    },{
+        name: "Catalog", 
+        component: 
+            <Catalog 
+                accessToken={token}
+            />
+    },{
+        name: "Assets", 
+        component: 
+            <Storage 
+                target={"https://oceanicsdotio.nyc3.digitaloceanspaces.com"} 
+                delimiter={"/"}
+            />
+    }];
 
     return <Application>
-        <SEO title={"Ocean analytics as a service"} />
-        <ColumnContainer 
-            row={0} 
-            column={0}
-        >
+        <SEO title={title} />
+        <ColumnContainer row={0} column={0}>
             <RawBar menu={tools}/>
         </ColumnContainer>
 
-        <ColumnContainer 
-            row={0} 
-            column={1}
-        >
-            <Map 
+        <ColumnContainer row={0} column={1}>
+            {/* <Map 
                 style={style} 
                 layers={layers} 
                 accessToken={'pk.eyJ1Ijoib2NlYW5pY3Nkb3RpbyIsImEiOiJjazMwbnRndWkwMGNxM21wYWVuNm1nY3VkIn0.5N7C9UKLKHla4I5UdbOi2Q'}
-            />
+            /> */}
+            <DataStream/>
+            <TriangularMesh/>
         </ColumnContainer>
     </Application>
    

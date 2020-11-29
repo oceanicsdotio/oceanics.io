@@ -1,22 +1,16 @@
 import React, {useState, useReducer} from "react";
 import PropTypes from "prop-types";
 import styled from "styled-components";
+import {orange} from "../palette";
 
 
 // Allows the task name to be re-written
 const Input = styled.input`
     background: none;
     border: none;
-    display: inline;
-    vertical-align: middle;
+    margin: auto;
     text-decoration: ${({complete}) => complete ? "line-through" : null};
-    color: ${({emphasize}) => emphasize ? "orange" : "inherit"};
-`;
-
-
-// UI element to complete, or reset, the task
-const CheckBox = styled.input`
-    display: inline;
+    color: ${({emphasize}) => emphasize ? orange : "inherit"};
 `;
 
 
@@ -44,16 +38,16 @@ const Task = ({task}) => {
  
     return (
         <div>
-            <CheckBox 
+            <input 
                 onClick={toggleComplete} 
                 type={"checkbox"}
-                emphasize={emphasize}
+                emphasize={emphasize ? "emphasize" : undefined}
             />
             <Input 
                 type={"text"} 
                 defaultValue={textContent}
                 complete={complete}
-                emphasize={emphasize}
+                emphasize={emphasize ? "emphasize" : undefined}
                 onBlur={onBlurHandler}
                 onClick={toggleEmphasize}
             />
@@ -68,7 +62,14 @@ Task.propTypes = {
     task: PropTypes.string.isRequired
 }
 
-export default Task;
+const StyledTask = styled(Task)`
+
+    width: 100%;
+    display: flex;
+
+`;
+
+export default StyledTask;
 
 /**
 The tasklist is an editable list of tasks currently associated with a date and location. 
@@ -80,7 +81,7 @@ export const TaskList = ({
     <h3>
         {tasks ? heading : "New task"}
     </h3>
-    {(tasks || []).map(task => <Task {...{task, key: task}}/>)}
+    {(tasks || []).map(task => <StyledTask {...{task, key: task}}/>)}
 </>
 
 TaskList.propTypes = {

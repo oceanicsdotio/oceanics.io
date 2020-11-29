@@ -1,10 +1,5 @@
-import React, {useEffect, useState, useRef} from 'react';
-import styled from "styled-components";
+import {useEffect, useRef} from 'react';
 
-const StyledCanvas = styled.canvas`
-    border: 1px solid orange;
-    position: absolute;
-`;
 
 const preprocessImageData = ({data, width, height}) => {
 
@@ -241,4 +236,5 @@ export default () => {
             });
         });
     },[opRefs]);
+    
 }

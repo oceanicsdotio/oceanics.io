@@ -1,5 +1,6 @@
 import React from "react"
 import styled from "styled-components";
+import {pink} from "../palette";
 
 /**
 This is a service meant to enable automatic reminders and scheduling assistance. 
@@ -31,25 +32,37 @@ const Calendar = ({
         today;
 
     return <div className={className}>
-        <h2>
-            {query.toLocaleDateString(undefined, format)}
-        </h2>
-        <div>
-            {children}
-        </div>
+        <h2>{query.toLocaleDateString(undefined, format)}</h2>
+        {children}
     </div>
-}
+};
 
+
+/**
+ * Styled version of the Single day calendar view
+ */
 export const StyledCalendar = styled(Calendar)`
-    width: 100%;
-    padding: 0;
-    margin: 0;
+
+    align-content: center;
+    display: block;
 
     & > h2 {
-        align-content: center;
+        display: block;
+        font-size: larger;
+        font-family: inherit;
+        width: fit-content;
         margin: auto;
-        display: flex;
-        width: 100%;
+        padding: 0;
+
+        & > button {
+            background: none;
+            color: ${pink};
+            border: none;
+            font-size: large;
+            cursor: pointer;
+            margin: 0.5rem;
+            font-family: inherit;
+        }
     }
 `;
 

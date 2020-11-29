@@ -151,6 +151,7 @@ json:
  
   - render: 
       id: suitability
+      attribtion: Oceanics.io
       type: circle
       paint: 
         circle-radius: 
@@ -160,10 +161,9 @@ json:
         circle-stroke-color: "rgba(255,255,255,0.75)"
     behind: limited-purpose-licenses
 
-
-
   - render: 
       id: aquaculture-leases
+      attribution: Maine DMR
       type: fill
       paint: 
         fill-antialias: false
@@ -173,7 +173,9 @@ json:
 
   - render: 
       id: maine-towns
+      attribution: Maine OIT
       type: line
+      maxzoom: 10
       paint: 
         line-color: "rgba(255,255,255,0.3)"
     behind: aquaculture-leases

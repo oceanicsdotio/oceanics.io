@@ -1,28 +1,7 @@
-import React, { useReducer } from "react";
-import PropTypes from "prop-types";
+import React from "react";
 import styled from "styled-components";
-import { grey, green } from "../palette";
+import { grey, orange } from "../palette";
 import { v4 as uuid4 } from "uuid";
-
-/**
-Selectable person token
- */
-export const StyledPerson = styled.div`
-    display: inline-block;
-    padding: 5px;
-    margin: 2px;
-    border: 2px solid;
-    border-radius: 50%;
-    border-color: ${({available}) => available ? grey : green};
-    background: ${({available}) => available ? green : grey};
-    color: ${({available}) => available ? grey: green};
-    cursor: default;
-`;
-
-StyledPerson.propTypes = {
-    available: PropTypes.bool.isRequired
-}
-
 
 /**
 Used in scheduling and vessel mini-apps to indicate the 
@@ -31,19 +10,16 @@ availability of a person or agent for a scheduled task.
 Style toggles with state. Cursor will not recognize as text.
 */
 const Person = ({
-    name
+    name,
+    className,
 }) => {
     
     const key = uuid4();
-    const [available, toggleAvailability] =  useReducer((previous)=>{
-        return !previous;
-    }, true);
-
-    return <StyledPerson {...{
+   
+    return <div {...{
         id: key,
         key,
-        available, 
-        onClick: toggleAvailability,
+        className,
         draggable: true,
         onDragStart: (event) => {
             event.dataTransfer.setData("text/plain", event.target.id);
@@ -54,14 +30,31 @@ const Person = ({
             .map((word) => {return word ? word[0] : ""})
             .join("")
         }
-    </StyledPerson>
+    </div>
 };
 
-Person.propTypes = {
-    /**
-    Name that will be abbreviated
-     */
-    name: PropTypes.string.isRequired
-}
+/**
+Selectable person token
+ */
+export const StyledPerson = styled(Person)`
 
-export default Person;
+    display: inline-block;
+    padding: 5px;
+    margin: 2px;
+    border: 2px solid;
+    border-radius: 50%;
+    background: none;
+    color: ${orange};
+    cursor: pointer;
+    font-family: inherit;
+    font-size: larger;
+
+    &:hover {
+        border-color: ${orange};
+        background: ${orange};
+        color: ${grey};
+    }
+`;
+
+
+export default StyledPerson;
