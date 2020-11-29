@@ -19,6 +19,7 @@ import Location from "../components/Location";
 import Thing from "../components/Thing";
 import Note from "../components/Note";
 import {TileSet} from "../hooks/useOceanside";
+import TileGlossary from "../components/TileGlossary";
 
 import entities from "../../static/entities.yml";
 
@@ -89,6 +90,9 @@ export default ({
 
     
     const tools = [{
+        name: "Eidola",
+        component: <TileGlossary/>
+    },{
         name: "Calendar",
         component: 
             <Calendar {...{team, home, locations}}>

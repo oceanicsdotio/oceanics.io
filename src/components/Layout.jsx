@@ -7,7 +7,6 @@ import { Link } from "gatsby";
 import { pink, ghost, grey, blue } from "../palette";
 
 // Shortcode components for MDX child rendering
-import OceansideManual from "./OceansideManual";
 import Rubric from "./Rubric";
 import References, {Reference, Inline} from "./References";
 import PDF from "./PDF";
@@ -100,7 +99,6 @@ export const Layout = ({
 
         <main>
             <MDXProvider components={{
-                OceansideManual,
                 Rubric,
                 Reference,
                 References,
