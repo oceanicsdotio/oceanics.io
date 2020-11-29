@@ -16,7 +16,6 @@ import Calendar from "../components/Calendar";
 import RawBar from "../components/RawBar";
 import {TaskList} from "../components/Task";
 import Location from "../components/Location";
-import Lagrangian from "../components/Lagrangian";
 import Thing from "../components/Thing";
 import Note from "../components/Note";
 import {TileSet} from "../hooks/useOceanside";

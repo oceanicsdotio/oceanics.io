@@ -133,3 +133,61 @@
 //         }
 //     ).join(", ")
 // };
+
+
+
+// const DB_NAME = "indexed-db-testing";
+// const DB_VERSION = 2;
+// const DB_STORE = "bathysphere";
+
+
+// function openDatabase({callback, ...args}) {
+
+    //     let request = indexedDB.open(DB_NAME, DB_VERSION); // IDBOpenDBRequest
+    //     let db;
+
+    //     request.onerror = (event) => {
+    //         console.log(event);
+    //     };
+
+    //     request.onsuccess = (event) => {
+    //         db = event.target.result;
+    //         callback({db, ...args});
+    //     };
+
+    //     request.onblocked = (_) => {
+    //         console.log("Close other open tabs to allow database upgrade");
+    //     };
+
+    //     // only implemented in recent browsers
+    //     request.onupgradeneeded = (event) => {
+    //         db = event.target.result;
+    //         let objectStore;
+    //         if (!db.objectStoreNames.contains(DB_STORE)) {
+    //             objectStore = db.createObjectStore(DB_STORE, { keyPath: "url" });
+    //         } else {
+    //             objectStore = request.transaction.objectStore(DB_STORE);
+    //         }
+
+    //         // objectStore.createIndex("value", "value", { unique: false });
+
+    //     };
+    // }
+
+    // const serialize = (obj) => {
+
+    //     if (obj.hasOwnProperty("@iot.id")) {
+    //         Object.keys(obj).forEach(k => {
+    //             if (k.includes("@")) {
+    //                 delete obj[k];
+    //             }
+    //         });
+    //     }
+
+    //     return Object.entries(obj).map(
+    //         ([k, v]) => {
+    //             let val = v instanceof Object ? serialize(v) : v;
+    //             return [k, v].join(": ");
+    //         }
+    //     ).join(", ")
+    // };

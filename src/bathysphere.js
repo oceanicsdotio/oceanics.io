@@ -355,3 +355,57 @@ export const drawCursor = (width, gridSize, ctx, cursor, clamp) => {
         });
     });
 };
+
+export const eventCoordinates = ({clientX, clientY}, canvas) => {
+    // Short hand for element reference frame
+    const {left, top} = canvas.getBoundingClientRect();
+    return [clientX - left, clientY - top]
+}
+
+export const eventGridCell = (coordinates, width, gridSize) => 
+    // short hand for getting location in grid coordinates
+    coordinates
+        .map(dim => dim*window.devicePixelRatio/(width/gridSize));
+
+
+/**
+Convenience method that generates the variables needed
+for common animation loops. 
+*/
+export const targetHtmlCanvas = (ref, context) => {
+    
+
+    [ref.current.width, ref.current.height] = ["width", "height"].map(
+        dim => getComputedStyle(ref.current).getPropertyValue(dim).slice(0, -2)
+    ).map(x => x * window.devicePixelRatio);
+
+    return {
+        start: performance.now(),
+        ctx: ref.current.getContext(context),
+        shape: [ref.current.width, ref.current.height],
+        requestId: null,
+        frames: 0
+    }
+};
+
+
+/**
+If the WASM runtime has been loaded, get the canvas reference and add a mouse event
+listener to update the cursor position for interacting with objects within the 
+canvas rendering context.
+*/
+export const addMouseEvents = (ref, cursor) => {
+   
+    return () => {
+        if (!ref.current || !cursor || cursor === undefined) return;
+        
+        ref.current.addEventListener('mousemove', ({clientX, clientY}) => {
+            const {left, top} = ref.current.getBoundingClientRect();
+            try {
+                cursor.update(clientX-left, clientY-top);
+            } catch (err) {
+                console.log("Cursor error");
+            }
+        });
+    }
+}

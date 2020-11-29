@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { targetHtmlCanvas, addMouseEvents } from "../components/Canvas";
+import { targetHtmlCanvas, addMouseEvents } from "../bathysphere";
 import useWasmRuntime from "./useWasmRuntime";
 
 

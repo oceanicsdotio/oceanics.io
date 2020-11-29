@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { createTexture, ArrayBuffer, compileShaders, extractUniforms } from "../components/Lagrangian";
+import { createTexture, ArrayBuffer, compileShaders, extractUniforms } from "../hooks/useLagrangian";
 import useWasmRuntime from "../hooks/useWasmRuntime";
 
 const exec = (

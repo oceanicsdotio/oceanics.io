@@ -1,6 +1,5 @@
 import { useEffect, useState, useReducer } from "react";
-import { eventCoordinates, eventGridCell, targetHtmlCanvas } from "../components/Canvas";
-import { drawCursor, inverse } from "../bathysphere";
+import { eventCoordinates, eventGridCell, targetHtmlCanvas, drawCursor, inverse } from "../bathysphere";
 import useWasmRuntime from "../hooks/useWasmRuntime";
 import tileSetJSON from "../../static/oceanside.json";
 

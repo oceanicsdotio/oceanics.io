@@ -7,8 +7,6 @@ import { Link } from "gatsby";
 import { pink, ghost, grey, blue } from "../palette";
 
 // Shortcode components for MDX child rendering
-import Lagrangian from "./Lagrangian";
-import {StyledCaption} from "./Canvas";
 import OceansideManual from "./OceansideManual";
 import Rubric from "./Rubric";
 import References, {Reference, Inline} from "./References";
@@ -102,8 +100,6 @@ export const Layout = ({
 
         <main>
             <MDXProvider components={{
-                StyledCaption, 
-                Lagrangian, 
                 OceansideManual,
                 Rubric,
                 Reference,

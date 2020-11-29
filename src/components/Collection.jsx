@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useReducer} from "react";
+import React, {useReducer} from "react";
 import PropTypes from "prop-types";
 import styled from "styled-components";
 import {grey, pink} from "../palette";
@@ -47,30 +47,9 @@ const Collection = ({
         state!==null?state:!prev,
         false
     );
-    const [entities, setEntities] = useState(null);
     const url = baseUrl + name;
+    const {catalog} = useBathysphereApi({accessToken, url});
 
-    useEffect(()=>{
-        (async () => {
-            const collection = await fetch(url, {
-                method: 'GET',
-                mode: 'cors',
-                cache: 'no-cache',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'authorization': `:${accessToken}`
-                }
-            })
-                .then(response => response.json());
-                    
-            if (collection.value === undefined) {
-                console.log("Error fetching collection", collection)
-            } else {
-                console.log(collection);
-                setEntities(collection.value);
-            }
-        })()
-    },[]);
 
     return <div>
         <h3 
@@ -78,15 +57,15 @@ const Collection = ({
             onMouseLeave={() => {toggleExpand(false)}}
         >
             {`${name.replace(/([a-z](?=[A-Z]))/g, '$1 ')} `} 
-            {entities && entities.length ? `(${entities.length})`: null} 
+            {catalog && catalog.length ? `(${catalog.length})`: null} 
            
             <Highlight hidden={!expand}>
                 <Button>
-                    {`${entities ? "⤫" : "↻"} ${url}`}
+                    {`${catalog ? "⤫" : "↻"} ${url}`}
                 </Button>
             </Highlight>
         </h3>
-        <Table records={entities}/>
+        <Table records={catalog}/>
     </div>
 };
 

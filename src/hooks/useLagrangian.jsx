@@ -1,6 +1,5 @@
-import React, { useEffect, useState, useRef } from "react";
-import { loadRuntime } from "../components/Canvas";
-import { StyledCanvas } from "../hooks/useParticleSystem";
+import { useEffect, useState } from "react";
+import useWasmRuntime from "./useWasmRuntime";
 
 
 export class ArrayBuffer {
@@ -125,7 +124,6 @@ export const exec = (runtime, ctx, uniforms, {
 }
 
 
-
 export const createTexture = (ctx) => {
     return ([k, { filter = ctx.NEAREST, data, shape = [null, null] }]) => {
 
@@ -158,6 +156,8 @@ export const createTexture = (ctx) => {
 };
 
 export default ({
+    ref,
+    preview,
     res = Math.ceil(Math.sqrt(1000)),
     metadataFile,
     showVelocityField=false,
@@ -180,12 +180,10 @@ export default ({
     */
 
     const positions = [0, 0, res, res];
-    const ref = useRef(null);
-    const preview = useRef(null);
+  
 
     const [ready, setReady] = useState(false);
     const [assets, setAssets] = useState(null);
-    const [runtime, setRuntime] = useState(null);
     const [programs, setPrograms] = useState(null);
     const [particles, setParticles] = useState(null);
     const [metadata, setMetadata] = useState(null);
@@ -195,7 +193,6 @@ export default ({
         screen: ["quad-vertex", "screen-fragment"],
         update: ["quad-vertex", "update-fragment"]
     };
-
 
 
     useEffect(() => {
@@ -223,7 +220,7 @@ export default ({
         })()
     }, []);
 
-    useEffect(loadRuntime(setRuntime), []);  // web assembly binaries
+    const runtime = useWasmRuntime();
 
     useEffect(() => {
         /*
@@ -397,10 +394,4 @@ export default ({
     }, [preview, assets]);
 
 
-    return (
-        <>
-            <StyledCanvas ref={ref} />
-            {showVelocityField ? <StyledCanvas ref={preview} /> : null}
-        </>
-    )
 };
