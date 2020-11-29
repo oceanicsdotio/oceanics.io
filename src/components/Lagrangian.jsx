@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { loadRuntime } from "../components/Canvas";
-import { StyledCanvas } from "../components/Particles";
+import { StyledCanvas } from "../hooks/useParticleSystem";
 
 
 export class ArrayBuffer {

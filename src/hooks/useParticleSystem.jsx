@@ -1,15 +1,9 @@
-import React, { useState, useEffect, useRef } from "react";
-import styled from "styled-components";
-import useWasmRuntime from "../hooks/useWasmRuntime";
+import { useState, useEffect } from "react";
+import useWasmRuntime from "./useWasmRuntime";
 
-export const StyledCanvas = styled.canvas`
-    position: relative;
-    width: 100%;
-    height: 400px;
-    cursor: none;
-`;
 
 export default ({
+    ref,
     count=9,
     zero=0.2,
     radius=8.0,
@@ -37,7 +31,6 @@ export default ({
     Spring physics are handled by Rust/WASM.
     */
 
-    const ref = useRef(null);
     const runtime = useWasmRuntime();
     const [particleSystem, setParticleSystem] = useState(null);
     const style = {backgroundColor, overlayColor, lineWidth, fontSize, tickSize, labelPadding, fade, radius, particleColor, radius};
@@ -48,7 +41,6 @@ export default ({
         */
         if (runtime) setParticleSystem(new runtime.InteractiveGroup(count, zero, springConstant, 0.0));
     }, [runtime]);
-
 
     const mouseMoveEventListener = (canvas, data) => {
         // recursive use error on line below when panic! in rust
@@ -93,5 +85,5 @@ export default ({
         return () => cancelAnimationFrame(requestId);
     }, [particleSystem]);
 
-    return <StyledCanvas ref={ref} />;
+    return {particleSystem, runtime};
 };
