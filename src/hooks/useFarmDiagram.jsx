@@ -1,24 +1,16 @@
 import React, { useState, useEffect, useRef } from "react";
-import { loadRuntime, targetHtmlCanvas, addMouseEvents } from "../components/Canvas";
+import { targetHtmlCanvas, addMouseEvents } from "../components/Canvas";
 import styled from "styled-components";
 import {pathFromGridCell} from "../bathysphere";
-import useWasmRuntime from "../hooks/useWasmRuntime";
+import useWasmRuntime from "./useWasmRuntime";
 
-export const StyledCanvas = styled.canvas`
-    position: relative;
-    width: 500px;
-    height: 500px;
-    border: 1px solid purple;
-`;
 
 export default ({
+    ref,
     overlayColor=`#77CCFFFF`,
     backgroundColor=`#000000CC`,
 }) => {
-    /*
-    Triangles
-    */
-    const ref = useRef(null);
+   
     const runtime = useWasmRuntime();
 
     useEffect(() => {
@@ -156,5 +148,5 @@ export default ({
         return () => cancelAnimationFrame(requestId);
     }, [runtime]);
 
-    return <StyledCanvas ref={ref} />;
+    return {runtime};
 };

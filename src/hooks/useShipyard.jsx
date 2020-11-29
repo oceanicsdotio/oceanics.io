@@ -1,16 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
-import { loadRuntime, targetHtmlCanvas, addMouseEvents } from "../components/Canvas";
-import styled from "styled-components";
-import useWasmRuntime from "../hooks/useWasmRuntime";
+import { targetHtmlCanvas, addMouseEvents } from "../components/Canvas";
+import useWasmRuntime from "./useWasmRuntime";
 
-
-export const StyledCanvas = styled.canvas`
-    position: relative;
-    width: 100%;
-    height: 400px;
-`;
 
 export default ({
+    ref,
     font=`16px Arial`,
     meshColor=`#AFFFD6FF`,
     overlayColor=`#77CCFFFF`,
@@ -21,8 +15,6 @@ export default ({
     /*
     Triangles
     */
-
-    const ref = useRef(null);
     const runtime = useWasmRuntime(null);
     const [mesh, setMesh] = useState(null);
     const [cursor, setCursor] = useState(null);
@@ -97,5 +89,5 @@ export default ({
         return () => cancelAnimationFrame(requestId);
     }, [mesh]);
 
-    return <StyledCanvas ref={ref} />;
+    return {mesh, runtime};
 };

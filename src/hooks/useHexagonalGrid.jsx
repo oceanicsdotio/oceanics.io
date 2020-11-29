@@ -1,15 +1,10 @@
-import React, { useState, useEffect, useRef } from "react";
-import { targetHtmlCanvas, addMouseEvents } from "./Canvas";
-import styled from "styled-components";
-import useWasmRuntime from "../hooks/useWasmRuntime";
+import { useState, useEffect } from "react";
+import { targetHtmlCanvas, addMouseEvents } from "../components/Canvas";
+import useWasmRuntime from "./useWasmRuntime";
 
-export const StyledCanvas = styled.canvas`
-    position: relative;
-    width: 100%;
-    height: 400px;
-`;
 
 export default ({
+    ref,
     font=`24px Arial`,
     shape=[25,25],
     gridColor=`#EF5FA1FF`,
@@ -22,8 +17,6 @@ export default ({
     /*
     Triangles
     */
-
-    const ref = useRef(null);
     const runtime = useWasmRuntime();
     const [grid, setGrid] = useState(null);
     const [cursor, setCursor] = useState(null);
@@ -66,5 +59,5 @@ export default ({
         return () => cancelAnimationFrame(requestId);
     }, [grid, cursor]);
 
-    return <StyledCanvas ref={ref} />;
+    return {hexGrid: grid, cursor};
 };

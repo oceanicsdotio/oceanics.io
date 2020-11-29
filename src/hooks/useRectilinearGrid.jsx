@@ -1,15 +1,9 @@
-import React, { useState, useEffect, useRef } from "react";
-import styled from "styled-components";
+import { useState, useEffect } from "react";
 import useWasmRuntime from "../hooks/useWasmRuntime";
 
-export const StyledCanvas = styled.canvas`
-    position: relative;
-    width: 100%;
-    height: 400px;
-    cursor: none;
-`;
 
 export default ({
+    ref,
     shape=[32, 32, 1],
     gridColor=`#421F33FF`,
     overlayColor=`#CCCCCCFF`,
@@ -24,7 +18,6 @@ export default ({
     Rectangles
     */
     const layers = 1;
-    const ref = useRef(null);
     const runtime = useWasmRuntime();
     const [grid, setGrid] = useState(null);
     const style = {backgroundColor, gridColor, overlayColor, lineWidth, fontSize, tickSize, labelPadding};
@@ -60,5 +53,5 @@ export default ({
         return () => cancelAnimationFrame(requestId);
     }, [grid]);
 
-    return <StyledCanvas ref={ref} />;
+    return {grid};
 };

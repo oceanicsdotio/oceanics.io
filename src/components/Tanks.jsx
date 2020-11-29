@@ -1,7 +1,5 @@
 import React, {useReducer} from "react";
 import styled from "styled-components";
-import Roster from "./Roster";
-import Form from "./Form";
 import {ghost,grey,green,orange} from "../palette";
 
 import { v4 as uuid4 } from "uuid";

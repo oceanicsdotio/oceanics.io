@@ -1,7 +1,12 @@
 
-import React, { useState, useReducer } from "react"
+import React, { useState, useRef } from "react"
 import { graphql } from "gatsby";
 import styled from "styled-components";
+
+import useRectilinearGrid from "../hooks/useRectilinearGrid";
+import useTriangularMesh from "../hooks/useTriangularMesh";
+import useHexagonalGrid from "../hooks/useHexagonalGrid";
+
 
 import SEO from "../components/SEO";  // SEO headers
 import Storage from "../components/Storage";  // S3 data lake interface
@@ -14,7 +19,7 @@ import Calendar from "../components/Calendar";
 import RawBar from "../components/RawBar";
 import {TaskList} from "../components/Task";
 import Location from "../components/Location";
-import TriangularMesh from "../components/TriangularMesh";
+import Lagrangian from "../components/Lagrangian";
 import Thing from "../components/Thing";
 import Note from "../components/Note";
 import {TileSet} from "../components/Oceanside";
@@ -97,6 +102,12 @@ const ColumnContainer = styled.div`
 // guess where things should be by default
 const home = locations.filter(({home=false}) => home).pop().name;
 
+const StyledCanvas = styled.canvas`
+    position: relative;
+    width: 100%;
+    height: 400px;
+    cursor: none;
+`;
 
 const Account = ({onSuccess}) => <div>
     <Login onSuccess={onSuccess}/>
@@ -132,6 +143,9 @@ export default ({
 }) => {
    
     const [token, loginCallback] = useState(null);
+    const ref = useRef(null);
+
+    const _1 = useHexagonalGrid({ref});
     
     const tools = [{
         name: "Calendar",
@@ -193,8 +207,7 @@ export default ({
                 layers={layers} 
                 accessToken={'pk.eyJ1Ijoib2NlYW5pY3Nkb3RpbyIsImEiOiJjazMwbnRndWkwMGNxM21wYWVuNm1nY3VkIn0.5N7C9UKLKHla4I5UdbOi2Q'}
             /> */}
-            <DataStream/>
-            <TriangularMesh/>
+            <StyledCanvas ref={ref} />
         </ColumnContainer>
     </Application>
    

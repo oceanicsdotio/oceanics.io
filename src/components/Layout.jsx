@@ -12,10 +12,6 @@ import Lagrangian from "./Lagrangian";
 import {StyledCaption} from "./Canvas";
 import DataStream from "./DataStream";
 import Particles from "./Particles";
-import RectilinearGrid from "./RectilinearGrid";
-import TriangularMesh from "./TriangularMesh";
-import HexagonalGrid from "./HexagonalGrid";
-import Model from "./Model";
 import OceansideManual from "./OceansideManual";
 import Rubric from "./Rubric";
 import References, {Reference, Inline} from "./References";
@@ -113,11 +109,7 @@ export const Layout = ({
                 StyledCaption, 
                 Lagrangian, 
                 DataStream, 
-                Particles, 
-                RectilinearGrid, 
-                TriangularMesh, 
-                HexagonalGrid, 
-                Model,
+                Particles,
                 OceansideManual,
                 Rubric,
                 Reference,
