@@ -68,7 +68,7 @@ const Oceanside = ({className}) => {
 
     const nav = useRef(null);  // minimap for navigation
     const board = useRef(null);  // animated GIF tiles
-    const {takeAnActionOrWait, populateVisibleTiles} = useOceanside({nav, board});
+    const {worldSize, map, clock, takeAnActionOrWait, populateVisibleTiles} = useOceanside({nav, board});
 
     return <div className={className}>
         <div>

@@ -3,7 +3,6 @@ import React, { useState, useRef } from "react"
 import { graphql } from "gatsby";
 import styled from "styled-components";
 
-import useHexagonalGrid from "../hooks/useHexagonalGrid";
 import useFractalNoise from "../hooks/useFractalNoise";
 
 import SEO from "../components/SEO";  // SEO headers
@@ -20,63 +19,14 @@ import Thing from "../components/Thing";
 import Note from "../components/Note";
 import {TileSet} from "../hooks/useOceanside";
 
-// import style from "../../static/style.yml";  // map style
-// import layers from "../../static/layers.yml";  // map layers
-// import {pink} from "../palette";
+import entities from "../../static/entities.yml";
 
-
-const things = {
-    "R/V Lloigor": {
-        icon: TileSet["boat"],
-        capacity: 2,
-        tanks: [{
-            name: "starboard aft",
-            capacity: 20,
-        },
-        {
-            name: "port aft",
-            level: 4,
-        },
-        {
-            name: "starboard forward",
-            level: 5.5,
-        },
-        {
-            name: "port forward",
-            level: 8.75,
-        }]
-    },
-    "Sealab": {
-        icon: TileSet["laboratory"],
-        home: "Farm",
-        capacity: 6
-    }
-};
-
-const defaultTeam = [
-    "HP Lovecraft",
-    "Mary Shelley",
-    "Arthur Machen",
-    "Octavia Butler"
-]
-
-const locations = [{
-    name: "Wharf",
-    icon: TileSet["wharf"],
-    home: true,
-    capacity: 4,
-    tasks: ["do a thing", "fix me"]
-}, {
-    name: "Farm",
-    icon: TileSet["fish"],
-    tasks: ["harvest"]
-}];
-
+const {locations, things} = entities;
 
 const Application = styled.div`
     display: grid;
     grid-gap: 5px;
-    grid-template-columns: 3fr 4fr;
+    grid-template-columns: 1fr 1fr;
     grid-auto-rows: minmax(50px, auto);
     margin: 0;
     padding: 0;
@@ -105,20 +55,20 @@ const ColumnContainer = styled.div`
 const home = locations.filter(({home=false}) => home).pop().name;
 
 export default ({ 
-    days,
-    team = defaultTeam,
-    title ="Ocean analytics as a service",
+    team = entities.team,
+    title = "Ocean analytics as a service",
+    mapBoxAccessToken = 'pk.eyJ1Ijoib2NlYW5pY3Nkb3RpbyIsImEiOiJjazMwbnRndWkwMGNxM21wYWVuNm1nY3VkIn0.5N7C9UKLKHla4I5UdbOi2Q'
 }) => {
    
     const [token, loginCallback] = useState(null);
     const ref = useRef(null);
-
+    
     useFractalNoise({ref});
     
     const tools = [{
         name: "Calendar",
         component: 
-            <Calendar {...{days, team, home, locations}}>
+            <Calendar {...{team, home, locations}}>
               
                 {Object.entries(things).map(([name, props], ii) => 
                     <Thing {...{
@@ -128,9 +78,10 @@ export default ({
                         ...props
                     }}/>
                 )}
-                {locations.map(({tasks, things=null, capacity, ...props}, ii) => 
+                {locations.map(({tasks, things=null, capacity, icon=null, ...props}, ii) => 
                     <Location 
                         key={`location-${ii}`}
+                        icon={icon ? TileSet[icon] : null}
                         {...props}
                     >
                         <Roster team={props.home && team ? 
@@ -163,6 +114,7 @@ export default ({
             />
     }];
 
+  
     return <Application>
         <SEO title={title} />
         <ColumnContainer row={0} column={0}>
@@ -170,11 +122,10 @@ export default ({
         </ColumnContainer>
 
         <ColumnContainer row={0} column={1}>
+            
             {/* <Map 
-                style={style} 
-                layers={layers} 
-                accessToken={'pk.eyJ1Ijoib2NlYW5pY3Nkb3RpbyIsImEiOiJjazMwbnRndWkwMGNxM21wYWVuNm1nY3VkIn0.5N7C9UKLKHla4I5UdbOi2Q'}
-            /> */}
+                accessToken={mapBoxAccessToken}
+            />  */}
             <canvas ref={ref} />
         </ColumnContainer>
     </Application>

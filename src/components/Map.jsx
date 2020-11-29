@@ -7,13 +7,16 @@ import useMapBox from "../hooks/useMapBox";
 import useMapboxHighlightEvent from "../hooks/useMapBoxHighlightEvent";
 import useMapboxGeoJsonSource from "../hooks/useMapboxGeoJsonSource";
 
+import defaultStyle from "../../static/style.yml";  // map style
+import defaultLayers from "../../static/layers.yml";  // map layers
+
 
 /*
 The Map component. 
 */
 const Map = ({
-    layers, 
-    style,
+    layers=defaultLayers, 
+    style=defaultStyle,
     accessToken,
     className,
     center = [-69, 44]
@@ -59,7 +62,7 @@ const Map = ({
         })
     });
        
-    return <div ref={container} className={className}/>
+    return <div ref={ref} className={className}/>
 };
 
 const MapContainer = styled(Map)`

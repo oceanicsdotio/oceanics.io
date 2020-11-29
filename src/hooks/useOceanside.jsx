@@ -334,6 +334,6 @@ export default ({
         return () => cancelAnimationFrame(requestId);
     }, [tiles, clamp])
     TileSet
-    return {clock, takeAnActionOrWait, TileSet, populateVisibleTiles}
+    return {worldSize, map, clock, takeAnActionOrWait, TileSet, populateVisibleTiles}
     
 };

@@ -67,6 +67,7 @@ const RotateSelection = styled(AppContext)`
 */
 export const RawBar = ({ 
     menu,
+    callback=null,
     className
 }) => {
     
@@ -75,12 +76,16 @@ export const RawBar = ({
             x = (x + dx) % menu.length;
             x = x + (x < 0 ? menu.length : 0);
         
-            return {
+            const data = {
                 x,
                 app: menu[x],
                 prev: menu[x ? x - 1 : menu.length -1].name,
                 next: menu[(x + 1) % menu.length].name
-            }
+            };
+
+            if (callback) callback(data);
+
+            return data;
         }, {
             x: 0,
             app: menu[0],
