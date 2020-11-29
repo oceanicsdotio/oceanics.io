@@ -4,14 +4,11 @@ import { MDXProvider } from "@mdx-js/react";
 
 import React, { useReducer }  from "react";
 import { Link } from "gatsby";
-import { pink, ghost, grey, blue, bone } from "../palette";
+import { pink, ghost, grey, blue } from "../palette";
 
 // Shortcode components for MDX child rendering
-import Noise from "./Noise";
 import Lagrangian from "./Lagrangian";
 import {StyledCaption} from "./Canvas";
-import DataStream from "./DataStream";
-import Particles from "./Particles";
 import OceansideManual from "./OceansideManual";
 import Rubric from "./Rubric";
 import References, {Reference, Inline} from "./References";
@@ -105,11 +102,8 @@ export const Layout = ({
 
         <main>
             <MDXProvider components={{
-                Noise, 
                 StyledCaption, 
                 Lagrangian, 
-                DataStream, 
-                Particles,
                 OceansideManual,
                 Rubric,
                 Reference,

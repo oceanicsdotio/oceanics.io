@@ -1,5 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
-import { StyledCanvas } from "../components/Particles";
+import { useEffect, useState } from "react";
 import { createTexture, ArrayBuffer, compileShaders, extractUniforms } from "../components/Lagrangian";
 import useWasmRuntime from "../hooks/useWasmRuntime";
 
@@ -110,13 +109,12 @@ const doubleBufferedPipeline = (ref, ctx, assets, programs) => {
 };
 
 export default ({
+    ref, 
     opacity = 1.0 // how fast the image blends
 }) => {
     /*
     Make some noise
     */
-
-    const ref = useRef(null);
 
     const [ready, setReady] = useState(false);
     const [assets, setAssets] = useState(null);
@@ -169,5 +167,4 @@ export default ({
         return () => cancelAnimationFrame(requestId);
     }, [programs, ready]);
 
-    return <StyledCanvas ref={ref}/>
 };

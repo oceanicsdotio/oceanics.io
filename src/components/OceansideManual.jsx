@@ -1,6 +1,6 @@
 import React from "react";
 import styled from "styled-components";
-import {TileSet} from "./Oceanside";
+import {TileSet} from "../hooks/useOceanside";
 
 
 const TileTitle = styled.h3`

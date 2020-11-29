@@ -3,10 +3,8 @@ import React, { useState, useRef } from "react"
 import { graphql } from "gatsby";
 import styled from "styled-components";
 
-import useRectilinearGrid from "../hooks/useRectilinearGrid";
-import useTriangularMesh from "../hooks/useTriangularMesh";
 import useHexagonalGrid from "../hooks/useHexagonalGrid";
-
+import useFractalNoise from "../hooks/useFractalNoise";
 
 import SEO from "../components/SEO";  // SEO headers
 import Storage from "../components/Storage";  // S3 data lake interface
@@ -14,7 +12,6 @@ import Catalog from "../components/Catalog";  // Graph API interface
 import Login from "../components/Login";  // API JWT authorizatio
 import Map from "../components/Map";  // MapBox interface
 import Roster from "../components/Roster";  // People management
-import DataStream from "../components/DataStream";  // visualization
 import Calendar from "../components/Calendar";
 import RawBar from "../components/RawBar";
 import {TaskList} from "../components/Task";
@@ -22,7 +19,7 @@ import Location from "../components/Location";
 import Lagrangian from "../components/Lagrangian";
 import Thing from "../components/Thing";
 import Note from "../components/Note";
-import {TileSet} from "../components/Oceanside";
+import {TileSet} from "../hooks/useOceanside";
 
 // import style from "../../static/style.yml";  // map style
 // import layers from "../../static/layers.yml";  // map layers
@@ -145,7 +142,7 @@ export default ({
     const [token, loginCallback] = useState(null);
     const ref = useRef(null);
 
-    const _1 = useHexagonalGrid({ref});
+    const _1 = useFractalNoise({ref});
     
     const tools = [{
         name: "Calendar",
