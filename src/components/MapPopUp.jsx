@@ -213,11 +213,20 @@ export const popups = Object.fromEntries(Object.entries({
     const placeholder = document.createElement('div');
     ReactDOM.render(<PopUpContent children={jsx}/>, placeholder);
 
-    return [key, new Popup({
-        className: "map-popup",
-        closeButton,
-        closeOnClick
-    })
-        .setLngLat(coordinates)
-        .setDOMContent(placeholder) ]
+    let popup;
+    try {
+        popup = new Popup({
+            className: "map-popup",
+            closeButton,
+            closeOnClick
+        })
+            .setLngLat(coordinates)
+            .setDOMContent(placeholder);
+    } catch {
+        console.log("Coordindates", coordinates)
+        popup = null;
+    }
+
+
+    return [key,  popup]
 }));

@@ -65,8 +65,8 @@ export default () => {
         return 0;
     });
 
-    return (<>
+    return <>
         {sortedByName.map((x, ii) => refListItem(x.name, ii === sortedByName.length))}
         {sortedByName.map((x, ii) => <TileInfo key={ii} tile={x}/>)}
-    </>)
+    </>
 }
