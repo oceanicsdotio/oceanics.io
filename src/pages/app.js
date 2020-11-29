@@ -93,44 +93,16 @@ const ColumnContainer = styled.div`
     overflow-x: hidden;
     margin: 0;
     padding: 0;
+
+    & > canvas {
+        width: 100%;
+        height: 100%;
+        cursor: none;
+    }
 `;
 
 // guess where things should be by default
 const home = locations.filter(({home=false}) => home).pop().name;
-
-const StyledCanvas = styled.canvas`
-    position: relative;
-    width: 100%;
-    height: 400px;
-    cursor: none;
-`;
-
-const Account = ({onSuccess}) => <div>
-    <Login onSuccess={onSuccess}/>
-</div>
-
-
-const Locations = ({
-    locations,
-    home,
-    team=null
-}) => 
-    <>
-        {locations.map(
-            ({tasks, things=null, capacity, ...props}, ii) => 
-                <Location 
-                    key={`location-${ii}`}
-                    {...props}
-                >
-                    <Roster team={props.home && team ? 
-                        [...(props.team || []), ...team]: 
-                        []} capacity={capacity}/>
-                    {things ? <Things things={things} home={home}/> : null}
-                    <TaskList tasks={tasks} heading={"Tasks"}/>
-                </Location>
-            )}
-    </>
-
 
 export default ({ 
     days,
@@ -141,7 +113,7 @@ export default ({
     const [token, loginCallback] = useState(null);
     const ref = useRef(null);
 
-    const _1 = useFractalNoise({ref});
+    useFractalNoise({ref});
     
     const tools = [{
         name: "Calendar",
@@ -173,9 +145,9 @@ export default ({
     },{
         name: "Account", 
         component: 
-            <Account 
-                onSuccess={loginCallback}
-            />
+            <div>
+                <Login onSuccess={loginCallback}/>
+            </div>
     },{
         name: "Catalog", 
         component: 
@@ -203,7 +175,7 @@ export default ({
                 layers={layers} 
                 accessToken={'pk.eyJ1Ijoib2NlYW5pY3Nkb3RpbyIsImEiOiJjazMwbnRndWkwMGNxM21wYWVuNm1nY3VkIn0.5N7C9UKLKHla4I5UdbOi2Q'}
             /> */}
-            <StyledCanvas ref={ref} />
+            <canvas ref={ref} />
         </ColumnContainer>
     </Application>
    
