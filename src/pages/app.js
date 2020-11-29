@@ -4,6 +4,7 @@ import { graphql } from "gatsby";
 import styled from "styled-components";
 
 import useFractalNoise from "../hooks/useFractalNoise";
+import useOceanside from "../hooks/useOceanside";
 
 import SEO from "../components/SEO";  // SEO headers
 import Storage from "../components/Storage";  // S3 data lake interface
@@ -48,8 +49,27 @@ const ColumnContainer = styled.div`
         width: 100%;
         height: 100%;
         cursor: none;
+        image-rendering: pixelated;
     }
+
 `;
+
+
+/*
+Canvas uses crisp-edges to preserve pixelated style of map.
+*/
+const StyledCanvas = styled.canvas`
+    display: inline-block;
+    image-rendering: crisp-edges;
+    position: relative;
+    left: 0;
+    bottom: 0;
+    width: 128px;
+    height: 128px;
+    margin: 10px;
+    border: orange 1px solid;
+`;
+
 
 // guess where things should be by default
 const home = locations.filter(({home=false}) => home).pop().name;
@@ -62,8 +82,11 @@ export default ({
    
     const [token, loginCallback] = useState(null);
     const ref = useRef(null);
+    const nav = useRef(null);  // minimap for navigation
     
-    useFractalNoise({ref});
+    // useFractalNoise({ref});
+    const {worldSize, map, clock, onBoardClick, onNavClick} = useOceanside({nav, board: ref});
+
     
     const tools = [{
         name: "Calendar",
@@ -126,7 +149,24 @@ export default ({
             {/* <Map 
                 accessToken={mapBoxAccessToken}
             />  */}
-            <canvas ref={ref} />
+            {/* <canvas ref={ref} /> */}
+            <div>
+                {clock ? `${clock.date.toLocaleDateString()} ${18-2*(clock.actions ? clock.actions : 0)}:00, Balance: $${map ? map.score() : 0.0}` : null  }
+            </div>
+           
+            <canvas
+                ref={ref}
+                onClick={onBoardClick}
+            />
+            <div>
+                <StyledCanvas
+                    ref={nav}
+                    width={worldSize}
+                    height={worldSize}
+                    onClick={onNavClick}
+                />
+            </div>    
+    
         </ColumnContainer>
     </Application>
    

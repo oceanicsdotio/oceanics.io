@@ -2,9 +2,6 @@ site:
   - to: "/app"
     label: "App"
 
-  - to: "/oceanside"
-    label: "Game"
-
 api:
   - href: "https://graph.oceanics.io"
     label: "Bathysphere"

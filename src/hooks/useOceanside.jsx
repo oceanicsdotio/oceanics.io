@@ -142,16 +142,6 @@ const tomorrow = (date) =>
     new Date(date.setDate(date.getDate()+1));
 
 
-export default ({
-    nav,
-    board,
-    gridSize = 6, 
-    worldSize = 32, 
-    waterLevel = 0.7,
-    actionsPerDay = 6,
-    startDate = [2025, 3, 1],
-    endTurnMessage = "Bettah wait 'til tomorrow."
- }) => {
     /*
     The `Oceanside` component contains all of the functionality to
     embed the game in any web page using React.
@@ -182,7 +172,17 @@ export default ({
     effect on game play. 
 
     */
-
+export default ({
+    nav,
+    board,
+    gridSize = 6, 
+    worldSize = 32, 
+    waterLevel = 0.7,
+    actionsPerDay = 6,
+    startDate = [2025, 3, 1],
+    endTurnMessage = "Bettah wait 'til tomorrow."
+ }) => {
+   
     const [map, setMap] = useState(null);  // map from rust
     const runtime = useWasmRuntime();
     const [clamp, setClamp] = useState(false); // clamp cursor to grid
@@ -256,6 +256,7 @@ export default ({
     // If shortcut keys are pressed, toggle clamp
     keystrokeReducerHook(["Shift", "C"], () => {setClamp(!clamp)});
 
+    
     useEffect(() => {
         /*
         When the runtime loads for the first time, create a pixel map instance and draw the generated world to the canvas, then save the map reference to react state.
@@ -299,7 +300,7 @@ export default ({
         tile set object. 
         */
 
-        if (!board.current || !tiles) return;
+        if (!board || !board.current || !tiles) return;
 
         const canvas = board.current;
         let cursor = null;
@@ -334,6 +335,26 @@ export default ({
         return () => cancelAnimationFrame(requestId);
     }, [tiles, clamp])
     TileSet
-    return {worldSize, map, clock, takeAnActionOrWait, TileSet, populateVisibleTiles}
+    return {
+        worldSize, 
+        map, 
+        clock, 
+        onBoardClick: 
+            (event) => {
+                event.persist(); // otherwise React eats it
+                try {
+                    takeAnActionOrWait(event);
+                } catch (err) {
+                    console.log(err);
+                }
+            }, 
+        onNavClick: 
+            (event) => {
+                event.persist();
+                populateVisibleTiles(map, event, nav);
+            },
+        TileSet, 
+        populateVisibleTiles
+    }
     
 };
