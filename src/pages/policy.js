@@ -14,52 +14,32 @@ export default ({
     <SEO title={"Policy"} />
     <h1>Policy</h1>
 
-    <h2>Privacy</h2>
-
-    <h3>Data we collect</h3>
+    <h2>Data we collect</h2>
 
     <p>
-    Our website is <a>https://www.oceanics.io</a>. When you visit our site, your IP address and browser user agent string may be collected.
+    Our website is <a>https://www.oceanics.io</a>. When you visit our site, your IP address and browser user agent string may be collected. We may retain all requests made to our APIs and subdomains.
     </p>
-
     <p>
-    We do not run screen or navigation tracking, but we do retain all requests made to our APIs and subdomains.
+    When you visit subdomains of our site interactive, we will attempt to load executable code in the from of data vizualization web components. These may track your mouse and keystrokes to provide interface options.
     </p>
-
     <p>
-    If you access location-based services you will be asked if you want to share your location.
+    If you access location-based services you will be asked if you want to share your location. None of these data are transmitted, and are used only while the browser remains open.
     </p>
-
-    <p>
-    These data are not transmitted, and are only used while the browser remains open.
-    </p>
-
     <p>
     If you have an account and log in, we grant you a temporary token to access our services. This contains no personal data and is valid for a fixed amount of time. It may be stored in your browser. 
     </p>
 
-    <h3>Uses of your data</h3>
+    <h2>Uses of your data</h2>
 
     <p>
-    We do not share your data, nor use it for automated decision-making and/or profiling.
+    We do not share your data, nor use it for automated decision-making and/or profiling. We do generate anonymous metrics to guide research activity.
     </p>
-
-    <p>
-    We do generate anonymous metrics to guide research activity.
-    </p>
-
     <p>
     Derived products may include training materials, open source code and software, trained models, simulation results, and primary sensor observations.
     </p>
     <p>
-    Depending on uses of infrastructure by industry partners, proprietary or business data may be exposed to risk.
-    </p>
-    <p>
-    If improperly configured, the network could provide ingress for
-    attacks into enterprise networks.
-    </p>
-    <p>
-    Data could also be destroyed accidentally or maliciously.
+    Depending on uses of infrastructure by industry partners, proprietary or business data may be exposed to risk. If improperly configured, the network could provide ingress for
+    attacks into enterprise networks, or result in the loss of data.
     </p>
 
     <h3>Your rights</h3>
@@ -74,7 +54,7 @@ export default ({
     <h3>How we protect data</h3>
 
     <p>
-    We manage risk by implementing good security practices, and backing up critical assets and repositories.
+    We manage risk by implementing good security practices, and backing up critical assets and repositories. Raw data from sensors, satellites and models are backed-up in a redundant data lake.
 
     We take precautions in preserving privacy and confidentiality through controlled access, and strong authorization methods.
     </p>
