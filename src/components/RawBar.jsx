@@ -118,7 +118,6 @@ const StyledRawBar = styled(RawBar)`
         padding-top: 1rem;
         padding-bottom: 1rem;
         border-top: 0.1rem solid ${ghost};
-        border-bottom: 0.1rem solid ${ghost};
         border-radius: 1rem;
     }
 `;

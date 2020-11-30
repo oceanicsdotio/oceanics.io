@@ -9,9 +9,9 @@ const Tags = ({
     group,
 }) => 
     <div className={className}>
-        {group.map(({fieldValue, totalCount, link}, ii) => 
+        {group.map(({text, link}, ii) => 
             <Link key={`tags-${ii}`} to={link}>
-                {`${fieldValue} (${totalCount})`}
+                {text}
             </Link>
         )}
     </div>

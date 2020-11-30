@@ -6,6 +6,7 @@ import useObjectStorage from "../hooks/useObjectStorage";
 import useBathysphereApi from "../hooks/useBathysphereApi";
 import {grey} from "../palette";
 import {TileSet} from "../hooks/useOceanside";
+import Tags from "./Tags";
 
 
 // make the name usable as a page anchor
@@ -18,8 +19,7 @@ const TileInfo = ({
         name, 
         data, 
         description=null,
-        becomes=[],
-        ...tile
+        becomes=[]
     }, 
     className
 }) => {
@@ -37,10 +37,15 @@ const TileInfo = ({
         {becomes.length ? 
             <p>
                 {"Becomes: "}
-                {becomes
-                    .map(x => TileSet[x].name)
-                    .map(x => <a href={`#${transformName(x)}`}>{x}</a>)
-                }
+                <Tags group={
+                    becomes
+                        .map(x => TileSet[x])
+                        .map(({name}) => Object({
+                            link: `#${transformName(name)}`,
+                            text: name
+                        }))
+                    }
+                />
             </p> : 
             null
         }

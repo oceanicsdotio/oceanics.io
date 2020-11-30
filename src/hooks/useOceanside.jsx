@@ -325,7 +325,10 @@ export default ({
 
             if (cursor) drawCursor(width, gridSize, ctx, cursor, clamp);
             
-            runtime.draw_caption(ctx, `Oceanside`, 0.0, height, "#FFFFFFFF", "12px Arial");
+
+            const caption = `${clock.date.toLocaleDateString()} ${18-2*(clock.actions ? clock.actions : 0)}:00, Balance: $${map ? map.score() : 0.0}`;
+
+            runtime.draw_caption(ctx, caption, 0.0, height, "#FFFFFFFF", "36px Arial");
 
             frames = runtime.draw_fps(ctx, frames, time, "#FFFFFFFF");
             requestId = requestAnimationFrame(render);
@@ -336,9 +339,7 @@ export default ({
     }, [tiles, clamp])
     TileSet
     return {
-        worldSize, 
-        map, 
-        clock, 
+        worldSize,  
         onBoardClick: 
             (event) => {
                 event.persist(); // otherwise React eats it

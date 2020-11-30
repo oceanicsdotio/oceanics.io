@@ -5,6 +5,8 @@ import Thing from "./Thing";
 import Roster from "./Roster";
 import {TaskList} from "./Task";
 import Location from "./Location";
+import {TileSet} from "../hooks/useOceanside";
+import Note from "./Note";
 
 /**
 This is a service meant to enable automatic reminders and scheduling assistance. 
@@ -20,8 +22,10 @@ Features:
 
 const Calendar = ({
     offset,
+    team,
     className,
     things,
+    home,
     locations,
     format = { 
         weekday: 'long', 

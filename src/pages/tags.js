@@ -3,7 +3,6 @@ import Layout from "../components/Layout";
 import SEO from "../components/SEO";
 import { graphql } from "gatsby";
 import Tags from "../components/Tags";
-
 import kebabCase from "lodash/kebabCase";
 
 export default ({
@@ -16,10 +15,10 @@ export default ({
     },
 }) => 
     <Layout location={location} title={title}>
-        <SEO title={"Content tags"} />
-        <Tags group={group.map(props => Object({
-            link: `/tags/${kebabCase(props.fieldValue)}`,
-            ...props
+        <SEO title={"Content Topics"} />
+        <Tags group={group.map(({fieldValue, totalCount}) => Object({
+            link: `/tags/${kebabCase(fieldValue)}`,
+            text: `${fieldValue} (${totalCount})`
         }))}/>
     </Layout>
 
