@@ -19,12 +19,11 @@ export default ({
     const heading = "References";
     const citations = nodes.flatMap(node => node.frontmatter.citations).filter(x => !!x)
 
-    return (
-        <Layout location={location} title={title}>
-            <SEO title={heading}/>
-            <References heading={heading} references={citations}/>
-        </Layout>
-    )
+    return <Layout location={location} title={title}>
+        <SEO title={heading}/>
+        <References heading={heading} references={citations}/>
+    </Layout>
+    
 };
 
 export const pageQuery = graphql`

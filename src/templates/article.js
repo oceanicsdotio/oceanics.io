@@ -31,26 +31,23 @@ const BlogPostTemplate = ({
         } 
     }, 
     location 
-}) => {
-
-    return (
-        <Layout location={location} title={title}>
-            <SEO
-                title={frontmatter.title}
-                description={frontmatter.description || excerpt}
-            />
-            <article>
-                <header>
-                    <StyledHeader>{frontmatter.title}</StyledHeader>
-                    <StyledParagraph>{frontmatter.date}</StyledParagraph>
-                </header>
-                <hr />
-                <MDXRenderer>{body}</MDXRenderer>
-                {frontmatter.citations ? <References heading={"References"} references={(frontmatter.citations || [])} /> : null }
-            </article>
-        </Layout>
-    )
-}
+}) => 
+    <Layout location={location} title={title}>
+        <SEO
+            title={frontmatter.title}
+            description={frontmatter.description || excerpt}
+        />
+        <article>
+            <header>
+                <StyledHeader>{frontmatter.title}</StyledHeader>
+                <StyledParagraph>{frontmatter.date}</StyledParagraph>
+            </header>
+            <hr />
+            <MDXRenderer>{body}</MDXRenderer>
+            {frontmatter.citations ? <References heading={"References"} references={(frontmatter.citations || [])} /> : null }
+        </article>
+    </Layout>
+  
 
 export default BlogPostTemplate
 

@@ -33,7 +33,7 @@ export default ({
     with GraphQL.
     */    
     return (
-        <Layout location={location} title={null}>
+        <Layout location={location}>
             <SEO title={"Situational awareness for a changing ocean"} />
             <h1>{"Resources"}</h1>
             <List>

@@ -17,9 +17,9 @@ export default ({location, data: {site: {siteMetadata: {title}}}}) => {
     return (
       <Layout location={location} title={title}>
         <SEO title="404: Not Found" />
-        <h1>Does not compute</h1>
-        <p>You can't get there from here bub.</p>
-        <StyledImage src="/dagan-sprite.gif"/>
+        <h1>{"Does not compute"}</h1>
+        <p>{"You can't get there from here bub."}</p>
+        <StyledImage src={"/dagan-sprite.gif"}/>
       </Layout>
     )
 };

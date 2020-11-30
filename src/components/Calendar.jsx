@@ -1,6 +1,10 @@
 import React from "react"
 import styled from "styled-components";
 import {pink} from "../palette";
+import Thing from "./Thing";
+import Roster from "./Roster";
+import {TaskList} from "./Task";
+import Location from "./Location";
 
 /**
 This is a service meant to enable automatic reminders and scheduling assistance. 
@@ -17,7 +21,8 @@ Features:
 const Calendar = ({
     offset,
     className,
-    children,
+    things,
+    locations,
     format = { 
         weekday: 'long', 
         month: 'short', 
@@ -33,7 +38,28 @@ const Calendar = ({
 
     return <div className={className}>
         <h2>{query.toLocaleDateString(undefined, format)}</h2>
-        {children}
+        {Object.entries(things).map(([name, props], ii) => 
+            <Thing {...{
+                name, 
+                home,
+                key: `things-${ii}`,
+                ...props
+            }}/>
+        )}
+        {locations.map(({tasks, things=null, capacity, icon=null, ...props}, ii) => 
+            <Location 
+                key={`location-${ii}`}
+                icon={icon ? TileSet[icon] : null}
+                {...props}
+            >
+                <Roster team={props.home && team ? 
+                    [...(props.team || []), ...team]: 
+                    []} capacity={capacity}/>
+                {things ? <Things things={things} home={home}/> : null}
+                <TaskList tasks={tasks} heading={"Tasks"}/>
+            </Location>
+        )}
+        <Note/>
     </div>
 };
 

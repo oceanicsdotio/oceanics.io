@@ -7,7 +7,6 @@ import useFractalNoise from "../hooks/useFractalNoise";
 import useOceanside from "../hooks/useOceanside";
 
 import SEO from "../components/SEO";  // SEO headers
-import Storage from "../components/Storage";  // S3 data lake interface
 import Catalog from "../components/Catalog";  // Graph API interface
 import Login from "../components/Login";  // API JWT authorizatio
 import Map from "../components/Map";  // MapBox interface
@@ -19,11 +18,11 @@ import Location from "../components/Location";
 import Thing from "../components/Thing";
 import Note from "../components/Note";
 import {TileSet} from "../hooks/useOceanside";
-import TileGlossary from "../components/TileGlossary";
 
 import entities from "../../static/entities.yml";
 
 const {locations, things} = entities;
+const storageTarget = "https://oceanicsdotio.nyc3.digitaloceanspaces.com";
 
 const Application = styled.div`
     display: grid;
@@ -55,7 +54,6 @@ const ColumnContainer = styled.div`
 
 `;
 
-
 /*
 Canvas uses crisp-edges to preserve pixelated style of map.
 */
@@ -71,117 +69,79 @@ const StyledCanvas = styled.canvas`
     border: orange 1px solid;
 `;
 
+const LeftColumn = () => {
 
-// guess where things should be by default
-const home = locations.filter(({home=false}) => home).pop().name;
-
-export default ({ 
-    team = entities.team,
-    title = "Ocean analytics as a service",
-    mapBoxAccessToken = 'pk.eyJ1Ijoib2NlYW5pY3Nkb3RpbyIsImEiOiJjazMwbnRndWkwMGNxM21wYWVuNm1nY3VkIn0.5N7C9UKLKHla4I5UdbOi2Q'
-}) => {
-   
     const [token, loginCallback] = useState(null);
+   
+    const tools = [{
+        name: "Account", 
+        component: <Login onSuccess={loginCallback}/>   
+    },{
+        name: "Catalog", 
+        component: <Catalog {...{
+            graph: {accessToken: token},
+            storage: {target: storageTarget}
+        }}/>
+    },{
+        name: "Calendar",
+        component: <Calendar {...{
+            team, home, locations, things
+        }}/>
+    }];
+
+    return <ColumnContainer row={0} column={0}>
+        <RawBar menu={tools}/>
+    </ColumnContainer>
+};
+
+
+const RightColumn = () => {
+
+
     const ref = useRef(null);
     const nav = useRef(null);  // minimap for navigation
+
     
     // useFractalNoise({ref});
     const {worldSize, map, clock, onBoardClick, onNavClick} = useOceanside({nav, board: ref});
 
-    
-    const tools = [{
-        name: "Eidola",
-        component: <TileGlossary/>
-    },{
-        name: "Calendar",
-        component: 
-            <Calendar {...{team, home, locations}}>
-              
-                {Object.entries(things).map(([name, props], ii) => 
-                    <Thing {...{
-                        name, 
-                        home,
-                        key: `things-${ii}`,
-                        ...props
-                    }}/>
-                )}
-                {locations.map(({tasks, things=null, capacity, icon=null, ...props}, ii) => 
-                    <Location 
-                        key={`location-${ii}`}
-                        icon={icon ? TileSet[icon] : null}
-                        {...props}
-                    >
-                        <Roster team={props.home && team ? 
-                            [...(props.team || []), ...team]: 
-                            []} capacity={capacity}/>
-                        {things ? <Things things={things} home={home}/> : null}
-                        <TaskList tasks={tasks} heading={"Tasks"}/>
-                    </Location>
-                )}
-                <Note/>
-            </Calendar>
-    },{
-        name: "Account", 
-        component: 
-            <div>
-                <Login onSuccess={loginCallback}/>
-            </div>
-    },{
-        name: "Catalog", 
-        component: 
-            <Catalog 
-                accessToken={token}
-            />
-    },{
-        name: "Assets", 
-        component: 
-            <Storage 
-                target={"https://oceanicsdotio.nyc3.digitaloceanspaces.com"} 
-                delimiter={"/"}
-            />
-    }];
 
-  
+    return <ColumnContainer row={0} column={1}>
+        
+        {/* <Map 
+            accessToken={mapBoxAccessToken}
+        />  */}
+        {/* <canvas ref={ref} /> */}
+        <div>
+            {clock ? `${clock.date.toLocaleDateString()} ${18-2*(clock.actions ? clock.actions : 0)}:00, Balance: $${map ? map.score() : 0.0}` : null  }
+        </div>
+        
+        <canvas
+            ref={ref}
+            onClick={onBoardClick}
+        />
+        <div>
+            <StyledCanvas
+                ref={nav}
+                width={worldSize}
+                height={worldSize}
+                onClick={onNavClick}
+            />
+        </div>    
+
+    </ColumnContainer>
+
+}
+// guess where things should be by default
+const home = locations.filter(({home=false}) => home).pop().name;
+const team  = entities.team;
+const title = "Ocean analytics as a service";
+const mapBoxAccessToken = 'pk.eyJ1Ijoib2NlYW5pY3Nkb3RpbyIsImEiOiJjazMwbnRndWkwMGNxM21wYWVuNm1nY3VkIn0.5N7C9UKLKHla4I5UdbOi2Q';
+
+export default () => {
     return <Application>
         <SEO title={title} />
-        <ColumnContainer row={0} column={0}>
-            <RawBar menu={tools}/>
-        </ColumnContainer>
-
-        <ColumnContainer row={0} column={1}>
-            
-            {/* <Map 
-                accessToken={mapBoxAccessToken}
-            />  */}
-            {/* <canvas ref={ref} /> */}
-            <div>
-                {clock ? `${clock.date.toLocaleDateString()} ${18-2*(clock.actions ? clock.actions : 0)}:00, Balance: $${map ? map.score() : 0.0}` : null  }
-            </div>
-           
-            <canvas
-                ref={ref}
-                onClick={onBoardClick}
-            />
-            <div>
-                <StyledCanvas
-                    ref={nav}
-                    width={worldSize}
-                    height={worldSize}
-                    onClick={onNavClick}
-                />
-            </div>    
-    
-        </ColumnContainer>
-    </Application>
-   
+        <LeftColumn/>
+        <RightColumn/>
+    </Application> 
 };
-
-export const pageQuery = graphql`
-  query {
-    site {
-      siteMetadata {
-        title
-      }
-    }
-  }
-`;

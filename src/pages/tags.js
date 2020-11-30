@@ -1,29 +1,10 @@
 import React from "react";
-import styled from "styled-components";
-import kebabCase from "lodash/kebabCase";
 import Layout from "../components/Layout";
 import SEO from "../components/SEO";
-import { Link, graphql } from "gatsby";
-import {ghost} from "../palette";
+import { graphql } from "gatsby";
+import Tags from "../components/Tags";
 
-const ListItem = styled.li`
-    margin: 1%;
-    padding: 1%;
-    display: inline-block;
-    border: 0.5px solid;
-    border-radius: 3px;
-    color: ${ghost};
-`;
-
-const StyledLink = styled(Link)`
-    text-decoration: none;
-    color: ${ghost};
-`;
-
-const List = styled.ul`
-    margin: 0;
-    padding: 0;
-`;
+import kebabCase from "lodash/kebabCase";
 
 export default ({
     location,
@@ -33,21 +14,15 @@ export default ({
             siteMetadata: { title },
         },
     },
-}) => (
+}) => 
     <Layout location={location} title={title}>
-        <SEO title="Content tags" />
-        <h1>{"Tags"}</h1>
-        <List>
-            {group.map(({fieldValue, totalCount}) => (
-                <ListItem key={fieldValue}>
-                    <StyledLink to={`/tags/${kebabCase(fieldValue)}/`}>
-                        {`${fieldValue} (${totalCount})`}
-                    </StyledLink>
-                </ListItem>
-            ))}
-        </List>
+        <SEO title={"Content tags"} />
+        <Tags group={group.map(props => Object({
+            link: `/tags/${kebabCase(props.fieldValue)}`,
+            ...props
+        }))}/>
     </Layout>
-)
+
 
 export const pageQuery = graphql`
     query {
