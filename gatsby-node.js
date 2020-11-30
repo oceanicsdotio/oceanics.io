@@ -90,7 +90,17 @@ exports.createPages = async ({ graphql, actions: {createPage} }) => {
 
     const pagesQueue = {};
 
-    nodes.forEach(({fields: {slug}, frontmatter: {tags, title, citations}}, index) => {
+    nodes.forEach(({
+        fields: {
+            slug
+        }, 
+        frontmatter: {
+            tags, 
+            title, 
+            citations
+        }
+    }, index) => {
+        
         createPage({
             path: slug,
             component: path.resolve(`src/templates/article.js`),
