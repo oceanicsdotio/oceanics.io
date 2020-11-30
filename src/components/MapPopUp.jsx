@@ -209,7 +209,7 @@ export const popups = Object.fromEntries(Object.entries({
     coordinates, 
     closeButton=true, 
     closeOnClick=true
-}])=>{
+}])=>()=>{
     const placeholder = document.createElement('div');
     ReactDOM.render(<PopUpContent children={jsx}/>, placeholder);
 
