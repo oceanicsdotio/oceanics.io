@@ -71,9 +71,6 @@ export const Layout = ({
         
         <NavBar>
             <Title to={"/"} color={ghost}>{title}</Title>
-            <button onClick={showGutter}>
-                {apiLabel}
-            </button>
             {layout.site.map(({label, to, color=pink}, key) =>  
                 <SiteLink 
                     to={to} 
@@ -83,6 +80,9 @@ export const Layout = ({
                     {label}
                 </SiteLink>
             )}
+            <button onClick={showGutter}>
+                {apiLabel}
+            </button>
         </NavBar>
 
         <NavBar hidden={hidden}>

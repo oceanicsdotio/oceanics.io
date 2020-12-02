@@ -9,12 +9,9 @@ export default ({
     location,
     data: {
         allMdx: { group },
-        site: {
-            siteMetadata: { title },
-        },
     },
 }) => 
-    <Layout location={location} title={title}>
+    <Layout location={location} title={"Tags"}>
         <SEO title={"Content Topics"} />
         <Tags group={group.map(({fieldValue, totalCount}) => Object({
             link: `/tags/${kebabCase(fieldValue)}`,

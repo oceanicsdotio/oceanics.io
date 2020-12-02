@@ -11,6 +11,7 @@ import Login from "../components/Login";  // API JWT authorizatio
 import Map from "../components/Map";  // MapBox interface
 import Calendar from "../components/Calendar";
 import RawBar from "../components/RawBar";
+import Form from "../components/Form";
 
 import entities from "../../static/entities.yml";
 
@@ -31,40 +32,47 @@ const Application = styled.div`
 
 
 const ColumnContainer = styled.div`
+
+    display: ${({display})=>display};
     grid-row: ${({row})=>row+1};
     grid-column: ${({column})=>column+1};
-    bottom: 0;
     overflow-x: hidden;
+
+    bottom: 0;
     margin: 0;
     padding: 0;
+`;
 
-    & > canvas {
-        position: relative;
-        width: 100%;
-        height: 100%;
-        cursor: none;
-        image-rendering: pixelated;
-        z-index: 1;
-    }
-
+const Canvas = styled.canvas`
+    position: relative;
+    display: ${({display})=>display};
+    width: 100%;
+    height: 100%;
+    cursor: none;
+    image-rendering: pixelated;
 `;
 
 /*
 Canvas uses crisp-edges to preserve pixelated style of map.
 */
-const StyledCanvas = styled.canvas`
-    display: inline-block;
+const Preview = styled.canvas`
+    display: ${({display="block"})=>display};
     image-rendering: crisp-edges;
-    position: absolute;
-    right: 0;
-    bottom: 0;
+    width: 128px;
+    height: 128px;
+`;
+
+
+const Overlay = styled.div`
+    display: ${({display})=>display};
+    position: fixed;
     width: 128px;
     height: 128px;
     margin: 10px;
-    border: ${orange} 1px solid;
-    z-index: 2;
+    border: ${orange} 0.2rem solid;
+    top: 1rem;
+    right: 1rem;
 `;
-
 
 // guess where things should be by default
 const home = locations.filter(({home=false}) => home).pop().name;
@@ -77,7 +85,13 @@ export default () => {
     const ref = useRef(null);
     const nav = useRef(null);  // minimap for navigation
     const [token, loginCallback] = useState(null);
-    const showMap = true;
+    
+    const show = {
+        Map: true,
+        Overlay: true,
+        Canvas: true,
+        Preview: true,
+    }
 
     // useFractalNoise({ref});
     const {
@@ -108,24 +122,24 @@ export default () => {
         
         <ColumnContainer row={0} column={1}>
             
-            {showMap ? <Map 
+            <Map 
+                display={show.Map ? undefined : "none"}
                 accessToken={mapBoxAccessToken}
-            /> :
-            <>
-            <canvas
+            />
+            
+            <Canvas
                 ref={ref}
                 onClick={onBoardClick}
-            />
-            <div>
-                <StyledCanvas
+            /> 
+            <Overlay display={show.Overlay}>
+                <button>{"Swap"}</button>
+                <Preview
                     ref={nav}
                     width={worldSize}
                     height={worldSize}
                     onClick={onNavClick}
                 />
-            </div> 
-            </>   }
-
+            </Overlay>
         </ColumnContainer>
     </Application> 
 };

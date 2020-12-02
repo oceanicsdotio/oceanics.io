@@ -12,8 +12,6 @@ export default ({
     }
 }) => <Layout location={location} title={title}>
     <SEO title={"Policy"} />
-    <h1>Policy</h1>
-
     <h2>Data we collect</h2>
 
     <p>

@@ -70,6 +70,7 @@ const MapContainer = styled(Map)`
     width: 100%;
     padding: 0;
     margin: 0;
+    display: ${({display})=>display};
 `;
 
 export default MapContainer;

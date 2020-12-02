@@ -32,7 +32,7 @@ const SEO = ({ description, lang, meta, title }) => {
     return (
         <Helmet
             htmlAttributes={{lang}}
-            title={"Oceanicsdotio"}
+            title={"Oceanics.io"}
             titleTemplate={`%s | ${title}`}
             meta={[
                 {
