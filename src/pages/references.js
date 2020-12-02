@@ -11,16 +11,17 @@ export default ({
     data: {
         allMdx: { nodes }
     },
-}) => <Layout location={location} title={heading}>
-    <SEO title={heading}/>
-    <References 
-        heading={null}
-        references={
-            nodes.flatMap(({frontmatter: {citations}}) => citations)
-                 .filter(x => !!x)
-        }
-    />
-</Layout>
+}) => 
+    <Layout location={location} title={heading}>
+        <SEO title={heading}/>
+        <References 
+            heading={null}
+            references={
+                nodes.flatMap(({frontmatter: {citations}}) => citations)
+                    .filter(x => !!x)
+            }
+        />
+    </Layout>
   
 
 export const pageQuery = graphql`

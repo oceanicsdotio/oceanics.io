@@ -4,10 +4,7 @@ module.exports = {
         title: `Oceanics.io`,
         author: `Nicholas Keeney`,
         description: `Situational awareness for a changing ocean`,
-        siteUrl: `https://www.oceanics.io`,
-        social: {
-            twitter: `oceanicsdotio`,
-        },
+        siteUrl: `https://www.oceanics.io`
     },
     plugins: [
         {
