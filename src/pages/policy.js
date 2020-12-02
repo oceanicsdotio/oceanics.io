@@ -34,7 +34,7 @@ export default ({
     attacks into enterprise networks, or result in the loss of data.
     </p>
 
-    <h3>Your rights</h3>
+    <h2>Your data rights</h2>
     <p>
     All users can see, edit, or delete personal information at any time.
     
@@ -43,7 +43,7 @@ export default ({
     You can also request we erase personal data we hold about you.
     </p>
 
-    <h3>How we protect data</h3>
+    <h2>How we protect your data</h2>
 
     <p>
     We manage risk by implementing good security practices, and backing up critical assets and repositories. Raw data from sensors, satellites and models are backed-up in a redundant data lake.
