@@ -1,16 +1,10 @@
 import React from "react";
-import { graphql } from "gatsby";
 import Layout from "../components/Layout";
 import SEO from "../components/SEO";
 
 export default ({
-    location, 
-    data: {
-        site: {
-            siteMetadata: {title}
-        }
-    }
-}) => <Layout location={location} title={title}>
+    location
+}) => <Layout location={location} title={"Policy"}>
     <SEO title={"Policy"} />
     <h2>Data we collect</h2>
 
@@ -127,14 +121,3 @@ export default ({
     Information is conveyed in both visual and written forms.
     </p>
 </Layout>
-
-
-export const pageQuery = graphql`
-    query {
-        site {
-            siteMetadata {
-                title
-            }
-        }
-    }
-`
