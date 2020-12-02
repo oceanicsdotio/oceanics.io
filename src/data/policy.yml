@@ -1,0 +1,9 @@
+- heading: Data we collect
+  text: |
+    Our website is https://www.oceanics.io. When you visit our site, your IP address and browser user agent string may be collected. We may retain all requests made to our APIs and subdomains.
+   
+    When you visit subdomains of our site interactive, we will attempt to load executable code in the from of data vizualization web components. These may track your mouse and keystrokes to provide interface options.
+   
+    If you access location-based services you will be asked if you want to share your location. None of these data are transmitted, and are used only while the browser remains open.
+   
+    If you have an account and log in, we grant you a temporary token to access our services. This contains no personal data and is valid for a fixed amount of time. It may be stored in your browser. 

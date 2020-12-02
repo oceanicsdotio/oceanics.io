@@ -1,20 +1,41 @@
 const path = require(`path`);
 const _ = require("lodash");
+const YAML = require("yaml");
 const { createFilePath } = require(`gatsby-source-filesystem`);
 const WasmPackPlugin = require("@wasm-tool/wasm-pack-plugin");
+
 
 // https://www.gatsbyjs.org/docs/debugging-html-builds/
 // https://loadable-components.com/
 
+
+ /*
+Some of the canonical fields do not contain uniquely identifying information. Technically,
+the same content might appear in two places. 
+*/
 const referenceHash = ({authors, title, year, journal}) => {
-    /*
-    Some of the canonical fields do not contain uniquely identifying information. Technically,
-    the same content might appear in two places. 
-    */
+   
     const stringRepr = `${authors.join("").toLowerCase()} ${year} ${title.toLowerCase()}`.replace(/\s/g, "");
     const hashCode = s => s.split('').reduce((a,b) => (((a << 5) - a) + b.charCodeAt(0))|0, 0);
     return hashCode(stringRepr);
-}
+};
+
+
+const WasmPackConfig = {
+    devtool: 'eval-source-map',
+    stats: 'verbose',
+    plugins: [
+        new WasmPackPlugin({
+            crateDirectory: path.resolve(__dirname, "src/rust"),
+            args: "--log-level warn --verbose",
+            extraArgs: "--no-typescript --target bundler",
+            outDir: "src/wasm",
+            outName: "neritics",
+            pluginLogLevel: "error",
+            forceMode: "development",
+        }),
+    ]
+};
 
 exports.onCreateWebpackConfig = ({ stage, loaders, actions }) => {
     if (stage === 'build-html') {
@@ -31,44 +52,19 @@ exports.onCreateWebpackConfig = ({ stage, loaders, actions }) => {
                 ]
             }
         })
-    } else if (stage === 'develop') {
-        actions.setWebpackConfig({
-            devtool: 'eval-source-map',
-            stats: 'verbose',
-            plugins: [
-                new WasmPackPlugin({
-                    crateDirectory: path.resolve(__dirname, "src/rust"),
-                    args: "--log-level warn --verbose",
-                    extraArgs: "--no-typescript --target bundler",
-                    outDir: "src/wasm",
-                    outName: "neritics",
-                    pluginLogLevel: "error",
-                    forceMode: "development",
-                }),
-            ]
-        });
-    } else if (stage === 'build') {
-        actions.setWebpackConfig({
-            devtool: 'eval-source-map',
-            stats: 'verbose',
-            plugins: [
-                new WasmPackPlugin({
-                    crateDirectory: path.resolve(__dirname, "src/rust"),
-                    args: "--log-level warn --verbose",
-                    extraArgs: "--no-typescript --target bundler",
-                    outDir: "src/wasm",
-                    outName: "neritics",
-                    pluginLogLevel: "error",
-                    forceMode: "development",
-                }),
-            ]
-        });
+    } else if (stage === 'develop' || stage === 'build') {
+        actions.setWebpackConfig(WasmPackConfig);
     }
 }
 
-exports.createPages = async ({ graphql, actions: {createPage} }) => {
-   
-    const {errors, data: {allMdx: {nodes}}} = await graphql(`{
+exports.createPages = async ({ 
+    graphql, 
+    actions: {
+        createPage
+    } 
+}) => {
+
+    const mdxQuery = `{
         allMdx(
             sort: { fields: [frontmatter___date], order: DESC }
             limit: 1000
@@ -84,11 +80,28 @@ exports.createPages = async ({ graphql, actions: {createPage} }) => {
                 }
             }  
         }
-    }`);
+    }`;
 
-    if (errors) throw errors;
+    if (yml.errors !== undefined || yml.errors) throw mdx.errors;
+
+    const {
+        data: {
+            allMdx: {nodes}
+        },
+        ...mdx
+    } = await graphql(mdxQuery);
+
+    if (mdx.errors !== undefined || mdx.errors) throw mdx.errors;
 
     const pagesQueue = {};
+
+    createPage({
+        path: "",
+        component: path.resolve(`src/templates/article.js`),
+        context: {
+            
+        },
+    });
 
     nodes.forEach(({
         fields: {
@@ -143,13 +156,18 @@ exports.createPages = async ({ graphql, actions: {createPage} }) => {
     Object.values(pagesQueue).map(page => createPage(page));
 }
 
-exports.onCreateNode = ({ node, actions: { createNodeField }, getNode }) => {
-    if (node.internal.type === `Mdx`) {
-        const value = createFilePath({ node, getNode })
-        createNodeField({
-            name: `slug`,
-            node,
-            value,
-        })
-    }
+exports.onCreateNode = ({ 
+    node, 
+    actions: { 
+        createNodeField
+    }, 
+    getNode 
+}) => {
+    if (node.internal.type !== `Mdx`) return;
+    
+    createNodeField({
+        name: `slug`,
+        node,
+        value: createFilePath({ node, getNode }),
+    })
 }

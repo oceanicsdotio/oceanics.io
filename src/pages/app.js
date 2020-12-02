@@ -4,6 +4,7 @@ import styled from "styled-components";
 import {orange} from "../palette";
 import useFractalNoise from "../hooks/useFractalNoise";
 import useOceanside from "../hooks/useOceanside";
+import useDetectDevice from "../hooks/useDetectDevice";
 
 import SEO from "../components/SEO";  // SEO headers
 import Catalog from "../components/Catalog";  // Graph API interface
@@ -20,8 +21,8 @@ const storageTarget = "https://oceanicsdotio.nyc3.digitaloceanspaces.com";
 
 const Application = styled.div`
     display: grid;
-    grid-gap: 5px;
-    grid-template-columns: 1fr 1fr;
+    grid-gap: 0;
+    grid-template-columns: ${({mobile, expand})=>`${!expand ? 1 : 0}fr ${expand || !mobile ? 1 : 0}fr`};
     grid-auto-rows: minmax(50px, auto);
     margin: 0;
     padding: 0;
@@ -85,6 +86,8 @@ export default () => {
     const ref = useRef(null);
     const nav = useRef(null);  // minimap for navigation
     const [token, loginCallback] = useState(null);
+    const [expand, setExpand] = useState(false);
+    const {mobile} = useDetectDevice();
     
     const show = {
         Map: true,
@@ -100,20 +103,20 @@ export default () => {
         onNavClick
     } = useOceanside({nav, board: ref});
 
-    return <Application>
+    return <Application mobile={mobile} expand={expand}>
         <SEO title={title} />
         <ColumnContainer row={0} column={0}>
-            <RawBar menu={[{
-                name: "Account", 
+            <RawBar menu={[{ 
+                name: "Login", 
                 component: <Login onSuccess={loginCallback}/>   
             },{
-                name: "Catalog", 
+                name: "Lazarette", 
                 component: <Catalog {...{
                     graph: {accessToken: token},
                     storage: {target: storageTarget}
                 }}/>
             },{
-                name: "Calendar",
+                name: "Almanac ",
                 component: <Calendar {...{
                     team, home, locations, things
                 }}/>
