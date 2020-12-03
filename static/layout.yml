@@ -1,6 +1,10 @@
+title: "Oceanics.io"
+
 site:
   - to: "/app"
     label: "Go Deeper"
+
+apiLabel: "APIs"
 
 api:
   - href: "https://graph.oceanics.io"

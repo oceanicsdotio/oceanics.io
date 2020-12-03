@@ -1,16 +1,12 @@
 import React, { useReducer }  from "react";
 import styled from "styled-components";
-import { MDXProvider } from "@mdx-js/react";
 import { Link } from "gatsby";
 
 import { pink, ghost, grey, blue } from "../palette";
 import { rhythm } from "../typography";
 import layout from "../../static/layout.yml";
 
-import Rubric from "./Rubric";
-import References, {Reference, Inline} from "./References";
-import PDF from "./PDF";
-import OpenApi from "./OpenApi";
+
 
 /**
  * The NavBar is a <nav> element that displays links or buttons
@@ -42,18 +38,31 @@ export const NavBar = styled.nav`
     }
 `;
 
+/**
+ * Internal link
+ */
 const SiteLink = styled(Link)`
     color: ${({color})=>color};
 `;
 
+
+/** 
+ * Internal link, emphasized
+ */
 const Title = styled(SiteLink)`
     font-size: larger;
 `;
     
+/**
+ * Internal link, de-emphasized
+ */
 const MinorLink = styled(SiteLink)`
     display: block;
 `;
 
+/**
+ * External link, with indication of asset status
+ */
 const ExternalLink = styled.a`
     color: ${({ok=true})=>ok ? blue : grey};
 `;
@@ -61,16 +70,15 @@ const ExternalLink = styled.a`
 export const Layout = ({ 
     children,
     className,
-    apiLabel = "APIs",
-    title = "Oceanics.io"
+    title = null
 }) => {
 
-    const [hidden, showGutter] = useReducer(prev=>!prev, true);
+    const [hidden, toggleGutter] = useReducer(prev=>!prev, true);
 
     return <div className={className}>
         
         <NavBar>
-            <Title to={"/"} color={ghost}>{title}</Title>
+            <Title to={"/"} color={ghost}>{title || layout.title}</Title>
             {layout.site.map(({label, to, color=pink}, key) =>  
                 <SiteLink 
                     to={to} 
@@ -80,8 +88,8 @@ export const Layout = ({
                     {label}
                 </SiteLink>
             )}
-            <button onClick={showGutter}>
-                {apiLabel}
+            <button onClick={toggleGutter}>
+                {layout.apiLabel}
             </button>
         </NavBar>
 
@@ -97,18 +105,7 @@ export const Layout = ({
             )}
         </NavBar>
 
-        <main>
-            <MDXProvider components={{
-                Rubric,
-                Reference,
-                References,
-                Inline,
-                PDF,
-                OpenApi
-            }}>
-                {children}
-            </MDXProvider>
-        </main>
+        <main>{children}</main>
         <footer>
             {layout.footer.map(({label, to}, key) => 
                 <MinorLink 

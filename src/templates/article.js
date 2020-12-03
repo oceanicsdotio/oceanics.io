@@ -1,12 +1,17 @@
 import React from "react";
+import styled from "styled-components";
 import { graphql } from "gatsby";
+import { MDXProvider } from "@mdx-js/react";
+import { MDXRenderer } from "gatsby-plugin-mdx";
 
 import Layout from "../components/Layout";
 import SEO from "../components/SEO";
-import References from "../components/References";
+import Rubric from "../components/Rubric";
+import References, {Reference, Inline} from "../components/References";
+import PDF from "../components/PDF";
+import OpenApi from "../componenets/OpenApi";
+
 import { rhythm, scale } from "../typography";
-import { MDXRenderer } from "gatsby-plugin-mdx";
-import styled from "styled-components";
 require(`katex/dist/katex.min.css`);
 
 
@@ -23,36 +28,49 @@ const StyledParagraph = styled.p`
     line-height: ${lineHeight};
 `;
 
-const BlogPostTemplate = ({ 
+export default ({ 
     data: { 
-        mdx: { frontmatter, excerpt, body }, 
-        site: { 
-            siteMetadata: { title } 
-        } 
+        mdx: { 
+            frontmatter: {
+                date,
+                title,
+                description,
+                citations=[]
+            }, 
+            excerpt, 
+            body
+        }
     }, 
     location 
 }) => 
-    <Layout location={location} title={title}>
+    <Layout location={location}>
         <SEO
-            title={frontmatter.title}
-            description={frontmatter.description || excerpt}
+            title={title}
+            description={description || excerpt}
         />
-        <article>
-            <header>
-                <StyledHeader>{frontmatter.title}</StyledHeader>
-                <StyledParagraph>{frontmatter.date}</StyledParagraph>
-            </header>
-            <hr />
-            <MDXRenderer>{body}</MDXRenderer>
-            {frontmatter.citations ? <References heading={"References"} references={(frontmatter.citations || [])} /> : null }
-        </article>
+        <MDXProvider components={{
+                Rubric,
+                Reference,
+                References,
+                Inline,
+                PDF,
+                OpenApi
+            }}>
+            <article>
+                <header>
+                    <StyledHeader>{title}</StyledHeader>
+                    <StyledParagraph>{date}</StyledParagraph>
+                </header>
+                <MDXRenderer>{body}</MDXRenderer>
+                {citations ? <References heading={"References"} references={(citations || [])} /> : null }
+            </article>
+        </MDXProvider>
+        
     </Layout>
   
 
-export default BlogPostTemplate
-
 export const pageQuery = graphql`
-  query BlogPostBySlug($slug: String!) {
+  query ArticleBySlug($slug: String!) {
     site {
       siteMetadata {
         title
