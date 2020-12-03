@@ -35,10 +35,10 @@ const Login = ({
     const form = {
         fields,
         actions: [{
-            value: "Keep on krillin' it",
+            value: "You're krillin' it",
             onClick: () => login(data)
         }, {
-            value: "Register instead",
+            value: "Register",
             onClick: () => register(data)
         }]
     };

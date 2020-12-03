@@ -152,35 +152,6 @@ export const StyledLayout = styled(Layout)`
 
 export default StyledLayout;
 
-/**
- * The AppContext component is a basic stateless function that displays
- * the current Mini Application, as well as controls for swtiching 
- * between Apps. 
- * 
- * It is a stand-alone component to allow flex box styling.
- */
-const AppContext = ({
-    view: {
-        prev,
-        next,
-        app: {
-            name
-        }
-    },  
-    callback, 
-    className
-}) =>
-    <nav className={className}>
-       
-    </nav>
-
-/**
- * The AppContext Component is styled so that it is aligned in the center
- * of the containing element, and spacing around buttons is equal.
- */
-const RotateSelection = styled(AppContext)`
-
-`;
 
 /**
 * Menu-like interface component for single page application
@@ -239,12 +210,20 @@ export const RawBar = ({
  * It is the default export
  */
 export const StyledRawBar = styled(RawBar)`
-    padding: 2rem;
+    /* padding: 2rem; */
+
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 100%;
+    padding: ${rhythm(1.5)} ${rhythm(0.75)};
 
     & > main {
+        height: auto;
+        bottom: 0;
         padding-top: 1rem;
         padding-bottom: 1rem;
         border-top: 0.1rem solid ${ghost};
         border-radius: 1rem;
     }
+
 `;
