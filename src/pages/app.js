@@ -11,7 +11,7 @@ import Catalog from "../components/Catalog";  // Graph API interface
 import Login from "../components/Login";  // API JWT authorizatio
 import Map from "../components/Map";  // MapBox interface
 import Calendar from "../components/Calendar";
-import RawBar from "../components/RawBar";
+import {StyledRawBar} from "../components/Layout";
 import Form from "../components/Form";
 
 import entities from "../../static/entities.yml";
@@ -106,7 +106,7 @@ export default () => {
     return <Application mobile={mobile} expand={expand}>
         <SEO title={title} />
         <ColumnContainer row={0} column={0}>
-            <RawBar menu={[{ 
+            <StyledRawBar menu={[{ 
                 name: "Login", 
                 component: <Login onSuccess={loginCallback}/>   
             },{

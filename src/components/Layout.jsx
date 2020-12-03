@@ -15,7 +15,7 @@ import OpenApi from "./OpenApi";
 import layout from "../../static/layout.yml";
 
 
-const NavBar = styled.nav`
+export const NavBar = styled.nav`
 
     display: block;
     justify-content: space-between;
@@ -47,7 +47,7 @@ const SiteLink = styled(Link)`
 `;
 
 const Title = styled(SiteLink)`
-    font-size: x-large;
+    font-size: larger;
 `;
     
 const MinorLink = styled(SiteLink)`
@@ -151,3 +151,100 @@ export const StyledLayout = styled(Layout)`
 `;
 
 export default StyledLayout;
+
+/**
+ * The AppContext component is a basic stateless function that displays
+ * the current Mini Application, as well as controls for swtiching 
+ * between Apps. 
+ * 
+ * It is a stand-alone component to allow flex box styling.
+ */
+const AppContext = ({
+    view: {
+        prev,
+        next,
+        app: {
+            name
+        }
+    },  
+    callback, 
+    className
+}) =>
+    <nav className={className}>
+       
+    </nav>
+
+/**
+ * The AppContext Component is styled so that it is aligned in the center
+ * of the containing element, and spacing around buttons is equal.
+ */
+const RotateSelection = styled(AppContext)`
+
+`;
+
+/**
+* Menu-like interface component for single page application
+* 
+* Reducer rotates the currently visible options.
+* Previous and next are just stored as names for display.
+* The current app is an object with both the name
+* and the component to render. 
+*    
+*/
+export const RawBar = ({ 
+    menu,
+    callback=null,
+    className
+}) => {
+    
+    const [view, setView] = useReducer(
+        ({x}, dx=1) => {
+            x = (x + dx) % menu.length;
+            x = x + (x < 0 ? menu.length : 0);
+        
+            const data = {
+                x,
+                app: menu[x],
+                prev: menu[x ? x - 1 : menu.length -1].name,
+                next: menu[(x + 1) % menu.length].name
+            };
+
+            if (callback) callback(data);
+
+            return data;
+        }, {
+            x: 0,
+            app: menu[0],
+            prev: menu[menu.length - 1].name,
+            next: menu[1].name
+        }
+    );
+    
+    return <div className={className}>
+        <NavBar>
+            <Title to={"/"} color={ghost}>{view.app.name}</Title>
+            <button>{`${view.prev}`}</button>
+            <button>{`${view.next}`}</button> 
+        </NavBar>
+        <main>
+            {view.app.component}
+        </main>
+    </div>  
+};
+
+/**
+ * The styled version of the RawBar component adds padding to the
+ * container so that Apps don't feel too crowded. 
+ * 
+ * It is the default export
+ */
+export const StyledRawBar = styled(RawBar)`
+    padding: 2rem;
+
+    & > main {
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+        border-top: 0.1rem solid ${ghost};
+        border-radius: 1rem;
+    }
+`;
