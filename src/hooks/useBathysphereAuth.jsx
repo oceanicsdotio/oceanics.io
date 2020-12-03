@@ -1,10 +1,14 @@
 import {useReducer}  from "react";
     
-export default ({
-    apiKey = 'FL_fnXrKrRG1ae3VLpn2oAgeVZrVUn5kXJyTFDQ_1GlpC_xzXYJnU6SDz5stoS4wlts-t9qXljblUJzgK3FcIw'
-}) => {
+export default () => {
 
-    const register = ({email, password, server}) => () => {
+    const register = ({
+        email, 
+        password, 
+        server, 
+        apiKey,
+        onLogin
+    }) => {
 
         fetch(server+"/api/auth", {
             method: 'POST',
@@ -20,14 +24,13 @@ export default ({
             })
         })
             .then(response => response.json())
-            .then(data => {
-                console.log(data);
-            })
+            .then(onSuccess)
+            .catch()
     };
     
-    const [token, login]  = useReducer((prev, {email, password}) => {
+    const [token, login] = useReducer((prev, {email, password, server}) => {
         
-        let _token = prev;
+        let result;
 
         fetch(server+"/api/auth", {
             method: 'GET',
@@ -40,16 +43,13 @@ export default ({
         })
             .then(response => response.json())
             .then(token => {
-                if (!("token" in token)) {
-                    console.log("Error authorizing", token);
-                } else {
-                    _token = token.token;
-                }  
+                result = "token" in token ? token.token : "";
+                if (onLogin) onLogin(result);
             }) 
 
-        return _token;
+        return result;
 
-    }, null);
+    }, "");
 
     return {token, login, register}
 

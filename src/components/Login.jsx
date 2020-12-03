@@ -10,25 +10,24 @@ import fields from "../../static/login.yml";
 The login container handles authorization interactions with the
 backend.
 
-Available interface depends on whether user is registering
-or returning.
 */
 const Login = ({
-    className
+    className, 
+    onLogin=null,
 }) => {
    
-    const {token, login, register} = useBathysphereAuth({});
+    const {token, login, register} = useBathysphereAuth();
 
     const [data, refresh] = useReducer(
-        (prev, event=null) => {
-            return event ? {
+        (prev, event=null) => event ? Object({
                 ...prev,
                 [event.target.id]: event.target.value.trim()
-            } : prev
-        },
+            }) : prev,
         {
             email: "",
-            password: ""
+            password: "",
+            apiKey:  "FL_fnXrKrRG1ae3VLpn2oAgeVZrVUn5kXJyTFDQ_1GlpC_xzXYJnU6SDz5stoS4wlts-t9qXljblUJzgK3FcIw",
+            server: "https://graph.oceanics.io"
         }
     );
 
@@ -36,10 +35,10 @@ const Login = ({
         fields,
         actions: [{
             value: "You're krillin' it",
-            onClick: () => login(data)
+            onClick: () => {login({onLogin, ...data})}
         }, {
             value: "Register",
-            onClick: () => register(data)
+            onClick: () => {register(data)}
         }]
     };
        

@@ -12,7 +12,11 @@ import References, {Reference, Inline} from "./References";
 import PDF from "./PDF";
 import OpenApi from "./OpenApi";
 
-
+/**
+ * The NavBar is a <nav> element that displays links or buttons
+ * as a horizontal bar with the current choise styled
+ * prominently.
+ */
 export const NavBar = styled.nav`
 
     display: block;
@@ -23,12 +27,11 @@ export const NavBar = styled.nav`
     color: ${ghost};
 
     & > * {
-        display: inline-block;
+        display: inline;
         margin: 0.5rem;
         text-decoration: none;
         font-family: inherit;
         font-size: inherit;
-        
     }
 
     & > button {
