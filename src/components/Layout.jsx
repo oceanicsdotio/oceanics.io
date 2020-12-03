@@ -166,8 +166,8 @@ export const RawBar = ({
     <div className={className}>
         <NavBar>
             <Title to={"/"} color={ghost}>{menu[0].name}</Title>
-            {menu.slice(1, 3).map(({name})=>
-                <button>{`${name}`}</button>)
+            {menu.slice(1, 3).map(({name, onClick})=>
+                <button onClick={onClick}>{`${name}`}</button>)
             }
         </NavBar>
         <main>

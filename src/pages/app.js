@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from "react"
+import React, { useState, useRef, useReducer } from "react"
 import styled from "styled-components";
 import {orange} from "../palette";
 import useFractalNoise from "../hooks/useFractalNoise";
@@ -39,9 +39,18 @@ const ColumnContainer = styled.div`
     grid-column: ${({column})=>column+1};
     overflow-x: hidden;
 
+    width: 100%;
+
     bottom: 0;
     margin: 0;
     padding: 0;
+
+    & > button {
+        position: absolute;
+        top: 0;
+        right: 0;
+        z-index: 10;
+    }
 `;
 
 const Canvas = styled.canvas`
@@ -84,19 +93,16 @@ const mapBoxAccessToken = 'pk.eyJ1Ijoib2NlYW5pY3Nkb3RpbyIsImEiOiJjazMwbnRndWkwMG
 export default () => {
 
     const ref = useRef(null);
-    const nav = useRef(null);  // minimap for navigation
+    const nav = useRef(null);
     const [token, loginCallback] = useState(null);
     const [expand, setExpand] = useState(false);
     const {mobile} = useDetectDevice();
+    const [showMap, setShowMap] = useReducer((prev, value)=>{
+        return value !== undefined ? value : !prev;
+    }, true);
     
-    const show = {
-        Map: true,
-        Overlay: true,
-        Canvas: true,
-        Preview: true,
-    }
 
-    // useFractalNoise({ref});
+    useFractalNoise({ref});
     const {
         worldSize, 
         onBoardClick, 
@@ -110,13 +116,21 @@ export default () => {
                 name: "Login", 
                 component: <Login onSuccess={loginCallback}/>   
             },{
-                name: "Lazarette", 
+                name: "Lazarette",
+                onClick: () => {
+                    console.log("Laz");
+                    setShowMap(true);
+                },
                 component: <Catalog {...{
                     graph: {accessToken: token},
                     storage: {target: storageTarget}
                 }}/>
             },{
-                name: "Almanac ",
+                name: "Almanac",
+                onClick: () => {
+                    console.log("Almanac");
+                    setShowMap(false);
+                },
                 component: <Calendar {...{
                     team, home, locations, things
                 }}/>
@@ -124,25 +138,28 @@ export default () => {
         </ColumnContainer>
         
         <ColumnContainer row={0} column={1}>
-            
-            <Map 
-                display={show.Map ? undefined : "none"}
-                accessToken={mapBoxAccessToken}
-            />
-            
-            <Canvas
-                ref={ref}
-                onClick={onBoardClick}
-            /> 
-            <Overlay display={show.Overlay}>
-                <button>{"Swap"}</button>
-                <Preview
-                    ref={nav}
-                    width={worldSize}
-                    height={worldSize}
-                    onClick={onNavClick}
-                />
-            </Overlay>
+            <button onClick={()=>setExpand(!expand)}>
+                {expand ? "Minimize" : "Expand"}
+            </button>
+            {
+                showMap ? 
+                <Map accessToken={mapBoxAccessToken} /> : ( 
+                <>
+                <Canvas
+                    ref={ref}
+                    onClick={onBoardClick}
+                />          
+                <Overlay >
+                    <Preview
+                        ref={nav}
+                        width={worldSize}
+                        height={worldSize}
+                        onClick={onNavClick}
+                    />
+                </Overlay>
+                </>
+                )
+            }
         </ColumnContainer>
     </Application> 
 };
