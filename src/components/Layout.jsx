@@ -1,18 +1,16 @@
-import { rhythm } from "../typography";
+import React, { useReducer }  from "react";
 import styled from "styled-components";
 import { MDXProvider } from "@mdx-js/react";
-
-import React, { useReducer }  from "react";
 import { Link } from "gatsby";
-import { pink, ghost, grey, blue } from "../palette";
 
-// Shortcode components for MDX child rendering
+import { pink, ghost, grey, blue } from "../palette";
+import { rhythm } from "../typography";
+import layout from "../../static/layout.yml";
+
 import Rubric from "./Rubric";
 import References, {Reference, Inline} from "./References";
 import PDF from "./PDF";
 import OpenApi from "./OpenApi";
-
-import layout from "../../static/layout.yml";
 
 
 export const NavBar = styled.nav`
@@ -40,7 +38,6 @@ export const NavBar = styled.nav`
         cursor: pointer;
     }
 `;
-
 
 const SiteLink = styled(Link)`
     color: ${({color})=>color};
@@ -164,44 +161,20 @@ export default StyledLayout;
 */
 export const RawBar = ({ 
     menu,
-    callback=null,
     className
-}) => {
-    
-    const [view, setView] = useReducer(
-        ({x}, dx=1) => {
-            x = (x + dx) % menu.length;
-            x = x + (x < 0 ? menu.length : 0);
-        
-            const data = {
-                x,
-                app: menu[x],
-                prev: menu[x ? x - 1 : menu.length -1].name,
-                next: menu[(x + 1) % menu.length].name
-            };
-
-            if (callback) callback(data);
-
-            return data;
-        }, {
-            x: 0,
-            app: menu[0],
-            prev: menu[menu.length - 1].name,
-            next: menu[1].name
-        }
-    );
-    
-    return <div className={className}>
+}) => 
+    <div className={className}>
         <NavBar>
-            <Title to={"/"} color={ghost}>{view.app.name}</Title>
-            <button>{`${view.prev}`}</button>
-            <button>{`${view.next}`}</button> 
+            <Title to={"/"} color={ghost}>{menu[0].name}</Title>
+            {menu.slice(1, 3).map(({name})=>
+                <button>{`${name}`}</button>)
+            }
         </NavBar>
         <main>
-            {view.app.component}
+            {menu[0].component}
         </main>
     </div>  
-};
+
 
 /**
  * The styled version of the RawBar component adds padding to the
@@ -210,8 +183,7 @@ export const RawBar = ({
  * It is the default export
  */
 export const StyledRawBar = styled(RawBar)`
-    /* padding: 2rem; */
-
+    
     margin-left: auto;
     margin-right: auto;
     max-width: 100%;
