@@ -1,8 +1,8 @@
 import React, {Fragment} from "react";
 import PropTypes from "prop-types";
 import styled from "styled-components";
-import {Link} from "gatsby";
-import {ghost, pink} from "../palette";
+import { Link } from "gatsby";
+import { ghost, pink } from "../palette";
 
 
 // Single reference, styled for end of document
@@ -117,28 +117,27 @@ Reference.propTypes = {
 export const References = ({
     heading="References", 
     references
-}) => {
-
-    return <>
+}) =>
+    <>
         <Anchor id={"references"} hidden={!references || !heading}>
             <h1>{heading}</h1>
         </Anchor>
         {
-        Object.entries(Object.fromEntries(
-            references.map(props => [referenceHash(props), props])
-        )).map(([hash, props]) => 
-            <Fragment key={hash}>
-                <a id={hash} />
-                <Reference {...props}/>
-            </Fragment>
-        )
+            Object.entries(Object.fromEntries(
+                references.map(props => 
+                    [referenceHash(props), props])
+            )).map(([hash, props]) => 
+                <Fragment key={hash}>
+                    <a id={hash} />
+                    <Reference {...props}/>
+                </Fragment>
+            )
         }
-    </>
-};
+    </>;
+
 
 References.propTypes = {
     heading: PropTypes.string,
-
 }
 
 export default References;
