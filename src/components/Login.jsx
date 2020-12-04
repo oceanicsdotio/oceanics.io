@@ -1,15 +1,16 @@
 import React, { useReducer }  from "react";
 import styled from "styled-components";
+
 import Form from "./Form";
-import { ghost } from "../palette";
 import useBathysphereAuth from "../hooks/useBathysphereAuth";
-import fields from "../../static/login.yml";
+
+import fields from "../data/login.yml";
+import { ghost } from "../palette";
 
 
-/*
-The login container handles authorization interactions with the
-backend.
-
+/**
+* The login container handles authorization interactions with the
+* backend.
 */
 const Login = ({
     className, 

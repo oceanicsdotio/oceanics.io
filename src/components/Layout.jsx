@@ -4,7 +4,7 @@ import { Link } from "gatsby";
 
 import { pink, ghost, grey, blue } from "../palette";
 import { rhythm } from "../typography";
-import layout from "../../static/layout.yml";
+import layout from "../data/layout.yml";
 
 
 
