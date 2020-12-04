@@ -82,7 +82,6 @@ exports.createPages = async ({
         }
     }`;
 
-    if (yml.errors !== undefined || yml.errors) throw mdx.errors;
 
     const {
         data: {
@@ -95,13 +94,6 @@ exports.createPages = async ({
 
     const pagesQueue = {};
 
-    createPage({
-        path: "",
-        component: path.resolve(`src/templates/article.js`),
-        context: {
-            
-        },
-    });
 
     nodes.forEach(({
         fields: {

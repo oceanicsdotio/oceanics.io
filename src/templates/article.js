@@ -9,7 +9,7 @@ import SEO from "../components/SEO";
 import Rubric from "../components/Rubric";
 import References, {Reference, Inline} from "../components/References";
 import PDF from "../components/PDF";
-import OpenApi from "../componenets/OpenApi";
+import OpenApi from "../components/OpenApi";
 
 import { rhythm, scale } from "../typography";
 require(`katex/dist/katex.min.css`);
