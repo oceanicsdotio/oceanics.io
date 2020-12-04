@@ -9,10 +9,16 @@ const StyledCanvas = styled.canvas`
     width: 100%;
 `;
 
-export default ({doc, scale=1, pageNumber=1}) => {
-    /*
-    PDF component loads a document and indexes a selected page.
-    */
+
+/**
+PDF component loads a document and indexes a selected page.
+*/
+export default ({
+    doc, 
+    scale=1, 
+    pageNumber=1
+}) => {
+    
     const [pdf, setPdf] = useState(null);
     useEffect(()=>{
         // Save source document to React state

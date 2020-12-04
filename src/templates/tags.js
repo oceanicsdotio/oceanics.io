@@ -9,7 +9,7 @@ Tag pages link single tags back to many articles. This provides a many-to-many
 mapping that can help traverse the content graph and find related data or
 information. 
 */
-const TagResources = ({
+export default ({
     data: {
         allMdx: {
             nodes
@@ -24,8 +24,6 @@ const TagResources = ({
             text: title
         }))}/>
     </Layout>
-
-export default TagResources;
 
 export const pageQuery = graphql`
     query($tag: String) {

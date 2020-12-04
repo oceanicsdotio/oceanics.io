@@ -7,7 +7,6 @@ import { rhythm } from "../typography";
 import layout from "../data/layout.yml";
 
 
-
 /**
  * The NavBar is a <nav> element that displays links or buttons
  * as a horizontal bar with the current choise styled
