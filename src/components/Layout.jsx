@@ -172,7 +172,7 @@ export const RawBar = ({
         <main>
             {menu[0].component}
         </main>
-    </div>  
+    </div>;
 
 
 /**

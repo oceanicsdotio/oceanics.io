@@ -114,7 +114,7 @@ export const licenseHandler = ({features, lngLat: {lng}}) => {
         jsx: <LicenseInformation features={_features}/>,
         coordinates: center
     });
-}
+};
 
 export const portHandler = ({features, lngLat: {lng}}) => {
   
@@ -140,7 +140,7 @@ export const portHandler = ({features, lngLat: {lng}}) => {
         jsx: <PortInfo features={features.map(parse)}/>,
         coordinates: center
     };
-}
+};
 
 export const suitabilityHandler = ({
     features: [{

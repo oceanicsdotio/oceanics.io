@@ -29,60 +29,58 @@ const SEO = ({ description, lang, meta, title }) => {
     const display = description || siteMetadata.description;
     const displayTitle = title || siteMetadata.title;
 
-    return (
-        <Helmet
-            htmlAttributes={{lang}}
-            title={"Oceanics.io"}
-            titleTemplate={`%s | ${title}`}
-            meta={[
-                {
-                    name: `description`,
-                    content: display,
-                },
-                {
-                    property: `og:title`,
-                    content: displayTitle,
-                },
-                {
-                    property: `og:description`,
-                    content: display,
-                },
-                {
-                    property: `og:type`,
-                    content: `website`,
-                },
-                {
-                    name: `twitter:card`,
-                    content: `summary`,
-                },
-                {
-                    name: `twitter:creator`,
-                    content: siteMetadata.author,
-                },
-                {
-                    name: `twitter:title`,
-                    content: displayTitle,
-                },
-                {
-                    name: `twitter:description`,
-                    content: display,
-                },
-            ].concat(meta)}
-        />
-    )
+    return <Helmet
+        htmlAttributes={{lang}}
+        title={"Oceanics.io"}
+        titleTemplate={`%s | ${title}`}
+        meta={[
+            {
+                name: `description`,
+                content: display,
+            },
+            {
+                property: `og:title`,
+                content: displayTitle,
+            },
+            {
+                property: `og:description`,
+                content: display,
+            },
+            {
+                property: `og:type`,
+                content: `website`,
+            },
+            {
+                name: `twitter:card`,
+                content: `summary`,
+            },
+            {
+                name: `twitter:creator`,
+                content: siteMetadata.author,
+            },
+            {
+                name: `twitter:title`,
+                content: displayTitle,
+            },
+            {
+                name: `twitter:description`,
+                content: display,
+            },
+        ].concat(meta)}
+    />;
 };
 
 SEO.defaultProps = {
     lang: `en`,
     meta: [],
     description: ``,
-}
+};
 
 SEO.propTypes = {
     description: PropTypes.string,
     lang: PropTypes.string,
     meta: PropTypes.arrayOf(PropTypes.object),
     title: PropTypes.string.isRequired,
-}
+};
 
-export default SEO
+export default SEO;

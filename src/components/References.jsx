@@ -71,8 +71,8 @@ Inline.propTypes = {
     authors: PropTypes.arrayOf(PropTypes.string),
     year: PropTypes.number.isRequired,
     title: PropTypes.string.isRequired,
-    unwrap: PropTypes.bool.isRequired
-}
+    unwrap: PropTypes.bool
+};
 
 /**
  Single reference to journal article or similar material.
@@ -108,7 +108,7 @@ Reference.propTypes = {
     volume: PropTypes.string, 
     pageRange: PropTypes.arrayOf(PropTypes.number), 
     hash: PropTypes.string
-}
+};
 
 /**
  List of formatted references to append to a document that
@@ -138,6 +138,6 @@ export const References = ({
 
 References.propTypes = {
     heading: PropTypes.string,
-}
+};
 
 export default References;

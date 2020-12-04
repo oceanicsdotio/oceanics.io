@@ -64,9 +64,8 @@ export default ({
                 <MDXRenderer>{body}</MDXRenderer>
                 <References references={citations}/>
             </article>
-        </MDXProvider>
-        
-    </Layout>
+        </MDXProvider>  
+    </Layout>;
   
 
 export const pageQuery = graphql`
@@ -85,4 +84,4 @@ export const pageQuery = graphql`
       }
     }
   }
-`
+`;

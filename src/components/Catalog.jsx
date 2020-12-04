@@ -13,7 +13,10 @@ import Tags from "./Tags";
 const transformName = name => 
     name.toLowerCase().split(" ").join("-"); 
 
-
+/**
+Art and information for single tile feature. This is used by AllTiles component
+to render documentation for the game.
+*/
 const TileInfo = ({
     tile: {
         name, 
@@ -22,12 +25,8 @@ const TileInfo = ({
         becomes=[]
     }, 
     className
-}) => {
-    /*
-    Art and information for single tile feature. This is used by AllTiles component
-    to render documentation for the game.
-    */
-    return <div className={className}>
+}) => 
+    <div className={className}>
         <h3>
             <a id={transformName(name)}/>
             {name}
@@ -49,9 +48,7 @@ const TileInfo = ({
             </p> : 
             null
         }
-    </div>
-
-};
+    </div>;
 
 
 const StyledTileInfo = styled(TileInfo)`

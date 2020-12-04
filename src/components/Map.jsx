@@ -62,7 +62,7 @@ const Map = ({
         })
     });
        
-    return <div ref={ref} className={className}/>
+    return <div ref={ref} className={className}/>;
 };
 
 const MapContainer = styled(Map)`

@@ -11,6 +11,12 @@ import { ghost } from "../palette";
 const StyledLink = styled(Link)`
     text-decoration: none;
     color: ${ghost};
+    display: block;
+
+    border: 0.1rem solid;
+    border-radius: 0.3rem;
+    margin: 0.2rem;
+    padding: 0.3rem;
 `;
 
 /**
