@@ -120,24 +120,24 @@ export const References = ({
 }) => {
 
     return <>
-        <Anchor id={"references"} hidden={!references}>
+        <Anchor id={"references"} hidden={!references || !heading}>
             <h1>{heading}</h1>
         </Anchor>
         {
-        references
-            .map(props => [props, referenceHash(props)])
-            .map(([props, hash]) => 
-                <Fragment key={hash}>
-                    <a id={hash} />
-                    <Reference {...props}/>
-                </Fragment>
-            )
+        Object.entries(Object.fromEntries(
+            references.map(props => [referenceHash(props), props])
+        )).map(([hash, props]) => 
+            <Fragment key={hash}>
+                <a id={hash} />
+                <Reference {...props}/>
+            </Fragment>
+        )
         }
     </>
 };
 
 References.propTypes = {
-    heading: PropTypes.string.isRequired,
+    heading: PropTypes.string,
 
 }
 
