@@ -4,7 +4,7 @@ import { graphql } from "gatsby";
 import { MDXProvider } from "@mdx-js/react";
 import { MDXRenderer } from "gatsby-plugin-mdx";
 
-import {Layout} from "../components/Layout";
+import Layout from "../components/Layout";
 import SEO from "../components/SEO";
 import Rubric from "../components/Rubric";
 import References, {Reference, Inline} from "../components/References";
@@ -49,23 +49,24 @@ export default ({
             description={description || excerpt}
         />
         <MDXProvider components={{
-            Rubric,
-            Reference,
-            References,
-            Inline,
-            PDF,
-            OpenApi
-        }}>
+                Rubric,
+                Reference,
+                References,
+                Inline,
+                PDF,
+                OpenApi
+            }}>
             <article>
                 <header>
                     <StyledHeader>{title}</StyledHeader>
                     <StyledParagraph>{date}</StyledParagraph>
                 </header>
                 <MDXRenderer>{body}</MDXRenderer>
-                <References references={citations} />
+                <References references={citations}/>
             </article>
         </MDXProvider>
-    </Layout>;
+        
+    </Layout>
   
 
 export const pageQuery = graphql`

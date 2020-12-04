@@ -124,7 +124,7 @@ export const References = ({
         </Anchor>
         {
             Object.entries(Object.fromEntries(
-                references.map(props => 
+                (references||[]).map(props => 
                     [referenceHash(props), props])
             )).map(([hash, props]) => 
                 <Fragment key={hash}>
