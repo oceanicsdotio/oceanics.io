@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { targetHtmlCanvas, addMouseEvents } from "../bathysphere";
+
 import useWasmRuntime from "./useWasmRuntime";
 
 
@@ -14,15 +15,15 @@ export default ({
     alpha=1.0,
     lineWidth=1.0,
 }) => {
-    /*
-    Triangles
-    */
+   
     const runtime = useWasmRuntime();
     const [grid, setGrid] = useState(null);
     const [cursor, setCursor] = useState(null);
 
+    // Create mesh
     useEffect(() => {
-        if (runtime) setGrid(new runtime.HexagonalGrid(shape[0])); // Create mesh
+        if (!runtime) return;
+        setGrid(new runtime.HexagonalGrid(shape[0])); 
     }, [runtime]);
 
     useEffect(() => {

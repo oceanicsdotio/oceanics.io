@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 
 
+/**
+Import the WebAssembly module and set the runtime of the Component.
+*/
 export default () => {
     
     const [runtime, setRuntime] = useState(null);
 
-    /*
-    Import the WebAssembly module and set the runtime of the Component.
-    */
     useEffect(() => {
         try {
             (async () => {

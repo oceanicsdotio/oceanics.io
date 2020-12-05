@@ -2,7 +2,9 @@
 import React, { useState, useRef, useReducer } from "react"
 import styled from "styled-components";
 import {orange} from "../palette";
+
 import useFractalNoise from "../hooks/useFractalNoise";
+import useLagrangian from "../hooks/useLagrangian";
 import useOceanside from "../hooks/useOceanside";
 import useDetectDevice from "../hooks/useDetectDevice";
 
@@ -99,15 +101,17 @@ export default () => {
     const {mobile} = useDetectDevice();
     const [showMap, setShowMap] = useReducer((prev, value)=>{
         return value !== undefined ? value : !prev;
-    }, true);
+    }, false);
     
 
-    useFractalNoise({ref});
-    const {
-        worldSize, 
-        onBoardClick, 
-        onNavClick
-    } = useOceanside({nav, board: ref});
+    // useFractalNoise({ref});
+    useLagrangian({ref, metadataFile:"/wind.json", source:"/wind.png"});
+
+    // const {
+    //     worldSize, 
+    //     onBoardClick, 
+    //     onNavClick
+    // } = useOceanside({nav, board: ref});
 
     return <Application mobile={mobile} expand={expand}>
         <SEO title={title} />
@@ -147,16 +151,16 @@ export default () => {
                 <>
                 <Canvas
                     ref={ref}
-                    onClick={onBoardClick}
+                    // onClick={onBoardClick}
                 />          
-                <Overlay >
+                {/* <Overlay >
                     <Preview
                         ref={nav}
                         width={worldSize}
                         height={worldSize}
                         onClick={onNavClick}
                     />
-                </Overlay>
+                </Overlay> */}
                 </>
                 )
             }

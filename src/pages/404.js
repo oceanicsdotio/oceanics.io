@@ -1,9 +1,10 @@
 import React from "react";
-import { graphql } from "gatsby";
 import styled from "styled-components";
 
-import Layout from "../components/Layout"
-import SEO from "../components/SEO"
+import Layout from "../components/Layout";
+import SEO from "../components/SEO";
+
+import dagan from "../../static/dagan-sprite.gif";
 
 
 const StyledImage = styled.img`
@@ -13,24 +14,11 @@ const StyledImage = styled.img`
     margin-right: auto;
 `;
 
-export default ({location, data: {site: {siteMetadata: {title}}}}) => {
-    return (
-      <Layout location={location} title={title}>
-        <SEO title="404: Not Found" />
-        <h1>{"Does not compute"}</h1>
+export default ({
+    location, 
+}) => 
+    <Layout location={location}>
+        <SEO title={"404"}/>
         <p>{"You can't get there from here bub."}</p>
-        <StyledImage src={"/dagan-sprite.gif"}/>
-      </Layout>
-    )
-};
-
-
-export const pageQuery = graphql`
-  query {
-    site {
-      siteMetadata {
-        title
-      }
-    }
-  }
-`
+        <StyledImage src={dagan}/>
+    </Layout>;

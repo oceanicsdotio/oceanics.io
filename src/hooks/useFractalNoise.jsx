@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
-import { createTexture, ArrayBuffer, compileShaders, extractUniforms } from "../hooks/useLagrangian";
+
+import { 
+    useGlslShaders, 
+    createTexture, 
+    ArrayBuffer, 
+    extractUniforms 
+} from "../hooks/useGlslShaders";
 import useWasmRuntime from "../hooks/useWasmRuntime";
 
 const exec = (
@@ -59,7 +65,7 @@ const exec = (
 
 };
 
-const doubleBufferedPipeline = (ref, ctx, assets, programs) => {
+const doubleBufferedPipeline = (ref, assets, programs) => {
 
     const { width, height } = ref.current;
     
@@ -71,7 +77,7 @@ const doubleBufferedPipeline = (ref, ctx, assets, programs) => {
         uniforms
     } = assets;
     const { screen, draw } = programs;
-    const triangles = [ctx.TRIANGLES, 6];
+    const triangles = ["TRIANGLES", 6];
     const screenBuffer = [framebuffer, textures.screen];
     const quadBuffer = [
         [quad.buffer, "a_pos", 2]
@@ -115,29 +121,29 @@ export default ({
     /*
     Make some noise
     */
-
-    const [ready, setReady] = useState(false);
     const [assets, setAssets] = useState(null);
-    const runtime = useWasmRuntime();
-    const [programs, setPrograms] = useState(null);
 
     const shaders = {
         draw: ["noise-vertex", "noise-fragment"],
         screen: ["quad-vertex", "screen-fragment"]
     };
+    const runtime = useWasmRuntime();
+    const {programs} = useGlslShaders({ref, shaders});
 
     useEffect(() => {
     
-        if (!ref.current) return;
+        if (!ref || !ref.current) return;
         const ctx = ref.current.getContext("webgl");
         const { width, height } = ref.current;
         const shape = [width, height];
+        const size = width * height * 4;
 
         setAssets({
-            textures: Object.fromEntries(Object.entries({
-                screen: { data: new Uint8Array(width * height * 4), shape },
-                back: { data: new Uint8Array(width * height * 4), shape }
-            }).map(x => createTexture(ctx)(x))),
+            textures: 
+                Object.fromEntries(Object.entries({
+                    screen: { data: new Uint8Array(size), shape },
+                    back: { data: new Uint8Array(size), shape }
+                }).map(([k, v]) => createTexture()([k, {ctx, ...v}]))),
             buffers: {
                 quad: new ArrayBuffer(ctx, [0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1]),
             },
@@ -150,21 +156,20 @@ export default ({
 
     }, [ref]);
 
-    useEffect(compileShaders(runtime, ref, assets, shaders, setPrograms, setReady), [runtime, assets]);
 
     useEffect(() => {
 
         let requestId;
-        if (!runtime || !ref.current || !assets || !ready) return;
+        if (!runtime || !ref.current || !assets || !programs) return;
         const ctx = ref.current.getContext("webgl");
         if (!ctx) return;
 
-        const steps = doubleBufferedPipeline(ref, ctx, assets, programs);
+        const steps = doubleBufferedPipeline(ref, assets, programs);
         (function render() {
             steps.forEach(x => exec(runtime, ctx, x));
             requestId = requestAnimationFrame(render);
         })()
         return () => cancelAnimationFrame(requestId);
-    }, [programs, ready]);
+    }, [programs]);
 
 };
