@@ -90,15 +90,16 @@ export default ({
         console.log(lexicon.slice(0,10));
         console.log(GlobalWorkerOptions.workerSrc);
     },[lexicon]);
-            
+        
+    /**
+    Index the draw operations by type, to be able to reference image data!
+
+    Swap Op and Code to reverse the lookup table. Then reduce singleton objects
+    to object with an array value for each key. 
+    */
     const [opRefs, setOpRefs] = useState(null);
     useEffect(()=>{
-        /*
-        Index the draw operations by type, to be able to reference image data!
-
-        Swap Op and Code to reverse the lookup table. Then reduce singleton objects
-        to object with an array value for each key. 
-        */
+       
         if (!page) return;
          
         page.getOperatorList().then((ops) => {
