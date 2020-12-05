@@ -14,9 +14,8 @@ import Login from "../components/Login";  // API JWT authorizatio
 import Map from "../components/Map";  // MapBox interface
 import Calendar from "../components/Calendar";
 import {StyledRawBar} from "../components/Layout";
-import Form from "../components/Form";
 
-import entities from "../../static/entities.yml";
+import entities from "../data/entities.yml";
 
 const {locations, things} = entities;
 const storageTarget = "https://oceanicsdotio.nyc3.digitaloceanspaces.com";
@@ -34,6 +33,26 @@ const Application = styled.div`
 `;
 
 
+const Composite = styled.div`
+    width: 100%;
+    border: 1px dashed yellow;
+    bottom: 0;
+    height: 100vh;
+
+    & > div {
+        display: ${({display})=>display};
+        position: fixed;
+        width: 128px;
+        height: 128px;
+        margin: 0.1rem;
+        border: ${orange} 0.2rem solid;
+        bottom: 0;
+        /* left: 0; */
+        z-index: 2;
+    }
+`;
+
+
 const ColumnContainer = styled.div`
 
     display: ${({display})=>display};
@@ -42,6 +61,7 @@ const ColumnContainer = styled.div`
     overflow-x: hidden;
 
     width: 100%;
+    min-height: 100vh;
 
     bottom: 0;
     margin: 0;
@@ -75,16 +95,6 @@ const Preview = styled.canvas`
 `;
 
 
-const Overlay = styled.div`
-    display: ${({display})=>display};
-    position: fixed;
-    width: 128px;
-    height: 128px;
-    margin: 10px;
-    border: ${orange} 0.2rem solid;
-    top: 1rem;
-    right: 1rem;
-`;
 
 // guess where things should be by default
 const home = locations.filter(({home=false}) => home).pop().name;
@@ -94,8 +104,7 @@ const mapBoxAccessToken = 'pk.eyJ1Ijoib2NlYW5pY3Nkb3RpbyIsImEiOiJjazMwbnRndWkwMG
 
 export default () => {
 
-    const ref = useRef(null);
-    const nav = useRef(null);
+    
     const [token, loginCallback] = useState(null);
     const [expand, setExpand] = useState(false);
     const {mobile} = useDetectDevice();
@@ -104,18 +113,16 @@ export default () => {
     }, false);
     
 
-    useFractalNoise({ref});
-    // const {ref} = useLagrangian({
-    //     metadataFile:"/wind.json", 
-    //     source:"/wind.png"
-    // });
+    const isometric = useOceanside({});
+    const noise = useFractalNoise({
+        opacity: 1.0
+    });
+    const particles = useLagrangian({
+        metadataFile:"/wind.json", 
+        source:"/wind.png"
+    });
 
-    // const {
-    //     worldSize, 
-    //     onBoardClick, 
-    //     onNavClick
-    // } = useOceanside({nav, board: ref});
-
+    
     return <Application mobile={mobile} expand={expand}>
         <SEO title={title} />
         <ColumnContainer row={0} column={0}>
@@ -148,23 +155,26 @@ export default () => {
             <button onClick={()=>setExpand(!expand)}>
                 {expand ? "Minimize" : "Expand"}
             </button>
+            <button onClick={()=>setShowMap(!showMap)}>
+                {showMap ? "Data Viz" : "Map"}
+            </button>
             {
                 showMap ? 
                 <Map accessToken={mapBoxAccessToken} /> : ( 
-                <>
-                <Canvas
-                    ref={ref}
-                    // onClick={onBoardClick}
-                />          
-                {/* <Overlay >
-                    <Preview
-                        ref={nav}
-                        width={worldSize}
-                        height={worldSize}
-                        onClick={onNavClick}
-                    />
-                </Overlay> */}
-                </>
+                <Composite>
+                    <Canvas
+                        ref={isometric.ref.board}
+                        // onClick={onBoardClick}
+                    />          
+                    <div>
+                        <Preview
+                            ref={isometric.ref.nav}
+                            width={isometric.worldSize}
+                            height={isometric.worldSize}
+                            onClick={isometric.onNavClick}
+                        />
+                    </div>
+                </Composite>
                 )
             }
         </ColumnContainer>

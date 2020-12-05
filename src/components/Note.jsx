@@ -1,6 +1,6 @@
 import React from "react";
 import styled from "styled-components";
-import {green, ghost} from "../palette";
+import { ghost } from "../palette";
 
 const StyledTextArea = styled.div`
     background: none;
@@ -14,16 +14,17 @@ const StyledTextArea = styled.div`
     padding: 5px;
 `;
 
+
+/**
+ * A note is just a free form text area that can be changed by users
+ * to collaborativle update information that does not cleanly fit
+ * into the schema as it currently exists.
+ */
 export default ({
     heading="Notes",
     placeholder="..."
-}) => {
-    /*
-    A note is just a free form text area that can be changed by users
-    to collaborativle update information that does not cleanly fit
-    into the schema as it currently exists.
-    */
-    return <>
+}) => 
+    <>
         <h3>
             {heading}
         </h3>
@@ -33,6 +34,5 @@ export default ({
         >
             {placeholder}
         </StyledTextArea>
-    </>
+    </>;
     
-};

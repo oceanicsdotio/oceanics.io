@@ -7,55 +7,49 @@ import useMapBox from "../hooks/useMapBox";
 import useMapboxHighlightEvent from "../hooks/useMapBoxHighlightEvent";
 import useMapboxGeoJsonSource from "../hooks/useMapboxGeoJsonSource";
 
-import defaultStyle from "../../static/style.yml";  // map style
 import defaultLayers from "../../static/layers.yml";  // map layers
 
 
-/*
-The Map component. 
-*/
+/**
+ * The Map component. 
+ */
 const Map = ({
     layers=defaultLayers, 
-    style=defaultStyle,
     accessToken,
     className,
     center = [-69, 44]
 }) => {
 
-    const ref = useRef(null);
-    const {map} = useMapBox({ref, center, accessToken, style});
-    const [ready, setReady] = useState({});
-   
+    const {map, ref} = useMapBox({
+        center, 
+        accessToken
+    });
 
+    const [ready, setReady] = useState({});
     useMapboxHighlightEvent({
         ready: "nssp-closures" in ready, 
         map, 
         source: "nssp-closures"
     });
 
-
     /**
-    Swap layers to be in the correct order as they have are created. 
-    
-    This is so that you can resolve them all asynchronously
-    without worrying about the order of creation
-    */
+     * Swap layers to be in the correct order as they have are created. 
+     * You can resolve them asynchronously without worrying 
+     * about creation order.
+     */
     useEffect(() => {
         Object.entries(ready).forEach(([id, behind]) => {
             map.moveLayer(id, behind)
         });
     }, [ready]);
 
-    
     /**
      * Asynchronously retrieve the geospatial data files and parse them.
-
-        Skip this if the layer data has already been loaded, or if the map doesn't exist yet
-    
-    */
-
+     * Skip this if the layer data has already been loaded, 
+     * or if the map doesn't exist yet
+     */
     layers.json.forEach(({popup=null, behind, render}) => {
-        return useMapboxGeoJsonSource({
+        useMapboxGeoJsonSource({
             render,
             map,
             popup: popup ? popups[popup] : null

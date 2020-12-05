@@ -1,4 +1,4 @@
-import { useEffect, useState, useReducer } from "react";
+import { useEffect, useState, useReducer, useRef } from "react";
 import { eventCoordinates, eventGridCell, targetHtmlCanvas, drawCursor, inverse } from "../bathysphere";
 import useWasmRuntime from "../hooks/useWasmRuntime";
 import tileSetJSON from "../../static/oceanside.json";
@@ -142,47 +142,49 @@ const tomorrow = (date) =>
     new Date(date.setDate(date.getDate()+1));
 
 
-    /*
-    The `Oceanside` component contains all of the functionality to
-    embed the game in any web page using React.
-    
-    It consists of two canvases and a text block inside a container 
-    <div>. One canvas displays the navigation minimap, and the other
-    is where the animated game tiles are rendered. The text block
-    displays the current datetime and score. 
+/*
+The `Oceanside` component contains all of the functionality to
+embed the game in any web page using React.
 
-    The properties change game play in the following ways...
+It consists of two canvases and a text block inside a container 
+<div>. One canvas displays the navigation minimap, and the other
+is where the animated game tiles are rendered. The text block
+displays the current datetime and score. 
 
-    * The number of tiles visible is the square of `gridSize`, 
-    so scores are higher for larger values.
+The properties change game play in the following ways...
 
-    * The total number of tiles, and therefore the probability of 
-    finding certain features, is the square of `worldSize`. 
+* The number of tiles visible is the square of `gridSize`, 
+so scores are higher for larger values.
 
-    * Each tile has an elevation value. Tiles above `waterLevel` 
-    are always land, and therfore worth nothing. 
-    Other wet tiles become mud depending on the tidal cycle and their
-    elevation.
+* The total number of tiles, and therefore the probability of 
+finding certain features, is the square of `worldSize`. 
 
-    * The `actionsPerDay` property determines how quickly time passes,
-    and how many things you can interact with per day. This ultimately
-    puts a limit on the score you can earn.
+* Each tile has an elevation value. Tiles above `waterLevel` 
+are always land, and therfore worth nothing. 
+Other wet tiles become mud depending on the tidal cycle and their
+elevation.
 
-    * The `startDate` and `endTurnMessage` props currently have no 
-    effect on game play. 
+* The `actionsPerDay` property determines how quickly time passes,
+and how many things you can interact with per day. This ultimately
+puts a limit on the score you can earn.
 
-    */
+* The `startDate` and `endTurnMessage` props currently have no 
+effect on game play. 
+
+*/
+
 export default ({
-    nav,
-    board,
     gridSize = 6, 
     worldSize = 32, 
     waterLevel = 0.7,
     actionsPerDay = 6,
     startDate = [2025, 3, 1],
     endTurnMessage = "Bettah wait 'til tomorrow."
- }) => {
-   
+}) => {
+
+    const nav = useRef(null);
+    const board = useRef(null);
+
     const [map, setMap] = useState(null);  // map from rust
     const runtime = useWasmRuntime();
     const [clamp, setClamp] = useState(false); // clamp cursor to grid
@@ -192,10 +194,12 @@ export default ({
             /*
             Take an action (swap a tile) or advance to the next day. 
             */
+            if (typeof board === "undefined" || !board || !board.current) {
+                return {date, actions}
+            }
             if (actions) {
-                const canvas = board.current
-                const {width} = canvas;
-                const inverted = inverse([eventCoordinates(event, canvas)], 600, gridSize).pop();
+                const {width} = board.current;
+                const inverted = inverse([eventCoordinates(event, board.current)], 600, gridSize).pop();
                 const cell = eventGridCell(inverted, width, gridSize).map(x=>Math.floor(x));
                
                 if (cell.every(dim => dim < gridSize && dim >= 0)) {
@@ -203,14 +207,14 @@ export default ({
                     return {
                         date,
                         actions: actions - 1
-                    }
+                    };
                 }    
             } else {
-                console.log(endTurnMessage)
+                console.log(endTurnMessage);
                 return {
                     date: tomorrow(date),
                     actions: actionsPerDay
-                }
+                };
             };
         }, {
             actions: actionsPerDay, 
@@ -219,7 +223,7 @@ export default ({
     );
 
     const [tiles, populateVisibleTiles] = useReducer(
-        (tiles, map, event, nav) => {
+        (tiles, map, event) => {
             /*
             Update currently visible tiles from map view.
 
@@ -227,7 +231,7 @@ export default ({
             so we can diff the sets of tiles, and only generate or
             retrieve the ones that are coming into view.
             */  
-            if (event && nav && nav.current)
+            if (event && typeof nav !== "undefined" && nav && nav.current)
                 map.updateView(
                     nav.getContext("2d"), 
                     eventCoordinates(event, nav.current)
@@ -290,7 +294,7 @@ export default ({
                 // Get raw image data
             }
         );
-        populateVisibleTiles(_map, null, nav);  
+        populateVisibleTiles(_map, null);  
         setMap(_map); 
     }, [runtime]);
 
@@ -300,7 +304,7 @@ export default ({
         tile set object. 
         */
 
-        if (!board || !board.current || !tiles) return;
+        if (typeof board === "undefined" || !board || !board.current || !tiles) return;
 
         const canvas = board.current;
         let cursor = null;
@@ -352,10 +356,14 @@ export default ({
         onNavClick: 
             (event) => {
                 event.persist();
-                populateVisibleTiles(map, event, nav);
+                populateVisibleTiles(map, event);
             },
         TileSet, 
-        populateVisibleTiles
+        populateVisibleTiles,
+        ref: {
+            nav,
+            board
+        }
     }
     
 };

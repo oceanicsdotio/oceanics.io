@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 import { 
     useGlslShaders, 
@@ -21,7 +21,6 @@ const exec = (
         viewport,
         callback = null
     }
-    
 ) => {
 
     const [handle, fb_tex] = framebuffer;
@@ -119,18 +118,20 @@ const doubleBufferedPipeline = (ref, assets, programs) => {
  * Make some noise
  */
 export default ({
-    ref, 
     opacity = 1.0 // how fast the image blends
 }) => {
    
     const [assets, setAssets] = useState(null);
+    const ref = useRef(null);
 
-    const shaders = {
-        draw: ["noise-vertex", "noise-fragment"],
-        screen: ["quad-vertex", "screen-fragment"]
-    };
     const runtime = useWasmRuntime();
-    const {programs} = useGlslShaders({ref, shaders});
+    const {programs} = useGlslShaders({
+        ref, 
+        shaders: {
+            draw: ["noise-vertex", "noise-fragment"],
+            screen: ["quad-vertex", "screen-fragment"]
+        }
+    });
 
     useEffect(() => {
     
@@ -174,5 +175,7 @@ export default ({
         })()
         return () => cancelAnimationFrame(requestId);
     }, [programs]);
+
+    return {ref};
 
 };

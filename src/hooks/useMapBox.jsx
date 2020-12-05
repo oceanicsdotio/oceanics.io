@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
+import style from "../data/map-style.yml";  // map style
 
 
 /**
@@ -13,13 +14,11 @@ also be sourced from an API or database.
 only one map context please, need center to have been set.
 */
 export default ({
-    ref,
-    style,
     accessToken,
-    center = [-69, 44]
+    center
 }) => {
 
-
+    const ref = useRef(null);
     const [map, setMap] = useState(null);  // MapboxGL Map instance
     const [cursor, setCursor] = useState(null);
 
@@ -42,5 +41,5 @@ export default ({
         setMap(_map);
     }, []);
   
-    return {map, cursor};
+    return {map, ref, cursor};
 };
