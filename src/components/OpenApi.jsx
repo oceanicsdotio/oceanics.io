@@ -1,10 +1,13 @@
 import React, {useReducer} from "react";
 import YAML from "yaml";
 import styled from "styled-components";
+
 import Form, {InputWrapper} from "./Form";
-import {grey} from "../palette";
+
 import useOpenApiLoader from "../hooks/useOpenApiLoader";
-import useOpenApiForm from "../hooks/useOpenApiForm"
+import useOpenApiForm from "../hooks/useOpenApiForm";
+
+import {grey} from "../palette";
 
 /**
  * Divvy up blank space
