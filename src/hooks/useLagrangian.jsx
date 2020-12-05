@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 import { 
     useGlslShaders,
@@ -63,7 +63,6 @@ const exec = (runtime, ctx, uniforms, {
   * will support pulling frames from video or gif formats. 
   */
 export default ({
-    ref,
     source,
     metadataFile,
     preview=null,
@@ -88,6 +87,7 @@ export default ({
     const positions = [0, 0, res, res];
     const count = res * res;
   
+    const ref = useRef(null);
     const [assets, setAssets] = useState(null);
     
     const { programs } = useGlslShaders({ref, shaders});
@@ -157,7 +157,9 @@ export default ({
                         previous: { data: particles, shape: [res, res] },
                         color: colorMap,
                         uv: { filter: "LINEAR", data: img },
-                    }).map(([k, v]) => createTexture()([k, {ctx: ctx, ...v}]))),
+                    }).map(
+                        ([k, v]) => [k, createTexture({ctx: ctx, ...v})]
+                    )),
                 buffers: {
                     quad: new ArrayBuffer(ctx, [0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1]),
                     index: new ArrayBuffer(ctx, particles)
@@ -292,4 +294,6 @@ export default ({
         ctx.drawImage(assets.image, 0, 0, width, height);
 
     }, [preview, assets]);
+
+    return {ref}
 };

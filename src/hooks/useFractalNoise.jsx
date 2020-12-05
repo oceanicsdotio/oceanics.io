@@ -25,7 +25,8 @@ const exec = (
 ) => {
 
     const [handle, fb_tex] = framebuffer;
-    const [type, count] = draw_as;
+    const [_type, count] = draw_as;
+    const type = ctx[_type];
 
     ctx.viewport(...viewport);
     ctx.bindFramebuffer(ctx.FRAMEBUFFER, handle);
@@ -114,13 +115,14 @@ const doubleBufferedPipeline = (ref, assets, programs) => {
     }];
 };
 
+/**
+ * Make some noise
+ */
 export default ({
     ref, 
     opacity = 1.0 // how fast the image blends
 }) => {
-    /*
-    Make some noise
-    */
+   
     const [assets, setAssets] = useState(null);
 
     const shaders = {
@@ -133,6 +135,7 @@ export default ({
     useEffect(() => {
     
         if (!ref || !ref.current) return;
+
         const ctx = ref.current.getContext("webgl");
         const { width, height } = ref.current;
         const shape = [width, height];
@@ -143,7 +146,7 @@ export default ({
                 Object.fromEntries(Object.entries({
                     screen: { data: new Uint8Array(size), shape },
                     back: { data: new Uint8Array(size), shape }
-                }).map(([k, v]) => createTexture()([k, {ctx, ...v}]))),
+                }).map(([k, v]) => [k, createTexture({ctx, ...v})])),
             buffers: {
                 quad: new ArrayBuffer(ctx, [0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1]),
             },

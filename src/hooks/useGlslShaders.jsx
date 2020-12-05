@@ -1,7 +1,25 @@
 import { useEffect, useState } from "react";
 
 import useWasmRuntime from "./useWasmRuntime";
+import noiseVertex from "raw-loader!../glsl/noise-vertex.glsl";
+import noiseFragment from "raw-loader!../glsl/noise-fragment.glsl";
+import quadVertex from "raw-loader!../glsl/quad-vertex.glsl";
+import updateFragment from "raw-loader!../glsl/update-fragment.glsl";
+import screenFragment from "raw-loader!../glsl/screen-fragment.glsl";
+import drawVertex from "raw-loader!../glsl/draw-vertex.glsl";
+import drawFragment from "raw-loader!../glsl/draw-fragment.glsl";
 
+
+// memoize the shaders as they are loaded
+const shaderSource = {
+    "quad-vertex": quadVertex,
+    "noise-vertex": noiseVertex,
+    "noise-fragment": noiseFragment,
+    "update-fragment": updateFragment,
+    "screen-fragment": screenFragment,
+    "draw-fragment": drawFragment,
+    "draw-vertex": drawVertex
+};
 /**
 IFF the canvas context is WebGL and we need shaders, fetch the GLSL code and compile the 
 shaders as programs.
@@ -23,8 +41,6 @@ export const useGlslShaders = ({
         const ctx = ref.current.getContext("webgl");
         if (!ctx) return;
 
-        const shaderSource = {};  // memoize the shaders as they are loaded
-    
         (async () => {
             
             const compiled = Object.fromEntries(await Promise.all(Object.entries(shaders).map(async ([programName, pair]) => {
@@ -67,35 +83,38 @@ export const extractUniforms = (keys, uniforms) =>
 
 
 
-export const createTexture = () => {
-    return ([k, { ctx, filter = "NEAREST", data, shape = [null, null] }]) => {
+export const createTexture = ({ 
+    ctx, 
+    filter = "NEAREST", 
+    data, 
+    shape = [null, null] 
+}) => {
 
-        let texture = ctx.createTexture();
+    let texture = ctx.createTexture();
 
-        const textureType = ctx.TEXTURE_2D;
-        const args = data instanceof Uint8Array ? [...shape, 0] : [];
+    const textureType = ctx.TEXTURE_2D;
+    const args = data instanceof Uint8Array ? [...shape, 0] : [];
 
-        ctx.bindTexture(textureType, texture);
-        const textureArgs = [textureType, 0, ctx.RGBA, ...args, ctx.RGBA, ctx.UNSIGNED_BYTE, data];
+    ctx.bindTexture(textureType, texture);
+    const textureArgs = [textureType, 0, ctx.RGBA, ...args, ctx.RGBA, ctx.UNSIGNED_BYTE, data];
 
-        try {
-            ctx.texImage2D(...textureArgs);
-        } catch (err) {
-            throw TypeError;
-        }
-
-        [
-            [ctx.TEXTURE_WRAP_S, ctx.CLAMP_TO_EDGE],
-            [ctx.TEXTURE_WRAP_T, ctx.CLAMP_TO_EDGE],
-            [ctx.TEXTURE_MIN_FILTER, ctx[filter]],
-            [ctx.TEXTURE_MAG_FILTER, ctx[filter]]
-        ].forEach(
-            ([a, b]) => { ctx.texParameteri(textureType, a, b) }
-        );
-        ctx.bindTexture(textureType, null);  // prevent accidental use
-
-        return [k, texture]
+    try {
+        ctx.texImage2D(...textureArgs);
+    } catch (err) {
+        throw TypeError;
     }
+
+    [
+        [ctx.TEXTURE_WRAP_S, ctx.CLAMP_TO_EDGE],
+        [ctx.TEXTURE_WRAP_T, ctx.CLAMP_TO_EDGE],
+        [ctx.TEXTURE_MIN_FILTER, ctx[filter]],
+        [ctx.TEXTURE_MAG_FILTER, ctx[filter]]
+    ].forEach(
+        ([a, b]) => { ctx.texParameteri(textureType, a, b) }
+    );
+    ctx.bindTexture(textureType, null);  // prevent accidental use
+
+    return texture
 };
 
 

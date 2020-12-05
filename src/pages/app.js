@@ -104,8 +104,11 @@ export default () => {
     }, false);
     
 
-    // useFractalNoise({ref});
-    useLagrangian({ref, metadataFile:"/wind.json", source:"/wind.png"});
+    useFractalNoise({ref});
+    // const {ref} = useLagrangian({
+    //     metadataFile:"/wind.json", 
+    //     source:"/wind.png"
+    // });
 
     // const {
     //     worldSize, 
