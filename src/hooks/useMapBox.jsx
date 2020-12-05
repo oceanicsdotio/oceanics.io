@@ -32,6 +32,9 @@ export default ({
             center,
             zoom: 10,
             antialias: false,
+            pitchWithRotate: false,
+            dragRotate: false,
+            touchZoomRotate: false
         })
 
         _map.on('mousemove', ({lngLat: {lng, lat}}) => {

@@ -17,6 +17,7 @@ const Map = ({
     layers=defaultLayers, 
     accessToken,
     className,
+    triggerResize = [],
     center = [-69, 44]
 }) => {
 
@@ -31,6 +32,15 @@ const Map = ({
         map, 
         source: "nssp-closures"
     });
+
+    /**
+     * Hoist the resize function on map to the parent 
+     * interface.
+     */
+    useEffect(()=>{
+        if (!map) return;
+        map.resize();
+    }, triggerResize);
 
     /**
      * Swap layers to be in the correct order as they have are created. 
@@ -48,7 +58,7 @@ const Map = ({
      * Skip this if the layer data has already been loaded, 
      * or if the map doesn't exist yet
      */
-    layers.json.forEach(({popup=null, behind, render}) => {
+    layers.json.forEach(({popup=null, render}) => {
         useMapboxGeoJsonSource({
             render,
             map,
@@ -65,6 +75,10 @@ const MapContainer = styled(Map)`
     padding: 0;
     margin: 0;
     display: ${({display})=>display};
+
+    & > * {
+        display: ${({display})=>display};
+    }
 `;
 
 export default MapContainer;
