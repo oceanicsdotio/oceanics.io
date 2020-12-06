@@ -17,7 +17,6 @@ import {StyledRawBar} from "../components/RawBar";
 import Trifold from "../components/Trifold";
 
 import entities from "../data/entities.yml";
-import "../styles/app.css";
 
 const {locations, things, team} = entities;
 const storageTarget = "https://oceanicsdotio.nyc3.digitaloceanspaces.com";
@@ -102,8 +101,8 @@ const Interface = styled.div`
         image-rendering: crisp-edges;
         width: 128px;
         height: 128px;
-        margin-bottom: 0;
-        margin-right: 0;
+        margin-bottom: 1rem;
+        margin-right: 1rem;
         margin-left: auto;
         margin-top: auto;
     }
