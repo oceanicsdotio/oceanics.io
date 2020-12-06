@@ -61,7 +61,7 @@ const StyledLocation = styled.div`
         & > img {
             image-rendering: crisp-edges;
             display: inline-block;
-            height: 24px;
+            height: 2.5rem;
         }
     }
 `;

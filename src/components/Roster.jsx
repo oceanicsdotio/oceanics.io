@@ -88,7 +88,7 @@ const StyledRoster = styled(Roster)`
 
     & > div {
         visibility: ${({hidden}) => hidden ? "hidden": null};
-        min-height: ${({hidden}) => hidden ? "0px" : "25px"};
+        min-height: ${({hidden}) => hidden ? "0" : "2.5rem"};
         margin-bottom: 1%;
         width: 100%;
     }

@@ -74,7 +74,7 @@ export const TankContainer = styled(Tank)`
         -webkit-appearance: none;
         appearance: none;
         width: 100%;
-        height: 20px;
+        height: 2rem;
         border: 0.1rem solid;
         background: none;
         color: ${grey};

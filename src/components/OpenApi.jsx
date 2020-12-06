@@ -13,8 +13,8 @@ import {grey} from "../palette";
  * Divvy up blank space
  */
 const Placeholder = styled.div`
-    border-top: 1px dashed ${grey};
-    border-bottom: 1px dashed ${grey};
+    border-top: 0.1rem dashed ${grey};
+    border-bottom: 0.1rem dashed ${grey};
     font-size: x-large;
     padding: 2rem;
 `;
@@ -125,8 +125,8 @@ const Operation = ({
  * Styled version of the base component
  */
 const StyledOperation = styled(Operation)`
-    border-top: 1px dashed ${grey};
-    border-bottom: 1px dashed ${grey};
+    border-top: 0.1rem dashed ${grey};
+    border-bottom: 0.1rem dashed ${grey};
 `;
 
 /**

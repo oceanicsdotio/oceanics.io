@@ -63,8 +63,8 @@ const StyledTileInfo = styled(TileInfo)`
     & > img {
         position: relative;
         image-rendering: crisp-edges;
-        width: 64px;
-        height: 64px;
+        width: 6rem;
+        height: 6rem;
     }  
 `;
   

@@ -5,7 +5,7 @@ import rubric from "../data/rubric.yml";
 
 const Input =  styled.input`
     display: inline;
-    margin: 10px;
+    margin: 1rem;
 `;
 
 const Statement = styled.p`
@@ -17,8 +17,8 @@ const Container = styled.div`
 `;
 
 const Score = styled.div`
-    border: 1px orange solid;
-    border-radius: 5px;
+    border: 0.1rem orange solid;
+    border-radius: 0.5rem;
     color: orange;
 `;
 

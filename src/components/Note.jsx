@@ -11,7 +11,7 @@ const StyledTextArea = styled.div`
     margin: 0;
     word-wrap: break-word;
     word-break: break-all;
-    padding: 5px;
+    padding: 0.5rem;
 `;
 
 

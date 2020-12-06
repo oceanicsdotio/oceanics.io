@@ -39,9 +39,9 @@ Selectable person token
 export const StyledPerson = styled(Person)`
 
     display: inline-block;
-    padding: 5px;
-    margin: 2px;
-    border: 2px solid;
+    padding: 0.5rem;
+    margin: 0.2rem;
+    border: 0.2rem solid;
     border-radius: 50%;
     background: none;
     color: ${orange};

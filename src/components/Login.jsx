@@ -67,7 +67,7 @@ const StyledLogin = styled(Login)`
         position: relative;
         width: 100%;
         font-size: smaller;
-        margin-top: 10px;
+        margin-top: 1rem;
     }
 `;
 
