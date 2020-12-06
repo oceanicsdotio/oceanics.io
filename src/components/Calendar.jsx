@@ -50,11 +50,18 @@ const Calendar = ({
                 ...props
             }}/>
         )}
-        {locations.map(({tasks, things=null, capacity, icon=null, ...props}, ii) => 
+        {locations.map(({
+            name,
+            tasks,
+            things=null, 
+            capacity, 
+            icon=null,
+            ...props
+        }, ii) => 
             <Location 
                 key={`location-${ii}`}
                 icon={icon ? TileSet[icon] : null}
-                {...props}
+                name={name}
             >
                 <Roster team={props.home && team ? 
                     [...(props.team || []), ...team]: 

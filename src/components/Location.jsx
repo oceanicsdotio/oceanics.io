@@ -1,5 +1,6 @@
 import React, {useReducer} from "react";
 import styled from "styled-components";
+import PropTypes from "prop-types";
 import {grey, ghost} from "../palette";
 
 
@@ -27,21 +28,30 @@ export const Location = ({
         onMouseLeave={()=>toggleActive(false)}
     >
         <h3>
-            {`${name} `}
-            <img src={icon.data}/>
+            {name}
+            <img src={icon?icon.data:null}/>
         </h3>
-        
         {children}
     </div>
     
 };
+
+Location.propTypes = {
+    /**
+     Display name of the task.
+     */
+    name: PropTypes.string.isRequired,
+    className: PropTypes.string,
+    icon: PropTypes.object
+};
+
 
 
 /**
  * The StyledLocation component is just a styled version of Location
  * that includes hover effects. 
  */
-const StyledLocation = styled.div`
+const StyledLocation = styled(Location)`
     display: block;
     margin: 0;
     height: auto;
@@ -60,8 +70,9 @@ const StyledLocation = styled.div`
     & > h3 {
         & > img {
             image-rendering: crisp-edges;
-            display: inline-block;
-            height: 2.5rem;
+            display: inline;
+            height: 1.5em;
+            margin-left: 1em;
         }
     }
 `;

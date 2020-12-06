@@ -2,7 +2,7 @@ import React, {useReducer} from "react";
 import styled from "styled-components";
 import Roster from "./Roster";
 import Form from "./Form";
-import {ghost,grey, blue} from "../palette";
+import {ghost, grey, blue} from "../palette";
 import Tanks from "./Tanks";
 
 
@@ -45,8 +45,7 @@ const Thing = ({
             {(hidden && tanks) ? null : <Tanks tanks={tanks}/>}
             <div>{hidden ? null : 
                 <Form actions={[
-                    {value: "Rebase"},
-                    {value: "Deploy"}
+                    {value: "Delegate"}
                 ]}/>
             }</div>
         </div>

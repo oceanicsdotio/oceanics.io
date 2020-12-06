@@ -16,8 +16,9 @@ import Calendar from "../components/Calendar";
 import Trifold from "../components/Trifold";
 
 import { ghost } from "../palette";
-import { rhythm } from "../typography";
 import { NavBar, Title } from "../components/Layout";
+
+import defaultLayers from "../data/layers.yml";  // map layers
 
 import entities from "../data/entities.yml";
 
@@ -223,6 +224,7 @@ export default () => {
         >
             <Composite display={showMap?"none":undefined}>
                 <Map 
+                    layers={defaultLayers}
                     accessToken={mapBoxAccessToken}
                     display={showMap?undefined:"none"}
                     triggerResize={[expand, showMap]}

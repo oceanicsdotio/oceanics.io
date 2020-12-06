@@ -1,0 +1,190 @@
+oysters: 
+  data: ../../content/assets/oyster.gif
+  spriteSheet: ../../content/assets/oyster.png
+  name: Oysters
+  value: 10
+  probability: 0.05
+  cost: 50
+  becomes: [empty]
+  dialog: Yum!
+  description: |
+    Oysters are delicious! Leave them in the water and collect the reward or harvest the whole bed and sell it.
+
+mussels: 
+  data: ../../content/assets/mussels.gif
+  spriteSheet: ../../content/assets/mussels.png
+  name: Mussels
+  value: 5
+  probability: 0.05
+  cost: 25
+  becomes: [empty]
+  dialog: Yum!
+  description: |
+    Mussels are good! If they are too close to oysters though they will eventually take over.
+
+platform: 
+  data: ../../content/assets/platform.gif
+  spriteSheet: ../../content/assets/platform.png
+  name: Laboratory
+  value: 40
+  probability: 0.01
+  dialog: beep boop science
+  limit: 1
+  description: |
+      The laboratory reveals gulls. Sometime if you are really nice and bring the scientists seafood they will publish a paper revealing the nature of things.  
+    
+
+fish: 
+  data: ../../content/assets/fish-pen.gif
+  spriteSheet: ../../content/assets/fish-pen.png
+  name: Fish Pen
+  value: 20
+  cost: 100
+  probability: 0.02
+  becomes: [empty]
+  dialog: Yum!
+  description: |
+      Finfish are valuable but be careful bad things can happen if they escape. If the sea lice get to be too much you should talk to the scientists at the laboratory about collaborating on a paper.
+    
+
+lighthouse: 
+  data: ../../content/assets/lighthouse.gif
+  spriteSheet: ../../content/assets/lighthouse.png
+  name: Lighthouse
+  value: 50
+  probability: 0.01
+  dialog: Sure is lonely out here.
+  limit: 1
+  description: |
+      The Lighthouse has been around forever. It provides a bonus to nearby activities and protects boats from being lost at sea.
+    
+
+gull: 
+  data: ../../content/assets/herring-gull.gif
+  spriteSheet: ../../content/assets/herring-gull.png
+  name: Herring Gull
+  probability: 0.1
+  becomes: [fish, oysters, mussels]
+  dialog: Caaaawwww.
+  description: |
+      Gulls indicate that there is a hidden feature on a tile. These can be converted to activity tiles by being near a laboratory or being visited by a boat.
+    
+
+boat: 
+  data: ../../content/assets/boat.gif
+  spriteSheet: ../../content/assets/boat.png
+  name: Boat
+  value: -10
+  probability: 0.03
+  limit: 1
+  becomes: [diver, oil]
+  dialog: Fine day to go yachting.
+  description: |
+      Gotta have a boat to work on the water.
+    
+
+empty: 
+  data: ../../content/assets/empty.gif
+  spriteSheet: ../../content/assets/empty.png
+  name: Ocean
+  cost: 5
+  becomes: [buoys, mud]
+  dialog: Maybe there are some bugs around?
+  description: |
+      Ocean tiles aren't empty. They are worth points but only next to other ocean tiles. 
+    
+
+land: 
+  data: ../../content/assets/land.gif
+  spriteSheet: ../../content/assets/land.png
+  name: Land
+  probability: 0.0
+  cost: 0
+  dialog: Can't get there from here.
+  description: |
+    Don't go there.
+
+buoys: 
+  data: ../../content/assets/lobster-buoys.gif
+  spriteSheet: ../../content/assets/lobster-buoys.png
+  name: Lobster Buoys
+  probability: 0.03
+  cost: 10
+  becomes: [empty]
+  dialog: Yum!
+  description: |
+      Boats can put out and recover lobster traps! Don't molest yuor neighbors traps or you'll get in trouble. Karmicly and physically.
+    
+
+wharf: 
+  data: ../../content/assets/wharf.gif
+  spriteSheet: ../../content/assets/wharf.png
+  name: Wharf
+  value: 0
+  probability: 0.02
+  dialog: "'ey you hear about that fire last night?"
+  limit: 1
+  description: |
+    Every good day starts at the dock! You'll have to fuel up here before you can go out and save the world. Gah but look at all that trash in water sure wish someone would take care of this place
+    
+
+diver: 
+  data: ../../content/assets/diver-down.gif
+  spriteSheet: ../../content/assets/diver-down.png
+  value: -10
+  name: Diver
+  probability: 0.0
+  cost: 0
+  becomes: [boat]
+  dialog: brr that's cold.
+  description: |
+    Your boats can turn into a diver to investigate underwater secrets or do harvest activities. It's not polite to run over divers that's why they fly such brightly colored flags.
+    
+
+turbine: 
+  data: ../../content/assets/turbine.gif
+  spriteSheet: ../../content/assets/turbine.png
+  value: 50
+  probability: 0.1
+  name: Wind Turbine
+  cost: 0
+  becomes: [turbineFire]
+  dialog: Whoosh
+  description: Wind turbines make electricity
+
+turbineFire: 
+  data: ../../content/assets/turbine-fire.gif
+  spriteSheet: ../../content/assets/turbine-fire.png
+  name: Damaged Wind Turbine
+  value: 0
+  probability: 0.0
+  cost: 50
+  becomes: [turbine]
+  dialog: Clang clank clang clank.
+  description: |
+    Things break down on the water. If you're going to do business out there you better be ready to respond quickly. 
+    
+
+mud: 
+  data: ../../content/assets/mud.gif
+  spriteSheet: ../../content/assets/mud.png
+  name: Mud Flat
+  value: 10
+  probability: 0.0
+  cost: 0.0
+  becomes: [empty]
+  dialog: Lost my boot.
+  description: |
+    Ooey gooey sticky smelly mud. Full of tasty treats. Doesn't Jimmy's uncle have a fan boat or something?
+
+oil: 
+  data: ../../content/assets/oil-spill.gif
+  spriteSheet: ../../content/assets/oil-spill.png
+  name: Oil Spill
+  value: -100.0
+  probability: 0.0
+  cost: 0.0
+  becomes: [empty]
+  dialog: What's a blowout preventer?
+  description: |
+    Looks like somebody messed up big time. 

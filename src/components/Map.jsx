@@ -7,14 +7,13 @@ import useMapBox from "../hooks/useMapBox";
 import useMapboxHighlightEvent from "../hooks/useMapBoxHighlightEvent";
 import useMapboxGeoJsonSource from "../hooks/useMapboxGeoJsonSource";
 
-import defaultLayers from "../../static/layers.yml";  // map layers
 
 
 /**
  * The Map component. 
  */
 const Map = ({
-    layers=defaultLayers, 
+    layers, 
     accessToken,
     className,
     triggerResize = [],
