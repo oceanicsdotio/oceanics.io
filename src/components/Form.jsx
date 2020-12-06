@@ -165,7 +165,7 @@ export const Form = ({
                 <InputWrapper
                     onChange={(event) => {
                         event.persist();
-                        callback(event);
+                        if (callback) callback(event);
                     }}
                     {...field}
                 />
