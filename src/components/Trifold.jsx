@@ -4,39 +4,47 @@ import {pink} from "../palette";
 
 
 
-export const Trifold = ({display, onClick, className}) =>
-    <svg 
+export const Trifold = ({
+    display, 
+    onClick, 
+    className,
+    stroke=pink,
+    strokeWidth=15,
+    strokeLinejoin="bevel",
+    fill="none"
+}) => {
+
+    const presentation = {
+        stroke,
+        fill,
+        strokeWidth,
+        strokeLinejoin
+    }
+
+    return <svg 
         className={className}
         display={display}
-        viewBox={"0 0 300 300"}
+        viewBox={"0 0 225 300"}
         onClick={onClick}
     >
         <g>    
-            <polygon 
-                stroke={pink}
-                fill={"none"}
-                strokeWidth={15}
-                strokeLinejoin={"bevel"}
-                points="200,300 200,100 75,50 75,250"
-            />
+            <polygon {...{
+                ...presentation,
+                points: "125,300 125,100 0,50 0,250"
+            }}/>
 
-            <polygon 
-                stroke={pink} 
-                fill={"none"}
-                strokeWidth={15}
-                strokeLinejoin={"bevel"}
-                points="300,50 175,0 175,50"
-            />
+            <polygon {...{
+                ...presentation,
+                points: "225,50 100,0 100,50"
+            }}/>
 
-            <polygon 
-                stroke={pink} 
-                fill={"none"}
-                strokeWidth={15}
-                strokeLinejoin={"bevel"}
-                points="200,100 200,250 300,250 300,50 75,50"
-            />
+            <polygon {...{
+                ...presentation,
+                points: "125,100 125,250 225,250 225,50 0,50"
+            }}/>
         </g>
-    </svg>;
+    </svg>
+    };
 
 
 const StyledTrifold = styled(Trifold)`
@@ -45,10 +53,10 @@ const StyledTrifold = styled(Trifold)`
     height: 2rem; 
     position: absolute;
     cursor: pointer;
-    padding: 0.2rem;
-    margin: 0.3rem;
+    margin: 1rem;
     top: 0;
     right: 0;
+    z-index: 10;
 `;
 
 export default StyledTrifold;

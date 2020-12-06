@@ -1,9 +1,9 @@
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import styled from "styled-components";
 
-import useFractalNoise from "../hooks/useFractalNoise";
-import useLagrangian from "../hooks/useLagrangian";
+// import useFractalNoise from "../hooks/useFractalNoise";
+// import useLagrangian from "../hooks/useLagrangian";
 import useOceanside from "../hooks/useOceanside";
 import useDetectDevice from "../hooks/useDetectDevice";
 
@@ -26,6 +26,10 @@ const home = locations.filter(({home=false}) => home).pop().name;
 const title = "Ocean analytics as a service";
 const mapBoxAccessToken = 'pk.eyJ1Ijoib2NlYW5pY3Nkb3RpbyIsImEiOiJjazMwbnRndWkwMGNxM21wYWVuNm1nY3VkIn0.5N7C9UKLKHla4I5UdbOi2Q';
 
+
+/**
+ * Logical combinator to calculate visibility and style of columns
+ */
 const columnSize = ({expand, mobile, column}) => {
     if (column === 0) {
         return !expand ? 1 : 0;
@@ -34,6 +38,13 @@ const columnSize = ({expand, mobile, column}) => {
     }
 };
 
+/**
+ * Application coomponent is the container for the grid/column
+ * view of interface elements, depending on whether the user is
+ * on desktop or mobile.
+ * 
+ * There is no tablet specific view at this time. 
+ */
 const Application = styled.div`
     display: grid;
     grid-gap: 0;
@@ -49,13 +60,34 @@ const Application = styled.div`
     overflow-y: clip;
 `;
 
+
+/**
+ * Fill area for visual elements. Currently required for correct
+ * resizing of map on transiitions between column and full screen
+ * views.
+ */
 const Composite = styled.div`
     position: relative;
     width: 100%;
     height: 100%;
     padding: 0;
+
+    & > canvas {
+        position: relative;
+        display: ${({display})=>display};
+        width: 100%;
+        height: 100%;
+        cursor: none;
+        image-rendering: crisp-edges;
+    }
 `;
 
+
+/**
+ * Just holds preview map for now. May hold additional
+ * interface elements in the future. Currently required
+ * for consistent styling across layouts.
+ */
 const Interface = styled.div`
     display: flex;
     flex-flow: column;
@@ -64,8 +96,6 @@ const Interface = styled.div`
     margin: 0;
     bottom: 0;
     right: 0;
-    z-index: 2;
-    border: 1px yellow dashed;
 
     & > canvas {
         display: ${({display="block"})=>display};
@@ -79,7 +109,11 @@ const Interface = styled.div`
     }
 `;
 
-
+/**
+ * The ColumnContainer component holds one or more Mini-Apps,
+ * and provides the control interface for hiding/showing/selecting
+ * among them.
+ */
 const ColumnContainer = styled.div`
 
     display: ${({display})=>display};
@@ -103,34 +137,22 @@ const ColumnContainer = styled.div`
     }
 `;
 
-const Canvas = styled.canvas`
-    position: relative;
-    display: ${({display})=>display};
-    width: 100%;
-    height: 100%;
-    cursor: none;
-    image-rendering: crisp-edges;
-`;
-
-
 export default () => {
 
     const [token, loginCallback] = useState(null);
     const [expand, setExpand] = useState(false);
-    const {mobile} = useDetectDevice();
-    // const mobile=true;
-    const [showMap, setShowMap] = useState(false);
-    
-    const isometric = useOceanside({});
-    const noise = useFractalNoise({
-        opacity: 1.0
-    });
-    const particles = useLagrangian({
-        metadataFile:"/wind.json", 
-        source:"/wind.png"
-    });
+    const [showMap, setShowMap] = useState(true);
 
-    
+    const {mobile} = useDetectDevice();    
+    const isometric = useOceanside({});
+    // const noise = useFractalNoise({
+    //     opacity: 1.0
+    // });
+    // const particles = useLagrangian({
+    //     metadataFile:"/wind.json", 
+    //     source:"/wind.png"
+    // });
+ 
     return <Application mobile={mobile} expand={expand}>
         <SEO title={title} />
         <ColumnContainer 
@@ -162,22 +184,18 @@ export default () => {
             column={1}
             display={!columnSize({expand, mobile, column: 1}) ? "none" : undefined}
         >
-            <Composite>
+            <Composite display={showMap?"none":undefined}>
                 <Map 
                     accessToken={mapBoxAccessToken}
                     display={showMap?undefined:"none"}
                     triggerResize={[expand, showMap]}
                 />
-                <Canvas
-                    display={showMap?"none":undefined}
+                <canvas
                     ref={isometric.ref.board}
                     // onClick={isometric.onBoardClick}
                 /> 
                          
                 <Interface display={showMap?"none":undefined}>
-                    <Trifold 
-                        onClick={() => {setExpand(!expand)}}
-                    /> 
                     <canvas
                         ref={isometric.ref.nav}
                         width={isometric.worldSize}
@@ -187,6 +205,7 @@ export default () => {
                 </Interface>
             </Composite>
         </ColumnContainer>
-        
+        <Trifold onClick={() => {setExpand(!expand)}}/> 
+
     </Application> 
 };
