@@ -17,7 +17,7 @@ import {StyledRawBar} from "../components/RawBar";
 import Trifold from "../components/Trifold";
 
 import entities from "../data/entities.yml";
-import appStyle from "../styles/app.css";
+import "../styles/app.css";
 
 const {locations, things, team} = entities;
 const storageTarget = "https://oceanicsdotio.nyc3.digitaloceanspaces.com";
@@ -59,10 +59,8 @@ const Composite = styled.div`
 const Interface = styled.div`
     display: flex;
     flex-flow: column;
-    position: fixed;
-    width: fit-content;
+    position: absolute;
     height: 100%;
-    width: fit-content;
     margin: 0;
     bottom: 0;
     right: 0;
@@ -168,7 +166,7 @@ export default () => {
                 <Map 
                     accessToken={mapBoxAccessToken}
                     display={showMap?undefined:"none"}
-                    triggerResize={[expand]}
+                    triggerResize={[expand, showMap]}
                 />
                 <Canvas
                     display={showMap?"none":undefined}
