@@ -156,7 +156,7 @@ export default () => {
     const [expand, setExpand] = useState(false);
     const [showMap, setShowMap] = useState(false);
 
-    const {mobile} = useDetectDevice();    
+    const {mobile} = useDetectDevice(); 
     const isometric = useOceanside({});
     // const noise = useFractalNoise({
     //     opacity: 1.0
@@ -173,6 +173,7 @@ export default () => {
      */
     useEffect(()=>{
         setShowMap(mobile);
+        setExpand(mobile);
     },[mobile]);
 
     const [menu, setMenu] = useState([{ 

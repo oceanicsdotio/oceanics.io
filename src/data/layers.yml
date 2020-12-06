@@ -1,181 +1,170 @@
 
 image: 
-  - render:
-      id: osi-composite
-      source: 
-        type: image
-        url: /osi-composite-web.png
-        coordinates: [
-          [-70.7495, 44.1929],
-          [-67.8952, 44.1929],
-          [-67.8952, 42.2156],
-          [-70.7495, 42.2156]
-        ]
-      type: raster
-      paint:
-        raster-opacity: 0.5 
+  - id: osi-composite
+    source: 
+      type: image
+      url: /osi-composite-web.png
+      coordinates: [
+        [-70.7495, 44.1929],
+        [-67.8952, 44.1929],
+        [-67.8952, 42.2156],
+        [-70.7495, 42.2156]
+      ]
+    type: raster
+    paint:
+      raster-opacity: 0.5 
     behind: maine-towns
    
-json:
+geojson:
 
-  - render: 
-      id: nssp-closures
-      type: fill
-      paint: 
-        fill-antialias: false
-        fill-color: [case,
-          [boolean, [feature-state, hover], false],
-          "rgba(255,0,255,0.3)", "rgba(255,0,255,0.1)"]
+  - id: nssp-closures
+    type: fill
+    paint: 
+      fill-antialias: false
+      fill-color: [case,
+        [boolean, [feature-state, hover], false],
+        "rgba(255,0,255,0.3)", "rgba(255,0,255,0.1)"]
     behind: suitability
     popup: nssp
 
-  - render:
-      id: ports
-      standard: esri
-      url: https://geo.dot.gov/server/rest/services/Hosted/Ports_DS/FeatureServer/0/query?where=1%3D1&outFields=*&geometry=-71.%2C42.546%2C-63.589%2C45.314&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=json
-      
-      type: symbol
-      layout:
-        icon-allow-overlap: true
-        text-field: [
-          "match",
-          ["get", "facility_t"],
-          " ",
+  - id: ports
+    standard: esri
+    url: https://geo.dot.gov/server/rest/services/Hosted/Ports_DS/FeatureServer/0/query?where=1%3D1&outFields=*&geometry=-71.%2C42.546%2C-63.589%2C45.314&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=json
+    
+    type: symbol
+    layout:
+      icon-allow-overlap: true
+      text-field: [
+        "match",
+        ["get", "facility_t"],
+        " ",
+        ["get","nav_unit_n"],
+        ["concat",
           ["get","nav_unit_n"],
-          ["concat",
-            ["get","nav_unit_n"],
-            "\n(",
-            ["downcase", ["get", "facility_t"]],
-            ")"
-          ],
-        ]
-        text-variable-anchor: ['top', 'bottom', 'left', 'right']
-        text-font: [DIN Offc Pro Bold, Arial Unicode MS Bold]
-        text-size: [
-            interpolate,
-            [linear],
-            [zoom],
-            4, 4,
-            6, 8
-        ]
-      paint: 
-        text-color: "rgba(255,165,0,1.0)"
-        text-halo-width: 3
-        text-halo-color: "rgba(0, 0, 0, 0.85)"
+          "\n(",
+          ["downcase", ["get", "facility_t"]],
+          ")"
+        ],
+      ]
+      text-variable-anchor: ['top', 'bottom', 'left', 'right']
+      text-font: [DIN Offc Pro Bold, Arial Unicode MS Bold]
+      text-size: [
+          interpolate,
+          [linear],
+          [zoom],
+          4, 4,
+          6, 8
+      ]
+    paint: 
+      text-color: "rgba(255,165,0,1.0)"
+      text-halo-width: 3
+      text-halo-color: "rgba(0, 0, 0, 0.85)"
 
     behind: major-ports
     popup: port
     info: https://hifld-geoplatform.opendata.arcgis.com/datasets/port-facilities
 
-  - render:
-      id: major-ports
-      standard: esri
-      url: https://geo.dot.gov/server/rest/services/Hosted/Ports_Major_DS/FeatureServer/0/query?where=1%3D1&outFields=*&geometry=-71.%2C42.546%2C-63.589%2C45.314&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=json
-      
-      type: symbol
-      layout:
-        text-field: 'Port of {port_name}'
-        text-variable-anchor: ['top', 'bottom', 'left', 'right']
-        text-font: [DIN Offc Pro Bold, Arial Unicode MS Bold]
-        text-size: [
-            interpolate,
-            [linear],
-            [zoom],
-            4, 9,
-            6, 12
-        ]
-      paint: 
-        text-color: "rgba(255,165,0,1.0)"
-        text-halo-width: 3
-        text-halo-color: "rgba(0, 0, 0, 0.85)"
+  - id: major-ports
+    standard: esri
+    url: https://geo.dot.gov/server/rest/services/Hosted/Ports_Major_DS/FeatureServer/0/query?where=1%3D1&outFields=*&geometry=-71.%2C42.546%2C-63.589%2C45.314&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=json
+    
+    type: symbol
+    layout:
+      text-field: 'Port of {port_name}'
+      text-variable-anchor: ['top', 'bottom', 'left', 'right']
+      text-font: [DIN Offc Pro Bold, Arial Unicode MS Bold]
+      text-size: [
+          interpolate,
+          [linear],
+          [zoom],
+          4, 9,
+          6, 12
+      ]
+    paint: 
+      text-color: "rgba(255,165,0,1.0)"
+      text-halo-width: 3
+      text-halo-color: "rgba(0, 0, 0, 0.85)"
      
     behind: suitability
     popup: port
     info: https://hifld-geoplatform.opendata.arcgis.com/datasets/major-us-port-facilities
 
-  # - render: 
-  #     id: submarine-cables
-  #     type: line
-  #     url: https://coast.noaa.gov/arcgis/rest/services/MarineCadastre/NavigationAndMarineTransportation/MapServer/4/query?where=1%3D1&outFields=*&geometry=-71.190%2C40.975%2C-63.598%2C46.525&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=json
-  #     paint: 
-  #       line-color: "rgba(0,255,0,1.0)"
+  # - id: submarine-cables
+  #   type: line
+  #   url: https://coast.noaa.gov/arcgis/rest/services/MarineCadastre/NavigationAndMarineTransportation/MapServer/4/query?where=1%3D1&outFields=*&geometry=-71.190%2C40.975%2C-63.598%2C46.525&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=json
+  #   paint: 
+  #     line-color: "rgba(0,255,0,1.0)"
   #   behind: aquaculture-leases
   #   info: https://hifld-geoplatform.opendata.arcgis.com/datasets/submarine-cables
 
-  - render:
-      id: navigation
-      type: circle
-      standard: esri
-      url:  https://coast.noaa.gov/arcgis/rest/services/MarineCadastre/NavigationAndMarineTransportation/MapServer/0/query?where=1%3D1&outFields=*&geometry=-70.7%2C42.546%2C-63.589%2C45.314&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=json
-      paint: 
-        circle-radius: 
-            stops: [[8, 1], [12, 2], [16, 6]]
-        circle-color: "rgba(0,0,0,0)"
-        circle-stroke-width: 1
-        circle-stroke-color: "rgba(255,165,0,0.5)"
+  - id: navigation
+    type: circle
+    standard: esri
+    url:  https://coast.noaa.gov/arcgis/rest/services/MarineCadastre/NavigationAndMarineTransportation/MapServer/0/query?where=1%3D1&outFields=*&geometry=-70.7%2C42.546%2C-63.589%2C45.314&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=json
+    paint: 
+      circle-radius: 
+          stops: [[8, 1], [12, 2], [16, 6]]
+      circle-color: "rgba(0,0,0,0)"
+      circle-stroke-width: 1
+      circle-stroke-color: "rgba(255,165,0,0.5)"
     behind: ports
     popup: port
     info: https://hifld-geoplatform.opendata.arcgis.com/datasets/nautical-navigation-aids-navaid-locations/geoservice?geometry=43.528%2C-71.756%2C-59.128%2C80.293
     
     
-  - render:
-      id: wrecks
-      type: circle
-      standard: esri
-      url: https://coast.noaa.gov/arcgis/rest/services/OceanReportingTool/WrecksAndObstructions/MapServer/0/query?where=1%3D1&outFields=*&geometry=-70.7%2C42.546%2C-63.589%2C45.314&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=json
-      paint: 
-        circle-radius: 
-            stops: [[8, 1], [12, 2], [16, 6]]
-        circle-color: "rgba(255,165,0,0.5)"
-        circle-stroke-width: 1
-        circle-stroke-color: "rgba(255,165,0,0.5)"
-    behind: ports
-    popup: port
-    info: https://hifld-geoplatform.opendata.arcgis.com/datasets/wrecks-and-obstructions-1/geoservice?geometry=-79.504%2C40.527%2C-60.212%2C46.116
+  # - id: wrecks
+  #   type: circle
+  #   standard: esri
+  #   url: https://coast.noaa.gov/arcgis/rest/services/OceanReportingTool/WrecksAndObstructions/MapServer/0/query?where=1%3D1&outFields=*&geometry=-70.7%2C42.546%2C-63.589%2C45.314&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=json
+  #   paint: 
+  #     circle-radius: 
+  #         stops: [[8, 1], [12, 2], [16, 6]]
+  #     circle-color: "rgba(255,165,0,0.5)"
+  #     circle-stroke-width: 1
+  #     circle-stroke-color: "rgba(255,165,0,0.5)"
+  #   behind: ports
+  #   popup: port
+  #   info: https://hifld-geoplatform.opendata.arcgis.com/datasets/wrecks-and-obstructions-1/geoservice?geometry=-79.504%2C40.527%2C-60.212%2C46.116
 
 # https://hifld-geoplatform.opendata.arcgis.com/datasets/outer-continental-shelf-ocs-protraction-diagrams-leasing-maps
 # https://hifld-geoplatform.opendata.arcgis.com/datasets/wrecks-and-obstructions-1
 # https://hifld-geoplatform.opendata.arcgis.com/datasets/ferry-routes
 
-  - render: 
-      id: limited-purpose-licenses
-      type: circle
-      paint: 
-        circle-radius: 
-            stops: [[8, 1], [12, 4], [16, 10]]
-        circle-color: "rgba(0,0,0,0)"
-        circle-stroke-width: 1
-        circle-stroke-color: "rgba(0,255,255,0.75)"
+  - id: limited-purpose-licenses
+    type: circle
+    paint: 
+      circle-radius: 
+          stops: [[8, 1], [12, 4], [16, 10]]
+      circle-color: "rgba(0,0,0,0)"
+      circle-stroke-width: 1
+      circle-stroke-color: "rgba(0,255,255,0.75)"
     behind: cities
     popup: license
  
-  - render: 
-      id: suitability
-      attribtion: Oceanics.io
-      type: circle
-      paint: 
-        circle-radius: 
-          stops: [[8, 2], [12, 8], [16, 20]]
-        circle-color: "rgba(0,0,0,0)"
-        circle-stroke-width: 1
-        circle-stroke-color: "rgba(255,255,255,0.75)"
+  - id: suitability
+    attribtion: Oceanics.io
+    type: circle
+    paint: 
+      circle-radius: 
+        stops: [[8, 2], [12, 8], [16, 20]]
+      circle-color: "rgba(0,0,0,0)"
+      circle-stroke-width: 1
+      circle-stroke-color: "rgba(255,255,255,0.75)"
     behind: limited-purpose-licenses
 
-  - render: 
-      id: aquaculture-leases
-      attribution: Maine DMR
-      type: fill
-      paint: 
-        fill-antialias: false
-        fill-color: "rgba(0,255,255,0.75)"
+  - id: aquaculture-leases
+    attribution: Maine DMR
+    type: fill
+    paint: 
+      fill-antialias: false
+      fill-color: "rgba(0,255,255,0.75)"
     behind: suitability
     popup: lease
 
-  - render: 
-      id: maine-towns
-      attribution: Maine OIT
-      type: line
-      maxzoom: 10
-      paint: 
-        line-color: "rgba(255,255,255,0.3)"
+  - id: maine-towns
+    attribution: Maine OIT
+    type: line
+    # maxzoom: 10
+    paint: 
+      line-color: "rgba(255,255,255,0.3)"
     behind: aquaculture-leases

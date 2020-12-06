@@ -5,7 +5,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 
 import useMapBox from "../hooks/useMapBox";
 import useMapboxHighlightEvent from "../hooks/useMapBoxHighlightEvent";
-import useMapboxGeoJsonSource from "../hooks/useMapboxGeoJsonSource";
+import useMapboxGeoJsonLayers from "../hooks/useMapboxGeoJsonLayers";
 
 
 
@@ -25,12 +25,12 @@ const Map = ({
         accessToken
     });
 
-    const [ready, setReady] = useState({});
-    useMapboxHighlightEvent({
-        ready: "nssp-closures" in ready, 
-        map, 
-        source: "nssp-closures"
-    });
+   
+     // useMapboxHighlightEvent({
+    //     ready: "nssp-closures" in ready, 
+    //     map, 
+    //     source: "nssp-closures"
+    // });
 
     /**
      * Hoist the resize function on map to the parent 
@@ -47,24 +47,29 @@ const Map = ({
      * about creation order.
      */
     useEffect(() => {
-        Object.entries(ready).forEach(([id, behind]) => {
+        if (!metadata) return;
+        Object.entries(metadata).forEach(({id, behind}) => {
             map.moveLayer(id, behind)
         });
-    }, [ready]);
+    }, [metadata]);
 
     /**
      * Asynchronously retrieve the geospatial data files and parse them.
      * Skip this if the layer data has already been loaded, 
      * or if the map doesn't exist yet
      */
-    layers.json.forEach(({popup=null, render}) => {
-        useMapboxGeoJsonSource({
-            render,
-            map,
-            popup: popup ? popups[popup] : null
-        })
+    const {
+        metadata
+    } = useMapboxGeoJsonLayers({
+        map,
+        layers: 
+            layers.geojson.map(
+                ({popup, ...v})=>
+                    Object({...v, popup: popup ? popups[popup] : null})
+            )
+            
     });
-       
+    
     return <div ref={ref} className={className}/>;
 };
 

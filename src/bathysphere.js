@@ -76,29 +76,9 @@ export function quickSort(arr, low, high, col) {
         quickSort(arr, low, index - 1, col);
         quickSort(arr, index + 1, high, col);
     }
-}
+};
 
 
-// Formatting function, generic to all providers
-export const Feature = (lon, lat, props) => Object({
-    type: 'Feature',
-    geometry: {
-        type: 'Point',
-        coordinates: [lon, lat]
-    },
-    properties: props
-});
-
-// Out ready for Mapbox as a Layer object description
-export const GeoJsonSource = ({features, properties=null, type="FeatureCollection"}) => Object({
-    data: {
-        features,
-        properties, 
-        type
-    }, 
-    type: "geojson", 
-    generateId: true
-});
 
 const size = 64;
 export const pulsingDot = (map) => Object({
@@ -191,34 +171,6 @@ export const waterLevel = (map) => Object({
         
     }
 });
-
-export const parseFeatureData = ({features, properties=null, standard="geojson"}) => 
-    GeoJsonSource((()=>{
-        let feat = null;
-        switch(standard) {
-            // ESRI does things their own special way.
-            case "esri":
-                feat = features.map(({geometry: {x, y}, attributes}) => Feature(x, y, attributes));
-                break;
-            // NOAA also does things their own special way
-            case "noaa":
-                
-                feat = features
-                    .filter(x => "data" in x && "metadata" in x)
-                    .map(({data: [head], metadata: {lon, lat, ...metadata}}) => Feature(lon, lat, {...head, ...metadata}));
-                break;
-            // Otherwise let us hope it is GeoJSON
-            case "geojson":
-                feat = features;
-                break;
-            default:
-                throw Error(`Unknown Spatial Standard: ${standard}`);
-        };
-        return {
-            features: feat,
-            properties
-        }
-    })());
 
 
 export const rotatePath = (pts, angle) => {
