@@ -52,7 +52,7 @@ const Application = styled.div`
         ({mobile, expand})=>
             `${columnSize({expand, mobile, column: 0})}fr ${columnSize({expand, mobile, column: 1})}fr`
         };
-    grid-auto-rows: minmax(50px, auto);
+    grid-auto-rows: minmax(5rem, auto);
     margin: 0;
     padding: 0;
     height: 100vh;
@@ -74,7 +74,7 @@ const Composite = styled.div`
 
     & > canvas {
         position: relative;
-        display: ${({display})=>display};
+        display: ${({display="block"})=>display};
         width: 100%;
         height: 100%;
         cursor: none;
@@ -96,7 +96,7 @@ const Interface = styled.div`
     margin: 0;
     bottom: 0;
     right: 0;
-
+    
     & > canvas {
         display: ${({display="block"})=>display};
         image-rendering: crisp-edges;
@@ -153,12 +153,15 @@ export default () => {
     //     source:"/wind.png"
     // });
 
+
+    /**
+     * Assume that on mobile the user will want to see the map
+     * rather than our loading Jenk.
+     */
     useEffect(()=>{
         setShowMap(mobile);
-    },[mobile])
+    },[mobile]);
 
-
- 
     return <Application mobile={mobile} expand={expand}>
         <SEO title={title} />
         <ColumnContainer 
