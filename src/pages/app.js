@@ -13,8 +13,11 @@ import Catalog from "../components/Catalog";  // Graph API interface
 import Login from "../components/Login";  // API JWT authorizatio
 import Map from "../components/Map";  // MapBox interface
 import Calendar from "../components/Calendar";
-import {StyledRawBar} from "../components/RawBar";
 import Trifold from "../components/Trifold";
+
+import { ghost } from "../palette";
+import { rhythm } from "../typography";
+import { NavBar, Title } from "../components/Layout";
 
 import entities from "../data/entities.yml";
 
@@ -128,6 +131,16 @@ const ColumnContainer = styled.div`
     margin: 0;
     padding: 0;
 
+    & > main {
+        height: auto;
+        bottom: 0;
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+        border-top: 0.1rem solid ${ghost};
+        border-radius: 1rem;
+        padding: 1rem;
+    }
+
     & > button {
         position: absolute;
         top: 0;
@@ -161,6 +174,24 @@ export default () => {
         setShowMap(mobile);
     },[mobile]);
 
+    const [menu, setMenu] = useState([{ 
+        name: "Login", 
+        component: <Login onSuccess={loginCallback}/>   
+    },{
+        name: "Almanac",
+        onClick: () => {setShowMap(false)},
+        component: <Calendar {...{
+            team, home, locations, things
+        }}/>
+    },{
+        name: "Data",
+        onClick: () => {setShowMap(true)},
+        component: <Catalog {...{
+            graph: {accessToken: token},
+            storage: {target: storageTarget}
+        }}/>
+    }]);
+
     return <Application mobile={mobile} expand={expand}>
         <SEO title={title} />
         <ColumnContainer 
@@ -168,23 +199,21 @@ export default () => {
             row={0} 
             column={0}
         >
-            <StyledRawBar menu={[{ 
-                name: "Login", 
-                component: <Login onSuccess={loginCallback}/>   
-            },{
-                name: "Almanac",
-                onClick: () => {setShowMap(false)},
-                component: <Calendar {...{
-                    team, home, locations, things
-                }}/>
-            },{
-                name: "Data",
-                onClick: () => {setShowMap(true)},
-                component: <Catalog {...{
-                    graph: {accessToken: token},
-                    storage: {target: storageTarget}
-                }}/>
-            }]}/>
+            <NavBar>
+                <Title to={"/"} color={ghost}>{menu[0].name}</Title>
+                {menu.slice(1, menu.length).map(({name, onClick}, ii)=>
+                    <button 
+                        key={`button-${name}`}
+                        onClick={() => {
+                            if (onClick) onClick();
+                            setMenu([...menu.slice(ii+1, menu.length), ...menu.slice(0, ii+1)]);
+                        }}
+                    >
+                        {name}
+                    </button>)
+                }
+            </NavBar>
+            <main>{menu[0].component}</main>
         </ColumnContainer>
         
         <ColumnContainer 
