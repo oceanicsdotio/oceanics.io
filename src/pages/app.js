@@ -141,7 +141,7 @@ export default () => {
 
     const [token, loginCallback] = useState(null);
     const [expand, setExpand] = useState(false);
-    const [showMap, setShowMap] = useState(true);
+    const [showMap, setShowMap] = useState(false);
 
     const {mobile} = useDetectDevice();    
     const isometric = useOceanside({});
@@ -152,6 +152,12 @@ export default () => {
     //     metadataFile:"/wind.json", 
     //     source:"/wind.png"
     // });
+
+    useEffect(()=>{
+        setShowMap(mobile);
+    },[mobile])
+
+
  
     return <Application mobile={mobile} expand={expand}>
         <SEO title={title} />
