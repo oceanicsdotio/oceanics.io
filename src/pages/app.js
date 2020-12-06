@@ -13,10 +13,11 @@ import Catalog from "../components/Catalog";  // Graph API interface
 import Login from "../components/Login";  // API JWT authorizatio
 import Map from "../components/Map";  // MapBox interface
 import Calendar from "../components/Calendar";
-import {StyledRawBar} from "../components/Layout";
+import {StyledRawBar} from "../components/RawBar";
+import Trifold from "../components/Trifold";
 
 import entities from "../data/entities.yml";
-import {pink, grey, shadow, ghost} from "../palette";
+import appStyle from "../styles/app.css";
 
 const {locations, things, team} = entities;
 const storageTarget = "https://oceanicsdotio.nyc3.digitaloceanspaces.com";
@@ -25,17 +26,27 @@ const home = locations.filter(({home=false}) => home).pop().name;
 const title = "Ocean analytics as a service";
 const mapBoxAccessToken = 'pk.eyJ1Ijoib2NlYW5pY3Nkb3RpbyIsImEiOiJjazMwbnRndWkwMGNxM21wYWVuNm1nY3VkIn0.5N7C9UKLKHla4I5UdbOi2Q';
 
+const columnSize = ({expand, mobile, column}) => {
+    if (column === 0) {
+        return !expand ? 1 : 0;
+    } else if (column === 1) {
+        return (expand || !mobile) ? 1 : 0;
+    }
+};
 
 const Application = styled.div`
     display: grid;
     grid-gap: 0;
-    grid-template-columns: ${({mobile, expand})=>`${!expand ? 1 : 0}fr ${expand || !mobile ? 1 : 0}fr`};
+    grid-template-columns: ${
+        ({mobile, expand})=>
+            `${columnSize({expand, mobile, column: 0})}fr ${columnSize({expand, mobile, column: 1})}fr`
+        };
     grid-auto-rows: minmax(50px, auto);
     margin: 0;
     padding: 0;
     height: 100vh;
     width: auto;
-    overflow-y: hidden;
+    overflow-y: clip;
 `;
 
 const Composite = styled.div`
@@ -51,18 +62,23 @@ const Interface = styled.div`
     position: fixed;
     width: fit-content;
     height: 100%;
+    width: fit-content;
     margin: 0;
     bottom: 0;
+    right: 0;
     z-index: 2;
-`;
+    border: 1px yellow dashed;
 
-const Svg = styled.svg`
-    display: ${({display})=>display};
-    width: 2rem;
-    height: 2rem; 
-    cursor: pointer;
-    padding: 0.2rem;
-    margin: 0.3rem;
+    & > canvas {
+        display: ${({display="block"})=>display};
+        image-rendering: crisp-edges;
+        width: 128px;
+        height: 128px;
+        margin-bottom: 0;
+        margin-right: 0;
+        margin-left: auto;
+        margin-top: auto;
+    }
 `;
 
 
@@ -72,6 +88,7 @@ const ColumnContainer = styled.div`
     grid-row: ${({row})=>row+1};
     grid-column: ${({column})=>column+1};
     overflow-x: hidden;
+    overflow-y: ${({column})=>column?"hidden":undefined};
 
     width: 100%;
     min-height: 100vh;
@@ -94,21 +111,8 @@ const Canvas = styled.canvas`
     width: 100%;
     height: 100%;
     cursor: none;
-    image-rendering: pixelated;
-`;
-
-/*
-Canvas uses crisp-edges to preserve pixelated style of map.
-*/
-const Preview = styled.canvas`
-    display: ${({display="block"})=>display};
     image-rendering: crisp-edges;
-    width: 128px;
-    height: 128px;
-    margin-bottom: 0;
-    margin-top: auto;
 `;
-
 
 
 export default () => {
@@ -116,6 +120,7 @@ export default () => {
     const [token, loginCallback] = useState(null);
     const [expand, setExpand] = useState(false);
     const {mobile} = useDetectDevice();
+    // const mobile=true;
     const [showMap, setShowMap] = useState(false);
     
     const isometric = useOceanside({});
@@ -130,27 +135,35 @@ export default () => {
     
     return <Application mobile={mobile} expand={expand}>
         <SEO title={title} />
-        <ColumnContainer row={0} column={0}>
+        <ColumnContainer 
+            display={!columnSize({expand, mobile, column: 0}) ? "none" : undefined}
+            row={0} 
+            column={0}
+        >
             <StyledRawBar menu={[{ 
                 name: "Login", 
                 component: <Login onSuccess={loginCallback}/>   
-            },{
-                name: "Lazarette",
-                onClick: () => {setShowMap(true)},
-                component: <Catalog {...{
-                    graph: {accessToken: token},
-                    storage: {target: storageTarget}
-                }}/>
             },{
                 name: "Almanac",
                 onClick: () => {setShowMap(false)},
                 component: <Calendar {...{
                     team, home, locations, things
                 }}/>
+            },{
+                name: "Data",
+                onClick: () => {setShowMap(true)},
+                component: <Catalog {...{
+                    graph: {accessToken: token},
+                    storage: {target: storageTarget}
+                }}/>
             }]}/>
         </ColumnContainer>
         
-        <ColumnContainer row={0} column={1}>
+        <ColumnContainer 
+            row={0} 
+            column={1}
+            display={!columnSize({expand, mobile, column: 1}) ? "none" : undefined}
+        >
             <Composite>
                 <Map 
                     accessToken={mapBoxAccessToken}
@@ -161,31 +174,13 @@ export default () => {
                     display={showMap?"none":undefined}
                     ref={isometric.ref.board}
                     // onClick={isometric.onBoardClick}
-                />          
-                <Interface>
-                    <Svg 
-                        display={mobile?"none":undefined}
-                        viewBox={"0 0 310.88 310.879"}
+                /> 
+                         
+                <Interface display={showMap?"none":undefined}>
+                    <Trifold 
                         onClick={() => {setExpand(!expand)}}
-                    >
-                        <g>
-                            <polygon 
-                                fill={grey}
-                                points="205.506,90.753 205.506,256.321 243.622,249.602 243.622,37.368 87.632,57.365"
-                            />
-                            <polygon 
-                                fill={ghost}
-                                points="196.541,310.879 196.541,94.917 67.258,58.292 67.258,269.779"
-                            />
-                            <polygon 
-                                fill={ghost}
-                                points="111.721,47.461 230.544,33.259 111.721,0"
-                            />
-                        </g>
-                    </Svg>
-
-                    <Preview
-                        display={showMap?"none":"block"}
+                    /> 
+                    <canvas
                         ref={isometric.ref.nav}
                         width={isometric.worldSize}
                         height={isometric.worldSize}
@@ -194,5 +189,6 @@ export default () => {
                 </Interface>
             </Composite>
         </ColumnContainer>
+        
     </Application> 
 };
