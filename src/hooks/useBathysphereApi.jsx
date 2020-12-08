@@ -1,23 +1,22 @@
 import { useEffect, useState } from "react";
 
+/**
+The catalog page is like a landing page to the api.
 
+Routes from here correspond to entities and 
+collections in the graph database.
+
+If access token is set in React state, use it to get the catalog index from Bathysphere
+*/
 export default ({
     accessToken,
     url = "https://graph.oceanics.io/api/"
 }) => {
-    /*
-    The catalog page is like a landing page to the api.
-
-    Routes from here correspond to entities and 
-    collections in the graph database.
-    */
+   
     
     const [catalog, setCatalog] = useState([]);
 
     useEffect(() => {
-        /*
-        If access token is set in React state, use it to get the catalog index from Bathysphere
-        */
         if (!accessToken) return;
         (async () => {
             const collection = await fetch(url, {
