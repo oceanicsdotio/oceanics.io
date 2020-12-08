@@ -91,5 +91,6 @@ module.exports = {
             options: { prefixes: [`/catalog/*`] },
         },
         `gatsby-plugin-offline`,  // service worker implementation
+        `gatsby-transformer-yaml-full`,
     ],
 }

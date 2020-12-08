@@ -1,5 +1,6 @@
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react";
+import {graphql} from "gatsby";
 import styled from "styled-components";
 
 // import useFractalNoise from "../hooks/useFractalNoise";
@@ -19,7 +20,6 @@ import { ghost } from "../palette";
 import { NavBar, Title } from "../components/Layout";
 
 import defaultLayers from "../data/layers.yml";  // map layers
-
 import entities from "../data/entities.yml";
 
 const {locations, things, team} = entities;
@@ -150,11 +150,13 @@ const ColumnContainer = styled.div`
     }
 `;
 
-export default () => {
+export default ({data: {allBathysphereYaml: {edges}}}) => {
 
     const [token, loginCallback] = useState(null);
     const [expand, setExpand] = useState(false);
     const [showMap, setShowMap] = useState(false);
+
+    console.log(edges);
 
     const {mobile} = useDetectDevice(); 
     const isometric = useOceanside({});
@@ -249,3 +251,17 @@ export default () => {
 
     </Application> 
 };
+
+
+export const pageQuery = graphql`
+ query {
+    allBathysphereYaml {
+        edges {
+            node {
+                spec {
+                    name
+                }
+            }
+        }
+    }
+}`;
