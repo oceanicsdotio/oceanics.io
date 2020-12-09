@@ -1,8 +1,8 @@
-import React, {useReducer} from "react";
+import React, {useReducer, useState} from "react";
 import styled from "styled-components";
 import Roster from "./Roster";
 import Form from "./Form";
-import {ghost, grey, blue} from "../palette";
+import {ghost} from "../palette";
 import Tanks from "./Tanks";
 
 
@@ -14,17 +14,26 @@ carry people, like a boat or truck.
 Hovering sets the expansion state.
 */
 const Thing = ({
-    name,
-    home,
-    tanks=null,
+    spec: {
+        name,
+        properties = null
+    },
     className, 
     team=[],
-    capacity
 }) => {
    
     const [hidden, toggleHidden] = useReducer((prev, state)=>{
         return state === undefined ? !prev : state;
     }, true);
+
+    const [info] = useState(
+        Object.fromEntries(
+            ["home", "capacity", "tanks"].map(key => [
+                key, 
+                key in (properties || {}) ? properties[key] : null
+            ])
+        )
+    );
 
     return (
         <div 
@@ -36,13 +45,20 @@ const Thing = ({
             onMouseLeave={() => toggleHidden(true)}
         >
             {name}
-            <div>{hidden ? null : `Home: ${home}`}</div>
+            <div>
+                {hidden || !info.home ? 
+                    null : 
+                    `Home: ${info.home}`}
+            </div>
             <Roster
                 team={team}
                 hidden={hidden}
-                capacity={capacity}
+                capacity={info.capacity}
             />
-            {(hidden && tanks) ? null : <Tanks tanks={tanks}/>}
+            {(hidden || !info.tanks) ? 
+                null : 
+                <Tanks tanks={info.tanks}/>
+            }
             <div>{hidden ? null : 
                 <Form actions={[
                     {value: "Delegate"}

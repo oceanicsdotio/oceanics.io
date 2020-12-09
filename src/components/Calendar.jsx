@@ -1,5 +1,6 @@
 import React from "react"
 import styled from "styled-components";
+import {useStaticQuery, graphql} from "gatsby";
 import {pink} from "../palette";
 import Thing from "./Thing";
 import Roster from "./Roster";
@@ -20,19 +21,56 @@ Features:
 4. Allow recipients to adjust personal settings (optional)
 */
 
+
+
+const ThingsQuery = graphql`
+ query {
+    things: allBathysphereYaml(
+        filter: {
+            kind: {
+                eq: "Things"
+            } 
+        }
+    ) {
+        nodes {
+            apiVersion
+            metadata {
+                icon
+            }
+            kind
+            spec {
+                name
+                description
+                properties {
+                    home
+                    capacity
+                    tanks {
+                        name
+                        capacity
+                        level
+                    }
+                }
+            }
+        }
+    }
+}`;
+
 const Calendar = ({
     offset,
     team,
     className,
-    things,
     home,
     locations,
+    tasks,
     format = { 
         weekday: 'long', 
         month: 'short', 
         day: 'numeric' 
     }
 }) => {
+
+    const data = useStaticQuery(ThingsQuery);
+    const things = data.things.nodes;
 
     const today = new Date();
     const query = 
@@ -42,33 +80,38 @@ const Calendar = ({
 
     return <div className={className}>
         <h2>{query.toLocaleDateString(undefined, format)}</h2>
-        {Object.entries(things).map(([name, props], ii) => 
+        {things.map((props, ii) => 
             <Thing {...{
-                name, 
                 home,
                 key: `things-${ii}`,
                 ...props
             }}/>
         )}
         {locations.map(({
-            name,
-            tasks,
-            things=null, 
-            capacity, 
-            icon=null,
-            ...props
-        }, ii) => 
-            <Location 
-                key={`location-${ii}`}
-                icon={icon ? TileSet[icon] : null}
-                name={name}
-            >
-                <Roster team={props.home && team ? 
-                    [...(props.team || []), ...team]: 
-                    []} capacity={capacity}/>
-                {things ? <Things things={things} home={home}/> : null}
-                <TaskList tasks={tasks} heading={"Tasks"}/>
-            </Location>
+            spec: {
+                name
+            },
+            metadata: {
+                capacity, 
+                icon=null
+            },
+            ...props  
+            }, ii) => 
+                <Location 
+                    key={`location-${ii}`}
+                    icon={icon ? TileSet[icon] : null}
+                    name={name}
+                >
+                    <Roster 
+                        team={props.home && team ? 
+                            [...(props.team || []), ...team]: 
+                            []} capacity={capacity}
+                    />
+                    <TaskList 
+                        tasks={tasks[name]} 
+                        heading={"Tasks"}
+                    />
+                </Location>
         )}
         <Note/>
     </div>

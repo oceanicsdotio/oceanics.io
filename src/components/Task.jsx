@@ -20,7 +20,7 @@ They do not have logical concepts for due date, assignment, or relations with ot
 
 Status is used to (de-)emphasize component in CSS. 
 */
-const Task = ({task}) => {
+const Task = ({name}) => {
 
     const [complete, toggleComplete] = useReducer(
         (prev)=>{return !prev},false
@@ -30,7 +30,7 @@ const Task = ({task}) => {
         (prev)=>{return !prev},false
     );
 
-    const [textContent, setTextContent] = useState(task);
+    const [textContent, setTextContent] = useState(name);
 
     const onBlurHandler = (event) => {
         setTextContent(event.target.value);
@@ -59,7 +59,7 @@ Task.propTypes = {
     /**
      Display name of the task.
      */
-    task: PropTypes.string.isRequired
+    name: PropTypes.string.isRequired
 }
 
 const StyledTask = styled(Task)`
@@ -77,12 +77,15 @@ The tasklist is an editable list of tasks currently associated with a date and l
 export const TaskList = ({
     heading="Tasks",
     tasks=null,
-}) => <>
-    <h3>
-        {tasks ? heading : "New task"}
-    </h3>
-    {(tasks || []).map(task => <StyledTask {...{task, key: task}}/>)}
-</>
+}) => 
+    <>
+        <h3>
+            {tasks ? heading : "New task"}
+        </h3>
+        {(tasks || []).map(({spec}, ii) => 
+            <StyledTask {...{...spec, key: `task-${ii}`}}/>)}
+    </>;
+
 
 TaskList.propTypes = {
     /**

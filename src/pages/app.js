@@ -13,7 +13,7 @@ import SEO from "../components/SEO";  // SEO headers
 import Catalog from "../components/Catalog";  // Graph API interface
 import Login from "../components/Login";  // API JWT authorizatio
 import Map from "../components/Map";  // MapBox interface
-import Calendar from "../components/Calendar";
+import Almanac from "../components/Calendar";
 import Trifold from "../components/Trifold";
 
 import { ghost } from "../palette";
@@ -22,10 +22,8 @@ import { NavBar, Title } from "../components/Layout";
 import defaultLayers from "../data/layers.yml";  // map layers
 import entities from "../data/entities.yml";
 
-const {locations, things, team} = entities;
 const storageTarget = "https://oceanicsdotio.nyc3.digitaloceanspaces.com";
 // guess where things should be by default
-const home = locations.filter(({home=false}) => home).pop().name;
 const title = "Ocean analytics as a service";
 const mapBoxAccessToken = 'pk.eyJ1Ijoib2NlYW5pY3Nkb3RpbyIsImEiOiJjazMwbnRndWkwMGNxM21wYWVuNm1nY3VkIn0.5N7C9UKLKHla4I5UdbOi2Q';
 
@@ -150,13 +148,18 @@ const ColumnContainer = styled.div`
     }
 `;
 
-export default ({data: {allBathysphereYaml: {edges}}}) => {
+export default ({
+    data: {
+        team, 
+        locations, 
+        home,
+        tasks: {tasksByLocation}
+    }}) => {
+
 
     const [token, loginCallback] = useState(null);
     const [expand, setExpand] = useState(false);
     const [showMap, setShowMap] = useState(false);
-
-    console.log(edges.map(({node: {spec}})=>spec));
 
     const {mobile} = useDetectDevice(); 
     const isometric = useOceanside({});
@@ -184,15 +187,15 @@ export default ({data: {allBathysphereYaml: {edges}}}) => {
         name: "Almanac",
         onClick: () => {setShowMap(false)},
         component: 
-            <Calendar {...{
-                team, 
-                home, 
-                locations, 
-                things
-                //: edges.filter(({node: {kind}})=>kind==="Things")
+            <Almanac {...{
+                team: team.nodes, 
+                home: home.nodes[0].name, 
+                locations: locations.nodes,
+                tasks: Object.fromEntries(tasksByLocation.map(
+                    ({location, nodes})=>[location, nodes]))
             }}/>
     },{
-        name: "Data",
+        name: "Catalog",
         onClick: () => {setShowMap(true)},
         component: <Catalog {...{
             graph: {accessToken: token},
@@ -256,16 +259,89 @@ export default ({data: {allBathysphereYaml: {edges}}}) => {
     </Application> 
 };
 
-
 export const pageQuery = graphql`
- query {
-    allBathysphereYaml {
-        edges {
-            node {
+    query {
+        team: allBathysphereYaml(
+            filter: {
+                kind: {
+                    eq: "Agents"
+                }
+            }
+        ) {
+            nodes {
+                kind
+                metadata {
+                    Providers_iot_navigation {
+                        name
+                    }
+                }
                 spec {
                     name
                 }
+            }   
+        }
+        home: allBathysphereYaml(
+            filter: {
+                kind: {
+                    eq: "Locations"
+                }
+                metadata: {
+                    home: {
+                        eq: true
+                    }
+                }
             }
+        ) {
+            nodes {
+                kind
+                metadata {
+                    home
+                }
+                spec {
+                    name
+                }
+            } 
+        }
+        locations: allBathysphereYaml(
+            filter: {
+                kind: {
+                    eq: "Locations"
+                }
+                metadata: {
+                    fictional: {
+                        eq: true
+                    }
+                }
+            }
+        ) {
+            nodes {
+                kind
+                metadata {
+                    fictional
+                    home
+                    icon
+                    capacity
+                }
+                spec {
+                    name
+                }
+            }   
+        }
+        tasks: allBathysphereYaml(
+            filter: {
+                kind: {
+                    eq: "Tasks"
+                }
+            }
+        ) {
+            tasksByLocation: group(field: metadata___Locations___name) {
+                location: fieldValue
+                nodes{ 
+                    spec {
+                        name
+                    }
+                }
+            }  
         }
     }
-}`;
+`;

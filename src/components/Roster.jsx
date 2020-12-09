@@ -51,7 +51,13 @@ export const Roster = ({
             onDragOver={moveIndicator}
             onDrop={allocateCrew}
         >
-            {team.map(name => <Person name={name} key={name}/>)}
+            {team.map(({
+                node: {
+                    spec: {name}
+                }
+            }) => 
+                <Person name={name} key={name}/>
+            )}
         </div>
     </div>
 };

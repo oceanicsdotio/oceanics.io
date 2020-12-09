@@ -203,6 +203,50 @@ spec:
 apiVersion: extensions/sensing
 kind: Locations
 metadata:
+  fictional: true
+  home: true
+  icon: wharf
+  capacity: 4
+spec:
+  name: Wharf
+---
+apiVersion: extensions/tasking
+kind: Tasks
+metadata:
+  Locations:
+    - name: Wharf
+spec: 
+  name: Do a thing
+---
+apiVersion: extensions/tasking
+kind: Tasks
+metadata:
+  Locations:
+    - name: Wharf
+spec: 
+  name: Fix me
+---
+apiVersion: extensions/sensing
+kind: Locations
+metadata:
+  fictional: true
+  icon: fish
+spec: 
+  name: Farm
+---
+apiVersion: extensions/tasking
+kind: Tasks
+metadata:
+  metadata:
+  Locations:
+    - name: Farm
+spec: 
+  name: Harvest
+---
+apiVersion: extensions/sensing
+kind: Locations
+metadata:
+  
   Locations@iot.navigation:
     - name: [ Bowdoin Loboviz Data ]
       props:
@@ -684,7 +728,8 @@ apiVersion: extensions/sensing
 kind: Things
 spec:
   name: Land Ocean Biogeochemical Observatory
-  description: Moored buoy deployment of the Sustainable Ecological Aquaculture Network
+  description: |
+    Moored buoy deployment of the Sustainable Ecological Aquaculture Network
 ---
 apiVersion: extensions/sensing
 kind: Things
@@ -745,21 +790,33 @@ spec:
     - harvest
 ---
 apiVersion: extensions/ops
-kind: Agent
+kind: Agents
+metadata:
+  Providers@iot.navigation:
+    - name: [ Oceanicsdotio ]
 spec:
   name: HP Lovecraft
 ---
 apiVersion: extensions/ops
-kind: Agent
+kind: Agents
+metadata:
+  Providers@iot.navigation:
+    - name: [ Oceanicsdotio ]
 spec:
   name: Mary Shelley
 ---
 apiVersion: extensions/ops
-kind: Agent
+kind: Agents
+metadata:
+  Providers@iot.navigation:
+    - name: [ Oceanicsdotio ]
 spec:
   name: Arthur Machen
 ---
 apiVersion: extensions/ops
-kind: Agent
+kind: Agents
+metadata:
+  Providers@iot.navigation:
+    - name: [ Oceanicsdotio ]
 spec:
   name: Octavia Butler
