@@ -3,6 +3,14 @@ import PropTypes from "prop-types";
 import styled from "styled-components";
 import Person from "./Person";
 
+/**
+Makes the mouse icon change to drag version while dragging.
+*/
+const moveIndicator = (event) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "move";
+};
+
 /** 
 The roster component is an interactive list of the people
 currently assigned to a location, or to a thing, which
@@ -15,14 +23,6 @@ export const Roster = ({
     hidden=false,
     transferCallback=null
 }) => {
- 
-    /**
-    Makes the mouse icon change to drag version while dragging.
-    */
-    const moveIndicator = (event) => {
-        event.preventDefault();
-        event.dataTransfer.dropEffect = "move";
-    };
 
     /**
     Get the drag event data, and use the element handle
@@ -34,14 +34,10 @@ export const Roster = ({
         if (transferCallback) transferCallback();
     }
 
-    const isFull = Number.isInteger(capacity) ? 
-        Math.floor(team.length / capacity) : 
-        false;
-
     return <div className={className}>
         {
             Number.isInteger(capacity) ? 
-            isFull ? 
+            Math.floor(team.length / capacity) ? 
             `Full` : 
             `Crew: ${team.length}/${capacity}` : 
             null
@@ -52,9 +48,7 @@ export const Roster = ({
             onDrop={allocateCrew}
         >
             {team.map(({
-                node: {
-                    spec: {name}
-                }
+                spec: {name}
             }) => 
                 <Person name={name} key={name}/>
             )}

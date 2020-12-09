@@ -151,8 +151,7 @@ const ColumnContainer = styled.div`
 export default ({
     data: {
         team, 
-        locations, 
-        home,
+        locations,
         tasks: {tasksByLocation}
     }}) => {
 
@@ -188,8 +187,7 @@ export default ({
         onClick: () => {setShowMap(false)},
         component: 
             <Almanac {...{
-                team: team.nodes, 
-                home: home.nodes[0].name, 
+                team: team.nodes,
                 locations: locations.nodes,
                 tasks: Object.fromEntries(tasksByLocation.map(
                     ({location, nodes})=>[location, nodes]))
@@ -269,38 +267,10 @@ export const pageQuery = graphql`
             }
         ) {
             nodes {
-                kind
-                metadata {
-                    Providers_iot_navigation {
-                        name
-                    }
-                }
                 spec {
                     name
                 }
             }   
-        }
-        home: allBathysphereYaml(
-            filter: {
-                kind: {
-                    eq: "Locations"
-                }
-                metadata: {
-                    home: {
-                        eq: true
-                    }
-                }
-            }
-        ) {
-            nodes {
-                kind
-                metadata {
-                    home
-                }
-                spec {
-                    name
-                }
-            } 
         }
         locations: allBathysphereYaml(
             filter: {

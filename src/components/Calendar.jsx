@@ -21,8 +21,6 @@ Features:
 4. Allow recipients to adjust personal settings (optional)
 */
 
-
-
 const ThingsQuery = graphql`
  query {
     things: allBathysphereYaml(
@@ -59,7 +57,6 @@ const Calendar = ({
     offset,
     team,
     className,
-    home,
     locations,
     tasks,
     format = { 
@@ -82,7 +79,6 @@ const Calendar = ({
         <h2>{query.toLocaleDateString(undefined, format)}</h2>
         {things.map((props, ii) => 
             <Thing {...{
-                home,
                 key: `things-${ii}`,
                 ...props
             }}/>
@@ -92,26 +88,25 @@ const Calendar = ({
                 name
             },
             metadata: {
-                capacity, 
-                icon=null
-            },
-            ...props  
-            }, ii) => 
-                <Location 
-                    key={`location-${ii}`}
-                    icon={icon ? TileSet[icon] : null}
-                    name={name}
-                >
-                    <Roster 
-                        team={props.home && team ? 
-                            [...(props.team || []), ...team]: 
-                            []} capacity={capacity}
-                    />
-                    <TaskList 
-                        tasks={tasks[name]} 
-                        heading={"Tasks"}
-                    />
-                </Location>
+                capacity=null, 
+                icon=null,
+                home=false
+            }  
+        }, ii) => 
+            <Location 
+                key={`location-${ii}`}
+                icon={icon ? TileSet[icon] : null}
+                name={name}
+            >
+                <Roster 
+                    team={home && team ? team : []} 
+                    capacity={capacity}
+                />
+                <TaskList 
+                    tasks={tasks[name]} 
+                    heading={"Tasks"}
+                />
+            </Location>
         )}
         <Note/>
     </div>
