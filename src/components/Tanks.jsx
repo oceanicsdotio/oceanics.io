@@ -50,7 +50,7 @@ export const Tank = ({
         row={row}
         column={column}
         onClick={setTankInUse}
-        active={tankInUse}
+        active={tankInUse.toString()}
     >
         {`${acronym}: ${level.toFixed(1)}`}
         <progress max={capacity} value={level}></progress>

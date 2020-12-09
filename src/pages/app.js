@@ -156,7 +156,7 @@ export default ({data: {allBathysphereYaml: {edges}}}) => {
     const [expand, setExpand] = useState(false);
     const [showMap, setShowMap] = useState(false);
 
-    console.log(edges);
+    console.log(edges.map(({node: {spec}})=>spec));
 
     const {mobile} = useDetectDevice(); 
     const isometric = useOceanside({});
@@ -167,7 +167,6 @@ export default ({data: {allBathysphereYaml: {edges}}}) => {
     //     metadataFile:"/wind.json", 
     //     source:"/wind.png"
     // });
-
 
     /**
      * Assume that on mobile the user will want to see the map
@@ -184,9 +183,14 @@ export default ({data: {allBathysphereYaml: {edges}}}) => {
     },{
         name: "Almanac",
         onClick: () => {setShowMap(false)},
-        component: <Calendar {...{
-            team, home, locations, things
-        }}/>
+        component: 
+            <Calendar {...{
+                team, 
+                home, 
+                locations, 
+                things
+                //: edges.filter(({node: {kind}})=>kind==="Things")
+            }}/>
     },{
         name: "Data",
         onClick: () => {setShowMap(true)},

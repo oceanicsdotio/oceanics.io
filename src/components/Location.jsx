@@ -23,7 +23,7 @@ export const Location = ({
 
     return <div 
         className={className}
-        active={active}
+        active={active.toString()}
         onMouseOver={()=>toggleActive(true)}
         onMouseLeave={()=>toggleActive(false)}
     >
