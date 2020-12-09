@@ -5,7 +5,7 @@ import {Popup} from "mapbox-gl";
 import useHistogramCanvas from "../hooks/useHistogramCanvas";
 
 
-const PopUpContent = styled.div`
+export const PopUpContent = styled.div`
 
     background: #101010AA;
     font-family: inherit;
@@ -84,8 +84,7 @@ const SuitabilityInfo = ({ histogram, foreground="#CCCCCCFF"}) => {
     /*
     Suitability aggregation features are histograms drawn to a canvas.
     */
-    const ref = useRef(null);
-    const total = useHistogramCanvas({ref, histogram, foreground});
+    const {total, ref} = useHistogramCanvas({ref, histogram, foreground});
 
     return <>
         <canvas ref={ref} fg={foreground}/>
@@ -143,20 +142,19 @@ export const portHandler = ({features, lngLat: {lng}}) => {
 };
 
 export const suitabilityHandler = ({
-    features: [{
+    features, lngLat: {lng, lat}
+}) => {
+    console.log("suitability");
+    const {
         properties: {
             histogram
-        }, 
-        geometry: {
-            coordinates
         }
-    }]
-}) => 
-    Object({
-        closeOnClick: false,
+    } = features[0];
+    return Object({
+        closeOnClick: true,
         jsx: <SuitabilityInfo histogram={JSON.parse(histogram)}/>,
-        coordinates
-    });
+        coordinates: [lng, lat]
+    })};
   
 
 export const nsspHandler = ({
@@ -198,35 +196,10 @@ export const leaseHandler = ({
 };
 
 
-export const popups = Object.fromEntries(Object.entries({
+export const popups = {
     port: portHandler,
     license: licenseHandler,
     lease: leaseHandler,
     suitability: suitabilityHandler,
     nssp: nsspHandler
-}).map(([key, {
-    jsx, 
-    coordinates, 
-    closeButton=true, 
-    closeOnClick=true
-}])=>()=>{
-    const placeholder = document.createElement('div');
-    ReactDOM.render(<PopUpContent children={jsx}/>, placeholder);
-
-    let popup;
-    try {
-        popup = new Popup({
-            className: "map-popup",
-            closeButton,
-            closeOnClick
-        })
-            .setLngLat(coordinates)
-            .setDOMContent(placeholder);
-    } catch {
-        console.log("Coordindates", coordinates)
-        popup = null;
-    }
-
-
-    return [key,  popup]
-}));
+};

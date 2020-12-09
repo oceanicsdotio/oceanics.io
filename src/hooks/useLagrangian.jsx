@@ -136,7 +136,7 @@ export default ({
     * and the initial positions have been loaded or generated
     */
     useEffect(() => {
-        if (!ref.current || !particles || !metadata || !colorMap) return;
+        if (!ref || !ref.current || !particles || !metadata || !colorMap) return;
 
         const { width, height } = ref.current;
         const ctx = ref.current.getContext("webgl");

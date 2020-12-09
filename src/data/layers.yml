@@ -24,45 +24,45 @@ geojson:
       fill-color: [case,
         [boolean, [feature-state, hover], false],
         "rgba(255,0,255,0.3)", "rgba(255,0,255,0.1)"]
-    behind: suitability
+    behind: limited-purpose-licenses
     popup: nssp
 
-  - id: ports
-    standard: esri
-    url: https://geo.dot.gov/server/rest/services/Hosted/Ports_DS/FeatureServer/0/query?where=1%3D1&outFields=*&geometry=-71.%2C42.546%2C-63.589%2C45.314&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=json
+  # - id: ports
+  #   standard: esri
+  #   url: https://geo.dot.gov/server/rest/services/Hosted/Ports_DS/FeatureServer/0/query?where=1%3D1&outFields=*&geometry=-71.%2C42.546%2C-63.589%2C45.314&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=json
     
-    type: symbol
-    layout:
-      icon-allow-overlap: true
-      text-field: [
-        "match",
-        ["get", "facility_t"],
-        " ",
-        ["get","nav_unit_n"],
-        ["concat",
-          ["get","nav_unit_n"],
-          "\n(",
-          ["downcase", ["get", "facility_t"]],
-          ")"
-        ],
-      ]
-      text-variable-anchor: ['top', 'bottom', 'left', 'right']
-      text-font: [DIN Offc Pro Bold, Arial Unicode MS Bold]
-      text-size: [
-          interpolate,
-          [linear],
-          [zoom],
-          4, 4,
-          6, 8
-      ]
-    paint: 
-      text-color: "rgba(255,165,0,1.0)"
-      text-halo-width: 3
-      text-halo-color: "rgba(0, 0, 0, 0.85)"
+  #   type: symbol
+  #   layout:
+  #     icon-allow-overlap: true
+  #     text-field: [
+  #       "match",
+  #       ["get", "facility_t"],
+  #       " ",
+  #       ["get","nav_unit_n"],
+  #       ["concat",
+  #         ["get","nav_unit_n"],
+  #         "\n(",
+  #         ["downcase", ["get", "facility_t"]],
+  #         ")"
+  #       ],
+  #     ]
+  #     text-variable-anchor: ['top', 'bottom', 'left', 'right']
+  #     text-font: [DIN Offc Pro Bold, Arial Unicode MS Bold]
+  #     text-size: [
+  #         interpolate,
+  #         [linear],
+  #         [zoom],
+  #         4, 4,
+  #         6, 8
+  #     ]
+  #   paint: 
+  #     text-color: "rgba(255,165,0,1.0)"
+  #     text-halo-width: 3
+  #     text-halo-color: "rgba(0, 0, 0, 0.85)"
 
-    behind: major-ports
-    popup: port
-    info: https://hifld-geoplatform.opendata.arcgis.com/datasets/port-facilities
+  #   behind: major-ports
+  #   popup: port
+  #   info: https://hifld-geoplatform.opendata.arcgis.com/datasets/port-facilities
 
   - id: major-ports
     standard: esri
@@ -97,19 +97,19 @@ geojson:
   #   behind: aquaculture-leases
   #   info: https://hifld-geoplatform.opendata.arcgis.com/datasets/submarine-cables
 
-  - id: navigation
-    type: circle
-    standard: esri
-    url:  https://coast.noaa.gov/arcgis/rest/services/MarineCadastre/NavigationAndMarineTransportation/MapServer/0/query?where=1%3D1&outFields=*&geometry=-70.7%2C42.546%2C-63.589%2C45.314&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=json
-    paint: 
-      circle-radius: 
-          stops: [[8, 1], [12, 2], [16, 6]]
-      circle-color: "rgba(0,0,0,0)"
-      circle-stroke-width: 1
-      circle-stroke-color: "rgba(255,165,0,0.5)"
-    behind: ports
-    popup: port
-    info: https://hifld-geoplatform.opendata.arcgis.com/datasets/nautical-navigation-aids-navaid-locations/geoservice?geometry=43.528%2C-71.756%2C-59.128%2C80.293
+  # - id: navigation
+  #   type: circle
+  #   standard: esri
+  #   url:  https://coast.noaa.gov/arcgis/rest/services/MarineCadastre/NavigationAndMarineTransportation/MapServer/0/query?where=1%3D1&outFields=*&geometry=-70.7%2C42.546%2C-63.589%2C45.314&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=json
+  #   paint: 
+  #     circle-radius: 
+  #         stops: [[8, 1], [12, 2], [16, 6]]
+  #     circle-color: "rgba(0,0,0,0)"
+  #     circle-stroke-width: 1
+  #     circle-stroke-color: "rgba(255,165,0,0.5)"
+  #   behind: ports
+  #   popup: port
+  #   info: https://hifld-geoplatform.opendata.arcgis.com/datasets/nautical-navigation-aids-navaid-locations/geoservice?geometry=43.528%2C-71.756%2C-59.128%2C80.293
     
     
   # - id: wrecks
@@ -151,6 +151,7 @@ geojson:
       circle-stroke-width: 1
       circle-stroke-color: "rgba(255,255,255,0.75)"
     behind: limited-purpose-licenses
+    popup: suitability
 
   - id: aquaculture-leases
     attribution: Maine DMR

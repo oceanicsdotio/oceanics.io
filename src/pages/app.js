@@ -4,7 +4,7 @@ import {graphql} from "gatsby";
 import styled from "styled-components";
 
 // import useFractalNoise from "../hooks/useFractalNoise";
-// import useLagrangian from "../hooks/useLagrangian";
+import useLagrangian from "../hooks/useLagrangian";
 import useOceanside from "../hooks/useOceanside";
 import useDetectDevice from "../hooks/useDetectDevice";
 
@@ -19,14 +19,19 @@ import Trifold from "../components/Trifold";
 import { ghost } from "../palette";
 import { NavBar, Title } from "../components/Layout";
 
-import defaultLayers from "../data/layers.yml";  // map layers
-import entities from "../data/entities.yml";
+import layers from "../data/layers.yml";  // map layers
 
 const storageTarget = "https://oceanicsdotio.nyc3.digitaloceanspaces.com";
 // guess where things should be by default
 const title = "Ocean analytics as a service";
 const mapBoxAccessToken = 'pk.eyJ1Ijoib2NlYW5pY3Nkb3RpbyIsImEiOiJjazMwbnRndWkwMGNxM21wYWVuNm1nY3VkIn0.5N7C9UKLKHla4I5UdbOi2Q';
 
+
+const BackBuffer = styled.div`
+    width: 720px;
+    height: 360px;
+    position: fixed;
+`;
 
 /**
  * Logical combinator to calculate visibility and style of columns
@@ -203,6 +208,10 @@ export default ({
 
     return <Application mobile={mobile} expand={expand}>
         <SEO title={title} />
+        {/* <BackBuffer
+            id={"back-buffer"}
+            ref={particles.ref}
+        />  */}
         <ColumnContainer 
             display={!columnSize({expand, mobile, column: 0}) ? "none" : undefined}
             row={0} 
@@ -232,18 +241,20 @@ export default ({
         >
             <Composite display={showMap?"none":undefined}>
                 <Map 
-                    layers={defaultLayers}
+                    layers={layers}
                     accessToken={mapBoxAccessToken}
                     display={showMap?undefined:"none"}
                     triggerResize={[expand, showMap]}
                 />
                 <canvas
+                    id={"render-target"}
                     ref={isometric.ref.board}
                     // onClick={isometric.onBoardClick}
                 /> 
                          
                 <Interface display={showMap?"none":undefined}>
                     <canvas
+                        id={"preview-target"}
                         ref={isometric.ref.nav}
                         width={isometric.worldSize}
                         height={isometric.worldSize}

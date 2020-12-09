@@ -1,11 +1,11 @@
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 
-export default ({ 
-    ref,
+export default ({
     histogram, 
     foreground="#CCCCCCFF"
 }) => {
 
+    const ref = useRef(null);
     const [total, setTotal] = useState(0);
 
     useEffect(()=>{
@@ -35,6 +35,6 @@ export default ({
         setTotal(_total);
     },[]);
 
-    return total;
+    return {total, ref};
 }
     

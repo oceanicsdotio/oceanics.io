@@ -34,8 +34,8 @@ const TileInfo = ({
         <img src={data}/>
         <p>{description}</p>
         {becomes.length ? 
-            <p>
-                {"Becomes: "}
+            <>
+            {"Becomes: "}
                 <Tags group={
                     becomes
                         .map(x => TileSet[x])
@@ -43,9 +43,8 @@ const TileInfo = ({
                             link: `#${transformName(name)}`,
                             text: name
                         }))
-                    }
-                />
-            </p> : 
+                    }/>
+            </> : 
             null
         }
     </div>;

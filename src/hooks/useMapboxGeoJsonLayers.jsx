@@ -71,23 +71,24 @@ Skip this if the layer data has already been loaded, or if the map doesn't exist
 
 export default ({
     map,
-    layers,
+    layers
 }) => {
-
     const [metadata, setMetadata] = useState([]);
     
     useEffect(() => {
-        if (!map) return;
-        const results = [];
-
+        if (!map || !layers) return;
+       
         layers.forEach(({
             id,
+            behind,
             standard="geojson",
-            url=null, 
-            behind=null,
-            popup=null, 
+            url=null,
+            onClick=null, 
             ...layer
         }) => {
+            // Guard against re-loading layers
+            if (map.getLayer(id)) return;
+
             fetch(url ? url : `/${id}.json`)
                 .then(response => response.text())
                 .then(text => JSON.parse(text))
@@ -100,20 +101,22 @@ export default ({
                             standard
                         })
                     });
-                    results.push({id, behind});
-            
-                    if (popup) {
-                        map.on('click', id, (e) => {popup(e).addTo(map)})
-                    };   
+                    if (onClick) {
+                        map.on('click', id, onClick);
+                    }
                 })
                 .catch(err => {
                     console.log(`Error loading ${id}`, err);
-                }); 
+                });
         }); 
         
-        setMetadata(results);
+        setMetadata(
+            layers
+                .map(({behind, id})=>Object({behind, id}))
+                .filter(({behind}) => typeof behind !== undefined)
+        );
 
-    }, [map]);
+    }, [map, layers]);
 
     return {metadata};
 };

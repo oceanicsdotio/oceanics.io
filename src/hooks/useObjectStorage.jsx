@@ -20,8 +20,6 @@ export default ({
                 const xmlDoc = parser.parseFromString(text, "text/xml");
                 const nodes = Array.from(xmlDoc.childNodes[0].childNodes);
 
-                console.log("Nodes", nodes);
-
                 setFileSystem({
                     objects: nodes.filter(
                         ({tagName}) => tagName == "Contents"
