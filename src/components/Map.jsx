@@ -8,7 +8,6 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import useMapBox from "../hooks/useMapBox";
 import useMapboxHighlightEvent from "../hooks/useMapBoxHighlightEvent";
 import useMapboxGeoJsonLayers from "../hooks/useMapboxGeoJsonLayers";
-import useMapboxCanvasLayer from "../hooks/useMapboxCanvasLayer";
 
 
 
@@ -17,11 +16,11 @@ import useMapboxCanvasLayer from "../hooks/useMapboxCanvasLayer";
  */
 const Map = ({
     layers: {
-        geojson
+        geojson=null,
+        canvas=null
     }, 
     accessToken,
     className,
-    canvas=null,
     triggerResize = [],
     center = [-69, 44]
 }) => {
@@ -84,6 +83,10 @@ const Map = ({
     },[map]);
 
     const [geoJsonLayers, setGeoJsonLayers] = useState(null);
+
+    /**
+     * Create a react state object from the layers
+     */
     useEffect(()=>{
         if (!handlers) return;
         setGeoJsonLayers(geojson.map(({id, popup, ...layer})=>Object({
@@ -124,7 +127,21 @@ const Map = ({
         layers: geoJsonLayers
     });
 
-    // useMapboxCanvasLayer({map, canvas});
+
+    /**
+     * Use an HTML5 Canvas element as a raster data source.
+     * Requires a MapBox map instance, canvas with id prop
+     * and the geo rectangle to render to.
+     */
+    useEffect(() => {
+        if (!map || !canvas) return;
+        canvas.forEach(({source: [id, args], layer}) => {
+            if (map.getLayer(id)) return;
+            map.addSource(id, args);
+            map.addLayer(layer);
+        });
+    }, [map]);
+   
     
     return <div ref={ref} className={className}/>;
 };

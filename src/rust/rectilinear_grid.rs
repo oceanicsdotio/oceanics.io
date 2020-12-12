@@ -61,7 +61,7 @@ pub mod rectilinear_grid {
         pub mask: bool
     }
 
-
+    
     /**
     Good old-fashioned 3D grid, usually projected 
     into the X,Y plane. The precision of the hash
@@ -294,6 +294,7 @@ pub mod rectilinear_grid {
             let focus_y = ((self.cursor.y / dy).floor() - radius) * dy;
             
             ctx.set_line_width(rstyle.line_width*1.5);
+
             ctx.begin_path();
             ctx.move_to(focus_x, focus_y);
             ctx.line_to(focus_x + dx*diameter, focus_y);
@@ -302,7 +303,17 @@ pub mod rectilinear_grid {
             ctx.close_path();
             ctx.stroke();
 
-            self.cursor.draw(ctx, w, h, &overlay, rstyle.font_size, rstyle.line_width, rstyle.tick_size, 0.0, rstyle.label_padding);
+            self.cursor.draw(
+                ctx, 
+                w, 
+                h, 
+                &overlay, 
+                rstyle.font_size, 
+                rstyle.line_width, 
+                rstyle.tick_size, 
+                0.0, 
+                rstyle.label_padding
+            );
         
             let fps = (1000.0 * (self.frames + 1) as f64).floor() / time;
    

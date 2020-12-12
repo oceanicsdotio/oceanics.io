@@ -3,12 +3,12 @@ import React, { useState, useEffect } from "react";
 import {graphql} from "gatsby";
 import styled from "styled-components";
 
-// import useFractalNoise from "../hooks/useFractalNoise";
-import useLagrangian from "../hooks/useLagrangian";
+import useRectilinearGrid from "../hooks/useRectilinearGrid";
 import useOceanside from "../hooks/useOceanside";
 import useDetectDevice from "../hooks/useDetectDevice";
 
 
+import { NavBar, Title } from "../components/Layout";
 import SEO from "../components/SEO";  // SEO headers
 import Catalog from "../components/Catalog";  // Graph API interface
 import Login from "../components/Login";  // API JWT authorizatio
@@ -17,9 +17,7 @@ import Almanac from "../components/Calendar";
 import Trifold from "../components/Trifold";
 
 import { ghost } from "../palette";
-import { NavBar, Title } from "../components/Layout";
-
-import layers from "../data/layers.yml";  // map layers
+import layers from "../data/layers.yml";
 
 const storageTarget = "https://oceanicsdotio.nyc3.digitaloceanspaces.com";
 // guess where things should be by default
@@ -27,10 +25,12 @@ const title = "Ocean analytics as a service";
 const mapBoxAccessToken = 'pk.eyJ1Ijoib2NlYW5pY3Nkb3RpbyIsImEiOiJjazMwbnRndWkwMGNxM21wYWVuNm1nY3VkIn0.5N7C9UKLKHla4I5UdbOi2Q';
 
 
-const BackBuffer = styled.div`
-    width: 720px;
-    height: 360px;
+const BackBuffer = styled.canvas`
+    width: 500px;
+    height: 500px;
     position: fixed;
+    visibility: hidden;
+    image-rendering: crisp-edges;
 `;
 
 /**
@@ -153,13 +153,17 @@ const ColumnContainer = styled.div`
     }
 `;
 
+// Debugging aid
+const FORCE_MOBILE = false;
+
 export default ({
     data: {
         team, 
         locations,
-        tasks: {tasksByLocation}
+        tasks: {
+            tasksByLocation
+        }
     }}) => {
-
 
     const [token, loginCallback] = useState(null);
     const [expand, setExpand] = useState(false);
@@ -167,23 +171,28 @@ export default ({
 
     const {mobile} = useDetectDevice(); 
     const isometric = useOceanside({});
-    // const noise = useFractalNoise({
-    //     opacity: 1.0
-    // });
-    // const particles = useLagrangian({
-    //     metadataFile:"/wind.json", 
-    //     source:"/wind.png"
-    // });
+    const grid = useRectilinearGrid({
+        lineWidth: 1.0,
+        boundingBox: [
+            [-70.1, 44.0],
+            [-69.7, 44.0],
+            [-69.7, 43.6],
+            [-70.1, 43.6]
+        ]
+    });
 
     /**
      * Assume that on mobile the user will want to see the map
      * rather than our loading Jenk.
      */
     useEffect(()=>{
-        setShowMap(mobile);
-        setExpand(mobile);
+        setShowMap(FORCE_MOBILE || mobile);
+        setExpand(FORCE_MOBILE || mobile);
     },[mobile]);
 
+    /**
+     * Build a rotating menu
+     */
     const [menu, setMenu] = useState([{ 
         name: "Login", 
         component: <Login onSuccess={loginCallback}/>   
@@ -207,11 +216,14 @@ export default ({
     }]);
 
     return <Application mobile={mobile} expand={expand}>
+
         <SEO title={title} />
-        {/* <BackBuffer
-            id={"back-buffer"}
-            ref={particles.ref}
-        />  */}
+
+        <BackBuffer
+            id={grid.mapbox.layer.id}
+            ref={grid.ref}
+        /> 
+
         <ColumnContainer 
             display={!columnSize({expand, mobile, column: 0}) ? "none" : undefined}
             row={0} 
@@ -224,7 +236,9 @@ export default ({
                         key={`button-${name}`}
                         onClick={() => {
                             if (onClick) onClick();
-                            setMenu([...menu.slice(ii+1, menu.length), ...menu.slice(0, ii+1)]);
+                            setMenu([
+                                ...menu.slice(ii+1, menu.length), 
+                                ...menu.slice(0, ii+1)]);
                         }}
                     >
                         {name}
@@ -241,7 +255,8 @@ export default ({
         >
             <Composite display={showMap?"none":undefined}>
                 <Map 
-                    layers={layers}
+                    center={[-70, 43.7]}
+                    layers={{...layers, canvas: [grid.mapbox]}}
                     accessToken={mapBoxAccessToken}
                     display={showMap?undefined:"none"}
                     triggerResize={[expand, showMap]}
@@ -264,7 +279,6 @@ export default ({
             </Composite>
         </ColumnContainer>
         <Trifold onClick={() => {setExpand(!expand)}}/> 
-
     </Application> 
 };
 
@@ -272,26 +286,18 @@ export const pageQuery = graphql`
     query {
         team: allBathysphereYaml(
             filter: {
-                kind: {
-                    eq: "Agents"
-                }
+                kind: { eq: "Agents" }
             }
         ) {
             nodes {
-                spec {
-                    name
-                }
+                spec { name }
             }   
         }
         locations: allBathysphereYaml(
             filter: {
-                kind: {
-                    eq: "Locations"
-                }
+                kind: { eq: "Locations" }
                 metadata: {
-                    fictional: {
-                        eq: true
-                    }
+                    fictional: { eq: true }
                 }
             }
         ) {
@@ -303,24 +309,18 @@ export const pageQuery = graphql`
                     icon
                     capacity
                 }
-                spec {
-                    name
-                }
+                spec { name }
             }   
         }
         tasks: allBathysphereYaml(
             filter: {
-                kind: {
-                    eq: "Tasks"
-                }
+                kind: { eq: "Tasks" }
             }
         ) {
             tasksByLocation: group(field: metadata___Locations___name) {
                 location: fieldValue
-                nodes{ 
-                    spec {
-                        name
-                    }
+                nodes { 
+                    spec { name }
                 }
             }  
         }

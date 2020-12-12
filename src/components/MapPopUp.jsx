@@ -1,7 +1,5 @@
 import React, {useRef} from "react";
-import ReactDOM from "react-dom";
 import styled from "styled-components";
-import {Popup} from "mapbox-gl";
 import useHistogramCanvas from "../hooks/useHistogramCanvas";
 
 

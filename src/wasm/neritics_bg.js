@@ -720,6 +720,9 @@ export class InteractiveDataStream {
         wasm.__wbg_interactivedatastream_free(ptr);
     }
     /**
+    *        Create a new container without making too many assumptions
+    *        abour how it will be used. Mostly streams are dynamically
+    *        constructed on the JavaScript side.
     * @param {number} capacity
     */
     constructor(capacity) {
@@ -728,6 +731,7 @@ export class InteractiveDataStream {
         return InteractiveDataStream.__wrap(ret);
     }
     /**
+    *        Compose the data-driven visualization and draw to the target HtmlCanvasElement.
     * @param {HTMLCanvasElement} canvas
     * @param {number} time
     * @param {any} style
@@ -738,6 +742,7 @@ export class InteractiveDataStream {
         wasm.interactivedatastream_draw(this.ptr, addHeapObject(canvas), time, addHeapObject(style));
     }
     /**
+    *        Hoist the datastream push method, needed to ensure JavaScript binding
     * @param {number} x
     * @param {number} y
     */
@@ -747,6 +752,7 @@ export class InteractiveDataStream {
         wasm.interactivedatastream_push(this.ptr, x, y);
     }
     /**
+    *        Hoist data stream size getter, needed to ensure JavaScript binding
     * @returns {number}
     */
     size() {
@@ -756,6 +762,7 @@ export class InteractiveDataStream {
         return ret >>> 0;
     }
     /**
+    *        Hoist cursor setter, needed to ensure JavaScript binding
     * @param {number} x
     * @param {number} y
     */
@@ -766,8 +773,8 @@ export class InteractiveDataStream {
     }
 }
 /**
-*    Container for rectilinear grid that also has a cursor reference,
-*    and keeps track of metadata related to sampling and rendering.
+* Container for rectilinear grid that also has a cursor reference,
+* and keeps track of metadata related to sampling and rendering.
 */
 export class InteractiveGrid {
 
@@ -785,7 +792,7 @@ export class InteractiveGrid {
         wasm.__wbg_interactivegrid_free(ptr);
     }
     /**
-    *        JavaScript binding for creating a new interactive grid container
+    * JavaScript binding for creating a new interactive grid container
     * @param {number} nx
     * @param {number} ny
     * @param {number} nz
@@ -800,8 +807,8 @@ export class InteractiveGrid {
         return InteractiveGrid.__wrap(ret);
     }
     /**
-    *        Hoisting function for cursor updates from JavaScript.
-    *        Prevents null references in some cases
+    * Hoisting function for cursor updates from JavaScript.
+    * Prevents null references in some cases.
     * @param {number} x
     * @param {number} y
     */
@@ -811,9 +818,9 @@ export class InteractiveGrid {
         wasm.interactivegrid_update_cursor(this.ptr, x, y);
     }
     /**
-    *        Insert a cell that is guarenteed to not exist,
-    *        or if full, empty it.
-    *        For very large grid the uniqueness guarentee makes it slow.
+    * Insert a cell that is guarenteed to not exist,
+    * or if full, empty it.
+    * For very large grid the uniqueness guarentee makes it slow.
     */
     unsafe_animate() {
         if (this.ptr == 0) throw new Error('Attempt to use a moved value');
@@ -821,8 +828,8 @@ export class InteractiveGrid {
         wasm.interactivegrid_unsafe_animate(this.ptr);
     }
     /**
-    *        Animation frame is used as a visual feedback test
-    *        that utilizes most public methods of the data structure.
+    * Animation frame is used as a visual feedback test
+    * that utilizes most public methods of the data structure.
     * @param {HTMLCanvasElement} canvas
     * @param {number} time
     * @param {any} style
@@ -1922,7 +1929,7 @@ export const __wbindgen_memory = function() {
     return addHeapObject(ret);
 };
 
-export const __wbindgen_closure_wrapper3343 = logError(function(arg0, arg1, arg2) {
+export const __wbindgen_closure_wrapper3339 = logError(function(arg0, arg1, arg2) {
     var ret = makeMutClosure(arg0, arg1, 70, __wbg_adapter_24);
     return addHeapObject(ret);
 });
