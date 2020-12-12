@@ -63,7 +63,7 @@ export default ({
         }
     } = useStaticQuery(graphql`
         query {
-            tiles: allOceancideYaml {
+            tiles: allOceansideYaml {
                 templates: nodes {
                     name,
                     probability,

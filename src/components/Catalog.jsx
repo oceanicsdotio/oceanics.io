@@ -114,7 +114,7 @@ const Catalog = ({
         icons: {nodes}
     } = useStaticQuery(graphql`
         query {
-            oceanside: allOceancideYaml(sort: {
+            oceanside: allOceansideYaml(sort: {
                 order: ASC,
                 fields: [name]
             }) {
