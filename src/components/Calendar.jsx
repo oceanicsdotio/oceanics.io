@@ -1,13 +1,14 @@
 import React from "react"
 import styled from "styled-components";
 import {useStaticQuery, graphql} from "gatsby";
-import {pink} from "../palette";
+
 import Thing from "./Thing";
 import Roster from "./Roster";
 import {TaskList} from "./Task";
 import Location from "./Location";
 import Note from "./Note";
 
+import {pink} from "../palette";
 /**
 This is a service meant to enable automatic reminders and scheduling assistance. 
 
