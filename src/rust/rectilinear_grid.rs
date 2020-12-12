@@ -117,6 +117,7 @@ pub mod rectilinear_grid {
         * Flexible sizing, in case implementing with vector 
         * instead of array
         */
+        #[allow(dead_code)]
         fn size(&self) -> usize {
             let mut result: usize = 1;
             for dim in &self.shape {
@@ -182,6 +183,7 @@ pub mod rectilinear_grid {
         * dimensions. 
         * They are masked by default. 
         */
+        #[allow(dead_code)]
         pub fn insert(&mut self, i: u16, j: u16, k: u8) -> bool {
             let insert = !self.cells.contains_key(&(i, j, k));
             if insert {
@@ -203,7 +205,9 @@ pub mod rectilinear_grid {
         stencil_radius: u8
     }
 
-
+    /**
+     * Public Web implementation of InteractiveGrid. 
+     */
     #[wasm_bindgen]
     impl InteractiveGrid {
         /**
@@ -232,30 +236,6 @@ pub mod rectilinear_grid {
             self.cursor.update(x, y);
         }
 
-        /**
-        * Insert a cell that is guarenteed to not exist, 
-        * or if full, empty it.
-        * For very large grid the uniqueness guarentee makes it slow.
-        */
-        #[allow(unused_unsafe)]
-        pub fn unsafe_animate(&mut self) {
-            
-            let restart = self.frames % self.grid.size() <= 0;
-            match restart {
-                true => {
-                    self.grid.cells.clear();
-                },
-                false => loop {
-                    unsafe {
-                        let (ii, jj) = (
-                            (js_sys::Math::random()*self.grid.w()).floor() as u16,
-                            (js_sys::Math::random()*self.grid.h()).floor() as u16
-                        );
-                        if self.grid.insert(ii, jj, 1) {break;}
-                    }
-                }
-            };
-        }
         
         /** 
         * Animation frame is used as a visual feedback test 
@@ -414,11 +394,11 @@ pub mod rectilinear_grid {
     }
 
     /**
-        Extract the visible pixels from a canvas element's 2D 
-        context. These will be used to render a localized
-        map with a greater level of visual detail and contextual
-        information
-        */
+    Extract the visible pixels from a canvas element's 2D 
+    context. These will be used to render a localized
+    map with a greater level of visual detail and contextual
+    information
+    */
     fn visible(view: &[f64; 2], ctx: &CanvasRenderingContext2d, grid_size: &usize) -> ImageData {
        
         ctx.get_image_data(
@@ -444,11 +424,18 @@ pub mod rectilinear_grid {
     
     #[wasm_bindgen]
     impl MiniMap {
-         /**
-            COnstructor to init the data structure from JavaScript. 
-            */
+        /**
+         * Constructor to init the data structure from JavaScript. 
+         */
         #[wasm_bindgen(constructor)]
-        pub fn new(vx: f64, vy: f64, world_size: u32, water_level: f64, ctx: CanvasRenderingContext2d, grid_size: u32) -> MiniMap {
+        pub fn new(
+            vx: f64, 
+            vy: f64, 
+            world_size: u32, 
+            water_level: f64, 
+            ctx: CanvasRenderingContext2d, 
+            grid_size: u32
+        ) -> MiniMap {
            
             let mut map = MiniMap{
                 view: [vx, vy],
@@ -514,37 +501,49 @@ pub mod rectilinear_grid {
             ).unwrap();
         }
 
+        /**
+         * Public interface to update actions
+         */
         pub fn set_actions(&mut self, actions: u32) {
             self.actions = actions;
         }
 
+        /**
+         * Get remaining actions from Javascript
+         */
         pub fn actions(&self) -> u32 {
             self.actions
         }
 
+        /**
+         * Hoist the insert feature method and rename it for
+         * web interface
+         */
         #[wasm_bindgen(js_name = insertFeature)]
         pub fn insert_feature(&mut self, feature: JsValue) {
             self.tile_set.insert_feature(feature);
         }
 
+        /**
+         * Hoist the score calculating method
+         */
         pub fn score(&self) -> f64 {
             self.tile_set.score()
         }
 
-         /**
-            Get the JSON serialized tile data from a linear index. 
-            */
+        /**
+         * Get the JSON serialized tile data from a linear index. 
+         */
         pub fn get_tile(&self, index: usize) -> JsValue {
            
             self.tile_set.get_tile(index)
         }
 
-         /**
-            Hoist the replace tile function to make it 
-            available from JavaScript interface.
-            
-            This swaps out a tile for another tile.
-            */
+        /**
+         * Hoist the replace tile function to make it 
+         * available from JavaScript interface.
+         * This swaps out a tile for another tile.
+         */
         #[wasm_bindgen(js_name = replaceTile)]
         pub fn replace_tile(&mut self, ii: usize, jj:usize) {
            
@@ -683,13 +682,11 @@ pub mod rectilinear_grid {
     #[derive(Serialize,Deserialize,Clone)]
     #[serde(rename_all = "camelCase")]
     pub struct Tile {
-       
         feature: String,
         flip: bool,
         value: f64,
         frame_offset: f64
     }
-
 
     /**
     Features are used in multiple ways. Both by the probability table.
@@ -699,7 +696,6 @@ pub mod rectilinear_grid {
     #[derive(Serialize,Deserialize,Clone)]
     #[serde(rename_all = "camelCase")]
     pub struct Feature {
-        
         key: String,
         value: f64,
         probability: f64,
@@ -712,25 +708,23 @@ pub mod rectilinear_grid {
     Used as index in the lookup functions that 
     translate between reference frames.
     */
-        #[derive(Hash,Eq,PartialEq)]
+    #[derive(Hash,Eq,PartialEq)]
     struct DiagonalIndex{
-       
         row: usize,
         column: usize
     }
 
     
-     /**
-    Tileset collects data structures related to generating and saving
-    features in the game.
-
-    Tiles are stored in `tiles`. Current count of each type is stored
-    in a HashMap indexed by tile type, and mapping of diagonal indices
-    to linear indices is stored in a another HashMap.
-    */
-        #[wasm_bindgen]
+    /**
+     * Tileset collects data structures related to generating and saving
+     * features in the game.
+     * Tiles are stored in `tiles`. 
+     * Current count of each type is stored
+     * in a HashMap indexed by tile type, and mapping of diagonal indices
+     * to linear indices is stored in a another HashMap.
+     */
+    #[wasm_bindgen]
     pub struct TileSet {
-       
         tiles: Vec<Tile>,
         probability_table: ProbabilityTable,
         count: HashMap<String, u32>,
@@ -739,12 +733,11 @@ pub mod rectilinear_grid {
     
     impl TileSet {
         /**
-        Create a new struct, initializing with known
-        capacity. The size will be the square of the
-        grid size normally. 
-        */
-        pub fn new(count: usize) -> TileSet {
-           
+         * Create a new struct, initializing with known
+         * capacity. The size will be the square of the
+         * grid size normally. 
+         */
+        pub fn new(count: usize) -> TileSet {  
             TileSet{
                 tiles: Vec::with_capacity(count),
                 probability_table: ProbabilityTable::new(),
@@ -754,24 +747,22 @@ pub mod rectilinear_grid {
         }
 
         /**
-        Drain the bookkeeping collections before rebuilding
-        the selected features.
-
-        If we want to retain items from the overlapping area,
-        this needs to be modified.
-        */
+         * Drain the bookkeeping collections before rebuilding
+         * the selected features.
+         * 
+         * If we want to retain items from the overlapping area,
+         * this needs to be modified.
+         */
         pub fn clear(&mut self) {
-           
             self.count.clear();
             self.tiles.clear();
             self.index.clear();
         }
 
         /**
-        Accumulate score from all tiles in the selection
-        */
+         * Accumulate score from all tiles in the selection
+         */
         pub fn score(&self) -> f64 {
-           
             let mut total = 0.0;
             for tile in &self.tiles {
                 total += tile.value;
@@ -780,28 +771,27 @@ pub mod rectilinear_grid {
         }
 
         /**
-        Hoist the table insert function.
-
-        Deserialize JS objects into Rust Features, and insert these 
-        into the probability table.
-        */
+         * Hoist the table insert function.
+         * 
+         * Deserialize JS objects into Rust Features, and insert these 
+         * into the probability table.
+         */
         pub fn insert_feature(&mut self, feature: JsValue) {
-            
             let rfeature: Feature = feature.into_serde().unwrap();
             self.probability_table.insert(rfeature);
         }
-/**
-            Get tile as a JSON object
-            */
+
+        /**
+         * Get tile as a JSON object
+         */
         pub fn get_tile(&self, index: usize) -> JsValue {
             JsValue::from_serde(&self.tiles.get(index).unwrap()).unwrap()
         }
 
         /**
-            Change the existing feature to a new one.
-
-            The supplied indices are in Diagonal Row reference frame.
-            */
+         * Change the existing feature to a new one.
+         * The supplied indices are in Diagonal Row reference frame.
+         */
         pub fn replace_tile(&mut self, ii: usize, jj: usize) {
             
             let index: &usize = self.index.get(&DiagonalIndex{row:ii, column:jj}).unwrap();
@@ -825,10 +815,10 @@ pub mod rectilinear_grid {
             }
         }
 
-         /**
-            Invisbible placeholder for land tile, so that all spaces are
-            treated the same way
-            */
+        /**
+         * Invisbible placeholder for land tile, so that all spaces are
+         * treated the same way
+         */
         pub fn insert_land_tile(&mut self, ii: usize, jj: usize) -> usize {
            
             let current_size = self.tiles.len();
@@ -843,8 +833,8 @@ pub mod rectilinear_grid {
         }
 
         /**
-            Choose a water feature to add to the map
-            */
+         * Choose a water feature to add to the map
+         */
         pub fn insert_water_tile(&mut self, ii: usize, jj: usize) -> usize {
             
             let current_size = self.tiles.len();
@@ -873,44 +863,40 @@ pub mod rectilinear_grid {
     }
     
     /**
-        Generate features randomly
-        */
-    pub struct ProbabilityTable {
-        
+     * Generate features randomly. The struct has a `lookup` table 
+     * based on `HashMap`. The map takes a String key and gets back
+     * a linear index into the `table` vector of Features. 
+     */
+    pub struct ProbabilityTable { 
         lookup: HashMap<String, usize>,
         table: Vec<Feature>
     }
 
-     /**
-    Use TileSet object as a probability table. Generate a random number
-    and iterate through the table until a feature is chosen. Assign the empty
-    tile by default.
+    /**
+     * Use TileSet object as a probability table. Generate a random number
+     * and iterate through the table until a feature is chosen. Assign the 
+     * empty tile by default.
     
-    Need to scan over the whole thing to check if the
-    probability > 1.0. That would indicate a logical error in the TileSet
-    configuration.
-    */
+     * Need to scan over the whole thing to check if the
+     * probability > 1.0. That would indicate a logical error in the TileSet
+     * configuration.
+     */
     impl ProbabilityTable {
-       
         /**
-            Create a new empty table, that will be programmatically filled. 
-            */
+         * Create a new empty table, that will be programmatically filled. 
+         */
         pub fn new() -> ProbabilityTable {
-            
             ProbabilityTable {
-                lookup: HashMap::new(),
-                table: Vec::new()
+                lookup: HashMap::with_capacity(64),
+                table: Vec::with_capacity(64)
             }
         }
 
-        /*
-        Insert a feature instance into the probability table. 
-
-        The table is always built up from empty, and cannot be drained.
-        */
+        /**
+         * Insert a feature instance into the probability table. 
+         * The table is always built up from empty, and cannot be drained.
+         */
         pub fn insert(&mut self, feature: Feature) {
-           
-
             if !self.lookup.contains_key(&feature.key) {
                 let current_size = self.table.len();
                 let mut current_total = 0.0;
@@ -930,24 +916,22 @@ pub mod rectilinear_grid {
         }
 
         /**
-        Retrieve feature template data from the probability table using
-        the name key to get the linear index into the table. 
-
-        This is used to retrieve image data for the sprite sheets when
-        each tile is being drawn.
-        */
+         * Retrieve feature template data from the probability table using
+         * the name key to get the linear index into the table. 
+         * This is used to retrieve image data for the sprite sheets when
+         * each tile is being drawn.
+         */
         pub fn get_by_key(&self, key: &String) -> &Feature {
-            
             self.table.get(self.lookup[key]).unwrap()
         }
 
         /**
-        Pick a random feature, defaulting to empty ocean space. Copy the
-        feature template object that was inserted, and return the copy.
-
-        This is used when populating the world or replaceing tiles with
-        others randomly. 
-        */
+         * Pick a random feature, defaulting to empty ocean space. Copy the
+         * feature template object that was inserted, and return the copy.
+         *
+         * This is used when populating the world or replaceing tiles with
+         * others randomly. 
+         */
         pub fn pick_one(&self) -> Feature {
         
             let probability = js_sys::Math::random();

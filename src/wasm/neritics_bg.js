@@ -565,7 +565,7 @@ function getUint8ClampedMemory0() {
 function getClampedArrayU8FromWasm0(ptr, len) {
     return getUint8ClampedMemory0().subarray(ptr / 1, ptr / 1 + len);
 }
-function __wbg_adapter_242(arg0, arg1, arg2, arg3) {
+function __wbg_adapter_241(arg0, arg1, arg2, arg3) {
     _assertNum(arg0);
     _assertNum(arg1);
     wasm.wasm_bindgen__convert__closures__invoke2_mut__h96984aac8d17c2af(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
@@ -818,16 +818,6 @@ export class InteractiveGrid {
         wasm.interactivegrid_update_cursor(this.ptr, x, y);
     }
     /**
-    * Insert a cell that is guarenteed to not exist,
-    * or if full, empty it.
-    * For very large grid the uniqueness guarentee makes it slow.
-    */
-    unsafe_animate() {
-        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.ptr);
-        wasm.interactivegrid_unsafe_animate(this.ptr);
-    }
-    /**
     * Animation frame is used as a visual feedback test
     * that utilizes most public methods of the data structure.
     * @param {HTMLCanvasElement} canvas
@@ -1036,7 +1026,7 @@ export class MiniMap {
         wasm.__wbg_minimap_free(ptr);
     }
     /**
-    *            COnstructor to init the data structure from JavaScript.
+    * Constructor to init the data structure from JavaScript.
     * @param {number} vx
     * @param {number} vy
     * @param {number} world_size
@@ -1087,6 +1077,7 @@ export class MiniMap {
         wasm.minimap_drawTile(this.ptr, addHeapObject(ctx), ii, jj, length, time, width, tile);
     }
     /**
+    * Public interface to update actions
     * @param {number} actions
     */
     set_actions(actions) {
@@ -1096,6 +1087,7 @@ export class MiniMap {
         wasm.minimap_set_actions(this.ptr, actions);
     }
     /**
+    * Get remaining actions from Javascript
     * @returns {number}
     */
     actions() {
@@ -1105,6 +1097,8 @@ export class MiniMap {
         return ret >>> 0;
     }
     /**
+    * Hoist the insert feature method and rename it for
+    * web interface
     * @param {any} feature
     */
     insertFeature(feature) {
@@ -1113,6 +1107,7 @@ export class MiniMap {
         wasm.minimap_insertFeature(this.ptr, addHeapObject(feature));
     }
     /**
+    * Hoist the score calculating method
     * @returns {number}
     */
     score() {
@@ -1122,7 +1117,7 @@ export class MiniMap {
         return ret;
     }
     /**
-    *            Get the JSON serialized tile data from a linear index.
+    * Get the JSON serialized tile data from a linear index.
     * @param {number} index
     * @returns {any}
     */
@@ -1134,10 +1129,9 @@ export class MiniMap {
         return takeObject(ret);
     }
     /**
-    *            Hoist the replace tile function to make it
-    *            available from JavaScript interface.
-    *
-    *            This swaps out a tile for another tile.
+    * Hoist the replace tile function to make it
+    * available from JavaScript interface.
+    * This swaps out a tile for another tile.
     * @param {number} ii
     * @param {number} jj
     */
@@ -1402,12 +1396,12 @@ export class Tile {
     }
 }
 /**
-*    Tileset collects data structures related to generating and saving
-*    features in the game.
-*
-*    Tiles are stored in `tiles`. Current count of each type is stored
-*    in a HashMap indexed by tile type, and mapping of diagonal indices
-*    to linear indices is stored in a another HashMap.
+* Tileset collects data structures related to generating and saving
+* features in the game.
+* Tiles are stored in `tiles`.
+* Current count of each type is stored
+* in a HashMap indexed by tile type, and mapping of diagonal indices
+* to linear indices is stored in a another HashMap.
 */
 export class TileSet {
 
@@ -1813,7 +1807,7 @@ export const __wbg_new_261626435fed913c = logError(function(arg0, arg1) {
             const a = state0.a;
             state0.a = 0;
             try {
-                return __wbg_adapter_242(a, state0.b, arg0, arg1);
+                return __wbg_adapter_241(a, state0.b, arg0, arg1);
             } finally {
                 state0.a = a;
             }
@@ -1929,7 +1923,7 @@ export const __wbindgen_memory = function() {
     return addHeapObject(ret);
 };
 
-export const __wbindgen_closure_wrapper3339 = logError(function(arg0, arg1, arg2) {
+export const __wbindgen_closure_wrapper3250 = logError(function(arg0, arg1, arg2) {
     var ret = makeMutClosure(arg0, arg1, 70, __wbg_adapter_24);
     return addHeapObject(ret);
 });

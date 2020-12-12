@@ -79,7 +79,6 @@ export default ({
 
         (function render() {
             const time = performance.now() - start;
-            // grid.unsafe_animate();
             grid.draw(ref.current, time, style);
             requestId = requestAnimationFrame(render);
         })()

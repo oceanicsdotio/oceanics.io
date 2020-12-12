@@ -84,7 +84,8 @@
   },
   "scripts": {
     "build": "GATSBY_EXPERIMENTAL_PAGE_BUILD_ON_DATA_CHANGES=true gatsby build --log-pages",
-    "develop": "rm -rf .cache && GATSBY_GRAPHQL_IDE=playground gatsby develop",
+    "develop": "GATSBY_GRAPHQL_IDE=playground gatsby develop",
+    "develop-no-cache": "rm -rf .cache && GATSBY_GRAPHQL_IDE=playground gatsby develop",
     "serve": "gatsby serve",
     "clean": "gatsby clean",
     "cargo-doc": "cargo doc --no-deps --document-private-items --open",

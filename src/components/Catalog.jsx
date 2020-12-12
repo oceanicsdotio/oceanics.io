@@ -1,52 +1,44 @@
-import React, {useState, useEffect} from "react"
+import React, {useState, useEffect, useMemo} from "react"
 import styled from "styled-components";
-import Table from "./Table";
+import {useStaticQuery, graphql} from "gatsby";
+
 import Form from "./Form";
-import useObjectStorage from "../hooks/useObjectStorage";
-import useBathysphereApi from "../hooks/useBathysphereApi";
-import {grey} from "../palette";
-import {TileSet} from "../hooks/useOceanside";
 import Tags from "./Tags";
 
+import useObjectStorage from "../hooks/useObjectStorage";
+import useBathysphereApi from "../hooks/useBathysphereApi";
 
-// make the name usable as a page anchor
+import {grey} from "../palette";
+
+
+/**
+ * Convenience method to make the name usable as a page anchor
+ */ 
 const transformName = name => 
     name.toLowerCase().split(" ").join("-"); 
 
+
 /**
-Art and information for single tile feature. This is used by AllTiles component
-to render documentation for the game.
-*/
+ * Art and information for single tile feature. 
+ * This is used to render documentation for the game.
+ */
 const TileInfo = ({
     tile: {
-        name, 
-        data, 
-        description=null,
-        becomes=[]
+        name,
+        description,
+        group=[], 
+        publicURL
     }, 
     className
-}) => 
+}) =>
     <div className={className}>
         <h3>
             <a id={transformName(name)}/>
             {name}
         </h3>
-        <img src={data}/>
+        <img src={publicURL}/>
         <p>{description}</p>
-        {becomes.length ? 
-            <>
-            {"Becomes: "}
-                <Tags group={
-                    becomes
-                        .map(x => TileSet[x])
-                        .map(({name}) => Object({
-                            link: `#${transformName(name)}`,
-                            text: name
-                        }))
-                    }/>
-            </> : 
-            null
-        }
+        {group.length ? <>{"Becomes: "}<Tags group={group}/></> : null}
     </div>;
 
 
@@ -67,32 +59,6 @@ const StyledTileInfo = styled(TileInfo)`
     }  
 `;
   
-const sortedByName = Object.values(TileSet).sort((a, b) => {
-    [a, b] = [a, b].map(x => transformName(x.name));
-    if (a < b) return -1;
-    if (a > b) return 1;
-    return 0;
-});
-
-/*
-Generate a helpful description of each type of tile. First alphabetize by the display name, and then
-render the individual elements.
-*/    
-
-
-const schema = [{
-    label: "key",
-    type: "string"
-},{
-    label: "size",
-    type: "float",
-    parse: parseInt,
-    // format: (x) => { return `${x.toFixed(1)}` }
-},{
-    label: "updated",
-    type: "datetime"
-}];
-
 
 /**
 The key is the Entity subclass. 
@@ -101,10 +67,7 @@ The props are the properties of the collection itself.
 1. check that there is data stored in React state.
 2. if not return an empty list
 3. serialize the items, if any, and create a table within the outer list. 
-*/
 
-
-/**
  * The Storage component provides and interface to view
  * S3 object storage assets. 
  * The catalog page is like a landing page to the api.
@@ -117,7 +80,6 @@ Routes from here correspond to entities and
 collections in the graph database.
  */
 const Catalog = ({
-    
     graph: {
         accessToken,
         url = "https://graph.oceanics.io/api/"
@@ -127,25 +89,109 @@ const Catalog = ({
         target
     }
 }) => {
-
-    // List of collections to build selection from
-    const {catalog} = useBathysphereApi({accessToken, url});
+    /**
+     * Options state object generated from API queries
+     */ 
     const [options, setOptions] = useState([]);
-    const [records, setRecords] = useState([]);
+
+    /**
+     * List of collections to build selection from
+     */ 
+    const {catalog} = useBathysphereApi({accessToken, url});
+
+    /**
+     * S3 file system meta data
+     */ 
     const fs = useObjectStorage({
         target: `${target}?delimiter=${delimiter}`
     });
 
+    /**
+     * Static query for tile metadata and icons.
+     */
+    const {
+        oceanside: {tiles},
+        icons: {nodes}
+    } = useStaticQuery(graphql`
+        query {
+            oceanside: allOceancideYaml(sort: {
+                order: ASC,
+                fields: [name]
+            }) {
+                tiles: nodes {
+                    name
+                    data
+                    description
+                    becomes
+                }
+            }
+            icons: allFile(filter: { 
+                sourceInstanceName: { eq: "assets" },
+                extension: {in: ["gif"]}
+            }) {
+                nodes {
+                    relativePath
+                    publicURL
+                }
+            }
+        }
+    `);
+
+    /** 
+     * Generate derived fields, and match metadata to asset files.
+     * Memoize the results to prevent recalculating when the parent
+     * page re-renders.
+     */
+    const sortedByName = useMemo(() => {
+        
+        const lookup = Object.fromEntries(
+            nodes.map(({relativePath, publicURL})=>
+                [relativePath, publicURL])
+        );
+
+        return tiles.map(
+        ({name, becomes=[], data, ...x})=>{
+
+            const group = (becomes || [])
+                .map(x => 
+                    tiles.filter(
+                        ({name})=>
+                            transformName(name) === transformName(x)
+                    ).pop()
+                );
+
+            return {
+                canonical: transformName(name), 
+                group: group.map(({name}) => ({
+                    link: `#${transformName(name)}`,
+                    text: name
+                })), 
+                name,
+                publicURL: lookup[data],
+                ...x
+            }
+        })
+        .sort((a, b) => {
+            [a, b] = [a, b].map(({canonical}) => canonical);
+            if (a < b) return -1;
+            if (a > b) return 1;
+            return 0;
+        })
+    }, [tiles, nodes]);
+
+    /**
+     * Combine the datastores into a single set of options for
+     * selecting between collections
+     */
     useEffect(()=>{
         if (!fs || !catalog) return;
 
-        const combined = [
+        setOptions([
             {key: "Features of Interest"}, 
             ...fs.collections, 
             ...catalog
-        ];
-        setOptions(combined.map(({key})=>key));
-        setRecords(fs.assets);
+        ].map(({key})=>key));
+
     }, [fs, catalog]);
 
 
@@ -161,11 +207,18 @@ const Catalog = ({
             fields={[{
                 type: "select",
                 id: "Assets",
-                options: sortedByName.map(x => x.name)
+                options: sortedByName.map(({name}) => name),
+                onChange: (e) => {
+                    location.hash = "#" + transformName(e.target.value);
+                }
             }]}
         />
-        {sortedByName.map((x, ii) => <StyledTileInfo key={`tile-${ii}`} tile={x}/>)}
-        {/* <Table records={catalog}/> */}
+        {sortedByName.map((x, ii) => 
+            <StyledTileInfo 
+                key={`tile-${ii}`} 
+                tile={x}
+            />
+        )}
     </> 
 }; 
 
