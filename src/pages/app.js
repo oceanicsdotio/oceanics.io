@@ -263,17 +263,17 @@ export default ({
                 />
                 <canvas
                     id={"render-target"}
-                    ref={isometric.ref.board}
-                    // onClick={isometric.onBoardClick}
+                    ref={isometric.board.ref}
+                    // onClick={isometric.board.onClick}
                 /> 
                          
                 <Interface display={showMap?"none":undefined}>
                     <canvas
                         id={"preview-target"}
-                        ref={isometric.ref.nav}
+                        ref={isometric.nav.ref}
                         width={isometric.worldSize}
                         height={isometric.worldSize}
-                        // onClick={isometric.onNavClick}
+                        // onClick={isometric.nav.onClick}
                     />
                 </Interface>
             </Composite>

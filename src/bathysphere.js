@@ -336,7 +336,8 @@ export const targetHtmlCanvas = (ref, context) => {
         ctx: ref.current.getContext(context),
         shape: [ref.current.width, ref.current.height],
         requestId: null,
-        frames: 0
+        frames: 0,
+        cursor: null
     }
 };
 

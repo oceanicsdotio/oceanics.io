@@ -1,4 +1,4 @@
-import { useEffect, useState, useReducer, useRef, useCallback } from "react";
+import { useEffect, useState, useReducer, useRef } from "react";
 import { useStaticQuery, graphql } from "gatsby";
 import { 
     eventCoordinates, 
@@ -9,169 +9,102 @@ import {
 } from "../bathysphere";
 import useWasmRuntime from "../hooks/useWasmRuntime";
 import useKeystrokeReducer from "../hooks/useKeystrokeReducer";
-import tileSetJSON from "../data/oceanside.yml";
+import {ghost} from "../palette";
 
 
-/**
-Tile asset references are used to pre-load all of the
-sprite data for animations. Needs to happen outside of
-a function so that it is evavulated during build and
-the image data are bundled into the application.
-*/
-const TileSetAssets = {
-    oysters: {
-        data: require("../../content/assets/oyster.gif"),
-        sprite: require("../../content/assets/oyster.png")
-    },
-    mussels: {
-        data: require("../../content/assets/mussels.gif"),
-        sprite: require("../../content/assets/mussels.png")
-    },
-    platform: {
-        data: require("../../content/assets/platform.gif"),
-        sprite: require("../../content/assets/platform.png")
-    },
-    fish: {
-        data: require("../../content/assets/fish-pen.gif"),
-        sprite: require("../../content/assets/fish-pen.png")
-    },
-    lighthouse: {
-        data: require("../../content/assets/lighthouse.gif"),
-        sprite: require("../../content/assets/lighthouse.png")
-    },
-    gull: {
-        data: require("../../content/assets/herring-gull.gif"),
-        sprite: require("../../content/assets/herring-gull.png")
-    },
-    boat: {
-        data: require("../../content/assets/boat.gif"),
-        sprite: require("../../content/assets/boat.png")
-    },
-    empty: {
-        data: require("../../content/assets/empty.gif"),
-        sprite: require("../../content/assets/empty.png")
-    },
-    land: {
-        data: require("../../content/assets/land.gif"),
-        sprite: require("../../content/assets/land.png")
-    },
-    buoys: {
-        data: require("../../content/assets/lobster-buoys.gif"),
-        sprite: require("../../content/assets/lobster-buoys.png")
-    },
-    wharf: {
-        data: require("../../content/assets/wharf.gif"),
-        sprite: require("../../content/assets/wharf.png")
-    },
-    diver: {
-        data: require("../../content/assets/diver-down.gif"),
-        sprite: require("../../content/assets/diver-down.png")
-    },
-    turbine: {
-        data: require("../../content/assets/turbine.gif"),
-        sprite: require("../../content/assets/turbine.png")
-    },
-    turbineFire: {
-        data: require("../../content/assets/turbine-fire.gif"),
-        sprite: require("../../content/assets/turbine-fire.png")
-    },
-    mud: {
-        data: require("../../content/assets/mud.gif"),
-        sprite: require("../../content/assets/mud.png")
-    },
-    oil: {
-        data: require("../../content/assets/oil-spill.gif"),
-        sprite: require("../../content/assets/oil-spill.png")
-    }
-};
 
 /**
- * Export a "compiled" tile set with image data and game rules to
- * use in the manual and documentation. This allows the tiles to be used
- * as content in other applications, such as map glyphs. 
+ * The `Oceanside` hook provides all of the functionality to
+ * embed the game/visualization engine in any React app.
+ * 
+ * The interface consists of two canvases. One canvas displays 
+ * the navigation minimap, and the other is where the animated 
+ * game tiles are rendered. 
+ * 
+ * A text block displays the current datetime and score. 
+ * 
+ * Tile asset references are used to pre-load all of the
+ * sprite data for animations. 
+ * 
+ * @param {Object} args - Arguments object
+ * @param {number} args.gridSize - Integer height and width of grid subset. The number of tiles visible is the square of `gridSize`, so scores are higher for larger.
+ * @param {number} args.worldSize - Integer height and width of global grid. The total number of tiles, and therefore the probability of finding certain features, is the square of `worldSize`. 
+ * @param {number} args.waterLevel - Fraction of tidal evolution. Each tile has an elevation value. Tiles above `waterLevel` are always land, and therfore worth nothing. Other wet tiles become mud depending on the tidal cycle and their elevation.
+ * @param {number} args.actionsPerDay - The `actionsPerDay` property determines how quickly time passes, and how many things you can interact with per day. This ultimately puts a limit on the score you can earn.
+ * @param {String} args.endTurnMessage - message to display when no actions remain
+ * @param {String} args.overlayColor - color to draw metadata and overlays.
+ * @param {String} args.backgroundColor - color of animation loop blending
+ * @param {String} args.font - font for metadata overlays
  */
-export const TileSet = Object.fromEntries(Object.entries(tileSetJSON).map(([key, {data, sprite, ...value}]) => 
-    [key, {data: TileSetAssets[key].data, sprite: TileSetAssets[key].sprite, ...value}]
-));
-
-
-const TileQuery = graphql`
-    query {
-        allOceancideYaml {
-            nodes {
-                name
-            }
-        }
-        icons: allFile(filter: { 
-            sourceInstanceName: { eq: "assets" },
-            extension: {in: ["png", "gif"]}
-        }) {
-            nodes {
-                relativePath
-                prettySize
-                extension
-                birthTime
-            }
-        }
-    }
-`;
-
-/**
-The `Oceanside` component contains all of the functionality to
-embed the game in any web page using React.
-
-It consists of two canvases and a text block inside a container 
-<div>. One canvas displays the navigation minimap, and the other
-is where the animated game tiles are rendered. The text block
-displays the current datetime and score. 
-
-The properties change game play in the following ways...
-
-* The number of tiles visible is the square of `gridSize`, 
-so scores are higher for larger values.
-
-* The total number of tiles, and therefore the probability of 
-finding certain features, is the square of `worldSize`. 
-
-* Each tile has an elevation value. Tiles above `waterLevel` 
-are always land, and therfore worth nothing. 
-Other wet tiles become mud depending on the tidal cycle and their
-elevation.
-
-* The `actionsPerDay` property determines how quickly time passes,
-and how many things you can interact with per day. This ultimately
-puts a limit on the score you can earn.
-
-* The `startDate` and `endTurnMessage` props currently have no 
-effect on game play. 
-
-*/
 export default ({
     gridSize = 6, 
     worldSize = 32, 
     waterLevel = 0.7,
     actionsPerDay = 6,
-    endTurnMessage = "Bettah wait 'til tomorrow."
+    endTurnMessage = "Bettah wait 'til tomorrow.",
+    overlayColor = ghost,
+    backgroundColor = "#000000FF",
+    font = "36px Arial"
 }) => {
 
     const nav = useRef(null);
     const board = useRef(null);
-    const data = useStaticQuery(TileQuery);
 
-    useEffect(()=>{
-        console.log("tiles", data);
-    },[data]);
-    
+    /**
+     * Use graphql to fetch metadata and asset information for
+     * the pixel tile rendering engine. 
+     */
+    const {
+        tiles: {
+            templates
+        }, 
+        icons: {
+            nodes
+        }
+    } = useStaticQuery(graphql`
+        query {
+            tiles: allOceancideYaml {
+                templates: nodes {
+                    name,
+                    probability,
+                    value, 
+                    cost,
+                    spriteSheet
+                }
+            }
+            icons: allFile(filter: { 
+                sourceInstanceName: { eq: "assets" },
+                extension: { eq: "png" }
+            }) {
+                nodes {
+                    relativePath
+                    publicURL
+                }
+            }
+        }
+    `);
 
+    /**
+     * Load or recycle the Rust-WebAssembly runtime.
+     */
     const runtime = useWasmRuntime();
-    const [map, setMap] = useState(null);  // map from rust
-    const [clamp, setClamp] = useState(false); // clamp cursor to grid
     
+    /**
+     * MiniMap data structure from Rust-WebAssembly.
+     */
+    const [map, setMap] = useState(null);
+
+    /**
+     * Clmap custom cursor to the discrete grid.
+     */
+    const [clamp, setClamp] = useState(false);
+    
+    /*
+     * Take an action (swap a tile) or advance to the next day. 
+     */
     const [clock, takeAnActionOrWait] = useReducer(
         ({date, actions}, event)=>{
-            /*
-            Take an action (swap a tile) or advance to the next day. 
-            */
+           
             if (typeof board === "undefined" || !board || !board.current) {
                 return {date, actions}
             }
@@ -272,20 +205,31 @@ export default ({
             nav.current.getContext("2d"), 
             gridSize
         );
-      
-        Object.entries(TileSet).forEach(
-            ([key, {value=0.0, probability=0.0, limit=worldSize*worldSize, sprite}]) => {            
-                _map.insertFeature({
-                    key,
-                    value, 
-                    probability,
-                    limit,
-                    dataUrl: sprite
-                });
-            }
+
+        const lookup = Object.fromEntries(
+            nodes.map(({relativePath, publicURL})=>
+                [relativePath, publicURL])
         );
+    
+        templates.map(({
+            name,
+            spriteSheet, 
+            probability=null,
+            value=null,
+            limit=null
+        })=>({
+            key: name.toLowerCase().split(" ").join("-"),  
+            dataUrl: lookup[spriteSheet],
+            limit: limit ? limit : worldSize*worldSize,
+            probability: probability ? probability : 0.0,
+            value: value ? value : 0.0
+        })).forEach(x => {
+            _map.insertFeature(x);
+        });
+
         populateVisibleTiles(_map, null);  
         setMap(_map); 
+
     }, [runtime]);
 
     /**
@@ -300,26 +244,26 @@ export default ({
             !tiles
         ) return;
 
-        const canvas = board.current;
-        let cursor = null;
         let {
             start, 
             ctx, 
             shape: [width, height], 
             requestId, 
-            frames
+            frames,
+            cursor
         } = targetHtmlCanvas(board, `2d`);
 
         ctx.imageSmoothingEnabled = false;  // disable interpolation
 
-        canvas.addEventListener('mousemove', (event) => {
-            cursor = eventGridCell(eventCoordinates(event, canvas), width, gridSize);
+        board.current.addEventListener('mousemove', (event) => {
+            cursor = eventGridCell(eventCoordinates(event, board.current), width, gridSize);
         });
 
         (function render() {
 
             const time = performance.now() - start;
-            runtime.clear_rect_blending(ctx, width, height, "#000000FF");
+
+            runtime.clear_rect_blending(ctx, width, height, backgroundColor);
             tiles.forEach((diagonal, ii) => {
                 diagonal.forEach((tile, jj) => {
                     map.drawTile(ctx, ii, jj, diagonal.length, time, width, tile);
@@ -328,18 +272,16 @@ export default ({
 
             if (cursor) drawCursor(width, gridSize, ctx, cursor, clamp);
 
-            const caption = `${clock.date.toLocaleDateString()} ${18-2*(clock.actions ? clock.actions : 0)}:00, Balance: $${map ? map.score() : 0.0}`;
-
             runtime.draw_caption(
                 ctx, 
-                caption, 
+                `${clock.date.toLocaleDateString()} ${18-2*(clock.actions ? clock.actions : 0)}:00, Balance: $${map ? map.score() : 0.0}`, 
                 0.0, 
                 height, 
-                "#FFFFFFFF", 
-                "36px Arial"
+                overlayColor, 
+                font
             );
 
-            frames = runtime.draw_fps(ctx, frames, time, "#FFFFFFFF");
+            frames = runtime.draw_fps(ctx, frames, time, overlayColor);
             requestId = requestAnimationFrame(render);
             
         })();
@@ -348,26 +290,25 @@ export default ({
     }, [tiles, clamp]);
     
     return {
-        worldSize,  
-        onBoardClick: 
-            (event) => {
+        worldSize,  // return in case you want the default
+        nav: {
+            ref: nav,
+            onClick: (event) => {
+                event.persist();
+                populateVisibleTiles(map, event);
+            }
+        },
+        board: {
+            ref: board,
+            onClick: (event) => {
                 event.persist(); // otherwise React eats it
                 try {
                     takeAnActionOrWait(event);
                 } catch (err) {
                     console.log(err);
                 }
-            }, 
-        onNavClick: 
-            (event) => {
-                event.persist();
-                populateVisibleTiles(map, event);
-            },
-        TileSet, 
+            }
+        },
         populateVisibleTiles,
-        ref: {
-            nav,
-            board
-        }
     }  
 };

@@ -935,7 +935,7 @@ pub mod rectilinear_grid {
         pub fn pick_one(&self) -> Feature {
         
             let probability = js_sys::Math::random();
-            let mut feature = (*self.table.get(self.lookup[&"empty".to_string()]).unwrap()).clone();
+            let mut feature = (*self.table.get(self.lookup[&"ocean".to_string()]).unwrap()).clone();
             for ii in 0..self.table.len() {
                 if probability < self.table[ii].probability {
                     feature = (*self.table.get(ii).unwrap()).clone();
