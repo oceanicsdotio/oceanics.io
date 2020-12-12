@@ -55,7 +55,7 @@ pub mod rectilinear_grid {
     This is duplicated in all topological models to reduce cross- 
     boundary imports.
 
-    The `mask` attribute is used to indicate whether
+    The `mask` attribute is used to indicate whether the cell is active.
     */
     struct Cell {
         pub mask: bool
@@ -64,11 +64,16 @@ pub mod rectilinear_grid {
 
     /**
     Good old-fashioned 3D grid, usually projected 
-    into the X,Y plane.
+    into the X,Y plane. The precision of the hash
+    allows 65535 values in X,Y and 255 values in Z,
+    which is appropriate for most oceanographic
+    applications.
+
+    Use other methods for higher resolution applications
     */
     pub struct RectilinearGrid {
-        shape: [u32; 3],
-        cells: HashMap<(u32,u32,u32), Cell>,
+        shape: [usize; 3],
+        cells: HashMap<(u16,u16,u8), Cell>,
     }
 
 
@@ -77,23 +82,43 @@ pub mod rectilinear_grid {
         Create a new Grid that is both rectilinear and rectangular,
         With Only the number of desired cells in each dimension
         */
-        pub fn new(nx: u32, ny: u32, nz: u32) -> RectilinearGrid {
+        pub fn new(nx: u16, ny: u16, nz: u8) -> RectilinearGrid {
             RectilinearGrid { 
-                shape: [nx, ny, nz], 
-                cells: HashMap::with_capacity((nx*ny*nz) as usize) 
+                shape: [
+                    nx as usize, 
+                    ny as usize, 
+                    nz as usize
+                ], 
+                cells: HashMap::with_capacity(
+                    (nx*ny*(nz as u16)) as usize
+                ) 
             }
         }
 
+        /**
+        * Width convenience method, assumes X is the horizontal
+        * axis in screen orientation
+        */
         fn w(&self) -> f64 {self.shape[0] as f64}
+
+        /**
+        * Height convenience method. Returns discrete height
+        * assuming that Y is up in screen orientation
+        */
         fn h(&self) -> f64 {self.shape[1] as f64}
+
+        /**
+        * Depth convenience method, returns number of vertical
+        * cells, assuming that Z is into the screen orientation.
+        */
         fn d(&self) -> f64 {self.shape[2] as f64}
 
         /** 
-        Flexible sizing, in case implementing with vector 
-        instead of array
+        * Flexible sizing, in case implementing with vector 
+        * instead of array
         */
-        fn size(&self) -> u32 {
-            let mut result: u32 = 1;
+        fn size(&self) -> usize {
+            let mut result: usize = 1;
             for dim in &self.shape {
                 result *= dim;
             }
@@ -101,7 +126,7 @@ pub mod rectilinear_grid {
         }
 
         /** 
-        Draw the lines and any selected cells
+        Draw the grid lines and any selected cells
         */
         pub fn draw_edges(
             &self, 
@@ -110,34 +135,36 @@ pub mod rectilinear_grid {
             h: f64, 
             color: &JsValue
         ) {
-           
-            let dx = w / self.w();
-            let dy = h / self.h();
-
             ctx.set_stroke_style(&color);
             ctx.set_line_width(1.0);
-
             ctx.begin_path();
+
+            let dx = w / self.w();
             for ii in 0..(self.shape[0] + 1) {
                 let delta = dx * ii as f64;
                 ctx.move_to(delta, 0.0);
                 ctx.line_to(delta, h as f64);
             }
 
+            let dy = h / self.h();
             for jj in 0..(self.shape[1] + 1) {
                 let delta = dy * jj as f64;
                 ctx.move_to(0.0, delta);
                 ctx.line_to(w, delta);
             }
             ctx.stroke();
-           
         }
 
         /**
         Draw the lines and any selected cells
         */
-        pub fn draw_cells(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, color: &JsValue) {
-           
+        pub fn draw_cells(
+            &self, 
+            ctx: &CanvasRenderingContext2d, 
+            w: f64, 
+            h: f64, 
+            color: &JsValue
+        ) {
             let dx = w / self.w();
             let dy = h / self.h();
 
@@ -151,25 +178,25 @@ pub mod rectilinear_grid {
         }
 
         /**
-        Add a tracked cell to the grid
+        * Add a tracked cell to the grid. Cells have 3 spatial index
+        * dimensions. 
+        * They are masked by default. 
         */
-        pub fn insert(&mut self, ii: u32, jj: u32) -> bool {
-            
-            let insert = !self.cells.contains_key(&(ii, jj, 1));
+        pub fn insert(&mut self, i: u16, j: u16, k: u8) -> bool {
+            let insert = !self.cells.contains_key(&(i, j, k));
             if insert {
-                self.cells.insert((ii, jj, 1), Cell { mask: true });
+                self.cells.insert((i, j, k), Cell { mask: false });
             }
             return insert;
         }
     }
 
     /**
-    Container for rectilinear grid that also has a cursor reference,
-    and keeps track of metadata related to sampling and rendering.
+    * Container for rectilinear grid that also has a cursor reference,
+    * and keeps track of metadata related to sampling and rendering.
     */
     #[wasm_bindgen]
     pub struct InteractiveGrid {
-       
         grid: RectilinearGrid,
         cursor: SimpleCursor,
         frames: usize,
@@ -180,11 +207,15 @@ pub mod rectilinear_grid {
     #[wasm_bindgen]
     impl InteractiveGrid {
         /**
-        JavaScript binding for creating a new interactive grid container
+        * JavaScript binding for creating a new interactive grid container
         */
         #[wasm_bindgen(constructor)]
-        pub fn new(nx: u32, ny: u32, nz: u32, stencil: u8) -> InteractiveGrid {
-           
+        pub fn new(
+            nx: u16, 
+            ny: u16, 
+            nz: u8, 
+            stencil: u8
+        ) -> InteractiveGrid {
             InteractiveGrid {
                 grid: RectilinearGrid::new(nx, ny, nz),
                 cursor: SimpleCursor::new(0.0, 0.0),
@@ -194,24 +225,22 @@ pub mod rectilinear_grid {
         }
 
         /**
-        Hoisting function for cursor updates from JavaScript. 
-        Prevents null references in some cases 
+        * Hoisting function for cursor updates from JavaScript. 
+        * Prevents null references in some cases.
         */
         pub fn update_cursor(&mut self, x: f64, y: f64) {
-           
             self.cursor.update(x, y);
         }
 
-
         /**
-        Insert a cell that is guarenteed to not exist, 
-        or if full, empty it.
-        For very large grid the uniqueness guarentee makes it slow.
+        * Insert a cell that is guarenteed to not exist, 
+        * or if full, empty it.
+        * For very large grid the uniqueness guarentee makes it slow.
         */
         #[allow(unused_unsafe)]
         pub fn unsafe_animate(&mut self) {
             
-            let restart = self.frames as u32 % self.grid.size() <= 0;
+            let restart = self.frames % self.grid.size() <= 0;
             match restart {
                 true => {
                     self.grid.cells.clear();
@@ -219,22 +248,26 @@ pub mod rectilinear_grid {
                 false => loop {
                     unsafe {
                         let (ii, jj) = (
-                            (js_sys::Math::random()*self.grid.w()).floor() as u32,
-                            (js_sys::Math::random()*self.grid.h()).floor() as u32
+                            (js_sys::Math::random()*self.grid.w()).floor() as u16,
+                            (js_sys::Math::random()*self.grid.h()).floor() as u16
                         );
-                        if self.grid.insert(ii, jj) {break;}
+                        if self.grid.insert(ii, jj, 1) {break;}
                     }
                 }
             };
         }
         
         /** 
-        Animation frame is used as a visual feedback test 
-        that utilizes most public methods of the data structure.
+        * Animation frame is used as a visual feedback test 
+        * that utilizes most public methods of the data structure.
         */
-        pub fn draw(&mut self, canvas: HtmlCanvasElement, time: f64, style: JsValue) {
+        pub fn draw(
+            &mut self, 
+            canvas: HtmlCanvasElement, 
+            time: f64, 
+            style: JsValue
+        ) {
             
-
             let rstyle: Style = style.into_serde().unwrap();
             let color = JsValue::from_str(&rstyle.grid_color);
             let bg = JsValue::from_str(&rstyle.background_color);
@@ -299,7 +332,6 @@ pub mod rectilinear_grid {
     */
     #[wasm_bindgen]
     pub struct MiniMap {
-       
         view: [f64; 2],
         data: Vec<u8>,
         mask: Vec<f64>,
