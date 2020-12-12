@@ -243,6 +243,10 @@ function addBorrowedObject(obj) {
     return stack_pointer;
 }
 /**
+*    Compile the shaders and link them to a program, returning the pointer to the executable
+*    in GPU memory.
+*
+*    This is the high-level routine called directly from JavaScript.
 * @param {WebGLRenderingContext} ctx
 * @param {string} vertex
 * @param {string} fragment
@@ -276,6 +280,9 @@ function passArrayF32ToWasm0(arg, malloc) {
     return ptr;
 }
 /**
+*    Memory buffers are used to store array data for visualization.
+*
+*    This could be colors, or positions, or offsets, or velocities.
 * @param {WebGLRenderingContext} ctx
 * @param {Float32Array} data
 * @returns {WebGLBuffer}
@@ -292,6 +299,10 @@ export function create_buffer(ctx, data) {
 }
 
 /**
+*    Activate the chosen texture so that GL operations on textures will target it. The
+*    texture number is [0,...) and can be accessed sequentially by offset.
+*
+*    Currently we only support 2D textures, which can be stacked to emulate 3D.
 * @param {WebGLRenderingContext} ctx
 * @param {WebGLTexture} texture
 * @param {number} unit
@@ -306,6 +317,7 @@ export function bind_texture(ctx, texture, unit) {
 }
 
 /**
+*    Define a 2D array in GPU memory, and bind it for GL operations.
 * @param {WebGLRenderingContext} ctx
 * @param {ImageData} data
 * @param {number} filter
@@ -474,6 +486,8 @@ export function make_vertex_array(series) {
 }
 
 /**
+*    After generating the base data array, clamp it and create a new
+*    array as a JavaScript/HTML image data element.
 * @param {number} world_size
 * @param {number} water_level
 * @returns {ImageData}
@@ -627,6 +641,8 @@ export class ContextCursor {
     }
 }
 /**
+*    Features are used in multiple ways. Both by the probability table.
+*    and by the game interface.
 */
 export class Feature {
 
@@ -750,6 +766,8 @@ export class InteractiveDataStream {
     }
 }
 /**
+*    Container for rectilinear grid that also has a cursor reference,
+*    and keeps track of metadata related to sampling and rendering.
 */
 export class InteractiveGrid {
 
@@ -767,6 +785,7 @@ export class InteractiveGrid {
         wasm.__wbg_interactivegrid_free(ptr);
     }
     /**
+    *        JavaScript binding for creating a new interactive grid container
     * @param {number} nx
     * @param {number} ny
     * @param {number} nz
@@ -781,6 +800,8 @@ export class InteractiveGrid {
         return InteractiveGrid.__wrap(ret);
     }
     /**
+    *        Hoisting function for cursor updates from JavaScript.
+    *        Prevents null references in some cases
     * @param {number} x
     * @param {number} y
     */
@@ -790,6 +811,9 @@ export class InteractiveGrid {
         wasm.interactivegrid_update_cursor(this.ptr, x, y);
     }
     /**
+    *        Insert a cell that is guarenteed to not exist,
+    *        or if full, empty it.
+    *        For very large grid the uniqueness guarentee makes it slow.
     */
     unsafe_animate() {
         if (this.ptr == 0) throw new Error('Attempt to use a moved value');
@@ -797,6 +821,8 @@ export class InteractiveGrid {
         wasm.interactivegrid_unsafe_animate(this.ptr);
     }
     /**
+    *        Animation frame is used as a visual feedback test
+    *        that utilizes most public methods of the data structure.
     * @param {HTMLCanvasElement} canvas
     * @param {number} time
     * @param {any} style
@@ -932,6 +958,8 @@ export class InteractiveMesh {
     }
 }
 /**
+*     The Island Kernel is used to generate island features
+*     when the program is used in generative mode.
 */
 export class IslandKernel {
 
@@ -981,6 +1009,9 @@ export class IslandKernel {
     }
 }
 /**
+*    The MiniMap is a data structure and interactive container.
+*    It contains persistent world data as a raster, and exposes
+*    selection and subsetting methods to explore subareas.
 */
 export class MiniMap {
 
@@ -998,6 +1029,7 @@ export class MiniMap {
         wasm.__wbg_minimap_free(ptr);
     }
     /**
+    *            COnstructor to init the data structure from JavaScript.
     * @param {number} vx
     * @param {number} vy
     * @param {number} world_size
@@ -1083,6 +1115,7 @@ export class MiniMap {
         return ret;
     }
     /**
+    *            Get the JSON serialized tile data from a linear index.
     * @param {number} index
     * @returns {any}
     */
@@ -1094,6 +1127,10 @@ export class MiniMap {
         return takeObject(ret);
     }
     /**
+    *            Hoist the replace tile function to make it
+    *            available from JavaScript interface.
+    *
+    *            This swaps out a tile for another tile.
     * @param {number} ii
     * @param {number} jj
     */
@@ -1152,6 +1189,7 @@ export class MiniMap {
         }
     }
     /**
+    *        Access method for current view
     * @returns {number}
     */
     view_x() {
@@ -1161,6 +1199,7 @@ export class MiniMap {
         return ret;
     }
     /**
+    *        Access method for current view
     * @returns {number}
     */
     view_y() {
@@ -1170,6 +1209,8 @@ export class MiniMap {
         return ret;
     }
     /**
+    *        Move the field of view in the overall world image. Input is used
+    *        my onClick events to navigate around the map.
     * @param {CanvasRenderingContext2D} ctx
     * @param {number} vx
     * @param {number} vy
@@ -1180,6 +1221,8 @@ export class MiniMap {
         wasm.minimap_updateView(this.ptr, addHeapObject(ctx), vx, vy);
     }
     /**
+    *        Make a white box, that will be filled in with image
+    *        data to form a frame.
     * @param {CanvasRenderingContext2D} ctx
     */
     draw_bbox(ctx) {
@@ -1192,6 +1235,8 @@ export class MiniMap {
         }
     }
     /**
+    *        Draw the image data, then a square, and then fill the square with part of the image data again to form
+    *        a frame
     * @param {CanvasRenderingContext2D} ctx
     */
     draw_image_data(ctx) {
@@ -1324,6 +1369,17 @@ export class Texture2D {
     }
 }
 /**
+*    Tiles are individual features, aka the instance of
+*    a type of feature, which is stored in memory and may be
+*    modified to deviate from the basic rules.
+*
+*    These are used in the TileSet struct.
+*
+*    These have:
+*    - feature: unique string identifying the base type
+*    - flip: render left or right facing sprite
+*    - value: passive value toward total score
+*    - frame_offset: start frame to desync animations
 */
 export class Tile {
 
@@ -1339,6 +1395,12 @@ export class Tile {
     }
 }
 /**
+*    Tileset collects data structures related to generating and saving
+*    features in the game.
+*
+*    Tiles are stored in `tiles`. Current count of each type is stored
+*    in a HashMap indexed by tile type, and mapping of diagonal indices
+*    to linear indices is stored in a another HashMap.
 */
 export class TileSet {
 

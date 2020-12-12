@@ -1,14 +1,31 @@
+/** 
+The `rectilinear_grid` module provides methods
+for interacting with tessellations of arbitrary 
+dimensions using rectangular cells.
+
+It depends on the `SimpleCursor` module when providing
+an interactive visualization artifact.
+*/
 pub mod rectilinear_grid {
     
     use wasm_bindgen::prelude::*;
     use wasm_bindgen::{JsValue,Clamped};
-    use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement, HtmlImageElement, ImageData};
-    use std::collections::HashMap;
+    use web_sys::{
+        CanvasRenderingContext2d, 
+        HtmlCanvasElement, 
+        HtmlImageElement, 
+        ImageData
+    };
+    use std::collections::HashMap;  // used for cell attribute lookup
     use std::f64::consts::PI;
-    use serde::{Deserialize,Serialize};
+    use serde::{Deserialize,Serialize};  // comm with Web JS
 
-    use crate::cursor::cursor_system::SimpleCursor;
+    use crate::cursor::cursor_system::SimpleCursor; 
 
+    /**
+    * Styles are used in rendering the WebGL/Canvas animations
+    * and static images of the grid
+    */
     #[derive(Deserialize)]
     #[serde(rename_all = "camelCase")]
     pub struct Style {
@@ -21,6 +38,10 @@ pub mod rectilinear_grid {
         pub label_padding: f64
     }
 
+    /**
+     The Island Kernel is used to generate island features
+     when the program is used in generative mode.
+     */
     #[wasm_bindgen]
     #[derive(Serialize)]
     #[serde(rename_all = "camelCase")]
@@ -29,34 +50,34 @@ pub mod rectilinear_grid {
         pub depth: f64
     }
 
-    struct Cell {
-        /*
-        An interior space define by joined vertices.
+    /**
+    A cell is and interior space define by joined vertices.
+    This is duplicated in all topological models to reduce cross- 
+    boundary imports.
 
-        This is duplicated in all topological models to 
-        reduce cross boundary imports.
-        */
-        pub select: bool
+    The `mask` attribute is used to indicate whether
+    */
+    struct Cell {
+        pub mask: bool
     }
 
 
+    /**
+    Good old-fashioned 3D grid, usually projected 
+    into the X,Y plane.
+    */
     pub struct RectilinearGrid {
-        /*
-        Good old fashion 3D grid, usually projected into the X,Y plane.
-        */
         shape: [u32; 3],
         cells: HashMap<(u32,u32,u32), Cell>,
     }
 
 
     impl RectilinearGrid {
-        /*
-        Grid is both rectilinear and rectangular. 
+        /**
+        Create a new Grid that is both rectilinear and rectangular,
+        With Only the number of desired cells in each dimension
         */
         pub fn new(nx: u32, ny: u32, nz: u32) -> RectilinearGrid {
-            /*
-            Only the number of desired cells in each dimension
-            */
             RectilinearGrid { 
                 shape: [nx, ny, nz], 
                 cells: HashMap::with_capacity((nx*ny*nz) as usize) 
@@ -67,10 +88,11 @@ pub mod rectilinear_grid {
         fn h(&self) -> f64 {self.shape[1] as f64}
         fn d(&self) -> f64 {self.shape[2] as f64}
 
+        /** 
+        Flexible sizing, in case implementing with vector 
+        instead of array
+        */
         fn size(&self) -> u32 {
-            /*
-            Flexible sizing, in case implementing with vector instead of array
-            */
             let mut result: u32 = 1;
             for dim in &self.shape {
                 result *= dim;
@@ -78,10 +100,17 @@ pub mod rectilinear_grid {
             result
         }
 
-        pub fn draw_edges(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, color: &JsValue) {
-            /*
-            Draw the lines and any selected cells
-            */
+        /** 
+        Draw the lines and any selected cells
+        */
+        pub fn draw_edges(
+            &self, 
+            ctx: &CanvasRenderingContext2d, 
+            w: f64, 
+            h: f64, 
+            color: &JsValue
+        ) {
+           
             let dx = w / self.w();
             let dy = h / self.h();
 
@@ -104,40 +133,43 @@ pub mod rectilinear_grid {
            
         }
 
+        /**
+        Draw the lines and any selected cells
+        */
         pub fn draw_cells(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, color: &JsValue) {
-            /*
-            Draw the lines and any selected cells
-            */
+           
             let dx = w / self.w();
             let dy = h / self.h();
 
             ctx.set_fill_style(&color);
             for (index, cell) in self.cells.iter() {
-                if cell.select {
+                if cell.mask {
                     let (ii, jj, _) = index;
                     ctx.fill_rect(dx*(*ii as f64), dy*(*jj as f64), dx, dy);
                 }
             }
         }
 
+        /**
+        Add a tracked cell to the grid
+        */
         pub fn insert(&mut self, ii: u32, jj: u32) -> bool {
-            /*
-            Add a tracked cell to the grid.
-            */
+            
             let insert = !self.cells.contains_key(&(ii, jj, 1));
             if insert {
-                self.cells.insert((ii, jj, 1), Cell { select: true });
+                self.cells.insert((ii, jj, 1), Cell { mask: true });
             }
             return insert;
         }
     }
 
+    /**
+    Container for rectilinear grid that also has a cursor reference,
+    and keeps track of metadata related to sampling and rendering.
+    */
     #[wasm_bindgen]
     pub struct InteractiveGrid {
-        /*
-        Container for rectilinear grid that also has a cursor reference,
-        and keeps track of metadata related to sampling and rendering.
-        */
+       
         grid: RectilinearGrid,
         cursor: SimpleCursor,
         frames: usize,
@@ -147,11 +179,12 @@ pub mod rectilinear_grid {
 
     #[wasm_bindgen]
     impl InteractiveGrid {
+        /**
+        JavaScript binding for creating a new interactive grid container
+        */
         #[wasm_bindgen(constructor)]
         pub fn new(nx: u32, ny: u32, nz: u32, stencil: u8) -> InteractiveGrid {
-            /*
-            JavaScript binding for creating a new interactive grid container
-            */
+           
             InteractiveGrid {
                 grid: RectilinearGrid::new(nx, ny, nz),
                 cursor: SimpleCursor::new(0.0, 0.0),
@@ -160,21 +193,24 @@ pub mod rectilinear_grid {
             }
         }
 
+        /**
+        Hoisting function for cursor updates from JavaScript. 
+        Prevents null references in some cases 
+        */
         pub fn update_cursor(&mut self, x: f64, y: f64) {
-            /*
-            Hoisting function for cursor updates from JavaScript. 
-            Prevents null references in some cases
-            */ 
+           
             self.cursor.update(x, y);
         }
 
+
+        /**
+        Insert a cell that is guarenteed to not exist, 
+        or if full, empty it.
+        For very large grid the uniqueness guarentee makes it slow.
+        */
         #[allow(unused_unsafe)]
         pub fn unsafe_animate(&mut self) {
-            /*
-            Insert a cell that is guarenteed to not exist, or if full, empty it.
-
-            For very large meshes the uniqueness guarentee makes it slow
-            */
+            
             let restart = self.frames as u32 % self.grid.size() <= 0;
             match restart {
                 true => {
@@ -192,11 +228,12 @@ pub mod rectilinear_grid {
             };
         }
         
+        /** 
+        Animation frame is used as a visual feedback test 
+        that utilizes most public methods of the data structure.
+        */
         pub fn draw(&mut self, canvas: HtmlCanvasElement, time: f64, style: JsValue) {
-            /*
-            Animation frame is used as a visual feedback test that utilizes most public methods
-            of the data structure.
-            */
+            
 
             let rstyle: Style = style.into_serde().unwrap();
             let color = JsValue::from_str(&rstyle.grid_color);
@@ -255,14 +292,14 @@ pub mod rectilinear_grid {
         }
     }
 
+    /**
+    The MiniMap is a data structure and interactive container.
+    It contains persistent world data as a raster, and exposes
+    selection and subsetting methods to explore subareas. 
+    */
     #[wasm_bindgen]
     pub struct MiniMap {
-        /*
-        The MiniMap is a data structure and interactive container.
-
-        It contains persistent world data as a raster, and exposes
-        selection and subsetting methods to explore subareas. 
-        */
+       
         view: [f64; 2],
         data: Vec<u8>,
         mask: Vec<f64>,
@@ -272,10 +309,10 @@ pub mod rectilinear_grid {
         actions: u32,
     }
 
+    /**
+     Create an island-like feature in an image format.
+     */
     fn island_kernel(ii: u32, jj: u32, world_size: f64, water_level: f64) -> [f64; 2] {
-        /*
-        Create an island-like feature in an image format.
-        */
         let quadrant: f64 = world_size / 2.0;
         let limit: f64 = (2.0 * quadrant.powi(2)).sqrt();
 
@@ -291,20 +328,20 @@ pub mod rectilinear_grid {
     }
 
 
-    fn image_data_data(world_size: u32, water_level: f64) -> Vec<u8> {
-        /*
-        Create raw image data based on the size of the world and the
-        given water level.
+    /**
+    Create raw image data based on the size of the world and the
+    given water level.
 
-        Essentially this is a digital elevation model of a fictious
-        island. Other geomorphology kernels can be used in place or
-        in combination with `island_kernel` to achieve other desired
-        features.
-        */
+    Essentially this is a digital elevation model of a fictious
+    island. Other geomorphology kernels can be used in place or
+    in combination with `island_kernel` to achieve other desired
+    features.
+    */
+    fn image_data_data(world_size: u32, water_level: f64) -> Vec<u8> {
+      
         let data = &mut Vec::with_capacity((world_size*world_size*4) as usize);
         for ii in 0..world_size {
             for jj in 0..world_size {
-                let index: usize = ((ii * world_size + jj) * 4) as usize;
                 let [mask, depth] = island_kernel(ii, jj, world_size as f64, water_level);
 
                 let red = (mask * js_sys::Math::random() * 0.4).floor() as u8;
@@ -321,25 +358,26 @@ pub mod rectilinear_grid {
         data.to_vec()
     }
 
-
+    /**
+    After generating the base data array, clamp it and create a new
+    array as a JavaScript/HTML image data element.
+    */
     #[wasm_bindgen]
+    #[allow(dead_code)]
     pub fn image_data(world_size: u32, water_level: f64) -> ImageData {
-        /*
-        After generating the base data array, clamp it and create a new
-        array as a JavaScript/HTML image data element.
-        */
+       
         let data = &mut image_data_data(world_size.clone(), water_level);
         ImageData::new_with_u8_clamped_array(Clamped(data), world_size as u32).unwrap()
     }
 
-
-    fn visible(view: &[f64; 2], ctx: &CanvasRenderingContext2d, grid_size: &usize) -> ImageData {
-        /*
+    /**
         Extract the visible pixels from a canvas element's 2D 
         context. These will be used to render a localized
         map with a greater level of visual detail and contextual
         information
         */
+    fn visible(view: &[f64; 2], ctx: &CanvasRenderingContext2d, grid_size: &usize) -> ImageData {
+       
         ctx.get_image_data(
             view[0] + 1.0, 
             view[1] + 1.0, 
@@ -363,11 +401,12 @@ pub mod rectilinear_grid {
     
     #[wasm_bindgen]
     impl MiniMap {
-        #[wasm_bindgen(constructor)]
-        pub fn new(vx: f64, vy: f64, world_size: u32, water_level: f64, ctx: CanvasRenderingContext2d, grid_size: u32) -> MiniMap {
-            /*
+         /**
             COnstructor to init the data structure from JavaScript. 
             */
+        #[wasm_bindgen(constructor)]
+        pub fn new(vx: f64, vy: f64, world_size: u32, water_level: f64, ctx: CanvasRenderingContext2d, grid_size: u32) -> MiniMap {
+           
             let mut map = MiniMap{
                 view: [vx, vy],
                 data: image_data_data(world_size, water_level).to_vec(),
@@ -385,9 +424,7 @@ pub mod rectilinear_grid {
         }
 
         pub fn get_dynamic_tile(&self, jj: f64, index: usize, length: f64, width: f64, phase: f64) -> String {
-            /*
             
-            */
             const SPRITE_SIZE: f64 = 32.0;
             const DRY_THRESHOLD: f64 = -0.75*SPRITE_SIZE;
             let mut feature: &str = &self.tile_set.tiles.get(index).unwrap().feature;
@@ -451,21 +488,23 @@ pub mod rectilinear_grid {
             self.tile_set.score()
         }
 
-        pub fn get_tile(&self, index: usize) -> JsValue {
-            /*
+         /**
             Get the JSON serialized tile data from a linear index. 
             */
+        pub fn get_tile(&self, index: usize) -> JsValue {
+           
             self.tile_set.get_tile(index)
         }
 
-        #[wasm_bindgen(js_name = replaceTile)]
-        pub fn replace_tile(&mut self, ii: usize, jj:usize) {
-            /*
+         /**
             Hoist the replace tile function to make it 
             available from JavaScript interface.
             
             This swaps out a tile for another tile.
             */
+        #[wasm_bindgen(js_name = replaceTile)]
+        pub fn replace_tile(&mut self, ii: usize, jj:usize) {
+           
             self.tile_set.replace_tile(ii, jj);
         }
 
@@ -475,7 +514,7 @@ pub mod rectilinear_grid {
 
         #[wasm_bindgen(js_name = insertTile)]
         pub fn insert_tile(&mut self, ind: usize, ii: usize, jj: usize) -> usize {
-            let mut index: usize = 0;
+            let index;
             if self.mask[ind] > 0.000001 {
                 index = self.tile_set.insert_water_tile(ii, jj);
             } else {
@@ -484,25 +523,31 @@ pub mod rectilinear_grid {
             index
         }
        
+
+        /**
+        Map the alpha channel of the image data into a land_mask. 
+        */
         fn create_land_mask(&mut self, ctx: &CanvasRenderingContext2d) {
-            /*
-            Map the alpha channel of the image data into a land_mask. 
-            */
+            
             let data = self.visible(ctx).data();
             for ii in 1..2*self.grid_size {
                 let column = ii - self.grid_size.min(ii);
                 let count = (ii).min(self.grid_size  - column).min(self.grid_size);
                 for jj in 0..count {
-                    let alpha_index = ((column + jj) * self.grid_size + self.grid_size.min(ii) - jj - 1) * 4 + 3;
+                    let alpha_index = 
+                        ((column + jj) * self.grid_size + 
+                        self.grid_size.min(ii) - jj - 1) * 4 + 
+                        3;
                     self.mask.push(data[alpha_index as usize] as f64 / 255.0);
                 }
             }
         }
 
-        pub fn get_mask(&self, index: usize) -> f64 {
-            /*
+         /*
             Access an element of the mask by index
             */
+        pub fn get_mask(&self, index: usize) -> f64 {
+           
             *self.mask.get(index).unwrap()
         }
 
@@ -510,102 +555,108 @@ pub mod rectilinear_grid {
             visible(&self.view, ctx, &(self.grid_size as usize))
         }
 
+        /**
+        Access method for current view
+        */
         pub fn view_x(&self) -> f64 {
-            /*
-            Access method for current view
-            */
             self.view[0]
         }
 
+        /**
+        Access method for current view
+        */
         pub fn view_y(&self) -> f64 {
-            /*
-            Access method for current view
-            */
             self.view[1]
         }
 
+        /**
+        Move the field of view in the overall world image. Input is used 
+        my onClick events to navigate around the map.
+        */
         #[wasm_bindgen(js_name = updateView)]
         pub fn update_view(&mut self, ctx: CanvasRenderingContext2d, vx: f64, vy: f64) {
-            /*
-            Move the field of view in the overall world image. Input is used 
-            my onClick events to navigate around the map.
-            */
             self.view = [vx.floor(), vy.floor()];
             self.draw_image_data(&ctx);
             self.create_land_mask(&ctx);
         }
 
+        /**
+        Make a white box, that will be filled in with image
+        data to form a frame. 
+        */
         pub fn draw_bbox(&self, ctx: &CanvasRenderingContext2d) {
-            /*
-            Make a white box, that will be filled in with image
-            data to form a frame. 
-            */
-            
+                 
             let bbox = self.grid_size + 2;
             let bbox_u32 = bbox as u32;
             let data: &mut Vec<u8> = &mut vec![255; (bbox*bbox*4) as usize];
+            
             ctx.put_image_data(
                 &ImageData::new_with_u8_clamped_array_and_sh(
                     Clamped(data), bbox_u32, bbox_u32
                 ).unwrap(), 
                 self.view[0], 
                 self.view[1]
-            );
+            ).unwrap();
         }
 
+        /**
+        Draw the image data, then a square, and then fill the square with part of the image data again to form
+        a frame
+        */
         pub fn draw_image_data(&mut self, ctx: &CanvasRenderingContext2d) {
     
-            /*
-            Draw the image data, then a square, and then fill the square with part of the image data again to form
-            a frame
-            */
+           
             let [vx, vy] = self.view;
             let data = &mut self.data;
             let world = ImageData::new_with_u8_clamped_array(Clamped(data), self.world_size as u32).unwrap();
-            ctx.put_image_data(&world, 0.0, 0.0);
-            let viewPort = ctx.get_image_data(vx + 1.0, vy + 1.0, self.grid_size as f64, self.grid_size as f64).unwrap(); 
+            ctx.put_image_data(&world, 0.0, 0.0).unwrap();
+
+            let view_port = ctx.get_image_data(
+                vx + 1.0, 
+                vy + 1.0, 
+                self.grid_size as f64, 
+                self.grid_size as f64
+            ).unwrap(); 
 
             self.draw_bbox(&ctx);
-            ctx.put_image_data(&viewPort, vx + 1.0, vy + 1.0);
+            ctx.put_image_data(&view_port, vx + 1.0, vy + 1.0).unwrap();
         }
-        
-
     }
 
+    /**
+    Tiles are individual features, aka the instance of
+    a type of feature, which is stored in memory and may be 
+    modified to deviate from the basic rules.
+
+    These are used in the TileSet struct.
+
+    These have:
+    - feature: unique string identifying the base type
+    - flip: render left or right facing sprite
+    - value: passive value toward total score
+    - frame_offset: start frame to desync animations
+    */
     #[wasm_bindgen]
     #[derive(Serialize,Deserialize,Clone)]
     #[serde(rename_all = "camelCase")]
     pub struct Tile {
-        /*
-        Tiles are individual features, aka the instance of
-        a type of feature, which is stored in memory and may be 
-        modified to deviate from the basic rules.
-
-        These are used in the TileSet struct.
-
-        These have:
-        - feature: unique string identifying the base type
-        - flip: render left or right facing sprite
-        - value: passive value toward total score
-        - frame_offset: start frame to desync animations
-        */
+       
         feature: String,
         flip: bool,
         value: f64,
         frame_offset: f64
     }
 
-    
 
-    
+    /**
+    Features are used in multiple ways. Both by the probability table.
+    and by the game interface. 
+    */
     #[wasm_bindgen]
     #[derive(Serialize,Deserialize,Clone)]
     #[serde(rename_all = "camelCase")]
     pub struct Feature {
-        /*
-        Features are used in multiple ways. Both by the probability table.
-        and by the game interface. 
-        */
+        
         key: String,
         value: f64,
         probability: f64,
@@ -613,26 +664,30 @@ pub mod rectilinear_grid {
         data_url: String
     }
 
-    #[derive(Hash,Eq,PartialEq)]
+    
+    /**
+    Used as index in the lookup functions that 
+    translate between reference frames.
+    */
+        #[derive(Hash,Eq,PartialEq)]
     struct DiagonalIndex{
-        /*
-        Used as index in the lookup functions that 
-        translate between reference frames.
-        */
+       
         row: usize,
         column: usize
     }
 
-    #[wasm_bindgen]
-    pub struct TileSet {
-        /*
-        Tileset collects data structures related to generating and saving
-        features in the game.
+    
+     /**
+    Tileset collects data structures related to generating and saving
+    features in the game.
 
-        Tiles are stored in `tiles`. Current count of each type is stored
-        in a HashMap indexed by tile type, and mapping of diagonal indices
-        to linear indices is stored in a another HashMap.
-        */
+    Tiles are stored in `tiles`. Current count of each type is stored
+    in a HashMap indexed by tile type, and mapping of diagonal indices
+    to linear indices is stored in a another HashMap.
+    */
+        #[wasm_bindgen]
+    pub struct TileSet {
+       
         tiles: Vec<Tile>,
         probability_table: ProbabilityTable,
         count: HashMap<String, u32>,
@@ -640,13 +695,13 @@ pub mod rectilinear_grid {
     }
     
     impl TileSet {
-       
+        /**
+        Create a new struct, initializing with known
+        capacity. The size will be the square of the
+        grid size normally. 
+        */
         pub fn new(count: usize) -> TileSet {
-            /*
-            Create a new struct, initializing with known
-            capacity. The size will be the square of the
-            grid size normally. 
-            */
+           
             TileSet{
                 tiles: Vec::with_capacity(count),
                 probability_table: ProbabilityTable::new(),
@@ -655,23 +710,25 @@ pub mod rectilinear_grid {
             }
         }
 
-        pub fn clear(&mut self) {
-            /*
-            Drain the bookkeeping collections before rebuilding
-            the selected features.
+        /**
+        Drain the bookkeeping collections before rebuilding
+        the selected features.
 
-            If we want to retain items from the overlapping area,
-            this needs to be modified.
-            */
+        If we want to retain items from the overlapping area,
+        this needs to be modified.
+        */
+        pub fn clear(&mut self) {
+           
             self.count.clear();
             self.tiles.clear();
             self.index.clear();
         }
 
+        /**
+        Accumulate score from all tiles in the selection
+        */
         pub fn score(&self) -> f64 {
-            /*
-            Accumulate score from all tiles in the selection
-            */
+           
             let mut total = 0.0;
             for tile in &self.tiles {
                 total += tile.value;
@@ -679,31 +736,31 @@ pub mod rectilinear_grid {
             total
         }
 
-        
-        pub fn insert_feature(&mut self, feature: JsValue) {
-            /*
-            Hoist the table insert function.
+        /**
+        Hoist the table insert function.
 
-            Deserialize JS objects into Rust Features, and insert these 
-            into the probability table.
-            */
+        Deserialize JS objects into Rust Features, and insert these 
+        into the probability table.
+        */
+        pub fn insert_feature(&mut self, feature: JsValue) {
+            
             let rfeature: Feature = feature.into_serde().unwrap();
             self.probability_table.insert(rfeature);
         }
-
-        pub fn get_tile(&self, index: usize) -> JsValue {
-            /*
+/**
             Get tile as a JSON object
             */
+        pub fn get_tile(&self, index: usize) -> JsValue {
             JsValue::from_serde(&self.tiles.get(index).unwrap()).unwrap()
         }
 
-        pub fn replace_tile(&mut self, ii: usize, jj: usize) {
-            /*
+        /**
             Change the existing feature to a new one.
 
             The supplied indices are in Diagonal Row reference frame.
             */
+        pub fn replace_tile(&mut self, ii: usize, jj: usize) {
+            
             let index: &usize = self.index.get(&DiagonalIndex{row:ii, column:jj}).unwrap();
             let previous = self.tiles[*index].clone();
             loop {
@@ -725,11 +782,12 @@ pub mod rectilinear_grid {
             }
         }
 
-        pub fn insert_land_tile(&mut self, ii: usize, jj: usize) -> usize {
-            /*
+         /**
             Invisbible placeholder for land tile, so that all spaces are
             treated the same way
             */
+        pub fn insert_land_tile(&mut self, ii: usize, jj: usize) -> usize {
+           
             let current_size = self.tiles.len();
             self.index.insert(DiagonalIndex{row: ii,column: jj}, current_size);
             self.tiles.push(Tile{
@@ -741,10 +799,11 @@ pub mod rectilinear_grid {
             current_size
         }
 
-        pub fn insert_water_tile(&mut self, ii: usize, jj: usize) -> usize {
-            /*
+        /**
             Choose a water feature to add to the map
             */
+        pub fn insert_water_tile(&mut self, ii: usize, jj: usize) -> usize {
+            
             let current_size = self.tiles.len();
             loop {
                 let feature: Feature = self.probability_table.pick_one();
@@ -770,41 +829,44 @@ pub mod rectilinear_grid {
 
     }
     
-    pub struct ProbabilityTable {
-        /*
+    /**
         Generate features randomly
         */
+    pub struct ProbabilityTable {
+        
         lookup: HashMap<String, usize>,
         table: Vec<Feature>
     }
 
+     /**
+    Use TileSet object as a probability table. Generate a random number
+    and iterate through the table until a feature is chosen. Assign the empty
+    tile by default.
     
+    Need to scan over the whole thing to check if the
+    probability > 1.0. That would indicate a logical error in the TileSet
+    configuration.
+    */
     impl ProbabilityTable {
-        /*
-        Use TileSet object as a probability table. Generate a random number
-        and iterate through the table until a feature is chosen. Assign the empty
-        tile by default.
-        
-        Need to scan over the whole thing to check if the
-        probability > 1.0. That would indicate a logical error in the TileSet
-        configuration.
-        */
-        pub fn new() -> ProbabilityTable {
-            /*
+       
+        /**
             Create a new empty table, that will be programmatically filled. 
             */
+        pub fn new() -> ProbabilityTable {
+            
             ProbabilityTable {
                 lookup: HashMap::new(),
                 table: Vec::new()
             }
         }
 
-        pub fn insert(&mut self, feature: Feature) {
-            /*
-            Insert a feature instance into the probability table. 
+        /*
+        Insert a feature instance into the probability table. 
 
-            The table is always built up from empty, and cannot be drained.
-            */
+        The table is always built up from empty, and cannot be drained.
+        */
+        pub fn insert(&mut self, feature: Feature) {
+           
 
             if !self.lookup.contains_key(&feature.key) {
                 let current_size = self.table.len();
@@ -824,26 +886,27 @@ pub mod rectilinear_grid {
             }
         }
 
-        pub fn get_by_key(&self, key: &String) -> &Feature {
-            /*
-            Retrieve feature template data from the probability table using
-            the name key to get the linear index into the table. 
+        /**
+        Retrieve feature template data from the probability table using
+        the name key to get the linear index into the table. 
 
-            This is used to retrieve image data for the sprite sheets when
-            each tile is being drawn.
-            */
+        This is used to retrieve image data for the sprite sheets when
+        each tile is being drawn.
+        */
+        pub fn get_by_key(&self, key: &String) -> &Feature {
+            
             self.table.get(self.lookup[key]).unwrap()
         }
 
+        /**
+        Pick a random feature, defaulting to empty ocean space. Copy the
+        feature template object that was inserted, and return the copy.
+
+        This is used when populating the world or replaceing tiles with
+        others randomly. 
+        */
         pub fn pick_one(&self) -> Feature {
-            /*
-            Pick a random feature, defaulting to empty ocean space. Copy the
-            feature template object that was inserted, and return the copy.
-
-            This is used when populating the world or replaceing tiles with
-            others randomly. 
-            */
-
+        
             let probability = js_sys::Math::random();
             let mut feature = (*self.table.get(self.lookup[&"empty".to_string()]).unwrap()).clone();
             for ii in 0..self.table.len() {

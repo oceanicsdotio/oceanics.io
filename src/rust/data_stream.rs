@@ -1,7 +1,8 @@
+/**
+Enable plotting 2D data series to a canvas.
+*/
 pub mod data_stream {
-    /*
-    Enable plotting 2D data series to a canvas.
-    */
+    
     use wasm_bindgen::prelude::*;
     use std::collections::VecDeque;
     use web_sys::{CanvasRenderingContext2d,HtmlCanvasElement};
@@ -10,43 +11,46 @@ pub mod data_stream {
 
     use crate::cursor::cursor_system::SimpleCursor;
 
-    struct Observation {
-        /*
-        Observations are N-dimensional points mapped into 2-D screen space.
+    /**
+    Observations are N-dimensional points mapped into 2-D screen space.
 
-        DataStreams are made up of Observations.
-        */
+    DataStreams are made up of Observations.
+    */
+        struct Observation {
+       
         x: f64,
         y: f64
     }
 
+    /**
+    Observed properties describe a data dimesion. They are a child of Axis. 
+    */
     #[allow(dead_code)]
     struct ObservedProperty {
-        /*
-        Observed properties describe a data dimesion. They are a child of Axis. 
-        */
         name: String,
         unit: String,
     }
 
+    /**
+    An axis struct describes one index of an ND array. For visualization purposes
+    it maps a data dimension into a screen position.
+
+    Methods on Axis are defined in the `impl` block. 
+    */
     #[allow(dead_code)]
     struct Axis {
-        /*
-        An axis struct describes one index of an ND array. For visualization purposes
-        it maps a data dimension into a screen position.
-
-        Methods on Axis are defined in the `impl` block. 
-        */
+       
         dimension: u8,
         extent: (f64, f64),
         observed_property: ObservedProperty
     }
 
     impl Axis {
+        /**
+        Create a new Axis struct
+        */
         pub fn new(dimension: u8, extent: (f64, f64)) -> Axis {
-            /*
-            Create a new Axis struct
-            */
+           
             Axis {
                 dimension,
                 extent,
@@ -60,26 +64,27 @@ pub mod data_stream {
         
     }
 
+    /**
+    Datastreams are containers of observations. They keep track of data, metadata, and
+    summary statistics about their child Observations.
+    */
     pub struct DataStream {
-        /*
-        Datastreams are containers of observations. They keep track of data, metadata, and
-        summary statistics about their child Observations.
-        */
+        
         capacity: usize,
         data: VecDeque<Observation>,
         mean: VecDeque<f64>,
         axes: Vec<Axis>
     }
 
-
+    /**
+    Implementation of DataStream.
+    */
     impl DataStream {
-        /*
-        Implementation of DataStream.
+        /**
+        Constructor for datastreams
         */
         pub fn new(capacity: usize) -> DataStream {
-            /*
-            Constructor for datastreams
-            */
+            
             DataStream {
                 capacity,
                 data: VecDeque::with_capacity(capacity),
@@ -95,10 +100,11 @@ pub mod data_stream {
             self.data.len()
         }
 
+        /**
+        Add a new observation to the datastream
+        */
         pub fn push(&mut self, x: f64, y: f64) {
-            /*
-            Add a new observation to the datastream
-            */
+            
 
             let size = self.data.len();
             let new_val;
@@ -119,19 +125,21 @@ pub mod data_stream {
             self.axes[1].extent = (y.min(self.axes[1].extent.0), y.max(self.axes[1].extent.1));
         }
 
+        /**
+        Transform the y-dimension to pixel dimensions
+        */
         fn rescale(&self, val: f64, dim: usize) -> f64 {
-            /*
-            Transform the y-dimension to pixel dimensions
-            */
+           
             (val - self.axes[dim].extent.0) / (self.axes[dim].extent.1 - self.axes[dim].extent.0)
         }
 
+        /**
+        Draw observations as points. This is the recommended use,
+        as connecting dots without further logical or visual indcators
+        can be misleading. 
+        */
         pub fn draw_as_points(&self, ctx: &CanvasRenderingContext2d, w: f64, h:f64, color: &JsValue, scale: f64) {
-            /*
-            Draw observations as points. This is the recommended use,
-            as connecting dots without further logical or visual indcators
-            can be misleading. 
-            */
+           
             if self.data.len() == 0 {
                 return
             }
@@ -145,14 +153,15 @@ pub mod data_stream {
             }
         }
 
+        /**
+        Draw observations with connectings lines. This can be misleading in terms
+        of indicating continuity. 
+        
+        Generally this should be avoided. 
+        */
         #[allow(dead_code)]
         fn draw_as_lines(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, color: &JsValue, line_width: f64) {
-            /*
-            Draw observations with connectings lines. This can be misleading in terms
-            of indicating continuity. 
-            
-            Generally this should be avoided. 
-            */
+           
             if self.data.len() == 0 {
                 return
             }
@@ -175,10 +184,11 @@ pub mod data_stream {
             ctx.stroke();
         }
 
+        /**
+        Display summary statistics for the current window
+        */
         pub fn draw_mean_line(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, color: &JsValue, line_width: f64) {
-            /*
-            Display summary statistics for the current window
-            */
+            
             ctx.set_stroke_style(&color);
             ctx.set_line_width(line_width);
 
@@ -196,10 +206,11 @@ pub mod data_stream {
             ctx.stroke();
         }
 
+        /**
+        Draw the axes and ticks
+        */
         pub fn draw_axes(&self, ctx: &CanvasRenderingContext2d, w: f64, h:f64, color: &JsValue, line_width: f64, tick_size: f64) {
-            /*
-            Draw the axes and ticks
-            */
+           
             ctx.set_stroke_style(color);
             ctx.set_line_width(line_width);
             
@@ -252,12 +263,13 @@ pub mod data_stream {
         pub label_padding: f64
     }
    
+     /*
+    Interactive data streams are containers with an additional reference
+    to a cursor for interactivity and feeback
+    */
     #[wasm_bindgen]
     pub struct InteractiveDataStream {
-        /*
-        Interactive data streams are containers with an additional reference
-        to a cursor for interactivity and feeback
-        */
+       
         data_stream: DataStream,
         cursor: SimpleCursor,
         frames: usize
@@ -265,13 +277,14 @@ pub mod data_stream {
 
     #[wasm_bindgen]
     impl InteractiveDataStream {
+        /**
+        Create a new container without making too many assumptions
+        abour how it will be used. Mostly streams are dynamically
+        constructed on the JavaScript side.
+        */
         #[wasm_bindgen(constructor)]
         pub fn new(capacity: usize) -> InteractiveDataStream {
-            /*
-            Create a new container without making too many assumptions
-            abour how it will be used. Mostly streams are dynamically
-            constructed on the JavaScript side.
-            */
+           
             InteractiveDataStream {
                 data_stream: DataStream::new(capacity),
                 cursor: SimpleCursor::new(0.0, 0.0),
@@ -279,10 +292,11 @@ pub mod data_stream {
             }
         }
 
+        /**
+        Compose the data-driven visualization and draw to the target HtmlCanvasElement.
+        */
         pub fn draw(&mut self, canvas: HtmlCanvasElement, time: f64, style: JsValue) {
-            /*
-            Compose the data-driven visualization and draw to the target HtmlCanvasElement.
-            */
+           
             
             let rstyle: Style = style.into_serde().unwrap();
             let color = JsValue::from_str(&rstyle.stream_color);
@@ -321,24 +335,26 @@ pub mod data_stream {
             self.frames += 1;
         }
 
+        /**
+        Hoist the datastream push method, needed to ensure JavaScript binding
+        */
         pub fn push(&mut self, x: f64, y: f64) {
-            /*
-            Hoist the datastream push method, needed to ensure JavaScript binding
-            */
+           
             self.data_stream.push(x, y);
         }
 
+        /**
+        Hoist data stream size getter, needed to ensure JavaScript binding
+        */
         pub fn size(&self) -> usize {
-            /*
-            Hoist data stream size getter, needed to ensure JavaScript binding
-            */
+           
             self.data_stream.size()
         }
 
+        /**
+        Hoist cursor setter, needed to ensure JavaScript binding
+        */
         pub fn update_cursor(&mut self, x: f64, y: f64) {
-            /*
-            Hoist cursor setter, needed to ensure JavaScript binding
-            */
             self.cursor.update(x, y);
         }
     }

@@ -87,6 +87,7 @@
     "develop": "rm -rf .cache && GATSBY_GRAPHQL_IDE=playground gatsby develop",
     "serve": "gatsby serve",
     "clean": "gatsby clean",
+    "cargo-doc": "cargo doc --no-deps --document-private-items --open",
     "compile": "wasm-pack build --out-dir src/wasm --dev --target bundler --no-typescript && rm src/wasm/.gitignore",
     "storybook": "start-storybook -p 6006 --no-dll",
     "build-storybook": "build-storybook --no-dll"

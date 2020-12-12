@@ -1,3 +1,7 @@
+/**
+The `vec3` modules provides methods and operators for working with 
+3D vectors.
+*/
 pub mod vec3 {
 
     
