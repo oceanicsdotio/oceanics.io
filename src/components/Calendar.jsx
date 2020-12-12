@@ -6,7 +6,6 @@ import Thing from "./Thing";
 import Roster from "./Roster";
 import {TaskList} from "./Task";
 import Location from "./Location";
-import {TileSet} from "../hooks/useOceanside";
 import Note from "./Note";
 
 /**
@@ -21,38 +20,6 @@ Features:
 4. Allow recipients to adjust personal settings (optional)
 */
 
-const ThingsQuery = graphql`
- query {
-    things: allBathysphereYaml(
-        filter: {
-            kind: {
-                eq: "Things"
-            } 
-        }
-    ) {
-        nodes {
-            apiVersion
-            metadata {
-                icon
-            }
-            kind
-            spec {
-                name
-                description
-                properties {
-                    home
-                    capacity
-                    tanks {
-                        name
-                        capacity
-                        level
-                    }
-                }
-            }
-        }
-    }
-}`;
-
 const Calendar = ({
     offset,
     team,
@@ -66,9 +33,43 @@ const Calendar = ({
     }
 }) => {
 
-    const data = useStaticQuery(ThingsQuery);
-    const things = data.things.nodes;
-
+    const {
+        allBathysphereYaml: {
+            things
+        }
+    } = useStaticQuery(graphql`
+        query {
+            allBathysphereYaml(
+                filter: {
+                    kind: {
+                        eq: "Things"
+                    } 
+                }
+            ) {
+                things: nodes {
+                    apiVersion
+                    metadata {
+                        icon
+                    }
+                    kind
+                    spec {
+                        name
+                        description
+                        properties {
+                            home
+                            capacity
+                            tanks {
+                                name
+                                capacity
+                                level
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    `);
+   
     const today = new Date();
     const query = 
         offset ? 
@@ -88,14 +89,12 @@ const Calendar = ({
                 name
             },
             metadata: {
-                capacity=null, 
-                icon=null,
+                capacity=null,
                 home=false
             }  
         }, ii) => 
             <Location 
                 key={`location-${ii}`}
-                icon={icon ? TileSet[icon] : null}
                 name={name}
             >
                 <Roster 
