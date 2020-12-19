@@ -10,26 +10,32 @@
 [[redirects]]
   from = "/catalog"
   to = "/app"
+  force = true
 
 [[redirects]]
   from = "/vessel"
   to = "/app"
+  force = true
 
 [[redirects]]
   from = "/map"
   to = "/app"
+  force = true
 
 [[redirects]]
   from = "/oceanside"
   to = "/app"
+  force = true
 
 [[redirects]]
   from = "/turbulence-demo"
   to = "/app"
+  force = true
 
 [[redirects]]
   from = "/legal"
   to = "/policy"
+  force = true
 
 [[plugins]]
   package = "netlify-plugin-gatsby-cache"
