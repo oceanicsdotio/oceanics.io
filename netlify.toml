@@ -8,9 +8,28 @@
   GO_VERSION = "1.14.6"
 
 [[redirects]]
-  from = "/catalog/*"
-  to = "/catalog.html"
-  status = 200
+  from = "/catalog"
+  to = "/app"
+
+[[redirects]]
+  from = "/vessel"
+  to = "/app"
+
+[[redirects]]
+  from = "/map"
+  to = "/app"
+
+[[redirects]]
+  from = "/oceanside"
+  to = "/app"
+
+[[redirects]]
+  from = "/turbulence-demo"
+  to = "/app"
+
+[[redirects]]
+  from = "/legal"
+  to = "/policy"
 
 [[plugins]]
   package = "netlify-plugin-gatsby-cache"
