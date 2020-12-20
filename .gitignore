@@ -76,9 +76,5 @@ Cargo.lock
 # Local Netlify folder
 .netlify
 
-# Go binaries
-functions/
-
-
 # lighhouse reports
 *.report.html  
