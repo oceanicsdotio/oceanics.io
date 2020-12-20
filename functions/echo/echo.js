@@ -1,4 +1,4 @@
-const { hello_world } = require("./pkg/squall");
+const { hello_world } = require("./pkg/neritics");
 const { Endpoint, S3 } = require('aws-sdk');
 
 exports.handler = async ({

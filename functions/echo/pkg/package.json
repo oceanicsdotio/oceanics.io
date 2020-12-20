@@ -1,19 +1,19 @@
 {
-  "name": "squall",
+  "name": "neritics",
   "collaborators": [
     "Oceanicsdotio <business@oceanics.io>"
   ],
-  "description": "Data access layer",
-  "version": "0.1.0",
+  "description": "Spatial stuff",
+  "version": "0.2.0",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://bitbucket.org/oceanicsdotio/squall.git"
+    "url": "git+https://bitbucket.org/oceanicsdotio/oceanics.io.git"
   },
   "files": [
-    "squall_bg.wasm",
-    "squall.js",
-    "squall_bg.js"
+    "neritics_bg.wasm",
+    "neritics.js",
+    "neritics_bg.js"
   ],
-  "main": "squall.js"
+  "main": "neritics.js"
 }
