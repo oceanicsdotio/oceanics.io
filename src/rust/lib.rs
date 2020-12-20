@@ -38,6 +38,12 @@ use std::ops::{Index, Mul, SubAssign};
 extern crate console_error_panic_hook;
 
 
+#[wasm_bindgen]
+pub fn hello_world(name: &str) -> String {
+
+    String::from(format!("Hello {}!", name))
+}
+
 pub struct Array {
     data: Vec<f64>
 }

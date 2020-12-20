@@ -20,23 +20,6 @@ const referenceHash = ({authors, title, year, journal}) => {
     return hashCode(stringRepr);
 };
 
-
-const WasmPackConfig = {
-    devtool: 'eval-source-map',
-    stats: 'verbose',
-    plugins: [
-        new WasmPackPlugin({
-            crateDirectory: path.resolve(__dirname, "src/rust"),
-            args: "--log-level warn --verbose",
-            extraArgs: "--no-typescript --target bundler",
-            outDir: "src/wasm",
-            outName: "neritics",
-            pluginLogLevel: "error",
-            forceMode: "development",
-        }),
-    ]
-};
-
 exports.onCreateWebpackConfig = ({ stage, loaders, actions }) => {
     if (stage === 'build-html') {
         actions.setWebpackConfig({
@@ -53,7 +36,21 @@ exports.onCreateWebpackConfig = ({ stage, loaders, actions }) => {
             }
         })
     } else if (stage === 'develop' || stage === 'build') {
-        actions.setWebpackConfig(WasmPackConfig);
+        actions.setWebpackConfig({
+            devtool: 'eval-source-map',
+            stats: 'verbose',
+            plugins: [
+                new WasmPackPlugin({
+                    crateDirectory: path.resolve(__dirname, "src/rust"),
+                    args: "--log-level warn --verbose",
+                    extraArgs: "--no-typescript --target bundler",
+                    outDir: "src/wasm",
+                    outName: "neritics",
+                    pluginLogLevel: "error",
+                    forceMode: "development",
+                }),
+            ]
+        });
     }
 }
 
