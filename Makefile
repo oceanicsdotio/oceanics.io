@@ -1,5 +1,4 @@
 build:
-	mkdir -p functions
 	GOOS=linux
 	GOARCH=amd64
 	GO111MODULE=on
