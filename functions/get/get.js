@@ -33,7 +33,7 @@ exports.handler = async ({
 
         return {
             statusCode: 200,
-            headers: { 'Content-Type': 'application/json', },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(JSON.parse(Body.toString('utf-8')))
         }; 
     } catch (err) {
