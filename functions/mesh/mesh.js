@@ -44,13 +44,13 @@ exports.handler = async ({
         return {
             statusCode: 200,
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(
-                CSV, 
-                function(key, val) {
-                    if (isNaN(+key)) return val;
-                    return val.toFixed ? Number(val.toFixed(5)) : val;
-                }
-            )
+            body: JSON.stringify(CSV)
+            //     CSV, 
+            //     function(key, val) {
+            //         if (isNaN(+key)) return val;
+            //         return val.toFixed ? Number(val.toFixed(5)) : val;
+            //     }
+            // )
         }; 
     } catch (err) {
         return { 
