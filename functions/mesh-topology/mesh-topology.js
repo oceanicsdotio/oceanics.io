@@ -34,9 +34,10 @@ exports.handler = async ({
         const CSV = Body.toString('utf-8')
             .split("\n")
             .map(line => {
-                line.split(",")
+                line
+                    .trim()
+                    .split(",")
                     .map(word => word.trim())
-                    .filter(word => word.length)
                     .slice(1, 4)
                     .map(word => parseInt(word))
             });
