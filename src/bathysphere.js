@@ -1,5 +1,3 @@
-const GLSL_DIRECTORY = "../../glsl-src";
-
 export const queryBathysphere = async (uri, auth) => {
     /*
     Fetch JSON data from the Bathysphere API.
