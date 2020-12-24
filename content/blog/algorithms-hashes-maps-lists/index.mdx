@@ -2,27 +2,10 @@
 title: Algorithms — Hashes, maps, and lists
 date: "2020-02-01T12:00:00.000Z"
 description: |
-    Notes on applications of linked lists, hash tables, tries, and other graph stuctures.
-    Provides some canonical references from the literature, and brings it home with a few
-    examples of how we actually use some of these. 
+    Notes on applications of linked lists, hash tables, and other graph stuctures.
+    Provides some canonical references from the literature.
 tags: ["algorithms", "data structures", "hash", "graph"]
 citations:
-
-  - authors: [Willard DE]
-    year: 1984
-    title: |
-        Log-logarithmic worst-case range queries are possible in space Θ(n)
-    journal: Information Processing Letters
-    volume: "17"
-    pageRange: [81, 84]
-
-  - authors: [Willard DE]
-    year: 1984
-    title: |
-      New trie data structures which support very fast search operations
-    journal: Journal of Computer and System Sciences
-    volume: "28(3)"
-    pageRange: [379, 394]
 
   - authors: [van Emde Boas P]
     year: 1977
@@ -93,24 +76,6 @@ We use hash tables extensively in attaching data to a mesh and grid structures. 
 * Cuckoo hashing: constant worst case lookup time
 
 * Self-balancing search tree: reduce worst case to O(logn), used by Java8 HashMap
-
-
-
-## Trie
-
-Tries are graphs of symbol nodes, which compose words. Nodes that terminate words are marked, and all words sharing a prefix traverse the same path. You can search the trie for words similar to a key word, which makes it ideal for [spell correct](http://norvig.com/spell-correct.html) and auto-complete features. 
-
-You need a cost function like Levenshtein distance that quantifies the difference between patterns. Then you traverse the graph and iteratively build a N\*M table, “answer” is the lower right value. This process is O(N\*M). 
-
-When words share a prefix, you can extend the table instead of recomputing, which happens automatically given alphabetical inputs. 
-
-Tries can waste memory or storage. The lower limit is [4 bytes per edge](http://www.wutka.com/dawg.html), while remaining searchable.
-
-We use tries to try to auto-correct fields in forms and API requests, provide helpful suggestions when there are bad inputs, and to clean and restore strings that have invalid characters. 
-
-### Variants
-
-* Directed acyclic word graphs (DAWG): more efficient due to similiar words with different prefix converging. These are also known as [minimal acyclic finite state automaton (MA-FSA)](https://www.aclweb.org/anthology/J00-1002.pdf). Insert alphabetically, and deduplicate after each branch. Duplicates are XNOR ends and point to the same nodes. 
 
 
 ## Other stuff
