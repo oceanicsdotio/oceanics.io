@@ -1,5 +1,7 @@
-const {readFileSync} = require("fs");
-const words = readFileSync("/usr/share/dict/words").toString().split("\n");
+const {readFileSync, writeFileSync} = require("fs");
+const words = readFileSync("functions/lexicon/words.txt")
+    .toString()
+    .split("\n");
 
 const word1 = "ocean";
 const word2 = "Aegean";
@@ -145,3 +147,5 @@ console.log({
     //     symbol: k
     // }))
 });
+
+// writeFileSync("functions/lexicon/words.txt", words.join("\n"));
