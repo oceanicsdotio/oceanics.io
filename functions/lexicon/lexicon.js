@@ -11,17 +11,14 @@ const word2 = "Aegean";
  * for the purpose of auto-correct or spell checking
  */
 const levenshteinDistance = (a, b) => {
-         
-    // build first row
+       
     let row = [...Array(a.length + 1).keys()];
    
-    // iterate rows
     for (let ii = 1; ii < b.length + 1; ii++) {
 
         const previous = row;
         row = [previous[0] + 1];
 
-        // iterate columns
         for (let jj = 1; jj < a.length + 1; jj++) {
             row.push(Math.min(
                 row[jj - 1] + 1, // insert, 
@@ -44,7 +41,16 @@ const levenshteinDistance = (a, b) => {
  * 
  * @param {*} param0 
  */
-function searchRecursive({node, symbol, pattern, previous=null, cost}) {
+function searchRecursive({
+    node: {
+        word,
+        children
+    }, 
+    symbol, 
+    pattern, 
+    previous=null, 
+    cost
+}) {
 
     if (!previous) previous = [...Array(word1.length + 1).keys()]
     
@@ -59,7 +65,7 @@ function searchRecursive({node, symbol, pattern, previous=null, cost}) {
     }
     
     const filtered = Math.min(...row) <= cost ? 
-        Object.entries(root.children).map(([k, v])=>
+        Object.entries(children).map(([k, v])=>
             searchRecursive({
                 node: v,
                 symbol: k,
@@ -69,17 +75,11 @@ function searchRecursive({node, symbol, pattern, previous=null, cost}) {
             })) : [];
     
     const totalCost = row.pop();
-    const actualCost = (totalCost < cost && root.word) ? 
-        [node.word, totalCost] : []
+    const actualCost = (totalCost < cost && word) ? 
+        [word, totalCost] : []
  
     return filtered + actualCost;
 };
-
-const Node = () => Object({
-    word: null,
-    weight: 0,
-    children: {}
-});
 
 
 /**
@@ -88,15 +88,17 @@ const Node = () => Object({
  * 
  * @param {*} param0 
  */
-const search = ({words, pattern, maxCost}) => {
-    console.log({pattern, maxCost});
-    
-    return words.reduce((acc, word) => { 
+const search = ({
+    words, 
+    pattern, 
+    maxCost
+}) => 
+    words.reduce((result, word) => { 
         const cost = levenshteinDistance(pattern, word);
-        if (cost <= maxCost) acc.push([word, cost]);
-        return acc;
-      }, []);
-};
+        if (cost <= maxCost) result.push([word, cost]);
+        return result;
+    }, []);
+
 
 /**
  * Insert a pattern into a Trie-like data structure.
@@ -106,14 +108,25 @@ const search = ({words, pattern, maxCost}) => {
  * 
  * @param {*} param0 
  */
-const insert = ({node, pattern}) => {
+const insert = (node, pattern) => {
     [...pattern].forEach(c => {
+        if (typeof node.children === "undefined" || !node.children) {
+            node.children = {};
+        }
         if (!(c in node.children)) {
-            node.children[c] = Node();
+            node.children[c] = {
+                weight: 0,
+                children: {}
+            };
         }
         node = node.children[c];
-        node.weight += 1;
+        if (typeof node.weight === "undefined" || !node.weight) {
+            node.weight = 1;
+        } else {
+            node.weight += 1;
+        }
     });
+    node.word = pattern;
 };
 
 // exports.handler = async ({
@@ -133,8 +146,13 @@ const insert = ({node, pattern}) => {
 //     }
 // }
 
-const node = Node();
-words.forEach(pattern => insert({node, pattern}));
+const trie = words.reduce(
+    (node, pattern) => {
+        insert(node, pattern);
+        return node;
+    }, {}
+);
+
 
 console.log({
     word1, 
@@ -148,4 +166,4 @@ console.log({
     // }))
 });
 
-// writeFileSync("functions/lexicon/words.txt", words.join("\n"));
+writeFileSync("functions/lexicon/lexicon.json", JSON.stringify(trie));
