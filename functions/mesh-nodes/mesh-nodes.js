@@ -46,7 +46,7 @@ exports.handler = async ({
         const flatBuffer = new Float32Array(
             lines
                 .slice(...paging)
-                .mapFlat(line =>
+                .flatMap(line =>
                     line.split(",")
                         .slice(1, 4)
                         .map(x => parseFloat(x.trim()))
