@@ -44,11 +44,14 @@ exports.handler = async ({
                     )
         );
 
-        const _ = await s3.putObject({
+        // Add a file to a Space
+        s3.putObject({
+            Body: flatBuffer.buffer,
             Bucket,
             Key: `${Service}/${Key}.bin`,
-            Body: flatBuffer.buffer,
             ContentType: 'application/octet-stream'
+        }, (err) => {
+            if (err) throw err;
         });
 
         return {
