@@ -44,7 +44,7 @@ exports.handler = async ({
             statusCode: 200,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(
-                CSV, 
+                {features: CSV}, 
                 (key, val) => isNaN(+key) ? val : val.toFixed ? Number(val.toFixed(5)) : val
             )
         }; 
