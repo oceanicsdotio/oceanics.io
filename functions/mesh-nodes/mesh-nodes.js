@@ -43,7 +43,7 @@ exports.handler = async ({
             Math.min(PagingEnd || lines.length, lines.length)
         ];
             
-        const flatBuffer = new Float32Buffer(
+        const flatBuffer = new Float32Array(
             lines
                 .slice(...paging)
                 .mapFlat(line =>
