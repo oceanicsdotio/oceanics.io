@@ -10,15 +10,6 @@ const s3 = new S3({
 });
 
 
-/**
- * Browse saved results for a single model configuration. 
- * Results from different configurations are probably not
- * directly comparable, so we reduce the chances that someone 
- * makes wild conclusions comparing numerically
- * different models.
-
- * You can only access results for that test, although multiple collections * may be stored in a single place 
- */
 exports.handler = async ({
     queryStringParameters: {
         Service="MidcoastMaineMesh",
@@ -53,19 +44,17 @@ exports.handler = async ({
                     )
         );
 
-        const blob = new Blob([flatBuffer])
-
         const _ = await s3.putObject({
             Bucket,
             Key: `${Service}/${Key}.bin`,
-            Body: blob,
+            Body: flatBuffer.buffer,
             ContentType: 'application/octet-stream'
         });
 
         return {
             statusCode: 200,
             headers: { 'Content-Type': 'application/octet-stream' },
-            body: blob
+            body: flatBuffer.buffer
         }; 
     } catch (err) {
         return { 
