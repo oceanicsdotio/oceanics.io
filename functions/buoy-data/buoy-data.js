@@ -44,7 +44,10 @@ exports.handler = async ({
     );
     
   
-    return {body: content, statusCode: 200};
+    return {
+        body: content, 
+        headers: { 'Content-Type': 'application/json' },
+        statusCode: 200};
            
 };
 
