@@ -31,27 +31,22 @@ exports.handler = async ({
             Key: `${Service}/${Key}.${Ext}`
         }).promise();
 
-        const CSV = Body.toString('utf-8')
+        const CSV = Body
+            .toString('utf-8')
             .split("\n")
-            .map(line => {
-                line
-                    .trim()
-                    .split(",")
-                    .map(word => word.trim())
+            .map(line =>
+                line.split(",")
                     .slice(1, 4)
-                    .map(word => parseFloat(word))
-            });
+                    .map(x => parseFloat(x.trim()))
+            );
 
         return {
             statusCode: 200,
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(CSV)
-            //     CSV, 
-            //     function(key, val) {
-            //         if (isNaN(+key)) return val;
-            //         return val.toFixed ? Number(val.toFixed(5)) : val;
-            //     }
-            // )
+            body: JSON.stringify(
+                CSV, 
+                (key, val) => isNaN(+key) ? val : val.toFixed ? Number(val.toFixed(5)) : val
+            )
         }; 
     } catch (err) {
         return { 

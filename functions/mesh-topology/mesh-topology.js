@@ -23,6 +23,7 @@ exports.handler = async ({
         Service="MidcoastMaineMesh",
         Key="midcoast_elements",
         Ext="csv",
+        Metadata="true",
     }
 }) => {
     try {    
@@ -34,6 +35,7 @@ exports.handler = async ({
         const CSV = Body
             .toString('utf-8')
             .split("\n")
+            .slice()
             .map(line => line.split(",").map(x => x.trim()).slice(1, 4));
 
         return {
