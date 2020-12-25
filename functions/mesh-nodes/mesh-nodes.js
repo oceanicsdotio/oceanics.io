@@ -1,4 +1,5 @@
 const { Endpoint, S3 } = require('aws-sdk');
+const { createHash } = require("crypto");
 
 const spacesEndpoint = new Endpoint('nyc3.digitaloceanspaces.com');
 const Bucket = "oceanicsdotio";
@@ -23,6 +24,8 @@ exports.handler = async ({
         Service="MidcoastMaineMesh",
         Key="midcoast_nodes",
         Ext="csv",
+        PagingStart=null,
+        PagingEnd=null,
     }
 }) => {
     try {    
@@ -31,22 +34,29 @@ exports.handler = async ({
             Key: `${Service}/${Key}.${Ext}`
         }).promise();
 
-        const CSV = Body
+        const lines = Body
             .toString('utf-8')
-            .split("\n")
-            .map(line =>
-                line.split(",")
-                    .slice(1, 4)
-                    .map(x => parseFloat(x.trim()))
-            );
+            .split("\n");
+
+        const paging = [
+            Math.min(PagingStart || 0, lines.length),
+            Math.min(PagingEnd || lines.length, lines.length)
+        ];
+            
+        const flatBuffer = new Float32Buffer(
+            lines
+                .slice(...paging)
+                .mapFlat(line =>
+                    line.split(",")
+                        .slice(1, 4)
+                        .map(x => parseFloat(x.trim()))
+                    )
+        );
 
         return {
             statusCode: 200,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(
-                {features: CSV}, 
-                (key, val) => isNaN(+key) ? val : val.toFixed ? Number(val.toFixed(5)) : val
-            )
+            headers: { 'Content-Type': 'application/octet-stream' },
+            body: new Blob([flatBuffer])
         }; 
     } catch (err) {
         return { 
