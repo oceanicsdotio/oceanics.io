@@ -53,10 +53,19 @@ exports.handler = async ({
                     )
         );
 
+        const blob = new Blob([flatBuffer])
+
+        const _ = await s3.putObject({
+            Bucket,
+            Key: `${Service}/${Key}.bin`,
+            Body: blob,
+            ContentType: 'application/octet-stream'
+        });
+
         return {
             statusCode: 200,
             headers: { 'Content-Type': 'application/octet-stream' },
-            body: new Blob([flatBuffer])
+            body: blob
         }; 
     } catch (err) {
         return { 
