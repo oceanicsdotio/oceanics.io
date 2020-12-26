@@ -190,6 +190,13 @@ export default ({
         setExpand(FORCE_MOBILE || mobile);
     },[mobile]);
 
+
+    useEffect(()=>{
+        fetch("https://www.oceanics.io/api/mesh-nodes?prefix=MidcoastMaineMesh&key=mesh_nodes").then(
+            data => {console.log({data});}
+        )
+    },[]);
+
     /**
      * Build a rotating menu
      */

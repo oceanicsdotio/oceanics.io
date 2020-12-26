@@ -47,7 +47,7 @@ let source = null;  // memoize the source data to speed up batches
     }).promise()).Body.buffer);
     console.log({
         data,
-        base64: Buffer.from(data.buffer).toString("base64").slice(0,100)
+        base64head: Buffer.from(data.buffer).toString("base64").slice(0,32)
     });
 })();
 

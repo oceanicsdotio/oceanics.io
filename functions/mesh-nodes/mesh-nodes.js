@@ -11,7 +11,7 @@ const s3 = new S3({
 
 const WEBGL_VERTEX_ARRAY_LIMIT = 65536;
 const ENCODER_RADIX = 36;
-const MAX_SLICE_SIZE = WEBGL_VERTEX_ARRAY_LIMIT/2;
+const MAX_SLICE_SIZE = WEBGL_VERTEX_ARRAY_LIMIT/8;
 exports.MAX_SLICE_SIZE = MAX_SLICE_SIZE;
 
 
@@ -155,7 +155,7 @@ const VertexArrayBufferSlice = async ({
     ];
 
     return {
-        data: returnData ? Buffer(data.buffer).toString("base64") : null,
+        data: returnData ? Buffer.from(data.buffer).toString("base64") : null,
         source: returnSource ? lines : null,
         key: fragmentKey,
         interval: decodeInterval(interval),

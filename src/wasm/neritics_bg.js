@@ -192,7 +192,7 @@ function debugString(val) {
 }
 
 function makeMutClosure(arg0, arg1, dtor, f) {
-    const state = { a: arg0, b: arg1, cnt: 1 };
+    const state = { a: arg0, b: arg1, cnt: 1, dtor };
     const real = (...args) => {
         // First up with a closure we increment the internal reference
         // count. This ensures that the Rust closure environment won't
@@ -203,11 +203,16 @@ function makeMutClosure(arg0, arg1, dtor, f) {
         try {
             return f(a, state.b, ...args);
         } finally {
-            if (--state.cnt === 0) wasm.__wbindgen_export_2.get(dtor)(a, state.b);
-            else state.a = a;
+            if (--state.cnt === 0) {
+                wasm.__wbindgen_export_2.get(state.dtor)(a, state.b);
+
+            } else {
+                state.a = a;
+            }
         }
     };
     real.original = state;
+
     return real;
 }
 
@@ -232,7 +237,7 @@ function logError(f) {
 function __wbg_adapter_24(arg0, arg1, arg2) {
     _assertNum(arg0);
     _assertNum(arg1);
-    wasm._dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__hec2f2516977eb204(arg0, arg1, addHeapObject(arg2));
+    wasm._dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h81e47de8f5a40c79(arg0, arg1, addHeapObject(arg2));
 }
 
 let stack_pointer = 32;
@@ -335,6 +340,26 @@ export function create_texture(ctx, data, filter, _width, _height) {
     } finally {
         heap[stack_pointer++] = undefined;
         heap[stack_pointer++] = undefined;
+    }
+}
+
+/**
+* @param {string} name
+* @returns {string}
+*/
+export function hello_world(name) {
+    try {
+        const retptr = wasm.__wbindgen_export_4.value - 16;
+        wasm.__wbindgen_export_4.value = retptr;
+        var ptr0 = passStringToWasm0(name, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len0 = WASM_VECTOR_LEN;
+        wasm.hello_world(retptr, ptr0, len0);
+        var r0 = getInt32Memory0()[retptr / 4 + 0];
+        var r1 = getInt32Memory0()[retptr / 4 + 1];
+        return getStringFromWasm0(r0, r1);
+    } finally {
+        wasm.__wbindgen_export_4.value += 16;
+        wasm.__wbindgen_free(r0, r1);
     }
 }
 
@@ -475,14 +500,20 @@ function getArrayF64FromWasm0(ptr, len) {
 * @returns {Float64Array}
 */
 export function make_vertex_array(series) {
-    var ptr0 = passArrayF64ToWasm0(series, wasm.__wbindgen_malloc);
-    var len0 = WASM_VECTOR_LEN;
-    wasm.make_vertex_array(8, ptr0, len0);
-    var r0 = getInt32Memory0()[8 / 4 + 0];
-    var r1 = getInt32Memory0()[8 / 4 + 1];
-    var v1 = getArrayF64FromWasm0(r0, r1).slice();
-    wasm.__wbindgen_free(r0, r1 * 8);
-    return v1;
+    try {
+        const retptr = wasm.__wbindgen_export_4.value - 16;
+        wasm.__wbindgen_export_4.value = retptr;
+        var ptr0 = passArrayF64ToWasm0(series, wasm.__wbindgen_malloc);
+        var len0 = WASM_VECTOR_LEN;
+        wasm.make_vertex_array(retptr, ptr0, len0);
+        var r0 = getInt32Memory0()[retptr / 4 + 0];
+        var r1 = getInt32Memory0()[retptr / 4 + 1];
+        var v1 = getArrayF64FromWasm0(r0, r1).slice();
+        wasm.__wbindgen_free(r0, r1 * 8);
+        return v1;
+    } finally {
+        wasm.__wbindgen_export_4.value += 16;
+    }
 }
 
 /**
@@ -565,10 +596,10 @@ function getUint8ClampedMemory0() {
 function getClampedArrayU8FromWasm0(ptr, len) {
     return getUint8ClampedMemory0().subarray(ptr / 1, ptr / 1 + len);
 }
-function __wbg_adapter_241(arg0, arg1, arg2, arg3) {
+function __wbg_adapter_242(arg0, arg1, arg2, arg3) {
     _assertNum(arg0);
     _assertNum(arg1);
-    wasm.wasm_bindgen__convert__closures__invoke2_mut__h96984aac8d17c2af(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
+    wasm.wasm_bindgen__convert__closures__invoke2_mut__h596a927fd3dd8d74(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
 }
 
 function notDefined(what) { return () => { throw new Error(`${what} is not defined`); }; }
@@ -1051,13 +1082,16 @@ export class MiniMap {
     get_dynamic_tile(jj, index, length, width, phase) {
         try {
             if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+            const retptr = wasm.__wbindgen_export_4.value - 16;
+            wasm.__wbindgen_export_4.value = retptr;
             _assertNum(this.ptr);
             _assertNum(index);
-            wasm.minimap_get_dynamic_tile(8, this.ptr, jj, index, length, width, phase);
-            var r0 = getInt32Memory0()[8 / 4 + 0];
-            var r1 = getInt32Memory0()[8 / 4 + 1];
+            wasm.minimap_get_dynamic_tile(retptr, this.ptr, jj, index, length, width, phase);
+            var r0 = getInt32Memory0()[retptr / 4 + 0];
+            var r1 = getInt32Memory0()[retptr / 4 + 1];
             return getStringFromWasm0(r0, r1);
         } finally {
+            wasm.__wbindgen_export_4.value += 16;
             wasm.__wbindgen_free(r0, r1);
         }
     }
@@ -1807,7 +1841,7 @@ export const __wbg_new_261626435fed913c = logError(function(arg0, arg1) {
             const a = state0.a;
             state0.a = 0;
             try {
-                return __wbg_adapter_241(a, state0.b, arg0, arg1);
+                return __wbg_adapter_242(a, state0.b, arg0, arg1);
             } finally {
                 state0.a = a;
             }
@@ -1923,7 +1957,7 @@ export const __wbindgen_memory = function() {
     return addHeapObject(ret);
 };
 
-export const __wbindgen_closure_wrapper3250 = logError(function(arg0, arg1, arg2) {
+export const __wbindgen_closure_wrapper3253 = logError(function(arg0, arg1, arg2) {
     var ret = makeMutClosure(arg0, arg1, 70, __wbg_adapter_24);
     return addHeapObject(ret);
 });
