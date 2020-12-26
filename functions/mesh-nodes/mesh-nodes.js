@@ -155,7 +155,7 @@ const VertexArrayBufferSlice = async ({
     ];
 
     return {
-        dataUrl: returnData ? "data:application/octet;base64,"+Buffer.from(data.buffer, "binary").toString("base64") : null,
+        dataUrl: returnData ? "data:application/octet;base64,"+Buffer.from(data.buffer).toString("base64") : null,
         source: returnSource ? lines : null,
         key: fragmentKey,
         interval: decodeInterval(interval),
