@@ -51,6 +51,16 @@ const decodeInterval = (c) => {
 exports.decodeInterval = decodeInterval;
 
 
+const encodeArray = ({data: {buffer}}) => {
+    return Buffer.from(buffer)
+};
+
+
+const decodeArray = ({data}) => {
+   return new Float32Array(data);
+};
+
+
 /**
  * Make slices of the Vertex Array Buffer for the points that form the 
  * spatial dimensions of the graph.
@@ -105,7 +115,7 @@ const VertexArrayBufferSlice = async ({
             lines
                 .slice(start, end)
                 .reduce((acc, line, ii) => {
-                    if (ii && !(ii % 2**10)) console.log(`Processing line ${ii}/${delta}...`);
+                    if (ii && !(ii % 2**12)) console.log(`Processing line ${ii}/${delta}...`);
     
                     return acc.concat(
                         line.split(",")
@@ -113,19 +123,22 @@ const VertexArrayBufferSlice = async ({
                         .map(x => parseFloat(x.trim()))
                     )
                 },[])
-        )
+        );
+        
     } else {
         total = parseInt(metadata.Metadata.total);
-        data = new Float32Array((await s3.getObject({
-            Bucket,
-            Key: fragmentKey
-        }).promise()).Body);
+        data = decodeArray({
+            data: (await s3.getObject({
+                Bucket,
+                Key: fragmentKey
+            }).promise()).Body
+        });
     }
     
     // Add a file to a Space
     if (!metadata || (update && metadata.ETag !== `"${createHash('md5').update(data.buffer).digest('hex')}"`)) {
         s3.putObject({
-            Body: Buffer.from(data.buffer),
+            Body: encodeArray({data}),
             Bucket,
             Key: fragmentKey,
             ContentType: 'application/octet-stream',
@@ -136,12 +149,17 @@ const VertexArrayBufferSlice = async ({
         console.log(`${!metadata ? "Created" : "Updated"} asset: ${fragmentKey}`);
     }
 
+    const [_start, _end] = [
+        Math.min(end, total), 
+        Math.min(end+delta, total)
+    ];
+
     return {
-        data: returnData ? data.buffer.toString("base64") : null,
+        data: returnData ? Buffer(data.buffer).toString("base64") : null,
         source: returnSource ? lines : null,
         key: fragmentKey,
         interval: decodeInterval(interval),
-        next: [Math.min(end, total || end), Math.min(end+delta, total || end+delta)],
+        next: _start === _end ? null : [_start, _end],
         total,
         elapsed: Math.ceil(performance.now() - startTime)
     };
@@ -158,12 +176,13 @@ exports.handler = async ({
 }) => {
     try {            
         return {
-            body: await VertexArrayBufferSlice({
+            body: (await VertexArrayBufferSlice({
                 prefix,
                 key,
                 start,
-                end, 
-            }).data,
+                end,
+                returnData: true
+            })).data,
             headers: {
                 'Content-type': 'application/octet-stream'
             },
