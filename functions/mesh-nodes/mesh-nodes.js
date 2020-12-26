@@ -166,6 +166,13 @@ const VertexArrayBufferSlice = async ({
 };
 exports.VertexArrayBufferSlice = VertexArrayBufferSlice;
 
+
+const headers = {
+    'Access-Control-Allow-Origin': '*',
+    
+  };
+  
+  if (event.httpMethod !== 'POST') {
 exports.handler = async ({
     queryStringParameters: {
         prefix,
@@ -184,7 +191,8 @@ exports.handler = async ({
                 returnData: true
             })).data,
             headers: {
-                'Content-type': 'application/octet-stream'
+                'Content-type': 'application/octet-stream',
+                'Access-Control-Allow-Origin': "*",
             },
             isBase64Encoded: true,
             statusCode: 200,
