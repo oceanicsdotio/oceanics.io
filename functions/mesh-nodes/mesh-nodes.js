@@ -167,12 +167,6 @@ const VertexArrayBufferSlice = async ({
 exports.VertexArrayBufferSlice = VertexArrayBufferSlice;
 
 
-const headers = {
-    'Access-Control-Allow-Origin': '*',
-    
-  };
-  
-  if (event.httpMethod !== 'POST') {
 exports.handler = async ({
     queryStringParameters: {
         prefix,
