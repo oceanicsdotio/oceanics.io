@@ -155,7 +155,7 @@ const VertexArrayBufferSlice = async ({
     ];
 
     return {
-        data: returnData ? Buffer.from(data.buffer).toString("base64") : null,
+        dataUrl: returnData ? "data:application/octet;base64,"+Buffer.from(data.buffer).toString("base64") : null,
         source: returnSource ? lines : null,
         key: fragmentKey,
         interval: decodeInterval(interval),
@@ -175,20 +175,22 @@ exports.handler = async ({
         end=MAX_SLICE_SIZE,
     }
 }) => {
-    try {            
+    try {       
+        
+        const result = await VertexArrayBufferSlice({
+            prefix,
+            key,
+            start,
+            end,
+            returnData: true
+        });
+
         return {
-            body: (await VertexArrayBufferSlice({
-                prefix,
-                key,
-                start,
-                end,
-                returnData: true
-            })).data,
+            body: JSON.stringify(result),
             headers: {
-                'Content-type': 'application/octet-stream',
+                'Content-type': 'application/json',
                 'Access-Control-Allow-Origin': "*",
             },
-            isBase64Encoded: true,
             statusCode: 200,
         };
     } catch (err) {

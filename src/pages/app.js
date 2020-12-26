@@ -192,8 +192,26 @@ export default ({
 
 
     useEffect(()=>{
-        fetch("https://www.oceanics.io/api/mesh-nodes?prefix=MidcoastMaineMesh&key=mesh_nodes").then(
-            data => {console.log({data});}
+        fetch("https://www.oceanics.io/api/mesh-nodes?prefix=MidcoastMaineMesh&key=mesh_nodes")
+            .then(response => response.text())
+            .then(text => {
+                
+                // const buff = Buffer.from(text, 'base64');
+                const hex = window.atob(text.replace(/\s/g, ''));
+
+                // let data = new ArrayBuffer( hex.byteLength );
+                // let dv = new DataView( data );
+                // for( let i=0; i < hex.length; i++ ) dv.setUint8( i, hex.charCodeAt(i) );
+                
+                // const decoded = new Float32Array(data);
+               
+                console.log("MeshQuery", {
+                    length: text.length,
+                    hex,
+                    text,
+                    type: (typeof text)
+                });
+            }
         )
     },[]);
 
