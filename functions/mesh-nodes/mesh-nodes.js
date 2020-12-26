@@ -1,68 +1,179 @@
-const { Endpoint, S3 } = require('aws-sdk');
+const { Endpoint, S3 } = require("aws-sdk");
 const { createHash } = require("crypto");
+const { performance } = require("perf_hooks");
 
-const spacesEndpoint = new Endpoint('nyc3.digitaloceanspaces.com');
 const Bucket = "oceanicsdotio";
 const s3 = new S3({
-    endpoint: spacesEndpoint,
+    endpoint: new Endpoint('nyc3.digitaloceanspaces.com'),
     accessKeyId: process.env.SPACES_ACCESS_KEY,
     secretAccessKey: process.env.SPACES_SECRET_KEY
 });
 
+const WEBGL_VERTEX_ARRAY_LIMIT = 65536;
+const ENCODER_RADIX = 36;
+const MAX_SLICE_SIZE = WEBGL_VERTEX_ARRAY_LIMIT/2;
+exports.MAX_SLICE_SIZE = MAX_SLICE_SIZE;
 
-exports.handler = async ({
-    queryStringParameters: {
-        Service="MidcoastMaineMesh",
-        Key="midcoast_nodes",
-        Ext="csv",
-        PagingStart=null,
-        PagingEnd=null,
-    }
+
+/**
+ * Reversibly combine two integers into a single integer. 
+ * 
+ * Broken out as a utility function for testing purposes. See "Cantor Pairing Functions". 
+ * 
+ * @param {*} a 
+ * @param {*} b 
+ */
+const encodeInterval = (a, b) => {
+    if (b < 0 || a < 0) throw Error(`Negative index (${a}, ${b})`);
+    [a, b] = [a, b].sort();
+    if (b - a > MAX_SLICE_SIZE) throw Error(`Exceeded maximum slice length (${MAX_SLICE_SIZE})`);
+    const reduced = (a+b) * (a+b+1) / 2 + b;
+    return reduced.toString(ENCODER_RADIX);
+};
+exports.encodeInterval = encodeInterval;
+
+
+/**
+ * Reverse the Cantor pairing function. This is the inverse of `c = encodeInterval(a, b)`.
+ * 
+ * Broken out as utility function for testing purposes. 
+ * @param {*} c 
+ */
+const decodeInterval = (c) => {
+    const _c = parseInt(c, ENCODER_RADIX);
+    if (_c < 0) throw Error(`Negative index (${a}, ${b})`);
+    const w = Math.floor((Math.sqrt(8*_c + 1) - 1) / 2);
+    const t = w*(w+1)/2;
+    const b = _c - t;
+    const a = w - b;
+    return [a, b];
+};
+exports.decodeInterval = decodeInterval;
+
+
+/**
+ * Make slices of the Vertex Array Buffer for the points that form the 
+ * spatial dimensions of the graph.
+ * 
+ * The function limits the length of the buffer and precision of the points.
+ * The result is appropriate for visualization in web applications.
+ */
+const VertexArrayBufferSlice = async ({
+    prefix,
+    key,
+    extension,
+    start,
+    end,
+    update=false,
+    source=null,
+    returnSource=false,
+    returnData=false
 }) => {
-    try {    
-        const {Body} = await s3.getObject({
+
+    const startTime = performance.now();
+    const delta = end - start;
+    const interval = encodeInterval(start, end);
+    const fragmentKey = `${prefix}/nodes/${interval}`;
+
+    let lines = null;
+    let total = null;
+    let data = null;
+    
+    // Check for existing fragment
+    const metadata = await s3.headObject({
+        Bucket,
+        Key: fragmentKey
+    }).promise().catch(err => {
+        if (err.code === "NotFound") return null;
+        else throw err;
+    });
+
+    
+    if (!metadata || update) {
+
+        lines = source || (await s3.getObject({
             Bucket,
-            Key: `${Service}/${Key}.${Ext}`
-        }).promise();
-
-        const lines = Body
-            .toString('utf-8')
-            .split("\n");
-
-        const paging = [
-            Math.min(PagingStart || 0, lines.length),
-            Math.min(PagingEnd || lines.length, lines.length)
-        ];
-            
-        const flatBuffer = new Float32Array(
+            Key: `${prefix}/${key}.${extension}`
+        }).promise()).Body.toString('utf-8').split("\r\n");
+       
+        total = lines.length;
+        if (start > total || end > total || start < 0 || end < 0) 
+            throw Error(`Index (${start},${end}) out of range (0,${total})`);
+    
+        // Lazy load lines if necessary
+        data = new Float32Array(
             lines
-                .slice(...paging)
-                .flatMap(line =>
-                    line.split(",")
+                .slice(start, end)
+                .reduce((acc, line, ii) => {
+                    if (ii && !(ii % 2**10)) console.log(`Processing line ${ii}/${delta}...`);
+    
+                    return acc.concat(
+                        line.split(",")
                         .slice(1, 4)
                         .map(x => parseFloat(x.trim()))
                     )
-        );
-
-        // Add a file to a Space
-        s3.putObject({
-            Body: flatBuffer.buffer,
+                },[])
+        )
+    } else {
+        total = parseInt(metadata.Metadata.total);
+        data = new Float32Array((await s3.getObject({
             Bucket,
-            Key: `${Service}/${Key}.bin`,
-            ContentType: 'application/octet-stream'
+            Key: fragmentKey
+        }).promise()).Body);
+    }
+    
+    // Add a file to a Space
+    if (!metadata || (update && metadata.ETag !== `"${createHash('md5').update(data.buffer).digest('hex')}"`)) {
+        s3.putObject({
+            Body: Buffer.from(data.buffer),
+            Bucket,
+            Key: fragmentKey,
+            ContentType: 'application/octet-stream',
+            Metadata: {"total": `${total}`}
         }, (err) => {
             if (err) throw err;
         });
+        console.log(`${!metadata ? "Created" : "Updated"} asset: ${fragmentKey}`);
+    }
 
+    return {
+        data: returnData ? data.buffer.toString("base64") : null,
+        source: returnSource ? lines : null,
+        key: fragmentKey,
+        interval: decodeInterval(interval),
+        next: [Math.min(end, total || end), Math.min(end+delta, total || end+delta)],
+        total,
+        elapsed: Math.ceil(performance.now() - startTime)
+    };
+};
+exports.VertexArrayBufferSlice = VertexArrayBufferSlice;
+
+exports.handler = async ({
+    queryStringParameters: {
+        prefix,
+        key,
+        start=0,
+        end=MAX_SLICE_SIZE,
+    }
+}) => {
+    try {            
         return {
+            body: await VertexArrayBufferSlice({
+                prefix,
+                key,
+                start,
+                end, 
+            }).data,
+            headers: {
+                'Content-type': 'application/octet-stream'
+            },
+            isBase64Encoded: true,
             statusCode: 200,
-            headers: { 'Content-Type': 'application/octet-stream' },
-            body: flatBuffer.buffer
-        }; 
+        };
     } catch (err) {
         return { 
             statusCode: err.statusCode || 500, 
             body: err.message
         };
     }
-}
+};
