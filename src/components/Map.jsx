@@ -8,6 +8,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import useMapBox from "../hooks/useMapBox";
 import useMapboxHighlightEvent from "../hooks/useMapBoxHighlightEvent";
 import useMapboxGeoJsonLayers from "../hooks/useMapboxGeoJsonLayers";
+import useMeshNodesFunction from "../hooks/useMeshNodesFunction";
 
 
 
@@ -127,6 +128,7 @@ const Map = ({
         layers: geoJsonLayers
     });
 
+    const {meshNodes} = useMeshNodesFunction({map});
 
     /**
      * Use an HTML5 Canvas element as a raster data source.

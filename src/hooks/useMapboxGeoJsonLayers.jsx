@@ -45,7 +45,7 @@ const Features = ({
 };
 
 // Out ready for Mapbox as a Layer object description
-const GeoJsonSource = ({
+export const GeoJsonSource = ({
     features,
     standard,
     properties=null
