@@ -128,7 +128,7 @@ const Map = ({
         layers: geoJsonLayers
     });
 
-    const {meshNodes} = useMeshNodesFunction({map});
+    useMeshNodesFunction({map});
 
     /**
      * Use an HTML5 Canvas element as a raster data source.

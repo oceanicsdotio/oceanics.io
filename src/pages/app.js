@@ -220,10 +220,10 @@ export default ({
 
         <SEO title={title} />
 
-        <BackBuffer
+        {/* <BackBuffer
             id={grid.mapbox.layer.id}
             ref={grid.ref}
-        /> 
+        />  */}
 
         <ColumnContainer 
             display={!columnSize({expand, mobile, column: 0}) ? "none" : undefined}
@@ -257,7 +257,10 @@ export default ({
             <Composite display={showMap?"none":undefined}>
                 <Map 
                     center={[-70, 43.7]}
-                    layers={{...layers, canvas: [grid.mapbox]}}
+                    layers={{
+                        ...layers, 
+                        // canvas: [grid.mapbox]
+                    }}
                     accessToken={mapBoxAccessToken}
                     display={showMap?undefined:"none"}
                     triggerResize={[expand, showMap]}
