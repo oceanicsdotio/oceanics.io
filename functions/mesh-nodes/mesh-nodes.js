@@ -124,7 +124,6 @@ const VertexArrayBufferSlice = async ({
                     )
                 },[])
         );
-        
     } else {
         total = parseInt(metadata.Metadata.total);
         data = decodeArray({
@@ -149,6 +148,7 @@ const VertexArrayBufferSlice = async ({
         console.log(`${!metadata ? "Created" : "Updated"} asset: ${fragmentKey}`);
     }
 
+    // Calculate the actual start and end values for paging
     const [_start, _end] = [
         Math.min(end, total), 
         Math.min(end+delta, total)
@@ -167,6 +167,11 @@ const VertexArrayBufferSlice = async ({
 exports.VertexArrayBufferSlice = VertexArrayBufferSlice;
 
 
+/**
+ * Handler to expose for Netlify/AWS Lambda Functions.
+ * 
+ * @param {*} param0 
+ */
 exports.handler = async ({
     queryStringParameters: {
         prefix,
