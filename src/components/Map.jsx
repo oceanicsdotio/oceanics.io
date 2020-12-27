@@ -128,7 +128,17 @@ const Map = ({
         layers: geoJsonLayers
     });
 
-    useMeshNodesFunction({map});
+    useMeshNodesFunction({
+        map,
+        key: "necofs_gom3_mesh", 
+        extension: "nc",
+    });
+
+    useMeshNodesFunction({
+        map,
+        key: "midcoast_nodes", 
+        extension: "csv",
+    });
 
     /**
      * Use an HTML5 Canvas element as a raster data source.

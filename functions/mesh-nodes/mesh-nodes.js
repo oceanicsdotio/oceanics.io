@@ -16,7 +16,15 @@ exports.MAX_SLICE_SIZE = MAX_SLICE_SIZE;
 
 
 /**
- * Reversibly combine two integers into a single integer. 
+ * Reversibly combine two integers into a single integer. In this case we are segmenting
+ * the linear index of an ordered array, to break it into chunks named with the hash
+ * of their own interval. 
+ * 
+ * The interval is implicit in the hash, and can be extracted to rebuild the entire array
+ * by concatenating the chunks. 
+ * 
+ * This is intended to be used for vertex arrays, but can be applied generally to any
+ * single or multidimensional arrays. 
  * 
  * Broken out as a utility function for testing purposes. See "Cantor Pairing Functions". 
  * 
@@ -51,11 +59,17 @@ const decodeInterval = (c) => {
 exports.decodeInterval = decodeInterval;
 
 
+/**
+ * Array encoder for NodeJS side of things. 
+ */
 const encodeArray = ({data: {buffer}}) => {
     return Buffer.from(buffer)
 };
 
-
+/**
+ * Array decoder that is valide both for backend and browser. 
+ * @param {*} param0 
+ */
 const decodeArray = ({data}) => {
    return new Float32Array(data);
 };
@@ -83,7 +97,7 @@ const VertexArrayBufferSlice = async ({
     const startTime = performance.now();
     const delta = end - start;
     const interval = encodeInterval(start, end);
-    const fragmentKey = `${prefix}/nodes/${interval}`;
+    const fragmentKey = `${prefix}/${key}/nodes/${interval}`;
 
     let lines = null;
     let total = null;
@@ -101,29 +115,87 @@ const VertexArrayBufferSlice = async ({
     
     if (!metadata || update) {
 
-        lines = source || (await s3.getObject({
-            Bucket,
-            Key: `${prefix}/${key}.${extension}`
-        }).promise()).Body.toString('utf-8').split("\r\n");
-       
-        total = lines.length;
-        if (start > total || end > total || start < 0 || end < 0) 
-            throw Error(`Index (${start},${end}) out of range (0,${total})`);
+        if (extension === "csv") {
+            lines = source || (await s3.getObject({
+                Bucket,
+                Key: `${prefix}/${key}.${extension}`
+            }).promise()).Body.toString('utf-8').split("\r\n");
+           
+            total = lines.length;
+            if (start > total || end > total || start < 0 || end < 0) 
+                throw Error(`Index (${start},${end}) out of range (0,${total})`);
+        
+            // Lazy load lines if necessary
+            data = new Float32Array(
+                lines
+                    .slice(start, end)
+                    .reduce((acc, line, ii) => {
+                        if (ii && !(ii % 2**12)) console.log(`Processing line ${ii}/${delta}...`);
+        
+                        return acc.concat(
+                            line.split(",")
+                            .slice(1, 4)
+                            .map(x => parseFloat(x.trim()))
+                        )
+                    },[])
+            );
+        } else if (extension === "nc") {
+
+            const {variables} = JSON.parse((await s3.getObject({
+                Bucket,
+                Key: `${prefix}/${key}/variables.json`
+            }).promise()).Body.toString('utf-8'));
+
+            const width = 4;
+            const keys = {"lon": 0, "lat": 1, "h": 2};
+            const vars = variables.filter(({name}) => name in keys);
+            const arrayBuffer = new ArrayBuffer((delta)*3*width);
+            const dv = new DataView(arrayBuffer);
+;
+           
+            for (const k in vars) {
+
+                const {offset, size, name} = vars[k];
+
+                total = size / width;
+
+                const range = [
+                    offset+start*width,
+                    offset+end*width*4
+                ];
+
+                const view = new DataView((await s3.getObject({
+                    Bucket,
+                    Key: `${prefix}/${key}.${extension}`,
+                    Range: `bytes=${range[0]}-${range[1]}`
+                }).promise()).Body.buffer);
+
+                for (let ii = 0; ii < (delta-1); ii++) {
+                    const index = (ii * 3 + keys[name]) * width;
+                    try {
+                        const value = view.getFloat32(ii*width, false);
+                        dv.setFloat32(index, value, true);  // swap endiannesskeys
+                    } catch (err) {
+                        console.log({
+                            delta, 
+                            deltaX4: delta * 4,
+                            length: view.buffer.byteLength, 
+                            getIndex: ii*width,
+                            setIndex: index,
+                            range,
+                            offset,
+                        });
+                        throw err;
+                    } 
+                }
+            }
+
+            data = new Float32Array(arrayBuffer);
     
-        // Lazy load lines if necessary
-        data = new Float32Array(
-            lines
-                .slice(start, end)
-                .reduce((acc, line, ii) => {
-                    if (ii && !(ii % 2**12)) console.log(`Processing line ${ii}/${delta}...`);
-    
-                    return acc.concat(
-                        line.split(",")
-                        .slice(1, 4)
-                        .map(x => parseFloat(x.trim()))
-                    )
-                },[])
-        );
+        } else 
+            throw Error(`Extension (${extension}) not supported.`);
+
+      
     } else {
         total = parseInt(metadata.Metadata.total);
         data = decodeArray({
@@ -141,7 +213,10 @@ const VertexArrayBufferSlice = async ({
             Bucket,
             Key: fragmentKey,
             ContentType: 'application/octet-stream',
-            Metadata: {"total": `${total}`}
+            ACL:'public-read',
+            Metadata: {
+                "total": `${total}`
+            }
         }, (err) => {
             if (err) throw err;
         });
@@ -176,6 +251,7 @@ exports.handler = async ({
     queryStringParameters: {
         prefix,
         key,
+        extension,
         start=0,
         end=MAX_SLICE_SIZE,
     }
@@ -185,6 +261,7 @@ exports.handler = async ({
         const result = await VertexArrayBufferSlice({
             prefix,
             key,
+            extension,
             start: parseInt(start),
             end: parseInt(end),
             returnData: true

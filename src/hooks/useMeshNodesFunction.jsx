@@ -13,7 +13,12 @@ const hostname = "https://www.oceanics.io/api/mesh-nodes";
  * When the cursor no longer intersects the shapes, stop
  * highlighting the features. 
  */
-export default ({map}) => {
+export default ({
+    map, 
+    key, 
+    extension,
+    color="rgba(255,255,0,0.2)"
+}) => {
   
     const [nextFragment, setNextFragment] = useState(null);
     /**
@@ -23,7 +28,7 @@ export default ({map}) => {
     useEffect(()=>{
         if (!map) return;
 
-        const url = `${hostname}?prefix=MidcoastMaineMesh&key=mesh_nodes` + 
+        const url = `${hostname}?prefix=MidcoastMaineMesh&key=${key}&extension=${extension}` + 
             (nextFragment ? `&start=${nextFragment[0]}&end=${nextFragment[1]}` : ``);
         
         // const controller = new AbortController();
@@ -35,6 +40,11 @@ export default ({map}) => {
         )
             .then(response => response.json())
             .then(({dataUrl, next, key}) => {
+
+                const id = `mesh-${key}-${key.split("/").pop()}`;
+
+                if (map.getLayer(id)) return;
+
                 // clearTimeout(id);
                 const nodes = new Float32Array(Uint8Array.from(
                     window.atob(dataUrl.split("base64,").pop()), c => c.charCodeAt(0)
@@ -50,9 +60,6 @@ export default ({map}) => {
                     },
                     {count: 0, features: []}
                 );
-
-                const id = `midcoast-maine-mesh-${key.split("/").pop()}`;
-                if (map.getLayer(id)) return;
                 
                 map.addLayer({
                     id,
@@ -60,14 +67,12 @@ export default ({map}) => {
                     paint: {
                         "circle-radius":  {stops: [[0, 0.1], [22, 1]]},
                         "circle-stroke-width": 1,
-                        "circle-stroke-color": "rgba(255,255,0,0.4)",
+                        "circle-stroke-color": color,
                     },
                     source: GeoJsonSource({
                         features: features.map(coordinates => Object({geometry: {type: "Point", coordinates}}))
                     })
                 });
-
-            
                 setNextFragment(next);
             });
 
