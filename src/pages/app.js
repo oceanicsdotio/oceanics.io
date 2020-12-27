@@ -191,18 +191,37 @@ export default ({
     },[mobile]);
 
 
+    const [meshNodes, setMeshNodes] = useState([]);
+    const [nextFragment, setNextFragment] = useState({
+        query: true,
+        start: null,
+        end: null
+    });
     useEffect(()=>{
-        fetch("https://www.oceanics.io/api/mesh-nodes?prefix=MidcoastMaineMesh&key=mesh_nodes")
+
+        const url = nextFragment.query ? 
+            `https://www.oceanics.io/api/mesh-nodes?prefix=MidcoastMaineMesh&key=mesh_nodes` :
+            `https://www.oceanics.io/api/mesh-nodes?prefix=MidcoastMaineMesh&key=mesh_nodes&start=${nextFragment.start}&end=${nextFragment.end}`;
+
+        fetch(url)
             .then(response => response.json())
-            .then(({dataUrl}) => {
-                const buffer = Uint8Array.from(
+            .then(({dataUrl, next, ...metadata}) => {
+               
+                const nodes = new Float32Array(Uint8Array.from(
                     window.atob(dataUrl.split("base64,").pop()), c => c.charCodeAt(0)
-                ).buffer;
-                
-                console.log("MeshQuery", {nodes: new Float32Array(buffer)});
+                ).buffer);
+
+                setNextFragment({
+                    query: next | false,
+                    start: next ? next[0] : null,
+                    end: next ? next[1] : null
+                });
+                setMeshNodes([...meshNodes, ...nodes])
+
+                console.log("MeshQuery", {metadata});
             }
         )
-    },[]);
+    },[nextFragment]);
 
     /**
      * Build a rotating menu

@@ -185,8 +185,8 @@ exports.handler = async ({
         const result = await VertexArrayBufferSlice({
             prefix,
             key,
-            start,
-            end,
+            start: parseInt(start),
+            end: parseInt(end),
             returnData: true
         });
 

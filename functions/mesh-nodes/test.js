@@ -53,7 +53,8 @@ let source = null;  // memoize the source data to speed up batches
     console.log({
         data,
         base64: base64.slice(0,32),
-        inverse: dv.getFloat32(0, true)
+        inverse: dv.getFloat32(0, true),
+        testInt: encodeInterval(MAX_SLICE_SIZE, MAX_SLICE_SIZE + MAX_SLICE_SIZE)
     });
 })();
 
