@@ -13,7 +13,7 @@ const hostname = "https://www.oceanics.io/api/mesh-nodes";
  * When the cursor no longer intersects the shapes, stop
  * highlighting the features. 
  */
-export default ({map, timeout=3000}) => {
+export default ({map}) => {
   
     const [nextFragment, setNextFragment] = useState(null);
     /**
