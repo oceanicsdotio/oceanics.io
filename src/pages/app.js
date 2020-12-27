@@ -196,25 +196,21 @@ export default ({
             .then(response => response.json())
             .then(data => {
                 
-                // const buff = Buffer.from(text, 'base64');
-               
-                const mem = data.dataUrl.split("base64,").pop().split("").map(c => c.charCodeAt(0));
-               
-                const hex = new ArrayBuffer(mem.length);
-                const buff = new DataView(hex);
+                const littleEndian = true;
+                const base64_string = data.dataUrl.split("base64,").pop();
+                const ab = new ArrayBuffer(base64_string.length);
+                const dv = new DataView(ab);
 
-                mem.forEach((val, ii) => {
-                    buff.setUint8(ii, val);
+                // set the bytes of the buffer to the correct values
+                for (let i = 0; i < base64_string.length; i++) {
+                    dv.setUint8(i, base64_string.charCodeAt(i), littleEndian);
+                }
+               
+                console.log("MeshQuery", {
+                    length: base64_string.length,
+                    base64_string, 
+                    decoded: dv.getFloat32(0, littleEndian)
                 });
-
-
-                // let data = new ArrayBuffer( hex.byteLength );
-                // let dv = new DataView( data );
-                // for( let i=0; i < hex.length; i++ ) dv.setUint8( i, hex.charCodeAt(i) );
-                
-                // const decoded = new Float32Array(data);
-               
-                console.log("MeshQuery", {hex, buff, val: buff.getFloat32(0)});
             }
         )
     },[]);

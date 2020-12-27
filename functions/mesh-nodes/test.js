@@ -16,38 +16,44 @@ let count = 0;  // counter for testing
 let MAX_FRAGMENTS = null;  // practical limitaions for testing
 let source = null;  // memoize the source data to speed up batches
 
-(async () => {
-    while (next && (!MAX_FRAGMENTS || count < MAX_FRAGMENTS)) {
-        const [start, end] = next;
-        let result = await VertexArrayBufferSlice({
-            prefix,
-            key: "midcoast_nodes",
-            extension: "csv",
-            start,
-            end,
-            source,
-            returnSource: true,
-            returnData: false
-        });
+// (async () => {
+//     while (next && (!MAX_FRAGMENTS || count < MAX_FRAGMENTS)) {
+//         const [start, end] = next;
+//         let result = await VertexArrayBufferSlice({
+//             prefix,
+//             key: "midcoast_nodes",
+//             extension: "csv",
+//             start,
+//             end,
+//             source,
+//             returnSource: true,
+//             returnData: false
+//         });
     
-        next = result.next;
-        source = result.source;
-        count += 1;
+//         next = result.next;
+//         source = result.source;
+//         count += 1;
 
-        delete result.source;
+//         delete result.source;
 
-        console.log({result});
-    } 
-})();
+//         console.log({result});
+//     } 
+// })();
 
 (async () => {
     const data = new Float32Array((await s3.getObject({
         Bucket,
         Key: `${prefix}/nodes/${encodeInterval(0, MAX_SLICE_SIZE)}`
     }).promise()).Body.buffer);
+
+
+    const base64 = Buffer.from(data.buffer).toString("base64");
+    const dv = new DataView(Buffer.from(base64, "base64").buffer);
+
     console.log({
         data,
-        base64head: Buffer.from(data.buffer).toString("base64").slice(0,32)
+        base64: base64.slice(0,32),
+        inverse: dv.getFloat32(0, true)
     });
 })();
 

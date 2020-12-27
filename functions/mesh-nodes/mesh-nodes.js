@@ -131,7 +131,7 @@ const VertexArrayBufferSlice = async ({
             data: (await s3.getObject({
                 Bucket,
                 Key: fragmentKey
-            }).promise()).Body
+            }).promise()).Body.buffer
         });
     }
     
