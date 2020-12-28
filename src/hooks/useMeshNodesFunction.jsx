@@ -41,7 +41,7 @@ export default ({
             .then(response => response.json())
             .then(({dataUrl, next, key}) => {
 
-                const id = `mesh-${key}-${key.split("/").pop()}`;
+                const id = `mesh-${key}`;
 
                 if (map.getLayer(id)) return;
 
@@ -49,28 +49,45 @@ export default ({
                 const nodes = new Float32Array(Uint8Array.from(
                     window.atob(dataUrl.split("base64,").pop()), c => c.charCodeAt(0)
                 ).buffer);
-            
-            
+           
                 const {features} = nodes.reduce(
                     (acc, cur)=>{
-                        if (!acc.count) acc.features.push([]); 
+                        if (!acc.count) acc.features.push([]);
+                       
                         acc.features[acc.features.length-1].push(cur);
                         acc.count = (acc.count + 1 ) % 3;
                         return acc;
                     },
                     {count: 0, features: []}
                 );
-                
+
+                const MAX_VALUE = 5200;
+                const logNormal = (x, m=0, s=1.0) => {
+                    return (1/s/x/Math.sqrt(2*Math.PI)*Math.exp(-1*(Math.log(x)-m)**2 / (2 * s**2)));
+                };
+            
                 map.addLayer({
                     id,
                     type: "circle",
                     paint: {
                         "circle-radius":  {stops: [[0, 0.1], [22, 1]]},
                         "circle-stroke-width": 1,
-                        "circle-stroke-color": color,
+                        "circle-stroke-color": [
+                            "rgba",
+                            ["*", 127, ["get", "q"]],
+                            ["*", 127, ["get", "ln"]],
+                            ["*", 127, ["-", 1, ["get", "q"]]],
+                            0.5
+                        ]
                     },
                     source: GeoJsonSource({
-                        features: features.map(coordinates => Object({geometry: {type: "Point", coordinates}}))
+                        features: features.map(coordinates => Object({
+                            geometry: {type: "Point", coordinates},
+                            properties: {
+                                q: (((100 + coordinates[2]) / MAX_VALUE) - 1)**2,
+                                ln: logNormal((100 + coordinates[2]) / MAX_VALUE, 0.0, 1.5)
+                            }
+                        }))
                     })
                 });
                 setNextFragment(next);
