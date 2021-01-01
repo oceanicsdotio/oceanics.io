@@ -18,6 +18,7 @@ image:
 geojson:
 
   - id: nssp-closures
+    url: https://oceanicsdotio.nyc3.digitaloceanspaces.com/bathysphere/geospatial/nssp-closures.json
     type: fill
     paint: 
       fill-antialias: false
@@ -131,6 +132,7 @@ geojson:
 # https://hifld-geoplatform.opendata.arcgis.com/datasets/ferry-routes
 
   - id: limited-purpose-licenses
+    url: https://oceanicsdotio.nyc3.digitaloceanspaces.com/bathysphere/geospatial/limited-purpose-licenses.json
     type: circle
     paint: 
       circle-radius: 
@@ -143,6 +145,7 @@ geojson:
  
   - id: suitability
     attribtion: Oceanics.io
+    url: https://oceanicsdotio.nyc3.digitaloceanspaces.com/bathysphere/geospatial/suitability.json
     type: circle
     paint: 
       circle-radius: 
@@ -154,6 +157,7 @@ geojson:
     popup: suitability
 
   - id: aquaculture-leases
+    url: https://oceanicsdotio.nyc3.digitaloceanspaces.com/bathysphere/geospatial/aquaculture-leases.json
     attribution: Maine DMR
     type: fill
     paint: 
@@ -163,6 +167,7 @@ geojson:
     popup: lease
 
   - id: maine-towns
+    url: https://oceanicsdotio.nyc3.digitaloceanspaces.com/bathysphere/geospatial/maine-towns.json
     attribution: Maine OIT
     type: line
     # maxzoom: 10

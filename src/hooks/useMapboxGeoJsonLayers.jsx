@@ -90,8 +90,8 @@ export default ({
             if (map.getLayer(id)) return;
 
             fetch(url ? url : `/${id}.json`)
-                .then(response => response.text())
-                .then(text => JSON.parse(text))
+                .then(response => response.json())
+                // .then(text => JSON.parse(text))
                 .then(({features}) => {
                     map.addLayer({
                         ...layer, 
