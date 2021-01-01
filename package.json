@@ -1,9 +1,9 @@
 {
   "name": "oceanics.io",
-  "private": true,
+  "private": false,
   "description": "Situational awareness for a changing ocean",
-  "version": "0.1.0",
-  "author": "Nicholas Keeney <nkeeney@oceanics.io>",
+  "version": "0.2.0",
+  "author": "Oceanicsdotio <business@oceanics.io>",
   "dependencies": {
     "@apidevtools/swagger-parser": "^10.0.2",
     "@babel/core": "^7.12.3",
@@ -83,7 +83,7 @@
   "main": "n/a",
   "repository": {
     "type": "git",
-    "url": "git+https://bitbucket.org/oceanicsdotio/oceanics.io.git"
+    "url": "git+https://github.com/oceanicsdotio/oceanics.io.git"
   },
   "scripts": {
     "build": "GATSBY_EXPERIMENTAL_PAGE_BUILD_ON_DATA_CHANGES=true gatsby build --log-pages",
