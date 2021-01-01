@@ -1,6 +1,7 @@
-const { VertexArrayBufferSlice, MAX_SLICE_SIZE, encodeInterval } = require("./mesh-nodes");
+const { VertexArrayBufferSlice, MAX_SLICE_SIZE } = require("./mesh-nodes");
 
 const { Endpoint, S3 } = require("aws-sdk");
+const { IndexInterval } = require("./pkg/neritics");
 const NetCDFReader = require('netcdfjs');
 const {readFileSync} = require('fs');
 
@@ -14,8 +15,7 @@ const s3 = new S3({
     secretAccessKey: process.env.SPACES_SECRET_KEY
 });
 
-
-[
+const sources = [
     {
     key: "midcoast_nodes",
     extension: "csv",
@@ -23,7 +23,10 @@ const s3 = new S3({
 {
     key: "necofs_gom3_mesh", // "midcoast_nodes",
     extension: "nc", // "csv",
-}].forEach(({key, extension}) => {
+}]
+
+
+sources.forEach(({key, extension}) => {
 
     if (extension === "nc") {
         (async () => {
@@ -73,9 +76,12 @@ const s3 = new S3({
     })();
 
     (async () => {
+
+        const interval = (new IndexInterval(0, MAX_SLICE_SIZE, 36)).interval();
+
         const data = new Float32Array((await s3.getObject({
             Bucket,
-            Key: `${prefix}/${key}/nodes/${encodeInterval(0, MAX_SLICE_SIZE)}`
+            Key: `${prefix}/${key}/nodes/${interval.hash}`
         }).promise()).Body.buffer);
     
         const base64 = Buffer.from(data.buffer).toString("base64");

@@ -43,6 +43,11 @@
   to = "/.netlify/functions/:splat"
   status = 200
 
+[[redirects]]
+  from = "/api/mesh-nodes/*"
+  to = "oceanicsdotio.cdn.nyc3.digitaloceanspaces.com"
+  status = 303
+
 
 [[plugins]]
   package = "netlify-plugin-gatsby-cache"

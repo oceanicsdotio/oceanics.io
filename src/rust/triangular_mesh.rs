@@ -3,11 +3,151 @@ pub mod triangular_mesh {
     use wasm_bindgen::prelude::*;
     use wasm_bindgen::JsValue;
     use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
+
+
     use std::collections::{HashMap,HashSet};
     use std::iter::FromIterator;
 
     use crate::cursor::cursor_system::SimpleCursor;
     use crate::vec3::vec3::Vec3;
+
+    use serde::{Serialize};  // comm with Web JS
+
+    
+
+    
+    #[wasm_bindgen]
+    #[derive(Serialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct IndexInterval {
+        interval: [u32; 2],
+        hash: String,
+        radix: u8
+    }
+
+    /**
+     * The `IndexInterval` is a way of referencing a slice of a 1-dimensional array of N-dimensional tuples. 
+     */
+    #[wasm_bindgen]
+    impl IndexInterval {
+        /**
+         * Create a new interval struct and pre-calculate the "hash" of the slice range.
+         */
+        #[wasm_bindgen(constructor)]
+        pub fn new(x: u32, y: u32, radix: u8) -> IndexInterval {
+            IndexInterval{ 
+                interval: [x, y],
+                hash: IndexInterval::encode(x, y, radix),
+                radix
+            }
+        }
+
+        /**
+        * Create an `IndexInterval` from a hash. This is meant to be called
+        * from JavaScript in the browser or a node function.
+        */
+        #[wasm_bindgen(js_name = fromHash)]
+        pub fn from_hash(hash: &JsValue, radix: u8) -> IndexInterval {
+            let hash_string = hash.as_string().unwrap();
+            IndexInterval {
+                interval: IndexInterval::decode(&hash_string, radix),
+                hash: hash_string.clone(),
+                radix
+            }
+        }
+
+        /**
+         * Convenience method for accessing from JavaScript
+         */
+        pub fn interval(&self) -> JsValue {
+            JsValue::from_serde(self).unwrap()
+        }
+
+
+        /**
+        * Reversibly combine two integers into a single integer. In this case we are segmenting
+        * the linear index of an ordered array, to break it into chunks named with the hash
+        * of their own interval. 
+        * 
+        * The interval is implicit in the hash, and can be extracted to rebuild the entire array
+        * by concatenating the chunks. 
+        * 
+        * This is intended to be used for vertex arrays, but can be applied generally to any
+        * single or multidimensional arrays. 
+        * 
+        */
+        fn encode(x: u32, y: u32, radix: u8) -> String {
+
+            let mut z = (x + y) * (x + y + 1) / 2 + y;
+            let mut hash = String::new();
+ 
+            loop {
+                hash.push(std::char::from_digit(z % radix as u32, radix as u32).unwrap());
+                z /= radix as u32;
+                if z == 0 {break};
+            }
+
+            hash.chars().rev().collect()
+        }
+
+        /**
+         * Restore the interval values from a "hashed" string. Used in building
+         * an interval `from_hash`.
+         */
+        fn decode(hash: &String, radix: u8) -> [u32; 2] {
+            let z = u32::from_str_radix(hash, radix as u32).unwrap();
+            let w = (0.5*(((8*z + 1) as f32).sqrt() - 1.0)).floor() as u32;
+            let y = z - w*(w+1) / 2;
+            [w - y, y]
+        }
+    }
+
+
+    #[wasm_bindgen]
+    #[derive(Serialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct VertexArrayBuffer {
+        prefix: String,
+        data_url: String,
+        key: String,
+        interval: IndexInterval,
+    }
+
+
+    #[wasm_bindgen]
+    impl VertexArrayBuffer {
+        #[wasm_bindgen(constructor)]
+        pub fn new(
+            prefix: String,
+            key: String,
+            start: u32,
+            end: u32,
+            radix: u8,
+        ) -> VertexArrayBuffer {
+            VertexArrayBuffer {
+                prefix,
+                key,
+                data_url: String::from(""),
+                interval: IndexInterval::new(start, end, radix)
+            }
+        }
+
+        pub fn next(&self) -> JsValue {
+            let [start, end] = &self.interval.interval;
+            IndexInterval::new(end + 1, end + end - start, self.interval.radix).interval()
+        }
+
+        pub fn fragment(&self) -> JsValue {
+            JsValue::from(format!("{}/{}/nodes/{}", self.prefix, self.key, self.interval.hash))
+        }
+
+        pub fn interval(&self) -> JsValue {
+            self.interval.interval()
+        }
+
+    }
+
+
 
     #[derive(Hash, Eq, PartialEq, Debug, Copy, Clone)]
     pub struct CellIndex {

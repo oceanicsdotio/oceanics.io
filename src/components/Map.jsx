@@ -132,12 +132,14 @@ const Map = ({
         map,
         key: "necofs_gom3_mesh", 
         extension: "nc",
+        attribution: "UMass Dartmouth"
     });
 
     useMeshNodesFunction({
         map,
         key: "midcoast_nodes", 
         extension: "csv",
+        attribution: "UMaine"
     });
 
     /**
