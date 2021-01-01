@@ -23,7 +23,6 @@ exports.handler = async ({
         Service="MidcoastMaineMesh",
         Key="midcoast_elements",
         Ext="csv",
-        Metadata="true",
     }
 }) => {
     try {    
