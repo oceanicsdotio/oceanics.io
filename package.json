@@ -93,7 +93,7 @@
     "clean": "gatsby clean",
     "cargo-doc": "cargo doc --no-deps --document-private-items --open",
     "compile": "wasm-pack build --out-dir src/wasm --dev --target bundler --no-typescript && rm src/wasm/.gitignore",
-    "compile:node": "wasm-pack build --out-dir functions/mesh-nodes/pkg --target nodejs --no-typescript && rm functions/mesh-nodes/pkg/.gitignore",
+    "compile:node": "wasm-pack build --out-dir src/wasm/node --target nodejs --no-typescript && rm src/wasm/node/.gitignore",
     "start:fcns": "netlify-lambda serve functions -c ./webpack.config.js",
     "build:fcns": "netlify-lambda build functions -c ./webpack.config.js",
     "storybook": "start-storybook -p 6006 --no-dll",
