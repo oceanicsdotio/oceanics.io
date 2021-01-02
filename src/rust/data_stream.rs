@@ -16,8 +16,7 @@ pub mod data_stream {
 
     DataStreams are made up of Observations.
     */
-        struct Observation {
-       
+    struct Observation {
         x: f64,
         y: f64
     }
@@ -100,12 +99,12 @@ pub mod data_stream {
             self.data.len()
         }
 
+
         /**
-        Add a new observation to the datastream
-        */
+         * Add a new observation to the datastream
+         */
         pub fn push(&mut self, x: f64, y: f64) {
             
-
             let size = self.data.len();
             let new_val;
             if size == 0 {
@@ -124,6 +123,106 @@ pub mod data_stream {
             self.axes[0].extent = (self.data.front().unwrap().x, self.data.back().unwrap().x);
             self.axes[1].extent = (y.min(self.axes[1].extent.0), y.max(self.axes[1].extent.1));
         }
+
+        /**
+         * Return array of logical values, with true indicating that the value or its 
+         * first derivative are outliers
+         *  Threshold 3.5
+         */
+        pub fn statistical_outliers(&self, threshold: f32) {
+
+            let size = self.data.len();
+            let mut dydt: Vec<f32> = Vec::with_capacity(size);
+            let mut dt: Vec<f32> = Vec::with_capacity(size);
+            let mut diff: Vec<f64> = Vec::with_capacity(size);
+            let mut mask: Vec<bool> = Vec::with_capacity(size);
+
+            dydt.push(0.0);
+            dt.push(0.0);
+
+            for nn in 0..size {
+                diff.push(self.data[nn].y);
+            }
+            
+            diff.sort_by(|a, b| a.partial_cmp(b).unwrap());
+            let mut median = 0.0;
+            let f_size = 0.5 * size as f64;
+          
+            if size % 2 == 0 {
+                median = 0.5*(diff[f_size.floor() as usize] + diff[f_size.ceil() as usize]);
+            } else {
+                median = diff[f_size as usize];
+            }
+
+            for nn in 0..size {
+                if nn > 0 {
+                    let delta_t = (self.data[nn].x - self.data[nn-1].x) as f32;
+                    let delta_y = (self.data[nn].y - self.data[nn-1].y) as f32;
+                    dydt.push(delta_y / delta_t);
+                    dt.push(delta_t);
+                }
+                diff[nn] = (diff[nn] - median).abs();
+            }
+
+            let mut anomaly_median = 0.0;
+            if size % 2 == 0 {
+                anomaly_median = 0.5*(diff[f_size.floor() as usize] + diff[f_size.ceil() as usize]);
+            } else {
+                anomaly_median = diff[f_size as usize];
+            }
+
+            // let mod_z = 0.6745 * diff / mad;
+            // mod_z > threshold
+        }
+
+    
+        /**
+         * 
+         */
+         pub fn resample_and_fill(&self, start: f64, end: f64, frequency: f64, back_fill: bool) -> DataStream {
+            
+            let capacity = ((end - start) / frequency).ceil() as usize;
+            let mut result = DataStream::new(capacity);  // new struct to output
+            let mut reference = 0;
+        
+            for ii in 0..capacity {
+                let time = ii * frequency + start;
+                while reference < result.data.len() - 1 && time > self.data[reference+(!back_fill as usize)].x {
+                    reference += 1;
+                }
+                result.push(time, self.data[reference].y);
+            }
+            result
+        }
+
+        pub fn resample_and_interpolate(&self, start: f64, end: f64, frequency: f64) -> DataStream {
+            
+            let capacity = ((end - start) / frequency).ceil() as usize;
+            let mut result = DataStream::new(capacity);  // new struct to output
+            let mut previous = -1;
+            let mut reference = 0;
+            let mut dtdt = 0.0;
+        
+            for ii in 0..capacity {
+                let time = ii * frequency + start;
+                while reference < result.data.len() - 1 && time > self.data[reference].x {
+                    previous += 1;
+                    reference += 1;
+                }
+
+                let mut y = 0.0;
+                if !reference || reference == result.data.len() - 1 {
+                    y = self.data[reference].y;
+                } else {
+                    let dydt = (self.data[reference].y - self.data[previous].y) / (self.data[reference].x - self.data[previous].x);
+                    y = self.data[previous].y + (time - self.data[previous].x) * dydt;
+                }
+
+                result.push(time, y);
+            }
+            result
+        }
+
 
         /**
         Transform the y-dimension to pixel dimensions
