@@ -980,6 +980,7 @@ export class InteractiveGroup {
     }
 }
 /**
+* Container for mesh that also contains cursor and rendering target infromation
 */
 export class InteractiveMesh {
 

@@ -10,6 +10,7 @@ const MAX_VALUE = 5200;
 const TARGET = "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com";
 const PREFIX = "MidcoastMaineMesh";
 
+
 /**
  * Log normal density function for color mapping
  * @param {*} x 
@@ -21,10 +22,10 @@ const logNormal = (x, m=0, s=1.0) =>
 
 
 /**
-Draw a square tessellated by triangles using the 2D context
-of an HTML canvas. This is accomplished primarily in WASM,
-called from the React Hook loop. 
-*/
+ * Draw a square tessellated by triangles using the 2D context
+ * of an HTML canvas. This is accomplished primarily in WASM,
+ * called from the React Hook loop. 
+ */
 export default ({
     map=null,
     name="",
@@ -38,30 +39,50 @@ export default ({
     labelPadding=2.0,
     tickSize=10.0
 }) => {
-    const ref = useRef(null);
-
-    const runtime = useWasmRuntime();
-
-    // S3 file system meta data
-    const fs = useObjectStorage({target: name ? `${TARGET}?prefix=${PREFIX}/${name}/nodes/` : null});
-
-    const [mesh, setMesh] = useState(null);
-    const style = [backgroundColor, meshColor, overlayColor, lineWidth, fontSize, tickSize, labelPadding];
 
     /**
-     * Create the mesh
+     * Ref is passed out to be assigned to a canvas element. This ensures that `ref`
+     * is defined.
+     */
+    const ref = useRef(null);
+
+
+    /**
+     * The Rust-WASM backend.
+     */
+    const runtime = useWasmRuntime();
+
+
+    /**
+     * Retrieve S3 file system meta data. The `null` target prevents any HTTP request
+     * from happening.
+     */ 
+    const fs = useObjectStorage({target: name ? `${TARGET}?prefix=${PREFIX}/${name}/nodes/` : null});
+
+
+    /**
+     * Create handle for the mesh structure. 
+     */
+    const [mesh, setMesh] = useState(null);
+
+
+    /**
+     * Create the mesh structure in the Rust-WASM backend. 
+     * 
+     * This implementation uses a right-angle triangulation equal to subdividing
+     * each element of a square grid in half.
      */
     useEffect(() => {
-        // Create mesh
-        if (runtime) setMesh(new runtime.InteractiveMesh(...shape)); 
+        if (runtime && !name) setMesh(new runtime.InteractiveMesh(...shape)); 
     }, [runtime]);
+
 
     /**
      * If the `ref` has been assigned to a canvas target,
      * begin the render loop using the 2D context
      */
     useEffect(() => {
-      
+
         if (!runtime || !mesh || !ref.current) return;
 
         ref.current.addEventListener('mousemove', ({clientX, clientY}) => {
@@ -78,17 +99,22 @@ export default ({
 
         (function render() {
             const time = performance.now() - start;
-            mesh.draw(ref.current, ...style, time);
+            mesh.draw(ref.current, backgroundColor, meshColor, overlayColor, lineWidth, fontSize, tickSize, labelPadding, time);
             requestId = requestAnimationFrame(render);
         })()
 
         return () => cancelAnimationFrame(requestId);
     }, [mesh]);
 
+
     /**
-     * The queue is an array of remote data assets to fetch and process.
+     * The queue is an array of remote data assets to fetch and process. 
+     * 
+     * Updating the queue triggers `useEffect` hooks depending on whether
+     * visualization elements have been passed in or assigned externally.
      */
     const [queue, setQueue] = useState([]);
+
 
     /**
      * By default set the queue to the fragments listed in the response
@@ -161,5 +187,9 @@ export default ({
             });
     },[map, queue]);
 
-    return {mesh, runtime, ref};
+    return {
+        mesh, 
+        runtime, 
+        ref
+    };
 };

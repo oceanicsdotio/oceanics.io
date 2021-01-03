@@ -18,7 +18,9 @@ export default () => {
     //     metadataFile: "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com/bathysphere/geospatial/wind.json"
     // });
 
-    const handle = useTriangularMesh({});
+    const handle = useTriangularMesh({
+        name: "necofs_gom3_mesh"
+    });
     
     return <Canvas
         id={"render-target"}
