@@ -13,43 +13,6 @@ pub mod shipyard {
 
     // MODEL IS JUST TIRAGNULAR MESH NOW
 
-
-    impl std::ops::DivAssign<usize> for Model {
-        
-        fn div_assign(&mut self, rhs: usize) {
-
-            /*
-            Divide the number of faces
-            */
-            let faces_at_start = self.face.len();
-            
-            for ii in 0..faces_at_start {
-              
-                for jj in 0..3 {
-                    let ai: usize = self.face[ii].indices[jj] as usize;
-                    let a: Vec3 = self.vert[ai].copy();
-                    let mut bi = 0;
-                    if jj < 2 {
-                        bi += jj+1;
-                    }
-                    
-                    let b = self.vert[bi].copy();
-                    let midpoint: Vec3 = (&a + &b) * 0.5;
-                    self.vert.push(&midpoint * (0.5 * (a.magnitude() + b.magnitude()) / midpoint.magnitude()));
-                    let nv = self.vert.len();
-                    if jj < 1 {
-                        self.face.push(Face::new(vec![ai as i32, nv as i32, (nv+2) as i32]));
-                    } else {
-                        self.face.push(Face::new(vec![ai as i32, nv as i32, (nv-1) as i32]));
-                    }
-                    
-                }
-                let nv = self.vert.len();
-                self.face.push(Face::new(vec![(nv-3) as i32, (nv-2) as i32, (nv-1) as i32]));
-            }
-        }
-    }
-
     
     impl Model {
        

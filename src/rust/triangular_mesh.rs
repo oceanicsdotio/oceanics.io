@@ -499,35 +499,37 @@ pub mod triangular_mesh {
             self
         }
 
-        // fn deduplicate(&mut self, threshold: f64) {
-        //     /* 
-        //     For all vertices except the last, scan the remaining vertices for duplicates. 
-        //     */
-        //     for ii in 0..(self.vertex_array.points.len()-1) as u16 { 
-        //         for jj in (ii+1) as u16..self.vertex_array.points.len() as u16 { 
-        //             let delta = self.vertex_array.points[&ii] - self.vertex_array.points[&(jj)];
-        //             if delta.magnitude() < threshold {
-        //                 self.vertex_array.points.remove(&jj);
-        //                 let cells = &mut self.topology.cells;
+        /**
+         * For all vertices except the last, scan the remaining vertices for duplicates. 
+         */
+        #[allow(dead_code)]
+        fn deduplicate(&mut self, threshold: f64) {
+           
+            for ii in 0..(self.vertex_array.points.len()-1) as u16 { 
+                for jj in (ii+1) as u16..self.vertex_array.points.len() as u16 { 
+                    let delta = self.vertex_array.points[&ii] - self.vertex_array.points[&(jj)];
+                    if delta.magnitude() < threshold {
+                        // self.vertex_array.points.remove(&jj);
+                        // let cells = &mut self.topology.cells;
 
-        //                 for index in cells {
-        //                     assert!(cells.remove(index));
-        //                     let copy = CellIndex::new(
-        //                         index.a - ((index.a == jj) as u16)*(index.a - ii) + (index.a > jj) as u16,
-        //                         index.b - ((index.b == jj) as u16)*(index.b - ii) + (index.b > jj) as u16,
-        //                         index.c - ((index.c == jj) as u16)*(index.c - ii) + (index.c > jj) as u16
-        //                     );
-        //                     if cells.contains(&copy) {
-        //                         // TODO: Might want to merge some properties?
-        //                         continue;
-        //                     } else {
-        //                         cells.insert(copy);
-        //                     }
-        //                 }
-        //             } 
-        //         }
-        //     }
-        // }
+                        // for index in cells {
+                        //     assert!(cells.remove(index));
+                        //     let copy = CellIndex::new(
+                        //         index.a - ((index.a == jj) as u16)*(index.a - ii) + (index.a > jj) as u16,
+                        //         index.b - ((index.b == jj) as u16)*(index.b - ii) + (index.b > jj) as u16,
+                        //         index.c - ((index.c == jj) as u16)*(index.c - ii) + (index.c > jj) as u16
+                        //     );
+                        //     if cells.contains(&copy) {
+                        //         // TODO: Might want to merge some properties?
+                        //         continue;
+                        //     } else {
+                        //         cells.insert(copy);
+                        //     }
+                        // }
+                    } 
+                }
+            }
+        }
 
         #[allow(dead_code)]
         fn normals (&mut self) -> (HashMap<u16,(Vec3,u8)>,HashMap<CellIndex,Vec3>) {
@@ -615,36 +617,37 @@ pub mod triangular_mesh {
             mesh
         }
 
+        /**
+         * Divide the number of faces
+         */
+        #[allow(dead_code)]
+        fn subdivide(&mut self) {
+      
+            let cells = &mut self.topology.cells;
+            for cell_index in cells.iter() {
+                // let index = [cell_index.a, cell_index.b, cell_index.c];
+                // let nv = self.vertex_array.points.len() as u16;
 
-        // fn subdivide(&mut self) {
-        //     /*
-        //     Divide the number of faces
-        //     */
-        //     let cells = &mut self.topology.cells;
-        //     for cell_index in cells.iter() {
-        //         let index = [cell_index.a, cell_index.b, cell_index.c];
-        //         let nv = self.vertex_array.points.len() as u16;
+                // for jj in 0..3 as u16 {
+                //     let ai = index[jj as usize] as u16;
+                //     let bi = (jj < 2) as u16 * (jj + 1);
 
-        //         for jj in 0..3 as u16 {
-        //             let ai = index[jj as usize] as u16;
-        //             let bi = (jj < 2) as u16 * (jj + 1);
+                //     let a: Vec3 = self.vertex_array.points[&ai].copy();
+                //     let b: Vec3 = self.vertex_array.points[&bi].copy();
+                //     let midpoint: Vec3 = (&a + &b) * 0.5;
+                //     let insert = jj + nv;
 
-        //             let a: Vec3 = self.vertex_array.points[&ai].copy();
-        //             let b: Vec3 = self.vertex_array.points[&bi].copy();
-        //             let midpoint: Vec3 = (&a + &b) * 0.5;
-        //             let insert = jj + nv;
-
-        //             self.insert_point(insert, &midpoint * (0.5 * (a.magnitude() + b.magnitude()) / midpoint.magnitude()));
+                //     self.insert_point(insert, &midpoint * (0.5 * (a.magnitude() + b.magnitude()) / midpoint.magnitude()));
                     
-        //             if jj < 1 {
-        //                 self.insert_cell([ai, insert+1, insert+3]);
-        //             } else {
-        //                 self.insert_cell([ai, insert+1, insert]);
-        //             }   
-        //         }
-        //         self.insert_cell([nv, nv+1, nv+2]);
-        //     }
-        // }
+                //     if jj < 1 {
+                //         self.insert_cell([ai, insert+1, insert+3]);
+                //     } else {
+                //         self.insert_cell([ai, insert+1, insert]);
+                //     }   
+                // }
+                // self.insert_cell([nv, nv+1, nv+2]);
+            }
+        }
     }
 
     /**
