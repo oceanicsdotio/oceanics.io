@@ -1,21 +1,24 @@
+/**
+ * The `triangular_mesh` module provides and interactive and non-interactive
+ * version of a 2D unstructured (or optionally structured) triangular mesh.
+ */
 pub mod triangular_mesh {
 
     use wasm_bindgen::prelude::*;
     use wasm_bindgen::JsValue;
     use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
 
-
     use std::collections::{HashMap,HashSet};
     use std::iter::FromIterator;
 
-    use crate::cursor::cursor_system::SimpleCursor;
-    use crate::vec3::vec3::Vec3;
-
     use serde::{Serialize};  // comm with Web JS
 
-    
+    use crate::vec3::vec3::Vec3;  // 3-D graphics primitive
+    use crate::cursor::cursor_system::SimpleCursor;  // custom cursor behavior
 
-    
+    /**
+     * The `IndexInterval` is a way of referencing a slice of a 1-dimensional array of N-dimensional tuples. 
+     */
     #[wasm_bindgen]
     #[derive(Serialize)]
     #[serde(rename_all = "camelCase")]
@@ -25,9 +28,7 @@ pub mod triangular_mesh {
         radix: u8
     }
 
-    /**
-     * The `IndexInterval` is a way of referencing a slice of a 1-dimensional array of N-dimensional tuples. 
-     */
+
     #[wasm_bindgen]
     impl IndexInterval {
         /**
@@ -43,9 +44,9 @@ pub mod triangular_mesh {
         }
 
         /**
-        * Create an `IndexInterval` from a hash. This is meant to be called
-        * from JavaScript in the browser or a node function.
-        */
+         * Create an `IndexInterval` from a hash. This is meant to be called
+         * from JavaScript in the browser or a node function.
+         */
         #[wasm_bindgen(js_name = fromHash)]
         pub fn from_hash(hash: &JsValue, radix: u8) -> IndexInterval {
             let hash_string = hash.as_string().unwrap();
@@ -65,17 +66,16 @@ pub mod triangular_mesh {
 
 
         /**
-        * Reversibly combine two integers into a single integer. In this case we are segmenting
-        * the linear index of an ordered array, to break it into chunks named with the hash
-        * of their own interval. 
-        * 
-        * The interval is implicit in the hash, and can be extracted to rebuild the entire array
-        * by concatenating the chunks. 
-        * 
-        * This is intended to be used for vertex arrays, but can be applied generally to any
-        * single or multidimensional arrays. 
-        * 
-        */
+         * Reversibly combine two integers into a single integer. In this case we are segmenting
+         * the linear index of an ordered array, to break it into chunks named with the hash
+         * of their own interval. 
+         * 
+         * The interval is implicit in the hash, and can be extracted to rebuild the entire array
+         * by concatenating the chunks. 
+         * 
+         * This is intended to be used for vertex arrays, but can be applied generally to any
+         * single or multidimensional arrays.  
+         */
         fn encode(x: u32, y: u32, radix: u8) -> String {
 
             let mut z = (x + y) * (x + y + 1) / 2 + y;
@@ -331,7 +331,9 @@ pub mod triangular_mesh {
     #[derive(Clone)]
     pub struct Topology{
         cells: HashSet<CellIndex>,
-        edges: HashSet<EdgeIndex>
+        edges: HashSet<EdgeIndex>,
+        normals: HashMap<CellIndex,Vec3>,
+        neighbors: Vec<Vec<usize>>
     }
 
     impl Topology {
@@ -339,7 +341,9 @@ pub mod triangular_mesh {
         pub fn new() -> Topology {
             Topology{
                 cells: HashSet::new(),
-                edges: HashSet::new()
+                edges: HashSet::new(),
+                normals: HashMap::new(),
+                neighbors: Vec::with_capacity(0),
             }
         }
         pub fn insert_cell(&mut self, index: [u16; 3]) {
@@ -635,9 +639,9 @@ pub mod triangular_mesh {
 
     #[wasm_bindgen]
     pub struct InteractiveMesh{
-        /*
-        Container for mesh that also contains cursor and rendering target infromation
-        */
+        /**
+         * Container for mesh that also contains cursor and rendering target infromation
+         */
         mesh: TriangularMesh,
         cursor: SimpleCursor,
         frames: usize
@@ -645,11 +649,12 @@ pub mod triangular_mesh {
 
     #[wasm_bindgen]
     impl InteractiveMesh {
+        /**
+         * By default create a simple RTIN graph and initial the cursor
+         */
         #[wasm_bindgen(constructor)]
         pub fn new(nx: usize, ny: usize) -> InteractiveMesh {
-            /*
-            By default create a simple RTIN graph and initial the cursor
-            */
+            
             InteractiveMesh {
                 mesh: TriangularMesh::from_rectilinear_shape(nx, ny),
                 cursor: SimpleCursor::new(0.0, 0.0),
@@ -657,11 +662,12 @@ pub mod triangular_mesh {
             }
         }
 
+        /**
+         * Draw filled triangles
+         */
         #[allow(dead_code)]
         fn draw_cells(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, color: &JsValue) -> u16 {
-            /*
-            Draw filled triangles
-            */
+            
             ctx.set_fill_style(&color);
 
             let mut count: u16 = 0;
@@ -710,10 +716,11 @@ pub mod triangular_mesh {
             
         } 
 
+        /**
+         * Draw an arbitrary triangulation network.
+         */
         fn draw_edges(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, color: &JsValue, size: f64) -> u16{
-            /*
-            Draw an arbitrary triangulation network.
-            */
+            
             ctx.set_stroke_style(&color);
             ctx.set_line_width(size);
         
@@ -738,11 +745,11 @@ pub mod triangular_mesh {
             count
         }
 
-
+        /**
+         * Compose a data-driven interactive canvas for the triangular network. 
+         */
         pub fn draw(&mut self, canvas: HtmlCanvasElement, background: JsValue, _color: JsValue, overlay: JsValue, line_width: f64, font_size: f64, tick_size: f64, label_padding: f64, time: f64) {
-            /*
-            Compose a data-driven interactive canvas for the triangular network. 
-            */
+            
           
             let ctx: &CanvasRenderingContext2d = &crate::context2d(&canvas);
             let w = canvas.width() as f64;
@@ -780,20 +787,21 @@ pub mod triangular_mesh {
             self.frames += 1;
         }
 
+        /**
+         * Hoisting function for cursor updates from JavaScript. 
+         * Prevents null references in some cases
+         */
         pub fn update_cursor(&mut self, x: f64, y: f64) {
-            /*
-            Hoisting function for cursor updates from JavaScript. 
-            Prevents null references in some cases
-            */
+            
             self.cursor.update(x, y);
         }
 
-
+        /**
+         * Rotate the mesh in place
+         */
         #[wasm_bindgen]
         pub fn rotate(&mut self, angle: f64, ax: f64, ay: f64, az: f64) {
-            /*
-            Rotate the mesh in place
-            */
+            
             self.mesh.rotate(&angle, &Vec3{value:[ax,ay,az]});
             
         }

@@ -11,29 +11,8 @@ pub mod shipyard {
 
     const PI_RADIANS: f64 = 180.0;
 
-    
-    #[wasm_bindgen]
-    pub struct Model {
-        mesh: TriangularMesh,
-        vert: Vec<Vec3>,
-        norf: Vec<Vec3>,
-        neighbors: Vec<Vec<usize>>
-    }
+    // MODEL IS JUST TIRAGNULAR MESH NOW
 
-    impl std::ops::Add<Model> for Model {
-        type Output = Model;
-        fn add(self, _rhs: Model) -> Model {
-            let mut working_copy = self.copy();
-            for vertex in &_rhs.vert {
-                working_copy.insert_vertex(vertex);
-            }
-            for (index, cell) in &_rhs.mesh.topology.cells {
-                // TODO: these need to be re-indexed?
-                working_copy.mesh.topology.insert_cell(index, cell);
-            }
-            working_copy
-        }
-    }
 
     impl std::ops::DivAssign<usize> for Model {
         
@@ -71,89 +50,8 @@ pub mod shipyard {
         }
     }
 
-    #[wasm_bindgen]
-    impl Model {
-        #[wasm_bindgen(constructor)]
-        pub fn new() -> Model {
-            Model {
-                vertex_array: VertexArray::new(),
-                vert: vec![],
-                norf: vec![],
-                face: vec![],
-                neighbors: vec![]
-            }
-        }
-
-        // #[wasm_bindgen]
-        // pub fn normal_form(&mut self) {
-
-        //     let mut maximum = 0.0;
-        //     for vert in &self.vert {
-        //         if vert.magnitude() > maximum {
-        //             maximum = vert.magnitude();
-        //         }
-        //     }
-        //     for vert in &mut self.vert {
-        //         vert = vert / maximum
-        //     }
-        // }
-
-        
-
-        #[wasm_bindgen]
-        pub fn draw_edges(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, color: JsValue, _time: f64, line_width: f64, point_size: f64) -> usize {
-
-            
-            ctx.set_stroke_style(&color);
-            ctx.set_fill_style(&color);
-            ctx.set_line_width(line_width);
-            let mut triangles: usize = 0;
-
-            // let rotated = self.rotate(&45.0, &Vec3{value: [1.0,1.0,1.0]});
-
-            if point_size > 0.01 {
-                for vert in &self.vert {
-                    let target = vert.normal_form();
-                    ctx.fill_rect(w*target.x()-point_size/2.0, h*target.y()-point_size/2.0, point_size, point_size);
-                }
-            }
-            
-            for face in &self.face {
-
-                let mut origin: bool = true;
-                ctx.begin_path();
-
-                for ii in face.copy().indices {
-
-                    if ii >= self.vert.len() as i32 {
-                        // break;
-                        panic!("(`draw_edges`) Index exceeds vertex array length");
-                    } else if ii < 0 {
-                        panic!("(`draw_edges`) Vertex array index is negative");
-                    }
-                    let target = self.vert[ii as usize].normal_form();
-                    if origin {
-                        ctx.move_to(w*target.x(), h*target.y());
-                        origin = !origin;
-                    } else {
-                        ctx.line_to(w*target.x(), h*target.y());
-                    }
-                }
-                
-                ctx.close_path();
-                ctx.stroke();
-
-                triangles += 1;
-            }
-
-            triangles // for metadata
-        }
-
-        
-    }
     
     impl Model {
-
        
         pub fn extrude (n_rings: &usize, radius: &Vec<f64>, offset: &Vec<f64>, p: &Primitive, close_state: &bool) -> Model {
             
