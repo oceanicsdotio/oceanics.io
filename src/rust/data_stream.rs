@@ -5,6 +5,8 @@ pub mod data_stream {
     
     use wasm_bindgen::prelude::*;
     use std::collections::VecDeque;
+    use std::collections::BinaryHeap;
+    use std::cmp::Reverse;
     use web_sys::{CanvasRenderingContext2d,HtmlCanvasElement};
     use wasm_bindgen::JsValue;
     use serde::Deserialize;
@@ -64,11 +66,10 @@ pub mod data_stream {
     }
 
     /**
-    Datastreams are containers of observations. They keep track of data, metadata, and
-    summary statistics about their child Observations.
-    */
+     * Datastreams are containers of observations. They keep track of data, metadata, and
+     * summary statistics about their child Observations.
+     */
     pub struct DataStream {
-        
         capacity: usize,
         data: VecDeque<Observation>,
         mean: VecDeque<f64>,
@@ -76,8 +77,8 @@ pub mod data_stream {
     }
 
     /**
-    Implementation of DataStream.
-    */
+     * Implementation of DataStream.
+     */
     impl DataStream {
         /**
         Constructor for datastreams
@@ -101,23 +102,31 @@ pub mod data_stream {
 
 
         /**
-         * Add a new observation to the datastream
+         * Add a new observation to the datastream.
+         * 
+         * The current length and mean are used to update the instaneous
+         * expected value.
+         * 
+         * If the the buffer has reached it's maximum length, an 
+         * observation is evicted from the front.
          */
         pub fn push(&mut self, x: f64, y: f64) {
             
-            let size = self.data.len();
-            let new_val;
+            let size = self.size();
+
+            let new_mean;
+
             if size == 0 {
-                new_val = y;
+                new_mean = y;
             } else if (0 < size) && (size < self.capacity) {
-                new_val = (self.mean.back().unwrap()*(size as f64) + y) / (size + 1) as f64;
+                new_mean = (self.mean.back().unwrap()*(size as f64) + y) / (size + 1) as f64;
             } else {
                 let evicted = self.data.pop_front().unwrap().y;
                 let _ = self.mean.pop_front().unwrap();
-                new_val = (self.mean.back().unwrap()*(size as f64) + y - evicted) / (size as f64);
+                new_mean = (self.mean.back().unwrap()*(size as f64) + y - evicted) / (size as f64);
             }
 
-            self.mean.push_back(new_val);
+            self.mean.push_back(new_mean);
             self.data.push_back(Observation{x, y});
 
             self.axes[0].extent = (self.data.front().unwrap().x, self.data.back().unwrap().x);
@@ -186,7 +195,7 @@ pub mod data_stream {
             let mut reference = 0;
         
             for ii in 0..capacity {
-                let time = ii * frequency + start;
+                let time = (ii as f64) * frequency + start;
                 while reference < result.data.len() - 1 && time > self.data[reference+(!back_fill as usize)].x {
                     reference += 1;
                 }
@@ -199,19 +208,18 @@ pub mod data_stream {
             
             let capacity = ((end - start) / frequency).ceil() as usize;
             let mut result = DataStream::new(capacity);  // new struct to output
-            let mut previous = -1;
+            let mut previous = 0;
             let mut reference = 0;
-            let mut dtdt = 0.0;
         
             for ii in 0..capacity {
-                let time = ii * frequency + start;
+                let time = (ii as f64) * frequency + start;
                 while reference < result.data.len() - 1 && time > self.data[reference].x {
-                    previous += 1;
+                    previous += (reference > 0) as usize;
                     reference += 1;
                 }
 
-                let mut y = 0.0;
-                if !reference || reference == result.data.len() - 1 {
+                let y: f64;
+                if reference == 0 || reference == result.data.len() - 1 {
                     y = self.data[reference].y;
                 } else {
                     let dydt = (self.data[reference].y - self.data[previous].y) / (self.data[reference].x - self.data[previous].x);
