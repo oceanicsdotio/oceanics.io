@@ -148,29 +148,30 @@ pub mod triangular_mesh {
     }
 
 
-
+    /**
+     * A hashable cell index is necessary because a HashSet cannot
+     * be used as the key to a HashMap.
+     * 
+     * The following rules and properties apply:
+     * - first index is always the lowest
+     * - triangle is assumed to be wound counter-clockwise
+     * - flipping inverts winding
+     * - triangles with same indices but different windings are not identical (two-sided)
+     */
     #[derive(Hash, Eq, PartialEq, Debug, Copy, Clone)]
     pub struct CellIndex {
-        /*
-        A hashable cell index is necessary because a HashSet cannot
-        be used as the key to a HashMap.
-
-        The following rules and properties apply:
-        - first index is always the lowest
-        - triangle is assumed to be wound counter-clockwise
-        - flipping inverts winding
-        - triangles with same indices but different windings are not identical (two-sided)
-
-        */
+       
         indices: [u16; 3],
     }
 
    
     impl CellIndex {
+
+        /**
+         * Sort the indices and create a CellIndex.
+         */
         pub fn new(a: u16, b: u16, c: u16) -> CellIndex {
-            /*
-            Sort the indices and create a CellIndex.
-            */
+           
             if a == b || b == c || c == a {
                 panic!(format!("Degenerate CellIndex ({},{},{})", a, b, c));
             }
@@ -180,41 +181,45 @@ pub mod triangular_mesh {
             index
         }
 
+        /**
+         * Wrapping getter
+         */
         fn get(&self, position: usize) -> u16 {
-            /*
-            Wrapping getter
-            */
+            
             self.indices[position % 3]
         }
 
+        /**
+         * Swap any two indices
+         */
         fn swap(&mut self, a: usize, b: usize) {
-            /*
-            Swap any two indices
-            */
+            
             let temp = self.indices[a];
             self.indices[a] = self.indices[b];
             self.indices[b] = temp;
         }
 
+        /**
+         * Invert the winding of the triangle while
+         * keeping the first vertex the same
+         */
         fn flip(&mut self) {
-            /*
-            Invert the winding of the triangle while
-            keeping the first vertex the same
-            */
+          
             self.swap(1, 2);
         }
 
+        /*
+         * Sorting should put lowest index first, but preserve the
+         * winding of the triangle by shifting instead of reordering.
+         * 
+         * If the third is smallest, shift shift left 2
+         * If the second is smallest, shift left 1
+         * Else, do nothing
+         * 
+         * Shifting left is accomplished with 2 swaps.
+         */
         fn sort(&mut self) {
-            /*
-            Sorting should put lowest index first, but preserve the
-            winding of the triangle by shifting instead of reordering.
-
-            If the third is smallest, shift shift left 2
-            If the second is smallest, shift left 1
-            Else, do nothing
-
-            Shifting left is accomplished with 2 swaps.
-            */
+           
             while self.indices[0] > self.indices[1] || self.indices[0] > self.indices[2] {
                 self.swap(0, 1);
                 self.swap(1, 2)
@@ -230,12 +235,12 @@ pub mod triangular_mesh {
 
 
     impl EdgeIndex {
+        /**
+         * Sort the indices and create a EdgeIndex.
+         * TODO: ensure uniqueness to avoid degenerate scenarios
+         */
         pub fn new(a: u16, b: u16) -> EdgeIndex {
-            /*
-            Sort the indices and create a EdgeIndex.
-
-            TODO: ensure uniqueness to avoid degenerate scenarios
-            */
+            
             let mut v = [a, b];
             v.sort();
             EdgeIndex { indices: v }
@@ -253,19 +258,19 @@ pub mod triangular_mesh {
     }
 
     impl VertexArray{
-
+        /**
+         * Hoist the method for inserting points. Don't have to make points public.
+         */
         pub fn insert_point(&mut self, index: u16, coordinates: Vec3) {
-            /*
-            Hoist the method for inserting points. Don't have to make points public.
-            */
             self.points.insert(index, coordinates);
         }
 
+        /**
+         * Initial the Vec3 maps. Normals are not usually used, 
+         * so we don't allocate by default
+         */
         pub fn new() -> VertexArray {
-            /*
-            Initial the Vec3 maps. Normals are not usually used, so
-            we don't allocate by default
-            */
+          
             VertexArray{
                 points: HashMap::new(),
                 normals: HashMap::with_capacity(0)
@@ -284,13 +289,13 @@ pub mod triangular_mesh {
             self.points.get_mut(index)
         }
 
+        /**
+         * For cases where we can know in advance the size.
+         * 
+         *  We do allocate normals in this case.
+         */
         #[allow(dead_code)]
         pub fn with_capacity(capacity: usize) -> VertexArray {
-            /*
-            For cases where we can know in advance the size.
-
-            We do allocate normals in this case.
-            */
             VertexArray {
                 points: HashMap::with_capacity(capacity),
                 normals: HashMap::with_capacity(0)
@@ -346,10 +351,12 @@ pub mod triangular_mesh {
                 neighbors: Vec::with_capacity(0),
             }
         }
+
+        /**
+         * Take an unordered array of point indices, and 
+         */
         pub fn insert_cell(&mut self, index: [u16; 3]) {
-            /*
-            Take an unordered array of point indices, and 
-            */
+           
             let [a, b, c] = index;
             self.cells.insert(CellIndex::new(a, b, c));
             self.edges.insert(EdgeIndex::new(a, b));
@@ -359,17 +366,16 @@ pub mod triangular_mesh {
     }
 
 
+    /**
+     * Unstructured triangular mesh, commonly used in finite element simulations
+     * and visualizing three dimension objects.
+     * 
+     * - points: vertices
+     * - cells: topology
+     * - edges: memoized edges from cell insertions
+     */
     #[derive(Clone)]
     struct TriangularMesh {
-        /*
-        Unstructured triangular mesh, commonly used in finite element simulations
-        and visualizing three dimension objects.
-
-        - points: vertices
-        - cells: topology
-        - edges: memoized edges from cell insertions
-
-        */
         vertex_array: VertexArray,
         topology: Topology
     }
@@ -377,10 +383,11 @@ pub mod triangular_mesh {
 
     impl TriangularMesh {
 
+        /**
+         * Hoist the insert function
+         */
         pub fn insert_cell(&mut self, index: [u16; 3]) {
-            /*
-            Hoist the insert function
-            */
+            
             self.topology.insert_cell(index);
         }
 
@@ -396,15 +403,16 @@ pub mod triangular_mesh {
             }
         }
 
+        /**
+         * Because we memoize the edges as triangles are inserted, we can cheat and reconstruct
+         * the neighbors from the pairs.
+         * 
+         * This increases the cost of the program. 
+         */
         #[allow(dead_code)]
         pub fn neighbors(&self) -> HashMap<u16,HashSet<u16>> {
 
-            /*
-            Because we memoize the edges as triangles are inserted, we can cheat and reconstruct
-            the neighbors from the pairs.
-
-            This increases the cost of the program. 
-            */
+            
 
             let count = self.vertex_array.points.len();
             let mut lookup: HashMap<u16,HashSet<u16>> = HashMap::with_capacity(count);
@@ -426,13 +434,13 @@ pub mod triangular_mesh {
             lookup
         }
 
+        /**
+         * Reflect across a single axis and return the reference
+         * to self to enable chaining, because that tends to be
+         * how the reflect command is used.
+         */
         #[allow(dead_code)]
         pub fn reflect(&mut self, dim: usize) -> &mut Self {
-            /*
-            Reflect across a single axis and return the reference
-            to self to enable chaining, because that tends to be
-            how the reflect command is used.
-            */
             
             for vert in self.vertex_array.points.values_mut() {
                 vert.value[dim] *= -1.0;
@@ -449,16 +457,17 @@ pub mod triangular_mesh {
             self
         }
 
+        /**
+         * Insert the children of another mesh instance into the
+         * current one.
+         * 
+         * All added vertex references are offset by the length of
+         * the current vertex_array, which currently does NOT
+         * guarentee that no collisons happen.
+         */
         #[allow(dead_code)]
         fn append(&mut self, mesh: &TriangularMesh) {
-            /*
-            Insert the children of another mesh instance into the
-            current one.
-
-            All added vertex references are offset by the length of
-            the current vertex_array, which currently does NOT
-            guarentee that no collisons happen.
-            */
+           
            
             let offset = self.vertex_array.points.len() as u16;
             for (index, vert) in mesh.vertex_array.points.iter() {
@@ -480,10 +489,10 @@ pub mod triangular_mesh {
             }
         }
     
+        /**
+         * Rotate the vertices in place around an arbitrary axis.
+         */
         pub fn rotate(&mut self, angle: &f64, axis: &Vec3) -> &Self {
-            /*
-            Rotate the vertices in place around an arbitrary axis.
-            */
             for coordinates in self.vertex_array.points.values_mut() {
                 coordinates.value = coordinates.rotate(angle, axis).value;
             }
@@ -554,11 +563,11 @@ pub mod triangular_mesh {
             (normals, norf)
         }
 
-        
+        /**
+         * Create a simple RTIN type mesh
+         */
         fn from_rectilinear_shape(nx: usize, ny: usize) -> TriangularMesh {
-            /*
-            Create a simple RTIN type mesh
-            */
+           
             let dx = 1.0 / (nx as f64);
             let dy = 1.0 / (ny as f64);
 
@@ -572,7 +581,9 @@ pub mod triangular_mesh {
                 },
                 topology: Topology{
                     cells: HashSet::with_capacity(nx*ny*2),
-                    edges: HashSet::with_capacity(nx*ny*2*3)
+                    edges: HashSet::with_capacity(nx*ny*2*3),
+                    neighbors: Vec::with_capacity(0),
+                    normals: HashMap::with_capacity(0)
                 }
             };
 
@@ -636,12 +647,12 @@ pub mod triangular_mesh {
         // }
     }
 
-
+    /**
+     * Container for mesh that also contains cursor and rendering target infromation
+     */
     #[wasm_bindgen]
     pub struct InteractiveMesh{
-        /**
-         * Container for mesh that also contains cursor and rendering target infromation
-         */
+        
         mesh: TriangularMesh,
         cursor: SimpleCursor,
         frames: usize

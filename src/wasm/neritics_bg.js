@@ -734,6 +734,7 @@ export class HexagonalGrid {
     }
 }
 /**
+* The `IndexInterval` is a way of referencing a slice of a 1-dimensional array of N-dimensional tuples.
 */
 export class IndexInterval {
 
@@ -996,6 +997,7 @@ export class InteractiveMesh {
         wasm.__wbg_interactivemesh_free(ptr);
     }
     /**
+    * By default create a simple RTIN graph and initial the cursor
     * @param {number} nx
     * @param {number} ny
     */
@@ -1006,6 +1008,7 @@ export class InteractiveMesh {
         return InteractiveMesh.__wrap(ret);
     }
     /**
+    * Compose a data-driven interactive canvas for the triangular network.
     * @param {HTMLCanvasElement} canvas
     * @param {any} background
     * @param {any} _color
@@ -1022,6 +1025,8 @@ export class InteractiveMesh {
         wasm.interactivemesh_draw(this.ptr, addHeapObject(canvas), addHeapObject(background), addHeapObject(_color), addHeapObject(overlay), line_width, font_size, tick_size, label_padding, time);
     }
     /**
+    * Hoisting function for cursor updates from JavaScript.
+    * Prevents null references in some cases
     * @param {number} x
     * @param {number} y
     */
@@ -1031,6 +1036,7 @@ export class InteractiveMesh {
         wasm.interactivemesh_update_cursor(this.ptr, x, y);
     }
     /**
+    * Rotate the mesh in place
     * @param {number} angle
     * @param {number} ax
     * @param {number} ay
@@ -2086,7 +2092,7 @@ export const __wbindgen_memory = function() {
     return addHeapObject(ret);
 };
 
-export const __wbindgen_closure_wrapper3427 = logError(function(arg0, arg1, arg2) {
+export const __wbindgen_closure_wrapper3512 = logError(function(arg0, arg1, arg2) {
     var ret = makeMutClosure(arg0, arg1, 74, __wbg_adapter_26);
     return addHeapObject(ret);
 });

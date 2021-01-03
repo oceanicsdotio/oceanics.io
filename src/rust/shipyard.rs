@@ -227,14 +227,7 @@ pub mod shipyard {
             }
         }
 
-        pub fn draw(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, time: f64, line_width: f64, point_size: f64) -> usize {
-            /*
-            Draw the component's model using the stored color to identify it 
-            as a distinct sub-graph.
-            */
-            self.model.draw_edges(ctx, w, h, JsValue::from(&self.color), time, line_width, point_size)
-        }
-
+       
         pub fn thruster(color: &String) -> Component {
             
             let mut model = Model::new();
@@ -436,14 +429,7 @@ pub mod shipyard {
             }
         }
 
-        #[wasm_bindgen]
-        pub fn draw(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, time: f64, line_width: f64, point_size: f64) -> usize {
-            let mut triangles: usize = 0;
-            for component in &self.components {
-                triangles += component.draw(ctx, w, h, time, line_width, point_size);
-            }
-            triangles
-        }
+       
     
 
         #[wasm_bindgen]
@@ -754,10 +740,6 @@ pub mod shipyard {
         }
 
         
-
-        
-
-
         
         pub fn build_tube (res: usize, s: f64, a: f64, b: f64, c: f64) -> Model {
 
