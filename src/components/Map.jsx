@@ -8,7 +8,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import useMapBox from "../hooks/useMapBox";
 import useMapboxHighlightEvent from "../hooks/useMapBoxHighlightEvent";
 import useMapboxGeoJsonLayers from "../hooks/useMapboxGeoJsonLayers";
-import useMeshNodesFunction from "../hooks/useMeshNodesFunction";
+import useTriangularMesh from "../hooks/useTriangularMesh";
 
 
 
@@ -128,16 +128,16 @@ const Map = ({
         layers: geoJsonLayers
     });
 
-    useMeshNodesFunction({
+    useTriangularMesh({
         map,
-        key: "necofs_gom3_mesh", 
+        name: "necofs_gom3_mesh", 
         extension: "nc",
         attribution: "UMass Dartmouth"
     });
 
-    useMeshNodesFunction({
+    useTriangularMesh({
         map,
-        key: "midcoast_nodes", 
+        name: "midcoast_nodes", 
         extension: "csv",
         attribution: "UMaine"
     });

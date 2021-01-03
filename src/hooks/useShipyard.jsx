@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { targetHtmlCanvas, addMouseEvents } from "../bathysphere";
 import useWasmRuntime from "./useWasmRuntime";
 
@@ -15,6 +15,7 @@ export default ({
     /*
     Triangles
     */
+    const ref = useRef(null);
     const runtime = useWasmRuntime(null);
     const [mesh, setMesh] = useState(null);
     const [cursor, setCursor] = useState(null);

@@ -4,7 +4,7 @@ import {
     useGlslShaders,
     createTexture, 
     ArrayBuffer 
-} from "../hooks/useGlslShaders";
+} from "./useGlslShaders";
 import useWasmRuntime from "./useWasmRuntime";
 import useCanvasColorRamp from "./useCanvasColorRamp";
 
@@ -185,6 +185,7 @@ export default ({
             capture: true,
             once: true,
         });
+        img.crossOrigin = source.includes(".") ? "" : undefined;
         img.src = source;
 
     }, [ref, particles, metadata, colorMap]);

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import useWasmRuntime from "../hooks/useWasmRuntime";
+import useWasmRuntime from "./useWasmRuntime";
 
 
 /**
@@ -27,8 +27,21 @@ export default ({
     labelPadding=2.0,
 }) => {
     
+    /**
+     * Reference for canvas, passed back from the Hook to allow
+     * drawing to arbitrary render targets while guarenteeing
+     * that `ref` is defined.
+     */
     const ref = useRef(null);
+
+    /**
+     * Handle for using the grid data structure created in Web Assembly.
+     */
     const [grid, setGrid] = useState(null);
+
+    /**
+     * Rust/Wasm Backend
+     */
     const runtime = useWasmRuntime();
 
     /**

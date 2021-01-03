@@ -8,6 +8,8 @@ export default ({
     
     useEffect(() => {
 
+        if (!target) return;
+
         fetch(target, {
             method: 'GET',
             mode: 'cors',

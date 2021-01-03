@@ -91,17 +91,15 @@ export const createTexture = ({
 }) => {
 
     let texture = ctx.createTexture();
-
-    const textureType = ctx.TEXTURE_2D;
     const args = data instanceof Uint8Array ? [...shape, 0] : [];
 
-    ctx.bindTexture(textureType, texture);
-    const textureArgs = [textureType, 0, ctx.RGBA, ...args, ctx.RGBA, ctx.UNSIGNED_BYTE, data];
+    ctx.bindTexture(ctx.TEXTURE_2D, texture);
+    const textureArgs = [ctx.TEXTURE_2D, 0, ctx.RGBA, ...args, ctx.RGBA, ctx.UNSIGNED_BYTE, data];
 
     try {
         ctx.texImage2D(...textureArgs);
     } catch (err) {
-        throw TypeError;
+        throw err;
     }
 
     [
@@ -110,9 +108,9 @@ export const createTexture = ({
         [ctx.TEXTURE_MIN_FILTER, ctx[filter]],
         [ctx.TEXTURE_MAG_FILTER, ctx[filter]]
     ].forEach(
-        ([a, b]) => { ctx.texParameteri(textureType, a, b) }
+        ([a, b]) => { ctx.texParameteri(ctx.TEXTURE_2D, a, b) }
     );
-    ctx.bindTexture(textureType, null);  // prevent accidental use
+    ctx.bindTexture(ctx.TEXTURE_2D, null);  // prevent accidental use
 
     return texture
 };

@@ -43,21 +43,25 @@ export default ({
     const runtime = useWasmRuntime();
 
     // S3 file system meta data
-    const fs = useObjectStorage({target: `${TARGET}?prefix=${PREFIX}/${key}/nodes/`});
+    const fs = useObjectStorage({target: name ? `${TARGET}?prefix=${PREFIX}/${name}/nodes/` : null});
 
     const [mesh, setMesh] = useState(null);
     const style = [backgroundColor, meshColor, overlayColor, lineWidth, fontSize, tickSize, labelPadding];
 
-
+    /**
+     * Create the mesh
+     */
     useEffect(() => {
         // Create mesh
         if (runtime) setMesh(new runtime.InteractiveMesh(...shape)); 
     }, [runtime]);
 
+    /**
+     * If the `ref` has been assigned to a canvas target,
+     * begin the render loop using the 2D context
+     */
     useEffect(() => {
-        /*
-        Draw the mesh
-        */
+      
         if (!runtime || !mesh || !ref.current) return;
 
         ref.current.addEventListener('mousemove', ({clientX, clientY}) => {
@@ -81,9 +85,15 @@ export default ({
         return () => cancelAnimationFrame(requestId);
     }, [mesh]);
 
-
+    /**
+     * The queue is an array of remote data assets to fetch and process.
+     */
     const [queue, setQueue] = useState([]);
 
+    /**
+     * By default set the queue to the fragments listed in the response
+     * from S3 object storage queries.
+     */
     useEffect(()=>{
         if (!fs) return;
         setQueue(fs.objects.filter(x => !x.key.includes("undefined")));

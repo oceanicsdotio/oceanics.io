@@ -1,23 +1,28 @@
 
 import React from "react";
+import styled from "styled-components";
+
 import useRectilinearGrid from "../hooks/useRectilinearGrid";
 import useTriangularMesh from "../hooks/useTriangularMesh";
+import useLagrangian from "../hooks/useLagrangian";
+import useShipyard from "../hooks/useShipyard";
+
+const Canvas = styled.canvas`
+    width: 100%;
+    height: 100%;
+`;
 
 export default () => {
 
-    const grid = useRectilinearGrid({
-        lineWidth: 1.0,
-        boundingBox: [
-            [-70.1, 44.0],
-            [-69.7, 44.0],
-            [-69.7, 43.6],
-            [-70.1, 43.6]
-        ]
-    });
+    // const handle = useLagrangian({
+    //     source: "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com/bathysphere/geospatial/wind.png",
+    //     metadataFile: "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com/bathysphere/geospatial/wind.json"
+    // });
 
-
-    return <canvas
+    const handle = useShipyard({});
+    
+    return <Canvas
         id={"render-target"}
-        ref={grid.ref}
+        ref={handle.ref}
     />             
 };
