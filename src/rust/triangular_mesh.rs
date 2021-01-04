@@ -1,6 +1,16 @@
 /**
  * The `triangular_mesh` module provides and interactive and non-interactive
  * version of a 2D unstructured (or optionally structured) triangular mesh.
+ * 
+ * Contains the data structures:
+ * - `CellIndex`
+ * - `EdgeIndex`
+ * - `IndexInterval`
+ * - `Topology`
+ * - `TriangularMesh`
+ * - `VertexArray`
+ * - `VertexArrayBuffer`
+ * - 
  */
 pub mod triangular_mesh {
 
@@ -16,8 +26,15 @@ pub mod triangular_mesh {
     use crate::vec3::vec3::Vec3;  // 3-D graphics primitive
     use crate::cursor::cursor_system::SimpleCursor;  // custom cursor behavior
 
+
     /**
      * The `IndexInterval` is a way of referencing a slice of a 1-dimensional array of N-dimensional tuples. 
+     * 
+     * The main use is to chunk vertex arrays and assign them a unique key that can be decoded
+     * into the index range.
+     * 
+     * The limitation is that each chunk must contain contiguously indexed points. Re-indexing might be required
+     * if the points are not ordered in the desired manner.
      */
     #[wasm_bindgen]
     #[derive(Serialize)]
@@ -29,6 +46,9 @@ pub mod triangular_mesh {
     }
 
 
+    /**
+     * JavaScript bindings `impl`
+     */
     #[wasm_bindgen]
     impl IndexInterval {
         /**
@@ -58,12 +78,12 @@ pub mod triangular_mesh {
         }
 
         /**
-         * Convenience method for accessing from JavaScript
+         * Convenience method for accessing the value from JavaScript in
+         * JSON notation
          */
         pub fn interval(&self) -> JsValue {
             JsValue::from_serde(self).unwrap()
         }
-
 
         /**
          * Reversibly combine two integers into a single integer. In this case we are segmenting
@@ -333,6 +353,10 @@ pub mod triangular_mesh {
         }
     }
 
+
+    /**
+     * Topology is the structure underlying the TriangularMesh
+     */
     #[derive(Clone)]
     pub struct Topology{
         cells: HashSet<CellIndex>,
@@ -341,8 +365,14 @@ pub mod triangular_mesh {
         neighbors: Vec<Vec<usize>>
     }
 
-    impl Topology {
 
+    /**
+     * Internal `impl`
+     */
+    impl Topology {
+        /**
+         * Create an empty topology structure.
+         */
         pub fn new() -> Topology {
             Topology{
                 cells: HashSet::new(),
@@ -380,21 +410,28 @@ pub mod triangular_mesh {
         topology: Topology
     }
 
-
+    /**
+     * Internal `impl` for the TriangularMesh data structure.
+     */
     impl TriangularMesh {
-
         /**
-         * Hoist the insert function
+         * Hoist the `insert_cell` function from child `vertex_array`.
          */
         pub fn insert_cell(&mut self, index: [u16; 3]) {
             
             self.topology.insert_cell(index);
         }
 
+        /**
+         * Hoist the `insert_point` function from child `vertex_array`. 
+         */
         pub fn insert_point(&mut self, index: u16, coordinates: Vec3) {
             self.vertex_array.insert_point(index, coordinates);
         }
 
+        /**
+         * Create a new instance
+         */
         #[allow(dead_code)]
         pub fn new() -> TriangularMesh{
             TriangularMesh{
@@ -411,8 +448,6 @@ pub mod triangular_mesh {
          */
         #[allow(dead_code)]
         pub fn neighbors(&self) -> HashMap<u16,HashSet<u16>> {
-
-            
 
             let count = self.vertex_array.points.len();
             let mut lookup: HashMap<u16,HashSet<u16>> = HashMap::with_capacity(count);
@@ -531,8 +566,11 @@ pub mod triangular_mesh {
             }
         }
 
+        /**
+         * Calculate the normals of each face
+         */
         #[allow(dead_code)]
-        fn normals (&mut self) -> (HashMap<u16,(Vec3,u8)>,HashMap<CellIndex,Vec3>) {
+        fn normals (&mut self) -> (HashMap<u16,(Vec3,u8)>, HashMap<CellIndex,Vec3>) {
 
             let capacity = self.vertex_array.points.len();
             let mut normals: HashMap<u16,(Vec3,u8)> = HashMap::with_capacity(capacity);
@@ -711,11 +749,15 @@ pub mod triangular_mesh {
             count
         }
 
+        /**
+         * Draw small squares at all vertices. 
+         */
         #[allow(dead_code)]
         fn draw_points(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, color: &JsValue, size: f64) -> u16 {
 
-            ctx.set_fill_style(&color);
             let mut count: u16 = 0;
+            
+            ctx.set_fill_style(&color);
             for vert in self.mesh.vertex_array.points.values() {
                 let target = vert.normal_form();
                 ctx.fill_rect(
@@ -727,11 +769,10 @@ pub mod triangular_mesh {
                 count += 1;
             }
             count
-            
         } 
 
         /**
-         * Draw an arbitrary triangulation network.
+         * Draw the edges of an arbitrary triangulation network.
          */
         fn draw_edges(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, color: &JsValue, size: f64) -> u16{
             
