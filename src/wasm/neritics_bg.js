@@ -735,6 +735,12 @@ export class HexagonalGrid {
 }
 /**
 * The `IndexInterval` is a way of referencing a slice of a 1-dimensional array of N-dimensional tuples.
+*
+* The main use is to chunk vertex arrays and assign them a unique key that can be decoded
+* into the index range.
+*
+* The limitation is that each chunk must contain contiguously indexed points. Re-indexing might be required
+* if the points are not ordered in the desired manner.
 */
 export class IndexInterval {
 
@@ -781,7 +787,8 @@ export class IndexInterval {
         }
     }
     /**
-    * Convenience method for accessing from JavaScript
+    * Convenience method for accessing the value from JavaScript in
+    * JSON notation
     * @returns {any}
     */
     interval() {

@@ -7,6 +7,8 @@ pub mod vec3 {
     
     use std::ops::{Add, AddAssign, Sub, Mul, MulAssign, Div};
 
+    use serde::{Serialize};  // comm with Web JS
+
     fn quaternion(U: [f64;4], V: [f64;4]) -> [f64;4] {
             
         //Quaternion Multiplication
@@ -21,7 +23,7 @@ pub mod vec3 {
        R
    }
 
-   #[derive(Copy, Clone)]
+   #[derive(Copy, Clone, Serialize)]
     pub struct Vec3 {
         pub value: [f64; 3]
     }

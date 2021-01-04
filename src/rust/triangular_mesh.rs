@@ -3,12 +3,12 @@
  * version of a 2D unstructured (or optionally structured) triangular mesh.
  * 
  * Contains the data structures:
- * - `CellIndex`: 3-integer 
- * - `EdgeIndex`
- * - `IndexInterval`
- * - `Topology`
- * - `TriangularMesh`
- * - `VertexArray`
+ * - `CellIndex`: 3-integer index to HashMap
+ * - `EdgeIndex`: 2-integer index to HashMap
+ * - `IndexInterval`: Hashing struct for 
+ * - `Topology`: Topological data structs
+ * - `TriangularMesh`: VertexArray + Topology
+ * - `VertexArray`: Points, spatial component of mesh
  * - `VertexArrayBuffer`
  * - 
  */
@@ -37,7 +37,7 @@ pub mod triangular_mesh {
      * if the points are not ordered in the desired manner.
      */
     #[wasm_bindgen]
-    #[derive(Serialize)]
+    #[derive(Serialize,Clone)]
     #[serde(rename_all = "camelCase")]
     pub struct IndexInterval {
         interval: [u32; 2],
@@ -123,49 +123,6 @@ pub mod triangular_mesh {
     }
 
 
-    #[wasm_bindgen]
-    #[derive(Serialize)]
-    #[serde(rename_all = "camelCase")]
-    pub struct VertexArrayBuffer {
-        prefix: String,
-        data_url: String,
-        key: String,
-        interval: IndexInterval,
-    }
-
-
-    #[wasm_bindgen]
-    impl VertexArrayBuffer {
-        #[wasm_bindgen(constructor)]
-        pub fn new(
-            prefix: String,
-            key: String,
-            start: u32,
-            end: u32,
-            radix: u8,
-        ) -> VertexArrayBuffer {
-            VertexArrayBuffer {
-                prefix,
-                key,
-                data_url: String::from(""),
-                interval: IndexInterval::new(start, end, radix)
-            }
-        }
-
-        pub fn next(&self) -> JsValue {
-            let [start, end] = &self.interval.interval;
-            IndexInterval::new(end + 1, end + end - start, self.interval.radix).interval()
-        }
-
-        pub fn fragment(&self) -> JsValue {
-            JsValue::from(format!("{}/{}/nodes/{}", self.prefix, self.key, self.interval.hash))
-        }
-
-        pub fn interval(&self) -> JsValue {
-            self.interval.interval()
-        }
-
-    }
 
 
     /**
@@ -274,8 +231,11 @@ pub mod triangular_mesh {
      * The vertex array contains the points that make up the spatial component of
      * a triangulation network. 
      */
-    #[derive(Clone)]
+
+    #[derive(Clone,Serialize)]
     pub struct VertexArray{
+        prefix: String,
+        interval: IndexInterval,
         points: HashMap<u16,Vec3>,
         normals: HashMap<u16,(Vec3, u16)>
     }
@@ -292,13 +252,42 @@ pub mod triangular_mesh {
          * Initial the Vec3 maps. Normals are not usually used, 
          * so we don't allocate by default
          */
-        pub fn new() -> VertexArray {
-          
+        pub fn new(
+            prefix: String,
+            start: u32,
+            end: u32,
+            radix: u8,
+        ) -> VertexArray {
             VertexArray{
-                points: HashMap::new(),
-                normals: HashMap::with_capacity(0)
+                prefix,
+                points: HashMap::with_capacity((end-start) as usize),
+                normals: HashMap::with_capacity(0),
+                interval: IndexInterval::new(start, end, radix)
             }
         }
+
+        /**
+         * Next interval, for DAGs
+         */
+        pub fn next(&self) -> JsValue {
+            let [start, end] = &self.interval.interval;
+            IndexInterval::new(end + 1, end + end - start, self.interval.radix).interval()
+        }
+
+        /**
+         * Formatted string of canonical object storage name for item
+         */
+        pub fn fragment(&self) -> JsValue {
+            JsValue::from(format!("{}/nodes/{}", self.prefix, self.interval.hash))
+        }
+
+        /**
+         * Hoist the interval serializer
+         */
+        pub fn interval(&self) -> JsValue {
+            self.interval.interval()
+        }
+
 
         /**
          * Hoist query by index function from 
@@ -321,19 +310,7 @@ pub mod triangular_mesh {
             self.points.get_mut(index)
         }
 
-        /**
-         * For cases where we can know in advance the size.
-         * 
-         *  We do allocate normals in this case.
-         */
-        #[allow(dead_code)]
-        pub fn with_capacity(capacity: usize) -> VertexArray {
-            VertexArray {
-                points: HashMap::with_capacity(capacity),
-                normals: HashMap::with_capacity(0)
-            }
-        }
-
+        
         /**
          * Re-scale the points in place by a constant factor 
          * in each dimension (xyz). Then return self for chaining.
@@ -458,9 +435,14 @@ pub mod triangular_mesh {
          * Create a new instance
          */
         #[allow(dead_code)]
-        pub fn new() -> TriangularMesh{
+        pub fn new(
+            prefix: String,
+            start: u32,
+            end: u32,
+            radix: u8
+        ) -> TriangularMesh{
             TriangularMesh{
-                vertex_array: VertexArray::new(), 
+                vertex_array: VertexArray::new(prefix, start, end, radix), 
                 topology: Topology::new()
             }
         }
@@ -641,6 +623,8 @@ pub mod triangular_mesh {
 
             let mut mesh: TriangularMesh = TriangularMesh{ 
                 vertex_array: VertexArray{
+                    prefix: "rtin-sample".to_string(),
+                    interval: IndexInterval::new(0,((nx+1)*(ny+1)) as u32, 36),
                     points: HashMap::with_capacity((nx+1)*(ny+1)),
                     normals: HashMap::with_capacity(0)
                 },

@@ -18,32 +18,31 @@ pub mod agent_system {
         length: f64, // zero position length
     }
 
+    /*
+    Use the spring extension and intrinsic dropout probability
+    to determine whether the spring instance should contribute
+    to this iteration of force calculations.
+    
+    The bounding box is used to normalize. The effect is that
+    long springs create a small RHS in the comparison, so it is
+    more likely that they dropout.
+
+    Higher drop rates speed up the animation loop, but make 
+    N-body calculations less deterministic. 
+    */
     impl Edge {
+        /**
+        Basic spring force for calculating the acceleration on objects.
+        Distance from current X to local zero of spring reference frame.
 
-        /*
-        Use the spring extension and intrinsic dropout probability
-        to determine whether the spring instance should contribute
-        to this iteration of force calculations.
-        
-        The bounding box is used to normalize. The effect is that
-        long springs create a small RHS in the comparison, so it is
-        more likely that they dropout.
+        May be positive or negative in the range (-sqrt(3),sqrt(3)).
 
-        Higher drop rates speed up the animation loop, but make 
-        N-body calculations less deterministic. 
+        If the sign is positive, the spring is overextended, and exerts
+        a positive force on the root object.
+        Force is along the (jj-ii) vector
         */
-       
         fn force(&self, extension: f64, velocity_differential: f64, collision: f64) -> f64 {
-            /*
-            Basic spring force for calculating the acceleration on objects.
-            Distance from current X to local zero of spring reference frame.
-
-            May be positive or negative in the range (-sqrt(3),sqrt(3)).
-
-            If the sign is positive, the spring is overextended, and exerts
-            a positive force on the root object.
-            Force is along the (jj-ii) vector
-            */
+           
             let mass = 1.0;
             let k1 = self.spring_constant;
             -2.0 * (mass * k1).sqrt() * velocity_differential + k1 * (extension - self.length - 2.0*collision) / mass
@@ -60,7 +59,7 @@ pub mod agent_system {
         #[allow(unused_unsafe)]
         fn new(count: u16, length: f64, spring_constant: f64, length_variability: f64) -> Group {
             let mut group = Group {
-                vertex_array: VertexArray::with_capacity(count as usize),
+                vertex_array: VertexArray::new("".to_string(), 0, count as u32, 36),
                 velocity: HashMap::with_capacity(count as usize),
                 edges: HashMap::with_capacity((count * count) as usize)
             };
@@ -87,15 +86,15 @@ pub mod agent_system {
             return group;
         }
 
-                
+        /*
+         * Update the agent position from velocity. 
+         * 
+         * The environmental effects are:
+         * - drag: lose velocity over time
+         * - bounce: lose velocity on interaction
+         */      
         pub fn next_state(coordinates: &Vec3, velocity: &Vec3, drag: f64, bounce: f64, dt: f64) -> [[f64; 3]; 2] {
-            /*
-            Update the agent position from velocity. 
-
-            The environmental effects are:
-            - drag: lose velocity over time
-            - bounce: lose velocity on interaction
-            */
+            
             
             let mut new_v: Vec3 = velocity * (1.0 - drag);
             let mut new_c: Vec3 = coordinates + new_v * dt;
@@ -116,13 +115,13 @@ pub mod agent_system {
             [new_c.value, new_v.value]
         }
     
-
+        /**
+         * Adding an agent to the system requires inserting the coordinates
+         * into the `vertex_array` mapping, and a state object into the
+         * `particles` mapping.
+         */
         fn insert_agent(&mut self, index: u16, coordinates: Vec3) {
-            /*
-            Adding an agent to the system requires inserting the coordinates
-            into the `vertex_array` mapping, and a state object into the
-            `particles` mapping.
-            */
+           
             if self.vertex_array.contains_key(&index) {
                 panic!("Attempted to create Agent with duplicate index ({})", index);
             }
@@ -131,11 +130,13 @@ pub mod agent_system {
             
         }
 
+
+        /**
+         * Take an unordered pair of point indices, create an ordered and unique `EdgeIndex`, 
+         * calculate the length of the edge, and insert into the `edges` map.
+         */
         fn insert_edge(&mut self, index: [u16; 2], length: f64, spring_constant: f64) {
-            /*
-            Take an unordered pair of point indices, create an ordered and unique `EdgeIndex`, 
-            calculate the length of the edge, and insert into the `edges` map.
-            */
+           
             let [a, b] = index;
             let edge_index = EdgeIndex::new(a, b);
             
@@ -186,22 +187,23 @@ pub mod agent_system {
             }
         }
 
+        /**
+         * Hoist cursor setter to JavaScript interface.
+         */
         #[wasm_bindgen(js_name=updateCursor)]
         pub fn update_cursor(&mut self, x: f64, y: f64) {
-            /*
-            Hoist cursor setter to JavaScript interface.
-            */
             self.cursor.update(x, y);
         }
 
+        /**
+         * Update link forces and vectors. 
+         * 
+         * First use the edges to apply forces vectors to each particle, incrementally
+         * updating the velocity.
+         */
         #[wasm_bindgen(js_name=updateState)]
         pub fn update_links_and_positions(&mut self, drag: f64, bounce: f64, dt: f64, collision_threshold: f64) {
-            /*
-            Update link forces and vectors. 
-
-            First use the edges to apply forces vectors to each particle, incrementally
-            updating the velocity.
-            */
+            
             for (index, edge) in self.group.edges.iter_mut() {
                 let [ii, jj] = index.items();
 
@@ -235,12 +237,13 @@ pub mod agent_system {
             }
         }
         
+        /**
+         * Render the current state of single Agent to HTML canvas. The basic
+         * representation includes a scaled circle indicating the position, 
+         * and a heading indicator for the current direction of travel.
+         */
         fn draw_agents(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, fade: f64, scale: f64, color: &JsValue) -> u32 {
-            /*
-            Render the current state of single Agent to HTML canvas. The basic
-            representation includes a scaled circle indicating the position, 
-            and a heading indicator for the current direction of travel.
-            */
+           
             ctx.set_stroke_style(&color);
         
             for (index, velocity) in self.group.velocity.iter() {
@@ -268,14 +271,16 @@ pub mod agent_system {
             self.group.velocity.len() as u32
         }
 
-        fn draw_edges(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, radius: f64, fade: f64, _color: &JsValue, collision: f64) -> u16 {
-            /*
-            Edges are rendered as rays originating at the linked particle, and terminating
-            at a point defined by the source plus the `vec` attribute of Edge.
 
-            Display size for agents is used to calculate an offset, so that the ray begins
-            on the surface of a 3D sphere, projected into the X,Y plane.
-            */
+        /**
+         * Edges are rendered as rays originating at the linked particle, and terminating
+         * at a point defined by the source plus the `vec` attribute of Edge.
+         * 
+         * Display size for agents is used to calculate an offset, so that the ray begins
+         * on the surface of a 3D sphere, projected into the X,Y plane.
+         */
+        fn draw_edges(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, radius: f64, fade: f64, _color: &JsValue, collision: f64) -> u16 {
+           
             
             let mut count: u16 = 0;
             for (index, edge) in self.group.edges.iter() {
@@ -343,10 +348,11 @@ pub mod agent_system {
             count
         }
 
+        /**
+         * Compose a data-driven interactive canvas for the triangular network. 
+         */
         pub fn draw(&mut self, canvas: HtmlCanvasElement, time: f64, collision: f64, style: JsValue) {
-            /*
-            Compose a data-driven interactive canvas for the triangular network. 
-            */
+            
 
             let rstyle: Style = style.into_serde().unwrap();
             let bg = JsValue::from_str(&rstyle.background_color);
