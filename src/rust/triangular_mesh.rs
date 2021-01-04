@@ -3,7 +3,7 @@
  * version of a 2D unstructured (or optionally structured) triangular mesh.
  * 
  * Contains the data structures:
- * - `CellIndex`
+ * - `CellIndex`: 3-integer 
  * - `EdgeIndex`
  * - `IndexInterval`
  * - `Topology`
@@ -180,13 +180,11 @@ pub mod triangular_mesh {
      */
     #[derive(Hash, Eq, PartialEq, Debug, Copy, Clone)]
     pub struct CellIndex {
-       
         indices: [u16; 3],
     }
 
    
     impl CellIndex {
-
         /**
          * Sort the indices and create a CellIndex.
          */
@@ -195,8 +193,8 @@ pub mod triangular_mesh {
             if a == b || b == c || c == a {
                 panic!(format!("Degenerate CellIndex ({},{},{})", a, b, c));
             }
-            let v = [a, b, c];
-            let mut index = CellIndex { indices: v };
+            let indices = [a, b, c];
+            let mut index = CellIndex { indices };
             index.sort();
             index
         }
@@ -205,15 +203,13 @@ pub mod triangular_mesh {
          * Wrapping getter
          */
         fn get(&self, position: usize) -> u16 {
-            
             self.indices[position % 3]
         }
 
         /**
-         * Swap any two indices
+         * Swap any two indices in place
          */
         fn swap(&mut self, a: usize, b: usize) {
-            
             let temp = self.indices[a];
             self.indices[a] = self.indices[b];
             self.indices[b] = temp;
@@ -224,7 +220,6 @@ pub mod triangular_mesh {
          * keeping the first vertex the same
          */
         fn flip(&mut self) {
-          
             self.swap(1, 2);
         }
 
@@ -239,7 +234,6 @@ pub mod triangular_mesh {
          * Shifting left is accomplished with 2 swaps.
          */
         fn sort(&mut self) {
-           
             while self.indices[0] > self.indices[1] || self.indices[0] > self.indices[2] {
                 self.swap(0, 1);
                 self.swap(1, 2)
@@ -248,6 +242,10 @@ pub mod triangular_mesh {
     }
 
 
+    /**
+     * Edge index is like a CellIndex, but has only 2 nodes. The direction does not
+     * matter, as they are sorted at creation. 
+     */
     #[derive(Hash, Eq, PartialEq, Debug, Clone, Copy)]
     pub struct EdgeIndex {
         indices: [u16; 2]
@@ -261,9 +259,9 @@ pub mod triangular_mesh {
          */
         pub fn new(a: u16, b: u16) -> EdgeIndex {
             
-            let mut v = [a, b];
-            v.sort();
-            EdgeIndex { indices: v }
+            let mut indices = [a, b];
+            indices.sort();
+            EdgeIndex { indices }
         }
 
         pub fn items(&self) -> [&u16; 2] {
@@ -271,6 +269,11 @@ pub mod triangular_mesh {
         }
     }
 
+
+    /**
+     * The vertex array contains the points that make up the spatial component of
+     * a triangulation network. 
+     */
     #[derive(Clone)]
     pub struct VertexArray{
         points: HashMap<u16,Vec3>,
@@ -297,14 +300,23 @@ pub mod triangular_mesh {
             }
         }
 
+        /**
+         * Hoist query by index function from 
+         */
         pub fn contains_key(&self, index: &u16) -> bool {
             self.points.contains_key(index)
         }
 
+        /**
+         * Get a single point
+         */
         pub fn get(&self, index: &u16) -> Option<&Vec3> {
             self.points.get(index)
         }
 
+        /**
+         * Hoist mutable point getter
+         */
         pub fn get_mut(&mut self, index: &u16) -> Option<&mut Vec3> {
             self.points.get_mut(index)
         }
@@ -322,6 +334,10 @@ pub mod triangular_mesh {
             }
         }
 
+        /**
+         * Re-scale the points in place by a constant factor 
+         * in each dimension (xyz). Then return self for chaining.
+         */
         #[allow(dead_code)]
         pub fn scale(&mut self, sx: f64, sy: f64, sz: f64) -> &Self {
            
@@ -335,6 +351,12 @@ pub mod triangular_mesh {
             self
         }
 
+        /**
+         * Shift each child vertex by a constant offset
+         * in each each dimension (xyz).
+         * 
+         * Then return self for chaining.
+         */
         #[allow(dead_code)]
         pub fn shift(&mut self, dx: f64, dy: f64, dz: f64) -> &Self {
            
@@ -348,6 +370,9 @@ pub mod triangular_mesh {
             self
         }
 
+        /**
+         * Vector between any two points in the array.
+         */
         pub fn vector(&self, start: &u16, end: &u16) -> Vec3 {
             self.points[end] - self.points[start]
         }
@@ -756,7 +781,7 @@ pub mod triangular_mesh {
         fn draw_points(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, color: &JsValue, size: f64) -> u16 {
 
             let mut count: u16 = 0;
-            
+
             ctx.set_fill_style(&color);
             for vert in self.mesh.vertex_array.points.values() {
                 let target = vert.normal_form();
