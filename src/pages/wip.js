@@ -19,7 +19,7 @@ export default () => {
     // });
 
     const handle = useTriangularMesh({
-        name: "necofs_gom3_mesh"
+        // name: "necofs_gom3_mesh"
     });
     
     return <Canvas

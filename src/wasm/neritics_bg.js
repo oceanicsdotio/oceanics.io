@@ -596,7 +596,7 @@ function getUint8ClampedMemory0() {
 function getClampedArrayU8FromWasm0(ptr, len) {
     return getUint8ClampedMemory0().subarray(ptr / 1, ptr / 1 + len);
 }
-function __wbg_adapter_251(arg0, arg1, arg2, arg3) {
+function __wbg_adapter_247(arg0, arg1, arg2, arg3) {
     _assertNum(arg0);
     _assertNum(arg1);
     wasm.wasm_bindgen__convert__closures__invoke2_mut__haf7250a096804c72(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
@@ -955,6 +955,7 @@ export class InteractiveGroup {
         return InteractiveGroup.__wrap(ret);
     }
     /**
+    * Hoist cursor setter to JavaScript interface.
     * @param {number} x
     * @param {number} y
     */
@@ -964,6 +965,10 @@ export class InteractiveGroup {
         wasm.interactivegroup_updateCursor(this.ptr, x, y);
     }
     /**
+    * Update link forces and vectors.
+    *
+    * First use the edges to apply forces vectors to each particle, incrementally
+    * updating the velocity.
     * @param {number} drag
     * @param {number} bounce
     * @param {number} dt
@@ -975,6 +980,7 @@ export class InteractiveGroup {
         wasm.interactivegroup_updateState(this.ptr, drag, bounce, dt, collision_threshold);
     }
     /**
+    * Compose a data-driven interactive canvas for the triangular network.
     * @param {HTMLCanvasElement} canvas
     * @param {number} time
     * @param {number} collision
@@ -1521,69 +1527,6 @@ export class TileSet {
         wasm.__wbg_tileset_free(ptr);
     }
 }
-/**
-*/
-export class VertexArrayBuffer {
-
-    static __wrap(ptr) {
-        const obj = Object.create(VertexArrayBuffer.prototype);
-        obj.ptr = ptr;
-
-        return obj;
-    }
-
-    free() {
-        const ptr = this.ptr;
-        this.ptr = 0;
-
-        wasm.__wbg_vertexarraybuffer_free(ptr);
-    }
-    /**
-    * @param {string} prefix
-    * @param {string} key
-    * @param {number} start
-    * @param {number} end
-    * @param {number} radix
-    */
-    constructor(prefix, key, start, end, radix) {
-        var ptr0 = passStringToWasm0(prefix, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        var len0 = WASM_VECTOR_LEN;
-        var ptr1 = passStringToWasm0(key, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        var len1 = WASM_VECTOR_LEN;
-        _assertNum(start);
-        _assertNum(end);
-        _assertNum(radix);
-        var ret = wasm.vertexarraybuffer_new(ptr0, len0, ptr1, len1, start, end, radix);
-        return VertexArrayBuffer.__wrap(ret);
-    }
-    /**
-    * @returns {any}
-    */
-    next() {
-        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.ptr);
-        var ret = wasm.vertexarraybuffer_next(this.ptr);
-        return takeObject(ret);
-    }
-    /**
-    * @returns {any}
-    */
-    fragment() {
-        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.ptr);
-        var ret = wasm.vertexarraybuffer_fragment(this.ptr);
-        return takeObject(ret);
-    }
-    /**
-    * @returns {any}
-    */
-    interval() {
-        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.ptr);
-        var ret = wasm.vertexarraybuffer_interval(this.ptr);
-        return takeObject(ret);
-    }
-}
 
 export const __wbindgen_string_new = function(arg0, arg1) {
     var ret = getStringFromWasm0(arg0, arg1);
@@ -1975,7 +1918,7 @@ export const __wbg_new_261626435fed913c = logError(function(arg0, arg1) {
             const a = state0.a;
             state0.a = 0;
             try {
-                return __wbg_adapter_251(a, state0.b, arg0, arg1);
+                return __wbg_adapter_247(a, state0.b, arg0, arg1);
             } finally {
                 state0.a = a;
             }
@@ -2100,8 +2043,8 @@ export const __wbindgen_memory = function() {
     return addHeapObject(ret);
 };
 
-export const __wbindgen_closure_wrapper3512 = logError(function(arg0, arg1, arg2) {
-    var ret = makeMutClosure(arg0, arg1, 74, __wbg_adapter_26);
+export const __wbindgen_closure_wrapper3459 = logError(function(arg0, arg1, arg2) {
+    var ret = makeMutClosure(arg0, arg1, 73, __wbg_adapter_26);
     return addHeapObject(ret);
 });
 
