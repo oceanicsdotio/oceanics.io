@@ -56,18 +56,19 @@ pub mod cursor_system {
             self.y = y;
         }
 
+        /**
+        The simple cursor rendering method is stateless exept for the cursor position,
+        which is updated asynchronously from the JavaScript interface so that event handling
+        is isolated from the request animation frame loop.
+
+        Components include 4 segments between the axes and the cursor position. These have
+        minimum length of `tick_size` or the distance current position from the axis. The
+        max length is `tick_size` plus the distance to the cursor, modulated by the
+        `completeness` parameter. 
+        */
         #[wasm_bindgen]
         pub fn draw(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, color: &JsValue, font_size: f64, line_width: f64, tick_size: f64, completeness: f64, label_padding: f64) {
-            /*
-            The simple cursor rendering method is stateless exept for the cursor position,
-            which is updated asynchronously from the JavaScript interface so that event handling
-            is isolated from the request animation frame loop.
-
-            Components include 4 segments between the axes and the cursor position. These have
-            minimum length of `tick_size` or the distance current position from the axis. The
-            max length is `tick_size` plus the distance to the cursor, modulated by the
-            `completeness` parameter. 
-            */
+            
 
             let font = format!("{:.0}px Arial", font_size.floor());
 
@@ -141,14 +142,15 @@ pub mod cursor_system {
             ContextCursor {x, y}
         }
 
+        /**
+        Draw radial ticks
+            - theta: angle of rotation for set of all ticks
+            - n: the number of ticks
+            - a, b: the inner and outer radiuses
+        */
         #[wasm_bindgen]
         pub fn ticks (ctx: &CanvasRenderingContext2d, theta: f64, n: u32, a: f64, b: f64) {
-            /*
-            Draw radial ticks
-             - theta: angle of rotation for set of all ticks
-             - n: the number of ticks
-             - a, b: the inner and outer radiuses
-            */
+           
             let inc: f64 = 2.0 * PI / n as f64;
 
             ctx.save();
@@ -232,5 +234,41 @@ pub mod cursor_system {
 
             ctx.restore();
         }
+    }
+
+    #[wasm_bindgen]
+    pub struct PrismCursor {
+        x: f32,
+        y: f32,
+        device_pixel_ratio: u8
+    }
+
+    #[wasm_bindgen]
+    impl PrismCursor {
+        #[wasm_bindgen(constructor)]
+        pub fn new(x: f32, y: f32, device_pixel_ratio: u8) -> PrismCursor {
+            PrismCursor {
+                x, 
+                y,
+                device_pixel_ratio
+            }
+        }
+
+        pub fn update(&mut self, x: f32, y: f32) {
+            self.x = x;
+            self.y = y;
+        }
+
+        // short hand for getting location in grid coordinates
+
+        #[wasm_bindgen(js_name = eventGridCell)]
+        pub fn event_grid_cell(&self, width: u16, grid_size: u16) -> Vec<u16> {
+            let mut result: Vec<u16> = Vec::with_capacity(2);
+            for dim in [self.x, self.y].iter() {
+                result.push((dim * (grid_size * self.device_pixel_ratio as u16) as f32 / width as f32).floor() as u16);
+            }
+            result
+        } 
+
     }
 }

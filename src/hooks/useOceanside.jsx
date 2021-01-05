@@ -1,8 +1,7 @@
 import { useEffect, useState, useReducer, useRef } from "react";
 import { useStaticQuery, graphql } from "gatsby";
 import { 
-    eventCoordinates, 
-    eventGridCell, 
+    eventCoordinates,
     targetHtmlCanvas, 
     drawCursor, 
     inverse 
@@ -88,6 +87,14 @@ export default ({
      * Load or recycle the Rust-WebAssembly runtime.
      */
     const runtime = useWasmRuntime();
+
+    const [cursor, setCursor] = useState(null);
+
+    useEffect(()=>{
+        if (!runtime) return;
+        const _cursor = new runtime.PrismCursor(0.0, 0.0, window.devicePixelRatio);
+        setCursor(_cursor);
+    },[runtime]);
     
     /**
      * MiniMap data structure from Rust-WebAssembly.
@@ -105,7 +112,7 @@ export default ({
     const [clock, takeAnActionOrWait] = useReducer(
         ({date, actions}, event)=>{
            
-            if (typeof board === "undefined" || !board || !board.current) {
+            if (typeof board === "undefined" || !board || !board.current || !cursor) {
                 return {date, actions}
             }
             if (actions) {
@@ -115,7 +122,9 @@ export default ({
                     600, 
                     gridSize
                 ).pop();
-                const cell = eventGridCell(inverted, width, gridSize).map(x=>Math.floor(x));
+
+                cursor.update(inverted[0], inverted[1]);
+                const cell = cursor.eventGridCell(width, gridSize).map(x=>Math.floor(x));
                
                 if (cell.every(dim => dim < gridSize && dim >= 0)) {
                     map.replaceTile(...cell);
@@ -241,7 +250,8 @@ export default ({
             typeof board === "undefined" || 
             !board || 
             !board.current || 
-            !tiles
+            !tiles || 
+            !cursor
         ) return;
 
         let {
@@ -255,9 +265,9 @@ export default ({
 
         ctx.imageSmoothingEnabled = false;  // disable interpolation
 
-        board.current.addEventListener('mousemove', (event) => {
-            cursor = eventGridCell(eventCoordinates(event, board.current), width, gridSize);
-        });
+        // board.current.addEventListener('mousemove', (event) => {
+        //     cursor = cursor.eventGridCell(eventCoordinates(event, board.current), width, gridSize);
+        // });
 
         (function render() {
 
@@ -270,7 +280,7 @@ export default ({
                 });
             });
 
-            if (cursor) drawCursor(width, gridSize, ctx, cursor, clamp);
+            // if (cursor) drawCursor(width, gridSize, ctx, cursor, clamp);
 
             runtime.draw_caption(
                 ctx, 

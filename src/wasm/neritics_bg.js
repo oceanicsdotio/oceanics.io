@@ -520,6 +520,17 @@ export function make_vertex_array(series) {
     }
 }
 
+let cachegetUint16Memory0 = null;
+function getUint16Memory0() {
+    if (cachegetUint16Memory0 === null || cachegetUint16Memory0.buffer !== wasm.memory.buffer) {
+        cachegetUint16Memory0 = new Uint16Array(wasm.memory.buffer);
+    }
+    return cachegetUint16Memory0;
+}
+
+function getArrayU16FromWasm0(ptr, len) {
+    return getUint16Memory0().subarray(ptr / 2, ptr / 2 + len);
+}
 /**
 *    After generating the base data array, clamp it and create a new
 *    array as a JavaScript/HTML image data element.
@@ -596,7 +607,7 @@ function getUint8ClampedMemory0() {
 function getClampedArrayU8FromWasm0(ptr, len) {
     return getUint8ClampedMemory0().subarray(ptr / 1, ptr / 1 + len);
 }
-function __wbg_adapter_247(arg0, arg1, arg2, arg3) {
+function __wbg_adapter_250(arg0, arg1, arg2, arg3) {
     _assertNum(arg0);
     _assertNum(arg1);
     wasm.wasm_bindgen__convert__closures__invoke2_mut__haf7250a096804c72(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
@@ -629,6 +640,10 @@ export class ContextCursor {
         return ContextCursor.__wrap(ret);
     }
     /**
+    *        Draw radial ticks
+    *            - theta: angle of rotation for set of all ticks
+    *            - n: the number of ticks
+    *            - a, b: the inner and outer radiuses
     * @param {CanvasRenderingContext2D} ctx
     * @param {number} theta
     * @param {number} n
@@ -1363,6 +1378,71 @@ export class MiniMap {
 }
 /**
 */
+export class PrismCursor {
+
+    constructor() {
+        throw new Error('cannot invoke `new` directly');
+    }
+
+    static __wrap(ptr) {
+        const obj = Object.create(PrismCursor.prototype);
+        obj.ptr = ptr;
+
+        return obj;
+    }
+
+    free() {
+        const ptr = this.ptr;
+        this.ptr = 0;
+
+        wasm.__wbg_prismcursor_free(ptr);
+    }
+    /**
+    * @param {number} x
+    * @param {number} y
+    * @param {number} device_pixel_ratio
+    * @returns {PrismCursor}
+    */
+    static new(x, y, device_pixel_ratio) {
+        _assertNum(device_pixel_ratio);
+        var ret = wasm.prismcursor_new(x, y, device_pixel_ratio);
+        return PrismCursor.__wrap(ret);
+    }
+    /**
+    * @param {number} x
+    * @param {number} y
+    */
+    update(x, y) {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        wasm.prismcursor_update(this.ptr, x, y);
+    }
+    /**
+    * @param {number} width
+    * @param {number} grid_size
+    * @returns {Uint16Array}
+    */
+    eventGridCell(width, grid_size) {
+        try {
+            if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+            const retptr = wasm.__wbindgen_export_4.value - 16;
+            wasm.__wbindgen_export_4.value = retptr;
+            _assertNum(this.ptr);
+            _assertNum(width);
+            _assertNum(grid_size);
+            wasm.prismcursor_eventGridCell(retptr, this.ptr, width, grid_size);
+            var r0 = getInt32Memory0()[retptr / 4 + 0];
+            var r1 = getInt32Memory0()[retptr / 4 + 1];
+            var v0 = getArrayU16FromWasm0(r0, r1).slice();
+            wasm.__wbindgen_free(r0, r1 * 2);
+            return v0;
+        } finally {
+            wasm.__wbindgen_export_4.value += 16;
+        }
+    }
+}
+/**
+*/
 export class SimpleCursor {
 
     static __wrap(ptr) {
@@ -1430,6 +1510,14 @@ export class SimpleCursor {
         wasm.simplecursor_update(this.ptr, x, y);
     }
     /**
+    *        The simple cursor rendering method is stateless exept for the cursor position,
+    *        which is updated asynchronously from the JavaScript interface so that event handling
+    *        is isolated from the request animation frame loop.
+    *
+    *        Components include 4 segments between the axes and the cursor position. These have
+    *        minimum length of `tick_size` or the distance current position from the axis. The
+    *        max length is `tick_size` plus the distance to the cursor, modulated by the
+    *        `completeness` parameter.
     * @param {CanvasRenderingContext2D} ctx
     * @param {number} w
     * @param {number} h
@@ -1918,7 +2006,7 @@ export const __wbg_new_261626435fed913c = logError(function(arg0, arg1) {
             const a = state0.a;
             state0.a = 0;
             try {
-                return __wbg_adapter_247(a, state0.b, arg0, arg1);
+                return __wbg_adapter_250(a, state0.b, arg0, arg1);
             } finally {
                 state0.a = a;
             }
@@ -2043,7 +2131,7 @@ export const __wbindgen_memory = function() {
     return addHeapObject(ret);
 };
 
-export const __wbindgen_closure_wrapper3459 = logError(function(arg0, arg1, arg2) {
+export const __wbindgen_closure_wrapper3536 = logError(function(arg0, arg1, arg2) {
     var ret = makeMutClosure(arg0, arg1, 73, __wbg_adapter_26);
     return addHeapObject(ret);
 });

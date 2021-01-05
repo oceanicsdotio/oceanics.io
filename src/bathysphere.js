@@ -312,10 +312,7 @@ export const eventCoordinates = ({clientX, clientY}, canvas) => {
     return [clientX - left, clientY - top]
 }
 
-export const eventGridCell = (coordinates, width, gridSize) => 
-    // short hand for getting location in grid coordinates
-    coordinates
-        .map(dim => dim*window.devicePixelRatio/(width/gridSize));
+
 
 
 /**

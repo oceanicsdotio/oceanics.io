@@ -2,7 +2,7 @@
 import React from "react";
 import styled from "styled-components";
 
-// import useRectilinearGrid from "../hooks/useRectilinearGrid";
+import useOceanside from "../hooks/useOceanside";
 import useTriangularMesh from "../hooks/useTriangularMesh";
 // import useLagrangian from "../hooks/useLagrangian";
 
@@ -18,12 +18,16 @@ export default () => {
     //     metadataFile: "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com/bathysphere/geospatial/wind.json"
     // });
 
-    const handle = useTriangularMesh({
-        // name: "necofs_gom3_mesh"
-    });
+    const handle = useOceanside({});
+
+    // const handle = useTriangularMesh({
+    //     // name: "necofs_gom3_mesh"
+    // });
     
-    return <Canvas
+    return <><Canvas
         id={"render-target"}
-        ref={handle.ref}
-    />             
+        ref={handle.board.ref}
+    />    
+    <canvas ref={handle.nav.ref}></canvas>
+    </>         
 };
