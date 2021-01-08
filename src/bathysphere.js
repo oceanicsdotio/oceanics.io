@@ -254,7 +254,7 @@ const transform = (points, width, gridSize) => {
     0.5*y 
 ])};
 
-const drawProjectionPrism = ({
+export const drawProjectionPrism = ({
     width,
     gridSize,
     upperLeft,
@@ -278,40 +278,13 @@ const drawProjectionPrism = ({
     drawConnections(ctx, cellA, cellB);
 };
 
-export const drawCursor = (width, gridSize, ctx, cursor, clamp) => {
-    /*
-    Cursor is given as grid coordinates, in the interval [0.0, gridSize).
-    Grid cell boxes are width and height 1 in this reference frame.
 
-    The grid coordinates are transformed into canvas coordinates, and 
-    then reprojected to an isomorphic view.
-    */
-   
-    const cellSize = width/gridSize;
-    const [inverted] = inverse([cursor.map(x=>x*cellSize)], width, gridSize).map(pt => pt.map(x=>x/cellSize));
- 
-    [
-        {upperLeft: cursor, color: "#FFAA00FF"},
-        {upperLeft: inverted, color: "#AAFF00FF"}
-    ].map(({upperLeft, color})=>{
-        drawProjectionPrism({
-            width, 
-            gridSize,
-            clamp,
-            upperLeft,
-            color,
-            lineWidth: 2.0,
-            ctx
-        });
-    });
-};
 
 export const eventCoordinates = ({clientX, clientY}, canvas) => {
     // Short hand for element reference frame
     const {left, top} = canvas.getBoundingClientRect();
     return [clientX - left, clientY - top]
 }
-
 
 
 

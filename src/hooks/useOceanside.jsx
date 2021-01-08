@@ -2,15 +2,42 @@ import { useEffect, useState, useReducer, useRef } from "react";
 import { useStaticQuery, graphql } from "gatsby";
 import { 
     eventCoordinates,
-    targetHtmlCanvas, 
-    drawCursor, 
-    inverse 
+    targetHtmlCanvas,
+    inverse,
+    drawProjectionPrism
 } from "../bathysphere";
 import useWasmRuntime from "../hooks/useWasmRuntime";
 import useKeystrokeReducer from "../hooks/useKeystrokeReducer";
 import {ghost} from "../palette";
 
+const drawCursor = (width, gridSize, ctx, cursor, clamp) => {
+    /*
+    Cursor is given as grid coordinates, in the interval [0.0, gridSize).
+    Grid cell boxes are width and height 1 in this reference frame.
 
+    The grid coordinates are transformed into canvas coordinates, and 
+    then reprojected to an isomorphic view.
+    */
+   
+    const curs = [cursor.x(), cursor.y()];
+    const cellSize = width/gridSize;
+    const [inverted] = inverse([curs.map(x=>x*cellSize)], width, gridSize).map(pt => pt.map(x=>x/cellSize));
+ 
+    [
+        {upperLeft: curs, color: "#FFAA00FF"},
+        {upperLeft: inverted, color: "#AAFF00FF"}
+    ].map(({upperLeft, color})=>{
+        drawProjectionPrism({
+            width, 
+            gridSize,
+            clamp,
+            upperLeft,
+            color,
+            lineWidth: 2.0,
+            ctx
+        });
+    });
+};
 
 /**
  * The `Oceanside` hook provides all of the functionality to
@@ -92,7 +119,7 @@ export default ({
 
     useEffect(()=>{
         if (!runtime) return;
-        const _cursor = new runtime.PrismCursor(0.0, 0.0, window.devicePixelRatio);
+        const _cursor = new runtime.PrismCursor(0.0, 0.0, window.devicePixelRatio, gridSize);
         setCursor(_cursor);
     },[runtime]);
     
@@ -123,16 +150,13 @@ export default ({
                     gridSize
                 ).pop();
 
-                cursor.update(inverted[0], inverted[1]);
-                const cell = cursor.eventGridCell(width, gridSize).map(x=>Math.floor(x));
-               
-                if (cell.every(dim => dim < gridSize && dim >= 0)) {
-                    map.replaceTile(...cell);
-                    return {
-                        date,
-                        actions: actions - 1
-                    };
-                }    
+                cursor.update(...inverted);
+                map.replaceTile(cursor.gridX(width), cursor.gridY(width));
+                return {
+                    date,
+                    actions: actions - 1
+                };
+                  
             } else {
                 console.log(endTurnMessage);
                 return {
@@ -250,8 +274,7 @@ export default ({
             typeof board === "undefined" || 
             !board || 
             !board.current || 
-            !tiles || 
-            !cursor
+            !tiles
         ) return;
 
         let {
@@ -259,15 +282,14 @@ export default ({
             ctx, 
             shape: [width, height], 
             requestId, 
-            frames,
-            cursor
+            frames
         } = targetHtmlCanvas(board, `2d`);
 
         ctx.imageSmoothingEnabled = false;  // disable interpolation
 
-        // board.current.addEventListener('mousemove', (event) => {
-        //     cursor = cursor.eventGridCell(eventCoordinates(event, board.current), width, gridSize);
-        // });
+        board.current.addEventListener('mousemove', (event) => {
+            if (cursor) cursor.update(...eventCoordinates(event, board.current));
+        });
 
         (function render() {
 
@@ -280,7 +302,7 @@ export default ({
                 });
             });
 
-            // if (cursor) drawCursor(width, gridSize, ctx, cursor, clamp);
+            if (cursor) drawCursor(width, gridSize, ctx, cursor, clamp);
 
             runtime.draw_caption(
                 ctx, 
@@ -297,7 +319,7 @@ export default ({
         })();
 
         return () => cancelAnimationFrame(requestId);
-    }, [tiles, clamp]);
+    }, [tiles, clamp, cursor]);
     
     return {
         worldSize,  // return in case you want the default

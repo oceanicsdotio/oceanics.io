@@ -67,9 +67,19 @@ pub mod cursor_system {
         `completeness` parameter. 
         */
         #[wasm_bindgen]
-        pub fn draw(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, color: &JsValue, font_size: f64, line_width: f64, tick_size: f64, completeness: f64, label_padding: f64) {
+        pub fn draw(
+            &self, 
+            ctx: &CanvasRenderingContext2d, 
+            w: f64, 
+            h: f64, 
+            color: &JsValue,
+            font_size: f64, 
+            line_width: f64, 
+            tick_size: f64, 
+            completeness: f64, 
+            label_padding: f64
+        ) {
             
-
             let font = format!("{:.0}px Arial", font_size.floor());
 
             ctx.set_stroke_style(&color);
@@ -133,6 +143,7 @@ pub mod cursor_system {
         x: f64,
         y: f64
     }
+
 
     #[wasm_bindgen]
     impl ContextCursor {
@@ -240,17 +251,24 @@ pub mod cursor_system {
     pub struct PrismCursor {
         x: f32,
         y: f32,
-        device_pixel_ratio: u8
+        device_pixel_ratio: u8,
+        grid_size: u16
     }
 
     #[wasm_bindgen]
     impl PrismCursor {
         #[wasm_bindgen(constructor)]
-        pub fn new(x: f32, y: f32, device_pixel_ratio: u8) -> PrismCursor {
+        pub fn new(
+            x: f32, 
+            y: f32, 
+            device_pixel_ratio: u8,
+            grid_size: u16
+        ) -> PrismCursor {
             PrismCursor {
                 x, 
                 y,
-                device_pixel_ratio
+                device_pixel_ratio,
+                grid_size
             }
         }
 
@@ -261,14 +279,64 @@ pub mod cursor_system {
 
         // short hand for getting location in grid coordinates
 
-        #[wasm_bindgen(js_name = eventGridCell)]
-        pub fn event_grid_cell(&self, width: u16, grid_size: u16) -> Vec<u16> {
-            let mut result: Vec<u16> = Vec::with_capacity(2);
-            for dim in [self.x, self.y].iter() {
-                result.push((dim * (grid_size * self.device_pixel_ratio as u16) as f32 / width as f32).floor() as u16);
-            }
-            result
+        #[wasm_bindgen(js_name = gridX)]
+        pub fn grid_x(&self, width: f32) -> u16 {
+            (self.x * (self.grid_size * self.device_pixel_ratio as u16) as f32 / width).floor() as u16
         } 
 
+        #[wasm_bindgen(js_name = gridY)]
+        pub fn grid_y(&self, width: f32) -> u16 {
+            (self.y * (self.grid_size * self.device_pixel_ratio as u16) as f32 / width).floor() as u16
+        } 
+
+        pub fn x(&self) -> f32 {
+            self.x
+        }
+
+        pub fn y(&self) -> f32 {
+            self.y
+        }
+
     }
+
+   
+
+    /**
+    Convenience method to create a bounding box polygon
+    from a upper-left, width/height type extent. 
+
+    Upperleft is given in grid coordinates, and width and height
+    are integers corresponded to the number of grid cells per
+    side of the selected region.
+    */
+    pub fn path_from_grid_cell (
+        upper_left: [f32; 2],
+        width: u8, 
+        height: u8, 
+        clamp: bool, 
+        cel_size: f32
+    ) -> JsValue {
+
+        let [x, y] = upper_left;
+        let dx = cell_size * width;
+        let dy = cell_size * width;
+
+        if clamp {
+            x = x.floor();
+            y = y.floor()
+        }
+
+        x *= cell_size;
+        y *= cell_size;
+
+        
+        return [
+            [_x, _y],
+            [_x + width, _y],
+            [_x + width, _y + height],
+            [_x, _y + height]
+        ].map(pt => 
+            pt.map(x => x*cellSize)
+        );
+    };
 }
