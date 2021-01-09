@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 
 import { GeoJsonSource } from "./useMapboxGeoJsonLayers";
-
 import useWasmRuntime from "./useWasmRuntime";
 import useObjectStorage from "./useObjectStorage";
 

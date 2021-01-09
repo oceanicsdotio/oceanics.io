@@ -596,7 +596,7 @@ function getUint8ClampedMemory0() {
 function getClampedArrayU8FromWasm0(ptr, len) {
     return getUint8ClampedMemory0().subarray(ptr / 1, ptr / 1 + len);
 }
-function __wbg_adapter_249(arg0, arg1, arg2, arg3) {
+function __wbg_adapter_250(arg0, arg1, arg2, arg3) {
     _assertNum(arg0);
     _assertNum(arg1);
     wasm.wasm_bindgen__convert__closures__invoke2_mut__haf7250a096804c72(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
@@ -969,6 +969,21 @@ export class InteractiveMesh {
         if (this.ptr == 0) throw new Error('Attempt to use a moved value');
         _assertNum(this.ptr);
         wasm.interactivemesh_draw(this.ptr, addHeapObject(canvas), time, addHeapObject(style));
+    }
+    /**
+    * Update link forces and vectors.
+    *
+    * First use the edges to apply forces vectors to each particle, incrementally
+    * updating the velocity.
+    * @param {number} drag
+    * @param {number} bounce
+    * @param {number} dt
+    * @param {number} collision_threshold
+    */
+    updateState(drag, bounce, dt, collision_threshold) {
+        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
+        _assertNum(this.ptr);
+        wasm.interactivemesh_updateState(this.ptr, drag, bounce, dt, collision_threshold);
     }
     /**
     * Hoisting function for cursor updates from JavaScript.
@@ -1935,7 +1950,7 @@ export const __wbg_new_261626435fed913c = logError(function(arg0, arg1) {
             const a = state0.a;
             state0.a = 0;
             try {
-                return __wbg_adapter_249(a, state0.b, arg0, arg1);
+                return __wbg_adapter_250(a, state0.b, arg0, arg1);
             } finally {
                 state0.a = a;
             }
@@ -2060,7 +2075,7 @@ export const __wbindgen_memory = function() {
     return addHeapObject(ret);
 };
 
-export const __wbindgen_closure_wrapper3336 = logError(function(arg0, arg1, arg2) {
+export const __wbindgen_closure_wrapper3380 = logError(function(arg0, arg1, arg2) {
     var ret = makeMutClosure(arg0, arg1, 73, __wbg_adapter_26);
     return addHeapObject(ret);
 });
