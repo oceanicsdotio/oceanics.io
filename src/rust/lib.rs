@@ -1,8 +1,7 @@
 mod tessellate;  // some core spatial methods
 mod webgl;  // shader magic
 
-// mod primitive;
-
+mod primitive;
 mod vec3;
 mod cursor;  // cursor replacements and canvas event handling system
 mod light;  // submarine light simulation system

@@ -5,9 +5,8 @@ pub mod shipyard {
     use web_sys::CanvasRenderingContext2d;
     use std::f64::consts::PI;
 
-    use crate::agent::agent_system::Vec3;
-    use crate::triangular_mesh::triangular_mesh::{TriangularMesh};
-    use crate::primitive::primitive::{Primitive};
+    use crate::vec3::vec3::Vec3;
+    use crate::primitive::primitive::Primitive;
 
     const PI_RADIANS: f64 = 180.0;
 
@@ -169,17 +168,18 @@ pub mod shipyard {
         }         
     }
 
-    pub struct Component {
-        /*
+    /**
         Components are mechanical assemblies or spatial graphs with an 
         assigned appearance. 
         */
+    pub struct Component {
+        
         model: Model,
         color: String,
     }
 
     impl Component {
-        /*
+        /**
         Components simply act as zero cost containers for holding metadata
         and visualization information for a model
         */

@@ -122,10 +122,6 @@ function _assertBoolean(n) {
     }
 }
 
-function isLikeNone(x) {
-    return x === undefined || x === null;
-}
-
 function _assertNum(n) {
     if (typeof(n) !== 'number') throw new Error('expected a number argument');
 }
@@ -238,7 +234,7 @@ function logError(f) {
         }
     };
 }
-function __wbg_adapter_26(arg0, arg1, arg2) {
+function __wbg_adapter_24(arg0, arg1, arg2) {
     _assertNum(arg0);
     _assertNum(arg1);
     wasm._dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h19a3aed839d6cb8d(arg0, arg1, addHeapObject(arg2));
@@ -567,6 +563,10 @@ export function photosynthetically_active_radiation(day_of_year, latitude, time_
     return ret;
 }
 
+function isLikeNone(x) {
+    return x === undefined || x === null;
+}
+
 function handleError(f) {
     return function () {
         try {
@@ -596,7 +596,7 @@ function getUint8ClampedMemory0() {
 function getClampedArrayU8FromWasm0(ptr, len) {
     return getUint8ClampedMemory0().subarray(ptr / 1, ptr / 1 + len);
 }
-function __wbg_adapter_250(arg0, arg1, arg2, arg3) {
+function __wbg_adapter_245(arg0, arg1, arg2, arg3) {
     _assertNum(arg0);
     _assertNum(arg1);
     wasm.wasm_bindgen__convert__closures__invoke2_mut__haf7250a096804c72(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
@@ -735,71 +735,6 @@ export class HexagonalGrid {
         } finally {
             heap[stack_pointer++] = undefined;
         }
-    }
-}
-/**
-* The `IndexInterval` is a way of referencing a slice of a 1-dimensional array of N-dimensional tuples.
-*
-* The main use is to chunk vertex arrays and assign them a unique key that can be decoded
-* into the index range.
-*
-* The limitation is that each chunk must contain contiguously indexed points. Re-indexing might be required
-* if the points are not ordered in the desired manner.
-*/
-export class IndexInterval {
-
-    static __wrap(ptr) {
-        const obj = Object.create(IndexInterval.prototype);
-        obj.ptr = ptr;
-
-        return obj;
-    }
-
-    free() {
-        const ptr = this.ptr;
-        this.ptr = 0;
-
-        wasm.__wbg_indexinterval_free(ptr);
-    }
-    /**
-    * Create a new interval struct and pre-calculate the "hash" of the slice range.
-    * @param {number} x
-    * @param {number} y
-    * @param {number} radix
-    */
-    constructor(x, y, radix) {
-        _assertNum(x);
-        _assertNum(y);
-        _assertNum(radix);
-        var ret = wasm.indexinterval_new(x, y, radix);
-        return IndexInterval.__wrap(ret);
-    }
-    /**
-    * Create an `IndexInterval` from a hash. This is meant to be called
-    * from JavaScript in the browser or a node function.
-    * @param {any} hash
-    * @param {number} radix
-    * @returns {IndexInterval}
-    */
-    static fromHash(hash, radix) {
-        try {
-            _assertNum(radix);
-            var ret = wasm.indexinterval_fromHash(addBorrowedObject(hash), radix);
-            return IndexInterval.__wrap(ret);
-        } finally {
-            heap[stack_pointer++] = undefined;
-        }
-    }
-    /**
-    * Convenience method for accessing the value from JavaScript in
-    * JSON notation
-    * @returns {any}
-    */
-    interval() {
-        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.ptr);
-        var ret = wasm.indexinterval_interval(this.ptr);
-        return takeObject(ret);
     }
 }
 /**
@@ -1950,7 +1885,7 @@ export const __wbg_new_261626435fed913c = logError(function(arg0, arg1) {
             const a = state0.a;
             state0.a = 0;
             try {
-                return __wbg_adapter_250(a, state0.b, arg0, arg1);
+                return __wbg_adapter_245(a, state0.b, arg0, arg1);
             } finally {
                 state0.a = a;
             }
@@ -2042,15 +1977,6 @@ export const __wbg_stack_558ba5917b466edd = logError(function(arg0, arg1) {
     getInt32Memory0()[arg0 / 4 + 0] = ptr0;
 });
 
-export const __wbindgen_string_get = function(arg0, arg1) {
-    const obj = getObject(arg1);
-    var ret = typeof(obj) === 'string' ? obj : undefined;
-    var ptr0 = isLikeNone(ret) ? 0 : passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-    var len0 = WASM_VECTOR_LEN;
-    getInt32Memory0()[arg0 / 4 + 1] = len0;
-    getInt32Memory0()[arg0 / 4 + 0] = ptr0;
-};
-
 export const __wbindgen_boolean_get = function(arg0) {
     const v = getObject(arg0);
     var ret = typeof(v) === 'boolean' ? (v ? 1 : 0) : 2;
@@ -2075,8 +2001,8 @@ export const __wbindgen_memory = function() {
     return addHeapObject(ret);
 };
 
-export const __wbindgen_closure_wrapper3380 = logError(function(arg0, arg1, arg2) {
-    var ret = makeMutClosure(arg0, arg1, 73, __wbg_adapter_26);
+export const __wbindgen_closure_wrapper3291 = logError(function(arg0, arg1, arg2) {
+    var ret = makeMutClosure(arg0, arg1, 71, __wbg_adapter_24);
     return addHeapObject(ret);
 });
 
