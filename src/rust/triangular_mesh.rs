@@ -36,10 +36,8 @@ pub mod triangular_mesh {
         pub tick_size: f64, 
         pub label_padding: f64,
         pub fade: f64,
-        pub radius: f64,
-        pub node_color: String
+        pub radius: f64
     }
-
 
 
     /**
@@ -840,7 +838,7 @@ pub mod triangular_mesh {
         #[wasm_bindgen(js_name=updateState)]
         pub fn update_links_and_positions(&mut self, drag: f64, bounce: f64, dt: f64, collision_threshold: f64) {
             
-            for (index, edge) in self.mesh.topology.edges.iter_mut() {
+            for (index, edge) in self.mesh.topology.edges.iter() {
                 let [ii, jj] = index.items();
 
                 // vector from ii to jj, and it's magnitude

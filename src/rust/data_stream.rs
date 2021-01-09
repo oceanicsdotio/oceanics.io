@@ -5,8 +5,6 @@ pub mod data_stream {
     
     use wasm_bindgen::prelude::*;
     use std::collections::VecDeque;
-    use std::collections::BinaryHeap;
-    use std::cmp::Reverse;
     use web_sys::{CanvasRenderingContext2d,HtmlCanvasElement};
     use wasm_bindgen::JsValue;
     use serde::Deserialize;

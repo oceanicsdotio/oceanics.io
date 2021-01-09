@@ -4,10 +4,10 @@ import useWasmRuntime from "./useWasmRuntime";
 import noiseVertex from "raw-loader!../glsl/noise-vertex.glsl";
 import noiseFragment from "raw-loader!../glsl/noise-fragment.glsl";
 import quadVertex from "raw-loader!../glsl/quad-vertex.glsl";
-import updateFragment from "raw-loader!../glsl/update-fragment.glsl";
+import updateFragment from "raw-loader!../glsl/update-fragment-test.glsl";
 import screenFragment from "raw-loader!../glsl/screen-fragment.glsl";
-import drawVertex from "raw-loader!../glsl/draw-vertex.glsl";
-import drawFragment from "raw-loader!../glsl/draw-fragment.glsl";
+import drawVertex from "raw-loader!../glsl/draw-vertex-test.glsl";
+import drawFragment from "raw-loader!../glsl/draw-fragment-test.glsl";
 
 
 // memoize the shaders as they are loaded

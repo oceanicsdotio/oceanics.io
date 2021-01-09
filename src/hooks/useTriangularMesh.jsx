@@ -48,7 +48,6 @@ export default ({
     attribution="Oceanics.io",
     fontSize=12.0,
     shape=[32,32],
-    meshColor=`#EF5FA1CC`,
     overlayColor=`#CCCCCCFF`,
     backgroundColor=`#00000088`,
     lineWidth=1.0,
@@ -62,7 +61,6 @@ export default ({
     bounce=0.95,
     springConstant=0.2,
     timeConstant=0.000001,
-    collisionThreshold=0.001,
 }) => {
 
     /**
@@ -117,14 +115,23 @@ export default ({
         );
 
         const start = performance.now();
+        const style = {
+            backgroundColor, 
+            overlayColor, 
+            lineWidth, 
+            fontSize, 
+            tickSize, 
+            labelPadding, 
+            fade, 
+            radius: 8,
+        };
         let requestId = null;
 
         (function render() {
             const time = performance.now() - start;
 
-            // particleSystem.updateState(drag, bounce, timeConstant, collisionThreshold);
-            // particleSystem.draw(canvas, time, collisionThreshold, style);
-            mesh.draw(ref.current, time, {backgroundColor, meshColor, overlayColor, lineWidth, fontSize, tickSize, labelPadding, fade, radius: 8, nodeColor: "#FFFFFFFF"});
+            // mesh.updateState(drag, bounce, timeConstant, collisionThreshold);
+            mesh.draw(ref.current, time, style);
             requestId = requestAnimationFrame(render);
         })()
 

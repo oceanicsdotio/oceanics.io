@@ -10,7 +10,6 @@ mod triangular_mesh;  // 3D unstructured triangular network used for surface and
 mod rectilinear_grid;  // 3D rectilinear grid methods and structures
 
 // mod shipyard;  // 3D object modelling
-// mod primitive;
 // mod physics;
 // mod wind;
 // mod simulate;
