@@ -54,7 +54,16 @@ export default ({
     backgroundColor=`#00000088`,
     lineWidth=1.0,
     labelPadding=2.0,
-    tickSize=10.0
+    tickSize=10.0,
+    fade=1.0,
+    count=9,
+    zero=0.2,
+    radius=8.0,
+    drag=0.05,
+    bounce=0.95,
+    springConstant=0.2,
+    timeConstant=0.000001,
+    collisionThreshold=0.001,
 }) => {
 
     /**
@@ -113,7 +122,10 @@ export default ({
 
         (function render() {
             const time = performance.now() - start;
-            mesh.draw(ref.current, time, {backgroundColor, meshColor, overlayColor, lineWidth, fontSize, tickSize, labelPadding, fade: 1.0, radius: 8, nodeColor: "#FFFFFFFF"});
+
+            // particleSystem.updateState(drag, bounce, timeConstant, collisionThreshold);
+            // particleSystem.draw(canvas, time, collisionThreshold, style);
+            mesh.draw(ref.current, time, {backgroundColor, meshColor, overlayColor, lineWidth, fontSize, tickSize, labelPadding, fade, radius: 8, nodeColor: "#FFFFFFFF"});
             requestId = requestAnimationFrame(render);
         })()
 

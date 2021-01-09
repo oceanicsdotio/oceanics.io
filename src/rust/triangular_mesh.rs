@@ -226,6 +226,44 @@ pub mod triangular_mesh {
         }
     }
 
+     /**
+    Use the spring extension and intrinsic dropout probability
+    to determine whether the spring instance should contribute
+    to this iteration of force calculations.
+    
+    The bounding box is used to normalize. The effect is that
+    long springs create a small RHS in the comparison, so it is
+    more likely that they dropout.
+
+    Higher drop rates speed up the animation loop, but make 
+    N-body calculations less deterministic. 
+    */
+    #[derive(Copy, Clone)]
+    struct Edge {
+        spring_constant: f64, // spring constant
+        length: f64, // zero position length
+    }
+
+   
+    impl Edge {
+        /**
+        Basic spring force for calculating the acceleration on objects.
+        Distance from current X to local zero of spring reference frame.
+
+        May be positive or negative in the range (-sqrt(3),sqrt(3)).
+
+        If the sign is positive, the spring is overextended, and exerts
+        a positive force on the root object.
+        Force is along the (jj-ii) vector
+        */
+        fn force(&self, extension: f64, velocity_differential: f64, collision: f64) -> f64 {
+           
+            let mass = 1.0;
+            let k1 = self.spring_constant;
+            -2.0 * (mass * k1).sqrt() * velocity_differential + k1 * (extension - self.length - 2.0*collision) / mass
+        }
+    }
+
 
     /**
      * The vertex array contains the points that make up the spatial component of
@@ -362,8 +400,8 @@ pub mod triangular_mesh {
     #[derive(Clone)]
     pub struct Topology{
         cells: HashSet<CellIndex>,
-        edges: HashSet<EdgeIndex>,
-        normals: HashMap<CellIndex,Vec3>,
+        edges: HashMap<EdgeIndex, Edge>,
+        normals: HashMap<CellIndex, Vec3>,
         neighbors: Vec<Vec<usize>>
     }
 
@@ -377,9 +415,9 @@ pub mod triangular_mesh {
          */
         pub fn new() -> Topology {
             Topology{
-                cells: HashSet::new(),
-                edges: HashSet::new(),
-                normals: HashMap::new(),
+                cells: HashSet::with_capacity(0),
+                edges: HashMap::new(),
+                normals: HashMap::with_capacity(0),
                 neighbors: Vec::with_capacity(0),
             }
         }
@@ -391,9 +429,40 @@ pub mod triangular_mesh {
            
             let [a, b, c] = index;
             self.cells.insert(CellIndex::new(a, b, c));
-            self.edges.insert(EdgeIndex::new(a, b));
-            self.edges.insert(EdgeIndex::new(b, c));
-            self.edges.insert(EdgeIndex::new(c, a));
+            
+            let _edges = vec![
+                EdgeIndex::new(a, b),
+                EdgeIndex::new(b, c),
+                EdgeIndex::new(c, a)
+            ];
+
+            for key in _edges {
+                if !self.edges.contains_key(&key) {
+                    self.edges.insert(key, Edge { spring_constant: 0.01, length: 0.1});
+                }
+            }
+        }
+
+        /**
+        * Take an unordered pair of point indices, create an ordered and unique `EdgeIndex`, 
+        * calculate the length of the edge, and insert into the `edges` map.
+        */
+        fn insert_edge(&mut self, index: [u16; 2], length: f64, spring_constant: f64) {
+           
+            let [a, b] = index;
+            let edge_index = EdgeIndex::new(a, b);
+            
+            if self.edges.contains_key(&edge_index) {
+                panic!("Attempted to create Edge with duplicate index ({},{})", a.min(b), a.max(b));
+            }
+
+            self.edges.insert(
+                edge_index,
+                Edge {
+                    spring_constant, 
+                    length
+                }
+            );
         }
     }
 
@@ -458,7 +527,7 @@ pub mod triangular_mesh {
             let count = self.vertex_array.points.len();
             let mut lookup: HashMap<u16,HashSet<u16>> = HashMap::with_capacity(count);
 
-            for edge in self.topology.edges.iter() {
+            for (edge, metadata) in self.topology.edges.iter() {
                 let [a, b] = &edge.indices;
                 if lookup.contains_key(a) {
                     lookup.get_mut(a).unwrap().insert(*b);
@@ -629,7 +698,7 @@ pub mod triangular_mesh {
                 },
                 topology: Topology{
                     cells: HashSet::with_capacity(nx*ny*2),
-                    edges: HashSet::with_capacity(nx*ny*2*3),
+                    edges: HashMap::with_capacity(nx*ny*2*3),
                     neighbors: Vec::with_capacity(0),
                     normals: HashMap::with_capacity(0)
                 }
@@ -699,6 +768,35 @@ pub mod triangular_mesh {
         }
     }
 
+    /*
+    * Update the agent position from velocity. 
+    * 
+    * The environmental effects are:
+    * - drag: lose velocity over time
+    * - bounce: lose velocity on interaction
+    */      
+    fn next_state(coordinates: &Vec3, velocity: &Vec3, drag: f64, bounce: f64, dt: f64) -> [[f64; 3]; 2] {
+    
+        
+        let mut new_v: Vec3 = velocity * (1.0 - drag);
+        let mut new_c: Vec3 = coordinates + new_v * dt;
+
+        for dim in 0..3 {
+            let val = new_c.value[dim];
+            if val > 1.0 {
+                let delta = val - 1.0;
+                new_c.value[dim] -= 2.0*delta;
+                
+                new_v.value[dim] *= -bounce;
+            } else if val < 0.0 {
+                new_c.value[dim] -= 2.0*val;
+                new_v.value[dim] *= -bounce;
+            }
+        }
+
+        [new_c.value, new_v.value]
+    }
+
     /**
      * Container for mesh that also contains cursor and rendering target infromation
      */
@@ -707,7 +805,8 @@ pub mod triangular_mesh {
         
         mesh: TriangularMesh,
         cursor: SimpleCursor,
-        frames: usize
+        frames: usize,
+        velocity: HashMap<u16,Vec3>
     }
 
     #[derive(Deserialize)]
@@ -735,66 +834,82 @@ pub mod triangular_mesh {
             InteractiveMesh {
                 mesh: TriangularMesh::from_rectilinear_shape(nx, ny),
                 cursor: SimpleCursor::new(0.0, 0.0),
-                frames: 0
+                frames: 0,
+                velocity: HashMap::with_capacity(0)
             }
         }
 
         /**
-         * Draw filled triangles
+         * Adding an agent to the system requires inserting the coordinates
+         * into the `vertex_array` mapping, and a state object into the
+         * `particles` mapping.
          */
-        #[allow(dead_code)]
-        fn draw_cells(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, color: &JsValue) -> u16 {
-            
-            ctx.set_fill_style(&color);
-
-            let mut count: u16 = 0;
-            let points = &self.mesh.vertex_array.points;
+        fn insert_agent(&mut self, index: u16) {
            
-            for index in self.mesh.topology.cells.iter() {
-                
-                let [a, b, c] = &index.indices;
-                ctx.begin_path();
-                ctx.move_to(
-                    points[a].x()*w, 
-                    h - points[a].y()*h
-                );
-                ctx.line_to(
-                    points[b].x()*w, 
-                    h - points[b].y()*h
-                );
-                ctx.line_to(
-                    points[c].x()*w, 
-                    h - points[c].y()*h
-                );
-                ctx.close_path();
-                ctx.fill();  
-
-                count += 1;
+            if !self.mesh.vertex_array.contains_key(&index) {
+                panic!("Attempted to create Agent on non-existent index ({})", index);
             }
-            count
+            self.velocity.insert(index, Vec3{value:[0.0, 0.0, 0.0]});
+            
         }
+        
+        
+        
+
 
         /**
          * Draw small squares at all vertices. 
+
+          * Render the current state of single Agent to HTML canvas. The basic
+        * representation includes a scaled circle indicating the position, 
+        * and a heading indicator for the current direction of travel.
          */
         #[allow(dead_code)]
-        fn draw_points(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, color: &JsValue, size: f64) -> u16 {
+        fn draw_nodes(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, style: &Style) -> u16 {
 
             let mut count: u16 = 0;
 
-            ctx.set_fill_style(&color);
+            ctx.set_fill_style(&JsValue::from(&style.node_color));
             for vert in self.mesh.vertex_array.points.values() {
-                let target = vert.normal_form();
                 ctx.fill_rect(
-                    w*target.x() - 0.5*size, 
-                    (h - h*target.y()) - 0.5*size, 
-                    size, 
-                    size
+                    w*vert.x() - 0.5*style.radius, 
+                    (h - h*vert.y()) - 0.5*style.radius, 
+                    style.radius, 
+                    style.radius
                 );
                 count += 1;
             }
+
+            // ctx.set_stroke_style(&color);
+       
+            // for (index, velocity) in self.group.velocity.iter() {
+ 
+            //     let coordinates = self.group.vertex_array.get(index).unwrap();
+ 
+            //     for dim in coordinates.value.iter() {
+            //         if dim.is_sign_negative() { panic!("Negative z-coordinate: {}", dim); }
+            //     }
+                
+            //     let alpha = 1.0 - fade * coordinates.z();
+            //     let radius = (scale * (1.0 - 0.5 * coordinates.z())).min(scale).max(0.0); // sometimes things go wrong...
+            //     let scaled = coordinates * Vec3{value:[w, h, 1.0]};
+            //     let heading_vec: Vec3 = scaled + velocity.normalized() * radius;
+                
+            //     ctx.begin_path();
+            //     ctx.set_global_alpha(alpha);
+            //     if let Err(_e) = ctx.arc(scaled.x(), scaled.y(), radius, 0.0, PI*2.0) {
+            //         panic!("Problem drawing agent, probably negative scale value");
+            //     }
+            //     ctx.move_to(scaled.x(), scaled.y());
+            //     ctx.line_to(heading_vec.x(), heading_vec.y());
+            //     ctx.stroke();
+            // }
+
+
             count
         } 
+
+     
 
         /**
          * Edges are rendered as rays originating at the linked particle, and terminating
@@ -803,69 +918,86 @@ pub mod triangular_mesh {
          * Display size for agents is used to calculate an offset, so that the ray begins
          * on the surface of a 3D sphere, projected into the X,Y plane.
          */
-        fn draw_edges(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, color: &JsValue, size: f64) -> u16{
+        fn draw_edges(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, style: &Style) -> u16 {
             
-            ctx.set_stroke_style(color);
-            ctx.set_line_width(size);
-        
-            ctx.begin_path();
+            ctx.set_line_width(style.line_width);
 
             let mut count: u16 = 0;
 
-            for index in self.mesh.topology.edges.iter() {
+            for (index, edge) in self.mesh.topology.edges.iter() {
 
                 let [ii, jj] = index.items();
               
                 let a = self.mesh.vertex_array.get(ii).expect(&format!("Source point missing {}", ii));
                 let b = self.mesh.vertex_array.get(jj).expect(&format!("Target point missing {}", jj));
-               
-                if color.as_string().unwrap().len() > 0 {
-                    ctx.set_stroke_style(&color);
-                } else {
+                let a_x = a.x()*w;
+                let a_y = h - a.y()*h;
+
+                let b_x = b.x()*w;
+                let b_y = h - b.y()*h;
+
+
+                // let _offset = -2.0 * radius; // this scalar might just be for retina display???
+                // let vec = b - a;
+                // let extension = vec.magnitude();
+                // let predicted: f64 = ((a + &self.group.velocity[jj]) - (b + &self.group.velocity[ii])).magnitude();
+                // let differential = predicted - extension;
+                // let force = edge.force(extension, differential, collision);
+                // let max_distance = ((3.0 as f64).sqrt() - edge.length).abs();
+                // let max_force = edge.force(max_distance, differential, collision).abs();
+                // let force_frac = force / max_force;
+
+            
+                // let a_color = format!(
+                //     "rgba({},{},{},{:.2}", 
+                //     255 * (force > 0.0) as u16,
+                //     0,
+                //     255 * (force <= 0.0) as u16,
+                //     force_frac.abs()*(1.0 - fade * a.z()) // * (force.abs().sqrt() * 10.0).min(1.0);
+                // );
+
+                // let b_color = format!(
+                //     "rgba({},{},{},{:.2}", 
+                //     255 * (force > 0.0) as u16,
+                //     0,
+                //     255 * (force <= 0.0) as u16,
+                //     force_frac.abs()*(1.0 - fade * b.z()) // * (force.abs().sqrt() * 10.0).min(1.0);
+                // );
+                
+                {
                     let a_color = format!(
-                        "rgba({},{},{},{:.2}", 
+                        "rgba({},{},{},{:.2})", 
                         255,
                         0,
                         255,
-                        1.0 - 1.0 * a.z()
+                        1.0 - style.fade * a.z()
                     );
-    
+
                     let b_color = format!(
-                        "rgba({},{},{},{:.2}", 
+                        "rgba({},{},{},{:.2})", 
                         255,
                         0,
                         255,
-                        1.0 - 1.0 * b.z()
+                        1.0 - style.fade * b.z()
                     );
             
-                    let gradient = ctx.create_linear_gradient(a.x(), a.y(), b.x(), b.y());
+                    let gradient = ctx.create_linear_gradient(a_x, a_y, b_x, b_y);
                         
-                    if !(gradient.add_color_stop(0.0, &a_color).is_ok() &&
-                        gradient.add_color_stop(0.0, &b_color).is_ok()) {
-                        ctx.set_stroke_style(&gradient);
-                    } else {
-                        let a_color = format!(
-                            "rgba({},{},{},{:.2}", 
-                            255,
-                            255,
-                            255,
-                            1.0
-                        );
-                        ctx.set_stroke_style(&JsValue::from_str(&a_color));
-                    };
+                    gradient.add_color_stop(0.0, &a_color).unwrap();
+                    gradient.add_color_stop(1.0, &b_color).unwrap();
+
+                    ctx.set_stroke_style(&gradient);
                 }
-                
-                ctx.move_to(
-                    a.x()*w, 
-                    h - a.y()*h
-                );
-                ctx.line_to(
-                    b.x()*w, 
-                    h - b.y()*h
-                );
+
+                ctx.begin_path();
+    
+                ctx.move_to(a_x, a_y);
+                ctx.line_to(b_x, b_y);
+                   
                 count += 1;
+                ctx.stroke();
             }
-            ctx.stroke();
+            
             count
         }
 
@@ -875,16 +1007,18 @@ pub mod triangular_mesh {
         pub fn draw(&mut self, canvas: HtmlCanvasElement, time: f64, style: JsValue) {
 
             let rstyle: Style = style.into_serde().unwrap();
-            let overlay = JsValue::from(rstyle.overlay_color);
+            let overlay = JsValue::from(&rstyle.overlay_color);
           
             let ctx: &CanvasRenderingContext2d = &crate::context2d(&canvas);
             let w = canvas.width() as f64;
             let h = canvas.height() as f64;
-            let font = format!("{:.0} Arial", rstyle.font_size);
-            let inset = rstyle.tick_size * 0.5;
+            let font = format!("{:.0} Arial", &rstyle.font_size);
+            let inset = &rstyle.tick_size * 0.5;
 
-            crate::clear_rect_blending(ctx, w, h, JsValue::from(rstyle.background_color));
-            let edges = self.draw_edges(ctx, w, h, &overlay, rstyle.line_width);
+            crate::clear_rect_blending(ctx, w, h, JsValue::from(&rstyle.background_color));
+            let edges = self.draw_edges(ctx, w, h, &rstyle);
+            let nodes = self.draw_nodes(ctx, w, h, &rstyle);
+
             self.cursor.draw(ctx, w, h, &overlay, rstyle.font_size, rstyle.line_width, rstyle.tick_size, 0.0, rstyle.label_padding);
             
             let fps = (1000.0 * (self.frames + 1) as f64).floor() / time;
@@ -892,7 +1026,8 @@ pub mod triangular_mesh {
             if time < 10000.0 || fps < 55.0 {
 
                 let caption = format!(
-                    "Network, Nodes: 0/{}, Cells: 0/{}, Edges: {}/{})", 
+                    "Network, Nodes: {}/{}, Cells: 0/{}, Edges: {}/{})", 
+                    nodes,
                     self.mesh.vertex_array.points.len(), 
                     self.mesh.topology.cells.len(), 
                     edges,
@@ -912,6 +1047,82 @@ pub mod triangular_mesh {
             
             self.frames += 1;
         }
+
+
+    //     fn from_random_positions(count: u16, length: f64, spring_constant: f64, length_variability: f64) -> Group {
+    //         let mut group = Group {
+    //             vertex_array: VertexArray::new("".to_string(), 0, count as u32, 36),
+    //             velocity: HashMap::with_capacity(count as usize),
+    //             edges: HashMap::with_capacity((count * count) as usize)
+    //         };
+
+    //         for ii in 0..count {
+    //             unsafe {
+    //                 let coordinates: Vec3 =  Vec3{value:[
+    //                     js_sys::Math::random().powi(2),
+    //                     js_sys::Math::random().powi(2),
+    //                     js_sys::Math::random()
+    //                 ]};
+    //                 group.insert_agent(ii, coordinates);
+    //             }
+    //         }
+            
+    //         for ii in 0..count {
+    //             for jj in (ii+1)..count {
+    //                 unsafe {
+    //                     let random_length = length + js_sys::Math::random()*length_variability;
+    //                     group.insert_edge([ii, jj], random_length, spring_constant);
+    //                 }
+    //             }
+    //         }
+    //         return group;
+    //     }
+
+
+  
+    //     /**
+    //      * Update link forces and vectors. 
+    //      * 
+    //      * First use the edges to apply forces vectors to each particle, incrementally
+    //      * updating the velocity.
+    //      */
+    //     #[wasm_bindgen(js_name=updateState)]
+    //     pub fn update_links_and_positions(&mut self, drag: f64, bounce: f64, dt: f64, collision_threshold: f64) {
+            
+    //         for (index, edge) in self.group.edges.iter_mut() {
+    //             let [ii, jj] = index.items();
+
+    //             // vector from ii to jj, and it's magnitude
+    //             let delta = self.group.vertex_array.vector(ii, jj);
+    //             let extension = delta.magnitude();
+              
+    //             // predicted delta at next integration step, positive along (jj-ii) vector
+    //             let predicted: f64 = (
+    //                 (self.group.vertex_array.get(jj).unwrap() + &self.group.velocity[jj] * dt) - 
+    //                 (self.group.vertex_array.get(ii).unwrap() + &self.group.velocity[ii] * dt)
+    //             ).magnitude();
+
+    //             let acceleration: Vec3 = delta.normalized() * edge.force(
+    //                 extension, 
+    //                 (predicted-extension)/dt,
+    //                 collision_threshold
+    //             );
+
+    //             for particle in index.items().iter() {
+    //                 let velocity = self.group.velocity.get_mut(particle).unwrap();
+    //                 velocity.value = (velocity.clone() + acceleration).value;
+    //             }
+    //         }
+
+    //         for (index, velocity) in self.group.velocity.iter_mut() {
+    //             let coords = self.group.vertex_array.get_mut(index).unwrap();
+    //             let [new_c, new_v] = Group::next_state(coords, velocity, drag, bounce, dt);
+    //             coords.value = new_c;
+    //             velocity.value = new_v;
+    //         }
+    //     }
+        
+    // }
 
         /**
          * Hoisting function for cursor updates from JavaScript. 

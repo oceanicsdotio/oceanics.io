@@ -596,7 +596,7 @@ function getUint8ClampedMemory0() {
 function getClampedArrayU8FromWasm0(ptr, len) {
     return getUint8ClampedMemory0().subarray(ptr / 1, ptr / 1 + len);
 }
-function __wbg_adapter_253(arg0, arg1, arg2, arg3) {
+function __wbg_adapter_249(arg0, arg1, arg2, arg3) {
     _assertNum(arg0);
     _assertNum(arg1);
     wasm.wasm_bindgen__convert__closures__invoke2_mut__haf7250a096804c72(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
@@ -928,72 +928,6 @@ export class InteractiveGrid {
         if (this.ptr == 0) throw new Error('Attempt to use a moved value');
         _assertNum(this.ptr);
         wasm.interactivegrid_draw(this.ptr, addHeapObject(canvas), time, addHeapObject(style));
-    }
-}
-/**
-*/
-export class InteractiveGroup {
-
-    static __wrap(ptr) {
-        const obj = Object.create(InteractiveGroup.prototype);
-        obj.ptr = ptr;
-
-        return obj;
-    }
-
-    free() {
-        const ptr = this.ptr;
-        this.ptr = 0;
-
-        wasm.__wbg_interactivegroup_free(ptr);
-    }
-    /**
-    * @param {number} count
-    * @param {number} length
-    * @param {number} spring_constant
-    * @param {number} length_variability
-    */
-    constructor(count, length, spring_constant, length_variability) {
-        _assertNum(count);
-        var ret = wasm.interactivegroup_new(count, length, spring_constant, length_variability);
-        return InteractiveGroup.__wrap(ret);
-    }
-    /**
-    * Hoist cursor setter to JavaScript interface.
-    * @param {number} x
-    * @param {number} y
-    */
-    updateCursor(x, y) {
-        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.ptr);
-        wasm.interactivegroup_updateCursor(this.ptr, x, y);
-    }
-    /**
-    * Update link forces and vectors.
-    *
-    * First use the edges to apply forces vectors to each particle, incrementally
-    * updating the velocity.
-    * @param {number} drag
-    * @param {number} bounce
-    * @param {number} dt
-    * @param {number} collision_threshold
-    */
-    updateState(drag, bounce, dt, collision_threshold) {
-        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.ptr);
-        wasm.interactivegroup_updateState(this.ptr, drag, bounce, dt, collision_threshold);
-    }
-    /**
-    * Compose a data-driven interactive canvas for the triangular network.
-    * @param {HTMLCanvasElement} canvas
-    * @param {number} time
-    * @param {number} collision
-    * @param {any} style
-    */
-    draw(canvas, time, collision, style) {
-        if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-        _assertNum(this.ptr);
-        wasm.interactivegroup_draw(this.ptr, addHeapObject(canvas), time, collision, addHeapObject(style));
     }
 }
 /**
@@ -2001,7 +1935,7 @@ export const __wbg_new_261626435fed913c = logError(function(arg0, arg1) {
             const a = state0.a;
             state0.a = 0;
             try {
-                return __wbg_adapter_253(a, state0.b, arg0, arg1);
+                return __wbg_adapter_249(a, state0.b, arg0, arg1);
             } finally {
                 state0.a = a;
             }
@@ -2126,8 +2060,8 @@ export const __wbindgen_memory = function() {
     return addHeapObject(ret);
 };
 
-export const __wbindgen_closure_wrapper3541 = logError(function(arg0, arg1, arg2) {
-    var ret = makeMutClosure(arg0, arg1, 75, __wbg_adapter_26);
+export const __wbindgen_closure_wrapper3336 = logError(function(arg0, arg1, arg2) {
+    var ret = makeMutClosure(arg0, arg1, 73, __wbg_adapter_26);
     return addHeapObject(ret);
 });
 

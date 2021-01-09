@@ -1,5 +1,3 @@
-
-mod agent;  // particle, behavior, and moving object simulation methods
 mod tessellate;  // some core spatial methods
 mod webgl;  // shader magic
 

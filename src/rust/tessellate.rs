@@ -5,21 +5,6 @@ pub mod tessellate {
     use web_sys::{CanvasRenderingContext2d, ImageData};
 
 
-    #[allow(dead_code)]
-    pub struct Node {}
-
-    #[allow(dead_code)]
-    impl Node {}
-
-    #[allow(dead_code)]
-    pub struct Layers {
-        n: usize,
-        z: Vec<f64>,
-        dz: Vec<f64>
-    }
-
-    impl Layers {}
-
     #[wasm_bindgen]
     #[allow(dead_code)]
     pub struct Texture2D {
