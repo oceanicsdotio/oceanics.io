@@ -292,7 +292,7 @@ pub mod agent_system {
                 let b = self.group.vertex_array.get(jj).expect(&format!("Target point missing {}", jj));
                 let vec = b - a;
                 let extension = vec.magnitude();
-                let predicted: f64 = ((self.group.vertex_array.get(jj).unwrap() + &self.group.velocity[jj]) - (self.group.vertex_array.get(jj).unwrap() + &self.group.velocity[ii])).magnitude();
+                let predicted: f64 = ((a + &self.group.velocity[jj]) - (b + &self.group.velocity[ii])).magnitude();
                 let differential = predicted - extension;
                 let force = edge.force(extension, differential, collision);
                 let max_distance = ((3.0 as f64).sqrt() - edge.length).abs();

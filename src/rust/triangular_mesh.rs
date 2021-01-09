@@ -420,7 +420,6 @@ pub mod triangular_mesh {
          * Hoist the `insert_cell` function from child `vertex_array`.
          */
         pub fn insert_cell(&mut self, index: [u16; 3]) {
-            
             self.topology.insert_cell(index);
         }
 
@@ -639,7 +638,10 @@ pub mod triangular_mesh {
             for jj in 0..(ny+1) {
                 let mut alternate_pattern = start_pattern;
                 for ii in 0..(nx+1) {
-                    mesh.insert_point(ni, Vec3 { value: [ dx * ii as f64, dy * jj as f64, 0.0]});
+
+                    let z: f64 = js_sys::Math::random();
+
+                    mesh.insert_point(ni, Vec3 { value: [ dx * ii as f64, dy * jj as f64, z]});
                 
                     if (jj + 1 < (ny+1)) && (ii + 1 < (nx+1)) {
 
@@ -719,7 +721,7 @@ pub mod triangular_mesh {
         pub label_padding: f64,
         pub fade: f64,
         pub radius: f64,
-        pub particle_color: String
+        pub node_color: String
     }
 
     #[wasm_bindgen]
@@ -795,7 +797,11 @@ pub mod triangular_mesh {
         } 
 
         /**
-         * Draw the edges of an arbitrary triangulation network.
+         * Edges are rendered as rays originating at the linked particle, and terminating
+         * at a point defined by the source plus the `vec` attribute of Edge.
+         * 
+         * Display size for agents is used to calculate an offset, so that the ray begins
+         * on the surface of a 3D sphere, projected into the X,Y plane.
          */
         fn draw_edges(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, color: &JsValue, size: f64) -> u16{
             
@@ -805,17 +811,57 @@ pub mod triangular_mesh {
             ctx.begin_path();
 
             let mut count: u16 = 0;
-            let points = &self.mesh.vertex_array.points;
-            for index in &self.mesh.topology.edges {
 
-                let [a, b] = &index.indices;
+            for index in self.mesh.topology.edges.iter() {
+
+                let [ii, jj] = index.items();
+              
+                let a = self.mesh.vertex_array.get(ii).expect(&format!("Source point missing {}", ii));
+                let b = self.mesh.vertex_array.get(jj).expect(&format!("Target point missing {}", jj));
+               
+                if color.as_string().unwrap().len() > 0 {
+                    ctx.set_stroke_style(&color);
+                } else {
+                    let a_color = format!(
+                        "rgba({},{},{},{:.2}", 
+                        255,
+                        0,
+                        255,
+                        1.0 - 1.0 * a.z()
+                    );
+    
+                    let b_color = format!(
+                        "rgba({},{},{},{:.2}", 
+                        255,
+                        0,
+                        255,
+                        1.0 - 1.0 * b.z()
+                    );
+            
+                    let gradient = ctx.create_linear_gradient(a.x(), a.y(), b.x(), b.y());
+                        
+                    if !(gradient.add_color_stop(0.0, &a_color).is_ok() &&
+                        gradient.add_color_stop(0.0, &b_color).is_ok()) {
+                        ctx.set_stroke_style(&gradient);
+                    } else {
+                        let a_color = format!(
+                            "rgba({},{},{},{:.2}", 
+                            255,
+                            255,
+                            255,
+                            1.0
+                        );
+                        ctx.set_stroke_style(&JsValue::from_str(&a_color));
+                    };
+                }
+                
                 ctx.move_to(
-                    points[a].x()*w, 
-                    h - points[a].y()*h
+                    a.x()*w, 
+                    h - a.y()*h
                 );
                 ctx.line_to(
-                    points[b].x()*w, 
-                    h - points[b].y()*h
+                    b.x()*w, 
+                    h - b.y()*h
                 );
                 count += 1;
             }
@@ -826,8 +872,7 @@ pub mod triangular_mesh {
         /**
          * Compose a data-driven interactive canvas for the triangular network. 
          */
-        pub fn draw(&mut self, canvas: HtmlCanvasElement, style: JsValue, time: f64) {
-
+        pub fn draw(&mut self, canvas: HtmlCanvasElement, time: f64, style: JsValue) {
 
             let rstyle: Style = style.into_serde().unwrap();
             let overlay = JsValue::from(rstyle.overlay_color);
@@ -847,7 +892,7 @@ pub mod triangular_mesh {
             if time < 10000.0 || fps < 55.0 {
 
                 let caption = format!(
-                    "Mesh, Points: 0/{}, Cells: 0/{}, Edges: {}/{})", 
+                    "Network, Nodes: 0/{}, Cells: 0/{}, Edges: {}/{})", 
                     self.mesh.vertex_array.points.len(), 
                     self.mesh.topology.cells.len(), 
                     edges,
@@ -872,8 +917,8 @@ pub mod triangular_mesh {
          * Hoisting function for cursor updates from JavaScript. 
          * Prevents null references in some cases
          */
+        #[wasm_bindgen(js_name = "updateCursor")]
         pub fn update_cursor(&mut self, x: f64, y: f64) {
-            
             self.cursor.update(x, y);
         }
 
@@ -882,7 +927,6 @@ pub mod triangular_mesh {
          */
         #[wasm_bindgen]
         pub fn rotate(&mut self, angle: f64, ax: f64, ay: f64, az: f64) {
-            
             self.mesh.rotate(&angle, &Vec3{value:[ax,ay,az]});
             
         }

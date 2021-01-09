@@ -22,6 +22,7 @@ export default () => {
 
     const handle = useTriangularMesh({
         // name: "necofs_gom3_mesh"
+        shape: [16, 16]
     });
     
     return <Canvas

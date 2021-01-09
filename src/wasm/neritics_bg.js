@@ -1028,19 +1028,13 @@ export class InteractiveMesh {
     /**
     * Compose a data-driven interactive canvas for the triangular network.
     * @param {HTMLCanvasElement} canvas
-    * @param {any} background
-    * @param {any} _color
-    * @param {any} overlay
-    * @param {number} line_width
-    * @param {number} font_size
-    * @param {number} tick_size
-    * @param {number} label_padding
     * @param {number} time
+    * @param {any} style
     */
-    draw(canvas, background, _color, overlay, line_width, font_size, tick_size, label_padding, time) {
+    draw(canvas, time, style) {
         if (this.ptr == 0) throw new Error('Attempt to use a moved value');
         _assertNum(this.ptr);
-        wasm.interactivemesh_draw(this.ptr, addHeapObject(canvas), addHeapObject(background), addHeapObject(_color), addHeapObject(overlay), line_width, font_size, tick_size, label_padding, time);
+        wasm.interactivemesh_draw(this.ptr, addHeapObject(canvas), time, addHeapObject(style));
     }
     /**
     * Hoisting function for cursor updates from JavaScript.
@@ -1048,10 +1042,10 @@ export class InteractiveMesh {
     * @param {number} x
     * @param {number} y
     */
-    update_cursor(x, y) {
+    updateCursor(x, y) {
         if (this.ptr == 0) throw new Error('Attempt to use a moved value');
         _assertNum(this.ptr);
-        wasm.interactivemesh_update_cursor(this.ptr, x, y);
+        wasm.interactivemesh_updateCursor(this.ptr, x, y);
     }
     /**
     * Rotate the mesh in place
@@ -2132,8 +2126,8 @@ export const __wbindgen_memory = function() {
     return addHeapObject(ret);
 };
 
-export const __wbindgen_closure_wrapper3518 = logError(function(arg0, arg1, arg2) {
-    var ret = makeMutClosure(arg0, arg1, 73, __wbg_adapter_26);
+export const __wbindgen_closure_wrapper3541 = logError(function(arg0, arg1, arg2) {
+    var ret = makeMutClosure(arg0, arg1, 75, __wbg_adapter_26);
     return addHeapObject(ret);
 });
 

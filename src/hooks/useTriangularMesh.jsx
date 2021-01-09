@@ -113,7 +113,7 @@ export default ({
 
         (function render() {
             const time = performance.now() - start;
-            mesh.draw(ref.current, backgroundColor, meshColor, overlayColor, lineWidth, fontSize, tickSize, labelPadding, time);
+            mesh.draw(ref.current, time, {backgroundColor, meshColor, overlayColor, lineWidth, fontSize, tickSize, labelPadding, fade: 1.0, radius: 8, nodeColor: "#FFFFFFFF"});
             requestId = requestAnimationFrame(render);
         })()
 
