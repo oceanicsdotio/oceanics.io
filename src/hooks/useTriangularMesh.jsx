@@ -21,6 +21,23 @@ const logNormal = (x, m=0, s=1.0) =>
     (1/s/x/Math.sqrt(2*Math.PI)*Math.exp(-1*(Math.log(x)-m)**2 / (2 * s**2)));
 
 
+const mouseMoveEventListener = (canvas, data) => {
+    // recursive use error on line below when panic! in rust
+    const eventType = 'mousemove';
+    const listener = ({clientX, clientY}) => {
+        try {
+            const {left, top} = canvas.getBoundingClientRect();
+            data.updateCursor(clientX-left, clientY-top);
+        } catch (err) {
+            canvas.removeEventListener(eventType, listener);
+            console.log(`Unregistering '${eventType}' events due to error: ${err}.`);
+        }  
+    }
+
+    console.log(`Registering '${eventType}' events.`)
+    return [eventType, listener]
+};
+
 /**
  * Draw a square tessellated by triangles using the 2D context
  * of an HTML canvas. This is accomplished primarily in WASM,
@@ -85,10 +102,7 @@ export default ({
 
         if (!runtime || !mesh || !ref.current) return;
 
-        ref.current.addEventListener('mousemove', ({clientX, clientY}) => {
-            const {left, top} = ref.current.getBoundingClientRect();
-            mesh.update_cursor(clientX-left, clientY-top);
-        });
+        ref.current.addEventListener(...mouseMoveEventListener(ref.current, mesh));
 
         [ref.current.width, ref.current.height] = ["width", "height"].map(
             dim => getComputedStyle(ref.current).getPropertyValue(dim).slice(0, -2)

@@ -21,7 +21,7 @@ pub mod triangular_mesh {
     use std::collections::{HashMap,HashSet};
     use std::iter::FromIterator;
 
-    use serde::{Serialize};  // comm with Web JS
+    use serde::{Serialize,Deserialize};  // comm with Web JS
 
     use crate::vec3::vec3::Vec3;  // 3-D graphics primitive
     use crate::cursor::cursor_system::SimpleCursor;  // custom cursor behavior
@@ -708,6 +708,20 @@ pub mod triangular_mesh {
         frames: usize
     }
 
+    #[derive(Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    struct Style {
+        pub background_color: String, 
+        pub overlay_color: String, 
+        pub line_width: f64,
+        pub font_size: f64, 
+        pub tick_size: f64, 
+        pub label_padding: f64,
+        pub fade: f64,
+        pub radius: f64,
+        pub particle_color: String
+    }
+
     #[wasm_bindgen]
     impl InteractiveMesh {
         /**
@@ -785,7 +799,7 @@ pub mod triangular_mesh {
          */
         fn draw_edges(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, color: &JsValue, size: f64) -> u16{
             
-            ctx.set_stroke_style(&color);
+            ctx.set_stroke_style(color);
             ctx.set_line_width(size);
         
             ctx.begin_path();
@@ -812,18 +826,21 @@ pub mod triangular_mesh {
         /**
          * Compose a data-driven interactive canvas for the triangular network. 
          */
-        pub fn draw(&mut self, canvas: HtmlCanvasElement, background: JsValue, _color: JsValue, overlay: JsValue, line_width: f64, font_size: f64, tick_size: f64, label_padding: f64, time: f64) {
-            
+        pub fn draw(&mut self, canvas: HtmlCanvasElement, style: JsValue, time: f64) {
+
+
+            let rstyle: Style = style.into_serde().unwrap();
+            let overlay = JsValue::from(rstyle.overlay_color);
           
             let ctx: &CanvasRenderingContext2d = &crate::context2d(&canvas);
             let w = canvas.width() as f64;
             let h = canvas.height() as f64;
-            let font = format!("{:.0} Arial", font_size);
-            let inset = tick_size * 0.5;
+            let font = format!("{:.0} Arial", rstyle.font_size);
+            let inset = rstyle.tick_size * 0.5;
 
-            crate::clear_rect_blending(ctx, w, h, background);
-            let edges = self.draw_edges(ctx, w, h, &overlay, line_width);
-            self.cursor.draw(ctx, w, h, &overlay, font_size, line_width, tick_size, 0.0, label_padding);
+            crate::clear_rect_blending(ctx, w, h, JsValue::from(rstyle.background_color));
+            let edges = self.draw_edges(ctx, w, h, &overlay, rstyle.line_width);
+            self.cursor.draw(ctx, w, h, &overlay, rstyle.font_size, rstyle.line_width, rstyle.tick_size, 0.0, rstyle.label_padding);
             
             let fps = (1000.0 * (self.frames + 1) as f64).floor() / time;
    
@@ -842,7 +859,7 @@ pub mod triangular_mesh {
                     &ctx,
                     format!("{:.0} fps", fps),
                     inset,
-                    font_size + inset, 
+                    rstyle.font_size + inset, 
                     &overlay,
                     font
                 );

@@ -1,9 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import useWasmRuntime from "./useWasmRuntime";
 
 
 export default ({
-    ref,
     count=9,
     zero=0.2,
     radius=8.0,
@@ -31,6 +30,7 @@ export default ({
     Spring physics are handled by Rust/WASM.
     */
 
+    const ref = useRef(null);
     const runtime = useWasmRuntime();
     const [particleSystem, setParticleSystem] = useState(null);
     const style = {backgroundColor, overlayColor, lineWidth, fontSize, tickSize, labelPadding, fade, radius, particleColor, radius};
@@ -84,6 +84,4 @@ export default ({
         })()
         return () => cancelAnimationFrame(requestId);
     }, [particleSystem]);
-
-    return {particleSystem, runtime};
 };

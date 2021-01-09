@@ -301,42 +301,42 @@ pub mod cursor_system {
 
    
 
-    /**
-    Convenience method to create a bounding box polygon
-    from a upper-left, width/height type extent. 
+    // /**
+    // Convenience method to create a bounding box polygon
+    // from a upper-left, width/height type extent. 
 
-    Upperleft is given in grid coordinates, and width and height
-    are integers corresponded to the number of grid cells per
-    side of the selected region.
-    */
-    pub fn path_from_grid_cell (
-        upper_left: [f32; 2],
-        width: u8, 
-        height: u8, 
-        clamp: bool, 
-        cel_size: f32
-    ) -> JsValue {
+    // Upperleft is given in grid coordinates, and width and height
+    // are integers corresponded to the number of grid cells per
+    // side of the selected region.
+    // */
+    // pub fn path_from_grid_cell (
+    //     upper_left: [f32; 2],
+    //     width: u8, 
+    //     height: u8, 
+    //     clamp: bool, 
+    //     cel_size: f32
+    // ) -> JsValue {
 
-        let [x, y] = upper_left;
-        let dx = cell_size * width;
-        let dy = cell_size * width;
+    //     let [x, y] = upper_left;
+    //     let dx = cell_size * width;
+    //     let dy = cell_size * width;
 
-        if clamp {
-            x = x.floor();
-            y = y.floor()
-        }
+    //     if clamp {
+    //         x = x.floor();
+    //         y = y.floor()
+    //     }
 
-        x *= cell_size;
-        y *= cell_size;
+    //     x *= cell_size;
+    //     y *= cell_size;
 
-        
-        return [
-            [_x, _y],
-            [_x + width, _y],
-            [_x + width, _y + height],
-            [_x, _y + height]
-        ].map(pt => 
-            pt.map(x => x*cellSize)
-        );
-    };
+
+    //     return [
+    //         [_x, _y],
+    //         [_x + width, _y],
+    //         [_x + width, _y + height],
+    //         [_x, _y + height]
+    //     ].map(pt => 
+    //         pt.map(x => x*cellSize)
+    //     );
+    // };
 }
