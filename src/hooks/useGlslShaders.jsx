@@ -69,7 +69,7 @@ export const useGlslShaders = ({
     
             setPrograms(compiled);
         })();
-    }, [runtime]);
+    }, [runtime, ref]);
 
     return {programs}
 

@@ -32,6 +32,7 @@ exports.onCreateWebpackConfig = ({ stage, loaders, actions }) => {
                         test: /wasm/,
                         use: loaders.null(),
                     }
+                    
                 ]
             }
         })

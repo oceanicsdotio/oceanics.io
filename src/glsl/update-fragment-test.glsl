@@ -46,18 +46,19 @@ void main() {
         color.g / 255.0 + color.a
     );
 
-    vec2 velocity = mix(u_wind_min, u_wind_max, lookup_wind(pos));
-    float distortion = cos(radians(pos.y * 180.0 - 90.0));  // take EPSG:4236 distortion into account for calculating where the particle moved
-    vec2 offset = vec2(velocity.x / distortion, -velocity.y) * 0.0001 * speed;
-    pos = fract(1.0 + pos + offset);
+    // vec2 velocity = mix(u_wind_min, u_wind_max, lookup_wind(pos));
+    // float distortion = cos(radians(pos.y * 180.0 - 90.0));  // take EPSG:4236 distortion into account for calculating where the particle moved
+    // vec2 offset = vec2(velocity.x / distortion, -velocity.y) * 0.0001 * speed;
+    // pos = fract(1.0 + pos + offset);
 
     vec2 seed = (pos + v_tex_pos) * seed;
-    float drop = step(1.0 - (drop + length(velocity) / length(u_wind_max) * bump), rand(seed));
+    // float drop = step(1.0 - (drop + length(velocity) / length(u_wind_max) * bump), rand(seed));
     vec2 random_pos = vec2(
         rand(seed + 1.3),
         rand(seed + 2.1)
     );
-    pos = mix(pos, random_pos, drop) * 255.0;
+    // pos = mix(pos, random_pos, drop) * 255.0;
+    pos = (pos + 0.01*(rand(random_pos) - 0.5))* 255.0;
     gl_FragColor = vec4(
         fract(pos),
         floor(pos) / 255.0

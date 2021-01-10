@@ -92,5 +92,6 @@ module.exports = {
         },
         `gatsby-plugin-offline`,  // service worker implementation
         `gatsby-transformer-yaml-full`,
+        'gatsby-plugin-workerize-loader'
     ],
 }

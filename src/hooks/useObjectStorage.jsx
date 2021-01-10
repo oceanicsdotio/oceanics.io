@@ -1,44 +1,40 @@
-import {useEffect, useState} from "react";
+import {useEffect, useState, useRef} from "react";
+import Worker from "./useObjectStorage.worker.js";
 
+/**
+ * The `useObjectStorage` hook provides a directory like structure
+ * that describes assets in an S3-compatible storage service. 
+ */
 export default ({
     target
 }) => {
 
+    /**
+     * Memoize the metadata for the assets in object storage
+     */
     const [ fileSystem, setFileSystem ] = useState(null);
-    
+
+    /**
+     * Web worker reference for background tasks.
+     */
+    const worker = useRef(null);
+
+    /**
+     * Instantiate the web worker
+     */
     useEffect(() => {
-
-        if (!target) return;
-
-        fetch(target, {
-            method: 'GET',
-            mode: 'cors',
-            cache: 'no-cache'
-        })
-            .then(response => response.text())
-            .then(text => {
-                
-                const parser = new DOMParser();
-                const xmlDoc = parser.parseFromString(text, "text/xml");
-                const nodes = Array.from(xmlDoc.childNodes[0].childNodes);
-
-                setFileSystem({
-                    objects: nodes.filter(
-                        ({tagName}) => tagName == "Contents"
-                    ).map(node => Object({
-                        key: node.childNodes[0].textContent,
-                        updated: node.childNodes[1].textContent,
-                        size: node.childNodes[3].textContent,
-                    })),
-                    collections: nodes.filter(
-                        ({tagName}) => tagName == "CommonPrefixes"
-                    ).map(node => Object({
-                        key: node.childNodes[0].textContent
-                    }))
-                });
-            })
-            .catch(err => console.log(err))
-        
+        if (!worker.current) worker.current = new Worker();
+    }, []);
+    
+    /**
+     * Get the asset metadata from object storage service
+     */
+    useEffect(() => {
+        if (!target || !worker.current) return;
+        worker.current
+            .getFileSystem(target)
+            .then(setFileSystem)
+            .catch(err => {console.log(err)});        
     }, []);
 
     return fileSystem;

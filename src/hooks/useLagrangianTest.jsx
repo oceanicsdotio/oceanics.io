@@ -112,6 +112,8 @@ export default ({
         );
     }, []);
 
+    
+
 
     /**
     * Fetch the metadata file. 
@@ -260,7 +262,8 @@ export default ({
                 draw_as: triangles,
                 viewport: world,
                 callback: () => [back, textures.screen] = [textures.screen, back]  // ! blend alternate frames
-            },{
+            },
+            {
                 program: update,
                 components: {
                     tex: [[textures.color, 2]],
@@ -272,7 +275,8 @@ export default ({
                 draw_as: triangles,
                 viewport: positions,
                 callback: () => [state, previous] = [previous, state] // use previous pass to calculate next position
-            }];
+            }
+        ];
             
             [...steps_a, ...steps_b].forEach(x => exec(runtime, ctx, uniforms, x));
 

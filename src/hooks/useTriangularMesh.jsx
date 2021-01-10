@@ -1,23 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 
-import { GeoJsonSource } from "./useMapboxGeoJsonLayers";
 import useWasmRuntime from "./useWasmRuntime";
 import useObjectStorage from "./useObjectStorage";
+import Worker from "./useMapboxGeoJsonLayers.worker.js";
 
 
-const MAX_VALUE = 5200;
 const TARGET = "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com";
 const PREFIX = "MidcoastMaineMesh";
-
-
-/**
- * Log normal density function for color mapping
- * @param {*} x 
- * @param {*} m 
- * @param {*} s 
- */
-const logNormal = (x, m=0, s=1.0) => 
-    (1/s/x/Math.sqrt(2*Math.PI)*Math.exp(-1*(Math.log(x)-m)**2 / (2 * s**2)));
 
 
 const mouseMoveEventListener = (canvas, data) => {
@@ -99,6 +88,17 @@ export default ({
         if (runtime && !name) setMesh(new runtime.InteractiveMesh(...shape)); 
     }, [runtime]);
 
+    /**
+     * Web worker reference for background tasks.
+     */
+    const worker = useRef(null);
+
+    /**
+     * Instantiate the web worker, lazy load style
+     */
+    useEffect(() => {
+        worker.current = new Worker();
+    }, []);
 
     /**
      * If the `ref` has been assigned to a canvas target,
@@ -129,7 +129,6 @@ export default ({
 
         (function render() {
             const time = performance.now() - start;
-
             // mesh.updateState(drag, bounce, timeConstant, collisionThreshold);
             mesh.draw(ref.current, time, style);
             requestId = requestAnimationFrame(render);
@@ -164,60 +163,31 @@ export default ({
      * All of this should be cached by the browser
      */
     useEffect(()=>{
-        if (!map || !queue.length || map.getLayer(`mesh-${queue[0].key}`)) return;
-            
-        fetch(`${TARGET}/${queue[0].key}`)
-            .then(response => response.blob())
-            .then(blob => {
+        if (!map || !worker.current || !queue.length) return;
 
-                (new Promise((resolve) => {
-                    var reader = new FileReader();
-                    reader.onloadend = () => {resolve(reader.result)};
-                    reader.readAsArrayBuffer(blob);
-                })).then(array => {
-
-                    const source = GeoJsonSource({features: (new Float32Array(array)).reduce(
-                        (acc, cur)=>{
-                            if (!acc.count) acc.features.push([]);
-                        
-                            acc.features[acc.features.length-1].push(cur);
-                            acc.count = (acc.count + 1 ) % 3;
-                            return acc;
-                        },
-                        {count: 0, features: []}
-                    ).features.map(
-                        coordinates => Object({
-                            geometry: {type: "Point", coordinates},
-                            properties: {
-                                q: (((100 + coordinates[2]) / MAX_VALUE) - 1)**2,
-                                ln: logNormal((100 + coordinates[2]) / MAX_VALUE, 0.0, 1.5)
-                            }
-                        })
-                    )});
-
-                    source.attribution = attribution;
-
-                    map.addLayer({
-                        id: `mesh-${queue[0].key}`,
-                        type: "circle",
-                        source: source,
-                        paint: {
-                            "circle-radius":  {stops: [[0, 0.1], [22, 1]]},
-                            "circle-stroke-width": 1,
-                            "circle-stroke-color": [
-                                "rgba",
-                                ["*", 127, ["get", "q"]],
-                                ["*", 127, ["get", "ln"]],
-                                ["*", 127, ["-", 1, ["get", "q"]]],
-                                0.5
-                            ]
-                        }
-                    });
-
-                    setQueue(queue.slice(1, queue.length));
-                });
+        const key = queue[0].key;
+        setQueue(queue.slice(1, queue.length));
+        if (map.getLayer(`mesh-${key}`)) return;
+        
+        worker.current.getFragment(`${TARGET}/${key}`, attribution).then(source => {
+            map.addLayer({
+                id: `mesh-${key}`,
+                type: "circle",
+                source,
+                paint: {
+                    "circle-radius":  {stops: [[0, 0.1], [22, 1]]},
+                    "circle-stroke-width": 1,
+                    "circle-stroke-color": [
+                        "rgba",
+                        ["*", 127, ["get", "q"]],
+                        ["*", 127, ["get", "ln"]],
+                        ["*", 127, ["-", 1, ["get", "q"]]],
+                        0.5
+                    ]
+                }
             });
-    },[map, queue]);
+        });
+    },[map, worker, queue]);
 
     return {
         mesh, 

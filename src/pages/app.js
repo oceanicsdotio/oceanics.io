@@ -3,7 +3,6 @@ import React, { useState, useEffect } from "react";
 import {graphql} from "gatsby";
 import styled from "styled-components";
 
-import useRectilinearGrid from "../hooks/useRectilinearGrid";
 import useOceanside from "../hooks/useOceanside";
 import useDetectDevice from "../hooks/useDetectDevice";
 
@@ -171,15 +170,6 @@ export default ({
 
     const {mobile} = useDetectDevice(); 
     const isometric = useOceanside({});
-    const grid = useRectilinearGrid({
-        lineWidth: 1.0,
-        boundingBox: [
-            [-70.1, 44.0],
-            [-69.7, 44.0],
-            [-69.7, 43.6],
-            [-70.1, 43.6]
-        ]
-    });
 
     /**
      * Assume that on mobile the user will want to see the map
@@ -219,11 +209,6 @@ export default ({
     return <Application mobile={mobile} expand={expand}>
 
         <SEO title={title} />
-
-        {/* <BackBuffer
-            id={grid.mapbox.layer.id}
-            ref={grid.ref}
-        />  */}
 
         <ColumnContainer 
             display={!columnSize({expand, mobile, column: 0}) ? "none" : undefined}

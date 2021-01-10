@@ -1,82 +1,56 @@
-import {useEffect, useState} from "react";
+import {useEffect, useState, useRef} from "react";
+import Worker from "./useMapboxGeoJsonLayers.worker.js";
 
-
-// Formatting function, generic to all providers
-const Features = ({
-    features,
-    standard
-}) => {
-    switch(standard) {
-        // ESRI does things their own special way.
-        case "esri":
-            return features
-                .map(({
-                    geometry: {x, y}, 
-                    attributes
-                }) => 
-                    Object({
-                        type: 'Feature',
-                        geometry: {
-                            type: 'Point',
-                            coordinates: [x, y]
-                        },
-                        properties: attributes
-                    }));
-        // NOAA also does things their own special way
-        case "noaa":
-            return features
-                .filter(x => "data" in x && "metadata" in x)
-                .map(({
-                    data: [head], 
-                    metadata: {lon, lat, ...metadata}
-                }) => 
-                    Object({
-                        type: 'Feature',
-                        geometry: {
-                            type: 'Point',
-                            coordinates: [lon, lat]
-                        },
-                        properties: {...head, ...metadata}
-                    }));
-        // Otherwise let us hope it is GeoJSON and catch it up the stack
-        default:
-            return features;
-    };
-};
-
-// Out ready for Mapbox as a Layer object description
-export const GeoJsonSource = ({
-    features,
-    standard,
-    properties=null
-}) => 
-    Object({
-        type: "geojson", 
-        generateId: true,
-        data: {
-            type: "FeatureCollection",
-            features: Features({
-                features, 
-                standard
-            }),
-            properties,
-        }, 
-    });
 
 /**
-Asynchronously retrieve the geospatial data files and parse them.
-
-Skip this if the layer data has already been loaded, or if the map doesn't exist yet
-*/
-
+ * Asynchronously retrieve geospatial data files and parse them in the background using a web worker.
+ *
+ * Skip loadingif the layer data has already been loaded, or if the map doesn't exist yet.
+ */
 export default ({
     map,
     layers
 }) => {
+
+    /**
+     * Metadata for setting the rednering order of the layers.
+     */
     const [metadata, setMetadata] = useState([]);
+
+
+    /**
+     * Extract the rendering order of the layers.
+     */
+    useEffect(()=>{
+        if (!layers) return;
+        setMetadata(
+            layers
+                .map(({behind, id}) => Object({behind, id}))
+                .filter(({behind}) => typeof behind !== undefined)
+        );
+    },[layers]);
+
     
+    /**
+     * Web worker reference for background tasks.
+     */
+    const worker = useRef(null);
+
+
+    /**
+     * Instantiate the web worker, lazy load style
+     */
     useEffect(() => {
-        if (!map || !layers) return;
+        worker.current = new Worker();
+    }, []);
+
+    
+    /**
+     * Task the web worker with loading and transforming data to add
+     * to the MapBox instance as a GeoJSON layer. 
+     */
+    useEffect(() => {
+        if (!map || !layers || !worker.current) return;
        
         layers.forEach(({
             id,
@@ -88,35 +62,16 @@ export default ({
         }) => {
             // Guard against re-loading layers
             if (map.getLayer(id)) return;
-
-            fetch(url ? url : `/${id}.json`)
-                .then(response => response.json())
-                // .then(text => JSON.parse(text))
-                .then(({features}) => {
-                    map.addLayer({
-                        ...layer, 
-                        id,
-                        source: GeoJsonSource({
-                            features, 
-                            standard
-                        })
-                    });
-                    if (onClick) {
-                        map.on('click', id, onClick);
-                    }
-                })
-                .catch(err => {
-                    console.log(`Error loading ${id}`, err);
-                });
+            worker.current.getData(url, standard).then(source => {
+                map.addLayer({id, source, ...layer});
+                if (onClick) map.on('click', id, onClick);
+            }).catch(err => {
+                console.log(`Error loading ${id}`, err);
+            });
         }); 
         
-        setMetadata(
-            layers
-                .map(({behind, id})=>Object({behind, id}))
-                .filter(({behind}) => typeof behind !== undefined)
-        );
+    }, [map, layers, worker]);
 
-    }, [map, layers]);
 
     return {metadata};
 };
