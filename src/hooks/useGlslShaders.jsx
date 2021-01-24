@@ -55,8 +55,8 @@ const shaderSource = {
  * Returns falsey value if there is no graphics context available,
  * otherwise return the context handle.
  */
-export const validContext = (ref, context="webgl") =>  
-    (!ref || !ref.current) ? false : ref.current.getContext(context);
+const validContext = (ref) => () => 
+    (!ref || !ref.current) ? false : ref.current.getContext("webgl");
     
 
 
@@ -259,7 +259,8 @@ export const useGlslShaders = ({
     return {
         programs,
         runtime,
-        validContext: () => (!ref || !ref.current) ? false : ref.current.getContext("webgl")
+        validContext: validContext(ref),
+        VertexArrayBuffers,
     }
 
 };

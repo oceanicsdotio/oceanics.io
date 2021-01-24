@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { useGlslShaders, createTexture, VertexArrayBuffers, renderPipeline } from "./useGlslShaders";
+import { useGlslShaders, createTexture, renderPipeline } from "./useGlslShaders";
 import useCanvasColorRamp from "./useCanvasColorRamp";
 
 /**
@@ -23,8 +23,8 @@ export default ({
     metadataFile,
     res = 16,
     colors = {
-        0.0: '#deabab',
-        1.0: '#660066',
+        0.0: '#deababff',
+        1.0: '#660066ff',
         
     },
     opacity = 0.92, // how fast the particle trails fade on each frame
@@ -48,7 +48,7 @@ export default ({
      * Shader programs compiled from GLSL source. Comes with a recycled
      * Rust-WASM runtime. 
      */
-    const { runtime, programs, validContext } = useGlslShaders({
+    const { runtime, programs, validContext, VertexArrayBuffers } = useGlslShaders({
         ref, 
         shaders: {
             screen: ["quad-vertex", "screen-fragment"],
@@ -107,17 +107,10 @@ export default ({
             });
     }, []);
 
-
-    /**
-     * Container for handles to GPU interface
-     */
-    const [ assets, setAssets ] = useState(null);
-
     /**
      * Container for handles to GPU interface
      */
     const [ imageData, setImageData ] = useState(null);
-
 
     /**
      * Use external data as a velocity field to force movement of particles
@@ -135,6 +128,11 @@ export default ({
         img.crossOrigin = source.includes(".") ? "" : undefined;
         img.src = source;
     },[]);
+
+    /**
+     * Container for handles to GPU interface
+     */
+    const [ assets, setAssets ] = useState(null);
 
     /**
     * Generate assets and handles for rendering to canvas.
