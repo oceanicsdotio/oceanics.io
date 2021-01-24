@@ -7,7 +7,7 @@ import useCanvasColorRamp from "./useCanvasColorRamp";
  */
 const parameters = {
     screen: ["u_screen", "u_opacity"],
-    sim: ["speed",  "drop",  "bump", "seed", "u_wind_res"],
+    sim: ["speed",  "drop",  "seed", "u_wind_res", "diffusivity"],
     wind: ["u_wind", "u_particles", "u_color_ramp", "u_particles_res", "u_wind_max", "u_wind_min"],
     color: ["u_color_ramp", "u_opacity"],
 };
@@ -23,12 +23,13 @@ export default ({
     metadataFile,
     res = 16,
     colors = {
-        0.0: '#dd7700',
-        0.5: '#deabab',
-        1.0: '#660066'
+        0.0: '#deabab',
+        1.0: '#660066',
+        
     },
-    opacity = 0.98, // how fast the particle trails fade on each frame
-    speed = 0.3, // how fast the particles move
+    opacity = 0.92, // how fast the particle trails fade on each frame
+    speed = 0.00007, // how fast the particles move
+    diffusivity = 0.004,
     drop = 0.01, // how often the particles move to a random place
     bump = 0.01 // drop rate increase relative to individual particle speed 
 }) => {
@@ -52,7 +53,7 @@ export default ({
         shaders: {
             screen: ["quad-vertex", "screen-fragment"],
             draw: ["draw-vertex", "draw-fragment"],
-            update: ["quad-vertex", "update-fragment"]
+            update: ["quad-vertex", "update-fragment"],
         }
     });
 
@@ -170,11 +171,12 @@ export default ({
                 "u_particles": ["i", 1],
                 "u_color_ramp": ["i", 2],
                 "u_particles_res": ["f", res],
+                "u_point_size": ["f", 1.5],
                 "u_wind_max": ["f", [metadata.u.max, metadata.v.max]],
                 "u_wind_min": ["f", [metadata.u.min, metadata.v.min]],
                 "speed": ["f", speed],
+                "diffusivity": ["f", diffusivity],
                 "drop": ["f", drop],
-                "bump": ["f", bump],
                 "seed": ["f", Math.random()],
                 "u_wind_res": ["f", [width, height]]
             }
@@ -234,7 +236,7 @@ export default ({
                     program: programs.draw,
                     textures: [[assets.textures.color, 2]],
                     attributes: [assets.buffers.index],
-                    parameters: parameters.wind,
+                    parameters: [...parameters.wind, "u_point_size"],
                     framebuffer: [assets.framebuffer, screen],  // variable
                     topology: [ctx.POINTS, res * res],
                     viewport: [0, 0, ref.current.width, ref.current.height]
