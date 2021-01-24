@@ -126,3 +126,109 @@ export class ArrayBuffer {
         ctx.bufferData(ctx.ARRAY_BUFFER, new Float32Array(data), ctx.STATIC_DRAW);
     }
 };
+
+
+/**
+ * Name of time variable in shader source code. The handle for the uniform
+ * is hoisted to the program object during compilation.
+ */
+const CLOCK_UNIFORM = "u_time";
+
+/**
+ * Execute a shader program and all binding steps needed to make data
+ * available to the hardware
+ */
+export const renderPipelineStage = ({
+    runtime, 
+    ctx, 
+    uniforms, 
+},{
+    textures=[],
+    attributes=[],
+    framebuffer: [
+        handle=null, 
+        texture=null
+    ],
+    parameters=[],
+    program={},
+    topology: [
+        type, 
+        count
+    ],
+    viewport,
+    callback = null,
+}) => {
+
+    ctx.viewport(...viewport);
+    ctx.bindFramebuffer(ctx.FRAMEBUFFER, handle);
+
+    /**
+     * Ensure any required framebuffer is attached before trying to load the
+     * shader programs.
+     */
+    if (texture)
+        ctx.framebufferTexture2D(ctx.FRAMEBUFFER, ctx.COLOR_ATTACHMENT0, ctx.TEXTURE_2D, texture, 0); 
+    
+    /**
+     * Attempt to use the program, and quit if there is a problem in the GLSL code.
+     */
+    try {
+        ctx.useProgram(program.program);
+    } catch (TypeError) {
+        console.log("Error loading program", program)
+        return;
+    }
+
+    /**
+     * Load textures into meory
+     */
+    textures.forEach(([tex, slot]) => runtime.bind_texture(ctx, tex, slot));
+    
+    /**
+     * Bind vertex attribute arraybuffers to hardware memory handles
+     */
+    attributes.forEach(([buffer, handle, numComponents]) => {
+        ctx.bindBuffer(ctx.ARRAY_BUFFER, buffer);
+        ctx.enableVertexAttribArray(handle);
+        ctx.vertexAttribPointer(handle, numComponents, ctx.FLOAT, false, 0, 0);
+    });
+
+    /**
+     * Format and bind a value to each uniform variable in the context.
+     */ 
+    parameters.forEach((key) => {
+        const [type, value] = uniforms[key];
+        const size = value.length || 1;
+        ctx[`uniform${size}${type}`](program[key], ...(size === 1 ? [value]: value))
+    });
+
+    /**
+     * Update clock for deterministic simulation components and psuedo random
+     * number generation.
+     */
+    if (CLOCK_UNIFORM in program) 
+        ctx[`uniform1f`](program[CLOCK_UNIFORM], performance.now());
+    
+    /**
+     * Draw the data to the target texture or screen buffer.
+     */
+    ctx.drawArrays(type, 0, count);
+
+    /**
+     * Execute a callback function, currently intended to swap buffers between rendering
+     * steps when using double buffering to/from textures for state and rendering targets.
+     */
+    if (callback) callback();
+    
+};
+
+
+export const renderPipeline = (
+    runtime, 
+    ctx, 
+    uniforms,
+    pipeline
+) => {
+    const args = {runtime, ctx, uniforms};
+    pipeline.forEach(step => renderPipelineStage(args, step));
+}

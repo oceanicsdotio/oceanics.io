@@ -1,7 +1,7 @@
 mod tessellate;  // some core spatial methods
 mod webgl;  // shader magic
 
-mod lagrangian;
+// mod lagrangian;
 mod primitive;
 mod vec3;
 mod cursor;  // cursor replacements and canvas event handling system

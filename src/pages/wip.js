@@ -16,7 +16,7 @@ export default () => {
     const handle = useLagrangian({
         source: "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com/bathysphere/geospatial/wind.png",
         metadataFile: "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com/bathysphere/geospatial/wind.json",
-        res: 1000
+        res: 64
     });
 
 
