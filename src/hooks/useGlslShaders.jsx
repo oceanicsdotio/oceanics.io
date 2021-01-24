@@ -258,6 +258,7 @@ export const useGlslShaders = ({
 
     return {
         programs,
+        runtime,
         validContext: () => (!ref || !ref.current) ? false : ref.current.getContext("webgl")
     }
 

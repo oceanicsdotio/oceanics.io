@@ -1,6 +1,5 @@
 import { useEffect, useState, useRef } from "react";
 import { useGlslShaders, createTexture, VertexArrayBuffers, renderPipeline } from "./useGlslShaders";
-import useWasmRuntime from "./useWasmRuntime";
 import useCanvasColorRamp from "./useCanvasColorRamp";
 
 /**
@@ -45,22 +44,17 @@ export default ({
     const preview = useRef(null);
 
     /**
-     * Shader programs compiled from GLSL source.
+     * Shader programs compiled from GLSL source. Comes with a recycled
+     * Rust-WASM runtime. 
      */
-    const { programs, validContext } = useGlslShaders({
+    const { runtime, programs, validContext } = useGlslShaders({
         ref, 
         shaders: {
-            draw: ["draw-vertex", "draw-fragment"],
             screen: ["quad-vertex", "screen-fragment"],
+            draw: ["draw-vertex", "draw-fragment"],
             update: ["quad-vertex", "update-fragment"]
         }
     });
-
-    /**
-     * Rust-WASM binary and JavaScript bindings for numerical
-     * components
-     */
-    const runtime = useWasmRuntime();
 
     /**
      * Paints a colormap to a hidden canvas and then samples it as 
@@ -118,30 +112,27 @@ export default ({
      */
     const [ assets, setAssets ] = useState(null);
 
+    /**
+     * Container for handles to GPU interface
+     */
+    const [ imageData, setImageData ] = useState(null);
+
 
     /**
      * Use external data as a velocity field to force movement of particles
      */
     useEffect(()=>{
-        const ctx = validContext();
-        if (!ctx || !source || !particles || !colorMap) return;
+        if (!source) return;
       
         const img = new Image();
         img.addEventListener('load', () => {
-            setAssets({
-                img,
-                textures: {
-                    uv: createTexture({ctx: ctx, filter: "LINEAR", data: img})
-                },
-                uniforms: []
-            });
+            setImageData(img);
         }, {
             capture: true,
             once: true,
         });
         img.crossOrigin = source.includes(".") ? "" : undefined;
         img.src = source;
-
     },[]);
 
     /**
@@ -153,66 +144,51 @@ export default ({
     */
     useEffect(() => {
         const ctx = validContext();
-        if (!ctx || !particles || !metadata || !colorMap) return;
-    
+        if (!ctx || !particles || !metadata || !colorMap || (source && !imageData)) return;
+        
         const { width, height } = ref.current;
-        const shape = [ width, height ];
-        const { u, v } = metadata;
         const size = width * height * 4;
-        const uniforms = {
-            "u_screen" : ["i", 2],
-            "u_opacity": ["f", opacity],
-            "u_wind": ["i", 0],
-            "u_particles": ["i", 1],
-            "u_color_ramp": ["i", 2],
-            "u_particles_res": ["f", res],
-            "u_wind_max": ["f", [u.max, v.max]],
-            "u_wind_min": ["f", [u.min, v.min]],
-            "speed": ["f", speed],
-            "drop": ["f", drop],
-            "bump": ["f", bump],
-            "seed": ["f", Math.random()],
-            "u_wind_res": ["f", [width, height]]
-        }
-
-        const img = new Image();
-        img.addEventListener('load', () => {
-            setAssets({
-                img,
-                textures: 
-                    Object.fromEntries(Object.entries({
-                        screen: { data: new Uint8Array(size), shape },
-                        back: { data: new Uint8Array(size), shape },
-                        state: { data: particles, shape: [res, res] },
-                        previous: { data: particles, shape: [res, res] },
-                        color: colorMap,
-                        uv: { filter: "LINEAR", data: img },
-                    }).map(
-                        ([k, v]) => [k, createTexture({ctx: ctx, ...v})]
-                    )),
-                buffers: VertexArrayBuffers(ctx, particles),
-                framebuffer: ctx.createFramebuffer(),
-                uniforms
-            });
-
-
-        }, {
-            capture: true,
-            once: true,
+       
+        setAssets({
+            textures: 
+                Object.fromEntries(Object.entries({
+                    screen: { data: new Uint8Array(size), shape: [ width, height ] },
+                    back: { data: new Uint8Array(size), shape: [ width, height ] },
+                    state: { data: particles, shape: [res, res] },
+                    previous: { data: particles, shape: [res, res] },
+                    color: colorMap,
+                    ...(imageData ? {uv: { filter: "LINEAR", data: imageData }} : {}),
+                }).map(
+                    ([k, v]) => [k, createTexture({ctx: ctx, ...v})]
+                )),
+            buffers: VertexArrayBuffers(ctx, particles),
+            framebuffer: ctx.createFramebuffer(),
+            uniforms: {
+                "u_screen" : ["i", 2],
+                "u_opacity": ["f", opacity],
+                "u_wind": ["i", 0],
+                "u_particles": ["i", 1],
+                "u_color_ramp": ["i", 2],
+                "u_particles_res": ["f", res],
+                "u_wind_max": ["f", [metadata.u.max, metadata.v.max]],
+                "u_wind_min": ["f", [metadata.u.min, metadata.v.min]],
+                "speed": ["f", speed],
+                "drop": ["f", drop],
+                "bump": ["f", bump],
+                "seed": ["f", Math.random()],
+                "u_wind_res": ["f", [width, height]]
+            }
         });
-        img.crossOrigin = source.includes(".") ? "" : undefined;
-        img.src = source;
-
-    }, [ref, particles, metadata, colorMap]);
+    }, [ref, particles, metadata, colorMap, imageData]);
 
     /**
      * Display the wind data in a secondary 2D HTML canvas, for debugging
      * and interpretation. 
      */
     useEffect(() => {
-        if (!preview || !preview.curent || !assets || !assets.img) return;
-        preview.current.getContext("2d").drawImage(assets.img, 0, 0, preview.current.width, preview.current.height);
-    }, [preview, assets]);
+        if (!preview || !preview.curent || !imageData) return;
+        preview.current.getContext("2d").drawImage(imageData, 0, 0, preview.current.width, preview.current.height);
+    }, [preview, imageData]);
 
     /**
      * Start the rendering loop

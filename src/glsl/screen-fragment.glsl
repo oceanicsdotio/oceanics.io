@@ -1,8 +1,20 @@
 precision mediump float;
-uniform sampler2D u_screen;  // texture sampler handle
-uniform float u_opacity;  // blending constant for interleaving the frames
-varying vec2 v_tex_pos; // texture sample position
 
+/**
+ * Texture sampler handle, passed in from JavaScript
+ */
+uniform sampler2D u_screen;  
+
+/**
+ * Blending constant for interleaving the frames.
+ * Set externally from JavaScript.
+ */
+uniform float u_opacity;  
+
+/**
+ * Texture sample position calculated in the vertex shader `quad-vertex.glsl`.
+ */
+varying vec2 v_tex_pos;
 
 /*
  * Sample a 2D texture to determine the color.
@@ -10,6 +22,5 @@ varying vec2 v_tex_pos; // texture sample position
  * Texture sample position set from attribute in vertex shader `quad-vertex.glsl`.
  */
 void main() {
-    vec4 color = texture2D(u_screen, 1.0 - v_tex_pos);
-    gl_FragColor = color * u_opacity;
+    gl_FragColor = texture2D(u_screen, 1.0 - v_tex_pos) * u_opacity;
 }
