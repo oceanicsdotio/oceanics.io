@@ -1,6 +1,8 @@
 import { useEffect, useState, useRef } from "react";
-import { useGlslShaders, createTexture, renderPipeline } from "./useGlslShaders";
+import useGlslShaders from "./useGlslShaders";
 import useCanvasColorRamp from "./useCanvasColorRamp";
+
+import Worker from "./useLagrangianTest.worker.js";
 
 /**
  * Mapping of uniforms to program components
@@ -30,8 +32,8 @@ export default ({
     opacity = 0.92, // how fast the particle trails fade on each frame
     speed = 0.00007, // how fast the particles move
     diffusivity = 0.004,
+    pointSize = 1.0,
     drop = 0.01, // how often the particles move to a random place
-    bump = 0.01 // drop rate increase relative to individual particle speed 
 }) => {
    
     /**
@@ -45,10 +47,29 @@ export default ({
     const preview = useRef(null);
 
     /**
+     * Web worker reference for background tasks.
+     */
+    const worker = useRef(null);
+
+    /**
+     * Instantiate the web worker, lazy load style
+     */
+    useEffect(() => {
+        worker.current = new Worker();
+    }, []);
+
+    /**
      * Shader programs compiled from GLSL source. Comes with a recycled
      * Rust-WASM runtime. 
      */
-    const { runtime, programs, validContext, VertexArrayBuffers } = useGlslShaders({
+    const { 
+        runtime, 
+        programs, 
+        validContext, 
+        VertexArrayBuffers,
+        createTexture,
+        renderPipeline
+    } = useGlslShaders({
         ref, 
         shaders: {
             screen: ["quad-vertex", "screen-fragment"],
@@ -69,21 +90,13 @@ export default ({
     const [ particles, setParticles ] = useState(null);
 
     /**
-    * Create a random distribution of particle positions,
-    * encoded as 4-byte colors. 
-    * 
-    * This is the default behavior, but it is broken out as a 
-    * effect so that additional logic can be applied, 
-    * or initial positions can be loaded from a DB or file.
-    */
+     * Create a initial distribution of particle positions,
+     * encoded as 4-byte colors.
+     */
     useEffect(() => {
-        setParticles(
-            new Uint8Array(Array.from(
-                { length: res * res * 4 }, 
-                () => Math.floor(Math.random() * 256)
-            ))
-        );
-    }, []);
+        if (worker.current)
+            worker.current.initParticles(res).then(setParticles);
+    }, [ worker ]);
 
     /**
      * Interpreting image formatted velocity data requires having
@@ -93,19 +106,11 @@ export default ({
 
     /**
      * Fetch the metadata file. 
-     * 
-     * This has no dependencies and will probably be executed first. 
-     * In the future this may support static files or DB queries. 
      */
     useEffect(() => {
-        if (!metadataFile) return;
-        fetch(metadataFile)
-            .then(r => r.json())
-            .then(setMetadata)
-            .catch(err => {
-                console.log("Metadata Error", err)
-            });
-    }, []);
+        if (metadataFile && worker.current)
+            worker.current.getImageMetadata(metadataFile).then(setMetadata);
+    }, [ worker ]);
 
     /**
      * Container for handles to GPU interface
@@ -169,7 +174,7 @@ export default ({
                 "u_particles": ["i", 1],
                 "u_color_ramp": ["i", 2],
                 "u_particles_res": ["f", res],
-                "u_point_size": ["f", 1.5],
+                "u_point_size": ["f", pointSize],
                 "u_wind_max": ["f", [metadata.u.max, metadata.v.max]],
                 "u_wind_min": ["f", [metadata.u.min, metadata.v.min]],
                 "speed": ["f", speed],
@@ -206,15 +211,7 @@ export default ({
                 screen 
             },
         } = assets;  // non-static assets
-
-        // const nextPipeline = ({ 
-        //     back, 
-        //     previous, 
-        //     state, 
-        //     screen 
-        // }) => []
-
-        
+ 
         (function render() {
             const pipeline = [
                 {

@@ -20,6 +20,11 @@ export class ArrayBuffer {
     }
 };
 
+export const extractUniforms = (keys, uniforms) => 
+    keys.map(k => [k, uniforms[k]]);
+
+
+
 /**
  * Name of the GLSL variable for particle positions
  */
@@ -34,9 +39,9 @@ const QUAD_ARRAY_BUFFER = "a_pos";
 /**
  * Generate the array buffers and handles for double buffering.
  */
-export const VertexArrayBuffers = (ctx, vertexArray) => Object({
+export const VertexArrayBuffers = (ctx, vertexArray=null) => Object({
     quad: [(new ArrayBuffer(ctx, [0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1])).buffer, QUAD_ARRAY_BUFFER, 2],
-    index: [(new ArrayBuffer(ctx, vertexArray)).buffer, VERTEX_ARRAY_BUFFER, 1] 
+    index: vertexArray ? [(new ArrayBuffer(ctx, vertexArray)).buffer, VERTEX_ARRAY_BUFFER, 1] : null
 });
 
 
@@ -65,6 +70,8 @@ const validContext = (ref) => () =>
  * is hoisted to the program object during compilation.
  */
 const CLOCK_UNIFORM = "u_time";
+
+
 
 /**
  * Execute a shader program and all binding steps needed to make data
@@ -131,7 +138,11 @@ const renderPipelineStage = ({
     parameters.forEach((key) => {
         const [type, value] = uniforms[key];
         const size = value.length || 1;
-        ctx[`uniform${size}${type}`](program[key], ...(size === 1 ? [value]: value))
+        if (key in program) {
+            ctx[`uniform${size}${type}`](program[key], ...(size === 1 ? [value]: value));
+        } else {
+            throw Error(`${key} is not a uniform of the shader program.`);
+        }
     });
 
     /**
@@ -166,9 +177,6 @@ export const renderPipeline = (
 };
 
 
-
-export const extractUniforms = (keys, uniforms) => 
-    keys.map(k => [k, uniforms[k]]);
 
 
 
@@ -261,6 +269,10 @@ export const useGlslShaders = ({
         runtime,
         validContext: validContext(ref),
         VertexArrayBuffers,
+        createTexture,
+        renderPipeline,
+        renderPipelineStage,
+        extractUniforms
     }
 
 };
