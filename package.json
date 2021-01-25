@@ -26,7 +26,7 @@
     "gatsby-plugin-react-helmet": "^3.6.0",
     "gatsby-plugin-sharp": "2.10.0",
     "gatsby-react-router-scroll": "^3.6.0",
-    "gatsby-plugin-styled-components": "^3.8.0",
+    "gatsby-plugin-styled-components": "^3.9.0",
     "gatsby-remark-copy-linked-files": "^2.6.0",
     "gatsby-remark-images": "^3.10.0",
     "gatsby-remark-katex": "^3.3.14",
