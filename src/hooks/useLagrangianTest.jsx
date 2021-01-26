@@ -246,16 +246,16 @@ export default ({
                     viewport: [0, 0, ref.current.width, ref.current.height],
                     callback: () => [back, screen] = [screen, back]  // blend frames
                 }, 
-                {
-                    program: programs.update,
-                    textures: [[assets.textures.color, 2]],
-                    parameters: [...parameters.sim, ...parameters.wind],
-                    attributes: [assets.buffers.quad],
-                    framebuffer: [assets.framebuffer, previous],  // re-use the old data buffer
-                    topology: [ctx.TRIANGLES, 6],
-                    viewport: [0, 0, res, res],  
-                    callback: () => [state, previous] = [previous, state]  // use previous pass to calculate next position
-                }
+                // {
+                //     program: programs.update,
+                //     textures: [[assets.textures.color, 2]],
+                //     parameters: [...parameters.sim, ...parameters.wind],
+                //     attributes: [assets.buffers.quad],
+                //     framebuffer: [assets.framebuffer, previous],  // re-use the old data buffer
+                //     topology: [ctx.TRIANGLES, 6],
+                //     viewport: [0, 0, res, res],  
+                //     callback: () => [state, previous] = [previous, state]  // use previous pass to calculate next position
+                // }
             ];
             
             renderPipeline(runtime, ctx, assets.uniforms, pipeline);

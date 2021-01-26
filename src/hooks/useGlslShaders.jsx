@@ -72,6 +72,11 @@ const validContext = (ref) => () =>
 const CLOCK_UNIFORM = "u_time";
 
 
+/**
+ * Memoize warnings so that they do not print on every iteration
+ * of the 
+ */
+const printedWarnings = {};
 
 /**
  * Execute a shader program and all binding steps needed to make data
@@ -134,6 +139,10 @@ const renderPipelineStage = ({
 
     /**
      * Format and bind a value to each uniform variable in the context.
+     * 
+     * If someone supplies a variable name that is not part of the program,
+     * then we warn them. Most likely case is that the shader itself has
+     * changed.
      */ 
     parameters.forEach((key) => {
         const [type, value] = uniforms[key];
@@ -141,7 +150,10 @@ const renderPipelineStage = ({
         if (key in program) {
             ctx[`uniform${size}${type}`](program[key], ...(size === 1 ? [value]: value));
         } else {
-            throw Error(`${key} is not a uniform of the shader program.`);
+            const msg = `${key} is not a uniform of the shader program.`;
+            if (key in printedWarnings) return;
+            printedWarnings[key] = true;
+            console.warn(msg);
         }
     });
 
