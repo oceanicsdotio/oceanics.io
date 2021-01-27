@@ -10,14 +10,17 @@ import useWasmRuntime from "../hooks/useWasmRuntime";
 import useKeystrokeReducer from "../hooks/useKeystrokeReducer";
 import {ghost} from "../palette";
 
-const drawCursor = (width, gridSize, ctx, cursor, clamp) => {
-    /*
-    Cursor is given as grid coordinates, in the interval [0.0, gridSize).
-    Grid cell boxes are width and height 1 in this reference frame.
+import Worker from "./useOceanside.worker.js";
 
-    The grid coordinates are transformed into canvas coordinates, and 
-    then reprojected to an isomorphic view.
-    */
+
+/**
+ * Cursor is given as grid coordinates, in the interval [0.0, gridSize).
+ * Grid cell boxes are width and height 1 in this reference frame.
+ *
+ * The grid coordinates are transformed into canvas coordinates, and 
+ * then reprojected to an isomorphic view.
+ */
+const drawCursor = (width, gridSize, ctx, cursor, clamp) => {
    
     const curs = [cursor.x(), cursor.y()];
     const cellSize = width/gridSize;
@@ -115,6 +118,9 @@ export default ({
      */
     const runtime = useWasmRuntime();
 
+    /**
+     * Complex cursor handled in Rust
+     */
     const [cursor, setCursor] = useState(null);
 
     useEffect(()=>{
@@ -212,6 +218,8 @@ export default ({
         ["Shift", "C"], () => {setClamp(!clamp)}
     );
 
+    const worker = useRef(new Worker());
+
     /**
      * When the runtime loads for the first time, create a pixel map  
      * instance and draw the generated world to the canvas, 
@@ -227,7 +235,7 @@ export default ({
      * The same data structure will hold the selected tiles. 
      */
     useEffect(() => {
-        if (!runtime || !nav.current) return;
+        if (!runtime || !nav.current || !worker.current) return;
 
         const offset = (worldSize - gridSize) / 2;
         const _map = new runtime.MiniMap(
@@ -238,29 +246,17 @@ export default ({
             nav.current.getContext("2d"), 
             gridSize
         );
+            
+        (async () => {
 
-        const lookup = Object.fromEntries(
-            nodes.map(({relativePath, publicURL})=>
-                [relativePath, publicURL])
-        );
-    
-        templates.map(({
-            name,
-            spriteSheet, 
-            probability=null,
-            value=null,
-            limit=null
-        })=>({
-            key: name.toLowerCase().split(" ").join("-"),  
-            dataUrl: lookup[spriteSheet],
-            limit: limit ? limit : worldSize*worldSize,
-            probability: probability ? probability : 0.0,
-            value: value ? value : 0.0
-        })).forEach(x => {
-            _map.insertFeature(x);
-        });
+            const iconSet = await worker.current.parseIconSet({nodes, templates, worldSize});
+           
+            iconSet.forEach(x => {_map.insertFeature(x)});
+            
+            populateVisibleTiles(_map, null);  
+            
+        })();
 
-        populateVisibleTiles(_map, null);  
         setMap(_map); 
 
     }, [runtime]);

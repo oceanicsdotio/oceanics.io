@@ -1,4 +1,5 @@
 import {useEffect, useState, useRef} from "react";
+
 import Worker from "./useObjectStorage.worker.js";
 
 /**
@@ -17,24 +18,14 @@ export default ({
     /**
      * Web worker reference for background tasks.
      */
-    const worker = useRef(null);
-
-    /**
-     * Instantiate the web worker
-     */
-    useEffect(() => {
-        if (!worker.current) worker.current = new Worker();
-    }, []);
-    
+    const worker = useRef(new Worker());
+  
     /**
      * Get the asset metadata from object storage service
      */
     useEffect(() => {
         if (!target || !worker.current) return;
-        worker.current
-            .getFileSystem(target)
-            .then(setFileSystem)
-            .catch(err => {console.log(err)});        
+        worker.current.getFileSystem(target).then(setFileSystem)       
     }, []);
 
     return fileSystem;

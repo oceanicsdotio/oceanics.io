@@ -1,4 +1,30 @@
-import {useEffect, useState} from "react";
+import SwaggerParser from "@apidevtools/swagger-parser";
+import YAML from "yaml";
+
+/** 
+ * Parse a YAML text block that includes arbitrary line breaks
+ * and whitespace
+ */
+const parseYamlText = text => 
+    YAML.parse(text)
+        .split("\n")
+        .filter(paragraph => paragraph)
+
+export const load = async (specUrl) => {
+    try {
+        let api = await SwaggerParser.validate(specUrl);
+        
+        api.info.description = parseYamlText(api.info.description);
+        
+        return api;
+
+    } 
+    catch(err) {
+        return err;
+    }
+}
+
+
 /**
  * Convert from OpenAPI schema standard to JSX Form component properties
  * 
@@ -59,21 +85,37 @@ const parseContent = (content) =>
 
 
 /**
- * Hook builds the form structure for the component
+ * Builds the form structure for the hook
  * from the paths in the specification.
  */
-export default ({parameters, requestBody}) => {
-
-    const [view, setView] = useState(null); // rendered data
-
-    useEffect(()=>{
-        setView({
-            query: (parameters || []).map(schemaToInput),
-            body: requestBody ? parseContent(requestBody.content) : null
-        });
-    },[]);
-
-    return view;
+ const buildView = ({parameters, requestBody}) => {
+    return {
+        query: (parameters || []).map(schemaToInput),
+        body: requestBody ? parseContent(requestBody.content) : null
+    }
 }
+
+/**
+ * Flatten the route and method pairs to be filtered
+ * and converted to UI features
+ */
+export const flattenSpecOperations = async (paths) =>
+    Object.entries(paths).flatMap(([path, schema]) => 
+        Object.entries(schema).map(([method, schema]) => 
+            Object({
+                path, 
+                method, 
+                schema: {
+                    ...schema,
+                    description: parseYamlText(schema.description)
+                }, 
+                view: buildView(schema)
+            })));
+
+export const scrapeIndexPage = async (url) => 
+    fetch(url).then(response => response.json());
+
+  
+
 
     

@@ -2,7 +2,7 @@ import React, { useReducer }  from "react";
 import styled from "styled-components";
 
 import Form from "./Form";
-import useBathysphereAuth from "../hooks/useBathysphereAuth";
+import useBathysphereApi from "../hooks/useBathysphereApi";
 
 import fields from "../data/login.yml";
 import { ghost } from "../palette";
@@ -17,9 +17,7 @@ const Login = ({
     onLogin=null,
 }) => {
    
-    const {token, login, register} = useBathysphereAuth();
-
-    const [data, refresh] = useReducer(
+    const [credentials, refresh] = useReducer(
         (prev, event=null) => event ? Object({
                 ...prev,
                 [event.target.id]: event.target.value.trim()
@@ -32,20 +30,22 @@ const Login = ({
         }
     );
 
+    const {accessToken} = useBathysphereApi(credentials);
+
     const form = {
         fields,
         actions: [{
             value: "You're krillin' it",
-            onClick: () => {login({onLogin, ...data})}
+            onClick: () => {login({onLogin, ...credentials})}
         }, {
             value: "Register",
-            onClick: () => {register(data)}
+            onClick: () => {register(credentials)}
         }]
     };
        
     return <div 
         className={className} 
-        hidden={!!token}
+        hidden={!!accessToken}
     >     
         <Form 
             id={"login-dialog"} 

@@ -1,11 +1,9 @@
 import React, {useReducer} from "react";
-import YAML from "yaml";
 import styled from "styled-components";
 
 import Form, {InputWrapper} from "./Form";
 
 import useOpenApiLoader from "../hooks/useOpenApiLoader";
-import useOpenApiForm from "../hooks/useOpenApiForm";
 
 import {grey} from "../palette";
 
@@ -19,24 +17,17 @@ const Placeholder = styled.div`
     padding: 2rem;
 `;
 
+
+/**
+ * Collapsible container for hiding content.
+ */
 const Collapse = styled.div`
     visibility: ${({hidden})=>hidden?"hidden":null};
 `;
 
 
-/** 
- * Parse a YAML text block that includes arbitrary line breaks
- * and whitespace
- */
-const parseYamlText = (text, prefix="title") => 
-    YAML.parse(text)
-        .split("\n")
-        .filter(paragraph => paragraph)
-        .map((text, ii) => <p key={`${prefix}-text-${ii}`}>{text}</p>)
-
-
 /**
- * Meta data about the API itself
+ * Metadata component about the API itself.
  */
 const Header = ({
     info: {
@@ -44,46 +35,48 @@ const Header = ({
         version,
         description
     }
-}) => <div>
-    <h1>{`${title}, v${version}`}</h1>
-    {parseYamlText(description, "title")}
-</div>
+}) => 
+    <div>
+        <h1>{`${title}, v${version}`}</h1>
+        {description.map((text, ii) => <p key={`title-text-${ii}`}>{text}</p>)}
+    </div>
+
+
+
+const uploadInput = {
+    id: "file upload",
+    type: "file",
+    accept: "application/json"
+}
 
 
 /**
- * Operations are URL patterns, containing methods
+ * Operations are URL patterns, containing methods.
  */
 const Operation = ({
     service,
     className,
     path,
     method,
+    view,
     schema: {
-        requestBody=null, 
-        parameters=null,
         description,
         summary
     }
 }) => {
 
-    const view = useOpenApiForm({parameters, requestBody});
+    // const view = useOpenApiForm({parameters, requestBody});
     const [hidden, toggleHidden] = useReducer(prev=>!prev, false); 
     const [upload, toggleUpload] = useReducer(prev=>!prev, false);
-
-    const uploadInput = {
-        id: "file upload",
-        type: "file",
-        accept: "application/json"
-    }
 
     return <div className={className}>
         <h2 onClick={toggleHidden}>{summary}</h2>
         <h3>{"Description"}</h3>
-        {parseYamlText(description, path+method)}
+        {description.map((text, ii) => <p key={`${path+method}-text-${ii}`}>{text}</p>)}
         <Collapse hidden={hidden}>
         
             {
-                view && view.body ? 
+                view.body ? 
                 <>
                 <InputWrapper 
                     type={"button"}
@@ -101,7 +94,7 @@ const Operation = ({
                 actions={[]}
             />
             
-            {view && view.query.length ? <h3>{"Query"}</h3> : null}
+            {view.query.length ? <h3>{"Query"}</h3> : null}
             <Form
                 id={`${service}-api-query`}
                 fields={view ? view.query : null}
@@ -122,7 +115,7 @@ const Operation = ({
 
 
 /**
- * Styled version of the base component
+ * Styled version of the `Operation` component.
  */
 const StyledOperation = styled(Operation)`
     border-top: 0.1rem dashed ${grey};

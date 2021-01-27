@@ -1,4 +1,4 @@
-import React, {useRef} from "react";
+import React, {useRef, useEffect, useState} from "react";
 import styled from "styled-components";
 import useHistogramCanvas from "../hooks/useHistogramCanvas";
 
@@ -82,11 +82,18 @@ const SuitabilityInfo = ({ histogram, foreground="#CCCCCCFF"}) => {
     /*
     Suitability aggregation features are histograms drawn to a canvas.
     */
-    const {total, ref} = useHistogramCanvas({ref, histogram, foreground});
+    const {statistics, ref} = useHistogramCanvas({ref, histogram, foreground});
+
+    const [ message, setMessage ] = useState("Calculating...");
+
+    useEffect(() => {
+        if (statistics)
+            setMessage(`Oyster Suitability (N=${statistics.total})`)
+    }, [ statistics ]);
 
     return <>
         <canvas ref={ref} fg={foreground}/>
-        <div>{`Oyster Suitability (N=${total})`}</div>
+        <div>{message}</div>
     </>
     
 };

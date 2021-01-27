@@ -60,27 +60,28 @@ export default () => {
     
     const target = useRef(null);
 
+     /* 
+    Extract image data and use it to draw a replacement image on the auxiliary canvas.
+
+    The images can be parsed in several ways based on the properties of the figures.
+
+    * The arrow glyphs terminating lines are not the same, meaning these are inferred, not restyled.
+    * There are 3 contiguous regions: the plot and 2 labels
+    * 
+
+    1. Preprocess pixel values to black and white, or color bins - OK
+    2. Partition foreground and background - OK
+    3. Use ray casting to sample for grid lines - HACK
+    4. Subtract grid
+    5. Create bounding boxes for remainining regions (assumed to be text nodes)
+    6. Run tesseract OCR on text regions - SKIP
+    7. Convert text to braille - HACK
+    8. Draw all components back to canvas restyled
+
+    To be able to redraw, we need to locate the axes, the grid lines, plotted lines, and labels.
+    */
     useEffect(()=>{
-        /* 
-        Extract image data and use it to draw a replacement image on the auxiliary canvas.
-
-        The images can be parsed in several ways based on the properties of the figures.
-
-        * The arrow glyphs terminating lines are not the same, meaning these are inferred, not restyled.
-        * There are 3 contiguous regions: the plot and 2 labels
-        * 
-
-        1. Preprocess pixel values to black and white, or color bins - OK
-        2. Partition foreground and background - OK
-        3. Use ray casting to sample for grid lines - HACK
-        4. Subtract grid
-        5. Create bounding boxes for remainining regions (assumed to be text nodes)
-        6. Run tesseract OCR on text regions - SKIP
-        7. Convert text to braille - HACK
-        8. Draw all components back to canvas restyled
-
-        To be able to redraw, we need to locate the axes, the grid lines, plotted lines, and labels.
-        */
+       
         if (!opRefs || !target.current) return;
 
         const imageFilter = "img_p1_3"

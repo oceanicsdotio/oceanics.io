@@ -7,7 +7,10 @@ import useWasmRuntime from "./useWasmRuntime";
 export default ({
     ref,
     font=`24px Arial`,
-    shape=[25,25],
+    shape: [
+        width=25,
+        height=25
+    ],
     gridColor=`#EF5FA1FF`,
     overlayColor=`#77CCFFFF`,
     backgroundColor=`#00000088`,
@@ -23,7 +26,7 @@ export default ({
     // Create mesh
     useEffect(() => {
         if (!runtime) return;
-        setGrid(new runtime.HexagonalGrid(shape[0])); 
+        setGrid(new runtime.HexagonalGrid(width)); 
     }, [runtime]);
 
     useEffect(() => {

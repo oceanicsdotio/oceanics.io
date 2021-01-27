@@ -1,16 +1,7 @@
-import {useState, useEffect} from "react";
-import SwaggerParser from "@apidevtools/swagger-parser";
+import {useState, useEffect, useRef} from "react";
 
+import Worker from "./useOpenApiLoader.worker.js";
 
-/**
- * Flatten the route and method pairs to be filtered
- * and converted to UI features
- */
-const flattenSpecOperations = ({paths}) =>
-    Object.entries(paths).flatMap(([path, schema]) => 
-        Object.entries(schema)
-            .map(([method, schema]) => Object({path, method, schema}))
-        );
 
 /**
  * The useOpenApiLoader hook supplies an OpenAPI specification for a 
@@ -20,19 +11,49 @@ export default ({
     specUrl,
     scrapeIndexPage=false,
 }) => {
+    /**
+     * Web worker for loading, validation, and formatting in background.
+     */
+    const worker = useRef(new Worker());
 
     /**
-     * Hook loads and parses an OpenAPI spec from a URL.
-     * It runs once when the component loads
+     * OpenAPI spec struct will be populated asynchronously once the 
+     * web worker is available.
      */
-    const [apiSpec, setApiSpec] = useState(null); // OpenAPI spec struct
-    useEffect(()=>{
-        SwaggerParser.validate(specUrl, (err, api) => {
-            if (err) console.error(err);
-            else setApiSpec(api);
-        });   
-    },[]);
+    const [apiSpec, setApiSpec] = useState(null); 
 
+    /**
+     * Hook loads and parses an OpenAPI spec from a URL using a
+     * background worker.
+     * 
+     * It runs once when the component loads. This allows
+     * the specification to be available before derived data
+     * is calculated for UI. 
+     */
+    useEffect(()=>{
+        if (worker.current) 
+            worker.current.load(specUrl).then(setApiSpec);
+    },[worker]);
+
+    /**
+     * API routes to convert to forms.
+     */
+    const [methods, setMethods] = useState([]);
+
+    /**
+     * Extract and flatten the paths and methods.
+     */
+    useEffect(()=>{
+        if (apiSpec) 
+            worker.current.flattenSpecOperations(apiSpec.paths).then(setMethods);
+    }, [apiSpec])
+
+    /**
+     * Collections are scraped from available implementations
+     * of the API listed in the `servers` block.
+     */
+    const [index, setIndex] = useState(null);
+    
     /**
      * Hook gets any existing configurations from the API 
      * and formats them for display in React State.
@@ -40,25 +61,10 @@ export default ({
      * The request url is inferred
      * from the `servers` object of the OpenAPI specification.
      */
-    const [index, setIndex] = useState(null); // loaded from API
     useEffect(()=>{
-        if (!scrapeIndexPage || !apiSpec) return;
-        
-        fetch(apiSpec.servers[0].url)
-            .then(response => response.json())
-            .then(indexPage => {setIndex(indexPage)});
-
+        if (scrapeIndexPage && apiSpec)
+            worker.current.scrapeIndexPage(apiSpec.servers[0].url).then(setIndex);    
     }, [apiSpec]);
-
-
-    /**
-     * Extract and flatten the paths and methods
-     */
-    const [methods, setMethods] = useState([]);
-    useEffect(()=>{
-        if (!apiSpec) return;
-        setMethods(flattenSpecOperations(apiSpec));
-    }, [apiSpec])
 
     return {apiSpec, index, methods};
 }

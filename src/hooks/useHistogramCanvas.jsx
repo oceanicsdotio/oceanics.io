@@ -1,40 +1,75 @@
-import {useEffect, useRef, useState} from "react";
+import { useEffect, useRef, useState } from "react";
 
+import Worker from "./useHistogramCanvas.worker.js";
+
+/**
+ * The bin size is known, since the bins are precalculated.
+ */
+const COUNT = 100;
+
+/**
+ * Bin size from bin count
+ */
+const Δw = 1.0/COUNT;
+
+/**
+ * Calculate and draw a histogram from count data 
+ * where 0.0 < x < 1.0.
+ */
 export default ({
     histogram, 
     foreground="#CCCCCCFF"
 }) => {
 
+    /**
+     * Handle to assign to canvas element instance
+     */
     const ref = useRef(null);
-    const [total, setTotal] = useState(0);
 
+    /**
+     * Web worker for reducing histogram bins to the statistics
+     * required for consistent/adjustable rendering.
+     */
+    const worker = useRef(new Worker());
+
+    /**
+     * Summary stats include max and total. Set asynchonously by
+     * result of web worker calculation.
+     */
+    const [ statistics, setStatistics ] = useState(null);
+
+    /**
+     * Use background worker to calculate summary statistics.
+     * 
+     * Return a callback to gracefully kill the worker when the component
+     * unmounts. 
+     */
     useEffect(()=>{
-        /*
-        Draw histogram peaks to the canvas when it loads
-        */
+        if (!worker.current) return;
+
+        worker.current.histogramReducer(histogram).then(setStatistics);
+        return () => { worker.current.terminate() }
+    }, [ worker ]);
+
+    /*
+     * Draw histogram peaks to the 2D canvas when it loads.
+     */
+    useEffect(()=>{
+        if (!statistics || ! ref.current) return;
+
         const ctx = ref.current.getContext("2d");
-        const {width, height} = ref.current;
         ctx.fillStyle = foreground;
-        let previousX = 0;
-        let _total = 0;
-
-        const maxValue = Math.max(...histogram.map(([_, count])=>{return count}));
         
-        histogram.forEach(([bin, count], ii) => {
-
+        histogram.forEach(([x, n]) => {
             ctx.fillRect(
-                previousX * width,
-                height,
-                width/100,
-                -(count * height / maxValue) 
+                ref.current.width * (x - Δw),
+                ref.current.height,
+                ref.current.width * Δw,
+                ref.current.height * -n / statistics.max
             );
-            previousX = bin;
-            _total += count;
         });
+    }, [ statistics ]);
 
-        setTotal(_total);
-    },[]);
-
-    return {total, ref};
+    return { statistics, ref };
 }
     

@@ -5,13 +5,13 @@ import style from "../data/map-style.yml";  // map style
 
 
 /**
-If the map element has not been created yet, create it with a custom style, and user
-provided layer definitions. 
-
-Generally these will be pre-fetched from static assets, but it can
-also be sourced from an API or database.
-
-only one map context please, need center to have been set.
+ * If the map element has not been created yet, create it with a custom style, and user
+ * provided layer definitions. 
+ * 
+ * Generally these will be pre-fetched from static assets, but it can
+ * also be sourced from an API or database.
+ * 
+ * Only one map context please, need center to have been set.
 */
 export default ({
     accessToken,
