@@ -1,5 +1,14 @@
+export const PointFeature = (x, y, properties) => Object({
+    type: 'Feature',
+    geometry: {
+        type: 'Point',
+        coordinates: [x, y]
+    },
+    properties
+});
+
 // Formatting function, generic to all providers
-const Features = ({
+export const Features = ({
     features,
     standard
 }) => {
@@ -11,14 +20,8 @@ const Features = ({
                     geometry: {x, y}, 
                     attributes
                 }) => 
-                    Object({
-                        type: 'Feature',
-                        geometry: {
-                            type: 'Point',
-                            coordinates: [x, y]
-                        },
-                        properties: attributes
-                    }));
+                    PointFeature(x, y, attributes)
+                );
         // NOAA also does things their own special way
         case "noaa":
             return features
@@ -27,14 +30,8 @@ const Features = ({
                     data: [head], 
                     metadata: {lon, lat, ...metadata}
                 }) => 
-                    Object({
-                        type: 'Feature',
-                        geometry: {
-                            type: 'Point',
-                            coordinates: [lon, lat]
-                        },
-                        properties: {...head, ...metadata}
-                    }));
+                    PointFeature(lon, lat, {...head, ...metadata})
+                );
         // Otherwise let us hope it is GeoJSON and catch it up the stack
         default:
             return features;
@@ -42,7 +39,7 @@ const Features = ({
 };
 
 // Out ready for Mapbox as a Layer object description
-const GeoJsonSource = ({
+export const GeoJsonSource = ({
     features,
     standard,
     properties=null
@@ -60,6 +57,20 @@ const GeoJsonSource = ({
         }, 
     });
 
+
+export const UserLocation = async ({longitude, latitude}) => PointFeature(longitude, latitude, {})
+    .then(feature => 
+        Object({
+            id: 'home',
+            type: 'symbol',
+            source: GeoJsonSource({
+                features: [feature]
+            }),
+            layout: {
+                'icon-image': 'pulsing-dot'
+            }
+        })
+    );
 
 export async function getData(url, standard) {
     return await fetch(url)

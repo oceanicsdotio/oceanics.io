@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
-import { Feature, GeoJsonSource } from "../bathysphere.js";
+import { useEffect, useState, useRef } from "react";
+
+import Worker from "./useMapboxGeoJsonLayers.worker.js";
 
 
 export const pulsingDot = ({
@@ -61,9 +62,9 @@ export const pulsingDot = ({
  * Use the Geolocation API to retieve the location of the client,
  * and set the map center to those coordinates, and flag that the interface
  * should use the client location on refresh.
-
-This will also trigger a greater initial zoom level.
-*/
+ * 
+ * This will also trigger a greater initial zoom level.
+ */
 export default ({callback=null}) => {
  
     const [layer, setLayer] = useState(null);
@@ -76,30 +77,17 @@ export default ({callback=null}) => {
     useEffect(() => {
         
         if (!navigator.geolocation) return;
-    
-        navigator.geolocation.getCurrentPosition(
-            ({
-                coords: {
-                    latitude, 
-                    longitude
-                }
-            }) => {
-                setLayer({
-                    id: 'home',
-                    type: 'symbol',
-                    source: GeoJsonSource({
-                        features: [Feature(longitude, latitude)]
-                    }),
-                    layout: {
-                        'icon-image': 'pulsing-dot'
-                    }
-                })
-            }, 
-            () => {console.log("Error getting client location.");}
-        );
-        
-    }, []);
 
-    return {layer, icon}
+        navigator.geolocation.getCurrentPosition(
+            ({coords}) => { 
+                const worker = new Worker();
+                worker.PointFeatureSource(coords).then(setLayer);
+                worker.terminate();
+            }, 
+            () => { console.log("Error getting client location.") }
+        );
+    }, [ ]);
+
+    return { layer, icon }
 
 };
