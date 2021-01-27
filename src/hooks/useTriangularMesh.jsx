@@ -43,13 +43,13 @@ export default ({
     labelPadding=2.0,
     tickSize=10.0,
     fade=1.0,
-    count=9,
-    zero=0.2,
-    radius=8.0,
-    drag=0.05,
-    bounce=0.95,
-    springConstant=0.2,
-    timeConstant=0.000001,
+    // count=9,
+    // zero=0.2,
+    // radius=8.0,
+    // drag=0.05,
+    // bounce=0.95,
+    // springConstant=0.2,
+    // timeConstant=0.000001,
 }) => {
 
     /**
@@ -75,7 +75,7 @@ export default ({
     /**
      * Create handle for the mesh structure. 
      */
-    const [mesh, setMesh] = useState(null);
+    const [ mesh, setMesh ] = useState(null);
 
 
     /**
@@ -86,19 +86,12 @@ export default ({
      */
     useEffect(() => {
         if (runtime && !name) setMesh(new runtime.InteractiveMesh(...shape)); 
-    }, [runtime]);
+    }, [ runtime ]);
 
     /**
      * Web worker reference for background tasks.
      */
-    const worker = useRef(null);
-
-    /**
-     * Instantiate the web worker, lazy load style
-     */
-    useEffect(() => {
-        worker.current = new Worker();
-    }, []);
+    const worker = useRef(new Worker());
 
     /**
      * If the `ref` has been assigned to a canvas target,
@@ -152,9 +145,8 @@ export default ({
      * from S3 object storage queries.
      */
     useEffect(()=>{
-        if (!fs) return;
-        setQueue(fs.objects.filter(x => !x.key.includes("undefined")));
-    }, [fs]);
+        if (fs) setQueue(fs.objects.filter(x => !x.key.includes("undefined")));
+    }, [ fs ]);
 
 
     /**
@@ -187,6 +179,8 @@ export default ({
                 }
             });
         });
+
+        return () => { worker.current.terminate() }
     },[map, worker, queue]);
 
     return {

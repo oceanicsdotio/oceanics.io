@@ -1,5 +1,9 @@
 
-   useEffect(() => {
+
+/**
+ * 
+ */
+useEffect(() => {
     if (!map) return;   
     setAnimatedIcons({
         pulsingDot: pulsingDot(map),
@@ -7,12 +11,13 @@
     });
 }, [map])
 
+
+/* 
+ * Fetch tide data from NOAA. 
+ * Render a tide gauge animated icon at each position. 
+ */
 useEffect(() => {
-    /* 
-    Fetch tide data from NOAA. 
     
-    Render a tide gauge animated icon at each position. 
-    */
     if (!map || !animatedIcons) return;
     const id = "tidal-stations";
     const extent = [-71.190, 40.975, -63.598, 46.525];

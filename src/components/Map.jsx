@@ -9,7 +9,7 @@ import useMapBox from "../hooks/useMapBox";
 import useMapboxHighlightEvent from "../hooks/useMapBoxHighlightEvent";
 import useMapboxGeoJsonLayers from "../hooks/useMapboxGeoJsonLayers";
 import useTriangularMesh from "../hooks/useTriangularMesh";
-
+import useGeolocationApi from "../hooks/useGeolocationApi";
 
 
 /**
@@ -127,6 +127,8 @@ const Map = ({
         map,
         layers: geoJsonLayers
     });
+
+    useGeolocationApi({});
 
     useTriangularMesh({
         map,

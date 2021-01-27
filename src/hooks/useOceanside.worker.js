@@ -1,3 +1,12 @@
+
+/**
+ * Generate the dataUrls for icon assets in the background.
+ * 
+ * Not a heavy performance hit, but some of the sprite sheet logic can be moved in here
+ * eventually as well.
+ * 
+ * @param {*} param0 
+ */
 export const parseIconSet = async ({nodes, templates, worldSize}) => {
     
     

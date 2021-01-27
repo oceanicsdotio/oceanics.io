@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import {Feature, GeoJsonSource} from "../bathysphere.js";
+import { Feature, GeoJsonSource } from "../bathysphere.js";
 
 
 export const pulsingDot = ({
@@ -58,20 +58,20 @@ export const pulsingDot = ({
 
 
 /**
-Use the Geolocation API to retieve the location of the client,
-and set the map center to those coordinates, and flag that the interface
-should use the client location on refresh.
+ * Use the Geolocation API to retieve the location of the client,
+ * and set the map center to those coordinates, and flag that the interface
+ * should use the client location on refresh.
 
 This will also trigger a greater initial zoom level.
 */
-export default ({callback}) => {
+export default ({callback=null}) => {
  
     const [layer, setLayer] = useState(null);
     const [icon, setIcon] = useState(null);
 
     useEffect(() => {
         setIcon(["pulsing-dot", pulsingDot({callback})]);
-    }, [])
+    }, [ ])
     
     useEffect(() => {
         
