@@ -13,3 +13,4 @@ export async function initParticles(res) {
         () => Math.floor(Math.random() * 256)
     ))
 };
+

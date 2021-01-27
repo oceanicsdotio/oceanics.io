@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 import useWasmRuntime from "./useWasmRuntime";
 import noiseVertex from "raw-loader!../glsl/noise-vertex.glsl";
@@ -8,6 +8,8 @@ import updateFragment from "raw-loader!../glsl/update-fragment-test.glsl";
 import screenFragment from "raw-loader!../glsl/screen-fragment.glsl";
 import drawVertex from "raw-loader!../glsl/draw-vertex-test.glsl";
 import drawFragment from "raw-loader!../glsl/draw-fragment-test.glsl";
+
+import Worker from "./useGlslShaders.worker.js";
 
 /**
  * Abstraction for binding array data into GPU memory
@@ -24,11 +26,11 @@ export const extractUniforms = (keys, uniforms) =>
     keys.map(k => [k, uniforms[k]]);
 
 
-
 /**
  * Name of the GLSL variable for particle positions
  */
 const VERTEX_ARRAY_BUFFER = "a_index";
+
 
 /**
  * Name of the GLSL variable for rectangle of two triangles
@@ -55,14 +57,6 @@ const shaderSource = {
     "draw-fragment": drawFragment,
     "draw-vertex": drawVertex
 };
-
-/**
- * Returns falsey value if there is no graphics context available,
- * otherwise return the context handle.
- */
-const validContext = (ref) => () => 
-    (!ref || !ref.current) ? false : ref.current.getContext("webgl");
-    
 
 
 /**
@@ -105,6 +99,8 @@ const renderPipelineStage = ({
 
     ctx.viewport(...viewport);
     ctx.bindFramebuffer(ctx.FRAMEBUFFER, handle);
+
+    
 
     /**
      * Ensure any required framebuffer is attached before trying to load the
@@ -189,9 +185,6 @@ export const renderPipeline = (
 };
 
 
-
-
-
 export const createTexture = ({ 
     ctx, 
     filter = "NEAREST", 
@@ -203,14 +196,8 @@ export const createTexture = ({
     const args = data instanceof Uint8Array ? [...shape, 0] : [];
 
     ctx.bindTexture(ctx.TEXTURE_2D, texture);
-    const textureArgs = [ctx.TEXTURE_2D, 0, ctx.RGBA, ...args, ctx.RGBA, ctx.UNSIGNED_BYTE, data];
-
-    try {
-        ctx.texImage2D(...textureArgs);
-    } catch (err) {
-        throw err;
-    }
-
+    ctx.texImage2D(ctx.TEXTURE_2D, 0, ctx.RGBA, ...args, ctx.RGBA, ctx.UNSIGNED_BYTE, data);
+    
     [
         [ctx.TEXTURE_WRAP_S, ctx.CLAMP_TO_EDGE],
         [ctx.TEXTURE_WRAP_T, ctx.CLAMP_TO_EDGE],
@@ -231,21 +218,38 @@ shaders as programs.
 
 This is executed only once, after the WASM runtime is loaded. 
 */
-export const useGlslShaders = ({
-    ref, 
-    shaders,
-    callback=null
+export const useGlslShaders = ({ 
+    shaders
 }) => {
    
+    const [assets, setAssets] = useState(null);
     const [programs, setPrograms] = useState(null);
     const runtime = useWasmRuntime();
 
+    const ref = useRef(null);
+
+    const validContext = () => 
+        (typeof ref === "undefined" || !ref || !ref.current) ? false : ref.current.getContext("webgl");
+
+     /**
+     * Instantiate web worker reference for background tasks.
+     */
+    const worker = useRef(new Worker());
+
+    /**
+     * Create a initial distribution of particle positions,
+     * encoded as 4-byte colors.
+     */
     useEffect(() => {
+        if (worker.current) 
+            worker.current.compile().then(console.log);
+    }, [ worker ]);
+    
 
-        if (!runtime || typeof ref === "undefined" || !ref.current) return;
-        const ctx = ref.current.getContext("webgl");
-        if (!ctx) return;
-
+    useEffect(() => {
+        const ctx = validContext();
+        if (!ctx || !runtime) return;
+       
         (async () => {
             
             const compiled = Object.fromEntries(await Promise.all(Object.entries(shaders).map(async ([programName, pair]) => {
@@ -277,16 +281,24 @@ export const useGlslShaders = ({
     }, [runtime, ref]);
 
     return {
+        ref,
         programs,
         runtime,
-        validContext: validContext(ref),
+        validContext: () => (!ref || !ref.current) ? false : ref.current.getContext("webgl"),
         VertexArrayBuffers,
         createTexture,
         renderPipeline,
         renderPipelineStage,
-        extractUniforms
+        extractUniforms,
+        setAssets,
+        assets
     }
 
 };
 
 export default useGlslShaders;
+
+
+export const renderLoop = () => {
+
+}

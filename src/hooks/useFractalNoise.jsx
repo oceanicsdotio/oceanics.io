@@ -1,17 +1,17 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import useGlslShaders from "../hooks/useGlslShaders";
+
+const screenBuffer = (w, h) => Object({ data: new Uint8Array(w * h * 4), shape: [w, h] })
 
 /**
  * Make some noise
  */
-export default ({
-    opacity = 1.0 // how fast the image blends
-}) => {
+export default ({}) => {
    
-    const [assets, setAssets] = useState(null);
-    const ref = useRef(null);
-
     const {
+        setAssets,
+        assets,
+        ref,
         programs,
         validContext,
         runtime,
@@ -19,7 +19,6 @@ export default ({
         createTexture,
         renderPipeline,
     } = useGlslShaders({
-        ref, 
         shaders: {
             draw: ["noise-vertex", "noise-fragment"],
             screen: ["quad-vertex", "screen-fragment"]
@@ -31,20 +30,18 @@ export default ({
         if (!ctx) return;
 
         const { width, height } = ref.current;
-        const shape = [width, height];
-        const size = width * height * 4;
 
         setAssets({
             textures: 
                 Object.fromEntries(Object.entries({
-                    screen: { data: new Uint8Array(size), shape },
-                    back: { data: new Uint8Array(size), shape }
+                    screen: screenBuffer(width, height),
+                    back: screenBuffer(width, height)
                 }).map(([k, v]) => [k, createTexture({ctx, ...v})])),
             buffers: VertexArrayBuffers(ctx),
             framebuffer: ctx.createFramebuffer(),
             uniforms: {
                 "u_screen" : ["i", 2],
-                "u_opacity": ["f", opacity]
+                "u_opacity": ["f", 1.0]
             }
         });
 

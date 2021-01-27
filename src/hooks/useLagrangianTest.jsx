@@ -37,40 +37,45 @@ export default ({
 }) => {
    
     /**
-     * Exported ref to assign to an HTML canvas component
-     */
-    const ref = useRef(null);
-
-    /**
      * Exported ref to draw textures to a secondary HTML canvas component
      */
     const preview = useRef(null);
 
     /**
-     * Web worker reference for background tasks.
+     * Particle locations. Will be set by web worker from remote source,
+     * procedure, or randomly. 
      */
-    const worker = useRef(null);
+    const [ particles, setParticles ] = useState(null);
 
     /**
-     * Instantiate the web worker, lazy load style
+     * Instantiate web worker reference for background tasks.
+     */
+    const worker = useRef(new Worker());
+
+    /**
+     * Create a initial distribution of particle positions,
+     * encoded as 4-byte colors.
      */
     useEffect(() => {
-        worker.current = new Worker();
-    }, []);
+        if (worker.current) 
+            worker.current.initParticles(res).then(setParticles);
+    }, [ worker ]);
 
     /**
      * Shader programs compiled from GLSL source. Comes with a recycled
      * Rust-WASM runtime. 
      */
     const { 
+        ref,
+        assets,
+        setAssets,
         runtime, 
         programs, 
         validContext, 
         VertexArrayBuffers,
         createTexture,
         renderPipeline
-    } = useGlslShaders({
-        ref, 
+    } = useGlslShaders({ 
         shaders: {
             screen: ["quad-vertex", "screen-fragment"],
             draw: ["draw-vertex", "draw-fragment"],
@@ -84,19 +89,6 @@ export default ({
      */
     const colorMap = useCanvasColorRamp({colors});
 
-    /**
-     * Particle locations
-     */
-    const [ particles, setParticles ] = useState(null);
-
-    /**
-     * Create a initial distribution of particle positions,
-     * encoded as 4-byte colors.
-     */
-    useEffect(() => {
-        if (worker.current)
-            worker.current.initParticles(res).then(setParticles);
-    }, [ worker ]);
 
     /**
      * Interpreting image formatted velocity data requires having
@@ -134,10 +126,6 @@ export default ({
         img.src = source;
     },[]);
 
-    /**
-     * Container for handles to GPU interface
-     */
-    const [ assets, setAssets ] = useState(null);
 
     /**
     * Generate assets and handles for rendering to canvas.
@@ -246,16 +234,16 @@ export default ({
                     viewport: [0, 0, ref.current.width, ref.current.height],
                     callback: () => [back, screen] = [screen, back]  // blend frames
                 }, 
-                // {
-                //     program: programs.update,
-                //     textures: [[assets.textures.color, 2]],
-                //     parameters: [...parameters.sim, ...parameters.wind],
-                //     attributes: [assets.buffers.quad],
-                //     framebuffer: [assets.framebuffer, previous],  // re-use the old data buffer
-                //     topology: [ctx.TRIANGLES, 6],
-                //     viewport: [0, 0, res, res],  
-                //     callback: () => [state, previous] = [previous, state]  // use previous pass to calculate next position
-                // }
+                {
+                    program: programs.update,
+                    textures: [[assets.textures.color, 2]],
+                    parameters: [...parameters.sim, ...parameters.wind],
+                    attributes: [assets.buffers.quad],
+                    framebuffer: [assets.framebuffer, previous],  // re-use the old data buffer
+                    topology: [ctx.TRIANGLES, 6],
+                    viewport: [0, 0, res, res],  
+                    callback: () => [state, previous] = [previous, state]  // use previous pass to calculate next position
+                }
             ];
             
             renderPipeline(runtime, ctx, assets.uniforms, pipeline);
