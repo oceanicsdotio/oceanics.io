@@ -2,7 +2,9 @@ import { useState, useEffect } from "react";
 import useWasmRuntime from "../hooks/useWasmRuntime";
 import {lichen} from "../palette";
 
-
+/*
+ * Time series data
+ */
 export default ({
     ref,
     streamColor=lichen,
@@ -15,9 +17,7 @@ export default ({
     fontSize=12.0,
     labelPadding=2.0,
 }) => {
-    /*
-    Time series data
-    */
+   
 
     
     const runtime = useWasmRuntime();

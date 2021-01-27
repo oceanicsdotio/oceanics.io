@@ -1,7 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import useLagrangian from "../hooks/useLagrangianTest";
-import useFractalNoise from "../hooks/useFractalNoise";
+import useGlslShaders from "../hooks/useGlslShaders";
 
 
 const source = 
@@ -19,7 +19,16 @@ const Canvas = styled.canvas`
 `;
 
 export default () => {
-    const handle = useFractalNoise({});
+
+    const handle = useGlslShaders({
+        shaders: {
+            draw: ["noise-vertex", "noise-fragment"],
+            screen: ["quad-vertex", "screen-fragment"]
+        },
+        fractal: true
+    });
+
+
     // const handle = useLagrangian({
     //     source,
     //     metadataFile,
@@ -27,15 +36,10 @@ export default () => {
     //     pointSize: 2.0
     // });
 
-    return <><Canvas
+    return <Canvas
         id={"render-target"}
         ref={handle.ref}
         width={800}
         height={500}
-    /><canvas
-        id={"preview-target"}
-        ref={handle.preview}
-        width={400}
-        height={200}
-    /></>     
+    />
 };

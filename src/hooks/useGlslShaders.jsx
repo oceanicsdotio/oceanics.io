@@ -1,6 +1,5 @@
 import { useEffect, useState, useRef } from "react";
 
-import useWasmRuntime from "./useWasmRuntime";
 import noiseVertex from "raw-loader!../glsl/noise-vertex.glsl";
 import noiseFragment from "raw-loader!../glsl/noise-fragment.glsl";
 import quadVertex from "raw-loader!../glsl/quad-vertex.glsl";
@@ -10,6 +9,8 @@ import drawVertex from "raw-loader!../glsl/draw-vertex-test.glsl";
 import drawFragment from "raw-loader!../glsl/draw-fragment-test.glsl";
 
 import Worker from "./useGlslShaders.worker.js";
+import useWasmRuntime from "./useWasmRuntime";
+
 
 /**
  * Abstraction for binding array data into GPU memory
@@ -21,6 +22,10 @@ export class ArrayBuffer {
         ctx.bufferData(ctx.ARRAY_BUFFER, new Float32Array(data), ctx.STATIC_DRAW);
     }
 };
+
+
+const screenBuffer = (w, h) => Object({ data: new Uint8Array(w * h * 4), shape: [w, h] })
+
 
 export const extractUniforms = (keys, uniforms) => 
     keys.map(k => [k, uniforms[k]]);
@@ -219,7 +224,8 @@ shaders as programs.
 This is executed only once, after the WASM runtime is loaded. 
 */
 export const useGlslShaders = ({ 
-    shaders
+    shaders,
+    fractal=true
 }) => {
    
     const [assets, setAssets] = useState(null);
@@ -227,24 +233,18 @@ export const useGlslShaders = ({
     const runtime = useWasmRuntime();
 
     const ref = useRef(null);
+    const secondary = useRef(null);
+    
+    const worker = useRef(new Worker());
+
+    // useEffect(()=>{
+    //     if (!worker.current) return;
+    //     worker.current.runtime().then(console.log);
+    // },[ worker ]);
 
     const validContext = () => 
         (typeof ref === "undefined" || !ref || !ref.current) ? false : ref.current.getContext("webgl");
 
-     /**
-     * Instantiate web worker reference for background tasks.
-     */
-    const worker = useRef(new Worker());
-
-    /**
-     * Create a initial distribution of particle positions,
-     * encoded as 4-byte colors.
-     */
-    useEffect(() => {
-        if (worker.current) 
-            worker.current.compile().then(console.log);
-    }, [ worker ]);
-    
 
     useEffect(() => {
         const ctx = validContext();
@@ -280,25 +280,101 @@ export const useGlslShaders = ({
         })();
     }, [runtime, ref]);
 
+    const [pipeline, setPipeline] = useState(null);
+
+    useEffect(() => {
+
+        const ctx = validContext();
+        if (!runtime || !ctx || !assets || !pipeline) return;
+        let requestId;
+        
+        (function render() {
+            renderPipeline(runtime, ctx, assets.uniforms, pipeline);
+            requestId = requestAnimationFrame(render);
+        })()
+        return () => cancelAnimationFrame(requestId);
+    }, [runtime, assets, pipeline, ref ]);
+
+
+    useEffect(() => {
+        const ctx = validContext();
+        if (!fractal || !ctx) return;
+
+        const { width, height } = ref.current;
+
+        setAssets({
+            textures: 
+                Object.fromEntries(Object.entries({
+                    screen: screenBuffer(width, height),
+                    back: screenBuffer(width, height)
+                }).map(([k, v]) => [k, createTexture({ctx, ...v})])),
+            buffers: VertexArrayBuffers(ctx),
+            framebuffer: ctx.createFramebuffer(),
+            uniforms: {
+                "u_screen" : ["i", 2],
+                "u_opacity": ["f", 1.0]
+            }
+        });
+
+    }, [ref]);
+
+
+    useEffect(() => {
+
+        const ctx = validContext();
+
+        if (!fractal || !runtime || !ctx || !assets || !programs) return;
+        
+        const viewport = [0, 0, ref.current.width, ref.current.height];
+    
+        setPipeline([
+            {
+                program: programs.screen,
+                textures: [
+                    [assets.textures.state, 1],
+                    [assets.textures.back, 2]
+                ],
+                parameters: ["u_screen", "u_opacity"],
+                attributes: [assets.buffers.quad],
+                framebuffer: [assets.framebuffer, assets.textures.screen],
+                topology: [ctx.TRIANGLES, 6],
+                viewport
+            },
+            {
+                program: programs.draw,
+                attributes: [assets.buffers.quad],
+                framebuffer: [assets.framebuffer, assets.textures.screen],
+                topology: [ctx.TRIANGLES, 6],
+                viewport
+            },
+            {
+                program: programs.screen,
+                textures: [[assets.textures.screen, 2]],
+                parameters: ["u_opacity"],
+                attributes: [assets.buffers.quad],
+                framebuffer: [null, null],
+                topology: [ctx.TRIANGLES, 6],
+                viewport
+            }
+        ]);
+    }, [programs]);
+
     return {
         ref,
         programs,
         runtime,
-        validContext: () => (!ref || !ref.current) ? false : ref.current.getContext("webgl"),
+        validContext,
         VertexArrayBuffers,
         createTexture,
         renderPipeline,
         renderPipelineStage,
         extractUniforms,
         setAssets,
-        assets
+        setPipeline,
+        assets,
+        secondary
     }
-
 };
 
 export default useGlslShaders;
 
-
-export const renderLoop = () => {
-
-}
