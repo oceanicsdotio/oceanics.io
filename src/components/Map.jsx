@@ -64,9 +64,7 @@ const composeHandler = (Component, parser) => (event) => {
 
     return {
         jsx: <Component {...props}/>,
-        coordinates,
-        closeButton: false,
-        closeOnClick: true,
+        coordinates
     }
 };
 
@@ -110,15 +108,30 @@ const multiFeatureReducer = ({features, lngLat: {lng}}) => {
         coordinates: getGeographicCenter(projected)
     }
 }
-  
+
+/**
+ * Don't waste the cycles on calculating polygon centers. Just use the click
+ * location. 
+ */
+const polygonFeatureReducer = ({features, lngLat: {lng, lat}}) =>
+    Object({
+        props: {features},
+        coordinates: [lng, lat]
+    });
+
+/**
+ * Create a lookup table, so that layer schemas can reference them by key.
+ * 
+ * There is some magic here, in that you still need to know the key. 
+ */
 const popups = Object.fromEntries(Object.entries({
-    port: PortInformation,
-    license: LicenseInformation, 
-    lease: LeaseInformation,
-    nssp: NsspInformation, 
-    suitability: SuitabilityInformation,
+    port: [PortInformation, multiFeatureReducer],
+    license: [LicenseInformation, multiFeatureReducer], 
+    lease: [LeaseInformation, polygonFeatureReducer],
+    nssp: [NsspInformation, polygonFeatureReducer], 
+    suitability: [SuitabilityInformation, multiFeatureReducer],
 }).map(
-    ([key, component]) => [key, composeHandler(component, multiFeatureReducer)])
+    ([key, [component, reducer]]) => [key, composeHandler(component, reducer)])
 );
 
 /**
@@ -140,8 +153,7 @@ const Map = ({
         accessToken
     });
 
-    
-   
+
      // useMapboxHighlightEvent({
     //     ready: "nssp-closures" in ready, 
     //     map, 
@@ -154,40 +166,25 @@ const Map = ({
     const [handlers, setHandlers] = useState(null);
 
     /**
-     * Load the popup handlers
+     * Load the popup handlers if a map element exists. 
      */
     useEffect(()=>{
         if (!map) return;
 
         setHandlers(Object.fromEntries(
-            geojson
-            .map(({id, popup=null}) => 
-                [id, (event) => {
-                    if (!popup) {
-                        console.log("Non-interactive", {id});
-                        return;
-                    }
-
-                    console.log("Popup", {id, popup});
-                    const [
-                        {
-                            jsx, 
-                            coordinates, 
-                            closeButton=true, 
-                            closeOnClick=true
-                        }, 
-                        placeholder
-                    ] = [
-                        popups[popup](event), 
-                        document.createElement('div')
-                    ];
-    
+            geojson.map(({id, popup=null}) => [
+                id, 
+                event => {
+                    if (!popup) return;
+                    const placeholder = document.createElement('div');
+                    const { jsx, coordinates } = popups[popup](event);
+                        
                     ReactDOM.render(<PopUpContent children={jsx}/>, placeholder);
                 
                     (new Popup({
                         className: "map-popup",
-                        closeButton,
-                        closeOnClick
+                        closeButton: true,
+                        closeOnClick: true
                     })
                         .setLngLat(coordinates)
                         .setDOMContent(placeholder)
@@ -195,8 +192,12 @@ const Map = ({
                 }
             ]))
         );
-    },[map]);
+    },[ map ]);
 
+
+    /**
+     * Data sets to queue and build layers from.
+     */
     const [geoJsonLayers, setGeoJsonLayers] = useState(null);
 
     /**
@@ -242,21 +243,27 @@ const Map = ({
         layers: geoJsonLayers
     });
 
+    /**
+     * Prompt the user to share location and use it for context
+     * purposes, such as getting local tide information.
+     * 
+     * Should be moved up to App context.
+     */
     useGeolocationApi({});
 
-    // useTriangularMesh({
-    //     map,
-    //     name: "necofs_gom3_mesh", 
-    //     extension: "nc",
-    //     attribution: "UMass Dartmouth"
-    // });
+    useTriangularMesh({
+        map,
+        name: "necofs_gom3_mesh", 
+        extension: "nc",
+        attribution: "UMass Dartmouth"
+    });
 
-    // useTriangularMesh({
-    //     map,
-    //     name: "midcoast_nodes", 
-    //     extension: "csv",
-    //     attribution: "UMaine"
-    // });
+    useTriangularMesh({
+        map,
+        name: "midcoast_nodes", 
+        extension: "csv",
+        attribution: "UMaine"
+    });
 
     /**
      * Use an HTML5 Canvas element as a raster data source.
@@ -276,6 +283,10 @@ const Map = ({
     return <div ref={ref} className={className}/>;
 };
 
+
+/**
+ * Styled version of the Map component
+ */
 const MapContainer = styled(Map)`
     height: 100vh;
     width: 100%;
