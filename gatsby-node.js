@@ -28,9 +28,14 @@ exports.onCreateWebpackConfig = ({ stage, loaders, actions }) => {
                     {
                         test: /mapbox-gl/,
                         use: loaders.null(),
-                    },{
+                    },
+                    {
                         test: /wasm/,
                         use: loaders.null(),
+                    },
+                    {
+                        test: /\.worker\.js$/,
+                        use: { loader: 'workerize-loader' }
                     }
                     
                 ]
