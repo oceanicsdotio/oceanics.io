@@ -25,7 +25,14 @@ export default ({
     /**
      * Web worker for fetching and auth
      */
-    const worker = useRef(new Worker);
+    const worker = useRef(null);
+
+    /**
+     * Create worker
+     */
+    useEffect(() => {
+        worker.current = new Worker();
+    }, []);
 
     const [accessToken, setAccesToken] = useState("");
 
@@ -35,7 +42,7 @@ export default ({
     useEffect(()=>{
         if (worker.current)
             worker.current.login({server, email, password}).then(setAccesToken)
-    }, []);
+    }, [ worker ]);
 
 
     /**
@@ -44,7 +51,7 @@ export default ({
     useEffect(() => {
         if (worker.current && accessToken) return;
             worker.current.query({url: server+"/api/", accessToken}).then(setCatalog); 
-    }, [accessToken, worker]);
+    }, [ accessToken, worker ]);
 
     return {
         catalog,
