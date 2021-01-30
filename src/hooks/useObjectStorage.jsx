@@ -18,7 +18,14 @@ export default ({
     /**
      * Web worker reference for background tasks.
      */
-    const worker = useRef(new Worker());
+    const worker = useRef(null);
+
+    /**
+     * Create worker
+     */
+    useEffect(() => {
+        worker.current = new Worker();
+    }, [])
   
     /**
      * Get the asset metadata from object storage service
@@ -26,7 +33,7 @@ export default ({
     useEffect(() => {
         if (!target || !worker.current) return;
         worker.current.getFileSystem(target).then(setFileSystem)       
-    }, []);
+    }, [ worker ]);
 
     return fileSystem;
 };

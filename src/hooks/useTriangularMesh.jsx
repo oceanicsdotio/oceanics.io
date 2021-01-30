@@ -91,7 +91,14 @@ export default ({
     /**
      * Web worker reference for background tasks.
      */
-    const worker = useRef(new Worker());
+    const worker = useRef(null);
+
+    /**
+     * Create worker
+     */
+    useEffect(() => {
+        worker.current = new Worker();
+    }, []);
 
     /**
      * If the `ref` has been assigned to a canvas target,

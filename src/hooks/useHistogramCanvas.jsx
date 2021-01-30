@@ -30,7 +30,14 @@ export default ({
      * Web worker for reducing histogram bins to the statistics
      * required for consistent/adjustable rendering.
      */
-    const worker = useRef(new Worker());
+    const worker = useRef(null);
+
+    /**
+     * Create worker
+     */
+    useEffect(() => {
+        worker.current = new Worker();
+    }, []);
 
     /**
      * Summary stats include max and total. Set asynchonously by

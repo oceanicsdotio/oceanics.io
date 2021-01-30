@@ -50,7 +50,14 @@ export default ({
     /**
      * Instantiate web worker reference for background tasks.
      */
-    const worker = useRef(new Worker());
+    const worker = useRef(null);
+
+    /**
+     * Create worker
+     */
+    useEffect(() => {
+        worker.current = new Worker();
+    }, []);
 
     /**
      * Create a initial distribution of particle positions,

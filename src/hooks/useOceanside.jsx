@@ -218,7 +218,11 @@ export default ({
         ["Shift", "C"], () => {setClamp(!clamp)}
     );
 
-    const worker = useRef(new Worker());
+    const worker = useRef(null);
+
+    useEffect(() => {
+        worker.current = new Worker();
+    }, []);
 
     /**
      * When the runtime loads for the first time, create a pixel map  
@@ -259,7 +263,7 @@ export default ({
 
         setMap(_map); 
 
-    }, [runtime]);
+    }, [runtime, worker]);
 
     /**
      * Draw the visible area to the board canvas using the 

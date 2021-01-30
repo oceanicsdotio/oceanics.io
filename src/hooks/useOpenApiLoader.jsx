@@ -14,7 +14,14 @@ export default ({
     /**
      * Web worker for loading, validation, and formatting in background.
      */
-    const worker = useRef(new Worker());
+    const worker = useRef(null);
+
+    /**
+     * Create the worker, isolated to browser environment
+     */
+    useEffect(() => {
+        worker.current = new Worker();
+    }, [])
 
     /**
      * OpenAPI spec struct will be populated asynchronously once the 
@@ -30,10 +37,10 @@ export default ({
      * the specification to be available before derived data
      * is calculated for UI. 
      */
-    useEffect(()=>{
+    useEffect(() => {
         if (worker.current) 
             worker.current.load(specUrl).then(setApiSpec);
-    },[worker]);
+    },[ worker ]);
 
     /**
      * API routes to convert to forms.
@@ -43,16 +50,16 @@ export default ({
     /**
      * Extract and flatten the paths and methods.
      */
-    useEffect(()=>{
+    useEffect(() => {
         if (apiSpec) 
             worker.current.flattenSpecOperations(apiSpec.paths).then(setMethods);
-    }, [apiSpec])
+    }, [ apiSpec ])
 
     /**
      * Collections are scraped from available implementations
      * of the API listed in the `servers` block.
      */
-    const [index, setIndex] = useState(null);
+    const [ index, setIndex ] = useState(null);
     
     /**
      * Hook gets any existing configurations from the API 
@@ -61,10 +68,10 @@ export default ({
      * The request url is inferred
      * from the `servers` object of the OpenAPI specification.
      */
-    useEffect(()=>{
+    useEffect(() => {
         if (scrapeIndexPage && apiSpec)
             worker.current.scrapeIndexPage(apiSpec.servers[0].url).then(setIndex);    
-    }, [apiSpec]);
+    }, [ apiSpec ]);
 
     return {apiSpec, index, methods};
 }

@@ -235,12 +235,14 @@ export const useGlslShaders = ({
     const ref = useRef(null);
     const secondary = useRef(null);
     
-    const worker = useRef(new Worker());
+    const worker = useRef(null);
 
-    // useEffect(()=>{
-    //     if (!worker.current) return;
-    //     worker.current.runtime().then(console.log);
-    // },[ worker ]);
+    /**
+     * Create worker
+     */
+    useEffect(() => {
+        worker.current = new Worker();
+    }, []);
 
     const validContext = () => 
         (typeof ref === "undefined" || !ref || !ref.current) ? false : ref.current.getContext("webgl");
