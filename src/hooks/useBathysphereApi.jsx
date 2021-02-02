@@ -3,13 +3,13 @@ import { useEffect, useState, useRef } from "react";
 import Worker from "./useBathysphereApi.worker.js";
 
 /**
-The catalog page is like a landing page to the api.
-
-Routes from here correspond to entities and 
-collections in the graph database.
-
-If access token is set in React state, use it to get the catalog index from Bathysphere
-*/
+ * The catalog page is like a landing page to the api.
+ * 
+ * Routes from here correspond to entities and 
+ * collections in the graph database.
+ * 
+ * If access token is set in React state, use it to get the catalog index from Bathysphere
+ */
 export default ({
     email, 
     password,
@@ -20,38 +20,37 @@ export default ({
      * Catalog to render in frontend, set from result
      * of Web Worker.
      */
-    const [catalog, setCatalog] = useState([]);
+    const [ catalog, setCatalog ] = useState([]);
 
     /**
-     * Web worker for fetching and auth
+     * Web worker reference for fetching and auth.
      */
     const worker = useRef(null);
 
     /**
-     * Create worker
+     * Create worker. Must be inside Hook, or webpack will protest.
      */
     useEffect(() => {
         worker.current = new Worker();
     }, []);
 
-    const [accessToken, setAccesToken] = useState("");
+    const [ accessToken, setAccessToken ] = useState("");
 
     /**
-     * Attemp to log in once 
+     * Attempt to log in once worker loads.
      */
     useEffect(()=>{
         if (worker.current)
-            worker.current.login({server, email, password}).then(setAccesToken)
+            worker.current.login({server, email, password}).then(setAccessToken);
     }, [ worker ]);
 
-
     /**
-     * Query for collections
+     * Query the API for index of collections.
      */
     useEffect(() => {
-        if (worker.current && accessToken) return;
+        if (worker.current && accessToken)
             worker.current.query({url: server+"/api/", accessToken}).then(setCatalog); 
-    }, [ accessToken, worker ]);
+    }, [ worker, accessToken ]);
 
     return {
         catalog,
