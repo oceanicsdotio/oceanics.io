@@ -54,9 +54,8 @@ export const login = async ({
     email, 
     password, 
     server
-}) => {
-
-    return fetch(server+"/api/auth", {
+}) => 
+    fetch(server+"/api/auth", {
         method: 'GET',
         mode: 'cors',
         cache: 'no-cache',
@@ -66,5 +65,4 @@ export const login = async ({
         }
     })
         .then(response => response.json())
-        .then(token => "token" in token ? token.token : "")
-};
+        .then(token => "token" in token ? token.token : "");
