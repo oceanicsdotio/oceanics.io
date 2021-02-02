@@ -18,19 +18,28 @@ export default ({
     labelPadding=2.0,
 }) => {
    
-
-    
+    /**
+     * Rust/WASM runtime for HPC
+     */
     const runtime = useWasmRuntime();
-    const [stream, setStream] = useState(null);
-    const style = {backgroundColor, streamColor, overlayColor, lineWidth, pointSize, fontSize, tickSize, labelPadding}; 
-    
+
+    /**
+     * The data stream structure. 
+     */
+    const [ dataStream, setStream ] = useState(null);
+
+    /**
+     * Create the data stream once the runtime has loaded. 
+     */
     useEffect(() => {
         if (runtime) setStream(new runtime.InteractiveDataStream(capacity));
-    }, [runtime]);
+    }, [ runtime ]);
 
+    /**
+     * Run the animation loop.
+     */
     useEffect(() => {
-       
-        if (!runtime || !stream || ref === undefined) return;
+        if (!runtime || !dataStream || ref === undefined) return;
 
         // use location based sunlight function
         const fcn = t => {
@@ -42,7 +51,7 @@ export default ({
 
         ref.current.addEventListener('mousemove', ({clientX, clientY}) => {
             const {left, top} = ref.current.getBoundingClientRect();
-            stream.update_cursor(clientX-left, clientY-top);
+            dataStream.update_cursor(clientX-left, clientY-top);
         });
 
         [ref.current.width, ref.current.height] = ["width", "height"].map(
@@ -54,14 +63,16 @@ export default ({
 
         (function render() {
             const time = performance.now() - start;
-            stream.push(time, fcn(time));
-            stream.draw(ref.current, time, style);
+            dataStream.push(time, fcn(time));
+            dataStream.draw(ref.current, time, {backgroundColor, streamColor, overlayColor, lineWidth, pointSize, fontSize, tickSize, labelPadding});
             requestId = requestAnimationFrame(render);
         })()
 
         return () => cancelAnimationFrame(requestId);
-    }, [stream, ref]);
+    }, [ dataStream, ref ]);
 
-    return {runtime, dataStream: stream}
-
+    return {
+        runtime, 
+        dataStream
+    }
 };

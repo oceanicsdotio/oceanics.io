@@ -10,6 +10,12 @@ const parseYamlText = text =>
         .split("\n")
         .filter(paragraph => paragraph)
 
+
+/**
+ * Load and validate the OpenAPI specification. 
+ * 
+ * @param {*} specUrl 
+ */
 export const load = async (specUrl) => {
     try {
         let api = await SwaggerParser.validate(specUrl);
@@ -17,7 +23,6 @@ export const load = async (specUrl) => {
         api.info.description = parseYamlText(api.info.description);
         
         return api;
-
     } 
     catch(err) {
         return err;

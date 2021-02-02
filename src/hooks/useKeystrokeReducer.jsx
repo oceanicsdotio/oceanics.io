@@ -31,18 +31,21 @@ export default (trigger, callback) => {
             }, {})
     );
 
-    ["keyup", "keydown"].map(type => {
-        useEffect(() => {
+    
+    useEffect(() => {
+        const types = ["keyup", "keydown"];
+        const listeners = types.map(type => {
             const listen = ({key, repeat}) => {
                 const symbol = key.toLowerCase();
                 if (repeat || !keys.hasOwnProperty(symbol)) return;
-                if (keys[symbol] === ("keyup" === type))
-                    setKeys({ type, key: symbol });  
+                if (keys[symbol] === ("keyup" === type)) setKeys({ type, key: symbol });  
             };
             window.addEventListener(type, listen, true);
-            return () => window.removeEventListener(type, listen, true);
-        }, [keys]);
-    });
+            return listen;
+        });
+        return () => types.map(type => window.removeEventListener(type, listen, true));
+    }, [keys]);
+  
 
     useEffect(() => {
         if (Object.values(keys).every(x => x)) callback();

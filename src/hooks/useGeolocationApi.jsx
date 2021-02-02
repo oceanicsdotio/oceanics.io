@@ -72,7 +72,7 @@ export default ({callback=null}) => {
 
     useEffect(() => {
         setIcon(["pulsing-dot", pulsingDot({callback})]);
-    }, [ ])
+    }, [])
     
     useEffect(() => {
         
@@ -86,7 +86,7 @@ export default ({callback=null}) => {
             }, 
             () => { console.log("Error getting client location.") }
         );
-    }, [ ]);
+    }, []);
 
     return { layer, icon }
 
