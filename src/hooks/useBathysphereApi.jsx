@@ -34,6 +34,10 @@ export default ({
         worker.current = new Worker();
     }, []);
 
+    /**
+     * JavaScript Web Token. State variable returned to parent component,
+     * but not setter.
+     */
     const [ accessToken, setAccessToken ] = useState("");
 
     /**
@@ -49,7 +53,7 @@ export default ({
      */
     useEffect(() => {
         if (worker.current && accessToken)
-            worker.current.query({url: server+"/api/", accessToken}).then(setCatalog); 
+            worker.current.query({server, accessToken}).then(setCatalog); 
     }, [ worker, accessToken ]);
 
     return {
