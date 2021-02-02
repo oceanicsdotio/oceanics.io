@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 
 import Worker from "./useMapboxGeoJsonLayers.worker.js";
 
@@ -67,15 +67,27 @@ export const pulsingDot = ({
  */
 export default ({callback=null}) => {
  
-    const [layer, setLayer] = useState(null);
+    /**
+     * Icon is the sprite for the object
+     */
     const [icon, setIcon] = useState(null);
 
+    /**
+     * 
+     */
     useEffect(() => {
         setIcon(["pulsing-dot", pulsingDot({callback})]);
-    }, [])
+    }, []);
+
+    /**
+     * Layer is the MapBox formatted layer object
+     */
+    const [layer, setLayer] = useState(null);
     
+    /**
+     * Use thr worker to create the point feature
+     */
     useEffect(() => {
-        
         if (!navigator.geolocation) return;
 
         navigator.geolocation.getCurrentPosition(
