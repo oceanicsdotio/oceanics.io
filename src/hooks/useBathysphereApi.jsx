@@ -15,12 +15,6 @@ export default ({
     password,
     server = "https://graph.oceanics.io"
 }) => {
-   
-    /**
-     * Catalog to render in frontend, set from result
-     * of Web Worker.
-     */
-    const [ catalog, setCatalog ] = useState([]);
 
     /**
      * Web worker reference for fetching and auth.
@@ -47,6 +41,12 @@ export default ({
         if (worker.current)
             worker.current.login({server, email, password}).then(setAccessToken);
     }, [ worker ]);
+
+    /**
+     * Catalog to render in frontend, set from result
+     * of Web Worker.
+     */
+    const [ catalog, setCatalog ] = useState([]);
 
     /**
      * Query the API for index of collections.

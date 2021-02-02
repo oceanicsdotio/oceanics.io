@@ -1,5 +1,5 @@
 /**
- * Create a new account
+ * Create a new account.
  * @param {} param0 
  */
 export const register = async ({
@@ -25,7 +25,7 @@ export const register = async ({
 
 
 /**
- * Get the index
+ * Get the index.
  * @param {*} param0 
  */
 export const query = async ({
@@ -47,7 +47,7 @@ export const query = async ({
 
 
 /**
- * Login and get a JWT
+ * Login and get a JWT.
  * @param {*} param0 
  */
 export const login = async ({
@@ -68,4 +68,3 @@ export const login = async ({
         .then(response => response.json())
         .then(token => "token" in token ? token.token : "")
 };
-
