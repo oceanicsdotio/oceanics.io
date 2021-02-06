@@ -188,7 +188,7 @@ export default ({
         });
 
         return () => { worker.current.terminate() }
-    },[map, worker, queue]);
+    }, [ map, worker, queue ]);
 
     return {
         mesh, 

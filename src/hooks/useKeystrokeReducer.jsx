@@ -33,17 +33,16 @@ export default (trigger, callback) => {
 
     
     useEffect(() => {
-        const types = ["keyup", "keydown"];
-        const listeners = types.map(type => {
+        const listeners = ["keyup", "keydown"].map(type => {
             const listen = ({key, repeat}) => {
                 const symbol = key.toLowerCase();
                 if (repeat || !keys.hasOwnProperty(symbol)) return;
                 if (keys[symbol] === ("keyup" === type)) setKeys({ type, key: symbol });  
             };
             window.addEventListener(type, listen, true);
-            return listen;
+            return [type, listen];
         });
-        return () => types.map(type => window.removeEventListener(type, listen, true));
+        return () => listeners.map(each => window.removeEventListener(...each, true));
     }, [keys]);
   
 

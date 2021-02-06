@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useReducer } from "react";
 
 import Worker from "./useMapboxGeoJsonLayers.worker.js";
 
@@ -66,11 +66,17 @@ export const pulsingDot = ({
  * This will also trigger a greater initial zoom level.
  */
 export default ({callback=null}) => {
+
+    const worker = useRef(null);
+
+    useEffect(() => {
+        worker.current = new Worker();
+    }, []);
  
     /**
      * Icon is the sprite for the object
      */
-    const [icon, setIcon] = useState(null);
+    const [ icon, setIcon ] = useState(null);
 
     /**
      * 
@@ -79,27 +85,45 @@ export default ({callback=null}) => {
         setIcon(["pulsing-dot", pulsingDot({callback})]);
     }, []);
 
+    const [location, setLocation] = useState(null);
+    
+    
+    useEffect(() => {
+    
+        if (!navigator.geolocation) return null;
+
+        navigator.geolocation.getCurrentPosition(
+            setLocation, 
+            () => { console.log("Error getting client location.") },{
+            enableHighAccuracy: true,
+            timeout: 5000,
+            maximumAge: 0
+        });
+
+    }, []);
+
     /**
      * Layer is the MapBox formatted layer object
      */
-    const [layer, setLayer] = useState(null);
+    const [ layer, setLayer ] = useState(null);
     
     /**
      * Use thr worker to create the point feature
      */
     useEffect(() => {
-        if (!navigator.geolocation) return;
+        if (!worker.current || !location) return;
 
-        navigator.geolocation.getCurrentPosition(
-            ({coords}) => { 
-                const worker = new Worker();
-                worker.PointFeatureSource(coords).then(setLayer);
-                worker.terminate();
-            }, 
-            () => { console.log("Error getting client location.") }
-        );
-    }, []);
+        const {longitude, latitude} = location.coords;
+        worker.current.UserLocation({longitude, latitude}).then(setLayer);
+                
+        return () => { worker.current.terminate() }
+        
+    }, [ worker, location ]);
 
-    return { layer, icon }
+
+
+    return { 
+        layer, icon, location
+    }
 
 };

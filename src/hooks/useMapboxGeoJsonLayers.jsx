@@ -69,6 +69,8 @@ export default ({
                 console.log(`Error loading ${id}`, err);
             });
         }); 
+
+        return () => {worker.current.terminate()};
         
     }, [map, layers, worker]);
 

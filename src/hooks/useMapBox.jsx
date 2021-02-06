@@ -43,6 +43,7 @@ export default ({
 
         setMap(_map);
     }, []);
+    
   
     return {map, ref, cursor};
 };

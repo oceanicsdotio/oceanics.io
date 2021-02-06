@@ -5,7 +5,6 @@ import {Popup} from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 
 import useMapBox from "../hooks/useMapBox";
-import useMapboxHighlightEvent from "../hooks/useMapBoxHighlightEvent";
 import useMapboxGeoJsonLayers from "../hooks/useMapboxGeoJsonLayers";
 import useTriangularMesh from "../hooks/useTriangularMesh";
 import useGeolocationApi from "../hooks/useGeolocationApi";
@@ -153,12 +152,34 @@ const Map = ({
         accessToken
     });
 
+    /** 
+     * Highlight layers
+     * 
+     * When the cursor position intersects with the space
+     * defined by a feature set, set the hover state to true.
+     * When the cursor no longer intersects the shapes, stop
+     * highlighting the features. 
+     */
+    useEffect(() => {
+        
+        const featureIds = [];
+        if (!map || !featureIds) return;
 
-     // useMapboxHighlightEvent({
-    //     ready: "nssp-closures" in ready, 
-    //     map, 
-    //     source: "nssp-closures"
-    // });
+        map.on('mousemove', source, (e) => {
+            if (e.features.length > 0) {
+                (featureIds || []).forEach(id => {map.setFeatureState({ source, id }, { hover: false })});
+                featureIds = e.features.map(feature => feature.id);
+                (featureIds || []).forEach(id => {map.setFeatureState({ source, id }, { hover: true })});
+            }
+        });
+            
+        map.on('mouseleave', source, () => {
+            (featureIds || []).forEach(id => {map.setFeatureState({ source, id }, { hover: false })});
+            featureIds = [];
+        });
+        
+    }, []);
+   
 
     /**
      * Popup handlers
@@ -249,7 +270,42 @@ const Map = ({
      * 
      * Should be moved up to App context.
      */
-    useGeolocationApi({});
+    const {layer, icon} = useGeolocationApi({});
+
+    useEffect(() => {
+    
+        if (!layer || !icon || !map) return;
+      
+        const layerId = "home";
+
+        map.addImage(...icon);
+
+        map.addSource(layerId, layer);
+
+        map.addLayer({
+            id: layerId,
+            type: 'symbol',
+            source: layerId,
+            layout: { 'icon-image': icon[0] }
+        });
+
+
+        // var i = 0;
+        // var timer = window.setInterval(function () {
+        // if (i < coordinates.length) {
+        //     data.features[0].geometry.coordinates.push(
+        //     coordinates[i]
+        // );
+        // map.getSource(layerId).setData(data);
+        console.log(layer);
+        map.panTo(layer.data.features[0].geometry.coordinates);
+        // i++;
+        // } else {
+        // window.clearInterval(timer);
+        // }
+        // }, 10);
+
+    }, [layer, icon, map]);
 
     useTriangularMesh({
         map,

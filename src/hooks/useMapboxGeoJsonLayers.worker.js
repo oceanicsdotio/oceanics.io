@@ -58,19 +58,12 @@ export const GeoJsonSource = ({
     });
 
 
-export const UserLocation = async ({longitude, latitude}) => PointFeature(longitude, latitude, {})
-    .then(feature => 
-        Object({
-            id: 'home',
-            type: 'symbol',
-            source: GeoJsonSource({
-                features: [feature]
-            }),
-            layout: {
-                'icon-image': 'pulsing-dot'
-            }
-        })
-    );
+export const UserLocation = async ({
+    longitude, 
+    latitude
+}) => GeoJsonSource({
+        features: [PointFeature(longitude, latitude, {})]
+    });
 
 export async function getData(url, standard) {
     return await fetch(url)
