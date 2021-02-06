@@ -1,0 +1,71 @@
+---
+title: Maine aquaculture workforce
+date: "2021-02-06T23:00:00.000Z"
+description: |
+  The state of Maine says one thing, the industry says another. "Everyone"
+  is optimistic about what aquaculture can do for the state economy, but
+  sometimes it all seems a little futile. 
+  Maybe we're collectively looking at the problem wrong?
+tags: ["Maine", "aquaculture", "labor", "shade", "opportunity"]
+---
+
+# Maine marine workforce development
+
+Several reports on marine labor supply and industry in Maine came out in the recent past. 
+
+One was written by four Scottish consultants under the guidance of Maine marine industry and research organizations. The 130-page aquaculture workforce (AWFD 2020) report solicit survey responses on the challenges business face in hiring in rural Maine, focused on qualifications and skills. 
+
+The other is a ten-year strategic plan (MEDP 2019) for economic development for 2020-2029, which hinges on talent and innovation. Despite the grand scope, the report weighs in at 44 pages. 
+
+Both are cautiously optimistic in the face of grim reality. If there is no systemic change, Maine is on track for a 10% reduction in labor supply by 2030, alongside a slowdown in global markets that could disrupt export industries.
+
+The current labor force is stagnate around 700K, with a GDP of $58.5B. The report cites per worker production at $88K, compared to $120K in the US. GDP growth in Maine is 0.6% compared to 1.8% in the US. The result is that since the ’90s, pay has gone from 83% of national average to 78%, especially related to loss of manufacturing, AKA “skilled labor”.
+
+Benchmarks for economic develop in the next decade are
+
+- 10% increase in wages
+- 10% increase in production
+- 75K labor entrants
+
+The aquaculture labor force is 600 (0.08% of the state), producing $73.4M of value (0.12%). With wages of $35.7M, the average compensation appears to be almost $60K. 
+
+Yay! The industry is, as a whole, marginally lucrative, which in part explains why public institutions have given such vocal support for industry growth. Whether a business can bank on non-marginal investment from the state or private investors to hit these target remains to be seen, but most folks buy that it is an achievable target.
+
+Proportional growth in aquaculture would be:
+
+- $6K increase in wages
+- $7.3M in production
+- 60 new entrants
+
+Industry interviewees suggested that labor demand would increase from 600 to 1000 (+67%) by 2030, with as many positions added to the aquaculture products supply chain. This is much greater than the state-wide target of 10%. Shellfish farmers believe that employment will not scale proportionally. 15% of businesses admitted to being revenue constrained in hiring choices, though the true number is probably higher. I say “admit”, because there are some fun secrets in the data. 
+
+They bemoaned a lack of skilled labor, and training opportunities. Specific challenges to hiring included healthcare costs, lack of young people in rural areas, and gaps in management skills. Only 20% of the industry is employed full-time in aquaculture. A further 25% are employed part-time in other marine trades, that presumably they want to continue to do. But 50% are part-time, meaning there is actually a large available pool of trained labor. 
+
+In fact, 42% of the industry are classified as “unskilled laborer” (by management). Less than 10% are intermediate or skilled. A full 37% of the industry is manager or director level, so manager-to-worker ratio is 2:1, where as ~10:1 is kind of “normal” in the larger world. The median income is actually around $34K, compared to the mean of almost $60K. Meaning, the owners are no longer operating, and management is capturing a significant slice of the pie. 
+
+78% of companies are gender balanced or mostly women, but only 33% of the work force is female. So, basically, there are a minority of organizations out there that structurally exclude women. 
+
+Companies conduct in house training for most processes, resulting in significant re-training for people rotating through multiple businesses. The report suggests that formal aquaculture-specific qualifications are the answer. They place emphasis on community college degrees, as well as opportunities to develop 2000-hour apprenticeships. The problem with apprenticeships is that for them to be approved by the state they must show career and wage progression for participants. And, there is clear lack of demand for appropriately compensated skilled labor. 
+
+Though there are over 100 aquaculture businesses, 50% of the current work force is attributable to Cooke Aquaculture fish farms alone, and much of the anticipated growth is in shore-based salmon farms that are still in the permitting process and facing fierce community opposition.  
+
+The points above illustrate divisions in the community. Capital vs. labor, large vs. small, engineering vs. farming, trust between companies, desire for educated individuals without a clear path for their advancement or plans to improve compensation. The industry ripe for rationalization! 
+
+Ultimately, growth will be driven by:
+
+- seed supply
+- availability of contract farming and processing
+- community acceptance
+
+Future development in the sector is expected to include technology adoption, expansion of RAS, investment in veterinary and husbandry research, consolidation, and supply chain adaption. Some 400-sq-foot licenses (LPAs) will become profitable, as 10% already have, and grow into full-scale farms. Provenance initiatives and systems for collaboration may also contribute to growth. 
+
+I think, also, that growth will be limited by the bimodal distribution of responsibility and wealth. This can be accomplished by evolving in house functions to include skilled trades that would normally be outsourced. 
+
+Based on experience abroad, producers tend to vertically integrate as they scale. Well-funded startups adapt this strategy from the start. As organizations grow, technical support and processes move to external or offsite division (processing, feed production). 
+
+An interesting point made by some commenters was that IT skill were “not trainable” at small farms. Plus, over 85K locations do not meet ConnectME high speed standards of 25 MBPS down, 3 up, and many others have no connection. There is a need for last mile connectivity and contract IT services for farms in rural areas. Building out this infrastructure requires “consistent, predictable, and robust funding”. 
+
+Offshore wind could add $200M to GDP, and lower the price of electricity, which is relatively expensive in Maine. This would control and reduce the cost of data and network centers, and computing-intensive engineered systems. 
+
+With increasing connectivity and resources, new opportunities will emerge for technological innovation in small and medium-scale farms. With care, we can make sure that tools are for operators as well as owners, and that drive down the bottom line in ways that reduce 
+toil and promote occupational sustainability for workers assuming great personal risk.
