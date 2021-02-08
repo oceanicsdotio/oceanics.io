@@ -40,7 +40,7 @@
     "katex": "^0.12.0",
     "mapbox-gl": "^1.5.0",
     "netcdfjs": "^1.0.0",
-    "pdfjs-dist": "^2.5.207",
+    "pdfjs-dist": "^2.6.347",
     "pg": "^8.5.1",
     "pluralize": "^8.0.0",
     "prismjs": "^1.23.0",
