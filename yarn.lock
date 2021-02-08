@@ -4312,10 +4312,10 @@ autoprefixer@^9.7.2, autoprefixer@^9.8.4:
     postcss "^7.0.32"
     postcss-value-parser "^4.1.0"
 
-aws-sdk@^2.814.0:
-  version "2.814.0"
-  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.814.0.tgz#7a1c36006e0b5826f14bd2511b1d229ef6814bb0"
-  integrity sha512-empd1m/J/MAkL6d9OeRpmg9thobULu0wk4v8W3JToaxGi2TD7PIdvE6yliZKyOVAdJINhBWEBhxR4OUIHhcGbQ==
+aws-sdk@^2.839.0:
+  version "2.839.0"
+  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.839.0.tgz#74e9697e5dcb2d116032363ad80f5b705759fafb"
+  integrity sha512-CFgiZ8IUpI1Qqs0ECheGO592lvGG6dYp7SsMJ5Xegd+aBAn6dimPTSmrnkPHPyzFhMYtBx1kE6SxVkl9MKOcWg==
   dependencies:
     buffer "4.9.2"
     events "1.1.1"
@@ -14273,10 +14273,10 @@ pbkdf2@^3.0.3:
     safe-buffer "^5.0.1"
     sha.js "^2.4.8"
 
-pdfjs-dist@^2.5.207:
-  version "2.5.207"
-  resolved "https://registry.yarnpkg.com/pdfjs-dist/-/pdfjs-dist-2.5.207.tgz#b5e8c19627be64269cd3fb6df3eaaf45ddffe7b6"
-  integrity sha512-xGDUhnCYPfHy+unMXCLCJtlpZaaZ17Ew3WIL0tnSgKFUZXHAPD49GO9xScyszSsQMoutNDgRb+rfBXIaX/lJbw==
+pdfjs-dist@^2.6.347:
+  version "2.6.347"
+  resolved "https://registry.yarnpkg.com/pdfjs-dist/-/pdfjs-dist-2.6.347.tgz#f257ed66e83be900cd0fd28524a2187fb9e25cd5"
+  integrity sha512-QC+h7hG2su9v/nU1wEI3SnpPIrqJODL7GTDFvR74ANKGq1AFJW16PH8VWnhpiTi9YcLSFV9xLeWSgq+ckHLdVQ==
 
 pend@~1.2.0:
   version "1.2.0"
