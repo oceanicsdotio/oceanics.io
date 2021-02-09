@@ -49,7 +49,7 @@ Companies conduct in house training for most processes, resulting in significant
 
 Though there are over 100 aquaculture businesses, 50% of the current work force is attributable to Cooke Aquaculture fish farms alone, and much of the anticipated growth is in shore-based salmon farms that are still in the permitting process and facing fierce community opposition.  
 
-The points above illustrate divisions in the community. Capital vs. labor, large vs. small, engineering vs. farming, trust between companies, desire for educated individuals without a clear path for their advancement or plans to improve compensation. The industry ripe for rationalization! 
+The points above illustrate divisions in the community. Capital vs. labor, large vs. small, engineering vs. farming, trust between companies, desire for educated individuals without a clear path for their advancement or plans to improve compensation. The industry is ripe for rationalization! 
 
 Ultimately, growth will be driven by:
 
@@ -59,13 +59,12 @@ Ultimately, growth will be driven by:
 
 Future development in the sector is expected to include technology adoption, expansion of RAS, investment in veterinary and husbandry research, consolidation, and supply chain adaption. Some 400-sq-foot licenses (LPAs) will become profitable, as 10% already have, and grow into full-scale farms. Provenance initiatives and systems for collaboration may also contribute to growth. 
 
-I think, also, that growth will be limited by the bimodal distribution of responsibility and wealth. This can be accomplished by evolving in house functions to include skilled trades that would normally be outsourced. 
+I think, also, that growth will be limited by the bi-modal distribution of responsibility and wealth. This can be accomplished by evolving in-house functions to include skilled trades that would normally be outsourced. 
 
 Based on experience abroad, producers tend to vertically integrate as they scale. Well-funded startups adapt this strategy from the start. As organizations grow, technical support and processes move to external or offsite division (processing, feed production). 
 
-An interesting point made by some commenters was that IT skill were “not trainable” at small farms. Plus, over 85K locations do not meet ConnectME high speed standards of 25 MBPS down, 3 up, and many others have no connection. There is a need for last mile connectivity and contract IT services for farms in rural areas. Building out this infrastructure requires “consistent, predictable, and robust funding”. 
+An interesting point made by some commenters was that IT skill were “not trainable” at small farms. Plus, over 85K locations in state do not meet ConnectME high speed standards of 25 MBPS down, 3 up, and many others have no connection. There is a need for last mile connectivity and contract IT services for farms in rural areas. Building out this infrastructure requires “consistent, predictable, and robust funding”. 
 
 Offshore wind could add $200M to GDP, and lower the price of electricity, which is relatively expensive in Maine. This would control and reduce the cost of data and network centers, and computing-intensive engineered systems. 
 
-With increasing connectivity and resources, new opportunities will emerge for technological innovation in small and medium-scale farms. With care, we can make sure that tools are for operators as well as owners, and that drive down the bottom line in ways that reduce 
-toil and promote occupational sustainability for workers assuming great personal risk.
+With increasing connectivity and resources, new opportunities will emerge for technological innovation in small and medium-scale farms. With care, we can make sure that tools are for operators as well as owners, and that drive down the bottom line in ways that reduce toil and promote occupational sustainability for workers assuming great personal risk.
