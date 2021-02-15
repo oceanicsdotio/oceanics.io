@@ -14,7 +14,7 @@ export const pulsingDot = ({
 
     // get rendering context for the map canvas when layer is added to the map
     onAdd: function () {
-        var canvas = document.createElement('canvas');
+        let canvas = document.createElement('canvas');
         canvas.width = size;
         canvas.height = size;
         this.context = canvas.getContext('2d');
@@ -22,12 +22,12 @@ export const pulsingDot = ({
 
     // called once before every frame where the icon will be used
     render: function () {
-        var duration = 1000;
-        var time = (performance.now() % duration) / duration;
+        let duration = 1000;
+        let time = (performance.now() % duration) / duration;
 
-        var radius = (size / 2) * 0.3;
-        var outerRadius = (size / 2) * 0.7 * time + radius;
-        var ctx = this.context;
+        let radius = (size / 2) * 0.3;
+        let outerRadius = (size / 2) * 0.7 * time + radius;
+        let ctx = this.context;
 
     
         ctx.clearRect(0, 0, size, size);

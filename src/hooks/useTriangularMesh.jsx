@@ -132,7 +132,7 @@ export default ({
             // mesh.updateState(drag, bounce, timeConstant, collisionThreshold);
             mesh.draw(ref.current, time, style);
             requestId = requestAnimationFrame(render);
-        })()
+        })();
 
         return () => cancelAnimationFrame(requestId);
     }, [mesh]);
