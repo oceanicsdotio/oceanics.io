@@ -11,14 +11,15 @@ export default ({
    
     const runtime = useWasmRuntime();
 
-    useEffect(() => {
-        /*
-        First populate the mesh data structure with points and topology
-        from preprogrammed routines.
-        
-        Then draw the mesh in an animation loop. 
-        */
+     /*
+    First populate the mesh data structure with points and topology
+    from preprogrammed routines.
+    
+    Then draw the mesh in an animation loop. 
+    */
 
+    useEffect(() => {
+       
         if (!runtime) return;
 
         let {start, ctx, shape, requestId, frames} = targetHtmlCanvas(ref, `2d`);

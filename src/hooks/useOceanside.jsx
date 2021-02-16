@@ -4,7 +4,7 @@ import {
     eventCoordinates,
     targetHtmlCanvas,
     inverse,
-    drawProjectionPrism
+    rotatePath
 } from "../bathysphere";
 import useWasmRuntime from "../hooks/useWasmRuntime";
 import useKeystrokeReducer from "../hooks/useKeystrokeReducer";
@@ -13,34 +13,7 @@ import {ghost} from "../palette";
 import Worker from "./useOceanside.worker.js";
 
 
-/**
- * Cursor is given as grid coordinates, in the interval [0.0, gridSize).
- * Grid cell boxes are width and height 1 in this reference frame.
- *
- * The grid coordinates are transformed into canvas coordinates, and 
- * then reprojected to an isomorphic view.
- */
-const drawCursor = (width, gridSize, ctx, cursor, clamp) => {
-   
-    const curs = [cursor.x(), cursor.y()];
-    const cellSize = width/gridSize;
-    const [inverted] = inverse([curs.map(x=>x*cellSize)], width, gridSize).map(pt => pt.map(x=>x/cellSize));
- 
-    [
-        {upperLeft: curs, color: "#FFAA00FF"},
-        {upperLeft: inverted, color: "#AAFF00FF"}
-    ].map(({upperLeft, color})=>{
-        drawProjectionPrism({
-            width, 
-            gridSize,
-            clamp,
-            upperLeft,
-            color,
-            lineWidth: 2.0,
-            ctx
-        });
-    });
-};
+
 
 /**
  * The `Oceanside` hook provides all of the functionality to
@@ -76,7 +49,14 @@ export default ({
     font = "36px Arial"
 }) => {
 
+    /**
+     * Ref for clickable minimap that allows world navigation
+     */
     const nav = useRef(null);
+
+    /**
+     * Ref for isometric view render target
+     */
     const board = useRef(null);
 
     /**
@@ -218,8 +198,14 @@ export default ({
         ["Shift", "C"], () => {setClamp(!clamp)}
     );
 
+    /**
+     * Web worker for background tasks
+     */
     const worker = useRef(null);
 
+    /**
+     * Create the web worker
+     */
     useEffect(() => {
         worker.current = new Worker();
     }, []);
@@ -252,18 +238,14 @@ export default ({
         );
             
         (async () => {
-
             const iconSet = await worker.current.parseIconSet({nodes, templates, worldSize});
-           
             iconSet.forEach(x => {_map.insertFeature(x)});
-            
             populateVisibleTiles(_map, null);  
-            
         })();
 
         setMap(_map); 
 
-    }, [runtime, worker]);
+    }, [ runtime, worker ]);
 
     /**
      * Draw the visible area to the board canvas using the 
@@ -274,7 +256,8 @@ export default ({
             typeof board === "undefined" || 
             !board || 
             !board.current || 
-            !tiles
+            !tiles || 
+            !worker.current
         ) return;
 
         let {
@@ -302,8 +285,71 @@ export default ({
                 });
             });
 
-            if (cursor) drawCursor(width, gridSize, ctx, cursor, clamp);
+            if (cursor) {
 
+                /*
+                Convenience method to create a bounding box polygon
+                from a upper-left, width/height type extent. 
+            
+                Upperleft is given in grid coordinates, and width and height
+                are integers corresponded to the number of grid cells per
+                side of the selected region.
+                */
+               
+                const Δx = 1; 
+                const Δy = 1;
+                const curs = [cursor.x(), cursor.y()];
+                const cellSize = width/gridSize;
+                const [inverted] = inverse([curs.map(x=>x*cellSize)], width, gridSize).map(pt => pt.map(x=>x/cellSize));
+                
+                [
+                    {upperLeft: curs, color: "#FFAA00FF"},
+                    {upperLeft: inverted, color: "#AAFF00FF"}
+                ].map(({color, upperLeft})=>{
+
+                    const [x, y] = upperLeft.map(dim => clamp ? Math.floor(dim) : dim);
+
+                    const cellA = [
+                        [x, y],
+                        [x + Δx, y],
+                        [x + Δx, y + Δy],
+                        [x, y + Δy]
+                    ].map(
+                        pt => pt.map(dim => dim*cellSize)
+                    );
+                    
+                    const cellB = rotatePath(
+                        cellA.map(pt => pt.map(x => x/Math.sqrt(2))), 
+                        Math.PI/4
+                    ).map(
+                        ([x,y])=>[
+                            x + (Math.floor(0.5*gridSize) + 1.25)*cellSize/Math.sqrt(2), 
+                            0.5*y
+                        ]
+                    );
+
+                    return [cellA, cellB, color];
+                }).map(([cellA, cellB, color])=>{
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = 2.0;
+
+                    [cellA, cellB].forEach(cell => {
+                        ctx.beginPath();
+                        ctx.moveTo(...cell[0]);
+                        cell.slice(1, 4).forEach(pt => ctx.lineTo(...pt));
+                        ctx.closePath();
+                        ctx.stroke(); 
+                    });
+
+                    ctx.beginPath();
+                    for (let ii=0; ii<4; ii++) {
+                        ctx.moveTo(...cellA[ii]);
+                        ctx.lineTo(...cellB[ii]);
+                    }
+                    ctx.stroke();
+                });
+            }
+            
             runtime.draw_caption(
                 ctx, 
                 `${clock.date.toLocaleDateString()} ${18-2*(clock.actions ? clock.actions : 0)}:00, Balance: $${map ? map.score() : 0.0}`, 
@@ -318,8 +364,12 @@ export default ({
             
         })();
 
-        return () => cancelAnimationFrame(requestId);
-    }, [tiles, clamp, cursor]);
+        return () => {
+            cancelAnimationFrame(requestId);
+            worker.current.terminate();
+
+        };
+    }, [ tiles, clamp, cursor, worker ]);
     
     return {
         worldSize,  // return in case you want the default

@@ -1,10 +1,26 @@
 import React, {useEffect, useState} from "react";
-import {queryBathysphere} from "../bathysphere";
 import styled from "styled-components";
 
 const StyledEntry = styled.div`
     color: orange;
 `;
+
+export const queryBathysphere = async (uri, auth) => {
+    /*
+    Fetch JSON data from the Bathysphere API.
+
+    Requires token or basic authorization.
+    */
+    return fetch(uri, {
+        method: 'GET',
+        mode: 'cors',
+        cache: 'no-cache',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': auth
+        }
+    });
+};
 
 export default ({edges, token, baseUrl}) => {
 

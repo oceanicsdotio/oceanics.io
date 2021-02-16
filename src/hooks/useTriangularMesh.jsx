@@ -8,7 +8,12 @@ import Worker from "./useMapboxGeoJsonLayers.worker.js";
 const TARGET = "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com";
 const PREFIX = "MidcoastMaineMesh";
 
-
+/**
+ * Event handler for mouse movement, returns the type and listener
+ * function 
+ * @param {*} canvas 
+ * @param {*} data 
+ */
 const mouseMoveEventListener = (canvas, data) => {
     // recursive use error on line below when panic! in rust
     const eventType = 'mousemove';
@@ -166,9 +171,12 @@ export default ({
 
         const key = queue[0].key;
         setQueue(queue.slice(1, queue.length));
+
         if (map.getLayer(`mesh-${key}`)) return;
-        
-        worker.current.getFragment(`${TARGET}/${key}`, attribution).then(source => {
+
+        (async () => {
+            const source = await worker.current.getFragment(`${TARGET}/${key}`, attribution);
+            
             map.addLayer({
                 id: `mesh-${key}`,
                 type: "circle",
@@ -185,10 +193,33 @@ export default ({
                     ]
                 }
             });
-        });
-
-        return () => { worker.current.terminate() }
+            
+        })();
+        
     }, [ map, worker, queue ]);
+
+
+    /**
+     * Make sure to stop the worker
+     */
+    const [processing, setProcessing] = useState(false);
+
+
+    /**
+     * When queue is created, set status.
+     * 
+     * When queue is exhausted, shutdown worker. 
+     */
+    useEffect(() => {
+        if (queue) {
+            setProcessing(true);
+            return;
+        } else if (processing) {
+            console.log("Stopping Mesh Worker...");
+            worker.current.terminate();
+        }
+    }, [ queue ]);
+
 
     return {
         mesh, 

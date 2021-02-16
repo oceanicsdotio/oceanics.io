@@ -1,4 +1,3 @@
-
 /**
  * Generate the dataUrls for icon assets in the background.
  * 

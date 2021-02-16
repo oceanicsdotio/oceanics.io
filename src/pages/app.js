@@ -262,7 +262,7 @@ export default ({
                         ref={isometric.nav.ref}
                         width={isometric.worldSize}
                         height={isometric.worldSize}
-                        // onClick={isometric.nav.onClick}
+                        onClick={isometric.nav.onClick}
                     />
                 </Interface>
             </Composite>

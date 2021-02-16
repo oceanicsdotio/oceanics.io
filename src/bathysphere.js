@@ -1,80 +1,3 @@
-export const queryBathysphere = async (uri, auth) => {
-    /*
-    Fetch JSON data from the Bathysphere API.
-
-    Requires token or basic authorization.
-    */
-    return fetch(uri, {
-        method: 'GET',
-        mode: 'cors',
-        cache: 'no-cache',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': auth
-        }
-    });
-};
-
-export const loadTileImage = (url, ref) => {
-    /*
-    Fetch and draw an image to a canvas.
-    */
-    if (!url) {
-        throw ValueError("Empty string is not a valid data source.");
-    } else if (!ref.current) {
-        return;
-    }
-
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.addEventListener('load', () => {
-        const { width, height } = ref.current;
-        let ctx = ref.current.getContext('2d');
-        ctx.drawImage(img, 0, 0, width, height);
-    }, {
-        capture: false,
-        once: true,
-    });
-    img.src = url;
-};
-
-
-function partition(arr, low, high, col) {
-    /*
-    In place sorting function. 
-    */
-    let ii = low - 1;
-    let temp;
-    const pivot = arr[high];
-
-    for (let jj = low; jj < high; jj++) {
-        if (arr[jj][col] <= pivot[col]) {
-            ii++;
-            temp = arr[jj];
-            arr[jj] = arr[ii];
-            arr[ii] = temp;
-        }
-    }
-    temp = arr[ii + 1];
-    arr[ii + 1] = arr[high];
-    arr[high] = temp;
-    return ii + 1;
-}
-
-export function quickSort(arr, low, high, col) {
-    /*
-    simple implementation of the QuickSort algorithm.
-
-    Generally the standard library should be used, but sometimes that does quite work.
-    */
-    if (low < high) {
-
-        let index = partition(arr, low, high, col);
-
-        quickSort(arr, low, index - 1, col);
-        quickSort(arr, index + 1, high, col);
-    }
-};
 
 
 
@@ -171,113 +94,34 @@ export const waterLevel = (map) => Object({
 });
 
 
+/*
+Rotate a path of any number of points about the origin.
+
+You need to translate first to the desired origin, and then translate back once the rotation is complete.
+
+Not as flexible as quaternion rotation.
+*/
 export const rotatePath = (pts, angle) => {
-    /*
-    Rotate a path of any number of points about the origin.
-
-    You need to translate first to the desired origin, and then translate back once the rotation is complete.
-
-    Not as flexible as quaternion rotation.
-    */
+   
     let [s, c] = [Math.sin, Math.cos].map(fcn => fcn(angle));
     return pts.map(([xx, yy]) => [(xx * c - yy * s), (xx * s + yy * c)]);
 }
 
 
-export const pathFromGridCell = ({
-    upperLeft: [x, y], 
-    width=1, 
-    height=1, 
-    clamp=false, 
-    cellSize=1.0
-}) => {
-    /*
-    Convenience method to create a bounding box polygon
-    from a upper-left, width/height type extent. 
+/*
+Translate x and scale y, rotate CCW, scale points.
 
-    Upperleft is given in grid coordinates, and width and height
-    are integers corresponded to the number of grid cells per
-    side of the selected region.
-    */
-    const [_x, _y] = [x, y].map(dim => clamp ? Math.floor(dim) : dim);
-    return [
-        [_x, _y],
-        [_x + width, _y],
-        [_x + width, _y + height],
-        [_x, _y + height]
-    ].map(pt => 
-        pt.map(x => x*cellSize)
-    );
-};
-
-
-const drawConnections = (ctx, a, b) => {
-    ctx.beginPath();
-    for (let ii=0; ii<4; ii++) {
-        ctx.moveTo(...a[ii]);
-        ctx.lineTo(...b[ii]);
-    }
-    ctx.stroke();
-};
-
-const drawView = (ctx, pts) => {
-
-    ctx.beginPath();
-    ctx.moveTo(...pts[0]);
-    pts.slice(1, 4).map(pt => ctx.lineTo(...pt));
-    ctx.closePath();
-    ctx.stroke();
-};
-
+Points must be in the canvas coordinate reference frame. 
+The width is the width of the canvas drawing area, and 
+gridSize is the number of squares per side of the world.
+*/
 export const inverse = (points, width, gridSize) => {
-    /*
-    Translate x and scale y, rotate CCW, scale points.
-
-    Points must be in the canvas coordinate reference frame. 
-    The width is the width of the canvas drawing area, and 
-    gridSize is the number of squares per side of the world.
-    */
+   
     return rotatePath(points.map(([x,y])=> [
             x - (Math.floor(0.5*gridSize) + 1.25)*width/gridSize/Math.sqrt(2), 
             2*y 
         ]
 ), -Math.PI/4).map(pt => pt.map(dim => dim*Math.sqrt(2)))};
-
-const transform = (points, width, gridSize) => {
-    /*
-    Scale points, rotate CW, translate x and scale y.
-
-    */
-    const _points = points.map(pt => pt.map(x => x/Math.sqrt(2)));
-    return rotatePath(_points, Math.PI/4).map(([x,y])=>[
-    x + (Math.floor(0.5*gridSize) + 1.25)*width/gridSize/Math.sqrt(2), 
-    0.5*y 
-])};
-
-export const drawProjectionPrism = ({
-    width,
-    gridSize,
-    upperLeft,
-    clamp,
-    color,
-    lineWidth,
-    ctx
-}) => {
-    
-    const cellA = pathFromGridCell({
-        upperLeft,
-        clamp, 
-        cellSize: width/gridSize
-    })
-    const cellB = transform(cellA, width, gridSize);
-
-    ctx.strokeStyle=color;
-    ctx.lineWidth = lineWidth;
-    drawView(ctx, cellA);
-    drawView(ctx, cellB);
-    drawConnections(ctx, cellA, cellB);
-};
-
 
 
 export const eventCoordinates = ({clientX, clientY}, canvas) => {
@@ -287,11 +131,10 @@ export const eventCoordinates = ({clientX, clientY}, canvas) => {
 }
 
 
-
 /**
-Convenience method that generates the variables needed
-for common animation loops. 
-*/
+ * Convenience method that generates the variables needed
+ * for common animation loops. 
+ */
 export const targetHtmlCanvas = (ref, context) => {
     
 
@@ -311,10 +154,10 @@ export const targetHtmlCanvas = (ref, context) => {
 
 
 /**
-If the WASM runtime has been loaded, get the canvas reference and add a mouse event
-listener to update the cursor position for interacting with objects within the 
-canvas rendering context.
-*/
+ * If the WASM runtime has been loaded, get the canvas reference and add a mouse event
+ * listener to update the cursor position for interacting with objects within the 
+ * canvas rendering context.
+ */
 export const addMouseEvents = (ref, cursor) => {
    
     return () => {
