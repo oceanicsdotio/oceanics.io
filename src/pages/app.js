@@ -1,5 +1,8 @@
 
 import React, { useState, useEffect } from "react";
+
+import layers from "../data/layers.yml";
+
 import {graphql} from "gatsby";
 import styled from "styled-components";
 
@@ -8,12 +11,10 @@ import useDetectDevice from "../hooks/useDetectDevice";
 
 import SEO from "../components/SEO";  // SEO headers
 import Catalog from "../components/Catalog";  // Graph API interface
-import Login from "../components/Login";  // API JWT authorization
 import Map from "../components/Map";  // MapBox interface
 import Trifold from "../components/Trifold";
 
-import { ghost, orange } from "../palette";
-import layers from "../data/layers.yml";
+import { ghost } from "../palette";
 
 const storageTarget = "https://oceanicsdotio.nyc3.digitaloceanspaces.com";
 // guess where things should be by default
@@ -53,28 +54,6 @@ const Application = styled.div`
     width: auto;
     overflow-y: clip;
 `;
-
-
-/**
- * Fill area for visual elements. Currently required for correct
- * resizing of map on transitions between column and full screen
- * views.
- */
-// const Composite = styled.div`
-//     position: relative;
-//     width: 100%;
-//     height: 100%;
-//     padding: 0;
-
-//     & > canvas {
-//         position: relative;
-//         display: ${({display="block"})=>display};
-//         width: 100%;
-//         height: 100%;
-//         image-rendering: crisp-edges;
-//     }
-// `;
-
 
 /**
  * Just holds preview map for now. May hold additional
@@ -142,6 +121,7 @@ const ColumnContainer = styled.div`
 // Debugging aid
 const FORCE_MOBILE = false;
 
+
 export default ({
     data: {
         team, 
@@ -150,11 +130,21 @@ export default ({
             tasksByLocation
         }
     }}) => {
-
-    const [ token, loginCallback ] = useState(null);
+    
+    /**
+     * Set map full screen
+     */
     const [ expand, setExpand ] = useState(false);
 
-    const { mobile } = useDetectDevice(); 
+    /**
+     * Determine how much information to show on screen,
+     * as well as how to interpret the location of the device
+     */
+    const { mobile } = useDetectDevice();
+
+    /**
+     * Isometric pixel renderer interface
+     */
     const isometric = useOceanside({});
 
     /**
@@ -207,20 +197,18 @@ export default ({
             row={0} 
             column={1}
         >
-            <Login onSuccess={loginCallback}/>   
-           
-            <canvas
-                id={"render-target"}
-                ref={isometric.board.ref}
-                onClick={isometric.board.onClick}
-            /> 
             <Catalog {...{
-                graph: {accessToken: token},
+                graph: {},
                 storage: {target: storageTarget},
                 team: team.nodes,
                 locations: locations.nodes,
                 tasks: Object.fromEntries(tasksByLocation.map(each=>[each.location, each.nodes]))
-            }}/>   
+            }}/> 
+            {/* <canvas
+                id={"render-target"}
+                ref={isometric.board.ref}
+                onClick={isometric.board.onClick}
+            />    */}
         </ColumnContainer>
     </Application> 
 };

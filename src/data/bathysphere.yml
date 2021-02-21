@@ -745,18 +745,30 @@ spec:
   name: R/V Lloigor
   properties: 
     capacity: 2
-    tanks:
-      - name: starboard aft
-        capacity: 20
+    meters:
+      - name: starboard aft fuel
+        value: 2
+        max: 20
+        high: 15
+        low: 10
     
-      - name: port aft
-        level: 4
+      - name: port aft fuel
+        value: 12
+        max: 20
+        high: 15
+        low: 10
     
-      - name: starboard forward
-        level: 5.5
+      - name: starboard forward fuel
+        value: 5.5
+        max: 20
+        high: 15
+        low: 10
     
-      - name: port forward
-        level: 8.75
+      - name: port forward fuel
+        value: 15.5
+        max: 20
+        high: 15
+        low: 10
 ---
 apiVersion: extensions/sensing
 kind: Things

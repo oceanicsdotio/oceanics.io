@@ -12,16 +12,14 @@ layers:
   - id: background
     type: background
     paint: 
-      background-color: "#222222"
+      background-color: "#444"
     
   - id: water
     source: mapbox
     source-layer: water
-    type: fill-extrusion
+    type: fill
     paint: 
-        fill-extrusion-color: "#050707"
-        fill-extrusion-height: 50.0
-        fill-extrusion-base: 0.0
+        fill-color: "#000"
     
   - id: cities
     source: mapbox
@@ -38,7 +36,7 @@ layers:
           6, 12
       ]
     paint: 
-      text-color: "#969696"
+      text-color: "#ccc"
       text-halo-width: 2
-      text-halo-color: "rgba(0, 0, 0, 0.85)"
+      text-halo-color: "#000"
   

@@ -23,9 +23,7 @@ geojson:
     maxzoom: 10
     paint: 
       fill-antialias: false
-      fill-color: [case,
-        [boolean, [feature-state, hover], false],
-        "rgba(255,0,255,0.3)", "rgba(255,0,255,0.1)"]
+      fill-color: "rgba(255,0,255,0.3)"
     behind: limited-purpose-licenses
     popup: nssp
 
@@ -59,7 +57,7 @@ geojson:
           6, 8
       ]
     paint: 
-      text-color: "rgba(255,255,255,0.7)"
+      text-color: "#ccc"
       text-halo-width: 3
       text-halo-color: "#000"
 
@@ -84,9 +82,9 @@ geojson:
           6, 12
       ]
     paint: 
-      text-color: "#f80"
+      text-color: "#ccc"
       text-halo-width: 3
-      text-halo-color: "rgba(0, 0, 0, 0.85)"
+      text-halo-color: "#000"
      
     behind: suitability
     popup: port
@@ -100,8 +98,9 @@ geojson:
     paint: 
       circle-radius: 
           stops: [[8, 1], [12, 2], [16, 6]]
+      circle-color: "rgba(0,0,0,0)"
       circle-stroke-width: 1
-      circle-stroke-color: "#ff8800"
+      circle-stroke-color: "#f80"
     minzoom: 10
     behind: ports
     popup: port
@@ -115,8 +114,9 @@ geojson:
     paint: 
       circle-radius: 
           stops: [[8, 1], [12, 2], [16, 6]]
+      circle-color: "rgba(0,0,0,0)"
       circle-stroke-width: 1
-      circle-stroke-color: "#ff8800"
+      circle-stroke-color: "#f80"
     minzoom: 10
     behind: ports
     popup: port
@@ -149,7 +149,7 @@ geojson:
         stops: [[8, 2], [12, 8], [16, 20]]
       circle-color: "rgba(0,0,0,0)"
       circle-stroke-width: 1
-      circle-stroke-color: "rgba(255,255,255,0.75)"
+      circle-stroke-color: "#ccc"
     behind: limited-purpose-licenses
     popup: suitability
 
@@ -170,5 +170,5 @@ geojson:
     type: line
     minzoom: 5
     paint: 
-      line-color: "rgba(255,255,255,0.3)"
+      line-color: "rgba(255,255,255,0.5)"
     behind: aquaculture-leases

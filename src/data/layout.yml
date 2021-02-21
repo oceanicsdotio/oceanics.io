@@ -13,14 +13,6 @@ api:
   - href: "https://bivalve.oceanics.io"
     label: "Bivalve"
 
-  - href: "https://www.oceanics.io"
-    label: "Capsize"
-    ok: false
-
-  - href: "https://www.oceanics.io"
-    label: "Squall"
-    ok: false
-
 footer:
   - to: "/references"
     label: "References"

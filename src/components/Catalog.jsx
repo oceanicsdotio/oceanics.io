@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useMemo} from "react"
+import React, {useState, useEffect, useMemo, useReducer} from "react"
 import styled from "styled-components";
 import {useStaticQuery, graphql} from "gatsby";
 
@@ -12,6 +12,9 @@ import useObjectStorage from "../hooks/useObjectStorage";
 import useBathysphereApi from "../hooks/useBathysphereApi";
 
 import {grey, pink} from "../palette";
+
+
+import fields from "../data/login.yml";
 
 
 /**
@@ -84,7 +87,6 @@ collections in the graph database.
  */
 const Catalog = ({
     graph: {
-        accessToken,
         url = "https://graph.oceanics.io/api/"
     },
     storage: {
@@ -92,7 +94,6 @@ const Catalog = ({
         target
     },
     team,
-    className,
     locations,
 }) => {
     /**
@@ -103,7 +104,7 @@ const Catalog = ({
     /**
      * List of collections to build selection from
      */ 
-    const {catalog} = useBathysphereApi({accessToken, url});
+    const {catalog, accessToken} = useBathysphereApi({url});
 
     /**
      * S3 file system meta data
@@ -158,10 +159,12 @@ const Catalog = ({
                         properties {
                             home
                             capacity
-                            tanks {
+                            meters {
                                 name
-                                capacity
-                                level
+                                max
+                                value
+                                high
+                                low
                             }
                         }
                     }
@@ -227,8 +230,48 @@ const Catalog = ({
 
     }, [fs, catalog]);
 
+     /**
+    * The login container handles authorization interactions with the
+    * backend.
+    */
+   const [credentials, refresh] = useReducer(
+        (prev, event=null) => event ? Object({
+                ...prev,
+                [event.target.id]: event.target.value.trim()
+            }) : prev,
+        {
+            email: "",
+            password: "",
+            apiKey:  "FL_fnXrKrRG1ae3VLpn2oAgeVZrVUn5kXJyTFDQ_1GlpC_xzXYJnU6SDz5stoS4wlts-t9qXljblUJzgK3FcIw",
+            server: "https://graph.oceanics.io"
+        }
+    );
+
+
+
+    const form = {
+        fields,
+        actions: [{
+            value: "Login",
+            onClick: () => {login({onLogin, ...credentials})}
+        }, {
+            value: "Signup",
+            onClick: () => {register(credentials)}
+        },{
+            value: "Public data only",
+            onClick: () => {}
+        }]
+    };
+
 
     return <>
+        <Form 
+            hidden={!!accessToken}
+            id={"login-dialog"} 
+            callback={refresh}
+            {...form}
+        />
+
         <Form
             fields={[{
                 type: "select",
@@ -246,12 +289,12 @@ const Catalog = ({
                 }
             }]}
         />
-        {/* {things.map((props, ii) => 
+        {things.map((props, ii) => 
             <Thing {...{
                 key: `things-${ii}`,
                 ...props
             }}/>
-        )} */}
+        )}
         {locations.map(({
             spec: {
                 name
