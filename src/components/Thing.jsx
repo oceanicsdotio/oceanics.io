@@ -65,16 +65,13 @@ export const StyledThing = styled(Thing)`
             -webkit-appearance: none;
             appearance: none;
             width: 100%;
-            height: 2rem;
+            height: 1rem;
             border: 0.1rem solid;
             background: none;
             color: ${grey};
             box-sizing: border-box;   
         }
     }
-
-    
-
 `;
 
 export default StyledThing;

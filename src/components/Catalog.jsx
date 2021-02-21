@@ -91,10 +91,8 @@ const Catalog = ({
     },
     storage: {
         delimiter="/",
-        target
-    },
-    team,
-    locations,
+        target="https://oceanicsdotio.nyc3.digitaloceanspaces.com"
+    }
 }) => {
     /**
      * Options state object generated from API queries
@@ -119,7 +117,10 @@ const Catalog = ({
     const {
         oceanside: {tiles},
         icons: {nodes},
-        bathysphere: {things}
+        bathysphere: {things},
+        team: {team},
+        locations: {locations}, 
+        tasks: {tasksByLocation}
     } = useStaticQuery(graphql`
         query {
             oceanside: allOceansideYaml(sort: {
@@ -170,8 +171,50 @@ const Catalog = ({
                     }
                 }
             }
+            team: allBathysphereYaml(
+                filter: {
+                    kind: { eq: "Agents" }
+                }
+            ) {
+                team: nodes {
+                    spec { name }
+                }   
+            }
+            locations: allBathysphereYaml(
+                filter: {
+                    kind: { eq: "Locations" }
+                    metadata: {
+                        fictional: { eq: true }
+                    }
+                }
+            ) {
+                locations: nodes {
+                    kind
+                    metadata {
+                        fictional
+                        home
+                        icon
+                        capacity
+                    }
+                    spec { name }
+                }   
+            }
+            tasks: allBathysphereYaml(
+                filter: {
+                    kind: { eq: "Tasks" }
+                }
+            ) {
+                tasksByLocation: group(field: metadata___Locations___name) {
+                    location: fieldValue
+                    nodes { 
+                        spec { name }
+                    }
+                }  
+            }
         }
     `);
+
+    // Object.fromEntries(tasksByLocation.map(each=>[each.location, each.nodes]))
 
     /** 
      * Generate derived fields, and match metadata to asset files.
@@ -327,6 +370,17 @@ const Catalog = ({
  * Styled version of the Single day calendar view
  */
 export const StyledCatalog = styled(Catalog)`
+
+    display: ${({display})=>display};
+    grid-row: ${({row})=>row+1};
+    grid-column: ${({column})=>column+1};
+    overflow-x: hidden;
+
+    width: 100%;
+    min-height: 100vh;
+    bottom: 0;
+    margin: 0;
+    padding: 0;
 
     & > h2 {
         display: block;

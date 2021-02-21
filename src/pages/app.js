@@ -1,23 +1,18 @@
 
 import React, { useState, useEffect } from "react";
-
-import layers from "../data/layers.yml";
-
-import {graphql} from "gatsby";
 import styled from "styled-components";
-
-import useOceanside from "../hooks/useOceanside";
-import useDetectDevice from "../hooks/useDetectDevice";
 
 import SEO from "../components/SEO";  // SEO headers
 import Catalog from "../components/Catalog";  // Graph API interface
 import Map from "../components/Map";  // MapBox interface
 import Trifold from "../components/Trifold";
 
+import useOceanside from "../hooks/useOceanside";
+import useDetectDevice from "../hooks/useDetectDevice";
+
 import { ghost } from "../palette";
 
-const storageTarget = "https://oceanicsdotio.nyc3.digitaloceanspaces.com";
-// guess where things should be by default
+
 const title = "Discover data";
 const mapBoxAccessToken = 'pk.eyJ1Ijoib2NlYW5pY3Nkb3RpbyIsImEiOiJjazMwbnRndWkwMGNxM21wYWVuNm1nY3VkIn0.5N7C9UKLKHla4I5UdbOi2Q';
 
@@ -34,7 +29,7 @@ const columnSize = ({expand, mobile, column}) => {
 };
 
 /**
- * Application coomponent is the container for the grid/column
+ * Application component is the container for the grid/column
  * view of interface elements, depending on whether the user is
  * on desktop or mobile.
  * 
@@ -95,42 +90,16 @@ const ColumnContainer = styled.div`
 
     width: 100%;
     min-height: 100vh;
-
     bottom: 0;
     margin: 0;
     padding: 0;
-
-    & > main {
-        height: auto;
-        bottom: 0;
-        padding-top: 1rem;
-        padding-bottom: 1rem;
-        border-top: 0.1rem solid ${ghost};
-        border-radius: 1rem;
-        padding: 1rem;
-    }
-
-    & > button {
-        position: absolute;
-        top: 0;
-        right: 0;
-        z-index: 10;
-    }
 `;
 
 // Debugging aid
 const FORCE_MOBILE = false;
 
 
-export default ({
-    data: {
-        team, 
-        locations,
-        tasks: {
-            tasksByLocation
-        }
-    }}) => {
-    
+export default () => {
     /**
      * Set map full screen
      */
@@ -155,41 +124,31 @@ export default ({
         setExpand(FORCE_MOBILE || mobile);
     },[ mobile ]);
 
-
-    return <Application mobile={mobile} expand={expand}>
-
+    return <Application {...{mobile, expand}}>
         <SEO title={title} />
-
         <ColumnContainer 
             row={0} 
             column={0}
             display={!columnSize({expand, mobile, column: 0}) ? "none" : undefined}
         >
-            <>
-                <Map 
-                    center={[-70, 43.7]}
-                    layers={{
-                        ...layers
-                    }}
-                    accessToken={mapBoxAccessToken}
-                    triggerResize={[expand]}
+            <Map 
+                center={[-70, 43.7]}
+                accessToken={mapBoxAccessToken}
+                triggerResize={[expand]}
+            />         
+            <Interface>
+                <canvas
+                    id={"preview-target"}
+                    ref={isometric.nav.ref}
+                    width={isometric.worldSize}
+                    height={isometric.worldSize}
+                    onClick={isometric.nav.onClick}
                 />
-                         
-                <Interface>
-                    {isometric.caption}
-                    <canvas
-                        id={"preview-target"}
-                        ref={isometric.nav.ref}
-                        width={isometric.worldSize}
-                        height={isometric.worldSize}
-                        onClick={isometric.nav.onClick}
-                    />
-                    <Trifold 
-                        onClick={() => {setExpand(!expand)}}
-                        stroke={ghost}
-                    /> 
-                </Interface>
-            </>
+                <Trifold 
+                    onClick={() => {setExpand(!expand)}}
+                    stroke={ghost}
+                /> 
+            </Interface>
         </ColumnContainer>
 
         <ColumnContainer 
@@ -197,63 +156,7 @@ export default ({
             row={0} 
             column={1}
         >
-            <Catalog {...{
-                graph: {},
-                storage: {target: storageTarget},
-                team: team.nodes,
-                locations: locations.nodes,
-                tasks: Object.fromEntries(tasksByLocation.map(each=>[each.location, each.nodes]))
-            }}/> 
-            {/* <canvas
-                id={"render-target"}
-                ref={isometric.board.ref}
-                onClick={isometric.board.onClick}
-            />    */}
+            <Catalog storage={{}} graph={{}}/> 
         </ColumnContainer>
     </Application> 
 };
-
-export const pageQuery = graphql`
-    query {
-        team: allBathysphereYaml(
-            filter: {
-                kind: { eq: "Agents" }
-            }
-        ) {
-            nodes {
-                spec { name }
-            }   
-        }
-        locations: allBathysphereYaml(
-            filter: {
-                kind: { eq: "Locations" }
-                metadata: {
-                    fictional: { eq: true }
-                }
-            }
-        ) {
-            nodes {
-                kind
-                metadata {
-                    fictional
-                    home
-                    icon
-                    capacity
-                }
-                spec { name }
-            }   
-        }
-        tasks: allBathysphereYaml(
-            filter: {
-                kind: { eq: "Tasks" }
-            }
-        ) {
-            tasksByLocation: group(field: metadata___Locations___name) {
-                location: fieldValue
-                nodes { 
-                    spec { name }
-                }
-            }  
-        }
-    }
-`;
