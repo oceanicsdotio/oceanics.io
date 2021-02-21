@@ -314,12 +314,12 @@ const Map = ({
         attribution: "UMass Dartmouth"
     });
 
-    useTriangularMesh({
-        map,
-        name: "midcoast_nodes", 
-        extension: "csv",
-        attribution: "UMaine"
-    });
+    // useTriangularMesh({
+    //     map,
+    //     name: "midcoast_nodes", 
+    //     extension: "csv",
+    //     attribution: "UMaine"
+    // });
 
     /**
      * Use an HTML5 Canvas element as a raster data source.

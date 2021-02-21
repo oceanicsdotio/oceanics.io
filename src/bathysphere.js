@@ -124,11 +124,6 @@ export const inverse = (points, width, gridSize) => {
 ), -Math.PI/4).map(pt => pt.map(dim => dim*Math.sqrt(2)))};
 
 
-export const eventCoordinates = ({clientX, clientY}, canvas) => {
-    // Short hand for element reference frame
-    const {left, top} = canvas.getBoundingClientRect();
-    return [clientX - left, clientY - top]
-}
 
 
 /**

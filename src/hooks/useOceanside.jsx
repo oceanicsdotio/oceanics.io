@@ -1,18 +1,23 @@
 import { useEffect, useState, useReducer, useRef } from "react";
 import { useStaticQuery, graphql } from "gatsby";
 import { 
-    eventCoordinates,
     targetHtmlCanvas,
     inverse,
     rotatePath
 } from "../bathysphere";
 import useWasmRuntime from "../hooks/useWasmRuntime";
 import useKeystrokeReducer from "../hooks/useKeystrokeReducer";
-import {ghost} from "../palette";
+import {ghost, lichen, orange} from "../palette";
 
 import Worker from "./useOceanside.worker.js";
 
 
+
+const eventCoordinates = ({clientX, clientY}, canvas) => {
+    // Short hand for element reference frame
+    const {left, top} = canvas.getBoundingClientRect();
+    return [clientX - left, clientY - top]
+}
 
 
 /**
@@ -44,9 +49,9 @@ export default ({
     waterLevel = 0.7,
     actionsPerDay = 6,
     endTurnMessage = "Bettah wait 'til tomorrow.",
-    overlayColor = ghost,
+    // overlayColor = ghost,
     backgroundColor = "#000000FF",
-    font = "36px Arial"
+    // font = "36px Arial"
 }) => {
 
     /**
@@ -247,17 +252,47 @@ export default ({
 
     }, [ runtime, worker ]);
 
+    //
+    useEffect(() => {
+        if (
+            !board || 
+            !board.current ||
+            !cursor
+        ) return;
+
+        board.current.addEventListener('mousemove', (event) => {
+            const xy = eventCoordinates(event, board.current);
+           
+            cursor.update(...xy);
+        });
+
+    }, [cursor, board]);
+
+
+    const [caption, setCaption] = useState("");
+
+
+    useEffect(()=>{
+        if (!clock) return
+
+        const date = clock.date.toLocaleDateString();
+        const time = 18-2*(clock.actions ? clock.actions : 0);
+        const balance = map ? map.score() : 0.0;
+
+        setCaption(`${date} ${time}:00, Balance: $${balance}`);
+    },[]);
+
     /**
      * Draw the visible area to the board canvas using the 
      * tile set object. 
      */
     useEffect(() => {
         if (
-            typeof board === "undefined" || 
             !board || 
             !board.current || 
             !tiles || 
-            !worker.current
+            !worker.current || 
+            !cursor
         ) return;
 
         let {
@@ -265,101 +300,81 @@ export default ({
             ctx, 
             shape: [width, height], 
             requestId, 
-            frames
+            // frames
         } = targetHtmlCanvas(board, `2d`);
 
         ctx.imageSmoothingEnabled = false;  // disable interpolation
-
-        board.current.addEventListener('mousemove', (event) => {
-            if (cursor) cursor.update(...eventCoordinates(event, board.current));
-        });
-
+    
         (function render() {
 
             const time = performance.now() - start;
 
             runtime.clear_rect_blending(ctx, width, height, backgroundColor);
+            
             tiles.forEach((diagonal, ii) => {
                 diagonal.forEach((tile, jj) => {
                     map.drawTile(ctx, ii, jj, diagonal.length, time, width, tile);
                 });
             });
 
-            if (cursor) {
 
-                /*
-                Convenience method to create a bounding box polygon
-                from a upper-left, width/height type extent. 
+            // frames = runtime.draw_fps(ctx, frames, time, overlayColor);
+
+            const Δx = 1; 
+            const Δy = 1;
+            const curs = [cursor.x(), cursor.y()];
+
+
+            // if (time % 100.0 < 10.0) console.log({curs});
+
+            const cellSize = width/gridSize;
+            const [inverted] = inverse([curs.map(x=>x*cellSize)], width, gridSize).map(pt => pt.map(x=>x/cellSize));
             
-                Upperleft is given in grid coordinates, and width and height
-                are integers corresponded to the number of grid cells per
-                side of the selected region.
-                */
-               
-                const Δx = 1; 
-                const Δy = 1;
-                const curs = [cursor.x(), cursor.y()];
-                const cellSize = width/gridSize;
-                const [inverted] = inverse([curs.map(x=>x*cellSize)], width, gridSize).map(pt => pt.map(x=>x/cellSize));
+            [
+                {upperLeft: curs, color: orange},
+                {upperLeft: inverted, color: lichen}
+            ].map(({color, upperLeft})=>{
+
+                const [x, y] = upperLeft.map(dim => clamp ? Math.floor(dim) : dim);
+
+                const cellA = [
+                    [x, y],
+                    [x + Δx, y],
+                    [x + Δx, y + Δy],
+                    [x, y + Δy]
+                ].map(
+                    pt => pt.map(dim => dim*cellSize)
+                );
                 
-                [
-                    {upperLeft: curs, color: "#FFAA00FF"},
-                    {upperLeft: inverted, color: "#AAFF00FF"}
-                ].map(({color, upperLeft})=>{
+                const cellB = rotatePath(
+                    cellA.map(pt => pt.map(x => x/Math.sqrt(2))), 
+                    Math.PI/4
+                ).map(
+                    ([x,y])=>[
+                        x + (Math.floor(0.5*gridSize) + 1.25)*cellSize/Math.sqrt(2), 
+                        0.5*y
+                    ]
+                );
 
-                    const [x, y] = upperLeft.map(dim => clamp ? Math.floor(dim) : dim);
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 2.0;
 
-                    const cellA = [
-                        [x, y],
-                        [x + Δx, y],
-                        [x + Δx, y + Δy],
-                        [x, y + Δy]
-                    ].map(
-                        pt => pt.map(dim => dim*cellSize)
-                    );
-                    
-                    const cellB = rotatePath(
-                        cellA.map(pt => pt.map(x => x/Math.sqrt(2))), 
-                        Math.PI/4
-                    ).map(
-                        ([x,y])=>[
-                            x + (Math.floor(0.5*gridSize) + 1.25)*cellSize/Math.sqrt(2), 
-                            0.5*y
-                        ]
-                    );
-
-                    return [cellA, cellB, color];
-                }).map(([cellA, cellB, color])=>{
-                    ctx.strokeStyle = color;
-                    ctx.lineWidth = 2.0;
-
-                    [cellA, cellB].forEach(cell => {
-                        ctx.beginPath();
-                        ctx.moveTo(...cell[0]);
-                        cell.slice(1, 4).forEach(pt => ctx.lineTo(...pt));
-                        ctx.closePath();
-                        ctx.stroke(); 
-                    });
-
+                [cellA, cellB].forEach(cell => {
                     ctx.beginPath();
-                    for (let ii=0; ii<4; ii++) {
-                        ctx.moveTo(...cellA[ii]);
-                        ctx.lineTo(...cellB[ii]);
-                    }
-                    ctx.stroke();
+                    ctx.moveTo(...cell[0]);
+                    cell.slice(1, 4).forEach(pt => ctx.lineTo(...pt));
+                    ctx.closePath();
+                    ctx.stroke(); 
                 });
-            }
-            
-            runtime.draw_caption(
-                ctx, 
-                `${clock.date.toLocaleDateString()} ${18-2*(clock.actions ? clock.actions : 0)}:00, Balance: $${map ? map.score() : 0.0}`, 
-                0.0, 
-                height, 
-                overlayColor, 
-                font
-            );
 
-            frames = runtime.draw_fps(ctx, frames, time, overlayColor);
+                ctx.beginPath();
+                for (let ii=0; ii<4; ii++) {
+                    ctx.moveTo(...cellA[ii]);
+                    ctx.lineTo(...cellB[ii]);
+                }
+                ctx.stroke();
+            });
+
             requestId = requestAnimationFrame(render);
             
         })();
@@ -367,11 +382,11 @@ export default ({
         return () => {
             cancelAnimationFrame(requestId);
             worker.current.terminate();
-
         };
     }, [ tiles, clamp, cursor, worker ]);
     
     return {
+        caption,
         worldSize,  // return in case you want the default
         nav: {
             ref: nav,
@@ -385,7 +400,7 @@ export default ({
             onClick: (event) => {
                 event.persist(); // otherwise React eats it
                 try {
-                    takeAnActionOrWait(event);
+                    // takeAnActionOrWait(event);
                 } catch (err) {
                     console.log(err);
                 }

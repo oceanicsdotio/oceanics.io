@@ -90,13 +90,13 @@ geojson:
     popup: port
     info: https://hifld-geoplatform.opendata.arcgis.com/datasets/major-us-port-facilities
 
-  # - id: submarine-cables
-  #   type: line
-  #   url: https://coast.noaa.gov/arcgis/rest/services/MarineCadastre/NavigationAndMarineTransportation/MapServer/4/query?where=1%3D1&outFields=*&geometry=-71.190%2C40.975%2C-63.598%2C46.525&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=json
-  #   paint: 
-  #     line-color: "rgba(0,255,0,1.0)"
-  #   behind: aquaculture-leases
-  #   info: https://hifld-geoplatform.opendata.arcgis.com/datasets/submarine-cables
+  - id: submarine-cables
+    type: line
+    url: https://coast.noaa.gov/arcgis/rest/services/MarineCadastre/NavigationAndMarineTransportation/MapServer/4/query?where=1%3D1&outFields=*&geometry=-71.190%2C40.975%2C-63.598%2C46.525&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=json
+    paint: 
+      line-color: "rgba(0,255,0,1.0)"
+    behind: aquaculture-leases
+    info: https://hifld-geoplatform.opendata.arcgis.com/datasets/submarine-cables
 
   # - id: navigation
   #   type: circle

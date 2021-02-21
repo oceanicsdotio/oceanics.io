@@ -53,7 +53,7 @@ export default ({
     useEffect(() => {
         if (apiSpec) 
             worker.current.flattenSpecOperations(apiSpec.paths).then(setMethods);
-    }, [ apiSpec ])
+    }, [ apiSpec ]);
 
     /**
      * Collections are scraped from available implementations

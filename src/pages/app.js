@@ -6,39 +6,28 @@ import styled from "styled-components";
 import useOceanside from "../hooks/useOceanside";
 import useDetectDevice from "../hooks/useDetectDevice";
 
-
-import { NavBar, Title } from "../components/Layout";
 import SEO from "../components/SEO";  // SEO headers
 import Catalog from "../components/Catalog";  // Graph API interface
-import Login from "../components/Login";  // API JWT authorizatio
+import Login from "../components/Login";  // API JWT authorization
 import Map from "../components/Map";  // MapBox interface
-import Almanac from "../components/Calendar";
 import Trifold from "../components/Trifold";
 
-import { ghost } from "../palette";
+import { ghost, orange } from "../palette";
 import layers from "../data/layers.yml";
 
 const storageTarget = "https://oceanicsdotio.nyc3.digitaloceanspaces.com";
 // guess where things should be by default
-const title = "Ocean analytics as a service";
+const title = "Discover data";
 const mapBoxAccessToken = 'pk.eyJ1Ijoib2NlYW5pY3Nkb3RpbyIsImEiOiJjazMwbnRndWkwMGNxM21wYWVuNm1nY3VkIn0.5N7C9UKLKHla4I5UdbOi2Q';
 
-
-const BackBuffer = styled.canvas`
-    width: 500px;
-    height: 500px;
-    position: fixed;
-    visibility: hidden;
-    image-rendering: crisp-edges;
-`;
 
 /**
  * Logical combinator to calculate visibility and style of columns
  */
 const columnSize = ({expand, mobile, column}) => {
-    if (column === 0) {
+    if (column === 1) {
         return !expand ? 1 : 0;
-    } else if (column === 1) {
+    } else if (column === 0) {
         return (expand || !mobile) ? 1 : 0;
     }
 };
@@ -54,8 +43,8 @@ const Application = styled.div`
     display: grid;
     grid-gap: 0;
     grid-template-columns: ${
-        ({mobile, expand})=>
-            `${columnSize({expand, mobile, column: 0})}fr ${columnSize({expand, mobile, column: 1})}fr`
+        props=>
+            `${columnSize({...props, column: 0})}fr ${columnSize({...props, column: 1})}fr`
         };
     grid-auto-rows: minmax(5rem, auto);
     margin: 0;
@@ -68,24 +57,23 @@ const Application = styled.div`
 
 /**
  * Fill area for visual elements. Currently required for correct
- * resizing of map on transiitions between column and full screen
+ * resizing of map on transitions between column and full screen
  * views.
  */
-const Composite = styled.div`
-    position: relative;
-    width: 100%;
-    height: 100%;
-    padding: 0;
+// const Composite = styled.div`
+//     position: relative;
+//     width: 100%;
+//     height: 100%;
+//     padding: 0;
 
-    & > canvas {
-        position: relative;
-        display: ${({display="block"})=>display};
-        width: 100%;
-        height: 100%;
-        cursor: none;
-        image-rendering: crisp-edges;
-    }
-`;
+//     & > canvas {
+//         position: relative;
+//         display: ${({display="block"})=>display};
+//         width: 100%;
+//         height: 100%;
+//         image-rendering: crisp-edges;
+//     }
+// `;
 
 
 /**
@@ -97,20 +85,19 @@ const Interface = styled.div`
     display: flex;
     flex-flow: column;
     position: absolute;
-    height: 100%;
+    /* height: 100%; */
     margin: 0;
-    bottom: 0;
-    right: 0;
+    top: 0;
+    left: 0;
     
     & > canvas {
-        display: ${({display="block"})=>display};
         image-rendering: crisp-edges;
         width: 128px;
         height: 128px;
-        margin-bottom: 1rem;
-        margin-right: 1rem;
-        margin-left: auto;
-        margin-top: auto;
+        margin-bottom: auto;
+        margin-right: auto;
+        margin-left: 1rem;
+        margin-top: 1rem;
     }
 `;
 
@@ -125,7 +112,7 @@ const ColumnContainer = styled.div`
     grid-row: ${({row})=>row+1};
     grid-column: ${({column})=>column+1};
     overflow-x: hidden;
-    overflow-y: ${({column})=>column?"hidden":undefined};
+    overflow-y: ${({column})=>column?undefined:"hidden"};
 
     width: 100%;
     min-height: 100vh;
@@ -164,11 +151,10 @@ export default ({
         }
     }}) => {
 
-    const [token, loginCallback] = useState(null);
-    const [expand, setExpand] = useState(false);
-    const [showMap, setShowMap] = useState(false);
+    const [ token, loginCallback ] = useState(null);
+    const [ expand, setExpand ] = useState(false);
 
-    const {mobile} = useDetectDevice(); 
+    const { mobile } = useDetectDevice(); 
     const isometric = useOceanside({});
 
     /**
@@ -176,87 +162,31 @@ export default ({
      * rather than our loading Jenk.
      */
     useEffect(()=>{
-        setShowMap(FORCE_MOBILE || mobile);
         setExpand(FORCE_MOBILE || mobile);
-    },[mobile]);
+    },[ mobile ]);
 
-
-    /**
-     * Build a rotating menu
-     */
-    const [menu, setMenu] = useState([{ 
-        name: "Login", 
-        component: <Login onSuccess={loginCallback}/>   
-    },{
-        name: "Almanac",
-        onClick: () => {setShowMap(false)},
-        component: 
-            <Almanac {...{
-                team: team.nodes,
-                locations: locations.nodes,
-                tasks: Object.fromEntries(tasksByLocation.map(
-                    ({location, nodes})=>[location, nodes]))
-            }}/>
-    },{
-        name: "Catalog",
-        onClick: () => {setShowMap(true)},
-        component: <Catalog {...{
-            graph: {accessToken: token},
-            storage: {target: storageTarget}
-        }}/>
-    }]);
 
     return <Application mobile={mobile} expand={expand}>
 
         <SEO title={title} />
 
         <ColumnContainer 
-            display={!columnSize({expand, mobile, column: 0}) ? "none" : undefined}
             row={0} 
             column={0}
+            display={!columnSize({expand, mobile, column: 0}) ? "none" : undefined}
         >
-            <NavBar>
-                <Title to={"/"} color={ghost}>{menu[0].name}</Title>
-                {menu.slice(1, menu.length).map(({name, onClick}, ii)=>
-                    <button 
-                        key={`button-${name}`}
-                        onClick={() => {
-                            if (onClick) onClick();
-                            setMenu([
-                                ...menu.slice(ii+1, menu.length), 
-                                ...menu.slice(0, ii+1)]);
-                        }}
-                    >
-                        {name}
-                    </button>)
-                }
-            </NavBar>
-            <main>{menu[0].component}</main>
-        </ColumnContainer>
-        
-        <ColumnContainer 
-            row={0} 
-            column={1}
-            display={!columnSize({expand, mobile, column: 1}) ? "none" : undefined}
-        >
-            <Composite display={showMap?"none":undefined}>
+            <>
                 <Map 
                     center={[-70, 43.7]}
                     layers={{
-                        ...layers, 
-                        // canvas: [grid.mapbox]
+                        ...layers
                     }}
                     accessToken={mapBoxAccessToken}
-                    display={showMap?undefined:"none"}
-                    triggerResize={[expand, showMap]}
+                    triggerResize={[expand]}
                 />
-                <canvas
-                    id={"render-target"}
-                    ref={isometric.board.ref}
-                    // onClick={isometric.board.onClick}
-                /> 
                          
-                <Interface display={showMap?"none":undefined}>
+                <Interface>
+                    {isometric.caption}
                     <canvas
                         id={"preview-target"}
                         ref={isometric.nav.ref}
@@ -264,10 +194,34 @@ export default ({
                         height={isometric.worldSize}
                         onClick={isometric.nav.onClick}
                     />
+                    <Trifold 
+                        onClick={() => {setExpand(!expand)}}
+                        stroke={orange}
+                    /> 
                 </Interface>
-            </Composite>
+            </>
         </ColumnContainer>
-        <Trifold onClick={() => {setExpand(!expand)}}/> 
+
+        <ColumnContainer 
+            display={!columnSize({expand, mobile, column: 1}) ? "none" : undefined}
+            row={0} 
+            column={1}
+        >
+            <Login onSuccess={loginCallback}/>   
+           
+            <canvas
+                id={"render-target"}
+                ref={isometric.board.ref}
+                onClick={isometric.board.onClick}
+            /> 
+            <Catalog {...{
+                graph: {accessToken: token},
+                storage: {target: storageTarget},
+                team: team.nodes,
+                locations: locations.nodes,
+                tasks: Object.fromEntries(tasksByLocation.map(each=>[each.location, each.nodes]))
+            }}/>   
+        </ColumnContainer>
     </Application> 
 };
 

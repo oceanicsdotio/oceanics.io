@@ -1,3 +1,5 @@
+import {inverse, rotatePath} from "../bathysphere";
+
 /**
  * Generate the dataUrls for icon assets in the background.
  * 
@@ -28,3 +30,13 @@ export const parseIconSet = async ({nodes, templates, worldSize}) => {
         value: value ? value : 0.0
     }));
 }
+
+
+const runtime = async () => {
+    const runtime = await import('../wasm');
+    runtime.panic_hook();
+    return runtime;
+};
+
+
+

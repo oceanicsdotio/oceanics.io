@@ -20,7 +20,10 @@ They do not have logical concepts for due date, assignment, or relations with ot
 
 Status is used to (de-)emphasize component in CSS. 
 */
-const Task = ({name}) => {
+const Task = ({
+    name,
+    manual=true
+}) => {
 
     const [complete, toggleComplete] = useReducer(
         (prev)=>{return !prev},false
@@ -36,23 +39,22 @@ const Task = ({name}) => {
         setTextContent(event.target.value);
     };
  
-    return (
-        <div>
-            <input 
-                onClick={toggleComplete} 
-                type={"checkbox"}
-                emphasize={emphasize ? "emphasize" : undefined}
-            />
-            <Input 
-                type={"text"} 
-                defaultValue={textContent}
-                complete={complete}
-                emphasize={emphasize ? "emphasize" : undefined}
-                onBlur={onBlurHandler}
-                onClick={toggleEmphasize}
-            />
-        </div>
-    )
+    return <div>
+        <input 
+            onClick={manual?toggleComplete:null} 
+            type={"checkbox"}
+            emphasize={emphasize ? "emphasize" : undefined}
+        />
+        <Input 
+            type={"text"} 
+            defaultValue={textContent}
+            complete={complete}
+            emphasize={emphasize ? "emphasize" : undefined}
+            onBlur={onBlurHandler}
+            onClick={toggleEmphasize}
+        />
+    </div>
+    
 };
 
 Task.propTypes = {
@@ -70,30 +72,3 @@ const StyledTask = styled(Task)`
 `;
 
 export default StyledTask;
-
-/**
-The tasklist is an editable list of tasks currently associated with a date and location. 
-*/
-export const TaskList = ({
-    heading="Tasks",
-    tasks=null,
-}) => 
-    <>
-        <h3>
-            {tasks ? heading : "New task"}
-        </h3>
-        {(tasks || []).map(({spec}, ii) => 
-            <StyledTask {...{...spec, key: `task-${ii}`}}/>)}
-    </>;
-
-
-TaskList.propTypes = {
-    /**
-     * Display heading for the container component
-     */
-    heading: PropTypes.string.isRequired,
-    /**
-     * Optional array of task-like strings to render as children
-     */
-    tasks: PropTypes.arrayOf(PropTypes.string)
-}

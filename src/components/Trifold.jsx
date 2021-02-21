@@ -1,14 +1,12 @@
 import React from "react";
 import styled from "styled-components";
-import {pink} from "../palette";
-
 
 
 export const Trifold = ({
     display, 
     onClick, 
     className,
-    stroke=pink,
+    stroke,
     strokeWidth=15,
     strokeLinejoin="bevel",
     fill="none"
@@ -51,7 +49,6 @@ const StyledTrifold = styled(Trifold)`
     display: ${({display})=>display};
     width: 2rem;
     height: 2rem; 
-    position: absolute;
     cursor: pointer;
     margin: 1rem;
     top: 0;

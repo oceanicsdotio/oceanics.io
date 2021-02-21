@@ -4,11 +4,14 @@ import {useStaticQuery, graphql} from "gatsby";
 
 import Form from "./Form";
 import Tags from "./Tags";
+import Thing from "./Thing";
+import Roster from "./Roster";
+import Location from "./Location";
 
 import useObjectStorage from "../hooks/useObjectStorage";
 import useBathysphereApi from "../hooks/useBathysphereApi";
 
-import {grey} from "../palette";
+import {grey, pink} from "../palette";
 
 
 /**
@@ -87,7 +90,10 @@ const Catalog = ({
     storage: {
         delimiter="/",
         target
-    }
+    },
+    team,
+    className,
+    locations,
 }) => {
     /**
      * Options state object generated from API queries
@@ -111,7 +117,8 @@ const Catalog = ({
      */
     const {
         oceanside: {tiles},
-        icons: {nodes}
+        icons: {nodes},
+        bathysphere: {things}
     } = useStaticQuery(graphql`
         query {
             oceanside: allOceansideYaml(sort: {
@@ -132,6 +139,32 @@ const Catalog = ({
                 nodes {
                     relativePath
                     publicURL
+                }
+            }
+            bathysphere: allBathysphereYaml(filter: {
+                kind: {
+                    eq: "Things"
+                } 
+            }) {
+                things: nodes {
+                    apiVersion
+                    metadata {
+                        icon
+                    }
+                    kind
+                    spec {
+                        name
+                        description
+                        properties {
+                            home
+                            capacity
+                            tanks {
+                                name
+                                capacity
+                                level
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -213,6 +246,31 @@ const Catalog = ({
                 }
             }]}
         />
+        {things.map((props, ii) => 
+            <Thing {...{
+                key: `things-${ii}`,
+                ...props
+            }}/>
+        )}
+        {locations.map(({
+            spec: {
+                name
+            },
+            metadata: {
+                capacity=null,
+                home=false
+            }  
+        }, ii) => 
+            <Location 
+                key={`location-${ii}`}
+                name={name}
+            >
+                <Roster 
+                    team={home && team ? team : []} 
+                    capacity={capacity}
+                />
+            </Location>
+        )}
         {sortedByName.map((x, ii) => 
             <StyledTileInfo 
                 key={`tile-${ii}`} 
@@ -222,5 +280,30 @@ const Catalog = ({
     </> 
 }; 
 
+/**
+ * Styled version of the Single day calendar view
+ */
+export const StyledCatalog = styled(Catalog)`
 
-export default Catalog;
+    & > h2 {
+        display: block;
+        font-size: larger;
+        font-family: inherit;
+        width: fit-content;
+        margin: auto;
+        padding: 0;
+
+        & > button {
+            background: none;
+            color: ${pink};
+            border: none;
+            font-size: large;
+            cursor: pointer;
+            margin: 0.5rem;
+            font-family: inherit;
+        }
+    }
+`;
+
+
+export default StyledCatalog;
