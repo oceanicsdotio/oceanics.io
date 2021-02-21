@@ -196,7 +196,7 @@ export default ({
                     />
                     <Trifold 
                         onClick={() => {setExpand(!expand)}}
-                        stroke={orange}
+                        stroke={ghost}
                     /> 
                 </Interface>
             </>

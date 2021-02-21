@@ -61,7 +61,6 @@ const StyledLogin = styled(Login)`
     color: ${ghost};
     width: auto;
     height: auto;
-    padding: 5rem;
     visibility: ${({hidden})=>hidden?"hidden":null};
 
     & > p {
