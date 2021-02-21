@@ -18,6 +18,7 @@ const Δw = 1.0/COUNT;
  */
 export default ({
     histogram, 
+    caption,
     foreground="#CCCCCCFF"
 }) => {
 
@@ -58,11 +59,18 @@ export default ({
         return () => { worker.current.terminate() }
     }, [ worker ]);
 
+    const [ message, setMessage ] = useState("Calculating...");
+
+    useEffect(() => {
+        if (statistics)
+            setMessage(`${caption} (N=${statistics.total})`)
+    }, [ statistics ]);
+
     /*
      * Draw histogram peaks to the 2D canvas when it loads.
      */
     useEffect(()=>{
-        if (!statistics || ! ref.current) return;
+        if (!statistics || !ref.current) return;
 
         const ctx = ref.current.getContext("2d");
         ctx.fillStyle = foreground;
@@ -77,6 +85,6 @@ export default ({
         });
     }, [ statistics ]);
 
-    return { statistics, ref };
+    return { statistics, ref, message };
 }
     

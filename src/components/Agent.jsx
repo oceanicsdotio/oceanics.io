@@ -9,7 +9,7 @@ availability of a person or agent for a scheduled task.
 
 Style toggles with state. Cursor will not recognize as text.
 */
-const Person = ({
+const Agent = ({
     name,
     className,
 }) => {
@@ -36,7 +36,7 @@ const Person = ({
 /**
 Selectable person token
  */
-export const StyledPerson = styled(Person)`
+export const StyledAgent = styled(Agent)`
 
     display: inline-block;
     padding: 0.5rem;
@@ -57,4 +57,4 @@ export const StyledPerson = styled(Person)`
 `;
 
 
-export default StyledPerson;
+export default StyledAgent;

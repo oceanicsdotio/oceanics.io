@@ -1,7 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 import styled from "styled-components";
-import Person from "./Person";
+import Agent from "./Agent";
 
 /**
 Makes the mouse icon change to drag version while dragging.
@@ -50,7 +50,7 @@ export const Roster = ({
             {team.map(({
                 spec: {name}
             }) => 
-                <Person name={name} key={name}/>
+                <Agent name={name} key={name}/>
             )}
         </div>
     </div>

@@ -246,12 +246,12 @@ const Catalog = ({
                 }
             }]}
         />
-        {things.map((props, ii) => 
+        {/* {things.map((props, ii) => 
             <Thing {...{
                 key: `things-${ii}`,
                 ...props
             }}/>
-        )}
+        )} */}
         {locations.map(({
             spec: {
                 name
