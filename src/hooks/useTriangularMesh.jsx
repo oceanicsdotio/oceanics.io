@@ -1,12 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 
 import useWasmRuntime from "./useWasmRuntime";
-import useObjectStorage from "./useObjectStorage";
-import Worker from "./useMapbox.worker.js";
 
-
-const TARGET = "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com";
-const PREFIX = "MidcoastMaineMesh";
 
 /**
  * Event handler for mouse movement, returns the type and listener
@@ -37,9 +32,6 @@ const mouseMoveEventListener = (canvas, data) => {
  * called from the React Hook loop. 
  */
 export default ({
-    map=null,
-    name="",
-    attribution="Oceanics.io",
     fontSize=12.0,
     shape=[32,32],
     overlayColor=`#CCCCCCFF`,
@@ -63,25 +55,15 @@ export default ({
      */
     const ref = useRef(null);
 
-
     /**
      * The Rust-WASM backend.
      */
     const runtime = useWasmRuntime();
 
-
-    /**
-     * Retrieve S3 file system meta data. The `null` target prevents any HTTP request
-     * from happening.
-     */ 
-    const fs = useObjectStorage({target: name ? `${TARGET}?prefix=${PREFIX}/${name}/nodes/` : null});
-
-
     /**
      * Create handle for the mesh structure. 
      */
     const [ mesh, setMesh ] = useState(null);
-
 
     /**
      * Create the mesh structure in the Rust-WASM backend. 
@@ -90,20 +72,8 @@ export default ({
      * each element of a square grid in half.
      */
     useEffect(() => {
-        if (runtime && !name) setMesh(new runtime.InteractiveMesh(...shape)); 
+        if (runtime) setMesh(new runtime.InteractiveMesh(...shape)); 
     }, [ runtime ]);
-
-    /**
-     * Web worker reference for background tasks.
-     */
-    const worker = useRef(null);
-
-    /**
-     * Create worker
-     */
-    useEffect(() => {
-        worker.current = new Worker();
-    }, []);
 
     /**
      * If the `ref` has been assigned to a canvas target,
@@ -141,84 +111,6 @@ export default ({
 
         return () => cancelAnimationFrame(requestId);
     }, [mesh]);
-
-
-    /**
-     * The queue is an array of remote data assets to fetch and process. 
-     * 
-     * Updating the queue triggers `useEffect` hooks depending on whether
-     * visualization elements have been passed in or assigned externally.
-     */
-    const [queue, setQueue] = useState([]);
-
-
-    /**
-     * By default set the queue to the fragments listed in the response
-     * from S3 object storage queries.
-     */
-    useEffect(()=>{
-        if (fs) setQueue(fs.objects.filter(x => !x.key.includes("undefined")));
-    }, [ fs ]);
-
-
-    /**
-     * Request all fragments sequentially. 
-     * 
-     * All of this should be cached by the browser
-     */
-    useEffect(()=>{
-        if (!map || !worker.current || !queue.length) return;
-
-        const key = queue[0].key;
-        setQueue(queue.slice(1, queue.length));
-
-        if (map.getLayer(`mesh-${key}`)) return;
-
-        (async () => {
-            const source = await worker.current.getFragment(`${TARGET}/${key}`, attribution);
-            
-            map.addLayer({
-                id: `mesh-${key}`,
-                type: "circle",
-                source,
-                paint: {
-                    "circle-radius":  {stops: [[0, 0.1], [22, 1]]},
-                    "circle-stroke-width": 1,
-                    "circle-stroke-color": [
-                        "rgba",
-                        ["*", 127, ["get", "q"]],
-                        ["*", 127, ["get", "ln"]],
-                        ["*", 127, ["-", 1, ["get", "q"]]],
-                        0.5
-                    ]
-                }
-            });
-            
-        })();
-        
-    }, [ map, worker, queue ]);
-
-
-    /**
-     * Make sure to stop the worker
-     */
-    const [processing, setProcessing] = useState(false);
-
-
-    /**
-     * When queue is created, set status.
-     * 
-     * When queue is exhausted, shutdown worker. 
-     */
-    useEffect(() => {
-        if (queue) {
-            setProcessing(true);
-            return;
-        } else if (processing) {
-            console.log("Stopping Mesh Worker...");
-            worker.current.terminate();
-        }
-    }, [ queue ]);
 
 
     return {

@@ -49,16 +49,23 @@ import defaults from "../data/map-style.yml";
 import Worker from "./useMapbox.worker.js";
 
 /**
- * Vertex array loader
- */
-import useTriangularMesh from "./useTriangularMesh";
-
-/**
  * Public Mapbox key for client side rendering. Cycle if abused. We have a API call limit
  * in place to prevent cost overages. 
  */
 const mapBoxAccessToken = 
     'pk.eyJ1Ijoib2NlYW5pY3Nkb3RpbyIsImEiOiJjazMwbnRndWkwMGNxM21wYWVuNm1nY3VkIn0.5N7C9UKLKHla4I5UdbOi2Q';
+
+/**
+ * Storage target.
+ */
+const TARGET = "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com";
+
+
+/**
+ * Point cloud prefix.
+ */
+const PREFIX = "MidcoastMaineMesh";
+
 
 /**
  * Use the Geolocation API to retieve the location of the client,
@@ -395,21 +402,87 @@ export default ({
     }, [layer, icon, map]);
 
     /**
-     * Add a mesh instance to the map.
-     */
-    useTriangularMesh({
-        map,
-        name: "necofs_gom3_mesh", 
-        extension: "nc",
-        attribution: "UMass Dartmouth"
-    });
+     * Retrieve S3 file system meta data. The `null` target prevents any HTTP request
+     * from happening.
+     */ 
+    const fs = useObjectStorage({target: `${TARGET}?prefix=${PREFIX}/necofs_gom3_mesh/nodes/`});
 
-    // useTriangularMesh({
-    //     map,
-    //     name: "midcoast_nodes", 
-    //     extension: "csv",
-    //     attribution: "UMaine"
-    // });
+    /**
+     * The queue is an array of remote data assets to fetch and process. 
+     * 
+     * Updating the queue triggers `useEffect` hooks depending on whether
+     * visualization elements have been passed in or assigned externally.
+     */
+    const [ meshQueue, setMeshQueue ] = useState([]);
+
+
+    /**
+     * By default set the queue to the fragments listed in the response
+     * from S3 object storage queries.
+     */
+    useEffect(()=>{
+        if (fs) setMeshQueue(fs.objects.filter(x => !x.key.includes("undefined")));
+    }, [ fs ]);
+
+
+    /**
+     * Request all fragments sequentially. 
+     * 
+     * All of this should be cached by the browser
+     */
+    useEffect(()=>{
+        if (!map || !worker.current || !meshQueue.length) return;
+
+        const key = meshQueue[0].key;
+        setMeshQueue(meshQueue.slice(1, meshQueue.length));
+
+        if (map.getLayer(`mesh-${key}`)) return;
+
+        (async () => {
+            const source = await worker.current.getFragment(`${TARGET}/${key}`, "UMass Dartmouth");
+            
+            map.addLayer({
+                id: `mesh-${key}`,
+                type: "circle",
+                source,
+                paint: {
+                    "circle-radius":  {stops: [[0, 0.1], [22, 1]]},
+                    "circle-stroke-width": 1,
+                    "circle-stroke-color": [
+                        "rgba",
+                        ["*", 127, ["get", "q"]],
+                        ["*", 127, ["get", "ln"]],
+                        ["*", 127, ["-", 1, ["get", "q"]]],
+                        0.5
+                    ]
+                }
+            });
+            
+        })();
+        
+    }, [ map, worker, meshQueue ]);
+
+
+    /**
+     * Make sure to stop the worker
+     */
+    const [processing, setProcessing] = useState(false);
+
+
+    /**
+     * When queue is created, set status.
+     * 
+     * When queue is exhausted, shutdown worker. 
+     */
+    useEffect(() => {
+        if (meshQueue) {
+            setProcessing(true);
+            return;
+        } else if (processing) {
+            console.log("Stopping Mesh Worker...");
+            worker.current.terminate();
+        }
+    }, [ meshQueue ]);
     
   
     return {map, ref, cursor};
