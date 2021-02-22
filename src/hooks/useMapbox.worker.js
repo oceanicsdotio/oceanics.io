@@ -1,4 +1,16 @@
-export const PointFeature = (x, y, properties) => Object({
+
+
+const MAX_VALUE = 5200;
+
+/**
+ * Single point feature with coordinates 
+ * and arbitrary properties.
+ * 
+ * @param {*} x 
+ * @param {*} y 
+ * @param {*} properties 
+ */
+const PointFeature = (x, y, properties) => Object({
     type: 'Feature',
     geometry: {
         type: 'Point',
@@ -7,11 +19,14 @@ export const PointFeature = (x, y, properties) => Object({
     properties
 });
 
-// Formatting function, generic to all providers
-export const Features = ({
+/**
+ * Formatting function, generic to all providers
+ * @param {*} param0 
+ */
+const Features = (
     features,
     standard
-}) => {
+) => {
     switch(standard) {
         // ESRI does things their own special way.
         case "esri":
@@ -39,40 +54,35 @@ export const Features = ({
 };
 
 // Out ready for Mapbox as a Layer object description
-export const GeoJsonSource = ({
+const GeoJsonSource = ({
     features,
     standard,
     properties=null
 }) => 
+            
     Object({
         type: "geojson", 
         generateId: true,
         data: {
             type: "FeatureCollection",
-            features: Features({
-                features, 
-                standard
-            }),
+            features: Features(features, standard),
             properties,
         }, 
     });
 
 
-export const UserLocation = async ({
-    longitude, 
-    latitude
-}) => GeoJsonSource({
-        features: [PointFeature(longitude, latitude, {})]
+export const userLocation = async (
+    coordinates
+) => GeoJsonSource({
+        features: [PointFeature(...coordinates, {})]
     });
 
-export async function getData(url, standard) {
+export const getData = async (url, standard) => {
     return await fetch(url)
         .then(response => response.json())
         .then(({features}) => GeoJsonSource({features, standard}));
 };
 
-
-const MAX_VALUE = 5200;
 
 
 
@@ -87,7 +97,7 @@ const logNormal = (x, m=0, s=1.0) =>
 
 
     
-export async function getFragment(url, attribution) {
+export const getFragment = async (url, attribution) => {
     return await fetch(url)
         .then(response => response.blob())
         .then(blob => 

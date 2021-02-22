@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useReducer } from "react";
 
 import Worker from "./useBathysphereApi.worker.js";
 
@@ -11,9 +11,8 @@ import Worker from "./useBathysphereApi.worker.js";
  * If access token is set in React state, use it to get the catalog index from Bathysphere
  */
 export default ({
-    email, 
-    password,
-    server = "https://graph.oceanics.io"
+    icons, 
+    tiles
 }) => {
 
     /**
@@ -35,14 +34,6 @@ export default ({
     const [ accessToken, setAccessToken ] = useState("");
 
     /**
-     * Attempt to log in once worker loads.
-     */
-    useEffect(()=>{
-        if (worker.current)
-            worker.current.login({server, email, password}).then(setAccessToken);
-    }, [ worker ]);
-
-    /**
      * Catalog to render in frontend, set from result
      * of Web Worker.
      */
@@ -56,8 +47,69 @@ export default ({
             worker.current.query({server, accessToken}).then(setCatalog); 
     }, [ worker, accessToken ]);
 
+    
+    /**
+     * The login container handles authorization interactions with the
+     * backend.
+     */
+    const [credentials, refresh] = useReducer(
+        (prev, event=null) => !event ? prev : {
+            ...prev,
+            [event.target.id]: event.target.value.trim()
+        },
+        {
+            email: "",
+            password: "",
+            apiKey:  "",
+            server: "https://graph.oceanics.io/api"
+        }
+    );
+
+    /**
+     * Collections options object generated from API queries. 
+     */ 
+    const [ options ] = useState([
+        {key: "Features of Interest"},
+        {key: "Things"},
+        {key: "Locations"}
+    ]);
+
+    /**
+     * Sorted items to render in interface
+     */
+    const [sorted, setSorted] = useState([]);
+
+    /**
+     * Use Web worker to do sorting
+     */
+    useEffect(()=>{
+        if (worker.current)
+            worker.current.sorted({icons, tiles}).then(setSorted);
+    }, [ worker]);
+    
+   
     return {
         catalog,
-        accessToken,
+        options: options.map(({key})=>key),
+        refresh,
+        login: event => {
+            event.persist();
+            worker.current.login(credentials).then(setAccessToken);
+        },
+        register: event => {
+            event.persist();
+            worker.current.login(credentials).then(console.log);
+        },
+        populate: event => {
+            event.persist();
+            console.log("Populate...");
+        },
+        navigate: event => {
+            event.persist();
+            worker.current.locationHash(event.target.value).then(hash => {
+                location.hash = hash;
+            });
+        },
+        sorted
     };
 };

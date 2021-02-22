@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 
 import useWasmRuntime from "./useWasmRuntime";
 import useObjectStorage from "./useObjectStorage";
-import Worker from "./useMapboxGeoJsonLayers.worker.js";
+import Worker from "./useMapbox.worker.js";
 
 
 const TARGET = "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com";

@@ -1,16 +1,9 @@
-import { useEffect, useState, useRef } from "react";
-
-import mapboxgl, {Popup} from "mapbox-gl";
-import "mapbox-gl/dist/mapbox-gl.css";
-import style from "../data/map-style.yml";  // map style'
-
+import React, { useEffect, useState, useRef } from "react";
 import ReactDOM from "react-dom";
+
+
+import mapboxgl, {Popup, Map} from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
-
-import {geojson} from "../data/layers.yml";
-
-import useMapboxGeoJsonLayers from "../hooks/useMapboxGeoJsonLayers";
-import useGeolocationApi from "../hooks/useGeolocationApi";
 
 import LicenseInformation from "../components/LicenseInformation";
 import LeaseInformation from "../components/LeaseInformation";
@@ -19,59 +12,102 @@ import SuitabilityInformation from "../components/SuitabilityInformation";
 import NsspInformation from "../components/NsspInformation";
 import PopUpContent from "../components/PopUpContent";
 
-/**
- * Build the handler and component to render
- * @param {*} Component 
- * @param {*} parser 
- */
-const composeHandler = (Component, parser) => (event) => {
+import {geojson} from "../data/layers.yml";
+import style from "../data/map-style.yml";  // map style'
+import Worker from "./useMapbox.worker.js";
 
-    const { props, coordinates } = parser(event);
-
-    return {
-        jsx: <Component {...props}/>,
-        coordinates
-    }
-};
 
 /**
- * Reduce many point features to a single set of coordinates at the
- * geometric center. Does NOT take into account geogrpah projection.
- */
-const getGeographicCenter = cluster => cluster.reduce(([x, y], { coordinates }) => {
-    let [Δx, Δy] = coordinates;
-    return [x + Δx / cluster.length, y + Δy / cluster.length]
-}, [0, 0]);
-
-/**
- * Keep coordinates in (-180, 180)
+ * Use the Geolocation API to retieve the location of the client,
+ * and set the map center to those coordinates, and flag that the interface
+ * should use the client location on refresh.
  * 
- * @param {*} cluster 
- * @param {*} lng 
+ * This will also trigger a greater initial zoom level.
  */
-const wrapLng = (cluster, lng) => cluster.map(({geometry: {coordinates}, ...props}) => {
-    while (Math.abs(lng - coordinates[0]) > 180) 
-        coordinates[0] += lng > coordinates[0] ? 360 : -360;
-    return {
-        ...props,
-        coordinates
+export const pulsingDot = ({
+    size = 64
+}) => Object({
+            
+    width: size,
+    height: size,
+    data: new Uint8Array(size * size * 4),
+
+    // get rendering context for the map canvas when layer is added to the map
+    onAdd: function () {
+        let canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        this.context = canvas.getContext('2d');
+    },
+
+    // called once before every frame where the icon will be used
+    render: function () {
+        let duration = 1000;
+        let time = (performance.now() % duration) / duration;
+
+        let radius = (size / 2) * 0.3;
+        let outerRadius = (size / 2) * 0.7 * time + radius;
+        let ctx = this.context;
+
+    
+        ctx.clearRect(0, 0, size, size);
+        ctx.beginPath();
+        ctx.arc(
+            size / 2,
+            size / 2,
+            outerRadius,
+            0,
+            Math.PI * 2
+        );
+        
+        ctx.strokeStyle = 'orange';
+        ctx.lineWidth = 2 + 4 * (1 - time);
+        ctx.stroke();
+
+        // update this image's data with data from the canvas
+        this.data = ctx.getImageData(
+            0,
+            0,
+            size,
+            size
+        ).data;
+
+        return true;
     }
 });
+
 
 /**
  * When a click event happens it may intersect with multiple features. 
  * 
  * The popup is rendered at their center.
  * 
+ * 
+ * Reduce many point features to a single set of coordinates at the
+ * geometric center. Does NOT take into account geogrpah projection.
+ * 
  * @param {*} param0 
  */
 const multiFeatureReducer = ({features, lngLat: {lng}}) => {
    
-    const projected = wrapLng(features, lng);
+    /**
+     * Keep coordinates in (-180, 180)
+     */
+    const projected = features.map(({geometry: {coordinates}, ...props}) => {
+        while (Math.abs(lng - coordinates[0]) > 180) 
+            coordinates[0] += lng > coordinates[0] ? 360 : -360;
+        return {
+            ...props,
+            coordinates
+        }
+    });
 
     return {
         props: {features: projected},
-        coordinates: getGeographicCenter(projected)
+        coordinates: projected.reduce(([x, y], { coordinates }) => {
+            let [Δx, Δy] = coordinates;
+            return [x + Δx / cluster.length, y + Δy / cluster.length]
+        }, [0, 0])
     }
 }
 
@@ -97,9 +133,14 @@ const popups = Object.fromEntries(Object.entries({
     nssp: [NsspInformation, polygonFeatureReducer], 
     suitability: [SuitabilityInformation, multiFeatureReducer],
 }).map(
-    ([key, [component, reducer]]) => [key, composeHandler(component, reducer)])
+    ([key, [Component, reducer]]) => [key, event => {
+        const { props, coordinates } = reducer(event);
+        return {
+            jsx: <Component {...props}/>,
+            coordinates
+        }
+    }])
 );
-
 
 
 /**
@@ -116,16 +157,41 @@ export default ({
     center,
     triggerResize
 }) => {
-
+    /**
+     * Mapbox container reference.
+     */
     const ref = useRef(null);
-    const [map, setMap] = useState(null);  // MapboxGL Map instance
+
+    /**
+     * MapboxGL Map instance
+     */
+    const [map, setMap] = useState(null);  
+
+    /**
+     * Location of cursor in geospatial coordinates
+     */
     const [cursor, setCursor] = useState(null);
 
+    /**
+     * Web worker reference for background tasks.
+     */
+    const worker = useRef(null);
+
+    /**
+     * Instantiate the web worker, lazy load style
+     */
+    useEffect(() => {
+        worker.current = new Worker();
+    }, []);
+
+    /**
+     * Create the map instance.
+     */
     useEffect(() => {
        
         mapboxgl.accessToken = accessToken;
 
-        const _map = new mapboxgl.Map({
+        setMap(new Map({
             container: ref.current,
             style,
             center,
@@ -134,24 +200,26 @@ export default ({
             pitchWithRotate: false,
             dragRotate: false,
             touchZoomRotate: false
-        })
-
-        _map.on('mousemove', ({lngLat: {lng, lat}}) => {
-            setCursor({lng, lat});
-        });
-
-        setMap(_map);
+        }));
     }, []);
+
+    /**
+     * Add a mouse move handler to the map
+     */
+    useEffect(() => {
+        if (map)
+            map.on('mousemove', ({lngLat}) => {setCursor(lngLat)});
+    }, [ map ]);
 
     /**
      * Popup handlers
      */
-    const [handlers, setHandlers] = useState(null);
+    const [ handlers, setHandlers ] = useState(null);
 
     /**
      * Load the popup handlers if a map element exists. 
      */
-    useEffect(()=>{
+    useEffect(() => {
         if (!map) return;
 
         setHandlers(Object.fromEntries(
@@ -175,7 +243,7 @@ export default ({
                 }
             ]))
         );
-    },[ map ]);
+    }, [ map ]);
 
 
     /**
@@ -188,6 +256,7 @@ export default ({
      */
     useEffect(()=>{
         if (!handlers) return;
+
         setGeoJsonLayers((geojson || []).map(({id, popup, ...layer})=>Object({
             id,
             ...layer,
@@ -200,31 +269,52 @@ export default ({
      * interface.
      */
     useEffect(()=>{
-        if (!map) return;
-        map.resize();
+        if (map) map.resize();
     }, triggerResize);
 
     /**
-     * Swap layers to be in the correct order as they have are created. 
-     * You can resolve them asynchronously without worrying 
+     * Swap layers to be in the correct order as they are created. 
+     * 
+     * Nice because you can resolve them asynchronously without worrying 
      * about creation order.
      */
     useEffect(() => {
-        if (!metadata) return;
-        Object.entries(metadata).forEach(({id, behind}) => {
-            map.moveLayer(id, behind)
-        });
-    }, [ metadata ]);
+        (geoJsonLayers || [])
+            .filter(({behind}) => typeof behind !== "undefined")
+            .forEach(({id, behind}) => {
+                if (map.getLayer(id) && map.getLayer(behind)) 
+                    map.moveLayer(id, behind);
+            });
+    }, [ geoJsonLayers ]);
 
+   
     /**
-     * Asynchronously retrieve the geospatial data files and parse them.
-     * Skip this if the layer data has already been loaded, 
-     * or if the map doesn't exist yet
+     * Task the web worker with loading and transforming data to add
+     * to the MapBox instance as a GeoJSON layer. 
      */
-    const {metadata} = useMapboxGeoJsonLayers({
-        map,
-        layers: geoJsonLayers
-    });
+    useEffect(() => {
+        if (!map || !geoJsonLayers || !worker.current) return;
+       
+        geoJsonLayers.forEach(({
+            id,
+            behind,
+            standard="geojson",
+            url=null,
+            onClick=null, 
+            ...layer
+        }) => {
+            // Guard against re-loading layers
+            if (map.getLayer(id)) return;
+            worker.current.getData(url, standard).then(source => {
+                map.addLayer({id, source, ...layer});
+                if (onClick) map.on('click', id, onClick);
+            }).catch(err => {
+                console.log(`Error loading ${id}`, err);
+            });
+        }); 
+
+    }, [map, geoJsonLayers, worker]);
+
 
     /**
      * Prompt the user to share location and use it for context
@@ -232,8 +322,62 @@ export default ({
      * 
      * Should be moved up to App context.
      */
-    const {layer, icon} = useGeolocationApi({});
+    
+    /**
+     * Icon is the sprite for the object
+     */
+    const [ icon ] = useState(["pulsing-dot", pulsingDot({})]);
 
+    /**
+     * User location
+     */
+    const [ location, setLocation ] = useState(null);
+    
+    /**
+     * Get the user location and 
+     */
+    useEffect(() => {
+    
+        if (!navigator.geolocation) return null;
+
+        navigator.geolocation.getCurrentPosition(
+            setLocation, 
+            () => { console.log("Error getting client location.") },
+            {
+                enableHighAccuracy: true,
+                timeout: 5000,
+                maximumAge: 0
+            }
+        );
+    }, []);
+
+    /**
+     * Layer is the MapBox formatted layer object
+     */
+    const [ layer, setLayer ] = useState(null);
+    
+    /**
+     * Use the worker to create the point feature for the user location
+     */
+    useEffect(() => {
+        if (!worker.current || !location) return;
+
+        const {longitude, latitude} = location.coords;
+        worker.current.userLocation([longitude, latitude]).then(setLayer);
+        
+    }, [ worker, location ]);
+
+    /**
+     * Pan to user location immediately.
+     */
+    useEffect(() => {
+        if (map && location)
+            map.panTo([location.coords.longitude, location.coords.latitude]);
+    }, [ location, map ]);
+
+    /**
+     * Add user location layer. 
+     */
     useEffect(() => {
     
         if (!layer || !icon || !map) return;
@@ -250,9 +394,6 @@ export default ({
             source: layerId,
             layout: { 'icon-image': icon[0] }
         });
-
-        map.panTo(layer.data.features[0].geometry.coordinates);
-      
     }, [layer, icon, map]);
     
   

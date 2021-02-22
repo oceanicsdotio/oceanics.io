@@ -122,10 +122,6 @@ geojson:
     popup: port
     info: https://hifld-geoplatform.opendata.arcgis.com/datasets/wrecks-and-obstructions-1/geoservice?geometry=-79.504%2C40.527%2C-60.212%2C46.116
 
-# https://hifld-geoplatform.opendata.arcgis.com/datasets/outer-continental-shelf-ocs-protraction-diagrams-leasing-maps
-# https://hifld-geoplatform.opendata.arcgis.com/datasets/wrecks-and-obstructions-1
-# https://hifld-geoplatform.opendata.arcgis.com/datasets/ferry-routes
-
   - id: limited-purpose-licenses
     url: https://oceanicsdotio.nyc3.digitaloceanspaces.com/bathysphere/geospatial/limited-purpose-licenses.json
     type: circle

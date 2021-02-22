@@ -68,6 +68,10 @@ export const login = async ({
         .then(token => "token" in token ? token.token : "");
 
 
+/**
+ * Convenience method to make the name usable as a page anchor
+ */ 
+const transformName = name => name.toLowerCase().split(" ").join("-"); 
 
 
 
@@ -107,3 +111,40 @@ export function quickSort(arr, low, high, col) {
         quickSort(arr, index + 1, high, col);
     }
 };
+
+export const locationHash = async (name) => "#" + transformName(name);
+
+/** 
+ * Generate derived fields, and match metadata to asset files.
+ * Memoize the results to prevent recalculating when the parent
+ * page re-renders.
+ */
+export const sorted = async ({tiles, icons}) => {
+
+    const lookup = Object.fromEntries(
+        icons.map(({relativePath, publicURL})=>[relativePath, publicURL])
+    );
+    
+    
+    return tiles.map(({name, becomes=[], data, ...x})=>Object({
+            canonical: transformName(name), 
+            group: (becomes || [])
+                .map(x => 
+                    tiles.filter(({name})=>transformName(name) === transformName(x)).pop()
+                ).map(({name}) => ({
+                    link: `#${transformName(name)}`,
+                    text: name
+                })), 
+            name,
+            publicURL: lookup[data],
+            ...x
+        }))
+    .sort((a, b) => {
+        [a, b] = [a, b].map(({canonical}) => canonical);
+        if (a < b) return -1;
+        if (a > b) return 1;
+        return 0;
+    });
+}
+
+    

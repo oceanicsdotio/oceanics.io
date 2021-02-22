@@ -19,7 +19,7 @@ layers:
     source-layer: water
     type: fill
     paint: 
-        fill-color: "#000"
+      fill-color: "#000"
     
   - id: cities
     source: mapbox
