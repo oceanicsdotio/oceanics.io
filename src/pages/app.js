@@ -1,24 +1,40 @@
-
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
-
-import SEO from "../components/SEO";  // SEO headers
-import Catalog from "../components/Catalog";  // Graph API interface
-import Map from "../components/Map";  // MapBox interface
-import Trifold from "../components/Trifold";
-
-import useOceanside from "../hooks/useOceanside";
-import useDetectDevice from "../hooks/useDetectDevice";
-
 import { ghost } from "../palette";
 
-
-const title = "Discover data";
-const mapBoxAccessToken = 'pk.eyJ1Ijoib2NlYW5pY3Nkb3RpbyIsImEiOiJjazMwbnRndWkwMGNxM21wYWVuNm1nY3VkIn0.5N7C9UKLKHla4I5UdbOi2Q';
-
+/**
+ * SEO headers
+ */
+import SEO from "../components/SEO";  
 
 /**
- * Logical combinator to calculate visibility and style of columns
+ * SensorThings Graph API interface
+ */ 
+import Catalog from "../components/Catalog";  
+
+/**
+ * SVG button for toggling between map and catalog views. 
+ */
+import Trifold from "../components/Trifold";
+
+/**
+ * Pixel graphic renderer for rasterized geospattial data.
+ */
+import useOceanside from "../hooks/useOceanside";
+
+/**
+ * Determine whether user is visiting from a mobile
+ * or desktop deveice.
+ */
+import useDetectDevice from "../hooks/useDetectDevice";
+
+/**
+ * Interactive Map component using Mapbox backend.
+ */
+import useMapBox from "../hooks/useMapBox";
+
+/**
+ * Logical combinator to calculate visibility and style of columns.
  */
 const columnSize = ({expand, mobile, column}) => {
     if (column === 1) {
@@ -29,13 +45,13 @@ const columnSize = ({expand, mobile, column}) => {
 };
 
 /**
- * Application component is the container for the grid/column
+ * App component is the container for the grid/column
  * view of interface elements, depending on whether the user is
  * on desktop or mobile.
  * 
  * There is no tablet specific view at this time. 
  */
-const Application = styled.div`
+const App = styled.div`
     display: grid;
     grid-gap: 0;
     grid-template-columns: ${
@@ -51,15 +67,35 @@ const Application = styled.div`
 `;
 
 /**
+ * The Pane component holds one or more Mini-Apps.
+ */
+const Pane = styled.div`
+    display: ${({display})=>display};
+    grid-row: ${({row})=>row+1};
+    grid-column: ${({column})=>column+1};
+    overflow-x: hidden;
+    overflow-y: ${({column})=>column?undefined:"hidden"};
+    min-height: 100vh;
+    bottom: 0;
+`;
+
+/**
+ * Styled div the main Map.
+ */
+const Map = styled.div`
+    height: 100vh;
+    width: 100%;
+`;
+
+/**
  * Just holds preview map for now. May hold additional
  * interface elements in the future. Currently required
  * for consistent styling across layouts.
  */
-const Interface = styled.div`
+const Control = styled.div`
     display: flex;
     flex-flow: column;
     position: absolute;
-    /* height: 100%; */
     margin: 0;
     top: 0;
     left: 0;
@@ -76,35 +112,9 @@ const Interface = styled.div`
 `;
 
 /**
- * The ColumnContainer component holds one or more Mini-Apps,
- * and provides the control interface for hiding/showing/selecting
- * among them.
+ * Page component rendered by GatsbyJS.
  */
-const ColumnContainer = styled.div`
-
-    display: ${({display})=>display};
-    grid-row: ${({row})=>row+1};
-    grid-column: ${({column})=>column+1};
-    overflow-x: hidden;
-    overflow-y: ${({column})=>column?undefined:"hidden"};
-
-    width: 100%;
-    min-height: 100vh;
-    bottom: 0;
-    margin: 0;
-    padding: 0;
-`;
-
-// Debugging aid
-const FORCE_MOBILE = false;
-
-
 export default () => {
-    /**
-     * Set map full screen
-     */
-    const [ expand, setExpand ] = useState(false);
-
     /**
      * Determine how much information to show on screen,
      * as well as how to interpret the location of the device
@@ -112,51 +122,57 @@ export default () => {
     const { mobile } = useDetectDevice();
 
     /**
-     * Isometric pixel renderer interface
+     * Set map full screen
      */
-    const isometric = useOceanside({});
+    const [ expand, setExpand ] = useState(false);
 
     /**
      * Assume that on mobile the user will want to see the map
      * rather than our loading Jenk.
      */
     useEffect(()=>{
-        setExpand(FORCE_MOBILE || mobile);
+        setExpand(mobile);
     },[ mobile ]);
 
-    return <Application {...{mobile, expand}}>
-        <SEO title={title} />
-        <ColumnContainer 
+    /**
+     * Isometric pixel rendering interface for rasterized data.
+     */
+    const { nav, worldSize } = useOceanside({});
+
+    /**
+     * Custom Hook that handles event cascades for loading and parsing data
+     * into MapBox sources and layers.
+     */
+    const { ref } = useMapBox({ triggerResize: [expand], geolocationSettings: {}});
+
+    return <App {...{mobile, expand}}>
+        <SEO title={"Discover data"} />
+        <Pane 
             row={0} 
             column={0}
             display={!columnSize({expand, mobile, column: 0}) ? "none" : undefined}
         >
-            <Map 
-                center={[-70, 43.7]}
-                accessToken={mapBoxAccessToken}
-                triggerResize={[expand]}
-            />         
-            <Interface>
+            <Map ref={ref}/>      
+            <Control>
                 <canvas
                     id={"preview-target"}
-                    ref={isometric.nav.ref}
-                    width={isometric.worldSize}
-                    height={isometric.worldSize}
-                    onClick={isometric.nav.onClick}
+                    ref={nav.ref}
+                    width={worldSize}
+                    height={worldSize}
+                    onClick={nav.onClick}
                 />
                 <Trifold 
                     onClick={() => {setExpand(!expand)}}
                     stroke={ghost}
                 /> 
-            </Interface>
-        </ColumnContainer>
-
-        <ColumnContainer 
+            </Control>
+        </Pane>
+        <Pane 
             display={!columnSize({expand, mobile, column: 1}) ? "none" : undefined}
             row={0} 
             column={1}
         >
             <Catalog storage={{}} graph={{}}/> 
-        </ColumnContainer>
-    </Application> 
+        </Pane>
+    </App> 
 };

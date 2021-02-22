@@ -1,5 +1,6 @@
-
-
+/**
+ * Max regional ocean depth for bthymetry rendering
+ */
 const MAX_VALUE = 5200;
 
 /**
@@ -53,13 +54,14 @@ const Features = (
     };
 };
 
-// Out ready for Mapbox as a Layer object description
+/**
+ *  Out ready for Mapbox as a Layer object description
+ */
 const GeoJsonSource = ({
     features,
     standard,
     properties=null
-}) => 
-            
+}) =>       
     Object({
         type: "geojson", 
         generateId: true,
@@ -70,20 +72,28 @@ const GeoJsonSource = ({
         }, 
     });
 
-
+/**
+ * Format the user location
+ * 
+ * @param {*} coordinates 
+ */
 export const userLocation = async (
     coordinates
 ) => GeoJsonSource({
         features: [PointFeature(...coordinates, {})]
     });
 
+/**
+ * Retrieve arbtirary GeoJson source
+ * 
+ * @param {*} url 
+ * @param {*} standard 
+ */
 export const getData = async (url, standard) => {
     return await fetch(url)
         .then(response => response.json())
         .then(({features}) => GeoJsonSource({features, standard}));
 };
-
-
 
 
 /**
@@ -96,7 +106,12 @@ const logNormal = (x, m=0, s=1.0) =>
     (1/s/x/Math.sqrt(2*Math.PI)*Math.exp(-1*(Math.log(x)-m)**2 / (2 * s**2)));
 
 
-    
+/**
+ * Retrieve a piece of a vertex array buffer from object storage.
+ * 
+ * @param {*} url 
+ * @param {*} attribution 
+ */
 export const getFragment = async (url, attribution) => {
     return await fetch(url)
         .then(response => response.blob())
@@ -132,6 +147,16 @@ export const getFragment = async (url, attribution) => {
         });
 };
 
-export async function hello() {
-    return "hello";
-};
+
+export const reduceVertexArray = async (vertexArray) => {
+
+    
+    return vertexArray.reduce(
+        ([x, y, z=0], {coordinates: [Δx, Δy, Δz=0]}) => 
+            [
+                x + Δx / vertexArray.length, 
+                y + Δy / vertexArray.length,
+                z + Δz / vertexArray.length
+            ], 
+        [0, 0, 0]
+    )};
