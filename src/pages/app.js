@@ -23,12 +23,6 @@ import Trifold from "../components/Trifold";
 import useOceanside from "../hooks/useOceanside";
 
 /**
- * Determine whether user is visiting from a mobile
- * or desktop deveice.
- */
-import useDetectDevice from "../hooks/useDetectDevice";
-
-/**
  * Interactive Map component using Mapbox backend.
  */
 import useMapBox from "../hooks/useMapBox";
@@ -115,11 +109,27 @@ const Control = styled.div`
  * Page component rendered by GatsbyJS.
  */
 export default () => {
-    /**
-     * Determine how much information to show on screen,
-     * as well as how to interpret the location of the device
+ /**
+     * Boolean indicating whether the device is a small mobile,
+     * or full size desktop.
      */
-    const { mobile } = useDetectDevice();
+    const [ mobile, setMobile ] = useState(false);
+
+    /**
+     * "Guess" the type of device based on known user agent string.
+     * 
+     * This is disclosed in the website privacy policy. 
+     */
+    useEffect(() => {
+        const userAgent = typeof navigator === "undefined" ? "" : navigator.userAgent;
+            
+        setMobile(Boolean(
+            userAgent.match(
+                /Android|BlackBerry|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i
+            )
+        ));
+          
+    }, [ ]);
 
     /**
      * Set map full screen

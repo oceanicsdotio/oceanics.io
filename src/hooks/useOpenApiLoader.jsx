@@ -1,5 +1,8 @@
 import {useState, useEffect, useRef} from "react";
 
+/**
+ * Dedicated Worker loader
+ */
 import Worker from "./useOpenApiLoader.worker.js";
 
 
@@ -73,5 +76,5 @@ export default ({
             worker.current.scrapeIndexPage(apiSpec.servers[0].url).then(setIndex);    
     }, [ apiSpec ]);
 
-    return {apiSpec, index, methods};
+    return { apiSpec, index, methods };
 }
