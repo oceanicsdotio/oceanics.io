@@ -49,6 +49,11 @@ import defaults from "../data/map-style.yml";
 import Worker from "./useMapbox.worker.js";
 
 /**
+ * Object storage hook
+ */
+import useObjectStorage from "./useObjectStorage";
+
+/**
  * Public Mapbox key for client side rendering. Cycle if abused. We have a API call limit
  * in place to prevent cost overages. 
  */
@@ -329,18 +334,6 @@ export default ({
     }, [ channelOrder ]);
 
     /**
-     * Prompt the user to share location and use it for context
-     * purposes, such as getting local tide information.
-     * 
-     * Should be moved up to App context.
-     */
-    
-    /**
-     * Icon is the sprite for the object.
-     */
-    const [ icon ] = useState(["pulsing-dot", pulsingDot({size: iconSize})]);
-
-    /**
      * User location to be obtained from Geolocation API.
      */
     const [ agentLocation, setAgentLocation ] = useState(null);
@@ -363,19 +356,26 @@ export default ({
     }, []);
 
     /**
-     * Layer is the MapBox formatted layer object
-     */
-    const [ layer, setLayer ] = useState(null);
-    
-    /**
      * Use the worker to create the point feature for the user location.
      */
     useEffect(() => {
-        if (worker.current && agentLocation)
-            worker.current
-                .userLocation([agentLocation.coords.longitude, agentLocation.coords.latitude])
-                .then(setLayer);
-    }, [ worker, agentLocation ]);
+        if (!map || !worker.current || !agentLocation) return;
+
+        (async () => {
+            map.addLayer({
+                id: "home",
+                type: 'symbol',
+                source: await worker.current.userLocation([
+                    agentLocation.coords.longitude, 
+                    agentLocation.coords.latitude
+                ]),
+                layout: { 
+                    'icon-image': "home" 
+                }
+            })
+        })();
+
+    }, [ worker, agentLocation, map ]);
 
     /**
      * Pan to user location immediately.
@@ -384,22 +384,14 @@ export default ({
         if (map && agentLocation)
             map.panTo([agentLocation.coords.longitude, agentLocation.coords.latitude]);
     }, [ agentLocation, map ]);
-
+    
     /**
-     * Add user location layer. 
+     * Create home animation image
      */
     useEffect(() => {
-    
-        if (!layer || !icon || !map) return;
-      
-        map.addImage(...icon);
-        map.addLayer({
-            id: "home",
-            type: 'symbol',
-            source: layer,
-            layout: { 'icon-image': icon[0] }
-        });
-    }, [layer, icon, map]);
+        if (!map || map.hasImage("home")) return;
+        map.addImage("home", pulsingDot({size: iconSize}));
+    }, [ map ]);
 
     /**
      * Retrieve S3 file system meta data. The `null` target prevents any HTTP request
@@ -439,25 +431,8 @@ export default ({
         if (map.getLayer(`mesh-${key}`)) return;
 
         (async () => {
-            const source = await worker.current.getFragment(`${TARGET}/${key}`, "UMass Dartmouth");
-            
-            map.addLayer({
-                id: `mesh-${key}`,
-                type: "circle",
-                source,
-                paint: {
-                    "circle-radius":  {stops: [[0, 0.1], [22, 1]]},
-                    "circle-stroke-width": 1,
-                    "circle-stroke-color": [
-                        "rgba",
-                        ["*", 127, ["get", "q"]],
-                        ["*", 127, ["get", "ln"]],
-                        ["*", 127, ["-", 1, ["get", "q"]]],
-                        0.5
-                    ]
-                }
-            });
-            
+            const layer = await worker.current.getFragment(TARGET, key, "UMass Dartmouth");
+            map.addLayer(layer);
         })();
         
     }, [ map, worker, meshQueue ]);
@@ -466,7 +441,7 @@ export default ({
     /**
      * Make sure to stop the worker
      */
-    const [processing, setProcessing] = useState(false);
+    const [ processing, setProcessing ] = useState(false);
 
 
     /**
@@ -477,7 +452,6 @@ export default ({
     useEffect(() => {
         if (meshQueue) {
             setProcessing(true);
-            return;
         } else if (processing) {
             console.log("Stopping Mesh Worker...");
             worker.current.terminate();
@@ -485,5 +459,5 @@ export default ({
     }, [ meshQueue ]);
     
   
-    return {map, ref, cursor};
+    return { ref };
 };

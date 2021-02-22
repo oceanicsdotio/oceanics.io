@@ -112,7 +112,10 @@ const logNormal = (x, m=0, s=1.0) =>
  * @param {*} url 
  * @param {*} attribution 
  */
-export const getFragment = async (url, attribution) => {
+export const getFragment = async (target, key, attribution) => {
+
+    const url = `${target}/${key}`;
+
     return await fetch(url)
         .then(response => response.blob())
         .then(blob => 
@@ -143,7 +146,22 @@ export const getFragment = async (url, attribution) => {
 
             source.attribution = attribution;
 
-            return source;
+            return {
+                id: `mesh-${key}`,
+                type: "circle",
+                source,
+                paint: {
+                    "circle-radius":  {stops: [[0, 0.1], [22, 1]]},
+                    "circle-stroke-width": 1,
+                    "circle-stroke-color": [
+                        "rgba",
+                        ["*", 127, ["get", "q"]],
+                        ["*", 127, ["get", "ln"]],
+                        ["*", 127, ["-", 1, ["get", "q"]]],
+                        0.5
+                    ]
+                }
+            }
         });
 };
 
