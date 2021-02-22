@@ -168,7 +168,6 @@ export const getFragment = async (target, key, attribution) => {
 
 export const reduceVertexArray = async (vertexArray) => {
 
-    
     return vertexArray.reduce(
         ([x, y, z=0], {coordinates: [Δx, Δy, Δz=0]}) => 
             [
