@@ -106,7 +106,7 @@ const multiFeatureReducer = ({features, lngLat: {lng}}) => {
         props: {features: projected},
         coordinates: projected.reduce(([x, y], { coordinates }) => {
             let [Δx, Δy] = coordinates;
-            return [x + Δx / cluster.length, y + Δy / cluster.length]
+            return [x + Δx / projected.length, y + Δy / projected.length]
         }, [0, 0])
     }
 }
