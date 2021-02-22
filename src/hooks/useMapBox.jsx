@@ -72,6 +72,47 @@ const TARGET = "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com";
 const PREFIX = "MidcoastMaineMesh";
 
 
+
+export const waterLevel = ({size}) => Object({
+
+    width: size,
+    height: size,
+    data: new Uint8Array(size * size * 4),
+
+    // get rendering context for the map canvas when layer is added to the map
+    onAdd: function () {
+        var canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        this.context = canvas.getContext('2d');
+        
+        // update this image's data with data from the canvas
+        
+    },
+
+    // called once before every frame where the icon will be used
+    render: function () {
+        var ctx = this.context;
+        ctx.clearRect(0, 0, size, size);
+        ctx.beginPath();
+        ctx.rect(0, 0, size, size);
+    
+        ctx.strokeStyle = 'cyan';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        this.data = ctx.getImageData(
+            0,
+            0,
+            size,
+            size
+        ).data;
+
+        return true;
+        
+    }
+});
+
 /**
  * Use the Geolocation API to retieve the location of the client,
  * and set the map center to those coordinates, and flag that the interface
@@ -458,6 +499,46 @@ export default ({
         }
     }, [ meshQueue ]);
     
+
+
+
+    /* 
+    * Fetch tide data from NOAA. 
+    * Render a tide gauge animated icon at each position. 
+    */
+    // useEffect(() => {
+        
+    //     if (!map || !animatedIcons) return;
+    //     const id = "tidal-stations";
+    //     const extent = [-71.190, 40.975, -63.598, 46.525];
+
+    //     map.addImage(id, animatedIcons.waterLevel, { pixelRatio: 4 });
+
+    //     (async () => {
+    //         const queue = await fetch("https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json?type=waterlevels")
+    //             .then(r => r.json())
+    //             .then(({stations}) => {
+    //                 return stations.filter(({lat, lng}) => {
+    //                     return lng >= extent[0] && lng <= extent[2] && lat >= extent[1] && lat <= extent[3];
+    //                 }).map(({id})=>{
+    //                     return fetch(`https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=${id}&product=water_level&datum=mllw&units=metric&time_zone=lst_ldt&application=oceanics.io&format=json`).then(r => r.json())
+    //                     }
+    //                 );
+    //             });
+            
+    //         map.addLayer({
+    //             id,
+    //             type: 'symbol',
+    //             source: parseFeatureData({
+    //                 features: await Promise.all(queue), 
+    //                 standard: "noaa"
+    //             }),
+    //             layout: {
+    //                 'icon-image': id
+    //             }
+    //         });     
+    // })();
+    // }, [map, animatedIcons]);
   
     return { ref };
 };

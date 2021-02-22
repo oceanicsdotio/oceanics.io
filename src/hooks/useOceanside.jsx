@@ -1,20 +1,27 @@
 import { useEffect, useState, useReducer, useRef } from "react";
 import { useStaticQuery, graphql } from "gatsby";
-import { 
-    targetHtmlCanvas,
-    inverse,
-    rotatePath
-} from "../bathysphere";
-import useWasmRuntime from "../hooks/useWasmRuntime";
-import useKeystrokeReducer from "../hooks/useKeystrokeReducer";
 import { lichen, orange } from "../palette";
 
+
+/**
+ * Hook loads Rust/WASM runtime
+ */
+import useWasmRuntime from "../hooks/useWasmRuntime";
 
 /**
  * Dedicated worker loaders
  */
 import Worker from "./useOceanside.worker.js";
 
+
+/**
+ * Convenience methods
+ */
+import { 
+    targetHtmlCanvas,
+    inverse,
+    rotatePath
+} from "../bathysphere";
 
 
 const eventCoordinates = ({clientX, clientY}, canvas) => {
@@ -199,14 +206,6 @@ export default ({
         
         },  null
     );
-
-    /**
-     * If shortcut keys are pressed, toggle clamp
-     */ 
-    useKeystrokeReducer(
-        ["Shift", "C"], () => {setClamp(!clamp)}
-    );
-
     
     /**
     Toggle the key state when it is pressed and released.

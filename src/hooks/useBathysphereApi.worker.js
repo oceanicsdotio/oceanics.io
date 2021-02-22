@@ -147,4 +147,41 @@ export const sorted = async ({tiles, icons}) => {
     });
 }
 
+
+
+export const codex = async ({edges, accessToken, server}) => {
+
+    let mapping = {};
+     
+    const lookUp = await query({route: `codex?word=oyster&mutations=2`, accessToken, server})
+
+    edges.forEach(({ node }) => {
+        const {frontmatter: {tags, description}, fields: {slug}} = node;
+
+        (description.split(" ") || []).concat(tags).forEach((word)=>{
+
+            let parsed = word.trim().toLowerCase();
+            const lastChar = word[word.length-1]
+            if (lastChar === "." || lastChar === "," || lastChar === "?") {
+                parsed = word.slice(0,word.length-1);
+            } 
+            if (parsed.length < 3) return;  // "continue"
+            
+            if (parsed in mapping) {
+                mapping[parsed].links.push(slug);
+                mapping[parsed].count++;
+            } else {
+                mapping[parsed] = {
+                    count: 1,
+                    links: [slug]
+                };
+            }
+        });
+    });
+
+    return mapping;
+
+};
+
+
     
