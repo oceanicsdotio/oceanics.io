@@ -16,6 +16,7 @@ export default styled.div`
         height: 75px;
         display: block;
         border-bottom: 1px solid ${({fg="#ccc"})=>fg};
+        image-rendering: crisp-edges;
     }
 
     & > div {

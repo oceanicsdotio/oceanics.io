@@ -148,7 +148,11 @@ export const sorted = async ({tiles, icons}) => {
 }
 
 
-
+/**
+ * Find similar symbolic patterns, for word matching usually.
+ * 
+ * @param {*} param0 
+ */
 export const codex = async ({edges, accessToken, server}) => {
 
     let mapping = {};

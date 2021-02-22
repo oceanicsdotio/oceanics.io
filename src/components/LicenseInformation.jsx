@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import useDataStream from "../hooks/useDataStream";
 
 const cleanAndParse = text => 
     text.replace('and', ',')
@@ -39,14 +40,19 @@ export default ({ features }) => {
             y+lat/features.length
         ], [0, 0]));
     }, []);
-    
-    
+
+    /**
+     * Show calculated environmental data as example.
+     */
+    const { ref } = useDataStream({});
+
+
     return <>
-        <p>
-            {location ? `${location[0].toFixed(4)}, ${location[1].toFixed(4)}` : "Calculating..."}
-        </p>
+        {location ? `${location[0].toFixed(4)}, ${location[1].toFixed(4)}` : "Calculating..."}
         <ul>
             {species ? species.map(each => <li key={each}>{each}</li>)  : "Loading species..."}
-        </ul>     
+        </ul> 
+        <canvas ref={ref}/>
+        {"Light"}    
     </>
 };

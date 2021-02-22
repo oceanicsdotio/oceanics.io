@@ -1,7 +1,18 @@
 import { useEffect, useState, useRef } from "react";
+
+/**
+ * Shader hook
+ */
 import useGlslShaders from "./useGlslShaders";
+
+/**
+ * Hook to generate color ramp offscreen
+ */
 import useCanvasColorRamp from "./useCanvasColorRamp";
 
+/**
+ * Dedicated worker loader
+ */
 import Worker from "./useLagrangianTest.worker.js";
 
 /**
