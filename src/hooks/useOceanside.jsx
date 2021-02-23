@@ -2,7 +2,6 @@ import { useEffect, useState, useReducer, useRef } from "react";
 import { useStaticQuery, graphql } from "gatsby";
 import { lichen, orange } from "../palette";
 
-
 /**
  * Dedicated worker loaders
  */
