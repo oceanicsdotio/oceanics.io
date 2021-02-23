@@ -4,15 +4,9 @@ import { lichen, orange } from "../palette";
 
 
 /**
- * Hook loads Rust/WASM runtime
- */
-import useWasmRuntime from "../hooks/useWasmRuntime";
-
-/**
  * Dedicated worker loaders
  */
 import Worker from "./useOceanside.worker.js";
-
 
 /**
  * Convenience methods
@@ -110,9 +104,24 @@ export default ({
     `);
 
     /**
-     * Load or recycle the Rust-WebAssembly runtime.
+     * Runtime will be passed to calling Hook or Component. 
      */
-    const runtime = useWasmRuntime();
+    const [runtime, setRuntime] = useState(null);
+
+    /**
+     * Dynamically load the WASM, add debugging, and save to React state,
+     */
+    useEffect(() => {
+        try {
+            (async () => {
+                const runtime = await import('../wasm');
+                runtime.panic_hook();
+                setRuntime(runtime);
+            })()   
+        } catch (err) {
+            console.log("Unable to load WASM runtime")
+        }
+    }, []);
 
     /**
      * Complex cursor handled in Rust

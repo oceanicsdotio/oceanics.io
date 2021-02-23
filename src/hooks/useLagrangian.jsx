@@ -7,9 +7,6 @@ import {
 } from "./useGlslShaders";
 
 
-import useWasmRuntime from "./useWasmRuntime";
-import useCanvasColorRamp from "./useCanvasColorRamp";
-
 
 const exec = (runtime, ctx, uniforms, {
     components: {
@@ -93,8 +90,57 @@ export default ({
     const [assets, setAssets] = useState(null);
     
     const { programs } = useGlslShaders({ref, shaders});
-    const runtime = useWasmRuntime();
-    const colorMap = useCanvasColorRamp({colors});
+
+
+     /**
+     * Runtime will be passed to calling Hook or Component. 
+     */
+    const [runtime, setRuntime] = useState(null);
+
+    /**
+     * Dynamically load the WASM, add debugging, and save to React state,
+     */
+    useEffect(() => {
+        try {
+            (async () => {
+                const runtime = await import('../wasm');
+                runtime.panic_hook();
+                setRuntime(runtime);
+            })()   
+        } catch (err) {
+            console.log("Unable to load WASM runtime")
+        }
+    }, []);
+
+    const shape = [16, 16];
+    const size = shape[0] * shape[1];
+    const [colorMap, setTexture] =  useState(null);
+
+    /**
+     * Create a temporary canvas element to paint a color
+     * map to, then draw a gradient and extract a color
+     * look up table from it.
+     */
+    useEffect(()=>{
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = size;
+        canvas.height = 1;
+    
+        let gradient = ctx.createLinearGradient(0, 0, size, 0);
+        Object.entries(colors).forEach(([stop, color]) => {
+            gradient.addColorStop(+stop, color)
+        });
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, size, 1);
+        
+        setTexture({
+            filter: "LINEAR", 
+            data: new Uint8Array(ctx.getImageData(0, 0, size, 1).data), shape 
+        });
+        
+    },[]);
+
 
 
     /**

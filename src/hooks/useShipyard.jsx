@@ -5,15 +5,10 @@ import { useState, useEffect, useRef } from "react";
  */
 import { targetHtmlCanvas, addMouseEvents, pathFromGridCell } from "../bathysphere";
 
-/**
- * Rust/WASM runtime hook
- */
-import useWasmRuntime from "./useWasmRuntime";
 
 import { useState, useEffect } from "react";
 import { targetHtmlCanvas, addMouseEvents } from "../bathysphere";
 
-import useWasmRuntime from "./useWasmRuntime";
 
 
 export default ({
@@ -31,7 +26,26 @@ export default ({
     lineWidth=1.0,
 }) => {
    
-    const runtime = useWasmRuntime();
+     /**
+     * Runtime will be passed to calling Hook or Component. 
+     */
+    const [runtime, setRuntime] = useState(null);
+
+    /**
+     * Dynamically load the WASM, add debugging, and save to React state,
+     */
+    useEffect(() => {
+        try {
+            (async () => {
+                const runtime = await import('../wasm');
+                runtime.panic_hook();
+                setRuntime(runtime);
+            })()   
+        } catch (err) {
+            console.log("Unable to load WASM runtime")
+        }
+    }, []);
+
     const [grid, setGrid] = useState(null);
     const [cursor, setCursor] = useState(null);
 
@@ -114,12 +128,6 @@ export default ({
      * Handle for using the grid data structure created in Web Assembly.
      */
     const [grid, setGrid] = useState(null);
-
-    /**
-     * Rust/Wasm Backend
-     */
-    const runtime = useWasmRuntime();
-
     /**
      * Hook creates data structure once the WASM runtime has loaded
      * successfully.
@@ -309,10 +317,6 @@ export default ({
      */
     const ref = useRef(null);
 
-    /**
-     * The Rust-WASM backend.
-     */
-    const runtime = useWasmRuntime(null);
 
     /**
      * Create handle for the mesh structure. 
