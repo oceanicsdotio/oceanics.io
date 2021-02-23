@@ -27,7 +27,7 @@
     "gatsby-plugin-sharp": "2.14.1",
     "gatsby-plugin-styled-components": "^3.10.0",
     "gatsby-react-router-scroll": "^3.6.0",
-    "gatsby-remark-copy-linked-files": "^2.9.0",
+    "gatsby-remark-copy-linked-files": "^2.10.0",
     "gatsby-remark-images": "^3.11.0",
     "gatsby-remark-katex": "^3.10.0",
     "gatsby-remark-prismjs": "^3.13.0",
