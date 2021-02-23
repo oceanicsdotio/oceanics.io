@@ -1,12 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import useWasmRuntime from "../hooks/useWasmRuntime";
-import {lichen} from "../palette";
+import { lichen } from "../palette";
+
+import Worker from "./useDataStream.worker.js";
 
 /*
  * Time series data
  */
 export default ({
-    ref,
     streamColor=lichen,
     overlayColor=`#CCCCCCFF`,
     backgroundColor=`#001010CC`,
@@ -17,6 +18,23 @@ export default ({
     fontSize=12.0,
     labelPadding=2.0,
 }) => {
+
+    /**
+     * Reference to pass to target canvas
+     */
+    const ref = useRef(null);
+
+    /**
+     * Background worker
+     */
+    const worker = useRef(null);
+
+    /**
+     * Load worker
+     */
+    useEffect(() => {
+        worker.current = new Worker();
+    }, []);
    
     /**
      * Rust/WASM runtime for HPC
@@ -72,6 +90,7 @@ export default ({
     }, [ dataStream, ref ]);
 
     return {
+        ref,
         runtime, 
         dataStream
     }

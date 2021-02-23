@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-
+import { ghost } from "../palette";
+/**
+ * Dedicated worker loader
+ */
 import Worker from "./useHistogramCanvas.worker.js";
 
 /**
@@ -19,7 +22,7 @@ const Δw = 1.0/COUNT;
 export default ({
     histogram, 
     caption,
-    foreground="#CCCCCCFF"
+    foreground = ghost
 }) => {
 
     /**
@@ -56,11 +59,19 @@ export default ({
         if (!worker.current) return;
 
         worker.current.histogramReducer(histogram).then(setStatistics);
-        return () => { worker.current.terminate() }
+
+        return worker.current.terminate;
     }, [ worker ]);
 
+    /**
+     * Message displayed with the histogram
+     */
     const [ message, setMessage ] = useState("Calculating...");
 
+    /**
+     * Once total number of observations is known,
+     * set the display message giving metadata
+     */
     useEffect(() => {
         if (statistics)
             setMessage(`${caption} (N=${statistics.total})`)

@@ -1,5 +1,8 @@
 import { useEffect, useState, useRef, useReducer } from "react";
 
+/**
+ * Dedicated worker loader.
+ */
 import Worker from "./useBathysphereApi.worker.js";
 
 /**

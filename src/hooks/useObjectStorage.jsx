@@ -1,5 +1,8 @@
 import {useEffect, useState, useRef} from "react";
 
+/**
+ * Dedicated Worker loader
+ */
 import Worker from "./useObjectStorage.worker.js";
 
 /**
