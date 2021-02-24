@@ -1,4 +1,8 @@
 import React, { useEffect, useState } from "react";
+
+/**
+ * Use here temporarily for demo.
+ */
 import useDataStream from "../hooks/useDataStream";
 
 const cleanAndParse = text => 

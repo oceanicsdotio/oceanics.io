@@ -402,20 +402,12 @@ export default ({
     useEffect(() => {
         if (!map || !worker.current || !agentLocation) return;
 
-        (async () => {
-            map.addLayer({
-                id: "home",
-                type: 'symbol',
-                source: await worker.current.userLocation([
-                    agentLocation.coords.longitude, 
-                    agentLocation.coords.latitude
-                ]),
-                layout: { 
-                    'icon-image': "home" 
-                }
-            })
-        })();
-
+        worker.current.userLocation([
+            agentLocation.coords.longitude, 
+            agentLocation.coords.latitude
+        ]).then(source => {
+            map.addLayer()
+        });
     }, [ worker, agentLocation, map ]);
 
     /**
@@ -459,7 +451,7 @@ export default ({
 
 
     /**
-     * Request all fragments sequentially. 
+     * Request all NECOFS fragments sequentially. 
      * 
      * All of this should be cached by the browser
      */
@@ -467,15 +459,15 @@ export default ({
         if (!map || !worker.current || !meshQueue.length) return;
 
         const key = meshQueue[0].key;
+
         setMeshQueue(meshQueue.slice(1, meshQueue.length));
 
         if (map.getLayer(`mesh-${key}`)) return;
 
-        (async () => {
-            const layer = await worker.current.getFragment(TARGET, key, "UMass Dartmouth");
-            map.addLayer(layer);
-        })();
-        
+        worker.current
+            .getFragment(TARGET, key, "UMass Dartmouth")
+            .then(x => {map.addLayer(x)});
+       
     }, [ map, worker, meshQueue ]);
 
 

@@ -6,11 +6,42 @@ import { useState, useEffect, useRef } from "react";
 import { targetHtmlCanvas, addMouseEvents, pathFromGridCell } from "../bathysphere";
 
 
-import { useState, useEffect } from "react";
-import { targetHtmlCanvas, addMouseEvents } from "../bathysphere";
+/**
+ * Event handler for mouse movement, returns the type and listener
+ * function 
+ * @param {*} canvas 
+ * @param {*} data 
+ */
+const mouseMoveEventListener = (canvas, data) => {
+    // recursive use error on line below when panic! in rust
+    const eventType = 'mousemove';
+    const listener = ({clientX, clientY}) => {
+        try {
+            const {left, top} = canvas.getBoundingClientRect();
+            data.updateCursor(clientX-left, clientY-top);
+        } catch (err) {
+            canvas.removeEventListener(eventType, listener);
+            console.log(`Unregistering '${eventType}' events due to error: ${err}.`);
+        }  
+    }
+
+    console.log(`Registering '${eventType}' events.`)
+    return [eventType, listener]
+};
 
 
 
+/**
+ * Create a 3D gridded data structure using the Rust-WebAssembly
+ * middleware, and return it along with a `ref` to provide to
+ * a canvas element to trigger the visualization loop.
+ * 
+ * @param {[int]} shape - Number of cells in each of the 
+ *  3 spatial dimensions
+ * @param {int} stencil - Number of surrounding cells to 
+ *  select with the cursor
+ * @param {Object} style - Style parameters for the rendering loop
+ */
 export default ({
     ref,
     font=`24px Arial`,
@@ -24,12 +55,30 @@ export default ({
     caption=`HexagonalGrid`,
     alpha=1.0,
     lineWidth=1.0,
+    name="rectilinear-grid",
+    shape=[32, 32, 1],
+    stencil=0,
+    boundingBox=null,
+    tickSize=10.0,
+    labelPadding=2.0,
+    fontSize=12.0,
+    lineWidth=1.0,
+    fade=1.0,
+    font=`16px Arial`,
+    meshColor=`#AFFFD6FF`,
+    // count=9,
+    // zero=0.2,
+    // radius=8.0,
+    // drag=0.05,
+    // bounce=0.95,
+    // springConstant=0.2,
+    // timeConstant=0.000001,
 }) => {
    
-     /**
+    /**
      * Runtime will be passed to calling Hook or Component. 
      */
-    const [runtime, setRuntime] = useState(null);
+    const [ runtime, setRuntime ] = useState(null);
 
     /**
      * Dynamically load the WASM, add debugging, and save to React state,
@@ -47,26 +96,54 @@ export default ({
     }, []);
 
     const [grid, setGrid] = useState(null);
-    const [cursor, setCursor] = useState(null);
+    
 
     // Create mesh
     useEffect(() => {
-        if (!runtime) return;
+        if (!runtime || caption !== "HexagonalGrid") return;
         setGrid(new runtime.HexagonalGrid(width)); 
     }, [runtime]);
 
+
+    /**
+     * Hook creates data structure once the WASM runtime has loaded
+     * successfully.
+     * 
+     * It uses the stencil to determine how many neighboring cells
+     * to include in the area selected by the cursor.
+     */
     useEffect(() => {
+        if (!runtime || caption !== "RectilinearGrid") return;
+        setGrid(new runtime.InteractiveGrid(...shape, stencil));
+    }, [ runtime ]);
+
+    const [cursor, setCursor] = useState(null);
+
+  
+    /**
+     * Initialize the cursor effects interface. 
+     * 
+     * This provides visual feedback and 
+     * validates that interaction is happening in the correct 
+     * area of the HTML canvas. 
+     */
+    useEffect(() => {
+        
         if (!runtime) return;
         setCursor(new runtime.SimpleCursor(0.0, 0.0)); // Create cursor
     }, [runtime]);
 
-    useEffect(addMouseEvents(ref, cursor), [cursor]);  // track cursor when on canvas
 
+    /**
+     * track cursor when on canvas
+     */ 
+    useEffect(addMouseEvents(ref, cursor), [cursor]);  
 
+    /**
+     * Draw the mesh
+     */
     useEffect(() => {
-        /*
-        Draw the mesh
-        */
+        
 
         if (!runtime || !grid || !cursor) return;
 
@@ -89,33 +166,6 @@ export default ({
         return () => cancelAnimationFrame(requestId);
     }, [grid, cursor]);
 
-    return {hexGrid: grid, cursor};
-};
-
-/**
- * Create a 3D gridded data structure using the Rust-WebAssembly
- * middleware, and return it along with a `ref` to provide to
- * a canvas element to trigger the visualization loop.
- * 
- * @param {[int]} shape - Number of cells in each of the 
- *  3 spatial dimensions
- * @param {int} stencil - Number of surrounding cells to 
- *  select with the cursor
- * @param {Object} style - Style parameters for the rendering loop
- */
-export default ({
-    name="rectilinear-grid",
-    shape=[32, 32, 1],
-    stencil=0,
-    boundingBox=null,
-    gridColor=`#421F33FF`,
-    overlayColor=`#CCCCCCFF`,
-    backgroundColor=`#00000066`,
-    lineWidth=1.5,
-    tickSize=10.0,
-    fontSize=12.0,
-    labelPadding=2.0,
-}) => {
     
     /**
      * Reference for canvas, passed back from the Hook to allow
@@ -123,22 +173,6 @@ export default ({
      * that `ref` is defined.
      */
     const ref = useRef(null);
-
-    /**
-     * Handle for using the grid data structure created in Web Assembly.
-     */
-    const [grid, setGrid] = useState(null);
-    /**
-     * Hook creates data structure once the WASM runtime has loaded
-     * successfully.
-     * 
-     * It uses the stencil to determine how many neighboring cells
-     * to include in the area selected by the cursor.
-     */
-    useEffect(() => {
-        if (!runtime) return;
-        setGrid(new runtime.InteractiveGrid(...shape, stencil));
-    }, [runtime]);
 
     /**
      * Draw the grid if it has been created and the canvas reference
@@ -183,77 +217,8 @@ export default ({
         return () => cancelAnimationFrame(requestId);
     }, [grid, ref]);
 
-    return {
-        grid, 
-        ref,
-        mapbox: {
-            source: [name, {
-                type: "canvas", 
-                canvas: name,
-                animate: true,
-                coordinates: boundingBox
-            }],
-            layer: {
-                type: "raster", 
-                id: name,
-                source: name,
-                paint: {
-                    "raster-resampling": "nearest"
-                }
-            }
-        }
-    };
-};
-
-/**
- * Event handler for mouse movement, returns the type and listener
- * function 
- * @param {*} canvas 
- * @param {*} data 
- */
-const mouseMoveEventListener = (canvas, data) => {
-    // recursive use error on line below when panic! in rust
-    const eventType = 'mousemove';
-    const listener = ({clientX, clientY}) => {
-        try {
-            const {left, top} = canvas.getBoundingClientRect();
-            data.updateCursor(clientX-left, clientY-top);
-        } catch (err) {
-            canvas.removeEventListener(eventType, listener);
-            console.log(`Unregistering '${eventType}' events due to error: ${err}.`);
-        }  
-    }
-
-    console.log(`Registering '${eventType}' events.`)
-    return [eventType, listener]
-};
-
-/**
- * Draw a triangles using the 2D context
- * of an HTML canvas. 
- * 
- * This is accomplished primarily in WASM,
- * called from the React Hook loop. 
- */
-export default ({
-    fontSize=12.0,
-    shape=[32,32],
-    overlayColor=`#CCCCCCFF`,
-    backgroundColor=`#00000088`,
-    lineWidth=1.0,
-    labelPadding=2.0,
-    tickSize=10.0,
-    fade=1.0,
-    // count=9,
-    // zero=0.2,
-    // radius=8.0,
-    // drag=0.05,
-    // bounce=0.95,
-    // springConstant=0.2,
-    // timeConstant=0.000001,
-}) => {
-
     
+
     /**
      * If the `ref` has been assigned to a canvas target,
      * begin the render loop using the 2D context
@@ -292,32 +257,7 @@ export default ({
     }, [mesh]);
 
 
-    return {
-        mesh, 
-        runtime, 
-        ref
-    };
-};
-/*
- * Triangles
- */
-export default ({
-    ref,
-    font=`16px Arial`,
-    meshColor=`#AFFFD6FF`,
-    overlayColor=`#77CCFFFF`,
-    backgroundColor=`#000000CC`,
-    alpha=0.25,
-    lineWidth=0.1,
-}) => {
    
-    /**
-     * Ref is passed out to be assigned to a canvas element. This ensures that `ref`
-     * is defined.
-     */
-    const ref = useRef(null);
-
-
     /**
      * Create handle for the mesh structure. 
      */
@@ -334,19 +274,16 @@ export default ({
     }, [ runtime ]);
 
    
-    const [cursor, setCursor] = useState(null);
+    /*
+    Generate a 2D or 3D mesh model. Currenlty this can only pull
+    from pre-program generators, but  in the future we will support
+    interactively building up models through a text-based and graphical
+    user interface. 
 
-    useEffect(addMouseEvents(ref, cursor), [cursor]);  // track cursor when mouse interacts with canvas
-
+    The model structure is populated on demand during the draw effect.
+    */
     useEffect(() => {
-        /*
-        Generate a 2D or 3D mesh model. Currenlty this can only pull
-        from pre-program generators, but  in the future we will support
-        interactively building up models through a text-based and graphical
-        user interface. 
-
-        The model structure is populated on demand during the draw effect.
-        */
+        
         if (!runtime) return;
         let assembly = new runtime.Shipyard();
 
@@ -360,23 +297,16 @@ export default ({
         ); 
     }, [runtime]);
 
-    useEffect(() => {
-        /*
-        Initialize the cursor effects interface. This provides visual feedback and 
-        validates that interaction is happening in the correct area of the 
-        HTML canvas. 
-        */
-        if (!runtime) return;
-        setCursor(new runtime.SimpleCursor(0.0, 0.0)); // Create cursor
-    }, [runtime]);
+   
 
+    /*
+     * First populate the mesh data structure with points and topology
+     * from preprogrammed routines.
+     * 
+     * Then draw the mesh in an animation loop. 
+     */
     useEffect(() => {
-        /*
-        First populate the mesh data structure with points and topology
-        from preprogrammed routines.
         
-        Then draw the mesh in an animation loop. 
-        */
 
         if (!runtime || !mesh) return;
 
@@ -407,142 +337,154 @@ export default ({
     }, [mesh]);
 
 
-     /*
-    First populate the mesh data structure with points and topology
-    from preprogrammed routines.
-    
-    Then draw the mesh in an animation loop. 
-    */
 
-//    useEffect(() => {
-       
-//     if (!runtime) return;
+    useEffect(() => {
+        
+        if (!runtime || caption !== "Farm") return;
 
-//     let {start, ctx, shape, requestId, frames} = targetHtmlCanvas(ref, `2d`);
-//     let previous;  // memoize time to use in smoothing real-time rotation 
+        let {start, ctx, shape, requestId, frames} = targetHtmlCanvas(ref, `2d`);
+        let previous;  // memoize time to use in smoothing real-time rotation 
 
-//     (function render() {
-//         const time = performance.now() - start;
-//         const elapsed = time - (previous || 0.0);
-//         runtime.clear_rect_blending(ctx, ...shape, backgroundColor);
+        (function render() {
+            const time = performance.now() - start;
+            const elapsed = time - (previous || 0.0);
+            runtime.clear_rect_blending(ctx, ...shape, backgroundColor);
 
-//         ctx.lineWidth = 3.0;
-//         let moorings;
-//         let mooringSpacing = [80, 300];
-//         const mooringSize = 10;
-//         const rr = 0.5*mooringSize;
+            ctx.lineWidth = 3.0;
+            let moorings;
+            let mooringSpacing = [80, 300];
+            const mooringSize = 10;
+            const rr = 0.5*mooringSize;
 
-//         {
-//             // Draw moorings
-//             ctx.strokeStyle = "#FF0000FF";
-//             moorings = pathFromGridCell({upperLeft: [0, 0], width: mooringSpacing[0], height: mooringSpacing[1]});
+            {
+                // Draw moorings
+                ctx.strokeStyle = "#FF0000FF";
+                moorings = pathFromGridCell({upperLeft: [0, 0], width: mooringSpacing[0], height: mooringSpacing[1]});
 
-//             moorings.forEach(([x, y]) => {
-//                 const pts = pathFromGridCell({upperLeft: [x-rr, y-rr], width: mooringSize, height: mooringSize});
+                moorings.forEach(([x, y]) => {
+                    const pts = pathFromGridCell({upperLeft: [x-rr, y-rr], width: mooringSize, height: mooringSize});
 
-//                 ctx.beginPath();
-//                 ctx.moveTo(...pts[0]);
-//                 pts.slice(1, pts.length).map(pt => ctx.lineTo(...pt));
-//                 ctx.closePath();
-//                 ctx.stroke();
-//             });  
-//         }
+                    ctx.beginPath();
+                    ctx.moveTo(...pts[0]);
+                    pts.slice(1, pts.length).map(pt => ctx.lineTo(...pt));
+                    ctx.closePath();
+                    ctx.stroke();
+                });  
+            }
 
-//         const raftWidth = 40;
-//         const nRafts = 4;
-//         const scopes = [5, raftWidth, 5];
+            const raftWidth = 40;
+            const nRafts = 4;
+            const scopes = [5, raftWidth, 5];
 
-//         {   
-//             // Draw rafts
-            
-//             const origin = mooringSpacing.map(dim => dim*0.5);
-//             const topLeftX = origin[0] - 0.5*raftWidth;
-//             const topLeftY = origin[1] - 0.5*(scopes.reduce((a,b)=>a+b,0) + nRafts*raftWidth);
-
-//             let yoffset = 0.0;
-//             let prev = null;
-//             for (let jj=0; jj<nRafts; jj++) {
-//                 if (jj)
-//                     yoffset += scopes[jj-1];
+            {   
+                // Draw rafts
                 
-//                 ctx.strokeStyle = "#FFAA00FF";
-//                 const pts = pathFromGridCell({upperLeft: [topLeftX, topLeftY + jj*raftWidth + yoffset], width: raftWidth, height: raftWidth});
+                const origin = mooringSpacing.map(dim => dim*0.5);
+                const topLeftX = origin[0] - 0.5*raftWidth;
+                const topLeftY = origin[1] - 0.5*(scopes.reduce((a,b)=>a+b,0) + nRafts*raftWidth);
 
-//                 ctx.beginPath();
-//                 ctx.moveTo(...pts[0]);
-//                 pts.slice(1, pts.length).map(pt => ctx.lineTo(...pt));
-//                 ctx.closePath();
-//                 ctx.stroke();
+                let yoffset = 0.0;
+                let prev = null;
+                for (let jj=0; jj<nRafts; jj++) {
+                    if (jj)
+                        yoffset += scopes[jj-1];
+                    
+                    ctx.strokeStyle = "#FFAA00FF";
+                    const pts = pathFromGridCell({upperLeft: [topLeftX, topLeftY + jj*raftWidth + yoffset], width: raftWidth, height: raftWidth});
 
-                
-//                 if (prev) {
-//                     ctx.strokeStyle = "#FF0000FF";
-//                     ctx.beginPath();
-//                     ctx.moveTo(...prev[3]);
-//                     ctx.lineTo(...pts[0]);
+                    ctx.beginPath();
+                    ctx.moveTo(...pts[0]);
+                    pts.slice(1, pts.length).map(pt => ctx.lineTo(...pt));
+                    ctx.closePath();
+                    ctx.stroke();
 
-//                     ctx.moveTo(...prev[2]);
-//                     ctx.lineTo(...pts[1]);
-//                     ctx.stroke();
-//                 }
+                    
+                    if (prev) {
+                        ctx.strokeStyle = "#FF0000FF";
+                        ctx.beginPath();
+                        ctx.moveTo(...prev[3]);
+                        ctx.lineTo(...pts[0]);
 
-//                 if (jj==0) {
-//                     ctx.strokeStyle = "#FF0000FF";
-//                     ctx.beginPath();
-//                     ctx.moveTo(...moorings[0]);
-//                     ctx.lineTo(...pts[0]);
+                        ctx.moveTo(...prev[2]);
+                        ctx.lineTo(...pts[1]);
+                        ctx.stroke();
+                    }
 
-//                     ctx.moveTo(...moorings[1]);
-//                     ctx.lineTo(...pts[1]);
-//                     ctx.stroke();
-//                 }
+                    if (jj==0) {
+                        ctx.strokeStyle = "#FF0000FF";
+                        ctx.beginPath();
+                        ctx.moveTo(...moorings[0]);
+                        ctx.lineTo(...pts[0]);
 
-//                 if (jj==nRafts-1) {
-//                     ctx.strokeStyle = "#FF0000FF";
-//                     ctx.beginPath();
-//                     ctx.moveTo(...moorings[2]);
-//                     ctx.lineTo(...pts[2]);
+                        ctx.moveTo(...moorings[1]);
+                        ctx.lineTo(...pts[1]);
+                        ctx.stroke();
+                    }
 
-//                     ctx.moveTo(...moorings[3]);
-//                     ctx.lineTo(...pts[3]);
-//                     ctx.stroke();
-//                 }
+                    if (jj==nRafts-1) {
+                        ctx.strokeStyle = "#FF0000FF";
+                        ctx.beginPath();
+                        ctx.moveTo(...moorings[2]);
+                        ctx.lineTo(...pts[2]);
 
-
-//                 prev = pts
-//             }  
-//         }
-
-//         {
-//             const xoffset = 140;
-//             const yoffset = 50;
-//             const lineSpace = [20, 500];
-
-//             // Draw moorings
-//             ctx.strokeStyle = "#FF0000FF";
-//             for (let ii=0; ii<12; ii++) {
-//                 const xx = xoffset + ii*lineSpace[0];
-                
-//                 [[xx, yoffset],[xx, yoffset+lineSpace[1]]].forEach(([x, y]) => {
-//                     const pts = pathFromGridCell({upperLeft: [x-rr, y-rr], width: mooringSize, height: mooringSize});
-
-//                     ctx.beginPath();
-//                     ctx.moveTo(...pts[0]);
-//                     pts.slice(1, pts.length).map(pt => ctx.lineTo(...pt));
-//                     ctx.closePath();
-//                     ctx.stroke();
-//                 }); 
-//             }
-//         }
-
-//         frames = runtime.draw_fps(ctx, frames, time, overlayColor);
-//         requestId = requestAnimationFrame(render);
-//         previous = time;
-//     })();
-
-    return () => cancelAnimationFrame(requestId);
-}, [runtime]);
+                        ctx.moveTo(...moorings[3]);
+                        ctx.lineTo(...pts[3]);
+                        ctx.stroke();
+                    }
 
 
-    return {mesh, runtime};
+                    prev = pts
+                }  
+            }
+
+            {
+                const xoffset = 140;
+                const yoffset = 50;
+                const lineSpace = [20, 500];
+
+                // Draw moorings
+                ctx.strokeStyle = "#FF0000FF";
+                for (let ii=0; ii<12; ii++) {
+                    const xx = xoffset + ii*lineSpace[0];
+                    
+                    [[xx, yoffset],[xx, yoffset+lineSpace[1]]].forEach(([x, y]) => {
+                        const pts = pathFromGridCell({upperLeft: [x-rr, y-rr], width: mooringSize, height: mooringSize});
+
+                        ctx.beginPath();
+                        ctx.moveTo(...pts[0]);
+                        pts.slice(1, pts.length).map(pt => ctx.lineTo(...pt));
+                        ctx.closePath();
+                        ctx.stroke();
+                    }); 
+                }
+            }
+
+        })();
+    }, [ runtime ]);
+
+
+    return {
+        mesh, 
+        runtime, 
+        ref,
+        grid, 
+        hexGrid: grid, 
+        cursor,
+        mapbox: {
+            source: [name, {
+                type: "canvas", 
+                canvas: name,
+                animate: true,
+                coordinates: boundingBox
+            }],
+            layer: {
+                type: "raster", 
+                id: name,
+                source: name,
+                paint: {
+                    "raster-resampling": "nearest"
+                }
+            }
+        }
+    };
 };

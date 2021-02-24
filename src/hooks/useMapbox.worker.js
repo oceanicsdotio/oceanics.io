@@ -78,10 +78,19 @@ const GeoJsonSource = ({
  * @param {*} coordinates 
  */
 export const userLocation = async (
-    coordinates
-) => GeoJsonSource({
+    coordinates,
+    iconImage
+) => Object({
+    id: "home",
+    type: "symbol",
+    source: GeoJsonSource({
         features: [PointFeature(...coordinates, {})]
-    });
+    }),
+    layout: { 
+        "icon-image": iconImage 
+    }
+})
+
 
 /**
  * Retrieve arbtirary GeoJson source
