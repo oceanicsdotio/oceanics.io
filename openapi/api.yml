@@ -17,13 +17,13 @@ info:
     mission database, to modeling a virtual [economy](https://www.airpair.com/neo4j/posts/modelling-game-economy-with-neo4j).
 
     You probably have to share data anyway. Our middleware can enhance your data science and management experience by
-    providing representation state transfer (REST) and graph-based services for:
+    providing representation state transfer (REST) and graph-based services for
 
-    - Secure organizational accounts
-    - Open Geospatial Consortium (OGC) SensorThings standard
-    - [SpatioTemporal Assets Catalog](https://stacspec.org/) (STAC) standard
-    - Provenance tracking
-    - Granular access control and auditing
+    * Secure organizational accounts
+    * Open Geospatial Consortium (OGC) SensorThings standard
+    * [SpatioTemporal Assets Catalog](https://stacspec.org/) (STAC) standard
+    * Provenance tracking
+    * Granular access control and auditing
 
     By assessing availability over the whole domain, projects can target resources to fill coverage gaps. This supports
     an open marketplace data sharing model, which may be preferable to redundant collection.
