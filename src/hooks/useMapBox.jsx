@@ -300,7 +300,8 @@ export default ({
             behind,
             standard="geojson",
             url=null,
-            popup=null, 
+            popup=null,
+            attribution=null, 
             ...layer
         }) => {
             // Guard against re-loading layers
@@ -309,6 +310,8 @@ export default ({
             setChannelOrder([...channelOrder, [id, behind]]);
 
             worker.current.getData(url, standard).then(source => {
+
+                if (attribution) source.attribution = attribution;
                 
                 map.addLayer({id, source, ...layer});
                 

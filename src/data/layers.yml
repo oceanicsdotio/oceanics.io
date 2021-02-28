@@ -26,8 +26,10 @@ geojson:
       fill-color: "rgba(255,0,255,0.3)"
     behind: limited-purpose-licenses
     popup: nssp
+    attribution: Maine DMR
 
   - id: ports
+    attribution: US DOT
     standard: esri
     url: https://geo.dot.gov/server/rest/services/Hosted/Ports_DS/FeatureServer/0/query?where=1%3D1&outFields=*&geometry=-71.%2C42.546%2C-63.589%2C45.314&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=json
     
@@ -63,9 +65,11 @@ geojson:
 
     behind: major-ports
     popup: port
+    
     info: https://hifld-geoplatform.opendata.arcgis.com/datasets/port-facilities
 
   - id: major-ports
+    attribution: US DOT
     standard: esri
     url: https://geo.dot.gov/server/rest/services/Hosted/Ports_Major_DS/FeatureServer/0/query?where=1%3D1&outFields=*&geometry=-71.%2C42.546%2C-63.589%2C45.314&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=json
     
@@ -92,6 +96,7 @@ geojson:
 
 
   - id: navigation
+    attribution: NOAA
     type: circle
     standard: esri
     url:  https://coast.noaa.gov/arcgis/rest/services/MarineCadastre/NavigationAndMarineTransportation/MapServer/0/query?where=1%3D1&outFields=*&geometry=-70.7%2C42.546%2C-63.589%2C45.314&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=json
@@ -108,6 +113,7 @@ geojson:
     
     
   - id: wrecks
+    attribution: NOAA
     type: circle
     standard: esri
     url: https://coast.noaa.gov/arcgis/rest/services/OceanReportingTool/WrecksAndObstructions/MapServer/0/query?where=1%3D1&outFields=*&geometry=-70.7%2C42.546%2C-63.589%2C45.314&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outSR=4326&f=json
@@ -123,6 +129,7 @@ geojson:
     info: https://hifld-geoplatform.opendata.arcgis.com/datasets/wrecks-and-obstructions-1/geoservice?geometry=-79.504%2C40.527%2C-60.212%2C46.116
 
   - id: limited-purpose-licenses
+    attribution: Maine DMR
     url: https://oceanicsdotio.nyc3.digitaloceanspaces.com/bathysphere/geospatial/limited-purpose-licenses.json
     type: circle
     minzoom: 8
@@ -136,7 +143,7 @@ geojson:
     popup: license
  
   - id: suitability
-    attribtion: Oceanics.io
+    attribution: Oceanics.io
     url: https://oceanicsdotio.nyc3.digitaloceanspaces.com/bathysphere/geospatial/suitability.json
     type: circle
     minzoom: 6
