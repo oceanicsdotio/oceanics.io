@@ -8,16 +8,6 @@ import "mapbox-gl/dist/mapbox-gl.css";
  */
 import PopUpContent from "../components/PopUpContent";
 
-/**
- * Popup for port and navigation information. Rendered client-side.
- */
-import Location from "../components/Location";
-
-/**
- * Oyster suitability popup, or any normalized probability distribution function
- */
-import SuitabilityInformation from "../components/SuitabilityInformation";
-
 
 /**
  * Can't use graphql query because of differences in layer schema.
@@ -159,16 +149,6 @@ export const pulsingDot = ({
 };
 
 /**
- * Create a lookup table, so that layer schemas can reference them by key.
- * 
- * There is some magic here, in that you still need to know the key. 
- */
-const popups = {
-    suitability: SuitabilityInformation,
-    locations: Location
-};
-
-/**
  * If the map element has not been created yet, create it with a custom style, and user
  * provided layer definitions. 
  * 
@@ -303,8 +283,6 @@ export default ({
                 const onClick = ({features, lngLat: {lng, lat}}) => {
 
                     const reduce = (layer.type === "circle" || layer.type === "symbol");
-                    const Component = popups[component];
-        
                     const projected = reduce ? features.map(({geometry: {coordinates}, ...props}) => {
                         while (Math.abs(lng - coordinates[0]) > 180) 
                             coordinates[0] += lng > coordinates[0] ? 360 : -360;
@@ -321,9 +299,7 @@ export default ({
                         const placeholder = document.createElement('div');
 
                         ReactDOM.render(
-                            <PopUpContent>
-                                {projected.map(x => <Component {...x}/>)}
-                            </PopUpContent>, 
+                            <PopUpContent features={projected} component={component}/>, 
                             placeholder
                         );
 
