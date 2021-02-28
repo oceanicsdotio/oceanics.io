@@ -3,10 +3,6 @@ import styled from "styled-components";
 import {ghost, grey} from "../palette";
 
 
-/**
- * Use here temporarily for demo.
- */
-import useDataStream from "../hooks/useDataStream";
    
 /**
 A thing is a physical entity in the SensorThings ontology. In 
@@ -40,15 +36,9 @@ const Thing = ({
         setMeters(properties && properties.meters ? properties.meters : []);
     }, []);
 
-    /**
-     * Show calculated environmental data as example.
-     */
-    const { ref } = useDataStream({});
 
     return <div className={className}>
         {name}
-        <canvas ref={ref}/>
-        {"Light"}
         {meters.map(props => 
             <div key={`${name} ${props.name}`}>
                 <label>{props.name}</label>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import PropTypes from "prop-types";
-import { orange, ghost } from "../palette";
+import { orange, ghost, grey } from "../palette";
 
 
 /**
@@ -10,6 +10,7 @@ import { orange, ghost } from "../palette";
  * with the location. 
  */
 export const Location = ({
+    key=null,
     className,
     properties: {
         name=null,
@@ -52,9 +53,16 @@ export const Location = ({
         }
     }, []);
 
-    
 
-    return <div className={className}>
+    return <div 
+        className={className}
+        id={key}
+        draggable={true}
+        onDragStart={event => {
+            event.dataTransfer.setData("text/plain", event.target.id);
+            event.dataTransfer.dropEffect = "move";
+        }}
+    >
         <h3>{title}</h3>
         <label>{label}</label>
         <ul>
@@ -77,11 +85,11 @@ Location.propTypes = {
     /**
      * Class name for styled components CSS
      */
-    className: PropTypes.string,
+    className: PropTypes.string.isRequired,
     /**
      * Location metadata
      */
-    properties: PropTypes.object
+    properties: PropTypes.object.isRequired
 };
 
 /**
@@ -96,9 +104,18 @@ const StyledLocation = styled(Location)`
     background: none;
     box-sizing: border-box;
 
-    border-bottom: 0.05rem solid ${ghost};
+    font-family: inherit;
+
+    border-bottom: 0.1rem solid ${ghost};
     padding: 0.5rem;
     color: ${ghost};
+
+    cursor: pointer;
+
+    &:hover {
+        border-color: ${orange};
+        background: ${grey};
+    }
 
     & > h3 {
         padding: 0;

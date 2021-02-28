@@ -20,11 +20,15 @@ import SuitabilityInformation from "../components/SuitabilityInformation";
  */
 const popups = {
     suitability: SuitabilityInformation,
-    locations: Location
+    location: Location
 };
 
-export const PopUpContent = ({features, component, className}) => {
-
+export const PopUpContent = ({
+    features, 
+    component, 
+    className,
+    transferCallback = null
+}) => {
 
     /**
      * Array of unique species, created by parsing lease records and doing
@@ -57,7 +61,17 @@ export const PopUpContent = ({features, component, className}) => {
 
     const Component = popups[component];
 
-    return <div className={className}>
+    return <div 
+        className={className}
+        onDragOver={event => {
+            event.preventDefault();
+            event.dataTransfer.dropEffect = "move";
+        }}
+        onDrop={event => {
+            event.preventDefault();
+            if (transferCallback) transferCallback();
+        }}
+    >
         {features.map((x, key) => 
             <Fragment key={key}>
                 <Component {...x}/>
