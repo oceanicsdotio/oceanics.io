@@ -21,7 +21,7 @@ import LeaseInformation from "../components/LeaseInformation";
 /**
  * Popup for port and navigation information. Rendered client-side.
  */
-import PortInformation from "../components/PortInformation";
+import Location, {Locations} from "../components/Location";
 
 /**
  * Oyster suitability popup, or any normalized probability distribution function
@@ -178,11 +178,11 @@ export const pulsingDot = ({
  * There is some magic here, in that you still need to know the key. 
  */
 const popups = {
-    port: PortInformation,
     license: LicenseInformation,
     lease: LeaseInformation,
     nssp: NsspInformation, 
-    suitability: SuitabilityInformation
+    suitability: SuitabilityInformation,
+    locations: Locations
 };
 
 /**
@@ -300,7 +300,7 @@ export default ({
             behind,
             standard="geojson",
             url=null,
-            popup=null,
+            component=null,
             attribution=null, 
             ...layer
         }) => {
@@ -315,12 +315,12 @@ export default ({
                 
                 map.addLayer({id, source, ...layer});
                 
-                if (!popup) return;
+                if (!component) return;
                 
                 const onClick = ({features, lngLat: {lng, lat}}) => {
 
                     const reduce = (layer.type === "circle" || layer.type === "symbol");
-                    const Component = popups[popup];
+                    const Component = popups[component];
         
                     const projected = reduce ? features.map(({geometry: {coordinates}, ...props}) => {
                         while (Math.abs(lng - coordinates[0]) > 180) 

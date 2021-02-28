@@ -1,4 +1,4 @@
-import React, {useReducer} from "react";
+import React, {Fragment} from "react";
 import styled from "styled-components";
 import PropTypes from "prop-types";
 import {grey, ghost} from "../palette";
@@ -10,42 +10,41 @@ import {grey, ghost} from "../palette";
  * with the location. 
  */
 export const Location = ({
-    name, 
-    children,
     className,
     icon=null,
+    properties: {
+        name=null,
+        nav_unit_n=null,
+        ...properties
+    },
+    coordinates: [lon, lat]
 }) => {
 
-    // Simple reducer to toggle hover effects
-    const [active, toggleActive] = useReducer(
-        (prev, state)=>{return state ? state : !prev}, false
-    );
+    console.log({properties});
 
-    return <div 
-        className={className}
-        active={active.toString()}
-        onMouseOver={()=>toggleActive(true)}
-        onMouseLeave={()=>toggleActive(false)}
-    >
+    return <div className={className}>
+        <label>{`${lat.toFixed(4)}, ${lon.toFixed(4)}`}</label>
         <h3>
-            {name}
+            {name || nav_unit_n || properties.port_name}
             <img src={icon?icon.data:null}/>
         </h3>
-        {children}
-    </div>
-    
-};
+        <ul>
+            {Object.entries(properties)
+                .filter(([_, v]) => v !== " " && !!v)
+                .map(([jj, item]) => <li key={jj}>{`${jj}: ${item}`}</li>)
+            }
+        </ul>
+    </div>};
+
 
 Location.propTypes = {
     /**
      Display name of the task.
      */
-    name: PropTypes.string.isRequired,
+    name: PropTypes.string,
     className: PropTypes.string,
     icon: PropTypes.object
 };
-
-
 
 /**
  * The StyledLocation component is just a styled version of Location
@@ -63,10 +62,6 @@ const StyledLocation = styled(Location)`
     padding: 0.5rem;
     color: ${ghost};
 
-    &:hover {
-        background: ${grey};
-    }
-
     & > h3 {
         & > img {
             image-rendering: crisp-edges;
@@ -78,3 +73,12 @@ const StyledLocation = styled(Location)`
 `;
 
 export default StyledLocation;
+
+export const Locations = ({ features }) => 
+    <>
+        {features.map((feature, key) =>
+            <Fragment key={key}>
+                <StyledLocation {...feature}/>
+            </Fragment>
+        )}
+    </>;

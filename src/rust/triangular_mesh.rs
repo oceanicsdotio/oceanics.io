@@ -796,6 +796,7 @@ pub mod triangular_mesh {
             let inset = &rstyle.tick_size * 0.5;
 
             crate::clear_rect_blending(ctx, w, h, JsValue::from(&rstyle.background_color));
+            
             let edges = self.draw_edges(ctx, w, h, &rstyle);
             let nodes = self.draw_nodes(ctx, w, h, &rstyle);
 

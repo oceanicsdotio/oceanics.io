@@ -14,34 +14,23 @@ import { ghost, lichen, shadow } from "../palette";
  * @param {Object} style - Style parameters for the rendering loop
  */
 export default ({
-    font=`24px Arial`,
     shape: [
-        width=25,
-        height=25,
+        width=8,
+        height=8,
         depth=1
     ],
-    gridColor=ghost,
-    overlayColor=lichen,
+    gridColor=lichen,
+    overlayColor=ghost,
     backgroundColor=shadow,
-    caption=`Shipyard`,
-    gridType=`hexagonal`,
     alpha=1.0,
-    stencil=0,
     tickSize=10.0,
     labelPadding=2.0,
     fontSize=12.0,
     lineWidth=1.0,
-    fade=1.0,
-    // count=9,
-    // zero=0.2,
-    // radius=8.0,
-    // drag=0.05,
-    // bounce=0.95,
-    // springConstant=0.2,
-    // timeConstant=0.000001,
+    fade=0.75,
+    radius=8.0
 }) => {
    
-
     /**
      * Reference for canvas, passed back from the Hook to allow
      * drawing to arbitrary render targets while guarenteeing
@@ -85,35 +74,7 @@ export default ({
      * to include in the area selected by the cursor.
      */
     useEffect(() => {
-        if (!runtime) return;
-
-        switch (gridType) {
-            case "hexagonal": 
-                setGrid(new runtime.HexagonalGrid(width));
-                return;
-            case "rectilinear":
-                setGrid(new runtime.InteractiveGrid(...shape, stencil));
-                return;
-            default:
-                return;
-        }
-    }, [ runtime ]);
-
-    /**
-     * Interactive canvas cursor object
-     */
-    const [ cursor, setCursor ] = useState(null);
-
-    /**
-     * Initialize the cursor effects interface. 
-     * 
-     * This provides visual feedback and 
-     * validates that interaction is happening in the correct 
-     * area of the HTML canvas. 
-     */
-    useEffect(() => {
-        if (!runtime) return;
-            setCursor(new runtime.SimpleCursor(0.0, 0.0)); // Create cursor
+        if (runtime) setGrid(new runtime.HexagonalGrid(width));
     }, [ runtime ]);
 
     /**
@@ -131,31 +92,6 @@ export default ({
         if (runtime) setMesh(new runtime.InteractiveMesh(width, height, depth)); 
     }, [ runtime ]);
 
-    
-   
-    /**
-     * Generate a 2D or 3D mesh model. Currenlty this can only pull
-     * from pre-program generators, but  in the future we will support
-     * interactively building up models through a text-based and graphical
-     * user interface. 
-     * 
-     * The model structure is populated on demand during the draw effect.
-     */
-    // useEffect(() => {
-            
-    //     if (!runtime) return;
-    //     let assembly = new runtime.Shipyard();
-
-    //     assembly.build_ship(16);
-    //     // assembly.scale(0.35, 0.35, 0.35);
-    //     assembly.scale(0.5, 0.5, 0.5);
-    //     assembly.shift(0.0, 0.0, -0.4);
-
-    //     setMesh(assembly); 
-    // }, [runtime]);
-
-
-
     /**
      * Add a mouse event
      * listener to update the cursor position for interacting with objects within the 
@@ -166,14 +102,14 @@ export default ({
         if ( 
             typeof ref === "undefined" || 
             !ref || 
-            !ref.current || 
-            !cursor
+            !ref.current ||
+            !mesh
         ) return;
 
         function listener({clientX, clientY}){
             try {
                 const {left, top} = ref.current.getBoundingClientRect();
-                cursor.update(clientX-left, clientY-top);
+                mesh.updateCursor(clientX-left, clientY-top);
             } catch (err) {
                 ref.current.removeEventListener('mousemove', listener);
                 console.log(`Unregistering mousemove events due to error: ${err}.`);
@@ -181,8 +117,11 @@ export default ({
         };
 
         ref.current.addEventListener('mousemove', listener);
-    }, [ ref, cursor ]);
+    }, [ ref, mesh ]);
 
+    /**
+     * Resize the drawaing area
+     */
     useEffect(() => {
         if ( 
             typeof ref === "undefined" || 
@@ -212,58 +151,35 @@ export default ({
         const start = performance.now();
         const ctx = ref.current.getContext(`2d`);
         let requestId = null;
-        let frames = 0;
-        let previous;  // memoize time to use in smoothing real-time rotation 
 
         (function render() {
            
             const time = performance.now() - start;
-            const elapsed = time - (previous || 0.0);
         
-            runtime.clear_rect_blending(ctx, ref.current.width, ref.current.height, backgroundColor);
-
-            // mesh.updateState(drag, bounce, timeConstant, collisionThreshold);
-
             if (grid)
                 grid.draw(ctx, ref.current.width, ref.current.height, 0, 0, gridColor, lineWidth, alpha);
 
-                // grid.draw(ref.current, time, {
-                //     backgroundColor, 
-                //     overlayColor, 
-                //     gridColor,
-                //     lineWidth, 
-                //     fontSize, 
-                //     tickSize, 
-                //     labelPadding, 
-                //     fade, 
-                //     radius: 8,
-                // });
+            if (mesh)
+                mesh.draw(ref.current, time, {
+                    backgroundColor, 
+                    overlayColor, 
+                    meshColor: gridColor,
+                    lineWidth, 
+                    fontSize, 
+                    tickSize, 
+                    labelPadding, 
+                    fade, 
+                    radius
+                });
 
-            // mesh.draw(ref.current, time, style);            
-            // mesh.rotate_in_place(-0.00005*elapsed, 0.0, 1.0, 0.0);
-            // mesh.rotate_in_place(0.000025*elapsed, 1.0, 0.0, 0.0);
-            // mesh.rotate_in_place(-0.0003*elapsed, 0.0, 0.0, 1.0);
-            // const triangles = mesh.draw(ctx, ...shape, alpha, lineWidth*2.0, 0.0);
-
-            if (cursor)
-                cursor.draw(ctx, ref.current.width, ref.current.height, overlayColor, time, lineWidth);
-           
-            if (caption)
-                runtime.draw_caption(ctx, caption, 0.0, ref.current.height, overlayColor, font);
-
-            frames = runtime.draw_fps(ctx, frames, time, overlayColor);
             requestId = requestAnimationFrame(render);
-            previous = time;
         })();
 
         return () => cancelAnimationFrame(requestId);
-    }, [ ref, runtime, grid, cursor ]);
+    }, [ ref, runtime, grid, mesh ]);
 
     return { ref };
 };
-
-
-
 
 
 // function render() {

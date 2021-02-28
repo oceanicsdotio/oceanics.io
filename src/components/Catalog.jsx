@@ -1,16 +1,27 @@
 import React from "react";
 import styled from "styled-components";
 import { useStaticQuery, graphql } from "gatsby";
+import { pink } from "../palette";
 
+/**
+ * Form for login and in app navigation
+ */
 import Form from "./Form";
-import Tags from "./Tags";
-import Thing from "./Thing";
-import Location from "./Location";
+
+/**
+ * Component that displays information about an Oceanside feature
+ */
 import TileInformation from "./TileInformation";
 
+/**
+ * Use bathysphere client
+ */
 import useBathysphereApi from "../hooks/useBathysphereApi";
 
-import { pink } from "../palette";
+
+/**
+ * Login fields until openApi interface in complete
+ */
 import fields from "../data/login.yml";
 
 const query = graphql`
@@ -124,7 +135,7 @@ The props are the properties of the collection itself.
 Routes from here correspond to entities and 
 collections in the graph database.
  */
-const Catalog = ({}) => {
+const Catalog = ({className}) => {
    
     /**
      * Static query for tile metadata and icons.
@@ -150,7 +161,7 @@ const Catalog = ({}) => {
     } = useBathysphereApi({icons, tiles, things, locations});
 
     
-    return <>
+    return <div className={className}>
         <Form 
             id={"login-dialog"} 
             callback={refresh}
@@ -188,7 +199,7 @@ const Catalog = ({}) => {
                 tile={tile}
             />
         )}
-    </> 
+    </div> 
 }; 
 
 /**
@@ -204,7 +215,7 @@ const StyledCatalog = styled(Catalog)`
     width: 100%;
     min-height: 100vh;
     bottom: 0;
-    margin: 0;
+    margin: 0.5rem;
     padding: 0;
 
     & > h2 {
