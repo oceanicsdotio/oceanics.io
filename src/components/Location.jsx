@@ -20,7 +20,6 @@ export const Location = ({
     coordinates: [lon, lat]
 }) => {
 
-    console.log({properties});
 
     return <div className={className}>
         <label>{`${lat.toFixed(4)}, ${lon.toFixed(4)}`}</label>
