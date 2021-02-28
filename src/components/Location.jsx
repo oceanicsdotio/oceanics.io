@@ -1,7 +1,7 @@
-import React, {Fragment, useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import PropTypes from "prop-types";
-import {orange, ghost} from "../palette";
+import { orange, ghost } from "../palette";
 
 
 /**
@@ -18,9 +18,6 @@ export const Location = ({
     },
     coordinates = null
 }) => {
-
-    
-
     /**
      * Location summary data. May not be available for large
      * polygons for instance, in which case it will fall back
@@ -38,10 +35,27 @@ export const Location = ({
         setLabel(`${lat.toFixed(4)}, ${lon.toFixed(4)}`);
     }, []);
 
+
+    const [ title, setTitle ] = useState("Naming...");
+    
+    useEffect(() => {
+
+        const _title = name || nav_unit_n;
+        if (_title) {
+            setTitle(_title);
+        } else if ("port_name" in properties) {
+            setTitle(properties.port_name);
+        } else if ("species" in properties) {
+            setTitle("Sea farm");
+        } else if ("yearSunk" in properties) {
+            setTitle("Wreck");
+        }
+    }, []);
+
     
 
     return <div className={className}>
-        <h3>{name || nav_unit_n || properties.port_name}</h3>
+        <h3>{title}</h3>
         <label>{label}</label>
         <ul>
             {Object.entries(properties)
@@ -86,57 +100,19 @@ const StyledLocation = styled(Location)`
     padding: 0.5rem;
     color: ${ghost};
 
+    & > h3 {
+        padding: 0;
+        margin: 0;
+    }
+
     & > label {
         color: ${orange};
         font-size: larger;
+        padding: 0;
+        margin: 0;
     }
 `;
 
 
-const cleanAndParse = text => 
-    text.replace('and', ',')
-        .replace(';', ',')
-        .split(',')
-        .map(each => each.trim());
 
 export default StyledLocation;
-
-export const Locations = ({ features }) => {
-
-    /**
-     * Array of unique species, created by parsing lease records and doing
-     * some basic text processing.
-     */
-    const [ species, setSpecies ] = useState(null);
-
-    /**
-     * Latitude and longtiude.
-     */
-    const [ center, setCenter ] = useState(null);
-
-    /**
-     * Set the species array.
-     */
-    // useEffect(() => {
-    //     setSpecies([...(new Set(features.flatMap(({properties}) => cleanAndParse(properties.species))))]);
-    // }, []);
-
-
-    /**
-     * Set the state value for location coordinates.
-     */
-    useEffect(() => {
-        setCenter(features.filter(f => "coordinates" in f).reduce(([x, y], {coordinates: [lon, lat]}) => [
-            x+lon/features.length, 
-            y+lat/features.length
-        ], [0, 0]));
-    }, []);
-
-
-    return <>
-        {features.map((feature, key) =>
-            <Fragment key={key}>
-                <StyledLocation {...feature}/>
-            </Fragment>
-        )}
-    </>};

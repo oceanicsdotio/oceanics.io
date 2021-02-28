@@ -8,6 +8,7 @@ import useLagrangian from "../hooks/useLagrangianTest";
  */
 export default ({ 
     properties, 
+    className,
     foreground = ghost,
     observedProperty = "Oyster suitability"
 }) => {
@@ -25,13 +26,11 @@ export default ({
         pointSize: 2.0
     });
 
-    return <>
+    return <div className={className}>
+        <label>{message}</label>
         <canvas ref={ref}/>
-        {message}
-        <canvas
-            ref={lag.ref}
-        />
-        {"Fish"}
-    </>
+        <label>{"Fish"}</label>
+        <canvas ref={lag.ref}/>
+    </div>
     
 };

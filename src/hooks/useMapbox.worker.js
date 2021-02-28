@@ -3,6 +3,15 @@
  */
 const MAX_VALUE = 5200;
 
+
+
+const cleanAndParse = text => 
+    text.replace('and', ',')
+        .replace(';', ',')
+        .split(',')
+        .map(each => each.trim());
+
+        
 /**
  * Single point feature with coordinates 
  * and arbitrary properties.

@@ -8,7 +8,6 @@ import "mapbox-gl/dist/mapbox-gl.css";
  */
 import PopUpContent from "../components/PopUpContent";
 
-
 /**
  * Can't use graphql query because of differences in layer schema.
  */
@@ -200,7 +199,11 @@ export default ({
     useEffect(() => {
         if (!ref.current) return;
         mapboxgl.accessToken = accessToken;
-        setMap(new Map({container: ref.current, ...defaults}));
+
+        const _map = new Map({container: ref.current, ...defaults});
+        setMap(_map);
+
+        return () => _map.remove();
     }, [ ref ]);
 
     /**

@@ -1,4 +1,4 @@
-import React,  {Fragment} from "react";
+import React,  {Fragment, useState, useEffect} from "react";
 import styled from "styled-components";
 
 
@@ -25,6 +25,36 @@ const popups = {
 
 export const PopUpContent = ({features, component, className}) => {
 
+
+    /**
+     * Array of unique species, created by parsing lease records and doing
+     * some basic text processing.
+     */
+    const [ species, setSpecies ] = useState(null);
+
+    /**
+     * Latitude and longtiude.
+     */
+    const [ center, setCenter ] = useState(null);
+
+    /**
+     * Set the species array.
+     */
+    // useEffect(() => {
+    //     setSpecies([...(new Set(features.flatMap(({properties}) => cleanAndParse(properties.species))))]);
+    // }, []);
+
+
+    /**
+     * Set the state value for location coordinates.
+     */
+    useEffect(() => {
+        setCenter(features.filter(f => "coordinates" in f).reduce(([x, y], {coordinates: [lon, lat]}) => [
+            x+lon/features.length, 
+            y+lat/features.length
+        ], [0, 0]));
+    }, []);
+
     const Component = popups[component];
 
     return <div className={className}>
@@ -35,9 +65,6 @@ export const PopUpContent = ({features, component, className}) => {
         )}
     </div>
 };
-
-
-
 
 const StyledPopUpContent = styled(PopUpContent)`
 
@@ -50,22 +77,25 @@ const StyledPopUpContent = styled(PopUpContent)`
     padding: 0;
     overflow: hidden;
 
-    & > canvas {
-        width: 200px;
-        height: 75px;
-        display: block;
-        border-bottom: 1px solid ${({fg="#ccc"})=>fg};
-        image-rendering: crisp-edges;
-    }
-
     & > div {
         overflow-y: scroll;
-        max-height: 300px;
+        max-height: 75vh;
         height: fit-content;
         padding: 0.5rem;
 
+        & > canvas {
+            width: 200px;
+            height: 75px;
+            display: block;
+            padding: 0;
+            margin: 0;
+            border-bottom: 1px solid ${({fg="#ccc"})=>fg};
+            image-rendering: crisp-edges;
+        }
+
         & > ul {
             padding: 0;
+            margin: 0;
 
             & > li {
                 color: #CCCCCCFF;

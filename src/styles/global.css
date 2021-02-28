@@ -33,9 +33,10 @@ body, html{
 
 
 .map-popup {
-    background: #101010FF;
+    background: #202020FF;
     height: fit-content;
-    border: solid 1px;
+    border: solid 0.1rem;
+    border-radius: 0.3rem;
     font-family:inherit;
     font-size: inherit;
     padding: 0;
