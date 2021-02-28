@@ -7,21 +7,42 @@ import { lichen, orange } from "../palette";
  */
 import Worker from "./useOceanside.worker.js";
 
-/**
- * Convenience methods
+/*
+ * Rotate a path of any number of points about the origin.
+ * You need to translate first to the desired origin, and then translate back 
+ * once the rotation is complete.
+ * 
+ * Not as flexible as quaternion rotation.
  */
-import { 
-    targetHtmlCanvas,
-    inverse,
-    rotatePath
-} from "../bathysphere";
+const rotatePath = (pts, angle) => {
+   
+    let [s, c] = [Math.sin, Math.cos].map(fcn => fcn(angle));
+    return pts.map(([xx, yy]) => [(xx * c - yy * s), (xx * s + yy * c)]);
+}
 
 
 const eventCoordinates = ({clientX, clientY}, canvas) => {
     // Short hand for element reference frame
     const {left, top} = canvas.getBoundingClientRect();
     return [clientX - left, clientY - top]
-}
+};
+
+
+
+/*
+ * Translate x and scale y, rotate CCW, scale points.
+ * Points must be in the canvas coordinate reference frame. 
+ * The width is the width of the canvas drawing area, and 
+ * gridSize is the number of squares per side of the world.
+ */
+const inverse = (points, width, gridSize) => {
+   
+    return rotatePath(points.map(([x,y])=> [
+            x - (Math.floor(0.5*gridSize) + 1.25)*width/gridSize/Math.sqrt(2), 
+            2*y 
+        ]
+), -Math.PI/4).map(pt => pt.map(dim => dim*Math.sqrt(2)))};
+
 
 
 /**
@@ -356,14 +377,16 @@ export default ({
             !cursor
         ) return;
 
-        let {
-            start, 
-            ctx, 
-            shape: [width, height], 
-            requestId, 
-            // frames
-        } = targetHtmlCanvas(board, `2d`);
+        [ref.current.width, ref.current.height] = ["width", "height"].map(
+            dim => getComputedStyle(ref.current).getPropertyValue(dim).slice(0, -2)
+        ).map(x => x * window.devicePixelRatio);
 
+    
+        const start = performance.now();
+        const ctx = ref.current.getContext(`2d`);
+        const [ width, height ] = [ref.current.width, ref.current.height];
+        let requestId = null;
+      
         ctx.imageSmoothingEnabled = false;  // disable interpolation
     
         (function render() {
