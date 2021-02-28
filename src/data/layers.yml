@@ -166,11 +166,11 @@ geojson:
   - id: aquaculture-leases
     url: https://oceanicsdotio.nyc3.digitaloceanspaces.com/bathysphere/geospatial/aquaculture-leases.json
     attribution: Maine DMR
-    type: fill
+    type: line
     minzoom: 8
+    maxzoom: 22
     paint: 
-      fill-antialias: false
-      fill-color: "rgba(0,255,255,0.75)"
+      line-color: "rgba(0,255,255,0.75)"
     behind: suitability
     component: lease
 
@@ -178,7 +178,8 @@ geojson:
     url: https://oceanicsdotio.nyc3.digitaloceanspaces.com/bathysphere/geospatial/maine-towns.json
     attribution: Maine OIT
     type: line
-    minzoom: 5
+    minzoom: 7
+    maxzoom: 22
     paint: 
       line-color: "rgba(255,255,255,0.5)"
     behind: aquaculture-leases

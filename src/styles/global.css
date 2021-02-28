@@ -31,6 +31,11 @@ body, html{
 
 }
 
+.mapboxgl-popup-close-button {
+    color: inherit;
+    margin: 0.5rem;
+}
+
 .map-popup {
     background: #10101077;
     height: fit-content;
@@ -46,6 +51,6 @@ body, html{
     height: fit-content;
     border: none;
     margin: 0;
-    padding: 2px;
+    padding: 0;
     float: left;
 }

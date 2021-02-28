@@ -212,7 +212,7 @@ const StyledCatalog = styled(Catalog)`
     grid-column: ${({column})=>column+1};
     overflow-x: hidden;
 
-    width: 100%;
+    width: auto;
     min-height: 100vh;
     bottom: 0;
     margin: 0.5rem;
