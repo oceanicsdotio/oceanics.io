@@ -1,7 +1,7 @@
-import React, {Fragment} from "react";
+import React, {Fragment, useState, useEffect} from "react";
 import styled from "styled-components";
 import PropTypes from "prop-types";
-import {grey, ghost} from "../palette";
+import {orange, ghost} from "../palette";
 
 
 /**
@@ -11,22 +11,38 @@ import {grey, ghost} from "../palette";
  */
 export const Location = ({
     className,
-    icon=null,
     properties: {
         name=null,
         nav_unit_n=null,
         ...properties
     },
-    coordinates: [lon, lat]
+    coordinates = null
 }) => {
 
+    
+
+    /**
+     * Location summary data. May not be available for large
+     * polygons for instance, in which case it will fall back
+     * to the click position or a known center. 
+     */
+    const [ label, setLabel ] = useState("Projecting...");
+
+    /**
+     * Determine the reference position of the Location entity
+     */
+    useEffect(() => {
+        if (!coordinates) return;
+
+        const [lon, lat] = coordinates;
+        setLabel(`${lat.toFixed(4)}, ${lon.toFixed(4)}`);
+    }, []);
+
+    
 
     return <div className={className}>
-        <label>{`${lat.toFixed(4)}, ${lon.toFixed(4)}`}</label>
-        <h3>
-            {name || nav_unit_n || properties.port_name}
-            <img src={icon?icon.data:null}/>
-        </h3>
+        <h3>{name || nav_unit_n || properties.port_name}</h3>
+        <label>{label}</label>
         <ul>
             {Object.entries(properties)
                 .filter(([_, v]) => v !== " " && !!v)
@@ -36,13 +52,22 @@ export const Location = ({
     </div>};
 
 
+/**
+ * Validate Location elements
+ */
 Location.propTypes = {
     /**
-     Display name of the task.
+     * Spatial coordinates
      */
-    name: PropTypes.string,
+    coordinates: PropTypes.array,
+    /**
+     * Class name for styled components CSS
+     */
     className: PropTypes.string,
-    icon: PropTypes.object
+    /**
+     * Location metadata
+     */
+    properties: PropTypes.object
 };
 
 /**
@@ -61,23 +86,57 @@ const StyledLocation = styled(Location)`
     padding: 0.5rem;
     color: ${ghost};
 
-    & > h3 {
-        & > img {
-            image-rendering: crisp-edges;
-            display: inline;
-            height: 1.5em;
-            margin-left: 1em;
-        }
+    & > label {
+        color: ${orange};
+        font-size: larger;
     }
 `;
 
+
+const cleanAndParse = text => 
+    text.replace('and', ',')
+        .replace(';', ',')
+        .split(',')
+        .map(each => each.trim());
+
 export default StyledLocation;
 
-export const Locations = ({ features }) => 
-    <>
+export const Locations = ({ features }) => {
+
+    /**
+     * Array of unique species, created by parsing lease records and doing
+     * some basic text processing.
+     */
+    const [ species, setSpecies ] = useState(null);
+
+    /**
+     * Latitude and longtiude.
+     */
+    const [ center, setCenter ] = useState(null);
+
+    /**
+     * Set the species array.
+     */
+    // useEffect(() => {
+    //     setSpecies([...(new Set(features.flatMap(({properties}) => cleanAndParse(properties.species))))]);
+    // }, []);
+
+
+    /**
+     * Set the state value for location coordinates.
+     */
+    useEffect(() => {
+        setCenter(features.filter(f => "coordinates" in f).reduce(([x, y], {coordinates: [lon, lat]}) => [
+            x+lon/features.length, 
+            y+lat/features.length
+        ], [0, 0]));
+    }, []);
+
+
+    return <>
         {features.map((feature, key) =>
             <Fragment key={key}>
                 <StyledLocation {...feature}/>
             </Fragment>
         )}
-    </>;
+    </>};

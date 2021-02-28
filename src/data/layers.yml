@@ -25,7 +25,7 @@ geojson:
       fill-antialias: false
       fill-color: "rgba(255,0,255,0.3)"
     behind: limited-purpose-licenses
-    component: nssp
+    component: locations
     attribution: Maine DMR
 
   - id: ports
@@ -147,7 +147,7 @@ geojson:
       circle-stroke-width: 1
       circle-stroke-color: "rgba(0,255,255,0.75)"
     behind: cities
-    component: license
+    component: locations
  
   - id: suitability
     attribution: Oceanics.io
@@ -166,13 +166,13 @@ geojson:
   - id: aquaculture-leases
     url: https://oceanicsdotio.nyc3.digitaloceanspaces.com/bathysphere/geospatial/aquaculture-leases.json
     attribution: Maine DMR
-    type: line
+    type: fill
     minzoom: 8
     maxzoom: 22
     paint: 
-      line-color: "rgba(0,255,255,0.75)"
+      fill-color: "rgba(0,255,255,0.75)"
     behind: suitability
-    component: lease
+    component: locations
 
   - id: maine-towns
     url: https://oceanicsdotio.nyc3.digitaloceanspaces.com/bathysphere/geospatial/maine-towns.json

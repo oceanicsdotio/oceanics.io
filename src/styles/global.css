@@ -31,13 +31,9 @@ body, html{
 
 }
 
-.mapboxgl-popup-close-button {
-    color: inherit;
-    margin: 0.5rem;
-}
 
 .map-popup {
-    background: #10101077;
+    background: #101010FF;
     height: fit-content;
     border: solid 1px;
     font-family:inherit;

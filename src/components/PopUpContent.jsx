@@ -1,8 +1,11 @@
+import React from "react";
 import styled from "styled-components";
+
+
 
 export default styled.div`
 
-    background: #101010AA;
+    background: #101010FF;
     font-family: inherit;
     font-size: larger;
     height: fit-content;
@@ -23,6 +26,7 @@ export default styled.div`
         overflow-y: scroll;
         max-height: 300px;
         height: fit-content;
+        padding: 0.5rem;
 
         & > ul {
             padding: 0;
@@ -36,3 +40,4 @@ export default styled.div`
         }
     }
 `;
+

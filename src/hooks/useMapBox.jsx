@@ -9,29 +9,15 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import PopUpContent from "../components/PopUpContent";
 
 /**
- * PopUp child JSX for Maine LPA data. Rendered client-side.
- */
-import LicenseInformation from "../components/LicenseInformation";
-
-/**
- * PopUp child for commercial aquaculture leases. Rendered client-side.
- */
-import LeaseInformation from "../components/LeaseInformation";
-
-/**
  * Popup for port and navigation information. Rendered client-side.
  */
-import Location, {Locations} from "../components/Location";
+import Location from "../components/Location";
 
 /**
  * Oyster suitability popup, or any normalized probability distribution function
  */
 import SuitabilityInformation from "../components/SuitabilityInformation";
 
-/**
- * Shellfish sanitation area, should be generalized to "hazards" or similar.
- */
-import NsspInformation from "../components/NsspInformation";
 
 /**
  * Can't use graphql query because of differences in layer schema.
@@ -178,11 +164,8 @@ export const pulsingDot = ({
  * There is some magic here, in that you still need to know the key. 
  */
 const popups = {
-    license: LicenseInformation,
-    lease: LeaseInformation,
-    nssp: NsspInformation, 
     suitability: SuitabilityInformation,
-    locations: Locations
+    locations: Location
 };
 
 /**
@@ -339,14 +322,14 @@ export default ({
 
                         ReactDOM.render(
                             <PopUpContent>
-                                <Component features={projected}/>
+                                {projected.map(x => <Component {...x}/>)}
                             </PopUpContent>, 
                             placeholder
                         );
 
                         (new Popup({
                             className: "map-popup",
-                            closeButton: true,
+                            closeButton: false,
                             closeOnClick: true
                         })
                             .setLngLat(coords.slice(0, 2))
