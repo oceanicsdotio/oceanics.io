@@ -168,15 +168,16 @@ export const getFragment = async (target, key, attribution) => {
                 id: `mesh-${key}`,
                 type: "circle",
                 source,
+                component: "location",
                 paint: {
-                    "circle-radius":  {stops: [[0, 0.1], [22, 1]]},
-                    "circle-stroke-width": 1,
-                    "circle-stroke-color": [
+                    "circle-radius":  {stops: [[0, 0.2], [22, 4]]},
+                    "circle-stroke-width": 0,
+                    "circle-color": [
                         "rgba",
                         ["*", 127, ["get", "q"]],
                         ["*", 127, ["get", "ln"]],
                         ["*", 127, ["-", 1, ["get", "q"]]],
-                        0.5
+                        0.75
                     ]
                 }
             }

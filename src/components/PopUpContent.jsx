@@ -82,7 +82,7 @@ export const PopUpContent = ({
 
 const StyledPopUpContent = styled(PopUpContent)`
 
-    background: #101010FF;
+    background: #000000FF;
     font-family: inherit;
     font-size: larger;
     height: fit-content;
@@ -96,6 +96,7 @@ const StyledPopUpContent = styled(PopUpContent)`
         max-height: 75vh;
         height: fit-content;
         padding: 0.5rem;
+        background: none;
 
         & > canvas {
             width: 200px;

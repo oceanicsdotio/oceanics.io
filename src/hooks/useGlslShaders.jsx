@@ -8,8 +8,6 @@ import screenFragment from "raw-loader!../glsl/screen-fragment.glsl";
 import drawVertex from "raw-loader!../glsl/draw-vertex-test.glsl";
 import drawFragment from "raw-loader!../glsl/draw-fragment-test.glsl";
 
-import Worker from "./useGlslShaders.worker.js";
-
 
 /**
  * Abstraction for binding array data into GPU memory
@@ -254,14 +252,6 @@ export const useGlslShaders = ({
     const ref = useRef(null);
     const secondary = useRef(null);
     
-    const worker = useRef(null);
-
-    /**
-     * Create worker
-     */
-    useEffect(() => {
-        worker.current = new Worker();
-    }, []);
 
     const validContext = () => 
         (typeof ref === "undefined" || !ref || !ref.current) ? false : ref.current.getContext("webgl");

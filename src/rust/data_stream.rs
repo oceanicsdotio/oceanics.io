@@ -233,8 +233,11 @@ pub mod data_stream {
         /**
         Transform the y-dimension to pixel dimensions
         */
-        fn rescale(&self, val: f64, dim: usize) -> f64 {
-           
+        fn rescale(
+            &self, 
+            val: f64, 
+            dim: usize
+        ) -> f64 {
             (val - self.axes[dim].extent.0) / (self.axes[dim].extent.1 - self.axes[dim].extent.0)
         }
 
@@ -243,7 +246,14 @@ pub mod data_stream {
         as connecting dots without further logical or visual indcators
         can be misleading. 
         */
-        pub fn draw_as_points(&self, ctx: &CanvasRenderingContext2d, w: f64, h:f64, color: &JsValue, scale: f64) {
+        pub fn draw_as_points(
+            &self, 
+            ctx: &CanvasRenderingContext2d, 
+            w: f64, 
+            h:f64, 
+            color: &JsValue, 
+            scale: f64
+        ) {
            
             if self.data.len() == 0 {
                 return
@@ -312,39 +322,46 @@ pub mod data_stream {
         }
 
         /**
-        Draw the axes and ticks
-        */
-        pub fn draw_axes(&self, ctx: &CanvasRenderingContext2d, w: f64, h:f64, color: &JsValue, line_width: f64, tick_size: f64) {
+         * Draw the axes and ticks
+         */
+        pub fn draw_axes(
+            &self, 
+            ctx: &CanvasRenderingContext2d, 
+            w: f64, 
+            h: f64, 
+            color: &JsValue, 
+            line_width: f64, 
+            tick_size: f64
+        ) {
            
+            const INC: f64 = 1.0 / 10.0;
+
             ctx.set_stroke_style(color);
             ctx.set_line_width(line_width);
-            
-            let inc: f64 = 1.0 / 10.0;
-
             ctx.begin_path();
-            for ii in 0..11 {
-                
-                let y = inc * ii as f64;
-                ctx.move_to(0.0, h - y*h);
-                ctx.line_to(tick_size, h - y*h); 
 
-                ctx.move_to(w, h - y*h);
-                ctx.line_to(w-tick_size, h - y*h);
+            for ii in 0..11 {
+                let y = INC * ii as f64 * h;
+
+                ctx.move_to(0.0, h - y);
+                ctx.line_to(tick_size, h - y);
+
+                ctx.move_to(w, h - y);
+                ctx.line_to(w-tick_size, h - y);
             }
 
         
             for ii in 0..11 {
                 
-                let x = inc * ii as f64;
+                let x = INC * ii as f64 * w;
 
-                ctx.move_to(x*w, 0.0);
-                ctx.line_to(x*w, tick_size); 
+                ctx.move_to(x, 0.0);
+                ctx.line_to(x, tick_size); 
 
-                ctx.move_to(x*w, h);
-                ctx.line_to(x*w, h-tick_size); 
+                ctx.move_to(x, h);
+                ctx.line_to(x, h-tick_size); 
             }
            
-
             ctx.move_to(0.0, 0.0);
             ctx.line_to(0.0, h);
             ctx.line_to(w, h);
@@ -374,7 +391,6 @@ pub mod data_stream {
     */
     #[wasm_bindgen]
     pub struct InteractiveDataStream {
-       
         data_stream: DataStream,
         cursor: SimpleCursor,
         frames: usize
@@ -383,13 +399,12 @@ pub mod data_stream {
     #[wasm_bindgen]
     impl InteractiveDataStream {
         /**
-        Create a new container without making too many assumptions
-        abour how it will be used. Mostly streams are dynamically
-        constructed on the JavaScript side.
-        */
+         * Create a new container without making too many assumptions
+         *  how it will be used. Mostly streams are dynamically
+         * constructed on the JavaScript side.
+         */
         #[wasm_bindgen(constructor)]
         pub fn new(capacity: usize) -> InteractiveDataStream {
-           
             InteractiveDataStream {
                 data_stream: DataStream::new(capacity),
                 cursor: SimpleCursor::new(0.0, 0.0),
@@ -398,11 +413,14 @@ pub mod data_stream {
         }
 
         /**
-        Compose the data-driven visualization and draw to the target HtmlCanvasElement.
-        */
-        pub fn draw(&mut self, canvas: HtmlCanvasElement, time: f64, style: JsValue) {
-           
-            
+         * Compose the data-driven visualization and draw to the target HtmlCanvasElement.
+         */
+        pub fn draw(
+            &mut self, 
+            canvas: HtmlCanvasElement, 
+            time: f64, 
+            style: JsValue
+        ) {
             let rstyle: Style = style.into_serde().unwrap();
             let color = JsValue::from_str(&rstyle.stream_color);
             let bg = JsValue::from_str(&rstyle.background_color);
@@ -417,16 +435,13 @@ pub mod data_stream {
             crate::clear_rect_blending(ctx, w, h, bg);
             self.data_stream.draw_as_points(ctx, w, h, &color, rstyle.point_size);
             self.data_stream.draw_mean_line(ctx, w, h, &overlay, rstyle.line_width);
-            self.data_stream.draw_axes(ctx, w, h, &overlay, rstyle.line_width, rstyle.tick_size*0.5);
+            // self.data_stream.draw_axes(ctx, w, h, &overlay, rstyle.line_width, rstyle.tick_size*0.5);
             self.cursor.draw(ctx, w, h, &overlay, rstyle.font_size, rstyle.line_width, rstyle.tick_size, 0.0, rstyle.label_padding);
             
             let fps = (1000.0 * (self.frames + 1) as f64).floor() / time;
    
-            if time < 10000.0 || fps < 55.0 || self.size() < self.data_stream.capacity {
+            if time < 10000.0 || fps < 30.0 {
 
-                let caption = format!("DataStream ({}/{})", self.size(), self.data_stream.capacity);
-                crate::draw_caption(ctx, caption, inset, h-inset, &overlay, font.clone());
-            
                 crate::draw_caption(
                     &ctx,
                     format!("{:.0} fps", fps),
@@ -441,24 +456,22 @@ pub mod data_stream {
         }
 
         /**
-        Hoist the datastream push method, needed to ensure JavaScript binding
-        */
+         * Hoist the datastream push method, needed to ensure JavaScript binding
+         */
         pub fn push(&mut self, x: f64, y: f64) {
-           
             self.data_stream.push(x, y);
         }
 
         /**
-        Hoist data stream size getter, needed to ensure JavaScript binding
-        */
+         * Hoist data stream size getter, needed to ensure JavaScript binding
+         */
         pub fn size(&self) -> usize {
-           
             self.data_stream.size()
         }
 
         /**
-        Hoist cursor setter, needed to ensure JavaScript binding
-        */
+         * Hoist cursor setter, needed to ensure JavaScript binding
+         */
         pub fn update_cursor(&mut self, x: f64, y: f64) {
             self.cursor.update(x, y);
         }

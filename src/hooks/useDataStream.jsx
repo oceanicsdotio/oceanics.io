@@ -1,16 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 
-import { lichen } from "../palette";
-
-import Worker from "./useDataStream.worker.js";
+import { lichen, shadow, ghost } from "../palette";
 
 /*
  * Time series data
  */
 export default ({
-    streamColor=lichen,
-    overlayColor=`#CCCCCCFF`,
-    backgroundColor=`#001010CC`,
+    streamColor = lichen,
+    overlayColor = ghost,
+    backgroundColor = "#202020FF",
     lineWidth=1.5,
     pointSize=2.0,
     capacity=500,
@@ -24,22 +22,11 @@ export default ({
      */
     const ref = useRef(null);
 
-    /**
-     * Background worker
-     */
-    const worker = useRef(null);
-
-    /**
-     * Load worker
-     */
-    useEffect(() => {
-        worker.current = new Worker();
-    }, []);
    
      /**
      * Runtime will be passed to calling Hook or Component. 
      */
-    const [runtime, setRuntime] = useState(null);
+    const [ runtime, setRuntime ] = useState(null);
 
     /**
      * Dynamically load the WASM, add debugging, and save to React state,
@@ -69,10 +56,15 @@ export default ({
     }, [ runtime ]);
 
     /**
+     * Label for user interface.
+     */
+    const [ message, setMessage ] = useState("Loading...");
+
+    /**
      * Run the animation loop.
      */
     useEffect(() => {
-        if (!runtime || !dataStream || ref === undefined) return;
+        if (!runtime || !dataStream || !ref.current) return;
 
         // use location based sunlight function
         const fcn = t => {
@@ -97,8 +89,13 @@ export default ({
         (function render() {
             const time = performance.now() - start;
             dataStream.push(time, fcn(time));
+            
             dataStream.draw(ref.current, time, {backgroundColor, streamColor, overlayColor, lineWidth, pointSize, fontSize, tickSize, labelPadding});
+
+
+            setMessage(`Light (N=${dataStream.size()})`);
             requestId = requestAnimationFrame(render);
+
         })()
 
         return () => cancelAnimationFrame(requestId);
@@ -107,6 +104,7 @@ export default ({
     return {
         ref,
         runtime, 
-        dataStream
+        dataStream,
+        message
     }
 };

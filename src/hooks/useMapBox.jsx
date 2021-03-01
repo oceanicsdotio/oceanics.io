@@ -179,6 +179,7 @@ export default ({
      */
     useEffect(() => {
         worker.current = new Worker();
+        return worker.current.terminate;
     }, []);
 
     /**
@@ -229,7 +230,7 @@ export default ({
     /**
      * Data sets to queue and build layers from.
      */
-    const [queue, setQueue] = useState([]);
+    const [ queue, setQueue ] = useState([]);
 
     /**
     * When a click event happens it may intersect with multiple features. 
@@ -371,7 +372,7 @@ export default ({
             agentLocation.coords.longitude, 
             agentLocation.coords.latitude
         ]).then(source => {
-            map.addLayer()
+            map.addLayer(source);
         });
     }, [ worker, agentLocation, map ]);
 
@@ -434,29 +435,6 @@ export default ({
             .then(x => {map.addLayer(x)});
        
     }, [ map, worker, meshQueue ]);
-
-
-    /**
-     * Make sure to stop the worker
-     */
-    const [ processing, setProcessing ] = useState(false);
-
-
-    /**
-     * When queue is created, set status.
-     * 
-     * When queue is exhausted, shutdown worker. 
-     */
-    useEffect(() => {
-        if (meshQueue) {
-            setProcessing(true);
-        } else if (processing) {
-            console.log("Stopping Mesh Worker...");
-            worker.current.terminate();
-        }
-    }, [ meshQueue ]);
-    
-
 
 
     /* 

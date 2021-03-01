@@ -42,11 +42,10 @@ export default ({
     return <div className={className}>
         <label>{histogram.message}</label>
         <canvas ref={histogram.ref}/>
-        <label>{"Fish"}</label>
+        <label>{lag.message}</label>
         <canvas ref={lag.ref}/>
-        <label>{"Light"}</label>
+        <label>{dataStream.message}</label>
         <canvas ref={dataStream.ref}/>
-        
     </div>
     
 };

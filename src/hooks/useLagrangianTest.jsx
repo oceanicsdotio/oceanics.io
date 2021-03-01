@@ -76,6 +76,16 @@ export default ({
     }, [ worker ]);
 
     /**
+     * Message for user interface
+     */
+    const [ message, setMessage ] = useState("Loading...");
+
+    useEffect(() => {
+        if (particles)
+            setMessage(`Fish (N=${res*res})`);
+    }, [ particles ]);
+
+    /**
      * Shader programs compiled from GLSL source. Comes with a recycled
      * Rust-WASM runtime. 
      */
@@ -296,5 +306,5 @@ export default ({
     /**
      * Resources available to parent Component or Hook.
      */
-    return {ref}
+    return {ref, message}
 };

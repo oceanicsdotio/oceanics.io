@@ -11,8 +11,8 @@ const StyledCanvas = styled.canvas`
 
 
 /**
-PDF component loads a document and indexes a selected page.
-*/
+ * PDF component loads a document and indexes a selected page.
+ */
 export default ({
     doc, 
     scale=1, 

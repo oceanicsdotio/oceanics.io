@@ -755,9 +755,9 @@ export class InteractiveDataStream {
         wasm.__wbg_interactivedatastream_free(ptr);
     }
     /**
-    *        Create a new container without making too many assumptions
-    *        abour how it will be used. Mostly streams are dynamically
-    *        constructed on the JavaScript side.
+    * Create a new container without making too many assumptions
+    *  how it will be used. Mostly streams are dynamically
+    * constructed on the JavaScript side.
     * @param {number} capacity
     */
     constructor(capacity) {
@@ -766,7 +766,7 @@ export class InteractiveDataStream {
         return InteractiveDataStream.__wrap(ret);
     }
     /**
-    *        Compose the data-driven visualization and draw to the target HtmlCanvasElement.
+    * Compose the data-driven visualization and draw to the target HtmlCanvasElement.
     * @param {HTMLCanvasElement} canvas
     * @param {number} time
     * @param {any} style
@@ -777,7 +777,7 @@ export class InteractiveDataStream {
         wasm.interactivedatastream_draw(this.ptr, addHeapObject(canvas), time, addHeapObject(style));
     }
     /**
-    *        Hoist the datastream push method, needed to ensure JavaScript binding
+    * Hoist the datastream push method, needed to ensure JavaScript binding
     * @param {number} x
     * @param {number} y
     */
@@ -787,7 +787,7 @@ export class InteractiveDataStream {
         wasm.interactivedatastream_push(this.ptr, x, y);
     }
     /**
-    *        Hoist data stream size getter, needed to ensure JavaScript binding
+    * Hoist data stream size getter, needed to ensure JavaScript binding
     * @returns {number}
     */
     size() {
@@ -797,7 +797,7 @@ export class InteractiveDataStream {
         return ret >>> 0;
     }
     /**
-    *        Hoist cursor setter, needed to ensure JavaScript binding
+    * Hoist cursor setter, needed to ensure JavaScript binding
     * @param {number} x
     * @param {number} y
     */
@@ -2001,7 +2001,7 @@ export const __wbindgen_memory = function() {
     return addHeapObject(ret);
 };
 
-export const __wbindgen_closure_wrapper3284 = logError(function(arg0, arg1, arg2) {
+export const __wbindgen_closure_wrapper3283 = logError(function(arg0, arg1, arg2) {
     var ret = makeMutClosure(arg0, arg1, 71, __wbg_adapter_24);
     return addHeapObject(ret);
 });

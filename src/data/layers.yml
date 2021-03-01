@@ -103,9 +103,9 @@ geojson:
     paint: 
       circle-radius: 
           stops: [[8, 1], [12, 2], [16, 4]]
-      circle-color: "rgba(0,0,0,0)"
+      circle-stroke-color: "rgba(0,0,0,0)"
       circle-stroke-width: 1
-      circle-stroke-color: [
+      circle-color: [
           "case",
           ["in", "green", ["downcase", ["get", "structure"]]], "#2c2",
           ["in", "red", ["downcase", ["get", "structure"]]], "#d34",
@@ -126,7 +126,7 @@ geojson:
     paint: 
       circle-radius: 
           stops: [[8, 1], [12, 2], [16, 4]]
-      circle-stroke-color: "#f80"
+      circle-stroke-color: "rgba(0,0,0,0)"
       circle-stroke-width: 1
       circle-color: "#f80"
     minzoom: 10
@@ -166,11 +166,11 @@ geojson:
   - id: aquaculture-leases
     url: https://oceanicsdotio.nyc3.digitaloceanspaces.com/bathysphere/geospatial/aquaculture-leases.json
     attribution: Maine DMR
-    type: fill
+    type: line
     minzoom: 8
     maxzoom: 22
     paint: 
-      fill-color: "rgba(0,255,255,0.75)"
+      line-color: "rgba(0,255,255,0.75)"
     behind: suitability
     component: location
 

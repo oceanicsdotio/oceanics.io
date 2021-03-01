@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import PropTypes from "prop-types";
-import { orange, ghost, grey } from "../palette";
+import { orange, ghost, shadow } from "../palette";
 
 
 /**
@@ -106,15 +106,13 @@ const StyledLocation = styled(Location)`
 
     font-family: inherit;
 
-    border-bottom: 0.1rem solid ${ghost};
     padding: 0.5rem;
     color: ${ghost};
 
     cursor: pointer;
 
     &:hover {
-        border-color: ${orange};
-        background: ${grey};
+        background: ${shadow};
     }
 
     & > h3 {
