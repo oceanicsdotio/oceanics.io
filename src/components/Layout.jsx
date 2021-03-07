@@ -82,7 +82,7 @@ export const Layout = ({
 
         <main>{children}</main>
         <footer>
-            <p>{"We work fearlessly in the open on behalf of future seas to elevate operations and fuel a prosperous and accountable blue economy"}</p>
+            <p>{"We work fearlessly to elevate operations and fuel a prosperous and accountable blue economy on behalf of future seas"}</p>
             {layout.footer.map(({label, to}, key) => 
                 <MinorLink 
                     key={label} 
@@ -115,7 +115,7 @@ export const StyledLayout = styled(Layout)`
         padding-bottom: 1rem;
         border-top: 0.1rem solid ${ghost};
         border-bottom: 0.1rem solid ${ghost};
-        border-radius: 1rem;
+        border-radius: 1rem 1rem 0 0;
     }
 
     & > footer {

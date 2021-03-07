@@ -1,23 +1,9 @@
-- heading: Data we collect
-  text: |
-    Our website is https://www.oceanics.io. 
-    
-    When you arried your IP address and browser user agent were recorded. We attempted to track your mouse and keystrokes and guess your location. 
-    
-    None of these data are transmitted, and are used only while the browser remains open.
-   
-    If you log in we grant a token that contains no personal data and is valid for one hour. While you have this you can see, edit, or delete personal information we hold.
-    
-    We do not share your data and they are not accessible by other users.
+title: Policy
+text: |
+  We are www.oceanics.io. We value diverse contributions regardless of technical skill, domain knowledge, or ability and do not suffer discrimination or harassment. We invite questions, listen more than speak, and adopt a “yes/and” over a “no/but” mentality.  
 
-    Proprietary business data may be lost or stolen. We manage risk with backups, monitoring, encryption, and robust physical security.
-
-    We do generate anonymous metrics to guide research activity. Derived products may include training materials, open source code and software, models, simulations, and sensor observations. These are staged in databases for ready use in public web services. There are no “exclusive or validation” periods.
-
-- heading: Code of conduct
-  text: |
-    We value full expression of identity. Diversity in ideas, skills, and contributions regardless of technical or domain knowledge are what drive progress. Members and allies are encouraged to invite questions, listen as much as they speak, and adopt a “yes/and” over a “no/but” mentality. 
-    
-    This is a safe community, free from discrimination or harassment. Contact `business@oceanics.io` for mediation, or remove yourself from the situation and notify an appropriate emergency response agency.
-
-    It is our goal to make data and models more Accessible. That takes work and cooperation, and we welcome all feedback. We endeavor to use best practices for collaborative development. We make self-learning information publicly available without a sign up, and in multiple forms when possible. Web services derive from Open Geospatial Consortium standards, and data are available in web-standard formats. Let us know how we can make great work better. 
+  When you arrive we record your address, user agent, mouse, keystrokes, and location. If you log in, we give you a token that expires in one hour. These data are never transmitted or shared, and can be viewed and deleted with the token. 
+  
+  Metadata are used to tune software and models that make AI more Accessible. Our derived products are collaborative, public, and follow community standards. We manage risk with backups, monitoring, encryption, and robust physical security.
+  
+  Let us know how we can do great work better together at business-at-oceanics-dot-io.
