@@ -2,13 +2,15 @@
   text: |
     Our website is https://www.oceanics.io. 
     
-    When you visit parts of our site, your IP address and browser user agent are collected. Interactive pages will attempt to load executable code in the from of data vizualization web components. These may track your mouse and keystrokes to provide interface options. Location-based services will ask you if you want to share location. None of these data are transmitted, and are used only while the browser remains open.
-   
-    If you have an account and log in, we grant you a temporary token to access our services. This contains no personal data and is valid for a fixed amount of time. It is stored only in memory. All users can see, edit, or delete personal information and data we hold about you, including data you have provided, or that we obtained from third parties on your behalf.
+    When you arried your IP address and browser user agent were recorded. We attempted to track your mouse and keystrokes and guess your location. 
     
-    We do not share your data, nor use it for automated decision-making. Proprietary assets are not accessible by other users, and are not archived beyond the terms of their data use contract. Partner organizations and individuals access services only through a limited interface.
+    None of these data are transmitted, and are used only while the browser remains open.
+   
+    If you log in we grant a token that contains no personal data and is valid for one hour. While you have this you can see, edit, or delete personal information we hold.
+    
+    We do not share your data and they are not accessible by other users.
 
-    Proprietary business data may be lost or stolen. We manage this risk with good security and backups. Raw data are backed-up in a redundant data lake, network ingress and egress are monitored and logged, nodes communicate over an encrypted connection and self-report anomalies, and physical security is part of our co-location strategy.
+    Proprietary business data may be lost or stolen. We manage risk with backups, monitoring, encryption, and robust physical security.
 
     We do generate anonymous metrics to guide research activity. Derived products may include training materials, open source code and software, models, simulations, and sensor observations. These are staged in databases for ready use in public web services. There are no “exclusive or validation” periods.
 

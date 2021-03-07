@@ -42,16 +42,17 @@ export default ({
         }
     });    
 
-    return <Layout location={location} title={"About"}>
+    return <Layout location={location} title={"Oceanics.io"}>
         <SEO title={"About"} />
-        {version.content.map((text, ii)=><StyledParagraph key={`paragraph-${ii}`}>{text}</StyledParagraph>)}
+        {version.content.map((text, ii)=>
+            <StyledParagraph key={`paragraph-${ii}`}>{text}</StyledParagraph>)}
         <Form 
-            id={"register-dialog"} 
-            callback={null}
+            version={version.heading}
+            id={"register-dialog"}
             fields={fields}
             actions={[{
                 value: version.callToAction,
-                onClick: null
+                type: "button"
             }]}
         />
     </Layout>

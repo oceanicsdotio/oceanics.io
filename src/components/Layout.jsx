@@ -18,6 +18,7 @@ export const NavBar = styled.nav`
     justify-content: space-between;
     text-align: left;
     color: ${ghost};
+    padding: 0.5rem;
 
     & > * {
         display: inline;
@@ -57,13 +58,6 @@ const MinorLink = styled(SiteLink)`
     display: block;
 `;
 
-/**
- * External link, with indication of asset status
- */
-const ExternalLink = styled.a`
-    color: ${({ok=true})=>ok ? blue : grey};
-`;
-
 export const Layout = ({ 
     children,
     className,
@@ -83,20 +77,12 @@ export const Layout = ({
                     {label}
                 </SiteLink>
             )}
-            {layout.api.map(({label, href, ok}, key) => 
-                <ExternalLink 
-                    href={href} 
-                    ok={ok}
-                    key={`api-link-${key}`}
-                >   
-                    {label}
-                </ExternalLink>
-            )}
         </NavBar>
 
 
         <main>{children}</main>
         <footer>
+            <p>{"We work fearlessly in the open on behalf of future seas to elevate operations and fuel a prosperous and accountable blue economy"}</p>
             {layout.footer.map(({label, to}, key) => 
                 <MinorLink 
                     key={label} 

@@ -167,6 +167,7 @@ const Catalog = ({className}) => {
             fields={fields}
             actions={[{
                 value: "Login",
+                type: "button",
                 onClick: login
             }]}
         />

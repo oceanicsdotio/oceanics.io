@@ -179,7 +179,8 @@ export const Form = ({
     id, 
     fields = null, 
     actions = null,
-    callback = null
+    callback = null,
+    version = null
 }) => {
     
     return <form 
@@ -212,19 +213,19 @@ export const Form = ({
         {(actions || []).map((props, ii) => 
             <InputWrapper 
                 key={`${id}-action-${ii}`}
-                type={"button"} 
                 {...props}
             />
         )}
         {<input type="hidden" name="form-name" value={id} />}
+        {<input type="hidden" name="version" value={version} />}
     
     </form>
 };
 
 
 /**
-Styled version of the Form component
-*/
+ * Styled version of the Form component
+ */
 export const StyledForm = styled(Form)`
     display: inline-block;
     align-content: center;
