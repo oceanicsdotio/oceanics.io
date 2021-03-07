@@ -2,18 +2,20 @@
   text: |
     Our website is https://www.oceanics.io. 
     
-    When you visit parts or our site, your IP address and browser user agent are collected. Interactive pages will attempt to load executable code in the from of data vizualization web components. These may track your mouse and keystrokes to provide interface options. Location-based services will ask you if you want to share location. None of these data are transmitted, and are used only while the browser remains open.
+    When you visit parts of our site, your IP address and browser user agent are collected. Interactive pages will attempt to load executable code in the from of data vizualization web components. These may track your mouse and keystrokes to provide interface options. Location-based services will ask you if you want to share location. None of these data are transmitted, and are used only while the browser remains open.
    
-    If you have an account and log in, we grant you a temporary token to access our services. This contains no personal data and is valid for a fixed amount of time. It is stored only in memory. All users can see, edit, or delete personal information and data we hold about you, including data you have provided, or that we obtained from third parties on your behalf. You may also request we erase data for any reason. 
+    If you have an account and log in, we grant you a temporary token to access our services. This contains no personal data and is valid for a fixed amount of time. It is stored only in memory. All users can see, edit, or delete personal information and data we hold about you, including data you have provided, or that we obtained from third parties on your behalf.
     
     We do not share your data, nor use it for automated decision-making. Proprietary assets are not accessible by other users, and are not archived beyond the terms of their data use contract. Partner organizations and individuals access services only through a limited interface.
 
-    If improperly configured, proprietary business data may be lost or stolen. We manage risk by implementing good security practices, and backing up critical assets and repositories. Raw data from sensors, satellites and models are backed-up in a redundant data lake. The routes of network ingress and egress are monitored and logged, nodes communicate over an encrypted connection, and physical security is part of our co-location strategy. Systems self-report anomalies in position and condition.
+    Proprietary business data may be lost or stolen. We manage this risk with good security and backups. Raw data are backed-up in a redundant data lake, network ingress and egress are monitored and logged, nodes communicate over an encrypted connection and self-report anomalies, and physical security is part of our co-location strategy.
 
     We do generate anonymous metrics to guide research activity. Derived products may include training materials, open source code and software, models, simulations, and sensor observations. These are staged in databases for ready use in public web services. There are no “exclusive or validation” periods.
 
 - heading: Code of conduct
   text: |
-    We value full expression of identity. Diversity in ideas, skills, and contributions regardless of technical or domain knowledge are what drive progress. Members and allies are encouraged to invite questions, listen as much as they speak, and adopt a “yes/and” over a “no/but” mentality. This is a safe commnity, free from discrimination or harassment. Contact `business@oceanics.io` for mediation, or remove yourself from the situation and notify an appropriate emergency response agency.
+    We value full expression of identity. Diversity in ideas, skills, and contributions regardless of technical or domain knowledge are what drive progress. Members and allies are encouraged to invite questions, listen as much as they speak, and adopt a “yes/and” over a “no/but” mentality. 
+    
+    This is a safe community, free from discrimination or harassment. Contact `business@oceanics.io` for mediation, or remove yourself from the situation and notify an appropriate emergency response agency.
 
     It is our goal to make data and models more Accessible. That takes work and cooperation, and we welcome all feedback. We endeavor to use best practices for collaborative development. We make self-learning information publicly available without a sign up, and in multiple forms when possible. Web services derive from Open Geospatial Consortium standards, and data are available in web-standard formats. Let us know how we can make great work better. 
