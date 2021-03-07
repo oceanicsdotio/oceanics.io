@@ -2,13 +2,13 @@ title: "Oceanics.io"
 
 site:
   - to: "/app"
-    label: "Deeper"
-
-  - to: "/about"
-    label: "About"
+    label: "Go Deeper"
 
 footer:
     
+  - to: "/about"
+    label: "About"
+
   - to: "/policy"
     label: "Policy"
 

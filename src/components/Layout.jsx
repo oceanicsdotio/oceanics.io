@@ -1,8 +1,8 @@
-import React, { useReducer }  from "react";
+import React, { useMemo } from "react";
 import styled from "styled-components";
 import { Link } from "gatsby";
 
-import { pink, ghost, grey, blue } from "../palette";
+import { pink, ghost } from "../palette";
 import { rhythm } from "../typography";
 import layout from "../data/layout.yml";
 
@@ -18,7 +18,8 @@ export const NavBar = styled.nav`
     justify-content: space-between;
     text-align: left;
     color: ${ghost};
-    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    padding: 0;
 
     & > * {
         display: inline;
@@ -41,6 +42,7 @@ export const NavBar = styled.nav`
  */
 const SiteLink = styled(Link)`
     color: ${({color})=>color};
+    font-size: x-large;
 `;
 
 
@@ -48,7 +50,10 @@ const SiteLink = styled(Link)`
  * Internal link, emphasized
  */
 export const Title = styled(SiteLink)`
-    font-size: larger;
+    font-size: xx-large;
+    margin: 0;
+    padding: 0;
+    margin-right: 1rem;
 `;
     
 /**
@@ -56,6 +61,7 @@ export const Title = styled(SiteLink)`
  */
 const MinorLink = styled(SiteLink)`
     display: block;
+    font-size: large;
 `;
 
 export const Layout = ({ 
@@ -64,39 +70,46 @@ export const Layout = ({
     title = null
 }) => {
 
+    const links = useMemo(()=>{
+        return layout.site.map(({label, to, color=pink}, key) =>  
+            <SiteLink 
+                to={to} 
+                color={color}
+                key={`site-link-${key}`}
+            >
+                {label}
+            </SiteLink>
+        )
+    });
+
+    const footerLinks = useMemo(()=>{
+        return layout.footer.map(({label, to}, key) => 
+            <MinorLink 
+                key={label} 
+                to={to}
+                color={ghost}
+                key={`footer-link-${key}`}
+            >
+                {label}
+            </MinorLink>
+        )
+    });
+
     return <div className={className}>
         
         <NavBar>
             <Title to={"/"} color={ghost}>{title || layout.title}</Title>
-            {layout.site.map(({label, to, color=pink}, key) =>  
-                <SiteLink 
-                    to={to} 
-                    color={color}
-                    key={`site-link-${key}`}
-                >
-                    {label}
-                </SiteLink>
-            )}
+            {links}
         </NavBar>
 
 
         <main>{children}</main>
         <footer>
-            <p>{"We work fearlessly to elevate operations and fuel a prosperous and accountable blue economy on behalf of future seas"}</p>
-            {layout.footer.map(({label, to}, key) => 
-                <MinorLink 
-                    key={label} 
-                    to={to}
-                    color={ghost}
-                    key={`footer-link-${key}`}
-                >
-                    {label}
-                </MinorLink>
-            )}
-        
-            <p>
-                {`Made with 🏴 in Maine`} <br/>
-                {`No rights reserved, 2018-${new Date().getFullYear()}`}
+            <p>{"We fearlessly pursue accountable blue prosperity and operational excellence on behalf of future seas"}</p>
+            {footerLinks}
+            <p> 
+                {`Made with 🏴 in Maine 2018-${new Date().getFullYear()}`}  <br/>
+                {`No rights reserved`}
             </p>
         </footer>
     </div>
@@ -113,7 +126,7 @@ export const StyledLayout = styled(Layout)`
         bottom: 0;
         padding-top: 1rem;
         padding-bottom: 1rem;
-        border-top: 0.1rem solid ${ghost};
+        border-top: none;
         border-bottom: 0.1rem solid ${ghost};
         border-radius: 1rem 1rem 0 0;
     }
