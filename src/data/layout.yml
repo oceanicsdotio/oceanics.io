@@ -4,21 +4,17 @@ site:
   - to: "/app"
     label: "Go Deeper"
 
-apiLabel: "APIs"
-
 api:
   - href: "https://graph.oceanics.io"
-    label: "Bathysphere"
-
-  - href: "https://bivalve.oceanics.io"
-    label: "Bivalve"
+    label: "API"
 
 footer:
+    
+  - to: "/policy"
+    label: "Policy"
+
   - to: "/references"
     label: "References"
 
   - to: "/tags"
     label: "Tags"
-    
-  - to: "/policy"
-    label: "Policy"

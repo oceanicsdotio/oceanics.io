@@ -17,8 +17,6 @@ export const NavBar = styled.nav`
     display: block;
     justify-content: space-between;
     text-align: left;
-    visibility: ${({hidden=false})=>hidden?"hidden":null};
-    height: ${({hidden=false})=>hidden?"0":"auto"};
     color: ${ghost};
 
     & > * {
@@ -72,8 +70,6 @@ export const Layout = ({
     title = null
 }) => {
 
-    const [hidden, toggleGutter] = useReducer(prev=>!prev, true);
-
     return <div className={className}>
         
         <NavBar>
@@ -87,12 +83,6 @@ export const Layout = ({
                     {label}
                 </SiteLink>
             )}
-            <button onClick={toggleGutter}>
-                {layout.apiLabel}
-            </button>
-        </NavBar>
-
-        <NavBar hidden={hidden}>
             {layout.api.map(({label, href, ok}, key) => 
                 <ExternalLink 
                     href={href} 
@@ -103,6 +93,7 @@ export const Layout = ({
                 </ExternalLink>
             )}
         </NavBar>
+
 
         <main>{children}</main>
         <footer>

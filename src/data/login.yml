@@ -7,9 +7,6 @@
   id: "password"
   placeholder: "************"
   required: true
-
-- id: "apiKey"
-  required: false
   
 - type: "select"
   id: "server"

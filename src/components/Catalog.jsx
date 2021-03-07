@@ -152,8 +152,7 @@ const Catalog = ({className}) => {
      */ 
     const { 
         refresh, 
-        login, 
-        register, 
+        login,  
         options, 
         populate, 
         navigate, 
@@ -169,9 +168,6 @@ const Catalog = ({className}) => {
             actions={[{
                 value: "Login",
                 onClick: login
-            }, {
-                value: "Signup",
-                onClick: register
             }]}
         />
 

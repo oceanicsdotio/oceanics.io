@@ -1,90 +1,58 @@
-import React from "react";
-import { Link, graphql } from "gatsby";
+import React, { useMemo } from "react";
 import styled from "styled-components";
+import YAML from "yaml";
+
 import Layout from "../components/Layout";
 import SEO from "../components/SEO";
-import { rhythm } from "../typography";
-import {grey, pink, ghost} from "../palette"
+import Form from "../components/Form";
 
-const StyledHeader = styled.h3`
-    margin-bottom: ${rhythm(0.25)};
+import about from "../data/about.yml";
+
+/**
+ * Login fields until openApi interface in complete
+ */
+import fields from "../data/register.yml";
+
+
+const StyledParagraph = styled.p`
+    font-size: larger;
 `;
 
-const StyledLink = styled(Link)`
-    box-shadow: none;
-    text-decoration: none;
-    color: ${pink};
-`;
-
-const Excerpt = styled.p`
-    color: ${ghost};
-`;
-
-const Date = styled.small`
-    color: ${grey};
-`;
-
-const Image = styled.img`
-    width: 100%;
-`;
-
-export default ({ 
-    data: { 
-        allMdx: {nodes}, 
-        site: { 
-            siteMetadata: {title}
-        } 
-    }, 
+/**
+ * Marketing page
+ */
+export default ({
     location
 }) => {
 
-    const bannerImage = "shrimpers-web.png";
+    /**
+     * Use a memo so that if something decides to refresh the parent,
+     * we won't pick the other narrative and be confusing. 
+     */
+    const version = useMemo(()=>{
 
-    return (
-        <Layout location={location} title={title}>
-            <SEO title={"Situational awareness for a changing ocean"} />
-            <Image src={bannerImage} alt={"Agents@Rest"} />
-            {nodes.map(node => {
-                const title = node.frontmatter.title || node.fields.slug;
-                return <article key={node.fields.slug}>
-                    <header>
-                        <StyledHeader>
-                            <StyledLink to={node.fields.slug}>
-                                {title}
-                            </StyledLink>
-                        </StyledHeader>
-                        <Date>{node.frontmatter.date}</Date>
-                    </header>
-                    <section>
-                        <Excerpt dangerouslySetInnerHTML={{
-                            __html: node.frontmatter.description || node.excerpt,
-                        }} />
-                    </section>
-                </article>
-            })}
-        </Layout>
-    )
-};
+        const random = Math.floor(Math.random() * about.length);
+        const { text, ...props } = about[random];
 
-export const pageQuery = graphql`
-  query {
-    site {
-      siteMetadata {
-        title
-      }
-    }
-    allMdx(sort: { fields: [frontmatter___date], order: DESC }) {
-      nodes {
-          excerpt
-          fields {
-            slug
-          }
-          frontmatter {
-            date(formatString: "MMMM DD, YYYY")
-            title
-            description
-          }
-      }
-    }
-  }
-`
+        return {
+            ...props,
+            content: YAML.parse(text)
+                .split("\n")
+                .filter(paragraph => paragraph)
+        }
+    });    
+
+    return <Layout location={location} title={"About"}>
+        <SEO title={"About"} />
+        {version.content.map((text, ii)=><StyledParagraph key={`paragraph-${ii}`}>{text}</StyledParagraph>)}
+        <Form 
+            id={"register-dialog"} 
+            callback={null}
+            fields={fields}
+            actions={[{
+                value: version.callToAction,
+                onClick: null
+            }]}
+        />
+    </Layout>
+}
