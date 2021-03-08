@@ -4,14 +4,8 @@ import YAML from "yaml";
 
 import Layout from "../components/Layout";
 import SEO from "../components/SEO";
-import Form from "../components/Form";
 
 import about from "../data/about.yml";
-
-/**
- * Login fields until openApi interface in complete
- */
-import fields from "../data/register.yml";
 
 
 const StyledParagraph = styled.p`
@@ -46,14 +40,5 @@ export default ({
         <SEO title={"About"} />
         {version.content.map((text, ii)=>
             <StyledParagraph key={`paragraph-${ii}`}>{text}</StyledParagraph>)}
-        <Form 
-            version={version.heading}
-            id={"register-dialog"}
-            fields={fields}
-            actions={[{
-                value: version.callToAction,
-                type: "button"
-            }]}
-        />
     </Layout>
 }

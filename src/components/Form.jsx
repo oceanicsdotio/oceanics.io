@@ -179,16 +179,11 @@ export const Form = ({
     id, 
     fields = null, 
     actions = null,
-    callback = null,
-    version = null
+    callback = null
 }) => {
     
     return <form 
-        id={id} 
-        name={id} 
-        method={"post"} 
-        data-netlify={"true"} 
-        data-netlify-honeypot={"bot-field"}
+        id={id}
     >
         {(fields || []).map(({
             name=null,
@@ -216,8 +211,6 @@ export const Form = ({
                 {...props}
             />
         )}
-        {<input type="hidden" name="form-name" value={id} />}
-        {<input type="hidden" name="version" value={version} />}
     
     </form>
 };
