@@ -9,8 +9,6 @@ description: |
 tags: ["Maine", "aquaculture", "labor", "shade", "opportunity"]
 ---
 
-# Maine marine workforce development
-
 Several reports on marine labor supply and industry in Maine came out in the recent past. 
 
 One was written by four Scottish consultants under the guidance of Maine marine industry and research organizations. The 130-page aquaculture workforce (AWFD 2020) report solicit survey responses on the challenges business face in hiring in rural Maine, focused on qualifications and skills. 
