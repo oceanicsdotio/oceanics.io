@@ -42,7 +42,7 @@ export default ({
 
     return (
         <Layout location={location} title={title}>
-            <SEO title={"Situational awareness for a changing ocean"} />
+            <SEO title={"Blue economy trust layer"} />
             <Image src={bannerImage} alt={"Agents@Rest"} />
             {nodes.map(node => {
                 const title = node.frontmatter.title || node.fields.slug;

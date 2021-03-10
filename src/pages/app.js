@@ -156,7 +156,7 @@ export default () => {
     const { ref } = useMapBox({ triggerResize: [expand], geolocationSettings: {}});
 
     return <App {...{mobile, expand}}>
-        <SEO title={"Discover data"} />
+        <SEO title={"Blue economy trust layer"} />
         <Pane 
             row={0} 
             column={0}
