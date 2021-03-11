@@ -108,7 +108,7 @@ export const Layout = ({
             <p>{"We fearlessly pursue accountable blue prosperity and operational excellence on behalf of future seas"}</p>
             {footerLinks}
             <p> 
-                {`Made with 🏴 in Maine 2018-${new Date().getFullYear()}`}  <br/>
+                {`Made with ⚡ in Maine 2018-${new Date().getFullYear()}`}  <br/>
                 {`No rights reserved`}
             </p>
         </footer>
