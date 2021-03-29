@@ -11,10 +11,9 @@ Our public presence is primarily through digital media, so attention to presenta
 
 Explicit design policies are provided. These exist to reduce friction, but may be revised when appropriate.
 
-
 ## Marks
 
-The company is Oceanicsdotio LLC. The short operating form, in order of preference, is one of:
+Our company is Oceanicsdotio LLC. The short operating form, in order of preference, is one of:
 
 - oceanics.io (non-proper noun, the web platform)
 - Oceanics.io (proper noun, the company)
@@ -35,13 +34,15 @@ Short form copy and tagline examples:
 - The trust layer of the blue economy
 - The **other** marine autonomy
 
-
 ## Copy
 
-Language should be as straight forward as possible, while retaining technical density. Basically, know what you are talking about, and don’t dumb it down.
+Language should be as straight forward as possible, while retaining technical density. 
 
-Less is more, and I personally hate adverbs. 
+Basically, know what you are talking about, and don’t dumb it down.
 
+Less is more, and I personally hate adverbs. Sans serif almost always, except for print. Large fonts, moderate white space.
+
+Don't use these, because, unless...
 
 | **Word, Phrase, or Element** | **Reason, if given** | **Exception**         |
 | ---------------------------- | -------------------- | --------------------- |
@@ -68,40 +69,12 @@ Less is more, and I personally hate adverbs.
 | green                        |                      |                       |
 | basic                        | demeaning            | chemistry, bitches    |
 
+## Visual media
 
+No stock photography or “Corporate Memphis”.
 
-
-
-## Typesetting
-
-Sans serif almost always, except for print. Large fonts, moderate white space.
-
-
-## Photography
-
-No stock photography. 
-
-Images should support written copy, and be licensed from independent photographers when possible. 
-
-
-## Video
+Images should support written copy, and be licensed from photographers/artists when possible. Creative work sourced from independent designers is preferred. It is not acceptable to use predatory multi-artist bidding systems. 
 
 Video is a major web performance and accessibility risk. 
 
 Video should be used sparingly, for purposes to which it is best suited, especially conveying large amounts of information quickly in a educational or news context. 
-
-
-## Illustration & Design
-
-No “Corporate Memphis”. 
-
-Creative work sourced from independent designers is preferred. It is not acceptable to use predatory multi-artist bidding systems. 
-
-
-
-## Palette
-![](https://paper-attachments.dropbox.com/s_0732D8364DA4D54C6B7DCE0701339BEFE0C55B05BC4FEF8856A948A02F00D5BB_1612603127818_oceanics-io-palette.png)
-
-
-
-
