@@ -57,7 +57,7 @@ pyyaml = "~=5.4"
 semver = "==2.13.0"
 six = "==1.15.0"
 zipp = "==3.4.0"
-jinja2 = ">=2.11.3"
+jinja2 = "==2.11.2"
 
 [packages.e1839a8]
 path = "."
