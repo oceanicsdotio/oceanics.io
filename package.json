@@ -55,7 +55,7 @@
     "styled-components": "^5.1.1",
     "typography": "^0.16.19",
     "uuid": "^8.3.2",
-    "xmldom": "^0.4.0",
+    "xmldom": "^0.5.0",
     "yaml": "^1.10.0"
   },
   "devDependencies": {
