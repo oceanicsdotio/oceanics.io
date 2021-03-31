@@ -24,31 +24,31 @@ The use of many languages adds some complex, but the structure ends up being pre
 
 The top-level directory `/` contains this `README.md` along with various configuration files and scripts for linting, compiling, bundling, and deploying the site. Subdirectories `/.github` and `/.storybook` contain additional configuration data.
 
-Static data and documents live in `content` and `static`. The former is used by GatsbyJS to generate single page applications that _look like_ blog posts. Resources in `static` are publicly addressable with the same route as the file name.
+Static data and documents live in `/content` and `/static`. The former is used by GatsbyJS to generate single page applications that _look like_ blog posts. Resources in `/static` are publicly addressable with the same route as the file name.
 
-Source code for Netlify serverless functions is in `functions` (NodeJS/Go). These are single purpose services that support secure data access, pre-processing, and sub-setting.
+Source code for Netlify serverless functions is in `/functions` (NodeJS/Go). These are single purpose services that support secure data access, pre-processing, and sub-setting.
 
-Building locally (see below) will produce additional subdirectories.  
+The main part of the application code is in `/src`.
 
-### Deploy
+Building locally produces additional artifacts.  
 
-JavaScript dependencies and builds are managed with `yarn`. A local version is deployed to port `8000` with `yarn develop`. See [`package.json`](/package.json) for build scripts, etc.
+### Environment
 
-Static assets are hosted on Netlify. When new commits are checked into the repository, the site is built and deployed to [www.oceanics.io](https://www.oceanics.io).
-
-You need to set the environment variables `SPACES_ACCESS_KEY` and `SPACES_SECRET_KEY` to access data from secure S3 buckets. Locally we use a git-ignored `.envrc` file.
-
-### Rust/WASM
-
-The frontend uses Rust compiled to web assembly (WASM). There is still a lot of JavaScript, but the numerical and graphics features have been ported over to Rust. This section is for for those interested in diving right in.
-
-Start developing on Rust/WASM with `rustup`, and `wasm-pack`:
+The frontend uses Rust compiled to web assembly (WASM). [`Cargo.toml`](/Cargo.toml) describes the Rust crate dependencies. You'll need `rustup` and `wasm-pack`:
 
 ```bash
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 ```
 
-Gatsby triggers the build pipeline automatically! But, only on the execution of `yarn build` or `yarn develop`! There is no hot loading or automatic recompiling. This is described in [`gatsby-nodes.js`](/gatsby-node.js)
+You need to set the environment variables `SPACES_ACCESS_KEY` and `SPACES_SECRET_KEY` to access data from secure S3 buckets. Locally we use a git-ignored `.envrc` file.
 
-The [`Cargo.toml`](/Cargo.toml) config file describes the Rust dependencies. The `wasm-bindgen` and `wasm-pack` package WASM as an importable JavaScript library named `neritics`. Use `yarn compile` to compile rust to WASM and generate necessary JavaScript bindings, or see the command in [`package.json`](/package.json).
+JavaScript dependencies and builds are managed with `yarn`. Deploy a local version to port `8000` with `yarn develop`. See [`package.json`](/package.json) for build scripts, etc.
+
+When running `yarn build` or `yarn develop` GatsbyJS automatically triggers compilation. Errors in the code will cause the entire build to fail. There is no hot loading or automatic recompiling, as described in [`/gatsby-node.js`](/gatsby-node.js).  The build produces the `neritics` JavaScript module.
+
+You can also use `yarn compile` to build.
+
+### Deploy
+
+Static assets are hosted on Netlify. When new commits are checked into the Github repository, the site is built and deployed to [https://www.oceanics.io](https://www.oceanics.io).
