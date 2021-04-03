@@ -51,12 +51,12 @@ Groups of applicants can submit duplicate locations, and these will be ranked hi
 
 We use three functions: `verify(agent)`, `cluster(agents, n)`, and `rank(cluster)`. 
 
-To avoid skewing selection, we don't release parameters until after a final selection, and when any agent is found ineligble we restart. Selection continues until there are there are no more agents, or an awardee agrees to inspect the buoy during normal operations and report damage or loss in a timely manner
+To avoid skewing selection, we don't release parameters until after a final selection, and when any agent is found ineligible we restart. Selection continues until there are there are no more agents, or an awardee agrees to inspect the buoy during normal operations and report damage or loss in a timely manner
 
 We form negotiating teams using fuzzy C means (e.g. Dunn 1973) on location and aggregate agent-reported effort for the group. Agents with no current efforts are not able to apply.
 
-The team is ranked using a logistic function of information gain provided by co-locating infrastucture. To avoid gaming the system, we don't release gain parameters until after a final selection. Your effort is `1/period * observedProperties * locations` and the value of the service is 64,800 observations. 
+The team is ranked using a logistic function of information gain provided by co-locating infrastructure. To avoid gaming the system, we don't release gain parameters until after a final selection. Your effort is `1/period * observedProperties * locations` and the value of the service is 64,800 observations. 
 
 One team is picked randomly with the probability proportional to rank. The member with the greatest reported effort is the designated representative. Agents are notified when selected, withdrawn, or the process ends. 
 
-Final location is at the discretion of the owner and deploying vessel. The owner maintains infrastructure and makes sensor observations public on the web within one hour without guarantee or warranty for suitability for any purpose. The owners and Oceanicsdotio LLC use anonymized data for market analysis and research reporting.
+Final location is at the discretion of the owner and deploying vessel. The owner maintains infrastructure and makes sensor observations public on the web within one hour without guarantee or warranty for suitability for any purpose. The owners and Oceanicsdotio LLC use anonymous data for market analysis and research reporting.

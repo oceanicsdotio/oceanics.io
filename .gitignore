@@ -82,3 +82,6 @@ Cargo.lock
 
 # netcdf data
 *.nc
+
+# Visual studio
+.vscode/
