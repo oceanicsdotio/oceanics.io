@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo, useReducer } from "react";
 import { Link, graphql } from "gatsby";
 import styled from "styled-components";
 import Layout from "../components/Layout";
@@ -37,31 +37,52 @@ export default ({
     }, 
     location
 }) => {
-
+    /**
+     * Image to use for top of article list
+     */
     const bannerImage = "shrimpers-web.png";
+
+    /**
+     * How many articles are made visible at a time.
+     */
+    const visibilityIncrement = 3;
+
+    /**
+     * Memoize the article components so that they aren't
+     * re-rendered when user adds more to view.
+     */
+    const articles = useMemo(() => {
+        return nodes.map(node => {
+            const title = node.frontmatter.title || node.fields.slug;
+            return <article key={node.fields.slug}>
+                <header>
+                    <StyledHeader>
+                        <StyledLink to={node.fields.slug}>
+                            {title}
+                        </StyledLink>
+                    </StyledHeader>
+                    <Date>{node.frontmatter.date}</Date>
+                </header>
+                <section>
+                    <Excerpt dangerouslySetInnerHTML={{
+                        __html: node.frontmatter.description || node.excerpt,
+                    }} />
+                </section>
+            </article>
+        })
+    });
+
+    const [visible, increment] = useReducer(
+        prev => Math.min(articles.length, prev + 3),
+        visibilityIncrement
+    );
 
     return (
         <Layout location={location} title={title}>
             <SEO title={"Blue economy trust layer"} />
             <Image src={bannerImage} alt={"Agents@Rest"} />
-            {nodes.map(node => {
-                const title = node.frontmatter.title || node.fields.slug;
-                return <article key={node.fields.slug}>
-                    <header>
-                        <StyledHeader>
-                            <StyledLink to={node.fields.slug}>
-                                {title}
-                            </StyledLink>
-                        </StyledHeader>
-                        <Date>{node.frontmatter.date}</Date>
-                    </header>
-                    <section>
-                        <Excerpt dangerouslySetInnerHTML={{
-                            __html: node.frontmatter.description || node.excerpt,
-                        }} />
-                    </section>
-                </article>
-            })}
+            {articles.slice(0, visible)}
+            <p><em onClick={increment}>{"Show older content..."}</em></p>
         </Layout>
     )
 };
