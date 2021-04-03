@@ -10,6 +10,7 @@ import Rubric from "../components/Rubric";
 import References, {Reference, Inline} from "../components/References";
 import PDF from "../components/PDF";
 import OpenApi from "../components/OpenApi";
+import ServiceLine from "../components/ServiceLine";
 
 import { rhythm, scale } from "../typography";
 require(`katex/dist/katex.min.css`);
@@ -54,7 +55,8 @@ export default ({
                 References,
                 Inline,
                 PDF,
-                OpenApi
+                OpenApi,
+                ServiceLine
             }}>
             <article>
                 <header>
