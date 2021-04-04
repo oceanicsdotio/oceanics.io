@@ -13,7 +13,6 @@ functions/
 node_modules/
 public/
 src/
-static/
 target/
 .babelrc
 .envrc

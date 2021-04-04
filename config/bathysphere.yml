@@ -468,7 +468,7 @@ metadata:
     specification: ../openapi/
     logging: "logs/{}"
     basePath: "/api"
-    specPath: "openapi/api.yml"
+    specPath: "static/bathysphere/api.yml"
     healthcheck: "http://{}/api/Things"
     image:      
       styles:
