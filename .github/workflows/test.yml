@@ -51,7 +51,7 @@ jobs:
       #     NEO4J_HOSTNAME: ${{ secrets.PROD_NEO4J_HOSTNAME }}
       
       - name: Generate docs
-        run: pdoc --html --force --output-dir static/bathysphere docs 
+        run: pdoc --html --force --output-dir static/bathysphere/docs bathysphere
         env:
           NEO4J_ACCESS_KEY: n0t_passw0rd
           NEO4J_HOSTNAME: localhost
