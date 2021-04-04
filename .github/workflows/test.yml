@@ -1,0 +1,71 @@
+name: Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+   
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      
+      neo4j:
+        # Same setup as in docker-compose.yml
+        image: neo4j:3.5.16
+        ports:
+          - 7474:7474 # http
+          - 7473:7473 # https
+          - 7687:7687 # bolt
+        env:
+          POSTGRES_PASSWORD: n0t_passw0rd
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.7
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-cov
+          pip install -e .
+          pip install -r requirements.txt
+          
+      - name: Pytest localhost
+        run: $(bathysphere test)
+        env:
+          NEO4J_ACCESS_KEY: n0t_passw0rd
+          NEO4J_HOSTNAME: localhost
+
+      # Uncomment to teardown and rebuild database with new secrets
+
+      # - name: Pytest cloud
+      #   run: $(bathysphere test)
+      #   env:
+      #     NEO4J_ACCESS_KEY: ${{ secrets.PROD_NEO4J_PASSWORD }}
+      #     NEO4J_HOSTNAME: ${{ secrets.PROD_NEO4J_HOSTNAME }}
+      
+      - name: Generate docs
+        run: pdoc --html --force --output-dir openapi/docs bathysphere
+        env:
+          NEO4J_ACCESS_KEY: n0t_passw0rd
+          NEO4J_HOSTNAME: localhost
+
+      - name: Commit files
+        continue-on-error: true
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git commit -m "Autogen Docs" -a
+
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        continue-on-error: true
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}

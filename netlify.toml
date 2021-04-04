@@ -51,3 +51,30 @@
 
 [[plugins]]
   package = "netlify-plugin-gatsby-cache"
+
+[[redirects]]
+  from = "/docs"
+  to = "/docs/bathysphere"
+  status = 301
+  force = false
+
+[[redirects]]
+  from = "/api/*"
+  to = "https://bathysphere-f6ccuy4zzq-uc.a.run.app/api/:splat"
+  status = 200
+  force = true
+  headers = {X-From = "Netlify"}
+
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+ 
+    Content-Security-Policy = '''
+    graph.oceanics.io,
+    faas.oceanics.io,
+    cdn.jsdelivr.net,
+    *.googleapis.com,
+    *.github.com
+    '''

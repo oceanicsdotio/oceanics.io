@@ -1,0 +1,214 @@
+<article class="guide">
+    <carousel class="deck container-fluid">
+
+        <slide class="row-fluid">
+
+            <div class="col-sm-3">
+                <h3>Bathysphere API</h3>
+                <p class="lead">Geospatial graph database</p>
+            </div>
+            <div class="col-sm-9">
+                <p>
+                    The Bathypshere API uses Neo4j as backend to store spatiotemporal data.
+                    This guide introduces core concepts in the design of the framework,
+                    and common methods for working with domain-specific data formats and
+                    models.
+                </p>
+                <ol class="big">
+                    <li>Load: create data from external CSV files</li>
+                    <li>Index: index nodes based on label</li>
+                    <li>Relate: transform foreign key references into data relationships</li>
+                    <li>Promote: transform join records into relationships</li>
+                </ol>
+            </div>
+        </slide>
+
+        <slide class="row-fluid">
+            <div class="col-sm-3">
+                <h3>Geospatial data</h3>
+                <p class="lead">Example with topological mesh</p>
+            </div>
+            <div class="col-sm-9">
+                <p>
+                    A single triangular element/cell in a 2D mesh consists of seven graph nodes: 
+                    three vertices, three edges, and one element. 
+                    The former are related to the latter by the `SIDE_OF` relationship. 
+                    The vertices and edges are shared by other edges and elements, which they are also `SIDE_OF`.
+                </p>
+                <p>
+                    CSV data are ingested from data at a uniform resource identifier.
+                    Vertices are loaded first, and relationships built in the second call. 
+                    The process calls `CREATE` for each line of the input file. 
+                    Explicit IDs are used for mapping between global and local domains when partitioning the graph. 
+                    The files need to be in `/var/lib/neo4j/import` of the database container. 
+                </p>
+                <figure>
+                    <pre class="pre-scrollable code runnable">
+USING PERIODIC COMMIT
+LOAD CSV FROM "file:///neo4j_nodes.csv" AS line
+CREATE (n:Node { id: toInteger(line[0]), latitude: toFloat(line[1]), longitude: toFloat(line[2]), depth: toFloat(line[3]) })
+                    </pre>
+                    <figcaption>Create vertices</figcaption>
+                </figure>
+                <figure>
+                    <pre class="pre-scrollable code runnable">
+USING PERIODIC COMMIT
+LOAD CSV FROM "file:///neo4j_elements.csv" AS line
+CREATE ( e:Element { id: toInteger(line[0]) } )
+                    </pre>
+                    <figcaption>Create elements</figcaption>
+                </figure>
+               
+            </div>
+        </slide>
+
+
+        <slide class="row-fluid">
+            <div class="col-sm-3">
+                <h3>Topology</h3>
+                <p class="lead">Build graph in multiple passes</p>
+            </div>
+            <div class="col-sm-9">
+                <figure>
+                    <pre class="pre-scrollable code runnable">
+CREATE CONSTRAINT ON (e:Element) ASSERT e.id IS UNIQUE
+CREATE CONSTRAINT ON (n:Node) ASSERT n.id IS UNIQUE
+                    </pre>
+                    <figcaption>Enforce unique records</figcaption>
+                </figure>
+                <p>
+                    This automatically creates an index on ID. 
+                    Depending on the structure of your queries, it may be useful to manually index a property, 
+                    such as the node ID. 
+                    Adding an index is quick and speeds up queries, but takes up more memory, 
+                    so de-index when not in use,
+
+                </p>
+                <figure>
+                    <pre class="pre-scrollable code runnable">
+CREATE INDEX ON :Node(id)
+CREATE INDEX ON :Element(id)
+DROP INDEX ON :Node(id)
+DROP INDEX ON :Element(id)
+                    </pre>
+                    <figcaption>Create or drop indices</figcaption>
+                </figure>
+
+                <p>
+                    Parent-child relationships are created in an additional pass. 
+                    This reads the elements file again, and sets vertices `SIDE_OF` elements.
+                </p>
+
+                <figure>
+                    <pre class="pre-scrollable code runnable">
+USING PERIODIC COMMIT
+LOAD CSV FROM "file:///neo4j_elements.csv" AS line
+MATCH ( n1:Node { id: toInteger(line[1]) } ), \
+( n2:Node { id: toInteger(line[2]) } ), \
+( n3:Node { id: toInteger(line[3]) } ), \
+( e:Element { id: toInteger(line[0]) } )
+CREATE (n1)-[:SIDE_OF]->(e)
+CREATE (n2)-[:SIDE_OF]->(e)
+CREATE (n3)-[:SIDE_OF]->(e)
+                    </pre>
+                    <figcaption>Create relationships</figcaption>
+                </figure>
+               
+            </div>
+        </slide>
+
+        
+        <slide class="row-fluid">
+            <div class="col-sm-3">
+                <h3>Queries</h3>
+                <p class="lead">Get derived information</p>
+            </div>
+
+            <div class="col-sm-9">
+                <p>
+                    Using a 3D model as an example, here are some basic queries.
+                </p>
+                <figure>
+                    <pre class="pre-scrollable code runnable">MATCH (v:Vertex)-[]->(t:Triangle {id: 100}) RETURN v, t</pre>
+                    <figcaption>Return a specific triangle, child vertices, and their relationships</figcaption>
+                </figure>
+
+                <figure>
+                    <pre class="pre-scrollable code runnable">MATCH (:Vertex {id: 118})-[]->(:Triangle {id: 100})<-[]-(v:Vertex) RETURN n.id</pre>
+                    <figcaption>Return neighbor indices of vertices connected to a named vertex through a named parent</figcaption>
+                </figure>
+
+                <figure>
+                    <pre class="pre-scrollable code runnable">MATCH (v:Vertex)-[*1..3]-(t:Triangle {id: 152}) RETURN count(DISTINCT v)</pre>
+                    <figcaption>Return the number of  within 2 strides of named element</figcaption>
+                </figure>
+
+                <figure>
+                    <pre class="pre-scrollable code runnable">MATCH (v:Vertex)-[]-(:Triangle {id: 10000}) RETURN avg(v.x)</pre>
+                    <figcaption>Return the center coordinates of a triangle</figcaption>
+                </figure>
+           
+            </div>
+        </slide>
+
+        <slide class="row-fluid">
+            <div class="col-sm-3">
+                <h3>Neighbors</h3>
+                <p class="lead">Pre-compute neighbors to speed up local area search.</p>
+            </div>
+
+            <div class="col-sm-9">
+               
+                <p>Nodes are neighbors if they share a parent. Each node gets a <b>non-directional</b> neighbor relationship with unique nodes that joined by a parent.</p>
+                <figure>
+                    <pre class="pre-scrollable code runnable">
+MATCH (a:Node)-[:SIDE_OF]->(:Cell)<-[:SIDE_OF]-(b:Node) 
+MERGE (a)-[:NEIGHBORS]-(b)
+                    </pre>
+                    <figcaption>Encode implicit neighbor relationships in the graph</figcaption>
+                </figure>
+
+                <p>
+                    Cells are neighbors if they share two child nodes. 
+                    Crawling all node and cell combinations would be really slow, 
+                    and we already created edges as neighbor relationships between nodes. 
+                    Use those to create cell neighbors, since they are one-to-one, **with one notable exception**. 
+                    Edges joining boundary nodes will not have cell-cell neighbor relationships.
+                </p>
+
+                <figure>
+                    <pre class="pre-scrollable code runnable">
+
+MATCH (a:Node {id: 0})
+MATCH (a)-->(b)-[:SIDE_OF]->(c:Element)<-[:SIDE_OF]-(a)
+WITH collect(DISTINCT c.id) AS candidates
+MATCH 
+RETURN candidates
+
+MATCH (a)-->(b)--(c)--(a)
+MATCH (b)-->(candidates:Element)<--(c)
+WITH DISTINCT candidates AS unique, parents
+WITH collect(unique.id) AS cans, collect(parents.id) AS pars
+RETURN apoc.coll.intersection(cans, pars)
+
+RETURN a.id, b.id, c.id
+
+WITH a, b
+MATCH (a)-[:SIDE_OF]->(e:Element)
+UNWIND b.id AS nb
+MATCH p = (:Node {id: nb})-[:SIDE_OF]->(e)<--(a)
+RETURN e.id
+
+UNWIND b.id as nb
+MATCH (:Node {id: nb})-->(start:Element)<--(a)-[:NEIGHBORS]->(:Node {id: nb})->(end:Element)<--(a)
+RETURN nb.id, b.id, e.id
+                    </pre>
+                    <figcaption>Calculate element neighbors</figcaption>
+                </figure>
+               
+            </div>
+        </slide>
+
+    </carousel>
+</article>
+w
