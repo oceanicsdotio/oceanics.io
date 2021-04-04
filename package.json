@@ -6,7 +6,7 @@
   "author": "Oceanicsdotio <business@oceanics.io>",
   "dependencies": {
     "@apidevtools/swagger-parser": "^10.0.2",
-    "@babel/core": "^7.13.8",
+    "@babel/core": "^7.13.14",
     "@babel/plugin-syntax-import-meta": "^7.10.1",
     "@mdx-js/mdx": "^1.6.21",
     "@mdx-js/react": "^1.6.21",
@@ -16,7 +16,7 @@
     "babel-plugin-syntax-dynamic-import": "^6.18.0",
     "babel-preset-gatsby": "^0.12.2",
     "gatsby": "^2.32.3",
-    "gatsby-cli": "^3.1.0",
+    "gatsby-cli": "^3.2.0",
     "gatsby-image": "^2.11.0",
     "gatsby-link": "^2.10.0",
     "gatsby-plugin-create-client-paths": "^2.10.0",
