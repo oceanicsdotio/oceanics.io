@@ -1,5 +1,11 @@
 @charset "UTF-8";
 
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 body, html{
     background: #000000;
     font-size: large;

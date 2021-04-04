@@ -54,6 +54,6 @@ export default () => {
             onClick={e=>{
                 console.log("click");
             }}
-        >{"Next"}</button>
+        >{"Content..."}</button>
     </>
 }
