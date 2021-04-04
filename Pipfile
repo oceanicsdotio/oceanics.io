@@ -15,7 +15,7 @@ pytest-parallel = "*"
 vulture = "*"
 
 [requires]
-python_version = "3.8"
+python_version = "3.7"
 
 [packages]
 Flask = "==1.1.2"
@@ -58,3 +58,11 @@ semver = "==2.13.0"
 six = "==1.15.0"
 zipp = "==3.4.0"
 jinja2 = "==2.11.2"
+
+[packages.e1839a8]
+path = "."
+editable = true
+
+[packages.aa88ef7]
+path = "/home/keeney/bathysphere"
+editable = true
