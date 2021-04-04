@@ -67,6 +67,7 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
+          git add
           git commit -m "Autogen Docs" -a
 
       - name: Push changes
@@ -79,7 +80,7 @@ jobs:
       - name: Push container
         run: |
           doctl registry login
-          docker tag latest registry.digitalocean.com/bathysphere/latest
-          docker push registry.digitalocean.com/bathysphere/latest
+          docker tag bathysphere registry.digitalocean.com/bathysphere/bathysphere
+          docker push registry.digitalocean.com/bathysphere/bathysphere
 
       
