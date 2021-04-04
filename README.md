@@ -28,7 +28,7 @@ The runtime supports parallelism, and the web infrastructure scales to meet high
 
 The software is maintained by Oceanicsdotio LLC and provided as is with no warranty or guarantee. As we validate models we will provide uptime, accuracy, and suitability guarantees.
 
-Collaborator welcome! Our core systems will always be open source.
+Collaboration welcome! Our core systems will always be open source.
 
 <p align="center">
   <img width="75%" height="75%" src="content/assets/dagan.png">
