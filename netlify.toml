@@ -53,7 +53,7 @@
 
 [[redirects]]
   from = "/bathysphere"
-  to = "/bathysphere.html"
+  to = "/bathysphere/index.html"
   status = 301
   force = false
 
