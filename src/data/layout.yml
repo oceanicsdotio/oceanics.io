@@ -2,7 +2,10 @@ title: "Oceanics.io"
 
 site:
   - to: "/app"
-    label: "Discover data"
+    label: "Data"
+
+  - to: "/bathysphere"
+    label: "API"
 
 footer:
     

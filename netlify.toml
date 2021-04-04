@@ -48,13 +48,12 @@
   to = "oceanicsdotio.cdn.nyc3.digitaloceanspaces.com"
   status = 303
 
-
 [[plugins]]
   package = "netlify-plugin-gatsby-cache"
 
 [[redirects]]
-  from = "/docs"
-  to = "/docs/bathysphere"
+  from = "/bathysphere"
+  to = "/bathysphere.html"
   status = 301
   force = false
 

@@ -1,6 +1,6 @@
 # Oceanics.io
 
-![Test](https://github.com/oceanicsdotio/bathysphere/workflows/Test/badge.svg)
+![Test](https://github.com/oceanicsdotio/oceanics.io/workflows/Test/badge.svg)
 ![Netlify Status](https://api.netlify.com/api/v1/badges/dfa3c4f1-b304-42cb-9ff5-ea64f2219ff0/deploy-status)
 
 - [About](#about)
