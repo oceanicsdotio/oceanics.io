@@ -178,6 +178,7 @@ typings/
 
 # dotenv environment variable files
 .env*
+out/
 
 # gatsby files
 .cache/

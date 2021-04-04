@@ -1,55 +1,24 @@
 [build]
-  base ="/"
+  base = "/"
   command = "make build"
   publish = "public"
   functions = "/functions"
+  environment = {GO_VERSION = "1.14.6", NODE_VERSION = "12", AWS_LAMBDA_JS_RUNTIME = "nodejs12.x"}
 
-[build.environment]
-  GO_VERSION = "1.14.6"
-
-[[redirects]]
-  from = "/catalog"
-  to = "/app"
-  force = true
-
-[[redirects]]
-  from = "/vessel"
-  to = "/app"
-  force = true
-
-[[redirects]]
-  from = "/map"
-  to = "/app"
-  force = true
-
-[[redirects]]
-  from = "/oceanside"
-  to = "/app"
-  force = true
-
-[[redirects]]
-  from = "/turbulence-demo"
-  to = "/app"
-  force = true
-
-[[redirects]]
-  from = "/legal"
-  to = "/policy"
-  force = true
-
+[[plugins]]
+  package = "netlify-plugin-gatsby-cache"
 
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
   status = 200
+  force = true
+  headers = {X-From = "Netlify"}
 
 [[redirects]]
   from = "/api/mesh-nodes/*"
   to = "oceanicsdotio.cdn.nyc3.digitaloceanspaces.com"
   status = 303
-
-[[plugins]]
-  package = "netlify-plugin-gatsby-cache"
 
 [[redirects]]
   from = "/bathysphere"
@@ -57,23 +26,13 @@
   status = 301
   force = false
 
-[[redirects]]
-  from = "/api/*"
-  to = "https://bathysphere-f6ccuy4zzq-uc.a.run.app/api/:splat"
-  status = 200
-  force = true
-  headers = {X-From = "Netlify"}
-
-
 [[headers]]
   for = "/*"
   [headers.values]
     Access-Control-Allow-Origin = "*"
- 
     Content-Security-Policy = '''
-    graph.oceanics.io,
-    faas.oceanics.io,
-    cdn.jsdelivr.net,
-    *.googleapis.com,
-    *.github.com
+        *.oceanics.io,
+        *.googleapis.com,
+        *.github.com,
+        cdn.jsdelivr.net
     '''
