@@ -80,7 +80,7 @@ jobs:
       - name: Push container
         run: |
           doctl registry login
-          docker tag bathysphere registry.digitalocean.com/bathysphere/bathysphere
+          docker tag oceanicsdotio/bathysphere registry.digitalocean.com/bathysphere/bathysphere
           docker push registry.digitalocean.com/bathysphere/bathysphere
 
       
