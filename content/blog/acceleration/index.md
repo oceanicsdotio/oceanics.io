@@ -9,28 +9,24 @@ tags: ["python", "distributed computing", "parallel", "gpu"]
 ---
 
 
-Python is a dynamically typed, interpreted scripting language. 
-Out of the box, this can be slower, but that is easy to overcome. 
-You can do more with less code, programming in high level languages is faster. 
-Since the installation of the interpretor handles machineand operating system dependencies and quirks, you can write code once that will run anywhere. 
-The computational bits can also be refactored into lower level languages like Fortran and C. 
+Python is a dynamically typed, interpreted scripting language. Out of the box, this can be slower, but that is easy to overcome. You can do more with less code, programming in high level languages is faster.
+
+Since the installation of the interpreter handles machine and operating system dependencies and quirks, you can write code once that will run anywhere.
+
+The computational bits can also be refactored into lower level languages like Fortran and C.
 
 ## Just-in-time compilation
 
-Numba does just-in-time (JIT) compiling on Python code to make it as fast as native C in many cases. 
-This approach is good for pieces of code that run repetitively. 
+Numba does just-in-time (JIT) compiling on Python code to make it as fast as native C in many cases. This approach is good for pieces of code that run repetitively. 
 
 ## Parallel computing
 
-There a several ways to accelerate code.
-This accomplished through parallelization in shared or distributed memory setting. 
-Graphical processing units (GPUs) can accelerate jobs further. 
-At the application layer, methods are encapsulated so that they can be executed as a batch of jobs across the processors on one or more machines
+There a several ways to accelerate code. This accomplished through parallelization in shared or distributed memory setting. Graphical processing units (GPUs) can accelerate jobs further. At the application layer, methods are encapsulated so that they can be executed as a batch of jobs across the processors on one or more machines
 
 ### Message passing
 
-Python uses processor parallelism instead of thread parallelism. 
-When processes need to communicate, they use Message Passing Interface (MPI). 
+Python uses processor parallelism instead of thread parallelism. When processes need to communicate, they use Message Passing Interface (MPI).
+
 Use the common C Pi example to see if MPI is installed:
 
 ```bash
@@ -40,18 +36,15 @@ mpicc MPI_08_b.c -o MPI_08_b.c -lm
 mpiexec -n 1 call-procs
 ```
 
-This will need to be working before Python bindings to MPI will work. 
+This will need to be working before Python bindings to MPI will work.
 
+## Distributed computing
 
-# Distributed computing
+When parallelism expands outside of a single machine or hsared-memory space, we start calling it distributed computing.
 
-When parallelism expands outside of a single machine or hsared-memory space, we start calling it distributed computing. 
-For Python, [this](https://eli.thegreenplace.net/2012/01/24/distributed-computing-in-python-with-multiprocessing/) is a better description than I can come up with off the cuff. 
-There are [two approaches to distributed computing](https://blog.computes.com/distributed-computed-centralized-vs-decentralized-c1d21202bde8): centralized and decentralized. 
-Centralized is simpler, and will be discussed here. 
-For ecological simulations, there will generally be some kind of controller that schedules the various tasks needed during each time step. 
+For Python, [this](https://eli.thegreenplace.net/2012/01/24/distributed-computing-in-python-with-multiprocessing/) is a better description than I can come up with off the cuff. There are [two approaches to distributed computing](https://blog.computes.com/distributed-computed-centralized-vs-decentralized-c1d21202bde8): centralized and decentralized. Centralized is simpler, and will be discussed here. For ecological simulations, there will generally be some kind of controller that schedules the various tasks needed during each time step.
 
-## Example pattern
+### Example pattern
 
 Say you are calculating particle trajectories, and have a NetCDF output from FVCOM, but it doesn't include dispersal terms for whatever reason. 
 The initial process is a job server/manager, which distributes work across machines and processes. 
@@ -147,20 +140,16 @@ conda install libgcc
 pip install git+https://github.com/ray-project/ray.git#subdirectory=python
 ```
 
-# Compute shaders
+## Compute shaders
 
-The GPU can act as an additional worker. 
-Programming for the GPU is accomplished with compute shaders, which replace the traditional rendering pipeline. 
+The GPU can act as an additional worker. Programming for the GPU is accomplished with compute shaders, which replace the traditional rendering pipeline. 
 
-There on instructions online for [optimizing the Videocore GPU](https://petewarden.com/2014/08/07/how-to-optimize-raspberry-pi-code-using-its-gpu/) in Raspberry Pi, 
-but it's probably not worth the effort. 
+There on instructions online for [optimizing the Videocore GPU](https://petewarden.com/2014/08/07/how-to-optimize-raspberry-pi-code-using-its-gpu/) in Raspberry Pi, but it's probably not worth the effort.
 
-[Arrayfire](https://github.com/arrayfire/arrayfire-python/wiki) is an open source optimizer for CUDA and [OpenCL](https://www.khronos.org/opencl/) on GPUs and CPUs, 
-that has extensions for Fortran and Python. On MacOS, there is an installer package. 
-After this has been dowloaded and executed, the Python package can be installed with:
+[Arrayfire](https://github.com/arrayfire/arrayfire-python/wiki) is an open source optimizer for CUDA and [OpenCL](https://www.khronos.org/opencl/) on GPUs and CPUs, that has extensions for Fortran and Python. On MacOS, there is an installer package. After this has been dowloaded and executed, the Python package can be installed with:
 
 ```bash
 pip install arrayfire line_profiler memory_profiler objgraph numba
 ```
 
-The basic array creation functions and types are in arrayfire.data. 
+The basic array creation functions and types are in `arrayfire.data`.

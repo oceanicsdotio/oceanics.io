@@ -5,7 +5,8 @@ description: |
     This document sets high-level intentions for brand development and differentiation. Craft is a differentiator.
 tags: ["brand", "design", "oceanics.io", "internal", "shade"]
 ---
-## Purpose 
+
+## Purpose
 
 Our public presence is primarily through digital media, so attention to presentation and consistency in these channels is important to us. To that end, this covers the types of media and brand marks we invest in. I hope it will reduce bike-shedding and agile revision spirals. 
 
@@ -73,8 +74,8 @@ Don't use these, because, unless...
 
 No stock photography or “Corporate Memphis”.
 
-Images should support written copy, and be licensed from photographers/artists when possible. Creative work sourced from independent designers is preferred. It is not acceptable to use predatory multi-artist bidding systems. 
+Images should support written copy, and be licensed from photographers/artists when possible. Creative work sourced from independent designers is preferred. It is not acceptable to use predatory multi-artist bidding systems.
 
-Video is a major web performance and accessibility risk. 
+Video is a major web performance and accessibility risk.
 
-Video should be used sparingly, for purposes to which it is best suited, especially conveying large amounts of information quickly in a educational or news context. 
+Video should be used sparingly, for purposes to which it is best suited, especially conveying large amounts of information quickly in a educational or news context.
