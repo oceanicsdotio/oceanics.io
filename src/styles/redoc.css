@@ -1,0 +1,13 @@
+html, body {
+    background-color: #fff;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: content-box;
+}
+
+/* h2 {
+    color: #EF5FA1FF !important;
+} */

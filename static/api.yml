@@ -16,8 +16,7 @@ info:
     from NASA managing their [lessons-learned](https://neo4j.com/blog/nasa-lesson-learned-database-using-neo4j-linkurious/)
     mission database, to modeling a virtual [economy](https://www.airpair.com/neo4j/posts/modelling-game-economy-with-neo4j).
 
-    You probably have to share data anyway. Our middleware can enhance your data science and management experience by
-    providing representation state transfer (REST) and graph-based services for
+    You probably have to share data anyway. Our middleware can enhance your data science and management experience by providing representation state transfer (REST) and graph-based services for
 
     * Secure organizational accounts
     * Open Geospatial Consortium (OGC) SensorThings standard
@@ -25,8 +24,9 @@ info:
     * Provenance tracking
     * Granular access control and auditing
 
-    By assessing availability over the whole domain, projects can target resources to fill coverage gaps. This supports
-    an open marketplace data sharing model, which may be preferable to redundant collection.
+    By assessing availability over the whole domain, projects can target resources to fill coverage gaps. 
+    
+    This supports an open marketplace data sharing model, which may be preferable to redundant collection.
 
   contact:
     name: Oceanicsdotio
@@ -38,33 +38,24 @@ info:
     url: https://opensource.org/licenses/MIT
 
   x-logo:
-    url: dagan-sprite.gif
+    url: dagan.png
 
 externalDocs:
 
-  description: See the `bathysphere` repository for more information
-  url: https://github.com/oceanicsdotio/bathysphere
-
-x-tagGroups:
-
-  - name: BATHYSPHERE API
-    tags: [ Account, Catalog, Topology ]
+  description: See our README for more information
+  url: https://github.com/oceanicsdotio/oceanics.io
 
 tags:
 
   - name: Account
-    x-displayName: Account
     description: |
-      If you have an e-mail address associated with an organization known to us, you can register to use the
-      database and serives. Please review security and privacy information before uploading any proprietary data.
+      If you have an e-mail address associated with an organization known to us, you can register to use the database and services. Please review security and privacy information before uploading any proprietary data.
 
   - name: Catalog
-    x-displayName: Catalog
     description: |
       Access data through the entity catalog interface. These are your generic CRUD operations.
 
   - name: Topology
-    x-displayName: Topology
     description: |
       Build topological relationships and access metadata.
 
@@ -86,12 +77,9 @@ paths:
       summary: Register
       description: |
 
-        Register an e-mail address to get access to development API. Accounts are for development and testing purposes
-        only. We won't share your contact information, but we do reserve the right to analyze and profile your use of
-        our infrastructure, as well as monitor unencrypted traffic.
+        Register an e-mail address to get access to development API. Accounts are for development and testing purposes only. We won't share your contact information, but we do reserve the right to analyze and profile your use of our infrastructure, as well as monitor un-encrypted traffic.
 
-        Please contact us if you are interested in a dedicated database instance, or long-term multi-tenancy
-        hosting.
+        Contact us if you are interested in a dedicated database instance, or long-term multi-tenancy hosting.
 
       requestBody:
         $ref: '#/components/requestBodies/Register'
@@ -102,16 +90,13 @@ paths:
         '400':
           $ref: '#/components/responses/BadRequest'
 
-
     get:
       tags: [ Account ]
       operationId: bathysphere.functions.token
       summary: Token
       description: |
 
-        Exchange token or email and password for a Javascript Web Token. This will allow you make API calls and use
-        graphical interfaces for a fixed period of time. If you have previously provided a secret, it will be required
-        here to authenticate login and hash the token.
+        Exchange token or email and password for a Javascript Web Token. This will allow you make API calls and use graphical interfaces for a fixed period of time. If you have previously provided a secret, it will be required here to authenticate login and hash the token.
 
       parameters:
         - name: secret
@@ -714,7 +699,7 @@ components:
           readOnly: true
           description: |
             Unique integer identifier for entity. This usually auto-generated, but is different that the default node
-            IDs within the Neo4j database, since those are not guarenteed to persist.
+            IDs within the Neo4j database, since those are not guaranteed to persist.
 
         name:
           type: string
@@ -726,7 +711,7 @@ components:
           type: string
           nullable: true
           description: |
-            Short but useful explaination of what the entity is.
+            Short but useful explanation of what the entity is.
 
     FeatureOfInterest:
       allOf:

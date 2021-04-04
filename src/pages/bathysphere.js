@@ -1,7 +1,10 @@
 import React from "react";
 import { RedocStandalone } from 'redoc';
+import styled from "styled-components";
 
-import { pink, green, orange, shadow, ghost, purple, red } from "../palette";
+import "../styles/redoc.css";
+
+import { pink, green, orange, shadow, ghost, purple, red, yellow, slate, blue } from "../palette";
 
 export const defaultTheme = {
     spacing: {
@@ -44,23 +47,17 @@ export const defaultTheme = {
         primary: ghost,
         secondary: pink,
       },
-      brand: {
-        success: '#e6eef8',
-        warning: '#fcf9e9',
-        danger: '#fce9ed',
-        attention: '#ebfbe9',
-      },
       responses: {
         success: {
-          color: theme => theme.colors.success.main,
+          color: green,
           backgroundColor: shadow,
         },
         error: {
-          color: theme => theme.colors.error.main,
+          color: red,
           backgroundColor: shadow,
         },
         redirect: {
-          color: '#ffa500',
+          color: orange,
           backgroundColor: shadow,
         },
         info: {
@@ -72,13 +69,13 @@ export const defaultTheme = {
       http: {
         get: green,
         post: orange,
-        put: '#9b708b',
-        options: '#d3ca12',
-        patch: '#e09d43',
-        delete: '#e27a7a',
-        basic: '#999',
+        put: slate,
+        options: yellow,
+        patch: blue,
+        delete: red,
+        basic: pink,
         link: pink,
-        head: '#c167e4',
+        head: purple,
       },
       navbar: {
         main: ghost,
@@ -96,93 +93,90 @@ export const defaultTheme = {
     },
 
     tocPanel: {
-      width: '240px',
+      width: '100%',
     },
   
     typography: {
-      fontSize: '14px',
+      fontSize: '1em',
       lineHeight: '1.5em',
       fontWeightRegular: '400',
       fontWeightBold: '600',
       fontWeightLight: '300',
-      fontFamily: 'Roboto, sans-serif',
+      fontFamily: 'Arial, sans-serif',
       headings: {
-        fontFamily: theme => theme.typography.fontFamily,
-        fontWeight: '600',
+        fontWeight: theme => theme.typography.fontWeightRegular,
       },
       heading1: {
         fontSize: '1.85714em',
-        fontWeight: '600',
-        fontFamily: theme => theme.typography.fontFamily,
-        lineHeight: theme => theme.typography.lineHeight,
-        color: theme => theme.colors.primary.main,
+        fontWeight: theme => theme.typography.fontWeightRegular,
+        color: ghost,
         capitalize: true,
       },
       heading2: {
         fontSize: '1.57143em',
-        fontWeight: '600',
-        color: theme => theme.colors.text.primary,
-        fontFamily: theme => theme.typography.fontFamily,
-        lineHeight: theme => theme.typography.lineHeight,
+        fontWeight: theme => theme.typography.fontWeightRegular,
+        color: ghost,
         capitalize: false,
       },
       heading3: {
         fontSize: '1.27em',
-        fontWeight: '600',
-        color: theme => theme.colors.text.primary,
-        fontFamily: theme => theme.typography.fontFamily,
-        lineHeight: theme => theme.typography.lineHeight,
+        fontWeight: theme => theme.typography.fontWeightRegular,
+        color: ghost,
         capitalize: false,
       },
       rightPanelHeading: {},
       code: {
-        fontSize: '14px',
+        fontSize: '1em',
         fontFamily: 'Courier, monospace',
         fontWeight: theme => theme.typography.fontWeightRegular,
-        color: '#e53935',
-        backgroundColor: 'rgba(38, 50, 56, 0.04)',
-        wrap: false,
+        color: pink,
+        backgroundColor: shadow,
+        wrap: false
       },
       links: {
-        color: theme => theme.colors.primary.main,
-        visited: theme => theme.typography.links.color,
-        // hover: ({ typography }) => lighten(0.2, typography.links.color),
+        color: pink,
+        visited: pink,
+        hover: pink,
       },
     },
     rightPanel: {
       backgroundColor: shadow,
-      width: '40%',
-      textColor: ghost,
+      width: '50%',
+      textColor: pink,
     },
     codeSample: {
-      backgroundColor: "#000",
+      backgroundColor: shadow,
     },
     schema: {
-      nestedBackground: '#fafafa',
-      linesColor: '#cc0',
-      defaultDetailsWidth: '75%',
-      typeNameColor: theme => theme.colors.text.secondary,
-      typeTitleColor: theme => theme.schema.typeNameColor,
-      requireLabelColor: theme => theme.colors.error.main,
-      labelsTextSize: '0.9em',
+      nestedBackground: shadow,
+      linesColor: pink,
+      defaultDetailsWidth: '85%',
+      typeNameColor: pink,
+      typeTitleColor: pink,
+      requireLabelColor: pink,
+      labelsTextSize: '1em',
       nestingSpacing: '1em',
       arrow: {
-        size: '1.1em',
-        color: theme => theme.colors.text.secondary,
+        size: '1em',
+        color: pink,
       },
     },
     codeBlock: {
-      backgroundColor: '#000',
+      backgroundColor: shadow,
       tokens: {},
     },
   };
 
+const Spec = styled(RedocStandalone)`
+    background-color: ${pink};
+`;
+
 export default () => {
-    return <RedocStandalone 
+    return <Spec 
         specUrl={"api.yml"}
-        options={{
-            nativeScrollbars: true,
-            theme: defaultTheme
-        }}
+        // options={{
+        //     nativeScrollbars: true,
+        //     theme: defaultTheme
+        // }}
     />
 }
