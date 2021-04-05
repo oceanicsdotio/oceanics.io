@@ -40,7 +40,7 @@ export const NavBar = styled.nav`
 /**
  * Internal link
  */
-const SiteLink = styled(Link)`
+const SiteLink = styled.a`
     color: ${({color})=>color};
     font-size: x-large;
 `;
@@ -49,8 +49,9 @@ const SiteLink = styled(Link)`
 /** 
  * Internal link, emphasized
  */
-export const Title = styled(SiteLink)`
+export const Title = styled(Link)`
     font-size: xx-large;
+    color: ${({color})=>color};
     margin: 0;
     padding: 0;
     margin-right: 1rem;
@@ -59,7 +60,8 @@ export const Title = styled(SiteLink)`
 /**
  * Internal link, de-emphasized
  */
-const MinorLink = styled(SiteLink)`
+const MinorLink = styled(Link)`
+    color: ${({color})=>color};
     display: block;
     font-size: large;
 `;
@@ -77,9 +79,10 @@ export const Layout = ({
     const links = useMemo(()=>{
         return layout.site.map(({label, to, color=pink}, key) =>  
             <SiteLink 
-                to={to} 
+                href={to} 
                 color={color}
                 key={`site-link-${key}`}
+                target={"_blank"}
             >
                 {label}
             </SiteLink>

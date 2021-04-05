@@ -8,7 +8,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://bitbucket.org/oceanicsdotio/oceanics.io.git"
+    "url": "git+https://github.com/oceanicsdotio/oceanics.io.git"
   },
   "files": [
     "neritics_bg.wasm",

@@ -1,10 +1,10 @@
 title: "Oceanics.io"
 
 site:
-  - to: "/app"
+  - to: "/app/"
     label: "Data"
 
-  - to: "/bathysphere"
+  - to: "/bathysphere/"
     label: "API"
 
 footer:
