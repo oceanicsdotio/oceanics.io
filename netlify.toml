@@ -19,12 +19,7 @@
   from = "/api/mesh-nodes/*"
   to = "oceanicsdotio.cdn.nyc3.digitaloceanspaces.com"
   status = 303
-
-[[redirects]]
-  from = "/bathysphere"
-  to = "/bathysphere/index.html"
-  status = 301
-  force = false
+  headers = {X-From = "Netlify"}
 
 [[headers]]
   for = "/*"
