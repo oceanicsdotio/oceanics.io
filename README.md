@@ -3,6 +3,12 @@
 ![Test](https://github.com/oceanicsdotio/oceanics.io/workflows/Test/badge.svg)
 ![Netlify Status](https://api.netlify.com/api/v1/badges/dfa3c4f1-b304-42cb-9ff5-ea64f2219ff0/deploy-status)
 
+<p align="center">
+  <img width="100%" src="static/dagan-sprite.gif">
+</p>
+
+## Contents
+
 - [About](#about)
 - [Developers](#developers)
   - [Web application](#web-application)
@@ -11,36 +17,30 @@
   - [Manage](#manage)
   - [Test](#test)
   - [Deploy](#deploy)
-  - [Neo4j](#neo4j)
+- [Neo4j](#neo4j)
   - [Browser interface](#browser-interface)
-  - [Python client](#python-client)
   - [Preprocessing text files](#preprocessing-text-files)
 
 ## About
 
-Oceanics.io is a web application framework for portable high-performance computing and visualization workloads. The interface and utilities help ingest sensor and model data and metadata, and parse them into discoverable databases.
+Oceanics.io is a web application for portable high-performance computing and visualization.
 
-Models run in the browser using Web Assembly, client side parallelism, and GPU acceleration. Backend services are provided through [our API](https://graph.oceanics.io) for graph-based proprietary ocean data.
+The interface and utilities ingest sensor and model data and metadata, and parse them into discoverable databases. These services usually run in Docker containers configured to receive and route traffic between computing environments and networked devices. Data persist in cloud object storage.
 
-Services usually run in Docker containers configured to receive and route traffic between computing environments and networked devices. Data persist in cloud object storage.
+Simulations run in the browser using Web Assembly, client side parallelism, and GPU acceleration. Backend services are provided through [our graph-based API](https://www.oceanics.io/bathysphere) for proprietary ocean data.
 
-The runtime supports parallelism, and the web infrastructure scales to meet high throughput or availability requirements.
+The runtime supports parallelism, and infrastructure scales to meet high throughput or availability requirements.
 
-The software is maintained by Oceanicsdotio LLC and provided as is with no warranty or guarantee. As we validate models we will provide uptime, accuracy, and suitability guarantees.
+Software is maintained by Oceanicsdotio LLC and provided as is with no warranty or guarantee. Our core systems will always be open source, and we welcome collaboration.
 
-Collaboration welcome! Our core systems will always be open source.
-
-<p align="center">
-  <img width="75%" height="75%" src="content/assets/dagan.png">
-</p>
 
 ## Developers
 
 ### Web application
 
-The progressive web application is written in (order of LOC) JavaScript (React-Node), Rust, GLSL, and Go. We use GatsbyJS to build static assets in the CI/CD process. Client side interaction is accomplished with heavy use of React Hooks, and browser APIs.
+The progressive web application is written in JavaScript, Rust, GLSL, and Go. We use GatsbyJS to build static assets during the CI/CD process. Client side interaction is accomplished with heavy use of React Hooks, and browser APIs.
 
-The use of many languages adds some complex, but the structure ends up being pretty tidy.
+The use of many languages adds some complex, but the structure ends up tidy.
 
 The top-level directory `/` contains this `README.md` along with various configuration files and scripts for linting, compiling, bundling, and deploying the site. Subdirectories `/.github` and `/.storybook` contain additional configuration data.
 
@@ -257,15 +257,13 @@ Using these credentials you should be able to get a JWT for further authorizatio
 
 First generate a `requirements.txt` file from `Pipfile` with `pipenv lock -r > requirements.txt`. This may take a while to resolve dependencies and conflicts. The actual installation is pretty quick. Build the necessary containers with `$(bathysphere build)`.
 
-The development environment is deployed locally with `$(bathysphere up)`, and the production environment with `kubectl`.
+The development environment is deployed locally with `$(bathysphere up)`.
 
 | Service             | Port   | Description                                 |
 | ------------------- | ------ | ------------------------------------------- |
 | `bathysphere`       | `5000` | Graph API gateway                           |
 | `neo4j`             | `7687` | Graph database `bolt` protocol access       |
 | `neo4j`             | `7474` | Graph database built-in browser and console |
-
-The current version expects to have access to Google Cloud Functions. Functions use hash-based message authentication codes (HMAC) for cryptographic verification. The key is stored in a secret manager and is loaded to validate requests.
 
 ## Neo4j
 
@@ -298,18 +296,6 @@ Important features that are not obvious at first:
 - You can create guided introductions and presentations by creating a [custom browser guide](https://neo4j.com/developer/guide-create-neo4j-browser-guide/).
 
 Our custom guide is an html slide deck in `/openapi/guide.html` and hosted at <https://graph.oceanics.io/guide.html>. This can be played within the browser by serving it locally, and loading with `:play localhost:<PORT>/openapi/guide.html`.
-
-### Python client
-
-You can manage the database with the Python `neo4j-driver` package, installed with `pip install neo4j-driver`.
-
-Establish a connection to the database using Bolt, and start a session:
-
-```python
-from neo4j.v1 import GraphDatabase
-driver = GraphDatabase.driver("bolt://localhost:7687", auth=("neo4j", "neo4j"))
-session = driver.session()
-```
 
 ### Preprocess text files
 
