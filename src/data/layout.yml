@@ -8,15 +8,20 @@ site:
     label: "API"
 
 footer:
+
+  statement: |
+    We fearlessly pursue accountable blue prosperity and operational excellence on behalf of future seas.
+
+  links:
     
-  - to: "/about"
-    label: "About"
+    - to: "/about"
+      label: "About"
 
-  - to: "/policy"
-    label: "Policy"
+    - to: "/policy"
+      label: "Policy"
 
-  - to: "/references"
-    label: "References"
+    - to: "/references"
+      label: "References"
 
-  - to: "/tags"
-    label: "Tags"
+    - to: "/tags"
+      label: "Tags"

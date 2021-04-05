@@ -9,10 +9,10 @@ const WasmPackPlugin = require("@wasm-tool/wasm-pack-plugin");
 // https://loadable-components.com/
 
 
- /*
-Some of the canonical fields do not contain uniquely identifying information. Technically,
-the same content might appear in two places. 
-*/
+/**
+ * Some of the canonical fields do not contain uniquely identifying information. 
+ * Technically, the same content might appear in two places. 
+ */
 const referenceHash = ({authors, title, year, journal}) => {
    
     const stringRepr = `${authors.join("").toLowerCase()} ${year} ${title.toLowerCase()}`.replace(/\s/g, "");
@@ -20,6 +20,32 @@ const referenceHash = ({authors, title, year, journal}) => {
     return hashCode(stringRepr);
 };
 
+/**
+ * There is a known problem with `gatsby develop` not picking up html files in the
+ * public directory correctly. Build should work fine, and therefore NOT need a netlify
+ * redirect, which we were using. 
+ * 
+ * This fix is take from: https://github.com/gatsbyjs/gatsby/issues/13072
+ * 
+ */
+exports.onCreateDevServer = ({ app }) => {
+    app.use(express.static("static"))
+};
+
+
+/**
+ * Dynamically create webpack behaviors based on what stage
+ * being executed. 
+ * 
+ * During HTML stage, need to avoid loading client-side code. This includes
+ * Mapbox, any WASM, and web workers. 
+ * 
+ * When develop/build is called, we re-compile all the rust code to create
+ * the JS module bindings into Rust-WASM. This prevents bad code from being
+ * deployed.
+ * 
+ * @param {*} param0 
+ */
 exports.onCreateWebpackConfig = ({ stage, loaders, actions }) => {
     if (stage === 'build-html') {
         actions.setWebpackConfig({
@@ -60,6 +86,12 @@ exports.onCreateWebpackConfig = ({ stage, loaders, actions }) => {
     }
 }
 
+
+/**
+ * Create HTML pages from Markdown
+ * 
+ * @param {*} param0 
+ */
 exports.createPages = async ({ 
     graphql, 
     actions: {
@@ -151,6 +183,13 @@ exports.createPages = async ({
     Object.values(pagesQueue).map(page => createPage(page));
 }
 
+/**
+ * For pages created from MDX files, create a unique `slug`
+ * and then generate the web route.
+ * 
+ * @param {*} param0 
+ * @returns 
+ */
 exports.onCreateNode = ({ 
     node, 
     actions: { 

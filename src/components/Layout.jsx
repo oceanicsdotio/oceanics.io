@@ -70,6 +70,10 @@ export const Layout = ({
     title = null
 }) => {
 
+    /**
+     * Memoize the top navigation links when they are created, 
+     * to prevent re-rendering if layout changes. 
+     */
     const links = useMemo(()=>{
         return layout.site.map(({label, to, color=pink}, key) =>  
             <SiteLink 
@@ -82,8 +86,11 @@ export const Layout = ({
         )
     });
 
+    /**
+     * Memoize footer links as well. 
+     */
     const footerLinks = useMemo(()=>{
-        return layout.footer.map(({label, to}, key) => 
+        return layout.footer.links.map(({label, to}, key) => 
             <MinorLink 
                 key={label} 
                 to={to}
@@ -102,10 +109,11 @@ export const Layout = ({
             {links}
         </NavBar>
 
-
         <main>{children}</main>
         <footer>
-            <p>{"We fearlessly pursue accountable blue prosperity and operational excellence on behalf of future seas"}</p>
+            <p>
+                <em>{layout.footer.statement}</em>
+            </p>
             {footerLinks}
             <p> 
                 {`Made with ⚡ in Maine 2018-${new Date().getFullYear()}`}  <br/>
