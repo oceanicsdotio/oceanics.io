@@ -5,7 +5,7 @@ authors = ["Oceanicsdotio <business@oceanics.io>"]
 edition = "2018"
 description = "Spatial stuff"
 license = "MIT"
-repository = "git+https://bitbucket.org/oceanicsdotio/oceanics.io.git"
+repository = "git+https://github.com/oceanicsdotio/oceanics.io.git"
 
 [lib]
 path = "src/rust/lib.rs"
@@ -18,6 +18,8 @@ serde = { version = "1.0.80", features = ["derive"] }
 serde_derive = "1.0.104"
 console_error_panic_hook = "0.1.6"
 rand = "0.8.0"
+# https://docs.rs/getrandom/0.2.2/getrandom/#unsupported-targets
+getrandom = { version = "0.2", features = ["js"] }
 
 [package.metadata.wasm-pack.profile.release]
 # see https://github.com/rustwasm/wasm-pack/issues/886#issuecomment-667669802
