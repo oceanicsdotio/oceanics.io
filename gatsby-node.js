@@ -1,7 +1,7 @@
 const path = require(`path`);
 const _ = require("lodash");
 const YAML = require("yaml");
-// const express = require("express");
+const express = require("express");
 const { createFilePath } = require(`gatsby-source-filesystem`);
 const WasmPackPlugin = require("@wasm-tool/wasm-pack-plugin");
 
@@ -29,9 +29,9 @@ const referenceHash = ({authors, title, year, journal}) => {
  * This fix is take from: https://github.com/gatsbyjs/gatsby/issues/13072
  * 
  */
-// exports.onCreateDevServer = ({ app }) => {
-//     app.use(express.static("static"))
-// };
+exports.onCreateDevServer = ({ app }) => {
+    app.use(express.static("static"))
+};
 
 
 /**
