@@ -29,11 +29,10 @@ jobs:
         with:
           python-version: 3.7
 
-
-      - name: Install doctl
-        uses: digitalocean/action-doctl@v2
-        with:
-          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+      # - name: Install doctl
+      #   uses: digitalocean/action-doctl@v2
+      #   with:
+      #     token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
 
       - name: Install dependencies
         run: |
@@ -76,11 +75,3 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{ github.ref }}
-
-      - name: Push container
-        run: |
-          doctl registry login
-          docker tag oceanicsdotio/bathysphere registry.digitalocean.com/bathysphere/bathysphere
-          docker push registry.digitalocean.com/bathysphere/bathysphere
-
-      
