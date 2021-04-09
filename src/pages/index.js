@@ -38,21 +38,30 @@ export default ({
         }
     },
     location: {
-        search,
-        hash
+        search
     }
 }) => {
 
+    /**
+     * React state to hold parsed query string parameters.
+     */
     const [ query, setQuery] = useState({
         items: itemIncrement,
-        topic: null
+        tag: null
     });
+
+    
 
     /**
      * When page loads parse the query string. 
      */
     useEffect(() => {
         if (!search) return;
+
+        console.log(Object.fromEntries(search
+            .slice(1, search.length)
+            .split("&")
+            .map(item => item.split("="))));
 
         setQuery(
             Object.fromEntries(search
@@ -64,6 +73,54 @@ export default ({
     }, [ search ]);
 
 
+    const [ visible, setVisible ] = useState(nodes.slice(0, itemIncrement));
+
+    /**
+     * Determine the visible articles. 
+     * 
+     * Trigger when query parameters are updated. 
+     */
+    useEffect(() => {
+
+        if (!query || !query.items) return;
+
+        // Filter down to just matching
+        const filtered = !query.tag ? nodes : nodes.filter(({tags=null}) =>
+            query.tag in (tags || [])
+        );
+
+        // Limit number of visible
+        setVisible(filtered.slice(0, Math.min(query.items, filtered.length)));
+
+    }, [ query ]);
+
+
+    /**
+     * Set tag as current, and increase number visible
+     */
+    const onClick = () => { 
+
+        const tagString = query.tag ? `tag=${query.tag}&` :  ``;
+        const itemsString = `items=${Math.min(nodes.length, Number.parseInt(query.items) + itemIncrement)}`;
+
+        navigate(`/?${tagString}${itemsString}`); 
+    };
+
+    /**
+     * Set tag from selection, and keep current number
+     * @param {} event 
+     */
+    const onChange = event => { 
+
+        console.log(query);
+
+        const tagString = `tag=${event.target.value}`;
+        const itemsString = `&items=${query.items}` ;
+
+        navigate(`/?${tagString}${itemsString}`);  
+    };
+
+
     return (
         <Layout title={title}>
             <SEO title={"Blue economy trust"} />
@@ -71,17 +128,18 @@ export default ({
             <Form
                 fields={[{
                     type: "select",
-                    id: "filter by topic",
+                    id: "filter by tag",
                     options: group.map(({ fieldValue }) => fieldValue),
-                    onChange: event => { navigate(`/?topic=${event.target.value}&items=${query.items}`) }
+                    onChange
                 }]}
             />
-            {nodes.slice(0, query.items).map((node, ii) => <Article {...{ ...node, key: ii }} />)}
+            {visible.map((node, ii) => <Article {...{ ...node, key: ii }} />)}
+            <br/>
             <Form
                 actions={[{
                     value: "more content...",
                     type: "button",
-                    onClick: event => { navigate(`/?topic=${event.target.value}&items=${Math.min(nodes.length, query.items + itemIncrement)}`) }
+                    onClick
                 }]}
             />
         </Layout>
