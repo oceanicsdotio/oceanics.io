@@ -4,11 +4,11 @@ import SEO from "../components/SEO";
 import { graphql } from "gatsby";
 import Tags from "../components/Tags";
 
-/*
-Tag pages link single tags back to many articles. This provides a many-to-many
-mapping that can help traverse the content graph and find related data or
-information. 
-*/
+/**
+ * Tag pages link single tags back to many articles. This provides a many-to-many
+ * mapping that can help traverse the content graph and find related data or
+ * information. 
+ */
 export default ({
     data: {
         allMdx: {

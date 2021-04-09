@@ -1,92 +1,97 @@
-import React, { useMemo, useReducer } from "react";
-import { Link, graphql } from "gatsby";
+import React, { useEffect, useReducer, useState } from "react";
+import { graphql, navigate } from "gatsby";
 import styled from "styled-components";
 import Layout from "../components/Layout";
 import SEO from "../components/SEO";
-import { rhythm } from "../typography";
-import {grey, pink, ghost} from "../palette"
 
-const StyledHeader = styled.h3`
-    margin-bottom: ${rhythm(0.25)};
-`;
-
-const StyledLink = styled(Link)`
-    box-shadow: none;
-    text-decoration: none;
-    color: ${pink};
-`;
-
-const Excerpt = styled.p`
-    color: ${ghost};
-`;
-
-const Date = styled.small`
-    color: ${grey};
-`;
+import Article from "../components/Article"
+import Form from "../components/Form";
 
 const Image = styled.img`
     width: 100%;
 `;
 
-export default ({ 
-    data: { 
-        allMdx: {nodes}, 
-        site: { 
-            siteMetadata: {title}
-        } 
-    }, 
-    location
+/**
+ * Image to use for top of article list
+ */
+const bannerImage = "shrimpers-web.png";
+
+/**
+ * How many articles are made visible at a time.
+ */
+const itemIncrement = 3;
+
+
+/**
+ * Base component for web landing page.
+ * 
+ * Optionally use query parameters and hash anchor to filter content. 
+ */
+export default ({
+    data: {
+        allMdx: {
+            nodes,
+            group
+        },
+        site: {
+            siteMetadata: { title }
+        }
+    },
+    location: {
+        search,
+        hash
+    }
 }) => {
-    /**
-     * Image to use for top of article list
-     */
-    const bannerImage = "shrimpers-web.png";
 
-    /**
-     * How many articles are made visible at a time.
-     */
-    const visibilityIncrement = 3;
-
-    /**
-     * Memoize the article components so that they aren't
-     * re-rendered when user adds more to view.
-     */
-    const articles = useMemo(() => {
-        return nodes.map(node => {
-            const title = node.frontmatter.title || node.fields.slug;
-            return <article key={node.fields.slug}>
-                <header>
-                    <StyledHeader>
-                        <StyledLink to={node.fields.slug}>
-                            {title}
-                        </StyledLink>
-                    </StyledHeader>
-                    <Date>{node.frontmatter.date}</Date>
-                </header>
-                <section>
-                    <Excerpt dangerouslySetInnerHTML={{
-                        __html: node.frontmatter.description || node.excerpt,
-                    }} />
-                </section>
-            </article>
-        })
+    const [ query, setQuery] = useState({
+        items: itemIncrement,
+        topic: null
     });
 
-    const [visible, increment] = useReducer(
-        prev => Math.min(articles.length, prev + 3),
-        visibilityIncrement
-    );
+    /**
+     * When page loads parse the query string. 
+     */
+    useEffect(() => {
+        if (!search) return;
+
+        setQuery(
+            Object.fromEntries(search
+                .slice(1, search.length)
+                .split("&")
+                .map(item => item.split("=")))
+        );
+
+    }, [ search ]);
+
 
     return (
-        <Layout location={location} title={title}>
-            <SEO title={"Blue economy trust layer"} />
+        <Layout title={title}>
+            <SEO title={"Blue economy trust"} />
             <Image src={bannerImage} alt={"Agents@Rest"} />
-            {articles.slice(0, visible)}
-            <p><em onClick={increment}>{"Show older content..."}</em></p>
+            <Form
+                fields={[{
+                    type: "select",
+                    id: "filter by topic",
+                    options: group.map(({ fieldValue }) => fieldValue),
+                    onChange: event => { navigate(`/?topic=${event.target.value}&items=${query.items}`) }
+                }]}
+            />
+            {nodes.slice(0, query.items).map((node, ii) => <Article {...{ ...node, key: ii }} />)}
+            <Form
+                actions={[{
+                    value: "more content...",
+                    type: "button",
+                    onClick: event => { navigate(`/?topic=${event.target.value}&items=${Math.min(nodes.length, query.items + itemIncrement)}`) }
+                }]}
+            />
         </Layout>
     )
 };
 
+
+/**
+ * GraphQL query for static data to build the content feed and interface.
+ */
 export const pageQuery = graphql`
   query {
     site {
@@ -102,9 +107,14 @@ export const pageQuery = graphql`
           }
           frontmatter {
             date(formatString: "MMMM DD, YYYY")
+            tags
             title
             description
           }
+      }
+      group(field: frontmatter___tags) {
+        fieldValue
+        totalCount
       }
     }
   }

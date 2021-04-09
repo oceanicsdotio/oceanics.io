@@ -3,7 +3,11 @@ import styled from "styled-components";
 import { Link } from "gatsby";
 import { ghost } from "../palette";
 
-
+/**
+ * An array of links to joining pages
+ * @param {*} param0 
+ * @returns 
+ */
 const Tags = ({
     className,
     group,
@@ -17,6 +21,9 @@ const Tags = ({
     </div>
 
 
+/**
+ * Styled version of tags array.
+ */
 const StyledTags = styled(Tags)`
 
     margin: 0;
@@ -27,7 +34,7 @@ const StyledTags = styled(Tags)`
         color: ${ghost};
         text-decoration: none;
         color: ${ghost};
-        border: 0.1rem solid;
+        border: 1px solid;
         border-radius: 0.3rem;
         margin: 0.2rem;
         padding: 0.3rem;

@@ -215,7 +215,7 @@ const StyledCatalog = styled(Catalog)`
     margin: 0.5rem;
     padding: 0;
 
-    & > h2 {
+    & h2 {
         display: block;
         font-size: larger;
         font-family: inherit;
@@ -223,7 +223,7 @@ const StyledCatalog = styled(Catalog)`
         margin: auto;
         padding: 0;
 
-        & > button {
+        & button {
             background: none;
             color: ${pink};
             border: none;
