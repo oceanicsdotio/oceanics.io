@@ -212,3 +212,5 @@ Cargo.lock
 # Visual studio
 .vscode/
 Pipfile.lock
+
+bin/
