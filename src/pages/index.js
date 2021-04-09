@@ -1,4 +1,4 @@
-import React, { useEffect, useReducer, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { graphql, navigate, Link } from "gatsby";
 import styled from "styled-components";
 import Layout from "../components/Layout";
@@ -44,35 +44,6 @@ const StyledArticle = styled.article`
     }
 `;
 
-const Article = ({
-    frontmatter: {
-        title,
-        date,
-        description,
-        tags
-    }, fields: {
-        slug
-    }
-}) =>
-    <StyledArticle>
-        <header>
-            <h2>
-                <Link to={slug}>{title}</Link>
-            </h2>
-            <small>{date}</small>
-        </header>
-        <section>
-            <p>{description}</p>
-        </section>
-        {tags.map((text, ii) => 
-                <a 
-                    key={`tags-${ii}`} 
-                    onClick={`tags/${kebabCase(text)}`
-                }>
-                    {text}
-                </a>
-            )}
-    </StyledArticle>;
 
 const Image = styled.img`
     width: 100%;
