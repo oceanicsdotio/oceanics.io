@@ -1,5 +1,4 @@
 const path = require(`path`);
-const _ = require("lodash");
 const YAML = require("yaml");
 const express = require("express");
 const { createFilePath } = require(`gatsby-source-filesystem`);
@@ -150,18 +149,6 @@ exports.createPages = async ({
                 previous: index === nodes.length - 1 ? null : nodes[index + 1].node,
                 next: index === 0 ? null : nodes[index - 1].node
             },
-        });
-
-        (tags || []).forEach(tag => {
-            const formattedTag = _.kebabCase(tag);
-            const route = `/tags/${formattedTag}/`;
-            if (route in pagesQueue) return;  // skip building pages if there is a duplicate url
-
-            pagesQueue[route] = {
-                path: route,
-                component: path.resolve(`src/templates/tags.js`),
-                context: {tag}
-            }
         });
 
         (citations || []).forEach(citation => {

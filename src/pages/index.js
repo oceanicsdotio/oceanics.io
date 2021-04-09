@@ -1,11 +1,78 @@
 import React, { useEffect, useReducer, useState } from "react";
-import { graphql, navigate } from "gatsby";
+import { graphql, navigate, Link } from "gatsby";
 import styled from "styled-components";
 import Layout from "../components/Layout";
 import SEO from "../components/SEO";
 
-import Article from "../components/Article"
 import Form from "../components/Form";
+
+import { pink, grey, ghost } from "../palette";
+
+
+const StyledArticle = styled.article`
+
+    & h2 {
+        margin-bottom: 0;
+        padding: 0;
+    }
+
+    & small {
+        display: block;
+        color: ${grey};
+    }
+
+    & a {
+        display: inline-block;
+        text-decoration: none;
+        color: ${ghost};
+        border: 1px solid;
+        border-radius: 0.3rem;
+        padding: 0.3rem;
+        font-size: smaller;
+        margin: 0;
+        margin-right: 0.2rem;
+        cursor: pointer;
+    }
+
+    & h2 > a {
+        box-shadow: none;
+        color: ${pink};
+        text-decoration: none;
+        border: none;
+        margin: 0;
+        padding: 0;
+    }
+`;
+
+const Article = ({
+    frontmatter: {
+        title,
+        date,
+        description,
+        tags
+    }, fields: {
+        slug
+    }
+}) =>
+    <StyledArticle>
+        <header>
+            <h2>
+                <Link to={slug}>{title}</Link>
+            </h2>
+            <small>{date}</small>
+        </header>
+        <section>
+            <p>{description}</p>
+        </section>
+        {tags.map((text, ii) => 
+                <a 
+                    key={`tags-${ii}`} 
+                    onClick={`tags/${kebabCase(text)}`
+                }>
+                    {text}
+                </a>
+            )}
+    </StyledArticle>;
 
 const Image = styled.img`
     width: 100%;
@@ -58,11 +125,6 @@ export default ({
     useEffect(() => {
         if (!search) return;
 
-        console.log(Object.fromEntries(search
-            .slice(1, search.length)
-            .split("&")
-            .map(item => item.split("="))));
-
         setQuery(
             Object.fromEntries(search
                 .slice(1, search.length)
@@ -85,8 +147,8 @@ export default ({
         if (!query || !query.items) return;
 
         // Filter down to just matching
-        const filtered = !query.tag ? nodes : nodes.filter(({tags=null}) =>
-            query.tag in (tags || [])
+        const filtered = !query.tag ? nodes : nodes.filter(({frontmatter: {tags=null}}) =>
+            (tags || []).includes(query.tag)
         );
 
         // Limit number of visible
@@ -112,18 +174,15 @@ export default ({
      */
     const onChange = event => { 
 
-        console.log(query);
-
         const tagString = `tag=${event.target.value}`;
         const itemsString = `&items=${query.items}` ;
 
         navigate(`/?${tagString}${itemsString}`);  
     };
 
-
     return (
         <Layout title={title}>
-            <SEO title={"Blue economy trust"} />
+            <SEO title={"Blue economic trust"} />
             <Image src={bannerImage} alt={"Agents@Rest"} />
             <Form
                 fields={[{
@@ -133,11 +192,39 @@ export default ({
                     onChange
                 }]}
             />
-            {visible.map((node, ii) => <Article {...{ ...node, key: ii }} />)}
+            {visible.map(({
+                frontmatter: {
+                    title,
+                    date,
+                    description,
+                    tags
+                }, fields: {
+                    slug
+                }
+            }) =>
+                <StyledArticle>
+                    <header>
+                        <h2>
+                            <Link to={slug}>{title}</Link>
+                        </h2>
+                        <small>{date}</small>
+                    </header>
+                    <section>
+                        <p>{description}</p>
+                    </section>
+                    {tags.map((text, ii) => 
+                        <a 
+                            key={`tags-${ii}`} 
+                            onClick={() => {navigate(`/?tag=${text}&items=${query.items}`)}}
+                        >
+                            {text}
+                        </a>
+                    )}
+                </StyledArticle>)}
             <br/>
             <Form
                 actions={[{
-                    value: "more content...",
+                    value: "More",
                     type: "button",
                     onClick
                 }]}
