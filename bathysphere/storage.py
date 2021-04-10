@@ -10,7 +10,6 @@ from json import dumps, load
 
 from datetime import datetime, timedelta
 from minio import Minio
-from minio.error import NoSuchKey
 from uuid import uuid4
 
 import attr
@@ -21,8 +20,8 @@ def require(name):
         raise EnvironmentError(f"{name} not set")
     return env_var
 
-[STORAGE_ENDPOINT, BUCKET_NAME, SPACES_ACCESS_KEY, SPACES_SECRET, SERVICE_NAME] = \
-    map(require, ["STORAGE_ENDPOINT", "BUCKET_NAME", "SPACES_ACCESS_KEY", "SPACES_SECRET", "SERVICE_NAME"])
+[STORAGE_ENDPOINT, BUCKET_NAME, SPACES_ACCESS_KEY, SPACES_SECRET_KEY, SERVICE_NAME] = \
+    map(require, ["STORAGE_ENDPOINT", "BUCKET_NAME", "SPACES_ACCESS_KEY", "SPACES_SECRET_KEY", "SERVICE_NAME"])
     
 @attr.s
 class MetaDataTemplate:
@@ -71,7 +70,7 @@ class Storage:
                 endpoint=self.endpoint, 
                 secure=True,
                 access_key=SPACES_ACCESS_KEY,
-                secret_key=SPACES_SECRET
+                secret_key=SPACES_SECRET_KEY
             )
         return self._driver
 
@@ -133,6 +132,10 @@ class Storage:
         the service index file, and injects it into
         the wrapped function as a keyword argument.
         """
+
+
+        from minio.error import S3Error
+
         def wrapper(*args, **kwargs):
             """
             Check if locked, try to lock, do something, unlock.
@@ -141,7 +144,7 @@ class Storage:
 
             try:
                 _ = client.stat_object(client.index)
-            except NoSuchKey:
+            except S3Error:
                 client.put_object(
                     object_name=client.index,
                     data={"configurations": []},
@@ -152,7 +155,7 @@ class Storage:
             
             try:
                 data = client.get_object(client.lock_file)
-            except NoSuchKey:
+            except S3Error:
                 pass
             else:
                 lock_data = load(data)
@@ -171,7 +174,7 @@ class Storage:
                     },
                     metadata=MetaDataTemplate(x_amz_acl="private").headers,
                 )  
-            except NoSuchKey:
+            except S3Error:
                 return "Failed to lock", 500
            
             try:
@@ -181,7 +184,7 @@ class Storage:
             
             try:
                 client.remove_object(client.lock_file)
-            except NoSuchKey:
+            except S3Error:
                 return "Failed to unlock", 500
             
             return result

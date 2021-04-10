@@ -2,8 +2,8 @@ import pytest
 from os import getenv
 from retry import retry
 
-from bivalve import job
-from bivalve.test.conftest import IndexedDB
+from bathysphere import job
+from bathysphere.test.conftest import IndexedDB
 
 
 streams = [

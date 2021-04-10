@@ -141,7 +141,7 @@ class Link:
         def runQuery(tx):
             return [r for r in tx.run(cmd)]
 
-        return executeQuery(db=db, method=runQuery, read_only=True)
+        return executeQuery(db=db, method=runQuery, read_only=False)
 
 
 @attr.s(repr=False)
@@ -285,7 +285,8 @@ class Entity:
         else:
             entity = self
 
-        executeQuery(db, lambda tx: tx.run(f"MERGE {repr(entity)}"))
+        executeQuery(db, lambda tx: tx.run(f"MERGE {repr(entity)}"), read_only=False)
+
         if isinstance(entity, TaskingCapabilities):  # prevent recursion
             return entity
 
@@ -436,7 +437,7 @@ class Entity:
             return [r for r in result]
 
         return list(map(transducer, executeQuery(
-            db=db, method=runQuery, read_only=True
+            db=db, method=runQuery, read_only=False
         )))
 
     @polymorphic

@@ -35,16 +35,17 @@ The runtime supports parallelism, and infrastructure scales to meet high through
 
 Software is maintained by Oceanicsdotio LLC and provided as is with no warranty or guarantee. Our core systems will always be open source, and we welcome collaboration.
 
-
 ## Developers
 
 ### Web application
 
-The progressive web application is written in JavaScript, Rust, GLSL, and Go. We use GatsbyJS to build static assets during the CI/CD process. Client side interaction is accomplished with heavy use of React Hooks, and browser APIs.
+The progressive web application is written in JavaScript, Rust, GLSL, and Go. We use GatsbyJS to build static assets during the CI/CD process.
 
-The use of many languages adds some complex, but the structure ends up tidy.
+Client side interaction is accomplished with React Hooks and browser APIs.
 
-The top-level directory `/` contains this `README.md` along with various configuration files and scripts for linting, compiling, bundling, and deploying the site. Subdirectories `/.github` and `/.storybook` contain additional configuration data.
+Using many languages adds complex, but the structure ends up being tidy.
+
+The top-level directory `/` contains this `README.md` along with various configuration files and scripts for linting, compiling, bundling, and deploying the site.
 
 Static data and documents live in `/content` and `/static`. The former is used by GatsbyJS to generate single page applications that _look like_ blog posts. Resources in `/static` are publicly addressable with the same route as the file name.
 
@@ -73,24 +74,27 @@ When running `yarn build` or `yarn develop` GatsbyJS automatically triggers comp
 
 You can also use `yarn compile` to build.
 
+### Python
+
 We use `pipenv` to manage Python dependencies. These are found in `Pipfile` and `Pipfile.lock`. A new shell is activated with `pipenv shell`. Then:
 
 1. `pipenv install -e .`
 2. `pipenv install --dev`
 
-There must also be several environment variables active for things to work. These are:
+There must also be several environment variables active for things to work. 
+
+These are:
 
 - `NEO4J_ACCESS_KEY` is the password for Neo4j instance
 - `POSTGRES_SECRETS` is comma separated strings `<username>,<password>,<cloudsqlInstance>`
 - `OBJECT_STORAGE_SECRETS` is comma separated strings `<accessKey>,<secretKey>`
 - `DARKSKY_API_KEY` is the API key for an optional weather service that will be deprecated
 - `SPACES_ACCESS_KEY`: for accessing storage
-- `SPACES_SECRET`: for accessing storage
+- `SPACES_SECRET_KEY`: for accessing storage
 - `STORAGE_ENDPOINT`: the region and host for cloud storage
 - `BUCKET_NAME`: the prefix to the storage endpoint
 - `SERVICE_NAME`: grouping of data in storage
 - `PORT`: used locally and by Google Cloud Run
-
 
 We recommend using `direnv` to manage these in `.envrc`.
 
@@ -102,8 +106,7 @@ pdoc --html --output-dir openapi/docs bathysphere
 
 These static files are updated automatically in the deploy pipeline. The live version is available [here](https://graph.oceanics.io/docs/bathysphere).
 
-### Bivalve API
-
+### Compiling bivalve backend
 
 The recommended way to use the Bivalve API is through a managed instance.
 

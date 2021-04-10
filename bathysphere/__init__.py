@@ -21,7 +21,7 @@ from requests import post
 
 from datetime import datetime, date
 from collections import deque
-from multiprocessing import Poolt
+from multiprocessing import Pool
 from decimal import Decimal
 from typing import Coroutine, Any
 from asyncio import new_event_loop, set_event_loop, BaseEventLoop
@@ -456,7 +456,7 @@ else:
     app.add_api(
         parser.specification, 
         base_path=config.get("basePath"),
-        valid_responses=False
+        validate_responses=False
     )
 
 

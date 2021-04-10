@@ -320,229 +320,229 @@ paths:
           $ref: '#/components/responses/BadRequest'
 
 
-  /bivalve:
+  # /bivalve:
 
-    get:
-      tags: [Bivalve Model]
-      summary: Model index
-      operationId: bivalve.functions.index
-      description: |
-        Get metadata for all model configurations.
+  #   get:
+  #     tags: [Bivalve]
+  #     summary: Model index
+  #     # operationId: bathysphere.functions.index
+  #     description: |
+  #       Get metadata for all model configurations.
 
-      responses:
-        '200':
-          description: Model configurations
-          content:
-            application/json:
-              schema:
-                title: modelConfigurations
-                type: object
-                properties:
-                  value:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Configuration'
+  #     responses:
+  #       '200':
+  #         description: Model configurations
+  #         content:
+  #           application/json:
+  #             schema:
+  #               title: modelConfigurations
+  #               type: object
+  #               properties:
+  #                 value:
+  #                   type: array
+  #                   items:
+  #                     $ref: '#/components/schemas/Configuration'
 
-    post:
-      tags: [Bivalve Model]
-      summary: Configure model
-      operationId: bivalve.functions.configure
-      description: |
+  #   post:
+  #     tags: [Bivalve]
+  #     summary: Configure model
+  #     # operationId: bathysphere.functions.configure
+  #     description: |
 
-        Upload a configuration that will be associated with your account. 
-        The settings will be accessible by reference for starting further 
-        simulations with the same mathematical and computational
-        behavior. Configurations are immutable after the first time 
-        they are run to allow reproducibility.
+  #       Upload a configuration that will be associated with your account. 
+  #       The settings will be accessible by reference for starting further 
+  #       simulations with the same mathematical and computational
+  #       behavior. Configurations are immutable after the first time 
+  #       they are run to allow reproducibility.
 
-      requestBody:
-        description: Model configuration
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Configuration'
+  #     requestBody:
+  #       description: Model configuration
+  #       content:
+  #         application/json:
+  #           schema:
+  #             $ref: '#/components/schemas/Configuration'
 
-      responses:
-        '200':
-          description: Model configuration URI
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  self:
-                    type: string
-                    format: url
-                    description: Link back to this entity
+  #     responses:
+  #       '200':
+  #         description: Model configuration URI
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                 self:
+  #                   type: string
+  #                   format: url
+  #                   description: Link back to this entity
 
 
-  'bivalve/{objectKey}':
+  # /bivalve/{objectKey}:
 
-    get:
-      tags: [Bivalve Model]
-      summary: View configuration or experiment
-      description: |
-        Retrieve details about a model configuration or simulation. 
-        This includes links to and summary statistics
-        of the individual simulations using these settings.
+  #   get:
+  #     tags: [Bivalve]
+  #     summary: View configuration or experiment
+  #     description: |
+  #       Retrieve details about a model configuration or simulation. 
 
-      parameters:
-        - $ref: '#/components/parameters/ObjectKey'
+  #       This includes links to and summary statistics of the individual simulations using these settings.
+
+  #     parameters:
+  #       - $ref: '#/components/parameters/ObjectKey'
       
-      responses:
-        '200':
-          description: Return configuration or simulation result
-          content:
-            application/json:
-              schema:
-                oneOf:
-                  - $ref: '#/components/schemas/Configuration'
-                  - $ref: '#/components/schemas/Experiment'
+  #     responses:
+  #       '200':
+  #         description: Return configuration or simulation result
+  #         content:
+  #           application/json:
+  #             schema:
+  #               oneOf:
+  #                 - $ref: '#/components/schemas/Configuration'
+  #                 - $ref: '#/components/schemas/Experiment'
       
-    post:
+  #   post:
 
-      tags: [Bivalve Model]
-      summary: Run experiment
-      operationId: bivalve.functions.run
-      description: |
+  #     tags: [Bivalve Model]
+  #     summary: Run experiment
+  #     # operationId: bathysphere.functions.run
+  #     description: |
 
-        The bivalve endpoint uses either constant conditions over a 
-        fixed period, or time-series data sources. Responses
-        are JSON structures. 
+  #       The bivalve endpoint uses either constant conditions over a 
+  #       fixed period, or time-series data sources. Responses
+  #       are JSON structures. 
 
-        The application executes a synchronous kernel call for 
-        every location, and solves for
-        mass conservation and energy dynamics.
+  #       The application executes a synchronous kernel call for 
+  #       every location, and solves for
+  #       mass conservation and energy dynamics.
 
-      parameters:
-        - $ref: '#/components/parameters/ObjectKey'
-        - $ref: '#/components/parameters/weight'
+  #     parameters:
+  #       - $ref: '#/components/parameters/ObjectKey'
+  #       - $ref: '#/components/parameters/weight'
 
-        - in: query
-          name: species
-          description: string identifier for culture species
-          required: true
-          schema:
-            type: string
-            default: oyster
-            enum: [oyster, mussel, scallop]
+  #       - in: query
+  #         name: species
+  #         description: string identifier for culture species
+  #         required: true
+  #         schema:
+  #           type: string
+  #           default: oyster
+  #           enum: [oyster, mussel, scallop]
 
-        - in: query
-          name: cultureType
-          description: |
-            String identifier for culture method. 
-            Midwater configurations reutilize pseudofaeces,
-            while bottom culture prevents resuspension.
-          schema:
-            type: string
-            enum: [midwater, bottom, rope]
-            default: midwater
+  #       - in: query
+  #         name: cultureType
+  #         description: |
+  #           String identifier for culture method. 
+  #           Midwater configurations reutilize pseudofaeces,
+  #           while bottom culture prevents resuspension.
+  #         schema:
+  #           type: string
+  #           enum: [midwater, bottom, rope]
+  #           default: midwater
         
-      requestBody:
-        description: | 
-          JSON object containing forcing information
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                forcing:
-                  title: forcingParameters
-                  description: |
-                    Time-varying forcing conditions for the 
-                    model execution.
-                  type: array
-                  items:
-                    type: array
-                    items: 
-                      type: object
-                      properties:
+  #     requestBody:
+  #       description: | 
+  #         JSON object containing forcing information
+  #       content:
+  #         application/json:
+  #           schema:
+  #             type: object
+  #             properties:
+  #               forcing:
+  #                 title: forcingParameters
+  #                 description: |
+  #                   Time-varying forcing conditions for the 
+  #                   model execution.
+  #                 type: array
+  #                 items:
+  #                   type: array
+  #                   items: 
+  #                     type: object
+  #                     properties:
 
-                        temperature:
-                          description: |
-                            Temperature, degrees Celsius, controls vital rates.
-                          type: number
-                          format: float
-                          minimum: 0.0
-                          maximum: 40.0
+  #                       temperature:
+  #                         description: |
+  #                           Temperature, degrees Celsius, controls vital rates.
+  #                         type: number
+  #                         format: float
+  #                         minimum: 0.0
+  #                         maximum: 40.0
 
-                        turbidity:
-                          description: |
-                            Turbidity helps determine the amount of food available to shellfish.
+  #                       turbidity:
+  #                         description: |
+  #                           Turbidity helps determine the amount of food available to shellfish.
 
-                          type: number
-                          format: float
-                          minimum: 0.0
-                          maximum: 1
+  #                         type: number
+  #                         format: float
+  #                         minimum: 0.0
+  #                         maximum: 1
 
-                        chlorophyll:
-                          description: |
-                            Chlorophyll-a concentration (ug/L) is a proxy for food availability.
-                          type: number
-                          format: float
-                          minimum: 0.0
+  #                       chlorophyll:
+  #                         description: |
+  #                           Chlorophyll-a concentration (ug/L) is a proxy for food availability.
+  #                         type: number
+  #                         format: float
+  #                         minimum: 0.0
 
-                        salinity:
-                          description: Salinity, PSU
-                          type: number
-                          format: float
-                          minimum: 0
-                          maximum: 40
+  #                       salinity:
+  #                         description: Salinity, PSU
+  #                         type: number
+  #                         format: float
+  #                         minimum: 0
+  #                         maximum: 40
 
-                        current:
-                          description: Current speed, cm/s
-                          type: number
-                          format: float
-                          minimum: 0
-                          maximum: 100
+  #                       current:
+  #                         description: Current speed, cm/s
+  #                         type: number
+  #                         format: float
+  #                         minimum: 0
+  #                         maximum: 100
 
-                        particulateOrganicMatter:
-                          description: | 
-                            Particulate Organic Matter (mg/L), or POM, is used as an additional food source.
-                          type: number
-                          format: float
-                          minimum: 0
+  #                       particulateOrganicMatter:
+  #                         description: | 
+  #                           Particulate Organic Matter (mg/L), or POM, is used as an additional food source.
+  #                         type: number
+  #                         format: float
+  #                         minimum: 0
 
-                        totalParticulateMatter:
-                          description: |
-                            Total or suspended particulate matter, mg/L
-                          type: number
-                          format: float
-                          minimum: 0
+  #                       totalParticulateMatter:
+  #                         description: |
+  #                           Total or suspended particulate matter, mg/L
+  #                         type: number
+  #                         format: float
+  #                         minimum: 0
 
-                        particulateOrganicCarbon:
-                          description: |
-                            Particulate organic carbon, POC, ug/L
-                          type: number
-                          format: float
-                          minimum: 0
+  #                       particulateOrganicCarbon:
+  #                         description: |
+  #                           Particulate organic carbon, POC, ug/L
+  #                         type: number
+  #                         format: float
+  #                         minimum: 0
 
-                        oxygen:
-                          description: |
-                            Dissolved oxygen concentration (mg/L) acts as a limitation on metabolism.
-                          type: number
-                          format: float
-                          minimum: 0
+  #                       oxygen:
+  #                         description: |
+  #                           Dissolved oxygen concentration (mg/L) acts as a limitation on metabolism.
+  #                         type: number
+  #                         format: float
+  #                         minimum: 0
 
-                        seed:
-                          description: |
-                            Number of seed added during the first time step.
-                          type: integer
-                          minimum: 1
-                          default: 1
+  #                       seed:
+  #                         description: |
+  #                           Number of seed added during the first time step.
+  #                         type: integer
+  #                         minimum: 1
+  #                         default: 1
 
-      responses:
-        '200':
-          description: Return simulation link
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  self:
-                    type: string
-                    format: url
-                    description: Link back to this entity
+  #     responses:
+  #       '200':
+  #         description: Return simulation link
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                 self:
+  #                   type: string
+  #                   format: url
+  #                   description: Link back to this entity
               
 
 components:

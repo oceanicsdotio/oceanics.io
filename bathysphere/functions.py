@@ -37,7 +37,7 @@ from bathysphere.models import (
 
 from json import load
 
-from bathysphere.storage import Storage, MetaDataTemplate, NoSuchKey
+from bathysphere.storage import Storage, MetaDataTemplate
 
 COLLECTION_KEY = "configurations"
 SERVICE = "https://bivalve.oceanics.io/api"
@@ -394,11 +394,14 @@ def index(client: Storage) -> (dict, int):
     """
     Get all model configurations known to the service.
     """
+
+    from minio.error import S3Error
+
     try:
         return load(client.get_object(client.index)), 200
     except IndexError:
         return f"Database ({client.endpoint}) not found", 404
-    except NoSuchKey:
+    except S3Error:
         return f"Index ({client.index}) not found", 404
     
 
@@ -470,11 +473,13 @@ def run(
     from itertools import repeat
     from time import time
     from functools import reduce
+
+    from minio.error import S3Error
     
     try: 
         config = load(client.get_object(f"{objectKey}.json"))
         properties = config.get("properties")
-    except NoSuchKey:
+    except S3Error:
         return f"Configuration ({objectKey}) not found", 404
     except Exception:
         return f"Invalid configuration ({objectKey})", 500
