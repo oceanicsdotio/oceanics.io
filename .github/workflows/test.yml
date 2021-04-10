@@ -65,8 +65,13 @@ jobs:
       - name: Pytest localhost
         run: $(bathysphere test)
         env:
-          NEO4J_ACCESS_KEY: n0t_passw0rd
-          NEO4J_HOSTNAME: localhost
+          NEO4J_ACCESS_KEY: ${{ secrets.NEO4J_ACCESS_KEY }}
+          NEO4J_HOSTNAME: ${{ secrets.NEO4J_HOSTNAME }}
+          SPACES_SECRET: ${{ secrets.SPACES_SECRET }}
+          SPACES_ACCESS_KEY: ${{ secrets.SPACES_ACCESS_KEY }}
+          STORAGE_ENDPOINT: ${{ secrets.STORAGE_ENDPOINT }}
+          BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
+          SERVICE_NAME: ${{ secrets.SERVICE_NAME }}
 
       # Uncomment to teardown and rebuild database with new secrets
 
