@@ -10,6 +10,7 @@ services:
   bathysphere:
     build:
       context: .
+      dockerfile: Dockerfile
     image: oceanicsdotio/bathysphere
     ports:
       - 8080:8080
@@ -51,6 +52,7 @@ services:
   bivalve:
     build: 
       context: .
+      dockerfile: bivalve.Dockerfile
     image: oceanicsdotio/bivalve
     environment:
       - SPACES_ACCESS_KEY
@@ -62,4 +64,4 @@ services:
     ports:
       - 5000:5000
     networks:
-      - oceanics
+      - bathysphere
