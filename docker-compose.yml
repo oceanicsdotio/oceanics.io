@@ -31,10 +31,6 @@ services:
       - 7474:7474 # http
       - 7473:7473 # https
       - 7687:7687 # bolt
-    # volumes:
-    #   - ./data/neo4j/:/data
-    #   - ./logs/neo4j/:/logs
-    #   - ./data/import:/var/lib/neo4j/import
     networks:
       - bathysphere
     environment:

@@ -13,7 +13,7 @@ jobs:
       
       neo4j:
         # Same setup as in docker-compose.yml
-        image: neo4j:3.5.16
+        image: neo4j:4.2.5
         ports:
           - 7474:7474 # http
           - 7473:7473 # https
@@ -28,11 +28,6 @@ jobs:
         uses: actions/setup-python@v1
         with:
           python-version: 3.7
-
-      # - name: Install doctl
-      #   uses: digitalocean/action-doctl@v2
-      #   with:
-      #     token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
 
       - name: Install dependencies
         run: |

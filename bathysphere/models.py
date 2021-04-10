@@ -3,14 +3,13 @@
 The models module of the graph API contains extensions to the common
 models, for storing and accessing data in a Neo4j database.
 """
-from inspect import isclass
+from inspect import isclass, signature
 from typing import Type, Callable, Any
 from types import MethodType
 from datetime import datetime
 from pickle import load as unpickle
 from uuid import uuid4, UUID
 from json import dumps
-from inspect import signature
 from time import time
 from functools import reduce
 

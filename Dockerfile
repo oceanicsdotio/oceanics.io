@@ -1,6 +1,7 @@
 FROM python:3.7
 
 WORKDIR /bathysphere
+
 COPY static ./static
 COPY config ./config
 COPY bathysphere ./bathysphere
