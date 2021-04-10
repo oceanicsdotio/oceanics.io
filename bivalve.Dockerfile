@@ -10,7 +10,7 @@ WORKDIR /bivalve
 COPY src/c# ./src/c#
 COPY bin ./bin
 
-RUN mcs -reference:bin/ShellSIM.dll \
+RUN mcs -reference:bin/${BIVALVE_DLL} \
         -out:bin/kernel.exe \
         src/c#/kernel.cs \
         src/c#/json.cs

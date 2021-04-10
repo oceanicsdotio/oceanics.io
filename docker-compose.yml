@@ -55,6 +55,7 @@ services:
       dockerfile: bivalve.Dockerfile
     image: oceanicsdotio/bivalve
     environment:
+      - BIVALVE_DLL
       - SPACES_ACCESS_KEY
       - SPACES_SECRET
       - STORAGE_ENDPOINT
