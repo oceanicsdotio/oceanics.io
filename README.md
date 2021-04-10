@@ -102,32 +102,14 @@ pdoc --html --output-dir openapi/docs bathysphere
 
 These static files are updated automatically in the deploy pipeline. The live version is available [here](https://graph.oceanics.io/docs/bathysphere).
 
-# Bivalve API
+### Bivalve API
 
-[![Netlify Status](https://api.netlify.com/api/v1/badges/7de11e34-cab6-4104-a0ad-fd8ae4fceec5/deploy-status)](https://app.netlify.com/sites/flamboyant-darwin-1a6ed8/deploys)
-![Test](https://github.com/oceanicsdotio/neritics-bivalve/workflows/Test/badge.svg)
 
-## Quickstart
+The recommended way to use the Bivalve API is through a managed instance.
 
-The recommended way to use the Bivalve API is through a managed instance. 
-This removes most of the complexity, and allows you to run simulation models
-using only HTTP requests, from any language-specififc client or webpage.
+This removes most of the complexity, and allows you to run simulation models using only HTTP requests, from any language-specific client or webpage.
 
-The public interface is described [here](https://bivalve.oceanics.io).
-
-This document describes how to change and further develop the application.
-
-### Dependencies
-
-Models run in C# and other languages, and are called through a Python server wrapper that provides a storage backend. 
-
-The `bivalve` service interacts with S3-compatible object storage provider, and will need to find credentials for this to work. See the next section for the required enviornment variables
-
-The Python code requires version 3.7.
-
-We use `pipenv` to manage dependencies, `pytest` for testing
-
-If you need a `requirements.txt` file instead of a `Pipfile.lock`, you can generate one with `pipenv lock -r > requirements.txt`.
+Models run in C# and other languages, and are called through a Python server wrapper that provides a storage backend.
 
 We use Mono to compile cross-platform binaries:
 
