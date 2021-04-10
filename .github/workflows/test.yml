@@ -67,7 +67,7 @@ jobs:
         env:
           NEO4J_ACCESS_KEY: ${{ secrets.NEO4J_ACCESS_KEY }}
           NEO4J_HOSTNAME: ${{ secrets.NEO4J_HOSTNAME }}
-          SPACES_SECRET: ${{ secrets.SPACES_SECRET }}
+          SPACES_SECRET_KEY: ${{ secrets.SPACES_SECRET_KEY }}
           SPACES_ACCESS_KEY: ${{ secrets.SPACES_ACCESS_KEY }}
           STORAGE_ENDPOINT: ${{ secrets.STORAGE_ENDPOINT }}
           BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
