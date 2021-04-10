@@ -1,28 +1,18 @@
 FROM mono:slim
-RUN apt update && apt install -y curl mono-mcs build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev wget
-# RUN curl -O https://www.python.org/ftp/python/3.7.3/Python-3.7.3.tar.xz && \
-#     tar -xf Python-3.7.3.tar.xz && \
-#     cd Python-3.7.3 && \
-#     ./configure && \
-#     make -j 4 && \
-#     make altinstall
 
-# RUN python3.7 --version && pip3.7 --version
+RUN apt update && apt install -y mono-mcs 
 
-# WORKDIR /bivalve
+# build-essential 
+# zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev wget
 
-# COPY setup.py ./
-# COPY openapi ./openapi
-# COPY bivalve ./bivalve
-# COPY requirements.txt ./requirements.txt
+WORKDIR /bivalve
 
-COPY src/c# ./src
+COPY src/c# ./src/c#
 COPY bin ./bin
-COPY config ./config
 
-RUN sh src/compile.sh && \
-    # pip3.7 install -e . && \
-    # pip3.7 install -r requirements.txt && \
-    chmod +x src/start.sh
+RUN mcs -reference:bin/ShellSIM.dll \
+        -out:bin/kernel.exe \
+        src/c#/kernel.cs \
+        src/c#/json.cs
     
-ENTRYPOINT ["src/start.sh"]
+ENTRYPOINT ["/usr/bin/mono", "bin/kernel.exe"]
