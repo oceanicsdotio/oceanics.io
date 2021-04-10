@@ -48,3 +48,18 @@ services:
       - NEO4J_dbms_memory_pagecache_size=2G
       - NEO4J_dbms_memory_heap_max__size=2G
   
+  bivalve:
+    build: 
+      context: .
+    image: oceanicsdotio/bivalve
+    environment:
+      - SPACES_ACCESS_KEY
+      - SPACES_SECRET
+      - STORAGE_ENDPOINT
+      - BUCKET_NAME=oceanicsdotio
+      - SERVICE_NAME=bivalve
+      - PORT=5000
+    ports:
+      - 5000:5000
+    networks:
+      - oceanics

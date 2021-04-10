@@ -2,8 +2,9 @@ openapi: "3.0.0"
 
 info:
 
+
   title: "Bathysphere API"
-  version: "1.6"
+  version: "1.7"
   description: |
 
     The Bathysphere API is a distributed store and registry for public and proprietary geospatial data.
@@ -319,9 +320,287 @@ paths:
           $ref: '#/components/responses/BadRequest'
 
 
+  /bivalve:
+
+    get:
+      tags: [Bivalve Model]
+      summary: Model index
+      operationId: bivalve.functions.index
+      description: |
+        Get metadata for all model configurations.
+
+      responses:
+        '200':
+          description: Model configurations
+          content:
+            application/json:
+              schema:
+                title: modelConfigurations
+                type: object
+                properties:
+                  value:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Configuration'
+
+    post:
+      tags: [Bivalve Model]
+      summary: Configure model
+      operationId: bivalve.functions.configure
+      description: |
+
+        Upload a configuration that will be associated with your account. 
+        The settings will be accessible by reference for starting further 
+        simulations with the same mathematical and computational
+        behavior. Configurations are immutable after the first time 
+        they are run to allow reproducibility.
+
+      requestBody:
+        description: Model configuration
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Configuration'
+
+      responses:
+        '200':
+          description: Model configuration URI
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    format: url
+                    description: Link back to this entity
+
+
+  'bivalve/{objectKey}':
+
+    get:
+      tags: [Bivalve Model]
+      summary: View configuration or experiment
+      description: |
+        Retrieve details about a model configuration or simulation. 
+        This includes links to and summary statistics
+        of the individual simulations using these settings.
+
+      parameters:
+        - $ref: '#/components/parameters/ObjectKey'
+      
+      responses:
+        '200':
+          description: Return configuration or simulation result
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/Configuration'
+                  - $ref: '#/components/schemas/Experiment'
+      
+    post:
+
+      tags: [Bivalve Model]
+      summary: Run experiment
+      operationId: bivalve.functions.run
+      description: |
+
+        The bivalve endpoint uses either constant conditions over a 
+        fixed period, or time-series data sources. Responses
+        are JSON structures. 
+
+        The application executes a synchronous kernel call for 
+        every location, and solves for
+        mass conservation and energy dynamics.
+
+      parameters:
+        - $ref: '#/components/parameters/ObjectKey'
+        - $ref: '#/components/parameters/weight'
+
+        - in: query
+          name: species
+          description: string identifier for culture species
+          required: true
+          schema:
+            type: string
+            default: oyster
+            enum: [oyster, mussel, scallop]
+
+        - in: query
+          name: cultureType
+          description: |
+            String identifier for culture method. 
+            Midwater configurations reutilize pseudofaeces,
+            while bottom culture prevents resuspension.
+          schema:
+            type: string
+            enum: [midwater, bottom, rope]
+            default: midwater
+        
+      requestBody:
+        description: | 
+          JSON object containing forcing information
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                forcing:
+                  title: forcingParameters
+                  description: |
+                    Time-varying forcing conditions for the 
+                    model execution.
+                  type: array
+                  items:
+                    type: array
+                    items: 
+                      type: object
+                      properties:
+
+                        temperature:
+                          description: |
+                            Temperature, degrees Celsius, controls vital rates.
+                          type: number
+                          format: float
+                          minimum: 0.0
+                          maximum: 40.0
+
+                        turbidity:
+                          description: |
+                            Turbidity helps determine the amount of food available to shellfish.
+
+                          type: number
+                          format: float
+                          minimum: 0.0
+                          maximum: 1
+
+                        chlorophyll:
+                          description: |
+                            Chlorophyll-a concentration (ug/L) is a proxy for food availability.
+                          type: number
+                          format: float
+                          minimum: 0.0
+
+                        salinity:
+                          description: Salinity, PSU
+                          type: number
+                          format: float
+                          minimum: 0
+                          maximum: 40
+
+                        current:
+                          description: Current speed, cm/s
+                          type: number
+                          format: float
+                          minimum: 0
+                          maximum: 100
+
+                        particulateOrganicMatter:
+                          description: | 
+                            Particulate Organic Matter (mg/L), or POM, is used as an additional food source.
+                          type: number
+                          format: float
+                          minimum: 0
+
+                        totalParticulateMatter:
+                          description: |
+                            Total or suspended particulate matter, mg/L
+                          type: number
+                          format: float
+                          minimum: 0
+
+                        particulateOrganicCarbon:
+                          description: |
+                            Particulate organic carbon, POC, ug/L
+                          type: number
+                          format: float
+                          minimum: 0
+
+                        oxygen:
+                          description: |
+                            Dissolved oxygen concentration (mg/L) acts as a limitation on metabolism.
+                          type: number
+                          format: float
+                          minimum: 0
+
+                        seed:
+                          description: |
+                            Number of seed added during the first time step.
+                          type: integer
+                          minimum: 1
+                          default: 1
+
+      responses:
+        '200':
+          description: Return simulation link
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    format: url
+                    description: Link back to this entity
+              
+
 components:
 
   parameters:
+
+    ploidy:
+      in: query
+      name: ploidy
+      description: |
+        Shellfish are assumed to be reproductive, and therefore diploid. 
+        Future features will include phylogeography tools.
+
+      schema:
+        type: string
+        enum: [diploid, triploid]
+        default: diploid
+
+    dryWeight:
+      in: query
+      name: dryWeight
+      description: |
+        Actual mass of organic material. Automatically calculated from fresh weight.
+      schema:
+        type: number
+        format: float
+        minimum: 0.0
+
+    shellHeight:
+      in: query
+      name: shellHeight
+      description: |
+        Linear size measurement. Automatically calculated from fresh weight.
+      schema:
+        type: number
+        format: float
+
+    volume:
+      in: query
+      name: volume
+      description: Control volume for density-dependence
+      schema:
+        description: |
+          Control volume for density-dependence, measure in liters. As the number of organisms per unit volume increases,
+          competition for limited resources like food or oxygen can come into play.
+
+        type: number
+        format: float
+        minimum: 1
+        maximum: 1000
+
+    weight:
+      name: weight
+      in: query
+      required: true
+      schema:
+        $ref: "#/components/schemas/Weight"
+
 
     root:
       in: path
@@ -603,13 +882,7 @@ components:
       description: |
         Additional node labels that can be applied to entities, which have internal meaning.
 
-    Error:
-      type: object
-      properties:
-        message:
-          type: string
-          description: Error message
-
+  
     Message:
       type: object
       properties:
@@ -1277,3 +1550,249 @@ components:
     #               - producer
     #               - processor
     #               - host
+
+
+    Weight:
+      description: |
+        The total fresh product weight in grams. There are other conversions depending on your application case.
+        Biogeochemical modelers are likely more interested in carbon and nutrient masses. This will apply best
+        to products sold by weight like mussels.
+
+      type: number
+      format: float
+      minimum: 0.0
+
+    Error:
+      type: object
+      properties:
+        message:
+            type: string
+
+    Configuration:
+      type: object
+      properties:
+
+        self:
+          type: string
+          readOnly: true
+          description: |
+            Link back this the object
+
+        metadata:
+          type: object
+          description: |
+            Metadata for the configration. Includes indexing and search data.
+          properties:
+            name:
+              type: string
+              maxLength: 50
+              description: |
+                A human readable name for the model configuration
+            description:
+              type: string
+              description: |
+                A short description to help understand the purpose of the simulation
+            keywords:
+              type: array
+              nullable: true
+              description: |
+                You may optionally attach keywords to the configuration
+              items:
+                type: string
+            license: 
+              type: string
+              default: proprietary
+              description: |
+                We need to know licensing restrictions to properly route your data.
+
+        properties:
+          type: object
+          description: |
+            When you configure a simulation, it will persist
+            indefinitely. After the first production run it will be frozen. Future derived versions will be connected
+            to preserve model provenance and intent.
+
+          properties:
+
+            workers:
+              nullable: true
+              description: | 
+                Number of processes to use for Monte Carlo simulations.
+              type: integer
+              minimum: 1
+              maximum: 4
+              default: 1
+
+            dt:
+             
+              description: |
+                Timestep, integer seconds. A one minute time step is probably unnecessary, unless you are validating/comparing
+                a laboratory physiology study. Longer time steps may miss important tidal dynamics. One hour is the recommended
+                value, which is also a common sampling frequency for sensors deplyed near growing areas (and therefore limits
+                interpolation). Integration is by Euler (`euler`) or Runga-Kutta (`rk`).
+
+              type: integer
+              minimum: 60
+              maximum: 3600
+              default: 3600
+
+            integration:
+              nullable: true
+              description: |
+                Integration is by Euler (`euler`) or Runge-Kutta 4th order (`rungeKutta`). Only `euler` is enabled.
+              type: string
+              enum: [euler]
+              default: euler
+
+            backend:
+              nullable: true
+              description: |
+                There are several options for biological prediction. Your choice of backend will be based on your licenses
+                and appetite for risk:
+                * `shellsim` is available if you have licensed `ShellSIM` from Plymouth Marine Laboratory
+                * `empirical` uses multiple linear regression and field data to drive growth predictions
+                * `ensemble` uses mix of proprietary models and public data
+
+                Only `ensemble` is enabled.
+
+              type: string
+              enum: [ensemble]
+              default: ensemble
+
+        experiments:
+
+          description: |
+            Collection of multi-simulation experiments produced by this model configuration
+          type: array
+          readOnly: true
+          nullable: true
+          items:
+            type: string
+
+    Experiment:
+      title: time series
+      type: object
+      properties:
+
+        data:
+
+          type: array
+          description: | 
+            Result of the simulation.
+
+          items:
+            type: array
+            items:
+
+              type: object
+              required:
+                - time
+                - weight
+              properties:
+
+                time:
+                  description: |
+                    Time in days. While computational time steps are usually hourly or shorter, the interval of interest
+                    for aqaculturists is measured in days. The internal clock uses integers to prevent numerical problems
+                    in long running simulations, but this is translated to decimal hours for calculating physiological rates.
+
+                  type: number
+                  format: float
+                  minimum: 0.0
+
+                weight:
+                  $ref: "#/components/schemas/Weight"
+
+                oxygenUptake:
+                  nullable: true
+                  description: |
+                    Cummulative oxygen uptake. Metabolism removes oxygen from the water column. If aeration does not exceed
+                    the rate of biological uptake (plus other processes), the water body will become hypoxic or anoxic.
+
+                  type: number
+                  format: float
+                  minimum: 0.0
+
+                chlorophyllUptake:
+                  nullable: true
+                  description: |
+                    Filter feeding removes phytoplankton from the water column. Chlorophyll is a proxy for the productivity
+                    of the water body. When there are too many shellfish in a semi-closed system, they can deplete available
+                    food for conspecifics.
+
+                  type: number
+                  format: float
+                  minimum: 0.0
+
+                nitrogenUptake:
+                  nullable: true
+                  description: |
+                    Filter feeding moves nitrogen from the environment into tissue.
+                  type: number
+                  format: float
+                  minimum: 0.0
+
+                nitrogenExcretion:
+                  nullable: true
+                  description: |
+                    Shellfish excrete nitrogen through membrane transfer.
+
+                  type: number
+                  format: float
+                  minimum: 0.0
+
+                ammoniaLoss:
+                  nullable: true
+                  description: |
+                    Ammonia is released to the environment as waste. This can stimulate the growth of plankton.
+
+                  type: number
+                  format: float
+                  minimum: 0.0
+
+                deposition:
+                  nullable: true
+                  description: |
+                    Shellfish are widely considered beneficial to
+                    water quality. However, they can concentrate biological material into feces and psuedofeces. These
+                    particulate forms sink more quickly, and may settle in mats either under the culture area, or downstream.
+                    Decomposition can lead to sediment and bottom water hypoxia.
+                  type: number
+                  format: float
+                  minimum: 0.0
+
+        workers:
+          type: integer
+          description: | 
+            Parallelism used, multiplies execution time for 
+            calculating billable compute time.
+
+        configuration:
+          type: string
+          format: url
+          description: | 
+            Link to the model configuration that the result derives
+            from.
+        
+        start:
+          type: number
+          format: float
+          description: |
+            Start time
+
+        finish:
+          type: number
+          format: float
+          description: | 
+            Time that the backend processes completes
+
+        forcing:
+          type: array
+          description: |
+            Forcing data used as input to the model
+
+        self:
+          type: string
+          format: url
+          description: |
+            Link back to this asset

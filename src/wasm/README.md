@@ -84,6 +84,13 @@ There must also be several environment variables active for things to work. Thes
 - `POSTGRES_SECRETS` is comma separated strings `<username>,<password>,<cloudsqlInstance>`
 - `OBJECT_STORAGE_SECRETS` is comma separated strings `<accessKey>,<secretKey>`
 - `DARKSKY_API_KEY` is the API key for an optional weather service that will be deprecated
+- `SPACES_ACCESS_KEY`: for accessing storage
+- `SPACES_SECRET`: for accessing storage
+- `STORAGE_ENDPOINT`: the region and host for cloud storage
+- `BUCKET_NAME`: the prefix to the storage endpoint
+- `SERVICE_NAME`: grouping of data in storage
+- `PORT`: used locally and by Google Cloud Run
+
 
 We recommend using `direnv` to manage these in `.envrc`.
 
@@ -94,6 +101,43 @@ pdoc --html --output-dir openapi/docs bathysphere
 ```
 
 These static files are updated automatically in the deploy pipeline. The live version is available [here](https://graph.oceanics.io/docs/bathysphere).
+
+# Bivalve API
+
+[![Netlify Status](https://api.netlify.com/api/v1/badges/7de11e34-cab6-4104-a0ad-fd8ae4fceec5/deploy-status)](https://app.netlify.com/sites/flamboyant-darwin-1a6ed8/deploys)
+![Test](https://github.com/oceanicsdotio/neritics-bivalve/workflows/Test/badge.svg)
+
+## Quickstart
+
+The recommended way to use the Bivalve API is through a managed instance. 
+This removes most of the complexity, and allows you to run simulation models
+using only HTTP requests, from any language-specififc client or webpage.
+
+The public interface is described [here](https://bivalve.oceanics.io).
+
+This document describes how to change and further develop the application.
+
+### Dependencies
+
+Models run in C# and other languages, and are called through a Python server wrapper that provides a storage backend. 
+
+The `bivalve` service interacts with S3-compatible object storage provider, and will need to find credentials for this to work. See the next section for the required enviornment variables
+
+The Python code requires version 3.7.
+
+We use `pipenv` to manage dependencies, `pytest` for testing
+
+If you need a `requirements.txt` file instead of a `Pipfile.lock`, you can generate one with `pipenv lock -r > requirements.txt`.
+
+We use Mono to compile cross-platform binaries:
+
+```bash
+ # src/compile.sh
+ mcs -reference:bin/<BINARY_DEPENDENCY>.dll \
+    -out:bin/kernel.exe \
+    src/kernel.cs \
+    src/json.cs
+```
 
 ### Modifying the web API
 

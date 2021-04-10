@@ -26,3 +26,5 @@ Cargo.toml
 gatsby-*
 package.json
 yarn-*
+bitbucket-pipelines.yml
+*.egg-info

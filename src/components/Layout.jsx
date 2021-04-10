@@ -45,26 +45,17 @@ const SiteLink = styled.a`
     font-size: x-large;
 `;
 
-
 /** 
  * Internal link, emphasized
  */
 export const Title = styled(Link)`
     font-size: xx-large;
-    color: ${({color})=>color};
+    color: ${ghost};
     margin: 0;
     padding: 0;
     margin-right: 1rem;
 `;
     
-/**
- * Internal link, de-emphasized
- */
-const MinorLink = styled(Link)`
-    color: ${({color})=>color};
-    display: block;
-    font-size: large;
-`;
 
 export const Layout = ({ 
     children,
@@ -77,10 +68,10 @@ export const Layout = ({
      * to prevent re-rendering if layout changes. 
      */
     const links = useMemo(()=>{
-        return layout.site.map(({label, to, color=pink}, key) =>  
+        return layout.site.map(({label, to}, key) =>  
             <SiteLink 
                 href={to} 
-                color={color}
+                color={pink}
                 key={`site-link-${key}`}
                 target={"_blank"}
             >
@@ -94,14 +85,14 @@ export const Layout = ({
      */
     const footerLinks = useMemo(()=>{
         return layout.footer.links.map(({label, to}, key) => 
-            <MinorLink 
+            <Link 
                 key={label} 
                 to={to}
                 color={ghost}
                 key={`footer-link-${key}`}
             >
                 {label}
-            </MinorLink>
+            </Link>
         )
     });
 
@@ -119,8 +110,8 @@ export const Layout = ({
             </p>
             {footerLinks}
             <p> 
-                {`Made with ⚡ in Maine 2018-${new Date().getFullYear()}`}  <br/>
-                {`No rights reserved`}
+                {`Made with ⚡ in Maine`}  <br/>
+                {`No rights reserved, 2018-${new Date().getFullYear()}`}
             </p>
         </footer>
     </div>
@@ -129,7 +120,7 @@ export const Layout = ({
 export const StyledLayout = styled(Layout)`
     margin-left: auto;
     margin-right: auto;
-    max-width: ${({expand})=>expand?"100%":rhythm(24)};
+    max-width: ${({expand})=>expand?"100%":rhythm(32)};
     padding: ${rhythm(1.5)} ${rhythm(0.75)};
 
     & > main {
@@ -142,8 +133,14 @@ export const StyledLayout = styled(Layout)`
         border-radius: 1rem 1rem 0 0;
     }
 
-    & > footer {
+    & footer {
         margin-top: 2rem;
+
+        & a {
+            color: ${ghost};
+            display: block;
+            font-size: large;
+        }
     }
 `;
 
