@@ -12,6 +12,7 @@ from uuid import uuid4, UUID
 from json import dumps
 from time import time
 from functools import reduce
+from os import getenv
 
 from neo4j import Driver, Record, GraphDatabase
 from neo4j.spatial import WGS84Point  # pylint: disable=no-name-in-module,import-error
@@ -20,21 +21,35 @@ import attr
 from bathysphere import (
     processKeyValueInbound,
     executeQuery,
-    polymorphic,
-    RESTRICTED
+    polymorphic
 )
+
+RESTRICTED = {"User", "Providers"}
 
 @attr.s(repr=False)
 class Link:
     """
     Links are the relationships between two entities.
-    They are directional.
-    """
 
+    They are directional, and have properties like entities. When you
+    have the option, it is encouraged to use rich links, instead of
+    doubly-linked nodes to represent relationships.
+
+    The attributes are for a `Link` are:
+    - `_symbol`, a private str for cypher query templating
+    - `rank`, a reinforcement learning parameter for recommending new data
+    - `uuid`, the unique identifier for the entity
+    - `props`, properties blob
+    - `label`, the optional label for the relationship, we only use one per link
+    """
     _symbol: str = attr.ib(default="r")
+
     rank: int = attr.ib(default=None)
+
     uuid: UUID = attr.ib(default=None)
+
     props: dict = attr.ib(default=None)
+
     label: str = attr.ib(default=None)
 
     def __repr__(self) -> str:
@@ -74,10 +89,10 @@ class Link:
     ) -> None:
         """
         Create a link between two node patterns. This uses the `polymorphic` decorator
-        to work on either classes or isntances.
+        to work on either classes or instances.
 
-        If calling as an instance of `Link`, no addtional properties should be supplied.
-        Otherwise, a `Link` will be constructed from the `props` arguement.
+        If calling as an instance of `Link`, no additional properties should be supplied.
+        Otherwise, a `Link` will be constructed from the `props` argument.
 
         There must be exactly 2 entities to link. In the future this will support N-body
         symmetric linking.
@@ -286,59 +301,59 @@ class Entity:
 
         executeQuery(db, lambda tx: tx.run(f"MERGE {repr(entity)}"), read_only=False)
 
-        if isinstance(entity, TaskingCapabilities):  # prevent recursion
-            return entity
+        # if isinstance(entity, TaskingCapabilities):  # prevent recursion
+        #     return entity
 
-        for fcn in bind:  # bind user defined methods
-            setattr(entity, fcn.__name__, MethodType(fcn, entity))
+        # for fcn in bind:  # bind user defined methods
+        #     setattr(entity, fcn.__name__, MethodType(fcn, entity))
 
-        existingCapabilities: dict = {
-            x.name: x.uuid for x in TaskingCapabilities().load(db=db)
-        }
+        # existingCapabilities: dict = {
+        #     x.name: x.uuid for x in TaskingCapabilities().load(db=db)
+        # }
 
-        _generator = filter(
-            lambda x: isinstance(x[1], Callable), entity.__dict__.items()
-        )
+        # _generator = filter(
+        #     lambda x: isinstance(x[1], Callable), entity.__dict__.items()
+        # )
 
-        def _is_not_private_or_property(x: str):
-            return (
-                x[: len(private)] != private and 
-                not isinstance(getattr(type(entity), x, None), property)
-            )
+        # def _is_not_private_or_property(x: str):
+        #     return (
+        #         x[: len(private)] != private and 
+        #         not isinstance(getattr(type(entity), x, None), property)
+        #     )
 
-        boundMethods = set(y[0] for y in _generator)
-        classMethods = set(filter(_is_not_private_or_property, dir(entity)))
-        instanceKeys: set = (boundMethods | classMethods) - set(entity._properties())
-        existingKeys = set(existingCapabilities.keys())
+        # boundMethods = set(y[0] for y in _generator)
+        # classMethods = set(filter(_is_not_private_or_property, dir(entity)))
+        # instanceKeys: set = (boundMethods | classMethods) - set(entity._properties())
+        # existingKeys = set(existingCapabilities.keys())
 
-        for name in (instanceKeys - existingKeys):
-            fcn = eval(f"{type(entity).__name__}.{name}")
-            tcUuid = uuid4().hex
-            existingCapabilities[name] = tcUuid
-            _ = TaskingCapabilities(
-                name=name,
-                creationTime=time(),
-                uuid=tcUuid,
-                description=fcn.__doc__,
-                taskingParameters=list(
-                    {
-                        "name": b.name,
-                        "description": "",
-                        "type": "",
-                        "allowedTokens": [""],
-                    }
-                    for b in signature(fcn).parameters.values()
-                )
-            ).create(
-                db=db
-            )
+        # for name in (instanceKeys - existingKeys):
+        #     fcn = eval(f"{type(entity).__name__}.{name}")
+        #     tcUuid = uuid4().hex
+        #     existingCapabilities[name] = tcUuid
+        #     _ = TaskingCapabilities(
+        #         name=name,
+        #         creationTime=time(),
+        #         uuid=tcUuid,
+        #         description=fcn.__doc__,
+        #         taskingParameters=list(
+        #             {
+        #                 "name": b.name,
+        #                 "description": "",
+        #                 "type": "",
+        #                 "allowedTokens": [""],
+        #             }
+        #             for b in signature(fcn).parameters.values()
+        #         )
+        #     ).create(
+        #         db=db
+        #     )
 
-        linkPattern = Link(label="Has")
-        for tcUuid in existingCapabilities.values():
-            linkPattern.join(
-                db=db,
-                nodes=(entity, TaskingCapabilities(uuid=tcUuid))
-            )
+        # linkPattern = Link(label="apiTasking")
+        # for tcUuid in existingCapabilities.values():
+        #     linkPattern.join(
+        #         db=db,
+        #         nodes=(entity, TaskingCapabilities(uuid=tcUuid))
+        #     )
         
         return entity
 
@@ -366,50 +381,21 @@ class Entity:
 
     @classmethod
     def dropIndex(cls, db: Driver, by: str) -> None:
-        """Drop an existing index"""
+        """
+        Drop an existing index from a set of labeled nodes.
+        """
         query = lambda tx: tx.run(f"DROP INDEX ON : {cls.__name__}({by})")
         executeQuery(db, query, read_only=False)
 
-    @polymorphic
     def load(
         self,
         db: Driver,
-        user: Type = None,
-        private: str = "_",
-        annotate: str = "Get",
-        result: str = None,
-        echo: bool = False,
-        **kwargs: dict,
+        result: str = None
     ) -> [Type]:
         """
         Create entity instance from a dictionary or Neo4j <Node>, which has an items() method
         that works the same as the dictionary method.
         """
-        if isclass(self):
-            entity = self(**(kwargs or {}))  # pylint: disable=not-callable
-            cls = self
-        else:
-            entity = self
-            cls = type(self)
-
-        cmd = (
-            (
-                f"MATCH {repr(entity)}, {repr(user)} "
-                f"MERGE ({entity._symbol})<-[r:{annotate}]-({user._symbol}) "
-                f"ON CREATE SET r.rank = 1 "
-                f"ON MATCH SET r.rank = r.rank + 1 "
-                f"RETURN {entity._symbol}{'.{}'.format(result) if result else ''}"
-            )
-            if user
-            else (
-                f"MATCH {repr(entity)} "
-                f"RETURN {entity._symbol}{'.{}'.format(result) if result else ''}"
-            )
-        )
-
-        if echo:
-            print(cmd)
-
         def processKeyValueOutbound(keyValue: (str, Any),) -> (str, Any):
             """
             Special parsing for serialization on query
@@ -420,7 +406,6 @@ class Entity:
                 key = key[1:]
 
             if isinstance(value, WGS84Point):
-
                 value = {
                     "type": "Point",
                     "coordinates": f"{[value.longitude, value.latitude]}"
@@ -428,16 +413,19 @@ class Entity:
                  
             return key, value
 
-        def transducer(record: Record):
-            return cls(**dict(map(processKeyValueOutbound, dict(record[0]).items())))
+        def _instance(record: Record):
+            """
+            Create instance from 
+            """
+            return type(self)(**dict(map(processKeyValueOutbound, dict(record[0]).items())))
 
-        def runQuery(tx):
-            result = tx.run(cmd)
-            return [r for r in result]
+        def query(tx):
+            return tx.run((
+                f"MATCH {repr(self)} "
+                f"RETURN {self._symbol}{'.{}'.format(result) if result else ''}"
+            ))
 
-        return list(map(transducer, executeQuery(
-            db=db, method=runQuery, read_only=False
-        )))
+        return [*map(_instance, executeQuery(db, query))]
 
     @polymorphic
     def mutate(self: Type, db: Driver, data: dict, pattern: dict = None) -> None:
@@ -461,7 +449,7 @@ class Entity:
         )
 
     def serialize(
-        self, db: Driver, service: str, protocol: str = "http", select: (str) = None
+        self, db: Driver, protocol: str = "http", select: (str) = None
     ) -> dict:
         """
         Format entity as JSON compatible dictionary from either an object instance or a Neo4j <Node>
@@ -472,13 +460,14 @@ class Entity:
         """
         props = self._properties(select=select, private="_")
         uuid = self.uuid
-        base_url = f"{protocol}://{service}/api"
+        base_url = f'''{protocol}://{getenv("SERVICE_NAME")}/api'''
         root_url = f"{base_url}/{type(self).__name__}"
         self_url = (
             f"{root_url}({uuid})" if isinstance(uuid, int) else f"{base_url}/{uuid}"
         )
 
         linkedEntities = set()
+
         if db is not None:
             _filter = lambda x: len(set(x[0]) & RESTRICTED) == 0
             _reduce = lambda y, z: y | {z[0][0]}
@@ -495,6 +484,36 @@ class Entity:
                 for each in linkedEntities
             },
         }
+
+    @classmethod
+    def collectionLink(cls):
+    
+        return {
+            "name": cls.__name__, 
+            "url": f'''${getenv("SERVICE_NAME")}/api/{cls.__name__}'''
+        }
+
+    @staticmethod
+    def allLabels(db: Driver):
+        """
+        We make sure to 
+        remove the metadata entities that are not part of a public
+        specification. 
+        """
+        # remove restricted entries, e.g. core nodes
+        def _filter(name: str):
+            return name not in RESTRICTED
+
+        # query method passed to `Entity.allLabels()`
+        def method(tx) -> [Record]:
+            return filter(_filter, (r["label"] for r in tx.run(f"CALL db.labels()")))
+
+        # format the link
+        def format(name):
+            eval(name).collectionLink()
+
+        # evaluate the generator chain
+        return [*map(format, executeQuery(db, method))]
 
 
 @attr.s(repr=False)

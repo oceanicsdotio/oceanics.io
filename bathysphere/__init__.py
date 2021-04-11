@@ -57,6 +57,22 @@ if envErrors:
     raise EnvironmentError(f"{envErrors} not set")
 
 
+def reverseDictionary(a: dict, b: dict) -> dict:
+    """
+    Flip the nestedness of the dict from a list to have top level keys for each `kind`
+    """
+    if not isinstance(a, dict):
+        raise ValueError(
+            "Expected dictionary values. Type is instead {}.".format(type(a))
+        )
+
+    if b is not None:
+        key = b.pop("kind")
+        if key not in a.keys():
+            a[key] = [b]
+        else:
+            a[key].append(b)
+    return a
 
 @attr.s(repr=False)
 class Message:
@@ -283,43 +299,6 @@ def job(config: dict, forcing: tuple) -> (tuple, bytes):
     return process.result, process.log.getvalue().decode()
 
 
-
-def loadAppConfig(sources: (str) = ("bathysphere.yml", )) -> dict:
-    """
-    Load known entities and services at initialization.
-    """
-
-    def renderConfig(x: str):
-        """
-        Open the local config directory and process entries into dict structures
-        """
-        with open(Path(f"config/{x}"), "r") as fid:
-            items = fid.read().split("---")
-        return list(map(load_yml, items, repeat(Loader, len(items))))
-
-    def reverseDictionary(a: dict, b: dict) -> dict:
-        """
-        Flip the nestedness of the dict from a list to have top level keys for each `kind`
-        """
-        if not isinstance(a, dict):
-            raise ValueError(
-                "Expected dictionary values. Type is instead {}.".format(type(a))
-            )
-
-        if b is not None:
-            key = b.pop("kind")
-            if key not in a.keys():
-                a[key] = [b]
-            else:
-                a[key].append(b)
-        return a
-
-    items = reduce(operator.add, map(renderConfig, sources), [])
-    return reduce(reverseDictionary, items, {})
-
-
-RESTRICTED = {"User", "Providers", "Root"}  # core Nodes are treated differently than other entities
-
 class polymorphic:
     """
     Class decorator for allowing methods to be class or instance
@@ -412,7 +391,6 @@ def executeQuery(
         return _transact(method)
 
 
-@retry(tries=1, delay=1, backoff=1)
 def connect() -> Driver:
     """
     Connect to a database manager. Try docker networking, or fallback to local host.
@@ -422,24 +400,29 @@ def connect() -> Driver:
     from os import getenv
 
     uri = getenv("NEO4J_HOSTNAME")
-    secret = getenv("NEO4J_ACCESS_KEY")
 
     try:
-        return GraphDatabase.driver(uri=uri, auth=("neo4j", secret))
+        return GraphDatabase.driver(uri=uri, auth=("neo4j", getenv("NEO4J_ACCESS_KEY")))
     except Exception:  # pylint: disable=broad-except
         print(f"Could not connect to Neo4j database @ {uri}")
         return None
 
 
 __pdoc__ = {
-    "test": False
-    # submodules will be skipped in doc generation
+    "test": False,
+    "future": False,
+    # submodules skipped in doc generation
 }
 app = App(__name__, options={"swagger_ui": False})
 CORS(app.app)
 
-try:
-    appConfig = loadAppConfig()
+
+try:   
+    with open(Path(f"config/bathysphere.yml"), "r") as fid:
+        _items = fid.read().split("---")
+    items = list(map(load_yml, _items, repeat(Loader, len(_items))))
+
+    appConfig = reduce(reverseDictionary, items, {})
     services = filter(
         lambda x: "bathysphere-api" == x["spec"]["name"], appConfig["Locations"]
     )
@@ -452,7 +435,6 @@ try:
     absolutePath = str(Path(relativePath).absolute())
 except FileNotFoundError as ex:
     raise FileNotFoundError(f"Specification not found: {relativePath}")
-
 
 try:
     parser = ResolvingParser(absolutePath, lazy=True, strict=True)

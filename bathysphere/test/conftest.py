@@ -6,7 +6,7 @@ from typing import Callable
 from pathlib import Path
 from os import getenv
 
-from bathysphere import app, connect
+from bathysphere import app
 
 
 @pytest.fixture(scope="session")

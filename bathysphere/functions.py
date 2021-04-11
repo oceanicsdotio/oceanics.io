@@ -1,21 +1,25 @@
 # pylint: disable=invalid-name,line-too-long,eval-used,unused-import
 """
 The functions module of the graph API contains handlers for secure
-calls. These are exposed as a Cloud Function calling Connexion/Flask.
+calls. These are exposed as a web service.
 """
-from itertools import chain
-from os import getenv
-from datetime import datetime
-from inspect import signature
-from uuid import uuid4
-from typing import Callable, Any
-from passlib.apps import custom_app_context
-from flask import request
-from neo4j import Record
-from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
-from itsdangerous.exc import BadSignature
 
-from bathysphere import connect, Driver, executeQuery, RESTRICTED, app, job
+# for creating users and other entities
+from uuid import uuid4  
+
+# function signature of `context`
+from typing import Callable 
+
+# function signature for db queries
+from neo4j import Driver 
+
+# password authentication
+from passlib.apps import custom_app_context  
+
+# headers and such available for authenticate 
+from flask import request  
+
+# need to be in scope to be `eval` from their string representation
 from bathysphere.models import (
     Actuators,
     Assets,
@@ -32,37 +36,41 @@ from bathysphere.models import (
     Tasks,
     TaskingCapabilities,
     Things,
+    Entity
 )
-
-
-from json import load
-
-from bathysphere.storage import Storage, MetaDataTemplate
-
-COLLECTION_KEY = "configurations"
-SERVICE = "https://bivalve.oceanics.io/api"
-DEBUG = True
-port = 7687
-ResponseJSON = (dict, int)
-api_port = 5000
-default_service = getenv("NEO4J_HOSTNAME") + (f":{api_port}" if api_port else "")
-graph_error_response = ({"Error": "No graph backend"}, 500)
 
 def context(fcn: Callable) -> Callable:
     """
     Decorator to authenticate and inject user into request.
     Validate/verify JWT token.
-
     """
-    db = connect()
-  
-    def _wrapper(**kwargs: dict) -> Any:
+    # peek into wrapped function sigs, to conditionally inject args
+    from inspect import signature
+
+    # secure serializer
+    from itsdangerous import TimedJSONWebSignatureSerializer
+
+    # use when handling decode errors
+    from itsdangerous.exc import BadSignature
+
+    from neo4j import GraphDatabase
+
+    from os import getenv
+
+    # Enable more specific HTTP error messages. 
+    DEBUG = True
+
+    def _wrapper(**kwargs: dict) -> (dict, int):
         """
         The produced decorator
         """
-
-        if db is None:
-            return graph_error_response
+        try:
+            db = GraphDatabase.driver(
+                uri=getenv("NEO4J_HOSTNAME"), 
+                auth=("neo4j", getenv("NEO4J_ACCESS_KEY"))
+            )
+        except Exception:  # pylint: disable=broad-except
+            return ({"Error": "No graph backend"}, 500)
 
         username, password = request.headers.get("authorization", ":").split(":")
 
@@ -78,7 +86,7 @@ def context(fcn: Callable) -> Callable:
         else: # Bearer Token
             secretKey = request.headers.get("x-api-key", "salt")
             try:
-                decoded = Serializer(secretKey).loads(password)
+                decoded = TimedJSONWebSignatureSerializer(secretKey).loads(password)
             except BadSignature:
                 return {"Error": "Missing authorization and/or x-api-key headers"}, 403
             uuid = decoded["uuid"]
@@ -93,12 +101,17 @@ def context(fcn: Callable) -> Callable:
         provider = Providers(domain=user.name.split("@").pop()).load(db=db)
         if len(provider) != 1:
             raise ValueError
-        arg = "provider"
-        if arg in signature(fcn).parameters.keys():
-            kwargs[arg] = provider.pop()
+
+        # inject the provider, if contained in the function signature
+        if "provider" in signature(fcn).parameters.keys():
+            kwargs["provider"] = provider.pop()
+
+        # inject the user, if contained in function signature
+        if "user" in signature(fcn).parameters.keys():
+            kwargs["user"] = user
 
         try:
-            return fcn(db=db, user=user, **kwargs)
+            return fcn(db=db, **kwargs)
         except TypeError as ex:
             return {
                 "message": "Bad inputs passed to API function",
@@ -117,14 +130,21 @@ def context(fcn: Callable) -> Callable:
     return _wrapper if DEBUG else handleUncaughtExceptions
 
 
-def register(body: dict) -> ResponseJSON:
+def register(body: dict) -> (dict, int):
     """
     Register a new user account
     """
+    from neo4j import GraphDatabase
+    from os import getenv
+    
     # pylint: disable=too-many-return-statements
-    db = connect()
-    if db is None:
-        return {"message": "no graph backend"}, 500
+    try:
+        db = GraphDatabase.driver(
+            uri=getenv("NEO4J_HOSTNAME"), 
+            auth=("neo4j", getenv("NEO4J_ACCESS_KEY"))
+        )
+    except Exception:  # pylint: disable=broad-except
+        return ({"message": "No graph backend"}, 500)
 
     apiKey = request.headers.get("x-api-key") or body.get("apiKey")
     if not apiKey:
@@ -167,7 +187,7 @@ def register(body: dict) -> ResponseJSON:
     ).create(db=db)
 
     try:
-        Link(label="Member", rank=0).join(db=db, nodes=(user, entryPoint))
+        Link(label="apiRegister", rank=0).join(db=db, nodes=(user, entryPoint))
     except Exception as ex:
         user.delete(db=db)  # make sure not to leave an orphaned User
         raise ex
@@ -176,7 +196,7 @@ def register(body: dict) -> ResponseJSON:
 
 
 @context
-def manage(db: Driver, user: User, body: dict) -> ResponseJSON:
+def manage(db: Driver, user: User, body: dict) -> (dict, int):
     """
     Change account settings. You can only delete a user or change the
     alias.
@@ -194,36 +214,53 @@ def manage(db: Driver, user: User, body: dict) -> ResponseJSON:
 @context
 def token(
     db: Driver, user: User, provider: Providers, secretKey: str = "salt"
-) -> ResponseJSON:
+) -> (dict, int):
     """
     Send a JavaScript Web Token back to authorize future sessions
     """
-    _token = (
-        Serializer(secret_key=secretKey, expires_in=provider.tokenDuration)
-        .dumps({"uuid": user.uuid})
-        .decode("ascii")
+    from itsdangerous import TimedJSONWebSignatureSerializer
+
+    # create the secure serializer instance
+    serializer = TimedJSONWebSignatureSerializer(
+        secret_key=secretKey, 
+        expires_in=provider.tokenDuration
     )
 
+    # convert the encrypted token to text
+    _token = serializer.dumps({"uuid": user.uuid}).decode("ascii")
+
+    # send token info with the expiration
     return {"token": _token, "duration": provider.tokenDuration}, 200
 
 
 @context
-def catalog(db: Driver, user: User, **kwargs) -> ResponseJSON:
+def catalog(db: Driver) -> (dict, int):
     """
-    Usage 1. Get references to all entity sets, or optionally filter
-    """
-    def labelQuery(tx) -> [Record]:
-        return [r for r in tx.run(f"CALL db.labels()")]
+    SensorThings capability #1
     
-    records = executeQuery(db=db, method=labelQuery, read_only=True)
-    labels = list(set(r["label"] for r in records) - RESTRICTED)
+    Get references to all ontological entity sets. 
 
-    def transducer(name: str) -> dict:
-        """Item formatter"""
-        key = f"{name}-{datetime.utcnow().isoformat()}"
-        return {key: {"name": name, "url": f"http://{default_service}/api/{name}"}}
+    Uses the graph `context` decorator to obtain the neo4j driver
+    and the pre-authorized user.
+    """
+    return {"value": Entity.allLabels(db)}, 200
 
-    return {"value": list(map(transducer, labels))}, 200
+
+@context
+def collection(db: Driver, user: User, entity: str) -> (dict, int):
+    """
+    SensorThings API capability #2
+    
+    Get all entities of a single type.
+    """
+    # data transformer for entity records
+    def serialize(record):
+        return record.serialize(db=db)
+
+    # produce the serialized entity records
+    value = [*map(serialize, eval(entity).load(db=db, user=user))]
+    
+    return {"@iot.count": len(value), "value": value}, 200
 
 
 @context
@@ -233,23 +270,30 @@ def create(
     entity: str,
     body: dict,
     provider: Providers,
-    service: str = "localhost",
-) -> ResponseJSON:
+) -> (dict, int):
     """
-    Attach to db, and find available ID number to register the entity.
+    Attach to database, and find available ID number to 
+    register the entity.
     """
-    _ = body.pop("entityClass")  # only used for API discriminator
-    entity = eval(entity)(uuid=uuid4().hex, **body).create(db=db)
-    data = entity.serialize(db, service=service)
-    linkPattern = Link(label="Post", props={"confidence": 1.0},)
-    linkPattern.join(db=db, nodes=(user, entity))
-    linkPattern.join(db=db, nodes=(provider, entity))
+    # only used for API discriminator
+    _ = body.pop("entityClass")  
 
-    # declaredLinks = map(
-    #     lambda k, v: (each.update({"cls": k}) for each in v), body.pop("links", {}).items()
-    # )
+    # evaluate str representation, create a DB record 
+    _entity = eval(entity)(uuid=uuid4().hex, **body).create(db)
+  
+    # establish provenance
+    Link(
+        label="apiCreate", 
+        props={
+            "user": user.uuid
+        }
+    ).join(
+        db=db, 
+        nodes=(provider, _entity)
+    )
 
-    return {"message": f"Create {entity}", "value": data}, 200
+    # send back the serialized result, for access to uuid
+    return {"message": f"Create {entity}", "value": _entity.serialize(db)}, 200
 
 
 @context
@@ -260,10 +304,13 @@ def mutate(
     entity: str,
     uuid: str,
     user: User
-) -> ResponseJSON:
+) -> (dict, int):
     """
     Give new values for the properties of an existing entity.
     """
+
+    from itertools import chain
+
     _ = body.pop("entityClass")  # only used for API discriminator
     cls = eval(entity)
     _ = cls.mutate(db=db, data=body, identity=uuid, props={})
@@ -271,7 +318,7 @@ def mutate(
         ({"cls": repr(user), "uuid": user.uuid, "label": "Put"},),
         (
             {"cls": Providers.__name__, "uuid": r[0], "label": "Provider"}
-            for r in Link(label="Member").query(
+            for r in Link(label="apiRegister").query(
                 db=db, nodes=(user, provider), result="b.uuid"
             )
         )
@@ -283,31 +330,16 @@ def mutate(
     return None, 204
 
 
-@context
-def collection(db: Driver, user: User, entity: str) -> ResponseJSON:
-    """
-    Usage 2. Get all entities of a single class
-    """
-
-    result: (Record) = eval(entity).load(db=db, user=user)
-
-    items = tuple(
-        item.serialize(db=db, service=default_service)
-        for item in result
-    )
-    
-    return {"@iot.count": len(items), "value": items}, 200
-
 
 @context
 def metadata(
-    db: Driver, user: User, entity: str, uuid: str, service: str, key=None
-) -> ResponseJSON:
+    db: Driver, user: User, entity: str, uuid: str, key=None
+) -> (dict, int):
     """
     Format the entity metadata response.
     """
     value = tuple(
-        getattr(item, key) if key else item.serialize(db=db, service=service)
+        getattr(item, key) if key else item.serialize(db=db)
         for item in (eval(entity).load(db=db, user=user, uuid=uuid) or ())
     )
     return {"@iot.count": len(value), "value": value}, 200
@@ -315,13 +347,13 @@ def metadata(
 
 @context
 def query(
-    db: Driver, root: str, rootId: str, entity: str, service: str
-) -> ResponseJSON:
+    db: Driver, root: str, rootId: str, entity: str
+) -> (dict, int):
     """
     Get the related entities of a certain type.
     """
     items = tuple(
-        item.serialize(db=db, service=service)
+        item.serialize(db=db)
         for item in Link().query(
             db=db, nodes=({"cls": root, "id": rootId}, {"cls": entity}), result="b"
         )
@@ -330,7 +362,7 @@ def query(
 
 
 @context
-def delete(db: Driver, entity: str, uuid: str) -> ResponseJSON:
+def delete(db: Driver, entity: str, uuid: str) -> (dict, int):
     """
     Delete a pattern from the graph
     """
@@ -340,196 +372,32 @@ def delete(db: Driver, entity: str, uuid: str) -> ResponseJSON:
 
 @context
 def join(
-    db: Driver, user: User, root: str, rootId: str, entity: str, uuid: str, body: dict
-) -> ResponseJSON:
+    db: Driver, root: str, rootId: str, entity: str, uuid: str, body: dict
+) -> (dict, int):
     """
-    Create relationships between existing nodes
+    Create relationships between existing nodes.
     """
     # pylint: disable=no-value-for-parameter
 
-    rootPattern = eval(root)(uuid=rootId)
-    childPattern = eval(entity)(uuid=uuid)
     Link(
-        label="Linked",
+        label="apiJoin",
         props={
-            "confidence": 1.0,
             "cost": 1.0,
             **body.get("props", dict())
             }
     ).join(
         db=db, 
-        nodes=(rootPattern, childPattern)
+        nodes=(eval(root)(uuid=rootId), eval(entity)(uuid=uuid))
     )
-    linkPattern = Link(label="Put", props={"confidence": 1.0},)
-    linkPattern.join(db=db, nodes=(user, rootPattern))
-    linkPattern.join(db=db, nodes=(user, childPattern))
     return None, 204
 
 
 @context
 def drop(
     db: Driver, root: str, rootId: str, entity: str, uuid: str, props: dict
-) -> ResponseJSON:
+) -> (dict, int):
     """
     Break connections between linked nodes.
     """
     Link.drop(db, (eval(root)(uuid=rootId), eval(entity)(uuid=uuid)), props)
     return None, 204
-
-
-@Storage.session
-def index(client: Storage) -> (dict, int):
-    """
-    Get all model configurations known to the service.
-    """
-
-    from minio.error import S3Error  # pylint: disable=no-name-in-module
-
-    try:
-        return load(client.get_object(client.index)), 200
-    except IndexError:
-        return f"Database ({client.endpoint}) not found", 404
-    except S3Error:
-        return f"Index ({client.index}) not found", 404
-    
-
-@Storage.session
-def configure(
-    client: Storage, 
-    body: dict
-) -> (dict, int):
-    """
-    Create a new configuration
-
-    :param body: Request body, already validated by connexion
-    :param index: index.json data
-    :param client: s3 storage connection
-    :param session: UUID4 session id, used to name configuration
-    """
-    
-    index = load(client.get_object(client.index))
-    self_link = f"{SERVICE}/{client.session_id}"
-    index[COLLECTION_KEY].append(self_link)
-   
-    client.put_object(
-        object_name=f"{client.session_id}.json",
-        data={
-            **body, 
-            "experiments": [],
-            "uuid": client.session_id,
-            "self": self_link
-        },
-        metadata=MetaDataTemplate(
-            x_amz_meta_service_file_type="configuration",
-            x_amz_meta_parent=client.index
-        ).headers,
-    )
-
-    client.put_object(
-        object_name=client.index,
-        data=index,
-        metadata=MetaDataTemplate(
-            x_amz_meta_service_file_type="index",
-            x_amz_meta_parent=client.service_name
-        ).headers
-    )
-
-    return {"self": self_link}, 200
-
-
-@Storage.session
-def run(
-    body: dict,
-    objectKey: str,
-    species: str,
-    cultureType: str,
-    client: Storage,
-    weight: float
-) -> (dict or str, int):
-    """
-    Run the model using a versioned configuration.
-
-    :param objectKey: identity of the configuration to use
-    :param body: optional request body with forcing
-    :param species: bivalve species string, in path:
-    :param session: session UUID used to name experiment
-    :param weight: initial seed weight
-    :param client: storage client
-    """
-
-    from multiprocessing import Pool, cpu_count
-    from itertools import repeat
-    from time import time
-    from functools import reduce
-
-    from minio.error import S3Error  # pylint: disable=no-name-in-module
-    
-    try: 
-        config = load(client.get_object(f"{objectKey}.json"))
-        properties = config.get("properties")
-    except S3Error:
-        return f"Configuration ({objectKey}) not found", 404
-    except Exception:
-        return f"Invalid configuration ({objectKey})", 500
- 
-    start = time()
-    processes = min(cpu_count(), properties.get("workers", cpu_count()))
-   
-    with Pool(processes) as pool:
-
-        configuration = {
-            "species": species,
-            "culture": cultureType,
-            "weight": weight,
-            "dt": properties.get("dt", 3600) / 3600 / 24,
-            "volume": properties.get("volume", 1000.0),
-        }
-        forcing = body.get("forcing")
-        stream = zip(repeat(configuration, len(forcing)), forcing)
-        data, logs = zip(*pool.starmap(job, stream))
-        self_link = f"{SERVICE}/{client.session_id}"
-
-        result = {
-            "self": self_link,
-            "configuration": f"{SERVICE}/{objectKey}",
-            "forcing": forcing,
-            "data": data,
-            "workers": pool._processes,
-            "start": start,
-            "finish": time(),
-        }
-    
-    try:
-        client.put_object(
-            object_name=f"{client.session_id}.logs.json",
-            data=reduce(lambda a, b: a + b, logs),
-            metadata=MetaDataTemplate(
-                x_amz_meta_service_file_type="log", 
-                x_amz_meta_parent=client.session_id
-            ).headers,
-        )
-
-        client.put_object(
-            object_name=f"{client.session_id}.json",
-            data=result,
-            metadata=MetaDataTemplate(
-                x_amz_meta_service_file_type="experiment", 
-                x_amz_meta_parent=objectKey
-            ).headers
-        )
-
-        config["experiments"].append(result["self"])
-
-        client.put_object(
-            object_name=f"{objectKey}.json",
-            data=config,
-            metadata=MetaDataTemplate(
-                x_amz_meta_service_file_type="configuration", 
-                x_amz_meta_parent=client.index
-            ).headers
-        )
-    except Exception:
-        return f"Error saving results", 500
-
-    return {"self": self_link}, 200
- 

@@ -5,7 +5,7 @@ from os import getenv
 
 # from minio import Object
 
-from bathysphere import appConfig, connect
+from bathysphere import appConfig
 
 from bathysphere.models import (
     Locations,
@@ -66,7 +66,14 @@ def test_graph_teardown():
     is made. So handling here is unnecessary, since we want the bubble up.
     """
     # pylint: disable=no-value-for-parameter
-    Entity.delete(db=connect())  
+
+    from neo4j import GraphDatabase
+    from os import getenv
+
+    Entity.delete(db=GraphDatabase.driver(
+        uri=getenv("NEO4J_HOSTNAME"), 
+        auth=("neo4j", getenv("NEO4J_ACCESS_KEY"))
+    ))  
 
 
 def test_graph_account_create_user(client):
