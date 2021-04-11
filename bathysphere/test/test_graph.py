@@ -145,6 +145,11 @@ def test_graph_sensorthings_create(client, cls, token):
 def test_graph_sensorthings_get_entity(client, cls, token):
     """
     Retrieve the WellKnownEntities. 
+
+    This will fail if run by itself, because it currently relies on having
+    the successes memoized during the `create` test.
+
+    We need to decouple these to increase development and testing velocity.
     """
     try:
         retrieve = IndexedDB["createdEntities"][cls]
@@ -168,7 +173,9 @@ def test_graph_sensorthings_get_entity(client, cls, token):
 @pytest.mark.parametrize("cls", set(classes) - {Tasks})
 def test_graph_sensorthings_get_collection(cls, token, client):
     """
-    Get all entities of a single type
+    Get all entities of a single type.
+
+    This works stand-alone on an existing database. 
     """
 
     response = client.get(
@@ -184,41 +191,42 @@ def test_graph_sensorthings_get_collection(cls, token, client):
     assert count > 0, f"Count for {cls} in {count}"
 
 
-@pytest.mark.parametrize("cls", set(classes) - {TaskingCapabilities, Tasks})
-def test_graph_sensorthings_join(client, cls, token):
+@pytest.mark.parametrize("entityType", set(classes) - {TaskingCapabilities, Tasks})
+def test_graph_sensorthings_join(client, entityType, token):
     """
-    Create relationships between existing entities
-    """
-   
-    for entity in IndexedDB["createdEntities"][cls]:
+    Create relationships between existing entities. 
 
-        uuid = entity["value"]["@iot.id"]
-      
-        for otherCls, links in (IndexedDB["joinQueue"][uuid] or dict()).items():
-            neighbor = otherCls.split('@')[0]
-            if eval(neighbor) in (Providers, Assets):
+    Loop through the memoized records of entities by type. 
+
+    Requires that the `create` tests were run. 
+    """ 
+    errors = []
+
+    for entity in IndexedDB["createdEntities"][entityType]:
+
+        payload = entity["value"]
+        entityId = payload["@iot.id"]
+        baseRoute = f'''api/{entityType}({entityId})/'''
+
+        for canonicalName, links in IndexedDB["joinQueue"].get(entityId, dict()).items():
+            
+            neighborType = canonicalName.split('@')[0]
+            neighborClass = eval(neighborType)
+            
+            if neighborClass in (Providers, Assets):
                 continue  # TODO: temporary
 
             for link in links:  
-                try:
-                    searchTree = IndexedDB["createdEntities"][eval(neighbor)]
-                except KeyError:
-                    raise KeyError(f"{neighbor} not in {IndexedDB['createdEntities'].keys()}")
+                for match in IndexedDB["createdEntities"][neighborClass]:
+                    if match["value"].get("name") in link.get("name", []):
+                        uri = f'''{baseRoute}/{neighborType}({match["value"]["@iot.id"]})'''
+                        response = client.post(
+                            uri,
+                            json=link.get("props", dict()),
+                            headers={"Authorization": ":" + token.get("token")},
+                        )
+                        if response.status_code != 204:
+                            errors.append(response.get_json())
 
-                searchNames = link.get("name", [])
-                assert isinstance(searchNames, list), "Name is array of strings"
-        
-                matches = list(filter(lambda x: x["value"].get("name") in searchNames, searchTree))
-                assert len(matches) > 0, f"{entity.json['value']} / {neighbor} {link} has no matches"
 
-                for match in matches:
-
-                    uri = f'''api/{cls.__name__}({uuid})/{cls}({match["value"]["@iot.id"]})'''
-                    response = client.post(
-                        uri,
-                        json=link.get("props", dict()),
-                        headers={"Authorization": ":" + token.get("token")},
-                    )
-
-                    assert response.status_code == 204, f"{response.get_json()} @ {uri}"
-
+    assert len(errors) == 0, errors
