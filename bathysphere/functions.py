@@ -395,7 +395,7 @@ def index(client: Storage) -> (dict, int):
     Get all model configurations known to the service.
     """
 
-    from minio.error import S3Error
+    from minio.error import S3Error  # pylint: disable=no-name-in-module
 
     try:
         return load(client.get_object(client.index)), 200
@@ -474,7 +474,7 @@ def run(
     from time import time
     from functools import reduce
 
-    from minio.error import S3Error
+    from minio.error import S3Error  # pylint: disable=no-name-in-module
     
     try: 
         config = load(client.get_object(f"{objectKey}.json"))

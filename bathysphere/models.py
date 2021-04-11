@@ -14,7 +14,7 @@ from time import time
 from functools import reduce
 
 from neo4j import Driver, Record, GraphDatabase
-from neo4j.spatial import WGS84Point
+from neo4j.spatial import WGS84Point  # pylint: disable=no-name-in-module,import-error
 import attr
 
 from bathysphere import (

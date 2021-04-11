@@ -408,7 +408,7 @@ def connect() -> Driver:
 
     try:
         return GraphDatabase.driver(uri=uri, auth=("neo4j", secret))
-    except Exception as ex:  # pylint: disable=broad-except
+    except Exception:  # pylint: disable=broad-except
         print(f"Could not connect to Neo4j database @ {uri}")
         return None
 

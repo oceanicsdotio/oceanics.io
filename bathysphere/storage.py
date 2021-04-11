@@ -122,7 +122,7 @@ class Storage:
     @classmethod
     def session(cls, fcn):
         """
-        Decorate a function so that it creates a locking semaphor
+        Decorate a function so that it creates a locking semaphore
         for other processes, so they will not overwrite or access
         data that are being used concurrently. 
 
@@ -134,7 +134,7 @@ class Storage:
         """
 
 
-        from minio.error import S3Error
+        from minio.error import S3Error  # pylint: disable=no-name-in-module
 
         def wrapper(*args, **kwargs):
             """
