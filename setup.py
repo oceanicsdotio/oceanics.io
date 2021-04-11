@@ -3,8 +3,8 @@ from setuptools import setup, find_packages
 setup(
     name='bathysphere',
     version='1.7',
-    description='Marine geospatial data and analytics services',
-    url='https://graph.oceanics.io',
+    description='Ocean data and analytics services',
+    url='https://www.oceanics.io/bathysphere',
     author='Oceanicsdotio',
     author_email='business@oceanics.io',
     packages=["bathysphere"],
