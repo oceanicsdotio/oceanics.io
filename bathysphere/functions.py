@@ -66,7 +66,7 @@ def context(fcn: Callable) -> Callable:
     Validate/verify JWT token.
 
     """
-    db = connect(host, port, accessKey)
+    db = connect()
   
     def _wrapper(**kwargs: dict) -> Any:
         """
@@ -134,7 +134,7 @@ def register(body: dict) -> ResponseJSON:
     Register a new user account
     """
     # pylint: disable=too-many-return-statements
-    db = connect(host, port, accessKey)
+    db = connect()
     if db is None:
         return {"message": "no graph backend"}, 500
 

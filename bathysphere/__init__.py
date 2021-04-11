@@ -15,7 +15,7 @@ from prance import ResolvingParser, ValidationError
 
 from typing import Callable, Generator, Any
 
-from neo4j import Driver, GraphDatabase
+from neo4j import Driver
 from retry import retry
 from requests import post
 
@@ -30,8 +30,7 @@ from json import dumps, loads, decoder
 import operator
 from yaml import Loader, load as load_yml
 
-from os import getenv, getpid
-from yaml import load, Loader
+from os import getpid
 from subprocess import Popen
 
 
@@ -43,6 +42,9 @@ from typing import Any, Iterable
 
 @attr.s(repr=False)
 class Message:
+    """
+    Serialized messages passed between processes, with metadata. 
+    """
     message: str = attr.ib()
     timestamp: str = attr.ib(factory=datetime.now)
     arrow: str = attr.ib(default=">")
@@ -135,7 +137,7 @@ class JSONIOWrapper:
 class Process:
     """
     Data structure to handle communication with a running
-    subprocess
+    subprocess.
     """
     command: [str] = attr.ib()
     log: BytesIO = attr.ib(factory=BytesIO)
@@ -392,35 +394,23 @@ def executeQuery(
         return _transact(method)
 
 
-@retry(tries=2, delay=1, backoff=1)
-def connect(host: str, port: int, accessKey: str, default: str = "neo4j") -> Driver:
+@retry(tries=1, delay=1, backoff=1)
+def connect() -> Driver:
     """
     Connect to a database manager. Try docker networking, or fallback to local host.
-    likely that the db has been accessed and setup previously
-
-    TODO: should use SSL, but Neo4j 4.0 introduced some bugs
-    https://community.neo4j.com/t/neo4j-python-driver-throwing-errors/13822/2
+    likely that the db has been accessed and setup previously.
     """
-    db = None
-    for auth in ((default, accessKey), (default, default)):
-        try:
-            db = GraphDatabase.driver(uri=f"bolt://{host}:{port}", auth=auth, encrypted=False)
-        except Exception as ex:  # pylint: disable=broad-except
-            print(f"{ex} on {host}:{port} with {auth}")
-            continue
-        if auth == (default, default) and accessKey != default:
-            response = post(
-                f"http://{host}:7474/user/neo4j/password",
-                auth=auth,
-                json={"password": accessKey},
-            )
-            if not response.ok:
-                raise ConnectionError(f"Problem changing Neo4j default password: {response}") 
-        return db
+    from neo4j import GraphDatabase
+    from os import getenv
 
-    if db is None:
-        print(f"Could not connect to Neo4j database @ {host}:{port}")
+    uri = getenv("NEO4J_HOSTNAME")
+    secret = getenv("NEO4J_ACCESS_KEY")
 
+    try:
+        return GraphDatabase.driver(uri=uri, auth=("neo4j", secret))
+    except Exception as ex:  # pylint: disable=broad-except
+        print(f"Could not connect to Neo4j database @ {uri}")
+        return None
 
 
 __pdoc__ = {

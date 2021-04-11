@@ -136,20 +136,14 @@ def providers(host: str, port: int) -> None:
     from bathysphere import connect, loadAppConfig
     from bathysphere.models import Providers
 
-    appConfig = loadAppConfig()
-    secretKeyAlias = "NEO4J_ACCESS_KEY"
-    accessKey = getenv(secretKeyAlias)
-    if accessKey is None:
-        raise EnvironmentError(
-            f"{secretKeyAlias} should be available in local environment"
-        )
-
-    db = connect(host, port, accessKey)
+    
+   
+    db = connect()
     if db is None:
         return {"message": "no graph backend"}, 500
 
     existing = dict()
-    existingDomains = set()
+    
     for each in Providers().load(db):
         existing[each.name.lower().strip()] = each
         loggerData = {
@@ -163,6 +157,7 @@ def providers(host: str, port: int) -> None:
     existingKeys = set(existing.keys())
 
     count = 0
+    appConfig = loadAppConfig()
     for each in appConfig["Providers"]:
 
         p = Providers(

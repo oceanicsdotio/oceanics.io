@@ -1,10 +1,9 @@
 import pytest
-from os import getenv
 from retry import retry
 
 from bathysphere import job
-from bathysphere.test.conftest import IndexedDB
 
+IndexedDB = dict()
 
 streams = [
     [{
@@ -19,6 +18,7 @@ streams = [
         "chlorophyll": 6.0,
     }] * 24 * 30
 ]
+
 
 
 @pytest.mark.parametrize("forcing", streams)

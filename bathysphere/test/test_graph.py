@@ -4,12 +4,8 @@ from json import dumps
 from os import getenv
 # from minio import Object
 
-from bathysphere import appConfig
-from bathysphere.test.conftest import (
-    getCredentials,
-    CREDENTIALS,
-    IndexedDB
-)
+from bathysphere import appConfig, connect
+
 from bathysphere.models import (
     Locations,
     Sensors,
@@ -28,7 +24,6 @@ from bathysphere.models import (
     Providers
 )
 
-testAuth = ("testing@oceanics.io", "n0t_passw0rd", "something secret")
 classes = [
     Locations,
     Sensors,
@@ -41,34 +36,52 @@ classes = [
     Collections
 ]
 
+IndexedDB = dict()
+
+def getCredentials(providerName: str) -> dict:
+    """
+    Use the command line interface to retrieve existing credentials from the
+    graph database.
+    """
+    from json.decoder import JSONDecodeError
+    from subprocess import check_output
+    from json import loads
+    from os import getenv
+
+    cmd = ["bathysphere", "providers", "--host", getenv("NEO4J_HOSTNAME")]
+
+    for each in filter(lambda x: x, check_output(cmd).split(b"\n")):
+        item = loads(each.decode())
+        if item.get("name") == providerName:
+            return item.get("apiKey")
+
 
 @pytest.mark.teardown
-def test_graph_teardown(graph):
+def test_graph_teardown():
     """
     Destroy the graph.
+
+    Connect to the test database. The connect method throws an exception if no connection
+    is made. So handling here is unnecessary, since we want the bubble up.
     """
     # pylint: disable=no-value-for-parameter
-    Entity.delete(
-        db=graph(
-            getenv("NEO4J_HOSTNAME", "localhost"), 
-            7687, 
-            getenv("NEO4J_ACCESS_KEY")
-        )
-    )  
+    Entity.delete(db=connect())  
 
 
 def test_graph_account_create_user(client):
     """
-    Create the service account user.
+    Create a service account user.
     """
-    apiKeys = getCredentials()
-    payload = {
-        "username": testAuth[0],
-        "password": testAuth[1],
-        "secret": testAuth[2],
-        "apiKey": apiKeys["Oceanicsdotio"],
-    }
-    response = client.post("api/auth", json=payload)
+    response = client.post(
+        "api/auth", 
+        json={
+            "username": getenv("SERVICE_ACCOUNT_USERNAME"),
+            "password": getenv("SERVICE_ACCOUNT_PASSWORD"),
+            "secret": getenv("SERVICE_ACCOUNT_SECRET"),
+            "apiKey": getCredentials("Public") ,
+        }
+    )
+
     assert response.status_code == 200, response.get_json()
 
 
@@ -76,56 +89,20 @@ def test_graph_account_get_token(token):
     """
     JWT Tokens are valid.
     """
-    jwtToken = token(CREDENTIALS)
-    btk = jwtToken.get("token")
-    duration = jwtToken.get("duration")
+    btk = token.get("token")
+    duration = token.get("duration")
     assert btk is not None and len(btk) >= 127
     assert duration is not None and duration > 30
 
 
-# def test_graph_account_update_user(client, token):
-#     """
-#     Give the user an alias.
-#     """
-#     jwtToken = token(CREDENTIALS).get("token")
-#     response = client.put(
-#         "api/auth",
-#         json={"alias": "By another name"},
-#         headers={"Authorization": ":" + jwtToken},
-#     )
-#     assert response.status_code == 204, response.get_json()
-
-
-# def test_graph_account_delete_user(client, token):
-#     """
-#     Delete a user, and then recreate it
-#     """
-#     jwtToken = token(CREDENTIALS).get("token")
-#     response = client.put(
-#         "api/auth", json={"delete": True}, headers={"Authorization": ":" + jwtToken},
-#     )
-#     assert response.status_code == 204, response.get_json()
-    
-#     credentials = getCredentials()
-#     response = client.post(
-#         "api/auth",
-#         json={
-#             "username": testAuth[0],
-#             "password": testAuth[1],
-#             "secret": testAuth[2],
-#             "apiKey": credentials["Oceanicsdotio"],
-#         },
-#     )
-#     assert response.status_code == 200, response.get_json()
-#     _ = token(auth=CREDENTIALS, purge=True)
-
-
 @pytest.mark.parametrize("cls", classes)
-def test_graph_sensorthings_create(create_entity, cls):
+def test_graph_sensorthings_create(client, cls, token):
     """
     Create the WellKnown Entities. 
-    """
 
+    Make an HTTP request through the local test client to create a single
+    entity.
+    """
     # cache created entities for retrieval
     if "createdEntities" not in IndexedDB.keys():
         IndexedDB["createdEntities"] = dict()
@@ -137,12 +114,22 @@ def test_graph_sensorthings_create(create_entity, cls):
         build = appConfig[cls.__name__]
     except KeyError:
         build = []
+
     for each in build:
-        entity = create_entity(cls.__name__, CREDENTIALS, each["spec"])
+
+        response = client.post(
+            f"api/{cls.__name__}",
+            json={"entityClass": cls.__name__, **each["spec"]},
+            headers={"Authorization": ":" + token.get("token")},
+        )
+
+        entity = response.get_json()
+        assert response.status_code == 200, entity
+
         results.append(entity)
-        uuid = entity.json["value"]["@iot.id"]
+        uuid = entity["value"]["@iot.id"]
         if not (isinstance(uuid, str) and uuid and uuid not in IndexedDB["joinQueue"].keys()):
-            print(entity.json["value"])
+            print(entity["value"])
             raise AssertionError
         _metadata = each.get("metadata", dict())
         if isinstance(_metadata, dict) and "config" in _metadata.keys():
@@ -154,11 +141,10 @@ def test_graph_sensorthings_create(create_entity, cls):
 
 
 @pytest.mark.parametrize("cls", set(classes) - {TaskingCapabilities, Tasks})
-def test_graph_sensorthings_get(get_entity, cls):
+def test_graph_sensorthings_get_entity(client, cls, token):
     """
     Retrieve the WellKnownEntities. 
     """
-    results = []
     try:
         retrieve = IndexedDB["createdEntities"][cls]
     except KeyError as ex:
@@ -168,20 +154,26 @@ def test_graph_sensorthings_get(get_entity, cls):
 
     for each in retrieve:
         try:
-            uuid = each.json["value"]["@iot.id"]
+            uuid = each["value"]["@iot.id"]
         except KeyError as ex:
-            print(each.json)
+            print(each)
             raise ex
         else:
-            entity = get_entity(cls.__name__, CREDENTIALS, uuid)
-        results.append(entity)
+            entity = client.get(
+                f"api/{cls}({uuid})", headers={"Authorization": ":" + token.get("token")}
+            )
+           
 
 @pytest.mark.parametrize("cls", set(classes) - {Tasks})
-def test_graph_sensorthings_get_collection(get_collection, cls):
+def test_graph_sensorthings_get_collection(cls, token, client):
     """
     Get all entities of a single type
     """
-    response = get_collection(cls=cls.__name__, auth=CREDENTIALS)
+
+    response = client.get(
+        f"api/{cls.__name__}", headers={"Authorization": ":" + token.get("token")}
+    )
+            
     assert response.status_code == 200, response.json
     try:
         count = response.json["@iot.count"]
@@ -192,15 +184,14 @@ def test_graph_sensorthings_get_collection(get_collection, cls):
 
 
 @pytest.mark.parametrize("cls", set(classes) - {TaskingCapabilities, Tasks})
-def test_graph_sensorthings_join(add_link, cls):
+def test_graph_sensorthings_join(client, cls, token):
     """
     Create relationships between existing entities
     """
-    results = []
-
+   
     for entity in IndexedDB["createdEntities"][cls]:
 
-        uuid = entity.json["value"]["@iot.id"]
+        uuid = entity["value"]["@iot.id"]
       
         for otherCls, links in (IndexedDB["joinQueue"][uuid] or dict()).items():
             neighbor = otherCls.split('@')[0]
@@ -216,58 +207,17 @@ def test_graph_sensorthings_join(add_link, cls):
                 searchNames = link.get("name", [])
                 assert isinstance(searchNames, list), "Name is array of strings"
         
-                matches = list(filter(lambda x: x.json["value"].get("name") in searchNames, searchTree))
+                matches = list(filter(lambda x: x["value"].get("name") in searchNames, searchTree))
                 assert len(matches) > 0, f"{entity.json['value']} / {neighbor} {link} has no matches"
 
                 for match in matches:
-                    response = add_link(
-                        root=cls.__name__, 
-                        root_id=uuid,
-                        auth=CREDENTIALS,
-                        cls=neighbor,
-                        uuid=match.json["value"]["@iot.id"],
-                        **link.get("props", dict())
+
+                    uri = f'''api/{cls.__name__}({uuid})/{cls}({match["value"]["@iot.id"]})'''
+                    response = client.post(
+                        uri,
+                        json=link.get("props", dict()),
+                        headers={"Authorization": ":" + token.get("token")},
                     )
-                    results.append(response)
 
-
-# def test_graph_sensorthings_assets_from_object_storage(object_storage, graph):
-
-#     db = object_storage(prefix=None)
-#     data = db.list_objects()
-#     graphdb = graph("localhost", 7687, testAuth[1])
-
-#     created = []
-#     directories = []
-
-#     root = Collections(
-#         name=db.bucket_name,
-#         description="S3 bucket",
-#         version=1
-#     ).create(
-#         db=graphdb
-#     )
-
-
-#     for each in data:
-#         assert isinstance(each, Object)
-#         if each.is_dir:
-#             directory = Collections(
-#                 name=each.object_name,
-#                 version=1
-#             ).create(
-#                 db=graphdb
-#             )
-#             directories.append(directory)
-
-#         entity = Assets(
-#             name=each.object_name,
-#             uuid=each.etag,
-#             location=f"s3://{db.bucket_name}.{db.endpoint}/"
-#         ).create(
-#             db=graphdb
-#         )
-#         created.append(entity)
-
-#         Link(label="Member").join(db=graphdb, nodes=(root, entity))
+                    assert response.status_code == 204, f"{response.get_json()} @ {uri}"
 
