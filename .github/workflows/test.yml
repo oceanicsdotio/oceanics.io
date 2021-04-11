@@ -9,16 +9,6 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    services:
-      
-      # Same setup as in docker-compose.yml
-      neo4j:
-        
-        image: neo4j:4.2.5
-        ports:
-          - 7474:7474 # http
-          - 7473:7473 # https
-          - 7687:7687 # bolt
 
     steps:
       # Checkout repository using default action
@@ -50,7 +40,7 @@ jobs:
           pip install -e .
           pip install -r requirements.txt
 
-      - name: Pytest localhost
+      - name: Pytest against cloud database
         run: $(bathysphere test)
         env:
           NEO4J_ACCESS_KEY: ${{ secrets.NEO4J_ACCESS_KEY }}
@@ -60,21 +50,3 @@ jobs:
           STORAGE_ENDPOINT: ${{ secrets.STORAGE_ENDPOINT }}
           BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
           SERVICE_NAME: ${{ secrets.SERVICE_NAME }}
-
-      - name: Generate docs
-        run: pdoc --html --force --output-dir static/bathysphere/docs bathysphere
-
-      - name: Commit files
-        continue-on-error: true
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add
-          git commit -m "Autogen Docs" -a
-
-      - name: Push changes
-        uses: ad-m/github-push-action@master
-        continue-on-error: true
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ github.ref }}

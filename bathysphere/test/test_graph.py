@@ -206,7 +206,7 @@ def test_graph_sensorthings_join(client, entityType, token):
 
         payload = entity["value"]
         entityId = payload["@iot.id"]
-        baseRoute = f'''api/{entityType}({entityId})/'''
+        baseRoute = f'''api/{entityType.__name__}({entityId})'''
 
         for canonicalName, links in IndexedDB["joinQueue"].get(entityId, dict()).items():
             
