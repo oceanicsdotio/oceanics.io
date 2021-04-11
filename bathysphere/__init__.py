@@ -400,6 +400,7 @@ def connect() -> Driver:
     from os import getenv
 
     uri = getenv("NEO4J_HOSTNAME")
+    secret = getenv("NEO4J_ACCESS_KEY")
 
     try:
         return GraphDatabase.driver(uri=uri, auth=("neo4j", getenv("NEO4J_ACCESS_KEY")))

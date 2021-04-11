@@ -3,8 +3,6 @@ from datetime import datetime
 from json import dumps
 from os import getenv
 
-# from minio import Object
-
 from bathysphere import appConfig
 
 from bathysphere.models import (
@@ -39,23 +37,6 @@ classes = [
 
 IndexedDB = dict()
 
-def getCredentials(providerName: str) -> dict:
-    """
-    Use the command line interface to retrieve existing credentials from the
-    graph database.
-    """
-    from json.decoder import JSONDecodeError
-    from subprocess import check_output
-    from json import loads
-    from os import getenv
-
-    cmd = ["bathysphere", "providers", "--host", getenv("NEO4J_HOSTNAME")]
-
-    for each in filter(lambda x: x, check_output(cmd).split(b"\n")):
-        item = loads(each.decode())
-        if item.get("name") == providerName:
-            return item.get("apiKey")
-
 
 @pytest.mark.teardown
 def test_graph_teardown():
@@ -70,23 +51,39 @@ def test_graph_teardown():
     from neo4j import GraphDatabase
     from os import getenv
 
-    Entity.delete(db=GraphDatabase.driver(
+    from secrets import token_urlsafe
+
+    db = GraphDatabase.driver(
         uri=getenv("NEO4J_HOSTNAME"), 
         auth=("neo4j", getenv("NEO4J_ACCESS_KEY"))
-    ))  
+    )
 
+    Entity.delete(db=db)  
+    for provider in appConfig["Providers"]:
+        _ = Providers(
+            **provider["spec"],
+            apiKey=token_urlsafe(64)
+        ).create(db)
 
 def test_graph_account_create_user(client):
     """
     Create a service account user.
     """
+    from neo4j import GraphDatabase
+    from os import getenv
+
+    db = GraphDatabase.driver(
+        uri=getenv("NEO4J_HOSTNAME"), 
+        auth=("neo4j", getenv("NEO4J_ACCESS_KEY"))
+    )
+
     response = client.post(
         "api/auth", 
         json={
             "username": getenv("SERVICE_ACCOUNT_USERNAME"),
             "password": getenv("SERVICE_ACCOUNT_PASSWORD"),
             "secret": getenv("SERVICE_ACCOUNT_SECRET"),
-            "apiKey": getCredentials("Public") ,
+            "apiKey": Providers(name="Oceanicsdotio").load(db=db).pop().apiKey,
         }
     )
 
@@ -98,9 +95,7 @@ def test_graph_account_get_token(token):
     JWT Tokens are valid.
     """
     btk = token.get("token")
-    duration = token.get("duration")
     assert btk is not None and len(btk) >= 127
-    assert duration is not None and duration > 30
 
 
 @pytest.mark.parametrize("cls", classes)

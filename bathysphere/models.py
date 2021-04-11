@@ -420,10 +420,10 @@ class Entity:
             return type(self)(**dict(map(processKeyValueOutbound, dict(record[0]).items())))
 
         def query(tx):
-            return tx.run((
+            return [r for r in tx.run((
                 f"MATCH {repr(self)} "
                 f"RETURN {self._symbol}{'.{}'.format(result) if result else ''}"
-            ))
+            ))]
 
         return [*map(_instance, executeQuery(db, query))]
 

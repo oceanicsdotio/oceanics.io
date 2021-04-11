@@ -98,7 +98,7 @@ def context(fcn: Callable) -> Callable:
                 }, 403
             user = accounts.pop()
 
-        provider = Providers(domain=user.name.split("@").pop()).load(db=db)
+        provider = Providers(domain=user.name.split("@").pop()).load(db)
         if len(provider) != 1:
             raise ValueError
 
@@ -247,7 +247,7 @@ def catalog(db: Driver) -> (dict, int):
 
 
 @context
-def collection(db: Driver, user: User, entity: str) -> (dict, int):
+def collection(db: Driver, entity: str) -> (dict, int):
     """
     SensorThings API capability #2
     
@@ -258,7 +258,7 @@ def collection(db: Driver, user: User, entity: str) -> (dict, int):
         return record.serialize(db=db)
 
     # produce the serialized entity records
-    value = [*map(serialize, eval(entity).load(db=db, user=user))]
+    value = [*map(serialize, eval(entity)().load(db=db))]
     
     return {"@iot.count": len(value), "value": value}, 200
 
@@ -333,14 +333,14 @@ def mutate(
 
 @context
 def metadata(
-    db: Driver, user: User, entity: str, uuid: str, key=None
+    db: Driver, entity: str, uuid: str, key=None
 ) -> (dict, int):
     """
     Format the entity metadata response.
     """
     value = tuple(
         getattr(item, key) if key else item.serialize(db=db)
-        for item in (eval(entity).load(db=db, user=user, uuid=uuid) or ())
+        for item in (eval(entity).load(db=db, uuid=uuid) or ())
     )
     return {"@iot.count": len(value), "value": value}, 200
 
