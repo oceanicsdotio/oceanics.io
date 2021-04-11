@@ -153,7 +153,7 @@ export default ({
 
     return (
         <Layout title={title}>
-            <SEO title={"Blue economic trust"} />
+            <SEO title={"Blue computing"} />
             <Image src={bannerImage} alt={"Agents@Rest"} />
             <Form
                 fields={[{

@@ -2,15 +2,12 @@ title: "Oceanics.io"
 
 site:
   - to: "/app/"
-    label: "Data"
-
-  - to: "/bathysphere/"
-    label: "API"
+    label: "Bathysphere"
 
 footer:
 
   statement: |
-    Pursuing accountable blue prosperity and operational excellence on behalf of future seas.
+    We pursue accountable blue prosperity on behalf of future seas
 
   links:
     

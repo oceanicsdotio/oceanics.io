@@ -110,8 +110,7 @@ export const Layout = ({
             </p>
             {footerLinks}
             <p> 
-                {`Made with ⚡ in Maine`}  <br/>
-                {`No rights reserved, 2018-${new Date().getFullYear()}`}
+                {`Maine ⚡ 2018-${new Date().getFullYear()}`}
             </p>
         </footer>
     </div>
