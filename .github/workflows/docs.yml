@@ -7,7 +7,7 @@ on:
     branches: [ main ]
    
 jobs:
-  test:
+  docs:
     runs-on: ubuntu-latest
    
     steps:
@@ -44,7 +44,7 @@ jobs:
           SERVICE_NAME: ${{ secrets.SERVICE_NAME }}
 
       - name: Commit files
-        continue-on-error: false
+        continue-on-error: true
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
