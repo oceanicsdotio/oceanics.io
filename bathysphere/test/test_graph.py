@@ -179,7 +179,6 @@ def test_graph_sensorthings_get_collection(cls, token, client):
 
     This works stand-alone on an existing database. 
     """
-
     response = client.get(
         f"api/{cls.__name__}", headers={"Authorization": ":" + token.get("token")}
     )
