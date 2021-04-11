@@ -172,7 +172,7 @@ def test_graph_sensorthings_get_entity(client, cls, token):
             )
            
 
-@pytest.mark.parametrize("cls", set(classes) - {Tasks})
+@pytest.mark.parametrize("cls", set(classes) - {Tasks, TaskingCapabilities})
 def test_graph_sensorthings_get_collection(cls, token, client):
     """
     Get all entities of a single type.
