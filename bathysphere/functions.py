@@ -41,23 +41,11 @@ from bathysphere.storage import Storage, MetaDataTemplate
 
 COLLECTION_KEY = "configurations"
 SERVICE = "https://bivalve.oceanics.io/api"
-
-
 DEBUG = True
 port = 7687
 ResponseJSON = (dict, int)
-
-host = getenv("NEO4J_HOSTNAME", "")
-if not host and not DEBUG:
-    raise EnvironmentError("NEO4J_HOSTNAME must be declared in run time environment for Docker networking to work.")
-    
-accessKey = getenv("NEO4J_ACCESS_KEY", "")
-if not accessKey and not DEBUG:
-    raise EnvironmentError("NEO4J_ACCESS_KEY must be declared in run time environment if not using a secrets service.")
-
-
 api_port = 5000
-default_service = host + (f":{api_port}" if api_port else "")
+default_service = getenv("NEO4J_HOSTNAME") + (f":{api_port}" if api_port else "")
 graph_error_response = ({"Error": "No graph backend"}, 500)
 
 def context(fcn: Callable) -> Callable:

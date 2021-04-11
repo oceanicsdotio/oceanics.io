@@ -14,11 +14,11 @@ class Species:
     shellLengthExponent: float = attr.ib()
     meanTissueAllocation: float = attr.ib()  # slope of tissue, and tissue + shell energy
     temperatureLimitation: Callable = attr.ib()
-    heatLossCoefficent: float = attr.ib()
+    heatLossCoefficient: float = attr.ib()
     spawningTemperatureThreshold: float = attr.ib()
     shellLengthUponMaturation: float =  attr.ib()
     proportionDryTissueLost: float = attr.ib()  # spawning
-    maxAmmoniumExcretionRate: float =  attr.ib(), # J/g
+    maxAmmoniumExcretionRate: float =  attr.ib() # J/g
     shellEnergyContent: float = attr.ib()
 
 oyster = Species(
@@ -28,11 +28,11 @@ oyster = Species(
     shellLengthCoefficient=2.767,
     shellLengthExponent=0.327,
     meanTissueAllocation=0.76,
-    temperatureLimitation=lambda temp: (0.320 + 0.323*temp - 0.011 * temp**2) ** 2  # (Widdows 1978)
-    heatLossCoefficent=0.067,
+    temperatureLimitation=lambda temp: (0.320 + 0.323*temp - 0.011 * temp**2) ** 2,  # (Widdows 1978)
+    heatLossCoefficient=0.067,
     spawningTemperatureThreshold=19,
     shellLengthUponMaturation=5,
-    proportionDryTissueLost=0.44  # spawning,
+    proportionDryTissueLost=0.44,  # spawning
     maxAmmoniumExcretionRate=1350,
     shellEnergyContent=0.161
 )
@@ -44,8 +44,8 @@ mussel = Species(
     shellLengthCoefficient=2.654, 
     shellLengthExponent=0.335,
     meanTissueAllocation=0.68,
-    temperatureLimitation=lambda temp, base=4.825, active=0.013, temperatureRef=18.954: (base - (active * (temp-temperatureRef)**2)) / (base - (active*(15-temperatureRef)**2)) # (Bougrier et al 1995),
-    heatLossCoefficent=0.074,
+    temperatureLimitation=lambda temp, base=4.825, active=0.013, temperatureRef=18.954: (base - (active * (temp-temperatureRef)**2)) / (base - (active*(15-temperatureRef)**2)), # (Bougrier et al 1995),
+    heatLossCoefficient=0.074,
     spawningTemperatureThreshold=13,
     shellLengthUponMaturation=2,
     proportionDryTissueLost=0.18,
@@ -133,7 +133,7 @@ class Simulation:
         """
         Conversion factor
         """
-        return self.species.shellLengthCoefficient * self.shellMass ** self.species.shellLengthExponent
+        return self.species.shellLengthCoefficient * self.state.shellMass ** self.species.shellLengthExponent
 
     @property
     def spawn(self) -> bool:
@@ -193,7 +193,7 @@ class Simulation:
         4.005 from observing mussels at 15C and 33 psu
         """        
         # TODO is multiplier valid across species?
-        coefficient = self.species.heatLossCoefficent
+        coefficient = self.species.heatLossCoefficient
         return 4.005 * (exp(coefficient*self.forcing.temperature) / \
                 exp(coefficient*temperatureRef)) * \
                     ((1.0 / self.state.tissueMass) ** 0.72 * 24) + 0.23 * \
@@ -222,14 +222,12 @@ class Simulation:
         netEnergyBalance = self.energyAbsorption - self.heatLoss * \
             (1 + excretedAmmonium * 0.02428)
 
-        
+    
+        mta = self.species.meanTissueAllocation
 
-        mta = self.meanTissueAllocation
+        shellGrowth = (1 - mta) * netEnergyBalance * float(self.state.condition >= mta)
 
-        shellGrowth = ((1 - mta) * netEnergyBalance * float(self.state.condition >= meanTissueAllocation)
-
-
-        return State(
+        state = State(
             tissueEnergy = self.state.tissueEnergy + (netEnergyBalance * (mta if self.state.condition >= mta else 1.0) - float(self.spawn) * self.spawningLoss) * dt, 
             shellEnergy = self.state.shellEnergy + shellGrowth * dt, 
             tissueMass = self.state.tissueMass + self.state.tissueEnergy / 23.5 / 1000 * dt, 
@@ -242,4 +240,6 @@ class Simulation:
         #     tissueMass=5.0, 
         #     shellMass=3.0
         # )
+
+        return state
 

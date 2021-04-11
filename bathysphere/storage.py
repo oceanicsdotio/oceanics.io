@@ -14,14 +14,6 @@ from uuid import uuid4
 
 import attr
 
-def require(name):
-    env_var = getenv(name)
-    if not env_var:
-        raise EnvironmentError(f"{name} not set")
-    return env_var
-
-[STORAGE_ENDPOINT, BUCKET_NAME, SPACES_ACCESS_KEY, SPACES_SECRET_KEY, SERVICE_NAME] = \
-    map(require, ["STORAGE_ENDPOINT", "BUCKET_NAME", "SPACES_ACCESS_KEY", "SPACES_SECRET_KEY", "SERVICE_NAME"])
     
 @attr.s
 class MetaDataTemplate:
@@ -56,7 +48,7 @@ class Storage:
     endpoint: str = attr.ib()
     service_name: str = attr.ib()
     _driver: Minio = attr.ib(default=None)
-    bucket_name: str = attr.ib(factory=lambda: getenv("BUCKET_NAME", "oceanicsdotio"))
+    bucket_name: str = attr.ib(factory=lambda: getenv("BUCKET_NAME"))
     index: str = attr.ib(default="index.json")
     session_id: str = attr.ib(factory=lambda: str(uuid4()).replace("-", ""))
 
@@ -69,8 +61,8 @@ class Storage:
             self._driver = Minio(
                 endpoint=self.endpoint, 
                 secure=True,
-                access_key=SPACES_ACCESS_KEY,
-                secret_key=SPACES_SECRET_KEY
+                access_key=getenv("SPACES_ACCESS_KEY"),
+                secret_key=getenv("SPACES_SECRET_KEY")
             )
         return self._driver
 
@@ -140,7 +132,10 @@ class Storage:
             """
             Check if locked, try to lock, do something, unlock.
             """
-            client = Storage(STORAGE_ENDPOINT, SERVICE_NAME)
+            client = Storage(
+                getenv("STORAGE_ENDPOINT"), 
+                getenv("SERVICE_NAME")
+            )
 
             try:
                 _ = client.stat_object(client.index)

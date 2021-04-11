@@ -40,10 +40,6 @@ def token(client) -> Callable:
     assert response.status_code == 200, data
     return data
 
-
-
-
-
 @pytest.fixture(scope="session")
 def model_config():
     """
