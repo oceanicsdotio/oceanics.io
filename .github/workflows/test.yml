@@ -36,6 +36,9 @@ jobs:
           NEO4J_HOSTNAME: ${{ secrets.NEO4J_HOSTNAME }}
           SPACES_SECRET_KEY: ${{ secrets.SPACES_SECRET_KEY }}
           SPACES_ACCESS_KEY: ${{ secrets.SPACES_ACCESS_KEY }}
+          SERVICE_ACCOUNT_USERNAME: ${{ secrets.SERVICE_ACCOUNT_USERNAME }}
+          SERVICE_ACCOUNT_PASSWORD: ${{ secrets.SERVICE_ACCOUNT_PASSWORD }}
+          SERVICE_ACCOUNT_SECRET: ${{ secrets.SERVICE_ACCOUNT_SECRET }}
           STORAGE_ENDPOINT: ${{ secrets.STORAGE_ENDPOINT }}
           BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
           SERVICE_NAME: ${{ secrets.SERVICE_NAME }}
