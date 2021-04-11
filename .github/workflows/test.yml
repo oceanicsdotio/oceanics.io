@@ -30,7 +30,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Pytest against cloud database
-        run: $(bathysphere test -kw=test_graph)
+        run: $(bathysphere test --kw=test_graph)
         env:
           NEO4J_ACCESS_KEY: ${{ secrets.NEO4J_ACCESS_KEY }}
           NEO4J_HOSTNAME: ${{ secrets.NEO4J_HOSTNAME }}
