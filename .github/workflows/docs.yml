@@ -1,4 +1,4 @@
-name: Test
+name: Docs
 
 on:
   push:
@@ -9,17 +9,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    services:
-      
-      # Same setup as in docker-compose.yml
-      neo4j:
-        
-        image: neo4j:4.2.5
-        ports:
-          - 7474:7474 # http
-          - 7473:7473 # https
-          - 7687:7687 # bolt
-
+   
     steps:
       # Checkout repository using default action
       - uses: actions/checkout@v2
@@ -49,17 +39,6 @@ jobs:
           pip install pytest pytest-cov
           pip install -e .
           pip install -r requirements.txt
-
-      - name: Pytest localhost
-        run: $(bathysphere test)
-        env:
-          NEO4J_ACCESS_KEY: ${{ secrets.NEO4J_ACCESS_KEY }}
-          NEO4J_HOSTNAME: ${{ secrets.NEO4J_HOSTNAME }}
-          SPACES_SECRET_KEY: ${{ secrets.SPACES_SECRET_KEY }}
-          SPACES_ACCESS_KEY: ${{ secrets.SPACES_ACCESS_KEY }}
-          STORAGE_ENDPOINT: ${{ secrets.STORAGE_ENDPOINT }}
-          BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
-          SERVICE_NAME: ${{ secrets.SERVICE_NAME }}
 
       - name: Generate docs
         run: pdoc --html --force --output-dir static/bathysphere/docs bathysphere
