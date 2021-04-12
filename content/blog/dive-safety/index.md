@@ -16,31 +16,30 @@ Many factors contribute to accidents, but basically it boils down to "these thin
 * bad buoyancy control
 * dangerous ascents
 
-
 ### Ascents
 
-At depth gas is pushed into blood. Staying at depth and then ascending too fast causes gas bubble out into tissue (Henry’s Law). 
+At depth gas is pushed into blood. Staying at depth and then ascending too fast causes gas bubble out into tissue (Henry’s Law).
 
-Air in the lungs can expand and cause trauma can if holding breath while ascending (Boyle’s Law)
+Air in the lungs can expand and cause trauma can if holding breath while ascending (Boyle’s Law).
 
-If you stay within your no decompression limit (NDL) and ascend no faster than 30fpm, you don't need a safety stop. This is almost always prefable. Bottom line, plan the dive within NDL, and limit depth exposure. You can follow a sloping bottom, or vertical reference line to help maintain a consistent speed. 
+If you stay within your no decompression limit (NDL) and ascend no faster than 30fpm, you don't need a safety stop. This is almost always prefable. Bottom line, plan the dive within NDL, and limit depth exposure. You can follow a sloping bottom, or vertical reference line to help maintain a consistent speed.
 
-When surpassing the NDL, you "must" stop at the ceiling, plus 3-5 minutes at 10-20 feet. It never hurst to take a safety stop at 20' just in case. In an emergency breath out continuosly and maintain a controlled ascent. 
+When surpassing the NDL, you "must" stop at the ceiling, plus 3-5 minutes at 10-20 feet. It never hurst to take a safety stop at 20' just in case. In an emergency breath out continuosly and maintain a controlled ascent.
 
-If you ascend too fast, slow down! 
+If you ascend too fast, slow down!
 
 If you miss a safety stop, return to depth and wait it out if you feel ok!
 
-
 ### Air management
 
-Pressure doubles every 10m, so more air is consumed. Use the rule of "Rule of Thirds". From initial PSI, use 1/3 each for descent/bottom time, return trip, and ascent/safety. Leave a 500 PSI reserve for emergencies. 
+Pressure doubles every 10m, so more air is consumed. Use the rule of "Rule of Thirds". From initial PSI, use 1/3 each for descent/bottom time, return trip, and ascent/safety. Leave a 500 PSI reserve for emergencies.
 
-Over exhertion causes build up of CO2, or hypercapnia. Symptoms include shortness of breath, headaches, confusion. Avoid this by minimizing workload and staying horizontal with proper body trim. Breath deeply and slow down. Do not exceed 100’ and stay shallower if possible.
+Over exertion causes build up of CO2, or hypercapnia. Symptoms include shortness of breath, headaches, confusion. Avoid this by minimizing workload and staying horizontal with proper body trim. Breath deeply and slow down. Do not exceed 100’ and stay shallower if possible.
 
 N narcosis causes drowsiness and mental impairment. It is apparent at 100’. Oxygen toxicity also occurs when using enriched air nitrox (32-36% O2)
 
 Make sure you:
+
 * Check equipment before dive for problems like leaking o-rings or freeflow regulator
 * Check gauge at start of dive
 * Estimate how long the supply will last
@@ -48,7 +47,6 @@ Make sure you:
 * Be aware of current, and head into it to start
 * Check gauge regularly during the dive
 * Be conservative if the dive is strenuous
-
 
 ### Physical and mental preparation
 
@@ -59,6 +57,7 @@ Assess personal health on the day of the dive. Cold symptoms in the ears and sin
 Assess traffic, visability, temperature, entanglement risks, currents, and wave height before getting in the water.
 
 If you are diving with new people or in a new place be sure to note:
+
 * staff training
 * professional attitude
 * cleanliness and order
@@ -67,7 +66,6 @@ If you are diving with new people or in a new place be sure to note:
 * emergency oxygen availability
 * boat safety, emergency action plan
 * entry and exit procedures, swim line
-
 
 ### Buoyancy
 

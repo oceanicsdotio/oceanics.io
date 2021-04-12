@@ -301,7 +301,7 @@ const AppPage = () => {
      
 
     return <App {...{mobile, expand}}>
-        <SEO title={"Blue economy trust layer"} />
+        <SEO title={"Blue computing"} />
         <Pane 
             row={0} 
             column={0}
