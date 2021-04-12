@@ -1,36 +1,42 @@
-import React, { useState, useEffect } from "react";
-import styled from "styled-components";
-import { ghost } from "../palette";
+/**
+ * React and friends.
+ */
+import React, { useState, useEffect, useRef } from "react";
 
 /**
- * SEO headers
+ * Component-level styling.
+ */
+import styled from "styled-components";
+
+/**
+ * Predefined colors.
+ */
+import { ghost, orange, charcoal } from "../palette";
+
+/**
+ * Fetch site data.
+ */
+import { useStaticQuery, graphql } from "gatsby";
+
+/**
+ * SEO headers.
  */
 import SEO from "../components/SEO";  
 
 /**
- * SVG button for toggling between map and catalog views. 
- */
-import Trifold from "../components/Trifold";
-
-/**
- * Left-side nav bar with animated icons. 
- */
-import TileInformation from "../components/TileInformation";
-
-/**
  * Bathysphere (SensorThings API) interface right-side interface
  */ 
- import Catalog from "../components/Catalog";  
+import Catalog from "../components/Catalog";  
 
 /**
- * Pixel graphic renderer for raster geospatial data.
- */
-import useOceanside from "../hooks/useOceanside";
-
-/**
- * Interactive Map component using Mapbox.
+ * Interactive Map component using MapBox.
  */
 import useMapBox from "../hooks/useMapBox";
+
+/**
+ * Dedicated worker loader.
+ */
+ import Worker from "../hooks/useBathysphereApi.worker.js";
 
 /**
  * Logical combinator to calculate visibility and style of columns.
@@ -44,6 +50,116 @@ const columnSize = ({expand, mobile, column}) => {
         return !expand ? 3 : 0;
     }
 };
+
+/**
+ * Query for icons and info
+ */
+const query = graphql`
+    query {
+        oceanside: allOceansideYaml(sort: {
+            order: ASC,
+            fields: [name]
+        }) {
+            tiles: nodes {
+                name
+                data
+                description
+                becomes
+            }
+        }
+        icons: allFile(filter: { 
+            sourceInstanceName: { eq: "assets" },
+            extension: {in: ["gif"]}
+        }) {
+            icons: nodes {
+                relativePath
+                publicURL
+            }
+        }
+    }`
+
+/**
+ * Art and information for single tile feature. 
+ * This is used to render documentation for the game.
+ */
+const TileInformation = ({
+    tile: {
+        name,
+        publicURL
+    }, 
+    className
+}) =>
+    <div className={className}>
+        <a id={name.toLowerCase().split(" ").join("-")}/>
+        <img src={publicURL}/>
+    </div>;
+
+
+
+const Trifold = ({
+    display, 
+    onClick, 
+    className,
+    stroke
+}) => {
+
+    const presentation = {
+        stroke,
+        fill: "none",
+        strokeWidth: 15,
+        strokeLinejoin: "bevel"
+    }
+
+    return <svg 
+        className={className}
+        display={display}
+        viewBox={"0 0 225 300"}
+        onClick={onClick}
+    >
+        <g>    
+            <polygon {...{
+                ...presentation,
+                points: "125,300 125,100 0,50 0,250"
+            }}/>
+
+            <polygon {...{
+                ...presentation,
+                points: "225,50 100,0 100,50"
+            }}/>
+
+            <polygon {...{
+                ...presentation,
+                points: "125,100 125,250 225,250 225,50 0,50"
+            }}/>
+        </g>
+    </svg>
+    };
+
+
+const StyledTrifold = styled(Trifold)`
+    width: 32px;
+    height: 32px; 
+    cursor: pointer;
+    margin: 16px;
+    top: 0;
+    right: 0;
+`;
+
+
+/**
+ * Styled version of the basic TileInfo that makes the 
+ * rendering context use crisp edges and a fixed size icon
+ */
+const StyledTileInformation = styled(TileInformation)`
+
+    padding: 0 32px 0 8px;
+    
+    & img {
+        image-rendering: crisp-edges;
+        width: 96px;
+    }  
+`;
+
 
 /**
  * App component is the container for the grid/column
@@ -78,6 +194,7 @@ const Pane = styled.div`
     overflow-y: ${({column})=>column!==1?undefined:"hidden"};
     min-height: 100vh;
     bottom: 0;
+    background-color: ${charcoal};
 `;
 
 /**
@@ -86,13 +203,12 @@ const Pane = styled.div`
 const Map = styled.div`
     height: 100vh;
     width: 100%;
+    border: 1px dashed ${ghost};
+    border-top: none;
+    border-bottom: none;
 `;
 
-/**
- * Just holds preview map for now. May hold additional
- * interface elements in the future. Currently required
- * for consistent styling across layouts.
- */
+
 const Control = styled.div`
     display: flex;
     flex-flow: column;
@@ -100,23 +216,14 @@ const Control = styled.div`
     margin: 0;
     top: 0;
     left: 0;
-    
-    & > canvas {
-        image-rendering: crisp-edges;
-        width: 128px;
-        height: 128px;
-        margin-bottom: auto;
-        margin-right: auto;
-        margin-left: 1rem;
-        margin-top: 1rem;
-    }
 `;
 
 /**
  * Page component rendered by GatsbyJS.
  */
 const AppPage = () => {
- /**
+
+    /**
      * Boolean indicating whether the device is a small mobile,
      * or full size desktop.
      */
@@ -151,16 +258,47 @@ const AppPage = () => {
         setExpand(mobile);
     },[ mobile ]);
 
-    /**
-     * Isometric pixel rendering interface for rasterized data.
-     */
-    const { nav, worldSize } = useOceanside({});
 
     /**
      * Custom Hook that handles event cascades for loading and parsing data
      * into MapBox sources and layers.
      */
     const { ref } = useMapBox({ triggerResize: [expand], geolocationSettings: {}});
+
+    /**
+     * Get icon static data
+     */
+    const {
+        oceanside: {tiles},
+        icons: {icons}
+    } = useStaticQuery(query);
+
+    
+    /**
+     * Web worker reference for fetching and auth.
+     */
+    const worker = useRef(null);
+
+    /**
+    * Create worker. Must be inside Hook, or webpack will protest.
+    */
+    useEffect(() => {
+        worker.current = new Worker();
+    }, []);
+ 
+    /**
+    * Sorted items to render in interface
+    */
+    const [ sorted, setSorted ] = useState([]);
+
+    /**
+    * Use Web worker to do sorting
+    */
+    useEffect(()=>{
+        if (worker.current)
+            worker.current.sorted({icons, tiles}).then(setSorted);
+    }, [ worker ]);
+     
 
     return <App {...{mobile, expand}}>
         <SEO title={"Blue economy trust layer"} />
@@ -169,27 +307,28 @@ const AppPage = () => {
             column={0}
             display={!columnSize({expand, mobile, column: 0}) ? "none" : undefined}
         >
-            <TileInformation/>
+            {sorted.map((tile, ii) => 
+                <StyledTileInformation
+                    key={`tile-${ii}`} 
+                    tile={tile}
+                />
+            )}
         </Pane>
         <Pane 
             row={0} 
             column={1}
             display={!columnSize({expand, mobile, column: 1}) ? "none" : undefined}
         >
+            <div>
             <Map ref={ref}/>      
             <Control>
-                <canvas
-                    id={"preview-target"}
-                    ref={nav.ref}
-                    width={worldSize}
-                    height={worldSize}
-                    onClick={nav.onClick}
-                />
-                <Trifold 
+                
+                <StyledTrifold 
                     onClick={() => {setExpand(!expand)}}
-                    stroke={ghost}
+                    stroke={orange}
                 /> 
             </Control>
+            </div>
         </Pane>
         <Pane 
             display={!columnSize({expand, mobile, column: 2}) ? "none" : undefined}
@@ -201,8 +340,11 @@ const AppPage = () => {
     </App> 
 };
 
-
+/**
+ * Styled version of page exported by default.
+ */
 export default styled(AppPage)`
+
     display: grid;
     grid-gap: 0;
     grid-template-columns: ${
@@ -215,4 +357,11 @@ export default styled(AppPage)`
     height: 100vh;
     width: auto;
     overflow-y: clip;
+
+    & canvas {
+        image-rendering: crisp-edges;
+        width: 90%;
+        margin: auto;
+    }
+
 `;

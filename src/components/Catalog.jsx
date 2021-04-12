@@ -14,6 +14,10 @@ import Form from "./Form";
  */
 import useBathysphereApi from "../hooks/useBathysphereApi";
 
+/**
+ * Pixel graphic renderer for raster geospatial data.
+ */
+ import useOceanside from "../hooks/useOceanside";
 
 /**
  * Login fields until openApi interface in complete
@@ -126,6 +130,11 @@ const Catalog = ({className}) => {
      */ 
     const { login } = useBathysphereApi();
 
+        /**
+     * Isometric pixel rendering interface for rasterized data.
+     */
+         const { nav, worldSize } = useOceanside({});
+
     
     return <div className={className}>
         <Form 
@@ -136,6 +145,13 @@ const Catalog = ({className}) => {
                 type: "button",
                 onClick: login
             }]}
+        />
+        <canvas
+            id={"preview-target"}
+            ref={nav.ref}
+            width={worldSize}
+            height={worldSize}
+            onClick={nav.onClick}
         />
     </div> 
 }; 

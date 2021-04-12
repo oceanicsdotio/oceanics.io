@@ -1,13 +1,36 @@
+/**
+ * React
+ */
 import React, { useMemo } from "react";
+
+/**
+ * Styling
+ */
 import styled from "styled-components";
+
+/**
+ * Needed for parsing source files
+ */
 import YAML from "yaml";
 
-import Layout from "../components/Layout";
+/**
+ * Default page layout
+ */
+import Layout, { StyledLayout } from "../components/Layout";
+
+/**
+ * Bots and browsers
+ */
 import SEO from "../components/SEO";
 
+/**
+ * Page data
+ */
 import about from "../data/about.yml";
 
-
+/**
+ * Larger paragraphs
+ */
 const StyledParagraph = styled.p`
     font-size: larger;
 `;
@@ -41,4 +64,4 @@ export default ({
         {version.content.map((text, ii)=>
             <StyledParagraph key={`paragraph-${ii}`}>{text}</StyledParagraph>)}
     </Layout>
-}
+};

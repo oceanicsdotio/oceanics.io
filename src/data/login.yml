@@ -7,11 +7,3 @@
   id: "password"
   placeholder: "************"
   required: true
-  
-- type: "select"
-  id: "server"
-  required: true
-  options:
-    - http://graph.oceanics.io/api/
-    - http://localhost/api/
-

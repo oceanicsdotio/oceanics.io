@@ -1,14 +1,32 @@
 import React, { useEffect, useState } from "react";
+
 import { graphql, navigate, Link } from "gatsby";
+
 import styled from "styled-components";
-import Layout from "../components/Layout";
-import SEO from "../components/SEO";
 
-import Form from "../components/Form";
-
+/**
+ * Predefined color palette
+ */
 import { pink, grey, ghost } from "../palette";
 
+/**
+ * Standard layout component for main and non-app pages
+ */
+import Layout from "../components/Layout";
 
+/**
+ * Bots and browsers info
+ */
+import SEO from "../components/SEO";
+
+/**
+ * For interactive elements
+ */
+import Form from "../components/Form";
+
+/**
+ * Article element, rendered with child metadata 
+ */
 const StyledArticle = styled.article`
 
     & h2 {
@@ -44,7 +62,9 @@ const StyledArticle = styled.article`
     }
 `;
 
-
+/**
+ * Banner image
+ */
 const Image = styled.img`
     width: 100%;
 `;
@@ -58,7 +78,6 @@ const bannerImage = "shrimpers-web.png";
  * How many articles are made visible at a time.
  */
 const itemIncrement = 3;
-
 
 /**
  * Base component for web landing page.
@@ -87,8 +106,6 @@ export default ({
         items: itemIncrement,
         tag: null
     });
-
-    
 
     /**
      * When page loads parse the query string. 

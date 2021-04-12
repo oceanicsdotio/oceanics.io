@@ -12,3 +12,4 @@ export const ghost = `#CCCCCCFF`;
 export const shadow = `#101010AA`;
 export const orange = `#FF8800FF`;
 export const yellow = '#d3ca12';
+export const charcoal = `#202020FF`;
