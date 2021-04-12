@@ -2,7 +2,39 @@ import React from "react";
 import styled from "styled-components";
 
 import Tags from "./Tags";
-import {grey} from "../palette";
+import Form from "./Form";
+import {grey, orange, pink, ghost} from "../palette";
+
+import useImageNavBar from "../hooks/useImageNavBar";
+
+
+import { useStaticQuery, graphql } from "gatsby";
+
+const query = graphql`
+    query {
+        oceanside: allOceansideYaml(sort: {
+            order: ASC,
+            fields: [name]
+        }) {
+            tiles: nodes {
+                name
+                data
+                description
+                becomes
+            }
+        }
+        icons: allFile(filter: { 
+            sourceInstanceName: { eq: "assets" },
+            extension: {in: ["gif"]}
+        }) {
+            icons: nodes {
+                relativePath
+                publicURL
+            }
+        }
+    }`
+
+
 
 /**
  * Art and information for single tile feature. 
@@ -11,20 +43,18 @@ import {grey} from "../palette";
 const TileInformation = ({
     tile: {
         name,
-        description,
-        group=[], 
+        // description,
+        // group=[], 
         publicURL
     }, 
     className
 }) =>
     <div className={className}>
-        <h3>
-            <a id={name.toLowerCase().split(" ").join("-")}/>
-            {name}
-        </h3>
+        <a id={name.toLowerCase().split(" ").join("-")}/>
         <img src={publicURL}/>
-        <p>{description}</p>
-        {group.length ? <>{"Becomes: "}<Tags group={group}/></> : null}
+        {/* <p>{name}</p> */}
+        {/* <p>{description}</p> */}
+        {/* {group.length ? <>{"Becomes: "}<Tags group={group}/></> : null} */}
     </div>;
 
 /**
@@ -33,14 +63,18 @@ const TileInformation = ({
  */
 const StyledTileInformation = styled(TileInformation)`
 
-    border-bottom: 0.1rem solid ${grey};
-
-    & > * {
+    display: block;
+    padding: px;
+    width: auto;
+    
+    & p {
         font-size: inherit;
         font-family: inherit;
+        margin: 0;
+        padding: 0;
     }
 
-    & > img {
+    & img {
         position: relative;
         image-rendering: crisp-edges;
         width: 6rem;
@@ -48,4 +82,33 @@ const StyledTileInformation = styled(TileInformation)`
     }  
 `;
 
-export default StyledTileInformation;
+export default () => {
+
+
+    const {
+        oceanside: {tiles},
+        icons: {icons}
+    } = useStaticQuery(query);
+    const {sorted, navigate} = useImageNavBar({icons, tiles});
+
+    return <>
+        <Form
+            fields={[{
+                type: "select",
+                id: "asset",
+                options: sorted.map(({name}) => name),
+                onChange: navigate
+            }]}
+        />
+
+        {sorted.map((tile, ii) => 
+            <StyledTileInformation
+                key={`tile-${ii}`} 
+                tile={tile}
+            />
+        )}
+    </>
+}
+
+
+    

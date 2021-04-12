@@ -8,10 +8,6 @@ import { pink } from "../palette";
  */
 import Form from "./Form";
 
-/**
- * Component that displays information about an Oceanside feature
- */
-import TileInformation from "./TileInformation";
 
 /**
  * Use bathysphere client
@@ -26,26 +22,6 @@ import fields from "../data/login.yml";
 
 const query = graphql`
     query {
-        oceanside: allOceansideYaml(sort: {
-            order: ASC,
-            fields: [name]
-        }) {
-            tiles: nodes {
-                name
-                data
-                description
-                becomes
-            }
-        }
-        icons: allFile(filter: { 
-            sourceInstanceName: { eq: "assets" },
-            extension: {in: ["gif"]}
-        }) {
-            icons: nodes {
-                relativePath
-                publicURL
-            }
-        }
         bathysphere: allBathysphereYaml(filter: {
             kind: {
                 eq: "Things"
@@ -141,8 +117,6 @@ const Catalog = ({className}) => {
      * Static query for tile metadata and icons.
      */
     const {
-        oceanside: {tiles},
-        icons: {icons},
         bathysphere: {things},
         locations: {locations}
     } = useStaticQuery(query);
@@ -150,20 +124,12 @@ const Catalog = ({className}) => {
     /**
      * List of collections to build selection from
      */ 
-    const { 
-        refresh, 
-        login,  
-        options, 
-        populate, 
-        navigate, 
-        sorted 
-    } = useBathysphereApi({icons, tiles, things, locations});
+    const { login } = useBathysphereApi();
 
     
     return <div className={className}>
         <Form 
-            id={"login-dialog"} 
-            callback={refresh}
+            id={"login-dialog"}
             fields={fields}
             actions={[{
                 value: "Login",
@@ -171,31 +137,6 @@ const Catalog = ({className}) => {
                 onClick: login
             }]}
         />
-
-        <Form
-            fields={[{
-                type: "select",
-                id: "collection",
-                options: options,
-                onChange: populate
-            }]}
-        />
-
-        <Form
-            fields={[{
-                type: "select",
-                id: "asset",
-                options: sorted.map(({name}) => name),
-                onChange: navigate
-            }]}
-        />
-
-        {sorted.map((tile, ii) => 
-            <TileInformation
-                key={`tile-${ii}`} 
-                tile={tile}
-            />
-        )}
     </div> 
 }; 
 

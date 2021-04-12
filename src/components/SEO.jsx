@@ -4,31 +4,62 @@
  *
  * See: https://www.gatsbyjs.org/docs/use-static-query/
  */
-
 import React from "react";
+
+/**
+ * Enable some type checking on component
+ */
 import PropTypes from "prop-types";
+
+/**
+ * Stuff for bots and browsers
+ */
 import Helmet from "react-helmet";
+
+/**
+ * Retrieve Gatsby data
+ */
 import { useStaticQuery, graphql } from "gatsby";
 
-const SEO = ({ description, lang, meta, title }) => {
-
-    const { site: { siteMetadata }} = useStaticQuery(
-        graphql`
-            query {
-                site {
-                    siteMetadata {
-                        title
-                        description
-                        author
-                    }
-                }
+/**
+ * Static GraphQL query for sire metadata
+ * 
+ * @param {*} param0 
+ * @returns 
+ */
+const query = graphql`
+    query {
+        site {
+            siteMetadata {
+                title
+                description
+                author
             }
-        `
-    )
+        }
+    }
+`
 
-    const display = description || siteMetadata.description;
-    const displayTitle = title || siteMetadata.title;
-
+/**
+ * Base component, will be extended with propTypes and defaults. 
+ * 
+ * @param {*} param0 
+ * @returns 
+ */
+const SEO = ({ 
+    description, 
+    lang, 
+    meta, 
+    title
+}) => {
+    /**
+     * Use GraphQL to to get fallback `title` and `description`. 
+     */
+    const { 
+        site: { 
+            siteMetadata 
+        }
+    } = useStaticQuery(query);
+       
     return <Helmet
         htmlAttributes={{lang}}
         title={"Oceanics.io"}
@@ -36,15 +67,15 @@ const SEO = ({ description, lang, meta, title }) => {
         meta={[
             {
                 name: `description`,
-                content: display,
+                content: description || siteMetadata.description,
             },
             {
                 property: `og:title`,
-                content: displayTitle,
+                content: title || siteMetadata.title,
             },
             {
                 property: `og:description`,
-                content: display,
+                content: description || siteMetadata.description,
             },
             {
                 property: `og:type`,
@@ -60,22 +91,28 @@ const SEO = ({ description, lang, meta, title }) => {
             },
             {
                 name: `twitter:title`,
-                content: displayTitle,
+                content: title || siteMetadata.title,
             },
             {
                 name: `twitter:description`,
-                content: display,
+                content: description || siteMetadata.description,
             },
         ].concat(meta)}
     />;
 };
 
+/**
+ * Sensible defaults
+ */
 SEO.defaultProps = {
     lang: `en`,
     meta: [],
     description: ``,
 };
 
+/**
+ * Build time type checking
+ */
 SEO.propTypes = {
     description: PropTypes.string,
     lang: PropTypes.string,
@@ -83,4 +120,7 @@ SEO.propTypes = {
     title: PropTypes.string.isRequired,
 };
 
+/**
+ * Expanded with types and defaults
+ */
 export default SEO;

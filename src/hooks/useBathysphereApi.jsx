@@ -13,10 +13,7 @@ import Worker from "./useBathysphereApi.worker.js";
  * 
  * If access token is set in React state, use it to get the catalog index from Bathysphere
  */
-export default ({
-    icons, 
-    tiles
-}) => {
+export default () => {
 
     /**
      * Web worker reference for fetching and auth.
@@ -67,34 +64,9 @@ export default ({
             server: "https://graph.oceanics.io/api"
         }
     );
-
-    /**
-     * Collections options object generated from API queries. 
-     */ 
-    const [ options ] = useState([
-        {key: "Features of Interest"},
-        {key: "Things"},
-        {key: "Locations"}
-    ]);
-
-    /**
-     * Sorted items to render in interface
-     */
-    const [sorted, setSorted] = useState([]);
-
-    /**
-     * Use Web worker to do sorting
-     */
-    useEffect(()=>{
-        if (worker.current)
-            worker.current.sorted({icons, tiles}).then(setSorted);
-    }, [ worker]);
-    
    
     return {
         catalog,
-        options: options.map(({key})=>key),
-        refresh,
         login: event => {
             event.persist();
             worker.current.login(credentials).then(setAccessToken);
@@ -106,13 +78,6 @@ export default ({
         populate: event => {
             event.persist();
             console.log("Populate...");
-        },
-        navigate: event => {
-            event.persist();
-            worker.current.locationHash(event.target.value).then(hash => {
-                location.hash = hash;
-            });
-        },
-        sorted
+        }
     };
 };

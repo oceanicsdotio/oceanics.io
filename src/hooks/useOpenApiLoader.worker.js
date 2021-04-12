@@ -120,7 +120,3 @@ export const flattenSpecOperations = async (paths) =>
 export const scrapeIndexPage = async (url) => 
     fetch(url).then(response => response.json());
 
-  
-
-
-    

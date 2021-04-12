@@ -8,22 +8,27 @@ import { ghost } from "../palette";
 import SEO from "../components/SEO";  
 
 /**
- * SensorThings Graph API interface
- */ 
-import Catalog from "../components/Catalog";  
-
-/**
  * SVG button for toggling between map and catalog views. 
  */
 import Trifold from "../components/Trifold";
 
 /**
- * Pixel graphic renderer for rasterized geospattial data.
+ * Left-side nav bar with animated icons. 
+ */
+import TileInformation from "../components/TileInformation";
+
+/**
+ * Bathysphere (SensorThings API) interface right-side interface
+ */ 
+ import Catalog from "../components/Catalog";  
+
+/**
+ * Pixel graphic renderer for raster geospatial data.
  */
 import useOceanside from "../hooks/useOceanside";
 
 /**
- * Interactive Map component using Mapbox backend.
+ * Interactive Map component using Mapbox.
  */
 import useMapBox from "../hooks/useMapBox";
 
@@ -31,10 +36,12 @@ import useMapBox from "../hooks/useMapBox";
  * Logical combinator to calculate visibility and style of columns.
  */
 const columnSize = ({expand, mobile, column}) => {
-    if (column === 1) {
+    if (column === 0) {
         return !expand ? 1 : 0;
-    } else if (column === 0) {
-        return (expand || !mobile) ? 1 : 0;
+    } else if (column === 1) {
+        return (expand || !mobile) ? 6 : 0;
+    } else if (column === 2) {
+        return !expand ? 3 : 0;
     }
 };
 
@@ -50,7 +57,7 @@ const App = styled.div`
     grid-gap: 0;
     grid-template-columns: ${
         props=>
-            `${columnSize({...props, column: 0})}fr ${columnSize({...props, column: 1})}fr`
+            `auto ${columnSize({...props, column: 1})}fr ${columnSize({...props, column: 2})}fr`
         };
     grid-auto-rows: minmax(5rem, auto);
     margin: 0;
@@ -68,7 +75,7 @@ const Pane = styled.div`
     grid-row: ${({row})=>row+1};
     grid-column: ${({column})=>column+1};
     overflow-x: hidden;
-    overflow-y: ${({column})=>column?undefined:"hidden"};
+    overflow-y: ${({column})=>column!==1?undefined:"hidden"};
     min-height: 100vh;
     bottom: 0;
 `;
@@ -108,7 +115,7 @@ const Control = styled.div`
 /**
  * Page component rendered by GatsbyJS.
  */
-export default () => {
+const AppPage = () => {
  /**
      * Boolean indicating whether the device is a small mobile,
      * or full size desktop.
@@ -162,6 +169,13 @@ export default () => {
             column={0}
             display={!columnSize({expand, mobile, column: 0}) ? "none" : undefined}
         >
+            <TileInformation/>
+        </Pane>
+        <Pane 
+            row={0} 
+            column={1}
+            display={!columnSize({expand, mobile, column: 1}) ? "none" : undefined}
+        >
             <Map ref={ref}/>      
             <Control>
                 <canvas
@@ -178,11 +192,27 @@ export default () => {
             </Control>
         </Pane>
         <Pane 
-            display={!columnSize({expand, mobile, column: 1}) ? "none" : undefined}
+            display={!columnSize({expand, mobile, column: 2}) ? "none" : undefined}
             row={0} 
-            column={1}
+            column={2}
         >
             <Catalog storage={{}} graph={{}}/> 
         </Pane>
     </App> 
 };
+
+
+export default styled(AppPage)`
+    display: grid;
+    grid-gap: 0;
+    grid-template-columns: ${
+        props=>
+            `${columnSize({...props, column: 0})}fr ${columnSize({...props, column: 1})}fr`
+        };
+    grid-auto-rows: minmax(5rem, auto);
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    width: auto;
+    overflow-y: clip;
+`;

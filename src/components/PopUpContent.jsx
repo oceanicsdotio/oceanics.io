@@ -37,7 +37,7 @@ export const PopUpContent = ({
     const [ species, setSpecies ] = useState(null);
 
     /**
-     * Latitude and longtiude.
+     * Latitude and longitude.
      */
     const [ center, setCenter ] = useState(null);
 
