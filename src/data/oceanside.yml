@@ -7,7 +7,6 @@ probability: 0.05
 cost: 50
 becomes: [Ocean]
 dialog: Yum, oysters!
-queryString: oysters
 description: |
   Leave these in the water and collect the reward or harvest the whole bed and sell it.
 ---
@@ -19,7 +18,6 @@ probability: 0.05
 cost: 25
 becomes: [Ocean]
 dialog: Yum, mussels!
-queryString: mussels
 description: |
   Mussels are good! If they are too close to oysters though they will eventually take over.
 ---
@@ -111,7 +109,6 @@ name: Wharf
 value: 0
 probability: 0.02
 dialog: Wharfinger
-queryString: wharfinger
 limit: 1
 description: |
   Every good day starts at the dock! You'll have to fuel up here before you can go out and save the world. Gah but look at all that trash in water sure wish someone would take care of this place
@@ -167,7 +164,6 @@ value: -100.0
 probability: 0.0
 cost: 0.0
 becomes: [Ocean]
-queryString: nuisance
 dialog: What is a blowout preventer?
 description: |
   Looks like somebody messed up big time. 

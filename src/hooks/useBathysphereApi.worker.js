@@ -116,8 +116,6 @@ export const locationHash = async (name) => "#" + transformName(name);
 
 /** 
  * Generate derived fields, and match metadata to asset files.
- * Memoize the results to prevent recalculating when the parent
- * page re-renders.
  */
 export const sorted = async ({tiles, icons}) => {
 
@@ -125,28 +123,22 @@ export const sorted = async ({tiles, icons}) => {
         icons.map(({relativePath, publicURL})=>[relativePath, publicURL])
     );
     
-    
-    return tiles.map(({name, becomes=[], data, queryString=null, ...x})=>Object({
-            canonical: transformName(name), 
-            grayscale: !queryString,
-            anchorHash: name.toLowerCase().split(" ").join("-"),
-            group: (becomes || [])
-                .map(x => 
-                    tiles.filter(({name})=>transformName(name) === transformName(x)).pop()
-                ).map(({name}) => ({
-                    link: `#${transformName(name)}`,
-                    text: name
-                })), 
-            name,
-            publicURL: lookup[data],
-            ...x
-        }))
-    .sort((a, b) => {
-        [a, b] = [a, b].map(({canonical}) => canonical);
-        if (a < b) return -1;
-        if (a > b) return 1;
-        return 0;
-    });
+    return tiles.map(({name, becomes=[], data, queryString, ...x})=>Object({
+        canonical: transformName(name), 
+        grayscale: typeof queryString === "undefined" || queryString === null,
+        queryString,
+        anchorHash: name.toLowerCase().split(" ").join("-"),
+        group: (becomes || [])
+            .map(x => 
+                tiles.filter(({name})=>transformName(name) === transformName(x)).pop()
+            ).map(({name}) => ({
+                link: `#${transformName(name)}`,
+                text: name
+            })), 
+        name,
+        publicURL: lookup[data],
+        ...x
+    }));
 }
 
 

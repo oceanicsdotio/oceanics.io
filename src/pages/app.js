@@ -16,7 +16,7 @@ import { ghost, orange, charcoal } from "../palette";
 /**
  * Fetch site data.
  */
-import { useStaticQuery, graphql } from "gatsby";
+import { useStaticQuery, graphql, navigate } from "gatsby";
 
 /**
  * SEO headers.
@@ -54,11 +54,11 @@ const columnSize = ({expand, mobile, column}) => {
 /**
  * Query for icons and info
  */
-const query = graphql`
+const staticQuery = graphql`
     query {
         oceanside: allOceansideYaml(sort: {
             order: ASC,
-            fields: [name]
+            fields: [queryString]
         }
         filter: {
             name: {ne: "Land"}
@@ -143,13 +143,20 @@ const StyledTrifold = styled(Trifold)`
  const TileInformation = ({
     tile: {
         publicURL, 
-        anchorHash
+        anchorHash,
+        queryString
     }, 
     className
 }) =>
     <div className={className}>
         <a id={anchorHash}/>
-        <img src={publicURL}/>
+        <img 
+            src={publicURL}
+            onClick={()=>{
+                const newLocation = queryString ? `/app/?agent=${queryString}` : `/app/`
+                navigate(newLocation);
+            }}
+        />
     </div>;
 
 
@@ -166,6 +173,7 @@ const StyledTileInformation = styled(TileInformation)`
         image-rendering: crisp-edges;
         width: 96px;
         filter: grayscale(${({tile: {grayscale}})=>!!grayscale*100}%);
+        cursor: pointer;
     }  
 `;
 
@@ -230,7 +238,11 @@ const Control = styled.div`
 /**
  * Page component rendered by GatsbyJS.
  */
-const AppPage = () => {
+const AppPage = ({
+    location: {
+        search
+    }
+}) => {
 
     /**
      * Boolean indicating whether the device is a small mobile,
@@ -280,7 +292,30 @@ const AppPage = () => {
     const {
         oceanside: {tiles},
         icons: {icons}
-    } = useStaticQuery(query);
+    } = useStaticQuery(staticQuery);
+
+
+    /**
+     * React state to hold parsed query string parameters.
+     */
+    const [ query, setQuery] = useState({
+        agent: null,
+    });
+
+    /**
+     * When page loads parse the query string. 
+     */
+    useEffect(() => {
+        if (!search) return;
+
+        setQuery(
+            Object.fromEntries(search
+                .slice(1, search.length)
+                .split("&")
+                .map(item => item.split("=")))
+        );
+
+    }, [ search ]);
 
     
     /**
@@ -316,9 +351,9 @@ const AppPage = () => {
             column={0}
             display={!columnSize({expand, mobile, column: 0}) ? "none" : undefined}
         >
-            {sorted.map((tile, ii) => 
+            {sorted.map(tile => 
                 <StyledTileInformation
-                    key={`tile-${ii}`} 
+                    key={tile.anchorHash} 
                     tile={tile}
                 />
             )}
