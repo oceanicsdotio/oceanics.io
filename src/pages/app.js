@@ -68,7 +68,8 @@ const staticQuery = graphql`
                 data
                 description
                 becomes,
-                queryString
+                queryString,
+                dialog
             }
         }
         icons: allFile(filter: { 
@@ -134,8 +135,6 @@ const StyledTrifold = styled(Trifold)`
 `;
 
 
-
-
 /**
  * Art and information for single tile feature. 
  * This is used to render documentation for the game.
@@ -174,7 +173,7 @@ const StyledTileInformation = styled(TileInformation)`
         width: 96px;
         filter: grayscale(${({tile: {grayscale}})=>!!grayscale*100}%);
         cursor: pointer;
-    }  
+    }
 `;
 
 
