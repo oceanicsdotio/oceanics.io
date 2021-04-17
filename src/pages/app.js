@@ -59,12 +59,16 @@ const query = graphql`
         oceanside: allOceansideYaml(sort: {
             order: ASC,
             fields: [name]
+        }
+        filter: {
+            name: {ne: "Land"}
         }) {
             tiles: nodes {
                 name
                 data
                 description
-                becomes
+                becomes,
+                queryString
             }
         }
         icons: allFile(filter: { 
@@ -77,22 +81,6 @@ const query = graphql`
             }
         }
     }`
-
-/**
- * Art and information for single tile feature. 
- * This is used to render documentation for the game.
- */
-const TileInformation = ({
-    tile: {
-        name,
-        publicURL
-    }, 
-    className
-}) =>
-    <div className={className}>
-        <a id={name.toLowerCase().split(" ").join("-")}/>
-        <img src={publicURL}/>
-    </div>;
 
 
 
@@ -146,6 +134,26 @@ const StyledTrifold = styled(Trifold)`
 `;
 
 
+
+
+/**
+ * Art and information for single tile feature. 
+ * This is used to render documentation for the game.
+ */
+ const TileInformation = ({
+    tile: {
+        publicURL, 
+        anchorHash
+    }, 
+    className
+}) =>
+    <div className={className}>
+        <a id={anchorHash}/>
+        <img src={publicURL}/>
+    </div>;
+
+
+
 /**
  * Styled version of the basic TileInfo that makes the 
  * rendering context use crisp edges and a fixed size icon
@@ -157,6 +165,7 @@ const StyledTileInformation = styled(TileInformation)`
     & img {
         image-rendering: crisp-edges;
         width: 96px;
+        filter: grayscale(${({tile: {grayscale}})=>!!grayscale*100}%);
     }  
 `;
 

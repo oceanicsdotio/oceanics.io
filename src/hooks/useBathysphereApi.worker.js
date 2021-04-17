@@ -126,8 +126,10 @@ export const sorted = async ({tiles, icons}) => {
     );
     
     
-    return tiles.map(({name, becomes=[], data, ...x})=>Object({
+    return tiles.map(({name, becomes=[], data, queryString=null, ...x})=>Object({
             canonical: transformName(name), 
+            grayscale: !queryString,
+            anchorHash: name.toLowerCase().split(" ").join("-"),
             group: (becomes || [])
                 .map(x => 
                     tiles.filter(({name})=>transformName(name) === transformName(x)).pop()
