@@ -156,53 +156,11 @@ const mapBoxAccessToken =
  */
 const TARGET = "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com";
 
-
 /**
  * Point cloud prefix.
  */
 const PREFIX = "MidcoastMaineMesh";
 
-
-
-export const waterLevel = ({size}) => Object({
-
-    width: size,
-    height: size,
-    data: new Uint8Array(size * size * 4),
-
-    // get rendering context for the map canvas when layer is added to the map
-    onAdd: function () {
-        var canvas = document.createElement('canvas');
-        canvas.width = size;
-        canvas.height = size;
-        this.context = canvas.getContext('2d');
-        
-        // update this image's data with data from the canvas
-        
-    },
-
-    // called once before every frame where the icon will be used
-    render: function () {
-        var ctx = this.context;
-        ctx.clearRect(0, 0, size, size);
-        ctx.beginPath();
-        ctx.rect(0, 0, size, size);
-    
-        ctx.strokeStyle = 'cyan';
-        ctx.lineWidth = 3;
-        ctx.stroke();
-
-        this.data = ctx.getImageData(
-            0,
-            0,
-            size,
-            size
-        ).data;
-
-        return true;
-        
-    }
-});
 
 /**
  * Use the Geolocation API to retieve the location of the client,

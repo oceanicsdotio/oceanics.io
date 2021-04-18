@@ -1,8 +1,8 @@
 const path = require(`path`);
-const YAML = require("yaml");
-const express = require("express");
-const { createFilePath } = require(`gatsby-source-filesystem`);
-const WasmPackPlugin = require("@wasm-tool/wasm-pack-plugin");
+const YAML = require(`yaml`);
+const express = require(`express`);
+const { createFilePath, createRemoteFileNode } = require(`gatsby-source-filesystem`);
+const WasmPackPlugin = require(`@wasm-tool/wasm-pack-plugin`);
 
 
 // https://www.gatsbyjs.org/docs/debugging-html-builds/

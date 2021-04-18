@@ -164,15 +164,14 @@ geojson:
     component: suitability
     tags: [compute]
 
-
-  - id: aquaculture-leases
-    url: https://oceanicsdotio.nyc3.digitaloceanspaces.com/bathysphere/geospatial/aquaculture-leases.json
+  - id: aquaculture-leases-direct
+    url: https://opendata.arcgis.com/datasets/a0b3c775cfc243a2b92df328ad85c642_2.geojson
     attribution: Maine DMR
     type: line
     minzoom: 8
     maxzoom: 22
     paint: 
-      line-color: "rgba(0,255,255,0.75)"
+      line-color: "rgba(0,255,255,0.7)"
     behind: suitability
     component: location
 
