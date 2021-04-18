@@ -1,6 +1,5 @@
 import React from "react";
 import styled from "styled-components";
-import { useStaticQuery, graphql } from "gatsby";
 import { pink } from "../palette";
 
 /**
@@ -8,93 +7,16 @@ import { pink } from "../palette";
  */
 import Form from "./Form";
 
-
 /**
  * Use bathysphere client
  */
-import useBathysphereApi from "../hooks/useBathysphereApi";
-
-/**
- * Pixel graphic renderer for raster geospatial data.
- */
- import useOceanside from "../hooks/useOceanside";
+import useBathysphereApi from "../hooks/useBathysphere";
 
 /**
  * Login fields until openApi interface in complete
  */
 import fields from "../data/login.yml";
 
-const query = graphql`
-    query {
-        bathysphere: allBathysphereYaml(filter: {
-            kind: {
-                eq: "Things"
-            } 
-        }) {
-            things: nodes {
-                apiVersion
-                metadata {
-                    icon
-                }
-                kind
-                spec {
-                    name
-                    description
-                    properties {
-                        home
-                        capacity
-                        meters {
-                            name
-                            max
-                            value
-                            high
-                            low
-                        }
-                    }
-                }
-            }
-        }
-        team: allBathysphereYaml(
-            filter: {
-                kind: { eq: "Agents" }
-            }
-        ) {
-            team: nodes {
-                spec { name }
-            }   
-        }
-        locations: allBathysphereYaml(
-            filter: {
-                kind: { eq: "Locations" }
-                metadata: {
-                    fictional: { eq: true }
-                }
-            }
-        ) {
-            locations: nodes {
-                kind
-                metadata {
-                    fictional
-                    home
-                    icon
-                    capacity
-                }
-                spec { name }
-            }   
-        }
-        tasks: allBathysphereYaml(
-            filter: {
-                kind: { eq: "Tasks" }
-            }
-        ) {
-            tasksByLocation: group(field: metadata___Locations___name) {
-                location: fieldValue
-                nodes { 
-                    spec { name }
-                }
-            }  
-        }
-    }`
 
 /**
 The key is the Entity subclass. 
@@ -118,23 +40,9 @@ collections in the graph database.
 const Catalog = ({className}) => {
    
     /**
-     * Static query for tile metadata and icons.
-     */
-    const {
-        bathysphere: {things},
-        locations: {locations}
-    } = useStaticQuery(query);
-
-    /**
      * List of collections to build selection from
      */ 
     const { login } = useBathysphereApi();
-
-        /**
-     * Isometric pixel rendering interface for rasterized data.
-     */
-         const { nav, worldSize } = useOceanside({});
-
     
     return <div className={className}>
         <Form 
@@ -145,13 +53,6 @@ const Catalog = ({className}) => {
                 type: "button",
                 onClick: login
             }]}
-        />
-        <canvas
-            id={"preview-target"}
-            ref={nav.ref}
-            width={worldSize}
-            height={worldSize}
-            onClick={nav.onClick}
         />
     </div> 
 }; 

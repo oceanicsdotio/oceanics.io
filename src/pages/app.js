@@ -33,6 +33,7 @@ import Catalog from "../components/Catalog";
  */
 import useMapBox from "../hooks/useMapBox";
 
+
 /**
  * Dedicated worker loader.
  */
@@ -84,7 +85,13 @@ const staticQuery = graphql`
     }`
 
 
-
+/**
+ * Vectro graphic icon for toggle between folded/unfolded view.
+ * 
+ * 
+ * @param {*} param0 
+ * @returns 
+ */
 const Trifold = ({
     display, 
     onClick, 
@@ -125,6 +132,9 @@ const Trifold = ({
     };
 
 
+/**
+ * Styled version of the trifold component.
+ */
 const StyledTrifold = styled(Trifold)`
     width: 32px;
     height: 32px; 
@@ -157,7 +167,6 @@ const StyledTrifold = styled(Trifold)`
             }}
         />
     </div>;
-
 
 
 /**
@@ -302,7 +311,8 @@ const AppPage = ({
     });
 
     /**
-     * When page loads parse the query string. 
+     * When page loads or the search string changes,
+     * parse the query string. 
      */
     useEffect(() => {
         if (!search) return;
@@ -365,7 +375,6 @@ const AppPage = ({
             <div>
             <Map ref={ref}/>      
             <Control>
-                
                 <StyledTrifold 
                     onClick={() => {setExpand(!expand)}}
                     stroke={orange}

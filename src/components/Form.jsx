@@ -173,7 +173,7 @@ const FormField = styled.div`
 `;
 
 /**
-Form component encapuslates behavior of user submission forms.
+Form component encapsulates behavior of user submission forms.
 */
 export const Form = ({ 
     id, 
