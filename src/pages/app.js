@@ -402,6 +402,11 @@ const Pane = styled.div`
     min-height: 100vh;
     bottom: 0;
     background-color: ${charcoal};
+
+    & .logo {
+        width: 100%;
+        image-rendering: crisp-edges;
+    }
 `;
 
 /**
@@ -865,6 +870,11 @@ const AppPage = ({
             column={0}
             display={!columnSize({expand, mobile, column: 0}) ? "none" : undefined}
         >
+            <img 
+                src={"/dagan-mad.gif"} 
+                className={"logo"}
+            />
+
             {sorted.map(tile => 
                 <StyledTileInformation
                     key={tile.anchorHash} 
