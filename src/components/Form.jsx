@@ -17,22 +17,6 @@ const StyledTextArea = styled.div`
 
 
 /**
- * A note is just a free form text area that can be changed by users
- * to collaborativle update information that does not cleanly fit
- * into the schema as it currently exists.
- */
-const Note = ({
-    placeholder="..."
-}) => 
-    <StyledTextArea 
-        contentEditable={true}
-        suppressContentEditableWarning={true}
-    >
-        {placeholder}
-    </StyledTextArea>;
-
-
-/**
  * Generic form input component that converts to the
  * appropriate type
  */

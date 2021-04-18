@@ -15,6 +15,13 @@ export default ({
 
     const [data, setData] = useState(null);
 
+    const [processors, setProcessors] = useState();
+
+    useEffect(()=>{
+        setProcessors(navigator.hardwareConcurrency);
+        console.log({hardwareConcurrency: navigator.hardwareConcurrency})
+    } );
+
     useEffect(()=>{
         
         const start = performance.now();
@@ -54,7 +61,7 @@ export default ({
                 });
             });
 
-    },[]);
+    },[processors]);
 
     useEffect(()=>{
         if (!data) return;

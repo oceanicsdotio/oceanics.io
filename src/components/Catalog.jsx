@@ -10,12 +10,7 @@ import Form from "./Form";
 /**
  * Use bathysphere client
  */
-import useBathysphereApi from "../hooks/useBathysphere";
-
-/**
- * Login fields until openApi interface in complete
- */
-import fields from "../data/login.yml";
+import useBathysphereApi from "../hooks/useBathysphereApi";
 
 
 /**
@@ -46,8 +41,13 @@ const Catalog = ({className}) => {
     
     return <div className={className}>
         <Form 
-            id={"login-dialog"}
-            fields={fields}
+            id={"register-dialog"}
+            fields={[{
+                type: "email",
+                id: "email",
+                placeholder: "name@example.com",
+                required: true
+            }]}
             actions={[{
                 value: "Login",
                 type: "button",
