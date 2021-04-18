@@ -1,5 +1,29 @@
+let runtime = null;
+
+
 /**
- * Create a new account.
+ * 
+ * @returns 
+ */
+export const initRuntime = async () => {
+    try {
+        runtime = await import('../wasm');
+        runtime.panic_hook();
+        return {
+            ready: true,
+        };
+    } catch (err) {
+        return {
+            ready: false,
+            error: err.message
+        };
+    }
+}
+
+
+/**
+ * Create a new account for our API and services.
+ * 
  * @param {} param0 
  */
 export const register = async ({
@@ -180,6 +204,277 @@ export const codex = async ({edges, accessToken, server}) => {
     return mapping;
 
 };
+
+
+/**
+ * Calculate summary statistics for the bins, to help with rendering
+ * and UI metadata.
+ * 
+ * There should only be positive values for the y-axis.
+ * 
+ * @param {*} histogram 
+ */
+ export const histogramReducer = histogram => histogram.reduce(
+    ({ total, max }, [ bin, count ]) => {
+        if (count < 0) throw Error(`Negative count value, ${count} @ ${bin}`);
+        
+        return { 
+            total: total + count, 
+            max: Math.max(max, count) 
+        }
+    }, 
+    { total: 0, max: 0 }
+);
+
+
+export async function getImageMetadata(url) {
+    return fetch(url)
+        .then(r => r.json())
+        .catch(err => {
+            console.log("Metadata Error", err)
+        });
+};
+
+
+export async function initParticles(res) {
+    return new Uint8Array(Array.from(
+        { length: res * res * 4 }, 
+        () => Math.floor(Math.random() * 256)
+    ))
+};
+
+/**
+ * Generate the dataUrls for icon assets in the background.
+ * 
+ * Not a heavy performance hit, but some of the sprite sheet logic can be moved in here
+ * eventually as well.
+ * 
+ * @param {*} param0 
+ */
+ export const parseIconSet = async ({nodes, templates, worldSize}) => {
+    
+    
+    const lookup = Object.fromEntries(
+        nodes.map(({relativePath, publicURL})=>
+            [relativePath, publicURL])
+    );
+
+    return templates.map(({
+        name,
+        spriteSheet, 
+        probability=null,
+        value=null,
+        limit=null
+    })=>({
+        key: name.toLowerCase().split(" ").join("-"),  
+        dataUrl: lookup[spriteSheet],
+        limit: limit ? limit : worldSize*worldSize,
+        probability: probability ? probability : 0.0,
+        value: value ? value : 0.0
+    }));
+}
+
+
+/**
+ * Max regional ocean depth for bthymetry rendering
+ */
+ const MAX_VALUE = 5200;
+
+
+
+ const cleanAndParse = text => 
+     text.replace('and', ',')
+         .replace(';', ',')
+         .split(',')
+         .map(each => each.trim());
+ 
+         
+ /**
+  * Single point feature with coordinates 
+  * and arbitrary properties.
+  * 
+  * @param {*} x 
+  * @param {*} y 
+  * @param {*} properties 
+  */
+ const PointFeature = (x, y, properties) => Object({
+     type: 'Feature',
+     geometry: {
+         type: 'Point',
+         coordinates: [x, y]
+     },
+     properties
+ });
+ 
+ /**
+  * Formatting function, generic to all providers
+  * @param {*} param0 
+  */
+ const Features = (
+     features,
+     standard
+ ) => {
+     switch(standard) {
+         // ESRI does things their own special way.
+         case "esri":
+             return features
+                 .map(({
+                     geometry: {x, y}, 
+                     attributes
+                 }) => 
+                     PointFeature(x, y, attributes)
+                 );
+         // NOAA also does things their own special way
+         case "noaa":
+             return features
+                 .filter(x => "data" in x && "metadata" in x)
+                 .map(({
+                     data: [head], 
+                     metadata: {lon, lat, ...metadata}
+                 }) => 
+                     PointFeature(lon, lat, {...head, ...metadata})
+                 );
+         // Otherwise let us hope it is GeoJSON and catch it up the stack
+         default:
+             return features;
+     };
+ };
+ 
+ /**
+  *  Out ready for Mapbox as a Layer object description
+  */
+ const GeoJsonSource = ({
+     features,
+     standard,
+     properties=null
+ }) =>       
+     Object({
+         type: "geojson", 
+         generateId: true,
+         data: {
+             type: "FeatureCollection",
+             features: Features(features, standard),
+             properties,
+         }, 
+     });
+ 
+ /**
+  * Format the user location
+  * 
+  * @param {*} coordinates 
+  */
+ export const userLocation = async (
+     coordinates,
+     iconImage
+ ) => Object({
+     id: "home",
+     type: "symbol",
+     source: GeoJsonSource({
+         features: [PointFeature(...coordinates, {})]
+     }),
+     layout: { 
+         "icon-image": iconImage 
+     }
+ })
+ 
+ 
+ /**
+  * Retrieve arbtirary GeoJson source
+  * 
+  * @param {*} url 
+  * @param {*} standard 
+  */
+ export const getData = async (url, standard) => {
+     return await fetch(url)
+         .then(response => response.json())
+         .then(({features}) => GeoJsonSource({features, standard}));
+ };
+ 
+ 
+ /**
+  * Log normal density function for color mapping
+  * @param {*} x 
+  * @param {*} m 
+  * @param {*} s 
+  */
+ const logNormal = (x, m=0, s=1.0) => 
+     (1/s/x/Math.sqrt(2*Math.PI)*Math.exp(-1*(Math.log(x)-m)**2 / (2 * s**2)));
+ 
+ 
+ /**
+  * Retrieve a piece of a vertex array buffer from object storage.
+  * 
+  * @param {*} url 
+  * @param {*} attribution 
+  */
+ export const getFragment = async (target, key, attribution) => {
+ 
+     const url = `${target}/${key}`;
+ 
+     return await fetch(url)
+         .then(response => response.blob())
+         .then(blob => 
+             (new Promise((resolve) => {
+                 var reader = new FileReader();
+                 reader.onloadend = () => {resolve(reader.result)};
+                 reader.readAsArrayBuffer(blob);
+             }))
+         ).then(array => {
+             const source = GeoJsonSource({features: (new Float32Array(array)).reduce(
+                 (acc, cur)=>{
+                     if (!acc.count) acc.features.push([]);
+                 
+                     acc.features[acc.features.length-1].push(cur);
+                     acc.count = (acc.count + 1 ) % 3;
+                     return acc;
+                 },
+                 {count: 0, features: []}
+             ).features.map(
+                 coordinates => Object({
+                     geometry: {type: "Point", coordinates},
+                     properties: {
+                         q: (((100 + coordinates[2]) / MAX_VALUE) - 1)**2,
+                         ln: logNormal((100 + coordinates[2]) / MAX_VALUE, 0.0, 1.5)
+                     }
+                 })
+             )});
+ 
+             source.attribution = attribution;
+ 
+             return {
+                 id: `mesh-${key}`,
+                 type: "circle",
+                 source,
+                 component: "location",
+                 paint: {
+                     "circle-radius":  {stops: [[0, 0.2], [22, 4]]},
+                     "circle-stroke-width": 0,
+                     "circle-color": [
+                         "rgba",
+                         ["*", 127, ["get", "q"]],
+                         ["*", 127, ["get", "ln"]],
+                         ["*", 127, ["-", 1, ["get", "q"]]],
+                         0.75
+                     ]
+                 }
+             }
+         });
+ };
+ 
+ 
+ export const reduceVertexArray = async (vertexArray) => {
+ 
+     return vertexArray.reduce(
+         ([x, y, z=0], {coordinates: [Δx, Δy, Δz=0]}) => 
+             [
+                 x + Δx / vertexArray.length, 
+                 y + Δy / vertexArray.length,
+                 z + Δz / vertexArray.length
+             ], 
+         [0, 0, 0]
+     )};
+ 
+
 
 
     

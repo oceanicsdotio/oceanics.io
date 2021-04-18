@@ -5,7 +5,7 @@ import { lichen, orange } from "../palette";
 /**
  * Dedicated worker loaders
  */
-import Worker from "./useOceanside.worker.js";
+import Worker from "./useBathysphereApi.worker.js";
 
 /*
  * Rotate a path of any number of points about the origin.

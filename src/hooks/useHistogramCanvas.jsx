@@ -3,7 +3,7 @@ import { ghost } from "../palette";
 /**
  * Dedicated worker loader
  */
-import Worker from "./useHistogramCanvas.worker.js";
+import Worker from "./useBathysphereApi.worker.js";
 
 /**
  * The bin size is known, since the bins are precalculated.
@@ -41,6 +41,8 @@ export default ({
      */
     useEffect(() => {
         worker.current = new Worker();
+
+        return worker.current.terminate;
     }, []);
 
     /**
@@ -60,7 +62,6 @@ export default ({
 
         worker.current.histogramReducer(histogram).then(setStatistics);
 
-        return worker.current.terminate;
     }, [ worker ]);
 
     /**

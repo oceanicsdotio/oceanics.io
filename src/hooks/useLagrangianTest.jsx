@@ -9,7 +9,7 @@ import useGlslShaders from "./useGlslShaders";
 /**
  * Dedicated worker loader
  */
-import Worker from "./useLagrangianTest.worker.js";
+import Worker from "./useBathysphereApi.worker.js";
 
 /**
  * Mapping of uniforms to program components

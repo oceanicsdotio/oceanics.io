@@ -21,7 +21,7 @@ import defaults from "../data/map-style.yml";
 /**
  * Dedicated Worker loader.
  */
-import Worker from "./useMapbox.worker.js";
+import Worker from "./useBathysphereApi.worker.js";
 
 /**
  * Object storage hook
@@ -249,6 +249,14 @@ export default ({
     }, [ map ]);
 
 
+    const [ runtimeStatus, setRuntimeStatus ] = useState({ready: false});
+
+    useEffect(()=>{
+        if (worker.current)
+            worker.current.initRuntime().then(setRuntimeStatus);
+    }, [ worker.current ]);
+
+
     /**
      * Reorder data sets as they are added.
      */
@@ -260,7 +268,7 @@ export default ({
      * to the MapBox instance as a GeoJSON layer. 
      */
     useEffect(() => {
-        if (!map || !queue || !worker.current) return;
+        if (!map || !queue || !worker.current || !runtimeStatus.ready) return;
 
         queue.forEach(({
             id,
@@ -325,7 +333,7 @@ export default ({
             });
         }); 
 
-    }, [ queue, worker ]);
+    }, [ queue, worker.current, runtimeStatus ]);
 
     /**
      * Swap layers to be in the correct order as they are created. Will
