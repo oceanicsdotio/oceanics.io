@@ -308,40 +308,23 @@ const PointFeature = (x, y, properties) => Object({
     properties
 });
  
-/**
- * Formatting function, generic to all providers
- * @param {*} param0 
- */
-const Features = (
-    features,
-    standard
-) => {
-    switch(standard) {
-        // ESRI does things their own special way.
-        case "esri":
-            return features
-                .map(({
-                    geometry: {x, y}, 
-                    attributes
-                }) => 
-                    PointFeature(x, y, attributes)
-                );
-        // NOAA also does things their own special way
-        case "noaa":
-            return features
-                .filter(x => "data" in x && "metadata" in x)
-                .map(({
-                    data: [head], 
-                    metadata: {lon, lat, ...metadata}
-                }) => 
-                    PointFeature(lon, lat, {...head, ...metadata})
-                );
-        // Otherwise let us hope it is GeoJSON and catch it up the stack
-        default:
-            return features;
-    };
+const parsers = ({
+    esri: ({
+        geometry: {x, y}, 
+        attributes
+    }) => PointFeature(x, y, attributes),
+    noaa: ({
+        data: [head], 
+        metadata: {lon, lat, ...metadata}
+    }) => PointFeature(lon, lat, {...head, ...metadata})
+});
+
+
+const filters = {
+    noaa: x => "data" in x && "metadata" in x
 };
- 
+
+
 /**
  * Out ready for MapBox as a Layer object description
  */
@@ -349,16 +332,22 @@ const GeoJsonSource = ({
     features,
     standard,
     properties=null
-}) =>       
-    Object({
+}) => {  
+
+    const filterFcn = x => standard in filters ? x.filter(filters[standard]) : x;
+    
+    const parseFcn = x => standard in parsers ? x.map(parsers[standard]) : x;
+
+    return {
         type: "geojson", 
         generateId: true,
         data: {
             type: "FeatureCollection",
-            features: Features(features, standard),
+            features: parseFcn(filterFcn(features)),
             properties,
         }, 
-    });
+    };
+}
 
 /**
  * Format the user location

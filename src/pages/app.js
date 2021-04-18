@@ -56,25 +56,68 @@ collections in the graph database.
 const Catalog = ({className}) => {
    
     /**
-     * List of collections to build selection from
+     * List of collections to build selection from.
+     * 
+     * If there is no `behind`, can be inserted in front, otherwise need to find the index
+     * of the behind value, and insert after.
      */ 
-    const { login } = useBathysphereApi();
+    // const validLayerOrder = (geojson) => {
+
+    //     // Memoize just ID and BEHIND
+    //     const triggers = {};
+
+    //     // Queue to build
+    //     const layerQueue = [];
+
+    //     geojson.forEach(({behind=null, id}) => {
+            
+    //         // no behind value
+    //         if (behind === null) {
+    //             queue.push(id);
+    //             return;
+    //         }
+
+    //         // find behind value
+    //         const ind = layerQueue.findIndex(behind);
+        
+    //         if (ind === -1) {
+    //             if (behind in triggers) {
+    //                 triggers[behind].push(id)
+    //             } else {
+    //                 triggers[behind] = [id]
+    //             }
+    //             return;
+    //         } 
+
+    //         layerQueue.splice(ind+1, 0, id);
+
+    //     });
+    // }
+        
     
+    const LayerCard = ({
+        id,
+        url,
+        maxzoom=21,
+        minzoom=1,
+        behind=null,
+        attribution="unknown",
+        info=null
+    }) => {
+
+        const provider = `provider: ${attribution}`;
+
+        return <div className={"card"}>
+            <h2>{id}</h2>
+            <p>{`zoom: [${minzoom}, ${maxzoom}]`}</p>
+            <p>{`behind: ${behind}`}</p>
+            <p>{(info ? <a href={info}>{provider}</a> : provider)}</p>
+            <a href={url}>{"download"}</a>
+        </div>
+    }
+
     return <div className={className}>
-        <Form 
-            id={"register-dialog"}
-            fields={[{
-                type: "email",
-                id: "email",
-                placeholder: "name@example.com",
-                required: true
-            }]}
-            actions={[{
-                value: "Login",
-                type: "button",
-                onClick: login
-            }]}
-        />
+        {geojson.map(({id, ...layer}) => <LayerCard {...{...layer, id, key: id}}/>)}
     </div> 
 }; 
 
@@ -83,16 +126,23 @@ const Catalog = ({className}) => {
  */
 const StyledCatalog = styled(Catalog)`
 
-    display: ${({display})=>display};
-    grid-row: ${({row})=>row+1};
-    grid-column: ${({column})=>column+1};
-    overflow-x: hidden;
-
     width: auto;
     min-height: 100vh;
     bottom: 0;
     margin: 0.5rem;
     padding: 0;
+
+    & a {
+        color: ${pink};
+        cursor: pointer;
+        font-family: inherit;
+    }
+
+    & .card {
+        border: 1px solid ${ghost};
+
+        
+    }
 
     & h2 {
         display: block;
@@ -101,16 +151,6 @@ const StyledCatalog = styled(Catalog)`
         width: fit-content;
         margin: auto;
         padding: 0;
-
-        & button {
-            background: none;
-            color: ${pink};
-            border: none;
-            font-size: large;
-            cursor: pointer;
-            margin: 0.5rem;
-            font-family: inherit;
-        }
     }
 `;
 
