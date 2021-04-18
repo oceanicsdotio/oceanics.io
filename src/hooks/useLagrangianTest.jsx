@@ -152,7 +152,7 @@ export default ({
      */
     useEffect(() => {
         if (metadataFile && worker.current)
-            worker.current.getImageMetadata(metadataFile).then(setMetadata);
+            worker.current.getPublicJsonData(metadataFile).then(setMetadata);
     }, [ worker ]);
 
     /**
