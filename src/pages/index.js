@@ -1,7 +1,16 @@
+/**
+ * React and friends.
+ */
 import React, { useEffect, useState } from "react";
 
+/**
+ * For building and linking data
+ */
 import { graphql, navigate, Link } from "gatsby";
 
+/**
+ * Stylish stuff
+ */
 import styled from "styled-components";
 
 /**
@@ -23,6 +32,17 @@ import SEO from "../components/SEO";
  * For interactive elements
  */
 import Form from "../components/Form";
+
+/**
+ * Some of the canonical fields do not contain uniquely identifying information. 
+ * Technically, the same content might appear in two places. 
+ */
+ const referenceHash = ({authors, title, year, journal}) => {
+   
+    const stringRepr = `${authors.join("").toLowerCase()} ${year} ${title.toLowerCase()}`.replace(/\s/g, "");
+    const hashCode = s => s.split('').reduce((a,b) => (((a << 5) - a) + b.charCodeAt(0))|0, 0);
+    return hashCode(stringRepr);
+};
 
 /**
  * Article element, rendered with child metadata 
@@ -80,6 +100,65 @@ const bannerImage = "shrimpers-web.png";
 const itemIncrement = 3;
 
 /**
+ * Go from search string to object with parsed numeric values
+ * 
+ * @param {*} x 
+ * @returns 
+ */
+const decodeSearch = x => Object.fromEntries(x
+    .slice(1, x.length)
+    .split("&")
+    .map(item => {
+        const [key, value] = item.split("=");
+        const parsed = Number(value);
+
+        return value && !isNaN(parsed) ? [key, parsed] : [key, value]
+    }));
+
+/**
+ * Go from object to valid local URL
+ * @param {*} x 
+ * @returns 
+ */
+const encodeSearch = x => 
+    "/?" + Object.entries(x)
+        .map(([key, value]) => `${key}=${value}`)
+        .join("&");
+
+
+
+/**
+ * Set tag as current, and increase number visible
+ */
+const onAddItems = search => () => { 
+
+    const params = decodeSearch(search);
+    const items = (typeof params.items !== undefined && params.items) ? 
+        params.items + itemIncrement : 2*itemIncrement;
+
+    navigate(encodeSearch({
+        ...decodeSearch(search),
+        items
+    })); 
+};
+
+
+/**
+ * Set tag from value know in advance
+ * 
+ * @param {*} search 
+ * @param {*} tag 
+ * @returns 
+ */
+const onSelectTag = (search, tag=null) => event => {
+    navigate(encodeSearch({
+        ...decodeSearch(search), 
+        tag: tag ? tag : event.target.value
+    }));
+}
+
+
+/**
  * Base component for web landing page.
  * 
  * Optionally use query parameters and hash anchor to filter content. 
@@ -100,73 +179,44 @@ export default ({
 }) => {
 
     /**
-     * React state to hold parsed query string parameters.
+     * The array of visible articles. The initial value is the subset from 0 to
+     * the increment constant. 
      */
-    const [ query, setQuery] = useState({
-        items: itemIncrement,
-        tag: null
-    });
-
-    /**
-     * When page loads parse the query string. 
-     */
-    useEffect(() => {
-        if (!search) return;
-
-        setQuery(
-            Object.fromEntries(search
-                .slice(1, search.length)
-                .split("&")
-                .map(item => item.split("=")))
-        );
-
-    }, [ search ]);
-
-
     const [ visible, setVisible ] = useState(nodes.slice(0, itemIncrement));
 
     /**
-     * Determine the visible articles. 
+     * When page loads or search string changes parse the string to React state.
      * 
-     * Trigger when query parameters are updated. 
+     * Determine visible content. 
      */
     useEffect(() => {
+        
+        const _query = ((x) => Object({
+            items: itemIncrement,
+            tag: null,
+            reference: null,
+            ...decodeSearch(x)
+        }))(search);
 
-        if (!query || !query.items) return;
+        // Pick up a value and see if article has it.
+        const _eval = (obj, key, data) =>
+            (!!obj[key] && !(data||[]).includes(obj[key]));
 
-        // Filter down to just matching
-        const filtered = !query.tag ? nodes : nodes.filter(({frontmatter: {tags=null}}) =>
-            (tags || []).includes(query.tag)
+        // Use to filter based on query string
+        const _filter = ({
+            frontmatter: {
+                tags,
+                citations,
+            }
+        }) => !(
+            _eval(_query, "tag", tags) || 
+            _eval(_query, "reference", (citations||[]).map(referenceHash))
         );
+        
+        // Filter down to just matching, and then limit number of items
+        setVisible(nodes.filter(_filter).slice(0, _query.items));
 
-        // Limit number of visible
-        setVisible(filtered.slice(0, Math.min(query.items, filtered.length)));
-
-    }, [ query ]);
-
-
-    /**
-     * Set tag as current, and increase number visible
-     */
-    const onClick = () => { 
-
-        const tagString = query.tag ? `tag=${query.tag}&` :  ``;
-        const itemsString = `items=${Math.min(nodes.length, Number.parseInt(query.items) + itemIncrement)}`;
-
-        navigate(`/?${tagString}${itemsString}`); 
-    };
-
-    /**
-     * Set tag from selection, and keep current number
-     * @param {} event 
-     */
-    const onChange = event => { 
-
-        const tagString = `tag=${event.target.value}`;
-        const itemsString = `&items=${query.items}` ;
-
-        navigate(`/?${tagString}${itemsString}`);  
-    };
+    }, [ search ]);
 
     return (
         <Layout title={title}>
@@ -177,7 +227,7 @@ export default ({
                     type: "select",
                     id: "filter by tag",
                     options: group.map(({ fieldValue }) => fieldValue),
-                    onChange
+                    onChange: onSelectTag(search)
                 }]}
             />
             {visible.map(({
@@ -189,7 +239,7 @@ export default ({
                 }, fields: {
                     slug
                 }
-            }) =>
+            }, ii) =>
                 <StyledArticle>
                     <header>
                         <h2>
@@ -200,10 +250,10 @@ export default ({
                     <section>
                         <p>{description}</p>
                     </section>
-                    {tags.map((text, ii) => 
-                        <a 
-                            key={`tags-${ii}`} 
-                            onClick={() => {navigate(`/?tag=${text}&items=${query.items}`)}}
+                    {tags.map(text => 
+                        <a
+                            key={`node-${ii}-${text}`} 
+                            onClick={onSelectTag(search, text)}
                         >
                             {text}
                         </a>
@@ -214,7 +264,7 @@ export default ({
                 actions={[{
                     value: "More",
                     type: "button",
-                    onClick
+                    onClick: onAddItems(search)
                 }]}
             />
         </Layout>
@@ -243,6 +293,9 @@ export const pageQuery = graphql`
             tags
             title
             description
+            citations {
+                authors, year, title, journal, volume, pageRange
+            }
           }
       }
       group(field: frontmatter___tags) {

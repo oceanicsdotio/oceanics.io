@@ -2,7 +2,7 @@ import React, {Fragment} from "react";
 import PropTypes from "prop-types";
 import styled from "styled-components";
 import { Link } from "gatsby";
-import { ghost, pink } from "../palette";
+import { ghost, pink, grey } from "../palette";
 
 
 // Single reference, styled for end of document
@@ -21,12 +21,12 @@ const Anchor = styled.a`
 
 // Links are appended to references
 const StyledLink = styled(Link)`
-    text-decoration: none;
-    color: ${pink};
+
+    & img {
+        width: 1rem;
+        margin-left: 0.2rem;
+    }
 `;
-
-
-export const REFERENCES_ROOT = "references";
 
 
 /**
@@ -93,8 +93,8 @@ export const Reference = ({
 
     return <Block key={hash}>
         {text}
-        <StyledLink to={`/${REFERENCES_ROOT}/${_hash}/`}>
-            {"[links]"}
+        <StyledLink to={`/?reference=${_hash}`}>
+            <img src="/favicon.ico"/>
         </StyledLink>
     </Block>
     

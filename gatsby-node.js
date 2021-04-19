@@ -1,12 +1,22 @@
+/**
+ * Path to local build files
+ */
 const path = require(`path`);
-const YAML = require(`yaml`);
+
+/**
+ * Express server for develope and build
+ */
 const express = require(`express`);
-const { createFilePath, createRemoteFileNode } = require(`gatsby-source-filesystem`);
+
+/**
+ * Create GraphQL node from local filesystem
+ */
+const { createFilePath } = require(`gatsby-source-filesystem`);
+
+/**
+ * Helper for building WASM during develop/build
+ */
 const WasmPackPlugin = require(`@wasm-tool/wasm-pack-plugin`);
-
-
-// https://www.gatsbyjs.org/docs/debugging-html-builds/
-// https://loadable-components.com/
 
 
 /**

@@ -106,12 +106,9 @@ export const Layout = ({
         <main>{children}</main>
         <footer>
             <p>
-                <em>{layout.footer.statement}</em>
+                <em>{`${layout.footer.statement} 2018-${new Date().getFullYear()}`}</em>
             </p>
             {footerLinks}
-            <p> 
-                {`⚡ 2018-${new Date().getFullYear()}`}
-            </p>
         </footer>
     </div>
 };
@@ -119,7 +116,7 @@ export const Layout = ({
 export const StyledLayout = styled(Layout)`
     margin-left: auto;
     margin-right: auto;
-    max-width: ${({expand})=>expand?"100%":rhythm(32)};
+    max-width: ${({expand})=>expand?"100%":"65ch"};
     padding: ${rhythm(1.5)} ${rhythm(0.75)};
 
     & > main {
