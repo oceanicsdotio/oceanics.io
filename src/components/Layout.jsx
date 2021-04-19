@@ -110,7 +110,7 @@ export const Layout = ({
             </p>
             {footerLinks}
             <p> 
-                {`Maine ⚡ 2018-${new Date().getFullYear()}`}
+                {`⚡ 2018-${new Date().getFullYear()}`}
             </p>
         </footer>
     </div>

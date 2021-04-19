@@ -84,8 +84,8 @@ const LayerCard = ({
 }) => {
     return <div 
         className={"card"} 
-    >  
-        <div><h2>{id.replaceAll("-", " ")}</h2>
+    >
+        <div><h2>{id.replace(/-/g, ' ')}</h2>
         {` by ${attribution}`}
         </div>
         <p>{`${type} with <${component}/> popup`}</p>
