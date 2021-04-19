@@ -6,6 +6,7 @@ import { pink, ghost } from "../palette";
 import { rhythm } from "../typography";
 import layout from "../data/layout.yml";
 
+import YAML from "yaml";
 
 /**
  * The NavBar is a <nav> element that displays links or buttons
@@ -55,6 +56,7 @@ export const Title = styled(Link)`
     padding: 0;
     margin-right: 1rem;
 `;
+
     
 
 export const Layout = ({ 
@@ -79,6 +81,15 @@ export const Layout = ({
             </SiteLink>
         )
     });
+
+
+    const policy = useMemo(()=>{
+        return YAML.parse(layout.footer.policy)
+            .split("\n")
+            .filter(paragraph => paragraph)
+    });
+
+    
 
     /**
      * Memoize footer links as well. 
@@ -105,10 +116,9 @@ export const Layout = ({
 
         <main>{children}</main>
         <footer>
-            <p>
-                <em>{`${layout.footer.statement} 2018-${new Date().getFullYear()}`}</em>
-            </p>
-            {footerLinks}
+            
+            <p>{`${layout.footer.statement} 2018-${new Date().getFullYear()}`}</p>
+            {policy.map((text, ii) => <p key={`text-${ii}`}>{text}</p>)}
         </footer>
     </div>
 };
@@ -136,6 +146,10 @@ export const StyledLayout = styled(Layout)`
             color: ${ghost};
             display: block;
             font-size: large;
+        }
+
+        & p {
+            font-size: smaller;
         }
     }
 `;

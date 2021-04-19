@@ -1,12 +1,17 @@
 /**
  * React and friends.
  */
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 
 /**
  * For building and linking data
  */
 import { graphql, navigate, Link } from "gatsby";
+
+/**
+ * Needed for parsing source files
+ */
+import YAML from "yaml";
 
 /**
  * Stylish stuff
@@ -34,6 +39,11 @@ import SEO from "../components/SEO";
 import Form from "../components/Form";
 
 /**
+ * Page data
+ */
+import about from "../data/about.yml";
+
+/**
  * Some of the canonical fields do not contain uniquely identifying information. 
  * Technically, the same content might appear in two places. 
  */
@@ -43,6 +53,13 @@ import Form from "../components/Form";
     const hashCode = s => s.split('').reduce((a,b) => (((a << 5) - a) + b.charCodeAt(0))|0, 0);
     return hashCode(stringRepr);
 };
+
+/**
+ * Larger paragraphs
+ */
+const StyledParagraph = styled.p`
+    font-size: larger;
+`;
 
 /**
  * Article element, rendered with child metadata 
@@ -56,7 +73,7 @@ const StyledArticle = styled.article`
 
     & small {
         display: block;
-        color: ${grey};
+        color: ${ghost};
     }
 
     & a {
@@ -125,8 +142,6 @@ const encodeSearch = x =>
         .map(([key, value]) => `${key}=${value}`)
         .join("&");
 
-
-
 /**
  * Set tag as current, and increase number visible
  */
@@ -155,7 +170,17 @@ const onSelectTag = (search, tag=null) => event => {
         ...decodeSearch(search), 
         tag: tag ? tag : event.target.value
     }));
-}
+};
+
+
+const CampaignContainer = styled.div`
+    margin-bottom: 2rem;
+
+    & > * {
+        font-size: larger;
+    }
+`;
+
 
 
 /**
@@ -177,6 +202,24 @@ export default ({
         search
     }
 }) => {
+
+    /**
+     * Use a memo so that if something decides to refresh the parent,
+     * we won't pick the other narrative and be confusing. 
+     */
+     const version = useMemo(()=>{
+
+
+        const random = Math.floor(Math.random() * about.length);
+        const { text, ...props } = about[random];
+
+        return {
+            ...props,
+            content: YAML.parse(text)
+                .split("\n")
+                .filter(paragraph => paragraph)
+        }
+    });    
 
     /**
      * The array of visible articles. The initial value is the subset from 0 to
@@ -222,6 +265,21 @@ export default ({
         <Layout title={title}>
             <SEO title={"Blue computing"} />
             <Image src={bannerImage} alt={"Agents@Rest"} />
+            <CampaignContainer>
+                
+                {version.content.map((text, ii)=>
+                    <StyledParagraph key={`paragraph-${ii}`}>
+                    {text}
+                    </StyledParagraph>)}
+                <Form
+                    actions={[{
+                        value: version.callToAction,
+                        type: "button",
+                        onClick: () => {navigate(`/app/?campaign=${version.name}`)}
+                    }]}
+                />
+            </CampaignContainer>
+            
             <Form
                 fields={[{
                     type: "select",
@@ -248,7 +306,7 @@ export default ({
                         <small>{date}</small>
                     </header>
                     <section>
-                        <p>{description}</p>
+                        <StyledParagraph>{description}</StyledParagraph>
                     </section>
                     {tags.map(text => 
                         <a
@@ -265,6 +323,10 @@ export default ({
                     value: "More",
                     type: "button",
                     onClick: onAddItems(search)
+                },{
+                    value: "References",
+                    type: "button",
+                    onClick: ()=>{navigate(`/references/`)}
                 }]}
             />
         </Layout>

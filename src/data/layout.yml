@@ -1,21 +1,15 @@
 title: "Oceanics.io"
 
-site:
-  - to: "/app/"
-    label: "Bathysphere"
+site: []
 
 footer:
 
   statement: |
     Accountable prosperity for autonomous seas ⚡
 
-  links:
-    
-    - to: "/about"
-      label: "About"
+  links: []
+   
+  policy: |
+    We value contributions regardless of technical training, domain knowledge, or ability. We invite questions, listen more than we speak, and embody a “yes/and” over a “no/but” mentality.
 
-    - to: "/policy"
-      label: "Policy"
-
-    - to: "/references"
-      label: "References"
+    When you arrive we track your user agent, actions, and location. These data are not transmitted. On our end, we manage risk with backups, monitoring, and encryption.
