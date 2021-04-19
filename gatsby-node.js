@@ -161,21 +161,21 @@ exports.createPages = async ({
             },
         });
 
-        (citations || []).forEach(citation => {
-            const hash = referenceHash(citation);
-            const route = `/references/${hash}/`;
-            if (route in pagesQueue) {
-                pagesQueue[route].context.backLinks[slug] = title
-            } else {
-                pagesQueue[route] = {
-                    path: route,
-                    component: path.resolve(`src/templates/references.js`),
-                    context: {
-                        backLinks: {[slug]: title}
-                    }
-                }
-            }
-        });
+        // (citations || []).forEach(citation => {
+        //     const hash = referenceHash(citation);
+        //     const route = `/references/${hash}/`;
+        //     if (route in pagesQueue) {
+        //         pagesQueue[route].context.backLinks[slug] = title
+        //     } else {
+        //         pagesQueue[route] = {
+        //             path: route,
+        //             component: path.resolve(`src/templates/references.js`),
+        //             context: {
+        //                 backLinks: {[slug]: title}
+        //             }
+        //         }
+        //     }
+        // });
     });
 
     Object.values(pagesQueue).map(page => createPage(page));
