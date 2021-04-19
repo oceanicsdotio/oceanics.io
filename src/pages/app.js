@@ -11,7 +11,7 @@ import styled from "styled-components";
 /**
  * Predefined colors.
  */
-import { ghost, orange, charcoal, pink } from "../palette";
+import { ghost, orange, charcoal, pink, grey } from "../palette";
 
 /**
  * Fetch site data.
@@ -23,15 +23,82 @@ import { useStaticQuery, graphql, navigate } from "gatsby";
  */
 import SEO from "../components/SEO";  
 
-/**
- * Form for login and in app navigation
- */
-import Form from "../components/Form";
 
 /**
- * Use bathysphere client
+ * Span like div for indicating the zoom level at which the layer appears.
+ * 
+ * @param {*} param0 
+ * @returns 
  */
-import useBathysphereApi from "../hooks/useBathysphereApi";
+const ZoomIndicator = ({className, zoom}) => {
+    return <div className={className} zoom={zoom}>
+        {`zoom: ${zoom[0]}-${zoom[1]}`}
+    </div>
+};
+
+/**
+ * Adjust margins and width to indicate the zoom level of the
+ */
+const StyledZoomIndicator = styled(ZoomIndicator)`
+   
+    height: auto;
+    border: 1px solid;
+    margin-bottom: 15px;
+    margin-left: ${({zoom})=>(zoom[0]-1)/22*100}%;
+    margin-right: ${({zoom})=>(22-zoom[1])/22*100}%;
+    color: ${({ zoom, zoomLevel}) => (zoomLevel === null || (zoomLevel >= zoom[0]) && (zoomLevel <= zoom[1])) ? pink : grey};
+`;
+
+/**
+ * Emoji button, cuz it unicode baby. 
+ */
+const Emoji = styled.a`
+    display: inline-block;
+    text-decoration: dashed;
+    margin: 5px;
+    padding: 2px;
+    border-radius:50%;
+    background-color: ${grey};
+    cursor: pointer;
+    border: 1px dashed ${ghost};
+`;
+
+
+/**
+ * This is the per item element for layers
+ * @param {*} param0 
+ * @returns 
+ */
+const LayerCard = ({
+    id,
+    url,
+    type,
+    component="default",
+    maxzoom=21,
+    minzoom=1,
+    zoomLevel,
+    behind=null,
+    attribution="unknown",
+    info=null,
+    onClick=null,
+}) => {
+    return <div 
+        className={"card"} 
+    >  
+        <div><h2>{id.replaceAll("-", " ")}</h2>
+        {` by ${attribution}`}
+        </div>
+        <p>{`${type} with <${component}/> popup`}</p>
+        <StyledZoomIndicator zoom={[minzoom, maxzoom]} zoomLevel={zoomLevel}/>
+        <div>
+            <Emoji onClick={onClick||(() => {console.log("No handlers")})}>{"🏝️"}</Emoji>
+            <Emoji href={url}>{"💻"}</Emoji>
+            {info ? <Emoji href={info}>{"❓"}</Emoji> : null}
+        </div>
+
+        
+    </div>
+}
 
 
 /**
@@ -53,7 +120,7 @@ The props are the properties of the collection itself.
 Routes from here correspond to entities and 
 collections in the graph database.
  */
-const Catalog = ({className}) => {
+const Catalog = ({className, zoomLevel, queue, setQueue}) => {
    
     /**
      * List of collections to build selection from.
@@ -95,29 +162,18 @@ const Catalog = ({className}) => {
     // }
         
     
-    const LayerCard = ({
-        id,
-        url,
-        maxzoom=21,
-        minzoom=1,
-        behind=null,
-        attribution="unknown",
-        info=null
-    }) => {
-
-        const provider = `provider: ${attribution}`;
-
-        return <div className={"card"}>
-            <h2>{id}</h2>
-            <p>{`zoom: [${minzoom}, ${maxzoom}]`}</p>
-            <p>{`behind: ${behind}`}</p>
-            <p>{(info ? <a href={info}>{provider}</a> : provider)}</p>
-            <a href={url}>{"download"}</a>
-        </div>
-    }
-
     return <div className={className}>
-        {geojson.map(({id, ...layer}) => <LayerCard {...{...layer, id, key: id}}/>)}
+        <h1>{"Earth Day Playbook"}</h1>
+        <p>{"Every great story starts with a kernel of truth."}</p>
+        <LayerCard {...{id: "home"}}/>
+        {geojson.map(({id, ...layer}) => {
+
+            const onClick = () => {
+                setQueue([...(queue||[]), {id, ...layer}]);
+            };
+
+            return <LayerCard {...{...layer, id, key: id, zoomLevel, onClick}}/>
+        })}
     </div> 
 }; 
 
@@ -136,20 +192,27 @@ const StyledCatalog = styled(Catalog)`
         color: ${pink};
         cursor: pointer;
         font-family: inherit;
+        display: inline;
     }
 
     & .card {
-        border: 1px solid ${ghost};
 
-        
+        margin-top: 10px;
+        border-top: 1px dashed ${ghost};
+
+        & p {
+            color: ${grey};
+            margin: 0;
+            font-size: larger;
+        }
     }
 
     & h2 {
-        display: block;
+        text-transform: capitalize;
+        display: inline;
         font-size: larger;
         font-family: inherit;
         width: fit-content;
-        margin: auto;
         padding: 0;
     }
 `;
@@ -558,6 +621,15 @@ const AppPage = ({
         if (map) map.on('mousemove', ({lngLat}) => {setCursor(lngLat)});
     }, [ map ]);
 
+    const [zoomLevel, setZoomLevel] = useState(null);
+
+    /**
+     * Add a mouse move handler to the map
+     */
+     useEffect(() => {
+        if (map) map.on('zoom', () => {setZoomLevel(map.getZoom())});
+    }, [ map ]);
+
     /**
      * Data sets to queue and build layers from.
      */
@@ -575,9 +647,9 @@ const AppPage = ({
     * Don't waste the cycles on calculating polygon centers. Just use the click
     * location. 
     */
-    useEffect(()=>{
-        if (map) setQueue(geojson);
-    }, [ map ]);
+    // useEffect(()=>{
+    //     if (map) setQueue(geojson);
+    // }, [ map ]);
 
     /**
      * Information about the Rust-WASM runtime instance running inside
@@ -942,7 +1014,7 @@ const AppPage = ({
             row={0} 
             column={2}
         >
-            <StyledCatalog storage={{}} graph={{}}/> 
+            <StyledCatalog zoomLevel={zoomLevel} queue={queue} setQueue={setQueue}/> 
         </Pane>
     </App> 
 };
