@@ -163,8 +163,9 @@ const Catalog = ({className, zoomLevel, queue, setQueue}) => {
         
     
     return <div className={className}>
-        <h1>{"Earth Day Playbook"}</h1>
-        <p>{"Every great story starts with a kernel of truth."}</p>
+        <h1>{"Squalltalk"}</h1>
+        <p>{"Every great story starts with a kernel of truth. We're starting with two: there is but one Ocean, and every device a supercomputer."}</p>
+        <p>{"Have a happy doomsday, humans."}</p>
         <LayerCard {...{id: "home"}}/>
         {geojson.map(({id, ...layer}) => {
 
