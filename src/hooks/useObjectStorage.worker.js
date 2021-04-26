@@ -155,6 +155,18 @@ const searchObservations = (indexName, value = null, bounds = null) => {
     };
 };
 
+
+export const fetchImageBuffer = async (url) => {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    const array = await (new Promise(resolve => {
+        var reader = new FileReader();
+        reader.onloadend = () => { resolve(reader.result); };
+        reader.readAsArrayBuffer(blob);
+    }));
+    return new Float32Array(array);
+}
+
 // export const fetch = async (url) => {
 //     openDatabase({callback: ({db}) => {
 //         let objStore = db.transaction(DB_STORE, "readwrite").objectStore(DB_STORE);

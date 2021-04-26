@@ -112,7 +112,7 @@ console.log("Pushed header data.\n");
     // 
     for (let ii = 0; ii < end - start; ii++) {
         const value = view.source.getFloat32(ii*4, false);
-        view.target.setFloat32(ii*4, value, true);  // swap endianness
+        view.target.setFloat32(ii*4, value, false);  // swap endianness
     }
     
     // Create single precision view of array buffer
