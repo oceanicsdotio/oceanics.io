@@ -78,7 +78,7 @@ The key to making use of (dis)connected data, is to put it in context.
 
 That requires developing a lingua franca for humans and machines. Let’s start by ensuring we’re on the same page.
 
-______________, do you think there such thing as one-dimensional ocean data? 🎙️
+Are there such things as one-dimensional ocean data? 🎙️
 
 A single observation, without a location or timestamp is of very little utility. This observation is probably a view into a time series or a spatial collection.
 
@@ -87,10 +87,6 @@ For an isolated system, like a sensor in a seawater or fuel tank, you can fib an
 You can do the same fiction for any thing that doesn't move. A tide gauge, a box model, a buoy, a weather station.  
 
 But as a system, these don't make sense without space and time. Things move, and if your schema assumes a fixed location, you prevent or complicate a whole line of services people would be happy to pay for.
-
-_______________, how did I say I felt about working with non-spatial data? 🎙️
-
-I’d like to updated my answer.
 
 All data are static, spatiotemporal graphs. 🙄
 
@@ -126,7 +122,7 @@ Sometimes the proxy is derived from two, three, or more primary or derived prope
 
 When it comes down to it, we are doing pixel manipulation on discrete and reduced array representations of higher-order data or models.
 
-____________, what is a model? 🎙️
+What is a model? 🎙️
 
 Ask some modellers and you will get that many answers:
 
@@ -205,9 +201,9 @@ This is as far most people will get. One (1) chance to make an impression. I’m
 
 I mean, Tellus is a mom and provider, keeps livestock, and seems to like lounging in the woods with guys into ~~astrology~~ astronomy. #goddess
 
-![It’s Art! It’s also Tiles.](https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Aion_mosaic_Glyptothek_Munich_W504.jpg/1920px-Aion_mosaic_Glyptothek_Munich_W504.jpg)
+<img src={"https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Aion_mosaic_Glyptothek_Munich_W504.jpg/1920px-Aion_mosaic_Glyptothek_Munich_W504.jpg"} width={"100%"}></img>
 
-[https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Aion_mosaic_Glyptothek_Munich_W504.jpg/1920px-Aion_mosaic_Glyptothek_Munich_W504.jpg](https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Aion_mosaic_Glyptothek_Munich_W504.jpg/1920px-Aion_mosaic_Glyptothek_Munich_W504.jpg)
+It’s Art! It’s also Tiles!
 
 I arrive on the [mission page](https://grace.jpl.nasa.gov/mission/grace/). Looks slick. 😍
 
@@ -245,15 +241,14 @@ So let’s stop!
 
 I picked N=5 because that is when I got bored, and retroactively applied a restriction. I can make myself be not bored, but let’s be honest about average user patience.
 
-It’s also one less than the number of you, and equal to the members of Spice Girls.
-
 Why the Spice Girls (1994)?
 
 Allow me to deflect by asking the question posed by content creator Brianne Fleming.
 
 What can the Spice Girls “teach us about brand purpose”? 🎙️
 
-![https://briannefleming.com/wp-content/uploads/2021/01/Spice-Girls-1000x675.jpg](https://briannefleming.com/wp-content/uploads/2021/01/Spice-Girls-1000x675.jpg)
+<img src={"https://briannefleming.com/wp-content/uploads/2021/01/Spice-Girls-1000x675.jpg"} width={"100%"}></img>
+
 
 ## We’re getting to a point, I think (9:07)
 
@@ -330,9 +325,9 @@ These examples are more complex than the directed acyclic graph I choose to show
 
 Icarus is not me, only a metaphor. Dude just wanted out of prison. Probably would’ve helped to have altitude κυβερνάω and a 3-axis Honeywell magnetometer.
 
-![The Louvre!](https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Fall_of_Icarus_Blondel_decoration_Louvre_INV2624.jpg/1280px-Fall_of_Icarus_Blondel_decoration_Louvre_INV2624.jpg)
+From the Louvre!
 
-[https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Fall_of_Icarus_Blondel_decoration_Louvre_INV2624.jpg/1280px-Fall_of_Icarus_Blondel_decoration_Louvre_INV2624.jpg](https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Fall_of_Icarus_Blondel_decoration_Louvre_INV2624.jpg/1280px-Fall_of_Icarus_Blondel_decoration_Louvre_INV2624.jpg)
+<img src={"https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Fall_of_Icarus_Blondel_decoration_Louvre_INV2624.jpg/1280px-Fall_of_Icarus_Blondel_decoration_Louvre_INV2624.jpg"} width={"100%"}></img>
 
 That’s OK, i.f.f. you can internalize all of the complexity, without making it inscrutable. But you ought not way-find for great ships unless you can propagate errors through the whole system.
 
@@ -350,13 +345,13 @@ This is a well loved asset and there is a ton of prior art. One-off “3-D” vi
 
 There are currently 2 web visualization and “analysis tools”. Both built for GRACE though they could be applied to any similar assets.
 
-First, an [absolute classic OpenGL](https://grace.jpl.nasa.gov/resources/6/grace-global-gravity-animation/) fixed rendering pipeline artifact with Phong shading circa 2003.
+First, an absolute classic OpenGL fixed rendering pipeline artifact with Phong shading circa 2003:
 
-The interesting part is that through with the magic of Dropbox, SEO metadata, and hash-based message authentication codes, it is visible while securely embedded in this document.
+<img src={"https://grace.jpl.nasa.gov/system/resources/detail_files/6_PIA12146_%281%29.gif"} width={"100%"}></img>
 
-And it is vivid.
+The interesting part is that through with the magic of Dropbox, SEO metadata, and hash-based message authentication codes, it can be securely embedded in documents. And it is vivid.
 
-This [video](https://earth.gsfc.nasa.gov/geo/data/nasagsfc-mascon-visualizations) from the Goddard studio has aged less well:
+This [video](https://earth.gsfc.nasa.gov/geo/data/nasagsfc-mascon-visualizations) from the Goddard studio has aged less well.
 
 In terms of interactive media, there is a [JPL hosted one](https://grace.jpl.nasa.gov/data-analysis-tool/) using `react`, Web Workers, and presumably `webgl` to render.
 
@@ -380,7 +375,7 @@ Their efforts are actually part of the total cost of ownership, though not accou
 
 It is apparent to me that internal orgs own parts of the GRACE process, and the goals of PODAAC are distinct from those of say UT, JPL, or NASA.
 
-_____________, what would be a way that the Tellus legacy could become about spanning boundaries? 🎙️
+What would be a way that the Tellus legacy could become about spanning boundaries? 🎙️
 
 Delivering visualization that is accessible and maintainable and beautiful, is a long road.
 
