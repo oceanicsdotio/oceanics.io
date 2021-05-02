@@ -10,13 +10,6 @@ mod data_stream;  // data stream structs and visualization methods
 mod triangular_mesh;  // 3D unstructured triangular network used for surface and object modelling
 mod rectilinear_grid;  // 3D rectilinear grid methods and structures
 
-// mod shipyard;  // 3D object modelling
-// mod physics;
-// mod wind;
-// mod simulate;
-// mod sediment;
-// mod phytoplankton;
-// mod shellfish;
 
 
 pub use webgl::graphics_system::{create_buffer, create_program, create_texture};

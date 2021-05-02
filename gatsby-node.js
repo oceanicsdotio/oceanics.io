@@ -4,7 +4,7 @@
 const path = require(`path`);
 
 /**
- * Express server for develope and build
+ * Express server for develop and build
  */
 const express = require(`express`);
 
@@ -18,18 +18,6 @@ const { createFilePath } = require(`gatsby-source-filesystem`);
  */
 const WasmPackPlugin = require(`@wasm-tool/wasm-pack-plugin`);
 
-
-/**
- * Some of the canonical fields do not contain uniquely identifying information. 
- * Technically, the same content might appear in two places. 
- */
-const referenceHash = ({authors, title, year, journal}) => {
-   
-    const stringRepr = `${authors.join("").toLowerCase()} ${year} ${title.toLowerCase()}`.replace(/\s/g, "");
-    const hashCode = s => s.split('').reduce((a,b) => (((a << 5) - a) + b.charCodeAt(0))|0, 0);
-    return hashCode(stringRepr);
-};
-
 /**
  * There is a known problem with `gatsby develop` not picking up html files in the
  * public directory correctly. Build should work fine, and therefore NOT need a netlify
@@ -42,13 +30,12 @@ exports.onCreateDevServer = ({ app }) => {
     app.use(express.static("static"))
 };
 
-
 /**
  * Dynamically create webpack behaviors based on what stage
  * being executed. 
  * 
  * During HTML stage, need to avoid loading client-side code. This includes
- * Mapbox, any WASM, and web workers. 
+ * MapBox, any WASM, and web workers. 
  * 
  * When develop/build is called, we re-compile all the rust code to create
  * the JS module bindings into Rust-WASM. This prevents bad code from being
@@ -160,22 +147,6 @@ exports.createPages = async ({
                 next: index === 0 ? null : nodes[index - 1].node
             },
         });
-
-        // (citations || []).forEach(citation => {
-        //     const hash = referenceHash(citation);
-        //     const route = `/references/${hash}/`;
-        //     if (route in pagesQueue) {
-        //         pagesQueue[route].context.backLinks[slug] = title
-        //     } else {
-        //         pagesQueue[route] = {
-        //             path: route,
-        //             component: path.resolve(`src/templates/references.js`),
-        //             context: {
-        //                 backLinks: {[slug]: title}
-        //             }
-        //         }
-        //     }
-        // });
     });
 
     Object.values(pagesQueue).map(page => createPage(page));
