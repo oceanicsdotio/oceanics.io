@@ -276,6 +276,10 @@ export default ({
                         value: version.callToAction,
                         type: "button",
                         onClick: () => {navigate(`/app/?campaign=${version.name}`)}
+                    },{
+                        value: `Learn about our API`,
+                        type: "button",
+                        onClick: () => {navigate(`/bathysphere/`)}
                     }]}
                 />
             </CampaignContainer>

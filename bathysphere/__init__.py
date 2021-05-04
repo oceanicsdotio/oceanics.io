@@ -56,23 +56,29 @@ for variableName in [
 if envErrors:
     raise EnvironmentError(f"{envErrors} not set")
 
-
-def reverseDictionary(a: dict, b: dict) -> dict:
+def reduceYamlEntityFile(file: str) -> dict:
     """
     Flip the nestedness of the dict from a list to have top level keys for each `kind`
     """
-    if not isinstance(a, dict):
-        raise ValueError(
-            "Expected dictionary values. Type is instead {}.".format(type(a))
-        )
+    def _reducer(a: dict, b: dict) -> dict:
+       
+        if not isinstance(a, dict):
+            raise ValueError(
+                f"Expected dictionary values. Type is instead {type(a)}."
+            )
 
-    if b is not None:
-        key = b.pop("kind")
-        if key not in a.keys():
-            a[key] = [b]
-        else:
-            a[key].append(b)
-    return a
+        if b is not None:
+            key = b.pop("kind")
+            if key not in a.keys():
+                a[key] = [b]
+            else:
+                a[key].append(b)
+        return a
+
+    with open(Path(file), "r") as fid:
+        _items = fid.read().split("---")
+
+    return reduce(_reducer, map(load_yml, _items, repeat(Loader, len(_items))), {})
 
 @attr.s(repr=False)
 class Message:
@@ -419,11 +425,7 @@ CORS(app.app)
 
 
 try:   
-    with open(Path(f"config/bathysphere.yml"), "r") as fid:
-        _items = fid.read().split("---")
-    items = list(map(load_yml, _items, repeat(Loader, len(_items))))
-
-    appConfig = reduce(reverseDictionary, items, {})
+    appConfig = reduceYamlEntityFile(f"config/bathysphere.yml")
     services = filter(
         lambda x: "bathysphere-api" == x["spec"]["name"], appConfig["Locations"]
     )

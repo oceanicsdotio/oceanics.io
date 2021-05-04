@@ -4,7 +4,7 @@ The models module of the graph API contains extensions to the common
 models, for storing and accessing data in a Neo4j database.
 """
 from inspect import isclass, signature
-from typing import Type, Callable, Any
+from typing import Type, Callable, Any, Iterable
 from types import MethodType
 from datetime import datetime
 from pickle import load as unpickle
@@ -13,6 +13,10 @@ from json import dumps
 from time import time
 from functools import reduce
 from os import getenv
+from collections import deque
+from random import shuffle
+from itertools import chain
+
 
 from neo4j import Driver, Record, GraphDatabase
 from neo4j.spatial import WGS84Point  # pylint: disable=no-name-in-module,import-error
@@ -21,7 +25,8 @@ import attr
 from bathysphere import (
     processKeyValueInbound,
     executeQuery,
-    polymorphic
+    polymorphic,
+    reduceYamlEntityFile
 )
 
 RESTRICTED = {"User", "Providers"}
@@ -516,6 +521,68 @@ class Entity:
         return [*map(format, executeQuery(db, method))]
 
 
+    @classmethod
+    def fromSpec(cls, spec: dict, metadata: dict) -> Iterable:
+        """
+        Create an Agent from a spec. 
+        """
+        entity = cls(name=spec["name"])
+
+        def pairing(args: (str, dict)) -> (Type, str, Type):
+            key, value = args
+            return (entity, value["label"], (eval(key))(name=value["name"]))
+
+        def extractChildren(key: str) -> (str, dict):
+            return key.split("@")[0], metadata[key]
+        
+        return map(pairing, chain.from_iterable(map(extractChildren, metadata.keys())))
+
+                        
+    @classmethod
+    def fromSpecFile(
+        cls, 
+        file: str, 
+        db: Driver,
+        stable: int = 10,
+
+    ):
+       
+        memo = {
+            "providers": dict(),
+            "agents": dict()
+        }
+
+        last = len(agents)
+        fails = 0
+
+        queue = map(cls.fromSpec, reduceYamlEntityFile(file)[cls.__name__])
+
+        while fails < stable:
+            
+            jobs = cls.fromSpec(**queue.popleft())
+                
+
+            linked_agents = each["metadata"].get("Agents@iot.navigation", [])
+            if all(map(lambda x: x["name"][0] in memo["agents"].keys(), linked_agents)):
+
+                for other in linked_agents:
+                    [name] = other["name"] 
+                    link = Link(label=other.get("label", None)).join(db, nodes=(memo["agents"][agent_name], memo["agents"][name]))
+            
+            else:
+                queue.append(each)
+
+            print(f"{len(queue)} remaining, and {fails} fails")
+            
+
+            if last == len(queue):
+                shuffle(queue)
+                fails += 1
+            else:
+                fails = 0
+            
+            last = len(queue)
+
 @attr.s(repr=False)
 class Actuators(Entity):
     """
@@ -527,6 +594,14 @@ class Actuators(Entity):
     metadata: Any = attr.ib(default=None)
 
     networkAddress: (str, int) = attr.ib(default=(None, None))
+
+
+@attr.s(repr=False)
+class Agents(Entity):
+    """
+    Agents are a mystery.
+    """
+    name: str = attr.ib(default=None)
 
 
 @attr.s(repr=False)

@@ -68,7 +68,7 @@ Don't use these, because, unless...
 | AI                           |                      | funding requests      |
 | nexus                        |                      |                       |
 | green                        |                      |                       |
-| basic                        | demeaning            | chemistry, bitches    |
+| basic                        | demeaning            | chemistry             |
 
 ## Visual media
 
