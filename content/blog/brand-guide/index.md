@@ -2,15 +2,15 @@
 title: Brand guide
 date: "2021-03-29T24:00:00.000Z"
 description: |
-    This document sets high-level intentions for brand development and differentiation. Craft is a differentiator.
-tags: ["brand", "design", "oceanics.io", "internal", "shade"]
+    This document sets high-level intentions for brand development and differentiation.
+tags: ["brand", "design", "oceanics.io", "internal"]
 ---
 
 ## Purpose
 
-Our public presence is primarily through digital media, so attention to presentation and consistency in these channels is important to us. To that end, this covers the types of media and brand marks we invest in. I hope it will reduce bike-shedding and agile revision spirals. 
+Our public presence is primarily through digital media, so attention to presentation and consistency in these channels is important to us. To that end, this covers the types of media and brand marks we invest in. I hope it will reduce bike-shedding and agile revision spirals.
 
-Explicit design policies are provided. These exist to reduce friction, but may be revised when appropriate.
+Explicit design policies are provided. These exist to reduce friction, revise when appropriate.
 
 ## Marks
 
@@ -57,7 +57,7 @@ Don't use these, because, unless...
 | force multiplier             | no call-to-arms      |                       |
 | blue                         |                      | blue economy          |
 | lighthouse                   | saturated in Maine   |                       |
-| pinetree                     | saturated in Maine   |                       |
+| pine tree                    | saturated in Maine   |                       |
 | sustainable                  |                      | literal               |
 | with a purpose               | Sofar                |                       |
 | power                        | no-call-to-arms      |                       |
