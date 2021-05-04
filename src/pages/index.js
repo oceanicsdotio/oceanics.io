@@ -47,7 +47,7 @@ import about from "../data/about.yml";
  * Some of the canonical fields do not contain uniquely identifying information. 
  * Technically, the same content might appear in two places. 
  */
- const referenceHash = ({authors, title, year, journal}) => {
+ const referenceHash = ({authors, title, year}) => {
    
     const stringRepr = `${authors.join("").toLowerCase()} ${year} ${title.toLowerCase()}`.replace(/\s/g, "");
     const hashCode = s => s.split('').reduce((a,b) => (((a << 5) - a) + b.charCodeAt(0))|0, 0);
@@ -277,7 +277,7 @@ export default ({
                         type: "button",
                         onClick: () => {navigate(`/app/?campaign=${version.name}`)}
                     },{
-                        value: `Learn about our API`,
+                        value: `Learn about our API.`,
                         type: "button",
                         onClick: () => {navigate(`/bathysphere/`)}
                     }]}
