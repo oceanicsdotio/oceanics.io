@@ -86,23 +86,29 @@ for variableName in [
 if envErrors:
     raise EnvironmentError(f&#34;{envErrors} not set&#34;)
 
-
-def reverseDictionary(a: dict, b: dict) -&gt; dict:
+def reduceYamlEntityFile(file: str) -&gt; dict:
     &#34;&#34;&#34;
     Flip the nestedness of the dict from a list to have top level keys for each `kind`
     &#34;&#34;&#34;
-    if not isinstance(a, dict):
-        raise ValueError(
-            &#34;Expected dictionary values. Type is instead {}.&#34;.format(type(a))
-        )
+    def _reducer(a: dict, b: dict) -&gt; dict:
+       
+        if not isinstance(a, dict):
+            raise ValueError(
+                f&#34;Expected dictionary values. Type is instead {type(a)}.&#34;
+            )
 
-    if b is not None:
-        key = b.pop(&#34;kind&#34;)
-        if key not in a.keys():
-            a[key] = [b]
-        else:
-            a[key].append(b)
-    return a
+        if b is not None:
+            key = b.pop(&#34;kind&#34;)
+            if key not in a.keys():
+                a[key] = [b]
+            else:
+                a[key].append(b)
+        return a
+
+    with open(Path(file), &#34;r&#34;) as fid:
+        _items = fid.read().split(&#34;---&#34;)
+
+    return reduce(_reducer, map(load_yml, _items, repeat(Loader, len(_items))), {})
 
 @attr.s(repr=False)
 class Message:
@@ -449,11 +455,7 @@ CORS(app.app)
 
 
 try:   
-    with open(Path(f&#34;config/bathysphere.yml&#34;), &#34;r&#34;) as fid:
-        _items = fid.read().split(&#34;---&#34;)
-    items = list(map(load_yml, _items, repeat(Loader, len(_items))))
-
-    appConfig = reduce(reverseDictionary, items, {})
+    appConfig = reduceYamlEntityFile(f&#34;config/bathysphere.yml&#34;)
     services = filter(
         lambda x: &#34;bathysphere-api&#34; == x[&#34;spec&#34;][&#34;name&#34;], appConfig[&#34;Locations&#34;]
     )
@@ -652,8 +654,8 @@ for making the graph query.</p></div>
     return None</code></pre>
 </details>
 </dd>
-<dt id="bathysphere.reverseDictionary"><code class="name flex">
-<span>def <span class="ident">reverseDictionary</span></span>(<span>a: dict, b: dict) ‑> dict</span>
+<dt id="bathysphere.reduceYamlEntityFile"><code class="name flex">
+<span>def <span class="ident">reduceYamlEntityFile</span></span>(<span>file: str) ‑> dict</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Flip the nestedness of the dict from a list to have top level keys for each <code>kind</code></p></div>
@@ -661,22 +663,29 @@ for making the graph query.</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def reverseDictionary(a: dict, b: dict) -&gt; dict:
+<pre><code class="python">def reduceYamlEntityFile(file: str) -&gt; dict:
     &#34;&#34;&#34;
     Flip the nestedness of the dict from a list to have top level keys for each `kind`
     &#34;&#34;&#34;
-    if not isinstance(a, dict):
-        raise ValueError(
-            &#34;Expected dictionary values. Type is instead {}.&#34;.format(type(a))
-        )
+    def _reducer(a: dict, b: dict) -&gt; dict:
+       
+        if not isinstance(a, dict):
+            raise ValueError(
+                f&#34;Expected dictionary values. Type is instead {type(a)}.&#34;
+            )
 
-    if b is not None:
-        key = b.pop(&#34;kind&#34;)
-        if key not in a.keys():
-            a[key] = [b]
-        else:
-            a[key].append(b)
-    return a</code></pre>
+        if b is not None:
+            key = b.pop(&#34;kind&#34;)
+            if key not in a.keys():
+                a[key] = [b]
+            else:
+                a[key].append(b)
+        return a
+
+    with open(Path(file), &#34;r&#34;) as fid:
+        _items = fid.read().split(&#34;---&#34;)
+
+    return reduce(_reducer, map(load_yml, _items, repeat(Loader, len(_items))), {})</code></pre>
 </details>
 </dd>
 </dl>
@@ -1303,7 +1312,7 @@ def process(self):
 <li><code><a title="bathysphere.executeQuery" href="#bathysphere.executeQuery">executeQuery</a></code></li>
 <li><code><a title="bathysphere.job" href="#bathysphere.job">job</a></code></li>
 <li><code><a title="bathysphere.processKeyValueInbound" href="#bathysphere.processKeyValueInbound">processKeyValueInbound</a></code></li>
-<li><code><a title="bathysphere.reverseDictionary" href="#bathysphere.reverseDictionary">reverseDictionary</a></code></li>
+<li><code><a title="bathysphere.reduceYamlEntityFile" href="#bathysphere.reduceYamlEntityFile">reduceYamlEntityFile</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
