@@ -214,4 +214,4 @@ Cargo.lock
 Pipfile.lock
 
 bin/
-
+bathysphere/_native*

@@ -1,6 +1,6 @@
 const { Endpoint, S3 } = require("aws-sdk");
 const { createHash } = require("crypto");
-const { VertexArrayBuffer, IndexInterval } = require("./wasm/node/neritics");
+const { VertexArrayBuffer, IndexInterval } = require("../wasm/node/neritics");
 const NetCDFReader = require('netcdfjs');
 const { readFileSync } = require('fs');
 

@@ -306,4 +306,8 @@ def test_graph_sensothings_ops_create_agents():
         passes += 1
         last = len(queue)
 
+def test_graph_call_rust():
+    from .word_count import search
+
+    assert search("hello world", "hello"), "uhoh"
     
