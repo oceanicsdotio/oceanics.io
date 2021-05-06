@@ -13,6 +13,7 @@ docker-compose = "*"
 colorama = "*"
 pytest-parallel = "*"
 vulture = "*"
+maturin = "*"
 
 [requires]
 python_version = "3.7"
@@ -57,8 +58,4 @@ six = "==1.15.0"
 zipp = "==3.4.0"
 minio = "==7.0.2"
 neo4j = "==4.2.1"
-setuptools-rust = "*"
 
-[packages.e1839a8]
-path = "."
-editable = true

@@ -16,6 +16,4 @@ setup(
         bathysphere=cli:cli
     """,
     zip_safe=False,
-    platforms="any",
-    rust_extensions=[RustExtension("bathysphere.word_count", "bathysphere/Cargo.toml", debug=False)],
 )
