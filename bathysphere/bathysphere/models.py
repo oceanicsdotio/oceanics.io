@@ -790,29 +790,6 @@ class Things(Entity):
     properties: dict = attr.ib(default=None)
 
 
-    @staticmethod
-    def catalog(year: int, month: int = None, day: int = None):
-        """
-        Special catalog method for displaying data conforming to STAC spec,
-        not currently in use
-        """
-        try:
-            fid = open("data/remoteCache-{}".format(year), "rb")
-            data = list(unpickle(fid))
-        except FileNotFoundError:
-            return {"message": "No data for year"}, 404
-
-        response = dict()
-        for date in data:
-            if (not month or date["date"].month == month) and (
-                not day or date["date"].day == day
-            ):
-                date["files"] = [file.serialize() for file in date["files"]]
-                response[date["name"]] = date
-
-        return response, 200
-
-
 @attr.s(repr=False)
 class User(Entity):
     """

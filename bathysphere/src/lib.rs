@@ -18,7 +18,7 @@ impl Point {
 }
 
 #[pymodule]
-fn point(_: Python, m: &PyModule) -> PyResult<()> {
+fn bathysphere(_: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<Point>()?;
 
     Ok(())
