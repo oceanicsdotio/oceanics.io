@@ -1,5 +1,4 @@
 from setuptools import setup, find_packages
-from setuptools_rust import RustExtension
 
 setup(
     name='bathysphere',
