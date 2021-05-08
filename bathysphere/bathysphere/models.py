@@ -128,18 +128,6 @@ class Entity:
         with db.session() as session:
             return session.write_transaction(query)
        
-
-    @classmethod
-    def addIndex(cls, db: Driver, by: str) -> Callable:
-        """
-        Indexes add a unique constraint as well as speeding up queries
-        on the graph database.
-        """
-        query = lambda tx: tx.run(f"CREATE INDEX ON : {cls.__name__}({by})")
-
-        with db.session() as session:
-            return session.write_transaction(query)
-
     @classmethod
     def addLabel(cls, db: Driver, label: str, **kwargs: dict) -> list or None:
         """
@@ -222,18 +210,6 @@ class Entity:
         with db.session() as session:
             return session.write_transaction(query)
 
-
-    @classmethod
-    def dropIndex(cls, db: Driver, by: str) -> None:
-        """
-        Drop an existing index from a set of labeled nodes.
-        """
-        def query(tx):
-            tx.run(f"DROP INDEX ON : {cls.__name__}({by})")
-
-        with db.session() as session:
-            return session.write_transaction(query)
-        
 
     def load(
         self,

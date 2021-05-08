@@ -26,6 +26,45 @@ struct Node {
     pub symbol: String
 }
 
+
+#[pyclass]
+#[derive(Debug, Serialize, Deserialize)]
+struct NodeIndex {
+    #[pyo3(get)]
+    pub label: String,
+    #[pyo3(get)]
+    pub key: String
+}
+
+
+#[pymethods]
+impl NodeIndex {
+    #[new]
+    fn new(
+        label: String,
+        key: String
+    ) -> Self {
+        NodeIndex {
+            label, key
+        }
+    }
+     
+    /**
+     * Indexes add a unique constraint as well as speeding up queries
+     * on the graph database.
+     */
+    pub fn add(&self) -> String {
+        format!("CREATE INDEX ON : {}({})", self.label, self.key)
+    }
+
+    /**
+     * 
+     */
+    pub fn drop(&self) -> String {
+        format!("DROP INDEX ON : {}({})", self.label, self.key)
+    }
+}
+
 /*
 Links are the relationships between two entities.
 
@@ -78,17 +117,6 @@ impl Link {
 
     [ r:Label { <key>:<value>, <key>:<value> } ]
      */
-   
-
-    // labelStr = f":{self.label}" if self.label else ""
-    // combined = {"uuid": self.uuid, "rank": self.rank, **(self.props or {})}
-    // nonNullValues = tuple(
-    //     filter(lambda x: x, map(processKeyValueInbound, combined.items()))
-    // )
-    // pattern = (
-    //     "" if len(nonNullValues) == 0 else f"""{{ {', '.join(nonNullValues)} }}"""
-    // )
-    // return f"[ {self._symbol}{labelStr} {pattern} ]"
     fn cypher_repr(&self) -> String {
 
         let label: String;
@@ -100,10 +128,9 @@ impl Link {
 
         let pattern: String;
 
-
         match &self.pattern {
             None => pattern = String::from(""),
-            Some(value) => pattern = format!(" {{ {:?} }}", pattern)
+            Some(value) => pattern = format!(" {{ {:?} }}", value)
         }
 
         format!("-[ r{}{} ]-", label, pattern)
@@ -145,8 +172,8 @@ impl Link {
 
     pub fn query(
         &self, 
-        left: String,
-        right: String, 
+        left: &Node,
+        right: &Node, 
         result: String
     ) -> Cypher { 
         Cypher {
