@@ -39,6 +39,7 @@ from bathysphere.models import (
     Entity
 )
 
+
 def context(fcn: Callable) -> Callable:
     """
     Decorator to authenticate and inject user into request.
@@ -53,11 +54,13 @@ def context(fcn: Callable) -> Callable:
     # use when handling decode errors
     from itsdangerous.exc import BadSignature
 
+    # used to create driver object
     from neo4j import GraphDatabase
 
+    # pick up runtime-configurable vars from environment
     from os import getenv
 
-    # Enable more specific HTTP error messages. 
+    # Enable more specific HTTP error messages for debugging. 
     DEBUG = True
 
     def _wrapper(**kwargs: dict) -> (dict, int):
@@ -159,9 +162,8 @@ def register(body: dict) -> (dict, int):
     if len(providers) != 1:
         return {"message": "Bad API key."}, 403
 
-    entryPoint = providers.pop()
+    
     username = body.get("username")
-
     if not ("@" in username and "." in username):
         return {"message": "use email"}, 403
     _, domain = username.split("@")
@@ -169,11 +171,12 @@ def register(body: dict) -> (dict, int):
     if User(name=username).load(db=db, result="id"):
         return {"message": "invalid email"}, 403
 
+    entryPoint = providers.pop()
     if entryPoint.name != "Public" and domain != entryPoint.domain:
         message = (
-            "You are attempting to register for a private ingress "
-            "without a matching e-mail address. Contact the "
-            "administrator of the account for access."
+            "You are attempting to register with a private Provider "
+            "without a matching e-mail address. Contact your "
+            "account administrator for access."
         )
         return {"message": message}, 403
 
@@ -187,10 +190,17 @@ def register(body: dict) -> (dict, int):
     ).create(db=db)
 
     try:
-        Link(label="apiRegister", rank=0).join(db=db, nodes=(user, entryPoint))
+        
+        nodes = Link.parse_nodes((user, entryPoint))
+        cypher = Link(label="apiRegister", rank=0).native.join(*nodes)
+
+        with db.session() as session:
+            session.write_transaction(lambda tx: tx.run(cypher.query))
+
     except Exception as ex:
-        user.delete(db=db)  # make sure not to leave an orphaned User
-        raise ex
+        user.delete(db=db)  # make sure to clean up orphaned User
+    finally:
+        return {"message": "linking problem"}, 500
 
     return {"message": f"Registered as a member of {entryPoint.name}."}, 200
 
@@ -304,16 +314,13 @@ def create(
     _entity = eval(entity)(uuid=uuid4().hex, **body).create(db)
   
     # establish provenance
-    Link(
-        label="apiCreate", 
-        props={
-            "user": user.uuid
-        }
-    ).join(
-        db=db, 
-        nodes=(provider, _entity)
-    )
 
+    nodes = Link.parse_nodes((provider, _entity))
+    cypher = Link(label="apiCreate").native.join(*nodes)
+
+    with db.session() as session:
+        session.write_transaction(lambda tx: tx.run(cypher.query))
+    
     # send back the serialized result, for access to uuid
     return {"message": f"Create {entity}", "value": _entity.serialize(db)}, 200
 
@@ -336,19 +343,7 @@ def mutate(
     _ = body.pop("entityClass")  # only used for API discriminator
     cls = eval(entity)
     _ = cls.mutate(db=db, data=body, identity=uuid, props={})
-    createLinks = chain(
-        ({"cls": repr(user), "uuid": user.uuid, "label": "Put"},),
-        (
-            {"cls": Providers.__name__, "uuid": r[0], "label": "Provider"}
-            for r in Link(label="apiRegister").query(
-                db=db, nodes=(user, provider), result="b.uuid"
-            )
-        )
-        if entity != Providers.__name__
-        else (),
-    )
-
-    Link().join(db=db, nodes=(cls(uuid=uuid), createLinks))
+    
     return None, 204
 
 
@@ -374,12 +369,17 @@ def query(
     """
     Get the related entities of a certain type.
     """
-    items = tuple(
-        item.serialize(db=db)
-        for item in Link().query(
-            db=db, nodes=({"cls": root, "id": rootId}, {"cls": entity}), result="b"
-        )
-    )
+
+    nodes = ({"cls": root, "id": rootId}, {"cls": entity})
+
+    cypher = self.native.query(*Link.parse_nodes(nodes), "b")
+    result = []
+
+    with db.session() as session:
+        for item in session.write_transaction(lambda tx: [*tx.run(cypher.query)]):
+            items.append(item.serialize(db=db))
+        
+        
     return {"@iot.count": len(items), "value": items}, 200
 
 
@@ -399,27 +399,34 @@ def join(
     """
     Create relationships between existing nodes.
     """
-    # pylint: disable=no-value-for-parameter
+    nodes = Link.parse_nodes((eval(root)(uuid=rootId), eval(entity)(uuid=uuid)))
 
-    Link(
-        label="apiJoin",
-        props={
-            "cost": 1.0,
-            **body.get("props", dict())
-            }
-    ).join(
-        db=db, 
-        nodes=(eval(root)(uuid=rootId), eval(entity)(uuid=uuid))
-    )
+    cypher = Link(label="apiJoin", cost=1.0).native.join(*nodes)
+
+    with db.session() as session:
+        session.write_transaction(lambda tx: tx.run(cypher.query))
+
     return None, 204
 
 
 @context
 def drop(
-    db: Driver, root: str, rootId: str, entity: str, uuid: str, props: dict
+    db: Driver, root: str, rootId: str, entity: str, uuid: str
 ) -> (dict, int):
     """
     Break connections between linked nodes.
     """
-    Link().drop(db, (eval(root)(uuid=rootId), eval(entity)(uuid=uuid)), props)
+
+    def evalNode(args):
+        className, uniqueId = args
+        return eval(className)(uuid=uniqueId)
+
+    left, right = map(evalNode, ((root, rootId), (entity, uuid)))
+    link = Link()
+
+    cmd = f"MATCH {repr(left)}-{repr(link)}-{repr(right)} DELETE {link._symbol}"
+
+    with db.session() as session:
+        return session.write_transaction(lambda tx: tx.run())
+
     return None, 204

@@ -13,32 +13,24 @@ from connexion import App
 from flask_cors import CORS
 from prance import ResolvingParser, ValidationError
 
-from typing import Callable, Any
+from typing import Callable, Any, Iterable
 
 from neo4j import Driver
-from retry import retry
-from requests import post
 
 from datetime import datetime, date
-from typing import Coroutine, Any
-from asyncio import new_event_loop, set_event_loop, BaseEventLoop
+from typing import Any
 from json import dumps, loads, decoder
 
-import operator
 from yaml import Loader, load as load_yml
 
 from os import getpid, getenv
 from subprocess import Popen
 
-
 from io import TextIOWrapper, BytesIO
 import attr
-from typing import Any, Iterable
 
 
-envErrors = []
-
-for variableName in [
+envErrors = [*filter(lambda x: not x, map(getenv, (
     "STORAGE_ENDPOINT", 
     "BUCKET_NAME", 
     "SPACES_ACCESS_KEY", 
@@ -46,9 +38,7 @@ for variableName in [
     "SERVICE_NAME",
     "NEO4J_HOSTNAME",  
     "NEO4J_ACCESS_KEY"
-]:
-    if not getenv(variableName):
-        envErrors.append(variableName)
+)))]
 
 if envErrors:
     raise EnvironmentError(f"{envErrors} not set")
@@ -378,25 +368,6 @@ def processKeyValueInbound(keyValue: (str, Any), null: bool = False) -> str or N
         return f"{key}: NULL"
 
     return None
-
-
-
-def connect() -> Driver:
-    """
-    Connect to a database manager. Try docker networking, or fallback to local host.
-    likely that the db has been accessed and setup previously.
-    """
-    from neo4j import GraphDatabase
-    from os import getenv
-
-    uri = getenv("NEO4J_HOSTNAME")
-    secret = getenv("NEO4J_ACCESS_KEY")
-
-    try:
-        return GraphDatabase.driver(uri=uri, auth=("neo4j", getenv("NEO4J_ACCESS_KEY")))
-    except Exception:  # pylint: disable=broad-except
-        print(f"Could not connect to Neo4j database @ {uri}")
-        return None
 
 
 __pdoc__ = {

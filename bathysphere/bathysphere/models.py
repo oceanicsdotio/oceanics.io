@@ -24,128 +24,22 @@ from bathysphere import (
     reduceYamlEntityFile
 )
 
+
+from bathysphere.bathysphere import Link as NativeLink, Node
+
 # from bathysphere.bathysphere
 
 RESTRICTED = {"User", "Providers"}
 
-@attr.s(repr=False)
 class Link:
-    """
-    Links are the relationships between two entities.
-
-    They are directional, and have properties like entities. When you
-    have the option, it is encouraged to use rich links, instead of
-    doubly-linked nodes to represent relationships.
-
-    The attributes are for a `Link` are:
-    - `_symbol`, a private str for cypher query templating
-    - `rank`, a reinforcement learning parameter for recommending new data
-    - `uuid`, the unique identifier for the entity
-    - `props`, properties blob
-    - `label`, the optional label for the relationship, we only use one per link
-    """
-    _symbol: str = attr.ib(default="r")
-
-    rank: int = attr.ib(default=None)
-
-    uuid: UUID = attr.ib(default=None)
-
-    props: dict = attr.ib(default=None)
-
-    label: str = attr.ib(default=None)
-
-    def __repr__(self) -> str:
-        """
-        Format the Link for making a Cypher language query
-        to the Neo4j graph database
-
-        [ r:Label { <key>:<value>, <key>:<value> } ]
-        """
-        labelStr = f":{self.label}" if self.label else ""
-        combined = {"uuid": self.uuid, "rank": self.rank, **(self.props or {})}
-        nonNullValues = tuple(
-            filter(lambda x: x, map(processKeyValueInbound, combined.items()))
+    def __init__(self, props=None, **kwargs):
+        self.native = NativeLink(
+            pattern=", ".join((
+                filter(lambda x: x, map(processKeyValueInbound, {**(props|{}), **kwargs}.items()))
+            )), 
+            **kwargs
         )
-        pattern = (
-            "" if len(nonNullValues) == 0 else f"""{{ {', '.join(nonNullValues)} }}"""
-        )
-        return f"[ {self._symbol}{labelStr} {pattern} ]"
-
-    def drop(self, db: Driver, nodes: (Type, Type), props: dict) -> None:
-        """
-        Drop the link between two node patterns
-        """
-        a, b = nodes
-        cmd = f"MATCH {repr(a)}-{repr(self)}-{repr(b)} DELETE {self._symbol}"
-
-        with db.session() as session:
-            return session.write_transaction(lambda tx: tx.run(cmd))
-       
-
-    def join(
-        self,
-        db: Driver,
-        nodes: (Any, Any),
-        props: dict = None,
-        echo: bool = False,
-    ) -> None:
-        """
-        Create a link between two node patterns. This uses the `polymorphic` decorator
-        to work on either classes or instances.
-
-        If calling as an instance of `Link`, no additional properties should be supplied.
-        Otherwise, a `Link` will be constructed from the `props` argument.
-
-        There must be exactly 2 entities to link. In the future this will support N-body
-        symmetric linking.
-        """
-        try:
-            a, b = nodes
-        except ValueError:
-            raise ValueError("Join requires a tuple of exactly 2 entities.")
-        if a._symbol == b._symbol:
-            a._setSymbol("a")
-            b._setSymbol("b")
-
-        cmd = f"MATCH {repr(a)}, {repr(b)} MERGE ({a._symbol})-{repr(self)}->({b._symbol})"
-        if echo:
-            print(cmd)
-       
-        with db.session() as session:
-            return session.write_transaction(lambda tx: tx.run(cmd))
-       
-    def query(
-        self,
-        db: Driver,
-        nodes: (Any, Any),
-        props: dict = None,
-        result: str = "labels(b)",
-    ) -> (Any,):
-        """
-        Match and return the label set for connected entities.
-
-        Increment the pageRank every time the link is traversed.
-        """
-        try:
-            a, b = nodes
-        except ValueError:
-            raise ValueError("Join requires a tuple of exactly 2 entities.")
-        a._setSymbol("a")
-        b._setSymbol("b")
-
-        cmd = (
-            f"MATCH {repr(a)}-{repr(self)}-{repr(b)}"
-            f"SET r.rank = r.rank + 1 "
-            f"RETURN {result}"
-        )
-
-        def runQuery(tx):
-            return [r for r in tx.run(cmd)]
-
-        with db.session() as session:
-            return session.write_transaction(runQuery(tx))
-       
-
+        
 
 @attr.s(repr=False)
 class Entity:
@@ -210,6 +104,16 @@ class Entity:
 
         return dict(filter(_filter, self.__dict__.items()))
 
+    @staticmethod
+    def parse_node(item):
+        node, symbol = item
+        node._setSymbol(symbol)
+        return Node(pattern=repr(node), symbol=symbol)
+
+    @staticmethod
+    def parse_nodes(nodes):
+        return map(Node.parse_node, zip(nodes, ("a", "b")))
+
     @classmethod
     def addConstraint(cls, db: Driver, by: str) -> Callable:
         """
@@ -265,11 +169,10 @@ class Entity:
             return session.read_transaction(query)
 
     def create(
-        self,
+        self: Type,
         db: Driver,
         bind: (Callable) = (),
         uuid: str = uuid4().hex,
-        private: str = "_",
         **kwargs: dict,
     ) -> Any or None:
 
@@ -292,74 +195,10 @@ class Entity:
         with at least one instance of each data type. 
 
         """
-
-        if isclass(self):
-            entity = self(uuid=uuid, **kwargs)  # pylint: disable=not-callable
-        else:
-            entity = self
-
-        def query(tx):
-            return tx.run(f"MERGE {repr(entity)}")
-
+       
         with db.session() as session:
-            return session.write_transaction(query)
-
-    
-        # if isinstance(entity, TaskingCapabilities):  # prevent recursion
-        #     return entity
-
-        # for fcn in bind:  # bind user defined methods
-        #     setattr(entity, fcn.__name__, MethodType(fcn, entity))
-
-        # existingCapabilities: dict = {
-        #     x.name: x.uuid for x in TaskingCapabilities().load(db=db)
-        # }
-
-        # _generator = filter(
-        #     lambda x: isinstance(x[1], Callable), entity.__dict__.items()
-        # )
-
-        # def _is_not_private_or_property(x: str):
-        #     return (
-        #         x[: len(private)] != private and 
-        #         not isinstance(getattr(type(entity), x, None), property)
-        #     )
-
-        # boundMethods = set(y[0] for y in _generator)
-        # classMethods = set(filter(_is_not_private_or_property, dir(entity)))
-        # instanceKeys: set = (boundMethods | classMethods) - set(entity._properties())
-        # existingKeys = set(existingCapabilities.keys())
-
-        # for name in (instanceKeys - existingKeys):
-        #     fcn = eval(f"{type(entity).__name__}.{name}")
-        #     tcUuid = uuid4().hex
-        #     existingCapabilities[name] = tcUuid
-        #     _ = TaskingCapabilities(
-        #         name=name,
-        #         creationTime=time(),
-        #         uuid=tcUuid,
-        #         description=fcn.__doc__,
-        #         taskingParameters=list(
-        #             {
-        #                 "name": b.name,
-        #                 "description": "",
-        #                 "type": "",
-        #                 "allowedTokens": [""],
-        #             }
-        #             for b in signature(fcn).parameters.values()
-        #         )
-        #     ).create(
-        #         db=db
-        #     )
-
-        # linkPattern = Link(label="apiTasking")
-        # for tcUuid in existingCapabilities.values():
-        #     linkPattern.join(
-        #         db=db,
-        #         nodes=(entity, TaskingCapabilities(uuid=tcUuid))
-        #     )
-        
-        return entity
+            session.write_transaction(lambda tx: tx.run(f"MERGE {self}"))
+        return self
 
     @polymorphic
     def delete(self, db: Driver, pattern: dict = None) -> None:
@@ -478,13 +317,17 @@ class Entity:
             f"{root_url}({uuid})" if isinstance(uuid, int) else f"{base_url}/{uuid}"
         )
 
-        linkedEntities = set()
+        _filter = lambda x: len(set(x[0]) & RESTRICTED) == 0
+        _reduce = lambda y, z: y | {z[0][0]}
 
-        if db is not None:
-            _filter = lambda x: len(set(x[0]) & RESTRICTED) == 0
-            _reduce = lambda y, z: y | {z[0][0]}
-            safe = filter(_filter, Link().query(db=db, nodes=(self, Entity())))
-            linkedEntities = reduce(_reduce, safe, linkedEntities)
+        nodes = (self, Entity())
+        
+        cypher = Link().native.query(*Link.parse_nodes(nodes), "labels(b)")
+
+        with db.session() as session:
+            links = session.write_transaction(lambda tx: [*tx.run(cypher.query)])
+
+        linkedEntities = reduce(_reduce, filter(_filter, links), set())
 
         return {
             "@iot.id": uuid,
@@ -497,69 +340,6 @@ class Entity:
             },
         }
 
-
-
-    # @classmethod
-    # def fromSpec(cls, spec: dict, metadata: dict) -> Iterable:
-    #     """
-    #     Create an Agent from a spec. 
-    #     """
-    #     entity = cls(name=spec["name"])
-
-    #     def pairing(args: (str, dict)) -> (Type, str, Type):
-    #         key, value = args
-    #         return (entity, value["label"], (eval(key))(name=value["name"]))
-
-    #     def extractChildren(key: str) -> (str, dict):
-    #         return key.split("@")[0], metadata[key]
-        
-    #     return map(pairing, chain.from_iterable(map(extractChildren, metadata.keys())))
-
-                        
-    # @classmethod
-    # def fromSpecFile(
-    #     cls, 
-    #     file: str, 
-    #     db: Driver,
-    #     stable: int = 10,
-
-    # ):
-       
-    #     memo = {
-    #         "providers": dict(),
-    #         "agents": dict()
-    #     }
-
-    #     last = len(agents)
-    #     fails = 0
-
-    #     queue = map(cls.fromSpec, reduceYamlEntityFile(file)[cls.__name__])
-
-    #     while fails < stable:
-            
-    #         jobs = cls.fromSpec(**queue.popleft())
-                
-
-    #         linked_agents = each["metadata"].get("Agents@iot.navigation", [])
-    #         if all(map(lambda x: x["name"][0] in memo["agents"].keys(), linked_agents)):
-
-    #             for other in linked_agents:
-    #                 [name] = other["name"] 
-    #                 link = Link(label=other.get("label", None)).join(db, nodes=(memo["agents"][agent_name], memo["agents"][name]))
-            
-    #         else:
-    #             queue.append(each)
-
-    #         print(f"{len(queue)} remaining, and {fails} fails")
-            
-
-    #         if last == len(queue):
-    #             shuffle(queue)
-    #             fails += 1
-    #         else:
-    #             fails = 0
-            
-    #         last = len(queue)
 
 @attr.s(repr=False)
 class Actuators(Entity):
