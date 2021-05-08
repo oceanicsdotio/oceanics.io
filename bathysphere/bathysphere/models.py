@@ -3,27 +3,33 @@
 The models module of the graph API contains extensions to the common
 models, for storing and accessing data in a Neo4j database.
 """
-from inspect import isclass, signature
-from typing import Type, Callable, Any, Iterable
-from types import MethodType
-from datetime import datetime
-from uuid import uuid4, UUID
-from time import time
+
+from typing import Type, Any
+from uuid import UUID
 from functools import reduce
 from os import getenv
-from random import shuffle
-from itertools import chain
-
 from neo4j import Driver, Record
 import attr
+from json import dumps
 
-from bathysphere import (
-    processKeyValueInbound,
-    reduceYamlEntityFile
+from bathysphere.bathysphere import (
+    Link as NativeLink, 
+    Node,
+    Asset,
+    Actuator,
+    DataStream,
+    Observation,
+    Things,
+    Sensor,
+    Task,
+    TaskingCapability,
+    ObservedProperty,
+    FeatureOfInterest,
+    Location,
+    HistoricalLocation,
+    User,
+    Provider
 )
-
-
-from bathysphere.bathysphere import Link as NativeLink, Node
 
 # from bathysphere.bathysphere
 
@@ -45,8 +51,6 @@ class Entity:
     Primitive object/entity, may have name and location
     """
     uuid: UUID = attr.ib(default=None)
-    native: Type = attr.ib(default=None)
-    _symbol: str = attr.ib(default="n")
 
     def __repr__(self):
         """
@@ -83,6 +87,55 @@ class Entity:
     @staticmethod
     def parse_nodes(nodes):
         return map(Node.parse_node, zip(nodes, ("a", "b")))
+
+    @staticmethod(f)
+    def processKeyValueInbound(keyValue: (str, Any), null: bool = False) -> str or None:
+        """
+        Convert a String key and Any value into a Cypher representation
+        for making the graph query.
+        """
+        key, value = keyValue
+        if key[0] == "_":
+            return None
+
+        if "location" in key and isinstance(value, dict):
+
+            if value.get("type") == "Point":
+
+                coord = value["coordinates"]
+                if len(coord) == 2:
+                    values = f"x: {coord[1]}, y: {coord[0]}, crs:'wgs-84'"  
+                elif len(coord) == 3:
+                    values = f"x: {coord[1]}, y: {coord[0]}, z: {coord[2]}, crs:'wgs-84-3d'"
+                else:
+                    # TODO: deal with location stuff in a different way, and don't auto include
+                    # the point type in processKeyValueOutbound. Seems to work for matching now.
+                    # raise ValueError(f"Location coordinates are of invalid format: {coord}")
+                    return None
+                return f"{key}: point({{{values}}})"
+
+            if value.get("type") == "Polygon":
+                return f"{key}: '{dumps(value)}'"
+
+            if value.get("type") == "Network":
+                return f"{key}: '{dumps(value)}'"
+
+
+        if isinstance(value, (list, tuple, dict)):
+            return f"{key}: '{dumps(value)}'"
+
+        if isinstance(value, str) and value and value[0] == "$":
+            # TODO: This hardcoding is bad, but the $ picks up credentials
+            if len(value) < 64:
+                return f"{key}: {value}"
+
+        if value is not None:
+            return f"{key}: {dumps(value)}"
+
+        if null:
+            return f"{key}: NULL"
+
+        return None
 
     @staticmethod
     def processKeyValueOutbound(keyValue: (str, Any),) -> (str, Any):
@@ -122,6 +175,7 @@ class Entity:
             for record in session.read_transaction(lambda tx: tx.run(cypher.query)):
                 props = dict(map(Entity.processKeyValueOutbound, dict(record[0]).items()))
                 items.append(type(self)(**props))
+
         return items
 
     
@@ -163,146 +217,3 @@ class Entity:
                 for each in linkedEntities
             },
         }
-
-
-@attr.s(repr=False)
-class DataStreams(Entity):
-    """
-    DataStreams are collections of Observations.
-    """
-
-    name: str = attr.ib(default=None)
-    description: str = attr.ib(default=None)
-    unitOfMeasurement = attr.ib(default=None)
-    observationType = attr.ib(default=None)
-    observedArea: dict = attr.ib(default=None)  # boundary geometry, GeoJSON polygon
-    phenomenonTime: (datetime, datetime) = attr.ib(
-        default=None
-    )  # time interval, ISO8601
-    resultTime: (datetime, datetime) = attr.ib(
-        default=None
-    )  # result times interval, ISO8601
-
-
-
-
-@attr.s(repr=False)
-class Locations(Entity):
-    """
-    Last known `Locations` of `Things`. May be `FeaturesOfInterest`, unless remote sensing.
-
-    location encoding may be `application/vnd.geo+json` or `application/json`
-    """
-    description: str = attr.ib(default=None)
-    encodingType: str = attr.ib(default=None)
-    location = attr.ib(default=None)  # GeoJSON
-    name: str = attr.ib(default=None)
-
-
-@attr.s(repr=False)
-class HistoricalLocations(Entity):
-    """
-    Private and automatic, should be added to sensor when new location is determined
-    """
-    time: str = attr.ib(
-        default=None
-    )  # time when thing was at location (ISO-8601 string)
-
-
-
-
-
-@attr.s(repr=False)
-class Observations(Entity):
-    """Graph extension to base model"""
-    """
-    Observations are individual time-stamped members of Datastreams
-    """
-    phenomenonTime: datetime = attr.ib(
-        default=None
-    )  # timestamp, doesn't enforce specific format
-    result: Any = attr.ib(default=None)  # value of the observation
-    resultTime: datetime = attr.ib(default=None)
-    resultQuality: Any = attr.ib(default=None)
-    validTime: (datetime, datetime) = attr.ib(default=None)  # time period
-    parameters: dict = attr.ib(default=None)
-
-    @property
-    def outOfRange(self, maximum, minimum=0.0):
-        """
-        True if value is outside the given range
-        """
-        return (self.result > maximum) | (self.result < minimum)
-
-
-@attr.s(repr=False)
-class Providers(Entity):
-    """
-    Providers are generally organization or enterprise sub-units. This is used to
-    route ingress and determine implicit permissions for data access, sharing, and
-    attribution. 
-    """
-
-    name: str = attr.ib(default=None)
-    description: str = attr.ib(default=None)
-    domain: str = attr.ib(default=None)
-    secretKey: str = attr.ib(default=None)
-    apiKey: str = attr.ib(default=None)
-    tokenDuration: int = attr.ib(default=None)
-
-
-
-@attr.s(repr=False)
-class TaskingCapabilities(Entity):
-    """
-    Graph extension to base model. TaskingCapabilities may be called
-    by defining graph patterns that supply all of their inputs.
-
-    Execution creates one or more Tasks. 
-    """
-    name: str = attr.ib(default=None)
-    description: str =  attr.ib(default=None)
-    creationTime: float = attr.ib(default=None)
-    taskingParameters: dict = attr.ib(default=None)
-
-    def serialize(self, *args, **kwargs):
-        _default = super(TaskingCapabilities, self).serialize(*args, **kwargs)
-        _default["creationTime"] = f'{datetime.fromtimestamp(_default["creationTime"])}'
-        return _default
-
-
-@attr.s(repr=False)
-class Tasks(Entity):
-    """
-    Tasks are connected to `Things` and `TaskingCapabilities`.
-
-    Tasks are pieces of work that are done asynchronously by humans or machines.
-    """
-    creationTime: float = attr.ib(default=None)
-    taskingParameters: dict = attr.ib(default=None)
-
-
-@attr.s(repr=False)
-class Things(Entity):
-    """
-    A thing is an object of the physical or information world that is capable of of being identified
-    and integrated into communication networks.
-    """
-    name: str = attr.ib(default=None)
-    description: str = attr.ib(default=None)
-    properties: dict = attr.ib(default=None)
-
-
-@attr.s(repr=False)
-class User(Entity):
-    """
-    Create a user entity. Users contain authorization secrets, and do not enter/leave
-    the system through the same routes as normal Entities
-    """
-    _symbol: str = attr.ib(default="u")
-    ip: str = attr.ib(default=None)
-    name: str = attr.ib(default=None)
-    alias: str = attr.ib(default=None)
-    credential: str = attr.ib(default=None)
-    validated: bool = attr.ib(default=True)
-    description: str = attr.ib(default=None)

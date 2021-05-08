@@ -1,6 +1,7 @@
 // src/lib.rs
 use pyo3::prelude::*;
 use std::env;
+use std::collections::{HashMap};
 extern crate serde_json;  // or yaml
 
 #[macro_use]
@@ -156,13 +157,13 @@ impl NodeIndex {
 }
 
 /*
-Links are the relationships between two entities.
+Linkss are the relationships between two entities.
 
 They are directional, and have properties like entities. When you
 have the option, it is encouraged to use rich links, instead of
 doubly-linked nodes to represent relationships.
 
-The attributes are for a `Link` are:
+The attributes are for a `Links` are:
 - `_symbol`, a private str for cypher query templating
 - `rank`, a reinforcement learning parameter for recommending new data
 - `uuid`, the unique identifier for the entity
@@ -171,7 +172,7 @@ The attributes are for a `Link` are:
  */
 #[pyclass]
 #[derive(Debug, Serialize, Deserialize)]
-struct Link {
+struct Links {
     #[pyo3(get)]
     pub cost: Option<f32>,
     #[pyo3(get)]
@@ -184,7 +185,7 @@ struct Link {
 
 
 #[pymethods]
-impl Link {
+impl Links {
     #[new]
     fn new(
         label: Option<String>,
@@ -192,7 +193,7 @@ impl Link {
         cost: Option<f32>,
         pattern: Option<String>
     ) -> Self {
-        Link {
+        Links {
             rank,
             label,
             cost,
@@ -202,7 +203,7 @@ impl Link {
 
     /*
 
-    Format the Link for making a Cypher language query
+    Format the Links for making a Cypher language query
     to the Neo4j graph database
 
     [ r:Label { <key>:<value>, <key>:<value> } ]
@@ -282,52 +283,69 @@ impl Link {
 
 #[pyclass]
 #[derive(Debug, Serialize, Deserialize)]
-struct Agent {
+struct Agents {
     #[pyo3(get)]
-    name: String,
+    name: Option<String>,
+    #[pyo3(get)]
+    uuid: Option<String>,
 }
 
 #[pymethods]
-impl Agent {
+impl Agents {
     #[new]
-    pub fn new(name: String) -> Self {
-        Agent { name }
+    pub fn new(
+        name: Option<String>,
+        uuid: Option<String>,
+    ) -> Self {
+        Agents { 
+            name,
+            uuid
+        }
     } 
 }
 
-
+#[pyclass]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 struct Socket {
     host: String,
     port: u32
 }
 
 /**
- * Actuators are devices that turn messages into physical effects
+ * Actuatorss are devices that turn messages into physical effects
  */
 #[pyclass]
 #[derive(Debug, Serialize, Deserialize)]
-struct Actuator {
+struct Actuators {
     #[pyo3(get)]
     name: Option<String>,
+    #[pyo3(get)]
+    uuid: Option<String>,
+    #[pyo3(get)]
     description: Option<String>,
+    #[pyo3(get)]
     encoding_type: Option<String>,
+    #[pyo3(get)]
     metadata: Option<String>,
+    #[pyo3(get)]
     network_address: Option<Socket>
 }
 
 
 #[pymethods]
-impl Actuator {
+impl Actuators {
     #[new]
     pub fn new(
         name: Option<String>,
+        uuid: Option<String>,
         description: Option<String>,
         encoding_type: Option<String>,
         metadata: Option<String>,
         network_address: Option<Socket>
     ) -> Self {
-        Actuator{
+        Actuators{
             name,
+            uuid,
             description,
             encoding_type,
             metadata,
@@ -343,9 +361,11 @@ impl Actuator {
  */
 #[pyclass]
 #[derive(Debug, Serialize, Deserialize)]
-struct Asset {
+struct Assets {
     #[pyo3(get)]
     name: Option<String>,
+    #[pyo3(get)]
+    uuid: Option<String>,
     #[pyo3(get)]
     description: Option<String>,
     #[pyo3(get)]
@@ -353,15 +373,19 @@ struct Asset {
 }
 
 #[pymethods]
-impl Asset {
+impl Assets {
     #[new]
     pub fn new(
         name: Option<String>, 
+        uuid: Option<String>,
         description: Option<String>,
         location: Option<String>
     ) -> Self {
-        Asset {
-            name, description, location
+        Assets {
+            name, 
+            uuid,
+            description, 
+            location
         }
     }
 
@@ -377,14 +401,16 @@ impl Asset {
 
 
 /**
- * Collections are arbitrary groupings of entities.
+ * Collectionss are arbitrary groupings of entities.
  * 
  */
 #[pyclass]
 #[derive(Debug, Serialize, Deserialize)]
-struct Collection {
+struct Collections {
     #[pyo3(get)]
     name: Option<String>,
+    #[pyo3(get)]
+    uuid: Option<String>,
     #[pyo3(get)]
     description: Option<String>,
     #[pyo3(get)]
@@ -398,18 +424,20 @@ struct Collection {
 }
 
 #[pymethods]
-impl Collection {
+impl Collections {
     #[new]
     pub fn new(
         name: Option<String>,
+        uuid: Option<String>,
         description: Option<String>,
         extent: Option<Vec<f64>>,
         keywords: Option<String>,
         license: Option<String>,
         version: Option<u32>
     ) -> Self{
-        Collection{
+        Collections{
             name,
+            uuid,
             description,
             extent,
             keywords,
@@ -420,30 +448,34 @@ impl Collection {
 }
 
 /**
- * FeaturesOfInterest are usually Locations.
+ * FeaturesOfInterest are usually Locationss.
  */
 #[pyclass]
-struct FeatureOfInterest {
+struct FeaturesOfInterest {
     #[pyo3(get)]
     name: Option<String>,
+    #[pyo3(get)]
+    uuid: Option<String>,
     #[pyo3(get)]
     description: Option<String>,
     #[pyo3(get)]
     encoding_type: Option<String>,
     #[pyo3(get)]
-    feature: Option<HashMap>
+    feature: Option<HashMap<String, String>>,
 }
 
 #[pymethods]
-impl FeatureOfInterest {
+impl FeaturesOfInterest {
     #[new]
     pub fn new(
         name: Option<String>,
+        uuid: Option<String>,
         description: Option<String>,
         encoding_type: Option<String>,
-        feature: Option<HashMap>
+        feature: Option<HashMap<String, String>>,
     ) -> Self {
-        FeatureOfInterest {
+        FeaturesOfInterest {
+            uuid,
             name,
             description,
             encoding_type,
@@ -453,28 +485,32 @@ impl FeatureOfInterest {
 }
 
 #[pyclass]
-struct Sensor{
+struct Sensors{
     #[pyo3(get)]
     name: Option<String>,
+    #[pyo3(get)]
+    uuid: Option<String>,
     #[pyo3(get)]
     description: Option<String>,
     #[pyo3(get)]
     encoding_type: Option<String>,
     #[pyo3(get)]
-    metadata: Option<HashMap>
+    metadata: Option<HashMap<String, String>>
 }
 
 #[pymethods]
-impl FeatureOfInterest {
+impl Sensors {
     #[new]
     pub fn new(
         name: Option<String>,
+        uuid: Option<String>,
         description: Option<String>,
         encoding_type: Option<String>,
-        metadata: Option<HashMap>
+        metadata: Option<HashMap<String, String>>
     ) -> Self {
-        FeatureOfInterest {
+        Sensors {
             name,
+            uuid,
             description,
             encoding_type,
             metadata
@@ -486,24 +522,409 @@ impl FeatureOfInterest {
  * Create a property, but do not associate any data streams with it
  */
 #[pyclass]
-struct ObservedProperty {
+struct ObservedProperties {
+    #[pyo3(get)]
     name: Option<String>,
+    #[pyo3(get)]
+    uuid: Option<String>,
+    #[pyo3(get)]
     description: Option<String>,
+    #[pyo3(get)]
     definition: Option<String>
 }
 
 #[pymethods]
-impl ObservedProperty{
+impl ObservedProperties{
     #[new]
     pub fn new(
         name: Option<String>,
+        uuid: Option<String>,
         description: Option<String>,
         definition: Option<String>
     ) -> Self {
-        ObservedProperty{
+        ObservedProperties{
             name,
+            uuid,
             description,
             definition
+        }
+    }
+}
+
+/**
+ * Tasks are connected to `Things` and `TaskingCapabilities`.
+ *
+ * Tasks are pieces of work that are done asynchronously by humans or machines.
+ */
+#[pyclass]
+struct Tasks {
+    #[pyo3(get)]
+    creation_time: Option<f64>,
+    #[pyo3(get)]
+    uuid: Option<String>,
+    #[pyo3(get)]
+    tasking_parameters: Option<HashMap<String, String>>
+}
+
+#[pymethods]
+impl Tasks {
+    #[new]
+    pub fn new(
+        creation_time: Option<f64>,
+        uuid: Option<String>,
+        tasking_parameters: Option<HashMap<String, String>>
+    ) -> Self {
+        Tasks {
+            creation_time,
+            uuid,
+            tasking_parameters
+        }
+    }
+}
+
+
+/** 
+ *  A thing is an object of the physical or information world that is capable of of being identified
+    and integrated into communication networks.
+ * 
+ */
+#[pyclass]
+struct Thing {
+    #[pyo3(get)]
+    uuid: Option<String>,
+    #[pyo3(get)]
+    name: Option<String>,
+    #[pyo3(get)]
+    description: Option<String>,
+    #[pyo3(get)]
+    properties: Option<HashMap<String, String>>
+}
+
+#[pymethods]
+impl Thing {
+    #[new]
+    pub fn new(
+        uuid: Option<String>,
+        name: Option<String>,
+        description: Option<String>,
+        properties: Option<HashMap<String, String>>
+    ) -> Self {
+        Thing {
+            uuid,
+            name,
+            description,
+            properties
+        }
+    }
+}
+
+/**
+ * TaskingCapabilities may be called by defining graph patterns that supply all of their inputs.
+  */
+#[pyclass]
+struct TaskingCapabilities {
+    #[pyo3(get)]
+    uuid: Option<String>,
+    #[pyo3(get)]
+    name: Option<String>,
+    #[pyo3(get)]
+    description: Option<String>,
+    #[pyo3(get)]
+    creation_time: Option<f64>,
+    #[pyo3(get)]
+    tasking_parameters: Option<HashMap<String, String>>
+}
+
+#[pymethods]
+impl TaskingCapabilities {
+    #[new]
+    pub fn new(
+        uuid: Option<String>,
+        name: Option<String>,
+        description: Option<String>,
+        creation_time: Option<f64>,
+        tasking_parameters: Option<HashMap<String, String>>
+    ) -> Self {
+        TaskingCapabilities {
+            uuid,
+            name, 
+            description,
+            creation_time,
+            tasking_parameters
+        }
+    }
+}
+
+/**
+ * Providerss are generally organization or enterprise sub-units. This is used to
+    route ingress and determine implicit permissions for data access, sharing, and
+    attribution. 
+ */
+#[pyclass]
+struct Providers {
+    #[pyo3(get)]
+    uuid: Option<String>,
+    #[pyo3(get)]
+    name: Option<String>,
+    #[pyo3(get)]
+    description: Option<String>,
+    #[pyo3(get)]
+    domain: Option<String>,
+    #[pyo3(get)]
+    secret_key: Option<String>,
+    #[pyo3(get)]
+    api_key: Option<String>,
+    #[pyo3(get)]
+    token_duration: Option<u16>,
+}
+
+#[pymethods]
+impl Providers {
+    #[new]
+    pub fn new(
+        uuid: Option<String>,
+        name: Option<String>,
+        description: Option<String>,
+        domain: Option<String>,
+        secret_key: Option<String>,
+        api_key: Option<String>,
+        token_duration: Option<u16>,
+    ) -> Self {
+        Providers {
+            uuid,
+            name,
+            description,
+            domain,
+            secret_key,
+            api_key,
+            token_duration
+        }
+    }
+}
+
+
+#[pyclass]
+struct Locations {
+    #[pyo3(get)]
+    uuid: Option<String>,
+    #[pyo3(get)]
+    name: Option<String>,
+    #[pyo3(get)]
+    description: Option<String>,
+    #[pyo3(get)]
+    encoding_type: Option<String>,
+    #[pyo3(get)]
+    location: Option<HashMap<String, String>>,
+}
+
+#[pymethods]
+impl Locations {
+    #[new]
+    pub fn new(
+        uuid: Option<String>,
+        name: Option<String>,
+        description: Option<String>,
+        encoding_type: Option<String>,
+        location: Option<HashMap<String, String>>
+    ) -> Self {
+        Locations {
+            uuid,
+            name,
+            description,
+            encoding_type,
+            location
+        }
+    }
+}
+
+
+/**
+ * Private and automatic, should be added to sensor when new location is determined
+ */
+#[pyclass]
+struct HistoricalLocations {
+    #[pyo3(get)]
+    uuid: Option<String>,
+    #[pyo3(get)]
+    time: Option<f64>,
+}
+
+
+#[pymethods]
+impl HistoricalLocations {
+    #[new]
+    pub fn new(
+        uuid: Option<String>,
+        time: Option<f64>
+    ) -> Self {
+        HistoricalLocations {
+            uuid,
+            time
+        }
+    }
+}
+
+
+/**
+time interval, ISO8601
+*/
+#[pyclass]
+#[derive(Clone, Debug, Serialize, Deserialize)]
+struct TimeInterval {
+    #[pyo3(get)]
+    start: f64,
+    #[pyo3(get)]
+    end: f64
+}
+
+#[pymethods]
+impl TimeInterval {
+    #[new]
+    pub fn new(
+        start: f64,
+        end: f64
+    ) -> Self {
+        TimeInterval {
+            start,
+            end
+        }
+    }
+}
+
+
+/**
+ * Observationss are individual time-stamped members of DataStreams
+ */
+#[pyclass]
+struct Observations {
+    #[pyo3(get)]
+    uuid: Option<String>,
+    #[pyo3(get)]
+    phenomenon_time: Option<f64>,
+    #[pyo3(get)]
+    result: Option<f64>,
+    #[pyo3(get)]
+    result_time: Option<f64>,
+    #[pyo3(get)]
+    result_quality: Option<String>,
+    #[pyo3(get)]
+    valid_time: Option<TimeInterval>,
+    #[pyo3(get)]
+    parameters: Option<HashMap<String, String>>
+}
+
+#[pymethods]
+impl Observations {
+    #[new]
+    pub fn new(
+        uuid: Option<String>,
+        phenomenon_time: Option<f64>,
+        result: Option<f64>,
+        result_time: Option<f64>,
+        result_quality: Option<String>,
+        valid_time: Option<TimeInterval>,
+        parameters: Option<HashMap<String, String>>
+    ) -> Self {
+        Observations {
+            uuid,
+            phenomenon_time,
+            result,
+            result_time,
+            result_quality,
+            valid_time,
+            parameters
+        }
+
+    }
+}
+
+/**
+ *
+ */
+#[pyclass]
+struct DataStreams {
+    #[pyo3(get)]
+    uuid: Option<String>,
+    #[pyo3(get)]
+    name: Option<String>,
+    #[pyo3(get)]
+    description: Option<String>,
+    #[pyo3(get)]
+    unit_of_measurement: Option<String>,
+    #[pyo3(get)]
+    observation_type: Option<String>,
+    #[pyo3(get)]
+    phenomenon_time: Option<TimeInterval>,
+    #[pyo3(get)]
+    result_time: Option<TimeInterval>
+}
+
+#[pymethods]
+impl DataStreams {
+    #[new]
+    pub fn new(
+        uuid: Option<String>,
+        name: Option<String>,
+        description: Option<String>,
+        unit_of_measurement: Option<String>,
+        observation_type: Option<String>,
+        phenomenon_time: Option<TimeInterval>,
+        result_time: Option<TimeInterval>
+    ) -> Self {
+        DataStreams {
+            uuid,
+            name,
+            description,
+            unit_of_measurement,
+            observation_type,
+            phenomenon_time,
+            result_time
+        }
+    }
+}
+
+/**
+ *  Create a user entity. Users contain authorization secrets, and do not enter/leave
+ *  the system through the same routes as normal Entities
+ */
+#[pyclass]
+struct User {
+    #[pyo3(get)]
+    uuid: Option<String>,
+    #[pyo3(get)]
+    ip: Option<String>,
+    #[pyo3(get)]
+    name: Option<String>,
+    #[pyo3(get)]
+    alias: Option<String>,
+    #[pyo3(get)]
+    credential: Option<String>,
+    #[pyo3(get)]
+    validated: Option<bool>,
+    #[pyo3(get)]
+    description: Option<String>
+}
+
+#[pymethods]
+impl User {
+    #[new]
+    pub fn new(
+        uuid: Option<String>,
+        ip: Option<String>,
+        name: Option<String>,
+        alias: Option<String>,
+        credential: Option<String>,
+        validated: Option<bool>,
+        description: Option<String>
+    ) -> Self {
+        User {
+            uuid,
+            ip,
+            name,
+            alias,
+            credential,
+            validated,
+            description
         }
     }
 }
@@ -511,15 +932,23 @@ impl ObservedProperty{
 
 #[pymodule]
 fn bathysphere(_: Python, m: &PyModule) -> PyResult<()> {
-    m.add_class::<Link>()?;
+    m.add_class::<Links>()?;
     m.add_class::<Cypher>()?;
-    m.add_class::<Agent>()?;
-    m.add_class::<Asset>()?;
+    m.add_class::<Agents>()?;
+    m.add_class::<Assets>()?;
     m.add_class::<Node>()?;
     m.add_class::<NodeIndex>()?;
-    m.add_class::<Actuator>()?;
-    m.add_class::<Collection>()?;
-    m.add_class::<FeatureOfInterest>()?;
-    m.add_class::<Sensor>()?;
+    m.add_class::<Actuators>()?;
+    m.add_class::<Collections>()?;
+    m.add_class::<FeaturesOfInterest>()?;
+    m.add_class::<Sensors>()?;
+    m.add_class::<ObservedProperties>()?;
+    m.add_class::<TaskingCapabilities>()?;
+    m.add_class::<TaskingCapabilities>()?;
+    m.add_class::<Providers>()?;
+    m.add_class::<Observations>()?;
+    m.add_class::<Locations>()?;
+    m.add_class::<HistoricalLocations>()?;
+    m.add_class::<User>()?;
     Ok(())
 }

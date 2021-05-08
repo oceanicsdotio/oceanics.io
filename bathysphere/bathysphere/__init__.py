@@ -1,27 +1,33 @@
-
 # pylint: disable=invalid-name,too-few-public-methods,eval-used
 """
 The basic building blocks and utilities for graph queries are
 contained in this default import.
 """
+# repeat YAML Loader instance
 from itertools import repeat
-from pathlib import Path
-from functools import reduce
-from json import dumps
 
+# Get absolute paths
+from pathlib import Path
+
+# Use to wire up OpenAPI to functions
 from connexion import App
+
+# Enable CORS on API
 from flask_cors import CORS
+
+# OpenAPI validation
 from prance import ResolvingParser, ValidationError
 
+# Function signatures
 from typing import Any
+
+# Time stamp conversion
 from datetime import datetime
 
-from yaml import Loader, load as load_yml
-
+# Runtime variables and secrets from environment
 from os import getenv
 
-
-
+# Don't let app load unless all environment variables are set
 envErrors = [*filter(lambda x: not x, map(getenv, (
     "STORAGE_ENDPOINT", 
     "BUCKET_NAME", 
@@ -35,10 +41,17 @@ envErrors = [*filter(lambda x: not x, map(getenv, (
 if envErrors:
     raise EnvironmentError(f"{envErrors} not set")
 
+
 def reduceYamlEntityFile(file: str) -> dict:
     """
     Flip the nestedness of the dict from a list to have top level keys for each `kind`
     """
+    # for reducing to lookup
+    from functools import reduce 
+
+    # YAML loaders
+    from yaml import Loader, load as load_yml
+
     def _reducer(a: dict, b: dict) -> dict:
        
         if not isinstance(a, dict):
@@ -58,55 +71,6 @@ def reduceYamlEntityFile(file: str) -> dict:
         _items = fid.read().split("---")
 
     return reduce(_reducer, map(load_yml, _items, repeat(Loader, len(_items))), {})
-
-
-def processKeyValueInbound(keyValue: (str, Any), null: bool = False) -> str or None:
-    """
-    Convert a String key and Any value into a Cypher representation
-    for making the graph query.
-    """
-    key, value = keyValue
-    if key[0] == "_":
-        return None
-
-    if "location" in key and isinstance(value, dict):
-
-        if value.get("type") == "Point":
-
-            coord = value["coordinates"]
-            if len(coord) == 2:
-                values = f"x: {coord[1]}, y: {coord[0]}, crs:'wgs-84'"  
-            elif len(coord) == 3:
-                values = f"x: {coord[1]}, y: {coord[0]}, z: {coord[2]}, crs:'wgs-84-3d'"
-            else:
-                # TODO: deal with location stuff in a different way, and don't auto include
-                # the point type in processKeyValueOutbound. Seems to work for matching now.
-                # raise ValueError(f"Location coordinates are of invalid format: {coord}")
-                return None
-            return f"{key}: point({{{values}}})"
-
-        if value.get("type") == "Polygon":
-            return f"{key}: '{dumps(value)}'"
-
-        if value.get("type") == "Network":
-            return f"{key}: '{dumps(value)}'"
-
-
-    if isinstance(value, (list, tuple, dict)):
-        return f"{key}: '{dumps(value)}'"
-
-    if isinstance(value, str) and value and value[0] == "$":
-        # TODO: This hardcoding is bad, but the $ picks up credentials
-        if len(value) < 64:
-            return f"{key}: {value}"
-
-    if value is not None:
-        return f"{key}: {dumps(value)}"
-
-    if null:
-        return f"{key}: NULL"
-
-    return None
 
 
 __pdoc__ = {
