@@ -292,35 +292,6 @@ def job(config: dict, forcing: tuple) -> (tuple, bytes):
     return process.result, process.log.getvalue().decode()
 
 
-class polymorphic:
-    """
-    Class decorator for allowing methods to be class or instance
-    """
-
-    def __init__(self, f):
-        """
-        Wrap the object
-        """
-        self.f = f
-
-    def __get__(self, instance, owner):
-        """
-        Hoist the function if necessary
-        """
-        if instance is not None:
-            wrt = instance
-        else:
-            wrt = owner
-
-        def newfunc(*args, **kwargs):
-            """
-            Wrapped function that calls the reference method
-            """
-            return self.f(wrt, *args, **kwargs)
-
-        return newfunc
-
-
 def processKeyValueInbound(keyValue: (str, Any), null: bool = False) -> str or None:
     """
     Convert a String key and Any value into a Cypher representation

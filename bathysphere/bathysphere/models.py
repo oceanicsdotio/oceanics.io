@@ -20,7 +20,6 @@ import attr
 
 from bathysphere import (
     processKeyValueInbound,
-    polymorphic,
     reduceYamlEntityFile
 )
 
@@ -46,7 +45,6 @@ class Entity:
     """
     Primitive object/entity, may have name and location
     """
-
     uuid: UUID = attr.ib(default=None)
     _symbol: str = attr.ib(default="n")
 
@@ -71,16 +69,6 @@ class Entity:
     def __str__(self):
         return type(self).__name__
 
-    def _setSymbol(
-        self, symbol: str,
-    ):
-        """
-        Convenience setter for changing symbol if there are multiple patterns.
-
-        Some common classes have special symbols, e.g. User is `u`
-        """
-        self._symbol = symbol
-        return self
 
     def _properties(self, select: (str) = (), private: str = "") -> dict:
         """
@@ -106,56 +94,20 @@ class Entity:
 
     @staticmethod
     def parse_node(item):
+        """
+        Convenience setter for changing symbol if there are multiple patterns.
+
+        Some common classes have special symbols, e.g. User is `u`
+        """
         node, symbol = item
-        node._setSymbol(symbol)
+        self._symbol = symbol
         return Node(pattern=repr(node), symbol=symbol)
 
     @staticmethod
     def parse_nodes(nodes):
         return map(Node.parse_node, zip(nodes, ("a", "b")))
 
-    @classmethod
-    def addConstraint(cls, db: Driver, by: str) -> Callable:
-        """
-        Create a unique constraint on one type of labeled node.
-
-        Usually this will be by name.
-        """
-        query = lambda tx: tx.run(
-            f"CREATE CONSTRAINT ON (n:{cls.__name__}) ASSERT n.{by} IS UNIQUE"
-        )
-
-        with db.session() as session:
-            return session.write_transaction(query)
-       
-    @classmethod
-    def addLabel(cls, db: Driver, label: str, **kwargs: dict) -> list or None:
-        """
-        Apply new label to nodes of this class, or a specific node.
-        """
-        entity = cls(**kwargs)
-        query = lambda tx: tx.run(
-            f"MATCH {repr(entity)} SET {entity._symbol}:{label}"
-        ).values()
-
-        with db.session() as session:
-            return session.write_transaction(query)
-
-    @classmethod
-    def count(cls, db: Driver, **kwargs: dict) -> int:
-        """
-        Count occurrence of a class label or pattern in Neo4j.
-        """
-        entity = cls(**kwargs)
-
-        def query(tx):
-            tx.run(
-                f"MATCH {repr(entity)} RETURN count({entity._symbol})"
-            ).single()[0]
-
-        with db.session() as session:
-            return session.read_transaction(query)
-
+    
     def create(
         self: Type,
         db: Driver,
@@ -187,28 +139,6 @@ class Entity:
         with db.session() as session:
             session.write_transaction(lambda tx: tx.run(f"MERGE {self}"))
         return self
-
-    @polymorphic
-    def delete(self, db: Driver, pattern: dict = None) -> None:
-        """
-        Remove all nodes from the graph, or optionally specify node-matching parameters.
-
-        This method works on both classes and instances.
-        """
-        if isclass(self):
-            entity = self(**(pattern or {}))  # pylint: disable=not-callable
-        elif pattern is not None:
-            raise ValueError("Pattern supplied for delete from entity instance.")
-        else:
-            entity = self
-
-        def query(tx):
-            return tx.run(
-                f"MATCH {repr(entity)} DETACH DELETE {entity._symbol}"
-            ).values()
-
-        with db.session() as session:
-            return session.write_transaction(query)
 
 
     def load(
@@ -253,23 +183,16 @@ class Entity:
             return [*map(_instance, session.read_transaction(query))]
 
 
-    @polymorphic
-    def mutate(self: Type, db: Driver, data: dict, pattern: dict = None) -> None:
+   
+    def mutate(self, db: Driver, data: dict, pattern: dict = None) -> None:
         """
         Update/add node properties
         """
-        if isclass(self):
-            entity = self(**pattern)  # pylint: disable=not-callable
-        elif pattern is not None:
-            raise ValueError("Pattern supplied for delete from entity instance.")
-        else:
-            entity = self
-
         _updates = ", ".join(map(processKeyValueInbound, data.items()))
 
         def query(tx):
             return tx.run(
-                f"MATCH {repr(entity)} SET {entity._symbol} += {{ {_updates} }}"
+                f"MATCH {repr(self)} SET {self._symbol} += {{ {_updates} }}"
             )
 
         with db.session() as session:

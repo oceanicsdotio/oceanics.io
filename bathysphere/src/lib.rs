@@ -26,6 +26,41 @@ struct Node {
     pub symbol: String
 }
 
+#[pymethods]
+impl Node {
+    /**
+     * Count instances of the node label
+     */
+    fn count(&self) -> String {
+        Cypher {
+            query: format!("MATCH {} RETURN count({})", self.pattern, self.symbol),
+            read_only: true
+        }
+        
+    }
+
+    /**
+     * Apply new label to the node set matching the node pattern
+     */
+    fn add_label(&self, label: String) -> Cypher {
+        Cypher {
+            query: format!("MATCH {} SET {}:{}", self.pattern, self.symbol, label),
+            read_only: false
+        }
+    }
+
+    /**
+     * 
+    */
+    pub fn delete(&self) -> Cypher {
+        Cypher{
+            query: format!("MATCH {} DETACH DELETE {}", self.pattern, self.symbol),
+            read_only: false
+        }
+    }
+    
+}
+
 
 #[pyclass]
 #[derive(Debug, Serialize, Deserialize)]
@@ -53,15 +88,33 @@ impl NodeIndex {
      * Indexes add a unique constraint as well as speeding up queries
      * on the graph database.
      */
-    pub fn add(&self) -> String {
-        format!("CREATE INDEX ON : {}({})", self.label, self.key)
+    pub fn add(&self) -> Cypher {
+        Cypher {
+            query: format!("CREATE INDEX ON : {}({})", self.label, self.key),
+            read_only: false
+        }
+        
     }
 
     /**
      * 
      */
-    pub fn drop(&self) -> String {
-        format!("DROP INDEX ON : {}({})", self.label, self.key)
+    pub fn drop(&self) -> Cypher {
+        Cypher {
+            query: format!("DROP INDEX ON : {}({})", self.label, self.key),
+            read_only: false
+        }
+        
+    }
+
+    /*
+     *
+     */
+    pub fn unique_constraint() -> Cypher {
+        Cypher {
+            query: format!("CREATE CONSTRAINT ON (n:{}) ASSERT n.{} IS UNIQUE", self.label, self.key),
+            read_only: false
+        } 
     }
 }
 

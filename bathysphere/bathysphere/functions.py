@@ -215,7 +215,9 @@ def manage(db: Driver, user: User, body: dict) -> (dict, int):
     if any(k not in allowed for k in body.keys()):
         return "Bad request", 400
     if body.get("delete", False):
-        user.delete(db=db)
+        cypher = Node(pattern=repr(user), symbol=user._symbol)
+        with db.session() as session:
+            return session.write_transaction(cypher.query)
     else:
         user.mutate(db=db, data=body)  # pylint: disable=no-value-for-parameter
     return None, 204
@@ -379,7 +381,7 @@ def query(
         for item in session.write_transaction(lambda tx: [*tx.run(cypher.query)]):
             items.append(item.serialize(db=db))
         
-        
+
     return {"@iot.count": len(items), "value": items}, 200
 
 

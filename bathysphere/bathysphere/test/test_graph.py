@@ -58,7 +58,12 @@ def test_graph_teardown():
         auth=("neo4j", getenv("NEO4J_ACCESS_KEY"))
     )
 
-    Entity().delete(db=db)  
+    e = Entity()
+    cypher = Node(pattern=repr(e), symbol=e._symbol).delete()
+    
+    with db.session() as session:
+        session.write_transaction(lambda tx: cypher.query)
+     
     for provider in appConfig["Providers"]:
         _ = Providers(
             **provider["spec"],
