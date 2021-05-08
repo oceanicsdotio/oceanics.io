@@ -15,7 +15,6 @@ from random import shuffle
 from itertools import chain
 
 from neo4j import Driver, Record
-from neo4j.spatial import WGS84Point  # pylint: disable=no-name-in-module,import-error
 import attr
 
 from bathysphere import (
@@ -46,6 +45,7 @@ class Entity:
     Primitive object/entity, may have name and location
     """
     uuid: UUID = attr.ib(default=None)
+    native: Type = attr.ib(default=None)
     _symbol: str = attr.ib(default="n")
 
     def __repr__(self):
@@ -69,29 +69,6 @@ class Entity:
     def __str__(self):
         return type(self).__name__
 
-
-    def _properties(self, select: (str) = (), private: str = "") -> dict:
-        """
-        Create a filtered dictionary from the object properties.
-
-        Remove not serializable or restricted members:
-        - functions
-        - keys beginning with a private prefix
-        - keys not in a selected set, IFF provided
-        """
-
-        def _filter(keyValue):
-            """Remove private or non-serializable data"""
-            key, value = keyValue
-            return (
-                not isinstance(value, Callable)
-                and isinstance(key, str)
-                and (key[: len(private)] != private if private else True)
-                and (key in select if select else True)
-            )
-
-        return dict(filter(_filter, self.__dict__.items()))
-
     @staticmethod
     def parse_node(item):
         """
@@ -107,99 +84,63 @@ class Entity:
     def parse_nodes(nodes):
         return map(Node.parse_node, zip(nodes, ("a", "b")))
 
+    @staticmethod
+    def processKeyValueOutbound(keyValue: (str, Any),) -> (str, Any):
+        """
+        Special parsing for serialization on query
+        """
+
+        from neo4j.spatial import WGS84Point
+
+        key, value = keyValue
+
+        if isinstance(value, WGS84Point):
+            return key, {
+                "type": "Point",
+                "coordinates": f"{[value.longitude, value.latitude]}"
+            }
+                
+        return key, value
+
     
-    def create(
-        self: Type,
-        db: Driver,
-        bind: (Callable) = (),
-        uuid: str = uuid4().hex,
-        **kwargs: dict,
-    ) -> Any or None:
-
-        """
-        Create a new node(s) in graph.
-
-        Format object properties dictionary as list of key:"value" strings,
-        automatically converting each object to string using its built-in __str__ converter.
-        Special values can be given unique string serialization methods by overloading __str__.
-
-        The bind tuple items are external methods that are bound as instance methods to allow
-        for extending capabilities in an adhov way.
-
-        Blank values are ignored and will not result in graph attributes. Blank values are:
-        - None (python value)
-        - "None" (string)
-
-        Writing transactions are recursive, and can take a long time if the tasking graph
-        has not yet been built. For this reason it is desirable to populate the graph
-        with at least one instance of each data type. 
-
-        """
-       
-        with db.session() as session:
-            session.write_transaction(lambda tx: tx.run(f"MERGE {self}"))
-        return self
-
-
     def load(
         self,
         db: Driver,
         result: str = None
     ) -> [Type]:
+
+
         """
         Create entity instance from a dictionary or Neo4j <Node>, which has an items() method
         that works the same as the dictionary method.
         """
-        def processKeyValueOutbound(keyValue: (str, Any),) -> (str, Any):
-            """
-            Special parsing for serialization on query
-            """
-            key, value = keyValue
 
-            if key[0] == "_":
-                key = key[1:]
+        cypher = Node(pattern=repr(self), symbol=self._symbol).load(result)
 
-            if isinstance(value, WGS84Point):
-                value = {
-                    "type": "Point",
-                    "coordinates": f"{[value.longitude, value.latitude]}"
-                }
-                 
-            return key, value
+        items = []
+        with db.session() as session:
+            for record in session.read_transaction(lambda tx: tx.run(cypher.query)):
+                props = dict(map(Entity.processKeyValueOutbound, dict(record[0]).items()))
+                items.append(type(self)(**props))
+        return items
 
-        def _instance(record: Record):
-            """
-            Create instance from 
-            """
-            return type(self)(**dict(map(processKeyValueOutbound, dict(record[0]).items())))
+    
+    def linkedCollections(self, db: Driver) -> [Record]:
 
-        def query(tx):
-            return [r for r in tx.run((
-                f"MATCH {repr(self)} "
-                f"RETURN {self._symbol}{'.{}'.format(result) if result else ''}"
-            ))]
+        nodes = (self, Entity())
+        
+        _filter = lambda x: len(set(x[0]) & RESTRICTED) == 0
+        _reduce = lambda y, z: y | {z[0][0]}
+        
+        linkedEntities = reduce(_reduce, filter(_filter, links), set())
+        cypher = Link().native.query(*Link.parse_nodes(nodes), "labels(b)")
 
         with db.session() as session:
-            return [*map(_instance, session.read_transaction(query))]
+            return session.write_transaction(lambda tx: [*tx.run(cypher.query)])
 
-
-   
-    def mutate(self, db: Driver, data: dict, pattern: dict = None) -> None:
-        """
-        Update/add node properties
-        """
-        _updates = ", ".join(map(processKeyValueInbound, data.items()))
-
-        def query(tx):
-            return tx.run(
-                f"MATCH {repr(self)} SET {self._symbol} += {{ {_updates} }}"
-            )
-
-        with db.session() as session:
-            return session.write_transaction(query)
 
     def serialize(
-        self, db: Driver, protocol: str = "http", select: (str) = None
+        self, db: Driver, select: (str) = None
     ) -> dict:
         """
         Format entity as JSON compatible dictionary from either an object instance or a Neo4j <Node>
@@ -208,88 +149,20 @@ class Entity:
         Remove private members that include a underscore,
         since SensorThings notation is title case
         """
-        props = self._properties(select=select, private="_")
-        uuid = self.uuid
-        base_url = f'''{protocol}://{getenv("SERVICE_NAME")}/api'''
+        base_url = f'''https://{getenv("SERVICE_NAME")}/api'''
         root_url = f"{base_url}/{type(self).__name__}"
-        self_url = (
-            f"{root_url}({uuid})" if isinstance(uuid, int) else f"{base_url}/{uuid}"
-        )
-
-        _filter = lambda x: len(set(x[0]) & RESTRICTED) == 0
-        _reduce = lambda y, z: y | {z[0][0]}
-
-        nodes = (self, Entity())
+        self_url = f"{root_url}({self.uuid})"
         
-        cypher = Link().native.query(*Link.parse_nodes(nodes), "labels(b)")
-
-        with db.session() as session:
-            links = session.write_transaction(lambda tx: [*tx.run(cypher.query)])
-
-        linkedEntities = reduce(_reduce, filter(_filter, links), set())
-
         return {
-            "@iot.id": uuid,
+            "@iot.id": self.uuid,
             "@iot.selfLink": self_url,
-            "@iot.collection": root_url,
+            "@iot.collection": f"{base_url}/{type(self).__name__}",
             **props,
             **{
                 each + "@iot.navigation": f"{self_url}/{each}"
                 for each in linkedEntities
             },
         }
-
-
-@attr.s(repr=False)
-class Actuators(Entity):
-    """
-    Actuators are devices that turn messages into physical effects
-    """
-    name: str = attr.ib(default=None)
-    description: str = attr.ib(default=None)
-    encodingType: str = attr.ib(default=None)  # metadata encoding
-    metadata: Any = attr.ib(default=None)
-
-    networkAddress: (str, int) = attr.ib(default=(None, None))
-
-
-@attr.s(repr=False)
-class Agents(Entity):
-    """
-    Agents are a mystery.
-    """
-    name: str = attr.ib(default=None)
-
-
-@attr.s(repr=False)
-class Assets(Entity):
-    """
-    Assets are references to externaldata objects, which may or may not
-    be accessible at the time of query.
-
-    These are most likely ndarray/raster or json blobs in object storage
-
-    name: name of resource
-    description: annotation
-    location: address of resource, including protocol (e.g. postgres://)
-    """
-    name: str = attr.ib(default=None)
-    description: str = attr.ib(default=None)
-    location: str = attr.ib(default=None)
-
-
-@attr.s(repr=False)
-class Collections(Entity):
-    """
-    Collections are arbitrary groupings of entities.
-    """
-    name: str = attr.ib(default=None)
-    description: str = attr.ib(default=None)
-    extent: (float,) = attr.ib(default=None)
-    keywords: str = attr.ib(default=None)
-    license: str = attr.ib(default=None)
-    version: int = attr.ib(default=None)
-
 
 
 @attr.s(repr=False)
@@ -311,15 +184,6 @@ class DataStreams(Entity):
     )  # result times interval, ISO8601
 
 
-@attr.s(repr=False)
-class FeaturesOfInterest(Entity):
-    """
-    FeaturesOfInterest are usually Locations.
-    """
-    name: str = attr.ib(default=None)
-    description: str = attr.ib(default=None)
-    encodingType: str = attr.ib(default=None)  # metadata encoding
-    feature: Any = attr.ib(default=None)
 
 
 @attr.s(repr=False)
@@ -345,15 +209,7 @@ class HistoricalLocations(Entity):
     )  # time when thing was at location (ISO-8601 string)
 
 
-@attr.s(repr=False)
-class Sensors(Entity):
-    """
-    Sensors are devices that observe processes
-    """
-    name: str = attr.ib(default=None)
-    description: str = attr.ib(default=None)
-    encodingType: str = attr.ib(default=None)  # metadata encoding
-    metadata: Any = attr.ib(default=None)
+
 
 
 @attr.s(repr=False)
@@ -377,16 +233,6 @@ class Observations(Entity):
         True if value is outside the given range
         """
         return (self.result > maximum) | (self.result < minimum)
-
-
-@attr.s(repr=False)
-class ObservedProperties(Entity):
-    """
-    Create a property, but do not associate any data streams with it
-    """
-    name: str = attr.ib(default=None)
-    description: str = attr.ib(default=None)
-    definition: str = attr.ib(default=None)  #  URL to reference defining the property
 
 
 @attr.s(repr=False)

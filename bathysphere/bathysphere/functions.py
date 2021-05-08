@@ -16,8 +16,6 @@ from neo4j import Driver
 # password authentication
 from passlib.apps import custom_app_context  
 
-# headers and such available for authenticate 
-from flask import request  
 
 # need to be in scope to be `eval` from their string representation
 from bathysphere.models import (
@@ -59,6 +57,9 @@ def context(fcn: Callable) -> Callable:
 
     # pick up runtime-configurable vars from environment
     from os import getenv
+
+    # headers and such available for authenticate 
+    from flask import request
 
     # Enable more specific HTTP error messages for debugging. 
     DEBUG = True
@@ -137,8 +138,14 @@ def register(body: dict) -> (dict, int):
     """
     Register a new user account
     """
+    # Generate Driver Instances
     from neo4j import GraphDatabase
+
+    # Pick up auth info for database
     from os import getenv
+
+    # headers and such available for authenticate 
+    from flask import request
     
     # pylint: disable=too-many-return-statements
     try:
@@ -187,19 +194,19 @@ def register(body: dict) -> (dict, int):
         uuid=uuid4().hex,
         credential=_hash,
         ip=request.remote_addr,
-    ).create(db=db)
+    )
 
+    cypher = Node(pattern=repr(user), symbol=user._symbol).create()
+
+    # establish provenance
+    nodes = Link.parse_nodes((user, entryPoint))
+    link_cypher = Link(label="apiRegister", rank=0).native.join(*nodes)
+   
     try:
-        
-        nodes = Link.parse_nodes((user, entryPoint))
-        cypher = Link(label="apiRegister", rank=0).native.join(*nodes)
-
         with db.session() as session:
             session.write_transaction(lambda tx: tx.run(cypher.query))
-
+            session.write_transaction(lambda tx: tx.run(link_cypher.query))
     except Exception as ex:
-        user.delete(db=db)  # make sure to clean up orphaned User
-    finally:
         return {"message": "linking problem"}, 500
 
     return {"message": f"Registered as a member of {entryPoint.name}."}, 200
@@ -211,15 +218,16 @@ def manage(db: Driver, user: User, body: dict) -> (dict, int):
     Change account settings. You can only delete a user or change the
     alias.
     """
-    allowed = {"alias", "delete"}
-    if any(k not in allowed for k in body.keys()):
-        return "Bad request", 400
+    node = Node(pattern=repr(user), symbol=user._symbol)
+
     if body.get("delete", False):
-        cypher = Node(pattern=repr(user), symbol=user._symbol)
-        with db.session() as session:
-            return session.write_transaction(cypher.query)
+        cypher = node.delete()
     else:
-        user.mutate(db=db, data=body)  # pylint: disable=no-value-for-parameter
+        cypher = node.mutate(", ".join(map(processKeyValueInbound, body.items())))
+
+    with db.session() as session:
+        return session.write_transaction(cypher.query)
+
     return None, 204
 
 
@@ -300,28 +308,44 @@ def collection(db: Driver, entity: str) -> (dict, int):
 @context
 def create(
     db: Driver,
-    user: User,
     entity: str,
     body: dict,
     provider: Providers,
 ) -> (dict, int):
     """
-    Attach to database, and find available ID number to 
-    register the entity.
+    Create a new node(s) in graph.
+
+    Format object properties dictionary as list of key:"value" strings,
+    automatically converting each object to string using its built-in __str__ converter.
+    Special values can be given unique string serialization methods by overloading __str__.
+
+    The bind tuple items are external methods that are bound as instance methods to allow
+    for extending capabilities in an adhov way.
+
+    Blank values are ignored and will not result in graph attributes. Blank values are:
+    - None (python value)
+    - "None" (string)
+
+    Writing transactions are recursive, and can take a long time if the tasking graph
+    has not yet been built. For this reason it is desirable to populate the graph
+    with at least one instance of each data type. 
+
     """
+    
     # only used for API discriminator
     _ = body.pop("entityClass")  
 
     # evaluate str representation, create a DB record 
-    _entity = eval(entity)(uuid=uuid4().hex, **body).create(db)
-  
+    _entity = eval(entity)(uuid=uuid4().hex, **body)
+    cypher = Node(pattern=repr(_entity), symbol=_entity._symbol).create()
+
     # establish provenance
-
     nodes = Link.parse_nodes((provider, _entity))
-    cypher = Link(label="apiCreate").native.join(*nodes)
-
+    link_cypher = Link(label="apiCreate").native.join(*nodes)
+       
     with db.session() as session:
         session.write_transaction(lambda tx: tx.run(cypher.query))
+        session.write_transaction(lambda tx: tx.run(link_cypher.query))
     
     # send back the serialized result, for access to uuid
     return {"message": f"Create {entity}", "value": _entity.serialize(db)}, 200
@@ -343,9 +367,18 @@ def mutate(
     from itertools import chain
 
     _ = body.pop("entityClass")  # only used for API discriminator
-    cls = eval(entity)
-    _ = cls.mutate(db=db, data=body, identity=uuid, props={})
-    
+    e = eval(entity)(uuid=uuid)
+
+    cypher = Node(
+        pattern=repr(e), 
+        symbol=e._symbol
+    ).mutate(
+        ", ".join(map(processKeyValueInbound, body.items()))
+    )
+
+    with db.session() as session:
+        return session.write_transaction(cypher.query)
+
     return None, 204
 
 
@@ -381,7 +414,6 @@ def query(
         for item in session.write_transaction(lambda tx: [*tx.run(cypher.query)]):
             items.append(item.serialize(db=db))
         
-
     return {"@iot.count": len(items), "value": items}, 200
 
 

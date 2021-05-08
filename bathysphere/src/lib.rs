@@ -28,10 +28,19 @@ struct Node {
 
 #[pymethods]
 impl Node {
+
+    #[new]
+    fn new(pattern: String, symbol: String) -> Self {
+        Node {
+            pattern,
+            symbol
+        }
+    }
+
     /**
      * Count instances of the node label
      */
-    fn count(&self) -> String {
+    fn count(&self) -> Cypher {
         Cypher {
             query: format!("MATCH {} RETURN count({})", self.pattern, self.symbol),
             read_only: true
@@ -56,6 +65,34 @@ impl Node {
         Cypher{
             query: format!("MATCH {} DETACH DELETE {}", self.pattern, self.symbol),
             read_only: false
+        }
+    }
+
+    pub fn mutate(&self, updates: String) -> Cypher {
+        Cypher{
+            query: format!("MATCH {} SET {} += {{ {} }}", self.pattern, self.symbol, updates),
+            read_only: false
+        }
+    }
+
+    pub fn load(&self, key: Option<String>) -> Cypher {
+
+        let variable: String;
+        match &key {
+            None => variable = String::from(""),
+            Some(value) => variable = format!(".{}", value)
+        }
+
+        Cypher {
+            query: format!("MATCH {} RETURN {}{}", self.pattern, self.symbol, variable),
+            read_only: true,
+        }
+    }
+
+    pub fn create(&self) -> Cypher {
+        Cypher {
+            query: format!("MERGE {}", self.pattern),
+            read_only: false,
         }
     }
     
@@ -110,7 +147,7 @@ impl NodeIndex {
     /*
      *
      */
-    pub fn unique_constraint() -> Cypher {
+    pub fn unique_constraint(&self) -> Cypher {
         Cypher {
             query: format!("CREATE CONSTRAINT ON (n:{}) ASSERT n.{} IS UNIQUE", self.label, self.key),
             read_only: false
@@ -258,6 +295,47 @@ impl Agent {
     } 
 }
 
+
+struct Socket {
+    host: String,
+    port: u32
+}
+
+/**
+ * Actuators are devices that turn messages into physical effects
+ */
+#[pyclass]
+#[derive(Debug, Serialize, Deserialize)]
+struct Actuator {
+    #[pyo3(get)]
+    name: Option<String>,
+    description: Option<String>,
+    encoding_type: Option<String>,
+    metadata: Option<String>,
+    network_address: Option<Socket>
+}
+
+
+#[pymethods]
+impl Actuator {
+    #[new]
+    pub fn new(
+        name: Option<String>,
+        description: Option<String>,
+        encoding_type: Option<String>,
+        metadata: Option<String>,
+        network_address: Option<Socket>
+    ) -> Self {
+        Actuator{
+            name,
+            description,
+            encoding_type,
+            metadata,
+            network_address
+        }
+    }
+}
+
 /**
  * Assets are references to external data objects, which may or may not
  * be accessible at the time of query.
@@ -297,11 +375,151 @@ impl Asset {
     }
 }
 
+
+/**
+ * Collections are arbitrary groupings of entities.
+ * 
+ */
+#[pyclass]
+#[derive(Debug, Serialize, Deserialize)]
+struct Collection {
+    #[pyo3(get)]
+    name: Option<String>,
+    #[pyo3(get)]
+    description: Option<String>,
+    #[pyo3(get)]
+    extent: Option<Vec<f64>>,
+    #[pyo3(get)]
+    keywords: Option<String>,
+    #[pyo3(get)]
+    license: Option<String>,
+    #[pyo3(get)]
+    version: Option<u32>
+}
+
+#[pymethods]
+impl Collection {
+    #[new]
+    pub fn new(
+        name: Option<String>,
+        description: Option<String>,
+        extent: Option<Vec<f64>>,
+        keywords: Option<String>,
+        license: Option<String>,
+        version: Option<u32>
+    ) -> Self{
+        Collection{
+            name,
+            description,
+            extent,
+            keywords,
+            license,
+            version
+        }
+    }
+}
+
+/**
+ * FeaturesOfInterest are usually Locations.
+ */
+#[pyclass]
+struct FeatureOfInterest {
+    #[pyo3(get)]
+    name: Option<String>,
+    #[pyo3(get)]
+    description: Option<String>,
+    #[pyo3(get)]
+    encoding_type: Option<String>,
+    #[pyo3(get)]
+    feature: Option<HashMap>
+}
+
+#[pymethods]
+impl FeatureOfInterest {
+    #[new]
+    pub fn new(
+        name: Option<String>,
+        description: Option<String>,
+        encoding_type: Option<String>,
+        feature: Option<HashMap>
+    ) -> Self {
+        FeatureOfInterest {
+            name,
+            description,
+            encoding_type,
+            feature
+        }
+    }
+}
+
+#[pyclass]
+struct Sensor{
+    #[pyo3(get)]
+    name: Option<String>,
+    #[pyo3(get)]
+    description: Option<String>,
+    #[pyo3(get)]
+    encoding_type: Option<String>,
+    #[pyo3(get)]
+    metadata: Option<HashMap>
+}
+
+#[pymethods]
+impl FeatureOfInterest {
+    #[new]
+    pub fn new(
+        name: Option<String>,
+        description: Option<String>,
+        encoding_type: Option<String>,
+        metadata: Option<HashMap>
+    ) -> Self {
+        FeatureOfInterest {
+            name,
+            description,
+            encoding_type,
+            metadata
+        }
+    }
+}
+
+/**
+ * Create a property, but do not associate any data streams with it
+ */
+#[pyclass]
+struct ObservedProperty {
+    name: Option<String>,
+    description: Option<String>,
+    definition: Option<String>
+}
+
+#[pymethods]
+impl ObservedProperty{
+    #[new]
+    pub fn new(
+        name: Option<String>,
+        description: Option<String>,
+        definition: Option<String>
+    ) -> Self {
+        ObservedProperty{
+            name,
+            description,
+            definition
+        }
+    }
+}
+
+
 #[pymodule]
 fn bathysphere(_: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<Link>()?;
     m.add_class::<Cypher>()?;
     m.add_class::<Agent>()?;
     m.add_class::<Asset>()?;
+    m.add_class::<Node>()?;
+    m.add_class::<NodeIndex>()?;
+    m.add_class::<Actuator>()?;
+    m.add_class::<Collection>()?;
+    m.add_class::<FeatureOfInterest>()?;
+    m.add_class::<Sensor>()?;
     Ok(())
 }

@@ -38,6 +38,28 @@ classes = [
 IndexedDB = dict()
 
 
+def test_graph_native():
+    from ..bathysphere import Agent, Asset, Link
+    from ..models import Agents, Assets, Node
+
+    agent = Agent(name="hello")
+    asset = Asset(name="extenty thing", description=None)
+
+    link = Link(label="HAS")
+
+    agents = Agents(name="hello world")
+    assets = Assets(name="money")
+
+    node_a = Node(pattern=repr(agents), symbol=agents._symbol)
+    node_b = Node(pattern=repr(assets), symbol=assets._symbol)
+
+    query = link.drop(node_a, node_b)
+
+    print(query.query, query.read_only)
+
+    assert agent.name == "hello"
+
+
 @pytest.mark.teardown
 def test_graph_teardown():
     """
