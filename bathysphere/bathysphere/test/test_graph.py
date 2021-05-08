@@ -233,76 +233,76 @@ def test_graph_sensorthings_join(client, entityType, token):
     assert len(errors) == 0, errors
 
 
-def test_graph_sensothings_ops_create_agents():
-    """
-    Create a service account user.
-    """
-    from neo4j import GraphDatabase
-    from os import getenv
+# def test_graph_sensothings_ops_create_agents():
+#     """
+#     Create a service account user.
+#     """
+#     from neo4j import GraphDatabase
+#     from os import getenv
     
-    from bathysphere import reduceYamlEntityFile
-    from bathysphere.models import Agents, Link
-    from collections import deque
-    from random import shuffle
+#     from bathysphere import reduceYamlEntityFile
+#     from bathysphere.models import Agents, Link
+#     from collections import deque
+#     from random import shuffle
 
-    db = GraphDatabase.driver(
-        uri=getenv("NEO4J_HOSTNAME"), 
-        auth=("neo4j", getenv("NEO4J_ACCESS_KEY"))
-    )
+#     db = GraphDatabase.driver(
+#         uri=getenv("NEO4J_HOSTNAME"), 
+#         auth=("neo4j", getenv("NEO4J_ACCESS_KEY"))
+#     )
 
-    data = reduceYamlEntityFile("bin/agents.yml")
+#     data = reduceYamlEntityFile("bin/agents.yml")
 
-    queue = deque(data["Agents"])
+#     queue = deque(data["Agents"])
 
-    memo = {
-        "providers": dict(),
-        "agents": dict()
-    }
+#     memo = {
+#         "providers": dict(),
+#         "agents": dict()
+#     }
 
-    passes = 0
-    stable_after = 10
-    last = len(agents)
-    fails = 0
+#     passes = 0
+#     stable_after = 10
+#     last = len(agents)
+#     fails = 0
 
 
-    while agents and fails < stable_after:
+#     while agents and fails < stable_after:
 
-        count = 0
+#         count = 0
 
-        each = queue.popleft()
+#         each = queue.popleft()
 
-        agent_name = each["spec"]["name"]
+#         agent_name = each["spec"]["name"]
 
-        if agent_name not in memo["agents"].keys():
+#         if agent_name not in memo["agents"].keys():
 
-            memo["agents"][agent_name] = Agents(name=agent_name).create(db)
+#             memo["agents"][agent_name] = Agents(name=agent_name).create(db)
             
-            for prov in each["metadata"]["Providers@iot.navigation"]:
-                [name] = prov["name"]
-                if name not in memo["providers"].keys():
-                    memo["providers"][name] = Providers(name=name).create(db)
+#             for prov in each["metadata"]["Providers@iot.navigation"]:
+#                 [name] = prov["name"]
+#                 if name not in memo["providers"].keys():
+#                     memo["providers"][name] = Providers(name=name).create(db)
                 
-                link = Link(label=prov["label"]).join(db, nodes=(memo["agents"][agent_name], memo["providers"][name]))
+#                 link = Link(label=prov["label"]).join(db, nodes=(memo["agents"][agent_name], memo["providers"][name]))
 
-        linked_agents = each["metadata"].get("Agents@iot.navigation", [])
-        if all(map(lambda x: x["name"][0] in memo["agents"].keys(), linked_agents)):
+#         linked_agents = each["metadata"].get("Agents@iot.navigation", [])
+#         if all(map(lambda x: x["name"][0] in memo["agents"].keys(), linked_agents)):
 
-            for other in linked_agents:
-                [name] = other["name"] 
-                link = Link(label=other.get("label", None)).join(db, nodes=(memo["agents"][agent_name], memo["agents"][name]))
+#             for other in linked_agents:
+#                 [name] = other["name"] 
+#                 link = Link(label=other.get("label", None)).join(db, nodes=(memo["agents"][agent_name], memo["agents"][name]))
         
-        else:
-            queue.append(each)
+#         else:
+#             queue.append(each)
 
-        print(f"Pass {passes}, with {len(queue)} remaining, and {fails} fails")
+#         print(f"Pass {passes}, with {len(queue)} remaining, and {fails} fails")
         
 
-        if last == len(queue):
-            shuffle(queue)
-            fails += 1
-        else:
-            fails = 0
+#         if last == len(queue):
+#             shuffle(queue)
+#             fails += 1
+#         else:
+#             fails = 0
         
-        passes += 1
-        last = len(queue)
+#         passes += 1
+#         last = len(queue)
 

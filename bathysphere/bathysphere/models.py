@@ -29,6 +29,8 @@ from bathysphere import (
     reduceYamlEntityFile
 )
 
+# from bathysphere.bathysphere
+
 RESTRICTED = {"User", "Providers"}
 
 @attr.s(repr=False)
@@ -74,19 +76,16 @@ class Link:
         )
         return f"[ {self._symbol}{labelStr} {pattern} ]"
 
-    @classmethod
-    def drop(cls: Type, db: Driver, nodes: (Type, Type), props: dict) -> None:
+    def drop(self, db: Driver, nodes: (Type, Type), props: dict) -> None:
         """
         Drop the link between two node patterns
         """
-        r = cls(**props)
         a, b = nodes
-        cmd = f"MATCH {repr(a)}-{repr(r)}-{repr(b)} DELETE {r._symbol}"
+        cmd = f"MATCH {repr(a)}-{repr(self)}-{repr(b)} DELETE {self._symbol}"
         return executeQuery(db, lambda tx: tx.run(cmd), read_only=False)
 
-    @polymorphic
     def join(
-        self: Type,
+        self,
         db: Driver,
         nodes: (Any, Any),
         props: dict = None,
@@ -102,14 +101,6 @@ class Link:
         There must be exactly 2 entities to link. In the future this will support N-body
         symmetric linking.
         """
-        if isclass(self):
-            L = self(**(props or {}))  # pylint: disable=not-callable
-        elif props is not None and len(props) > 0:
-            raise ValueError(
-                "No additional props allowed when using existing Link instance."
-            )
-        else:
-            L = self
         try:
             a, b = nodes
         except ValueError:
@@ -118,14 +109,14 @@ class Link:
             a._setSymbol("a")
             b._setSymbol("b")
 
-        cmd = f"MATCH {repr(a)}, {repr(b)} MERGE ({a._symbol})-{repr(L)}->({b._symbol})"
+        cmd = f"MATCH {repr(a)}, {repr(b)} MERGE ({a._symbol})-{repr(self)}->({b._symbol})"
         if echo:
             print(cmd)
         executeQuery(db, lambda tx: tx.run(cmd), read_only=False)
 
-    @polymorphic
+   
     def query(
-        self: Type,
+        self,
         db: Driver,
         nodes: (Any, Any),
         props: dict = None,
@@ -136,14 +127,6 @@ class Link:
 
         Increment the pageRank every time the link is traversed.
         """
-        if isclass(self):
-            L = self(**(props or {}))  # pylint: disable=not-callable
-        elif props is not None and len(props) > 0:
-            raise ValueError(
-                "No additional props allowed when using existing Link instance."
-            )
-        else:
-            L = self
         try:
             a, b = nodes
         except ValueError:
@@ -152,7 +135,7 @@ class Link:
         b._setSymbol("b")
 
         cmd = (
-            f"MATCH {repr(a)}-{repr(L)}-{repr(b)}"
+            f"MATCH {repr(a)}-{repr(self)}-{repr(b)}"
             f"SET r.rank = r.rank + 1 "
             f"RETURN {result}"
         )
@@ -208,7 +191,7 @@ class Entity:
         """
         Create a filtered dictionary from the object properties.
 
-        Remove not serializable or resticted members:
+        Remove not serializable or restricted members:
         - functions
         - keys beginning with a private prefix
         - keys not in a selected set, IFF provided
