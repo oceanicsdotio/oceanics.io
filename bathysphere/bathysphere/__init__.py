@@ -9,20 +9,17 @@ from pathlib import Path
 from functools import reduce
 from json import dumps
 
-from connexion import App, FlaskApp
+from connexion import App
 from flask_cors import CORS
 from prance import ResolvingParser, ValidationError
 
-from typing import Callable, Generator, Any
+from typing import Callable, Any
 
 from neo4j import Driver
 from retry import retry
 from requests import post
 
 from datetime import datetime, date
-from collections import deque
-from multiprocessing import Pool
-from decimal import Decimal
 from typing import Coroutine, Any
 from asyncio import new_event_loop, set_event_loop, BaseEventLoop
 from json import dumps, loads, decoder
@@ -382,19 +379,6 @@ def processKeyValueInbound(keyValue: (str, Any), null: bool = False) -> str or N
 
     return None
 
-
-def executeQuery(
-    db: Driver, method: Callable, kwargs: (dict,)=(), read_only: bool = True
-) -> None or (Any,):
-    """
-    Execute one or more cypher queries in an equal number of transactions against the
-    Neo4j graph database.
-    """
-    with db.session() as session:
-        _transact = session.read_transaction if read_only else session.write_transaction
-        if kwargs:
-            return [_transact(method, **each) for each in kwargs]
-        return _transact(method)
 
 
 def connect() -> Driver:

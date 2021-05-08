@@ -242,8 +242,30 @@ def catalog(db: Driver) -> (dict, int):
 
     Uses the graph `context` decorator to obtain the neo4j driver
     and the pre-authorized user.
+
+    We make sure to 
+    remove the metadata entities that are not part of a public
+    specification. 
     """
-    return {"value": Entity.allLabels(db)}, 200
+    import getenv
+
+    # remove restricted entries, e.g. core nodes
+    def _filter(name: str) -> bool:
+        return name not in {"User", "Providers"}
+
+    # query method passed to `Entity.allLabels()`
+    def _method(tx) -> [Record]:
+        return filter(_filter, (r["label"] for r in tx.run(f"CALL db.labels()")))
+
+    # format the link
+    def _format(name) -> str:
+        return {
+            "name": name, 
+            "url": f'''${getenv("SERVICE_NAME")}/api/{name}'''
+        }
+
+    # evaluate the generator chain
+    return {"value": map(_format, executeQuery(db, _method))}, 200
 
 
 @context
@@ -399,5 +421,5 @@ def drop(
     """
     Break connections between linked nodes.
     """
-    Link.drop(db, (eval(root)(uuid=rootId), eval(entity)(uuid=uuid)), props)
+    Link().drop(db, (eval(root)(uuid=rootId), eval(entity)(uuid=uuid)), props)
     return None, 204

@@ -7,24 +7,19 @@ from inspect import isclass, signature
 from typing import Type, Callable, Any, Iterable
 from types import MethodType
 from datetime import datetime
-from pickle import load as unpickle
 from uuid import uuid4, UUID
-from json import dumps
 from time import time
 from functools import reduce
 from os import getenv
-from collections import deque
 from random import shuffle
 from itertools import chain
 
-
-from neo4j import Driver, Record, GraphDatabase
+from neo4j import Driver, Record
 from neo4j.spatial import WGS84Point  # pylint: disable=no-name-in-module,import-error
 import attr
 
 from bathysphere import (
     processKeyValueInbound,
-    executeQuery,
     polymorphic,
     reduceYamlEntityFile
 )
@@ -82,7 +77,10 @@ class Link:
         """
         a, b = nodes
         cmd = f"MATCH {repr(a)}-{repr(self)}-{repr(b)} DELETE {self._symbol}"
-        return executeQuery(db, lambda tx: tx.run(cmd), read_only=False)
+
+        with db.session() as session:
+            return session.write_transaction(lambda tx: tx.run(cmd))
+       
 
     def join(
         self,
@@ -112,9 +110,10 @@ class Link:
         cmd = f"MATCH {repr(a)}, {repr(b)} MERGE ({a._symbol})-{repr(self)}->({b._symbol})"
         if echo:
             print(cmd)
-        executeQuery(db, lambda tx: tx.run(cmd), read_only=False)
-
-   
+       
+        with db.session() as session:
+            return session.write_transaction(lambda tx: tx.run(cmd))
+       
     def query(
         self,
         db: Driver,
@@ -143,7 +142,9 @@ class Link:
         def runQuery(tx):
             return [r for r in tx.run(cmd)]
 
-        return executeQuery(db=db, method=runQuery, read_only=False)
+        with db.session() as session:
+            return session.write_transaction(runQuery(tx))
+       
 
 
 @attr.s(repr=False)
@@ -219,7 +220,10 @@ class Entity:
         query = lambda tx: tx.run(
             f"CREATE CONSTRAINT ON (n:{cls.__name__}) ASSERT n.{by} IS UNIQUE"
         )
-        return executeQuery(db, query, read_only=False)
+
+        with db.session() as session:
+            return session.write_transaction(query)
+       
 
     @classmethod
     def addIndex(cls, db: Driver, by: str) -> Callable:
@@ -228,7 +232,9 @@ class Entity:
         on the graph database.
         """
         query = lambda tx: tx.run(f"CREATE INDEX ON : {cls.__name__}({by})")
-        return executeQuery(db, query, read_only=False)
+
+        with db.session() as session:
+            return session.write_transaction(query)
 
     @classmethod
     def addLabel(cls, db: Driver, label: str, **kwargs: dict) -> list or None:
@@ -239,7 +245,9 @@ class Entity:
         query = lambda tx: tx.run(
             f"MATCH {repr(entity)} SET {entity._symbol}:{label}"
         ).values()
-        return executeQuery(db, query, read_only=False)
+
+        with db.session() as session:
+            return session.write_transaction(query)
 
     @classmethod
     def count(cls, db: Driver, **kwargs: dict) -> int:
@@ -247,12 +255,15 @@ class Entity:
         Count occurrence of a class label or pattern in Neo4j.
         """
         entity = cls(**kwargs)
-        query = lambda tx: tx.run(
-            f"MATCH {repr(entity)} RETURN count({entity._symbol})"
-        ).single()[0]
-        return executeQuery(db, query, read_only=True)
 
-    @polymorphic
+        def query(tx):
+            tx.run(
+                f"MATCH {repr(entity)} RETURN count({entity._symbol})"
+            ).single()[0]
+
+        with db.session() as session:
+            return session.read_transaction(query)
+
     def create(
         self,
         db: Driver,
@@ -287,8 +298,13 @@ class Entity:
         else:
             entity = self
 
-        executeQuery(db, lambda tx: tx.run(f"MERGE {repr(entity)}"), read_only=False)
+        def query(tx):
+            return tx.run(f"MERGE {repr(entity)}")
 
+        with db.session() as session:
+            return session.write_transaction(query)
+
+    
         # if isinstance(entity, TaskingCapabilities):  # prevent recursion
         #     return entity
 
@@ -359,21 +375,26 @@ class Entity:
         else:
             entity = self
 
-        return executeQuery(
-            db=db,
-            read_only=False,
-            method=lambda tx: tx.run(
+        def query(tx):
+            return tx.run(
                 f"MATCH {repr(entity)} DETACH DELETE {entity._symbol}"
-            ).values(),
-        )
+            ).values()
+
+        with db.session() as session:
+            return session.write_transaction(query)
+
 
     @classmethod
     def dropIndex(cls, db: Driver, by: str) -> None:
         """
         Drop an existing index from a set of labeled nodes.
         """
-        query = lambda tx: tx.run(f"DROP INDEX ON : {cls.__name__}({by})")
-        executeQuery(db, query, read_only=False)
+        def query(tx):
+            tx.run(f"DROP INDEX ON : {cls.__name__}({by})")
+
+        with db.session() as session:
+            return session.write_transaction(query)
+        
 
     def load(
         self,
@@ -413,7 +434,9 @@ class Entity:
                 f"RETURN {self._symbol}{'.{}'.format(result) if result else ''}"
             ))]
 
-        return [*map(_instance, executeQuery(db, query))]
+        with db.session() as session:
+            return [*map(_instance, session.read_transaction(query))]
+
 
     @polymorphic
     def mutate(self: Type, db: Driver, data: dict, pattern: dict = None) -> None:
@@ -428,13 +451,14 @@ class Entity:
             entity = self
 
         _updates = ", ".join(map(processKeyValueInbound, data.items()))
-        executeQuery(
-            db=db,
-            read_only=False,
-            method=lambda tx: tx.run(
+
+        def query(tx):
+            return tx.run(
                 f"MATCH {repr(entity)} SET {entity._symbol} += {{ {_updates} }}"
-            ),
-        )
+            )
+
+        with db.session() as session:
+            return session.write_transaction(query)
 
     def serialize(
         self, db: Driver, protocol: str = "http", select: (str) = None
@@ -473,98 +497,69 @@ class Entity:
             },
         }
 
-    @classmethod
-    def collectionLink(cls):
-    
-        return {
-            "name": cls.__name__, 
-            "url": f'''${getenv("SERVICE_NAME")}/api/{cls.__name__}'''
-        }
-
-    @staticmethod
-    def allLabels(db: Driver):
-        """
-        We make sure to 
-        remove the metadata entities that are not part of a public
-        specification. 
-        """
-        # remove restricted entries, e.g. core nodes
-        def _filter(name: str):
-            return name not in RESTRICTED
-
-        # query method passed to `Entity.allLabels()`
-        def method(tx) -> [Record]:
-            return filter(_filter, (r["label"] for r in tx.run(f"CALL db.labels()")))
-
-        # format the link
-        def format(name):
-            eval(name).collectionLink()
-
-        # evaluate the generator chain
-        return [*map(format, executeQuery(db, method))]
 
 
-    @classmethod
-    def fromSpec(cls, spec: dict, metadata: dict) -> Iterable:
-        """
-        Create an Agent from a spec. 
-        """
-        entity = cls(name=spec["name"])
+    # @classmethod
+    # def fromSpec(cls, spec: dict, metadata: dict) -> Iterable:
+    #     """
+    #     Create an Agent from a spec. 
+    #     """
+    #     entity = cls(name=spec["name"])
 
-        def pairing(args: (str, dict)) -> (Type, str, Type):
-            key, value = args
-            return (entity, value["label"], (eval(key))(name=value["name"]))
+    #     def pairing(args: (str, dict)) -> (Type, str, Type):
+    #         key, value = args
+    #         return (entity, value["label"], (eval(key))(name=value["name"]))
 
-        def extractChildren(key: str) -> (str, dict):
-            return key.split("@")[0], metadata[key]
+    #     def extractChildren(key: str) -> (str, dict):
+    #         return key.split("@")[0], metadata[key]
         
-        return map(pairing, chain.from_iterable(map(extractChildren, metadata.keys())))
+    #     return map(pairing, chain.from_iterable(map(extractChildren, metadata.keys())))
 
                         
-    @classmethod
-    def fromSpecFile(
-        cls, 
-        file: str, 
-        db: Driver,
-        stable: int = 10,
+    # @classmethod
+    # def fromSpecFile(
+    #     cls, 
+    #     file: str, 
+    #     db: Driver,
+    #     stable: int = 10,
 
-    ):
+    # ):
        
-        memo = {
-            "providers": dict(),
-            "agents": dict()
-        }
+    #     memo = {
+    #         "providers": dict(),
+    #         "agents": dict()
+    #     }
 
-        last = len(agents)
-        fails = 0
+    #     last = len(agents)
+    #     fails = 0
 
-        queue = map(cls.fromSpec, reduceYamlEntityFile(file)[cls.__name__])
+    #     queue = map(cls.fromSpec, reduceYamlEntityFile(file)[cls.__name__])
 
-        while fails < stable:
+    #     while fails < stable:
             
-            jobs = cls.fromSpec(**queue.popleft())
+    #         jobs = cls.fromSpec(**queue.popleft())
                 
 
-            linked_agents = each["metadata"].get("Agents@iot.navigation", [])
-            if all(map(lambda x: x["name"][0] in memo["agents"].keys(), linked_agents)):
+    #         linked_agents = each["metadata"].get("Agents@iot.navigation", [])
+    #         if all(map(lambda x: x["name"][0] in memo["agents"].keys(), linked_agents)):
 
-                for other in linked_agents:
-                    [name] = other["name"] 
-                    link = Link(label=other.get("label", None)).join(db, nodes=(memo["agents"][agent_name], memo["agents"][name]))
+    #             for other in linked_agents:
+    #                 [name] = other["name"] 
+    #                 link = Link(label=other.get("label", None)).join(db, nodes=(memo["agents"][agent_name], memo["agents"][name]))
             
-            else:
-                queue.append(each)
+    #         else:
+    #             queue.append(each)
 
-            print(f"{len(queue)} remaining, and {fails} fails")
+    #         print(f"{len(queue)} remaining, and {fails} fails")
             
 
-            if last == len(queue):
-                shuffle(queue)
-                fails += 1
-            else:
-                fails = 0
+    #         if last == len(queue):
+    #             shuffle(queue)
+    #             fails += 1
+    #         else:
+    #             fails = 0
             
-            last = len(queue)
+    #         last = len(queue)
 
 @attr.s(repr=False)
 class Actuators(Entity):

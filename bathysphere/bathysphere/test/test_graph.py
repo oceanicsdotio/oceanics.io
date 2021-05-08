@@ -58,7 +58,7 @@ def test_graph_teardown():
         auth=("neo4j", getenv("NEO4J_ACCESS_KEY"))
     )
 
-    Entity.delete(db=db)  
+    Entity().delete(db=db)  
     for provider in appConfig["Providers"]:
         _ = Providers(
             **provider["spec"],
