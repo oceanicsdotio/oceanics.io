@@ -2,14 +2,14 @@
 use pyo3::prelude::*;
 use std::env;
 use std::collections::{HashMap};
-extern crate serde_json;  // or yaml
+use serde::{Serialize, Deserialize};
 
-#[macro_use]
-extern crate serde_derive;
+extern crate serde_json; 
 
 
 #[pyclass]
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct Cypher {
     #[pyo3(get)]
     pub read_only: bool,
@@ -20,6 +20,7 @@ struct Cypher {
 
 #[pyclass]
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct Node {
     #[pyo3(get)]
     pub pattern: String,
@@ -102,6 +103,7 @@ impl Node {
 
 #[pyclass]
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct NodeIndex {
     #[pyo3(get)]
     pub label: String,
@@ -172,6 +174,7 @@ The attributes are for a `Links` are:
  */
 #[pyclass]
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct Links {
     #[pyo3(get)]
     pub cost: Option<f32>,
@@ -283,6 +286,7 @@ impl Links {
 
 #[pyclass]
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct Agents {
     #[pyo3(get)]
     name: Option<String>,
@@ -307,8 +311,24 @@ impl Agents {
 #[pyclass]
 #[derive(Clone, Debug, Serialize, Deserialize)]
 struct Socket {
+    #[pyo3(get)]
     host: String,
-    port: u32
+    #[pyo3(get)]
+    port: Option<u32>
+}
+
+#[pymethods]
+impl Socket {
+    #[new]
+    pub fn new(
+        host: String,
+        port: Option<u32>
+    ) -> Self {
+        Socket {
+            host,
+            port
+        }
+    }
 }
 
 /**
@@ -316,6 +336,7 @@ struct Socket {
  */
 #[pyclass]
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct Actuators {
     #[pyo3(get)]
     name: Option<String>,
@@ -406,6 +427,7 @@ impl Assets {
  */
 #[pyclass]
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct Collections {
     #[pyo3(get)]
     name: Option<String>,
@@ -451,6 +473,8 @@ impl Collections {
  * FeaturesOfInterest are usually Locationss.
  */
 #[pyclass]
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct FeaturesOfInterest {
     #[pyo3(get)]
     name: Option<String>,
@@ -485,6 +509,8 @@ impl FeaturesOfInterest {
 }
 
 #[pyclass]
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct Sensors{
     #[pyo3(get)]
     name: Option<String>,
@@ -522,6 +548,8 @@ impl Sensors {
  * Create a property, but do not associate any data streams with it
  */
 #[pyclass]
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct ObservedProperties {
     #[pyo3(get)]
     name: Option<String>,
@@ -557,6 +585,8 @@ impl ObservedProperties{
  * Tasks are pieces of work that are done asynchronously by humans or machines.
  */
 #[pyclass]
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct Tasks {
     #[pyo3(get)]
     creation_time: Option<f64>,
@@ -589,6 +619,8 @@ impl Tasks {
  * 
  */
 #[pyclass]
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct Thing {
     #[pyo3(get)]
     uuid: Option<String>,
@@ -622,6 +654,8 @@ impl Thing {
  * TaskingCapabilities may be called by defining graph patterns that supply all of their inputs.
   */
 #[pyclass]
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct TaskingCapabilities {
     #[pyo3(get)]
     uuid: Option<String>,
@@ -661,6 +695,8 @@ impl TaskingCapabilities {
     attribution. 
  */
 #[pyclass]
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct Providers {
     #[pyo3(get)]
     uuid: Option<String>,
@@ -704,6 +740,8 @@ impl Providers {
 
 
 #[pyclass]
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct Locations {
     #[pyo3(get)]
     uuid: Option<String>,
@@ -742,6 +780,8 @@ impl Locations {
  * Private and automatic, should be added to sensor when new location is determined
  */
 #[pyclass]
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct HistoricalLocations {
     #[pyo3(get)]
     uuid: Option<String>,
@@ -796,6 +836,8 @@ impl TimeInterval {
  * Observationss are individual time-stamped members of DataStreams
  */
 #[pyclass]
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct Observations {
     #[pyo3(get)]
     uuid: Option<String>,
@@ -842,6 +884,8 @@ impl Observations {
  *
  */
 #[pyclass]
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct DataStreams {
     #[pyo3(get)]
     uuid: Option<String>,
@@ -888,6 +932,8 @@ impl DataStreams {
  *  the system through the same routes as normal Entities
  */
 #[pyclass]
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct User {
     #[pyo3(get)]
     uuid: Option<String>,

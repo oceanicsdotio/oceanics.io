@@ -50,8 +50,6 @@ class Entity:
     """
     Primitive object/entity, may have name and location
     """
-    uuid: UUID = attr.ib(default=None)
-
     def __repr__(self):
         """
         Format the entity as a Neo4j style node string compatible with
@@ -88,7 +86,7 @@ class Entity:
     def parse_nodes(nodes):
         return map(Node.parse_node, zip(nodes, ("a", "b")))
 
-    @staticmethod(f)
+    @staticmethod
     def processKeyValueInbound(keyValue: (str, Any), null: bool = False) -> str or None:
         """
         Convert a String key and Any value into a Cypher representation
@@ -155,19 +153,15 @@ class Entity:
                 
         return key, value
 
-    
     def load(
         self,
         db: Driver,
         result: str = None
     ) -> [Type]:
-
-
         """
         Create entity instance from a dictionary or Neo4j <Node>, which has an items() method
         that works the same as the dictionary method.
         """
-
         cypher = Node(pattern=repr(self), symbol=self._symbol).load(result)
 
         items = []
@@ -177,21 +171,6 @@ class Entity:
                 items.append(type(self)(**props))
 
         return items
-
-    
-    def linkedCollections(self, db: Driver) -> [Record]:
-
-        nodes = (self, Entity())
-        
-        _filter = lambda x: len(set(x[0]) & RESTRICTED) == 0
-        _reduce = lambda y, z: y | {z[0][0]}
-        
-        linkedEntities = reduce(_reduce, filter(_filter, links), set())
-        cypher = Link().native.query(*Link.parse_nodes(nodes), "labels(b)")
-
-        with db.session() as session:
-            return session.write_transaction(lambda tx: [*tx.run(cypher.query)])
-
 
     def serialize(
         self, db: Driver, select: (str) = None
@@ -203,17 +182,24 @@ class Entity:
         Remove private members that include a underscore,
         since SensorThings notation is title case
         """
-        base_url = f'''https://{getenv("SERVICE_NAME")}/api'''
-        root_url = f"{base_url}/{type(self).__name__}"
-        self_url = f"{root_url}({self.uuid})"
+        cypher = Link().native.query(*Link.parse_nodes((self, Entity())), "labels(b)")
+
+        with db.session() as session:
+            links = session.write_transaction(lambda tx: [*tx.run(cypher.query)])
+
+        _filter = lambda x: len(set(x[0]) & RESTRICTED) == 0
+
+        _reduce = lambda y, z: y | {z[0][0]}
+        
+        linkedEntities = reduce(_reduce, filter(_filter, links), set())
         
         return {
             "@iot.id": self.uuid,
-            "@iot.selfLink": self_url,
-            "@iot.collection": f"{base_url}/{type(self).__name__}",
+            "@iot.selfLink": f"https://{getenv('SERVICE_NAME')}/api/{type(self).__name__}({self.uuid})",
+            "@iot.collection": f"https://{getenv('SERVICE_NAME')}/api/{type(self).__name__}",
             **props,
             **{
-                each + "@iot.navigation": f"{self_url}/{each}"
+                each + "@iot.navigation": f"https://{getenv('SERVICE_NAME')}/api/{type(self).__name__}({self.uuid})/{each}"
                 for each in linkedEntities
             },
         }
