@@ -1,46 +1,249 @@
-# pylint: disable=invalid-name,line-too-long,eval-used,unused-import
+# pylint: disable=invalid-name,line-too-long,eval-used,unused-import,protected-access
+
 """
 The functions module of the graph API contains handlers for secure
-calls. These are exposed as a web service.
+calls. 
+
+These are exposed as a web service.
 """
+
 
 # for creating users and other entities
 from uuid import uuid4  
 
+
 # function signature of `context`
-from typing import Callable 
+from typing import Callable, Type, Any, Iterable
+
 
 # function signature for db queries
 from neo4j import Driver 
+
 
 # password authentication
 from passlib.apps import custom_app_context  
 
 
-# need to be in scope to be `eval` from their string representation
-from bathysphere.models import (
-    Actuators,
-    Assets,
-    Collections,
-    DataStreams,
-    FeaturesOfInterest,
-    Link,
-    Locations,
-    Observations,
-    ObservedProperties,
-    Providers,
-    User,
-    Sensors,
-    Tasks,
-    TaskingCapabilities,
+# pick up runtime vars from environment
+from os import getenv
+
+
+# JSON string serialization
+from json import dumps, load
+
+
+# methods from core
+from bathysphere import app, job
+
+
+# Object storage drivers for reading private data and writing all data
+from bathysphere.storage import Storage, MetaDataTemplate
+
+
+# Native implementations from Rust code base
+from bathysphere.bathysphere import (
+    Link as NativeLink, 
+    Node,
+    Asset,
+    Actuator,
+    DataStream,
+    Observation,
     Things,
-    Entity
+    Sensor,
+    Task,
+    TaskingCapability,
+    ObservedProperty,
+    FeatureOfInterest,
+    Location,
+    HistoricalLocation,
+    User,
+    Provider
 )
+
+
+
+COLLECTION_KEY = "configurations"
+SERVICE = "https://bivalve.oceanics.io/api"
+DEBUG = True
+
+
+def processKeyValueInbound(keyValue: (str, Any), null: bool = False) -> str or None:
+    """
+    Convert a String key and Any value into a Cypher representation
+    for making the graph query.
+    """
+    key, value = keyValue
+    if key[0] == "_":
+        return None
+
+    if "location" in key and isinstance(value, dict):
+
+        if value.get("type") == "Point":
+
+            coord = value["coordinates"]
+            if len(coord) == 2:
+                values = f"x: {coord[1]}, y: {coord[0]}, crs:'wgs-84'"  
+            elif len(coord) == 3:
+                values = f"x: {coord[1]}, y: {coord[0]}, z: {coord[2]}, crs:'wgs-84-3d'"
+            else:
+                # TODO: deal with location stuff in a different way, and don't auto include
+                # the point type in processKeyValueOutbound. Seems to work for matching now.
+                # raise ValueError(f"Location coordinates are of invalid format: {coord}")
+                return None
+            return f"{key}: point({{{values}}})"
+
+        if value.get("type") == "Polygon":
+            return f"{key}: '{dumps(value)}'"
+
+        if value.get("type") == "Network":
+            return f"{key}: '{dumps(value)}'"
+
+
+    if isinstance(value, (list, tuple, dict)):
+        return f"{key}: '{dumps(value)}'"
+
+    if isinstance(value, str) and value and value[0] == "$":
+        # TODO: This hardcoding is bad, but the $ picks up credentials
+        if len(value) < 64:
+            return f"{key}: {value}"
+
+    if value is not None:
+        return f"{key}: {dumps(value)}"
+
+    if null:
+        return f"{key}: NULL"
+
+    return None
+
+
+def cypher_props(props):
+
+    def _filter(x):
+        x is not None
+
+    return ", ".join(filter(_filter, map(processKeyValueInbound, props.items())))
+
+
+class Link:
+    def __init__(self, props=None, **kwargs):
+        self.native = NativeLink(
+            pattern=cypher_props({**(props|{}), **kwargs}), 
+            **kwargs
+        )
+        
+
+class Entity:
+
+    native = None
+
+    """
+    Primitive object/entity, may have name and location
+    """
+    def __repr__(self):
+        """
+        Format the entity as a Neo4j style node string compatible with
+        the Cypher query language:
+
+        (<symbol>:<class> { <var>: $<var>, <k>: <v>, <k>: <v> })
+        """
+        className = str(self)
+        entity = "" if className == Entity.__name__ else f":{className}"
+       
+        return f"( {self._symbol}{entity} {{ {cypher_props(props)} }} )"
+
+
+    @staticmethod
+    def parse_node(item):
+        """
+        Convenience setter for changing symbol if there are multiple patterns.
+
+        Some common classes have special symbols, e.g. User is `u`
+        """
+        node, symbol = item
+        self._symbol = symbol
+        return Node(pattern=repr(node), symbol=symbol, label=type(node).__name__)
+
+    @staticmethod
+    def parse_nodes(nodes):
+        return map(Node.parse_node, zip(nodes, ("a", "b")))
+
+   
+    def load(
+        self,
+        db: Driver,
+        result: str = None
+    ) -> [Type]:
+        """
+        Create entity instance from a dictionary or Neo4j <Node>, which has an items() method
+        that works the same as the dictionary method.
+        """
+
+        from neo4j.spatial import WGS84Point
+
+        def _parse(keyValue: (str, Any),) -> (str, Any):
+       
+            k, v = keyValue
+
+            if isinstance(value, WGS84Point):
+                return k, {
+                    "type": "Point",
+                    "coordinates": f"{[v.longitude, v.latitude]}"
+                }
+                    
+            return k, v
+
+
+        cypher = Node(pattern=repr(self), symbol=self._symbol).load(result)
+
+        items = []
+        with db.session() as session:
+            for record in session.read_transaction(lambda tx: tx.run(cypher.query)):
+                props = dict(map(_parse, dict(record[0]).items()))
+                items.append(type(self)(**props))
+
+        return items
+
+    def serialize(
+        self, db: Driver, select: (str) = None
+    ) -> dict:
+        """
+        Format entity as JSON compatible dictionary from either an object instance or a Neo4j <Node>
+
+        Filter properties by selected names, if any.
+        Remove private members that include a underscore,
+        since SensorThings notation is title case
+        """
+
+        # Compose and execute the label query transaction
+        cypher = Link().native.query(*Link.parse_nodes((self, Entity())), "distinct labels(b)")
+        with db.session() as session:
+            labels = session.write_transaction(lambda tx: set(r[0] for r in tx.run(cypher.query)))
+        
+        service = getenv('SERVICE_NAME')
+
+        def format_collection(root, rootId, name):
+            return (
+                f"{name}@iot.navigation",
+                f"https://{service}/api/{root}({rootId})/{name}"
+            )
+
+        return {
+            "@iot.id": self.uuid,
+            "@iot.selfLink": f"https://{service}/api/{type(self).__name__}({self.uuid})",
+            "@iot.collection": f"https://{service}/api/{type(self).__name__}",
+            **props,
+            **{
+                f"{each}@iot.navigation": f"https://{service}/api/{type(self).__name__}({self.uuid})/{each}"
+                for each in linkedEntities
+            },
+        }
+
 
 
 def context(fcn: Callable) -> Callable:
     """
     Decorator to authenticate and inject user into request.
+
     Validate/verify JWT token.
     """
     # peek into wrapped function sigs, to conditionally inject args
@@ -122,7 +325,7 @@ def context(fcn: Callable) -> Callable:
                 "detail": f"{ex}"
             }, 400
 
-    def handleUncaughtExceptions(*args, **kwargs):
+    def handleUncaughtExceptions(fn, *args, **kwargs):
         """
         Utility function
         """
@@ -169,7 +372,6 @@ def register(body: dict) -> (dict, int):
     if len(providers) != 1:
         return {"message": "Bad API key."}, 403
 
-    
     username = body.get("username")
     if not ("@" in username and "." in username):
         return {"message": "use email"}, 403
@@ -364,8 +566,6 @@ def mutate(
     Give new values for the properties of an existing entity.
     """
 
-    from itertools import chain
-
     _ = body.pop("entityClass")  # only used for API discriminator
     e = eval(entity)(uuid=uuid)
 
@@ -464,3 +664,161 @@ def drop(
         return session.write_transaction(lambda tx: tx.run())
 
     return None, 204
+
+
+@Storage.session
+def index(client: Storage) -> (dict, int):
+    """
+    Get all model configurations known to the service.
+    """
+
+    from minio.error import S3Error  # pylint: disable=no-name-in-module
+
+    try:
+        return load(client.get_object(client.index)), 200
+    except IndexError:
+        return f"Database ({client.endpoint}) not found", 404
+    except S3Error:
+        return f"Index ({client.index}) not found", 404
+    
+
+@Storage.session
+def configure(
+    client: Storage, 
+    body: dict
+) -> (dict, int):
+    """
+    Create a new configuration
+
+    :param body: Request body, already validated by connexion
+    :param index: index.json data
+    :param client: s3 storage connection
+    :param session: UUID4 session id, used to name configuration
+    """
+    
+    index = load(client.get_object(client.index))
+    self_link = f"{SERVICE}/{client.session_id}"
+    index[COLLECTION_KEY].append(self_link)
+   
+    client.put_object(
+        object_name=f"{client.session_id}.json",
+        data={
+            **body, 
+            "experiments": [],
+            "uuid": client.session_id,
+            "self": self_link
+        },
+        metadata=MetaDataTemplate(
+            x_amz_meta_service_file_type="configuration",
+            x_amz_meta_parent=client.index
+        ).headers,
+    )
+
+    client.put_object(
+        object_name=client.index,
+        data=index,
+        metadata=MetaDataTemplate(
+            x_amz_meta_service_file_type="index",
+            x_amz_meta_parent=client.service_name
+        ).headers
+    )
+
+    return {"self": self_link}, 200
+
+
+@Storage.session
+def run(
+    body: dict,
+    objectKey: str,
+    species: str,
+    cultureType: str,
+    client: Storage,
+    weight: float
+) -> (dict or str, int):
+    """
+    Run the model using a versioned configuration.
+
+    :param objectKey: identity of the configuration to use
+    :param body: optional request body with forcing
+    :param species: bivalve species string, in path:
+    :param session: session UUID used to name experiment
+    :param weight: initial seed weight
+    :param client: storage client
+    """
+
+    from multiprocessing import Pool, cpu_count
+    from itertools import repeat
+    from time import time
+    from functools import reduce
+
+    from minio.error import S3Error  # pylint: disable=no-name-in-module
+    
+    try: 
+        config = load(client.get_object(f"{objectKey}.json"))
+        properties = config.get("properties")
+    except S3Error:
+        return f"Configuration ({objectKey}) not found", 404
+    except Exception:
+        return f"Invalid configuration ({objectKey})", 500
+ 
+    start = time()
+    processes = min(cpu_count(), properties.get("workers", cpu_count()))
+   
+    with Pool(processes) as pool:
+
+        configuration = {
+            "species": species,
+            "culture": cultureType,
+            "weight": weight,
+            "dt": properties.get("dt", 3600) / 3600 / 24,
+            "volume": properties.get("volume", 1000.0),
+        }
+        forcing = body.get("forcing")
+        stream = zip(repeat(configuration, len(forcing)), forcing)
+        data, logs = zip(*pool.starmap(job, stream))
+        self_link = f"{SERVICE}/{client.session_id}"
+
+        result = {
+            "self": self_link,
+            "configuration": f"{SERVICE}/{objectKey}",
+            "forcing": forcing,
+            "data": data,
+            "workers": pool._processes,
+            "start": start,
+            "finish": time(),
+        }
+    
+    try:
+        client.put_object(
+            object_name=f"{client.session_id}.logs.json",
+            data=reduce(lambda a, b: a + b, logs),
+            metadata=MetaDataTemplate(
+                x_amz_meta_service_file_type="log", 
+                x_amz_meta_parent=client.session_id
+            ).headers,
+        )
+
+        client.put_object(
+            object_name=f"{client.session_id}.json",
+            data=result,
+            metadata=MetaDataTemplate(
+                x_amz_meta_service_file_type="experiment", 
+                x_amz_meta_parent=objectKey
+            ).headers
+        )
+
+        config["experiments"].append(result["self"])
+
+        client.put_object(
+            object_name=f"{objectKey}.json",
+            data=config,
+            metadata=MetaDataTemplate(
+                x_amz_meta_service_file_type="configuration", 
+                x_amz_meta_parent=client.index
+            ).headers
+        )
+    except Exception:
+        return f"Error saving results", 500
+
+    return {"self": self_link}, 200
+ 

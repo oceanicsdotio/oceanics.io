@@ -7,6 +7,10 @@ use serde::{Serialize, Deserialize};
 extern crate serde_json; 
 
 
+/**
+ * The Cypher data structure contains pre-computed queries
+ * ready to be executed against the Neo4j graph database. 
+ */
 #[pyclass]
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -18,65 +22,113 @@ struct Cypher {
 }
 
 
+/** 
+ * The Node data structure encapsulates logic needed for 
+ * representing entities in the Cypher query language.
+ */
 #[pyclass]
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct Node {
     #[pyo3(get)]
-    pub pattern: String,
+    pub pattern: Option<String>,
     #[pyo3(get)]
-    pub symbol: String
+    pub symbol: Option<String>,
+    #[pyo3(get)]
+    pub label: Option<String>,
 }
 
+/**
+ * Python Methods are primarily for Cypher query templating. 
+ */
 #[pymethods]
 impl Node {
 
     #[new]
-    fn new(pattern: String, symbol: String) -> Self {
+    fn new(
+        pattern: Option<String>, 
+        symbol: Option<String>, 
+        label: Option<String>
+    ) -> Self {
         Node {
             pattern,
-            symbol
+            symbol,
+            label,
         }
     }
 
     /**
-     * Count instances of the node label
+     * Format the cypher query representation of the Node data structure
+     */
+    fn cypher_repr(&self) -> String {
+
+        let label: String;
+
+        match &self.label {
+            None => label = String::from(""),
+            Some(value) => label = format!(":{:?}", value)
+        }
+
+        let pattern: String;
+
+        match &self.pattern {
+            None => pattern = String::from(""),
+            Some(value) => pattern = format!(" {{ {:?} }}", value)
+        }
+
+        let symbol: String;
+
+        match &self.symbol {
+            None => symbol = String::from(""),
+            Some(value) => symbol = format!(" {{ {:?} }}", value)
+        }
+
+        format!("( {:?}{:?}{:?} )", symbol, label, pattern)
+    }
+
+    /**
+     * Count instances of the node label.
      */
     fn count(&self) -> Cypher {
         Cypher {
-            query: format!("MATCH {} RETURN count({})", self.pattern, self.symbol),
+            query: format!("MATCH {:?} RETURN count({:?})", self.pattern, self.symbol),
             read_only: true
         }
-        
     }
 
     /**
-     * Apply new label to the node set matching the node pattern
+     * Apply new label to the node set matching the node pattern.
      */
     fn add_label(&self, label: String) -> Cypher {
         Cypher {
-            query: format!("MATCH {} SET {}:{}", self.pattern, self.symbol, label),
+            query: format!("MATCH {:?} SET {:?}:{:?}", self.pattern, self.symbol, label),
             read_only: false
         }
     }
 
     /**
-     * 
-    */
+     * Query to delete a node pattern from the graph.
+     */
     pub fn delete(&self) -> Cypher {
         Cypher{
-            query: format!("MATCH {} DETACH DELETE {}", self.pattern, self.symbol),
+            query: format!("MATCH {:?} DETACH DELETE {:?}", self.pattern, self.symbol),
             read_only: false
         }
     }
 
+    /**
+     * Format a query that will merge a pattern into all matching nodes.
+     */
     pub fn mutate(&self, updates: String) -> Cypher {
         Cypher{
-            query: format!("MATCH {} SET {} += {{ {} }}", self.pattern, self.symbol, updates),
+            query: format!("MATCH {:?} SET {:?} += {{ {:?} }}", self.pattern, self.symbol, updates),
             read_only: false
         }
     }
 
+    /**
+     * Generate a query to load data from the database
+     */
     pub fn load(&self, key: Option<String>) -> Cypher {
 
         let variable: String;
@@ -86,14 +138,14 @@ impl Node {
         }
 
         Cypher {
-            query: format!("MATCH {} RETURN {}{}", self.pattern, self.symbol, variable),
+            query: format!("MATCH {:?} RETURN {:?}{:?}", self.pattern, self.symbol, variable),
             read_only: true,
         }
     }
 
     pub fn create(&self) -> Cypher {
         Cypher {
-            query: format!("MERGE {}", self.pattern),
+            query: format!("MERGE {:?}", self.pattern),
             read_only: false,
         }
     }
@@ -101,6 +153,11 @@ impl Node {
 }
 
 
+/**
+ * Data structure representing a Node Index, which can be used to
+ * to create index on node property to speed up retievals and enfroce
+ * unique constraints. 
+ */
 #[pyclass]
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -111,7 +168,9 @@ struct NodeIndex {
     pub key: String
 }
 
-
+/**
+ * Public Python implementation for NodeIndex
+ */
 #[pymethods]
 impl NodeIndex {
     #[new]
@@ -137,7 +196,7 @@ impl NodeIndex {
     }
 
     /**
-     * 
+     * Remove the index
      */
     pub fn drop(&self) -> Cypher {
         Cypher {
@@ -147,8 +206,8 @@ impl NodeIndex {
         
     }
 
-    /*
-     *
+    /**
+     * Apply a unique constraint, without creating an index
      */
     pub fn unique_constraint(&self) -> Cypher {
         Cypher {
@@ -158,19 +217,19 @@ impl NodeIndex {
     }
 }
 
-/*
-Linkss are the relationships between two entities.
-
-They are directional, and have properties like entities. When you
-have the option, it is encouraged to use rich links, instead of
-doubly-linked nodes to represent relationships.
-
-The attributes are for a `Links` are:
-- `_symbol`, a private str for cypher query templating
-- `rank`, a reinforcement learning parameter for recommending new data
-- `uuid`, the unique identifier for the entity
-- `props`, properties blob
-- `label`, the optional label for the relationship, we only use one per link
+/** 
+ * Links are the relationships between two entities.
+ *
+ * They are directional, and have properties like entities. When you
+ * have the option, it is encouraged to use rich links, instead of
+ *  doubly-linked nodes to represent relationships.
+ * 
+ * The attributes are for a `Links` are:
+ * - `_symbol`, a private str for cypher query templating
+ * - `rank`, a reinforcement learning parameter for recommending new data
+ * - `uuid`, the unique identifier for the entity
+ * - `props`, properties blob
+ * - `label`, the optional label for the relationship, we only use one per link
  */
 #[pyclass]
 #[derive(Debug, Serialize, Deserialize)]
@@ -186,7 +245,9 @@ struct Links {
     pub pattern: Option<String>,
 }
 
-
+/**
+ * Link implementation for Python contains Cypher query generators.
+ */
 #[pymethods]
 impl Links {
     #[new]
@@ -204,12 +265,11 @@ impl Links {
         }
     }
 
-    /*
-
-    Format the Links for making a Cypher language query
-    to the Neo4j graph database
-
-    [ r:Label { <key>:<value>, <key>:<value> } ]
+    /**
+     *  Format the Links for making a Cypher language query
+     * to the Neo4j graph database
+     *
+     * [ r:Label { <key>:<value>, <key>:<value> } ]
      */
     fn cypher_repr(&self) -> String {
 
@@ -230,6 +290,9 @@ impl Links {
         format!("-[ r{}{} ]-", label, pattern)
     }
 
+    /**
+     * Query to remove a links between node patterns
+     */
     pub fn drop(
         &self, 
         left: &Node,
@@ -239,13 +302,16 @@ impl Links {
             read_only: false,
             query: format!(
                 "MATCH {}{}{} DELETE r", 
-                left.pattern, 
+                left.cypher_repr(), 
                 self.cypher_repr(), 
-                right.pattern
+                right.cypher_repr()
             )
         }
     }
 
+    /**
+     * Create links between node patterns
+     */
     pub fn join(
         &self, 
         left: &Node,
@@ -254,9 +320,9 @@ impl Links {
         Cypher {
             read_only: false,
             query: format!(
-                "MATCH {}, {} MERGE ({}){}({})", 
-                left.pattern, 
-                right.pattern, 
+                "MATCH {:?}, {:?} MERGE ({:?}){:?}({:?})", 
+                left.cypher_repr(), 
+                right.cypher_repr(), 
                 left.symbol, 
                 self.cypher_repr(), 
                 right.symbol
@@ -264,6 +330,10 @@ impl Links {
         }
     }
 
+    /**
+     * Use link-based queries, usually to get all children/siblings,
+     * but actually very flexible.
+     */
     pub fn query(
         &self, 
         left: &Node,
@@ -274,9 +344,9 @@ impl Links {
             read_only: true,
             query: format!(
                 "MATCH {}{}{} RETURN {}", 
-                left.pattern, 
+                left.cypher_repr(), 
                 self.cypher_repr(), 
-                right.pattern, 
+                right.cypher_repr(), 
                 result
             )
         } 
@@ -284,6 +354,9 @@ impl Links {
 }
 
 
+/**
+ * Agents are a mystery
+ */
 #[pyclass]
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -294,6 +367,10 @@ struct Agents {
     uuid: Option<String>,
 }
 
+
+/**
+ * Python interface for Agents
+ */
 #[pymethods]
 impl Agents {
     #[new]
@@ -308,6 +385,10 @@ impl Agents {
     } 
 }
 
+
+/** 
+ * Data structure representing a network accessible Socket
+ */
 #[pyclass]
 #[derive(Clone, Debug, Serialize, Deserialize)]
 struct Socket {
@@ -317,6 +398,10 @@ struct Socket {
     port: Option<u32>
 }
 
+
+/**
+ * Python bindings for Socker structure
+ */
 #[pymethods]
 impl Socket {
     #[new]
@@ -331,8 +416,9 @@ impl Socket {
     }
 }
 
+
 /**
- * Actuatorss are devices that turn messages into physical effects
+ * Actuators are devices that turn messages into physical effects.
  */
 #[pyclass]
 #[derive(Debug, Serialize, Deserialize)]
@@ -353,6 +439,9 @@ struct Actuators {
 }
 
 
+/**
+ * Python bindings for Actuators
+ */
 #[pymethods]
 impl Actuators {
     #[new]
@@ -375,10 +464,12 @@ impl Actuators {
     }
 }
 
+
 /**
  * Assets are references to external data objects, which may or may not
  * be accessible at the time of query.
- * These are most likely ndarray/raster or json blobs in object storage
+ * 
+ * These are most likely blobs in object storage
  */
 #[pyclass]
 #[derive(Debug, Serialize, Deserialize)]
@@ -393,6 +484,10 @@ struct Assets {
     location: Option<String>
 }
 
+
+/**
+ * Python implementation of Assets
+ */
 #[pymethods]
 impl Assets {
     #[new]
@@ -422,8 +517,7 @@ impl Assets {
 
 
 /**
- * Collectionss are arbitrary groupings of entities.
- * 
+ * Collections are arbitrary groupings of entities.
  */
 #[pyclass]
 #[derive(Debug, Serialize, Deserialize)]
@@ -445,6 +539,10 @@ struct Collections {
     version: Option<u32>
 }
 
+
+/**
+ * Python implementation of Collections
+ */
 #[pymethods]
 impl Collections {
     #[new]
@@ -469,8 +567,9 @@ impl Collections {
     }
 }
 
+
 /**
- * FeaturesOfInterest are usually Locationss.
+ * FeaturesOfInterest are usually Locations.
  */
 #[pyclass]
 #[derive(Debug, Serialize, Deserialize)]
@@ -488,6 +587,10 @@ struct FeaturesOfInterest {
     feature: Option<HashMap<String, String>>,
 }
 
+
+/**
+ * Python implementation of Features
+ */
 #[pymethods]
 impl FeaturesOfInterest {
     #[new]
@@ -508,6 +611,10 @@ impl FeaturesOfInterest {
     }
 }
 
+
+/**
+ * Sensors are devices that convert a phenomenon to a digital signal.
+ */
 #[pyclass]
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -524,6 +631,10 @@ struct Sensors{
     metadata: Option<HashMap<String, String>>
 }
 
+
+/**
+ * Python implementation of Sensors
+ */
 #[pymethods]
 impl Sensors {
     #[new]
@@ -561,6 +672,10 @@ struct ObservedProperties {
     definition: Option<String>
 }
 
+
+/**
+ * Python implementation of ObservedProperties
+ */
 #[pymethods]
 impl ObservedProperties{
     #[new]
@@ -596,6 +711,10 @@ struct Tasks {
     tasking_parameters: Option<HashMap<String, String>>
 }
 
+
+/**
+ * Python implementation of tasks
+ */
 #[pymethods]
 impl Tasks {
     #[new]
@@ -614,14 +733,13 @@ impl Tasks {
 
 
 /** 
- *  A thing is an object of the physical or information world that is capable of of being identified
-    and integrated into communication networks.
- * 
+ * A thing is an object of the physical or information world that is capable of of being identified
+ * and integrated into communication networks.
  */
 #[pyclass]
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct Thing {
+struct Things {
     #[pyo3(get)]
     uuid: Option<String>,
     #[pyo3(get)]
@@ -632,8 +750,12 @@ struct Thing {
     properties: Option<HashMap<String, String>>
 }
 
+
+/**
+ * Python implementation of Things
+ */
 #[pymethods]
-impl Thing {
+impl Things {
     #[new]
     pub fn new(
         uuid: Option<String>,
@@ -641,7 +763,7 @@ impl Thing {
         description: Option<String>,
         properties: Option<HashMap<String, String>>
     ) -> Self {
-        Thing {
+        Things {
             uuid,
             name,
             description,
@@ -668,6 +790,8 @@ struct TaskingCapabilities {
     #[pyo3(get)]
     tasking_parameters: Option<HashMap<String, String>>
 }
+
+
 
 #[pymethods]
 impl TaskingCapabilities {
@@ -855,6 +979,10 @@ struct Observations {
     parameters: Option<HashMap<String, String>>
 }
 
+
+/**
+ * Python implementation of Observations
+ */
 #[pymethods]
 impl Observations {
     #[new]
@@ -881,7 +1009,7 @@ impl Observations {
 }
 
 /**
- *
+ * DataStreams are collections of Observations from a common source
  */
 #[pyclass]
 #[derive(Debug, Serialize, Deserialize)]
@@ -903,6 +1031,10 @@ struct DataStreams {
     result_time: Option<TimeInterval>
 }
 
+
+/**
+ * Python implementation of DataStreams
+ */
 #[pymethods]
 impl DataStreams {
     #[new]
@@ -951,6 +1083,10 @@ struct User {
     description: Option<String>
 }
 
+
+/**
+ * Python implementation of User
+ */
 #[pymethods]
 impl User {
     #[new]
@@ -975,7 +1111,10 @@ impl User {
     }
 }
 
-
+/**
+ * Bind our data structures and methods, so they will be available
+ * from Python for use in the Flask-Connexion API. 
+ */
 #[pymodule]
 fn bathysphere(_: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<Links>()?;
@@ -994,6 +1133,7 @@ fn bathysphere(_: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<Providers>()?;
     m.add_class::<Observations>()?;
     m.add_class::<Locations>()?;
+    m.add_class::<Things>()?;
     m.add_class::<HistoricalLocations>()?;
     m.add_class::<User>()?;
     Ok(())
