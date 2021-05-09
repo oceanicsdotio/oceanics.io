@@ -1,4 +1,4 @@
-# pylint: disable=invalid-name,too-few-public-methods,eval-used
+# pylint: disable=eval-used,import-outside-toplevel,invalid-name
 """
 The basic building blocks and utilities for graph queries are
 contained in this default import.
@@ -15,15 +15,6 @@ from itertools import repeat
 # Get absolute paths
 from pathlib import Path
 
-# Use to wire up OpenAPI to functions
-from connexion import App
-
-# Enable CORS on API
-from flask_cors import CORS
-
-# OpenAPI validation
-from prance import ResolvingParser, ValidationError
-
 # Function signatures
 from typing import Any, Callable, Iterable, Type
 
@@ -33,14 +24,23 @@ from datetime import datetime, date, timedelta
 # Runtime variables and secrets from environment
 from os import getenv, getpid
 
-# JSON serde-deserde
-from json import dumps, loads, decoder, load
-
 # Calling other native packages
 from subprocess import Popen
 
 # Logging
 from io import TextIOWrapper, BytesIO
+
+# JSON serde-deserde
+from json import dumps, loads, decoder, load
+
+# Use to wire up OpenAPI to functions
+from connexion import App
+
+# Enable CORS on API
+from flask_cors import CORS
+
+# OpenAPI validation
+from prance import ResolvingParser, ValidationError
 
 # Object storage
 from minio import Minio
@@ -55,13 +55,14 @@ import attr
 from neo4j import Driver
 
 # Link wraps NativeLinks
-from bathysphere.bathysphere import Links as NativeLinks, MetaDataTemplate
+from bathysphere.bathysphere import Links as NativeLinks, MetaDataTemplate  # pylint: disable=no-name-in-module
 
 
-def cypher_props(props):
+def cypher_props(props: dict) -> str:
+    """Generate cypher from dict"""
 
-    def _filter(x):
-        x is not None
+    def _filter(x: Any) -> bool:
+        return x is not None
 
     def processKeyValueInbound(keyValue: (str, Any), null: bool = False) -> str or None:
         """
@@ -78,7 +79,7 @@ def cypher_props(props):
 
                 coord = value["coordinates"]
                 if len(coord) == 2:
-                    values = f"x: {coord[1]}, y: {coord[0]}, crs:'wgs-84'"  
+                    values = f"x: {coord[1]}, y: {coord[0]}, crs:'wgs-84'"
                 elif len(coord) == 3:
                     values = f"x: {coord[1]}, y: {coord[0]}, z: {coord[2]}, crs:'wgs-84-3d'"
                 else:
@@ -109,37 +110,26 @@ def cypher_props(props):
         if null:
             return f"{key}: NULL"
 
+        return None
+
 
     return ", ".join(filter(_filter, map(processKeyValueInbound, props.items())))
 
 
 def native_link(kwargs):
+    """Create a native link"""
     return NativeLinks(
-        pattern=cypher_props(kwargs), 
+        pattern=cypher_props(kwargs),
         **kwargs
     )
-
-
-def node_repr(self):
-    """
-    Format the entity as a Neo4j style node string compatible with
-    the Cypher query language:
-
-    (<symbol>:<class> { <var>: $<var>, <k>: <v>, <k>: <v> })
-    """
-    className = str(self)
-    entity = "" if className == Entity.__name__ else f":{className}"
-    
-    return f"( {self._symbol}{entity} {{ {cypher_props(props)} }} )"
 
 
 def parse_nodes(nodes):
 
     def _parse(item):
         node, symbol = item
-        self._symbol = symbol
         return Node(pattern=repr(node), symbol=symbol, label=type(node).__name__)
-        
+
     return map(_parse, zip(nodes, ("a", "b")))
 
 
@@ -156,19 +146,19 @@ def load(
     from neo4j.spatial import WGS84Point
 
     def _parse(keyValue: (str, Any),) -> (str, Any):
-    
+
         k, v = keyValue
 
-        if isinstance(value, WGS84Point):
+        if isinstance(v, WGS84Point):
             return k, {
                 "type": "Point",
                 "coordinates": f"{[v.longitude, v.latitude]}"
             }
-                
+
         return k, v
 
 
-    cypher = Node(pattern=repr(self), symbol=self._symbol).load(result)
+    cypher = Node(pattern=repr(self), symbol="n").load(result)
 
     items = []
     with db.session() as session:
@@ -193,7 +183,7 @@ def serialize(
     cypher = native_link().query(*parse_nodes((self, None)), "distinct labels(b)")
     with db.session() as session:
         labels = session.write_transaction(lambda tx: set(r[0] for r in tx.run(cypher.query)))
-    
+
     service = getenv('SERVICE_NAME')
 
     def format_collection(root, rootId, name):
@@ -217,13 +207,13 @@ def serialize(
 
 # Don't let app load unless all environment variables are set
 envErrors = [*filter(lambda x: not x, map(getenv, (
-    "STORAGE_ENDPOINT", 
-    "BUCKET_NAME", 
-    "SPACES_ACCESS_KEY", 
-    "SPACES_SECRET_KEY", 
+    "STORAGE_ENDPOINT",
+    "BUCKET_NAME",
+    "SPACES_ACCESS_KEY",
+    "SPACES_SECRET_KEY",
     "SERVICE_NAME",
-    "NEO4J_HOSTNAME",  
-    "NEO4J_ACCESS_KEY"
+    "NEO4J_HOSTNAME",
+    "NEO4J_ACCESS_KEY",
 )))]
 
 if envErrors:
@@ -233,9 +223,9 @@ if envErrors:
 @attr.s
 class Storage:
     """
-    Storage is an interface to cloud object storage. 
-    This should work with any S3-compatible provider, but
-    has only been tested with DigitalOcean. 
+    Storage is an interface to cloud object storage.
+
+    This should work with any S3-compatible provider, but has only been tested with DigitalOcean.
     """
     endpoint: str = attr.ib()
     service_name: str = attr.ib()
@@ -243,18 +233,16 @@ class Storage:
     bucket_name: str = attr.ib(factory=lambda: getenv("BUCKET_NAME"))
     index: str = attr.ib(default="index.json")
     session_id: str = attr.ib(factory=lambda: str(uuid4()).replace("-", ""))
-
     lock_file: str = attr.ib(default="lock.json")
-    
 
     @property
     def driver(self):
         if self._driver is None:
             self._driver = Minio(
-                endpoint=self.endpoint, 
+                endpoint=self.endpoint,
                 secure=True,
                 access_key=getenv("SPACES_ACCESS_KEY"),
-                secret_key=getenv("SPACES_SECRET_KEY")
+                secret_key=getenv("SPACES_SECRET_KEY"),
             )
         return self._driver
 
@@ -290,8 +278,6 @@ class Storage:
         """
         Overwrite the upload method
         """
-        from io import BytesIO
-
         buffer = bytes(dumps(data).encode("utf-8"))
 
         self.driver.put_object(
@@ -308,15 +294,14 @@ class Storage:
         """
         Decorate a function so that it creates a locking semaphore
         for other processes, so they will not overwrite or access
-        data that are being used concurrently. 
+        data that are being used concurrently.
 
         Session data are preserved, and can be referenced later.
-        
+
         The decorator creates an S3 client, retrieves
         the service index file, and injects it into
         the wrapped function as a keyword argument.
         """
-
 
         from minio.error import S3Error  # pylint: disable=no-name-in-module
 
@@ -325,7 +310,7 @@ class Storage:
             Check if locked, try to lock, do something, unlock.
             """
             client = Storage(
-                getenv("STORAGE_ENDPOINT"), 
+                getenv("STORAGE_ENDPOINT"),
                 getenv("SERVICE_NAME")
             )
 
@@ -339,7 +324,7 @@ class Storage:
                         x_amz_meta_service_file_type="index"
                     ).headers()
                 )
-            
+
             try:
                 data = client.get_object(client.lock_file)
             except S3Error:
@@ -360,30 +345,29 @@ class Storage:
                         "expires": expiry.isoformat()
                     },
                     metadata=MetaDataTemplate(x_amz_acl="private").headers(),
-                )  
+                )
             except S3Error:
                 return "Failed to lock", 500
-           
+
             try:
                 result = fcn(*args, client=client, **kwargs)
             except Exception as ex:
                 result = f"{ex}", 500
-            
+
             try:
                 client.remove_object(client.lock_file)
             except S3Error:
                 return "Failed to unlock", 500
-            
+
             return result
 
         return wrapper
 
 
-
 @attr.s(repr=False)
 class Message:
     """
-    Serialized messages passed between processes, with metadata. 
+    Serialized messages passed between processes, with metadata.
     """
     message: str = attr.ib()
     timestamp: str = attr.ib(factory=datetime.now)
@@ -419,8 +403,8 @@ class JSONIOWrapper:
         return cls(
             log=log,
             text_io=TextIOWrapper(
-                *args, 
-                line_buffering=False, 
+                *args,
+                line_buffering=False,
                 encoding="utf-8",
                 **kwargs
             )
@@ -431,13 +415,12 @@ class JSONIOWrapper:
         return cls(
             log=log,
             text_io=TextIOWrapper(
-                *args, 
-                line_buffering=True, 
+                *args,
+                line_buffering=True,
                 encoding="utf-8",
                 **kwargs
             )
         )
-
 
     def receive(self) -> dict:
         """
@@ -450,8 +433,8 @@ class JSONIOWrapper:
         except decoder.JSONDecodeError as err:
             Message("Job cancelled", data=err.msg).log(self.log)
             return {
-                "status": "error", 
-                "message": "no data received" if data is "\n" else err.msg, 
+                "status": "error",
+                "message": "no data received" if data is "\n" else err.msg,
                 "data": data
             }
 
@@ -459,124 +442,21 @@ class JSONIOWrapper:
         """
         Write serialized data to interface.
         """
-       
         safe_keys = {
             key.replace(" ", "_"): value for key, value in data.items()
         }
-          
+
         json = f"'{dumps(safe_keys)}'".replace(" ", "")
         Message(
-            message="Send", 
+            message="Send",
             data=json,
             arrow=">"
         ).log(self.log)
 
         self.text_io.write(f"{json}\n")
 
-@attr.s
-class Process:
-    """
-    Data structure to handle communication with a running
-    subprocess.
-    """
-    command: [str] = attr.ib()
-    log: BytesIO = attr.ib(factory=BytesIO)
-    result = attr.ib(factory=list)
 
-    _process = attr.ib(default=None)
-    _console: JSONIOWrapper = attr.ib(default=None)
-    _output: JSONIOWrapper = attr.ib(default=None)
 
-    @classmethod
-    def start(cls, command, config):
-
-        process = cls(command)
-
-        Message(
-            message=f"Spawned process {process.pid}", 
-            data=process.args
-        ).log(process.log)
-        
-        process.result = process.receive(2)
-        process.send(config)
-
-        Message(
-            message="Worker ready", 
-            data=f"expecting transactions"
-        ).log(process.log)
-
-        return process
-
-    def __del__(self):
-        """
-        Clean up before going out of scope
-        """
-
-        Message(
-            message="Worker done",
-            data="completed transactions"
-        ).log(self.log)
-
-        self.process.kill()
-        self.process.wait()
-        self.console.text_io.close()
-        self.output.text_io.close()
-
-    @property
-    def pid(self):
-        """Hoist process ID"""
-        return self.process.pid
-
-    @property
-    def args(self):
-        """Hoist process Args"""
-        return self.process.args
-
-    @property
-    def process(self):
-        from subprocess import PIPE, STDOUT
-
-        if self._process is None:
-            self._process = Popen(
-                self.command, 
-                stdin=PIPE, 
-                stdout=PIPE, 
-                stderr=STDOUT, 
-                bufsize=1
-            )
-        return self._process
-
-    @property
-    def console(self):
-        """
-        Lazy load a message interface
-        """
-        if self._console is None:
-            self._console = JSONIOWrapper.console(self.process.stdin, log=self.log)
-        return self._console
-
-    @property
-    def output(self):
-        """
-        Lazy load a message interface
-        """
-        if self._output is None:
-            self._output = JSONIOWrapper.output(self.process.stdout, log=self.log)
-        return self._output 
-
-    def send(self, data: dict):
-        """
-        Hoist the send function of the commandline interface
-        """
-        self.console.send(data)
-
-    def receive(self, count=1):
-        """
-        Hoist the receive function of the commandline interface
-        """
-        return [self.output.receive() for _ in range(count)]
-
- 
 def job(config: dict, forcing: tuple) -> (tuple, bytes):
     """
     Execute single simulation with synchronous callback.
@@ -586,23 +466,62 @@ def job(config: dict, forcing: tuple) -> (tuple, bytes):
 
     :return: output variables of C# methods, or None
     """
-    process = Process.start(
-        ["/usr/bin/mono", f'{__path__[0]}/../bin/kernel.exe'], 
-        config
+
+    from subprocess import PIPE, STDOUT
+
+    command = ["/usr/bin/mono", f'{__path__[0]}/../bin/kernel.exe']
+
+    result = attr.ib(factory=list)
+    process = attr.ib(default=None)
+    console: JSONIOWrapper = attr.ib(default=None)
+    output: JSONIOWrapper = attr.ib(default=None)
+
+    Message(
+        message=f"Spawned process {process.pid}",
+        data=process.args
+    ).log(log)
+
+    result = [output.receive(), output.receive()]
+    console.send(config)
+
+    Message(
+        message="Worker ready",
+        data=f"expecting transactions"
+    ).log(log)
+
+    process = Popen(
+        self.command,
+        stdin=PIPE,
+        stdout=PIPE,
+        stderr=STDOUT,
+        bufsize=1
     )
-    
+        
+    console = JSONIOWrapper.console(process.stdin, log=log)
+    output = JSONIOWrapper.output(process.stdout, log=log)
+
     for item in forcing:
-        process.send(item)  # send data as serialized dictionary
-        [state] = process.receive(1)
+        console.send(item)  # send data as serialized dictionary
+        state = output.receive()
         process.result.append(state)
         if state["status"] == "error":
             Message(
-                message="Runtime", 
+                message="Runtime",
                 data=state["message"]
             ).log(process.log)
             break
 
-    return process.result, process.log.getvalue().decode()
+    Message(
+        message="Worker done",
+        data="completed transactions"
+    ).log(log)
+
+    process.kill()
+    process.wait()
+    console.text_io.close()
+    output.text_io.close()
+
+    return result, log.getvalue().decode()
 
 
 def reduceYamlEntityFile(file: str) -> dict:
@@ -610,13 +529,13 @@ def reduceYamlEntityFile(file: str) -> dict:
     Flip the nestedness of the dict from a list to have top level keys for each `kind`
     """
     # for reducing to lookup
-    from functools import reduce 
+    from functools import reduce
 
     # YAML loaders
     from yaml import Loader, load as load_yml
 
     def _reducer(a: dict, b: dict) -> dict:
-       
+
         if not isinstance(a, dict):
             raise ValueError(
                 f"Expected dictionary values. Type is instead {type(a)}."
@@ -644,31 +563,30 @@ __pdoc__ = {
 app = App(__name__, options={"swagger_ui": False})
 CORS(app.app)
 
-
-try:   
+try:
     appConfig = reduceYamlEntityFile(f"config/bathysphere.yml")
     services = filter(
-        lambda x: "bathysphere-api" == x["spec"]["name"], appConfig["Locations"]
+        lambda x: x["spec"]["name"] == "bathysphere-api", appConfig["Locations"]
     )
-    config = next(services)["metadata"]["config"]
-    relativePath = config.get("specPath")
+    CONFIG = next(services)["metadata"]["config"]
+    RELATIVE_PATH = CONFIG.get("specPath")
 except StopIteration:
     raise ValueError("Invalid YAML configuration file.")
 
 try:
-    absolutePath = str(Path(relativePath).absolute())
+    ABSOLUTE_PATH = str(Path(RELATIVE_PATH).absolute())
 except FileNotFoundError as ex:
-    raise FileNotFoundError(f"Specification not found: {relativePath}")
+    raise FileNotFoundError(f"Specification not found: {RELATIVE_PATH}")
 
 try:
-    parser = ResolvingParser(absolutePath, lazy=True, strict=True)
-    parser.parse()
+    PARSER = ResolvingParser(ABSOLUTE_PATH, lazy=True, strict=True)
+    PARSER.parse()
 except ValidationError as ex:
     print(ex.args[0])
     raise Exception("Could not parse OpenAPI specification.")
 else:
     app.add_api(
-        parser.specification, 
-        base_path=config.get("basePath"),
+        PARSER.specification,
+        base_path=CONFIG.get("basePath"),
         validate_responses=False
     )

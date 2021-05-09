@@ -1,10 +1,19 @@
-import pytest
+"""
+The Functions module contains cloud functions for the API
+"""
+# Chrono
 from datetime import datetime
-from json import dumps
+
+# Pick up env vars
 from os import getenv
 
-from bathysphere import appConfig, Entity, job
+# Test wiring
+import pytest
 
+# App config
+from bathysphere import appConfig, Entity, native_link
+
+# Native data models
 from bathysphere.bathysphere import (
     Locations,
     Sensors,
@@ -19,10 +28,11 @@ from bathysphere.bathysphere import (
     Actuators,
     Assets,
     Providers,
-    Node, 
+    Node,
     Agents
 )
 
+# Data models in the API
 classes = [
     Locations,
     Sensors,
@@ -35,9 +45,10 @@ classes = [
     Collections
 ]
 
+# Memoize results between tests
 IndexedDB = dict()
 
-
+# Forcing conditions for testing simulation
 streams = [
     [{
         "temperature": 20.0,
@@ -53,13 +64,11 @@ streams = [
 ]
 
 
-
 def test_graph_native():
     """
     Test that basic native bindings work, do not execute any queries.
     """
-    
-    link = Entity.native_link(label="has")
+    link = native_link(label="has")
     agent = Agents(name="Hello Human")
     asset = Assets(name="Money Bags", description="Some green or blue paper in a reinforced bag.")
 
@@ -85,9 +94,6 @@ def test_graph_teardown():
     # Driver factory
     from neo4j import GraphDatabase
 
-    # pick up database credentials
-    from os import getenv
-
     # generate API key
     from secrets import token_urlsafe
 
@@ -96,17 +102,17 @@ def test_graph_teardown():
         auth=("neo4j", getenv("NEO4J_ACCESS_KEY"))
     )
 
-    e = Entity()
-    cypher = Node(pattern=repr(e), symbol=e._symbol).delete()
-    
+    cypher = Node(pattern={}, symbol="n").delete()
+
     with db.session() as session:
         session.write_transaction(lambda tx: cypher.query)
-     
+
     for provider in appConfig["Providers"]:
         _ = Providers(
             **provider["spec"],
             apiKey=token_urlsafe(64)
         ).create(db)
+
 
 def test_graph_account_create_user(client):
     """
@@ -115,16 +121,13 @@ def test_graph_account_create_user(client):
     # Driver factory
     from neo4j import GraphDatabase
 
-    # Pick up envvars
-    from os import getenv
-
     db = GraphDatabase.driver(
         uri=getenv("NEO4J_HOSTNAME"), 
         auth=("neo4j", getenv("NEO4J_ACCESS_KEY"))
     )
 
     response = client.post(
-        "api/auth", 
+        "api/auth",
         json={
             "username": getenv("SERVICE_ACCOUNT_USERNAME"),
             "password": getenv("SERVICE_ACCOUNT_PASSWORD"),
@@ -216,7 +219,6 @@ def test_graph_sensorthings_get_entity(client, cls, token):
             entity = client.get(
                 f"api/{cls}({uuid})", headers={"Authorization": ":" + token.get("token")}
             )
-           
 
 @pytest.mark.parametrize("cls", set(classes) - {Tasks, TaskingCapabilities})
 def test_graph_sensorthings_get_collection(cls, token, client):
@@ -228,7 +230,7 @@ def test_graph_sensorthings_get_collection(cls, token, client):
     response = client.get(
         f"api/{cls.__name__}", headers={"Authorization": ":" + token.get("token")}
     )
-            
+
     assert response.status_code == 200, response.json
     try:
         count = response.json["@iot.count"]
@@ -256,10 +258,10 @@ def test_graph_sensorthings_join(client, entityType, token):
         baseRoute = f'''api/{entityType.__name__}({entityId})'''
 
         for canonicalName, links in IndexedDB["joinQueue"].get(entityId, dict()).items():
-            
+
             neighborType = canonicalName.split('@')[0]
             neighborClass = eval(neighborType)
-            
+
             if neighborClass in (Providers, Assets):
                 continue  # TODO: temporary
 
@@ -284,7 +286,6 @@ def test_graph_sensothings_ops_create_agents():
     Create a service account user.
     """
     from neo4j import GraphDatabase
-    from os import getenv
     
     from bathysphere import reduceYamlEntityFile
     from bathysphere.models import Agents, Link
@@ -322,12 +323,12 @@ def test_graph_sensothings_ops_create_agents():
         if agent_name not in memo["agents"].keys():
 
             memo["agents"][agent_name] = Agents(name=agent_name).create(db)
-            
+
             for prov in each["metadata"]["Providers@iot.navigation"]:
                 [name] = prov["name"]
                 if name not in memo["providers"].keys():
                     memo["providers"][name] = Providers(name=name).create(db)
-                
+          
                 link = Link(label=prov["label"]).join(db, nodes=(memo["agents"][agent_name], memo["providers"][name]))
 
         linked_agents = each["metadata"].get("Agents@iot.navigation", [])
@@ -336,35 +337,20 @@ def test_graph_sensothings_ops_create_agents():
             for other in linked_agents:
                 [name] = other["name"] 
                 link = Link(label=other.get("label", None)).join(db, nodes=(memo["agents"][agent_name], memo["agents"][name]))
-        
+
         else:
             queue.append(each)
 
         print(f"Pass {passes}, with {len(queue)} remaining, and {fails} fails")
-        
 
         if last == len(queue):
             shuffle(queue)
             fails += 1
         else:
             fails = 0
-        
+
         passes += 1
         last = len(queue)
-
-
-@pytest.mark.parametrize("forcing", streams)
-def test_graph_bivalve_job(forcing, user_config):
-    """
-    Run a single simulation with partial forcing conditions
-    """
-    result, _ = job(
-        config=user_config,
-        forcing=forcing,
-    )
-  
-    count = sum(item["status"] == "error" for item in result)
-    assert count == 0, f"There were {count} errors."
 
 
 def test_graph_bivalve_index(client):
@@ -388,34 +374,25 @@ def test_graph_bivalve_configure(client, model_config):
 
 
 def test_graph_bivalve_run(client):
+    """Try running the simulation"""
     species = "oyster"
     weight = 25
 
-    def _get(uuid):
+    for item in IndexedDB["created"].keys():
+        uuid = item.split("/").pop()
         response = client.post(
             f"api/{uuid}?species={species}&weight={weight}",
             json={
                 "forcing": streams,
             },
         )
-        
         assert response.status_code == 200, response.get_json()
-        return response
-    
-    for item in IndexedDB["created"].keys():
-        _get(item.split("/").pop())
-
 
 
 def test_graph_bivalve_get_by_id(client):
     """
     Make sure that the configuration file can be retrieved.
     """
-    @retry(tries=2, delay=1)
-    def _get(uuid):
-        response = client.get(f"api/{uuid}")
-        assert response.status_code == 200, response.get_json()
-
     for item in IndexedDB["created"].keys():
-        _get(item.split("/").pop())
-  
+        response = client.get(f"api/{item.split('/').pop()}")
+        assert response.status_code == 200, response.get_json()

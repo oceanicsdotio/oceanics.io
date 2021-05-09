@@ -28,11 +28,11 @@ from os import getenv
 from json import dumps, load
 
 # methods from core
-from bathysphere import app, job, Storage, cypher_props, parse_nodes
+from bathysphere import app, job, Storage, cypher_props, parse_nodes, native_link
 
 # Native implementations from Rust code base
 from bathysphere.bathysphere import (
-    Links as NativeLinks, 
+    Links as NativeLinks,
     Node,
     Assets,
     Actuators,
@@ -49,13 +49,7 @@ from bathysphere.bathysphere import (
     User,
     Providers,
     MetaDataTemplate
-)
-
-
-
-COLLECTION_KEY = "configurations"
-SERVICE = "https://bivalve.oceanics.io/api"
-DEBUG = True
+)  # pylint: disable=no-name-in-module
 
 
 def context(fcn: Callable) -> Callable:
@@ -64,7 +58,7 @@ def context(fcn: Callable) -> Callable:
 
     Validate/verify JWT token.
     """
-    # peek into wrapped function sigs, to conditionally inject args
+    # peek into wrapped function signatures, to conditionally inject args
     from inspect import signature
 
     # secure serializer
@@ -79,10 +73,10 @@ def context(fcn: Callable) -> Callable:
     # pick up runtime-configurable vars from environment
     from os import getenv
 
-    # headers and such available for authenticate 
+    # headers and such available for authenticate.
     from flask import request
 
-    # Enable more specific HTTP error messages for debugging. 
+    # Enable more specific HTTP error messages for debugging.
     DEBUG = True
 
     def _wrapper(**kwargs: dict) -> (dict, int):
@@ -91,7 +85,7 @@ def context(fcn: Callable) -> Callable:
         """
         try:
             db = GraphDatabase.driver(
-                uri=getenv("NEO4J_HOSTNAME"), 
+                uri=getenv("NEO4J_HOSTNAME"),
                 auth=("neo4j", getenv("NEO4J_ACCESS_KEY"))
             )
         except Exception:  # pylint: disable=broad-except
@@ -143,12 +137,12 @@ def context(fcn: Callable) -> Callable:
                 "detail": f"{ex}"
             }, 400
 
-    def handleUncaughtExceptions(fn, *args, **kwargs):
+    def handleUncaughtExceptions(**kwargs):
         """
         Utility function
         """
         try:
-            return _wrapper(*args, **kwargs)
+            return _wrapper(**kwargs)
         except Exception:  # pylint: disable=broad-except
             return {"message": "Unhandled error"}, 500
 
@@ -159,13 +153,13 @@ def register(body: dict) -> (dict, int):
     """
     Register a new user account
     """
-    # Generate Driver Instances
+    # Generate Driver Instances.
     from neo4j import GraphDatabase
 
-    # Pick up auth info for database
+    # Pick up auth info for database.
     from os import getenv
 
-    # headers and such available for authenticate 
+    # headers and such available for authenticate.
     from flask import request
     
     # pylint: disable=too-many-return-statements
@@ -220,8 +214,8 @@ def register(body: dict) -> (dict, int):
 
     # establish provenance
     nodes = parse_nodes((user, entryPoint))
-    link_cypher = Link(label="apiRegister", rank=0).native.join(*nodes)
-   
+    link_cypher = native_link(label="apiRegister", rank=0).join(*nodes)
+
     try:
         with db.session() as session:
             session.write_transaction(lambda tx: tx.run(cypher.query))
@@ -262,7 +256,7 @@ def token(
 
     # create the secure serializer instance
     serializer = TimedJSONWebSignatureSerializer(
-        secret_key=secretKey, 
+        secret_key=secretKey,
         expires_in=provider.tokenDuration
     )
 
@@ -277,17 +271,16 @@ def token(
 def catalog(db: Driver) -> (dict, int):
     """
     SensorThings capability #1
-    
-    Get references to all ontological entity sets. 
+
+    Get references to all ontological entity sets.
 
     Uses the graph `context` decorator to obtain the neo4j driver
     and the pre-authorized user.
 
-    We make sure to 
-    remove the metadata entities that are not part of a public
-    specification. 
+    We make sure to remove the metadata entities that are not part of a public specification. 
     """
     import getenv
+    from neo4j import Record
 
     # remove restricted entries, e.g. core nodes
     def _filter(name: str) -> bool:
@@ -304,6 +297,9 @@ def catalog(db: Driver) -> (dict, int):
             "url": f'''${getenv("SERVICE_NAME")}/api/{name}'''
         }
 
+    with db.session() as session:
+        session.write_transaction(lambda tx: tx.run(cypher.query))
+
     # evaluate the generator chain
     return {"value": map(_format, executeQuery(db, _method))}, 200
 
@@ -312,16 +308,18 @@ def catalog(db: Driver) -> (dict, int):
 def collection(db: Driver, entity: str) -> (dict, int):
     """
     SensorThings API capability #2
-    
+
     Get all entities of a single type.
     """
+    from json import loads
+
     # data transformer for entity records
     def serialize(record):
-        return record.serialize(db=db)
+        return loads(record.serialize(db=db))
 
     # produce the serialized entity records
     value = [*map(serialize, eval(entity)().load(db=db))]
-    
+
     return {"@iot.count": len(value), "value": value}, 200
 
 
@@ -340,7 +338,7 @@ def create(
     Special values can be given unique string serialization methods by overloading __str__.
 
     The bind tuple items are external methods that are bound as instance methods to allow
-    for extending capabilities in an adhov way.
+    for extending capabilities in an ad hoc way.
 
     Blank values are ignored and will not result in graph attributes. Blank values are:
     - None (python value)
@@ -349,24 +347,22 @@ def create(
     Writing transactions are recursive, and can take a long time if the tasking graph
     has not yet been built. For this reason it is desirable to populate the graph
     with at least one instance of each data type. 
-
     """
-    
     # only used for API discriminator
-    _ = body.pop("entityClass")  
+    _ = body.pop("entityClass")
 
-    # evaluate str representation, create a DB record 
+    # evaluate str representation, create a DB record
     _entity = eval(entity)(uuid=uuid4().hex, **body)
     cypher = Node(pattern=repr(_entity), symbol=_entity._symbol).create()
 
     # establish provenance
     nodes = parse_nodes((provider, _entity))
-    link_cypher = Link(label="apiCreate").native.join(*nodes)
-       
+    link_cypher = native_link(label="apiCreate").native.join(*nodes)
+
     with db.session() as session:
         session.write_transaction(lambda tx: tx.run(cypher.query))
         session.write_transaction(lambda tx: tx.run(link_cypher.query))
-    
+
     # send back the serialized result, for access to uuid
     return {"message": f"Create {entity}", "value": _entity.serialize(db)}, 200
 
@@ -388,7 +384,7 @@ def mutate(
     e = eval(entity)(uuid=uuid)
 
     cypher = Node(
-        pattern=repr(e), 
+        pattern=repr(e),
         symbol=e._symbol
     ).mutate(cypher_props(body))
 
@@ -423,13 +419,13 @@ def query(
 
     nodes = ({"cls": root, "id": rootId}, {"cls": entity})
 
-    cypher = self.native.query(*parse_nodes(nodes), "b")
+    cypher = native_link().query(*parse_nodes(nodes), "b")
     result = []
 
     with db.session() as session:
         for item in session.write_transaction(lambda tx: [*tx.run(cypher.query)]):
             items.append(item.serialize(db=db))
-        
+
     return {"@iot.count": len(items), "value": items}, 200
 
 
@@ -511,15 +507,15 @@ def configure(
     :param client: s3 storage connection
     :param session: UUID4 session id, used to name configuration
     """
-    
+
     index = load(client.get_object(client.index))
-    self_link = f"{SERVICE}/{client.session_id}"
-    index[COLLECTION_KEY].append(self_link)
-   
+    self_link = f"{getenv('SERVICE_NAME')}/{client.session_id}"
+    index["configurations"].append(self_link)
+
     client.put_object(
         object_name=f"{client.session_id}.json",
         data={
-            **body, 
+            **body,
             "experiments": [],
             "uuid": client.session_id,
             "self": self_link
@@ -562,13 +558,21 @@ def run(
     :param client: storage client
     """
 
+    # enable backend parallel processing if available
     from multiprocessing import Pool, cpu_count
+
+    # singleton forcing conditions
     from itertools import repeat
+
+    # Timestamping
     from time import time
+
+    # Combine logs into single buffer
     from functools import reduce
 
-    from minio.error import S3Error  # pylint: disable=no-name-in-module
-    
+    # Object storage errors
+    from minio.error import S3Error
+
     try: 
         config = load(client.get_object(f"{objectKey}.json"))
         properties = config.get("properties")
@@ -576,10 +580,10 @@ def run(
         return f"Configuration ({objectKey}) not found", 404
     except Exception:
         return f"Invalid configuration ({objectKey})", 500
- 
+
     start = time()
     processes = min(cpu_count(), properties.get("workers", cpu_count()))
-   
+
     with Pool(processes) as pool:
 
         configuration = {
@@ -592,11 +596,11 @@ def run(
         forcing = body.get("forcing")
         stream = zip(repeat(configuration, len(forcing)), forcing)
         data, logs = zip(*pool.starmap(job, stream))
-        self_link = f"{SERVICE}/{client.session_id}"
+        self_link = f"{getenv('SERVICE_NAME')}/{client.session_id}"
 
         result = {
             "self": self_link,
-            "configuration": f"{SERVICE}/{objectKey}",
+            "configuration": f"{getenv('SERVICE_NAME')}/{objectKey}",
             "forcing": forcing,
             "data": data,
             "workers": pool._processes,
@@ -609,7 +613,7 @@ def run(
             object_name=f"{client.session_id}.logs.json",
             data=reduce(lambda a, b: a + b, logs),
             metadata=MetaDataTemplate(
-                x_amz_meta_service_file_type="log", 
+                x_amz_meta_service_file_type="log",
                 x_amz_meta_parent=client.session_id
             ).headers(),
         )
@@ -618,7 +622,7 @@ def run(
             object_name=f"{client.session_id}.json",
             data=result,
             metadata=MetaDataTemplate(
-                x_amz_meta_service_file_type="experiment", 
+                x_amz_meta_service_file_type="experiment",
                 x_amz_meta_parent=objectKey
             ).headers()
         )
@@ -629,7 +633,7 @@ def run(
             object_name=f"{objectKey}.json",
             data=config,
             metadata=MetaDataTemplate(
-                x_amz_meta_service_file_type="configuration", 
+                x_amz_meta_service_file_type="configuration",
                 x_amz_meta_parent=client.index
             ).headers()
         )
