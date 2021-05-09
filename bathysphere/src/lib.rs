@@ -7,6 +7,90 @@ use serde::{Serialize, Deserialize};
 extern crate serde_json; 
 
 
+#[pyclass]
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+struct MetaDataTemplate {
+    x_amz_acl: String,
+    x_amz_meta_parent: Option<String>,
+    x_amz_meta_created: String,
+    x_amz_meta_service_file_type: Option<String>,
+    x_amz_meta_service: Option<String>
+}
+
+#[pymethods]
+impl MetaDataTemplate {
+    #[new]
+    pub fn new(
+        x_amz_acl: String,
+        x_amz_meta_parent: Option<String>,
+        x_amz_meta_created: String,
+        x_amz_meta_service_file_type: Option<String>,
+        x_amz_meta_service: Option<String>
+    ) -> Self {
+        MetaDataTemplate {
+            x_amz_acl,
+            x_amz_meta_parent,
+            x_amz_meta_created,
+            x_amz_meta_service_file_type,
+            x_amz_meta_service
+        }
+    }
+
+    pub fn headers(&self) -> String {
+        serde_json::to_string(self).unwrap()
+    }
+}
+
+/**
+ * Messages are passed between services
+ */
+#[pyclass]
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct Message {
+    message: String,
+    timestamp: f64,
+    arrow: String,
+    data: String,
+    pid: usize,
+}
+
+#[pymethods]
+impl Message{
+    #[new]
+    pub fn new(
+        message: String,
+        timestamp: f64,
+        arrow: String,
+        data: String,
+        pid: usize,
+    ) -> Self {
+        Message {
+            message,
+            timestamp,
+            arrow,
+            data,
+            pid,
+        }
+    }
+
+    /**
+     * Format for general logging
+     */
+    fn logging_repr(&self) -> String {
+        format!(
+            "[{}] (PID {}) {:?} {:?} {:?}\n", 
+            self.timestamp,
+            self.pid,
+            self.message,
+            self.arrow,
+            self.data
+        )
+    }
+}
+
+
 /**
  * The Cypher data structure contains pre-computed queries
  * ready to be executed against the Neo4j graph database. 
@@ -1125,10 +1209,11 @@ fn bathysphere(_: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<NodeIndex>()?;
     m.add_class::<Actuators>()?;
     m.add_class::<Collections>()?;
+    m.add_class::<DataStreams>()?;
     m.add_class::<FeaturesOfInterest>()?;
     m.add_class::<Sensors>()?;
     m.add_class::<ObservedProperties>()?;
-    m.add_class::<TaskingCapabilities>()?;
+    m.add_class::<Tasks>()?;
     m.add_class::<TaskingCapabilities>()?;
     m.add_class::<Providers>()?;
     m.add_class::<Observations>()?;
@@ -1136,5 +1221,6 @@ fn bathysphere(_: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<Things>()?;
     m.add_class::<HistoricalLocations>()?;
     m.add_class::<User>()?;
+    m.add_class::<MetaDataTemplate>()?;
     Ok(())
 }

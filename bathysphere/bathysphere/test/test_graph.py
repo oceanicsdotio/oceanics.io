@@ -3,9 +3,9 @@ from datetime import datetime
 from json import dumps
 from os import getenv
 
-from bathysphere import appConfig
+from bathysphere import appConfig, Entity, job
 
-from bathysphere.models import (
+from bathysphere.bathysphere import (
     Locations,
     Sensors,
     Things,
@@ -14,13 +14,13 @@ from bathysphere.models import (
     FeaturesOfInterest,
     DataStreams,
     Collections,
-    Entity,
     TaskingCapabilities,
     Tasks,
     Actuators,
     Assets,
-    Link,
-    Providers
+    Providers,
+    Node, 
+    Agents
 )
 
 classes = [
@@ -38,26 +38,39 @@ classes = [
 IndexedDB = dict()
 
 
+streams = [
+    [{
+        "temperature": 20.0,
+        "salinity": 35.0
+    }] * 24 * 30,
+    [{
+        "temperature": 20.0,
+        "salinity": 32.0,
+        "current": 15.0,
+        "oxygen": 8.0,
+        "chlorophyll": 6.0,
+    }] * 24 * 30
+]
+
+
+
 def test_graph_native():
-    from ..bathysphere import Agent, Asset, Link
-    from ..models import Agents, Assets, Node
+    """
+    Test that basic native bindings work, do not execute any queries.
+    """
+    
+    link = Entity.native_link(label="has")
+    agent = Agents(name="Hello Human")
+    asset = Assets(name="Money Bags", description="Some green or blue paper in a reinforced bag.")
 
-    agent = Agent(name="hello")
-    asset = Asset(name="extenty thing", description=None)
+    node_a = Node(pattern=repr(agent), symbol="a")
+    node_b = Node(pattern=repr(asset), symbol="b")
 
-    link = Link(label="HAS")
+    query = link.native.drop(node_a, node_b)
 
-    agents = Agents(name="hello world")
-    assets = Assets(name="money")
+    print(query.query)
 
-    node_a = Node(pattern=repr(agents), symbol=agents._symbol)
-    node_b = Node(pattern=repr(assets), symbol=assets._symbol)
-
-    query = link.drop(node_a, node_b)
-
-    print(query.query, query.read_only)
-
-    assert agent.name == "hello"
+    assert agent.name == "Hello Human"
 
 
 @pytest.mark.teardown
@@ -68,11 +81,14 @@ def test_graph_teardown():
     Connect to the test database. The connect method throws an exception if no connection
     is made. So handling here is unnecessary, since we want the bubble up.
     """
-    # pylint: disable=no-value-for-parameter
-
+    
+    # Driver factory
     from neo4j import GraphDatabase
+
+    # pick up database credentials
     from os import getenv
 
+    # generate API key
     from secrets import token_urlsafe
 
     db = GraphDatabase.driver(
@@ -96,7 +112,10 @@ def test_graph_account_create_user(client):
     """
     Create a service account user.
     """
+    # Driver factory
     from neo4j import GraphDatabase
+
+    # Pick up envvars
     from os import getenv
 
     db = GraphDatabase.driver(
@@ -260,169 +279,143 @@ def test_graph_sensorthings_join(client, entityType, token):
     assert len(errors) == 0, errors
 
 
-# def test_graph_sensothings_ops_create_agents():
-#     """
-#     Create a service account user.
-#     """
-#     from neo4j import GraphDatabase
-#     from os import getenv
+def test_graph_sensothings_ops_create_agents():
+    """
+    Create a service account user.
+    """
+    from neo4j import GraphDatabase
+    from os import getenv
     
-#     from bathysphere import reduceYamlEntityFile
-#     from bathysphere.models import Agents, Link
-#     from collections import deque
-#     from random import shuffle
+    from bathysphere import reduceYamlEntityFile
+    from bathysphere.models import Agents, Link
+    from collections import deque
+    from random import shuffle
 
-#     db = GraphDatabase.driver(
-#         uri=getenv("NEO4J_HOSTNAME"), 
-#         auth=("neo4j", getenv("NEO4J_ACCESS_KEY"))
-#     )
+    db = GraphDatabase.driver(
+        uri=getenv("NEO4J_HOSTNAME"), 
+        auth=("neo4j", getenv("NEO4J_ACCESS_KEY"))
+    )
 
-#     data = reduceYamlEntityFile("bin/agents.yml")
+    data = reduceYamlEntityFile("bin/agents.yml")
 
-#     queue = deque(data["Agents"])
+    queue = deque(data["Agents"])
 
-#     memo = {
-#         "providers": dict(),
-#         "agents": dict()
-#     }
+    memo = {
+        "providers": dict(),
+        "agents": dict()
+    }
 
-#     passes = 0
-#     stable_after = 10
-#     last = len(agents)
-#     fails = 0
+    passes = 0
+    stable_after = 10
+    last = len(agents)
+    fails = 0
 
 
-#     while agents and fails < stable_after:
+    while agents and fails < stable_after:
 
-#         count = 0
+        count = 0
 
-#         each = queue.popleft()
+        each = queue.popleft()
 
-#         agent_name = each["spec"]["name"]
+        agent_name = each["spec"]["name"]
 
-#         if agent_name not in memo["agents"].keys():
+        if agent_name not in memo["agents"].keys():
 
-#             memo["agents"][agent_name] = Agents(name=agent_name).create(db)
+            memo["agents"][agent_name] = Agents(name=agent_name).create(db)
             
-#             for prov in each["metadata"]["Providers@iot.navigation"]:
-#                 [name] = prov["name"]
-#                 if name not in memo["providers"].keys():
-#                     memo["providers"][name] = Providers(name=name).create(db)
+            for prov in each["metadata"]["Providers@iot.navigation"]:
+                [name] = prov["name"]
+                if name not in memo["providers"].keys():
+                    memo["providers"][name] = Providers(name=name).create(db)
                 
-#                 link = Link(label=prov["label"]).join(db, nodes=(memo["agents"][agent_name], memo["providers"][name]))
+                link = Link(label=prov["label"]).join(db, nodes=(memo["agents"][agent_name], memo["providers"][name]))
 
-#         linked_agents = each["metadata"].get("Agents@iot.navigation", [])
-#         if all(map(lambda x: x["name"][0] in memo["agents"].keys(), linked_agents)):
+        linked_agents = each["metadata"].get("Agents@iot.navigation", [])
+        if all(map(lambda x: x["name"][0] in memo["agents"].keys(), linked_agents)):
 
-#             for other in linked_agents:
-#                 [name] = other["name"] 
-#                 link = Link(label=other.get("label", None)).join(db, nodes=(memo["agents"][agent_name], memo["agents"][name]))
+            for other in linked_agents:
+                [name] = other["name"] 
+                link = Link(label=other.get("label", None)).join(db, nodes=(memo["agents"][agent_name], memo["agents"][name]))
         
-#         else:
-#             queue.append(each)
+        else:
+            queue.append(each)
 
-#         print(f"Pass {passes}, with {len(queue)} remaining, and {fails} fails")
+        print(f"Pass {passes}, with {len(queue)} remaining, and {fails} fails")
         
 
-#         if last == len(queue):
-#             shuffle(queue)
-#             fails += 1
-#         else:
-#             fails = 0
+        if last == len(queue):
+            shuffle(queue)
+            fails += 1
+        else:
+            fails = 0
         
-#         passes += 1
-#         last = len(queue)
+        passes += 1
+        last = len(queue)
 
 
-
-# # import pytest
-# from retry import retry
-
-# from bathysphere import job
-
-# IndexedDB = dict()
-
-# streams = [
-#     [{
-#         "temperature": 20.0,
-#         "salinity": 35.0
-#     }] * 24 * 30,
-#     [{
-#         "temperature": 20.0,
-#         "salinity": 32.0,
-#         "current": 15.0,
-#         "oxygen": 8.0,
-#         "chlorophyll": 6.0,
-#     }] * 24 * 30
-# ]
-
-
-
-# @pytest.mark.parametrize("forcing", streams)
-# def test_bivalve_job(forcing, user_config):
-#     """
-#     Run a single simulation with partial forcing conditions
-#     """
-#     result, _ = job(
-#         config=user_config,
-#         forcing=forcing,
-#     )
+@pytest.mark.parametrize("forcing", streams)
+def test_graph_bivalve_job(forcing, user_config):
+    """
+    Run a single simulation with partial forcing conditions
+    """
+    result, _ = job(
+        config=user_config,
+        forcing=forcing,
+    )
   
-#     count = sum(item["status"] == "error" for item in result)
-#     assert count == 0, f"There were {count} errors."
+    count = sum(item["status"] == "error" for item in result)
+    assert count == 0, f"There were {count} errors."
 
 
-# def test_bivalve_index(client):
-#     """
-#     Retrieve all known configurations based on the index file
-#     """
-#     response = client.get("api/")
-#     index = response.get_json()
-#     assert response.status_code == 200, index
-#     IndexedDB["existing"] = {uuid: {} for uuid in index["configurations"]}
+def test_graph_bivalve_index(client):
+    """
+    Retrieve all known configurations based on the index file
+    """
+    response = client.get("api/")
+    index = response.get_json()
+    assert response.status_code == 200, index
+    IndexedDB["existing"] = {uuid: {} for uuid in index["configurations"]}
 
 
-# def test_bivalve_configure(client, model_config):
-#     """
-#     Create a configuration to run experiments from.
-#     """
-#     response = client.post("api/", json=model_config)
-#     data = response.get_json()
-#     assert response.status_code == 200, data
-#     IndexedDB["created"] = {data["self"]: {}}
+def test_graph_bivalve_configure(client, model_config):
+    """
+    Create a configuration to run experiments from.
+    """
+    response = client.post("api/", json=model_config)
+    data = response.get_json()
+    assert response.status_code == 200, data
+    IndexedDB["created"] = {data["self"]: {}}
 
 
-# def test_bivalve_run(client):
-#     species = "oyster"
-#     weight = 25
+def test_graph_bivalve_run(client):
+    species = "oyster"
+    weight = 25
 
-#     @retry(tries=2, delay=1)
-#     def _get(uuid):
-#         response = client.post(
-#             f"api/{uuid}?species={species}&weight={weight}",
-#             json={
-#                 "forcing": streams,
-#             },
-#         )
+    def _get(uuid):
+        response = client.post(
+            f"api/{uuid}?species={species}&weight={weight}",
+            json={
+                "forcing": streams,
+            },
+        )
         
-#         assert response.status_code == 200, response.get_json()
-#         return response
+        assert response.status_code == 200, response.get_json()
+        return response
     
-#     for item in IndexedDB["created"].keys():
-#         _get(item.split("/").pop())
+    for item in IndexedDB["created"].keys():
+        _get(item.split("/").pop())
 
 
 
+def test_graph_bivalve_get_by_id(client):
+    """
+    Make sure that the configuration file can be retrieved.
+    """
+    @retry(tries=2, delay=1)
+    def _get(uuid):
+        response = client.get(f"api/{uuid}")
+        assert response.status_code == 200, response.get_json()
 
-# def test_bivalve_get_by_id(client):
-#     """
-#     Make sure that the configuration file can be retrieved.
-#     """
-#     @retry(tries=2, delay=1)
-#     def _get(uuid):
-#         response = client.get(f"api/{uuid}")
-#         assert response.status_code == 200, response.get_json()
-
-#     for item in IndexedDB["created"].keys():
-#         _get(item.split("/").pop())
+    for item in IndexedDB["created"].keys():
+        _get(item.split("/").pop())
   

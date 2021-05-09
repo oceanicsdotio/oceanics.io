@@ -15,49 +15,40 @@ from uuid import uuid4
 # function signature of `context`
 from typing import Callable, Type, Any, Iterable
 
-
 # function signature for db queries
 from neo4j import Driver 
-
 
 # password authentication
 from passlib.apps import custom_app_context  
 
-
 # pick up runtime vars from environment
 from os import getenv
-
 
 # JSON string serialization
 from json import dumps, load
 
-
 # methods from core
-from bathysphere import app, job
-
-
-# Object storage drivers for reading private data and writing all data
-from bathysphere.storage import Storage, MetaDataTemplate
-
+from bathysphere import app, job, Storage, cypher_props, parse_nodes
 
 # Native implementations from Rust code base
 from bathysphere.bathysphere import (
-    Link as NativeLink, 
+    Links as NativeLinks, 
     Node,
-    Asset,
-    Actuator,
-    DataStream,
-    Observation,
+    Assets,
+    Actuators,
+    DataStreams,
+    Observations,
     Things,
-    Sensor,
-    Task,
-    TaskingCapability,
-    ObservedProperty,
-    FeatureOfInterest,
-    Location,
-    HistoricalLocation,
+    Sensors,
+    Tasks,
+    TaskingCapabilities,
+    ObservedProperties,
+    FeaturesOfInterest,
+    Locations,
+    HistoricalLocations,
     User,
-    Provider
+    Providers,
+    MetaDataTemplate
 )
 
 
@@ -65,179 +56,6 @@ from bathysphere.bathysphere import (
 COLLECTION_KEY = "configurations"
 SERVICE = "https://bivalve.oceanics.io/api"
 DEBUG = True
-
-
-def processKeyValueInbound(keyValue: (str, Any), null: bool = False) -> str or None:
-    """
-    Convert a String key and Any value into a Cypher representation
-    for making the graph query.
-    """
-    key, value = keyValue
-    if key[0] == "_":
-        return None
-
-    if "location" in key and isinstance(value, dict):
-
-        if value.get("type") == "Point":
-
-            coord = value["coordinates"]
-            if len(coord) == 2:
-                values = f"x: {coord[1]}, y: {coord[0]}, crs:'wgs-84'"  
-            elif len(coord) == 3:
-                values = f"x: {coord[1]}, y: {coord[0]}, z: {coord[2]}, crs:'wgs-84-3d'"
-            else:
-                # TODO: deal with location stuff in a different way, and don't auto include
-                # the point type in processKeyValueOutbound. Seems to work for matching now.
-                # raise ValueError(f"Location coordinates are of invalid format: {coord}")
-                return None
-            return f"{key}: point({{{values}}})"
-
-        if value.get("type") == "Polygon":
-            return f"{key}: '{dumps(value)}'"
-
-        if value.get("type") == "Network":
-            return f"{key}: '{dumps(value)}'"
-
-
-    if isinstance(value, (list, tuple, dict)):
-        return f"{key}: '{dumps(value)}'"
-
-    if isinstance(value, str) and value and value[0] == "$":
-        # TODO: This hardcoding is bad, but the $ picks up credentials
-        if len(value) < 64:
-            return f"{key}: {value}"
-
-    if value is not None:
-        return f"{key}: {dumps(value)}"
-
-    if null:
-        return f"{key}: NULL"
-
-    return None
-
-
-def cypher_props(props):
-
-    def _filter(x):
-        x is not None
-
-    return ", ".join(filter(_filter, map(processKeyValueInbound, props.items())))
-
-
-class Link:
-    def __init__(self, props=None, **kwargs):
-        self.native = NativeLink(
-            pattern=cypher_props({**(props|{}), **kwargs}), 
-            **kwargs
-        )
-        
-
-class Entity:
-
-    native = None
-
-    """
-    Primitive object/entity, may have name and location
-    """
-    def __repr__(self):
-        """
-        Format the entity as a Neo4j style node string compatible with
-        the Cypher query language:
-
-        (<symbol>:<class> { <var>: $<var>, <k>: <v>, <k>: <v> })
-        """
-        className = str(self)
-        entity = "" if className == Entity.__name__ else f":{className}"
-       
-        return f"( {self._symbol}{entity} {{ {cypher_props(props)} }} )"
-
-
-    @staticmethod
-    def parse_node(item):
-        """
-        Convenience setter for changing symbol if there are multiple patterns.
-
-        Some common classes have special symbols, e.g. User is `u`
-        """
-        node, symbol = item
-        self._symbol = symbol
-        return Node(pattern=repr(node), symbol=symbol, label=type(node).__name__)
-
-    @staticmethod
-    def parse_nodes(nodes):
-        return map(Node.parse_node, zip(nodes, ("a", "b")))
-
-   
-    def load(
-        self,
-        db: Driver,
-        result: str = None
-    ) -> [Type]:
-        """
-        Create entity instance from a dictionary or Neo4j <Node>, which has an items() method
-        that works the same as the dictionary method.
-        """
-
-        from neo4j.spatial import WGS84Point
-
-        def _parse(keyValue: (str, Any),) -> (str, Any):
-       
-            k, v = keyValue
-
-            if isinstance(value, WGS84Point):
-                return k, {
-                    "type": "Point",
-                    "coordinates": f"{[v.longitude, v.latitude]}"
-                }
-                    
-            return k, v
-
-
-        cypher = Node(pattern=repr(self), symbol=self._symbol).load(result)
-
-        items = []
-        with db.session() as session:
-            for record in session.read_transaction(lambda tx: tx.run(cypher.query)):
-                props = dict(map(_parse, dict(record[0]).items()))
-                items.append(type(self)(**props))
-
-        return items
-
-    def serialize(
-        self, db: Driver, select: (str) = None
-    ) -> dict:
-        """
-        Format entity as JSON compatible dictionary from either an object instance or a Neo4j <Node>
-
-        Filter properties by selected names, if any.
-        Remove private members that include a underscore,
-        since SensorThings notation is title case
-        """
-
-        # Compose and execute the label query transaction
-        cypher = Link().native.query(*Link.parse_nodes((self, Entity())), "distinct labels(b)")
-        with db.session() as session:
-            labels = session.write_transaction(lambda tx: set(r[0] for r in tx.run(cypher.query)))
-        
-        service = getenv('SERVICE_NAME')
-
-        def format_collection(root, rootId, name):
-            return (
-                f"{name}@iot.navigation",
-                f"https://{service}/api/{root}({rootId})/{name}"
-            )
-
-        return {
-            "@iot.id": self.uuid,
-            "@iot.selfLink": f"https://{service}/api/{type(self).__name__}({self.uuid})",
-            "@iot.collection": f"https://{service}/api/{type(self).__name__}",
-            **props,
-            **{
-                f"{each}@iot.navigation": f"https://{service}/api/{type(self).__name__}({self.uuid})/{each}"
-                for each in linkedEntities
-            },
-        }
-
 
 
 def context(fcn: Callable) -> Callable:
@@ -401,7 +219,7 @@ def register(body: dict) -> (dict, int):
     cypher = Node(pattern=repr(user), symbol=user._symbol).create()
 
     # establish provenance
-    nodes = Link.parse_nodes((user, entryPoint))
+    nodes = parse_nodes((user, entryPoint))
     link_cypher = Link(label="apiRegister", rank=0).native.join(*nodes)
    
     try:
@@ -425,7 +243,7 @@ def manage(db: Driver, user: User, body: dict) -> (dict, int):
     if body.get("delete", False):
         cypher = node.delete()
     else:
-        cypher = node.mutate(", ".join(map(processKeyValueInbound, body.items())))
+        cypher = node.mutate(cypher_props(body))
 
     with db.session() as session:
         return session.write_transaction(cypher.query)
@@ -475,7 +293,7 @@ def catalog(db: Driver) -> (dict, int):
     def _filter(name: str) -> bool:
         return name not in {"User", "Providers"}
 
-    # query method passed to `Entity.allLabels()`
+    # query method passed to `allLabels()`
     def _method(tx) -> [Record]:
         return filter(_filter, (r["label"] for r in tx.run(f"CALL db.labels()")))
 
@@ -542,7 +360,7 @@ def create(
     cypher = Node(pattern=repr(_entity), symbol=_entity._symbol).create()
 
     # establish provenance
-    nodes = Link.parse_nodes((provider, _entity))
+    nodes = parse_nodes((provider, _entity))
     link_cypher = Link(label="apiCreate").native.join(*nodes)
        
     with db.session() as session:
@@ -572,9 +390,7 @@ def mutate(
     cypher = Node(
         pattern=repr(e), 
         symbol=e._symbol
-    ).mutate(
-        ", ".join(map(processKeyValueInbound, body.items()))
-    )
+    ).mutate(cypher_props(body))
 
     with db.session() as session:
         return session.write_transaction(cypher.query)
@@ -607,7 +423,7 @@ def query(
 
     nodes = ({"cls": root, "id": rootId}, {"cls": entity})
 
-    cypher = self.native.query(*Link.parse_nodes(nodes), "b")
+    cypher = self.native.query(*parse_nodes(nodes), "b")
     result = []
 
     with db.session() as session:
@@ -633,7 +449,7 @@ def join(
     """
     Create relationships between existing nodes.
     """
-    nodes = Link.parse_nodes((eval(root)(uuid=rootId), eval(entity)(uuid=uuid)))
+    nodes = parse_nodes((eval(root)(uuid=rootId), eval(entity)(uuid=uuid)))
 
     cypher = Link(label="apiJoin", cost=1.0).native.join(*nodes)
 
@@ -711,7 +527,7 @@ def configure(
         metadata=MetaDataTemplate(
             x_amz_meta_service_file_type="configuration",
             x_amz_meta_parent=client.index
-        ).headers,
+        ).headers(),
     )
 
     client.put_object(
@@ -720,7 +536,7 @@ def configure(
         metadata=MetaDataTemplate(
             x_amz_meta_service_file_type="index",
             x_amz_meta_parent=client.service_name
-        ).headers
+        ).headers()
     )
 
     return {"self": self_link}, 200
@@ -795,7 +611,7 @@ def run(
             metadata=MetaDataTemplate(
                 x_amz_meta_service_file_type="log", 
                 x_amz_meta_parent=client.session_id
-            ).headers,
+            ).headers(),
         )
 
         client.put_object(
@@ -804,7 +620,7 @@ def run(
             metadata=MetaDataTemplate(
                 x_amz_meta_service_file_type="experiment", 
                 x_amz_meta_parent=objectKey
-            ).headers
+            ).headers()
         )
 
         config["experiments"].append(result["self"])
@@ -815,7 +631,7 @@ def run(
             metadata=MetaDataTemplate(
                 x_amz_meta_service_file_type="configuration", 
                 x_amz_meta_parent=client.index
-            ).headers
+            ).headers()
         )
     except Exception:
         return f"Error saving results", 500
