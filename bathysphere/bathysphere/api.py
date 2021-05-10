@@ -1,4 +1,4 @@
-# pylint: disable=invalid-name,line-too-long,eval-used,unused-import,protected-access,too-many-lines
+# pylint: disable=line-too-long,too-many-lines,invalid-name
 """
 The functions module of the graph API contains handlers for secure
 calls.
@@ -6,52 +6,52 @@ calls.
 These are exposed as a web service.
 """
 # Time stamp conversion
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta  # pylint: disable=unused-import
 
 # Calling other native packages
-from subprocess import Popen, PIPE, STDOUT
+from subprocess import Popen, PIPE, STDOUT  # pylint: disable=unused-import
 
 # Logging
-from io import TextIOWrapper, BytesIO
+from io import TextIOWrapper, BytesIO  # pylint: disable=unused-import
 
 # pick up runtime vars from environment
 from os import getenv
 
 # JSON serialization
-from json import dumps, loads, decoder, load
+from json import dumps, loads, decoder, load  # pylint: disable=unused-import
 
 # enable backend parallel processing if available
-from multiprocessing import Pool, cpu_count
+from multiprocessing import Pool, cpu_count  # pylint: disable=unused-import
 
 # singleton forcing conditions
-from itertools import repeat
+from itertools import repeat  # pylint: disable=unused-import
 
 # peek into wrapped function signatures, to conditionally inject args
 from inspect import signature
 
 # Combine logs into single buffer
-from functools import reduce
+from functools import reduce  # pylint: disable=unused-import
 
 # Timestamping
-from time import time
+from time import time  # pylint: disable=unused-import
 
 # for creating users and other entities
 from uuid import uuid4
 
 # function signature of `context`
-from typing import Callable, Type, Any, Iterable
+from typing import Callable, Type, Any, Iterable  # pylint: disable=unused-import
 
 # function signature for db queries
-from neo4j import Driver, Record, GraphDatabase
+from neo4j import Driver, Record, GraphDatabase  # pylint: disable=unused-import
 
 # point conversion and type checking
-from neo4j.spatial import WGS84Point
+from neo4j.spatial import WGS84Point  # pylint: disable=import-error,no-name-in-module
 
 # Object storage
 from minio import Minio
 
 # Object storage errors
-from minio.error import S3Error
+from minio.error import S3Error  # pylint: disable=no-name-in-module,unused-import
 
 # password authentication
 from passlib.apps import custom_app_context
@@ -66,7 +66,7 @@ from itsdangerous.exc import BadSignature
 from flask import request
 
 # Native implementations from Rust code base
-from bathysphere.bathysphere import (  # pylint: disable=no-name-in-module
+from bathysphere.bathysphere import (  # pylint: disable=no-name-in-module, unused-import
     Links,
     Node,
     Assets,
@@ -87,86 +87,65 @@ from bathysphere.bathysphere import (  # pylint: disable=no-name-in-module
 )
 
 
-def cypher_props(props: dict) -> str:
+def parse_as_cypher(props: dict) -> str:
     """
     Generate cypher from dict
     """
 
-    def processKeyValueInbound(keyValue: (str, Any), null: bool = False) -> str or None:
+    def _parse(keyValue: (str, Any)) -> str or None:
         """
         Convert a String key and Any value into a Cypher representation
         for making the graph query.
         """
         key, value = keyValue
-        if key[0] == "_":
-            return None
 
-        if "location" in key and isinstance(value, dict):
+        if "location" in key and isinstance(value, dict) and value.get("type") == "Point":
 
-            if value.get("type") == "Point":
-
-                coord = value["coordinates"]
-                if len(coord) == 2:
-                    values = f"x: {coord[1]}, y: {coord[0]}, crs:'wgs-84'"
-                elif len(coord) == 3:
-                    values = f"x: {coord[1]}, y: {coord[0]}, z: {coord[2]}, crs:'wgs-84-3d'"
-                else:
-                    # TODO: deal with location stuff in a different way, and don't auto include
-                    # the point type in processKeyValueOutbound. Seems to work for matching now.
-                    # raise ValueError(f"Location coordinates are of invalid format: {coord}")
-                    return None
-                return f"{key}: point({{{values}}})"
-
-            if value.get("type") == "Polygon":
-                return f"{key}: '{dumps(value)}'"
-
-            if value.get("type") == "Network":
-                return f"{key}: '{dumps(value)}'"
-
+            coord = value["coordinates"]
+            if len(coord) == 2:
+                values = f"x: {coord[1]}, y: {coord[0]}, crs:'wgs-84'"
+            elif len(coord) == 3:
+                values = f"x: {coord[1]}, y: {coord[0]}, z: {coord[2]}, crs:'wgs-84-3d'"
+            else:
+                return None
+            return f"{key}: point({{{values}}})"
 
         if isinstance(value, (list, tuple, dict)):
             return f"{key}: '{dumps(value)}'"
 
         if isinstance(value, str) and value and value[0] == "$":
-            # TODO: This hardcoding is bad, but the $ picks up credentials
+            # This hardcoding is bad, but the $ picks up credentials
             if len(value) < 64:
                 return f"{key}: {value}"
 
         if value is not None:
             return f"{key}: {dumps(value)}"
 
-        if null:
-            return f"{key}: NULL"
-
         return None
 
 
-    return ", ".join(filter(lambda x: x is not None, map(processKeyValueInbound, props.items())))
+    return ", ".join(filter(lambda x: x is not None, map(_parse, props.items())))
 
 
-def parse_nodes(nodes):
+def parse_as_nodes(nodes):
+    # typing: (Iterable) -> Iterable
     """
     Convert from Entity Model representation to Cypher node pattern
     """
-
     def _parse(item):
-        node, symbol = item
-        return Node(pattern=cypher_props(node), symbol=symbol, label=type(node).__name__)
+        """Mapped operation"""
+        ii, value = item
+        Node(pattern=parse_as_cypher(value), symbol=f"n{ii}", label=type(value).__name__)
 
-    return map(_parse, zip(nodes, ("a", "b")))
+    return map(_parse, enumerate(nodes))
 
 
-def load_node(
-    self,
-    db: Driver,
-    result: str = None
-) -> [Type]:
+def load_node(entity, db):
+    # typing: (Type, Driver) -> [Type]
     """
-    Create entity instance from a dictionary or Neo4j <Node>, which has an items() method
+    Create entity instance from a Neo4j <Node>, which has an items() method
     that works the same as the dictionary method.
     """
-
-
     def _parse(keyValue: (str, Any),) -> (str, Any):
 
         k, v = keyValue
@@ -179,58 +158,16 @@ def load_node(
 
         return k, v
 
-
-    cypher = Node(pattern=cypher_props(self), symbol="n").load(result)
+    cypher = next(parse_as_nodes(entity)).load()
 
     items = []
     with db.session() as session:
         for record in session.read_transaction(lambda tx: tx.run(cypher.query)):
             props = dict(map(_parse, dict(record[0]).items()))
-            items.append(type(self)(**props))
+            items.append(type(entity)(**props))
 
     return items
 
-
-def serialize(self, db):
-    # typing: (Type, Driver) -> dict
-    """
-    Format entity as JSON compatible dictionary from either an object instance or a Neo4j <Node>
-
-    Filter properties by selected names, if any.
-    Remove private members that include a underscore,
-    since SensorThings notation is title case
-    """
-
-    # Compose and execute the label query transaction
-    cypher = Links(
-        label=None, 
-        pattern=None
-    ).query(
-        *parse_nodes((self, None)),
-        "distinct labels(b)"
-    )
-
-    with db.session() as session:
-        labels = session.write_transaction(lambda tx: set(r[0] for r in tx.run(cypher.query)))
-
-    service = getenv('SERVICE_NAME')
-
-    def format_collection(root, rootId, name):
-        return (
-            f"{name}@iot.navigation",
-            f"https://{service}/api/{root}({rootId})/{name}"
-        )
-
-    return {
-        "@iot.id": self.uuid,
-        "@iot.selfLink": f"https://{service}/api/{type(self).__name__}({self.uuid})",
-        "@iot.collection": f"https://{service}/api/{type(self).__name__}",
-        **props,
-        **{
-            f"{each}@iot.navigation": f"https://{service}/api/{type(self).__name__}({self.uuid})/{each}"
-            for each in linkedEntities
-        },
-    }
 
 
 def context(fcn):
@@ -264,9 +201,7 @@ def context(fcn):
             user = accounts.pop() if len(accounts) == 1 else None
 
             if user is None or not custom_app_context.verify(password, user.credential):
-                return {
-                    "message": f"Invalid username or password"
-                }, 403
+                return {"message": "Invalid username or password"}, 403
 
         else: # Bearer Token
             secretKey = request.headers.get("x-api-key", "salt")
@@ -298,11 +233,11 @@ def context(fcn):
         # inject object storage client
         if "s3" in signature(fcn).parameters.keys():
             kwargs["s3"] = Minio(
-            endpoint=getenv("STORAGE_ENDPOINT"),
-            secure=True,
-            access_key=getenv("SPACES_ACCESS_KEY"),
-            secret_key=getenv("SPACES_SECRET_KEY"),
-        )
+                endpoint=getenv("STORAGE_ENDPOINT"),
+                secure=True,
+                access_key=getenv("SPACES_ACCESS_KEY"),
+                secret_key=getenv("SPACES_SECRET_KEY"),
+            )
 
         try:
             return fcn(db=db, **kwargs)
@@ -328,7 +263,7 @@ def register(body):
     # typing: (dict) -> (dict, int)
     """
     Register a new user account
-    """    
+    """
     # pylint: disable=too-many-return-statements
     try:
         db = GraphDatabase.driver(
@@ -356,7 +291,7 @@ def register(body):
         return {"message": "use email"}, 403
     _, domain = username.split("@")
 
-    if load_node(User(name=username), db, "id"):
+    if load_node(User(name=username), db):
         return {"message": "invalid email"}, 403
 
     entryPoint = providers.pop()
@@ -377,17 +312,17 @@ def register(body):
         ip=request.remote_addr,
     )
 
-    cypher = Node(pattern=cypher_props(user), symbol=user._symbol).create()
+    cypher = next(parse_as_nodes((user,))).create()
 
     # establish provenance
-    nodes = parse_nodes((user, entryPoint))
-    link_cypher = Links(label="apiRegister", rank=0).join(*nodes)
+    nodes = parse_as_nodes((user, entryPoint))
+    link_cypher = Links(label="Register", rank=0).join(*nodes)
 
     try:
         with db.session() as session:
             session.write_transaction(lambda tx: tx.run(cypher.query))
             session.write_transaction(lambda tx: tx.run(link_cypher.query))
-    except Exception as ex:
+    except Exception:  # pylint: disable=broad-except
         return {"message": "linking problem"}, 500
 
     return {"message": f"Registered as a member of {entryPoint.name}."}, 200
@@ -400,34 +335,31 @@ def manage(db, user, body) -> (dict, int):
     Change account settings. You can only delete a user or change the
     alias.
     """
-    node = Node(pattern=cypher_props(user), symbol=user._symbol)
+    # Unpack first member of Nodes tuple
+    cypher = next(parse_as_nodes((user,))).mutate(parse_as_cypher(body))
 
-    if body.get("delete", False):
-        cypher = node.delete()
-    else:
-        cypher = node.mutate(cypher_props(body))
-
+    # Execute the query
     with db.session() as session:
         return session.write_transaction(cypher.query)
 
+    # Report success
     return None, 204
 
 
 @context
-def token(user, provider, secretKey = "salt") -> (dict, int):
+def token(user, provider, secretKey="salt"):
     # typing: (User, Providers, str) -> (dict, int)
     """
     Send a JavaScript Web Token back to authorize future sessions
     """
 
-    # create the secure serializer instance
-    serializer = TimedJSONWebSignatureSerializer(
+    # create the secure serializer instance and make a token
+    _token = TimedJSONWebSignatureSerializer(
         secret_key=secretKey,
         expires_in=provider.tokenDuration
-    )
-
-    # convert the encrypted token to text
-    _token = serializer.dumps({"uuid": user.uuid}).decode("ascii")
+    ).dumps({
+        "uuid": user.uuid
+    }).decode("ascii")
 
     # send token info with the expiration
     return {"token": _token, "duration": provider.tokenDuration}, 200
@@ -444,7 +376,8 @@ def catalog(db):
     Uses the graph `context` decorator to obtain the neo4j driver
     and the pre-authorized user.
 
-    We make sure to remove the metadata entities that are not part of a public specification. 
+    We make sure to remove the metadata entities that are not
+    part of a public specification.
     """
     # format the link
     def _format(item: Record) -> dict:
@@ -452,8 +385,8 @@ def catalog(db):
         Format link
         """
         return {
-            "name": ["label"],
-            "url": f'''${getenv("SERVICE_NAME")}/api/{["label"]}'''
+            "name": item["label"],
+            "url": f'''${getenv("SERVICE_NAME")}/api/{item["label"]}'''
         }
 
     # compose the query
@@ -462,7 +395,8 @@ def catalog(db):
     # query and evaluate the generator chain
     with db.session() as session:
         result = session.read_transaction(lambda tx: tx.run(cypher.query))
-        return {"value": [*map(_format, result)]}, 200
+
+    return {"value": [*map(_format, result)]}, 200
 
 
 @context
@@ -473,12 +407,9 @@ def collection(db, entity):
 
     Get all entities of a single type.
     """
-    # data transformer for entity records
-    def _serialize(record):
-        return loads(record.serialize(db=db))
-
     # produce the serialized entity records
-    value = [*map(lambda x: loads(x.serialize(db=db)), load_node(eval(entity)(), db))]
+    # pylint: disable=eval-used
+    value = [*map(lambda x: x.serialize(), load_node(eval(entity)(), db))]
 
     return {"@iot.count": len(value), "value": value}, 200
 
@@ -502,48 +433,44 @@ def create(db, entity, body, provider) -> (dict, int):
 
     Writing transactions are recursive, and can take a long time if the tasking graph
     has not yet been built. For this reason it is desirable to populate the graph
-    with at least one instance of each data type. 
+    with at least one instance of each data type.
     """
-    # only used for API discriminator
+    # Only used for API discriminator
     _ = body.pop("entityClass")
 
-    # evaluate str representation, create a DB record
-    _entity = eval(entity)(uuid=uuid4().hex, **body)
+    # Evaluate str representation, create a DB record
+    _entity = eval(entity)(**body)  # pylint: disable=eval-used
 
-    cypher = Node(
-        pattern=cypher_props(_entity),
-        symbol=_entity._symbol
-    ).create()
+    # Generate query for creating the Node
+    cypher = next(parse_as_nodes((_entity,))).create()
 
-    # establish provenance
+    # Establish provenance
     link_cypher = Links(
-        label="apiCreate"
+        label="Create"
     ).join(
-        *parse_nodes((provider, _entity))
+        *parse_as_nodes((provider, _entity))
     )
 
+    # Execute the query
     with db.session() as session:
         session.write_transaction(lambda tx: tx.run(cypher.query))
         session.write_transaction(lambda tx: tx.run(link_cypher.query))
 
-    # send back the serialized result, for access to uuid
-    return {"message": f"Create {entity}", "value": _entity.serialize(db)}, 200
+    # Report success
+    return None, 204
 
 
 @context
-def mutate(body, db, provider, entity, uuid, user):
-    # typing: (dict, Driver, Providers, str, str, User) -> (None, int)
+def mutate(body, db, entity, uuid):
+    # typing: (dict, Driver, str, str) -> (None, int)
     """
     Give new values for the properties of an existing entity.
     """
 
     _ = body.pop("entityClass")  # only used for API discriminator
-    e = eval(entity)(uuid=uuid)
+    e = eval(entity)(uuid=uuid)  # pylint: disable=eval-used
 
-    cypher = Node(
-        pattern=cypher_props(e),
-        symbol=e._symbol
-    ).mutate(cypher_props(body))
+    cypher = next(parse_as_nodes((e, ))).mutate(parse_as_cypher(body))
 
     with db.session() as session:
         return session.write_transaction(cypher.query)
@@ -552,15 +479,14 @@ def mutate(body, db, provider, entity, uuid, user):
 
 
 @context
-def metadata(db, entity, uuid, key):
-    # (Driver, str, str, str) -> (dict, int)
+def metadata(db, entity, uuid):
+    # (Driver, str, str) -> (dict, int)
     """
     Format the entity metadata response.
     """
-    value = tuple(
-        getattr(item, key) if key else item.serialize(db=db)
-        for item in (eval(entity).load(db=db, uuid=uuid) or ())
-    )
+    # pylint: disable=eval-used
+    value = [*map(lambda x: x.serialize(), load_node(eval(entity)(uuid=uuid), db))]
+
     return {"@iot.count": len(value), "value": value}, 200
 
 
@@ -570,17 +496,15 @@ def query(db, root, rootId, entity):
     """
     Get the related entities of a certain type.
     """
-
     nodes = ({"cls": root, "id": rootId}, {"cls": entity})
 
-    cypher = Links().query(*parse_nodes(nodes), "b")
-    result = []
+    # Pre-calculate the Cypher query
+    cypher = Links().query(*parse_as_nodes(nodes), "b")
 
     with db.session() as session:
-        for item in session.write_transaction(lambda tx: [*tx.run(cypher.query)]):
-            result.append(item.serialize(db=db))
+        value = [*map(lambda x: x.serialize(), session.write_transaction(lambda tx: tx.run(cypher.query)))]
 
-    return {"@iot.count": len(result), "value": result}, 200
+    return {"@iot.count": len(value), "value": value}, 200
 
 
 @context
@@ -589,22 +513,24 @@ def delete(db, entity, uuid):
     """
     Delete a pattern from the graph
     """
-    eval(entity).delete(db, uuid=uuid)
+    eval(entity).delete(db, uuid=uuid)  # pylint: disable=eval-used
     return None, 204
 
 
 @context
-def join(db, root, rootId, entity, uuid, body):
+def join(db, root, rootId, entity, uuid, body):  # pylint: disable=too-many-arguments
     # typing: (Driver, str, str, str, str, dict) -> (None, int)
     """
     Create relationships between existing nodes.
     """
 
     # Generate the Cypher query
+    # pylint: disable=eval-used
     cypher = Links(
-        label="apiJoin"
+        label="Join",
+        **body
     ).join(
-        *parse_nodes((
+        *parse_as_nodes((
             eval(root)(uuid=rootId),
             eval(entity)(uuid=uuid)
         ))
@@ -623,48 +549,25 @@ def drop(db, root, rootId, entity, uuid):
     """
     Break connections between linked nodes.
     """
+    # Create the Node
+    # pylint: disable=eval-used
+    left, right = map(lambda xi: eval(xi[0])(uuid=xi[1]), ((root, rootId), (entity, uuid)))
 
-    def evalNode(args):
-        className, uniqueId = args
-        return eval(className)(uuid=uniqueId)
-
-    left, right = map(evalNode, ((root, rootId), (entity, uuid)))
+    # Generate Cypher query
     cypher = Links().drop(nodes=(left, right))
 
+    # Execute the transaction against Neo4j database
     with db.session() as session:
         return session.write_transaction(lambda tx: tx.run(cypher.query))
 
+    # Report success
     return None, 204
 
 
-# @context
-# def index(client: Minio, objectKey: str):
-#     # (Minio, str) -> (dict, int)
-#     """
-#     Get all model configurations known to the service.
-#     """
-#     method = client.stat_object if request.method == "HEAD" else client.get_object
-
-#     try:
-#         return method(
-#             bucket_name=getenv("BUCKET_NAME"),
-#             object_name=f"{getenv('SERVICE_NAME')}/{objectKey}"
-#         ), 200
-#     except IndexError:
-#         return f"Endpoint ({getenv('STORAGE_ENDPOINT')}) not found", 404
-#     except S3Error:
-#         return f"Asset ({objectKey}) not found", 404
-
 
 # @context
-# def run(
-#     body: dict,
-#     objectKey: str,
-#     species: str,
-#     cultureType: str,
-#     client: Minio,
-#     weight: float
-# ) -> (dict or str, int):
+# def run(body, client, objectKey):
+#     # typing: (dict, Minio, str) -> (dict, int)
 #     """
 #     Run the model using a versioned configuration.
 
@@ -676,7 +579,6 @@ def drop(db, root, rootId, entity, uuid):
 #     :param client: storage client
 #     """
 #     try:
-
 #         config = load(client.get_object(
 #             bucket_name=getenv("BUCKET_NAME"),
 #             object_name=f"{getenv('SERVICE_NAME')}/{objectKey}.json"
@@ -684,10 +586,10 @@ def drop(db, root, rootId, entity, uuid):
 #         properties = config.get("properties")
 #     except S3Error:
 #         return f"Configuration ({objectKey}) not found", 404
-#     except Exception:
+#     except Exception:  # pylint: disable=broad-except
 #         return f"Invalid configuration ({objectKey})", 500
 
-        
+
 #     def job(config: dict, forcing: tuple) -> (tuple, bytes):
 #         """
 #         Execute single simulation with synchronous callback.
@@ -701,9 +603,9 @@ def drop(db, root, rootId, entity, uuid):
 #         command = ["/usr/bin/mono", f'{__path__[0]}/../bin/kernel.exe']
 
 #         result = attr.ib(factory=list)
-#         process = attr.ib(default=None)
-#         console: JSONIOWrapper = attr.ib(default=None)
-#         output: JSONIOWrapper = attr.ib(default=None)
+
+#         console = JSONIOWrapper()
+#         output = JSONIOWrapper()
 
 #         Message(
 #             message=f"Spawned process {process.pid}",
@@ -778,7 +680,7 @@ def drop(db, root, rootId, entity, uuid):
 #             "start": start,
 #             "finish": time(),
 #         }
-    
+
 #     try:
 #         client.put_object(
 #             object_name=f"{client.session_id}.logs.json",
@@ -812,7 +714,7 @@ def drop(db, root, rootId, entity, uuid):
 #         return f"Error saving results", 500
 
 #     return {"self": self_link}, 200
- 
+
 
 
 # @attr.s
@@ -880,5 +782,3 @@ def drop(db, root, rootId, entity, uuid):
 #         ).log(self.log)
 
 #         self.text_io.write(f"{json}\n")
-
-

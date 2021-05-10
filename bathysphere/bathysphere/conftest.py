@@ -23,8 +23,8 @@ def client() -> FlaskClient:
     """
     APP.app.config["DEBUG"] = True
     APP.app.config["TESTING"] = True
-    with APP.app.test_client() as c:
-        yield c
+    with APP.app.test_client() as _client:
+        yield _client
 
 
 @pytest.fixture(scope="session")

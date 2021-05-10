@@ -517,6 +517,10 @@ impl Agents {
             uuid
         }
     } 
+
+    pub fn serialize(&self) -> String {
+        serde_json::to_string(self).unwrap()
+    }
 }
 
 
@@ -596,6 +600,10 @@ impl Actuators {
             network_address
         }
     }
+
+    pub fn serialize(&self) -> String {
+        serde_json::to_string(self).unwrap()
+    }
 }
 
 
@@ -646,6 +654,10 @@ impl Assets {
             Ok(val) => println!("{}: {:?}", key, val),
             Err(e) => println!("couldn't interpret {}: {}", key, e),
         }
+    }
+
+    pub fn serialize(&self) -> String {
+        serde_json::to_string(self).unwrap()
     }
 }
 
@@ -699,6 +711,10 @@ impl Collections {
             version
         }
     }
+
+    pub fn serialize(&self) -> String {
+        serde_json::to_string(self).unwrap()
+    }
 }
 
 
@@ -742,6 +758,10 @@ impl FeaturesOfInterest {
             encoding_type,
             feature
         }
+    }
+
+    pub fn serialize(&self) -> String {
+        serde_json::to_string(self).unwrap()
     }
 }
 
@@ -787,6 +807,10 @@ impl Sensors {
             metadata
         }
     }
+
+    pub fn serialize(&self) -> String {
+        serde_json::to_string(self).unwrap()
+    }
 }
 
 /**
@@ -826,6 +850,10 @@ impl ObservedProperties{
             definition
         }
     }
+
+    pub fn serialize(&self) -> String {
+        serde_json::to_string(self).unwrap()
+    }
 }
 
 /**
@@ -862,6 +890,10 @@ impl Tasks {
             uuid,
             tasking_parameters
         }
+    }
+
+    pub fn serialize(&self) -> String {
+        serde_json::to_string(self).unwrap()
     }
 }
 
@@ -904,6 +936,10 @@ impl Things {
             properties
         }
     }
+
+    pub fn serialize(&self) -> String {
+        serde_json::to_string(self).unwrap()
+    }
 }
 
 /**
@@ -944,6 +980,10 @@ impl TaskingCapabilities {
             creation_time,
             tasking_parameters
         }
+    }
+
+    pub fn serialize(&self) -> String {
+        serde_json::to_string(self).unwrap()
     }
 }
 
@@ -1031,6 +1071,10 @@ impl Locations {
             location
         }
     }
+
+    pub fn serialize(&self) -> String {
+        serde_json::to_string(self).unwrap()
+    }
 }
 
 
@@ -1059,6 +1103,10 @@ impl HistoricalLocations {
             uuid,
             time
         }
+    }
+
+    pub fn serialize(&self) -> String {
+        serde_json::to_string(self).unwrap()
     }
 }
 
@@ -1140,6 +1188,10 @@ impl Observations {
         }
 
     }
+
+    pub fn serialize(&self) -> String {
+        serde_json::to_string(self).unwrap()
+    }
 }
 
 /**
@@ -1190,6 +1242,10 @@ impl DataStreams {
             phenomenon_time,
             result_time
         }
+    }
+
+    pub fn serialize(&self) -> String {
+        serde_json::to_string(self).unwrap()
     }
 }
 
@@ -1299,6 +1355,10 @@ impl Model {
     
     pub fn self_link(&self) -> String {
         format!("")
+    }
+
+    pub fn serialize(&self) -> String {
+        serde_json::to_string(self).unwrap()
     }
 }
 

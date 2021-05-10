@@ -20,10 +20,10 @@ import pytest
 from neo4j import GraphDatabase
 
 # App config
-from bathysphere import ONTOLOGY
+from bathysphere import ONTOLOGY  # pylint: disable=no-name-in-module
 
 # Native data models
-from bathysphere.bathysphere import (
+from bathysphere.bathysphere import (  # pylint: disable=no-name-in-module, unused-import
     Links,
     Locations,
     Sensors,
@@ -43,7 +43,7 @@ from bathysphere.bathysphere import (
 )
 
 # Data models in the API
-classes = [
+DATA_MODELS = [
     Locations,
     Sensors,
     Things,
@@ -56,10 +56,10 @@ classes = [
 ]
 
 # Memoize results between tests
-IndexedDB = dict()
+MEMO = dict()
 
 # Forcing conditions for testing simulation
-streams = [
+STREAMS = [
     [{
         "temperature": 20.0,
         "salinity": 35.0
@@ -100,32 +100,31 @@ def test_graph_teardown():
     Connect to the test database. The connect method throws an exception if no connection
     is made. So handling here is unnecessary, since we want the bubble up.
     """
-    
-    db = GraphDatabase.driver(
-        uri=getenv("NEO4J_HOSTNAME"), 
+
+    graph = GraphDatabase.driver(
+        uri=getenv("NEO4J_HOSTNAME"),
         auth=("neo4j", getenv("NEO4J_ACCESS_KEY"))
     )
 
     cypher = Node(pattern={}, symbol="n").delete()
 
-    with db.session() as session:
+    with graph.session() as session:
         session.write_transaction(lambda tx: cypher.query)
 
     for provider in ONTOLOGY["Providers"]:
         _ = Providers(
             **provider["spec"],
             apiKey=token_urlsafe(64)
-        ).create(db)
+        ).create(graph)
 
 
 def test_graph_account_create_user(client):
     """
     Create a service account user.
     """
-   
 
-    db = GraphDatabase.driver(
-        uri=getenv("NEO4J_HOSTNAME"), 
+    graph = GraphDatabase.driver(
+        uri=getenv("NEO4J_HOSTNAME"),
         auth=("neo4j", getenv("NEO4J_ACCESS_KEY"))
     )
 
@@ -135,7 +134,7 @@ def test_graph_account_create_user(client):
             "username": getenv("SERVICE_ACCOUNT_USERNAME"),
             "password": getenv("SERVICE_ACCOUNT_PASSWORD"),
             "secret": getenv("SERVICE_ACCOUNT_SECRET"),
-            "apiKey": Providers(name="Oceanicsdotio").load(db=db).pop().apiKey,
+            "apiKey": Providers(name="Oceanicsdotio").load(graph).pop().apiKey,
         }
     )
 
@@ -150,19 +149,19 @@ def test_graph_account_get_token(token):
     assert btk is not None and len(btk) >= 127
 
 
-@pytest.mark.parametrize("cls", classes)
+@pytest.mark.parametrize("cls", DATA_MODELS)
 def test_graph_sensorthings_create(client, cls, token):
     """
-    Create the WellKnown Entities. 
+    Create the WellKnown Entities.
 
     Make an HTTP request through the local test client to create a single
     entity.
     """
     # cache created entities for retrieval
-    if "createdEntities" not in IndexedDB.keys():
-        IndexedDB["createdEntities"] = dict()
-    if "joinQueue" not in IndexedDB.keys():
-        IndexedDB["joinQueue"] = dict()
+    if "createdEntities" not in MEMO.keys():
+        MEMO["createdEntities"] = dict()
+    if "joinQueue" not in MEMO.keys():
+        MEMO["joinQueue"] = dict()
 
     results = []
     try:
@@ -183,22 +182,22 @@ def test_graph_sensorthings_create(client, cls, token):
 
         results.append(entity)
         uuid = entity["value"]["@iot.id"]
-        if not (isinstance(uuid, str) and uuid and uuid not in IndexedDB["joinQueue"].keys()):
+        if not (isinstance(uuid, str) and uuid and uuid not in MEMO["joinQueue"].keys()):
             print(entity["value"])
             raise AssertionError
         _metadata = each.get("metadata", dict())
         if isinstance(_metadata, dict) and "config" in _metadata.keys():
             _ = _metadata.pop("config")
-        IndexedDB["joinQueue"][uuid] = _metadata
+        MEMO["joinQueue"][uuid] = _metadata
 
     # cache created entities for retrieval
-    IndexedDB["createdEntities"][cls] = results
+    MEMO["createdEntities"][cls] = results
 
 
-@pytest.mark.parametrize("cls", set(classes) - {TaskingCapabilities, Tasks})
+@pytest.mark.parametrize("cls", set(DATA_MODELS) - {TaskingCapabilities, Tasks})
 def test_graph_sensorthings_get_entity(client, cls, token):
     """
-    Retrieve the WellKnownEntities. 
+    Retrieve the WellKnownEntities.
 
     This will fail if run by itself, because it currently relies on having
     the successes memoized during the `create` test.
@@ -206,9 +205,9 @@ def test_graph_sensorthings_get_entity(client, cls, token):
     We need to decouple these to increase development and testing velocity.
     """
     try:
-        retrieve = IndexedDB["createdEntities"][cls]
+        retrieve = MEMO["createdEntities"][cls]
     except KeyError as ex:
-        print(IndexedDB["createdEntities"].keys())
+        print(MEMO["createdEntities"].keys())
         raise ex
     assert len(retrieve) > 0
 
@@ -223,7 +222,7 @@ def test_graph_sensorthings_get_entity(client, cls, token):
                 f"api/{cls}({uuid})", headers={"Authorization": ":" + token.get("token")}
             )
 
-@pytest.mark.parametrize("cls", set(classes) - {Tasks, TaskingCapabilities})
+@pytest.mark.parametrize("cls", set(DATA_MODELS) - {Tasks, TaskingCapabilities})
 def test_graph_sensorthings_get_collection(cls, token, client):
     """
     Get all entities of a single type.
@@ -243,35 +242,36 @@ def test_graph_sensorthings_get_collection(cls, token, client):
     assert count > 0, f"Count for {cls} in {count}"
 
 
-@pytest.mark.parametrize("entityType", set(classes) - {TaskingCapabilities, Tasks})
-def test_graph_sensorthings_join(client, entityType, token):
+@pytest.mark.parametrize("entity_type", set(DATA_MODELS) - {TaskingCapabilities, Tasks})
+def test_graph_sensorthings_join(client, entity_type, token):
     """
-    Create relationships between existing entities. 
+    Create relationships between existing entities.
 
-    Loop through the memoized records of entities by type. 
+    Loop through the memoized records of entities by type.
 
-    Requires that the `create` tests were run. 
-    """ 
+    Requires that the `create` tests were run.
+    """
     errors = []
 
-    for entity in IndexedDB["createdEntities"][entityType]:
+    for entity in MEMO["createdEntities"][entity_type]:
 
         payload = entity["value"]
-        entityId = payload["@iot.id"]
-        baseRoute = f'''api/{entityType.__name__}({entityId})'''
+        entity_id = payload["@iot.id"]
+        base_route = f'''api/{entity_type.__name__}({entity_id})'''
 
-        for canonicalName, links in IndexedDB["joinQueue"].get(entityId, dict()).items():
+        for canonical_name, links in MEMO["joinQueue"].get(entity_id, dict()).items():
 
-            neighborType = canonicalName.split('@')[0]
-            neighborClass = eval(neighborType)
+            neighbor_type = canonical_name.split('@')[0]
+            neighbor_class = eval(neighbor_type)  # pylint: disable=eval-used
 
-            if neighborClass in (Providers, Assets):
-                continue  # TODO: temporary
+            if neighbor_class in (Providers, Assets):
+                continue
 
-            for link in links:  
-                for match in IndexedDB["createdEntities"][neighborClass]:
+            for link in links:
+
+                for match in MEMO["createdEntities"][neighbor_class]:
                     if match["value"].get("name") in link.get("name", []):
-                        uri = f'''{baseRoute}/{neighborType}({match["value"]["@iot.id"]})'''
+                        uri = f'''{base_route}/{neighbor_type}({match["value"]["@iot.id"]})'''
                         response = client.post(
                             uri,
                             json=link.get("props", dict()),
@@ -288,16 +288,13 @@ def test_graph_sensothings_ops_create_agents():
     """
     Create a service account user.
     """
-    
 
-    db = GraphDatabase.driver(
-        uri=getenv("NEO4J_HOSTNAME"), 
+    graph = GraphDatabase.driver(
+        uri=getenv("NEO4J_HOSTNAME"),
         auth=("neo4j", getenv("NEO4J_ACCESS_KEY"))
     )
 
-    data = reduceYamlEntityFile("bin/agents.yml")
-
-    queue = deque(data["Agents"])
+    queue = deque(ONTOLOGY["Agents"])
 
     memo = {
         "providers": dict(),
@@ -306,13 +303,11 @@ def test_graph_sensothings_ops_create_agents():
 
     passes = 0
     stable_after = 10
-    last = len(agents)
+    last = len(queue)
     fails = 0
 
 
-    while agents and fails < stable_after:
-
-        count = 0
+    while queue and fails < stable_after:
 
         each = queue.popleft()
 
@@ -320,17 +315,19 @@ def test_graph_sensothings_ops_create_agents():
 
         if agent_name not in memo["agents"].keys():
 
-            memo["agents"][agent_name] = Agents(name=agent_name).create(db)
+            memo["agents"][agent_name] = Agents(name=agent_name).create(graph)
 
             for prov in each["metadata"]["Providers@iot.navigation"]:
                 [name] = prov["name"]
                 if name not in memo["providers"].keys():
-                    memo["providers"][name] = Providers(name=name).create(db)
+                    memo["providers"][name] = Providers(name=name).create(graph)
 
                 Links(label=prov["label"]).join(
-                    db,
-                    nodes=(memo["agents"][agent_name],
-                    memo["providers"][name])
+                    graph,
+                    nodes=(
+                        memo["agents"][agent_name],
+                        memo["providers"][name]
+                    )
                 )
 
         linked_agents = each["metadata"].get("Agents@iot.navigation", [])
@@ -339,7 +336,7 @@ def test_graph_sensothings_ops_create_agents():
             for other in linked_agents:
                 [name] = other["name"]
                 Links(label=other.get("label", None)).join(
-                    db,
+                    graph,
                     nodes=(memo["agents"][agent_name], memo["agents"][name])
                 )
 
@@ -364,12 +361,12 @@ def test_graph_job_run(client):
     species = "oyster"
     weight = 25
 
-    for item in IndexedDB["created"].keys():
+    for item in MEMO["created"].keys():
         uuid = item.split("/").pop()
         response = client.post(
             f"api/{uuid}?species={species}&weight={weight}",
             json={
-                "forcing": streams,
+                "forcing": STREAMS,
             },
         )
         assert response.status_code == 200, response.get_json()

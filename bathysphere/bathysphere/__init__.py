@@ -1,4 +1,4 @@
-# pylint: disable=eval-used,import-outside-toplevel,invalid-name
+# pylint: disable=invalid-name,bad-option-value,raise-missing-from
 """
 The basic building blocks and utilities for graph queries are
 contained in this default import.
