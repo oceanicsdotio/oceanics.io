@@ -428,12 +428,12 @@ paths:
   #         name: cultureType
   #         description: |
   #           String identifier for culture method. 
-  #           Midwater configurations reutilize pseudofaeces,
-  #           while bottom culture prevents resuspension.
+  #           Mid-water configurations reutilize pseudofeces,
+  #           while bottom culture prevents re-suspension.
   #         schema:
   #           type: string
-  #           enum: [midwater, bottom, rope]
-  #           default: midwater
+  #           enum: [mid-water, bottom, rope]
+  #           default: mid-water
         
   #     requestBody:
   #       description: | 
@@ -630,7 +630,7 @@ components:
       schema:
         type: string
         enum:
-          - Datastreams
+          - DataStreams
           - Observations
           - HistoricalLocations
           - Locations
@@ -718,7 +718,7 @@ components:
               - $ref: '#/components/schemas/Thing'
               - $ref: '#/components/schemas/Location'
               - $ref: '#/components/schemas/HistoricalLocation'
-              - $ref: '#/components/schemas/Datastream'
+              - $ref: '#/components/schemas/DataStream'
               - $ref: '#/components/schemas/Observation'
               - $ref: '#/components/schemas/ObservedProperty'
               - $ref: '#/components/schemas/Sensor'
@@ -771,7 +771,7 @@ components:
               - $ref: '#/components/schemas/Thing'
               - $ref: '#/components/schemas/Location'
               - $ref: '#/components/schemas/HistoricalLocation'
-              - $ref: '#/components/schemas/Datastream'
+              - $ref: '#/components/schemas/DataStream'
               - $ref: '#/components/schemas/Observation'
               - $ref: '#/components/schemas/ObservedProperty'
               - $ref: '#/components/schemas/Sensor'
@@ -938,7 +938,7 @@ components:
                   - $ref: '#/components/schemas/Thing'
                   - $ref: '#/components/schemas/Location'
                   - $ref: '#/components/schemas/HistoricalLocation'
-                  - $ref: '#/components/schemas/Datastream'
+                  - $ref: '#/components/schemas/DataStream'
                   - $ref: '#/components/schemas/Observation'
                   - $ref: '#/components/schemas/ObservedProperty'
                   - $ref: '#/components/schemas/Sensor'
@@ -948,7 +948,7 @@ components:
     EntityClass:
       type: string
       enum:
-        - Datastreams
+        - DataStreams
         - FeaturesOfInterest
         - Locations
         - Observations
@@ -1061,7 +1061,7 @@ components:
                   items:
                     type: object
 
-            Datastreams:
+            DataStreams:
               readOnly: true
               oneOf:
 
@@ -1153,8 +1153,8 @@ components:
 
             entityClass:
               writeOnly: true
-              enum: [historicalLocation]
-              default: historicalLocation
+              enum: [HistoricalLocation]
+              default: HistoricalLocation
 
             encodingType:
               $ref: '#/components/schemas/LocationEncodingType'
@@ -1219,7 +1219,7 @@ components:
             metadata:
               type: object
 
-            Datastreams:
+            DataStreams:
               readOnly: true
               oneOf:
 
@@ -1233,21 +1233,21 @@ components:
                   items:
                     type: object
 
-    Datastream:
+    DataStream:
       allOf:
         - $ref: '#/components/schemas/Entity'
         - type: object
           description: |
 
-            Datastreams are collections of `Observations` from the same `Sensor`.
+            DataStreams are collections of `Observations` from the same `Sensor`.
 
           properties:
 
             entityClass:
               writeOnly: true
               type: string
-              enum: [datastream]
-              default: datastream
+              enum: [DataStream]
+              default: DataStream
 
             unitOfMeasurement:
               type: object
@@ -1313,9 +1313,8 @@ components:
             table:
               type: string
               description: |
-                Time series observations associated with a datastream can be stored in the TimescaleDB.
-                TimescaleDB is an extension of Postgres+Postgis, and this is SQL table reference to find and
-                retrieve data.
+                Time series observations associated with a `DataStream` can be stored in the TimescaleDB.
+                TimescaleDB is an extension of Postgres+Postgis, and this is SQL table reference to find and retrieve data.
 
 
             Observations:
@@ -1422,7 +1421,7 @@ components:
               type: object
               description: Environmental conditions during the `Observation`
 
-            Datastreams:
+            DataStreams:
               readOnly: true
               oneOf:
 
@@ -1465,7 +1464,7 @@ components:
               nullable: true
               description: Reference to resource that defines the property. We default to trying Wikipedia.
 
-            Datastreams:
+            DataStreams:
               readOnly: true
               oneOf:
 
@@ -1488,7 +1487,7 @@ components:
         - type: object
           description: |
             SpatioTemporal Asset Catalog object-linking collection object. Collections are generic, while some
-            SensorThings entities are special Collections. For instance, a `Datastream` is a collection of
+            SensorThings entities are special Collections. For instance, a `DataStream` is a collection of
             `Observations`.
 
           properties:
@@ -1553,8 +1552,8 @@ components:
     Weight:
       description: |
         The total fresh product weight in grams. There are other conversions depending on your application case.
-        Biogeochemical modelers are likely more interested in carbon and nutrient masses. This will apply best
-        to products sold by weight like mussels.
+
+        Biogeochemical modelers are likely more interested in carbon and nutrient masses. This will apply best to products sold by weight like mussels.
 
       type: number
       format: float
@@ -1624,10 +1623,11 @@ components:
             dt:
              
               description: |
-                Timestep, integer seconds. A one minute time step is probably unnecessary, unless you are validating/comparing
-                a laboratory physiology study. Longer time steps may miss important tidal dynamics. One hour is the recommended
-                value, which is also a common sampling frequency for sensors deplyed near growing areas (and therefore limits
-                interpolation). Integration is by Euler (`euler`) or Runga-Kutta (`rk`).
+                Time step in integer seconds. A one minute time step is probably unnecessary, unless you are validating/comparing a laboratory physiology study. Longer time steps may miss important tidal dynamics. 
+                
+                One hour is the recommended value, which is also a common sampling frequency for sensors deployed near growing areas (and therefore limits interpolation). 
+                
+                Integration is by Euler (`euler`) or Runge-Kutta (`rk`).
 
               type: integer
               minimum: 60
@@ -1690,9 +1690,9 @@ components:
 
                 time:
                   description: |
-                    Time in days. While computational time steps are usually hourly or shorter, the interval of interest
-                    for aqaculturists is measured in days. The internal clock uses integers to prevent numerical problems
-                    in long running simulations, but this is translated to decimal hours for calculating physiological rates.
+                    Time in days. While computational time steps are usually hourly or shorter, the interval of interest for aquaculture is measured in days. 
+                    
+                    The internal clock uses integers to prevent numerical problems in long running simulations, but this is translated to decimal hours for calculating physiological rates.
 
                   type: number
                   format: float
@@ -1704,8 +1704,9 @@ components:
                 oxygenUptake:
                   nullable: true
                   description: |
-                    Cummulative oxygen uptake. Metabolism removes oxygen from the water column. If aeration does not exceed
-                    the rate of biological uptake (plus other processes), the water body will become hypoxic or anoxic.
+                    Cumulative oxygen uptake. Metabolism removes oxygen from the water column. 
+                    
+                    If aeration does not exceed the rate of biological uptake (plus other processes), the water body will become hypoxic or anoxic.
 
                   type: number
                   format: float
@@ -1714,8 +1715,9 @@ components:
                 chlorophyllUptake:
                   nullable: true
                   description: |
-                    Filter feeding removes phytoplankton from the water column. Chlorophyll is a proxy for the productivity
-                    of the water body. When there are too many shellfish in a semi-closed system, they can deplete available
+                    Filter feeding removes phytoplankton from the water column. Chlorophyll is a proxy for the productivity of the water body. 
+                    
+                    When there are too many shellfish in a semi-closed system, they can deplete available
                     food for conspecifics.
 
                   type: number
@@ -1751,9 +1753,10 @@ components:
                 deposition:
                   nullable: true
                   description: |
-                    Shellfish are widely considered beneficial to
-                    water quality. However, they can concentrate biological material into feces and psuedofeces. These
-                    particulate forms sink more quickly, and may settle in mats either under the culture area, or downstream.
+                    Shellfish are widely considered beneficial to water quality. However, they can concentrate biological material into feces and pseudofeces. 
+                    
+                    These particulate forms sink more quickly, and may settle in mats either under the culture area, or downstream.
+                    
                     Decomposition can lead to sediment and bottom water hypoxia.
                   type: number
                   format: float
@@ -1762,8 +1765,7 @@ components:
         workers:
           type: integer
           description: | 
-            Parallelism used, multiplies execution time for 
-            calculating billable compute time.
+            Parallelism used, multiplies execution time for calculating billable compute time.
 
         configuration:
           type: string
