@@ -2,7 +2,6 @@ openapi: "3.0.0"
 
 info:
 
-
   title: "Bathysphere API"
   version: "2.0.0"
   description: |
@@ -22,9 +21,7 @@ info:
     * Provenance tracking
     * Granular access control and auditing
 
-    By assessing data and service availability over your whole domain, projects can allocate resources to fill coverage gaps. This supports an open marketplace asset sharing model, which may be preferable to redundant operational and capital expenses. 
-
-    Welcome the bazaar!
+    By assessing data and service availability over your whole domain, projects can allocate resources to fill coverage gaps. This supports an open marketplace asset sharing model, which may be preferable to redundant operational and capital expenses.
 
   contact:
     name: Oceanicsdotio LLC
@@ -40,7 +37,7 @@ info:
 
 externalDocs:
 
-  description: See our README for more information
+  description: Welcome to the bazaar!
   url: https://github.com/oceanicsdotio/oceanics.io
 
 tags:
