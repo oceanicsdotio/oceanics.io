@@ -67,7 +67,7 @@ from flask import request
 
 # Native implementations from Rust code base
 from bathysphere.bathysphere import (  # pylint: disable=no-name-in-module
-    Links as NativeLinks,
+    Links,
     Node,
     Assets,
     Actuators,
@@ -84,8 +84,7 @@ from bathysphere.bathysphere import (  # pylint: disable=no-name-in-module
     User,
     Providers,
     MetaDataTemplate
-)  
-
+)
 
 
 def cypher_props(props: dict) -> str:
@@ -146,10 +145,13 @@ def cypher_props(props: dict) -> str:
 
 
 def parse_nodes(nodes):
+    """
+    Convert from Entity Model representation to Cypher node pattern
+    """
 
     def _parse(item):
         node, symbol = item
-        return Node(pattern=repr(node), symbol=symbol, label=type(node).__name__)
+        return Node(pattern=cypher_props(node), symbol=symbol, label=type(node).__name__)
 
     return map(_parse, zip(nodes, ("a", "b")))
 
@@ -178,7 +180,7 @@ def load_node(
         return k, v
 
 
-    cypher = Node(pattern=repr(self), symbol="n").load(result)
+    cypher = Node(pattern=cypher_props(self), symbol="n").load(result)
 
     items = []
     with db.session() as session:
@@ -188,9 +190,9 @@ def load_node(
 
     return items
 
-def serialize(
-    self, db: Driver, select: (str) = None
-) -> dict:
+
+def serialize(self, db):
+    # typing: (Type, Driver) -> dict
     """
     Format entity as JSON compatible dictionary from either an object instance or a Neo4j <Node>
 
@@ -200,7 +202,14 @@ def serialize(
     """
 
     # Compose and execute the label query transaction
-    cypher = NativeLinks(label=None, pattern=None).query(*parse_nodes((self, None)), "distinct labels(b)")
+    cypher = Links(
+        label=None, 
+        pattern=None
+    ).query(
+        *parse_nodes((self, None)),
+        "distinct labels(b)"
+    )
+
     with db.session() as session:
         labels = session.write_transaction(lambda tx: set(r[0] for r in tx.run(cypher.query)))
 
@@ -223,132 +232,20 @@ def serialize(
         },
     }
 
-    
-def get_object(driver: Minio, service_name, object_name: str):
-    """
-    Overwrite the data request method.
-    """
-    return driver.get_object(
-        bucket_name=getenv("BUCKET_NAME"),
-        object_name=f"{service_name}/{object_name}"
-    )
 
-
-def stat_object(driver: Minio, service_name, object_name: str):
-    """
-    Overwrite the metadata request method.
-    """
-    return driver.stat_object(
-        bucket_name=getenv("BUCKET_NAME"),
-        object_name=f"{service_name}/{object_name}"
-    )
-
-def remove_object(driver: Minio, service_name: str, object_name: str):
-    """
-    Overwrite the delete request method.
-    """
-    return driver.remove_object(
-        bucket_name=getenv("BUCKET_NAME"),
-        object_name=f"{service_name}/{object_name}"
-    )
-
-
-def put_object(driver: Minio, service_name, object_name, data, metadata) -> None:
-    """
-    Overwrite the upload method
-    """
-    buffer = bytes(dumps(data).encode("utf-8"))
-
-    driver.put_object(
-        bucket_name=getenv("BUCKET_NAME"),
-        object_name=f"{service_name}/{object_name}",
-        data=BytesIO(buffer),
-        length=len(buffer),
-        metadata=metadata,
-        content_type="application/json",
-    )
-
-
-# @attr.s
-# class JSONIOWrapper:
-#     """
-#     Models that run in other languages exchange messages through
-#     the command prompt text interface using JSON encoded strings.
-#     """
-#     log: BytesIO = attr.ib()
-#     text_io: TextIOWrapper = attr.ib(factory=TextIOWrapper)
-
-#     @classmethod
-#     def output(cls, *args, log, **kwargs):
-#         return cls(
-#             log=log,
-#             text_io=TextIOWrapper(
-#                 *args,
-#                 line_buffering=False,
-#                 encoding="utf-8",
-#                 **kwargs
-#             )
-#         )
-
-#     @classmethod
-#     def console(cls, *args, log, **kwargs):
-#         return cls(
-#             log=log,
-#             text_io=TextIOWrapper(
-#                 *args,
-#                 line_buffering=True,
-#                 encoding="utf-8",
-#                 **kwargs
-#             )
-#         )
-
-#     def receive(self) -> dict:
-#         """
-#         Receive serialized data from command line interface.
-#         """
-#         data = self.text_io.readline().rstrip()
-#         Message("Receive", data=data, arrow="<").log(self.log)
-#         try:
-#             return loads(data)
-#         except decoder.JSONDecodeError as err:
-#             Message("Job cancelled", data=err.msg).log(self.log)
-#             return {
-#                 "status": "error",
-#                 "message": "no data received" if data is "\n" else err.msg,
-#                 "data": data
-#             }
-
-#     def send(self, data: dict):
-#         """
-#         Write serialized data to interface.
-#         """
-#         safe_keys = {
-#             key.replace(" ", "_"): value for key, value in data.items()
-#         }
-
-#         json = f"'{dumps(safe_keys)}'".replace(" ", "")
-#         Message(
-#             message="Send",
-#             data=json,
-#             arrow=">"
-#         ).log(self.log)
-
-#         self.text_io.write(f"{json}\n")
-
-
-
-def context(fcn: Callable) -> Callable:
+def context(fcn):
+    # typing: (Callable) -> (Callable)
     """
     Decorator to authenticate and inject user into request.
 
     Validate/verify JWT token.
     """
-    
 
     # Enable more specific HTTP error messages for debugging.
     DEBUG = True
 
-    def _wrapper(**kwargs: dict) -> (dict, int):
+    def _wrapper(**kwargs):
+        # typing: (dict) -> (dict, int)
         """
         The produced decorator
         """
@@ -427,14 +324,15 @@ def context(fcn: Callable) -> Callable:
     return _wrapper if DEBUG else handleUncaughtExceptions
 
 
-def register(body: dict) -> (dict, int):
+def register(body):
+    # typing: (dict) -> (dict, int)
     """
     Register a new user account
     """    
     # pylint: disable=too-many-return-statements
     try:
         db = GraphDatabase.driver(
-            uri=getenv("NEO4J_HOSTNAME"), 
+            uri=getenv("NEO4J_HOSTNAME"),
             auth=("neo4j", getenv("NEO4J_ACCESS_KEY"))
         )
     except Exception:  # pylint: disable=broad-except
@@ -479,11 +377,11 @@ def register(body: dict) -> (dict, int):
         ip=request.remote_addr,
     )
 
-    cypher = Node(pattern=repr(user), symbol=user._symbol).create()
+    cypher = Node(pattern=cypher_props(user), symbol=user._symbol).create()
 
     # establish provenance
     nodes = parse_nodes((user, entryPoint))
-    link_cypher = NativeLinks(label="apiRegister", rank=0).join(*nodes)
+    link_cypher = Links(label="apiRegister", rank=0).join(*nodes)
 
     try:
         with db.session() as session:
@@ -496,12 +394,13 @@ def register(body: dict) -> (dict, int):
 
 
 @context
-def manage(db: Driver, user: User, body: dict) -> (dict, int):
+def manage(db, user, body) -> (dict, int):
+    # typing: (Driver, User, dict) -> (dict, int)
     """
     Change account settings. You can only delete a user or change the
     alias.
     """
-    node = Node(pattern=repr(user), symbol=user._symbol)
+    node = Node(pattern=cypher_props(user), symbol=user._symbol)
 
     if body.get("delete", False):
         cypher = node.delete()
@@ -515,12 +414,12 @@ def manage(db: Driver, user: User, body: dict) -> (dict, int):
 
 
 @context
-def token(
-    db: Driver, user: User, provider: Providers, secretKey: str = "salt"
-) -> (dict, int):
+def token(user, provider, secretKey = "salt") -> (dict, int):
+    # typing: (User, Providers, str) -> (dict, int)
     """
     Send a JavaScript Web Token back to authorize future sessions
     """
+
     # create the secure serializer instance
     serializer = TimedJSONWebSignatureSerializer(
         secret_key=secretKey,
@@ -535,7 +434,8 @@ def token(
 
 
 @context
-def catalog(db: Driver) -> (dict, int):
+def catalog(db):
+    # typing: (Driver) -> (dict, int)
     """
     SensorThings capability #1
 
@@ -566,7 +466,8 @@ def catalog(db: Driver) -> (dict, int):
 
 
 @context
-def collection(db: Driver, entity: str) -> (dict, int):
+def collection(db, entity):
+    # typing: (Driver, str) -> (dict, int)
     """
     SensorThings API capability #2
 
@@ -583,12 +484,8 @@ def collection(db: Driver, entity: str) -> (dict, int):
 
 
 @context
-def create(
-    db: Driver,
-    entity: str,
-    body: dict,
-    provider: Providers,
-) -> (dict, int):
+def create(db, entity, body, provider) -> (dict, int):
+    # typing: (Driver, str, dict, Providers) -> (dict, int)
     """
     Create a new node(s) in graph.
 
@@ -612,11 +509,18 @@ def create(
 
     # evaluate str representation, create a DB record
     _entity = eval(entity)(uuid=uuid4().hex, **body)
-    cypher = Node(pattern=repr(_entity), symbol=_entity._symbol).create()
+
+    cypher = Node(
+        pattern=cypher_props(_entity),
+        symbol=_entity._symbol
+    ).create()
 
     # establish provenance
-    nodes = parse_nodes((provider, _entity))
-    link_cypher = NativeLinks(label="apiCreate").join(*nodes)
+    link_cypher = Links(
+        label="apiCreate"
+    ).join(
+        *parse_nodes((provider, _entity))
+    )
 
     with db.session() as session:
         session.write_transaction(lambda tx: tx.run(cypher.query))
@@ -627,14 +531,8 @@ def create(
 
 
 @context
-def mutate(
-    body: dict,
-    db: Driver,
-    provider: Providers,
-    entity: str,
-    uuid: str,
-    user: User
-) -> (dict, int):
+def mutate(body, db, provider, entity, uuid, user):
+    # typing: (dict, Driver, Providers, str, str, User) -> (None, int)
     """
     Give new values for the properties of an existing entity.
     """
@@ -643,7 +541,7 @@ def mutate(
     e = eval(entity)(uuid=uuid)
 
     cypher = Node(
-        pattern=repr(e),
+        pattern=cypher_props(e),
         symbol=e._symbol
     ).mutate(cypher_props(body))
 
@@ -653,11 +551,9 @@ def mutate(
     return None, 204
 
 
-
 @context
-def metadata(
-    db: Driver, entity: str, uuid: str, key=None
-) -> (dict, int):
+def metadata(db, entity, uuid, key):
+    # (Driver, str, str, str) -> (dict, int)
     """
     Format the entity metadata response.
     """
@@ -669,27 +565,27 @@ def metadata(
 
 
 @context
-def query(
-    db: Driver, root: str, rootId: str, entity: str
-) -> (dict, int):
+def query(db, root, rootId, entity):
+    # (Driver, str, str, str) -> (dict, int)
     """
     Get the related entities of a certain type.
     """
 
     nodes = ({"cls": root, "id": rootId}, {"cls": entity})
 
-    cypher = NativeLinks().query(*parse_nodes(nodes), "b")
+    cypher = Links().query(*parse_nodes(nodes), "b")
     result = []
 
     with db.session() as session:
         for item in session.write_transaction(lambda tx: [*tx.run(cypher.query)]):
-            items.append(item.serialize(db=db))
+            result.append(item.serialize(db=db))
 
-    return {"@iot.count": len(items), "value": items}, 200
+    return {"@iot.count": len(result), "value": result}, 200
 
 
 @context
-def delete(db: Driver, entity: str, uuid: str) -> (dict, int):
+def delete(db, entity, uuid):
+    # typing: (Driver, str, str) -> (None, int)
     """
     Delete a pattern from the graph
     """
@@ -698,16 +594,23 @@ def delete(db: Driver, entity: str, uuid: str) -> (dict, int):
 
 
 @context
-def join(
-    db: Driver, root: str, rootId: str, entity: str, uuid: str, body: dict
-) -> (dict, int):
+def join(db, root, rootId, entity, uuid, body):
+    # typing: (Driver, str, str, str, str, dict) -> (None, int)
     """
     Create relationships between existing nodes.
     """
-    nodes = parse_nodes((eval(root)(uuid=rootId), eval(entity)(uuid=uuid)))
 
-    cypher = Link(label="apiJoin", cost=1.0).native.join(*nodes)
+    # Generate the Cypher query
+    cypher = Links(
+        label="apiJoin"
+    ).join(
+        *parse_nodes((
+            eval(root)(uuid=rootId),
+            eval(entity)(uuid=uuid)
+        ))
+    )
 
+    # Execute transaction and end session before reporting success
     with db.session() as session:
         session.write_transaction(lambda tx: tx.run(cypher.query))
 
@@ -715,9 +618,8 @@ def join(
 
 
 @context
-def drop(
-    db: Driver, root: str, rootId: str, entity: str, uuid: str
-) -> (dict, int):
+def drop(db, root, rootId, entity, uuid):
+    # typing: (Driver, str, str, str, str) -> (None, int)
     """
     Break connections between linked nodes.
     """
@@ -727,215 +629,256 @@ def drop(
         return eval(className)(uuid=uniqueId)
 
     left, right = map(evalNode, ((root, rootId), (entity, uuid)))
-    link = Link()
-
-    cmd = f"MATCH {repr(left)}-{repr(link)}-{repr(right)} DELETE {link._symbol}"
+    cypher = Links().drop(nodes=(left, right))
 
     with db.session() as session:
-        return session.write_transaction(lambda tx: tx.run())
+        return session.write_transaction(lambda tx: tx.run(cypher.query))
 
     return None, 204
 
 
-@context
-def index(client: Minio) -> (dict, int):
-    """
-    Get all model configurations known to the service.
-    """
-    try:
-        return client.get_object(
-            bucket_name=getenv("BUCKET_NAME"),
-            object_name=f"{getenv('SERVICE_NAME')}/{client.index}"
-        ), 200
-    except IndexError:
-        return f"Database ({client.endpoint}) not found", 404
-    except S3Error:
-        return f"Index ({client.index}) not found", 404
+# @context
+# def index(client: Minio, objectKey: str):
+#     # (Minio, str) -> (dict, int)
+#     """
+#     Get all model configurations known to the service.
+#     """
+#     method = client.stat_object if request.method == "HEAD" else client.get_object
+
+#     try:
+#         return method(
+#             bucket_name=getenv("BUCKET_NAME"),
+#             object_name=f"{getenv('SERVICE_NAME')}/{objectKey}"
+#         ), 200
+#     except IndexError:
+#         return f"Endpoint ({getenv('STORAGE_ENDPOINT')}) not found", 404
+#     except S3Error:
+#         return f"Asset ({objectKey}) not found", 404
 
 
-@context
-def configure(client: Minio, body: dict) -> (dict, int):
-    """
-    Create a new configuration
+# @context
+# def run(
+#     body: dict,
+#     objectKey: str,
+#     species: str,
+#     cultureType: str,
+#     client: Minio,
+#     weight: float
+# ) -> (dict or str, int):
+#     """
+#     Run the model using a versioned configuration.
 
-    :param body: Request body, already validated by connexion
-    :param index: index.json data
-    :param client: s3 storage connection
-    :param session: UUID4 session id, used to name configuration
-    """
-    uuid = uuid4().hex
-    self_link = f"{getenv('SERVICE_NAME')}/{uuid}"
-   
-    client.put_object(
-        object_name=f"{uuid}.json",
-        data={
-            **body,
-            "experiments": [],
-            "uuid": uuid,
-        },
-        metadata=MetaDataTemplate(
-            x_amz_meta_service_file_type="configuration",
-            x_amz_meta_parent=client.index
-        ).headers(),
-    )
+#     :param objectKey: identity of the configuration to use
+#     :param body: optional request body with forcing
+#     :param species: bivalve species string, in path:
+#     :param session: session UUID used to name experiment
+#     :param weight: initial seed weight
+#     :param client: storage client
+#     """
+#     try:
 
-    return {"self": self_link}, 200
-
-
-@context
-def run(
-    body: dict,
-    objectKey: str,
-    species: str,
-    cultureType: str,
-    client: Minio,
-    weight: float
-) -> (dict or str, int):
-    """
-    Run the model using a versioned configuration.
-
-    :param objectKey: identity of the configuration to use
-    :param body: optional request body with forcing
-    :param species: bivalve species string, in path:
-    :param session: session UUID used to name experiment
-    :param weight: initial seed weight
-    :param client: storage client
-    """
-    try:
-
-        config = load(client.get_object(
-            bucket_name=getenv("BUCKET_NAME"),
-            object_name=f"{getenv('SERVICE_NAME')}/{objectKey}.json"
-        ))
-        properties = config.get("properties")
-    except S3Error:
-        return f"Configuration ({objectKey}) not found", 404
-    except Exception:
-        return f"Invalid configuration ({objectKey})", 500
+#         config = load(client.get_object(
+#             bucket_name=getenv("BUCKET_NAME"),
+#             object_name=f"{getenv('SERVICE_NAME')}/{objectKey}.json"
+#         ))
+#         properties = config.get("properties")
+#     except S3Error:
+#         return f"Configuration ({objectKey}) not found", 404
+#     except Exception:
+#         return f"Invalid configuration ({objectKey})", 500
 
         
-    def job(config: dict, forcing: tuple) -> (tuple, bytes):
-        """
-        Execute single simulation with synchronous callback.
+#     def job(config: dict, forcing: tuple) -> (tuple, bytes):
+#         """
+#         Execute single simulation with synchronous callback.
 
-        :param config: simulation configuration
-        :param forcing: tuple of forcing vectors
+#         :param config: simulation configuration
+#         :param forcing: tuple of forcing vectors
 
-        :return: output variables of C# methods, or None
-        """
+#         :return: output variables of C# methods, or None
+#         """
 
-        command = ["/usr/bin/mono", f'{__path__[0]}/../bin/kernel.exe']
+#         command = ["/usr/bin/mono", f'{__path__[0]}/../bin/kernel.exe']
 
-        result = attr.ib(factory=list)
-        process = attr.ib(default=None)
-        console: JSONIOWrapper = attr.ib(default=None)
-        output: JSONIOWrapper = attr.ib(default=None)
+#         result = attr.ib(factory=list)
+#         process = attr.ib(default=None)
+#         console: JSONIOWrapper = attr.ib(default=None)
+#         output: JSONIOWrapper = attr.ib(default=None)
 
-        Message(
-            message=f"Spawned process {process.pid}",
-            data=process.args
-        ).log(log)
+#         Message(
+#             message=f"Spawned process {process.pid}",
+#             data=process.args
+#         ).log(log)
 
-        result = [output.receive(), output.receive()]
-        console.send(config)
+#         result = [output.receive(), output.receive()]
+#         console.send(config)
 
-        Message(
-            message="Worker ready",
-            data=f"expecting transactions"
-        ).log(log)
+#         Message(
+#             message="Worker ready",
+#             data=f"expecting transactions"
+#         ).log(log)
 
-        process = Popen(
-            self.command,
-            stdin=PIPE,
-            stdout=PIPE,
-            stderr=STDOUT,
-            bufsize=1
-        )
+#         process = Popen(
+#             self.command,
+#             stdin=PIPE,
+#             stdout=PIPE,
+#             stderr=STDOUT,
+#             bufsize=1
+#         )
 
-        console = JSONIOWrapper.console(process.stdin, log=log)
-        output = JSONIOWrapper.output(process.stdout, log=log)
+#         console = JSONIOWrapper.console(process.stdin, log=log)
+#         output = JSONIOWrapper.output(process.stdout, log=log)
 
-        for item in forcing:
-            console.send(item)  # send data as serialized dictionary
-            state = output.receive()
-            process.result.append(state)
-            if state["status"] == "error":
-                Message(
-                    message="Runtime",
-                    data=state["message"]
-                ).log(process.log)
-                break
+#         for item in forcing:
+#             console.send(item)  # send data as serialized dictionary
+#             state = output.receive()
+#             process.result.append(state)
+#             if state["status"] == "error":
+#                 Message(
+#                     message="Runtime",
+#                     data=state["message"]
+#                 ).log(process.log)
+#                 break
 
-        Message(
-            message="Worker done",
-            data="completed transactions"
-        ).log(log)
+#         Message(
+#             message="Worker done",
+#             data="completed transactions"
+#         ).log(log)
 
-        process.kill()
-        process.wait()
-        console.text_io.close()
-        output.text_io.close()
+#         process.kill()
+#         process.wait()
+#         console.text_io.close()
+#         output.text_io.close()
 
-        return result, log.getvalue().decode()
+#         return result, log.getvalue().decode()
 
-    start = time()
-    processes = min(cpu_count(), properties.get("workers", cpu_count()))
+#     start = time()
+#     processes = min(cpu_count(), properties.get("workers", cpu_count()))
 
-    with Pool(processes) as pool:
+#     with Pool(processes) as pool:
 
-        configuration = {
-            "species": species,
-            "culture": cultureType,
-            "weight": weight,
-            "dt": properties.get("dt", 3600) / 3600 / 24,
-            "volume": properties.get("volume", 1000.0),
-        }
-        forcing = body.get("forcing")
-        stream = zip(repeat(configuration, len(forcing)), forcing)
-        data, logs = zip(*pool.starmap(job, stream))
-        self_link = f"{getenv('SERVICE_NAME')}/{client.session_id}"
+#         configuration = {
+#             "species": species,
+#             "culture": cultureType,
+#             "weight": weight,
+#             "dt": properties.get("dt", 3600) / 3600 / 24,
+#             "volume": properties.get("volume", 1000.0),
+#         }
+#         forcing = body.get("forcing")
+#         stream = zip(repeat(configuration, len(forcing)), forcing)
+#         data, logs = zip(*pool.starmap(job, stream))
+#         self_link = f"{getenv('SERVICE_NAME')}/{client.session_id}"
 
-        result = {
-            "self": self_link,
-            "configuration": f"{getenv('SERVICE_NAME')}/{objectKey}",
-            "forcing": forcing,
-            "data": data,
-            "workers": pool._processes,
-            "start": start,
-            "finish": time(),
-        }
+#         result = {
+#             "self": self_link,
+#             "configuration": f"{getenv('SERVICE_NAME')}/{objectKey}",
+#             "forcing": forcing,
+#             "data": data,
+#             "workers": pool._processes,
+#             "start": start,
+#             "finish": time(),
+#         }
     
-    try:
-        client.put_object(
-            object_name=f"{client.session_id}.logs.json",
-            data=reduce(lambda a, b: a + b, logs),
-            metadata=MetaDataTemplate(
-                x_amz_meta_service_file_type="log",
-                x_amz_meta_parent=client.session_id
-            ).headers(),
-        )
+#     try:
+#         client.put_object(
+#             object_name=f"{client.session_id}.logs.json",
+#             data=reduce(lambda a, b: a + b, logs),
+#             metadata=MetaDataTemplate(
+#                 x_amz_meta_service_file_type="log",
+#                 x_amz_meta_parent=client.session_id
+#             ).headers(),
+#         )
 
-        client.put_object(
-            object_name=f"{client.session_id}.json",
-            data=result,
-            metadata=MetaDataTemplate(
-                x_amz_meta_service_file_type="experiment",
-                x_amz_meta_parent=objectKey
-            ).headers()
-        )
+#         client.put_object(
+#             object_name=f"{client.session_id}.json",
+#             data=result,
+#             metadata=MetaDataTemplate(
+#                 x_amz_meta_service_file_type="experiment",
+#                 x_amz_meta_parent=objectKey
+#             ).headers()
+#         )
 
-        config["experiments"].append(result["self"])
+#         config["experiments"].append(result["self"])
 
-        client.put_object(
-            object_name=f"{objectKey}.json",
-            data=config,
-            metadata=MetaDataTemplate(
-                x_amz_meta_service_file_type="configuration",
-                x_amz_meta_parent=client.index
-            ).headers()
-        )
-    except Exception:
-        return f"Error saving results", 500
+#         client.put_object(
+#             object_name=f"{objectKey}.json",
+#             data=config,
+#             metadata=MetaDataTemplate(
+#                 x_amz_meta_service_file_type="configuration",
+#                 x_amz_meta_parent=client.index
+#             ).headers()
+#         )
+#     except Exception:
+#         return f"Error saving results", 500
 
-    return {"self": self_link}, 200
+#     return {"self": self_link}, 200
  
+
+
+# @attr.s
+# class JSONIOWrapper:
+#     """
+#     Models that run in other languages exchange messages through
+#     the command prompt text interface using JSON encoded strings.
+#     """
+#     log: BytesIO = attr.ib()
+#     text_io: TextIOWrapper = attr.ib(factory=TextIOWrapper)
+
+#     @classmethod
+#     def output(cls, *args, log, **kwargs):
+#         return cls(
+#             log=log,
+#             text_io=TextIOWrapper(
+#                 *args,
+#                 line_buffering=False,
+#                 encoding="utf-8",
+#                 **kwargs
+#             )
+#         )
+
+#     @classmethod
+#     def console(cls, *args, log, **kwargs):
+#         return cls(
+#             log=log,
+#             text_io=TextIOWrapper(
+#                 *args,
+#                 line_buffering=True,
+#                 encoding="utf-8",
+#                 **kwargs
+#             )
+#         )
+
+#     def receive(self) -> dict:
+#         """
+#         Receive serialized data from command line interface.
+#         """
+#         data = self.text_io.readline().rstrip()
+#         Message("Receive", data=data, arrow="<").log(self.log)
+#         try:
+#             return loads(data)
+#         except decoder.JSONDecodeError as err:
+#             Message("Job cancelled", data=err.msg).log(self.log)
+#             return {
+#                 "status": "error",
+#                 "message": "no data received" if data is "\n" else err.msg,
+#                 "data": data
+#             }
+
+#     def send(self, data: dict):
+#         """
+#         Write serialized data to interface.
+#         """
+#         safe_keys = {
+#             key.replace(" ", "_"): value for key, value in data.items()
+#         }
+
+#         json = f"'{dumps(safe_keys)}'".replace(" ", "")
+#         Message(
+#             message="Send",
+#             data=json,
+#             arrow=">"
+#         ).log(self.log)
+
+#         self.text_io.write(f"{json}\n")
+
+

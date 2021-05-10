@@ -24,7 +24,7 @@ from bathysphere import ONTOLOGY
 
 # Native data models
 from bathysphere.bathysphere import (
-    Links as NativeLink,
+    Links,
     Locations,
     Sensors,
     Things,
@@ -78,7 +78,7 @@ def test_graph_native():
     """
     Test that basic native bindings work, do not execute any queries.
     """
-    link = NativeLink(label="has")
+    link = Links(label="has")
     agent = Agents(name="Hello Human")
     asset = Assets(name="Money Bags", description="Some green or blue paper in a reinforced bag.")
 
@@ -228,7 +228,7 @@ def test_graph_sensorthings_get_collection(cls, token, client):
     """
     Get all entities of a single type.
 
-    This works stand-alone on an existing database. 
+    This works stand-alone on an existing database.
     """
     response = client.get(
         f"api/{cls.__name__}", headers={"Authorization": ":" + token.get("token")}
@@ -326,15 +326,22 @@ def test_graph_sensothings_ops_create_agents():
                 [name] = prov["name"]
                 if name not in memo["providers"].keys():
                     memo["providers"][name] = Providers(name=name).create(db)
-          
-                link = Link(label=prov["label"]).join(db, nodes=(memo["agents"][agent_name], memo["providers"][name]))
+
+                Links(label=prov["label"]).join(
+                    db,
+                    nodes=(memo["agents"][agent_name],
+                    memo["providers"][name])
+                )
 
         linked_agents = each["metadata"].get("Agents@iot.navigation", [])
         if all(map(lambda x: x["name"][0] in memo["agents"].keys(), linked_agents)):
 
             for other in linked_agents:
-                [name] = other["name"] 
-                link = Link(label=other.get("label", None)).join(db, nodes=(memo["agents"][agent_name], memo["agents"][name]))
+                [name] = other["name"]
+                Links(label=other.get("label", None)).join(
+                    db,
+                    nodes=(memo["agents"][agent_name], memo["agents"][name])
+                )
 
         else:
             queue.append(each)
@@ -351,27 +358,8 @@ def test_graph_sensothings_ops_create_agents():
         last = len(queue)
 
 
-def test_graph_bivalve_index(client):
-    """
-    Retrieve all known configurations based on the index file
-    """
-    response = client.get("api/")
-    index = response.get_json()
-    assert response.status_code == 200, index
-    IndexedDB["existing"] = {uuid: {} for uuid in index["configurations"]}
 
-
-def test_graph_bivalve_configure(client, model_config):
-    """
-    Create a configuration to run experiments from.
-    """
-    response = client.post("api/", json=model_config)
-    data = response.get_json()
-    assert response.status_code == 200, data
-    IndexedDB["created"] = {data["self"]: {}}
-
-
-def test_graph_bivalve_run(client):
+def test_graph_job_run(client):
     """Try running the simulation"""
     species = "oyster"
     weight = 25
@@ -384,13 +372,4 @@ def test_graph_bivalve_run(client):
                 "forcing": streams,
             },
         )
-        assert response.status_code == 200, response.get_json()
-
-
-def test_graph_bivalve_get_by_id(client):
-    """
-    Make sure that the configuration file can be retrieved.
-    """
-    for item in IndexedDB["created"].keys():
-        response = client.get(f"api/{item.split('/').pop()}")
         assert response.status_code == 200, response.get_json()
