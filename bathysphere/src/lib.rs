@@ -186,7 +186,7 @@ impl Node {
     #[staticmethod]
     fn all_labels() -> Cypher {
         Cypher {
-            query: "CALL db.labels()",
+            query: String::from("CALL db.labels()"),
             read_only: true
         }
     }
@@ -1252,7 +1252,7 @@ struct Experiment {
 }
 
 #[pyclass]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct ModelMetadata {
     name: String,
@@ -1263,7 +1263,7 @@ struct ModelMetadata {
 
 
 #[pyclass]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct ModelProperties {
     workers: u16,
@@ -1273,7 +1273,7 @@ struct ModelProperties {
 }
 
 #[pyclass]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct Model {
     uuid: Option<String>,
@@ -1281,6 +1281,7 @@ struct Model {
     properties: Option<ModelProperties>
 }
 
+#[pymethods]
 impl Model {
     #[new]
     pub fn new(
@@ -1295,7 +1296,8 @@ impl Model {
         }
     }
 
-    pub fn self_link() -> String {
+    
+    pub fn self_link(&self) -> String {
         format!("")
     }
 }

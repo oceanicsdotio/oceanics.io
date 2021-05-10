@@ -24,7 +24,7 @@ from bathysphere import ONTOLOGY
 
 # Native data models
 from bathysphere.bathysphere import (
-    Link as NativeLink,
+    Links as NativeLink,
     Locations,
     Sensors,
     Things,
@@ -85,7 +85,7 @@ def test_graph_native():
     node_a = Node(pattern=repr(agent), symbol="a")
     node_b = Node(pattern=repr(asset), symbol="b")
 
-    query = link.native.drop(node_a, node_b)
+    query = link.drop(node_a, node_b)
 
     print(query.query)
 
