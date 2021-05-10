@@ -75,7 +75,7 @@ try:
     # Process array of items into a dictionary by kind
     ONTOLOGY = reduce(
         lambda x, y: {**x, y["kind"]: [*x[y["kind"]], y] if y["kind"] in x else [y]},
-        map(load_yml, *zip(filter(None, BLOCKS), Loader)),
+        map(lambda xy: load_yml(*xy), zip(filter(None, BLOCKS), repeat(Loader))),
         {}
     )
 

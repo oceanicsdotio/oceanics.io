@@ -524,7 +524,7 @@ spec:
   encodingType: application/vnd.network+json
   location:
     protocol: https
-    host: graph.oceanics.io
+    host: www.oceanics.io
     service: /api
     port: 80
     auth:

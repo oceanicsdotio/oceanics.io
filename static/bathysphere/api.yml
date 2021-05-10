@@ -68,7 +68,7 @@ paths:
 
     post:
       tags: [ Account ]
-      operationId: bathysphere.functions.register
+      operationId: bathysphere.api.register
       summary: Register
       description: |
 
@@ -87,7 +87,7 @@ paths:
 
     get:
       tags: [ Account ]
-      operationId: bathysphere.functions.token
+      operationId: bathysphere.api.token
       summary: Token
       description: |
 
@@ -107,7 +107,7 @@ paths:
 
     put:
       tags: [Account]
-      operationId: bathysphere.functions.manage
+      operationId: bathysphere.api.manage
       summary: Manage
       description: |
 
@@ -126,7 +126,7 @@ paths:
 
     get:
       tags: [Catalog]
-      operationId: bathysphere.functions.catalog
+      operationId: bathysphere.api.catalog
       summary: Catalog
       description: |
         Get all entity types in database as collections following the SpatioTemporal Asset Catalog specification
@@ -165,7 +165,7 @@ paths:
 
     post:
       tags: [Catalog]
-      operationId: bathysphere.functions.create
+      operationId: bathysphere.api.create
       summary: Create
       description: |
         Create a new entity.
@@ -181,7 +181,7 @@ paths:
 
     get:
       tags: [Catalog]
-      operationId: bathysphere.functions.collection
+      operationId: bathysphere.api.collection
       summary: Collection
       description: |
         Get all entities of one type
@@ -200,7 +200,7 @@ paths:
 
     get:
       tags: [Catalog]
-      operationId: bathysphere.functions.metadata
+      operationId: bathysphere.api.metadata
       summary: Metadata
       description: |
         Get entity
@@ -217,7 +217,7 @@ paths:
 
     put:
       tags: [ Catalog ]
-      operationId: bathysphere.functions.mutate
+      operationId: bathysphere.api.mutate
       summary: Update
       description: Update entity
       requestBody:
@@ -235,7 +235,7 @@ paths:
 
     delete:
       tags: [ Catalog ]
-      operationId: bathysphere.functions.delete
+      operationId: bathysphere.api.delete
       summary: Delete
       description: Delete entity and orphans recursively.
       parameters:
@@ -253,7 +253,7 @@ paths:
 
     get:
       tags: [ Topology ]
-      operationId: bathysphere.functions.query
+      operationId: bathysphere.api.query
       summary: Query
       description: |
         Get related entities
@@ -276,7 +276,7 @@ paths:
     post:
 
       tags: [ Topology ]
-      operationId: bathysphere.functions.join
+      operationId: bathysphere.api.join
       summary: Join
       description: Create a labeled relationship between entities.
       parameters:
@@ -294,7 +294,7 @@ paths:
 
     delete:
       tags: [Topology]
-      operationId: bathysphere.functions.drop
+      operationId: bathysphere.api.drop
       summary: Drop
       description: |
         Remove a labeled relationship between entities. If no `label` is specified, remove all
@@ -319,7 +319,7 @@ paths:
   #   get:
   #     tags: [Bivalve]
   #     summary: Model index
-  #     # operationId: bathysphere.functions.index
+  #     # operationId: bathysphere.api.index
   #     description: |
   #       Get metadata for all model configurations.
 
@@ -340,7 +340,7 @@ paths:
   #   post:
   #     tags: [Bivalve]
   #     summary: Configure model
-  #     # operationId: bathysphere.functions.configure
+  #     # operationId: bathysphere.api.configure
   #     description: |
 
   #       Upload a configuration that will be associated with your account. 
@@ -397,7 +397,7 @@ paths:
 
   #     tags: [Bivalve Model]
   #     summary: Run experiment
-  #     # operationId: bathysphere.functions.run
+  #     # operationId: bathysphere.api.run
   #     description: |
 
   #       The bivalve endpoint uses either constant conditions over a 

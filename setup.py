@@ -1,3 +1,6 @@
+"""
+Installation for the API and CLI.
+"""
 from setuptools import setup, find_packages
 
 setup(

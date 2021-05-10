@@ -1,7 +1,6 @@
 """
 Pytest Fixtures
 """
-
 # Pick up runtime vars from environment
 from os import getenv
 

@@ -10,23 +10,21 @@ from collections import deque
 # For ingesting entities with dependencies
 from random import shuffle
 
+# generate API key
+from secrets import token_urlsafe
+
 # Test wiring
 import pytest
 
 # Graph database driver factory
 from neo4j import GraphDatabase
 
-# generate API key
-from secrets import token_urlsafe
-
 # App config
 from bathysphere import ONTOLOGY
 
-# Tooling
-from bathysphere.api import native_link
-
 # Native data models
 from bathysphere.bathysphere import (
+    Link as NativeLink,
     Locations,
     Sensors,
     Things,
@@ -80,7 +78,7 @@ def test_graph_native():
     """
     Test that basic native bindings work, do not execute any queries.
     """
-    link = native_link(label="has")
+    link = NativeLink(label="has")
     agent = Agents(name="Hello Human")
     asset = Assets(name="Money Bags", description="Some green or blue paper in a reinforced bag.")
 
