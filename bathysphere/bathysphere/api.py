@@ -1,37 +1,73 @@
-# pylint: disable=invalid-name,line-too-long,eval-used,unused-import,protected-access
-
+# pylint: disable=invalid-name,line-too-long,eval-used,unused-import,protected-access,too-many-lines
 """
 The functions module of the graph API contains handlers for secure
-calls. 
+calls.
 
 These are exposed as a web service.
 """
+# Time stamp conversion
+from datetime import datetime, date, timedelta
 
+# Calling other native packages
+from subprocess import Popen, PIPE, STDOUT
+
+# Logging
+from io import TextIOWrapper, BytesIO
+
+# pick up runtime vars from environment
+from os import getenv
+
+# JSON serialization
+from json import dumps, loads, decoder, load
+
+# enable backend parallel processing if available
+from multiprocessing import Pool, cpu_count
+
+# singleton forcing conditions
+from itertools import repeat
+
+# peek into wrapped function signatures, to conditionally inject args
+from inspect import signature
+
+# Combine logs into single buffer
+from functools import reduce
+
+# Timestamping
+from time import time
 
 # for creating users and other entities
-from uuid import uuid4  
-
+from uuid import uuid4
 
 # function signature of `context`
 from typing import Callable, Type, Any, Iterable
 
 # function signature for db queries
-from neo4j import Driver 
+from neo4j import Driver, Record, GraphDatabase
+
+# point conversion and type checking
+from neo4j.spatial import WGS84Point
+
+# Object storage
+from minio import Minio
+
+# Object storage errors
+from minio.error import S3Error
 
 # password authentication
-from passlib.apps import custom_app_context  
+from passlib.apps import custom_app_context
 
-# pick up runtime vars from environment
-from os import getenv
+# JWT authentication
+from itsdangerous import TimedJSONWebSignatureSerializer
 
-# JSON string serialization
-from json import dumps, load
+# use when handling decode errors
+from itsdangerous.exc import BadSignature
 
-# methods from core
-from bathysphere import app, job, Storage, cypher_props, parse_nodes, native_link
+# headers and such available for authenticate.
+from flask import request
+
 
 # Native implementations from Rust code base
-from bathysphere.bathysphere import (
+from bathysphere.bathysphere import (  # pylint: disable=no-name-in-module
     Links as NativeLinks,
     Node,
     Assets,
@@ -49,7 +85,257 @@ from bathysphere.bathysphere import (
     User,
     Providers,
     MetaDataTemplate
-)  # pylint: disable=no-name-in-module
+)  
+
+
+
+def cypher_props(props: dict) -> str:
+    """
+    Generate cypher from dict
+    """
+
+    def processKeyValueInbound(keyValue: (str, Any), null: bool = False) -> str or None:
+        """
+        Convert a String key and Any value into a Cypher representation
+        for making the graph query.
+        """
+        key, value = keyValue
+        if key[0] == "_":
+            return None
+
+        if "location" in key and isinstance(value, dict):
+
+            if value.get("type") == "Point":
+
+                coord = value["coordinates"]
+                if len(coord) == 2:
+                    values = f"x: {coord[1]}, y: {coord[0]}, crs:'wgs-84'"
+                elif len(coord) == 3:
+                    values = f"x: {coord[1]}, y: {coord[0]}, z: {coord[2]}, crs:'wgs-84-3d'"
+                else:
+                    # TODO: deal with location stuff in a different way, and don't auto include
+                    # the point type in processKeyValueOutbound. Seems to work for matching now.
+                    # raise ValueError(f"Location coordinates are of invalid format: {coord}")
+                    return None
+                return f"{key}: point({{{values}}})"
+
+            if value.get("type") == "Polygon":
+                return f"{key}: '{dumps(value)}'"
+
+            if value.get("type") == "Network":
+                return f"{key}: '{dumps(value)}'"
+
+
+        if isinstance(value, (list, tuple, dict)):
+            return f"{key}: '{dumps(value)}'"
+
+        if isinstance(value, str) and value and value[0] == "$":
+            # TODO: This hardcoding is bad, but the $ picks up credentials
+            if len(value) < 64:
+                return f"{key}: {value}"
+
+        if value is not None:
+            return f"{key}: {dumps(value)}"
+
+        if null:
+            return f"{key}: NULL"
+
+        return None
+
+
+    return ", ".join(filter(lambda x: x is not None, map(processKeyValueInbound, props.items())))
+
+
+def parse_nodes(nodes):
+
+    def _parse(item):
+        node, symbol = item
+        return Node(pattern=repr(node), symbol=symbol, label=type(node).__name__)
+
+    return map(_parse, zip(nodes, ("a", "b")))
+
+
+def load_node(
+    self,
+    db: Driver,
+    result: str = None
+) -> [Type]:
+    """
+    Create entity instance from a dictionary or Neo4j <Node>, which has an items() method
+    that works the same as the dictionary method.
+    """
+
+
+    def _parse(keyValue: (str, Any),) -> (str, Any):
+
+        k, v = keyValue
+
+        if isinstance(v, WGS84Point):
+            return k, {
+                "type": "Point",
+                "coordinates": f"{[v.longitude, v.latitude]}"
+            }
+
+        return k, v
+
+
+    cypher = Node(pattern=repr(self), symbol="n").load(result)
+
+    items = []
+    with db.session() as session:
+        for record in session.read_transaction(lambda tx: tx.run(cypher.query)):
+            props = dict(map(_parse, dict(record[0]).items()))
+            items.append(type(self)(**props))
+
+    return items
+
+def serialize(
+    self, db: Driver, select: (str) = None
+) -> dict:
+    """
+    Format entity as JSON compatible dictionary from either an object instance or a Neo4j <Node>
+
+    Filter properties by selected names, if any.
+    Remove private members that include a underscore,
+    since SensorThings notation is title case
+    """
+
+    # Compose and execute the label query transaction
+    cypher = NativeLinks(label=None, pattern=None).query(*parse_nodes((self, None)), "distinct labels(b)")
+    with db.session() as session:
+        labels = session.write_transaction(lambda tx: set(r[0] for r in tx.run(cypher.query)))
+
+    service = getenv('SERVICE_NAME')
+
+    def format_collection(root, rootId, name):
+        return (
+            f"{name}@iot.navigation",
+            f"https://{service}/api/{root}({rootId})/{name}"
+        )
+
+    return {
+        "@iot.id": self.uuid,
+        "@iot.selfLink": f"https://{service}/api/{type(self).__name__}({self.uuid})",
+        "@iot.collection": f"https://{service}/api/{type(self).__name__}",
+        **props,
+        **{
+            f"{each}@iot.navigation": f"https://{service}/api/{type(self).__name__}({self.uuid})/{each}"
+            for each in linkedEntities
+        },
+    }
+
+    
+def get_object(driver: Minio, service_name, object_name: str):
+    """
+    Overwrite the data request method.
+    """
+    return driver.get_object(
+        bucket_name=getenv("BUCKET_NAME"),
+        object_name=f"{service_name}/{object_name}"
+    )
+
+
+def stat_object(driver: Minio, service_name, object_name: str):
+    """
+    Overwrite the metadata request method.
+    """
+    return driver.stat_object(
+        bucket_name=getenv("BUCKET_NAME"),
+        object_name=f"{service_name}/{object_name}"
+    )
+
+def remove_object(driver: Minio, service_name: str, object_name: str):
+    """
+    Overwrite the delete request method.
+    """
+    return driver.remove_object(
+        bucket_name=getenv("BUCKET_NAME"),
+        object_name=f"{service_name}/{object_name}"
+    )
+
+
+def put_object(driver: Minio, service_name, object_name, data, metadata) -> None:
+    """
+    Overwrite the upload method
+    """
+    buffer = bytes(dumps(data).encode("utf-8"))
+
+    driver.put_object(
+        bucket_name=getenv("BUCKET_NAME"),
+        object_name=f"{service_name}/{object_name}",
+        data=BytesIO(buffer),
+        length=len(buffer),
+        metadata=metadata,
+        content_type="application/json",
+    )
+
+
+# @attr.s
+# class JSONIOWrapper:
+#     """
+#     Models that run in other languages exchange messages through
+#     the command prompt text interface using JSON encoded strings.
+#     """
+#     log: BytesIO = attr.ib()
+#     text_io: TextIOWrapper = attr.ib(factory=TextIOWrapper)
+
+#     @classmethod
+#     def output(cls, *args, log, **kwargs):
+#         return cls(
+#             log=log,
+#             text_io=TextIOWrapper(
+#                 *args,
+#                 line_buffering=False,
+#                 encoding="utf-8",
+#                 **kwargs
+#             )
+#         )
+
+#     @classmethod
+#     def console(cls, *args, log, **kwargs):
+#         return cls(
+#             log=log,
+#             text_io=TextIOWrapper(
+#                 *args,
+#                 line_buffering=True,
+#                 encoding="utf-8",
+#                 **kwargs
+#             )
+#         )
+
+#     def receive(self) -> dict:
+#         """
+#         Receive serialized data from command line interface.
+#         """
+#         data = self.text_io.readline().rstrip()
+#         Message("Receive", data=data, arrow="<").log(self.log)
+#         try:
+#             return loads(data)
+#         except decoder.JSONDecodeError as err:
+#             Message("Job cancelled", data=err.msg).log(self.log)
+#             return {
+#                 "status": "error",
+#                 "message": "no data received" if data is "\n" else err.msg,
+#                 "data": data
+#             }
+
+#     def send(self, data: dict):
+#         """
+#         Write serialized data to interface.
+#         """
+#         safe_keys = {
+#             key.replace(" ", "_"): value for key, value in data.items()
+#         }
+
+#         json = f"'{dumps(safe_keys)}'".replace(" ", "")
+#         Message(
+#             message="Send",
+#             data=json,
+#             arrow=">"
+#         ).log(self.log)
+
+#         self.text_io.write(f"{json}\n")
+
 
 
 def context(fcn: Callable) -> Callable:
@@ -58,23 +344,7 @@ def context(fcn: Callable) -> Callable:
 
     Validate/verify JWT token.
     """
-    # peek into wrapped function signatures, to conditionally inject args
-    from inspect import signature
-
-    # secure serializer
-    from itsdangerous import TimedJSONWebSignatureSerializer
-
-    # use when handling decode errors
-    from itsdangerous.exc import BadSignature
-
-    # used to create driver object
-    from neo4j import GraphDatabase
-
-    # pick up runtime-configurable vars from environment
-    from os import getenv
-
-    # headers and such available for authenticate.
-    from flask import request
+    
 
     # Enable more specific HTTP error messages for debugging.
     DEBUG = True
@@ -94,7 +364,7 @@ def context(fcn: Callable) -> Callable:
         username, password = request.headers.get("authorization", ":").split(":")
 
         if username and "@" in username:  # Basic Auth
-            accounts = User(name=username).load(db=db)
+            accounts = load_node(User(name=username), db)
             user = accounts.pop() if len(accounts) == 1 else None
 
             if user is None or not custom_app_context.verify(password, user.credential):
@@ -109,7 +379,7 @@ def context(fcn: Callable) -> Callable:
             except BadSignature:
                 return {"Error": "Missing authorization and/or x-api-key headers"}, 403
             uuid = decoded["uuid"]
-            accounts = User(uuid=uuid).load(db=db)
+            accounts = load_node(User(uuid=uuid), db)
             candidates = len(accounts)
             if candidates != 1:
                 return {
@@ -117,7 +387,7 @@ def context(fcn: Callable) -> Callable:
                 }, 403
             user = accounts.pop()
 
-        provider = Providers(domain=user.name.split("@").pop()).load(db)
+        provider = load_node(Providers(domain=user.name.split("@").pop()), db)
         if len(provider) != 1:
             raise ValueError
 
@@ -128,6 +398,15 @@ def context(fcn: Callable) -> Callable:
         # inject the user, if contained in function signature
         if "user" in signature(fcn).parameters.keys():
             kwargs["user"] = user
+
+        # inject object storage client
+        if "s3" in signature(fcn).parameters.keys():
+            kwargs["s3"] = Minio(
+            endpoint=getenv("STORAGE_ENDPOINT"),
+            secure=True,
+            access_key=getenv("SPACES_ACCESS_KEY"),
+            secret_key=getenv("SPACES_SECRET_KEY"),
+        )
 
         try:
             return fcn(db=db, **kwargs)
@@ -152,16 +431,7 @@ def context(fcn: Callable) -> Callable:
 def register(body: dict) -> (dict, int):
     """
     Register a new user account
-    """
-    # Generate Driver Instances.
-    from neo4j import GraphDatabase
-
-    # Pick up auth info for database.
-    from os import getenv
-
-    # headers and such available for authenticate.
-    from flask import request
-    
+    """    
     # pylint: disable=too-many-return-statements
     try:
         db = GraphDatabase.driver(
@@ -180,7 +450,7 @@ def register(body: dict) -> (dict, int):
         )
         return {"message": message}, 403
 
-    providers = Providers(apiKey=apiKey).load(db=db)
+    providers = load_node(Providers(apiKey=apiKey), db)
     if len(providers) != 1:
         return {"message": "Bad API key."}, 403
 
@@ -189,7 +459,7 @@ def register(body: dict) -> (dict, int):
         return {"message": "use email"}, 403
     _, domain = username.split("@")
 
-    if User(name=username).load(db=db, result="id"):
+    if load_node(User(name=username), db, "id"):
         return {"message": "invalid email"}, 403
 
     entryPoint = providers.pop()
@@ -214,7 +484,7 @@ def register(body: dict) -> (dict, int):
 
     # establish provenance
     nodes = parse_nodes((user, entryPoint))
-    link_cypher = native_link(label="apiRegister", rank=0).join(*nodes)
+    link_cypher = NativeLinks(label="apiRegister", rank=0).join(*nodes)
 
     try:
         with db.session() as session:
@@ -252,8 +522,6 @@ def token(
     """
     Send a JavaScript Web Token back to authorize future sessions
     """
-    from itsdangerous import TimedJSONWebSignatureSerializer
-
     # create the secure serializer instance
     serializer = TimedJSONWebSignatureSerializer(
         secret_key=secretKey,
@@ -279,29 +547,23 @@ def catalog(db: Driver) -> (dict, int):
 
     We make sure to remove the metadata entities that are not part of a public specification. 
     """
-    import getenv
-    from neo4j import Record
-
-    # remove restricted entries, e.g. core nodes
-    def _filter(name: str) -> bool:
-        return name not in {"User", "Providers"}
-
-    # query method passed to `allLabels()`
-    def _method(tx) -> [Record]:
-        return filter(_filter, (r["label"] for r in tx.run(f"CALL db.labels()")))
-
     # format the link
-    def _format(name) -> str:
+    def _format(item: Record) -> dict:
+        """
+        Format link
+        """
         return {
-            "name": name, 
-            "url": f'''${getenv("SERVICE_NAME")}/api/{name}'''
+            "name": ["label"],
+            "url": f'''${getenv("SERVICE_NAME")}/api/{["label"]}'''
         }
 
-    with db.session() as session:
-        session.write_transaction(lambda tx: tx.run(cypher.query))
+    # compose the query
+    cypher = Node.all_labels()
 
-    # evaluate the generator chain
-    return {"value": map(_format, executeQuery(db, _method))}, 200
+    # query and evaluate the generator chain
+    with db.session() as session:
+        result = session.read_transaction(lambda tx: tx.run(cypher.query))
+        return {"value": [*map(_format, result)]}, 200
 
 
 @context
@@ -311,14 +573,12 @@ def collection(db: Driver, entity: str) -> (dict, int):
 
     Get all entities of a single type.
     """
-    from json import loads
-
     # data transformer for entity records
-    def serialize(record):
+    def _serialize(record):
         return loads(record.serialize(db=db))
 
     # produce the serialized entity records
-    value = [*map(serialize, eval(entity)().load(db=db))]
+    value = [*map(lambda x: loads(x.serialize(db=db)), load_node(eval(entity)(), db))]
 
     return {"@iot.count": len(value), "value": value}, 200
 
@@ -357,7 +617,7 @@ def create(
 
     # establish provenance
     nodes = parse_nodes((provider, _entity))
-    link_cypher = native_link(label="apiCreate").native.join(*nodes)
+    link_cypher = NativeLinks(label="apiCreate").join(*nodes)
 
     with db.session() as session:
         session.write_transaction(lambda tx: tx.run(cypher.query))
@@ -419,7 +679,7 @@ def query(
 
     nodes = ({"cls": root, "id": rootId}, {"cls": entity})
 
-    cypher = native_link().query(*parse_nodes(nodes), "b")
+    cypher = NativeLinks().query(*parse_nodes(nodes), "b")
     result = []
 
     with db.session() as session:
@@ -478,27 +738,24 @@ def drop(
     return None, 204
 
 
-@Storage.session
-def index(client: Storage) -> (dict, int):
+@context
+def index(client: Minio) -> (dict, int):
     """
     Get all model configurations known to the service.
     """
-
-    from minio.error import S3Error  # pylint: disable=no-name-in-module
-
     try:
-        return load(client.get_object(client.index)), 200
+        return client.get_object(
+            bucket_name=getenv("BUCKET_NAME"),
+            object_name=f"{getenv('SERVICE_NAME')}/{client.index}"
+        ), 200
     except IndexError:
         return f"Database ({client.endpoint}) not found", 404
     except S3Error:
         return f"Index ({client.index}) not found", 404
-    
 
-@Storage.session
-def configure(
-    client: Storage, 
-    body: dict
-) -> (dict, int):
+
+@context
+def configure(client: Minio, body: dict) -> (dict, int):
     """
     Create a new configuration
 
@@ -507,18 +764,15 @@ def configure(
     :param client: s3 storage connection
     :param session: UUID4 session id, used to name configuration
     """
-
-    index = load(client.get_object(client.index))
-    self_link = f"{getenv('SERVICE_NAME')}/{client.session_id}"
-    index["configurations"].append(self_link)
-
+    uuid = uuid4().hex
+    self_link = f"{getenv('SERVICE_NAME')}/{uuid}"
+   
     client.put_object(
-        object_name=f"{client.session_id}.json",
+        object_name=f"{uuid}.json",
         data={
             **body,
             "experiments": [],
-            "uuid": client.session_id,
-            "self": self_link
+            "uuid": uuid,
         },
         metadata=MetaDataTemplate(
             x_amz_meta_service_file_type="configuration",
@@ -526,25 +780,16 @@ def configure(
         ).headers(),
     )
 
-    client.put_object(
-        object_name=client.index,
-        data=index,
-        metadata=MetaDataTemplate(
-            x_amz_meta_service_file_type="index",
-            x_amz_meta_parent=client.service_name
-        ).headers()
-    )
-
     return {"self": self_link}, 200
 
 
-@Storage.session
+@context
 def run(
     body: dict,
     objectKey: str,
     species: str,
     cultureType: str,
-    client: Storage,
+    client: Minio,
     weight: float
 ) -> (dict or str, int):
     """
@@ -557,29 +802,82 @@ def run(
     :param weight: initial seed weight
     :param client: storage client
     """
+    try:
 
-    # enable backend parallel processing if available
-    from multiprocessing import Pool, cpu_count
-
-    # singleton forcing conditions
-    from itertools import repeat
-
-    # Timestamping
-    from time import time
-
-    # Combine logs into single buffer
-    from functools import reduce
-
-    # Object storage errors
-    from minio.error import S3Error
-
-    try: 
-        config = load(client.get_object(f"{objectKey}.json"))
+        config = load(client.get_object(
+            bucket_name=getenv("BUCKET_NAME"),
+            object_name=f"{getenv('SERVICE_NAME')}/{objectKey}.json"
+        ))
         properties = config.get("properties")
     except S3Error:
         return f"Configuration ({objectKey}) not found", 404
     except Exception:
         return f"Invalid configuration ({objectKey})", 500
+
+        
+    def job(config: dict, forcing: tuple) -> (tuple, bytes):
+        """
+        Execute single simulation with synchronous callback.
+
+        :param config: simulation configuration
+        :param forcing: tuple of forcing vectors
+
+        :return: output variables of C# methods, or None
+        """
+
+        command = ["/usr/bin/mono", f'{__path__[0]}/../bin/kernel.exe']
+
+        result = attr.ib(factory=list)
+        process = attr.ib(default=None)
+        console: JSONIOWrapper = attr.ib(default=None)
+        output: JSONIOWrapper = attr.ib(default=None)
+
+        Message(
+            message=f"Spawned process {process.pid}",
+            data=process.args
+        ).log(log)
+
+        result = [output.receive(), output.receive()]
+        console.send(config)
+
+        Message(
+            message="Worker ready",
+            data=f"expecting transactions"
+        ).log(log)
+
+        process = Popen(
+            self.command,
+            stdin=PIPE,
+            stdout=PIPE,
+            stderr=STDOUT,
+            bufsize=1
+        )
+
+        console = JSONIOWrapper.console(process.stdin, log=log)
+        output = JSONIOWrapper.output(process.stdout, log=log)
+
+        for item in forcing:
+            console.send(item)  # send data as serialized dictionary
+            state = output.receive()
+            process.result.append(state)
+            if state["status"] == "error":
+                Message(
+                    message="Runtime",
+                    data=state["message"]
+                ).log(process.log)
+                break
+
+        Message(
+            message="Worker done",
+            data="completed transactions"
+        ).log(log)
+
+        process.kill()
+        process.wait()
+        console.text_io.close()
+        output.text_io.close()
+
+        return result, log.getvalue().decode()
 
     start = time()
     processes = min(cpu_count(), properties.get("workers", cpu_count()))

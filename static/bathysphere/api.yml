@@ -1581,7 +1581,7 @@ components:
         metadata:
           type: object
           description: |
-            Metadata for the configration. Includes indexing and search data.
+            Metadata for the configuration. Includes indexing and search data.
           properties:
             name:
               type: string

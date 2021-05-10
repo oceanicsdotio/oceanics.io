@@ -123,6 +123,48 @@ struct Node {
 }
 
 /**
+ * Storage is an interface to cloud object storage.
+ */
+#[pyclass]
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct Storage {
+    #[pyo3(get)]
+    endpoint: String,
+    #[pyo3(get)]
+    service_name: String,
+    #[pyo3(get)]
+    bucket_name: String,
+    #[pyo3(get)]
+    index: String,
+    #[pyo3(get)]
+    session_id: String,
+    #[pyo3(get)]
+    lock_file: String,
+}
+
+#[pymethods]
+impl Storage {
+    #[new]
+    pub fn new(
+        endpoint: String,
+        service_name: String,
+        bucket_name: String,
+        session_id: String,
+    ) -> Self {
+        Storage {
+            endpoint,
+            service_name,
+            bucket_name,
+            index: String::from("index.json"),
+            session_id,
+            lock_file: String::from("lock.json")
+        }
+    }
+}
+
+
+/**
  * Python Methods are primarily for Cypher query templating. 
  */
 #[pymethods]
@@ -138,6 +180,14 @@ impl Node {
             pattern,
             symbol,
             label,
+        }
+    }
+
+    #[staticmethod]
+    fn all_labels() -> Cypher {
+        Cypher {
+            query: "CALL db.labels()",
+            read_only: true
         }
     }
 
@@ -1195,6 +1245,61 @@ impl User {
     }
 }
 
+
+#[pyclass]
+struct Experiment {
+
+}
+
+#[pyclass]
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct ModelMetadata {
+    name: String,
+    description: String,
+    keywords: Vec<String>,
+    license: String,
+}
+
+
+#[pyclass]
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct ModelProperties {
+    workers: u16,
+    dt: u16,
+    integration: String,
+    backend: String
+}
+
+#[pyclass]
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct Model {
+    uuid: Option<String>,
+    metadata: Option<ModelMetadata>,
+    properties: Option<ModelProperties>
+}
+
+impl Model {
+    #[new]
+    pub fn new(
+        uuid: Option<String>,
+        metadata: Option<ModelMetadata>,
+        properties: Option<ModelProperties>
+    ) -> Self {
+        Model {
+            uuid,
+            metadata,
+            properties
+        }
+    }
+
+    pub fn self_link() -> String {
+        format!("")
+    }
+}
+
 /**
  * Bind our data structures and methods, so they will be available
  * from Python for use in the Flask-Connexion API. 
@@ -1222,5 +1327,6 @@ fn bathysphere(_: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<HistoricalLocations>()?;
     m.add_class::<User>()?;
     m.add_class::<MetaDataTemplate>()?;
+    m.add_class::<Storage>()?;
     Ok(())
 }

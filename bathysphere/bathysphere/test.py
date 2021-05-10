@@ -1,17 +1,29 @@
 """
 The Functions module contains cloud functions for the API
 """
-# Chrono
-from datetime import datetime
-
 # Pick up env vars
 from os import getenv
+
+# For queue processing entities
+from collections import deque
+
+# For ingesting entities with dependencies
+from random import shuffle
 
 # Test wiring
 import pytest
 
+# Graph database driver factory
+from neo4j import GraphDatabase
+
+# generate API key
+from secrets import token_urlsafe
+
 # App config
-from bathysphere import appConfig, Entity, native_link
+from bathysphere import ONTOLOGY
+
+# Tooling
+from bathysphere.api import native_link
 
 # Native data models
 from bathysphere.bathysphere import (
@@ -91,12 +103,6 @@ def test_graph_teardown():
     is made. So handling here is unnecessary, since we want the bubble up.
     """
     
-    # Driver factory
-    from neo4j import GraphDatabase
-
-    # generate API key
-    from secrets import token_urlsafe
-
     db = GraphDatabase.driver(
         uri=getenv("NEO4J_HOSTNAME"), 
         auth=("neo4j", getenv("NEO4J_ACCESS_KEY"))
@@ -107,7 +113,7 @@ def test_graph_teardown():
     with db.session() as session:
         session.write_transaction(lambda tx: cypher.query)
 
-    for provider in appConfig["Providers"]:
+    for provider in ONTOLOGY["Providers"]:
         _ = Providers(
             **provider["spec"],
             apiKey=token_urlsafe(64)
@@ -118,8 +124,7 @@ def test_graph_account_create_user(client):
     """
     Create a service account user.
     """
-    # Driver factory
-    from neo4j import GraphDatabase
+   
 
     db = GraphDatabase.driver(
         uri=getenv("NEO4J_HOSTNAME"), 
@@ -163,7 +168,7 @@ def test_graph_sensorthings_create(client, cls, token):
 
     results = []
     try:
-        build = appConfig[cls.__name__]
+        build = ONTOLOGY[cls.__name__]
     except KeyError:
         build = []
 
@@ -285,12 +290,7 @@ def test_graph_sensothings_ops_create_agents():
     """
     Create a service account user.
     """
-    from neo4j import GraphDatabase
     
-    from bathysphere import reduceYamlEntityFile
-    from bathysphere.models import Agents, Link
-    from collections import deque
-    from random import shuffle
 
     db = GraphDatabase.driver(
         uri=getenv("NEO4J_HOSTNAME"), 

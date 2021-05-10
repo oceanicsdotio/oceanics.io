@@ -1,17 +1,18 @@
-# Register conf with pytest
-import pytest
-
-# Use absolute paths
-from pathlib import Path
+"""
+Pytest Fixtures
+"""
 
 # Pick up runtime vars from environment
 from os import getenv
 
-# Bathysphere App
-from bathysphere import app
+# Register conf with pytest
+import pytest
 
 # Flask Client for mocking API
 from flask.testing import FlaskClient
+
+# Bathysphere App
+from bathysphere import APP
 
 
 @pytest.fixture(scope="session")
@@ -21,21 +22,21 @@ def client() -> FlaskClient:
 
     Connexion Apps are a wrapper around the real Flask App.
     """
-    app.app.config["DEBUG"] = True
-    app.app.config["TESTING"] = True
-    with app.app.test_client() as c:
+    APP.app.config["DEBUG"] = True
+    APP.app.config["TESTING"] = True
+    with APP.app.test_client() as c:
         yield c
 
 
 @pytest.fixture(scope="session")
-def token(client) -> dict:
+def token(client) -> dict:  # pylint: disable=redefined-outer-name
     """
     Yield a valid token for making API requests
     """
     response = client.get(
-        "api/auth", 
+        "api/auth",
         headers={
-            "Authorization": 
+            "Authorization":
             ":".join(map(getenv, ("SERVICE_ACCOUNT_USERNAME", "SERVICE_ACCOUNT_PASSWORD")))
         }
     )
