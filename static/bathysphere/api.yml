@@ -539,6 +539,369 @@ paths:
   #                   description: Link back to this entity
               
 
+
+
+  /smooth:
+
+    post:
+      tags: [DataStream]
+      summary: Smooth
+      description: |
+
+        Smooth an evenly-spaced time series using convolution. The backend uses the `Numpy.convolve` method.
+        The result is a filtered time series, with a length that depends on the `convolutionMode` parameter. It is
+        the same length by default, but introduces artifacts at the boundaries.
+
+      operationId: bathysphere.api.convolve_smooth
+
+      parameters:
+        
+        - in: query
+          name: bandwidth
+          description: |
+            Width of convolution filter signal in terms of existing sample points. This assumes that the signal
+            discretization has even intervals, and no missing values.
+
+          schema:
+            type: integer
+            default: 1
+        
+
+        - in: query
+          name: mode
+          description: |
+
+            Determines the length of the resulting series. Mode "full" returns points of overlap, with size (N+M-1).
+            Boundary/edge effects will be retained. Mode "same" will have the same length as the input series. Mode "valid"
+            returns points where signals overlap, and will eliminate edges effects, but will have a different size than the
+            input series.
+
+          schema:
+            type: string
+            default: same
+            enum:
+              - full
+              - same
+              - valid
+
+      requestBody:
+        $ref: '#/components/requestBodies/Series'
+
+      responses:
+        '200':
+          $ref: '#/components/responses/Filtered'
+
+  /fft:
+
+    post:
+      tags: [Filter]
+      summary: Bandpass
+      description: |
+
+        Filter an evenly-spaced time series using fast Fourier transform. The query string can include `lowpass` and
+        `highpass` thresholds. With both described, this acts as a bandpass filter. The `fill` option will
+        automatically forward-fill missing values to prevent anomalies.
+
+      operationId: bathysphere.fft_filter
+
+      parameters:
+        - $ref: '#/components/parameters/dt'
+
+        - in: query
+          name: lowpass
+          description: High-frequency cutoff in Hz
+          schema:
+            type: number
+            format: foat
+
+        - in: query
+          name: highpass
+          description: Low-frequency cutoff in Hz
+          schema:
+            type: number
+            format: float
+
+        - $ref: '#/components/parameters/fill'
+        - $ref: '#/components/parameters/compress'
+
+      requestBody:
+        $ref: '#/components/requestBodies/Series'
+
+      responses:
+        '200':
+          $ref: '#/components/responses/Filtered'
+
+
+  /resample:
+
+    post:
+      tags: [DataStream]
+      summary: Resample and interpolate
+      description: |
+
+        Resample a sparse time series at specified rate by either forward/back filling or linear interpolation.
+
+      operationId: capsize.datastream.functions.resampleSparseSeries
+
+      parameters:
+        - in: query
+          name: observations
+          description: Total number of observations to produce
+          schema:
+            type: int
+
+      
+        - in: query
+          name: start
+          description: Datetime to apply as a start
+          schema:
+            type: string
+
+       
+        - in: query
+          name: method
+          description: Interpolation method
+          schema:
+            type: string
+            enum:
+              - forward
+              - back
+              - interp
+
+      requestBody:
+        $ref: '#/components/requestBodies/Series'
+
+      responses:
+        '200':
+          $ref: '#/components/responses/Filtered'
+      
+      
+  /render:
+
+    post:
+
+      tags: [ DataStream ]
+      summary: Render
+      operationId: capsize.datastream.functions.render
+      description: |
+        Create PNG images from data sources and references and cache it.
+        The service call methods from the `matplotlib` library,
+        which uses the anti-grain graphics backend (`AGG`). 
+        The images are portable network graphics (`.png`)
+        by default, but `.pdf` and `.tiff` are available for print media.
+
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+
+      responses:
+        '200':
+          description: Image
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+
+
+  /image:
+
+    post:
+
+      tags: [ Image ]
+      summary: Render
+      operationId: capsize.feature.functions.render
+      description: |
+        Create PNG images from data sources.
+        The service call methods from the `matplotlib` library,
+        which uses the anti-grain graphics backend (`AGG`). The images are portable network graphics (`.png`)
+        by default, but `.pdf` and `.tiff` are available for print media.
+
+      requestBody:
+
+        description: | 
+          Image request
+
+        content:
+          application/json:
+            schema:
+              type: object
+              description: | 
+                Image function request. The body contains style information
+                as well as the data payload. 
+
+              properties:
+
+                labels:
+                  type: object
+                  description: |
+                    Labels for orthogonal axes
+                  nullable: true
+                  properties:
+                    x:
+                      type: string
+                      nullable: true
+                    y:
+                      type: string
+                      nullable: true
+
+                style:
+                  type: object
+                  nullable: true
+                  description: |
+                    Style is used change the appearance of the rendered image.
+
+                  properties:
+
+                    template:
+                      type: string
+                      enum: [dark, light]
+                      default: dark
+                      description: |
+                        Select between light and dark templates depending on whether the image is intended for display
+                        on a screen or for printed media.
+
+                    bg:
+                      type: string
+                      default: black
+                      description: |
+                        Override the default background color for the chosen or default template. Dark themes have a `black`
+                        background by default, and light themes have a `white` background. Use this to match the background
+                        color when embedding in a web page. This can also be transparent for image compositing.
+
+                    contrast:
+                      type: string
+                      default: white
+                      description: |
+                        Contrast color for rendering over background.
+
+                    flag:
+                      type: string
+                      default: red
+                      description: |
+                        Highlight color for marking selected or masked data.
+
+                    label:
+                      type: string
+                      description: |
+                        Color for text and labels. The default is the same as the `contrast` color.
+
+                    dpi:
+                      type: integer
+                      default: 150
+                      minimum: 90
+                      maximum: 300
+                      description: |
+                        Image resolution. Be careful, `dpi=300` images can be very large.
+
+                    format:
+                      type: string
+                      enum: [png, pdf, tiff]
+                      default: png
+                      description: |
+                        Image file format. Only `png` is available through the API.
+
+                    alpha:
+                      type: number
+                      format: float
+                      default: 1.0
+                      maximum: 1.0
+                      minimum: 0.0
+                      description: |
+                        Transparency of drawn objects. Useful for rendering Monte Carlo simulations.
+
+                    padding:
+                      type: array
+                      minLength: 4
+                      maxLength: 4
+                      items:
+                        type: number
+                        format: float
+                      default: [0.1, 0.2, 0.05, 0.1]
+                      description: |
+                        Content padding from edges of image to make room for labels and title.
+
+                    marker:
+                      type: integer
+                      default: 1
+                      description: |
+                        Size of markers if rendering scatter plots or points on a map
+
+                    font:
+                      type: integer
+                      default: 10
+                      description: |
+                        Font size
+
+                    text:
+                      type: number
+                      format: float
+                      default: 1.0
+                      description: |
+                        Size of labels relative to font size.
+
+                    width:
+                      type: number
+                      format: float
+                      default: 6.5
+                      description: |
+                        Width of image in inches
+
+                    height:
+                      type: number
+                      format: float
+                      description: |
+                        Height of image in inches
+
+                data:
+                  type: array
+                  items:
+                    type: object
+                              
+                extent:
+
+                  title: extent
+                  type: object
+                  nullable: true
+                  description: |
+
+                    Spatiotemporal extent of a data `Collection`. Contains a 2 or 3-D `spatial` extent, and a `temporal`
+                    interval.
+
+                  properties:
+
+                    spatial:
+                      type: array
+                      minLength: 4
+                      maxLength: 6
+                      nullable: true
+                      items:
+                        type: number
+                        format: float
+
+                    temporal:
+                      type: string
+                      nullable: true
+                      description: ISO format timestamp interval
+
+                args:
+                  title: arguments
+                  type: object
+                  nullable: true
+
+      responses:
+        '200':
+          description: Image reference
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+
+
+
 components:
 
   parameters:

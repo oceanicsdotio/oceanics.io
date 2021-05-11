@@ -5,6 +5,7 @@ use std::collections::{HashMap};
 use serde::{Serialize, Deserialize};
 
 extern crate serde_json; 
+extern crate serde_yaml;
 
 
 #[pyclass]
@@ -1362,6 +1363,153 @@ impl Model {
     }
 }
 
+
+
+#[pyclass]
+#[derive(Debug, Serialize, Deserialize)]
+struct Axis {
+    label: String,
+    tick: u32,
+    interval: [f32; 2],
+    name: String,
+    spines: [String; 2]
+}
+
+#[pymethods]
+impl Axis {
+    #[new]
+    pub fn new(
+        label: String,
+        tick: u32,
+        interval: [f32; 2],
+        dim: String,
+    ) -> Self {
+
+        let spines;
+        
+
+        match &dim {
+            String::from("x") => spines = [String::from("left"), String::from("right")],
+            String::from("y") => spines = [String::from("top"), String::from("bottom")],
+            String::from("z") => spines = [String::from("front"), String::from("back")],
+        }
+
+        Axis {
+            label,
+            tick,
+            interval,
+            name,
+            spines
+        }
+    }
+
+    pub fn ax_attr(&self) -> String {
+        format!("{}axis", self.dim)
+    }
+}
+
+
+#[pyclass]
+#[derive(Debug, Serialize, Deserialize)]
+struct FigureLayout {
+    padding: [f64; 4],
+    marker: f32,
+    font: u8,
+    text: u8,
+    width: f32,
+    height: f32,
+    line: f32,
+    alpha: f32,
+    dpi: u16,
+    legend: bool,
+    grid: bool,
+    image_interp: String
+}
+
+#[pymethods]
+impl FigureLayout {
+    #[new]
+    pub fn new(
+        padding: [f64; 4],
+        marker: f32,
+        font: u8,
+        text: u8,
+        width: f32,
+        height: f32,
+        line: f32,
+        alpha: f32,
+        dpi: u16,
+        legend: bool,
+        grid: bool,
+        image_interp: String
+    ) -> Self {
+        FigureLayout {
+            padding,
+            marker,
+            font,
+            text,
+            width,
+            height,
+            line,
+            alpha,
+            dpi,
+            legend,
+            grid,
+            image_interp
+        }
+    }
+}
+
+#[pyclass]
+#[derive(Debug, Serialize, Deserialize)]
+struct FigurePalette {
+    bg: String,
+    contrast: String,
+    flag: String,
+    label: String,
+    colors: Vec<String>
+}
+
+
+#[pymethods]
+impl FigurePalette {
+    #[new]
+    pub fn new(
+        bg: String,
+        contrast: String,
+        flag: String,
+        label: String,
+        colors: Vec<String>
+    ) -> Self {
+        FigurePalette {
+            bg,
+            contrast,
+            flag,
+            label,
+            colors
+        }
+    }
+}
+
+#[pyclass]
+#[derive(Debug, Serialize, Deserialize)]
+struct FigureStyle {
+    base: FigureLayout,
+    dark: FigurePalette,
+    light: FigurePalette,
+}
+
+#[pymethods]
+impl FigureStyle {
+    #[new]
+    pub fn new(
+        spec: String,
+    ) -> Self {
+        serde_yaml::from_string(spec).unwrap()
+    }
+}
+
+
 /**
  * Bind our data structures and methods, so they will be available
  * from Python for use in the Flask-Connexion API. 
@@ -1390,5 +1538,8 @@ fn bathysphere(_: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<User>()?;
     m.add_class::<MetaDataTemplate>()?;
     m.add_class::<Storage>()?;
+    m.add_class::<Axis>()?;
+    m.add_class::<FigureStyle>()?;
+    m.add_class::<FigurePalette>()?;
     Ok(())
 }

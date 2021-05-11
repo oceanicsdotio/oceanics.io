@@ -68,7 +68,11 @@ CORS(APP.app)
 # Configuration
 SOURCES = ("config/bathysphere.yml", "bin/agents.yml")
 
+
 try:
+    # Get the rendering styles, these can be used in multiple ways
+    DEFAULT_STYLES = open(Path("config/render-styles.yml")).read()
+
     # Text has been processed into array of items
     BLOCKS = "".join(map(lambda x: open(Path(x), "r").read(), SOURCES)).split("---")
 
