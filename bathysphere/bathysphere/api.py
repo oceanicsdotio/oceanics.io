@@ -725,7 +725,7 @@ def convolve_smooth(body, bandwidth, mode="same"):
 
 #     Usually considered to be a single moment in time, but not necessarily. 
 
-#     Two formats are accepted. 
+#     Two formats are accepted.
         
 #     Points and Polygons must be given in GeoJSON formats. 
 #     These are enclosed as a list of Features withing a
