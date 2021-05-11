@@ -3,8 +3,10 @@ Bathysphere command line interface.
 
 This brings various scriptable processes into a single location.
 """
-import click
+
 from subprocess import run
+
+import click
 
 @click.group()
 def cli():
@@ -34,7 +36,7 @@ def test(kw: str, verbose: bool, parallel: bool,):
     cmd = f"pytest {parallelism} --cov-report html:htmlcov --cov=bathysphere {opt} --ignore=data"
     click.secho(cmd, fg="green")
 
-   
+
 cli.add_command(start)
 cli.add_command(test)
 

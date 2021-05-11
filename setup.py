@@ -15,7 +15,7 @@ setup(
     license='MIT',
     entry_points="""
         [console_scripts]
-        bathysphere=bathysphere.cli:cli
+        bathysphere=cli:cli
     """,
     zip_safe=False,
 )

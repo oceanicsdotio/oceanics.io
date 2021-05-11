@@ -1371,7 +1371,7 @@ struct Axis {
     label: String,
     tick: u32,
     interval: [f32; 2],
-    name: String,
+    dim: String,
     spines: [String; 2]
 }
 
@@ -1387,18 +1387,18 @@ impl Axis {
 
         let spines;
         
-
-        match &dim {
-            String::from("x") => spines = [String::from("left"), String::from("right")],
-            String::from("y") => spines = [String::from("top"), String::from("bottom")],
-            String::from("z") => spines = [String::from("front"), String::from("back")],
+        match dim.as_ref() {
+            "x" => spines = [String::from("left"), String::from("right")],
+            "y" => spines = [String::from("top"), String::from("bottom")],
+            "z" => spines = [String::from("front"), String::from("back")],
+            _ => spines = [String::from(""), String::from("")]
         }
 
         Axis {
             label,
             tick,
+            dim,
             interval,
-            name,
             spines
         }
     }
@@ -1505,7 +1505,7 @@ impl FigureStyle {
     pub fn new(
         spec: String,
     ) -> Self {
-        serde_yaml::from_string(spec).unwrap()
+        serde_yaml::from_str(&spec).unwrap()
     }
 }
 
