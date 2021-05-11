@@ -1,9 +1,0 @@
-FROM python:3.7
-
-WORKDIR /capsize
-COPY openapi ./openapi
-COPY capsize ./capsize
-COPY setup.py ./setup.py
-COPY requirements.txt ./requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
-CMD pytest -svvvk test_lexicon

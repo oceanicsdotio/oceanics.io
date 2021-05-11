@@ -1,7 +1,7 @@
 """
 Installation for the API and CLI.
 """
-from setuptools import setup, find_packages
+from setuptools import setup
 
 setup(
     name='bathysphere',
@@ -10,12 +10,12 @@ setup(
     url='https://www.oceanics.io/bathysphere',
     author='Oceanicsdotio',
     author_email='business@oceanics.io',
-    packages=["bathysphere"],
+    packages=["bathysphere", "capsize"],
     include_package_data=True,
     license='MIT',
     entry_points="""
         [console_scripts]
-        bathysphere=cli:cli
+        bathysphere=bathysphere:cli:cli
     """,
     zip_safe=False,
 )
