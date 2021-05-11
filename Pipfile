@@ -18,6 +18,14 @@ maturin = "*"
 [requires]
 python_version = "3.7"
 
+[[source]]
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[scripts]
+test = "pytest -svvv"
+
 [packages]
 Flask = "==1.1.2"
 Flask-Cors = "==3.0.9"
@@ -58,3 +66,12 @@ six = "==1.15.0"
 zipp = "==3.4.0"
 minio = "==7.0.2"
 neo4j = "==4.2.1"
+# numpy = "*"
+# matplotlib = "*"
+# bidict = "*"
+# netcdf4 = "*"
+# pandas = "*"
+# scipy = "*"
+# scikit-learn = "*"
+# pyproj = "*"
+# arrayfire = "*"

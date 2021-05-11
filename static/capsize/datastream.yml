@@ -1,0 +1,948 @@
+openapi: "3.0.0"
+
+info:
+
+  title: "Capsize DataStream API"
+  version: "0.2"
+  description: |
+
+    Some stuff
+
+  contact:
+    name: Oceanicsdotio
+    url: http://www.oceanics.io
+    email: business@oceanics.io
+
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+externalDocs:
+
+  description: See the capsize repository for more information
+  url: https://github.com/oceanicsdotio/capsize
+
+x-tagGroups:
+
+  - name: CAPSIZE API
+    tags: [ DataStream ]
+
+tags:
+
+  - name: DataStream
+    x-displayName: DataStream
+    description: |
+      Time series processing
+
+
+servers:
+- url: https://capsize.oceanics.io/{basePath}
+  description: Production API server
+  variables:
+    basePath:
+      default: api/datastream
+
+paths:
+
+
+  /smooth:
+
+    post:
+      tags: [DataStream]
+      summary: Smooth
+      description: |
+
+        Smooth an evenly-spaced time series using convolution. The backend uses the `Numpy.convolve` method.
+        The result is a filtered time series, with a length that depends on the `convolutionMode` parameter. It is
+        the same length by default, but introduces artifacts at the boundaries.
+
+      operationId: capsize.datastream.functions.smoothUsingConvolution
+
+      parameters:
+        
+        - in: query
+          name: bandwidth
+          description: |
+            Width of convolution filter signal in terms of existing sample points. This assumes that the signal
+            discretization has even intervals, and no missing values.
+
+          schema:
+            type: integer
+            default: 1
+        
+
+        - in: query
+          name: convolutionMode
+          description: |
+
+            Determines the length of the resulting series. Mode "full" returns points of overlap, with size (N+M-1).
+            Boundary/edge effects will be retained. Mode "same" will have the same length as the input series. Mode "valid"
+            returns points where signals overlap, and will eliminate edges effects, but will have a different size than the
+            input series.
+
+          schema:
+            type: string
+            default: same
+            enum:
+              - full
+              - same
+              - valid
+
+      requestBody:
+        $ref: '#/components/requestBodies/Series'
+
+      responses:
+        '200':
+          $ref: '#/components/responses/Filtered'
+
+  /fft:
+
+    post:
+      tags: [Filter]
+      summary: Bandpass
+      description: |
+
+        Filter an evenly-spaced time series using fast Fourier transform. The query string can include `lowpass` and
+        `highpass` thresholds. With both described, this acts as a bandpass filter. The `fill` option will
+        automatically forward-fill missing values to prevent anomalies.
+
+      operationId: capsize.datastream.functions.fourierTransform
+
+      parameters:
+        - $ref: '#/components/parameters/dt'
+
+        - in: query
+          name: lowpass
+          description: High-frequency cutoff in Hz
+          schema:
+            type: number
+            format: foat
+
+        - in: query
+          name: highpass
+          description: Low-frequency cutoff in Hz
+          schema:
+            type: number
+            format: float
+
+        - $ref: '#/components/parameters/fill'
+        - $ref: '#/components/parameters/compress'
+
+      requestBody:
+        $ref: '#/components/requestBodies/Series'
+
+      responses:
+        '200':
+          $ref: '#/components/responses/Filtered'
+
+  /spectrum:
+
+    post:
+      tags: [DataStream]
+      summary: Frequency Spectrum
+      description: |
+
+        Generate a frequency spectrum for the provided signal. Must be evenly spaced. If there are missing values,
+        the `fill` flag will forward-fill before the transformation. The result can be compressed by remove negative
+        symmetry with the `compress` flag.
+
+      operationId: capsize.datastream.functions.frequencySpectrum
+
+      parameters:
+        - $ref: '#/components/parameters/dt'
+        - $ref: '#/components/parameters/fill'
+        - $ref: '#/components/parameters/compress'
+
+      requestBody:
+        $ref: '#/components/requestBodies/Series'
+
+      responses:
+        '200':
+          description: New time series
+          content:
+            application/json:
+              schema:
+                description: Array of time step responses
+                type: array
+                items:
+                  type: object
+                  properties:
+                    frequency:
+                      type: number
+                      format: float
+                      minimum: 0.0
+                    index:
+                      type: number
+                      format: float
+
+  /resample:
+
+    post:
+      tags: [DataStream]
+      summary: Resample and interpolate
+      description: |
+
+        Resample a sparse time series at specified rate by either forward/back filling or linear interpolation.
+
+      operationId: capsize.datastream.functions.resampleSparseSeries
+
+      parameters:
+        - in: query
+          name: observations
+          description: Total number of observations to produce
+          schema:
+            type: int
+
+      
+        - in: query
+          name: start
+          description: Datetime to apply as a start
+          schema:
+            type: string
+
+       
+        - in: query
+          name: method
+          description: Interpolation method
+          schema:
+            type: string
+            enum:
+              - forward
+              - back
+              - interp
+
+      requestBody:
+        $ref: '#/components/requestBodies/Series'
+
+      responses:
+        '200':
+          $ref: '#/components/responses/Filtered'
+      
+
+  /outlier:
+
+    post:
+      tags: [DataStream]
+      summary: Statistical outliers
+      description: |
+
+        Generate a boolean mask for the series. This can be for the independent variable, using the `dimension=simple`
+        query, or for time derivatives with `dimension=time`. True values in the response are masked, meaning these
+        indices can be deleted from in-memory time series.
+
+      operationId: capsize.datastream.functions.statisticalOutlierMask
+
+      parameters:
+        - in: query
+          name: threshold
+          description: Number of standard deviations in masking envelope
+          schema:
+            type: number
+            format: foat
+        - in: query
+          name: dimension
+          description: Filter by y-value or time derivative
+          schema:
+            type: string
+            enum:
+              - simple
+              - time
+
+      requestBody:
+        $ref: '#/components/requestBodies/Series'
+
+      responses:
+        '200':
+          $ref: '#/components/responses/Mask'
+
+  /range:
+
+    post:
+      tags: [DataStream]
+      summary: Out of range values
+      description: |
+
+        Generate a boolean mask for the series. True values are those outside the given range, can can be used to cull
+        data from the client application.
+
+      operationId: capsize.datastream.functions.outOfRangeMask
+
+      parameters:
+        - $ref: '#/components/parameters/max'
+        - $ref: '#/components/parameters/min'
+
+      requestBody:
+        $ref: '#/components/requestBodies/Series'
+
+      responses:
+        '200':
+          $ref: '#/components/responses/Mask'
+      
+  /render:
+
+    post:
+
+      tags: [ DataStream ]
+      summary: Render
+      operationId: capsize.datastream.functions.render
+      description: |
+        Create PNG images from data sources and references and cache it.
+        The service call methods from the `matplotlib` library,
+        which uses the anti-grain graphics backend (`AGG`). 
+        The images are portable network graphics (`.png`)
+        by default, but `.pdf` and `.tiff` are available for print media.
+
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+  #             description: | 
+  #               Image function request. The body contains style information
+  #               as well as the data payload. 
+
+  #             properties:
+
+  #               labels:
+  #                 type: object
+  #                 description: |
+  #                   Labels for orthogonal axes
+  #                 nullable: true
+  #                 properties:
+  #                   x:
+  #                     type: string
+  #                     nullable: true
+  #                   y:
+  #                     type: string
+  #                     nullable: true
+
+  #               style:
+  #                 type: object
+  #                 nullable: true
+  #                 description: |
+  #                   Style is used change the appearance of the rendered image.
+
+  #                 properties:
+
+  #                   template:
+  #                     type: string
+  #                     enum: [dark, light]
+  #                     default: dark
+  #                     description: |
+  #                       Select between light and dark templates depending on whether the image is intended for display
+  #                       on a screen or for printed media.
+
+  #                   bg:
+  #                     type: string
+  #                     default: black
+  #                     description: |
+  #                       Override the default background color for the chosen or default template. Dark themes have a `black`
+  #                       background by default, and light themes have a `white` background. Use this to match the background
+  #                       color when embedding in a web page. This can also be transparent for image compositing.
+
+  #                   contrast:
+  #                     type: string
+  #                     default: white
+  #                     description: |
+  #                       Contrast color for rendering over background.
+
+  #                   flag:
+  #                     type: string
+  #                     default: red
+  #                     description: |
+  #                       Highlight color for marking selected or masked data.
+
+  #                   label:
+  #                     type: string
+  #                     description: |
+  #                       Color for text and labels. The default is the same as the `contrast` color.
+
+  #                   dpi:
+  #                     type: integer
+  #                     default: 150
+  #                     minimum: 90
+  #                     maximum: 300
+  #                     description: |
+  #                       Image resolution. Be careful, `dpi=300` images can be very large.
+
+  #                   format:
+  #                     type: string
+  #                     enum: [png, pdf, tiff]
+  #                     default: png
+  #                     description: |
+  #                       Image file format. Only `png` is available through the API.
+
+  #                   alpha:
+  #                     type: number
+  #                     format: float
+  #                     default: 1.0
+  #                     maximum: 1.0
+  #                     minimum: 0.0
+  #                     description: |
+  #                       Transparency of drawn objects. Useful for rendering Monte Carlo simulations.
+
+  #                   padding:
+  #                     type: array
+  #                     minLength: 4
+  #                     maxLength: 4
+  #                     items:
+  #                       type: number
+  #                       format: float
+  #                     default: [0.1, 0.2, 0.05, 0.1]
+  #                     description: |
+  #                       Content padding from edges of image to make room for labels and title.
+
+  #                   marker:
+  #                     type: integer
+  #                     default: 1
+  #                     description: |
+  #                       Size of markers if rendering scatter plots or points on a map
+
+  #                   font:
+  #                     type: integer
+  #                     default: 10
+  #                     description: |
+  #                       Font size
+
+  #                   text:
+  #                     type: number
+  #                     format: float
+  #                     default: 1.0
+  #                     description: |
+  #                       Size of labels relative to font size.
+
+  #                   width:
+  #                     type: number
+  #                     format: float
+  #                     default: 6.5
+  #                     description: |
+  #                       Width of image in inches
+
+  #                   height:
+  #                     type: number
+  #                     format: float
+  #                     description: |
+  #                       Height of image in inches
+
+  #                 data:
+  #                   type: array
+  #                   items:
+  #                     type: array
+  #                     minLength: 1
+  #                     items: 
+  #                       type: array
+  #                       minLength: 2
+  #                       maxLength: 2
+  #                       items:
+  #                         type: number
+  #                         format: float
+              
+  #               view:
+  #                 type: string
+  #                 description: The type of data view
+  #                 enum: [series, coverage, frequency, scatter]
+
+  #               extent:
+
+  #                 title: extent
+  #                 type: object
+  #                 nullable: true
+  #                 description: |
+
+  #                   Spatiotemporal extent of a data `Collection`. Contains a 2 or 3-D `spatial` extent, and a `temporal`
+  #                   interval.
+
+  #                 properties:
+
+  #                   spatial:
+  #                     type: array
+  #                     minLength: 4
+  #                     maxLength: 6
+  #                     nullable: true
+  #                     items:
+  #                       type: number
+  #                       format: float
+
+  #                   temporal:
+  #                     type: string
+  #                     nullable: true
+  #                     description: ISO format timestamp interval
+
+  #                   generic:
+  #                     type: array
+  #                     minLength: 4
+  #                     maxLength: 4
+  #                     nullable: true
+  #                     items:
+  #                       type: number
+  #                       format: float
+
+  #               args:
+  #                 title: arguments
+  #                 type: object
+  #                 nullable: true
+
+      responses:
+        '200':
+          description: Image reference
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+      
+
+     
+components:
+
+  parameters:
+
+    fill:
+      in: query
+      name: fill
+      description: Forward fill missing values
+      schema:
+        type: boolean
+
+    compress:
+      in: query
+      name: compress
+      description: |
+
+        Remove negative symmetry after transformation to frequency domain. The original or filtered signal can be
+        reconstituted from the positive frequencies only. More efficient if performing many operations during signal
+        processing, or saving frequency spectrum itself.
+
+      schema:
+        type: boolean
+        default: true
+
+  
+    max:
+      in: query
+      name: max
+      description: Maximum to mask out or clamp
+      schema:
+        type: number
+        format: float
+
+    min:
+      in: query
+      name: min
+      description: Minmum to mask out or clamp
+      schema:
+        type: number
+        format: foat
+
+
+
+
+    collection:
+      required: true
+      name: collection
+      in: path
+      schema:
+        type: string
+
+    root:
+      in: path
+      required: true
+      name: root
+      description: |
+        The class name of the root or parent entity that the request object is associated with. During a `GET` request
+        this will be used to collect child entities based on graph relationship. For `PUT` and `POST` requests this
+        and the child entities will be linked with a labeled relationship.
+
+      schema:
+        type: string
+
+      
+
+    label:
+      in: query
+      name: label
+      description: |
+        Should be in format `LABEL`, although this is not strictly necessary. Labeled relationships
+        are used to crawl over the graph.
+      schema:
+        type: string
+
+
+    ObjectKey:
+      in: path
+      name: objectKey
+      required: true
+      description: UUID of experiment data
+      schema:
+        type: string
+
+    dt:
+      in: query
+      name: dt
+      description: Timestep, integer seconds
+      schema:
+        $ref: "#/components/schemas/dt"
+
+  requestBodies:
+
+    Collection:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Collection'
+
+
+    Asset:
+      description: |
+        Tell the server where to find the data
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Asset'
+
+
+    Series:
+      description: Time series to filter or convert
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Datastream'
+
+
+  responses:
+
+    Asset:
+      description: |
+        Description of the file
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Asset'
+
+    Collection:
+      description: |
+        Description of the service and data
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Collection'
+     
+    Filtered:
+      description: New time series
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Datastream'
+
+    Mask:
+      description: Mask of time series
+      content:
+        application/json:
+          schema:
+            description: Array of boolean values
+            type: array
+            items:
+              description: Value of single mask item
+              type: boolean
+
+        
+  schemas:
+
+    Asset:
+      type: object
+
+
+    Entity:
+      type: object
+      properties:
+
+        id:
+          type: integer
+          readOnly: true
+          description: |
+            Unique integer identifier for entity. This usually auto-generated, but is different that the default node
+            IDs within the Neo4j database, since those are not guarenteed to persist.
+
+        name:
+          type: string
+          nullable: true
+          description: |
+            Human readable entity name for displaying data.
+
+        description:
+          type: string
+          nullable: true
+          description: |
+            Short but useful explaination of what the entity is.
+
+
+    Location:
+      allOf:
+        - $ref: '#/components/schemas/Entity'
+        - type: object
+          description: |
+            Last known location of a thing. May be a feature of interest, unless remote sensing.
+
+          properties:
+
+            entityClass:
+              writeOnly: true
+              enum: [location]
+              default: location
+
+            encodingType:
+              type: string
+              enum:
+                - "application/vnd.geo+json"
+                - "application/vnd.network+json"
+              default: "application/vnd.geo+json"
+              description: The encoding rendered in the location response
+
+            location:
+              type: object
+              properties:
+                type:
+                  type: string
+                  enum: ["Point", "Polygon"]
+                coordinates:
+                  type: array
+                  minLength: 2
+                  maxLength: 3
+                  items:
+                    type: number
+                    format: float
+
+    Datastream:
+      allOf:
+        - $ref: '#/components/schemas/Entity'
+        - type: object
+          description: |
+
+            Datastreams are collections of `Observations` from the same `Sensor`.
+
+          properties:
+
+           
+            observationType:
+              type: string
+              description: |
+                Data model of child `Observations`. Usually a `Measurement`.
+
+              nullable: true
+              enum:
+                - "OM_CategoryObservation"
+                - "OM_CountObservation"
+                - "OM_Measurement"
+                - "OM_Observation"
+                - "OM_TruthObservation"
+
+            observedArea:
+              type: object
+              nullable: true
+              readOnly: true
+              description: |
+                The bounding box that encloses all `FeaturesOfInterest` referenced by child `Observations`
+
+            phenomenonTime:
+              type: array
+              description: |
+                Time interval of the measured process, consisting of two ISO8601 timestamps.
+              minItems: 2
+              maxItems: 2
+              items:
+                type: string
+                format: date-time
+
+            resultTime:
+              type: array
+              description: |
+                Time interval of receiving data, consisting of two ISO8601 timestamps. May be different than the
+                measured process, due to batch uploads, latency, lack of real-time clocks in devices, etc.
+              minItems: 2
+              maxItems: 2
+              items:
+                type: string
+                format: date-time
+
+            table:
+              type: string
+              description: |
+                Time series observations associated with a datastream can be stored in the TimescaleDB.
+                TimescaleDB is an extension of Postgres+Postgis, and this is SQL table reference to find and
+                retrieve data.
+
+
+            Observations:
+              readOnly: true
+              oneOf:
+
+                - type: array
+                  title: references
+                  items:
+                    type: string
+
+                - type: array
+                  title: objects
+                  items:
+                    type: object
+
+
+
+    Observation:
+      allOf:
+        - $ref: '#/components/schemas/Entity'
+        - type: object
+          properties:
+
+            resultTime:
+              type: string
+              format: date-time
+              description: |
+                Timestamp when the `Observation` was registered by the system.
+
+            resultQuality:
+              type: string
+              description: |
+                Quality of the result described as a `DQ_Element` (OGC)
+
+            validTime:
+              type: array
+              description: Time interval when the result is valid
+              minItems: 2
+              maxItems: 2
+              items:
+                type: string
+                format: date-time
+
+            phenomenonTime:
+              type: string
+              format: date-time
+              description: |
+                Timestamp of the acquisition of the `Observation`
+
+            result:
+              description: The result of the observation. Usually a number.
+              type: number
+              format: float
+
+            parameters:
+              type: object
+              description: Environmental conditions during the `Observation`
+
+            Datastreams:
+              readOnly: true
+              oneOf:
+
+                - type: array
+                  title: references
+                  maxItems: 1
+                  items:
+                    type: string
+
+                - type: array
+                  title: objects
+                  maxItems: 1
+                  items:
+                    type: object
+
+            FeaturesOfInterest:
+              readOnly: true
+              oneOf:
+
+                - type: array
+                  title: references
+                  maxItems: 1
+                  items:
+                    type: string
+
+                - type: array
+                  title: objects
+                  maxItems: 1
+                  items:
+                    type: object
+
+    Collection:
+      allOf:
+        - $ref: '#/components/schemas/Entity'
+        - type: object
+          description: |
+            SpatioTemporal Asset Catalog object-linking collection object. Collections are generic, while some
+            SensorThings entities are special Collections. For instance, a `Datastream` is a collection of
+            `Observations`.
+
+          properties:
+
+            extent:
+              $ref: '#/components/schemas/Extent'
+
+    Extent:
+      title: extent
+      type: object
+      readOnly: true
+      nullable: true
+      description: |
+
+        Spatiotemporal extent of a data `Collection`. Contains a 2 or 3-D `spatial` extent, and a `temporal`
+        interval.
+
+      properties:
+
+        spatial:
+          type: array
+          minLength: 4
+          maxLength: 6
+          items:
+            type: number
+            format: float
+
+        temporal:
+          type: string
+          description: ISO format timestamp interval
+
+
+    Time:
+      type: number
+
+
+    Window:
+      description: |
+        Number of observations in moving window for calculating the expected value from input datastream.
+
+      type: integer
+      minimum: 1
+      default: 2
+
+    Ratio:
+      description: |
+        Fraction of observations to use for training. The rest are left for validation.
+      type: number
+      format: float
+      default: 0.8
+
+
+    Series:
+      title: time series
+      allOf:
+        - $ref: "#/components/schemas/Collection"
+        - description: Collection of `Datastreams`
+          type: object
+          properties:
+            location:
+              $ref: "#/components/schemas/Location"
+            datastreams:
+              type: array
+              items:
+                $ref: "#/components/schemas/Datastream"
+
+
+    dt:
+      description: |
+        Timestep, integer seconds. A one minute time step is probably unnecessary, unless you are validating/comparing
+        a laboratory physiology study. Longer time steps may miss important tidal dynamics. One hour is the recommended
+        value, which is also a common sampling frequency for sensors deplyed near growing areas (and therefore limits
+        interpolation).
+
+      type: integer
+      minimum: 60
+      maximum: 3600
+      default: 3600
