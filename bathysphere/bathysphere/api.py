@@ -8,12 +8,6 @@ These are exposed as a web service.
 # Time stamp conversion
 from datetime import datetime, date, timedelta  # pylint: disable=unused-import
 
-# Calling other native packages
-from subprocess import Popen, PIPE, STDOUT  # pylint: disable=unused-import
-
-# Logging
-from io import TextIOWrapper, BytesIO  # pylint: disable=unused-import
-
 # pick up runtime vars from environment
 from os import getenv
 
@@ -28,12 +22,6 @@ from itertools import repeat  # pylint: disable=unused-import
 
 # peek into wrapped function signatures, to conditionally inject args
 from inspect import signature
-
-# Combine logs into single buffer
-from functools import reduce  # pylint: disable=unused-import
-
-# Timestamping
-from time import time  # pylint: disable=unused-import
 
 # for creating users and other entities
 from uuid import uuid4
@@ -63,7 +51,7 @@ from itsdangerous import TimedJSONWebSignatureSerializer
 from itsdangerous.exc import BadSignature
 
 # headers and such available for authenticate.
-from flask import request
+from flask import request, send_file
 
 # Native implementations from Rust code base
 from bathysphere.bathysphere import (  # pylint: disable=no-name-in-module, unused-import
@@ -564,223 +552,222 @@ def drop(db, root, rootId, entity, uuid):
     return None, 204
 
 
+@context
+def datastream(body: dict):
+    """
+    Handle a request to the function
+    """
+    # 
+    from numpy import arange
+    from flask import send_file
 
-# @context
-# def run(body, client, objectKey):
-#     # typing: (dict, Minio, str) -> (dict, int)
-#     """
-#     Run the model using a versioned configuration.
+    # Unwind row-like data
+    from itertools import repeat, chain
 
-#     :param objectKey: identity of the configuration to use
-#     :param body: optional request body with forcing
-#     :param species: bivalve species string, in path:
-#     :param session: session UUID used to name experiment
-#     :param weight: initial seed weight
-#     :param client: storage client
-#     """
-#     try:
-#         config = load(client.get_object(
-#             bucket_name=getenv("BUCKET_NAME"),
-#             object_name=f"{getenv('SERVICE_NAME')}/{objectKey}.json"
-#         ))
-#         properties = config.get("properties")
-#     except S3Error:
-#         return f"Configuration ({objectKey}) not found", 404
-#     except Exception:  # pylint: disable=broad-except
-#         return f"Invalid configuration ({objectKey})", 500
+    from bathysphere.render import Time, DEFAULT_STYLES
 
 
-#     def job(config: dict, forcing: tuple) -> (tuple, bytes):
-#         """
-#         Execute single simulation with synchronous callback.
+    extent = body.get("extent", [])
+    artifact = body.get("artifact", "preview")
+    labels = body.get("labels", dict())
+    view = body.get("view")
+    series = body.get("data").get("DataStreams")
+    style = body.get("style", dict())
 
-#         :param config: simulation configuration
-#         :param forcing: tuple of forcing vectors
+    style = {
+        **DEFAULT_STYLES["base"],
+        **DEFAULT_STYLES[style.pop("template", "dark")],
+        **style
+    }
 
-#         :return: output variables of C# methods, or None
-#         """
+    fig = Time(style=style, extent=extent)
+   
+    if view == "coverage":
+        t, _ = zip(*chain(*series))
+        bins = 20
 
-#         command = ["/usr/bin/mono", f'{__path__[0]}/../bin/kernel.exe']
+        fig.ax.hist(
+            t,
+            bins=arange(bins + 1),
+            facecolor=fig.style["contrast"],
+        )
 
-#         result = attr.ib(factory=list)
+        xloc, yloc = int(max(t) - min(t)) // 6, len(t) // bins // 2
 
-#         console = JSONIOWrapper()
-#         output = JSONIOWrapper()
+    elif view == "frequency":
 
-#         Message(
-#             message=f"Spawned process {process.pid}",
-#             data=process.args
-#         ).log(log)
+        from numpy import hstack, isnan
 
-#         result = [output.receive(), output.receive()]
-#         console.send(config)
+        _, y = zip(*chain(*series))  # chain all values together
+        bins = 10
 
-#         Message(
-#             message="Worker ready",
-#             data=f"expecting transactions"
-#         ).log(log)
+        datastream = hstack(filter(lambda ob: not isnan(ob), y))
 
-#         process = Popen(
-#             self.command,
-#             stdin=PIPE,
-#             stdout=PIPE,
-#             stderr=STDOUT,
-#             bufsize=1
-#         )
+        lower = datastream.min()
+        upper = datastream.max()
+        span = upper - lower
 
-#         console = JSONIOWrapper.console(process.stdin, log=log)
-#         output = JSONIOWrapper.output(process.stdout, log=log)
+        fig.ax.hist(
+            x=datastream,
+            bins=tuple(span * arange(bins + 1) / bins - lower),
+            facecolor=fig.style["contrast"],
+        )
+        
+        xloc, yloc = int(span) // 6, len(y) // bins // 2
 
-#         for item in forcing:
-#             console.send(item)  # send data as serialized dictionary
-#             state = output.receive()
-#             process.result.append(state)
-#             if state["status"] == "error":
-#                 Message(
-#                     message="Runtime",
-#                     data=state["message"]
-#                 ).log(process.log)
-#                 break
+    elif view == "series":
+       
+        for dataset, label in zip(series, labels or repeat("none")):
+            try:
+                x, y = zip(*dataset)
+            except ValueError:
+                return {
+                    "detail": f"Invalid shape of Datastreams: {len(dataset)}, {len(dataset[0])}, {len(dataset[0][0])}"
+                }, 400
 
-#         Message(
-#             message="Worker done",
-#             data="completed transactions"
-#         ).log(log)
+            fig.plot(x, y, label=label, scatter=True)
+            new = [min(x), max(x), min(y), max(y)]
+            extent = extent or new.copy()
 
-#         process.kill()
-#         process.wait()
-#         console.text_io.close()
-#         output.text_io.close()
+            for ii in range(0, len(new) // 2, 2):
+                b = ii + 1
+                extent[ii] = min((extent[ii], new[ii]))
+                extent[b] = max((extent[b], new[b]))
 
-#         return result, log.getvalue().decode()
+        xloc, yloc = (30, 5) if extent else (None, None)
+    
 
-#     start = time()
-#     processes = min(cpu_count(), properties.get("workers", cpu_count()))
-
-#     with Pool(processes) as pool:
-
-#         configuration = {
-#             "species": species,
-#             "culture": cultureType,
-#             "weight": weight,
-#             "dt": properties.get("dt", 3600) / 3600 / 24,
-#             "volume": properties.get("volume", 1000.0),
-#         }
-#         forcing = body.get("forcing")
-#         stream = zip(repeat(configuration, len(forcing)), forcing)
-#         data, logs = zip(*pool.starmap(job, stream))
-#         self_link = f"{getenv('SERVICE_NAME')}/{client.session_id}"
-
-#         result = {
-#             "self": self_link,
-#             "configuration": f"{getenv('SERVICE_NAME')}/{objectKey}",
-#             "forcing": forcing,
-#             "data": data,
-#             "workers": pool._processes,
-#             "start": start,
-#             "finish": time(),
-#         }
-
-#     try:
-#         client.put_object(
-#             object_name=f"{client.session_id}.logs.json",
-#             data=reduce(lambda a, b: a + b, logs),
-#             metadata=MetaDataTemplate(
-#                 x_amz_meta_service_file_type="log",
-#                 x_amz_meta_parent=client.session_id
-#             ).headers(),
-#         )
-
-#         client.put_object(
-#             object_name=f"{client.session_id}.json",
-#             data=result,
-#             metadata=MetaDataTemplate(
-#                 x_amz_meta_service_file_type="experiment",
-#                 x_amz_meta_parent=objectKey
-#             ).headers()
-#         )
-
-#         config["experiments"].append(result["self"])
-
-#         client.put_object(
-#             object_name=f"{objectKey}.json",
-#             data=config,
-#             metadata=MetaDataTemplate(
-#                 x_amz_meta_service_file_type="configuration",
-#                 x_amz_meta_parent=client.index
-#             ).headers()
-#         )
-#     except Exception:
-#         return f"Error saving results", 500
-
-#     return {"self": self_link}, 200
+    image_buffer = fig.push(
+        legend=fig.style["legend"],
+        xloc=xloc,
+        yloc=yloc,
+        xlab=labels.pop("x", "Time"),
+        ylab=labels.pop("y", None),
+    )
+    
+    return send_file(
+        image_buffer,
+        mimetype='image/png',
+        as_attachment=True,
+        attachment_filename=f'{artifact}.png'
+    )
 
 
+def fourierTransform(
+    body,
+    dt: float = 1, 
+    lowpass: float = None, 
+    highpass: float = None, 
+    fill: bool = False, 
+    compress: bool = True
+):
+    """
+    Perform frequency-domain filtering on regularly spaced time series
+    
+    Kwargs:
+    
+        tt, float[] :: time series
+        yy, float[] :: reference series
+        dt, float :: regular timestep
+        lowpass, float :: lower cutoff
+        highpass, float :: upper cutoff
+    """
+    from scipy.fftpack import irfft
+    
+    series = tuple(item.value for item in body)
+    spectrum, _ = frequencySpectrum(
+        series, dt=dt, fill=fill, compress=compress
+    )
 
-# @attr.s
-# class JSONIOWrapper:
-#     """
-#     Models that run in other languages exchange messages through
-#     the command prompt text interface using JSON encoded strings.
-#     """
-#     log: BytesIO = attr.ib()
-#     text_io: TextIOWrapper = attr.ib(factory=TextIOWrapper)
+    freq = spectrum["frequency"]
+    ww = spectrum["index"]
 
-#     @classmethod
-#     def output(cls, *args, log, **kwargs):
-#         return cls(
-#             log=log,
-#             text_io=TextIOWrapper(
-#                 *args,
-#                 line_buffering=False,
-#                 encoding="utf-8",
-#                 **kwargs
-#             )
-#         )
+    if highpass is not None:
+        mask = ww < highpass
+        freq[mask] = 0.0  # zero out low frequency
 
-#     @classmethod
-#     def console(cls, *args, log, **kwargs):
-#         return cls(
-#             log=log,
-#             text_io=TextIOWrapper(
-#                 *args,
-#                 line_buffering=True,
-#                 encoding="utf-8",
-#                 **kwargs
-#             )
-#         )
+    if lowpass is not None:
+        mask = ww > lowpass
+        freq[mask] = 0.0  # zero out high-frequency
 
-#     def receive(self) -> dict:
-#         """
-#         Receive serialized data from command line interface.
-#         """
-#         data = self.text_io.readline().rstrip()
-#         Message("Receive", data=data, arrow="<").log(self.log)
-#         try:
-#             return loads(data)
-#         except decoder.JSONDecodeError as err:
-#             Message("Job cancelled", data=err.msg).log(self.log)
-#             return {
-#                 "status": "error",
-#                 "message": "no data received" if data is "\n" else err.msg,
-#                 "data": data
-#             }
+    filtered = irfft(freq)
 
-#     def send(self, data: dict):
-#         """
-#         Write serialized data to interface.
-#         """
-#         safe_keys = {
-#             key.replace(" ", "_"): value for key, value in data.items()
-#         }
-
-#         json = f"'{dumps(safe_keys)}'".replace(" ", "")
-#         Message(
-#             message="Send",
-#             data=json,
-#             arrow=">"
-#         ).log(self.log)
-
-#         self.text_io.write(f"{json}\n")
+    return {"series": filtered}, 200
 
 
+def frequencySpectrum(
+    body, 
+    dt: float = 1, 
+    fill: bool = False, 
+    compress: bool = True
+) -> (dict, int):
+
+    from scipy.fftpack import fftfreq, rfft
+    from numpy import array
+
+    series = array(tuple(item.value for item in body))
+
+    if fill:
+        series = series.ffill()  # forward-fill missing values
+
+    index = fftfreq(len(series), d=dt)  # frequency indices
+    freq = rfft(series)  # transform to frequency domain
+    if compress:
+        mask = index < 0.0
+        freq[mask] = 0.0  # get rid of negative symmetry
+
+    return {"frequency": freq, "index": index}, 200
+
+
+def smoothUsingConvolution(
+    body: list,
+    bandwidth: float
+):
+    """
+    Smooth an evenly-spaced time series using a square unit function
+    kernel. 
+    
+    The output of `resampleSparseSeries` is guarenteed to be a
+    compatible input to the body arguement of this function. 
+    """
+    from numpy import convolve, ones
+
+    series = tuple(item.value for item in body)
+    filtered = convolve(series, ones((bandwidth,)) / bandwidth, mode="same")
+    return {"series": filtered}, 200
+
+
+@context
+def spatial(
+    body: dict,
+    artifact: str = "preview",
+    labels: dict = None,
+    style: dict = None,
+    extent: dict = None
+):
+    """
+    Handle a request for a graphical representation of spatial assets.
+
+    Usually considered to be a single moment in time, but not necessarily. 
+    """
+
+    from bathysphere.render import Spatial
+
+    data = body.get("data")
+    style = body.get("style")
+   
+    image_buffer = Spatial(
+        style={
+            **DEFAULT_STYLES["base"],
+            **DEFAULT_STYLES[style.pop("template", "dark")],
+            **style
+        }, 
+        extent=extent
+    ).draw(data).push()
+    
+    return send_file(
+        image_buffer,
+        mimetype='image/png',
+        as_attachment=True,
+        attachment_filename=f'{artifact}.png'
+    )

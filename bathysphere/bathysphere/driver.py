@@ -1,24 +1,42 @@
 # pylint: disable=invalid-name
+"""
+Array data drivers for parallel analytics
+"""
+
+# Worker pool
 from multiprocessing import Pool
+
+# Asyncio type
 from typing import Coroutine
 
+# Less boilerplate
 import attr
 
-from numpy import array
+# The usual Array implementation
+from numpy import array, zeros, arange, ceil, where, std
+
+# Masked arrays save computation
 from numpy.ma import MaskedArray, masked_array
+
+# Converting arrays to images
 from PIL.Image import Image
+
+# Re-project between spherical and mercator
 from pyproj import Proj
 
+# Has fast contains point implementation
 from matplotlib.patches import Path
+
+# The most basic of statistical models
 from sklearn.linear_model import LinearRegression
 
-
+# North Atlantic
 CartesianNAD83 = Proj("epsg:2960")
+
+# The usual lat/lon
 SphericalWGS84 = Proj("epsg:4326")
 
-"""
-Requires `numpy`, `netCDF4`, and `scipy`
-"""
+
 
 def avhrr_sst(
     files: dict, 
@@ -36,9 +54,7 @@ def avhrr_sst(
     :param delay: Ending (inclusive) datetime day
     :param processes: number of processes to use
     """
-    from numpy import zeros, arange, ceil, where, std
     from time import sleep
-    from multiprocessing import Pool
     from warnings import simplefilter, catch_warnings
     from netCDF4 import Dataset  # pylint: disable=no-name-in-module
 
@@ -169,35 +185,6 @@ def landsat_sst_regression(
     return sst
 
 
-def resolveTaskTree(task: Coroutine, loop=None) -> tuple:
-    """
-    Recursively run and REDUCE an asynchronous task tree which returns an (index, <coroutine>) tuple. The process
-    stops when the final inner method is evaluated.
-
-    This is used internally by `metadata()`. The depth of the task structure is set before runtime.
-    """
-
-    from asyncio import new_event_loop, set_event_loop, BaseEventLoop
-
-    close = False
-    if loop is None:
-        close = True
-        loop: BaseEventLoop = new_event_loop()
-    set_event_loop(loop)  # create the event loop
-    ii, inner = loop.run_until_complete(task)
-    
-    if close:
-        loop.close()
-
-    if inner is None:
-        return (ii,)
-    yields = ()
-    while len(inner):
-        yields += tuple(
-            [ii, *((jj,) if isinstance(jj, int) else tuple(jj))]
-            for jj in resolveTaskTree(inner.pop())
-        )
-    return yields
 
 
 def _parse_str_to_float(string):
@@ -417,12 +404,6 @@ def filter_in_range(mask, data, minimum=None, maximum=None, gpu=False):
     return mask
 
 
-def filter_arrays(x) -> bool:
-    """Process an iterable of Array-likes to remove null values, used in map parallelism"""
-    try:
-        return isinstance(x.shape, tuple)
-    except AttributeError:
-        return False
 
 
 def crop(x, y, ext, mask=None, gpu=False):
@@ -2123,3 +2104,82 @@ class Topology:
                 solid[node] = True
             elif difference != 0:
                 print("Error. Nonsense dimensions in detecting solid boundary nodes.")
+
+
+
+def predict(
+    extent, 
+    count, 
+    view, 
+    native, 
+    xin, 
+    yin, 
+    bandwidth=1000
+):
+    """
+    Predict new locations based on trained model
+    """
+
+    from numpy import array
+    from pyproj import transform
+
+    if MODEL is None:
+        return "No trained model", 404
+    
+    xnew = []
+    ynew = []
+
+    def prohibit():
+        """ Strict local inhibition """
+        xtemp = array(xin + xnew)
+        ytemp = array(yin + ynew)
+        dxy = ((xtemp - xx) ** 2 + (ytemp - yy) ** 2) ** 0.5
+        nearest = dxy.min()
+        return nearest < 0.5 * bandwidth
+
+    xmin, ymin = transform(view, native, *extent[0:2])
+    xmax, ymax = transform(view, native, *extent[2:4])
+
+    total = 0
+    passes = 0
+    while total < count and passes < count * 10:
+
+        sample = MODEL.sample()
+        xx = sample[0][0]
+        yy = sample[0][1]
+
+        if (xmax > xx > xmin) and (ymax > yy > ymin):  # particle is in window
+
+            if bandwidth is not None and prohibit():
+                xnew.append(xx)
+                ynew.append(yy)
+                total += 1
+            else:
+                passes += 1
+
+
+
+def train(
+    target: iter, 
+    field: object, 
+    xx: iter, 
+    yy: iter
+):
+    """
+    Train kernel density estimator model using a quantized mesh
+
+    :param mesh: Mesh object of the Interpolator super type
+    :param key: Spatial field to train on
+    :return:
+    """
+    from numpy import isnan, where, hstack
+
+    model = MODEL or KernelDensity()
+
+    # mark non-NaN values to retain
+    subset, _ = where(~isnan(target.data))  
+    
+    # train estimator
+    model.fit(hstack((xx[subset], yy[subset], target[subset])))  
+    return model.score_samples(field)
+
