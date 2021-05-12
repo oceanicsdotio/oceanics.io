@@ -81,7 +81,7 @@ impl Message{
      */
     fn logging_repr(&self) -> String {
         format!(
-            "[{}] (PID {}) {:?} {:?} {:?}\n", 
+            "[{}] (PID {}) {} {} {}\n", 
             self.timestamp,
             self.pid,
             self.message,
@@ -112,7 +112,7 @@ struct Cypher {
  * representing entities in the Cypher query language.
  */
 #[pyclass]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct Node {
     #[pyo3(get)]
@@ -192,6 +192,29 @@ impl Node {
         }
     }
 
+
+    fn pattern_only(&self) -> String {
+
+        let pattern: String;
+
+        match &self.pattern {
+            None => pattern = String::from(""),
+            Some(value) => pattern = format!(" {{ {} }}", value)
+        }
+
+        pattern
+    }
+
+    fn symbol(&self) -> String {
+        let symbol: String;
+
+        match &self.symbol {
+            None => symbol = String::from("n"),
+            Some(value) => symbol = format!("{}", value)
+        }
+        symbol
+    }
+
     /**
      * Format the cypher query representation of the Node data structure
      */
@@ -201,24 +224,11 @@ impl Node {
 
         match &self.label {
             None => label = String::from(""),
-            Some(value) => label = format!(":{:?}", value)
+            Some(value) => label = format!(":{}", value)
         }
 
-        let pattern: String;
 
-        match &self.pattern {
-            None => pattern = String::from(""),
-            Some(value) => pattern = format!(" {{ {:?} }}", value)
-        }
-
-        let symbol: String;
-
-        match &self.symbol {
-            None => symbol = String::from(""),
-            Some(value) => symbol = format!(" {{ {:?} }}", value)
-        }
-
-        format!("( {:?}{:?}{:?} )", symbol, label, pattern)
+        format!("( {}{}{} )", self.symbol(), label, self.pattern_only())
     }
 
     /**
@@ -226,7 +236,7 @@ impl Node {
      */
     fn count(&self) -> Cypher {
         Cypher {
-            query: format!("MATCH {:?} RETURN count({:?})", self.pattern, self.symbol),
+            query: format!("MATCH {} RETURN count({})", self.cypher_repr(), self.symbol()),
             read_only: true
         }
     }
@@ -236,7 +246,7 @@ impl Node {
      */
     fn add_label(&self, label: String) -> Cypher {
         Cypher {
-            query: format!("MATCH {:?} SET {:?}:{:?}", self.pattern, self.symbol, label),
+            query: format!("MATCH {} SET {}:{}", self.cypher_repr(), self.symbol(), label),
             read_only: false
         }
     }
@@ -246,7 +256,7 @@ impl Node {
      */
     pub fn delete(&self) -> Cypher {
         Cypher{
-            query: format!("MATCH {:?} DETACH DELETE {:?}", self.pattern, self.symbol),
+            query: format!("MATCH {} DETACH DELETE {}", self.cypher_repr(), self.symbol()),
             read_only: false
         }
     }
@@ -254,9 +264,9 @@ impl Node {
     /**
      * Format a query that will merge a pattern into all matching nodes.
      */
-    pub fn mutate(&self, updates: String) -> Cypher {
+    pub fn mutate(&self, updates: Node) -> Cypher {
         Cypher{
-            query: format!("MATCH {:?} SET {:?} += {{ {:?} }}", self.pattern, self.symbol, updates),
+            query: format!("MATCH {} SET {} += {{ {} }}", self.cypher_repr(), self.symbol(), updates.pattern_only()),
             read_only: false
         }
     }
@@ -273,14 +283,14 @@ impl Node {
         }
 
         Cypher {
-            query: format!("MATCH {:?} RETURN {:?}{:?}", self.pattern, self.symbol, variable),
+            query: format!("MATCH {} RETURN {}{}", self.cypher_repr(), self.symbol(), variable),
             read_only: true,
         }
     }
 
     pub fn create(&self) -> Cypher {
         Cypher {
-            query: format!("MERGE {:?}", self.pattern),
+            query: format!("MERGE {}", self.cypher_repr()),
             read_only: false,
         }
     }
@@ -419,7 +429,7 @@ impl Links {
 
         match &self.pattern {
             None => pattern = String::from(""),
-            Some(value) => pattern = format!(" {{ {:?} }}", value)
+            Some(value) => pattern = format!(" {{ {} }}", value)
         }
 
         format!("-[ r{}{} ]-", label, pattern)
@@ -455,12 +465,12 @@ impl Links {
         Cypher {
             read_only: false,
             query: format!(
-                "MATCH {:?}, {:?} MERGE ({:?}){:?}({:?})", 
+                "MATCH {}, {} MERGE ({}){}({})", 
                 left.cypher_repr(), 
                 right.cypher_repr(), 
-                left.symbol, 
+                left.symbol(), 
                 self.cypher_repr(), 
-                right.symbol
+                right.symbol()
             )
         }
     }
@@ -652,7 +662,7 @@ impl Assets {
     fn getenv() {
         let key = "NEO4J_HOSTNAME";
         match env::var(key) {
-            Ok(val) => println!("{}: {:?}", key, val),
+            Ok(val) => println!("{}: {}", key, val),
             Err(e) => println!("couldn't interpret {}: {}", key, e),
         }
     }
@@ -1035,6 +1045,35 @@ impl Providers {
             token_duration
         }
     }
+
+    pub fn serialize(&self) -> String {
+        serde_json::to_string(self).unwrap()
+    }
+}
+
+#[pyclass]
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct SpatialLocationData {
+    #[pyo3(get)]
+    r#type: String,
+    #[pyo3(get)]
+    coordinates: [f64; 3],
+}
+
+
+#[pymethods]
+impl SpatialLocationData {
+    #[new]
+    pub fn new(
+        r#type: String,
+        coordinates: [f64; 3]
+    ) -> Self {
+        SpatialLocationData {
+            r#type,
+            coordinates
+        }
+    }
 }
 
 
@@ -1051,7 +1090,7 @@ struct Locations {
     #[pyo3(get)]
     encoding_type: Option<String>,
     #[pyo3(get)]
-    location: Option<HashMap<String, String>>,
+    location: Option<SpatialLocationData>,
 }
 
 #[pymethods]
@@ -1062,7 +1101,7 @@ impl Locations {
         name: Option<String>,
         description: Option<String>,
         encoding_type: Option<String>,
-        location: Option<HashMap<String, String>>
+        location: Option<SpatialLocationData>
     ) -> Self {
         Locations {
             uuid,
@@ -1299,6 +1338,10 @@ impl User {
             validated,
             description
         }
+    }
+
+    pub fn serialize(&self) -> String {
+        serde_json::to_string(self).unwrap()
     }
 }
 
@@ -1541,5 +1584,6 @@ fn bathysphere(_: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<Axis>()?;
     m.add_class::<FigureStyle>()?;
     m.add_class::<FigurePalette>()?;
+    m.add_class::<SpatialLocationData>()?;
     Ok(())
 }

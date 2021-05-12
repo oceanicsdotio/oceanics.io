@@ -25,6 +25,9 @@ from typing import Any, Callable, Iterable, Type
 # Runtime variables and secrets from environment
 from os import getenv
 
+# Regex
+import re
+
 # Use to wire up OpenAPI to functions
 from connexion import App
 
@@ -36,7 +39,6 @@ from prance import ResolvingParser, ValidationError
 
 # YAML loaders
 from yaml import Loader, load as load_yml
-
 
 # Check all environment variables
 ENV_ERRORS = [*filter(lambda x: not x, map(getenv, (
@@ -68,6 +70,11 @@ CORS(APP.app)
 # Configuration
 SOURCES = ("config/bathysphere.yml", "bin/agents.yml")
 
+# Regex for case changing
+CAMEL_CASE_REGEX_PATTERN = re.compile(r'(?<!^)(?=[A-Z])')
+
+# Regex function
+REGEX_FCN = lambda x: CAMEL_CASE_REGEX_PATTERN.sub('_', x).lower()
 
 try:
     # Get the rendering styles, these can be used in multiple ways

@@ -59,6 +59,7 @@ from bathysphere.bathysphere import (  # pylint: disable=no-name-in-module, unus
     Node,
     Assets,
     Actuators,
+    Collections,
     DataStreams,
     Observations,
     Things,
@@ -68,6 +69,7 @@ from bathysphere.bathysphere import (  # pylint: disable=no-name-in-module, unus
     ObservedProperties,
     FeaturesOfInterest,
     Locations,
+    SpatialLocationData,
     HistoricalLocations,
     User,
     Providers,
@@ -78,17 +80,18 @@ from bathysphere.bathysphere import (  # pylint: disable=no-name-in-module, unus
 )
 
 
-def parse_as_cypher(props: dict) -> str:
+def parse_as_nodes(nodes):
+    # typing: (Iterable) -> Iterable
     """
-    Generate cypher from dict
+    Convert from Entity Model representation to Cypher node pattern
     """
 
-    def _parse(keyValue: (str, Any)) -> str or None:
+    def _inner(x):
         """
         Convert a String key and Any value into a Cypher representation
         for making the graph query.
         """
-        key, value = keyValue
+        key, value = x
 
         if "location" in key and isinstance(value, dict) and value.get("type") == "Point":
 
@@ -114,21 +117,20 @@ def parse_as_cypher(props: dict) -> str:
 
         return None
 
+    def _filter(x):
+        return x is not None and not (isinstance(x, str) and not x)
 
-    return ", ".join(filter(lambda x: x is not None, map(_parse, props.items())))
 
-
-def parse_as_nodes(nodes):
-    # typing: (Iterable) -> Iterable
-    """
-    Convert from Entity Model representation to Cypher node pattern
-    """
-    def _parse(item):
+    def _outer(x):
         """Mapped operation"""
-        ii, value = item
-        Node(pattern=parse_as_cypher(value), symbol=f"n{ii}", label=type(value).__name__)
+        key, value = x
+        return Node(
+            pattern=", ".join(filter(_filter, map(_inner, loads(value.serialize()).items()))),
+            symbol=f"n{key}",
+            label=type(value).__name__
+        )
 
-    return map(_parse, enumerate(nodes))
+    return map(_outer, enumerate(nodes))
 
 
 def load_node(entity, db):
@@ -137,6 +139,8 @@ def load_node(entity, db):
     Create entity instance from a Neo4j <Node>, which has an items() method
     that works the same as the dictionary method.
     """
+    from bathysphere import REGEX_FCN
+
     def _parse(keyValue: (str, Any),) -> (str, Any):
 
         k, v = keyValue
@@ -147,18 +151,14 @@ def load_node(entity, db):
                 "coordinates": f"{[v.longitude, v.latitude]}"
             }
 
-        return k, v
+        return REGEX_FCN(k), v
 
-    cypher = next(parse_as_nodes(entity)).load()
+    cypher = next(parse_as_nodes((entity,))).load()
 
-    items = []
     with db.session() as session:
-        for record in session.read_transaction(lambda tx: tx.run(cypher.query)):
-            props = dict(map(_parse, dict(record[0]).items()))
-            items.append(type(entity)(**props))
+        records = session.read_transaction(lambda tx: [*tx.run(cypher.query)])
 
-    return items
-
+    return (type(entity)(**dict(map(_parse, r[0].items()))) for r in records)
 
 
 def context(fcn):
@@ -186,43 +186,37 @@ def context(fcn):
             return ({"Error": "No graph backend"}, 500)
 
         username, password = request.headers.get("authorization", ":").split(":")
+        
 
         if username and "@" in username:  # Basic Auth
-            accounts = load_node(User(name=username), db)
-            user = accounts.pop() if len(accounts) == 1 else None
-
-            if user is None or not custom_app_context.verify(password, user.credential):
+            try:
+                user = next(load_node(User(name=username), db))
+                assert custom_app_context.verify(password, user.credential)
+            except (StopIteration, AssertionError):
                 return {"message": "Invalid username or password"}, 403
 
         else: # Bearer Token
             secretKey = request.headers.get("x-api-key", "salt")
             try:
                 decoded = TimedJSONWebSignatureSerializer(secretKey).loads(password)
-            except BadSignature:
-                return {"Error": "Missing authorization and/or x-api-key headers"}, 403
-            uuid = decoded["uuid"]
-            accounts = load_node(User(uuid=uuid), db)
-            candidates = len(accounts)
-            if candidates != 1:
-                return {
-                    "Message": f"There are {candidates} accounts matching UUID {uuid}"
-                }, 403
-            user = accounts.pop()
+                uuid = decoded["uuid"]
+                user = next(load_node(User(uuid=uuid), db))
+            except (BadSignature, StopIteration):
+                return {"Error": "Invalid authorization and/or x-api-key headers"}, 403
 
-        provider = load_node(Providers(domain=user.name.split("@").pop()), db)
-        if len(provider) != 1:
-            raise ValueError
+        domain = user.name.split("@").pop()
+        signature_keys = signature(fcn).parameters.keys()
 
         # inject the provider, if contained in the function signature
-        if "provider" in signature(fcn).parameters.keys():
-            kwargs["provider"] = provider.pop()
+        if "provider" in signature_keys:
+            kwargs["provider"] = next(load_node(Providers(domain=domain), db))
 
         # inject the user, if contained in function signature
-        if "user" in signature(fcn).parameters.keys():
+        if "user" in signature_keys:
             kwargs["user"] = user
 
         # inject object storage client
-        if "s3" in signature(fcn).parameters.keys():
+        if "s3" in signature_keys:
             kwargs["s3"] = Minio(
                 endpoint=getenv("STORAGE_ENDPOINT"),
                 secure=True,
@@ -230,8 +224,11 @@ def context(fcn):
                 secret_key=getenv("SPACES_SECRET_KEY"),
             )
 
+        if "db" in signature_keys:
+            kwargs["db"] = db
+
         try:
-            return fcn(db=db, **kwargs)
+            return fcn(**kwargs)
         except TypeError as ex:
             return {
                 "message": "Bad inputs passed to API function",
@@ -273,65 +270,52 @@ def register(body):
         )
         return {"message": message}, 403
 
-    providers = load_node(Providers(apiKey=apiKey), db)
-    if len(providers) != 1:
-        return {"message": "Bad API key."}, 403
-
     username = body.get("username")
     if not ("@" in username and "." in username):
-        return {"message": "use email"}, 403
+        return {"message": "Use email address"}, 403
     _, domain = username.split("@")
 
-    if load_node(User(name=username), db):
-        return {"message": "invalid email"}, 403
-
-    entryPoint = providers.pop()
-    if entryPoint.name != "Public" and domain != entryPoint.domain:
-        message = (
-            "You are attempting to register with a private Provider "
-            "without a matching e-mail address. Contact your "
-            "account administrator for access."
-        )
-        return {"message": message}, 403
-
-    _hash = custom_app_context.hash(body.get("password"))
+    try:
+        provider = next(load_node(Providers(api_key=apiKey, domain=domain), db))
+    except StopIteration:
+        return {"message": "Bad API key."}, 403
 
     user = User(
         name=username,
         uuid=uuid4().hex,
-        credential=_hash,
+        credential=custom_app_context.hash(body.get("password")),
         ip=request.remote_addr,
     )
 
-    cypher = next(parse_as_nodes((user,))).create()
+    user_node, provider_node = parse_as_nodes((user, provider))
 
     # establish provenance
-    nodes = parse_as_nodes((user, entryPoint))
-    link_cypher = Links(label="Register", rank=0).join(*nodes)
+    link_cypher = Links(label="Register", rank=0).join(user_node, provider_node)
 
     try:
         with db.session() as session:
-            session.write_transaction(lambda tx: tx.run(cypher.query))
+            session.write_transaction(lambda tx: tx.run(user_node.create().query))
             session.write_transaction(lambda tx: tx.run(link_cypher.query))
     except Exception:  # pylint: disable=broad-except
-        return {"message": "linking problem"}, 500
+        return {"message": "Unauthorized"}, 403
 
-    return {"message": f"Registered as a member of {entryPoint.name}."}, 200
+    return {"message": f"Registered as a member of {provider.name}."}, 200
 
 
 @context
 def manage(db, user, body) -> (dict, int):
     # typing: (Driver, User, dict) -> (dict, int)
     """
-    Change account settings. You can only delete a user or change the
-    alias.
+    Change account settings.
+
+    You can only change the alias.
     """
-    # Unpack first member of Nodes tuple
-    cypher = next(parse_as_nodes((user,))).mutate(parse_as_cypher(body))
+    # Create native Node instances
+    current, mutation = parse_as_nodes((user, User(**body)))
 
     # Execute the query
     with db.session() as session:
-        return session.write_transaction(cypher.query)
+        return session.write_transaction(current.mutate(mutation).query)
 
     # Report success
     return None, 204
@@ -347,13 +331,13 @@ def token(user, provider, secretKey="salt"):
     # create the secure serializer instance and make a token
     _token = TimedJSONWebSignatureSerializer(
         secret_key=secretKey,
-        expires_in=provider.tokenDuration
+        expires_in=provider.token_duration
     ).dumps({
         "uuid": user.uuid
     }).decode("ascii")
 
     # send token info with the expiration
-    return {"token": _token, "duration": provider.tokenDuration}, 200
+    return {"token": _token, "duration": provider.token_duration}, 200
 
 
 @context
@@ -426,26 +410,26 @@ def create(db, entity, body, provider) -> (dict, int):
     has not yet been built. For this reason it is desirable to populate the graph
     with at least one instance of each data type.
     """
+    # For changing case
+    from bathysphere import REGEX_FCN
+
     # Only used for API discriminator
     _ = body.pop("entityClass")
 
-    # Evaluate str representation, create a DB record
-    _entity = eval(entity)(**body)  # pylint: disable=eval-used
+    if entity == "Locations" and "location" in body.keys():
+        body["location"] = SpatialLocationData(**body["location"])
 
-    # Generate query for creating the Node
-    cypher = next(parse_as_nodes((_entity,))).create()
+    # Generate Node representation
+    instance = eval(entity)(**{REGEX_FCN(k): v for k, v in body.items()}) # pylint: disable=eval-used
+    _entity, _provider = parse_as_nodes((instance, provider))
 
     # Establish provenance
-    link_cypher = Links(
-        label="Create"
-    ).join(
-        *parse_as_nodes((provider, _entity))
-    )
+    link = Links(label="Create").join(_entity, _provider)
 
     # Execute the query
     with db.session() as session:
-        session.write_transaction(lambda tx: tx.run(cypher.query))
-        session.write_transaction(lambda tx: tx.run(link_cypher.query))
+        session.write_transaction(lambda tx: tx.run(_entity.create().query))
+        session.write_transaction(lambda tx: tx.run(link.query))
 
     # Report success
     return None, 204
@@ -458,14 +442,20 @@ def mutate(body, db, entity, uuid):
     Give new values for the properties of an existing entity.
     """
 
-    _ = body.pop("entityClass")  # only used for API discriminator
-    e = eval(entity)(uuid=uuid)  # pylint: disable=eval-used
+    # Only used for API discriminator
+    _ = body.pop("entityClass")  
 
-    cypher = next(parse_as_nodes((e, ))).mutate(parse_as_cypher(body))
+    # Do the Bad Thing
+    _class = eval(entity) # pylint: disable=eval-used
 
+    # Create native Node instances
+    e, mutation = parse_as_nodes((_class(uuid=uuid), _class(**body)))
+
+    # Execute transaction
     with db.session() as session:
-        return session.write_transaction(cypher.query)
+        return session.write_transaction(e.mutate(mutation).query)
 
+    # Report success with no data
     return None, 204
 
 

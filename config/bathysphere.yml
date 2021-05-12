@@ -74,7 +74,7 @@ spec:
   encodingType: application/vnd.geo+json
   location:
     type: Point
-    coordinates: [43.93354, -69.58344]
+    coordinates: [43.93354, -69.58344, 0.0]
 ---
 apiVersion: extensions/sensing
 kind: Locations
@@ -103,7 +103,7 @@ spec:
   encodingType: application/vnd.geo+json
   location:
     type: Point
-    coordinates: [ 43.456550, -70.344432 ]
+    coordinates: [ 43.456550, -70.344432, 0.0 ]
 ---
 apiVersion: extensions/sensing
 kind: Locations
@@ -117,7 +117,7 @@ spec:
   encodingType: application/vnd.geo+json
   location:
     type: Point
-    coordinates: [ 43.465934, -70.359646 ]
+    coordinates: [ 43.465934, -70.359646, 0.0 ]
 ---
 apiVersion: extensions/sensing
 kind: Locations
@@ -131,7 +131,7 @@ spec:
   encodingType: application/vnd.geo+json
   location:
     type: Point
-    coordinates: [ 43.863669, -69.8984055 ]  # Bombazine / New Meadows
+    coordinates: [ 43.863669, -69.8984055, 0.0 ]  # Bombazine / New Meadows
 ---
 apiVersion: extensions/sensing
 kind: Locations
@@ -145,7 +145,7 @@ spec:
   encodingType: application/vnd.geo+json
   location:
     type: Point
-    coordinates: [ 43.77643055, -69.89196944 ]  # Sand Cove / New Meadows
+    coordinates: [ 43.77643055, -69.89196944, 0.0 ]  # Sand Cove / New Meadows
 ---
 apiVersion: extensions/sensing
 kind: Locations
@@ -159,7 +159,7 @@ spec:
   encodingType: application/vnd.geo+json
   location:
     type: Point
-    coordinates: [ 44.40156667, -68.7738333 ]
+    coordinates: [ 44.40156667, -68.7738333, 0.0 ]
 ---
 apiVersion: extensions/sensing
 kind: Locations
@@ -173,7 +173,7 @@ spec:
   encodingType: application/vnd.geo+json
   location:
     type: Point
-    coordinates: [ 44.618517, -67.318033 ]
+    coordinates: [ 44.618517, -67.318033, 0.0 ]
 ---
 apiVersion: extensions/sensing
 kind: Locations
@@ -187,7 +187,7 @@ spec:
   encodingType: application/vnd.geo+json
   location:
     type: Point
-    coordinates: [ 44.8968, -67.0651 ]
+    coordinates: [ 44.8968, -67.0651, 0.0 ]
 ---
 apiVersion: extensions/sensing
 kind: Locations
@@ -206,7 +206,7 @@ spec:
   encodingType: application/vnd.geo+json
   location:
     type: Point
-    coordinates: [ 44.92017, -66.995833 ]
+    coordinates: [ 44.92017, -66.995833, 0.0 ]
 ---
 apiVersion: extensions/sensing
 kind: Locations
@@ -473,32 +473,32 @@ metadata:
     image:      
       styles:
         base:
-            padding: [0.1, 0.2, 0.05, 0.1]
-            marker: 1
-            font: 10
-            text: 10
-            width: 6.5
-            height: 4.0
-            line: 1.0
-            alpha: 1.0
-            dpi: 150
-            legend: false
-            grid: false
-            imageInterp: bilinear
+          padding: [0.1, 0.2, 0.05, 0.1]
+          marker: 1
+          font: 10
+          text: 10
+          width: 6.5
+          height: 4.0
+          line: 1.0
+          alpha: 1.0
+          dpi: 150
+          legend: false
+          grid: false
+          imageInterp: bilinear
         
         dark:
-            bg: black
-            contrast: white
-            flag: red
-            label: white
-            colors: [purple, blue, red, grey, green, yellow, orange, brown]
+          bg: black
+          contrast: white
+          flag: red
+          label: white
+          colors: [purple, blue, red, grey, green, yellow, orange, brown]
         
         light:
-            bg: white
-            contrast: black
-            flag: red
-            label: black
-            colors: [purple, blue, red, grey, green, yellow, orange, brown]
+          bg: white
+          contrast: black
+          flag: red
+          label: black
+          colors: [purple, blue, red, grey, green, yellow, orange, brown]
         
 spec:
   name: bathysphere-api

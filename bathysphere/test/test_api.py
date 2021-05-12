@@ -74,26 +74,8 @@ STREAMS = [
 ]
 
 
-def test_api_native():
-    """
-    Test that basic native bindings work, do not execute any queries.
-    """
-    link = Links(label="has")
-    agent = Agents(name="Hello Human")
-    asset = Assets(name="Money Bags", description="Some green or blue paper in a reinforced bag.")
-
-    node_a = Node(pattern=repr(agent), symbol="a")
-    node_b = Node(pattern=repr(asset), symbol="b")
-
-    query = link.drop(node_a, node_b)
-
-    print(query.query)
-
-    assert agent.name == "Hello Human"
-
-
 @pytest.mark.teardown
-def test_api_teardown():
+def test_api_account_teardown():
     """
     Destroy the graph.
 
@@ -106,27 +88,53 @@ def test_api_teardown():
         auth=("neo4j", getenv("NEO4J_ACCESS_KEY"))
     )
 
-    cypher = Node(pattern={}, symbol="n").delete()
+    cypher = Node(symbol="n").delete()
 
     with graph.session() as session:
-        session.write_transaction(lambda tx: cypher.query)
+        session.write_transaction(lambda tx: tx.run(cypher.query))
 
-    for provider in ONTOLOGY["Providers"]:
-        _ = Providers(
-            **provider["spec"],
-            apiKey=token_urlsafe(64)
-        ).create(graph)
+
+@pytest.mark.teardown
+def test_api_account_add_providers():
+
+    from bathysphere.api import parse_as_nodes
+
+    graph = GraphDatabase.driver(
+        uri=getenv("NEO4J_HOSTNAME"),
+        auth=("neo4j", getenv("NEO4J_ACCESS_KEY"))
+    )
+
+    providers = parse_as_nodes((
+        Providers(**x["spec"], api_key=token_urlsafe(64)) for x in ONTOLOGY["Providers"]
+    ))
+
+    with graph.session() as session:
+        query = None
+        for cypher in map(lambda x: x.create(), providers):
+            query = cypher.query
+            session.write_transaction(lambda tx: tx.run(query))
 
 
 def test_api_account_create_user(client):
     """
     Create a service account user.
     """
+    from bathysphere import REGEX_FCN
+    from bathysphere.api import parse_as_nodes
+    from json import dumps
 
     graph = GraphDatabase.driver(
         uri=getenv("NEO4J_HOSTNAME"),
         auth=("neo4j", getenv("NEO4J_ACCESS_KEY"))
     )
+
+    provider = next(parse_as_nodes((Providers(name="Oceanicsdotio"),)))
+
+    cypher = provider.load()
+
+    with graph.session() as session:
+        entity = session.write_transaction(lambda tx: [*tx.run(cypher.query)]).pop()[0]
+        ingress = Providers(**{REGEX_FCN(k): v for k, v in entity.items()})
 
     response = client.post(
         "api/auth",
@@ -134,7 +142,7 @@ def test_api_account_create_user(client):
             "username": getenv("SERVICE_ACCOUNT_USERNAME"),
             "password": getenv("SERVICE_ACCOUNT_PASSWORD"),
             "secret": getenv("SERVICE_ACCOUNT_SECRET"),
-            "apiKey": Providers(name="Oceanicsdotio").load(graph).pop().apiKey,
+            "apiKey": ingress.api_key,
         }
     )
 
@@ -150,52 +158,57 @@ def test_api_account_get_token(token):
 
 
 @pytest.mark.parametrize("cls", DATA_MODELS)
-def test_api_sensorthings_create(client, cls, token):
+def test_api_sensorthings_core_create(client, cls, token):
     """
     Create the WellKnown Entities.
 
     Make an HTTP request through the local test client to create a single
     entity.
     """
+    from uuid import uuid4
+
+    type_key = cls.__name__.split(".").pop()
+
     # cache created entities for retrieval
     if "createdEntities" not in MEMO.keys():
         MEMO["createdEntities"] = dict()
     if "joinQueue" not in MEMO.keys():
         MEMO["joinQueue"] = dict()
 
-    results = []
+    MEMO["createdEntities"][type_key] = []
+
     try:
-        build = ONTOLOGY[cls.__name__]
+        build = ONTOLOGY[type_key]
     except KeyError:
         build = []
+    if cls == Locations:
+        _filter = lambda x: "geo+json" in x["spec"]["encodingType"]
+    else:
+        _filter = None
 
-    for each in build:
+    for each in filter(_filter, build):
+
+        _uuid = uuid4().hex
 
         response = client.post(
-            f"api/{cls.__name__}",
-            json={"entityClass": cls.__name__, **each["spec"]},
+            f"api/{type_key}",
+            json={"entityClass": type_key, "uuid": _uuid, **each["spec"]},
             headers={"Authorization": ":" + token.get("token")},
         )
 
-        entity = response.get_json()
-        assert response.status_code == 200, entity
+        assert response.status_code == 204, response.get_json()
 
-        results.append(entity)
-        uuid = entity["value"]["@iot.id"]
-        if not (isinstance(uuid, str) and uuid and uuid not in MEMO["joinQueue"].keys()):
-            print(entity["value"])
-            raise AssertionError
+        MEMO["createdEntities"][type_key].append(_uuid)
+
         _metadata = each.get("metadata", dict())
         if isinstance(_metadata, dict) and "config" in _metadata.keys():
             _ = _metadata.pop("config")
-        MEMO["joinQueue"][uuid] = _metadata
+        MEMO["joinQueue"][_uuid] = _metadata
 
-    # cache created entities for retrieval
-    MEMO["createdEntities"][cls] = results
 
 
 @pytest.mark.parametrize("cls", set(DATA_MODELS) - {TaskingCapabilities, Tasks})
-def test_api_sensorthings_get_entity(client, cls, token):
+def test_api_sensorthings_core_get_entity(client, cls, token):
     """
     Retrieve the WellKnownEntities.
 
@@ -205,32 +218,28 @@ def test_api_sensorthings_get_entity(client, cls, token):
     We need to decouple these to increase development and testing velocity.
     """
     try:
-        retrieve = MEMO["createdEntities"][cls]
+        type_key = cls.__name__.split(".").pop()
+        retrieve = MEMO["createdEntities"][type_key]
     except KeyError as ex:
         print(MEMO["createdEntities"].keys())
         raise ex
     assert len(retrieve) > 0
 
-    for each in retrieve:
-        try:
-            uuid = each["value"]["@iot.id"]
-        except KeyError as ex:
-            print(each)
-            raise ex
-        else:
-            entity = client.get(
-                f"api/{cls}({uuid})", headers={"Authorization": ":" + token.get("token")}
-            )
+    for uuid in retrieve:
+        entity = client.get(
+            f"api/{type_key}({uuid})", headers={"Authorization": ":" + token.get("token")}
+        )
 
 @pytest.mark.parametrize("cls", set(DATA_MODELS) - {Tasks, TaskingCapabilities})
-def test_api_sensorthings_get_collection(cls, token, client):
+def test_api_sensorthings_core_get_collection(cls, token, client):
     """
     Get all entities of a single type.
 
     This works stand-alone on an existing database.
     """
+    type_key = cls.__name__.split(".").pop()
     response = client.get(
-        f"api/{cls.__name__}", headers={"Authorization": ":" + token.get("token")}
+        f"api/{type_key}", headers={"Authorization": ":" + token.get("token")}
     )
 
     assert response.status_code == 200, response.json
@@ -239,11 +248,11 @@ def test_api_sensorthings_get_collection(cls, token, client):
     except KeyError as ex:
         print(f"Response has no count: {response.json}")
         raise ex
-    assert count > 0, f"Count for {cls} in {count}"
+    assert count > 0, f"Count for {type_key} in {count}"
 
 
 @pytest.mark.parametrize("entity_type", set(DATA_MODELS) - {TaskingCapabilities, Tasks})
-def test_api_sensorthings_join(client, entity_type, token):
+def test_api_sensorthings_core_join(client, entity_type, token):
     """
     Create relationships between existing entities.
 
