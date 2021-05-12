@@ -1,189 +1,189 @@
-import pytest
-from json import load
+# import pytest
+# from json import load
 
-from time import time
-from os.path import exists
-from pickle import loads as unpickle, dump as pickle, load
-from itertools import chain, repeat
-from functools import reduce
-from collections import deque
+# from time import time
+# from os.path import exists
+# from pickle import loads as unpickle, dump as pickle, load
+# from itertools import chain, repeat
+# from functools import reduce
+# from collections import deque
 
-from datetime import datetime
-from random import random
-from requests import post, get
-from json import dumps
-from json import dumps, loads
-from requests import post
-from time import time
-from retry import retry
+# from datetime import datetime
+# from random import random
+# from requests import post, get
+# from json import dumps
+# from json import dumps, loads
+# from requests import post
+# from time import time
+# from retry import retry
 
-from matplotlib.cm import get_cmap
-from matplotlib.patches import Path
-from PIL.Image import fromarray, alpha_composite
+# from matplotlib.cm import get_cmap
+# from matplotlib.patches import Path
+# from PIL.Image import fromarray, alpha_composite
 
-from numpy import (
-    array,
-    where,
-    column_stack,
-    uint8,
-    arange,
-    delete,
-    zeros,
-    unique,
-    isnan,
-    abs,
-    sqrt,
-)
-from numpy.ma import masked_where
-from matplotlib import pyplot as plt
-from datetime import datetime
+# from numpy import (
+#     array,
+#     where,
+#     column_stack,
+#     uint8,
+#     arange,
+#     delete,
+#     zeros,
+#     unique,
+#     isnan,
+#     abs,
+#     sqrt,
+# )
+# from numpy.ma import masked_where
+# from matplotlib import pyplot as plt
+# from datetime import datetime
 
-from numpy import (
-    random,
-    argmax,
-    argmin,
-    arange,
-    array,
-    vstack,
-    pi,
-    all,
-    any,
-    where,
-    array_split,
-)
-from numpy.random import random
-from numpy.ma import MaskedArray
-from matplotlib import pyplot as plt
+# from numpy import (
+#     random,
+#     argmax,
+#     argmin,
+#     arange,
+#     array,
+#     vstack,
+#     pi,
+#     all,
+#     any,
+#     where,
+#     array_split,
+# )
+# from numpy.random import random
+# from numpy.ma import MaskedArray
+# from matplotlib import pyplot as plt
 
-from capsize import Memory
-from capsize.test.conftest import (
-    IndexedDB,
-    CREDENTIALS,
-    stripMetadata,
-    DATASET, 
-    ext, 
-    scan
-)
-from capsize.array.models import ConvexHull
-from capsize.utils import (
+# from capsize import Memory
+# from capsize.test.conftest import (
+#     IndexedDB,
+#     CREDENTIALS,
+#     stripMetadata,
+#     DATASET, 
+#     ext, 
+#     scan
+# )
+# from capsize.array.models import ConvexHull
+# from capsize.utils import (
     
-    filter_arrays,
-    nan_mask,
-    array2image,
-    subset,
-    normal,
-    interp2d_nearest,
-)
+#     filter_arrays,
+#     nan_mask,
+#     array2image,
+#     subset,
+#     normal,
+#     interp2d_nearest,
+# )
 
-OSI_OBJ = "bivalve-suitability"
-NBYTES = 100
-
-
-def test_capsize_array_convex_hull():
-    # Collections of points
-    groups = (
-        random((100, 2)),
-        0.5 * random((100, 2)) + 1,
-        0.5 * random((100, 2)) - 1,
-    )
-
-    hulls = map(ConvexHull, groups)
-    hullsUnion = vstack(g[h.points, :] for h, g in zip(hulls, groups))
-    _ = ConvexHull(hullsUnion)
-    pts = vstack(groups)
-    _ = ConvexHull(pts)
+# OSI_OBJ = "bivalve-suitability"
+# NBYTES = 100
 
 
-def test_capsize_array_memory_buffer():
-    """
-    Setup and check internal data structures
-    """
-    mem = Memory(NBYTES)
+# def test_capsize_array_convex_hull():
+#     # Collections of points
+#     groups = (
+#         random((100, 2)),
+#         0.5 * random((100, 2)) + 1,
+#         0.5 * random((100, 2)) - 1,
+#     )
 
-    assert len(mem.buffer) == NBYTES
-    assert len(mem.mask) == NBYTES
-    assert len(mem.map) == 0
-    assert mem.remaining == NBYTES
-
-
-def test_capsize_array_memory_buffer_error_allocation():
-    """
-    Raises memory error if requested buffer too long
-    """
-    try:
-        _ = Memory(size=NBYTES + 1, max_size=NBYTES)
-    except MemoryError:
-        assert True
-    else:
-        assert False
+#     hulls = map(ConvexHull, groups)
+#     hullsUnion = vstack(g[h.points, :] for h, g in zip(hulls, groups))
+#     _ = ConvexHull(hullsUnion)
+#     pts = vstack(groups)
+#     _ = ConvexHull(pts)
 
 
-def test_capsize_array_memory_buffer_error_request():
-    """
-    Doesn't assign beyond available heap size
-    """
-    mem = Memory(NBYTES)
-    assert mem.remaining == NBYTES
-    try:
-        _ = mem.alloc(NBYTES + 1)
-    except MemoryError:
-        failed = True
-    else:
-        failed = False
+# def test_capsize_array_memory_buffer():
+#     """
+#     Setup and check internal data structures
+#     """
+#     mem = Memory(NBYTES)
 
-    assert failed
+#     assert len(mem.buffer) == NBYTES
+#     assert len(mem.mask) == NBYTES
+#     assert len(mem.map) == 0
+#     assert mem.remaining == NBYTES
 
 
-def test_capsize_memory_buffer_single_allocation():
-    """
-    Assigning to pointer changes underlying data
-    """
-
-    mem = Memory(NBYTES)
-    n = NBYTES // 10
-    ptr = mem.alloc(n)
-    assert mem.remaining == NBYTES - n
-    assert mem.buffer[0] == b""
-    mem.set(ptr, b"a")
-    assert mem.buffer[0] == b"a"
-    assert mem.buffer[1] == b"a"
-
-    assert mem.free(ptr)
-
-    assert mem.remaining == NBYTES
+# def test_capsize_array_memory_buffer_error_allocation():
+#     """
+#     Raises memory error if requested buffer too long
+#     """
+#     try:
+#         _ = Memory(size=NBYTES + 1, max_size=NBYTES)
+#     except MemoryError:
+#         assert True
+#     else:
+#         assert False
 
 
+# def test_capsize_array_memory_buffer_error_request():
+#     """
+#     Doesn't assign beyond available heap size
+#     """
+#     mem = Memory(NBYTES)
+#     assert mem.remaining == NBYTES
+#     try:
+#         _ = mem.alloc(NBYTES + 1)
+#     except MemoryError:
+#         failed = True
+#     else:
+#         failed = False
 
-@pytest.mark.xfail
-def test_capsize_array_netcdf_dataset_landsat_load_local(osi):
-    """
-    Check metadata of well-known dataset
-    """
-    assert osi.data_model == "NETCDF4_CLASSIC"
-    assert osi.isopen()
-    assert osi.file_format == "NETCDF4_CLASSIC"
-    assert osi.disk_format == "HDF5"
-
-    scan(osi, attribute="dimensions", required={"r", "c"}, verb=True)
-    scan(osi, attribute="variables", required={"lat", "lon", "OSI"}, verb=True)
+#     assert failed
 
 
-@pytest.mark.xfail
-def test_capsize_array_netcdf_dataset_analysis_extent_culling(
-    osi_vertex_array, object_storage
-):
+# def test_capsize_memory_buffer_single_allocation():
+#     """
+#     Assigning to pointer changes underlying data
+#     """
 
-    maine_towns = ()  # TODO: replace with fixture
-    start = time()
-    data = _filter(maine_towns)
+#     mem = Memory(NBYTES)
+#     n = NBYTES // 10
+#     ptr = mem.alloc(n)
+#     assert mem.remaining == NBYTES - n
+#     assert mem.buffer[0] == b""
+#     mem.set(ptr, b"a")
+#     assert mem.buffer[0] == b"a"
+#     assert mem.buffer[1] == b"a"
 
-    xyz, f, e, r = filter_iteration(
-        osi_vertex_array,
-        data["shapes"],
-        data["extents"],
-        data["records"],
-        0
-    )
+#     assert mem.free(ptr)
+
+#     assert mem.remaining == NBYTES
+
+
+
+# @pytest.mark.xfail
+# def test_capsize_array_netcdf_dataset_landsat_load_local(osi):
+#     """
+#     Check metadata of well-known dataset
+#     """
+#     assert osi.data_model == "NETCDF4_CLASSIC"
+#     assert osi.isopen()
+#     assert osi.file_format == "NETCDF4_CLASSIC"
+#     assert osi.disk_format == "HDF5"
+
+#     scan(osi, attribute="dimensions", required={"r", "c"}, verb=True)
+#     scan(osi, attribute="variables", required={"lat", "lon", "OSI"}, verb=True)
+
+
+# @pytest.mark.xfail
+# def test_capsize_array_netcdf_dataset_analysis_extent_culling(
+#     osi_vertex_array, object_storage
+# ):
+
+#     maine_towns = ()  # TODO: replace with fixture
+#     start = time()
+#     data = _filter(maine_towns)
+
+#     xyz, f, e, r = filter_iteration(
+#         osi_vertex_array,
+#         data["shapes"],
+#         data["extents"],
+#         data["records"],
+#         0
+#     )
 
 
 #     xyz, f2, e2, r2 = filter_iteration(xyz, f, e, r, 1, storage=object_storage)

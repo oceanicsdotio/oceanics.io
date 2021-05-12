@@ -74,7 +74,7 @@ STREAMS = [
 ]
 
 
-def test_graph_native():
+def test_api_native():
     """
     Test that basic native bindings work, do not execute any queries.
     """
@@ -93,7 +93,7 @@ def test_graph_native():
 
 
 @pytest.mark.teardown
-def test_graph_teardown():
+def test_api_teardown():
     """
     Destroy the graph.
 
@@ -118,7 +118,7 @@ def test_graph_teardown():
         ).create(graph)
 
 
-def test_graph_account_create_user(client):
+def test_api_account_create_user(client):
     """
     Create a service account user.
     """
@@ -141,7 +141,7 @@ def test_graph_account_create_user(client):
     assert response.status_code == 200, response.get_json()
 
 
-def test_graph_account_get_token(token):
+def test_api_account_get_token(token):
     """
     JWT Tokens are valid.
     """
@@ -150,7 +150,7 @@ def test_graph_account_get_token(token):
 
 
 @pytest.mark.parametrize("cls", DATA_MODELS)
-def test_graph_sensorthings_create(client, cls, token):
+def test_api_sensorthings_create(client, cls, token):
     """
     Create the WellKnown Entities.
 
@@ -195,7 +195,7 @@ def test_graph_sensorthings_create(client, cls, token):
 
 
 @pytest.mark.parametrize("cls", set(DATA_MODELS) - {TaskingCapabilities, Tasks})
-def test_graph_sensorthings_get_entity(client, cls, token):
+def test_api_sensorthings_get_entity(client, cls, token):
     """
     Retrieve the WellKnownEntities.
 
@@ -223,7 +223,7 @@ def test_graph_sensorthings_get_entity(client, cls, token):
             )
 
 @pytest.mark.parametrize("cls", set(DATA_MODELS) - {Tasks, TaskingCapabilities})
-def test_graph_sensorthings_get_collection(cls, token, client):
+def test_api_sensorthings_get_collection(cls, token, client):
     """
     Get all entities of a single type.
 
@@ -243,7 +243,7 @@ def test_graph_sensorthings_get_collection(cls, token, client):
 
 
 @pytest.mark.parametrize("entity_type", set(DATA_MODELS) - {TaskingCapabilities, Tasks})
-def test_graph_sensorthings_join(client, entity_type, token):
+def test_api_sensorthings_join(client, entity_type, token):
     """
     Create relationships between existing entities.
 
@@ -284,7 +284,7 @@ def test_graph_sensorthings_join(client, entity_type, token):
     assert len(errors) == 0, errors
 
 
-def test_graph_sensothings_ops_create_agents():
+def test_api_sensothings_ops_create_agents():
     """
     Create a service account user.
     """
@@ -356,7 +356,7 @@ def test_graph_sensothings_ops_create_agents():
 
 
 
-def test_graph_job_run(client):
+def test_api_job_run(client):
     """Try running the simulation"""
     species = "oyster"
     weight = 25
@@ -370,3 +370,28 @@ def test_graph_job_run(client):
             },
         )
         assert response.status_code == 200, response.get_json()
+
+
+def test_api_datastream_render(client):
+    """
+    Create image of random points/shapes
+    """
+    from numpy import random
+    from yaml import Loader, load
+
+    test_case = load(open("config/test-datastream-cases.yml", "rb"), Loader)
+
+    duration, amp = test_case["data"].pop("points")["shape"]
+    time = range(duration)
+    value = random.uniform(high=amp, size=duration)
+    try:
+        data = [[pair for pair in zip(time, value)]]
+    except TypeError as err:
+        print(value)
+        raise err
+
+    response = client.post(
+        "/api/datastream/render",
+        json={**test_case, "data": {"DataStreams": data}}
+    )
+    assert response.status_code == 200, response.json
