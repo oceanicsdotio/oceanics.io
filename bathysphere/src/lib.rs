@@ -1,11 +1,15 @@
 // src/lib.rs
 use pyo3::prelude::*;
 use std::env;
-use std::collections::{HashMap};
+use std::collections::HashMap;
 use serde::{Serialize, Deserialize};
 
 extern crate serde_json; 
 extern crate serde_yaml;
+
+// mod variables;
+mod microcystis;
+
 
 
 #[pyclass]

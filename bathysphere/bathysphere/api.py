@@ -3,7 +3,7 @@
 The functions module of the graph API contains handlers for secure
 calls.
 
-These are exposed as a web service.
+These are exposed as a web service at `/api/`.
 """
 # Time stamp conversion
 from datetime import datetime, date, timedelta  # pylint: disable=unused-import
