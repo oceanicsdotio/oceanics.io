@@ -70,15 +70,8 @@ mod lagrangian {
 
     
     struct Lagrangian {
-        label: String, // string for grouping
-        fixed_depth: bool,
-        
-       
-        TEMP: Vec<f32>,
-        SAL: Vec<f32>,
-        RHO: Vec<f32>
-    }
 
+    }
 
     impl Lagrangian {
         fn new(count: usize, fixed_depth: bool, label: String) -> LagrangianObject {
@@ -128,26 +121,6 @@ mod lagrangian {
         }
 
         fn zinterp() {
-
-        }
-
-        /**
-         * Determine whether a point is in triangle defined by nodes
-         */
-        fn is_in_triangle(
-            XT: Vec<f32>,
-            YT: Vec<f32>,
-            X0: f32,
-            Y0: f32
-        ) -> bool {
-
-            let F1 = (Y0-YT[0])*(XT[1]-XT[0]) - (X0-XT[0])*(YT[1]-YT[0]);
-
-            let F2 = (Y0-YT[2])*(XT[0]-XT[2]) - (X0-XT[2])*(YT[0]-YT[2]);
-
-            let F3 = (Y0-YT[1])*(XT[2]-XT[1]) - (X0-XT[1])*(YT[2]-YT[1]);
-
-            F1*F3 >= 0.0 && F3*F2 >= 0.0 
 
         }
 
