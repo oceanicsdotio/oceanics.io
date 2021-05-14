@@ -12,6 +12,7 @@ pub mod microcystis {
     /**
      * Stateless container for bounded floating point values
      */
+    #[derive(Debug, Serialize, Deserialize)]
     struct BoundedValue {
         min: f64,
         max: f64
@@ -48,7 +49,7 @@ pub mod microcystis {
      * 
      * In this case, a vertical profile. 
      */
-     #[derive(Debug, Serialize, Deserialize)]
+    #[derive(Debug, Serialize, Deserialize)]
     struct Gradient {
         value: f64,
         slope: f64
@@ -57,7 +58,7 @@ pub mod microcystis {
     /**
      * Pass in primary observed properties
      */
-     #[derive(Debug, Serialize, Deserialize)]
+    #[derive(Debug, Serialize, Deserialize)]
     struct Forcing {
         temperature: f64,
         salinity: f64,
@@ -134,6 +135,7 @@ pub mod microcystis {
     /**
      * Limitation equation coefficients
      */
+    #[derive(Debug, Serialize, Deserialize)]
     struct Coefficients {
         alpha: f64,
         beta: f64
@@ -144,6 +146,7 @@ pub mod microcystis {
      * of the agent. This is generally abstracted to 
      * a saturation curve.
      */
+    #[derive(Debug, Serialize, Deserialize)]
     struct Thermodynamics {
         reference: f64,
         optimal: f64,
@@ -180,6 +183,7 @@ pub mod microcystis {
     /**
      * Chemical variable buoyancy engine. 
      */
+    #[derive(Debug, Serialize, Deserialize)]
     struct Ballast {
         density: BoundedValue,
         density_coefficient: f64, // shape coefficient for exponential function
@@ -203,6 +207,7 @@ pub mod microcystis {
     /*
      * Buoyancy compartment/component
      */
+    #[derive(Debug, Serialize, Deserialize)]
     struct Buoyancy {
         radius: f64,
         volume_fraction: f64,
@@ -286,6 +291,7 @@ pub mod microcystis {
     /**
      * State variables and vital rates for toxin production and release.
      */
+    #[derive(Debug, Serialize, Deserialize)]
     struct Toxin {
         synthesis: f64,
         excretion: f64,
@@ -322,6 +328,7 @@ pub mod microcystis {
     /**
      * Container for respiration parameters.
      */
+    #[derive(Debug, Serialize, Deserialize)]
     struct Respiration {
         basic: f64,
         active: f64,
@@ -330,6 +337,7 @@ pub mod microcystis {
     /**
      * Container for excretion parameters
      */
+    #[derive(Debug, Serialize, Deserialize)]
     struct Excretion {
         fraction: f64
     }
@@ -337,6 +345,7 @@ pub mod microcystis {
     /**
      * Container for attenuation
      */
+    #[derive(Debug, Serialize, Deserialize)]
     struct Attenuation {
         biomass: f64,
         water: f64
@@ -345,6 +354,7 @@ pub mod microcystis {
     /**
      * Container for fixation parameters
      */
+    #[derive(Debug, Serialize, Deserialize)]
     struct Fixation {
         max: f64,  // per hour rate
         shape_factor: f64,  // shape factor
@@ -355,6 +365,7 @@ pub mod microcystis {
     /**
      * Container for synthesis parameters
      */
+    #[derive(Debug, Serialize, Deserialize)]
     struct Synthesis {
         max: f64
     }
@@ -375,6 +386,7 @@ pub mod microcystis {
     /**
      * Container for temperature-regulated carbon dynamics.
      */
+    #[derive(Debug, Serialize, Deserialize)]
     struct Carbon {
         thermodynamics: Thermodynamics,
         excretion: Excretion,
@@ -560,6 +572,7 @@ pub mod microcystis {
     /**
      * Top level container for data and logic
      */
+    #[derive(Debug, Serialize, Deserialize)]
     struct Microcystis {
         carbon: Carbon,
         buoyancy: Buoyancy,

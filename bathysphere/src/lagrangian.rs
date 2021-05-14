@@ -1,53 +1,86 @@
 mod lagrangian {
+
+    struct Location {
+        x: f64,
+        y: f64,
+        z: f64,
+        element: usize,
+        layer: usize
+    }
+
+    struct Profile {
+        bathymetry: f64,
+        elevation: f64
+    }
+
+    struct Velocity {
+        u: f64,
+        v: f64,
+        w: f64
+    }
+
+    struct Forcing {
+        temperature: f64,
+        salinity: f64,
+        density: f64,
+        velocity: Velocity,
+        profile: Profile,
+    }
+
+    struct Element {
+        x: [&f64; 3],
+        y: [&f64; 3]
+    }
+
+
+    impl Element {
+
+        fn eval_edge(&self, x: &f64, y: &f64, a: usize, b: usize) {
+            (y-self.y[a])*(self.x[b]-self.x[a]) - (x-self.x[a])*(self.y[b]-self.y[a])
+        }
+
+        fn contains(&self, x: &f64, y: &f64) -> bool {
+
+            let edges: [f64; 3] = [
+                self.eval_edge(x, y, 0, 1),
+                self.eval_edge(x, y, 2, 0),
+                self.eval_edge(x, y, 1, 2),
+            ];
+
+            edges[0]*edges[2] > 0.0 && edges[2]*edges[1] > 0.0 
+        }
+    }
+
+    fn sample(location: &Location) -> Forcing {
+        Forcing {
+            temperature: 0.0,
+            salinity: 0.0,
+            density: 0.0,
+            velocity: Velocity {
+                u: 0.0,
+                v: 0.0,
+                w: 0.0,
+            },
+            profile: Profile {
+                bathymetry: 0.0,
+                elevation: 0.0,
+            }
+        }
+    }
+
     
-    struct LagrangianObject {
+    struct Lagrangian {
         label: String, // string for grouping
         fixed_depth: bool,
-        count: u32,
-        host: Vec<u32>,
-        found: Vec<u8>,
-        indomain: Vec<u8>,
-        SBOUND: Vec<u8>,
-        XP: Vec<f32>,
-        YP: Vec<f32>,
-        ZP: Vec<f32>,
-        XPT: Vec<f32>,
-        YPT: Vec<f32>,
-        ZPT: Vec<f32>,
-        HP: Vec<f32>,
-        EP: Vec<f32>,
-        UP: Vec<f32>,
-        VP: Vec<f32>,
-        WP: Vec<f32>,
+        
+       
         TEMP: Vec<f32>,
         SAL: Vec<f32>,
         RHO: Vec<f32>
     }
 
-    struct Location {
-        element: Some(usize),
-        layer: usize,
-        SBOUND: u8,
-        indomain: u8,
-        found: u8,
-    }
 
-    /**
-     * Environmental conditions at particle
-     * location
-     */
-    struct Sample {
-        HP: f32,
-        EP: f32,
-        UP: f32,
-        VP: f32,
-        WP: f32,
-        TEMP: f32,
-        SAL: f32,
-        RHO: f32,
-    }
-
-    impl LagrangianObject {
+    impl Lagrangian {
         fn new(count: usize, fixed_depth: bool, label: String) -> LagrangianObject {
             LagrangianObject {
                 label,
