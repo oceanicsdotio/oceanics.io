@@ -1,4 +1,7 @@
-pub mod behavior {
+/**
+ * Container for fish-like behavior
+ */
+mod ichthyoid {
 
     use std::f64::consts::PI;
 
