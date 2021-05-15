@@ -593,27 +593,7 @@ pub mod shellfish {
    
     fn mussel() -> Self {
         Bivoid {
-            shell: Shell {
-                cavity_water_correction: 1.485,
-                energy_content: 1.035,
-                water_content: 0.048,
-                length: ShellLength {
-                    coefficient: 2.654,
-                    exponent: 0.335,
-                    maturation: 2.0,
-                }
-            }, 
-            tissue: Tissue {
-                water_content: 0.804,
-                mean_allocation: 0.68,
-                proportion_dry_loss_to_spawn: 0.18
-            },
-            thermodynamics: Thermodyanmics {
-                heat_loss_coefficient: 0.074,
-                spawning_threshold: 13.0,
-        
-            },
-            ammonium_excretion: AmmoniumExcretion::new(max=1250.0)
+            
         }
     }
              
