@@ -1,31 +1,105 @@
+/**
+ * Container for shellfish behavior and physiology
+ */
 pub mod shellfish {
 
     use std::i64;
     use std::math::exp;
 
+
+    /**
+     * Structural partition for energy and mass state
+     */
+     struct Partition {
+        energy: f64,
+        mass: f64
+    }
+
+    /**
+     * Container for individual state
+     */
+    pub struct BivalveState {
+        tissue: Partition,
+        shell: Partition,
+        condition: f64,
+    }
+
+    /**
+     * Methods based on state
+     */
+    impl BivalveState {
+        fn new(
+            tissue: Partition,
+            shell: Partition
+        ) -> Self {
+            BivalveState {
+                tissue,
+                shell,
+                condition: tissue.energy / (tissue.energy + shell.energy)
+            }
+
+        }
+    }
+
+
     pub struct Forcing {
         temperature: f64,
         chlorophyll: f64,
         particulate_organic_carbon: f64,
-        particulate_organic_matter: f64
+        particulate_organic_matter: f64,
+        state: BivalveState
     }
 
     impl Forcing {
-        // Preferentially ingest CHL-rich OM
-        fn preferred_organic_matter(&self) -> f64 {
-            let mut result = 0.0;
-            if (self.chl > 0.0) & (self.poc == 0.0) & (self.pom == 0.0) {
-                result = 50.0 * 0.001 * self.chl / 0.38;
-            } else if (self.chl > 0.0) & (self.pom > 0.0) & (self.poc >= 0.0) {
-                result = 12.0 * 0.001 * self.chl / 0.38
+
+        fn new(
+            temperature: f64,
+            chlorophyll: f64,
+            particulate_organic_carbon: f64,
+            particulate_organic_matter: f64,
+            state: BivalveState
+        ) -> Self {
+            Forcing {
+                temperature,
+                chlorophyll,
+                particulate_organic_carbon,
+                particulate_organic_matter,
+                state,
             }
-            return result
+        }
+       
+        /**
+         * Preferentially ingest CHL-rich OM.
+         * 
+         * When chlorophyll is zero, this tends to zero.
+         *
+         * TODO: replace switch with continuous function.
+         */
+        fn preferred_organic_matter(&self) -> f64 {
+
+            let mut coefficient = 1.0;
+
+            if self.particulate_organic_carbon == 0.0 & self.particulate_organic_matter == 0.0 {
+                coefficient = 50.0;
+            } 
+            
+            if self.particulate_organic_matter > 0.0 & self.particulate_organic_carbon > 0.0 {
+                coefficient = 12.0;
+            }
+
+            coefficient * 0.001 * self.chlorophyll / 0.38
         }
 
+        /**
+         * Leftovers
+         */
         fn remaining_organic_matter(&self) -> f64 {
-            self.pom - self.preferred_organic_matter()
+            self.particulate_organic_matter - self.preferred_organic_matter()
         }
 
+        /**
+         * Calculate energy
+         */
         fn energy_content_of_remaining_organic_matter(&self) -> f64 {
 
             let so = self.preferred_organic_matter();
@@ -43,52 +117,7 @@ pub mod shellfish {
         }
     }
 
-    struct Partition {
-        energy: f64,
-        mass: f64
-    }
-
     
-    pub struct Bivalve {
-        tissue: Partition,
-        shell: Partition,
-    }
-
-    impl Bivalve {
-        fn condition(&self) -> f64 {
-            self.tissue.energy / (self.tissue.energy + self.shell.energy)
-        }
-    }
-
-    struct BivalveSpecies {
-        temperature_limit_on_heat_loss_coefficient: f64,
-        net_ingestion_of_preferred_organic_matter_coefficient: f64
-    }
-
-    impl BivalveSpecies {
-        pub fn oyster() -> BivalveSpecies {
-            BivalveSpecies {
-                temperature_limit_on_heat_loss_coefficient: 0.067,
-                net_ingestion_of_preferred_organic_matter_coefficient: 4.11,
-            }
-        }
-
-        pub fn mussel() -> BivalveSpecies {
-            BivalveSpecies {
-                temperature_limit_on_heat_loss_coefficient: 0.074,
-                net_ingestion_of_preferred_organic_matter_coefficient: 3.57
-            }
-        }
-
-        pub fn temperature_limit_on_heat_loss(&self, temperature: f64) {
-            let reference_temperature = 15.0;
-            exp(self.temperature_limit_on_heat_loss_coefficient*temperature) /
-                exp(self.temperature_limit_on_heat_loss_coefficient*reference_temperature)
-        }
-
-        
-    }
-
 }
 
 struct ShellLength{
@@ -141,6 +170,22 @@ impl Thermodynamics {
 
         4.005 * (self.heat_loss_coefficient * temperature).exp() / (self.heat_loss_coefficient * 15.0).exp() * (24* (WS / tissue.mass).powf(0.72))
     }
+
+    /**
+     * Total heat loss
+     */
+    fn heat_loss(temperature: &f64, tissue: &Partition) -> f64 {
+        self.maintenance_heat_loss(temperature, tissue) + 0.23 * self.net_energy_absorption()
+    }
+
+
+
+
+    pub fn temperature_limit_on_heat_loss(&self, temperature: f64) {
+        let reference_temperature = 15.0;
+        exp(self.temperature_limit_on_heat_loss_coefficient*temperature) /
+            exp(self.temperature_limit_on_heat_loss_coefficient*reference_temperature)
+    }
 }
 
 struct AmmoniumExcretion {
@@ -152,6 +197,7 @@ struct Species {
     tissue: Tissue,
     thermodynamics: Thermodynamics,
     ammonium_excretion: AmmoniumExcretion,
+    net_ingestion_of_preferred_organic_matter_coefficient: f64
 }
 
 impl Species {
@@ -170,20 +216,12 @@ impl Species {
     }
     
 
-
-    fn spawn(&self, ) -> bool {
+    fn spawn(&self, length: &f64) -> bool {
         self.shell.length()
     }
     @property
     def spawn(self) -> bool:
-        return all((
-            self.state.shellLength >= self.species.shellLengthUponMaturation
-        ),(
-            self.forcing.temperature >= self.species.spawningTemperatureThreshold
-        ),(
-            self.state.condition >= 0.95 * self.species.meanTissueAllocation
-        ))
- 
+        length >= self.species.shellLengthUponMaturation & temperature >= self.thermodynamics.spawning_threshold & self.condition() >= 0.95 * self.tissue.mean_allocation
 }
 
 
@@ -227,8 +265,17 @@ impl Oyster {
     /**
      * Widdows 1978
      */
-    fn growth_limitation_widdows(&self, temperature: &f64) -> f64 {
+    fn growth_limitation(&self, temperature: &f64) -> f64 {
         (0.320 + 0.323*temperature - 0.011 * temperature.powi(2)).powi(2)
+    }
+
+    /**
+     * Linear interpolation of empirical values.
+     * 
+     * End members are 10 and 200 J/g
+     */
+    fn oxygen_nitrogen_ratio() -> f64 {
+        10.0 + (200.0 - 10.0) / self.ammonium_excretion.max * self.net_energy_absorption()
     }
 }
 
@@ -377,125 +424,118 @@ impl Mussel {
         return state
 
 
+struct Ingestion {
 
+}
 
-def __preferredOrganicMatter(forcing):
-    # type: (Forcing) -> float
-    """
-    Preferentially ingest CHL-rich OM
+impl Ingestion {
+    
 
-    :param forcing:
-    :return:
-    """
-    chl, poc, pom = (forcing.chl, forcing.poc, forcing.pom)
+    fn temperature_limit(&self, temperature: &f64) -> f64 {
 
-    if chl > 0 and poc == 0 and pom == 0:
-        return 50 * 0.001 * chl / 0.38
-    if chl > 0 and pom > 0 and poc >= 0:
-        return 12 * 0.001 * chl / 0.38
-    return 0
+    }
 
-
-
-
-
-
-def __netIngestionOfPreferredOrganicMatter(forcing, state, temperatureLimitation):
-    # type: (Forcing, State, Callable) -> float
-    """
+    /**
     Net Ingestion, mg/h/g
 
     Mussels: -0.16 + 3.57*selorg, r-squared 0.78
     Oysters: -0.33 + 4.11*selorg, r-squared 0.43
+     */
+    fn preferred_organic_matter(&self, chlorophyll: &f64, temperature: &f64, preferred_organic_matter: &f64) -> f64 {
+        if chlorophyll < 0.01 {
+            return 0.0
+        }
 
-    """
-    _, chl, _, _ = forcing
-    if chl < 0.01:
-        return 0
+        let B = 4.11;
+        let WS = 1.0;
 
-    B = 4.11
-    WS = 1.0
-    t, _, _, _ = forcing
-    so = __preferredOrganicMatter(forcing)
-    return B * so * temperatureLimitation(t) * (WS / state.tissueMass) ** 0.62
+        B * preferred_organic_matter * temperature_limit * (WS / tissue.mass).powf(0.62)
 
+    }
 
-def __netIngestionOfRemainingOrganicMatter(forcing, state, temperatureLimitation):
-    # type: (Forcing, State, Callable) -> float
-    """
+    /**
     Net Ingestion, mg/h/g
 
     Mussels: 7.1 * (1 - exp(-0.31*remorg)), r-squared 0.3
     Oysters: 8.21 * (1 -  exp(-0.34*remorg)), r-squared 0.3
-    """
-    a, b = (8.21, -0.34)
-    WS = 1.0
-    ro = __remainingOrganicMatter(forcing)
-    return (
-        a
-        * (1 - exp(-b * ro))
-        * temperatureLimitation(forcing.t)
-        * (WS / state.tissueMass) ** 0.062
-    )
-    # TODO: is it WS/WE or WE/WS?
+    */
+    fn remaining_organic_matter(temperature_limit: &f64, tissue: &Partition) -> f64 {
+        let a = 8.21;
+        let b = -0.34;
+        let WS = 1.0;
+        let ro = remaining_organic_matter(forcing)
+
+        a * (1.0 - (-b * ro).exp()) * temperature_limit * (WS / tissue.mass)
+        // TODO: is it WS/WE or WE/WS?
+    }
+
+    fn ingestion(&self) {
+
+    }
+}
+
+struct Energy {
+    conversion: f64,
+    scalar: f64,
+}
+
+impl Energy {
+    fn coefficient(&self) -> f64 {
+        self.conversion * self.scalar
+    }
+}
+
+struct PreferredOrganicMatter {
+    energy: Energy
+}
+
+impl PreferredOrganicMatter {
+    fn new() -> Self {
+        PreferredOrganicMatter {
+            energy: Energy {
+                conversion: 23.5,
+                scalar: 0.82 * 24
+            }
+        }
+    }
+
+    fn ingestion() -> f64 {
+
+    }
+
+    fn energy() -> f64 {
+
+    }
+}
+
+struct RemainingOrganicMatter {
+    energy: Energy
+}
+
+impl RemainingOrganicMatter {
+
+    fn new() -> Self {
+        RemainingOrganicMatter {
+            energy: Energy {
+                conversion: 0.15,
+                scalar: 0.82 * 24
+            }
+        }
+    }
 
 
-def __netEnergyAbsorption(forcing, state, temperatureLimitation):
-    # type: (Forcing, State, Callable) -> float
-    """
-    Net Energy Absorption
+    fn ingestion(&self) -> f64 {
 
-    Combines Net Ingestion terms.
+    }
 
-    """
-    args = (forcing, state, temperatureLimitation)
-    return (
-        (
-            __netIngestionOfPreferredOrganicMatter(*args) * 23.5
-            + __netIngestionOfRemainingOrganicMatter(*args)
-            * 0.15
-            * __energyContentOfRemainingOrganicMatter(forcing)
-        )
-        * 0.82
-        * 24
-    )
+    fn energy_content(&self) -> f64 {
 
+    }
 
-
-
-
-def __totalHeatLoss(forcing, state, temperatureLimitation):
-    # type: (Forcing, State, Callable) -> float
-    """
-    Total Heat Loss
-
-    :return:WE
-    """
-    return __maintenanceHeatLoss(forcing, state) + 0.23 * __netEnergyAbsorption(
-        forcing, state, temperatureLimitation
-    )
-
-
-def __oxygenNitrogenRatio(forcing, state, temperatureLimitation):
-    # type: (Forcing, State, Callable) -> float
-    """
-    O:N ratio Linear interp
-    10 and 200 are from observation
-
-    MNEA is max rate, J/g
-    mussels: 1250
-    oysters: 1350
-
-
-    TODO: examine whether there is a better relationship
-
-    :return:
-    """
-    MNEA = 1350
-
-    return 10 + (
-        (200 - 10) / MNEA * __netEnergyAbsorption(forcing, state, temperatureLimitation)
-    )
+    fn energy(&self) -> f64 {
+        self.ingestion() * self.energy.coefficient() * self.energy_content()
+    }
+}
 
 
 def __excretedAmmonium(forcing, state, temperatureLimitation):
@@ -590,69 +630,8 @@ def __tissueGrowth(forcing, state, temperatureLimitation):
     :return:
     """
 
-    MTA = 0.76
+    return (1.0 if __condition(state) < MTA else MTA) * __netEnergyBalance(forcing, state, temperatureLimitation)
 
-    if __condition(state) < MTA:
-        return __netEnergyBalance(forcing, state, temperatureLimitation)
-
-    if __condition(state) >= MTA:
-        return MTA * __netEnergyBalance(forcing, state, temperatureLimitation)
-
-    return 0  # unreachable
-
-
-def _deltaShellEnergy(forcing, state, temperatureLimitation):
-    # type: (Forcing, State, Callable) -> float
-    """
-    Differential equation
-
-    :param forcing:
-    :param state:
-    :param temperatureLimitation:
-    :return:
-    """
-    return __shellGrowth(forcing, state, temperatureLimitation)
-
-
-def _deltaShellMass(state):
-    # type: (State) -> float
-    """
-    Differential equation
-
-    ECS - energy content of shell (M: 1.035, O: 0.161)
-
-    :param state:
-    :return:
-    """
-
-    ECS = 0.161
-    return state.shellEnergy / ECS / 1000
-
-
-def _deltaTissueEnergy(forcing, state, temperatureLimitation):
-    # type: (Forcing, State, Callable) -> float
-    """
-    Ordinary differential equation
-
-    :param forcing:
-    :param state:
-    :param temperatureLimitation:
-    :return:
-    """
-    return __tissueGrowth(forcing, state, temperatureLimitation) - __spawningLoss(
-        forcing, state
-    )
-
-
-def _deltaTissueMass(state):
-    # type: (State) -> float
-    """
-    Ordinary differential equation
-
-    :param state:
-    :return:
-    """
-    return state.tissueEnergy / 23.5 / 1000
 
 
 def totalWetMassConversion(state):
@@ -701,15 +680,17 @@ def integrationStep(forcing, state, temperatureLimitation, dt):
 
     :return:
     """
-    tissueMass = state.tissueMass + _deltaTissueMass(state) * dt
-    shellMass = state.shellMass + _deltaShellMass(state) * dt
+    tissueMass = state.tissueMass + ((state.tissueEnergy / 23.5 / 1000)) * dt
+    shellMass = state.shellMass + (state.shellEnergy / ECS / 1000) * dt
     tissueEnergy = (
         state.tissueEnergy
-        + _deltaTissueEnergy(forcing, state, temperatureLimitation) * dt
+        + (__tissueGrowth(forcing, state, temperatureLimitation) - __spawningLoss(
+            forcing, state
+        )) * dt
     )
     shellEnergy = (
         state.shellEnergy
-        + _deltaShellEnergy(forcing, state, temperatureLimitation) * dt
+        + __shellGrowth(forcing, state, temperatureLimitation) * dt
     )
 
     return State(tissueEnergy, shellEnergy, tissueMass, shellMass)
