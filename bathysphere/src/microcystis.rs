@@ -102,7 +102,7 @@ pub mod microcystis {
                     value: 0.036,
                     slope: 0.0
                 },
-                density: 0.0,
+                density: Forcing::density(&temperature, &salinity),
                 time_delta,
                 carbohydrate,
                 protein,
@@ -111,6 +111,26 @@ pub mod microcystis {
                 fractionation: carbohydrate / protein,
                 depth
             }
+        }
+
+         /**
+         * Millero and Poisson
+         */
+        fn density(
+            temperature: &f64, 
+            salinity: &f64
+        ) -> f64 {
+
+
+            let aa = 999.842594 + 6.793952e-2 * temperature - 9.09529e-3 * temperature.powi(2) + 1.001685e-4 * temperature.powi(3) - 1.120083e-6 * temperature.powi(4) + 6.536332e-3 * temperature.powi(5);
+
+            let bb = salinity * (0.824493 - 4.0899e-3*temperature + 7.6438e-5*temperature.powi(2) - 8.2467e-7 * temperature.powi(3) + 5.3875e-9 * temperature.powi(4));
+
+            let cc = salinity.powf(1.5) * -0.00572466 + 0.00010227 * temperature - 1.6546e-6 * temperature.powi(2);
+
+            let dd = 4.8314e-4 * salinity.powi(2);
+
+            aa + bb + cc + dd
         }
 
         /**

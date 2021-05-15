@@ -5,10 +5,6 @@ pub mod variables {
 
     use std::f32::consts::PI;
 
-    const include_algae: bool = true;
-
-    const include_fish: bool = true;
-
     const strict_integrations: bool = false; // set mass transfer
 
     const MSTAGE: u8 = 4;

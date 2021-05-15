@@ -1,30 +1,17 @@
 pub mod shellfish {
 
-    use wasm_bindgen::prelude::*;
-    use wasm_bindgen::{JsValue};
     use std::i64;
     use std::math::exp;
 
-    #[wasm_bindgen]
     pub struct Forcing {
-        t: f64,
-        chl: f64,
-        poc: f64,
-        pom: f64
+        temperature: f64,
+        chlorophyll: f64,
+        particulate_organic_carbon: f64,
+        particulate_organic_matter: f64
     }
 
-    #[wasm_bindgen]
     impl Forcing {
-        #[wasm_bindgen(constructor)]
-        pub fn new(t: f64, chl: f64, poc: f64, pom: f64) -> Forcing {
-            Forcing {
-                t,
-                chl,
-                poc,
-                pom
-            }
-        }
-
+         
         fn preferred_organic_matter(&self) -> f64 {
             let mut result = 0.0;
             if (self.chl > 0.0) & (self.poc == 0.0) & (self.pom == 0.0) {
@@ -56,12 +43,21 @@ pub mod shellfish {
         }
     }
 
-    #[wasm_bindgen]
-    pub struct BivalveState {
-        tissue_energy: f64,
-        shell_energy: f64,
-        tissue_mass: f64,
-        shell_mass: f64,
+    struct Partition {
+        energy: f64,
+        mass: f64
+    }
+
+    
+    pub struct Bivalve {
+        tissue: Partition,
+        shell: Partition,
+    }
+
+    impl Bivalve {
+        fn condition(&self) -> f64 {
+            self.tissue.energy / (self.tissue.energy + self.shell.energy)
+        }
     }
 
     struct BivalveSpecies {
@@ -95,76 +91,144 @@ pub mod shellfish {
 
 }
 
-from math import exp
-from typing import Callable
-import attr
+struct ShellLength{
+    coefficient: f64,
+    exponent: f64,
+    maturation: f64
+}
 
-@attr.s
-class Species:
-    """
-    Container for species specific rates and constants
-    """
-    shellCavityWaterCorrection: float = attr.ib() 
-    tissueWaterContent: float = attr.ib()
-    shellWaterContent: float = attr.ib()
-    shellLengthCoefficient: float = attr.ib()
-    shellLengthExponent: float = attr.ib()
-    meanTissueAllocation: float = attr.ib()  # slope of tissue, and tissue + shell energy
-    temperatureLimitation: Callable = attr.ib()
-    heatLossCoefficient: float = attr.ib()
-    spawningTemperatureThreshold: float = attr.ib()
-    shellLengthUponMaturation: float =  attr.ib()
-    proportionDryTissueLost: float = attr.ib()  # spawning
-    maxAmmoniumExcretionRate: float =  attr.ib() # J/g
-    shellEnergyContent: float = attr.ib()
+/**
+ * Container for shell parameters, literally
+ */
+struct Shell {
+    cavity_water_correction: f64,
+    length: ShellLength,
+    energy_content: f64,
+    water_content: f64
+}
 
-oyster = Species(
-    shellCavityWaterCorrection=1.115, 
-    tissueWaterContent=0.914,
-    shellWaterContent=0.189,
-    shellLengthCoefficient=2.767,
-    shellLengthExponent=0.327,
-    meanTissueAllocation=0.76,
-    temperatureLimitation=lambda temp: (0.320 + 0.323*temp - 0.011 * temp**2) ** 2,  # (Widdows 1978)
-    heatLossCoefficient=0.067,
-    spawningTemperatureThreshold=19,
-    shellLengthUponMaturation=5,
-    proportionDryTissueLost=0.44,  # spawning
-    maxAmmoniumExcretionRate=1350,
-    shellEnergyContent=0.161
-)
-          
-mussel = Species(
-    shellCavityWaterCorrection=1.485, 
-    tissueWaterContent=0.804,
-    shellWaterContent=0.048,
-    shellLengthCoefficient=2.654, 
-    shellLengthExponent=0.335,
-    meanTissueAllocation=0.68,
+struct Tissue {
+    water_content: f64,
+    mean_allocation: f64,
+    proportion_dry_loss_to_spawn: f64
+}
+
+
+
+struct Thermodynamics {
+    heat_loss_coefficient: f64,
+    spawning_threshold: f64,
+
+}
+
+impl Thermodynamics {
+    /**
+     * Widdows 1978
+     */
+    fn growth_limitation_widdows(&self, temperature: &f64) -> f64 {
+        (0.320 + 0.323*temperature - 0.011 * temperature.powi(2)).powi(2)
+    }
+
+    fn growth_limitation_mussels
+}
+
+struct AmmoniumExcretion {
+    max: f64
+}
+
+struct Species {
+    shell: Shell,
+    tissue: Tissue,
+    thermodynamics: Thermodynamics,
+    ammonium_excretion: AmmoniumExcretion,
+}
+
+impl Species {
+
+    fn oyster() -> Self {
+        Species {
+            shell: Shell {
+                cavity_water_correction: 1.115,
+                energy_content: 0.161,
+                water_content: 0.189,
+                length: ShellLength {
+                    coefficient: 2.767,
+                    exponent: 0.327,
+                    maturation: 5.0,
+                }
+            }, 
+            tissue: Tissue {
+                water_content: 0.914,
+                mean_allocation: 0.76,
+                proportion_dry_loss_to_spawn: 0.44
+            },
+            thermodynamics: Thermodyanmics {
+                heat_loss_coefficient: 0.067,
+                spawning_threshold: 19.0,
+        
+            },
+            ammonium_excretion: AmmoniumExcretion {
+                max: 1350.0
+            }
+        }
+    }
+
+
+    
+}
+
+struct Mussel {
+    species: Species,
+}   
+
+
+impl Mussel {
+    fn new() -> Self {
+        Mussel {
+            species: Species {
+                shell: Shell {
+                    cavity_water_correction: 1.485,
+                    energy_content: 1.035,
+                    water_content: 0.048,
+                    length: ShellLength {
+                        coefficient: 2.654,
+                        exponent: 0.335,
+                        maturation: 2.0,
+                    }
+                }, 
+                tissue: Tissue {
+                    water_content: 0.804,
+                    mean_allocation: 0.68,
+                    proportion_dry_loss_to_spawn: 0.18
+                },
+                thermodynamics: Thermodyanmics {
+                    heat_loss_coefficient: 0.074,
+                    spawning_threshold: 13.0,
+            
+                },
+                ammonium_excretion: AmmoniumExcretion {
+                    max: 1250.0
+                }
+            }
+        }
+    }
+
+
+    fn temperature_limit(temperature: f64) {
+        let base = 4.825;
+        let active = 0.013;
+        let temperature_ref = 18.954;
+
+        base - (active * (temperature - temperature_ref).powi(2)) 
+    }
+}
     temperatureLimitation=lambda temp, base=4.825, active=0.013, temperatureRef=18.954: (base - (active * (temp-temperatureRef)**2)) / (base - (active*(15-temperatureRef)**2)), # (Bougrier et al 1995),
-    heatLossCoefficient=0.074,
-    spawningTemperatureThreshold=13,
-    shellLengthUponMaturation=2,
-    proportionDryTissueLost=0.18,
-    maxAmmoniumExcretionRate=1250,
-    shellEnergyContent=1.035
+    
+    
 )
 
 
-@attr.s
-class State:
-    """
-    Biological state variables and properties that can be
-    derived from them.
-    """
-    tissueEnergy: float = attr.ib()
-    shellEnergy: float = attr.ib()
-    tissueMass: float = attr.ib()
-    shellMass: float = attr.ib()
-
-    @property
-    def condition(self) -> float:
-        return self.tissueEnergy / (self.tissueEnergy + self.shellEnergy)
+    
 
 @attr.s
 class Forcing:
