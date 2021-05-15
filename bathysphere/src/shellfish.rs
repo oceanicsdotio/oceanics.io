@@ -1,7 +1,19 @@
 /**
  * Container for shellfish behavior and physiology
  */
-pub mod shellfish {
+pub mod bivoid {
+
+    /**
+     * Declare sub-modules.
+     */
+    mod shell;
+    mod spawn;
+
+    /**
+     * Import sub-modules.
+     */
+    use shell::Shell;
+    use spawn::Spawn;
 
     /**
      * Need to serialize forcing and result.
@@ -9,166 +21,223 @@ pub mod shellfish {
     use serde::{Serialize, Deserialize};
 
     /**
-     * Structural partition for passing energy and mass state
-     * and deltas. 
-     *
-     * For shellfish we account for both energy and mass conservation.
+     * Sub-module containing calcium-carbonate shell methods
      */
-    #[derive(Debug, Serialize, Deserialize)]
-    struct Partition {
-        energy: f64,
-        mass: f64
-    }
-
-    /**
-     * Container for individual state.
-     *
-     * Has partitions for tissue and shell, and this can be extended
-     * to include, for instance, gut contents. 
-     */
-    #[derive(Debug, Serialize, Deserialize)]
-    struct State {
-        tissue: Partition,
-        shell: Partition,
-        condition: f64,
-    }
-
-    /**
-     * Methods based on state
-     */
-    impl State {
-        fn new(
-            tissue: Partition,
-            shell: Partition
-        ) -> Self {
-            State {
-                tissue,
-                shell,
-                condition: tissue.energy / (tissue.energy + shell.energy)
+    mod shell {
+    
+        /*
+         * Container for shell length parameters.
+         */
+        #[derive(Debug, Serialize, Deserialize)]
+        struct Length{
+            coefficient: f64,
+            exponent: f64,
+            maturation: f64
+        }
+    
+        /**
+         * Container for shell parameters, literally.
+         */
+        #[derive(Debug, Serialize, Deserialize)]
+        struct Shell {
+            cavity_water_correction: f64,
+            length: Length,
+            energy_content: f64,
+            water_content: f64
+        }
+    
+        /**
+         * Derived values and methods
+         */
+        impl Shell {
+            /**
+             * Calculate length from mass
+             */
+            fn length(&self, mass: &f64) -> f64 {
+                self.length.coefficient * mass.powf(self.length.exponent)
             }
-
         }
     }
 
     /**
-     * Container for all inputs needed to execute a single
-     * integration step of the shellfish simulation.
+     * Sub-module for reproductive logic.
      */
-    #[derive(Debug, Serialize, Deserialize)]
-    pub struct Forcing {
-        temperature: f64,
-        chlorophyll: f64,
-        particulate_organic_carbon: f64,
-        particulate_organic_matter: f64,
-        state: State
+    mod spawn {
+    
+        /**
+        * Container for spawning parameters
+        */
+        #[derive(Debug, Serialize, Deserialize)]
+        struct Spawn {
+            length: Threshold,
+            temperature: Threshold,
+            condition: Threshold
+        }
+    
+        /**
+        * Methods and derived variables for reproductive system
+        */
+        impl Spawn {
+            fn event(&self, length: &f64, temperature: &f64, tissue: &f64, shell: &f64) -> bool {
+                return 
+                    shell.length() > self.length.threshold & 
+                    temperature > self.temperature.threshold & 
+                    self.condition() >= (0.95 * tissue.mean_allocation);
+            }
+    
+            /**
+            * Two spawning events per year
+            */
+            fn loss(&self, tissue: &Tissue) -> f64{
+                tissue.mass * self.proportion_dry_loss_to_spawn * 23.5
+            }
+        }
     }
 
-    /**
-     * Public interface to expose to scripting languages.
-     */
-    impl Forcing {
+    mod forcing {
+
         /**
-         * Pass-through constructor
-         */
-        fn new(
+        * Container for all inputs needed to execute a single
+        * integration step of the shellfish simulation.
+        */
+        #[derive(Debug, Serialize, Deserialize)]
+        pub struct Forcing {
             temperature: f64,
             chlorophyll: f64,
             particulate_organic_carbon: f64,
             particulate_organic_matter: f64,
-            state: State
-        ) -> Self {
-            Forcing {
-                temperature,
-                chlorophyll,
-                particulate_organic_carbon,
-                particulate_organic_matter,
-                state,
-            }
         }
-       
+    
         /**
-         * Preferentially ingest CHL-rich OM.
-         * 
-         * When chlorophyll is zero, this tends to zero.
-         *
-         * TODO: replace switch with continuous function.
-         */
-        fn preferred_organic_matter(&self) -> f64 {
-
-            let mut coefficient = 1.0;
-
-            if self.particulate_organic_carbon == 0.0 & self.particulate_organic_matter == 0.0 {
-                coefficient = 50.0;
-            } 
+        * Public interface to expose to scripting languages.
+        */
+        impl Forcing {
+            /**
+            * Pass-through constructor
+            */
+            fn new(
+                temperature: f64,
+                chlorophyll: f64,
+                particulate_organic_carbon: f64,
+                particulate_organic_matter: f64,
+            ) -> Self {
+                Forcing {
+                    temperature,
+                    chlorophyll,
+                    particulate_organic_carbon,
+                    particulate_organic_matter,
+                }
+            }
             
-            if self.particulate_organic_matter > 0.0 & self.particulate_organic_carbon > 0.0 {
-                coefficient = 12.0;
+            /**
+            * Preferentially ingest CHL-rich OM.
+            * 
+            * When chlorophyll is zero, this tends to zero.
+            *
+            * TODO: replace switch with continuous function.
+            */
+            fn preferred_organic_matter(&self) -> f64 {
+    
+                let mut coefficient = 1.0;
+    
+                if self.particulate_organic_carbon == 0.0 & self.particulate_organic_matter == 0.0 {
+                    coefficient = 50.0;
+                } 
+                
+                if self.particulate_organic_matter > 0.0 & self.particulate_organic_carbon > 0.0 {
+                    coefficient = 12.0;
+                }
+    
+                coefficient * 0.001 * self.chlorophyll / 0.38
             }
+    
+            /**
+            * Leftovers
+            */
+            fn remaining_organic_matter(&self) -> f64 {
+                self.particulate_organic_matter - self.preferred_organic_matter()
+            }
+    
+            /**
+            * Calculate energy
+            */
+            fn energy_content_of_remaining_organic_matter(&self) -> f64 {
+    
+                let so = self.preferred_organic_matter();
+                let ro = self.remaining_organic_matter();
+                let mut result = 0.0;
+    
+                if (self.chlorophyll > 0.0) & (self.chlorophyll > 0.0) & (self.poc > 0.0) {
+                    result = (self.pom * ((0.632 + 0.086 * self.particulate_organic_carbon / self.particulate_organic_matter / 100.0 / 1000.0) * 4.187) - so * 23.5) / ro;
+                } else if (self.chlorophyll > 0.0) & (self.particulate_organic_matter > 0.0) & (self.particulate_organic_carbon > 0.0) {
+                    result = 8.25 + 21.24 * (1.0 - exp(-2.79*so)) - 0.174*ro
+                } else if (self.chlorophyll > 0.0) & (self.particulate_organic_matter == 0.0) & (self.particulate_organic_carbon > 0.0) {
+                    result = 20.48
+                }
+                return result;
+            }
+        }
+    
+    }
 
-            coefficient * 0.001 * self.chlorophyll / 0.38
+    mod state {
+
+        /**
+        * Structural partition for passing energy and mass state
+        * and deltas. 
+        *
+        * For shellfish we account for both energy and mass conservation.
+        */
+        #[derive(Debug, Serialize, Deserialize)]
+        struct Partition {
+            energy: f64,
+            mass: f64
         }
 
         /**
-         * Leftovers
-         */
-        fn remaining_organic_matter(&self) -> f64 {
-            self.particulate_organic_matter - self.preferred_organic_matter()
+        * Container for individual state.
+        *
+        * Has partitions for tissue and shell, and this can be extended
+        * to include, for instance, gut contents. 
+        */
+        #[derive(Debug, Serialize, Deserialize)]
+        struct State {
+            tissue: Partition,
+            shell: Partition,
+            condition: f64,
         }
-
+    
         /**
-         * Calculate energy
-         */
-        fn energy_content_of_remaining_organic_matter(&self) -> f64 {
-
-            let so = self.preferred_organic_matter();
-            let ro = self.remaining_organic_matter();
-            let mut result = 0.0;
-
-            if (self.chlorophyll > 0.0) & (self.chlorophyll > 0.0) & (self.poc > 0.0) {
-                result = (self.pom * ((0.632 + 0.086 * self.particulate_organic_carbon / self.particulate_organic_matter / 100.0 / 1000.0) * 4.187) - so * 23.5) / ro;
-            } else if (self.chlorophyll > 0.0) & (self.particulate_organic_matter > 0.0) & (self.particulate_organic_carbon > 0.0) {
-                result = 8.25 + 21.24 * (1.0 - exp(-2.79*so)) - 0.174*ro
-            } else if (self.chlorophyll > 0.0) & (self.particulate_organic_matter == 0.0) & (self.particulate_organic_carbon > 0.0) {
-                result = 20.48
+        * Methods based on state
+        */
+        impl State {
+            fn new(
+                tissue: Partition,
+                shell: Partition
+            ) -> Self {
+                State {
+                    tissue,
+                    shell,
+                    condition: tissue.energy / (tissue.energy + shell.energy)
+                }
+    
             }
-            return result;
         }
     }
+
+    mod bivoid {
+    
+    }
+
+   
 
     
-    /*
-     * Container for shell length parameters
-     */
-    #[derive(Debug, Serialize, Deserialize)]
-    struct ShellLength{
-        coefficient: f64,
-        exponent: f64,
-        maturation: f64
-    }
 
-    /**
-    * Container for shell parameters, literally
-    */
-    #[derive(Debug, Serialize, Deserialize)]
-    struct Shell {
-        cavity_water_correction: f64,
-        length: ShellLength,
-        energy_content: f64,
-        water_content: f64
-    }
+    
 
-    /**
-     * Derived values and methods
-     */
-    impl Shell {
-        /**
-         * Calculate length from mass
-         */
-        fn length(&self, mass: &f64) -> f64 {
-            self.length.coefficient * mass.powf(self.length.exponent)
-        }
+    
 
-    }
+    
 
     /**
      * Container for tissue parameters.
@@ -384,34 +453,6 @@ pub mod shellfish {
         threshold: f64
     }
 
-    /**
-     * Container for spawning parameters
-     */
-    #[derive(Debug, Serialize, Deserialize)]
-    struct Spawning {
-        length: Threshold,
-        temperature: Threshold,
-        condition: Threshold
-    }
-
-    /**
-     * Methods and derived variables for reproductive system
-     */
-    impl Spawning {
-        fn event(&self, length: &f64, temperature: &f64, tissue: &f64, shell: &f64) -> bool {
-            return 
-                shell.length() > self.length.threshold & 
-                temperature > self.temperature.threshold & 
-                self.condition() >= (0.95 * tissue.mean_allocation);
-        }
-
-        /**
-         * Two spawning events per year
-         */
-        fn loss(&self, tissue: &Tissue) -> f64{
-            tissue.mass * self.proportion_dry_loss_to_spawn * 23.5
-        }
-
 
     /**
      * Methods for simulating physiology
@@ -588,13 +629,7 @@ pub mod shellfish {
                 }
             }
         }
+    }  
     }
+}           
 
-   
-    fn mussel() -> Self {
-        Bivoid {
-            
-        }
-    }
-             
-}
