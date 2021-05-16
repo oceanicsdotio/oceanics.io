@@ -1,8 +1,5 @@
 mod tessellate;  // some core spatial methods
 mod webgl;  // shader magic
-
-// mod lagrangian;
-mod primitive;
 mod vec3;
 mod cursor;  // cursor replacements and canvas event handling system
 mod light;  // submarine light simulation system
@@ -11,20 +8,23 @@ mod triangular_mesh;  // 3D unstructured triangular network used for surface and
 mod rectilinear_grid;  // 3D rectilinear grid methods and structures
 
 
+use std::f32::consts::PI;
+use std::mem;
+use std::os::raw::c_void;
+use std::ops::{Index, Mul, SubAssign};
 
-pub use webgl::graphics_system::{create_buffer, create_program, create_texture};
+
+/*
+ * WebGL bindings capabilities in Rust, using `web_sys` package.
+ */
+pub use webgl::webgl::{create_buffer, create_program, create_texture};
 
 
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::{JsCast, JsValue};
-use web_sys::{HtmlCanvasElement, CanvasRenderingContext2d};
-use std::f32::consts::PI;
-use std::mem;
-use std::os::raw::c_void;
 use wasm_bindgen_futures::JsFuture;
-use web_sys::{Request, RequestInit, RequestMode, Response};
 
-use std::ops::{Index, Mul, SubAssign};
+use web_sys::{HtmlCanvasElement, CanvasRenderingContext2d, Request, RequestInit, RequestMode, Response};
 
 extern crate console_error_panic_hook;
 

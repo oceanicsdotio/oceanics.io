@@ -37,18 +37,6 @@ function addHeapObject(obj) {
 
 function getObject(idx) { return heap[idx]; }
 
-function dropObject(idx) {
-    if (idx < 36) return;
-    heap[idx] = heap_next;
-    heap_next = idx;
-}
-
-function takeObject(idx) {
-    const ret = getObject(idx);
-    dropObject(idx);
-    return ret;
-}
-
 let WASM_VECTOR_LEN = 0;
 
 const lTextEncoder = typeof TextEncoder === 'undefined' ? (0, module.require)('util').TextEncoder : TextEncoder;
@@ -114,6 +102,18 @@ function getInt32Memory0() {
         cachegetInt32Memory0 = new Int32Array(wasm.memory.buffer);
     }
     return cachegetInt32Memory0;
+}
+
+function dropObject(idx) {
+    if (idx < 36) return;
+    heap[idx] = heap_next;
+    heap_next = idx;
+}
+
+function takeObject(idx) {
+    const ret = getObject(idx);
+    dropObject(idx);
+    return ret;
 }
 
 function _assertBoolean(n) {
@@ -247,102 +247,6 @@ function addBorrowedObject(obj) {
     heap[--stack_pointer] = obj;
     return stack_pointer;
 }
-/**
-*    Compile the shaders and link them to a program, returning the pointer to the executable
-*    in GPU memory.
-*
-*    This is the high-level routine called directly from JavaScript.
-* @param {WebGLRenderingContext} ctx
-* @param {string} vertex
-* @param {string} fragment
-* @returns {WebGLProgram}
-*/
-export function create_program(ctx, vertex, fragment) {
-    try {
-        var ptr0 = passStringToWasm0(vertex, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        var len0 = WASM_VECTOR_LEN;
-        var ptr1 = passStringToWasm0(fragment, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        var len1 = WASM_VECTOR_LEN;
-        var ret = wasm.create_program(addBorrowedObject(ctx), ptr0, len0, ptr1, len1);
-        return takeObject(ret);
-    } finally {
-        heap[stack_pointer++] = undefined;
-    }
-}
-
-let cachegetFloat32Memory0 = null;
-function getFloat32Memory0() {
-    if (cachegetFloat32Memory0 === null || cachegetFloat32Memory0.buffer !== wasm.memory.buffer) {
-        cachegetFloat32Memory0 = new Float32Array(wasm.memory.buffer);
-    }
-    return cachegetFloat32Memory0;
-}
-
-function passArrayF32ToWasm0(arg, malloc) {
-    const ptr = malloc(arg.length * 4);
-    getFloat32Memory0().set(arg, ptr / 4);
-    WASM_VECTOR_LEN = arg.length;
-    return ptr;
-}
-/**
-*    Memory buffers are used to store array data for visualization.
-*
-*    This could be colors, or positions, or offsets, or velocities.
-* @param {WebGLRenderingContext} ctx
-* @param {Float32Array} data
-* @returns {WebGLBuffer}
-*/
-export function create_buffer(ctx, data) {
-    try {
-        var ptr0 = passArrayF32ToWasm0(data, wasm.__wbindgen_malloc);
-        var len0 = WASM_VECTOR_LEN;
-        var ret = wasm.create_buffer(addBorrowedObject(ctx), ptr0, len0);
-        return takeObject(ret);
-    } finally {
-        heap[stack_pointer++] = undefined;
-    }
-}
-
-/**
-*    Activate the chosen texture so that GL operations on textures will target it. The
-*    texture number is [0,...) and can be accessed sequentially by offset.
-*
-*    Currently we only support 2D textures, which can be stacked to emulate 3D.
-* @param {WebGLRenderingContext} ctx
-* @param {WebGLTexture} texture
-* @param {number} unit
-*/
-export function bind_texture(ctx, texture, unit) {
-    try {
-        _assertNum(unit);
-        wasm.bind_texture(addBorrowedObject(ctx), addHeapObject(texture), unit);
-    } finally {
-        heap[stack_pointer++] = undefined;
-    }
-}
-
-/**
-*    Define a 2D array in GPU memory, and bind it for GL operations.
-* @param {WebGLRenderingContext} ctx
-* @param {ImageData} data
-* @param {number} filter
-* @param {number} _width
-* @param {number} _height
-* @returns {WebGLTexture}
-*/
-export function create_texture(ctx, data, filter, _width, _height) {
-    try {
-        _assertNum(filter);
-        _assertNum(_width);
-        _assertNum(_height);
-        var ret = wasm.create_texture(addBorrowedObject(ctx), addBorrowedObject(data), filter, _width, _height);
-        return takeObject(ret);
-    } finally {
-        heap[stack_pointer++] = undefined;
-        heap[stack_pointer++] = undefined;
-    }
-}
-
 /**
 * @param {string} name
 * @returns {string}
@@ -561,6 +465,102 @@ export function z_transform(xx, phase, width) {
 export function photosynthetically_active_radiation(day_of_year, latitude, time_of_day) {
     var ret = wasm.photosynthetically_active_radiation(day_of_year, latitude, time_of_day);
     return ret;
+}
+
+/**
+*    Compile the shaders and link them to a program, returning the pointer to the executable
+*    in GPU memory.
+*
+*    This is the high-level routine called directly from JavaScript.
+* @param {WebGLRenderingContext} ctx
+* @param {string} vertex
+* @param {string} fragment
+* @returns {WebGLProgram}
+*/
+export function create_program(ctx, vertex, fragment) {
+    try {
+        var ptr0 = passStringToWasm0(vertex, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len0 = WASM_VECTOR_LEN;
+        var ptr1 = passStringToWasm0(fragment, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len1 = WASM_VECTOR_LEN;
+        var ret = wasm.create_program(addBorrowedObject(ctx), ptr0, len0, ptr1, len1);
+        return takeObject(ret);
+    } finally {
+        heap[stack_pointer++] = undefined;
+    }
+}
+
+let cachegetFloat32Memory0 = null;
+function getFloat32Memory0() {
+    if (cachegetFloat32Memory0 === null || cachegetFloat32Memory0.buffer !== wasm.memory.buffer) {
+        cachegetFloat32Memory0 = new Float32Array(wasm.memory.buffer);
+    }
+    return cachegetFloat32Memory0;
+}
+
+function passArrayF32ToWasm0(arg, malloc) {
+    const ptr = malloc(arg.length * 4);
+    getFloat32Memory0().set(arg, ptr / 4);
+    WASM_VECTOR_LEN = arg.length;
+    return ptr;
+}
+/**
+*    Memory buffers are used to store array data for visualization.
+*
+*    This could be colors, or positions, or offsets, or velocities.
+* @param {WebGLRenderingContext} ctx
+* @param {Float32Array} data
+* @returns {WebGLBuffer}
+*/
+export function create_buffer(ctx, data) {
+    try {
+        var ptr0 = passArrayF32ToWasm0(data, wasm.__wbindgen_malloc);
+        var len0 = WASM_VECTOR_LEN;
+        var ret = wasm.create_buffer(addBorrowedObject(ctx), ptr0, len0);
+        return takeObject(ret);
+    } finally {
+        heap[stack_pointer++] = undefined;
+    }
+}
+
+/**
+*    Activate the chosen texture so that GL operations on textures will target it. The
+*    texture number is [0,...) and can be accessed sequentially by offset.
+*
+*    Currently we only support 2D textures, which can be stacked to emulate 3D.
+* @param {WebGLRenderingContext} ctx
+* @param {WebGLTexture} texture
+* @param {number} unit
+*/
+export function bind_texture(ctx, texture, unit) {
+    try {
+        _assertNum(unit);
+        wasm.bind_texture(addBorrowedObject(ctx), addHeapObject(texture), unit);
+    } finally {
+        heap[stack_pointer++] = undefined;
+    }
+}
+
+/**
+*    Define a 2D array in GPU memory, and bind it for GL operations.
+* @param {WebGLRenderingContext} ctx
+* @param {ImageData} data
+* @param {number} filter
+* @param {number} _width
+* @param {number} _height
+* @returns {WebGLTexture}
+*/
+export function create_texture(ctx, data, filter, _width, _height) {
+    try {
+        _assertNum(filter);
+        _assertNum(_width);
+        _assertNum(_height);
+        var ret = wasm.create_texture(addBorrowedObject(ctx), addBorrowedObject(data), filter, _width, _height);
+        return takeObject(ret);
+    } finally {
+        heap[stack_pointer++] = undefined;
+        heap[stack_pointer++] = undefined;
+    }
 }
 
 function isLikeNone(x) {
@@ -1495,15 +1495,6 @@ export class TileSet {
     }
 }
 
-export const __wbindgen_string_new = function(arg0, arg1) {
-    var ret = getStringFromWasm0(arg0, arg1);
-    return addHeapObject(ret);
-};
-
-export const __wbindgen_object_drop_ref = function(arg0) {
-    takeObject(arg0);
-};
-
 export const __wbindgen_json_parse = function(arg0, arg1) {
     var ret = JSON.parse(getStringFromWasm0(arg0, arg1));
     return addHeapObject(ret);
@@ -1516,6 +1507,15 @@ export const __wbindgen_json_serialize = function(arg0, arg1) {
     var len0 = WASM_VECTOR_LEN;
     getInt32Memory0()[arg0 / 4 + 1] = len0;
     getInt32Memory0()[arg0 / 4 + 0] = ptr0;
+};
+
+export const __wbindgen_string_new = function(arg0, arg1) {
+    var ret = getStringFromWasm0(arg0, arg1);
+    return addHeapObject(ret);
+};
+
+export const __wbindgen_object_drop_ref = function(arg0) {
+    takeObject(arg0);
 };
 
 export const __wbindgen_cb_drop = function(arg0) {

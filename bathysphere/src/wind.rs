@@ -1,12 +1,12 @@
 pub mod wind_system {
 
     use crate::{Limit, Array};
-    use crate::tessellate::tessellate::{Node, Layers};
 
+    /** 
+     * Simulate wind speed and mixing
+     */
     pub struct Wind {
-        /*
-        Simulate wind speed and mixing
-        */
+        
         speed: f64,
         delta: f64,
         limit: Limit

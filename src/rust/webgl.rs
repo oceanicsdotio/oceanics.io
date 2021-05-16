@@ -2,7 +2,7 @@
 The `graphics_system` module provides generic methods for working with
 WebGL and GLSL shaders from inside Rust/WASM
 */
-pub mod graphics_system {
+pub mod webgl {
 
     use wasm_bindgen::prelude::*;
     use web_sys::{
