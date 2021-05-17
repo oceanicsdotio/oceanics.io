@@ -172,10 +172,20 @@ const onSelectTag = (search, tag=null) => event => {
 
 
 const CampaignContainer = styled.div`
-    margin-bottom: 2rem;
+    margin-bottom: 3em;
 
-    & > * {
-        font-size: larger;
+   
+
+    & p {
+        font-size: 1.3rem;
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+        line-height: 1.6rem;
+    }
+
+    & div {
+        color: ${orange};
+        font-size: 2rem;
     }
 `;
 
@@ -265,6 +275,9 @@ export default ({
             <Oceanside/>
             
             <CampaignContainer>
+                <div>
+                   {"Accountable prosperity, autonomous seas"} 
+                </div>
                 {version.content.map((text, ii)=>
                     <StyledParagraph key={`paragraph-${ii}`}>
                     {text}
@@ -281,7 +294,7 @@ export default ({
                     }]}
                 />
             </CampaignContainer>
-            
+           
             <Form
                 fields={[{
                     type: "select",
@@ -322,7 +335,7 @@ export default ({
             <br/>
             <Form
                 actions={[{
-                    value: "More",
+                    value: "More content",
                     type: "button",
                     onClick: onAddItems(search)
                 },{

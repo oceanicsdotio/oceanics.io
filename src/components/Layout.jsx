@@ -2,9 +2,10 @@ import React, { useMemo } from "react";
 import styled from "styled-components";
 import { Link } from "gatsby";
 
-import { pink, ghost } from "../palette";
+import { pink, ghost, orange } from "../palette";
 import { rhythm } from "../typography";
 import layout from "../data/layout.yml";
+
 
 import YAML from "yaml";
 
@@ -50,11 +51,10 @@ const SiteLink = styled.a`
  * Internal link, emphasized
  */
 export const Title = styled(Link)`
-    font-size: xx-large;
-    color: ${ghost};
+    font-size: 2.5em;
+    color: ${orange};
     margin: 0;
     padding: 0;
-    margin-right: 1rem;
 `;
 
     
@@ -110,14 +110,14 @@ export const Layout = ({
     return <div className={className}>
         
         <NavBar>
-            <Title to={"/"} color={ghost}>{title || layout.title}</Title>
+            <Title to={"/"} color={ghost}>
+                {title || layout.title}
+            </Title>  
             {links}
         </NavBar>
 
         <main>{children}</main>
         <footer>
-            
-            <p>{`${layout.footer.statement} 2018-${new Date().getFullYear()}`}</p>
             {policy.map((text, ii) => <p key={`text-${ii}`}>{text}</p>)}
         </footer>
     </div>

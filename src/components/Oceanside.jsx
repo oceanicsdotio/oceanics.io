@@ -17,8 +17,8 @@ const Board = styled.canvas`
 
 
 export default ({
-    gridSize = 6,
-    worldSize = 16,
+    gridSize = 7,
+    worldSize = 32,
     waterLevel = 0.7
 }) => {
 

@@ -21,7 +21,9 @@ import { useStaticQuery, graphql, navigate } from "gatsby";
 /**
  * SEO headers.
  */
-import SEO from "../components/SEO";  
+import SEO from "../components/SEO"; 
+
+import Trifold from "../components/Trifold";
 
 
 /**
@@ -370,64 +372,6 @@ const staticQuery = graphql`
     }`
 
 
-/**
- * Vectro graphic icon for toggle between folded/unfolded view.
- * 
- * 
- * @param {*} param0 
- * @returns 
- */
-const Trifold = ({
-    display, 
-    onClick, 
-    className,
-    stroke
-}) => {
-
-    const presentation = {
-        stroke,
-        fill: "none",
-        strokeWidth: 15,
-        strokeLinejoin: "bevel"
-    }
-
-    return <svg 
-        className={className}
-        display={display}
-        viewBox={"0 0 225 300"}
-        onClick={onClick}
-    >
-        <g>    
-            <polygon {...{
-                ...presentation,
-                points: "125,300 125,100 0,50 0,250"
-            }}/>
-
-            <polygon {...{
-                ...presentation,
-                points: "225,50 100,0 100,50"
-            }}/>
-
-            <polygon {...{
-                ...presentation,
-                points: "125,100 125,250 225,250 225,50 0,50"
-            }}/>
-        </g>
-    </svg>
-    };
-
-
-/**
- * Styled version of the trifold component.
- */
-const StyledTrifold = styled(Trifold)`
-    width: 32px;
-    height: 32px; 
-    cursor: pointer;
-    margin: 16px;
-    top: 0;
-    right: 0;
-`;
 
 
 /**
@@ -1002,7 +946,7 @@ const AppPage = ({
             <div>
             <StyledMap ref={ref}/>      
             <Control>
-                <StyledTrifold 
+                <Trifold 
                     onClick={() => {setExpand(!expand)}}
                     stroke={orange}
                 /> 
