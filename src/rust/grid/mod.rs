@@ -6,7 +6,7 @@ dimensions using rectangular cells.
 It depends on the `SimpleCursor` module when providing
 an interactive visualization artifact.
 */
-pub mod rectilinear_grid {
+pub mod grid {
     
     use wasm_bindgen::prelude::*;
     use wasm_bindgen::{JsValue,Clamped};

@@ -240,13 +240,6 @@ function __wbg_adapter_24(arg0, arg1, arg2) {
     wasm._dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h19a3aed839d6cb8d(arg0, arg1, addHeapObject(arg2));
 }
 
-let stack_pointer = 32;
-
-function addBorrowedObject(obj) {
-    if (stack_pointer == 1) throw new Error('out of js stack');
-    heap[--stack_pointer] = obj;
-    return stack_pointer;
-}
 /**
 * @param {string} name
 * @returns {string}
@@ -282,6 +275,13 @@ export function create_color_map_canvas(_color) {
     return takeObject(ret);
 }
 
+let stack_pointer = 32;
+
+function addBorrowedObject(obj) {
+    if (stack_pointer == 1) throw new Error('out of js stack');
+    heap[--stack_pointer] = obj;
+    return stack_pointer;
+}
 /**
 * @param {CanvasRenderingContext2D} ctx
 * @param {number} w
@@ -421,6 +421,17 @@ export function make_vertex_array(series) {
 }
 
 /**
+* @param {number} day_of_year
+* @param {number} latitude
+* @param {number} time_of_day
+* @returns {number}
+*/
+export function photosynthetically_active_radiation(day_of_year, latitude, time_of_day) {
+    var ret = wasm.photosynthetically_active_radiation(day_of_year, latitude, time_of_day);
+    return ret;
+}
+
+/**
 *    After generating the base data array, clamp it and create a new
 *    array as a JavaScript/HTML image data element.
 * @param {number} world_size
@@ -453,17 +464,6 @@ export function x_transform(jj, length, grid_size) {
 */
 export function z_transform(xx, phase, width) {
     var ret = wasm.z_transform(xx, phase, width);
-    return ret;
-}
-
-/**
-* @param {number} day_of_year
-* @param {number} latitude
-* @param {number} time_of_day
-* @returns {number}
-*/
-export function photosynthetically_active_radiation(day_of_year, latitude, time_of_day) {
-    var ret = wasm.photosynthetically_active_radiation(day_of_year, latitude, time_of_day);
     return ret;
 }
 
@@ -596,7 +596,7 @@ function getUint8ClampedMemory0() {
 function getClampedArrayU8FromWasm0(ptr, len) {
     return getUint8ClampedMemory0().subarray(ptr / 1, ptr / 1 + len);
 }
-function __wbg_adapter_245(arg0, arg1, arg2, arg3) {
+function __wbg_adapter_240(arg0, arg1, arg2, arg3) {
     _assertNum(arg0);
     _assertNum(arg1);
     wasm.wasm_bindgen__convert__closures__invoke2_mut__haf7250a096804c72(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
@@ -690,51 +690,6 @@ export class Feature {
         this.ptr = 0;
 
         wasm.__wbg_feature_free(ptr);
-    }
-}
-/**
-*/
-export class HexagonalGrid {
-
-    static __wrap(ptr) {
-        const obj = Object.create(HexagonalGrid.prototype);
-        obj.ptr = ptr;
-
-        return obj;
-    }
-
-    free() {
-        const ptr = this.ptr;
-        this.ptr = 0;
-
-        wasm.__wbg_hexagonalgrid_free(ptr);
-    }
-    /**
-    * @param {number} nx
-    */
-    constructor(nx) {
-        _assertNum(nx);
-        var ret = wasm.hexagonalgrid_new(nx);
-        return HexagonalGrid.__wrap(ret);
-    }
-    /**
-    * @param {CanvasRenderingContext2D} ctx
-    * @param {number} w
-    * @param {number} h
-    * @param {number} mx
-    * @param {number} my
-    * @param {any} color
-    * @param {number} line_width
-    * @param {number} _alpha
-    */
-    draw(ctx, w, h, mx, my, color, line_width, _alpha) {
-        try {
-            if (this.ptr == 0) throw new Error('Attempt to use a moved value');
-            _assertNum(this.ptr);
-            wasm.hexagonalgrid_draw(this.ptr, addBorrowedObject(ctx), w, h, mx, my, addHeapObject(color), line_width, _alpha);
-        } finally {
-            heap[stack_pointer++] = undefined;
-        }
     }
 }
 /**
@@ -1419,35 +1374,6 @@ export class SimpleCursor {
     }
 }
 /**
-*/
-export class Texture2D {
-
-    constructor() {
-        throw new Error('cannot invoke `new` directly');
-    }
-
-    free() {
-        const ptr = this.ptr;
-        this.ptr = 0;
-
-        wasm.__wbg_texture2d_free(ptr);
-    }
-    /**
-    * @param {CanvasRenderingContext2D} ctx
-    * @param {number} _w
-    * @param {number} _h
-    * @param {number} _frame
-    * @param {number} time
-    */
-    static fill_canvas(ctx, _w, _h, _frame, time) {
-        try {
-            wasm.texture2d_fill_canvas(addBorrowedObject(ctx), _w, _h, _frame, time);
-        } finally {
-            heap[stack_pointer++] = undefined;
-        }
-    }
-}
-/**
 *    Tiles are individual features, aka the instance of
 *    a type of feature, which is stored in memory and may be
 *    modified to deviate from the basic rules.
@@ -1745,10 +1671,6 @@ export const __wbg_rect_a45a5e48878e40ce = logError(function(arg0, arg1, arg2, a
     getObject(arg0).rect(arg1, arg2, arg3, arg4);
 });
 
-export const __wbg_clearRect_5163a03172c6613a = logError(function(arg0, arg1, arg2, arg3, arg4) {
-    getObject(arg0).clearRect(arg1, arg2, arg3, arg4);
-});
-
 export const __wbg_fillRect_45e261a0d8e4d566 = logError(function(arg0, arg1, arg2, arg3, arg4) {
     getObject(arg0).fillRect(arg1, arg2, arg3, arg4);
 });
@@ -1885,7 +1807,7 @@ export const __wbg_new_261626435fed913c = logError(function(arg0, arg1) {
             const a = state0.a;
             state0.a = 0;
             try {
-                return __wbg_adapter_245(a, state0.b, arg0, arg1);
+                return __wbg_adapter_240(a, state0.b, arg0, arg1);
             } finally {
                 state0.a = a;
             }
@@ -2001,7 +1923,7 @@ export const __wbindgen_memory = function() {
     return addHeapObject(ret);
 };
 
-export const __wbindgen_closure_wrapper3283 = logError(function(arg0, arg1, arg2) {
+export const __wbindgen_closure_wrapper3223 = logError(function(arg0, arg1, arg2) {
     var ret = makeMutClosure(arg0, arg1, 71, __wbg_adapter_24);
     return addHeapObject(ret);
 });

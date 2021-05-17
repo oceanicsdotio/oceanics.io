@@ -2,9 +2,9 @@
 title: Apocryphal ocean
 date: "2021-05-02T07:00:00.000Z"
 description: |
-    We've written about dimensionless data before. This is the transcript of a talk on that topic and others. If you've ever wondered why ocean climate data seem intentionally inaccessible, this may be for you. 
+    If you've ever wondered why ocean climate data seem intentionally inaccessible, this may be for you. 
 
-tags: ["data", "ocean", "graph", "geospatial", "cybernetics", "nasa", "climate", "sci-fi", "music", "art"]
+tags: ["data", "geospatial", "cybernetics", "nasa", "sci-fi"]
 ---
 
 

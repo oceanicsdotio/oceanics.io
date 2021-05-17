@@ -1,48 +1,36 @@
 import { useEffect, useState, useReducer, useRef } from "react";
 import { useStaticQuery, graphql } from "gatsby";
-import { lichen, orange } from "../palette";
 
 /**
- * Dedicated worker loaders
+ * Dedicated worker loaders.
  */
 import Worker from "./useBathysphereApi.worker.js";
 
-/*
- * Rotate a path of any number of points about the origin.
- * You need to translate first to the desired origin, and then translate back 
- * once the rotation is complete.
- * 
- * Not as flexible as quaternion rotation.
+/**
+ * GraphQL fragment for static query to get sprite sheets and tile metadata.
  */
-const rotatePath = (pts, angle) => {
-   
-    let [s, c] = [Math.sin, Math.cos].map(fcn => fcn(angle));
-    return pts.map(([xx, yy]) => [(xx * c - yy * s), (xx * s + yy * c)]);
-}
-
-
-const eventCoordinates = ({clientX, clientY}, canvas) => {
-    // Short hand for element reference frame
-    const {left, top} = canvas.getBoundingClientRect();
-    return [clientX - left, clientY - top]
-};
-
-
-
-/*
- * Translate x and scale y, rotate CCW, scale points.
- * Points must be in the canvas coordinate reference frame. 
- * The width is the width of the canvas drawing area, and 
- * gridSize is the number of squares per side of the world.
- */
-const inverse = (points, width, gridSize) => {
-   
-    return rotatePath(points.map(([x,y])=> [
-            x - (Math.floor(0.5*gridSize) + 1.25)*width/gridSize/Math.sqrt(2), 
-            2*y 
-        ]
-), -Math.PI/4).map(pt => pt.map(dim => dim*Math.sqrt(2)))};
-
+const query = graphql`
+    query {
+        tiles: allOceansideYaml {
+            templates: nodes {
+                name,
+                probability,
+                value, 
+                cost,
+                spriteSheet
+            }
+        }
+        icons: allFile(filter: { 
+            sourceInstanceName: { eq: "assets" },
+            extension: { eq: "png" }
+        }) {
+            nodes {
+                relativePath
+                publicURL
+            }
+        }
+    }
+`
 
 
 /**
@@ -62,27 +50,14 @@ const inverse = (points, width, gridSize) => {
  * @param {number} args.gridSize - Integer height and width of grid subset. The number of tiles visible is the square of `gridSize`, so scores are higher for larger.
  * @param {number} args.worldSize - Integer height and width of global grid. The total number of tiles, and therefore the probability of finding certain features, is the square of `worldSize`. 
  * @param {number} args.waterLevel - Fraction of tidal evolution. Each tile has an elevation value. Tiles above `waterLevel` are always land, and therfore worth nothing. Other wet tiles become mud depending on the tidal cycle and their elevation.
- * @param {number} args.actionsPerDay - The `actionsPerDay` property determines how quickly time passes, and how many things you can interact with per day. This ultimately puts a limit on the score you can earn.
- * @param {String} args.endTurnMessage - message to display when no actions remain
- * @param {String} args.overlayColor - color to draw metadata and overlays.
  * @param {String} args.backgroundColor - color of animation loop blending
- * @param {String} args.font - font for metadata overlays
  */
 export default ({
-    gridSize = 6, 
-    worldSize = 32, 
-    waterLevel = 0.7,
-    actionsPerDay = 6,
-    endTurnMessage = "Bettah wait 'til tomorrow.",
-    // overlayColor = ghost,
+    map,
+    gridSize, 
+    worldSize,
     backgroundColor = "#000000FF",
-    // font = "36px Arial"
 }) => {
-
-    /**
-     * Ref for clickable minimap that allows world navigation
-     */
-    const nav = useRef(null);
 
     /**
      * Ref for isometric view render target
@@ -100,33 +75,12 @@ export default ({
         icons: {
             nodes
         }
-    } = useStaticQuery(graphql`
-        query {
-            tiles: allOceansideYaml {
-                templates: nodes {
-                    name,
-                    probability,
-                    value, 
-                    cost,
-                    spriteSheet
-                }
-            }
-            icons: allFile(filter: { 
-                sourceInstanceName: { eq: "assets" },
-                extension: { eq: "png" }
-            }) {
-                nodes {
-                    relativePath
-                    publicURL
-                }
-            }
-        }
-    `);
+    } = useStaticQuery(query);
 
     /**
      * Runtime will be passed to calling Hook or Component. 
      */
-    const [runtime, setRuntime] = useState(null);
+    const [ runtime, setRuntime ] = useState(null);
 
     /**
      * Dynamically load the WASM, add debugging, and save to React state,
@@ -142,64 +96,7 @@ export default ({
             console.log("Unable to load WASM runtime")
         }
     }, []);
-
-    /**
-     * Complex cursor handled in Rust
-     */
-    const [cursor, setCursor] = useState(null);
-
-    useEffect(()=>{
-        if (!runtime) return;
-        const _cursor = new runtime.PrismCursor(0.0, 0.0, window.devicePixelRatio, gridSize);
-        setCursor(_cursor);
-    }, [ runtime ]);
     
-    /**
-     * MiniMap data structure from Rust-WebAssembly.
-     */
-    const [ map, setMap ] = useState(null);
-
-    /**
-     * Clmap custom cursor to the discrete grid.
-     */
-    const [ clamp, setClamp ] = useState(false);
-    
-    /*
-     * Take an action (swap a tile) or advance to the next day. 
-     */
-    const [ clock, takeAnActionOrWait ] = useReducer(
-        ({date, actions}, event)=>{
-           
-            if (typeof board === "undefined" || !board || !board.current || !cursor) {
-                return {date, actions}
-            }
-            if (actions) {
-                const {width} = board.current;
-                const inverted = inverse(
-                    [eventCoordinates(event, board.current)], 
-                    600, 
-                    gridSize
-                ).pop();
-
-                cursor.update(...inverted);
-                map.replaceTile(cursor.gridX(width), cursor.gridY(width));
-                return {
-                    date,
-                    actions: actions - 1
-                };
-                  
-            } else {
-                console.log(endTurnMessage);
-                return {
-                    date: new Date(date.setDate(date.getDate()+1)),
-                    actions: actionsPerDay
-                };
-            };
-        }, {
-            actions: actionsPerDay, 
-            date: new Date()
-        }
-    );
 
     /**
      * Update currently visible tiles from map view.
@@ -237,55 +134,6 @@ export default ({
     );
     
     /**
-    Toggle the key state when it is pressed and released.
-    There is technically no need for the default case.
-
-    The initial value of the state is taken from the second
-    arg to `useReducer`.
-
-    Add and remove keypress listeners as necessary. These
-    will call the `setKeys` method generated by `useReducer`
-    to logicaly update the array of pressed keys. 
-    */
-    const [keys, setKeys] = useReducer(
-        (state, {type, key}) => {
-            switch (type) {
-                case "keydown":
-                    return { ...state, [key]: true };
-                case "keyup":
-                    return { ...state, [key]: false };
-                default:
-                    return state;
-            }
-        }, 
-        ["Shift", "C"]
-            .map(key => key.toLowerCase())
-            .reduce((currentKeys, key) => {
-                currentKeys[key] = false;
-                return currentKeys;
-            }, {})
-    );
-
-    
-    useEffect(() => {
-        const listeners = ["keyup", "keydown"].map(type => {
-            const listen = ({key, repeat}) => {
-                const symbol = key.toLowerCase();
-                if (repeat || !keys.hasOwnProperty(symbol)) return;
-                if (keys[symbol] === ("keyup" === type)) setKeys({ type, key: symbol });  
-            };
-            window.addEventListener(type, listen, true);
-            return [type, listen];
-        });
-        return () => listeners.map(each => window.removeEventListener(...each, true));
-    }, [keys]);
-  
-
-    useEffect(() => {
-        if (Object.values(keys).every(x => x)) setClamp(!clamp);
-    }, [keys]);
-
-    /**
      * Web worker for background tasks
      */
     const worker = useRef(null);
@@ -295,74 +143,18 @@ export default ({
      */
     useEffect(() => {
         worker.current = new Worker();
-    }, []);
+        return worker.current.terminate;
+    }, [ ]);
 
-    /**
-     * When the runtime loads for the first time, create a pixel map  
-     * instance and draw the generated world to the canvas, 
-     * then save the map reference to react state.
-     * 
-     * Build the tileset from the random Feature table, 
-     * or leave space for land. 
-     * 
-     * Create the probability table by accumulative discrete 
-     * probabilities, and save the object that will be query for 
-     * tile selections to react state.
-     * 
-     * The same data structure will hold the selected tiles. 
-     */
     useEffect(() => {
-        if (!runtime || !nav.current || !worker.current) return;
+        if (!worker.current || !map) return;
 
-        const offset = (worldSize - gridSize) / 2;
-        const _map = new runtime.MiniMap(
-            offset, 
-            offset/2, 
-            worldSize, 
-            waterLevel, 
-            nav.current.getContext("2d"), 
-            gridSize
-        );
-            
         (async () => {
             const iconSet = await worker.current.parseIconSet({nodes, templates, worldSize});
-            iconSet.forEach(x => {_map.insertFeature(x)});
-            populateVisibleTiles(_map, null);  
+            iconSet.forEach(x => {map.insertFeature(x)});
+            populateVisibleTiles(map, null);  
         })();
-
-        setMap(_map); 
-
-    }, [ runtime, worker ]);
-
-    //
-    useEffect(() => {
-        if (
-            !board || 
-            !board.current ||
-            !cursor
-        ) return;
-
-        board.current.addEventListener('mousemove', (event) => {
-            const xy = eventCoordinates(event, board.current);
-           
-            cursor.update(...xy);
-        });
-
-    }, [cursor, board]);
-
-
-    const [caption, setCaption] = useState("");
-
-
-    useEffect(()=>{
-        if (!clock) return
-
-        const date = clock.date.toLocaleDateString();
-        const time = 18-2*(clock.actions ? clock.actions : 0);
-        const balance = map ? map.score() : 0.0;
-
-        setCaption(`${date} ${time}:00, Balance: $${balance}`);
-    },[]);
+    }, [ worker, map ]);
 
     /**
      * Draw the visible area to the board canvas using the 
@@ -373,123 +165,49 @@ export default ({
             !board || 
             !board.current || 
             !tiles || 
-            !worker.current || 
-            !cursor
+            !worker.current
         ) return;
 
-        [ref.current.width, ref.current.height] = ["width", "height"].map(
-            dim => getComputedStyle(ref.current).getPropertyValue(dim).slice(0, -2)
+        [board.current.width, board.current.height] = ["width", "height"].map(
+            dim => getComputedStyle(board.current).getPropertyValue(dim).slice(0, -2)
         ).map(x => x * window.devicePixelRatio);
 
-    
-        const start = performance.now();
-        const ctx = ref.current.getContext(`2d`);
-        const [ width, height ] = [ref.current.width, ref.current.height];
+        const ctx = board.current.getContext(`2d`);
+
         let requestId = null;
       
         ctx.imageSmoothingEnabled = false;  // disable interpolation
     
         (function render() {
 
-            const time = performance.now() - start;
+           
+    
+            const { width, height } = board.current;
 
             runtime.clear_rect_blending(ctx, width, height, backgroundColor);
-            
+
             tiles.forEach((diagonal, ii) => {
                 diagonal.forEach((tile, jj) => {
-                    map.drawTile(ctx, ii, jj, diagonal.length, time, width, tile);
+                    map.drawTile(ctx, ii, jj, diagonal.length, performance.now(), width, tile);
                 });
-            });
-
-
-            // frames = runtime.draw_fps(ctx, frames, time, overlayColor);
-
-            const Δx = 1; 
-            const Δy = 1;
-            const curs = [cursor.x(), cursor.y()];
-
-
-            // if (time % 100.0 < 10.0) console.log({curs});
-
-            const cellSize = width/gridSize;
-            const [inverted] = inverse([curs.map(x=>x*cellSize)], width, gridSize).map(pt => pt.map(x=>x/cellSize));
-            
-            [
-                {upperLeft: curs, color: orange},
-                {upperLeft: inverted, color: lichen}
-            ].map(({color, upperLeft})=>{
-
-                const [x, y] = upperLeft.map(dim => clamp ? Math.floor(dim) : dim);
-
-                const cellA = [
-                    [x, y],
-                    [x + Δx, y],
-                    [x + Δx, y + Δy],
-                    [x, y + Δy]
-                ].map(
-                    pt => pt.map(dim => dim*cellSize)
-                );
-                
-                const cellB = rotatePath(
-                    cellA.map(pt => pt.map(x => x/Math.sqrt(2))), 
-                    Math.PI/4
-                ).map(
-                    ([x,y])=>[
-                        x + (Math.floor(0.5*gridSize) + 1.25)*cellSize/Math.sqrt(2), 
-                        0.5*y
-                    ]
-                );
-
-                ctx.strokeStyle = color;
-                ctx.lineWidth = 2.0;
-
-                [cellA, cellB].forEach(cell => {
-                    ctx.beginPath();
-                    ctx.moveTo(...cell[0]);
-                    cell.slice(1, 4).forEach(pt => ctx.lineTo(...pt));
-                    ctx.closePath();
-                    ctx.stroke(); 
-                });
-
-                ctx.beginPath();
-                for (let ii=0; ii<4; ii++) {
-                    ctx.moveTo(...cellA[ii]);
-                    ctx.lineTo(...cellB[ii]);
-                }
-                ctx.stroke();
             });
 
             requestId = requestAnimationFrame(render);
-            
         })();
 
-        return () => {
-            cancelAnimationFrame(requestId);
-            worker.current.terminate();
-        };
-    }, [ tiles, clamp, cursor, worker ]);
+        return () => { cancelAnimationFrame(requestId) };
+    }, [ tiles, worker ]);
+
     
     return {
-        caption,
-        worldSize,  // return in case you want the default
-        nav: {
-            ref: nav,
-            onClick: (event) => {
-                event.persist();
-                populateVisibleTiles(map, event);
+        ref: board,
+        onClick: (event) => {
+            event.persist(); // otherwise React eats it
+            try {
+                // takeAnActionOrWait(event);
+            } catch (err) {
+                console.log(err);
             }
-        },
-        board: {
-            ref: board,
-            onClick: (event) => {
-                event.persist(); // otherwise React eats it
-                try {
-                    // takeAnActionOrWait(event);
-                } catch (err) {
-                    console.log(err);
-                }
-            }
-        },
-        populateVisibleTiles,
-    }  
+        }
+    } 
 };

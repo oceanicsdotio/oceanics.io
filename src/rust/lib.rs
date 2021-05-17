@@ -1,11 +1,10 @@
-mod tessellate;  // some core spatial methods
 mod webgl;  // shader magic
 mod vec3;
 mod cursor;  // cursor replacements and canvas event handling system
 mod light;  // submarine light simulation system
 mod data_stream;  // data stream structs and visualization methods
 mod triangular_mesh;  // 3D unstructured triangular network used for surface and object modelling
-mod rectilinear_grid;  // 3D rectilinear grid methods and structures
+mod grid;  // 3D rectilinear grid methods and structures
 
 
 use std::f32::consts::PI;

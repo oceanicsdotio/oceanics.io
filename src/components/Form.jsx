@@ -67,6 +67,43 @@ const Input = ({
     }
 };
 
+
+const ButtonWrapper = styled(Input)`
+    background-color: ${shadow};
+    
+    color: ${orange};
+
+    border: 1px dashed ${orange};
+    border-radius: 5px;
+    padding: 5px;
+    margin: 0;
+    margin-bottom: 0.5rem;
+
+    display: block;
+    font-family: inherit;
+    font-size: inherit;
+    width: 100%;
+    
+    box-sizing: border-box;
+
+    cursor: ${({type}) => type === "button" ? "pointer" : null};
+    
+    -webkit-appearance: none;  /*Removes default chrome and safari style*/
+    -moz-appearance: none;  /*Removes default style Firefox*/
+
+    ::after {
+        content: ${({required})=>required?"'(!)'":null};
+        color: orange;
+        font-size: smaller;
+    }
+
+    & > * {
+        padding: 0;
+        margin: 0;
+        max-width: 100%;
+    } 
+`;
+
 /**
  * The InputWrapper component is a styled version of the standard
  * Input
@@ -190,7 +227,7 @@ export const Form = ({
         )}
         
         {(actions || []).map((props, ii) => 
-            <InputWrapper 
+            <ButtonWrapper 
                 key={`${id}-action-${ii}`}
                 {...props}
             />

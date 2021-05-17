@@ -21,7 +21,7 @@ import styled from "styled-components";
 /**
  * Predefined color palette
  */
-import { pink, grey, ghost } from "../palette";
+import { pink, orange, grey, ghost, shadow } from "../palette";
 
 /**
  * Standard layout component for main and non-app pages
@@ -37,6 +37,11 @@ import SEO from "../components/SEO";
  * For interactive elements
  */
 import Form from "../components/Form";
+
+/**
+ * Use Oceanside for header image
+ */
+import Oceanside from "../components/Oceanside";
 
 /**
  * Page data
@@ -80,36 +85,29 @@ const StyledArticle = styled.article`
         display: inline-block;
         text-decoration: none;
         color: ${ghost};
-        border: 1px solid;
-        border-radius: 0.3rem;
-        padding: 0.3rem;
+        border: 1px solid ${grey};
+        background-color: ${shadow};
+        border-radius: 5px;
         font-size: smaller;
-        margin: 0;
-        margin-right: 0.2rem;
+        margin-right: 5px;
+        padding: 2px;
         cursor: pointer;
     }
 
-    & h2 > a {
-        box-shadow: none;
-        color: ${pink};
-        text-decoration: none;
-        border: none;
-        margin: 0;
-        padding: 0;
-    }
+    & h2 {
+        & a {
+            box-shadow: none;
+            background-color: ${shadow};
+            color: ${orange};
+            border: none;
+            font-size: inherit;
+            text-decoration: none;
+            margin: 0;
+            padding: 0;
+        }
+    } 
 `;
 
-/**
- * Banner image
- */
-const Image = styled.img`
-    width: 100%;
-`;
-
-/**
- * Image to use for top of article list
- */
-const bannerImage = "shrimpers-web.png";
 
 /**
  * How many articles are made visible at a time.
@@ -264,20 +262,20 @@ export default ({
     return (
         <Layout title={title}>
             <SEO title={"Blue computing"} />
-            <Image src={bannerImage} alt={"Agents@Rest"} />
+            <Oceanside/>
+            
             <CampaignContainer>
-                
                 {version.content.map((text, ii)=>
                     <StyledParagraph key={`paragraph-${ii}`}>
                     {text}
                     </StyledParagraph>)}
                 <Form
                     actions={[{
-                        value: version.callToAction,
+                        value: `${version.response}`,
                         type: "button",
                         onClick: () => {navigate(`/app/?campaign=${version.name}`)}
                     },{
-                        value: `Learn about our API.`,
+                        value: `Learn about our API`,
                         type: "button",
                         onClick: () => {navigate(`/bathysphere/`)}
                     }]}
