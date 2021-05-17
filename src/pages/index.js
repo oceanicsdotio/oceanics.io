@@ -21,7 +21,7 @@ import styled from "styled-components";
 /**
  * Predefined color palette
  */
-import { pink, orange, grey, ghost, shadow } from "../palette";
+import { charcoal, orange, grey, ghost, shadow } from "../palette";
 
 /**
  * Standard layout component for main and non-app pages
@@ -85,8 +85,8 @@ const StyledArticle = styled.article`
         display: inline-block;
         text-decoration: none;
         color: ${ghost};
-        border: 1px solid ${grey};
-        background-color: ${shadow};
+        border: 1px dashed ${grey};
+        background-color: ${charcoal};
         border-radius: 5px;
         font-size: smaller;
         margin-right: 5px;
@@ -101,7 +101,7 @@ const StyledArticle = styled.article`
             color: ${orange};
             border: none;
             font-size: inherit;
-            text-decoration: none;
+            text-decoration: underline;
             margin: 0;
             padding: 0;
         }
@@ -174,7 +174,6 @@ const onSelectTag = (search, tag=null) => event => {
 const CampaignContainer = styled.div`
     margin-bottom: 3em;
 
-   
 
     & p {
         font-size: 1.3rem;
@@ -184,8 +183,15 @@ const CampaignContainer = styled.div`
     }
 
     & div {
-        color: ${orange};
+        color: ${ghost};
         font-size: 2rem;
+    }
+`;
+
+
+const FormBox = styled.div`
+    & * {
+        font-size: 1.2rem;
     }
 `;
 
@@ -276,12 +282,13 @@ export default ({
             
             <CampaignContainer>
                 <div>
-                   {"Accountable prosperity, autonomous seas"} 
+                   {"Autonomous, prosperous, accountable."} 
                 </div>
                 {version.content.map((text, ii)=>
                     <StyledParagraph key={`paragraph-${ii}`}>
                     {text}
                     </StyledParagraph>)}
+                <FormBox>
                 <Form
                     actions={[{
                         value: `${version.response}`,
@@ -291,18 +298,15 @@ export default ({
                         value: `Learn about our API`,
                         type: "button",
                         onClick: () => {navigate(`/bathysphere/`)}
+                    },{
+                        value: "See the science",
+                        type: "button",
+                        onClick: ()=>{navigate(`/references/`)}
                     }]}
                 />
+                </FormBox>
             </CampaignContainer>
            
-            <Form
-                fields={[{
-                    type: "select",
-                    id: "filter by tag",
-                    options: group.map(({ fieldValue }) => fieldValue),
-                    onChange: onSelectTag(search)
-                }]}
-            />
             {visible.map(({
                 frontmatter: {
                     title,
@@ -333,17 +337,21 @@ export default ({
                     )}
                 </StyledArticle>)}
             <br/>
-            <Form
-                actions={[{
-                    value: "More content",
-                    type: "button",
-                    onClick: onAddItems(search)
-                },{
-                    value: "References",
-                    type: "button",
-                    onClick: ()=>{navigate(`/references/`)}
-                }]}
-            />
+            <FormBox>
+                <Form
+                    fields={[{
+                        type: "select",
+                        id: "filter by tag",
+                        options: group.map(({ fieldValue }) => fieldValue),
+                        onChange: onSelectTag(search)
+                    }]}
+                    actions={[{
+                        value: "More arcana",
+                        type: "button",
+                        onClick: onAddItems(search)
+                    }]}
+                />
+            </FormBox>
         </Layout>
     )
 };

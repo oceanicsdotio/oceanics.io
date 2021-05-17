@@ -1,6 +1,6 @@
 import React from "react";
 import styled from "styled-components";
-import {red, ghost, shadow, orange, pink, grey} from "../palette";
+import {red, ghost, shadow, orange, pink, grey, charcoal} from "../palette";
 
 
 const StyledTextArea = styled.div`
@@ -69,11 +69,13 @@ const Input = ({
 
 
 const ButtonWrapper = styled(Input)`
-    background-color: ${shadow};
+    background-color: ${charcoal};
     
     color: ${orange};
 
-    border: 1px dashed ${orange};
+    border: 1px dashed ${grey};
+    /* border: none; */
+
     border-radius: 5px;
     padding: 5px;
     margin: 0;
@@ -112,7 +114,7 @@ export const InputWrapper = styled(Input)`
 
     background-color: ${({destructive}) => {
         if (destructive) return orange;
-        return shadow;
+        return charcoal;
     }};
     
     color: ${({destructive, type}) => {
@@ -121,8 +123,8 @@ export const InputWrapper = styled(Input)`
         return ghost;
     }};
 
-    border: solid 0.1rem;
-    border-radius: 0.25rem;
+    border: dashed 1px ${grey};
+    border-radius: 5px;
     padding: 0.25rem;
     margin: 0;
     margin-bottom: 0.5rem;
@@ -172,7 +174,8 @@ const FormField = styled.div`
         -moz-appearance: none;
         -webkit-appearance: none;
         appearance: none;
-        background-color: ${shadow};
+        border: 1px dashed ${grey};
+        background-color: ${charcoal};
 
         & > option {
             font-size: inherit;
