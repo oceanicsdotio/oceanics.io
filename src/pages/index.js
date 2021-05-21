@@ -52,7 +52,7 @@ import about from "../data/about.yml";
  * Some of the canonical fields do not contain uniquely identifying information. 
  * Technically, the same content might appear in two places. 
  */
- const referenceHash = ({authors, title, year}) => {
+const referenceHash = ({authors, title, year}) => {
    
     const stringRepr = `${authors.join("").toLowerCase()} ${year} ${title.toLowerCase()}`.replace(/\s/g, "");
     const hashCode = s => s.split('').reduce((a,b) => (((a << 5) - a) + b.charCodeAt(0))|0, 0);
@@ -124,6 +124,7 @@ const decodeSearch = x => Object.fromEntries(x
     .slice(1, x.length)
     .split("&")
     .map(item => {
+
         const [key, value] = item.split("=");
         const parsed = Number(value);
 
@@ -135,22 +136,26 @@ const decodeSearch = x => Object.fromEntries(x
  * @param {*} x 
  * @returns 
  */
-const encodeSearch = x => 
-    "/?" + Object.entries(x)
+const encodeSearch = x => {
+    return "/?" + Object.entries(x)
         .map(([key, value]) => `${key}=${value}`)
-        .join("&");
+        .join("&")
+};
 
 /**
  * Set tag as current, and increase number visible
  */
 const onAddItems = search => () => { 
 
-    const params = decodeSearch(search);
+    const params = search ? decodeSearch(search) : {items: undefined};
+
+    console.log({params})
+
     const items = (typeof params.items !== undefined && params.items) ? 
         params.items + itemIncrement : 2*itemIncrement;
 
     navigate(encodeSearch({
-        ...decodeSearch(search),
+        ...params,
         items
     })); 
 };
@@ -164,8 +169,11 @@ const onAddItems = search => () => {
  * @returns 
  */
 const onSelectTag = (search, tag=null) => event => {
+
+    const params = search ? decodeSearch(search) : {};
+
     navigate(encodeSearch({
-        ...decodeSearch(search), 
+        ...params, 
         tag: tag ? tag : event.target.value
     }));
 };
