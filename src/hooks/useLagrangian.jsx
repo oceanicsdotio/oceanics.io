@@ -62,6 +62,11 @@ export default ({
     const [ particles, setParticles ] = useState(null);
 
     /**
+     * Error flag
+     */
+    const [ error, setError ] = useState(null);
+
+    /**
      * Load worker
      */
     const worker = useWorkers(Worker);
@@ -71,22 +76,34 @@ export default ({
      * encoded as 4-byte colors.
      */
     useEffect(() => {
-        if (worker.current) 
-            worker.current.initParticles(res).then(setParticles);
+        if (!worker.current) return;
+
+        worker.current
+            .initParticles(res)
+            .then(setParticles)
+            .catch(() => {setError("There was a runtime error.")});
+
     }, [ worker ]);
 
     /**
      * Message for user interface, passed out to parent component.
      */
-    const [ message, setMessage ] = useState("Loading...");
+    const [ message, setMessage ] = useState("Working...");
 
     /**
      * When we have some information ready, set the status message
      * to something informative, like number of particles
      */
     useEffect(() => {
-        if (particles) setMessage(`Fish (N=${res*res})`);
+        if (particles) setMessage(`Ichthyoid (N=${res*res})`);
     }, [ particles ]);
+
+    /**
+     * Set an error message in necessary.
+     */
+    useEffect(() => {
+        if (error) setMessage(error);
+    }, [ error ]);
 
     /**
      * Shader programs compiled from GLSL source. 

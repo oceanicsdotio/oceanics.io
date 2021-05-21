@@ -11,7 +11,7 @@ import { useState, useEffect, useRef } from "react";
  * Dedicated Worker loader
  */
 import Worker from "../workers/useOpenApiLoader.worker.js";
-import useWorkers from "./useWorkers";
+import useWorkers from "../hooks/useWorkers";
 
 
 /**
