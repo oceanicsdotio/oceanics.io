@@ -1,9 +1,13 @@
-import {useEffect, useState, useRef} from "react";
+/**
+ * React friends.
+ */
+import { useEffect, useState } from "react";
 
 /**
  * Dedicated Worker loader
  */
-import Worker from "./useObjectStorage.worker.js";
+import Worker from "../workers/useObjectStorage.worker.js";
+import useWorkers from "./useWorkers";
 
 /**
  * The `useObjectStorage` hook provides a directory like structure
@@ -21,15 +25,8 @@ export default ({
     /**
      * Web worker reference for background tasks.
      */
-    const worker = useRef(null);
+    const worker = useWorkers(Worker);
 
-    /**
-     * Create worker
-     */
-    useEffect(() => {
-        worker.current = new Worker();
-    }, [])
-  
     /**
      * Get the asset metadata from object storage service
      */

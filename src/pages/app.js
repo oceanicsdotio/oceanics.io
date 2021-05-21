@@ -243,7 +243,8 @@ import defaults from "../data/map-style.yml";
 /**
  * Dedicated Worker loader.
  */
-import Worker from "../hooks/useBathysphereApi.worker.js";
+import Worker from "../workers/useBathysphereApi.worker.js";
+import useWorkers from "../hooks/useWorkers"
 
 /**
  * Object storage hook
@@ -510,16 +511,7 @@ const AppPage = ({
      * This will be used to process raw data into MapBox layers,
      * and do any expensive topological or reducing operations. 
      */
-    const worker = useRef(null);
-
-    /**
-     * Instantiate the web worker, lazy-load style.
-     */
-    useEffect(() => {
-        worker.current = new Worker();
-
-        return () => {worker.current.terminate()};
-    }, []);
+    const worker = useWorkers(Worker);
 
     /**
      * MapBoxGL Map instance is saved to React state. 

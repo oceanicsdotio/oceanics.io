@@ -3,7 +3,7 @@ import { useEffect, useState, useRef, useReducer } from "react";
 /**
  * Dedicated worker loader.
  */
-import Worker from "./useBathysphereApi.worker.js";
+import Worker from "../workers/useBathysphereApi.worker.js";
 
 /**
  * The catalog page is like a landing page to the api.
@@ -18,14 +18,7 @@ export default () => {
     /**
      * Web worker reference for fetching and auth.
      */
-    const worker = useRef(null);
-
-    /**
-     * Create worker. Must be inside Hook, or webpack will protest.
-     */
-    useEffect(() => {
-        worker.current = new Worker();
-    }, []);
+    const worker = useWorkers(Worker);
 
     /**
      * JavaScript Web Token. State variable returned to parent component,

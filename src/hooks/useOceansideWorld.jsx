@@ -1,36 +1,4 @@
-import { useEffect, useState, useReducer, useRef } from "react";
-import { useStaticQuery, graphql } from "gatsby";
-
-/**
- * Dedicated worker loaders.
- */
-import Worker from "./useBathysphereApi.worker.js";
-
-/**
- * GraphQL fragment for static query to get sprite sheets and tile metadata.
- */
-const query = graphql`
-    query {
-        tiles: allOceansideYaml {
-            templates: nodes {
-                name,
-                probability,
-                value, 
-                cost,
-                spriteSheet
-            }
-        }
-        icons: allFile(filter: { 
-            sourceInstanceName: { eq: "assets" },
-            extension: { eq: "png" }
-        }) {
-            nodes {
-                relativePath
-                publicURL
-            }
-        }
-    }
-`
+import { useEffect, useState, useRef } from "react";
 
 
 /**

@@ -16,7 +16,7 @@ import useColorMapTexture from "./useColorMapTexture";
 /**
  * Dedicated worker loader
  */
-import Worker from "./useBathysphereApi.worker.js";
+import Worker from "../workers/useBathysphereApi.worker.js";
 import useWorkers from "./useWorkers";
 
 /**

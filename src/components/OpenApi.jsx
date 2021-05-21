@@ -10,7 +10,8 @@ import { useState, useEffect, useRef } from "react";
 /**
  * Dedicated Worker loader
  */
-import Worker from "../hooks/useOpenApiLoader.worker.js";
+import Worker from "../workers/useOpenApiLoader.worker.js";
+import useWorkers from "./useWorkers";
 
 
 /**
@@ -141,15 +142,8 @@ export default ({
     /**
      * Web worker for loading, validation, and formatting in background.
      */
-     const worker = useRef(null);
+     const worker = useWorkers(Worker);
 
-     /**
-      * Create the worker, isolated to browser environment
-      */
-     useEffect(() => {
-         worker.current = new Worker();
-     }, [])
- 
      /**
       * OpenAPI spec struct will be populated asynchronously once the 
       * web worker is available.
@@ -172,7 +166,7 @@ export default ({
      /**
       * API routes to convert to forms.
       */
-     const [methods, setMethods] = useState([]);
+     const [ methods, setMethods ] = useState([]);
  
      /**
       * Extract and flatten the paths and methods.

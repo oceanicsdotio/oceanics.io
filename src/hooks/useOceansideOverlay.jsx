@@ -1,11 +1,7 @@
 import { useEffect, useState, useReducer, useRef } from "react";
-import { useStaticQuery, graphql } from "gatsby";
 import { lichen, orange } from "../palette";
 
-/**
- * Dedicated worker loaders
- */
-import Worker from "./useBathysphereApi.worker.js";
+
 
 /*
  * Rotate a path of any number of points about the origin.

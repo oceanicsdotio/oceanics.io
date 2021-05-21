@@ -3,7 +3,9 @@ import { ghost } from "../palette";
 /**
  * Dedicated worker loader
  */
-import Worker from "./useBathysphereApi.worker.js";
+import Worker from "../workers/useBathysphereApi.worker.js";
+
+import useWorkers from "./useWorkers";
 
 /**
  * The bin size is known, since the bins are precalculated.
@@ -34,16 +36,7 @@ export default ({
      * Web worker for reducing histogram bins to the statistics
      * required for consistent/adjustable rendering.
      */
-    const worker = useRef(null);
-
-    /**
-     * Create worker
-     */
-    useEffect(() => {
-        worker.current = new Worker();
-
-        return () => {worker.current.terminate()};
-    }, []);
+    const worker = useWorkers(Worker)
 
     /**
      * Summary stats include max and total. Set asynchonously by

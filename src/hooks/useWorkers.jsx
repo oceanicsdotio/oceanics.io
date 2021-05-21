@@ -6,7 +6,7 @@ import { useEffect, useRef } from "react";
 /**
  * Generic hook for loading and cleaning up workers.
  */
-export default (Worker) => {
+export default Worker => {
     /**
      * Instantiate web worker reference for background tasks.
      */

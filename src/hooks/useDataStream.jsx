@@ -1,5 +1,11 @@
+/**
+ * React friends.
+ */
 import { useState, useEffect, useRef } from "react";
 
+/**
+ * Colors for style
+ */
 import { lichen, shadow, ghost } from "../palette";
 
 /*
@@ -22,8 +28,7 @@ export default ({
      */
     const ref = useRef(null);
 
-   
-     /**
+    /**
      * Runtime will be passed to calling Hook or Component. 
      */
     const [ runtime, setRuntime ] = useState(null);

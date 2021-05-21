@@ -4,7 +4,8 @@ import { useStaticQuery, graphql } from "gatsby";
 /**
  * Dedicated worker loaders.
  */
-import Worker from "./useBathysphereApi.worker.js";
+import Worker from "../workers/useBathysphereApi.worker.js";
+import useWorkers from "./useWorkers";
 
 /**
  * GraphQL fragment for static query to get sprite sheets and tile metadata.
@@ -136,15 +137,7 @@ export default ({
     /**
      * Web worker for background tasks
      */
-    const worker = useRef(null);
-
-    /**
-     * Create the web worker
-     */
-    useEffect(() => {
-        worker.current = new Worker();
-        return () => {worker.current.terminate()};
-    }, [ ]);
+    const worker = useWorkers(Worker);
 
     useEffect(() => {
         if (!worker.current || !map) return;
