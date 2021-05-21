@@ -143,7 +143,7 @@ export default ({
      */
     useEffect(() => {
         worker.current = new Worker();
-        return worker.current.terminate;
+        return () => {worker.current.terminate()};
     }, [ ]);
 
     useEffect(() => {

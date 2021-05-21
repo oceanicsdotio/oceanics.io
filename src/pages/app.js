@@ -517,7 +517,7 @@ const AppPage = ({
     useEffect(() => {
         worker.current = new Worker();
 
-        return () => worker.current.terminate();
+        return () => {worker.current.terminate()};
     }, []);
 
     /**
