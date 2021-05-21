@@ -1,9 +1,22 @@
+/**
+ * Basic react, friends from Hooks.
+ */
 import React from "react";
-import {ghost} from "../palette";
 
+/**
+ * Colors for style.
+ */
+import { ghost } from "../palette";
+
+/**
+ * Use histogram reducer hook to visualize data.
+ */
 import useHistogramCanvas from "../hooks/useHistogramCanvas";
-import useLagrangian from "../hooks/useLagrangianTest";
 
+/**
+ * Use particles hook
+ */
+import useLagrangian from "../hooks/useLagrangian";
 
 /**
  * Use here temporarily for demo.
@@ -20,12 +33,14 @@ export default ({
     observedProperty = "Oyster suitability"
 }) => {
 
+    // Histogram references and metadata
     const histogram = useHistogramCanvas({
         histogram: JSON.parse(properties.histogram), 
         foreground,
         caption: observedProperty
     });
 
+    // Particle references and metadata
     const lag = useLagrangian({
         source: "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com/bathysphere/geospatial/wind.png",
         metadataFile: "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com/bathysphere/geospatial/wind.json",
@@ -38,7 +53,6 @@ export default ({
      */
     const dataStream = useDataStream({});
 
-
     return <div className={className}>
         <label>{histogram.message}</label>
         <canvas ref={histogram.ref}/>
@@ -47,5 +61,4 @@ export default ({
         <label>{dataStream.message}</label>
         <canvas ref={dataStream.ref}/>
     </div>
-    
 };

@@ -1,10 +1,12 @@
 import React from "react";
 
-import useLagrangian from "../hooks/useLagrangianTest";
+import useLagrangian from "../hooks/useLagrangian";
 
 export default ({}) => {
 
-    const {ref, message} = useLagrangian({
+    
+
+    const {ref, message, preview} = useLagrangian({
         source: "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com/bathysphere/geospatial/wind.png",
         metadataFile: "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com/bathysphere/geospatial/wind.json",
         res: 32,
@@ -15,5 +17,8 @@ export default ({}) => {
     return <div>
         <canvas ref={ref}/>
         <p>{message}</p>
+
+        <canvas ref={preview}/>
+        <p>{"Preview"}</p>
     </div>
 }

@@ -1,5 +1,11 @@
+/**
+ * React friends.
+ */
 import { useEffect, useState, useRef } from "react";
 
+/**
+ * Pre-import all shaders. This is a bit fragile.
+ */
 import noiseVertex from "raw-loader!../glsl/noise-vertex.glsl";
 import noiseFragment from "raw-loader!../glsl/noise-fragment.glsl";
 import quadVertex from "raw-loader!../glsl/quad-vertex.glsl";
