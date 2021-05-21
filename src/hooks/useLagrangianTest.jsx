@@ -1,10 +1,17 @@
+/**
+ * React, just friends because it's a hook. 
+ */
 import { useEffect, useState, useRef } from "react";
 
 /**
- * Shader hook
+ * Shader hook. We keep this separate for use by other implementations. 
  */
 import useGlslShaders from "./useGlslShaders";
 
+/**
+ * Color map texture for lookups
+ */
+import useColorMapTexture from "./useColorMapTexture";
 
 /**
  * Dedicated worker loader
@@ -31,11 +38,10 @@ export default ({
     source,
     metadataFile,
     res = 16,
-    colors = {
-        0.0: '#deababff',
-        1.0: '#660066ff',
-        
-    },
+    colors = [
+        [0.0, '#deababff'],
+        [1.0, '#660066ff'],
+    ],
     opacity = 0.92, // how fast the particle trails fade on each frame
     speed = 0.00007, // how fast the particles move
     diffusivity = 0.004,
@@ -60,10 +66,14 @@ export default ({
     const worker = useRef(null);
 
     /**
-     * Create worker
+     * Create worker, and terminate it when the component unmounts.
+     * 
+     * I suspect that this was contributing to performance degradation in
+     * long running sessions. 
      */
     useEffect(() => {
         worker.current = new Worker();
+        return () => { worker.current.terminate() }
     }, []);
 
     /**
@@ -76,18 +86,23 @@ export default ({
     }, [ worker ]);
 
     /**
-     * Message for user interface
+     * Message for user interface, passed out to parent component.
      */
     const [ message, setMessage ] = useState("Loading...");
 
+    /**
+     * When we have some information ready, set the status message
+     * to something informative, like number of particles
+     */
     useEffect(() => {
         if (particles)
             setMessage(`Fish (N=${res*res})`);
     }, [ particles ]);
 
     /**
-     * Shader programs compiled from GLSL source. Comes with a recycled
-     * Rust-WASM runtime. 
+     * Shader programs compiled from GLSL source. 
+     * 
+     * Comes with a recycled Rust-WASM runtime. 
      */
     const { 
         ref,
@@ -108,39 +123,11 @@ export default ({
     });
 
     /**
-     * Paints a colormap to a hidden canvas and then samples it as 
-     * a lookup table for speed calculations.
+     * Create color map
      */
-    const shape = [16, 16];
-    const size = shape[0] * shape[1];
-    const [colorMap, setTexture] =  useState(null);
+    const colorMap = useColorMapTexture({width: 16, height: 16, colors});
 
-    /**
-     * Create a temporary canvas element to paint a color
-     * map to, then draw a gradient and extract a color
-     * look up table from it.
-     */
-    useEffect(()=>{
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = size;
-        canvas.height = 1;
     
-        let gradient = ctx.createLinearGradient(0, 0, size, 0);
-        Object.entries(colors).forEach(([stop, color]) => {
-            gradient.addColorStop(+stop, color)
-        });
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, size, 1);
-        
-        setTexture({
-            filter: "LINEAR", 
-            data: new Uint8Array(ctx.getImageData(0, 0, size, 1).data), shape 
-        });
-        
-    },[]);
-
-
     /**
      * Interpreting image formatted velocity data requires having
      * infomration about the range. 
@@ -187,7 +174,7 @@ export default ({
     */
     useEffect(() => {
         const ctx = validContext();
-        if (!ctx || !particles || !metadata || !colorMap || (source && !imageData)) return;
+        if (!ctx || !particles || !metadata || !colorMap.texture || (source && !imageData)) return;
         
         const { width, height } = ref.current;
         const size = width * height * 4;
@@ -199,7 +186,7 @@ export default ({
                     back: { data: new Uint8Array(size), shape: [ width, height ] },
                     state: { data: particles, shape: [res, res] },
                     previous: { data: particles, shape: [res, res] },
-                    color: colorMap,
+                    color: { data: colorMap.texture, filter: "LINEAR", shape: [16, 16] },
                     ...(imageData ? {uv: { filter: "LINEAR", data: imageData }} : {}),
                 }).map(
                     ([k, v]) => [k, createTexture({ctx: ctx, ...v})]
@@ -223,7 +210,7 @@ export default ({
                 "u_wind_res": ["f", [width, height]]
             }
         });
-    }, [ref, particles, metadata, colorMap, imageData]);
+    }, [ ref, particles, metadata, colorMap.texture, imageData ]);
 
     /**
      * Display the wind data in a secondary 2D HTML canvas, for debugging

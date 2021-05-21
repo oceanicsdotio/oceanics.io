@@ -23,8 +23,10 @@ import { useStaticQuery, graphql, navigate } from "gatsby";
  */
 import SEO from "../components/SEO"; 
 
+/**
+ * Folded document icon to indicate collapsing UI
+ */
 import Trifold from "../components/Trifold";
-
 
 /**
  * Span like div for indicating the zoom level at which the layer appears.
@@ -64,7 +66,6 @@ const Emoji = styled.a`
     cursor: pointer;
     border: 1px dashed ${ghost};
 `;
-
 
 /**
  * This is the per item element for layers

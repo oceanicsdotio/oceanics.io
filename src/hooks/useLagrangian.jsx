@@ -7,6 +7,9 @@ import {
 } from "./useGlslShaders";
 
 
+import useColorMapTexture from "./useColorMapTexture";
+
+
 
 const exec = (runtime, ctx, uniforms, {
     components: {
@@ -67,10 +70,6 @@ export default ({
     preview=null,
     showVelocityField=false,
     res = Math.ceil(Math.sqrt(4000)),
-    colors = {
-        0.0: '#dd7700',
-        1.0: '#660066'
-    },
     opacity = 0.98, // how fast the particle trails fade on each frame
     speed = 0.3, // how fast the particles move
     drop = 0.01, // how often the particles move to a random place
@@ -90,6 +89,14 @@ export default ({
     const [assets, setAssets] = useState(null);
     
     const { programs } = useGlslShaders({ref, shaders});
+    const colorMap = useColorMapTexture({
+        width: 16,
+        height: 16,
+        colors: [
+            [0.0, '#dd7700'],
+            [1.0, '#660066']
+        ]
+    })
 
 
      /**
@@ -112,37 +119,7 @@ export default ({
         }
     }, []);
 
-    const shape = [16, 16];
-    const size = shape[0] * shape[1];
-    const [colorMap, setTexture] =  useState(null);
-
-    /**
-     * Create a temporary canvas element to paint a color
-     * map to, then draw a gradient and extract a color
-     * look up table from it.
-     */
-    useEffect(()=>{
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = size;
-        canvas.height = 1;
     
-        let gradient = ctx.createLinearGradient(0, 0, size, 0);
-        Object.entries(colors).forEach(([stop, color]) => {
-            gradient.addColorStop(+stop, color)
-        });
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, size, 1);
-        
-        setTexture({
-            filter: "LINEAR", 
-            data: new Uint8Array(ctx.getImageData(0, 0, size, 1).data), shape 
-        });
-        
-    },[]);
-
-
-
     /**
     * Create a random distribution of particle positions,
     * encoded as 4-byte colors. 
@@ -203,7 +180,7 @@ export default ({
                         back: { data: new Uint8Array(size), shape },
                         state: { data: particles, shape: [res, res] },
                         previous: { data: particles, shape: [res, res] },
-                        color: colorMap,
+                        color: { data: colorMap.texture, filter: "LINEAR", shape: [16, 16]},
                         uv: { filter: "LINEAR", data: img },
                     }).map(
                         ([k, v]) => [k, createTexture({ctx: ctx, ...v})]
@@ -329,20 +306,6 @@ export default ({
         return () => cancelAnimationFrame(requestId);
     }, [programs]);
 
-
-    /**
-    Display the wind data in a 2D HTML canvas, for debugging
-    and interpretation. 
-    */
-    useEffect(() => {
-      
-        if (!showVelocityField || !preview || !preview.current || !assets || !assets.image) return;
-
-        const { width, height } = preview.current;
-        let ctx = preview.current.getContext('2d');
-        ctx.drawImage(assets.image, 0, 0, width, height);
-
-    }, [preview, assets]);
 
     return {ref}
 };
