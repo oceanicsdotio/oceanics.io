@@ -20,10 +20,24 @@ export class ArrayBuffer {
     }
 };
 
+/**
+ * 
+ * @param {*} w Texture width
+ * @param {*} h Texture height
+ * @returns 
+ */
+const screenBuffer = (w, h) => Object({ 
+    data: new Uint8Array(w * h * 4), 
+    shape: [w, h] 
+})
 
-const screenBuffer = (w, h) => Object({ data: new Uint8Array(w * h * 4), shape: [w, h] })
-
-
+/**
+ * Helper function to extract values from a hash map.
+ * 
+ * @param {*} keys 
+ * @param {*} uniforms 
+ * @returns 
+ */
 export const extractUniforms = (keys, uniforms) => 
     keys.map(k => [k, uniforms[k]]);
 

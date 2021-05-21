@@ -521,12 +521,12 @@ const AppPage = ({
     }, []);
 
     /**
-     * MapboxGL Map instance is saved to React state. 
+     * MapBoxGL Map instance is saved to React state. 
      */
     const [ map, setMap ] = useState(null);
 
     /**
-     * Mapbox container reference.
+     * MapBox container reference.
      */
     const ref = useRef(null);
 
