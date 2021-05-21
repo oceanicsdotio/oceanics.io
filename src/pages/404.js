@@ -19,14 +19,9 @@ import Layout from "../components/Layout";
 import SEO from "../components/SEO";
 
 /**
- * Use animated gif of our little bud. 
- */
-import dagan from "../../static/dagan-sprite.gif";
-
-/**
  * Using image for GIF, don't have to worry about pixel-smoothing like canvas
  */
-const StyledImage = styled.img`
+const NotFoundImage = styled.img`
     position: relative;
     display: block;
     margin-left: auto;
@@ -34,11 +29,19 @@ const StyledImage = styled.img`
 `;
 
 /**
+ * Text style
+ */
+const NotFoundText = styled.p`
+    font-size: xx-large;
+    font-family: inherit;
+`;
+
+/**
  * Page content, could be externalized in `data/`.
  */
 const CONTENT = {
     title: "404",
-    message: "You can't get there from here",
+    message: "You can't get there from here.",
     img: "/dagan-sprite.gif"
 }
 
@@ -50,6 +53,6 @@ export default ({
 }) => 
     <Layout location={location}>
         <SEO title={CONTENT.title}/>
-        <p>{CONTENT.message}</p>
-        <StyledImage src={CONTENT.img}/>
+        <NotFoundText>{CONTENT.message}</NotFoundText>
+        <NotFoundImage src={CONTENT.img}/>
     </Layout>;
