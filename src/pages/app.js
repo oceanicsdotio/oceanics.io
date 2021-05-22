@@ -11,22 +11,17 @@ import styled from "styled-components";
 /**
  * Predefined colors.
  */
-import { ghost, orange, charcoal, pink, grey } from "../palette";
+import { ghost, charcoal, pink, grey } from "../palette";
 
 /**
  * Fetch site data.
  */
-import { useStaticQuery, graphql, navigate } from "gatsby";
+import { useStaticQuery, graphql } from "gatsby";
 
 /**
  * SEO headers.
  */
 import SEO from "../components/SEO"; 
-
-/**
- * Folded document icon to indicate collapsing UI
- */
-import Trifold from "../components/Trifold";
 
 /**
  * This is the per item element for layers
@@ -47,6 +42,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
  * Container for MapboxGL feature content. Rendered client-side.
  */
 import PopUpContent from "../components/PopUpContent";
+import Catalog from "../components/Catalog";
 
 /**
  * Can't use graphql query because of differences in layer schema.
@@ -64,123 +60,7 @@ import defaults from "../data/map-style.yml";
 import useWasmWorkers from "../hooks/useWasmWorkers";
 
 import useFragmentQueue from "../hooks/useFragmentQueue";
-
-
-/**
-The key is the Entity subclass. 
-The props are the properties of the collection itself.
-
-1. check that there is data stored in React state.
-2. if not return an empty list
-3. serialize the items, if any, and create a table within the outer list. 
-
- * The Storage component provides and interface to view
- * S3 object storage assets. 
- * The catalog page is like a landing page to the api.
-* Assets are files, usually remote, in this case stored in 
- * S3 object storage. 
- * In S3 storage objects are grouped by prefix. In our system
- * this is interpreted as thematic or topological collections.
- * This is somewhat analogous to the STAC specification.
-Routes from here correspond to entities and 
-collections in the graph database.
- */
-const Catalog = ({className, zoomLevel, queue, setQueue}) => {
-   
-    /**
-     * List of collections to build selection from.
-     * 
-     * If there is no `behind`, can be inserted in front, otherwise need to find the index
-     * of the behind value, and insert after.
-     */ 
-    // const validLayerOrder = (geojson) => {
-
-    //     // Memoize just ID and BEHIND
-    //     const triggers = {};
-
-    //     // Queue to build
-    //     const layerQueue = [];
-
-    //     geojson.forEach(({behind=null, id}) => {
-            
-    //         // no behind value
-    //         if (behind === null) {
-    //             queue.push(id);
-    //             return;
-    //         }
-
-    //         // find behind value
-    //         const ind = layerQueue.findIndex(behind);
-        
-    //         if (ind === -1) {
-    //             if (behind in triggers) {
-    //                 triggers[behind].push(id)
-    //             } else {
-    //                 triggers[behind] = [id]
-    //             }
-    //             return;
-    //         } 
-
-    //         layerQueue.splice(ind+1, 0, id);
-
-    //     });
-    // }
-        
-    
-    return <div className={className}>
-        <LayerCard {...{id: "home"}}/>
-        <LayerCard {...{id: "Gulf of Maine"}}/>
-        {geojson.map(({id, ...layer}) => {
-
-            const onClick = () => {
-                setQueue([...(queue||[]), {id, ...layer}]);
-            };
-
-            return <LayerCard {...{...layer, id, key: id, zoomLevel, onClick}}/>
-        })}
-    </div> 
-}; 
-
-/**
- * Styled version of the Single day calendar view
- */
-const StyledCatalog = styled(Catalog)`
-
-    width: auto;
-    min-height: 100vh;
-    bottom: 0;
-    margin: 0.5rem;
-    padding: 0;
-
-    & a {
-        color: ${pink};
-        cursor: pointer;
-        font-family: inherit;
-        display: inline;
-    }
-
-    & .card {
-
-        margin-top: 10px;
-        border-top: 1px dashed ${ghost};
-
-        & p {
-            color: ${grey};
-            margin: 0;
-            font-size: larger;
-        }
-    }
-
-    & h2 {
-        text-transform: capitalize;
-        display: inline;
-        font-size: larger;
-        font-family: inherit;
-        width: fit-content;
-        padding: 0;
-    }
-`;
-
+import useQueryString from "../hooks/useQueryString";
 
 
 
@@ -421,7 +301,7 @@ const AppPage = ({
         if (map) map.on('mousemove', ({lngLat}) => {setCursor(lngLat)});
     }, [ map ]);
 
-    const [ zoomLevel, setZoomLevel ] = useState(null);
+    const [ zoom, setZoomLevel ] = useState(null);
 
     /**
      * Add a mouse move handler to the map
@@ -434,22 +314,6 @@ const AppPage = ({
      * Data sets to queue and build layers from.
      */
     const [ queue, setQueue ] = useState([]);
-
-    /**
-    * When a click event happens it may intersect with multiple features. 
-    * 
-    * The popup is rendered at their center.
-    * 
-    * 
-    * Reduce many point features to a single set of coordinates at the
-    * geometric center. Does NOT take into account geogrpah projection.
-    * 
-    * Don't waste the cycles on calculating polygon centers. Just use the click
-    * location. 
-    */
-    // useEffect(()=>{
-    //     if (map) setQueue(geojson);
-    // }, [ map ]);
 
 
     /**
@@ -589,10 +453,9 @@ const AppPage = ({
      */
     useEffect(()=>{
         setExpand(mobile);
-    },[ mobile ]);
+    }, [ mobile ]);
 
 
- 
     /**
      * Get icon static data
      */
@@ -605,26 +468,12 @@ const AppPage = ({
     /**
      * React state to hold parsed query string parameters.
      */
-    const [ query, setQuery] = useState({
-        agent: null,
+    const { query } = useQueryString({
+        search,
+        defaults: {
+            agent: null
+        }
     });
-
-    /**
-     * When page loads or the search string changes,
-     * parse the query string. 
-     */
-    useEffect(() => {
-        if (!search) return;
-
-        setQuery(
-            Object.fromEntries(search
-                .slice(1, search.length)
-                .split("&")
-                .map(item => item.split("=")))
-        );
-
-    }, [ search ]);
-
     
     /**
     * Sorted items to render in interface
@@ -635,8 +484,7 @@ const AppPage = ({
     * Use Web worker to do sorting
     */
     useEffect(()=>{
-        if (worker.current)
-            worker.current.sorted({icons, tiles}).then(setSorted);
+        if (worker.current) worker.current.sorted({icons, tiles}).then(setSorted);
     }, [ worker ]);
      
 
@@ -662,7 +510,7 @@ const AppPage = ({
             row={0} 
             column={2}
         >
-            <StyledCatalog zoomLevel={zoomLevel} queue={queue} setQueue={setQueue}/> 
+            <Catalog geojson={geojson} zoomLevel={zoom} queue={queue} setQueue={setQueue}/> 
         </Pane>
     </App> 
 };
