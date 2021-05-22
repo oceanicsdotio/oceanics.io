@@ -33,6 +33,41 @@ import Trifold from "../components/Trifold";
  */
 import LayerCard from "../components/LayerCard";
 
+/**
+ * Detect mobile, and location
+ */
+import useDetectClient from "../hooks/useDetectClient";
+
+
+import ReactDOM from "react-dom";
+import mapboxgl, { Popup, Map } from "mapbox-gl";
+import "mapbox-gl/dist/mapbox-gl.css";
+
+/**
+ * Container for MapboxGL feature content. Rendered client-side.
+ */
+import PopUpContent from "../components/PopUpContent";
+
+/**
+ * Can't use graphql query because of differences in layer schema.
+ */
+import { geojson } from "../data/layers.yml";
+
+/**
+ * Map presentation and interaction defaults.
+ */ 
+import defaults from "../data/map-style.yml";  
+
+/**
+ * Dedicated Worker loader.
+ */
+import useWasmWorkers from "../hooks/useWasmWorkers";
+
+/**
+ * Object storage hook
+ */
+import useObjectStorage from "../hooks/useObjectStorage";
+
 
 /**
 The key is the Entity subclass. 
@@ -152,34 +187,6 @@ const StyledCatalog = styled(Catalog)`
 `;
 
 
-import ReactDOM from "react-dom";
-import mapboxgl, { Popup, Map } from "mapbox-gl";
-import "mapbox-gl/dist/mapbox-gl.css";
-
-/**
- * Container for MapboxGL feature content. Rendered client-side.
- */
-import PopUpContent from "../components/PopUpContent";
-
-/**
- * Can't use graphql query because of differences in layer schema.
- */
-import { geojson } from "../data/layers.yml";
-
-/**
- * Map presentation and interaction defaults.
- */ 
-import defaults from "../data/map-style.yml";  
-
-/**
- * Dedicated Worker loader.
- */
-import useWasmWorkers from "../hooks/useWasmWorkers";
-
-/**
- * Object storage hook
- */
-import useObjectStorage from "../hooks/useObjectStorage";
 
 
 /**
@@ -410,11 +417,7 @@ const Control = styled.div`
     left: 0;
 `;
 
-const geolocationSettings = {
-    enableHighAccuracy: true,
-    timeout: 5000,
-    maximumAge: 0
-}
+
 
 /**
  * Page component rendered by GatsbyJS.
@@ -606,45 +609,28 @@ const AppPage = ({
         });
     }, [ channelOrder ]);
 
-    /**
-     * User location to be obtained from Geolocation API.
-     */
-    const [ agentLocation, setAgentLocation ] = useState(null);
     
-    /**
-     * Get the user location and 
-     */
-    useEffect(() => {
-        if (!navigator.geolocation) return;
-
-        navigator.geolocation.getCurrentPosition(
-            setAgentLocation, 
-            () => { console.log("Error getting client location.") },
-            geolocationSettings
-        );
-    }, []);
-
     /**
      * Use the worker to create the point feature for the user location.
      */
     useEffect(() => {
-        if (!map || !worker.current || !agentLocation) return;
+        if (!map || !worker.current || !location) return;
 
         worker.current.userLocation([
-            agentLocation.coords.longitude, 
-            agentLocation.coords.latitude
+            location.coords.longitude, 
+            location.coords.latitude
         ]).then(source => {
             map.addLayer(source);
         });
-    }, [ worker, agentLocation, map ]);
+    }, [ worker, location, map ]);
 
     /**
      * Pan to user location immediately.
      */
     useEffect(() => {
-        if (map && agentLocation)
-            map.panTo([agentLocation.coords.longitude, agentLocation.coords.latitude]);
-    }, [ agentLocation, map ]);
+        if (map && location)
+            map.panTo([location.coords.longitude, location.coords.latitude]);
+    }, [ location, map ]);
     
     /**
      * Create home animation image
@@ -698,67 +684,7 @@ const AppPage = ({
        
     }, [ map, worker, meshQueue ]);
 
-
-    /* 
-    * Fetch tide data from NOAA. 
-    * Render a tide gauge animated icon at each position. 
-    */
-    // useEffect(() => {
-        
-    //     if (!map || !animatedIcons) return;
-    //     const id = "tidal-stations";
-    //     const extent = [-71.190, 40.975, -63.598, 46.525];
-
-    //     map.addImage(id, animatedIcons.waterLevel, { pixelRatio: 4 });
-
-    //     (async () => {
-    //         const queue = await fetch("https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json?type=waterlevels")
-    //             .then(r => r.json())
-    //             .then(({stations}) => {
-    //                 return stations.filter(({lat, lng}) => {
-    //                     return lng >= extent[0] && lng <= extent[2] && lat >= extent[1] && lat <= extent[3];
-    //                 }).map(({id})=>{
-    //                     return fetch(`https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=${id}&product=water_level&datum=mllw&units=metric&time_zone=lst_ldt&application=oceanics.io&format=json`).then(r => r.json())
-    //                     }
-    //                 );
-    //             });
-            
-    //         map.addLayer({
-    //             id,
-    //             type: 'symbol',
-    //             source: parseFeatureData({
-    //                 features: await Promise.all(queue), 
-    //                 standard: "noaa"
-    //             }),
-    //             layout: {
-    //                 'icon-image': id
-    //             }
-    //         });     
-    // })();
-    // }, [map, animatedIcons]);
-  
-
-    /**
-     * Boolean indicating whether the device is a small mobile,
-     * or full size desktop.
-     */
-    const [ mobile, setMobile ] = useState(false);
-
-    /**
-     * "Guess" the type of device based on known user agent string.
-     * 
-     * This is disclosed in the website privacy policy. 
-     */
-    useEffect(() => {
-        const userAgent = typeof navigator === "undefined" ? "" : navigator.userAgent;
-            
-        setMobile(Boolean(
-            userAgent.match(
-                /Android|BlackBerry|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i
-            )
-        ));
-          
-    }, [ ]);
+    const { mobile, location } = useDetectClient();
 
     /**
      * Set map full screen
