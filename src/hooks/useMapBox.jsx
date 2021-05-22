@@ -3,7 +3,7 @@
 import { useRef, useEffect, useState } from "react";
 
 
-import mapboxgl, { Popup, Map } from "mapbox-gl";
+import mapboxgl, { Map } from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 
 
@@ -72,8 +72,6 @@ export default ({expand}) => {
     }, [ map ]);
 
    
-
-
     return {
         map: map,
         ref: ref,

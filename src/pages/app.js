@@ -63,10 +63,7 @@ import defaults from "../data/map-style.yml";
  */
 import useWasmWorkers from "../hooks/useWasmWorkers";
 
-/**
- * Object storage hook
- */
-import useObjectStorage from "../hooks/useObjectStorage";
+import useFragmentQueue from "../hooks/useFragmentQueue";
 
 
 /**
@@ -131,8 +128,6 @@ const Catalog = ({className, zoomLevel, queue, setQueue}) => {
         
     
     return <div className={className}>
-        <h1>{"Squalltalk"}</h1>
-        <p>{"Every great story starts with a kernel of truth. We're starting with: there is but one Ocean."}</p>
         <LayerCard {...{id: "home"}}/>
         <LayerCard {...{id: "Gulf of Maine"}}/>
         {geojson.map(({id, ...layer}) => {
@@ -195,17 +190,6 @@ const StyledCatalog = styled(Catalog)`
  */
 const mapBoxAccessToken = 
     'pk.eyJ1Ijoib2NlYW5pY3Nkb3RpbyIsImEiOiJjazMwbnRndWkwMGNxM21wYWVuNm1nY3VkIn0.5N7C9UKLKHla4I5UdbOi2Q';
-
-/**
- * Storage target.
- */
-const TARGET = "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com";
-
-/**
- * Point cloud prefix.
- */
-const PREFIX = "MidcoastMaineMesh";
-
 
 /**
  * Use the Geolocation API to retieve the location of the client,
@@ -313,46 +297,7 @@ const staticQuery = graphql`
 
 
 
-
-/**
- * Art and information for single tile feature. 
- * This is used to render documentation for the game.
- */
- const TileInformation = ({
-    tile: {
-        publicURL, 
-        anchorHash,
-        queryString
-    }, 
-    className
-}) =>
-    <div className={className}>
-        <a id={anchorHash}/>
-        <img 
-            src={publicURL}
-            onClick={()=>{
-                const newLocation = queryString ? `/app/?agent=${queryString}` : `/app/`
-                navigate(newLocation);
-            }}
-        />
-    </div>;
-
-
-/**
- * Styled version of the basic TileInfo that makes the 
- * rendering context use crisp edges and a fixed size icon
- */
-const StyledTileInformation = styled(TileInformation)`
-
-    padding: 0 32px 0 8px;
-    
-    & img {
-        image-rendering: crisp-edges;
-        width: 96px;
-        filter: grayscale(${({tile: {grayscale}})=>!!grayscale*100}%);
-        cursor: pointer;
-    }
-`;
+import TileInformation from "../components/TileInformation";
 
 
 /**
@@ -405,16 +350,6 @@ const StyledMap = styled.div`
     border: 1px dashed ${ghost};
     border-top: none;
     border-bottom: none;
-`;
-
-
-const Control = styled.div`
-    display: flex;
-    flex-flow: column;
-    position: absolute;
-    margin: 0;
-    top: 0;
-    left: 0;
 `;
 
 
@@ -640,49 +575,6 @@ const AppPage = ({
         map.addImage("home", pulsingDot({size: 32}));
     }, [ map ]);
 
-    /**
-     * Retrieve S3 file system meta data. The `null` target prevents any HTTP request
-     * from happening.
-     */ 
-    const fs = useObjectStorage({target: `${TARGET}?prefix=${PREFIX}/necofs_gom3_mesh/nodes/`});
-
-    /**
-     * The queue is an array of remote data assets to fetch and process. 
-     * 
-     * Updating the queue triggers `useEffect` hooks depending on whether
-     * visualization elements have been passed in or assigned externally.
-     */
-    const [ meshQueue, setMeshQueue ] = useState([]);
-
-
-    /**
-     * By default set the queue to the fragments listed in the response
-     * from S3 object storage queries.
-     */
-    useEffect(()=>{
-        if (fs) setMeshQueue(fs.objects.filter(x => !x.key.includes("undefined")));
-    }, [ fs ]);
-
-
-    /**
-     * Request all NECOFS fragments sequentially. 
-     * 
-     * All of this should be cached by the browser
-     */
-    useEffect(()=>{
-        if (!map || !worker.current || !meshQueue.length) return;
-
-        const key = meshQueue[0].key;
-
-        setMeshQueue(meshQueue.slice(1, meshQueue.length));
-
-        if (map.getLayer(`mesh-${key}`)) return;
-
-        worker.current
-            .getFragment(TARGET, key, "UMass Dartmouth")
-            .then(x => {map.addLayer(x)});
-       
-    }, [ map, worker, meshQueue ]);
 
     const { mobile, location } = useDetectClient();
 
@@ -755,32 +647,15 @@ const AppPage = ({
             column={0}
             display={!columnSize({expand, mobile, column: 0}) ? "none" : undefined}
         >
-            <img 
-                src={"/dagan-mad.gif"} 
-                className={"logo"}
-            />
-
-            {sorted.map(tile => 
-                <StyledTileInformation
-                    key={tile.anchorHash} 
-                    tile={tile}
-                />
-            )}
+            <img className={"logo"} src={"/dagan-mad.gif"}/>
+            {sorted.map(tile => <TileInformation key={tile.anchorHash} tile={tile}/>)}
         </Pane>
         <Pane 
             row={0} 
             column={1}
             display={!columnSize({expand, mobile, column: 1}) ? "none" : undefined}
         >
-            <div>
             <StyledMap ref={ref}/>      
-            <Control>
-                <Trifold 
-                    onClick={() => {setExpand(!expand)}}
-                    stroke={orange}
-                /> 
-            </Control>
-            </div>
         </Pane>
         <Pane 
             display={!columnSize({expand, mobile, column: 2}) ? "none" : undefined}
