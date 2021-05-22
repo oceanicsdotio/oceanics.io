@@ -99,6 +99,7 @@ const Catalog = ({className, zoomLevel, queue, setQueue}) => {
         <h1>{"Squalltalk"}</h1>
         <p>{"Every great story starts with a kernel of truth. We're starting with: there is but one Ocean."}</p>
         <LayerCard {...{id: "home"}}/>
+        <LayerCard {...{id: "Gulf of Maine"}}/>
         {geojson.map(({id, ...layer}) => {
 
             const onClick = () => {
@@ -459,7 +460,7 @@ const AppPage = ({
         const _map = new Map({container: ref.current, ...defaults});
         setMap(_map);
 
-        return _map.remove;
+        return () => {_map.remove()};
     }, [ ref ]);
 
     /**
@@ -551,6 +552,7 @@ const AppPage = ({
                 const onClick = !component ? null : ({features, lngLat: {lng, lat}}) => {
 
                     const reduce = (layer.type === "circle" || layer.type === "symbol");
+
                     const projected = reduce ? features.map(({geometry: {coordinates}, ...props}) => {
                         while (Math.abs(lng - coordinates[0]) > 180) 
                             coordinates[0] += lng > coordinates[0] ? 360 : -360;
