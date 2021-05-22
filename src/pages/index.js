@@ -6,7 +6,7 @@ import React, { useEffect, useState, useMemo } from "react";
 /**
  * For building and linking data
  */
-import { graphql, navigate, Link } from "gatsby";
+import { graphql, navigate } from "gatsby";
 
 /**
  * Needed for parsing source files
@@ -36,12 +36,16 @@ import SEO from "../components/SEO";
 /**
  * For interactive elements
  */
-import Form from "../components/Form";
+import { FormContainer } from "../components/Form";
 
 /**
  * Use Oceanside for header image
  */
 import Oceanside from "../components/Oceanside";
+
+import Article from "../components/Article";
+
+import useQueryString, { decode, onSelectValue, onIncrementValue } from "../hooks/useQueryString";
 
 /**
  * Page data
@@ -66,47 +70,6 @@ const StyledParagraph = styled.p`
     font-size: larger;
 `;
 
-/**
- * Article element, rendered with child metadata 
- */
-const StyledArticle = styled.article`
-
-    & h2 {
-        margin-bottom: 0;
-        padding: 0;
-    }
-
-    & small {
-        display: block;
-        color: ${ghost};
-    }
-
-    & a {
-        display: inline-block;
-        text-decoration: none;
-        color: ${ghost};
-        border: 1px dashed ${grey};
-        background-color: ${charcoal};
-        border-radius: 5px;
-        font-size: smaller;
-        margin-right: 5px;
-        padding: 2px;
-        cursor: pointer;
-    }
-
-    & h2 {
-        & a {
-            box-shadow: none;
-            background-color: ${shadow};
-            color: ${orange};
-            border: none;
-            font-size: inherit;
-            text-decoration: underline;
-            margin: 0;
-            padding: 0;
-        }
-    } 
-`;
 
 
 /**
@@ -114,69 +77,6 @@ const StyledArticle = styled.article`
  */
 const itemIncrement = 3;
 
-/**
- * Go from search string to object with parsed numeric values
- * 
- * @param {*} x 
- * @returns 
- */
-const decodeSearch = x => Object.fromEntries(x
-    .slice(1, x.length)
-    .split("&")
-    .map(item => {
-
-        const [key, value] = item.split("=");
-        const parsed = Number(value);
-
-        return value && !isNaN(parsed) ? [key, parsed] : [key, value]
-    }));
-
-/**
- * Go from object to valid local URL
- * @param {*} x 
- * @returns 
- */
-const encodeSearch = x => {
-    return "/?" + Object.entries(x)
-        .map(([key, value]) => `${key}=${value}`)
-        .join("&")
-};
-
-/**
- * Set tag as current, and increase number visible
- */
-const onAddItems = search => () => { 
-
-    const params = search ? decodeSearch(search) : {items: undefined};
-
-    console.log({params})
-
-    const items = (typeof params.items !== undefined && params.items) ? 
-        params.items + itemIncrement : 2*itemIncrement;
-
-    navigate(encodeSearch({
-        ...params,
-        items
-    })); 
-};
-
-
-/**
- * Set tag from value know in advance
- * 
- * @param {*} search 
- * @param {*} tag 
- * @returns 
- */
-const onSelectTag = (search, tag=null) => event => {
-
-    const params = search ? decodeSearch(search) : {};
-
-    navigate(encodeSearch({
-        ...params, 
-        tag: tag ? tag : event.target.value
-    }));
-};
 
 
 const CampaignContainer = styled.div`
@@ -195,14 +95,6 @@ const CampaignContainer = styled.div`
         font-size: 2rem;
     }
 `;
-
-
-const FormBox = styled.div`
-    & * {
-        font-size: 1.2rem;
-    }
-`;
-
 
 
 /**
@@ -249,19 +141,21 @@ export default ({
      */
     const [ visible, setVisible ] = useState(nodes.slice(0, itemIncrement));
 
+    const { query } = useQueryString({
+        search,
+        defaults: {
+            items: itemIncrement,
+            tag: null,
+            reference: null
+        }
+    })
     /**
      * When page loads or search string changes parse the string to React state.
      * 
      * Determine visible content. 
      */
     useEffect(() => {
-        
-        const _query = ((x) => Object({
-            items: itemIncrement,
-            tag: null,
-            reference: null,
-            ...decodeSearch(x)
-        }))(search);
+        if (!query) return;
 
         // Pick up a value and see if article has it.
         const _eval = (obj, key, data) =>
@@ -274,14 +168,14 @@ export default ({
                 citations,
             }
         }) => !(
-            _eval(_query, "tag", tags) || 
-            _eval(_query, "reference", (citations||[]).map(referenceHash))
+            _eval(query, "tag", tags) || 
+            _eval(query, "reference", (citations||[]).map(referenceHash))
         );
         
         // Filter down to just matching, and then limit number of items
-        setVisible(nodes.filter(_filter).slice(0, _query.items));
+        setVisible(nodes.filter(_filter).slice(0, query.items));
 
-    }, [ search ]);
+    }, [ query ]);
 
     return (
         <Layout title={title}>
@@ -290,14 +184,13 @@ export default ({
             
             <CampaignContainer>
                 <div>
-                   {"Autonomous, prosperous, accountable."} 
+                   {"Autonomous, Prosperous, Accountable. Pick Three."} 
                 </div>
-                {version.content.map((text, ii)=>
-                    <StyledParagraph key={`paragraph-${ii}`}>
-                    {text}
-                    </StyledParagraph>)}
-                <FormBox>
-                <Form
+                {version.content.map((text, ii) => 
+                    <StyledParagraph key={`paragraph-${ii}`} children={text}/>)
+                }
+              
+                <FormContainer
                     actions={[{
                         value: `${version.response}`,
                         type: "button",
@@ -312,54 +205,23 @@ export default ({
                         onClick: ()=>{navigate(`/references/`)}
                     }]}
                 />
-                </FormBox>
             </CampaignContainer>
-           
-            {visible.map(({
-                frontmatter: {
-                    title,
-                    date,
-                    description,
-                    tags
-                }, fields: {
-                    slug
-                }
-            }, ii) =>
-                <StyledArticle>
-                    <header>
-                        <h2>
-                            <Link to={slug}>{title}</Link>
-                        </h2>
-                        <small>{date}</small>
-                    </header>
-                    <section>
-                        <StyledParagraph>{description}</StyledParagraph>
-                    </section>
-                    {tags.map(text => 
-                        <a
-                            key={`node-${ii}-${text}`} 
-                            onClick={onSelectTag(search, text)}
-                        >
-                            {text}
-                        </a>
-                    )}
-                </StyledArticle>)}
+            {visible.map(props => <Article {...{...props, search}}/>)}
             <br/>
-            <FormBox>
-                <Form
-                    fields={[{
-                        type: "select",
-                        id: "filter by tag",
-                        options: group.map(({ fieldValue }) => fieldValue),
-                        onChange: onSelectTag(search)
-                    }]}
-                    actions={[{
-                        value: "More arcana",
-                        type: "button",
-                        onClick: onAddItems(search)
-                    }]}
-                />
-            </FormBox>
+            
+            <FormContainer
+                fields={[{
+                    type: "select",
+                    id: "filter by tag",
+                    options: group.map(({ fieldValue }) => fieldValue),
+                    onChange: onSelectValue(search, "tag")
+                }]}
+                actions={[{
+                    value: "More arcana",
+                    type: "button",
+                    onClick: onIncrementValue(search, "items", itemIncrement)
+                }]}
+            />
         </Layout>
     )
 };
