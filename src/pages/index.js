@@ -206,7 +206,7 @@ export default ({
                     }]}
                 />
             </CampaignContainer>
-            {visible.map(props => <Article {...{...props, search}}/>)}
+            {visible.map((props, ii) => <Article {...{...props, search, key: `node-${ii}`}}/>)}
             <br/>
             
             <FormContainer
