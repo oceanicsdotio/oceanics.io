@@ -1,11 +1,10 @@
-import { useEffect, useState, useReducer, useRef } from "react";
+import { useEffect, useReducer, useRef } from "react";
 import { useStaticQuery, graphql } from "gatsby";
 
 /**
  * Dedicated worker loaders.
  */
-import Worker from "../workers/useBathysphereApi.worker.js";
-import useWorkers from "./useWorkers";
+import useWasmWorkers from "./useWasmWorkers"
 
 /**
  * GraphQL fragment for static query to get sprite sheets and tile metadata.
@@ -32,7 +31,6 @@ const query = graphql`
         }
     }
 `
-
 
 /**
  * The `Oceanside` hook provides all of the functionality to
@@ -78,27 +76,7 @@ export default ({
         }
     } = useStaticQuery(query);
 
-    /**
-     * Runtime will be passed to calling Hook or Component. 
-     */
-    const [ runtime, setRuntime ] = useState(null);
-
-    /**
-     * Dynamically load the WASM, add debugging, and save to React state,
-     */
-    useEffect(() => {
-        try {
-            (async () => {
-                const runtime = await import('../wasm');
-                runtime.panic_hook();
-                setRuntime(runtime);
-            })()   
-        } catch (err) {
-            console.log("Unable to load WASM runtime")
-        }
-    }, []);
     
-
     /**
      * Update currently visible tiles from map view.
      * 
@@ -135,9 +113,9 @@ export default ({
     );
     
     /**
-     * Web worker for background tasks
+     * Web worker for background tasks, with frontend Wasm Runtime for drawing
      */
-    const worker = useWorkers(Worker);
+    const { worker, runtime } = useWasmWorkers();
 
     useEffect(() => {
         if (!worker.current || !map) return;
@@ -173,8 +151,6 @@ export default ({
     
         (function render() {
 
-           
-    
             const { width, height } = board.current;
 
             runtime.clear_rect_blending(ctx, width, height, backgroundColor);

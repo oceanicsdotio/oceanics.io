@@ -16,8 +16,7 @@ import useColorMapTexture from "./useColorMapTexture";
 /**
  * Dedicated worker loader
  */
-import Worker from "../workers/useBathysphereApi.worker.js";
-import useWorkers from "./useWorkers";
+import useWasmWorkers from "./useWasmWorkers";
 
 /**
  * Mapping of uniforms to program components
@@ -69,7 +68,7 @@ export default ({
     /**
      * Load worker
      */
-    const worker = useWorkers(Worker);
+    const {worker} = useWasmWorkers();
 
     /**
      * Create a initial distribution of particle positions,

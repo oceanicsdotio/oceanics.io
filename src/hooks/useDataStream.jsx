@@ -6,7 +6,12 @@ import { useState, useEffect, useRef } from "react";
 /**
  * Colors for style
  */
-import { lichen, shadow, ghost } from "../palette";
+import { lichen, ghost } from "../palette";
+
+/**
+ * Synchronous front-end WASM Runtime
+ */
+import useWasmRuntime from "./useWasmRuntime";
 
 /*
  * Time series data
@@ -31,22 +36,7 @@ export default ({
     /**
      * Runtime will be passed to calling Hook or Component. 
      */
-    const [ runtime, setRuntime ] = useState(null);
-
-    /**
-     * Dynamically load the WASM, add debugging, and save to React state,
-     */
-    useEffect(() => {
-        try {
-            (async () => {
-                const runtime = await import('../wasm');
-                runtime.panic_hook();
-                setRuntime(runtime);
-            })()   
-        } catch (err) {
-            console.log("Unable to load WASM runtime")
-        }
-    }, []);
+    const { runtime } = useWasmRuntime();
 
     /**
      * The data stream structure. 
@@ -96,7 +86,6 @@ export default ({
             dataStream.push(time, fcn(time));
             
             dataStream.draw(ref.current, time, {backgroundColor, streamColor, overlayColor, lineWidth, pointSize, fontSize, tickSize, labelPadding});
-
 
             setMessage(`Light (N=${dataStream.size()})`);
             requestId = requestAnimationFrame(render);

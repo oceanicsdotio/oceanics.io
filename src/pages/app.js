@@ -243,13 +243,13 @@ import defaults from "../data/map-style.yml";
 /**
  * Dedicated Worker loader.
  */
-import Worker from "../workers/useBathysphereApi.worker.js";
-import useWorkers from "../hooks/useWorkers"
+import useWasmWorkers from "../hooks/useWasmWorkers";
 
 /**
  * Object storage hook
  */
 import useObjectStorage from "../hooks/useObjectStorage";
+
 
 /**
  * Public Mapbox key for client side rendering. Cycle if abused. We have a API call limit
@@ -505,13 +505,7 @@ const AppPage = ({
  * Only one map context please, need center to have been set.
 */
 
-    /**
-     * Web worker reference for background tasks. 
-     * 
-     * This will be used to process raw data into MapBox layers,
-     * and do any expensive topological or reducing operations. 
-     */
-    const worker = useWorkers(Worker);
+    const { worker, status } = useWasmWorkers();
 
     /**
      * MapBoxGL Map instance is saved to React state. 
@@ -558,7 +552,7 @@ const AppPage = ({
         if (map) map.on('mousemove', ({lngLat}) => {setCursor(lngLat)});
     }, [ map ]);
 
-    const [zoomLevel, setZoomLevel] = useState(null);
+    const [ zoomLevel, setZoomLevel ] = useState(null);
 
     /**
      * Add a mouse move handler to the map
@@ -588,22 +582,6 @@ const AppPage = ({
     //     if (map) setQueue(geojson);
     // }, [ map ]);
 
-    /**
-     * Information about the Rust-WASM runtime instance running inside
-     * the worker. We'll use this to make sure that the worker is going
-     * before we send in data to process. 
-     */
-    const [ runtimeStatus, setRuntimeStatus ] = useState({ready: false});
-
-    /**
-     * Initialize the Worker scope runtime, and save the status to React
-     * state. This will be used as a Hook reflow key. 
-     */
-    useEffect(()=>{
-        if (worker.current)
-            worker.current.initRuntime().then(setRuntimeStatus);
-    }, [ worker.current ]);
-
 
     /**
      * Reorder data sets as they are added.
@@ -616,9 +594,15 @@ const AppPage = ({
      * to the MapBox instance as a GeoJSON layer. 
      */
     useEffect(() => {
-        if (!map || !queue || !worker.current || !runtimeStatus.ready) return;
+        if (!map || !queue || !worker.current || !status.ready) return;
 
-        queue.forEach(({
+
+        const callback = (id, source, layer, onClick) => {
+            map.addLayer({id, source, ...layer});
+            if (onClick) map.on('click', id, onClick);
+        }
+
+        queue.filter(x => !map.getLayer(x)).forEach(({
             id,
             behind,
             standard="geojson",
@@ -627,20 +611,14 @@ const AppPage = ({
             attribution=null, 
             ...layer
         }) => {
-            // Guard against re-loading layers
-            if (map.getLayer(id)) return;
-
+           
             setChannelOrder([...channelOrder, [id, behind]]);
 
             worker.current.getData(url, standard).then(source => {
 
                 if (attribution) source.attribution = attribution;
-                
-                map.addLayer({id, source, ...layer});
-                
-                if (!component) return;
-                
-                const onClick = ({features, lngLat: {lng, lat}}) => {
+                    
+                const onClick = !component ? null : ({features, lngLat: {lng, lat}}) => {
 
                     const reduce = (layer.type === "circle" || layer.type === "symbol");
                     const projected = reduce ? features.map(({geometry: {coordinates}, ...props}) => {
@@ -674,14 +652,14 @@ const AppPage = ({
                     });    
                 }
                 
-                map.on('click', id, onClick);
+                callback(id, source, layer, onClick);
 
             }).catch(err => {
                 console.log(`Error loading ${id}`, err);
             });
         }); 
 
-    }, [ queue, worker.current, runtimeStatus ]);
+    }, [ queue, worker.current, status ]);
 
     /**
      * Swap layers to be in the correct order as they are created. Will

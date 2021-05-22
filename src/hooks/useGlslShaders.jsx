@@ -3,6 +3,8 @@
  */
 import { useEffect, useState, useRef } from "react";
 
+import useWasmRuntime from "./useWasmRuntime";
+
 /**
  * Pre-import all shaders. This is a bit fragile.
  */
@@ -252,7 +254,7 @@ export const useGlslShaders = ({
      /**
      * Runtime will be passed to calling Hook or Component. 
      */
-    const [runtime, setRuntime] = useState(null);
+    const { runtime } = useWasmRuntime();
 
     /**
      * Dynamically load the WASM, add debugging, and save to React state,

@@ -1,6 +1,8 @@
 import { useEffect, useState, useRef } from "react";
 
 
+import useWasmRuntime from "./useWasmRuntime";
+
 /**
  * The `Oceanside` hook provides all of the functionality to
  * embed the game/visualization engine in any React app.
@@ -34,23 +36,8 @@ export default ({
     /**
      * Runtime will be passed to calling Hook or Component. 
      */
-    const [ runtime, setRuntime ] = useState(null);
+    const {runtime} = useWasmRuntime();
 
-    /**
-     * Dynamically load the WASM, add debugging, and save to React state,
-     */
-    useEffect(() => {
-        try {
-            (async () => {
-                const runtime = await import('../wasm');
-                runtime.panic_hook();
-                setRuntime(runtime);
-            })()   
-        } catch (err) {
-            console.log("Unable to load WASM runtime")
-        }
-    }, []);
-    
     /**
      * MiniMap data structure from Rust-WebAssembly.
      */

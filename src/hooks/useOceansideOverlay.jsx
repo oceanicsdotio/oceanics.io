@@ -1,5 +1,6 @@
 import { useEffect, useState, useReducer, useRef } from "react";
 import { lichen, orange } from "../palette";
+import useWasmRuntime from "./useWasmRuntime";
 
 
 
@@ -76,7 +77,7 @@ export default ({
     /**
      * Runtime will be passed to calling Hook or Component. 
      */
-    const [ runtime, setRuntime ] = useState(null);
+    const { runtime } = useWasmRuntime();
 
     /**
      * Dynamically load the WASM, add debugging, and save to React state,
@@ -103,8 +104,7 @@ export default ({
      */
     useEffect(()=>{
         if (!runtime) return;
-        const _cursor = new runtime.PrismCursor(0.0, 0.0, window.devicePixelRatio, gridSize);
-        setCursor(_cursor);
+        setCursor(new runtime.PrismCursor(0.0, 0.0, window.devicePixelRatio, gridSize));
     }, [ runtime ]);
     
     /**
