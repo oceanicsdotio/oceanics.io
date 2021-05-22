@@ -66,6 +66,19 @@ export const onIncrementValue = (search, key, increment=1) => () => {
 };
 
 
+export const navigateWithQuery = (url, search, insert) => {
+    
+    const params = search ? decode(search) : {};
+
+    const combine = Object.entries({
+        ...params, 
+        ...insert
+    }).filter(([_, v]) => v !== null && v !== "");
+
+    navigate(url + encode(Object.fromEntries(combine)));
+}
+
+
 export default ({search, defaults}) => {
 
     /**

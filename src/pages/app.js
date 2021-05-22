@@ -1,7 +1,7 @@
 /**
  * React and friends.
  */
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 
 /**
  * Component-level styling.
@@ -11,22 +11,13 @@ import styled from "styled-components";
 /**
  * Predefined colors.
  */
-import { ghost, charcoal, pink, grey } from "../palette";
-
-/**
- * Fetch site data.
- */
-import { useStaticQuery, graphql } from "gatsby";
+import { ghost, charcoal } from "../palette";
 
 /**
  * SEO headers.
  */
 import SEO from "../components/SEO"; 
 
-/**
- * This is the per item element for layers
- */
-import LayerCard from "../components/LayerCard";
 
 /**
  * Detect mobile, and location
@@ -35,8 +26,7 @@ import useDetectClient from "../hooks/useDetectClient";
 
 
 import ReactDOM from "react-dom";
-import mapboxgl, { Popup, Map } from "mapbox-gl";
-import "mapbox-gl/dist/mapbox-gl.css";
+import { Popup } from "mapbox-gl";
 
 /**
  * Container for MapboxGL feature content. Rendered client-side.
@@ -49,10 +39,6 @@ import Catalog from "../components/Catalog";
  */
 import { geojson } from "../data/layers.yml";
 
-/**
- * Map presentation and interaction defaults.
- */ 
-import defaults from "../data/map-style.yml";  
 
 /**
  * Dedicated Worker loader.
@@ -60,16 +46,9 @@ import defaults from "../data/map-style.yml";
 import useWasmWorkers from "../hooks/useWasmWorkers";
 
 import useFragmentQueue from "../hooks/useFragmentQueue";
-import useQueryString from "../hooks/useQueryString";
 
 
 
-/**
- * Public Mapbox key for client side rendering. Cycle if abused. We have a API call limit
- * in place to prevent cost overages. 
- */
-const mapBoxAccessToken = 
-    'pk.eyJ1Ijoib2NlYW5pY3Nkb3RpbyIsImEiOiJjazMwbnRndWkwMGNxM21wYWVuNm1nY3VkIn0.5N7C9UKLKHla4I5UdbOi2Q';
 
 /**
  * Use the Geolocation API to retieve the location of the client,
@@ -143,41 +122,8 @@ const columnSize = ({expand, mobile, column}) => {
     }
 };
 
-/**
- * Query for icons and info
- */
-const staticQuery = graphql`
-    query {
-        oceanside: allOceansideYaml(sort: {
-            order: ASC,
-            fields: [queryString]
-        }
-        filter: {
-            name: {ne: "Land"}
-        }) {
-            tiles: nodes {
-                name
-                data
-                description
-                becomes,
-                queryString,
-                dialog
-            }
-        }
-        icons: allFile(filter: { 
-            sourceInstanceName: { eq: "assets" },
-            extension: {in: ["gif"]}
-        }) {
-            icons: nodes {
-                relativePath
-                publicURL
-            }
-        }
-    }`
-
-
-
-import TileInformation from "../components/TileInformation";
+import useMapBox from "../hooks/useMapBox";
+import ControlPane from "../components/ControlPane";
 
 
 /**
@@ -257,29 +203,14 @@ const AppPage = ({
     const { worker, status } = useWasmWorkers();
 
     /**
+     * Set map full screen
+     */
+     const [ expand, setExpand ] = useState(false);
+
+    /**
      * MapBoxGL Map instance is saved to React state. 
      */
-    const [ map, setMap ] = useState(null);
-
-    /**
-     * MapBox container reference.
-     */
-    const ref = useRef(null);
-
-    /**
-     * Create the MapBoxGL instance.
-     * 
-     * Don't do any work if `ref` has not been assigned to an element. 
-     */
-    useEffect(() => {
-        if (!ref.current) return;
-        mapboxgl.accessToken = mapBoxAccessToken;
-
-        const _map = new Map({container: ref.current, ...defaults});
-        setMap(_map);
-
-        return () => {_map.remove()};
-    }, [ ref ]);
+    const { map, ref, zoom } = useMapBox({expand});
 
     /**
      * Hoist the resize function on map to the parent 
@@ -290,37 +221,14 @@ const AppPage = ({
     }, [expand]);
 
     /**
-     * Location of cursor in geospatial coordinates, updated onMouseMove.
-     */
-    const [ cursor, setCursor ] = useState(null);
-
-    /**
-     * Add a mouse move handler to the map
-     */
-    useEffect(() => {
-        if (map) map.on('mousemove', ({lngLat}) => {setCursor(lngLat)});
-    }, [ map ]);
-
-    const [ zoom, setZoomLevel ] = useState(null);
-
-    /**
-     * Add a mouse move handler to the map
-     */
-     useEffect(() => {
-        if (map) map.on('zoom', () => {setZoomLevel(map.getZoom())});
-    }, [ map ]);
-
-    /**
      * Data sets to queue and build layers from.
      */
     const [ queue, setQueue ] = useState([]);
-
 
     /**
      * Reorder data sets as they are added.
      */
     const [ channelOrder, setChannelOrder ] = useState([]);
-
 
     /**
      * Task the web worker with loading and transforming data to add
@@ -442,10 +350,6 @@ const AppPage = ({
 
     const { mobile, location } = useDetectClient();
 
-    /**
-     * Set map full screen
-     */
-    const [ expand, setExpand ] = useState(false);
 
     /**
      * Assume that on mobile the user will want to see the map
@@ -456,38 +360,6 @@ const AppPage = ({
     }, [ mobile ]);
 
 
-    /**
-     * Get icon static data
-     */
-    const {
-        oceanside: {tiles},
-        icons: {icons}
-    } = useStaticQuery(staticQuery);
-
-
-    /**
-     * React state to hold parsed query string parameters.
-     */
-    const { query } = useQueryString({
-        search,
-        defaults: {
-            agent: null
-        }
-    });
-    
-    /**
-    * Sorted items to render in interface
-    */
-    const [ sorted, setSorted ] = useState([]);
-
-    /**
-    * Use Web worker to do sorting
-    */
-    useEffect(()=>{
-        if (worker.current) worker.current.sorted({icons, tiles}).then(setSorted);
-    }, [ worker ]);
-     
-
     return <App {...{mobile, expand}}>
         <SEO title={"Blue computing"} />
         <Pane 
@@ -495,8 +367,7 @@ const AppPage = ({
             column={0}
             display={!columnSize({expand, mobile, column: 0}) ? "none" : undefined}
         >
-            <img className={"logo"} src={"/dagan-mad.gif"}/>
-            {sorted.map(tile => <TileInformation key={tile.anchorHash} tile={tile}/>)}
+            <ControlPane search={search}/>
         </Pane>
         <Pane 
             row={0} 

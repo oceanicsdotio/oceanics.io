@@ -21,7 +21,7 @@ import styled from "styled-components";
 /**
  * Predefined color palette
  */
-import { charcoal, orange, grey, ghost, shadow } from "../palette";
+import { ghost } from "../palette";
 
 /**
  * Standard layout component for main and non-app pages
@@ -45,7 +45,7 @@ import Oceanside from "../components/Oceanside";
 
 import Article from "../components/Article";
 
-import useQueryString, { decode, onSelectValue, onIncrementValue } from "../hooks/useQueryString";
+import useQueryString, { navigateWithQuery, onSelectValue, onIncrementValue } from "../hooks/useQueryString";
 
 /**
  * Page data
@@ -194,7 +194,7 @@ export default ({
                     actions={[{
                         value: `${version.response}`,
                         type: "button",
-                        onClick: () => {navigate(`/app/?campaign=${version.name}`)}
+                        onClick: () => {navigateWithQuery(`/app`, search, {campaign: version.name})}
                     },{
                         value: `Learn about our API`,
                         type: "button",

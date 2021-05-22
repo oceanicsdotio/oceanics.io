@@ -12,7 +12,14 @@ import "mapbox-gl/dist/mapbox-gl.css";
  */ 
  import defaults from "../data/map-style.yml";  
 
+/**
+ * Public Mapbox key for client side rendering. Cycle if abused. We have a API call limit
+ * in place to prevent cost overages. 
+ */
+ const mapBoxAccessToken = 
+ 'pk.eyJ1Ijoib2NlYW5pY3Nkb3RpbyIsImEiOiJjazMwbnRndWkwMGNxM21wYWVuNm1nY3VkIn0.5N7C9UKLKHla4I5UdbOi2Q';
 
+ 
 /**
  * If the map element has not been created yet, create it with a custom style, and user
  * provided layer definitions. 

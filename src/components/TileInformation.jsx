@@ -1,7 +1,7 @@
 import React from "react";
 import styled from "styled-components";
-import { navigate } from "gatsby";
 
+import {navigateWithQuery} from "../hooks/useQueryString";
 
 
 /**
@@ -14,18 +14,18 @@ import { navigate } from "gatsby";
         anchorHash,
         queryString
     }, 
-    className
-}) =>
-    <div className={className}>
+    className,
+    search
+}) =>{
+
+    return <div className={className}>
         <a id={anchorHash}/>
         <img 
             src={publicURL}
-            onClick={()=>{
-                const newLocation = queryString ? `/app/?agent=${queryString}` : `/app/`
-                navigate(newLocation);
-            }}
+            onClick={() => {navigateWithQuery(`/app`, search, {agent: queryString})}}
         />
-    </div>;
+    </div>
+};
 
 
 /**
