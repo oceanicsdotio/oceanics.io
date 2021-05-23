@@ -94,33 +94,6 @@ const StyledCatalog = styled(Catalog)`
     margin: 0.5rem;
     padding: 0;
 
-    & a {
-        color: ${pink};
-        cursor: pointer;
-        font-family: inherit;
-        display: inline;
-    }
-
-    & .card {
-
-        margin-top: 10px;
-        border-top: 1px dashed ${ghost};
-
-        & p {
-            color: ${grey};
-            margin: 0;
-            font-size: larger;
-        }
-    }
-
-    & h2 {
-        text-transform: capitalize;
-        display: inline;
-        font-size: larger;
-        font-family: inherit;
-        width: fit-content;
-        padding: 0;
-    }
 `;
 
 export default StyledCatalog;

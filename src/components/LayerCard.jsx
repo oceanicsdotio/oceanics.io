@@ -1,7 +1,7 @@
 /**
  * React and friends.
  */
- import React from "react";
+ import React, { useMemo } from "react";
 
  /**
   * Component-level styling.
@@ -43,47 +43,91 @@
   * Emoji button, cuz it unicode baby. 
   */
  const Emoji = styled.a`
-     display: inline-block;
-     text-decoration: dashed;
-     margin: 5px;
-     padding: 2px;
-     border-radius:50%;
-     background-color: ${grey};
-     cursor: pointer;
-     border: 1px dashed ${ghost};
+    margin: 5px;
+    padding: 2px;
+    border-radius:50%;
+    background-color: ${grey};
+    cursor: pointer;
+    border: 1px dashed ${ghost};
+    text-decoration: none !important;
  `;
+
+ 
 /**
  * This is the per item element for layers
  * @param {*} param0 
  * @returns 
  */
- export default ({
+export const LayerCard = ({
     id,
     url,
     type,
+    className,
     component="default",
     maxzoom=21,
     minzoom=1,
     zoomLevel,
-    behind=null,
-    attribution="unknown",
+    attribution="Oceanics.io",
     info=null,
     onClick=null,
 }) => {
+
+    const tools = useMemo(()=>[
+        ["onClick", onClick, "🏝️"],
+        ["href", url, "💻"]
+    ].filter(
+        x => !!x[1]
+    ).map(([key, value, children]) => Object({
+        [key]: value,
+        key: `${id}-${children}`,
+        children
+    })).map(x => <Emoji {...x}/>));
+
     return <div 
-        className={"card"} 
+        className={className} 
     >
-        <div><h2>{id.replace(/-/g, ' ')}</h2>
-        {` by ${attribution}`}
+        <div>
+            <h2>{id.replace(/-/g, ' ')}</h2>
+            <a href={info||""} children={attribution}/>
         </div>
         <p>{`${type} with <${component}/> popup`}</p>
         <StyledZoomIndicator zoom={[minzoom, maxzoom]} zoomLevel={zoomLevel}/>
-        <div>
-            <Emoji onClick={onClick||(() => {console.log("No handlers")})}>{"🏝️"}</Emoji>
-            <Emoji href={url}>{"💻"}</Emoji>
-            {info ? <Emoji href={info}>{"❓"}</Emoji> : null}
-        </div>
-
-        
+        <div>{tools}</div>  
     </div>
 }
+
+
+
+const StyledLayerCard = styled(LayerCard)`
+
+    margin-top: 10px;
+    border-top: 1px dashed ${ghost};
+
+    & p {
+        color: ${grey};
+        margin: 0;
+        font-size: larger;
+    }
+
+    & a {
+        color: ${orange};
+        cursor: pointer;
+        font-family: inherit;
+        display: inline-block;
+        text-decoration: none;  
+        text-decoration: underline dashed; 
+    }
+
+    & h2 {
+        text-transform: capitalize;
+        display: inline;
+        font-size: larger;
+        font-family: inherit;
+        width: fit-content;
+        padding: 0;
+        margin-right: 10px;
+    }
+`;
+
+
+export default StyledLayerCard;
