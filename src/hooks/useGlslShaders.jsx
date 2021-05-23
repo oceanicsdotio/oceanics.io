@@ -256,20 +256,6 @@ export const useGlslShaders = ({
      */
     const { runtime } = useWasmRuntime();
 
-    /**
-     * Dynamically load the WASM, add debugging, and save to React state,
-     */
-    useEffect(() => {
-        try {
-            (async () => {
-                const runtime = await import('../wasm');
-                runtime.panic_hook();
-                setRuntime(runtime);
-            })()   
-        } catch (err) {
-            console.log("Unable to load WASM runtime")
-        }
-    }, []);
 
     const ref = useRef(null);
     const secondary = useRef(null);

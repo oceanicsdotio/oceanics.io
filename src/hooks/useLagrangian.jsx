@@ -17,6 +17,7 @@ import useColorMapTexture from "./useColorMapTexture";
  * Dedicated worker loader
  */
 import useWasmWorkers from "./useWasmWorkers";
+import useImageDataTexture from "./useImageDataTexture";
 
 /**
  * Mapping of uniforms to program components
@@ -52,7 +53,10 @@ export default ({
     /**
      * Exported ref to draw textures to a secondary HTML canvas component
      */
-    const preview = useRef(null);
+    const { preview, imageData, metadata } = useImageDataTexture({
+        source,
+        metadataFile,
+    });
 
     /**
      * Particle locations. Will be set by web worker from remote source,
@@ -68,7 +72,7 @@ export default ({
     /**
      * Load worker
      */
-    const {worker} = useWasmWorkers();
+    const { worker } = useWasmWorkers();
 
     /**
      * Create a initial distribution of particle positions,
@@ -134,43 +138,6 @@ export default ({
 
     
     /**
-     * Interpreting image formatted velocity data requires having
-     * infomration about the range. 
-     */
-    const [ metadata, setMetadata ] = useState(null);
-
-    /**
-     * Fetch the metadata file. 
-     */
-    useEffect(() => {
-        if (metadataFile && worker.current)
-            worker.current.getPublicJsonData(metadataFile).then(setMetadata);
-    }, [ worker ]);
-
-    /**
-     * Container for handles to GPU interface
-     */
-    const [ imageData, setImageData ] = useState(null);
-
-    /**
-     * Use external data as a velocity field to force movement of particles
-     */
-    useEffect(()=>{
-        if (!source) return;
-      
-        const img = new Image();
-        img.addEventListener('load', () => {
-            setImageData(img);
-        }, {
-            capture: true,
-            once: true,
-        });
-        img.crossOrigin = source.includes(".") ? "" : undefined;
-        img.src = source;
-    },[]);
-
-
-    /**
     * Generate assets and handles for rendering to canvas.
     * Use transducer to replace configs with texture instances.
     * 
@@ -192,7 +159,7 @@ export default ({
                     state: { data: particles, shape: [res, res] },
                     previous: { data: particles, shape: [res, res] },
                     color: { data: colorMap.texture, filter: "LINEAR", shape: [16, 16] },
-                    ...(imageData ? {uv: { filter: "LINEAR", data: imageData }} : {}),
+                    uv: { filter: "LINEAR", data: imageData },
                 }).map(
                     ([k, v]) => [k, createTexture({ctx: ctx, ...v})]
                 )),
@@ -216,15 +183,6 @@ export default ({
             }
         });
     }, [ ref, particles, metadata, colorMap.texture, imageData ]);
-
-    /**
-     * Display the wind data in a secondary 2D HTML canvas, for debugging
-     * and interpretation. 
-     */
-    useEffect(() => {
-        if (!preview || !preview.current || !imageData) return;
-        preview.current.getContext("2d").drawImage(imageData, 0, 0, preview.current.width, preview.current.height);
-    }, [preview, imageData]);
 
     /**
      * Start the rendering loop
