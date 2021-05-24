@@ -1,5 +1,5 @@
 - callToAction: The sea is waiting
-  name: discover
+  name: κυβερνάω
   response: Light the way
   text: |
     To stake your claim on the last frontier, you need a guide to reveal the hidden ways. 
@@ -10,10 +10,10 @@
     
 - callToAction: The sea is waiting
   response: Take the helm
-  name: nurture
+  name: εἴδωλον
   text: |
-    To defend and prosper from the Ocean, you need to draw on community knowledge and make better data-driven decisions for the future.
+    To protect our Ocean, you need to draw on community knowledge and make data-driven decisions for the future.
       
     Oceanics.io analyses public and proprietary assets and serves you synthetic and aggregate products to manage risk and conflict.
 
-    We demystify processes and amplify capabilities, whether watching your turf or scouting for opportunity.
+    We demystify the sea and amplify capabilities, whether watching your turf or seeking opportunity.
