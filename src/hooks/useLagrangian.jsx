@@ -136,6 +136,30 @@ export default ({
     const colorMap = useColorMapTexture({width: 16, height: 16, colors});
 
 
+    const [uniforms, setUniforms] = useState(null);
+
+    useEffect(() => {
+        if (!validContext || !metadata) return;
+        
+        const { width, height } = ref.current;
+       
+        setUniforms({
+            "u_screen" : ["i", 2],
+            "u_opacity": ["f", opacity],
+            "u_wind": ["i", 0],
+            "u_particles": ["i", 1],
+            "u_color_ramp": ["i", 2],
+            "u_particles_res": ["f", res],
+            "u_point_size": ["f", pointSize],
+            "u_wind_max": ["f", [metadata.u.max, metadata.v.max]],
+            "u_wind_min": ["f", [metadata.u.min, metadata.v.min]],
+            "speed": ["f", speed],
+            "diffusivity": ["f", diffusivity],
+            "drop": ["f", drop],
+            "seed": ["f", Math.random()],
+            "u_wind_res": ["f", [width, height]]
+        });
+    }, [ validContext, metadata ]);
 
     
     /**
@@ -164,32 +188,23 @@ export default ({
                     ([k, v]) => [k, createTexture({ctx: validContext, ...v})]
                 )),
             buffers: VertexArrayBuffers(validContext, particles),
-            framebuffer: validContext.createFramebuffer(),
-            uniforms: {
-                "u_screen" : ["i", 2],
-                "u_opacity": ["f", opacity],
-                "u_wind": ["i", 0],
-                "u_particles": ["i", 1],
-                "u_color_ramp": ["i", 2],
-                "u_particles_res": ["f", res],
-                "u_point_size": ["f", pointSize],
-                "u_wind_max": ["f", [metadata.u.max, metadata.v.max]],
-                "u_wind_min": ["f", [metadata.u.min, metadata.v.min]],
-                "speed": ["f", speed],
-                "diffusivity": ["f", diffusivity],
-                "drop": ["f", drop],
-                "seed": ["f", Math.random()],
-                "u_wind_res": ["f", [width, height]]
-            }
+            framebuffer: validContext.createFramebuffer()
         });
     }, [ ref, particles, metadata, colorMap.texture, imageData ]);
+
+    const [ runtimeContext, setRuntimeContext ] = useState(null);
+
+    useEffect(() => {
+        if (!runtime || !validContext || !uniforms) return;
+        setRuntimeContext({runtime, ctx: validContext, uniforms});
+    }, [runtime, validContext, uniforms]);
 
 
     /**
      * Start the rendering loop
      */
     useEffect(() => {
-        if (!validContext || !programs || !assets || !metadata) return;
+        if (!runtimeContext || !programs || !assets || !metadata) return;
 
         let requestId;  
         let {
@@ -232,17 +247,19 @@ export default ({
             attributes: [assets.buffers.quad],
             framebuffer: [assets.framebuffer, previous],  // re-use the old data buffer
             topology: [validContext.TRIANGLES, 6],
-            viewport: [0, 0, res, res],  
-            callback: () => [state, previous] = [previous, state]  // use previous pass to calculate next position
+            viewport: [0, 0, res, res]
         });
 
-
- 
         (function render() {
-            const pipeline = [
-                drawBackBufferStage(),
-                drawIndexBufferStage(),
-                {
+
+            /**
+             * Execute a callback function, currently intended to swap buffers between rendering
+             * steps when using double buffering to/from textures for state and rendering targets.
+             */
+            [
+                renderPipelineStage(runtimeContext, drawBackBufferStage),
+                renderPipelineStage(runtimeContext, drawIndexBufferStage),
+                renderPipelineStage(runtimeContext, () => Object({
                     program: programs.screen,
                     textures: [[screen, 2]], // variable  
                     parameters: PARAMETER_MAP.color,
@@ -250,36 +267,16 @@ export default ({
                     framebuffer: [null, null], 
                     topology: [validContext.TRIANGLES, 6],
                     viewport: [0, 0, ref.current.width, ref.current.height],
-                    callback: () => [back, screen] = [screen, back]  // blend frames
-                }, 
-                {
-                    program: programs.update,
-                    textures: [[assets.textures.color, 2]],
-                    parameters: [...PARAMETER_MAP.sim, ...PARAMETER_MAP.wind],
-                    attributes: [assets.buffers.quad],
-                    framebuffer: [assets.framebuffer, previous],  // re-use the old data buffer
-                    topology: [validContext.TRIANGLES, 6],
-                    viewport: [0, 0, res, res],  
-                    callback: () => [state, previous] = [previous, state]  // use previous pass to calculate next position
-                }
-            ];
-
-
-            /**
-             * Execute a callback function, currently intended to swap buffers between rendering
-             * steps when using double buffering to/from textures for state and rendering targets.
-             */
-            pipeline.forEach(({callback=null, ...step}) => {
-                renderPipelineStage({runtime, ctx: validContext, uniforms: assets.uniforms}, step);
-                
-                if (callback) callback();
-            });
+                })),
+                () => [back, screen] = [screen, back],
+                renderPipelineStage(runtimeContext, drawUpdateStage),
+                () => [state, previous] = [previous, state]
+            ].forEach(stage => {stage()});
             
-           
             requestId = requestAnimationFrame(render);
         })()
         return () => cancelAnimationFrame(requestId);
-    }, [programs, assets]);
+    }, [runtimeContext, programs, assets]);
 
     /**
      * Resources available to parent Component or Hook.

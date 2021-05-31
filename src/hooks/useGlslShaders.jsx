@@ -104,21 +104,23 @@ export const renderPipelineStage = ({
     runtime, 
     ctx, 
     uniforms, 
-},{
-    textures=null,
-    attributes=null,
-    framebuffer: [
-        handle=null, 
-        texture=null
-    ],
-    parameters=null,
-    program,
-    topology: [
-        type, 
-        count
-    ],
-    viewport
-}) => {
+}, step) => () => {
+
+    const {
+        textures=null,
+        attributes=null,
+        framebuffer: [
+            handle=null, 
+            texture=null
+        ],
+        parameters=null,
+        program,
+        topology: [
+            type, 
+            count
+        ],
+        viewport
+    } = step();
 
     ctx.viewport(...viewport);
     ctx.bindFramebuffer(ctx.FRAMEBUFFER, handle);
@@ -166,18 +168,19 @@ export const renderPipelineStage = ({
      * Access constructor by standard name, if there is no size wrap as array and
      * attach to string key. 
      */ 
-    (parameters||[]).forEach(key => {
-        const [type, value] = uniforms[key];
-        const size = value.length || 1;
-        if (key in program) {
-            ctx[`uniform${size}${type}`](program[key], ...(size === 1 ? [value]: value));
-        } else {
-            const msg = `${key} is not a uniform of the shader program.`;
-            if (key in printedWarnings) return;
-            printedWarnings[key] = true;
-            console.warn(msg);
+    (parameters||[])
+        .map(key => [key, ...uniforms[key], program[key]])
+        .forEach(([key, type, value, handle]) => {
+            try {
+                const size = value.length || 1;
+                ctx[`uniform${size}${type}`](handle, ...(size === 1 ? [value]: value));
+            } catch {
+                if (key in printedWarnings) return;
+                printedWarnings[key] = true;
+                console.warn(`${key} is not a uniform of the shader program.`);
+            }
         }
-    });
+    );
 
     /**
      * Update clock for deterministic simulation components and psuedo random
