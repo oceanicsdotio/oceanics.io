@@ -200,31 +200,48 @@ export default ({
                 screen 
             },
         } = assets;  // non-static assets
+
+        const drawIndexBufferStage = () => Object({
+            program: programs.draw,
+            textures: [[assets.textures.color, 2]],
+            attributes: [assets.buffers.index],
+            parameters: [...PARAMETER_MAP.wind, "u_point_size"],
+            framebuffer: [assets.framebuffer, screen],  // variable
+            topology: [validContext.POINTS, res * res],
+            viewport: [0, 0, ref.current.width, ref.current.height]
+        });
+
+        const drawBackBufferStage = () => Object({
+            program: programs.screen,
+            textures: [
+                [assets.textures.uv, 0],
+                [state, 1],  // variable
+                [back, 2]  // variable
+            ],
+            attributes: [assets.buffers.quad],
+            parameters: PARAMETER_MAP.screen,
+            framebuffer: [assets.framebuffer, screen],  // variable
+            topology: [validContext.TRIANGLES, 6],
+            viewport: [0, 0, ref.current.width, ref.current.height]
+        });
+
+        const drawUpdateStage = () => Object({
+            program: programs.update,
+            textures: [[assets.textures.color, 2]],
+            parameters: [...PARAMETER_MAP.sim, ...PARAMETER_MAP.wind],
+            attributes: [assets.buffers.quad],
+            framebuffer: [assets.framebuffer, previous],  // re-use the old data buffer
+            topology: [validContext.TRIANGLES, 6],
+            viewport: [0, 0, res, res],  
+            callback: () => [state, previous] = [previous, state]  // use previous pass to calculate next position
+        });
+
+
  
         (function render() {
             const pipeline = [
-                {
-                    program: programs.screen,
-                    textures: [
-                        [assets.textures.uv, 0],
-                        [state, 1],  // variable
-                        [back, 2]  // variable
-                    ],
-                    attributes: [assets.buffers.quad],
-                    parameters: PARAMETER_MAP.screen,
-                    framebuffer: [assets.framebuffer, screen],  // variable
-                    topology: [validContext.TRIANGLES, 6],
-                    viewport: [0, 0, ref.current.width, ref.current.height]
-                },
-                {
-                    program: programs.draw,
-                    textures: [[assets.textures.color, 2]],
-                    attributes: [assets.buffers.index],
-                    parameters: [...PARAMETER_MAP.wind, "u_point_size"],
-                    framebuffer: [assets.framebuffer, screen],  // variable
-                    topology: [validContext.POINTS, res * res],
-                    viewport: [0, 0, ref.current.width, ref.current.height]
-                },
+                drawBackBufferStage(),
+                drawIndexBufferStage(),
                 {
                     program: programs.screen,
                     textures: [[screen, 2]], // variable  

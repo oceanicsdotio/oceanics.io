@@ -1,7 +1,7 @@
 /**
  * React friends.
  */
-import { useEffect, useState, useRef, useMemo } from "react";
+import { useEffect, useState, useRef } from "react";
 
 import useWasmRuntime from "./useWasmRuntime";
 
@@ -231,50 +231,69 @@ export default ({
     shaders
 }) => {
    
-    const [assets, setAssets] = useState(null);
-    const [programs, setPrograms] = useState(null);
+    /**
+     * Assets are our data
+     */
+    const [ assets, setAssets ] = useState(null);
 
+    /**
+     * Hold our programs in a hash map by name
+     */
+    const [ programs, setPrograms ] = useState(null);
 
     /**
      * Runtime will be passed to calling Hook or Component. 
      */
     const { runtime } = useWasmRuntime();
 
-
+    /**
+     * Canvas ref to get a WebGL context from once it has been
+     * assigned to a valid element. 
+     */
     const ref = useRef(null);
 
-    const [validContext, setValidContext] = useState(null);
+    /**
+     * Whenever we need WebGL context, make sure we have an up to date instance.
+     * 
+     * We can then use this to gate certain Hooks.
+     */
+    const [ validContext, setValidContext ] = useState(null);
 
+    /**
+     * Check whether we have a valid WebGL context.
+     */
     useEffect(() => {
-        setValidContext((typeof ref === "undefined" || !ref || !ref.current) ? null : ref.current.getContext("webgl"));
-    }, [ref]);
+        const valid = !(typeof ref === "undefined" || !ref || !ref.current);
+        setValidContext(valid ? ref.current.getContext("webgl") : null);
+    }, [ ref ]);
     
+    /**
+     * Compile our programs
+     */
     useEffect(() => {
         if (!validContext || !runtime) return;
        
-        const compiled = Object.fromEntries(Object.entries(shaders).map(([programName, pair]) => {
+        const compile = ([name, pair]) => 
+            [name, runtime.create_program(validContext, ...pair.map(file => shaderSource[file]))];
 
-            const program = runtime.create_program(validContext, ...pair.map(file => shaderSource[file]));
-            let wrapper = { program };
-
-            [
+        const extract = ([name, program]) => 
+            [name, program, Object.fromEntries([
                 ["ATTRIBUTES", "Attrib"], 
                 ["UNIFORMS", "Uniform"]
-            ].forEach(
-                ([key, fcn])=>{
-                    for (let ii = 0; ii < validContext.getProgramParameter(program, validContext[`ACTIVE_${key}`]); ii++) {
-                        const { name } = validContext[`getActive${fcn}`](program, ii);
-                        wrapper[name] = validContext[`get${fcn}Location`](program, name);
-                    }
-                }
-            );
+            ].map(([key, fcn]) =>
+                [fcn, validContext.getProgramParameter(program, validContext[`ACTIVE_${key}`])]
+            ).flatMap(
+                ([fcn, count])=>
+                    [...Array(count).keys()]
+                        .map(ii => validContext[`getActive${fcn}`](program, ii))
+                        .map(({name}) => [name, validContext[`get${fcn}Location`](program, name)])
+            ))];
 
-            return [programName, wrapper];
-        }));
+        const form = ([name, program, wrapper]) => [name, {...wrapper, program}];
 
-        setPrograms(compiled);
+        setPrograms(Object.fromEntries(Object.entries(shaders).map(compile).map(extract).map(form)));
        
-    }, [runtime, validContext]);
+    }, [ runtime, validContext ]);
 
  
     return {
