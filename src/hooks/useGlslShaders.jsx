@@ -107,31 +107,28 @@ export const renderPipelineStage = ({
 }, step) => () => {
 
     const {
-        textures=null,
-        attributes=null,
-        framebuffer: [
-            handle=null, 
-            texture=null
-        ],
-        parameters=null,
+        textures,
+        attributes,
+        framebuffer,
+        parameters,
         program,
-        topology: [
-            type, 
-            count
-        ],
+        topology,
         viewport
     } = step();
 
     ctx.viewport(...viewport);
-    ctx.bindFramebuffer(ctx.FRAMEBUFFER, handle);
+    
 
     /**
      * Ensure any required framebuffer is attached before trying to load the
      * shader programs.
      */
-    if (texture)
-        ctx.framebufferTexture2D(ctx.FRAMEBUFFER, ctx.COLOR_ATTACHMENT0, ctx.TEXTURE_2D, texture, 0); 
-    
+    {
+        const [ handle, texture ] = framebuffer;
+        ctx.bindFramebuffer(ctx.FRAMEBUFFER, handle);
+        if (texture)
+            ctx.framebufferTexture2D(ctx.FRAMEBUFFER, ctx.COLOR_ATTACHMENT0, ctx.TEXTURE_2D, texture, 0); 
+    }
     /**
      * Attempt to use the program, and quit if there is a problem in the GLSL code.
      */
@@ -192,7 +189,7 @@ export const renderPipelineStage = ({
     /**
      * Draw the data to the target texture or screen buffer.
      */
-    ctx.drawArrays(type, 0, count);
+    ctx.drawArrays(...topology);
 };
 
 

@@ -222,7 +222,7 @@ export default ({
             attributes: [assets.buffers.index],
             parameters: [...PARAMETER_MAP.wind, "u_point_size"],
             framebuffer: [assets.framebuffer, screen],  // variable
-            topology: [validContext.POINTS, res * res],
+            topology: [validContext.POINTS, 0, res * res],
             viewport: [0, 0, ref.current.width, ref.current.height]
         });
 
@@ -236,7 +236,7 @@ export default ({
             attributes: [assets.buffers.quad],
             parameters: PARAMETER_MAP.screen,
             framebuffer: [assets.framebuffer, screen],  // variable
-            topology: [validContext.TRIANGLES, 6],
+            topology: [validContext.TRIANGLES, 0, 6],
             viewport: [0, 0, ref.current.width, ref.current.height]
         });
 
@@ -246,8 +246,18 @@ export default ({
             parameters: [...PARAMETER_MAP.sim, ...PARAMETER_MAP.wind],
             attributes: [assets.buffers.quad],
             framebuffer: [assets.framebuffer, previous],  // re-use the old data buffer
-            topology: [validContext.TRIANGLES, 6],
+            topology: [validContext.TRIANGLES, 0, 6],
             viewport: [0, 0, res, res]
+        });
+
+        const drawFrontBufferStage = () => Object({
+            program: programs.screen,
+            textures: [[screen, 2]], // variable  
+            parameters: PARAMETER_MAP.color,
+            attributes: [assets.buffers.quad],
+            framebuffer: [null, null], 
+            topology: [validContext.TRIANGLES, 0, 6],
+            viewport: [0, 0, ref.current.width, ref.current.height],
         });
 
         (function render() {
@@ -259,15 +269,7 @@ export default ({
             [
                 renderPipelineStage(runtimeContext, drawBackBufferStage),
                 renderPipelineStage(runtimeContext, drawIndexBufferStage),
-                renderPipelineStage(runtimeContext, () => Object({
-                    program: programs.screen,
-                    textures: [[screen, 2]], // variable  
-                    parameters: PARAMETER_MAP.color,
-                    attributes: [assets.buffers.quad],
-                    framebuffer: [null, null], 
-                    topology: [validContext.TRIANGLES, 6],
-                    viewport: [0, 0, ref.current.width, ref.current.height],
-                })),
+                renderPipelineStage(runtimeContext, drawFrontBufferStage),
                 () => [back, screen] = [screen, back],
                 renderPipelineStage(runtimeContext, drawUpdateStage),
                 () => [state, previous] = [previous, state]
