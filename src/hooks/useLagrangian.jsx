@@ -184,23 +184,6 @@ export default ({
         });
     }, [ ref, particles, metadata, colorMap.texture, imageData ]);
 
-    const [state, ]
-
-    useEffect(() => {
-
-    }, []);
-
-    useEffect(() => {
-
-    }, []);
-
-    useEffect(() => {
-
-    }, []);
-
-    useEffect(() => {
-
-    }, []);
 
     /**
      * Start the rendering loop
