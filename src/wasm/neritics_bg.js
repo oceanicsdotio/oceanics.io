@@ -468,6 +468,23 @@ export function z_transform(xx, phase, width) {
 }
 
 /**
+* @param {WebGLRenderingContext} context
+* @param {WebGLBuffer} buffer
+* @param {number} handle
+* @param {number} count
+*/
+export function bind_attribute(context, buffer, handle, count) {
+    try {
+        _assertNum(handle);
+        _assertNum(count);
+        wasm.bind_attribute(addBorrowedObject(context), addBorrowedObject(buffer), handle, count);
+    } finally {
+        heap[stack_pointer++] = undefined;
+        heap[stack_pointer++] = undefined;
+    }
+}
+
+/**
 *    Compile the shaders and link them to a program, returning the pointer to the executable
 *    in GPU memory.
 *
@@ -596,7 +613,7 @@ function getUint8ClampedMemory0() {
 function getClampedArrayU8FromWasm0(ptr, len) {
     return getUint8ClampedMemory0().subarray(ptr / 1, ptr / 1 + len);
 }
-function __wbg_adapter_240(arg0, arg1, arg2, arg3) {
+function __wbg_adapter_245(arg0, arg1, arg2, arg3) {
     _assertNum(arg0);
     _assertNum(arg1);
     wasm.wasm_bindgen__convert__closures__invoke2_mut__haf7250a096804c72(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
@@ -1489,6 +1506,11 @@ export const __wbg_set_234288aa11f3e098 = handleError(function(arg0, arg1, arg2,
     getObject(arg0).set(getStringFromWasm0(arg1, arg2), getStringFromWasm0(arg3, arg4));
 });
 
+export const __wbg_width_900ad1fe25297a68 = logError(function(arg0) {
+    var ret = getObject(arg0).width;
+    return ret;
+});
+
 export const __wbg_instanceof_Response_acb554d7c391aef7 = logError(function(arg0) {
     var ret = getObject(arg0) instanceof Response;
     _assertBoolean(ret);
@@ -1498,11 +1520,6 @@ export const __wbg_instanceof_Response_acb554d7c391aef7 = logError(function(arg0
 export const __wbg_text_83594a5e8d9e514a = handleError(function(arg0) {
     var ret = getObject(arg0).text();
     return addHeapObject(ret);
-});
-
-export const __wbg_width_900ad1fe25297a68 = logError(function(arg0) {
-    var ret = getObject(arg0).width;
-    return ret;
 });
 
 export const __wbg_bufferData_e135b678b6ef2433 = logError(function(arg0, arg1, arg2, arg3) {
@@ -1553,6 +1570,10 @@ export const __wbg_createTexture_77f1141b79fa578d = logError(function(arg0) {
     return isLikeNone(ret) ? 0 : addHeapObject(ret);
 });
 
+export const __wbg_enableVertexAttribArray_0f8b0b1592940e3f = logError(function(arg0, arg1) {
+    getObject(arg0).enableVertexAttribArray(arg1 >>> 0);
+});
+
 export const __wbg_getProgramInfoLog_5def5bb3d8d30e1f = logError(function(arg0, arg1, arg2) {
     var ret = getObject(arg1).getProgramInfoLog(getObject(arg2));
     var ptr0 = isLikeNone(ret) ? 0 : passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
@@ -1589,6 +1610,10 @@ export const __wbg_shaderSource_c208cc7a688e8923 = logError(function(arg0, arg1,
 
 export const __wbg_texParameteri_d819847181bb4c5a = logError(function(arg0, arg1, arg2, arg3) {
     getObject(arg0).texParameteri(arg1 >>> 0, arg2 >>> 0, arg3);
+});
+
+export const __wbg_vertexAttribPointer_5660aa1f2b819de1 = logError(function(arg0, arg1, arg2, arg3, arg4, arg5, arg6) {
+    getObject(arg0).vertexAttribPointer(arg1 >>> 0, arg2, arg3 >>> 0, arg4 !== 0, arg5, arg6);
 });
 
 export const __wbg_instanceof_CanvasRenderingContext2d_1112667cc1f23532 = logError(function(arg0) {
@@ -1807,7 +1832,7 @@ export const __wbg_new_261626435fed913c = logError(function(arg0, arg1) {
             const a = state0.a;
             state0.a = 0;
             try {
-                return __wbg_adapter_240(a, state0.b, arg0, arg1);
+                return __wbg_adapter_245(a, state0.b, arg0, arg1);
             } finally {
                 state0.a = a;
             }
@@ -1923,7 +1948,7 @@ export const __wbindgen_memory = function() {
     return addHeapObject(ret);
 };
 
-export const __wbindgen_closure_wrapper3223 = logError(function(arg0, arg1, arg2) {
+export const __wbindgen_closure_wrapper3229 = logError(function(arg0, arg1, arg2) {
     var ret = makeMutClosure(arg0, arg1, 71, __wbg_adapter_24);
     return addHeapObject(ret);
 });

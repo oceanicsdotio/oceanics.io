@@ -1,12 +1,12 @@
 /**
  * React, just friends because it's a hook. 
  */
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 /**
  * Shader hook. We keep this separate for use by other implementations. 
  */
-import useGlslShaders, {renderPipelineStage} from "./useGlslShaders";
+import useGlslShaders from "./useGlslShaders";
 
 /**
  * Color map texture for lookups
@@ -22,7 +22,7 @@ import useImageDataTexture from "./useImageDataTexture";
 /**
  * Mapping of uniforms to program components
  */
-const PARAMETER_MAP = {
+const parameters = {
     screen: ["u_screen", "u_opacity"],
     sim: ["speed",  "drop",  "seed", "u_wind_res", "diffusivity"],
     wind: ["u_wind", "u_particles", "u_color_ramp", "u_particles_res", "u_wind_max", "u_wind_min"],
@@ -122,6 +122,7 @@ export default ({
         validContext, 
         VertexArrayBuffers,
         createTexture,
+        renderPipeline
     } = useGlslShaders({ 
         shaders: {
             screen: ["quad-vertex", "screen-fragment"],
@@ -135,8 +136,6 @@ export default ({
      */
     const colorMap = useColorMapTexture({width: 16, height: 16, colors});
 
-
-
     
     /**
     * Generate assets and handles for rendering to canvas.
@@ -146,7 +145,8 @@ export default ({
     * and the initial positions have been loaded or generated
     */
     useEffect(() => {
-        if (!validContext || !particles || !metadata || !colorMap.texture || (source && !imageData)) return;
+        const ctx = validContext();
+        if (!ctx || !particles || !metadata || !colorMap.texture || (source && !imageData)) return;
         
         const { width, height } = ref.current;
         const size = width * height * 4;
@@ -161,10 +161,10 @@ export default ({
                     color: { data: colorMap.texture, filter: "LINEAR", shape: [16, 16] },
                     uv: { filter: "LINEAR", data: imageData },
                 }).map(
-                    ([k, v]) => [k, createTexture({ctx: validContext, ...v})]
+                    ([k, v]) => [k, createTexture({ctx: ctx, ...v})]
                 )),
-            buffers: VertexArrayBuffers(validContext, particles),
-            framebuffer: validContext.createFramebuffer(),
+            buffers: VertexArrayBuffers(ctx, particles),
+            framebuffer: ctx.createFramebuffer(),
             uniforms: {
                 "u_screen" : ["i", 2],
                 "u_opacity": ["f", opacity],
@@ -184,29 +184,12 @@ export default ({
         });
     }, [ ref, particles, metadata, colorMap.texture, imageData ]);
 
-    const [state, ]
-
-    useEffect(() => {
-
-    }, []);
-
-    useEffect(() => {
-
-    }, []);
-
-    useEffect(() => {
-
-    }, []);
-
-    useEffect(() => {
-
-    }, []);
-
     /**
      * Start the rendering loop
      */
     useEffect(() => {
-        if (!validContext || !programs || !assets || !metadata) return;
+        const ctx = validContext();
+        if (!ctx || !programs || !assets || !metadata) return;
 
         let requestId;  
         let {
@@ -228,54 +211,43 @@ export default ({
                         [back, 2]  // variable
                     ],
                     attributes: [assets.buffers.quad],
-                    parameters: PARAMETER_MAP.screen,
+                    parameters: parameters.screen,
                     framebuffer: [assets.framebuffer, screen],  // variable
-                    topology: [validContext.TRIANGLES, 6],
+                    topology: [ctx.TRIANGLES, 6],
                     viewport: [0, 0, ref.current.width, ref.current.height]
                 },
                 {
                     program: programs.draw,
                     textures: [[assets.textures.color, 2]],
                     attributes: [assets.buffers.index],
-                    parameters: [...PARAMETER_MAP.wind, "u_point_size"],
+                    parameters: [...parameters.wind, "u_point_size"],
                     framebuffer: [assets.framebuffer, screen],  // variable
-                    topology: [validContext.POINTS, res * res],
+                    topology: [ctx.LINE_STRIP, res * res],
                     viewport: [0, 0, ref.current.width, ref.current.height]
                 },
                 {
                     program: programs.screen,
                     textures: [[screen, 2]], // variable  
-                    parameters: PARAMETER_MAP.color,
+                    parameters: parameters.color,
                     attributes: [assets.buffers.quad],
                     framebuffer: [null, null], 
-                    topology: [validContext.TRIANGLES, 6],
+                    topology: [ctx.TRIANGLES, 6],
                     viewport: [0, 0, ref.current.width, ref.current.height],
                     callback: () => [back, screen] = [screen, back]  // blend frames
                 }, 
                 {
                     program: programs.update,
                     textures: [[assets.textures.color, 2]],
-                    parameters: [...PARAMETER_MAP.sim, ...PARAMETER_MAP.wind],
+                    parameters: [...parameters.sim, ...parameters.wind],
                     attributes: [assets.buffers.quad],
                     framebuffer: [assets.framebuffer, previous],  // re-use the old data buffer
-                    topology: [validContext.TRIANGLES, 6],
+                    topology: [ctx.TRIANGLES, 6],
                     viewport: [0, 0, res, res],  
                     callback: () => [state, previous] = [previous, state]  // use previous pass to calculate next position
                 }
             ];
-
-
-            /**
-             * Execute a callback function, currently intended to swap buffers between rendering
-             * steps when using double buffering to/from textures for state and rendering targets.
-             */
-            pipeline.forEach(({callback=null, ...step}) => {
-                renderPipelineStage({runtime, ctx: validContext, uniforms: assets.uniforms}, step);
-                
-                if (callback) callback();
-            });
             
-           
+            renderPipeline(runtime, ctx, assets.uniforms, pipeline);
             requestId = requestAnimationFrame(render);
         })()
         return () => cancelAnimationFrame(requestId);

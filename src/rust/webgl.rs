@@ -12,7 +12,24 @@ pub mod webgl {
         WebGlRenderingContext, 
         WebGlShader, 
         WebGlTexture,
+        WebGlFramebuffer
     };
+    use js_sys::{
+        ArrayBuffer
+    };
+
+
+    #[wasm_bindgen]
+    pub fn bind_attribute(
+        context: &WebGlRenderingContext,
+        buffer: &WebGlBuffer,
+        handle: u32,
+        count: i32,
+    ) {
+        context.bind_buffer(WebGlRenderingContext::ARRAY_BUFFER, Some(buffer));
+        context.enable_vertex_attrib_array(handle);
+        context.vertex_attrib_pointer_with_i32(handle, count, WebGlRenderingContext::FLOAT, false, 0, 0);
+    }
 
     /**
     Take a rendering context, and shader definition and compile 

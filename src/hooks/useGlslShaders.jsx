@@ -1,7 +1,7 @@
 /**
  * React friends.
  */
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 
 import useWasmRuntime from "./useWasmRuntime";
 
@@ -100,31 +100,28 @@ const printedWarnings = {};
  * Execute a shader program and all binding steps needed to make data
  * available to the hardware
  */
-const renderPipelineStage = ({
+export const renderPipelineStage = ({
     runtime, 
     ctx, 
     uniforms, 
 },{
-    textures=[],
-    attributes=[],
+    textures=null,
+    attributes=null,
     framebuffer: [
         handle=null, 
         texture=null
     ],
-    parameters=[],
-    program={},
+    parameters=null,
+    program,
     topology: [
         type, 
         count
     ],
-    viewport,
-    callback = null,
+    viewport
 }) => {
 
     ctx.viewport(...viewport);
     ctx.bindFramebuffer(ctx.FRAMEBUFFER, handle);
-
-    
 
     /**
      * Ensure any required framebuffer is attached before trying to load the
@@ -144,18 +141,20 @@ const renderPipelineStage = ({
     }
 
     /**
-     * Load textures into meory
+     * Load textures into memory.
      */
-    textures.forEach(([tex, slot]) => runtime.bind_texture(ctx, tex, slot));
+    (textures||[]).forEach(
+        texture => {runtime.bind_texture(ctx, ...texture)}
+    );
     
     /**
-     * Bind vertex attribute arraybuffers to hardware memory handles
+     * Bind vertex attribute array buffers to hardware memory handles.
      */
-    attributes.forEach(([buffer, handle, numComponents]) => {
-        ctx.bindBuffer(ctx.ARRAY_BUFFER, buffer);
-        ctx.enableVertexAttribArray(handle);
-        ctx.vertexAttribPointer(handle, numComponents, ctx.FLOAT, false, 0, 0);
-    });
+    (attributes||[]).map(
+        ([buffer, handle, count]) => [buffer, ctx.getAttribLocation(program.program, handle), count]
+    ).forEach(
+        attribute => {runtime.bind_attribute(ctx, ...attribute)}
+    );
 
     /**
      * Format and bind a value to each uniform variable in the context.
@@ -163,8 +162,11 @@ const renderPipelineStage = ({
      * If someone supplies a variable name that is not part of the program,
      * then we warn them. Most likely case is that the shader itself has
      * changed.
+     * 
+     * Access constructor by standard name, if there is no size wrap as array and
+     * attach to string key. 
      */ 
-    parameters.forEach((key) => {
+    (parameters||[]).forEach(key => {
         const [type, value] = uniforms[key];
         const size = value.length || 1;
         if (key in program) {
@@ -188,25 +190,8 @@ const renderPipelineStage = ({
      * Draw the data to the target texture or screen buffer.
      */
     ctx.drawArrays(type, 0, count);
-
-    /**
-     * Execute a callback function, currently intended to swap buffers between rendering
-     * steps when using double buffering to/from textures for state and rendering targets.
-     */
-    if (callback) callback();
-    
 };
 
-
-export const renderPipeline = (
-    runtime, 
-    ctx, 
-    uniforms,
-    pipeline
-) => {
-    const args = {runtime, ctx, uniforms};
-    pipeline.forEach(step => renderPipelineStage(args, step));
-};
 
 
 export const createTexture = ({ 
@@ -237,147 +222,61 @@ export const createTexture = ({
 
 
 /**
-IFF the canvas context is WebGL and we need shaders, fetch the GLSL code and compile the 
-shaders as programs.
-
-This is executed only once, after the WASM runtime is loaded. 
-*/
-export const useGlslShaders = ({ 
-    shaders,
-    fractal=true
+ * IFF the canvas context is WebGL and we need shaders, fetch the GLSL code and compile the 
+ * shaders as programs.
+ *
+ * This is executed only once, after the WASM runtime is loaded. 
+ */
+export default ({ 
+    shaders
 }) => {
    
     const [assets, setAssets] = useState(null);
     const [programs, setPrograms] = useState(null);
 
 
-     /**
+    /**
      * Runtime will be passed to calling Hook or Component. 
      */
     const { runtime } = useWasmRuntime();
 
 
     const ref = useRef(null);
-    const secondary = useRef(null);
-    
 
-    const validContext = () => 
-        (typeof ref === "undefined" || !ref || !ref.current) ? false : ref.current.getContext("webgl");
-
+    const [validContext, setValidContext] = useState(null);
 
     useEffect(() => {
-        const ctx = validContext();
-        if (!ctx || !runtime) return;
-       
-        (async () => {
-            
-            const compiled = Object.fromEntries(await Promise.all(Object.entries(shaders).map(async ([programName, pair]) => {
-    
-                let [vs, fs] = pair.map(async (file) => {
-                    if (!(file in shaderSource)) shaderSource[file] = await runtime.fetch_text(`/${file}.glsl`)
-                    return shaderSource[file];
-                });
-                const program = runtime.create_program(ctx, await vs, await fs);
-                let wrapper = { program };
-
-                [
-                    ["ATTRIBUTES", "Attrib"], 
-                    ["UNIFORMS", "Uniform"]
-                ].forEach(
-                    ([key, fcn])=>{
-                        for (let ii = 0; ii < ctx.getProgramParameter(program, ctx[`ACTIVE_${key}`]); ii++) {
-                            const { name } = ctx[`getActive${fcn}`](program, ii);
-                            wrapper[name] = ctx[`get${fcn}Location`](program, name);
-                        }
-                    }
-                );
-
-                return [programName, wrapper];
-            })));
-    
-            setPrograms(compiled);
-        })();
-    }, [runtime, ref]);
-
-    const [pipeline, setPipeline] = useState(null);
-
-    useEffect(() => {
-
-        const ctx = validContext();
-        if (!runtime || !ctx || !assets || !pipeline) return;
-        let requestId;
-        
-        (function render() {
-            renderPipeline(runtime, ctx, assets.uniforms, pipeline);
-            requestId = requestAnimationFrame(render);
-        })()
-        return () => cancelAnimationFrame(requestId);
-    }, [runtime, assets, pipeline, ref ]);
-
-
-    useEffect(() => {
-        const ctx = validContext();
-        if (!fractal || !ctx) return;
-
-        const { width, height } = ref.current;
-
-        setAssets({
-            textures: 
-                Object.fromEntries(Object.entries({
-                    screen: screenBuffer(width, height),
-                    back: screenBuffer(width, height)
-                }).map(([k, v]) => [k, createTexture({ctx, ...v})])),
-            buffers: VertexArrayBuffers(ctx),
-            framebuffer: ctx.createFramebuffer(),
-            uniforms: {
-                "u_screen" : ["i", 2],
-                "u_opacity": ["f", 1.0]
-            }
-        });
-
+        setValidContext((typeof ref === "undefined" || !ref || !ref.current) ? null : ref.current.getContext("webgl"));
     }, [ref]);
-
-
-    useEffect(() => {
-
-        const ctx = validContext();
-
-        if (!fractal || !runtime || !ctx || !assets || !programs) return;
-        
-        const viewport = [0, 0, ref.current.width, ref.current.height];
     
-        setPipeline([
-            {
-                program: programs.screen,
-                textures: [
-                    [assets.textures.state, 1],
-                    [assets.textures.back, 2]
-                ],
-                parameters: ["u_screen", "u_opacity"],
-                attributes: [assets.buffers.quad],
-                framebuffer: [assets.framebuffer, assets.textures.screen],
-                topology: [ctx.TRIANGLES, 6],
-                viewport
-            },
-            {
-                program: programs.draw,
-                attributes: [assets.buffers.quad],
-                framebuffer: [assets.framebuffer, assets.textures.screen],
-                topology: [ctx.TRIANGLES, 6],
-                viewport
-            },
-            {
-                program: programs.screen,
-                textures: [[assets.textures.screen, 2]],
-                parameters: ["u_opacity"],
-                attributes: [assets.buffers.quad],
-                framebuffer: [null, null],
-                topology: [ctx.TRIANGLES, 6],
-                viewport
-            }
-        ]);
-    }, [programs]);
+    useEffect(() => {
+        if (!validContext || !runtime) return;
+       
+        const compiled = Object.fromEntries(Object.entries(shaders).map(([programName, pair]) => {
 
+            const program = runtime.create_program(validContext, ...pair.map(file => shaderSource[file]));
+            let wrapper = { program };
+
+            [
+                ["ATTRIBUTES", "Attrib"], 
+                ["UNIFORMS", "Uniform"]
+            ].forEach(
+                ([key, fcn])=>{
+                    for (let ii = 0; ii < validContext.getProgramParameter(program, validContext[`ACTIVE_${key}`]); ii++) {
+                        const { name } = validContext[`getActive${fcn}`](program, ii);
+                        wrapper[name] = validContext[`get${fcn}Location`](program, name);
+                    }
+                }
+            );
+
+            return [programName, wrapper];
+        }));
+
+        setPrograms(compiled);
+       
+    }, [runtime, validContext]);
+
+ 
     return {
         ref,
         programs,
@@ -385,15 +284,8 @@ export const useGlslShaders = ({
         validContext,
         VertexArrayBuffers,
         createTexture,
-        renderPipeline,
-        renderPipelineStage,
         extractUniforms,
         setAssets,
-        setPipeline,
         assets,
-        secondary
     }
 };
-
-export default useGlslShaders;
-
