@@ -1,7 +1,7 @@
 /**
  * React, just friends because it's a hook. 
  */
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 /**
  * Shader hook. We keep this separate for use by other implementations. 
@@ -9,14 +9,18 @@ import { useEffect, useState } from "react";
 import useGlslShaders, {renderPipelineStage} from "./useGlslShaders";
 
 /**
- * Color map texture for lookups
+ * Color map texture for lookups.
  */
 import useColorMapTexture from "./useColorMapTexture";
 
 /**
- * Dedicated worker loader
+ * Dedicated worker loader.
  */
 import useWasmWorkers from "./useWasmWorkers";
+
+/**
+ * Hook for lazy loading image data as texture.
+ */
 import useImageDataTexture from "./useImageDataTexture";
 
 /**
@@ -36,8 +40,7 @@ const PARAMETER_MAP = {
   * will support pulling frames from video or gif formats. 
   */
 export default ({
-    source,
-    metadataFile,
+    velocity,
     res = 16,
     colors = [
         [0.0, '#deababff'],
@@ -53,10 +56,7 @@ export default ({
     /**
      * Exported ref to draw textures to a secondary HTML canvas component
      */
-    const { preview, imageData, metadata } = useImageDataTexture({
-        source,
-        metadataFile,
-    });
+    const { preview, imageData, metadata } = useImageDataTexture(velocity);
 
     /**
      * Particle locations. Will be set by web worker from remote source,
@@ -79,13 +79,11 @@ export default ({
      * encoded as 4-byte colors.
      */
     useEffect(() => {
-        if (!worker.current) return;
-
-        worker.current
-            .initParticles(res)
-            .then(setParticles)
-            .catch(() => {setError("There was a runtime error.")});
-
+        if (worker.current)
+            worker.current
+                .initParticles(res)
+                .then(setParticles)
+                .catch(() => {setError("There was a runtime error.")});
     }, [ worker ]);
 
     /**
@@ -95,18 +93,13 @@ export default ({
 
     /**
      * When we have some information ready, set the status message
-     * to something informative, like number of particles
+     * to something informative, like number of particles.
+     * 
+     * Set an error message if necessary.
      */
     useEffect(() => {
-        if (particles) setMessage(`Ichthyoid (N=${res*res})`);
-    }, [ particles ]);
-
-    /**
-     * Set an error message in necessary.
-     */
-    useEffect(() => {
-        if (error) setMessage(error);
-    }, [ error ]);
+        if (particles || error) setMessage(error ? error : `Ichthyoid (N=${res*res})`);
+    }, [ particles, error ]);
 
     /**
      * Shader programs compiled from GLSL source. 
@@ -135,9 +128,14 @@ export default ({
      */
     const colorMap = useColorMapTexture({width: 16, height: 16, colors});
 
+    /**
+     * Uniforms are non-texture values applied to each fragment. 
+     */
+    const [ uniforms, setUniforms ] = useState(null);
 
-    const [uniforms, setUniforms] = useState(null);
-
+    /**
+     * Update values of uniforms.
+     */
     useEffect(() => {
         if (!validContext || !metadata) return;
         
@@ -161,6 +159,19 @@ export default ({
         });
     }, [ validContext, metadata ]);
 
+    /**
+     * Points and window buffers for generic drawArray rendering
+     */
+    const [ buffers, setBuffers ] = useState(null);
+
+    /**
+     * Once we have a valid context and initial positions, save the array buffers.
+     * This may not be strictly necessary. 
+     */
+    useEffect(() => {
+        if (validContext && particles)
+            setBuffers(VertexArrayBuffers(validContext, particles));
+    }, [ validContext, particles ]);
     
     /**
     * Generate assets and handles for rendering to canvas.
@@ -169,116 +180,211 @@ export default ({
     * This is executed exactly once after the canvas is created,
     * and the initial positions have been loaded or generated
     */
+    const assetDeps = [ validContext, particles, metadata, colorMap.texture, imageData ]
     useEffect(() => {
-        if (!validContext || !particles || !metadata || !colorMap.texture || (source && !imageData)) return;
+        if (assetDeps.some(x => !x)) return;
         
         const { width, height } = ref.current;
         const size = width * height * 4;
        
-        setAssets({
-            textures: 
-                Object.fromEntries(Object.entries({
-                    screen: { data: new Uint8Array(size), shape: [ width, height ] },
-                    back: { data: new Uint8Array(size), shape: [ width, height ] },
-                    state: { data: particles, shape: [res, res] },
-                    previous: { data: particles, shape: [res, res] },
-                    color: { data: colorMap.texture, filter: "LINEAR", shape: [16, 16] },
-                    uv: { filter: "LINEAR", data: imageData },
-                }).map(
-                    ([k, v]) => [k, createTexture({ctx: validContext, ...v})]
-                )),
-            buffers: VertexArrayBuffers(validContext, particles),
-            framebuffer: validContext.createFramebuffer()
-        });
-    }, [ ref, particles, metadata, colorMap.texture, imageData ]);
+        setAssets(
+            Object.fromEntries(Object.entries({
+                screen: { data: new Uint8Array(size), shape: [ width, height ] },
+                back: { data: new Uint8Array(size), shape: [ width, height ] },
+                state: { data: particles, shape: [res, res] },
+                previous: { data: particles, shape: [res, res] },
+                color: { data: colorMap.texture, filter: "LINEAR", shape: [16, 16] },
+                uv: { filter: "LINEAR", data: imageData },
+            }).map(
+                ([k, v]) => [k, createTexture({ctx: validContext, ...v})]
+            ))
+        );
+    }, assetDeps);
 
+    /**
+     * Order of textures is swapped after every render pass.
+     * 
+     * TODO: This should be useRef
+     */
+    const textures = useRef(null);
+
+    /**
+     * Create the textures.
+     */
+    useEffect(() => {
+        if (!validContext || !particles ) return;
+        
+        const { width, height } = ref.current;
+        const size = width * height * 4;
+       
+        textures.current =
+            Object.fromEntries(Object.entries({
+                screen: { data: new Uint8Array(size), shape: [ width, height ] },
+                back: { data: new Uint8Array(size), shape: [ width, height ] },
+                state: { data: particles, shape: [res, res] },
+                previous: { data: particles, shape: [res, res] },
+            }).map(
+                ([k, v]) => [k, createTexture({ctx: validContext, ...v})]
+            ));
+       
+    }, [ ref, particles ]);
+
+    /**
+     * Save framebuffer reference. This should be constant, but needs
+     * a valid WebGL constant. 
+     */
+    const [ framebuffer, setFramebuffer ] = useState(null);
+
+    /**
+     * Save reference 
+     */
+    useEffect(() => {
+        if (!validContext) return;
+        setFramebuffer(validContext.createFramebuffer());
+    }, [ validContext ]);
+
+    /**
+     * Package up our runtime for easy access. Will pass this to
+     * stage functions. 
+     */
     const [ runtimeContext, setRuntimeContext ] = useState(null);
 
+    /**
+     * Save the runtime information
+     */
     useEffect(() => {
         if (!runtime || !validContext || !uniforms) return;
         setRuntimeContext({runtime, ctx: validContext, uniforms});
-    }, [runtime, validContext, uniforms]);
+    }, [ runtime, validContext, uniforms ]);
 
+    const stageDeps = [ validContext, assets, framebuffer, programs, buffers ];
+
+    /**
+     * Render stage
+     */
+    const [ indexBufferStage, setIndexBufferStage ] = useState(null);
+
+    /**
+     * Render stage function
+     */
+    useEffect(() => {
+        if (stageDeps.some(x=>!x)) return;
+
+        setIndexBufferStage(() => (screen) => () => Object({
+            program: programs.draw,
+            textures: [[assets.color, 2]],
+            attributes: [buffers.index],
+            parameters: [...PARAMETER_MAP.wind, "u_point_size"],
+            framebuffer: [framebuffer, screen],  // variable
+            topology: [validContext.POINTS, 0, res * res],
+            viewport: [0, 0, ref.current.width, ref.current.height]
+        }));
+    }, stageDeps);
+
+    /**
+     * Render stage
+     */
+    const [ backBufferStage, setBackBufferStage ] = useState(null);
+
+    /**
+     * Create render stage function
+     */
+    useEffect(() => {
+        if (stageDeps.some(x=>!x)) return;
+
+        setBackBufferStage(() => (state, back, screen) => () => Object({
+            program: programs.screen,
+            textures: [
+                [assets.uv, 0],
+                [state, 1],  // variable
+                [back, 2]  // variable
+            ],
+            attributes: [buffers.quad],
+            parameters: PARAMETER_MAP.screen,
+            framebuffer: [framebuffer, screen],  // variable
+            topology: [validContext.TRIANGLES, 0, 6],
+            viewport: [0, 0, ref.current.width, ref.current.height]
+        }));
+    }, stageDeps);
+
+    /**
+     * Render stage
+     */
+    const [ frontBufferStage, setFrontBufferStage ] = useState(null);
+
+    /**
+     * 
+     */
+    useEffect(() => {
+        if (!validContext || !programs || !buffers) return;
+
+        setFrontBufferStage(() => (screen) => () => Object({
+            program: programs.screen,
+            textures: [[screen, 2]], // variable  
+            parameters: PARAMETER_MAP.color,
+            attributes: [buffers.quad],
+            framebuffer: [null, null], 
+            topology: [validContext.TRIANGLES, 0, 6],
+            viewport: [0, 0, ref.current.width, ref.current.height],
+        }));
+    }, [validContext, programs, buffers]);
+
+    const [ updateStage, setUpdateStage ] = useState(null);
+
+    useEffect(() => {
+        if (stageDeps.some(x=>!x)) return;
+
+        setUpdateStage(() => (previous) => () => Object({
+            program: programs.update,
+            textures: [[assets.color, 2]],
+            parameters: [...PARAMETER_MAP.sim, ...PARAMETER_MAP.wind],
+            attributes: [buffers.quad],
+            framebuffer: [framebuffer, previous],  // re-use the old data buffer
+            topology: [validContext.TRIANGLES, 0, 6],
+            viewport: [0, 0, res, res]
+        }));
+    }, stageDeps);
+
+    const requestId = useRef(0);
+    const timer = useRef(null);
+    const timeConstant = useRef(0.0);
 
     /**
      * Start the rendering loop
      */
+    const renderDeps = [textures.current, runtimeContext, indexBufferStage, backBufferStage, frontBufferStage, updateStage];
     useEffect(() => {
-        if (!runtimeContext || !programs || !assets || !metadata) return;
+        if (renderDeps.some(x => !x)) return;
 
-        let requestId;  
         let {
-            textures: { 
-                back, 
-                previous, 
-                state, 
-                screen 
-            },
-        } = assets;  // non-static assets
+            back,
+            screen,
+            previous,
+            state
+        } = textures.current;
 
-        const drawIndexBufferStage = () => Object({
-            program: programs.draw,
-            textures: [[assets.textures.color, 2]],
-            attributes: [assets.buffers.index],
-            parameters: [...PARAMETER_MAP.wind, "u_point_size"],
-            framebuffer: [assets.framebuffer, screen],  // variable
-            topology: [validContext.POINTS, 0, res * res],
-            viewport: [0, 0, ref.current.width, ref.current.height]
-        });
-
-        const drawBackBufferStage = () => Object({
-            program: programs.screen,
-            textures: [
-                [assets.textures.uv, 0],
-                [state, 1],  // variable
-                [back, 2]  // variable
-            ],
-            attributes: [assets.buffers.quad],
-            parameters: PARAMETER_MAP.screen,
-            framebuffer: [assets.framebuffer, screen],  // variable
-            topology: [validContext.TRIANGLES, 0, 6],
-            viewport: [0, 0, ref.current.width, ref.current.height]
-        });
-
-        const drawUpdateStage = () => Object({
-            program: programs.update,
-            textures: [[assets.textures.color, 2]],
-            parameters: [...PARAMETER_MAP.sim, ...PARAMETER_MAP.wind],
-            attributes: [assets.buffers.quad],
-            framebuffer: [assets.framebuffer, previous],  // re-use the old data buffer
-            topology: [validContext.TRIANGLES, 0, 6],
-            viewport: [0, 0, res, res]
-        });
-
-        const drawFrontBufferStage = () => Object({
-            program: programs.screen,
-            textures: [[screen, 2]], // variable  
-            parameters: PARAMETER_MAP.color,
-            attributes: [assets.buffers.quad],
-            framebuffer: [null, null], 
-            topology: [validContext.TRIANGLES, 0, 6],
-            viewport: [0, 0, ref.current.width, ref.current.height],
-        });
 
         (function render() {
-
-            /**
-             * Execute a callback function, currently intended to swap buffers between rendering
-             * steps when using double buffering to/from textures for state and rendering targets.
-             */
+        
             [
-                renderPipelineStage(runtimeContext, drawBackBufferStage),
-                renderPipelineStage(runtimeContext, drawIndexBufferStage),
-                renderPipelineStage(runtimeContext, drawFrontBufferStage),
-                () => [back, screen] = [screen, back],
-                renderPipelineStage(runtimeContext, drawUpdateStage),
-                () => [state, previous] = [previous, state]
-            ].forEach(stage => {stage()});
-            
-            requestId = requestAnimationFrame(render);
-        })()
-        return () => cancelAnimationFrame(requestId);
-    }, [runtimeContext, programs, assets]);
+                backBufferStage(state, back, screen), 
+                indexBufferStage(screen), 
+                frontBufferStage(screen), 
+                updateStage(previous)
+            ].forEach(stage => renderPipelineStage(runtimeContext, stage));
+
+            [back, screen, previous, state] = [screen, back, state, previous];
+
+            requestId.current++;
+            timeConstant.current = 0.5*((Math.sin(0.005*performance.now())) + 1.0)
+
+            timer.current = setTimeout(render, timeConstant.current * 17.0);
+        })();
+
+        return () => clearTimeout(timer.current);
+
+    }, renderDeps);
+
 
     /**
      * Resources available to parent Component or Hook.

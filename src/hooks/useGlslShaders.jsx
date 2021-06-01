@@ -104,7 +104,7 @@ export const renderPipelineStage = ({
     runtime, 
     ctx, 
     uniforms, 
-}, step) => () => {
+}, step) => {
 
     const {
         textures,
