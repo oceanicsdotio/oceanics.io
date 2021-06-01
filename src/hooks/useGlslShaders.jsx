@@ -114,7 +114,7 @@ export const renderPipelineStage = ({
         program,
         topology,
         viewport
-    } = step();
+    } = step;
 
     ctx.viewport(...viewport);
     
@@ -231,10 +231,7 @@ export default ({
     shaders
 }) => {
    
-    /**
-     * Assets are our data
-     */
-    const [ assets, setAssets ] = useState(null);
+    
 
     /**
      * Hold our programs in a hash map by name
@@ -304,7 +301,5 @@ export default ({
         VertexArrayBuffers,
         createTexture,
         extractUniforms,
-        setAssets,
-        assets,
     }
 };

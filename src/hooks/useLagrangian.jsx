@@ -111,8 +111,6 @@ export default ({
      */
     const { 
         ref,
-        assets,
-        setAssets,
         runtime, 
         programs, 
         validContext, 
@@ -125,6 +123,11 @@ export default ({
             update: ["quad-vertex", "update-fragment"],
         }
     });
+
+    /**
+     * Assets are our data
+     */
+    const [ assets, setAssets ] = useState(null);
 
     /**
      * Create color map
@@ -200,25 +203,27 @@ export default ({
     * This is executed exactly once after the canvas is created,
     * and the initial positions have been loaded or generated
     */
-    const assetDeps = [ validContext, colorMap.texture ]
     useEffect(() => {
-        if (assetDeps.some(x => !x)) return;
-        
-        setAssets(
-            Object.fromEntries(Object.entries({
-                color: { data: colorMap.texture, filter: "LINEAR", shape: [16, 16] },
-            }).map(
-                ([k, v]) => [k, createTexture({ctx: validContext, ...v})]
-            ))
-        );
-    }, assetDeps);
+        if (validContext && colorMap.texture)
+            setAssets(createTexture({
+                ctx: validContext, 
+                data: colorMap.texture, 
+                filter: "LINEAR", 
+                shape: [16, 16]
+            }));   
+    }, [ validContext, colorMap.texture ]);
 
     /**
      * Order of textures is swapped after every render pass.
-     * 
-     * TODO: This should be useRef
      */
     const textures = useRef(null);
+
+    /**
+     * Textures that are drawn to the screen.
+     */
+    const screenBuffers = useRef(null);
+
+   
 
     /**
      * Create the textures.
@@ -228,17 +233,29 @@ export default ({
         
         const { width, height } = ref.current;
         const size = width * height * 4;
-       
-        textures.current =
+        
+        screenBuffers.current =
             Object.fromEntries(Object.entries({
                 screen: { data: new Uint8Array(size), shape: [ width, height ] },
                 back: { data: new Uint8Array(size), shape: [ width, height ] },
+            }).map(
+                ([k, v]) => [k, createTexture({ctx: validContext, ...v})]
+            ));
+    }, [ ref, particles ]);
+
+    /**
+     * Create the textures.
+     */
+    useEffect(() => {
+        if (!validContext || !particles ) return;
+          
+        textures.current =
+            Object.fromEntries(Object.entries({
                 state: { data: particles, shape: [res, res] },
                 previous: { data: particles, shape: [res, res] },
             }).map(
                 ([k, v]) => [k, createTexture({ctx: validContext, ...v})]
             ));
-       
     }, [ ref, particles ]);
 
     /**
@@ -282,9 +299,9 @@ export default ({
     useEffect(() => {
         if (stageDeps.some(x=>!x)) return;
 
-        setIndexBufferStage(() => (screen) => () => Object({
+        setIndexBufferStage(() => (screen) => Object({
             program: programs.draw,
-            textures: [[assets.color, 2]],
+            textures: [[assets, 2]],
             attributes: [buffers.index],
             parameters: [...PARAMETER_MAP.wind, "u_point_size"],
             framebuffer: [framebuffer, screen],  // variable
@@ -304,7 +321,7 @@ export default ({
     useEffect(() => {
         if (stageDeps.some(x=>!x)) return;
 
-        setBackBufferStage(() => (state, back, screen) => () => Object({
+        setBackBufferStage(() => (state, back, screen) => Object({
             program: programs.screen,
             textures: [
                 [velocity, 0],
@@ -330,7 +347,7 @@ export default ({
     useEffect(() => {
         if (!validContext || !programs || !buffers) return;
 
-        setFrontBufferStage(() => (screen) => () => Object({
+        setFrontBufferStage(() => (screen) => Object({
             program: programs.screen,
             textures: [[screen, 2]], // variable  
             parameters: PARAMETER_MAP.color,
@@ -341,14 +358,20 @@ export default ({
         }));
     }, [validContext, programs, buffers]);
 
+    /**
+     * Shader program
+     */
     const [ updateStage, setUpdateStage ] = useState(null);
 
+    /**
+     * Create the generator function
+     */
     useEffect(() => {
         if (stageDeps.some(x=>!x)) return;
 
-        setUpdateStage(() => (previous) => () => Object({
+        setUpdateStage(() => (previous) => Object({
             program: programs.update,
-            textures: [[assets.color, 2]],
+            textures: [[assets, 2]],
             parameters: [...PARAMETER_MAP.sim, ...PARAMETER_MAP.wind],
             attributes: [buffers.quad],
             framebuffer: [framebuffer, previous],  // re-use the old data buffer
@@ -356,7 +379,6 @@ export default ({
             viewport: [0, 0, res, res]
         }));
     }, stageDeps);
-
 
     /**
      * Reference for using and cancelling setTimeout.
@@ -371,38 +393,57 @@ export default ({
     /**
      * Start the rendering loop
      */
-    const renderDeps = [textures.current, runtimeContext, indexBufferStage, backBufferStage, frontBufferStage, updateStage];
+    const renderDeps = [runtimeContext, indexBufferStage, backBufferStage, frontBufferStage, updateStage];
 
+    /**
+     * Use pipe line as an effect triggering state
+     */
+    const [pipeline, setPipeline] = useState(null);
+
+    /**
+     * Set pipeline value to signal ready for rendering.
+     */
+    useEffect(() => {
+        if (renderDeps.some(x => !x)) return;   
+
+        setPipeline({
+            stages: (back, screen, previous, state) =>
+                [
+                    backBufferStage(state, back, screen), 
+                    indexBufferStage(screen), // draw to front buffer
+                    frontBufferStage(back), // write over previous buffer
+                    updateStage(previous) // write over previous state
+                ],
+            render: renderPipelineStage.bind(null, runtimeContext)
+        });
+
+
+    }, renderDeps);
     
     /**
      * Render function that calls itself recursively, swapping front/back buffers between
      * passes.
+     * 
+     * Triggered when pipeline of functions are ready. 
      */
     useEffect(() => {
-        if (renderDeps.some(x => !x)) return;
-
+        if (!pipeline || !textures.current || !screenBuffers.current) return;
         
         function render(back, screen, previous, state) {
-            [
-                backBufferStage(state, back, screen), 
-                indexBufferStage(screen), 
-                frontBufferStage(screen), 
-                updateStage(previous)
-            ].forEach(renderPipelineStage.bind(null, runtimeContext));
-    
+            pipeline.stages(back, screen, previous, state).forEach(pipeline.render);
             timer.current = setTimeout(render, timeConstant.current * 17.0, screen, back, state, previous);
         };
 
         render(
-            textures.current.back, 
-            textures.current.screen, 
+            screenBuffers.current.back, 
+            screenBuffers.current.screen, 
             textures.current.previous, 
             textures.current.state
         );
 
         return () => clearTimeout(timer.current);
 
-    }, renderDeps);
+    }, [pipeline, textures.current, screenBuffers.current]);
 
     /**
      * In a stand alone loop, update the timeConstant to control
