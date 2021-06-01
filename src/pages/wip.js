@@ -5,7 +5,7 @@ import useTrajectory from "../hooks/useLagrangianTrajectory";
 
 export default ({}) => {
 
-    const { ref, message, preview } = useLagrangian({
+    const { ref, message, preview, timeConstant } = useLagrangian({
         velocity: {
             source: "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com/bathysphere/geospatial/wind.png",
             metadataFile: "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com/bathysphere/geospatial/wind.json"
@@ -25,6 +25,7 @@ export default ({}) => {
     return <div>
         <canvas ref={ref}/>
         <p>{message}</p>
+      
 {/* 
         <canvas ref={preview}/>
         <p>{"Preview"}</p> */}

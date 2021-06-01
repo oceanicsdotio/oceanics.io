@@ -11,8 +11,8 @@ import useWasmWorkers from "./useWasmWorkers";
  * processing
  */
 export default ({
-    source,
-    metadataFile
+    source=null,
+    metadataFile=null
 }) => {
 
     /**
@@ -43,25 +43,25 @@ export default ({
     /**
      * Container for handles to GPU interface
      */
-     const [ imageData, setImageData ] = useState(null);
+    const [ imageData, setImageData ] = useState(null);
 
-     /**
-      * Use external data as a velocity field to force movement of particles
-      */
-     useEffect(()=>{
-         if (!source) return;
-       
-         const img = new Image();
-         img.addEventListener('load', () => {
-             setImageData(img);
-         }, {
-             capture: true,
-             once: true,
-         });
-         img.crossOrigin = source.includes(".") ? "" : undefined;
-         img.src = source;
+    /**
+     * Use external data as a velocity field to force movement of particles
+     */
+    useEffect(()=>{
+        if (!source) return;
+    
+        const img = new Image();
+        img.addEventListener('load', () => {
+            setImageData(img);
+        }, {
+            capture: true,
+            once: true,
+        });
+        img.crossOrigin = source.includes(".") ? "" : undefined;
+        img.src = source;
 
-     }, [ ]);
+    }, [ ]);
 
     /**
      * Display the wind data in a secondary 2D HTML canvas, for debugging
@@ -79,7 +79,6 @@ export default ({
      */
     useEffect(() => {
         if (metadata && imageData && worker.current) worker.current.terminate();
-
     }, [ metadata, imageData ]);
 
     return {

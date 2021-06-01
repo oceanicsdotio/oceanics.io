@@ -40,7 +40,10 @@ const PARAMETER_MAP = {
   * will support pulling frames from video or gif formats. 
   */
 export default ({
-    velocity,
+    velocity: {
+        source = null,
+        metadataFile = null
+    }, // passed on to Hook as args
     res = 16,
     colors = [
         [0.0, '#deababff'],
@@ -56,7 +59,7 @@ export default ({
     /**
      * Exported ref to draw textures to a secondary HTML canvas component
      */
-    const { preview, imageData, metadata } = useImageDataTexture(velocity);
+    const { preview, imageData, metadata } = useImageDataTexture({ source, metadataFile });
 
     /**
      * Particle locations. Will be set by web worker from remote source,
@@ -172,6 +175,23 @@ export default ({
         if (validContext && particles)
             setBuffers(VertexArrayBuffers(validContext, particles));
     }, [ validContext, particles ]);
+
+    /**
+     * Break out velocity texture, we want this to be optional.
+     */
+    const [ velocity, setVelocity ] = useState(null);
+
+    /**
+     * Create the UV velocity texture
+     */
+    useEffect(() => {
+        if (imageData && validContext) 
+            setVelocity(createTexture({
+                ctx: validContext, 
+                filter: "LINEAR", 
+                data: imageData
+            }));
+    }, [ imageData, validContext ]);
     
     /**
     * Generate assets and handles for rendering to canvas.
@@ -180,21 +200,13 @@ export default ({
     * This is executed exactly once after the canvas is created,
     * and the initial positions have been loaded or generated
     */
-    const assetDeps = [ validContext, particles, metadata, colorMap.texture, imageData ]
+    const assetDeps = [ validContext, colorMap.texture ]
     useEffect(() => {
         if (assetDeps.some(x => !x)) return;
         
-        const { width, height } = ref.current;
-        const size = width * height * 4;
-       
         setAssets(
             Object.fromEntries(Object.entries({
-                screen: { data: new Uint8Array(size), shape: [ width, height ] },
-                back: { data: new Uint8Array(size), shape: [ width, height ] },
-                state: { data: particles, shape: [res, res] },
-                previous: { data: particles, shape: [res, res] },
                 color: { data: colorMap.texture, filter: "LINEAR", shape: [16, 16] },
-                uv: { filter: "LINEAR", data: imageData },
             }).map(
                 ([k, v]) => [k, createTexture({ctx: validContext, ...v})]
             ))
@@ -295,7 +307,7 @@ export default ({
         setBackBufferStage(() => (state, back, screen) => () => Object({
             program: programs.screen,
             textures: [
-                [assets.uv, 0],
+                [velocity, 0],
                 [state, 1],  // variable
                 [back, 2]  // variable
             ],
@@ -345,49 +357,72 @@ export default ({
         }));
     }, stageDeps);
 
-    const requestId = useRef(0);
+
+    /**
+     * Reference for using and cancelling setTimeout.
+     */
     const timer = useRef(null);
-    const timeConstant = useRef(0.0);
+
+    /**
+     * Adjustable scalar to fire faster/slower than 60fps
+     */
+    const timeConstant = useRef(1.0);
 
     /**
      * Start the rendering loop
      */
     const renderDeps = [textures.current, runtimeContext, indexBufferStage, backBufferStage, frontBufferStage, updateStage];
+
+    
+    /**
+     * Render function that calls itself recursively, swapping front/back buffers between
+     * passes.
+     */
     useEffect(() => {
         if (renderDeps.some(x => !x)) return;
 
-        let {
-            back,
-            screen,
-            previous,
-            state
-        } = textures.current;
-
-
-        (function render() {
         
+        function render(back, screen, previous, state) {
             [
                 backBufferStage(state, back, screen), 
                 indexBufferStage(screen), 
                 frontBufferStage(screen), 
                 updateStage(previous)
-            ].forEach(stage => renderPipelineStage(runtimeContext, stage));
+            ].forEach(renderPipelineStage.bind(null, runtimeContext));
+    
+            timer.current = setTimeout(render, timeConstant.current * 17.0, screen, back, state, previous);
+        };
 
-            [back, screen, previous, state] = [screen, back, state, previous];
-
-            requestId.current++;
-            timeConstant.current = 0.5*((Math.sin(0.005*performance.now())) + 1.0)
-
-            timer.current = setTimeout(render, timeConstant.current * 17.0);
-        })();
+        render(
+            textures.current.back, 
+            textures.current.screen, 
+            textures.current.previous, 
+            textures.current.state
+        );
 
         return () => clearTimeout(timer.current);
 
     }, renderDeps);
 
+    /**
+     * In a stand alone loop, update the timeConstant to control
+     * the time between render passes. 
+     * 
+     * This decouples that control, so that it can be bound to UI
+     * elements, for example. 
+     */
+    useEffect(() => {
+       
+        const simulateControl = () => {
+            timeConstant.current = 0.5*((Math.sin(0.005*performance.now())) + 1.0);
+        };
 
+        const loop = setInterval(simulateControl, 30.0);
+
+        return () => clearInterval(loop);
+    }, []);
     /**
      * Resources available to parent Component or Hook.
      */
-    return {ref, message, preview}
+    return { ref, message, preview, timeConstant }
 };
