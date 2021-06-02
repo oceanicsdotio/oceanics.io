@@ -3,6 +3,9 @@
  */
 import { useEffect, useState, useRef } from "react";
 
+/**
+ * Rust WASM runtime, used for numerical methods.
+ */
 import useWasmRuntime from "./useWasmRuntime";
 
 /**
@@ -193,18 +196,27 @@ export const renderPipelineStage = ({
 };
 
 
-
-export const createTexture = ({ 
-    ctx, 
-    filter = "NEAREST", 
+/**
+ * Create a new texture
+ * 
+ * @param {*} ctx valid WebGL context
+ * @param {*} param1 args
+ * @returns 
+ */
+export const createTexture = (ctx, { 
+    filter, 
     data, 
     shape = [null, null] 
 }) => {
 
-    let texture = ctx.createTexture();
     const args = data instanceof Uint8Array ? [...shape, 0] : [];
+    const bindTexture = ctx.bindTexture.bind(ctx, ctx.TEXTURE_2D);
+    const texParameteri = ctx.texParameteri.bind(ctx, ctx.TEXTURE_2D);
 
-    ctx.bindTexture(ctx.TEXTURE_2D, texture);
+    let texture = ctx.createTexture();
+
+    bindTexture(texture);
+
     ctx.texImage2D(ctx.TEXTURE_2D, 0, ctx.RGBA, ...args, ctx.RGBA, ctx.UNSIGNED_BYTE, data);
     
     [
@@ -212,10 +224,9 @@ export const createTexture = ({
         [ctx.TEXTURE_WRAP_T, ctx.CLAMP_TO_EDGE],
         [ctx.TEXTURE_MIN_FILTER, ctx[filter]],
         [ctx.TEXTURE_MAG_FILTER, ctx[filter]]
-    ].forEach(
-        ([a, b]) => { ctx.texParameteri(ctx.TEXTURE_2D, a, b) }
-    );
-    ctx.bindTexture(ctx.TEXTURE_2D, null);  // prevent accidental use
+    ].forEach(item => {texParameteri(...item)});
+
+    bindTexture(null);  // prevent accidental use
 
     return texture
 };
@@ -292,14 +303,51 @@ export default ({
        
     }, [ runtime, validContext ]);
 
+    /**
+     * State for function
+     */
+    const [ newTexture, setNewTexture ] = useState(null);
+
+    /**
+     * Create our texture function
+     */
+    useEffect(() => {
+        if (validContext) setNewTexture(()=>createTexture.bind(null, validContext));
+    }, [ validContext ]);
+
+    /**
+     * Uniforms are non-texture values applied to each fragment. 
+     */
+    const [ uniforms, setUniforms ] = useState(null);
+
+     
+    /**
+     * Package up our runtime for easy access. Will pass this to
+     * stage functions. 
+     */
+    const [ runtimeContext, setRuntimeContext ] = useState(null);
+
+    /**
+     * Save the runtime information
+     */
+    useEffect(() => {
+        if (!runtime || !validContext || !uniforms) return;
+        setRuntimeContext({runtime, ctx: validContext, uniforms});
+    }, [ runtime, validContext, uniforms ]);
+
  
-    return {
+    /**
+     * Pass back to parent Component or Hook.
+     */
+    return { 
         ref,
         programs,
         runtime,
+        runtimeContext,
         validContext,
         VertexArrayBuffers,
-        createTexture,
+        createTexture: newTexture,
         extractUniforms,
+        setUniforms
     }
 };
