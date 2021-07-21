@@ -1,4 +1,4 @@
 {
     "private": true,
-    "workspaces": ["www", "workspace-b"]
+    "workspaces": ["www", "app"]
 }
