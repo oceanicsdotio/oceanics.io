@@ -215,3 +215,12 @@ Pipfile.lock
 
 bin/
 bathysphere/_native*
+
+# Yarn v2
+.yarn/*
+.yarn/cache
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
