@@ -1,5 +1,5 @@
 [build]
-  base = "/"
+  base = "/www"
   command = "make build"
   publish = "public"
   functions = "/functions"
