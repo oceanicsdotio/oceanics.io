@@ -1,0 +1,2839 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.1" />
+<title>bathysphere.models API documentation</title>
+<meta name="description" content="The models module of the graph API contains extensions to the common
+models, for storing and accessing data in a Neo4j database." />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>bathysphere.models</code></h1>
+</header>
+<section id="section-intro">
+<p>The models module of the graph API contains extensions to the common
+models, for storing and accessing data in a Neo4j database.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python"># pylint: disable=invalid-name,protected-access
+&#34;&#34;&#34;
+The models module of the graph API contains extensions to the common
+models, for storing and accessing data in a Neo4j database.
+&#34;&#34;&#34;
+from inspect import isclass
+from typing import Type, Callable, Any
+from types import MethodType
+from datetime import datetime
+from pickle import load as unpickle
+from uuid import uuid4, UUID
+from json import dumps
+from inspect import signature
+from time import time
+from functools import reduce
+
+from neo4j import Driver, Record, GraphDatabase
+from neo4j.spatial import WGS84Point
+import attr
+
+from bathysphere import (
+    processKeyValueInbound,
+    executeQuery,
+    polymorphic,
+    RESTRICTED
+)
+
+@attr.s(repr=False)
+class Link:
+    &#34;&#34;&#34;
+    Links are the relationships between two entities.
+    They are directional.
+    &#34;&#34;&#34;
+
+    _symbol: str = attr.ib(default=&#34;r&#34;)
+    rank: int = attr.ib(default=None)
+    uuid: UUID = attr.ib(default=None)
+    props: dict = attr.ib(default=None)
+    label: str = attr.ib(default=None)
+
+    def __repr__(self) -&gt; str:
+        &#34;&#34;&#34;
+        Format the Link for making a Cypher language query
+        to the Neo4j graph database
+
+        [ r:Label { &lt;key&gt;:&lt;value&gt;, &lt;key&gt;:&lt;value&gt; } ]
+        &#34;&#34;&#34;
+        labelStr = f&#34;:{self.label}&#34; if self.label else &#34;&#34;
+        combined = {&#34;uuid&#34;: self.uuid, &#34;rank&#34;: self.rank, **(self.props or {})}
+        nonNullValues = tuple(
+            filter(lambda x: x, map(processKeyValueInbound, combined.items()))
+        )
+        pattern = (
+            &#34;&#34; if len(nonNullValues) == 0 else f&#34;&#34;&#34;{{ {&#39;, &#39;.join(nonNullValues)} }}&#34;&#34;&#34;
+        )
+        return f&#34;[ {self._symbol}{labelStr} {pattern} ]&#34;
+
+    @classmethod
+    def drop(cls: Type, db: Driver, nodes: (Type, Type), props: dict) -&gt; None:
+        &#34;&#34;&#34;
+        Drop the link between two node patterns
+        &#34;&#34;&#34;
+        r = cls(**props)
+        a, b = nodes
+        cmd = f&#34;MATCH {repr(a)}-{repr(r)}-{repr(b)} DELETE {r._symbol}&#34;
+        return executeQuery(db, lambda tx: tx.run(cmd), read_only=False)
+
+    @polymorphic
+    def join(
+        self: Type,
+        db: Driver,
+        nodes: (Any, Any),
+        props: dict = None,
+        echo: bool = False,
+    ) -&gt; None:
+        &#34;&#34;&#34;
+        Create a link between two node patterns. This uses the `polymorphic` decorator
+        to work on either classes or isntances.
+
+        If calling as an instance of `Link`, no addtional properties should be supplied.
+        Otherwise, a `Link` will be constructed from the `props` arguement.
+
+        There must be exactly 2 entities to link. In the future this will support N-body
+        symmetric linking.
+        &#34;&#34;&#34;
+        if isclass(self):
+            L = self(**(props or {}))  # pylint: disable=not-callable
+        elif props is not None and len(props) &gt; 0:
+            raise ValueError(
+                &#34;No additional props allowed when using existing Link instance.&#34;
+            )
+        else:
+            L = self
+        try:
+            a, b = nodes
+        except ValueError:
+            raise ValueError(&#34;Join requires a tuple of exactly 2 entities.&#34;)
+        if a._symbol == b._symbol:
+            a._setSymbol(&#34;a&#34;)
+            b._setSymbol(&#34;b&#34;)
+
+        cmd = f&#34;MATCH {repr(a)}, {repr(b)} MERGE ({a._symbol})-{repr(L)}-&gt;({b._symbol})&#34;
+        if echo:
+            print(cmd)
+        executeQuery(db, lambda tx: tx.run(cmd), read_only=False)
+
+    @polymorphic
+    def query(
+        self: Type,
+        db: Driver,
+        nodes: (Any, Any),
+        props: dict = None,
+        result: str = &#34;labels(b)&#34;,
+    ) -&gt; (Any,):
+        &#34;&#34;&#34;
+        Match and return the label set for connected entities.
+
+        Increment the pageRank every time the link is traversed.
+        &#34;&#34;&#34;
+        if isclass(self):
+            L = self(**(props or {}))  # pylint: disable=not-callable
+        elif props is not None and len(props) &gt; 0:
+            raise ValueError(
+                &#34;No additional props allowed when using existing Link instance.&#34;
+            )
+        else:
+            L = self
+        try:
+            a, b = nodes
+        except ValueError:
+            raise ValueError(&#34;Join requires a tuple of exactly 2 entities.&#34;)
+        a._setSymbol(&#34;a&#34;)
+        b._setSymbol(&#34;b&#34;)
+
+        cmd = (
+            f&#34;MATCH {repr(a)}-{repr(L)}-{repr(b)}&#34;
+            f&#34;SET r.rank = r.rank + 1 &#34;
+            f&#34;RETURN {result}&#34;
+        )
+
+        def runQuery(tx):
+            return [r for r in tx.run(cmd)]
+
+        return executeQuery(db=db, method=runQuery, read_only=True)
+
+
+@attr.s(repr=False)
+class Entity:
+    &#34;&#34;&#34;
+    Primitive object/entity, may have name and location
+    &#34;&#34;&#34;
+
+    uuid: UUID = attr.ib(default=None)
+    _symbol: str = attr.ib(default=&#34;n&#34;)
+
+    def __repr__(self):
+        &#34;&#34;&#34;
+        Format the entity as a Neo4j style node string compatible with
+        the Cypher query language:
+
+        (&lt;symbol&gt;:&lt;class&gt; { &lt;var&gt;: $&lt;var&gt;, &lt;k&gt;: &lt;v&gt;, &lt;k&gt;: &lt;v&gt; })
+        &#34;&#34;&#34;
+        className = str(self)
+        entity = &#34;&#34; if className == Entity.__name__ else f&#34;:{className}&#34;
+        pattern = tuple(
+            filter(
+                lambda x: x is not None,
+                map(processKeyValueInbound, self._properties().items()),
+            )
+        )
+       
+        return f&#34;( {self._symbol}{entity} {{ {&#39;, &#39;.join(pattern)} }} )&#34;
+
+    def __str__(self):
+        return type(self).__name__
+
+    def _setSymbol(
+        self, symbol: str,
+    ):
+        &#34;&#34;&#34;
+        Convenience setter for changing symbol if there are multiple patterns.
+
+        Some common classes have special symbols, e.g. User is `u`
+        &#34;&#34;&#34;
+        self._symbol = symbol
+        return self
+
+    def _properties(self, select: (str) = (), private: str = &#34;&#34;) -&gt; dict:
+        &#34;&#34;&#34;
+        Create a filtered dictionary from the object properties.
+
+        Remove not serializable or resticted members:
+        - functions
+        - keys beginning with a private prefix
+        - keys not in a selected set, IFF provided
+        &#34;&#34;&#34;
+
+        def _filter(keyValue):
+            &#34;&#34;&#34;Remove private or non-serializable data&#34;&#34;&#34;
+            key, value = keyValue
+            return (
+                not isinstance(value, Callable)
+                and isinstance(key, str)
+                and (key[: len(private)] != private if private else True)
+                and (key in select if select else True)
+            )
+
+        return dict(filter(_filter, self.__dict__.items()))
+
+    @classmethod
+    def addConstraint(cls, db: Driver, by: str) -&gt; Callable:
+        &#34;&#34;&#34;
+        Create a unique constraint on one type of labeled node.
+
+        Usually this will be by name.
+        &#34;&#34;&#34;
+        query = lambda tx: tx.run(
+            f&#34;CREATE CONSTRAINT ON (n:{cls.__name__}) ASSERT n.{by} IS UNIQUE&#34;
+        )
+        return executeQuery(db, query, read_only=False)
+
+    @classmethod
+    def addIndex(cls, db: Driver, by: str) -&gt; Callable:
+        &#34;&#34;&#34;
+        Indexes add a unique constraint as well as speeding up queries
+        on the graph database.
+        &#34;&#34;&#34;
+        query = lambda tx: tx.run(f&#34;CREATE INDEX ON : {cls.__name__}({by})&#34;)
+        return executeQuery(db, query, read_only=False)
+
+    @classmethod
+    def addLabel(cls, db: Driver, label: str, **kwargs: dict) -&gt; list or None:
+        &#34;&#34;&#34;
+        Apply new label to nodes of this class, or a specific node.
+        &#34;&#34;&#34;
+        entity = cls(**kwargs)
+        query = lambda tx: tx.run(
+            f&#34;MATCH {repr(entity)} SET {entity._symbol}:{label}&#34;
+        ).values()
+        return executeQuery(db, query, read_only=False)
+
+    @classmethod
+    def count(cls, db: Driver, **kwargs: dict) -&gt; int:
+        &#34;&#34;&#34;
+        Count occurrence of a class label or pattern in Neo4j.
+        &#34;&#34;&#34;
+        entity = cls(**kwargs)
+        query = lambda tx: tx.run(
+            f&#34;MATCH {repr(entity)} RETURN count({entity._symbol})&#34;
+        ).single()[0]
+        return executeQuery(db, query, read_only=True)
+
+    @polymorphic
+    def create(
+        self,
+        db: Driver,
+        bind: (Callable) = (),
+        uuid: str = uuid4().hex,
+        private: str = &#34;_&#34;,
+        **kwargs: dict,
+    ) -&gt; Any or None:
+
+        &#34;&#34;&#34;
+        Create a new node(s) in graph.
+
+        Format object properties dictionary as list of key:&#34;value&#34; strings,
+        automatically converting each object to string using its built-in __str__ converter.
+        Special values can be given unique string serialization methods by overloading __str__.
+
+        The bind tuple items are external methods that are bound as instance methods to allow
+        for extending capabilities in an adhov way.
+
+        Blank values are ignored and will not result in graph attributes. Blank values are:
+        - None (python value)
+        - &#34;None&#34; (string)
+
+        Writing transactions are recursive, and can take a long time if the tasking graph
+        has not yet been built. For this reason it is desirable to populate the graph
+        with at least one instance of each data type. 
+
+        &#34;&#34;&#34;
+
+        if isclass(self):
+            entity = self(uuid=uuid, **kwargs)  # pylint: disable=not-callable
+        else:
+            entity = self
+
+        executeQuery(db, lambda tx: tx.run(f&#34;MERGE {repr(entity)}&#34;))
+        if isinstance(entity, TaskingCapabilities):  # prevent recursion
+            return entity
+
+        for fcn in bind:  # bind user defined methods
+            setattr(entity, fcn.__name__, MethodType(fcn, entity))
+
+        existingCapabilities: dict = {
+            x.name: x.uuid for x in TaskingCapabilities().load(db=db)
+        }
+
+        _generator = filter(
+            lambda x: isinstance(x[1], Callable), entity.__dict__.items()
+        )
+
+        def _is_not_private_or_property(x: str):
+            return (
+                x[: len(private)] != private and 
+                not isinstance(getattr(type(entity), x, None), property)
+            )
+
+        boundMethods = set(y[0] for y in _generator)
+        classMethods = set(filter(_is_not_private_or_property, dir(entity)))
+        instanceKeys: set = (boundMethods | classMethods) - set(entity._properties())
+        existingKeys = set(existingCapabilities.keys())
+
+        for name in (instanceKeys - existingKeys):
+            fcn = eval(f&#34;{type(entity).__name__}.{name}&#34;)
+            tcUuid = uuid4().hex
+            existingCapabilities[name] = tcUuid
+            _ = TaskingCapabilities(
+                name=name,
+                creationTime=time(),
+                uuid=tcUuid,
+                description=fcn.__doc__,
+                taskingParameters=list(
+                    {
+                        &#34;name&#34;: b.name,
+                        &#34;description&#34;: &#34;&#34;,
+                        &#34;type&#34;: &#34;&#34;,
+                        &#34;allowedTokens&#34;: [&#34;&#34;],
+                    }
+                    for b in signature(fcn).parameters.values()
+                )
+            ).create(
+                db=db
+            )
+
+        linkPattern = Link(label=&#34;Has&#34;)
+        for tcUuid in existingCapabilities.values():
+            linkPattern.join(
+                db=db,
+                nodes=(entity, TaskingCapabilities(uuid=tcUuid))
+            )
+        
+        return entity
+
+    @polymorphic
+    def delete(self, db: Driver, pattern: dict = None) -&gt; None:
+        &#34;&#34;&#34;
+        Remove all nodes from the graph, or optionally specify node-matching parameters.
+
+        This method works on both classes and instances.
+        &#34;&#34;&#34;
+        if isclass(self):
+            entity = self(**(pattern or {}))  # pylint: disable=not-callable
+        elif pattern is not None:
+            raise ValueError(&#34;Pattern supplied for delete from entity instance.&#34;)
+        else:
+            entity = self
+
+        return executeQuery(
+            db=db,
+            read_only=False,
+            method=lambda tx: tx.run(
+                f&#34;MATCH {repr(entity)} DETACH DELETE {entity._symbol}&#34;
+            ).values(),
+        )
+
+    @classmethod
+    def dropIndex(cls, db: Driver, by: str) -&gt; None:
+        &#34;&#34;&#34;Drop an existing index&#34;&#34;&#34;
+        query = lambda tx: tx.run(f&#34;DROP INDEX ON : {cls.__name__}({by})&#34;)
+        executeQuery(db, query, read_only=False)
+
+    @polymorphic
+    def load(
+        self,
+        db: Driver,
+        user: Type = None,
+        private: str = &#34;_&#34;,
+        annotate: str = &#34;Get&#34;,
+        result: str = None,
+        echo: bool = False,
+        **kwargs: dict,
+    ) -&gt; [Type]:
+        &#34;&#34;&#34;
+        Create entity instance from a dictionary or Neo4j &lt;Node&gt;, which has an items() method
+        that works the same as the dictionary method.
+        &#34;&#34;&#34;
+        if isclass(self):
+            entity = self(**(kwargs or {}))  # pylint: disable=not-callable
+            cls = self
+        else:
+            entity = self
+            cls = type(self)
+
+        cmd = (
+            (
+                f&#34;MATCH {repr(entity)}, {repr(user)} &#34;
+                f&#34;MERGE ({entity._symbol})&lt;-[r:{annotate}]-({user._symbol}) &#34;
+                f&#34;ON CREATE SET r.rank = 1 &#34;
+                f&#34;ON MATCH SET r.rank = r.rank + 1 &#34;
+                f&#34;RETURN {entity._symbol}{&#39;.{}&#39;.format(result) if result else &#39;&#39;}&#34;
+            )
+            if user
+            else (
+                f&#34;MATCH {repr(entity)} &#34;
+                f&#34;RETURN {entity._symbol}{&#39;.{}&#39;.format(result) if result else &#39;&#39;}&#34;
+            )
+        )
+
+        if echo:
+            print(cmd)
+
+        def processKeyValueOutbound(keyValue: (str, Any),) -&gt; (str, Any):
+            &#34;&#34;&#34;
+            Special parsing for serialization on query
+            &#34;&#34;&#34;
+            key, value = keyValue
+
+            if key[0] == &#34;_&#34;:
+                key = key[1:]
+
+            if isinstance(value, WGS84Point):
+
+                value = {
+                    &#34;type&#34;: &#34;Point&#34;,
+                    &#34;coordinates&#34;: f&#34;{[value.longitude, value.latitude]}&#34;
+                }
+                 
+            return key, value
+
+        def transducer(record: Record):
+            return cls(**dict(map(processKeyValueOutbound, dict(record[0]).items())))
+
+        def runQuery(tx):
+            result = tx.run(cmd)
+            return [r for r in result]
+
+        return list(map(transducer, executeQuery(
+            db=db, method=runQuery, read_only=True
+        )))
+
+    @polymorphic
+    def mutate(self: Type, db: Driver, data: dict, pattern: dict = None) -&gt; None:
+        &#34;&#34;&#34;
+        Update/add node properties
+        &#34;&#34;&#34;
+        if isclass(self):
+            entity = self(**pattern)  # pylint: disable=not-callable
+        elif pattern is not None:
+            raise ValueError(&#34;Pattern supplied for delete from entity instance.&#34;)
+        else:
+            entity = self
+
+        _updates = &#34;, &#34;.join(map(processKeyValueInbound, data.items()))
+        executeQuery(
+            db=db,
+            read_only=False,
+            method=lambda tx: tx.run(
+                f&#34;MATCH {repr(entity)} SET {entity._symbol} += {{ {_updates} }}&#34;
+            ),
+        )
+
+    def serialize(
+        self, db: Driver, service: str, protocol: str = &#34;http&#34;, select: (str) = None
+    ) -&gt; dict:
+        &#34;&#34;&#34;
+        Format entity as JSON compatible dictionary from either an object instance or a Neo4j &lt;Node&gt;
+
+        Filter properties by selected names, if any.
+        Remove private members that include a underscore,
+        since SensorThings notation is title case
+        &#34;&#34;&#34;
+        props = self._properties(select=select, private=&#34;_&#34;)
+        uuid = self.uuid
+        base_url = f&#34;{protocol}://{service}/api&#34;
+        root_url = f&#34;{base_url}/{type(self).__name__}&#34;
+        self_url = (
+            f&#34;{root_url}({uuid})&#34; if isinstance(uuid, int) else f&#34;{base_url}/{uuid}&#34;
+        )
+
+        linkedEntities = set()
+        if db is not None:
+            _filter = lambda x: len(set(x[0]) &amp; RESTRICTED) == 0
+            _reduce = lambda y, z: y | {z[0][0]}
+            safe = filter(_filter, Link().query(db=db, nodes=(self, Entity())))
+            linkedEntities = reduce(_reduce, safe, linkedEntities)
+
+        return {
+            &#34;@iot.id&#34;: uuid,
+            &#34;@iot.selfLink&#34;: self_url,
+            &#34;@iot.collection&#34;: root_url,
+            **props,
+            **{
+                each + &#34;@iot.navigation&#34;: f&#34;{self_url}/{each}&#34;
+                for each in linkedEntities
+            },
+        }
+
+
+@attr.s(repr=False)
+class Actuators(Entity):
+    &#34;&#34;&#34;
+    Actuators are devices that turn messages into physical effects
+    &#34;&#34;&#34;
+    name: str = attr.ib(default=None)
+    description: str = attr.ib(default=None)
+    encodingType: str = attr.ib(default=None)  # metadata encoding
+    metadata: Any = attr.ib(default=None)
+
+    networkAddress: (str, int) = attr.ib(default=(None, None))
+
+
+@attr.s(repr=False)
+class Assets(Entity):
+    &#34;&#34;&#34;
+    Assets are references to externaldata objects, which may or may not
+    be accessible at the time of query.
+
+    These are most likely ndarray/raster or json blobs in object storage
+
+    name: name of resource
+    description: annotation
+    location: address of resource, including protocol (e.g. postgres://)
+    &#34;&#34;&#34;
+    name: str = attr.ib(default=None)
+    description: str = attr.ib(default=None)
+    location: str = attr.ib(default=None)
+
+
+@attr.s(repr=False)
+class Collections(Entity):
+    &#34;&#34;&#34;
+    Collections are arbitrary groupings of entities.
+    &#34;&#34;&#34;
+    name: str = attr.ib(default=None)
+    description: str = attr.ib(default=None)
+    extent: (float,) = attr.ib(default=None)
+    keywords: str = attr.ib(default=None)
+    license: str = attr.ib(default=None)
+    version: int = attr.ib(default=None)
+
+
+
+@attr.s(repr=False)
+class DataStreams(Entity):
+    &#34;&#34;&#34;
+    DataStreams are collections of Observations.
+    &#34;&#34;&#34;
+
+    name: str = attr.ib(default=None)
+    description: str = attr.ib(default=None)
+    unitOfMeasurement = attr.ib(default=None)
+    observationType = attr.ib(default=None)
+    observedArea: dict = attr.ib(default=None)  # boundary geometry, GeoJSON polygon
+    phenomenonTime: (datetime, datetime) = attr.ib(
+        default=None
+    )  # time interval, ISO8601
+    resultTime: (datetime, datetime) = attr.ib(
+        default=None
+    )  # result times interval, ISO8601
+
+
+@attr.s(repr=False)
+class FeaturesOfInterest(Entity):
+    &#34;&#34;&#34;
+    FeaturesOfInterest are usually Locations.
+    &#34;&#34;&#34;
+    name: str = attr.ib(default=None)
+    description: str = attr.ib(default=None)
+    encodingType: str = attr.ib(default=None)  # metadata encoding
+    feature: Any = attr.ib(default=None)
+
+
+@attr.s(repr=False)
+class Locations(Entity):
+    &#34;&#34;&#34;
+    Last known `Locations` of `Things`. May be `FeaturesOfInterest`, unless remote sensing.
+
+    location encoding may be `application/vnd.geo+json` or `application/json`
+    &#34;&#34;&#34;
+    description: str = attr.ib(default=None)
+    encodingType: str = attr.ib(default=None)
+    location = attr.ib(default=None)  # GeoJSON
+    name: str = attr.ib(default=None)
+
+
+@attr.s(repr=False)
+class HistoricalLocations(Entity):
+    &#34;&#34;&#34;
+    Private and automatic, should be added to sensor when new location is determined
+    &#34;&#34;&#34;
+    time: str = attr.ib(
+        default=None
+    )  # time when thing was at location (ISO-8601 string)
+
+
+@attr.s(repr=False)
+class Sensors(Entity):
+    &#34;&#34;&#34;
+    Sensors are devices that observe processes
+    &#34;&#34;&#34;
+    name: str = attr.ib(default=None)
+    description: str = attr.ib(default=None)
+    encodingType: str = attr.ib(default=None)  # metadata encoding
+    metadata: Any = attr.ib(default=None)
+
+
+@attr.s(repr=False)
+class Observations(Entity):
+    &#34;&#34;&#34;Graph extension to base model&#34;&#34;&#34;
+    &#34;&#34;&#34;
+    Observations are individual time-stamped members of Datastreams
+    &#34;&#34;&#34;
+    phenomenonTime: datetime = attr.ib(
+        default=None
+    )  # timestamp, doesn&#39;t enforce specific format
+    result: Any = attr.ib(default=None)  # value of the observation
+    resultTime: datetime = attr.ib(default=None)
+    resultQuality: Any = attr.ib(default=None)
+    validTime: (datetime, datetime) = attr.ib(default=None)  # time period
+    parameters: dict = attr.ib(default=None)
+
+    @property
+    def outOfRange(self, maximum, minimum=0.0):
+        &#34;&#34;&#34;
+        True if value is outside the given range
+        &#34;&#34;&#34;
+        return (self.result &gt; maximum) | (self.result &lt; minimum)
+
+
+@attr.s(repr=False)
+class ObservedProperties(Entity):
+    &#34;&#34;&#34;
+    Create a property, but do not associate any data streams with it
+    &#34;&#34;&#34;
+    name: str = attr.ib(default=None)
+    description: str = attr.ib(default=None)
+    definition: str = attr.ib(default=None)  #  URL to reference defining the property
+
+
+@attr.s(repr=False)
+class Providers(Entity):
+    &#34;&#34;&#34;
+    Providers are generally organization or enterprise sub-units. This is used to
+    route ingress and determine implicit permissions for data access, sharing, and
+    attribution. 
+    &#34;&#34;&#34;
+
+    name: str = attr.ib(default=None)
+    description: str = attr.ib(default=None)
+    domain: str = attr.ib(default=None)
+    secretKey: str = attr.ib(default=None)
+    apiKey: str = attr.ib(default=None)
+    tokenDuration: int = attr.ib(default=None)
+
+
+
+@attr.s(repr=False)
+class TaskingCapabilities(Entity):
+    &#34;&#34;&#34;
+    Graph extension to base model. TaskingCapabilities may be called
+    by defining graph patterns that supply all of their inputs.
+
+    Execution creates one or more Tasks. 
+    &#34;&#34;&#34;
+    name: str = attr.ib(default=None)
+    description: str =  attr.ib(default=None)
+    creationTime: float = attr.ib(default=None)
+    taskingParameters: dict = attr.ib(default=None)
+
+    def serialize(self, *args, **kwargs):
+        _default = super(TaskingCapabilities, self).serialize(*args, **kwargs)
+        _default[&#34;creationTime&#34;] = f&#39;{datetime.fromtimestamp(_default[&#34;creationTime&#34;])}&#39;
+        return _default
+
+
+@attr.s(repr=False)
+class Tasks(Entity):
+    &#34;&#34;&#34;
+    Tasks are connected to `Things` and `TaskingCapabilities`.
+
+    Tasks are pieces of work that are done asynchronously by humans or machines.
+    &#34;&#34;&#34;
+    creationTime: float = attr.ib(default=None)
+    taskingParameters: dict = attr.ib(default=None)
+
+
+@attr.s(repr=False)
+class Things(Entity):
+    &#34;&#34;&#34;
+    A thing is an object of the physical or information world that is capable of of being identified
+    and integrated into communication networks.
+    &#34;&#34;&#34;
+    name: str = attr.ib(default=None)
+    description: str = attr.ib(default=None)
+    properties: dict = attr.ib(default=None)
+
+
+    @staticmethod
+    def catalog(year: int, month: int = None, day: int = None):
+        &#34;&#34;&#34;
+        Special catalog method for displaying data conforming to STAC spec,
+        not currently in use
+        &#34;&#34;&#34;
+        try:
+            fid = open(&#34;data/remoteCache-{}&#34;.format(year), &#34;rb&#34;)
+            data = list(unpickle(fid))
+        except FileNotFoundError:
+            return {&#34;message&#34;: &#34;No data for year&#34;}, 404
+
+        response = dict()
+        for date in data:
+            if (not month or date[&#34;date&#34;].month == month) and (
+                not day or date[&#34;date&#34;].day == day
+            ):
+                date[&#34;files&#34;] = [file.serialize() for file in date[&#34;files&#34;]]
+                response[date[&#34;name&#34;]] = date
+
+        return response, 200
+
+
+@attr.s(repr=False)
+class User(Entity):
+    &#34;&#34;&#34;
+    Create a user entity. Users contain authorization secrets, and do not enter/leave
+    the system through the same routes as normal Entities
+    &#34;&#34;&#34;
+    _symbol: str = attr.ib(default=&#34;u&#34;)
+    ip: str = attr.ib(default=None)
+    name: str = attr.ib(default=None)
+    alias: str = attr.ib(default=None)
+    credential: str = attr.ib(default=None)
+    validated: bool = attr.ib(default=True)
+    description: str = attr.ib(default=None)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="bathysphere.models.Actuators"><code class="flex name class">
+<span>class <span class="ident">Actuators</span></span>
+<span>(</span><span>uuid: uuid.UUID = None, symbol: str = 'n', name: str = None, description: str = None, encodingType: str = None, metadata: Any = None, networkAddress: (<class 'str'>, <class 'int'>) = (None, None))</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Actuators are devices that turn messages into physical effects</p>
+<p>Method generated by attrs for class Actuators.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Actuators(Entity):
+    &#34;&#34;&#34;
+    Actuators are devices that turn messages into physical effects
+    &#34;&#34;&#34;
+    name: str = attr.ib(default=None)
+    description: str = attr.ib(default=None)
+    encodingType: str = attr.ib(default=None)  # metadata encoding
+    metadata: Any = attr.ib(default=None)
+
+    networkAddress: (str, int) = attr.ib(default=(None, None))</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="bathysphere.models.Entity" href="#bathysphere.models.Entity">Entity</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="bathysphere.models.Actuators.description"><code class="name">var <span class="ident">description</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Actuators.encodingType"><code class="name">var <span class="ident">encodingType</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Actuators.metadata"><code class="name">var <span class="ident">metadata</span> : Any</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Actuators.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Actuators.networkAddress"><code class="name">var <span class="ident">networkAddress</span> : (<class 'str'>, <class 'int'>)</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="bathysphere.models.Entity" href="#bathysphere.models.Entity">Entity</a></b></code>:
+<ul class="hlist">
+<li><code><a title="bathysphere.models.Entity.addConstraint" href="#bathysphere.models.Entity.addConstraint">addConstraint</a></code></li>
+<li><code><a title="bathysphere.models.Entity.addIndex" href="#bathysphere.models.Entity.addIndex">addIndex</a></code></li>
+<li><code><a title="bathysphere.models.Entity.addLabel" href="#bathysphere.models.Entity.addLabel">addLabel</a></code></li>
+<li><code><a title="bathysphere.models.Entity.count" href="#bathysphere.models.Entity.count">count</a></code></li>
+<li><code><a title="bathysphere.models.Entity.create" href="#bathysphere.models.Entity.create">create</a></code></li>
+<li><code><a title="bathysphere.models.Entity.delete" href="#bathysphere.models.Entity.delete">delete</a></code></li>
+<li><code><a title="bathysphere.models.Entity.dropIndex" href="#bathysphere.models.Entity.dropIndex">dropIndex</a></code></li>
+<li><code><a title="bathysphere.models.Entity.load" href="#bathysphere.models.Entity.load">load</a></code></li>
+<li><code><a title="bathysphere.models.Entity.mutate" href="#bathysphere.models.Entity.mutate">mutate</a></code></li>
+<li><code><a title="bathysphere.models.Entity.serialize" href="#bathysphere.models.Entity.serialize">serialize</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="bathysphere.models.Assets"><code class="flex name class">
+<span>class <span class="ident">Assets</span></span>
+<span>(</span><span>uuid: uuid.UUID = None, symbol: str = 'n', name: str = None, description: str = None, location: str = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Assets are references to externaldata objects, which may or may not
+be accessible at the time of query.</p>
+<p>These are most likely ndarray/raster or json blobs in object storage</p>
+<p>name: name of resource
+description: annotation
+location: address of resource, including protocol (e.g. postgres://)</p>
+<p>Method generated by attrs for class Assets.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Assets(Entity):
+    &#34;&#34;&#34;
+    Assets are references to externaldata objects, which may or may not
+    be accessible at the time of query.
+
+    These are most likely ndarray/raster or json blobs in object storage
+
+    name: name of resource
+    description: annotation
+    location: address of resource, including protocol (e.g. postgres://)
+    &#34;&#34;&#34;
+    name: str = attr.ib(default=None)
+    description: str = attr.ib(default=None)
+    location: str = attr.ib(default=None)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="bathysphere.models.Entity" href="#bathysphere.models.Entity">Entity</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="bathysphere.models.Assets.description"><code class="name">var <span class="ident">description</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Assets.location"><code class="name">var <span class="ident">location</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Assets.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="bathysphere.models.Entity" href="#bathysphere.models.Entity">Entity</a></b></code>:
+<ul class="hlist">
+<li><code><a title="bathysphere.models.Entity.addConstraint" href="#bathysphere.models.Entity.addConstraint">addConstraint</a></code></li>
+<li><code><a title="bathysphere.models.Entity.addIndex" href="#bathysphere.models.Entity.addIndex">addIndex</a></code></li>
+<li><code><a title="bathysphere.models.Entity.addLabel" href="#bathysphere.models.Entity.addLabel">addLabel</a></code></li>
+<li><code><a title="bathysphere.models.Entity.count" href="#bathysphere.models.Entity.count">count</a></code></li>
+<li><code><a title="bathysphere.models.Entity.create" href="#bathysphere.models.Entity.create">create</a></code></li>
+<li><code><a title="bathysphere.models.Entity.delete" href="#bathysphere.models.Entity.delete">delete</a></code></li>
+<li><code><a title="bathysphere.models.Entity.dropIndex" href="#bathysphere.models.Entity.dropIndex">dropIndex</a></code></li>
+<li><code><a title="bathysphere.models.Entity.load" href="#bathysphere.models.Entity.load">load</a></code></li>
+<li><code><a title="bathysphere.models.Entity.mutate" href="#bathysphere.models.Entity.mutate">mutate</a></code></li>
+<li><code><a title="bathysphere.models.Entity.serialize" href="#bathysphere.models.Entity.serialize">serialize</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="bathysphere.models.Collections"><code class="flex name class">
+<span>class <span class="ident">Collections</span></span>
+<span>(</span><span>uuid: uuid.UUID = None, symbol: str = 'n', name: str = None, description: str = None, extent: (<class 'float'>,) = None, keywords: str = None, license: str = None, version: int = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Collections are arbitrary groupings of entities.</p>
+<p>Method generated by attrs for class Collections.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Collections(Entity):
+    &#34;&#34;&#34;
+    Collections are arbitrary groupings of entities.
+    &#34;&#34;&#34;
+    name: str = attr.ib(default=None)
+    description: str = attr.ib(default=None)
+    extent: (float,) = attr.ib(default=None)
+    keywords: str = attr.ib(default=None)
+    license: str = attr.ib(default=None)
+    version: int = attr.ib(default=None)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="bathysphere.models.Entity" href="#bathysphere.models.Entity">Entity</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="bathysphere.models.Collections.description"><code class="name">var <span class="ident">description</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Collections.extent"><code class="name">var <span class="ident">extent</span> : (<class 'float'>,)</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Collections.keywords"><code class="name">var <span class="ident">keywords</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Collections.license"><code class="name">var <span class="ident">license</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Collections.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Collections.version"><code class="name">var <span class="ident">version</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="bathysphere.models.Entity" href="#bathysphere.models.Entity">Entity</a></b></code>:
+<ul class="hlist">
+<li><code><a title="bathysphere.models.Entity.addConstraint" href="#bathysphere.models.Entity.addConstraint">addConstraint</a></code></li>
+<li><code><a title="bathysphere.models.Entity.addIndex" href="#bathysphere.models.Entity.addIndex">addIndex</a></code></li>
+<li><code><a title="bathysphere.models.Entity.addLabel" href="#bathysphere.models.Entity.addLabel">addLabel</a></code></li>
+<li><code><a title="bathysphere.models.Entity.count" href="#bathysphere.models.Entity.count">count</a></code></li>
+<li><code><a title="bathysphere.models.Entity.create" href="#bathysphere.models.Entity.create">create</a></code></li>
+<li><code><a title="bathysphere.models.Entity.delete" href="#bathysphere.models.Entity.delete">delete</a></code></li>
+<li><code><a title="bathysphere.models.Entity.dropIndex" href="#bathysphere.models.Entity.dropIndex">dropIndex</a></code></li>
+<li><code><a title="bathysphere.models.Entity.load" href="#bathysphere.models.Entity.load">load</a></code></li>
+<li><code><a title="bathysphere.models.Entity.mutate" href="#bathysphere.models.Entity.mutate">mutate</a></code></li>
+<li><code><a title="bathysphere.models.Entity.serialize" href="#bathysphere.models.Entity.serialize">serialize</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="bathysphere.models.DataStreams"><code class="flex name class">
+<span>class <span class="ident">DataStreams</span></span>
+<span>(</span><span>uuid: uuid.UUID = None, symbol: str = 'n', name: str = None, description: str = None, unitOfMeasurement=None, observationType=None, observedArea: dict = None, phenomenonTime: (<class 'datetime.datetime'>, <class 'datetime.datetime'>) = None, resultTime: (<class 'datetime.datetime'>, <class 'datetime.datetime'>) = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>DataStreams are collections of Observations.</p>
+<p>Method generated by attrs for class DataStreams.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DataStreams(Entity):
+    &#34;&#34;&#34;
+    DataStreams are collections of Observations.
+    &#34;&#34;&#34;
+
+    name: str = attr.ib(default=None)
+    description: str = attr.ib(default=None)
+    unitOfMeasurement = attr.ib(default=None)
+    observationType = attr.ib(default=None)
+    observedArea: dict = attr.ib(default=None)  # boundary geometry, GeoJSON polygon
+    phenomenonTime: (datetime, datetime) = attr.ib(
+        default=None
+    )  # time interval, ISO8601
+    resultTime: (datetime, datetime) = attr.ib(
+        default=None
+    )  # result times interval, ISO8601</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="bathysphere.models.Entity" href="#bathysphere.models.Entity">Entity</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="bathysphere.models.DataStreams.description"><code class="name">var <span class="ident">description</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.DataStreams.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.DataStreams.observedArea"><code class="name">var <span class="ident">observedArea</span> : dict</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.DataStreams.phenomenonTime"><code class="name">var <span class="ident">phenomenonTime</span> : (<class 'datetime.datetime'>, <class 'datetime.datetime'>)</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.DataStreams.resultTime"><code class="name">var <span class="ident">resultTime</span> : (<class 'datetime.datetime'>, <class 'datetime.datetime'>)</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="bathysphere.models.Entity" href="#bathysphere.models.Entity">Entity</a></b></code>:
+<ul class="hlist">
+<li><code><a title="bathysphere.models.Entity.addConstraint" href="#bathysphere.models.Entity.addConstraint">addConstraint</a></code></li>
+<li><code><a title="bathysphere.models.Entity.addIndex" href="#bathysphere.models.Entity.addIndex">addIndex</a></code></li>
+<li><code><a title="bathysphere.models.Entity.addLabel" href="#bathysphere.models.Entity.addLabel">addLabel</a></code></li>
+<li><code><a title="bathysphere.models.Entity.count" href="#bathysphere.models.Entity.count">count</a></code></li>
+<li><code><a title="bathysphere.models.Entity.create" href="#bathysphere.models.Entity.create">create</a></code></li>
+<li><code><a title="bathysphere.models.Entity.delete" href="#bathysphere.models.Entity.delete">delete</a></code></li>
+<li><code><a title="bathysphere.models.Entity.dropIndex" href="#bathysphere.models.Entity.dropIndex">dropIndex</a></code></li>
+<li><code><a title="bathysphere.models.Entity.load" href="#bathysphere.models.Entity.load">load</a></code></li>
+<li><code><a title="bathysphere.models.Entity.mutate" href="#bathysphere.models.Entity.mutate">mutate</a></code></li>
+<li><code><a title="bathysphere.models.Entity.serialize" href="#bathysphere.models.Entity.serialize">serialize</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="bathysphere.models.Entity"><code class="flex name class">
+<span>class <span class="ident">Entity</span></span>
+<span>(</span><span>uuid: uuid.UUID = None, symbol: str = 'n')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Primitive object/entity, may have name and location</p>
+<p>Method generated by attrs for class Entity.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Entity:
+    &#34;&#34;&#34;
+    Primitive object/entity, may have name and location
+    &#34;&#34;&#34;
+
+    uuid: UUID = attr.ib(default=None)
+    _symbol: str = attr.ib(default=&#34;n&#34;)
+
+    def __repr__(self):
+        &#34;&#34;&#34;
+        Format the entity as a Neo4j style node string compatible with
+        the Cypher query language:
+
+        (&lt;symbol&gt;:&lt;class&gt; { &lt;var&gt;: $&lt;var&gt;, &lt;k&gt;: &lt;v&gt;, &lt;k&gt;: &lt;v&gt; })
+        &#34;&#34;&#34;
+        className = str(self)
+        entity = &#34;&#34; if className == Entity.__name__ else f&#34;:{className}&#34;
+        pattern = tuple(
+            filter(
+                lambda x: x is not None,
+                map(processKeyValueInbound, self._properties().items()),
+            )
+        )
+       
+        return f&#34;( {self._symbol}{entity} {{ {&#39;, &#39;.join(pattern)} }} )&#34;
+
+    def __str__(self):
+        return type(self).__name__
+
+    def _setSymbol(
+        self, symbol: str,
+    ):
+        &#34;&#34;&#34;
+        Convenience setter for changing symbol if there are multiple patterns.
+
+        Some common classes have special symbols, e.g. User is `u`
+        &#34;&#34;&#34;
+        self._symbol = symbol
+        return self
+
+    def _properties(self, select: (str) = (), private: str = &#34;&#34;) -&gt; dict:
+        &#34;&#34;&#34;
+        Create a filtered dictionary from the object properties.
+
+        Remove not serializable or resticted members:
+        - functions
+        - keys beginning with a private prefix
+        - keys not in a selected set, IFF provided
+        &#34;&#34;&#34;
+
+        def _filter(keyValue):
+            &#34;&#34;&#34;Remove private or non-serializable data&#34;&#34;&#34;
+            key, value = keyValue
+            return (
+                not isinstance(value, Callable)
+                and isinstance(key, str)
+                and (key[: len(private)] != private if private else True)
+                and (key in select if select else True)
+            )
+
+        return dict(filter(_filter, self.__dict__.items()))
+
+    @classmethod
+    def addConstraint(cls, db: Driver, by: str) -&gt; Callable:
+        &#34;&#34;&#34;
+        Create a unique constraint on one type of labeled node.
+
+        Usually this will be by name.
+        &#34;&#34;&#34;
+        query = lambda tx: tx.run(
+            f&#34;CREATE CONSTRAINT ON (n:{cls.__name__}) ASSERT n.{by} IS UNIQUE&#34;
+        )
+        return executeQuery(db, query, read_only=False)
+
+    @classmethod
+    def addIndex(cls, db: Driver, by: str) -&gt; Callable:
+        &#34;&#34;&#34;
+        Indexes add a unique constraint as well as speeding up queries
+        on the graph database.
+        &#34;&#34;&#34;
+        query = lambda tx: tx.run(f&#34;CREATE INDEX ON : {cls.__name__}({by})&#34;)
+        return executeQuery(db, query, read_only=False)
+
+    @classmethod
+    def addLabel(cls, db: Driver, label: str, **kwargs: dict) -&gt; list or None:
+        &#34;&#34;&#34;
+        Apply new label to nodes of this class, or a specific node.
+        &#34;&#34;&#34;
+        entity = cls(**kwargs)
+        query = lambda tx: tx.run(
+            f&#34;MATCH {repr(entity)} SET {entity._symbol}:{label}&#34;
+        ).values()
+        return executeQuery(db, query, read_only=False)
+
+    @classmethod
+    def count(cls, db: Driver, **kwargs: dict) -&gt; int:
+        &#34;&#34;&#34;
+        Count occurrence of a class label or pattern in Neo4j.
+        &#34;&#34;&#34;
+        entity = cls(**kwargs)
+        query = lambda tx: tx.run(
+            f&#34;MATCH {repr(entity)} RETURN count({entity._symbol})&#34;
+        ).single()[0]
+        return executeQuery(db, query, read_only=True)
+
+    @polymorphic
+    def create(
+        self,
+        db: Driver,
+        bind: (Callable) = (),
+        uuid: str = uuid4().hex,
+        private: str = &#34;_&#34;,
+        **kwargs: dict,
+    ) -&gt; Any or None:
+
+        &#34;&#34;&#34;
+        Create a new node(s) in graph.
+
+        Format object properties dictionary as list of key:&#34;value&#34; strings,
+        automatically converting each object to string using its built-in __str__ converter.
+        Special values can be given unique string serialization methods by overloading __str__.
+
+        The bind tuple items are external methods that are bound as instance methods to allow
+        for extending capabilities in an adhov way.
+
+        Blank values are ignored and will not result in graph attributes. Blank values are:
+        - None (python value)
+        - &#34;None&#34; (string)
+
+        Writing transactions are recursive, and can take a long time if the tasking graph
+        has not yet been built. For this reason it is desirable to populate the graph
+        with at least one instance of each data type. 
+
+        &#34;&#34;&#34;
+
+        if isclass(self):
+            entity = self(uuid=uuid, **kwargs)  # pylint: disable=not-callable
+        else:
+            entity = self
+
+        executeQuery(db, lambda tx: tx.run(f&#34;MERGE {repr(entity)}&#34;))
+        if isinstance(entity, TaskingCapabilities):  # prevent recursion
+            return entity
+
+        for fcn in bind:  # bind user defined methods
+            setattr(entity, fcn.__name__, MethodType(fcn, entity))
+
+        existingCapabilities: dict = {
+            x.name: x.uuid for x in TaskingCapabilities().load(db=db)
+        }
+
+        _generator = filter(
+            lambda x: isinstance(x[1], Callable), entity.__dict__.items()
+        )
+
+        def _is_not_private_or_property(x: str):
+            return (
+                x[: len(private)] != private and 
+                not isinstance(getattr(type(entity), x, None), property)
+            )
+
+        boundMethods = set(y[0] for y in _generator)
+        classMethods = set(filter(_is_not_private_or_property, dir(entity)))
+        instanceKeys: set = (boundMethods | classMethods) - set(entity._properties())
+        existingKeys = set(existingCapabilities.keys())
+
+        for name in (instanceKeys - existingKeys):
+            fcn = eval(f&#34;{type(entity).__name__}.{name}&#34;)
+            tcUuid = uuid4().hex
+            existingCapabilities[name] = tcUuid
+            _ = TaskingCapabilities(
+                name=name,
+                creationTime=time(),
+                uuid=tcUuid,
+                description=fcn.__doc__,
+                taskingParameters=list(
+                    {
+                        &#34;name&#34;: b.name,
+                        &#34;description&#34;: &#34;&#34;,
+                        &#34;type&#34;: &#34;&#34;,
+                        &#34;allowedTokens&#34;: [&#34;&#34;],
+                    }
+                    for b in signature(fcn).parameters.values()
+                )
+            ).create(
+                db=db
+            )
+
+        linkPattern = Link(label=&#34;Has&#34;)
+        for tcUuid in existingCapabilities.values():
+            linkPattern.join(
+                db=db,
+                nodes=(entity, TaskingCapabilities(uuid=tcUuid))
+            )
+        
+        return entity
+
+    @polymorphic
+    def delete(self, db: Driver, pattern: dict = None) -&gt; None:
+        &#34;&#34;&#34;
+        Remove all nodes from the graph, or optionally specify node-matching parameters.
+
+        This method works on both classes and instances.
+        &#34;&#34;&#34;
+        if isclass(self):
+            entity = self(**(pattern or {}))  # pylint: disable=not-callable
+        elif pattern is not None:
+            raise ValueError(&#34;Pattern supplied for delete from entity instance.&#34;)
+        else:
+            entity = self
+
+        return executeQuery(
+            db=db,
+            read_only=False,
+            method=lambda tx: tx.run(
+                f&#34;MATCH {repr(entity)} DETACH DELETE {entity._symbol}&#34;
+            ).values(),
+        )
+
+    @classmethod
+    def dropIndex(cls, db: Driver, by: str) -&gt; None:
+        &#34;&#34;&#34;Drop an existing index&#34;&#34;&#34;
+        query = lambda tx: tx.run(f&#34;DROP INDEX ON : {cls.__name__}({by})&#34;)
+        executeQuery(db, query, read_only=False)
+
+    @polymorphic
+    def load(
+        self,
+        db: Driver,
+        user: Type = None,
+        private: str = &#34;_&#34;,
+        annotate: str = &#34;Get&#34;,
+        result: str = None,
+        echo: bool = False,
+        **kwargs: dict,
+    ) -&gt; [Type]:
+        &#34;&#34;&#34;
+        Create entity instance from a dictionary or Neo4j &lt;Node&gt;, which has an items() method
+        that works the same as the dictionary method.
+        &#34;&#34;&#34;
+        if isclass(self):
+            entity = self(**(kwargs or {}))  # pylint: disable=not-callable
+            cls = self
+        else:
+            entity = self
+            cls = type(self)
+
+        cmd = (
+            (
+                f&#34;MATCH {repr(entity)}, {repr(user)} &#34;
+                f&#34;MERGE ({entity._symbol})&lt;-[r:{annotate}]-({user._symbol}) &#34;
+                f&#34;ON CREATE SET r.rank = 1 &#34;
+                f&#34;ON MATCH SET r.rank = r.rank + 1 &#34;
+                f&#34;RETURN {entity._symbol}{&#39;.{}&#39;.format(result) if result else &#39;&#39;}&#34;
+            )
+            if user
+            else (
+                f&#34;MATCH {repr(entity)} &#34;
+                f&#34;RETURN {entity._symbol}{&#39;.{}&#39;.format(result) if result else &#39;&#39;}&#34;
+            )
+        )
+
+        if echo:
+            print(cmd)
+
+        def processKeyValueOutbound(keyValue: (str, Any),) -&gt; (str, Any):
+            &#34;&#34;&#34;
+            Special parsing for serialization on query
+            &#34;&#34;&#34;
+            key, value = keyValue
+
+            if key[0] == &#34;_&#34;:
+                key = key[1:]
+
+            if isinstance(value, WGS84Point):
+
+                value = {
+                    &#34;type&#34;: &#34;Point&#34;,
+                    &#34;coordinates&#34;: f&#34;{[value.longitude, value.latitude]}&#34;
+                }
+                 
+            return key, value
+
+        def transducer(record: Record):
+            return cls(**dict(map(processKeyValueOutbound, dict(record[0]).items())))
+
+        def runQuery(tx):
+            result = tx.run(cmd)
+            return [r for r in result]
+
+        return list(map(transducer, executeQuery(
+            db=db, method=runQuery, read_only=True
+        )))
+
+    @polymorphic
+    def mutate(self: Type, db: Driver, data: dict, pattern: dict = None) -&gt; None:
+        &#34;&#34;&#34;
+        Update/add node properties
+        &#34;&#34;&#34;
+        if isclass(self):
+            entity = self(**pattern)  # pylint: disable=not-callable
+        elif pattern is not None:
+            raise ValueError(&#34;Pattern supplied for delete from entity instance.&#34;)
+        else:
+            entity = self
+
+        _updates = &#34;, &#34;.join(map(processKeyValueInbound, data.items()))
+        executeQuery(
+            db=db,
+            read_only=False,
+            method=lambda tx: tx.run(
+                f&#34;MATCH {repr(entity)} SET {entity._symbol} += {{ {_updates} }}&#34;
+            ),
+        )
+
+    def serialize(
+        self, db: Driver, service: str, protocol: str = &#34;http&#34;, select: (str) = None
+    ) -&gt; dict:
+        &#34;&#34;&#34;
+        Format entity as JSON compatible dictionary from either an object instance or a Neo4j &lt;Node&gt;
+
+        Filter properties by selected names, if any.
+        Remove private members that include a underscore,
+        since SensorThings notation is title case
+        &#34;&#34;&#34;
+        props = self._properties(select=select, private=&#34;_&#34;)
+        uuid = self.uuid
+        base_url = f&#34;{protocol}://{service}/api&#34;
+        root_url = f&#34;{base_url}/{type(self).__name__}&#34;
+        self_url = (
+            f&#34;{root_url}({uuid})&#34; if isinstance(uuid, int) else f&#34;{base_url}/{uuid}&#34;
+        )
+
+        linkedEntities = set()
+        if db is not None:
+            _filter = lambda x: len(set(x[0]) &amp; RESTRICTED) == 0
+            _reduce = lambda y, z: y | {z[0][0]}
+            safe = filter(_filter, Link().query(db=db, nodes=(self, Entity())))
+            linkedEntities = reduce(_reduce, safe, linkedEntities)
+
+        return {
+            &#34;@iot.id&#34;: uuid,
+            &#34;@iot.selfLink&#34;: self_url,
+            &#34;@iot.collection&#34;: root_url,
+            **props,
+            **{
+                each + &#34;@iot.navigation&#34;: f&#34;{self_url}/{each}&#34;
+                for each in linkedEntities
+            },
+        }</code></pre>
+</details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="bathysphere.models.Actuators" href="#bathysphere.models.Actuators">Actuators</a></li>
+<li><a title="bathysphere.models.Assets" href="#bathysphere.models.Assets">Assets</a></li>
+<li><a title="bathysphere.models.Collections" href="#bathysphere.models.Collections">Collections</a></li>
+<li><a title="bathysphere.models.DataStreams" href="#bathysphere.models.DataStreams">DataStreams</a></li>
+<li><a title="bathysphere.models.FeaturesOfInterest" href="#bathysphere.models.FeaturesOfInterest">FeaturesOfInterest</a></li>
+<li><a title="bathysphere.models.HistoricalLocations" href="#bathysphere.models.HistoricalLocations">HistoricalLocations</a></li>
+<li><a title="bathysphere.models.Locations" href="#bathysphere.models.Locations">Locations</a></li>
+<li><a title="bathysphere.models.Observations" href="#bathysphere.models.Observations">Observations</a></li>
+<li><a title="bathysphere.models.ObservedProperties" href="#bathysphere.models.ObservedProperties">ObservedProperties</a></li>
+<li><a title="bathysphere.models.Providers" href="#bathysphere.models.Providers">Providers</a></li>
+<li><a title="bathysphere.models.Sensors" href="#bathysphere.models.Sensors">Sensors</a></li>
+<li><a title="bathysphere.models.TaskingCapabilities" href="#bathysphere.models.TaskingCapabilities">TaskingCapabilities</a></li>
+<li><a title="bathysphere.models.Tasks" href="#bathysphere.models.Tasks">Tasks</a></li>
+<li><a title="bathysphere.models.Things" href="#bathysphere.models.Things">Things</a></li>
+<li><a title="bathysphere.models.User" href="#bathysphere.models.User">User</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="bathysphere.models.Entity.uuid"><code class="name">var <span class="ident">uuid</span> : uuid.UUID</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="bathysphere.models.Entity.addConstraint"><code class="name flex">
+<span>def <span class="ident">addConstraint</span></span>(<span>db: neo4j.Driver, by: str) ‑> Callable</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Create a unique constraint on one type of labeled node.</p>
+<p>Usually this will be by name.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def addConstraint(cls, db: Driver, by: str) -&gt; Callable:
+    &#34;&#34;&#34;
+    Create a unique constraint on one type of labeled node.
+
+    Usually this will be by name.
+    &#34;&#34;&#34;
+    query = lambda tx: tx.run(
+        f&#34;CREATE CONSTRAINT ON (n:{cls.__name__}) ASSERT n.{by} IS UNIQUE&#34;
+    )
+    return executeQuery(db, query, read_only=False)</code></pre>
+</details>
+</dd>
+<dt id="bathysphere.models.Entity.addIndex"><code class="name flex">
+<span>def <span class="ident">addIndex</span></span>(<span>db: neo4j.Driver, by: str) ‑> Callable</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Indexes add a unique constraint as well as speeding up queries
+on the graph database.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def addIndex(cls, db: Driver, by: str) -&gt; Callable:
+    &#34;&#34;&#34;
+    Indexes add a unique constraint as well as speeding up queries
+    on the graph database.
+    &#34;&#34;&#34;
+    query = lambda tx: tx.run(f&#34;CREATE INDEX ON : {cls.__name__}({by})&#34;)
+    return executeQuery(db, query, read_only=False)</code></pre>
+</details>
+</dd>
+<dt id="bathysphere.models.Entity.addLabel"><code class="name flex">
+<span>def <span class="ident">addLabel</span></span>(<span>db: neo4j.Driver, label: str, **kwargs: dict) ‑> list</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Apply new label to nodes of this class, or a specific node.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def addLabel(cls, db: Driver, label: str, **kwargs: dict) -&gt; list or None:
+    &#34;&#34;&#34;
+    Apply new label to nodes of this class, or a specific node.
+    &#34;&#34;&#34;
+    entity = cls(**kwargs)
+    query = lambda tx: tx.run(
+        f&#34;MATCH {repr(entity)} SET {entity._symbol}:{label}&#34;
+    ).values()
+    return executeQuery(db, query, read_only=False)</code></pre>
+</details>
+</dd>
+<dt id="bathysphere.models.Entity.count"><code class="name flex">
+<span>def <span class="ident">count</span></span>(<span>db: neo4j.Driver, **kwargs: dict) ‑> int</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Count occurrence of a class label or pattern in Neo4j.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def count(cls, db: Driver, **kwargs: dict) -&gt; int:
+    &#34;&#34;&#34;
+    Count occurrence of a class label or pattern in Neo4j.
+    &#34;&#34;&#34;
+    entity = cls(**kwargs)
+    query = lambda tx: tx.run(
+        f&#34;MATCH {repr(entity)} RETURN count({entity._symbol})&#34;
+    ).single()[0]
+    return executeQuery(db, query, read_only=True)</code></pre>
+</details>
+</dd>
+<dt id="bathysphere.models.Entity.dropIndex"><code class="name flex">
+<span>def <span class="ident">dropIndex</span></span>(<span>db: neo4j.Driver, by: str) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Drop an existing index</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def dropIndex(cls, db: Driver, by: str) -&gt; None:
+    &#34;&#34;&#34;Drop an existing index&#34;&#34;&#34;
+    query = lambda tx: tx.run(f&#34;DROP INDEX ON : {cls.__name__}({by})&#34;)
+    executeQuery(db, query, read_only=False)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="bathysphere.models.Entity.create"><code class="name flex">
+<span>def <span class="ident">create</span></span>(<span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Wrapped function that calls the reference method</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def newfunc(*args, **kwargs):
+    &#34;&#34;&#34;
+    Wrapped function that calls the reference method
+    &#34;&#34;&#34;
+    return self.f(wrt, *args, **kwargs)</code></pre>
+</details>
+</dd>
+<dt id="bathysphere.models.Entity.delete"><code class="name flex">
+<span>def <span class="ident">delete</span></span>(<span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Wrapped function that calls the reference method</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def newfunc(*args, **kwargs):
+    &#34;&#34;&#34;
+    Wrapped function that calls the reference method
+    &#34;&#34;&#34;
+    return self.f(wrt, *args, **kwargs)</code></pre>
+</details>
+</dd>
+<dt id="bathysphere.models.Entity.load"><code class="name flex">
+<span>def <span class="ident">load</span></span>(<span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Wrapped function that calls the reference method</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def newfunc(*args, **kwargs):
+    &#34;&#34;&#34;
+    Wrapped function that calls the reference method
+    &#34;&#34;&#34;
+    return self.f(wrt, *args, **kwargs)</code></pre>
+</details>
+</dd>
+<dt id="bathysphere.models.Entity.mutate"><code class="name flex">
+<span>def <span class="ident">mutate</span></span>(<span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Wrapped function that calls the reference method</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def newfunc(*args, **kwargs):
+    &#34;&#34;&#34;
+    Wrapped function that calls the reference method
+    &#34;&#34;&#34;
+    return self.f(wrt, *args, **kwargs)</code></pre>
+</details>
+</dd>
+<dt id="bathysphere.models.Entity.serialize"><code class="name flex">
+<span>def <span class="ident">serialize</span></span>(<span>self, db: neo4j.Driver, service: str, protocol: str = 'http', select: str = None) ‑> dict</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Format entity as JSON compatible dictionary from either an object instance or a Neo4j <Node></p>
+<p>Filter properties by selected names, if any.
+Remove private members that include a underscore,
+since SensorThings notation is title case</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def serialize(
+    self, db: Driver, service: str, protocol: str = &#34;http&#34;, select: (str) = None
+) -&gt; dict:
+    &#34;&#34;&#34;
+    Format entity as JSON compatible dictionary from either an object instance or a Neo4j &lt;Node&gt;
+
+    Filter properties by selected names, if any.
+    Remove private members that include a underscore,
+    since SensorThings notation is title case
+    &#34;&#34;&#34;
+    props = self._properties(select=select, private=&#34;_&#34;)
+    uuid = self.uuid
+    base_url = f&#34;{protocol}://{service}/api&#34;
+    root_url = f&#34;{base_url}/{type(self).__name__}&#34;
+    self_url = (
+        f&#34;{root_url}({uuid})&#34; if isinstance(uuid, int) else f&#34;{base_url}/{uuid}&#34;
+    )
+
+    linkedEntities = set()
+    if db is not None:
+        _filter = lambda x: len(set(x[0]) &amp; RESTRICTED) == 0
+        _reduce = lambda y, z: y | {z[0][0]}
+        safe = filter(_filter, Link().query(db=db, nodes=(self, Entity())))
+        linkedEntities = reduce(_reduce, safe, linkedEntities)
+
+    return {
+        &#34;@iot.id&#34;: uuid,
+        &#34;@iot.selfLink&#34;: self_url,
+        &#34;@iot.collection&#34;: root_url,
+        **props,
+        **{
+            each + &#34;@iot.navigation&#34;: f&#34;{self_url}/{each}&#34;
+            for each in linkedEntities
+        },
+    }</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="bathysphere.models.FeaturesOfInterest"><code class="flex name class">
+<span>class <span class="ident">FeaturesOfInterest</span></span>
+<span>(</span><span>uuid: uuid.UUID = None, symbol: str = 'n', name: str = None, description: str = None, encodingType: str = None, feature: Any = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>FeaturesOfInterest are usually Locations.</p>
+<p>Method generated by attrs for class FeaturesOfInterest.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class FeaturesOfInterest(Entity):
+    &#34;&#34;&#34;
+    FeaturesOfInterest are usually Locations.
+    &#34;&#34;&#34;
+    name: str = attr.ib(default=None)
+    description: str = attr.ib(default=None)
+    encodingType: str = attr.ib(default=None)  # metadata encoding
+    feature: Any = attr.ib(default=None)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="bathysphere.models.Entity" href="#bathysphere.models.Entity">Entity</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="bathysphere.models.FeaturesOfInterest.description"><code class="name">var <span class="ident">description</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.FeaturesOfInterest.encodingType"><code class="name">var <span class="ident">encodingType</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.FeaturesOfInterest.feature"><code class="name">var <span class="ident">feature</span> : Any</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.FeaturesOfInterest.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="bathysphere.models.Entity" href="#bathysphere.models.Entity">Entity</a></b></code>:
+<ul class="hlist">
+<li><code><a title="bathysphere.models.Entity.addConstraint" href="#bathysphere.models.Entity.addConstraint">addConstraint</a></code></li>
+<li><code><a title="bathysphere.models.Entity.addIndex" href="#bathysphere.models.Entity.addIndex">addIndex</a></code></li>
+<li><code><a title="bathysphere.models.Entity.addLabel" href="#bathysphere.models.Entity.addLabel">addLabel</a></code></li>
+<li><code><a title="bathysphere.models.Entity.count" href="#bathysphere.models.Entity.count">count</a></code></li>
+<li><code><a title="bathysphere.models.Entity.create" href="#bathysphere.models.Entity.create">create</a></code></li>
+<li><code><a title="bathysphere.models.Entity.delete" href="#bathysphere.models.Entity.delete">delete</a></code></li>
+<li><code><a title="bathysphere.models.Entity.dropIndex" href="#bathysphere.models.Entity.dropIndex">dropIndex</a></code></li>
+<li><code><a title="bathysphere.models.Entity.load" href="#bathysphere.models.Entity.load">load</a></code></li>
+<li><code><a title="bathysphere.models.Entity.mutate" href="#bathysphere.models.Entity.mutate">mutate</a></code></li>
+<li><code><a title="bathysphere.models.Entity.serialize" href="#bathysphere.models.Entity.serialize">serialize</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="bathysphere.models.HistoricalLocations"><code class="flex name class">
+<span>class <span class="ident">HistoricalLocations</span></span>
+<span>(</span><span>uuid: uuid.UUID = None, symbol: str = 'n', time: str = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Private and automatic, should be added to sensor when new location is determined</p>
+<p>Method generated by attrs for class HistoricalLocations.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class HistoricalLocations(Entity):
+    &#34;&#34;&#34;
+    Private and automatic, should be added to sensor when new location is determined
+    &#34;&#34;&#34;
+    time: str = attr.ib(
+        default=None
+    )  # time when thing was at location (ISO-8601 string)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="bathysphere.models.Entity" href="#bathysphere.models.Entity">Entity</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="bathysphere.models.HistoricalLocations.time"><code class="name">var <span class="ident">time</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="bathysphere.models.Entity" href="#bathysphere.models.Entity">Entity</a></b></code>:
+<ul class="hlist">
+<li><code><a title="bathysphere.models.Entity.addConstraint" href="#bathysphere.models.Entity.addConstraint">addConstraint</a></code></li>
+<li><code><a title="bathysphere.models.Entity.addIndex" href="#bathysphere.models.Entity.addIndex">addIndex</a></code></li>
+<li><code><a title="bathysphere.models.Entity.addLabel" href="#bathysphere.models.Entity.addLabel">addLabel</a></code></li>
+<li><code><a title="bathysphere.models.Entity.count" href="#bathysphere.models.Entity.count">count</a></code></li>
+<li><code><a title="bathysphere.models.Entity.create" href="#bathysphere.models.Entity.create">create</a></code></li>
+<li><code><a title="bathysphere.models.Entity.delete" href="#bathysphere.models.Entity.delete">delete</a></code></li>
+<li><code><a title="bathysphere.models.Entity.dropIndex" href="#bathysphere.models.Entity.dropIndex">dropIndex</a></code></li>
+<li><code><a title="bathysphere.models.Entity.load" href="#bathysphere.models.Entity.load">load</a></code></li>
+<li><code><a title="bathysphere.models.Entity.mutate" href="#bathysphere.models.Entity.mutate">mutate</a></code></li>
+<li><code><a title="bathysphere.models.Entity.serialize" href="#bathysphere.models.Entity.serialize">serialize</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="bathysphere.models.Link"><code class="flex name class">
+<span>class <span class="ident">Link</span></span>
+<span>(</span><span>symbol: str = 'r', rank: int = None, uuid: uuid.UUID = None, props: dict = None, label: str = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Links are the relationships between two entities.
+They are directional.</p>
+<p>Method generated by attrs for class Link.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Link:
+    &#34;&#34;&#34;
+    Links are the relationships between two entities.
+    They are directional.
+    &#34;&#34;&#34;
+
+    _symbol: str = attr.ib(default=&#34;r&#34;)
+    rank: int = attr.ib(default=None)
+    uuid: UUID = attr.ib(default=None)
+    props: dict = attr.ib(default=None)
+    label: str = attr.ib(default=None)
+
+    def __repr__(self) -&gt; str:
+        &#34;&#34;&#34;
+        Format the Link for making a Cypher language query
+        to the Neo4j graph database
+
+        [ r:Label { &lt;key&gt;:&lt;value&gt;, &lt;key&gt;:&lt;value&gt; } ]
+        &#34;&#34;&#34;
+        labelStr = f&#34;:{self.label}&#34; if self.label else &#34;&#34;
+        combined = {&#34;uuid&#34;: self.uuid, &#34;rank&#34;: self.rank, **(self.props or {})}
+        nonNullValues = tuple(
+            filter(lambda x: x, map(processKeyValueInbound, combined.items()))
+        )
+        pattern = (
+            &#34;&#34; if len(nonNullValues) == 0 else f&#34;&#34;&#34;{{ {&#39;, &#39;.join(nonNullValues)} }}&#34;&#34;&#34;
+        )
+        return f&#34;[ {self._symbol}{labelStr} {pattern} ]&#34;
+
+    @classmethod
+    def drop(cls: Type, db: Driver, nodes: (Type, Type), props: dict) -&gt; None:
+        &#34;&#34;&#34;
+        Drop the link between two node patterns
+        &#34;&#34;&#34;
+        r = cls(**props)
+        a, b = nodes
+        cmd = f&#34;MATCH {repr(a)}-{repr(r)}-{repr(b)} DELETE {r._symbol}&#34;
+        return executeQuery(db, lambda tx: tx.run(cmd), read_only=False)
+
+    @polymorphic
+    def join(
+        self: Type,
+        db: Driver,
+        nodes: (Any, Any),
+        props: dict = None,
+        echo: bool = False,
+    ) -&gt; None:
+        &#34;&#34;&#34;
+        Create a link between two node patterns. This uses the `polymorphic` decorator
+        to work on either classes or isntances.
+
+        If calling as an instance of `Link`, no addtional properties should be supplied.
+        Otherwise, a `Link` will be constructed from the `props` arguement.
+
+        There must be exactly 2 entities to link. In the future this will support N-body
+        symmetric linking.
+        &#34;&#34;&#34;
+        if isclass(self):
+            L = self(**(props or {}))  # pylint: disable=not-callable
+        elif props is not None and len(props) &gt; 0:
+            raise ValueError(
+                &#34;No additional props allowed when using existing Link instance.&#34;
+            )
+        else:
+            L = self
+        try:
+            a, b = nodes
+        except ValueError:
+            raise ValueError(&#34;Join requires a tuple of exactly 2 entities.&#34;)
+        if a._symbol == b._symbol:
+            a._setSymbol(&#34;a&#34;)
+            b._setSymbol(&#34;b&#34;)
+
+        cmd = f&#34;MATCH {repr(a)}, {repr(b)} MERGE ({a._symbol})-{repr(L)}-&gt;({b._symbol})&#34;
+        if echo:
+            print(cmd)
+        executeQuery(db, lambda tx: tx.run(cmd), read_only=False)
+
+    @polymorphic
+    def query(
+        self: Type,
+        db: Driver,
+        nodes: (Any, Any),
+        props: dict = None,
+        result: str = &#34;labels(b)&#34;,
+    ) -&gt; (Any,):
+        &#34;&#34;&#34;
+        Match and return the label set for connected entities.
+
+        Increment the pageRank every time the link is traversed.
+        &#34;&#34;&#34;
+        if isclass(self):
+            L = self(**(props or {}))  # pylint: disable=not-callable
+        elif props is not None and len(props) &gt; 0:
+            raise ValueError(
+                &#34;No additional props allowed when using existing Link instance.&#34;
+            )
+        else:
+            L = self
+        try:
+            a, b = nodes
+        except ValueError:
+            raise ValueError(&#34;Join requires a tuple of exactly 2 entities.&#34;)
+        a._setSymbol(&#34;a&#34;)
+        b._setSymbol(&#34;b&#34;)
+
+        cmd = (
+            f&#34;MATCH {repr(a)}-{repr(L)}-{repr(b)}&#34;
+            f&#34;SET r.rank = r.rank + 1 &#34;
+            f&#34;RETURN {result}&#34;
+        )
+
+        def runQuery(tx):
+            return [r for r in tx.run(cmd)]
+
+        return executeQuery(db=db, method=runQuery, read_only=True)</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="bathysphere.models.Link.label"><code class="name">var <span class="ident">label</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Link.props"><code class="name">var <span class="ident">props</span> : dict</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Link.rank"><code class="name">var <span class="ident">rank</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Link.uuid"><code class="name">var <span class="ident">uuid</span> : uuid.UUID</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="bathysphere.models.Link.drop"><code class="name flex">
+<span>def <span class="ident">drop</span></span>(<span>db: neo4j.Driver, nodes: (typing.Type, typing.Type), props: dict) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Drop the link between two node patterns</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def drop(cls: Type, db: Driver, nodes: (Type, Type), props: dict) -&gt; None:
+    &#34;&#34;&#34;
+    Drop the link between two node patterns
+    &#34;&#34;&#34;
+    r = cls(**props)
+    a, b = nodes
+    cmd = f&#34;MATCH {repr(a)}-{repr(r)}-{repr(b)} DELETE {r._symbol}&#34;
+    return executeQuery(db, lambda tx: tx.run(cmd), read_only=False)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="bathysphere.models.Link.join"><code class="name flex">
+<span>def <span class="ident">join</span></span>(<span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Wrapped function that calls the reference method</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def newfunc(*args, **kwargs):
+    &#34;&#34;&#34;
+    Wrapped function that calls the reference method
+    &#34;&#34;&#34;
+    return self.f(wrt, *args, **kwargs)</code></pre>
+</details>
+</dd>
+<dt id="bathysphere.models.Link.query"><code class="name flex">
+<span>def <span class="ident">query</span></span>(<span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Wrapped function that calls the reference method</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def newfunc(*args, **kwargs):
+    &#34;&#34;&#34;
+    Wrapped function that calls the reference method
+    &#34;&#34;&#34;
+    return self.f(wrt, *args, **kwargs)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="bathysphere.models.Locations"><code class="flex name class">
+<span>class <span class="ident">Locations</span></span>
+<span>(</span><span>uuid: uuid.UUID = None, symbol: str = 'n', description: str = None, encodingType: str = None, location=None, name: str = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Last known <code><a title="bathysphere.models.Locations" href="#bathysphere.models.Locations">Locations</a></code> of <code><a title="bathysphere.models.Things" href="#bathysphere.models.Things">Things</a></code>. May be <code><a title="bathysphere.models.FeaturesOfInterest" href="#bathysphere.models.FeaturesOfInterest">FeaturesOfInterest</a></code>, unless remote sensing.</p>
+<p>location encoding may be <code>application/vnd.geo+json</code> or <code>application/json</code></p>
+<p>Method generated by attrs for class Locations.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Locations(Entity):
+    &#34;&#34;&#34;
+    Last known `Locations` of `Things`. May be `FeaturesOfInterest`, unless remote sensing.
+
+    location encoding may be `application/vnd.geo+json` or `application/json`
+    &#34;&#34;&#34;
+    description: str = attr.ib(default=None)
+    encodingType: str = attr.ib(default=None)
+    location = attr.ib(default=None)  # GeoJSON
+    name: str = attr.ib(default=None)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="bathysphere.models.Entity" href="#bathysphere.models.Entity">Entity</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="bathysphere.models.Locations.description"><code class="name">var <span class="ident">description</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Locations.encodingType"><code class="name">var <span class="ident">encodingType</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Locations.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="bathysphere.models.Entity" href="#bathysphere.models.Entity">Entity</a></b></code>:
+<ul class="hlist">
+<li><code><a title="bathysphere.models.Entity.addConstraint" href="#bathysphere.models.Entity.addConstraint">addConstraint</a></code></li>
+<li><code><a title="bathysphere.models.Entity.addIndex" href="#bathysphere.models.Entity.addIndex">addIndex</a></code></li>
+<li><code><a title="bathysphere.models.Entity.addLabel" href="#bathysphere.models.Entity.addLabel">addLabel</a></code></li>
+<li><code><a title="bathysphere.models.Entity.count" href="#bathysphere.models.Entity.count">count</a></code></li>
+<li><code><a title="bathysphere.models.Entity.create" href="#bathysphere.models.Entity.create">create</a></code></li>
+<li><code><a title="bathysphere.models.Entity.delete" href="#bathysphere.models.Entity.delete">delete</a></code></li>
+<li><code><a title="bathysphere.models.Entity.dropIndex" href="#bathysphere.models.Entity.dropIndex">dropIndex</a></code></li>
+<li><code><a title="bathysphere.models.Entity.load" href="#bathysphere.models.Entity.load">load</a></code></li>
+<li><code><a title="bathysphere.models.Entity.mutate" href="#bathysphere.models.Entity.mutate">mutate</a></code></li>
+<li><code><a title="bathysphere.models.Entity.serialize" href="#bathysphere.models.Entity.serialize">serialize</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="bathysphere.models.Observations"><code class="flex name class">
+<span>class <span class="ident">Observations</span></span>
+<span>(</span><span>uuid: uuid.UUID = None, symbol: str = 'n', phenomenonTime: datetime.datetime = None, result: Any = None, resultTime: datetime.datetime = None, resultQuality: Any = None, validTime: (<class 'datetime.datetime'>, <class 'datetime.datetime'>) = None, parameters: dict = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Graph extension to base model</p>
+<p>Method generated by attrs for class Observations.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Observations(Entity):
+    &#34;&#34;&#34;Graph extension to base model&#34;&#34;&#34;
+    &#34;&#34;&#34;
+    Observations are individual time-stamped members of Datastreams
+    &#34;&#34;&#34;
+    phenomenonTime: datetime = attr.ib(
+        default=None
+    )  # timestamp, doesn&#39;t enforce specific format
+    result: Any = attr.ib(default=None)  # value of the observation
+    resultTime: datetime = attr.ib(default=None)
+    resultQuality: Any = attr.ib(default=None)
+    validTime: (datetime, datetime) = attr.ib(default=None)  # time period
+    parameters: dict = attr.ib(default=None)
+
+    @property
+    def outOfRange(self, maximum, minimum=0.0):
+        &#34;&#34;&#34;
+        True if value is outside the given range
+        &#34;&#34;&#34;
+        return (self.result &gt; maximum) | (self.result &lt; minimum)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="bathysphere.models.Entity" href="#bathysphere.models.Entity">Entity</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="bathysphere.models.Observations.parameters"><code class="name">var <span class="ident">parameters</span> : dict</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Observations.phenomenonTime"><code class="name">var <span class="ident">phenomenonTime</span> : datetime.datetime</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Observations.result"><code class="name">var <span class="ident">result</span> : Any</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Observations.resultQuality"><code class="name">var <span class="ident">resultQuality</span> : Any</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Observations.resultTime"><code class="name">var <span class="ident">resultTime</span> : datetime.datetime</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Observations.validTime"><code class="name">var <span class="ident">validTime</span> : (<class 'datetime.datetime'>, <class 'datetime.datetime'>)</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="bathysphere.models.Observations.outOfRange"><code class="name">var <span class="ident">outOfRange</span></code></dt>
+<dd>
+<div class="desc"><p>True if value is outside the given range</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def outOfRange(self, maximum, minimum=0.0):
+    &#34;&#34;&#34;
+    True if value is outside the given range
+    &#34;&#34;&#34;
+    return (self.result &gt; maximum) | (self.result &lt; minimum)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="bathysphere.models.Entity" href="#bathysphere.models.Entity">Entity</a></b></code>:
+<ul class="hlist">
+<li><code><a title="bathysphere.models.Entity.addConstraint" href="#bathysphere.models.Entity.addConstraint">addConstraint</a></code></li>
+<li><code><a title="bathysphere.models.Entity.addIndex" href="#bathysphere.models.Entity.addIndex">addIndex</a></code></li>
+<li><code><a title="bathysphere.models.Entity.addLabel" href="#bathysphere.models.Entity.addLabel">addLabel</a></code></li>
+<li><code><a title="bathysphere.models.Entity.count" href="#bathysphere.models.Entity.count">count</a></code></li>
+<li><code><a title="bathysphere.models.Entity.create" href="#bathysphere.models.Entity.create">create</a></code></li>
+<li><code><a title="bathysphere.models.Entity.delete" href="#bathysphere.models.Entity.delete">delete</a></code></li>
+<li><code><a title="bathysphere.models.Entity.dropIndex" href="#bathysphere.models.Entity.dropIndex">dropIndex</a></code></li>
+<li><code><a title="bathysphere.models.Entity.load" href="#bathysphere.models.Entity.load">load</a></code></li>
+<li><code><a title="bathysphere.models.Entity.mutate" href="#bathysphere.models.Entity.mutate">mutate</a></code></li>
+<li><code><a title="bathysphere.models.Entity.serialize" href="#bathysphere.models.Entity.serialize">serialize</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="bathysphere.models.ObservedProperties"><code class="flex name class">
+<span>class <span class="ident">ObservedProperties</span></span>
+<span>(</span><span>uuid: uuid.UUID = None, symbol: str = 'n', name: str = None, description: str = None, definition: str = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Create a property, but do not associate any data streams with it</p>
+<p>Method generated by attrs for class ObservedProperties.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ObservedProperties(Entity):
+    &#34;&#34;&#34;
+    Create a property, but do not associate any data streams with it
+    &#34;&#34;&#34;
+    name: str = attr.ib(default=None)
+    description: str = attr.ib(default=None)
+    definition: str = attr.ib(default=None)  #  URL to reference defining the property</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="bathysphere.models.Entity" href="#bathysphere.models.Entity">Entity</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="bathysphere.models.ObservedProperties.definition"><code class="name">var <span class="ident">definition</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.ObservedProperties.description"><code class="name">var <span class="ident">description</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.ObservedProperties.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="bathysphere.models.Entity" href="#bathysphere.models.Entity">Entity</a></b></code>:
+<ul class="hlist">
+<li><code><a title="bathysphere.models.Entity.addConstraint" href="#bathysphere.models.Entity.addConstraint">addConstraint</a></code></li>
+<li><code><a title="bathysphere.models.Entity.addIndex" href="#bathysphere.models.Entity.addIndex">addIndex</a></code></li>
+<li><code><a title="bathysphere.models.Entity.addLabel" href="#bathysphere.models.Entity.addLabel">addLabel</a></code></li>
+<li><code><a title="bathysphere.models.Entity.count" href="#bathysphere.models.Entity.count">count</a></code></li>
+<li><code><a title="bathysphere.models.Entity.create" href="#bathysphere.models.Entity.create">create</a></code></li>
+<li><code><a title="bathysphere.models.Entity.delete" href="#bathysphere.models.Entity.delete">delete</a></code></li>
+<li><code><a title="bathysphere.models.Entity.dropIndex" href="#bathysphere.models.Entity.dropIndex">dropIndex</a></code></li>
+<li><code><a title="bathysphere.models.Entity.load" href="#bathysphere.models.Entity.load">load</a></code></li>
+<li><code><a title="bathysphere.models.Entity.mutate" href="#bathysphere.models.Entity.mutate">mutate</a></code></li>
+<li><code><a title="bathysphere.models.Entity.serialize" href="#bathysphere.models.Entity.serialize">serialize</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="bathysphere.models.Providers"><code class="flex name class">
+<span>class <span class="ident">Providers</span></span>
+<span>(</span><span>uuid: uuid.UUID = None, symbol: str = 'n', name: str = None, description: str = None, domain: str = None, secretKey: str = None, apiKey: str = None, tokenDuration: int = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Providers are generally organization or enterprise sub-units. This is used to
+route ingress and determine implicit permissions for data access, sharing, and
+attribution. </p>
+<p>Method generated by attrs for class Providers.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Providers(Entity):
+    &#34;&#34;&#34;
+    Providers are generally organization or enterprise sub-units. This is used to
+    route ingress and determine implicit permissions for data access, sharing, and
+    attribution. 
+    &#34;&#34;&#34;
+
+    name: str = attr.ib(default=None)
+    description: str = attr.ib(default=None)
+    domain: str = attr.ib(default=None)
+    secretKey: str = attr.ib(default=None)
+    apiKey: str = attr.ib(default=None)
+    tokenDuration: int = attr.ib(default=None)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="bathysphere.models.Entity" href="#bathysphere.models.Entity">Entity</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="bathysphere.models.Providers.apiKey"><code class="name">var <span class="ident">apiKey</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Providers.description"><code class="name">var <span class="ident">description</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Providers.domain"><code class="name">var <span class="ident">domain</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Providers.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Providers.secretKey"><code class="name">var <span class="ident">secretKey</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Providers.tokenDuration"><code class="name">var <span class="ident">tokenDuration</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="bathysphere.models.Entity" href="#bathysphere.models.Entity">Entity</a></b></code>:
+<ul class="hlist">
+<li><code><a title="bathysphere.models.Entity.addConstraint" href="#bathysphere.models.Entity.addConstraint">addConstraint</a></code></li>
+<li><code><a title="bathysphere.models.Entity.addIndex" href="#bathysphere.models.Entity.addIndex">addIndex</a></code></li>
+<li><code><a title="bathysphere.models.Entity.addLabel" href="#bathysphere.models.Entity.addLabel">addLabel</a></code></li>
+<li><code><a title="bathysphere.models.Entity.count" href="#bathysphere.models.Entity.count">count</a></code></li>
+<li><code><a title="bathysphere.models.Entity.create" href="#bathysphere.models.Entity.create">create</a></code></li>
+<li><code><a title="bathysphere.models.Entity.delete" href="#bathysphere.models.Entity.delete">delete</a></code></li>
+<li><code><a title="bathysphere.models.Entity.dropIndex" href="#bathysphere.models.Entity.dropIndex">dropIndex</a></code></li>
+<li><code><a title="bathysphere.models.Entity.load" href="#bathysphere.models.Entity.load">load</a></code></li>
+<li><code><a title="bathysphere.models.Entity.mutate" href="#bathysphere.models.Entity.mutate">mutate</a></code></li>
+<li><code><a title="bathysphere.models.Entity.serialize" href="#bathysphere.models.Entity.serialize">serialize</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="bathysphere.models.Sensors"><code class="flex name class">
+<span>class <span class="ident">Sensors</span></span>
+<span>(</span><span>uuid: uuid.UUID = None, symbol: str = 'n', name: str = None, description: str = None, encodingType: str = None, metadata: Any = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sensors are devices that observe processes</p>
+<p>Method generated by attrs for class Sensors.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Sensors(Entity):
+    &#34;&#34;&#34;
+    Sensors are devices that observe processes
+    &#34;&#34;&#34;
+    name: str = attr.ib(default=None)
+    description: str = attr.ib(default=None)
+    encodingType: str = attr.ib(default=None)  # metadata encoding
+    metadata: Any = attr.ib(default=None)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="bathysphere.models.Entity" href="#bathysphere.models.Entity">Entity</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="bathysphere.models.Sensors.description"><code class="name">var <span class="ident">description</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Sensors.encodingType"><code class="name">var <span class="ident">encodingType</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Sensors.metadata"><code class="name">var <span class="ident">metadata</span> : Any</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Sensors.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="bathysphere.models.Entity" href="#bathysphere.models.Entity">Entity</a></b></code>:
+<ul class="hlist">
+<li><code><a title="bathysphere.models.Entity.addConstraint" href="#bathysphere.models.Entity.addConstraint">addConstraint</a></code></li>
+<li><code><a title="bathysphere.models.Entity.addIndex" href="#bathysphere.models.Entity.addIndex">addIndex</a></code></li>
+<li><code><a title="bathysphere.models.Entity.addLabel" href="#bathysphere.models.Entity.addLabel">addLabel</a></code></li>
+<li><code><a title="bathysphere.models.Entity.count" href="#bathysphere.models.Entity.count">count</a></code></li>
+<li><code><a title="bathysphere.models.Entity.create" href="#bathysphere.models.Entity.create">create</a></code></li>
+<li><code><a title="bathysphere.models.Entity.delete" href="#bathysphere.models.Entity.delete">delete</a></code></li>
+<li><code><a title="bathysphere.models.Entity.dropIndex" href="#bathysphere.models.Entity.dropIndex">dropIndex</a></code></li>
+<li><code><a title="bathysphere.models.Entity.load" href="#bathysphere.models.Entity.load">load</a></code></li>
+<li><code><a title="bathysphere.models.Entity.mutate" href="#bathysphere.models.Entity.mutate">mutate</a></code></li>
+<li><code><a title="bathysphere.models.Entity.serialize" href="#bathysphere.models.Entity.serialize">serialize</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="bathysphere.models.TaskingCapabilities"><code class="flex name class">
+<span>class <span class="ident">TaskingCapabilities</span></span>
+<span>(</span><span>uuid: uuid.UUID = None, symbol: str = 'n', name: str = None, description: str = None, creationTime: float = None, taskingParameters: dict = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Graph extension to base model. TaskingCapabilities may be called
+by defining graph patterns that supply all of their inputs.</p>
+<p>Execution creates one or more Tasks. </p>
+<p>Method generated by attrs for class TaskingCapabilities.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class TaskingCapabilities(Entity):
+    &#34;&#34;&#34;
+    Graph extension to base model. TaskingCapabilities may be called
+    by defining graph patterns that supply all of their inputs.
+
+    Execution creates one or more Tasks. 
+    &#34;&#34;&#34;
+    name: str = attr.ib(default=None)
+    description: str =  attr.ib(default=None)
+    creationTime: float = attr.ib(default=None)
+    taskingParameters: dict = attr.ib(default=None)
+
+    def serialize(self, *args, **kwargs):
+        _default = super(TaskingCapabilities, self).serialize(*args, **kwargs)
+        _default[&#34;creationTime&#34;] = f&#39;{datetime.fromtimestamp(_default[&#34;creationTime&#34;])}&#39;
+        return _default</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="bathysphere.models.Entity" href="#bathysphere.models.Entity">Entity</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="bathysphere.models.TaskingCapabilities.creationTime"><code class="name">var <span class="ident">creationTime</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.TaskingCapabilities.description"><code class="name">var <span class="ident">description</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.TaskingCapabilities.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.TaskingCapabilities.taskingParameters"><code class="name">var <span class="ident">taskingParameters</span> : dict</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="bathysphere.models.Entity" href="#bathysphere.models.Entity">Entity</a></b></code>:
+<ul class="hlist">
+<li><code><a title="bathysphere.models.Entity.addConstraint" href="#bathysphere.models.Entity.addConstraint">addConstraint</a></code></li>
+<li><code><a title="bathysphere.models.Entity.addIndex" href="#bathysphere.models.Entity.addIndex">addIndex</a></code></li>
+<li><code><a title="bathysphere.models.Entity.addLabel" href="#bathysphere.models.Entity.addLabel">addLabel</a></code></li>
+<li><code><a title="bathysphere.models.Entity.count" href="#bathysphere.models.Entity.count">count</a></code></li>
+<li><code><a title="bathysphere.models.Entity.create" href="#bathysphere.models.Entity.create">create</a></code></li>
+<li><code><a title="bathysphere.models.Entity.delete" href="#bathysphere.models.Entity.delete">delete</a></code></li>
+<li><code><a title="bathysphere.models.Entity.dropIndex" href="#bathysphere.models.Entity.dropIndex">dropIndex</a></code></li>
+<li><code><a title="bathysphere.models.Entity.load" href="#bathysphere.models.Entity.load">load</a></code></li>
+<li><code><a title="bathysphere.models.Entity.mutate" href="#bathysphere.models.Entity.mutate">mutate</a></code></li>
+<li><code><a title="bathysphere.models.Entity.serialize" href="#bathysphere.models.Entity.serialize">serialize</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="bathysphere.models.Tasks"><code class="flex name class">
+<span>class <span class="ident">Tasks</span></span>
+<span>(</span><span>uuid: uuid.UUID = None, symbol: str = 'n', creationTime: float = None, taskingParameters: dict = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Tasks are connected to <code><a title="bathysphere.models.Things" href="#bathysphere.models.Things">Things</a></code> and <code><a title="bathysphere.models.TaskingCapabilities" href="#bathysphere.models.TaskingCapabilities">TaskingCapabilities</a></code>.</p>
+<p>Tasks are pieces of work that are done asynchronously by humans or machines.</p>
+<p>Method generated by attrs for class Tasks.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Tasks(Entity):
+    &#34;&#34;&#34;
+    Tasks are connected to `Things` and `TaskingCapabilities`.
+
+    Tasks are pieces of work that are done asynchronously by humans or machines.
+    &#34;&#34;&#34;
+    creationTime: float = attr.ib(default=None)
+    taskingParameters: dict = attr.ib(default=None)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="bathysphere.models.Entity" href="#bathysphere.models.Entity">Entity</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="bathysphere.models.Tasks.creationTime"><code class="name">var <span class="ident">creationTime</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Tasks.taskingParameters"><code class="name">var <span class="ident">taskingParameters</span> : dict</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="bathysphere.models.Entity" href="#bathysphere.models.Entity">Entity</a></b></code>:
+<ul class="hlist">
+<li><code><a title="bathysphere.models.Entity.addConstraint" href="#bathysphere.models.Entity.addConstraint">addConstraint</a></code></li>
+<li><code><a title="bathysphere.models.Entity.addIndex" href="#bathysphere.models.Entity.addIndex">addIndex</a></code></li>
+<li><code><a title="bathysphere.models.Entity.addLabel" href="#bathysphere.models.Entity.addLabel">addLabel</a></code></li>
+<li><code><a title="bathysphere.models.Entity.count" href="#bathysphere.models.Entity.count">count</a></code></li>
+<li><code><a title="bathysphere.models.Entity.create" href="#bathysphere.models.Entity.create">create</a></code></li>
+<li><code><a title="bathysphere.models.Entity.delete" href="#bathysphere.models.Entity.delete">delete</a></code></li>
+<li><code><a title="bathysphere.models.Entity.dropIndex" href="#bathysphere.models.Entity.dropIndex">dropIndex</a></code></li>
+<li><code><a title="bathysphere.models.Entity.load" href="#bathysphere.models.Entity.load">load</a></code></li>
+<li><code><a title="bathysphere.models.Entity.mutate" href="#bathysphere.models.Entity.mutate">mutate</a></code></li>
+<li><code><a title="bathysphere.models.Entity.serialize" href="#bathysphere.models.Entity.serialize">serialize</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="bathysphere.models.Things"><code class="flex name class">
+<span>class <span class="ident">Things</span></span>
+<span>(</span><span>uuid: uuid.UUID = None, symbol: str = 'n', name: str = None, description: str = None, properties: dict = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A thing is an object of the physical or information world that is capable of of being identified
+and integrated into communication networks.</p>
+<p>Method generated by attrs for class Things.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Things(Entity):
+    &#34;&#34;&#34;
+    A thing is an object of the physical or information world that is capable of of being identified
+    and integrated into communication networks.
+    &#34;&#34;&#34;
+    name: str = attr.ib(default=None)
+    description: str = attr.ib(default=None)
+    properties: dict = attr.ib(default=None)
+
+
+    @staticmethod
+    def catalog(year: int, month: int = None, day: int = None):
+        &#34;&#34;&#34;
+        Special catalog method for displaying data conforming to STAC spec,
+        not currently in use
+        &#34;&#34;&#34;
+        try:
+            fid = open(&#34;data/remoteCache-{}&#34;.format(year), &#34;rb&#34;)
+            data = list(unpickle(fid))
+        except FileNotFoundError:
+            return {&#34;message&#34;: &#34;No data for year&#34;}, 404
+
+        response = dict()
+        for date in data:
+            if (not month or date[&#34;date&#34;].month == month) and (
+                not day or date[&#34;date&#34;].day == day
+            ):
+                date[&#34;files&#34;] = [file.serialize() for file in date[&#34;files&#34;]]
+                response[date[&#34;name&#34;]] = date
+
+        return response, 200</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="bathysphere.models.Entity" href="#bathysphere.models.Entity">Entity</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="bathysphere.models.Things.description"><code class="name">var <span class="ident">description</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Things.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.Things.properties"><code class="name">var <span class="ident">properties</span> : dict</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="bathysphere.models.Things.catalog"><code class="name flex">
+<span>def <span class="ident">catalog</span></span>(<span>year: int, month: int = None, day: int = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Special catalog method for displaying data conforming to STAC spec,
+not currently in use</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def catalog(year: int, month: int = None, day: int = None):
+    &#34;&#34;&#34;
+    Special catalog method for displaying data conforming to STAC spec,
+    not currently in use
+    &#34;&#34;&#34;
+    try:
+        fid = open(&#34;data/remoteCache-{}&#34;.format(year), &#34;rb&#34;)
+        data = list(unpickle(fid))
+    except FileNotFoundError:
+        return {&#34;message&#34;: &#34;No data for year&#34;}, 404
+
+    response = dict()
+    for date in data:
+        if (not month or date[&#34;date&#34;].month == month) and (
+            not day or date[&#34;date&#34;].day == day
+        ):
+            date[&#34;files&#34;] = [file.serialize() for file in date[&#34;files&#34;]]
+            response[date[&#34;name&#34;]] = date
+
+    return response, 200</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="bathysphere.models.Entity" href="#bathysphere.models.Entity">Entity</a></b></code>:
+<ul class="hlist">
+<li><code><a title="bathysphere.models.Entity.addConstraint" href="#bathysphere.models.Entity.addConstraint">addConstraint</a></code></li>
+<li><code><a title="bathysphere.models.Entity.addIndex" href="#bathysphere.models.Entity.addIndex">addIndex</a></code></li>
+<li><code><a title="bathysphere.models.Entity.addLabel" href="#bathysphere.models.Entity.addLabel">addLabel</a></code></li>
+<li><code><a title="bathysphere.models.Entity.count" href="#bathysphere.models.Entity.count">count</a></code></li>
+<li><code><a title="bathysphere.models.Entity.create" href="#bathysphere.models.Entity.create">create</a></code></li>
+<li><code><a title="bathysphere.models.Entity.delete" href="#bathysphere.models.Entity.delete">delete</a></code></li>
+<li><code><a title="bathysphere.models.Entity.dropIndex" href="#bathysphere.models.Entity.dropIndex">dropIndex</a></code></li>
+<li><code><a title="bathysphere.models.Entity.load" href="#bathysphere.models.Entity.load">load</a></code></li>
+<li><code><a title="bathysphere.models.Entity.mutate" href="#bathysphere.models.Entity.mutate">mutate</a></code></li>
+<li><code><a title="bathysphere.models.Entity.serialize" href="#bathysphere.models.Entity.serialize">serialize</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="bathysphere.models.User"><code class="flex name class">
+<span>class <span class="ident">User</span></span>
+<span>(</span><span>uuid: uuid.UUID = None, symbol: str = 'u', ip: str = None, name: str = None, alias: str = None, credential: str = None, validated: bool = True, description: str = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Create a user entity. Users contain authorization secrets, and do not enter/leave
+the system through the same routes as normal Entities</p>
+<p>Method generated by attrs for class User.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class User(Entity):
+    &#34;&#34;&#34;
+    Create a user entity. Users contain authorization secrets, and do not enter/leave
+    the system through the same routes as normal Entities
+    &#34;&#34;&#34;
+    _symbol: str = attr.ib(default=&#34;u&#34;)
+    ip: str = attr.ib(default=None)
+    name: str = attr.ib(default=None)
+    alias: str = attr.ib(default=None)
+    credential: str = attr.ib(default=None)
+    validated: bool = attr.ib(default=True)
+    description: str = attr.ib(default=None)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="bathysphere.models.Entity" href="#bathysphere.models.Entity">Entity</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="bathysphere.models.User.alias"><code class="name">var <span class="ident">alias</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.User.credential"><code class="name">var <span class="ident">credential</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.User.description"><code class="name">var <span class="ident">description</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.User.ip"><code class="name">var <span class="ident">ip</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.User.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.models.User.validated"><code class="name">var <span class="ident">validated</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="bathysphere.models.Entity" href="#bathysphere.models.Entity">Entity</a></b></code>:
+<ul class="hlist">
+<li><code><a title="bathysphere.models.Entity.addConstraint" href="#bathysphere.models.Entity.addConstraint">addConstraint</a></code></li>
+<li><code><a title="bathysphere.models.Entity.addIndex" href="#bathysphere.models.Entity.addIndex">addIndex</a></code></li>
+<li><code><a title="bathysphere.models.Entity.addLabel" href="#bathysphere.models.Entity.addLabel">addLabel</a></code></li>
+<li><code><a title="bathysphere.models.Entity.count" href="#bathysphere.models.Entity.count">count</a></code></li>
+<li><code><a title="bathysphere.models.Entity.create" href="#bathysphere.models.Entity.create">create</a></code></li>
+<li><code><a title="bathysphere.models.Entity.delete" href="#bathysphere.models.Entity.delete">delete</a></code></li>
+<li><code><a title="bathysphere.models.Entity.dropIndex" href="#bathysphere.models.Entity.dropIndex">dropIndex</a></code></li>
+<li><code><a title="bathysphere.models.Entity.load" href="#bathysphere.models.Entity.load">load</a></code></li>
+<li><code><a title="bathysphere.models.Entity.mutate" href="#bathysphere.models.Entity.mutate">mutate</a></code></li>
+<li><code><a title="bathysphere.models.Entity.serialize" href="#bathysphere.models.Entity.serialize">serialize</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="bathysphere" href="index.html">bathysphere</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="bathysphere.models.Actuators" href="#bathysphere.models.Actuators">Actuators</a></code></h4>
+<ul class="">
+<li><code><a title="bathysphere.models.Actuators.description" href="#bathysphere.models.Actuators.description">description</a></code></li>
+<li><code><a title="bathysphere.models.Actuators.encodingType" href="#bathysphere.models.Actuators.encodingType">encodingType</a></code></li>
+<li><code><a title="bathysphere.models.Actuators.metadata" href="#bathysphere.models.Actuators.metadata">metadata</a></code></li>
+<li><code><a title="bathysphere.models.Actuators.name" href="#bathysphere.models.Actuators.name">name</a></code></li>
+<li><code><a title="bathysphere.models.Actuators.networkAddress" href="#bathysphere.models.Actuators.networkAddress">networkAddress</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="bathysphere.models.Assets" href="#bathysphere.models.Assets">Assets</a></code></h4>
+<ul class="">
+<li><code><a title="bathysphere.models.Assets.description" href="#bathysphere.models.Assets.description">description</a></code></li>
+<li><code><a title="bathysphere.models.Assets.location" href="#bathysphere.models.Assets.location">location</a></code></li>
+<li><code><a title="bathysphere.models.Assets.name" href="#bathysphere.models.Assets.name">name</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="bathysphere.models.Collections" href="#bathysphere.models.Collections">Collections</a></code></h4>
+<ul class="two-column">
+<li><code><a title="bathysphere.models.Collections.description" href="#bathysphere.models.Collections.description">description</a></code></li>
+<li><code><a title="bathysphere.models.Collections.extent" href="#bathysphere.models.Collections.extent">extent</a></code></li>
+<li><code><a title="bathysphere.models.Collections.keywords" href="#bathysphere.models.Collections.keywords">keywords</a></code></li>
+<li><code><a title="bathysphere.models.Collections.license" href="#bathysphere.models.Collections.license">license</a></code></li>
+<li><code><a title="bathysphere.models.Collections.name" href="#bathysphere.models.Collections.name">name</a></code></li>
+<li><code><a title="bathysphere.models.Collections.version" href="#bathysphere.models.Collections.version">version</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="bathysphere.models.DataStreams" href="#bathysphere.models.DataStreams">DataStreams</a></code></h4>
+<ul class="">
+<li><code><a title="bathysphere.models.DataStreams.description" href="#bathysphere.models.DataStreams.description">description</a></code></li>
+<li><code><a title="bathysphere.models.DataStreams.name" href="#bathysphere.models.DataStreams.name">name</a></code></li>
+<li><code><a title="bathysphere.models.DataStreams.observedArea" href="#bathysphere.models.DataStreams.observedArea">observedArea</a></code></li>
+<li><code><a title="bathysphere.models.DataStreams.phenomenonTime" href="#bathysphere.models.DataStreams.phenomenonTime">phenomenonTime</a></code></li>
+<li><code><a title="bathysphere.models.DataStreams.resultTime" href="#bathysphere.models.DataStreams.resultTime">resultTime</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="bathysphere.models.Entity" href="#bathysphere.models.Entity">Entity</a></code></h4>
+<ul class="two-column">
+<li><code><a title="bathysphere.models.Entity.addConstraint" href="#bathysphere.models.Entity.addConstraint">addConstraint</a></code></li>
+<li><code><a title="bathysphere.models.Entity.addIndex" href="#bathysphere.models.Entity.addIndex">addIndex</a></code></li>
+<li><code><a title="bathysphere.models.Entity.addLabel" href="#bathysphere.models.Entity.addLabel">addLabel</a></code></li>
+<li><code><a title="bathysphere.models.Entity.count" href="#bathysphere.models.Entity.count">count</a></code></li>
+<li><code><a title="bathysphere.models.Entity.create" href="#bathysphere.models.Entity.create">create</a></code></li>
+<li><code><a title="bathysphere.models.Entity.delete" href="#bathysphere.models.Entity.delete">delete</a></code></li>
+<li><code><a title="bathysphere.models.Entity.dropIndex" href="#bathysphere.models.Entity.dropIndex">dropIndex</a></code></li>
+<li><code><a title="bathysphere.models.Entity.load" href="#bathysphere.models.Entity.load">load</a></code></li>
+<li><code><a title="bathysphere.models.Entity.mutate" href="#bathysphere.models.Entity.mutate">mutate</a></code></li>
+<li><code><a title="bathysphere.models.Entity.serialize" href="#bathysphere.models.Entity.serialize">serialize</a></code></li>
+<li><code><a title="bathysphere.models.Entity.uuid" href="#bathysphere.models.Entity.uuid">uuid</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="bathysphere.models.FeaturesOfInterest" href="#bathysphere.models.FeaturesOfInterest">FeaturesOfInterest</a></code></h4>
+<ul class="">
+<li><code><a title="bathysphere.models.FeaturesOfInterest.description" href="#bathysphere.models.FeaturesOfInterest.description">description</a></code></li>
+<li><code><a title="bathysphere.models.FeaturesOfInterest.encodingType" href="#bathysphere.models.FeaturesOfInterest.encodingType">encodingType</a></code></li>
+<li><code><a title="bathysphere.models.FeaturesOfInterest.feature" href="#bathysphere.models.FeaturesOfInterest.feature">feature</a></code></li>
+<li><code><a title="bathysphere.models.FeaturesOfInterest.name" href="#bathysphere.models.FeaturesOfInterest.name">name</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="bathysphere.models.HistoricalLocations" href="#bathysphere.models.HistoricalLocations">HistoricalLocations</a></code></h4>
+<ul class="">
+<li><code><a title="bathysphere.models.HistoricalLocations.time" href="#bathysphere.models.HistoricalLocations.time">time</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="bathysphere.models.Link" href="#bathysphere.models.Link">Link</a></code></h4>
+<ul class="two-column">
+<li><code><a title="bathysphere.models.Link.drop" href="#bathysphere.models.Link.drop">drop</a></code></li>
+<li><code><a title="bathysphere.models.Link.join" href="#bathysphere.models.Link.join">join</a></code></li>
+<li><code><a title="bathysphere.models.Link.label" href="#bathysphere.models.Link.label">label</a></code></li>
+<li><code><a title="bathysphere.models.Link.props" href="#bathysphere.models.Link.props">props</a></code></li>
+<li><code><a title="bathysphere.models.Link.query" href="#bathysphere.models.Link.query">query</a></code></li>
+<li><code><a title="bathysphere.models.Link.rank" href="#bathysphere.models.Link.rank">rank</a></code></li>
+<li><code><a title="bathysphere.models.Link.uuid" href="#bathysphere.models.Link.uuid">uuid</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="bathysphere.models.Locations" href="#bathysphere.models.Locations">Locations</a></code></h4>
+<ul class="">
+<li><code><a title="bathysphere.models.Locations.description" href="#bathysphere.models.Locations.description">description</a></code></li>
+<li><code><a title="bathysphere.models.Locations.encodingType" href="#bathysphere.models.Locations.encodingType">encodingType</a></code></li>
+<li><code><a title="bathysphere.models.Locations.name" href="#bathysphere.models.Locations.name">name</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="bathysphere.models.Observations" href="#bathysphere.models.Observations">Observations</a></code></h4>
+<ul class="two-column">
+<li><code><a title="bathysphere.models.Observations.outOfRange" href="#bathysphere.models.Observations.outOfRange">outOfRange</a></code></li>
+<li><code><a title="bathysphere.models.Observations.parameters" href="#bathysphere.models.Observations.parameters">parameters</a></code></li>
+<li><code><a title="bathysphere.models.Observations.phenomenonTime" href="#bathysphere.models.Observations.phenomenonTime">phenomenonTime</a></code></li>
+<li><code><a title="bathysphere.models.Observations.result" href="#bathysphere.models.Observations.result">result</a></code></li>
+<li><code><a title="bathysphere.models.Observations.resultQuality" href="#bathysphere.models.Observations.resultQuality">resultQuality</a></code></li>
+<li><code><a title="bathysphere.models.Observations.resultTime" href="#bathysphere.models.Observations.resultTime">resultTime</a></code></li>
+<li><code><a title="bathysphere.models.Observations.validTime" href="#bathysphere.models.Observations.validTime">validTime</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="bathysphere.models.ObservedProperties" href="#bathysphere.models.ObservedProperties">ObservedProperties</a></code></h4>
+<ul class="">
+<li><code><a title="bathysphere.models.ObservedProperties.definition" href="#bathysphere.models.ObservedProperties.definition">definition</a></code></li>
+<li><code><a title="bathysphere.models.ObservedProperties.description" href="#bathysphere.models.ObservedProperties.description">description</a></code></li>
+<li><code><a title="bathysphere.models.ObservedProperties.name" href="#bathysphere.models.ObservedProperties.name">name</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="bathysphere.models.Providers" href="#bathysphere.models.Providers">Providers</a></code></h4>
+<ul class="two-column">
+<li><code><a title="bathysphere.models.Providers.apiKey" href="#bathysphere.models.Providers.apiKey">apiKey</a></code></li>
+<li><code><a title="bathysphere.models.Providers.description" href="#bathysphere.models.Providers.description">description</a></code></li>
+<li><code><a title="bathysphere.models.Providers.domain" href="#bathysphere.models.Providers.domain">domain</a></code></li>
+<li><code><a title="bathysphere.models.Providers.name" href="#bathysphere.models.Providers.name">name</a></code></li>
+<li><code><a title="bathysphere.models.Providers.secretKey" href="#bathysphere.models.Providers.secretKey">secretKey</a></code></li>
+<li><code><a title="bathysphere.models.Providers.tokenDuration" href="#bathysphere.models.Providers.tokenDuration">tokenDuration</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="bathysphere.models.Sensors" href="#bathysphere.models.Sensors">Sensors</a></code></h4>
+<ul class="">
+<li><code><a title="bathysphere.models.Sensors.description" href="#bathysphere.models.Sensors.description">description</a></code></li>
+<li><code><a title="bathysphere.models.Sensors.encodingType" href="#bathysphere.models.Sensors.encodingType">encodingType</a></code></li>
+<li><code><a title="bathysphere.models.Sensors.metadata" href="#bathysphere.models.Sensors.metadata">metadata</a></code></li>
+<li><code><a title="bathysphere.models.Sensors.name" href="#bathysphere.models.Sensors.name">name</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="bathysphere.models.TaskingCapabilities" href="#bathysphere.models.TaskingCapabilities">TaskingCapabilities</a></code></h4>
+<ul class="">
+<li><code><a title="bathysphere.models.TaskingCapabilities.creationTime" href="#bathysphere.models.TaskingCapabilities.creationTime">creationTime</a></code></li>
+<li><code><a title="bathysphere.models.TaskingCapabilities.description" href="#bathysphere.models.TaskingCapabilities.description">description</a></code></li>
+<li><code><a title="bathysphere.models.TaskingCapabilities.name" href="#bathysphere.models.TaskingCapabilities.name">name</a></code></li>
+<li><code><a title="bathysphere.models.TaskingCapabilities.taskingParameters" href="#bathysphere.models.TaskingCapabilities.taskingParameters">taskingParameters</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="bathysphere.models.Tasks" href="#bathysphere.models.Tasks">Tasks</a></code></h4>
+<ul class="">
+<li><code><a title="bathysphere.models.Tasks.creationTime" href="#bathysphere.models.Tasks.creationTime">creationTime</a></code></li>
+<li><code><a title="bathysphere.models.Tasks.taskingParameters" href="#bathysphere.models.Tasks.taskingParameters">taskingParameters</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="bathysphere.models.Things" href="#bathysphere.models.Things">Things</a></code></h4>
+<ul class="">
+<li><code><a title="bathysphere.models.Things.catalog" href="#bathysphere.models.Things.catalog">catalog</a></code></li>
+<li><code><a title="bathysphere.models.Things.description" href="#bathysphere.models.Things.description">description</a></code></li>
+<li><code><a title="bathysphere.models.Things.name" href="#bathysphere.models.Things.name">name</a></code></li>
+<li><code><a title="bathysphere.models.Things.properties" href="#bathysphere.models.Things.properties">properties</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="bathysphere.models.User" href="#bathysphere.models.User">User</a></code></h4>
+<ul class="two-column">
+<li><code><a title="bathysphere.models.User.alias" href="#bathysphere.models.User.alias">alias</a></code></li>
+<li><code><a title="bathysphere.models.User.credential" href="#bathysphere.models.User.credential">credential</a></code></li>
+<li><code><a title="bathysphere.models.User.description" href="#bathysphere.models.User.description">description</a></code></li>
+<li><code><a title="bathysphere.models.User.ip" href="#bathysphere.models.User.ip">ip</a></code></li>
+<li><code><a title="bathysphere.models.User.name" href="#bathysphere.models.User.name">name</a></code></li>
+<li><code><a title="bathysphere.models.User.validated" href="#bathysphere.models.User.validated">validated</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+</footer>
+</body>
+</html>

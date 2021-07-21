@@ -1,0 +1,1368 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.1" />
+<title>bathysphere API documentation</title>
+<meta name="description" content="The basic building blocks and utilities for graph queries are
+contained in this default import." />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Package <code>bathysphere</code></h1>
+</header>
+<section id="section-intro">
+<p>The basic building blocks and utilities for graph queries are
+contained in this default import.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python"># pylint: disable=invalid-name,too-few-public-methods,eval-used
+&#34;&#34;&#34;
+The basic building blocks and utilities for graph queries are
+contained in this default import.
+&#34;&#34;&#34;
+from itertools import repeat
+from pathlib import Path
+from functools import reduce
+from json import dumps
+
+from connexion import App, FlaskApp
+from flask_cors import CORS
+from prance import ResolvingParser, ValidationError
+
+from typing import Callable, Generator, Any
+
+from neo4j import Driver
+from retry import retry
+from requests import post
+
+from datetime import datetime, date
+from collections import deque
+from multiprocessing import Pool
+from decimal import Decimal
+from typing import Coroutine, Any
+from asyncio import new_event_loop, set_event_loop, BaseEventLoop
+from json import dumps, loads, decoder
+
+import operator
+from yaml import Loader, load as load_yml
+
+from os import getpid, getenv
+from subprocess import Popen
+
+
+from io import TextIOWrapper, BytesIO
+import attr
+from typing import Any, Iterable
+
+
+envErrors = []
+
+for variableName in [
+    &#34;STORAGE_ENDPOINT&#34;, 
+    &#34;BUCKET_NAME&#34;, 
+    &#34;SPACES_ACCESS_KEY&#34;, 
+    &#34;SPACES_SECRET_KEY&#34;, 
+    &#34;SERVICE_NAME&#34;,
+    &#34;NEO4J_HOSTNAME&#34;,  
+    &#34;NEO4J_ACCESS_KEY&#34;
+]:
+    if not getenv(variableName):
+        envErrors.append(variableName)
+
+if envErrors:
+    raise EnvironmentError(f&#34;{envErrors} not set&#34;)
+
+def reduceYamlEntityFile(file: str) -&gt; dict:
+    &#34;&#34;&#34;
+    Flip the nestedness of the dict from a list to have top level keys for each `kind`
+    &#34;&#34;&#34;
+    def _reducer(a: dict, b: dict) -&gt; dict:
+       
+        if not isinstance(a, dict):
+            raise ValueError(
+                f&#34;Expected dictionary values. Type is instead {type(a)}.&#34;
+            )
+
+        if b is not None:
+            key = b.pop(&#34;kind&#34;)
+            if key not in a.keys():
+                a[key] = [b]
+            else:
+                a[key].append(b)
+        return a
+
+    with open(Path(file), &#34;r&#34;) as fid:
+        _items = fid.read().split(&#34;---&#34;)
+
+    return reduce(_reducer, map(load_yml, _items, repeat(Loader, len(_items))), {})
+
+@attr.s(repr=False)
+class Message:
+    &#34;&#34;&#34;
+    Serialized messages passed between processes, with metadata. 
+    &#34;&#34;&#34;
+    message: str = attr.ib()
+    timestamp: str = attr.ib(factory=datetime.now)
+    arrow: str = attr.ib(default=&#34;&gt;&#34;)
+    data: Any = attr.ib(default=None)
+
+    def __repr__(self):
+        return f&#34;[{self.timestamp.isoformat(sep=&#39; &#39;)}] (PID {getpid()}) {self.message} {self.arrow} {self.data}\n&#34;
+
+    def log(self, log: BytesIO = None):
+        &#34;&#34;&#34;
+        Log notifications.
+
+        :param message: some event notification
+        :param data: data that resulted in message
+        :param log: log file or interface
+        :param arrow: symbol indicating direction of flow
+        &#34;&#34;&#34;
+        if log:
+            log.write(str(self).encode())
+
+@attr.s
+class JSONIOWrapper:
+    &#34;&#34;&#34;
+    Models that run in other languages exchange messages through
+    the command prompt text interface using JSON encoded strings.
+    &#34;&#34;&#34;
+    log: BytesIO = attr.ib()
+    text_io: TextIOWrapper = attr.ib(factory=TextIOWrapper)
+
+    @classmethod
+    def output(cls, *args, log, **kwargs):
+        return cls(
+            log=log,
+            text_io=TextIOWrapper(
+                *args, 
+                line_buffering=False, 
+                encoding=&#34;utf-8&#34;,
+                **kwargs
+            )
+        )
+
+    @classmethod
+    def console(cls, *args, log, **kwargs):
+        return cls(
+            log=log,
+            text_io=TextIOWrapper(
+                *args, 
+                line_buffering=True, 
+                encoding=&#34;utf-8&#34;,
+                **kwargs
+            )
+        )
+
+
+    def receive(self) -&gt; dict:
+        &#34;&#34;&#34;
+        Receive serialized data from command line interface.
+        &#34;&#34;&#34;
+        data = self.text_io.readline().rstrip()
+        Message(&#34;Receive&#34;, data=data, arrow=&#34;&lt;&#34;).log(self.log)
+        try:
+            return loads(data)
+        except decoder.JSONDecodeError as err:
+            Message(&#34;Job cancelled&#34;, data=err.msg).log(self.log)
+            return {
+                &#34;status&#34;: &#34;error&#34;, 
+                &#34;message&#34;: &#34;no data received&#34; if data is &#34;\n&#34; else err.msg, 
+                &#34;data&#34;: data
+            }
+
+    def send(self, data: dict):
+        &#34;&#34;&#34;
+        Write serialized data to interface.
+        &#34;&#34;&#34;
+       
+        safe_keys = {
+            key.replace(&#34; &#34;, &#34;_&#34;): value for key, value in data.items()
+        }
+          
+        json = f&#34;&#39;{dumps(safe_keys)}&#39;&#34;.replace(&#34; &#34;, &#34;&#34;)
+        Message(
+            message=&#34;Send&#34;, 
+            data=json,
+            arrow=&#34;&gt;&#34;
+        ).log(self.log)
+
+        self.text_io.write(f&#34;{json}\n&#34;)
+
+@attr.s
+class Process:
+    &#34;&#34;&#34;
+    Data structure to handle communication with a running
+    subprocess.
+    &#34;&#34;&#34;
+    command: [str] = attr.ib()
+    log: BytesIO = attr.ib(factory=BytesIO)
+    result = attr.ib(factory=list)
+
+    _process = attr.ib(default=None)
+    _console: JSONIOWrapper = attr.ib(default=None)
+    _output: JSONIOWrapper = attr.ib(default=None)
+
+    @classmethod
+    def start(cls, command, config):
+
+        process = cls(command)
+
+        Message(
+            message=f&#34;Spawned process {process.pid}&#34;, 
+            data=process.args
+        ).log(process.log)
+        
+        process.result = process.receive(2)
+        process.send(config)
+
+        Message(
+            message=&#34;Worker ready&#34;, 
+            data=f&#34;expecting transactions&#34;
+        ).log(process.log)
+
+        return process
+
+    def __del__(self):
+        &#34;&#34;&#34;
+        Clean up before going out of scope
+        &#34;&#34;&#34;
+
+        Message(
+            message=&#34;Worker done&#34;,
+            data=&#34;completed transactions&#34;
+        ).log(self.log)
+
+        self.process.kill()
+        self.process.wait()
+        self.console.text_io.close()
+        self.output.text_io.close()
+
+    @property
+    def pid(self):
+        &#34;&#34;&#34;Hoist process ID&#34;&#34;&#34;
+        return self.process.pid
+
+    @property
+    def args(self):
+        &#34;&#34;&#34;Hoist process Args&#34;&#34;&#34;
+        return self.process.args
+
+    @property
+    def process(self):
+        from subprocess import PIPE, STDOUT
+
+        if self._process is None:
+            self._process = Popen(
+                self.command, 
+                stdin=PIPE, 
+                stdout=PIPE, 
+                stderr=STDOUT, 
+                bufsize=1
+            )
+        return self._process
+
+    @property
+    def console(self):
+        &#34;&#34;&#34;
+        Lazy load a message interface
+        &#34;&#34;&#34;
+        if self._console is None:
+            self._console = JSONIOWrapper.console(self.process.stdin, log=self.log)
+        return self._console
+
+    @property
+    def output(self):
+        &#34;&#34;&#34;
+        Lazy load a message interface
+        &#34;&#34;&#34;
+        if self._output is None:
+            self._output = JSONIOWrapper.output(self.process.stdout, log=self.log)
+        return self._output 
+
+    def send(self, data: dict):
+        &#34;&#34;&#34;
+        Hoist the send function of the commandline interface
+        &#34;&#34;&#34;
+        self.console.send(data)
+
+    def receive(self, count=1):
+        &#34;&#34;&#34;
+        Hoist the receive function of the commandline interface
+        &#34;&#34;&#34;
+        return [self.output.receive() for _ in range(count)]
+
+ 
+def job(config: dict, forcing: tuple) -&gt; (tuple, bytes):
+    &#34;&#34;&#34;
+    Execute single simulation with synchronous callback.
+
+    :param config: simulation configuration
+    :param forcing: tuple of forcing vectors
+
+    :return: output variables of C# methods, or None
+    &#34;&#34;&#34;
+    process = Process.start(
+        [&#34;/usr/bin/mono&#34;, f&#39;{__path__[0]}/../bin/kernel.exe&#39;], 
+        config
+    )
+    
+    for item in forcing:
+        process.send(item)  # send data as serialized dictionary
+        [state] = process.receive(1)
+        process.result.append(state)
+        if state[&#34;status&#34;] == &#34;error&#34;:
+            Message(
+                message=&#34;Runtime&#34;, 
+                data=state[&#34;message&#34;]
+            ).log(process.log)
+            break
+
+    return process.result, process.log.getvalue().decode()
+
+
+class polymorphic:
+    &#34;&#34;&#34;
+    Class decorator for allowing methods to be class or instance
+    &#34;&#34;&#34;
+
+    def __init__(self, f):
+        &#34;&#34;&#34;
+        Wrap the object
+        &#34;&#34;&#34;
+        self.f = f
+
+    def __get__(self, instance, owner):
+        &#34;&#34;&#34;
+        Hoist the function if necessary
+        &#34;&#34;&#34;
+        if instance is not None:
+            wrt = instance
+        else:
+            wrt = owner
+
+        def newfunc(*args, **kwargs):
+            &#34;&#34;&#34;
+            Wrapped function that calls the reference method
+            &#34;&#34;&#34;
+            return self.f(wrt, *args, **kwargs)
+
+        return newfunc
+
+
+def processKeyValueInbound(keyValue: (str, Any), null: bool = False) -&gt; str or None:
+    &#34;&#34;&#34;
+    Convert a String key and Any value into a Cypher representation
+    for making the graph query.
+    &#34;&#34;&#34;
+    key, value = keyValue
+    if key[0] == &#34;_&#34;:
+        return None
+
+    if &#34;location&#34; in key and isinstance(value, dict):
+
+        if value.get(&#34;type&#34;) == &#34;Point&#34;:
+
+            coord = value[&#34;coordinates&#34;]
+            if len(coord) == 2:
+                values = f&#34;x: {coord[1]}, y: {coord[0]}, crs:&#39;wgs-84&#39;&#34;  
+            elif len(coord) == 3:
+                values = f&#34;x: {coord[1]}, y: {coord[0]}, z: {coord[2]}, crs:&#39;wgs-84-3d&#39;&#34;
+            else:
+                # TODO: deal with location stuff in a different way, and don&#39;t auto include
+                # the point type in processKeyValueOutbound. Seems to work for matching now.
+                # raise ValueError(f&#34;Location coordinates are of invalid format: {coord}&#34;)
+                return None
+            return f&#34;{key}: point({{{values}}})&#34;
+
+        if value.get(&#34;type&#34;) == &#34;Polygon&#34;:
+            return f&#34;{key}: &#39;{dumps(value)}&#39;&#34;
+
+        if value.get(&#34;type&#34;) == &#34;Network&#34;:
+            return f&#34;{key}: &#39;{dumps(value)}&#39;&#34;
+
+
+    if isinstance(value, (list, tuple, dict)):
+        return f&#34;{key}: &#39;{dumps(value)}&#39;&#34;
+
+    if isinstance(value, str) and value and value[0] == &#34;$&#34;:
+        # TODO: This hardcoding is bad, but the $ picks up credentials
+        if len(value) &lt; 64:
+            return f&#34;{key}: {value}&#34;
+
+    if value is not None:
+        return f&#34;{key}: {dumps(value)}&#34;
+
+    if null:
+        return f&#34;{key}: NULL&#34;
+
+    return None
+
+
+def executeQuery(
+    db: Driver, method: Callable, kwargs: (dict,)=(), read_only: bool = True
+) -&gt; None or (Any,):
+    &#34;&#34;&#34;
+    Execute one or more cypher queries in an equal number of transactions against the
+    Neo4j graph database.
+    &#34;&#34;&#34;
+    with db.session() as session:
+        _transact = session.read_transaction if read_only else session.write_transaction
+        if kwargs:
+            return [_transact(method, **each) for each in kwargs]
+        return _transact(method)
+
+
+def connect() -&gt; Driver:
+    &#34;&#34;&#34;
+    Connect to a database manager. Try docker networking, or fallback to local host.
+    likely that the db has been accessed and setup previously.
+    &#34;&#34;&#34;
+    from neo4j import GraphDatabase
+    from os import getenv
+
+    uri = getenv(&#34;NEO4J_HOSTNAME&#34;)
+    secret = getenv(&#34;NEO4J_ACCESS_KEY&#34;)
+
+    try:
+        return GraphDatabase.driver(uri=uri, auth=(&#34;neo4j&#34;, getenv(&#34;NEO4J_ACCESS_KEY&#34;)))
+    except Exception:  # pylint: disable=broad-except
+        print(f&#34;Could not connect to Neo4j database @ {uri}&#34;)
+        return None
+
+
+__pdoc__ = {
+    &#34;test&#34;: False,
+    &#34;future&#34;: False,
+    # submodules skipped in doc generation
+}
+app = App(__name__, options={&#34;swagger_ui&#34;: False})
+CORS(app.app)
+
+
+try:   
+    appConfig = reduceYamlEntityFile(f&#34;config/bathysphere.yml&#34;)
+    services = filter(
+        lambda x: &#34;bathysphere-api&#34; == x[&#34;spec&#34;][&#34;name&#34;], appConfig[&#34;Locations&#34;]
+    )
+    config = next(services)[&#34;metadata&#34;][&#34;config&#34;]
+    relativePath = config.get(&#34;specPath&#34;)
+except StopIteration:
+    raise ValueError(&#34;Invalid YAML configuration file.&#34;)
+
+try:
+    absolutePath = str(Path(relativePath).absolute())
+except FileNotFoundError as ex:
+    raise FileNotFoundError(f&#34;Specification not found: {relativePath}&#34;)
+
+try:
+    parser = ResolvingParser(absolutePath, lazy=True, strict=True)
+    parser.parse()
+except ValidationError as ex:
+    print(ex.args[0])
+    raise Exception(&#34;Could not parse OpenAPI specification.&#34;)
+else:
+    app.add_api(
+        parser.specification, 
+        base_path=config.get(&#34;basePath&#34;),
+        validate_responses=False
+    )</code></pre>
+</details>
+</section>
+<section>
+<h2 class="section-title" id="header-submodules">Sub-modules</h2>
+<dl>
+<dt><code class="name"><a title="bathysphere.functions" href="functions.html">bathysphere.functions</a></code></dt>
+<dd>
+<div class="desc"><p>The functions module of the graph API contains handlers for secure
+calls. These are exposed as a web service.</p></div>
+</dd>
+<dt><code class="name"><a title="bathysphere.models" href="models.html">bathysphere.models</a></code></dt>
+<dd>
+<div class="desc"><p>The models module of the graph API contains extensions to the common
+models, for storing and accessing data in a Neo4j database.</p></div>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="bathysphere.connect"><code class="name flex">
+<span>def <span class="ident">connect</span></span>(<span>) ‑> neo4j.Driver</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Connect to a database manager. Try docker networking, or fallback to local host.
+likely that the db has been accessed and setup previously.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def connect() -&gt; Driver:
+    &#34;&#34;&#34;
+    Connect to a database manager. Try docker networking, or fallback to local host.
+    likely that the db has been accessed and setup previously.
+    &#34;&#34;&#34;
+    from neo4j import GraphDatabase
+    from os import getenv
+
+    uri = getenv(&#34;NEO4J_HOSTNAME&#34;)
+    secret = getenv(&#34;NEO4J_ACCESS_KEY&#34;)
+
+    try:
+        return GraphDatabase.driver(uri=uri, auth=(&#34;neo4j&#34;, getenv(&#34;NEO4J_ACCESS_KEY&#34;)))
+    except Exception:  # pylint: disable=broad-except
+        print(f&#34;Could not connect to Neo4j database @ {uri}&#34;)
+        return None</code></pre>
+</details>
+</dd>
+<dt id="bathysphere.executeQuery"><code class="name flex">
+<span>def <span class="ident">executeQuery</span></span>(<span>db: neo4j.Driver, method: Callable, kwargs: (<class 'dict'>,) = (), read_only: bool = True) ‑> (typing.Any,)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Execute one or more cypher queries in an equal number of transactions against the
+Neo4j graph database.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def executeQuery(
+    db: Driver, method: Callable, kwargs: (dict,)=(), read_only: bool = True
+) -&gt; None or (Any,):
+    &#34;&#34;&#34;
+    Execute one or more cypher queries in an equal number of transactions against the
+    Neo4j graph database.
+    &#34;&#34;&#34;
+    with db.session() as session:
+        _transact = session.read_transaction if read_only else session.write_transaction
+        if kwargs:
+            return [_transact(method, **each) for each in kwargs]
+        return _transact(method)</code></pre>
+</details>
+</dd>
+<dt id="bathysphere.job"><code class="name flex">
+<span>def <span class="ident">job</span></span>(<span>config: dict, forcing: tuple) ‑> (<class 'tuple'>, <class 'bytes'>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Execute single simulation with synchronous callback.</p>
+<p>:param config: simulation configuration
+:param forcing: tuple of forcing vectors</p>
+<p>:return: output variables of C# methods, or None</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def job(config: dict, forcing: tuple) -&gt; (tuple, bytes):
+    &#34;&#34;&#34;
+    Execute single simulation with synchronous callback.
+
+    :param config: simulation configuration
+    :param forcing: tuple of forcing vectors
+
+    :return: output variables of C# methods, or None
+    &#34;&#34;&#34;
+    process = Process.start(
+        [&#34;/usr/bin/mono&#34;, f&#39;{__path__[0]}/../bin/kernel.exe&#39;], 
+        config
+    )
+    
+    for item in forcing:
+        process.send(item)  # send data as serialized dictionary
+        [state] = process.receive(1)
+        process.result.append(state)
+        if state[&#34;status&#34;] == &#34;error&#34;:
+            Message(
+                message=&#34;Runtime&#34;, 
+                data=state[&#34;message&#34;]
+            ).log(process.log)
+            break
+
+    return process.result, process.log.getvalue().decode()</code></pre>
+</details>
+</dd>
+<dt id="bathysphere.processKeyValueInbound"><code class="name flex">
+<span>def <span class="ident">processKeyValueInbound</span></span>(<span>keyValue: (<class 'str'>, typing.Any), null: bool = False) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Convert a String key and Any value into a Cypher representation
+for making the graph query.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def processKeyValueInbound(keyValue: (str, Any), null: bool = False) -&gt; str or None:
+    &#34;&#34;&#34;
+    Convert a String key and Any value into a Cypher representation
+    for making the graph query.
+    &#34;&#34;&#34;
+    key, value = keyValue
+    if key[0] == &#34;_&#34;:
+        return None
+
+    if &#34;location&#34; in key and isinstance(value, dict):
+
+        if value.get(&#34;type&#34;) == &#34;Point&#34;:
+
+            coord = value[&#34;coordinates&#34;]
+            if len(coord) == 2:
+                values = f&#34;x: {coord[1]}, y: {coord[0]}, crs:&#39;wgs-84&#39;&#34;  
+            elif len(coord) == 3:
+                values = f&#34;x: {coord[1]}, y: {coord[0]}, z: {coord[2]}, crs:&#39;wgs-84-3d&#39;&#34;
+            else:
+                # TODO: deal with location stuff in a different way, and don&#39;t auto include
+                # the point type in processKeyValueOutbound. Seems to work for matching now.
+                # raise ValueError(f&#34;Location coordinates are of invalid format: {coord}&#34;)
+                return None
+            return f&#34;{key}: point({{{values}}})&#34;
+
+        if value.get(&#34;type&#34;) == &#34;Polygon&#34;:
+            return f&#34;{key}: &#39;{dumps(value)}&#39;&#34;
+
+        if value.get(&#34;type&#34;) == &#34;Network&#34;:
+            return f&#34;{key}: &#39;{dumps(value)}&#39;&#34;
+
+
+    if isinstance(value, (list, tuple, dict)):
+        return f&#34;{key}: &#39;{dumps(value)}&#39;&#34;
+
+    if isinstance(value, str) and value and value[0] == &#34;$&#34;:
+        # TODO: This hardcoding is bad, but the $ picks up credentials
+        if len(value) &lt; 64:
+            return f&#34;{key}: {value}&#34;
+
+    if value is not None:
+        return f&#34;{key}: {dumps(value)}&#34;
+
+    if null:
+        return f&#34;{key}: NULL&#34;
+
+    return None</code></pre>
+</details>
+</dd>
+<dt id="bathysphere.reduceYamlEntityFile"><code class="name flex">
+<span>def <span class="ident">reduceYamlEntityFile</span></span>(<span>file: str) ‑> dict</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Flip the nestedness of the dict from a list to have top level keys for each <code>kind</code></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def reduceYamlEntityFile(file: str) -&gt; dict:
+    &#34;&#34;&#34;
+    Flip the nestedness of the dict from a list to have top level keys for each `kind`
+    &#34;&#34;&#34;
+    def _reducer(a: dict, b: dict) -&gt; dict:
+       
+        if not isinstance(a, dict):
+            raise ValueError(
+                f&#34;Expected dictionary values. Type is instead {type(a)}.&#34;
+            )
+
+        if b is not None:
+            key = b.pop(&#34;kind&#34;)
+            if key not in a.keys():
+                a[key] = [b]
+            else:
+                a[key].append(b)
+        return a
+
+    with open(Path(file), &#34;r&#34;) as fid:
+        _items = fid.read().split(&#34;---&#34;)
+
+    return reduce(_reducer, map(load_yml, _items, repeat(Loader, len(_items))), {})</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="bathysphere.JSONIOWrapper"><code class="flex name class">
+<span>class <span class="ident">JSONIOWrapper</span></span>
+<span>(</span><span>log: _io.BytesIO, text_io: _io.TextIOWrapper = NOTHING)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Models that run in other languages exchange messages through
+the command prompt text interface using JSON encoded strings.</p>
+<p>Method generated by attrs for class JSONIOWrapper.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class JSONIOWrapper:
+    &#34;&#34;&#34;
+    Models that run in other languages exchange messages through
+    the command prompt text interface using JSON encoded strings.
+    &#34;&#34;&#34;
+    log: BytesIO = attr.ib()
+    text_io: TextIOWrapper = attr.ib(factory=TextIOWrapper)
+
+    @classmethod
+    def output(cls, *args, log, **kwargs):
+        return cls(
+            log=log,
+            text_io=TextIOWrapper(
+                *args, 
+                line_buffering=False, 
+                encoding=&#34;utf-8&#34;,
+                **kwargs
+            )
+        )
+
+    @classmethod
+    def console(cls, *args, log, **kwargs):
+        return cls(
+            log=log,
+            text_io=TextIOWrapper(
+                *args, 
+                line_buffering=True, 
+                encoding=&#34;utf-8&#34;,
+                **kwargs
+            )
+        )
+
+
+    def receive(self) -&gt; dict:
+        &#34;&#34;&#34;
+        Receive serialized data from command line interface.
+        &#34;&#34;&#34;
+        data = self.text_io.readline().rstrip()
+        Message(&#34;Receive&#34;, data=data, arrow=&#34;&lt;&#34;).log(self.log)
+        try:
+            return loads(data)
+        except decoder.JSONDecodeError as err:
+            Message(&#34;Job cancelled&#34;, data=err.msg).log(self.log)
+            return {
+                &#34;status&#34;: &#34;error&#34;, 
+                &#34;message&#34;: &#34;no data received&#34; if data is &#34;\n&#34; else err.msg, 
+                &#34;data&#34;: data
+            }
+
+    def send(self, data: dict):
+        &#34;&#34;&#34;
+        Write serialized data to interface.
+        &#34;&#34;&#34;
+       
+        safe_keys = {
+            key.replace(&#34; &#34;, &#34;_&#34;): value for key, value in data.items()
+        }
+          
+        json = f&#34;&#39;{dumps(safe_keys)}&#39;&#34;.replace(&#34; &#34;, &#34;&#34;)
+        Message(
+            message=&#34;Send&#34;, 
+            data=json,
+            arrow=&#34;&gt;&#34;
+        ).log(self.log)
+
+        self.text_io.write(f&#34;{json}\n&#34;)</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="bathysphere.JSONIOWrapper.log"><code class="name">var <span class="ident">log</span> : _io.BytesIO</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.JSONIOWrapper.text_io"><code class="name">var <span class="ident">text_io</span> : _io.TextIOWrapper</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="bathysphere.JSONIOWrapper.console"><code class="name flex">
+<span>def <span class="ident">console</span></span>(<span>*args, log, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def console(cls, *args, log, **kwargs):
+    return cls(
+        log=log,
+        text_io=TextIOWrapper(
+            *args, 
+            line_buffering=True, 
+            encoding=&#34;utf-8&#34;,
+            **kwargs
+        )
+    )</code></pre>
+</details>
+</dd>
+<dt id="bathysphere.JSONIOWrapper.output"><code class="name flex">
+<span>def <span class="ident">output</span></span>(<span>*args, log, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def output(cls, *args, log, **kwargs):
+    return cls(
+        log=log,
+        text_io=TextIOWrapper(
+            *args, 
+            line_buffering=False, 
+            encoding=&#34;utf-8&#34;,
+            **kwargs
+        )
+    )</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="bathysphere.JSONIOWrapper.receive"><code class="name flex">
+<span>def <span class="ident">receive</span></span>(<span>self) ‑> dict</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Receive serialized data from command line interface.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def receive(self) -&gt; dict:
+    &#34;&#34;&#34;
+    Receive serialized data from command line interface.
+    &#34;&#34;&#34;
+    data = self.text_io.readline().rstrip()
+    Message(&#34;Receive&#34;, data=data, arrow=&#34;&lt;&#34;).log(self.log)
+    try:
+        return loads(data)
+    except decoder.JSONDecodeError as err:
+        Message(&#34;Job cancelled&#34;, data=err.msg).log(self.log)
+        return {
+            &#34;status&#34;: &#34;error&#34;, 
+            &#34;message&#34;: &#34;no data received&#34; if data is &#34;\n&#34; else err.msg, 
+            &#34;data&#34;: data
+        }</code></pre>
+</details>
+</dd>
+<dt id="bathysphere.JSONIOWrapper.send"><code class="name flex">
+<span>def <span class="ident">send</span></span>(<span>self, data: dict)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Write serialized data to interface.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def send(self, data: dict):
+    &#34;&#34;&#34;
+    Write serialized data to interface.
+    &#34;&#34;&#34;
+   
+    safe_keys = {
+        key.replace(&#34; &#34;, &#34;_&#34;): value for key, value in data.items()
+    }
+      
+    json = f&#34;&#39;{dumps(safe_keys)}&#39;&#34;.replace(&#34; &#34;, &#34;&#34;)
+    Message(
+        message=&#34;Send&#34;, 
+        data=json,
+        arrow=&#34;&gt;&#34;
+    ).log(self.log)
+
+    self.text_io.write(f&#34;{json}\n&#34;)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="bathysphere.Message"><code class="flex name class">
+<span>class <span class="ident">Message</span></span>
+<span>(</span><span>message: str, timestamp: str = NOTHING, arrow: str = &#x27;&gt;&#x27;, data: Any = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Serialized messages passed between processes, with metadata. </p>
+<p>Method generated by attrs for class Message.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Message:
+    &#34;&#34;&#34;
+    Serialized messages passed between processes, with metadata. 
+    &#34;&#34;&#34;
+    message: str = attr.ib()
+    timestamp: str = attr.ib(factory=datetime.now)
+    arrow: str = attr.ib(default=&#34;&gt;&#34;)
+    data: Any = attr.ib(default=None)
+
+    def __repr__(self):
+        return f&#34;[{self.timestamp.isoformat(sep=&#39; &#39;)}] (PID {getpid()}) {self.message} {self.arrow} {self.data}\n&#34;
+
+    def log(self, log: BytesIO = None):
+        &#34;&#34;&#34;
+        Log notifications.
+
+        :param message: some event notification
+        :param data: data that resulted in message
+        :param log: log file or interface
+        :param arrow: symbol indicating direction of flow
+        &#34;&#34;&#34;
+        if log:
+            log.write(str(self).encode())</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="bathysphere.Message.arrow"><code class="name">var <span class="ident">arrow</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.Message.data"><code class="name">var <span class="ident">data</span> : Any</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.Message.message"><code class="name">var <span class="ident">message</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.Message.timestamp"><code class="name">var <span class="ident">timestamp</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="bathysphere.Message.log"><code class="name flex">
+<span>def <span class="ident">log</span></span>(<span>self, log: _io.BytesIO = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Log notifications.</p>
+<p>:param message: some event notification
+:param data: data that resulted in message
+:param log: log file or interface
+:param arrow: symbol indicating direction of flow</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def log(self, log: BytesIO = None):
+    &#34;&#34;&#34;
+    Log notifications.
+
+    :param message: some event notification
+    :param data: data that resulted in message
+    :param log: log file or interface
+    :param arrow: symbol indicating direction of flow
+    &#34;&#34;&#34;
+    if log:
+        log.write(str(self).encode())</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="bathysphere.Process"><code class="flex name class">
+<span>class <span class="ident">Process</span></span>
+<span>(</span><span>command: [<class 'str'>], log: _io.BytesIO = NOTHING, result=NOTHING, process=None, console: <a title="bathysphere.JSONIOWrapper" href="#bathysphere.JSONIOWrapper">JSONIOWrapper</a> = None, output: <a title="bathysphere.JSONIOWrapper" href="#bathysphere.JSONIOWrapper">JSONIOWrapper</a> = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Data structure to handle communication with a running
+subprocess.</p>
+<p>Method generated by attrs for class Process.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Process:
+    &#34;&#34;&#34;
+    Data structure to handle communication with a running
+    subprocess.
+    &#34;&#34;&#34;
+    command: [str] = attr.ib()
+    log: BytesIO = attr.ib(factory=BytesIO)
+    result = attr.ib(factory=list)
+
+    _process = attr.ib(default=None)
+    _console: JSONIOWrapper = attr.ib(default=None)
+    _output: JSONIOWrapper = attr.ib(default=None)
+
+    @classmethod
+    def start(cls, command, config):
+
+        process = cls(command)
+
+        Message(
+            message=f&#34;Spawned process {process.pid}&#34;, 
+            data=process.args
+        ).log(process.log)
+        
+        process.result = process.receive(2)
+        process.send(config)
+
+        Message(
+            message=&#34;Worker ready&#34;, 
+            data=f&#34;expecting transactions&#34;
+        ).log(process.log)
+
+        return process
+
+    def __del__(self):
+        &#34;&#34;&#34;
+        Clean up before going out of scope
+        &#34;&#34;&#34;
+
+        Message(
+            message=&#34;Worker done&#34;,
+            data=&#34;completed transactions&#34;
+        ).log(self.log)
+
+        self.process.kill()
+        self.process.wait()
+        self.console.text_io.close()
+        self.output.text_io.close()
+
+    @property
+    def pid(self):
+        &#34;&#34;&#34;Hoist process ID&#34;&#34;&#34;
+        return self.process.pid
+
+    @property
+    def args(self):
+        &#34;&#34;&#34;Hoist process Args&#34;&#34;&#34;
+        return self.process.args
+
+    @property
+    def process(self):
+        from subprocess import PIPE, STDOUT
+
+        if self._process is None:
+            self._process = Popen(
+                self.command, 
+                stdin=PIPE, 
+                stdout=PIPE, 
+                stderr=STDOUT, 
+                bufsize=1
+            )
+        return self._process
+
+    @property
+    def console(self):
+        &#34;&#34;&#34;
+        Lazy load a message interface
+        &#34;&#34;&#34;
+        if self._console is None:
+            self._console = JSONIOWrapper.console(self.process.stdin, log=self.log)
+        return self._console
+
+    @property
+    def output(self):
+        &#34;&#34;&#34;
+        Lazy load a message interface
+        &#34;&#34;&#34;
+        if self._output is None:
+            self._output = JSONIOWrapper.output(self.process.stdout, log=self.log)
+        return self._output 
+
+    def send(self, data: dict):
+        &#34;&#34;&#34;
+        Hoist the send function of the commandline interface
+        &#34;&#34;&#34;
+        self.console.send(data)
+
+    def receive(self, count=1):
+        &#34;&#34;&#34;
+        Hoist the receive function of the commandline interface
+        &#34;&#34;&#34;
+        return [self.output.receive() for _ in range(count)]</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="bathysphere.Process.command"><code class="name">var <span class="ident">command</span> : [<class 'str'>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="bathysphere.Process.log"><code class="name">var <span class="ident">log</span> : _io.BytesIO</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="bathysphere.Process.start"><code class="name flex">
+<span>def <span class="ident">start</span></span>(<span>command, config)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def start(cls, command, config):
+
+    process = cls(command)
+
+    Message(
+        message=f&#34;Spawned process {process.pid}&#34;, 
+        data=process.args
+    ).log(process.log)
+    
+    process.result = process.receive(2)
+    process.send(config)
+
+    Message(
+        message=&#34;Worker ready&#34;, 
+        data=f&#34;expecting transactions&#34;
+    ).log(process.log)
+
+    return process</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="bathysphere.Process.args"><code class="name">var <span class="ident">args</span></code></dt>
+<dd>
+<div class="desc"><p>Hoist process Args</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def args(self):
+    &#34;&#34;&#34;Hoist process Args&#34;&#34;&#34;
+    return self.process.args</code></pre>
+</details>
+</dd>
+<dt id="bathysphere.Process.console"><code class="name">var <span class="ident">console</span></code></dt>
+<dd>
+<div class="desc"><p>Lazy load a message interface</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def console(self):
+    &#34;&#34;&#34;
+    Lazy load a message interface
+    &#34;&#34;&#34;
+    if self._console is None:
+        self._console = JSONIOWrapper.console(self.process.stdin, log=self.log)
+    return self._console</code></pre>
+</details>
+</dd>
+<dt id="bathysphere.Process.output"><code class="name">var <span class="ident">output</span></code></dt>
+<dd>
+<div class="desc"><p>Lazy load a message interface</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def output(self):
+    &#34;&#34;&#34;
+    Lazy load a message interface
+    &#34;&#34;&#34;
+    if self._output is None:
+        self._output = JSONIOWrapper.output(self.process.stdout, log=self.log)
+    return self._output </code></pre>
+</details>
+</dd>
+<dt id="bathysphere.Process.pid"><code class="name">var <span class="ident">pid</span></code></dt>
+<dd>
+<div class="desc"><p>Hoist process ID</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def pid(self):
+    &#34;&#34;&#34;Hoist process ID&#34;&#34;&#34;
+    return self.process.pid</code></pre>
+</details>
+</dd>
+<dt id="bathysphere.Process.process"><code class="name">var <span class="ident">process</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def process(self):
+    from subprocess import PIPE, STDOUT
+
+    if self._process is None:
+        self._process = Popen(
+            self.command, 
+            stdin=PIPE, 
+            stdout=PIPE, 
+            stderr=STDOUT, 
+            bufsize=1
+        )
+    return self._process</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="bathysphere.Process.receive"><code class="name flex">
+<span>def <span class="ident">receive</span></span>(<span>self, count=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Hoist the receive function of the commandline interface</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def receive(self, count=1):
+    &#34;&#34;&#34;
+    Hoist the receive function of the commandline interface
+    &#34;&#34;&#34;
+    return [self.output.receive() for _ in range(count)]</code></pre>
+</details>
+</dd>
+<dt id="bathysphere.Process.send"><code class="name flex">
+<span>def <span class="ident">send</span></span>(<span>self, data: dict)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Hoist the send function of the commandline interface</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def send(self, data: dict):
+    &#34;&#34;&#34;
+    Hoist the send function of the commandline interface
+    &#34;&#34;&#34;
+    self.console.send(data)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="bathysphere.polymorphic"><code class="flex name class">
+<span>class <span class="ident">polymorphic</span></span>
+<span>(</span><span>f)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Class decorator for allowing methods to be class or instance</p>
+<p>Wrap the object</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class polymorphic:
+    &#34;&#34;&#34;
+    Class decorator for allowing methods to be class or instance
+    &#34;&#34;&#34;
+
+    def __init__(self, f):
+        &#34;&#34;&#34;
+        Wrap the object
+        &#34;&#34;&#34;
+        self.f = f
+
+    def __get__(self, instance, owner):
+        &#34;&#34;&#34;
+        Hoist the function if necessary
+        &#34;&#34;&#34;
+        if instance is not None:
+            wrt = instance
+        else:
+            wrt = owner
+
+        def newfunc(*args, **kwargs):
+            &#34;&#34;&#34;
+            Wrapped function that calls the reference method
+            &#34;&#34;&#34;
+            return self.f(wrt, *args, **kwargs)
+
+        return newfunc</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3><a href="#header-submodules">Sub-modules</a></h3>
+<ul>
+<li><code><a title="bathysphere.functions" href="functions.html">bathysphere.functions</a></code></li>
+<li><code><a title="bathysphere.models" href="models.html">bathysphere.models</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="bathysphere.connect" href="#bathysphere.connect">connect</a></code></li>
+<li><code><a title="bathysphere.executeQuery" href="#bathysphere.executeQuery">executeQuery</a></code></li>
+<li><code><a title="bathysphere.job" href="#bathysphere.job">job</a></code></li>
+<li><code><a title="bathysphere.processKeyValueInbound" href="#bathysphere.processKeyValueInbound">processKeyValueInbound</a></code></li>
+<li><code><a title="bathysphere.reduceYamlEntityFile" href="#bathysphere.reduceYamlEntityFile">reduceYamlEntityFile</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="bathysphere.JSONIOWrapper" href="#bathysphere.JSONIOWrapper">JSONIOWrapper</a></code></h4>
+<ul class="two-column">
+<li><code><a title="bathysphere.JSONIOWrapper.console" href="#bathysphere.JSONIOWrapper.console">console</a></code></li>
+<li><code><a title="bathysphere.JSONIOWrapper.log" href="#bathysphere.JSONIOWrapper.log">log</a></code></li>
+<li><code><a title="bathysphere.JSONIOWrapper.output" href="#bathysphere.JSONIOWrapper.output">output</a></code></li>
+<li><code><a title="bathysphere.JSONIOWrapper.receive" href="#bathysphere.JSONIOWrapper.receive">receive</a></code></li>
+<li><code><a title="bathysphere.JSONIOWrapper.send" href="#bathysphere.JSONIOWrapper.send">send</a></code></li>
+<li><code><a title="bathysphere.JSONIOWrapper.text_io" href="#bathysphere.JSONIOWrapper.text_io">text_io</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="bathysphere.Message" href="#bathysphere.Message">Message</a></code></h4>
+<ul class="">
+<li><code><a title="bathysphere.Message.arrow" href="#bathysphere.Message.arrow">arrow</a></code></li>
+<li><code><a title="bathysphere.Message.data" href="#bathysphere.Message.data">data</a></code></li>
+<li><code><a title="bathysphere.Message.log" href="#bathysphere.Message.log">log</a></code></li>
+<li><code><a title="bathysphere.Message.message" href="#bathysphere.Message.message">message</a></code></li>
+<li><code><a title="bathysphere.Message.timestamp" href="#bathysphere.Message.timestamp">timestamp</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="bathysphere.Process" href="#bathysphere.Process">Process</a></code></h4>
+<ul class="two-column">
+<li><code><a title="bathysphere.Process.args" href="#bathysphere.Process.args">args</a></code></li>
+<li><code><a title="bathysphere.Process.command" href="#bathysphere.Process.command">command</a></code></li>
+<li><code><a title="bathysphere.Process.console" href="#bathysphere.Process.console">console</a></code></li>
+<li><code><a title="bathysphere.Process.log" href="#bathysphere.Process.log">log</a></code></li>
+<li><code><a title="bathysphere.Process.output" href="#bathysphere.Process.output">output</a></code></li>
+<li><code><a title="bathysphere.Process.pid" href="#bathysphere.Process.pid">pid</a></code></li>
+<li><code><a title="bathysphere.Process.process" href="#bathysphere.Process.process">process</a></code></li>
+<li><code><a title="bathysphere.Process.receive" href="#bathysphere.Process.receive">receive</a></code></li>
+<li><code><a title="bathysphere.Process.send" href="#bathysphere.Process.send">send</a></code></li>
+<li><code><a title="bathysphere.Process.start" href="#bathysphere.Process.start">start</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="bathysphere.polymorphic" href="#bathysphere.polymorphic">polymorphic</a></code></h4>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+</footer>
+</body>
+</html>

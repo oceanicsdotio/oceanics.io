@@ -1,0 +1,20 @@
+{
+  "name": "neritics",
+  "collaborators": [
+    "Oceanicsdotio <business@oceanics.io>"
+  ],
+  "description": "Spatial stuff",
+  "version": "0.3.0",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oceanicsdotio/oceanics.io.git"
+  },
+  "files": [
+    "neritics_bg.wasm",
+    "neritics.js",
+    "neritics_bg.js"
+  ],
+  "module": "neritics.js",
+  "sideEffects": false
+}
