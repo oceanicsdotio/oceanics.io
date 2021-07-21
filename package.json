@@ -1,4 +1,4 @@
 {
     "private": true,
-    "workspaces": ["www", "app"]
+    "workspaces": ["oceanics-io-www", "oceanics-io-app"]
 }
