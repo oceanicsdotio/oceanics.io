@@ -17,7 +17,7 @@
     "babel-preset-gatsby": "^1.9.0",
     "gatsby": "^2.32.11",
     "gatsby-cli": "^3.10.0",
-    "gatsby-image": "^3.2.0",
+    "gatsby-image": "^3.10.0",
     "gatsby-link": "^2.10.0",
     "gatsby-plugin-create-client-paths": "^2.10.0",
     "gatsby-plugin-manifest": "^2.12.1",
