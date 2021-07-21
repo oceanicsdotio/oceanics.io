@@ -41,7 +41,7 @@ import { FormContainer } from "../components/Form";
 /**
  * Use Oceanside for header image
  */
-import Oceanside from "../components/Oceanside";
+// import Oceanside from "../components/Oceanside";
 
 import Article from "../components/Article";
 
@@ -180,7 +180,7 @@ export default ({
     return (
         <Layout title={title}>
             <SEO title={"Blue computing"} />
-            <Oceanside/>
+            {/* <Oceanside/> */}
             
             <CampaignContainer>
                 <div>
@@ -191,11 +191,13 @@ export default ({
                 }
               
                 <FormContainer
-                    actions={[{
-                        value: `${version.response}`,
-                        type: "button",
-                        onClick: () => {navigateWithQuery(`/app`, search, {campaign: version.name})}
-                    },{
+                    actions={[
+                    //     {
+                    //     value: `${version.response}`,
+                    //     type: "button",
+                    //     onClick: () => {navigateWithQuery(`/app`, search, {campaign: version.name})}
+                    // },
+                    {
                         value: `Learn about our API`,
                         type: "button",
                         onClick: () => {navigate(`/bathysphere/`)}
