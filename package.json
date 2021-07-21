@@ -40,7 +40,7 @@
     "katex": "^0.13.11",
     "mapbox-gl": "^1.5.0",
     "netcdfjs": "^1.0.0",
-    "openapi-types": "^9.1.0",
+    "openapi-types": ">=7",
     "pdfjs-dist": "2.5.207",
     "pg": "^8.5.1",
     "pluralize": "^8.0.0",
@@ -74,7 +74,7 @@
     "water quality",
     "remote sensing",
     "simulation",
-    "web assembly",
+    "web assembly"
   ],
   "license": "MIT",
   "main": "n/a",
