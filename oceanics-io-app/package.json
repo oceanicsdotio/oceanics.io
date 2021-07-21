@@ -2,6 +2,6 @@
     "name": "oceanics-io-app",
     "version": "1.0.0",
     "dependencies": {
-        "oceanics-io-www": "portal:../oceanics-io-www"
+        "oceanics-io-www": "workspace:oceanics-io-www"
     }
 }
