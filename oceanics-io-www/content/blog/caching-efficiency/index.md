@@ -1,5 +1,5 @@
 ---
-title: Algorithms - Unit economics of knowledge caching
+title: Unit economics of knowledge caching
 date: "2020-05-25T12:00:00.000Z"
 description: |
     Premise for how a non-profit data trust can make money by
