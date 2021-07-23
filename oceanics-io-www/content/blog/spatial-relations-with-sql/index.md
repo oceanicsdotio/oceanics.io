@@ -1,5 +1,5 @@
 ---
-title: Algorithms - Spatial relationships with SQL
+title: Spatial relationships with SQL
 date: "2021-03-10T20:00:00.000Z"
 description: |
     Postgis can be really fast for spatial interpolation. This isn't exactly rocket science,
