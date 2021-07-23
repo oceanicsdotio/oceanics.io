@@ -39,7 +39,7 @@
     "katex": "^0.13.11",
     "mapbox-gl": "^1.5.0",
     "netcdfjs": "^1.0.0",
-    "oceanics-io-ui": "workspace:oceanics-io-ui",
+    "oceanics-io-ui": "oceanics-io-ui",
     "openapi-types": ">=7",
     "pdfjs-dist": "2.5.207",
     "pg": "^8.5.1",
