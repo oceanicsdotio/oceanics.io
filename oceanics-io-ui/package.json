@@ -20,6 +20,6 @@
   },
   "scripts": {
     "start": "start-storybook -p 6006",
-    "build": "build-storybook"
+    "build": "build-storybook --loglevel warn"
   }
 }
