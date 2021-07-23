@@ -1,5 +1,5 @@
 ---
-title: Algorithms - Right Triangular Irregular Network
+title: Right Triangular Irregular Network
 date: "2020-05-25T12:00:00.000Z"
 description: |
     Description of triangular tessellation method for multi-resolution rendering of

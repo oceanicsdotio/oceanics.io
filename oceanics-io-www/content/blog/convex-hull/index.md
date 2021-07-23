@@ -1,5 +1,5 @@
 ---
-title: Algorithms - Convex hull
+title: Convex hull
 date: "2020-02-08T12:00:00.000Z"
 description: |
     Building spatial relationships based on topology can be a good way to store 
