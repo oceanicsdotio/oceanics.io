@@ -1,7 +1,0 @@
-{
-    "name": "oceanics-io-app",
-    "version": "1.0.0",
-    "dependencies": {
-        "oceanics-io-www": "workspace:oceanics-io-www"
-    }
-}

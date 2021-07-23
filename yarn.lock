@@ -17879,14 +17879,6 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"oceanics-io-app@workspace:oceanics-io-app":
-  version: 0.0.0-use.local
-  resolution: "oceanics-io-app@workspace:oceanics-io-app"
-  dependencies:
-    oceanics-io-www: "workspace:oceanics-io-www"
-  languageName: unknown
-  linkType: soft
-
 "oceanics-io-ui@workspace:oceanics-io-ui":
   version: 0.0.0-use.local
   resolution: "oceanics-io-ui@workspace:oceanics-io-ui"
@@ -17952,6 +17944,7 @@ fsevents@^1.2.7:
     mapbox-gl: ^1.5.0
     netcdfjs: ^1.0.0
     netlify-lambda: ^2.0.3
+    oceanics-io-ui: "workspace:oceanics-io-ui"
     openapi-types: ">=7"
     pdfjs-dist: 2.5.207
     pg: ^8.5.1

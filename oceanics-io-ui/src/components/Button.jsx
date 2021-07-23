@@ -1,6 +1,6 @@
 import React from "react";
 import styled from "styled-components";
-import {orange, grey, charcoal} from "./palette";
+import {orange, grey, charcoal} from "../palette";
 
 
 import {Input} from "./Input";
