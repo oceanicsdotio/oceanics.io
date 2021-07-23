@@ -19,7 +19,7 @@
     "storybook": "^6.3.4"
   },
   "scripts": {
-    "storybook": "start-storybook -p 6006",
-    "build-storybook": "build-storybook"
+    "start": "start-storybook -p 6006",
+    "build": "build-storybook"
   }
 }
