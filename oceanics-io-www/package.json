@@ -84,6 +84,7 @@
   },
   "scripts": {
     "develop": "GATSBY_GRAPHQL_IDE=playground gatsby develop",
+    "build": "make build",
     "develop-no-cache": "rm -rf .cache && GATSBY_GRAPHQL_IDE=playground gatsby develop",
     "serve": "gatsby serve",
     "clean": "gatsby clean",
