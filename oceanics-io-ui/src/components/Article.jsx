@@ -16,9 +16,9 @@ import styled from "styled-components";
 /**
  * Predefined color palette
  */
-import { charcoal, orange, grey, ghost, shadow } from "../palette";
+import { charcoal, orange, grey, ghost, shadow } from "../../../oceanics-io-www/src/palette";
 
-import { onSelectValue } from "../hooks/useQueryString";
+import { onSelectValue } from "../../../oceanics-io-www/src/hooks/useQueryString";
 
 /**
  * Larger paragraphs

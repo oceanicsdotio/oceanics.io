@@ -2,8 +2,8 @@ import React, { useMemo } from "react";
 import styled from "styled-components";
 import { Link } from "gatsby";
 
-import { pink, ghost, orange } from "../palette";
-import { rhythm } from "../typography";
+import { pink, ghost, orange } from "../../../oceanics-io-www/src/palette";
+import { rhythm } from "../../../oceanics-io-www/src/typography";
 import layout from "../data/layout.yml";
 
 
@@ -88,8 +88,6 @@ export const Layout = ({
             .split("\n")
             .filter(paragraph => paragraph)
     });
-
-    
 
     /**
      * Memoize footer links as well. 

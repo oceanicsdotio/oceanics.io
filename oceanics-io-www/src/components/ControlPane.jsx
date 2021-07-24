@@ -48,7 +48,6 @@ const staticQuery = graphql`
 
 
 export default ({search}) => {
-
     /**
      * Get icon static data
      */

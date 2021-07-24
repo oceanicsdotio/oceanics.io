@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from "react";
 import styled from "styled-components";
-import {ghost, grey} from "../palette";
+import {ghost, grey} from "../../../oceanics-io-www/src/palette";
 
 
    

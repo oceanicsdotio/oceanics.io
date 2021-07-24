@@ -1,7 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 
-import {navigateWithQuery} from "../hooks/useQueryString";
+import {navigateWithQuery} from "../../../oceanics-io-www/src/hooks/useQueryString";
 
 
 /**

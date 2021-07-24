@@ -6,7 +6,7 @@ import LayerCard from "./LayerCard";
 /**
  * Predefined colors.
  */
-import { ghost, pink, grey } from "../palette";
+import { ghost, pink, grey } from "./palette";
 
 /**
 The key is the Entity subclass. 

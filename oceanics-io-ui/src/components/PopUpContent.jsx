@@ -2,30 +2,9 @@ import React,  {Fragment, useState, useEffect} from "react";
 import styled from "styled-components";
 
 
-/**
- * Popup for port and navigation information. Rendered client-side.
- */
-import Location from "../components/Location";
-
-/**
- * Oyster suitability popup, or any normalized probability distribution function
- */
-import SuitabilityInformation from "../components/SuitabilityInformation";
-
-
-/**
- * Create a lookup table, so that layer schemas can reference them by key.
- * 
- * There is some magic here, in that you still need to know the key. 
- */
-const popups = {
-    suitability: SuitabilityInformation,
-    location: Location
-};
-
 export const PopUpContent = ({
     features, 
-    component, 
+    Component, 
     className,
     transferCallback = null
 }) => {
@@ -58,8 +37,6 @@ export const PopUpContent = ({
             y+lat/features.length
         ], [0, 0]));
     }, []);
-
-    const Component = popups[component];
 
     return <div 
         className={className}

@@ -2,7 +2,7 @@ import React, {Fragment} from "react";
 import PropTypes from "prop-types";
 import styled from "styled-components";
 import { Link } from "gatsby";
-import { ghost, pink, grey } from "../palette";
+import { ghost, pink, grey } from "../../../oceanics-io-www/src/palette";
 
 
 // Single reference, styled for end of document
