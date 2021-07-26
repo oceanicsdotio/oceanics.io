@@ -16,7 +16,7 @@
     "@storybook/addon-links": "^6.3.4",
     "@storybook/react": "^6.3.4",
     "babel-loader": "^8.2.2",
-    "storybook": "^6.3.4"
+    "storybook": "^6.3.6"
   },
   "scripts": {
     "start": "start-storybook -p 6006",
