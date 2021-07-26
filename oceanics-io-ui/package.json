@@ -14,7 +14,7 @@
     "@storybook/addon-docs": "^6.3.4",
     "@storybook/addon-essentials": "^6.3.4",
     "@storybook/addon-links": "^6.3.4",
-    "@storybook/react": "^6.3.4",
+    "@storybook/react": "^6.3.6",
     "babel-loader": "^8.2.2",
     "storybook": "^6.3.4"
   },
