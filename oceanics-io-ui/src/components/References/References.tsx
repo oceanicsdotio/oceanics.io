@@ -1,10 +1,21 @@
 /**
  * React and friends
  */
-import React, {Fragment} from "react";
+import React, {Fragment, ComponentType} from "react";
+
+/**
+ * Runtime input type checking
+ */
 import PropTypes from "prop-types";
+
+/**
+ * Component level styling
+ */
 import styled from "styled-components";
-import { Link } from "gatsby";
+
+/**
+ * Colors
+ */
 import { ghost, pink, grey } from "../../palette";
 
 
@@ -23,7 +34,7 @@ const Anchor = styled.a`
 
 
 // Links are appended to references
-const StyledLink = styled(Link)`
+const StyledLink = styled.a`
 
     & img {
         width: 1rem;
@@ -32,17 +43,30 @@ const StyledLink = styled(Link)`
 `;
 
 
+type ReferenceHashType = {
+    authors: string[],
+    title: string,
+    year: number
+}
+
 /**
 Some of the canonical fields do not contain uniquely identifying information. Technically,
 the same content might appear in two places. 
 */
-const referenceHash = ({authors, title, year, journal}) => {
+const referenceHash = ({authors, title, year}: ReferenceHashType) => {
    
     const stringRepr = (`${authors.join("").toLowerCase()} ${year} ${title.toLowerCase()}`).replace(/\s/g, "");
-    const hashCode = s => s.split('').reduce((a,b) => (((a << 5) - a) + b.charCodeAt(0))|0, 0);
+    const hashCode = (s: string) => s.split('').reduce((a,b) => (((a << 5) - a) + b.charCodeAt(0))|0, 0);
     const hash =  hashCode(stringRepr);
     return hash;
 };
+
+type InlineRefType = {
+    authors: string[],
+    year: number,
+    title: string,
+    unwrap: boolean
+}
 
 /**
  Include inline links for references in markdown
@@ -52,10 +76,10 @@ export const Inline = ({
     year,
     title,
     unwrap=false
-}) => {
+}: InlineRefType) => {
     const NAMED_AUTHORS = 3;
     const nAuthors = authors.length;
-    const names = authors.slice(0, Math.min(nAuthors, NAMED_AUTHORS)).map(x => x.split(" ")[0]);
+    const names = authors.slice(0, Math.min(nAuthors, NAMED_AUTHORS)).map((x: string) => x.split(" ")[0]);
     let nameString;
     if (nAuthors === 1) {
         nameString = names[0];
@@ -77,6 +101,17 @@ Inline.propTypes = {
     unwrap: PropTypes.bool
 };
 
+type ReferenceType = {
+    authors: string[],
+    year: number,
+    title: string,
+    journal: string | null,
+    volume: string | null,
+    pageRange: number[] | null,
+    hash: string | null,
+    LinkComponent: ComponentType
+}
+
 /**
  Single reference to journal article or similar material.
  */
@@ -86,17 +121,16 @@ export const Reference = ({
     title,
     journal = null,
     volume = null, 
-    pageRange = null, 
+    pageRange = [], 
     hash = null
-}) => {
-
+}: ReferenceType) => {
     const pages = pageRange ? `:${pageRange[0]}–${pageRange[1]}.` : ``;
     const text = `${authors.join(", ")}. ${year}. ${title.trim()}. ${journal||""} ${volume||""}${pages}`;
     const _hash = hash || referenceHash({authors, title, year});
 
     return <Block key={hash}>
         {text}
-        <StyledLink to={`/?reference=${_hash}`}>
+        <StyledLink href={`/?reference=${_hash}`}>
             <img src="/favicon.ico"/>
         </StyledLink>
     </Block>
@@ -113,21 +147,26 @@ Reference.propTypes = {
     hash: PropTypes.string
 };
 
+type ReferencesType = {
+    heading: string,
+    references: ReferenceType[]
+}
+
 /**
  List of formatted references to append to a document that
  includes citations. 
  */
 export const References = ({
     heading="References", 
-    references
-}) =>
+    references=[]
+}: ReferencesType) =>
     <>
         <Anchor id={"references"} hidden={!references || !heading}>
             <h1>{heading}</h1>
         </Anchor>
         {
             Object.entries(Object.fromEntries(
-                (references||[]).map(props => 
+                references.map((props: ReferenceType) => 
                     [referenceHash(props), props])
             )).map(([hash, props]) => 
                 <Fragment key={hash}>
