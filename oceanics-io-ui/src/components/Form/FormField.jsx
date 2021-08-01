@@ -1,6 +1,6 @@
 import React from "react";
 import styled from "styled-components";
-import {ghost, orange, pink, grey, charcoal} from "./palette";
+import {ghost, orange, pink, grey, charcoal} from "../palette";
 
 
 /**

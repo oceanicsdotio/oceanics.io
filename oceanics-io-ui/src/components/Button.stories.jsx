@@ -7,10 +7,7 @@ export default {
   title: 'Form/Button',
 }
 
-//👇 We create a “template” of how args map to rendering
 const Template = (args) => <Button {...args} />;
 
-//👇 Each story then reuses that template
 export const Default = Template.bind({});
-
 Default.args = {};

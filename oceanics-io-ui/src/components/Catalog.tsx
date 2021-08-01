@@ -1,6 +1,16 @@
+/**
+ * react and friends
+ */
 import React from "react";
+
+/**
+ * Component level styling
+ */
 import styled from "styled-components";
 
+/**
+ * Geospatial data layers
+ */
 import LayerCard from "./LayerCard";
 
 /**
