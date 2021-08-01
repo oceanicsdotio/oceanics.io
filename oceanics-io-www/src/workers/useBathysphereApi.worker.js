@@ -19,7 +19,7 @@ let runtime = null;
  */
 export const initRuntime = async () => {
     try {
-        runtime = await import('../wasm');
+        runtime = await import('../../../oceanics-io-asm/wasm');
         runtime.panic_hook();
         return {
             ready: true,
