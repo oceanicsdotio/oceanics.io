@@ -1,10 +1,19 @@
+/**
+ * React and friends
+ */
 import React from 'react';
 
+/**
+ * Base component
+ */
 import Thing from './Thing';
 
+/**
+ * Storybook definition
+ */
 export default {
   component: Thing,
-  title: 'SensorThings/Thing',
+  title: 'Catalog/Thing',
 }
 
 /**

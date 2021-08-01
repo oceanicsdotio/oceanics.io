@@ -16,7 +16,7 @@ import styled from "styled-components";
 /**
  * Predefined colors.
  */
-import { ghost, orange, grey } from "./palette";
+import { ghost, orange, grey } from "../../palette";
 
 
 /**
@@ -32,7 +32,7 @@ const Emoji = styled.a`
     text-decoration: none !important;
 `;
 
-type LayerType = {
+export type LayerType = {
     id: string,
     url: string,
     type: string,
@@ -59,7 +59,6 @@ export const LayerCard = ({
     component="default",
     maxzoom=21,
     minzoom=1,
-    zoomLevel,
     attribution="Oceanics.io",
     info=null,
     onClick,

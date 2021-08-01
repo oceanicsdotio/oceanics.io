@@ -16,7 +16,7 @@ import styled from "styled-components";
 /**
  * Color palette
  */
-import {ghost, grey} from "./palette";
+import {ghost, grey} from "../../palette";
 
 /**
  * Type for Meter child components

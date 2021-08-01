@@ -6,7 +6,7 @@ import React from 'react';
 /**
  * Base component
  */
-import LayerCard from './LayerCard';
+import Location from './Location';
 
 import "./src/styles/global.css";
 import "./src/styles/theme.css";
@@ -15,8 +15,8 @@ import "./src/styles/theme.css";
  * Storybook Interface
  */
 export default {
-    component: LayerCard,
-    title: 'Catalog/LayerCard',
+    component: Location,
+    title: 'Catalog/Location',
 }
 
 /**
@@ -25,7 +25,7 @@ export default {
  * @param {*} args 
  * @returns 
  */
-const Template = (args) => <LayerCard {...args} />;
+const Template = (args) => <Location {...args} />;
 
 /**
  * Default test case

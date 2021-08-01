@@ -16,7 +16,7 @@ import PropTypes from "prop-types";
 /**
  * Color palette
  */
-import { orange, ghost, shadow } from "./palette";
+import { orange, ghost, shadow } from "../../palette";
 
 /**
  * Compile time type checking

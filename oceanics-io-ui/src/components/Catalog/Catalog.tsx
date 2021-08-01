@@ -11,16 +11,13 @@ import styled from "styled-components";
 /**
  * Geospatial data layers
  */
-import LayerCard from "./LayerCard";
+import LayerCard, {LayerType} from "./LayerCard";
 
 /**
  * Predefined colors.
  */
 import { ghost, pink, grey } from "../../palette";
 
-type LayerType = {
-
-}
 
 type CatalogType = {
     geojson: LayerType[],
@@ -92,15 +89,14 @@ const Catalog = ({geojson, className, zoomLevel, queue, setQueue}: CatalogType) 
         
     
     return <div className={className}>
-        <LayerCard {...{id: "home"}}/>
-        <LayerCard {...{id: "Gulf of Maine"}}/>
-        {geojson.map(({id, ...layer}) => {
-
+        {/* <LayerCard {...{id: "home"}}/>
+        <LayerCard {...{id: "Gulf of Maine"}}/> */}
+        {geojson.map((layer: LayerType) => {
             const onClick = () => {
-                setQueue([...(queue||[]), {id, ...layer}]);
+                setQueue((queue: LayerType[]) => [...queue, layer]);
             };
 
-            return <LayerCard {...{...layer, id, key: id, zoomLevel, onClick}}/>
+            return <LayerCard {...{...layer, key: layer.id, zoomLevel, onClick}}/>
         })}
     </div> 
 }; 
