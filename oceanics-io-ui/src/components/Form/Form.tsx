@@ -4,7 +4,7 @@
 import React from "react";
 
 /**
- * Component level stlying
+ * Component level styling
  */
 import styled from "styled-components";
 
@@ -17,6 +17,11 @@ import Input from "./Input";
  * Button input
  */
 import Button from "./Button";
+
+/**
+ * Input fields
+ */
+import FormField from "./FormField";
 
 
 /**
@@ -32,11 +37,11 @@ type FieldType = {
 type ActionType = {
 
 }
-type FormType = {
+export type FormType = {
     id: string,
     fields: FieldType[],
     actions: ActionType[],
-    callback: Function
+    callback: Function | null
 }
 
 /**
@@ -45,9 +50,9 @@ type FormType = {
 export const Form = ({ 
     id, 
     fields = [], 
-    actions = null,
+    actions = [],
     callback = null
-}) => {
+}: FormType) => {
     
     return <form 
         id={id}

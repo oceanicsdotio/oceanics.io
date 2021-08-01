@@ -11,7 +11,7 @@ import styled from "styled-components"
 /**
  * Form component
  */
-import Form from "./Form"
+import Form, {FormType} from "./Form"
 
 const FormBox = styled.div`
 & * {
@@ -19,7 +19,7 @@ const FormBox = styled.div`
 }
 `;
 
-export const FormContainer = (props) => 
-<FormBox>
-    <Form {...props}/>
-</FormBox>
+export const FormContainer = (props: FormType) => 
+    <FormBox>
+        <Form {...props}/>
+    </FormBox>

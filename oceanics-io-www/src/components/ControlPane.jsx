@@ -69,7 +69,7 @@ export default ({search}) => {
     /**
     * Use Web worker to do sorting
     */
-    useEffect(()=>{
+    useEffect(() => {
         if (worker.current) worker.current.sorted({icons, tiles}).then(setSorted);
     }, [ worker ]);
 

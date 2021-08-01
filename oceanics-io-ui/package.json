@@ -1,6 +1,12 @@
 {
   "name": "oceanics-io-ui",
   "version": "1.0.0",
+  "private": false,
+  "babel": {    
+    "presets": [
+      "@babel/preset-react"
+    ]
+  },
   "dependencies": {
     "js-yaml-loader": "^1.2.2",
     "prop-types": "^15.7.2",

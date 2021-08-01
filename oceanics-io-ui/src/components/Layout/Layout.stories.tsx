@@ -11,6 +11,7 @@ import Layout, {LayoutType} from './Layout';
 /**
  * Load static data
  */
+// @ts-ignore
 import LayoutData from "js-yaml-loader!./layout.yml"
 
 /**
