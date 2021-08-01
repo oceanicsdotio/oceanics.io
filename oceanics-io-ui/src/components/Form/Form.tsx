@@ -1,18 +1,50 @@
+/**
+ * React and friends
+ */
 import React from "react";
+
+/**
+ * Component level stlying
+ */
 import styled from "styled-components";
 
-
+/**
+ * General input
+ */
 import Input from "./Input";
+
+/**
+ * Button input
+ */
 import Button from "./Button";
 
 
+/**
+ * Compile time type checking
+ * @param param0 
+ * @returns 
+ */
+type FieldType = {
+    name: string,
+    description: string,
+    id: string
+}
+type ActionType = {
+
+}
+type FormType = {
+    id: string,
+    fields: FieldType[],
+    actions: ActionType[],
+    callback: Function
+}
 
 /**
-Form component encapsulates behavior of user submission forms.
-*/
+ * Form component encapsulates behavior of user submission forms.
+ */
 export const Form = ({ 
     id, 
-    fields = null, 
+    fields = [], 
     actions = null,
     callback = null
 }) => {
@@ -20,7 +52,7 @@ export const Form = ({
     return <form 
         id={id}
     >
-        {(fields || []).map(({
+        {fields.map(({
             name=null,
             description=null,
             ...field
@@ -30,7 +62,7 @@ export const Form = ({
                     {`${name || field.id}: `}
                 </label>
                 <Input
-                    onChange={(event) => {
+                    onChange={(event: Event) => {
                         event.persist();
                         if (callback) callback(event);
                     }}

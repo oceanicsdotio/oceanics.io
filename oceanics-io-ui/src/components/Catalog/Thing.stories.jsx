@@ -8,6 +8,9 @@ import React from 'react';
  */
 import Thing from './Thing';
 
+import "../../styles/global.css";
+import "../../styles/theme.css";
+
 /**
  * Storybook definition
  */

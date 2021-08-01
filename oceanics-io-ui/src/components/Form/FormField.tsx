@@ -1,5 +1,16 @@
+/**
+ * React and friends
+ */
 import React from "react";
+
+/**
+ * Component level styling
+ */
 import styled from "styled-components";
+
+/**
+ * Color palette
+ */
 import {ghost, orange, pink, grey, charcoal} from "../../palette";
 
 
@@ -7,7 +18,7 @@ import {ghost, orange, pink, grey, charcoal} from "../../palette";
  * FormField is the container for a form input
  * and its metadata.
  */
-const FormField = styled.div`
+export const FormField = styled.div`
 
     margin-bottom: 1rem;  
     box-sizing: border-box;
@@ -43,3 +54,5 @@ const FormField = styled.div`
         }
     }
 `;
+
+export default FormField
