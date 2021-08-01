@@ -16,7 +16,40 @@ import "./src/styles/theme.css";
 
 import React from 'react';
 import Layout from "oceanics-io-ui/Layout/Layout"
+import Rubric from "oceanics-io-ui/Form/Rubric"
+import Reference from "oceanics-io-ui/References/Reference"
+import References from "oceanics-io-ui/References/References"
+import Inline from "oceanics-io-ui/References/Inline"
+import SEO from "./src/components/SEO"
+import PDF from "oceanics-io-ui/References/PDF"
+// import OpenAPI from "../components/OpenAPI"
 
+/**
+ * Inner wrap
+ */
 export const wrapPageElement = ({ element, props }) => {
-    return <Layout {...props}>{element}</Layout>
+    return <Layout {...props}>
+        <SEO/>
+        {element}
+    </Layout>
+}
+
+const providerComponents = {
+    Rubric,
+    Reference,
+    References,
+    Inline,
+    PDF,
+    // OpenApi
+}
+
+/**
+ * Wrap the page with an MDX provider
+ */
+export const wrapRootElement = ({element}) => {
+    return (
+        <MDXProvider components={providerComponents}>
+            {element}
+        </MDXProvider>
+    )
 }

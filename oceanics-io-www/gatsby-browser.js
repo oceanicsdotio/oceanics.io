@@ -25,6 +25,9 @@ import SEO from "./src/components/SEO"
 import PDF from "oceanics-io-ui/References/PDF"
 // import OpenAPI from "../components/OpenAPI"
 
+/**
+ * Inner wrap
+ */
 export const wrapPageElement = ({ element, props }) => {
     return <Layout {...props}>
         <SEO/>
@@ -41,12 +44,13 @@ const providerComponents = {
     // OpenApi
 }
 
-export const wrapRootElement = ({}) => {
-    return <MDXProvider 
-        components={providerComponents}
-    >
-        <Template references={citations} date={date} title={title}>
-            <MDXRenderer>{body}</MDXRenderer>
-        </Template>
-    </MDXProvider> 
+/**
+ * Wrap the page with an MDX provider
+ */
+export const wrapRootElement = ({element}) => {
+    return (
+        <MDXProvider components={providerComponents}>
+            {element}
+        </MDXProvider>
+    )
 }
