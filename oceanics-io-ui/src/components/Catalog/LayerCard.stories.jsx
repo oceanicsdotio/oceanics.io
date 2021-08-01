@@ -8,6 +8,9 @@ import React from 'react';
  */
 import LayerCard from './LayerCard';
 
+import "./src/styles/global.css";
+import "./src/styles/theme.css";
+
 /**
  * Storybook Interface
  */

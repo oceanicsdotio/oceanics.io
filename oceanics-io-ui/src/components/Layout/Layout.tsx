@@ -16,7 +16,7 @@ import { pink, ghost, orange } from "../palette";
 /**
  * Typesetting
  */
-import { rhythm } from "../../../../oceanics-io-www/src/typography";
+import { rhythm } from "./typography";
 
 
 /**
@@ -72,6 +72,22 @@ export const Title = styled.a`
     padding: 0;
 `;
 
+type LinkType = {
+    label: string,
+    href: string
+}
+
+type LayoutType = {
+    children: any,
+    className: string,
+    title: string,
+    site: LinkType[],
+    footer: {
+        policy: string
+    },
+    expand: boolean
+}
+
     
 export const Layout = ({ 
     children,
@@ -80,8 +96,8 @@ export const Layout = ({
     site = [],
     footer: {
         policy="",
-    }
-}) => {
+    },
+}: LayoutType) => {
 
     /**
      * Memoize the top navigation links when they are created, 
@@ -98,14 +114,14 @@ export const Layout = ({
                 {label}
             </SiteLink>
         )
-    });
+    }, []);
 
 
-    const policy = useMemo(()=>{
+    const _policy = useMemo(()=>{
         return YAML.parse(policy)
             .split("\n")
-            .filter(paragraph => paragraph)
-    });
+            .filter((paragraph: string) => paragraph)
+    }, []);
 
     return <div className={className}>
         
@@ -116,7 +132,7 @@ export const Layout = ({
 
         <main>{children}</main>
         <footer>
-            {policy.map((text, ii) => <p key={`text-${ii}`}>{text}</p>)}
+            {_policy.map((text: string, ii: number) => <p key={`text-${ii}`}>{text}</p>)}
         </footer>
     </div>
 };
@@ -124,7 +140,7 @@ export const Layout = ({
 export const StyledLayout = styled(Layout)`
     margin-left: auto;
     margin-right: auto;
-    max-width: ${({expand})=>expand?"100%":"65ch"};
+    max-width: ${({expand}: LayoutType)=>expand?"100%":"65ch"};
     padding: ${rhythm(1.5)} ${rhythm(0.75)};
 
     & > main {

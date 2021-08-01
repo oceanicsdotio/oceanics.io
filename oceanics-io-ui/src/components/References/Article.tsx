@@ -11,7 +11,7 @@ import styled from "styled-components";
 /**
  * Predefined color palette
  */
-import { charcoal, orange, grey, ghost, shadow } from "./palette";
+import { charcoal, orange, grey, ghost, shadow } from "../../palette";
 
 /**
  * Larger paragraphs

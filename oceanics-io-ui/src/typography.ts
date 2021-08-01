@@ -1,4 +1,4 @@
-import Typography from "typography";
+const Typography = require("typography");
 const typography = new Typography();
 
 export default typography;
