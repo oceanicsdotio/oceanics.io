@@ -1,7 +1,7 @@
 /**
  * React and friends. 
  */
-import React from "react";
+import React, {useMemo} from "react";
 
 /**
  * Standard view across website.
@@ -22,7 +22,7 @@ import {graphql } from "gatsby";
 /**
  * Array of references component, no heading
  */
-import References from "../components/References";
+import References from "oceanics-io-ui/References/References";
 
 /**
  * What we call the page in menu and SEO
@@ -37,19 +37,26 @@ export default ({
     data: {
         allMdx: { nodes }
     },
-}) => 
-    <Layout location={location} title={HEADING}>
-        <SEO title={HEADING}/>
-        <References 
-            heading={null}
-            references={
-                nodes.flatMap(({frontmatter: {citations}}) => citations)
-                    .filter(x => !!x)
-            }
-        />
-    </Layout>
-  
+}) => {
+    /**
+     * Memoize the filtered array of citations listed in 
+     * article frontmatter.
+     */
+    const references = useMemo(() => {
+        nodes.flatMap(({frontmatter: {citations}}) => citations).filter(x => !!x)
+    }, [])
 
+    return (
+        <Layout location={location} title={HEADING}>
+            <SEO title={HEADING}/>
+            <References references={references}/>
+        </Layout>
+    )
+}
+  
+/**
+ * GraphQL data provider
+ */
 export const pageQuery = graphql`
     query {
         allMdx {

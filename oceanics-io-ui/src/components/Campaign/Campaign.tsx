@@ -26,7 +26,8 @@
  /**
   * Page data
   */
- import about from "../data/about.yml";
+ // @ts-ignore
+ import about from "js-yaml-loader!./campaign.yml";
  
  
  /**

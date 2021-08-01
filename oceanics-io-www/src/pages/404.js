@@ -11,7 +11,7 @@ import styled from "styled-components";
 /**
  * Use the default "fixed width" char-based layout
  */
-import Layout from "../components/Layout";
+import Layout from "oceanics-io-ui/Layout/Layout";
 
 /**
  * Headers for bots.

@@ -23,3 +23,5 @@ export const FormContainer = (props: FormType) =>
     <FormBox>
         <Form {...props}/>
     </FormBox>
+
+export default FormContainer
