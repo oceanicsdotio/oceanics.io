@@ -1,5 +1,16 @@
+/**
+ * React and friends
+ */
 import React from "react"
+
+/**
+ * Component level styling
+ */
 import styled from "styled-components"
+
+/**
+ * Runtime input type checking
+ */
 import PropTypes from "prop-types"
 
 /**
@@ -51,6 +62,9 @@ export const Input = ({
     }
 };
 
+/**
+ * Runtime type checking
+ */
 Input.propTypes = {
     id: PropTypes.string.isRequired,
     type,
@@ -58,7 +72,6 @@ Input.propTypes = {
     name: PropTypes.string,
     options: PropTypes.arrayOf(PropTypes.string),
 }
-
 
 /**
  * The InputWrapper component is a styled version of the standard
@@ -108,5 +121,7 @@ export const InputWrapper = styled(Input)`
  } 
 `;
 
-
+/**
+ * Default export is styled version
+ */
 export default InputWrapper

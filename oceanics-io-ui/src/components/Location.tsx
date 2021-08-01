@@ -1,8 +1,36 @@
+/**
+ * React and friends
+ */
 import React, { useState, useEffect } from "react";
-import styled from "styled-components";
-import PropTypes from "prop-types";
-import { orange, ghost, shadow } from "../../../oceanics-io-www/src/palette";
 
+/**
+ * Component level styling
+ */
+import styled from "styled-components";
+
+/**
+ * Runtime input type checking
+ */
+import PropTypes from "prop-types";
+
+/**
+ * Color palette
+ */
+import { orange, ghost, shadow } from "./palette";
+
+/**
+ * Compile time type checking
+ */
+type LocationType = {
+    key: string | null,
+    className: string,
+    properties: {
+        name: string | null,
+        nav_unit_n: string | null,
+        port_name: string
+    },
+    coordinates: number[] | null
+}
 
 /**
  * Location Components provide metadata about a location, as well
@@ -18,7 +46,7 @@ export const Location = ({
         ...properties
     },
     coordinates = null
-}) => {
+}: LocationType) => {
     /**
      * Location summary data. May not be available for large
      * polygons for instance, in which case it will fall back
@@ -36,14 +64,18 @@ export const Location = ({
         setLabel(`${lat.toFixed(4)}, ${lon.toFixed(4)}`);
     }, []);
 
-
+    /**
+     * Guess name from data if none is given
+     */
     const [ title, setTitle ] = useState("Naming...");
     
+    /**
+     * Some jank that should get moved
+     */
     useEffect(() => {
-
-        const _title = name || nav_unit_n;
-        if (_title) {
-            setTitle(_title);
+        const title = name || nav_unit_n;
+        if (title) {
+            setTitle(title);
         } else if ("port_name" in properties) {
             setTitle(properties.port_name);
         } else if ("species" in properties) {
@@ -53,15 +85,12 @@ export const Location = ({
         }
     }, []);
 
-
+    /**
+     * Render list of property items
+     */
     return <div 
         className={className}
         id={key}
-        draggable={true}
-        onDragStart={event => {
-            event.dataTransfer.setData("text/plain", event.target.id);
-            event.dataTransfer.dropEffect = "move";
-        }}
     >
         <h3>{title}</h3>
         <label>{label}</label>
@@ -128,6 +157,7 @@ const StyledLocation = styled(Location)`
     }
 `;
 
-
-
+/**
+ * Export styled version by default
+ */
 export default StyledLocation;

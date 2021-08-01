@@ -14,11 +14,6 @@ import styled from "styled-components";
 import PropTypes from "prop-types";
 
 /**
- * Navigation to other pages while retaining query string information
- */
-import {navigateWithQuery} from "../../../oceanics-io-www/src/hooks/useQueryString";
-
-/**
  * Compile-time type checking
  */
 type TileType = {
@@ -40,17 +35,16 @@ export const TileInformation = ({
     tile: {
         publicURL, 
         anchorHash,
-        queryString
+        //queryString
     }, 
     className,
-    search
-}: TileType) =>{
-
+    //search
+}: TileType) => {
     return <div className={className}>
         <a id={anchorHash}/>
         <img 
             src={publicURL}
-            onClick={() => {navigateWithQuery(`/app`, search, {agent: queryString})}}
+            //onClick={() => {navigateWithQuery(`/app`, search, {agent: queryString})}}
         />
     </div>
 };
@@ -62,7 +56,7 @@ TileInformation.propTypes = {
     tile: PropTypes.shape({
         publicURL: PropTypes.string.isRequired, 
         anchorHash: PropTypes.string.isRequired,
-        queryString: PropTypes.string
+        queryString: PropTypes.string,
     }), 
     className: PropTypes.string,
     search: PropTypes.string
