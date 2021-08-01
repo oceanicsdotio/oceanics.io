@@ -4,9 +4,14 @@
  import React from 'react';
 
  /**
+  * Typescript support
+  */
+ import {Story, Meta} from "@storybook/react"
+
+ /**
   * Base component
   */
- import Trifold from './Trifold';
+ import Trifold, {TrifoldType} from './Trifold';
 
  /**
   * Color palette
@@ -18,8 +23,8 @@
   */
  export default {
    component: Trifold,
-   title: 'MapBox/Trifold',
- }
+   title: 'Layout/Trifold',
+ } as Meta
  
  /**
   * Base case
@@ -27,7 +32,7 @@
   * @param {*} args 
   * @returns 
   */
- const Template = (args) => <Trifold {...args} />;
+ const Template: Story<TrifoldType> = (args: TrifoldType) => <Trifold {...args} />;
  
  /**
   * Default test case

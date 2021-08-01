@@ -11,7 +11,7 @@ import styled from "styled-components"
 /**
  * Compile time type checking
  */
-type TrifoldType = {
+export type TrifoldType = {
     display: string,
     onClick: MouseEventHandler,
     className: string,

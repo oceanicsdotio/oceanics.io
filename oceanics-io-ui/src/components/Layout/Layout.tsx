@@ -77,7 +77,7 @@ type LinkType = {
     href: string
 }
 
-type LayoutType = {
+export type LayoutType = {
     children: any,
     className: string,
     title: string,

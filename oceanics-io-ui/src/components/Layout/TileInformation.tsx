@@ -16,7 +16,7 @@ import PropTypes from "prop-types";
 /**
  * Compile-time type checking
  */
-type TileType = {
+export type TileType = {
     tile: {
         publicURL: string, 
         anchorHash: string,
