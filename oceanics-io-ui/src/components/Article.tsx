@@ -1,12 +1,7 @@
 /**
  * React and friends
  */
-import React from "react";
-
-/**
- * Checked for existence at build.
- */
-import { Link } from "gatsby";
+import React, {ComponentType} from "react";
 
 /**
  * Stylish stuff
@@ -16,9 +11,7 @@ import styled from "styled-components";
 /**
  * Predefined color palette
  */
-import { charcoal, orange, grey, ghost, shadow } from "../../../oceanics-io-www/src/palette";
-
-import { onSelectValue } from "../../../oceanics-io-www/src/hooks/useQueryString";
+import { charcoal, orange, grey, ghost, shadow } from "./palette";
 
 /**
  * Larger paragraphs
@@ -30,7 +23,7 @@ const StyledParagraph = styled.p`
 /**
  * Article element, rendered with child metadata 
  */
- const StyledArticle = styled.article`
+const StyledArticle = styled.article`
 
  & h2 {
      margin-bottom: 0;
@@ -69,35 +62,62 @@ const StyledParagraph = styled.p`
  } 
 `;
 
-export default ({
+type ArticleType = {
+    frontmatter: {
+        title: string,
+        date: string,
+        description: string,
+        tags: string[]
+    },
+    fields: {
+        slug: string
+    },
+    index: number,
+    search: string,
+    linking: {
+        LinkComponent: ComponentType,
+        key: string
+    },
+    onSelectValue: Function
+}
+
+export const Article = ({
     frontmatter: {
         title,
         date,
         description,
         tags
-    }, 
+    },
     fields: {
         slug
     },
     index,
-    search
-}) => 
+    search,
+    linking: {
+        LinkComponent = styled.a``,
+        key = 'href'
+    },
+    onSelectValue
+}: ArticleType) =>
     <StyledArticle>
         <header>
             <h2>
-                <Link to={slug}>{title}</Link>
+                <LinkComponent {...{[key]: slug}}>{title}</LinkComponent>
             </h2>
             <small>{date}</small>
         </header>
         <section>
             <StyledParagraph>{description}</StyledParagraph>
         </section>
-        {tags.map(tag => 
+        {tags.map(tag =>
             <a
-                key={`node-${index}-${tag}`} 
+                key={`node-${index}-${tag}`}
                 onClick={onSelectValue(search, "tag", tag)}
             >
                 {tag}
             </a>
         )}
     </StyledArticle>
+
+
+export default Article

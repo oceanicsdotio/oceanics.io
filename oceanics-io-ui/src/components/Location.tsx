@@ -22,14 +22,14 @@ import { orange, ghost, shadow } from "./palette";
  * Compile time type checking
  */
 type LocationType = {
-    key: string | null,
+    key: string,
     className: string,
     properties: {
-        name: string | null,
-        nav_unit_n: string | null,
+        name: string,
+        nav_unit_n: string,
         port_name: string
     },
-    coordinates: number[] | null
+    coordinates: number[]
 }
 
 /**
@@ -38,14 +38,14 @@ type LocationType = {
  * with the location. 
  */
 export const Location = ({
-    key=null,
+    key,
     className,
     properties: {
-        name=null,
-        nav_unit_n=null,
+        name,
+        nav_unit_n,
         ...properties
     },
-    coordinates = null
+    coordinates = []
 }: LocationType) => {
     /**
      * Location summary data. May not be available for large
@@ -76,7 +76,7 @@ export const Location = ({
         const title = name || nav_unit_n;
         if (title) {
             setTitle(title);
-        } else if ("port_name" in properties) {
+        } else if (typeof properties.port_name !== "undefined") {
             setTitle(properties.port_name);
         } else if ("species" in properties) {
             setTitle("Sea farm");
@@ -108,9 +108,13 @@ export const Location = ({
  */
 Location.propTypes = {
     /**
+     * Handle for accessing by ID
+     */
+    key: PropTypes.string.isRequired,
+    /**
      * Spatial coordinates
      */
-    coordinates: PropTypes.array,
+    coordinates: PropTypes.arrayOf(PropTypes.number),
     /**
      * Class name for styled components CSS
      */
@@ -118,7 +122,11 @@ Location.propTypes = {
     /**
      * Location metadata
      */
-    properties: PropTypes.object.isRequired
+    properties: PropTypes.shape({
+        name: PropTypes.string.isRequired,
+        nav_unit_n: PropTypes.string,
+        port_name: PropTypes.string
+    }).isRequired
 };
 
 /**

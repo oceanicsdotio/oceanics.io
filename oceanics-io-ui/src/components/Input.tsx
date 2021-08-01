@@ -14,6 +14,24 @@ import styled from "styled-components"
 import PropTypes from "prop-types"
 
 /**
+ * Color palette
+ */
+import {red, orange, ghost, grey, charcoal} from "./palette"
+
+/**
+ * Build time type checking
+ */
+export type InputType = {
+    id: string,
+    type: string,
+    className: string,
+    name: string | null,
+    options: string[],
+    destructive: boolean,
+    required: boolean
+}
+
+/**
  * Generic form input component that converts to the
  * appropriate type
  */
@@ -22,9 +40,9 @@ export const Input = ({
     type,
     className,
     name = null,
-    options = null,
+    options = [],
     ...props
-}) => {
+}: InputType) => {
     switch (type) {
         case "long":
             return <textarea
@@ -40,7 +58,7 @@ export const Input = ({
                 name={name || id}
                 {...props}
             >
-                {(options || []).map((x, ii) =>
+                {options.map((x, ii) =>
                     <option key={`${id}-option-${ii}`} value={x}>{x}</option>
                 )}
             </select>
@@ -67,10 +85,12 @@ export const Input = ({
  */
 Input.propTypes = {
     id: PropTypes.string.isRequired,
-    type,
+    type: PropTypes.string,
     className: PropTypes.string,
     name: PropTypes.string,
     options: PropTypes.arrayOf(PropTypes.string),
+    destructive: PropTypes.bool,
+    required: PropTypes.bool
 }
 
 /**
@@ -110,7 +130,7 @@ export const InputWrapper = styled(Input)`
 
  ::after {
      content: ${({ required }) => required ? "'(!)'" : null};
-     color: orange;
+     color: ${orange};
      font-size: smaller;
  }
 

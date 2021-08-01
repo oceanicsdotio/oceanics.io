@@ -1,9 +1,28 @@
-import React from "react";
-import styled from "styled-components"
-
+/**
+ * React and friends
+ */
+import React, { MouseEventHandler } from "react";
 
 /**
- * Vectro graphic icon for toggle between folded/unfolded view.
+ * Component level styling
+ */
+import styled from "styled-components"
+
+/**
+ * Compile time type checking
+ */
+type TrifoldType = {
+    display: string,
+    onClick: MouseEventHandler,
+    className: string,
+    stroke: string,
+    fill: string,
+    strokeWidth: number,
+    strokeLinejoin: "bevel" | "miter" | "round" | "inherit",
+}
+
+/**
+ * Vector graphic icon for toggle between folded/unfolded view.
  * 
  * 
  * @param {*} param0 
@@ -13,14 +32,17 @@ export const Trifold = ({
     display, 
     onClick, 
     className,
-    stroke
-}) => {
+    stroke,
+    fill = "none",
+    strokeWidth = 15,
+    strokeLinejoin = "bevel"
+}: TrifoldType) => {
 
     const presentation = {
         stroke,
-        fill: "none",
-        strokeWidth: 15,
-        strokeLinejoin: "bevel"
+        fill,
+        strokeWidth,
+        strokeLinejoin
     }
 
     return <svg 
@@ -61,6 +83,9 @@ export const StyledTrifold = styled(Trifold)`
     right: 0;
 `;
 
+/**
+ * For display inline with text/heading
+ */
 export const InlineTrifold = styled(Trifold)`
     width: 2rem;
     height: 2rem; 
@@ -68,4 +93,7 @@ export const InlineTrifold = styled(Trifold)`
     margin: 0;
 `;
 
+/**
+ * Export styled fixed sized version
+ */
 export default StyledTrifold;

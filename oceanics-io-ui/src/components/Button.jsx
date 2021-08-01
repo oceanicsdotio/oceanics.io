@@ -1,11 +1,26 @@
+/**
+ * React and friends
+ */
 import React from "react";
+
+/**
+ * Component level styling
+ */
 import styled from "styled-components";
+
+/**
+ * Color palette
+ */
 import {orange, grey, charcoal} from "./palette";
 
-
+/**
+ * Form input component
+ */
 import {Input} from "./Input";
 
-
+/**
+ * Styled component
+ */
 const ButtonWrapper = styled(Input)`
     background-color: ${charcoal};
     
@@ -44,4 +59,7 @@ const ButtonWrapper = styled(Input)`
     } 
 `;
 
+/**
+ * Export styled as default
+ */
 export default ButtonWrapper

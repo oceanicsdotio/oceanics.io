@@ -1,9 +1,22 @@
+/**
+ * React and friends
+ */
 import React from "react";
+
+/**
+ * Component level styling
+ */
 import styled from "styled-components";
+
+/**
+ * Color palette
+ */
 import {ghost} from "./palette"
 
 
-
+/**
+ * Styled div, nothing special
+ */
 const StyledTextArea = styled.div`
     background: none;
     border: none;
@@ -16,4 +29,7 @@ const StyledTextArea = styled.div`
     padding: 0.5rem;
 `;
 
+/**
+ * Default version is the styled component
+ */
 export default StyledTextArea

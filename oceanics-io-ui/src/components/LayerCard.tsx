@@ -1,7 +1,12 @@
 /**
  * React and friends.
  */
-import React, { useMemo } from "react";
+import React, { MouseEventHandler, useMemo } from "react";
+
+/**
+ * Runtime input type checking
+ */
+import PropTypes from "prop-types";
 
 /**
  * Component-level styling.
@@ -13,31 +18,6 @@ import styled from "styled-components";
  */
 import { ghost, orange, grey } from "./palette";
 
-
-/**
- * Span like div for indicating the zoom level at which the layer appears.
- * 
- * @param {*} param0 
- * @returns 
- */
-const ZoomIndicator = ({className, zoom}) => {
-    return <div className={className} zoom={zoom}>
-        {`zoom: ${zoom[0]}-${zoom[1]}`}
-    </div>
-};
-
-/**
- * Adjust margins and width to indicate the zoom level of the
- */
-const StyledZoomIndicator = styled(ZoomIndicator)`
-
-    height: auto;
-    border: 1px solid;
-    margin-bottom: 15px;
-    margin-left: ${({zoom})=>(zoom[0]-1)/22*100}%;
-    margin-right: ${({zoom})=>(22-zoom[1])/22*100}%;
-    color: ${({ zoom, zoomLevel}) => (zoomLevel === null || (zoomLevel >= zoom[0]) && (zoomLevel <= zoom[1])) ? orange : grey};
-`;
 
 /**
  * Emoji button, cuz it unicode baby. 
@@ -52,6 +32,19 @@ const Emoji = styled.a`
     text-decoration: none !important;
 `;
 
+type LayerType = {
+    id: string,
+    url: string,
+    type: string,
+    className: string,
+    component: string,
+    maxzoom: number,
+    minzoom: number,
+    zoomLevel: number,
+    attribution: string,
+    info: string | null,
+    onClick: MouseEventHandler
+}
  
 /**
  * This is the per item element for layers
@@ -69,39 +62,40 @@ export const LayerCard = ({
     zoomLevel,
     attribution="Oceanics.io",
     info=null,
-    onClick=null,
-}) => {
+    onClick,
+}: LayerType) => {
 
-    const tools = useMemo(()=>[
-        ["onClick", onClick, "🏝️"],
-        ["href", url, "💻"]
-    ].filter(
-        x => !!x[1]
-    ).map(([key, value, children]) => Object({
-        [key]: value,
-        key: `${id}-${children}`,
-        children
-    })).map(x => <Emoji {...x}/>));
-
-    return <div 
-        className={className} 
-    >
+    return <div className={className}>
         <div>
             <h2>{id.replace(/-/g, ' ')}</h2>
-            <a href={info||""} children={attribution}/>
+            <a href={info||""}>{attribution}</a>
         </div>
         <p>{`${type} with <${component}/> popup`}</p>
-        <StyledZoomIndicator zoom={[minzoom, maxzoom]} zoomLevel={zoomLevel}/>
-        <div>{tools}</div>  
+        <div className={"zoom"}>{`zoom: ${minzoom}-${maxzoom}`}</div>
+        <div>
+            {onClick && <Emoji onClick={onClick}>{"🏝️"}</Emoji>}
+            {url && <Emoji href={url}>{"💻"}</Emoji>}
+        </div>  
     </div>
 }
 
 
-
+/**
+ * Styled Version
+ */
 const StyledLayerCard = styled(LayerCard)`
 
     margin-top: 10px;
     border-top: 1px dashed ${ghost};
+
+    & > #zoom {
+        height: auto;
+        border: 1px solid;
+        margin-bottom: 15px;
+        margin-left: ${({minzoom})=>(minzoom-1)/22*100}%;
+        margin-right: ${({maxzoom})=>(22-maxzoom)/22*100}%;
+        color: ${({ minzoom, maxzoom, zoomLevel}) => (zoomLevel === null || (zoomLevel >= minzoom) && (zoomLevel <= maxzoom)) ? orange : grey};
+    }
 
     & p {
         color: ${grey};
@@ -129,5 +123,7 @@ const StyledLayerCard = styled(LayerCard)`
     }
 `;
 
-
+/**
+ * Default export is the styled version
+ */
 export default StyledLayerCard;

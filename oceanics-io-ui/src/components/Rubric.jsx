@@ -1,8 +1,26 @@
+/**
+ * React and friends
+ */
 import React, { Fragment, useReducer } from "react";
+
+/**
+ * Component level styling
+ */
 import styled from "styled-components";
+
+/**
+ * For parsing data files
+ */
 import YAML from "yaml";
+
+/**
+ * Load static data
+ */
 import rubric from "../data/rubric.yml";
 
+/**
+ * 
+ */
 const Input =  styled.input`
     display: inline;
     margin: 1rem;
@@ -36,16 +54,18 @@ const possible = Object.values(rubric)
     .map(({merits})=>merits.length)
     .reduce((accumulator, currentValue) => accumulator + currentValue, 0);
 
+
+/**
+ * A Rubric is a collection of true/false statements in which an affirmative is 
+ * considered good (merits). 
+ * 
+ * This style is used to try to focus on positive traits that could be present
+ * in an evaluated thing, rather than on hunting for negatives. 
+ * The score element keeps track of the total number selected, and the setter 
+ * is passed to child checkbox inputs to update the current score. 
+ */
 export default ({scoreMultiplier=1}) => {
-    /*
-    A Rubric is a collection of true/false statements in which an affirmative is consider good (merits). 
 
-    This style is used to try to focus on positive traits that could be present in an evaluated
-    thing, rather than on hunting for negatives. 
-
-    The score element keeps track of the total number selected, and the setter is passed to child checkbox inputs
-    to update the current score. 
-    */
     const [score, dispatchScore] = useReducer(
         (score, checked) => score + (checked ? 1*scoreMultiplier : -1*scoreMultiplier), 0
     );
