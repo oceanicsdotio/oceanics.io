@@ -1,12 +1,27 @@
+/**
+ * React and friends
+ */
 import React, { useMemo } from "react";
+
+/**
+ * Component level styling
+ */
 import styled from "styled-components";
-import { Link } from "gatsby";
 
-import { pink, ghost, orange } from "../../../oceanics-io-www/src/palette";
-import { rhythm } from "../../../oceanics-io-www/src/typography";
-import layout from "../data/layout.yml";
+/**
+ * Color palette
+ */
+import { pink, ghost, orange } from "../palette";
+
+/**
+ * Typesetting
+ */
+import { rhythm } from "../../../../oceanics-io-www/src/typography";
 
 
+/**
+ * YAML parser
+ */
 import YAML from "yaml";
 
 /**
@@ -50,7 +65,7 @@ const SiteLink = styled.a`
 /** 
  * Internal link, emphasized
  */
-export const Title = styled(Link)`
+export const Title = styled.a`
     font-size: 2.5em;
     color: ${orange};
     margin: 0;
@@ -58,11 +73,14 @@ export const Title = styled(Link)`
 `;
 
     
-
 export const Layout = ({ 
     children,
     className,
-    title = null
+    title,
+    site = [],
+    footer: {
+        policy="",
+    }
 }) => {
 
     /**
@@ -70,9 +88,9 @@ export const Layout = ({
      * to prevent re-rendering if layout changes. 
      */
     const links = useMemo(()=>{
-        return layout.site.map(({label, to}, key) =>  
+        return site.map(({label, href}, key) =>  
             <SiteLink 
-                href={to} 
+                href={href} 
                 color={pink}
                 key={`site-link-${key}`}
                 target={"_blank"}
@@ -84,33 +102,15 @@ export const Layout = ({
 
 
     const policy = useMemo(()=>{
-        return YAML.parse(layout.footer.policy)
+        return YAML.parse(policy)
             .split("\n")
             .filter(paragraph => paragraph)
-    });
-
-    /**
-     * Memoize footer links as well. 
-     */
-    const footerLinks = useMemo(()=>{
-        return layout.footer.links.map(({label, to}, key) => 
-            <Link 
-                key={label} 
-                to={to}
-                color={ghost}
-                key={`footer-link-${key}`}
-            >
-                {label}
-            </Link>
-        )
     });
 
     return <div className={className}>
         
         <NavBar>
-            <Title to={"/"} color={ghost}>
-                {title || layout.title}
-            </Title>  
+            <Title href={"/"}>{title}</Title>  
             {links}
         </NavBar>
 
