@@ -6,14 +6,14 @@
  /**
   * Base component
   */
- import Article from "./Article"
+ import Reference from "./Reference"
 
  /**
   * Storybook Interface
   */
  export default {
-   component: Article,
-   title: 'References/Article',
+   component: Reference,
+   title: 'References/Reference',
  }
  
  /**
