@@ -1,32 +1,31 @@
+/**
+ * React and friends
+ */
 import React from "react";
-import styled from "styled-components";
+
+/**
+ * Query for static data
+ */
 import { graphql } from "gatsby";
+
+/**
+ * Render specified components inside MDX
+ */
 import { MDXProvider } from "@mdx-js/react";
+
+/**
+ * Render MDX to React
+ */
 import { MDXRenderer } from "gatsby-plugin-mdx";
 
-import Layout from "../components/Layout";
-import SEO from "../components/SEO";
+/**
+ * Common layout
+ */
 import Rubric from "../components/Rubric";
 import References, {Reference, Inline} from "../components/References";
 import PDF from "../components/PDF";
 import OpenApi from "../components/OpenApi";
-
-import { rhythm, scale } from "../typography";
-require(`katex/dist/katex.min.css`);
-
-
-const StyledHeader = styled.h1`
-    margin-bottom: 0;
-    margin-top: ${() => rhythm(1)};
-`;
-
-const {lineHeight, fontSize} = scale(-1 / 5);
-const StyledParagraph = styled.p`
-    display: block;
-    margin-bottom: ${() => rhythm(1)};
-    font-size: ${fontSize};
-    line-height: ${lineHeight};
-`;
+import Template from "oceanics-io-ui/References/Template"
 
 export default ({ 
     data: { 
@@ -34,38 +33,26 @@ export default ({
             frontmatter: {
                 date,
                 title,
-                description,
                 citations=[]
-            }, 
-            excerpt, 
+            },
             body
         }
-    }, 
-    location 
+    }
 }) => 
-    <Layout location={location}>
-        <SEO
-            title={title}
-            description={description || excerpt}
-        />
-        <MDXProvider components={{
-                Rubric,
-                Reference,
-                References,
-                Inline,
-                PDF,
-                OpenApi
-            }}>
-            <article>
-                <header>
-                    <StyledHeader>{title}</StyledHeader>
-                    <StyledParagraph>{date}</StyledParagraph>
-                </header>
-                <MDXRenderer>{body}</MDXRenderer>
-                <References references={citations}/>
-            </article>
-        </MDXProvider>  
-    </Layout>;
+    <MDXProvider 
+        components={{
+            Rubric,
+            Reference,
+            References,
+            Inline,
+            PDF,
+            OpenApi
+        }}
+    >
+        <Template references={citations} date={date} title={title}>
+            <MDXRenderer>{body}</MDXRenderer>
+        </Template>
+    </MDXProvider>  
   
 
 export const pageQuery = graphql`

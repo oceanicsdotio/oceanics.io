@@ -9,16 +9,6 @@ import React from "react";
 import { graphql, navigate } from "gatsby";
 
 /**
- * Standard layout component for main and non-app pages
- */
-import Layout from "../components/Layout";
-
-/**
- * Bots and browsers info
- */
-import SEO from "../components/SEO";
-
-/**
  * Campaign component
  */
 import CampaignContainer from "oceanics-io-ui/Campaign/Campaign"
@@ -40,11 +30,6 @@ export default ({
         allMdx: {
             nodes,
             group
-        },
-        site: {
-            siteMetadata: { 
-                title 
-            }
         }
     },
     location: {
@@ -64,11 +49,10 @@ export default ({
     })
     
     return (
-        <Layout title={title}>
-            <SEO title={"Blue computing"} />
+        <>
             <CampaignContainer navigate={navigate}/>
             <Index query={query} nodes={nodes} group={group}/>
-        </Layout>
+        </>
     )
 };
 

@@ -10,5 +10,13 @@
  * 
  * Use with `gatsby-browser.js` to prevent hydration errors
  */
- import "./src/styles/global.css";
- import "./src/styles/theme.css";
+import "katex/dist/katex.min.css";
+import "./src/styles/global.css";
+import "./src/styles/theme.css";
+
+import React from 'react';
+import Layout from "oceanics-io-ui/Layout/Layout"
+
+export const wrapPageElement = ({ element, props }) => {
+    return <Layout {...props}>{element}</Layout>
+}

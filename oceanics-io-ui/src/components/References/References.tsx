@@ -80,6 +80,9 @@ export const References = ({
  */
 References.propTypes = {
     heading: PropTypes.string,
+    references: PropTypes.arrayOf(PropTypes.shape({
+        title: PropTypes.string
+    }))
 };
 
 /**

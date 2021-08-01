@@ -1,8 +1,7 @@
 {
   "name": "oceanics-io-ui",
   "version": "1.0.0",
-  "private": false,
-  "babel": {    
+  "babel": {
     "presets": [
       "@babel/preset-react"
     ]

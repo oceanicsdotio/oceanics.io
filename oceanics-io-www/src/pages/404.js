@@ -9,16 +9,6 @@ import React from "react";
 import styled from "styled-components";
 
 /**
- * Use the default "fixed width" char-based layout
- */
-import Layout from "oceanics-io-ui/Layout/Layout";
-
-/**
- * Headers for bots.
- */
-import SEO from "../components/SEO";
-
-/**
  * Using image for GIF, don't have to worry about pixel-smoothing like canvas
  */
 const NotFoundImage = styled.img`
@@ -48,11 +38,8 @@ const CONTENT = {
 /**
  * Just a dumb functional component.
  */
-export default ({
-    location, 
-}) => 
-    <Layout location={location}>
-        <SEO title={CONTENT.title}/>
+export default () => 
+    <>
         <NotFoundText>{CONTENT.message}</NotFoundText>
         <NotFoundImage src={CONTENT.img}/>
-    </Layout>;
+    </>;
