@@ -16691,6 +16691,17 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
+"js-yaml-loader@npm:^1.2.2":
+  version: 1.2.2
+  resolution: "js-yaml-loader@npm:1.2.2"
+  dependencies:
+    js-yaml: ^3.13.1
+    loader-utils: ^1.2.3
+    un-eval: ^1.2.0
+  checksum: 0668d18f19dd7a460ebf5565a9cb8f2854234f03e014fa08ceef4e062033cbde994501d87627ad1553506461ca2b88541acd598fea2a34f304f5700f7b291089
+  languageName: node
+  linkType: hard
+
 "js-yaml@npm:^3.13.1":
   version: 3.14.1
   resolution: "js-yaml@npm:3.14.1"
@@ -19434,6 +19445,7 @@ fsevents@^1.2.7:
     "@types/typography": ^0.16.4
     babel-loader: ^8.2.2
     jest: ^27.0.6
+    js-yaml-loader: ^1.2.2
     prop-types: ^15.7.2
     react: ^17.0.2
     react-dom: ^17.0.2
@@ -25983,6 +25995,13 @@ typescript@^4.3.5:
     object-assign: ^4.1.0
     typography-normalize: ^0.16.19
   checksum: 340d3ce358ccb85f966bbc9ff721182709e6821888de5bb8faf571591d3f2b3d45a33be9fdaec548de23be7b2138f5b5ef03be8b63e201f17e1b435a5ac0df49
+  languageName: node
+  linkType: hard
+
+"un-eval@npm:^1.2.0":
+  version: 1.2.0
+  resolution: "un-eval@npm:1.2.0"
+  checksum: 0b3839bb94e0b37467d95adac6e4104fcb13927d2e76b2f35f32e65eeb62098018af64a853a477ba639683620fb3af1c0e6e958a99f84d54c83647bee1754dab
   languageName: node
   linkType: hard
 

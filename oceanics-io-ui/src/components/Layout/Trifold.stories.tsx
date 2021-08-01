@@ -16,7 +16,7 @@
  /**
   * Color palette
   */
- import {charcoal} from "../../palette"
+ import {orange} from "../../palette"
  
  /**
   * Storybook Interface
@@ -41,5 +41,5 @@
  Default.args = {
     display: undefined,
     onClick: ()=>{},
-    stroke: charcoal,
+    stroke: orange,
  };

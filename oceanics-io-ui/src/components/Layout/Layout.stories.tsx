@@ -9,6 +9,11 @@ import React from 'react';
 import Layout, {LayoutType} from './Layout';
 
 /**
+ * Load static data
+ */
+import LayoutData from "js-yaml-loader!./layout.yml"
+
+/**
  * Typescript support
  */
 import { Story, Meta } from '@storybook/react';
@@ -34,11 +39,5 @@ const Template: Story<LayoutType> = (args: LayoutType) => <Layout {...args} />;
  */
 export const Default = Template.bind({});
 Default.args = {
-    children: null,
-    title: "the title",
-    site: [],
-    footer: {
-        policy: "our policy"
-    },
-    expand: true
+    ...LayoutData
 };

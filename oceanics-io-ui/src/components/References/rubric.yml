@@ -29,7 +29,7 @@ Loving your interface:
 
 Keeping your secrets safe:
   description: |
-    Software can be your competetive advantage, but it can expose to risk and invalidate practices you used previously
+    Software can be your competitive advantage, but it can expose to risk and invalidate practices you used previously
     to maintain trade secrets. 
   merits:
     - SSL is kept up to date
@@ -38,9 +38,9 @@ Keeping your secrets safe:
     - Passwords are only ever accessed by the account holder
     - Provides two-factor authentication
     - Your rights to your data are clear
-    - The developer does will not own copies of your data without consent and renumeration
-    - Provider makes it easy to exfiltrate your data or stop service at any time for any reason
-    - There are no backdoors for the developers
+    - The developer does will not own copies of your data without consent
+    - Provider makes it easy to ex-filtrate your data or stop service at any time for any reason
+    - There are no back doors for the developers
 
 Getting help:
   description: |
@@ -60,7 +60,7 @@ Getting help:
 
 Respecting your rights:
   description: |
-    Read the license, or the End User License Agreeement. It's probably a standard thing. 
+    Read the license, or the End User License Agreement. It's probably a standard thing. 
     For a mobile application that costs a few dollars
     that is OK. For bespoke software costing hundreds or thousands of dollars per month, 
     that is going to help run your operation and keep you people safe, it is entirely appropriate to
