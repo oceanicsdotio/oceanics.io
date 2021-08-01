@@ -16,7 +16,19 @@ import LayerCard from "./LayerCard";
 /**
  * Predefined colors.
  */
-import { ghost, pink, grey } from "./palette";
+import { ghost, pink, grey } from "../../palette";
+
+type LayerType = {
+
+}
+
+type CatalogType = {
+    geojson: LayerType[],
+    className: string,
+    zoomLevel: number,
+    queue: LayerType[],
+    setQueue: Function,
+}
 
 /**
 The key is the Entity subclass. 
@@ -37,7 +49,7 @@ The props are the properties of the collection itself.
 Routes from here correspond to entities and 
 collections in the graph database.
  */
-const Catalog = ({geojson, className, zoomLevel, queue, setQueue}) => {
+const Catalog = ({geojson, className, zoomLevel, queue, setQueue}: CatalogType) => {
    
     /**
      * List of collections to build selection from.

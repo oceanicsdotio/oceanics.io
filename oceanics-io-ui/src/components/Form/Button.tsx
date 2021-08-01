@@ -11,7 +11,7 @@ import styled from "styled-components";
 /**
  * Color palette
  */
-import {orange, grey, charcoal} from "./palette";
+import {orange, grey, charcoal} from "../../palette";
 
 /**
  * Form input component

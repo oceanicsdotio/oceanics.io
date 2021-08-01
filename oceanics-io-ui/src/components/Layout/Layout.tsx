@@ -11,12 +11,12 @@ import styled from "styled-components";
 /**
  * Color palette
  */
-import { pink, ghost, orange } from "../palette";
+import { pink, ghost, orange } from "../../palette";
 
 /**
  * Typesetting
  */
-import { rhythm } from "./typography";
+import { rhythm } from "../../typography";
 
 
 /**

@@ -11,7 +11,7 @@
  /**
   * Color palette
   */
- import {charcoal} from "./palette"
+ import {charcoal} from "../../palette"
  
  /**
   * Storybook Interface

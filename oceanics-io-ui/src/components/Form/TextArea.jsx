@@ -11,7 +11,7 @@ import styled from "styled-components";
 /**
  * Color palette
  */
-import {ghost} from "./palette"
+import {ghost} from "../../palette"
 
 
 /**
