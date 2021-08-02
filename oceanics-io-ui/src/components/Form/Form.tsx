@@ -40,7 +40,7 @@ type ActionType = {
 export type FormType = {
     id: string,
     fields: FieldType[],
-    actions: ActionType[],
+    actions: ActionType[] | undefined,
     callback: Function | null
 }
 
@@ -66,18 +66,15 @@ export const Form = ({
                 <label htmlFor={field.id}>
                     {`${name || field.id}: `}
                 </label>
-                <Input
-                    onChange={(event: Event) => {
-                        event.persist();
-                        if (callback) callback(event);
-                    }}
+                <Input 
+                    onChange={callback} 
                     {...field}
                 />
                 <div>{description}</div>
             </FormField>
         )}
         
-        {(actions || []).map((props, ii) => 
+        {actions.map((props, ii) => 
             <Button 
                 key={`${id}-action-${ii}`}
                 {...props}

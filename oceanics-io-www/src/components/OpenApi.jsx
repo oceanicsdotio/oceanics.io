@@ -3,15 +3,7 @@
  */
 import React, {useState, useEffect} from "react";
 
-/**
- * Component level styles
- */
-import styled from "styled-components";
-
-/**
- * Color palette
- */
-import {grey} from "../palette";
+import Placeholder from "oceanics-io-ui/OpenAPI/Placeholder"
 
 
 /**
@@ -20,16 +12,6 @@ import {grey} from "../palette";
 import Worker from "../workers/useOpenApiLoader.worker.js";
 import useWorkers from "../hooks/useWorkers";
 
-
-/**
- * Divvy up blank space
- */
-const Placeholder = styled.div`
-    border-top: 0.1rem dashed ${grey};
-    border-bottom: 0.1rem dashed ${grey};
-    font-size: x-large;
-    padding: 2rem;
-`;
 
 /**
  * The OpenApi component uses an OpenAPI specification for a 

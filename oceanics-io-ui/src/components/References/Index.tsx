@@ -6,49 +6,60 @@
  /**
   * For interactive elements
   */
- import FormContainer from "..Form/FormContainer";
- 
- 
- import Article from "./Article";
- 
- import useQueryString, { onSelectValue, onIncrementValue } from "../hooks/useQueryString";
- 
+ import FormContainer from "../Form/FormContainer";
  
  /**
-  * Some of the canonical fields do not contain uniquely identifying information. 
-  * Technically, the same content might appear in two places. 
+  * Preview of article
   */
- const referenceHash = ({authors, title, year}) => {
-    
-     const stringRepr = `${authors.join("").toLowerCase()} ${year} ${title.toLowerCase()}`.replace(/\s/g, "");
-     const hashCode = s => s.split('').reduce((a,b) => (((a << 5) - a) + b.charCodeAt(0))|0, 0);
-     return hashCode(stringRepr);
- };
+ import Article from "./Article";
+ 
+ /**
+  * Navigation
+  */
+ import useQueryString, { onSelectValue, onIncrementValue } from "../hooks/useQueryString";
+ 
+ import {referenceHash} from "./utils"
+ import {ReferenceType} from "./Reference"
  
  /**
   * How many articles are made visible at a time.
   */
  const itemIncrement = 3;
+
+
+ type FrontmatterType = {
+     tags: string[],
+     citations: ReferenceType[],
+ }
+
+ type IndexType = {
+     data: {
+         allMdx: {
+             nodes: any,
+             group: any
+         }
+     },
+     location: {
+         search: string
+     }
+ }
  
  /**
   * Base component for web landing page.
   * 
   * Optionally use query parameters and hash anchor to filter content. 
   */
- export default ({
+ const Index = ({
      data: {
          allMdx: {
              nodes,
              group
-         },
-         site: {
-             siteMetadata: { title }
          }
      },
      location: {
          search
      }
- }) => {
+ }: IndexType) => {
      /**
       * The array of visible articles. The initial value is the subset from 0 to
       * the increment constant. 
@@ -72,18 +83,18 @@
          if (!query) return;
  
          // Pick up a value and see if article has it.
-         const _eval = (obj, key, data) =>
+         const _eval = (obj: any, key: string, data: string[]) =>
              (!!obj[key] && !(data||[]).includes(obj[key]));
  
          // Use to filter based on query string
          const _filter = ({
              frontmatter: {
                  tags,
-                 citations,
+                 citations=[],
              }
-         }) => !(
+         }: {frontmatter: FrontmatterType}) => !(
              _eval(query, "tag", tags) || 
-             _eval(query, "reference", (citations||[]).map(referenceHash))
+             _eval(query, "reference", citations.map(referenceHash))
          );
          
          // Filter down to just matching, and then limit number of items
@@ -93,7 +104,8 @@
  
      return (
        
-             {visible.map((props, ii) => <Article {...{...props, search, key: `node-${ii}`}}/>)}
+             {visible.map((props, ii) => 
+                <Article {...{...props, search, key: `node-${ii}`}}/>)}
              <br/>
              
              <FormContainer
@@ -111,5 +123,8 @@
              />
      )
  };
+
+
+ export default Index
  
  
