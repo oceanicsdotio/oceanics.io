@@ -4859,6 +4859,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/pdfjs-dist@npm:^2.7.4":
+  version: 2.7.4
+  resolution: "@types/pdfjs-dist@npm:2.7.4"
+  checksum: 7c8a4a9878a0585671b98cad801841cdcd27a69e6171ed0460f4de79a757a165d7f2ed3f55feacd5eef0a51fcdd8e6877bb6a33afa7d2b72db59882787f90dc3
+  languageName: node
+  linkType: hard
+
+"@types/pluralize@npm:^0.0.29":
+  version: 0.0.29
+  resolution: "@types/pluralize@npm:0.0.29"
+  checksum: e800d731c76ca1506e4570fbdcc802df48cb002bce23e10059a77023cbdbd0093728f56d5b762214571b8f12db5014cc3afc55a7f6c0814152b3b2f1b6f711f1
+  languageName: node
+  linkType: hard
+
 "@types/prettier@npm:^2.1.5":
   version: 2.3.2
   resolution: "@types/prettier@npm:2.3.2"
@@ -19439,6 +19453,8 @@ fsevents@^1.2.7:
     "@storybook/react": ^6.3.4
     "@types/jest": ^26.0.24
     "@types/node": ^16.4.10
+    "@types/pdfjs-dist": ^2.7.4
+    "@types/pluralize": ^0.0.29
     "@types/react": ^17.0.15
     "@types/react-dom": ^17.0.9
     "@types/styled-components": ^5.1.11
@@ -19446,6 +19462,8 @@ fsevents@^1.2.7:
     babel-loader: ^8.2.2
     jest: ^27.0.6
     js-yaml-loader: ^1.2.2
+    pdfjs-dist: ^2.9.359
+    pluralize: ^8.0.0
     prop-types: ^15.7.2
     react: ^17.0.2
     react-dom: ^17.0.2
@@ -20462,6 +20480,15 @@ fsevents@^1.2.7:
   version: 2.5.207
   resolution: "pdfjs-dist@npm:2.5.207"
   checksum: b1a1536d46507493316cdb1f90e103f95a1538353c592c5b31a70bff39d4a10ee731541705d95aa36b7293ffca8af2203af2a86af1761fae75b65b1be196c147
+  languageName: node
+  linkType: hard
+
+"pdfjs-dist@npm:^2.9.359":
+  version: 2.10.377
+  resolution: "pdfjs-dist@npm:2.10.377"
+  peerDependencies:
+    worker-loader: ^3.0.7
+  checksum: 4607f2d4acdb6c1534fd20510420bf5888eb6cfbd8aa6196c32a4daec3173f826505abd2f72acb3dccfe5ddc87bd222df8011f81a786ae7064646d79fd20f2e5
   languageName: node
   linkType: hard
 
