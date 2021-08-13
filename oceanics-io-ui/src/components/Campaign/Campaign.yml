@@ -1,7 +1,9 @@
+title: Autonomous, Prosperous, Accountable. Pick Three.
+campaigns:
 - callToAction: The sea is waiting
   name: κυβερνάω
   response: Light the way
-  text: |
+  description: |
     To stake your claim on the last frontier, you need a guide to reveal the hidden ways. 
 
     Oceanics.io looks into your environmental past, manages risk in the present, and supports data-driven decisions to forge on with confidence.
@@ -11,7 +13,7 @@
 - callToAction: The sea is waiting
   response: Take the helm
   name: εἴδωλον
-  text: |
+  description: |
     To protect our Ocean, you need to draw on community knowledge and make data-driven decisions for the future.
       
     Oceanics.io analyzes public and proprietary assets and serves you synthetic and aggregate products to manage risk and conflict.

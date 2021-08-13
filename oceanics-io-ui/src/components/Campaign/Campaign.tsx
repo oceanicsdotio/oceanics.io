@@ -1,12 +1,7 @@
 /**
  * React and friends.
  */
-import React, { useMemo } from "react";
-
-/**
- * Needed for parsing source files
- */
-import YAML from "yaml";
+import React, { useMemo, FC } from "react";
 
 /**
  * Stylish stuff
@@ -21,7 +16,7 @@ import { ghost } from "../../palette";
 /**
  * For interactive elements
  */
-import FormContainer from "../Form/FormContainer";
+import Button from "../Form/Button";
 
 /**
  * Page data
@@ -29,88 +24,88 @@ import FormContainer from "../Form/FormContainer";
 // @ts-ignore
 import PageData from "js-yaml-loader!./Campaign.yml";
 
-
-/**
- * Larger paragraphs
- */
-const StyledParagraph = styled.p`
-     font-size: larger;
- `;
-
-
-const CampaignContainer = styled.div`
-     margin-bottom: 3em;
- 
-     & p {
-         font-size: 1.3rem;
-         margin-top: 1rem;
-         margin-bottom: 1rem;
-         line-height: 1.6rem;
-     }
- 
-     & div {
-         color: ${ghost};
-         font-size: 2rem;
-     }
- `;
-
-export type CampaignType = {
-    navigate: (arg0: string) => void
+type CampaignType = {
+    callToAction: string;
+    response: string;
+    name: string;
+    description: string;
+};
+type PageType = {
+    title: string;
+    campaigns: CampaignType[];
 }
+export interface ICampaignType {
+    navigate: (arg0: string) => void;
+    className?: string;
+};
+
 
 /**
  * Base component for web landing page.
  * 
  * Optionally use query parameters and hash anchor to filter content. 
  */
-export const Campaign = ({
-    navigate
-}: CampaignType) => {
+export const Campaign: FC<ICampaignType> = ({
+    navigate,
+    className,
+}) => {
+    /**
+    * Unpack static data
+    */
+    const {title, campaigns}: PageType = PageData;
+
+    /** 
+     * Pick one of the campaigns at random
+     */
+    const index: number = useMemo(
+        () => Math.floor(Math.random() * campaigns.length), 
+        [campaigns]
+    );
 
     /**
      * Use a memo so that if something decides to refresh the parent,
      * we won't pick the other narrative and be confusing. 
      */
-    const version = useMemo(() => {
+    const campaign: CampaignType = useMemo(
+        () => campaigns[index], 
+        [index]
+    );
 
-        const random = Math.floor(Math.random() * PageData.length);
-        const { text, ...props } = PageData[random];
-
-        return {
-            ...props,
-            content: YAML.parse(text)
-                .split("\n")
-                .filter((paragraph: string) => paragraph)
-        }
-    }, []);
+    /**
+     * Format the narrative, we need to break into semantic paragraphs
+     */
+    const narrative = useMemo(
+        () => campaign.description.split("\n").map((x: string)=><p>{x}</p>),
+        [campaign]
+    )
 
 
-    return <CampaignContainer>
-        <div>
-            {"Autonomous, Prosperous, Accountable. Pick Three."}
-        </div>
-        {version.content.map((text: string, ii: number) =>
-            <StyledParagraph key={`paragraph-${ii}`} children={text} />)
-        }
-
-        <FormContainer
-            actions={[
-                //     {
-                //     value: `${version.response}`,
-                //     type: "button",
-                //     onClick: () => {navigateWithQuery(`/app`, search, {campaign: version.name})}
-                // },
-                {
-                    value: `Learn about our API`,
-                    type: "button",
-                    onClick: () => { navigate(`/bathysphere/`) }
-                }, {
-                    value: "See the science",
-                    type: "button",
-                    onClick: () => { navigate(`/references/`) }
-                }]}
-        />
-    </CampaignContainer>
+    return <div className={className}>
+        <h2>{title}</h2>
+        {narrative}
+        <Button onClick={()=>{navigate(`/bathysphere/`)}}>
+            {`Learn about our API`}
+        </Button>
+        <Button onClick={()=>{navigate(`/references/`)}}>
+            {`See the science`}
+        </Button>
+    </div>
 }
 
-export default Campaign
+/**
+ * Styled version
+ */
+const StyledCampaign = styled(Campaign)`
+    & p {
+        font-size: larger;
+    }
+    & h2 {
+        color: ${ghost};
+        font-size: x-large;
+    }
+`
+
+/**
+ * Default export is styled version
+ */
+export default StyledCampaign

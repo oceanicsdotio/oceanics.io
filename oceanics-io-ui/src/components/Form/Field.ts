@@ -1,9 +1,4 @@
 /**
- * React and friends
- */
-import React from "react";
-
-/**
  * Component level styling
  */
 import styled from "styled-components";
@@ -12,7 +7,6 @@ import styled from "styled-components";
  * Color palette
  */
 import {ghost, orange, pink, grey, charcoal} from "../../palette";
-
 
 /**
  * FormField is the container for a form input

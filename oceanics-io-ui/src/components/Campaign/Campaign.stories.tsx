@@ -2,27 +2,38 @@
  * React and friends
  */
 import React from 'react';
+import {Meta, Story} from "@storybook/react";
 
- /**
-  * Base component, w wrapped `Input` component
-  */
-import Campaign, {CampaignType} from './Campaign';
- 
+/**
+ * Base component, w wrapped `Input` component
+ */
+import Campaign, {ICampaignType} from './Campaign';
+
+import "../../styles/global.css";
+import "../../styles/theme.css";
+
+
  /**
   * Storybook interface
   */
  export default {
    component: Campaign,
    title: 'index/Campaign',
- }
+ } as Meta;
  
  /**
   * Base version
   */
- const Template = (args: CampaignType) => <Campaign {...args} />;
- 
+
+const Template: Story<ICampaignType> = (args) => <Campaign {...args} />;
+
+
  /**
   * Example
   */
- export const Example = Template.bind({});
- Example.args = {};
+ export const Default = Template.bind({});
+ Default.args = {
+    navigate: ()=>{}
+ };
+
+ 

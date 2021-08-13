@@ -25,4 +25,8 @@ const Template = (args) => <Button {...args} />;
  * Example
  */
 export const Example = Template.bind({});
-Example.args = {};
+Example.args = {
+    id: "some-button",
+    children: "your button",
+    onClick: ()=>{},
+};
