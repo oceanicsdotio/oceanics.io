@@ -10,4 +10,6 @@ export default {
 const Template: Story = (args) => <Field {...args} />;
 
 export const Default = Template.bind({});
-Default.args = {};
+Default.args = {
+    children: "Hello world"
+};

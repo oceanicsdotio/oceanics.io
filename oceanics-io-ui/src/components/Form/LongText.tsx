@@ -21,66 +21,46 @@ import {red, orange, ghost, grey, charcoal} from "../../palette"
 /**
  * Build time type checking
  */
-export type InputType = {
+export type LongTextType = {
     id: string;
     type?: string;
     className?: string;
     name: string | null;
-    options?: string[];
-    destructive?: boolean;
     required?: boolean;
-    onChange: ChangeEventHandler<HTMLInputElement>;
+    onChange: ChangeEventHandler<HTMLTextAreaElement>;
 }
 
 /**
  * Generic form input component that converts to the
  * appropriate type
  */
-export const Input: FC<InputType> = ({
+export const LongText: FC<LongTextType> = ({
     id,
     type,
     className,
     name = null,
-    options = [],
     ...props
 }) => 
-    <input
+    <textarea
         id={id}
-        className={className}
-        type={type}
         name={name || id}
         {...props}
     />
-    
 /**
  * Runtime type checking
  */
-Input.propTypes = {
+LongText.propTypes = {
     id: PropTypes.string.isRequired,
-    type: PropTypes.string,
     className: PropTypes.string,
     name: PropTypes.string,
-    options: PropTypes.arrayOf(PropTypes.string.isRequired),
-    destructive: PropTypes.bool,
     required: PropTypes.bool
 };
 
 /**
- * The InputWrapper component is a styled version of the standard
- * Input
+ * The LongTextWrapper component is a styled version of the standard
+ * LongText
  */
-export const InputWrapper = styled(Input)`
-
- background-color: ${({ destructive }) => {
-        if (destructive) return orange;
-        return charcoal;
-    }};
- 
- color: ${({ destructive, type }) => {
-        if (destructive) return red;
-        if (type === "button") return orange;
-        return ghost;
-    }};
+export const LongTextWrapper = styled(LongText)`
 
  border: dashed 1px ${grey};
  border-radius: 5px;
@@ -116,4 +96,4 @@ export const InputWrapper = styled(Input)`
 /**
  * Default export is styled version
  */
-export default InputWrapper
+export default LongTextWrapper
