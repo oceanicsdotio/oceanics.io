@@ -4,20 +4,21 @@
  import React from 'react';
  import {Meta, Story} from "@storybook/react";
  
- /**
-  * Base component, w wrapped `Input` component
-  */
- import PDF, {IPDFType} from './PDF';
+ 
+ const PDF_CDN_ROUTE = "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com/assets/johnson-etal-2019-sesf.pdf"
  
  import "../../styles/global.css";
  import "../../styles/theme.css";
  
+ // @ts-ignore
+ import { Document, Page } from 'react-pdf/dist/esm/entry.webpack';
+ import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
  
   /**
    * Storybook interface
    */
   export default {
-    component: PDF,
+    component: Document,
     title: 'PDF/PDF',
   } as Meta;
   
@@ -25,15 +26,32 @@
    * Base version
    */
  
- const Template: Story<IPDFType> = (args) => <PDF {...args} />;
- 
+ const Template: Story<any> = () => {
+    return <Document
+        file={PDF_CDN_ROUTE}
+        onLoadSuccess={()=>{}}
+        options={{
+            cMapUrl: 'cmaps/',
+            cMapPacked: true,
+          }}
+    >
+        {
+        Array.from(
+            new Array(2),
+            (el, index) => (
+            <Page
+                key={`page_${index + 1}`}
+                pageNumber={index + 1}
+            />
+            ),
+        )
+        }
+    </Document>
+};
  
   /**
    * Example
    */
-  export const Default = Template.bind({});
-  Default.args = {
-     navigate: ()=>{}
-  };
- 
+  export const Example = Template.bind({});
+  Example.args = {};
   

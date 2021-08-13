@@ -11624,7 +11624,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"file-loader@npm:^6.2.0":
+"file-loader@npm:^6.0.0, file-loader@npm:^6.2.0":
   version: 6.2.0
   resolution: "file-loader@npm:6.2.0"
   dependencies:
@@ -17724,6 +17724,13 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
+"make-cancellable-promise@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "make-cancellable-promise@npm:1.0.0"
+  checksum: 0ee86eb49c0207a8416d9ebf1119c9318579b3c411daffc4b11fd981e51c0c47d16188de0756c3dae19d57551598f7b77bb670ca55958014c984b143811d705b
+  languageName: node
+  linkType: hard
+
 "make-dir@npm:^1.0.0, make-dir@npm:^1.2.0":
   version: 1.3.0
   resolution: "make-dir@npm:1.3.0"
@@ -17756,6 +17763,13 @@ fsevents@^1.2.7:
   version: 1.3.6
   resolution: "make-error@npm:1.3.6"
   checksum: 2c780bab8409b865e8ee86697c599a2bf2765ec64d21eb67ccda27050e039f983feacad05a0d43aba3c966ea03d305d2612e94fec45474bcbc61181f57c5bb88
+  languageName: node
+  linkType: hard
+
+"make-event-props@npm:^1.1.0":
+  version: 1.2.0
+  resolution: "make-event-props@npm:1.2.0"
+  checksum: 628334a87740fe02801b987c84c339b19697ff5d99a375c7793c0165d5bf5018f77ffffe8eb9f2bd4098c515e4c96bb231c7080340fa58a50c34b2bf5d2d6554
   languageName: node
   linkType: hard
 
@@ -18225,10 +18239,24 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
+"merge-class-names@npm:^1.1.1":
+  version: 1.4.0
+  resolution: "merge-class-names@npm:1.4.0"
+  checksum: b8453886475ac1510901437b5f3e845046389b8f3452c472aecb29a945440a934f386587d386965075afa3eebf3252d13c375a2ce0f12a71d1e5c29a57089e68
+  languageName: node
+  linkType: hard
+
 "merge-descriptors@npm:1.0.1":
   version: 1.0.1
   resolution: "merge-descriptors@npm:1.0.1"
   checksum: 2d2a09eaac840a7ceac7a13b44b7c8abf3ecccd93a609c3525d8290cb5d814336cc7c0b1dd485ae3bc471ed354eeefb153475ce2e1604ccdf79eebe74021c192
+  languageName: node
+  linkType: hard
+
+"merge-refs@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "merge-refs@npm:1.0.0"
+  checksum: 75e0b1a301e3ac9f057e4f4f8fc5c286af169e5cc7afc0786653ee7e7d338b8756c6b10a934793dfb80a9fbdb7bf2b002ddb173b0106329dfcf27909550a62fc
   languageName: node
   linkType: hard
 
@@ -19468,11 +19496,13 @@ fsevents@^1.2.7:
     react: ^17.0.2
     react-dom: ^17.0.2
     react-is: ^17.0.2
+    react-pdf: ^5.3.2
     storybook: ^6.3.4
     styled-components: ^5.3.0
     typescript: ^4.3.5
     typography: ^0.16.21
     webpack: ^5.47.1
+    worker-loader: ^3.0.8
   languageName: unknown
   linkType: soft
 
@@ -20480,6 +20510,13 @@ fsevents@^1.2.7:
   version: 2.5.207
   resolution: "pdfjs-dist@npm:2.5.207"
   checksum: b1a1536d46507493316cdb1f90e103f95a1538353c592c5b31a70bff39d4a10ee731541705d95aa36b7293ffca8af2203af2a86af1761fae75b65b1be196c147
+  languageName: node
+  linkType: hard
+
+"pdfjs-dist@npm:2.6.347":
+  version: 2.6.347
+  resolution: "pdfjs-dist@npm:2.6.347"
+  checksum: 64007e9fce35be3d9e8a2d106bdcd350cd71df4f4fe99a94adbdb4ee662ce1e84abfe0feff38d6cfa94fa79a291cfe96f1efd874e8417c52d7ab753d2046bf26
   languageName: node
   linkType: hard
 
@@ -22182,6 +22219,25 @@ fsevents@^1.2.7:
   version: 3.0.4
   resolution: "react-lifecycles-compat@npm:3.0.4"
   checksum: 82176a55ef7526414d770d5e07dc1d28b4c7f20281f22c6f53f3a98df9dbbb5d70c94bebee57b4ea8ccc2eee430b907ca7b564a42fbdd0ed21e7c43bfee35404
+  languageName: node
+  linkType: hard
+
+"react-pdf@npm:^5.3.2":
+  version: 5.3.2
+  resolution: "react-pdf@npm:5.3.2"
+  dependencies:
+    "@babel/runtime": ^7.0.0
+    file-loader: ^6.0.0
+    make-cancellable-promise: ^1.0.0
+    make-event-props: ^1.1.0
+    merge-class-names: ^1.1.1
+    merge-refs: ^1.0.0
+    pdfjs-dist: 2.6.347
+    prop-types: ^15.6.2
+  peerDependencies:
+    react: ^16.3.0 || ^17.0.0-0
+    react-dom: ^16.3.0 || ^17.0.0-0
+  checksum: d4c8bb692a9f9184e811b3c07242f05e137b929a805880e84f171e5694f02b4029e0ac1963aa4b46f8032eedd777ca395d17b70419b27eea80111a8e4b4c9339
   languageName: node
   linkType: hard
 
@@ -27539,6 +27595,18 @@ typescript@^4.3.5:
   dependencies:
     errno: ~0.1.7
   checksum: ef76a6892bdf6a4231e6d657c13e2e960278535915d6235d9e0e3e23b65da94a56e5bed17ac5fda282370601d4cd18f4cba9552aa52f4fa9a25cc9fd3fcf58a9
+  languageName: node
+  linkType: hard
+
+"worker-loader@npm:^3.0.8":
+  version: 3.0.8
+  resolution: "worker-loader@npm:3.0.8"
+  dependencies:
+    loader-utils: ^2.0.0
+    schema-utils: ^3.0.0
+  peerDependencies:
+    webpack: ^4.0.0 || ^5.0.0
+  checksum: 42e93da80473b886b25084f6e15f696a1afe0d00559370a138805f9ddc368ba676436abfe147f4cdb5255716b56bf6f3bc8926364d68e27216189cea95d416cf
   languageName: node
   linkType: hard
 
