@@ -4,9 +4,28 @@
 import { useEffect, useState } from "react";
 
 /**
+ * Compile time type checking
+ */
+type LocationConfig = {
+    enableHighAccuracy: boolean;
+    timeout: number;
+    maximumAge: number;
+};
+type OptionalLocation = GeolocationPosition|null;
+type ClientData = {
+    mobile: boolean;
+    location: OptionalLocation;
+};
+
+/**
+ * Mobile detection string
+ */
+const MATCH_MOBILE = /Android|BlackBerry|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i
+
+/**
  * Localization settings.
  */
-const GEOLOCATION = {
+const GEOLOCATION: LocationConfig = {
     enableHighAccuracy: true,
     timeout: 5000,
     maximumAge: 0
@@ -16,7 +35,7 @@ const GEOLOCATION = {
  * Effect results in object containing metadata about the
  * client and location.
  */
-export default () => {
+export default (): ClientData => {
     /**
      * Boolean indicating whether the device is a small mobile,
      * or full size desktop.
@@ -28,31 +47,23 @@ export default () => {
      * 
      * This is disclosed in the website privacy policy. 
      */
-    useEffect(() => {
-        const userAgent = typeof navigator === "undefined" ? "" : navigator.userAgent;
-            
-        setMobile(Boolean(
-            userAgent.match(
-                /Android|BlackBerry|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i
-            )
-        ));
-        
+    useEffect(() => {     
+        setMobile(Boolean((navigator?.userAgent ?? "").match(MATCH_MOBILE)));
     }, [ ]);
 
     /**
      * User location to be obtained from Geolocation API.
      */
-    const [ location, setLocation ] = useState(null);
-    
+    const [ location, setLocation ] = useState<OptionalLocation>(null);
+
     /**
      * Get the user location and 
      */
     useEffect(() => {
         if (!navigator.geolocation) return;
-
         navigator.geolocation.getCurrentPosition(
             setLocation, 
-            () => { console.log("Error getting client location.") },
+            () => { console.error("Error getting client location.") },
             GEOLOCATION
         );
     }, []);
