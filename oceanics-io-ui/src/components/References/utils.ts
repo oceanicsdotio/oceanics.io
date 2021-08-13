@@ -8,6 +8,36 @@
 }
 
 /**
+ * Compile time type checking
+ */
+ type OptString = string | null;
+ export type PartialReference = {
+    authors: string[];
+    year: number;
+    title: string;
+};
+ export type ReferenceType = PartialReference & {
+     className?: string|undefined;
+     journal?: OptString;
+     volume?: OptString;
+     pageRange: number[];
+ };
+ export type FrontmatterType = {
+    title: string;
+    date: string;
+    description: string;
+    tags: string[];
+    citations?: ReferenceType[];
+}
+export type ArticleBaseType = {
+    frontmatter: FrontmatterType;
+    fields: {
+        slug: string;
+    };
+}
+
+
+/**
 Some of the canonical fields do not contain uniquely identifying information. Technically,
 the same content might appear in two places. 
 */

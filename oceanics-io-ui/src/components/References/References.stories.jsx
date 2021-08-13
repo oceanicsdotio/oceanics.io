@@ -6,7 +6,7 @@
  /**
   * Base component
   */
- import Reference from "./Reference";
+ import References from "./References";
  import "../../styles/global.css";
 import "../../styles/theme.css";
 
@@ -14,8 +14,8 @@ import "../../styles/theme.css";
   * Storybook Interface
   */
  export default {
-   component: Reference,
-   title: 'References/Reference',
+   component: References,
+   title: 'References/References',
  }
  
  /**
@@ -24,13 +24,14 @@ import "../../styles/theme.css";
   * @param {*} args 
   * @returns 
   */
- const Template = (args) => <Reference {...args} />;
+ const Template = (args) => <References {...args} />;
  
  /**
   * Default test case
   */
  export const Example = Template.bind({});
  Example.args = {
+    heading: "References", references: [{
     authors: ["Keeney NR", "Keeney NR"],
     year: 2000,
     title: "A blah about blah",
@@ -38,4 +39,4 @@ import "../../styles/theme.css";
     volume: "50",
     hash: undefined,
     pageRange: [90, 110],
- };
+ }]};

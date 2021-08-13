@@ -1,7 +1,7 @@
 /**
  * React and friends
  */
-import React, {Fragment} from "react";
+import React, {Fragment, FC} from "react";
 
 /**
  * Runtime input type checking
@@ -16,46 +16,24 @@ import styled from "styled-components";
 /**
  * Reference component
  */
-import Reference, {ReferenceType} from "./Reference"
-
-
-// Internal page link to navigate from table of contents or inline
-const Anchor = styled.a`
-    color: inherit;
-    visibility: ${({hidden})=>hidden?"hidden":null};
-`;
-
-
-
-
-
+import Reference, {ReferenceType, ReferencePropTypes} from "./Reference"
 
 /**
  * List of formatted references to append to a document that
  * includes citations. 
  */
-export const References = ({
+export const References: FC<{
+    heading?: string,
+    references: ReferenceType[]
+}> = ({
     heading="References", 
     references=[]
-}:{
-    heading: string,
-    references: ReferenceType[]
 }) =>
     <Fragment>
-        <Anchor id={"references"} hidden={!references || !heading}>
+        <a id={"references"} hidden={!references || !heading}>
             <h1>{heading}</h1>
-        </Anchor>
-        {
-            Object.entries(Object.fromEntries(
-                references.map((props: ReferenceType) => 
-                    [referenceHash(props), props])
-            )).map(([hash, props]) => 
-                <Fragment key={hash}>
-                    <a id={hash} />
-                    <Reference {...props}/>
-                </Fragment>
-            )
-        }
+        </a>
+        {references.map((props: ReferenceType) => <Reference {...props}/>)}
     </Fragment>;
 
 /**
@@ -63,12 +41,16 @@ export const References = ({
  */
 References.propTypes = {
     heading: PropTypes.string,
-    references: PropTypes.arrayOf(PropTypes.shape({
-        title: PropTypes.string
-    }))
+    references: PropTypes.arrayOf(PropTypes.shape(ReferencePropTypes).isRequired).isRequired
 };
+
+const StyledSection = styled(References)`
+    color: inherit;
+    visibility: ${({references, heading})=>(!references || !heading)?"hidden":null};
+`;
+
 
 /**
  * BAse version is exported as default
  */
-export default References;
+export default StyledSection;

@@ -1,7 +1,7 @@
 /**
  * React and friends
  */
-import React from "react";
+import React, {FC} from "react";
 
 /**
  * Component level styling
@@ -16,7 +16,7 @@ import References from "./References"
 /**
  * Type checking
  */
-import { ReferenceType } from "./Reference"
+import { FrontmatterType } from "./Article"
 
 /**
  * Typography
@@ -24,38 +24,15 @@ import { ReferenceType } from "./Reference"
 import { rhythm, scale } from "../../typography";
 
 /**
- * Heading
- */
-const StyledHeader = styled.h1`
-    margin-bottom: 0;
-    margin-top: ${() => rhythm(1)};
-`;
-
-/**
  * Typography
  */
 const { lineHeight, fontSize } = scale(-1 / 5);
 
 /**
- * Basic typography
- */
-const StyledParagraph = styled.p`
-    display: block;
-    margin-bottom: ${() => rhythm(1)};
-    font-size: ${fontSize};
-    line-height: ${lineHeight};
-`;
-
-/**
  * Compile time type checking
  */
 type TemplateType = {
-    frontmatter: {
-        date: string,
-        title: string,
-        citations: ReferenceType[]
-    },
-    children: any
+    frontmatter: FrontmatterType;
 }
 
 /**
@@ -64,7 +41,7 @@ type TemplateType = {
  * @param param0 
  * @returns 
  */
-export const Template = ({
+export const Template: FC<TemplateType> = ({
     frontmatter: {
         date,
         title,
@@ -75,14 +52,27 @@ export const Template = ({
     return (
         <article>
             <header>
-                <StyledHeader>{title}</StyledHeader>
-                <StyledParagraph>{date}</StyledParagraph>
+                <h1>{title}</h1>
+                <p>{date}</p>
             </header>
             {children}
             <References heading={""} references={citations} />
         </article>
     )
 }
+
+const StyledTemplate = styled(Template)`
+    & h1 {
+        margin-bottom: 0;
+        margin-top: ${() => rhythm(1)};
+    }
+    & p {
+        display: block;
+        margin-bottom: ${() => rhythm(1)};
+        font-size: ${fontSize};
+        line-height: ${lineHeight};
+    }
+`;
 
 /**
  * Base component is default export
