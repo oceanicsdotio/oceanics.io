@@ -2,7 +2,7 @@
  * React and friends
  */
 import React from 'react';
-
+import {Meta, Story} from "@storybook/react";
 /**
  * Base component
  */
@@ -20,12 +20,12 @@ import "../../styles/theme.css";
 export default {
   component: TextArea,
   title: 'Form/TextArea',
-}
+} as Meta;
 
 /**
  * Template to build cases from
  */
-const Template = ({children}) => <TextArea>{children}</TextArea>;
+const Template: Story = ({children}) => <TextArea>{children}</TextArea>;
 
 /**
  * Case with a short string

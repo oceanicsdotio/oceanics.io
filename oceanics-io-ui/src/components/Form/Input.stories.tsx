@@ -2,11 +2,11 @@
  * React and friends
  */
 import React from 'react';
-
+import {Meta,Story} from "@storybook/react";
 /**
  * Base component
  */
-import Input from './Input';
+import Input, {InputType} from './Input';
 
 /**
  * Storybook interface
@@ -14,12 +14,12 @@ import Input from './Input';
 export default {
   component: Input,
   title: 'Form/Input',
-}
+} as Meta;
 
 /**
  * Base case
  */
-const Template = (args) => <Input {...args} />;
+const Template: Story<InputType> = (args) => <Input {...args} />;
 
 export const Default = Template.bind({});
 Default.args = {

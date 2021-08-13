@@ -1,7 +1,7 @@
 /**
  * React and friends
  */
-import React from "react"
+import React, { FC, ChangeEventHandler } from "react"
 
 /**
  * Component level styling
@@ -22,27 +22,28 @@ import {red, orange, ghost, grey, charcoal} from "../../palette"
  * Build time type checking
  */
 export type InputType = {
-    id: string,
-    type: string,
-    className: string,
-    name: string | null,
-    options: string[],
-    destructive: boolean,
-    required: boolean
+    id: string;
+    type?: string;
+    className?: string;
+    name: string | null;
+    options?: string[];
+    destructive?: boolean;
+    required?: boolean;
+    onChange: ChangeEventHandler<HTMLInputElement>;
 }
 
 /**
  * Generic form input component that converts to the
  * appropriate type
  */
-export const Input = ({
+export const Input: FC<InputType> = ({
     id,
     type,
     className,
     name = null,
     options = [],
     ...props
-}: InputType) => {
+}) => {
     switch (type) {
         case "long":
             return <textarea
@@ -62,13 +63,6 @@ export const Input = ({
                     <option key={`${id}-option-${ii}`} value={x}>{x}</option>
                 )}
             </select>
-        case "button":  // doesn't use name || id
-            return <input
-                id={id}
-                className={className}
-                type={type}
-                {...props}
-            />
         default:
             return <input
                 id={id}
@@ -88,10 +82,10 @@ Input.propTypes = {
     type: PropTypes.string,
     className: PropTypes.string,
     name: PropTypes.string,
-    options: PropTypes.arrayOf(PropTypes.string),
+    options: PropTypes.arrayOf(PropTypes.string.isRequired),
     destructive: PropTypes.bool,
     required: PropTypes.bool
-}
+};
 
 /**
  * The InputWrapper component is a styled version of the standard

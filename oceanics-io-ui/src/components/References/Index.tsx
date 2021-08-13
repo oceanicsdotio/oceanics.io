@@ -6,7 +6,8 @@
  /**
   * For interactive elements
   */
- import FormContainer from "../Form/FormContainer";
+ import Button from "../Form/Button";
+ import Input from "../Form/Input";
  
  /**
   * Preview of article
@@ -18,8 +19,7 @@
   */
  import useQueryString, { onSelectValue, onIncrementValue } from "../hooks/useQueryString";
  
- import {referenceHash} from "./utils"
- import {ReferenceType} from "./Reference"
+ import {referenceHash, ReferenceType} from "./utils";
  
  /**
   * How many articles are made visible at a time.

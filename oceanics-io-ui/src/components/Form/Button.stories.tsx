@@ -2,6 +2,7 @@
  * React and friends
  */
 import React from 'react';
+import {Story, Meta} from "@storybook/react";
 
 /**
  * Base component, w wrapped `Input` component
@@ -14,12 +15,12 @@ import Button from './Button';
 export default {
   component: Button,
   title: 'Form/Button',
-}
+} as Meta
 
 /**
  * Base version
  */
-const Template = (args) => <Button {...args} />;
+const Template: Story = (args) => <Button {...args} />;
 
 /**
  * Example

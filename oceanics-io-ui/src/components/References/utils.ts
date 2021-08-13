@@ -28,13 +28,13 @@
     description: string;
     tags: string[];
     citations?: ReferenceType[];
-}
+};
 export type ArticleBaseType = {
     frontmatter: FrontmatterType;
     fields: {
         slug: string;
     };
-}
+};
 
 
 /**

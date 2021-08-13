@@ -16,7 +16,7 @@ import References from "./References"
 /**
  * Type checking
  */
-import { FrontmatterType } from "./Article"
+import { FrontmatterType } from "./utils"
 
 /**
  * Typography
@@ -48,7 +48,7 @@ export const Template: FC<TemplateType> = ({
         citations = []
     },
     children
-}: TemplateType) => {
+}) => {
     return (
         <article>
             <header>
@@ -77,4 +77,4 @@ const StyledTemplate = styled(Template)`
 /**
  * Base component is default export
  */
-export default Template
+export default StyledTemplate

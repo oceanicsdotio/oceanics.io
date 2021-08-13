@@ -18,7 +18,6 @@ import styled from "styled-components"
  */
 import { ghost } from "../../palette";
 import {referenceHash, ReferenceType} from "./utils";
-
 /**
  Single reference to journal article or similar material.
  */

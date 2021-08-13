@@ -1,7 +1,7 @@
 /**
  * React and friends
  */
-import React from "react";
+import React, {ChangeEventHandler, FC} from "react";
 
 /**
  * Component level styling
@@ -30,29 +30,29 @@ import FormField from "./Field";
  * @returns 
  */
 type FieldType = {
-    name: string,
-    description: string,
-    id: string
+    name: string;
+    description: string;
+    id: string;
 }
 type ActionType = {
 
 }
 export type FormType = {
-    id: string,
-    fields: FieldType[],
-    actions: ActionType[] | undefined,
-    callback: Function | null
+    id: string;
+    fields: FieldType[];
+    actions?: ActionType[];
+    callback?: ChangeEventHandler<HTMLInputElement>;
 }
 
 /**
  * Form component encapsulates behavior of user submission forms.
  */
-export const Form = ({ 
+export const Form: FC<FormType> = ({ 
     id, 
     fields = [], 
     actions = [],
-    callback = null
-}: FormType) => {
+    callback
+}) => {
     
     return <form 
         id={id}

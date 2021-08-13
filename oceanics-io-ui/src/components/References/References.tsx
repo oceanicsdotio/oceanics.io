@@ -16,16 +16,19 @@ import styled from "styled-components";
 /**
  * Reference component
  */
-import Reference, {ReferenceType, ReferencePropTypes} from "./Reference"
+import Reference, {ReferencePropTypes} from "./Reference"
+import {ReferenceType} from "./utils";
+
+export type ReferencesType = {
+    heading?: string;
+    references: ReferenceType[];
+}
 
 /**
  * List of formatted references to append to a document that
  * includes citations. 
  */
-export const References: FC<{
-    heading?: string,
-    references: ReferenceType[]
-}> = ({
+export const References: FC<ReferencesType> = ({
     heading="References", 
     references=[]
 }) =>
