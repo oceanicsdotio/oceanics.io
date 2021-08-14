@@ -37,7 +37,7 @@
     "gatsby-transformer-sharp": "^2.12.1",
     "gatsby-transformer-yaml-full": "^0.4.2",
     "katex": "^0.13.11",
-    "mapbox-gl": "^1.5.0",
+    "mapbox-gl": "^2.4.0",
     "netcdfjs": "^1.0.0",
     "oceanics-io-ui": "oceanics-io-ui",
     "openapi-types": ">=7",
