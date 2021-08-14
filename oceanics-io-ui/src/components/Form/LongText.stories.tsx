@@ -21,19 +21,8 @@ export default {
  */
 const Template: Story<LongTextType> = (args) => <LongText {...args} />;
 
-export const Default = Template.bind({});
-Default.args = {
-    id: "generic-case",
-    name: "some input",
-    destructive: false,
-    required: false
-};
 
-export const LongCase = Template.bind({});
-LongCase.args = {
-    id: "long-case",
-    name: "your comment",
-    options: [],
-    destructive: false,
-    required: false
+export const Example = Template.bind({});
+Example.args = {
+    name: "your comment"
 };

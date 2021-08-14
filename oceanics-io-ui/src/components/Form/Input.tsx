@@ -25,7 +25,7 @@ export type InputType = {
     id: string;
     type?: string;
     className?: string;
-    name: string | null;
+    name?: string;
     options?: string[];
     destructive?: boolean;
     required?: boolean;
@@ -48,7 +48,7 @@ export const Input: FC<InputType> = ({
         id={id}
         className={className}
         type={type}
-        name={name || id}
+        name={name??id}
         {...props}
     />
     

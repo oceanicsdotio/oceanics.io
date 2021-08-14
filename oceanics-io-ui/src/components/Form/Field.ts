@@ -8,6 +8,13 @@ import styled from "styled-components";
  */
 import {ghost, orange, pink, grey, charcoal} from "../../palette";
 
+
+export type FieldType = {
+    name?: string;
+    description?: string;
+    id: string;
+}
+
 /**
  * FormField is the container for a form input
  * and its metadata.

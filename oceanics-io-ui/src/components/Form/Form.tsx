@@ -1,7 +1,7 @@
 /**
  * React and friends
  */
-import React, {ChangeEventHandler, FC} from "react";
+import React, {ChangeEventHandler, FC, MouseEventHandler} from "react";
 
 /**
  * Component level styling
@@ -21,68 +21,45 @@ import Button from "./Button";
 /**
  * Input fields
  */
-import FormField from "./Field";
-
+import Field, {FieldType} from "./Field";
 
 /**
  * Compile time type checking
- * @param param0 
- * @returns 
  */
-type FieldType = {
-    name: string;
-    description: string;
-    id: string;
-}
 type ActionType = {
-
-}
-export type FormType = {
     id: string;
+    onClick: MouseEventHandler;
+};
+type FormType = {
+    id: string;
+    className?: string;
     fields: FieldType[];
-    actions?: ActionType[];
-    callback?: ChangeEventHandler<HTMLInputElement>;
-}
+    actions: ActionType[];
+    onChange: ChangeEventHandler<HTMLInputElement>;
+};
 
 /**
- * Form component encapsulates behavior of user submission forms.
+ * 
  */
 export const Form: FC<FormType> = ({ 
     id, 
-    fields = [], 
-    actions = [],
-    callback
-}) => {
-    
-    return <form 
-        id={id}
-    >
-        {fields.map(({
-            name=null,
-            description=null,
-            ...field
-        }, ii) => 
-            <FormField key={`${id}-field-${ii}`}>
-                <label htmlFor={field.id}>
-                    {`${name || field.id}: `}
-                </label>
-                <Input 
-                    onChange={callback} 
-                    {...field}
-                />
-                <div>{description}</div>
-            </FormField>
+    className,
+    fields, 
+    actions,
+    onChange
+}) => 
+    <form id={id} className={className}>
+        {(fields??[]).map((field: FieldType) => 
+            <Field key={`${id}-${field.id}`}>
+                <label htmlFor={field.id}>{`${field.name ?? field.id}: `}</label>
+                <Input onChange={onChange} {...field}/>
+                <div>{field.description??""}</div>
+            </Field>
         )}
-        
-        {actions.map((props, ii) => 
-            <Button 
-                key={`${id}-action-${ii}`}
-                {...props}
-            />
+        {(actions??[]).map((action: ActionType) => 
+            <Button key={`${id}-${action.id}`} {...action}/>
         )}
-    
     </form>
-};
 
 
 /**
