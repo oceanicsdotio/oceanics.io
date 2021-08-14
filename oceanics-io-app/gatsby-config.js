@@ -1,23 +1,31 @@
 module.exports = {
     siteMetadata: {
         title: `Oceanics.io`,
-        author: `Oceanicsdotio LLC`,
-        description: `Trust layer for the blue economy`,
+        author: `Nicholas Keeney`,
+        description: `Situational awareness for a changing ocean`,
         siteUrl: `https://www.oceanics.io`
     },
     plugins: [
         {
             resolve: `gatsby-source-filesystem`,
             options: {
-                path: `${__dirname}/content`,
-                name: `content`,
+                path: `${__dirname}/content/blog`,
+                name: `blog`,
             },
         },
         {
             resolve: `gatsby-source-filesystem`,
             options: {
-                path: `${__dirname}/assets`,
+                path: `${__dirname}/content/assets`,
                 name: `assets`,
+            },
+        },
+        {
+            resolve: `gatsby-source-filesystem`,
+            options: {
+                path: `${__dirname}/src/data`,
+                name: `data`,
+                ignore: [`**/\.*`]
             },
         },
         {
@@ -34,6 +42,7 @@ module.exports = {
                     {
                         resolve: `gatsby-remark-katex`,
                         options: {
+                            // Add any KaTeX options from https://github.com/KaTeX/KaTeX/blob/master/docs/options.md here
                             strict: `ignore`
                         }
                     },
@@ -73,7 +82,7 @@ module.exports = {
                 background_color: `#000000`,
                 theme_color: `#EF5FA1`,
                 display: `minimal-ui`,
-                icon: `static/favicon.ico`,
+                icon: `src/images/favicon.png`,
             },
         },
         `gatsby-plugin-react-helmet`,
@@ -82,6 +91,7 @@ module.exports = {
             options: { prefixes: [`/catalog/*`] },
         },
         `gatsby-plugin-offline`,  // service worker implementation
-        `gatsby-transformer-yaml-full`
+        `gatsby-transformer-yaml-full`,
+        `gatsby-plugin-workerize-loader`
     ],
 }

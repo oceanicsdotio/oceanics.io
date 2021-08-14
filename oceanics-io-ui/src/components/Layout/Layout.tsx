@@ -1,7 +1,7 @@
 /**
  * React and friends
  */
-import React, { useMemo } from "react";
+import React, { FC, useMemo } from "react";
 
 /**
  * Component level styling
@@ -17,7 +17,6 @@ import { pink, ghost, orange } from "../../palette";
  * Typesetting
  */
 import { rhythm } from "../../typography";
-
 
 /**
  * YAML parser
@@ -78,58 +77,42 @@ type LinkType = {
 }
 
 export type LayoutType = {
-    children: any,
-    className: string,
-    title: string,
-    site: LinkType[],
-    footer: {
-        policy: string
-    },
-    expand: boolean
+    children: any;
+    className?: string;
+    expand: boolean;
 }
 
+type StaticDataType = {
+    title: string;
+    site: LinkType[];
+    footer: {
+        links: LinkType[];
+    };
+    policy: string;
+}
+
+
+import LayoutData from "js-yaml-loader!./Layout.yml";
+
     
-export const Layout = ({ 
+export const Layout: FC<LayoutType> = ({ 
     children,
     className,
-    title,
-    site = [],
-    footer: {
-        policy="",
-    },
-}: LayoutType) => {
+}) => {
 
-    /**
-     * Memoize the top navigation links when they are created, 
-     * to prevent re-rendering if layout changes. 
-     */
-    const links = useMemo(()=>{
-        return site.map(({label, href}, key) =>  
-            <SiteLink 
-                href={href} 
-                color={pink}
-                key={`site-link-${key}`}
-                target={"_blank"}
-            >
-                {label}
-            </SiteLink>
-        )
-    }, []);
+    const {
+        title,
+        policy,
+    }: StaticDataType = LayoutData;
 
-
-    const _policy = useMemo(()=>{
-        return YAML.parse(policy)
-            .split("\n")
-            .filter((paragraph: string) => paragraph)
-    }, []);
+    const _policy = useMemo(
+        () => policy.split("\n").filter((x: string) => x), []
+    );
 
     return <div className={className}>
-        
         <NavBar>
             <Title href={"/"}>{title}</Title>  
-            {links}
         </NavBar>
-
         <main>{children}</main>
         <footer>
             {_policy.map((text: string, ii: number) => <p key={`text-${ii}`}>{text}</p>)}

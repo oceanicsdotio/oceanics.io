@@ -11,16 +11,9 @@ import { graphql, navigate, PageProps } from "gatsby";
 /**
  * Campaign component
  */
-//@ts-ignore
-import CampaignContainer from "oceanics-io-ui/Campaign/Campaign";
-//@ts-ignore
-import Index from "oceanics-io-ui/References/Index";
-import useQueryString from "../hooks/useQueryString";
+import Campaign from "oceanics-io-ui/src/components/Campaign/Campaign";
+import Index from "oceanics-io-ui/src/components/References/Index";
 
-/**
- * How many articles are made visible at a time.
- */
-const itemIncrement = 3;
 
 /**
  * Base component for web landing page.
@@ -41,18 +34,24 @@ const Home = ({
     /**
      * Search string query parameters
      */
-    const { query } = useQueryString({
-        search,
-        defaults: {
-            items: itemIncrement,
-            tag: null,
-            reference: null
-        }
-    })
+    // const { query } = useQueryString({
+    //     search,
+    //     defaults: {
+    //         items: itemIncrement,
+    //         tag: null,
+    //         reference: null
+    //     }
+    // })
+    const query = {
+        items: 3,
+        tag: "",
+        reference: 0,
+        inc: 3
+    }
     
     return (
         <>
-            <CampaignContainer navigate={navigate}/>
+            <Campaign navigate={navigate}/>
             <Index query={query} nodes={nodes} group={group}/>
         </>
     )

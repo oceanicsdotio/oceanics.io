@@ -12,7 +12,7 @@ import {graphql } from "gatsby";
 /**
  * Array of references component, no heading
  */
-import References from "oceanics-io-ui/References/References";
+import References from "oceanics-io-ui/src/components/References/References";
 
 /**
  * The page component to render
