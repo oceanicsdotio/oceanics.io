@@ -17,7 +17,12 @@ import styled from "styled-components"
  * Colors
  */
 import { ghost } from "../../palette";
+
+/**
+ * Types and ref lookups
+ */
 import {referenceHash, ReferenceType} from "./utils";
+
 /**
  Single reference to journal article or similar material.
  */
@@ -43,6 +48,9 @@ export const Reference: FC<ReferenceType> = ({
     </div>
 };
 
+/**
+ * Runtime type checking, re-used
+ */
 export const ReferencePropTypes = {
     className: PropTypes.string.isRequired,
     authors: PropTypes.arrayOf(PropTypes.string.isRequired).isRequired,
@@ -52,8 +60,15 @@ export const ReferencePropTypes = {
     volume: PropTypes.string,
     pageRange: PropTypes.arrayOf(PropTypes.number.isRequired).isRequired
 };
+
+/**
+ * Assign to local Component
+ */
 Reference.propTypes = ReferencePropTypes;
 
+/**
+ * The styled version.
+ */
 const StyledReference = styled(Reference)`
     & div {
         color: ${ghost};
@@ -65,5 +80,7 @@ const StyledReference = styled(Reference)`
     }
 `;
 
-
-export default StyledReference
+/**
+ * Default export is the styled version
+ */
+export default StyledReference;

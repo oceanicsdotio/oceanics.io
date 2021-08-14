@@ -1,17 +1,19 @@
 /**
  * React and friends.
  */
-import React from "react";
+import React, {FC} from "react";
 
 /**
  * For building and linking data
  */
-import { graphql, navigate } from "gatsby";
+import { graphql, navigate, PageProps } from "gatsby";
 
 /**
  * Campaign component
  */
-import CampaignContainer from "oceanics-io-ui/Campaign/Campaign"
+//@ts-ignore
+import CampaignContainer from "oceanics-io-ui/Campaign/Campaign";
+//@ts-ignore
 import Index from "oceanics-io-ui/References/Index";
 import useQueryString from "../hooks/useQueryString";
 
@@ -25,7 +27,7 @@ const itemIncrement = 3;
  * 
  * Optionally use query parameters and hash anchor to filter content. 
  */
-export default ({
+const Home = ({
     data: {
         allMdx: {
             nodes,
@@ -55,6 +57,8 @@ export default ({
         </>
     )
 };
+
+export default Home;
 
 
 /**

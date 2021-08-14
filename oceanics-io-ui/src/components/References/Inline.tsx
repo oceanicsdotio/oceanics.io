@@ -7,15 +7,8 @@ import React, { FC } from "react";
  * Runtime input type checking
  */
 import PropTypes from "prop-types";
-import {referenceHash, PartialReference} from "./utils";
+import {referenceHash, InlineRefType} from "./utils";
 
-/**
- * Compile time type definitions
- */
-export type InlineRefType = PartialReference & {
-    unwrap: boolean;
-    namedAuthors: number;
-};
 
 /**
  Include inline links for references in markdown

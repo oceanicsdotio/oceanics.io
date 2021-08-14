@@ -1,46 +1,40 @@
 /**
  * React and friends
  */
- import React from 'react';
+import React from 'react';
+import {Meta, Story} from "@storybook/react";
 
-import { Meta, Story } from '@storybook/react';
+/**
+ * Base component
+ */
+import Article from "./Article";
+import PageData from "./Index.json";
+import "../../styles/global.css";
+import "../../styles/theme.css";
+import { ArticleType } from './utils';
 
- /**
-  * Base component
-  */
- import Article, { ArticleType } from "./Article"
+/**
+ * Storybook Interface
+ */
+export default {
+    component: Article,
+    title: 'References/Article',
+} as Meta
 
- /**
-  * Storybook Interface
-  */
- export default {
-   component: Article,
-   title: 'References/Article',
- } as Meta
- 
- /**
-  * Base case
-  * 
-  * @param {*} args 
-  * @returns 
-  */
- const Template: Story<ArticleType> = (args) => <Article {...args} />;
- 
- /**
-  * Default test case
-  */
- export const Default = Template.bind({});
- Default.args = {
-    frontmatter: {
-        title: "things about a thing",
-        date: "whenever",
-        description: "A description",
-        tags: ["things", "about"],
-    },
-    fields: {
-        slug: "/things-about-a-thing",
-    },
-    index: 2,
-    search: "",
-    onSelectValue: () => () => {}
- };
+/**
+ * Base case
+ */
+const Template: Story<ArticleType> = (args) => <Article {...args} >
+        {"aa aaa a aaaa aaa aa aaa".repeat(100)}
+    </Article>;
+
+const {nodes: [node]} = PageData;
+
+/**
+ * Default test case
+ */
+export const Example = Template.bind({});
+Example.args = {
+    ...node,
+    onClickTag: () => () => {}
+};

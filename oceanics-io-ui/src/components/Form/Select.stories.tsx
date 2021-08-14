@@ -27,7 +27,6 @@ const Template: Story<SelectType> = (args) => <Select {...args} />;
 
 export const Example = Template.bind({});
 Example.args = {
-    type: "select",
     options: ["a", "b", "c"],
     id: "select-case",
     name: "your selection",

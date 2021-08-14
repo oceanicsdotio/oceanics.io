@@ -6,7 +6,9 @@ import { Meta, Story } from '@storybook/react';
 /**
  * Base component
  */
-import Inline, {InlineRefType} from "./Inline";
+import Inline from "./Inline";
+import PageData from "./Index.json";
+import { InlineRefType } from './utils';
 import "../../styles/global.css";
 import "../../styles/theme.css";
 
@@ -16,7 +18,9 @@ import "../../styles/theme.css";
 export default {
     component: Inline,
     title: 'References/Inline',
-} as Meta
+} as Meta;
+
+const {nodes: [{frontmatter: {citations: [citation]}}]} = PageData;
 
 /**
  * Base case
@@ -28,9 +32,7 @@ const Template: Story<InlineRefType> = (args) => <Inline {...args} />;
  */
 export const Example = Template.bind({});
 Example.args = {
-    authors: ["Keeney NR", "Keeney NR", "Keeney NR", "Keeney NR"],
-    year: 2000,
-    title: "A blah about blah",
+    ...citation,
     unwrap: false,
-    namedAuthors: 3
+    namedAuthors: 3,
 };

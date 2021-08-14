@@ -1,7 +1,7 @@
 /**
  * React and friends
  */
-import React, {Fragment, FC} from "react";
+import React, {FC} from "react";
 
 /**
  * Runtime input type checking
@@ -17,43 +17,45 @@ import styled from "styled-components";
  * Reference component
  */
 import Reference, {ReferencePropTypes} from "./Reference"
-import {ReferenceType} from "./utils";
-
-export type ReferencesType = {
-    heading?: string;
-    references: ReferenceType[];
-}
 
 /**
- * List of formatted references to append to a document that
+ * Type checking
+ */
+import {ReferenceType, ReferencesType} from "./utils";
+
+
+/**
+ * List of formatted citations to append to a document that
  * includes citations. 
  */
 export const References: FC<ReferencesType> = ({
-    heading="References", 
-    references=[]
-}) =>
-    <Fragment>
-        <a id={"references"} hidden={!references || !heading}>
-            <h1>{heading}</h1>
-        </a>
-        {references.map((props: ReferenceType) => <Reference {...props}/>)}
-    </Fragment>;
-
+    citations,
+    className,
+}) => {
+    return (
+        <div className={className}>
+            <a id={"citations"}/>        
+            {(citations??[]).map((props: ReferenceType) => <Reference {...props}/>)}
+        </div>
+    );
+}
 /**
  * Runtime type checking
  */
 References.propTypes = {
-    heading: PropTypes.string,
-    references: PropTypes.arrayOf(PropTypes.shape(ReferencePropTypes).isRequired).isRequired
+    className: PropTypes.string,
+    citations: PropTypes.arrayOf(PropTypes.shape(ReferencePropTypes).isRequired).isRequired
 };
 
+/**
+ * Styled version with display logic
+ */
 const StyledSection = styled(References)`
     color: inherit;
-    visibility: ${({references, heading})=>(!references || !heading)?"hidden":null};
+    display: ${({citations}):string|undefined=>(citations??false)?undefined:"none"};
 `;
 
-
 /**
- * BAse version is exported as default
+ * Styled version is exported as default
  */
 export default StyledSection;

@@ -27,7 +27,7 @@ export default ({
      * article frontmatter.
      */
     const references = useMemo(() => {
-        nodes.flatMap(({frontmatter: {citations}}) => citations).filter(x => !!x)
+        nodes.flatMap((node) => node.frontmatter.citations).filter(x => !!x)
     }, [])
 
     return <References references={references}/>

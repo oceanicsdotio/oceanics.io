@@ -7,7 +7,9 @@ import {Meta, Story} from "@storybook/react";
 /**
  * Base component
  */
-import References, {ReferencesType} from "./References";
+import References from "./References";
+import { ReferencesType } from './utils';
+import PageData from "./Index.json";
 import "../../styles/global.css";
 import "../../styles/theme.css";
 
@@ -17,7 +19,9 @@ import "../../styles/theme.css";
 export default {
     component: References,
     title: 'References/References',
-} as Meta
+} as Meta;
+
+const {nodes:[{frontmatter:{citations}}]} = PageData;
 
 /**
  * Base case
@@ -28,13 +32,4 @@ const Template: Story<ReferencesType> = (args) => <References {...args} />;
  * Default test case
  */
 export const Example = Template.bind({});
-Example.args = {
-    heading: "References", references: [{
-        authors: ["Keeney NR", "Keeney NR"],
-        year: 2000,
-        title: "A blah about blah",
-        journal: "Cybernetics",
-        volume: "50",
-        pageRange: [90, 110],
-    }]
-};
+Example.args = {citations};

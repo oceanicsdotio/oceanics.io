@@ -1,130 +1,63 @@
 /**
  * React and friends.
  */
- import React, { useEffect, useState } from "react";
+import React, { FC, useMemo } from "react";
 
- /**
-  * For interactive elements
-  */
- import Button from "../Form/Button";
- import Input from "../Form/Input";
- 
- /**
-  * Preview of article
-  */
- import Article from "./Article";
- 
- /**
-  * Navigation
-  */
- import useQueryString, { onSelectValue, onIncrementValue } from "../hooks/useQueryString";
- 
- import {referenceHash, ReferenceType} from "./utils";
- 
- /**
-  * How many articles are made visible at a time.
-  */
- const itemIncrement = 3;
+/**
+ * Preview of article
+ */
+import Stub from "./Stub";
+import Button from "../Form/Button";
+import Select from "../Form/Select";
 
+/**
+ * Typing and lookups
+ */
+import { filterFrontmatter, ArticleType, IndexType } from "./utils";
 
- type FrontmatterType = {
-     tags: string[],
-     citations: ReferenceType[],
- }
+/**
+ * Base component for web landing page.
+ * 
+ * Optionally use query parameters and hash anchor to filter content. 
+ */
+const Index: FC<IndexType> = ({
+    className,
+    data: {
+        allMdx: {
+            nodes,
+            group
+        }
+    },
+    query
+}) => {
+    /**
+     * The array of visible articles. The initial value is the subset from 0 to
+     * the increment constant. 
+     */
+    const visible: ArticleType[] = useMemo(
+        //@ts-ignore
+        () => {
+            // const filter = filterFrontmatter(query);
+            return nodes.filter(x => x).slice(0, query.items)
+        },
+        [query]
+    );
 
- type IndexType = {
-     data: {
-         allMdx: {
-             nodes: any,
-             group: any
-         }
-     },
-     location: {
-         search: string
-     }
- }
- 
- /**
-  * Base component for web landing page.
-  * 
-  * Optionally use query parameters and hash anchor to filter content. 
-  */
- const Index = ({
-     data: {
-         allMdx: {
-             nodes,
-             group
-         }
-     },
-     location: {
-         search
-     }
- }: IndexType) => {
-     /**
-      * The array of visible articles. The initial value is the subset from 0 to
-      * the increment constant. 
-      */
-     const [ visible, setVisible ] = useState(nodes.slice(0, itemIncrement));
- 
-     const { query } = useQueryString({
-         search,
-         defaults: {
-             items: itemIncrement,
-             tag: null,
-             reference: null
-         }
-     })
-     /**
-      * When page loads or search string changes parse the string to React state.
-      * 
-      * Determine visible content. 
-      */
-     useEffect(() => {
-         if (!query) return;
- 
-         // Pick up a value and see if article has it.
-         const _eval = (obj: any, key: string, data: string[]) =>
-             (!!obj[key] && !(data||[]).includes(obj[key]));
- 
-         // Use to filter based on query string
-         const _filter = ({
-             frontmatter: {
-                 tags,
-                 citations=[],
-             }
-         }: {frontmatter: FrontmatterType}) => !(
-             _eval(query, "tag", tags) || 
-             _eval(query, "reference", citations.map(referenceHash))
-         );
-         
-         // Filter down to just matching, and then limit number of items
-         setVisible(nodes.filter(_filter).slice(0, query.items));
- 
-     }, [ query ]);
- 
-     return (
-       
-             {visible.map((props, ii) => 
-                <Article {...{...props, search, key: `node-${ii}`}}/>)}
-             <br/>
-             
-             <FormContainer
-                 fields={[{
-                     type: "select",
-                     id: "filter by tag",
-                     options: group.map(({ fieldValue }) => fieldValue),
-                     onChange: onSelectValue(search, "tag")
-                 }]}
-                 actions={[{
-                     value: "More arcana",
-                     type: "button",
-                     onClick: onIncrementValue(search, "items", itemIncrement)
-                 }]}
-             />
-     )
- };
+    return (
+        <div className={className}>
+            {visible.map((props: ArticleType) => <Stub {...props} />)}
+            <Select 
+                id={"filter-by-tag"} 
+                options={group.map(({ fieldValue }) => fieldValue)}
+                name={"Select tag"}
+                onChange={()=>{}}
+            />
+            <Button onClick={()=>{}}>{"More arcana"}</Button>
+        </div>
+    )
+};
 
-
- export default Index
- 
- 
+/**
+ * Default export is the base version
+ */
+export default Index;

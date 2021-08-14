@@ -23,11 +23,10 @@ import { ghost, grey } from "../../palette";
  */
 export type SelectType = {
     id: string;
-    type?: string;
     className?: string;
     name?: string;
     options: string[];
-    onChange: ChangeEventHandler<HTMLInputElement>;
+    onChange: ChangeEventHandler<HTMLSelectElement>;
 };
 
 /**
@@ -39,21 +38,24 @@ export const Input: FC<SelectType> = ({
     className,
     name,
     options,
-}) =>
-    <div className={className}>
-        <select id={id} name={name ?? id}>
-            {options.map((x: string, ii: number) =>
-                <option key={`${id}-option-${ii}`} value={x}>{x}</option>
-            )}
-        </select>
-    </div>
+    onChange,
+}) => {
+   return (
+        <div className={className}>
+            <select id={id} name={name??id} onChange={onChange}>
+                {options.map((x: string, ii: number) =>
+                    <option key={`${id}-option-${ii}`} value={x}>{x}</option>
+                )}
+            </select>
+        </div>
+    )
+}
 
 /**
  * Runtime type checking
  */
 Input.propTypes = {
     id: PropTypes.string.isRequired,
-    type: PropTypes.string,
     className: PropTypes.string,
     name: PropTypes.string,
     options: PropTypes.arrayOf(PropTypes.string.isRequired).isRequired
