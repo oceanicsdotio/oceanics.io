@@ -4687,6 +4687,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/geojson@npm:*":
+  version: 7946.0.8
+  resolution: "@types/geojson@npm:7946.0.8"
+  checksum: 2d9628afd0caac21dd927c90a5be0a361634a2d3b55c78752a9f1754874cf3802aa5cf2248489ace40e97b29a25d718b0d10689ca8e1b42df350222c282a8ef0
+  languageName: node
+  linkType: hard
+
 "@types/get-port@npm:^3.2.0":
   version: 3.2.0
   resolution: "@types/get-port@npm:3.2.0"
@@ -4875,6 +4882,15 @@ __metadata:
   version: 4.14.171
   resolution: "@types/lodash@npm:4.14.171"
   checksum: e48668fb030ad7d8c0c7751061bd332ad8704937d976bd4e24fd9e2128f80c17112be11e5c13d39f6a210336dc3549f7fb00eaebb56b94c2bfb89ad64c57d721
+  languageName: node
+  linkType: hard
+
+"@types/mapbox-gl@npm:^2.4.0":
+  version: 2.4.0
+  resolution: "@types/mapbox-gl@npm:2.4.0"
+  dependencies:
+    "@types/geojson": "*"
+  checksum: a186512a3fef6d1dc8c42945c5ee314dfc96491ddff97d9f3df646d0cc658ec89d9db305ce329c47a1249d51f71a958ddcb5eab3a75f61f0147596e5cb16f2ab
   languageName: node
   linkType: hard
 
@@ -19335,6 +19351,7 @@ fsevents@^1.2.7:
     "@babel/core": ^7.13.14
     "@babel/plugin-syntax-import-meta": ^7.10.1
     "@types/jest": ^27.0.1
+    "@types/mapbox-gl": ^2.4.0
     "@wasm-tool/wasm-pack-plugin": ^1.3.3
     aws-sdk: ^2.853.0
     babel-loader: ^8.2.2

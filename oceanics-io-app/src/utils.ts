@@ -1,4 +1,16 @@
 
+export type RenderEffect = {
+    size: number;
+};
+export type RenderInstance = {
+    width: number;
+    height: number;
+    data: Uint8Array;
+    context: CanvasRenderingContext2D|null;
+    onAdd: () => void;
+    render: () => bool;
+}
+
 /**
  * Use the Geolocation API to retieve the location of the client,
  * and set the map center to those coordinates, and flag that the interface
@@ -8,7 +20,7 @@
  */
  export const pulsingDot = ({
     size
-}) => {
+}: RenderEffect): RenderInstance => {
     const canvas = document.createElement('canvas');
     canvas.width = size;
     canvas.height = size;
@@ -29,7 +41,8 @@
             let time = (performance.now() % duration) / duration;
 
             let radius = size / 2;
-            let ctx = this.context;
+            let ctx: CanvasRenderingContext2D|null = this.context;
+            if (!ctx) return false;
 
             ctx.clearRect(0, 0, size, size);
             ctx.beginPath();
@@ -58,15 +71,24 @@
     }
 };
 
+type ColumnLogicType = {
+    expand: boolean;
+    mobile: boolean;
+    column: number;
+}
+
 /**
  * Logical combinator to calculate visibility and style of columns.
  */
-export const columnSize = ({ expand, mobile, column }) => {
+export const columnSize = ({ expand, mobile, column }: ColumnLogicType): boolean => {
     if (column === 0) {
         return !expand ? 1 : 0;
     } else if (column === 1) {
         return (expand || !mobile) ? 6 : 0;
     } else if (column === 2) {
         return !expand ? 3 : 0;
+    } else {
+        return false;
     }
+
 };

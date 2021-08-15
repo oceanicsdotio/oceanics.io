@@ -51,6 +51,7 @@ type TileType = {
     becomes: string[];
     dialog: string;
     description: string;
+    anchorHash?: string;
 };
 
 type ControlType = {
@@ -60,10 +61,10 @@ type ControlType = {
         oceanside: {
             tiles: TileType[];
         };
-    };
-    icons: {
         icons: {
-            icons: unknown[];
+            icons: {
+                icons: unknown[];
+            };
         };
     };
     worker: {
@@ -74,11 +75,12 @@ type ControlType = {
 const ControlPane: FC<ControlType> = ({
     className,
     search, 
-    worker: {worker}
+    worker: {worker},
     static: {
-    oceanside: {tiles},
-    icons: {icons},
-}}) => {
+        oceanside: {tiles},
+        icons: {icons},
+    }
+}) => {
     /**
     * Sorted items to render in interface
     */
@@ -88,14 +90,14 @@ const ControlPane: FC<ControlType> = ({
     * Use Web worker to do sorting
     */
     useEffect(() => {
-        if (worker.current) worker.current.sorted({icons, tiles}).then(setSorted);
+        if (!!(worker.current??false)) worker.current.sorted({icons, tiles}).then(setSorted);
     }, [ worker ]);
 
     /**
      * Clean up worker
      */
     useEffect(() => {
-        if (worker.current && sorted) worker.current.terminate();
+        if (!!((worker.current??false) && sorted)) worker.current.terminate();
     }, [ sorted ]);
 
 
