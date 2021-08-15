@@ -1,7 +1,7 @@
 /**
  * React and friends. 
  */
-import React, {FC, useMemo} from "react";
+import React, {useMemo} from "react";
 
 /**
  * Query for MDX frontmatter for references. No references can be added that aren't
@@ -20,7 +20,7 @@ const unpackCitations = (node) => node.frontmatter.citations
 /**
  * The page component to render
  */
-export default ({
+const Page = ({
     data: {
         allMdx: { nodes }
     },
@@ -30,10 +30,11 @@ export default ({
      * article frontmatter.
      */
     const references = useMemo(() => 
-        nodes.flatMap(unpackCitations).filter(filterNullish), [])
+        nodes.flatMap(unpackCitations).filter(filterNullish), [nodes])
 
     return <References citations={references}/>
 };
+export default Page;
 
 /**
  * GraphQL data provider

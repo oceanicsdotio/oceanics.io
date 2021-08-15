@@ -32,7 +32,7 @@ const ProviderComponents = {
     Inline
 };
 
-export default ({ 
+const Page = ({ 
     data: { 
         mdx: { 
             frontmatter,
@@ -48,7 +48,9 @@ export default ({
             </Article>
         </MDXProvider> 
     ) 
-  }
+  };
+
+export default Page;
 
 export const pageQuery = graphql`
   query ArticleBySlug($slug: String!) {

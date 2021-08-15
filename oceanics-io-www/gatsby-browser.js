@@ -18,8 +18,8 @@ import "oceanics-io-ui/src/styles/theme.css";
 /**
  * Stuff for bots and browsers
  */
-import Helmet from "react-helmet";
 import React from 'react';
+import Helmet from "react-helmet";
 import Layout from "oceanics-io-ui/src/components/Layout/Layout";
 import PageData from "oceanics-io-ui/src/components/Layout/Layout.json";
 
@@ -74,20 +74,15 @@ const metadata = ({ title, description, site: { siteMetadata } }) => [
     }
 ];
 
-/**
- * Inner wrap
- * 
- * Gatsby will use this `wrapPageElement` for SSR since we do 
- * not declare a separate file.
- */
-export const wrapPageElement = ({ element, props }) => {
+
+const Wrapper = ({element, props}) => {
     /**
      * Use GraphQL to to get fallback `title` and `description`. 
      */
-    const queryData = useStaticQuery(query);
+     const queryData = useStaticQuery(query);
 
-    return (
-        <Layout {...{ ...PageData, ...props }}>
+    return( 
+        <Layout {...{...PageData, ...props }}>
             <Helmet
                 htmlAttributes={{ lang: "en" }}
                 title={"Oceanics.io"}
@@ -97,4 +92,14 @@ export const wrapPageElement = ({ element, props }) => {
             {element}
         </Layout>
     )
+}
+
+/**
+ * Inner wrap
+ * 
+ * Gatsby will use this `wrapPageElement` for SSR since we do 
+ * not declare a separate file.
+ */
+export const wrapPageElement = ({ element, props }) => {
+    return  <Wrapper element={element} props={props}/>
 }

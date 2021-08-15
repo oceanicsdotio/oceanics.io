@@ -33,6 +33,7 @@
     "react-is": "^17.0.1",
     "react-router-dom": "^5.2.0",
     "react-typography": "^0.16.19",
+    "remark-math": "latest",
     "remark-parse": "^9.0.0",
     "typography": "^0.16.19"
   },

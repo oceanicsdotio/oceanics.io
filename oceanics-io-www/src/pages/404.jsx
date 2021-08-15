@@ -38,7 +38,7 @@ const CONTENT = {
 /**
  * Just a dumb functional component.
  */
-export default () => {
+const Page = () => {
     return (
         <>
             <NotFoundText>{CONTENT.message}</NotFoundText>
@@ -46,3 +46,5 @@ export default () => {
         </>
     )
 };
+
+export default Page;
