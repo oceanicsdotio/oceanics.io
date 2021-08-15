@@ -1,8 +1,0 @@
-- type: "email"
-  id: "email"
-  placeholder: "name@example.com"
-  required: true
-
-- id: "apiKey"
-  required: true
-  placeholder: "************"

@@ -21,10 +21,10 @@ import { MDXRenderer } from "gatsby-plugin-mdx";
 /**
  * Common layout
  */
-import References from "oceanics-io-ui/src/components/References/References";
-import Reference from "oceanics-io-ui/src/components/References/Reference"
-import Inline from "oceanics-io-ui/src/components/References/Inline";
-import Article from "oceanics-io-ui/src/components/References/Article";
+import References from "oceanics-io-ui/build/components/References/References";
+import Reference from "oceanics-io-ui/build/components/References/Reference"
+import Inline from "oceanics-io-ui/build/components/References/Inline";
+import Article from "oceanics-io-ui/build/components/References/Article";
 import Layout from "../components/Layout"
 
 const ProviderComponents = {

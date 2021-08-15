@@ -3,8 +3,8 @@
  */
 import React from 'react';
 import Helmet from "react-helmet";
-import BaseLayout from "oceanics-io-ui/src/components/Layout/Layout";
-import PageData from "oceanics-io-ui/src/components/Layout/PageData.json";
+import BaseLayout from "oceanics-io-ui/build/components/Layout/Layout";
+import PageData from "oceanics-io-ui/build/components/Layout/PageData.json";
 
 /**
  * Retrieve Gatsby data

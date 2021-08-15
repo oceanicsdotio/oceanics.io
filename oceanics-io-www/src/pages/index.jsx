@@ -11,9 +11,9 @@ import { graphql, navigate } from "gatsby";
 /**
  * Campaign component
  */
-import Campaign from "oceanics-io-ui/src/components/Campaign/Campaign";
+import Campaign from "oceanics-io-ui/build/components/Campaign/Campaign";
 import Layout from "../components/Layout";
-import Index from "oceanics-io-ui/src/components/References/Index";
+import Index from "oceanics-io-ui/build/components/References/Index";
 
 /**
  * Base component for web landing page.
