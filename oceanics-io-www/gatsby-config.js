@@ -20,35 +20,24 @@ module.exports = {
                 name: `assets`,
             },
         },
+        `gatsby-remark-images`,
+        `gatsby-remark-katex`,
+        `gatsby-remark-responsive-iframe`,
+        `gatsby-remark-copy-linked-files`,
+        `gatsby-remark-smartypants`,
         {
             resolve: `gatsby-plugin-mdx`,
             options: {
                 extensions: [".mdx", ".md"],
                 gatsbyRemarkPlugins: [
-                    {
-                        resolve: `gatsby-remark-images`,
-                        options: {
-                            maxWidth: 590,
-                        },
-                    },
-                    {
-                        resolve: `gatsby-remark-katex`,
-                        options: {
-                            strict: `ignore`
-                        }
-                    },
-                    {
-                        resolve: `gatsby-remark-responsive-iframe`,
-                        options: {
-                            wrapperStyle: `margin-bottom: 1.0725rem`,
-                        },
-                    },
+                    `gatsby-remark-images`,
+                    `gatsby-remark-katex`,
+                    `gatsby-remark-responsive-iframe`,
                     `gatsby-remark-copy-linked-files`,
                     `gatsby-remark-smartypants`,
                     {
                         resolve: `gatsby-remark-prismjs`,
                         options: {
-                        
                             classPrefix: "language-",
                             inlineCodeMarker: null,
                             aliases: {},
@@ -63,7 +52,6 @@ module.exports = {
         },
         `gatsby-transformer-sharp`,
         `gatsby-plugin-sharp`,
-        'gatsby-plugin-styled-components',
         {
             resolve: `gatsby-plugin-manifest`,
             options: {
@@ -77,11 +65,5 @@ module.exports = {
             },
         },
         `gatsby-plugin-react-helmet`,
-        {
-            resolve: `gatsby-plugin-create-client-paths`,
-            options: { prefixes: [`/catalog/*`] },
-        },
-        `gatsby-plugin-offline`,  // service worker implementation
-        `gatsby-transformer-yaml-full`
     ],
 }

@@ -21,11 +21,18 @@ import { MDXRenderer } from "gatsby-plugin-mdx";
 /**
  * Common layout
  */
-// import Rubric from "../components/Rubric";
-// import References, {Reference, Inline} from "../components/References";
-// import PDF from "../components/PDF";
-// import OpenApi from "../components/OpenApi";
-import Article from "oceanics-io-ui/src/components/References/Article"
+import Rubric from "oceanics-io-ui/src/components/Rubric/Rubric";
+import References from "oceanics-io-ui/src/components/References/References";
+import Reference from "oceanics-io-ui/src/components/References/Reference"
+import Inline from "oceanics-io-ui/src/components/References/Inline";
+import Article from "oceanics-io-ui/src/components/References/Article";
+
+const ProviderComponents = {
+    Rubric,
+    References,
+    Reference,
+    Inline
+};
 
 export default ({ 
     data: { 
@@ -37,7 +44,7 @@ export default ({
     }
 }) => {
     return (
-        <MDXProvider components={{}}>
+        <MDXProvider components={ProviderComponents}>
             <Article frontmatter={frontmatter} fields={fields} onClickTag={()=>()=>{}}>
                 <MDXRenderer>{body}</MDXRenderer>
             </Article>

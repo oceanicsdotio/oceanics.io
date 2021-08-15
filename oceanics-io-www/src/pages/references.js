@@ -13,23 +13,14 @@ import {graphql } from "gatsby";
  * Array of references component, no heading
  */
 import References from "oceanics-io-ui/src/components/References/References";
-import {ArticleType,ReferenceType} from "oceanics-io-ui/src/components/References/utils";
 
-type PageType = {
-    data: {
-        allMdx: {
-            nodes: ArticleType
-        }
-    }
-}
-
-const filterNullish = (x: ReferenceType): boolean => !!x;
-const unpackCitations = (node: ArticleType): ReferenceType[] => node.frontmatter.citations
+const filterNullish = (x) => !!x;
+const unpackCitations = (node) => node.frontmatter.citations
 
 /**
  * The page component to render
  */
-const ReferencesPage = ({
+export default ({
     data: {
         allMdx: { nodes }
     },
@@ -44,8 +35,6 @@ const ReferencesPage = ({
     return <References citations={references}/>
 };
 
-export default ReferencesPage;
-  
 /**
  * GraphQL data provider
  */
