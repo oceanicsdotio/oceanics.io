@@ -21,13 +21,14 @@ import { orange, ghost, shadow } from "../../palette";
 /**
  * Compile time type checking
  */
-type LocationType = {
+export type LocationType = {
     key: string,
-    className: string,
+    id: string,
+    className?: string,
     properties: {
         name: string,
-        nav_unit_n: string,
-        port_name: string
+        nav_unit_n?: string,
+        port_name?: string
     },
     coordinates: number[]
 }
@@ -73,11 +74,11 @@ export const Location = ({
      * Some jank that should get moved
      */
     useEffect(() => {
-        const title = name || nav_unit_n;
+        const title = name || (nav_unit_n ?? "");
         if (title) {
             setTitle(title);
-        } else if (typeof properties.port_name !== "undefined") {
-            setTitle(properties.port_name);
+        } else if (!!(properties.port_name ?? false)) {
+            setTitle(properties.port_name??"");
         } else if ("species" in properties) {
             setTitle("Sea farm");
         } else if ("yearSunk" in properties) {

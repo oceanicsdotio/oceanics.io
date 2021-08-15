@@ -2,11 +2,12 @@
  * React and friends
  */
 import React from 'react';
+import {Meta,Story} from "@storybook/react";
 
 /**
  * Base component
  */
-import LayerCard from './LayerCard';
+import LayerCard, { LayerType } from './LayerCard';
 
 import "../../styles/global.css";
 import "../../styles/theme.css";
@@ -17,7 +18,7 @@ import "../../styles/theme.css";
 export default {
     component: LayerCard,
     title: 'Catalog/LayerCard',
-}
+} as Meta;
 
 /**
  * Base case
@@ -25,7 +26,7 @@ export default {
  * @param {*} args 
  * @returns 
  */
-const Template = (args) => <LayerCard {...args} />;
+const Template: Story<LayerType> = (args) => <LayerCard {...args} />;
 
 /**
  * Default test case
@@ -41,5 +42,5 @@ Default.args = {
     zoomLevel: 10,
     attribution: "Oceanics.io",
     info: null,
-    onClick: null
+    onClick: ()=>{}
 };

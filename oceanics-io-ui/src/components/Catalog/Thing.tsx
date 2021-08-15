@@ -29,7 +29,7 @@ export type MeterType = {
  * TypeScript definition for inputs
  */
 export type ThingType = {
-    className: string,
+    className?: string,
     spec: {
         name: string,
         properties: {

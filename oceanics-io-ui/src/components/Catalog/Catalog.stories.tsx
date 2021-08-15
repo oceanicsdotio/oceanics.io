@@ -2,11 +2,12 @@
  * React and friends
  */
 import React from 'react';
+import { Meta, Story} from "@storybook/react";
 
 /**
  * Base component
  */
-import Catalog from './Catalog';
+import Catalog, {CatalogType} from './Catalog';
 
 import "../../styles/global.css";
 import "../../styles/theme.css";
@@ -17,15 +18,12 @@ import "../../styles/theme.css";
 export default {
     component: Catalog,
     title: 'Catalog/Catalog',
-}
+} as Meta;
 
 /**
  * Base case
- * 
- * @param {*} args 
- * @returns 
  */
-const Template = (args) => <Catalog {...args} />;
+const Template: Story<CatalogType> = (args) => <Catalog {...args} />;
 
 /**
  * Default test case

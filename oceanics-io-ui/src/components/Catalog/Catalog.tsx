@@ -13,7 +13,7 @@ import styled from "styled-components";
  */
 import LayerCard, {LayerType} from "./LayerCard";
 
-type CatalogType = {
+export type CatalogType = {
     geojson: LayerType[],
     className: string,
     zoomLevel: number,

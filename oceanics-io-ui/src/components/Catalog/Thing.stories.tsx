@@ -2,11 +2,11 @@
  * React and friends
  */
 import React from 'react';
-
+import {Meta, Story} from "@storybook/react"
 /**
  * Base component
  */
-import Thing from './Thing';
+import Thing, {ThingType} from './Thing';
 
 import "../../styles/global.css";
 import "../../styles/theme.css";
@@ -17,15 +17,12 @@ import "../../styles/theme.css";
 export default {
   component: Thing,
   title: 'Catalog/Thing',
-}
+} as Meta;
 
 /**
  * Base case
- * 
- * @param {*} args 
- * @returns 
  */
-const Template = (args) => <Thing {...args} />;
+const Template: Story<ThingType> = (args) => <Thing {...args} />;
 
 /**
  * Default test case
@@ -33,6 +30,7 @@ const Template = (args) => <Thing {...args} />;
 export const Default = Template.bind({});
 Default.args = {
     spec: {
+        name: "Observer X",
         properties: {
             meters: [{
                 name: "battery"

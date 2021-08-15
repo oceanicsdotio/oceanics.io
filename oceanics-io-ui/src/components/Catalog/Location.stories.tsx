@@ -2,11 +2,11 @@
  * React and friends
  */
 import React from 'react';
-
+import {Meta,Story} from "@storybook/react"
 /**
  * Base component
  */
-import Location from './Location';
+import Location, {LocationType} from './Location';
 
 import "../../styles/global.css";
 import "../../styles/theme.css";
@@ -17,29 +17,22 @@ import "../../styles/theme.css";
 export default {
     component: Location,
     title: 'Catalog/Location',
-}
+} as Meta;
 
 /**
  * Base case
- * 
- * @param {*} args 
- * @returns 
  */
-const Template = (args) => <Location {...args} />;
+const Template: Story<LocationType> = (args) => <Location {...args} />;
 
 /**
  * Default test case
  */
 export const Default = Template.bind({});
 Default.args = {
-    id: "a-layer",
-    url: "example.com",
-    type: "point",
-    component: "a component",
-    maxzoom: 20,
-    minzoom: 1,
-    zoomLevel: 10,
-    attribution: "Oceanics.io",
-    info: null,
-    onClick: null
+    key: "a-location",
+    properties: {
+        name: "Null Island",
+        nav_unit_n: "Null Island"
+    },
+    coordinates: [0,0]
 };
