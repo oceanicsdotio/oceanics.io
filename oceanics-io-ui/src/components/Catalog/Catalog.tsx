@@ -13,12 +13,6 @@ import styled from "styled-components";
  */
 import LayerCard, {LayerType} from "./LayerCard";
 
-/**
- * Predefined colors.
- */
-import { ghost, pink, grey } from "../../palette";
-
-
 type CatalogType = {
     geojson: LayerType[],
     className: string,
@@ -46,7 +40,7 @@ The props are the properties of the collection itself.
 Routes from here correspond to entities and 
 collections in the graph database.
  */
-const Catalog = ({geojson, className, zoomLevel, queue, setQueue}: CatalogType) => {
+const Catalog = ({geojson, className, zoomLevel, setQueue}: CatalogType) => {
    
     /**
      * List of collections to build selection from.

@@ -35,7 +35,7 @@ export const Example = Template.bind({});
 Example.args = { 
     data: {
         allMdx: {
-            nodes: nodes.map((node) => Object({...node, onClickTag: ()=>()=>{}})),
+            nodes,
             group: [{fieldValue: "shade"}, {fieldValue: 'data'}, {fieldValue: "things"}]
         }
     },
@@ -44,6 +44,8 @@ Example.args = {
         items:10,
         tag:"",
         reference:0,
-    }
-
+    },
+    onChangeSelect: ()=>{},
+    onClickMore: ()=>{},
+    onClickTag: ()=>()=>{}
 };

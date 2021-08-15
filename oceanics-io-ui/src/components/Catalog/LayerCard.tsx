@@ -1,12 +1,7 @@
 /**
  * React and friends.
  */
-import React, { MouseEventHandler, useMemo } from "react";
-
-/**
- * Runtime input type checking
- */
-import PropTypes from "prop-types";
+import React, { MouseEventHandler } from "react";
 
 /**
  * Component-level styling.

@@ -1,8 +1,3 @@
-/**
- * React and friends
- */
- import React from "react";
-
  /**
   * Component level styles
   */

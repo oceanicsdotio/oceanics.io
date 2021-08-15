@@ -30,7 +30,7 @@ type ActionType = {
     id: string;
     onClick: MouseEventHandler;
 };
-type FormType = {
+export type FormType = {
     id: string;
     className?: string;
     fields: FieldType[];

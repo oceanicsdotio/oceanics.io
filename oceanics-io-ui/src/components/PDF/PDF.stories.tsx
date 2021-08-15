@@ -36,8 +36,10 @@
           }}
     >
         {
+            
         Array.from(
             new Array(2),
+            // @ts-ignore
             (el, index) => (
             <Page
                 key={`page_${index + 1}`}

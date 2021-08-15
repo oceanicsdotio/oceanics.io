@@ -1,7 +1,7 @@
 /**
  * React and friends
  */
-import React,  {Fragment, useState, useEffect, ComponentType, useCallback} from "react";
+import React,  {Fragment, useState, useEffect, useCallback} from "react";
 
 /**
  * Component level styling
@@ -34,12 +34,12 @@ export const PopUpContent = ({
      * Array of unique species, created by parsing lease records and doing
      * some basic text processing.
      */
-    const [ species, setSpecies ] = useState(null);
+    // const [ species, setSpecies ] = useState(null);
 
     /**
      * Latitude and longitude.
      */
-    const [ center, setCenter ] = useState([0, 0]);
+    const [, setCenter ] = useState([0, 0]);
 
     /**
      * Set the species array.

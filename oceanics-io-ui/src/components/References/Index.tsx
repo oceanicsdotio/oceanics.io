@@ -13,7 +13,7 @@ import Select from "../Form/Select";
 /**
  * Typing and lookups
  */
-import { filterFrontmatter, ArticleType, IndexType } from "./utils";
+import { IndexType, PartialArticle } from "./utils";
 
 /**
  * Base component for web landing page.
@@ -28,13 +28,16 @@ const Index: FC<IndexType> = ({
             group
         }
     },
-    query
+    query,
+    onChangeSelect,
+    onClickTag,
+    onClickMore,
 }) => {
     /**
      * The array of visible articles. The initial value is the subset from 0 to
      * the increment constant. 
      */
-    const visible: ArticleType[] = useMemo(
+    const visible: PartialArticle[] = useMemo(
         //@ts-ignore
         () => {
             // const filter = filterFrontmatter(query);
@@ -45,14 +48,15 @@ const Index: FC<IndexType> = ({
 
     return (
         <div className={className}>
-            {visible.map((props: ArticleType) => <Stub {...props} />)}
+            {visible.map((props: PartialArticle) => 
+                <Stub onClickTag={onClickTag} {...props} />)}
             <Select 
                 id={"filter-by-tag"} 
                 options={group.map(({ fieldValue }) => fieldValue)}
                 name={"Select tag"}
-                onChange={()=>{}}
+                onChange={onChangeSelect}
             />
-            <Button onClick={()=>{}}>{"More arcana"}</Button>
+            <Button onClick={onClickMore}>{"More arcana"}</Button>
         </div>
     )
 };

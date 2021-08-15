@@ -1,4 +1,4 @@
-import {MouseEventHandler} from "react";
+import {MouseEventHandler, ChangeEventHandler} from "react";
 /**
  * Inputs to hashing/uniqueId function
  */
@@ -44,11 +44,13 @@ export type FrontmatterType = {
 /**
  * Article with data and metadata
  */
-export type ArticleType = StyledType & {
+export type PartialArticle = {
     frontmatter: FrontmatterType;
     fields: {
         slug: string;
     };
+}
+export type ArticleType = StyledType & PartialArticle & {
     onClickTag: (arg0: string) => MouseEventHandler;
 };
 
@@ -72,11 +74,14 @@ export type GroupType = {
 export type IndexType = StyledType & {
     data: {
         allMdx: {
-            nodes: ArticleType[];
+            nodes: PartialArticle[];
             group: GroupType[];
         }
     };
     query: QueryType;
+    onChangeSelect: ChangeEventHandler<HTMLSelectElement>;
+    onClickTag: (tag: string) => MouseEventHandler<HTMLInputElement>;
+    onClickMore: MouseEventHandler<HTMLButtonElement>;
 };
 
 /**
