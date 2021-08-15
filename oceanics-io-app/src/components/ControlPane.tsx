@@ -90,14 +90,16 @@ const ControlPane: FC<ControlType> = ({
     * Use Web worker to do sorting
     */
     useEffect(() => {
-        if (!!(worker.current??false)) worker.current.sorted({icons, tiles}).then(setSorted);
+        // @ts-ignore
+        if (worker.current) worker.current.sorted({icons, tiles}).then(setSorted);
     }, [ worker ]);
 
     /**
      * Clean up worker
      */
     useEffect(() => {
-        if (!!((worker.current??false) && sorted)) worker.current.terminate();
+        // @ts-ignore
+        if (worker.current) worker.current.terminate();
     }, [ sorted ]);
 
 
