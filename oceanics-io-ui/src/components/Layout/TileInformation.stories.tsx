@@ -40,5 +40,5 @@ Default.args = {
         queryString: "",
         grayscale: false
     }, 
-    search: ""
+    query: {}
 };

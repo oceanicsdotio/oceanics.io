@@ -44,7 +44,7 @@ import TileInformation, {TileType} from "oceanics-io-ui/build/components/Layout/
 
 type ControlType = {
     className?: string;
-    search: string;
+    query: object;
     static: {
         oceanside: {
             tiles: TileType[];
@@ -62,7 +62,7 @@ type ControlType = {
 
 const ControlPane: FC<ControlType> = ({
     className,
-    search, 
+    query, 
     worker: {worker},
     static: {
         oceanside: {tiles},
@@ -94,7 +94,7 @@ const ControlPane: FC<ControlType> = ({
     return <div className={className}>
         <img className={"logo"} src={"/dagan-mad.gif"}/>
         {(sorted||[]).map(({tile}: TileType) => 
-            <TileInformation key={tile.anchorHash} tile={tile} search={search}/>)}
+            <TileInformation key={tile.anchorHash} tile={tile} query={query}/>)}
     </div>
 }
 
