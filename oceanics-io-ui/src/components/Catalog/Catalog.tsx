@@ -1,7 +1,7 @@
 /**
  * react and friends
  */
-import React from "react";
+import React, {Dispatch, SetStateAction} from "react";
 
 /**
  * Component level styling
@@ -14,11 +14,11 @@ import styled from "styled-components";
 import LayerCard, {LayerType} from "./LayerCard";
 
 export type CatalogType = {
-    geojson: LayerType[],
-    className: string,
-    zoomLevel: number,
-    queue: LayerType[],
-    setQueue: Function,
+    geojson: LayerType[];
+    className?: string;
+    zoomLevel: number;
+    queue: LayerType[];
+    setQueue: Dispatch<SetStateAction<LayerType[]>>;
 }
 
 /**

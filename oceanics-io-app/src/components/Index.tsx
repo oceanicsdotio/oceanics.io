@@ -8,13 +8,11 @@ import React, { useMemo, FC, RefObject } from "react";
  */
 import styled from "styled-components";
 
-
-import { AnyLayer } from "mapbox-gl";
-
 /**
  * Container for MapboxGL feature content. Rendered client-side.
  */
 import Catalog from "oceanics-io-ui/build/components/Catalog/Catalog";
+import {LayerType} from "oceanics-io-ui/build/components/Catalog/LayerCard";
 import Pane from "./Pane";
 import {columnSize} from "../utils";
 
@@ -46,12 +44,14 @@ type ApplicationType = {
         };
     };
     channels: {
-        geojson: AnyLayer[];
+        geojson: LayerType[];
     };
     expand: boolean;
     mapbox: {
         accessToken: string;
-        defaults: object;
+        defaults: {
+            zoom: number;
+        };
     };
     query: object;
 };
@@ -97,7 +97,7 @@ const AppPage: FC<ApplicationType> = ({
                 setQueue={setQueue} 
             />
         ]
-    }, [ref, ]);
+    }, [ref]);
 
     return <div className={className}>
         {panes.map((children: JSX.Element, index: number) => (

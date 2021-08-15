@@ -12,7 +12,9 @@ import "mapbox-gl/dist/mapbox-gl.css";
 type HookProps = {
     expand: boolean;
     accessToken: string;
-    defaults: object;
+    defaults: {
+        zoom: number;
+    };
 }
 
 /**
@@ -64,7 +66,7 @@ const useMapBox = ({
     }, [ref]);
 
 
-    const [zoom, setZoom] = useState<number | null>(null);
+    const [zoom, setZoom] = useState<number>(defaults.zoom);
 
     /**
     * Add a zoom handler to the map
