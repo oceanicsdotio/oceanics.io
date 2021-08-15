@@ -31,13 +31,14 @@ export default ({
     data: { 
         mdx: { 
             frontmatter,
-            body
+            body,
+            fields
         }
     }
 }) => {
     return (
         <MDXProvider components={{}}>
-            <Article {...frontmatter}>
+            <Article frontmatter={frontmatter} fields={fields} onClickTag={()=>()=>{}}>
                 <MDXRenderer>{body}</MDXRenderer>
             </Article>
         </MDXProvider> 
@@ -57,6 +58,9 @@ export const pageQuery = graphql`
         citations {
             authors, year, title, journal, volume, pageRange
         }
+      }
+      fields {
+        slug
       }
     }
   }

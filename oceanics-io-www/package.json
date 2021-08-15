@@ -8,7 +8,6 @@
     "@babel/plugin-syntax-import-meta": "^7.10.1",
     "@mdx-js/mdx": "^1.6.21",
     "@mdx-js/react": "^1.6.21",
-    "@wasm-tool/wasm-pack-plugin": "^1.3.3",
     "babel-plugin-styled-components": "^1.12.0",
     "babel-plugin-syntax-dynamic-import": "^6.18.0",
     "babel-preset-gatsby": "^1.9.0",
@@ -81,9 +80,6 @@
     "develop-no-cache": "rm -rf .cache && GATSBY_GRAPHQL_IDE=playground gatsby develop",
     "serve": "gatsby serve",
     "clean": "gatsby clean",
-    "cargo-doc": "cargo doc --no-deps --document-private-items --open",
-    "compile": "wasm-pack build --out-dir src/wasm --dev --target bundler --no-typescript && rm src/wasm/.gitignore",
-    "compile:node": "wasm-pack build --out-dir src/wasm/node --target nodejs --no-typescript && rm src/wasm/node/.gitignore",
     "start:fcns": "netlify-lambda serve functions -c ./webpack.config.js",
     "build:fcns": "netlify-lambda build functions -c ./webpack.config.js"
   },

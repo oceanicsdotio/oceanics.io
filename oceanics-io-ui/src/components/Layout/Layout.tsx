@@ -19,11 +19,6 @@ import { pink, ghost, orange } from "../../palette";
 import { rhythm } from "../../typography";
 
 /**
- * YAML parser
- */
-import YAML from "yaml";
-
-/**
  * The NavBar is a <nav> element that displays links or buttons
  * as a horizontal bar with the current choise styled
  * prominently.
@@ -53,14 +48,6 @@ export const NavBar = styled.nav`
     }
 `;
 
-/**
- * Internal link
- */
-const SiteLink = styled.a`
-    color: ${({color})=>color};
-    font-size: x-large;
-`;
-
 /** 
  * Internal link, emphasized
  */
@@ -71,40 +58,20 @@ export const Title = styled.a`
     padding: 0;
 `;
 
-type LinkType = {
-    label: string,
-    href: string
-}
-
 export type LayoutType = {
     children: any;
     className?: string;
     expand: boolean;
-}
-
-type StaticDataType = {
     title: string;
-    site: LinkType[];
-    footer: {
-        links: LinkType[];
-    };
     policy: string;
 }
-
-
-import LayoutData from "js-yaml-loader!./Layout.yml";
-
     
 export const Layout: FC<LayoutType> = ({ 
     children,
     className,
+    title,
+    policy
 }) => {
-
-    const {
-        title,
-        policy,
-    }: StaticDataType = LayoutData;
-
     const _policy = useMemo(
         () => policy.split("\n").filter((x: string) => x), []
     );

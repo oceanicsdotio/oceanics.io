@@ -38,8 +38,11 @@ const CONTENT = {
 /**
  * Just a dumb functional component.
  */
-export default () => 
-    <>
-        <NotFoundText>{CONTENT.message}</NotFoundText>
-        <NotFoundImage src={CONTENT.img}/>
-    </>;
+export default () => {
+    return (
+        <>
+            <NotFoundText>{CONTENT.message}</NotFoundText>
+            <NotFoundImage src={CONTENT.img}/>
+        </>
+    )
+};

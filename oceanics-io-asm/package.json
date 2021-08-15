@@ -1,0 +1,37 @@
+{
+  "name": "oceanics-io-asm",
+  "description": "Blue computing",
+  "version": "0.1.0",
+  "author": "Oceanicsdotio <business@oceanics.io>",
+  "dependencies": {
+    "@babel/core": "^7.13.14",
+    "@babel/plugin-syntax-import-meta": "^7.10.1",
+    "@wasm-tool/wasm-pack-plugin": "^1.3.3",
+    "babel-plugin-styled-components": "^1.12.0",
+    "babel-plugin-syntax-dynamic-import": "^6.18.0",
+    "js-yaml-loader": "^1.2.2",
+    "katex": "^0.13.11",
+    "oceanics-io-ui": "workspace:*",
+    "openapi-types": ">=7",
+    "pluralize": "^8.0.0",
+    "prismjs": "^1.24.1",
+    "prop-types": "^15.7.2",
+    "uuid": "^8.3.2",
+    "xmldom": "^0.5.0",
+    "yaml": "^1.10.2"
+  },
+  "devDependencies": {
+    "babel-loader": "^8.2.2",
+    "eslint": "^7.23.0",
+    "eslint-plugin-react-hooks": "^4.2.0",
+    "gatsby-plugin-workerize-loader": "^1.5.0",
+    "prettier": "^2.2.1"
+  },
+  "license": "MIT",
+  "main": "n/a",
+  "scripts": {
+    "cargo-doc": "cargo doc --no-deps --document-private-items --open",
+    "compile": "wasm-pack build --out-dir src/wasm --dev --target bundler --no-typescript && rm src/wasm/.gitignore",
+    "compile:node": "wasm-pack build --out-dir src/wasm/node --target nodejs --no-typescript && rm src/wasm/node/.gitignore"
+  }
+}

@@ -52,7 +52,7 @@ export const Article: FC<ArticleType> = ({
         <article className={className}>
             <header>
                 <h1>{title}</h1>
-                {tags.map((tag: string) =>
+                {(tags??[]).map((tag: string) =>
                     <a key={`${slug}-${tag}`} onClick={onClickTag(tag)}>{tag}</a>
                 )}
                 <span>{date}</span>

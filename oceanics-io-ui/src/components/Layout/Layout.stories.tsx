@@ -7,6 +7,7 @@ import React from 'react';
  * Base component
  */
 import Layout, {LayoutType} from './Layout';
+import PageData from "./Layout.json";
 
 /**
  * Typescript support
@@ -33,4 +34,6 @@ const Template: Story<LayoutType> = (args: LayoutType) => <Layout {...args} />;
  * Default test case
  */
 export const Default = Template.bind({});
-Default.args = {};
+Default.args = {
+    ...PageData
+};

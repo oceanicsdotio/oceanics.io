@@ -14,11 +14,6 @@ const express = require(`express`);
 const { createFilePath } = require(`gatsby-source-filesystem`);
 
 /**
- * Helper for building WASM during develop/build
- */
-const WasmPackPlugin = require(`@wasm-tool/wasm-pack-plugin`);
-
-/**
  * There is a known problem with `gatsby develop` not picking up html files in the
  * public directory correctly. Build should work fine, and therefore NOT need a netlify
  * redirect, which we were using. 

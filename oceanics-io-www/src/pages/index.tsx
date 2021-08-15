@@ -13,23 +13,34 @@ import { graphql, navigate, PageProps } from "gatsby";
  */
 import Campaign from "oceanics-io-ui/src/components/Campaign/Campaign";
 import Index from "oceanics-io-ui/src/components/References/Index";
+import {ArticleType} from "oceanics-io-ui/src/components/References/utils";
 
+type GroupType = {
+    fieldValue: string;
+    totalCount: number;
+};
+type PageType = {
+    data: {
+        allMdx: {
+            nodes: ArticleType[];
+            group: GroupType[];
+        }
+    };
+    location: {
+        search: string;
+    }
+};
 
 /**
  * Base component for web landing page.
  * 
  * Optionally use query parameters and hash anchor to filter content. 
  */
-const Home = ({
-    data: {
-        allMdx: {
-            nodes,
-            group
-        }
-    },
+const Home: FC<PageType> = ({
     location: {
         search
-    }
+    },
+    ...props
 }) => {
     /**
      * Search string query parameters
@@ -52,7 +63,7 @@ const Home = ({
     return (
         <>
             <Campaign navigate={navigate}/>
-            <Index query={query} nodes={nodes} group={group}/>
+            <Index query={query} {...props}/>
         </>
     )
 };

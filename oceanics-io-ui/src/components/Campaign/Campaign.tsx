@@ -21,8 +21,7 @@ import Button from "../Form/Button";
 /**
  * Page data
  */
-// @ts-ignore
-import PageData from "js-yaml-loader!./Campaign.yml";
+import PageData from "./Campaign.json";
 
 type CampaignType = {
     callToAction: string;
