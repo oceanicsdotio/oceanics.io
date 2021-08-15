@@ -6,7 +6,7 @@ import React, { useState, useEffect, RefObject, FC } from "react";
 /**
  * Icon rendering
  */
-import TileInformation from "oceanics-io-ui/build/components/Layout/TileInformation";
+import TileInformation, {TileType} from "oceanics-io-ui/build/components/Layout/TileInformation";
 
 /**
  * Query for icons and info
@@ -41,18 +41,6 @@ import TileInformation from "oceanics-io-ui/build/components/Layout/TileInformat
 //     }
 // `;
 
-type TileType = {
-    data: string;
-    spriteSheet: string;
-    name: string;
-    value: number;
-    probability: number;
-    cost: number;
-    becomes: string[];
-    dialog: string;
-    description: string;
-    anchorHash?: string;
-};
 
 type ControlType = {
     className?: string;
@@ -84,7 +72,7 @@ const ControlPane: FC<ControlType> = ({
     /**
     * Sorted items to render in interface
     */
-    const [ sorted, setSorted ] = useState<unknown[]|null>(null);
+    const [ sorted, setSorted ] = useState<TileType[]>([]);
 
     /**
     * Use Web worker to do sorting
@@ -105,7 +93,8 @@ const ControlPane: FC<ControlType> = ({
 
     return <div className={className}>
         <img className={"logo"} src={"/dagan-mad.gif"}/>
-        {(sorted||[]).map((tile) => <TileInformation key={tile.anchorHash} tile={tile} search={search}/>)}
+        {(sorted||[]).map(({tile}: TileType) => 
+            <TileInformation key={tile.anchorHash} tile={tile} search={search}/>)}
     </div>
 }
 

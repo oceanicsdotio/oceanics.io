@@ -24,7 +24,7 @@ export type TileType = {
         grayscale: boolean
     }, 
     className?: string,
-    search: string
+    query: object
 }
 
 /**
@@ -56,10 +56,11 @@ TileInformation.propTypes = {
     tile: PropTypes.shape({
         publicURL: PropTypes.string.isRequired, 
         anchorHash: PropTypes.string.isRequired,
-        queryString: PropTypes.string,
-    }), 
+        queryString: PropTypes.string.isRequired,
+        grayscale: PropTypes.bool.isRequired
+    }).isRequired, 
     className: PropTypes.string,
-    search: PropTypes.string
+    query: PropTypes.object.isRequired
 }
 
 
