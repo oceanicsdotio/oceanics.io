@@ -3,7 +3,7 @@
  */
 import React from 'react';
 import Helmet from "react-helmet";
-import Layout as BaseLayout from "oceanics-io-ui/src/components/Layout/Layout";
+import BaseLayout from "oceanics-io-ui/src/components/Layout/Layout";
 import PageData from "oceanics-io-ui/src/components/Layout/Layout.json";
 
 /**
@@ -73,7 +73,7 @@ const Layout = ({ children, ...props }) => {
                 titleTemplate={`%s | Oceanics.io`}
                 meta={metadata(queryData)}
             />
-            {element}
+            {children}
         </BaseLayout>
     )
 }
