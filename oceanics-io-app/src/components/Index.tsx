@@ -16,18 +16,26 @@ import { Popup } from "mapbox-gl";
  * Container for MapboxGL feature content. Rendered client-side.
  */
 import PopUpContent from "oceanics-io-ui/build/components/Catalog/PopUpContent";
-import Catalog from "oceanics-io-ui/build/components/Catalog/Catalog"
+import Catalog from "oceanics-io-ui/build/components/Catalog/Catalog";
+import Pane from "./Pane";
+import {pulsingDot, columnSize} from "../utils";
 
 /**
  * Dedicated Worker loader.
  */
-import useWasmWorkers from "../hooks/useWasmWorkers";
-import useFragmentQueue from "../hooks/useFragmentQueue";
+// import useWasmWorkers from "../hooks/useWasmWorkers";
+// import useFragmentQueue from "../hooks/useFragmentQueue";
+// @ts-ignore
 import useMapBox from "../hooks/useMapBox";
 import ControlPane from "../components/ControlPane";
 
 
+type LayerType = {
+    
+}
+
 type ApplicationType = {
+    className?: string;
     location: {
         search: string;
     };
@@ -36,15 +44,20 @@ type ApplicationType = {
         worker: RefObject<any>;
         status: {
             ready: boolean;
-        }
-    }
-}
+        };
+    };
+    channels: {
+        geojson: unknown;
+    };
+};
+    
 
 
 /**
  * Page component rendered by GatsbyJS.
  */
 const AppPage: FC<ApplicationType> = ({
+    className,
     mobile,
     location: {
         search
@@ -52,12 +65,15 @@ const AppPage: FC<ApplicationType> = ({
     worker: {
         worker,
         status
+    },
+    channels: {
+        geojson
     }
 }) => {
     /**
      * Set map full screen
      */
-    const [expand, setExpand] = useState(false);
+    const [expand, setExpand] = useState<boolean>(false);
 
     /**
      * MapBoxGL Map instance is saved to React state. 
@@ -75,12 +91,12 @@ const AppPage: FC<ApplicationType> = ({
     /**
      * Data sets to queue and build layers from.
      */
-    const [queue, setQueue] = useState([]);
+    const [queue, setQueue] = useState<unknown[]>([]);
 
     /**
      * Reorder data sets as they are added.
      */
-    const [channelOrder, setChannelOrder] = useState([]);
+    const [channelOrder, setChannelOrder] = useState<string[]>([]);
 
     /**
      * Task the web worker with loading and transforming data to add
@@ -90,12 +106,12 @@ const AppPage: FC<ApplicationType> = ({
         if (!map || !queue || !worker.current || !status.ready) return;
 
 
-        const callback = (id, source, layer, onClick) => {
+        const callback = (id: string, source: string, layer: object, onClick: MouseEventHandler) => {
             map.addLayer({ id, source, ...layer });
             if (onClick) map.on('click', id, onClick);
         }
 
-        queue.filter(x => !map.getLayer(x)).forEach(({
+        queue.filter((x: string): boolean => !map.getLayer(x)).forEach(({
             id,
             behind,
             standard = "geojson",
@@ -107,7 +123,7 @@ const AppPage: FC<ApplicationType> = ({
 
             setChannelOrder([...channelOrder, [id, behind]]);
 
-            worker.current.getData(url, standard).then(source => {
+            worker.current.getData(url, standard).then((source: object) => {
 
                 if (attribution) source.attribution = attribution;
 
@@ -147,10 +163,7 @@ const AppPage: FC<ApplicationType> = ({
                 }
 
                 callback(id, source, layer, onClick);
-
-            }).catch(err => {
-                console.log(`Error loading ${id}`, err);
-            });
+            }).catch(console.error);
         });
 
     }, [queue, worker.current, status]);
@@ -174,7 +187,7 @@ const AppPage: FC<ApplicationType> = ({
      */
     useEffect(() => {
         if (!map || !worker.current || !location) return;
-
+        // @ts-ignore
         worker.current.userLocation([
             location.coords.longitude,
             location.coords.latitude
@@ -187,8 +200,8 @@ const AppPage: FC<ApplicationType> = ({
      * Pan to user location immediately.
      */
     useEffect(() => {
-        if (map && location)
-            map.panTo([location.coords.longitude, location.coords.latitude]);
+        if (!map || !location) return;
+        map.panTo([location.coords.longitude, location.coords.latitude]);
     }, [location, map]);
 
     /**
@@ -209,27 +222,42 @@ const AppPage: FC<ApplicationType> = ({
 
 
     return <div className={className} {...{ mobile, expand }}>
-        <div
+        <Pane
             row={0}
             column={0}
-            display={!columnSize({ expand, mobile, column: 0 }) ? "none" : undefined}
+            expand={expand}
+            mobile={mobile}
         >
-            <ControlPane search={search} />
-        </div>
-        <div
+            <ControlPane 
+                search={search}
+                worker={{worker: {current: null}}}
+                static={{
+                    oceanside: {tiles},
+                    icons: {icons}
+                }}
+            />
+        </Pane>
+        <Pane
             row={0}
             column={1}
-            display={!columnSize({ expand, mobile, column: 1 }) ? "none" : undefined}
+            expand={expand}
+            mobile={mobile}
         >
-            <StyledMap ref={ref} />
-        </div>
-        <div
-            display={!columnSize({ expand, mobile, column: 2 }) ? "none" : undefined}
-            row={0}
-            column={2}
+            <div ref={ref} />
+        </Pane>
+        <Pane
+           row={0}
+           column={2}
+           expand={expand}
+           mobile={mobile}
         >
-            <Catalog geojson={geojson} zoomLevel={zoom} queue={queue} setQueue={setQueue} />
-        </div>
+            <Catalog 
+                geojson={geojson}
+                zoomLevel={zoom} 
+                queue={queue} 
+                setQueue={setQueue} 
+            />
+        </Pane>
     </div>
 };
 
@@ -240,7 +268,7 @@ const StyledIndex = styled(AppPage)`
 
     display: grid;
     grid-gap: 0;
-    grid-template-columns: ${props =>
+    grid-template-columns: ${(props: ApplicationType): string =>
         `${columnSize({ ...props, column: 0 })}fr ${columnSize({ ...props, column: 1 })}fr`
     };
     grid-auto-rows: minmax(5rem, auto);
@@ -255,48 +283,6 @@ const StyledIndex = styled(AppPage)`
         width: 90%;
         margin: auto;
     }
-
-`;
-
-
-/**
- * App component is the container for the grid/column
- * view of interface elements, depending on whether the user is
- * on desktop or mobile.
- * 
- * There is no tablet specific view at this time. 
- */
- const App = styled.div`
- display: grid;
- grid-gap: 0;
- grid-template-columns: ${props =>
-     `auto ${columnSize({ ...props, column: 1 })}fr ${columnSize({ ...props, column: 2 })}fr`
- };
- grid-auto-rows: minmax(5rem, auto);
- margin: 0;
- padding: 0;
- height: 100vh;
- width: auto;
- overflow-y: clip;
-`;
-
-/**
-* The div component holds one or more Mini-Apps.
-*/
-const div = styled.div`
- display: ${({ display }) => display};
- grid-row: ${({ row }) => row + 1};
- grid-column: ${({ column }) => column + 1};
- overflow-x: hidden;
- overflow-y: ${({ column }) => column !== 1 ? undefined : "hidden"};
- min-height: 100vh;
- bottom: 0;
- background-color: ${charcoal};
-
- & .logo {
-     width: 100%;
-     image-rendering: crisp-edges;
- }
 `;
 
 export default StyledIndex;

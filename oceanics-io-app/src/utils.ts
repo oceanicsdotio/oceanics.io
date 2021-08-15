@@ -8,7 +8,7 @@ export type RenderInstance = {
     data: Uint8Array;
     context: CanvasRenderingContext2D|null;
     onAdd: () => void;
-    render: () => bool;
+    render: () => boolean;
 }
 
 /**
@@ -59,12 +59,12 @@ export type RenderInstance = {
             ctx.stroke();
 
             // update this image's data with data from the canvas
-            this.data = ctx.getImageData(
+            this.data = new Uint8Array(ctx.getImageData(
                 0,
                 0,
                 size,
                 size
-            ).data;
+            ).data);
 
             return true;
         }
@@ -80,7 +80,7 @@ type ColumnLogicType = {
 /**
  * Logical combinator to calculate visibility and style of columns.
  */
-export const columnSize = ({ expand, mobile, column }: ColumnLogicType): boolean => {
+export const columnSize = ({ expand, mobile, column }: ColumnLogicType): number => {
     if (column === 0) {
         return !expand ? 1 : 0;
     } else if (column === 1) {
@@ -88,7 +88,7 @@ export const columnSize = ({ expand, mobile, column }: ColumnLogicType): boolean
     } else if (column === 2) {
         return !expand ? 3 : 0;
     } else {
-        return false;
+        return 0;
     }
 
 };

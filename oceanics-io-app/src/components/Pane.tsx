@@ -15,7 +15,7 @@ type PaneType = {
     column: number;
     expand: boolean;
     mobile: boolean;
-    className: string;
+    className?: string;
 }
 
 /**

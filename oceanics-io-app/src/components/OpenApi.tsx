@@ -18,7 +18,7 @@ export type ApiType = {
  */
 const OpenApi: FC<ApiType> = ({
     specUrl,
-    service,
+    // service,
     scrapeIndexPage,
     worker,
 }) => {
@@ -26,7 +26,7 @@ const OpenApi: FC<ApiType> = ({
       * OpenAPI spec structure will be populated asynchronously once the 
       * web worker is available.
       */
-     const [apiSpec, setApiSpec] = useState(null); 
+     const [apiSpec, setApiSpec] = useState<object|null>(null); 
  
      /**
       * Hook loads and parses an OpenAPI spec from a URL using a
@@ -37,28 +37,29 @@ const OpenApi: FC<ApiType> = ({
       * is calculated for UI. 
       */
      useEffect(() => {
-         if (worker.current) 
-             worker.current.load(specUrl).then(setApiSpec);
+         // @ts-ignore
+         if (worker.current) worker.current.load(specUrl).then(setApiSpec);
      },[ worker ]);
  
      /**
       * API routes to convert to forms.
       */
-     const [ methods, setMethods ] = useState([]);
+     const [, setMethods ] = useState([]);
  
      /**
       * Extract and flatten the paths and methods.
       */
      useEffect(() => {
-         if (apiSpec) 
-             worker.current.flattenSpecOperations(apiSpec.paths).then(setMethods);
+         if (!apiSpec) return;
+         // @ts-ignore
+         worker.current.flattenSpecOperations(apiSpec.paths).then(setMethods);
      }, [ apiSpec ]);
  
      /**
       * Collections are scraped from available implementations
       * of the API listed in the `servers` block.
       */
-     const [ index, setIndex ] = useState(null);
+     const [, setIndex ] = useState<object|null>(null);
      
      /**
       * Hook gets any existing configurations from the API 
@@ -68,28 +69,17 @@ const OpenApi: FC<ApiType> = ({
       * from the `servers` object of the OpenAPI specification.
       */
      useEffect(() => {
-         if (scrapeIndexPage && apiSpec)
-             worker.current.scrapeIndexPage(apiSpec.servers[0].url).then(setIndex);    
+         if (!scrapeIndexPage ||  !apiSpec) return;
+         // @ts-ignore
+        worker.current.scrapeIndexPage(apiSpec.servers[0].url).then(setIndex);    
      }, [ apiSpec ]);
     
-    return <div> 
-        {
-            !apiSpec ? 
-            <Placeholder>{`Loading ${specUrl}...`}</Placeholder> :
-            <Header info={apiSpec.info}/>
-        }
-        <div>
-        {
-            !methods ? 
-            <Placeholder>{`Loading methods...`}</Placeholder> :
-            methods.map(props => 
-                <StyledOperation {...{
-                    key: props.path+props.method, 
-                    service: service,
-                    ...props
-                }}/>
-            )
-        }
+    return (
+        <div> 
+            <Placeholder>{`Loading ${specUrl}...`}</Placeholder> 
+            <Placeholder>{`Loading methods...`}</Placeholder>
         </div>
-    </div> 
+    )
 }
+
+export default OpenApi;
