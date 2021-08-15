@@ -8968,7 +8968,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"core-js@npm:^3.9.0":
+"core-js@npm:^3.16.1, core-js@npm:^3.9.0":
   version: 3.16.1
   resolution: "core-js@npm:3.16.1"
   checksum: d54dfe6518910ab10f9e0d561b51c00474ba4cca5a0502bd798c4de5abc68e6c9a84d119add374e2c06d493841f80b0934919ef64610df0cf80d1a7a0751b0c0
@@ -13264,6 +13264,55 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
+"gatsby-plugin-mdx@npm:latest":
+  version: 2.11.0
+  resolution: "gatsby-plugin-mdx@npm:2.11.0"
+  dependencies:
+    "@babel/core": ^7.14.6
+    "@babel/generator": ^7.14.5
+    "@babel/helper-plugin-utils": ^7.14.0
+    "@babel/plugin-proposal-object-rest-spread": ^7.14.7
+    "@babel/preset-env": ^7.14.7
+    "@babel/preset-react": ^7.14.0
+    "@babel/types": ^7.14.5
+    camelcase-css: ^2.0.1
+    change-case: ^3.1.0
+    core-js: ^3.6.5
+    dataloader: ^1.4.0
+    debug: ^4.3.1
+    escape-string-regexp: ^1.0.5
+    eval: ^0.1.4
+    fs-extra: ^8.1.0
+    gatsby-core-utils: ^2.11.0
+    gray-matter: ^4.0.2
+    json5: ^2.1.3
+    loader-utils: ^1.4.0
+    lodash: ^4.17.21
+    mdast-util-to-string: ^1.1.0
+    mdast-util-toc: ^3.1.0
+    mime: ^2.4.6
+    p-queue: ^6.6.2
+    pretty-bytes: ^5.3.0
+    remark: ^10.0.1
+    remark-retext: ^3.1.3
+    retext-english: ^3.0.4
+    slugify: ^1.4.4
+    static-site-generator-webpack-plugin: ^3.4.2
+    style-to-object: ^0.3.0
+    underscore.string: ^3.3.5
+    unified: ^8.4.2
+    unist-util-map: ^1.0.5
+    unist-util-remove: ^1.0.3
+    unist-util-visit: ^1.4.1
+  peerDependencies:
+    "@mdx-js/mdx": ^1.0.0
+    "@mdx-js/react": ^1.0.0
+    react: ^16.9.0 || ^17.0.0
+    react-dom: ^16.9.0 || ^17.0.0
+  checksum: ac323f1713525bf952ff74f116480a469280d0a14645390cbfc3d787197285efc750d7b2b8acec0b0a673e739ce122946dd12f65b540de8c8dafa7100a1991db
+  languageName: node
+  linkType: hard
+
 "gatsby-plugin-page-creator@npm:^2.10.2":
   version: 2.10.2
   resolution: "gatsby-plugin-page-creator@npm:2.10.2"
@@ -13352,6 +13401,37 @@ fsevents@^1.2.7:
   peerDependencies:
     gatsby: ">2.0.15"
   checksum: 99dd28589d812fc69b5de1073a49ca6feb0b384b28dcf6a3904862283c18e320d70a12f6ed0617333aaa343bdde5119b2437ac62364d65e207af689d97d7fb39
+  languageName: node
+  linkType: hard
+
+"gatsby-plugin-sharp@npm:latest":
+  version: 3.11.0
+  resolution: "gatsby-plugin-sharp@npm:3.11.0"
+  dependencies:
+    "@babel/runtime": ^7.14.6
+    async: ^3.2.0
+    bluebird: ^3.7.2
+    filenamify: ^4.2.0
+    fs-extra: ^9.1.0
+    gatsby-core-utils: ^2.11.0
+    gatsby-plugin-utils: ^1.11.0
+    gatsby-telemetry: ^2.11.0
+    got: ^10.7.0
+    imagemin: ^7.0.1
+    imagemin-mozjpeg: ^9.0.0
+    imagemin-pngquant: ^9.0.1
+    lodash: ^4.17.21
+    mini-svg-data-uri: ^1.2.3
+    potrace: ^2.1.8
+    probe-image-size: ^6.0.0
+    progress: ^2.0.3
+    semver: ^7.3.4
+    sharp: ^0.28.3
+    svgo: 1.3.2
+    uuid: 3.4.0
+  peerDependencies:
+    gatsby: ^3.0.0-next.0
+  checksum: c0478975b512190a03ec54ade106799889fa270b8736a3b8bb0e8df36a4f204875341873efda2f0d80a484d3d90cef2ffb7673ed9f5956a74639fd61462bfd50
   languageName: node
   linkType: hard
 
@@ -13767,6 +13847,20 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
+"gatsby-remark-prismjs@npm:latest":
+  version: 5.8.0
+  resolution: "gatsby-remark-prismjs@npm:5.8.0"
+  dependencies:
+    "@babel/runtime": ^7.14.6
+    parse-numeric-range: ^1.2.0
+    unist-util-visit: ^2.0.3
+  peerDependencies:
+    gatsby: ^3.0.0-next.0
+    prismjs: ^1.15.0
+  checksum: adc7af570ecfea155383941a6f28ebaafb1fd1cac295e7791f4586a33bc1d5a39deed27abe4f8103d055e7c0428ef51b4279915a666626ad9eb581fef9703cbc
+  languageName: node
+  linkType: hard
+
 "gatsby-remark-responsive-iframe@npm:^2.11.0":
   version: 2.11.0
   resolution: "gatsby-remark-responsive-iframe@npm:2.11.0"
@@ -13782,6 +13876,21 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
+"gatsby-remark-responsive-iframe@npm:latest":
+  version: 4.8.0
+  resolution: "gatsby-remark-responsive-iframe@npm:4.8.0"
+  dependencies:
+    "@babel/runtime": ^7.14.6
+    cheerio: ^1.0.0-rc.9
+    common-tags: ^1.8.0
+    lodash: ^4.17.21
+    unist-util-visit: ^2.0.3
+  peerDependencies:
+    gatsby: ^3.0.0-next.0
+  checksum: b5ffe71d45b85b5d776067e06bbfa586a2289a8b7df1c6291fa21146e358104daeb95fab1f28ad9d73e6869170122201a3aeb7adc4db7d0c8b978d8d13c277f6
+  languageName: node
+  linkType: hard
+
 "gatsby-remark-smartypants@npm:^2.10.0":
   version: 2.10.0
   resolution: "gatsby-remark-smartypants@npm:2.10.0"
@@ -13793,6 +13902,20 @@ fsevents@^1.2.7:
   peerDependencies:
     gatsby: ^2.0.0
   checksum: 5cc68c5e46231fe141d769f008e95841ab286aae5eb356830d33bb3d41dec3d914c8374378c9538fa2450535114eda8585d66992442d402173552bc7ff11e5b3
+  languageName: node
+  linkType: hard
+
+"gatsby-remark-smartypants@npm:latest":
+  version: 4.8.0
+  resolution: "gatsby-remark-smartypants@npm:4.8.0"
+  dependencies:
+    "@babel/runtime": ^7.14.6
+    retext: ^7.0.1
+    retext-smartypants: ^4.0.0
+    unist-util-visit: ^2.0.3
+  peerDependencies:
+    gatsby: ^3.0.0-next.0
+  checksum: 3156d41935847627e60d260093d1783a628b10304836e768e9419444ba1f9d0626dceeebb3c52d2e831d7271ff4541692bfe62ab75cae68d0b30dad3b0569bd0
   languageName: node
   linkType: hard
 
@@ -13986,6 +14109,25 @@ fsevents@^1.2.7:
     gatsby: ^2.12.1
     gatsby-plugin-sharp: ^2.0.0-beta.3
   checksum: 715f121b4b7767e11fe0449aa1ee42384c20c767ebbcf9de0872b6d034201e6f8b7dbf0c9b6eb851d5e48f7be82cf69c20e2db52717e58088953d93521a4b4b3
+  languageName: node
+  linkType: hard
+
+"gatsby-transformer-sharp@npm:latest":
+  version: 3.11.0
+  resolution: "gatsby-transformer-sharp@npm:3.11.0"
+  dependencies:
+    "@babel/runtime": ^7.14.6
+    bluebird: ^3.7.2
+    common-tags: ^1.8.0
+    fs-extra: ^9.1.0
+    potrace: ^2.1.8
+    probe-image-size: ^6.0.0
+    semver: ^7.3.4
+    sharp: ^0.28.3
+  peerDependencies:
+    gatsby: ^3.0.0-next.0
+    gatsby-plugin-sharp: ^3.0.0-next.0
+  checksum: 546e18e04e808b0dff80faeb343a596f8454ac317203990bd3cba4e9d13714570f99f54dd2c0a79cb447862de46a542c35deeb7c20562b9a2e170202de9920a7
   languageName: node
   linkType: hard
 
@@ -21002,6 +21144,7 @@ fsevents@^1.2.7:
     "@mdx-js/react": ^1.6.21
     babel-loader: ^8.2.2
     babel-preset-gatsby: ^1.9.0
+    core-js: ^3.16.1
     eslint: ^7.23.0
     eslint-plugin-react-hooks: ^4.2.0
     gatsby: ^3.0.0
@@ -21010,16 +21153,16 @@ fsevents@^1.2.7:
     gatsby-plugin-manifest: latest
     gatsby-plugin-mdx: ^2.10.0
     gatsby-plugin-react-helmet: latest
-    gatsby-plugin-sharp: 2.14.3
+    gatsby-plugin-sharp: latest
     gatsby-remark-copy-linked-files: latest
     gatsby-remark-images: latest
     gatsby-remark-katex: latest
-    gatsby-remark-prismjs: ^3.13.0
-    gatsby-remark-responsive-iframe: ^2.11.0
-    gatsby-remark-smartypants: ^2.10.0
+    gatsby-remark-prismjs: latest
+    gatsby-remark-responsive-iframe: latest
+    gatsby-remark-smartypants: latest
     gatsby-source-filesystem: latest
     gatsby-transformer-remark: latest
-    gatsby-transformer-sharp: ^2.12.1
+    gatsby-transformer-sharp: latest
     katex: ^0.13.11
     oceanics-io-ui: "workspace:*"
     prettier: ^2.2.1
@@ -21032,6 +21175,7 @@ fsevents@^1.2.7:
     react-typography: ^0.16.19
     remark-parse: ^9.0.0
     typography: ^0.16.19
+    webpack: ^5.50.0
   languageName: unknown
   linkType: soft
 
@@ -21696,6 +21840,13 @@ fsevents@^1.2.7:
   version: 0.0.2
   resolution: "parse-numeric-range@npm:0.0.2"
   checksum: a058c6ef46f916b1b76dadf64ee7c7b271228ec607e276d1a927f13c5ee4356f6b3f8771910ac6741e3fc612d429bda9411c7d30c9ddf6c0416915a04a66b6ca
+  languageName: node
+  linkType: hard
+
+"parse-numeric-range@npm:^1.2.0":
+  version: 1.2.0
+  resolution: "parse-numeric-range@npm:1.2.0"
+  checksum: 40557750b3bd855a912fb0ef0754eef21497b7093fdc5da7d19afdd2d2c8ed1dae7299dfc49288fb55942a1e6a05e27b7780a9d5345dc0718c3c2531ebae9548
   languageName: node
   linkType: hard
 
@@ -25217,6 +25368,16 @@ resolve@^2.0.0-next.3:
   languageName: node
   linkType: hard
 
+"retext-smartypants@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "retext-smartypants@npm:4.0.0"
+  dependencies:
+    nlcst-to-string: ^2.0.0
+    unist-util-visit: ^2.0.0
+  checksum: 2e305881405de8f39a5ba2471e6cdb550de67798e6c907dcaef73c0c5faa8e1469ebf4033c0bf42fa28893a837a4070caa04d4a3489615d9609461f7ba3f503d
+  languageName: node
+  linkType: hard
+
 "retext-stringify@npm:^2.0.0":
   version: 2.0.4
   resolution: "retext-stringify@npm:2.0.4"
@@ -25234,6 +25395,17 @@ resolve@^2.0.0-next.3:
     retext-stringify: ^2.0.0
     unified: ^6.0.0
   checksum: cd82e295526315b85839a1db3f6efaa527be8b5daea6323a9d811b9b93312a029fa5376aed4a578b10eedd70f8d739526df0c5cb55bb4e9c80b747a49e009676
+  languageName: node
+  linkType: hard
+
+"retext@npm:^7.0.1":
+  version: 7.0.1
+  resolution: "retext@npm:7.0.1"
+  dependencies:
+    retext-latin: ^2.0.0
+    retext-stringify: ^2.0.0
+    unified: ^8.0.0
+  checksum: bcc4275736429716fdecc18a4ad29812335e1217f20b277d14768eab90f7d6d4d1180975bdda46a4ddc13ecd07965eecbc4899b540d8ecce9b2f1da46ca6e41b
   languageName: node
   linkType: hard
 
@@ -25311,6 +25483,8 @@ resolve@^2.0.0-next.3:
 "root-workspace-0b6124@workspace:.":
   version: 0.0.0-use.local
   resolution: "root-workspace-0b6124@workspace:."
+  dependencies:
+    gatsby-plugin-mdx: latest
   languageName: unknown
   linkType: soft
 
@@ -28225,7 +28399,7 @@ typescript@^4.3.5:
   languageName: node
   linkType: hard
 
-"unified@npm:^8.4.2":
+"unified@npm:^8.0.0, unified@npm:^8.4.2":
   version: 8.4.2
   resolution: "unified@npm:8.4.2"
   dependencies:
@@ -29367,7 +29541,7 @@ typescript@^4.3.5:
   languageName: node
   linkType: hard
 
-"webpack@npm:^5.35.0":
+"webpack@npm:^5.35.0, webpack@npm:^5.50.0":
   version: 5.50.0
   resolution: "webpack@npm:5.50.0"
   dependencies:

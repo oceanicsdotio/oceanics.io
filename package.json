@@ -4,5 +4,8 @@
         "oceanics-io-www",
         "oceanics-io-ui",
         "oceanics-io-app"
-    ]
+    ],
+    "dependencies": {
+        "gatsby-plugin-mdx": "latest"
+    }
 }

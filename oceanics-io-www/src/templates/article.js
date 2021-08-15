@@ -21,14 +21,12 @@ import { MDXRenderer } from "gatsby-plugin-mdx";
 /**
  * Common layout
  */
-import Rubric from "oceanics-io-ui/src/components/Rubric/Rubric";
 import References from "oceanics-io-ui/src/components/References/References";
 import Reference from "oceanics-io-ui/src/components/References/Reference"
 import Inline from "oceanics-io-ui/src/components/References/Inline";
 import Article from "oceanics-io-ui/src/components/References/Article";
 
 const ProviderComponents = {
-    Rubric,
     References,
     Reference,
     Inline
