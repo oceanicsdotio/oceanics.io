@@ -13250,55 +13250,6 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"gatsby-plugin-mdx@npm:^2.10.0":
-  version: 2.10.0
-  resolution: "gatsby-plugin-mdx@npm:2.10.0"
-  dependencies:
-    "@babel/core": ^7.14.6
-    "@babel/generator": ^7.14.5
-    "@babel/helper-plugin-utils": ^7.14.0
-    "@babel/plugin-proposal-object-rest-spread": ^7.14.7
-    "@babel/preset-env": ^7.14.7
-    "@babel/preset-react": ^7.14.0
-    "@babel/types": ^7.14.5
-    camelcase-css: ^2.0.1
-    change-case: ^3.1.0
-    core-js: ^3.6.5
-    dataloader: ^1.4.0
-    debug: ^4.3.1
-    escape-string-regexp: ^1.0.5
-    eval: ^0.1.4
-    fs-extra: ^8.1.0
-    gatsby-core-utils: ^2.10.0
-    gray-matter: ^4.0.2
-    json5: ^2.1.3
-    loader-utils: ^1.4.0
-    lodash: ^4.17.21
-    mdast-util-to-string: ^1.1.0
-    mdast-util-toc: ^3.1.0
-    mime: ^2.4.6
-    p-queue: ^6.6.2
-    pretty-bytes: ^5.3.0
-    remark: ^10.0.1
-    remark-retext: ^3.1.3
-    retext-english: ^3.0.4
-    slugify: ^1.4.4
-    static-site-generator-webpack-plugin: ^3.4.2
-    style-to-object: ^0.3.0
-    underscore.string: ^3.3.5
-    unified: ^8.4.2
-    unist-util-map: ^1.0.5
-    unist-util-remove: ^1.0.3
-    unist-util-visit: ^1.4.1
-  peerDependencies:
-    "@mdx-js/mdx": ^1.0.0
-    "@mdx-js/react": ^1.0.0
-    react: ^16.9.0 || ^17.0.0
-    react-dom: ^16.9.0 || ^17.0.0
-  checksum: dfe51126e76fcc78906ac3c318272ac7efdad510ae192ee10c3a876dad100d1077197bd784838790325b7d331d4b3dcee916318e2062f02190bfea72631cfe7b
-  languageName: node
-  linkType: hard
-
 "gatsby-plugin-mdx@npm:latest":
   version: 2.11.0
   resolution: "gatsby-plugin-mdx@npm:2.11.0"
@@ -21322,7 +21273,7 @@ fsevents@^1.2.7:
     gatsby-cli: ^3.10.0
     gatsby-image: ^3.10.0
     gatsby-plugin-manifest: latest
-    gatsby-plugin-mdx: ^2.10.0
+    gatsby-plugin-mdx: latest
     gatsby-plugin-react-helmet: latest
     gatsby-plugin-sharp: latest
     gatsby-remark-copy-linked-files: latest
@@ -21344,6 +21295,7 @@ fsevents@^1.2.7:
     react-is: ^17.0.1
     react-router-dom: ^5.2.0
     react-typography: ^0.16.19
+    remark: ^13.0.0
     remark-math: latest
     remark-parse: ^9.0.0
     typography: ^0.16.19
@@ -25681,8 +25633,6 @@ resolve@^2.0.0-next.3:
 "root-workspace-0b6124@workspace:.":
   version: 0.0.0-use.local
   resolution: "root-workspace-0b6124@workspace:."
-  dependencies:
-    gatsby-plugin-mdx: latest
   languageName: unknown
   linkType: soft
 

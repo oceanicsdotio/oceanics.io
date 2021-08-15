@@ -25,6 +25,7 @@ import References from "oceanics-io-ui/src/components/References/References";
 import Reference from "oceanics-io-ui/src/components/References/Reference"
 import Inline from "oceanics-io-ui/src/components/References/Inline";
 import Article from "oceanics-io-ui/src/components/References/Article";
+import Layout from "../components/Layout"
 
 const ProviderComponents = {
     References,
@@ -32,7 +33,7 @@ const ProviderComponents = {
     Inline
 };
 
-const Page = ({ 
+const ArticlePage = ({ 
     data: { 
         mdx: { 
             frontmatter,
@@ -42,15 +43,17 @@ const Page = ({
     }
 }) => {
     return (
-        <MDXProvider components={ProviderComponents}>
-            <Article frontmatter={frontmatter} fields={fields} onClickTag={()=>()=>{}}>
-                <MDXRenderer>{body}</MDXRenderer>
-            </Article>
-        </MDXProvider> 
+        <Layout>
+            <MDXProvider components={ProviderComponents}>
+                <Article frontmatter={frontmatter} fields={fields} onClickTag={()=>()=>{}}>
+                    <MDXRenderer>{body}</MDXRenderer>
+                </Article>
+            </MDXProvider> 
+        </Layout>
     ) 
   };
 
-export default Page;
+export default ArticlePage;
 
 export const pageQuery = graphql`
   query ArticleBySlug($slug: String!) {

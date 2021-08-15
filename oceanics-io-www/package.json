@@ -12,7 +12,7 @@
     "gatsby-cli": "^3.10.0",
     "gatsby-image": "^3.10.0",
     "gatsby-plugin-manifest": "latest",
-    "gatsby-plugin-mdx": "^2.10.0",
+    "gatsby-plugin-mdx": "latest",
     "gatsby-plugin-react-helmet": "latest",
     "gatsby-plugin-sharp": "latest",
     "gatsby-remark-copy-linked-files": "latest",
@@ -33,6 +33,7 @@
     "react-is": "^17.0.1",
     "react-router-dom": "^5.2.0",
     "react-typography": "^0.16.19",
+    "remark": "^13.0.0",
     "remark-math": "latest",
     "remark-parse": "^9.0.0",
     "typography": "^0.16.19"

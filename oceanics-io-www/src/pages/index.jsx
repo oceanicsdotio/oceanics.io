@@ -12,6 +12,7 @@ import { graphql, navigate } from "gatsby";
  * Campaign component
  */
 import Campaign from "oceanics-io-ui/src/components/Campaign/Campaign";
+import Layout from "../components/Layout";
 // import Index from "oceanics-io-ui/src/components/References/Index";
 
 /**
@@ -19,7 +20,7 @@ import Campaign from "oceanics-io-ui/src/components/Campaign/Campaign";
  * 
  * Optionally use query parameters and hash anchor to filter content. 
  */
-const Page = ({
+const IndexPage = ({
     location: {
         search
     },
@@ -43,11 +44,15 @@ const Page = ({
     //     inc: 3
     // }
     
-    return <Campaign navigate={navigate}/>
+    return (
+        <Layout>
+            <Campaign navigate={navigate}/>
+        </Layout>
+    )
     /* <Index query={query} {...props}/> */
 };
 
-export default Page;
+export default IndexPage;
 
 /**
  * GraphQL query for static data to build the content feed and interface.
