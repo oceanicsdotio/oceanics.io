@@ -23,7 +23,7 @@ export type TileType = {
         queryString: string,
         grayscale: boolean
     }, 
-    className: string,
+    className?: string,
     search: string
 }
 

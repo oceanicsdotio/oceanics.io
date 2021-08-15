@@ -1,17 +1,12 @@
 /**
  * React and friends.
  */
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, RefObject, FC } from "react";
 
 /**
- * Fetch site data.
+ * Icon rendering
  */
-// import { useStaticQuery, graphql } from "gatsby";
- 
 import TileInformation from "oceanics-io-ui/build/components/Layout/TileInformation";
-
-import useWasmWorkers from "../hooks/useWasmWorkers";
-
 
 /**
  * Query for icons and info
@@ -46,28 +41,48 @@ import useWasmWorkers from "../hooks/useWasmWorkers";
 //     }
 // `;
 
+type TileType = {
+    data: string;
+    spriteSheet: string;
+    name: string;
+    value: number;
+    probability: number;
+    cost: number;
+    becomes: string[];
+    dialog: string;
+    description: string;
+};
 
-const ControlPane = ({search, static: {
+type ControlType = {
+    className?: string;
+    search: string;
+    static: {
+        oceanside: {
+            tiles: TileType[];
+        };
+    };
+    icons: {
+        icons: {
+            icons: unknown[];
+        };
+    };
+    worker: {
+        worker: RefObject<unknown>;
+    }
+};
+
+const ControlPane: FC<ControlType> = ({
+    className,
+    search, 
+    worker: {worker}
+    static: {
     oceanside: {tiles},
-    icons: {icons}
+    icons: {icons},
 }}) => {
-    /**
-     * Get icon static data
-     */
-    // const {
-    //     oceanside: {tiles},
-    //     icons: {icons}
-    // } = useStaticQuery(staticQuery);
-   
     /**
     * Sorted items to render in interface
     */
-    const [ sorted, setSorted ] = useState(null);
-
-    /**
-     * Make a worker
-     */
-    const { worker } = useWasmWorkers();
+    const [ sorted, setSorted ] = useState<unknown[]|null>(null);
 
     /**
     * Use Web worker to do sorting
@@ -80,16 +95,15 @@ const ControlPane = ({search, static: {
      * Clean up worker
      */
     useEffect(() => {
-        if (sorted) console.log({sorted, icons, tiles});
         if (worker.current && sorted) worker.current.terminate();
     }, [ sorted ]);
 
 
-    return <>
+    return <div className={className}>
         <img className={"logo"} src={"/dagan-mad.gif"}/>
-        {(sorted||[]).map(tile => <TileInformation key={tile.anchorHash} tile={tile} search={search}/>)}
-    </>
+        {(sorted||[]).map((tile) => <TileInformation key={tile.anchorHash} tile={tile} search={search}/>)}
+    </div>
 }
 
 
-export default ControlPane
+export default ControlPane;

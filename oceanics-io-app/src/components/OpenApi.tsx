@@ -1,35 +1,29 @@
 /**
  * React and friends
  */
-import React, {useState, useEffect} from "react";
+import React, {useState, useEffect, RefObject, FC} from "react";
 
-import Placeholder from "oceanics-io-ui/OpenAPI/Placeholder"
+import Placeholder from "oceanics-io-ui/build/components/OpenAPI/Placeholder"
 
-
-/**
- * Dedicated Worker loader
- */
-import Worker from "../workers/useOpenApiLoader.worker.js";
-import useWorkers from "../hooks/useWorkers";
-
+export type ApiType = {
+    specUrl: string;
+    service: string;
+    scrapeIndexPage: boolean;
+    worker?: RefObject<unknown>;
+}
 
 /**
  * The OpenApi component uses an OpenAPI specification for a 
- * simulation backend, and uses it to constuct an interface.
+ * simulation backend, and uses it to construct an interface.
  */
-export default ({
+const OpenApi: FC<ApiType> = ({
     specUrl,
     service,
-    scrapeIndexPage=false,
+    scrapeIndexPage,
+    worker,
 }) => {
-
-    /**
-     * Web worker for loading, validation, and formatting in background.
-     */
-     const worker = useWorkers(Worker);
-
      /**
-      * OpenAPI spec struct will be populated asynchronously once the 
+      * OpenAPI spec structure will be populated asynchronously once the 
       * web worker is available.
       */
      const [apiSpec, setApiSpec] = useState(null); 
