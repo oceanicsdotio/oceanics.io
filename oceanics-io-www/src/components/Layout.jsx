@@ -4,7 +4,7 @@
 import React from 'react';
 import Helmet from "react-helmet";
 import BaseLayout from "oceanics-io-ui/src/components/Layout/Layout";
-import PageData from "oceanics-io-ui/src/components/Layout/Layout.json";
+import PageData from "oceanics-io-ui/src/components/Layout/PageData.json";
 
 /**
  * Retrieve Gatsby data
@@ -77,4 +77,5 @@ const Layout = ({ children, ...props }) => {
         </BaseLayout>
     )
 }
+
 export default Layout;

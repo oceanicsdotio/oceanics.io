@@ -9,7 +9,7 @@ import { Meta, Story } from '@storybook/react';
  * Base component
  */
 import Stub from "./Stub";
-import PageData from  "./Index.json";
+import PageData from  "./PageData.json";
 import { ArticleType } from './utils';
 
 /**

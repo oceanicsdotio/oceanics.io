@@ -13,7 +13,7 @@ import { graphql, navigate } from "gatsby";
  */
 import Campaign from "oceanics-io-ui/src/components/Campaign/Campaign";
 import Layout from "../components/Layout";
-// import Index from "oceanics-io-ui/src/components/References/Index";
+import Index from "oceanics-io-ui/src/components/References/Index";
 
 /**
  * Base component for web landing page.
@@ -37,19 +37,20 @@ const IndexPage = ({
     //         reference: null
     //     }
     // })
-    // const query = {
-    //     items: 3,
-    //     tag: "",
-    //     reference: 0,
-    //     inc: 3
-    // }
+    const query = {
+        items: 3,
+        tag: "",
+        reference: 0,
+        inc: 3
+    }
+    // console.log({Campaign});
     
     return (
         <Layout>
             <Campaign navigate={navigate}/>
+            <Index query={query} onClickTag={()=>()=>{}} {...props}/>
         </Layout>
     )
-    /* <Index query={query} {...props}/> */
 };
 
 export default IndexPage;

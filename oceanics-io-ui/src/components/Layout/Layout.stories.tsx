@@ -7,7 +7,7 @@ import React from 'react';
  * Base component
  */
 import Layout, {LayoutType} from './Layout';
-import PageData from "./Layout.json";
+import PageData from "./PageData.json";
 
 /**
  * Typescript support

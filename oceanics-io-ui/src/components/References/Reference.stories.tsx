@@ -9,7 +9,7 @@ import {Meta, Story} from '@storybook/react';
  */
 import Reference from "./Reference";
 import {ReferenceType} from "./utils";
-import PageData from "./Index.json";
+import PageData from "./PageData.json";
 import "../../styles/global.css";
 import "../../styles/theme.css";
 

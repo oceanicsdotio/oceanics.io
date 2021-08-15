@@ -7,7 +7,7 @@ import { Meta, Story } from '@storybook/react';
  * Base component
  */
 import Inline from "./Inline";
-import PageData from "./Index.json";
+import PageData from "./PageData.json";
 import { InlineRefType } from './utils';
 import "../../styles/global.css";
 import "../../styles/theme.css";

@@ -21,7 +21,7 @@ import Button from "../Form/Button";
 /**
  * Page data
  */
-import PageData from "./Campaign.json";
+import PageData from "./PageData.json";
 
 type CampaignType = {
     callToAction: string;
@@ -79,16 +79,18 @@ export const Campaign: FC<ICampaignType> = ({
     )
 
 
-    return <div className={className}>
-        <h2>{title}</h2>
-        {narrative}
-        <Button onClick={()=>{navigate(`/bathysphere/`)}}>
-            {`Learn about our API`}
-        </Button>
-        <Button onClick={()=>{navigate(`/references/`)}}>
-            {`See the science`}
-        </Button>
-    </div>
+    return (
+        <div className={className}>
+            <h2>{title}</h2>
+            {narrative}
+            <Button onClick={()=>{navigate(`/bathysphere/`)}}>
+                {`Learn about our API`}
+            </Button>
+            <Button onClick={()=>{navigate(`/references/`)}}>
+                {`See the science`}
+            </Button>
+        </div>
+    )
 }
 
 /**
