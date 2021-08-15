@@ -21298,6 +21298,7 @@ fsevents@^1.2.7:
     remark: ^13.0.0
     remark-math: latest
     remark-parse: ^9.0.0
+    sharp: ^0.28.3
     typography: ^0.16.19
     webpack: ^5.50.0
   languageName: unknown
