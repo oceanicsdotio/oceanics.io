@@ -17,6 +17,7 @@
   "main": "n/a",
   "scripts": {
     "doc": "cargo doc --no-deps --document-private-items --open",
-    "build": "make build"
+    "build": "make build",
+    "preinstall": "make build"
   }
 }
