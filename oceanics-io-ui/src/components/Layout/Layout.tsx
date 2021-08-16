@@ -103,7 +103,7 @@ export const StyledLayout = styled(Layout)`
         border-radius: 1rem 1rem 0 0;
     }
 
-    & footer {
+    & > footer {
         margin-top: 2rem;
 
         & a {

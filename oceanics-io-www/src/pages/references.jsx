@@ -13,7 +13,6 @@ import {graphql } from "gatsby";
  * Array of references component, no heading
  */
 import References from "oceanics-io-ui/build/components/References/References";
-import Layout from "../components/Layout";
 
 const filterNullish = (x) => !!x;
 const unpackCitations = (node) => node.frontmatter.citations
@@ -33,11 +32,7 @@ const ReferencesPage = ({
     const references = useMemo(() => 
         nodes.flatMap(unpackCitations).filter(filterNullish), [nodes])
 
-    return (
-        <Layout>
-            <References citations={references}/>
-        </Layout>
-    )
+    return <References citations={references}/>
 };
 export default ReferencesPage;
 

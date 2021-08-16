@@ -1,11 +1,11 @@
 /**
  * Stuff for bots and browsers
  */
-import React from 'react';
+import React, {Fragment} from 'react';
 import Helmet from "react-helmet";
 import BaseLayout from "oceanics-io-ui/build/components/Layout/Layout";
 import PageData from "oceanics-io-ui/build/components/Layout/PageData.json";
-
+import GlobalStyle from "oceanics-io-ui/build/components/Layout/GlobalStyle";
 /**
  * Retrieve Gatsby data
  */
@@ -66,6 +66,8 @@ const Layout = ({ children, ...props }) => {
     const queryData = useStaticQuery(query);
 
     return (
+        <Fragment>
+        <GlobalStyle/>
         <BaseLayout {...{ ...PageData, ...props }}>
             <Helmet
                 htmlAttributes={{ lang: "en" }}
@@ -75,6 +77,7 @@ const Layout = ({ children, ...props }) => {
             />
             {children}
         </BaseLayout>
+        </Fragment>
     )
 }
 

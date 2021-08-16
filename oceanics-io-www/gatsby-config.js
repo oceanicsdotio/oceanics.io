@@ -10,7 +10,9 @@ module.exports = {
         siteUrl: `https://www.oceanics.io`
     },
     plugins: [
-        `gatsby-plugin-styled-components`,
+        {
+            resolve: `gatsby-plugin-styled-components`,
+        },
         {
             resolve: `gatsby-source-filesystem`,
             options: {

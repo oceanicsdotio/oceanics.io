@@ -25,7 +25,6 @@ import References from "oceanics-io-ui/build/components/References/References";
 import Reference from "oceanics-io-ui/build/components/References/Reference"
 import Inline from "oceanics-io-ui/build/components/References/Inline";
 import Article from "oceanics-io-ui/build/components/References/Article";
-import Layout from "../components/Layout"
 
 const ProviderComponents = {
     References,
@@ -43,13 +42,13 @@ const ArticlePage = ({
     }
 }) => {
     return (
-        <Layout>
-            <MDXProvider components={ProviderComponents}>
-                <Article frontmatter={frontmatter} fields={fields} onClickTag={()=>()=>{}}>
-                    <MDXRenderer>{body}</MDXRenderer>
-                </Article>
-            </MDXProvider> 
-        </Layout>
+      
+        <MDXProvider components={ProviderComponents}>
+            <Article frontmatter={frontmatter} fields={fields} onClickTag={()=>()=>{}}>
+                <MDXRenderer>{body}</MDXRenderer>
+            </Article>
+        </MDXProvider> 
+     
     ) 
   };
 

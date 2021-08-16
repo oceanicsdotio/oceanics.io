@@ -2,7 +2,6 @@
  * React and friends.
  */
 import React from "react";
-import Layout from "../components/Layout";
 
 /**
  * Page content, could be externalized in `data/`.
@@ -18,10 +17,10 @@ const CONTENT = {
  */
 const PageNotFound = ({}) => {
     return (
-        <Layout>
+        <>
             <p>{CONTENT.message}</p>
             <img src={CONTENT.img}/>
-        </Layout>
+        </>
     )
 };
 
