@@ -1,4 +1,8 @@
 module.exports = {
+    flags: {
+        DEV_SSR: true,
+        PARALLEL_SOURCING: true
+    },
     siteMetadata: {
         title: `Oceanics.io`,
         author: `Oceanicsdotio LLC`,
@@ -6,6 +10,7 @@ module.exports = {
         siteUrl: `https://www.oceanics.io`
     },
     plugins: [
+        `gatsby-plugin-styled-components`,
         {
             resolve: `gatsby-source-filesystem`,
             options: {
@@ -64,7 +69,6 @@ module.exports = {
                 icon: `static/favicon.ico`,
             },
         },
-        `gatsby-plugin-react-helmet`,
-        `gatsby-plugin-styled-components`
-    ],
+        `gatsby-plugin-react-helmet`
+    ]
 }

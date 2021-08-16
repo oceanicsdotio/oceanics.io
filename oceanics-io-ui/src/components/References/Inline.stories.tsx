@@ -9,8 +9,6 @@ import { Meta, Story } from '@storybook/react';
 import Inline from "./Inline";
 import PageData from "./PageData.json";
 import { InlineRefType } from './utils';
-import "../../styles/global.css";
-import "../../styles/theme.css";
 
 /**
  * Storybook Interface

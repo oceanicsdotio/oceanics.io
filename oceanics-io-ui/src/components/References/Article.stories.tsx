@@ -9,8 +9,6 @@ import {Meta, Story} from "@storybook/react";
  */
 import Article from "./Article";
 import PageData from "./PageData.json";
-import "../../styles/global.css";
-import "../../styles/theme.css";
 import { ArticleType } from './utils';
 
 /**

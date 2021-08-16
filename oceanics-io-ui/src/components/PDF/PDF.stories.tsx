@@ -7,8 +7,6 @@
  
  const PDF_CDN_ROUTE = "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com/assets/johnson-etal-2019-sesf.pdf"
  
- import "../../styles/global.css";
- import "../../styles/theme.css";
  
  // @ts-ignore
  import { Document, Page } from 'react-pdf/dist/esm/entry.webpack';

@@ -1,5 +1,5 @@
-const Typography = require("typography");
-const typography = new Typography();
+import Typography from "typography";
+const typography = new Typography({});
 
 export default typography;
 export const {rhythm, scale} = typography;
