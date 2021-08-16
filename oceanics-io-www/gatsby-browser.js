@@ -1,3 +1,5 @@
+import React, {Fragment} from "react";
+import GlobalStyle from "oceanics-io-ui/build/components/Layout/GlobalStyle"
 /**
  * This file is the interface for the Gatsby Browser APIs for client
  * interactions. 
@@ -12,5 +14,10 @@
  * 
  */
 import "katex/dist/katex.min.css";
-import "oceanics-io-ui/src/styles/global.css";
-import "oceanics-io-ui/src/styles/theme.css";
+
+export const wrapPageElement = ({ element }) => (
+    <Fragment>
+      <GlobalStyle />
+      {element}
+    </Fragment>
+  );
