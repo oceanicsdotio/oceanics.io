@@ -1,23 +1,11 @@
 {
   "name": "oceanics-io-asm",
-  "description": "Blue computing",
-  "version": "0.1.0",
+  "description": "Oceanicsdotio Web Assembly Runtime",
+  "version": "0.3.0",
   "author": "Oceanicsdotio <business@oceanics.io>",
-  "dependencies": {
-    "@babel/core": "^7.13.14",
-    "@babel/plugin-syntax-import-meta": "^7.10.1",
-    "@wasm-tool/wasm-pack-plugin": "^1.3.3",
-    "babel-plugin-styled-components": "^1.12.0",
-    "babel-plugin-syntax-dynamic-import": "^6.18.0"
-  },
-  "devDependencies": {
-    "babel-loader": "^8.2.2"
-  },
-  "license": "MIT",
-  "main": "n/a",
   "scripts": {
-    "doc": "cargo doc --no-deps --document-private-items --open",
-    "build": "make build",
-    "preinstall": "make build"
+    "doc": "make doc",
+    "build": "make --always-make build",
+    "preinstall": "make --always-make build"
   }
 }

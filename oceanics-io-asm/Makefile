@@ -1,5 +1,7 @@
+doc:
+	cargo doc --no-deps --document-private-items --open
 build:
-	wasm-pack build --out-dir src/wasm --dev --target bundler --no-typescript
-	rm src/wasm/.gitignore
-	wasm-pack build --out-dir src/wasm/node --target nodejs --no-typescript
-	rm src/wasm/node/.gitignore
+	wasm-pack build --out-dir build/bundler --target bundler --no-typescript
+	\rm -f build/.gitignore
+	wasm-pack build --out-dir build/nodejs --target nodejs --no-typescript
+	\rm -f build/node/.gitignore
