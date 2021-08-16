@@ -6801,7 +6801,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"babel-plugin-styled-components@npm:>= 1.12.0, babel-plugin-styled-components@npm:^1.12.0":
+"babel-plugin-styled-components@npm:>= 1.12.0, babel-plugin-styled-components@npm:^1.12.0, babel-plugin-styled-components@npm:^1.13.2":
   version: 1.13.2
   resolution: "babel-plugin-styled-components@npm:1.13.2"
   dependencies:
@@ -12517,6 +12517,21 @@ fsevents@^1.2.7:
   peerDependencies:
     gatsby: ^3.0.0-next.0
   checksum: c0478975b512190a03ec54ade106799889fa270b8736a3b8bb0e8df36a4f204875341873efda2f0d80a484d3d90cef2ffb7673ed9f5956a74639fd61462bfd50
+  languageName: node
+  linkType: hard
+
+"gatsby-plugin-styled-components@npm:^4.11.0":
+  version: 4.11.0
+  resolution: "gatsby-plugin-styled-components@npm:4.11.0"
+  dependencies:
+    "@babel/runtime": ^7.14.6
+  peerDependencies:
+    babel-plugin-styled-components: ">1.5.0"
+    gatsby: ^3.0.0-next.0
+    react: ^16.9.0 || ^17.0.0
+    react-dom: ^16.9.0 || ^17.0.0
+    styled-components: ">=2.0.0"
+  checksum: 80bb8b195a60eb4e7d6ff2e20b6eb18e88904514d533c7dfe83e1cb46284e65062b6b6684c250404d648098f3f6d7b4be4a36756f811fa95d8270a7e8046ae38
   languageName: node
   linkType: hard
 
@@ -19431,6 +19446,7 @@ fsevents@^1.2.7:
     "@mdx-js/mdx": ^1.6.21
     "@mdx-js/react": ^1.6.21
     babel-loader: ^8.2.2
+    babel-plugin-styled-components: ^1.13.2
     babel-preset-gatsby: ^1.9.0
     core-js: ^3.16.1
     eslint: ^7.23.0
@@ -19442,6 +19458,7 @@ fsevents@^1.2.7:
     gatsby-plugin-mdx: latest
     gatsby-plugin-react-helmet: latest
     gatsby-plugin-sharp: latest
+    gatsby-plugin-styled-components: ^4.11.0
     gatsby-remark-copy-linked-files: latest
     gatsby-remark-images: latest
     gatsby-remark-katex: latest
@@ -19465,6 +19482,7 @@ fsevents@^1.2.7:
     remark-math: latest
     remark-parse: ^9.0.0
     sharp: ^0.28.3
+    styled-components: ^5.3.0
     typography: ^0.16.19
     webpack: ^5.50.0
   languageName: unknown
