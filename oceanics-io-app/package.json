@@ -4,7 +4,7 @@
   "version": "0.2.0",
   "author": "Oceanicsdotio <business@oceanics.io>",
   "dependencies": {
-    "@apidevtools/swagger-parser": "^10.0.2",
+    "@apidevtools/swagger-parser": "^10.0.3",
     "@babel/core": "^7.13.14",
     "@babel/plugin-syntax-import-meta": "^7.10.1",
     "@wasm-tool/wasm-pack-plugin": "^1.3.3",
