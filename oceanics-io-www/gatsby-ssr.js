@@ -16,6 +16,6 @@ import React from "react";
 
 export const wrapPageElement = ({ element }) => (
     <Layout>
-      {element}
+        {element}
     </Layout>
   );

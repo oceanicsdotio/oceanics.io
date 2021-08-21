@@ -5,11 +5,10 @@
         "name": "κυβερνάω",
         "response": "Light the way",
         "description": "To stake your claim on the last frontier, you need a guide to reveal the hidden ways.\nOceanics.io looks into your environmental past, manages risk in the present, and supports data-driven decisions to forge on with confidence.\nWe empower operations by boosting connectivity, enhancing business outcomes, and communicating your mission."
-        },{
+    },{
         "callToAction": "The sea is waiting",
         "response": "Take the helm",
         "name": "εἴδωλον",
         "description": "To protect our Ocean, you need to draw on community knowledge and make data-driven decisions for the future.\nOceanics.io analyzes public and proprietary assets and serves you synthetic and aggregate products to manage risk and conflict.\nWe demystify the sea and amplify capabilities, whether watching your turf or seeking opportunity."
-        }
-    ]
+    }]
 }

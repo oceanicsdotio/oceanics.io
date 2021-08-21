@@ -7,7 +7,7 @@ import {Meta, Story} from "@storybook/react";
 /**
  * Base component, w wrapped `Input` component
  */
-import Campaign, {ICampaignType} from './Campaign';
+import Campaign, {ICampaignType, PageData} from './Campaign';
 
 import "../../styles/global.css";
 import "../../styles/theme.css";
@@ -27,13 +27,14 @@ import "../../styles/theme.css";
 
 const Template: Story<ICampaignType> = (args) => <Campaign {...args} />;
 
-
  /**
   * Example
   */
  export const Default = Template.bind({});
  Default.args = {
-    navigate: ()=>{}
+    navigate: ()=>{},
+    title: PageData.title,
+    campaign: PageData.campaigns[0]
  };
 
  

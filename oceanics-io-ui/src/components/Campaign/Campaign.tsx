@@ -17,11 +17,8 @@ import { ghost } from "../../palette";
  * For interactive elements
  */
 import Button from "../Form/Button";
-
-/**
- * Page data
- */
-import PageData from "./PageData.json";
+import * as PageData from "./PageData.json";
+export {PageData as PageData}
 
 type CampaignType = {
     callToAction: string;
@@ -29,15 +26,12 @@ type CampaignType = {
     name: string;
     description: string;
 };
-type PageType = {
-    title: string;
-    campaigns: CampaignType[];
-}
 export interface ICampaignType {
     navigate: (arg0: string) => void;
     className?: string;
+    title: string;
+    campaign: CampaignType;
 };
-
 
 /**
  * Base component for web landing page.
@@ -47,37 +41,21 @@ export interface ICampaignType {
 export const Campaign: FC<ICampaignType> = ({
     navigate,
     className,
+    title, 
+    campaign: {
+        description
+    }
 }) => {
     /**
-    * Unpack static data
-    */
-    const {title, campaigns}: PageType = PageData;
-
-    /** 
-     * Pick one of the campaigns at random
-     */
-    const index: number = useMemo(
-        () => Math.floor(Math.random() * campaigns.length), 
-        [campaigns]
-    );
-
-    /**
-     * Use a memo so that if something decides to refresh the parent,
-     * we won't pick the other narrative and be confusing. 
-     */
-    const campaign: CampaignType = useMemo(
-        () => campaigns[index], 
-        [index]
-    );
-
-    /**
-     * Format the narrative, we need to break into semantic paragraphs
+     * Format the narrative, we need to break into semantic paragraphs.
      */
     const narrative = useMemo(
-        () => campaign.description.split("\n").map((x: string)=><p>{x}</p>),
-        [campaign]
+        () => description.split("\n").map(
+            (x: string, index: number) => 
+                <p key={`paragraph-${index}`}>{x}</p>
+        ),
+        [description]
     )
-
 
     return (
         <div className={className}>

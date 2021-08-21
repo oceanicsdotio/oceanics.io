@@ -49,7 +49,7 @@ const Index: FC<IndexType> = ({
     return (
         <div className={className}>
             {visible.map((props: PartialArticle) => 
-                <Stub onClickTag={onClickTag} {...props} />)}
+                <Stub key={props.fields.slug} onClickTag={onClickTag} {...props} />)}
             <Select 
                 id={"filter-by-tag"} 
                 options={group.map(({ fieldValue }) => fieldValue)}

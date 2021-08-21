@@ -15,11 +15,11 @@ const CONTENT = {
 /**
  * Just a dumb functional component.
  */
-const PageNotFound = ({}) => {
+const PageNotFound = () => {
     return (
         <>
             <p>{CONTENT.message}</p>
-            <img src={CONTENT.img}/>
+            <img src={CONTENT.img} alt={"Sea creature seeking answers in data"}/>
         </>
     )
 };
