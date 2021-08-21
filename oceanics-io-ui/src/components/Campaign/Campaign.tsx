@@ -61,10 +61,10 @@ export const Campaign: FC<ICampaignType> = ({
         <div className={className}>
             <h2>{title}</h2>
             {narrative}
-            <Button onClick={()=>{navigate(`/bathysphere/`)}}>
+            <Button onClick={()=>{navigate(`/bathysphere.html`)}}>
                 {`Learn about our API`}
             </Button>
-            <Button onClick={()=>{navigate(`/references/`)}}>
+            <Button onClick={()=>{navigate(`/references`)}}>
                 {`See the science`}
             </Button>
         </div>

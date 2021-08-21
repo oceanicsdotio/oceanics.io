@@ -6,7 +6,7 @@ module.exports = {
     siteMetadata: {
         title: `Oceanics.io`,
         author: `Oceanicsdotio LLC`,
-        description: `Trust layer for the blue economy`,
+        description: `The trust layer for the blue economy`,
         siteUrl: `https://www.oceanics.io`
     },
     plugins: [

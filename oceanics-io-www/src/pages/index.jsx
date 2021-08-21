@@ -11,7 +11,7 @@ import { graphql, navigate } from "gatsby";
 /**
  * Campaign component
  */
-import Campaign from "oceanics-io-ui/build/components/Campaign/Campaign";
+import Campaign, {PageData} from "oceanics-io-ui/build/components/Campaign/Campaign";
 import Index from "oceanics-io-ui/build/components/References/Index";
 
 /**
@@ -46,7 +46,11 @@ const IndexPage = ({
     
     return (
         <>
-            <Campaign navigate={navigate}/>
+            <Campaign 
+                navigate={navigate} 
+                title={PageData.title} 
+                campaign={PageData.campaigns[0]}
+            />
             <Index query={query} onClickTag={()=>()=>{}} {...props}/>
         </>
     )
