@@ -29,13 +29,15 @@ import {ReferenceType, ReferencesType} from "./utils";
  * includes citations. 
  */
 export const References: FC<ReferencesType> = ({
-    citations,
+    citations=[],
     className,
 }) => {
     return (
         <div className={className}>
             <a id={"citations"}/>        
-            {(citations??[]).map((props: ReferenceType) => <Reference {...props}/>)}
+            {(citations||[]).map(
+                (props: ReferenceType, index: number) => <Reference key={`ref-${index}`} {...props}/>
+            )}
         </div>
     );
 }
@@ -52,7 +54,10 @@ References.propTypes = {
  */
 const StyledSection = styled(References)`
     color: inherit;
-    display: ${({citations}):string|undefined=>(citations??false)?undefined:"none"};
+    display: ${
+        ({citations = []}): string|undefined => 
+            (citations||[]).length?undefined:"none"
+    };
 `;
 
 /**
