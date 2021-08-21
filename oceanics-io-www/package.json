@@ -68,6 +68,7 @@
     "develop": "make clean && gatsby develop",
     "build": "make build",
     "clean": "make clean",
-    "serve": "gatsby serve"
+    "serve": "gatsby serve",
+    "postinstall": "yarn workspace oceanics-io-ui build"
   }
 }
