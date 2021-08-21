@@ -14,11 +14,6 @@ const express = require(`express`);
 const { createFilePath } = require(`gatsby-source-filesystem`);
 
 /**
- * Helper for building WASM during develop/build
- */
-const WasmPackPlugin = require(`@wasm-tool/wasm-pack-plugin`);
-
-/**
  * There is a known problem with `gatsby develop` not picking up html files in the
  * public directory correctly. Build should work fine, and therefore NOT need a netlify
  * redirect, which we were using. 
@@ -29,60 +24,6 @@ const WasmPackPlugin = require(`@wasm-tool/wasm-pack-plugin`);
 exports.onCreateDevServer = ({ app }) => {
     app.use(express.static("static"))
 };
-
-/**
- * Dynamically create webpack behaviors based on what stage
- * being executed. 
- * 
- * During HTML stage, need to avoid loading client-side code. This includes
- * MapBox, any WASM, and web workers. 
- * 
- * When develop/build is called, we re-compile all the rust code to create
- * the JS module bindings into Rust-WASM. This prevents bad code from being
- * deployed.
- * 
- * @param {*} param0 
- */
-exports.onCreateWebpackConfig = ({ stage, loaders, actions }) => {
-    if (stage === 'build-html') {
-        actions.setWebpackConfig({
-            module: {
-                rules: [
-                    {
-                        test: /mapbox-gl/,
-                        use: loaders.null(),
-                    },
-                    {
-                        test: /wasm/,
-                        use: loaders.null(),
-                    },
-                    {
-                        test: /\.worker\.js$/,
-                        use: { loader: 'workerize-loader' }
-                    }
-                    
-                ]
-            }
-        })
-    } else if (stage === 'develop' || stage === 'build') {
-        actions.setWebpackConfig({
-            devtool: 'eval-source-map',
-            stats: 'verbose',
-            plugins: [
-                new WasmPackPlugin({
-                    crateDirectory: path.resolve(__dirname, "src/rust"),
-                    args: "--log-level warn --verbose",
-                    extraArgs: "--no-typescript --target bundler",
-                    outDir: "src/wasm",
-                    outName: "neritics",
-                    pluginLogLevel: "error",
-                    forceMode: "development",
-                }),
-            ]
-        });
-    }
-}
-
 
 /**
  * Create HTML pages from Markdown
@@ -137,10 +78,9 @@ exports.createPages = async ({
             citations
         }
     }, index) => {
-        
         createPage({
             path: slug,
-            component: path.resolve(`src/templates/article.js`),
+            component: path.resolve(`src/templates/article.jsx`),
             context: {
                 slug,
                 previous: index === nodes.length - 1 ? null : nodes[index + 1].node,

@@ -2,6 +2,8 @@
     "private": true,
     "workspaces": [
         "oceanics-io-www",
-        "oceanics-io-ui"
+        "oceanics-io-ui",
+        "oceanics-io-app",
+        "oceanics-io-asm"
     ]
 }

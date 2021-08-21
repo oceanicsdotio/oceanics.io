@@ -1,0 +1,60 @@
+---
+title: Observer lottery
+date: "2021-03-13T12:00:00.000Z"
+description: |
+    Great job getting that capital expenses grant! Now you have idle physical assets. Here is a pattern we like for demonstrating your largesse by automatically allocating things (buoys) to agents (sea farms). 
+tags: ["crowdsourcing", "campaign", "unbias", "automated negotiation"]
+citations:
+  - authors: [Dunn JC]
+    year: 1973
+    title: |
+      A fuzzy relative of the ISODATA process and its use in detecting compact well-separated clusters
+    journal: Cybernetics and Systems
+    volume: "3"
+    pageRange: [32, 57]
+
+  - authors: [de la Hoz E, Lopez-Carmona MA, Klein M, Marsa-Maestre I]
+    year: 2014
+    title: |
+      Alternative social welfare definitions for multiparty negotiation protocols.
+    journal: Novel Insights in Agent-based Complex Automated Negotiation, Studies in Computational Intelligence
+    volume: "535"
+    pageRange: [23, 41]
+---
+
+Research organizations have observing platforms to deploy to aquaculture growing areas. The annual amortized cost can be $100,000. To ensure that resource allocation to the private sector is rational, we automate co-location agreements through a weighted lottery. We call this a `Campaign`. 
+
+One campaign could measure ten observed properties important to siting and operating at hourly intervals: temperature, salinity, wind speed and direction, air pressure, precipitation, sunlight, water speed and direction, pH, chlorophyll, and turbidity.
+
+Public notice goes out to businesses and organizations, and an online application is available for at least 2 weeks. This consists of a web form soliciting proposals to site one or more assets. 
+
+You represent an aquaculture production business in good standing with the state of Maine, and have a lease, license, or pending application. You submit decimal degree coordinates in waters less than 100’ at mean high tide within the region defined by coast, Portland Head Light, Potts Point, and Half-Way Rock. 
+
+The data we collect are: 
+- `e-mail`, of course
+- `company`, for determining eligibility
+- `contact-consent`, make sure we can follow-up
+- `latitude`, latitude
+- `longitude`, longitude
+- `observed-properties`, # of properties that the agent observes
+- `locations`, # of locations where the agent observes
+- `data-stream-period`, rate of observations
+
+Groups of applicants can submit duplicate locations, and these will be ranked higher. Our accounting system is based on observation utility increasing when:
+
+- Dense but not overlapping
+- Filling gaps in coverage or frequency
+- Usable by many operations
+- Fully utilized
+
+We use three functions: `verify(agent)`, `cluster(agents, n)`, and `rank(cluster)`. 
+
+To avoid skewing selection, we don't release parameters until after a final selection, and when any agent is found ineligible we restart. Selection continues until there are there are no more agents, or an awardee agrees to inspect the buoy during normal operations and report damage or loss in a timely manner
+
+We form negotiating teams using fuzzy C means (e.g. Dunn 1973) on location and aggregate agent-reported effort for the group. Agents with no current efforts are not able to apply.
+
+The team is ranked using a logistic function of information gain provided by co-locating infrastructure. To avoid gaming the system, we don't release gain parameters until after a final selection. Your effort is `1/period * observedProperties * locations` and the value of the service is 64,800 observations. 
+
+One team is picked randomly with the probability proportional to rank. The member with the greatest reported effort is the designated representative. Agents are notified when selected, withdrawn, or the process ends. 
+
+Final location is at the discretion of the owner and deploying vessel. The owner maintains infrastructure and makes sensor observations public on the web within one hour without guarantee or warranty for suitability for any purpose. The owners and Oceanicsdotio LLC use anonymous data for market analysis and research reporting.

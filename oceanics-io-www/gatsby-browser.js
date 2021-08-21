@@ -1,3 +1,5 @@
+import Layout from "./src/components/Layout";
+import React from "react";
 /**
  * This file is the interface for the Gatsby Browser APIs for client
  * interactions. 
@@ -8,7 +10,12 @@
  * - `onRouteUpdateDelayed` for providing loading wait indicator
  * - `onServiceWorkerActive/Installed` for SW interactions 
  * 
- * Use with `gatsby-ssr.js` to prevent hydration errors
+ * Use with `gatsby-ssr.js` to prevent hydration errors.
+ * 
  */
-import "./src/styles/global.css";
-import "./src/styles/theme.css";
+
+export const wrapPageElement = ({ element }) => (
+    <Layout>
+      {element}
+    </Layout>
+  );

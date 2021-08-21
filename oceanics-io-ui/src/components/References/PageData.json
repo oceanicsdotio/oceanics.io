@@ -1,0 +1,46 @@
+{
+    "nodes": [{
+        "frontmatter": {
+            "title": "things about a thing",
+            "date": "whenever",
+            "description": "A description of a thing",
+            "tags": ["things", "data"],
+            "citations": [{
+                "authors": ["Keeney NR", "Keeney NR"],
+                "year": 2000,
+                "title": "A blah about blah",
+                "journal": "Cybernetics",
+                "volume": "50",
+                "pageRange": [90, 110]
+            },{
+                "authors": ["Keeney NR", "Keeney NR"],
+                "year": 2021,
+                "title": "Blah more than blah",
+                "journal": "Oceanics",
+                "volume": "32",
+                "pageRange": [1, 42]
+            }]
+        },
+        "fields": {
+            "slug": "/things-about-a-thing"
+        }
+    }, {
+        "frontmatter": {
+            "description": "Just a lot of drivel about something I know nothing about",
+            "tags": ["shade", "data"],
+            "date": "some date",
+            "title": "More of my thoughts about things",
+            "citations": [{
+                "authors": ["Keeney NR", "Keeney NR"],
+                "year": 2000,
+                "title": "A blah about blah",
+                "journal": "Cybernetics",
+                "volume": "50",
+                "pageRange": [90, 110]
+            }]
+        },
+        "fields": {
+            "slug": "/more-thoughts-thing"
+        }
+    }]
+}

@@ -1,0 +1,61 @@
+[package]
+name = "neritics"
+version = "0.3.0"
+authors = ["Oceanicsdotio <business@oceanics.io>"]
+edition = "2018"
+description = "Spatial stuff"
+license = "MIT"
+repository = "git+https://github.com/oceanicsdotio/oceanics.io.git"
+
+[lib]
+path = "src/lib.rs"
+crate-type = ["cdylib"]
+
+[dependencies]
+js-sys = "0.3.32"
+wasm-bindgen-futures = "0.4.8"
+serde = { version = "1.0.80", features = ["derive"] }
+serde_derive = "1.0.104"
+console_error_panic_hook = "0.1.6"
+rand = "0.8.0"
+# https://docs.rs/getrandom/0.2.2/getrandom/#unsupported-targets
+getrandom = { version = "0.2", features = ["js"] }
+
+[package.metadata.wasm-pack.profile.release]
+# see https://github.com/rustwasm/wasm-pack/issues/886#issuecomment-667669802
+wasm-opt = ["-Oz", "--enable-mutable-globals"]
+
+[dependencies.wasm-bindgen]
+version = "0.2.69"
+features = ["serde-serialize"]
+
+[dependencies.web-sys]
+version = "0.3.4"
+features = [
+    'Document',
+    'Element',
+    'HtmlElement',
+    'Node',
+    'HtmlCanvasElement',
+    'HtmlImageElement',
+    'WebGlBuffer',
+    'WebGlRenderingContext',
+    'WebGlProgram',
+    'WebGlShader',
+    'WebGlFramebuffer',
+    'WebGlTexture',
+    'Window',
+    'console',
+    'ImageData',
+    'CanvasRenderingContext2d',
+    'CanvasGradient',
+    'Headers',
+    'Request',
+    'RequestInit',
+    'RequestMode',
+    'Response',
+    'Performance',
+    'TextMetrics'
+]
+
+

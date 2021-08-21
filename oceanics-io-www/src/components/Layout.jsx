@@ -1,157 +1,84 @@
-import React, { useMemo } from "react";
-import styled from "styled-components";
-import { Link } from "gatsby";
-
-import { pink, ghost, orange } from "../palette";
-import { rhythm } from "../typography";
-import layout from "../data/layout.yml";
-
-
-import YAML from "yaml";
-
 /**
- * The NavBar is a <nav> element that displays links or buttons
- * as a horizontal bar with the current choise styled
- * prominently.
+ * Stuff for bots and browsers
  */
-export const NavBar = styled.nav`
-
-    display: block;
-    justify-content: space-between;
-    text-align: left;
-    color: ${ghost};
-    margin-bottom: 0.5rem;
-    padding: 0;
-
-    & > * {
-        display: inline;
-        margin: 0.5rem;
-        text-decoration: none;
-        font-family: inherit;
-        font-size: inherit;
-    }
-
-    & > button {
-        color: ${pink};
-        background: none;
-        border: none;
-        cursor: pointer;
-    }
-`;
-
+import React, {Fragment} from 'react';
+import Helmet from "react-helmet";
+import BaseLayout from "oceanics-io-ui/build/components/Layout/Layout";
+import PageData from "oceanics-io-ui/build/components/Layout/PageData.json";
+import GlobalStyle from "oceanics-io-ui/build/components/Layout/GlobalStyle";
 /**
- * Internal link
+ * Retrieve Gatsby data
  */
-const SiteLink = styled.a`
-    color: ${({color})=>color};
-    font-size: x-large;
-`;
-
-/** 
- * Internal link, emphasized
- */
-export const Title = styled(Link)`
-    font-size: 2.5em;
-    color: ${orange};
-    margin: 0;
-    padding: 0;
-`;
-
-    
-
-export const Layout = ({ 
-    children,
-    className,
-    title = null
-}) => {
-
-    /**
-     * Memoize the top navigation links when they are created, 
-     * to prevent re-rendering if layout changes. 
-     */
-    const links = useMemo(()=>{
-        return layout.site.map(({label, to}, key) =>  
-            <SiteLink 
-                href={to} 
-                color={pink}
-                key={`site-link-${key}`}
-                target={"_blank"}
-            >
-                {label}
-            </SiteLink>
-        )
-    });
+import { useStaticQuery, graphql } from "gatsby";
 
 
-    const policy = useMemo(()=>{
-        return YAML.parse(layout.footer.policy)
-            .split("\n")
-            .filter(paragraph => paragraph)
-    });
 
-    
-
-    /**
-     * Memoize footer links as well. 
-     */
-    const footerLinks = useMemo(()=>{
-        return layout.footer.links.map(({label, to}, key) => 
-            <Link 
-                key={label} 
-                to={to}
-                color={ghost}
-                key={`footer-link-${key}`}
-            >
-                {label}
-            </Link>
-        )
-    });
-
-    return <div className={className}>
-        
-        <NavBar>
-            <Title to={"/"} color={ghost}>
-                {title || layout.title}
-            </Title>  
-            {links}
-        </NavBar>
-
-        <main>{children}</main>
-        <footer>
-            {policy.map((text, ii) => <p key={`text-${ii}`}>{text}</p>)}
-        </footer>
-    </div>
-};
-
-export const StyledLayout = styled(Layout)`
-    margin-left: auto;
-    margin-right: auto;
-    max-width: ${({expand})=>expand?"100%":"65ch"};
-    padding: ${rhythm(1.5)} ${rhythm(0.75)};
-
-    & > main {
-        height: auto;
-        bottom: 0;
-        padding-top: 1rem;
-        padding-bottom: 1rem;
-        border-top: none;
-        border-bottom: 0.1rem solid ${ghost};
-        border-radius: 1rem 1rem 0 0;
+const metadata = ({ title, description, site: { siteMetadata } }) => [
+    {
+        name: `description`,
+        content: description || siteMetadata.description,
+    }, {
+        property: `og:title`,
+        content: title || siteMetadata.title,
+    }, {
+        property: `og:description`,
+        content: description || siteMetadata.description,
+    }, {
+        property: `og:type`,
+        content: `website`,
+    }, {
+        name: `twitter:card`,
+        content: `summary`,
+    }, {
+        name: `twitter:creator`,
+        content: siteMetadata.author,
+    }, {
+        name: `twitter:title`,
+        content: title || siteMetadata.title,
+    }, {
+        name: `twitter:description`,
+        content: description || siteMetadata.description,
     }
+];
 
-    & footer {
-        margin-top: 2rem;
 
-        & a {
-            color: ${ghost};
-            display: block;
-            font-size: large;
+const Layout = ({ children, ...props }) => {
+    /**
+     * Static GraphQL query for sire metadata
+     * 
+     * @param {*} param0 
+     * @returns 
+     */
+    const query = graphql`
+        query {
+            site {
+                siteMetadata {
+                    title
+                    description
+                    author
+                }
+            }
         }
+    `;
+    /**
+     * Use GraphQL to to get fallback `title` and `description`. 
+     */
+    const queryData = useStaticQuery(query);
 
-        & p {
-            font-size: smaller;
-        }
-    }
-`;
+    return (
+        <Fragment>
+        <GlobalStyle/>
+        <BaseLayout {...{ ...PageData, ...props }}>
+            <Helmet
+                htmlAttributes={{ lang: "en" }}
+                title={"Oceanics.io"}
+                titleTemplate={`%s | Oceanics.io`}
+                meta={metadata(queryData)}
+            />
+            {children}
+        </BaseLayout>
+        </Fragment>
+    )
+}
 
-export default StyledLayout;
+export default Layout;
