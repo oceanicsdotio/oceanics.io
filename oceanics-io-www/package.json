@@ -27,7 +27,7 @@
     "gatsby-transformer-remark": "latest",
     "gatsby-transformer-sharp": "latest",
     "katex": "^0.13.11",
-    "oceanics-io-ui": "workspace:*",
+    "oceanics-io-ui": "*",
     "prismjs": "^1.24.1",
     "react": "16.14.0",
     "react-dom": "^16.13.1",
