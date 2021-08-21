@@ -19375,7 +19375,7 @@ fsevents@^1.2.7:
     babel-plugin-syntax-dynamic-import: ^6.18.0
     mapbox-gl: ^1.5.0
     netcdfjs: ^1.0.0
-    oceanics-io-ui: "workspace:*"
+    oceanics-io-ui: "*"
     openapi-types: ">=7"
     pg: ^8.5.1
     prop-types: ^15.7.2
@@ -19393,13 +19393,7 @@ fsevents@^1.2.7:
   languageName: unknown
   linkType: soft
 
-"oceanics-io-asm@workspace:oceanics-io-asm":
-  version: 0.0.0-use.local
-  resolution: "oceanics-io-asm@workspace:oceanics-io-asm"
-  languageName: unknown
-  linkType: soft
-
-"oceanics-io-ui@workspace:*, oceanics-io-ui@workspace:oceanics-io-ui":
+"oceanics-io-ui@*, oceanics-io-ui@workspace:oceanics-io-ui":
   version: 0.0.0-use.local
   resolution: "oceanics-io-ui@workspace:oceanics-io-ui"
   dependencies:
@@ -19469,7 +19463,7 @@ fsevents@^1.2.7:
     gatsby-transformer-remark: latest
     gatsby-transformer-sharp: latest
     katex: ^0.13.11
-    oceanics-io-ui: "workspace:*"
+    oceanics-io-ui: "*"
     prettier: ^2.2.1
     prismjs: ^1.24.1
     react: 16.14.0
