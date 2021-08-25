@@ -68,7 +68,7 @@ APP = App(__name__, options={"swagger_ui": False})
 CORS(APP.app)
 
 # Configuration
-SOURCES = ("config/bathysphere.yml", "bin/agents.yml")
+SOURCES = ("config/bathysphere.yml", "config/agents.yml")
 
 # Regex for case changing
 CAMEL_CASE_REGEX_PATTERN = re.compile(r'(?<!^)(?=[A-Z])')

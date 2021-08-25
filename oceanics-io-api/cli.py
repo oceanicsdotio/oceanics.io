@@ -1,11 +1,8 @@
 """
-Bathysphere command line interface. 
+Bathysphere command line interface.
 
 This brings various scriptable processes into a single location.
 """
-
-from subprocess import run
-
 import click
 
 @click.group()
