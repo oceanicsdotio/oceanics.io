@@ -16,7 +16,7 @@
     "gatsby-plugin-mdx": "latest",
     "gatsby-plugin-react-helmet": "latest",
     "gatsby-plugin-sharp": "latest",
-    "gatsby-plugin-styled-components": "^4.11.0",
+    "gatsby-plugin-styled-components": "^4.12.0",
     "gatsby-remark-copy-linked-files": "latest",
     "gatsby-remark-images": "latest",
     "gatsby-remark-katex": "latest",
