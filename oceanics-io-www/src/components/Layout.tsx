@@ -68,7 +68,7 @@ const Layout = ({ children, ...props }) => {
   return (
     <Fragment>
       <GlobalStyle />
-      <BaseLayout {...{ ...PageData, ...props }}>
+      <BaseLayout expand={false} {...{ ...PageData, ...props }}>
         <Helmet
           htmlAttributes={{ lang: "en" }}
           title={"Oceanics.io"}

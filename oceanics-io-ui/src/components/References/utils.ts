@@ -58,10 +58,10 @@ export type ArticleType = StyledType & PartialArticle & {
  * Query string mapping
  */
 export type QueryType = {
-    items: number;
-    tag: string;
-    reference: number;
-    increment: number;
+    items?: number;
+    tag?: string;
+    reference?: number;
+    increment?: number;
 };
 
 export type GroupType = {
