@@ -5,6 +5,10 @@ const GlobalStyle = createGlobalStyle`
         box-sizing: border-box;
     }
 
+    img {
+        width: 100%;
+    }
+
     body, html{
         background: #000000;
         font-size: large;
