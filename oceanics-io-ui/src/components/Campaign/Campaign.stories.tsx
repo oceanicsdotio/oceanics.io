@@ -9,7 +9,6 @@ import {Meta, Story} from "@storybook/react";
  */
 import Campaign, {ICampaignType, PageData} from './Campaign';
 
-import "../../styles/global.css";
 import "../../styles/theme.css";
 
 

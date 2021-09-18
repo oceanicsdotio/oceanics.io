@@ -8,7 +8,6 @@ import {Meta,Story} from "@storybook/react"
  */
 import Location, {LocationType} from './Location';
 
-import "../../styles/global.css";
 import "../../styles/theme.css";
 
 /**

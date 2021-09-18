@@ -9,7 +9,6 @@ import { Meta, Story} from "@storybook/react";
  */
 import Catalog, {CatalogType} from './Catalog';
 
-import "../../styles/global.css";
 import "../../styles/theme.css";
 
 /**

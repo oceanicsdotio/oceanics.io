@@ -9,7 +9,6 @@ import {Meta,Story} from "@storybook/react";
  */
 import LayerCard, { LayerType } from './LayerCard';
 
-import "../../styles/global.css";
 import "../../styles/theme.css";
 
 /**
