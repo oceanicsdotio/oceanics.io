@@ -40,7 +40,7 @@ const IndexPage = ({
       <Campaign
         navigate={navigate}
         title={PageData.title}
-        campaign={PageData.campaigns[0]}
+        campaign={PageData.campaigns[1]}
       />
       <Index
         query={query}
