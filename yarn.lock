@@ -6287,10 +6287,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^16.4.10":
-  version: 16.4.10
-  resolution: "@types/node@npm:16.4.10"
-  checksum: fcbd20531909ebc1edbc3183d7128a6c72a5e543c4a6966ba787d9be6b5619e4074a4e1ddeb12f694f99526bf1c5f55e653fcde12215fd9a0999a0db8501af2b
+"@types/node@npm:^16.9.2":
+  version: 16.9.2
+  resolution: "@types/node@npm:16.9.2"
+  checksum: 5bff48a68152646f6b419a62ef2c7217b3f97acdf25fc319d816335a88a7e272c895632115285f47f727086e28d6c6c670e6fd2ddbb5d8f3d4388af875fa8fbf
   languageName: node
   linkType: hard
 
@@ -20808,7 +20808,7 @@ fsevents@^1.2.7:
     "@storybook/components": ^6.3.4
     "@storybook/react": ^6.3.4
     "@types/jest": ^26.0.24
-    "@types/node": ^16.4.10
+    "@types/node": ^16.9.2
     "@types/pdfjs-dist": ^2.7.4
     "@types/pluralize": ^0.0.29
     "@types/react": ^17.0.15

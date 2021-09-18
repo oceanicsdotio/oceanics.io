@@ -1,23 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
-
-/**
- * Go from search string to object with parsed numeric values
- */
-export const decode = (search: string): object => {
-  const params = new URLSearchParams(search);
-  const numeric = Object.entries(params).map(([key, value]) => {
-    const parsed = Number(value);
-    return [key, isNaN(parsed) ? value : parsed];
-  })
-  return Object.fromEntries(numeric);
-};
-
-/**
- * Go from object to valid local URL
- */
-export const encode = <T,>(params: T): string => {
-  return new URLSearchParams(Object.entries(params)).toString();
-};
+import { useCallback, useMemo } from "react";
 
 type QueryParams = {
   items?: number;
@@ -32,41 +13,43 @@ type Fixtures = {
   onIncrementValue: Function;
 };
 
-export default (search: string, defaults: QueryParams, navigate: Function): Fixtures => {
+/**
+ * Go from object to valid local URL
+ */
+const encode = (params: QueryParams) =>
+  new URLSearchParams(
+    Object.entries(params).map(([key, value])=>[key, `${value}`])
+  ).toString();
+
+export default (
+  search: string, 
+  defaults: QueryParams, 
+  navigate: Function
+): Fixtures => {
 
   /**
-   * Save the parsed state.
+   * Go from search string to object with parsed numeric values
    */
-  const [query, setQuery] = useState<QueryParams>(defaults);
-
-  /**
-   * When page loads or search string changes parse the string to React state.
-   * 
-   * Determine visible content. 
-   */
-  useEffect(() => {
-    if (search ?? false) setQuery({ ...defaults, ...decode(search) });
-  }, [search]);
-
+  const query: QueryParams = useMemo(() => {
+    const params = new URLSearchParams(search);
+    return {
+      items: parseInt(params.get("items") || `${defaults.items}`),
+      tag: params.get("tag") || defaults.tag,
+      reference: parseInt(params.get("reference") || `${defaults.reference}`),
+      increment: parseInt(params.get("increment") || `${defaults.increment}`),
+    };
+  }, [search, defaults]);
+  
   const navigateWithQuery = useCallback((insert: QueryParams) => {
-    const combine = encode({
-      ...decode(search),
-      ...insert
-    });
-    navigate(`/?${combine}`);
+    navigate(`/?${encode({...query, ...insert})}`);
   }, [navigate, search]);
 
   const onIncrementValue = useCallback((key: string, increment: number) => {
-    const current: any = decode(search);
-    const value: string = current[key];
-    const numeric: number = typeof value !== "undefined" ? parseInt(value) : increment;
-    const combine = encode({
-      ...current,
-      [key]: numeric + increment
-    });
-    navigate(`/?${combine}`);
-  }, [navigate, search]);
-
+    navigate(`/?${encode({
+      ...query,
+      [key]: (query.items??increment) + increment
+    })}`);
+  }, [navigate, query]);
 
   return {
     query,

@@ -33,7 +33,7 @@ const IndexPage = ({
   /**
    * Search string query parameters
    */
-  const { query } = useQueryString(search, DEFAULTS, navigate);
+  const { query, navigateWithQuery, onIncrementValue } = useQueryString(search, DEFAULTS, navigate);
   
   return (
     <>
@@ -45,8 +45,8 @@ const IndexPage = ({
       />
       <Index
         query={query}
-        onClickTag={() => () => { }}
-        onClickMore={() => () => { }}
+        onClickTag={() => () => {}}
+        onClickMore={() => {onIncrementValue("items", 3)}}
         data={data}
       />
     </>
