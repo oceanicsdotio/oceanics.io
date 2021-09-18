@@ -4,13 +4,11 @@ type QueryParams = {
   items?: number;
   tag?: string;
   reference?: number;
-  increment?: number;
 };
 
 type Fixtures = {
   query?: QueryParams;
-  navigateWithQuery: Function;
-  onIncrementValue: Function;
+  navigateWithQuery: (insert: QueryParams) => void;
 };
 
 /**
@@ -36,7 +34,6 @@ export default (
       items: parseInt(params.get("items") || `${defaults.items}`),
       tag: params.get("tag") || defaults.tag,
       reference: parseInt(params.get("reference") || `${defaults.reference}`),
-      increment: parseInt(params.get("increment") || `${defaults.increment}`),
     };
   }, [search, defaults]);
   
@@ -44,17 +41,9 @@ export default (
     navigate(`/?${encode({...query, ...insert})}`);
   }, [navigate, search]);
 
-  const onIncrementValue = useCallback((key: string, increment: number) => {
-    navigate(`/?${encode({
-      ...query,
-      [key]: (query.items??increment) + increment
-    })}`);
-  }, [navigate, query]);
-
   return {
     query,
-    navigateWithQuery,
-    onIncrementValue
+    navigateWithQuery
   }
 
 }

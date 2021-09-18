@@ -1,11 +1,7 @@
 /**
  * React and friends
  */
-import React, {FC} from "react";
-
-/**
- * Stylish stuff
- */
+import React, { FC } from "react";
 import styled from "styled-components";
 
 /**
@@ -16,39 +12,38 @@ import { charcoal, orange, grey, ghost, shadow } from "../../palette";
 /**
  * Types
  */
-import { ArticleType } from "./utils";
-
+import type { ArticleType } from "./utils";
 
 /**
  * List view of an article
  */
 export const Stub: FC<ArticleType> = ({
-    className,
-    frontmatter: {
-        title,
-        date,
-        description,
-        tags
-    },
-    fields: {
-        slug
-    },
-    onClickTag
+  className,
+  frontmatter: {
+    title,
+    date,
+    description,
+    tags
+  },
+  fields: {
+    slug
+  },
+  onClickTag
 }) => {
-    return (
-        <article className={className}>
-            <header>
-                <a href={slug}>{title}</a>
-                <span>{date}</span>
-            </header>
-            <section>
-                {description}
-            </section>
-            {tags.map((tag: string) =>
-                <a key={`${slug}-${tag}`} onClick={onClickTag(tag)}>{tag}</a>
-            )}
-        </article>
-    )
+  return (
+    <article className={className}>
+      <header>
+        <a href={slug}>{title}</a>
+        <span>{date}</span>
+      </header>
+      <section>
+        {description}
+      </section>
+      {tags.map((tag: string) =>
+        <a key={`${slug}-${tag}`} onClick={onClickTag(tag)}>{tag}</a>
+      )}
+    </article>
+  )
 }
 
 /**

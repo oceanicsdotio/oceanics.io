@@ -81,6 +81,7 @@ export type IndexType = StyledType & {
     query: QueryType;
     onClickTag: (tag: string) => MouseEventHandler<HTMLInputElement>;
     onClickMore: MouseEventHandler<HTMLButtonElement>;
+    onClearAll: MouseEventHandler<HTMLButtonElement>;
 };
 
 /**

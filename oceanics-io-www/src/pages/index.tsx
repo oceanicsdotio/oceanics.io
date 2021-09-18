@@ -15,8 +15,7 @@ const ITEM_INCREMENT = 3;
 const DEFAULTS = {
     items: ITEM_INCREMENT,
     tag: "",
-    reference: 0,
-    increment: ITEM_INCREMENT
+    reference: 0
 }
 
 /**
@@ -33,7 +32,7 @@ const IndexPage = ({
   /**
    * Search string query parameters
    */
-  const { query, navigateWithQuery, onIncrementValue } = useQueryString(search, DEFAULTS, navigate);
+  const { query, navigateWithQuery } = useQueryString(search, DEFAULTS, navigate);
   
   return (
     <>
@@ -45,8 +44,9 @@ const IndexPage = ({
       />
       <Index
         query={query}
-        onClickTag={() => () => {}}
-        onClickMore={() => {onIncrementValue("items", 3)}}
+        onClickTag={(tag: string) => () => {navigateWithQuery({tag})}}
+        onClickMore={() => {navigateWithQuery({items: query.items + 3})}}
+        onClearAll={()=>{navigate("/")}}
         data={data}
       />
     </>

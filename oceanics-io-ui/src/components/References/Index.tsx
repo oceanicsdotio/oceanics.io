@@ -29,6 +29,7 @@ const Index: FC<IndexType> = ({
   query,
   onClickTag,
   onClickMore,
+  onClearAll
 }) => {
   /**
    * The array of visible articles. The initial value is the subset from 0 to
@@ -36,8 +37,11 @@ const Index: FC<IndexType> = ({
    */
   const visible: PartialArticle[] = useMemo(
     () => {
+      const selectedTag = query.tag??"";
       return nodes.filter((node: PartialArticle): boolean => (
-        !!node && !node.frontmatter.tags.includes("wip")
+        !!node && 
+        !node.frontmatter.tags.includes("wip") && 
+        (!selectedTag || node.frontmatter.tags.includes(selectedTag))
       )).slice(0, query.items);
     },
     [query]
@@ -48,6 +52,7 @@ const Index: FC<IndexType> = ({
       {visible.map((props: PartialArticle) =>
         <Stub key={props.fields.slug} onClickTag={onClickTag} {...props} />)}
       <Button onClick={onClickMore}>{"More arcana"}</Button>
+      <Button onClick={onClearAll}>{"Clear selection"}</Button>
     </div>
   )
 };
