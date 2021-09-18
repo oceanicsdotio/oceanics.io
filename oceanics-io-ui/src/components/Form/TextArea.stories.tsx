@@ -11,7 +11,6 @@ import TextArea from './TextArea';
 /**
  * Global styles
  */
-import "../../styles/global.css";
 import "../../styles/theme.css";
 
 /**

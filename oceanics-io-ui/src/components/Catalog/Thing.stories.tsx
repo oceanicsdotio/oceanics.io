@@ -8,7 +8,6 @@ import {Meta, Story} from "@storybook/react"
  */
 import Thing, {ThingType} from './Thing';
 
-import "../../styles/global.css";
 import "../../styles/theme.css";
 
 /**
