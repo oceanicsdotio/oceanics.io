@@ -1,5 +1,4 @@
-import { useCallback } from "@storybook/react/node_modules/@storybook/addons";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 
 /**
  * Go from search string to object with parsed numeric values

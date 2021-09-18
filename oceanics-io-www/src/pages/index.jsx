@@ -9,7 +9,7 @@ import { graphql, navigate } from "gatsby";
  */
 import Campaign, { PageData } from "oceanics-io-ui/build/components/Campaign/Campaign";
 import Index from "oceanics-io-ui/build/components/References/Index";
-import useQueryString from "oceanics-io-ui/build/hooks/useQueryString";
+import useQueryString from "oceanics-io-ui/build/hooks/useQueryString.js";
 const ITEM_INCREMENT = 3;
 
 const DEFAULTS = {
