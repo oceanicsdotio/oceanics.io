@@ -45,9 +45,6 @@ const metadata = ({ title, description, site: { siteMetadata } }) => [
 const Layout = ({ children, ...props }) => {
     /**
      * Static GraphQL query for sire metadata
-     * 
-     * @param {*} param0 
-     * @returns 
      */
     const query = graphql`
         query {
