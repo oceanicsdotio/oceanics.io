@@ -2,10 +2,6 @@
  * React and friends.
  */
 import React from "react";
-
-/**
- * For building and linking data
- */
 import { graphql, navigate } from "gatsby";
 
 /**
@@ -46,6 +42,7 @@ const IndexPage = ({
     
     return (
         <>
+            <img src={"/shrimpers-web.png"} alt={"agents at rest"}/>
             <Campaign 
                 navigate={navigate} 
                 title={PageData.title} 
