@@ -16,6 +16,7 @@
     "gatsby-plugin-manifest": "latest",
     "gatsby-plugin-mdx": "latest",
     "gatsby-plugin-react-helmet": "latest",
+    "gatsby-plugin-remove-serviceworker": "^1.0.0",
     "gatsby-plugin-sharp": "latest",
     "gatsby-plugin-styled-components": "^4.12.0",
     "gatsby-remark-copy-linked-files": "latest",

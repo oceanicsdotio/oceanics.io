@@ -13774,6 +13774,13 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
+"gatsby-plugin-remove-serviceworker@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "gatsby-plugin-remove-serviceworker@npm:1.0.0"
+  checksum: 37c2aa8fc203da765d13e0ae58c9309048e5c912962944b2cbd3402b657a9699e515872933ef69b00a366f9e53f5c6e011346eb247ac8a83ed2b20d9d1f7e70c
+  languageName: node
+  linkType: hard
+
 "gatsby-plugin-sharp@npm:latest":
   version: 3.11.0
   resolution: "gatsby-plugin-sharp@npm:3.11.0"
@@ -14255,7 +14262,7 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"gatsby@npm:^3.13.0":
+"gatsby@npm:^3.14.0":
   version: 3.14.0
   resolution: "gatsby@npm:3.14.0"
   dependencies:
@@ -20841,12 +20848,13 @@ fsevents@^1.2.7:
     core-js: ^3.16.1
     eslint: ^7.23.0
     eslint-plugin-react-hooks: ^4.2.0
-    gatsby: ^3.13.0
+    gatsby: ^3.14.0
     gatsby-cli: ^3.10.0
     gatsby-image: ^3.10.0
     gatsby-plugin-manifest: latest
     gatsby-plugin-mdx: latest
     gatsby-plugin-react-helmet: latest
+    gatsby-plugin-remove-serviceworker: ^1.0.0
     gatsby-plugin-sharp: latest
     gatsby-plugin-styled-components: ^4.12.0
     gatsby-remark-copy-linked-files: latest

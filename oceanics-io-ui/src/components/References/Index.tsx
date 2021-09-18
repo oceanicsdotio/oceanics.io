@@ -8,12 +8,11 @@ import React, { FC, useMemo } from "react";
  */
 import Stub from "./Stub";
 import Button from "../Form/Button";
-import Select from "../Form/Select";
 
 /**
  * Typing and lookups
  */
-import { IndexType, PartialArticle } from "./utils";
+import type { IndexType, PartialArticle } from "./utils";
 
 /**
  * Base component for web landing page.
@@ -24,12 +23,10 @@ const Index: FC<IndexType> = ({
   className,
   data: {
     allMdx: {
-      nodes,
-      group
+      nodes
     }
   },
   query,
-  onChangeSelect,
   onClickTag,
   onClickMore,
 }) => {
@@ -50,12 +47,6 @@ const Index: FC<IndexType> = ({
     <div className={className}>
       {visible.map((props: PartialArticle) =>
         <Stub key={props.fields.slug} onClickTag={onClickTag} {...props} />)}
-      <Select
-        id={"filter-by-tag"}
-        options={group.map(({ fieldValue }) => fieldValue)}
-        name={"Select tag"}
-        onChange={onChangeSelect}
-      />
       <Button onClick={onClickMore}>{"More arcana"}</Button>
     </div>
   )

@@ -1,4 +1,4 @@
-import {MouseEventHandler, ChangeEventHandler} from "react";
+import {MouseEventHandler} from "react";
 /**
  * Inputs to hashing/uniqueId function
  */
@@ -61,7 +61,7 @@ export type QueryType = {
     items: number;
     tag: string;
     reference: number;
-    inc: number;
+    increment: number;
 };
 
 export type GroupType = {
@@ -79,7 +79,6 @@ export type IndexType = StyledType & {
         }
     };
     query: QueryType;
-    onChangeSelect: ChangeEventHandler<HTMLSelectElement>;
     onClickTag: (tag: string) => MouseEventHandler<HTMLInputElement>;
     onClickMore: MouseEventHandler<HTMLButtonElement>;
 };

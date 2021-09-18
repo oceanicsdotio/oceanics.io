@@ -38,12 +38,11 @@ Example.args = {
         }
     },
     query: {
-        inc:3,
+        increment:3,
         items:10,
         tag:"",
         reference:0,
     },
-    onChangeSelect: ()=>{},
     onClickMore: ()=>{},
     onClickTag: ()=>()=>{}
 };
