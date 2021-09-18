@@ -8,7 +8,7 @@ tags: ["data", "geospatial", "cybernetics", "nasa", "sci-fi"]
 ---
 
 
-## TLDR (2:40)
+## TLDR
 
 The National Aeronautics and Space Administration (NASA) Jet Propulsion Lab (JPL), specifically the Physical Oceanography Distributed Active Archive Center (PODAAC) wants to know how to access, analyze, and visualize signature assets.
 
@@ -22,57 +22,18 @@ But the creators of some of the longest [continuously operating data acquisition
 
 JPL engineers remotely diagnosed and patched Voyager in flight, on hardware with 70kb memory, when the computers started talking gibberish due to a single bit flip 33 years into the 48 year mission.
 
-I can’t do that! Can I?
-
-Didn’t Reed-Solomon, Galois fields, and RAID come from those projects?
+I can’t do that! Can I? Didn’t Reed-Solomon, Galois fields, and RAID come from those projects?
 
 It’s humbling to say, as always, that “best” depends on your use case, volume, budget, and charter.
-
-Let’s get to it!
 
 - If you’re a service provider, write cloud native functions that access objects
 - If you’re a banker or risk professional, pay the Scala premium
 - If you’re an artificial intelligence platform, build a vertex graph with spatial partitions
 - Else ship platform-independent assembly that produces data
 
-The important part is thinking about how you want technology to drive your business outcomes in advance.
+The important part is thinking about how you want technology to drive your business outcomes in advance. There’s just a ton of hard work to do before any code is written for the perfect future-proofed, warehouse-mart-lake-archive-repo-database.
 
-There’s just a ton of hard work to do before any code is written for the perfect future-proofed, warehouse-mart-lake-archive-repo-database.
-
-## No truer words than when spoken (1:45)
-
-Sometimes I use non-canonical terminology to reduce ambiguity, or to indicate that I mean a specific facet of a thing rather than the whole.
-
-I try to use the word that means the thing rather than an alias.
-
-Since this is meant to be spoken aloud. I’ll pause for clarifications so we can build a foundation as we go.  
-
-Underlined phrases are emphasized. Emoji are just for fun. 🦩
-
-And, I won’t laugh unless y’all are in on the joke.
-
-One time a lot of smart people thought it was exceptionally funny that I didn’t know what turgid meant.
-
-Joke is, maybe I did... Hold-up, you lied? *Maybe*.
-
-I’m just a message-passing object with memory after all. *Maybe* I was remote sensing through performance. I’m dancing inside a mutually-observing system right now. 💃
-
-"Ultimately, ______ art means honestly expressing yourself
-...it is easy for me to put on a show and be cocky
-Or I could show you some really fancy movement
-But to express oneself honestly, not lying to oneself
-And to express myself honestly
-Now that, my friend, is very hard to do."
-
-This is from Bruce Lee’s “Lost Interview”, sampled in Honest Expression, by Binary Star, on the acclaimed Masters of the Universe (2000), a re-mix of Waterworld (1999) which was made with $500 by a duo that met in a Michigan prison.
-
-There’s a lesson here.
-
-By the way, if the references to music and science fiction and space mysticism get to be like A LOT...
-
-JPL co-founder Jack Parsons was publicly an occultist and recited the “Hymn to Pan” during rocket tests. 🚀🐐
-
-## The premise is trust (8:13)
+## The premise is trust
 
 The key to making use of (dis)connected data, is to put it in context.
 
@@ -193,7 +154,7 @@ That’s my premise, but maybe I spent too much time around Berkeley…
 
 So, let’s get Pacific 🌇.
 
-## First date jitters (3:16)
+## First date jitters
 
 I like to document my first date with new data and providers.
 
@@ -249,8 +210,7 @@ What can the Spice Girls “teach us about brand purpose”? 🎙️
 
 <img src={"https://briannefleming.com/wp-content/uploads/2021/01/Spice-Girls-1000x675.jpg"} width={"100%"}></img>
 
-
-## We’re getting to a point, I think (9:07)
+## We’re getting to a point, I think
 
 The Tellus asset I am talking about is `TELLUS_GRAC-GRFO_MASCON_CRI_GRID_RL06_V2.nc`.
 
@@ -339,7 +299,7 @@ The pattern I go to for unstructured vector data at `oceanics.io` is:
 
 - `NetCDF → Lambda → Vertex Buffers → S3 → Neo4j → Lambda → WASM Worker → React → MapBox`
 
-## The data must flow (10:52)
+## The data must flow
 
 This is a well loved asset and there is a ton of prior art. One-off “3-D” visualization goes [back to 2003](http://ttps://grace.jpl.nasa.gov/resources/6/grace-global-gravity-animation/) and [to 2013is](https://earth.gsfc.nasa.gov/geo/data/nasagsfc-mascon-visualizations)h.
 
