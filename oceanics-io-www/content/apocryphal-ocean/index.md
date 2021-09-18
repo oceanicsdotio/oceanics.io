@@ -4,9 +4,9 @@ date: "2021-05-02T07:00:00.000Z"
 description: |
     If you've ever wondered why ocean climate data seem intentionally inaccessible, this may be for you. 
 
-tags: ["data", "geospatial", "cybernetics", "nasa", "sci-fi"]
+tags: ["transcript", "geospatial", "cybernetics", "nasa", "sci-fi"]
 ---
-
+data
 
 ## TLDR
 

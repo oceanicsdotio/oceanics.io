@@ -8,7 +8,6 @@
   */
  import {grey} from "../../palette";
  
- 
  /**
   * Divvy up blank space
   */
