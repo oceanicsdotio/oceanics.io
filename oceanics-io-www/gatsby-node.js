@@ -80,7 +80,7 @@ exports.createPages = async ({
     }, index) => {
         createPage({
             path: slug,
-            component: path.resolve(`src/templates/article.jsx`),
+            component: path.resolve(`src/templates/article.tsx`),
             context: {
                 slug,
                 previous: index === nodes.length - 1 ? null : nodes[index + 1].node,
