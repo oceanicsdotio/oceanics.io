@@ -1,9 +1,10 @@
 import { useEffect, useState, useReducer, useRef } from "react";
-import { lichen, orange } from "../palette";
+import { lichen, orange } from "oceanics-io-ui/build/palette";
 import useWasmRuntime from "./useWasmRuntime";
 
 
-
+type Points = [number, number][];
+type EventLocation = {clientX: number; clientY: number;}; 
 /*
  * Rotate a path of any number of points about the origin.
  * You need to translate first to the desired origin, and then translate back 
@@ -11,14 +12,13 @@ import useWasmRuntime from "./useWasmRuntime";
  * 
  * Not as flexible as quaternion rotation.
  */
-const rotatePath = (pts, angle) => {
-   
+const rotatePath = (pts: Points, angle: number): Points  => {
     let [s, c] = [Math.sin, Math.cos].map(fcn => fcn(angle));
     return pts.map(([xx, yy]) => [(xx * c - yy * s), (xx * s + yy * c)]);
 }
 
 
-const eventCoordinates = ({clientX, clientY}, canvas) => {
+const eventCoordinates = ({clientX, clientY}: EventLocation, canvas: HTMLCanvasElement) => {
     // Short hand for element reference frame
     const {left, top} = canvas.getBoundingClientRect();
     return [clientX - left, clientY - top]
@@ -31,15 +31,17 @@ const eventCoordinates = ({clientX, clientY}, canvas) => {
  * The width is the width of the canvas drawing area, and 
  * gridSize is the number of squares per side of the world.
  */
-const inverse = (points, width, gridSize) => {
-   
+const inverse = (points: Points, width: number, gridSize: number): Points => {
     return rotatePath(points.map(([x,y])=> [
             x - (Math.floor(0.5*gridSize) + 1.25)*width/gridSize/Math.sqrt(2), 
             2*y 
         ]
-), -Math.PI/4).map(pt => pt.map(dim => dim*Math.sqrt(2)))};
+), -Math.PI/4).map(([x, y]) => [x*Math.sqrt(2), y*Math.sqrt(2)])};
 
-
+type IOceansideOverlay = {
+    gridSize: number;
+    backgroundColor: string;
+}
 
 /**
  * The `Oceanside` hook provides all of the functionality to
@@ -67,32 +69,17 @@ const inverse = (points, width, gridSize) => {
 export default ({
     gridSize,
     backgroundColor = "#00000000",
-}) => {
+}: IOceansideOverlay) => {
 
     /**
      * Canvas reference.
      */
-    const overlay = useRef(null);
+    const overlay = useRef<HTMLCanvasElement|null>(null);
 
     /**
      * Runtime will be passed to calling Hook or Component. 
      */
     const { runtime } = useWasmRuntime();
-
-    /**
-     * Dynamically load the WASM, add debugging, and save to React state,
-     */
-    useEffect(() => {
-        try {
-            (async () => {
-                const runtime = await import('../wasm');
-                runtime.panic_hook();
-                setRuntime(runtime);
-            })()   
-        } catch (err) {
-            console.log("Unable to load WASM runtime")
-        }
-    }, []);
 
     /**
      * Complex cursor handled in Rust
@@ -104,6 +91,7 @@ export default ({
      */
     useEffect(()=>{
         if (!runtime) return;
+        //@ts-ignore
         setCursor(new runtime.PrismCursor(0.0, 0.0, window.devicePixelRatio, gridSize));
     }, [ runtime ]);
     
@@ -124,7 +112,7 @@ export default ({
      * to logicaly update the array of pressed keys. 
      */
     const [keys, setKeys] = useReducer(
-        (state, {type, key}) => {
+        (state: {[index: string]: string|boolean}, {type, key}: {type: string; key: string;}) => {
             switch (type) {
                 case "keydown":
                     return { ...state, [key]: true };
@@ -134,26 +122,32 @@ export default ({
                     return state;
             }
         }, 
-        ["Shift", "C"]
-            .map(key => key.toLowerCase())
-            .reduce((currentKeys, key) => {
-                currentKeys[key] = false;
-                return currentKeys;
-            }, {})
+        ["Shift", "C"].reduce(
+            (acc, key) => {
+                return {
+                    ...acc,
+                    [key.toLowerCase()]: false
+                };
+            }, {}
+        )
     );
 
     
     useEffect(() => {
-        const listeners = ["keyup", "keydown"].map(type => {
-            const listen = ({key, repeat}) => {
+        const listeners = ["keyup", "keydown"].map((type) => {
+            const listen = ({key, repeat}: {key: string; repeat: boolean;}) => {
                 const symbol = key.toLowerCase();
                 if (repeat || !keys.hasOwnProperty(symbol)) return;
                 if (keys[symbol] === ("keyup" === type)) setKeys({ type, key: symbol });  
             };
+            //@ts-ignore
             window.addEventListener(type, listen, true);
             return [type, listen];
         });
-        return () => listeners.map(each => window.removeEventListener(...each, true));
+        return () => {
+            //@ts-ignore
+            listeners.forEach((each) => window.removeEventListener(...each, true))
+        };
     }, [ keys ]);
   
 
@@ -169,12 +163,13 @@ export default ({
             !overlay.current ||
             !cursor
         ) return;
-
-        overlay.current.addEventListener('mousemove', (event) => {
-            const xy = eventCoordinates(event, overlay.current);
+        const canvas: HTMLCanvasElement = overlay.current;
+        canvas.addEventListener('mousemove', (event) => {
+            const xy = eventCoordinates(event, canvas);
+            //@ts-ignore
             cursor.update(...xy);
         });
-
+    
     }, [ cursor, overlay ]);
 
 
@@ -188,41 +183,47 @@ export default ({
             !overlay.current || 
             !cursor
         ) return;
+        const canvas: HTMLCanvasElement = overlay.current;
+        const ctx = canvas.getContext(`2d`);
+        if (!ctx) {
+            throw TypeError("Rendering Context is Null")
+        }
 
-        [overlay.current.width, overlay.current.height] = ["width", "height"].map(
-            dim => getComputedStyle(overlay.current).getPropertyValue(dim).slice(0, -2)
-        ).map(x => x * window.devicePixelRatio);
+        [canvas.width, canvas.height] = ["width", "height"].map(
+            dim => getComputedStyle(canvas).getPropertyValue(dim).slice(0, -2)
+        ).map(x => Number(x) * window.devicePixelRatio);
+        const { width, height } = canvas;
 
-        const ctx = overlay.current.getContext(`2d`);
-        const { width, height } = overlay.current;
-       
+        
+        //@ts-ignore
         runtime.clear_rect_blending(ctx, width, height, backgroundColor);
         
         const Δx = 1; 
         const Δy = 1;
-        const curs = [cursor.x(), cursor.y()];
+        //@ts-ignore
+        const [x, y]: [number, number] = [cursor.x(), cursor.y()];
 
         const cellSize = width/gridSize;
-        const [inverted] = inverse([curs.map(x=>x*cellSize)], width, gridSize).map(pt => pt.map(x=>x/cellSize));
+        const [inverted] = inverse([[x*cellSize, y*cellSize]], width, gridSize).map(pt => pt.map(x=>x/cellSize));
         
         [
-            {upperLeft: curs, color: orange},
+            {upperLeft: [x, y], color: orange},
             {upperLeft: inverted, color: lichen}
         ].map(({color, upperLeft})=>{
 
             const [x, y] = upperLeft.map(dim => clamp ? Math.floor(dim) : dim);
 
-            const cellA = [
+            const cellA: [number, number][] = [
                 [x, y],
                 [x + Δx, y],
                 [x + Δx, y + Δy],
                 [x, y + Δy]
             ].map(
-                pt => pt.map(dim => dim*cellSize)
+                ([x, y]) => [x*cellSize, y*cellSize]
             );
             
-            const cellB = rotatePath(
-                cellA.map(pt => pt.map(x => x/Math.sqrt(2))), 
+            const cellB: [number, number][] = rotatePath(
+                cellA.map(([x, y]) => [x/Math.sqrt(2), y/Math.sqrt(2)]), 
                 Math.PI/4
             ).map(
                 ([x,y])=>[

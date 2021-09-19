@@ -2,11 +2,7 @@
  * React friends.
  */
 import { useState, useEffect, useRef } from "react";
-
-/**
- * Colors for style
- */
-import { lichen, ghost } from "../palette";
+import { lichen, ghost } from "oceanics-io-ui/build/palette";
 
 /**
  * Synchronous front-end WASM Runtime
@@ -47,6 +43,7 @@ export default ({
      * Create the data stream once the runtime has loaded. 
      */
     useEffect(() => {
+        //@ts-ignore
         if (runtime) setStream(new runtime.InteractiveDataStream(capacity));
     }, [ runtime ]);
 
@@ -60,39 +57,43 @@ export default ({
      */
     useEffect(() => {
         if (!runtime || !dataStream || !ref.current) return;
+        const canvas: HTMLCanvasElement = ref.current;
 
         // use location based sunlight function
-        const fcn = t => {
+        const fcn = (t: number) => {
             let days = t / 5000.0 % 365.0;
             let hours = days % 1.0;
             let latitude = 46.0;
+            //@ts-ignore
             return (runtime.photosynthetically_active_radiation(days, latitude, hours));
         };
 
-        ref.current.addEventListener('mousemove', ({clientX, clientY}) => {
-            const {left, top} = ref.current.getBoundingClientRect();
+        canvas.addEventListener('mousemove', ({clientX, clientY}) => {
+            const {left, top} = canvas.getBoundingClientRect();
+            //@ts-ignore
             dataStream.update_cursor(clientX-left, clientY-top);
         });
 
-        [ref.current.width, ref.current.height] = ["width", "height"].map(
-            dim => getComputedStyle(ref.current).getPropertyValue(dim).slice(0, -2)
+        [canvas.width, canvas.height] = ["width", "height"].map(
+            dim => Number(getComputedStyle(canvas).getPropertyValue(dim).slice(0, -2))
         );
 
         const start = performance.now();
-        let requestId = null;
+        let requestId: number|null = null;
 
         (function render() {
             const time = performance.now() - start;
+            //@ts-ignore
             dataStream.push(time, fcn(time));
-            
+            //@ts-ignore
             dataStream.draw(ref.current, time, {backgroundColor, streamColor, overlayColor, lineWidth, pointSize, fontSize, tickSize, labelPadding});
-
+            //@ts-ignore
             setMessage(`Light (N=${dataStream.size()})`);
             requestId = requestAnimationFrame(render);
 
         })()
 
-        return () => cancelAnimationFrame(requestId);
+        return () => {if (requestId) cancelAnimationFrame(requestId)};
     }, [ dataStream, ref ]);
 
     return {

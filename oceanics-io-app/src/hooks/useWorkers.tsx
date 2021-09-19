@@ -6,7 +6,9 @@ import { useEffect, useRef } from "react";
 /**
  * Generic hook for loading and cleaning up workers.
  */
-export default Worker => {
+export default (
+    Worker: WebpackWorker
+) => {
     /**
      * Instantiate web worker reference for background tasks.
      */
@@ -24,7 +26,9 @@ export default Worker => {
             return
         }
         worker.current = new Worker();
-        return () => { worker.current.terminate() }
+        return () => { 
+            if (worker.current) worker.current.terminate();
+        }
     }, []);
 
     return worker

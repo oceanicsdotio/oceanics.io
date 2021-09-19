@@ -74,9 +74,11 @@ const StyledReference = styled(Reference)`
         color: ${ghost};
         margin-bottom: 1em;
     }
-    & img {
-        width: 1rem;
-        margin-left: 0.2rem;
+    & > a {
+        & > img {
+            width: 1rem;
+            margin-left: 0.2rem;
+        }
     }
 `;
 

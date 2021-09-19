@@ -18,11 +18,17 @@ const TARGET = "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com";
  */
 const PREFIX = "MidcoastMaineMesh";
 
+type IFragmentQueue = {
+    worker: any;
+    map: any;
+}
+
 /**
  * Encapsulate big data queued loading
  */
 export default ({
-    worker
+    worker,
+    map
 }) => {
 
 

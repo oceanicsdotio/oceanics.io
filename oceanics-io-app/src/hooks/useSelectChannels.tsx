@@ -2,12 +2,6 @@
  * React and friends.
  */
  import { useState, useEffect, RefObject, useCallback, MouseEventHandler } from "react";
-
- /**
-  * Component-level styling.
-  */
- import styled from "styled-components";
- 
  
  import ReactDOM from "react-dom";
  import { Popup, AnyLayer, AnySourceData } from "mapbox-gl";
@@ -16,9 +10,7 @@
   * Container for MapboxGL feature content. Rendered client-side.
   */
  import PopUpContent from "oceanics-io-ui/build/components/Catalog/PopUpContent";
- import Catalog from "oceanics-io-ui/build/components/Catalog/Catalog";
- import Pane from "./Pane";
- import {pulsingDot, columnSize} from "../utils";
+ import {pulsingDot} from "../utils";
  
  /**
   * Dedicated Worker loader.
@@ -27,7 +19,6 @@
  // import useFragmentQueue from "../hooks/useFragmentQueue";
  // @ts-ignore
  import useMapBox from "../hooks/useMapBox";
- import ControlPane from "../components/ControlPane";
  
  
  type ApplicationType = {
@@ -57,8 +48,6 @@
   * Page component rendered by GatsbyJS.
   */
  const AppPage: FC<ApplicationType> = ({
-     className,
-     mobile,
      location,
      worker: {
          worker,

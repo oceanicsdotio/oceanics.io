@@ -8,7 +8,8 @@ import {Meta, Story} from '@storybook/react';
  * Base component
  */
 import Reference from "./Reference";
-import {ReferenceType} from "./utils";
+import GlobalStyle from "../Layout/GlobalStyle"
+import type {ReferenceType} from "./utils";
 import PageData from "./PageData.json";
 
 /**
@@ -24,7 +25,14 @@ const {nodes: [{frontmatter: {citations: [citation]}}]} = PageData;
 /**
  * Base case
  */
-const Template: Story<ReferenceType> = (args) => <Reference {...args} />;
+const Template: Story<ReferenceType> = (args) => {
+    return (
+        <>
+        <GlobalStyle/>
+        <Reference {...args} />
+        </>
+    )
+};
 
 /**
  * Default test case

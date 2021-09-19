@@ -18,12 +18,13 @@ export default () => {
     useEffect(() => {
         try {
             (async () => {
+                //@ts-ignore
                 const runtime = await import('../wasm');
                 runtime.panic_hook();
                 setRuntime(runtime);
             })()   
         } catch (err) {
-            console.log("Unable to load WASM runtime")
+            console.error("Unable to load WASM runtime")
         }
     }, []);
 
