@@ -1,13 +1,14 @@
 /**
  * React friends.
  */
+import { MutableRefObject } from "hoist-non-react-statics/node_modules/@types/react";
 import { useEffect, useState, useRef } from "react";
 
 /**
  * Dedicated Worker loader
  */
-import ObjectStorageWorker from "worker-loader!../workers/useObjectStorage.worker.js";
-
+import ObjectStorageWorker from "worker-loader!../workers/useObjectStorage.worker.ts";
+import type {FileSystem} from "../workers/useObjectStorage.worker";
 /**
  * The `useObjectStorage` hook provides a directory like structure
  * that describes assets in an S3-compatible storage service. 
@@ -19,12 +20,12 @@ export default (
   /**
    * Memoize the metadata for the assets in object storage
    */
-  const [fileSystem, setFileSystem] = useState(null);
+  const [fileSystem, setFileSystem] = useState<FileSystem|null>(null);
 
   /**
    * Instantiate web worker reference for background tasks.
    */
-  const worker: any = useRef(null);
+  const worker: MutableRefObject<ObjectStorageWorker|null> = useRef(null);
 
   /**
    * Create worker, and terminate it when the component unmounts.
@@ -33,7 +34,7 @@ export default (
    * long running sessions. 
    */
   useEffect(() => {
-    if (!Worker) {
+    if (!ObjectStorageWorker) {
       console.log("Cannot create workers, no loader provided")
       return
     }
@@ -48,6 +49,7 @@ export default (
    */
   useEffect(() => {
     if (!target || !worker.current) return;
+    //@ts-ignore
     worker.current.getFileSystem(target).then(setFileSystem)
   }, [worker]);
 

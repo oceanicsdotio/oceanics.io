@@ -1,5 +1,16 @@
 import {DOMParser} from "xmldom";
 
+export type FileSystem = {
+    objects: {
+        key: string;
+        updated: string;
+        size: string;
+    }[];
+    collections: {
+        key: string;
+    }[];
+};
+
 /**
  * Make HTTP request to S3 service for metadata about available
  * assets.
@@ -7,7 +18,7 @@ import {DOMParser} from "xmldom";
  * Use `xmldom.DOMParser` to parse S3 metadata as JSON file descriptors,
  * because window.DOMParser is not available in Web Worker 
  */
-export async function getFileSystem(url: string) {
+export async function getFileSystem(url: string): Promise<FileSystem> {
 
     const parser = new DOMParser();
     const text = await fetch(url, {
@@ -40,7 +51,7 @@ export async function getFileSystem(url: string) {
 /**
  * Get image data from S3, the Blob-y way. 
  */
-export const fetchImageBuffer = async (url: string) => {
+export const fetchImageBuffer = async (url: string): Promise<Float32Array> => {
     const blob = await fetch(url).then(response => response.blob());
     const arrayBuffer: string | ArrayBuffer | null = await (new Promise(resolve => {
         var reader = new FileReader();

@@ -2,6 +2,13 @@
  * React friends.
  */
 import { useState, useEffect } from "react";
+import useCanvasContext from "./useCanvasContext";
+
+type IColorMap = {
+    width: number;
+    height: number;
+    colors: string[];
+};
 
 /**
  * Paints a color-map to a hidden canvas and then samples it as 
@@ -16,7 +23,7 @@ import { useState, useEffect } from "react";
      width,
      height,
      colors,
- }) => {
+ }: IColorMap) => {
 
     /**
      * Calculate size from dimensions. Using linear ramp,
@@ -30,7 +37,7 @@ import { useState, useEffect } from "react";
      * This is available for specific use cases that reuse
      * the canvas. 
      */
-    const [ canvas, setCanvas ] = useState(null);
+    const {ref, validContext} = useCanvasContext("2d");
 
     /**
      * Create a temporary canvas element to paint a color
@@ -38,15 +45,15 @@ import { useState, useEffect } from "react";
      * sure it gets cleaned up.
      */
     useEffect(() => {
-        const _canvas = document.createElement('canvas');
-        [ _canvas.width, _canvas.height ] = [ size, 1 ];
-        setCanvas(_canvas);
+        ref.current = document.createElement('canvas');
+        [ ref.current.width, ref.current.height ] = [ size, 1 ];
     }, []);
 
     /**
      * State for data to be passed to WebGL
+    }, [ validContext ]);
      */
-    const [ texture, setTexture ] =  useState(null);
+    const [ texture, setTexture ] =  useState<Uint8Array|null>(null);
 
     /**
      * Then draw a gradient and extract a color
@@ -55,11 +62,9 @@ import { useState, useEffect } from "react";
      * Fires once when canvas is set. 
      */
     useEffect(() => {
-        if (!canvas) return; 
-
-        // 2D context reference
-        const ctx = canvas.getContext('2d');
-       
+        if (!validContext) return;
+        const ctx: any = validContext;
+        
         // Create `CanvasGradient` and add color stops
         ctx.fillStyle = ctx.createLinearGradient(0, 0, size, 0);
         colors.forEach(pair => { ctx.fillStyle.addColorStop(...pair) });
@@ -68,9 +73,9 @@ import { useState, useEffect } from "react";
         ctx.fillRect(0, 0, size, 1);
         
         // Extract regularly interpolated data
-        setTexture(new Uint8Array(ctx.getImageData(0, 0, size, 1).data));
-        
-    }, [ canvas ]);
+        const buffer = ctx.getImageData(0, 0, size, 1).data;
+        setTexture(new Uint8Array(buffer));
+    }, [ validContext ]);
 
     /**
      * Clean up. Remove canvas and delete state.
@@ -78,14 +83,13 @@ import { useState, useEffect } from "react";
      * This hook fires once when texture is set. 
      */
     useEffect(() => {
-        if (!texture) return;
-
-        canvas.remove();
-        setCanvas(null);
+        if (!texture || !ref.current) return;
+        ref.current.remove();
+        ref.current = null;
     }, [ texture ]);
 
     return {
-        texture: texture,
-        canvas: canvas
+        texture,
+        canvas: ref.current
     }
  }

@@ -6,14 +6,19 @@ import { useEffect, useRef, useState } from "react";
 
 import useWasmWorkers from "./useWasmWorkers";
 
+type IImageData = {
+    source?: string;
+    metadataFile?: string;
+};
+
 /**
  * Re-usable logic for loading remote image as data source for GPGPU
  * processing
  */
 export default ({
-    source=null,
-    metadataFile=null
-}) => {
+    source="",
+    metadataFile=""
+}: IImageData) => {
 
     /**
      * Load worker
@@ -36,6 +41,7 @@ export default ({
      */
     useEffect(() => {
         if (metadataFile && worker.current)
+            //@ts-ignore
             worker.current.getPublicJsonData(metadataFile).then(setMetadata);
     }, [ worker ]);
 
@@ -43,7 +49,7 @@ export default ({
     /**
      * Container for handles to GPU interface
      */
-    const [ imageData, setImageData ] = useState(null);
+    const [ imageData, setImageData ] = useState<HTMLImageElement|null>(null);
 
     /**
      * Use external data as a velocity field to force movement of particles
@@ -58,7 +64,7 @@ export default ({
             capture: true,
             once: true,
         });
-        img.crossOrigin = source.includes(".") ? "" : undefined;
+        img.crossOrigin = source.includes(".") ? "" : null;
         img.src = source;
 
     }, [ ]);
@@ -69,7 +75,12 @@ export default ({
      */
     useEffect(() => {
         if (!preview || !preview.current || !imageData) return;
-        preview.current.getContext("2d").drawImage(imageData, 0, 0, preview.current.width, preview.current.height);
+        const canvas: HTMLCanvasElement = preview.current;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+            throw TypeError("Canvas Rendering Context is Null");
+        }
+        ctx.drawImage(imageData, 0, 0, canvas.width, canvas.height);
     }, [ preview, imageData ]);
 
     /**
@@ -78,6 +89,7 @@ export default ({
      * not cleaned up.
      */
     useEffect(() => {
+        //@ts-ignore
         if (metadata && imageData && worker.current) worker.current.terminate();
     }, [ metadata, imageData ]);
 

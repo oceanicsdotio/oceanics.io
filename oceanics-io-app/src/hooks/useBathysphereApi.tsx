@@ -3,7 +3,7 @@ import { useEffect, useState, useRef, useReducer } from "react";
 /**
  * Dedicated worker loader.
  */
-import Worker from "../workers/useBathysphereApi.worker.js";
+import BathysphereWorker from "worker-loader!../workers/useBathysphereApi.worker.ts";
 
 /**
  * The catalog page is like a landing page to the api.
@@ -13,13 +13,29 @@ import Worker from "../workers/useBathysphereApi.worker.js";
  * 
  * If access token is set in React state, use it to get the catalog index from Bathysphere
  */
-export default () => {
+export default (server: string) => {
 
     /**
-     * Web worker reference for fetching and auth.
+     * Instantiate web worker reference for background tasks.
      */
-    const worker = useWorkers(Worker);
+     const worker: any = useRef(null);
 
+     /**
+      * Create worker, and terminate it when the component unmounts.
+      * 
+      * I suspect that this was contributing to performance degradation in
+      * long running sessions. 
+      */
+     useEffect(() => {
+         if (!BathysphereWorker) {
+             console.error("Cannot create workers, no loader provided")
+             return
+         }
+         worker.current = new BathysphereWorker();
+         return () => { 
+             if (worker.current) worker.current.terminate();
+         }
+     }, []);
     /**
      * JavaScript Web Token. State variable returned to parent component,
      * but not setter.
@@ -45,8 +61,8 @@ export default () => {
      * The login container handles authorization interactions with the
      * backend.
      */
-    const [credentials, refresh] = useReducer(
-        (prev, event=null) => !event ? prev : {
+    const [credentials] = useReducer(
+        (prev, event:any=null) => !event ? prev : {
             ...prev,
             [event.target.id]: event.target.value.trim()
         },
@@ -60,16 +76,13 @@ export default () => {
    
     return {
         catalog,
-        login: event => {
-            event.persist();
+        login: () => {
             worker.current.login(credentials).then(setAccessToken);
         },
-        register: event => {
-            event.persist();
+        register: () => {
             worker.current.login(credentials).then(console.log);
         },
-        populate: event => {
-            event.persist();
+        populate: () => {
             console.log("Populate...");
         }
     };

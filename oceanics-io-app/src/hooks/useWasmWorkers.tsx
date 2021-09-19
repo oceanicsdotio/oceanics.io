@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 /**
  * Dedicated worker loaders
  */
-import Worker from "../workers/useBathysphereApi.worker.js";
+import BathysphereWorker from "worker-loader!../workers/useBathysphereApi.worker.js";
 
 /**
  * Handle async loading and error handling in a consistent way
@@ -22,14 +22,13 @@ import useWasmRuntime from "./useWasmRuntime";
  * Hook encapsulates everything needed for background Rust/WASM
  */
 export default () => {
-
     /**
      * Web worker reference for background tasks. 
      * 
      * This will be used to process raw data into MapBox layers,
      * and do any expensive topological or reducing operations. 
      */
-    const worker = useWorkers(Worker);
+    const worker = useWorkers(BathysphereWorker);
 
     /**
      * Synchronous runtime.
@@ -48,13 +47,13 @@ export default () => {
       * state. This will be used as a Hook reflow key. 
       */
     useEffect(()=>{
-        if (worker.current)
-            worker.current.initRuntime().then(setStatus);
+        //@ts-ignore
+        if (worker.current) worker.current.initRuntime().then(setStatus);
     }, [ worker.current ]);
 
     return {
-        status: status,
-        worker: worker,
-        runtime: runtime,
+        status,
+        worker,
+        runtime,
     }
 }

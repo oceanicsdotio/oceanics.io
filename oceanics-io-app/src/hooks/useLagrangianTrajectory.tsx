@@ -1,7 +1,7 @@
 /**
  * React, just friends because it's a hook. 
  */
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 
 /**
  * Shader hook. We keep this separate for use by other implementations. 
@@ -29,6 +29,18 @@ const parameters = {
     color: ["u_color_ramp", "u_opacity"],
 };
 
+type ILagrangian = {
+    source: string;
+    metadataFile: string;
+    res: number;
+    colors: [number, string][];
+    opacity: number;
+    speed: number;
+    diffusivity: number;
+    pointSize: number;
+    drop: number;
+};
+
  /**
   * Use WebGL to calculate particle trajectories from velocity data. 
   * This example uses wind data to move particles around the globe. 
@@ -48,7 +60,7 @@ export default ({
     diffusivity = 0.004,
     pointSize = 1.0,
     drop = 0.01, // how often the particles move to a random place
-}) => {
+}: ILagrangian) => {
    
     /**
      * Exported ref to draw textures to a secondary HTML canvas component
@@ -67,7 +79,7 @@ export default ({
     /**
      * Error flag
      */
-    const [ error, setError ] = useState(null);
+    const [ error, setError ] = useState("");
 
     /**
      * Load worker
@@ -80,12 +92,10 @@ export default ({
      */
     useEffect(() => {
         if (!worker.current) return;
-
-        worker.current
-            .initParticles(res)
+        //@ts-ignore
+        worker.current.initParticles(res)
             .then(setParticles)
             .catch(() => {setError("There was a runtime error.")});
-
     }, [ worker ]);
 
     /**
@@ -146,9 +156,10 @@ export default ({
     */
     useEffect(() => {
         const ctx = validContext();
-        if (!ctx || !particles || !metadata || !colorMap.texture || (source && !imageData)) return;
+        if (!ctx || !particles || !metadata || !colorMap.texture || (source && !imageData) || ! ref.current) return;
         
-        const { width, height } = ref.current;
+        const canvas: HTMLCanvasElement = ref.current;
+        const { width, height } = canvas;
         const size = width * height * 4;
        
         setAssets({
@@ -191,7 +202,7 @@ export default ({
         const ctx = validContext();
         if (!ctx || !programs || !assets || !metadata) return;
 
-        let requestId;  
+        let requestId: number;  
         let {
             textures: { 
                 back, 

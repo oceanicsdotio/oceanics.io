@@ -22,7 +22,6 @@
  
  
  type ApplicationType = {
-     className?: string;
      location: {
          coords: {
              latitude: string;

@@ -17,7 +17,11 @@ module.exports = {
         test: /\.worker\.js$/,
         use: { loader: "worker-loader" },
       },
-    ],
+      {
+       test: /\.glsl/,
+       type: 'asset/source',
+      }
+    ]
   },
   resolve: {
     extensions: [".ts", ".js"],

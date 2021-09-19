@@ -1,30 +1,32 @@
 /**
  * React friends.
  */
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 
 /**
  * Rust WASM runtime, used for numerical methods.
  */
 import useWasmRuntime from "./useWasmRuntime";
+import useCanvasContext from "./useCanvasContext";
 
 /**
  * Pre-import all shaders. This is a bit fragile.
  */
-import noiseVertex from "raw-loader!../glsl/noise-vertex.glsl";
-import noiseFragment from "raw-loader!../glsl/noise-fragment.glsl";
-import quadVertex from "raw-loader!../glsl/quad-vertex.glsl";
-import updateFragment from "raw-loader!../glsl/update-fragment-test.glsl";
-import screenFragment from "raw-loader!../glsl/screen-fragment.glsl";
-import drawVertex from "raw-loader!../glsl/draw-vertex-test.glsl";
-import drawFragment from "raw-loader!../glsl/draw-fragment-test.glsl";
+import noiseVertex from "../glsl/noise-vertex.glsl";
+import noiseFragment from "../glsl/noise-fragment.glsl";
+import quadVertex from "../glsl/quad-vertex.glsl";
+import updateFragment from "../glsl/update-fragment-test.glsl";
+import screenFragment from "../glsl/screen-fragment.glsl";
+import drawVertex from "../glsl/draw-vertex-test.glsl";
+import drawFragment from "../glsl/draw-fragment-test.glsl";
 
 
 /**
  * Abstraction for binding array data into GPU memory
  */
 export class ArrayBuffer {
-    constructor(ctx, data) {
+    buffer: WebGLBuffer|null = null;
+    constructor(ctx: WebGL2RenderingContext, data: any) {
         this.buffer = ctx.createBuffer();
         ctx.bindBuffer(ctx.ARRAY_BUFFER, this.buffer);
         ctx.bufferData(ctx.ARRAY_BUFFER, new Float32Array(data), ctx.STATIC_DRAW);
@@ -37,7 +39,7 @@ export class ArrayBuffer {
  * @param {*} h Texture height
  * @returns 
  */
-const screenBuffer = (w, h) => Object({ 
+const screenBuffer = (w: number, h: number) => Object({ 
     data: new Uint8Array(w * h * 4), 
     shape: [w, h] 
 })
@@ -49,7 +51,7 @@ const screenBuffer = (w, h) => Object({
  * @param {*} uniforms 
  * @returns 
  */
-export const extractUniforms = (keys, uniforms) => 
+export const extractUniforms = (keys: string[], uniforms: any) => 
     keys.map(k => [k, uniforms[k]]);
 
 
@@ -68,7 +70,7 @@ const QUAD_ARRAY_BUFFER = "a_pos";
 /**
  * Generate the array buffers and handles for double buffering.
  */
-export const VertexArrayBuffers = (ctx, vertexArray=null) => Object({
+export const VertexArrayBuffers = (ctx: WebGL2RenderingContext, vertexArray=null) => Object({
     quad: [(new ArrayBuffer(ctx, [0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1])).buffer, QUAD_ARRAY_BUFFER, 2],
     index: vertexArray ? [(new ArrayBuffer(ctx, vertexArray)).buffer, VERTEX_ARRAY_BUFFER, 1] : null
 });
@@ -99,6 +101,23 @@ const CLOCK_UNIFORM = "u_time";
  */
 const printedWarnings = {};
 
+type IRenderPipeLineStage = {
+    runtime: any;
+    ctx: WebGL2RenderingContext;
+    uniforms: string[];
+}
+type RenderStep = {
+    textures: any;
+    attributes: any;
+    framebuffer: [string, WebGLFramebuffer];
+    parameters: any[];
+    program: {
+        program: WebGLProgram
+    };
+    topology: any;
+    viewport: number[];
+}
+
 /**
  * Execute a shader program and all binding steps needed to make data
  * available to the hardware
@@ -107,21 +126,18 @@ export const renderPipelineStage = ({
     runtime, 
     ctx, 
     uniforms, 
-}, step) => {
-
-    const {
-        textures,
-        attributes,
-        framebuffer,
-        parameters,
-        program,
-        topology,
-        viewport
-    } = step;
+}: IRenderPipeLineStage, {
+    textures,
+    attributes,
+    framebuffer,
+    parameters,
+    program,
+    topology,
+    viewport
+}: RenderStep) => {
 
     ctx.viewport(...viewport);
     
-
     /**
      * Ensure any required framebuffer is attached before trying to load the
      * shader programs.
@@ -169,7 +185,7 @@ export const renderPipelineStage = ({
      * attach to string key. 
      */ 
     (parameters||[])
-        .map(key => [key, ...uniforms[key], program[key]])
+        .map((key: string) => [key, ...uniforms[key], program[key]])
         .forEach(([key, type, value, handle]) => {
             try {
                 const size = value.length || 1;
@@ -195,7 +211,11 @@ export const renderPipelineStage = ({
     ctx.drawArrays(...topology);
 };
 
-
+type TextureOptions = {
+    filter: string;
+    data: any;
+    shape: number[];
+}
 /**
  * Create a new texture
  * 
@@ -203,13 +223,13 @@ export const renderPipelineStage = ({
  * @param {*} param1 args
  * @returns 
  */
-export const createTexture = (ctx, { 
+export const createTexture = (ctx: WebGLRenderingContext, { 
     filter, 
     data, 
-    shape = [null, null] 
-}) => {
+    shape
+}: TextureOptions) => {
 
-    const args = data instanceof Uint8Array ? [...shape, 0] : [];
+    const args: number[] = data instanceof Uint8Array ? [...shape, 0] : [];
     const bindTexture = ctx.bindTexture.bind(ctx, ctx.TEXTURE_2D);
     const texParameteri = ctx.texParameteri.bind(ctx, ctx.TEXTURE_2D);
 
@@ -217,20 +237,29 @@ export const createTexture = (ctx, {
 
     bindTexture(texture);
 
+    //@ts-ignore
     ctx.texImage2D(ctx.TEXTURE_2D, 0, ctx.RGBA, ...args, ctx.RGBA, ctx.UNSIGNED_BYTE, data);
     
     [
         [ctx.TEXTURE_WRAP_S, ctx.CLAMP_TO_EDGE],
         [ctx.TEXTURE_WRAP_T, ctx.CLAMP_TO_EDGE],
+        //@ts-ignore
         [ctx.TEXTURE_MIN_FILTER, ctx[filter]],
+        //@ts-ignore
         [ctx.TEXTURE_MAG_FILTER, ctx[filter]]
-    ].forEach(item => {texParameteri(...item)});
+    ].forEach(([handle, value]) => {texParameteri(handle, value)});
 
     bindTexture(null);  // prevent accidental use
 
     return texture
 };
 
+type Shader = {
+
+};
+type IGlslShaders = {
+    shaders: Shader[];
+}
 
 /**
  * IFF the canvas context is WebGL and we need shaders, fetch the GLSL code and compile the 
@@ -240,10 +269,8 @@ export const createTexture = (ctx, {
  */
 export default ({ 
     shaders
-}) => {
+}: IGlslShaders) => {
    
-    
-
     /**
      * Hold our programs in a hash map by name
      */
@@ -257,23 +284,10 @@ export default ({
     /**
      * Canvas ref to get a WebGL context from once it has been
      * assigned to a valid element. 
-     */
-    const ref = useRef(null);
-
-    /**
      * Whenever we need WebGL context, make sure we have an up to date instance.
-     * 
      * We can then use this to gate certain Hooks.
      */
-    const [ validContext, setValidContext ] = useState(null);
-
-    /**
-     * Check whether we have a valid WebGL context.
-     */
-    useEffect(() => {
-        const valid = !(typeof ref === "undefined" || !ref || !ref.current);
-        setValidContext(valid ? ref.current.getContext("webgl") : null);
-    }, [ ref ]);
+    const { validContext, ref } = useCanvasContext("webgl");
     
     /**
      * Compile our programs
@@ -281,7 +295,7 @@ export default ({
     useEffect(() => {
         if (!validContext || !runtime) return;
        
-        const compile = ([name, pair]) => 
+        const compile = ([name, pair]: [string, [any, any]]) => 
             [name, runtime.create_program(validContext, ...pair.map(file => shaderSource[file]))];
 
         const extract = ([name, program]) => 

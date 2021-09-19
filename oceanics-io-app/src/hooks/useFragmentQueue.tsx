@@ -29,14 +29,14 @@ type IFragmentQueue = {
 export default ({
     worker,
     map
-}) => {
+}: IFragmentQueue) => {
 
 
     /**
      * Retrieve S3 file system meta data. The `null` target prevents any HTTP request
      * from happening.
      */ 
-    const fs = useObjectStorage({target: `${TARGET}?prefix=${PREFIX}/necofs_gom3_mesh/nodes/`});
+    const fs = useObjectStorage(`${TARGET}?prefix=${PREFIX}/necofs_gom3_mesh/nodes/`);
  
    
     /**

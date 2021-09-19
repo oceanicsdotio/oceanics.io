@@ -3,6 +3,12 @@ import { useEffect, useState, useRef } from "react";
 
 import useWasmRuntime from "./useWasmRuntime";
 
+type IOceansideWorld = {
+    gridSize: number;
+    worldSize: number;
+    waterLevel: number;
+}
+
 /**
  * The `Oceanside` hook provides all of the functionality to
  * embed the game/visualization engine in any React app.
@@ -26,7 +32,7 @@ export default ({
     gridSize, 
     worldSize, 
     waterLevel,
-}) => {
+}: IOceansideWorld) => {
 
     /**
      * Ref for clickable minimap that allows world navigation
@@ -59,15 +65,20 @@ export default ({
      */
     useEffect(() => {
         if (!runtime || !nav.current) return;
+        const canvas: HTMLCanvasElement = nav.current;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+            throw TypeError("Rendering Context is Null");
+        }
 
         const offset = (worldSize - gridSize) / 2;
-       
+       //@ts-ignore
         setMap(new runtime.MiniMap(
             offset, 
             offset/2, 
             worldSize, 
             waterLevel, 
-            nav.current.getContext("2d"), 
+            ctx, 
             gridSize
         )); 
 
@@ -77,9 +88,9 @@ export default ({
     return {
         map,
         ref: nav,
-        onClick: (event) => {
-            event.persist();
-            populateVisibleTiles(map, event);
+        onClick: (event: Event) => {
+            //@ts-ignore
+            runtime.populateVisibleTiles(map, event);
         }
     } 
 };
