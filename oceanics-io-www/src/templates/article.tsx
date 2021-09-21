@@ -13,6 +13,7 @@ import { graphql } from "gatsby";
  */
 import { MDXProvider } from "@mdx-js/react";
 import { MDXRenderer } from "gatsby-plugin-mdx";
+import "katex/dist/katex.min.css";
 
 import Article from "oceanics-io-ui/build/components/References/Article";
 import References from "oceanics-io-ui/build/components/References/References";

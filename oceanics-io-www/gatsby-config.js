@@ -33,28 +33,21 @@ module.exports = {
         `gatsby-remark-copy-linked-files`,
         `gatsby-remark-smartypants`,
         {
+            resolve: `gatsby-remark-prismjs`,
+            options: {
+                classPrefix: "language-",
+                inlineCodeMarker: null,
+                aliases: {},
+                showLineNumbers: false,
+                noInlineHighlight: false,
+                languageExtensions: [],
+                escapeEntities: {},
+            },
+        },
+        {
             resolve: `gatsby-plugin-mdx`,
             options: {
                 extensions: [".mdx", ".md"],
-                gatsbyRemarkPlugins: [
-                    `gatsby-remark-images`,
-                    `gatsby-remark-katex`,
-                    `gatsby-remark-responsive-iframe`,
-                    `gatsby-remark-copy-linked-files`,
-                    `gatsby-remark-smartypants`,
-                    {
-                        resolve: `gatsby-remark-prismjs`,
-                        options: {
-                            classPrefix: "language-",
-                            inlineCodeMarker: null,
-                            aliases: {},
-                            showLineNumbers: false,
-                            noInlineHighlight: false,
-                            languageExtensions: [],
-                            escapeEntities: {},
-                        },
-                    },
-                ],
             },
         },
         `gatsby-transformer-sharp`,

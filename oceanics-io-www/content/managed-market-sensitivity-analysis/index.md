@@ -48,5 +48,3 @@ Time-sensitive products and services are defined with:
 The resulting transactions are the record of flows between agents. 
 
 (Work in progress...)
-
-<ServiceLine/>

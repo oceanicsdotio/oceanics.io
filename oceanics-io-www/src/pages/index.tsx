@@ -36,7 +36,7 @@ const IndexPage = ({
   
   return (
     <>
-      <img src={"/shrimpers-web.png"} alt={"agents at rest"} />
+      <img src={"/shrimpers-web.png"} alt={"agents at rest"} width={"100%"}/>
       <Campaign
         navigate={navigate}
         title={PageData.title}

@@ -31,7 +31,7 @@ You `insert` words into the network, and mark the nodes that terminate words. Al
 
 You can then `search` the trie for words, e.g. similar to a key word. This can be used to [correct spelling](http://norvig.com/spell-correct.html) and auto-complete inputs. 
 
-That requires a similiarity function (Levenshtein distance). You traverse the graph and iteratively build a N\*M table, “answer” is the lower right value. This process is O(N\*M). 
+That requires a similarity function (Levenshtein distance). You traverse the graph and iteratively build a N\*M table, “answer” is the lower right value. This process is O(N\*M). 
 
 Tries can waste memory or storage. The lower limit is [4 bytes per edge](http://www.wutka.com/dawg.html), while remaining searchable.
 
@@ -42,7 +42,7 @@ We use tries to try to auto-correct fields in forms and API requests, provide he
 ### Variants
 * When words share a prefix, you can extend the table instead of recomputing, which happens automatically given alphabetical inputs. 
 
-* Directed acyclic word graphs (DAWG): more efficient due to similiar words with different prefix converging. These are also known as [minimal acyclic finite state automaton (MA-FSA)](https://www.aclweb.org/anthology/J00-1002.pdf). Insert alphabetically, and deduplicate after each branch. Duplicates are XNOR ends and point to the same nodes. 
+* Directed acyclic word graphs (DAWG): more efficient due to similar words with different prefix converging. These are also known as [minimal acyclic finite state automaton (MA-FSA)](https://www.aclweb.org/anthology/J00-1002.pdf). Insert alphabetically, and deduplicate after each branch. Duplicates are XNOR ends and point to the same nodes. 
 
 
 ## Distance function

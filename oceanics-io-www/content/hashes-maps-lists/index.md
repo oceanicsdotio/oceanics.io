@@ -2,7 +2,7 @@
 title: Hashes, maps, and lists
 date: "2020-02-01T12:00:00.000Z"
 description: |
-    Notes on applications of linked lists, hash tables, and other graph stuctures.
+    Notes on applications of linked lists, hash tables, and other graph structures.
     Provides some canonical references from the literature.
 tags: ["algorithms", "data structures", "hash", "graph"]
 citations:
@@ -60,9 +60,9 @@ Linked lists are often used invisibly under the hood. We kind of use them for an
 
 ## Hash table
 
-Hash tables (often called hash maps, or dictionariess) use hashing functions to map an index value to a bucket of values. On average these are faster than trees, which is why this is a common data structure in language standard libraries. If all values are known in advance, you can optimize hashing function.
+Hash tables (often called hash maps, or dictionaries) use hashing functions to map an index value to a bucket of values. On average these are faster than trees, which is why this is a common data structure in language standard libraries. If all values are known in advance, you can optimize hashing function.
 
-As long as the hash function generates a uniform distribution search, insert, and delete operations are O(1), with O(n) worst case. The space compexity is O(n).
+As long as the hash function generates a uniform distribution search, insert, and delete operations are O(1), with O(n) worst case. The space complexity is O(n).
 
 A linked list is often used as the entry, and may have the head stored in the bucket to reduce pointer follows. Above load factor (keys/slots) 10 use balanced search trees for accessing data.
 

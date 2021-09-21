@@ -2,6 +2,8 @@
  * Path to local build files
  */
 const path = require(`path`);
+const remarkMath = require('remark-math')
+const rehypeKatex = require('rehype-katex')
 
 /**
  * Express server for develop and build
