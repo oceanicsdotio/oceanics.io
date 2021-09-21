@@ -2,6 +2,7 @@
  * React and friends.
  */
 import React from "react";
+import Image from "next/image";
 
 /**
  * Page content, could be externalized in `data/`.
@@ -19,7 +20,7 @@ const PageNotFound = () => {
   return (
     <>
       <p>{CONTENT.message}</p>
-      <img src={CONTENT.img} alt={"Sea creature seeking answers"} />
+      <Image src={CONTENT.img} alt={"Sea creature seeking answers"} />
     </>
   )
 };

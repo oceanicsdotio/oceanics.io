@@ -2,7 +2,6 @@
  * React and friends
  */
 import React from "react";
-import { graphql } from "gatsby";
 
 /**
  * Render Provider components inside MDX, and render MDX to React components.
@@ -12,7 +11,6 @@ import { graphql } from "gatsby";
  * and cross-reference material based on shared references.
  */
 import { MDXProvider } from "@mdx-js/react";
-import { MDXRenderer } from "gatsby-plugin-mdx";
 import "katex/dist/katex.min.css";
 
 import Article from "oceanics-io-ui/build/components/References/Article";
@@ -38,31 +36,10 @@ const ArticlePage = ({
   return (
     <MDXProvider components={ProviderComponents}>
       <Article frontmatter={frontmatter} fields={fields} onClickTag={() => () => { }}>
-        <MDXRenderer>{body}</MDXRenderer>
+        {body}
       </Article>
     </MDXProvider>
   )
 };
 
 export default ArticlePage;
-
-export const pageQuery = graphql`
-  query ArticleBySlug($slug: String!) {
-    mdx(fields: { slug: { eq: $slug } }) {
-      id
-      excerpt(pruneLength: 160)
-      body
-      frontmatter {
-        title
-        date(formatString: "MMMM DD, YYYY")
-        description
-        citations {
-            authors, year, title, journal, volume, pageRange
-        }
-      }
-      fields {
-        slug
-      }
-    }
-  }
-`;

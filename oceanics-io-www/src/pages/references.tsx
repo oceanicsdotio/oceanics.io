@@ -2,7 +2,6 @@
  * React and friends. 
  */
 import React, { useMemo } from "react";
-import { graphql } from "gatsby";
 
 /**
  * Array of references component, no heading
@@ -26,18 +25,3 @@ const ReferencesPage = ({
   return <References citations={references} />
 };
 export default ReferencesPage;
-
-/**
- * GraphQL data provider
- */
-export const pageQuery = graphql`
-  query {
-    allMdx {
-      nodes {
-        frontmatter { 
-          citations { authors, year, title, journal, volume, pageRange }
-        }  
-      }
-    }
-  }
-`;

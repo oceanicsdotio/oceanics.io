@@ -1,8 +1,9 @@
 /**
  * React and friends.
  */
-import React from "react";
-import { graphql, navigate } from "gatsby";
+import React, {useCallback} from "react";
+import {useRouter} from "next/router";
+import Image from "next/image";
 
 /**
  * Campaign component
@@ -29,6 +30,10 @@ const IndexPage = ({
   },
   data
 }) => {
+  const router = useRouter();
+  const navigate = useCallback((route) => {
+      router.push(route)
+  }, [router])
   /**
    * Search string query parameters
    */
@@ -36,7 +41,7 @@ const IndexPage = ({
   
   return (
     <>
-      <img src={"/shrimpers-web.png"} alt={"agents at rest"} width={"100%"}/>
+      <Image src={"/shrimpers-web.png"} alt={"agents at rest"} width={"100%"}/>
       <Campaign
         navigate={navigate}
         title={PageData.title}
@@ -54,37 +59,3 @@ const IndexPage = ({
 };
 
 export default IndexPage;
-
-/**
- * GraphQL query for static data to build the content feed and interface.
- */
-export const pageQuery = graphql`
-  query {
-    site {
-      siteMetadata {
-        title
-      }
-    }
-    allMdx(sort: { fields: [frontmatter___date], order: DESC }) {
-      nodes {
-        excerpt
-        fields {
-          slug
-        }
-        frontmatter {
-          date(formatString: "MMMM DD, YYYY")
-          tags
-          title
-          description
-          citations {
-              authors, year, title, journal, volume, pageRange
-          }
-        }
-      }
-      group(field: frontmatter___tags) {
-        fieldValue
-        totalCount
-      }
-    }
-  }
-`
