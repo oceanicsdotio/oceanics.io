@@ -16,7 +16,9 @@ To evaluate a product, you will need access to the full software suite, or a rep
 It is fine if you don’t understand some of the criteria! Just skip it, the rubric is not a quantitative tool, which is why these are true/false statements. **Existing products may only check a few boxes**.
 
 ## Getting it done
+
 ### Merits
+
 - You can do the same things more easily that you could before
 - Front-end consumes an API that can be accessed by third party services
 - The product integrates with any tools you use, or plan to use
@@ -27,8 +29,11 @@ It is fine if you don’t understand some of the criteria! Just skip it, the rub
 - Data and analytics services follow a(ny) standard
 
 ## Loving your interface
+
 Choosing tools which do not take accessibility into mind will make it harder to hire people to use it in the future.
+
 ### Merits
+
 - Content and visual media help understand and use the product or service
 - Written materials have few errors
 - Text is in a standard and consistent format
@@ -43,8 +48,11 @@ Choosing tools which do not take accessibility into mind will make it harder to 
 - Text forms allow auto-complete and fuzzy matching
 
 ## Keeping your secrets safe
+
 Software can be your competitive advantage, but it can expose to risk and invalidate practices you used previously to maintain trade secrets.
+
 ### Merits
+
 - SSL is kept up to date
 - Data are encrypted at rest and in transit
 - Registration requires a strong password
@@ -56,8 +64,11 @@ Software can be your competitive advantage, but it can expose to risk and invali
 - There are no back doors for the developers
 
 ## Getting help
+
 Read the manual. Can you do self-service troubleshooting based on the technical and support documentation alone? Maybe there is a user community that you can go to for extra help. The truth is though, no everyone is outgoing or has the time to track down info. In those cases, you'll want to be able to reach support. If support is not in your language or time zone, or if you are a small fry that doesn't warrant the trouble, you'll be on your own.
+
 ### Merits
+
 - Support is available in your time zone
 - A team supports the product
 - Support is provided by the creator of the product
@@ -68,8 +79,11 @@ Read the manual. Can you do self-service troubleshooting based on the technical 
 - There is self-service documentation, external to the application
 
 ## Respecting your rights
+
 Read the license, or the End User License Agreement. It's probably a standard thing. For a mobile application that costs a few dollars that is OK. For bespoke software costing hundreds or thousands of dollars per month, that is going to help run your operation and keep you people safe, it is entirely appropriate to negotiate the terms.
+
 ### Merits
+
 - You own the data you put into the system
 - You can make changes to the code
 - You can provide secure access to data for third parties
@@ -78,8 +92,11 @@ Read the license, or the End User License Agreement. It's probably a standard th
 - Non-compete clauses have geographic and time boundaries
 
 ## Working in the field
+
 Maps and charts are an important part of life on the water. Tools with good geospatial data visualization features will make you life easier. Most mapping software is intended for 2D land applications.
+
 ### Merits
+
 - The style of the map is adapted to a marine setting
 - Satellite and aerial imagery is off by default
 - You can find locations with and without coordinates or names

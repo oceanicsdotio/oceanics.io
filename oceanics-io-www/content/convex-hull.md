@@ -13,7 +13,7 @@ tags: ["algorithms", "spatial", "topology", "indexing", "python"]
 
 ## Algorithm
 
-A convex hull is a container around a group of points (a subset of those points), which has inward acute angles only. This can be any number of dimensions, but is frequently in two for spatial queries. Convex hulls are a subset of the space define by a bounding box (also called extent), and superset of the true polygon. 
+A convex hull is a container around a group of points (a subset of those points), which has inward acute angles only. This can be any number of dimensions, but is frequently in two for spatial queries. Convex hulls are a subset of the space define by a bounding box (also called extent), and superset of the true polygon.
 
 A simple [convex hull algorithm](https://www.oreilly.com/ideas/an-elegant-solution-to-the-convex-hull-problem) using some linear algebra is as follows:
 
@@ -23,21 +23,13 @@ A simple [convex hull algorithm](https://www.oreilly.com/ideas/an-elegant-soluti
 4. Discard points inside triangle $\Lambda (\vec{U},\vec{V},\vec{W})$
 5. Repeat recursively with $\vec{U}-\vec{W}$ and $\vec{V}-\vec{W}$
 
+Array libraries with linear algebra, like `numpy`, make this simple. You partition the set by the sign of the cross product with the vector between starting points. We’ll pass in the array by reference, along with indices, and `convex_hull()` will return indices required to reconstruct the hull from the original. This way we don’t need to copy, change, or destroy large amounts of data.
 
-
-Array libraries with linear algebra, like `numpy`, make this simple. You partition the set by the sign of the cross product with the vector between starting points. We’ll pass in the array by reference, along with indices, and `convex_hull()` will return indices required to reconstruct the hull from the original. This way we don’t need to copy, change, or destroy large amounts of data. 
-
-
-
-The indices of each half are passed to `segment()` which determines a far point by the cross product of $\vec{U}-\vec{V}$ and $\vec{W}$. The sign of the cross products of $\vec{U}-\vec{W}$ and $\vec{V}-\vec{W}$ with $\vec{W}$ are used to choose new members, and the process continues until there are no candidates remaining. 
-
-
+The indices of each half are passed to `segment()` which determines a far point by the cross product of $\vec{U}-\vec{V}$ and $\vec{W}$. The sign of the cross products of $\vec{U}-\vec{W}$ and $\vec{V}-\vec{W}$ with $\vec{W}$ are used to choose new members, and the process continues until there are no candidates remaining.
 
 ## Implementation
 
 The following is a Python function that does this, and saves an image:
-
-
 
 ```python
 from numpy import random, argmax, argmin, cross, argwhere, arange, array, hstack, vstack
@@ -100,14 +92,10 @@ fig.tight_layout()
 fig.savefig(fname="convex-hull.png", bgcolor="none")
 ```
 
+This can be used as a library, to help handle a lot of polygon data. The convex hull of the union of hulls, is also the convex hull of all points contained. This means you write nice `map()` and `reduce()` functions to sort and associate complex shapes without needing to do point-in-polygon calculations.
 
-
-This can be used as a library, to help handle a lot of polygon data. The convex hull of the union of hulls, is also the convex hull of all points contained. This means you write nice `map()` and `reduce()` functions to sort and associate complex shapes without needing to do point-in-polygon calculations. 
-
-![](convex-hull.png)
-
-
+![Example of a Hull](convex-hull.png)
 
 However, only aggregation works this way, and not removing convex hulls. If a polygon is going to be removed, the union will need to be recalculated from the source data.
 
-The code can also be deployed as a simple service, similar to thumbnail image endpoints for cloud storage. Putting this info in the header of an object store lets you identify and prioritize datasets of interest, without them being fully ingested into a database that supports and is set up for spatial queries. 
+The code can also be deployed as a simple service, similar to thumbnail image endpoints for cloud storage. Putting this info in the header of an object store lets you identify and prioritize datasets of interest, without them being fully ingested into a database that supports and is set up for spatial queries.

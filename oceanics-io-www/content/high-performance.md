@@ -115,30 +115,6 @@ What you really want is a [Docker swarm](https://docs.docker.com/engine/swarm/) 
 Or more likely, Kubernetes. The idea being there is one "server" per processor, which acts as an addressable virtual machine. 
 This does away with machine/processor distinction.
 
-## Python frameworks
-
-### Job Stream
-
-Job stream can also distribute jobs across hybrid clusters:
-
-```bash
-CPLUS_INCLUDE_PATH=~/berryconda3/envs/oceanics/bin/boost pip\ install job_stream
-LD_LIBRARY_PATH=~/my/path/to/boost/stage/lib/ \
-pip install job_stream
-```
-
-Job stream uses the Boost library, which can cause some installation challenges. 
-
-### Ray
-
-Another option is Ray:
-
-```bash
-sudo apt-get install -y cmake pkg-config build-essential autoconf curl libtool unzip flex bison python
-pip install cython
-conda install libgcc
-pip install git+https://github.com/ray-project/ray.git#subdirectory=python
-```
 
 ## Compute shaders
 

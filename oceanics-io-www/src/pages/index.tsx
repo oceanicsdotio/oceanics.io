@@ -10,14 +10,13 @@ import Image from "next/image";
  */
 import Campaign, { PageData } from "oceanics-io-ui/build/components/Campaign/Campaign";
 import Index from "oceanics-io-ui/build/components/References/Index";
-import useQueryString from "oceanics-io-ui/build/hooks/useQueryString.js";
-const ITEM_INCREMENT = 3;
 
-const DEFAULTS = {
-    items: ITEM_INCREMENT,
-    tag: "",
-    reference: 0
-}
+
+type QueryParams = {
+    items?: number;
+    tag?: string;
+    reference?: number;
+};
 
 /**
  * Base component for web landing page.
@@ -25,20 +24,16 @@ const DEFAULTS = {
  * Optionally use query parameters and hash anchor to filter content. 
  */
 const IndexPage = ({
-  location: {
-    search
-  },
   data
 }) => {
   const router = useRouter();
-  const navigate = useCallback((route) => {
-      router.push(route)
-  }, [router])
-  /**
-   * Search string query parameters
-   */
-  const { query, navigateWithQuery } = useQueryString(search, DEFAULTS, navigate);
-  
+  const navigate = useCallback((pathname: string, insert?: QueryParams) => {
+    router.push({
+      pathname,
+      query: {...router.query, ...(insert||{})}
+    })
+  }, [router]);
+
   return (
     <>
       <Image src={"/shrimpers-web.png"} alt={"agents at rest"} width={"100%"}/>
@@ -48,10 +43,10 @@ const IndexPage = ({
         campaign={PageData.campaigns[1]}
       />
       <Index
-        query={query}
-        onClickTag={(tag: string) => () => {navigateWithQuery({tag})}}
-        onClickMore={() => {navigateWithQuery({items: query.items + 3})}}
-        onClearAll={()=>{navigate("/")}}
+        query={router.query}
+        onClickTag={(tag: string) => () => {navigate("/", {tag})}}
+        onClickMore={() => {navigate("/", {items: Number(router.query.items??0) + 3})}}
+        onClearAll={()=>{router.push("/")}}
         data={data}
       />
     </>

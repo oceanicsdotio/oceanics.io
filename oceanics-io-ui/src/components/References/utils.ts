@@ -45,8 +45,8 @@ export type FrontmatterType = {
  * Article with data and metadata
  */
 export type PartialArticle = {
-    frontmatter: FrontmatterType;
-    fields: {
+    data: FrontmatterType;
+    fields?: {
         slug: string;
     };
 }
@@ -115,8 +115,8 @@ export const referenceHash = ({ authors, title, year }: ReferenceHashType) => {
 
 export function filterFrontmatter (query: QueryType) {
     return function (article: ArticleType): boolean {
-        const tags = new Set(article.frontmatter.tags);
-        const refs = new Set((article.frontmatter.citations ?? []).map(referenceHash))
+        const tags = new Set(article.data.tags);
+        const refs = new Set((article.data.citations ?? []).map(referenceHash))
         const tagMatch: boolean = !!query.tag && tags.has(query.tag);
         const refMatch: boolean = !!query.reference && refs.has(query.reference);
         return tagMatch && refMatch

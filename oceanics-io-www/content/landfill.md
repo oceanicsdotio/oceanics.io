@@ -1,7 +1,7 @@
 ---
 title: Landfill
 date: "2020-09-06T00:47:00.000Z"
-description: "Ode to an ocean entrepeneur"
+description: "Ode to an ocean entrepreneur"
 tags: ["poetry", "shade", "sustainability", "venture capital"]
 ---
 
@@ -17,9 +17,9 @@ an endless anti-place
 
 of absolution from sin, carbon, and the eternal waste of sun gods.
 
-Blood, history, adventure literature told us — 
+Blood, history, adventure literature told us —
 
-This is the realm of blue collar philosophy, where character matters, 
+This is the realm of blue collar philosophy, where character matters,
 
 flags are matters of convenience, a landlessness of opportunity.
 

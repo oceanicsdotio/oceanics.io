@@ -29,21 +29,16 @@ import { rhythm, scale } from "../../typography";
 const { lineHeight, fontSize } = scale(-1 / 5);
 
 /**
- * Base component
- * 
- * @param param0 
- * @returns 
+ * Base component is a composed wrapper around <article/>,
+ * that adds metadata and references sections.
  */
 export const Article: FC<ArticleType> = ({
     className,
-    frontmatter: {
+    data: {
         date,
         title,
         citations,
         tags
-    },
-    fields: {
-        slug
     },
     onClickTag,
     children
@@ -53,7 +48,7 @@ export const Article: FC<ArticleType> = ({
             <header>
                 <h1>{title}</h1>
                 {(tags??[]).map((tag: string) =>
-                    <a key={`${slug}-${tag}`} onClick={onClickTag(tag)}>{tag}</a>
+                    <a key={`${title} ${tag}`} onClick={onClickTag(tag)}>{tag}</a>
                 )}
                 <span>{date}</span>
             </header>

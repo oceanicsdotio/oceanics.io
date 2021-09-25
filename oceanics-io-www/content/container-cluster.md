@@ -65,8 +65,6 @@ We maintain three environments:
 RPi don't really cut it as controllers, and get bogged down quickly. Ubuntu 16.04 is (at time of writing) required for flashing the TX2, and works well as a controller on a Intel Mac. The TX2 can also run the control plane if you're not doing interactive work.
 
 
-
-
 ## Install
 
 ### Preparation
@@ -115,4 +113,3 @@ apt-get install apt-transport-https ca-certificates curl software-properties-com
 ```
 
 You may also need to edit the repository list so apt-get can fetch dependencies (socat), `nano /etc/apt/sources.list`.
-

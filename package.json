@@ -3,8 +3,5 @@
     "workspaces": [
         "oceanics-io-www",
         "oceanics-io-ui"
-    ],
-    "devDependencies": {
-        "typescript": "^4.3.5"
-    }
+    ]
 }
