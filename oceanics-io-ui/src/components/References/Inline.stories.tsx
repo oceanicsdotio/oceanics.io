@@ -8,7 +8,9 @@ import { Meta, Story } from '@storybook/react';
  */
 import Inline from "./Inline";
 import PageData from "./Example.json";
-import { InlineRefType } from './utils';
+import type { IInline } from './Inline';
+import GlobalStyle from '../Layout/GlobalStyle';
+import { Document } from './types';
 
 /**
  * Storybook Interface
@@ -18,19 +20,23 @@ export default {
     title: 'References/Inline',
 } as Meta;
 
-const {nodes: [{data: {citations: [citation]}}]} = PageData;
+const {documents: [{metadata: {references: [citation]}}]} = PageData;
 
 /**
  * Base case
  */
-const Template: Story<InlineRefType> = (args) => <Inline {...args} />;
+const Template: Story<IInline> = (args) => (
+    <>
+        <GlobalStyle/>
+        <Inline {...args} />
+    </>
+);
 
 /**
  * Default test case
  */
 export const Example = Template.bind({});
 Example.args = {
-    ...citation,
-    unwrap: false,
-    namedAuthors: 3,
+    document: new Document({metadata: ...citation}),
+    parenthesis: false
 };

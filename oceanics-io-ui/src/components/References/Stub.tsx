@@ -12,33 +12,32 @@ import { charcoal, orange, grey, ghost, shadow } from "../../palette";
 /**
  * Types
  */
-import type { ArticleType } from "./utils";
+import type { IDocument } from "./types";
 
 /**
  * List view of an article
  */
-export const Stub: FC<ArticleType> = ({
+export const Stub: FC<IDocument> = ({
   className,
-  data: {
-    title,
-    date,
-    description,
-    tags
-  },
-  onClickTag
+  document: {
+      metadata: {
+        title,
+        published,
+        description,
+        labels
+    }
+}
 }) => {
   return (
     <article className={className}>
       <header>
         <a href={title}>{title}</a>
-        <span>{date}</span>
+        <span>{published.toISOString()}</span>
       </header>
       <section>
         {description}
       </section>
-      {tags.map((tag: string) =>
-        <a key={`${title} ${tag}`} onClick={onClickTag(tag)}>{tag}</a>
-      )}
+      {labels.map(({value, onClick}) => <a key={`${title} ${value}`} onClick={onClick}>{value}</a>)}
     </article>
   )
 }

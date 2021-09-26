@@ -1,40 +1,40 @@
 {
-    "nodes": [{
-        "data": {
+    "documents": [{
+        "metadata": {
             "title": "things about a thing",
-            "date": "whenever",
+            "published": "whenever",
             "description": "A description of a thing",
-            "tags": ["things", "data"],
-            "citations": [{
+            "labels": ["things", "data"],
+            "references": [{"metadata": {
                 "authors": ["Keeney NR", "Keeney NR"],
-                "year": 2000,
+                "published": 2000,
                 "title": "A blah about blah",
-                "journal": "Cybernetics",
+                "publication": "Cybernetics",
                 "volume": "50",
-                "pageRange": [90, 110]
-            },{
+                "pages": [[90, 110]]
+            }},{"metadata":{
                 "authors": ["Keeney NR", "Keeney NR"],
-                "year": 2021,
+                "published": 2021,
                 "title": "Blah more than blah",
-                "journal": "Oceanics",
+                "publication": "Oceanics",
                 "volume": "32",
-                "pageRange": [1, 42]
-            }]
+                "pages": [[1, 42]]
+            }}]
         }
     }, {
-        "data": {
+        "metadata": {
             "description": "Just a lot of drivel about something I know nothing about",
-            "tags": ["shade", "data"],
-            "date": "some date",
+            "labels": ["shade", "data"],
+            "published": "some date",
             "title": "More of my thoughts about things",
-            "citations": [{
+            "references": [{"metadata": {
                 "authors": ["Keeney NR", "Keeney NR"],
-                "year": 2000,
+                "published": 2000,
                 "title": "A blah about blah",
-                "journal": "Cybernetics",
+                "publication": "Cybernetics",
                 "volume": "50",
-                "pageRange": [90, 110]
-            }]
+                "pages": [[90, 110]]
+            }}]
         }
     }]
 }

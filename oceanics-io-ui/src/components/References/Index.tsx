@@ -1,7 +1,7 @@
 /**
  * React and friends.
  */
-import React, { FC, useMemo } from "react";
+import React, { FC, useMemo, MouseEventHandler } from "react";
 
 /**
  * Preview of article
@@ -12,45 +12,51 @@ import Button from "../Form/Button";
 /**
  * Typing and lookups
  */
-import type { IndexType, PartialArticle } from "./utils";
+import type { DocumentType, QueryType, IStyled } from "./types";
+
+/**
+ * Main page inputs
+ */
+ export interface DocumentIndexType extends IStyled {
+    documents: DocumentType[];
+    query: QueryType;
+    onShowMore: MouseEventHandler<HTMLButtonElement>;
+    onClearConstraints: MouseEventHandler<HTMLButtonElement>;
+};
 
 /**
  * Base component for web landing page.
  * 
  * Optionally use query parameters and hash anchor to filter content. 
  */
-const Index: FC<IndexType> = ({
+const Index: FC<DocumentIndexType> = ({
   className,
-  data: {
-    nodes
-  },
+  documents,
   query,
-  onClickTag,
-  onClickMore,
-  onClearAll
+  onShowMore,
+  onClearConstraints
 }) => {
   /**
    * The array of visible articles. The initial value is the subset from 0 to
    * the increment constant. 
    */
-  const visible: PartialArticle[] = useMemo(
+  const visible: DocumentType[] = useMemo(
     () => {
-      const selectedTag = query.tag??"";
-      return nodes.filter((node: PartialArticle): boolean => (
-        !!node && 
-        !node.data.tags.includes("wip") && 
-        (!selectedTag || node.data.tags.includes(selectedTag))
-      )).slice(0, query.items);
+      const selectedTag = query.label??"";
+      return documents.filter(({metadata}: DocumentType): boolean => {
+          const match = metadata.labels.map(({value})=>value);
+          return !match.includes("wip") && (!selectedTag || match.includes(selectedTag))
+      }).slice(0, query.items);
     },
     [query]
   );
 
   return (
     <div className={className}>
-      {visible.map((props: PartialArticle) =>
-        <Stub key={props.data.title} onClickTag={onClickTag} {...props} />)}
-      <Button onClick={onClickMore}>{"More arcana"}</Button>
-      <Button onClick={onClearAll}>{"Clear selection"}</Button>
+      {visible.map((props) =>
+        <Stub key={props.metadata.title} {...props} />)}
+      <Button onClick={onShowMore}>{"More arcana"}</Button>
+      <Button onClick={onClearConstraints}>{"Clear selection"}</Button>
     </div>
   )
 };

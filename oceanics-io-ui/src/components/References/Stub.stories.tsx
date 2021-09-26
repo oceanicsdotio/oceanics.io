@@ -8,8 +8,10 @@ import type { Meta, Story } from '@storybook/react';
  * Base component
  */
 import Stub from "./Stub";
+import type {IDocument} from "./types";
+import { Document } from './types';
 import PageData from  "./Example.json";
-import type { ArticleType } from './utils';
+import GlobalStyle from '../Layout/GlobalStyle';
 
 /**
  * Storybook Interface
@@ -19,18 +21,22 @@ export default {
     title: 'References/Stub',
 } as Meta;
 
-const {nodes:[node]} = PageData;
+const {documents:[node]} = PageData;
 
 /**
  * Base case
  */
-const Template: Story<ArticleType> = (args) => <Stub {...args} />;
+const Template: Story<IDocument> = (args) => (
+    <>
+        <GlobalStyle/>
+        <Stub {...args} />
+    </>
+);
 
 /**
  * Default test case
  */
 export const Default = Template.bind({});
 Default.args = {
-    ...node,
-    onClickTag: () => () => { }
+    document: new Document({metadata: node})
 };

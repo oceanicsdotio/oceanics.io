@@ -9,7 +9,7 @@ import type {Meta, Story} from '@storybook/react';
  */
 import Reference from "./Reference";
 import GlobalStyle from "../Layout/GlobalStyle"
-import type {ReferenceType} from "./utils";
+import type {DocumentType} from "./types";
 import PageData from "./Example.json";
 
 /**
@@ -25,7 +25,7 @@ const {nodes: [{data: {citations: [citation]}}]} = PageData;
 /**
  * Base case
  */
-const Template: Story<ReferenceType> = (args) => {
+const Template: Story<DocumentType> = (args) => {
     return (
         <>
         <GlobalStyle/>

@@ -8,8 +8,9 @@ import {Meta, Story} from "@storybook/react";
  * Base component
  */
 import Index from "./Index";
+import type { DocumentIndexType } from './Index';
 import PageData from "./Example.json";
-import { IndexType } from './utils';
+import GlobalStyle from '../Layout/GlobalStyle';
 
 /**
  * Storybook Interface
@@ -24,7 +25,12 @@ const {nodes} = PageData;
 /**
  * Base case
  */
-const Template: Story<IndexType> = (args) => <Index {...args} />;
+const Template: Story<DocumentIndexType> = (args) => (
+    <>
+        <GlobalStyle/>
+        <Index {...args} />
+    </>
+);
 
 /**
  * Default test case

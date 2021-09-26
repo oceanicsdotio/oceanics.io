@@ -11,6 +11,7 @@
  // @ts-ignore
  import { Document, Page } from 'react-pdf/dist/esm/entry.webpack';
  import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
+import GlobalStyle from '../Layout/GlobalStyle';
  
   /**
    * Storybook interface
@@ -25,7 +26,8 @@
    */
  
  const Template: Story<any> = () => {
-    return <Document
+    return (
+    <><GlobalStyle/><Document
         file={PDF_CDN_ROUTE}
         onLoadSuccess={()=>{}}
         options={{
@@ -46,7 +48,7 @@
             ),
         )
         }
-    </Document>
+    </Document></>)
 };
  
   /**

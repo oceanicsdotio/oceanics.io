@@ -1,21 +1,13 @@
 /**
  * React and friends
  */
-import React, { FC, useMemo, Fragment } from "react";
-
-/**
- * Component level styling
- */
+import React, { FC } from "react";
 import styled from "styled-components";
 
 /**
- * Color palette
+ * Color palette and typesetting
  */
 import { pink, ghost, orange } from "../../palette";
-
-/**
- * Typesetting
- */
 import { rhythm } from "../../typography";
 
 import PageData from "oceanics-io-ui/build/components/Layout/PageData.json";
@@ -84,8 +76,6 @@ export const Layout: FC<LayoutType> = ({
     policy,
     HeadComponent
 }) => {
-   
-
     return <div className={className}>
         <GlobalStyle />
         <HeadComponent>
