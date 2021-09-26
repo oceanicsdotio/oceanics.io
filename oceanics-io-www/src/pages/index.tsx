@@ -1,7 +1,7 @@
 /**
  * React and friends.
  */
-import React, {useCallback} from "react";
+import React, {useCallback, FC} from "react";
 import {useRouter} from "next/router";
 import Image from "next/image";
 
@@ -10,6 +10,9 @@ import Image from "next/image";
  */
 import Campaign, { PageData } from "oceanics-io-ui/build/components/Campaign/Campaign";
 import Index from "oceanics-io-ui/build/components/References/Index";
+import type {Document} from "oceanics-io-ui/build/components/References/types";
+import type {GetStaticProps} from "next";
+import {readAllMarkdownContent} from "../next-util";
 
 
 type QueryParams = {
@@ -18,13 +21,17 @@ type QueryParams = {
     reference?: number;
 };
 
+interface IIndexPage {
+    documents: Document[];
+}
+
 /**
  * Base component for web landing page.
  * 
  * Optionally use query parameters and hash anchor to filter content. 
  */
-const IndexPage = ({
-  data
+const IndexPage: FC<IIndexPage> = ({
+  documents
 }) => {
   const router = useRouter();
   const navigate = useCallback((pathname: string, insert?: QueryParams) => {
@@ -44,13 +51,18 @@ const IndexPage = ({
       />
       <Index
         query={router.query}
-        onClickTag={(tag: string) => () => {navigate("/", {tag})}}
-        onClickMore={() => {navigate("/", {items: Number(router.query.items??0) + 3})}}
-        onClearAll={()=>{router.push("/")}}
-        data={data}
+        onShowMore={() => {navigate("/", {items: Number(router.query.items??0) + 3})}}
+        onClearConstraints={()=>{router.push("/")}}
+        documents={documents}
       />
     </>
   )
 };
 
 export default IndexPage;
+
+export const getStaticProps: GetStaticProps = async () => {
+    return {props: {
+        documents: readAllMarkdownContent()
+    }}
+}

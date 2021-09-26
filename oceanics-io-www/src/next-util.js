@@ -1,16 +1,39 @@
 import fs from "fs";
 import matter from "gray-matter";
-// import path from "path";
+import { Document } from "oceanics-io-ui/build/components/References/types";
 
+const DIRECTORY = "../resources";
 
-export const readMarkdownContent = (source) => {
+export const indexMarkdownContent = () =>
+    fs.readdirSync(DIRECTORY)
+        .filter((name) => name.endsWith(".mdx"))
+        .map((name) => Object({ params: { slug: name.split(".").shift() } }))
 
-    const directory = fs.readdirSync(source);
-    const resources = directory.filter((name) => name.endsWith(".mdx") || name.endsWith(".md"))
-    
-    const nodes = resources.map((name) => {
-        const data = fs.readFileSync(`${source}/${name}`, "utf8")
-        return matter(data)
-    })
-    return nodes
+export const readMarkdownContent = (slug) => {
+    const { data, content } = matter(fs.readFileSync(`${DIRECTORY}/${slug}.mdx`, "utf8"));
+    return {
+        props: {
+            document: new Document({
+                metadata: data,
+                content
+            })
+        }
+    }
+};
+
+export const readAllMarkdownContent = () => {
+    const index = indexMarkdownContent();
+    return {
+        props: {
+            documents: index.map(({ params: { slug } }) => readMarkdownContent(slug))
+        }
+    }
+}
+
+export const readAllMarkdownCitations = () => {
+    const allMarkdown = readAllMarkdownContent();
+    const documents = allMarkdown.props.documents.flatMap(
+        (each) => each.props.document.metadata.references
+    );
+    return { props: { documents } }
 }

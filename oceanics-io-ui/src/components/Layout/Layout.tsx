@@ -10,8 +10,8 @@ import styled from "styled-components";
 import { pink, ghost, orange } from "../../palette";
 import { rhythm } from "../../typography";
 
-import PageData from "oceanics-io-ui/build/components/Layout/PageData.json";
-import GlobalStyle from "oceanics-io-ui/build/components/Layout/GlobalStyle";
+// import PageData from "./PageData.json";
+import GlobalStyle from "./GlobalStyle";
 
 /**
  * The NavBar is a <nav> element that displays links or buttons
@@ -53,13 +53,13 @@ export const Title = styled.a`
     padding: 0;
 `;
 
-export type LayoutType = {
+export interface ILayout {
     children: any;
     className?: string;
     expand: boolean;
     title: string;
     policy: string;
-    HeadComponent?: FC;
+    HeadComponent: FC;
     description: string;
     site: {
         title: string;
@@ -67,7 +67,7 @@ export type LayoutType = {
 }
     
 
-export const Layout: FC<LayoutType> = ({ 
+export const Layout: FC<ILayout> = ({ 
     children,
     className,
     title,
@@ -103,7 +103,7 @@ export const Layout: FC<LayoutType> = ({
 export const StyledLayout = styled(Layout)`
     margin-left: auto;
     margin-right: auto;
-    max-width: ${({expand}: LayoutType)=>expand?"100%":"65ch"};
+    max-width: ${({expand})=>expand?"100%":"65ch"};
     padding: ${rhythm(1.5)} ${rhythm(0.75)};
 
     & > main {

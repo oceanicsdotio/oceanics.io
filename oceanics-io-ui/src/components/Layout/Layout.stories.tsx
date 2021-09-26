@@ -6,7 +6,7 @@ import React from 'react';
 /**
  * Base component
  */
-import Layout, {LayoutType} from './Layout';
+import Layout, {ILayout} from './Layout';
 import PageData from "./PageData.json";
 
 /**
@@ -24,11 +24,9 @@ export default {
 
 /**
  * Base case
- * 
- * @param {*} args 
- * @returns 
+ *
  */
-const Template: Story<LayoutType> = (args: LayoutType) => <Layout {...args} />;
+const Template: Story<ILayout> = (args) => <Layout {...args} />;
 
 /**
  * Default test case

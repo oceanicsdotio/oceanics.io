@@ -10,44 +10,40 @@ import React, {FC} from "react";
  * are provided to the Gatsby rendering context. This allows us to build citation lists
  * and cross-reference material based on shared references.
  */
-// import { MDXProvider } from "@mdx-js/react";
+import Document from "oceanics-io-ui/build/components/References/Document";
+import { Document as DocumentClass, MetadataSerializedType} from "oceanics-io-ui/build/components/References/types";
+import type {IDocument} from "oceanics-io-ui/build/components/References/Document";
+import { readMarkdownContent, indexMarkdownContent } from "../next-util";
+import type {GetStaticPaths, GetStaticProps} from "next";
 
-import Article from "oceanics-io-ui/build/components/References/Article";
-import type {PartialArticle} from "oceanics-io-ui/build/components/References/utils";
-import References from "oceanics-io-ui/build/components/References/References";
-import Reference from "oceanics-io-ui/build/components/References/Reference"
-import Inline from "oceanics-io-ui/build/components/References/Inline";
-import { readMarkdownContent } from "../next-util";
 
-const ProviderComponents = {
-  References,
-  Reference,
-  Inline
-};
-
-interface IArticlePage {
-    data: PartialArticle;
-    content: any;
-}
-
-const ArticlePage: FC<IArticlePage> = ({
-  data,
-  content
+const ArticlePage: FC<IDocument> = ({
+  document
 }) => {
-  return (
-    // <MDXProvider components={ProviderComponents}>
-      <Article data={data} onClickTag={() => () => { }}>
-        {content}
-      </Article>
-    // </MDXProvider>
-  )
+  return <Document document={document}/>
 };
 
 export default ArticlePage;
 
+const DIRECTORY = "../resources";
+
+export const getStaticProps: GetStaticProps = async ({ params: {slug} }) => {
+    const {data, content} = readMarkdownContent(slug)
+    return {props: {
+        document: new DocumentClass({
+            metadata: data as MetadataSerializedType,
+            content
+        })
+    }}
+}
+
 /**
  * Used by NextJS in building
  */
-export async function getStaticPaths() {
-    return readMarkdownContent("../resources")
+export const getStaticPaths: GetStaticPaths = async () => {
+    return {
+        paths: indexMarkdownContent(),
+        fallback: false
+    }
 }
+    

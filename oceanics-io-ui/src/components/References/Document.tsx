@@ -33,8 +33,7 @@ export interface IDocument extends IStyled {
  */
 export const Document: FC<IDocument> = ({
   className,
-  document,
-  children
+  document
 }) => {
   return (
     <article className={className}>
@@ -44,7 +43,7 @@ export const Document: FC<IDocument> = ({
         <span>{document.metadata.published.toISOString()}</span>
       </header>
       <section>
-        {children}
+        {document.content}
       </section>
       {(document.metadata.references??[]).map((ref) => <Reference document={ref}/>)}
     </article>
