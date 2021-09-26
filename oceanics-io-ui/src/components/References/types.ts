@@ -16,16 +16,16 @@ export type QueryType = {
  * Information about the document, which may or may not 
  * be duplicated in the content.
  */
-type MetadataType = {
+
+export type MetadataSerializedType = {
+    published: string;
+    labels: string[];
+    references?: {
+        metadata: MetadataSerializedType;
+    }[];
     authors: string[];
     title: string;
-    published: Date;
     description: string;
-    labels: {
-        value: string;
-        onClick?: MouseEventHandler<HTMLAnchorElement>;
-    }[];
-    references: Document[];
     publication: string;
     volume: string;
     pages: number[][];
@@ -44,17 +44,40 @@ export interface IDocument extends IStyled {
  * be an academic journal article, or an internal memo or report.
  */
 export class Document {
-    public metadata: MetadataType;
+    public metadata: {
+        published: Date;
+        labels: {
+            value: string;
+            onClick: MouseEventHandler<HTMLAnchorElement>
+        }[];
+        references?: Document[];
+        authors: string[];
+        title: string;
+        description: string;
+        publication: string;
+        volume: string;
+        pages: number[][];
+    };
     public content?: string;
 
     constructor ({
-        metadata, 
-        content
+        metadata: {
+            published,
+            labels,
+            references=[],
+            ...metadata
+        }, 
+        content=""
     }: {
-        metadata: MetadataType;
-        content: string;
+        metadata: MetadataSerializedType;
+        content?: string;
     }) {
-        this.metadata = metadata;
+        this.metadata = {
+            ...metadata,
+            labels: labels.map((value: string) => Object({value, onClick: ()=>{}})),
+            published: new Date(published),
+            references: references.map((each) => new Document(each))
+        };
         this.content = content;
     };
 
@@ -90,11 +113,22 @@ export class Document {
         }
     }
 
+    private get source (): string {
+        const prefix = `${this.metadata.publication} ${this.metadata.volume}`;
+        if (this.metadata.pages) {
+            const [pageRange] = this.metadata.pages;
+            return `${prefix}:${pageRange.join("–")}.`
+        } else {
+            return prefix
+        }
+    }
+
     public get reference() {
-        
-        // const _pages = pages ? `:${pageRange[0]}–${pageRange[1]}.` : ``;
-        // const text = `${authors.join(", ")}. ${year}. ${title.trim()}. ${publication} ${volume || ""}${pages}`;
-        return "";
-        
+        return [
+            this.metadata.authors.join(", "),
+            this.year, 
+            this.metadata.title.trim(), 
+            this.source
+        ].join(". ")
     }
 };

@@ -20,7 +20,7 @@ export default {
     title: 'References/Inline',
 } as Meta;
 
-const {documents: [{metadata: {references: [citation]}}]} = PageData;
+const {documents: [{metadata: {references: [doc]}}]} = PageData;
 
 /**
  * Base case
@@ -37,6 +37,6 @@ const Template: Story<IInline> = (args) => (
  */
 export const Example = Template.bind({});
 Example.args = {
-    document: new Document({metadata: ...citation}),
+    document: new Document(doc),
     parenthesis: false
 };

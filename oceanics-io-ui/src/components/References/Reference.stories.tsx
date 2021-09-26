@@ -9,7 +9,8 @@ import type {Meta, Story} from '@storybook/react';
  */
 import Reference from "./Reference";
 import GlobalStyle from "../Layout/GlobalStyle"
-import type {DocumentType} from "./types";
+import type {IDocument} from "./types";
+import {Document} from "./types";
 import PageData from "./Example.json";
 
 /**
@@ -20,16 +21,16 @@ export default {
     title: 'References/Reference',
 } as Meta;
 
-const {nodes: [{data: {citations: [citation]}}]} = PageData;
+const {documents: [{metadata: {references: [doc]}}]} = PageData;
 
 /**
  * Base case
  */
-const Template: Story<DocumentType> = (args) => {
+const Template: Story<IDocument> = (args) => {
     return (
         <>
-        <GlobalStyle/>
-        <Reference {...args} />
+            <GlobalStyle/>
+            <Reference {...args} />
         </>
     )
 };
@@ -38,4 +39,6 @@ const Template: Story<DocumentType> = (args) => {
  * Default test case
  */
 export const Example = Template.bind({});
-Example.args = citation;
+Example.args = {
+    document: new Document(doc)
+};

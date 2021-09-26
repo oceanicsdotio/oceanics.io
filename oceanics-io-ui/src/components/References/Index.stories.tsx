@@ -11,6 +11,7 @@ import Index from "./Index";
 import type { DocumentIndexType } from './Index';
 import PageData from "./Example.json";
 import GlobalStyle from '../Layout/GlobalStyle';
+import { Document } from './types';
 
 /**
  * Storybook Interface
@@ -20,7 +21,7 @@ export default {
     title: 'References/Index',
 } as Meta;
 
-const {nodes} = PageData;
+const {documents} = PageData;
 
 /**
  * Base case
@@ -37,9 +38,7 @@ const Template: Story<DocumentIndexType> = (args) => (
  */
 export const Example = Template.bind({});
 Example.args = { 
-    data: {
-        nodes
-    },
+    documents: documents.map((doc)=>(new Document(doc))),
     query: {
         increment:3,
         items:10,

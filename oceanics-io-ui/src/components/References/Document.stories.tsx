@@ -11,6 +11,7 @@ import Document from "./Document";
 import GlobalStyle from '../Layout/GlobalStyle';
 import PageData from "./Example.json";
 import type { IDocument } from './Document';
+import {Document as DocumentClass} from "./types"
 
 /**
  * Storybook Interface
@@ -39,6 +40,5 @@ const {documents: [doc]} = PageData;
  */
 export const Example = Template.bind({});
 Example.args = {
-    ...doc,
-    onClickTag: () => () => {}
+    document: new DocumentClass(doc),
 };

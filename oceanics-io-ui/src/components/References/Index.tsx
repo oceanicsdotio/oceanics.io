@@ -12,13 +12,13 @@ import Button from "../Form/Button";
 /**
  * Typing and lookups
  */
-import type { DocumentType, QueryType, IStyled } from "./types";
+import type { Document, QueryType, IStyled } from "./types";
 
 /**
  * Main page inputs
  */
  export interface DocumentIndexType extends IStyled {
-    documents: DocumentType[];
+    documents: Document[];
     query: QueryType;
     onShowMore: MouseEventHandler<HTMLButtonElement>;
     onClearConstraints: MouseEventHandler<HTMLButtonElement>;
@@ -40,10 +40,10 @@ const Index: FC<DocumentIndexType> = ({
    * The array of visible articles. The initial value is the subset from 0 to
    * the increment constant. 
    */
-  const visible: DocumentType[] = useMemo(
+  const visible: Document[] = useMemo(
     () => {
       const selectedTag = query.label??"";
-      return documents.filter(({metadata}: DocumentType): boolean => {
+      return documents.filter(({metadata}: Document): boolean => {
           const match = metadata.labels.map(({value})=>value);
           return !match.includes("wip") && (!selectedTag || match.includes(selectedTag))
       }).slice(0, query.items);
@@ -53,8 +53,8 @@ const Index: FC<DocumentIndexType> = ({
 
   return (
     <div className={className}>
-      {visible.map((props) =>
-        <Stub key={props.metadata.title} {...props} />)}
+      {visible.map((document) =>
+        <Stub key={document.metadata.title} document={document} />)}
       <Button onClick={onShowMore}>{"More arcana"}</Button>
       <Button onClick={onClearConstraints}>{"Clear selection"}</Button>
     </div>

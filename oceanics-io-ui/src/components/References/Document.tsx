@@ -33,27 +33,20 @@ export interface IDocument extends IStyled {
  */
 export const Document: FC<IDocument> = ({
   className,
-  document: {
-      metadata:{
-        published,
-        title,
-        references,
-        labels
-    }
-    },
+  document,
   children
 }) => {
   return (
     <article className={className}>
       <header>
-        <h1>{title}</h1>
-        {labels.map(({value, onClick}) => <a key={`${title} ${value}`} onClick={onClick}>{value}</a>)}
-        <span>{published.toISOString()}</span>
+        <h1>{document.metadata.title}</h1>
+        {document.metadata.labels.map(({value, onClick}) => <a key={`${document.metadata.title} ${value}`} onClick={onClick}>{value}</a>)}
+        <span>{document.metadata.published.toISOString()}</span>
       </header>
       <section>
         {children}
       </section>
-      {references.map((reference) => <Reference {...reference}/>)}
+      {(document.metadata.references??[]).map((ref) => <Reference document={ref}/>)}
     </article>
   )
 }

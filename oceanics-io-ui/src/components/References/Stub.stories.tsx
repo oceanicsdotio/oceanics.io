@@ -8,7 +8,7 @@ import type { Meta, Story } from '@storybook/react';
  * Base component
  */
 import Stub from "./Stub";
-import type {IDocument} from "./types";
+import type {IDocument, MetadataSerializedType} from "./types";
 import { Document } from './types';
 import PageData from  "./Example.json";
 import GlobalStyle from '../Layout/GlobalStyle';
@@ -21,22 +21,23 @@ export default {
     title: 'References/Stub',
 } as Meta;
 
-const {documents:[node]} = PageData;
+const {documents:[doc]} = PageData;
 
 /**
  * Base case
  */
-const Template: Story<IDocument> = (args) => (
+const Template: Story<IDocument> = ({document}) => {
+    return (
     <>
         <GlobalStyle/>
-        <Stub {...args} />
+        <Stub document={document} />
     </>
-);
+)};
 
 /**
  * Default test case
  */
 export const Default = Template.bind({});
 Default.args = {
-    document: new Document({metadata: node})
+    document: new Document(doc)
 };

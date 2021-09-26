@@ -19,25 +19,18 @@ import type { IDocument } from "./types";
  */
 export const Stub: FC<IDocument> = ({
   className,
-  document: {
-      metadata: {
-        title,
-        published,
-        description,
-        labels
-    }
-}
+  document,
 }) => {
   return (
     <article className={className}>
       <header>
-        <a href={title}>{title}</a>
-        <span>{published.toISOString()}</span>
+        <a href={document.metadata.title}>{document.metadata.title}</a>
+        <span>{document.metadata.published.toISOString()}</span>
       </header>
-      <section>
-        {description}
-      </section>
-      {labels.map(({value, onClick}) => <a key={`${title} ${value}`} onClick={onClick}>{value}</a>)}
+      <section>{document.metadata.description}</section>
+      {document.metadata.labels.map(({value, onClick}) => 
+        <a key={`${document.metadata.title} ${value}`} onClick={onClick}>{value}</a>)
+      }
     </article>
   )
 }
@@ -80,7 +73,6 @@ const StyledStub = styled(Stub)`
       color: ${ghost};
     }
   } 
-    
 `;
 
 /**
