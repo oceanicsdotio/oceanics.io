@@ -9,7 +9,6 @@ import React, { FC } from "react";
 import PropTypes from "prop-types";
 import {referenceHash, InlineRefType} from "./utils";
 
-
 /**
  Include inline links for references in markdown
  */

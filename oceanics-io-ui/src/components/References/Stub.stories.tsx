@@ -2,15 +2,14 @@
  * React and friends
  */
 import React from 'react';
-
-import { Meta, Story } from '@storybook/react';
+import type { Meta, Story } from '@storybook/react';
 
 /**
  * Base component
  */
 import Stub from "./Stub";
-import PageData from  "./PageData.json";
-import { ArticleType } from './utils';
+import PageData from  "./Example.json";
+import type { ArticleType } from './utils';
 
 /**
  * Storybook Interface
@@ -24,9 +23,6 @@ const {nodes:[node]} = PageData;
 
 /**
  * Base case
- * 
- * @param {*} args 
- * @returns 
  */
 const Template: Story<ArticleType> = (args) => <Stub {...args} />;
 

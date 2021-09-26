@@ -21,7 +21,8 @@ import { ghost } from "../../palette";
 /**
  * Types and ref lookups
  */
-import {referenceHash, ReferenceType} from "./utils";
+import {referenceHash} from "./utils";
+import type {ReferenceType} from "./utils";
 
 /**
  Single reference to journal article or similar material.

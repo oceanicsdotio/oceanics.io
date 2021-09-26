@@ -8,7 +8,7 @@ import {Meta, Story} from "@storybook/react";
  * Base component
  */
 import Article from "./Article";
-import PageData from "./PageData.json";
+import PageData from "./Example.json";
 import { ArticleType } from './utils';
 
 /**

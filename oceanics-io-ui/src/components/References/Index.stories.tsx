@@ -8,7 +8,7 @@ import {Meta, Story} from "@storybook/react";
  * Base component
  */
 import Index from "./Index";
-import PageData from "./PageData.json";
+import PageData from "./Example.json";
 import { IndexType } from './utils';
 
 /**
@@ -32,10 +32,7 @@ const Template: Story<IndexType> = (args) => <Index {...args} />;
 export const Example = Template.bind({});
 Example.args = { 
     data: {
-        allMdx: {
-            nodes,
-            group: [{fieldValue: "shade"}, {fieldValue: 'data'}, {fieldValue: "things"}]
-        }
+        nodes
     },
     query: {
         increment:3,

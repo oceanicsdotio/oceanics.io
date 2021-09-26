@@ -1,7 +1,7 @@
 /**
  * React and friends
  */
-import React, { FC, useMemo } from "react";
+import React, { FC, useMemo, Fragment } from "react";
 
 /**
  * Component level styling
@@ -17,6 +17,9 @@ import { pink, ghost, orange } from "../../palette";
  * Typesetting
  */
 import { rhythm } from "../../typography";
+
+import PageData from "oceanics-io-ui/build/components/Layout/PageData.json";
+import GlobalStyle from "oceanics-io-ui/build/components/Layout/GlobalStyle";
 
 /**
  * The NavBar is a <nav> element that displays links or buttons
@@ -64,25 +67,45 @@ export type LayoutType = {
     expand: boolean;
     title: string;
     policy: string;
+    HeadComponent?: FC;
+    description: string;
+    site: {
+        title: string;
+    }
 }
     
+
 export const Layout: FC<LayoutType> = ({ 
     children,
     className,
     title,
-    policy
+    description,
+    site,
+    policy,
+    HeadComponent
 }) => {
-    const _policy = useMemo(
-        () => policy.split("\n").filter((x: string) => x), []
-    );
+   
 
     return <div className={className}>
+        <GlobalStyle />
+        <HeadComponent>
+             <title>{`${title} | ${site.title}`}</title>
+             <meta name="description" content={description} />
+             <meta property="og:type" content="website" />
+             <meta property="og:title" content={title} />
+             <meta property="og:description" content={description} />
+             <meta property="og:site_name" content={site.title} />
+             <meta property="twitter:card" content="summary" />
+             <meta property="twitter:title" content={title} />
+             <meta property="twitter:description" content={description} />
+         </HeadComponent>
         <NavBar>
             <Title href={"/"}>{title}</Title>  
         </NavBar>
-        <main>{children}</main>
+        <main>
+            {children}</main>
         <footer>
-            {_policy.map((text: string, ii: number) => <p key={`text-${ii}`}>{text}</p>)}
+            {policy.split("\n").filter((x: string) => x).map((text: string) => <p key={text}>{text}</p>)}
         </footer>
     </div>
 };

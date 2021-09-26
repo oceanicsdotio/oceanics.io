@@ -17,7 +17,7 @@
    */
   export default {
     component: Document,
-    title: 'PDF/PDF',
+    title: 'References/PDF',
   } as Meta;
   
   /**

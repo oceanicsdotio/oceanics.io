@@ -24,4 +24,5 @@ const ReferencesPage = ({
   );
   return <References citations={references} />
 };
+
 export default ReferencesPage;

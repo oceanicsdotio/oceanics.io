@@ -17,12 +17,7 @@ import styled from "styled-components";
  * Reference component
  */
 import Reference, {ReferencePropTypes} from "./Reference"
-
-/**
- * Type checking
- */
-import {ReferenceType, ReferencesType} from "./utils";
-
+import type {ReferenceType, ReferencesType} from "./utils";
 
 /**
  * List of formatted citations to append to a document that

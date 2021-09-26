@@ -1,7 +1,7 @@
 /**
  * React and friends
  */
-import React from "react";
+import React, {FC} from "react";
 
 /**
  * Render Provider components inside MDX, and render MDX to React components.
@@ -13,11 +13,11 @@ import React from "react";
 // import { MDXProvider } from "@mdx-js/react";
 
 import Article from "oceanics-io-ui/build/components/References/Article";
+import type {PartialArticle} from "oceanics-io-ui/build/components/References/utils";
 import References from "oceanics-io-ui/build/components/References/References";
 import Reference from "oceanics-io-ui/build/components/References/Reference"
 import Inline from "oceanics-io-ui/build/components/References/Inline";
-import fs from "fs";
-import path from "path";
+import { readMarkdownContent } from "../next-util";
 
 const ProviderComponents = {
   References,
@@ -25,14 +25,19 @@ const ProviderComponents = {
   Inline
 };
 
-const ArticlePage = ({
+interface IArticlePage {
+    data: PartialArticle;
+    content: any;
+}
+
+const ArticlePage: FC<IArticlePage> = ({
   data,
   content
 }) => {
   return (
     // <MDXProvider components={ProviderComponents}>
       <Article data={data} onClickTag={() => () => { }}>
-        {body}
+        {content}
       </Article>
     // </MDXProvider>
   )
@@ -40,20 +45,9 @@ const ArticlePage = ({
 
 export default ArticlePage;
 
+/**
+ * Used by NextJS in building
+ */
 export async function getStaticPaths() {
-    
-  fs.readdirSync(source, { withFileTypes: true })
-    .filter(dirent => dirent.isDirectory())
-    .map(dirent => dirent.name)
-  
-    return {
-      paths: docs.map(doc => {
-        return {
-          params: {
-            slug: doc.slug
-          }
-        }
-      }),
-      fallback: false
-    }
-  }
+    return readMarkdownContent("../resources")
+}

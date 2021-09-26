@@ -7,7 +7,7 @@ import { Meta, Story } from '@storybook/react';
  * Base component
  */
 import Inline from "./Inline";
-import PageData from "./PageData.json";
+import PageData from "./Example.json";
 import { InlineRefType } from './utils';
 
 /**
@@ -18,7 +18,7 @@ export default {
     title: 'References/Inline',
 } as Meta;
 
-const {nodes: [{frontmatter: {citations: [citation]}}]} = PageData;
+const {nodes: [{data: {citations: [citation]}}]} = PageData;
 
 /**
  * Base case

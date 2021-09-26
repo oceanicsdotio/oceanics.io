@@ -2,14 +2,14 @@
  * React and friends
  */
 import React from 'react';
-import {Meta, Story} from "@storybook/react";
+import type {Meta, Story} from "@storybook/react";
 
 /**
  * Base component
  */
 import References from "./References";
-import { ReferencesType } from './utils';
-import PageData from "./PageData.json";
+import type { ReferencesType } from './utils';
+import PageData from "./Example.json";
 
 /**
  * Storybook Interface
@@ -19,7 +19,7 @@ export default {
     title: 'References/References',
 } as Meta;
 
-const {nodes:[{frontmatter:{citations}}]} = PageData;
+const {nodes:[{data:{citations}}]} = PageData;
 
 /**
  * Base case

@@ -22,9 +22,7 @@ import type { IndexType, PartialArticle } from "./utils";
 const Index: FC<IndexType> = ({
   className,
   data: {
-    allMdx: {
-      nodes
-    }
+    nodes
   },
   query,
   onClickTag,
@@ -40,8 +38,8 @@ const Index: FC<IndexType> = ({
       const selectedTag = query.tag??"";
       return nodes.filter((node: PartialArticle): boolean => (
         !!node && 
-        !node.frontmatter.tags.includes("wip") && 
-        (!selectedTag || node.frontmatter.tags.includes(selectedTag))
+        !node.data.tags.includes("wip") && 
+        (!selectedTag || node.data.tags.includes(selectedTag))
       )).slice(0, query.items);
     },
     [query]
@@ -50,7 +48,7 @@ const Index: FC<IndexType> = ({
   return (
     <div className={className}>
       {visible.map((props: PartialArticle) =>
-        <Stub key={props.fields.slug} onClickTag={onClickTag} {...props} />)}
+        <Stub key={props.data.title} onClickTag={onClickTag} {...props} />)}
       <Button onClick={onClickMore}>{"More arcana"}</Button>
       <Button onClick={onClearAll}>{"Clear selection"}</Button>
     </div>
