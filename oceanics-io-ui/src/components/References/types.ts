@@ -39,6 +39,19 @@ export interface IDocument extends IStyled {
     document: Document;
 };
 
+export interface IDocumentSerialized {
+    document: DocumentSerializedType;
+}
+
+export type DocumentSerializedType = {
+    metadata: MetadataSerializedType;
+    content?: string;
+}
+
+export interface IDocumentIndexSerialized {
+    documents: DocumentSerializedType[];
+}
+
 /**
  * A document is a cross-referenced piece of information. This could
  * be an academic journal article, or an internal memo or report.
@@ -63,15 +76,12 @@ export class Document {
     constructor ({
         metadata: {
             published,
-            labels,
+            labels=[],
             references=[],
             ...metadata
         }, 
         content=""
-    }: {
-        metadata: MetadataSerializedType;
-        content?: string;
-    }) {
+    }: DocumentSerializedType) {
         this.metadata = {
             ...metadata,
             labels: labels.map((value: string) => Object({value, onClick: ()=>{}})),

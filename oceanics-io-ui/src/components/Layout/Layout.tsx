@@ -10,7 +10,7 @@ import styled from "styled-components";
 import { pink, ghost, orange } from "../../palette";
 import { rhythm } from "../../typography";
 
-// import PageData from "./PageData.json";
+import PageData from "./PageData.json";
 import GlobalStyle from "./GlobalStyle";
 
 /**
@@ -54,40 +54,25 @@ export const Title = styled.a`
 `;
 
 export interface ILayout {
-    children: any;
     className?: string;
-    expand: boolean;
     title: string;
-    policy: string;
-    HeadComponent: FC;
+    HeadComponent: any;
     description: string;
-    site: {
-        title: string;
-    }
-}
-    
+};
 
 export const Layout: FC<ILayout> = ({ 
     children,
     className,
     title,
     description,
-    site,
-    policy,
     HeadComponent
 }) => {
+    
     return <div className={className}>
         <GlobalStyle />
         <HeadComponent>
-             <title>{`${title} | ${site.title}`}</title>
+             <title>{`${PageData.title} | ${title}`}</title>
              <meta name="description" content={description} />
-             <meta property="og:type" content="website" />
-             <meta property="og:title" content={title} />
-             <meta property="og:description" content={description} />
-             <meta property="og:site_name" content={site.title} />
-             <meta property="twitter:card" content="summary" />
-             <meta property="twitter:title" content={title} />
-             <meta property="twitter:description" content={description} />
          </HeadComponent>
         <NavBar>
             <Title href={"/"}>{title}</Title>  
@@ -95,7 +80,7 @@ export const Layout: FC<ILayout> = ({
         <main>
             {children}</main>
         <footer>
-            {policy.split("\n").filter((x: string) => x).map((text: string) => <p key={text}>{text}</p>)}
+            {PageData.policy.split("\n").filter((x: string) => x).map((text: string) => <p key={text}>{text}</p>)}
         </footer>
     </div>
 };
@@ -103,7 +88,7 @@ export const Layout: FC<ILayout> = ({
 export const StyledLayout = styled(Layout)`
     margin-left: auto;
     margin-right: auto;
-    max-width: ${({expand})=>expand?"100%":"65ch"};
+    max-width: 65ch;
     padding: ${rhythm(1.5)} ${rhythm(0.75)};
 
     & > main {

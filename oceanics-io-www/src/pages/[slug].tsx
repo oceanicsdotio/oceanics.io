@@ -11,30 +11,36 @@ import React, {FC} from "react";
  * and cross-reference material based on shared references.
  */
 import Document from "oceanics-io-ui/build/components/References/Document";
-import { Document as DocumentClass, MetadataSerializedType} from "oceanics-io-ui/build/components/References/types";
-import type {IDocument} from "oceanics-io-ui/build/components/References/Document";
+import Layout from "oceanics-io-ui/build/components/Layout/Layout";
+import type { IDocumentSerialized } from "oceanics-io-ui/build/components/References/types";
 import { readMarkdownContent, indexMarkdownContent } from "../next-util";
-import type {GetStaticPaths, GetStaticProps} from "next";
+import type { GetStaticPaths, GetStaticProps } from "next";
+import useDeserialize from "../hooks/useDeserialize";
+import Head from "next/head";
 
-
-const ArticlePage: FC<IDocument> = ({
+const ArticlePage: FC<IDocumentSerialized> = ({
   document
 }) => {
-  return <Document document={document}/>
+  const [deserialized] = useDeserialize([document])
+  return (
+      <Layout
+        description={deserialized.metadata.description}
+        title={deserialized.metadata.title}
+        HeadComponent={Head}
+      >
+    <Document document={deserialized}/>
+    </Layout>
+    )
 };
 
+ArticlePage.displayName = "Document";
 export default ArticlePage;
 
-const DIRECTORY = "../resources";
-
 export const getStaticProps: GetStaticProps = async ({ params: {slug} }) => {
-    const {data, content} = readMarkdownContent(slug)
-    return {props: {
-        document: new DocumentClass({
-            metadata: data as MetadataSerializedType,
-            content
-        })
-    }}
+    const document = readMarkdownContent(slug)
+  return {
+      props: {document}
+  };
 }
 
 /**

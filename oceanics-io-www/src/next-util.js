@@ -1,39 +1,42 @@
-import fs from "fs";
-import matter from "gray-matter";
-import { Document } from "oceanics-io-ui/build/components/References/types";
+const fs = require("fs");
+const matter = require("gray-matter");
+const path = require("path");
 
-const DIRECTORY = "../resources";
+const DIRECTORY = "references";
 
-export const indexMarkdownContent = () =>
-    fs.readdirSync(DIRECTORY)
+const indexMarkdownContent = () => {
+    return fs.readdirSync(path.join(process.cwd(), DIRECTORY))
         .filter((name) => name.endsWith(".mdx"))
-        .map((name) => Object({ params: { slug: name.split(".").shift() } }))
+        .map((name) => Object({ params: { slug: name.split(".").shift() } }))}
 
-export const readMarkdownContent = (slug) => {
-    const { data, content } = matter(fs.readFileSync(`${DIRECTORY}/${slug}.mdx`, "utf8"));
+const readMarkdownContent = (slug) => {
+    const STATIC_SOURCE = path.join(process.cwd(), DIRECTORY)
+    const { data, content } = matter(fs.readFileSync(path.join(STATIC_SOURCE, `${slug}.mdx`), "utf8"));
     return {
-        props: {
-            document: new Document({
-                metadata: data,
-                content
-            })
-        }
+        metadata: data,
+        content
     }
 };
 
-export const readAllMarkdownContent = () => {
+const readAllMarkdownContent = () => {
     const index = indexMarkdownContent();
-    return {
-        props: {
-            documents: index.map(({ params: { slug } }) => readMarkdownContent(slug))
-        }
-    }
+    return index.map((doc) => {
+        return readMarkdownContent(doc.params.slug);
+    })
 }
 
-export const readAllMarkdownCitations = () => {
+const readAllMarkdownCitations = () => {
     const allMarkdown = readAllMarkdownContent();
-    const documents = allMarkdown.props.documents.flatMap(
-        (each) => each.props.document.metadata.references
+    const references = allMarkdown.flatMap(
+        (each) => each.metadata.references ?? []
     );
-    return { props: { documents } }
+    return references;
+}
+
+module.exports = {
+    indexMarkdownContent,
+    readAllMarkdownCitations,
+    readAllMarkdownContent,
+    readMarkdownContent,
+    DIRECTORY
 }
