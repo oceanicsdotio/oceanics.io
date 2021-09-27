@@ -40,12 +40,12 @@ const IndexPage: FC<IDocumentIndexSerialized> = ({
         title={'Blue computing'}
         HeadComponent={Head}
     >
-      {/* <Image 
+      <Image 
         src={"/shrimpers-web.png"} 
         alt={"agents at rest"} 
-        layout="fill"
-        objectFit="contain"
-        /> */}
+        width={"100%"}
+        height={"100%"}
+      />
       <Campaign
         navigate={navigate}
         title={PageData.title}

@@ -26,7 +26,12 @@ const PageNotFound: FC<{}> = () => {
         HeadComponent={Head}
     >  
       <p>{CONTENT.message}</p>
-      <Image src={CONTENT.img} alt={"Sea creature seeking answers"} width={"100%"} height={"100%"}/>
+      <Image 
+        src={CONTENT.img} 
+        alt={"Sea creature seeking answers"} 
+        width={"100%"} 
+        height={"100%"}
+      />
     </Layout>
   )
 };
