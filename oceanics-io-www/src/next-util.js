@@ -4,39 +4,33 @@ const path = require("path");
 
 const DIRECTORY = "references";
 
-const indexMarkdownContent = () => {
+const createIndex = () => {
     return fs.readdirSync(path.join(process.cwd(), DIRECTORY))
         .filter((name) => name.endsWith(".mdx"))
         .map((name) => Object({ params: { slug: name.split(".").shift() } }))}
 
-const readMarkdownContent = (slug) => {
-    const STATIC_SOURCE = path.join(process.cwd(), DIRECTORY)
-    const { data, content } = matter(fs.readFileSync(path.join(STATIC_SOURCE, `${slug}.mdx`), "utf8"));
+const readDocument = (document) => {
+    const STATIC_SOURCE = path.join(process.cwd(), DIRECTORY);
+    const file = path.join(STATIC_SOURCE, `${document.params.slug}.mdx`);
+    const { data, content } = matter(fs.readFileSync(file, "utf8"));
     return {
         metadata: data,
         content
     }
 };
 
-const readAllMarkdownContent = () => {
-    const index = indexMarkdownContent();
-    return index.map((doc) => {
-        return readMarkdownContent(doc.params.slug);
-    })
+const readIndexedDocuments = (index) => {
+    return index.map((doc) =>readDocument)
 }
 
-const readAllMarkdownCitations = () => {
-    const allMarkdown = readAllMarkdownContent();
-    const references = allMarkdown.flatMap(
-        (each) => each.metadata.references ?? []
-    );
-    return references;
+const readReferencedDocuments = (documents) => {
+    return documents.flatMap((each) => each.metadata.references ?? []);
 }
 
 module.exports = {
-    indexMarkdownContent,
-    readAllMarkdownCitations,
-    readAllMarkdownContent,
-    readMarkdownContent,
+    createIndex,
+    readIndexedDocuments,
+    readReferencedDocuments,
+    readDocument,
     DIRECTORY
 }

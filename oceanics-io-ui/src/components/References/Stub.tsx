@@ -24,7 +24,7 @@ export const Stub: FC<IDocument> = ({
   return (
     <article className={className}>
       <header>
-        <a href={document.metadata.title}>{document.metadata.title}</a>
+        <a href={document.slug}>{document.metadata.title}</a>
         <span>{document.metadata.published.toISOString()}</span>
       </header>
       <section>{document.metadata.description}</section>

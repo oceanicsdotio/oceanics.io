@@ -1,7 +1,6 @@
 module.exports = {
-    reactStrictMode: false,
     images: {
-        loader: "imgix",
-        path: "https://noop/",
-    }
-}
+        disableStaticImages: true,
+    },
+    reactStrictMode: false,
+};

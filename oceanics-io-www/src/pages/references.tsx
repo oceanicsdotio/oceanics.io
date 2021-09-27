@@ -10,7 +10,7 @@ import Reference from "oceanics-io-ui/build/components/References/Reference";
 import Layout from "oceanics-io-ui/build/components/Layout/Layout";
 import type {IDocumentIndexSerialized} from "oceanics-io-ui/build/components/References/types";
 import type {GetStaticProps} from "next";
-import {readAllMarkdownCitations} from "../next-util";
+import {readReferencedDocuments, createIndex, readIndexedDocuments} from "../next-util";
 import useDeserialize from "../hooks/useDeserialize";
 import Head from "next/head";
 
@@ -37,13 +37,7 @@ const ReferencesPage: FC<IDocumentIndexSerialized> = ({
 ReferencesPage.displayName = "References";
 export default ReferencesPage;
 
-export const getStaticProps: GetStaticProps = () => {
-    const allReferences = readAllMarkdownCitations();
-    console.log("References", JSON.stringify(allReferences));
-  return {
-      props: {
-          documents: allReferences
-      }
-    }
-  };
+export const getStaticProps: GetStaticProps = () => Object({
+    props: { documents: readReferencedDocuments(readIndexedDocuments(createIndex())) }
+});
 

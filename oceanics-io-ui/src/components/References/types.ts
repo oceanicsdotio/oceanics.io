@@ -46,6 +46,7 @@ export interface IDocumentSerialized {
 export type DocumentSerializedType = {
     metadata: MetadataSerializedType;
     content?: string;
+    slug?: string;
 }
 
 export interface IDocumentIndexSerialized {
@@ -72,6 +73,7 @@ export class Document {
         pages: number[][];
     };
     public content?: string;
+    public slug?: string;
 
     constructor ({
         metadata: {
@@ -80,7 +82,8 @@ export class Document {
             references=[],
             ...metadata
         }, 
-        content=""
+        content="",
+        slug
     }: DocumentSerializedType) {
         this.metadata = {
             ...metadata,
@@ -89,6 +92,7 @@ export class Document {
             references: references.map((each) => new Document(each))
         };
         this.content = content;
+        this.slug = slug;
     };
 
     public get hash() {

@@ -13,7 +13,7 @@ import React, {FC} from "react";
 import Document from "oceanics-io-ui/build/components/References/Document";
 import Layout from "oceanics-io-ui/build/components/Layout/Layout";
 import type { IDocumentSerialized } from "oceanics-io-ui/build/components/References/types";
-import { readMarkdownContent, indexMarkdownContent } from "../next-util";
+import { readDocument, createIndex } from "../next-util";
 import type { GetStaticPaths, GetStaticProps } from "next";
 import useDeserialize from "../hooks/useDeserialize";
 import Head from "next/head";
@@ -36,20 +36,15 @@ const ArticlePage: FC<IDocumentSerialized> = ({
 ArticlePage.displayName = "Document";
 export default ArticlePage;
 
-export const getStaticProps: GetStaticProps = async ({ params: {slug} }) => {
-    const document = readMarkdownContent(slug)
-  return {
-      props: {document}
-  };
-}
+export const getStaticProps: GetStaticProps = async (doc) => Object({
+    props: { document: readDocument(doc) }
+})
 
 /**
  * Used by NextJS in building
  */
-export const getStaticPaths: GetStaticPaths = async () => {
-    return {
-        paths: indexMarkdownContent(),
-        fallback: false
-    }
-}
+export const getStaticPaths: GetStaticPaths = async () => Object({
+    paths: createIndex(),
+    fallback: false
+})
     
