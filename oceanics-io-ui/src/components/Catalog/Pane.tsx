@@ -7,7 +7,9 @@ import React, { FC } from "react";
  * Component-level styling.
  */
 import styled from "styled-components";
-import { columnSize } from "../utils";
+import {columnSize} from "./utils";
+
+
 
 
 type PaneType = {

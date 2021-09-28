@@ -85,11 +85,21 @@ export class Document {
         content="",
         slug
     }: DocumentSerializedType) {
+
+        const _references = references.map((each) => {
+            try {
+                return new Document(each)
+            } catch (err) {
+                console.error(JSON.stringify(each))
+                throw err
+            }
+        })
+
         this.metadata = {
             ...metadata,
             labels: labels.map((value: string) => Object({value, onClick: ()=>{}})),
             published: new Date(published),
-            references: references.map((each) => new Document(each))
+            references: _references
         };
         this.content = content;
         this.slug = slug;
@@ -130,8 +140,8 @@ export class Document {
     private get source (): string {
         const prefix = `${this.metadata.publication} ${this.metadata.volume}`;
         if (this.metadata.pages) {
-            const [pageRange] = this.metadata.pages;
-            return `${prefix}:${pageRange.join("–")}.`
+            const pageRange = this.metadata.pages.map(range=>range.join("–")).join(", ");
+            return `${prefix}:${pageRange}.`
         } else {
             return prefix
         }

@@ -1,16 +1,15 @@
 /**
  * React friends
  */
-import { useRef, useEffect, useState, LegacyRef } from "react";
+import { useRef, useEffect, useState } from "react";
+import type {MutableRefObject} from "react";
 
 /**
  * Mapbox instance and the object constructor
  */
 import mapboxgl, { Map } from "mapbox-gl";
-import "mapbox-gl/dist/mapbox-gl.css";
 
 type HookProps = {
-    expand: boolean;
     accessToken: string;
     defaults: {
         zoom: number;
@@ -27,7 +26,6 @@ type HookProps = {
  * Only one map context please, need center to have been set.
 */
 const useMapBox = ({
-    expand,
     accessToken,
     defaults
 }: HookProps) => {
@@ -35,12 +33,12 @@ const useMapBox = ({
     /**
      * MapBox container reference.
      */
-    const ref: LegacyRef<HTMLDivElement> = useRef(null);
+    const ref: MutableRefObject<HTMLDivElement|null> = useRef(null);
 
     /**
      * MapBoxGL Map instance is saved to React state. 
      */
-    const [map, setMap] = useState<Map | null>(null);
+    const [map, setMap] = useState<Map>();
 
     /**
      * Hoist the resize function on map to the parent 
@@ -48,7 +46,7 @@ const useMapBox = ({
      */
     useEffect(() => {
         if (map) map.resize();
-    }, [expand]);
+    }, []);
 
     /**
      * Create the MapBoxGL instance.
@@ -72,13 +70,13 @@ const useMapBox = ({
     * Add a zoom handler to the map
     */
     useEffect(() => {
-        if (map) map.on('zoom', () => { setZoom(map.getZoom()) });
+        if (typeof map !== "undefined") map.on('zoom', () => { setZoom(map.getZoom()) });
     }, [map]);
 
     /**
      * Location of cursor in geospatial coordinates, updated onMouseMove.
      */
-    const [cursor, setCursor] = useState<{ lng: number, lat: number } | null>(null);
+    const [cursor, setCursor] = useState<{ lng: number, lat: number }>();
 
     /**
      * Add a mouse move handler to the map

@@ -3,7 +3,7 @@
  */
 import React, {useState, useEffect, RefObject, FC} from "react";
 
-import Placeholder from "oceanics-io-ui/build/components/OpenAPI/Placeholder"
+import Placeholder from "./Placeholder"
 
 export type ApiType = {
     specUrl: string;

@@ -7,7 +7,10 @@
     ]
   },
   "dependencies": {
+    "@types/geojson": "^7946.0.8",
+    "@types/mapbox-gl": "^2.4.2",
     "js-yaml-loader": "^1.2.2",
+    "mapbox-gl": "^1.5.0",
     "pdfjs-dist": "^2.9.359",
     "pluralize": "^8.0.0",
     "prop-types": "^15.7.2",

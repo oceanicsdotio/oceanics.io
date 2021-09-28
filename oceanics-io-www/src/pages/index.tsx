@@ -9,12 +9,10 @@ import { useRouter } from "next/router";
  */
 import Campaign, { PageData } from "oceanics-io-ui/build/components/Campaign/Campaign";
 import Index from "oceanics-io-ui/build/components/References/Index";
-import Layout from "oceanics-io-ui/build/components/Layout/Layout";
 import type { IDocumentIndexSerialized, QueryType } from "oceanics-io-ui/build/components/References/types";
 import type { GetStaticProps } from "next";
 import { createIndex, readIndexedDocuments } from "../next-util";
-import useDeserialize from "../hooks/useDeserialize";
-import Head from "next/head";
+import useDeserialize from "oceanics-io-ui/build/hooks/useDeserialize";
 
 /**
  * Base component for web landing page.
@@ -34,11 +32,7 @@ const IndexPage: FC<IDocumentIndexSerialized> = ({
     }, [router]);
 
     return (
-        <Layout
-            description={"The trust layer for the blue economy."}
-            title={'Oceanics.io'}
-            HeadComponent={Head}
-        >
+        <>
             <img src={"/shrimpers-web.png"} alt={"agents at rest"} width={"100%"} />
             <Campaign
                 navigate={navigate}
@@ -51,7 +45,7 @@ const IndexPage: FC<IDocumentIndexSerialized> = ({
                 onClearConstraints={() => { router.push("/") }}
                 documents={deserialized}
             />
-        </Layout>
+        </>
     )
 };
 
@@ -60,6 +54,10 @@ export default IndexPage;
 
 export const getStaticProps: GetStaticProps = async () => {
     return {
-        props: { documents: readIndexedDocuments(createIndex()) }
+        props: { 
+            documents: readIndexedDocuments(createIndex()),
+            description: "The trust layer for the blue economy",
+            title: "Oceanics.io"
+        }
     }
 }

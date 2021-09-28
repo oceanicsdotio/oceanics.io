@@ -9,28 +9,27 @@ const createIndex = () => {
         .filter((name) => name.endsWith(".mdx"))
         .map((name) => Object({ params: { slug: name.split(".").shift() } }))}
 
-const readDocument = (document) => {
+const readDocument = (doc) => {
     const STATIC_SOURCE = path.join(process.cwd(), DIRECTORY);
-    const file = path.join(STATIC_SOURCE, `${document.params.slug}.mdx`);
-    const { data, content } = matter(fs.readFileSync(file, "utf8"));
+    const file = path.join(STATIC_SOURCE, `${doc.params.slug}.mdx`);
+    const { data: {references=[], ...metadata}, content } = matter(fs.readFileSync(file, "utf8"));
     return {
-        metadata: data,
-        content
+        metadata: {
+            ...metadata,
+            references: references.map((metadata) => Object({metadata}))
+        },
+        content,
+        slug: doc.params.slug
     }
 };
 
 const readIndexedDocuments = (index) => {
-    return index.map((doc) =>readDocument)
-}
-
-const readReferencedDocuments = (documents) => {
-    return documents.flatMap((each) => each.metadata.references ?? []);
+    return index.map(readDocument)
 }
 
 module.exports = {
     createIndex,
     readIndexedDocuments,
-    readReferencedDocuments,
     readDocument,
     DIRECTORY
 }

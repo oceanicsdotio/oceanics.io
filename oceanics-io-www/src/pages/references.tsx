@@ -7,12 +7,10 @@ import React, { FC } from "react";
  * Array of references component, no heading
  */
 import Reference from "oceanics-io-ui/build/components/References/Reference";
-import Layout from "oceanics-io-ui/build/components/Layout/Layout";
 import type {IDocumentIndexSerialized} from "oceanics-io-ui/build/components/References/types";
 import type {GetStaticProps} from "next";
-import {readReferencedDocuments, createIndex, readIndexedDocuments} from "../next-util";
-import useDeserialize from "../hooks/useDeserialize";
-import Head from "next/head";
+import {createIndex, readIndexedDocuments} from "../next-util";
+import useDeserialize from "oceanics-io-ui/build/hooks/useDeserialize";
 
 /**
  * The ReferencesPage renders a memoized array of filtered citations
@@ -24,13 +22,9 @@ const ReferencesPage: FC<IDocumentIndexSerialized> = ({
 }) => {
   const deserialized = useDeserialize(documents);
   return (
-    <Layout
-        description={"See the science"}
-        title={"References"}
-        HeadComponent={Head}
-    >
+    <>
       {deserialized.map((document) => <Reference key={document.hash} document={document} />)}
-    </Layout>
+    </>
   )
 };
 
@@ -38,6 +32,10 @@ ReferencesPage.displayName = "References";
 export default ReferencesPage;
 
 export const getStaticProps: GetStaticProps = () => Object({
-    props: { documents: readReferencedDocuments(readIndexedDocuments(createIndex())) }
+    props: { 
+        documents: readIndexedDocuments(createIndex()).flatMap(({metadata})=>metadata.references),
+        description: "See the science",
+        title: "References"
+    }
 });
 
