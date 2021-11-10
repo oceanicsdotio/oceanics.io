@@ -1,0 +1,36 @@
+{
+    "cSpell.enableFiletypes": [
+        "cypher",
+        "mdx"
+    ],
+    "cSpell.ignoreWords": [
+        "arange",
+        "consts",
+        "depuration",
+        "ffill",
+        "frontmatter",
+        "get",
+        "getenv",
+        "irfft",
+        "pdoc",
+        "pipenv",
+        "pipfile",
+        "powi",
+        "pyclass",
+        "pylint",
+        "pymethods",
+        "pytest",
+        "redoc",
+        "standalone",
+        "xticklabels"
+    ],
+    "python.pythonPath": "/usr/bin/python3.7",
+    "python.linting.pylintUseMinimalCheckers": false,
+    "python.linting.enabled": true,
+    "python.linting.pylintEnabled": true,
+    "python.languageServer": "Jedi",
+    "cSpell.words": [
+        "cyanobacteria"
+    ],
+    "git.enableCommitSigning": true
+}
