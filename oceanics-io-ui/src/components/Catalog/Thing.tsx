@@ -6,6 +6,7 @@ import React, {useState} from "react";
 /**
  * Type checking
  */
+//@ts-ignore
 import PropTypes from "prop-types";
 
 /**
@@ -22,7 +23,7 @@ import {ghost, grey} from "../../palette";
  * Type for Meter child components
  */
 export type MeterType = {
-    name: string
+    name: string;
 }
 
 /**

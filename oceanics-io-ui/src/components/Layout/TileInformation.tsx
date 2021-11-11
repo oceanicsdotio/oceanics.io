@@ -11,6 +11,7 @@ import styled from "styled-components";
 /**
  * Runtime type checking
  */
+//@ts-ignore
 import PropTypes from "prop-types";
 
 /**

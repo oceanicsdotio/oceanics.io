@@ -19,6 +19,9 @@
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "^11.1.2",
+    "@types/node": "^16.11.7",
+    "@types/prop-types": "^15.7.4",
+    "@types/react": "^17.0.34",
     "babel-plugin-styled-components": "^1.13.2",
     "eslint": "^7.23.0",
     "eslint-config-next": "11.1.2",
