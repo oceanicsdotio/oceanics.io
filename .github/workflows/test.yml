@@ -2,7 +2,7 @@ name: Test
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ develop ]
   pull_request:
     branches: [ main ]
    
@@ -11,7 +11,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout repository using default action
       - uses: actions/checkout@v2
 
       - name: Setup Python
@@ -24,6 +23,7 @@ jobs:
           python -m pip install --upgrade pip
 
       - name: Install dependencies
+        working-directory: oceanics-io-api
         run: |
           pip install pytest pytest-cov
           pip install -e .

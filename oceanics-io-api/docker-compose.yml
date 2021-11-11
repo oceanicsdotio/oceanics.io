@@ -34,16 +34,3 @@ services:
       - NEO4J_ACCESS_KEY=n0t_p@55w0rd  # match value declared in neo4j above
     depends_on: 
       - neo4j
-    
-  # Numerical kernel for shellfish models.
-  bivalve:
-    build: 
-      context: .
-      dockerfile: bivalve.Dockerfile
-    image: oceanicsdotio/bivalve
-    environment:
-      - BIVALVE_DLL
-    ports:
-      - 5000:5000
-    networks:
-      - bathysphere
