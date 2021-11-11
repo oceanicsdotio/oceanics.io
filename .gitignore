@@ -219,3 +219,4 @@ bathysphere/_native*
 !.yarn/sdks
 !.yarn/versions
 tsconfig.tsbuildinfo
+.pnp.*
