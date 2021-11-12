@@ -41,8 +41,7 @@ const useMapBox = ({
     const [map, setMap] = useState<Map>();
 
     /**
-     * Hoist the resize function on map to the parent 
-     * interface.
+     * Resize on load.
      */
     useEffect(() => {
         if (map) map.resize();
@@ -84,7 +83,6 @@ const useMapBox = ({
     useEffect(() => {
         if (map) map.on('mousemove', ({ lngLat }) => { setCursor(lngLat) });
     }, [map]);
-
 
     return {
         map,

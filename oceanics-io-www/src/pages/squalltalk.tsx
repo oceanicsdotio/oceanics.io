@@ -1,7 +1,8 @@
 /**
  * React and friends.
  */
-import React, { FC } from "react";
+import React, { useEffect } from "react";
+import type {FC} from "react"
 import { GetStaticProps } from "next";
 
 /**
@@ -9,7 +10,6 @@ import { GetStaticProps } from "next";
  */
 import styled from "styled-components";
 import useMapBox from "oceanics-io-ui/build/hooks/useMapBox"
-
 
 type ApplicationType = {
     className?: string;
@@ -27,10 +27,14 @@ type ApplicationType = {
 const AppPage: FC<ApplicationType> = ({
     map
 }) => {
-    const {ref} = useMapBox(map)
+    const {ref, zoom} = useMapBox(map)
+
+    useEffect(()=>{
+        console.log("Zoom", zoom)
+    }, [zoom])
     return <>
     <link href='https://api.mapbox.com/mapbox-gl-js/v1.5.0/mapbox-gl.css' rel='stylesheet' />
-    <div ref={ref} />
+    <div style={{height: "500px"}} ref={ref} />
     </>
 };
 
@@ -41,7 +45,6 @@ const StyledIndex = styled(AppPage)`
     display: block;
     margin: 0;
     padding: 0;
-    height: 75vh;
     width: 100%;
 `;
 
@@ -54,7 +57,7 @@ export const getStaticProps: GetStaticProps = () => Object({
         map: {
             accessToken: process.env.MAPBOX_ACCESS_TOKEN,
             defaults: {
-                zoom: 10
+                zoom: 4
             }
         },
         description: "",
