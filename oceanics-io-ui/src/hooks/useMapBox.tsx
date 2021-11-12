@@ -50,13 +50,16 @@ const useMapBox = ({
     /**
      * Create the MapBoxGL instance.
      * 
-     * Don't do any work if `ref` has not been assigned to an element. 
+     * Don't do any work if `ref` has not been assigned to an element, and be sure to remove when component
+     * unmounts to clean up workers.
      */
     useEffect(() => {
         if (!ref.current) return;
-        mapboxgl.accessToken = accessToken;
-
-        const handle: Map = new Map({ container: ref.current, ...defaults });
+        const handle: Map = new Map({
+            accessToken,
+            container: ref.current, 
+            ...defaults
+        });
         setMap(handle);
 
         return () => { handle.remove() };
