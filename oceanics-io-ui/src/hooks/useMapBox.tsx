@@ -7,7 +7,7 @@ import type {MutableRefObject} from "react";
 /**
  * Mapbox instance and the object constructor
  */
-import mapboxgl, { Map } from "mapbox-gl";
+import { Map } from "mapbox-gl";
 
 type HookProps = {
     accessToken: string;
