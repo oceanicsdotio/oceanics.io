@@ -8,6 +8,9 @@ import React, { FC } from "react";
  */
 import { serialize } from "next-mdx-remote/serialize"
 import { MDXRemote } from "next-mdx-remote"
+import rehypeHighlight from "rehype-highlight"
+import "highlight.js/styles/a11y-dark.css"
+
 
 /**
  * Render Provider components inside MDX, and render MDX to React components.
@@ -17,10 +20,15 @@ import { MDXRemote } from "next-mdx-remote"
  * and cross-reference material based on shared references.
  */
 import Document from "oceanics-io-ui/build/components/References/Document";
+import Equation from "oceanics-io-ui/build/components/References/Equation";
 import type { IDocumentSerialized, DocumentSerializedType } from "oceanics-io-ui/build/components/References/types";
 import { readDocument, createIndex } from "../next-util";
 import type { GetStaticPaths, GetStaticProps } from "next";
 import useDeserialize from "oceanics-io-ui/build/hooks/useDeserialize";
+
+const embeddedComponents = {
+    Equation
+}
 
 const ArticlePage: FC<IDocumentSerialized> = ({
     document,
@@ -30,7 +38,7 @@ const ArticlePage: FC<IDocumentSerialized> = ({
 
     return (
         <Document document={deserialized} >
-            <MDXRemote {...source} />
+            <MDXRemote {...source} components={embeddedComponents}/>
         </Document>
     )
 };
@@ -40,10 +48,15 @@ export default ArticlePage;
 
 export const getStaticProps: GetStaticProps = async (slug) => {
     const document = readDocument(slug) as DocumentSerializedType;
-
+    const source = await serialize(document.content, {
+        mdxOptions: {
+            rehypePlugins: [[rehypeHighlight, {}]]
+        }
+    });
+   
     return {
         props: { 
-            source: await serialize(document.content),
+            source,
             document,
             title: document.metadata.title,
             description: document.metadata.description
