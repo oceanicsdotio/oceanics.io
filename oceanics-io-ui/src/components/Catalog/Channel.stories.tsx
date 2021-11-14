@@ -7,7 +7,7 @@ import {Meta,Story} from "@storybook/react";
 /**
  * Base component
  */
-import LayerCard, { LayerType } from './LayerCard';
+import LayerCard, { LayerType } from './Channel';
 
 import "../../styles/theme.css";
 

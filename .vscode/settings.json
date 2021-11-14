@@ -30,7 +30,8 @@
     "python.linting.pylintEnabled": true,
     "python.languageServer": "Jedi",
     "cSpell.words": [
-        "cyanobacteria"
+        "cyanobacteria",
+        "katex"
     ],
     "git.enableCommitSigning": true
 }

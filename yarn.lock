@@ -5067,6 +5067,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/katex@npm:^0.11.1":
+  version: 0.11.1
+  resolution: "@types/katex@npm:0.11.1"
+  checksum: 1e51988b4b386a1b6fa8e22826ab4705bf3e6c9fb03461f2c91d28cb31095232bdeff491069ac9bc74bc4c26110be6a11a41e12ca77a2e4169f3afd8cd349355
+  languageName: node
+  linkType: hard
+
 "@types/keyv@npm:^3.1.1":
   version: 3.1.2
   resolution: "@types/keyv@npm:3.1.2"
@@ -7863,6 +7870,13 @@ __metadata:
   version: 6.2.1
   resolution: "commander@npm:6.2.1"
   checksum: d7090410c0de6bc5c67d3ca41c41760d6d268f3c799e530aafb73b7437d1826bbf0d2a3edac33f8b57cc9887b4a986dce307fa5557e109be40eadb7c43b21742
+  languageName: node
+  linkType: hard
+
+"commander@npm:^8.0.0":
+  version: 8.3.0
+  resolution: "commander@npm:8.3.0"
+  checksum: 0f82321821fc27b83bd409510bb9deeebcfa799ff0bf5d102128b500b7af22872c0c92cb6a0ebc5a4cf19c6b550fba9cedfa7329d18c6442a625f851377bacf0
   languageName: node
   linkType: hard
 
@@ -13127,6 +13141,17 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
+"katex@npm:^0.15.1":
+  version: 0.15.1
+  resolution: "katex@npm:0.15.1"
+  dependencies:
+    commander: ^8.0.0
+  bin:
+    katex: cli.js
+  checksum: eab97bbe292cc60b15fec264cba86d110e5e089045de084cd3a0f27b21ef65857a4d296c418ec3b397ff987671a20c6a9a1fd30f1862b86a0e6b7dbe3fb893f6
+  languageName: node
+  linkType: hard
+
 "kdbush@npm:^3.0.0":
   version: 3.0.0
   resolution: "kdbush@npm:3.0.0"
@@ -15042,6 +15067,7 @@ fsevents@^1.2.7:
     "@storybook/react": ^6.3.4
     "@types/geojson": ^7946.0.8
     "@types/jest": ^26.0.24
+    "@types/katex": ^0.11.1
     "@types/mapbox-gl": ^2.4.2
     "@types/node": ^16.9.2
     "@types/pdfjs-dist": ^2.7.4
@@ -15053,6 +15079,7 @@ fsevents@^1.2.7:
     babel-loader: ^8.2.2
     jest: ^27.0.6
     js-yaml-loader: ^1.2.2
+    katex: ^0.15.1
     mapbox-gl: ^1.5.0
     pdfjs-dist: ^2.9.359
     pluralize: ^8.0.0
