@@ -41,6 +41,7 @@ export interface IDocument extends IStyled {
 
 export interface IDocumentSerialized {
     document: DocumentSerializedType;
+    source: any;  // TODO: determine base type from Next without adding dependency?
 }
 
 export type DocumentSerializedType = {

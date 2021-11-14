@@ -7,21 +7,14 @@ import React, { FC } from "react";
  * Component level styling
  */
 import styled from "styled-components";
-
 /**
- * Type checking
+ * Components and Types
  */
 import type { Document as DocumentType, IStyled } from "./types"
 import { Reference } from "./Reference";
 
-/**
- * Typographic configuration.
- */
-import { rhythm, scale } from "../../typography";
-const { lineHeight, fontSize } = scale(-1 / 5);
-
 export interface IDocument extends IStyled {
-    document: DocumentType;
+  document: DocumentType;
 };
 
 /**
@@ -30,22 +23,29 @@ export interface IDocument extends IStyled {
  * by whatever template renders MDX or other static data
  * into webpages. Previously Gatsby by default, more recently
  * NextJS. 
+ * 
+ * No longer has a title heading, because this is assumed to be controlled
+ * at the page level.
  */
 export const Document: FC<IDocument> = ({
   className,
-  document
+  document: {
+    metadata
+  },
+  children
 }) => {
   return (
     <article className={className}>
       <header>
-        <h1>{document.metadata.title}</h1>
-        {document.metadata.labels.map(({value, onClick}) => <a key={`${document.metadata.title} ${value}`} onClick={onClick}>{value}</a>)}
-        <span>{document.metadata.published.toISOString()}</span>
+        <h2>{metadata.published.toISOString().replace(/(T|Z)/g, " ")}</h2>
+        <h2>{metadata.labels.map(({value, onClick}) => <a key={`${metadata.title} ${value}`} onClick={onClick}>{value}</a>)}</h2>
+        <p>{metadata.description}</p>
       </header>
+      <hr/>
       <section>
-        {document.content}
+        {children}
       </section>
-      {(document.metadata.references??[]).map((ref) => <Reference document={ref}/>)}
+      {(metadata.references??[]).map((ref) => <Reference document={ref}/>)}
     </article>
   )
 }
@@ -56,18 +56,14 @@ export const Document: FC<IDocument> = ({
  * the parent component.
  */
 const StyledDocument = styled(Document)`
-  & h1 {
-    margin-bottom: 0;
-    margin-top: ${() => rhythm(1)};
-  }
-  & section {
-    margin: 2em 0;
-  }
-  & span {
-    display: block;
-    margin-bottom: ${() => rhythm(1)};
-    font-size: ${fontSize};
-    line-height: ${lineHeight};
+  & header {
+    & a + a::before {
+      content: " / ";
+    }
+    & h2 {
+      font-size: large;
+      margin: 0.25em 0;
+    }
   }
 `;
 

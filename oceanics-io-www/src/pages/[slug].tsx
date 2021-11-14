@@ -4,6 +4,12 @@
 import React, { FC } from "react";
 
 /**
+ * See: https://nextjs.org/blog/markdown
+ */
+import { serialize } from "next-mdx-remote/serialize"
+import { MDXRemote } from "next-mdx-remote"
+
+/**
  * Render Provider components inside MDX, and render MDX to React components.
  * 
  * The `Article` is the basic template, and currently data-driven `Reference` components
@@ -17,10 +23,16 @@ import type { GetStaticPaths, GetStaticProps } from "next";
 import useDeserialize from "oceanics-io-ui/build/hooks/useDeserialize";
 
 const ArticlePage: FC<IDocumentSerialized> = ({
-    document
+    document,
+    source
 }) => {
     const [deserialized] = useDeserialize([document])
-    return <Document document={deserialized} />
+
+    return (
+        <Document document={deserialized} >
+            <MDXRemote {...source} />
+        </Document>
+    )
 };
 
 ArticlePage.displayName = "Document";
@@ -28,13 +40,16 @@ export default ArticlePage;
 
 export const getStaticProps: GetStaticProps = async (slug) => {
     const document = readDocument(slug) as DocumentSerializedType;
+
     return {
-    props: { 
-        document,
-        title: document.metadata.title,
-        description: document.metadata.description
-     }
-}}
+        props: { 
+            source: await serialize(document.content),
+            document,
+            title: document.metadata.title,
+            description: document.metadata.description
+        }
+    }
+}
 
 /**
  * Used by NextJS in building

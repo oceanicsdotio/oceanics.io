@@ -1,8 +1,10 @@
 ---
 title: Container cluster
-date: "2018-04-02T12:00:00.000Z"
+published: "2018-04-02T12:00:00.000Z"
 description: "Basics of running applications as a cluster of Linux containers."
-tags: ["kubernetes", "docker", "linux"]
+labels: ["kubernetes", "docker", "linux"]
+authors: []
+references: []
 ---
 
 # Docker 
@@ -14,9 +16,7 @@ Docker is a container service for hosting web or local applications. Containers 
 Docker can be installed on natively on Linux or inside a virtual machine on macOS and Windows. It works on Raspberry Pi and NVIDIA Jetson development platforms. 
 
 All commands assume you have root privilege. 
-If something doesn't work, or you don't want to default to root, prefix commands with the usual `sudo`. 
-
-
+If something doesn't work, or you don't want to default to root, prefix commands with the usual `sudo`.
 
 ### Raspberry Pi
 
@@ -26,8 +26,6 @@ For the RPi, you can use a script provided by Docker,
 curl -sSL https://get.docker.com | sh
 usermod -aG docker pi
 ```
-
-
 
 ### Jetson TX2
 
@@ -47,8 +45,6 @@ If you want to start the service immediately,
 systemctl enable docker
 systemctl start docker
 ```
-
-
 
 # Kubernetes
 
