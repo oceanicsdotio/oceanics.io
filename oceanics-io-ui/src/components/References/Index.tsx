@@ -22,6 +22,8 @@ import type { Document, QueryType, IStyled } from "./types";
     query: QueryType;
     onShowMore: MouseEventHandler<HTMLButtonElement>;
     onClearConstraints: MouseEventHandler<HTMLButtonElement>;
+    pagingIncrement: number;
+    navigate: (...args: any[]) => void;
 };
 
 /**
@@ -34,19 +36,30 @@ const Index: FC<DocumentIndexType> = ({
   documents,
   query,
   onShowMore,
-  onClearConstraints
+  onClearConstraints,
+  pagingIncrement,
+  navigate,
 }) => {
   /**
    * The array of visible articles. The initial value is the subset from 0 to
    * the increment constant. 
+   * 
+   * Filters based on selected tag from user interface, removes, work in progress (wip)
+   * and internal labels. 
    */
   const visible: Document[] = useMemo(
     () => {
-      const selectedTag = query.label??"";
-      return documents.filter(({metadata}: Document): boolean => {
-          const match = metadata.labels.map(({value})=>value);
-          return !match.includes("wip") && (!selectedTag || match.includes(selectedTag))
-      }).slice(0, query.items);
+      const compare = (first: Document, second: Document) => {
+        return second.metadata.published.getTime() - first.metadata.published.getTime()
+      };
+
+      const labelOrPublic = ({metadata}: Document): boolean => {
+        const match = metadata.labels.map(({value})=>value);
+        const selectedTag = query.label??"";
+        return !match.includes("wip") && !match.includes("internal") && (!selectedTag || match.includes(selectedTag))
+      }
+
+      return documents.sort(compare).filter(labelOrPublic).slice(0, query.items??pagingIncrement);
     },
     [query]
   );
@@ -54,7 +67,7 @@ const Index: FC<DocumentIndexType> = ({
   return (
     <div className={className}>
       {visible.map((document) =>
-        <Stub key={document.metadata.title} document={document} />)}
+        <Stub key={document.metadata.title} document={document}/>)}
       <Button onClick={onShowMore}>{"More arcana"}</Button>
       <Button onClick={onClearConstraints}>{"Clear selection"}</Button>
     </div>

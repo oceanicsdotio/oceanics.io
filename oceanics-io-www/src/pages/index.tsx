@@ -24,6 +24,7 @@ const IndexPage: FC<IDocumentIndexSerialized> = ({
 }) => {
     const deserialized = useDeserialize(documents)
     const router = useRouter();
+
     const navigate = useCallback((pathname: string, insert?: QueryType) => {
         router.push({
             pathname,
@@ -44,6 +45,8 @@ const IndexPage: FC<IDocumentIndexSerialized> = ({
                 onShowMore={() => { navigate("/", { items: Number(router.query.items ?? 0) + 3 }) }}
                 onClearConstraints={() => { router.push("/") }}
                 documents={deserialized}
+                pagingIncrement={3}
+                navigate={navigate}
             />
         </>
     )

@@ -37,7 +37,7 @@ export const Document: FC<IDocument> = ({
   return (
     <article className={className}>
       <header>
-        <h2>{metadata.published.toISOString().replace(/(T|Z)/g, " ")}</h2>
+        <h2>{metadata.published.toISOString().replace(/T/, " ").replace(/Z/, "")}</h2>
         <h2>{metadata.labels.map(({value, onClick}) => <a key={`${metadata.title} ${value}`} onClick={onClick}>{value}</a>)}</h2>
         <p>{metadata.description}</p>
       </header>
