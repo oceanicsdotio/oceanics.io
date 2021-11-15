@@ -23,7 +23,7 @@ import type { Document, QueryType, IStyled } from "./types";
     onShowMore: MouseEventHandler<HTMLButtonElement>;
     onClearConstraints: MouseEventHandler<HTMLButtonElement>;
     pagingIncrement: number;
-    navigate: (...args: any[]) => void;
+    navigate?: (...args: any[]) => void;
 };
 
 /**
@@ -37,8 +37,7 @@ const Index: FC<DocumentIndexType> = ({
   query,
   onShowMore,
   onClearConstraints,
-  pagingIncrement,
-  navigate,
+  pagingIncrement
 }) => {
   /**
    * The array of visible articles. The initial value is the subset from 0 to

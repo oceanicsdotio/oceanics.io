@@ -46,7 +46,6 @@ const IndexPage: FC<IDocumentIndexSerialized> = ({
                 onClearConstraints={() => { router.push("/") }}
                 documents={deserialized}
                 pagingIncrement={3}
-                navigate={navigate}
             />
         </>
     )
