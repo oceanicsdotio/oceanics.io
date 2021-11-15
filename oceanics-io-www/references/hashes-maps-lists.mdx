@@ -48,15 +48,15 @@ Linked lists are often used invisibly under the hood. We kind of use them for an
 
 ### Variants
 
-* Doubly-linked: implements bi-directional traversal, so each node usually references two neighbors. XOR-linking can reduce this to a single reference. Some operating systems use double linking to track running processes/threads. Malware like rootkits may hide by operating outside these housekeeping structures. They are also good for previous/next features in software products like image viewers, web browsers, and music apps. 
+- Doubly-linked: implements bi-directional traversal, so each node usually references two neighbors. XOR-linking can reduce this to a single reference. Some operating systems use double linking to track running processes/threads. Malware like rootkits may hide by operating outside these housekeeping structures. They are also good for previous/next features in software products like image viewers, web browsers, and music apps. 
 
-* Multiply-linked: like doubly-linked, these organize data in a different way, such as sorting by properties. 
+- Multiply-linked: like doubly-linked, these organize data in a different way, such as sorting by properties. 
 
-* Circular: tail connects to head. They may have just a tail, from which the head is inferred. These are good for cycling through processes in a computer, or implementing a Fibonacci Heap. 
+- Circular: tail connects to head. They may have just a tail, from which the head is inferred. These are good for cycling through processes in a computer, or implementing a Fibonacci Heap. 
 
-* Unrolled: store multiple elements per node to improve caching, and reduce wasted space from pointers. These are similar to B-trees. 
+- Unrolled: store multiple elements per node to improve caching, and reduce wasted space from pointers. These are similar to B-trees. 
 
-* Self-organizing: frequently accessed nodes moved closer to the head for faster access. Compilers and LFU caches use this optimization. Nodes are promoted by swapping accessed nodes with a neighbor. Nodes may move-to-front (MTF) on every access, or track access, and are re-ordered when a condition is met. 
+- Self-organizing: frequently accessed nodes moved closer to the head for faster access. Compilers and LFU caches use this optimization. Nodes are promoted by swapping accessed nodes with a neighbor. Nodes may move-to-front (MTF) on every access, or track access, and are re-ordered when a condition is met. 
 
 
 ## Hash table
@@ -72,11 +72,11 @@ We use hash tables extensively in attaching data to a mesh and grid structures. 
 
 ### Variants
 
-* Separate chaining: keys point to a list of values, usually with 0-1 entries. This works best when the bucket array can be pre-allocated to prevent resizing operations. 
+- Separate chaining: keys point to a list of values, usually with 0-1 entries. This works best when the bucket array can be pre-allocated to prevent resizing operations. 
 
-* Cuckoo hashing: constant worst case lookup time
+- Cuckoo hashing: constant worst case lookup time
 
-* Self-balancing search tree: reduce worst case to O(logn), used by Java8 HashMap
+- Self-balancing search tree: reduce worst case to O(logn), used by Java8 HashMap
 
 
 ## Other stuff
