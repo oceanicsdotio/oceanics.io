@@ -9,8 +9,6 @@ import {Meta,Story} from "@storybook/react";
  */
 import LayerCard, { LayerType } from './Channel';
 
-import "../../styles/theme.css";
-
 /**
  * Storybook Interface
  */

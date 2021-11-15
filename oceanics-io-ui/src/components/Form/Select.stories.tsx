@@ -3,7 +3,6 @@
  */
 import React from 'react';
 import {Meta,Story} from "@storybook/react";
-import "../../styles/theme.css";
 
 /**
  * Base component

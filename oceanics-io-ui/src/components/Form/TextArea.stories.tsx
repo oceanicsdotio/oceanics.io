@@ -9,11 +9,6 @@ import {Meta, Story} from "@storybook/react";
 import TextArea from './TextArea';
 
 /**
- * Global styles
- */
-import "../../styles/theme.css";
-
-/**
  * Storybook config
  */
 export default {
