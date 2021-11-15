@@ -11,7 +11,7 @@ import styled from "styled-components";
 /**
  * Geospatial data layers
  */
-import LayerCard, {LayerType} from "./LayerCard";
+import LayerCard, {LayerType} from "./Channel";
 
 export type CatalogType = {
     geojson: LayerType[];

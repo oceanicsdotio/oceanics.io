@@ -5,10 +5,6 @@ const GlobalStyle = createGlobalStyle`
         box-sizing: border-box;
     }
 
-    img {
-        width: 100%;
-    }
-
     body, html{
         background: #000000;
         font-size: large;
@@ -21,7 +17,6 @@ const GlobalStyle = createGlobalStyle`
         height: 100%;
         overflow-x: hidden;
     }
-
 
     .container {
         display: inline-flex;
@@ -38,7 +33,6 @@ const GlobalStyle = createGlobalStyle`
         position: absolute;
         z-index: 10;
     }
-
 
     .map-popup {
         background: #202020FF;

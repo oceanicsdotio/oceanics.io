@@ -1,1 +1,1 @@
-At www.oceanics.io we value diverse contributions regardless of technical skill, domain knowledge, or ability, and do not suffer discrimination or harassment. We invite questions, listen more than speak, and adopt a “yes/and” over a “no/but” mentality.
+At www.oceanics.io we value diverse contributions regardless of technical skill, domain knowledge, or ability. We do not suffer discrimination or harassment.

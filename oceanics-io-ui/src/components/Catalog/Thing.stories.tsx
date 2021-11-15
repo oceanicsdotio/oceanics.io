@@ -8,8 +8,6 @@ import {Meta, Story} from "@storybook/react"
  */
 import Thing, {ThingType} from './Thing';
 
-import "../../styles/theme.css";
-
 /**
  * Storybook definition
  */

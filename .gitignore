@@ -5,8 +5,8 @@ __pycache__/
 *$py.class
 
 .DS_store
-.idea/
-.vscode/
+# .idea/
+# .vscode/
 .envrc
 # C extensions
 *.so
@@ -192,8 +192,6 @@ yarn-error.log
 # Yarn Integrity file
 .yarn-integrity
 
-
-.idea/
 target/
 Cargo.lock
 
@@ -207,8 +205,6 @@ Cargo.lock
 # netcdf data
 *.nc
 
-# Visual studio
-.vscode/
 Pipfile.lock
 
 bin/
@@ -218,8 +214,9 @@ bathysphere/_native*
 .yarn/*
 .yarn/cache
 !.yarn/patches
-.yarn/plugins
+!.yarn/plugins
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
 tsconfig.tsbuildinfo
+.pnp.*

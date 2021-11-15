@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="36391d6b-8153-46be-818e-3a684f1e8925" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/src/demo/global.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/wind.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/static/wind.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/content/assets/aquaculture-leases.json" beforeDir="false" afterPath="$PROJECT_DIR$/static/aquaculture-leases.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/content/assets/layers.json" beforeDir="false" afterPath="$PROJECT_DIR$/static/layers.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/content/assets/limited-purpose-licenses.json" beforeDir="false" afterPath="$PROJECT_DIR$/static/limited-purpose-licenses.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/content/assets/maine-towns.json" beforeDir="false" afterPath="$PROJECT_DIR$/static/maine-towns.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/content/assets/nssp-closures.json" beforeDir="false" afterPath="$PROJECT_DIR$/static/nssp-closures.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/content/assets/suitability-closures.json" beforeDir="false" afterPath="$PROJECT_DIR$/static/suitability-closures.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/content/assets/suitability.json" beforeDir="false" afterPath="$PROJECT_DIR$/static/suitability.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/content/assets/wind.json" beforeDir="false" afterPath="$PROJECT_DIR$/src/demo/wind.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/content/assets/wind.png" beforeDir="false" afterPath="$PROJECT_DIR$/src/demo/wind.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/demo.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/pages/demo.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/demo/agent.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/demo/agent.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/demo/bathysphere.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/demo/bathysphere.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/demo/cadet.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/demo/cadet.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/demo/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/demo/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/demo/simple.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/demo/simple.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/demo/space.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/demo/space.d.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/demo/space.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/demo/space.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/demo/space_bg.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/demo/space_bg.d.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/demo/space_bg.wasm" beforeDir="false" afterPath="$PROJECT_DIR$/src/demo/space_bg.wasm" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/demo/stream.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/demo/stream.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/demo/tessellate.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/demo/tessellate.js" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectId" id="1b99KK1cYL7bytQA2AfMF9XFkj4" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/static/demo" />
+    <property name="node.js.detected.package.eslint" value="true" />
+    <property name="node.js.path.for.package.eslint" value="project" />
+    <property name="node.js.selected.package.eslint" value="(autodetect)" />
+    <property name="nodejs_package_manager_path" value="yarn" />
+    <property name="ts.external.directory.path" value="$APPLICATION_HOME_DIR$/plugins/JavaScriptLanguage/jsLanguageServicesImpl/external" />
+  </component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/static" />
+      <recent name="$PROJECT_DIR$/src/pages" />
+      <recent name="$PROJECT_DIR$/src" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/static/demo" />
+    </key>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="36391d6b-8153-46be-818e-3a684f1e8925" name="Default Changelist" comment="" />
+      <created>1588033376950</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1588033376950</updated>
+      <workItem from="1588033380300" duration="2869000" />
+      <workItem from="1588036983260" duration="2532000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="2" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="432" y="264" width="641" height="409" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1588034251834">
+      <screen x="70" y="27" width="1370" height="873" />
+    </state>
+    <state x="432" y="264" width="641" height="409" key="#com.intellij.fileTypes.FileTypeChooser/70.27.1370.873@70.27.1370.873" timestamp="1588034251834" />
+  </component>
+</project>

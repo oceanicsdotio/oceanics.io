@@ -1,7 +1,7 @@
 /**
  * React and friends.
  */
-import React, { FC, useMemo } from "react";
+import React, { FC, useMemo, MouseEventHandler } from "react";
 
 /**
  * Preview of article
@@ -12,47 +12,63 @@ import Button from "../Form/Button";
 /**
  * Typing and lookups
  */
-import type { IndexType, PartialArticle } from "./utils";
+import type { Document, QueryType, IStyled } from "./types";
+
+/**
+ * Main page inputs
+ */
+ export interface DocumentIndexType extends IStyled {
+    documents: Document[];
+    query: QueryType;
+    onShowMore: MouseEventHandler<HTMLButtonElement>;
+    onClearConstraints: MouseEventHandler<HTMLButtonElement>;
+    pagingIncrement: number;
+    navigate?: (...args: any[]) => void;
+};
 
 /**
  * Base component for web landing page.
  * 
  * Optionally use query parameters and hash anchor to filter content. 
  */
-const Index: FC<IndexType> = ({
+const Index: FC<DocumentIndexType> = ({
   className,
-  data: {
-    allMdx: {
-      nodes
-    }
-  },
+  documents,
   query,
-  onClickTag,
-  onClickMore,
-  onClearAll
+  onShowMore,
+  onClearConstraints,
+  pagingIncrement
 }) => {
   /**
    * The array of visible articles. The initial value is the subset from 0 to
    * the increment constant. 
+   * 
+   * Filters based on selected tag from user interface, removes, work in progress (wip)
+   * and internal labels. 
    */
-  const visible: PartialArticle[] = useMemo(
+  const visible: Document[] = useMemo(
     () => {
-      const selectedTag = query.tag??"";
-      return nodes.filter((node: PartialArticle): boolean => (
-        !!node && 
-        !node.frontmatter.tags.includes("wip") && 
-        (!selectedTag || node.frontmatter.tags.includes(selectedTag))
-      )).slice(0, query.items);
+      const compare = (first: Document, second: Document) => {
+        return second.metadata.published.getTime() - first.metadata.published.getTime()
+      };
+
+      const labelOrPublic = ({metadata}: Document): boolean => {
+        const match = metadata.labels.map(({value})=>value);
+        const selectedTag = query.label??"";
+        return !match.includes("wip") && !match.includes("internal") && (!selectedTag || match.includes(selectedTag))
+      }
+
+      return documents.sort(compare).filter(labelOrPublic).slice(0, query.items??pagingIncrement);
     },
     [query]
   );
 
   return (
     <div className={className}>
-      {visible.map((props: PartialArticle) =>
-        <Stub key={props.fields.slug} onClickTag={onClickTag} {...props} />)}
-      <Button onClick={onClickMore}>{"More arcana"}</Button>
-      <Button onClick={onClearAll}>{"Clear selection"}</Button>
+      {visible.map((document) =>
+        <Stub key={document.metadata.title} document={document}/>)}
+      <Button onClick={onShowMore}>{"More arcana"}</Button>
+      <Button onClick={onClearConstraints}>{"Clear selection"}</Button>
     </div>
   )
 };

@@ -7,7 +7,11 @@
     ]
   },
   "dependencies": {
+    "@types/geojson": "^7946.0.8",
+    "@types/mapbox-gl": "^2.4.2",
     "js-yaml-loader": "^1.2.2",
+    "katex": "^0.15.1",
+    "mapbox-gl": "^1.5.0",
     "pdfjs-dist": "^2.9.359",
     "pluralize": "^8.0.0",
     "prop-types": "^15.7.2",
@@ -16,7 +20,8 @@
     "react-is": "^17.0.2",
     "react-pdf": "^5.3.2",
     "styled-components": "^5.3.0",
-    "typography": "^0.16.21"
+    "typography": "^0.16.21",
+    "yaml": "^1.10.2"
   },
   "devDependencies": {
     "@babel/core": "^7.14.8",
@@ -28,6 +33,7 @@
     "@storybook/components": "^6.3.4",
     "@storybook/react": "^6.3.4",
     "@types/jest": "^26.0.24",
+    "@types/katex": "^0.11.1",
     "@types/node": "^16.9.2",
     "@types/pdfjs-dist": "^2.7.4",
     "@types/pluralize": "^0.0.29",
@@ -38,6 +44,7 @@
     "babel-loader": "^8.2.2",
     "jest": "^27.0.6",
     "storybook": "^6.3.4",
+    "styled-components": "^5.3.0",
     "typescript": "^4.3.5",
     "webpack": "^5.47.1",
     "worker-loader": "^3.0.8"
@@ -46,6 +53,6 @@
     "start": "start-storybook -p 6006",
     "build-storybook": "build-storybook --loglevel warn",
     "build": "tsc",
-    "preinstall": "tsc"
+    "postinstall": "tsc"
   }
 }

@@ -7,41 +7,30 @@ import styled from "styled-components";
 /**
  * Predefined color palette
  */
-import { charcoal, orange, grey, ghost, shadow } from "../../palette";
+import { orange, ghost, shadow } from "../../palette";
 
 /**
  * Types
  */
-import type { ArticleType } from "./utils";
+import type { IDocument } from "./types";
 
 /**
  * List view of an article
  */
-export const Stub: FC<ArticleType> = ({
+export const Stub: FC<IDocument> = ({
   className,
-  frontmatter: {
-    title,
-    date,
-    description,
-    tags
-  },
-  fields: {
-    slug
-  },
-  onClickTag
+  document: { slug, metadata }
 }) => {
   return (
     <article className={className}>
       <header>
-        <a href={slug}>{title}</a>
-        <span>{date}</span>
+        <a href={slug}>{metadata.title}</a>
+        <p>{metadata.published.toISOString().replace(/T/, " ").replace(/Z/, "")}</p>
       </header>
-      <section>
-        {description}
-      </section>
-      {tags.map((tag: string) =>
-        <a key={`${slug}-${tag}`} onClick={onClickTag(tag)}>{tag}</a>
-      )}
+      <section>{metadata.description}</section>
+      <p>{metadata.labels.map(({value, onClick}) => 
+        <a key={`${metadata.title} ${value}`} onClick={onClick}>{value}</a>)
+      }</p>
     </article>
   )
 }
@@ -51,40 +40,31 @@ export const Stub: FC<ArticleType> = ({
  */
 const StyledStub = styled(Stub)`
 
-    & section {
-        font-size: inherit;
-    }
-    & a {
-        display: inline-block;
-        text-decoration: none;
-        color: ${ghost};
-        border: 1px dashed ${grey};
-        background-color: ${charcoal};
-        border-radius: 5px;
-        font-size: smaller;
-        margin-right: 5px;
-        padding: 2px;
-        cursor: pointer;
-    }
+  a {
+    color: ${ghost};
+    cursor: pointer;
+  }
+  a + a::before {
+    content: " / ";
+  }
 
-    & header {
-        & a {
-            box-shadow: none;
-            background-color: ${shadow};
-            color: ${orange};
-            border: none;
-            font-size: inherit;
-            text-decoration: underline;
-            margin: 0;
-            padding: 0;
-            font-size: x-large;
-        }
-        & span {
-            display: block;
-            color: ${ghost};
-        }
-    } 
-    
+  header {
+    a {
+      box-shadow: none;
+      background-color: ${shadow};
+      color: ${orange};
+      border: none;
+      font-size: inherit;
+      text-decoration: underline;
+      margin: 0;
+      padding: 0;
+      font-size: x-large;
+    }
+    span {
+      display: block;
+      color: ${ghost};
+    }
+  } 
 `;
 
 /**

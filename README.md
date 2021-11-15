@@ -107,23 +107,6 @@ pdoc --html --output-dir openapi/docs bathysphere
 
 These static files are updated automatically in the deploy pipeline. The live version is available [here](https://graph.oceanics.io/docs/bathysphere).
 
-### Compiling bivalve backend
-
-The recommended way to use the Bivalve API is through a managed instance.
-
-This removes most of the complexity, and allows you to run simulation models using only HTTP requests, from any language-specific client or webpage.
-
-Models run in C# and other languages, and are called through a Python server wrapper that provides a storage backend.
-
-We use Mono to compile cross-platform binaries:
-
-```bash
- # src/compile.sh
- mcs -reference:bin/<BINARY_DEPENDENCY>.dll \
-    -out:bin/kernel.exe \
-    src/kernel.cs \
-    src/json.cs
-```
 
 ### Modifying the web API
 

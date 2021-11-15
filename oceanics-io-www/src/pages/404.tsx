@@ -1,27 +1,27 @@
 /**
  * React and friends.
  */
-import React from "react";
-
-/**
- * Page content, could be externalized in `data/`.
- */
-const CONTENT = {
-  title: "404",
-  message: "You can't get there from here.",
-  img: "/dagan-sprite.gif"
-};
+import React, {FC} from "react";
+import {GetStaticProps} from "next";
 
 /**
  * Just a dumb functional component.
  */
-const PageNotFound = () => {
+const PageNotFound: FC<{}> = () => {
   return (
-    <>
-      <p>{CONTENT.message}</p>
-      <img src={CONTENT.img} alt={"Sea creature seeking answers"} />
+    <>  
+      <p>{"You can't get there from here."}</p>
+      <img src={"/dagan-sprite.gif"} alt={"Sea creature seeking answers"} width={"100%"}/>
     </>
   )
 };
 
+PageNotFound.displayName = "404"
 export default PageNotFound;
+
+export const getStaticProps: GetStaticProps = async (doc) => Object({
+    props: { 
+        description: "404",
+        title: "Oceanics.io"
+     }
+})

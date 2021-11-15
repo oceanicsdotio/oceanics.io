@@ -120,7 +120,7 @@ except ValidationError as ex:
     raise Exception(f"Could not parse OpenAPI specification {RELATIVE_PATH}")
 
 else:
-    # Register our API endpoints once everthing is know to be OK
+    # Register our API endpoints once everthing is known to be OK
     APP.add_api(
         PARSER.specification,
         base_path=CONFIG.get("basePath"),

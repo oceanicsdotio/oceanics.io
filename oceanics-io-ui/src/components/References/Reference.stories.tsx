@@ -2,15 +2,16 @@
  * React and friends
  */
 import React from 'react';
-import {Meta, Story} from '@storybook/react';
+import type {Meta, Story} from '@storybook/react';
 
 /**
  * Base component
  */
 import Reference from "./Reference";
 import GlobalStyle from "../Layout/GlobalStyle"
-import type {ReferenceType} from "./utils";
-import PageData from "./PageData.json";
+import type {IDocument} from "./types";
+import {Document} from "./types";
+import PageData from "./Example.json";
 
 /**
  * Storybook Interface
@@ -20,16 +21,16 @@ export default {
     title: 'References/Reference',
 } as Meta;
 
-const {nodes: [{frontmatter: {citations: [citation]}}]} = PageData;
+const {documents: [{metadata: {references: [doc]}}]} = PageData;
 
 /**
  * Base case
  */
-const Template: Story<ReferenceType> = (args) => {
+const Template: Story<IDocument> = (args) => {
     return (
         <>
-        <GlobalStyle/>
-        <Reference {...args} />
+            <GlobalStyle/>
+            <Reference {...args} />
         </>
     )
 };
@@ -38,4 +39,6 @@ const Template: Story<ReferenceType> = (args) => {
  * Default test case
  */
 export const Example = Template.bind({});
-Example.args = citation;
+Example.args = {
+    document: new Document(doc)
+};

@@ -3,5 +3,6 @@
     "workspaces": [
         "oceanics-io-www",
         "oceanics-io-ui"
-    ]
+    ],
+    "packageManager": "yarn@3.1.0"
 }

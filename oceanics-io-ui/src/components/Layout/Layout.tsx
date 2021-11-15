@@ -1,22 +1,17 @@
 /**
  * React and friends
  */
-import React, { FC, useMemo } from "react";
-
-/**
- * Component level styling
- */
+import React, { FC } from "react";
 import styled from "styled-components";
 
 /**
- * Color palette
+ * Color palette and typesetting
  */
 import { pink, ghost, orange } from "../../palette";
-
-/**
- * Typesetting
- */
 import { rhythm } from "../../typography";
+
+import PageData from "./PageData.json";
+import GlobalStyle from "./GlobalStyle";
 
 /**
  * The NavBar is a <nav> element that displays links or buttons
@@ -58,31 +53,34 @@ export const Title = styled.a`
     padding: 0;
 `;
 
-export type LayoutType = {
-    children: any;
+export interface ILayout {
     className?: string;
-    expand: boolean;
     title: string;
-    policy: string;
-}
-    
-export const Layout: FC<LayoutType> = ({ 
+    HeadComponent: any;
+    description: string;
+};
+
+export const Layout: FC<ILayout> = ({ 
     children,
     className,
     title,
-    policy
+    description,
+    HeadComponent
 }) => {
-    const _policy = useMemo(
-        () => policy.split("\n").filter((x: string) => x), []
-    );
-
+    
     return <div className={className}>
+        <GlobalStyle />
+        <HeadComponent>
+             <title>{`${PageData.title} | ${title}`}</title>
+             <meta name="description" content={description} />
+         </HeadComponent>
         <NavBar>
             <Title href={"/"}>{title}</Title>  
         </NavBar>
-        <main>{children}</main>
+        <main>
+            {children}</main>
         <footer>
-            {_policy.map((text: string, ii: number) => <p key={`text-${ii}`}>{text}</p>)}
+            {PageData.policy.split("\n").filter((x: string) => x).map((text: string) => <p key={text}>{text}</p>)}
         </footer>
     </div>
 };
@@ -90,7 +88,7 @@ export const Layout: FC<LayoutType> = ({
 export const StyledLayout = styled(Layout)`
     margin-left: auto;
     margin-right: auto;
-    max-width: ${({expand}: LayoutType)=>expand?"100%":"65ch"};
+    max-width: 65ch;
     padding: ${rhythm(1.5)} ${rhythm(0.75)};
 
     & > main {
