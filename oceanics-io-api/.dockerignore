@@ -12,7 +12,6 @@ content/
 functions/
 node_modules/
 public/
-# src/
 target/
 .babelrc
 .envrc

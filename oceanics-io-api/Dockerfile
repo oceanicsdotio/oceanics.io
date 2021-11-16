@@ -2,7 +2,7 @@ FROM python:3.7
 
 WORKDIR /bathysphere
 
-COPY static ./static
+COPY openapi ./openapi
 COPY config ./config
 COPY bathysphere ./bathysphere
 COPY setup.py ./setup.py

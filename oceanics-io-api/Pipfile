@@ -9,19 +9,22 @@ verify_ssl = true
 name = "pypi"
 
 [dev-packages]
-pylint = "*"
-rope = "*"
-pytest = "*"
-pytest-dependency = "*"
-pytest-cov = "*"
-docker-compose = "*"
-colorama = "*"
-pytest-parallel = "*"
-vulture = "*"
-maturin = "*"
+pylint = "2.11.1"
+rope = "==0.21.1"
+pytest = "==6.2.5"
+pytest-dependency = "==0.5.1"
+pytest-cov = "==3.0.0"
+pytest-parallel = "==0.1.1"
+vulture = "==2.3"
+colorama = "==0.4.4"
+docker-compose = "==1.29.2"
+maturin = "==0.11.5"
+
+[pipenv]
+allow_prereleases = true
 
 [requires]
-python_version = "3.7"
+python_version = "3.8"
 
 [scripts]
 test = "pytest -svvv"
@@ -66,7 +69,5 @@ six = "==1.15.0"
 zipp = "==3.4.0"
 minio = "==7.0.2"
 neo4j = "==4.2.1"
-
-[packages.e1839a8]
-path = "."
-editable = true
+e1839a8 = {path = ".", editable = true}
+bathysphere = {editable = true, path = "."}

@@ -3,11 +3,8 @@
 The basic building blocks and utilities for graph queries are
 contained in this default import.
 
-The `storage` module provides a mutex framework for distributed
-applications that use S3-compatible storage as a backend.
-
 It is intended to be used in cloud functions, so some imports
-are locally scoped to improve initial load time.
+are locally scoped to improve cold start time.
 """
 
 # repeat YAML Loader instance
@@ -68,7 +65,7 @@ APP = App(__name__, options={"swagger_ui": False})
 CORS(APP.app)
 
 # Configuration
-SOURCES = ("config/bathysphere.yml", "config/agents.yml")
+SOURCES = ("config/bathysphere.yml", )
 
 # Regex for case changing
 CAMEL_CASE_REGEX_PATTERN = re.compile(r'(?<!^)(?=[A-Z])')

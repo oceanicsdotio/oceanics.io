@@ -1,29 +1,42 @@
-# Quickstart
+## Quickstart
 
-## Docs
+We use `pipenv` to manage Python dependencies found in `Pipfile` and `Pipfile.lock`. Make sure you have this tool installed as well as Python 3.8. 
 
-Python developer documentation is generated from the code using `pdoc3`. The command is:
+The Python code wraps a native Rust implementation using the `maturin` crate. This needs to be setup before attempting to run the API, so that the required binaries exist.
 
-``` bash
-pdoc --html --output-dir openapi/docs bathysphere
+You can install the Rust tools and compilers[using Homebrew on M1 mac](https://sourabhbajaj.com/mac-setup/Rust/) or on Linux with: 
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 
-## Environment
+With Mac, [you may need to do a custom install](`https://stackoverflow.com/questions/28124221/error-linking-with-cc-failed-exit-code-1`).
 
-### Dependencies
-
-We use `pipenv` to manage Python dependencies. These are found in `Pipfile` and `Pipfile.lock`. A new shell is activated with `pipenv shell`. For Docker you also need to generate a `requirements.txt` file from `Pipfile`.
+Once the system dependencies are installed you should be able to enter a new shell, and install the project:
 
 ```bash
 pipenv shell
 pipenv install -e .
 pipenv install --dev
+```
+
+For CICD testing and container-based deployments you need to generate a `requirements.txt` file from `Pipfile`. This only needs to be done when Python dependencies change:
+```bash
 pipenv lock -r > requirements.txt
 ```
 
-This may take a while to resolve dependencies and conflicts. The actual installation is quick.
+This may take a while to resolve dependencies and conflicts. The actual installation is quick. Then, build the library with `maturin build` (or `maturin develop`). 
 
-On Linux, you leave the environment by entering the `exit` command.
+
+
+### Docs
+
+Python developer documentation is generated from the code using `pdoc3`:
+
+``` bash
+pdoc --html --output-dir openapi/docs bathysphere
+```
+
+
 
 ### Variables
 

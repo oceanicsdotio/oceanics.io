@@ -13,7 +13,6 @@ extern crate serde_yaml;
 mod microcystis;
 
 
-
 #[pyclass]
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
