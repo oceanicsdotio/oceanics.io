@@ -19,7 +19,7 @@ const PageNotFound: FC<{}> = () => {
 PageNotFound.displayName = "404"
 export default PageNotFound;
 
-export const getStaticProps: GetStaticProps = async (doc) => Object({
+export const getStaticProps: GetStaticProps = async () => Object({
     props: { 
         description: "404",
         title: "Oceanics.io"
