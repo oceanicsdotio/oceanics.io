@@ -1,28 +1,20 @@
 ## Quickstart
 
-We use `pipenv` to manage Python dependencies found in `Pipfile` and `Pipfile.lock`. Make sure you have this tool installed as well as Python 3.8. 
 
-The Python code wraps a native Rust implementation using the `maturin` crate. This needs to be setup before attempting to run the API, so that the required binaries exist.
+You need to have Python 3.8 installed. 
 
-You can install the Rust tools and compilers[using Homebrew on M1 mac](https://sourabhbajaj.com/mac-setup/Rust/) or on Linux with: 
+Use `poetry` to [manage Python dependencies](https://github.com/python-poetry/poetry) following the pattern enabled by [PEP 517](https://www.python.org/dev/peps/pep-0517/) and [PEP 518](https://www.python.org/dev/peps/pep-0518/).
+
+Instal
+
+Python wraps a native Rust implementation using `pyO3` and `maturin`. This needs to be setup before attempting to run the API for required binaries to exist. You can install the Rust tools and compilers on Mac or on Linux with: 
 ```bash
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 
-With Mac, [you may need to do a custom install](`https://stackoverflow.com/questions/28124221/error-linking-with-cc-failed-exit-code-1`).
+You may need to [do a custom install of M1 macs](`https://stackoverflow.com/questions/28124221/error-linking-with-cc-failed-exit-code-1`). Once system dependencies are installed you will be able to enter a new shell, and install the project.
 
-Once the system dependencies are installed you should be able to enter a new shell, and install the project:
 
-```bash
-pipenv shell
-pipenv install -e .
-pipenv install --dev
-```
-
-For CICD testing and container-based deployments you need to generate a `requirements.txt` file from `Pipfile`. This only needs to be done when Python dependencies change:
-```bash
-pipenv lock -r > requirements.txt
-```
 
 This may take a while to resolve dependencies and conflicts. The actual installation is quick. Then, build the library with `maturin build` (or `maturin develop`). 
 

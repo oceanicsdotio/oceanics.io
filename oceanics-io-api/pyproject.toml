@@ -8,6 +8,14 @@ url = "https://pypi.python.org/simple"
 verify_ssl = true
 name = "pypi"
 
+[requires]
+python_version = "3.8"
+
+[scripts]
+test = "pytest -svvv"
+bathysphere = "cli.cli"
+build = "maturin build"
+
 [dev-packages]
 pylint = "2.11.1"
 rope = "==0.21.1"
@@ -20,14 +28,6 @@ colorama = "==0.4.4"
 docker-compose = "==1.29.2"
 maturin = "==0.11.5"
 
-[pipenv]
-allow_prereleases = true
-
-[requires]
-python_version = "3.8"
-
-[scripts]
-test = "pytest -svvv"
 
 [packages]
 Flask = "==1.1.2"
