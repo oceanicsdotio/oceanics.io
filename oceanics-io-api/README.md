@@ -1,22 +1,14 @@
-## Quickstart
-
-
-You need to have Python 3.8 installed. 
-
-Use `poetry` to [manage Python dependencies](https://github.com/python-poetry/poetry) following the pattern enabled by [PEP 517](https://www.python.org/dev/peps/pep-0517/) and [PEP 518](https://www.python.org/dev/peps/pep-0518/).
-
-Instal
+## Quick start
 
 Python wraps a native Rust implementation using `pyO3` and `maturin`. This needs to be setup before attempting to run the API for required binaries to exist. You can install the Rust tools and compilers on Mac or on Linux with: 
 ```bash
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
+You may need to [do a custom install of M1 macs](`https://stackoverflow.com/questions/28124221/error-linking-with-cc-failed-exit-code-1`). 
 
-You may need to [do a custom install of M1 macs](`https://stackoverflow.com/questions/28124221/error-linking-with-cc-failed-exit-code-1`). Once system dependencies are installed you will be able to enter a new shell, and install the project.
+Use `poetry` to [manage Python dependencies](https://github.com/python-poetry/poetry) following the pattern enabled by [PEP 517](https://www.python.org/dev/peps/pep-0517/) and [PEP 518](https://www.python.org/dev/peps/pep-0518/). Once system dependencies are installed you will be able to enter a new shell, and install the project.
 
-
-
-This may take a while to resolve dependencies and conflicts. The actual installation is quick. Then, build the library with `maturin build` (or `maturin develop`). 
+Build the library with `poetry run maturin build` (or replace `build` with `develop`). 
 
 
 

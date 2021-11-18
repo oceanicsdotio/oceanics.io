@@ -2,7 +2,8 @@
     "private": true,
     "workspaces": [
         "oceanics-io-www",
-        "oceanics-io-ui"
+        "oceanics-io-ui",
+        "oceanics-io-asm"
     ],
     "packageManager": "yarn@3.1.0"
 }
