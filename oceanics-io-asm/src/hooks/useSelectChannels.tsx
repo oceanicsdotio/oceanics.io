@@ -18,7 +18,7 @@
  // import useWasmWorkers from "../hooks/useWasmWorkers";
  // import useFragmentQueue from "../hooks/useFragmentQueue";
  // @ts-ignore
- import useMapBox from "../hooks/useMapBox";
+ import useMapBox from "./useMapBox";
  
  
  type ApplicationType = {

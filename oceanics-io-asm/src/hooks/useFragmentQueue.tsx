@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 /**
  * Object storage hook
  */
-import useObjectStorage from "../hooks/useObjectStorage";
+import useObjectStorage from "./useObjectStorage";
 
 /**
  * Storage target.

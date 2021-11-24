@@ -7,10 +7,13 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 cargo install wasm-pack
 ```
 
-You need to set the environment variables `SPACES_ACCESS_KEY` and `SPACES_SECRET_KEY` to access data from secure S3 buckets. Locally we use a git-ignored `.envrc` file.
+Builds are managed with `yarn` and `make`. The build targets are described in the `makefile`, and running `yarn build` will compile for both NodeJS and bundlers (e.g. webpack). This also runs as a pre-install hook, so that the compiled bindings are always available in the workspace. 
 
-JavaScript dependencies and builds are managed with `yarn`. Deploy a local version to port `8000` with `yarn develop`. See [`package.json`](/package.json) for build scripts, etc.
+If you need to manually do this from the top level directory, try:
+```bash
+yarn workspace oceanics-io-asm build
+```
 
-When running `yarn build` or `yarn develop` GatsbyJS automatically triggers compilation. Errors in the code will cause the entire build to fail. There is no hot loading or automatic recompiling, as described in [`/gatsby-node.js`](/gatsby-node.js).  The build produces the `neritics` JavaScript module.
+Run `yarn doc` to build HTML documentation pages of the Rust crate describing the API. See [`package.json`](/package.json) for these and other build scripts.
 
-You can also use `yarn compile` to build.
+To use this as a library from a sibling package, use `wasm-pack-plugin`. 
