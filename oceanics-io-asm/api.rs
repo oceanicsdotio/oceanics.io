@@ -9,11 +9,6 @@ use serde::{Serialize, Deserialize};
 extern crate serde_json; 
 extern crate serde_yaml;
 
-// mod variables;
-mod microcystis;
-
-
-
 #[pyclass]
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]

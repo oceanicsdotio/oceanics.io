@@ -1,29 +1,26 @@
-# Quickstart
+## Quick start
 
-## Docs
+Python wraps a native Rust implementation using `pyO3` and `maturin`. This needs to be setup before attempting to run the API for required binaries to exist. You can install the Rust tools and compilers on Mac or on Linux with: 
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+You may need to [do a custom install of M1 macs](`https://stackoverflow.com/questions/28124221/error-linking-with-cc-failed-exit-code-1`). 
 
-Python developer documentation is generated from the code using `pdoc3`. The command is:
+Use `poetry` to [manage Python dependencies](https://github.com/python-poetry/poetry) following the pattern enabled by [PEP 517](https://www.python.org/dev/peps/pep-0517/) and [PEP 518](https://www.python.org/dev/peps/pep-0518/). Once system dependencies are installed you will be able to enter a new shell, and install the project.
+
+Build the library with `poetry run maturin build` (or replace `build` with `develop`). 
+
+
+
+### Docs
+
+Python developer documentation is generated from the code using `pdoc3`:
 
 ``` bash
 pdoc --html --output-dir openapi/docs bathysphere
 ```
 
-## Environment
 
-### Dependencies
-
-We use `pipenv` to manage Python dependencies. These are found in `Pipfile` and `Pipfile.lock`. A new shell is activated with `pipenv shell`. For Docker you also need to generate a `requirements.txt` file from `Pipfile`.
-
-```bash
-pipenv shell
-pipenv install -e .
-pipenv install --dev
-pipenv lock -r > requirements.txt
-```
-
-This may take a while to resolve dependencies and conflicts. The actual installation is quick.
-
-On Linux, you leave the environment by entering the `exit` command.
 
 ### Variables
 

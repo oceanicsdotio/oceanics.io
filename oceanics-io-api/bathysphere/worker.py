@@ -14,13 +14,11 @@ from subprocess import Popen, PIPE, STDOUT
 # Logging
 from io import TextIOWrapper, BytesIO  
 
-
 # Combine logs into single buffer
 from functools import reduce  # pylint: disable=unused-import
 
 # Timestamping
 from time import time  # pylint: disable=unused-import
-
 
 
 @attr.s
@@ -88,8 +86,6 @@ class JSONIOWrapper:
         ).log(self.log)
 
         self.text_io.write(f"{json}\n")
-
-
 
 
 def resolveTaskTree(task, loop=None):  # pylint: disable=invalid-name
@@ -279,6 +275,3 @@ def run(body, client, objectKey):
         return f"Error saving results", 500
 
     return {"self": self_link}, 200
-
-
-

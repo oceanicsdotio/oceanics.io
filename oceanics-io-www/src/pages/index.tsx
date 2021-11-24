@@ -20,16 +20,39 @@ import useDeserialize from "oceanics-io-ui/build/hooks/useDeserialize";
  * Optionally use query parameters and hash anchor to filter content. 
  */
 const IndexPage: FC<IDocumentIndexSerialized> = ({
-    documents
+    documents,
+    pagingIncrement
 }) => {
-    const deserialized = useDeserialize(documents)
+    /**
+     * Convert into our internal Document data model. 
+     */
+    const deserialized = useDeserialize(documents);
+
+    /**
+     * Just the Next router.
+     */
     const router = useRouter();
 
-    const navigate = useCallback((pathname: string, insert?: QueryType) => {
-        router.push({
-            pathname,
-            query: { ...router.query, ...(insert || {}) }
-        })
+    /**
+     * Use next router, and merge query parameters.
+     */
+    const navigate = useCallback((pathname: string, insert?: QueryType, merge: boolean = false) => {
+        const query = { ...(merge ? router.query : {}), ...(insert || {}) }
+        router.push({ pathname, query });
+    }, [router]);
+
+    /**
+     * Mouse event handler for paging/scroll-into-view
+     */
+    const onShowMore = useCallback(() => { 
+        navigate("/", { items: Number(router.query.items ?? pagingIncrement) + pagingIncrement }) 
+    }, [navigate, router, pagingIncrement]);
+
+    /**
+     * Return to default view.
+     */
+    const onClearConstraints = useCallback(() => {
+        router.push("/")
     }, [router]);
 
     return (
@@ -42,10 +65,10 @@ const IndexPage: FC<IDocumentIndexSerialized> = ({
             />
             <Index
                 query={router.query}
-                onShowMore={() => { navigate("/", { items: Number(router.query.items ?? 0) + 3 }) }}
-                onClearConstraints={() => { router.push("/") }}
+                onShowMore={onShowMore}
+                onClearConstraints={onClearConstraints}
                 documents={deserialized}
-                pagingIncrement={3}
+                pagingIncrement={pagingIncrement}
             />
         </>
     )
@@ -59,7 +82,8 @@ export const getStaticProps: GetStaticProps = async () => {
         props: { 
             documents: readIndexedDocuments(createIndex()),
             description: "The trust layer for the blue economy",
-            title: "Oceanics.io"
+            title: "Oceanics.io",
+            pagingIncrement: 3
         }
     }
 }

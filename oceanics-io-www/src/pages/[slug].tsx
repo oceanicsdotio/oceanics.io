@@ -26,9 +26,7 @@ import { readDocument, createIndex } from "../next-util";
 import type { GetStaticPaths, GetStaticProps } from "next";
 import useDeserialize from "oceanics-io-ui/build/hooks/useDeserialize";
 
-const embeddedComponents = {
-    Equation
-}
+const embeddedComponents = { Equation }
 
 const ArticlePage: FC<IDocumentSerialized> = ({
     document,

@@ -52,6 +52,7 @@ export type DocumentSerializedType = {
 
 export interface IDocumentIndexSerialized {
     documents: DocumentSerializedType[];
+    pagingIncrement: number;
 }
 
 /**

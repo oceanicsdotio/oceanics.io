@@ -37,7 +37,6 @@ CartesianNAD83 = Proj("epsg:2960")
 SphericalWGS84 = Proj("epsg:4326")
 
 
-
 def avhrr_sst(
     files: dict, 
     locations: dict, 

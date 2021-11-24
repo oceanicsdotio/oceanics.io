@@ -41,7 +41,6 @@
   },
   "scripts": {
     "build": "tsc",
-    "preinstall": "tsc",
-    "postinstall": "yarn workspace oceanics-io-ui build"
+    "preinstall": "tsc"
   }
 }

@@ -1,0 +1,68 @@
+[build-system]
+requires = ["poetry>=1.0"]
+build-backend = "poetry.masonry.api"
+
+[tool.poetry]
+name = "bathysphere"
+version = "2.0.0"
+description = "The description of the package"
+license = "MIT"
+authors = ["Oceanicsdotio LLC <business@oceanics.io>"]
+readme = 'README.md'  # Markdown files are supported
+repository = "https://github.com/oceanics-io/oceanics.io"
+homepage = "https://www.oceanics.io/bathysphere"
+keywords = ['ocean', 'data', 'graph', 'database', 'api', 'geospatial']
+
+[tool.poetry.dev-dependencies]
+pylint = "2.11.1"
+rope = "0.21.1"
+pytest = "6.2.5"
+pytest-dependency = "0.5.1"
+pytest-cov = "3.0.0"
+pytest-parallel = "0.1.1"
+vulture = "2.3"
+colorama = "0.4.4"
+docker-compose = "1.29.2"
+maturin = "0.11.5"
+
+[tool.poetry.dependencies]
+Flask = "1.1.2"
+Flask-Cors = "3.0.10"
+gunicorn = "20.1.0"
+connexion = "2.7.0"
+itsdangerous = "1.1.0"
+passlib = "1.7.2"
+PyYAML = "~=5.4"
+requests = "2.24.0"
+retry = "0.9.2"
+prance = "0.19.0"
+attrs = "21.2.0"
+click = "7.1.2"
+Jinja2 = "2.11.3"
+MarkupSafe = "1.1.1"
+Werkzeug = "1.0.1"
+wheel = "*"
+pdoc3 = "0.9.2"
+python = "3.8"
+urllib3 = "*"
+certifi = "2020.6.20"
+chardet = "3.0.4"
+clickclick = "20.10.2"
+decorator = "4.4.2"
+idna = "2.10"
+importlib-metadata = "1.7.0"
+inflection = "0.5.1"
+jsonschema = "3.2.0"
+Mako = "1.1.4"
+Markdown = "3.3.3"
+openapi-spec-validator = "0.2.9"
+pyrsistent = "0.17.3"
+pytz = "2020.1"
+semver = "2.13.0"
+six = "1.15.0"
+zipp = "3.4.0"
+minio = "7.0.2"
+neo4j = "4.2.1"
+
+[tool.poetry.scripts]
+bathysphere = "bathysphere:cli.cli"
