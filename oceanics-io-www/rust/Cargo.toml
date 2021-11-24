@@ -20,6 +20,9 @@ rand = "0.8.0"
 # https://docs.rs/getrandom/0.2.2/getrandom/#unsupported-targets
 getrandom = { version = "0.2", features = ["js"] }
 
+[profile.release]
+opt-level = "s"
+
 [package.metadata.wasm-pack.profile.release]
 # see https://github.com/rustwasm/wasm-pack/issues/886#issuecomment-667669802
 wasm-opt = ["-Oz", "--enable-mutable-globals"]
@@ -54,7 +57,8 @@ features = [
     'RequestMode',
     'Response',
     'Performance',
-    'TextMetrics'
+    'TextMetrics',
+    'console'
 ]
 
 

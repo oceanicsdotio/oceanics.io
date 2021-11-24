@@ -26,7 +26,7 @@ module.exports = {
     // From https://github.com/wasm-tool/wasm-pack-plugin
     config.plugins.push(
       new WasmPackPlugin({
-        crateDirectory: resolve('./_test'),
+        crateDirectory: resolve('./rust'),
         args: '--log-level warn',
       })
     );

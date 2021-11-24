@@ -23,9 +23,19 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen::{JsCast, JsValue};
 use wasm_bindgen_futures::JsFuture;
 
-use web_sys::{HtmlCanvasElement, CanvasRenderingContext2d, Request, RequestInit, RequestMode, Response};
+use web_sys::{HtmlCanvasElement, CanvasRenderingContext2d, Request, RequestInit, RequestMode, Response, console};
 
 extern crate console_error_panic_hook;
+
+#[wasm_bindgen]
+pub fn greet() {
+    console::log_1(&"Hello from Rust".into());
+}
+
+#[wasm_bindgen]
+pub fn get_rust_data() -> String {
+    "Some data from Rust".into()
+}
 
 
 #[wasm_bindgen]

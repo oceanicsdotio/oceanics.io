@@ -6,7 +6,7 @@ const ctx: Worker = self as unknown as Worker;
 
 async function start() {
   // From https://github.com/wasm-tool/wasm-pack-plugin
-  const { greet, get_rust_data } = await import('../_test/pkg');
+  const { greet, get_rust_data } = await import('../rust/pkg');
   greet();
 
   ctx.postMessage({
