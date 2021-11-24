@@ -22,6 +22,7 @@ export interface DocumentIndexType extends IStyled {
   query: QueryType;
   onShowMore: MouseEventHandler<HTMLButtonElement>;
   onClearConstraints: MouseEventHandler<HTMLButtonElement>;
+  onClickLabel: (label: string) => MouseEventHandler<HTMLAnchorElement>;
   pagingIncrement: number;
   navigate?: (...args: any[]) => void;
 }
@@ -37,6 +38,7 @@ const Index: FC<DocumentIndexType> = ({
   query,
   onShowMore,
   onClearConstraints,
+  onClickLabel,
   pagingIncrement,
 }) => {
   /**
@@ -91,7 +93,7 @@ const Index: FC<DocumentIndexType> = ({
   return (
     <div className={className}>
       {visible.map((document) => (
-        <Stub key={document.metadata.title} document={document} />
+        <Stub key={document.metadata.title} document={document} onClickLabel={onClickLabel}/>
       ))}
       <Button onClick={onShowMore} style={showMore.style}>
         {showMore.text}

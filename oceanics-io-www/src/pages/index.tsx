@@ -36,8 +36,8 @@ const IndexPage: FC<IDocumentIndexSerialized> = ({
     /**
      * Use next router, and merge query parameters.
      */
-    const navigate = useCallback((pathname: string, insert?: QueryType, merge: boolean = false) => {
-        const query = { ...(merge ? router.query : {}), ...(insert || {}) }
+    const navigate = useCallback((pathname: string, insert?: QueryType, merge: boolean = true) => {
+        const query = { ...(merge ? router.query : {}), ...(insert ?? {}) }
         router.push({ pathname, query });
     }, [router]);
 
@@ -45,15 +45,22 @@ const IndexPage: FC<IDocumentIndexSerialized> = ({
      * Mouse event handler for paging/scroll-into-view
      */
     const onShowMore = useCallback(() => { 
-        navigate("/", { items: Number(router.query.items ?? pagingIncrement) + pagingIncrement }) 
+        navigate("/", { items: Number(router.query.items ?? pagingIncrement) + pagingIncrement }, true) 
     }, [navigate, router, pagingIncrement]);
 
     /**
      * Return to default view.
      */
     const onClearConstraints = useCallback(() => {
-        router.push("/")
-    }, [router]);
+        navigate("/", undefined, false)
+    }, [navigate]);
+
+    /**
+     * Additionally filter by a single label. Handles multi-word implicitly.
+     */
+    const onClickLabel = useCallback((label: string) => () => {
+        navigate("/", {label}, true)
+    }, [navigate])
 
     return (
         <>
@@ -67,6 +74,7 @@ const IndexPage: FC<IDocumentIndexSerialized> = ({
                 query={router.query}
                 onShowMore={onShowMore}
                 onClearConstraints={onClearConstraints}
+                onClickLabel={onClickLabel}
                 documents={deserialized}
                 pagingIncrement={pagingIncrement}
             />

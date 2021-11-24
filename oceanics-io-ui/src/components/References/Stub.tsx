@@ -1,7 +1,8 @@
 /**
  * React and friends
  */
-import React, { FC } from "react";
+import React from "react";
+import type { FC, MouseEventHandler } from "react";
 import styled from "styled-components";
 
 /**
@@ -14,12 +15,17 @@ import { orange, ghost, shadow } from "../../palette";
  */
 import type { IDocument } from "./types";
 
+interface IDocumentStub extends IDocument {
+  onClickLabel: (label: string) => MouseEventHandler
+}
+
 /**
  * List view of an article
  */
-export const Stub: FC<IDocument> = ({
+export const Stub: FC<IDocumentStub> = ({
   className,
-  document: { slug, metadata }
+  document: { slug, metadata },
+  onClickLabel
 }) => {
   return (
     <article className={className}>
@@ -28,8 +34,8 @@ export const Stub: FC<IDocument> = ({
         <p>{metadata.published.toISOString().replace(/T/, " ").replace(/Z/, "")}</p>
       </header>
       <section>{metadata.description}</section>
-      <p>{metadata.labels.map(({value, onClick}) => 
-        <a key={`${metadata.title} ${value}`} onClick={onClick}>{value}</a>)
+      <p>{metadata.labels.map(({value}) => 
+        <a key={`${metadata.title} ${value}`} onClick={onClickLabel(value)}>{value}</a>)
       }</p>
     </article>
   )
