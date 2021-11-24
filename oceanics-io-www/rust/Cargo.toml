@@ -8,8 +8,7 @@ license = "MIT"
 repository = "git+https://github.com/oceanicsdotio/oceanics.io.git"
 
 [lib]
-path = "src/lib.rs"
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 js-sys = "0.3.32"

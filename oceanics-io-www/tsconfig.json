@@ -21,17 +21,13 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
-    "rootDir": "src",
-    "noImplicitAny": true,
-    "sourceMap": true,
-    "typeRoots": ["./src/@types", "./node_modules/@types"]
+    "typeRoots": ["./src/@types", "./node_modules/@types"],
   },
   "include": [
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    "typings.d.ts",
-    "src/example.worker.js"
+    "typings.d.ts"
   ],
   "exclude": [
     "node_modules"

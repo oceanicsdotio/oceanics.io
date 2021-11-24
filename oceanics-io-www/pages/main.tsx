@@ -12,7 +12,7 @@ import Campaign, { PageData } from "oceanics-io-ui/build/components/Campaign/Cam
 import Index from "oceanics-io-ui/build/components/References/Index";
 import type { IDocumentIndexSerialized, QueryType } from "oceanics-io-ui/build/components/References/types";
 import type { GetStaticProps } from "next";
-import { createIndex, readIndexedDocuments } from "../next-util";
+import { createIndex, readIndexedDocuments } from "../src/next-util";
 import useDeserialize from "oceanics-io-ui/build/hooks/useDeserialize";
 
 /**

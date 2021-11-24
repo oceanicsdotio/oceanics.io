@@ -24,7 +24,7 @@ import "highlight.js/styles/a11y-dark.css"
 import Document from "oceanics-io-ui/build/components/References/Document";
 import Equation from "oceanics-io-ui/build/components/References/Equation";
 import type { IDocumentSerialized, DocumentSerializedType, QueryType } from "oceanics-io-ui/build/components/References/types";
-import { readDocument, createIndex } from "../next-util";
+import { readDocument, createIndex } from "../src/next-util";
 import type { GetStaticPaths, GetStaticProps } from "next";
 import useDeserialize from "oceanics-io-ui/build/hooks/useDeserialize";
 

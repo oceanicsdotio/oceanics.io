@@ -9,7 +9,7 @@ import React, { FC } from "react";
 import Reference from "oceanics-io-ui/build/components/References/Reference";
 import type {IDocumentIndexSerialized} from "oceanics-io-ui/build/components/References/types";
 import type {GetStaticProps} from "next";
-import {createIndex, readIndexedDocuments} from "../next-util";
+import {createIndex, readIndexedDocuments} from "../src/next-util";
 import useDeserialize from "oceanics-io-ui/build/hooks/useDeserialize";
 
 /**

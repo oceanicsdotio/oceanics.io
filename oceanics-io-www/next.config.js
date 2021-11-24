@@ -1,12 +1,48 @@
+const WasmPackPlugin = require('@wasm-tool/wasm-pack-plugin');
+const SSRPlugin =
+  require('next/dist/build/webpack/plugins/nextjs-ssr-import').default;
 const {
   dirname,
   relative,
   resolve,
   join,
-} = require("path");
-const WasmPackPlugin = require("@wasm-tool/wasm-pack-plugin");
-const SSRPlugin =
-  require('next/dist/build/webpack/plugins/nextjs-ssr-import').default;
+} = require('path');
+
+module.exports = {
+  webpack(config) {
+    // Ensures that web workers can import scripts.
+    config.output.publicPath = '/_next/';
+
+    // From https://github.com/rustwasm/wasm-pack/issues/835#issuecomment-772591665
+    config.experiments = {
+      syncWebAssembly: true,
+    };
+
+    config.module.rules.push({
+      test: /\.wasm$/,
+      type: 'webassembly/sync',
+    });
+
+    // From https://github.com/wasm-tool/wasm-pack-plugin
+    config.plugins.push(
+      new WasmPackPlugin({
+        crateDirectory: resolve('./rust'),
+        args: '--log-level warn',
+      })
+    );
+
+    // From https://github.com/vercel/next.js/issues/22581#issuecomment-864476385
+    const ssrPlugin = config.plugins.find(
+      (plugin) => plugin instanceof SSRPlugin
+    );
+
+    if (ssrPlugin) {
+      patchSsrPlugin(ssrPlugin);
+    }
+
+    return config;
+  },
+};
 
 // Patch the NextJsSSRImport plugin to not throw with WASM generated chunks.
 function patchSsrPlugin(plugin) {
@@ -49,43 +85,3 @@ function patchSsrPlugin(plugin) {
     );
   };
 }
-
-module.exports = {
-  images: {
-    disableStaticImages: true,
-  },
-  reactStrictMode: false,
-  webpack(config) {
-    // Ensures that web workers can import scripts.
-    config.output.publicPath = "/_next/";
-
-    // From https://github.com/rustwasm/wasm-pack/issues/835#issuecomment-772591665
-    config.experiments = {
-      syncWebAssembly: true,
-    };
-
-    config.module.rules.unshift({
-      test: /\.wasm$/,
-      type: "webassembly/sync",
-    });
-
-    // From https://github.com/wasm-tool/wasm-pack-plugin
-    config.plugins.push(
-      new WasmPackPlugin({
-        crateDirectory: resolve("./rust"),
-        args: "--log-level warn",
-      })
-    );
-
-    // From https://github.com/vercel/next.js/issues/22581#issuecomment-864476385
-    const ssrPlugin = config.plugins.find(
-      (plugin) => plugin instanceof SSRPlugin
-    );
-
-    if (ssrPlugin) {
-      patchSsrPlugin(ssrPlugin);
-    }
-
-    return config;
-  },
-};
