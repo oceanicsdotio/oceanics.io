@@ -1,7 +1,9 @@
 /**
  * React and friends
  */
-import React, { FC } from "react";
+import React, { useCallback } from "react";
+import type {FC} from "react"
+import { useRouter } from "next/router";
 
 /**
  * See: https://nextjs.org/blog/markdown
@@ -21,7 +23,7 @@ import "highlight.js/styles/a11y-dark.css"
  */
 import Document from "oceanics-io-ui/build/components/References/Document";
 import Equation from "oceanics-io-ui/build/components/References/Equation";
-import type { IDocumentSerialized, DocumentSerializedType } from "oceanics-io-ui/build/components/References/types";
+import type { IDocumentSerialized, DocumentSerializedType, QueryType } from "oceanics-io-ui/build/components/References/types";
 import { readDocument, createIndex } from "../next-util";
 import type { GetStaticPaths, GetStaticProps } from "next";
 import useDeserialize from "oceanics-io-ui/build/hooks/useDeserialize";
@@ -34,8 +36,25 @@ const ArticlePage: FC<IDocumentSerialized> = ({
 }) => {
     const [deserialized] = useDeserialize([document])
 
+    const router = useRouter();
+
+    /**
+     * Use next router, and merge query parameters.
+     */
+    const navigate = useCallback((pathname: string, insert?: QueryType, merge: boolean = true) => {
+        const query = { ...(merge ? router.query : {}), ...(insert ?? {}) }
+        router.push({ pathname, query });
+    }, [router]);
+
+    /**
+     * Additionally filter by a single label.
+     */
+    const onClickLabel = useCallback((label: string) => () => {
+        navigate("/", {label}, false)
+    }, [navigate])
+
     return (
-        <Document document={deserialized} >
+        <Document document={deserialized} onClickLabel={onClickLabel}>
             <MDXRemote {...source} components={embeddedComponents}/>
         </Document>
     )

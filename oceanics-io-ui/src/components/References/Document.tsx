@@ -1,8 +1,8 @@
 /**
  * React and friends
  */
-import React, { FC } from "react";
-
+import React from "react";
+import type { FC, MouseEventHandler } from "react"
 /**
  * Component level styling
  */
@@ -16,6 +16,9 @@ import { Reference } from "./Reference";
 export interface IDocument extends IStyled {
   document: DocumentType;
 };
+interface IDocumentContent extends IDocument {
+  onClickLabel: (label: string) => MouseEventHandler<HTMLAnchorElement>;
+}
 
 /**
  * Base component is a composed wrapper around <article/>,
@@ -27,18 +30,19 @@ export interface IDocument extends IStyled {
  * No longer has a title heading, because this is assumed to be controlled
  * at the page level.
  */
-export const Document: FC<IDocument> = ({
+export const Document: FC<IDocumentContent> = ({
   className,
   document: {
     metadata
   },
-  children
+  children,
+  onClickLabel
 }) => {
   return (
     <article className={className}>
       <header>
         <h2>{metadata.published.toISOString().replace(/T/, " ").replace(/Z/, "")}</h2>
-        <h2>{metadata.labels.map(({value, onClick}) => <a key={`${metadata.title} ${value}`} onClick={onClick}>{value}</a>)}</h2>
+        <h2>{metadata.labels.map(({value}) => <a key={`${metadata.title} ${value}`} onClick={onClickLabel(value)}>{value}</a>)}</h2>
         <p>{metadata.description}</p>
       </header>
       <hr/>
