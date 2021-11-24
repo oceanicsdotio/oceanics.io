@@ -64,7 +64,7 @@ module.exports = {
       syncWebAssembly: true,
     };
 
-    config.module.rules.push({
+    config.module.rules.unshift({
       test: /\.wasm$/,
       type: "webassembly/sync",
     });

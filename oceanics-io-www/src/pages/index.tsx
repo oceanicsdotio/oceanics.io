@@ -1,7 +1,8 @@
 /**
  * React and friends.
  */
-import React, { useCallback, FC } from "react";
+import React, { useCallback, useRef, useEffect } from "react";
+import type {FC} from "react"
 import { useRouter } from "next/router";
 
 /**
@@ -61,6 +62,16 @@ const IndexPage: FC<IDocumentIndexSerialized> = ({
     const onClickLabel = useCallback((label: string) => () => {
         navigate("/", {label}, true)
     }, [navigate])
+
+    const worker = useRef<Worker>();
+    useEffect(()=>{
+        try {
+            const url = new URL("../example.worker.js", import.meta.url)
+            worker.current = new Worker(url)
+        } catch {
+            console.error("Failed to load worker")
+        }
+    })
 
     return (
         <>

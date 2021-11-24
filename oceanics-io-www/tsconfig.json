@@ -1,12 +1,11 @@
 {
   "compilerOptions": {
     "incremental": true, /* Enable incremental compilation */
-    "target": "es2019",
+    "target": "es5",
     "lib": [
       "dom",
       "dom.iterable",
-      "esnext",
-      "es2019"
+      "esnext"
     ],
     "allowJs": true,
     "skipLibCheck": true,
@@ -17,11 +16,11 @@
     "noImplicitReturns": true,
     "noEmit": true,
     "esModuleInterop": true,
-    "module": "esnext", // commonjs
+    "module": "esnext",
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",  // react
+    "jsx": "preserve",
     "rootDir": "src",
     "noImplicitAny": true,
     "sourceMap": true,
@@ -31,7 +30,8 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    "typings.d.ts"
+    "typings.d.ts",
+    "src/example.worker.js"
   ],
   "exclude": [
     "node_modules"
