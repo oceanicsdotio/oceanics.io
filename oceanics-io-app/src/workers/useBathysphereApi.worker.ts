@@ -1,5 +1,3 @@
-import { number } from 'prop-types';
-
 /**
  * Runtime handle to which we will memoize the active runtime. 
  */

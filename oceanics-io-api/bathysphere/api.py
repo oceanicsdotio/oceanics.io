@@ -51,7 +51,7 @@ from itsdangerous import TimedJSONWebSignatureSerializer
 from itsdangerous.exc import BadSignature
 
 # headers and such available for authenticate.
-from flask import request, send_file
+from flask import request
 
 # Native implementations from Rust code base
 from bathysphere.bathysphere import (  # pylint: disable=no-name-in-module, unused-import
