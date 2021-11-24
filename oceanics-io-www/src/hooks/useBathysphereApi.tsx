@@ -13,7 +13,7 @@ import BathysphereWorker from "worker-loader!../workers/useBathysphereApi.worker
  * 
  * If access token is set in React state, use it to get the catalog index from Bathysphere
  */
-export default (server: string) => {
+export const useBathysphereApi = (server: string) => {
 
     /**
      * Instantiate web worker reference for background tasks.
@@ -54,7 +54,7 @@ export default (server: string) => {
     useEffect(() => {
         if (worker.current && accessToken)
             worker.current.query({server, accessToken}).then(setCatalog); 
-    }, [ worker, accessToken ]);
+    }, [ worker, accessToken, server ]);
 
     
     /**
@@ -87,3 +87,6 @@ export default (server: string) => {
         }
     };
 };
+
+
+export default useBathysphereApi

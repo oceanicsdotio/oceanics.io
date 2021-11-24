@@ -12,7 +12,7 @@ import useWasmRuntime from "./useWasmRuntime";
 /*
  * Time series data
  */
-export default ({
+export const useDataStream = ({
     streamColor = lichen,
     overlayColor = ghost,
     backgroundColor = "#202020FF",
@@ -45,7 +45,7 @@ export default ({
     useEffect(() => {
         //@ts-ignore
         if (runtime) setStream(new runtime.InteractiveDataStream(capacity));
-    }, [ runtime ]);
+    }, [ runtime, capacity ]);
 
     /**
      * Label for user interface.
@@ -103,3 +103,6 @@ export default ({
         message
     }
 };
+
+
+export default useDataStream;
