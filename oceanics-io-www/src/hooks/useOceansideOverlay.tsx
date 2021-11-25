@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useEffect, useState, useReducer, useRef } from "react";
 import { lichen, orange } from "oceanics-io-ui/build/palette";
 import useWasmRuntime from "./useWasmRuntime";

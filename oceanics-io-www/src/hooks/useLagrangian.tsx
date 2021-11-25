@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * React, just friends because it's a hook. 
  */
@@ -11,12 +12,7 @@ import useGlslShaders, {renderPipelineStage} from "./useGlslShaders";
 /**
  * Color map texture for lookups.
  */
-import useColorMapTexture from "./useColorMapTexture";
-
-/**
- * Dedicated worker loader.
- */
-import useWasmWorkers from "./useWasmWorkers";
+import useColorMapTexture from "oceanics-io-ui/build/hooks/useColorMapTexture";
 
 /**
  * Hook for lazy loading image data as texture.
@@ -51,8 +47,8 @@ export const useLagrangian = ({
     }, // passed on to Hook as args
     res = 16,
     colors = [
-        [0.0, '#deababff'],
-        [1.0, '#660066ff'],
+        [0.0, "#deababff"],
+        [1.0, "#660066ff"],
     ],
     opacity = 0.92, // how fast the particle trails fade on each frame
     speed = 0.00007, // how fast the particles move

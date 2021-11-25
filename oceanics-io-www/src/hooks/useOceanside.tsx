@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useEffect, useReducer, useRef } from "react";
 import type {MutableRefObject} from "react";
 import type {MiniMap} from "../../rust/pkg";

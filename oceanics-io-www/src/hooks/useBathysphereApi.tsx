@@ -1,9 +1,5 @@
-import { useEffect, useState, useRef, useReducer } from "react";
-
-/**
- * Dedicated worker loader.
- */
-import BathysphereWorker from "worker-loader!../workers/useBathysphereApi.worker.ts";
+import { useEffect, useState, useReducer } from "react";
+import type {MutableRefObject} from "react";
 
 /**
  * The catalog page is like a landing page to the api.
@@ -13,29 +9,8 @@ import BathysphereWorker from "worker-loader!../workers/useBathysphereApi.worker
  * 
  * If access token is set in React state, use it to get the catalog index from Bathysphere
  */
-export const useBathysphereApi = (server: string) => {
+export const useBathysphereApi = (server: string, worker: MutableRefObject<SharedWorker|null>) => {
 
-    /**
-     * Instantiate web worker reference for background tasks.
-     */
-     const worker: any = useRef(null);
-
-     /**
-      * Create worker, and terminate it when the component unmounts.
-      * 
-      * I suspect that this was contributing to performance degradation in
-      * long running sessions. 
-      */
-     useEffect(() => {
-         if (!BathysphereWorker) {
-             console.error("Cannot create workers, no loader provided")
-             return
-         }
-         worker.current = new BathysphereWorker();
-         return () => { 
-             if (worker.current) worker.current.terminate();
-         }
-     }, []);
     /**
      * JavaScript Web Token. State variable returned to parent component,
      * but not setter.
@@ -53,7 +28,12 @@ export const useBathysphereApi = (server: string) => {
      */
     useEffect(() => {
         if (worker.current && accessToken)
-            worker.current.query({server, accessToken}).then(setCatalog); 
+            worker.current.port.postMessage({
+                type: "query",
+                data: {server, accessToken}
+            }); 
+
+            // TODO: ).then(setCatalog)
     }, [ worker, accessToken, server ]);
 
     
@@ -76,12 +56,8 @@ export const useBathysphereApi = (server: string) => {
    
     return {
         catalog,
-        login: () => {
-            worker.current.login(credentials).then(setAccessToken);
-        },
-        register: () => {
-            worker.current.login(credentials).then(console.log);
-        },
+        login: () => {},
+        register: () => {},
         populate: () => {
             console.log("Populate...");
         }

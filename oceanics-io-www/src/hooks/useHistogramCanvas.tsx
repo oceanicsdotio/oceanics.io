@@ -39,7 +39,7 @@ export const useHistogramCanvas = ({
     /**
      * Handle to assign to canvas element instance
      */
-    const ref = useRef(null);
+    const ref = useRef<HTMLCanvasElement|null>(null);
 
     /**
      * Summary stats include max and total. Set asynchonously by

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * React and friends.
  */
@@ -85,12 +86,12 @@
      ): void => {
          if (!map) return;
          map.addLayer({ source, ...layer });
-         if (onClick) map.on('click', layer.id, onClick);
+         if (onClick) map.on("click", layer.id, onClick);
      }, [map]);
  
      const addPopup = useCallback((coords: number[]) => {
  
-         const placeholder: HTMLElement = document.createElement('div');
+         const placeholder: HTMLElement = document.createElement("div");
  
          ReactDOM.render(
              <PopUpContent features={projected} Component={component} />,

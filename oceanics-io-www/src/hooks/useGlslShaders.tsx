@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * React friends.
  */
@@ -79,7 +80,7 @@ export const VertexArrayBuffers = (
   });
 
 // memoize the shaders as they are loaded
-const shaderSource = {
+const shaderSource: {[key: string]: string} = {
   "quad-vertex": quadVertex,
   "noise-vertex": noiseVertex,
   "noise-fragment": noiseFragment,
@@ -246,6 +247,7 @@ export const createTexture = (
     ctx.TEXTURE_2D,
     0,
     ctx.RGBA,
+    //@ts-ignore
     ...args,
     ctx.RGBA,
     ctx.UNSIGNED_BYTE,
@@ -302,15 +304,15 @@ export const useGlslShaders = ({ shaders }: IGlslShaders) => {
   useEffect(() => {
     if (!validContext || !runtime) return;
 
-    const compile = ([name, pair]: [string, [any, any]]) => [
+    const compile = ([name, pair]: [string, [string, string]]) => [
       name,
       runtime.create_program(
-        validContext,
-        ...pair.map((file) => shaderSource[file])
+        validContext as WebGLRenderingContext,
+        ...(pair.map((file: string): string => shaderSource[file] as string) as [string, string])
       ),
     ];
 
-    const extract = ([name, program]) => [
+    const extract = ([name, program]: [string, any]) => [
       name,
       program,
       Object.fromEntries(
@@ -326,7 +328,7 @@ export const useGlslShaders = ({ shaders }: IGlslShaders) => {
             ),
           ])
           .flatMap(([fcn, count]) =>
-            [...Array(count).keys()]
+            Array(Array(count).keys())
               .map((ii) => validContext[`getActive${fcn}`](program, ii))
               .map(({ name }) => [
                 name,

@@ -76,7 +76,7 @@ export const useImageDataTexture = ({
      */
     useEffect(() => {
         if (!preview || !preview.current || !imageData) return;
-        const canvas: HTMLCanvasElement = preview.current;
+        const canvas: HTMLCanvasElement = preview.current as any;
         const ctx = canvas.getContext("2d");
         if (!ctx) {
             throw TypeError("Canvas Rendering Context is Null");

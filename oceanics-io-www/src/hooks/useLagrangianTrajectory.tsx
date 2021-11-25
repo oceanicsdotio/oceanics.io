@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * React, just friends because it's a hook. 
  */

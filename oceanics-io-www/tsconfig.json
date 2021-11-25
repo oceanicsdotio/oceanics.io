@@ -11,7 +11,7 @@
     "skipLibCheck": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
-    "noUnusedLocals": true, /* Report errors on unused locals. */
+    "noUnusedLocals": false, /* Report errors on unused locals. */
     "noUnusedParameters": true, /* Report errors on unused parameters. */
     "noImplicitReturns": true,
     "noEmit": true,
@@ -30,6 +30,10 @@
     "typings.d.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "useOceanside*",
+    "useGlsl*",
+    "useLagrangian*",
+    "useSelectChannels*"
   ]
 }

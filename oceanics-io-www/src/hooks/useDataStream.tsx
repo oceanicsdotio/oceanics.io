@@ -28,7 +28,7 @@ export const useDataStream = ({
     /**
      * Reference to pass to target canvas
      */
-    const ref = useRef(null);
+    const ref = useRef<HTMLCanvasElement|null>(null);
 
     /**
      * Runtime will be passed to calling Hook or Component. 
@@ -50,14 +50,14 @@ export const useDataStream = ({
     /**
      * Label for user interface.
      */
-    const [ message, setMessage ] = useState("Loading...");
+    const [ message, setMessage ] = useState<string>("Loading...");
 
     /**
      * Run the animation loop.
      */
     useEffect(() => {
         if (!runtime || !dataStream || !ref.current) return;
-        const canvas: HTMLCanvasElement = ref.current as any;
+        const canvas: HTMLCanvasElement = ref.current;
 
         // use location based sunlight function
         const fcn = (t: number) => {
