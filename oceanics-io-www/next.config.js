@@ -1,17 +1,22 @@
-const WasmPackPlugin = require('@wasm-tool/wasm-pack-plugin');
+const WasmPackPlugin = require("@wasm-tool/wasm-pack-plugin");
 const SSRPlugin =
-  require('next/dist/build/webpack/plugins/nextjs-ssr-import').default;
+  require("next/dist/build/webpack/plugins/nextjs-ssr-import").default;
 const {
   dirname,
   relative,
   resolve,
   join,
-} = require('path');
+} = require("path");
 
 module.exports = {
+  typescript: {
+    // Dangerously allow production builds to successfully complete even if
+    // your project has type errors.
+    ignoreBuildErrors: true,
+  },
   webpack(config) {
     // Ensures that web workers can import scripts.
-    config.output.publicPath = '/_next/';
+    config.output.publicPath = "/_next/";
 
     // From https://github.com/rustwasm/wasm-pack/issues/835#issuecomment-772591665
     config.experiments = {
@@ -20,14 +25,14 @@ module.exports = {
 
     config.module.rules.push({
       test: /\.wasm$/,
-      type: 'webassembly/sync',
+      type: "webassembly/sync",
     });
 
     // From https://github.com/wasm-tool/wasm-pack-plugin
-    config.plugins.push(
+    config.plugins.unshift(
       new WasmPackPlugin({
-        crateDirectory: resolve('./rust'),
-        args: '--log-level warn',
+        crateDirectory: resolve("./rust"),
+        args: "--log-level info",
       })
     );
 
@@ -48,20 +53,20 @@ module.exports = {
 function patchSsrPlugin(plugin) {
   plugin.apply = function apply(compiler) {
     compiler.hooks.compilation.tap(
-      'NextJsSSRImport',
+      "NextJsSSRImport",
       (compilation) => {
         compilation.mainTemplate.hooks.requireEnsure.tap(
-          'NextJsSSRImport',
+          "NextJsSSRImport",
           (code, chunk) => {
-            // The patch that we need to ensure this plugin doesn't throw
+            // The patch that we need to ensure this plugin doesn"t throw
             // with WASM chunks.
             if (!chunk.name) {
               return;
             }
 
             // Update to load chunks from our custom chunks directory
-            const outputPath = resolve('/');
-            const pagePath = join('/', dirname(chunk.name));
+            const outputPath = resolve("/");
+            const pagePath = join("/", dirname(chunk.name));
             const relativePathToBaseDir = relative(
               pagePath,
               outputPath
@@ -69,14 +74,14 @@ function patchSsrPlugin(plugin) {
             // Make sure even in windows, the path looks like in unix
             // Node.js require system will convert it accordingly
             const relativePathToBaseDirNormalized =
-              relativePathToBaseDir.replace(/\\/g, '/');
+              relativePathToBaseDir.replace(/\\/g, "/");
             return code
               .replace(
-                'require("./"',
+                `require("./"`,
                 `require("${relativePathToBaseDirNormalized}/"`
               )
               .replace(
-                'readFile(join(__dirname',
+                "readFile(join(__dirname",
                 `readFile(join(__dirname, "${relativePathToBaseDirNormalized}"`
               );
           }

@@ -57,7 +57,7 @@
   },
   "scripts": {
     "develop": "next dev",
-    "build": "next build && next export",
+    "build": "next build && next export && rm rust/pkg/.gitignore",
     "serve": "netlify dev --dir=out",
     "lint": "next lint"
   }
