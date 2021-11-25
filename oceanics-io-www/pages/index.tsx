@@ -4,6 +4,7 @@
 import React, { useCallback, useRef, useEffect, useState } from "react";
 import type {FC} from "react"
 import { useRouter } from "next/router";
+import path from "path";
 
 /**
  * Campaign component
@@ -14,6 +15,7 @@ import type { IDocumentIndexSerialized, QueryType } from "oceanics-io-ui/build/c
 import type { GetStaticProps } from "next";
 import { createIndex, readIndexedDocuments } from "../src/next-util";
 import useDeserialize from "oceanics-io-ui/build/hooks/useDeserialize";
+import useWasmRuntime from "../src/hooks/useWasmRuntime";
 
 /**
  * Base component for web landing page.
@@ -68,11 +70,16 @@ const IndexPage: FC<IDocumentIndexSerialized> = ({
 
     const [wasmWorkerMessages, setWasmWorkerMessages] = useState<String[]>([]);
     const [tsWorkerMessages, setTsWorkerMessages] = useState<String[]>([]);
+    const {runtime} = useWasmRuntime(path.relative("../rust/pkg"));
+
+    useEffect(() => {
+        if (runtime) console.log("Runtime ready")
+    }, [runtime])
 
     useEffect(() => {
         // From https://webpack.js.org/guides/web-workers/#syntax
         wasmWorkerRef.current = new Worker(
-        new URL('../src/wasm.worker.ts', import.meta.url)
+        new URL('../src/useBathysphereApi.worker.ts', import.meta.url)
         );
         tsWorkerRef.current = new Worker(
         new URL('../src/ts.worker.ts', import.meta.url)

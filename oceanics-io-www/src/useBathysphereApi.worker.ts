@@ -1,3 +1,9 @@
+// Needed to declare this as a module. Also shows that imports
+// function normally in workers.
+import { shared } from './shared';
+
+const ctx: Worker = self as unknown as Worker;
+
 /**
  * Runtime handle to which we will memoize the active runtime. 
  */
@@ -15,28 +21,44 @@ let runtime = null;
  * 
  * TODO: WASM
  */
-export const initRuntime = async () => {
+async function start() {
+  // From https://github.com/wasm-tool/wasm-pack-plugin
   try {
-    //@ts-ignore
-    runtime = await import('../wasm');
+    runtime = await import('../rust/pkg');
     runtime.panic_hook();
-    return {
-      ready: true,
-    };
+    runtime.greet();
+    ctx.postMessage({
+      type: 'status',
+      data: {
+        ready: true
+      },
+    });
   } catch (err: any) {
-    return {
-      ready: false,
-      error: err.message
-    };
+    ctx.postMessage({
+      type: 'status',
+      data: {
+        ready: false,
+        error: err.message
+      },
+    });
   }
 }
+
+ctx.addEventListener('message', ({data}) => {
+  switch (data.type) {
+    case 'start':
+      start();
+      return;
+  }
+});
+
 
 /**
  * Get public JSON data. 
  * 
  * Return an error JSON object if something goes wrong.
  */
-export const getPublicJsonData = async (url: string): Promise<object> => {
+const getPublicJsonData = async (url: string): Promise<object> => {
   return fetch(url)
     .then(r => r.json())
     .catch((err) => Object({
@@ -54,7 +76,7 @@ type IRegister = {
 /**
  * Create a new account for our API and services.
  */
-export const register = async ({
+const register = async ({
   email,
   password,
   apiKey,
@@ -84,7 +106,7 @@ type IQuery = {
 /**
  * Get the index.
  */
-export const query = async ({
+const query = async ({
   accessToken,
   server,
   route = ""
@@ -110,7 +132,7 @@ type ILogin = {
 /**
  * Login and get a JWT.
  */
-export const login = async ({
+const login = async ({
   email,
   password,
   server
@@ -137,7 +159,7 @@ const transformName = (name: string): string => name.toLowerCase().split(" ").jo
 /**
  * Page anchor hash
  */
-export const locationHash = async (name: string): Promise<string> =>
+const locationHash = async (name: string): Promise<string> =>
   `#${transformName(name)}`;
 
 type Icon = {
@@ -161,7 +183,7 @@ type ISorted = {
 /** 
  * Generate derived fields, and match metadata to asset files.
  */
-export const sorted = async ({ tiles, icons }: ISorted) => {
+const sorted = async ({ tiles, icons }: ISorted) => {
 
   const lookup = Object.fromEntries(
     icons.map(({ relativePath, publicURL }) => [relativePath, publicURL])
@@ -209,7 +231,7 @@ type ICodex = {
 /**
  * Find similar symbolic patterns, for word matching usually.
  */
-export const codex = async ({ edges }: ICodex): Promise<Dictionary> => {
+const codex = async ({ edges }: ICodex): Promise<Dictionary> => {
 
   let mapping: Dictionary = {};
 
@@ -248,7 +270,7 @@ type HistogramResult = { total: number; max: number; };
  * 
  * There should only be positive values for the y-axis.
  */
-export const histogramReducer = (histogram: [number, number][]): HistogramResult => histogram.reduce(
+const histogramReducer = (histogram: [number, number][]): HistogramResult => histogram.reduce(
   ({ total, max }, [bin, count]) => {
     if (count < 0) throw Error(`Negative count value, ${count} @ ${bin}`);
 
@@ -263,7 +285,7 @@ export const histogramReducer = (histogram: [number, number][]): HistogramResult
 /**
  * Create vertex array buffer
  */
-export async function initParticles(res: number) {
+async function initParticles(res: number) {
   return new Uint8Array(Array.from(
     { length: res * res * 4 },
     () => Math.floor(Math.random() * 256)
@@ -289,7 +311,7 @@ type IParseIconSet = {
  * Not a heavy performance hit, but some of the sprite sheet logic can be moved in here
  * eventually as well.
  */
-export const parseIconSet = async ({ nodes, templates, worldSize }: IParseIconSet) => {
+const parseIconSet = async ({ nodes, templates, worldSize }: IParseIconSet) => {
 
   const lookup = Object.fromEntries(
     nodes.map(({ relativePath, publicURL }) =>
@@ -404,7 +426,7 @@ const GeoJsonSource = ({
 /**
  * Format the user location
  */
-export const userLocation = async (
+const userLocation = async (
   coordinates: [number, number],
   iconImage: string
 ) =>
@@ -423,7 +445,7 @@ export const userLocation = async (
 /**
  * Retrieve arbitrary GeoJson source
  */
-export const getData = async (url: string, standard: string) => {
+const getData = async (url: string, standard: string) => {
   return await fetch(url)
     .then(response => response.json())
     .then(({ features }) => GeoJsonSource({ features, standard }));
@@ -443,7 +465,7 @@ const logNormal = (x: number, m: number = 0, s: number = 1.0): number =>
 /**
  * Retrieve a piece of a vertex array buffer from object storage.
  */
-export const getFragment = async (target: string, key: string, attribution: string) => {
+const getFragment = async (target: string, key: string, attribution: string) => {
 
   const url = `${target}/${key}`;
   const blob = await fetch(url).then(response => response.blob());
@@ -515,7 +537,7 @@ type Vertex = {
  * Average a vertex array down to a single point. Will
  * work with XYZ and or XY, assuming the Z=0.
  */
-export const reduceVertexArray = async (vertexArray: Vertex[]) => {
+const reduceVertexArray = async (vertexArray: Vertex[]) => {
   return vertexArray.reduce(
     ([x, y, z = 0], { coordinates: [Δx, Δy, Δz = 0] }) =>
       [
