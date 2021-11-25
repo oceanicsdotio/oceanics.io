@@ -1,3 +1,4 @@
+import type {MutableRefObject} from "react";
 export const shared = "Some shared variable";
 
 export interface SharedWorkerGlobalScope {
@@ -16,3 +17,5 @@ export type FileSystem = {
         key: string;
     }[];
 };
+
+export type WorkerRef = MutableRefObject<Worker|null>

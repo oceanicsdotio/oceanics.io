@@ -2,7 +2,7 @@
  * React friends.
  */
 import { useEffect, useRef, useState } from "react";
-import type {MutableRefObject} from "react";
+import type {WorkerRef} from "../workers/shared";
 
 /**
  * Consistent styling.
@@ -23,7 +23,7 @@ type IHistogramCanvas = {
     histogram: [number, number][];
     caption: string;
     foreground?: string;
-    worker: MutableRefObject<SharedWorker|null>;
+    worker: WorkerRef;
 }
 
 /**

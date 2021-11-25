@@ -2,13 +2,13 @@
  * React friends.
  */
 import { useEffect, useRef, useState } from "react";
-import type {MutableRefObject} from "react"
+import type {WorkerRef} from "../workers/shared"
 
 
 type IImageData = {
     source?: string;
     metadataFile?: string;
-    worker: MutableRefObject<SharedWorker|null>;
+    worker: WorkerRef;
 };
 
 /**
@@ -38,7 +38,7 @@ export const useImageDataTexture = ({
     useEffect(() => {
         if (!metadataFile || !worker.current) return
             
-        worker.current.port.postMessage({
+        worker.current.postMessage({
             type: "getPublicJsonData",
             data: metadataFile
         });
@@ -90,7 +90,7 @@ export const useImageDataTexture = ({
      * not cleaned up.
      */
     useEffect(() => {
-        if (metadata && imageData && worker.current) worker.current.port.close();
+        if (metadata && imageData && worker.current) worker.current.close();
     }, [ metadata, imageData ]);
 
     return {

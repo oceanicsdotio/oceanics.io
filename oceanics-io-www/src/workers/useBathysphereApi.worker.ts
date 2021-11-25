@@ -539,16 +539,18 @@ const reduceVertexArray = async (vertexArray: Vertex[]) => {
 
 ctx.onconnect = (event: MessageEvent) => {
   const [port] = event.ports;
-  port.onmessage = ({data}) => {
+  port.addEventListener("message", async ({data}) => {
     switch (data.type) {
       case "start":
-        start(port);
+        await start(port);
         return;
       case "status":
         port.postMessage({
           type: "status",
           data: "ready",
         });
+        return;
     }
-  }
+  })
+  port.start();
 };
