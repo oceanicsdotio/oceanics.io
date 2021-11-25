@@ -1,14 +1,21 @@
-const {readFileSync, writeFileSync} = require("fs");
+import type {Handler} from "@netlify/functions"
+import {readFileSync, writeFileSync} from "fs";
 
-const calculateRow = ({previous, word, symbol}) => {
+
+interface RowAccumulation {
+    previous: number;
+    word: string;
+    symbol: string;
+}
+
+const calculateRow = ({previous, word, symbol}: RowAccumulation) => {
 
     const row = [previous[0] + 1];
     for (let jj = 1; jj < word.length + 1; jj++) {
         row.push(Math.min(
             row[jj-1] + 1, // insert, 
             previous[jj] + 1, // delete, 
-            previous[jj-1] + 
-                (word[jj-1] !== symbol | 0) // replace
+            previous[jj-1] + Number(word[jj-1] !== symbol) // replace
         ));
     }
     return row;
@@ -35,7 +42,7 @@ const search = ({
                 word: pattern, 
                 symbol
             }), 
-            [...Array(pattern.length + 1).keys()]
+            Array(Array(pattern.length + 1).keys())
         ).pop();
        
         if (cost <= maxCost) result.push([word, cost]);
@@ -70,7 +77,7 @@ const trie = ({
             node = node.children[c];
             node.weight = 
                 initialWeight && encode ?
-                ((typeof node.weight === "undefined" || !node.weight) |
+                ((typeof node.weight === "undefined" || !node.weight) ||
                 encode(node.weight)) :
                 undefined;    
         });
@@ -102,7 +109,7 @@ function recurse({
             word: pattern, 
             symbol
         }) : 
-        [...Array(pattern.length + 1).keys()];
+        Array(Array(pattern.length + 1).keys());
 
     // cost of this word
     const isWord = "word" in node && node.word;
@@ -134,43 +141,31 @@ function recurse({
 };
 
 
-// exports.handler = async ({
-//     queryStringParameters
-// }) => {
-//     try {    
-//         return {
-//             statusCode: 200,
-//             headers: { 'Content-Type': 'application/json' },
-//             body: JSON.stringify(JSON.parse(Body.toString('utf-8')))
-//         }; 
-//     } catch (err) {
-//         return { 
-//             statusCode: err.statusCode || 500, 
-//             body: err.message
-//         };
-//     }
-// }
+const handler: Handler = async ({
+    body
+}) => {
+    try {    
+        return {
+            statusCode: 200,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(JSON.parse(body))
+        }; 
+    } catch (err) {
+        return { 
+            statusCode: err.statusCode || 500, 
+            body: err.message
+        };
+    }
+}
 
 
-const words = readFileSync("functions/lexicon/words.txt")
-    .toString()
-    .split("\n");
+// const words = readFileSync("functions/lexicon/words.txt")
+//     .toString()
+//     .split("\n");
     
 // writeFileSync(
 //     "functions/lexicon/lexicon.json", 
 //     JSON.stringify(trie({words}))
 // );
 
-console.log({
-    word: "ocean", 
-    search: search({
-        words, 
-        pattern: "ocean", 
-        maxCost: 1
-    }),
-    recursive: recurse({
-        node: trie({words}), 
-        pattern: "ocean", 
-        maxCost: 1
-    })
-});
+export {handler}

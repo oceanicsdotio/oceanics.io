@@ -1,4 +1,5 @@
-const { Endpoint, S3 } = require('aws-sdk');
+import type {Handler} from "@netlify/functions"
+import { Endpoint, S3 } from 'aws-sdk';
 
 const spacesEndpoint = new Endpoint('nyc3.digitaloceanspaces.com');
 const Bucket = "oceanicsdotio";
@@ -8,6 +9,11 @@ const s3 = new S3({
     secretAccessKey: process.env.SPACES_SECRET_KEY
 });
 
+interface IQuery {
+    Service: string;
+    Key: string;
+    Ext: string;
+}
 
 /**
  * Browse saved results for a single model configuration. 
@@ -18,13 +24,15 @@ const s3 = new S3({
 
  * You can only access results for that test, although multiple collections * may be stored in a single place 
  */
-exports.handler = async ({
-    queryStringParameters: {
+const handler: Handler = async ({
+    queryStringParameters
+}) => {
+
+    const {
         Service="MidcoastMaineMesh",
         Key="midcoast_elements",
         Ext="csv",
-    }
-}) => {
+    } = queryStringParameters as unknown as IQuery
     try {    
         const {Body} = await s3.getObject({
             Bucket,
@@ -49,3 +57,6 @@ exports.handler = async ({
         };
     }
 }
+
+
+export {handler}

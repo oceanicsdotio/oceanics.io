@@ -1,15 +1,25 @@
-const fs = require('fs');
+import type { Handler } from '@netlify/functions';
+import { readFileSync, writeFileSync } from 'fs';
 
-exports.handler = async ({
-    infile='src/data/maine-towns-water.json',
-    outfile='src/data/maine-coast-minified.geojson'
+interface IQuery {
+    infile: string;
+    outfile: string;
+}
+
+const handler: Handler = async ({
+    queryStringParameters
 }) => {
 
-    // https://gis.maine.gov/arcgis/rest/services/Boundaries/Maine_Boundaries_Town_Townships/MapServer/2/query?where=LAND%20%3D%20%27n%27&outFields=OBJECTID,TOWN,COUNTY,ISLAND,ISLANDID,TYPE,Shape,GlobalID,Shape.STArea(),last_edited_date,CNTYCODE&outSR=4326&f=json
-    let data = JSON.parse(fs.readFileSync(infile));
+    const {
+        infile='src/data/maine-towns-water.json',
+        outfile='src/data/maine-coast-minified.geojson'
+    } = queryStringParameters as unknown as IQuery;
 
-    const counter = (a, b) => 
-        Object({...a, [b]: b in a ? a[b]+1 : 1});
+    // https://gis.maine.gov/arcgis/rest/services/Boundaries/Maine_Boundaries_Town_Townships/MapServer/2/query?where=LAND%20%3D%20%27n%27&outFields=OBJECTID,TOWN,COUNTY,ISLAND,ISLANDID,TYPE,Shape,GlobalID,Shape.STArea(),last_edited_date,CNTYCODE&outSR=4326&f=json
+    let data = JSON.parse(readFileSync(infile).toString());
+
+    // const counter = (a, b) => 
+    //     Object({...a, [b]: b in a ? a[b]+1 : 1});
 
     // const ringCount = data.features
     //     .map(({geometry:{rings}})=>rings.length)
@@ -36,9 +46,11 @@ exports.handler = async ({
         }
     );
 
-    fs.writeFileSync(outfile, text);
+    writeFileSync(outfile, text);
 
     return {
         statusCode: 204
     };
 };
+
+export {handler}
