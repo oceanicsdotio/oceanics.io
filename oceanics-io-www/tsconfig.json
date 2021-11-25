@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "incremental": true, /* Enable incremental compilation */
     "target": "es5",
     "lib": [
       "dom",
@@ -8,22 +9,31 @@
     ],
     "allowJs": true,
     "skipLibCheck": true,
-    "strict": false,
+    "strict": true,
     "forceConsistentCasingInFileNames": true,
+    "noUnusedLocals": false, /* Report errors on unused locals. */
+    "noUnusedParameters": true, /* Report errors on unused parameters. */
+    "noImplicitReturns": true,
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve"
+    "jsx": "preserve",
+    "typeRoots": ["./src/@types", "./node_modules/@types"],
   },
   "include": [
     "next-env.d.ts",
     "**/*.ts",
-    "**/*.tsx"
+    "**/*.tsx",
+    "typings.d.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "useOceanside*",
+    "useGlsl*",
+    "useLagrangian*",
+    "useSelectChannels*"
   ]
 }
