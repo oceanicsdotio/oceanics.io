@@ -23,12 +23,13 @@ import "highlight.js/styles/a11y-dark.css"
  */
 import Document from "oceanics-io-ui/build/components/References/Document";
 import Equation from "oceanics-io-ui/build/components/References/Equation";
+// import Inline from "oceanics-io-ui/build/components/References/Inline";
 import type { IDocumentSerialized, DocumentSerializedType, QueryType } from "oceanics-io-ui/build/components/References/types";
 import { readDocument, createIndex } from "../src/next-util";
 import type { GetStaticPaths, GetStaticProps } from "next";
 import useDeserialize from "oceanics-io-ui/build/hooks/useDeserialize";
 
-const embeddedComponents = { Equation }
+const embeddedComponents = { Equation };
 
 const ArticlePage: FC<IDocumentSerialized> = ({
     document,

@@ -14,27 +14,7 @@ import type { IDocumentIndexSerialized, QueryType } from "oceanics-io-ui/build/c
 import type { GetStaticProps } from "next";
 import { createIndex, readIndexedDocuments } from "../src/next-util";
 import useDeserialize from "oceanics-io-ui/build/hooks/useDeserialize";
-import useWasmRuntime from "../src/hooks/useWasmRuntime";
-import useSharedWorkerState from "../src/hooks/useSharedWorkerState";
 
-
-const createBathysphereWorker = () => {
-    return new SharedWorker(
-        new URL("../src/workers/useBathysphereApi.worker.ts", import.meta.url).toString()
-    );
-}
-
-const createObjectStorageWorker = () => {
-    return new SharedWorker(
-        new URL("../src/workers/useObjectStorage.worker.ts", import.meta.url).toString()
-    );
-}
-
-const createOpenApiLoaderWorker = () => {
-    return new SharedWorker(
-        new URL("../src/workers/useOpenApiLoader.worker.ts", import.meta.url).toString()
-    );
-}
 
 /**
  * Base component for web landing page.
@@ -84,26 +64,6 @@ const IndexPage: FC<IDocumentIndexSerialized> = ({
         navigate("/", {label}, true)
     }, [navigate])
 
-    const bathysphereWorker = useSharedWorkerState("bathysphereApi");
-    const objectStorageWorker = useSharedWorkerState("S3");
-    const openApiWorker = useSharedWorkerState("openApiLoader");
-    const {runtime} = useWasmRuntime();
-
-    useEffect(() => {
-        if (runtime) console.log("Runtime ready")
-    }, [runtime])
-
-    useEffect(() => {
-        bathysphereWorker.start(createBathysphereWorker());
-    }, []);
-
-    useEffect(() => {
-        objectStorageWorker.start(createObjectStorageWorker());
-    }, []);
-
-    useEffect(() => {
-        openApiWorker.start(createOpenApiLoaderWorker());
-    }, []);
 
     return (
         <>
