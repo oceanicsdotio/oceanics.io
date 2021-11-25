@@ -4071,6 +4071,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/sharedworker@npm:^0.0.60":
+  version: 0.0.60
+  resolution: "@types/sharedworker@npm:0.0.60"
+  checksum: 1483ca57b7daa18c78df3fb715b12423d21d1e72b364c17acf7102b15ff4c9f8f2a0694fbab0166e6c0071e1b62d8d8785a15e1fe17554fd9650d783dd848d61
+  languageName: node
+  linkType: hard
+
 "@types/source-list-map@npm:*":
   version: 0.1.2
   resolution: "@types/source-list-map@npm:0.1.2"
@@ -13963,6 +13970,7 @@ __metadata:
     "@types/node": ^16.11.7
     "@types/prop-types": ^15.7.4
     "@types/react": ^17.0.34
+    "@types/sharedworker": ^0.0.60
     "@types/xmldom": ^0.1.31
     "@types/yaml": ^1.9.7
     "@wasm-tool/wasm-pack-plugin": ^1.6.0

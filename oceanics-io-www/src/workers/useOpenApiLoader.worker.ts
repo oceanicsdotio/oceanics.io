@@ -1,6 +1,7 @@
 import SwaggerParser from "@apidevtools/swagger-parser";
 import YAML from "yaml";
-const ctx: Worker = self as unknown as Worker;
+import type {SharedWorkerGlobalScope} from "./shared";
+const ctx: SharedWorkerGlobalScope = self as any;
 
 
 /** 
@@ -158,13 +159,16 @@ const scrapeIndexPage = async (url: string) =>
     fetch(url).then(response => response.json());
 
   
-ctx.addEventListener("message", (evt) => {
-    switch (evt.data.type) {
-        case "status":
-            ctx.postMessage({
-                type: "status",
-                data: "ready"
-            });
-            return;
+ctx.onconnect = ({ports}: MessageEvent) => {
+    const [port] = ports
+    port.onmessage = ({data}) => {
+        switch (data.type) {
+            case "status":
+                port.postMessage({
+                    type: "status",
+                    data: "ready"
+                });
+                return;
+        }
     }
-});
+}

@@ -1,6 +1,6 @@
 import { DOMParser } from "xmldom";
-import type { FileSystem } from "./shared";
-const ctx: Worker = self as unknown as Worker;
+import type { FileSystem, SharedWorkerGlobalScope } from "./shared";
+const ctx: SharedWorkerGlobalScope = self as any;
 
 /**
  * Make HTTP request to S3 service for metadata about available
@@ -56,27 +56,28 @@ const fetchImageBuffer = async (url: string): Promise<Float32Array> => {
     }
 }
 
-const onMessage = async (event: any) => {
-    switch (event.data.type) {
+ctx.onconnect = ({ports}: MessageEvent) => {
+    const [port] = ports
+    port.onmessage = async ({data}: MessageEvent) => {
+    switch (data.type) {
         case "status":
-            ctx.postMessage({
+            port.postMessage({
                 type: "status",
                 data: "ready",
             });
             return;
         case "index":
-            ctx.postMessage({
+            port.postMessage({
                 type: "data",
-                data: await getFileSystem(event.data.url),
+                data: await getFileSystem(data.url),
             });
             return;
         case "blob":
-            ctx.postMessage({
+            port.postMessage({
                 type: "data",
-                data: await fetchImageBuffer(event.data.url),
+                data: await fetchImageBuffer(data.url),
             });
             return
     }
 }
-
-ctx.addEventListener("message", onMessage);
+}

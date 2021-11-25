@@ -1,8 +1,8 @@
 /**
  * React and friends.
  */
-import React, { useCallback, useRef, useEffect, useState } from "react";
-import type {FC, Dispatch, SetStateAction} from "react"
+import React, { useCallback, useEffect } from "react";
+import type {FC} from "react"
 import { useRouter } from "next/router";
 
 /**
@@ -15,51 +15,25 @@ import type { GetStaticProps } from "next";
 import { createIndex, readIndexedDocuments } from "../src/next-util";
 import useDeserialize from "oceanics-io-ui/build/hooks/useDeserialize";
 import useWasmRuntime from "../src/hooks/useWasmRuntime";
+import useSharedWorkerState from "../src/hooks/useSharedWorkerState";
 
 
 const createBathysphereWorker = () => {
-    return new Worker(
+    return new SharedWorker(
         new URL("../src/workers/useBathysphereApi.worker.ts", import.meta.url)
     );
 }
 
 const createObjectStorageWorker = () => {
-    return new Worker(
+    return new SharedWorker(
         new URL("../src/workers/useObjectStorage.worker.ts", import.meta.url)
     );
 }
 
 const createOpenApiLoaderWorker = () => {
-    return new Worker(
+    return new SharedWorker(
         new URL("../src/workers/useOpenApiLoader.worker.ts", import.meta.url)
     );
-}
-
-const useWorkerState = (name: string) => {
-    const ref = useRef<Worker|null>();
-    const [messages, setMessages] = useState<String[]>([]);
-
-    const onMessageHandler = (name: string, setValue: Dispatch<SetStateAction<any[]>>) => ({data}: any) => {
-        console.log(`Message from ${name} worker:`, data);
-        setValue((prev: any[]) => [...prev, data]);
-    }
-
-    const start = (worker: Worker) => {
-        ref.current = worker;
-        if (ref.current) {
-            ref.current.addEventListener("message", onMessageHandler(name, setMessages));
-            ref.current.postMessage({ type: "status" });
-        } else {
-            console.error(`${name} worker not ready`);
-        }
-        return ref.current
-    }
-
-    return {
-        ref,
-        messages,
-        start
-    }
 }
 
 /**
@@ -110,10 +84,9 @@ const IndexPage: FC<IDocumentIndexSerialized> = ({
         navigate("/", {label}, true)
     }, [navigate])
 
-    const bathysphereWorker = useWorkerState("bathysphereApi");
-    const objectStorageWorker = useWorkerState("S3");
-    const openApiWorker = useWorkerState("openApiLoader");
-
+    const bathysphereWorker = useSharedWorkerState("bathysphereApi");
+    const objectStorageWorker = useSharedWorkerState("S3");
+    const openApiWorker = useSharedWorkerState("openApiLoader");
     const {runtime} = useWasmRuntime();
 
     useEffect(() => {

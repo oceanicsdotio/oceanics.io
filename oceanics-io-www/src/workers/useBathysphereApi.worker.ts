@@ -1,8 +1,5 @@
-// Needed to declare this as a module. Also shows that imports
-// function normally in workers.
-import { shared } from "./shared";
-
-const ctx: Worker = self as unknown as Worker;
+import type { SharedWorkerGlobalScope } from "./shared";
+const ctx: SharedWorkerGlobalScope = self as any;
 
 /**
  * Runtime handle to which we will memoize the active runtime. 
@@ -21,19 +18,19 @@ let runtime = null;
  * We pass back the status and error message to the main
  * thread for troubleshooting.
  */
-async function start() {
+async function start(port: MessagePort) {
   try {
     runtime = await import("../../rust/pkg");
     runtime.panic_hook();
     runtime.greet();
-    ctx.postMessage({
+    port.postMessage({
       type: "status",
       data: {
         ready: true
       },
     });
   } catch (err: any) {
-    ctx.postMessage({
+    port.postMessage({
       type: "status",
       data: {
         ready: false,
@@ -42,9 +39,6 @@ async function start() {
     });
   }
 }
-
-
-
 
 /**
  * Get public JSON data. 
@@ -543,15 +537,18 @@ const reduceVertexArray = async (vertexArray: Vertex[]) => {
 };
 
 
-ctx.addEventListener("message", ({data}) => {
-  switch (data.type) {
-    case "start":
-      start();
-      return;
-    case "status":
-      ctx.postMessage({
-        type: "status",
-        data: "ready",
-      });
+ctx.onconnect = (event: MessageEvent) => {
+  const [port] = event.ports;
+  port.onmessage = ({data}) => {
+    switch (data.type) {
+      case "start":
+        start(port);
+        return;
+      case "status":
+        port.postMessage({
+          type: "status",
+          data: "ready",
+        });
+    }
   }
-});
+};

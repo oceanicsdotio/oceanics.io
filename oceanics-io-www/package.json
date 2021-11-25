@@ -27,6 +27,7 @@
     "@types/node": "^16.11.7",
     "@types/prop-types": "^15.7.4",
     "@types/react": "^17.0.34",
+    "@types/sharedworker": "^0.0.60",
     "@types/xmldom": "^0.1.31",
     "@types/yaml": "^1.9.7",
     "@wasm-tool/wasm-pack-plugin": "^1.6.0",
