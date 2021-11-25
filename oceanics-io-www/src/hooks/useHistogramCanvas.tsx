@@ -2,16 +2,12 @@
  * React friends.
  */
 import { useEffect, useRef, useState } from "react";
+import type {MutableRefObject} from "react";
 
 /**
  * Consistent styling.
  */
 import { ghost } from "oceanics-io-ui/build/palette";
-
-/**
- * Dedicated worker loader.
- */
-import useWasmWorkers from "./useWasmWorkers";
 
 /**
  * The bin size is known, since the bins are precalculated.
@@ -27,6 +23,7 @@ type IHistogramCanvas = {
     histogram: [number, number][];
     caption: string;
     foreground?: string;
+    worker: MutableRefObject<SharedWorker|null>;
 }
 
 /**
@@ -36,18 +33,13 @@ type IHistogramCanvas = {
 export const useHistogramCanvas = ({
     histogram, 
     caption,
+    worker,
     foreground = ghost
 }: IHistogramCanvas) => {
     /**
      * Handle to assign to canvas element instance
      */
     const ref = useRef(null);
-
-    /**
-     * Web worker for reducing histogram bins to the statistics
-     * required for consistent/adjustable rendering.
-     */
-    const { worker } = useWasmWorkers()
 
     /**
      * Summary stats include max and total. Set asynchonously by
@@ -65,8 +57,12 @@ export const useHistogramCanvas = ({
      * unmounts. 
      */
     useEffect(() => {
-        //@ts-ignore
-        if (worker.current) worker.current.histogramReducer(histogram).then(setStatistics);
+        if (!worker.current) return;
+        worker.current.port.postMessage({
+            type: "histogramReducer",
+            data: histogram
+        })
+        // TODO: wait, and .then(setStatistics)});
     }, [ worker ]);
 
     /**

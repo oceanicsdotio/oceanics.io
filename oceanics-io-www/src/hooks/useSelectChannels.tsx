@@ -18,7 +18,7 @@
  // import useWasmWorkers from "../hooks/useWasmWorkers";
  // import useFragmentQueue from "../hooks/useFragmentQueue";
  
- import useMapBox from "./useMapBox";
+ import useMapBox from "oceanics-io-ui/build/hooks/useMapBox";
  
  
  type ApplicationType = {
@@ -179,7 +179,6 @@
       */
      useEffect(() => {
          if (!map || !worker.current || !location) return;
-         // @ts-ignore
          worker.current.userLocation([
              location.coords.longitude,
              location.coords.latitude

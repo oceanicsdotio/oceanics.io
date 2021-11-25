@@ -6,3 +6,7 @@ declare module "*.worker.ts" {
     }
     export default WebpackWorker;
   }
+
+  declare module "*.glsl" {
+    export default string;
+  }

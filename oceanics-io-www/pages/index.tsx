@@ -20,19 +20,19 @@ import useSharedWorkerState from "../src/hooks/useSharedWorkerState";
 
 const createBathysphereWorker = () => {
     return new SharedWorker(
-        new URL("../src/workers/useBathysphereApi.worker.ts", import.meta.url)
+        new URL("../src/workers/useBathysphereApi.worker.ts", import.meta.url).toString()
     );
 }
 
 const createObjectStorageWorker = () => {
     return new SharedWorker(
-        new URL("../src/workers/useObjectStorage.worker.ts", import.meta.url)
+        new URL("../src/workers/useObjectStorage.worker.ts", import.meta.url).toString()
     );
 }
 
 const createOpenApiLoaderWorker = () => {
     return new SharedWorker(
-        new URL("../src/workers/useOpenApiLoader.worker.ts", import.meta.url)
+        new URL("../src/workers/useOpenApiLoader.worker.ts", import.meta.url).toString()
     );
 }
 

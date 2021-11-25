@@ -1,15 +1,10 @@
 import { useEffect, useReducer, useRef } from "react";
-import { useStaticQuery, graphql } from "gatsby";
-
-/**
- * Dedicated worker loaders.
- */
-import useWasmWorkers from "./useWasmWorkers"
+import type {MutableRefObject} from "react"
 
 /**
  * GraphQL fragment for static query to get sprite sheets and tile metadata.
  */
-const query = graphql`
+const query = `
     query {
         tiles: allOceansideYaml {
             templates: nodes {
@@ -31,6 +26,23 @@ const query = graphql`
         }
     }
 `
+
+
+interface IUseOceanside {
+    map: any;
+    gridSize: number;
+    worldSize: number;
+    backgroundColor: string;
+    worker: MutableRefObject<SharedWorker|null>;
+    query: {
+        tiles: {
+            templates: any;
+        };
+        icons: {
+            nodes: any;
+        }
+    };
+}
 
 /**
  * The `Oceanside` hook provides all of the functionality to
@@ -56,25 +68,21 @@ export const useOceanside = ({
     gridSize, 
     worldSize,
     backgroundColor = "#000000FF",
-}) => {
-
-    /**
-     * Ref for isometric view render target
-     */
-    const board = useRef(null);
-
-    /**
-     * Use graphql to fetch metadata and asset information for
-     * the pixel tile rendering engine. 
-     */
-    const {
+    worker,
+    query: {
         tiles: {
             templates
         }, 
         icons: {
             nodes
         }
-    } = useStaticQuery(query);
+    }
+}: IUseOceanside) => {
+
+    /**
+     * Ref for isometric view render target
+     */
+    const board = useRef(null);
 
     
     /**
@@ -112,11 +120,6 @@ export const useOceanside = ({
         },  null
     );
     
-    /**
-     * Web worker for background tasks, with frontend Wasm Runtime for drawing
-     */
-    const { worker, runtime } = useWasmWorkers();
-
     useEffect(() => {
         if (!worker.current || !map) return;
 
@@ -171,11 +174,10 @@ export const useOceanside = ({
     return {
         ref: board,
         onClick: (event) => {
-            event.persist(); // otherwise React eats it
             try {
                 // takeAnActionOrWait(event);
             } catch (err) {
-                console.log(err);
+                console.error(err);
             }
         }
     } 

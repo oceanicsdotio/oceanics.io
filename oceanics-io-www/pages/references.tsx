@@ -33,7 +33,7 @@ export default ReferencesPage;
 
 export const getStaticProps: GetStaticProps = () => Object({
     props: { 
-        documents: readIndexedDocuments(createIndex()).flatMap(({metadata})=>metadata.references),
+        documents: readIndexedDocuments(createIndex()).flatMap(({metadata}: any)=>metadata.references),
         description: "See the science",
         title: "References"
     }

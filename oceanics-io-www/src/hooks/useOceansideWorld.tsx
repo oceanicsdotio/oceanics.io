@@ -72,7 +72,6 @@ export const useOceansideWorld = ({
         }
 
         const offset = (worldSize - gridSize) / 2;
-       //@ts-ignore
         setMap(new runtime.MiniMap(
             offset, 
             offset/2, 
@@ -89,7 +88,6 @@ export const useOceansideWorld = ({
         map,
         ref: nav,
         onClick: (event: Event) => {
-            //@ts-ignore
             runtime.populateVisibleTiles(map, event);
         }
     } 

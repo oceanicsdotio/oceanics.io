@@ -65,7 +65,7 @@ export default ArticlePage;
 
 export const getStaticProps: GetStaticProps = async (slug) => {
     const document = readDocument(slug) as DocumentSerializedType;
-    const source = await serialize(document.content, {
+    const source = await serialize(document.content??"", {
         mdxOptions: {
             rehypePlugins: [[rehypeHighlight, {}]]
         }

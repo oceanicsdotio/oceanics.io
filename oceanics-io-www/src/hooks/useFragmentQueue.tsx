@@ -2,7 +2,9 @@
  * React friends
  */
 import { useState, useEffect } from "react";
-
+import type {MutableRefObject} from "react"
+import type {Map} from "mapbox-gl"
+import type {FileObject} from "../workers/shared";
 /**
  * Object storage hook
  */
@@ -19,8 +21,8 @@ const TARGET = "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com";
 const PREFIX = "MidcoastMaineMesh";
 
 type IFragmentQueue = {
-    worker: any;
-    map: any;
+    worker: MutableRefObject<SharedWorker|null>;
+    map: Map|null;
 }
 
 /**
@@ -34,7 +36,7 @@ export const useFragmentQueue = ({
      * Retrieve S3 file system meta data. The `null` target prevents any HTTP request
      * from happening.
      */ 
-    const fs = useObjectStorage(`${TARGET}?prefix=${PREFIX}/necofs_gom3_mesh/nodes/`);
+    const fs = useObjectStorage(`${TARGET}?prefix=${PREFIX}/necofs_gom3_mesh/nodes/`, worker);
    
     /**
      * The queue is an array of remote data assets to fetch and process. 
@@ -42,7 +44,7 @@ export const useFragmentQueue = ({
      * Updating the queue triggers `useEffect` hooks depending on whether
      * visualization elements have been passed in or assigned externally.
      */
-     const [ queue, setQueue ] = useState([]);
+     const [ queue, setQueue ] = useState<FileObject[]>([]);
 
      /**
       * By default set the queue to the fragments listed in the response
@@ -66,9 +68,12 @@ export const useFragmentQueue = ({
  
          if (map.getLayer(`mesh-${key}`)) return;
  
-         worker.current
-             .getFragment(TARGET, key, "UMass Dartmouth")
-             .then((x) => {map.addLayer(x)});
+         worker.current.port.postMessage({
+             type: "getFragment",
+             data: [TARGET, key, "UMass Dartmouth"]
+         })
+
+         // then listen .then((x) => {map.addLayer(x)});
         
      }, [ map, worker, queue ]);
 }

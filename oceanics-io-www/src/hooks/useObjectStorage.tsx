@@ -14,7 +14,7 @@ import type {FileSystem} from "../workers/shared";
  */
 export const useObjectStorage = (
   target: string,
-  worker: SharedWorker
+  worker: MutableRefObject<SharedWorker|null>
 ) => {
 
   /**
@@ -27,7 +27,10 @@ export const useObjectStorage = (
    */
   useEffect(() => {
     if (!target || !worker.current) return;
-    worker.current.getFileSystem(target).then(setFileSystem)
+    worker.current.port.postMessage({
+      type: "index",
+      url: target
+    })
   }, [worker]);
 
   return fileSystem;

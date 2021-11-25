@@ -1,6 +1,7 @@
 import { useEffect, useState, useReducer, useRef } from "react";
 import { lichen, orange } from "oceanics-io-ui/build/palette";
 import useWasmRuntime from "./useWasmRuntime";
+import type {PrismCursor} from "../../rust/pkg";
 
 
 type Points = [number, number][];
@@ -18,7 +19,7 @@ const rotatePath = (pts: Points, angle: number): Points  => {
 }
 
 
-const eventCoordinates = ({clientX, clientY}: EventLocation, canvas: HTMLCanvasElement) => {
+const eventCoordinates = ({clientX, clientY}: EventLocation, canvas: HTMLCanvasElement): [number, number] => {
     // Short hand for element reference frame
     const {left, top} = canvas.getBoundingClientRect();
     return [clientX - left, clientY - top]
@@ -42,6 +43,8 @@ type IOceansideOverlay = {
     gridSize: number;
     backgroundColor: string;
 }
+
+type ListenArgs = {key: string; repeat: boolean;}
 
 /**
  * The `Oceanside` hook provides all of the functionality to
@@ -84,14 +87,13 @@ export const useOceansideOverlay = ({
     /**
      * Complex cursor handled in Rust
      */
-    const [cursor, setCursor] = useState(null);
+    const [cursor, setCursor] = useState<PrismCursor|null>(null);
 
     /**
      * When runtime loads, create a cursor instance.
      */
     useEffect(()=>{
         if (!runtime) return;
-        //@ts-ignore
         setCursor(new runtime.PrismCursor(0.0, 0.0, window.devicePixelRatio, gridSize));
     }, [ runtime ]);
     
@@ -134,19 +136,17 @@ export const useOceansideOverlay = ({
 
     
     useEffect(() => {
-        const listeners = ["keyup", "keydown"].map((type) => {
+        const listeners = ["keyup", "keydown"].map((type: "keyup"|"keydown") => {
             const listen = ({key, repeat}: {key: string; repeat: boolean;}) => {
                 const symbol = key.toLowerCase();
                 if (repeat || !keys.hasOwnProperty(symbol)) return;
                 if (keys[symbol] === ("keyup" === type)) setKeys({ type, key: symbol });  
             };
-            //@ts-ignore
             window.addEventListener(type, listen, true);
             return [type, listen];
         });
         return () => {
-            //@ts-ignore
-            listeners.forEach((each) => window.removeEventListener(...each, true))
+            listeners.forEach((each: [string, (arg: ListenArgs)=>void]) => window.removeEventListener(...each, true))
         };
     }, [ keys ]);
   
@@ -164,9 +164,8 @@ export const useOceansideOverlay = ({
             !cursor
         ) return;
         const canvas: HTMLCanvasElement = overlay.current;
-        canvas.addEventListener('mousemove', (event) => {
+        canvas.addEventListener("mousemove", (event) => {
             const xy = eventCoordinates(event, canvas);
-            //@ts-ignore
             cursor.update(...xy);
         });
     
@@ -181,8 +180,10 @@ export const useOceansideOverlay = ({
         if (
             !overlay || 
             !overlay.current || 
-            !cursor
+            !cursor ||
+            !runtime
         ) return;
+
         const canvas: HTMLCanvasElement = overlay.current;
         const ctx = canvas.getContext(`2d`);
         if (!ctx) {
@@ -194,13 +195,10 @@ export const useOceansideOverlay = ({
         ).map(x => Number(x) * window.devicePixelRatio);
         const { width, height } = canvas;
 
-        
-        //@ts-ignore
         runtime.clear_rect_blending(ctx, width, height, backgroundColor);
         
         const Δx = 1; 
         const Δy = 1;
-        //@ts-ignore
         const [x, y]: [number, number] = [cursor.x(), cursor.y()];
 
         const cellSize = width/gridSize;

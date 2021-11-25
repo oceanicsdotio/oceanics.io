@@ -57,7 +57,7 @@ export const useDataStream = ({
      */
     useEffect(() => {
         if (!runtime || !dataStream || !ref.current) return;
-        const canvas: HTMLCanvasElement = ref.current;
+        const canvas: HTMLCanvasElement = ref.current as any;
 
         // use location based sunlight function
         const fcn = (t: number) => {
@@ -67,7 +67,7 @@ export const useDataStream = ({
             return runtime.photosynthetically_active_radiation(days, latitude, hours);
         };
 
-        canvas.addEventListener('mousemove', ({clientX, clientY}) => {
+        canvas.addEventListener("mousemove", ({clientX, clientY}) => {
             const {left, top} = canvas.getBoundingClientRect();
             dataStream.update_cursor(clientX-left, clientY-top);
         });
@@ -82,7 +82,7 @@ export const useDataStream = ({
         (function render() {
             const time = performance.now() - start;
             dataStream.push(time, fcn(time));
-            dataStream.draw(ref.current, time, {backgroundColor, streamColor, overlayColor, lineWidth, pointSize, fontSize, tickSize, labelPadding});
+            dataStream.draw(canvas, time, {backgroundColor, streamColor, overlayColor, lineWidth, pointSize, fontSize, tickSize, labelPadding});
             setMessage(`Light (N=${dataStream.size()})`);
             requestId = requestAnimationFrame(render);
 

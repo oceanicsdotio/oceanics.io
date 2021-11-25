@@ -2,13 +2,13 @@
  * React friends.
  */
 import { useEffect, useRef, useState } from "react";
+import type {MutableRefObject} from "react"
 
-
-import useWasmWorkers from "./useWasmWorkers";
 
 type IImageData = {
     source?: string;
     metadataFile?: string;
+    worker: MutableRefObject<SharedWorker|null>;
 };
 
 /**
@@ -17,13 +17,9 @@ type IImageData = {
  */
 export const useImageDataTexture = ({
     source="",
-    metadataFile=""
+    metadataFile="",
+    worker
 }: IImageData) => {
-
-    /**
-     * Load worker
-     */
-    const { worker } = useWasmWorkers();
 
     /**
      * Exported ref to draw textures to a secondary HTML canvas component
@@ -40,9 +36,14 @@ export const useImageDataTexture = ({
      * Fetch the metadata file. 
      */
     useEffect(() => {
-        if (metadataFile && worker.current)
-            //@ts-ignore
-            worker.current.getPublicJsonData(metadataFile).then(setMetadata);
+        if (!metadataFile || !worker.current) return
+            
+        worker.current.port.postMessage({
+            type: "getPublicJsonData",
+            data: metadataFile
+        });
+
+        // TODO: then(setMetadata)
     }, [ worker ]);
 
 
@@ -58,7 +59,7 @@ export const useImageDataTexture = ({
         if (!source) return;
     
         const img = new Image();
-        img.addEventListener('load', () => {
+        img.addEventListener("load", () => {
             setImageData(img);
         }, {
             capture: true,
@@ -89,8 +90,7 @@ export const useImageDataTexture = ({
      * not cleaned up.
      */
     useEffect(() => {
-        //@ts-ignore
-        if (metadata && imageData && worker.current) worker.current.terminate();
+        if (metadata && imageData && worker.current) worker.current.port.close();
     }, [ metadata, imageData ]);
 
     return {

@@ -92,7 +92,6 @@ export const useLagrangianTrajectory ({
      */
     useEffect(() => {
         if (!worker.current) return;
-        //@ts-ignore
         worker.current.initParticles(res)
             .then(setParticles)
             .catch(() => {setError("There was a runtime error.")});
