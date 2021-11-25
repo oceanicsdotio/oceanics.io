@@ -17,7 +17,7 @@
   */
  // import useWasmWorkers from "../hooks/useWasmWorkers";
  // import useFragmentQueue from "../hooks/useFragmentQueue";
- // @ts-ignore
+ 
  import useMapBox from "./useMapBox";
  
  

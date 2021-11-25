@@ -66,7 +66,7 @@ type IOceansideOverlay = {
  * @param {String} args.backgroundColor - color of animation loop blending
  * @param {String} args.font - font for metadata overlays
  */
-export default ({
+export const useOceansideOverlay = ({
     gridSize,
     backgroundColor = "#00000000",
 }: IOceansideOverlay) => {
@@ -257,3 +257,5 @@ export default ({
         ref: overlay
     }  
 };
+
+export default useOceansideOverlay;

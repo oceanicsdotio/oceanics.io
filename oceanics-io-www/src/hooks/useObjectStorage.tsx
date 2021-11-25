@@ -1,19 +1,19 @@
 /**
  * React friends.
  */
-import { MutableRefObject } from "hoist-non-react-statics/node_modules/@types/react";
+import type { MutableRefObject } from "react";
 import { useEffect, useState, useRef } from "react";
 
 /**
  * Dedicated Worker loader
  */
 import ObjectStorageWorker from "worker-loader!../workers/useObjectStorage.worker.ts";
-import type {FileSystem} from "../workers/useObjectStorage.worker";
+import type {FileSystem} from "../workers/shared";
 /**
  * The `useObjectStorage` hook provides a directory like structure
  * that describes assets in an S3-compatible storage service. 
  */
-export default (
+export const useObjectStorage = (
   target: string
 ) => {
 
@@ -55,3 +55,5 @@ export default (
 
   return fileSystem;
 };
+
+export default useObjectStorage;

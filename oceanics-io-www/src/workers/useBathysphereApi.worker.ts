@@ -1,6 +1,6 @@
 // Needed to declare this as a module. Also shows that imports
 // function normally in workers.
-import { shared } from './shared';
+import { shared } from "./shared";
 
 const ctx: Worker = self as unknown as Worker;
 
@@ -11,31 +11,30 @@ let runtime = null;
 
 /**
  * Import Rust-WASM runtime, and add a panic hook to give 
- * more informative error messages on failure.
+ * more informative error messages on failure. 
  * 
- * I'm not totally sure if that matter in the worker,
- * but whatever. 
+ * Using dynamic import this way with Webpack requires the path to be 
+ * hard-coded, and not supplied as a variable:
+ * https://stackoverflow.com/questions/42908116/webpack-critical-dependency-the-request-of-a-dependency-is-an-expression
+ * https://github.com/wasm-tool/wasm-pack-plugin
  * 
  * We pass back the status and error message to the main
  * thread for troubleshooting.
- * 
- * TODO: WASM
  */
 async function start() {
-  // From https://github.com/wasm-tool/wasm-pack-plugin
   try {
-    runtime = await import('../rust/pkg');
+    runtime = await import("../../rust/pkg");
     runtime.panic_hook();
     runtime.greet();
     ctx.postMessage({
-      type: 'status',
+      type: "status",
       data: {
         ready: true
       },
     });
   } catch (err: any) {
     ctx.postMessage({
-      type: 'status',
+      type: "status",
       data: {
         ready: false,
         error: err.message
@@ -44,13 +43,7 @@ async function start() {
   }
 }
 
-ctx.addEventListener('message', ({data}) => {
-  switch (data.type) {
-    case 'start':
-      start();
-      return;
-  }
-});
+
 
 
 /**
@@ -83,12 +76,12 @@ const register = async ({
   server
 }: IRegister): Promise<object> =>
   fetch(`${server}/api/auth`, {
-    method: 'POST',
-    mode: 'cors',
-    cache: 'no-cache',
+    method: "POST",
+    mode: "cors",
+    cache: "no-cache",
     headers: {
-      'Content-Type': 'application/json',
-      'X-Api-Key': apiKey
+      "Content-Type": "application/json",
+      "X-Api-Key": apiKey
     },
     body: JSON.stringify({
       username: email,
@@ -112,12 +105,12 @@ const query = async ({
   route = ""
 }: IQuery): Promise<object> =>
   fetch(`${server}/api/${route}`, {
-    method: 'GET',
-    mode: 'cors',
-    cache: 'no-cache',
+    method: "GET",
+    mode: "cors",
+    cache: "no-cache",
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `:${accessToken}`
+      "Content-Type": "application/json",
+      "Authorization": `:${accessToken}`
     }
   })
     .then(response => response.json())
@@ -138,12 +131,12 @@ const login = async ({
   server
 }: ILogin): Promise<string> =>
   fetch(`${server}/api/auth`, {
-    method: 'GET',
-    mode: 'cors',
-    cache: 'no-cache',
+    method: "GET",
+    mode: "cors",
+    cache: "no-cache",
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `${email}:${password}`
+      "Content-Type": "application/json",
+      "Authorization": `${email}:${password}`
     }
   })
     .then(response => response.json())
@@ -342,9 +335,9 @@ const MAX_VALUE = 5200;
  * Get rid of the junk
  */
 const cleanAndParse = (text: string): string[] =>
-  text.replace('and', ',')
-    .replace(';', ',')
-    .split(',')
+  text.replace("and", ",")
+    .replace(";", ",")
+    .split(",")
     .map(each => each.trim());
 
 type IEsri = {
@@ -374,9 +367,9 @@ type PointFeatureResult = {
  * and arbitrary properties.
  */
 const PointFeature = (x: number, y: number, properties: object): PointFeatureResult => Object({
-  type: 'Feature',
+  type: "Feature",
   geometry: {
-    type: 'Point',
+    type: "Point",
     coordinates: [x, y]
   },
   properties
@@ -548,3 +541,17 @@ const reduceVertexArray = async (vertexArray: Vertex[]) => {
     [0, 0, 0]
   )
 };
+
+
+ctx.addEventListener("message", ({data}) => {
+  switch (data.type) {
+    case "start":
+      start();
+      return;
+    case "status":
+      ctx.postMessage({
+        type: "status",
+        data: "ready",
+      });
+  }
+});

@@ -26,18 +26,15 @@ type IFragmentQueue = {
 /**
  * Encapsulate big data queued loading
  */
-export default ({
+export const useFragmentQueue = ({
     worker,
     map
 }: IFragmentQueue) => {
-
-
     /**
      * Retrieve S3 file system meta data. The `null` target prevents any HTTP request
      * from happening.
      */ 
     const fs = useObjectStorage(`${TARGET}?prefix=${PREFIX}/necofs_gom3_mesh/nodes/`);
- 
    
     /**
      * The queue is an array of remote data assets to fetch and process. 
@@ -47,7 +44,6 @@ export default ({
      */
      const [ queue, setQueue ] = useState([]);
 
-
      /**
       * By default set the queue to the fragments listed in the response
       * from S3 object storage queries.
@@ -56,24 +52,25 @@ export default ({
          if (fs) setQueue(fs.objects.filter(x => !x.key.includes("undefined")));
      }, [ fs ]);
  
- 
      /**
       * Request all NECOFS fragments sequentially. 
       * 
       * All of this should be cached by the browser
       */
      useEffect(()=>{
-         if (!map || !worker.current || !meshQueue.length) return;
+         if (!map || !worker.current || !queue.length) return;
  
-         const key = meshQueue[0].key;
+         const key = queue[0].key;
  
-         setMeshQueue(meshQueue.slice(1, meshQueue.length));
+         setQueue(queue.slice(1, queue.length));
  
          if (map.getLayer(`mesh-${key}`)) return;
  
          worker.current
              .getFragment(TARGET, key, "UMass Dartmouth")
-             .then(x => {map.addLayer(x)});
+             .then((x) => {map.addLayer(x)});
         
-     }, [ map, worker, meshQueue ]);
+     }, [ map, worker, queue ]);
 }
+
+export default useFragmentQueue

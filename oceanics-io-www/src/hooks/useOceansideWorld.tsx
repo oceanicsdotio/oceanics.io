@@ -28,7 +28,7 @@ type IOceansideWorld = {
  * @param {number} args.waterLevel - Fraction of tidal evolution. Each tile has an elevation value. Tiles above `waterLevel` are always land, and therfore worth nothing. Other wet tiles become mud depending on the tidal cycle and their elevation.
  * @param {String} args.backgroundColor - color of animation loop blending
  */
-export default ({
+export const useOceansideWorld = ({
     gridSize, 
     worldSize, 
     waterLevel,
@@ -94,3 +94,5 @@ export default ({
         }
     } 
 };
+
+export default useOceansideWorld;

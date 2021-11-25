@@ -8,6 +8,7 @@ import { lichen, ghost } from "oceanics-io-ui/build/palette";
  * Synchronous front-end WASM Runtime
  */
 import useWasmRuntime from "./useWasmRuntime";
+import type { InteractiveDataStream } from "../../rust/pkg";
 
 /*
  * Time series data
@@ -37,13 +38,12 @@ export const useDataStream = ({
     /**
      * The data stream structure. 
      */
-    const [ dataStream, setStream ] = useState(null);
+    const [ dataStream, setStream ] = useState<InteractiveDataStream|null>(null);
 
     /**
      * Create the data stream once the runtime has loaded. 
      */
     useEffect(() => {
-        //@ts-ignore
         if (runtime) setStream(new runtime.InteractiveDataStream(capacity));
     }, [ runtime, capacity ]);
 
@@ -64,13 +64,11 @@ export const useDataStream = ({
             let days = t / 5000.0 % 365.0;
             let hours = days % 1.0;
             let latitude = 46.0;
-            //@ts-ignore
-            return (runtime.photosynthetically_active_radiation(days, latitude, hours));
+            return runtime.photosynthetically_active_radiation(days, latitude, hours);
         };
 
         canvas.addEventListener('mousemove', ({clientX, clientY}) => {
             const {left, top} = canvas.getBoundingClientRect();
-            //@ts-ignore
             dataStream.update_cursor(clientX-left, clientY-top);
         });
 
@@ -83,11 +81,8 @@ export const useDataStream = ({
 
         (function render() {
             const time = performance.now() - start;
-            //@ts-ignore
             dataStream.push(time, fcn(time));
-            //@ts-ignore
             dataStream.draw(ref.current, time, {backgroundColor, streamColor, overlayColor, lineWidth, pointSize, fontSize, tickSize, labelPadding});
-            //@ts-ignore
             setMessage(`Light (N=${dataStream.size()})`);
             requestId = requestAnimationFrame(render);
 

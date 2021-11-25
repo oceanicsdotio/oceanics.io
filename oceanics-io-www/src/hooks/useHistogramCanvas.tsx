@@ -33,7 +33,7 @@ type IHistogramCanvas = {
  * Calculate and draw a histogram from count data 
  * where 0.0 < x < 1.0.
  */
-export default ({
+export const useHistogramCanvas = ({
     histogram, 
     caption,
     foreground = ghost
@@ -107,4 +107,5 @@ export default ({
 
     return { statistics, ref, message };
 }
-    
+
+export default useHistogramCanvas;

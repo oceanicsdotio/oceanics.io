@@ -1,7 +1,7 @@
 
 
 
-export default () => {
+export const useFractalNoise = () => {
 
 
     useEffect(() => {
@@ -69,3 +69,5 @@ export default () => {
 
     
 }
+
+export default useFractalNoise

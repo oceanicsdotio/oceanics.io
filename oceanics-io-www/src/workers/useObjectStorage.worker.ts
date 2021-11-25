@@ -1,15 +1,6 @@
-import {DOMParser} from "xmldom";
-
-export type FileSystem = {
-    objects: {
-        key: string;
-        updated: string;
-        size: string;
-    }[];
-    collections: {
-        key: string;
-    }[];
-};
+import { DOMParser } from "xmldom";
+import type { FileSystem } from "./shared";
+const ctx: Worker = self as unknown as Worker;
 
 /**
  * Make HTTP request to S3 service for metadata about available
@@ -18,13 +9,13 @@ export type FileSystem = {
  * Use `xmldom.DOMParser` to parse S3 metadata as JSON file descriptors,
  * because window.DOMParser is not available in Web Worker 
  */
-export async function getFileSystem(url: string): Promise<FileSystem> {
+async function getFileSystem(url: string): Promise<FileSystem> {
 
     const parser = new DOMParser();
     const text = await fetch(url, {
-        method: 'GET',
-        mode: 'cors',
-        cache: 'no-cache'
+        method: "GET",
+        mode: "cors",
+        cache: "no-cache"
     }).then(response => response.text());
 
     const xmlDoc = parser.parseFromString(text, "text/xml");
@@ -34,14 +25,14 @@ export async function getFileSystem(url: string): Promise<FileSystem> {
     const nodes = Array.from(result.children);
     return {
         objects: nodes.filter(
-            ({tagName}) => tagName === "Contents"
+            ({ tagName }) => tagName === "Contents"
         ).map(node => Object({
             key: node.childNodes[0].textContent,
             updated: node.childNodes[1].textContent,
             size: node.childNodes[3].textContent,
         })),
         collections: nodes.filter(
-            ({tagName}) => tagName === "CommonPrefixes"
+            ({ tagName }) => tagName === "CommonPrefixes"
         ).map(node => Object({
             key: node.childNodes[0].textContent
         }))
@@ -51,7 +42,7 @@ export async function getFileSystem(url: string): Promise<FileSystem> {
 /**
  * Get image data from S3, the Blob-y way. 
  */
-export const fetchImageBuffer = async (url: string): Promise<Float32Array> => {
+const fetchImageBuffer = async (url: string): Promise<Float32Array> => {
     const blob = await fetch(url).then(response => response.blob());
     const arrayBuffer: string | ArrayBuffer | null = await (new Promise(resolve => {
         var reader = new FileReader();
@@ -62,5 +53,30 @@ export const fetchImageBuffer = async (url: string): Promise<Float32Array> => {
         return new Float32Array(arrayBuffer);
     } else {
         throw TypeError("Result is not ArrayBuffer type")
-    }   
+    }
 }
+
+const onMessage = async (event: any) => {
+    switch (event.data.type) {
+        case "status":
+            ctx.postMessage({
+                type: "status",
+                data: "ready",
+            });
+            return;
+        case "index":
+            ctx.postMessage({
+                type: "data",
+                data: await getFileSystem(event.data.url),
+            });
+            return;
+        case "blob":
+            ctx.postMessage({
+                type: "data",
+                data: await fetchImageBuffer(event.data.url),
+            });
+            return
+    }
+}
+
+ctx.addEventListener("message", onMessage);

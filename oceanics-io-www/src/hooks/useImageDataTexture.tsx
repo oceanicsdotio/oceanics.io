@@ -15,7 +15,7 @@ type IImageData = {
  * Re-usable logic for loading remote image as data source for GPGPU
  * processing
  */
-export default ({
+export const useImageDataTexture = ({
     source="",
     metadataFile=""
 }: IImageData) => {
@@ -99,3 +99,5 @@ export default ({
         preview
     }
 }
+
+export default useImageDataTexture

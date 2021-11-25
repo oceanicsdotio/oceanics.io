@@ -44,7 +44,7 @@ const PARAMETER_MAP = {
   * The velocity field is static, but in the future the component 
   * will support pulling frames from video or gif formats. 
   */
-export default ({
+export const useLagrangian = ({
     velocity: {
         source = null,
         metadataFile = null
@@ -426,3 +426,5 @@ export default ({
      */
     return { ref, message, preview, timeConstant }
 };
+
+export default useLagrangian;

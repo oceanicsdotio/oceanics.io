@@ -267,7 +267,7 @@ type IGlslShaders = {
  *
  * This is executed only once, after the WASM runtime is loaded. 
  */
-export default ({ 
+export const useGlslShaders = ({ 
     shaders
 }: IGlslShaders) => {
    
@@ -365,3 +365,5 @@ export default ({
         setUniforms
     }
 };
+
+export default useGlslShaders

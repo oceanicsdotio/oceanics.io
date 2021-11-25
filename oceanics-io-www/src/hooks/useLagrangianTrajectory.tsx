@@ -47,7 +47,7 @@ type ILagrangian = {
   * The velocity field is static, but in the future the component 
   * will support pulling frames from video or gif formats. 
   */
-export default ({
+export const useLagrangianTrajectory ({
     source,
     metadataFile,
     res = 16,
@@ -269,3 +269,5 @@ export default ({
      */
     return {ref, message, preview}
 };
+
+export default useLagrangianTrajectory

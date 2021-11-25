@@ -1,5 +1,7 @@
 import SwaggerParser from "@apidevtools/swagger-parser";
 import YAML from "yaml";
+const ctx: Worker = self as unknown as Worker;
+
 
 /** 
  * Parse a YAML text block that includes arbitrary line breaks
@@ -14,7 +16,7 @@ const parseYamlText = (text: string) =>
 /**
  * Load and validate the OpenAPI specification. 
  */
-export const load = async (specUrl: string) => {
+const load = async (specUrl: string) => {
     try {
         let api = await SwaggerParser.validate(specUrl);
         api.info.description = parseYamlText(api.info.description??"");
@@ -139,7 +141,7 @@ type PathsInput = {[index: string] : Schema}
  * Flatten the route and method pairs to be filtered
  * and converted to UI features
  */
-// export const flattenSpecOperations = async (paths: PathsInput): Promise<ApiOperation[]> =>
+// const flattenSpecOperations = async (paths: PathsInput): Promise<ApiOperation[]> =>
 //     Object.entries(paths).flatMap(([path, schema]) => 
 //         Object.entries(schema).map(([method, schema]) => 
 //             Object({
@@ -152,6 +154,17 @@ type PathsInput = {[index: string] : Schema}
 //                 view: buildView(schema)
 //             })));
 
-export const scrapeIndexPage = async (url: string) => 
+const scrapeIndexPage = async (url: string) => 
     fetch(url).then(response => response.json());
 
+  
+ctx.addEventListener("message", (evt) => {
+    switch (evt.data.type) {
+        case "status":
+            ctx.postMessage({
+                type: "status",
+                data: "ready"
+            });
+            return;
+    }
+});

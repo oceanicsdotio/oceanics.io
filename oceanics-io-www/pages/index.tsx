@@ -2,9 +2,8 @@
  * React and friends.
  */
 import React, { useCallback, useRef, useEffect, useState } from "react";
-import type {FC} from "react"
+import type {FC, Dispatch, SetStateAction} from "react"
 import { useRouter } from "next/router";
-import path from "path";
 
 /**
  * Campaign component
@@ -16,6 +15,52 @@ import type { GetStaticProps } from "next";
 import { createIndex, readIndexedDocuments } from "../src/next-util";
 import useDeserialize from "oceanics-io-ui/build/hooks/useDeserialize";
 import useWasmRuntime from "../src/hooks/useWasmRuntime";
+
+
+const createBathysphereWorker = () => {
+    return new Worker(
+        new URL("../src/workers/useBathysphereApi.worker.ts", import.meta.url)
+    );
+}
+
+const createObjectStorageWorker = () => {
+    return new Worker(
+        new URL("../src/workers/useObjectStorage.worker.ts", import.meta.url)
+    );
+}
+
+const createOpenApiLoaderWorker = () => {
+    return new Worker(
+        new URL("../src/workers/useOpenApiLoader.worker.ts", import.meta.url)
+    );
+}
+
+const useWorkerState = (name: string) => {
+    const ref = useRef<Worker|null>();
+    const [messages, setMessages] = useState<String[]>([]);
+
+    const onMessageHandler = (name: string, setValue: Dispatch<SetStateAction<any[]>>) => ({data}: any) => {
+        console.log(`Message from ${name} worker:`, data);
+        setValue((prev: any[]) => [...prev, data]);
+    }
+
+    const start = (worker: Worker) => {
+        ref.current = worker;
+        if (ref.current) {
+            ref.current.addEventListener("message", onMessageHandler(name, setMessages));
+            ref.current.postMessage({ type: "status" });
+        } else {
+            console.error(`${name} worker not ready`);
+        }
+        return ref.current
+    }
+
+    return {
+        ref,
+        messages,
+        start
+    }
+}
 
 /**
  * Base component for web landing page.
@@ -65,40 +110,26 @@ const IndexPage: FC<IDocumentIndexSerialized> = ({
         navigate("/", {label}, true)
     }, [navigate])
 
-    const wasmWorkerRef = useRef<Worker | null>();
-    const tsWorkerRef = useRef<Worker | null>();
+    const bathysphereWorker = useWorkerState("bathysphereApi");
+    const objectStorageWorker = useWorkerState("S3");
+    const openApiWorker = useWorkerState("openApiLoader");
 
-    const [wasmWorkerMessages, setWasmWorkerMessages] = useState<String[]>([]);
-    const [tsWorkerMessages, setTsWorkerMessages] = useState<String[]>([]);
-    const {runtime} = useWasmRuntime(path.relative("../rust/pkg"));
+    const {runtime} = useWasmRuntime();
 
     useEffect(() => {
         if (runtime) console.log("Runtime ready")
     }, [runtime])
 
     useEffect(() => {
-        // From https://webpack.js.org/guides/web-workers/#syntax
-        wasmWorkerRef.current = new Worker(
-        new URL('../src/useBathysphereApi.worker.ts', import.meta.url)
-        );
-        tsWorkerRef.current = new Worker(
-        new URL('../src/ts.worker.ts', import.meta.url)
-        );
+        bathysphereWorker.start(createBathysphereWorker());
+    }, []);
 
-        wasmWorkerRef.current.addEventListener('message', (evt) => {
-        console.log('Message from wasm worker:', evt.data);
-        const newMessages = [...wasmWorkerMessages, evt.data];
-        setWasmWorkerMessages(newMessages);
-        });
+    useEffect(() => {
+        objectStorageWorker.start(createObjectStorageWorker());
+    }, []);
 
-        tsWorkerRef.current.addEventListener('message', (evt) => {
-        console.log('Message from TS worker:', evt.data);
-        const newMessages = [...tsWorkerMessages, evt.data];
-        setTsWorkerMessages(newMessages);
-        });
-
-        wasmWorkerRef.current.postMessage({ type: 'start' });
-        tsWorkerRef.current.postMessage({ type: 'start' });
+    useEffect(() => {
+        openApiWorker.start(createOpenApiLoaderWorker());
     }, []);
 
     return (
