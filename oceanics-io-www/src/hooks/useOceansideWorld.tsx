@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-
+import type {MiniMap} from "../../rust/pkg"
 
 import useWasmRuntime from "./useWasmRuntime";
 
@@ -47,7 +47,7 @@ export const useOceansideWorld = ({
     /**
      * MiniMap data structure from Rust-WebAssembly.
      */
-    const [ map, setMap ] = useState(null);
+    const [ map, setMap ] = useState<MiniMap|null>(null);
      
     /**
      * When the runtime loads for the first time, create a pixel map  

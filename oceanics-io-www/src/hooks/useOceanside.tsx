@@ -1,5 +1,8 @@
 import { useEffect, useReducer, useRef } from "react";
-import type {MutableRefObject} from "react"
+import type {MutableRefObject} from "react";
+import type {MiniMap} from "../../rust/pkg";
+
+type ModuleType = typeof import("../../rust/pkg");
 
 /**
  * GraphQL fragment for static query to get sprite sheets and tile metadata.
@@ -29,11 +32,13 @@ const query = `
 
 
 interface IUseOceanside {
-    map: any;
+    map: MiniMap;
     gridSize: number;
     worldSize: number;
     backgroundColor: string;
     worker: MutableRefObject<SharedWorker|null>;
+    nav: MutableRefObject<HTMLCanvasElement|null>;
+    runtime: ModuleType;
     query: {
         tiles: {
             templates: any;
@@ -69,6 +74,8 @@ export const useOceanside = ({
     worldSize,
     backgroundColor = "#000000FF",
     worker,
+    nav,
+    runtime,
     query: {
         tiles: {
             templates
@@ -82,7 +89,7 @@ export const useOceanside = ({
     /**
      * Ref for isometric view render target
      */
-    const board = useRef(null);
+    const board = useRef<HTMLCanvasElement|null>(null);
 
     
     /**
@@ -93,16 +100,15 @@ export const useOceanside = ({
      * retrieve the ones that are coming into view.
      */
     const [tiles, populateVisibleTiles] = useReducer(
-        (tiles, map, event) => {
-            if (event && typeof nav !== "undefined" && nav && nav.current)
-                map.updateView(
-                    nav.getContext("2d"), 
-                    eventCoordinates(event, nav.current)
-                        .map(x => x*worldSize/128)
-                );
-            
+        (tiles: any[], map: MiniMap, event: any) => {
+            if (event && typeof nav !== "undefined" && nav && nav.current) {
+                const xy: [number, number] = eventCoordinates(event, nav.current).map((x: number) => x*worldSize/128);
+                const ctx = nav.current.getContext("2d")
+                if (ctx) map.updateView(ctx,  ...xy);
+            }
+                
             const diagonals = gridSize * 2 - 1;
-            const build = [];
+            const build: number[][] = [];
             let count = 0;
             map.clear();
 
@@ -121,12 +127,15 @@ export const useOceanside = ({
     );
     
     useEffect(() => {
-        if (!worker.current || !map) return;
-
         (async () => {
-            const iconSet = await worker.current.parseIconSet({nodes, templates, worldSize});
-            iconSet.forEach(x => {map.insertFeature(x)});
-            populateVisibleTiles(map, null);  
+            if (!worker.current || !map) return;
+            worker.current.port.postMessage({
+                type: "parseIconSet",
+                data: {nodes, templates, worldSize}
+            });
+            // TODO: this...
+            // iconSet.forEach((x) => {map.insertFeature(x)});
+            // populateVisibleTiles(map, null);  
         })();
     }, [ worker, map ]);
 
@@ -143,31 +152,28 @@ export const useOceanside = ({
         ) return;
 
         [board.current.width, board.current.height] = ["width", "height"].map(
-            dim => getComputedStyle(board.current).getPropertyValue(dim).slice(0, -2)
-        ).map(x => x * window.devicePixelRatio);
+            (dim: string) => getComputedStyle(board.current as HTMLCanvasElement).getPropertyValue(dim).slice(0, -2)
+        ).map((x: string) => parseInt(x) * window.devicePixelRatio);
 
         const ctx = board.current.getContext(`2d`);
+        if (!ctx) return;
 
-        let requestId = null;
+        let requestId: number|null = null;
       
         ctx.imageSmoothingEnabled = false;  // disable interpolation
     
         (function render() {
-
             const { width, height } = board.current;
-
             runtime.clear_rect_blending(ctx, width, height, backgroundColor);
-
-            tiles.forEach((diagonal, ii) => {
+            tiles.forEach((diagonal: number[], ii: number) => {
                 diagonal.forEach((tile, jj) => {
                     map.drawTile(ctx, ii, jj, diagonal.length, performance.now(), width, tile);
                 });
             });
-
             requestId = requestAnimationFrame(render);
         })();
 
-        return () => { cancelAnimationFrame(requestId) };
+        return () => { if (requestId) cancelAnimationFrame(requestId) };
     }, [ tiles, worker ]);
 
     

@@ -11,13 +11,6 @@
   */
  import PopUpContent from "oceanics-io-ui/build/components/Catalog/PopUpContent";
  import {pulsingDot} from "../utils";
- 
- /**
-  * Dedicated Worker loader.
-  */
- // import useWasmWorkers from "../hooks/useWasmWorkers";
- // import useFragmentQueue from "../hooks/useFragmentQueue";
- 
  import useMapBox from "oceanics-io-ui/build/hooks/useMapBox";
  
  
@@ -168,6 +161,7 @@
       * about creation order.
       */
      useEffect(() => {
+         if (typeof map === "undefined") return;
          channelOrder.forEach(([back, front]) => {
              if (map.getLayer(back) && map.getLayer(front)) map.moveLayer(back, front)
          });

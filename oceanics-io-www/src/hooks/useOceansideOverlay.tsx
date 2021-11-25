@@ -145,9 +145,10 @@ export const useOceansideOverlay = ({
             window.addEventListener(type, listen, true);
             return [type, listen];
         });
-        return () => {
-            listeners.forEach((each: [string, (arg: ListenArgs)=>void]) => window.removeEventListener(...each, true))
-        };
+
+        const removeListener = (each: [string, (arg: ListenArgs)=>void]) => window.removeEventListener(...each, true);
+
+        return () => { listeners.forEach(removeListener) };
     }, [ keys ]);
   
 

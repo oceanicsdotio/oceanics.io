@@ -2,7 +2,7 @@
  * React, just friends because it's a hook. 
  */
 import { useEffect, useState } from "react";
-
+import type {MutableRefObject} from "react";
 /**
  * Shader hook. We keep this separate for use by other implementations. 
  */
@@ -11,12 +11,11 @@ import useGlslShaders from "./useGlslShaders";
 /**
  * Color map texture for lookups
  */
-import useColorMapTexture from "./useColorMapTexture";
+import useColorMapTexture from "oceanics-io-ui/build/hooks/useColorMapTexture";
 
 /**
  * Dedicated worker loader
  */
-import useWasmWorkers from "./useWasmWorkers";
 import useImageDataTexture from "./useImageDataTexture";
 
 /**
@@ -39,6 +38,7 @@ type ILagrangian = {
     diffusivity: number;
     pointSize: number;
     drop: number;
+    worker: MutableRefObject<SharedWorker|null>;
 };
 
  /**
@@ -47,13 +47,14 @@ type ILagrangian = {
   * The velocity field is static, but in the future the component 
   * will support pulling frames from video or gif formats. 
   */
-export const useLagrangianTrajectory ({
+export const useLagrangianTrajectory = ({
     source,
     metadataFile,
+    worker,
     res = 16,
     colors = [
-        [0.0, '#deababff'],
-        [1.0, '#660066ff'],
+        [0.0, "#deababff"],
+        [1.0, "#660066ff"],
     ],
     opacity = 0.92, // how fast the particle trails fade on each frame
     speed = 0.00007, // how fast the particles move
@@ -68,6 +69,7 @@ export const useLagrangianTrajectory ({
     const { preview, imageData, metadata } = useImageDataTexture({
         source,
         metadataFile,
+        worker
     });
 
     /**
@@ -80,11 +82,6 @@ export const useLagrangianTrajectory ({
      * Error flag
      */
     const [ error, setError ] = useState("");
-
-    /**
-     * Load worker
-     */
-    const { worker } = useWasmWorkers();
 
     /**
      * Create a initial distribution of particle positions,
