@@ -22,19 +22,19 @@ import useSharedWorkerState from "../src/hooks/useSharedWorkerState";
 
 const createBathysphereWorker = () => {
   return new Worker(
-      new URL("../src/workers/useBathysphereApi.worker.ts", import.meta.url).toString()
+      new URL("../src/workers/useBathysphereApi.worker.ts", import.meta.url)
   );
 }
 
 const createObjectStorageWorker = () => {
   return new Worker(
-      new URL("../src/workers/useObjectStorage.worker.ts", import.meta.url).toString()
+      new URL("../src/workers/useObjectStorage.worker.ts", import.meta.url)
   );
 }
 
 const createOpenApiLoaderWorker = () => {
   return new Worker(
-      new URL("../src/workers/useOpenApiLoader.worker.ts", import.meta.url).toString()
+      new URL("../src/workers/useOpenApiLoader.worker.ts", import.meta.url)
   );
 }
 
@@ -60,7 +60,6 @@ const IndexPage: FC<IDocumentIndexSerialized> = ({
     }, [runtime])
 
     useEffect(() => {
-        console.log(bathysphereWorker)
         bathysphereWorker.start(createBathysphereWorker());
     }, []);
 
