@@ -13,6 +13,8 @@ import useMapBox from "oceanics-io-ui/build/hooks/useMapBox";
 
 import useWasmRuntime from "../src/hooks/useWasmRuntime";
 import useSharedWorkerState from "../src/hooks/useSharedWorkerState";
+import useFragmentQueue, {OBJECT_STORAGE_URL} from "../src/hooks/useFragmentQueue";
+import useObjectStorage from "../src/hooks/useObjectStorage";
 
 
 const createBathysphereWorker = () => {
@@ -48,16 +50,13 @@ type ApplicationType = {
  */
 const AppPage: FC<ApplicationType> = ({ map }) => {
     
-  const { ref } = useMapBox(map);
+  const { ref, map: mapBox } = useMapBox(map);
 
   const bathysphereWorker = useSharedWorkerState("bathysphereApi");
   const objectStorageWorker = useSharedWorkerState("S3");
   const openApiWorker = useSharedWorkerState("openApiLoader");
   const {runtime} = useWasmRuntime();
-
-  useEffect(() => {
-      if (runtime) console.log("Runtime ready")
-  }, [runtime])
+  const fs = useObjectStorage(OBJECT_STORAGE_URL, objectStorageWorker.ref)
 
   useEffect(() => {
       bathysphereWorker.start(createBathysphereWorker());
@@ -71,6 +70,8 @@ const AppPage: FC<ApplicationType> = ({ map }) => {
       openApiWorker.start(createOpenApiLoaderWorker());
   }, []);
 
+  useFragmentQueue({worker: bathysphereWorker.ref, map: mapBox, fs}, )
+
   return (
     <>
       <link
@@ -78,6 +79,7 @@ const AppPage: FC<ApplicationType> = ({ map }) => {
         rel="stylesheet"
       />
       <div style={{ height: "500px" }} ref={ref} />
+      <canvas ref={undefined} width={500} height={500}/>
     </>
   );
 };

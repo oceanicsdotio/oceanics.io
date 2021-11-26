@@ -548,6 +548,12 @@ ctx.addEventListener("message", async ({data}) => {
         data: "ready",
       });
       return;
+    case "getFragment":
+      ctx.postMessage({
+        type: "data",
+        data: await getFragment(data.target, data.key, data.attribution),
+      });
+      return;
   }
 })
   
