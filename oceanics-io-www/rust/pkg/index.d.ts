@@ -1,78 +1,6 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
-*/
-export function greet(): void;
-/**
-* @returns {string}
-*/
-export function get_rust_data(): string;
-/**
-* @param {string} name
-* @returns {string}
-*/
-export function hello_world(name: string): string;
-/**
-*/
-export function panic_hook(): void;
-/**
-* @param {any} _color
-* @returns {CanvasRenderingContext2D}
-*/
-export function create_color_map_canvas(_color: any): CanvasRenderingContext2D;
-/**
-* @param {CanvasRenderingContext2D} ctx
-* @param {number} w
-* @param {number} h
-* @param {any} color
-*/
-export function clear_rect_blending(ctx: CanvasRenderingContext2D, w: number, h: number, color: any): void;
-/**
-* @param {CanvasRenderingContext2D} ctx
-* @param {string} caption
-* @param {number} x
-* @param {number} y
-* @param {any} color
-* @param {string} font
-*/
-export function draw_caption(ctx: CanvasRenderingContext2D, caption: string, x: number, y: number, color: any, font: string): void;
-/**
-* @param {CanvasRenderingContext2D} ctx
-* @param {number} frames
-* @param {number} time
-* @param {any} color
-* @returns {number}
-*/
-export function draw_fps(ctx: CanvasRenderingContext2D, frames: number, time: number, color: any): number;
-/**
-* @param {CanvasRenderingContext2D} ctx
-* @param {number} x
-* @param {number} y
-* @param {number} scale
-* @param {any} color
-*/
-export function draw_single_pixel(ctx: CanvasRenderingContext2D, x: number, y: number, scale: number, color: any): void;
-/**
-* @param {number} size
-* @returns {number}
-*/
-export function alloc(size: number): number;
-/**
-* @param {number} ptr
-* @param {number} cap
-*/
-export function dealloc(ptr: number, cap: number): void;
-/**
-* @param {string} path
-* @returns {Promise<any>}
-*/
-export function fetch_text(path: string): Promise<any>;
-/**
-* @param {Float64Array} series
-* @returns {Float64Array}
-*/
-export function make_vertex_array(series: Float64Array): Float64Array;
-/**
 *
 *    After generating the base data array, clamp it and create a new
 *    array as a JavaScript/HTML image data element.
@@ -158,6 +86,78 @@ export function bind_texture(ctx: WebGLRenderingContext, texture: WebGLTexture, 
 * @returns {WebGLTexture}
 */
 export function create_texture(ctx: WebGLRenderingContext, data: ImageData, filter: number, _width: number, _height: number): WebGLTexture;
+/**
+*/
+export function greet(): void;
+/**
+* @returns {string}
+*/
+export function get_rust_data(): string;
+/**
+* @param {string} name
+* @returns {string}
+*/
+export function hello_world(name: string): string;
+/**
+*/
+export function panic_hook(): void;
+/**
+* @param {any} _color
+* @returns {CanvasRenderingContext2D}
+*/
+export function create_color_map_canvas(_color: any): CanvasRenderingContext2D;
+/**
+* @param {CanvasRenderingContext2D} ctx
+* @param {number} w
+* @param {number} h
+* @param {any} color
+*/
+export function clear_rect_blending(ctx: CanvasRenderingContext2D, w: number, h: number, color: any): void;
+/**
+* @param {CanvasRenderingContext2D} ctx
+* @param {string} caption
+* @param {number} x
+* @param {number} y
+* @param {any} color
+* @param {string} font
+*/
+export function draw_caption(ctx: CanvasRenderingContext2D, caption: string, x: number, y: number, color: any, font: string): void;
+/**
+* @param {CanvasRenderingContext2D} ctx
+* @param {number} frames
+* @param {number} time
+* @param {any} color
+* @returns {number}
+*/
+export function draw_fps(ctx: CanvasRenderingContext2D, frames: number, time: number, color: any): number;
+/**
+* @param {CanvasRenderingContext2D} ctx
+* @param {number} x
+* @param {number} y
+* @param {number} scale
+* @param {any} color
+*/
+export function draw_single_pixel(ctx: CanvasRenderingContext2D, x: number, y: number, scale: number, color: any): void;
+/**
+* @param {number} size
+* @returns {number}
+*/
+export function alloc(size: number): number;
+/**
+* @param {number} ptr
+* @param {number} cap
+*/
+export function dealloc(ptr: number, cap: number): void;
+/**
+* @param {string} path
+* @returns {Promise<any>}
+*/
+export function fetch_text(path: string): Promise<any>;
+/**
+* @param {Float64Array} series
+* @returns {Float64Array}
+*/
+export function make_vertex_array(series: Float64Array): Float64Array;
 /**
 */
 export class ContextCursor {
