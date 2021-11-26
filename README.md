@@ -1,13 +1,10 @@
 # Oceanics.io
 
-![Test](https://github.com/oceanicsdotio/oceanics.io/workflows/Test/badge.svg)
-![Rust](https://github.com/oceanicsdotio/oceanics.io/workflows/Rust/badge.svg)
-![CodeQL](https://github.com/oceanicsdotio/oceanics.io/workflows/CodeQL/badge.svg)
 [![Netlify Status](https://api.netlify.com/api/v1/badges/ad77195f-da0a-428f-ad2d-8dc5f45b3858/deploy-status)](https://app.netlify.com/sites/oceanicsdotio/deploys)
 
 
 <p align="center">
-  <img width="75%" src="static/dagan-sprite.gif">
+  <img width="75%" src="oceanics-io-www/public/dagan-sprite.gif">
 </p>
 
 ## Contents
