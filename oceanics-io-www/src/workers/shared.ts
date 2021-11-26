@@ -1,5 +1,4 @@
 import type {MutableRefObject} from "react";
-export const shared = "Some shared variable";
 
 export type FileObject = {
     key: string;

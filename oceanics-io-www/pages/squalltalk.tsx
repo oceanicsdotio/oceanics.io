@@ -23,18 +23,6 @@ const createBathysphereWorker = () => {
   );
 }
 
-const createObjectStorageWorker = () => {
-  return new Worker(
-      new URL("../src/workers/useObjectStorage.worker.ts", import.meta.url)
-  );
-}
-
-const createOpenApiLoaderWorker = () => {
-  return new Worker(
-      new URL("../src/workers/useOpenApiLoader.worker.ts", import.meta.url)
-  );
-}
-
 type ApplicationType = {
   className?: string;
   map: {
@@ -52,25 +40,15 @@ const AppPage: FC<ApplicationType> = ({ map }) => {
     
   const { ref, map: mapBox } = useMapBox(map);
 
-  const bathysphereWorker = useSharedWorkerState("bathysphereApi");
-  const objectStorageWorker = useSharedWorkerState("S3");
-  const openApiWorker = useSharedWorkerState("openApiLoader");
+  const worker = useSharedWorkerState("bathysphere");
   const {runtime} = useWasmRuntime();
-  const fs = useObjectStorage(OBJECT_STORAGE_URL, objectStorageWorker.ref)
+  const fs = useObjectStorage(OBJECT_STORAGE_URL, worker.ref)
 
   useEffect(() => {
-      bathysphereWorker.start(createBathysphereWorker());
+      worker.start(createBathysphereWorker());
   }, []);
 
-  useEffect(() => {
-      objectStorageWorker.start(createObjectStorageWorker());
-  }, []);
-
-  useEffect(() => {
-      openApiWorker.start(createOpenApiLoaderWorker());
-  }, []);
-
-  useFragmentQueue({worker: bathysphereWorker.ref, map: mapBox, fs}, )
+  useFragmentQueue({worker: worker.ref, map: mapBox, fs})
 
   return (
     <>
