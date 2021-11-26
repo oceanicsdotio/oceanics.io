@@ -1,8 +1,5 @@
+import type {MutableRefObject} from "react";
 export const shared = "Some shared variable";
-
-export interface SharedWorkerGlobalScope {
-    onconnect: (event: MessageEvent) => void;
-  }
 
 export type FileObject = {
     key: string;
@@ -16,3 +13,5 @@ export type FileSystem = {
         key: string;
     }[];
 };
+
+export type WorkerRef = MutableRefObject<Worker|null>

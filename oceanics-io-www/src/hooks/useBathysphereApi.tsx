@@ -1,5 +1,5 @@
 import { useEffect, useState, useReducer } from "react";
-import type {MutableRefObject} from "react";
+import type {WorkerRef} from "../workers/shared";
 
 /**
  * The catalog page is like a landing page to the api.
@@ -9,7 +9,7 @@ import type {MutableRefObject} from "react";
  * 
  * If access token is set in React state, use it to get the catalog index from Bathysphere
  */
-export const useBathysphereApi = (server: string, worker: MutableRefObject<SharedWorker|null>) => {
+export const useBathysphereApi = (server: string, worker: WorkerRef) => {
 
     /**
      * JavaScript Web Token. State variable returned to parent component,
@@ -28,7 +28,7 @@ export const useBathysphereApi = (server: string, worker: MutableRefObject<Share
      */
     useEffect(() => {
         if (worker.current && accessToken)
-            worker.current.port.postMessage({
+            worker.current.postMessage({
                 type: "query",
                 data: {server, accessToken}
             }); 

@@ -15,7 +15,6 @@ import type { GetStaticProps } from "next";
 import { createIndex, readIndexedDocuments } from "../src/next-util";
 import useDeserialize from "oceanics-io-ui/build/hooks/useDeserialize";
 
-
 /**
  * Base component for web landing page.
  * 

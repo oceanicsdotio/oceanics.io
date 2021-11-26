@@ -1,20 +1,19 @@
 /**
  * React friends.
  */
-import type { MutableRefObject } from "react";
 import { useEffect, useState } from "react";
 
 /**
  * Dedicated Worker loader
  */
-import type {FileSystem} from "../workers/shared";
+import type {FileSystem, WorkerRef} from "../workers/shared";
 /**
  * The `useObjectStorage` hook provides a directory like structure
  * that describes assets in an S3-compatible storage service. 
  */
 export const useObjectStorage = (
   target: string,
-  worker: MutableRefObject<SharedWorker|null>
+  worker: WorkerRef
 ) => {
 
   /**
@@ -27,7 +26,7 @@ export const useObjectStorage = (
    */
   useEffect(() => {
     if (!target || !worker.current) return;
-    worker.current.port.postMessage({
+    worker.current.postMessage({
       type: "index",
       url: target
     })

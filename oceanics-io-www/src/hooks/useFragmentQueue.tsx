@@ -2,9 +2,8 @@
  * React friends
  */
 import { useState, useEffect } from "react";
-import type {MutableRefObject} from "react"
 import type {Map} from "mapbox-gl"
-import type {FileObject} from "../workers/shared";
+import type {FileObject, WorkerRef} from "../workers/shared";
 /**
  * Object storage hook
  */
@@ -21,7 +20,7 @@ const TARGET = "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com";
 const PREFIX = "MidcoastMaineMesh";
 
 type IFragmentQueue = {
-    worker: MutableRefObject<SharedWorker|null>;
+    worker: WorkerRef;
     map: Map|null;
 }
 
@@ -68,7 +67,7 @@ export const useFragmentQueue = ({
  
          if (map.getLayer(`mesh-${key}`)) return;
  
-         worker.current.port.postMessage({
+         worker.current.postMessage({
              type: "getFragment",
              data: [TARGET, key, "UMass Dartmouth"]
          })

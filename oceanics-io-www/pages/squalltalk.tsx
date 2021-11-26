@@ -16,24 +16,22 @@ import useSharedWorkerState from "../src/hooks/useSharedWorkerState";
 
 
 const createBathysphereWorker = () => {
-  return new SharedWorker(
-      new URL("../src/workers/useBathysphereApi.worker.ts", import.meta.url).toString()
+  return new Worker(
+      new URL("../src/workers/useBathysphereApi.worker.ts", import.meta.url)
   );
 }
 
 const createObjectStorageWorker = () => {
-  return new SharedWorker(
-      new URL("../src/workers/useObjectStorage.worker.ts", import.meta.url).toString()
+  return new Worker(
+      new URL("../src/workers/useObjectStorage.worker.ts", import.meta.url)
   );
 }
 
 const createOpenApiLoaderWorker = () => {
-  return new SharedWorker(
-      new URL("../src/workers/useOpenApiLoader.worker.ts", import.meta.url).toString()
+  return new Worker(
+      new URL("../src/workers/useOpenApiLoader.worker.ts", import.meta.url)
   );
 }
-
-
 
 type ApplicationType = {
   className?: string;
@@ -51,7 +49,6 @@ type ApplicationType = {
 const AppPage: FC<ApplicationType> = ({ map }) => {
     
   const { ref } = useMapBox(map);
-
 
   const bathysphereWorker = useSharedWorkerState("bathysphereApi");
   const objectStorageWorker = useSharedWorkerState("S3");

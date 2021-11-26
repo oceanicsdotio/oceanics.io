@@ -1,5 +1,5 @@
-import type { SharedWorkerGlobalScope } from "./shared";
-const ctx: SharedWorkerGlobalScope = self as any;
+import type { shared } from "./shared";
+const ctx: Worker = self as unknown as Worker;
 
 /**
  * Runtime handle to which we will memoize the active runtime. 
@@ -18,19 +18,19 @@ let runtime = null;
  * We pass back the status and error message to the main
  * thread for troubleshooting.
  */
-async function start(port: MessagePort) {
+async function start() {
   try {
     runtime = await import("../../rust/pkg");
     runtime.panic_hook();
     runtime.greet();
-    port.postMessage({
+    ctx.postMessage({
       type: "status",
       data: {
         ready: true
       },
     });
   } catch (err: any) {
-    port.postMessage({
+    ctx.postMessage({
       type: "status",
       data: {
         ready: false,
@@ -537,18 +537,17 @@ const reduceVertexArray = async (vertexArray: Vertex[]) => {
 };
 
 
-ctx.onconnect = (event: MessageEvent) => {
-  const [port] = event.ports;
-  port.onmessage = ({data}) => {
-    switch (data.type) {
-      case "start":
-        start(port);
-        return;
-      case "status":
-        port.postMessage({
-          type: "status",
-          data: "ready",
-        });
-    }
+ctx.addEventListener("message", async ({data}) => {
+  switch (data.type) {
+    case "start":
+      await start();
+      return;
+    case "status":
+      ctx.postMessage({
+        type: "status",
+        data: "ready",
+      });
+      return;
   }
-};
+})
+  
