@@ -19,7 +19,6 @@ import useOceansideBoard from "../src/hooks/useOceansideBoard";
 import useWasmRuntime from "../src/hooks/useWasmRuntime";
 import useSharedWorkerState from "../src/hooks/useSharedWorkerState";
 import type {IWorld} from "../src/hooks/useOceansideWorld";
-import { serialize } from "v8";
 const MAPBOX_STYLESHEET = "https://api.mapbox.com/mapbox-gl-js/v1.5.0/mapbox-gl.css"
 
 /**
@@ -51,10 +50,7 @@ const AppPage: FC<ApplicationType> = ({ className, icons, templates, ...props })
    */
   const world = useOceansideWorld({...props, runtime});
   const board = useOceansideBoard({
-    map: world.map,
-    nav: world.ref,
-    grid: world.grid,
-    worldSize: world.size,
+    world,
     worker: worker.ref,
     runtime,
     tiles: {
@@ -72,6 +68,7 @@ const AppPage: FC<ApplicationType> = ({ className, icons, templates, ...props })
     <div className={className}>
       <link href={MAPBOX_STYLESHEET} rel={"stylesheet"}/>
       <canvas ref={world.ref} width={world.size} height={world.size} className={"world"}/>
+      <canvas ref={board.ref} width={world.size} height={world.size} className={"board"}/>
     </div>
   );
 };
@@ -89,6 +86,10 @@ const StyledIndex = styled(AppPage)`
     image-rendering: crisp-edges;
   }
   & .world {
+    width: 256px;
+    height: 256px;
+  }
+  & .board {
     width: 256px;
     height: 256px;
   }

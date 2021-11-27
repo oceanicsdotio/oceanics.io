@@ -1,22 +1,21 @@
-import { useEffect, useRef } from "react";
-import type {MouseEvent} from "react";
-import type {MutableRefObject} from "react";
-import type {MiniMap} from "../../rust/pkg";
-import type {WorkerRef} from "../workers/shared";
-
-type ModuleType = typeof import("../../rust/pkg");
+import { useEffect, useRef, useState, useCallback } from "react";
+import type { MouseEvent } from "react";
+import type { WorkerRef } from "../workers/shared";
+import type { MapType, ModuleType } from "./useOceansideWorld";
 
 
 interface IBoard {
-    map: MiniMap|null;
-    grid: {
+    world: {
+        map: MapType|null;
         size: number;
-        tiles: number[][];
+        grid: {
+            size: number;
+            tiles: number[][];
+        };
+        populateVisibleTiles: (action: any) => void;
     };
-    worldSize: number;
     backgroundColor?: string;
     worker: WorkerRef;
-    nav: MutableRefObject<HTMLCanvasElement|null>;
     runtime: ModuleType|null;
     tiles: {
         templates: any;
@@ -25,6 +24,8 @@ interface IBoard {
         }[];
     };
 }
+
+const ACTION =  "parseIconSet";
 
 /**
  * The `Oceanside` hook provides all of the functionality to
@@ -46,10 +47,8 @@ interface IBoard {
  * @param {String} args.backgroundColor - color of animation loop blending
  */
 export const useOceansideBoard = ({
-    map,
-    grid, 
-    worldSize,
-    backgroundColor = "#000000FF",
+    world,
+    backgroundColor = "#220022FF",
     worker,
     runtime,
     tiles: {
@@ -63,19 +62,32 @@ export const useOceansideBoard = ({
      */
     const board = useRef<HTMLCanvasElement|null>(null);
 
+
+    const [ready, setReady] = useState(false);
+
+    const listener = useCallback(({data}: {data: any, type: string})=>{
+        if (data.type !== ACTION || ready) return;
+        data.data.forEach((x: any) => {
+            world.map?.insertFeature(x);
+        });
+        setReady(true);
+    }, [world.map, ready])
+
+    /**
+     * When we have a worker and the world map both ready,
+     * then we can start sending messages to parse icon
+     * data and do some calculations of, for example, the
+     * probability distribution of features etc. 
+     */
     useEffect(() => {
-        console.log({icons, templates, worldSize});
-        (async () => {
-            if (!worker.current || !map) return;
-            // worker.current.postMessage({
-            //     type: "parseIconSet",
-            //     data: {nodes, templates, worldSize}
-            // });
-            // TODO: this...
-            // iconSet.forEach((x) => {map.insertFeature(x)});
-            // populateVisibleTiles(map, null);  
-        })();
-    }, [ worker, map ]);
+        if (!worker.current || !world.map) return;
+        const action =  "parseIconSet";
+        worker.current.addEventListener("message", listener, { passive: true });
+        worker.current.postMessage({
+            type: action,
+            data: [icons, templates, world.size]
+        });
+    }, [ worker, world.map ]);
 
     /**
      * Draw the visible area to the board canvas using the 
@@ -83,12 +95,11 @@ export const useOceansideBoard = ({
      */
     useEffect(() => {
         if (
-            !board || 
             !board.current || 
-            !(grid.tiles??false) || 
+            !world.grid.tiles.length || 
             !worker.current ||
             !runtime ||
-            !map
+            !world.map
         ) return;
 
         [board.current.width, board.current.height] = ["width", "height"].map(
@@ -105,16 +116,19 @@ export const useOceansideBoard = ({
         (function render() {
             const { width, height } = board.current;
             runtime.clear_rect_blending(ctx, width, height, backgroundColor);
-            grid.tiles.forEach((diagonal: number[], ii: number) => {
+
+            if (!world.grid.tiles.length) throw TypeError(`Length of tile coordinate map is zero.`)
+            world.grid.tiles.forEach((diagonal: number[], ii: number) => {
+                if (!diagonal.length) throw TypeError(`Length of diagonal ${ii} is zero.`)
                 diagonal.forEach((tile, jj) => {
-                    map.drawTile(ctx, ii, jj, diagonal.length, performance.now(), width, tile);
+                    (world.map as MapType).drawTile(ctx, ii, jj, diagonal.length, performance.now(), width, tile);
                 });
             });
             requestId = requestAnimationFrame(render);
         })();
 
         return () => { if (requestId) cancelAnimationFrame(requestId) };
-    }, [ grid.tiles, worker ]);
+    }, [ world.map, world.grid.tiles, worker, runtime ]);
 
     
     return {

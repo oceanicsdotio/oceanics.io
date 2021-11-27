@@ -1,14 +1,19 @@
 import { useEffect, useState, useRef, useReducer } from "react";
 import type {MiniMap} from "../../rust/pkg"
-type ModuleType = typeof import("../../rust/pkg");
+export type ModuleType = typeof import("../../rust/pkg");
 import {eventCoordinates} from "../workers/shared";
+export type MapType = MiniMap;
 
-export interface IWorld {
+
+export interface IWorldType {
     /**
      * Integer height and width of grid subset. The number of tiles visible is the square of `gridSize`, 
      * so scores are higher for larger.
      */
-    grid: {size: number};
+    grid: {
+        tiles?: number[][];
+        size: number;
+    };
     /**
      * Integer height and width of global grid. The total number of tiles, 
      * and therefore the probability of finding certain features, is the square of `worldSize`. 
@@ -20,11 +25,14 @@ export interface IWorld {
      * Other wet tiles become mud depending on the tidal cycle and their elevation.
      */
     datum: number;
+}
+export interface IWorld extends IWorldType {
     /**
      * WASM package, already initialized
      */
     runtime: ModuleType|null;
 };
+
 
 type TilesType = (number[][]|null);
 
@@ -51,7 +59,7 @@ export const useOceansideWorld = ({
     /**
      * Ref for clickable minimap that allows world navigation
      */
-    const nav = useRef<HTMLCanvasElement|null>(null);
+    const ref = useRef<HTMLCanvasElement|null>(null);
 
     /**
      * MiniMap data structure from Rust-WebAssembly.
@@ -73,8 +81,8 @@ export const useOceansideWorld = ({
      * The same data structure will hold the selected tiles. 
      */
     useEffect(() => {
-        if (!runtime || !nav.current) return;
-        const canvas: HTMLCanvasElement = nav.current;
+        if (!runtime || !ref.current) return;
+        const canvas: HTMLCanvasElement = ref.current;
         const ctx = canvas.getContext("2d");
         if (!ctx) throw TypeError("Rendering Context is Null");
     
@@ -89,11 +97,11 @@ export const useOceansideWorld = ({
         )); 
     }, [ runtime ]);
 
-    const reducer = (_: TilesType, action: any) => {
+    const tileReducer = (_: TilesType, action: any) => {
         if (!map) throw TypeError("MiniMap reference is Null");
-        if (action && nav.current) {
-            const canvas: HTMLCanvasElement = nav.current;
-            const xy: [number, number] = eventCoordinates(action, nav.current).map((x: number) => x*size/128) as any;
+        if (action && ref.current) {
+            const canvas: HTMLCanvasElement = ref.current;
+            const xy: [number, number] = eventCoordinates(action, ref.current).map((x: number) => x*size/128) as any;
             const ctx = canvas.getContext("2d");
             if (ctx) map.updateView(ctx,  ...xy);
         }
@@ -124,7 +132,11 @@ export const useOceansideWorld = ({
      * so we can diff the sets of tiles, and only generate or
      * retrieve the ones that are coming into view.
      */
-    const [tiles, populateVisibleTiles] = useReducer(reducer, []);
+    const [tiles, populateVisibleTiles] = useReducer(tileReducer, []);
+
+    useEffect(() => {
+        if (map) populateVisibleTiles(null);
+    }, [map])
 
 
     return {
@@ -134,8 +146,8 @@ export const useOceansideWorld = ({
             ...grid,
             tiles
         },
-        ref: nav,
-        onClick: populateVisibleTiles
+        ref,
+        populateVisibleTiles
     } 
 };
 

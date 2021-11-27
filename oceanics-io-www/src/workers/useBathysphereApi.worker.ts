@@ -341,11 +341,6 @@ type Template = {
   value?: number;
   limit?: number;
 }
-type IParseIconSet = {
-  nodes: any[];
-  templates: Template[];
-  worldSize: number;
-}
 
 /**
  * Generate the dataUrls for icon assets in the background.
@@ -353,11 +348,14 @@ type IParseIconSet = {
  * Not a heavy performance hit, but some of the sprite sheet logic can be moved in here
  * eventually as well.
  */
-const parseIconSet = async ({ nodes, templates, worldSize }: IParseIconSet) => {
+const parseIconSet = async (
+  nodes: {slug: string}[], 
+  templates: Template[], 
+  worldSize: number
+) => {
 
   const lookup = Object.fromEntries(
-    nodes.map(({ relativePath, publicURL }) =>
-      [relativePath, publicURL])
+    nodes.map(({ slug }) => [slug, slug])
   );
 
   return templates.map(({
@@ -757,7 +755,7 @@ const scrapeIndexPage = async (url: string) =>
  */
 ctx.addEventListener("message", async ({ data }: MessageEvent) => {
   switch (data.type) {
-    case "start":
+    case start.name:
       await start();
       ctx.postMessage({
         type: "status",
@@ -788,11 +786,26 @@ ctx.addEventListener("message", async ({ data }: MessageEvent) => {
         data: await fetchImageBuffer(data.url),
       });
       return;
-    case "getFragment":
+    case getFragment.name:
       ctx.postMessage({
         type: "data",
         data: await getFragment(data.target, data.key, data.attribution),
       });
       return;
+    case parseIconSet.name:
+      ctx.postMessage({
+        type: parseIconSet.name,
+        //@ts-ignore
+        data: await parseIconSet(...data.data),
+      });
+      return;
+    default:
+      ctx.postMessage({
+        type: "error",
+        message: "unknown message format",
+        data
+      });
+      return;
+
   }
 })
