@@ -1,51 +1,28 @@
-import { useEffect, useReducer, useRef } from "react";
+import { useEffect, useRef } from "react";
+import type {MouseEvent} from "react";
 import type {MutableRefObject} from "react";
 import type {MiniMap} from "../../rust/pkg";
+import type {WorkerRef} from "../workers/shared";
 
 type ModuleType = typeof import("../../rust/pkg");
 
-/**
- * GraphQL fragment for static query to get sprite sheets and tile metadata.
- */
-const query = `
-    query {
-        tiles: allOceansideYaml {
-            templates: nodes {
-                name,
-                probability,
-                value, 
-                cost,
-                spriteSheet
-            }
-        }
-        icons: allFile(filter: { 
-            sourceInstanceName: { eq: "assets" },
-            extension: { eq: "png" }
-        }) {
-            nodes {
-                relativePath
-                publicURL
-            }
-        }
-    }
-`
 
-
-interface IUseOceanside {
-    map: MiniMap;
-    gridSize: number;
+interface IBoard {
+    map: MiniMap|null;
+    grid: {
+        size: number;
+        tiles: number[][];
+    };
     worldSize: number;
-    backgroundColor: string;
-    worker: MutableRefObject<SharedWorker|null>;
+    backgroundColor?: string;
+    worker: WorkerRef;
     nav: MutableRefObject<HTMLCanvasElement|null>;
-    runtime: ModuleType;
-    query: {
-        tiles: {
-            templates: any;
-        };
+    runtime: ModuleType|null;
+    tiles: {
+        templates: any;
         icons: {
-            nodes: any;
-        }
+            slug: string;
+        }[];
     };
 }
 
@@ -68,71 +45,32 @@ interface IUseOceanside {
  * @param {number} args.waterLevel - Fraction of tidal evolution. Each tile has an elevation value. Tiles above `waterLevel` are always land, and therfore worth nothing. Other wet tiles become mud depending on the tidal cycle and their elevation.
  * @param {String} args.backgroundColor - color of animation loop blending
  */
-export const useOceanside = ({
+export const useOceansideBoard = ({
     map,
-    gridSize, 
+    grid, 
     worldSize,
     backgroundColor = "#000000FF",
     worker,
-    nav,
     runtime,
-    query: {
-        tiles: {
-            templates
-        }, 
-        icons: {
-            nodes
-        }
-    }
-}: IUseOceanside) => {
+    tiles: {
+        templates,
+        icons,
+    },
+}: IBoard) => {
 
     /**
      * Ref for isometric view render target
      */
     const board = useRef<HTMLCanvasElement|null>(null);
 
-    
-    /**
-     * Update currently visible tiles from map view.
-     * 
-     * The `useReducer` hook takes the old value as an input,
-     * so we can diff the sets of tiles, and only generate or
-     * retrieve the ones that are coming into view.
-     */
-    const [tiles, populateVisibleTiles] = useReducer(
-        (tiles: any[], map: MiniMap, event: any) => {
-            if (event && typeof nav !== "undefined" && nav && nav.current) {
-                const xy: [number, number] = eventCoordinates(event, nav.current).map((x: number) => x*worldSize/128);
-                const ctx = nav.current.getContext("2d")
-                if (ctx) map.updateView(ctx,  ...xy);
-            }
-                
-            const diagonals = gridSize * 2 - 1;
-            const build: number[][] = [];
-            let count = 0;
-            map.clear();
-
-            for (let row = 0; row < diagonals; row++) {
-                build.push([]);
-                const columns = (row + (row < gridSize ? 1 : diagonals - 2 * row));
-                for (let column = 0; column < columns; column++) {
-                    let col = columns - 1 - column; // reverse the order in the index
-                    build[row].push(map.insertTile(count++, row, col));
-                }
-                build[row] = build[row].reverse();
-            }
-            return build
-        
-        },  null
-    );
-    
     useEffect(() => {
+        console.log({icons, templates, worldSize});
         (async () => {
             if (!worker.current || !map) return;
-            worker.current.port.postMessage({
-                type: "parseIconSet",
-                data: {nodes, templates, worldSize}
-            });
+            // worker.current.postMessage({
+            //     type: "parseIconSet",
+            //     data: {nodes, templates, worldSize}
+            // });
             // TODO: this...
             // iconSet.forEach((x) => {map.insertFeature(x)});
             // populateVisibleTiles(map, null);  
@@ -147,8 +85,10 @@ export const useOceanside = ({
         if (
             !board || 
             !board.current || 
-            !tiles || 
-            !worker.current
+            !(grid.tiles??false) || 
+            !worker.current ||
+            !runtime ||
+            !map
         ) return;
 
         [board.current.width, board.current.height] = ["width", "height"].map(
@@ -165,7 +105,7 @@ export const useOceanside = ({
         (function render() {
             const { width, height } = board.current;
             runtime.clear_rect_blending(ctx, width, height, backgroundColor);
-            tiles.forEach((diagonal: number[], ii: number) => {
+            grid.tiles.forEach((diagonal: number[], ii: number) => {
                 diagonal.forEach((tile, jj) => {
                     map.drawTile(ctx, ii, jj, diagonal.length, performance.now(), width, tile);
                 });
@@ -174,13 +114,14 @@ export const useOceanside = ({
         })();
 
         return () => { if (requestId) cancelAnimationFrame(requestId) };
-    }, [ tiles, worker ]);
+    }, [ grid.tiles, worker ]);
 
     
     return {
         ref: board,
-        onClick: (event) => {
+        onClick: (event: MouseEvent) => {
             try {
+                console.log({event})
                 // takeAnActionOrWait(event);
             } catch (err) {
                 console.error(err);
@@ -189,4 +130,4 @@ export const useOceanside = ({
     } 
 };
 
-export default useOceanside;
+export default useOceansideBoard;

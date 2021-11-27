@@ -1,7 +1,7 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useReducer } from "react";
 import type {MiniMap} from "../../rust/pkg"
-
-import useWasmRuntime from "./useWasmRuntime";
+type ModuleType = typeof import("../../rust/pkg");
+import {eventCoordinates} from "../workers/shared";
 
 export interface IWorld {
     /**
@@ -20,7 +20,13 @@ export interface IWorld {
      * Other wet tiles become mud depending on the tidal cycle and their elevation.
      */
     datum: number;
-}
+    /**
+     * WASM package, already initialized
+     */
+    runtime: ModuleType|null;
+};
+
+type TilesType = (number[][]|null);
 
 /**
  * The `Oceanside` hook provides all of the functionality to
@@ -39,17 +45,13 @@ export const useOceansideWorld = ({
     grid, 
     size, 
     datum,
+    runtime,
 }: IWorld) => {
 
     /**
      * Ref for clickable minimap that allows world navigation
      */
-    const nav = useRef(null);
-
-    /**
-     * Runtime will be passed to calling Hook or Component. 
-     */
-    const {runtime} = useWasmRuntime();
+    const nav = useRef<HTMLCanvasElement|null>(null);
 
     /**
      * MiniMap data structure from Rust-WebAssembly.
@@ -87,14 +89,53 @@ export const useOceansideWorld = ({
         )); 
     }, [ runtime ]);
 
+    const reducer = (_: TilesType, action: any) => {
+        if (!map) throw TypeError("MiniMap reference is Null");
+        if (action && nav.current) {
+            const canvas: HTMLCanvasElement = nav.current;
+            const xy: [number, number] = eventCoordinates(action, nav.current).map((x: number) => x*size/128) as any;
+            const ctx = canvas.getContext("2d");
+            if (ctx) map.updateView(ctx,  ...xy);
+        }
+            
+        const diagonals = grid.size * 2 - 1;
+        const build: TilesType = [];
+        let count = 0;
+
+        // Clear the generated tiles, but not the world data
+        map.clear();
+    
+        for (let row = 0; row < diagonals; row++) {
+            build.push([]);
+            const columns = (row + (row < grid.size ? 1 : diagonals - 2 * row));
+            for (let column = 0; column < columns; column++) {
+                let col = columns - 1 - column; // reverse the order in the index
+                build[row].push(map.insertTile(count++, row, col));
+            }
+            build[row] = build[row].reverse();
+        }
+        return build
+    }
+
+    /**
+     * Update currently visible tiles from map view.
+     * 
+     * The `useReducer` hook takes the old value as an input,
+     * so we can diff the sets of tiles, and only generate or
+     * retrieve the ones that are coming into view.
+     */
+    const [tiles, populateVisibleTiles] = useReducer(reducer, []);
+
 
     return {
         map,
         size,
+        grid: {
+            ...grid,
+            tiles
+        },
         ref: nav,
-        // onClick: (event: Event) => {
-        //     runtime.populateVisibleTiles(map, event);
-        // }
+        onClick: populateVisibleTiles
     } 
 };
 

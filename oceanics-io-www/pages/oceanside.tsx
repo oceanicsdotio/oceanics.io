@@ -1,36 +1,77 @@
 /**
  * React and friends.
  */
-import React from "react";
+import React, { useEffect } from "react";
 import type { FC } from "react";
 import { GetStaticProps } from "next";
+import {readIcons, parseIconMetadata} from "../src/next-util";
 
 /**
  * Component-level styling.
  */
 import styled from "styled-components";
 
+/**
+ * Hooks for data handling.
+ */
 import useOceansideWorld from "../src/hooks/useOceansideWorld";
+import useOceansideBoard from "../src/hooks/useOceansideBoard";
+import useWasmRuntime from "../src/hooks/useWasmRuntime";
+import useSharedWorkerState from "../src/hooks/useSharedWorkerState";
 import type {IWorld} from "../src/hooks/useOceansideWorld";
+import { serialize } from "v8";
 const MAPBOX_STYLESHEET = "https://api.mapbox.com/mapbox-gl-js/v1.5.0/mapbox-gl.css"
 
+/**
+ * Page-specific typings.
+ */
 interface ApplicationType extends IWorld {
   className?: string;
+  icons: any;
+  templates: any;
 };
+
+const createBathysphereWorker = () => {
+  return new Worker(
+      new URL("../src/workers/useBathysphereApi.worker.ts", import.meta.url)
+  );
+}
 
 /**
  * Page component rendered by GatsbyJS.
  */
-const AppPage: FC<ApplicationType> = ({ className, ...props }) => {
+const AppPage: FC<ApplicationType> = ({ className, icons, templates, ...props }) => {
+  /**
+   * Single runtime for AppPage context
+   */
+  const {runtime} = useWasmRuntime();
+  const worker = useSharedWorkerState("bathysphere");
   /**
    * Digital elevation map of the synthetic terrain. 
    */
-  const world = useOceansideWorld(props)
+  const world = useOceansideWorld({...props, runtime});
+  const board = useOceansideBoard({
+    map: world.map,
+    nav: world.ref,
+    grid: world.grid,
+    worldSize: world.size,
+    worker: worker.ref,
+    runtime,
+    tiles: {
+      templates,
+      icons
+    }
+  });
+
+  useEffect(() => {
+    worker.start(createBathysphereWorker());
+  }, []);
+
   
   return (
     <div className={className}>
       <link href={MAPBOX_STYLESHEET} rel={"stylesheet"}/>
-      <canvas ref={world.ref} width={world.size} height={world.size}/>
+      <canvas ref={world.ref} width={world.size} height={world.size} className={"world"}/>
     </div>
   );
 };
@@ -45,17 +86,23 @@ const StyledIndex = styled(AppPage)`
   width: 100%;
 
   & canvas {
-    width: 1024px;
-    height: 1024px;
     image-rendering: crisp-edges;
+  }
+  & .world {
+    width: 256px;
+    height: 256px;
   }
 `;
 
 AppPage.displayName = "Oceanside";
 export default StyledIndex;
 
-export const getStaticProps: GetStaticProps = () =>
-  Object({
+export const getStaticProps: GetStaticProps = () => {
+
+  const icons = readIcons();
+  const templates = parseIconMetadata();
+
+  return {
     props: {
       description: "",
       title: "Oceanside",
@@ -63,6 +110,10 @@ export const getStaticProps: GetStaticProps = () =>
       grid: {
         size: 8
       },
-      datum: 0.7
+      datum: 0.7,
+      runtime: null,
+      icons,
+      templates
     }
-  });
+  };
+}

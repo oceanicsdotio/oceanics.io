@@ -30,7 +30,7 @@ probability: 0.01
 dialog: Beep boop, science!
 limit: 1
 description: |
-    Sometimes if you are really nice and bring scientists seafood they will publish a paper revealing the true nature of things.  
+  Sometimes if you are really nice and bring scientists seafood they will publish a paper revealing the true nature of things.  
 ---  
 data: fish-pen.gif
 spriteSheet: fish-pen.png
