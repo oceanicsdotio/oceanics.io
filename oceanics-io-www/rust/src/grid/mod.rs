@@ -929,7 +929,7 @@ pub mod grid {
          * Pick a random feature, defaulting to empty ocean space. Copy the
          * feature template object that was inserted, and return the copy.
          *
-         * This is used when populating the world or replaceing tiles with
+         * This is used when populating the world or replacing tiles with
          * others randomly. 
          */
         pub fn pick_one(&self) -> Feature {

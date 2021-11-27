@@ -1,13 +1,25 @@
-// @ts-nocheck
 import { useEffect, useState, useRef } from "react";
 import type {MiniMap} from "../../rust/pkg"
 
 import useWasmRuntime from "./useWasmRuntime";
 
-type IOceansideWorld = {
-    gridSize: number;
-    worldSize: number;
-    waterLevel: number;
+export interface IWorld {
+    /**
+     * Integer height and width of grid subset. The number of tiles visible is the square of `gridSize`, 
+     * so scores are higher for larger.
+     */
+    grid: {size: number};
+    /**
+     * Integer height and width of global grid. The total number of tiles, 
+     * and therefore the probability of finding certain features, is the square of `worldSize`. 
+     */
+    size: number;
+    /**
+     * Fraction of tidal evolution. Each tile has an elevation value. 
+     * Tiles above `waterLevel` are always land, and therefore worth nothing. 
+     * Other wet tiles become mud depending on the tidal cycle and their elevation.
+     */
+    datum: number;
 }
 
 /**
@@ -22,18 +34,12 @@ type IOceansideWorld = {
  * 
  * Tile asset references are used to pre-load all of the
  * sprite data for animations. 
- * 
- * @param {Object} args - Arguments object
- * @param {number} args.gridSize - Integer height and width of grid subset. The number of tiles visible is the square of `gridSize`, so scores are higher for larger.
- * @param {number} args.worldSize - Integer height and width of global grid. The total number of tiles, and therefore the probability of finding certain features, is the square of `worldSize`. 
- * @param {number} args.waterLevel - Fraction of tidal evolution. Each tile has an elevation value. Tiles above `waterLevel` are always land, and therfore worth nothing. Other wet tiles become mud depending on the tidal cycle and their elevation.
- * @param {String} args.backgroundColor - color of animation loop blending
  */
 export const useOceansideWorld = ({
-    gridSize, 
-    worldSize, 
-    waterLevel,
-}: IOceansideWorld) => {
+    grid, 
+    size, 
+    datum,
+}: IWorld) => {
 
     /**
      * Ref for clickable minimap that allows world navigation
@@ -55,7 +61,7 @@ export const useOceansideWorld = ({
      * instance and draw the generated world to the canvas, 
      * then save the map reference to react state.
      * 
-     * Build the tileset from the random Feature table, 
+     * Build the tile set from the random Feature table, 
      * or leave space for land. 
      * 
      * Create the probability table by accumulative discrete 
@@ -68,29 +74,27 @@ export const useOceansideWorld = ({
         if (!runtime || !nav.current) return;
         const canvas: HTMLCanvasElement = nav.current;
         const ctx = canvas.getContext("2d");
-        if (!ctx) {
-            throw TypeError("Rendering Context is Null");
-        }
-
-        const offset = (worldSize - gridSize) / 2;
+        if (!ctx) throw TypeError("Rendering Context is Null");
+    
+        const offset = (size - grid.size) / 2;
         setMap(new runtime.MiniMap(
             offset, 
             offset/2, 
-            worldSize, 
-            waterLevel, 
+            size, 
+            datum, 
             ctx, 
-            gridSize
+            grid.size
         )); 
-
     }, [ runtime ]);
 
 
     return {
         map,
+        size,
         ref: nav,
-        onClick: (event: Event) => {
-            runtime.populateVisibleTiles(map, event);
-        }
+        // onClick: (event: Event) => {
+        //     runtime.populateVisibleTiles(map, event);
+        // }
     } 
 };
 

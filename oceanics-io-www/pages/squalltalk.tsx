@@ -57,7 +57,6 @@ const AppPage: FC<ApplicationType> = ({ map }) => {
         rel="stylesheet"
       />
       <div style={{ height: "500px" }} ref={ref} />
-      <canvas ref={undefined} width={500} height={500}/>
     </>
   );
 };
