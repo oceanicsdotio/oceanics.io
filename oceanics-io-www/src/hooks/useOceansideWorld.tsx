@@ -27,6 +27,12 @@ export interface IWorldType {
         size: number;
     };
     /**
+     * Pixel size of the canvas element
+     */
+    view: {
+        size: number;
+    }
+    /**
      * Integer height and width of global grid. The total number of tiles, 
      * and therefore the probability of finding certain features, is the square of `worldSize`. 
      */
@@ -127,7 +133,6 @@ export const useOceansideWorld = ({
     useEffect(() => {
         if (!worker.current || !map) return;
         worker.current.addEventListener("message", listener, { passive: true });
-        // Send data to work, we don't need it anymore
         worker.current.postMessage({
             type: ACTION,
             data: [icons.sources, icons.templates, size]
@@ -176,7 +181,7 @@ export const useOceansideWorld = ({
         if (!map) throw TypeError("MiniMap reference is Null");
         if (action && ref.current) {
             const canvas: HTMLCanvasElement = ref.current;
-            const xy: [number, number] = eventCoordinates(action, ref.current).map((x: number) => x*size/128) as any;
+            const xy: [number, number] = eventCoordinates(action, ref.current).map((x: number) => x/4) as any;
             const ctx = canvas.getContext("2d");
             if (ctx) map?.updateView(ctx,  ...xy);
         }
@@ -186,14 +191,17 @@ export const useOceansideWorld = ({
     }, [map]);
     
     return {
+        canvas: {
+            width: size,
+            height: size,
+            ref,
+            onClick
+        },
         map,
-        size,
         grid: {
             ...grid,
             tiles
         },
-        ref,
-        onClick
     } 
 };
 

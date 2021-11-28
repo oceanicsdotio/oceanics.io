@@ -69,7 +69,7 @@ const AppPage: FC<ApplicationType> = ({ className, ...props }) => {
   return (
     <div className={className}>
       <link href={MAPBOX_STYLESHEET} rel={"stylesheet"}/>
-      <canvas ref={world.ref} width={world.size} height={world.size} className={"world"}/>
+      <canvas {...world.canvas} className={"world"}/>
     </div>
   );
 };
