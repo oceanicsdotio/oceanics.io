@@ -14,12 +14,12 @@ pub mod grid {
         CanvasRenderingContext2d, 
         HtmlCanvasElement, 
         HtmlImageElement, 
-        ImageData
+        ImageData,
+        console
     };
     use std::collections::HashMap;  // used for cell attribute lookup
     use std::f64::consts::PI;
     use serde::{Deserialize,Serialize};  // comm with Web JS
-
     use crate::cursor::cursor_system::SimpleCursor; 
 
     /**
@@ -489,7 +489,7 @@ pub mod grid {
 
             let image_data_url: &String = &self.tile_set.probability_table.get_by_key(&feature).data_url;
             let image_sprite = HtmlImageElement::new().unwrap();
-            image_sprite.set_src(image_data_url);
+            image_sprite.set_src(&format!("/assets/{}", image_data_url).to_string());
 
             let frames: f64 = image_sprite.width() as f64 / image_sprite.height() as f64;
             let keyframe: f64 = ((offset + 0.01*time) % frames).floor() % frames;
@@ -535,7 +535,6 @@ pub mod grid {
          * Get the JSON serialized tile data from a linear index. 
          */
         pub fn get_tile(&self, index: usize) -> JsValue {
-           
             self.tile_set.get_tile(index)
         }
 
@@ -546,7 +545,6 @@ pub mod grid {
          */
         #[wasm_bindgen(js_name = replaceTile)]
         pub fn replace_tile(&mut self, ii: usize, jj:usize) {
-           
             self.tile_set.replace_tile(ii, jj);
         }
 
@@ -564,7 +562,6 @@ pub mod grid {
             }
             index
         }
-       
 
         /**
         Map the alpha channel of the image data into a land_mask. 
@@ -585,11 +582,10 @@ pub mod grid {
             }
         }
 
-         /*
-            Access an element of the mask by index
-            */
+        /*
+         * Access an element of the mask by index
+         */
         pub fn get_mask(&self, index: usize) -> f64 {
-           
             *self.mask.get(index).unwrap()
         }
 
@@ -598,23 +594,23 @@ pub mod grid {
         }
 
         /**
-        Access method for current view
-        */
+         * Access method for current view
+         */
         pub fn view_x(&self) -> f64 {
             self.view[0]
         }
 
         /**
-        Access method for current view
-        */
+         * Access method for current view
+         */
         pub fn view_y(&self) -> f64 {
             self.view[1]
         }
 
         /**
-        Move the field of view in the overall world image. Input is used 
-        my onClick events to navigate around the map.
-        */
+         * Move the field of view in the overall world image. Input is used 
+         * my onClick events to navigate around the map.
+         */
         #[wasm_bindgen(js_name = updateView)]
         pub fn update_view(&mut self, ctx: CanvasRenderingContext2d, vx: f64, vy: f64) {
             self.view = [vx.floor(), vy.floor()];
@@ -623,9 +619,9 @@ pub mod grid {
         }
 
         /**
-        Make a white box, that will be filled in with image
-        data to form a frame. 
-        */
+         * Make a white box, that will be filled in with image
+         * data to form a frame. 
+         */
         pub fn draw_bbox(&self, ctx: &CanvasRenderingContext2d) {
                  
             let bbox = self.grid_size + 2;
@@ -642,9 +638,9 @@ pub mod grid {
         }
 
         /**
-        Draw the image data, then a square, and then fill the square with part of the image data again to form
-        a frame
-        */
+         * Draw the image data, then a square, and then fill the square with part of the image data again to form
+         * a frame
+         */
         pub fn draw_image_data(&mut self, ctx: &CanvasRenderingContext2d) {
     
            
@@ -777,8 +773,8 @@ pub mod grid {
          * into the probability table.
          */
         pub fn insert_feature(&mut self, feature: JsValue) {
-            let rfeature: Feature = feature.into_serde().unwrap();
-            self.probability_table.insert(rfeature);
+            let r_feature: Feature = feature.into_serde().unwrap();
+            self.probability_table.insert(r_feature);
         }
 
         /**
@@ -797,7 +793,8 @@ pub mod grid {
             let index: &usize = self.index.get(&DiagonalIndex{row:ii, column:jj}).unwrap();
             let previous = self.tiles[*index].clone();
             loop {
-                let feature: Feature = self.probability_table.pick_one();
+                let probability = js_sys::Math::random();
+                let feature: Feature = self.probability_table.pick_one(probability);
                 let mut count: u32 = 0;
                 if self.count.contains_key(&feature.key) { 
                     count = self.count.get(&feature.key).unwrap().clone();
@@ -839,7 +836,8 @@ pub mod grid {
             
             let current_size = self.tiles.len();
             loop {
-                let feature: Feature = self.probability_table.pick_one();
+                let probability = js_sys::Math::random();
+                let feature: Feature = self.probability_table.pick_one(probability);
                 let mut count: u32 = 0;
                 if self.count.contains_key(&feature.key) { 
                     count = self.count.get(&feature.key).unwrap().clone();
@@ -929,13 +927,19 @@ pub mod grid {
          * Pick a random feature, defaulting to empty ocean space. Copy the
          * feature template object that was inserted, and return the copy.
          *
-         * This is used when populating the world or replaceing tiles with
+         * This is used when populating the world or replacing tiles with
          * others randomly. 
          */
-        pub fn pick_one(&self) -> Feature {
-        
-            let probability = js_sys::Math::random();
-            let mut feature = (*self.table.get(self.lookup[&"ocean".to_string()]).unwrap()).clone();
+        pub fn pick_one(&self, probability: f64) -> Feature {
+            let lookup_key = &"ocean".to_string();
+            if !self.lookup.contains_key(lookup_key) {
+                let valid = self.lookup.keys().cloned().collect::<Vec<String>>();
+                let message = format!("{} is not a key in the feature lookup table ({}): {}", lookup_key, valid.len(), valid.join(", "));
+                console::error_1(&message.into());
+                panic!("Bad lookup value, see error output for more information");
+            }
+            let entry = self.lookup[lookup_key]; // err
+            let mut feature = (*self.table.get(entry).unwrap()).clone();
             for ii in 0..self.table.len() {
                 if probability < self.table[ii].probability {
                     feature = (*self.table.get(ii).unwrap()).clone();

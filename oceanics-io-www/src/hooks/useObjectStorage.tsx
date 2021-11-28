@@ -26,11 +26,12 @@ export const useObjectStorage = (
    */
   useEffect(() => {
     if (!target || !worker.current) return;
-    worker.current.postMessage({
+    const message = {
       type: "index",
       url: target
-    })
-  }, [worker]);
+    }
+    worker.current.postMessage(message)
+  }, [worker.current]);
 
   return fileSystem;
 };

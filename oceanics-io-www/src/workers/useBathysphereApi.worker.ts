@@ -1,10 +1,82 @@
-import type { shared } from "./shared";
+
+import { DOMParser } from "xmldom";
+import type { FileSystem } from "./shared";
+import SwaggerParser from "@apidevtools/swagger-parser";
+import YAML from "yaml";
 const ctx: Worker = self as unknown as Worker;
+type ModuleType = typeof import("../../rust/pkg");
+
+/**
+ * Global for reuse
+ */
+let parser: DOMParser | null = null;
 
 /**
  * Runtime handle to which we will memoize the active runtime. 
  */
-let runtime = null;
+let runtime: ModuleType | null = null;
+
+/**
+ * Make HTTP request to S3 service for metadata about available
+ * assets.
+ * 
+ * Use `xmldom.DOMParser` to parse S3 metadata as JSON file descriptors,
+ * because window.DOMParser is not available in Web Worker 
+ */
+async function getNodes(url: string, parser: DOMParser): Promise<ChildNode[]> {
+  const text = await fetch(url, {
+    method: "GET",
+    mode: "cors",
+    cache: "no-cache"
+  }).then(response => response.text());
+
+  const xmlDoc = parser.parseFromString(text, "text/xml");
+  const [result] = Object.values(xmlDoc.childNodes).filter(
+    (x) => x.nodeName === "ListBucketResult"
+  );
+  return Array.from(result.childNodes);
+}
+
+/**
+ * Retrieve remote file metadata and format it as a
+ * serializable message. 
+ */
+async function getFileSystem(url: string): Promise<FileSystem> {
+  if (!parser) parser = new DOMParser();
+
+  const nodes = await getNodes(url, parser);
+  const filter = (match: string) => ({ tagName }: any) => tagName === match;
+  const fileObject = (node: ChildNode) => Object({
+    key: node.childNodes[0].textContent,
+    updated: node.childNodes[1].textContent,
+    size: node.childNodes[3].textContent,
+  })
+  const fileCollection = (node: ChildNode) => Object({
+    key: node.childNodes[0].textContent
+  })
+
+  const objects = nodes.filter(filter("Contents")).map(fileObject)
+  const collections = nodes.filter(filter("CommonPrefixes")).map(fileCollection)
+
+  return { objects, collections };
+}
+
+/**
+ * Get image data from S3, the Blob-y way. 
+ */
+const fetchImageBuffer = async (url: string): Promise<Float32Array> => {
+  const blob = await fetch(url).then(response => response.blob());
+  const arrayBuffer: string | ArrayBuffer | null = await (new Promise(resolve => {
+    var reader = new FileReader();
+    reader.onloadend = () => { resolve(reader.result); };
+    reader.readAsArrayBuffer(blob);
+  }));
+  if (arrayBuffer instanceof ArrayBuffer) {
+    return new Float32Array(arrayBuffer);
+  } else {
+    throw TypeError("Result is not ArrayBuffer type")
+  }
+}
 
 /**
  * Import Rust-WASM runtime, and add a panic hook to give 
@@ -19,25 +91,8 @@ let runtime = null;
  * thread for troubleshooting.
  */
 async function start() {
-  try {
-    runtime = await import("../../rust/pkg");
-    runtime.panic_hook();
-    runtime.greet();
-    ctx.postMessage({
-      type: "status",
-      data: {
-        ready: true
-      },
-    });
-  } catch (err: any) {
-    ctx.postMessage({
-      type: "status",
-      data: {
-        ready: false,
-        error: err.message
-      },
-    });
-  }
+  runtime = await import("../../rust/pkg");
+  runtime.panic_hook();
 }
 
 /**
@@ -286,11 +341,6 @@ type Template = {
   value?: number;
   limit?: number;
 }
-type IParseIconSet = {
-  nodes: any[];
-  templates: Template[];
-  worldSize: number;
-}
 
 /**
  * Generate the dataUrls for icon assets in the background.
@@ -298,11 +348,14 @@ type IParseIconSet = {
  * Not a heavy performance hit, but some of the sprite sheet logic can be moved in here
  * eventually as well.
  */
-const parseIconSet = async ({ nodes, templates, worldSize }: IParseIconSet) => {
+const parseIconSet = async (
+  nodes: {slug: string}[], 
+  templates: Template[], 
+  worldSize: number
+) => {
 
   const lookup = Object.fromEntries(
-    nodes.map(({ relativePath, publicURL }) =>
-      [relativePath, publicURL])
+    nodes.map(({ slug }) => [slug, slug])
   );
 
   return templates.map(({
@@ -456,8 +509,8 @@ const getFragment = async (target: string, key: string, attribution: string) => 
 
   const url = `${target}/${key}`;
   const blob = await fetch(url).then(response => response.blob());
-  
-  const arrayBuffer: ArrayBuffer|string|null = await (new Promise((resolve) => {
+
+  const arrayBuffer: ArrayBuffer | string | null = await (new Promise((resolve) => {
     var reader = new FileReader();
     reader.onloadend = () => { resolve(reader.result) };
     reader.readAsArrayBuffer(blob);
@@ -467,20 +520,20 @@ const getFragment = async (target: string, key: string, attribution: string) => 
   }
 
   const dataView = new Float32Array(arrayBuffer);
-  const {features} = dataView.reduce(({count, features}: FeatureReducer, cur: number) => {
-      let insert;
-      if (!count) {
-        insert = [cur];
-      } else {
-        const [coords] = features.slice(-1);
-        insert = [...coords, cur];
-      } 
-      
-      return {
-        features: [...features, insert],
-        count: (count + 1) % 3
-      };
-    },
+  const { features } = dataView.reduce(({ count, features }: FeatureReducer, cur: number) => {
+    let insert;
+    if (!count) {
+      insert = [cur];
+    } else {
+      const [coords] = features.slice(-1);
+      insert = [...coords, cur];
+    }
+
+    return {
+      features: [...features, insert],
+      count: (count + 1) % 3
+    };
+  },
     { count: 0, features: [] }
   );
 
@@ -536,11 +589,178 @@ const reduceVertexArray = async (vertexArray: Vertex[]) => {
   )
 };
 
+/** 
+ * Parse a YAML text block that includes arbitrary line breaks
+ * and whitespace
+ */
+const parseYamlText = (text: string) =>
+  YAML.parse(text)
+    .split("\n")
+    .filter((paragraph: string) => paragraph)
 
-ctx.addEventListener("message", async ({data}) => {
+
+/**
+ * Load and validate the OpenAPI specification. 
+ */
+const load = async (specUrl: string) => {
+  try {
+    let api = await SwaggerParser.validate(specUrl);
+    api.info.description = parseYamlText(api.info.description ?? "");
+    return api;
+  }
+  catch (err) {
+    return err;
+  }
+}
+
+type Schema = {
+  name: string;
+  schema: {
+    enum?: string[];
+    type: string;
+    description: string;
+  }
+}
+type Input = {
+  id: string;
+  type: string;
+  options: string[];
+}
+
+/**
+ * Convert from OpenAPI schema standard to JSX Form component properties
+ * 
+ * Split a camelCase string on capitalized words and rejoin them
+ * as a lower case phrase separated by spaces. 
+ */
+const schemaToInput = ({
+  name,
+  schema,
+  ...props
+}: Schema): Input => {
+  let type;
+  let options = null;
+  if (typeof schema !== "undefined") {
+    type = schema.type;
+    if (schema.enum ?? false) {
+      type = "select";
+      options = schema.enum;
+    } else if (type === "string") {
+      type = "text";
+    } else if (type === "integer") {
+      type = "number";
+    }
+  }
+
+  return Object({
+    id: name
+      .split(/([A-Z][a-z]+)/)
+      .filter((word: string) => word)
+      .map((word: string) => word.toLowerCase())
+      .join(" "),
+    type,
+    options,
+    ...props
+  });
+};
+
+type Property = {
+  readOnly?: boolean;
+  items?: Property;
+  properties?: object;
+}
+type PropertiesEntry = [string, Property];
+type Properties = { [index: string]: Property }
+type Content = {
+  ["application/json"]: {
+    schema: {
+      properties: Properties;
+    }
+  }
+}
+
+
+type IBuildView = {
+  parameters: any;
+  requestBody: {
+    content: Content;
+  }
+}
+
+/**
+ * Builds the form structure for the hook
+ * from the paths in the specification.
+ */
+const buildView = ({ parameters, requestBody }: IBuildView) => {
+
+  const filterReadOnly = ({ readOnly = null }) => !readOnly;
+  const formatPaths = ([k, v]: PropertiesEntry) => {
+    let value = v;
+    while (typeof value.items !== "undefined") value = value.items;
+    if (typeof value.properties !== "undefined") {
+      return Object.entries(value.properties).map(([k, v]) => Object({ name: k, ...v }));
+    } else {
+      return { name: k, ...value }
+    }
+  }
+
+  let body = null;
+  if (requestBody) {
+    const props = requestBody.content["application/json"].schema.properties;
+    body = Object.entries(props).flatMap(formatPaths).filter(filterReadOnly);
+  }
+
+  return {
+    query: (parameters || []).map(schemaToInput),
+    body
+  }
+}
+
+type ApiOperation = {
+  path: string;
+  method: string;
+  schema: Schema;
+  view: {
+    query: Input[];
+    body: any;
+  }
+}
+
+type PathsInput = { [index: string]: Schema }
+
+/**
+ * Flatten the route and method pairs to be filtered
+ * and converted to UI features
+ */
+// const flattenSpecOperations = async (paths: PathsInput): Promise<ApiOperation[]> =>
+//     Object.entries(paths).flatMap(([path, schema]) => 
+//         Object.entries(schema).map(([method, schema]) => 
+//             Object({
+//                 path, 
+//                 method, 
+//                 schema: {
+//                     ...schema,
+//                     description: parseYamlText(schema.description)
+//                 }, 
+//                 view: buildView(schema)
+//             })));
+
+const scrapeIndexPage = async (url: string) =>
+  fetch(url).then(response => response.json());
+
+
+/**
+ * On start will listen for messages and match against type to determine
+ * which internal methods to use. 
+ */
+ctx.addEventListener("message", async ({ data }: MessageEvent) => {
   switch (data.type) {
-    case "start":
+    case start.name:
       await start();
+      ctx.postMessage({
+        type: "status",
+        data: "ready",
+      });
       return;
     case "status":
       ctx.postMessage({
@@ -548,6 +768,44 @@ ctx.addEventListener("message", async ({data}) => {
         data: "ready",
       });
       return;
+    case "index":
+      ctx.postMessage({
+        type: "data",
+        data: await getFileSystem(data.url),
+      });
+      return;
+    case "json":
+      ctx.postMessage({
+        type: "data",
+        data: await getPublicJsonData(data.url),
+      });
+      return;
+    case "blob":
+      ctx.postMessage({
+        type: "data",
+        data: await fetchImageBuffer(data.url),
+      });
+      return;
+    case getFragment.name:
+      ctx.postMessage({
+        type: "data",
+        data: await getFragment(data.target, data.key, data.attribution),
+      });
+      return;
+    case parseIconSet.name:
+      ctx.postMessage({
+        type: parseIconSet.name,
+        //@ts-ignore
+        data: await parseIconSet(...data.data),
+      });
+      return;
+    default:
+      ctx.postMessage({
+        type: "error",
+        message: "unknown message format",
+        data
+      });
+      return;
+
   }
 })
-  

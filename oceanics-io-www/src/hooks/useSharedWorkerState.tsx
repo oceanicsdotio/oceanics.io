@@ -2,7 +2,7 @@ import {useRef, useState} from "react";
 import type {Dispatch, SetStateAction} from "react";
 
 const useSharedWorkerState = (name: string) => {
-    const ref = useRef<Worker|null>();
+    const ref = useRef<Worker|null>(null);
     const [messages, setMessages] = useState<String[]>([]);
 
     const onMessageHandler = (name: string, setValue: Dispatch<SetStateAction<any[]>>) => ({data}: any) => {

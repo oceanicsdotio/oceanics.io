@@ -38,7 +38,7 @@ const useMapBox = ({
     /**
      * MapBoxGL Map instance is saved to React state. 
      */
-    const [map, setMap] = useState<Map>();
+    const [map, setMap] = useState<Map|null>(null);
 
     /**
      * Resize on load.
@@ -72,7 +72,7 @@ const useMapBox = ({
     * Add a zoom handler to the map
     */
     useEffect(() => {
-        if (typeof map !== "undefined") map.on('zoom', () => { setZoom(map.getZoom()) });
+        if (map) map.on('zoom', () => { setZoom(map.getZoom()) });
     }, [map]);
 
     /**

@@ -13,23 +13,13 @@ import useMapBox from "oceanics-io-ui/build/hooks/useMapBox";
 
 import useWasmRuntime from "../src/hooks/useWasmRuntime";
 import useSharedWorkerState from "../src/hooks/useSharedWorkerState";
+import useFragmentQueue, {OBJECT_STORAGE_URL} from "../src/hooks/useFragmentQueue";
+import useObjectStorage from "../src/hooks/useObjectStorage";
 
 
 const createBathysphereWorker = () => {
   return new Worker(
       new URL("../src/workers/useBathysphereApi.worker.ts", import.meta.url)
-  );
-}
-
-const createObjectStorageWorker = () => {
-  return new Worker(
-      new URL("../src/workers/useObjectStorage.worker.ts", import.meta.url)
-  );
-}
-
-const createOpenApiLoaderWorker = () => {
-  return new Worker(
-      new URL("../src/workers/useOpenApiLoader.worker.ts", import.meta.url)
   );
 }
 
@@ -48,28 +38,17 @@ type ApplicationType = {
  */
 const AppPage: FC<ApplicationType> = ({ map }) => {
     
-  const { ref } = useMapBox(map);
+  const { ref, map: mapBox } = useMapBox(map);
 
-  const bathysphereWorker = useSharedWorkerState("bathysphereApi");
-  const objectStorageWorker = useSharedWorkerState("S3");
-  const openApiWorker = useSharedWorkerState("openApiLoader");
+  const worker = useSharedWorkerState("bathysphere");
   const {runtime} = useWasmRuntime();
+  const fs = useObjectStorage(OBJECT_STORAGE_URL, worker.ref)
 
   useEffect(() => {
-      if (runtime) console.log("Runtime ready")
-  }, [runtime])
-
-  useEffect(() => {
-      bathysphereWorker.start(createBathysphereWorker());
+      worker.start(createBathysphereWorker());
   }, []);
 
-  useEffect(() => {
-      objectStorageWorker.start(createObjectStorageWorker());
-  }, []);
-
-  useEffect(() => {
-      openApiWorker.start(createOpenApiLoaderWorker());
-  }, []);
+  useFragmentQueue({worker: worker.ref, map: mapBox, fs})
 
   return (
     <>
