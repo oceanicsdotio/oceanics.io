@@ -755,7 +755,7 @@ const scrapeIndexPage = async (url: string) =>
  */
 ctx.addEventListener("message", async ({ data }: MessageEvent) => {
   switch (data.type) {
-    case start.name:
+    case "start":
       await start();
       ctx.postMessage({
         type: "status",
@@ -786,15 +786,15 @@ ctx.addEventListener("message", async ({ data }: MessageEvent) => {
         data: await fetchImageBuffer(data.url),
       });
       return;
-    case getFragment.name:
+    case "getFragment":
       ctx.postMessage({
         type: "data",
         data: await getFragment(data.target, data.key, data.attribution),
       });
       return;
-    case parseIconSet.name:
+    case "parseIconSet":
       ctx.postMessage({
-        type: parseIconSet.name,
+        type: "parseIconSet",
         //@ts-ignore
         data: await parseIconSet(...data.data),
       });
