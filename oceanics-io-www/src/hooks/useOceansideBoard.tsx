@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef } from "react";
 import type { MouseEvent } from "react";
 import type { WorkerRef } from "../workers/shared";
 import type { MapType, ModuleType } from "./useOceansideWorld";
@@ -7,25 +7,14 @@ import type { MapType, ModuleType } from "./useOceansideWorld";
 interface IBoard {
     world: {
         map: MapType|null;
-        size: number;
         grid: {
-            size: number;
             tiles: number[][];
         };
-        populateVisibleTiles: (action: any) => void;
     };
     backgroundColor?: string;
     worker: WorkerRef;
     runtime: ModuleType|null;
-    tiles: {
-        templates: any;
-        icons: {
-            slug: string;
-        }[];
-    };
-}
-
-const ACTION =  "parseIconSet";
+};
 
 /**
  * The `Oceanside` hook provides all of the functionality to
@@ -41,53 +30,19 @@ const ACTION =  "parseIconSet";
  * sprite data for animations. 
  * 
  * @param {Object} args - Arguments object
- * @param {number} args.gridSize - Integer height and width of grid subset. The number of tiles visible is the square of `gridSize`, so scores are higher for larger.
- * @param {number} args.worldSize - Integer height and width of global grid. The total number of tiles, and therefore the probability of finding certain features, is the square of `worldSize`. 
- * @param {number} args.waterLevel - Fraction of tidal evolution. Each tile has an elevation value. Tiles above `waterLevel` are always land, and therfore worth nothing. Other wet tiles become mud depending on the tidal cycle and their elevation.
  * @param {String} args.backgroundColor - color of animation loop blending
  */
 export const useOceansideBoard = ({
     world,
     backgroundColor = "#220022FF",
     worker,
-    runtime,
-    tiles: {
-        templates,
-        icons,
-    },
+    runtime
 }: IBoard) => {
 
     /**
      * Ref for isometric view render target
      */
     const board = useRef<HTMLCanvasElement|null>(null);
-
-
-    const [ready, setReady] = useState(false);
-
-    const listener = useCallback(({data}: {data: any, type: string})=>{
-        if (data.type !== ACTION || ready) return;
-        data.data.forEach((x: any) => {
-            world.map?.insertFeature(x);
-        });
-        setReady(true);
-    }, [world.map, ready])
-
-    /**
-     * When we have a worker and the world map both ready,
-     * then we can start sending messages to parse icon
-     * data and do some calculations of, for example, the
-     * probability distribution of features etc. 
-     */
-    useEffect(() => {
-        if (!worker.current || !world.map) return;
-        const action =  "parseIconSet";
-        worker.current.addEventListener("message", listener, { passive: true });
-        worker.current.postMessage({
-            type: action,
-            data: [icons, templates, world.size]
-        });
-    }, [ worker, world.map ]);
 
     /**
      * Draw the visible area to the board canvas using the 

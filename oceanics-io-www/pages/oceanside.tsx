@@ -5,17 +5,12 @@ import React, { useEffect } from "react";
 import type { FC } from "react";
 import { GetStaticProps } from "next";
 import {readIcons, parseIconMetadata} from "../src/next-util";
-
-/**
- * Component-level styling.
- */
 import styled from "styled-components";
 
 /**
  * Hooks for data handling.
  */
 import useOceansideWorld from "../src/hooks/useOceansideWorld";
-import useOceansideBoard from "../src/hooks/useOceansideBoard";
 import useWasmRuntime from "../src/hooks/useWasmRuntime";
 import useSharedWorkerState from "../src/hooks/useSharedWorkerState";
 import type {IWorld} from "../src/hooks/useOceansideWorld";
@@ -26,10 +21,17 @@ const MAPBOX_STYLESHEET = "https://api.mapbox.com/mapbox-gl-js/v1.5.0/mapbox-gl.
  */
 interface ApplicationType extends IWorld {
   className?: string;
-  icons: any;
-  templates: any;
+  icons: {
+    sources: any;
+    templates: any;
+  }
 };
 
+/**
+ * Webpack needs a static path at build time to make loadable chunks
+ * from the worker script. There is probably a more clever way to do
+ * this. 
+ */
 const createBathysphereWorker = () => {
   return new Worker(
       new URL("../src/workers/useBathysphereApi.worker.ts", import.meta.url)
@@ -37,38 +39,37 @@ const createBathysphereWorker = () => {
 }
 
 /**
- * Page component rendered by GatsbyJS.
+ * Page component rendered by NextJS.
  */
-const AppPage: FC<ApplicationType> = ({ className, icons, templates, ...props }) => {
+const AppPage: FC<ApplicationType> = ({ className, ...props }) => {
   /**
    * Single runtime for AppPage context
    */
   const {runtime} = useWasmRuntime();
-  const worker = useSharedWorkerState("bathysphere");
-  /**
-   * Digital elevation map of the synthetic terrain. 
-   */
-  const world = useOceansideWorld({...props, runtime});
-  const board = useOceansideBoard({
-    world,
-    worker: worker.ref,
-    runtime,
-    tiles: {
-      templates,
-      icons
-    }
-  });
 
+  /**
+   * Dedicated worker for performing numerical computation and text
+   * analysis in the background. 
+   */
+  const worker = useSharedWorkerState("bathysphere");
+
+  /**
+   * Digital elevation map of the synthetic terrain, with a 
+   * probability table of feature types for world-building
+   */
+  const world = useOceansideWorld({...props, runtime, worker: worker.ref});
+
+  /**
+   * Required to start the background WASM runtime. 
+   */
   useEffect(() => {
     worker.start(createBathysphereWorker());
   }, []);
 
-  
   return (
     <div className={className}>
       <link href={MAPBOX_STYLESHEET} rel={"stylesheet"}/>
       <canvas ref={world.ref} width={world.size} height={world.size} className={"world"}/>
-      <canvas ref={board.ref} width={world.size} height={world.size} className={"board"}/>
     </div>
   );
 };
@@ -99,10 +100,6 @@ AppPage.displayName = "Oceanside";
 export default StyledIndex;
 
 export const getStaticProps: GetStaticProps = () => {
-
-  const icons = readIcons();
-  const templates = parseIconMetadata();
-
   return {
     props: {
       description: "",
@@ -113,8 +110,10 @@ export const getStaticProps: GetStaticProps = () => {
       },
       datum: 0.7,
       runtime: null,
-      icons,
-      templates
+      icons: {
+        sources: readIcons(),
+        templates: parseIconMetadata()
+      }
     }
   };
 }

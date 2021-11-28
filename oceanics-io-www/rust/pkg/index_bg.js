@@ -637,7 +637,7 @@ function getUint8ClampedMemory0() {
 function getClampedArrayU8FromWasm0(ptr, len) {
     return getUint8ClampedMemory0().subarray(ptr / 1, ptr / 1 + len);
 }
-function __wbg_adapter_249(arg0, arg1, arg2, arg3) {
+function __wbg_adapter_251(arg0, arg1, arg2, arg3) {
     _assertNum(arg0);
     _assertNum(arg1);
     wasm.wasm_bindgen__convert__closures__invoke2_mut__h5a1da590d4b4f84e(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
@@ -1264,7 +1264,7 @@ export class MiniMap {
     }
     /**
     *
-    *        Access method for current view
+    *         * Access method for current view
     *
     * @returns {number}
     */
@@ -1276,7 +1276,7 @@ export class MiniMap {
     }
     /**
     *
-    *        Access method for current view
+    *         * Access method for current view
     *
     * @returns {number}
     */
@@ -1288,8 +1288,8 @@ export class MiniMap {
     }
     /**
     *
-    *        Move the field of view in the overall world image. Input is used
-    *        my onClick events to navigate around the map.
+    *         * Move the field of view in the overall world image. Input is used
+    *         * my onClick events to navigate around the map.
     *
     * @param {CanvasRenderingContext2D} ctx
     * @param {number} vx
@@ -1302,8 +1302,8 @@ export class MiniMap {
     }
     /**
     *
-    *        Make a white box, that will be filled in with image
-    *        data to form a frame.
+    *         * Make a white box, that will be filled in with image
+    *         * data to form a frame.
     *
     * @param {CanvasRenderingContext2D} ctx
     */
@@ -1318,8 +1318,8 @@ export class MiniMap {
     }
     /**
     *
-    *        Draw the image data, then a square, and then fill the square with part of the image data again to form
-    *        a frame
+    *         * Draw the image data, then a square, and then fill the square with part of the image data again to form
+    *         * a frame
     *
     * @param {CanvasRenderingContext2D} ctx
     */
@@ -1826,6 +1826,10 @@ export function __wbg_vertexAttribPointer_b5cb524c6fe9eec8() { return logError(f
     getObject(arg0).vertexAttribPointer(arg1 >>> 0, arg2, arg3 >>> 0, arg4 !== 0, arg5, arg6);
 }, arguments) };
 
+export function __wbg_error_cc38ce2b4b661e1d() { return logError(function (arg0) {
+    console.error(getObject(arg0));
+}, arguments) };
+
 export function __wbg_log_3445347661d4505e() { return logError(function (arg0) {
     console.log(getObject(arg0));
 }, arguments) };
@@ -1981,7 +1985,7 @@ export function __wbg_new_b1d61b5687f5e73a() { return logError(function (arg0, a
             const a = state0.a;
             state0.a = 0;
             try {
-                return __wbg_adapter_249(a, state0.b, arg0, arg1);
+                return __wbg_adapter_251(a, state0.b, arg0, arg1);
             } finally {
                 state0.a = a;
             }
@@ -2094,8 +2098,8 @@ export function __wbindgen_memory() {
     return addHeapObject(ret);
 };
 
-export function __wbindgen_closure_wrapper2949() { return logError(function (arg0, arg1, arg2) {
-    var ret = makeMutClosure(arg0, arg1, 66, __wbg_adapter_24);
+export function __wbindgen_closure_wrapper3035() { return logError(function (arg0, arg1, arg2) {
+    var ret = makeMutClosure(arg0, arg1, 68, __wbg_adapter_24);
     return addHeapObject(ret);
 }, arguments) };
 

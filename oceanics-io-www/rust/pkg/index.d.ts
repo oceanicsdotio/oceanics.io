@@ -470,23 +470,23 @@ export class MiniMap {
   visible(ctx: CanvasRenderingContext2D): ImageData;
 /**
 *
-*        Access method for current view
-*        
+*         * Access method for current view
+*         
 * @returns {number}
 */
   view_x(): number;
 /**
 *
-*        Access method for current view
-*        
+*         * Access method for current view
+*         
 * @returns {number}
 */
   view_y(): number;
 /**
 *
-*        Move the field of view in the overall world image. Input is used 
-*        my onClick events to navigate around the map.
-*        
+*         * Move the field of view in the overall world image. Input is used 
+*         * my onClick events to navigate around the map.
+*         
 * @param {CanvasRenderingContext2D} ctx
 * @param {number} vx
 * @param {number} vy
@@ -494,17 +494,17 @@ export class MiniMap {
   updateView(ctx: CanvasRenderingContext2D, vx: number, vy: number): void;
 /**
 *
-*        Make a white box, that will be filled in with image
-*        data to form a frame. 
-*        
+*         * Make a white box, that will be filled in with image
+*         * data to form a frame. 
+*         
 * @param {CanvasRenderingContext2D} ctx
 */
   draw_bbox(ctx: CanvasRenderingContext2D): void;
 /**
 *
-*        Draw the image data, then a square, and then fill the square with part of the image data again to form
-*        a frame
-*        
+*         * Draw the image data, then a square, and then fill the square with part of the image data again to form
+*         * a frame
+*         
 * @param {CanvasRenderingContext2D} ctx
 */
   draw_image_data(ctx: CanvasRenderingContext2D): void;
