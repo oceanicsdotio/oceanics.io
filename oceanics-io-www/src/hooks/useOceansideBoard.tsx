@@ -34,7 +34,7 @@ interface IBoard {
  */
 export const useOceansideBoard = ({
     world,
-    backgroundColor = "#220022FF",
+    backgroundColor = "#000000FF",
     worker,
     runtime
 }: IBoard) => {
@@ -87,15 +87,16 @@ export const useOceansideBoard = ({
 
     
     return {
-        ref: board,
-        onClick: (event: MouseEvent) => {
-            try {
-                console.log({event})
-                // takeAnActionOrWait(event);
-            } catch (err) {
-                console.error(err);
+        canvas: {
+            ref: board,
+            onClick: (event: MouseEvent) => {
+                try {
+                    console.log({event})
+                } catch (err) {
+                    console.error(err);
+                }
             }
-        }
+        }   
     } 
 };
 

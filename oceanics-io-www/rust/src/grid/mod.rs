@@ -489,7 +489,7 @@ pub mod grid {
 
             let image_data_url: &String = &self.tile_set.probability_table.get_by_key(&feature).data_url;
             let image_sprite = HtmlImageElement::new().unwrap();
-            image_sprite.set_src(image_data_url);
+            image_sprite.set_src(&format!("/assets/{}", image_data_url).to_string());
 
             let frames: f64 = image_sprite.width() as f64 / image_sprite.height() as f64;
             let keyframe: f64 = ((offset + 0.01*time) % frames).floor() % frames;
@@ -773,8 +773,8 @@ pub mod grid {
          * into the probability table.
          */
         pub fn insert_feature(&mut self, feature: JsValue) {
-            let rfeature: Feature = feature.into_serde().unwrap();
-            self.probability_table.insert(rfeature);
+            let r_feature: Feature = feature.into_serde().unwrap();
+            self.probability_table.insert(r_feature);
         }
 
         /**

@@ -11,6 +11,7 @@ import styled from "styled-components";
  * Hooks for data handling.
  */
 import useOceansideWorld from "../src/hooks/useOceansideWorld";
+import useOceansideBoard from "../src/hooks/useOceansideBoard";
 import useWasmRuntime from "../src/hooks/useWasmRuntime";
 import useSharedWorkerState from "../src/hooks/useSharedWorkerState";
 import type {IWorld} from "../src/hooks/useOceansideWorld";
@@ -58,6 +59,7 @@ const AppPage: FC<ApplicationType> = ({ className, ...props }) => {
    * probability table of feature types for world-building
    */
   const world = useOceansideWorld({...props, runtime, worker: worker.ref});
+  const board = useOceansideBoard({worker: worker.ref, runtime, world})
 
   /**
    * Required to start the background WASM runtime. 
@@ -70,6 +72,7 @@ const AppPage: FC<ApplicationType> = ({ className, ...props }) => {
     <div className={className}>
       <link href={MAPBOX_STYLESHEET} rel={"stylesheet"}/>
       <canvas {...world.canvas} className={"world"}/>
+      <canvas {...board.canvas} className={"board"}/>
     </div>
   );
 };
