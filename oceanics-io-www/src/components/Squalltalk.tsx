@@ -78,6 +78,7 @@ interface ISqualltalk {
     accessToken: string;
     defaults: {
       zoom: number;
+      center: [number, number];
     };
   };
   height?: string;
@@ -110,13 +111,17 @@ const Squalltalk: FC<ISqualltalk> = ({ map, height = "500px" }) => {
   );
 };
 
-export const Standalone: FC<{}> = () => {
+export const Standalone: FC<{center: [number, number], zoom: number}> = ({center, zoom}) => {
   return (
     <Squalltalk
       height={"250px"}
       map={{
         accessToken: process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN,
-        defaults: DEFAULT_MAP_PROPS,
+        defaults: {
+            ...DEFAULT_MAP_PROPS,
+            center,
+            zoom
+        },
       }}
     />
   );
