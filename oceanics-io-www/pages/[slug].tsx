@@ -65,7 +65,7 @@ const ArticlePage: FC<IDocumentSerialized> = ({
 ArticlePage.displayName = "Document";
 export default ArticlePage;
 
-export const getStaticProps: GetStaticProps = async (slug) => {
+export const getStaticProps: GetStaticProps = async (slug: string) => {
     const document = readDocument(slug) as DocumentSerializedType;
     const source = await serialize(document.content??"", {
         mdxOptions: {
