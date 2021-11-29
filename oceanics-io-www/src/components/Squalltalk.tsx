@@ -10,8 +10,6 @@
  import useFragmentQueue, {OBJECT_STORAGE_URL} from "../hooks/useFragmentQueue";
  import useObjectStorage from "../hooks/useObjectStorage";
 
- const ACCESS_TOKEN: string = process.env.MAPBOX_ACCESS_TOKEN??"";
- 
  export const DEFAULT_MAP_PROPS = {
 
     zoom: 10,
@@ -89,12 +87,13 @@
        zoom: number;
      };
    };
+   height?: string;
  };
  
  /**
   * Page component rendered by GatsbyJS.
   */
- const Squalltalk: FC<ISqualltalk> = ({ map }) => {
+ const Squalltalk: FC<ISqualltalk> = ({ map, height="500px" }) => {
      
    const { ref, map: mapBox } = useMapBox(map);
  
@@ -114,16 +113,19 @@
          href="https://api.mapbox.com/mapbox-gl-js/v1.5.0/mapbox-gl.css"
          rel="stylesheet"
        />
-       <div style={{ height: "500px" }} ref={ref} />
+       <div style={{ height }} ref={ref} />
      </>
    );
  };
 
  export const Standalone: FC<{}> = () => {
-    return <Squalltalk map={{
-        accessToken: ACCESS_TOKEN,
-        defaults: DEFAULT_MAP_PROPS
-    }}/>
+    return <Squalltalk 
+        height={"250px"}
+        map={{
+            accessToken: process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN,
+            defaults: DEFAULT_MAP_PROPS
+        }}
+    />
  };
  
 

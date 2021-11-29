@@ -48,7 +48,7 @@ export const getStaticProps: GetStaticProps = () =>
       description: "",
       title: "Squalltalk",
       map: {
-        accessToken: process.env.MAPBOX_ACCESS_TOKEN,
+        accessToken: process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN,
         defaults: DEFAULT_MAP_PROPS,
       },
     },
