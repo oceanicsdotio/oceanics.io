@@ -24,12 +24,13 @@ import "highlight.js/styles/a11y-dark.css"
 import Document from "oceanics-io-ui/build/components/References/Document";
 import Equation from "oceanics-io-ui/build/components/References/Equation";
 // import Inline from "oceanics-io-ui/build/components/References/Inline";
+import {Standalone as Squalltalk} from "../src/components/Squalltalk";
 import type { IDocumentSerialized, DocumentSerializedType, QueryType } from "oceanics-io-ui/build/components/References/types";
 import { readDocument, createIndex } from "../src/next-util";
 import type { GetStaticPaths, GetStaticProps } from "next";
 import useDeserialize from "oceanics-io-ui/build/hooks/useDeserialize";
 
-const embeddedComponents = { Equation };
+const embeddedComponents = { Equation, Squalltalk };
 
 const ArticlePage: FC<IDocumentSerialized> = ({
     document,
@@ -64,7 +65,7 @@ const ArticlePage: FC<IDocumentSerialized> = ({
 ArticlePage.displayName = "Document";
 export default ArticlePage;
 
-export const getStaticProps: GetStaticProps = async (slug) => {
+export const getStaticProps: GetStaticProps = async (slug: string) => {
     const document = readDocument(slug) as DocumentSerializedType;
     const source = await serialize(document.content??"", {
         mdxOptions: {
