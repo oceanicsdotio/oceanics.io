@@ -18,22 +18,6 @@ const GlobalStyle = createGlobalStyle`
         overflow-x: hidden;
     }
 
-    .container {
-        display: inline-flex;
-        flex-direction: row;
-        padding: 5px;
-        outline: none;
-        overflow-wrap: normal;
-        text-align: center;
-    }
-
-    .container p {
-        display: block;
-        height: 100%;
-        position: absolute;
-        z-index: 10;
-    }
-
     .map-popup {
         background: #202020FF;
         height: fit-content;

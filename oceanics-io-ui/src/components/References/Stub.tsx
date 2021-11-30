@@ -57,7 +57,6 @@ const StyledStub = styled(Stub)`
   header {
     a {
       box-shadow: none;
-      background-color: ${shadow};
       color: ${orange};
       border: none;
       font-size: inherit;
