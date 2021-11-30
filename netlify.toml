@@ -15,6 +15,11 @@
   status = 303
   headers = {X-From = "Netlify"}
 
+[[redirects]]
+  from = "/api/:entity/"
+  to = "/.netlify/functions/things"
+  status = 200
+
 [[headers]]
   for = "/*"
   [headers.values]

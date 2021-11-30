@@ -42,7 +42,7 @@ const handler: Handler = async ({
         const CSV = Body
             .toString('utf-8')
             .split("\n")
-            .slice()
+            .slice() // copy to prevent readable body disappearing
             .map(line => line.split(",").map(x => x.trim()).slice(1, 4));
 
         return {

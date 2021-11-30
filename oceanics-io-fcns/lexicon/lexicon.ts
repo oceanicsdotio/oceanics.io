@@ -21,6 +21,10 @@ const calculateRow = ({previous, word, symbol}: RowAccumulation) => {
     return row;
 }
 
+const WELL_KNOWN_TEXT = readFileSync("functions/lexicon/words.txt")
+    .toString()
+    .split("\n");
+
 /**
  * Simple iterative search loops through all words and preserves
  * a record of those which satisfy the maximum mutations
@@ -140,7 +144,9 @@ function recurse({
     return self + children;
 };
 
-
+/**
+ * HTTP method
+ */
 const handler: Handler = async ({
     body
 }) => {
@@ -159,13 +165,5 @@ const handler: Handler = async ({
 }
 
 
-// const words = readFileSync("functions/lexicon/words.txt")
-//     .toString()
-//     .split("\n");
-    
-// writeFileSync(
-//     "functions/lexicon/lexicon.json", 
-//     JSON.stringify(trie({words}))
-// );
 
 export {handler}

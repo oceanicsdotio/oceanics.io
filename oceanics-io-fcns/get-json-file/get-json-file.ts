@@ -1,20 +1,11 @@
-import type {Handler} from "@netlify/functions";
-import { Endpoint, S3 } from "aws-sdk";
-
-const spacesEndpoint = new Endpoint('nyc3.digitaloceanspaces.com');
-const Bucket = "oceanicsdotio";
-const s3 = new S3({
-    endpoint: spacesEndpoint,
-    accessKeyId: process.env.SPACES_ACCESS_KEY,
-    secretAccessKey: process.env.SPACES_SECRET_KEY
-});
+import type { Handler } from "@netlify/functions";
+import { Bucket, s3 } from "../shared/shared";
 
 interface IQuery {
     Service: string;
     Key: string;
     Ext: string;
 }
-
 
 /**
  * Browse saved results for a single model configuration. 
@@ -42,7 +33,7 @@ const handler: Handler = async ({
         return {
             statusCode: 200,
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(JSON.parse(Body.toString('utf-8')))
+            body: Body.toString('utf-8')
         }; 
     } catch (err) {
         return { 

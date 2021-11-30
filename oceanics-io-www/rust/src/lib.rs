@@ -40,7 +40,6 @@ pub fn get_rust_data() -> String {
 
 #[wasm_bindgen]
 pub fn hello_world(name: &str) -> String {
-
     String::from(format!("Hello {}!", name))
 }
 

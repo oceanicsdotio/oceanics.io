@@ -7,18 +7,8 @@ These are exposed as a web service at `/api/`.
 """
 # Time stamp conversion
 from datetime import datetime, date, timedelta  # pylint: disable=unused-import
-
-# pick up runtime vars from environment
 from os import getenv
-
-# JSON serialization
-from json import dumps, loads, decoder, load  # pylint: disable=unused-import
-
-# enable backend parallel processing if available
-from multiprocessing import Pool, cpu_count  # pylint: disable=unused-import
-
-# singleton forcing conditions
-from itertools import repeat  # pylint: disable=unused-import
+from json import dumps, loads, decoder, load
 
 # peek into wrapped function signatures, to conditionally inject args
 from inspect import signature
