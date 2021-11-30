@@ -58,6 +58,7 @@
   },
   "scripts": {
     "develop": "next dev",
+    "redoc": "redoc-cli bundle ./public/bathysphere.yaml --output ./public/bathysphere.html",
     "build": "next build && next export && (rm ./rust/pkg/.gitignore || :)",
     "serve": "netlify dev --dir=out",
     "lint": "next lint"

@@ -8,7 +8,7 @@ import styled from "styled-components";
 /**
  * Predefined color palette
  */
-import { orange, ghost, shadow } from "../../palette";
+import { orange, ghost } from "../../palette";
 
 /**
  * Types
