@@ -1,6 +1,37 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
+*
+*    After generating the base data array, clamp it and create a new
+*    array as a JavaScript/HTML image data element.
+*    
+* @param {number} world_size
+* @param {number} water_level
+* @returns {ImageData}
+*/
+export function image_data(world_size: number, water_level: number): ImageData;
+/**
+* @param {number} jj
+* @param {number} length
+* @param {number} grid_size
+* @returns {number}
+*/
+export function x_transform(jj: number, length: number, grid_size: number): number;
+/**
+* @param {number} xx
+* @param {number} phase
+* @param {number} width
+* @returns {number}
+*/
+export function z_transform(xx: number, phase: number, width: number): number;
+/**
+* @param {number} day_of_year
+* @param {number} latitude
+* @param {number} time_of_day
+* @returns {number}
+*/
+export function photosynthetically_active_radiation(day_of_year: number, latitude: number, time_of_day: number): number;
+/**
 */
 export function greet(): void;
 /**
@@ -72,37 +103,6 @@ export function fetch_text(path: string): Promise<any>;
 * @returns {Float64Array}
 */
 export function make_vertex_array(series: Float64Array): Float64Array;
-/**
-*
-*    After generating the base data array, clamp it and create a new
-*    array as a JavaScript/HTML image data element.
-*    
-* @param {number} world_size
-* @param {number} water_level
-* @returns {ImageData}
-*/
-export function image_data(world_size: number, water_level: number): ImageData;
-/**
-* @param {number} jj
-* @param {number} length
-* @param {number} grid_size
-* @returns {number}
-*/
-export function x_transform(jj: number, length: number, grid_size: number): number;
-/**
-* @param {number} xx
-* @param {number} phase
-* @param {number} width
-* @returns {number}
-*/
-export function z_transform(xx: number, phase: number, width: number): number;
-/**
-* @param {number} day_of_year
-* @param {number} latitude
-* @param {number} time_of_day
-* @returns {number}
-*/
-export function photosynthetically_active_radiation(day_of_year: number, latitude: number, time_of_day: number): number;
 /**
 * @param {WebGLRenderingContext} context
 * @param {WebGLBuffer} buffer
