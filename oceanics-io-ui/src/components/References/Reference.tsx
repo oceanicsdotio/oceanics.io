@@ -1,13 +1,12 @@
 /**
  * react and friends
  */
-import React, { FC } from "react"
+import React, { FC } from "react";
 
 /**
  * Component level styling
  */
-import styled from "styled-components"
-import { ghost } from "../../palette";
+import styled from "styled-components";
 
 /**
  * Types and ref lookups
@@ -34,10 +33,6 @@ export const Reference: FC<IDocument> = ({
  * The styled version.
  */
 const StyledReference = styled(Reference)`
-    & div {
-        color: ${ghost};
-        margin-bottom: 1em;
-    }
     & > a {
         & > img {
             width: 1rem;

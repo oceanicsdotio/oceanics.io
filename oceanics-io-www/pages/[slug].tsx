@@ -13,8 +13,6 @@ import { MDXRemote } from "next-mdx-remote";
 import rehypeHighlight from "rehype-highlight";
 import "highlight.js/styles/a11y-dark.css";
 
-
-
 /**
  * Render Provider components inside MDX, and render MDX to React components.
  * 

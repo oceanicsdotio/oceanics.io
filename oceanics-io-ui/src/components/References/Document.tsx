@@ -49,7 +49,8 @@ export const Document: FC<IDocumentContent> = ({
       <section>
         {children}
       </section>
-      {(metadata.references??[]).map((ref) => <Reference document={ref}/>)}
+      <hr/>
+      {(metadata.references??[]).map((ref) => <Reference className={"reference"} key={ref.hash} document={ref}/>)}
     </article>
   )
 }
@@ -68,6 +69,9 @@ const StyledDocument = styled(Document)`
       font-size: large;
       margin: 0.25em 0;
     }
+  }
+  .reference {
+    margin: 1em 0;
   }
 `;
 

@@ -11,25 +11,37 @@ import type {IDocumentIndexSerialized} from "oceanics-io-ui/build/components/Ref
 import type {GetStaticProps} from "next";
 import {createIndex, readIndexedDocuments} from "../src/next-util";
 import useDeserialize from "oceanics-io-ui/build/hooks/useDeserialize";
+import styled from "styled-components";
+
+interface IPage extends IDocumentIndexSerialized {
+  className: string;
+}
 
 /**
  * The ReferencesPage renders a memoized array of filtered citations
  * listed in article frontmatter. Query for MDX frontmatter for references. 
  * No references can be added that aren't cited within a file.
  */
-const ReferencesPage: FC<IDocumentIndexSerialized> = ({
+const ReferencesPage: FC<IPage> = ({
+  className,
   documents
 }) => {
   const deserialized = useDeserialize(documents);
   return (
-    <>
+    <div className={className}>
       {deserialized.map((document) => <Reference key={document.hash} document={document} />)}
-    </>
+    </div>
   )
 };
 
 ReferencesPage.displayName = "References";
-export default ReferencesPage;
+const StyledRefPage = styled(ReferencesPage)`
+  ${Reference} {
+    margin: 1em 0;
+  }
+`;
+
+export default StyledRefPage;
 
 export const getStaticProps: GetStaticProps = () => Object({
     props: { 
