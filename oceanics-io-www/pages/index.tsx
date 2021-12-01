@@ -1,7 +1,7 @@
 /**
  * React and friends.
  */
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback } from "react";
 import type {FC} from "react"
 import { useRouter } from "next/router";
 

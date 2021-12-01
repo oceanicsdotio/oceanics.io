@@ -2,9 +2,9 @@ import type { Handler } from "@netlify/functions";
 import { Bucket, s3 } from "../shared/shared";
 
 interface IQuery {
-    Service: string;
-    Key: string;
-    Ext: string;
+    service: string;
+    key: string;
+    ext: string;
 }
 
 /**
@@ -20,14 +20,14 @@ const handler: Handler = async ({
     queryStringParameters
 }) => {
     const {
-        Service="bivalve",
-        Key="index",
-        Ext="json",
+        service="bivalve",
+        key="index",
+        ext="json",
     } = queryStringParameters as unknown as IQuery
     try {    
         const {Body} = await s3.getObject({
             Bucket,
-            Key: `${Service}/${Key}.${Ext}`
+            Key: `${service}/${key}.${ext}`
         }).promise();
 
         return {

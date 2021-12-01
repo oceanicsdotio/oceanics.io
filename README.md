@@ -17,9 +17,10 @@
     - [Quick start](#quick-start)
     - [Python](#python)
     - [Modifying the web API](#modifying-the-web-api)
-    - [Manage](#manage)
   - [Neo4j](#neo4j)
     - [Browser interface](#browser-interface)
+    - [Variables](#variables)
+  - [Populating database](#populating-database)
 
 ## About
 
@@ -201,22 +202,6 @@ class Missions(Entity, models.Missions):
     """Graph extension to base model"""
 ```
 
-### Manage
-
-The Python application provides configurations and management tools through `click`.
-
-The commands are:
-
-- `test`, run developer tests
-- `serve`, Serve documentation or testing coverage on the local machine
-- `start`, Start the API server in the local environment
-- `build`, Build Docker containers
-- `up`, Run Docker images
-- `neo4j`, Run neo4j in Docker and open a browser interface to the management page
-- `providers`, Manage API keys for accessing the databases, there must already be a database
-- `object-storage`, List the contents of S3 repositories
-
-Some of these will execute a subroutine, for example reading the contents of a remote S3 bucket. Commands with potential side effects simply print the command to the terminal. This allows you to see the generated command without running it. The evaluate it instead, wrap with `$()`.
 
 ## Neo4j
 
@@ -249,3 +234,43 @@ Important features that are not obvious at first:
 - You can create guided introductions and presentations by creating a [custom browser guide](https://neo4j.com/developer/guide-create-neo4j-browser-guide/).
 
 Our custom guide is an html slide deck in `/openapi/guide.html` and hosted at <https://graph.oceanics.io/guide.html>. This can be played within the browser by serving it locally, and loading with `:play localhost:<PORT>/openapi/guide.html`.
+
+
+
+
+### Variables
+
+There must also be several environment variables active for things to work. We recommend using `direnv` to manage these in `.envrc`.
+
+The environment variables we pick up are:
+
+- `NEO4J_ACCESS_KEY` is the password for Neo4j instance
+- `POSTGRES_SECRETS` is comma separated strings `<username>,<password>,<cloudsqlInstance>`
+- `OBJECT_STORAGE_SECRETS` is comma separated strings `<accessKey>,<secretKey>`
+- `DARKSKY_API_KEY` is the API key for an optional weather service that will be deprecated
+- `SPACES_ACCESS_KEY`: for accessing storage
+- `SPACES_SECRET_KEY`: for accessing storage
+- `STORAGE_ENDPOINT`: the region and host for cloud storage
+- `BUCKET_NAME`: the prefix to the storage endpoint
+- `SERVICE_NAME`: grouping of data in storage
+- `PORT`: used locally and by Google Cloud Run
+
+
+
+## Populating database
+
+Testing populates the connected database with the information described in `config/bathysphere.yml`. The default entities are semi-fictitious and won't suit your needs. Use them as examples to make your own.
+
+Find an entry like this and make a copy, replacing it with your own information:
+
+```yaml
+kind: Providers
+metadata:
+  owner: true
+spec:
+  name: Oceanicsdotio
+  description: Research and development
+  domain: oceanics.io
+```
+
+Then delete the `owner: true` from the Oceanicsdotio entry. Delete any default Providers that you don't want populated in the graph. These each have an API registration key created, so are not granted access rights by default and are safe to keep.  

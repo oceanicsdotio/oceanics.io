@@ -3,6 +3,7 @@
  */
 import neo4j from "neo4j-driver";
 import { Endpoint, S3 } from "aws-sdk";
+import type {HandlerEvent, Handler, HandlerContext} from "@netlify/functions";
 
 
 export const connect = async (query: string) => {
@@ -14,9 +15,6 @@ export const connect = async (query: string) => {
  }
 
 
-export const register = () => {
-    
-}
  
 const spacesEndpoint = new Endpoint('nyc3.digitaloceanspaces.com');
 export const Bucket = "oceanicsdotio";
@@ -25,4 +23,31 @@ export const s3 = new S3({
     accessKeyId: process.env.SPACES_ACCESS_KEY,
     secretAccessKey: process.env.SPACES_SECRET_KEY
 });
+
+const authenticate = (event: HandlerEvent, context: HandlerContext, target: Handler) => {
+    const db = null; // graph
+    const [username, password] = (event.headers["authorization"]??":").split(":")
+    if (username && username.includes("@") && username.includes(".")) {  // basic auth
+        try {
+//                 user = next(load_node(User(name=username), db))
+//                 assert custom_app_context.verify(password, user.credential)
+        } catch {
+            return {"message": "Invalid username or password"}, 403
+        }
+    } else { // bearer token
+        const secretKey = event.headers["x-api-key"]??"salt";
+        try {
+//                 decoded = TimedJSONWebSignatureSerializer(secretKey).loads(password)
+//                 uuid = decoded["uuid"]
+//                 user = next(load_node(User(uuid=uuid), db))
+        } catch {
+//                 return {"Error": "Invalid authorization and/or x-api-key headers"}, 403
+        }
+    }
+
+    const domain = username.split("@").pop();
+//             const provider = next(load_node(Providers(domain=domain), db))
+
+    return target(event, context, null)
+}
 
