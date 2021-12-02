@@ -1,5 +1,5 @@
 
-class Cypher {
+export class Cypher {
     readOnly: boolean;
     query: string;
     constructor(query, readOnly) {
@@ -11,25 +11,27 @@ class Cypher {
 export class GraphNode {
     pattern: string|null;
     _symbol: string|null;
-    label: string|null;
+    labels: string[];
 
-    constructor(pattern, symbol, label) {
+    constructor(pattern, symbol, labels) {
         this.pattern=pattern;
         this._symbol=symbol;
-        this.label=label;
+        this.labels=labels;
     }
 
     static allLabels() {
         return new Cypher("CALL db.labels()", true)
     }
     patternOnly(): string {
-        return this.pattern ? ` {{ ${this.pattern}}}` : ``
+        return this.pattern ? ` { ${this.pattern} }` : ``
     }
     get symbol(): string {
         return this._symbol||"n"
     } 
+
+    // supports multi label create, but not retrieval
     cypherRepr(): string {
-        const label = this.label ? `:${this.label}` : ``;
+        const label = this.labels ? `:${this.labels.join(":")}` : ``;
         return `( ${this.symbol}${label}${this.patternOnly()} )`
     }
     count(): Cypher {
@@ -65,7 +67,7 @@ export class GraphNode {
  * to create index on node property to speed up retievals and enfroce
  * unique constraints.
  */
-class NodeIndex {
+export class NodeIndex {
     label: string;
     key: string;
 
@@ -85,7 +87,7 @@ class NodeIndex {
     }
 }
 
-class Link {
+export class Link {
     cost?: number;
     rank?: number;
     label?: string;
@@ -100,8 +102,8 @@ class Link {
 
     cypherRepr(): string {
         const label = typeof this.label === "undefined" ? `` : `:${this.label}`;
-        const pattern = typeof this.pattern === "undefined" ? `` : ` {{ ${this.pattern} }}`
-        return `-[ r ${label}${pattern} ]-`
+        const pattern = typeof this.pattern === "undefined" ? `` : `{ ${this.pattern} }`
+        return `-[ r${label} ${pattern} ]-`
     }
     drop(left: GraphNode, right: GraphNode): Cypher {
         return new Cypher(`MATCH ${left.cypherRepr()}${this.cypherRepr()}${right.cypherRepr()} DELETE r`, false)
@@ -132,7 +134,7 @@ class Link {
 //     }
 // };
 
-const parseAsNodes = (nodes: {[key: string]: any}[]) => {
+export const parseAsNodes = (nodes: {[key: string]: any}[]) => {
     return Object.entries(nodes).map((value, index) => {
         return new GraphNode(
             Object.entries(JSON.parse(JSON.stringify(value))).filter((x)=>x).join(", "),
@@ -143,7 +145,7 @@ const parseAsNodes = (nodes: {[key: string]: any}[]) => {
 }
 
 
-const loadNode = () => {
+export const loadNode = () => {
 
 }
 
