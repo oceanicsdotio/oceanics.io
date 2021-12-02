@@ -3,7 +3,7 @@
  */
 import { connect } from "../shared/shared";
 import { parseAsNodes, GraphNode, Link } from "../shared/cypher";
-import type { QueryResult, Record } from "neo4j-driver";
+import type { Record } from "neo4j-driver";
 import type { Handler } from "@netlify/functions";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
@@ -41,53 +41,38 @@ const hashPassword = (password: string, secret: string) =>
 const matchUser = async ({email, password, secret}: IAuth) => {
     const hash: string = hashPassword(password, secret);
     const node = new GraphNode(`email: '${email}', credential: '${hash}'`, null, ["User"]);
-    const {records} = await connect(node.load("uuid").query);
-    return transform(records);
-}
-
-const matchProvider = async ({apiKey}) => {
-    const node = new GraphNode(`apiKey: '${apiKey}'`, "p", ["Provider"]);
     const {records} = await connect(node.load().query);
-    return {node, records: transform(records)};
+    return transform(records);
 }
 
 /**
  * Create a new account using email address
  */
 const register = async ({ email, password, secret, apiKey }: IAuth) => {
-    if (!(apiKey??false)) {
-        const message = (
+    const hash: string = hashPassword(password, secret);
+    const uuid: string = crypto.randomUUID().replace(/-/g, "");
+    const node = new GraphNode(`apiKey: '${apiKey}'`, "p", ["Provider"]);
+    const user = new GraphNode(`email: '${email}', credential: '${hash}', uuid: '${uuid}'`, "u", ["User"]);
+    const cypher = new Link("Register", 0, 0, "").insert(node, user)
+    const {records} = await connect(cypher.query);
+
+    let statusCode: number;
+    let message: string;
+    if (records.length!==1) {
+        message = (
             "Registration requires a valid API key supplied as the `x-api-key`"+
             "or `apiKey` in the request body. This is used to associate your "+
             "account with a public or private ingress."
         );
-        return { 
-            statusCode: 400, 
-            body: JSON.stringify({message})
-        };
+        statusCode = 403;
+    } else {
+        message = `Registered as a member of ${transform(records)[0][1].domain}.`;
+        statusCode = 200;
     }
-
-    const hash: string = hashPassword(password, secret);
-    const uuid: string = crypto.randomUUID().replace(/-/g, "");
-    const user = new GraphNode(`email: '${email}', credential: '${hash}', uuid: '${uuid}'`, "u", ["User"]);
-   
-    const {node, records} = await matchProvider({apiKey});
-    
-    if (records.length!==1) {
-        return {
-            statusCode: 403,
-            body: JSON.stringify({message: "Bad API key."})
-        }
-    }
-
-    const cypher = new Link("Register", 0, 0, "").join(user, node)
-    await connect(user.create().query);
-    await connect(cypher.query);
-
     return {
-        statusCode: 200,
+        statusCode,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({message: `Registered as a member of ${records[0][1].domain}.`})
+        body: JSON.stringify({message})
     }
 };
 
@@ -96,12 +81,19 @@ const register = async ({ email, password, secret, apiKey }: IAuth) => {
  */
 const token = async ({ email, password, secret }: IAuth) => {
     const records = await matchUser({email, password, secret});
-    const token = jwt.sign({
-        "uuid": records
-    }, secret, { expiresIn: 3600 });
+    let statusCode: number;
+    let body: string;
+    if (records.length !== 1) {
+        statusCode = 403;
+        body = JSON.stringify({message: "Unauthorized"});
+    } else {
+        statusCode = 200;
+        const token = jwt.sign({uuid: records[0][1].uuid}, secret, { expiresIn: 3600 });
+        body = JSON.stringify({ token })
+    }
     return {
-        statusCode: 200,
-        body: JSON.stringify({ token }),
+        statusCode,
+        body,
         headers: { 'Content-Type': 'application/json' },
     }
 };
@@ -110,23 +102,23 @@ const token = async ({ email, password, secret }: IAuth) => {
  * Update account information
  */
 const manage = async ({ email, password, secret }: IAuth) => {
-    // parse
     const records = await matchUser({email, password, secret});
+    let statusCode: number;
+    let body: string|undefined;
     if (records.length !== 1) {
-        return {
-            statusCode: 403,
-            body: JSON.stringify({message: ""})
-        }
-    } 
-
-    const [previous, insert] = parseAsNodes([{ uuid: records[0].properties.uuid }, { password, email }]);
-    const cypher = previous.mutate(insert);
-    await connect(cypher.query);
+        statusCode = 403,
+        body = JSON.stringify({message: "Unauthorized"});
+    } else {
+        const [previous, insert] = parseAsNodes([{ uuid: records[0][1].uuid }, { password, email }]);
+        const cypher = previous.mutate(insert);
+        await connect(cypher.query);
+        statusCode = 204;
+    }
     return {
-        statusCode: 204
+        statusCode,
+        body
     }
 };
-
 
 /**
  * Browse saved results for a single model configuration. 
@@ -157,4 +149,4 @@ const handler: Handler = async ({ headers, body, httpMethod }) => {
     }
 }
 
-export { handler }
+export { handler };

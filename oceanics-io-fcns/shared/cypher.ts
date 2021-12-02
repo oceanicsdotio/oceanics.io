@@ -59,7 +59,6 @@ export class GraphNode {
         const query = `MERGE ${this.cypherRepr()}`;
         return new Cypher(query, false)
     }
-
 }
 
 /**
@@ -113,6 +112,10 @@ export class Link {
     }
     query(left: GraphNode, right: GraphNode, result: string): Cypher {
         return new Cypher(`MATCH ${left.cypherRepr()}${this.cypherRepr()}${right.cypherRepr()} RETURN ${result}`, true)
+    }
+    insert(left: GraphNode, right: GraphNode): Cypher {
+        const query = `MATCH ${left.cypherRepr()} WITH * MERGE ${right.cypherRepr()}${this.cypherRepr()}(${left.symbol}) RETURN (${left.symbol})`
+        return new Cypher(query, false)
     }
 }
 
