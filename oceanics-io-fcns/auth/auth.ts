@@ -5,7 +5,7 @@ import { connect } from "../shared/shared";
 import { parseAsNodes, GraphNode, Link } from "../shared/cypher";
 import type { Record } from "neo4j-driver";
 import type { Handler } from "@netlify/functions";
-import jwt from "jsonwebtoken";
+import jwt, {JwtPayload} from "jsonwebtoken";
 import crypto from "crypto";
 
 /**
@@ -16,6 +16,7 @@ interface IAuth {
     password: string;
     secret: string;
     apiKey?: string;
+    token?: string;
 }
 
 type Properties = {[key: string]: any};
@@ -37,12 +38,21 @@ const transform = (recs: Record[]): [string, Properties][] =>
 const hashPassword = (password: string, secret: string) =>
     crypto.pbkdf2Sync(password, secret, 100000, 64, "sha512").toString("hex");
 
-
-const matchUser = async ({email, password, secret}: IAuth) => {
-    const hash: string = hashPassword(password, secret);
-    const node = new GraphNode(`email: '${email}', credential: '${hash}'`, null, ["User"]);
-    const {records} = await connect(node.load().query);
-    return transform(records);
+/**
+ * Make sure we don't leak anything...
+ */
+function catchAll(wrapped: (args: any) => any) {
+    return (args: any) => {
+        try {
+            return wrapped(args);
+        } catch {
+            return {
+                statusCode: 500,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({message: "Server Error"})
+            }
+        }
+    }
 }
 
 /**
@@ -53,20 +63,25 @@ const register = async ({ email, password, secret, apiKey }: IAuth) => {
     const uuid: string = crypto.randomUUID().replace(/-/g, "");
     const node = new GraphNode(`apiKey: '${apiKey}'`, "p", ["Provider"]);
     const user = new GraphNode(`email: '${email}', credential: '${hash}', uuid: '${uuid}'`, "u", ["User"]);
-    const cypher = new Link("Register", 0, 0, "").insert(node, user)
-    const {records} = await connect(cypher.query);
+    const cypher = new Link("Register", 0, 0, "").insert(node, user);
 
+    let records: [string, Properties][];
     let statusCode: number;
     let message: string;
+
+    try {
+        records = transform((await connect(cypher.query)).records);
+    } catch {
+        records = [];
+    }
     if (records.length!==1) {
         message = (
-            "Registration requires a valid API key supplied as the `x-api-key`"+
-            "or `apiKey` in the request body. This is used to associate your "+
-            "account with a public or private ingress."
+            "Registration requires email, password, and API key in the request body. "+
+            "This is used to associate your account with a public or private ingress."
         );
         statusCode = 403;
     } else {
-        message = `Registered as a member of ${transform(records)[0][1].domain}.`;
+        message = `Registered as a member of ${records[0][1].domain}.`;
         statusCode = 200;
     }
     return {
@@ -79,16 +94,21 @@ const register = async ({ email, password, secret, apiKey }: IAuth) => {
 /**
  * Exchange user name and password for JWT
  */
-const token = async ({ email, password, secret }: IAuth) => {
-    const records = await matchUser({email, password, secret});
+const getToken = async ({ email, password, secret }: IAuth) => {
+    const hash: string = hashPassword(password, secret);
+    const node = new GraphNode(`email: '${email}', credential: '${hash}'`, null, ["User"]);
+    const records = transform((await connect(node.load().query)).records);
+
     let statusCode: number;
     let body: string;
+
     if (records.length !== 1) {
         statusCode = 403;
         body = JSON.stringify({message: "Unauthorized"});
     } else {
         statusCode = 200;
-        const token = jwt.sign({uuid: records[0][1].uuid}, secret, { expiresIn: 3600 });
+        const {uuid} = records[0][1];
+        const token = jwt.sign({uuid}, process.env.SIGNING_KEY, { expiresIn: 3600 });
         body = JSON.stringify({ token })
     }
     return {
@@ -98,21 +118,28 @@ const token = async ({ email, password, secret }: IAuth) => {
     }
 };
 
+
 /**
  * Update account information
  */
-const manage = async ({ email, password, secret }: IAuth) => {
-    const records = await matchUser({email, password, secret});
+const manage = async ({token, email, password}: IAuth) => {
+    const claim: JwtPayload = jwt.verify(token, process.env.SIGNING_KEY) as JwtPayload;
+    const uuid = claim["uuid"];
+    const node = new GraphNode(`uuid: '${uuid}'`, null, ["User"]);
+    const records = transform((await connect(node.load().query)).records);
+
     let statusCode: number;
     let body: string|undefined;
+
     if (records.length !== 1) {
         statusCode = 403,
         body = JSON.stringify({message: "Unauthorized"});
     } else {
-        const [previous, insert] = parseAsNodes([{ uuid: records[0][1].uuid }, { password, email }]);
-        const cypher = previous.mutate(insert);
-        await connect(cypher.query);
-        statusCode = 204;
+        // const [previous, insert] = parseAsNodes([{ uuid: records[0][1].uuid }, { password, email }]);
+        // const cypher = previous.mutate(insert);
+        // await connect(cypher.query);
+        statusCode = 200;
+        body = JSON.stringify({message: "OK"});
     }
     return {
         statusCode,
@@ -126,7 +153,7 @@ const manage = async ({ email, password, secret }: IAuth) => {
  * directly comparable, so we reduce the chances that someone 
  * makes wild conclusions comparing numerically
  * different models.
- 
+ *
  * You can only access results for that test, although multiple collections * may be stored in a single place 
  */
 const handler: Handler = async ({ headers, body, httpMethod }) => {
@@ -134,12 +161,12 @@ const handler: Handler = async ({ headers, body, httpMethod }) => {
     switch (httpMethod) {
         case "GET":
             [email, password, secret] = headers["authorization"].split(":");
-            return token({ email, password, secret });
+            return catchAll(getToken)({ email, password, secret });
         case "POST":
-            return register({ email, password, secret, apiKey });
+            return catchAll(register)({ email, password, secret, apiKey });
         case "PUT":
-            [email, password, secret] = headers["authorization"].split(":");
-            return manage({ email, password, secret });
+            const [_, token] = headers["authorization"].split(":");
+            return catchAll(manage)({token, email, password});
         default:
             return {
                 statusCode: 405,

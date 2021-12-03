@@ -10,4 +10,9 @@ TOKEN=$(curl --header "Content-Type: application/json" \
   http://localhost:8888/.netlify/functions/auth | jq -r .token)
 
 echo $TOKEN
+curl --header "Content-Type: application/json" \
+  --header "Authorization: bearer:${TOKEN}" \
+  --request PUT \
+  --data '{"email":"different@oceanics.io","password":"n3w_p@55w0rd","secret":"salt"}' \
+  http://localhost:8888/.netlify/functions/auth | jq
 

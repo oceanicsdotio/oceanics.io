@@ -74,9 +74,8 @@ export class NodeIndex {
         this.label=label;
         this.key=key;
     }
-
     add(): Cypher {
-        return new Cypher(`CREATE INDEX ON : ${this.label}(${this.key})`, false)
+        return new Cypher(`CREATE INDEX FOR (n:${this.label}) ON (n.${this.key})`, false)
     }
     drop(): Cypher {
         return new Cypher(`DROP INDEX ON : ${this.label}(${this.key})`, false)
