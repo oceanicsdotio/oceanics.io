@@ -56,12 +56,15 @@ const Index: FC<DocumentIndexType> = ({
     };
 
     const labelOrPublic = ({ metadata }: Document): boolean => {
-      const match = metadata.labels.map(({ value }) => value);
-      const selectedTag = query.label ?? "";
+      const matchTag: string[] = metadata.labels.map(({ value }) => value);
+      const matchRef: string[] = metadata.references?.map((ref) => ref.hash)??[];
+      const selectedTag: string = query.label ?? "";
+      const selectedRef: string = query.reference?.toString() ?? "";
       return (
-        !match.includes("wip") &&
-        !match.includes("internal") &&
-        (!selectedTag || match.includes(selectedTag))
+        !matchTag.includes("wip") &&
+        !matchTag.includes("internal") &&
+        (!selectedTag || matchTag.includes(selectedTag)) &&
+        (!selectedRef || matchRef.includes(selectedRef))
       );
     };
 

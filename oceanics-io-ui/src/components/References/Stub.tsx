@@ -8,7 +8,7 @@ import styled from "styled-components";
 /**
  * Predefined color palette
  */
-import { orange, ghost, shadow } from "../../palette";
+import { orange, ghost } from "../../palette";
 
 /**
  * Types
@@ -57,7 +57,6 @@ const StyledStub = styled(Stub)`
   header {
     a {
       box-shadow: none;
-      background-color: ${shadow};
       color: ${orange};
       border: none;
       font-size: inherit;

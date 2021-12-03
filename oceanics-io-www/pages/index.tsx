@@ -1,7 +1,7 @@
 /**
  * React and friends.
  */
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback } from "react";
 import type {FC} from "react"
 import { useRouter } from "next/router";
 
@@ -66,7 +66,7 @@ const IndexPage: FC<IDocumentIndexSerialized> = ({
 
     return (
         <>
-            <img src={"/shrimpers-web.png"} alt={"agents at rest"} width={"100%"} />
+            <img src={"/assets/shrimpers-web.png"} alt={"agents at rest"} width={"100%"} />
             <Campaign
                 navigate={navigate}
                 title={PageData.title}

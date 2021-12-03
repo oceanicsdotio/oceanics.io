@@ -6,20 +6,34 @@ import React, { FC } from "react";
 /**
  * Runtime input type checking
  */
-import type {IDocument} from "./types";
+import {Document} from "./types";
 
-export interface IInline extends IDocument {
+// Min required for unique hashing
+export interface IInline {
     parenthesis: boolean;
+    authors: string[];
+    published: number;
+    title: string;
 };
 
 /**
  Include inline links for references in markdown
  */
-export const Inline: FC<IInline> = ({document, parenthesis}) => {
-    return <a href={`#${document.hash}`}>{
+export const Inline: FC<IInline> = ({published, authors, title, parenthesis=false}) => {
+    const doc = new Document({metadata: {
+        published: (new Date(published, 0, 1)).toISOString(),
+        authors,
+        labels: [],
+        title,
+        description: "",
+        publication: "",
+        volume: "",
+        pages: []
+    }});
+    return <a href={`#${doc.hash}`}>{
         parenthesis ? 
-        `${document.authors} (${document.year})` : 
-        `(${document.authors} ${document.year})`
+        `${doc.authors} (${doc.year})` : 
+        `(${doc.authors} ${doc.year})`
     }</a>;
 };
 

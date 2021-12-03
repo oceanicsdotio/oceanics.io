@@ -5,6 +5,8 @@ mod light;  // submarine light simulation system
 mod data_stream;  // data stream structs and visualization methods
 mod triangular_mesh;  // 3D unstructured triangular network used for surface and object modelling
 mod grid;  // 3D rectilinear grid methods and structures
+mod cypher;
+mod stac;
 
 
 use std::f32::consts::PI;
@@ -40,7 +42,6 @@ pub fn get_rust_data() -> String {
 
 #[wasm_bindgen]
 pub fn hello_world(name: &str) -> String {
-
     String::from(format!("Hello {}!", name))
 }
 

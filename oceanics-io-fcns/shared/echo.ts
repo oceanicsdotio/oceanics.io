@@ -1,5 +1,12 @@
-const { hello_world } = require("./pkg/neritics");
-const { Endpoint, S3 } = require('aws-sdk');
+
+import { Endpoint, S3 }  from 'aws-sdk';
+
+const spacesEndpoint = new Endpoint('nyc3.digitaloceanspaces.com');
+const s3 = new S3({
+    endpoint: spacesEndpoint,
+    accessKeyId: process.env.SPACES_ACCESS_KEY,
+    secretAccessKey: process.env.SPACES_SECRET_KEY
+});
 
 exports.handler = async ({
     queryStringParameters: {
@@ -7,18 +14,9 @@ exports.handler = async ({
     }
 }) => {
     try {
-        const spacesEndpoint = new Endpoint('nyc3.digitaloceanspaces.com');
-        const s3 = new S3({
-            endpoint: spacesEndpoint,
-            accessKeyId: process.env.SPACES_ACCESS_KEY,
-            secretAccessKey: process.env.SPACES_SECRET_KEY
-        });
-
-        const message = hello_world("you");
-
         // Add a file to a Space
         s3.putObject({
-            Body: message,
+            Body: "test",
             Bucket: "oceanicsdotio",
             Key: "squall-test-message.txt",
         }, (err) => {
