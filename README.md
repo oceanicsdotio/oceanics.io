@@ -4,7 +4,7 @@
 
 
 <p align="center">
-  <img width="65ch" src="https://www.oceanics.io/assets/dagan-sprite.gif">
+  <img width="66%" src="https://www.oceanics.io/assets/dagan-sprite.gif">
 </p>
 
 ## Contents
