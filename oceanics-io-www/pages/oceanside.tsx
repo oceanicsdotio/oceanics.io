@@ -90,12 +90,13 @@ const StyledIndex = styled(AppPage)`
     image-rendering: crisp-edges;
   }
   & .world {
+    display: none;
     width: 256px;
     height: 256px;
   }
   & .board {
-    width: 256px;
-    height: 256px;
+    width: 512px;
+    height: 512px;
   }
 `;
 
