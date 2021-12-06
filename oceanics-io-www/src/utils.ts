@@ -21,7 +21,7 @@ export type RenderInstance = {
  export const pulsingDot = ({
     size
 }: RenderEffect): RenderInstance => {
-    const canvas = document.createElement('canvas');
+    const canvas = document.createElement("canvas");
     canvas.width = size;
     canvas.height = size;
 
@@ -30,7 +30,7 @@ export type RenderInstance = {
         width: size,
         height: size,
         data: new Uint8Array(size * size * 4),
-        context: canvas.getContext('2d'),
+        context: canvas.getContext("2d"),
 
         // get rendering context for the map canvas when layer is added to the map
         onAdd: () => { },
@@ -54,11 +54,11 @@ export type RenderInstance = {
                 Math.PI * 2
             );
 
-            ctx.strokeStyle = 'orange';
+            ctx.strokeStyle = "orange";
             ctx.lineWidth = 2;
             ctx.stroke();
 
-            // update this image's data with data from the canvas
+            // update this image"s data with data from the canvas
             this.data = new Uint8Array(ctx.getImageData(
                 0,
                 0,

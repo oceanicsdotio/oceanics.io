@@ -11,7 +11,7 @@ type LocationConfig = {
     timeout: number;
     maximumAge: number;
 };
-type OptionalLocation = GeolocationPosition|null;
+export type OptionalLocation = GeolocationPosition|null;
 type ClientData = {
     mobile: boolean;
     location: OptionalLocation;
@@ -70,8 +70,8 @@ export default (): ClientData => {
 
 
     return {
-        mobile: mobile,
-        location: location
+        mobile,
+        location
     }
 
 }

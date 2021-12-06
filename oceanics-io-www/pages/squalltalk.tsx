@@ -1,10 +1,11 @@
 /**
  * React and friends.
  */
-import React from "react";
+import React, { useEffect } from "react";
 import type { FC } from "react";
 import { GetStaticProps } from "next";
 import Squalltalk, {DEFAULT_MAP_PROPS} from "../src/components/Squalltalk";
+import useDetectClient from "oceanics-io-ui/build/hooks/useDetectClient";
 
 /**
  * Component-level styling.
@@ -26,7 +27,10 @@ type ApplicationType = {
  * Page component rendered by GatsbyJS.
  */
 const AppPage: FC<ApplicationType> = ({ map }) => {
-  return <Squalltalk map={map}/>
+
+  const client = useDetectClient()
+
+  return <Squalltalk map={map} client={client}/>
 };
 
 /**

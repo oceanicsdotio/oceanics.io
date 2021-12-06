@@ -5,12 +5,14 @@ import React, { useEffect } from "react";
 import type { FC } from "react";
 
 import useMapBox from "oceanics-io-ui/build/hooks/useMapBox";
-//  import useWasmRuntime from "../hooks/useWasmRuntime";
+import useWasmRuntime from "../hooks/useWasmRuntime";
 import useSharedWorkerState from "../hooks/useSharedWorkerState";
 import useFragmentQueue, {
   OBJECT_STORAGE_URL,
 } from "../hooks/useFragmentQueue";
 import useObjectStorage from "../hooks/useObjectStorage";
+
+import type {OptionalLocation} from "oceanics-io-ui/build/hooks/useDetectClient";
 
 export const DEFAULT_MAP_PROPS = {
   zoom: 10,
@@ -74,11 +76,15 @@ const createBathysphereWorker = () => {
 };
 
 interface ISqualltalk {
+  client?: {
+    mobile: boolean;
+    location: OptionalLocation;
+  };
   map: {
     accessToken: string;
     defaults: {
       zoom: number;
-      center: [number, number];
+      center?: [number, number];
     };
   };
   height?: string;
@@ -87,17 +93,32 @@ interface ISqualltalk {
 /**
  * Page component rendered by GatsbyJS.
  */
-const Squalltalk: FC<ISqualltalk> = ({ map, height = "500px" }) => {
+const Squalltalk: FC<ISqualltalk> = ({ map, client, height = "500px" }) => {
   const { ref, map: mapBox } = useMapBox(map);
-
   const worker = useSharedWorkerState("bathysphere");
-  //    const {runtime} = useWasmRuntime();
+  const { runtime } = useWasmRuntime();
   const fs = useObjectStorage(OBJECT_STORAGE_URL, worker.ref);
 
+  /**
+   * Map interface may be used in a location-aware way, or as a static presentation
+   * of data at a chosen point. 
+   */
+  useEffect(() => {
+    if (typeof client === "undefined") return;
+    if (!client.location) return;
+    console.log({client})
+  }, [ client ])
+
+  /**
+   * Start the background worker, including a worker-bound WASM runtime. 
+   */
   useEffect(() => {
     worker.start(createBathysphereWorker());
   }, []);
 
+  /**
+   * Load vertex array buffers from cloud storage. 
+   */
   useFragmentQueue({ worker: worker.ref, map: mapBox, fs });
 
   return (
@@ -116,7 +137,7 @@ export const Standalone: FC<{center: [number, number], zoom: number}> = ({center
     <Squalltalk
       height={"250px"}
       map={{
-        accessToken: process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN,
+        accessToken: process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN??"",
         defaults: {
             ...DEFAULT_MAP_PROPS,
             center,
