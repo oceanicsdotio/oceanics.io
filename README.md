@@ -59,9 +59,9 @@ There must also be several environment variables active for things to work:
 
 ### Populating database
 
-Testing populates the connected database with the information described in `config/bathysphere.yml`. The default entities are semi-fictitious and won't suit your needs. Use them as examples to make your own.
+Testing populates the connected database with the information described in `oceanics-io-www/public/assets/bathysphere.yml`. The default entities are semi-fictitious and won't suit your needs. Use them as examples to make your own.
 
-Find an entry like this and make a copy, replacing it with your own information:
+Find an entry like this and make a copy, replacing it with your information:
 
 ```yaml
 kind: Providers
@@ -73,7 +73,7 @@ spec:
   domain: oceanics.io
 ```
 
-Then delete the `owner: true` from the Oceanicsdotio entry. Delete any default Providers that you don't want populated in the graph. These each have an API registration key created, so are not granted access rights by default and are safe to keep.  
+Delete the `owner: true` from the Oceanicsdotio entry. Delete any default Providers that you don't want populated in the graph. These each have an API registration key created, so are not granted access rights by default and are safe to keep.  
 
 
 ### Modifying the web API
