@@ -4,7 +4,7 @@
 
 
 <p align="center">
-  <img width="75%" src="oceanics-io-www/public/dagan-sprite.gif">
+  <img width="65ch" src="https://www.oceanics.io/assets/dagan-sprite.gif">
 </p>
 
 ## Contents
@@ -14,70 +14,36 @@
   - [About](#about)
   - [Developers](#developers)
     - [Web application](#web-application)
-    - [Quick start](#quick-start)
-    - [Python](#python)
+    - [Environment](#environment)
+    - [Populating database](#populating-database)
     - [Modifying the web API](#modifying-the-web-api)
-  - [Neo4j](#neo4j)
-    - [Browser interface](#browser-interface)
-    - [Variables](#variables)
-  - [Populating database](#populating-database)
+    - [Neo4j](#neo4j)
 
 ## About
 
 Oceanics.io is a web application for portable high-performance computing and visualization.
 
-The interface and utilities ingest sensor and model data and metadata, and parse them into discoverable databases. These services usually run in Docker containers configured to receive and route traffic between computing environments and networked devices. Data persist in cloud object storage.
+The interface and utilities ingest sensor and model data and metadata, and parse them into discoverable databases. Simulations run in the browser using Web Assembly, client side parallelism, and GPU acceleration. Backend services are provided through [bathysphere, our graph-based API](https://www.oceanics.io/bathysphere) for proprietary ocean data.
 
-Simulations run in the browser using Web Assembly, client side parallelism, and GPU acceleration. Backend services are provided through [our graph-based API](https://www.oceanics.io/bathysphere) for proprietary ocean data.
-
-The runtime supports parallelism, and infrastructure scales to meet high throughput or availability requirements.
-
-Software is maintained by Oceanicsdotio LLC and provided as is with no warranty or guarantee. Our core systems will always be open source, and we welcome collaboration.
+Software is maintained by Oceanicsdotio LLC under the [MIT license](https://github.com/oceanics-io/oceanics.io/blob/main/LICENSE), and is provided as is with no warranty or guarantee.
 
 ## Developers
 
 ### Web application
 
-The progressive web application is written in JavaScript, Rust, GLSL, and Go. We use GatsbyJS to build static assets during the CI/CD process.
+We use a yarn monorepo to manage code. The top-level directory `/` contains this `README.md` along with various configuration files and scripts for linting, compiling, bundling, and deploying the site.
 
-Client side interaction is accomplished with React Hooks and browser APIs.
+The `oceanics-io-www` workspace contains the frontend applications, written in TypeScript and Rust. Client side interaction is accomplished with React Hooks and browser APIs. Static data and documents live in `/references` and `/public`. The former is used by GatsbyJS to generate single page applications that _look like_ blog posts. Resources in `/public` are publicly addressable with the same route as the file name.
 
-Using many languages adds complex, but the structure ends up being tidy.
+Presentational aspects of the front-end are part of the `oceanics-io-ui` workspace, so these components can be shared across applications. This uses Storybook for development and testing.
 
-The top-level directory `/` contains this `README.md` along with various configuration files and scripts for linting, compiling, bundling, and deploying the site.
-
-Static data and documents live in `/content` and `/static`. The former is used by GatsbyJS to generate single page applications that _look like_ blog posts. Resources in `/static` are publicly addressable with the same route as the file name.
-
-Source code for Netlify serverless functions is in `/functions` (NodeJS/Go). These are single purpose services that support secure data access, pre-processing, and sub-setting.
-
-The main part of the application code is in `/src`.
-
-Building locally produces additional artifacts.  
-
+Source code for Netlify serverless functions is in `oceanics-io-fcns/`. These are single purpose endpoints that support secure data access, pre-processing, and sub-setting.
+ 
 Static assets are hosted on Netlify. When new commits are checked into the Github repository, the site is built and deployed to [https://www.oceanics.io](https://www.oceanics.io).
 
-### Quick start
+### Environment
 
-The frontend uses Rust compiled to web assembly (WASM). [`Cargo.toml`](/Cargo.toml) describes the Rust crate dependencies. You'll need `rustup` and `wasm-pack`:
-
-```bash
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-cargo install wasm-pack
-```
-
-You need to set the environment variables `SPACES_ACCESS_KEY` and `SPACES_SECRET_KEY` to access data from secure S3 buckets. Locally we use a git-ignored `.envrc` file.
-
-JavaScript dependencies and builds are managed with `yarn`. Deploy a local version to port `8000` with `yarn develop`. See [`package.json`](/package.json) for build scripts, etc.
-
-When running `yarn build` or `yarn develop` GatsbyJS automatically triggers compilation. Errors in the code will cause the entire build to fail. There is no hot loading or automatic recompiling, as described in [`/gatsby-node.js`](/gatsby-node.js).  The build produces the `neritics` JavaScript module.
-
-You can also use `yarn compile` to build.
-
-### Python
-
-There must also be several environment variables active for things to work. 
-
-These are:
+There must also be several environment variables active for things to work:
 
 - `NEO4J_ACCESS_KEY` is the password for Neo4j instance
 - `POSTGRES_SECRETS` is comma separated strings `<username>,<password>,<cloudsqlInstance>`
@@ -90,26 +56,39 @@ These are:
 - `SERVICE_NAME`: grouping of data in storage
 - `PORT`: used locally and by Google Cloud Run
 
-We recommend using `direnv` to manage these in `.envrc`.
+
+### Populating database
+
+Testing populates the connected database with the information described in `config/bathysphere.yml`. The default entities are semi-fictitious and won't suit your needs. Use them as examples to make your own.
+
+Find an entry like this and make a copy, replacing it with your own information:
+
+```yaml
+kind: Providers
+metadata:
+  owner: true
+spec:
+  name: Oceanicsdotio
+  description: Research and development
+  domain: oceanics.io
+```
+
+Then delete the `owner: true` from the Oceanicsdotio entry. Delete any default Providers that you don't want populated in the graph. These each have an API registration key created, so are not granted access rights by default and are safe to keep.  
 
 
 ### Modifying the web API
 
-We use a multilayered, fail fast approach to validating and handling requests. Most of the validation happens before a request even reaches our code, by using the `connexion` and `prance` packages to enforce the OpenAPI specification.
+Changes need to be made in at least two places if you want to add or modify a data model. This is the intended behavior, as it allows the API specification to act as contract with front end clients.
 
-This means that changes need to be made in at least two places if you want to add or modify a data model. This is the intended behavior, as it allows the specification to act as contract with front end clients.
+Suppose you want a new graph entity `Missions`, as a pattern for connecting data from a series of operations. This could be implemented with `Collections`, or it could be a new subtype of `Entity` that logically connects `Things`, `Locations`, and either `DataStreams` for post-hoc analysis or `TaskingCapabilities` for planning.
 
-Suppose you want a new graph entity `Missions`, as a high-level container for managing data from a series of operations. This could be implemented with `Collections`, or it could be a new subtype of `Entity` that logically connects `Things`, `Locations`, and either `DataStreams` for post-hoc analysis or `TaskingCapabilities` for planning.
-
-First declare this in `openapi/api.yml` under `components/schemas`.
+First declare this in `oceanics-io/public/bathysphere.yaml` under `components/schemas`.
 
 1. Inherit from `Entity`
 2. Add properties (already has `id`, `name`, and `description`). For instance, `conditions` could define go/no-go rules for starting a mission
 3. Declare allowed linked types as `readOnly` and define multiplicity rules
 
-*Pay careful attention to pluralization and case sensitivity.*
-
-Here is an example:
+Here, an example:
 
 ```yml
     Mission:
@@ -181,35 +160,23 @@ Here is an example:
                     type: object
 ```
 
-This now need to be referenced in `EntityCollection:` and `EntityClass:` schemas, as well the the `Entity:` entries in `requestBodies:` and `responses:` so that the API will allow requests carrying `Mission` records.
+This now needs to be referenced in `EntityCollection:` and `EntityClass:` schemas, as well the the `Entity:` entries in `requestBodies:` and `responses:` so that the API validator will allow requests carrying `Mission` records. Then add the class definitions to `oceanic-io-fcn` type definitions. We leave this to you. 
 
-Now add the class definitions to `bathysphere/models.py` and `bathysphere/graph/models.py`. The first makes the data model available to all parts of bathysphere. The second inherits from the first, and makes the data model available in the graph database service.
-
-Default values **should always be `default=None`** to allow search algorithms to use an basic instance, `Missions()` or `Missions(name="Operation Ivy")`, to be used as a matching pattern. Hard coding values will restrict search to parts of the graph that have been created with that default.
-
-```python
-# bathysphere/models.py
-@attr.s(repr=False)
-class Missions:  # note plural
-    """Base model with minimum properties required to work"""
-    name: str = attr.ib(default=None)
-    description: str = attr.ib(default=None)
-    conditions: [dict] =  attr.ib(default=None)
-
-# bathysphere/graph/models.py
-@attr.s(repr=False)
-class Missions(Entity, models.Missions):
-    """Graph extension to base model"""
-```
+Default values should be undefined to allow search algorithms to use generic instances, `Missions()` or `Missions(name="Operation Ivy")` as a matching patterns. 
 
 
-## Neo4j
+### Neo4j
 
-The database manager runs in an extension of the [official container image](https://hub.docker.com/_/neo4j/), and maps the server ports to an external interface. The [built-in GUI](http://localhost:7474/browser/) is at `hostname:7474`, and the `bolt` [interface](https://boltprotocol.org/) defaults to `hostname:7687`.
+You can run the database manager in an [official Neo4j container image](https://hub.docker.com/_/neo4j/), or use a managed service that supports the cypher query language. [Cypher](https://neo4j.com/docs/cypher-refcard/current/) is the Neo4j query language. Either cypher or `graphql` can be used to build the database, traverse nodes and edges, and return data.
 
-[Cypher](https://neo4j.com/docs/cypher-refcard/current/) is the Neo4j query language. Either cypher or `graphql` can be used to build the database, traverse nodes and edges, and return data.
+The [built-in GUI](http://localhost:7474/browser/) is at `hostname:7474`, and the `bolt` [interface](https://boltprotocol.org/) defaults to `hostname:7687`. The browser interface for the graph database is useful for debugging logical errors in the database structure. There is official documentation at the neo4j [website](https://neo4j.com/developer/neo4j-browser/).
 
-The `bolt` protocol is used for API calls from Python scripts. User authorization requires the environment variable `NEO4J_AUTH` to be declared in `docker-compose.yml`.
+Important features that are not obvious at first:
+
+- `:sysinfo` will return status and storage statistics
+- The command interface can execute queries through `bolt` or `http` REST queries
+- Everything can be styled with a `.grass` file
+- You can create guided introductions and presentations by creating a [custom browser guide](https://neo4j.com/developer/guide-create-neo4j-browser-guide/).
 
 If you are new to Neo4j, try deploying a local container to experiment:
 
@@ -221,56 +188,3 @@ docker run \
     --volume=$HOME/neo4j/data:/data \
     neo4j/neo4j
 ```
-
-### Browser interface
-
-The browser interface for the graph database is useful for debugging logical errors in the database structure. There is official documentation at the neo4j [website](https://neo4j.com/developer/neo4j-browser/).
-
-Important features that are not obvious at first:
-
-- `:sysinfo` will return status and storage statistics
-- The command interface can execute queries through `bolt` or `http` REST queries
-- Everything can be styled with a `.grass` file
-- You can create guided introductions and presentations by creating a [custom browser guide](https://neo4j.com/developer/guide-create-neo4j-browser-guide/).
-
-Our custom guide is an html slide deck in `/openapi/guide.html` and hosted at <https://graph.oceanics.io/guide.html>. This can be played within the browser by serving it locally, and loading with `:play localhost:<PORT>/openapi/guide.html`.
-
-
-
-
-### Variables
-
-There must also be several environment variables active for things to work. We recommend using `direnv` to manage these in `.envrc`.
-
-The environment variables we pick up are:
-
-- `NEO4J_ACCESS_KEY` is the password for Neo4j instance
-- `POSTGRES_SECRETS` is comma separated strings `<username>,<password>,<cloudsqlInstance>`
-- `OBJECT_STORAGE_SECRETS` is comma separated strings `<accessKey>,<secretKey>`
-- `DARKSKY_API_KEY` is the API key for an optional weather service that will be deprecated
-- `SPACES_ACCESS_KEY`: for accessing storage
-- `SPACES_SECRET_KEY`: for accessing storage
-- `STORAGE_ENDPOINT`: the region and host for cloud storage
-- `BUCKET_NAME`: the prefix to the storage endpoint
-- `SERVICE_NAME`: grouping of data in storage
-- `PORT`: used locally and by Google Cloud Run
-
-
-
-## Populating database
-
-Testing populates the connected database with the information described in `config/bathysphere.yml`. The default entities are semi-fictitious and won't suit your needs. Use them as examples to make your own.
-
-Find an entry like this and make a copy, replacing it with your own information:
-
-```yaml
-kind: Providers
-metadata:
-  owner: true
-spec:
-  name: Oceanicsdotio
-  description: Research and development
-  domain: oceanics.io
-```
-
-Then delete the `owner: true` from the Oceanicsdotio entry. Delete any default Providers that you don't want populated in the graph. These each have an API registration key created, so are not granted access rights by default and are safe to keep.  
