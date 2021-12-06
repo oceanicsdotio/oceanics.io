@@ -1,37 +1,6 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
-*
-*    After generating the base data array, clamp it and create a new
-*    array as a JavaScript/HTML image data element.
-*    
-* @param {number} world_size
-* @param {number} water_level
-* @returns {ImageData}
-*/
-export function image_data(world_size: number, water_level: number): ImageData;
-/**
-* @param {number} jj
-* @param {number} length
-* @param {number} grid_size
-* @returns {number}
-*/
-export function x_transform(jj: number, length: number, grid_size: number): number;
-/**
-* @param {number} xx
-* @param {number} phase
-* @param {number} width
-* @returns {number}
-*/
-export function z_transform(xx: number, phase: number, width: number): number;
-/**
-* @param {number} day_of_year
-* @param {number} latitude
-* @param {number} time_of_day
-* @returns {number}
-*/
-export function photosynthetically_active_radiation(day_of_year: number, latitude: number, time_of_day: number): number;
-/**
 */
 export function greet(): void;
 /**
@@ -103,6 +72,37 @@ export function fetch_text(path: string): Promise<any>;
 * @returns {Float64Array}
 */
 export function make_vertex_array(series: Float64Array): Float64Array;
+/**
+*
+*    After generating the base data array, clamp it and create a new
+*    array as a JavaScript/HTML image data element.
+*    
+* @param {number} world_size
+* @param {number} water_level
+* @returns {ImageData}
+*/
+export function image_data(world_size: number, water_level: number): ImageData;
+/**
+* @param {number} jj
+* @param {number} length
+* @param {number} grid_size
+* @returns {number}
+*/
+export function x_transform(jj: number, length: number, grid_size: number): number;
+/**
+* @param {number} xx
+* @param {number} phase
+* @param {number} width
+* @returns {number}
+*/
+export function z_transform(xx: number, phase: number, width: number): number;
+/**
+* @param {number} day_of_year
+* @param {number} latitude
+* @param {number} time_of_day
+* @returns {number}
+*/
+export function photosynthetically_active_radiation(day_of_year: number, latitude: number, time_of_day: number): number;
 /**
 * @param {WebGLRenderingContext} context
 * @param {WebGLBuffer} buffer
@@ -195,6 +195,22 @@ export class ContextCursor {
 * @param {number} line_width
 */
   draw(ctx: CanvasRenderingContext2D, w: number, h: number, color: any, time: number, line_width: number): void;
+}
+/**
+*
+*     * The Cypher data structure contains pre-computed queries
+*     * ready to be executed against the Neo4j graph database.
+*     
+*/
+export class Cypher {
+  free(): void;
+/**
+* @returns {string}
+*/
+  readonly query: string;
+/**
+*/
+  read_only: boolean;
 }
 /**
 *
@@ -363,6 +379,67 @@ export class IslandKernel {
 }
 /**
 *
+*     * Links are the relationships between two entities.
+*     *
+*     * They are directional, and have properties like entities. When you
+*     * have the option, it is encouraged to use rich links, instead of
+*     *  doubly-linked nodes to represent relationships.
+*     *
+*     * The attributes are for a `Links` are:
+*     * - `_symbol`, a private str for cypher query templating
+*     * - `rank`, a reinforcement learning parameter for recommending new data
+*     * - `uuid`, the unique identifier for the entity
+*     * - `props`, properties blob
+*     * - `label`, the optional label for the relationship, we only use one per link
+*     
+*/
+export class Links {
+  free(): void;
+/**
+* @param {string | undefined} label
+* @param {number | undefined} rank
+* @param {number | undefined} cost
+* @param {string | undefined} pattern
+*/
+  constructor(label?: string, rank?: number, cost?: number, pattern?: string);
+/**
+*
+*         * Query to remove a links between node patterns
+*         
+* @param {Node} left
+* @param {Node} right
+* @returns {Cypher}
+*/
+  drop(left: Node, right: Node): Cypher;
+/**
+*
+*         * Create links between node patterns
+*         
+* @param {Node} left
+* @param {Node} right
+* @returns {Cypher}
+*/
+  join(left: Node, right: Node): Cypher;
+/**
+*
+*         * Use link-based queries, usually to get all children/siblings,
+*         * but actually very flexible.
+*         
+* @param {Node} left
+* @param {Node} right
+* @param {string} result
+* @returns {Cypher}
+*/
+  query(left: Node, right: Node, result: string): Cypher;
+/**
+*/
+  cost?: number;
+/**
+*/
+  rank?: number;
+}
+/**
+*
 *    The MiniMap is a data structure and interactive container.
 *    It contains persistent world data as a raster, and exposes
 *    selection and subsetting methods to explore subareas. 
@@ -508,6 +585,85 @@ export class MiniMap {
 * @param {CanvasRenderingContext2D} ctx
 */
   draw_image_data(ctx: CanvasRenderingContext2D): void;
+}
+/**
+*
+*     * The Node data structure encapsulates logic needed for
+*     * representing entities in the Cypher query language.
+*     
+*/
+export class Node {
+  free(): void;
+/**
+* @param {string | undefined} pattern
+* @param {string | undefined} symbol
+* @param {string | undefined} label
+*/
+  constructor(pattern?: string, symbol?: string, label?: string);
+/**
+*
+*         * Query to delete a node pattern from the graph.
+*         
+* @returns {Cypher}
+*/
+  delete(): Cypher;
+/**
+*
+*         * Format a query that will merge a pattern into all matching nodes.
+*         
+* @param {Node} updates
+* @returns {Cypher}
+*/
+  mutate(updates: Node): Cypher;
+/**
+*
+*         * Generate a query to load data from the database
+*         
+* @param {string | undefined} key
+* @returns {Cypher}
+*/
+  load(key?: string): Cypher;
+/**
+* @returns {Cypher}
+*/
+  create(): Cypher;
+}
+/**
+*
+*     * Data structure representing a Node Index, which can be used to
+*     * to create index on node property to speed up retievals and enfroce
+*     * unique constraints.
+*     
+*/
+export class NodeIndex {
+  free(): void;
+/**
+* @param {string} label
+* @param {string} key
+*/
+  constructor(label: string, key: string);
+/**
+*
+*         * Indexes add a unique constraint as well as speeding up queries
+*         * on the graph database.
+*         
+* @returns {Cypher}
+*/
+  add(): Cypher;
+/**
+*
+*         * Remove the index
+*         
+* @returns {Cypher}
+*/
+  drop(): Cypher;
+/**
+*
+*         * Apply a unique constraint, without creating an index
+*         
+* @returns {Cypher}
+*/
+  unique_constraint(): Cypher;
 }
 /**
 */
