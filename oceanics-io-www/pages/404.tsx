@@ -11,7 +11,7 @@ const PageNotFound: FC<{}> = () => {
   return (
     <>  
       <p>{"You can't get there from here."}</p>
-      <img src={"/dagan-sprite.gif"} alt={"Sea creature seeking answers"} width={"100%"}/>
+      <img src={"/assets/dagan-sprite.gif"} alt={"Sea creature seeking answers"} width={"100%"}/>
     </>
   )
 };
