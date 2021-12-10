@@ -23,6 +23,15 @@ info:
 
     By assessing data and service availability over your whole domain, projects can allocate resources to fill coverage gaps. This supports an open marketplace asset sharing model, which may be preferable to redundant operational and capital expenses.
 
+    <img src="https://www.oceanics.io/assets/turbine-fire.gif" alt="Turbine" title="Turbine" width="64" height="64" style="image-rendering:crisp-edges;" />
+    <img src="https://www.oceanics.io/assets/boat.gif" alt="Boat" title="Boat" width="64" height="64" style="image-rendering:crisp-edges;" />
+    <img src="https://www.oceanics.io/assets/fish-pen.gif" alt="Fish" title="Fish" width="64" height="64" style="image-rendering:crisp-edges;" />
+    <img src="https://www.oceanics.io/assets/diver-down.gif" alt="Diver" title="Diver" width="64" height="64" style="image-rendering:crisp-edges;" />
+    <img src="https://www.oceanics.io/assets/lighthouse.gif" alt="Lighthouse" title="Lighthouse" width="64" height="64" style="image-rendering:crisp-edges;" />
+    <img src="https://www.oceanics.io/assets/lobster-buoys.gif" alt="Lobster" title="Lobster" width="64" height="64" style="image-rendering:crisp-edges;" />
+    <img src="https://www.oceanics.io/assets/oyster.gif" alt="Oyster" title="Oyster" width="64" height="64" style="image-rendering:crisp-edges;" />
+    <img src="https://www.oceanics.io/assets/mussels.gif" alt="Mussels" title="Mussels" width="64" height="64" style="image-rendering:crisp-edges;" />
+
   contact:
     name: Oceanicsdotio LLC
     url: http://www.oceanics.io
@@ -34,11 +43,6 @@ info:
 
   x-logo:
     url: https://www.oceanics.io/assets/dagan.png
-
-externalDocs:
-
-  description: Welcome to the bazaar!
-  url: https://github.com/oceanicsdotio/oceanics.io
 
 tags:
 
