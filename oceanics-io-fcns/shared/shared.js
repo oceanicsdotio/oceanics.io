@@ -3,10 +3,10 @@
  */
 import neo4j from "neo4j-driver";
 import { Endpoint, S3 } from "aws-sdk";
-import type {HandlerEvent, Handler, HandlerContext} from "@netlify/functions";
+// import type {HandlerEvent, Handler, HandlerContext} from "@netlify/functions";
 
 
-export const connect = async (query: string) => {
+export const connect = async (query) => {
     const driver = neo4j.driver(process.env.NEO4J_HOSTNAME, neo4j.auth.basic("neo4j", process.env.NEO4J_ACCESS_KEY));
     const session = driver.session({defaultAccessMode: neo4j.session.READ});
     const result = await session.run(query);
@@ -24,7 +24,7 @@ export const s3 = new S3({
     secretAccessKey: process.env.SPACES_SECRET_KEY
 });
 
-const authenticate = (event: HandlerEvent, context: HandlerContext, target: Handler) => {
+const authenticate = (event, context, target) => {
     const db = null; // graph
     const [username, password] = (event.headers["authorization"]??":").split(":")
     if (username && username.includes("@") && username.includes(".")) {  // basic auth
