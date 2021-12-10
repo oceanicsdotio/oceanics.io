@@ -54,9 +54,6 @@ tags:
     description: |
       Build topological relationships and access metadata.
 
-  - name: Things
-    description: Cyber-physical things. 
-  
   - name: DataStreams
     description: Collections of time series observations with numerical methods
 
@@ -306,209 +303,11 @@ paths:
           description: No Content
         '400':
           $ref: '#/components/responses/BadRequest'
-
-
-    post:
-      tags: [Simulation]
-      summary: Configure model
-      description: |
-
-        Upload a configuration that will be associated with your account. 
-        The settings will be accessible by reference for starting further 
-        simulations with the same mathematical and computational
-        behavior. Configurations are immutable after the first time 
-        they are run to allow reproducibility.
-
-      requestBody:
-        description: Model configuration
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Configuration'
-
-      responses:
-        '200':
-          description: Model configuration URI
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  self:
-                    type: string
-                    format: url
-                    description: Link back to this entity
-
-    get:
-      tags: [Simulation]
-      summary: View configuration or experiment
-      description: |
-        Retrieve details about a model configuration or simulation. 
-
-        This includes links to and summary statistics of the individual simulations using these settings.
-
-      parameters:
-        - $ref: '#/components/parameters/ObjectKey'
-      
-      responses:
-        '200':
-          description: Return configuration or simulation result
-          content:
-            application/json:
-              schema:
-                oneOf:
-                  - $ref: '#/components/schemas/Configuration'
-                  - $ref: '#/components/schemas/Experiment'
-      
-    post:
-
-      tags: [Simulation Model]
-      summary: Run experiment
-      description: |
-
-        The bivalve endpoint uses either constant conditions over a 
-        fixed period, or time-series data sources. Responses
-        are JSON structures. 
-
-        The application executes a synchronous kernel call for 
-        every location, and solves for
-        mass conservation and energy dynamics.
-
-      parameters:
-        - $ref: '#/components/parameters/ObjectKey'
-        - $ref: '#/components/parameters/weight'
-
-        - in: query
-          name: species
-          description: string identifier for culture species
-          required: true
-          schema:
-            type: string
-            default: oyster
-            enum: [oyster, mussel, scallop]
-
-        - in: query
-          name: cultureType
-          description: |
-            String identifier for culture method. 
-            Mid-water configurations reutilize pseudofeces,
-            while bottom culture prevents re-suspension.
-          schema:
-            type: string
-            enum: [mid-water, bottom, rope]
-            default: mid-water
-        
-      requestBody:
-        description: | 
-          JSON object containing forcing information
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                forcing:
-                  title: forcingParameters
-                  description: |
-                    Time-varying forcing conditions for the 
-                    model execution.
-                  type: array
-                  items:
-                    type: array
-                    items: 
-                      type: object
-                      properties:
-
-                        temperature:
-                          description: |
-                            Temperature, degrees Celsius, controls vital rates.
-                          type: number
-                          format: float
-                          minimum: 0.0
-                          maximum: 40.0
-
-                        turbidity:
-                          description: |
-                            Turbidity helps determine the amount of food available to shellfish.
-
-                          type: number
-                          format: float
-                          minimum: 0.0
-                          maximum: 1
-
-                        chlorophyll:
-                          description: |
-                            Chlorophyll-a concentration (ug/L) is a proxy for food availability.
-                          type: number
-                          format: float
-                          minimum: 0.0
-
-                        salinity:
-                          description: Salinity, PSU
-                          type: number
-                          format: float
-                          minimum: 0
-                          maximum: 40
-
-                        current:
-                          description: Current speed, cm/s
-                          type: number
-                          format: float
-                          minimum: 0
-                          maximum: 100
-
-                        particulateOrganicMatter:
-                          description: | 
-                            Particulate Organic Matter (mg/L), or POM, is used as an additional food source.
-                          type: number
-                          format: float
-                          minimum: 0
-
-                        totalParticulateMatter:
-                          description: |
-                            Total or suspended particulate matter, mg/L
-                          type: number
-                          format: float
-                          minimum: 0
-
-                        particulateOrganicCarbon:
-                          description: |
-                            Particulate organic carbon, POC, ug/L
-                          type: number
-                          format: float
-                          minimum: 0
-
-                        oxygen:
-                          description: |
-                            Dissolved oxygen concentration (mg/L) acts as a limitation on metabolism.
-                          type: number
-                          format: float
-                          minimum: 0
-
-                        seed:
-                          description: |
-                            Number of seed added during the first time step.
-                          type: integer
-                          minimum: 1
-                          default: 1
-
-      responses:
-        '200':
-          description: Return simulation link
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  self:
-                    type: string
-                    format: url
-                    description: Link back to this entity
-              
-
+    
   /DataStreams/smooth:
 
     post:
-      tags: [DataStream]
+      tags: [DataStreams]
       summary: Smooth
       description: |
 
@@ -553,10 +352,10 @@ paths:
         '200':
           $ref: '#/components/responses/Entity'
 
-  /DataStream/fft:
+  /DataStreams/fft:
 
     post:
-      tags: [Filter]
+      tags: [DataStreams]
       summary: Bandpass
       description: |
         Filter an evenly-spaced time series using fast Fourier transform. The query string can include `lowpass` and
@@ -591,10 +390,10 @@ paths:
           $ref: '#/components/responses/Entity'
 
 
-  /data-stream/resample:
+  /DataStreams/resample:
 
     post:
-      tags: [DataStream]
+      tags: [DataStreams]
       summary: Resample and interpolate
       description: |
         Resample a sparse time series at specified rate by either forward/back filling or linear interpolation.
@@ -632,36 +431,6 @@ paths:
         '200':
           $ref: '#/components/responses/Entity'
       
-  
-  /render:
-
-    post:
-
-      tags: [ DataStream ]
-      summary: Render
-      operationId: capsize.datastream.functions.render
-      description: |
-        Create PNG images from data sources and references and cache it.
-        The service call methods from the `matplotlib` library,
-        which uses the anti-grain graphics backend (`AGG`). 
-        The images are portable network graphics (`.png`)
-        by default, but `.pdf` and `.tiff` are available for print media.
-
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-
-      responses:
-        '200':
-          description: Image
-          content:
-            image/png:
-              schema:
-                type: string
-                format: binary
-
 
 components:
 
