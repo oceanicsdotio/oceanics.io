@@ -33,9 +33,9 @@ Software is maintained by Oceanicsdotio LLC under the [MIT license](https://gith
 
 We use a yarn monorepo to manage code. The top-level directory `/` contains this `README.md` along with various configuration files and scripts for linting, compiling, bundling, and deploying the site.
 
-The `oceanics-io-www` workspace contains the frontend applications, written in TypeScript and Rust. Client side interaction is accomplished with React Hooks and browser APIs. Static data and documents live in `/references` and `/public`. The former is used by GatsbyJS to generate single page applications that _look like_ blog posts. Resources in `/public` are publicly addressable with the same route as the file name.
+The `oceanics-io-www` workspace contains the frontend applications, written in TypeScript and Rust. Client side interaction is accomplished with React Hooks and browser APIs. Static data and documents live in `references/` and `public/`. The former is used by NextJS to generate single page applications that _look like_ blog posts. Resources in `public/` are addressable by at the route matching the file name.
 
-Presentational aspects of the front-end are part of the `oceanics-io-ui` workspace, so these components can be shared across applications. This uses Storybook for development and testing.
+Presentational aspects of the front-end are part of the `oceanics-io-ui` workspace, so these React components and hooks can be shared across applications. We use Storybook to develop and test at the component level.
 
 Source code for Netlify serverless functions is in `oceanics-io-fcns/`. These are single purpose endpoints that support secure data access, pre-processing, and sub-setting.
  
@@ -45,16 +45,20 @@ Static assets are hosted on Netlify. When new commits are checked into the Githu
 
 There must also be several environment variables active for things to work:
 
+- `NEO4J_HOSTNAME` is the hostname for Neo4j instance
 - `NEO4J_ACCESS_KEY` is the password for Neo4j instance
-- `POSTGRES_SECRETS` is comma separated strings `<username>,<password>,<cloudsqlInstance>`
-- `OBJECT_STORAGE_SECRETS` is comma separated strings `<accessKey>,<secretKey>`
-- `DARKSKY_API_KEY` is the API key for an optional weather service that will be deprecated
 - `SPACES_ACCESS_KEY`: for accessing storage
 - `SPACES_SECRET_KEY`: for accessing storage
 - `STORAGE_ENDPOINT`: the region and host for cloud storage
 - `BUCKET_NAME`: the prefix to the storage endpoint
 - `SERVICE_NAME`: grouping of data in storage
-- `PORT`: used locally and by Google Cloud Run
+- `PORT`: used on localhost
+- `SERVICE_PROVIDER_API_KEY`: Provider API key for registering accounts
+- `SIGNING_KEY`: A signing ket for producing JWT in-application
+- `SERVICE_ACCOUNT_USERNAME`: email for service account
+- `SERVICE_ACCOUNT_PASSWORD`: password for service account
+- `SERVICE_ACCOUNT_SECRET`: string for salting service key password
+- `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN`: mapbox access token for map interface
 
 
 ### Populating database
