@@ -1,8 +1,8 @@
 /**
  * Cloud function version of API
  */
-import { connect } from "../../shared/shared";
-import { parseAsNodes, GraphNode, Link } from "../../shared/cypher";
+import { connect } from "./shared/shared";
+import { parseAsNodes, GraphNode, Link } from "./shared/cypher";
 import type { Record } from "neo4j-driver";
 import type { Handler } from "@netlify/functions";
 import jwt, {JwtPayload} from "jsonwebtoken";
@@ -108,7 +108,7 @@ const getToken = async ({ email, password, secret }: IAuth) => {
     } else {
         statusCode = 200;
         const {uuid} = records[0][1];
-        const token = jwt.sign({uuid}, process.env.SIGNING_KEY, { expiresIn: 3600 });
+        const token = jwt.sign({uuid}, process.env.SIGNING_KEY??"", { expiresIn: 3600 });
         body = JSON.stringify({ token })
     }
     return {
@@ -118,12 +118,11 @@ const getToken = async ({ email, password, secret }: IAuth) => {
     }
 };
 
-
 /**
  * Update account information
  */
 const manage = async ({token, email, password}: IAuth) => {
-    const claim: JwtPayload = jwt.verify(token, process.env.SIGNING_KEY) as JwtPayload;
+    const claim: JwtPayload = jwt.verify(token??"", process.env.SIGNING_KEY??"") as JwtPayload;
     const uuid = claim["uuid"];
     const node = new GraphNode(`uuid: '${uuid}'`, null, ["User"]);
     const records = transform((await connect(node.load().query)).records);
@@ -158,14 +157,15 @@ const manage = async ({token, email, password}: IAuth) => {
  */
 const handler: Handler = async ({ headers, body, httpMethod }) => {
     let { email, password, apiKey, secret } = JSON.parse(body ?? "{}");
+    const auth = headers["authorization"]??"";
     switch (httpMethod) {
         case "GET":
-            [email, password, secret] = headers["authorization"].split(":");
+            [email, password, secret] = auth.split(":");
             return catchAll(getToken)({ email, password, secret });
         case "POST":
             return catchAll(register)({ email, password, secret, apiKey });
         case "PUT":
-            const [_, token] = headers["authorization"].split(":");
+            const [_, token] = auth.split(":");
             return catchAll(manage)({token, email, password});
         default:
             return {

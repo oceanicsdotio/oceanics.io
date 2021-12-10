@@ -1,6 +1,6 @@
 import type {Handler} from "@netlify/functions";
-import { connect } from "../../shared/shared";
-import { GraphNode, Cypher, parseAsNodes } from "../../shared/cypher";
+import { connect } from "./shared/shared";
+import { GraphNode, Cypher, parseAsNodes } from "./shared/cypher";
 
 
 interface IMutate {

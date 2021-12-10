@@ -1,8 +1,8 @@
 /**
  * Cloud function version of API
  */
-const {connect} = require("../../shared/shared");
-const {hello_world} = require("../../shared/pkg/neritics");
+const {connect} = require("./shared/shared");
+const {hello_world} = require("./shared/pkg/neritics");
 
  /**
   * Browse saved results for a single model configuration. 

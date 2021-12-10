@@ -1,6 +1,6 @@
 import type {Handler} from "@netlify/functions";
-import { connect } from "../../shared/shared";
-import { GraphNode } from "../../shared/cypher";
+import { connect } from "../shared/shared";
+import { GraphNode } from "../shared/cypher";
 
 const handler: Handler = async ({}) => {
     const cypher = GraphNode.allLabels();
