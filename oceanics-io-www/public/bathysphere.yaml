@@ -23,6 +23,15 @@ info:
 
     By assessing data and service availability over your whole domain, projects can allocate resources to fill coverage gaps. This supports an open marketplace asset sharing model, which may be preferable to redundant operational and capital expenses.
 
+    <img src="https://www.oceanics.io/assets/turbine-fire.gif" alt="Turbine" title="Turbine" width="64" height="64" style="image-rendering:crisp-edges;" />
+    <img src="https://www.oceanics.io/assets/boat.gif" alt="Boat" title="Boat" width="64" height="64" style="image-rendering:crisp-edges;" />
+    <img src="https://www.oceanics.io/assets/fish-pen.gif" alt="Fish" title="Fish" width="64" height="64" style="image-rendering:crisp-edges;" />
+    <img src="https://www.oceanics.io/assets/diver-down.gif" alt="Diver" title="Diver" width="64" height="64" style="image-rendering:crisp-edges;" />
+    <img src="https://www.oceanics.io/assets/lighthouse.gif" alt="Lighthouse" title="Lighthouse" width="64" height="64" style="image-rendering:crisp-edges;" />
+    <img src="https://www.oceanics.io/assets/lobster-buoys.gif" alt="Lobster" title="Lobster" width="64" height="64" style="image-rendering:crisp-edges;" />
+    <img src="https://www.oceanics.io/assets/oyster.gif" alt="Oyster" title="Oyster" width="64" height="64" style="image-rendering:crisp-edges;" />
+    <img src="https://www.oceanics.io/assets/mussels.gif" alt="Mussels" title="Mussels" width="64" height="64" style="image-rendering:crisp-edges;" />
+
   contact:
     name: Oceanicsdotio LLC
     url: http://www.oceanics.io
@@ -34,11 +43,6 @@ info:
 
   x-logo:
     url: https://www.oceanics.io/assets/dagan.png
-
-externalDocs:
-
-  description: Welcome to the bazaar!
-  url: https://github.com/oceanicsdotio/oceanics.io
 
 tags:
 
@@ -54,6 +58,9 @@ tags:
     description: |
       Build topological relationships and access metadata.
 
+  - name: DataStreams
+    description: Collections of time series observations with numerical methods
+
 
 servers:
 - url: https://graph.oceanics.io/{basePath}
@@ -68,7 +75,6 @@ paths:
 
     post:
       tags: [ Account ]
-      operationId: bathysphere.api.register
       summary: Register
       description: |
 
@@ -87,7 +93,6 @@ paths:
 
     get:
       tags: [ Account ]
-      operationId: bathysphere.api.token
       summary: Token
       description: |
 
@@ -107,7 +112,6 @@ paths:
 
     put:
       tags: [Account]
-      operationId: bathysphere.api.manage
       summary: Manage
       description: |
 
@@ -126,7 +130,6 @@ paths:
 
     get:
       tags: [Catalog]
-      operationId: bathysphere.api.catalog
       summary: Catalog
       description: |
         Get all entity types in database as collections following the SpatioTemporal Asset Catalog specification
@@ -165,7 +168,6 @@ paths:
 
     post:
       tags: [Catalog]
-      operationId: bathysphere.api.create
       summary: Create
       description: |
         Create a new entity.
@@ -181,7 +183,6 @@ paths:
 
     get:
       tags: [Catalog]
-      operationId: bathysphere.api.collection
       summary: Collection
       description: |
         Get all entities of one type
@@ -200,7 +201,6 @@ paths:
 
     get:
       tags: [Catalog]
-      operationId: bathysphere.api.metadata
       summary: Metadata
       description: |
         Get entity
@@ -217,7 +217,6 @@ paths:
 
     put:
       tags: [ Catalog ]
-      operationId: bathysphere.api.mutate
       summary: Update
       description: Update entity
       requestBody:
@@ -235,7 +234,6 @@ paths:
 
     delete:
       tags: [ Catalog ]
-      operationId: bathysphere.api.delete
       summary: Delete
       description: Delete entity and orphans recursively.
       parameters:
@@ -253,7 +251,6 @@ paths:
 
     get:
       tags: [ Topology ]
-      operationId: bathysphere.api.query
       summary: Query
       description: |
         Get related entities
@@ -276,7 +273,6 @@ paths:
     post:
 
       tags: [ Topology ]
-      operationId: bathysphere.api.join
       summary: Join
       description: Create a labeled relationship between entities.
       parameters:
@@ -294,7 +290,6 @@ paths:
 
     delete:
       tags: [Topology]
-      operationId: bathysphere.api.drop
       summary: Drop
       description: |
         Remove a labeled relationship between entities. If no `label` is specified, remove all
@@ -312,595 +307,134 @@ paths:
           description: No Content
         '400':
           $ref: '#/components/responses/BadRequest'
+    
+  /DataStreams/smooth:
 
+    post:
+      tags: [DataStreams]
+      summary: Smooth
+      description: |
 
-  # /bivalve:
+        Smooth an evenly-spaced time series using convolution. The backend uses the `Numpy.convolve` method.
+        The result is a filtered time series, with a length that depends on the `convolutionMode` parameter. It is
+        the same length by default, but introduces artifacts at the boundaries.
 
-  #   get:
-  #     tags: [Bivalve]
-  #     summary: Model index
-  #     # operationId: bathysphere.api.index
-  #     description: |
-  #       Get metadata for all model configurations.
-
-  #     responses:
-  #       '200':
-  #         description: Model configurations
-  #         content:
-  #           application/json:
-  #             schema:
-  #               title: modelConfigurations
-  #               type: object
-  #               properties:
-  #                 value:
-  #                   type: array
-  #                   items:
-  #                     $ref: '#/components/schemas/Configuration'
-
-  #   post:
-  #     tags: [Bivalve]
-  #     summary: Configure model
-  #     # operationId: bathysphere.api.configure
-  #     description: |
-
-  #       Upload a configuration that will be associated with your account. 
-  #       The settings will be accessible by reference for starting further 
-  #       simulations with the same mathematical and computational
-  #       behavior. Configurations are immutable after the first time 
-  #       they are run to allow reproducibility.
-
-  #     requestBody:
-  #       description: Model configuration
-  #       content:
-  #         application/json:
-  #           schema:
-  #             $ref: '#/components/schemas/Configuration'
-
-  #     responses:
-  #       '200':
-  #         description: Model configuration URI
-  #         content:
-  #           application/json:
-  #             schema:
-  #               type: object
-  #               properties:
-  #                 self:
-  #                   type: string
-  #                   format: url
-  #                   description: Link back to this entity
-
-
-  # /bivalve/{objectKey}:
-
-  #   get:
-  #     tags: [Bivalve]
-  #     summary: View configuration or experiment
-  #     description: |
-  #       Retrieve details about a model configuration or simulation. 
-
-  #       This includes links to and summary statistics of the individual simulations using these settings.
-
-  #     parameters:
-  #       - $ref: '#/components/parameters/ObjectKey'
-      
-  #     responses:
-  #       '200':
-  #         description: Return configuration or simulation result
-  #         content:
-  #           application/json:
-  #             schema:
-  #               oneOf:
-  #                 - $ref: '#/components/schemas/Configuration'
-  #                 - $ref: '#/components/schemas/Experiment'
-      
-  #   post:
-
-  #     tags: [Bivalve Model]
-  #     summary: Run experiment
-  #     # operationId: bathysphere.api.run
-  #     description: |
-
-  #       The bivalve endpoint uses either constant conditions over a 
-  #       fixed period, or time-series data sources. Responses
-  #       are JSON structures. 
-
-  #       The application executes a synchronous kernel call for 
-  #       every location, and solves for
-  #       mass conservation and energy dynamics.
-
-  #     parameters:
-  #       - $ref: '#/components/parameters/ObjectKey'
-  #       - $ref: '#/components/parameters/weight'
-
-  #       - in: query
-  #         name: species
-  #         description: string identifier for culture species
-  #         required: true
-  #         schema:
-  #           type: string
-  #           default: oyster
-  #           enum: [oyster, mussel, scallop]
-
-  #       - in: query
-  #         name: cultureType
-  #         description: |
-  #           String identifier for culture method. 
-  #           Mid-water configurations reutilize pseudofeces,
-  #           while bottom culture prevents re-suspension.
-  #         schema:
-  #           type: string
-  #           enum: [mid-water, bottom, rope]
-  #           default: mid-water
+      parameters:
         
-  #     requestBody:
-  #       description: | 
-  #         JSON object containing forcing information
-  #       content:
-  #         application/json:
-  #           schema:
-  #             type: object
-  #             properties:
-  #               forcing:
-  #                 title: forcingParameters
-  #                 description: |
-  #                   Time-varying forcing conditions for the 
-  #                   model execution.
-  #                 type: array
-  #                 items:
-  #                   type: array
-  #                   items: 
-  #                     type: object
-  #                     properties:
+        - in: query
+          name: bandwidth
+          description: |
+            Width of convolution filter signal in terms of existing sample points. This assumes that the signal
+            discretization has even intervals, and no missing values.
 
-  #                       temperature:
-  #                         description: |
-  #                           Temperature, degrees Celsius, controls vital rates.
-  #                         type: number
-  #                         format: float
-  #                         minimum: 0.0
-  #                         maximum: 40.0
-
-  #                       turbidity:
-  #                         description: |
-  #                           Turbidity helps determine the amount of food available to shellfish.
-
-  #                         type: number
-  #                         format: float
-  #                         minimum: 0.0
-  #                         maximum: 1
-
-  #                       chlorophyll:
-  #                         description: |
-  #                           Chlorophyll-a concentration (ug/L) is a proxy for food availability.
-  #                         type: number
-  #                         format: float
-  #                         minimum: 0.0
-
-  #                       salinity:
-  #                         description: Salinity, PSU
-  #                         type: number
-  #                         format: float
-  #                         minimum: 0
-  #                         maximum: 40
-
-  #                       current:
-  #                         description: Current speed, cm/s
-  #                         type: number
-  #                         format: float
-  #                         minimum: 0
-  #                         maximum: 100
-
-  #                       particulateOrganicMatter:
-  #                         description: | 
-  #                           Particulate Organic Matter (mg/L), or POM, is used as an additional food source.
-  #                         type: number
-  #                         format: float
-  #                         minimum: 0
-
-  #                       totalParticulateMatter:
-  #                         description: |
-  #                           Total or suspended particulate matter, mg/L
-  #                         type: number
-  #                         format: float
-  #                         minimum: 0
-
-  #                       particulateOrganicCarbon:
-  #                         description: |
-  #                           Particulate organic carbon, POC, ug/L
-  #                         type: number
-  #                         format: float
-  #                         minimum: 0
-
-  #                       oxygen:
-  #                         description: |
-  #                           Dissolved oxygen concentration (mg/L) acts as a limitation on metabolism.
-  #                         type: number
-  #                         format: float
-  #                         minimum: 0
-
-  #                       seed:
-  #                         description: |
-  #                           Number of seed added during the first time step.
-  #                         type: integer
-  #                         minimum: 1
-  #                         default: 1
-
-  #     responses:
-  #       '200':
-  #         description: Return simulation link
-  #         content:
-  #           application/json:
-  #             schema:
-  #               type: object
-  #               properties:
-  #                 self:
-  #                   type: string
-  #                   format: url
-  #                   description: Link back to this entity
-              
-
-
-
-  # /smooth:
-
-  #   post:
-  #     tags: [DataStream]
-  #     summary: Smooth
-  #     description: |
-
-  #       Smooth an evenly-spaced time series using convolution. The backend uses the `Numpy.convolve` method.
-  #       The result is a filtered time series, with a length that depends on the `convolutionMode` parameter. It is
-  #       the same length by default, but introduces artifacts at the boundaries.
-
-  #     operationId: bathysphere.api.convolve_smooth
-
-  #     parameters:
-        
-  #       - in: query
-  #         name: bandwidth
-  #         description: |
-  #           Width of convolution filter signal in terms of existing sample points. This assumes that the signal
-  #           discretization has even intervals, and no missing values.
-
-  #         schema:
-  #           type: integer
-  #           default: 1
+          schema:
+            type: integer
+            default: 1
         
 
-  #       - in: query
-  #         name: mode
-  #         description: |
+        - in: query
+          name: mode
+          description: |
 
-  #           Determines the length of the resulting series. Mode "full" returns points of overlap, with size (N+M-1).
-  #           Boundary/edge effects will be retained. Mode "same" will have the same length as the input series. Mode "valid"
-  #           returns points where signals overlap, and will eliminate edges effects, but will have a different size than the
-  #           input series.
+            Determines the length of the resulting series. Mode "full" returns points of overlap, with size (N+M-1).
+            Boundary/edge effects will be retained. Mode "same" will have the same length as the input series. Mode "valid"
+            returns points where signals overlap, and will eliminate edges effects, but will have a different size than the
+            input series.
 
-  #         schema:
-  #           type: string
-  #           default: same
-  #           enum:
-  #             - full
-  #             - same
-  #             - valid
+          schema:
+            type: string
+            default: same
+            enum:
+              - full
+              - same
+              - valid
 
-  #     requestBody:
-  #       $ref: '#/components/requestBodies/Series'
+      requestBody:
+        $ref: '#/components/requestBodies/Entity'
 
-  #     responses:
-  #       '200':
-  #         $ref: '#/components/responses/Filtered'
+      responses:
+        '200':
+          $ref: '#/components/responses/Entity'
 
-  # /fft:
+  /DataStreams/fft:
 
-  #   post:
-  #     tags: [Filter]
-  #     summary: Bandpass
-  #     description: |
+    post:
+      tags: [DataStreams]
+      summary: Bandpass
+      description: |
+        Filter an evenly-spaced time series using fast Fourier transform. The query string can include `lowpass` and
+        `highpass` thresholds. With both described, this acts as a bandpass filter. The `fill` option will
+        automatically forward-fill missing values to prevent anomalies.
 
-  #       Filter an evenly-spaced time series using fast Fourier transform. The query string can include `lowpass` and
-  #       `highpass` thresholds. With both described, this acts as a bandpass filter. The `fill` option will
-  #       automatically forward-fill missing values to prevent anomalies.
+      parameters:
+        # - $ref: '#/components/parameters/dt'
 
-  #     operationId: bathysphere.fft_filter
+        - in: query
+          name: lowpass
+          description: High-frequency cutoff in Hz
+          schema:
+            type: number
+            format: foat
 
-  #     parameters:
-  #       - $ref: '#/components/parameters/dt'
+        - in: query
+          name: highpass
+          description: Low-frequency cutoff in Hz
+          schema:
+            type: number
+            format: float
 
-  #       - in: query
-  #         name: lowpass
-  #         description: High-frequency cutoff in Hz
-  #         schema:
-  #           type: number
-  #           format: foat
+        # - $ref: '#/components/parameters/fill'
+        # - $ref: '#/components/parameters/compress'
 
-  #       - in: query
-  #         name: highpass
-  #         description: Low-frequency cutoff in Hz
-  #         schema:
-  #           type: number
-  #           format: float
+      requestBody:
+        $ref: '#/components/requestBodies/Entity'
 
-  #       - $ref: '#/components/parameters/fill'
-  #       - $ref: '#/components/parameters/compress'
-
-  #     requestBody:
-  #       $ref: '#/components/requestBodies/Series'
-
-  #     responses:
-  #       '200':
-  #         $ref: '#/components/responses/Filtered'
+      responses:
+        '200':
+          $ref: '#/components/responses/Entity'
 
 
-  # /resample:
+  /DataStreams/resample:
 
-  #   post:
-  #     tags: [DataStream]
-  #     summary: Resample and interpolate
-  #     description: |
+    post:
+      tags: [DataStreams]
+      summary: Resample and interpolate
+      description: |
+        Resample a sparse time series at specified rate by either forward/back filling or linear interpolation.
 
-  #       Resample a sparse time series at specified rate by either forward/back filling or linear interpolation.
-
-  #     operationId: capsize.datastream.functions.resampleSparseSeries
-
-  #     parameters:
-  #       - in: query
-  #         name: observations
-  #         description: Total number of observations to produce
-  #         schema:
-  #           type: int
+      parameters:
+        - in: query
+          name: observations
+          description: Total number of observations to produce
+          schema:
+            type: number
+            format: integer
 
       
-  #       - in: query
-  #         name: start
-  #         description: Datetime to apply as a start
-  #         schema:
-  #           type: string
+        - in: query
+          name: start
+          description: Datetime to apply as a start
+          schema:
+            type: string
 
        
-  #       - in: query
-  #         name: method
-  #         description: Interpolation method
-  #         schema:
-  #           type: string
-  #           enum:
-  #             - forward
-  #             - back
-  #             - interp
+        - in: query
+          name: method
+          description: Interpolation method
+          schema:
+            type: string
+            enum:
+              - forward
+              - back
+              - interp
 
-  #     requestBody:
-  #       $ref: '#/components/requestBodies/Series'
+      requestBody:
+        $ref: '#/components/requestBodies/Entity'
 
-  #     responses:
-  #       '200':
-  #         $ref: '#/components/responses/Filtered'
+      responses:
+        '200':
+          $ref: '#/components/responses/Entity'
       
-      
-  # /render:
-
-  #   post:
-
-  #     tags: [ DataStream ]
-  #     summary: Render
-  #     operationId: capsize.datastream.functions.render
-  #     description: |
-  #       Create PNG images from data sources and references and cache it.
-  #       The service call methods from the `matplotlib` library,
-  #       which uses the anti-grain graphics backend (`AGG`). 
-  #       The images are portable network graphics (`.png`)
-  #       by default, but `.pdf` and `.tiff` are available for print media.
-
-  #     requestBody:
-  #       content:
-  #         application/json:
-  #           schema:
-  #             type: object
-
-  #     responses:
-  #       '200':
-  #         description: Image
-  #         content:
-  #           image/png:
-  #             schema:
-  #               type: string
-  #               format: binary
-
-
-  # /image:
-
-  #   post:
-
-  #     tags: [ Image ]
-  #     summary: Render
-  #     operationId: capsize.feature.functions.render
-  #     description: |
-  #       Create PNG images from data sources.
-  #       The service call methods from the `matplotlib` library,
-  #       which uses the anti-grain graphics backend (`AGG`). The images are portable network graphics (`.png`)
-  #       by default, but `.pdf` and `.tiff` are available for print media.
-
-  #     requestBody:
-
-  #       description: | 
-  #         Image request
-
-  #       content:
-  #         application/json:
-  #           schema:
-  #             type: object
-  #             description: | 
-  #               Image function request. The body contains style information
-  #               as well as the data payload. 
-
-  #             properties:
-
-  #               labels:
-  #                 type: object
-  #                 description: |
-  #                   Labels for orthogonal axes
-  #                 nullable: true
-  #                 properties:
-  #                   x:
-  #                     type: string
-  #                     nullable: true
-  #                   y:
-  #                     type: string
-  #                     nullable: true
-
-  #               style:
-  #                 type: object
-  #                 nullable: true
-  #                 description: |
-  #                   Style is used change the appearance of the rendered image.
-
-  #                 properties:
-
-  #                   template:
-  #                     type: string
-  #                     enum: [dark, light]
-  #                     default: dark
-  #                     description: |
-  #                       Select between light and dark templates depending on whether the image is intended for display
-  #                       on a screen or for printed media.
-
-  #                   bg:
-  #                     type: string
-  #                     default: black
-  #                     description: |
-  #                       Override the default background color for the chosen or default template. Dark themes have a `black`
-  #                       background by default, and light themes have a `white` background. Use this to match the background
-  #                       color when embedding in a web page. This can also be transparent for image compositing.
-
-  #                   contrast:
-  #                     type: string
-  #                     default: white
-  #                     description: |
-  #                       Contrast color for rendering over background.
-
-  #                   flag:
-  #                     type: string
-  #                     default: red
-  #                     description: |
-  #                       Highlight color for marking selected or masked data.
-
-  #                   label:
-  #                     type: string
-  #                     description: |
-  #                       Color for text and labels. The default is the same as the `contrast` color.
-
-  #                   dpi:
-  #                     type: integer
-  #                     default: 150
-  #                     minimum: 90
-  #                     maximum: 300
-  #                     description: |
-  #                       Image resolution. Be careful, `dpi=300` images can be very large.
-
-  #                   format:
-  #                     type: string
-  #                     enum: [png, pdf, tiff]
-  #                     default: png
-  #                     description: |
-  #                       Image file format. Only `png` is available through the API.
-
-  #                   alpha:
-  #                     type: number
-  #                     format: float
-  #                     default: 1.0
-  #                     maximum: 1.0
-  #                     minimum: 0.0
-  #                     description: |
-  #                       Transparency of drawn objects. Useful for rendering Monte Carlo simulations.
-
-  #                   padding:
-  #                     type: array
-  #                     minLength: 4
-  #                     maxLength: 4
-  #                     items:
-  #                       type: number
-  #                       format: float
-  #                     default: [0.1, 0.2, 0.05, 0.1]
-  #                     description: |
-  #                       Content padding from edges of image to make room for labels and title.
-
-  #                   marker:
-  #                     type: integer
-  #                     default: 1
-  #                     description: |
-  #                       Size of markers if rendering scatter plots or points on a map
-
-  #                   font:
-  #                     type: integer
-  #                     default: 10
-  #                     description: |
-  #                       Font size
-
-  #                   text:
-  #                     type: number
-  #                     format: float
-  #                     default: 1.0
-  #                     description: |
-  #                       Size of labels relative to font size.
-
-  #                   width:
-  #                     type: number
-  #                     format: float
-  #                     default: 6.5
-  #                     description: |
-  #                       Width of image in inches
-
-  #                   height:
-  #                     type: number
-  #                     format: float
-  #                     description: |
-  #                       Height of image in inches
-
-  #               data:
-  #                 type: array
-  #                 items:
-  #                   type: object
-                              
-  #               extent:
-
-  #                 title: extent
-  #                 type: object
-  #                 nullable: true
-  #                 description: |
-
-  #                   Spatiotemporal extent of a data `Collection`. Contains a 2 or 3-D `spatial` extent, and a `temporal`
-  #                   interval.
-
-  #                 properties:
-
-  #                   spatial:
-  #                     type: array
-  #                     minLength: 4
-  #                     maxLength: 6
-  #                     nullable: true
-  #                     items:
-  #                       type: number
-  #                       format: float
-
-  #                   temporal:
-  #                     type: string
-  #                     nullable: true
-  #                     description: ISO format timestamp interval
-
-  #               args:
-  #                 title: arguments
-  #                 type: object
-  #                 nullable: true
-
-  #     responses:
-  #       '200':
-  #         description: Image reference
-  #         content:
-  #           image/png:
-  #             schema:
-  #               type: string
-  #               format: binary
-
-
 
 components:
 
@@ -1289,7 +823,6 @@ components:
               minimum: 1
               maximum: 100
               description: Total number of records in the response
-
             value:
               type: array
               description: Array of response data
