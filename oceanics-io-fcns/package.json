@@ -4,13 +4,15 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-        "build": "yarn run clean && tsc",
-        "build:watch": "yarn run clean && tsc-watch"
+        "build": "tsc"
     },
     "keywords": [],
     "author": "Oceanicsdotio LLC",
     "license": "MIT",
     "engines": {
         "node": "14"
+    },
+    "devDependencies": {
+        "typescript": "^4.5.3"
     }
 }

@@ -2,18 +2,20 @@
 export class Cypher {
     readOnly: boolean;
     query: string;
-    constructor(query, readOnly) {
+    constructor(query: string, readOnly: boolean) {
         this.query=query;
         this.readOnly=readOnly;
     }
 }
 
+type OptString = string | null;
+
 export class GraphNode {
-    pattern: string|null;
-    _symbol: string|null;
+    pattern: OptString;
+    _symbol: OptString;
     labels: string[];
 
-    constructor(pattern, symbol, labels) {
+    constructor(pattern: OptString, symbol: OptString, labels: string[]) {
         this.pattern=pattern;
         this._symbol=symbol;
         this.labels=labels;
@@ -70,7 +72,7 @@ export class NodeIndex {
     label: string;
     key: string;
 
-    constructor(label, key) {
+    constructor(label: string, key: string) {
         this.label=label;
         this.key=key;
     }
@@ -91,7 +93,7 @@ export class Link {
     label?: string;
     pattern?: string;
 
-    constructor(label, rank, cost, pattern) {
+    constructor(label: string, rank: number, cost: number, pattern: string) {
         this.label=label;
         this.rank=rank;
         this.cost=cost;
@@ -141,7 +143,7 @@ export const parseAsNodes = (nodes: {[key: string]: any}[]) => {
         return new GraphNode(
             Object.entries(JSON.parse(JSON.stringify(value))).filter((x)=>x).join(", "),
             `n${index}`,
-            typeof value
+            [typeof value]
         )
     })
 }
