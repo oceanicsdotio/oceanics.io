@@ -1,6 +1,11 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.loadNode = exports.parseAsNodes = exports.Link = exports.NodeIndex = exports.GraphNode = exports.Cypher = void 0;
+exports.createToken = exports.tokenClaim = exports.authClaim = exports.loadNode = exports.parseAsNodes = exports.Link = exports.NodeIndex = exports.GraphNode = exports.transform = exports.Cypher = void 0;
+const utils_1 = require("./utils");
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 class Cypher {
     constructor(query, readOnly) {
         this.query = query;
@@ -8,6 +13,12 @@ class Cypher {
     }
 }
 exports.Cypher = Cypher;
+/**
+ * Transform from Neo4j response records to generic internal node representation
+ */
+const transform = (recs) => recs.flatMap((record) => Object.values(record.toObject()))
+    .map(({ labels: [primary], properties }) => [primary, properties]);
+exports.transform = transform;
 class GraphNode {
     constructor(pattern, symbol, labels) {
         this.pattern = pattern;
@@ -25,7 +36,11 @@ class GraphNode {
     }
     // supports multi label create, but not retrieval
     cypherRepr() {
-        const label = this.labels ? `:${this.labels.join(":")}` : ``;
+        let label = "";
+        if (this.labels.length > 0) {
+            console.log("labels:", this.labels);
+            label = ["", ...this.labels].join(":");
+        }
         return `( ${this.symbol}${label}${this.patternOnly()} )`;
     }
     count() {
@@ -95,7 +110,7 @@ class Link {
         return new Cypher(`MATCH ${left.cypherRepr()}, ${right.cypherRepr()} MERGE (${left.symbol})${this.cypherRepr()}(${right.symbol})`, false);
     }
     query(left, right, result) {
-        return new Cypher(`MATCH ${left.cypherRepr()}${this.cypherRepr()}${right.cypherRepr()} RETURN ${result}`, true);
+        return new Cypher(`MATCH ${left.cypherRepr()}${this.cypherRepr()}${right.cypherRepr()} WHERE NOT ${right.symbol}:Provider AND NOT ${right.symbol}:User RETURN ${result}`, true);
     }
     insert(left, right) {
         const query = `MATCH ${left.cypherRepr()} WITH * MERGE ${right.cypherRepr()}${this.cypherRepr()}(${left.symbol}) RETURN (${left.symbol})`;
@@ -124,6 +139,21 @@ exports.parseAsNodes = parseAsNodes;
 const loadNode = () => {
 };
 exports.loadNode = loadNode;
+const authClaim = ({ email, password, secret }) => {
+    const hash = (0, utils_1.hashPassword)(password, secret);
+    return new GraphNode(`email: '${email}', credential: '${hash}'`, null, ["User"]);
+};
+exports.authClaim = authClaim;
+const tokenClaim = (token, signingKey) => {
+    const claim = jsonwebtoken_1.default.verify(token, signingKey);
+    const uuid = claim["uuid"];
+    return new GraphNode(`uuid: '${uuid}'`, "u", ["User"]);
+};
+exports.tokenClaim = tokenClaim;
+const createToken = (uuid, signingKey) => {
+    return jsonwebtoken_1.default.sign({ uuid }, signingKey, { expiresIn: 3600 });
+};
+exports.createToken = createToken;
 //  def load_node(entity, db):
 //  # typing: (Type, Driver) -> [Type]
 //  """

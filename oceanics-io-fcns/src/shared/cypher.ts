@@ -1,3 +1,18 @@
+import type { Record } from "neo4j-driver";
+import { hashPassword } from "./utils";
+
+import jwt, {JwtPayload} from "jsonwebtoken";
+
+/**
+ * Generic interface for all of the method-specific handlers.
+ */
+export interface IAuth {
+    email: string;
+    password: string;
+    secret: string;
+    apiKey?: string;
+    token?: string;
+}
 
 export class Cypher {
     readOnly: boolean;
@@ -9,6 +24,21 @@ export class Cypher {
 }
 
 type OptString = string | null;
+
+export type Properties = {[key: string]: any};
+export interface INode {
+    labels: string[];
+    properties: Properties;
+}
+
+
+/**
+ * Transform from Neo4j response records to generic internal node representation
+ */
+export const transform = (recs: Record[]): [string, Properties][] =>
+ recs.flatMap((record)=>Object.values(record.toObject()))
+     .map(({ labels: [primary], properties }: INode) => [primary, properties])
+
 
 export class GraphNode {
     pattern: OptString;
@@ -33,7 +63,11 @@ export class GraphNode {
 
     // supports multi label create, but not retrieval
     cypherRepr(): string {
-        const label = this.labels ? `:${this.labels.join(":")}` : ``;
+        let label = "";
+        if (this.labels.length > 0) {
+            console.log("labels:", this.labels)
+            label = ["", ...this.labels].join(":")
+        }
         return `( ${this.symbol}${label}${this.patternOnly()} )`
     }
     count(): Cypher {
@@ -93,7 +127,7 @@ export class Link {
     label?: string;
     pattern?: string;
 
-    constructor(label: string, rank: number, cost: number, pattern: string) {
+    constructor(label?: string, rank?: number, cost?: number, pattern?: string) {
         this.label=label;
         this.rank=rank;
         this.cost=cost;
@@ -112,7 +146,7 @@ export class Link {
         return new Cypher(`MATCH ${left.cypherRepr()}, ${right.cypherRepr()} MERGE (${left.symbol})${this.cypherRepr()}(${right.symbol})`, false)
     }
     query(left: GraphNode, right: GraphNode, result: string): Cypher {
-        return new Cypher(`MATCH ${left.cypherRepr()}${this.cypherRepr()}${right.cypherRepr()} RETURN ${result}`, true)
+        return new Cypher(`MATCH ${left.cypherRepr()}${this.cypherRepr()}${right.cypherRepr()} WHERE NOT ${right.symbol}:Provider AND NOT ${right.symbol}:User RETURN ${result}`, true)
     }
     insert(left: GraphNode, right: GraphNode): Cypher {
         const query = `MATCH ${left.cypherRepr()} WITH * MERGE ${right.cypherRepr()}${this.cypherRepr()}(${left.symbol}) RETURN (${left.symbol})`
@@ -151,6 +185,23 @@ export const parseAsNodes = (nodes: {[key: string]: any}[]) => {
 
 export const loadNode = () => {
 
+}
+
+
+
+export const authClaim = ({ email, password, secret }: IAuth) => {
+    const hash: string = hashPassword(password, secret);
+    return new GraphNode(`email: '${email}', credential: '${hash}'`, null, ["User"]);
+}
+
+export const tokenClaim = (token: string, signingKey: string) => {
+    const claim = jwt.verify(token, signingKey) as JwtPayload;
+    const uuid = claim["uuid"];
+    return new GraphNode(`uuid: '${uuid}'`, "u", ["User"]);
+}
+
+export const createToken = (uuid: string, signingKey: string): string => {
+    return jwt.sign({uuid}, signingKey, { expiresIn: 3600 })
 }
 
 //  def load_node(entity, db):

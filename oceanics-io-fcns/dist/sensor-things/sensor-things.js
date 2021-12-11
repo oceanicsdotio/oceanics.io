@@ -1,48 +1,97 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-/**
- * Cloud function version of API
- */
-const neritics_1 = require("./pkg/neritics");
+exports.handler = void 0;
 const utils_1 = require("../shared/utils");
 const cypher_1 = require("../shared/cypher");
-// const mutate = ({entity}) => {
-//     const [e, mutation] = parseAsNodes({}, {});
-//     const cypher = e.mutate(mutation);
-//     return connect(cypher.query);
-// }
+;
+;
+;
+;
+const serialize = (props) => {
+    return Object.entries(props).map(([key, value]) => `${key}: '${value}'`).join(", ");
+};
 /**
- * Valid for single and multiple fields
+ * Create some nodes, usually one, within the graph. This will
+ * automatically be attached to User and Provider nodes (internal).
+ *
+ * Blank and null values are ignored, and will not overwrite existing
+ * properties. This implies that once a property is set once, it cannot
+ * be "unset" without special handling.
+ *
+ * Location data receives additional processing logic internally.
  */
-const metadata = ({ entity, uuid }) => {
-    const cypher = new cypher_1.Cypher("", true);
-    const value = (0, utils_1.connect)(cypher.query);
+const create = async ({ entity, user, properties }) => {
+    if (!entity)
+        throw TypeError(`Empty Entity Type`);
+    const pattern = serialize({ uuid: (0, utils_1.uuid4)(), ...properties });
+    const right = new cypher_1.GraphNode(pattern, "e", [entity]);
+    const cypher = new cypher_1.Link("Create", 0, 0, "").insert(user, right);
+    try {
+        await (0, utils_1.connect)(cypher.query);
+    }
+    catch {
+        return {
+            statusCode: 403,
+            body: JSON.stringify({
+                message: "Unauthorized",
+            }),
+            headers: { 'Content-Type': "application/json" }
+        };
+    }
     return {
-        "@iot.count": 0,
-        value,
+        statusCode: 204
     };
 };
-// @context
-// def delete(db, entity, uuid):
-//     # typing: (Driver, str, str) -> (None, int)
-//     """
-//     Delete a pattern from the graph
-//     """
-//     eval(entity).delete(db, uuid=uuid)  # pylint: disable=eval-used
-//     return None, 204
-// const handler = async ({
-//     body,
-//     queryStringParameters
-// }) => {
-//     const uuid = queryStringParameters["uuid"];
-//     const {entityClass, ...props} = JSON.parse(body);
-//     const type = Entities[props.entity];
-//     return {
-//         statusCode: 501,
-//         headers: { 'Content-Type': 'application/json' },
-//         body: JSON.stringify({message: "Not implemented"})
-//     };
-// }
+/**
+ * Retrieve one or more entities of a single type. This may be filtered
+ * by any single property.
+ */
+const metadata = async ({ entity, uuid, user }) => {
+    const pattern = uuid.length ? `uuid: '${uuid}'` : uuid;
+    const right = new cypher_1.GraphNode(pattern, "n", entity ? [entity] : []);
+    const cypher = (new cypher_1.Link()).query(user, right, right.symbol);
+    const value = (0, cypher_1.transform)((await (0, utils_1.connect)(cypher.query)).records);
+    return {
+        statusCode: 200,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            "@iot.count": 0,
+            value,
+        })
+    };
+};
+/**
+ * Change or add properties to an existing entity node. This
+ * handles PUT/PATCH requests when the node pattern includes
+ * a uuid contained within parenthesis
+ */
+const mutate = ({ entity, user }) => {
+    // const [e, mutation] = parseAsNodes({}, {});
+    // const cypher = e.mutate(mutation);
+    // return connect(cypher.query);
+};
+/**
+ * Delete a pattern from the graph. Be careful, this can
+ * remove all nodes matching the pattern. We usually restrict
+ * to a pattern with an indexed/unique property when called
+ * through the API to prevent unintentional data loss.
+ *
+ */
+const remove = async ({ entity, uuid, user }) => {
+    const node = new cypher_1.GraphNode(`uuid: '${uuid}'`, "n", [entity]);
+    const cypher = node.delete();
+    try {
+        await (0, utils_1.connect)(cypher.query);
+    }
+    catch {
+        return {
+            statusCode: 404
+        };
+    }
+    return {
+        statusCode: 204
+    };
+};
 /**
  * Browse saved results for a single model configuration.
  * Results from different configurations are probably not
@@ -52,61 +101,56 @@ const metadata = ({ entity, uuid }) => {
 
  * You can only access results for that test, although multiple collections * may be stored in a single place
  */
-exports.handler = async (event) => {
-    let response;
-    const data = await (0, utils_1.connect)("SHOW FUNCTIONS");
+const handler = async ({ headers, body, httpMethod, queryStringParameters }) => {
+    var _a;
+    let data = JSON.parse(body !== null && body !== void 0 ? body : "{}");
+    let entity = "";
+    let uuid = "";
+    const { node = "", } = queryStringParameters;
+    if (node.includes("(")) {
+        const parts = node.split("(");
+        entity = parts[0];
+        uuid = parts[1].replace(")", "");
+    }
+    else {
+        entity = node;
+    }
+    const auth = (_a = headers["authorization"]) !== null && _a !== void 0 ? _a : "";
+    const [_, token] = auth.split(":");
+    let user;
     try {
-        response = {
-            statusCode: 200,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                data,
-                message: (0, neritics_1.hello_world)("you")
-            })
+        user = (0, cypher_1.tokenClaim)(token, process.env.SIGNING_KEY);
+    }
+    catch {
+        return {
+            statusCode: 403,
+            body: JSON.stringify({ message: "Unauthorized" }),
+            headers: { "Content-Type": "application/json" }
         };
     }
-    catch (err) {
-        response = {
-            statusCode: err.statusCode || 500,
-            body: err.message
-        };
+    switch (httpMethod) {
+        case "OPTIONS":
+            return {
+                statusCode: 204,
+                headers: { "Allow": "OPTIONS, GET, POST, PUT, DELETE" }
+            };
+        case "GET":
+            return metadata({ user, entity, uuid });
+        case "POST":
+            return create({ user, entity, properties: data });
+        case "PUT":
+            return (0, utils_1.catchAll)(mutate)({});
+        case "DELETE":
+            return (0, utils_1.catchAll)(remove)({});
+        default:
+            return {
+                statusCode: 405,
+                body: JSON.stringify({ message: "Invalid HTTP Method" }),
+                headers: { "Content-Type": "application/json" }
+            };
     }
-    return response;
 };
-// @context
-// def create(db, entity, body, provider) -> (dict, int):
-//     # typing: (Driver, str, dict, Providers) -> (dict, int)
-//     """
-//     Create a new node(s) in graph.
-//     Format object properties dictionary as list of key:"value" strings,
-//     automatically converting each object to string using its built-in __str__ converter.
-//     Special values can be given unique string serialization methods by overloading __str__.
-//     The bind tuple items are external methods that are bound as instance methods to allow
-//     for extending capabilities in an ad hoc way.
-//     Blank values are ignored and will not result in graph attributes. Blank values are:
-//     - None (python value)
-//     - "None" (string)
-//     Writing transactions are recursive, and can take a long time if the tasking graph
-//     has not yet been built. For this reason it is desirable to populate the graph
-//     with at least one instance of each data type.
-//     """
-//     # For changing case
-//     from bathysphere import REGEX_FCN
-//     # Only used for API discriminator
-//     _ = body.pop("entityClass")
-//     if entity == "Locations" and "location" in body.keys():
-//         body["location"] = SpatialLocationData(**body["location"])
-//     # Generate Node representation
-//     instance = eval(entity)(**{REGEX_FCN(k): v for k, v in body.items()}) # pylint: disable=eval-used
-//     _entity, _provider = parse_as_nodes((instance, provider))
-//     # Establish provenance
-//     link = Links(label="Create").join(_entity, _provider)
-//     # Execute the query
-//     with db.session() as session:
-//         session.write_transaction(lambda tx: tx.run(_entity.create().query))
-//         session.write_transaction(lambda tx: tx.run(link.query))
-//     # Report success
-//     return None, 204
+exports.handler = handler;
 // @context
 // def join(db, root, rootId, entity, uuid, body):  # pylint: disable=too-many-arguments
 //     # typing: (Driver, str, str, str, str, dict) -> (None, int)
