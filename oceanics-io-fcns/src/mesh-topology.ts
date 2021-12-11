@@ -39,8 +39,9 @@ const handler: Handler = async ({
             Key: `${Service}/${Key}.${Ext}`
         }).promise();
 
-        const CSV = Body
-            .toString('utf-8')
+        const CSV = (
+            Body?.toString('utf-8')??""
+        )
             .split("\n")
             .slice() // copy to prevent readable body disappearing
             .map(line => line.split(",").map(x => x.trim()).slice(1, 4));

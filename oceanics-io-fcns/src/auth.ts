@@ -1,7 +1,7 @@
 /**
  * Cloud function version of API
  */
-import { connect } from "./shared/shared";
+import { connect } from "./shared/utils";
 import { parseAsNodes, GraphNode, Link } from "./shared/cypher";
 import type { Record } from "neo4j-driver";
 import type { Handler } from "@netlify/functions";

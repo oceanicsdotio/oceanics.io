@@ -1,6 +1,6 @@
 const { Endpoint, S3 } = require("aws-sdk");
 const { createHash } = require("crypto");
-const { VertexArrayBuffer, IndexInterval } = require("../wasm/node/neritics");
+const { VertexArrayBuffer, IndexInterval } = require("./pkg/neritics");
 const NetCDFReader = require('netcdfjs');
 const { readFileSync } = require('fs');
 
@@ -30,11 +30,11 @@ const ENCODER_RADIX = 36;
 const MAX_SLICE_SIZE = WEBGL_VERTEX_ARRAY_LIMIT/8;
 
 
-const textData = async (Key) => 
+const textData = async (Key: string) => 
     (await s3.getObject({Bucket, Key}).promise()).Body.toString('utf-8');
 
 
-const fromCsvString = (csvString) => {
+const fromCsvString = (start: number, end: number, csvString: string) => {
     
     const lines = csvString.split("\r\n")
     const total = lines.length;
@@ -59,7 +59,19 @@ const fromCsvString = (csvString) => {
     );
 }
 
+interface IVertexBuffer {
+    prefix: string;
+    key: string;
+    extension: string;
+    start: number;
+    end: number;
+    delta: number;
+    update?: boolean;
+    source?: string|null;
+    radix?: number;
+    returnSource?: boolean;
 
+}
 
 /**
  * Make slices of the Vertex Array Buffer for the points that form the 
@@ -74,10 +86,12 @@ const VertexArrayBufferSlice = async ({
     extension,
     start,
     end,
+    delta,
     update=false,
     source=null,
     radix=ENCODER_RADIX,
-}) => {
+    returnSource=false,
+}: IVertexBuffer) => {
 
     const vab = new VertexArrayBuffer(prefix, key, start, end, radix);
     
@@ -87,7 +101,7 @@ const VertexArrayBufferSlice = async ({
     const metadata = await s3.headObject({
         Bucket,
         Key: vab.fragment()
-    }).promise().catch(err => {
+    }).promise().catch((err: any) => {
         if (err.code === "NotFound") return null;
         else throw err;
     });
@@ -99,7 +113,7 @@ const VertexArrayBufferSlice = async ({
 
         if (extension === "csv") {
             lines = source || (await textData(`${prefix}/${key}.${extension}`)).split("\r\n");  // Lazy load lines if necessary    
-            data = fromCsvString(lines)
+            data = fromCsvString(start, end, lines)
         } else if (extension === "nc") {
 
             const {variables} = JSON.parse(await textData(`${prefix}/${key}/variables.json`));
@@ -155,7 +169,7 @@ const VertexArrayBufferSlice = async ({
                 Key: vab.fragment(),
                 ContentType: 'application/octet-stream',
                 ACL:'public-read',
-            }, (err) => {
+            }, (err: Error) => {
                 if (err) throw err;
             });
             console.log(`${!metadata ? "Created" : "Updated"} asset: ${vab.fragment()}`);
@@ -171,7 +185,7 @@ const VertexArrayBufferSlice = async ({
 };
 
 
-[{
+export const main = () => {[{
     key: "20200101025500-NCEI-L3C_GHRSST-SSTskin-AVHRR_Pathfinder-PFV5.3_NOAA19_G_2020001_night-v02.0-fv01.0",
     extension: "nc"
 }].forEach(({key, extension}) => {
@@ -188,7 +202,7 @@ const VertexArrayBufferSlice = async ({
                 }),
                 ContentType: 'application/json',
                 Key: `${prefix}/${key}/variables.json`,
-            }, (err) => {
+            }, (err: Error) => {
                 if (err) throw err;
             });
         })();
@@ -240,6 +254,6 @@ const VertexArrayBufferSlice = async ({
     //         sample: dv.getFloat32(0, true),
     //     });
     // })();
-});
+});}
 
 

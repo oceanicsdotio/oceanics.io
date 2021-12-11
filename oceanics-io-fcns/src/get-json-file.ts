@@ -1,5 +1,5 @@
 import type { Handler } from "@netlify/functions";
-import { Bucket, s3 } from "../shared/shared";
+import { Bucket, s3 } from "./shared/utils";
 
 interface IQuery {
     service: string;
