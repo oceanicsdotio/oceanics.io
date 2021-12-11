@@ -35,7 +35,7 @@ const authenticate = (event, context, target) => {
             //                 assert custom_app_context.verify(password, user.credential)
         }
         catch {
-            return { "message": "Invalid username or password" }, 403;
+            return [{ "message": "Invalid username or password" }, 403];
         }
     }
     else { // bearer token

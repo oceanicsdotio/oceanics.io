@@ -32,7 +32,7 @@ const authenticate = (event, context, target) => {
 //                 user = next(load_node(User(name=username), db))
 //                 assert custom_app_context.verify(password, user.credential)
         } catch {
-            return {"message": "Invalid username or password"}, 403
+            return [{"message": "Invalid username or password"}, 403]
         }
     } else { // bearer token
         const secretKey = event.headers["x-api-key"]??"salt";

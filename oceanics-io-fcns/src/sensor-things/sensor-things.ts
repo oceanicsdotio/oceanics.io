@@ -1,19 +1,16 @@
 /**
  * Cloud function version of API
  */
-const {connect} = require("./shared/shared");
-const {hello_world} = require("./shared/pkg/neritics");
+import {hello_world} from "./pkg/neritics";
 
-import { connect } from "./shared/shared";
-import { GraphNode, Cypher, parseAsNodes } from "./shared/cypher";
+import { connect } from "../shared/utils";
+import { GraphNode, Cypher, parseAsNodes } from "../shared/cypher";
 
-
-
-const mutate = ({entity}) => {
-    const [e, mutation] = parseAsNodes({}, {});
-    const cypher = e.mutate(mutation);
-    return connect(cypher.query);
-}
+// const mutate = ({entity}) => {
+//     const [e, mutation] = parseAsNodes({}, {});
+//     const cypher = e.mutate(mutation);
+//     return connect(cypher.query);
+// }
 
 /**
  * Valid for single and multiple fields
@@ -27,7 +24,6 @@ const metadata = ({entity, uuid}) => {
     }
 };
 
-
 // @context
 // def delete(db, entity, uuid):
 //     # typing: (Driver, str, str) -> (None, int)
@@ -37,21 +33,21 @@ const metadata = ({entity, uuid}) => {
 //     eval(entity).delete(db, uuid=uuid)  # pylint: disable=eval-used
 //     return None, 204
 
-const handler = async ({
-    body,
-    queryStringParameters
-}) => {
-    const uuid = queryStringParameters["uuid"];
-    const {entityClass, ...props} = JSON.parse(body);
-    const type = Entities[props.entity];
+// const handler = async ({
+//     body,
+//     queryStringParameters
+// }) => {
+//     const uuid = queryStringParameters["uuid"];
+//     const {entityClass, ...props} = JSON.parse(body);
+//     const type = Entities[props.entity];
 
 
-    return {
-        statusCode: 501,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({message: "Not implemented"})
-    };
-}
+//     return {
+//         statusCode: 501,
+//         headers: { 'Content-Type': 'application/json' },
+//         body: JSON.stringify({message: "Not implemented"})
+//     };
+// }
 
 
 
