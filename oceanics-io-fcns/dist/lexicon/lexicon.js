@@ -36,7 +36,7 @@ const search = ({ words, pattern, maxCost, }) => {
             result.push([word, cost]);
         return result;
     };
-    words.reduce(outer, []);
+    return words.reduce(outer, []);
 };
 // /**
 //  * Insert a pattern into a Trie-like data structure.
@@ -129,7 +129,8 @@ const handler = async ({ body }) => {
         return {
             statusCode: 200,
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(search({ words: WELL_KNOWN_TEXT, pattern, maxCost }))
+            // body: JSON.stringify(search({words: WELL_KNOWN_TEXT, pattern, maxCost}))
+            body: JSON.stringify(WELL_KNOWN_TEXT)
         };
     }
     catch (err) {

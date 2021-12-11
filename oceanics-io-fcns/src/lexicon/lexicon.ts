@@ -59,98 +59,120 @@ const search = ({
         return result;
     }
 
-    words.reduce(outer, []);
+    return words.reduce(outer, []);
 }
 
-// /**
-//  * Insert a pattern into a Trie-like data structure.
-//  * 
-//  * In this case, we assume the struct is an object, containing
-//  * self-similar nested objects.
-//  * 
-//  * Depth first serach in reverse. 
-//  * 
-//  * @param {*} param0 
-//  */
-// const trie = ({
-//     words=[], 
-//     root={},
-//     encode=(weight)=>weight+1,
-//     initialWeight=1
-// }) => 
-//     words.reduce((root, pattern) => {
-//         let node = root;
-//         [...pattern].forEach(c => {
-//             if (typeof node.children === "undefined" || !node.children)
-//                 node.children = {};
-//             if (!(c in node.children)) node.children[c] = {};
-            
-//             // Descend one level and encode traversal of path
-//             node = node.children[c];
-//             node.weight = 
-//                 initialWeight && encode ?
-//                 ((typeof node.weight === "undefined" || !node.weight) ||
-//                 encode(node.weight)) :
-//                 undefined;    
-//         });
-//         node.word = true;
-//         return root;
-//     }, root
-// );
+interface INode {
+    children?: {[key: string]: INode};
+    weight?: number;
+    word?: boolean;
+}
 
+interface ITrie {
+    words?: string[];
+    root?: INode;
+    initialWeight?: number;
+    encode?: (arg: number)=>number
+}
 
-// /**
-//  * Recursive descend through a Trie object.
-//  * 
-//  * If the previous row is not supplied, assume that it is the entry point
-//  * and assigned the default first row.
-//  * 
-//  * @param {*} param0 
-//  */
-// function recurse({
-//     node, 
-//     pattern, 
-//     maxCost,
-//     symbol="",
-//     previous=null,
-// }) {
-//     // on entry (no symbol), init previous value to pass down
-//     const row = symbol ? 
-//         calculateRow({
-//             previous, 
-//             word: pattern, 
-//             symbol
-//         }) : 
-//         Array(Array(pattern.length + 1).keys());
+/**
+ * Insert a pattern into a Trie-like data structure.
+ * 
+ * In this case, we assume the struct is an object, containing
+ * self-similar nested objects.
+ * 
+ * Depth first serach in reverse. 
+ * 
+ * @param {*} param0 
+ */
+const trie = ({
+    words=[], 
+    root={},
+    encode=(weight)=>weight+1,
+    initialWeight=1
+}: ITrie) => {
 
-//     // cost of this word
-//     const isWord = "word" in node && node.word;
-//     const self = isWord && row[row.length-1] <= maxCost ?
-//         [[symbol, row[row.length-1]]] : []
-
-//     // don't descend if we've reached our thresholds
-//     const descend = 
-//         Math.min(...row) <= maxCost &&
-//         typeof node.children === "object";
+    const inner = (node: INode) => (key: string) => {
+        if (typeof node.children === "undefined") {
+            node.children = {}
+        }
+        if (!(key in node.children)) node.children[key] = {};
+        
+        // Descend one level and encode traversal of path
+        node = node.children[key];
+        if (typeof node.weight === "undefined" || !node.weight) {
+            node.weight = initialWeight;
+        } else {
+            node.weight = encode(node.weight);
+        }
+    }
     
-//     // cost of child words
-//     const children = !descend ? [] : 
-//         Object.entries(node.children)
-//             .map(([symbol, node])=>
-//                 recurse({
-//                     node,
-//                     pattern,
-//                     maxCost,
-//                     symbol,
-//                     previous: row
-//                 }))
-//             .map(([suffix, cost])=>{
-//                 console.log({suffix, cost});
-//                 return [symbol+suffix, cost]
-//             });
-    
-//     return self + children;
-// };
+    const reducer = (root: INode, pattern: string) => {
+        let node = root;
+        [...pattern].forEach(inner(node));
+        node.word = true;
+        return root;
+    }
+
+    return words.reduce(reducer, root);
+}
+
+interface IRecurse {
+    node: INode;
+    pattern: string;
+    maxCost: number;
+    symbol?: string;
+    previous: number[];
+}
+
+/**
+ * Recursive descend through a Trie object.
+ * 
+ * If the previous row is not supplied, assume that it is the entry point
+ * and assigned the default first row.
+ * 
+ * @param {*} param0 
+ */
+function recurse({
+    node, 
+    pattern, 
+    maxCost,
+    symbol="",
+    previous,
+}: IRecurse): string[] {
+    // on entry (no symbol), init previous value to pass down
+    //@ts-ignore
+    const row: number[] = symbol ? 
+        calculateRow({
+            previous, 
+            word: pattern, 
+            symbol
+        }) : 
+        Array(Array(pattern.length + 1).keys());
+
+    // cost of this word
+    const isWord = "word" in node && node.word;
+    const self = isWord && row[row.length-1] <= maxCost ? [[symbol, row[row.length-1]]] : []
+
+    // don't descend if we've reached our thresholds
+    if (Math.min(...row) <= maxCost && typeof node.children === "object") {
+        //@ts-ignore
+        return self
+    } else {
+        const mapNodes = ([symbol, node]: [string, INode]) => {
+            const [suffix, cost] = recurse({
+                node,
+                pattern,
+                maxCost,
+                symbol,
+                previous: row
+            });
+            return [symbol+suffix, cost]
+        }
+        //@ts-ignore
+        return self + Object.entries(node.children??{}).map(mapNodes)
+    }
+};
 
 /**
  * HTTP method
@@ -164,7 +186,8 @@ const handler: Handler = async ({
         return {
             statusCode: 200,
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(search({words: WELL_KNOWN_TEXT, pattern, maxCost}))
+            // body: JSON.stringify(search({words: WELL_KNOWN_TEXT, pattern, maxCost}))
+            body: JSON.stringify(WELL_KNOWN_TEXT)
         }; 
     } catch (err: any) {
         return { 
