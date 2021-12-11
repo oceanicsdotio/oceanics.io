@@ -128,14 +128,14 @@ interface IQuery {
  
   * You can only access results for that test, although multiple collections * may be stored in a single place 
   */
-export const handler: Handler = async ({ headers, body, httpMethod, queryStringParameters }) => {
+export const handler: Handler = async ({ headers, body, httpMethod, path }) => {
     let data = JSON.parse(body ?? "{}")
+    let route = path.split("/")
+    const node = route[2];
 
     let entity: string = "";
     let uuid: string = "";
-    const {
-        node="",
-    } = queryStringParameters as unknown as IQuery
+    
     if (node.includes("(")) {
         const parts = node.split("(")
         entity = parts[0]
@@ -143,6 +143,7 @@ export const handler: Handler = async ({ headers, body, httpMethod, queryStringP
     } else {
         entity = node
     }
+    console.log({path})
    
     const auth = headers["authorization"]??""
     const [_, token] = auth.split(":");

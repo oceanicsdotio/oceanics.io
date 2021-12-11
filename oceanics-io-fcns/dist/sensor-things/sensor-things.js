@@ -55,7 +55,7 @@ const metadata = async ({ entity, uuid, user }) => {
         statusCode: 200,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-            "@iot.count": 0,
+            "@iot.count": value.length,
             value,
         })
     };
@@ -101,12 +101,13 @@ const remove = async ({ entity, uuid, user }) => {
 
  * You can only access results for that test, although multiple collections * may be stored in a single place
  */
-const handler = async ({ headers, body, httpMethod, queryStringParameters }) => {
+const handler = async ({ headers, body, httpMethod, path }) => {
     var _a;
     let data = JSON.parse(body !== null && body !== void 0 ? body : "{}");
+    let route = path.split("/");
+    const node = route[2];
     let entity = "";
     let uuid = "";
-    const { node = "", } = queryStringParameters;
     if (node.includes("(")) {
         const parts = node.split("(");
         entity = parts[0];
@@ -115,6 +116,7 @@ const handler = async ({ headers, body, httpMethod, queryStringParameters }) => 
     else {
         entity = node;
     }
+    console.log({ path });
     const auth = (_a = headers["authorization"]) !== null && _a !== void 0 ? _a : "";
     const [_, token] = auth.split(":");
     let user;

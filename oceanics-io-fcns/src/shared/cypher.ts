@@ -65,7 +65,6 @@ export class GraphNode {
     cypherRepr(): string {
         let label = "";
         if (this.labels.length > 0) {
-            console.log("labels:", this.labels)
             label = ["", ...this.labels].join(":")
         }
         return `( ${this.symbol}${label}${this.patternOnly()} )`

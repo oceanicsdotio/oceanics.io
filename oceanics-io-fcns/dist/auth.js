@@ -67,7 +67,6 @@ const getToken = async (auth) => {
  * Update account information
  */
 const manage = async ({ token, email, password }) => {
-    console.log(token);
     const node = (0, cypher_1.tokenClaim)(token, process.env.SIGNING_KEY);
     const records = (0, cypher_1.transform)((await (0, utils_1.connect)(node.load().query)).records);
     let statusCode;

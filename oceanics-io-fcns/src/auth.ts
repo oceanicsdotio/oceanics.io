@@ -74,8 +74,6 @@ const getToken = async (auth: IAuth) => {
  * Update account information
  */
 const manage = async ({token, email, password}: IAuth) => {
-
-    console.log(token)
   
     const node = tokenClaim(token, process.env.SIGNING_KEY);
     const records = transform((await connect(node.load().query)).records);
