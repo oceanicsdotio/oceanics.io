@@ -1,6 +1,6 @@
 [build]
   functions = "/oceanics-io-fcns/dist"
-  environment = {NODE_VERSION = "14", AWS_LAMBDA_JS_RUNTIME = "nodejs14.x", NETLIFY_USE_YARN = "true", NETLIFY_YARN_WORKSPACES = "true", YARN_VERSION="1.22.17"}
+  environment = {NODE_VERSION = "14", AWS_LAMBDA_JS_RUNTIME = "nodejs14.x", NETLIFY_USE_YARN = "true", NETLIFY_YARN_WORKSPACES = "true", YARN_VERSION="1.22.17", NETLIFY_EXPERIMENTAL_BUILD_RUST_SOURCE="true"}
   
 [[redirects]]
   from = "/api/:entity/"

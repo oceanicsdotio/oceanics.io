@@ -15,7 +15,6 @@ __pycache__/
 .Python
 build/
 develop-eggs/
-dist/
 downloads/
 eggs/
 .eggs/
@@ -95,32 +94,6 @@ ENV/
 env.bak/
 venv.bak/
 
-# Spyder project settings
-.spyderproject
-.spyproject
-
-# Rope project settings
-.ropeproject
-
-# mkdocs documentation
-/site
-
-# mypy
-.plotlib/__pycache__
-.egg-info
-*.egg-info
-.DS_Store
-.gitsecret/keys/random_seed
-!*.secret
-*.env
-template
-build
-service.key
-*.crt
-logs/
-tmp/
-# requirements.txt
-Pipfile.lock
 
 # Logs
 logs
@@ -193,7 +166,6 @@ yarn-error.log
 .yarn-integrity
 
 target/
-Cargo.lock
 
 # Local Netlify folder
 .netlify
@@ -201,14 +173,9 @@ Cargo.lock
 # lighhouse reports
 *.report.html  
 
-
 # netcdf data
 *.nc
-
-Pipfile.lock
-
 bin/
-bathysphere/_native*
 
 # Yarn v2
 .yarn/*

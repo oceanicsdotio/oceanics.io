@@ -4,13 +4,18 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-        "build": "yarn run clean && tsc",
-        "build:watch": "yarn run clean && tsc-watch"
+        "clean": "rimraf dist/",
+        "build": "yarn clean && copyfiles -u 1 src/**/*.txt src/**/*.json dist && tsc"
     },
     "keywords": [],
     "author": "Oceanicsdotio LLC",
     "license": "MIT",
     "engines": {
         "node": "14"
+    },
+    "devDependencies": {
+        "copyfiles": "^2.4.1",
+        "rimraf": "^3.0.2",
+        "typescript": "^4.5.3"
     }
 }
