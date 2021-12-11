@@ -1,7 +1,35 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.handler = void 0;
 const aws_sdk_1 = require("aws-sdk");
+/**
+ * Browse saved results for a single model configuration.
+ * Results from different configurations are probably not
+ * directly comparable, so we reduce the chances that someone
+ * makes wild conclusions comparing numerically
+ * different models.
+
+ * You can only access results for that test, although multiple collections * may be stored in a single place
+ */
+const getJson = async ({ queryStringParameters }) => {
+    const { service = "bivalve", key = "index", ext = "json", } = queryStringParameters;
+    try {
+        const { Body } = await s3.getObject({
+            Bucket,
+            Key: `${service}/${key}.${ext}`
+        }).promise();
+        return {
+            statusCode: 200,
+            headers: { 'Content-Type': 'application/json' },
+            body: Body.toString('utf-8')
+        };
+    }
+    catch (err) {
+        return {
+            statusCode: err.statusCode || 500,
+            body: err.message
+        };
+    }
+};
 const spacesEndpoint = new aws_sdk_1.Endpoint('nyc3.digitaloceanspaces.com');
 const Bucket = "oceanicsdotio";
 const s3 = new aws_sdk_1.S3({
@@ -18,7 +46,7 @@ const s3 = new aws_sdk_1.S3({
 
  * You can only access results for that test, although multiple collections * may be stored in a single place
  */
-const handler = async ({ queryStringParameters }) => {
+const getCsv = async ({ queryStringParameters }) => {
     var _a;
     const { Service = "MidcoastMaineMesh", Key = "midcoast_elements", Ext = "csv", } = queryStringParameters;
     try {
@@ -43,4 +71,3 @@ const handler = async ({ queryStringParameters }) => {
         };
     }
 };
-exports.handler = handler;

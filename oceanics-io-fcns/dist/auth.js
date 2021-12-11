@@ -4,22 +4,23 @@ exports.handler = void 0;
 /**
  * Cloud function version of API
  */
-const utils_1 = require("./shared/utils");
-const cypher_1 = require("./shared/cypher");
+const driver_1 = require("./shared/driver");
 /**
  * Create a new account using email address
  */
 const register = async ({ email, password, secret, apiKey }) => {
-    const hash = (0, utils_1.hashPassword)(password, secret);
-    const uuid = (0, utils_1.uuid4)();
-    const node = new cypher_1.GraphNode(`apiKey: '${apiKey}'`, "p", ["Provider"]);
-    const user = new cypher_1.GraphNode(`email: '${email}', credential: '${hash}', uuid: '${uuid}'`, "u", ["User"]);
-    const cypher = new cypher_1.Link("Register", 0, 0, "").insert(node, user);
-    let records;
+    const node = new driver_1.GraphNode({ apiKey }, "p", ["Provider"]);
+    const user = new driver_1.GraphNode({
+        email,
+        uuid: (0, driver_1.uuid4)(),
+        credential: (0, driver_1.hashPassword)(password, secret)
+    }, "u", ["User"]);
+    const cypher = new driver_1.Link("Register", 0, 0, "").insert(node, user);
+    let records = [];
     let statusCode;
     let message;
     try {
-        records = (0, cypher_1.transform)((await (0, utils_1.connect)(cypher.query)).records);
+        records = (0, driver_1.transform)(await (0, driver_1.connect)(cypher.query));
     }
     catch {
         records = [];
@@ -43,8 +44,7 @@ const register = async ({ email, password, secret, apiKey }) => {
  * Exchange user name and password for JWT
  */
 const getToken = async (auth) => {
-    const node = (0, cypher_1.authClaim)(auth);
-    const records = (0, cypher_1.transform)((await (0, utils_1.connect)(node.load().query)).records);
+    const records = (0, driver_1.transform)(await (0, driver_1.connect)((0, driver_1.authClaim)(auth).load().query));
     let statusCode;
     let body;
     if (records.length !== 1) {
@@ -54,7 +54,7 @@ const getToken = async (auth) => {
     else {
         statusCode = 200;
         const { uuid } = records[0][1];
-        const token = (0, cypher_1.createToken)(uuid, process.env.SIGNING_KEY);
+        const token = (0, driver_1.createToken)(uuid, process.env.SIGNING_KEY);
         body = JSON.stringify({ token });
     }
     return {
@@ -67,8 +67,8 @@ const getToken = async (auth) => {
  * Update account information
  */
 const manage = async ({ token, email, password }) => {
-    const node = (0, cypher_1.tokenClaim)(token, process.env.SIGNING_KEY);
-    const records = (0, cypher_1.transform)((await (0, utils_1.connect)(node.load().query)).records);
+    const node = (0, driver_1.tokenClaim)(token, process.env.SIGNING_KEY);
+    const records = (0, driver_1.transform)((await (0, driver_1.connect)(node.load().query)));
     let statusCode;
     let body;
     if (records.length !== 1) {
@@ -103,12 +103,12 @@ const handler = async ({ headers, body, httpMethod }) => {
     switch (httpMethod) {
         case "GET":
             [email, password, secret] = auth.split(":");
-            return (0, utils_1.catchAll)(getToken)({ email, password, secret });
+            return (0, driver_1.catchAll)(getToken)({ email, password, secret });
         case "POST":
-            return (0, utils_1.catchAll)(register)({ email, password, secret, apiKey });
+            return (0, driver_1.catchAll)(register)({ email, password, secret, apiKey });
         case "PUT":
             const [_, token] = auth.split(":");
-            return (0, utils_1.catchAll)(manage)({ token, email, password });
+            return (0, driver_1.catchAll)(manage)({ token, email, password });
         default:
             return {
                 statusCode: 405,

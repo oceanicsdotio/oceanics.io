@@ -1,26 +1,28 @@
 /**
  * Cloud function version of API
  */
-import { connect, hashPassword, uuid4, catchAll } from "./shared/utils";
-import { parseAsNodes, GraphNode, Link, Properties, transform, authClaim, tokenClaim, createToken, IAuth } from "./shared/cypher";
+import { connect, hashPassword, uuid4, catchAll, GraphNode, Link, Properties, transform, authClaim, tokenClaim, createToken, IAuth } from "./shared/driver";
 import type { Handler } from "@netlify/functions";
 
 /**
  * Create a new account using email address
  */
 const register = async ({ email, password, secret, apiKey }: IAuth) => {
-    const hash: string = hashPassword(password, secret);
-    const uuid: string = uuid4();
-    const node = new GraphNode(`apiKey: '${apiKey}'`, "p", ["Provider"]);
-    const user = new GraphNode(`email: '${email}', credential: '${hash}', uuid: '${uuid}'`, "u", ["User"]);
+    
+    const node = new GraphNode({apiKey}, "p", ["Provider"]);
+    const user = new GraphNode({
+        email, 
+        uuid: uuid4(), 
+        credential: hashPassword(password, secret)
+    }, "u", ["User"]);
     const cypher = new Link("Register", 0, 0, "").insert(node, user);
 
-    let records: [string, Properties][];
+    let records: [string, Properties][] = [];
     let statusCode: number;
     let message: string;
 
     try {
-        records = transform((await connect(cypher.query)).records);
+        records = transform(await connect(cypher.query));
     } catch {
         records = [];
     }
@@ -47,9 +49,7 @@ const register = async ({ email, password, secret, apiKey }: IAuth) => {
  */
 const getToken = async (auth: IAuth) => {
     
-    const node = authClaim(auth)
-    const records = transform((await connect(node.load().query)).records);
-
+    const records = transform(await connect(authClaim(auth).load().query));
     let statusCode: number;
     let body: string;
 
@@ -76,7 +76,7 @@ const getToken = async (auth: IAuth) => {
 const manage = async ({token, email, password}: IAuth) => {
   
     const node = tokenClaim(token, process.env.SIGNING_KEY);
-    const records = transform((await connect(node.load().query)).records);
+    const records = transform((await connect(node.load().query)));
 
     let statusCode: number;
     let body: string|undefined;

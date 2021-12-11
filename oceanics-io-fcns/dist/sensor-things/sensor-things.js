@@ -1,14 +1,26 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.handler = void 0;
-const utils_1 = require("../shared/utils");
-const cypher_1 = require("../shared/cypher");
+const driver_1 = require("../shared/driver");
 ;
 ;
-;
-;
-const serialize = (props) => {
-    return Object.entries(props).map(([key, value]) => `${key}: '${value}'`).join(", ");
+/**
+ * Get an array of all collections by Node type
+ */
+const index = async () => {
+    const { query } = driver_1.GraphNode.allLabels();
+    const { records } = await (0, driver_1.connect)(query);
+    //@ts-ignore
+    const fields = records.flatMap(({ _fields: [label] }) => label);
+    const result = [...new Set(fields)].map((label) => Object({
+        name: label,
+        url: `/api/${label}`
+    }));
+    return {
+        statusCode: 200,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(result)
+    };
 };
 /**
  * Create some nodes, usually one, within the graph. This will
@@ -20,37 +32,18 @@ const serialize = (props) => {
  *
  * Location data receives additional processing logic internally.
  */
-const create = async ({ entity, user, properties }) => {
-    if (!entity)
-        throw TypeError(`Empty Entity Type`);
-    const pattern = serialize({ uuid: (0, utils_1.uuid4)(), ...properties });
-    const right = new cypher_1.GraphNode(pattern, "e", [entity]);
-    const cypher = new cypher_1.Link("Create", 0, 0, "").insert(user, right);
-    try {
-        await (0, utils_1.connect)(cypher.query);
-    }
-    catch {
-        return {
-            statusCode: 403,
-            body: JSON.stringify({
-                message: "Unauthorized",
-            }),
-            headers: { 'Content-Type': "application/json" }
-        };
-    }
-    return {
-        statusCode: 204
-    };
+const create = async (left, right) => {
+    const cypher = new driver_1.Link("Create", 0, 0, "").insert(left, right);
+    await (0, driver_1.connect)(cypher.query);
+    return { statusCode: 204 };
 };
 /**
  * Retrieve one or more entities of a single type. This may be filtered
  * by any single property.
  */
-const metadata = async ({ entity, uuid, user }) => {
-    const pattern = uuid.length ? `uuid: '${uuid}'` : uuid;
-    const right = new cypher_1.GraphNode(pattern, "n", entity ? [entity] : []);
-    const cypher = (new cypher_1.Link()).query(user, right, right.symbol);
-    const value = (0, cypher_1.transform)((await (0, utils_1.connect)(cypher.query)).records);
+const metadata = async (left, right) => {
+    const { query } = (new driver_1.Link()).query(left, right, right.symbol);
+    const value = (0, driver_1.transform)((await (0, driver_1.connect)(query)));
     return {
         statusCode: 200,
         headers: { "Content-Type": "application/json" },
@@ -77,88 +70,17 @@ const mutate = ({ entity, user }) => {
  * through the API to prevent unintentional data loss.
  *
  */
-const remove = async ({ entity, uuid, user }) => {
-    const node = new cypher_1.GraphNode(`uuid: '${uuid}'`, "n", [entity]);
-    const cypher = node.delete();
-    try {
-        await (0, utils_1.connect)(cypher.query);
-    }
-    catch {
-        return {
-            statusCode: 404
-        };
-    }
+const remove = async (left) => {
+    await (0, driver_1.connect)(left.delete().query);
     return {
         statusCode: 204
     };
 };
-/**
- * Browse saved results for a single model configuration.
- * Results from different configurations are probably not
- * directly comparable, so we reduce the chances that someone
- * makes wild conclusions comparing numerically
- * different models.
-
- * You can only access results for that test, although multiple collections * may be stored in a single place
- */
-const handler = async ({ headers, body, httpMethod, path }) => {
-    var _a;
-    let data = JSON.parse(body !== null && body !== void 0 ? body : "{}");
-    let route = path.split("/");
-    const node = route[2];
-    let entity = "";
-    let uuid = "";
-    if (node.includes("(")) {
-        const parts = node.split("(");
-        entity = parts[0];
-        uuid = parts[1].replace(")", "");
-    }
-    else {
-        entity = node;
-    }
-    console.log({ path });
-    const auth = (_a = headers["authorization"]) !== null && _a !== void 0 ? _a : "";
-    const [_, token] = auth.split(":");
-    let user;
-    try {
-        user = (0, cypher_1.tokenClaim)(token, process.env.SIGNING_KEY);
-    }
-    catch {
-        return {
-            statusCode: 403,
-            body: JSON.stringify({ message: "Unauthorized" }),
-            headers: { "Content-Type": "application/json" }
-        };
-    }
-    switch (httpMethod) {
-        case "OPTIONS":
-            return {
-                statusCode: 204,
-                headers: { "Allow": "OPTIONS, GET, POST, PUT, DELETE" }
-            };
-        case "GET":
-            return metadata({ user, entity, uuid });
-        case "POST":
-            return create({ user, entity, properties: data });
-        case "PUT":
-            return (0, utils_1.catchAll)(mutate)({});
-        case "DELETE":
-            return (0, utils_1.catchAll)(remove)({});
-        default:
-            return {
-                statusCode: 405,
-                body: JSON.stringify({ message: "Invalid HTTP Method" }),
-                headers: { "Content-Type": "application/json" }
-            };
-    }
+const join = (left, right) => {
+    return {
+        statusCode: 204
+    };
 };
-exports.handler = handler;
-// @context
-// def join(db, root, rootId, entity, uuid, body):  # pylint: disable=too-many-arguments
-//     # typing: (Driver, str, str, str, str, dict) -> (None, int)
-//     """
-//     Create relationships between existing nodes.
-//     """
 //     # Generate the Cypher query
 //     # pylint: disable=eval-used
 //     cypher = Links(
@@ -174,31 +96,78 @@ exports.handler = handler;
 //     with db.session() as session:
 //         session.write_transaction(lambda tx: tx.run(cypher.query))
 //     return None, 204
-// @context
-// def drop(db, root, rootId, entity, uuid):
-//     # typing: (Driver, str, str, str, str) -> (None, int)
-//     """
-//     Break connections between linked nodes.
-//     """
-//     # Create the Node
-//     # pylint: disable=eval-used
-//     left, right = map(lambda xi: eval(xi[0])(uuid=xi[1]), ((root, rootId), (entity, uuid)))
-//     # Generate Cypher query
-//     cypher = Links().drop(nodes=(left, right))
-//     # Execute the transaction against Neo4j database
-//     with db.session() as session:
-//         return session.write_transaction(lambda tx: tx.run(cypher.query))
-//     # Report success
-//     return None, 204
-// @context
-// def query(db, root, rootId, entity):
-//     # (Driver, str, str, str) -> (dict, int)
-//     """
-//     Get the related entities of a certain type.
-//     """
-//     nodes = ({"cls": root, "id": rootId}, {"cls": entity})
-//     # Pre-calculate the Cypher query
-//     cypher = Links().query(*parse_as_nodes(nodes), "b")
-//     with db.session() as session:
-//         value = [*map(lambda x: x.serialize(), session.write_transaction(lambda tx: tx.run(cypher.query)))]
-//     return {"@iot.count": len(value), "value": value}, 200
+const drop = async (left, right) => {
+    const cypher = (new driver_1.Link()).drop(left, right);
+    await (0, driver_1.connect)(cypher.query);
+    return {
+        statusCode: 204
+    };
+};
+/**
+ * Retrieve nodes that are linked with the left entity
+ */
+const topology = (left, right) => {
+    // const link = new Link()
+    // const cypher = link.query()
+    //     nodes = ({"cls": root, "id": rootId}, {"cls": entity})
+    //     # Pre-calculate the Cypher query
+    //     cypher = Links().query(*parse_as_nodes(nodes), "b")
+    //     with db.session() as session:
+    //         value = [*map(lambda x: x.serialize(), session.write_transaction(lambda tx: tx.run(cypher.query)))]
+    //     return {"@iot.count": len(value), "value": value}, 200
+};
+/**
+ * Browse saved results for a single model configuration.
+ * Results from different configurations are probably not
+ * directly comparable, so we reduce the chances that someone
+ * makes wild conclusions comparing numerically
+ * different models.
+
+ * You can only access results for that test, although multiple collections * may be stored in a single place
+ */
+const handler = async ({ headers, body, httpMethod, path }) => {
+    let user;
+    try {
+        const auth = headers["authorization"];
+        const token = auth.split(":").pop();
+        user = (0, driver_1.tokenClaim)(token, process.env.SIGNING_KEY);
+    }
+    catch {
+        return {
+            statusCode: 403,
+            body: JSON.stringify({ message: "Unauthorized" }),
+            headers: { "Content-Type": "application/json" }
+        };
+    }
+    const nodes = path
+        .split("/")
+        .filter((x) => !!x)
+        .slice(1)
+        .map((0, driver_1.parseNode)(JSON.parse(body !== null && body !== void 0 ? body : "{}")));
+    switch (`${httpMethod}${nodes.length}`) {
+        case "GET0":
+            return (0, driver_1.catchAll)(index)();
+        case "GET1":
+            return (0, driver_1.catchAll)(metadata)(user, nodes[0]);
+        case "POST1":
+            return (0, driver_1.catchAll)(create)(user, nodes[0]);
+        // case "POST2":
+        //     return catchAll(join)(nodes[0], nodes[1])
+        case "PUT1":
+            return (0, driver_1.catchAll)(mutate)({});
+        case "DELETE1":
+            return (0, driver_1.catchAll)(remove)(nodes[0]);
+        case "OPTIONS0":
+            return {
+                statusCode: 204,
+                headers: { "Allow": "OPTIONS,GET,POST,PUT,DELETE" }
+            };
+        default:
+            return {
+                statusCode: 405,
+                body: JSON.stringify({ message: "Invalid HTTP Method" }),
+                headers: { "Content-Type": "application/json" }
+            };
+    }
+};
+exports.handler = handler;
