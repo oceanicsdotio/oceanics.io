@@ -5,7 +5,7 @@
     "main": "index.js",
     "scripts": {
         "clean": "rimraf dist/",
-        "build": "yarn clean && copyfiles -u 1 src/**/*.txt src/**/*.json dist && tsc"
+        "build": "yarn clean && copyfiles -u 1 src/sensor-things/pkg/* src/**/*.txt src/**/*.json dist && tsc"
     },
     "keywords": [],
     "author": "Oceanicsdotio LLC",

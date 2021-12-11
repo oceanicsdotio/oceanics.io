@@ -3,23 +3,21 @@
   environment = {NODE_VERSION = "14", AWS_LAMBDA_JS_RUNTIME = "nodejs14.x", NETLIFY_USE_YARN = "true", NETLIFY_YARN_WORKSPACES = "true", YARN_VERSION="1.22.17", NETLIFY_EXPERIMENTAL_BUILD_RUST_SOURCE="true"}
   
 [[redirects]]
-  from = "/api/:entity/"
-  to = "/.netlify/functions/things"
-  force = true
+  from = "/api/auth"
+  to = "/.netlify/functions/auth"
   status = 200
-  headers = {X-From = "Netlify"}
-
-[[redirects]]
-  from = "/api/mesh-nodes/*"
-  to = "oceanicsdotio.cdn.nyc3.digitaloceanspaces.com"
-  status = 303
   headers = {X-From = "Netlify"}
 
 [[redirects]]
   from = "/api/*"
+  to = "/.netlify/functions/sensor-things"
+  status = 200
+  headers = {X-From = "Netlify"}
+
+[[redirects]]
+  from = "/functions/:splat/"
   to = "/.netlify/functions/:splat"
   status = 200
-  force = true
   headers = {X-From = "Netlify"}
 
 [[headers]]
