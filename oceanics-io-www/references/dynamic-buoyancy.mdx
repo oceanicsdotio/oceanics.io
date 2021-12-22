@@ -1,0 +1,55 @@
+---
+title: Dynamic buoyancy in cyanobacteria
+published: "2021-12-22T17:01:00.000Z"
+description: |
+    Annotated Reference List for Green Crabs (Carcinus maenas)
+labels: ["cyanobacteria", "algorithms", "diving"]
+authors: [Keeney]
+pages: []
+references: []
+---
+
+## Background
+
+Cyanobacteria are notorious for the dense, green scums they form on water bodies the world over. 
+
+Blooms are increasingly common due to changing nutrient regimes and changing temperatures, and this means more incidents of human and animal toxicity. Because, of course they produce potent neurological toxins. 
+
+[GREEN COLONIES]()
+
+The genera Anabaena and Microcystis share similar phenomenological behavior. They out-compete con-specifics by using specialized stages and cells for quiescence, acquiring nutrients, and creating buoyancy.
+
+The buoyancy bit is the most interesting. Both types use a combination of lighter-than-water proteins and gas vesicles, but the method of controlling the effect varies. 
+
+Anabaena relies on vesicle collapse, basically purging gas to descend like a diver. This results in a hysteresis, where the method of action is different for increasing or decreasing buoyancy. 
+
+Microcystis instead chemically alters the ratio of carbohydrate and protein move, like, well, a chemical ballast.
+
+People I have see embark on a dynamic buoyancy engineering project do the first bit, while thinking they are doing the second. The second is harder to achieve, but provides better control. I hope engineers new to marine operations will incorporate solid, displacement, and dynamic buoyancy, as this can be safer and prevent catastrophic loss. 
+
+To incorporate any vertical moving agent into high-resolution hydrodynamic models, or to have a hope for remote autonomous control you need a rigorous definition of vertical movement. 
+
+The Microsystis way relies on the balance of carbohydrate (C) and protein (M).
+
+<Equation text={"{{\\delta \\vec{M}} \\over {\\delta t}} = \\vec{C} \\cdot (f_1(T) - f_2(T)) - \\vec{M} \\cdot f_3(T)"} />
+<br/>
+<Equation text={"{{\\delta \\vec{C}} \\over {\\delta t}} = f_4(I) \\cdot \\vec{M} \\cdot (1-V_p) \\cdot ({{{C \\over M }_{max} - {\\vec{C} \\over \\vec{M}} \\over {C \\over M }_{max}}}) - \\vec{C} \\cdot f_1(T) - f_5(T) \\cdot \\vec{C} - f_6(T) \\cdot \\vec{M}"} />
+
+<Equation />
+
+
+Q: Does a diel vertical migration model translate to shallower lakes, and does it result in surface accumulation? 
+Q: What is the fate of excreted toxins? Does vertical migration 
+create a non-uniform toxin profile? 
+
+
+
+
+
+![Rigorous Definition](/assets/neon-stella.png)
+
+
+Conclusions
+- High temperature results in surface accumulation.
+- Toxin intensifies in the upper water column.
+- Colony size modulates timing and depth (artifact).
