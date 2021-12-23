@@ -193,6 +193,8 @@ export const handler: Handler = async ({ headers, body, httpMethod, path }) => {
             return catchAll(index)();
         case "GET1":
             return catchAll(metadata)(user, nodes[0])
+        case "POST0":
+            return catchAll(create)(user, parseNode(properties)("Providers", 0, []))
         case "POST1":
             return catchAll(create)(user, nodes[0])
         // case "POST2":
@@ -202,6 +204,11 @@ export const handler: Handler = async ({ headers, body, httpMethod, path }) => {
         case "DELETE1":
             return catchAll(remove)(nodes[0])
         case "OPTIONS0":
+            return {
+                statusCode: 204,
+                headers: {"Allow": "OPTIONS,GET"}
+            }
+        case "OPTIONS1":
             return {
                 statusCode: 204,
                 headers: {"Allow": "OPTIONS,GET,POST,PUT,DELETE"}

@@ -5,6 +5,7 @@ import assert from "assert";
 
 // const REAL_PATH = "http://localhost:8888/.netlify/functions";
 const BASE_PATH = "http://localhost:8888/.netlify/functions";
+const API_PATH = "http://localhost:8888/api"
 const TEST_USER = "test@oceanics.io";
 const TEST_PASSWORD = "n0t_p@55w0rd";
 const TEST_SECRET = "salt";
@@ -20,6 +21,14 @@ const fetchToken = async () => {
   );
   return response.json()
 }
+
+describe("Initialization", function () {
+  describe("Teardown", function () {
+    it("clears non-provider entities from graph", async function () {
+        
+    })
+  })
+})
 
 describe("Auth API", function() {
   let TOKEN;
@@ -55,6 +64,8 @@ describe("Auth API", function() {
     xit("should prevent registration with wrong API key", function() {
       
     });
+
+   
   });
 
   describe("Get JWT", function() {
@@ -72,6 +83,8 @@ describe("Auth API", function() {
       
     });
   });
+
+  describe("Manage providers")
 });
 
 describe("SensorThings API", function () {
@@ -87,10 +100,30 @@ describe("SensorThings API", function () {
   })
 
   describe("Options", function () {
-    it("reports options", async function () {
+    it("reports for base path", async function () {
 
       const response = await fetch(
-        `${BASE_PATH}/sensor-things`,
+        `${API_PATH}/`,
+        {
+          method: "OPTIONS",
+          headers: {
+            "Authorization": `bearer:${TOKEN}`
+          }
+        }
+      )
+      const statusError = response.status === 204;      
+      assert(statusError, `Bad Status Code: ${response.status}`);
+      const allowedMethods = response.headers.get("allow")
+      const allowHeaderError = typeof allowedMethods !== "undefined";
+      assert(allowHeaderError, "No Allow Header")
+      assert(!!allowedMethods, "Bad Allow Header")
+      assert(allowedMethods.split(",").length === 5, "Unexpected Number Of Allowed Methods")
+    })
+
+    it("reports for single node path", async function () {
+
+      const response = await fetch(
+        `${API_PATH}/Things`,
         {
           method: "OPTIONS",
           headers: {
@@ -112,7 +145,7 @@ describe("SensorThings API", function () {
 
     xit("creates a Thing", async function () {
       const response = await fetch(
-        `${BASE_PATH}/sensor-things/?node=Things`, 
+        `${API_PATH}/Things`, 
         {
           body: JSON.stringify({name: "Lloigor"}),
           method: "POST",
@@ -127,7 +160,7 @@ describe("SensorThings API", function () {
 
     it("retrieves collection index", async function () {
       const response = await fetch(
-        `${BASE_PATH}/sensor-things`, 
+        `${API_PATH}/`, 
         {
           headers: {
             "Content-Type": "application/json",
@@ -141,7 +174,7 @@ describe("SensorThings API", function () {
 
     it("retrieves all nodes of a single type", async function () {
       const response = await fetch(
-        `${BASE_PATH}/sensor-things?node=Things`,
+        `${API_PATH}/Things`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -156,7 +189,7 @@ describe("SensorThings API", function () {
 
     it("retrieves a single node by UUID", async function () {
       const response = await fetch(
-        `${BASE_PATH}/sensor-things?node=Things(5e205dad8de845c89075c745e5235b05)`,
+        `${API_PATH}/Things(5e205dad8de845c89075c745e5235b05)`,
         {
           headers: {
             "Content-Type": "application/json",
