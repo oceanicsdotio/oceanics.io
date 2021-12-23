@@ -153,7 +153,7 @@ const topology = (left: IEntity, right: IEntity) => {
 //     return {"@iot.count": len(value), "value": value}, 200
 }
 
-
+const STRIP_BASE_PATH_PREFIX = [".netlify", "functions", "api"]
 
  /**
   * Browse saved results for a single model configuration. 
@@ -179,13 +179,16 @@ export const handler: Handler = async ({ headers, body, httpMethod, path }) => {
         }
     }
 
+    // OPTIONS method seems to come with body?
+    const properties = JSON.parse(["POST", "PUT"].includes(httpMethod) ? body : "{}")
     const nodes = path
         .split("/")
-        .filter((x: string) => !!x)
+        .filter((x: string) => !!x && !STRIP_BASE_PATH_PREFIX.includes(x))
         .slice(1)
-        .map(parseNode(JSON.parse(body ?? "{}")));
+        .map(parseNode(properties));
 
-    switch (`${httpMethod}${nodes.length}`) {
+    const pattern = `${httpMethod}${nodes.length}`
+    switch (pattern) {
         case "GET0":
             return catchAll(index)();
         case "GET1":
@@ -206,7 +209,7 @@ export const handler: Handler = async ({ headers, body, httpMethod, path }) => {
         default:
             return {
                 statusCode: 405,
-                body: JSON.stringify({message: "Invalid HTTP Method"}),
+                body: JSON.stringify({message: "Invalid HTTP Method", pattern, path}),
                 headers: { "Content-Type": "application/json"}
             }
     }
