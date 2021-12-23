@@ -1,4 +1,3 @@
-# pylint: disable=invalid-name
 """
 Array data drivers for parallel analytics
 """

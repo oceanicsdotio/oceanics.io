@@ -31,7 +31,9 @@
     "python.languageServer": "Jedi",
     "cSpell.words": [
         "cyanobacteria",
-        "katex"
+        "katex",
+        "Oceanics",
+        "Oceanicsdotio"
     ],
     "git.enableCommitSigning": true
 }
