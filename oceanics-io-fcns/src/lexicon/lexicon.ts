@@ -186,8 +186,7 @@ const handler: Handler = async ({
         return {
             statusCode: 200,
             headers: { 'Content-Type': 'application/json' },
-            // body: JSON.stringify(search({words: WELL_KNOWN_TEXT, pattern, maxCost}))
-            body: JSON.stringify(WELL_KNOWN_TEXT)
+            body: JSON.stringify(search({words: WELL_KNOWN_TEXT, pattern, maxCost}))
         }; 
     } catch (err: any) {
         return { 
