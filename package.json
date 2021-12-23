@@ -20,7 +20,7 @@
         "node-fetch": "^3.1.0"
     },
     "scripts": {
-        "api:build": "wasm-pack build oceanics-io-www/rust --out-dir ../../oceanics-io-fcns/sensor-things/pkg --target nodejs",
+        "api:build": "wasm-pack build oceanics-io-www/rust --out-dir ../../oceanics-io-fcns/src/sensor-things/pkg --target nodejs",
         "api:dev": "netlify dev",
         "api:test": "mocha"
     }

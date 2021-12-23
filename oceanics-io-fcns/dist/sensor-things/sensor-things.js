@@ -116,6 +116,7 @@ const topology = (left, right) => {
     //         value = [*map(lambda x: x.serialize(), session.write_transaction(lambda tx: tx.run(cypher.query)))]
     //     return {"@iot.count": len(value), "value": value}, 200
 };
+const STRIP_BASE_PATH_PREFIX = [".netlify", "functions", "api"];
 /**
  * Browse saved results for a single model configuration.
  * Results from different configurations are probably not
@@ -139,12 +140,15 @@ const handler = async ({ headers, body, httpMethod, path }) => {
             headers: { "Content-Type": "application/json" }
         };
     }
+    // OPTIONS method seems to come with body?
+    const properties = JSON.parse(["POST", "PUT"].includes(httpMethod) ? body : "{}");
     const nodes = path
         .split("/")
-        .filter((x) => !!x)
+        .filter((x) => !!x && !STRIP_BASE_PATH_PREFIX.includes(x))
         .slice(1)
-        .map((0, driver_1.parseNode)(JSON.parse(body !== null && body !== void 0 ? body : "{}")));
-    switch (`${httpMethod}${nodes.length}`) {
+        .map((0, driver_1.parseNode)(properties));
+    const pattern = `${httpMethod}${nodes.length}`;
+    switch (pattern) {
         case "GET0":
             return (0, driver_1.catchAll)(index)();
         case "GET1":
@@ -165,7 +169,7 @@ const handler = async ({ headers, body, httpMethod, path }) => {
         default:
             return {
                 statusCode: 405,
-                body: JSON.stringify({ message: "Invalid HTTP Method" }),
+                body: JSON.stringify({ message: "Invalid HTTP Method", pattern, path }),
                 headers: { "Content-Type": "application/json" }
             };
     }
