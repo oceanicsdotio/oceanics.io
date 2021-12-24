@@ -183,8 +183,8 @@ export const handler: Handler = async ({ headers, httpMethod, ...rest }) => {
     }
 
     const nodes = parseFunctionsPath({httpMethod, ...rest})
-
     const pattern = `${httpMethod}${nodes.length}`
+
     switch (pattern) {
         case "GET0":
             return catchAll(index)();

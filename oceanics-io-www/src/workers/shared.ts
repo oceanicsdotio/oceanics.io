@@ -1,4 +1,4 @@
-import type {MutableRefObject} from "react";
+
 
 export type FileObject = {
     key: string;
@@ -13,7 +13,7 @@ export type FileSystem = {
     }[];
 };
 
-export type WorkerRef = MutableRefObject<Worker|null>;
+
 export type Points = [number, number][];
 export type EventLocation = {clientX: number; clientY: number;}; 
 

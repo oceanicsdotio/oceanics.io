@@ -6,7 +6,8 @@ import { useEffect, useState } from "react";
 /**
  * Dedicated Worker loader
  */
-import type {FileSystem, WorkerRef} from "../workers/shared";
+import type {FileSystem} from "../workers/shared";
+import type {WorkerRef} from "../utils";
 /**
  * The `useObjectStorage` hook provides a directory like structure
  * that describes assets in an S3-compatible storage service. 
