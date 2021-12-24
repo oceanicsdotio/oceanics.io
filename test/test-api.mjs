@@ -1,5 +1,6 @@
 import fetch from "node-fetch";
 import assert from "assert";
+import yaml from "yaml";
 
 // MERGE (n:Provider { apiKey: replace(apoc.create.uuid(), '-', ''), domain: 'oceanics.io' }) return n
 
@@ -43,20 +44,13 @@ describe("Auth API", function() {
 
   describe("Teardown", function () {
 
-    it("authenticates in existing graph", async function() {
-      const data = await fetchToken()
-      assert(typeof data.token !== "undefined")
-      assert(!!data.token)
-      TOKEN = data.token
-    });
-
-    it("clears non-provider, non-user nodes", async function () {
+    it("clears non-provider, nodes", async function () {
         const response = await fetch(
-          `${API_PATH}/`,
+          `${API_PATH}/auth`,
           {
             method: "DELETE",
             headers: {
-              "Authorization": `bearer:${TOKEN}`
+              "Authorization": [TEST_USER, TEST_PASSWORD, TEST_SECRET].join(":")
             }
           }
         )
@@ -86,7 +80,6 @@ describe("Auth API", function() {
       assert(response.status === 403, `Unexpected Status Code: ${response.status}`);
     });
 
-   
   });
 
   describe("Get JWT", function() {
@@ -97,11 +90,21 @@ describe("Auth API", function() {
       TOKEN = data.token
     });
 
-    xit("should deny access without credentials", function() {
-      
+    it("should deny access without credentials", async function() {
+      const response = await fetch(`${BASE_PATH}/auth`);
+      assert(response.status === 403, `Unexpected Status Code: ${response.status}`)
     });
-    xit("should deny access with wrong credentials", function() {
-      
+
+    it("should deny access with wrong credentials", async function() {
+      const response = await fetch(
+        `${BASE_PATH}/auth`,
+        {
+          headers: {
+            Authorization: [TEST_USER, "a-very-bad-password", TEST_SECRET].join(":")
+          }
+        }
+      );
+      assert(response.status === 403)
     });
   });
 
@@ -140,7 +143,7 @@ describe("SensorThings API", function () {
       assert(allowedMethods.split(",").length === 5, "Unexpected Number Of Allowed Methods")
     })
 
-    it("reports for single node path", async function () {
+    it("reports for single-node path", async function () {
 
       const response = await fetch(
         `${API_PATH}/Things`,

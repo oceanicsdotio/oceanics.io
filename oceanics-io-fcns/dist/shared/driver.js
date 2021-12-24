@@ -193,14 +193,34 @@ class Link {
         const query = `MATCH ${left.cypherRepr()} WITH * MERGE ${right.cypherRepr()}${this.cypherRepr()}(${left.symbol}) RETURN (${left.symbol})`;
         return new Cypher(query, false);
     }
-    delete(left, right) {
-        if (left.symbol === right.symbol) {
+    /**
+     * Detach and delete the right node, leaving the left node pattern
+     * in the graph. For example, use this to delete a single node or
+     * collection (right), owned by a user (left).
+     */
+    deleteChild(left, right) {
+        if (left.symbol === right.symbol)
             throw Error("Identical symbols");
-        }
+        const query = `
+            MATCH ${left.cypherRepr()}${this.cypherRepr()}${right.cypherRepr()} 
+            WHERE NOT ${right.symbol}:Provider
+            DETACH DELETE ${right.symbol}`;
+        return new Cypher(query, false);
+    }
+    /**
+     * Detach and delete both the root node and the child nodes. Use
+     * this to delete a pattern, for example removing a user account and
+     * all owned data. In some cases this can leave orphan nodes,
+     * but these should always have at least one link back to a User or
+     * Provider, so can be cleaned up later.
+     */
+    delete(left, right) {
+        if (left.symbol === right.symbol)
+            throw Error("Identical symbols");
         const query = `
             MATCH ${left.cypherRepr()}
             OPTIONAL MATCH (${left.symbol})${this.cypherRepr()}${right.cypherRepr()} 
-            WHERE NOT ${right.symbol}:Provider 
+            WHERE NOT ${right.symbol}:Provider
             DETACH DELETE ${left.symbol}, ${right.symbol}`;
         return new Cypher(query, false);
     }
@@ -224,7 +244,7 @@ exports.loadNode = loadNode;
 /**
  * Matching pattern based on basic auth information
  */
-const authClaim = ({ email, password, secret }) => new GraphNode({ email, credential: (0, exports.hashPassword)(password, secret) }, null, ["User"]);
+const authClaim = ({ email = "", password = "", secret = "" }) => new GraphNode({ email, credential: (0, exports.hashPassword)(password, secret) }, null, ["User"]);
 exports.authClaim = authClaim;
 /**
  * Matching pattern based on bearer token authorization with JWT

@@ -73,16 +73,9 @@ const mutate = ({ entity, user }) => {
  * labels
  *
  */
-const remove = async (left) => {
-    await (0, driver_1.connect)(left.delete().query);
-    return {
-        statusCode: 204
-    };
-};
-const deleteLinked = async (left, right) => {
+const remove = async (left, right) => {
     const link = new driver_1.Link();
-    const { query } = link.delete(left, right);
-    console.log("Query:", query);
+    const { query } = link.deleteChild(left, right);
     await (0, driver_1.connect)(query);
     return {
         statusCode: 204
@@ -158,26 +151,46 @@ const handler = async ({ headers, httpMethod, ...rest }) => {
             return (0, driver_1.catchAll)(index)();
         case "GET1":
             return (0, driver_1.catchAll)(metadata)(user, nodes[0]);
+        case "GET2":
+            return {
+                statusCode: 501,
+                body: JSON.stringify({ message: "Not Implemented" })
+            };
         case "POST1":
             return (0, driver_1.catchAll)(create)(user, nodes[0]);
-        // case "POST2":
-        //     return catchAll(join)(nodes[0], nodes[1])
+        case "POST2":
+            return {
+                statusCode: 501,
+                body: JSON.stringify({ message: "Not Implemented" })
+            };
         case "PUT1":
             return (0, driver_1.catchAll)(mutate)({});
-        case "DELETE0":
-            const allNodes = new driver_1.GraphNode({}, "a", []);
-            return (0, driver_1.catchAll)(deleteLinked)(user, allNodes);
+        case "PUT2":
+            return {
+                statusCode: 501,
+                body: JSON.stringify({ message: "Not Implemented" })
+            };
         case "DELETE1":
-            return (0, driver_1.catchAll)(deleteLinked)(user, nodes[0]);
+            return (0, driver_1.catchAll)(remove)(user, nodes[0]);
+        case "DELETE2":
+            return {
+                statusCode: 501,
+                body: JSON.stringify({ message: "Not Implemented" })
+            };
         case "OPTIONS0":
             return {
                 statusCode: 204,
-                headers: { "Allow": "OPTIONS,GET,DELETE" }
+                headers: { "Allow": "OPTIONS,GET" }
             };
         case "OPTIONS1":
             return {
                 statusCode: 204,
                 headers: { "Allow": "OPTIONS,GET,POST,PUT,DELETE" }
+            };
+        case "OPTIONS2":
+            return {
+                statusCode: 204,
+                headers: { "Allow": "OPTIONS,GET,POST,DELETE" }
             };
         default:
             return {
