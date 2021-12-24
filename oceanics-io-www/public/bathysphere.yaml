@@ -737,7 +737,19 @@ components:
 
   schemas:
 
-
+    Agent:
+      example:
+        - name: Arthur Machen
+        - name: Octavia Butler
+      allOf:
+        - $ref: '#/components/schemas/Entity'
+        - type: object
+          properties:
+            entityClass:
+              writeOnly: true
+              enum: [thing]
+              default: thing
+            
     Asset:
       type: object
 
@@ -877,6 +889,11 @@ components:
             Short but useful explanation of what the entity is.
 
     FeatureOfInterest:
+      example:
+        - name: Gulf of Maine Mesh
+        - name: Midcoast Maine Mesh
+        - name: Damariscotta River Estuary shellfish growing area
+          description: Traditional growing area for oysters in Maine.
       allOf:
         - $ref: '#/components/schemas/Entity'
         - type: object
@@ -893,7 +910,7 @@ components:
               type: object
               description: Feature data
 
-            Observations:
+            Observations@iot.navigation:
               readOnly: true
               oneOf:
 
@@ -908,6 +925,46 @@ components:
                     type: object
 
     Thing:
+      example:
+        - name: Land Ocean Biogeochemical Observatory
+          description: |
+            Moored buoy deployment of the Sustainable Ecological Aquaculture Network
+        - name: Landsat-7
+          description: Satellite mission
+        - name: Sealab
+          properties:
+            home: Farm
+            capacity: 6
+            icon: laboratory
+        - name: R/V Lloigor
+          properties:
+            capacity: 2
+            icon: boat
+            meters:
+              - name: starboard aft fuel
+                value: 2
+                max: 20
+                high: 15
+                low: 10
+            
+              - name: port aft fuel
+                value: 12
+                max: 20
+                high: 15
+                low: 10
+            
+              - name: starboard forward fuel
+                value: 5.5
+                max: 20
+                high: 15
+                low: 10
+            
+              - name: port forward fuel
+                value: 15.5
+                max: 20
+                high: 15
+                low: 10
+
       allOf:
         - $ref: '#/components/schemas/Entity'
         - type: object
@@ -926,7 +983,7 @@ components:
               type: object
               description: Key-value properties
 
-            HistoricalLocations:
+            HistoricalLocations@iot.navigation:
               readOnly: true
               oneOf:
 
@@ -940,7 +997,7 @@ components:
                   items:
                     type: object
 
-            Locations:
+            Locations@iot.navigation:
               readOnly: true
               oneOf:
 
@@ -954,7 +1011,7 @@ components:
                   items:
                     type: object
 
-            DataStreams:
+            DataStreams@iot.navigation:
               readOnly: true
               oneOf:
 
@@ -978,6 +1035,167 @@ components:
       description: The encoding rendered in the location response
 
     Location:
+      example:
+        - name: Fish Farm
+          encodingType: application/json
+          location:
+            properties: 
+              fictional: true
+              icon: fish
+        - name: Wharf
+          encodingType: application/json
+          location:
+            properties:
+              icon: wharf
+              capacity: 4
+              home: true
+              fictional: true
+        - Locations@iot.navigation:
+            - name: [ Maine Loboviz Data ]
+              props:
+                node: 65
+          name: Lower Damariscotta
+          encodingType: application/vnd.geo+json
+          location:
+            type: Point
+            coordinates: [43.93354, -69.58344]
+        - Locations@iot.navigation:
+            - name: [ Maine Loboviz Data ]
+              props:
+                node: 66
+          name: Upper Damariscotta Estuary
+          encodingType: application/vnd.geo+json
+          description: Buoy deployment
+          location:
+            type: Point
+            coordinates: [ 43.998178, -69.54253, 0.0 ]
+        - Locations@iot.navigation:
+            - name: [ Maine Loboviz Data ]
+              props:
+                node: 64
+          name: Wood Island Harbor
+          encodingType: application/vnd.geo+json
+          location:
+            type: Point
+            coordinates: [ 43.456550, -70.344432 ]
+        - Locations@iot.navigation:
+            - name: [ Maine Loboviz Data ]
+              props:
+                node: 67
+
+          name: Ram Island Saco Bay
+          encodingType: application/vnd.geo+json
+          location:
+            type: Point
+            coordinates: [ 43.465934, -70.359646 ]
+        - Locations@iot.navigation:
+            - name: [ Maine Loboviz Data ]
+              props:
+                node: 70
+          name: Upper New Meadows
+          encodingType: application/vnd.geo+json
+          location:
+            type: Point
+            coordinates: [ 43.863669, -69.8984055 ]  # Bombazine
+        - Locations@iot.navigation:
+            - name: [ Maine Loboviz Data ]
+              props:
+                node: 71
+          name: Lower New Meadows
+          encodingType: application/vnd.geo+json
+          location:
+            type: Point
+            coordinates: [ 43.77643055, -69.89196944 ]  # Sand Cove
+        - Locations@iot.navigation:
+            - name: [ Maine Loboviz Data ]
+              props:
+                node: 72
+          name: Bagaduce River
+          encodingType: application/vnd.geo+json
+          location:
+            type: Point
+            coordinates: [ 44.40156667, -68.7738333 ]
+        - Locations@iot.navigation:
+            - name: [ Maine Loboviz Data ]
+              props:
+                node: 73
+          name: Machias Bay
+          encodingType: application/vnd.geo+json
+          location:
+            type: Point
+            coordinates: [ 44.618517, -67.318033 ]
+        - Locations@iot.navigation:
+            - name: [ Maine Loboviz Data ]
+              props:
+                node: 74
+          name: Cobscook Bay
+          encodingType: application/vnd.geo+json
+          location:
+            type: Point
+            coordinates: [ 44.8968, -67.0651 ]
+        - Locations@iot.navigation:
+            - name: [ Maine Loboviz Data ]
+              props:
+                node: 75
+          Providers@iot.navigation:
+            - label: Alias
+              props:
+                name: [ Passamaquoddy Bay ]
+          name: Western Passage
+          encodingType: application/vnd.geo+json
+          location:
+            type: Point
+            coordinates: [ 44.92017, -66.995833 ]
+        - Providers@iot.navigation:
+            - domain: [ oceanics.io ]
+          name: neo4j-local
+          encodingType: application/vnd.network+json
+          location:
+            protocol: bolt
+            host: localhost
+            port: 7687
+            connection:
+              retries: 3
+              delay: 1
+            auth:
+              basic: neo4j/neo4j
+        - Providers@iot.navigation:
+            - name: [ Public ]
+              props:
+                bucketName: oceanicsdotio
+                readOnly: true
+          name: Object Storage
+          encodingType: application/vnd.network+json
+          location:
+            protocol: https
+            host: nyc3.digitaloceanspaces.com
+            port:
+            connection:
+              retries: 3
+              delay: 1
+            headers:
+              x-amz-acl: public-read
+              x-amz-meta-service: bathysphere
+        - Providers@iot.navigation:
+            - domain: [ oceanics.io ]
+              props:
+                bucketName: oceanicsdotio
+                lockFile: lock.json
+                indexFile: index.json
+          name: Object Storage
+          encodingType: application/vnd.network+json
+          location:
+            protocol: https
+            host: nyc3.digitaloceanspaces.com
+            port:
+            connection:
+              retries: 3
+              delay: 1
+            headers:
+              x-amz-acl: private
+              x-amz-meta-service: bathysphere
+            auth:
+              basic:
       allOf:
         - $ref: '#/components/schemas/Entity'
         - type: object
@@ -1009,7 +1227,7 @@ components:
                     format: float
 
 
-            HistoricalLocations:
+            HistoricalLocations@iot.navigation:
               readOnly: true
               oneOf:
 
@@ -1024,7 +1242,7 @@ components:
                     type: object
 
 
-            Things:
+            Things@iot.navigation:
               readOnly: true
               oneOf:
 
@@ -1057,7 +1275,7 @@ components:
               format: date-time
               description: Timestamp when the location was current
 
-            Things:
+            Things@iot.navigation:
               readOnly: true
               oneOf:
 
@@ -1075,7 +1293,7 @@ components:
                   items:
                     type: object
 
-            Locations:
+            Locations@iot.navigation:
               readOnly: true
               oneOf:
 
@@ -1092,7 +1310,19 @@ components:
                     type: object
 
     Sensor:
-
+      example:
+        - name: SeaBird Electronics CTD
+          description: A common oceanographic sensing package
+        - name: Chlorophyll fluorometer
+          description: For measuring plankton stuff
+        - name: OLI
+          description: Operational Land Imager
+          Things@iot.navigation:
+            - name: [ "Landsat-7" ]
+        - Things@iot.navigation:
+            - name: [ Landsat-7 ]
+          name: TIRS
+          description: Thermal imaging radar on Landsat
       allOf:
         - $ref: '#/components/schemas/Entity'
         - type: object
@@ -1112,7 +1342,7 @@ components:
             metadata:
               type: object
 
-            DataStreams:
+            DataStreams@iot.navigation:
               readOnly: true
               oneOf:
 
@@ -1127,6 +1357,21 @@ components:
                     type: object
 
     DataStream:
+      example:
+        - Things@iot.navigation:
+            - name: [ Land Ocean Biogeochemical Observatory ]
+          Sensors@iot.navigation:
+            - name: [ SeaBird Electronics CTD ]
+          ObservedProperties@iot.navigation:
+            - name: [ temperature ]
+          name: temperature
+          description: An example synthetic temperature series
+        - Things@iot.navigation:
+            - name: [ Land Ocean Biogeochemical Observatory ]
+          ObservedProperties@iot.navigation:
+            - name: [ chlorophyll ]
+          name: chlorophyll
+          description: Just another chlorophyll series
       allOf:
         - $ref: '#/components/schemas/Entity'
         - type: object
@@ -1209,8 +1454,7 @@ components:
                 Time series observations associated with a `DataStream` can be stored in the TimescaleDB.
                 TimescaleDB is an extension of Postgres+Postgis, and this is SQL table reference to find and retrieve data.
 
-
-            Observations:
+            Observations@iot.navigation:
               readOnly: true
               oneOf:
 
@@ -1224,23 +1468,7 @@ components:
                   items:
                     type: object
 
-            ObservedProperties:
-              readOnly: true
-              oneOf:
-
-                - type: array
-                  title: references
-                  minItems: 1
-                  items:
-                    type: string
-
-                - type: array
-                  title: objects
-                  minItems: 1
-                  items:
-                    type: object
-
-            Sensors:
+            ObservedProperties@iot.navigation:
               readOnly: true
               oneOf:
 
@@ -1256,7 +1484,23 @@ components:
                   items:
                     type: object
 
-            Things:
+            Sensors@iot.navigation:
+              readOnly: true
+              oneOf:
+
+                - type: array
+                  title: references
+                  minItems: 1
+                  items:
+                    type: string
+
+                - type: array
+                  title: objects
+                  minItems: 1
+                  items:
+                    type: object
+
+            Things@iot.navigation:
               readOnly: true
               oneOf:
 
@@ -1274,6 +1518,16 @@ components:
 
 
     Observation:
+      example: 
+        - Datastreams@iot.navigation:
+            - name: [ temperature ]
+          ts: 1000.234
+          val: 10.0
+
+        - Datastreams@iot.navigation:
+            - name: [ temperature ]
+          ts: 1100.194
+          val: 11.7
       allOf:
         - $ref: '#/components/schemas/Entity'
         - type: object
@@ -1314,7 +1568,7 @@ components:
               type: object
               description: Environmental conditions during the `Observation`
 
-            DataStreams:
+            DataStreams@iot.navigation:
               readOnly: true
               oneOf:
 
@@ -1330,7 +1584,7 @@ components:
                   items:
                     type: object
 
-            FeaturesOfInterest:
+            FeaturesOfInterest@iot.navigation:
               readOnly: true
               oneOf:
 
@@ -1346,7 +1600,99 @@ components:
                   items:
                     type: object
 
+    Task:
+      example:
+        - Locations@iot.navigation:
+            - name: [Wharf]
+          name: Do a thing
+        - Locations@iot.navigation:
+            - name: [Wharf]
+          name: Fix me
+        - Locations@iot.navigation:
+            - name: [Farm]
+          name: Harvest
+      allOf:
+        - $ref: '#/components/schemas/Entity'
+        - type: object
+          properties:
+            Locations@iot.navigation:
+              readOnly: true
+              oneOf:
+                - type: array
+                  title: references or objects
+                  maxItems: 1
+                  items:
+                    oneOf: 
+                      - type: string
+                      - type: object
+            TaskingCapabilities@iot.navigation:
+              readOnly: true
+              oneOf:
+                - type: array
+                  title: references or objects
+                  maxItems: 1
+                  items:
+                    oneOf: 
+                      - type: string
+                      - type: object
+            
     ObservedProperty:
+      example:
+        - ObservedProperties@iot.navigation:
+            - name: [ chlorophyll ]
+          Providers@iot.navigation:
+            - label: Alias
+              props:
+                name: [ cdom ]
+          name: colored dissolved organic matter
+        
+        - ObservedProperties@iot.navigation:
+            - name: [ conductivity ]
+          Providers@iot.navigation:
+            - label: Alias
+              props:
+                name: [ psu, sss, sal ]
+          name: salinity
+          description: Seawater salinity
+
+        - Providers@iot.navigation:
+            - label: Alias
+              props:
+                name: [ temp ]
+          name: temperature
+          description: Measured through a thermistor or remote sensing
+      
+        - Providers@iot.navigation:
+            - label: Alias
+              props:
+                name: [ chl, chla, chl-a ]
+          name: chlorophyll
+          description: Measure of chlorophyll
+
+        - name: oxygen
+        - name: oxygen percent
+        - name: transmission
+        - name: oxygen saturation
+        - name: conductivity
+
+        - Providers@iot.navigation:
+            - label: Alias
+              props:
+                name: [ par0plus, par0minus ]
+          name: photosynthetically active radiation
+
+        - ObservedProperties@iot.navigation:
+            - name: [ transmission, cdom, cholorophyll ]
+          name: turbidity
+
+        - name: voltage
+          description: Electrical voltage or sensor or power source
+
+        - Providers@iot.navigation:
+            - label: Alias
+              props:
+                name: [ uv, u, ww, omega, current_speed_cm, current_direction ]
+          name: water velocity
 
       allOf:
         - $ref: '#/components/schemas/Entity'
@@ -1357,7 +1703,7 @@ components:
               nullable: true
               description: Reference to resource that defines the property. We default to trying Wikipedia.
 
-            DataStreams:
+            DataStreams@iot.navigation:
               readOnly: true
               oneOf:
 
@@ -1375,6 +1721,14 @@ components:
 
     Collection:
       title: stacCollection
+      example:
+        - name: Oysters
+          description: Oyster data
+          license:
+          version: 1
+          keywords: oysters,aquaculture,Maine,ShellSIM
+        - name: Limited purpose aquaculture sites
+          description: Temporary sites with a small footprint
       allOf:
         - $ref: '#/components/schemas/Entity'
         - type: object
@@ -1415,6 +1769,16 @@ components:
 
     Provider:
       title: dataProvider
+      example:
+        - name: University of Maine
+          description: Aquaculture research
+          domain: maine.edu
+        - name: Public
+          description: Public Data Repository
+        - name: Oceanicsdotio
+          description: Research and development
+          domain: oceanics.io
+          owner: true
       allOf:
         - $ref: '#/components/schemas/Entity'
         - type: object

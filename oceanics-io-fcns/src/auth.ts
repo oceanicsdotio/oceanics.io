@@ -1,7 +1,7 @@
 /**
  * Cloud function version of API
  */
-import { connect, hashPassword, uuid4, catchAll, GraphNode, Link, Properties, transform, authClaim, tokenClaim, createToken, IAuth } from "./shared/driver";
+import { connect, hashPassword, uuid4, catchAll, GraphNode, Link, Properties, transform, authClaim, tokenClaim, createToken, IAuth  } from "./shared/driver";
 import type { Handler } from "@netlify/functions";
 
 /**
@@ -97,6 +97,19 @@ const manage = async ({token, email, password}: IAuth) => {
     }
 };
 
+const remove = async (auth: IAuth) => {
+    const allNodes = new GraphNode({}, "a", [])
+    const user = authClaim(auth);
+    const link = new Link();
+    const {query} = link.delete(user, allNodes);
+    console.log("Query", query)
+    console.log("Auth", auth)
+    await connect(query)
+    return {
+        statusCode: 204
+    }
+}
+
 /**
  * Browse saved results for a single model configuration. 
  * Results from different configurations are probably not
@@ -107,7 +120,7 @@ const manage = async ({token, email, password}: IAuth) => {
  * You can only access results for that test, although multiple collections * may be stored in a single place 
  */
 const handler: Handler = async ({ headers, body, httpMethod }) => {
-    let { email, password, apiKey, secret } = JSON.parse(body ?? "{}");
+    let { email, password, apiKey, secret } = JSON.parse(["POST", "PUT"].includes(httpMethod) ? body : "{}");
     const auth = headers["authorization"]??"";
     switch (httpMethod) {
         case "GET":
@@ -117,7 +130,15 @@ const handler: Handler = async ({ headers, body, httpMethod }) => {
             return catchAll(register)({ email, password, secret, apiKey });
         case "PUT":
             const [_, token] = auth.split(":");
-            return catchAll(manage)({token, email, password});
+            return catchAll(manage)({ token, email, password });
+        case "DELETE":
+            [email, password, secret] = auth.split(":");
+            return catchAll(remove)({ email, password, secret });
+        case "OPTIONS":
+            return {
+                statusCode: 204,
+                headers: {"Allow": "OPTIONS,GET,POST,PUT,DELETE"}
+            }
         default:
             return {
                 statusCode: 405,

@@ -1,10 +1,12 @@
 import fetch from "node-fetch";
 import assert from "assert";
+import yaml from "yaml";
 
 // MERGE (n:Provider { apiKey: replace(apoc.create.uuid(), '-', ''), domain: 'oceanics.io' }) return n
 
 // const REAL_PATH = "http://localhost:8888/.netlify/functions";
 const BASE_PATH = "http://localhost:8888/.netlify/functions";
+const API_PATH = "http://localhost:8888/api"
 const TEST_USER = "test@oceanics.io";
 const TEST_PASSWORD = "n0t_p@55w0rd";
 const TEST_SECRET = "salt";
@@ -23,6 +25,38 @@ const fetchToken = async () => {
 
 describe("Auth API", function() {
   let TOKEN;
+
+  const register = (apiKey) => {
+    
+    return fetch(
+    `${API_PATH}/auth`, 
+    {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        email: TEST_USER,
+        password: TEST_PASSWORD,
+        secret: TEST_SECRET,
+        ...(typeof apiKey === "undefined" ? {} : {apiKey})
+      })
+    }
+  )}
+
+  describe("Teardown", function () {
+
+    it("clears non-provider, nodes", async function () {
+        const response = await fetch(
+          `${API_PATH}/auth`,
+          {
+            method: "DELETE",
+            headers: {
+              "Authorization": [TEST_USER, TEST_PASSWORD, TEST_SECRET].join(":")
+            }
+          }
+        )
+        assert(response.status === 204, `Unexpected Status Code: ${response.status}`)
+    })
+  })
   
   describe("Register", function() {
 
@@ -32,29 +66,20 @@ describe("Auth API", function() {
     })
 
     it("allows registration with API key", async function() {
-      const response = await fetch(
-        `${BASE_PATH}/auth`, 
-        {
-          method: "POST",
-          headers: {"Content-Type": "application/json"},
-          body: JSON.stringify({
-            email: TEST_USER,
-            password: TEST_PASSWORD,
-            secret: TEST_SECRET,
-            apiKey: process.env.SERVICE_PROVIDER_API_KEY
-          })
-        }
-      )
-      assert(response.status === 200)
+      const response = await register(process.env.SERVICE_PROVIDER_API_KEY);
+      assert(response.status === 200, `Unexpected Status Code: ${response.status}`);
     });
 
-    xit("should prevent registration without API key", function() {
-      
+    it("should prevent registration without API key", async function() {
+      const response = await register(undefined);
+      assert(response.status === 403, `Unexpected Status Code: ${response.status}`);
     });
 
-    xit("should prevent registration with wrong API key", function() {
-      
+    it("should prevent registration with wrong API key", async function() {
+      const response = await register("not-a-valid-api-key");
+      assert(response.status === 403, `Unexpected Status Code: ${response.status}`);
     });
+
   });
 
   describe("Get JWT", function() {
@@ -65,13 +90,24 @@ describe("Auth API", function() {
       TOKEN = data.token
     });
 
-    xit("should deny access without credentials", function() {
-      
+    it("should deny access without credentials", async function() {
+      const response = await fetch(`${BASE_PATH}/auth`);
+      assert(response.status === 403, `Unexpected Status Code: ${response.status}`)
     });
-    xit("should deny access with wrong credentials", function() {
-      
+
+    it("should deny access with wrong credentials", async function() {
+      const response = await fetch(
+        `${BASE_PATH}/auth`,
+        {
+          headers: {
+            Authorization: [TEST_USER, "a-very-bad-password", TEST_SECRET].join(":")
+          }
+        }
+      );
+      assert(response.status === 403)
     });
   });
+
 });
 
 describe("SensorThings API", function () {
@@ -87,10 +123,30 @@ describe("SensorThings API", function () {
   })
 
   describe("Options", function () {
-    it("reports options", async function () {
+    it("reports for base path", async function () {
 
       const response = await fetch(
-        `${BASE_PATH}/sensor-things`,
+        `${API_PATH}/`,
+        {
+          method: "OPTIONS",
+          headers: {
+            "Authorization": `bearer:${TOKEN}`
+          }
+        }
+      )
+      const statusError = response.status === 204;      
+      assert(statusError, `Bad Status Code: ${response.status}`);
+      const allowedMethods = response.headers.get("allow")
+      const allowHeaderError = typeof allowedMethods !== "undefined";
+      assert(allowHeaderError, "No Allow Header")
+      assert(!!allowedMethods, "Bad Allow Header")
+      assert(allowedMethods.split(",").length === 5, "Unexpected Number Of Allowed Methods")
+    })
+
+    it("reports for single-node path", async function () {
+
+      const response = await fetch(
+        `${API_PATH}/Things`,
         {
           method: "OPTIONS",
           headers: {
@@ -112,7 +168,7 @@ describe("SensorThings API", function () {
 
     xit("creates a Thing", async function () {
       const response = await fetch(
-        `${BASE_PATH}/sensor-things/?node=Things`, 
+        `${API_PATH}/Things`, 
         {
           body: JSON.stringify({name: "Lloigor"}),
           method: "POST",
@@ -127,7 +183,7 @@ describe("SensorThings API", function () {
 
     it("retrieves collection index", async function () {
       const response = await fetch(
-        `${BASE_PATH}/sensor-things`, 
+        `${API_PATH}/`, 
         {
           headers: {
             "Content-Type": "application/json",
@@ -141,7 +197,7 @@ describe("SensorThings API", function () {
 
     it("retrieves all nodes of a single type", async function () {
       const response = await fetch(
-        `${BASE_PATH}/sensor-things?node=Things`,
+        `${API_PATH}/Things`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -156,7 +212,7 @@ describe("SensorThings API", function () {
 
     it("retrieves a single node by UUID", async function () {
       const response = await fetch(
-        `${BASE_PATH}/sensor-things?node=Things(5e205dad8de845c89075c745e5235b05)`,
+        `${API_PATH}/Things(5e205dad8de845c89075c745e5235b05)`,
         {
           headers: {
             "Content-Type": "application/json",

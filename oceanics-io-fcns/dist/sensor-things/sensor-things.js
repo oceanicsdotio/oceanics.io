@@ -69,9 +69,14 @@ const mutate = ({ entity, user }) => {
  * to a pattern with an indexed/unique property when called
  * through the API to prevent unintentional data loss.
  *
+ * The underlying query explicitly forbids dropping `Providers`
+ * labels
+ *
  */
-const remove = async (left) => {
-    await (0, driver_1.connect)(left.delete().query);
+const remove = async (left, right) => {
+    const link = new driver_1.Link();
+    const { query } = link.deleteChild(left, right);
+    await (0, driver_1.connect)(query);
     return {
         statusCode: 204
     };
@@ -116,7 +121,6 @@ const topology = (left, right) => {
     //         value = [*map(lambda x: x.serialize(), session.write_transaction(lambda tx: tx.run(cypher.query)))]
     //     return {"@iot.count": len(value), "value": value}, 200
 };
-const STRIP_BASE_PATH_PREFIX = [".netlify", "functions", "api"];
 /**
  * Browse saved results for a single model configuration.
  * Results from different configurations are probably not
@@ -126,7 +130,7 @@ const STRIP_BASE_PATH_PREFIX = [".netlify", "functions", "api"];
 
  * You can only access results for that test, although multiple collections * may be stored in a single place
  */
-const handler = async ({ headers, body, httpMethod, path }) => {
+const handler = async ({ headers, httpMethod, ...rest }) => {
     let user;
     try {
         const auth = headers["authorization"];
@@ -140,36 +144,58 @@ const handler = async ({ headers, body, httpMethod, path }) => {
             headers: { "Content-Type": "application/json" }
         };
     }
-    // OPTIONS method seems to come with body?
-    const properties = JSON.parse(["POST", "PUT"].includes(httpMethod) ? body : "{}");
-    const nodes = path
-        .split("/")
-        .filter((x) => !!x && !STRIP_BASE_PATH_PREFIX.includes(x))
-        .slice(1)
-        .map((0, driver_1.parseNode)(properties));
+    const nodes = (0, driver_1.parseFunctionsPath)({ httpMethod, ...rest });
     const pattern = `${httpMethod}${nodes.length}`;
     switch (pattern) {
         case "GET0":
             return (0, driver_1.catchAll)(index)();
         case "GET1":
             return (0, driver_1.catchAll)(metadata)(user, nodes[0]);
+        case "GET2":
+            return {
+                statusCode: 501,
+                body: JSON.stringify({ message: "Not Implemented" })
+            };
         case "POST1":
             return (0, driver_1.catchAll)(create)(user, nodes[0]);
-        // case "POST2":
-        //     return catchAll(join)(nodes[0], nodes[1])
+        case "POST2":
+            return {
+                statusCode: 501,
+                body: JSON.stringify({ message: "Not Implemented" })
+            };
         case "PUT1":
             return (0, driver_1.catchAll)(mutate)({});
+        case "PUT2":
+            return {
+                statusCode: 501,
+                body: JSON.stringify({ message: "Not Implemented" })
+            };
         case "DELETE1":
-            return (0, driver_1.catchAll)(remove)(nodes[0]);
+            return (0, driver_1.catchAll)(remove)(user, nodes[0]);
+        case "DELETE2":
+            return {
+                statusCode: 501,
+                body: JSON.stringify({ message: "Not Implemented" })
+            };
         case "OPTIONS0":
+            return {
+                statusCode: 204,
+                headers: { "Allow": "OPTIONS,GET" }
+            };
+        case "OPTIONS1":
             return {
                 statusCode: 204,
                 headers: { "Allow": "OPTIONS,GET,POST,PUT,DELETE" }
             };
+        case "OPTIONS2":
+            return {
+                statusCode: 204,
+                headers: { "Allow": "OPTIONS,GET,POST,DELETE" }
+            };
         default:
             return {
                 statusCode: 405,
-                body: JSON.stringify({ message: "Invalid HTTP Method", pattern, path }),
+                body: JSON.stringify({ message: "Invalid HTTP Method" }),
                 headers: { "Content-Type": "application/json" }
             };
     }

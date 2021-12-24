@@ -87,6 +87,18 @@ const manage = async ({ token, email, password }) => {
         body
     };
 };
+const remove = async (auth) => {
+    const allNodes = new driver_1.GraphNode({}, "a", []);
+    const user = (0, driver_1.authClaim)(auth);
+    const link = new driver_1.Link();
+    const { query } = link.delete(user, allNodes);
+    console.log("Query", query);
+    console.log("Auth", auth);
+    await (0, driver_1.connect)(query);
+    return {
+        statusCode: 204
+    };
+};
 /**
  * Browse saved results for a single model configuration.
  * Results from different configurations are probably not
@@ -98,7 +110,7 @@ const manage = async ({ token, email, password }) => {
  */
 const handler = async ({ headers, body, httpMethod }) => {
     var _a;
-    let { email, password, apiKey, secret } = JSON.parse(body !== null && body !== void 0 ? body : "{}");
+    let { email, password, apiKey, secret } = JSON.parse(["POST", "PUT"].includes(httpMethod) ? body : "{}");
     const auth = (_a = headers["authorization"]) !== null && _a !== void 0 ? _a : "";
     switch (httpMethod) {
         case "GET":
@@ -109,6 +121,14 @@ const handler = async ({ headers, body, httpMethod }) => {
         case "PUT":
             const [_, token] = auth.split(":");
             return (0, driver_1.catchAll)(manage)({ token, email, password });
+        case "DELETE":
+            [email, password, secret] = auth.split(":");
+            return (0, driver_1.catchAll)(remove)({ email, password, secret });
+        case "OPTIONS":
+            return {
+                statusCode: 204,
+                headers: { "Allow": "OPTIONS,GET,POST,PUT,DELETE" }
+            };
         default:
             return {
                 statusCode: 405,

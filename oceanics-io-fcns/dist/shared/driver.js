@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createToken = exports.tokenClaim = exports.authClaim = exports.loadNode = exports.Link = exports.NodeIndex = exports.GraphNode = exports.transform = exports.parseNode = exports.serialize = exports.Cypher = exports.catchAll = exports.s3 = exports.Bucket = exports.connect = exports.uuid4 = exports.hashPassword = void 0;
+exports.createToken = exports.tokenClaim = exports.authClaim = exports.loadNode = exports.Link = exports.NodeIndex = exports.GraphNode = exports.transform = exports.parseNode = exports.serialize = exports.Cypher = exports.catchAll = exports.s3 = exports.Bucket = exports.connect = exports.uuid4 = exports.hashPassword = exports.parseFunctionsPath = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 /**
  * Cloud function version of API
@@ -12,6 +12,17 @@ const neo4j_driver_1 = __importDefault(require("neo4j-driver"));
 const aws_sdk_1 = require("aws-sdk");
 const crypto_1 = __importDefault(require("crypto"));
 // import type {HandlerEvent, Handler, HandlerContext} from "@netlify/functions";
+const STRIP_BASE_PATH_PREFIX = [".netlify", "functions", "api", "auth", "sensor-things"];
+const parseFunctionsPath = ({ httpMethod, body, path }) => {
+    // OPTIONS method seems to come with body?
+    const properties = JSON.parse(["POST", "PUT"].includes(httpMethod) ? body : "{}");
+    return path
+        .split("/")
+        .filter((x) => !!x && !STRIP_BASE_PATH_PREFIX.includes(x))
+        .slice(1)
+        .map((0, exports.parseNode)(properties));
+};
+exports.parseFunctionsPath = parseFunctionsPath;
 /**
  * Securely store and anc compare passwords
  */
@@ -118,7 +129,7 @@ class GraphNode {
         return new Cypher(query, false);
     }
     delete() {
-        const query = `MATCH ${this.cypherRepr()} DETACH DELETE ${this.symbol}`;
+        const query = `MATCH ${this.cypherRepr()} WHERE NOT ${this.symbol}:Provider DETACH DELETE ${this.symbol}`;
         return new Cypher(query, false);
     }
     mutate(updates) {
@@ -182,6 +193,37 @@ class Link {
         const query = `MATCH ${left.cypherRepr()} WITH * MERGE ${right.cypherRepr()}${this.cypherRepr()}(${left.symbol}) RETURN (${left.symbol})`;
         return new Cypher(query, false);
     }
+    /**
+     * Detach and delete the right node, leaving the left node pattern
+     * in the graph. For example, use this to delete a single node or
+     * collection (right), owned by a user (left).
+     */
+    deleteChild(left, right) {
+        if (left.symbol === right.symbol)
+            throw Error("Identical symbols");
+        const query = `
+            MATCH ${left.cypherRepr()}${this.cypherRepr()}${right.cypherRepr()} 
+            WHERE NOT ${right.symbol}:Provider
+            DETACH DELETE ${right.symbol}`;
+        return new Cypher(query, false);
+    }
+    /**
+     * Detach and delete both the root node and the child nodes. Use
+     * this to delete a pattern, for example removing a user account and
+     * all owned data. In some cases this can leave orphan nodes,
+     * but these should always have at least one link back to a User or
+     * Provider, so can be cleaned up later.
+     */
+    delete(left, right) {
+        if (left.symbol === right.symbol)
+            throw Error("Identical symbols");
+        const query = `
+            MATCH ${left.cypherRepr()}
+            OPTIONAL MATCH (${left.symbol})${this.cypherRepr()}${right.cypherRepr()} 
+            WHERE NOT ${right.symbol}:Provider
+            DETACH DELETE ${left.symbol}, ${right.symbol}`;
+        return new Cypher(query, false);
+    }
 }
 exports.Link = Link;
 // const parseKeyValue = ([key, value]: [string, any]): string|null => {
@@ -202,7 +244,7 @@ exports.loadNode = loadNode;
 /**
  * Matching pattern based on basic auth information
  */
-const authClaim = ({ email, password, secret }) => new GraphNode({ email, credential: (0, exports.hashPassword)(password, secret) }, null, ["User"]);
+const authClaim = ({ email = "", password = "", secret = "" }) => new GraphNode({ email, credential: (0, exports.hashPassword)(password, secret) }, null, ["User"]);
 exports.authClaim = authClaim;
 /**
  * Matching pattern based on bearer token authorization with JWT

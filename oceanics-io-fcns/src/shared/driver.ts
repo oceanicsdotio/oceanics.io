@@ -9,6 +9,17 @@ import jwt, {JwtPayload} from "jsonwebtoken";
  import crypto from "crypto";
  // import type {HandlerEvent, Handler, HandlerContext} from "@netlify/functions";
  
+ const STRIP_BASE_PATH_PREFIX = [".netlify", "functions", "api", "auth", "sensor-things"]
+ export const parseFunctionsPath = ({httpMethod, body, path}) => {
+     // OPTIONS method seems to come with body?
+     const properties = JSON.parse(["POST", "PUT"].includes(httpMethod) ? body : "{}")
+     return path
+         .split("/")
+         .filter((x: string) => !!x && !STRIP_BASE_PATH_PREFIX.includes(x))
+         .slice(1)
+         .map(parseNode(properties));
+ }
+
  /**
   * Securely store and anc compare passwords
   */
@@ -152,7 +163,7 @@ export class GraphNode {
         return new Cypher(query, false);
     }
     delete(): Cypher {
-        const query = `MATCH ${this.cypherRepr()} DETACH DELETE ${this.symbol}`;
+        const query = `MATCH ${this.cypherRepr()} WHERE NOT ${this.symbol}:Provider DETACH DELETE ${this.symbol}`;
         return new Cypher(query, false)
     }
     mutate(updates: GraphNode): Cypher {
@@ -225,6 +236,37 @@ export class Link {
         const query = `MATCH ${left.cypherRepr()} WITH * MERGE ${right.cypherRepr()}${this.cypherRepr()}(${left.symbol}) RETURN (${left.symbol})`
         return new Cypher(query, false)
     }
+
+    /**
+     * Detach and delete the right node, leaving the left node pattern
+     * in the graph. For example, use this to delete a single node or
+     * collection (right), owned by a user (left).
+     */
+    deleteChild(left: GraphNode, right: GraphNode): Cypher {
+        if (left.symbol === right.symbol) throw Error("Identical symbols");
+        const query = `
+            MATCH ${left.cypherRepr()}${this.cypherRepr()}${right.cypherRepr()} 
+            WHERE NOT ${right.symbol}:Provider
+            DETACH DELETE ${right.symbol}`;
+        return new Cypher(query, false)
+    }
+
+    /**
+     * Detach and delete both the root node and the child nodes. Use
+     * this to delete a pattern, for example removing a user account and
+     * all owned data. In some cases this can leave orphan nodes,
+     * but these should always have at least one link back to a User or
+     * Provider, so can be cleaned up later. 
+     */
+    delete(left: GraphNode, right: GraphNode): Cypher {
+        if (left.symbol === right.symbol) throw Error("Identical symbols")
+        const query = `
+            MATCH ${left.cypherRepr()}
+            OPTIONAL MATCH (${left.symbol})${this.cypherRepr()}${right.cypherRepr()} 
+            WHERE NOT ${right.symbol}:Provider
+            DETACH DELETE ${left.symbol}, ${right.symbol}`;
+        return new Cypher(query, false)
+    }
 }
 
 
@@ -253,7 +295,7 @@ export const loadNode = () => {
 /**
  * Matching pattern based on basic auth information
  */
-export const authClaim = ({ email, password, secret }: IAuth) =>
+export const authClaim = ({ email="", password="", secret="" }: IAuth) =>
     new GraphNode({ email, credential: hashPassword(password, secret) }, null, ["User"]);
 
 /**
