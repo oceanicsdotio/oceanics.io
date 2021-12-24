@@ -10,9 +10,10 @@ const driver_1 = require("../shared/driver");
 const index = async () => {
     const { query } = driver_1.GraphNode.allLabels();
     const { records } = await (0, driver_1.connect)(query);
+    const restricted = new Set(["Provider", "User"]);
     //@ts-ignore
-    const fields = records.flatMap(({ _fields: [label] }) => label);
-    const result = [...new Set(fields)].map((label) => Object({
+    const fields = new Set(records.flatMap(({ _fields: [label] }) => label).filter(label => !restricted.has(label)));
+    const result = [...fields].map((label) => Object({
         name: label,
         url: `/api/${label}`
     }));

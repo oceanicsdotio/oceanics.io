@@ -1,6 +1,7 @@
 import fetch from "node-fetch";
 import assert from "assert";
-import yaml from "yaml";
+import YAML from "yaml";
+import {readFileSync} from "fs";
 
 // MERGE (n:Provider { apiKey: replace(apoc.create.uuid(), '-', ''), domain: 'oceanics.io' }) return n
 
@@ -10,6 +11,13 @@ const API_PATH = "http://localhost:8888/api"
 const TEST_USER = "test@oceanics.io";
 const TEST_PASSWORD = "n0t_p@55w0rd";
 const TEST_SECRET = "salt";
+const EXTENSIONS = {
+  sensing: new Set(["Thing", "Sensor", "Observation", "ObservedProperty", "FeatureOfInterest", "HistoricalLocation", "Location", "DataStream"]),
+  tasking: [],
+  auth: ["Provider", "User"],
+  ops: []
+};
+
 
 /**
  * Use canonical test user information to get a Javascript Web Token.
@@ -114,8 +122,7 @@ describe("Auth API", function() {
   /**
    * Test Bearer Token based authentication
    */
-  describe("Get JWT", function() {
-    let TOKEN;
+  describe("JWT Auth", function() {
     /**
      * Memoize a valid Token
      */
@@ -123,7 +130,6 @@ describe("Auth API", function() {
       const data = await fetchToken()
       assert(typeof data.token !== "undefined")
       assert(!!data.token)
-      TOKEN = data.token
     });
 
     /**
@@ -155,21 +161,8 @@ describe("Auth API", function() {
  * Collect tests that create, get, and manipulate graph nodes related
  * to sensing
  */
-describe("SensorThings API Part 1", function () {
-  let TOKEN;
-
-  /**
-   * 
-   */
-  describe("Authenticate", function () {
-    it("gets fresh access token", async function () {
-      const data = await fetchToken()
-      assert(typeof data.token !== "undefined")
-      assert(!!data.token)
-      TOKEN = data.token
-    })
-  })
-
+describe("Sensing API", function () {
+  
   /**
    * Check options on for each number of path segments.
    * 
@@ -195,11 +188,11 @@ describe("SensorThings API Part 1", function () {
     /**
      * Convenience method for submitting options query. 
      */
-    const options = (route="") => fetch(
+    const options = (token, route="") => fetch(
       `${API_PATH}/${route}`,
       {
         method: "OPTIONS",
-        headers: { Authorization: `bearer:${TOKEN}` }
+        headers: { Authorization: `bearer:${token}` }
       }
     )
 
@@ -207,7 +200,8 @@ describe("SensorThings API Part 1", function () {
      * Options for path length zero
      */
     it("reports for base path", async function () {
-      const response = await options();    
+      const {token} = await fetchToken();
+      const response = await options(token);    
       expect(response, 204);
       testAllowedMethodCount(response.headers, 2)
     })
@@ -216,7 +210,8 @@ describe("SensorThings API Part 1", function () {
      * Options for path length one
      */
     it("reports for single-node path", async function () {
-      const response = await options("Things");
+      const {token} = await fetchToken();
+      const response = await options(token, "Things");
       expect(response, 204);
       testAllowedMethodCount(response.headers, 5);
     })
@@ -225,59 +220,118 @@ describe("SensorThings API Part 1", function () {
      * Options for topological paths
      */
     it("reports for multi-node path", async function () {
-      const response = await options("Things/Locations");
+      const {token} = await fetchToken();
+      const response = await options(token, "Things/Locations");
       expect(response, 204);
       testAllowedMethodCount(response.headers, 4);
     })
   })
-  
+
   /**
    * Test entity creation and request validation by passing data
    * through the API and database and ensuring that it comes back
    * in expected format. 
    */
   describe("Create entities", function () {
+    let WELL_KNOWN_NODES;
 
+    /**
+     * Returns transaction promise function
+     */
+    const write_tx = (token, nodeType) => (properties) => {
 
-    it("parses examples from API spec", function() {
-      const spec = yaml.parse()
+      const clean = Object.fromEntries(Object.entries(properties).filter(([key]) => !key.includes("@")))
+
+      return fetch(
+      `${API_PATH}/${nodeType}`, 
+      {
+        body: JSON.stringify(clean),
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `bearer:${token}`
+        }
+      }
+    )}
+
+    const batch = async (tx, nodeType, data) => {
+      const job = tx((await fetchToken()).token, nodeType);
+      const responses = await Promise.allSettled(data.map(job));
+      assert(responses.length >= 1);
+      responses.forEach(({value: response})=>{
+        expect(response, 204);
+      });
+    }
+
+    /**
+     * Get examples from the API spec, nested under the component
+     * schema for each type. 
+     */
+    it("parses API examples", function() {
+      const text = readFileSync("oceanics-io-www/public/bathysphere.yaml", "utf8")
+      const spec = YAML.parse(text)
+      const nodes = Object.entries(spec.components.schemas).filter(
+        ([ key ]) => EXTENSIONS.sensing.has(key)
+      ).map(
+        ([ key, value ]) => [key, value.example??[]])
+      assert(
+        nodes.length === EXTENSIONS.sensing.size, 
+        `Unexpected number of schemata (${nodes.length}/${EXTENSIONS.sensing.size})`
+      )
+      WELL_KNOWN_NODES = Object.fromEntries(nodes)
     })
 
     /**
      * Create a single Well-Known Entity node. 
      */
-    it("creates a Thing", async function () {
-      const response = await fetch(
-        `${API_PATH}/Things`, 
-        {
-          body: JSON.stringify({name: "Lloigor"}),
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `bearer:${TOKEN}`
-          }
-        }
-      )
-      expect(response, 204);
+    it("creates Things", async function () {
+      await batch(write_tx, "Things", WELL_KNOWN_NODES.Thing);
     })
+
+    it("creates Sensors", async function () {
+      await batch(write_tx, "Sensors", WELL_KNOWN_NODES.Sensor);
+    })
+
+    it("creates Locations", async function () {
+      await batch(write_tx, "Locations", WELL_KNOWN_NODES.Location);
+    })
+
+    it("creates FeaturesOfInterest", async function () {
+      await batch(write_tx, "FeaturesOfInterest", WELL_KNOWN_NODES.FeatureOfInterest);
+    })
+
+    it("creates DataStreams", async function () {
+      await batch(write_tx, "DataStreams", WELL_KNOWN_NODES.DataStream);
+    })
+
+    it("creates ObservedProperties", async function () {
+      await batch(write_tx, "ObservedProperties", WELL_KNOWN_NODES.ObservedProperty);
+    })
+
+    it("creates Observations", async function () {
+      await batch(write_tx, "Observations", WELL_KNOWN_NODES.Observation);
+    })
+
 
     /**
      * Get the index of all node labels with API routes
      */
     it("retrieves collection index", async function () {
+      const {token} = await fetchToken();
       const response = await fetch(
         `${API_PATH}/`, 
         {
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `bearer:${TOKEN}`
+            "Authorization": `bearer:${token}`
           }
         }
       )
       expect(response, 200);
       const data = await response.json();
-      console.log(data)
       assert(data.length >= 1, `Expected one or more nodes in result`)
+      const names = new Set(data.map(item => item.name))
+      assert([...EXTENSIONS.auth].every((omit) => !names.has(omit)), `Result Contains Private Type`)
     })
 
     /**
@@ -286,12 +340,13 @@ describe("SensorThings API Part 1", function () {
      * should be predicted from the the example nodes in the API spec. 
      */
     it("retrieves all nodes of a single type", async function () {
+      const {token} = await fetchToken();
       const response = await fetch(
         `${API_PATH}/Things`,
         {
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `bearer:${TOKEN}`
+            "Authorization": `bearer:${token}`
           }
         }
       )
@@ -305,12 +360,13 @@ describe("SensorThings API Part 1", function () {
      * then receive 404. 
      */
     xit("retrieves a single node by UUID", async function () {
+      const {token} = await fetchToken();
       const response = await fetch(
         `${API_PATH}/Things(5e205dad8de845c89075c745e5235b05)`,
         {
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `bearer:${TOKEN}`
+            "Authorization": `bearer:${token}`
           }
         }
       )

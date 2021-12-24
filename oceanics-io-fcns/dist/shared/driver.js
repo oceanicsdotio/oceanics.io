@@ -17,7 +17,10 @@ const parseFunctionsPath = ({ httpMethod, body, path }) => {
     // OPTIONS method seems to come with body?
     const properties = JSON.parse(["POST", "PUT"].includes(httpMethod) ? body : "{}");
     const parts = path.split("/").filter((x) => !!x && !STRIP_BASE_PATH_PREFIX.includes(x)).slice();
-    return parts.map((0, exports.parseNode)(properties));
+    return parts.map((text, index, arrRef) => {
+        const props = index === arrRef.length ? properties : {};
+        return (0, exports.parseNode)(props)(text, index, arrRef);
+    });
 };
 exports.parseFunctionsPath = parseFunctionsPath;
 /**

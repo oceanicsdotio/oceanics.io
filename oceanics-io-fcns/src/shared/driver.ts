@@ -13,8 +13,12 @@ import jwt, {JwtPayload} from "jsonwebtoken";
  export const parseFunctionsPath = ({httpMethod, body, path}) => {
      // OPTIONS method seems to come with body?
      const properties = JSON.parse(["POST", "PUT"].includes(httpMethod) ? body : "{}")
-     const parts = path.split("/").filter((x: string) => !!x && !STRIP_BASE_PATH_PREFIX.includes(x)).slice()
-     return parts.map(parseNode(properties));
+     const parts = path.split("/").filter((x: string) => !!x && !STRIP_BASE_PATH_PREFIX.includes(x)).slice();
+
+     return parts.map((text: string, index: number, arrRef: string[]) => {
+         const props = index === arrRef.length ? properties : {}
+         return parseNode(props)(text, index, arrRef)
+    });
  }
 
  /**
