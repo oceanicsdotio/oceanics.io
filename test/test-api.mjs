@@ -264,7 +264,7 @@ describe("SensorThings API Part 1", function () {
     /**
      * Get the index of all node labels with API routes
      */
-    xit("retrieves collection index", async function () {
+    it("retrieves collection index", async function () {
       const response = await fetch(
         `${API_PATH}/`, 
         {
@@ -275,7 +275,9 @@ describe("SensorThings API Part 1", function () {
         }
       )
       expect(response, 200);
-      // const data = await response.json();
+      const data = await response.json();
+      console.log(data)
+      assert(data.length >= 1, `Expected one or more nodes in result`)
     })
 
     /**
@@ -293,7 +295,6 @@ describe("SensorThings API Part 1", function () {
           }
         }
       )
-      // const data = await response.json()
       expect(response, 200);
       // const data = await response.json()
     })
