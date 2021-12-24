@@ -22,16 +22,47 @@ const fetchToken = async () => {
   return response.json()
 }
 
-describe("Initialization", function () {
-  describe("Teardown", function () {
-    it("clears non-provider entities from graph", async function () {
-        
-    })
-  })
-})
-
 describe("Auth API", function() {
   let TOKEN;
+
+  const register = (apiKey) => {
+    
+    return fetch(
+    `${API_PATH}/auth`, 
+    {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        email: TEST_USER,
+        password: TEST_PASSWORD,
+        secret: TEST_SECRET,
+        ...(typeof apiKey === "undefined" ? {} : {apiKey})
+      })
+    }
+  )}
+
+  describe("Teardown", function () {
+
+    it("authenticates in existing graph", async function() {
+      const data = await fetchToken()
+      assert(typeof data.token !== "undefined")
+      assert(!!data.token)
+      TOKEN = data.token
+    });
+
+    it("clears non-provider, non-user nodes", async function () {
+        const response = await fetch(
+          `${API_PATH}/`,
+          {
+            method: "DELETE",
+            headers: {
+              "Authorization": `bearer:${TOKEN}`
+            }
+          }
+        )
+        assert(response.status === 204, `Unexpected Status Code: ${response.status}`)
+    })
+  })
   
   describe("Register", function() {
 
@@ -41,28 +72,18 @@ describe("Auth API", function() {
     })
 
     it("allows registration with API key", async function() {
-      const response = await fetch(
-        `${BASE_PATH}/auth`, 
-        {
-          method: "POST",
-          headers: {"Content-Type": "application/json"},
-          body: JSON.stringify({
-            email: TEST_USER,
-            password: TEST_PASSWORD,
-            secret: TEST_SECRET,
-            apiKey: process.env.SERVICE_PROVIDER_API_KEY
-          })
-        }
-      )
-      assert(response.status === 200)
+      const response = await register(process.env.SERVICE_PROVIDER_API_KEY);
+      assert(response.status === 200, `Unexpected Status Code: ${response.status}`);
     });
 
-    xit("should prevent registration without API key", function() {
-      
+    it("should prevent registration without API key", async function() {
+      const response = await register(undefined);
+      assert(response.status === 403, `Unexpected Status Code: ${response.status}`);
     });
 
-    xit("should prevent registration with wrong API key", function() {
-      
+    it("should prevent registration with wrong API key", async function() {
+      const response = await register("not-a-valid-api-key");
+      assert(response.status === 403, `Unexpected Status Code: ${response.status}`);
     });
 
    
@@ -84,7 +105,6 @@ describe("Auth API", function() {
     });
   });
 
-  describe("Manage providers")
 });
 
 describe("SensorThings API", function () {

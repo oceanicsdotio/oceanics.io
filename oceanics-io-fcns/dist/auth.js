@@ -109,6 +109,11 @@ const handler = async ({ headers, body, httpMethod }) => {
         case "PUT":
             const [_, token] = auth.split(":");
             return (0, driver_1.catchAll)(manage)({ token, email, password });
+        case "OPTIONS":
+            return {
+                statusCode: 204,
+                headers: { "Allow": "OPTIONS,GET,POST,PUT" }
+            };
         default:
             return {
                 statusCode: 405,

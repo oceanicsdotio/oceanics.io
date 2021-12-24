@@ -9,6 +9,17 @@ import jwt, {JwtPayload} from "jsonwebtoken";
  import crypto from "crypto";
  // import type {HandlerEvent, Handler, HandlerContext} from "@netlify/functions";
  
+ const STRIP_BASE_PATH_PREFIX = [".netlify", "functions", "api", "auth", "sensor-things"]
+ export const parseFunctionsPath = ({httpMethod, body, path}) => {
+     // OPTIONS method seems to come with body?
+     const properties = JSON.parse(["POST", "PUT"].includes(httpMethod) ? body : "{}")
+     return path
+         .split("/")
+         .filter((x: string) => !!x && !STRIP_BASE_PATH_PREFIX.includes(x))
+         .slice(1)
+         .map(parseNode(properties));
+ }
+
  /**
   * Securely store and anc compare passwords
   */
@@ -152,7 +163,7 @@ export class GraphNode {
         return new Cypher(query, false);
     }
     delete(): Cypher {
-        const query = `MATCH ${this.cypherRepr()} DETACH DELETE ${this.symbol}`;
+        const query = `MATCH ${this.cypherRepr()} WHERE NOT ${this.symbol}:Provider DETACH DELETE ${this.symbol}`;
         return new Cypher(query, false)
     }
     mutate(updates: GraphNode): Cypher {
@@ -223,6 +234,17 @@ export class Link {
     }
     insert(left: GraphNode, right: GraphNode): Cypher {
         const query = `MATCH ${left.cypherRepr()} WITH * MERGE ${right.cypherRepr()}${this.cypherRepr()}(${left.symbol}) RETURN (${left.symbol})`
+        return new Cypher(query, false)
+    }
+    delete(left: GraphNode, right: GraphNode): Cypher {
+        if (left.symbol === right.symbol) {
+            throw Error("Identical symbols")
+        }
+        const query = `
+            MATCH ${left.cypherRepr()}
+            OPTIONAL MATCH (${left.symbol})${this.cypherRepr()}${right.cypherRepr()} 
+            WHERE NOT ${right.symbol}:Provider 
+            DETACH DELETE ${left.symbol}, ${right.symbol}`;
         return new Cypher(query, false)
     }
 }

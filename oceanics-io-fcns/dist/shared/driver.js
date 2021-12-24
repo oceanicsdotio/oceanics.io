@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createToken = exports.tokenClaim = exports.authClaim = exports.loadNode = exports.Link = exports.NodeIndex = exports.GraphNode = exports.transform = exports.parseNode = exports.serialize = exports.Cypher = exports.catchAll = exports.s3 = exports.Bucket = exports.connect = exports.uuid4 = exports.hashPassword = void 0;
+exports.createToken = exports.tokenClaim = exports.authClaim = exports.loadNode = exports.Link = exports.NodeIndex = exports.GraphNode = exports.transform = exports.parseNode = exports.serialize = exports.Cypher = exports.catchAll = exports.s3 = exports.Bucket = exports.connect = exports.uuid4 = exports.hashPassword = exports.parseFunctionsPath = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 /**
  * Cloud function version of API
@@ -12,6 +12,17 @@ const neo4j_driver_1 = __importDefault(require("neo4j-driver"));
 const aws_sdk_1 = require("aws-sdk");
 const crypto_1 = __importDefault(require("crypto"));
 // import type {HandlerEvent, Handler, HandlerContext} from "@netlify/functions";
+const STRIP_BASE_PATH_PREFIX = [".netlify", "functions", "api", "auth", "sensor-things"];
+const parseFunctionsPath = ({ httpMethod, body, path }) => {
+    // OPTIONS method seems to come with body?
+    const properties = JSON.parse(["POST", "PUT"].includes(httpMethod) ? body : "{}");
+    return path
+        .split("/")
+        .filter((x) => !!x && !STRIP_BASE_PATH_PREFIX.includes(x))
+        .slice(1)
+        .map((0, exports.parseNode)(properties));
+};
+exports.parseFunctionsPath = parseFunctionsPath;
 /**
  * Securely store and anc compare passwords
  */
@@ -118,7 +129,7 @@ class GraphNode {
         return new Cypher(query, false);
     }
     delete() {
-        const query = `MATCH ${this.cypherRepr()} DETACH DELETE ${this.symbol}`;
+        const query = `MATCH ${this.cypherRepr()} WHERE NOT ${this.symbol}:Provider DETACH DELETE ${this.symbol}`;
         return new Cypher(query, false);
     }
     mutate(updates) {
@@ -180,6 +191,17 @@ class Link {
     }
     insert(left, right) {
         const query = `MATCH ${left.cypherRepr()} WITH * MERGE ${right.cypherRepr()}${this.cypherRepr()}(${left.symbol}) RETURN (${left.symbol})`;
+        return new Cypher(query, false);
+    }
+    delete(left, right) {
+        if (left.symbol === right.symbol) {
+            throw Error("Identical symbols");
+        }
+        const query = `
+            MATCH ${left.cypherRepr()}
+            OPTIONAL MATCH (${left.symbol})${this.cypherRepr()}${right.cypherRepr()} 
+            WHERE NOT ${right.symbol}:Provider 
+            DETACH DELETE ${left.symbol}, ${right.symbol}`;
         return new Cypher(query, false);
     }
 }

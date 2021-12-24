@@ -1,7 +1,7 @@
 /**
  * Cloud function version of API
  */
-import { connect, hashPassword, uuid4, catchAll, GraphNode, Link, Properties, transform, authClaim, tokenClaim, createToken, IAuth } from "./shared/driver";
+import { connect, hashPassword, uuid4, catchAll, GraphNode, Link, Properties, transform, authClaim, tokenClaim, createToken, IAuth  } from "./shared/driver";
 import type { Handler } from "@netlify/functions";
 
 /**

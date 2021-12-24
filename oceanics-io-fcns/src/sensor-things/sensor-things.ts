@@ -3,7 +3,7 @@
  */
 // import {hello_world} from "./pkg/neritics";
 import type { Handler } from "@netlify/functions";
-import { catchAll, connect, GraphNode, parseNode, Link, Properties, transform, tokenClaim } from "../shared/driver";
+import { catchAll, connect, GraphNode, Link, Properties, transform, tokenClaim, parseFunctionsPath } from "../shared/driver";
 
 interface IEntity {
     entity: string;
@@ -91,9 +91,22 @@ const mutate = ({entity, user}: IMutate) => {
  * to a pattern with an indexed/unique property when called
  * through the API to prevent unintentional data loss. 
  * 
+ * The underlying query explicitly forbids dropping `Providers`
+ * labels
+ * 
  */
 const remove = async (left: GraphNode) => {
     await connect(left.delete().query)
+    return {
+        statusCode: 204
+    }
+}
+
+const deleteLinked = async (left: GraphNode, right: GraphNode) => {
+    const link = new Link();
+    const {query} = link.delete(left, right);
+    console.log("Query:", query)
+    await connect(query)
     return {
         statusCode: 204
     }
@@ -153,8 +166,6 @@ const topology = (left: IEntity, right: IEntity) => {
 //     return {"@iot.count": len(value), "value": value}, 200
 }
 
-const STRIP_BASE_PATH_PREFIX = [".netlify", "functions", "api"]
-
  /**
   * Browse saved results for a single model configuration. 
   * Results from different configurations are probably not
@@ -164,7 +175,7 @@ const STRIP_BASE_PATH_PREFIX = [".netlify", "functions", "api"]
  
   * You can only access results for that test, although multiple collections * may be stored in a single place 
   */
-export const handler: Handler = async ({ headers, body, httpMethod, path }) => {
+export const handler: Handler = async ({ headers, httpMethod, ...rest }) => {
     
     let user: GraphNode;
     try {
@@ -179,13 +190,7 @@ export const handler: Handler = async ({ headers, body, httpMethod, path }) => {
         }
     }
 
-    // OPTIONS method seems to come with body?
-    const properties = JSON.parse(["POST", "PUT"].includes(httpMethod) ? body : "{}")
-    const nodes = path
-        .split("/")
-        .filter((x: string) => !!x && !STRIP_BASE_PATH_PREFIX.includes(x))
-        .slice(1)
-        .map(parseNode(properties));
+    const nodes = parseFunctionsPath({httpMethod, ...rest})
 
     const pattern = `${httpMethod}${nodes.length}`
     switch (pattern) {
@@ -193,20 +198,21 @@ export const handler: Handler = async ({ headers, body, httpMethod, path }) => {
             return catchAll(index)();
         case "GET1":
             return catchAll(metadata)(user, nodes[0])
-        case "POST0":
-            return catchAll(create)(user, parseNode(properties)("Providers", 0, []))
         case "POST1":
             return catchAll(create)(user, nodes[0])
         // case "POST2":
         //     return catchAll(join)(nodes[0], nodes[1])
         case "PUT1":
             return catchAll(mutate)({ });
+        case "DELETE0":
+            const allNodes = new GraphNode({}, "a", [])
+            return catchAll(deleteLinked)(user, allNodes)
         case "DELETE1":
-            return catchAll(remove)(nodes[0])
+            return catchAll(deleteLinked)(user, nodes[0])
         case "OPTIONS0":
             return {
                 statusCode: 204,
-                headers: {"Allow": "OPTIONS,GET"}
+                headers: {"Allow": "OPTIONS,GET,DELETE"}
             }
         case "OPTIONS1":
             return {
@@ -216,7 +222,7 @@ export const handler: Handler = async ({ headers, body, httpMethod, path }) => {
         default:
             return {
                 statusCode: 405,
-                body: JSON.stringify({message: "Invalid HTTP Method", pattern, path}),
+                body: JSON.stringify({message: "Invalid HTTP Method"}),
                 headers: { "Content-Type": "application/json"}
             }
     }
