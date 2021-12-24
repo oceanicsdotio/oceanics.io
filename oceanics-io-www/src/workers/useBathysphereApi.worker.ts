@@ -3,6 +3,7 @@ import { DOMParser } from "xmldom";
 import type { FileSystem } from "./shared";
 import SwaggerParser from "@apidevtools/swagger-parser";
 import YAML from "yaml";
+
 const ctx: Worker = self as unknown as Worker;
 type ModuleType = typeof import("../../rust/pkg");
 
@@ -726,27 +727,25 @@ type ApiOperation = {
   }
 }
 
-type PathsInput = { [index: string]: Schema }
+type SpecNode = { [index: string]: Schema }
+type UnpackedPair = [string, Schema]
 
 /**
  * Flatten the route and method pairs to be filtered
  * and converted to UI features
  */
-// const flattenSpecOperations = async (paths: PathsInput): Promise<ApiOperation[]> =>
-//     Object.entries(paths).flatMap(([path, schema]) => 
-//         Object.entries(schema).map(([method, schema]) => 
-//             Object({
-//                 path, 
-//                 method, 
-//                 schema: {
-//                     ...schema,
-//                     description: parseYamlText(schema.description)
-//                 }, 
-//                 view: buildView(schema)
-//             })));
-
-const scrapeIndexPage = async (url: string) =>
-  fetch(url).then(response => response.json());
+const flattenSpecOperations = async (paths: SpecNode): Promise<ApiOperation[]> =>
+    Object.entries(paths).flatMap(([path, schema]: UnpackedPair) => 
+        Object.entries(schema).map(([method, schema]: any) => 
+            Object({
+                path, 
+                method, 
+                schema: {
+                    ...schema,
+                    description: parseYamlText(schema.description)
+                }, 
+                view: buildView(schema)
+            })));
 
 
 /**

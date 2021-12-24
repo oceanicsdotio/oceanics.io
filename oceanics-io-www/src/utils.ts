@@ -1,3 +1,5 @@
+import type {MutableRefObject} from "react";
+export type WorkerRef = MutableRefObject<Worker|null>;
 
 export type RenderEffect = {
     size: number;

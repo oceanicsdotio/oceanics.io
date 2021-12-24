@@ -2,7 +2,7 @@
  * React friends.
  */
 import { useEffect, useRef, useState } from "react";
-import type {WorkerRef} from "../workers/shared";
+import type {WorkerRef} from "../utils";
 
 /**
  * Consistent styling.
@@ -58,7 +58,7 @@ export const useHistogramCanvas = ({
      */
     useEffect(() => {
         if (!worker.current) return;
-        worker.current.port.postMessage({
+        worker.current.postMessage({
             type: "histogramReducer",
             data: histogram
         })

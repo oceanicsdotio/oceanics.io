@@ -16,11 +16,11 @@ const STRIP_BASE_PATH_PREFIX = [".netlify", "functions", "api", "auth", "sensor-
 const parseFunctionsPath = ({ httpMethod, body, path }) => {
     // OPTIONS method seems to come with body?
     const properties = JSON.parse(["POST", "PUT"].includes(httpMethod) ? body : "{}");
-    return path
-        .split("/")
-        .filter((x) => !!x && !STRIP_BASE_PATH_PREFIX.includes(x))
-        .slice(1)
-        .map((0, exports.parseNode)(properties));
+    const parts = path.split("/").filter((x) => !!x && !STRIP_BASE_PATH_PREFIX.includes(x)).slice();
+    return parts.map((text, index, arrRef) => {
+        const props = index === arrRef.length ? properties : {};
+        return (0, exports.parseNode)(props)(text, index, arrRef);
+    });
 };
 exports.parseFunctionsPath = parseFunctionsPath;
 /**
@@ -190,7 +190,7 @@ class Link {
         return new Cypher(`MATCH ${left.cypherRepr()}${this.cypherRepr()}${right.cypherRepr()} WHERE NOT ${right.symbol}:Provider AND NOT ${right.symbol}:User RETURN ${result}`, true);
     }
     insert(left, right) {
-        const query = `MATCH ${left.cypherRepr()} WITH * MERGE ${right.cypherRepr()}${this.cypherRepr()}(${left.symbol}) RETURN (${left.symbol})`;
+        const query = `MATCH ${left.cypherRepr()} WITH * MERGE (${left.symbol})${this.cypherRepr()}${right.cypherRepr()} RETURN (${left.symbol})`;
         return new Cypher(query, false);
     }
     /**

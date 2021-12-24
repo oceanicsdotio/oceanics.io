@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import type { MouseEvent } from "react";
-import type { WorkerRef } from "../workers/shared";
+import type { WorkerRef } from "../utils";
 import type { MapType, ModuleType } from "./useOceansideWorld";
 
 

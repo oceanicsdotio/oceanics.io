@@ -26,10 +26,11 @@ interface IMutate extends ISensorThings{
  */
 const index = async () => {
     const {query} = GraphNode.allLabels();
-    const {records} = await connect(query)
+    const {records} = await connect(query);
+    const restricted = new Set(["Provider", "User"]);
     //@ts-ignore
-    const fields = records.flatMap(({_fields: [label]}) => label)
-    const result = [...new Set(fields)].map((label: string) => Object({
+    const fields = new Set(records.flatMap(({_fields: [label]}) => label).filter(label => !restricted.has(label)));
+    const result = [...fields].map((label: string) => Object({
         name: label,
         url: `/api/${label}`
     }));
@@ -183,8 +184,8 @@ export const handler: Handler = async ({ headers, httpMethod, ...rest }) => {
     }
 
     const nodes = parseFunctionsPath({httpMethod, ...rest})
-
     const pattern = `${httpMethod}${nodes.length}`
+
     switch (pattern) {
         case "GET0":
             return catchAll(index)();

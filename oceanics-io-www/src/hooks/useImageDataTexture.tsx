@@ -2,7 +2,7 @@
  * React friends.
  */
 import { useEffect, useRef, useState } from "react";
-import type {WorkerRef} from "../workers/shared"
+import type {WorkerRef} from "../utils"
 
 
 type IImageData = {

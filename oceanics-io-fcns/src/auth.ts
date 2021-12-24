@@ -97,13 +97,18 @@ const manage = async ({token, email, password}: IAuth) => {
     }
 };
 
+/**
+ * Remove user and all attached nodes. This will
+ * explicitly NOT remove any Providers. There is
+ * a danger that if the User has somehow been linked
+ * ad hoc to un-owned data, that another Users data
+ * could be deleted.
+ */
 const remove = async (auth: IAuth) => {
     const allNodes = new GraphNode({}, "a", [])
     const user = authClaim(auth);
     const link = new Link();
     const {query} = link.delete(user, allNodes);
-    console.log("Query", query)
-    console.log("Auth", auth)
     await connect(query)
     return {
         statusCode: 204
@@ -117,28 +122,35 @@ const remove = async (auth: IAuth) => {
  * makes wild conclusions comparing numerically
  * different models.
  *
- * You can only access results for that test, although multiple collections * may be stored in a single place 
+ * You can only access results for that test, although multiple 
+ * collections may be stored in a single place 
  */
 const handler: Handler = async ({ headers, body, httpMethod }) => {
     let { email, password, apiKey, secret } = JSON.parse(["POST", "PUT"].includes(httpMethod) ? body : "{}");
     const auth = headers["authorization"]??"";
     switch (httpMethod) {
+        // Get access token
         case "GET":
             [email, password, secret] = auth.split(":");
             return catchAll(getToken)({ email, password, secret });
+        // Register new User
         case "POST":
             return catchAll(register)({ email, password, secret, apiKey });
+        // Update User information
         case "PUT":
             const [_, token] = auth.split(":");
             return catchAll(manage)({ token, email, password });
+        // Remove User and all attached nodes 
         case "DELETE":
             [email, password, secret] = auth.split(":");
             return catchAll(remove)({ email, password, secret });
+        // Endpoint options
         case "OPTIONS":
             return {
                 statusCode: 204,
                 headers: {"Allow": "OPTIONS,GET,POST,PUT,DELETE"}
             }
+        // Invalid method
         default:
             return {
                 statusCode: 405,
