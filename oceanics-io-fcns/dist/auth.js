@@ -6,25 +6,15 @@ exports.handler = void 0;
  */
 const driver_1 = require("./shared/driver");
 /**
- * Create a new account using email address
+ * Create a new account using email address. We don't perform
+ * any validation of inputs here, such as for email address and
+ * excluded passwords. Assume this is delegated to frontend.
  */
-const register = async ({ email, password, secret, apiKey }) => {
-    const node = new driver_1.GraphNode({ apiKey }, "p", ["Provider"]);
-    const user = new driver_1.GraphNode({
-        email,
-        uuid: (0, driver_1.uuid4)(),
-        credential: (0, driver_1.hashPassword)(password, secret)
-    }, "u", ["User"]);
-    const cypher = new driver_1.Link("Register", 0, 0, "").insert(node, user);
-    let records = [];
+const register = async (auth) => {
+    // Empty array if there was an error
+    const records = await (0, driver_1.newUserQuery)(auth);
     let statusCode;
     let message;
-    try {
-        records = (0, driver_1.transform)(await (0, driver_1.connect)(cypher.query));
-    }
-    catch {
-        records = [];
-    }
     if (records.length !== 1) {
         message = ("Registration requires email, password, and API key in the request body. " +
             "This is used to associate your account with a public or private ingress.");
@@ -41,10 +31,12 @@ const register = async ({ email, password, secret, apiKey }) => {
     };
 };
 /**
- * Exchange user name and password for JWT
+ * Exchange user name and password for JWT. In addition to the usual encoded
+ * data per the standard, it includes the UUID for the User, as this is the
+ * information needed when validating access to data.
  */
 const getToken = async (auth) => {
-    const records = (0, driver_1.transform)(await (0, driver_1.connect)((0, driver_1.authClaim)(auth).load().query));
+    const records = await (0, driver_1.authClaim)(auth).fetch();
     let statusCode;
     let body;
     if (records.length !== 1) {
@@ -66,9 +58,8 @@ const getToken = async (auth) => {
 /**
  * Update account information
  */
-const manage = async ({ token, email, password }) => {
-    const node = (0, driver_1.tokenClaim)(token, process.env.SIGNING_KEY);
-    const records = (0, driver_1.transform)((await (0, driver_1.connect)(node.load().query)));
+const manage = async ({ token }) => {
+    const records = await (0, driver_1.tokenClaim)(token, process.env.SIGNING_KEY).fetch();
     let statusCode;
     let body;
     if (records.length !== 1) {
@@ -95,11 +86,7 @@ const manage = async ({ token, email, password }) => {
  * could be deleted.
  */
 const remove = async (auth) => {
-    const allNodes = new driver_1.GraphNode({}, "a", []);
-    const user = (0, driver_1.authClaim)(auth);
-    const link = new driver_1.Link();
-    const { query } = link.delete(user, allNodes);
-    await (0, driver_1.connect)(query);
+    await driver_1.Link.deleteAllOwned(auth);
     return {
         statusCode: 204
     };
