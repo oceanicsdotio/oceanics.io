@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createToken = exports.tokenClaim = exports.authClaim = exports.loadNode = exports.Link = exports.NodeIndex = exports.GraphNode = exports.transform = exports.parseNode = exports.serialize = exports.Cypher = exports.catchAll = exports.s3 = exports.Bucket = exports.connect = exports.uuid4 = exports.hashPassword = exports.parseFunctionsPath = void 0;
+exports.createToken = exports.tokenClaim = exports.authClaim = exports.loadNode = exports.Link = exports.NodeIndex = exports.GraphNode = exports.transform = exports.parseNode = exports.serialize = exports.Cypher = exports.catchAll = exports.s3 = exports.Bucket = exports.connect = exports.newUserQuery = exports.uuid4 = exports.hashPassword = exports.parseFunctionsPath = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 /**
  * Cloud function version of API
@@ -27,9 +27,8 @@ const filterBasePath = (symbol) => !!symbol && !STRIP_BASE_PATH_PREFIX.includes(
  */
 const parseFunctionsPath = ({ httpMethod, body, path }) => {
     const insertProperties = (text, index, array) => {
-        const getPropsFromBody = index === (array.length - 1) && ["POST", "PUT"].includes(httpMethod);
-        // console.log({getPropsFromBody, index, text, httpMethod})
-        return (0, exports.parseNode)(getPropsFromBody ? JSON.parse(body) : {})(text, index, array);
+        const props = index === (array.length - 1) && ["POST", "PUT"].includes(httpMethod) ? JSON.parse(body) : {};
+        return (0, exports.parseNode)(props)(text, index, array);
     };
     return path.split("/").filter(filterBasePath).map(insertProperties);
 };
@@ -41,6 +40,29 @@ const hashPassword = (password, secret) => crypto_1.default.pbkdf2Sync(password,
 exports.hashPassword = hashPassword;
 const uuid4 = () => crypto_1.default.randomUUID().replace(/-/g, "");
 exports.uuid4 = uuid4;
+const newUserQuery = async ({ apiKey, password, secret, email }) => {
+    const provider = new GraphNode({ apiKey }, "p", ["Provider"]);
+    const user = new GraphNode({
+        email,
+        uuid: (0, exports.uuid4)(),
+        credential: (0, exports.hashPassword)(password, secret)
+    }, "u", ["User"]);
+    const { query } = new Link("Register", 0, 0, "").insert(provider, user);
+    let records = [];
+    try {
+        records = (0, exports.transform)(await (0, exports.connect)(query));
+    }
+    catch {
+        records = [];
+    }
+    return records;
+};
+exports.newUserQuery = newUserQuery;
+/**
+ * Connect to graph database using the service account credentials,
+ * and execute a single
+ * We use
+ */
 const connect = async (query) => {
     var _a, _b;
     const driver = neo4j_driver_1.default.driver((_a = process.env.NEO4J_HOSTNAME) !== null && _a !== void 0 ? _a : "", neo4j_driver_1.default.auth.basic("neo4j", (_b = process.env.NEO4J_ACCESS_KEY) !== null && _b !== void 0 ? _b : ""));
@@ -85,7 +107,18 @@ exports.Cypher = Cypher;
 const serialize = (props) => {
     return Object.entries(props).filter(([_, value]) => {
         return typeof value !== "undefined" && !!value;
-    }).map(([key, value]) => `${key}: '${value}'`).join(", ");
+    }).map(([key, value]) => {
+        const valueType = typeof value;
+        let serialized;
+        switch (valueType) {
+            case "object":
+                serialized = JSON.stringify(value);
+                break;
+            default:
+                serialized = value;
+        }
+        return `${key}: '${serialized}'`;
+    }).join(", ");
 };
 exports.serialize = serialize;
 const parseNode = (props) => (text, index, array) => {
@@ -155,6 +188,10 @@ class GraphNode {
     create() {
         const query = `MERGE ${this.cypherRepr()}`;
         return new Cypher(query, false);
+    }
+    async fetch() {
+        const { query } = this.load();
+        return (0, exports.transform)(await (0, exports.connect)(query));
     }
 }
 exports.GraphNode = GraphNode;
@@ -234,6 +271,23 @@ class Link {
             WHERE NOT ${right.symbol}:Provider
             DETACH DELETE ${left.symbol}, ${right.symbol}`;
         return new Cypher(query, false);
+    }
+    /**
+     * Outer wrapper for delete
+     */
+    static deleteAllOwned(auth) {
+        const allNodes = new GraphNode({}, "a", []);
+        const user = (0, exports.authClaim)(auth);
+        const link = new Link();
+        const { query } = link.delete(user, allNodes);
+        return (0, exports.connect)(query);
+    }
+    /**
+     * Execute query for linked nodes
+     */
+    static async fetchLinked(left, right) {
+        const { query } = (new Link()).query(left, right, right.symbol);
+        return (0, exports.transform)((await (0, exports.connect)(query))).map(node => node[1]);
     }
 }
 exports.Link = Link;

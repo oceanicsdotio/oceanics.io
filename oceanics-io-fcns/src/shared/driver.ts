@@ -44,10 +44,34 @@ export const hashPassword = (password: string, secret: string) =>
 
 export const uuid4 = () => crypto.randomUUID().replace(/-/g, "");
 
+export const newUserQuery = async ({apiKey, password, secret, email}: IAuth): Promise<[string, Properties][]> => {
+  const provider = new GraphNode({ apiKey }, "p", ["Provider"]);
+  const user = new GraphNode({
+    email,
+    uuid: uuid4(),
+    credential: hashPassword(password, secret)
+  }, "u", ["User"]);
+  const {query} = new Link("Register", 0, 0, "").insert(provider, user);
+
+  let records: [string, Properties][] = [];
+  try {
+    records = transform(await connect(query));
+  } catch {
+    records = [];
+  }
+  return records
+}
+
+/**
+ * Connect to graph database using the service account credentials,
+ * and execute a single 
+ * We use 
+ */
 export const connect = async (query: string) => {
-
-
-  const driver = neo4j.driver(process.env.NEO4J_HOSTNAME ?? "", neo4j.auth.basic("neo4j", process.env.NEO4J_ACCESS_KEY ?? ""));
+  const driver = neo4j.driver(
+    process.env.NEO4J_HOSTNAME ?? "", 
+    neo4j.auth.basic("neo4j", process.env.NEO4J_ACCESS_KEY ?? "")
+  );
   const session = driver.session({ defaultAccessMode: neo4j.session.READ });
   const result = await session.run(query);
   await driver.close();
@@ -114,7 +138,19 @@ export interface INode {
 export const serialize = (props: Properties) => {
   return Object.entries(props).filter(([_, value]) => {
     return typeof value !== "undefined" && !!value
-  }).map(([key, value]) => `${key}: '${value}'`).join(", ")
+  }).map(([key, value]) => {
+    const valueType = typeof value;
+    let serialized: any;
+    switch (valueType) {
+      case "object":
+        serialized = JSON.stringify(value);
+        break;
+      default:
+        serialized = value
+
+    }
+    return `${key}: '${serialized}'`
+  }).join(", ")
 }
 
 
@@ -194,6 +230,10 @@ export class GraphNode {
   create() {
     const query = `MERGE ${this.cypherRepr()}`;
     return new Cypher(query, false)
+  }
+  async fetch() {
+    const {query} = this.load();
+    return transform(await connect(query))
   }
 }
 
@@ -282,6 +322,25 @@ export class Link {
             WHERE NOT ${right.symbol}:Provider
             DETACH DELETE ${left.symbol}, ${right.symbol}`;
     return new Cypher(query, false)
+  }
+
+  /**
+   * Outer wrapper for delete
+   */
+  static deleteAllOwned(auth: IAuth) {
+    const allNodes = new GraphNode({}, "a", [])
+    const user = authClaim(auth);
+    const link = new Link();
+    const { query } = link.delete(user, allNodes);
+    return connect(query);
+  }
+
+  /**
+   * Execute query for linked nodes
+   */
+  static async fetchLinked(left: GraphNode, right: GraphNode) {
+    const { query } = (new Link()).query(left, right, right.symbol);
+    return transform((await connect(query))).map(node => node[1]);
   }
 }
 

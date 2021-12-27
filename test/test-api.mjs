@@ -2,6 +2,7 @@ import fetch from "node-fetch";
 import assert from "assert";
 import YAML from "yaml";
 import { readFileSync } from "fs";
+import {describe, it} from "mocha";
 
 // MERGE (n:Provider { apiKey: replace(apoc.create.uuid(), '-', ''), domain: 'oceanics.io' }) return n
 
@@ -13,14 +14,14 @@ const TEST_PASSWORD = "n0t_p@55w0rd";
 const TEST_SECRET = "salt";
 const EXTENSIONS = {
   sensing: new Set([
-    "Thing",
-    "Sensor",
-    "Observation",
-    "ObservedProperty",
-    "FeatureOfInterest",
-    "HistoricalLocation",
-    "Location",
-    "DataStream",
+    "Things",
+    "Sensors",
+    "Observations",
+    "ObservedProperties",
+    "FeaturesOfInterest",
+    "HistoricalLocations",
+    "Locations",
+    "DataStreams",
   ]),
   tasking: [],
   auth: ["Provider", "User"],
@@ -144,7 +145,7 @@ describe("Auth API", function () {
      * Valid API key will associate new User with an existing Provider
      */
     it("allows registration with API key", async function () {
-      const response = await register(process.env.SERVICE_PROVIDER_API_KEY);
+      const response = await register(process.env.SERVICE_PROVIDER_API_KEY??"");
       expect(response, 200);
     });
 
@@ -152,6 +153,7 @@ describe("Auth API", function () {
      * Missing API key is a 403 error
      */
     it("should prevent registration without API key", async function () {
+      //@ts-ignore
       const response = await register(undefined);
       expect(response, 403);
     });
@@ -197,7 +199,7 @@ describe("Auth API", function () {
           ),
         },
       });
-      assert(response, 403);
+      expect(response, 403);
     });
   });
 });
@@ -223,7 +225,7 @@ describe("Sensing API", function () {
      */
     const testAllowedMethodCount = (headers, expected) => {
       const allowed = headers.get("allow");
-      const methods = allowed.split(",");
+      const methods = (allowed||"").split(",");
       assert(typeof allowed !== "undefined", "No Allow Header");
       assert(!!allowed, "Empty Allow Header");
       assert(
@@ -319,19 +321,19 @@ describe("Sensing API", function () {
      */
     it("creates Things", async function () {
       await validateBatch(
-        batch(composeWriteTransaction, "Things", WELL_KNOWN_NODES.Thing)
+        batch(composeWriteTransaction, "Things", WELL_KNOWN_NODES.Things)
       );
     });
 
     it("creates Sensors", async function () {
-      await validateBatch(batch(composeWriteTransaction, "Sensors", WELL_KNOWN_NODES.Sensor));
+      await validateBatch(batch(composeWriteTransaction, "Sensors", WELL_KNOWN_NODES.Sensors));
     });
 
     it("creates Locations", async function () {
       await validateBatch(batch(
         composeWriteTransaction,
         "Locations",
-        WELL_KNOWN_NODES.Location
+        WELL_KNOWN_NODES.Locations
       ));
     });
 
@@ -339,7 +341,7 @@ describe("Sensing API", function () {
       await validateBatch(batch(
         composeWriteTransaction,
         "FeaturesOfInterest",
-        WELL_KNOWN_NODES.FeatureOfInterest
+        WELL_KNOWN_NODES.FeaturesOfInterest
       ));
     });
 
@@ -347,7 +349,7 @@ describe("Sensing API", function () {
       await validateBatch(batch(
         composeWriteTransaction,
         "DataStreams",
-        WELL_KNOWN_NODES.DataStream
+        WELL_KNOWN_NODES.DataStreams
       ));
     });
 
@@ -355,7 +357,7 @@ describe("Sensing API", function () {
       await validateBatch(batch(
         composeWriteTransaction,
         "ObservedProperties",
-        WELL_KNOWN_NODES.ObservedProperty
+        WELL_KNOWN_NODES.ObservedProperties
       ));
     });
 
@@ -363,7 +365,7 @@ describe("Sensing API", function () {
       await validateBatch(batch(
         composeWriteTransaction,
         "Observations",
-        WELL_KNOWN_NODES.Observation
+        WELL_KNOWN_NODES.Observations
       ));
     });
 
@@ -388,14 +390,13 @@ describe("Sensing API", function () {
       );
     });
 
-    const readTransaction = async (nodeType) => {
-      const { token } = await fetchToken();
+    const readTransaction = (token) => async (nodeType) => {
       return fetch(`${API_PATH}/${nodeType}`, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `bearer:${token}`,
         },
-      });
+      }).then(response => response.json());
     }
 
     /**
@@ -403,13 +404,31 @@ describe("Sensing API", function () {
      * of each type of entity node. The number of nodes in the response
      * should be predicted from the the example nodes in the API spec.
      */
-    it("retrieves all nodes of a single type", async function () {
-      const response = await readTransaction(`Things`);
-      expect(response, 200);
-      const data = await response.json();
-      console.log(data)
-      WELL_KNOWN_NODES.Thing.forEach((thing) => {
-        assert()
+    it("retrieves index of single node type", async function () {
+      const nodeTypes = [...EXTENSIONS.sensing]
+      const {token} = await fetchToken();
+      const responses = await Promise.allSettled(nodeTypes.map(readTransaction(token)));
+      const parsed = await Promise.all(responses.map(({value}, index) => {
+        const key = nodeTypes[index];
+        return {
+          key,
+          value,
+          count: {
+            expected: WELL_KNOWN_NODES[key].length,
+            actual: value["@iot.count"]
+          }
+        }
+      }));
+
+      parsed.forEach(({value, count, key}) => {
+        const message = `Unexpected Array Size for ${key} (${count.actual}/${count.expected})`;
+        const isMatch = count.actual === count.expected;
+        if (!isMatch) {
+          const exists = WELL_KNOWN_NODES[key];
+          const created = value.value.map(({name})=>name);
+          console.error({created, exists, missing: exists.filter(({name}) => !created.has(name))})
+        }
+        assert(isMatch, message);
       })
     });
 
@@ -429,7 +448,7 @@ describe("Sensing API", function () {
           },
         }
       );
-      const data = await response.json();
+      // const data: any = await response.json();
       expect(response, 200);
     });
   });

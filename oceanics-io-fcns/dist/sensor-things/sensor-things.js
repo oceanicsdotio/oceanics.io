@@ -3,7 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.handler = void 0;
 const driver_1 = require("../shared/driver");
 ;
-;
 /**
  * Get an array of all collections by Node type
  */
@@ -34,17 +33,17 @@ const index = async () => {
  * Location data receives additional processing logic internally.
  */
 const create = async (left, right) => {
-    const cypher = new driver_1.Link("Create", 0, 0, "").insert(left, right);
+    const cypher = (new driver_1.Link("Create", 0, 0, "")).insert(left, right);
     await (0, driver_1.connect)(cypher.query);
     return { statusCode: 204 };
 };
 /**
  * Retrieve one or more entities of a single type. This may be filtered
+ *
  * by any single property.
  */
 const metadata = async (left, right) => {
-    const { query } = (new driver_1.Link()).query(left, right, right.symbol);
-    const value = (0, driver_1.transform)((await (0, driver_1.connect)(query)));
+    const value = await driver_1.Link.fetchLinked(left, right);
     return {
         statusCode: 200,
         headers: { "Content-Type": "application/json" },
@@ -128,7 +127,7 @@ const topology = (left, right) => {
  * directly comparable, so we reduce the chances that someone
  * makes wild conclusions comparing numerically
  * different models.
-
+ 
  * You can only access results for that test, although multiple collections * may be stored in a single place
  */
 const handler = async ({ headers, httpMethod, ...rest }) => {
@@ -147,7 +146,6 @@ const handler = async ({ headers, httpMethod, ...rest }) => {
     }
     const nodes = (0, driver_1.parseFunctionsPath)({ httpMethod, ...rest });
     const pattern = `${httpMethod}${nodes.length}`;
-    console.log(pattern, nodes);
     switch (pattern) {
         case "GET0":
             return (0, driver_1.catchAll)(index)();
