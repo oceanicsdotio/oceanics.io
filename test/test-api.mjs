@@ -3,6 +3,7 @@ import assert from "assert";
 import YAML from "yaml";
 import { readFileSync } from "fs";
 import {describe, it} from "mocha";
+import crypto from "crypto";
 
 // MERGE (n:Provider { apiKey: replace(apoc.create.uuid(), '-', ''), domain: 'oceanics.io' }) return n
 
@@ -22,6 +23,7 @@ const EXTENSIONS = {
     "HistoricalLocations",
     "Locations",
     "DataStreams",
+    "Agents"
   ]),
   tasking: [],
   auth: ["Provider", "User"],
@@ -80,8 +82,6 @@ const batch = async (composeTransaction, nodeType, data) => {
   );
   return Promise.allSettled(queue.map(job));
 };
-
-
 
 /**
  * Stand alone tests for the Auth flow. Includes initial
@@ -209,6 +209,31 @@ describe("Auth API", function () {
  * to sensing
  */
 describe("Sensing API", function () {
+
+  const insertIds = (items) => {
+    return items.map((props) => {
+      return {
+        ...props,
+        uuid: crypto.randomUUID().replace(/-/g, "")
+      }
+    })
+  }
+
+  const parseNodesFromApi = () => {
+    const text = readFileSync(
+      "oceanics-io-www/public/bathysphere.yaml",
+      "utf8"
+    );
+    const spec = YAML.parse(text);
+    const nodes = Object.entries(spec.components.schemas)
+      .filter(([key]) => EXTENSIONS.sensing.has(key))
+      .map(([key, value]) => [key, insertIds(value.example ?? [])]);
+   
+    return Object.fromEntries(nodes);
+  }
+
+  const WELL_KNOWN_NODES = parseNodesFromApi();
+
   /**
    * Check options on for each number of path segments.
    *
@@ -279,22 +304,7 @@ describe("Sensing API", function () {
    * through the API and database and ensuring that it comes back
    * in expected format.
    */
-  describe("Create entities", function () {
-
-    const parseNodesFromApi = () => {
-      const text = readFileSync(
-        "oceanics-io-www/public/bathysphere.yaml",
-        "utf8"
-      );
-      const spec = YAML.parse(text);
-      const nodes = Object.entries(spec.components.schemas)
-        .filter(([key]) => EXTENSIONS.sensing.has(key))
-        .map(([key, value]) => [key, value.example ?? []]);
-     
-      return Object.fromEntries(nodes);
-    }
-
-    const WELL_KNOWN_NODES = parseNodesFromApi();
+  describe("Create nodes", function () {
 
     const validateBatch = async (batchPromises) => {
       const responses = await batchPromises;
@@ -323,6 +333,10 @@ describe("Sensing API", function () {
       await validateBatch(
         batch(composeWriteTransaction, "Things", WELL_KNOWN_NODES.Things)
       );
+    });
+
+    it("creates Agents", async function () {
+      await validateBatch(batch(composeWriteTransaction, "Agents", WELL_KNOWN_NODES.Agents));
     });
 
     it("creates Sensors", async function () {
@@ -389,6 +403,10 @@ describe("Sensing API", function () {
         `Result Contains Private Type`
       );
     });
+  });
+
+  describe("Query nodes", function() {
+    let CREATED_UUID = {};
 
     const readTransaction = (token) => async (nodeType) => {
       return fetch(`${API_PATH}/${nodeType}`, {
@@ -397,7 +415,7 @@ describe("Sensing API", function () {
           Authorization: `bearer:${token}`,
         },
       }).then(response => response.json());
-    }
+    };
 
     /**
      * After the graph has been population there should be some number
@@ -420,15 +438,11 @@ describe("Sensing API", function () {
         }
       }));
 
-      parsed.forEach(({value, count, key}) => {
+      parsed.forEach(({count, key, value}) => {
         const message = `Unexpected Array Size for ${key} (${count.actual}/${count.expected})`;
         const isMatch = count.actual === count.expected;
-        if (!isMatch) {
-          const exists = WELL_KNOWN_NODES[key];
-          const created = value.value.map(({name})=>name);
-          console.error({created, exists, missing: exists.filter(({name}) => !created.has(name))})
-        }
         assert(isMatch, message);
+        CREATED_UUID[key] = value;
       })
     });
 
@@ -437,19 +451,58 @@ describe("Sensing API", function () {
      * identifier. If it does not exist, or is not owned by the user,
      * then receive 404.
      */
-    xit("retrieves a single node by UUID", async function () {
+    const validateByType = async (nodeType) => {
       const { token } = await fetchToken();
-      const response = await fetch(
-        `${API_PATH}/Things(5e205dad8de845c89075c745e5235b05)`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `bearer:${token}`,
-          },
-        }
-      );
-      // const data: any = await response.json();
-      expect(response, 200);
+      const things = CREATED_UUID[nodeType]
+      const result = things.value.map(async ({uuid})=> {
+        const response = await fetch(
+          `${API_PATH}/${nodeType}(${uuid})`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `bearer:${token}`,
+            },
+          }
+        );
+        const data = await response.json();
+        expect(response, 200);
+        assert(data.value.length === 1)
+        assert(uuid === data.value[0].uuid)
+      })
+      await Promise.all(result)
+    }
+
+    
+    it("retrieve Things by UUID", async function () {
+      await validateByType("Things");
+    });
+
+    it("retrieve Sensors by UUID", async function () {
+      await validateByType("Sensors");
+    });
+
+    it("retrieve Locations by UUID", async function () {
+      await validateByType("Locations");
+    });
+
+    it("retrieve FeaturesOfInterest by UUID", async function () {
+      await validateByType("FeaturesOfInterest");
+    });
+
+    it("retrieve DataStreams by UUID", async function () {
+      await validateByType("DataStreams");
+    });
+
+    it("retrieve ObservedProperties by UUID", async function () {
+      await validateByType("ObservedProperties");
+    });
+
+    it("retrieve Observations by UUID", async function () {
+      await validateByType("Observations");
+    });
+
+    it("retrieve Agents by UUID", async function () {
+      await validateByType("Agents");
     });
   });
 });
