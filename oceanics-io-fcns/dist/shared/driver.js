@@ -12,15 +12,26 @@ const neo4j_driver_1 = __importDefault(require("neo4j-driver"));
 const aws_sdk_1 = require("aws-sdk");
 const crypto_1 = __importDefault(require("crypto"));
 // import type {HandlerEvent, Handler, HandlerContext} from "@netlify/functions";
+/**
+ * Magic strings, that we know may exist in the path. It depends on whether the
+ * request is being made directly against the netlify functions, or through
+ * a proxy redirect.
+ */
 const STRIP_BASE_PATH_PREFIX = [".netlify", "functions", "api", "auth", "sensor-things"];
+const filterBasePath = (symbol) => !!symbol && !STRIP_BASE_PATH_PREFIX.includes(symbol);
+/**
+ * Encapsulate logic for parsing node properties from the body, query string, and path.
+ *
+ * One reason for this is that automatic detection of body fails on OPTIONS, which
+ * seems to provide an object instead of undefined.
+ */
 const parseFunctionsPath = ({ httpMethod, body, path }) => {
-    // OPTIONS method seems to come with body?
-    const properties = JSON.parse(["POST", "PUT"].includes(httpMethod) ? body : "{}");
-    const parts = path.split("/").filter((x) => !!x && !STRIP_BASE_PATH_PREFIX.includes(x)).slice();
-    return parts.map((text, index, arrRef) => {
-        const props = index === arrRef.length ? properties : {};
-        return (0, exports.parseNode)(props)(text, index, arrRef);
-    });
+    const insertProperties = (text, index, array) => {
+        const getPropsFromBody = index === (array.length - 1) && ["POST", "PUT"].includes(httpMethod);
+        // console.log({getPropsFromBody, index, text, httpMethod})
+        return (0, exports.parseNode)(getPropsFromBody ? JSON.parse(body) : {})(text, index, array);
+    };
+    return path.split("/").filter(filterBasePath).map(insertProperties);
 };
 exports.parseFunctionsPath = parseFunctionsPath;
 /**

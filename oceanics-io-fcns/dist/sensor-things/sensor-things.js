@@ -147,6 +147,7 @@ const handler = async ({ headers, httpMethod, ...rest }) => {
     }
     const nodes = (0, driver_1.parseFunctionsPath)({ httpMethod, ...rest });
     const pattern = `${httpMethod}${nodes.length}`;
+    console.log(pattern, nodes);
     switch (pattern) {
         case "GET0":
             return (0, driver_1.catchAll)(index)();
