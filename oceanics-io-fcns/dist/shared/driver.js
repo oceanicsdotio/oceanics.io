@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createToken = exports.tokenClaim = exports.authClaim = exports.loadNode = exports.Link = exports.NodeIndex = exports.GraphNode = exports.transform = exports.parseNode = exports.serialize = exports.Cypher = exports.catchAll = exports.s3 = exports.Bucket = exports.connect = exports.newUserQuery = exports.uuid4 = exports.hashPassword = exports.parseFunctionsPath = void 0;
+exports.createToken = exports.tokenClaim = exports.authClaim = exports.Link = exports.NodeIndex = exports.GraphNode = exports.transform = exports.parseNode = exports.serialize = exports.Cypher = exports.catchAll = exports.s3 = exports.Bucket = exports.connect = exports.newUserQuery = exports.uuid4 = exports.hashPassword = exports.parseFunctionsPath = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 /**
  * Cloud function version of API
@@ -303,9 +303,6 @@ exports.Link = Link;
 //         default:
 //     }
 // };
-const loadNode = () => {
-};
-exports.loadNode = loadNode;
 /**
  * Matching pattern based on basic auth information
  */

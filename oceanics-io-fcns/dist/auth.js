@@ -103,8 +103,7 @@ const remove = async (auth) => {
  */
 const handler = async ({ headers, body, httpMethod }) => {
     var _a;
-    let data = ["POST", "PUT"].includes(httpMethod) ? JSON.parse(body) : {};
-    let email, password, secret;
+    let { email, password, apiKey, secret } = JSON.parse(["POST", "PUT"].includes(httpMethod) ? body : "{}");
     const auth = (_a = headers["authorization"]) !== null && _a !== void 0 ? _a : "";
     switch (httpMethod) {
         // Get access token
@@ -113,7 +112,7 @@ const handler = async ({ headers, body, httpMethod }) => {
             return (0, driver_1.catchAll)(getToken)({ email, password, secret });
         // Register new User
         case "POST":
-            return (0, driver_1.catchAll)(register)(data);
+            return (0, driver_1.catchAll)(register)({ email, password, secret, apiKey });
         // Update User information
         case "PUT":
             const [_, token] = auth.split(":");

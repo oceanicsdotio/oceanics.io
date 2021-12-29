@@ -205,6 +205,11 @@ export class ContextCursor {
 export class Cypher {
   free(): void;
 /**
+* @param {string} query
+* @param {boolean} read_only
+*/
+  constructor(query: string, read_only: boolean);
+/**
 * @returns {string}
 */
   readonly query: string;
@@ -600,6 +605,25 @@ export class Node {
 * @param {string | undefined} label
 */
   constructor(pattern?: string, symbol?: string, label?: string);
+/**
+* @returns {Cypher}
+*/
+  static all_labels(): Cypher;
+/**
+* @returns {string}
+*/
+  pattern_only(): string;
+/**
+* @returns {string}
+*/
+  symbol(): string;
+/**
+*
+*         * Format the cypher query representation of the Node data structure
+*         
+* @returns {string}
+*/
+  cypher_repr(): string;
 /**
 *
 *         * Query to delete a node pattern from the graph.
