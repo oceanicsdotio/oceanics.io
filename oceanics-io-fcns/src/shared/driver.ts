@@ -77,16 +77,17 @@ export interface IAuth {
     token?: string;
 }
 
-export const NativeCypher = WasmCypher;
+export const Cypher = WasmCypher;
+type ICypher = typeof WasmCypher;
 
-export class Cypher {
-    readOnly: boolean;
-    query: string;
-    constructor(query: string, readOnly: boolean) {
-        this.query=query;
-        this.readOnly=readOnly;
-    }
-}
+// export class Cypher {
+//     readOnly: boolean;
+//     query: string;
+//     constructor(query: string, readOnly: boolean) {
+//         this.query=query;
+//         this.readOnly=readOnly;
+//     }
+// }
 
 type OptString = string | null;
 
@@ -156,19 +157,19 @@ export class GraphNode {
         }
         return `( ${this.symbol}${label}${this.patternOnly()} )`
     }
-    count(): Cypher {
+    count() {
         const query = `MATCH ${this.cypherRepr()} RETURN count(${this.symbol})`;
         return new Cypher(query, true);
     }
-    addLabel(label: string): Cypher {
+    addLabel(label: string) {
         const query = `MATCH ${this.cypherRepr()} SET ${this.symbol}:${label}`
         return new Cypher(query, false);
     }
-    delete(): Cypher {
+    delete() {
         const query = `MATCH ${this.cypherRepr()} WHERE NOT ${this.symbol}:Provider DETACH DELETE ${this.symbol}`;
         return new Cypher(query, false)
     }
-    mutate(updates: GraphNode): Cypher {
+    mutate(updates: GraphNode) {
         const query = `MATCH ${this.cypherRepr()} SET ${this.symbol} += {{ ${updates.patternOnly()} }}`;
         return new Cypher(query, false)
     }
@@ -196,13 +197,13 @@ export class NodeIndex {
         this.label=label;
         this.key=key;
     }
-    add(): Cypher {
+    add() {
         return new Cypher(`CREATE INDEX FOR (n:${this.label}) ON (n.${this.key})`, false)
     }
-    drop(): Cypher {
+    drop() {
         return new Cypher(`DROP INDEX ON : ${this.label}(${this.key})`, false)
     }
-    uniqueConstraint(): Cypher {
+    uniqueConstraint() {
         return new Cypher(`CREATE CONSTRAINT ON (n:${this.label}) ASSERT n.${this.key} IS UNIQUE`, false)
     }
 }
@@ -225,16 +226,16 @@ export class Link {
         const pattern = typeof this.pattern === "undefined" ? `` : `{ ${this.pattern} }`
         return `-[ r${label} ${pattern} ]-`
     }
-    drop(left: GraphNode, right: GraphNode): Cypher {
+    drop(left: GraphNode, right: GraphNode) {
         return new Cypher(`MATCH ${left.cypherRepr()}${this.cypherRepr()}${right.cypherRepr()} DELETE r`, false)
     }
-    join(left: GraphNode, right: GraphNode): Cypher {
+    join(left: GraphNode, right: GraphNode) {
         return new Cypher(`MATCH ${left.cypherRepr()}, ${right.cypherRepr()} MERGE (${left.symbol})${this.cypherRepr()}(${right.symbol})`, false)
     }
-    query(left: GraphNode, right: GraphNode, result: string): Cypher {
+    query(left: GraphNode, right: GraphNode, result: string) {
         return new Cypher(`MATCH ${left.cypherRepr()}${this.cypherRepr()}${right.cypherRepr()} WHERE NOT ${right.symbol}:Provider AND NOT ${right.symbol}:User RETURN ${result}`, true)
     }
-    insert(left: GraphNode, right: GraphNode): Cypher {
+    insert(left: GraphNode, right: GraphNode) {
         const query = `MATCH ${left.cypherRepr()} WITH * MERGE (${left.symbol})${this.cypherRepr()}${right.cypherRepr()} RETURN (${left.symbol})`
         return new Cypher(query, false)
     }
@@ -244,7 +245,7 @@ export class Link {
      * in the graph. For example, use this to delete a single node or
      * collection (right), owned by a user (left).
      */
-    deleteChild(left: GraphNode, right: GraphNode): Cypher {
+    deleteChild(left: GraphNode, right: GraphNode) {
         if (left.symbol === right.symbol) throw Error("Identical symbols");
         const query = `
             MATCH ${left.cypherRepr()}${this.cypherRepr()}${right.cypherRepr()} 
@@ -260,14 +261,15 @@ export class Link {
      * but these should always have at least one link back to a User or
      * Provider, so can be cleaned up later. 
      */
-    delete(left: GraphNode, right: GraphNode): Cypher {
+    delete(left: GraphNode, right: GraphNode) {
         if (left.symbol === right.symbol) throw Error("Identical symbols")
-        const query = `
-            MATCH ${left.cypherRepr()}
-            OPTIONAL MATCH (${left.symbol})${this.cypherRepr()}${right.cypherRepr()} 
-            WHERE NOT ${right.symbol}:Provider
-            DETACH DELETE ${left.symbol}, ${right.symbol}`;
-        return new Cypher(query, false)
+        const query = [
+            `MATCH ${left.cypherRepr()}`,
+            `OPTIONAL MATCH (${left.symbol})${this.cypherRepr()}${right.cypherRepr()}`,
+            `WHERE NOT ${right.symbol}:Provider`,
+            `DETACH DELETE ${left.symbol}, ${right.symbol}`
+        ];
+        return new Cypher(query.join(" "), false)
     }
 }
 

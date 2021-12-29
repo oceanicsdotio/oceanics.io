@@ -109,6 +109,9 @@ const remove = async (auth: IAuth) => {
     const user = authClaim(auth);
     const link = new Link();
     const {query} = link.delete(user, allNodes);
+
+    console.log({query})
+
     await connect(query)
     return {
         statusCode: 204

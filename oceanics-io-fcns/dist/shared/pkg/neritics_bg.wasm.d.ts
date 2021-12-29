@@ -55,6 +55,7 @@ export function interactivemesh_rotate(a: number, b: number, c: number, d: numbe
 export function __wbg_cypher_free(a: number): void;
 export function __wbg_get_cypher_read_only(a: number): number;
 export function __wbg_set_cypher_read_only(a: number, b: number): void;
+export function cypher_new(a: number, b: number, c: number): number;
 export function cypher_query(a: number, b: number): void;
 export function __wbg_node_free(a: number): void;
 export function node_new(a: number, b: number, c: number, d: number, e: number, f: number): number;

@@ -99,6 +99,7 @@ const remove = async (auth) => {
     const user = (0, driver_1.authClaim)(auth);
     const link = new driver_1.Link();
     const { query } = link.delete(user, allNodes);
+    console.log({ query });
     await (0, driver_1.connect)(query);
     return {
         statusCode: 204

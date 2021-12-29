@@ -205,6 +205,11 @@ export class ContextCursor {
 export class Cypher {
   free(): void;
 /**
+* @param {string} query
+* @param {boolean} read_only
+*/
+  constructor(query: string, read_only: boolean);
+/**
 * @returns {string}
 */
   readonly query: string;

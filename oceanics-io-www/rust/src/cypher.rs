@@ -17,6 +17,14 @@ pub mod cypher {
 
     #[wasm_bindgen]
     impl Cypher {
+        #[wasm_bindgen(constructor)]
+        pub fn new(query: String, read_only: bool) -> Self {
+            Cypher {
+                read_only,
+                query
+            }
+        }
+
         #[wasm_bindgen(getter)]
         pub fn query(&self) -> String {
             self.query.clone()
