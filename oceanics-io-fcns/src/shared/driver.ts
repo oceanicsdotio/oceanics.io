@@ -7,6 +7,7 @@ import jwt, {JwtPayload} from "jsonwebtoken";
  import neo4j from "neo4j-driver";
  import { Endpoint, S3 } from "aws-sdk";
  import crypto from "crypto";
+ import {Cypher as WasmCypher} from "./pkg/neritics"
  // import type {HandlerEvent, Handler, HandlerContext} from "@netlify/functions";
  
  const STRIP_BASE_PATH_PREFIX = [".netlify", "functions", "api", "auth", "sensor-things"]
@@ -30,8 +31,6 @@ import jwt, {JwtPayload} from "jsonwebtoken";
  export const uuid4 = () => crypto.randomUUID().replace(/-/g, "");
  
  export const connect = async (query: string) => {
- 
-     
      const driver = neo4j.driver(process.env.NEO4J_HOSTNAME??"", neo4j.auth.basic("neo4j", process.env.NEO4J_ACCESS_KEY??""));
      const session = driver.session({defaultAccessMode: neo4j.session.READ});
      const result = await session.run(query);
@@ -77,6 +76,8 @@ export interface IAuth {
     apiKey?: string;
     token?: string;
 }
+
+export const NativeCypher = WasmCypher;
 
 export class Cypher {
     readOnly: boolean;
@@ -288,10 +289,6 @@ export class Link {
 //     }
 // };
 
-
-export const loadNode = () => {
-
-}
 
 /**
  * Matching pattern based on basic auth information

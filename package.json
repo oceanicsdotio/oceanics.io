@@ -10,7 +10,8 @@
         "@netlify/functions": "^0.10.0",
         "aws-sdk": "^2.1036.0",
         "jsonwebtoken": "^8.5.1",
-        "neo4j-driver": "^4.4.1"
+        "neo4j-driver": "^4.4.1",
+        "stripe": "^8.195.0"
     },
     "devDependencies": {
         "@types/jsonwebtoken": "^8.5.6",
@@ -20,7 +21,7 @@
         "node-fetch": "^3.1.0"
     },
     "scripts": {
-        "api:build": "wasm-pack build oceanics-io-www/rust --out-dir ../../oceanics-io-fcns/src/sensor-things/pkg --target nodejs",
+        "api:build": "wasm-pack build oceanics-io-www/rust --out-dir ../../oceanics-io-fcns/src/shared/pkg --target nodejs",
         "api:dev": "netlify dev",
         "api:test": "mocha"
     }

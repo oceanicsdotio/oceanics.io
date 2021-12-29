@@ -5105,6 +5105,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/node@npm:>=8.1.0":
+  version: 17.0.5
+  resolution: "@types/node@npm:17.0.5"
+  checksum: 105535e78722515c26cfdc1b0cbf1b19f55fe53b814e2e90d8b1e653bc63136d4760c7efc102eca111c6d124a291e37d60d761d569a3f4afb3fba05bad5d9ade
+  languageName: node
+  linkType: hard
+
 "@types/node@npm:^14.0.10, @types/node@npm:^14.11.8":
   version: 14.18.2
   resolution: "@types/node@npm:14.18.2"
@@ -19529,7 +19536,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"qs@npm:^6.10.0, qs@npm:^6.9.6":
+"qs@npm:^6.10.0, qs@npm:^6.6.0, qs@npm:^6.9.6":
   version: 6.10.2
   resolution: "qs@npm:6.10.2"
   dependencies:
@@ -20870,6 +20877,7 @@ __metadata:
     netlify-cli: ^8.2.3
     netlify-lambda: ^2.0.15
     node-fetch: ^3.1.0
+    stripe: ^8.195.0
   languageName: unknown
   linkType: soft
 
@@ -22249,6 +22257,16 @@ __metadata:
   dependencies:
     escape-string-regexp: ^1.0.2
   checksum: f8d65d33ca2b49aabc66bb41d689dda7b8b9959d320e3a40a2ef4d7079ff2f67ffb72db43f179f48dbf9495c2e33742863feab7a584d180fa62505439162c191
+  languageName: node
+  linkType: hard
+
+"stripe@npm:^8.195.0":
+  version: 8.195.0
+  resolution: "stripe@npm:8.195.0"
+  dependencies:
+    "@types/node": ">=8.1.0"
+    qs: ^6.6.0
+  checksum: 3642c7feec2ff6461beb2510875dc5618353df85ce40e3b95e13a36667817eab0fbf8c050787aeaee9c29be6213ba31fd99d46cc4b248c5b268da40607450fd6
   languageName: node
   linkType: hard
 

@@ -126,7 +126,8 @@ const remove = async (auth: IAuth) => {
  * collections may be stored in a single place 
  */
 const handler: Handler = async ({ headers, body, httpMethod }) => {
-    let { email, password, apiKey, secret } = JSON.parse(["POST", "PUT"].includes(httpMethod) ? body : "{}");
+    let data = ["POST", "PUT"].includes(httpMethod) ? JSON.parse(body) : {};
+    let email: string, password: string, secret: string;
     const auth = headers["authorization"]??"";
     switch (httpMethod) {
         // Get access token
@@ -135,7 +136,7 @@ const handler: Handler = async ({ headers, body, httpMethod }) => {
             return catchAll(getToken)({ email, password, secret });
         // Register new User
         case "POST":
-            return catchAll(register)({ email, password, secret, apiKey });
+            return catchAll(register)(data);
         // Update User information
         case "PUT":
             const [_, token] = auth.split(":");

@@ -1,7 +1,6 @@
 /**
  * Cloud function version of API
  */
-// import {hello_world} from "./pkg/neritics";
 import type { Handler } from "@netlify/functions";
 import { catchAll, connect, GraphNode, Link, Properties, transform, tokenClaim, parseFunctionsPath } from "../shared/driver";
 
