@@ -29,7 +29,7 @@ const register = async ({ apiKey, password, secret, email }) => {
     const provider = new neritics_1.Node((0, driver_1.serialize)({ apiKey }), "p", "Provider");
     const user = new neritics_1.Node((0, driver_1.serialize)({
         email,
-        uuid: (0, driver_1.uuid4)(),
+        uuid: crypto_1.default.randomUUID().replace(/-/g, ""),
         credential: hashPassword(password, secret)
     }), "u", "User");
     const { query } = new neritics_1.Links("Register", 0, 0, "").insert(provider, user);
