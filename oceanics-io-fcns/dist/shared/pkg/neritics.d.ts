@@ -606,6 +606,25 @@ export class Node {
 */
   constructor(pattern?: string, symbol?: string, label?: string);
 /**
+* @returns {Cypher}
+*/
+  static all_labels(): Cypher;
+/**
+* @returns {string}
+*/
+  pattern_only(): string;
+/**
+* @returns {string}
+*/
+  symbol(): string;
+/**
+*
+*         * Format the cypher query representation of the Node data structure
+*         
+* @returns {string}
+*/
+  cypher_repr(): string;
+/**
 *
 *         * Query to delete a node pattern from the graph.
 *         

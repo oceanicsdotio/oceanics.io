@@ -7,7 +7,7 @@ import jwt, {JwtPayload} from "jsonwebtoken";
  import neo4j from "neo4j-driver";
  import { Endpoint, S3 } from "aws-sdk";
  import crypto from "crypto";
- import {Cypher as WasmCypher} from "./pkg/neritics"
+ import {Cypher as WasmCypher, Node as WasmNode} from "./pkg/neritics"
  // import type {HandlerEvent, Handler, HandlerContext} from "@netlify/functions";
  
  const STRIP_BASE_PATH_PREFIX = [".netlify", "functions", "api", "auth", "sensor-things"]
@@ -128,61 +128,7 @@ export const transform = ({records}: {records: Record[]}): [string, Properties][
      .map(({ labels: [primary], properties }: INode) => [primary, properties])
 
 
-export class GraphNode {
-    pattern: OptString;
-    _symbol: OptString;
-    labels: string[];
-
-    constructor(props: Properties, symbol: OptString, labels: string[]) {
-        this.pattern=serialize(props);
-        this._symbol=symbol;
-        this.labels=labels;
-    }
-
-    static allLabels() {
-        return new Cypher("CALL db.labels()", true)
-    }
-    patternOnly(): string {
-        return this.pattern ? ` { ${this.pattern} }` : ``
-    }
-    get symbol(): string {
-        return this._symbol||"n"
-    } 
-
-    // supports multi label create, but not retrieval
-    cypherRepr(): string {
-        let label = "";
-        if (this.labels.length > 0) {
-            label = ["", ...this.labels].join(":")
-        }
-        return `( ${this.symbol}${label}${this.patternOnly()} )`
-    }
-    count() {
-        const query = `MATCH ${this.cypherRepr()} RETURN count(${this.symbol})`;
-        return new Cypher(query, true);
-    }
-    addLabel(label: string) {
-        const query = `MATCH ${this.cypherRepr()} SET ${this.symbol}:${label}`
-        return new Cypher(query, false);
-    }
-    delete() {
-        const query = `MATCH ${this.cypherRepr()} WHERE NOT ${this.symbol}:Provider DETACH DELETE ${this.symbol}`;
-        return new Cypher(query, false)
-    }
-    mutate(updates: GraphNode) {
-        const query = `MATCH ${this.cypherRepr()} SET ${this.symbol} += {{ ${updates.patternOnly()} }}`;
-        return new Cypher(query, false)
-    }
-    load(key?: string) {
-        const variable = typeof key === "undefined" ? `` : `.${key}`;
-        const query = `MATCH ${this.cypherRepr()} RETURN ${this.symbol}${variable}`;
-        return new Cypher(query, true)
-    }
-    create() {
-        const query = `MERGE ${this.cypherRepr()}`;
-        return new Cypher(query, false)
-    }
-}
+export const GraphNode = WasmNode;
 
 /**
  * Data structure representing a Node Index, which can be used to

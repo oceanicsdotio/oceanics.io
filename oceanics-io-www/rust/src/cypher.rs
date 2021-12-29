@@ -54,13 +54,10 @@ pub mod cypher {
                 label,
             }
         }
-        fn all_labels() -> Cypher {
-            Cypher {
-                query: String::from("CALL db.labels()"),
-                read_only: true,
-            }
+        pub fn all_labels() -> Cypher {
+            Cypher::new(String::from("CALL db.labels()"), true)
         }
-        fn pattern_only(&self) -> String {
+        pub fn pattern_only(&self) -> String {
             let pattern: String;
             match &self.pattern {
                 None => pattern = String::from(""),
@@ -68,7 +65,7 @@ pub mod cypher {
             }
             pattern
         }
-        fn symbol(&self) -> String {
+        pub fn symbol(&self) -> String {
             let symbol: String;
             match &self.symbol {
                 None => symbol = String::from("n"),
@@ -79,7 +76,7 @@ pub mod cypher {
         /**
          * Format the cypher query representation of the Node data structure
          */
-        fn cypher_repr(&self) -> String {
+        pub fn cypher_repr(&self) -> String {
             let label: String;
             match &self.label {
                 None => label = String::from(""),
@@ -104,15 +101,15 @@ pub mod cypher {
          * Apply new label to the node set matching the node pattern.
          */
         fn add_label(&self, label: String) -> Cypher {
-            Cypher {
-                query: format!(
+            Cypher::new(
+                format!(
                     "MATCH {} SET {}:{}",
                     self.cypher_repr(),
                     self.symbol(),
                     label
                 ),
-                read_only: false,
-            }
+                false,
+            )
         }
         /**
          * Query to delete a node pattern from the graph.
@@ -120,8 +117,9 @@ pub mod cypher {
         pub fn delete(&self) -> Cypher {
             Cypher {
                 query: format!(
-                    "MATCH {} DETACH DELETE {}",
+                    "MATCH {} WHERE NOT {}:Provider DETACH DELETE {}",
                     self.cypher_repr(),
+                    self.symbol(),
                     self.symbol()
                 ),
                 read_only: false,

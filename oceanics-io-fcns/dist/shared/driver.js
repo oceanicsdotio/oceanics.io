@@ -94,51 +94,11 @@ const transform = ({ records }) => records.flatMap((record) => Object.values(rec
 exports.transform = transform;
 class GraphNode {
     constructor(props, symbol, labels) {
+        const pattern = (0, exports.serialize)(props);
+        this._native = new neritics_1.Node(pattern, symbol, labels[0]);
         this.pattern = (0, exports.serialize)(props);
         this._symbol = symbol;
         this.labels = labels;
-    }
-    static allLabels() {
-        return new exports.Cypher("CALL db.labels()", true);
-    }
-    patternOnly() {
-        return this.pattern ? ` { ${this.pattern} }` : ``;
-    }
-    get symbol() {
-        return this._symbol || "n";
-    }
-    // supports multi label create, but not retrieval
-    cypherRepr() {
-        let label = "";
-        if (this.labels.length > 0) {
-            label = ["", ...this.labels].join(":");
-        }
-        return `( ${this.symbol}${label}${this.patternOnly()} )`;
-    }
-    count() {
-        const query = `MATCH ${this.cypherRepr()} RETURN count(${this.symbol})`;
-        return new exports.Cypher(query, true);
-    }
-    addLabel(label) {
-        const query = `MATCH ${this.cypherRepr()} SET ${this.symbol}:${label}`;
-        return new exports.Cypher(query, false);
-    }
-    delete() {
-        const query = `MATCH ${this.cypherRepr()} WHERE NOT ${this.symbol}:Provider DETACH DELETE ${this.symbol}`;
-        return new exports.Cypher(query, false);
-    }
-    mutate(updates) {
-        const query = `MATCH ${this.cypherRepr()} SET ${this.symbol} += {{ ${updates.patternOnly()} }}`;
-        return new exports.Cypher(query, false);
-    }
-    load(key) {
-        const variable = typeof key === "undefined" ? `` : `.${key}`;
-        const query = `MATCH ${this.cypherRepr()} RETURN ${this.symbol}${variable}`;
-        return new exports.Cypher(query, true);
-    }
-    create() {
-        const query = `MERGE ${this.cypherRepr()}`;
-        return new exports.Cypher(query, false);
     }
 }
 exports.GraphNode = GraphNode;
