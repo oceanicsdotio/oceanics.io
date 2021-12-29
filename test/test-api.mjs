@@ -405,17 +405,17 @@ describe("Sensing API", function () {
     });
   });
 
+  const readTransaction = (token) => async (nodeType) => {
+    return fetch(`${API_PATH}/${nodeType}`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `bearer:${token}`,
+      },
+    }).then(response => response.json());
+  };
+
   describe("Query nodes", function() {
     let CREATED_UUID = {};
-
-    const readTransaction = (token) => async (nodeType) => {
-      return fetch(`${API_PATH}/${nodeType}`, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `bearer:${token}`,
-        },
-      }).then(response => response.json());
-    };
 
     /**
      * After the graph has been population there should be some number
@@ -505,6 +505,32 @@ describe("Sensing API", function () {
       await validateByType("Agents");
     });
   });
+
+  describe("Join Nodes", function() {
+    this.timeout(5000)
+    it("joins two well-known nodes",  async function() {
+      const {token} = await fetchToken();
+      const read = readTransaction(token);
+      const things = await read("Things");
+      const locations = await read("Locations");
+      const queryData = {
+        Things: things.value[0].uuid,
+        Locations: locations.value[0].uuid,
+      }
+      const response = await fetch(
+        `${API_PATH}/Things(${queryData.Things})/Locations(${queryData.Locations})`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `bearer:${token}`,
+          },
+          body: JSON.stringify({})
+        }
+      )
+      expect(response, 204);
+    })
+  })
 });
 
 /**

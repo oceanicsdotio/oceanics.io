@@ -7,10 +7,19 @@ const neritics_1 = require("./shared/pkg/neritics");
  * Get an array of all collections by Node type
  */
 const index = async () => {
+    const { query } = neritics_1.Node.allLabels();
+    const { records } = await (0, driver_1.connect)(query);
+    const restricted = new Set(["Provider", "User"]);
+    //@ts-ignore
+    const fields = new Set(records.flatMap(({ _fields: [label] }) => label).filter(label => !restricted.has(label)));
+    const data = [...fields].map((label) => Object({
+        name: label,
+        url: `/api/${label}`
+    }));
     return {
         statusCode: 200,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify((0, driver_1.getLabelIndex)())
+        body: JSON.stringify(data)
     };
 };
 /**
@@ -34,7 +43,8 @@ const create = async (left, right) => {
  * by any single property.
  */
 const metadata = async (left, right) => {
-    const value = await (0, driver_1.fetchLinked)(left, right);
+    const { query } = (new neritics_1.Links()).query(left, right, right.symbol);
+    const value = (0, driver_1.transform)((await (0, driver_1.connect)(query))).map(node => node[1]);
     return {
         statusCode: 200,
         headers: { "Content-Type": "application/json" },
@@ -73,29 +83,14 @@ const remove = async (left, right) => {
         statusCode: 204
     };
 };
-const join = (left, right) => {
+const join = async (left, right, label) => {
+    await (0, driver_1.connect)((new neritics_1.Links(label)).join(left, right).query);
     return {
         statusCode: 204
     };
 };
-//     # Generate the Cypher query
-//     # pylint: disable=eval-used
-//     cypher = Links(
-//         label="Join",
-//         **body
-//     ).join(
-//         *parse_as_nodes((
-//             eval(root)(uuid=rootId),
-//             eval(entity)(uuid=uuid)
-//         ))
-//     )
-//     # Execute transaction and end session before reporting success
-//     with db.session() as session:
-//         session.write_transaction(lambda tx: tx.run(cypher.query))
-//     return None, 204
 const drop = async (left, right) => {
-    const cypher = (new neritics_1.Links()).drop(left, right);
-    await (0, driver_1.connect)(cypher.query);
+    await (0, driver_1.connect)((new neritics_1.Links()).drop(left, right).query);
     return {
         statusCode: 204
     };
@@ -104,14 +99,10 @@ const drop = async (left, right) => {
  * Retrieve nodes that are linked with the left entity
  */
 const topology = (left, right) => {
-    // const link = new Link()
-    // const cypher = link.query()
-    //     nodes = ({"cls": root, "id": rootId}, {"cls": entity})
-    //     # Pre-calculate the Cypher query
-    //     cypher = Links().query(*parse_as_nodes(nodes), "b")
-    //     with db.session() as session:
-    //         value = [*map(lambda x: x.serialize(), session.write_transaction(lambda tx: tx.run(cypher.query)))]
-    //     return {"@iot.count": len(value), "value": value}, 200
+    return {
+        statusCode: 501,
+        body: JSON.stringify({ message: "Not Implemented" })
+    };
 };
 /**
  * Browse saved results for a single model configuration.
@@ -144,17 +135,11 @@ const handler = async ({ headers, httpMethod, ...rest }) => {
         case "GET1":
             return (0, driver_1.catchAll)(metadata)(user, nodes[0]);
         case "GET2":
-            return {
-                statusCode: 501,
-                body: JSON.stringify({ message: "Not Implemented" })
-            };
+            return (0, driver_1.catchAll)(topology)(nodes[0], nodes[1]);
         case "POST1":
             return (0, driver_1.catchAll)(create)(user, nodes[0]);
         case "POST2":
-            return {
-                statusCode: 501,
-                body: JSON.stringify({ message: "Not Implemented" })
-            };
+            return (0, driver_1.catchAll)(join)(nodes[0], nodes[1], "Join");
         case "PUT1":
             return (0, driver_1.catchAll)(mutate)(user, nodes[0]);
         case "PUT2":
@@ -165,10 +150,7 @@ const handler = async ({ headers, httpMethod, ...rest }) => {
         case "DELETE1":
             return (0, driver_1.catchAll)(remove)(user, nodes[0]);
         case "DELETE2":
-            return {
-                statusCode: 501,
-                body: JSON.stringify({ message: "Not Implemented" })
-            };
+            return (0, driver_1.catchAll)(drop)(nodes[0], nodes[1]);
         case "OPTIONS0":
             return {
                 statusCode: 204,

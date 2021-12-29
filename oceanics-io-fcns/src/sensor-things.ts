@@ -92,16 +92,15 @@ const remove = async (left: Node, right: Node) => {
   }
 }
 
-const join = async (left: Node, right: Node) => {
+const join = async (left: Node, right: Node, label: string) => {
+  await connect((new Links(label)).join(left, right).query);
   return {
-    statusCode: 501,
-    body: JSON.stringify({ message: "Not Implemented" })
+    statusCode: 204
   }
 }
 
 const drop = async (left: Node, right: Node) => {
-  const cypher = (new Links()).drop(left, right)
-  await connect(cypher.query)
+  await connect((new Links()).drop(left, right).query);
   return {
     statusCode: 204
   }
@@ -151,17 +150,11 @@ export const handler: Handler = async ({ headers, httpMethod, ...rest }) => {
     case "GET1":
       return catchAll(metadata)(user, nodes[0])
     case "GET2":
-      return {
-        statusCode: 501,
-        body: JSON.stringify({ message: "Not Implemented" })
-      }
+      return catchAll(topology)(nodes[0], nodes[1])
     case "POST1":
       return catchAll(create)(user, nodes[0])
     case "POST2":
-      return {
-        statusCode: 501,
-        body: JSON.stringify({ message: "Not Implemented" })
-      }
+      return catchAll(join)(nodes[0], nodes[1], "Join")
     case "PUT1":
       return catchAll(mutate)(user, nodes[0])
     case "PUT2":
@@ -172,10 +165,7 @@ export const handler: Handler = async ({ headers, httpMethod, ...rest }) => {
     case "DELETE1":
       return catchAll(remove)(user, nodes[0]);
     case "DELETE2":
-      return {
-        statusCode: 501,
-        body: JSON.stringify({ message: "Not Implemented" })
-      }
+      return catchAll(drop)(nodes[0], nodes[1])
     case "OPTIONS0":
       return {
         statusCode: 204,
