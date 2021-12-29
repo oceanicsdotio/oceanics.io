@@ -325,6 +325,10 @@ export class Link {
         ];
         return new Cypher(query.join(" "), false)
     }
+
+    deleteAllOwned() {
+      
+    }
 }
 
 

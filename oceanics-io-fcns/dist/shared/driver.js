@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createToken = exports.tokenClaim = exports.authClaim = exports.loadNode = exports.Link = exports.NodeIndex = exports.GraphNode = exports.transform = exports.parseNode = exports.serialize = exports.Cypher = exports.catchAll = exports.s3 = exports.Bucket = exports.connect = exports.newUserQuery = exports.uuid4 = exports.hashPassword = exports.parseFunctionsPath = void 0;
+exports.createToken = exports.tokenClaim = exports.authClaim = exports.Link = exports.NodeIndex = exports.GraphNode = exports.transform = exports.parseNode = exports.serialize = exports.Cypher = exports.catchAll = exports.s3 = exports.Bucket = exports.connect = exports.newUserQuery = exports.uuid4 = exports.hashPassword = exports.parseFunctionsPath = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 /**
  * Cloud function version of API
@@ -11,7 +11,6 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const neo4j_driver_1 = __importDefault(require("neo4j-driver"));
 const aws_sdk_1 = require("aws-sdk");
 const crypto_1 = __importDefault(require("crypto"));
-const neritics_1 = require("./pkg/neritics");
 // import type {HandlerEvent, Handler, HandlerContext} from "@netlify/functions";
 /**
  * Magic strings, that we know may exist in the path. It depends on whether the
@@ -98,7 +97,13 @@ function catchAll(wrapped) {
     };
 }
 exports.catchAll = catchAll;
-exports.Cypher = neritics_1.Cypher;
+class Cypher {
+    constructor(query, readOnly) {
+        this.query = query;
+        this.readOnly = readOnly;
+    }
+}
+exports.Cypher = Cypher;
 const serialize = (props) => {
     return Object.entries(props).filter(([_, value]) => {
         return typeof value !== "undefined" && !!value;
@@ -138,8 +143,6 @@ const transform = ({ records }) => records.flatMap((record) => Object.values(rec
 exports.transform = transform;
 class GraphNode {
     constructor(props, symbol, labels) {
-        const pattern = (0, exports.serialize)(props);
-        this._native = new neritics_1.Node(pattern, symbol, labels[0]);
         this.pattern = (0, exports.serialize)(props);
         this._symbol = symbol;
         this.labels = labels;
@@ -203,13 +206,13 @@ class NodeIndex {
         this.key = key;
     }
     add() {
-        return new exports.Cypher(`CREATE INDEX FOR (n:${this.label}) ON (n.${this.key})`, false);
+        return new Cypher(`CREATE INDEX FOR (n:${this.label}) ON (n.${this.key})`, false);
     }
     drop() {
-        return new exports.Cypher(`DROP INDEX ON : ${this.label}(${this.key})`, false);
+        return new Cypher(`DROP INDEX ON : ${this.label}(${this.key})`, false);
     }
     uniqueConstraint() {
-        return new exports.Cypher(`CREATE CONSTRAINT ON (n:${this.label}) ASSERT n.${this.key} IS UNIQUE`, false);
+        return new Cypher(`CREATE CONSTRAINT ON (n:${this.label}) ASSERT n.${this.key} IS UNIQUE`, false);
     }
 }
 exports.NodeIndex = NodeIndex;
@@ -226,17 +229,17 @@ class Link {
         return `-[ r${label} ${pattern} ]-`;
     }
     drop(left, right) {
-        return new exports.Cypher(`MATCH ${left.cypherRepr()}${this.cypherRepr()}${right.cypherRepr()} DELETE r`, false);
+        return new Cypher(`MATCH ${left.cypherRepr()}${this.cypherRepr()}${right.cypherRepr()} DELETE r`, false);
     }
     join(left, right) {
-        return new exports.Cypher(`MATCH ${left.cypherRepr()}, ${right.cypherRepr()} MERGE (${left.symbol})${this.cypherRepr()}(${right.symbol})`, false);
+        return new Cypher(`MATCH ${left.cypherRepr()}, ${right.cypherRepr()} MERGE (${left.symbol})${this.cypherRepr()}(${right.symbol})`, false);
     }
     query(left, right, result) {
-        return new exports.Cypher(`MATCH ${left.cypherRepr()}${this.cypherRepr()}${right.cypherRepr()} WHERE NOT ${right.symbol}:Provider AND NOT ${right.symbol}:User RETURN ${result}`, true);
+        return new Cypher(`MATCH ${left.cypherRepr()}${this.cypherRepr()}${right.cypherRepr()} WHERE NOT ${right.symbol}:Provider AND NOT ${right.symbol}:User RETURN ${result}`, true);
     }
     insert(left, right) {
         const query = `MATCH ${left.cypherRepr()} WITH * MERGE (${left.symbol})${this.cypherRepr()}${right.cypherRepr()} RETURN (${left.symbol})`;
-        return new exports.Cypher(query, false);
+        return new Cypher(query, false);
     }
     /**
      * Detach and delete the right node, leaving the left node pattern
@@ -250,7 +253,7 @@ class Link {
             MATCH ${left.cypherRepr()}${this.cypherRepr()}${right.cypherRepr()} 
             WHERE NOT ${right.symbol}:Provider
             DETACH DELETE ${right.symbol}`;
-        return new exports.Cypher(query, false);
+        return new Cypher(query, false);
     }
     /**
      * Detach and delete both the root node and the child nodes. Use
@@ -268,24 +271,7 @@ class Link {
             `WHERE NOT ${right.symbol}:Provider`,
             `DETACH DELETE ${left.symbol}, ${right.symbol}`
         ];
-        return new exports.Cypher(query.join(" "), false);
-    }
-    /**
-     * Outer wrapper for delete
-     */
-    static deleteAllOwned(auth) {
-        const allNodes = new GraphNode({}, "a", []);
-        const user = (0, exports.authClaim)(auth);
-        const link = new Link();
-        const { query } = link.delete(user, allNodes);
-        return (0, exports.connect)(query);
-    }
-    /**
-     * Execute query for linked nodes
-     */
-    static async fetchLinked(left, right) {
-        const { query } = (new Link()).query(left, right, right.symbol);
-        return (0, exports.transform)((await (0, exports.connect)(query))).map(node => node[1]);
+        return new Cypher(query.join(" "), false);
     }
 }
 exports.Link = Link;
