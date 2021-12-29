@@ -609,14 +609,14 @@ components:
           schema:
             type: object
             anyOf:  # change back to oneOf? needs discriminator
-              - $ref: '#/components/schemas/Thing'
-              - $ref: '#/components/schemas/Location'
-              - $ref: '#/components/schemas/HistoricalLocation'
-              - $ref: '#/components/schemas/DataStream'
-              - $ref: '#/components/schemas/Observation'
-              - $ref: '#/components/schemas/ObservedProperty'
-              - $ref: '#/components/schemas/Sensor'
-              - $ref: '#/components/schemas/FeatureOfInterest'
+              - $ref: '#/components/schemas/Things'
+              - $ref: '#/components/schemas/Locations'
+              - $ref: '#/components/schemas/HistoricalLocations'
+              - $ref: '#/components/schemas/DataStreams'
+              - $ref: '#/components/schemas/Observations'
+              - $ref: '#/components/schemas/ObservedProperties'
+              - $ref: '#/components/schemas/Sensors'
+              - $ref: '#/components/schemas/FeaturesOfInterest'
               - $ref: '#/components/schemas/Collection'
 
     CollectionUpdate:
@@ -662,14 +662,14 @@ components:
         application/json:
           schema:
             oneOf:
-              - $ref: '#/components/schemas/Thing'
-              - $ref: '#/components/schemas/Location'
-              - $ref: '#/components/schemas/HistoricalLocation'
-              - $ref: '#/components/schemas/DataStream'
-              - $ref: '#/components/schemas/Observation'
-              - $ref: '#/components/schemas/ObservedProperty'
-              - $ref: '#/components/schemas/Sensor'
-              - $ref: '#/components/schemas/FeatureOfInterest'
+              - $ref: '#/components/schemas/Things'
+              - $ref: '#/components/schemas/Locations'
+              - $ref: '#/components/schemas/HistoricalLocations'
+              - $ref: '#/components/schemas/DataStreams'
+              - $ref: '#/components/schemas/Observations'
+              - $ref: '#/components/schemas/ObservedProperties'
+              - $ref: '#/components/schemas/Sensors'
+              - $ref: '#/components/schemas/FeaturesOfInterest'
 
     EntityCollection:
       description: |
@@ -737,7 +737,7 @@ components:
 
   schemas:
 
-    Agent:
+    Agents:
       example:
         - name: Arthur Machen
         - name: Octavia Butler
@@ -840,14 +840,14 @@ components:
               description: Array of response data
               items:
                 oneOf:
-                  - $ref: '#/components/schemas/Thing'
-                  - $ref: '#/components/schemas/Location'
-                  - $ref: '#/components/schemas/HistoricalLocation'
-                  - $ref: '#/components/schemas/DataStream'
-                  - $ref: '#/components/schemas/Observation'
-                  - $ref: '#/components/schemas/ObservedProperty'
-                  - $ref: '#/components/schemas/Sensor'
-                  - $ref: '#/components/schemas/FeatureOfInterest'
+                  - $ref: '#/components/schemas/Things'
+                  - $ref: '#/components/schemas/Locations'
+                  - $ref: '#/components/schemas/HistoricalLocations'
+                  - $ref: '#/components/schemas/DataStreams'
+                  - $ref: '#/components/schemas/Observations'
+                  - $ref: '#/components/schemas/ObservedProperties'
+                  - $ref: '#/components/schemas/Sensors'
+                  - $ref: '#/components/schemas/FeaturesOfInterest'
         - $ref: '#/components/schemas/Collection'
 
     EntityClass:
@@ -888,7 +888,7 @@ components:
           description: |
             Short but useful explanation of what the entity is.
 
-    FeatureOfInterest:
+    FeaturesOfInterest:
       example:
         - name: Gulf of Maine Mesh
         - name: Midcoast Maine Mesh
@@ -924,7 +924,7 @@ components:
                   items:
                     type: object
 
-    Thing:
+    Things:
       example:
         - name: Land Ocean Biogeochemical Observatory
           description: |
@@ -1034,7 +1034,7 @@ components:
       default: "application/vnd.geo+json"
       description: The encoding rendered in the location response
 
-    Location:
+    Locations:
       example:
         - name: Fish Farm
           encodingType: application/json
@@ -1256,7 +1256,7 @@ components:
                   items:
                     type: object
 
-    HistoricalLocation:
+    HistoricalLocations:
       allOf:
         - $ref: '#/components/schemas/Entity'
         - type: object
@@ -1264,8 +1264,8 @@ components:
 
             entityClass:
               writeOnly: true
-              enum: [HistoricalLocation]
-              default: HistoricalLocation
+              enum: [HistoricalLocations]
+              default: HistoricalLocations
 
             encodingType:
               $ref: '#/components/schemas/LocationEncodingType'
@@ -1309,7 +1309,7 @@ components:
                   items:
                     type: object
 
-    Sensor:
+    Sensors:
       example:
         - name: SeaBird Electronics CTD
           description: A common oceanographic sensing package
@@ -1356,7 +1356,7 @@ components:
                   items:
                     type: object
 
-    DataStream:
+    DataStreams:
       example:
         - Things@iot.navigation:
             - name: [ Land Ocean Biogeochemical Observatory ]
@@ -1377,15 +1377,15 @@ components:
         - type: object
           description: |
 
-            DataStreams are collections of `Observations` from the same `Sensor`.
+            DataStreams are collections of `Observations` from the same `Sensors`.
 
           properties:
 
             entityClass:
               writeOnly: true
               type: string
-              enum: [DataStream]
-              default: DataStream
+              enum: [DataStreams]
+              default: DataStreams
 
             unitOfMeasurement:
               type: object
@@ -1451,7 +1451,7 @@ components:
             table:
               type: string
               description: |
-                Time series observations associated with a `DataStream` can be stored in the TimescaleDB.
+                Time series observations associated with a `DataStreams` can be stored in the TimescaleDB.
                 TimescaleDB is an extension of Postgres+Postgis, and this is SQL table reference to find and retrieve data.
 
             Observations@iot.navigation:
@@ -1517,7 +1517,7 @@ components:
                     type: object
 
 
-    Observation:
+    Observations:
       example: 
         - Datastreams@iot.navigation:
             - name: [ temperature ]
@@ -1600,7 +1600,7 @@ components:
                   items:
                     type: object
 
-    Task:
+    Tasks:
       example:
         - Locations@iot.navigation:
             - name: [Wharf]
@@ -1636,7 +1636,7 @@ components:
                       - type: string
                       - type: object
             
-    ObservedProperty:
+    ObservedProperties:
       example:
         - ObservedProperties@iot.navigation:
             - name: [ chlorophyll ]
@@ -1734,7 +1734,7 @@ components:
         - type: object
           description: |
             SpatioTemporal Asset Catalog object-linking collection object. Collections are generic, while some
-            SensorThings entities are special Collections. For instance, a `DataStream` is a collection of
+            SensorThings entities are special Collections. For instance, a `DataStreams` is a collection of
             `Observations`.
 
           properties:
