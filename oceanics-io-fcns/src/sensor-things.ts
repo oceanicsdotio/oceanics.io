@@ -2,38 +2,17 @@
  * Cloud function version of API
  */
 import type { Handler } from "@netlify/functions";
-import { catchAll, connect, GraphNode, Link, tokenClaim, parseFunctionsPath } from "../shared/driver";
-
-
-interface IEntity {
-  entity: string;
-  uuid?: string;
-}
-interface ISensorThings {
-  entity: string;
-  user: GraphNode;
-};
-interface IMutate extends ISensorThings {
-  uuid?: string;
-}
+import { catchAll, connect, tokenClaim, parseFunctionsPath, getLabelIndex, fetchLinked } from "./shared/driver";
+import { Node, Links } from "./shared/pkg/neritics";
 
 /**
  * Get an array of all collections by Node type
  */
 const index = async () => {
-  const { query } = GraphNode.allLabels();
-  const { records } = await connect(query);
-  const restricted = new Set(["Provider", "User"]);
-  //@ts-ignore
-  const fields = new Set(records.flatMap(({ _fields: [label] }) => label).filter(label => !restricted.has(label)));
-  const result = [...fields].map((label: string) => Object({
-    name: label,
-    url: `/api/${label}`
-  }));
   return {
     statusCode: 200,
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(result)
+    body: JSON.stringify(getLabelIndex())
   };
 }
 
@@ -47,8 +26,8 @@ const index = async () => {
  * 
  * Location data receives additional processing logic internally.
  */
-const create = async (left: GraphNode, right: GraphNode) => {
-  const cypher = (new Link("Create", 0, 0, "")).insert(left, right)
+const create = async (left: Node, right: Node) => {
+  const cypher = (new Links("Create", 0, 0, "")).insert(left, right)
   await connect(cypher.query)
   return { statusCode: 204 }
 }
@@ -58,8 +37,8 @@ const create = async (left: GraphNode, right: GraphNode) => {
  * 
  * by any single property. 
  */
-const metadata = async (left: GraphNode, right: GraphNode) => {
-  const value = await Link.fetchLinked(left, right);
+const metadata = async (left: Node, right: Node) => {
+  const value = await fetchLinked(left, right);
   return {
     statusCode: 200,
     headers: { "Content-Type": "application/json" },
@@ -75,10 +54,11 @@ const metadata = async (left: GraphNode, right: GraphNode) => {
  * handles PUT/PATCH requests when the node pattern includes
  * a uuid contained within parenthesis
  */
-const mutate = ({ entity, user }: IMutate) => {
-  // const [e, mutation] = parseAsNodes({}, {});
-  // const cypher = e.mutate(mutation);
-  // return connect(cypher.query);
+const mutate = (left: Node, right: Node) => {
+  return {
+    statusCode: 501,
+    body: JSON.stringify({ message: "Not Implemented" })
+  }
 }
 
 /**
@@ -91,9 +71,9 @@ const mutate = ({ entity, user }: IMutate) => {
  * labels
  * 
  */
-const remove = async (left: GraphNode, right: GraphNode) => {
+const remove = async (left: Node, right: Node) => {
 
-  const link = new Link();
+  const link = new Links();
   const { query } = link.deleteChild(left, right);
   await connect(query)
   return {
@@ -101,7 +81,7 @@ const remove = async (left: GraphNode, right: GraphNode) => {
   }
 }
 
-const join = (left: GraphNode, right: GraphNode) => {
+const join = (left: Node, right: Node) => {
   return {
     statusCode: 204
   }
@@ -128,8 +108,8 @@ const join = (left: GraphNode, right: GraphNode) => {
 //     return None, 204
 
 
-const drop = async (left: GraphNode, right: GraphNode) => {
-  const cypher = (new Link()).drop(left, right)
+const drop = async (left: Node, right: Node) => {
+  const cypher = (new Links()).drop(left, right)
   await connect(cypher.query)
   return {
     statusCode: 204
@@ -139,7 +119,7 @@ const drop = async (left: GraphNode, right: GraphNode) => {
 /**
  * Retrieve nodes that are linked with the left entity
  */
-const topology = (left: IEntity, right: IEntity) => {
+const topology = (left: Node, right: Node) => {
   // const link = new Link()
   // const cypher = link.query()
 
@@ -165,7 +145,7 @@ const topology = (left: IEntity, right: IEntity) => {
  */
 export const handler: Handler = async ({ headers, httpMethod, ...rest }) => {
 
-  let user: GraphNode;
+  let user: Node;
   try {
     const auth = headers["authorization"]
     const token = auth.split(":").pop();
@@ -199,7 +179,7 @@ export const handler: Handler = async ({ headers, httpMethod, ...rest }) => {
         body: JSON.stringify({ message: "Not Implemented" })
       }
     case "PUT1":
-      return catchAll(mutate)({});
+      return catchAll(mutate)(user, nodes[0])
     case "PUT2":
       return {
         statusCode: 501,

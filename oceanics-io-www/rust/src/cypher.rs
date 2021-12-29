@@ -17,6 +17,13 @@ pub mod cypher {
 
     #[wasm_bindgen]
     impl Cypher {
+        #[wasm_bindgen(constructor)]
+        pub fn new(query: String, read_only: bool) -> Self {
+            Cypher{
+                read_only,
+                query
+            }
+        }
         #[wasm_bindgen(getter)]
         pub fn query(&self) -> String {
             self.query.clone()
@@ -46,13 +53,15 @@ pub mod cypher {
                 label,
             }
         }
-        fn all_labels() -> Cypher {
+        #[wasm_bindgen(js_name = allLabels)]
+        pub fn all_labels() -> Cypher {
             Cypher {
                 query: String::from("CALL db.labels()"),
                 read_only: true,
             }
         }
-        fn pattern_only(&self) -> String {
+        #[wasm_bindgen(js_name = patternOnly)]
+        pub fn pattern_only(&self) -> String {
             let pattern: String;
             match &self.pattern {
                 None => pattern = String::from(""),
@@ -60,7 +69,9 @@ pub mod cypher {
             }
             pattern
         }
-        fn symbol(&self) -> String {
+
+        #[wasm_bindgen(getter)]
+        pub fn symbol(&self) -> String {
             let symbol: String;
             match &self.symbol {
                 None => symbol = String::from("n"),
@@ -71,7 +82,8 @@ pub mod cypher {
         /**
          * Format the cypher query representation of the Node data structure
          */
-        fn cypher_repr(&self) -> String {
+        #[wasm_bindgen(js_name = cypherRepr)]
+        pub fn cypher_repr(&self) -> String {
             let label: String;
             match &self.label {
                 None => label = String::from(""),
@@ -112,8 +124,9 @@ pub mod cypher {
         pub fn delete(&self) -> Cypher {
             Cypher {
                 query: format!(
-                    "MATCH {} DETACH DELETE {}",
+                    "MATCH {} WHERE NOT {}:Provider DETACH DELETE {}",
                     self.cypher_repr(),
+                    self.symbol(),
                     self.symbol()
                 ),
                 read_only: false,
@@ -186,7 +199,7 @@ pub mod cypher {
          */
         pub fn add(&self) -> Cypher {
             Cypher {
-                query: format!("CREATE INDEX ON : {}({})", self.label, self.key),
+                query: format!("CREATE INDEX FOR (n:{}) ON (n.{})", self.label, self.key),
                 read_only: false,
             }
         }
@@ -312,12 +325,65 @@ pub mod cypher {
             Cypher {
                 read_only: true,
                 query: format!(
-                    "MATCH {}{}{} RETURN {}",
+                    "MATCH {}{}{} WHERE NOT {}:Provider AND NOT {}:User RETURN {}",
                     left.cypher_repr(),
                     self.cypher_repr(),
                     right.cypher_repr(),
+                    right.symbol(),
+                    right.symbol(),
                     result
                 ),
+            }
+        }
+
+        pub fn insert(&self, left: &Node, right: &Node) -> Cypher {
+            Cypher {
+                read_only: false,
+                query: format!(
+                    "MATCH {} WITH * MERGE ({}){}{} RETURN ({})",
+                    left.cypher_repr(),
+                    left.symbol(),
+                    self.cypher_repr(),
+                    right.cypher_repr(),
+                    left.symbol()
+                )
+            }
+        }
+
+
+        /**
+         * Detach and delete the right node, leaving the left node pattern
+         * in the graph. For example, use this to delete a single node or
+         * collection (right), owned by a user (left).
+         */
+        #[wasm_bindgen(js_name = deleteChild)]
+        pub fn delete_child(&self, left: &Node, right: &Node) -> Cypher {
+            Cypher {
+                read_only: false,
+                query: format!("MATCH {}{}{} WHERE NOT {}:Provider DETACH DELETE {}", left.cypher_repr(), self.cypher_repr(), right.cypher_repr(), right.symbol(), right.symbol())
+            } 
+        }
+
+        /**
+         * Detach and delete both the root node and the child nodes. Use
+         * this to delete a pattern, for example removing a user account and
+         * all owned data. In some cases this can leave orphan nodes,
+         * but these should always have at least one link back to a User or
+         * Provider, so can be cleaned up later. 
+         */
+        pub fn delete(&self, left: &Node, right: &Node) -> Cypher {
+            Cypher {
+                read_only: false,
+                query: format!(
+                    "MATCH {} OPTIONAL MATCH ({}){}{} WHERE NOT {}: Provider DETACH DELETE {}, {}", 
+                    left.cypher_repr(), 
+                    left.symbol(), 
+                    self.cypher_repr(), 
+                    right.cypher_repr(), 
+                    right.symbol(), 
+                    left.symbol(), 
+                    right.symbol()
+                )
             }
         }
     }
