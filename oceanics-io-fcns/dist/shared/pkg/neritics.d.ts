@@ -437,6 +437,36 @@ export class Links {
 */
   query(left: Node, right: Node, result: string): Cypher;
 /**
+* @param {Node} left
+* @param {Node} right
+* @returns {Cypher}
+*/
+  insert(left: Node, right: Node): Cypher;
+/**
+*
+*         * Detach and delete the right node, leaving the left node pattern
+*         * in the graph. For example, use this to delete a single node or
+*         * collection (right), owned by a user (left).
+*         
+* @param {Node} left
+* @param {Node} right
+* @returns {Cypher}
+*/
+  deleteChild(left: Node, right: Node): Cypher;
+/**
+*
+*         * Detach and delete both the root node and the child nodes. Use
+*         * this to delete a pattern, for example removing a user account and
+*         * all owned data. In some cases this can leave orphan nodes,
+*         * but these should always have at least one link back to a User or
+*         * Provider, so can be cleaned up later. 
+*         
+* @param {Node} left
+* @param {Node} right
+* @returns {Cypher}
+*/
+  delete(left: Node, right: Node): Cypher;
+/**
 */
   cost?: number;
 /**
@@ -608,22 +638,18 @@ export class Node {
 /**
 * @returns {Cypher}
 */
-  static all_labels(): Cypher;
+  static allLabels(): Cypher;
 /**
 * @returns {string}
 */
-  pattern_only(): string;
-/**
-* @returns {string}
-*/
-  symbol(): string;
+  patternOnly(): string;
 /**
 *
 *         * Format the cypher query representation of the Node data structure
 *         
 * @returns {string}
 */
-  cypher_repr(): string;
+  cypherRepr(): string;
 /**
 *
 *         * Query to delete a node pattern from the graph.
@@ -651,6 +677,10 @@ export class Node {
 * @returns {Cypher}
 */
   create(): Cypher;
+/**
+* @returns {string}
+*/
+  readonly symbol: string;
 }
 /**
 *

@@ -598,7 +598,7 @@ function getUint8ClampedMemory0() {
 function getClampedArrayU8FromWasm0(ptr, len) {
     return getUint8ClampedMemory0().subarray(ptr / 1, ptr / 1 + len);
 }
-function __wbg_adapter_276(arg0, arg1, arg2, arg3) {
+function __wbg_adapter_279(arg0, arg1, arg2, arg3) {
     wasm.wasm_bindgen__convert__closures__invoke2_mut__he635f268f2714aeb(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
 }
 
@@ -1171,6 +1171,51 @@ class Links {
         var ret = wasm.links_query(this.ptr, left.ptr, right.ptr, ptr0, len0);
         return Cypher.__wrap(ret);
     }
+    /**
+    * @param {Node} left
+    * @param {Node} right
+    * @returns {Cypher}
+    */
+    insert(left, right) {
+        _assertClass(left, Node);
+        _assertClass(right, Node);
+        var ret = wasm.links_insert(this.ptr, left.ptr, right.ptr);
+        return Cypher.__wrap(ret);
+    }
+    /**
+    *
+    *         * Detach and delete the right node, leaving the left node pattern
+    *         * in the graph. For example, use this to delete a single node or
+    *         * collection (right), owned by a user (left).
+    *
+    * @param {Node} left
+    * @param {Node} right
+    * @returns {Cypher}
+    */
+    deleteChild(left, right) {
+        _assertClass(left, Node);
+        _assertClass(right, Node);
+        var ret = wasm.links_deleteChild(this.ptr, left.ptr, right.ptr);
+        return Cypher.__wrap(ret);
+    }
+    /**
+    *
+    *         * Detach and delete both the root node and the child nodes. Use
+    *         * this to delete a pattern, for example removing a user account and
+    *         * all owned data. In some cases this can leave orphan nodes,
+    *         * but these should always have at least one link back to a User or
+    *         * Provider, so can be cleaned up later.
+    *
+    * @param {Node} left
+    * @param {Node} right
+    * @returns {Cypher}
+    */
+    delete(left, right) {
+        _assertClass(left, Node);
+        _assertClass(right, Node);
+        var ret = wasm.links_delete(this.ptr, left.ptr, right.ptr);
+        return Cypher.__wrap(ret);
+    }
 }
 module.exports.Links = Links;
 /**
@@ -1450,17 +1495,17 @@ class Node {
     /**
     * @returns {Cypher}
     */
-    static all_labels() {
-        var ret = wasm.node_all_labels();
+    static allLabels() {
+        var ret = wasm.node_allLabels();
         return Cypher.__wrap(ret);
     }
     /**
     * @returns {string}
     */
-    pattern_only() {
+    patternOnly() {
         try {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            wasm.node_pattern_only(retptr, this.ptr);
+            wasm.node_patternOnly(retptr, this.ptr);
             var r0 = getInt32Memory0()[retptr / 4 + 0];
             var r1 = getInt32Memory0()[retptr / 4 + 1];
             return getStringFromWasm0(r0, r1);
@@ -1472,7 +1517,7 @@ class Node {
     /**
     * @returns {string}
     */
-    symbol() {
+    get symbol() {
         try {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
             wasm.node_symbol(retptr, this.ptr);
@@ -1490,10 +1535,10 @@ class Node {
     *
     * @returns {string}
     */
-    cypher_repr() {
+    cypherRepr() {
         try {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            wasm.node_cypher_repr(retptr, this.ptr);
+            wasm.node_cypherRepr(retptr, this.ptr);
             var r0 = getInt32Memory0()[retptr / 4 + 0];
             var r1 = getInt32Memory0()[retptr / 4 + 1];
             return getStringFromWasm0(r0, r1);
@@ -2238,7 +2283,7 @@ module.exports.__wbg_new_b1d61b5687f5e73a = function(arg0, arg1) {
             const a = state0.a;
             state0.a = 0;
             try {
-                return __wbg_adapter_276(a, state0.b, arg0, arg1);
+                return __wbg_adapter_279(a, state0.b, arg0, arg1);
             } finally {
                 state0.a = a;
             }
@@ -2345,7 +2390,7 @@ module.exports.__wbindgen_memory = function() {
     return addHeapObject(ret);
 };
 
-module.exports.__wbindgen_closure_wrapper737 = function(arg0, arg1, arg2) {
+module.exports.__wbindgen_closure_wrapper746 = function(arg0, arg1, arg2) {
     var ret = makeMutClosure(arg0, arg1, 92, __wbg_adapter_24);
     return addHeapObject(ret);
 };

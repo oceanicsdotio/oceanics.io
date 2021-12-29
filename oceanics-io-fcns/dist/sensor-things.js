@@ -1,25 +1,16 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.handler = void 0;
-const driver_1 = require("../shared/driver");
-;
+const driver_1 = require("./shared/driver");
+const neritics_1 = require("./shared/pkg/neritics");
 /**
  * Get an array of all collections by Node type
  */
 const index = async () => {
-    const { query } = driver_1.GraphNode.allLabels();
-    const { records } = await (0, driver_1.connect)(query);
-    const restricted = new Set(["Provider", "User"]);
-    //@ts-ignore
-    const fields = new Set(records.flatMap(({ _fields: [label] }) => label).filter(label => !restricted.has(label)));
-    const result = [...fields].map((label) => Object({
-        name: label,
-        url: `/api/${label}`
-    }));
     return {
         statusCode: 200,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(result)
+        body: JSON.stringify((0, driver_1.getLabelIndex)())
     };
 };
 /**
@@ -33,7 +24,7 @@ const index = async () => {
  * Location data receives additional processing logic internally.
  */
 const create = async (left, right) => {
-    const cypher = (new driver_1.Link("Create", 0, 0, "")).insert(left, right);
+    const cypher = (new neritics_1.Links("Create", 0, 0, "")).insert(left, right);
     await (0, driver_1.connect)(cypher.query);
     return { statusCode: 204 };
 };
@@ -43,7 +34,7 @@ const create = async (left, right) => {
  * by any single property.
  */
 const metadata = async (left, right) => {
-    const value = await driver_1.Link.fetchLinked(left, right);
+    const value = await (0, driver_1.fetchLinked)(left, right);
     return {
         statusCode: 200,
         headers: { "Content-Type": "application/json" },
@@ -58,10 +49,11 @@ const metadata = async (left, right) => {
  * handles PUT/PATCH requests when the node pattern includes
  * a uuid contained within parenthesis
  */
-const mutate = ({ entity, user }) => {
-    // const [e, mutation] = parseAsNodes({}, {});
-    // const cypher = e.mutate(mutation);
-    // return connect(cypher.query);
+const mutate = (left, right) => {
+    return {
+        statusCode: 501,
+        body: JSON.stringify({ message: "Not Implemented" })
+    };
 };
 /**
  * Delete a pattern from the graph. Be careful, this can
@@ -74,7 +66,7 @@ const mutate = ({ entity, user }) => {
  *
  */
 const remove = async (left, right) => {
-    const link = new driver_1.Link();
+    const link = new neritics_1.Links();
     const { query } = link.deleteChild(left, right);
     await (0, driver_1.connect)(query);
     return {
@@ -102,7 +94,7 @@ const join = (left, right) => {
 //         session.write_transaction(lambda tx: tx.run(cypher.query))
 //     return None, 204
 const drop = async (left, right) => {
-    const cypher = (new driver_1.Link()).drop(left, right);
+    const cypher = (new neritics_1.Links()).drop(left, right);
     await (0, driver_1.connect)(cypher.query);
     return {
         statusCode: 204
@@ -164,7 +156,7 @@ const handler = async ({ headers, httpMethod, ...rest }) => {
                 body: JSON.stringify({ message: "Not Implemented" })
             };
         case "PUT1":
-            return (0, driver_1.catchAll)(mutate)({});
+            return (0, driver_1.catchAll)(mutate)(user, nodes[0]);
         case "PUT2":
             return {
                 statusCode: 501,

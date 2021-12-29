@@ -1,18 +1,45 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.handler = void 0;
 /**
  * Cloud function version of API
  */
 const driver_1 = require("./shared/driver");
+const neritics_1 = require("./shared/pkg/neritics");
+const crypto_1 = __importDefault(require("crypto"));
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+/**
+ * Securely store and anc compare passwords
+ */
+const hashPassword = (password, secret) => crypto_1.default.pbkdf2Sync(password, secret, 100000, 64, "sha512").toString("hex");
+/**
+ * Matching pattern based on basic auth information
+ */
+const authClaim = ({ email = "", password = "", secret = "" }) => new neritics_1.Node((0, driver_1.serialize)({ email, credential: hashPassword(password, secret) }), null, "User");
 /**
  * Create a new account using email address. We don't perform
  * any validation of inputs here, such as for email address and
  * excluded passwords. Assume this is delegated to frontend.
  */
-const register = async (auth) => {
+const register = async ({ apiKey, password, secret, email }) => {
     // Empty array if there was an error
-    const records = await (0, driver_1.newUserQuery)(auth);
+    const provider = new neritics_1.Node((0, driver_1.serialize)({ apiKey }), "p", "Provider");
+    const user = new neritics_1.Node((0, driver_1.serialize)({
+        email,
+        uuid: (0, driver_1.uuid4)(),
+        credential: hashPassword(password, secret)
+    }), "u", "User");
+    const { query } = new neritics_1.Links("Register", 0, 0, "").insert(provider, user);
+    let records;
+    try {
+        records = (0, driver_1.transform)(await (0, driver_1.connect)(query));
+    }
+    catch {
+        records = [];
+    }
     let statusCode;
     let message;
     if (records.length !== 1) {
@@ -36,7 +63,7 @@ const register = async (auth) => {
  * information needed when validating access to data.
  */
 const getToken = async (auth) => {
-    const records = await (0, driver_1.authClaim)(auth).fetch();
+    const records = (0, driver_1.transform)(await (0, driver_1.connect)(authClaim(auth).load().query));
     let statusCode;
     let body;
     if (records.length !== 1) {
@@ -46,7 +73,7 @@ const getToken = async (auth) => {
     else {
         statusCode = 200;
         const { uuid } = records[0][1];
-        const token = (0, driver_1.createToken)(uuid, process.env.SIGNING_KEY);
+        const token = jsonwebtoken_1.default.sign({ uuid }, process.env.SIGNING_KEY, { expiresIn: 3600 });
         body = JSON.stringify({ token });
     }
     return {
@@ -59,12 +86,12 @@ const getToken = async (auth) => {
  * Update account information
  */
 const manage = async ({ token }) => {
-    const records = await (0, driver_1.tokenClaim)(token, process.env.SIGNING_KEY).fetch();
+    const records = (0, driver_1.transform)(await (0, driver_1.connect)((0, driver_1.tokenClaim)(token, process.env.SIGNING_KEY).load().query));
     let statusCode;
     let body;
     if (records.length !== 1) {
-        statusCode = 403,
-            body = JSON.stringify({ message: "Unauthorized" });
+        statusCode = 403;
+        body = JSON.stringify({ message: "Unauthorized" });
     }
     else {
         // const [previous, insert] = parseAsNodes([{ uuid: records[0][1].uuid }, { password, email }]);
@@ -86,7 +113,10 @@ const manage = async ({ token }) => {
  * could be deleted.
  */
 const remove = async (auth) => {
-    await driver_1.Link.deleteAllOwned(auth);
+    const user = authClaim(auth);
+    const allNodes = new neritics_1.Node(undefined, "a", undefined);
+    const { query } = (new neritics_1.Links()).delete(user, allNodes);
+    await (0, driver_1.connect)(query);
     return {
         statusCode: 204
     };
@@ -103,23 +133,22 @@ const remove = async (auth) => {
  */
 const handler = async ({ headers, body, httpMethod }) => {
     var _a;
-    let { email, password, apiKey, secret } = JSON.parse(["POST", "PUT"].includes(httpMethod) ? body : "{}");
+    let data = JSON.parse(["POST", "PUT"].includes(httpMethod) ? body : "{}");
     const auth = (_a = headers["authorization"]) !== null && _a !== void 0 ? _a : "";
+    const [email, password, secret] = auth.split(":");
     switch (httpMethod) {
         // Get access token
         case "GET":
-            [email, password, secret] = auth.split(":");
             return (0, driver_1.catchAll)(getToken)({ email, password, secret });
         // Register new User
         case "POST":
-            return (0, driver_1.catchAll)(register)({ email, password, secret, apiKey });
+            return (0, driver_1.catchAll)(register)(data);
         // Update User information
         case "PUT":
             const [_, token] = auth.split(":");
-            return (0, driver_1.catchAll)(manage)({ token, email, password });
+            return (0, driver_1.catchAll)(manage)({ token, ...data });
         // Remove User and all attached nodes 
         case "DELETE":
-            [email, password, secret] = auth.split(":");
             return (0, driver_1.catchAll)(remove)({ email, password, secret });
         // Endpoint options
         case "OPTIONS":
