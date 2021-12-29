@@ -1,13 +1,22 @@
 /**
  * Cloud function version of API
  */
-import { connect, transform, catchAll, serialize, tokenClaim, uuid4 } from "./shared/driver";
-import { Node, Links } from "./shared/pkg/neritics"
-import type { IAuth } from "./shared/driver";
+import { connect, transform, catchAll, serialize, tokenClaim } from "./shared/driver";
+import { Node, Links } from "./shared/pkg/neritics";
 import type { Handler } from "@netlify/functions";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
 
+/**
+ * Generic interface for all of the method-specific handlers.
+ */
+ export interface IAuth {
+  email: string;
+  password: string;
+  secret: string;
+  apiKey?: string;
+  token?: string;
+}
 
 /**
  * Securely store and anc compare passwords
@@ -34,7 +43,7 @@ const register = async ({ apiKey, password, secret, email }: IAuth) => {
   const provider = new Node(serialize({ apiKey }), "p", "Provider");
   const user = new Node(serialize({
     email,
-    uuid: uuid4(),
+    uuid: crypto.randomUUID().replace(/-/g, ""),
     credential: hashPassword(password, secret)
   }), "u", "User");
   const { query } = new Links("Register", 0, 0, "").insert(provider, user);
