@@ -3,6 +3,7 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 import { Node } from "./pkg/neritics";
 import neo4j from "neo4j-driver";
 
+
 type Properties = { [key: string]: any };
 
 /**

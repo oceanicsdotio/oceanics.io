@@ -6,6 +6,7 @@ import { Node, Links } from "./shared/pkg/neritics";
 import type { Handler } from "@netlify/functions";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
+import {hashPassword} from "oceanics-io-client/dist/openapi";
 
 /**
  * Generic interface for all of the method-specific handlers.
@@ -17,13 +18,6 @@ import jwt from "jsonwebtoken";
   apiKey?: string;
   token?: string;
 }
-
-/**
- * Securely store and anc compare passwords
- */
-const hashPassword = (password: string, secret: string) =>
-  crypto.pbkdf2Sync(password, secret, 100000, 64, "sha512").toString("hex");
-
 
 /**
  * Matching pattern based on basic auth information

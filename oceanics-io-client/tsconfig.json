@@ -16,6 +16,6 @@
       "rootDir": "./src"
     },
     "include": [
-        "**/*.ts", "../oceanics-io-client/openapi.ts",
+        "**/*.ts",
       ],
   }

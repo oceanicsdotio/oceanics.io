@@ -3,15 +3,19 @@
     "workspaces": [
         "oceanics-io-www",
         "oceanics-io-ui",
-        "oceanics-io-fcns"
+        "oceanics-io-fcns",
+        "oceanics-io-client"
     ],
     "packageManager": "yarn@3.1.0",
     "dependencies": {
+        "@apidevtools/swagger-parser": "^10.0.3",
         "@netlify/functions": "^0.10.0",
+        "ajv": "^8.8.2",
         "aws-sdk": "^2.1036.0",
         "jsonwebtoken": "^8.5.1",
         "neo4j-driver": "^4.4.1",
-        "stripe": "^8.195.0"
+        "stripe": "^8.195.0",
+        "yaml": "^1.10.2"
     },
     "devDependencies": {
         "@types/jsonwebtoken": "^8.5.6",
