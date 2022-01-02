@@ -305,6 +305,11 @@ describe("Sensing API", function () {
    * in expected format.
    */
   describe("Create nodes", function () {
+    /**
+     * All Nodes of the same type are created inside a single test, 
+     * so sometimes will timeout using the default value of 2000
+     */
+    this.timeout(5000);
 
     const validateBatch = async (batchPromises) => {
       const responses = await batchPromises;

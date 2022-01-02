@@ -4,8 +4,6 @@ import YAML from "yaml";
 import Ajv from "ajv";
 
 
-
-
 type Schema = {
   name: string;
   schema: {
@@ -182,10 +180,3 @@ static buildView = ({ parameters, requestBody }: IBuildView) => {
   }
 }
 }
-
-
-
-
-
-
-
