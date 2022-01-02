@@ -3,17 +3,8 @@ import SwaggerParser from "@apidevtools/swagger-parser";
 import YAML from "yaml";
 import Ajv from "ajv";
 
-/**
- * Cloud function version of API
- */
- import crypto from "crypto";
- 
- 
- /**
-  * Securely store and anc compare passwords
-  */
-export const hashPassword = (password: string, secret: string) =>
-   crypto.pbkdf2Sync(password, secret, 100000, 64, "sha512").toString("hex");
+
+
 
 type Schema = {
   name: string;
@@ -74,26 +65,37 @@ type UnpackedPair = [string, Schema]
    .split("\n")
    .filter((paragraph: string) => paragraph)
 
-class Specification {
-
+export class Specification {
+  url: string;
   api: any;
+  ajv: Ajv;
 
   constructor(url: string) {
-    this.api = Specification.load(url)
+    this.url = url;
+    this.ajv = new Ajv();
   }
   /**
    * Load and validate the OpenAPI specification. 
    */
-  static async load(url: string) {
+  async load() {
     try {
-      let api = await SwaggerParser.validate(url);
+      let api = await SwaggerParser.validate(this.url);
       api.info.description = parseYamlText(api.info.description ?? "")      
-      return api;
+      this.api = api;
     }
     catch (err) {
       return err;
     }
   }
+
+  validate(schema: object, data: object) {
+    const valid = this.ajv.validate(schema, data);
+    return {
+      valid,
+      errors: this.ajv.errors
+    }
+  }
+
 
 
   /**

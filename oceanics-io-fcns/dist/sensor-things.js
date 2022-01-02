@@ -3,6 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.handler = void 0;
 const driver_1 = require("./shared/driver");
 const neritics_1 = require("./shared/pkg/neritics");
+const openapi_1 = require("./shared/openapi");
+const Api = new openapi_1.Specification("https://www.oceanics.io/bathysphere.yaml");
 /**
  * Get an array of all collections by Node type
  */
@@ -125,6 +127,16 @@ const handler = async ({ headers, httpMethod, ...rest }) => {
             statusCode: 403,
             body: JSON.stringify({ message: "Unauthorized" }),
             headers: { "Content-Type": "application/json" }
+        };
+    }
+    try {
+        await Api.load();
+        console.log({ description: Api.api });
+    }
+    catch {
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ message: "Problem loading API spec for validation" })
         };
     }
     const nodes = (0, driver_1.parseFunctionsPath)({ httpMethod, ...rest });

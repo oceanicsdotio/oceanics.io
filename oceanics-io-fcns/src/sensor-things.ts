@@ -4,6 +4,9 @@
 import type { Handler } from "@netlify/functions";
 import { catchAll, connect, tokenClaim, parseFunctionsPath, transform } from "./shared/driver";
 import { Node, Links } from "./shared/pkg/neritics";
+import {Specification} from "./shared/openapi";
+
+const Api = new Specification("https://www.oceanics.io/bathysphere.yaml")
 
 /**
  * Get an array of all collections by Node type
@@ -116,6 +119,23 @@ const topology = (left: Node, right: Node) => {
   }
 }
 
+/**
+ * Make sure we don't leak anything in an error message...
+ */
+ export function validateRequestBody(wrapped: (...args: any) => any) {
+  return (...args: any) => {
+    try {
+      return wrapped(...args);
+    } catch {
+      return {
+        statusCode: 405,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: "Bad Request" })
+      }
+    }
+  }
+}
+
 
 /**
  * Browse saved results for a single model configuration. 
@@ -126,8 +146,8 @@ const topology = (left: Node, right: Node) => {
  
  * You can only access results for that test, although multiple collections * may be stored in a single place 
  */
-export const handler: Handler = async ({ headers, httpMethod, ...rest }) => {
-
+export const handler: Handler = async ({ headers, httpMethod, body, path }) => {
+  
   let user: Node;
   try {
     const auth = headers["authorization"]
@@ -140,8 +160,17 @@ export const handler: Handler = async ({ headers, httpMethod, ...rest }) => {
       headers: { "Content-Type": "application/json" }
     }
   }
+  try {
+    await Api.load();
+  } catch {
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ message: "Problem loading API spec for validation"})
+    }
+  }
+  
 
-  const nodes = parseFunctionsPath({ httpMethod, ...rest })
+  const nodes = parseFunctionsPath({ httpMethod, body, path })
   const pattern = `${httpMethod}${nodes.length}`
 
   switch (pattern) {

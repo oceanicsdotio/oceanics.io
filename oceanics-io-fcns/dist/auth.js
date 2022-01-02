@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.handler = void 0;
+exports.handler = exports.hashPassword = void 0;
 /**
  * Cloud function version of API
  */
@@ -11,11 +11,15 @@ const driver_1 = require("./shared/driver");
 const neritics_1 = require("./shared/pkg/neritics");
 const crypto_1 = __importDefault(require("crypto"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const openapi_1 = require("oceanics-io-client/dist/openapi");
+/**
+  * Securely store and anc compare passwords
+  */
+const hashPassword = (password, secret) => crypto_1.default.pbkdf2Sync(password, secret, 100000, 64, "sha512").toString("hex");
+exports.hashPassword = hashPassword;
 /**
  * Matching pattern based on basic auth information
  */
-const authClaim = ({ email = "", password = "", secret = "" }) => new neritics_1.Node((0, driver_1.serialize)({ email, credential: (0, openapi_1.hashPassword)(password, secret) }), null, "User");
+const authClaim = ({ email = "", password = "", secret = "" }) => new neritics_1.Node((0, driver_1.serialize)({ email, credential: (0, exports.hashPassword)(password, secret) }), null, "User");
 /**
  * Create a new account using email address. We don't perform
  * any validation of inputs here, such as for email address and
@@ -27,7 +31,7 @@ const register = async ({ apiKey, password, secret, email }) => {
     const user = new neritics_1.Node((0, driver_1.serialize)({
         email,
         uuid: crypto_1.default.randomUUID().replace(/-/g, ""),
-        credential: (0, openapi_1.hashPassword)(password, secret)
+        credential: (0, exports.hashPassword)(password, secret)
     }), "u", "User");
     const { query } = new neritics_1.Links("Register", 0, 0, "").insert(provider, user);
     let records;
