@@ -2,9 +2,8 @@
 
 [![Netlify Status](https://api.netlify.com/api/v1/badges/ad77195f-da0a-428f-ad2d-8dc5f45b3858/deploy-status)](https://app.netlify.com/sites/oceanicsdotio/deploys)
 
-
 <p align="center">
-  <img width="66%" src="https://www.oceanics.io/assets/dagan-sprite.gif">
+  <img width="60%" src="https://www.oceanics.io/assets/dagan-sprite.gif">
 </p>
 
 ## Contents
@@ -12,12 +11,11 @@
 - [Oceanics.io](#oceanicsio)
   - [Contents](#contents)
   - [About](#about)
-  - [Developers](#developers)
-    - [Web application](#web-application)
-    - [Environment](#environment)
-    - [Populating database](#populating-database)
-    - [Modifying the web API](#modifying-the-web-api)
-    - [Neo4j](#neo4j)
+  - [Web application](#web-application)
+  - [Environment](#environment)
+  - [Populating database](#populating-database)
+  - [Modifying the web API](#modifying-the-web-api)
+  - [Neo4j](#neo4j)
 
 ## About
 
@@ -27,9 +25,7 @@ The interface and utilities ingest sensor and model data and metadata, and parse
 
 Software is maintained by Oceanicsdotio LLC under the [MIT license](https://github.com/oceanics-io/oceanics.io/blob/main/LICENSE), and is provided as is with no warranty or guarantee.
 
-## Developers
-
-### Web application
+## Web application
 
 We use a yarn monorepo to manage code. The top-level directory `/` contains this `README.md` along with various configuration files and scripts for linting, compiling, bundling, and deploying the site.
 
@@ -41,7 +37,7 @@ Source code for Netlify serverless functions is in `oceanics-io-fcns/`. These ar
  
 Static assets are hosted on Netlify. When new commits are checked into the Github repository, the site is built and deployed to [https://www.oceanics.io](https://www.oceanics.io).
 
-### Environment
+## Environment
 
 There must also be several environment variables active for things to work:
 
@@ -60,10 +56,9 @@ There must also be several environment variables active for things to work:
 - `SERVICE_ACCOUNT_SECRET`: string for salting service key password
 - `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN`: mapbox access token for map interface
 
+## Populating database
 
-### Populating database
-
-Testing populates the connected database with the information described in `oceanics-io-www/public/assets/bathysphere.yml`. The default entities are semi-fictitious and won't suit your needs. Use them as examples to make your own.
+Testing populates the connected database with the examples described in `oceanics-io-www/public/bathysphere.yaml`. The default entities are semi-fictitious and won't suit your needs. Use them as examples to make your own.
 
 Find an entry like this and make a copy, replacing it with your information:
 
@@ -79,12 +74,11 @@ spec:
 
 Delete the `owner: true` from the Oceanicsdotio entry. Delete any default Providers that you don't want populated in the graph. These each have an API registration key created, so are not granted access rights by default and are safe to keep.  
 
-
-### Modifying the web API
+## Modifying the web API
 
 Changes need to be made in at least two places if you want to add or modify a data model. This is the intended behavior, as it allows the API specification to act as contract with front end clients.
 
-Suppose you want a new graph entity `Missions`, as a pattern for connecting data from a series of operations. This could be implemented with `Collections`, or it could be a new subtype of `Entity` that logically connects `Things`, `Locations`, and either `DataStreams` for post-hoc analysis or `TaskingCapabilities` for planning.
+Suppose you want a new subtype of `Entity` called `Missions`, as a pattern for connecting data from a series of operations. This could logically connect `Things`, `Locations`, and either `DataStreams` for post-hoc analysis or `TaskingCapabilities` for planning.
 
 First declare this in `oceanics-io/public/bathysphere.yaml` under `components/schemas`.
 
@@ -112,7 +106,7 @@ Here, an example:
                     default: "curl https://some-service-endpoints | ./blah.sh"
                   threshold:
                     type: float
-                  flag"
+                  flag:
                     type: bool
 
             Locations:
@@ -168,8 +162,7 @@ This now needs to be referenced in `EntityCollection:` and `EntityClass:` schema
 
 Default values should be undefined to allow search algorithms to use generic instances, `Missions()` or `Missions(name="Operation Ivy")` as a matching patterns. 
 
-
-### Neo4j
+## Neo4j
 
 You can run the database manager in an [official Neo4j container image](https://hub.docker.com/_/neo4j/), or use a managed service that supports the cypher query language. [Cypher](https://neo4j.com/docs/cypher-refcard/current/) is the Neo4j query language. Either cypher or `graphql` can be used to build the database, traverse nodes and edges, and return data.
 
