@@ -4,7 +4,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 // https://stackoverflow.com/questions/52112948/whats-the-return-type-of-a-dynamic-import
-type ModuleType = typeof import("../../rust/pkg");
+type ModuleType = typeof import("oceanics-io-wasm/pkg");
 
 /**
  * Basic single-threaded runtime.
@@ -33,7 +33,7 @@ export const useWasmRuntime = () => {
     useEffect(() => {
         try {
             (async () => {
-                const wasm = await import("../../rust/pkg");
+                const wasm = await import("oceanics-io-wasm/pkg");
                 wasm.panic_hook();
                 setRuntime(wasm);
             })()   

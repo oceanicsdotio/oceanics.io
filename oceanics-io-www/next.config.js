@@ -31,7 +31,7 @@ module.exports = {
     // From https://github.com/wasm-tool/wasm-pack-plugin
     config.plugins.unshift(
       new WasmPackPlugin({
-        crateDirectory: resolve("./rust"),
+        crateDirectory: resolve("../oceanics-io-wasm"),
         args: "--log-level info",
       })
     );

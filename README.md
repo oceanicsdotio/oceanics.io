@@ -19,23 +19,23 @@
 
 ## About
 
-Oceanics.io is a web application for portable high-performance computing and visualization.
+Oceanics.io is a web application for portable high-performance computing and visualization. The interface and utilities ingest sensor and model data and metadata, and parse them into discoverable databases. Simulations and analyses run in the browser using Web Assembly, client side parallelism, and GPU acceleration. 
 
-The interface and utilities ingest sensor and model data and metadata, and parse them into discoverable databases. Simulations run in the browser using Web Assembly, client side parallelism, and GPU acceleration. Backend services are provided through [bathysphere, our graph-based API](https://www.oceanics.io/bathysphere) for proprietary ocean data.
-
-Software is maintained by Oceanicsdotio LLC under the [MIT license](https://github.com/oceanics-io/oceanics.io/blob/main/LICENSE), and is provided as is with no warranty or guarantee.
+This document describes this repository, and steps to modify the API. To use the software, [see documentation for our API](https://www.oceanics.io/bathysphere). Software is provided by Oceanicsdotio LLC under the [MIT license](https://github.com/oceanics-io/oceanics.io/blob/main/LICENSE) as is with no warranty or guarantee. 
 
 ## Web application
 
-We use a yarn monorepo to manage code. The top-level directory `/` contains this `README.md` along with various configuration files and scripts for linting, compiling, bundling, and deploying the site.
+We use a `yarn` monorepo and workspaces to manage code. The environment configuration is in `.yarnrc.yml`. The top-level directory `/` also contains this `README.md` along with configuration files and scripts for linting, compiling, bundling, and deploying the site.
 
-The `oceanics-io-www` workspace contains the frontend applications, written in TypeScript and Rust. Client side interaction is accomplished with React Hooks and browser APIs. Static data and documents live in `references/` and `public/`. The former is used by NextJS to generate single page applications that _look like_ blog posts. Resources in `public/` are addressable by at the route matching the file name.
+The top-level `package.json` describes the workspaces and shared dependencies required to get a development environment up and running. Scripts defined at this level control building and testing the API, which depends on sibling libraries.
+
+The `oceanics-io-www` workspace contains TypeScript and Rust application code. Client side interaction is accomplished with React Hooks and browser APIs. Static data and documents live in `references/` and `public/`. The former is used by NextJS to generate single page applications that look like blog posts. Resources in `public/` are addressable by at the route matching the file name.
 
 Presentational aspects of the front-end are part of the `oceanics-io-ui` workspace, so these React components and hooks can be shared across applications. We use Storybook to develop and test at the component level.
 
 Source code for Netlify serverless functions is in `oceanics-io-fcns/`. These are single purpose endpoints that support secure data access, pre-processing, and sub-setting.
  
-Static assets are hosted on Netlify. When new commits are checked into the Github repository, the site is built and deployed to [https://www.oceanics.io](https://www.oceanics.io).
+Static assets are hosted on Netlify. The deploy is setup in `netlify.toml `. When new commits are checked into the Github repository, the site is built and deployed to [https://www.oceanics.io](https://www.oceanics.io).
 
 ## Environment
 

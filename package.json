@@ -3,7 +3,8 @@
     "workspaces": [
         "oceanics-io-www",
         "oceanics-io-ui",
-        "oceanics-io-fcns"
+        "oceanics-io-fcns",
+        "oceanics-io-wasm"
     ],
     "packageManager": "yarn@3.1.0",
     "dependencies": {
@@ -21,8 +22,9 @@
         "node-fetch": "^3.1.0"
     },
     "scripts": {
-        "api:build": "wasm-pack build oceanics-io-www/rust --out-dir ../../oceanics-io-fcns/src/shared/pkg --target nodejs",
+        "api:build": "wasm-pack build oceanics-io-wasm --out-dir ../../oceanics-io-fcns/src/shared/pkg --target nodejs",
         "api:dev": "netlify dev",
-        "api:test": "mocha"
+        "api:test": "mocha",
+        "wasm:build": "rm -rf oceanics-io-wasm/pkg && wasm-pack build oceanics-io-wasm --out-name index && (rm oceanics-io-wasm/pkg/.gitignore || :)"
     }
 }

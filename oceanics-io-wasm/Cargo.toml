@@ -1,5 +1,5 @@
 [package]
-name = "neritics"
+name = "oceanics-io-wasm"
 version = "0.3.0"
 authors = ["Oceanicsdotio <business@oceanics.io>"]
 edition = "2018"

@@ -8,7 +8,7 @@ import { lichen, ghost } from "oceanics-io-ui/build/palette";
  * Synchronous front-end WASM Runtime
  */
 import useWasmRuntime from "./useWasmRuntime";
-import type { InteractiveDataStream } from "../../rust/pkg";
+import type { InteractiveDataStream } from "oceanics-io-wasm/pkg";
 
 /*
  * Time series data
