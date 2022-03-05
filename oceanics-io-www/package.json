@@ -31,7 +31,6 @@
     "@types/sharedworker": "^0.0.61",
     "@types/xmldom": "^0.1.31",
     "@types/yaml": "^1.9.7",
-    "@wasm-tool/wasm-pack-plugin": "^1.6.0",
     "babel-plugin-styled-components": "^2.0.2",
     "babel-preset-next": "^1.4.0",
     "eslint": "^8.5.0",
@@ -60,8 +59,7 @@
   "scripts": {
     "develop": "next dev",
     "redoc": "redoc-cli bundle ./public/bathysphere.yaml --output ./public/bathysphere.html",
-    "build": "next build && next export && (rm ./rust/pkg/.gitignore || :)",
-    "serve": "netlify dev --dir=out",
+    "build": "next build && next export -o build",
     "lint": "next lint"
   }
 }

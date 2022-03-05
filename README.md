@@ -25,15 +25,19 @@ This document describes this repository, and steps to modify the API. To use the
 
 ## Web application
 
-We use a `yarn` monorepo and workspaces to manage code. The environment configuration is in `.yarnrc.yml`. The top-level directory `/` also contains this `README.md` along with configuration files and scripts for linting, compiling, bundling, and deploying the site.
+We use a `yarn` monorepo and workspaces to manage code. The environment configuration is in `.yarnrc.yml`. There are version controlled plugins in `.yarn`. 
+
+The top-level directory `/` also contains this `README.md` along with configuration files and scripts for linting, compiling, bundling, and deploying the site.
 
 The top-level `package.json` describes the workspaces and shared dependencies required to get a development environment up and running. Scripts defined at this level control building and testing the API, which depends on sibling libraries.
 
-The `oceanics-io-www` workspace contains TypeScript and Rust application code. Client side interaction is accomplished with React Hooks and browser APIs. Static data and documents live in `references/` and `public/`. The former is used by NextJS to generate single page applications that look like blog posts. Resources in `public/` are addressable by at the route matching the file name.
+The `oceanics-io-www` workspace contains a TypeScript web application. Client side interaction is accomplished with React Hooks and browser APIs. Static data and documents live in `references/` and `public/`. The former is used by NextJS to generate single page applications. Resources in `public/` are addressable by at the route matching the file name.
+
+Rust to web assembly libraries are in `oceanics-io-wasm`. These methods are used both in cloud functions and the web application.
 
 Presentational aspects of the front-end are part of the `oceanics-io-ui` workspace, so these React components and hooks can be shared across applications. We use Storybook to develop and test at the component level.
 
-Source code for Netlify serverless functions is in `oceanics-io-fcns/`. These are single purpose endpoints that support secure data access, pre-processing, and sub-setting.
+Netlify serverless functions are `oceanics-io-fcns`. These are single purpose endpoints that support secure data access, pre-processing, and sub-setting.
  
 Static assets are hosted on Netlify. The deploy is setup in `netlify.toml `. When new commits are checked into the Github repository, the site is built and deployed to [https://www.oceanics.io](https://www.oceanics.io).
 

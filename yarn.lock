@@ -5555,18 +5555,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@wasm-tool/wasm-pack-plugin@npm:^1.6.0":
-  version: 1.6.0
-  resolution: "@wasm-tool/wasm-pack-plugin@npm:1.6.0"
-  dependencies:
-    chalk: ^2.4.1
-    command-exists: ^1.2.7
-    watchpack: ^2.1.1
-    which: ^2.0.2
-  checksum: ae2af8507a83b2994630a1393832ede09ecf86b1986e2506f4ad8c8908875e8b9e40d3fff97b2fbca1835eaf6cbe5a69611643d613dea961b1279122db60a0ec
-  languageName: node
-  linkType: hard
-
 "@webassemblyjs/ast@npm:1.11.1":
   version: 1.11.1
   resolution: "@webassemblyjs/ast@npm:1.11.1"
@@ -8374,13 +8362,6 @@ __metadata:
   version: 2.0.2
   resolution: "comma-separated-tokens@npm:2.0.2"
   checksum: 8fa68ff2605233571536a802a7c712b0c766e0c5088e067be72740054e84d040865eea945c984924ae84932bcc3e25a99f71601220b438e875b5f42b87277767
-  languageName: node
-  linkType: hard
-
-"command-exists@npm:^1.2.7":
-  version: 1.2.9
-  resolution: "command-exists@npm:1.2.9"
-  checksum: 729ae3d88a2058c93c58840f30341b7f82688a573019535d198b57a4d8cb0135ced0ad7f52b591e5b28a90feb2c675080ce916e56254a0f7c15cb2395277cac3
   languageName: node
   linkType: hard
 
@@ -18160,7 +18141,6 @@ __metadata:
     "@types/sharedworker": ^0.0.61
     "@types/xmldom": ^0.1.31
     "@types/yaml": ^1.9.7
-    "@wasm-tool/wasm-pack-plugin": ^1.6.0
     babel-plugin-styled-components: ^2.0.2
     babel-preset-next: ^1.4.0
     eslint: ^8.5.0
@@ -24309,7 +24289,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"watchpack@npm:^2.1.1, watchpack@npm:^2.2.0, watchpack@npm:^2.3.1":
+"watchpack@npm:^2.2.0, watchpack@npm:^2.3.1":
   version: 2.3.1
   resolution: "watchpack@npm:2.3.1"
   dependencies:
