@@ -5,7 +5,7 @@ import SwaggerParser from "@apidevtools/swagger-parser";
 import YAML from "yaml";
 
 const ctx: Worker = self as unknown as Worker;
-type ModuleType = typeof import("oceanics-io-wasm/pkg");
+type ModuleType = typeof import("oceanics-io-wasm");
 
 /**
  * Global for reuse
@@ -92,7 +92,7 @@ const fetchImageBuffer = async (url: string): Promise<Float32Array> => {
  * thread for troubleshooting.
  */
 async function start() {
-  runtime = await import("oceanics-io-wasm/pkg");
+  runtime = await import("oceanics-io-wasm");
   runtime.panic_hook();
 }
 
