@@ -1,8 +1,0 @@
-spec:
-  name: bathysphere
-  services:
-  - dockerfile_path: Dockerfile
-    git:
-      branch: main
-      repo_clone_url: https://github.com/oceanicsdotio/oceanics.io.git
-    name: bathysphere

@@ -1,6 +1,85 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
+*
+*    After generating the base data array, clamp it and create a new
+*    array as a JavaScript/HTML image data element.
+*    
+* @param {number} world_size
+* @param {number} water_level
+* @returns {ImageData}
+*/
+export function image_data(world_size: number, water_level: number): ImageData;
+/**
+* @param {number} jj
+* @param {number} length
+* @param {number} grid_size
+* @returns {number}
+*/
+export function x_transform(jj: number, length: number, grid_size: number): number;
+/**
+* @param {number} xx
+* @param {number} phase
+* @param {number} width
+* @returns {number}
+*/
+export function z_transform(xx: number, phase: number, width: number): number;
+/**
+* @param {WebGLRenderingContext} context
+* @param {WebGLBuffer} buffer
+* @param {number} handle
+* @param {number} count
+*/
+export function bind_attribute(context: WebGLRenderingContext, buffer: WebGLBuffer, handle: number, count: number): void;
+/**
+*
+*    Compile the shaders and link them to a program, returning the pointer to the executable
+*    in GPU memory. 
+*
+*    This is the high-level routine called directly from JavaScript. 
+*    
+* @param {WebGLRenderingContext} ctx
+* @param {string} vertex
+* @param {string} fragment
+* @returns {WebGLProgram}
+*/
+export function create_program(ctx: WebGLRenderingContext, vertex: string, fragment: string): WebGLProgram;
+/**
+*
+*    Memory buffers are used to store array data for visualization.
+*
+*    This could be colors, or positions, or offsets, or velocities. 
+*    
+* @param {WebGLRenderingContext} ctx
+* @param {Float32Array} data
+* @returns {WebGLBuffer}
+*/
+export function create_buffer(ctx: WebGLRenderingContext, data: Float32Array): WebGLBuffer;
+/**
+*
+*    Activate the chosen texture so that GL operations on textures will target it. The
+*    texture number is [0,...) and can be accessed sequentially by offset.  
+*
+*    Currently we only support 2D textures, which can be stacked to emulate 3D.
+*    
+* @param {WebGLRenderingContext} ctx
+* @param {WebGLTexture} texture
+* @param {number} unit
+*/
+export function bind_texture(ctx: WebGLRenderingContext, texture: WebGLTexture, unit: number): void;
+/**
+*
+*    Define a 2D array in GPU memory, and bind it for GL operations. 
+*    
+* @param {WebGLRenderingContext} ctx
+* @param {ImageData} data
+* @param {number} filter
+* @param {number} _width
+* @param {number} _height
+* @returns {WebGLTexture}
+*/
+export function create_texture(ctx: WebGLRenderingContext, data: ImageData, filter: number, _width: number, _height: number): WebGLTexture;
+/**
 */
 export function greet(): void;
 /**
@@ -73,91 +152,12 @@ export function fetch_text(path: string): Promise<any>;
 */
 export function make_vertex_array(series: Float64Array): Float64Array;
 /**
-*
-*    After generating the base data array, clamp it and create a new
-*    array as a JavaScript/HTML image data element.
-*    
-* @param {number} world_size
-* @param {number} water_level
-* @returns {ImageData}
-*/
-export function image_data(world_size: number, water_level: number): ImageData;
-/**
-* @param {number} jj
-* @param {number} length
-* @param {number} grid_size
-* @returns {number}
-*/
-export function x_transform(jj: number, length: number, grid_size: number): number;
-/**
-* @param {number} xx
-* @param {number} phase
-* @param {number} width
-* @returns {number}
-*/
-export function z_transform(xx: number, phase: number, width: number): number;
-/**
 * @param {number} day_of_year
 * @param {number} latitude
 * @param {number} time_of_day
 * @returns {number}
 */
 export function photosynthetically_active_radiation(day_of_year: number, latitude: number, time_of_day: number): number;
-/**
-* @param {WebGLRenderingContext} context
-* @param {WebGLBuffer} buffer
-* @param {number} handle
-* @param {number} count
-*/
-export function bind_attribute(context: WebGLRenderingContext, buffer: WebGLBuffer, handle: number, count: number): void;
-/**
-*
-*    Compile the shaders and link them to a program, returning the pointer to the executable
-*    in GPU memory. 
-*
-*    This is the high-level routine called directly from JavaScript. 
-*    
-* @param {WebGLRenderingContext} ctx
-* @param {string} vertex
-* @param {string} fragment
-* @returns {WebGLProgram}
-*/
-export function create_program(ctx: WebGLRenderingContext, vertex: string, fragment: string): WebGLProgram;
-/**
-*
-*    Memory buffers are used to store array data for visualization.
-*
-*    This could be colors, or positions, or offsets, or velocities. 
-*    
-* @param {WebGLRenderingContext} ctx
-* @param {Float32Array} data
-* @returns {WebGLBuffer}
-*/
-export function create_buffer(ctx: WebGLRenderingContext, data: Float32Array): WebGLBuffer;
-/**
-*
-*    Activate the chosen texture so that GL operations on textures will target it. The
-*    texture number is [0,...) and can be accessed sequentially by offset.  
-*
-*    Currently we only support 2D textures, which can be stacked to emulate 3D.
-*    
-* @param {WebGLRenderingContext} ctx
-* @param {WebGLTexture} texture
-* @param {number} unit
-*/
-export function bind_texture(ctx: WebGLRenderingContext, texture: WebGLTexture, unit: number): void;
-/**
-*
-*    Define a 2D array in GPU memory, and bind it for GL operations. 
-*    
-* @param {WebGLRenderingContext} ctx
-* @param {ImageData} data
-* @param {number} filter
-* @param {number} _width
-* @param {number} _height
-* @returns {WebGLTexture}
-*/
-export function create_texture(ctx: WebGLRenderingContext, data: ImageData, filter: number, _width: number, _height: number): WebGLTexture;
 /**
 */
 export class ContextCursor {
@@ -204,6 +204,11 @@ export class ContextCursor {
 */
 export class Cypher {
   free(): void;
+/**
+* @param {string} query
+* @param {boolean} read_only
+*/
+  constructor(query: string, read_only: boolean);
 /**
 * @returns {string}
 */
@@ -432,6 +437,36 @@ export class Links {
 */
   query(left: Node, right: Node, result: string): Cypher;
 /**
+* @param {Node} left
+* @param {Node} right
+* @returns {Cypher}
+*/
+  insert(left: Node, right: Node): Cypher;
+/**
+*
+*         * Detach and delete the right node, leaving the left node pattern
+*         * in the graph. For example, use this to delete a single node or
+*         * collection (right), owned by a user (left).
+*         
+* @param {Node} left
+* @param {Node} right
+* @returns {Cypher}
+*/
+  deleteChild(left: Node, right: Node): Cypher;
+/**
+*
+*         * Detach and delete both the root node and the child nodes. Use
+*         * this to delete a pattern, for example removing a user account and
+*         * all owned data. In some cases this can leave orphan nodes,
+*         * but these should always have at least one link back to a User or
+*         * Provider, so can be cleaned up later. 
+*         
+* @param {Node} left
+* @param {Node} right
+* @returns {Cypher}
+*/
+  delete(left: Node, right: Node): Cypher;
+/**
 */
   cost?: number;
 /**
@@ -601,6 +636,21 @@ export class Node {
 */
   constructor(pattern?: string, symbol?: string, label?: string);
 /**
+* @returns {Cypher}
+*/
+  static allLabels(): Cypher;
+/**
+* @returns {string}
+*/
+  patternOnly(): string;
+/**
+*
+*         * Format the cypher query representation of the Node data structure
+*         
+* @returns {string}
+*/
+  cypherRepr(): string;
+/**
 *
 *         * Query to delete a node pattern from the graph.
 *         
@@ -627,6 +677,10 @@ export class Node {
 * @returns {Cypher}
 */
   create(): Cypher;
+/**
+* @returns {string}
+*/
+  readonly symbol: string;
 }
 /**
 *

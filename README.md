@@ -2,9 +2,8 @@
 
 [![Netlify Status](https://api.netlify.com/api/v1/badges/ad77195f-da0a-428f-ad2d-8dc5f45b3858/deploy-status)](https://app.netlify.com/sites/oceanicsdotio/deploys)
 
-
 <p align="center">
-  <img width="66%" src="https://www.oceanics.io/assets/dagan-sprite.gif">
+  <img width="60%" src="https://www.oceanics.io/assets/dagan-sprite.gif">
 </p>
 
 ## Contents
@@ -12,36 +11,37 @@
 - [Oceanics.io](#oceanicsio)
   - [Contents](#contents)
   - [About](#about)
-  - [Developers](#developers)
-    - [Web application](#web-application)
-    - [Environment](#environment)
-    - [Populating database](#populating-database)
-    - [Modifying the web API](#modifying-the-web-api)
-    - [Neo4j](#neo4j)
+  - [Web application](#web-application)
+  - [Environment](#environment)
+  - [Populating database](#populating-database)
+  - [Modifying the web API](#modifying-the-web-api)
+  - [Neo4j](#neo4j)
 
 ## About
 
-Oceanics.io is a web application for portable high-performance computing and visualization.
+Oceanics.io is a web application for portable high-performance computing and visualization. The interface and utilities ingest sensor and model data and metadata, and parse them into discoverable databases. Simulations and analyses run in the browser using Web Assembly, client side parallelism, and GPU acceleration. 
 
-The interface and utilities ingest sensor and model data and metadata, and parse them into discoverable databases. Simulations run in the browser using Web Assembly, client side parallelism, and GPU acceleration. Backend services are provided through [bathysphere, our graph-based API](https://www.oceanics.io/bathysphere) for proprietary ocean data.
+This document describes this repository, and steps to modify the API. To use the software, [see documentation for our API](https://www.oceanics.io/bathysphere). Software is provided by Oceanicsdotio LLC under the [MIT license](https://github.com/oceanics-io/oceanics.io/blob/main/LICENSE) as is with no warranty or guarantee. 
 
-Software is maintained by Oceanicsdotio LLC under the [MIT license](https://github.com/oceanics-io/oceanics.io/blob/main/LICENSE), and is provided as is with no warranty or guarantee.
+## Web application
 
-## Developers
+We use a `yarn` monorepo and workspaces to manage code. The environment configuration is in `.yarnrc.yml`. There are version controlled plugins in `.yarn`. 
 
-### Web application
+The top-level directory `/` also contains this `README.md` along with configuration files and scripts for linting, compiling, bundling, and deploying the site.
 
-We use a yarn monorepo to manage code. The top-level directory `/` contains this `README.md` along with various configuration files and scripts for linting, compiling, bundling, and deploying the site.
+The top-level `package.json` describes the workspaces and shared dependencies required to get a development environment up and running. Scripts defined at this level control building and testing the API, which depends on sibling libraries.
 
-The `oceanics-io-www` workspace contains the frontend applications, written in TypeScript and Rust. Client side interaction is accomplished with React Hooks and browser APIs. Static data and documents live in `references/` and `public/`. The former is used by NextJS to generate single page applications that _look like_ blog posts. Resources in `public/` are addressable by at the route matching the file name.
+The `oceanics-io-www` workspace contains a TypeScript web application. Client side interaction is accomplished with React Hooks and browser APIs. Static data and documents live in `references/` and `public/`. The former is used by NextJS to generate single page applications. Resources in `public/` are addressable by at the route matching the file name.
+
+Rust to web assembly libraries are in `oceanics-io-wasm`. These methods are used both in cloud functions and the web application.
 
 Presentational aspects of the front-end are part of the `oceanics-io-ui` workspace, so these React components and hooks can be shared across applications. We use Storybook to develop and test at the component level.
 
-Source code for Netlify serverless functions is in `oceanics-io-fcns/`. These are single purpose endpoints that support secure data access, pre-processing, and sub-setting.
+Netlify serverless functions are `oceanics-io-fcns`. These are single purpose endpoints that support secure data access, pre-processing, and sub-setting.
  
-Static assets are hosted on Netlify. When new commits are checked into the Github repository, the site is built and deployed to [https://www.oceanics.io](https://www.oceanics.io).
+Static assets are hosted on Netlify. The deploy is setup in `netlify.toml `. When new commits are checked into the Github repository, the site is built and deployed to [https://www.oceanics.io](https://www.oceanics.io).
 
-### Environment
+## Environment
 
 There must also be several environment variables active for things to work:
 
@@ -60,10 +60,9 @@ There must also be several environment variables active for things to work:
 - `SERVICE_ACCOUNT_SECRET`: string for salting service key password
 - `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN`: mapbox access token for map interface
 
+## Populating database
 
-### Populating database
-
-Testing populates the connected database with the information described in `oceanics-io-www/public/assets/bathysphere.yml`. The default entities are semi-fictitious and won't suit your needs. Use them as examples to make your own.
+Testing populates the connected database with the examples described in `oceanics-io-www/public/bathysphere.yaml`. The default entities are semi-fictitious and won't suit your needs. Use them as examples to make your own.
 
 Find an entry like this and make a copy, replacing it with your information:
 
@@ -79,12 +78,11 @@ spec:
 
 Delete the `owner: true` from the Oceanicsdotio entry. Delete any default Providers that you don't want populated in the graph. These each have an API registration key created, so are not granted access rights by default and are safe to keep.  
 
-
-### Modifying the web API
+## Modifying the web API
 
 Changes need to be made in at least two places if you want to add or modify a data model. This is the intended behavior, as it allows the API specification to act as contract with front end clients.
 
-Suppose you want a new graph entity `Missions`, as a pattern for connecting data from a series of operations. This could be implemented with `Collections`, or it could be a new subtype of `Entity` that logically connects `Things`, `Locations`, and either `DataStreams` for post-hoc analysis or `TaskingCapabilities` for planning.
+Suppose you want a new subtype of `Entity` called `Missions`, as a pattern for connecting data from a series of operations. This could logically connect `Things`, `Locations`, and either `DataStreams` for post-hoc analysis or `TaskingCapabilities` for planning.
 
 First declare this in `oceanics-io/public/bathysphere.yaml` under `components/schemas`.
 
@@ -112,7 +110,7 @@ Here, an example:
                     default: "curl https://some-service-endpoints | ./blah.sh"
                   threshold:
                     type: float
-                  flag"
+                  flag:
                     type: bool
 
             Locations:
@@ -168,8 +166,7 @@ This now needs to be referenced in `EntityCollection:` and `EntityClass:` schema
 
 Default values should be undefined to allow search algorithms to use generic instances, `Missions()` or `Missions(name="Operation Ivy")` as a matching patterns. 
 
-
-### Neo4j
+## Neo4j
 
 You can run the database manager in an [official Neo4j container image](https://hub.docker.com/_/neo4j/), or use a managed service that supports the cypher query language. [Cypher](https://neo4j.com/docs/cypher-refcard/current/) is the Neo4j query language. Either cypher or `graphql` can be used to build the database, traverse nodes and edges, and return data.
 

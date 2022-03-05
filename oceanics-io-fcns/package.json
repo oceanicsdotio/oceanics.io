@@ -5,8 +5,8 @@
     "main": "index.js",
     "scripts": {
         "clean": "rimraf dist/",
-        "build:wasm": "yarn clean && copyfiles -u 1 src/shared/pkg/* src/**/*.txt src/**/*.json dist",
-        "build": "yarn clean && copyfiles -u 1 src/shared/pkg/* src/**/*.txt src/**/*.json dist && tsc"
+        "copyfiles": "yarn clean && copyfiles -u 1 src/shared/pkg/* src/**/*.txt src/**/*.json dist",
+        "build": "yarn copyfiles && tsc"
     },
     "keywords": [],
     "author": "Oceanicsdotio LLC",

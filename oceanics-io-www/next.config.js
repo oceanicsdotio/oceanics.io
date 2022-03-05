@@ -1,14 +1,9 @@
-const WasmPackPlugin = require("@wasm-tool/wasm-pack-plugin");
-const SSRPlugin =
-  require("next/dist/build/webpack/plugins/nextjs-ssr-import").default;
-const {
-  dirname,
-  relative,
-  resolve,
-  join,
-} = require("path");
-
 module.exports = {
+  // https://nextjs.org/docs/advanced-features/compiler
+  compiler: {
+    // ssr and displayName are configured by default
+    styledComponents: true,
+  },
   typescript: {
     // Dangerously allow production builds to successfully complete even if
     // your project has type errors.
@@ -28,65 +23,6 @@ module.exports = {
       type: "webassembly/sync",
     });
 
-    // From https://github.com/wasm-tool/wasm-pack-plugin
-    config.plugins.unshift(
-      new WasmPackPlugin({
-        crateDirectory: resolve("./rust"),
-        args: "--log-level info",
-      })
-    );
-
-    // From https://github.com/vercel/next.js/issues/22581#issuecomment-864476385
-    const ssrPlugin = config.plugins.find(
-      (plugin) => plugin instanceof SSRPlugin
-    );
-
-    if (ssrPlugin) {
-      patchSsrPlugin(ssrPlugin);
-    }
-
     return config;
   },
 };
-
-// Patch the NextJsSSRImport plugin to not throw with WASM generated chunks.
-function patchSsrPlugin(plugin) {
-  plugin.apply = function apply(compiler) {
-    compiler.hooks.compilation.tap(
-      "NextJsSSRImport",
-      (compilation) => {
-        compilation.mainTemplate.hooks.requireEnsure.tap(
-          "NextJsSSRImport",
-          (code, chunk) => {
-            // The patch that we need to ensure this plugin doesn"t throw
-            // with WASM chunks.
-            if (!chunk.name) {
-              return;
-            }
-
-            // Update to load chunks from our custom chunks directory
-            const outputPath = resolve("/");
-            const pagePath = join("/", dirname(chunk.name));
-            const relativePathToBaseDir = relative(
-              pagePath,
-              outputPath
-            );
-            // Make sure even in windows, the path looks like in unix
-            // Node.js require system will convert it accordingly
-            const relativePathToBaseDirNormalized =
-              relativePathToBaseDir.replace(/\\/g, "/");
-            return code
-              .replace(
-                `require("./"`,
-                `require("${relativePathToBaseDirNormalized}/"`
-              )
-              .replace(
-                "readFile(join(__dirname",
-                `readFile(join(__dirname, "${relativePathToBaseDirNormalized}"`
-              );
-          }
-        );
-      }
-    );
-  };
-}
