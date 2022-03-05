@@ -19,11 +19,11 @@ type IColorMap = {
  * 
  * This is one way to implement fast lookups of piece-wise functions.
  */
- export default ({
-     width,
-     height,
-     colors,
- }: IColorMap) => {
+export default ({
+    width,
+    height,
+    colors,
+}: IColorMap) => {
 
     /**
      * Calculate size from dimensions. Using linear ramp,
@@ -92,4 +92,4 @@ type IColorMap = {
         texture,
         canvas: ref.current
     }
- }
+}

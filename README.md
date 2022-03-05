@@ -29,7 +29,7 @@ We use a `yarn` monorepo and workspaces to manage code. The environment configur
 
 The top-level directory `/` also contains this `README.md` along with configuration files and scripts for linting, compiling, bundling, and deploying the site.
 
-The top-level `package.json` describes the workspaces and shared dependencies required to get a development environment up and running. Scripts defined at this level control building and testing the API, which depends on sibling libraries.
+The top-level `package.json` describes the workspaces and shared dependencies required to get a development environment up and running. Scripts defined at this level control building and testing the API, which depends on sibling libraries. Each of these contains a `README.md` of its own.
 
 The `oceanics-io-www` workspace contains a TypeScript web application. Client side interaction is accomplished with React Hooks and browser APIs. Static data and documents live in `references/` and `public/`. The former is used by NextJS to generate single page applications. Resources in `public/` are addressable by at the route matching the file name.
 

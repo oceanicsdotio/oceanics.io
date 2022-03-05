@@ -4,7 +4,7 @@
 import React, { useEffect } from "react";
 import type { FC } from "react";
 import { GetStaticProps } from "next";
-import {readIcons, parseIconMetadata} from "../src/next-util";
+import { readIcons, parseIconMetadata } from "../src/next-util";
 import styled from "styled-components";
 
 /**
@@ -15,7 +15,6 @@ import useOceansideBoard from "../src/hooks/useOceansideBoard";
 import useWasmRuntime from "../src/hooks/useWasmRuntime";
 import useSharedWorkerState from "../src/hooks/useSharedWorkerState";
 import type {IWorld} from "../src/hooks/useOceansideWorld";
-const MAPBOX_STYLESHEET = "https://api.mapbox.com/mapbox-gl-js/v1.5.0/mapbox-gl.css"
 
 /**
  * Page-specific typings.
@@ -70,7 +69,6 @@ const AppPage: FC<ApplicationType> = ({ className, ...props }) => {
 
   return (
     <div className={className}>
-      <link href={MAPBOX_STYLESHEET} rel={"stylesheet"}/>
       <canvas {...world.canvas} className={"world"}/>
       <canvas {...board.canvas} className={"board"}/>
     </div>

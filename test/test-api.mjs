@@ -7,7 +7,6 @@ import crypto from "crypto";
 
 // MERGE (n:Provider { apiKey: replace(apoc.create.uuid(), '-', ''), domain: 'oceanics.io' }) return n
 
-// const REAL_PATH = "http://localhost:8888/.netlify/functions";
 const BASE_PATH = "http://localhost:8888/.netlify/functions";
 const API_PATH = "http://localhost:8888/api";
 const TEST_USER = "test@oceanics.io";
