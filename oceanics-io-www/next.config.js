@@ -29,12 +29,12 @@ module.exports = {
     });
 
     // From https://github.com/wasm-tool/wasm-pack-plugin
-    config.plugins.unshift(
-      new WasmPackPlugin({
-        crateDirectory: resolve("../oceanics-io-wasm"),
-        args: "--log-level info",
-      })
-    );
+    // config.plugins.unshift(
+    //   new WasmPackPlugin({
+    //     crateDirectory: resolve("../oceanics-io-wasm"),
+    //     args: "--log-level info",
+    //   })
+    // );
 
     // From https://github.com/vercel/next.js/issues/22581#issuecomment-864476385
     const ssrPlugin = config.plugins.find(

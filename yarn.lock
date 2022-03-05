@@ -18141,6 +18141,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"oceanics-io-wasm@*, oceanics-io-wasm@workspace:oceanics-io-wasm/build":
+  version: 0.0.0-use.local
+  resolution: "oceanics-io-wasm@workspace:oceanics-io-wasm/build"
+  languageName: unknown
+  linkType: soft
+
 "oceanics-io-www@workspace:oceanics-io-www":
   version: 0.0.0-use.local
   resolution: "oceanics-io-www@workspace:oceanics-io-www"
@@ -18165,6 +18171,7 @@ __metadata:
     next: ^12.0.7
     next-mdx-remote: ^3.0.8
     oceanics-io-ui: "*"
+    oceanics-io-wasm: "*"
     react: 17.0.2
     react-dom: 17.0.2
     react-typography: ^0.16.19
