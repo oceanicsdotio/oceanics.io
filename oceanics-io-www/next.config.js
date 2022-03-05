@@ -1,4 +1,5 @@
 module.exports = {
+  // https://nextjs.org/docs/advanced-features/compiler
   compiler: {
     // ssr and displayName are configured by default
     styledComponents: true,
