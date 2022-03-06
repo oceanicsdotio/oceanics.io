@@ -5,7 +5,7 @@ import Ajv from "ajv";
 
 const API_NAME = "bathysphere";
 
-const ajv = new Ajv({ removeAdditional: true, strict: false });
+const ajv = new Ajv({ strict: false });
 ajv.addSchema(spec, API_NAME);
 
 const handler: Handler = async ({ body, httpMethod }) => {

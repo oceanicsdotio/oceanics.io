@@ -7,7 +7,7 @@ exports.handler = void 0;
 const bathysphere_json_1 = __importDefault(require("./bathysphere.json"));
 const ajv_1 = __importDefault(require("ajv"));
 const API_NAME = "bathysphere";
-const ajv = new ajv_1.default({ removeAdditional: true, strict: false });
+const ajv = new ajv_1.default({ strict: false });
 ajv.addSchema(bathysphere_json_1.default, API_NAME);
 const handler = async ({ body, httpMethod }) => {
     if (httpMethod !== "POST") {

@@ -999,47 +999,47 @@ components:
           type: object
           description: Key-value properties
 
-        # HistoricalLocations@iot.navigation:
-        #   readOnly: true
-        #   oneOf:
+        HistoricalLocations@iot.navigation:
+          readOnly: true
+          oneOf:
 
-        #     - type: array
-        #       title: references
-        #       items:
-        #         type: string
+            - type: array
+              title: references
+              items:
+                type: string
 
-        #     - type: array
-        #       title: objects
-        #       items:
-        #         type: object
+            - type: array
+              title: objects
+              items:
+                type: object
 
-        # Locations@iot.navigation:
-        #   readOnly: true
-        #   oneOf:
+        Locations@iot.navigation:
+          readOnly: true
+          oneOf:
 
-        #     - type: array
-        #       title: references
-        #       items:
-        #         type: string
+            - type: array
+              title: references
+              items:
+                type: string
 
-        #     - type: array
-        #       title: objects
-        #       items:
-        #         type: object
+            - type: array
+              title: objects
+              items:
+                type: object
 
-        # DataStreams@iot.navigation:
-        #   readOnly: true
-        #   oneOf:
+        DataStreams@iot.navigation:
+          readOnly: true
+          oneOf:
 
-        #     - type: array
-        #       title: references
-        #       items:
-        #         type: string
+            - type: array
+              title: references
+              items:
+                type: string
 
-        #     - type: array
-        #       title: objects
-        #       items:
-        #         type: object
+            - type: array
+              title: objects
+              items:
+                type: object
 
 
     LocationEncodingType:

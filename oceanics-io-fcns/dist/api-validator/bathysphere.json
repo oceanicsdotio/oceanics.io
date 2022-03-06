@@ -1191,6 +1191,63 @@
                     "properties": {
                         "type": "object",
                         "description": "Key-value properties"
+                    },
+                    "HistoricalLocations@iot.navigation": {
+                        "readOnly": true,
+                        "oneOf": [
+                            {
+                                "type": "array",
+                                "title": "references",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            {
+                                "type": "array",
+                                "title": "objects",
+                                "items": {
+                                    "type": "object"
+                                }
+                            }
+                        ]
+                    },
+                    "Locations@iot.navigation": {
+                        "readOnly": true,
+                        "oneOf": [
+                            {
+                                "type": "array",
+                                "title": "references",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            {
+                                "type": "array",
+                                "title": "objects",
+                                "items": {
+                                    "type": "object"
+                                }
+                            }
+                        ]
+                    },
+                    "DataStreams@iot.navigation": {
+                        "readOnly": true,
+                        "oneOf": [
+                            {
+                                "type": "array",
+                                "title": "references",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            {
+                                "type": "array",
+                                "title": "objects",
+                                "items": {
+                                    "type": "object"
+                                }
+                            }
+                        ]
                     }
                 }
             },
