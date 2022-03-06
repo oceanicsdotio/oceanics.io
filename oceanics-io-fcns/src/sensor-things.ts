@@ -3,7 +3,7 @@
  */
 import type { Handler } from "@netlify/functions";
 import { catchAll, connect, tokenClaim, parseFunctionsPath, transform } from "./shared/driver";
-import { Node, Links } from "./shared/pkg/neritics";
+import { Node, Links } from "./shared/pkg";
 
 /**
  * Get an array of all collections by Node type

@@ -1,6 +1,6 @@
 import { Endpoint, S3 } from "aws-sdk";
 import { createHash } from "crypto";
-// import { VertexArrayBuffer, IndexInterval } from "./pkg/neritics";
+// import { VertexArrayBuffer, IndexInterval } from "./pkg";
 // import NetCDFReader from 'netcdfjs';
 import { readFileSync, writeFileSync } from 'fs';
 
