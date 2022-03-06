@@ -89,6 +89,7 @@ describe("API Request Validator", function () {
       const data = await response.json();
 
       console.log({data});
+      assert(data.ok, "Response Body Missing OK Flag")
     })
 })
 

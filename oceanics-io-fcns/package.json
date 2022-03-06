@@ -6,8 +6,7 @@
     "scripts": {
         "clean": "rimraf dist/",
         "copyfiles": "yarn clean && copyfiles -u 1 src/shared/pkg/* src/**/*.txt src/**/*.json dist",
-        "build:validator": "ajv compile --strict=false -s src/shared/bathysphere.json -o src/shared/validate.js",
-        "build": "yarn copyfiles && tsc && yarn build:validator"
+        "build": "yarn copyfiles && tsc"
     },
     "keywords": [],
     "author": "Oceanicsdotio LLC",
@@ -16,7 +15,6 @@
         "node": "14"
     },
     "devDependencies": {
-        "ajv-cli": "^5.0.0",
         "copyfiles": "^2.4.1",
         "rimraf": "^3.0.2",
         "typescript": "^4.5.4"
