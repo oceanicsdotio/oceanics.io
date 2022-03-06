@@ -6,8 +6,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.handler = void 0;
 const bathysphere_json_1 = __importDefault(require("./bathysphere.json"));
 const ajv_1 = __importDefault(require("ajv"));
+const ajv_formats_1 = __importDefault(require("ajv-formats"));
 const API_NAME = "bathysphere";
 const ajv = new ajv_1.default({ strict: false });
+(0, ajv_formats_1.default)(ajv);
 ajv.addSchema(bathysphere_json_1.default, API_NAME);
 const handler = async ({ body, httpMethod }) => {
     if (httpMethod !== "POST") {

@@ -2,10 +2,12 @@
 import type { Handler } from "@netlify/functions";
 import spec from "./bathysphere.json";
 import Ajv from "ajv";
+import addFormats from "ajv-formats";
 
 const API_NAME = "bathysphere";
 
 const ajv = new Ajv({ strict: false });
+addFormats(ajv);
 ajv.addSchema(spec, API_NAME);
 
 const handler: Handler = async ({ body, httpMethod }) => {

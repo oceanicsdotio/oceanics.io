@@ -977,6 +977,7 @@ components:
 
         uuid:
           type: string
+          format: uuid
           description: |
             Unique integer identifier for entity. This usually auto-generated, but is different that the default node
             IDs within the Neo4j database, since those are not guaranteed to persist.

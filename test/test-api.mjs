@@ -141,7 +141,6 @@ describe("API Request Validator", function () {
 
       it("validates well known entities", async function () {
         for (const thing of WELL_KNOWN_NODES.Things) {
-          console.log(thing);
           await testResponse({
             data: thing,
             reference: "#/components/schemas/Things"
