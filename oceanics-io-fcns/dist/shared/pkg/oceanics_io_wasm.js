@@ -2395,7 +2395,7 @@ module.exports.__wbindgen_closure_wrapper746 = function(arg0, arg1, arg2) {
     return addHeapObject(ret);
 };
 
-const path = require('path').join(__dirname, 'neritics_bg.wasm');
+const path = require('path').join(__dirname, 'oceanics_io_wasm_bg.wasm');
 const bytes = require('fs').readFileSync(path);
 
 const wasmModule = new WebAssembly.Module(bytes);

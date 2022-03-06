@@ -26,12 +26,12 @@ const authClaim = ({ email = "", password = "", secret = "" }) => new pkg_1.Node
  */
 const register = async ({ apiKey, password, secret, email }) => {
     // Empty array if there was an error
-    const provider = new pkg_1.Node((0, driver_1.serialize)({ apiKey }), "p", "Provider");
-    const user = new pkg_1.Node((0, driver_1.serialize)({
+    const provider = (0, driver_1.materialize)({ apiKey }, "p", "Provider");
+    const user = (0, driver_1.materialize)({
         email,
         uuid: crypto_1.default.randomUUID().replace(/-/g, ""),
         credential: hashPassword(password, secret)
-    }), "u", "User");
+    }, "u", "User");
     const { query } = new pkg_1.Links("Register", 0, 0, "").insert(provider, user);
     let records;
     try {

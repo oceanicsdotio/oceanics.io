@@ -83,7 +83,13 @@ const batch = async (composeTransaction, nodeType, data) => {
 };
 
 describe("API Request Validator", function () {
-  
+    it("validates simple case", async function () {
+      const response = await fetch(`${BASE_PATH}/api-validator`);
+      assert(response.status === 200, `Unexpected Response Code: ${response.status}`);
+      const data = await response.json();
+
+      console.log({data});
+    })
 })
 
 /**

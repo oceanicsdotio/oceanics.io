@@ -6,8 +6,8 @@
     "scripts": {
         "clean": "rimraf dist/",
         "copyfiles": "yarn clean && copyfiles -u 1 src/shared/pkg/* src/**/*.txt src/**/*.json dist",
-        "build": "yarn copyfiles && tsc && yarn build:validator",
-        "build:validator": "ajv compile --strict=false -s src/shared/bathysphere.json -o src/shared/validate.js"
+        "build:validator": "ajv compile --strict=false -s src/shared/bathysphere.json -o src/shared/validate.js",
+        "build": "yarn copyfiles && tsc && yarn build:validator"
     },
     "keywords": [],
     "author": "Oceanicsdotio LLC",
