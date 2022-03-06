@@ -50,7 +50,7 @@ const handler: Handler = async ({ body, httpMethod }) => {
     body: JSON.stringify({
       test,
       errors: ajv.errors,
-      schema: spec.components.schemas["Weight"]
+      schema
     })
   }
 }

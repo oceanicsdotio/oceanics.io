@@ -206,7 +206,7 @@
                     "Catalog"
                 ],
                 "summary": "Metadata",
-                "description": "Get entity\n",
+                "description": "Get entity",
                 "parameters": [
                     {
                         "$ref": "#/components/parameters/entityClass"
@@ -665,8 +665,7 @@
                 "content": {
                     "application/json": {
                         "schema": {
-                            "type": "object",
-                            "anyOf": [
+                            "oneOf": [
                                 {
                                     "$ref": "#/components/schemas/Things"
                                 },
@@ -871,23 +870,28 @@
                         "name": "Octavia Butler"
                     }
                 ],
-                "allOf": [
-                    {
-                        "$ref": "#/components/schemas/Entity"
+                "type": "object",
+                "properties": {
+                    "uuid": {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Unique integer identifier for entity.\n"
                     },
-                    {
-                        "type": "object",
-                        "properties": {
-                            "entityClass": {
-                                "writeOnly": true,
-                                "enum": [
-                                    "thing"
-                                ],
-                                "default": "thing"
-                            }
-                        }
+                    "name": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Human readable entity name for displaying data."
+                    },
+                    "description": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Short but useful explanation of what the entity is."
                     }
-                ]
+                }
             },
             "Asset": {
                 "type": "object"
@@ -1067,54 +1071,66 @@
                         "description": "Traditional growing area for oysters in Maine."
                     }
                 ],
-                "allOf": [
-                    {
-                        "$ref": "#/components/schemas/Entity"
+                "type": "object",
+                "description": "Features of interest are usually Locations\n",
+                "properties": {
+                    "uuid": {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Unique integer identifier for entity.\n"
                     },
-                    {
+                    "name": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Human readable entity name for displaying data."
+                    },
+                    "description": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Short but useful explanation of what the entity is."
+                    },
+                    "encodingType": {
+                        "type": "string",
+                        "description": "Identifier for parsing feature data"
+                    },
+                    "feature": {
                         "type": "object",
-                        "description": "Features of interest are usually Locations\n",
-                        "properties": {
-                            "encodingType": {
-                                "type": "string",
-                                "description": "Identifier for parsing feature data"
+                        "description": "Feature data"
+                    },
+                    "Observations@iot.navigation": {
+                        "readOnly": true,
+                        "oneOf": [
+                            {
+                                "type": "array",
+                                "title": "references",
+                                "items": {
+                                    "type": "string"
+                                }
                             },
-                            "feature": {
-                                "type": "object",
-                                "description": "Feature data"
-                            },
-                            "Observations@iot.navigation": {
-                                "readOnly": true,
-                                "oneOf": [
-                                    {
-                                        "type": "array",
-                                        "title": "references",
-                                        "items": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    {
-                                        "type": "array",
-                                        "title": "objects",
-                                        "items": {
-                                            "type": "object"
-                                        }
-                                    }
-                                ]
+                            {
+                                "type": "array",
+                                "title": "objects",
+                                "items": {
+                                    "type": "object"
+                                }
                             }
-                        }
+                        ]
                     }
-                ]
+                }
             },
             "Things": {
                 "examples": [
                     {
-                        "name": "Land Ocean Biogeochemical Observatory",
-                        "description": "Moored buoy deployment of the Sustainable Ecological Aquaculture Network\n"
-                    },
-                    {
                         "name": "Landsat-7",
                         "description": "Satellite mission"
+                    },
+                    {
+                        "name": "Land Ocean Biogeochemical Observatory",
+                        "description": "Moored buoy deployment of the Sustainable Ecological Aquaculture Network\n"
                     },
                     {
                         "name": "Sealab",
@@ -1255,8 +1271,7 @@
             "LocationEncodingType": {
                 "type": "string",
                 "enum": [
-                    "application/vnd.geo+json",
-                    "application/vnd.network+json"
+                    "application/vnd.geo+json"
                 ],
                 "default": "application/vnd.geo+json",
                 "description": "The encoding rendered in the location response"
@@ -1264,38 +1279,6 @@
             "Locations": {
                 "examples": [
                     {
-                        "name": "Fish Farm",
-                        "encodingType": "application/json",
-                        "location": {
-                            "properties": {
-                                "fictional": true,
-                                "icon": "fish"
-                            }
-                        }
-                    },
-                    {
-                        "name": "Wharf",
-                        "encodingType": "application/json",
-                        "location": {
-                            "properties": {
-                                "icon": "wharf",
-                                "capacity": 4,
-                                "home": true,
-                                "fictional": true
-                            }
-                        }
-                    },
-                    {
-                        "Locations@iot.navigation": [
-                            {
-                                "name": [
-                                    "Maine Loboviz Data"
-                                ],
-                                "props": {
-                                    "node": 65
-                                }
-                            }
-                        ],
                         "name": "Lower Damariscotta",
                         "encodingType": "application/vnd.geo+json",
                         "location": {
@@ -1307,16 +1290,6 @@
                         }
                     },
                     {
-                        "Locations@iot.navigation": [
-                            {
-                                "name": [
-                                    "Maine Loboviz Data"
-                                ],
-                                "props": {
-                                    "node": 66
-                                }
-                            }
-                        ],
                         "name": "Upper Damariscotta Estuary",
                         "encodingType": "application/vnd.geo+json",
                         "description": "Buoy deployment",
@@ -1330,16 +1303,6 @@
                         }
                     },
                     {
-                        "Locations@iot.navigation": [
-                            {
-                                "name": [
-                                    "Maine Loboviz Data"
-                                ],
-                                "props": {
-                                    "node": 64
-                                }
-                            }
-                        ],
                         "name": "Wood Island Harbor",
                         "encodingType": "application/vnd.geo+json",
                         "location": {
@@ -1351,16 +1314,6 @@
                         }
                     },
                     {
-                        "Locations@iot.navigation": [
-                            {
-                                "name": [
-                                    "Maine Loboviz Data"
-                                ],
-                                "props": {
-                                    "node": 67
-                                }
-                            }
-                        ],
                         "name": "Ram Island Saco Bay",
                         "encodingType": "application/vnd.geo+json",
                         "location": {
@@ -1372,16 +1325,6 @@
                         }
                     },
                     {
-                        "Locations@iot.navigation": [
-                            {
-                                "name": [
-                                    "Maine Loboviz Data"
-                                ],
-                                "props": {
-                                    "node": 70
-                                }
-                            }
-                        ],
                         "name": "Upper New Meadows",
                         "encodingType": "application/vnd.geo+json",
                         "location": {
@@ -1393,16 +1336,6 @@
                         }
                     },
                     {
-                        "Locations@iot.navigation": [
-                            {
-                                "name": [
-                                    "Maine Loboviz Data"
-                                ],
-                                "props": {
-                                    "node": 71
-                                }
-                            }
-                        ],
                         "name": "Lower New Meadows",
                         "encodingType": "application/vnd.geo+json",
                         "location": {
@@ -1414,16 +1347,6 @@
                         }
                     },
                     {
-                        "Locations@iot.navigation": [
-                            {
-                                "name": [
-                                    "Maine Loboviz Data"
-                                ],
-                                "props": {
-                                    "node": 72
-                                }
-                            }
-                        ],
                         "name": "Bagaduce River",
                         "encodingType": "application/vnd.geo+json",
                         "location": {
@@ -1435,16 +1358,6 @@
                         }
                     },
                     {
-                        "Locations@iot.navigation": [
-                            {
-                                "name": [
-                                    "Maine Loboviz Data"
-                                ],
-                                "props": {
-                                    "node": 73
-                                }
-                            }
-                        ],
                         "name": "Machias Bay",
                         "encodingType": "application/vnd.geo+json",
                         "location": {
@@ -1456,16 +1369,6 @@
                         }
                     },
                     {
-                        "Locations@iot.navigation": [
-                            {
-                                "name": [
-                                    "Maine Loboviz Data"
-                                ],
-                                "props": {
-                                    "node": 74
-                                }
-                            }
-                        ],
                         "name": "Cobscook Bay",
                         "encodingType": "application/vnd.geo+json",
                         "location": {
@@ -1477,26 +1380,6 @@
                         }
                     },
                     {
-                        "Locations@iot.navigation": [
-                            {
-                                "name": [
-                                    "Maine Loboviz Data"
-                                ],
-                                "props": {
-                                    "node": 75
-                                }
-                            }
-                        ],
-                        "Providers@iot.navigation": [
-                            {
-                                "label": "Alias",
-                                "props": {
-                                    "name": [
-                                        "Passamaquoddy Bay"
-                                    ]
-                                }
-                            }
-                        ],
                         "name": "Western Passage",
                         "encodingType": "application/vnd.geo+json",
                         "location": {
@@ -1506,242 +1389,176 @@
                                 -66.995833
                             ]
                         }
-                    },
-                    {
-                        "Providers@iot.navigation": [
-                            {
-                                "domain": [
-                                    "oceanics.io"
-                                ]
-                            }
-                        ],
-                        "name": "neo4j-local",
-                        "encodingType": "application/vnd.network+json",
-                        "location": {
-                            "protocol": "bolt",
-                            "host": "localhost",
-                            "port": 7687,
-                            "connection": {
-                                "retries": 3,
-                                "delay": 1
-                            },
-                            "auth": {
-                                "basic": "neo4j/neo4j"
-                            }
-                        }
-                    },
-                    {
-                        "Providers@iot.navigation": [
-                            {
-                                "name": [
-                                    "Public"
-                                ],
-                                "props": {
-                                    "bucketName": "oceanicsdotio",
-                                    "readOnly": true
-                                }
-                            }
-                        ],
-                        "name": "Object Storage",
-                        "encodingType": "application/vnd.network+json",
-                        "location": {
-                            "protocol": "https",
-                            "host": "nyc3.digitaloceanspaces.com",
-                            "port": null,
-                            "connection": {
-                                "retries": 3,
-                                "delay": 1
-                            },
-                            "headers": {
-                                "x-amz-acl": "public-read",
-                                "x-amz-meta-service": "bathysphere"
-                            }
-                        }
-                    },
-                    {
-                        "Providers@iot.navigation": [
-                            {
-                                "domain": [
-                                    "oceanics.io"
-                                ],
-                                "props": {
-                                    "bucketName": "oceanicsdotio",
-                                    "lockFile": "lock.json",
-                                    "indexFile": "index.json"
-                                }
-                            }
-                        ],
-                        "name": "Object Storage",
-                        "encodingType": "application/vnd.network+json",
-                        "location": {
-                            "protocol": "https",
-                            "host": "nyc3.digitaloceanspaces.com",
-                            "port": null,
-                            "connection": {
-                                "retries": 3,
-                                "delay": 1
-                            },
-                            "headers": {
-                                "x-amz-acl": "private",
-                                "x-amz-meta-service": "bathysphere"
-                            },
-                            "auth": {
-                                "basic": null
-                            }
-                        }
                     }
                 ],
-                "allOf": [
-                    {
-                        "$ref": "#/components/schemas/Entity"
+                "type": "object",
+                "description": "Last known location of a thing. May be a feature of interest, unless remote sensing.\n",
+                "additionalProperties": false,
+                "required": [
+                    "uuid",
+                    "location",
+                    "encodingType"
+                ],
+                "properties": {
+                    "uuid": {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Unique integer identifier for entity.\n"
                     },
-                    {
+                    "name": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Human readable entity name for displaying data."
+                    },
+                    "description": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Short but useful explanation of what the entity is."
+                    },
+                    "encodingType": {
+                        "$ref": "#/components/schemas/LocationEncodingType"
+                    },
+                    "location": {
                         "type": "object",
-                        "description": "Last known location of a thing. May be a feature of interest, unless remote sensing.\n",
+                        "additionalProperties": false,
                         "properties": {
-                            "entityClass": {
-                                "writeOnly": true,
+                            "type": {
+                                "type": "string",
                                 "enum": [
-                                    "location"
-                                ],
-                                "default": "location"
+                                    "Point",
+                                    "Polygon"
+                                ]
                             },
-                            "encodingType": {
-                                "$ref": "#/components/schemas/LocationEncodingType"
-                            },
-                            "location": {
-                                "type": "object",
-                                "properties": {
-                                    "type": {
-                                        "type": "string",
-                                        "enum": [
-                                            "Point",
-                                            "Polygon"
-                                        ]
-                                    },
-                                    "coordinates": {
-                                        "type": "array",
-                                        "minLength": 2,
-                                        "maxLength": 3,
-                                        "items": {
-                                            "type": "number",
-                                            "format": "float"
-                                        }
-                                    }
+                            "coordinates": {
+                                "type": "array",
+                                "minLength": 2,
+                                "maxLength": 3,
+                                "items": {
+                                    "type": "number",
+                                    "format": "float"
+                                }
+                            }
+                        }
+                    },
+                    "HistoricalLocations@iot.navigation": {
+                        "readOnly": true,
+                        "oneOf": [
+                            {
+                                "type": "array",
+                                "title": "references",
+                                "items": {
+                                    "type": "string"
                                 }
                             },
-                            "HistoricalLocations@iot.navigation": {
-                                "readOnly": true,
-                                "oneOf": [
-                                    {
-                                        "type": "array",
-                                        "title": "references",
-                                        "items": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    {
-                                        "type": "array",
-                                        "title": "objects",
-                                        "items": {
-                                            "type": "object"
-                                        }
-                                    }
-                                ]
-                            },
-                            "Things@iot.navigation": {
-                                "readOnly": true,
-                                "oneOf": [
-                                    {
-                                        "type": "array",
-                                        "title": "references",
-                                        "items": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    {
-                                        "type": "array",
-                                        "title": "objects",
-                                        "items": {
-                                            "type": "object"
-                                        }
-                                    }
-                                ]
+                            {
+                                "type": "array",
+                                "title": "objects",
+                                "items": {
+                                    "type": "object"
+                                }
                             }
-                        }
+                        ]
+                    },
+                    "Things@iot.navigation": {
+                        "readOnly": true,
+                        "oneOf": [
+                            {
+                                "type": "array",
+                                "title": "references",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            {
+                                "type": "array",
+                                "title": "objects",
+                                "items": {
+                                    "type": "object"
+                                }
+                            }
+                        ]
                     }
-                ]
+                }
             },
             "HistoricalLocations": {
-                "allOf": [
-                    {
-                        "$ref": "#/components/schemas/Entity"
+                "type": "object",
+                "properties": {
+                    "uuid": {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Unique integer identifier for entity.\n"
                     },
-                    {
-                        "type": "object",
-                        "properties": {
-                            "entityClass": {
-                                "writeOnly": true,
-                                "enum": [
-                                    "HistoricalLocations"
-                                ],
-                                "default": "HistoricalLocations"
+                    "name": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Human readable entity name for displaying data."
+                    },
+                    "description": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Short but useful explanation of what the entity is."
+                    },
+                    "encodingType": {
+                        "$ref": "#/components/schemas/LocationEncodingType"
+                    },
+                    "time": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Timestamp when the location was current"
+                    },
+                    "Things@iot.navigation": {
+                        "readOnly": true,
+                        "oneOf": [
+                            {
+                                "type": "array",
+                                "title": "references",
+                                "minItems": 1,
+                                "maxItems": 1,
+                                "items": {
+                                    "type": "string"
+                                }
                             },
-                            "encodingType": {
-                                "$ref": "#/components/schemas/LocationEncodingType"
-                            },
-                            "time": {
-                                "type": "string",
-                                "format": "date-time",
-                                "description": "Timestamp when the location was current"
-                            },
-                            "Things@iot.navigation": {
-                                "readOnly": true,
-                                "oneOf": [
-                                    {
-                                        "type": "array",
-                                        "title": "references",
-                                        "minItems": 1,
-                                        "maxItems": 1,
-                                        "items": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    {
-                                        "type": "array",
-                                        "title": "objects",
-                                        "minItems": 1,
-                                        "maxItems": 1,
-                                        "items": {
-                                            "type": "object"
-                                        }
-                                    }
-                                ]
-                            },
-                            "Locations@iot.navigation": {
-                                "readOnly": true,
-                                "oneOf": [
-                                    {
-                                        "type": "array",
-                                        "title": "references",
-                                        "minItems": 1,
-                                        "items": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    {
-                                        "type": "array",
-                                        "title": "objects",
-                                        "minItems": 1,
-                                        "items": {
-                                            "type": "object"
-                                        }
-                                    }
-                                ]
+                            {
+                                "type": "array",
+                                "title": "objects",
+                                "minItems": 1,
+                                "maxItems": 1,
+                                "items": {
+                                    "type": "object"
+                                }
                             }
-                        }
+                        ]
+                    },
+                    "Locations@iot.navigation": {
+                        "readOnly": true,
+                        "oneOf": [
+                            {
+                                "type": "array",
+                                "title": "references",
+                                "minItems": 1,
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            {
+                                "type": "array",
+                                "title": "objects",
+                                "minItems": 1,
+                                "items": {
+                                    "type": "object"
+                                }
+                            }
+                        ]
                     }
-                ]
+                }
             },
             "Sensors": {
                 "examples": [
@@ -1752,78 +1569,65 @@
                     {
                         "name": "Chlorophyll fluorometer",
                         "description": "For measuring plankton stuff"
-                    },
-                    {
-                        "name": "OLI",
-                        "description": "Operational Land Imager",
-                        "Things@iot.navigation": [
-                            {
-                                "name": [
-                                    "Landsat-7"
-                                ]
-                            }
-                        ]
-                    },
-                    {
-                        "Things@iot.navigation": [
-                            {
-                                "name": [
-                                    "Landsat-7"
-                                ]
-                            }
-                        ],
-                        "name": "TIRS",
-                        "description": "Thermal imaging radar on Landsat"
                     }
                 ],
-                "allOf": [
-                    {
-                        "$ref": "#/components/schemas/Entity"
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "uuid",
+                    "name"
+                ],
+                "properties": {
+                    "uuid": {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Unique integer identifier for entity.\n"
                     },
-                    {
-                        "type": "object",
-                        "properties": {
-                            "entityClass": {
-                                "writeOnly": true,
-                                "type": "string",
-                                "enum": [
-                                    "sensor"
-                                ],
-                                "default": "sensor"
+                    "name": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Human readable entity name for displaying data."
+                    },
+                    "description": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Short but useful explanation of what the entity is."
+                    },
+                    "encodingType": {
+                        "type": "string",
+                        "enum": [
+                            "application/pdf",
+                            "http://www.opengis.net/doc/IS/SensorML/2.0"
+                        ],
+                        "default": "http://www.opengis.net/doc/IS/SensorML/2.0"
+                    },
+                    "metadata": {
+                        "type": "object"
+                    },
+                    "DataStreams@iot.navigation": {
+                        "readOnly": true,
+                        "oneOf": [
+                            {
+                                "type": "array",
+                                "title": "references",
+                                "items": {
+                                    "type": "string"
+                                }
                             },
-                            "encodingType": {
-                                "type": "string",
-                                "enum": [
-                                    "application/pdf",
-                                    "http://www.opengis.net/doc/IS/SensorML/2.0"
-                                ],
-                                "default": "http://www.opengis.net/doc/IS/SensorML/2.0"
-                            },
-                            "metadata": {
-                                "type": "object"
-                            },
-                            "DataStreams@iot.navigation": {
-                                "readOnly": true,
-                                "oneOf": [
-                                    {
-                                        "type": "array",
-                                        "title": "references",
-                                        "items": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    {
-                                        "type": "array",
-                                        "title": "objects",
-                                        "items": {
-                                            "type": "object"
-                                        }
-                                    }
-                                ]
+                            {
+                                "type": "array",
+                                "title": "objects",
+                                "items": {
+                                    "type": "object"
+                                }
                             }
-                        }
+                        ]
                     }
-                ]
+                }
             },
             "DataStreams": {
                 "examples": [
@@ -1871,288 +1675,297 @@
                         "description": "Just another chlorophyll series"
                     }
                 ],
-                "allOf": [
-                    {
-                        "$ref": "#/components/schemas/Entity"
+                "type": "object",
+                "description": "DataStreams are collections of `Observations` from the same `Sensors`.\n",
+                "additionalProperties": false,
+                "required": [
+                    "uuid",
+                    "name"
+                ],
+                "properties": {
+                    "uuid": {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Unique integer identifier for entity.\n"
                     },
-                    {
+                    "name": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Human readable entity name for displaying data."
+                    },
+                    "description": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Short but useful explanation of what the entity is."
+                    },
+                    "unitOfMeasurement": {
                         "type": "object",
-                        "description": "\nDataStreams are collections of `Observations` from the same `Sensors`.\n",
+                        "description": "Unified Code for Unit of Measure\n",
                         "properties": {
-                            "entityClass": {
-                                "writeOnly": true,
+                            "name": {
                                 "type": "string",
-                                "enum": [
-                                    "DataStreams"
-                                ],
-                                "default": "DataStreams"
+                                "description": "Name for matching and displaying"
                             },
-                            "unitOfMeasurement": {
-                                "type": "object",
-                                "description": "Unified Code for Unit of Measure\n",
-                                "properties": {
-                                    "name": {
-                                        "type": "string",
-                                        "description": "Name for matching and displaying"
-                                    },
-                                    "symbol": {
-                                        "type": [
-                                            "string",
-                                            "null"
-                                        ],
-                                        "description": "Abbreviation for the parameter"
-                                    },
-                                    "definition": {
-                                        "type": [
-                                            "string",
-                                            "null"
-                                        ],
-                                        "description": "A link to a formal definition"
-                                    }
-                                }
-                            },
-                            "observationType": {
+                            "symbol": {
                                 "type": [
                                     "string",
                                     "null"
                                 ],
-                                "description": "Data model of child `Observations`. Usually a `Measurement`.\n",
-                                "enum": [
-                                    "OM_CategoryObservation",
-                                    "OM_CountObservation",
-                                    "OM_Measurement",
-                                    "OM_Observation",
-                                    "OM_TruthObservation"
-                                ]
+                                "description": "Abbreviation for the parameter"
                             },
-                            "observedArea": {
+                            "definition": {
                                 "type": [
-                                    "object",
+                                    "string",
                                     "null"
                                 ],
-                                "readOnly": true,
-                                "description": "The bounding box that encloses all `FeaturesOfInterest` referenced by child `Observations`\n"
-                            },
-                            "phenomenonTime": {
-                                "type": "array",
-                                "description": "Time interval of the measured process, consisting of two ISO8601 timestamps.\n",
-                                "minItems": 2,
-                                "maxItems": 2,
-                                "items": {
-                                    "type": "string",
-                                    "format": "date-time"
-                                }
-                            },
-                            "resultTime": {
-                                "type": "array",
-                                "description": "Time interval of receiving data, consisting of two ISO8601 timestamps. May be different than the\nmeasured process, due to batch uploads, latency, lack of real-time clocks in devices, etc.\n",
-                                "minItems": 2,
-                                "maxItems": 2,
-                                "items": {
-                                    "type": "string",
-                                    "format": "date-time"
-                                }
-                            },
-                            "table": {
-                                "type": "string",
-                                "description": "Time series observations associated with a `DataStreams` can be stored in the TimescaleDB.\nTimescaleDB is an extension of Postgres+Postgis, and this is SQL table reference to find and retrieve data.\n"
-                            },
-                            "Observations@iot.navigation": {
-                                "readOnly": true,
-                                "oneOf": [
-                                    {
-                                        "type": "array",
-                                        "title": "references",
-                                        "items": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    {
-                                        "type": "array",
-                                        "title": "objects",
-                                        "items": {
-                                            "type": "object"
-                                        }
-                                    }
-                                ]
-                            },
-                            "ObservedProperties@iot.navigation": {
-                                "readOnly": true,
-                                "oneOf": [
-                                    {
-                                        "type": "array",
-                                        "title": "references",
-                                        "minItems": 1,
-                                        "items": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    {
-                                        "type": "array",
-                                        "title": "objects",
-                                        "minItems": 1,
-                                        "items": {
-                                            "type": "object"
-                                        }
-                                    }
-                                ]
-                            },
-                            "Sensors@iot.navigation": {
-                                "readOnly": true,
-                                "oneOf": [
-                                    {
-                                        "type": "array",
-                                        "title": "references",
-                                        "minItems": 1,
-                                        "items": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    {
-                                        "type": "array",
-                                        "title": "objects",
-                                        "minItems": 1,
-                                        "items": {
-                                            "type": "object"
-                                        }
-                                    }
-                                ]
-                            },
-                            "Things@iot.navigation": {
-                                "readOnly": true,
-                                "oneOf": [
-                                    {
-                                        "type": "array",
-                                        "title": "references",
-                                        "minItems": 1,
-                                        "items": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    {
-                                        "type": "array",
-                                        "title": "objects",
-                                        "minItems": 1,
-                                        "items": {
-                                            "type": "object"
-                                        }
-                                    }
-                                ]
+                                "description": "A link to a formal definition"
                             }
                         }
+                    },
+                    "observationType": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Data model of child `Observations`. Usually a `Measurement`.\n",
+                        "enum": [
+                            "OM_CategoryObservation",
+                            "OM_CountObservation",
+                            "OM_Measurement",
+                            "OM_Observation",
+                            "OM_TruthObservation"
+                        ]
+                    },
+                    "observedArea": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "readOnly": true,
+                        "description": "The bounding box that encloses all `FeaturesOfInterest` referenced by child `Observations`\n"
+                    },
+                    "phenomenonTime": {
+                        "type": "array",
+                        "description": "Time interval of the measured process, consisting of two ISO8601 timestamps.\n",
+                        "minItems": 2,
+                        "maxItems": 2,
+                        "items": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    },
+                    "resultTime": {
+                        "type": "array",
+                        "description": "Time interval of receiving data, consisting of two ISO8601 timestamps. May be different than the\nmeasured process, due to batch uploads, latency, lack of real-time clocks in devices, etc.\n",
+                        "minItems": 2,
+                        "maxItems": 2,
+                        "items": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    },
+                    "Observations@iot.navigation": {
+                        "readOnly": true,
+                        "oneOf": [
+                            {
+                                "type": "array",
+                                "title": "references",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            {
+                                "type": "array",
+                                "title": "objects",
+                                "items": {
+                                    "type": "object"
+                                }
+                            }
+                        ]
+                    },
+                    "ObservedProperties@iot.navigation": {
+                        "readOnly": true,
+                        "oneOf": [
+                            {
+                                "type": "array",
+                                "title": "references",
+                                "minItems": 1,
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            {
+                                "type": "array",
+                                "title": "objects",
+                                "minItems": 1,
+                                "items": {
+                                    "type": "object"
+                                }
+                            }
+                        ]
+                    },
+                    "Sensors@iot.navigation": {
+                        "readOnly": true,
+                        "oneOf": [
+                            {
+                                "type": "array",
+                                "title": "references",
+                                "minItems": 1,
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            {
+                                "type": "array",
+                                "title": "objects",
+                                "minItems": 1,
+                                "items": {
+                                    "type": "object"
+                                }
+                            }
+                        ]
+                    },
+                    "Things@iot.navigation": {
+                        "readOnly": true,
+                        "oneOf": [
+                            {
+                                "type": "array",
+                                "title": "references",
+                                "minItems": 1,
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            {
+                                "type": "array",
+                                "title": "objects",
+                                "minItems": 1,
+                                "items": {
+                                    "type": "object"
+                                }
+                            }
+                        ]
                     }
-                ]
+                }
             },
             "Observations": {
                 "examples": [
                     {
-                        "Datastreams@iot.navigation": [
+                        "DataStreams@iot.navigation": [
                             {
                                 "name": [
                                     "temperature"
                                 ]
                             }
                         ],
-                        "ts": 1000.234,
-                        "val": 10
+                        "resultTime": "2020-04-01T09:00:00Z",
+                        "result": 10
                     },
                     {
-                        "Datastreams@iot.navigation": [
+                        "DataStreams@iot.navigation": [
                             {
                                 "name": [
                                     "temperature"
                                 ]
                             }
                         ],
-                        "ts": 1100.194,
-                        "val": 11.7
+                        "resultTime": "2018-04-01T09:45:00Z",
+                        "result": 11.7
                     }
                 ],
-                "allOf": [
-                    {
-                        "$ref": "#/components/schemas/Entity"
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "uuid",
+                    "resultTime",
+                    "result"
+                ],
+                "properties": {
+                    "uuid": {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Unique integer identifier for entity.\n"
                     },
-                    {
+                    "resultTime": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Timestamp when the `Observation` was registered by the system.\n"
+                    },
+                    "resultQuality": {
+                        "type": "string",
+                        "description": "Quality of the result described as a `DQ_Element` (OGC)\n"
+                    },
+                    "validTime": {
+                        "type": "array",
+                        "description": "Time interval when the result is valid",
+                        "minItems": 2,
+                        "maxItems": 2,
+                        "items": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    },
+                    "phenomenonTime": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Timestamp of the acquisition of the `Observation`\n"
+                    },
+                    "result": {
+                        "description": "The result of the observation. Usually a number.",
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "parameters": {
                         "type": "object",
-                        "properties": {
-                            "resultTime": {
-                                "type": "string",
-                                "format": "date-time",
-                                "description": "Timestamp when the `Observation` was registered by the system.\n"
-                            },
-                            "resultQuality": {
-                                "type": "string",
-                                "description": "Quality of the result described as a `DQ_Element` (OGC)\n"
-                            },
-                            "validTime": {
+                        "description": "Environmental conditions during the `Observation`"
+                    },
+                    "DataStreams@iot.navigation": {
+                        "readOnly": true,
+                        "oneOf": [
+                            {
                                 "type": "array",
-                                "description": "Time interval when the result is valid",
-                                "minItems": 2,
-                                "maxItems": 2,
+                                "title": "references",
+                                "maxItems": 1,
                                 "items": {
-                                    "type": "string",
-                                    "format": "date-time"
+                                    "type": "string"
                                 }
                             },
-                            "phenomenonTime": {
-                                "type": "string",
-                                "format": "date-time",
-                                "description": "Timestamp of the acquisition of the `Observation`\n"
-                            },
-                            "result": {
-                                "description": "The result of the observation. Usually a number.",
-                                "type": "number",
-                                "format": "float"
-                            },
-                            "parameters": {
-                                "type": "object",
-                                "description": "Environmental conditions during the `Observation`"
-                            },
-                            "DataStreams@iot.navigation": {
-                                "readOnly": true,
-                                "oneOf": [
-                                    {
-                                        "type": "array",
-                                        "title": "references",
-                                        "maxItems": 1,
-                                        "items": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    {
-                                        "type": "array",
-                                        "title": "objects",
-                                        "maxItems": 1,
-                                        "items": {
-                                            "type": "object"
-                                        }
-                                    }
-                                ]
-                            },
-                            "FeaturesOfInterest@iot.navigation": {
-                                "readOnly": true,
-                                "oneOf": [
-                                    {
-                                        "type": "array",
-                                        "title": "references",
-                                        "maxItems": 1,
-                                        "items": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    {
-                                        "type": "array",
-                                        "title": "objects",
-                                        "maxItems": 1,
-                                        "items": {
-                                            "type": "object"
-                                        }
-                                    }
-                                ]
+                            {
+                                "type": "array",
+                                "title": "objects",
+                                "maxItems": 1,
+                                "items": {
+                                    "type": "object"
+                                }
                             }
-                        }
+                        ]
+                    },
+                    "FeaturesOfInterest@iot.navigation": {
+                        "readOnly": true,
+                        "oneOf": [
+                            {
+                                "type": "array",
+                                "title": "references",
+                                "maxItems": 1,
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            {
+                                "type": "array",
+                                "title": "objects",
+                                "maxItems": 1,
+                                "items": {
+                                    "type": "object"
+                                }
+                            }
+                        ]
                     }
-                ]
+                }
             },
             "Tasks": {
                 "examples": [
@@ -2187,56 +2000,73 @@
                         "name": "Harvest"
                     }
                 ],
-                "allOf": [
-                    {
-                        "$ref": "#/components/schemas/Entity"
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "uuid",
+                    "name"
+                ],
+                "properties": {
+                    "uuid": {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Unique integer identifier for entity.\n"
                     },
-                    {
-                        "type": "object",
-                        "properties": {
-                            "Locations@iot.navigation": {
-                                "readOnly": true,
-                                "oneOf": [
-                                    {
-                                        "type": "array",
-                                        "title": "references or objects",
-                                        "maxItems": 1,
-                                        "items": {
-                                            "oneOf": [
-                                                {
-                                                    "type": "string"
-                                                },
-                                                {
-                                                    "type": "object"
-                                                }
-                                            ]
+                    "name": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Human readable entity name for displaying data."
+                    },
+                    "description": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Short but useful explanation of what the entity is."
+                    },
+                    "Locations@iot.navigation": {
+                        "readOnly": true,
+                        "oneOf": [
+                            {
+                                "type": "array",
+                                "title": "references or objects",
+                                "maxItems": 1,
+                                "items": {
+                                    "oneOf": [
+                                        {
+                                            "type": "string"
+                                        },
+                                        {
+                                            "type": "object"
                                         }
-                                    }
-                                ]
-                            },
-                            "TaskingCapabilities@iot.navigation": {
-                                "readOnly": true,
-                                "oneOf": [
-                                    {
-                                        "type": "array",
-                                        "title": "references or objects",
-                                        "maxItems": 1,
-                                        "items": {
-                                            "oneOf": [
-                                                {
-                                                    "type": "string"
-                                                },
-                                                {
-                                                    "type": "object"
-                                                }
-                                            ]
-                                        }
-                                    }
-                                ]
+                                    ]
+                                }
                             }
-                        }
+                        ]
+                    },
+                    "TaskingCapabilities@iot.navigation": {
+                        "readOnly": true,
+                        "oneOf": [
+                            {
+                                "type": "array",
+                                "title": "references or objects",
+                                "maxItems": 1,
+                                "items": {
+                                    "oneOf": [
+                                        {
+                                            "type": "string"
+                                        },
+                                        {
+                                            "type": "object"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
                     }
-                ]
+                }
             },
             "ObservedProperties": {
                 "examples": [
@@ -2377,44 +2207,56 @@
                         "name": "water velocity"
                     }
                 ],
-                "allOf": [
-                    {
-                        "$ref": "#/components/schemas/Entity"
+                "type": "object",
+                "properties": {
+                    "uuid": {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Unique integer identifier for entity.\n"
                     },
-                    {
-                        "type": "object",
-                        "properties": {
-                            "definition": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ],
-                                "description": "Reference to resource that defines the property. We default to trying Wikipedia."
+                    "name": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Human readable entity name for displaying data."
+                    },
+                    "description": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Short but useful explanation of what the entity is."
+                    },
+                    "definition": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Reference to resource that defines the property. We default to trying Wikipedia."
+                    },
+                    "DataStreams@iot.navigation": {
+                        "readOnly": true,
+                        "oneOf": [
+                            {
+                                "type": "array",
+                                "title": "references",
+                                "maxItems": 1,
+                                "items": {
+                                    "type": "string"
+                                }
                             },
-                            "DataStreams@iot.navigation": {
-                                "readOnly": true,
-                                "oneOf": [
-                                    {
-                                        "type": "array",
-                                        "title": "references",
-                                        "maxItems": 1,
-                                        "items": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    {
-                                        "type": "array",
-                                        "title": "objects",
-                                        "maxItems": 1,
-                                        "items": {
-                                            "type": "object"
-                                        }
-                                    }
-                                ]
+                            {
+                                "type": "array",
+                                "title": "objects",
+                                "maxItems": 1,
+                                "items": {
+                                    "type": "object"
+                                }
                             }
-                        }
+                        ]
                     }
-                ]
+                }
             },
             "Collection": {
                 "title": "stacCollection",
@@ -2431,20 +2273,32 @@
                         "description": "Temporary sites with a small footprint"
                     }
                 ],
-                "allOf": [
-                    {
-                        "$ref": "#/components/schemas/Entity"
+                "type": "object",
+                "description": "SpatioTemporal Asset Catalog object-linking collection object. Collections are generic, while some\nSensorThings entities are special Collections. For instance, a `DataStreams` is a collection of\n`Observations`.\n",
+                "properties": {
+                    "uuid": {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Unique integer identifier for entity.\n"
                     },
-                    {
-                        "type": "object",
-                        "description": "SpatioTemporal Asset Catalog object-linking collection object. Collections are generic, while some\nSensorThings entities are special Collections. For instance, a `DataStreams` is a collection of\n`Observations`.\n",
-                        "properties": {
-                            "extent": {
-                                "$ref": "#/components/schemas/Extent"
-                            }
-                        }
+                    "name": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Human readable entity name for displaying data."
+                    },
+                    "description": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Short but useful explanation of what the entity is."
+                    },
+                    "extent": {
+                        "$ref": "#/components/schemas/Extent"
                     }
-                ]
+                }
             },
             "Extent": {
                 "title": "extent",
@@ -2489,35 +2343,47 @@
                         "owner": true
                     }
                 ],
-                "allOf": [
-                    {
-                        "$ref": "#/components/schemas/Entity"
+                "type": "object",
+                "description": "Data providers are organizations or individuals that produce, process, host, or license data.\n",
+                "properties": {
+                    "uuid": {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Unique integer identifier for entity.\n"
                     },
-                    {
-                        "type": "object",
-                        "description": "Data providers are organizations or individuals that produce, process, host, or license data.\n",
-                        "properties": {
-                            "url": {
-                                "type": "string",
-                                "description": "URL to organization website"
-                            },
-                            "roles": {
-                                "type": "array",
-                                "description": "Data providers are labeled with a role, so that attribution and redaction works properly on synthesized\ndatasets. Data in the system m\n",
-                                "items": {
-                                    "title": "providerRole",
-                                    "type": "string",
-                                    "enum": [
-                                        "licensor",
-                                        "producer",
-                                        "processor",
-                                        "host"
-                                    ]
-                                }
-                            }
+                    "name": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Human readable entity name for displaying data."
+                    },
+                    "description": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Short but useful explanation of what the entity is."
+                    },
+                    "url": {
+                        "type": "string",
+                        "description": "URL to organization website"
+                    },
+                    "roles": {
+                        "type": "array",
+                        "description": "Data providers are labeled with a role, so that attribution and redaction works properly on synthesized\ndatasets. Data in the system m\n",
+                        "items": {
+                            "title": "providerRole",
+                            "type": "string",
+                            "enum": [
+                                "licensor",
+                                "producer",
+                                "processor",
+                                "host"
+                            ]
                         }
                     }
-                ]
+                }
             },
             "Weight": {
                 "description": "The total fresh product weight in grams. There are other conversions depending on your application case.\n\nBiogeochemical modelers are likely more interested in carbon and nutrient masses. This will apply best to products sold by weight like mussels.\n",

@@ -2,7 +2,7 @@ import fetch from "node-fetch";
 import assert from "assert";
 import YAML from "yaml";
 import { readFileSync } from "fs";
-import {describe, it} from "mocha";
+import { describe, it } from "mocha";
 import crypto from "crypto";
 
 // MERGE (n:Provider { apiKey: replace(apoc.create.uuid(), '-', ''), domain: 'oceanics.io' }) return n
@@ -82,13 +82,13 @@ const batch = async (composeTransaction, nodeType, data) => {
   return Promise.allSettled(queue.map(job));
 };
 
-
+let spec;
 const parseNodesFromApi = () => {
   const insertIds = (items) => {
     return items.map((props) => {
       return {
         ...props,
-        uuid: crypto.randomUUID().replace(/-/g, "")
+        uuid: crypto.randomUUID()
       }
     })
   }
@@ -96,7 +96,7 @@ const parseNodesFromApi = () => {
     "oceanics-io-www/public/bathysphere.yaml",
     "utf8"
   );
-  const spec = YAML.parse(text);
+  spec = YAML.parse(text);
   const nodes = Object.entries(spec.components.schemas)
     .filter(([key]) => EXTENSIONS.sensing.has(key))
     .map(([key, value]) => [key, insertIds(value.examples ?? [])]);
@@ -118,65 +118,49 @@ describe("API Request Validator", function () {
     const testResponse = async (data, expected) => {
       const response = await query(data);
       const result = await response.json();
-      if (!response.ok) console.log(result)
+      
       assert(response.status === 200, `Unexpected Response Code: ${response.status}`);
-      assert(result.test === expected, "Unexpected Validation Result");
+
+      const pass = result.test === expected;
+      if (!pass) console.log({...data, ...result});
+      assert(pass, `Unexpected Validation Result`);
     }
 
-    it("validates numeric type", async function () {
-      await testResponse({
-        data: 0.0,
-        reference: "#/components/schemas/Weight"
-      }, true)
-    })
+    const validateInterface = (nodeType) => {
+      return function () {
 
-    it("fails out of range numeric type", async function () {
-      await testResponse({
-        data: -1.0,
-        reference: "#/components/schemas/Weight"
-      }, false)
-    })
-
-    describe("Things entities", function () {
-
-      it("validates well known entities", async function () {
-        for (const thing of WELL_KNOWN_NODES.Things) {
-          await testResponse({
-            data: thing,
-            reference: "#/components/schemas/Things"
-          }, true)
-        }
-      })
+        const reference = `#/components/schemas/${nodeType}`;
+        const testCase = WELL_KNOWN_NODES[nodeType][0];
+        const {required, additionalProperties=true} = spec.components.schemas[nodeType];
   
-      it("fails without uuid", async function () {
-        await testResponse({
-          data: {
-            name: "Submarine"
-          },
-          reference: "#/components/schemas/Things"
-        }, false)
-      })
+        it("validates well known nodes", async function () {
+          for (const data of WELL_KNOWN_NODES[nodeType]) {
+            await testResponse({ data, reference}, true);
+          }
+        })
+  
+        for (const key of required) {
+          it(`fails without ${key}`, async function () {
+            await testResponse({ data: {
+              ...testCase,
+              [key]: undefined
+            }, reference }, false);
+          })
+        }
+        if (!additionalProperties) {
+          it("fails with additional properties", async function () {
+            await testResponse({ data: {
+              ...testCase,
+              extra: "extra-key-value-pair"
+            }, reference }, false);
+          })
+        }
+      }
+    }
 
-      it("fails without name", async function () {
-        await testResponse({
-          data: {
-            uuid: "placeholder"
-          },
-          reference: "#/components/schemas/Things"
-        }, false)
-      })
-
-      it("fails with extra field", async function () {
-        await testResponse({
-          data: {
-            name: "submarine",
-            uuid: "placeholder",
-            foreign: "value",
-          },
-          reference: "#/components/schemas/Things"
-        }, false)
-      })
-    })
+    for (const nodeType of ["Things", "Locations", "Observations", "DataStreams", "Sensors"]) {
+      describe(nodeType, validateInterface(nodeType));
+    }
 })
 
 /**

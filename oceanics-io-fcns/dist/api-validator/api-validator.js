@@ -50,7 +50,7 @@ const handler = async ({ body, httpMethod }) => {
         body: JSON.stringify({
             test,
             errors: ajv.errors,
-            schema: bathysphere_json_1.default.components.schemas["Weight"]
+            schema
         })
     };
 };

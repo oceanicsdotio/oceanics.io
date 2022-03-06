@@ -202,13 +202,10 @@ paths:
     get:
       tags: [Catalog]
       summary: Metadata
-      description: |
-        Get entity
-
+      description: Get entity
       parameters:
         - $ref: "#/components/parameters/entityClass"
         - $ref: "#/components/parameters/entityId"
-
       responses:
         '200':
           $ref: '#/components/responses/Entity'
@@ -492,7 +489,6 @@ components:
       schema:
         $ref: "#/components/schemas/Weight"
 
-
     root:
       in: path
       required: true
@@ -607,8 +603,7 @@ components:
       content:
         application/json:
           schema:
-            type: object
-            anyOf:  # change back to oneOf? needs discriminator
+            oneOf:
               - $ref: '#/components/schemas/Things'
               - $ref: '#/components/schemas/Locations'
               - $ref: '#/components/schemas/HistoricalLocations'
@@ -741,14 +736,25 @@ components:
       examples:
         - name: Arthur Machen
         - name: Octavia Butler
-      allOf:
-        - $ref: '#/components/schemas/Entity'
-        - type: object
-          properties:
-            entityClass:
-              writeOnly: true
-              enum: [thing]
-              default: thing
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          description: |
+            Unique integer identifier for entity.
+
+        name:
+          type:
+            - "string"
+            - "null"
+          description: Human readable entity name for displaying data.
+
+        description:
+          type:
+            - "string"
+            - "null"
+          description: Short but useful explanation of what the entity is.
             
     Asset:
       type: object
@@ -896,43 +902,58 @@ components:
         - name: Midcoast Maine Mesh
         - name: Damariscotta River Estuary shellfish growing area
           description: Traditional growing area for oysters in Maine.
-      allOf:
-        - $ref: '#/components/schemas/Entity'
-        - type: object
+      type: object
+      description: |
+        Features of interest are usually Locations
+
+      properties:
+        uuid:
+          type: string
+          format: uuid
           description: |
-            Features of interest are usually Locations
+            Unique integer identifier for entity.
 
-          properties:
+        name:
+          type:
+            - "string"
+            - "null"
+          description: Human readable entity name for displaying data.
 
-            encodingType:
-              type: string
-              description: Identifier for parsing feature data
+        description:
+          type:
+            - "string"
+            - "null"
+          description: Short but useful explanation of what the entity is.
 
-            feature:
-              type: object
-              description: Feature data
+        encodingType:
+          type: string
+          description: Identifier for parsing feature data
 
-            Observations@iot.navigation:
-              readOnly: true
-              oneOf:
+        feature:
+          type: object
+          description: Feature data
 
-                - type: array
-                  title: references
-                  items:
-                    type: string
+        Observations@iot.navigation:
+          readOnly: true
+          oneOf:
 
-                - type: array
-                  title: objects
-                  items:
-                    type: object
+            - type: array
+              title: references
+              items:
+                type: string
+
+            - type: array
+              title: objects
+              items:
+                type: object
 
     Things:
       examples:
+        - name: Landsat-7
+          description: Satellite mission
         - name: Land Ocean Biogeochemical Observatory
           description: |
             Moored buoy deployment of the Sustainable Ecological Aquaculture Network
-        - name: Landsat-7
-          description: Satellite mission
         - name: Sealab
           properties:
             home: Farm
@@ -1042,289 +1063,200 @@ components:
               items:
                 type: object
 
-
     LocationEncodingType:
       type: string
       enum:
         - "application/vnd.geo+json"
-        - "application/vnd.network+json"
       default: "application/vnd.geo+json"
       description: The encoding rendered in the location response
 
     Locations:
       examples:
-        - name: Fish Farm
-          encodingType: application/json
-          location:
-            properties: 
-              fictional: true
-              icon: fish
-        - name: Wharf
-          encodingType: application/json
-          location:
-            properties:
-              icon: wharf
-              capacity: 4
-              home: true
-              fictional: true
-        - Locations@iot.navigation:
-            - name: [ Maine Loboviz Data ]
-              props:
-                node: 65
-          name: Lower Damariscotta
+        - name: Lower Damariscotta
           encodingType: application/vnd.geo+json
           location:
             type: Point
             coordinates: [43.93354, -69.58344]
-        - Locations@iot.navigation:
-            - name: [ Maine Loboviz Data ]
-              props:
-                node: 66
-          name: Upper Damariscotta Estuary
+        - name: Upper Damariscotta Estuary
           encodingType: application/vnd.geo+json
           description: Buoy deployment
           location:
             type: Point
             coordinates: [ 43.998178, -69.54253, 0.0 ]
-        - Locations@iot.navigation:
-            - name: [ Maine Loboviz Data ]
-              props:
-                node: 64
-          name: Wood Island Harbor
+        - name: Wood Island Harbor
           encodingType: application/vnd.geo+json
           location:
             type: Point
             coordinates: [ 43.456550, -70.344432 ]
-        - Locations@iot.navigation:
-            - name: [ Maine Loboviz Data ]
-              props:
-                node: 67
-
-          name: Ram Island Saco Bay
+        - name: Ram Island Saco Bay
           encodingType: application/vnd.geo+json
           location:
             type: Point
             coordinates: [ 43.465934, -70.359646 ]
-        - Locations@iot.navigation:
-            - name: [ Maine Loboviz Data ]
-              props:
-                node: 70
-          name: Upper New Meadows
+        - name: Upper New Meadows
           encodingType: application/vnd.geo+json
           location:
             type: Point
             coordinates: [ 43.863669, -69.8984055 ]  # Bombazine
-        - Locations@iot.navigation:
-            - name: [ Maine Loboviz Data ]
-              props:
-                node: 71
-          name: Lower New Meadows
+        - name: Lower New Meadows
           encodingType: application/vnd.geo+json
           location:
             type: Point
             coordinates: [ 43.77643055, -69.89196944 ]  # Sand Cove
-        - Locations@iot.navigation:
-            - name: [ Maine Loboviz Data ]
-              props:
-                node: 72
-          name: Bagaduce River
+        - name: Bagaduce River
           encodingType: application/vnd.geo+json
           location:
             type: Point
             coordinates: [ 44.40156667, -68.7738333 ]
-        - Locations@iot.navigation:
-            - name: [ Maine Loboviz Data ]
-              props:
-                node: 73
-          name: Machias Bay
+        - name: Machias Bay
           encodingType: application/vnd.geo+json
           location:
             type: Point
             coordinates: [ 44.618517, -67.318033 ]
-        - Locations@iot.navigation:
-            - name: [ Maine Loboviz Data ]
-              props:
-                node: 74
-          name: Cobscook Bay
+        - name: Cobscook Bay
           encodingType: application/vnd.geo+json
           location:
             type: Point
             coordinates: [ 44.8968, -67.0651 ]
-        - Locations@iot.navigation:
-            - name: [ Maine Loboviz Data ]
-              props:
-                node: 75
-          Providers@iot.navigation:
-            - label: Alias
-              props:
-                name: [ Passamaquoddy Bay ]
-          name: Western Passage
+        - name: Western Passage
           encodingType: application/vnd.geo+json
           location:
             type: Point
             coordinates: [ 44.92017, -66.995833 ]
-        - Providers@iot.navigation:
-            - domain: [ oceanics.io ]
-          name: neo4j-local
-          encodingType: application/vnd.network+json
-          location:
-            protocol: bolt
-            host: localhost
-            port: 7687
-            connection:
-              retries: 3
-              delay: 1
-            auth:
-              basic: neo4j/neo4j
-        - Providers@iot.navigation:
-            - name: [ Public ]
-              props:
-                bucketName: oceanicsdotio
-                readOnly: true
-          name: Object Storage
-          encodingType: application/vnd.network+json
-          location:
-            protocol: https
-            host: nyc3.digitaloceanspaces.com
-            port:
-            connection:
-              retries: 3
-              delay: 1
-            headers:
-              x-amz-acl: public-read
-              x-amz-meta-service: bathysphere
-        - Providers@iot.navigation:
-            - domain: [ oceanics.io ]
-              props:
-                bucketName: oceanicsdotio
-                lockFile: lock.json
-                indexFile: index.json
-          name: Object Storage
-          encodingType: application/vnd.network+json
-          location:
-            protocol: https
-            host: nyc3.digitaloceanspaces.com
-            port:
-            connection:
-              retries: 3
-              delay: 1
-            headers:
-              x-amz-acl: private
-              x-amz-meta-service: bathysphere
-            auth:
-              basic:
-      allOf:
-        - $ref: '#/components/schemas/Entity'
-        - type: object
+
+      type: object
+      description: |
+        Last known location of a thing. May be a feature of interest, unless remote sensing.
+      additionalProperties: false
+      required: [uuid, location, encodingType]
+      properties:
+
+        uuid:
+          type: string
+          format: uuid
           description: |
-            Last known location of a thing. May be a feature of interest, unless remote sensing.
+            Unique integer identifier for entity.
 
+        name:
+          type:
+            - "string"
+            - "null"
+          description: Human readable entity name for displaying data.
+
+        description:
+          type:
+            - "string"
+            - "null"
+          description: Short but useful explanation of what the entity is.
+
+        encodingType:
+          $ref: '#/components/schemas/LocationEncodingType'
+
+        location:
+          type: object
+          additionalProperties: false
           properties:
+            type:
+              type: string
+              enum: ["Point", "Polygon"]
+            coordinates:
+              type: array
+              minLength: 2
+              maxLength: 3
+              items:
+                type: number
+                format: float
 
-            entityClass:
-              writeOnly: true
-              enum: [location]
-              default: location
+        HistoricalLocations@iot.navigation:
+          readOnly: true
+          oneOf:
 
-            encodingType:
-              $ref: '#/components/schemas/LocationEncodingType'
+            - type: array
+              title: references
+              items:
+                type: string
 
-            location:
-              type: object
-              properties:
-                type:
-                  type: string
-                  enum: ["Point", "Polygon"]
-                coordinates:
-                  type: array
-                  minLength: 2
-                  maxLength: 3
-                  items:
-                    type: number
-                    format: float
+            - type: array
+              title: objects
+              items:
+                type: object
 
+        Things@iot.navigation:
+          readOnly: true
+          oneOf:
 
-            HistoricalLocations@iot.navigation:
-              readOnly: true
-              oneOf:
+            - type: array
+              title: references
+              items:
+                type: string
 
-                - type: array
-                  title: references
-                  items:
-                    type: string
-
-                - type: array
-                  title: objects
-                  items:
-                    type: object
-
-
-            Things@iot.navigation:
-              readOnly: true
-              oneOf:
-
-                - type: array
-                  title: references
-                  items:
-                    type: string
-
-                - type: array
-                  title: objects
-                  items:
-                    type: object
+            - type: array
+              title: objects
+              items:
+                type: object
 
     HistoricalLocations:
-      allOf:
-        - $ref: '#/components/schemas/Entity'
-        - type: object
-          properties:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          description: |
+            Unique integer identifier for entity.
 
-            entityClass:
-              writeOnly: true
-              enum: [HistoricalLocations]
-              default: HistoricalLocations
+        name:
+          type:
+            - "string"
+            - "null"
+          description: Human readable entity name for displaying data.
 
-            encodingType:
-              $ref: '#/components/schemas/LocationEncodingType'
+        description:
+          type:
+            - "string"
+            - "null"
+          description: Short but useful explanation of what the entity is.
 
-            time:
-              type: string
-              format: date-time
-              description: Timestamp when the location was current
+        encodingType:
+          $ref: '#/components/schemas/LocationEncodingType'
 
-            Things@iot.navigation:
-              readOnly: true
-              oneOf:
+        time:
+          type: string
+          format: date-time
+          description: Timestamp when the location was current
 
-                - type: array
-                  title: references
-                  minItems: 1
-                  maxItems: 1
-                  items:
-                    type: string
+        Things@iot.navigation:
+          readOnly: true
+          oneOf:
 
-                - type: array
-                  title: objects
-                  minItems: 1
-                  maxItems: 1
-                  items:
-                    type: object
+            - type: array
+              title: references
+              minItems: 1
+              maxItems: 1
+              items:
+                type: string
 
-            Locations@iot.navigation:
-              readOnly: true
-              oneOf:
+            - type: array
+              title: objects
+              minItems: 1
+              maxItems: 1
+              items:
+                type: object
 
-                - type: array
-                  title: references
-                  minItems: 1
-                  items:
-                    type: string
+        Locations@iot.navigation:
+          readOnly: true
+          oneOf:
 
-                - type: array
-                  title: objects
-                  minItems: 1
-                  items:
-                    type: object
+            - type: array
+              title: references
+              minItems: 1
+              items:
+                type: string
+
+            - type: array
+              title: objects
+              minItems: 1
+              items:
+                type: object
 
     Sensors:
       examples:
@@ -1332,46 +1264,50 @@ components:
           description: A common oceanographic sensing package
         - name: Chlorophyll fluorometer
           description: For measuring plankton stuff
-        - name: OLI
-          description: Operational Land Imager
-          Things@iot.navigation:
-            - name: [ "Landsat-7" ]
-        - Things@iot.navigation:
-            - name: [ Landsat-7 ]
-          name: TIRS
-          description: Thermal imaging radar on Landsat
-      allOf:
-        - $ref: '#/components/schemas/Entity'
-        - type: object
-          properties:
+      type: object
+      additionalProperties: false
+      required: [uuid, name]
+      properties:
 
-            entityClass:
-              writeOnly: true
-              type: string
-              enum: [sensor]
-              default: sensor
+        uuid:
+          type: string
+          format: uuid
+          description: |
+            Unique integer identifier for entity.
 
-            encodingType:
-              type: string
-              enum: [application/pdf, "http://www.opengis.net/doc/IS/SensorML/2.0"]
-              default: "http://www.opengis.net/doc/IS/SensorML/2.0"
+        name:
+          type:
+            - "string"
+            - "null"
+          description: Human readable entity name for displaying data.
 
-            metadata:
-              type: object
+        description:
+          type:
+            - "string"
+            - "null"
+          description: Short but useful explanation of what the entity is.
 
-            DataStreams@iot.navigation:
-              readOnly: true
-              oneOf:
+        encodingType:
+          type: string
+          enum: [application/pdf, "http://www.opengis.net/doc/IS/SensorML/2.0"]
+          default: "http://www.opengis.net/doc/IS/SensorML/2.0"
 
-                - type: array
-                  title: references
-                  items:
-                    type: string
+        metadata:
+          type: object
 
-                - type: array
-                  title: objects
-                  items:
-                    type: object
+        DataStreams@iot.navigation:
+          readOnly: true
+          oneOf:
+
+            - type: array
+              title: references
+              items:
+                type: string
+
+            - type: array
+              title: objects
+              items:
+                type: object
 
     DataStreams:
       examples:
@@ -1389,234 +1325,243 @@ components:
             - name: [ chlorophyll ]
           name: chlorophyll
           description: Just another chlorophyll series
-      allOf:
-        - $ref: '#/components/schemas/Entity'
-        - type: object
-          description: |
+      type: object
+      description: |
+        DataStreams are collections of `Observations` from the same `Sensors`.
+      additionalProperties: false
+      required: [ uuid, name ]
+      properties:
 
-            DataStreams are collections of `Observations` from the same `Sensors`.
+        uuid:
+          type: string
+          format: uuid
+          description: |
+            Unique integer identifier for entity.
+
+        name:
+          type:
+            - "string"
+            - "null"
+          description: Human readable entity name for displaying data.
+
+        description:
+          type:
+            - "string"
+            - "null"
+          description: Short but useful explanation of what the entity is.
+
+        unitOfMeasurement:
+          type: object
+          description: |
+            Unified Code for Unit of Measure
 
           properties:
-
-            entityClass:
-              writeOnly: true
+            name:
               type: string
-              enum: [DataStreams]
-              default: DataStreams
+              description: Name for matching and displaying
 
-            unitOfMeasurement:
-              type: object
-              description: |
-                Unified Code for Unit of Measure
-
-              properties:
-                name:
-                  type: string
-                  description: Name for matching and displaying
-
-                symbol:
-                  type:
-                    - "string"
-                    - "null"
-                  description: Abbreviation for the parameter
-
-                definition:
-                  type:
-                    - "string"
-                    - "null"
-                  description: A link to a formal definition
-
-            observationType:
+            symbol:
               type:
                 - "string"
                 - "null"
-              description: |
-                Data model of child `Observations`. Usually a `Measurement`.
-              enum:
-                - "OM_CategoryObservation"
-                - "OM_CountObservation"
-                - "OM_Measurement"
-                - "OM_Observation"
-                - "OM_TruthObservation"
+              description: Abbreviation for the parameter
 
-            observedArea:
-              type: [object, "null"]
-              readOnly: true
-              description: |
-                The bounding box that encloses all `FeaturesOfInterest` referenced by child `Observations`
+            definition:
+              type:
+                - "string"
+                - "null"
+              description: A link to a formal definition
 
-            phenomenonTime:
-              type: array
-              description: |
-                Time interval of the measured process, consisting of two ISO8601 timestamps.
-              minItems: 2
-              maxItems: 2
+        observationType:
+          type:
+            - "string"
+            - "null"
+          description: |
+            Data model of child `Observations`. Usually a `Measurement`.
+          enum:
+            - "OM_CategoryObservation"
+            - "OM_CountObservation"
+            - "OM_Measurement"
+            - "OM_Observation"
+            - "OM_TruthObservation"
+
+        observedArea:
+          type: [object, "null"]
+          readOnly: true
+          description: |
+            The bounding box that encloses all `FeaturesOfInterest` referenced by child `Observations`
+
+        phenomenonTime:
+          type: array
+          description: |
+            Time interval of the measured process, consisting of two ISO8601 timestamps.
+          minItems: 2
+          maxItems: 2
+          items:
+            type: string
+            format: date-time
+
+        resultTime:
+          type: array
+          description: |
+            Time interval of receiving data, consisting of two ISO8601 timestamps. May be different than the
+            measured process, due to batch uploads, latency, lack of real-time clocks in devices, etc.
+          minItems: 2
+          maxItems: 2
+          items:
+            type: string
+            format: date-time
+
+        Observations@iot.navigation:
+          readOnly: true
+          oneOf:
+
+            - type: array
+              title: references
               items:
                 type: string
-                format: date-time
 
-            resultTime:
-              type: array
-              description: |
-                Time interval of receiving data, consisting of two ISO8601 timestamps. May be different than the
-                measured process, due to batch uploads, latency, lack of real-time clocks in devices, etc.
-              minItems: 2
-              maxItems: 2
+            - type: array
+              title: objects
+              items:
+                type: object
+
+        ObservedProperties@iot.navigation:
+          readOnly: true
+          oneOf:
+
+            - type: array
+              title: references
+              minItems: 1
               items:
                 type: string
-                format: date-time
 
-            table:
-              type: string
-              description: |
-                Time series observations associated with a `DataStreams` can be stored in the TimescaleDB.
-                TimescaleDB is an extension of Postgres+Postgis, and this is SQL table reference to find and retrieve data.
+            - type: array
+              title: objects
+              minItems: 1
+              items:
+                type: object
 
-            Observations@iot.navigation:
-              readOnly: true
-              oneOf:
+        Sensors@iot.navigation:
+          readOnly: true
+          oneOf:
 
-                - type: array
-                  title: references
-                  items:
-                    type: string
+            - type: array
+              title: references
+              minItems: 1
+              items:
+                type: string
 
-                - type: array
-                  title: objects
-                  items:
-                    type: object
+            - type: array
+              title: objects
+              minItems: 1
+              items:
+                type: object
 
-            ObservedProperties@iot.navigation:
-              readOnly: true
-              oneOf:
+        Things@iot.navigation:
+          readOnly: true
+          oneOf:
 
-                - type: array
-                  title: references
-                  minItems: 1
-                  items:
-                    type: string
+            - type: array
+              title: references
+              minItems: 1
+              items:
+                type: string
 
-                - type: array
-                  title: objects
-                  minItems: 1
-                  items:
-                    type: object
-
-            Sensors@iot.navigation:
-              readOnly: true
-              oneOf:
-
-                - type: array
-                  title: references
-                  minItems: 1
-                  items:
-                    type: string
-
-                - type: array
-                  title: objects
-                  minItems: 1
-                  items:
-                    type: object
-
-            Things@iot.navigation:
-              readOnly: true
-              oneOf:
-
-                - type: array
-                  title: references
-                  minItems: 1
-                  items:
-                    type: string
-
-                - type: array
-                  title: objects
-                  minItems: 1
-                  items:
-                    type: object
+            - type: array
+              title: objects
+              minItems: 1
+              items:
+                type: object
 
 
     Observations:
       examples: 
-        - Datastreams@iot.navigation:
+        - DataStreams@iot.navigation:
             - name: [ temperature ]
-          ts: 1000.234
-          val: 10.0
+          resultTime: "2020-04-01T09:00:00Z"
+          result: 10.0
 
-        - Datastreams@iot.navigation:
+        - DataStreams@iot.navigation:
             - name: [ temperature ]
-          ts: 1100.194
-          val: 11.7
-      allOf:
-        - $ref: '#/components/schemas/Entity'
-        - type: object
-          properties:
+          resultTime: "2018-04-01T09:45:00Z"
+          result: 11.7
+      type: object
+      additionalProperties: false
+      required: [uuid, resultTime, result]
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          description: |
+            Unique integer identifier for entity.
 
-            resultTime:
-              type: string
-              format: date-time
-              description: |
-                Timestamp when the `Observation` was registered by the system.
+        resultTime:
+          type: string
+          format: date-time
+          description: |
+            Timestamp when the `Observation` was registered by the system.
 
-            resultQuality:
-              type: string
-              description: |
-                Quality of the result described as a `DQ_Element` (OGC)
+        resultQuality:
+          type: string
+          description: |
+            Quality of the result described as a `DQ_Element` (OGC)
 
-            validTime:
-              type: array
-              description: Time interval when the result is valid
-              minItems: 2
-              maxItems: 2
+        validTime:
+          type: array
+          description: Time interval when the result is valid
+          minItems: 2
+          maxItems: 2
+          items:
+            type: string
+            format: date-time
+
+        phenomenonTime:
+          type: string
+          format: date-time
+          description: |
+            Timestamp of the acquisition of the `Observation`
+
+        result:
+          description: The result of the observation. Usually a number.
+          type: number
+          format: float
+
+        parameters:
+          type: object
+          description: Environmental conditions during the `Observation`
+
+        DataStreams@iot.navigation:
+          readOnly: true
+          oneOf:
+
+            - type: array
+              title: references
+              maxItems: 1
               items:
                 type: string
-                format: date-time
 
-            phenomenonTime:
-              type: string
-              format: date-time
-              description: |
-                Timestamp of the acquisition of the `Observation`
+            - type: array
+              title: objects
+              maxItems: 1
+              items:
+                type: object
 
-            result:
-              description: The result of the observation. Usually a number.
-              type: number
-              format: float
+        FeaturesOfInterest@iot.navigation:
+          readOnly: true
+          oneOf:
 
-            parameters:
-              type: object
-              description: Environmental conditions during the `Observation`
+            - type: array
+              title: references
+              maxItems: 1
+              items:
+                type: string
 
-            DataStreams@iot.navigation:
-              readOnly: true
-              oneOf:
-
-                - type: array
-                  title: references
-                  maxItems: 1
-                  items:
-                    type: string
-
-                - type: array
-                  title: objects
-                  maxItems: 1
-                  items:
-                    type: object
-
-            FeaturesOfInterest@iot.navigation:
-              readOnly: true
-              oneOf:
-
-                - type: array
-                  title: references
-                  maxItems: 1
-                  items:
-                    type: string
-
-                - type: array
-                  title: objects
-                  maxItems: 1
-                  items:
-                    type: object
+            - type: array
+              title: objects
+              maxItems: 1
+              items:
+                type: object
 
     Tasks:
       examples:
@@ -1629,31 +1574,48 @@ components:
         - Locations@iot.navigation:
             - name: [Farm]
           name: Harvest
-      allOf:
-        - $ref: '#/components/schemas/Entity'
-        - type: object
-          properties:
-            Locations@iot.navigation:
-              readOnly: true
-              oneOf:
-                - type: array
-                  title: references or objects
-                  maxItems: 1
-                  items:
-                    oneOf: 
-                      - type: string
-                      - type: object
-            TaskingCapabilities@iot.navigation:
-              readOnly: true
-              oneOf:
-                - type: array
-                  title: references or objects
-                  maxItems: 1
-                  items:
-                    oneOf: 
-                      - type: string
-                      - type: object
-            
+      type: object
+      additionalProperties: false
+      required: [uuid, name]
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          description: |
+            Unique integer identifier for entity.
+
+        name:
+          type:
+            - "string"
+            - "null"
+          description: Human readable entity name for displaying data.
+
+        description:
+          type:
+            - "string"
+            - "null"
+          description: Short but useful explanation of what the entity is.
+        Locations@iot.navigation:
+          readOnly: true
+          oneOf:
+            - type: array
+              title: references or objects
+              maxItems: 1
+              items:
+                oneOf: 
+                  - type: string
+                  - type: object
+        TaskingCapabilities@iot.navigation:
+          readOnly: true
+          oneOf:
+            - type: array
+              title: references or objects
+              maxItems: 1
+              items:
+                oneOf: 
+                  - type: string
+                  - type: object
+        
     ObservedProperties:
       examples:
         - ObservedProperties@iot.navigation:
@@ -1712,31 +1674,47 @@ components:
                 name: [ uv, u, ww, omega, current_speed_cm, current_direction ]
           name: water velocity
 
-      allOf:
-        - $ref: '#/components/schemas/Entity'
-        - type: object
-          properties:
-            definition:
-              type:
-                - "string"
-                - "null"
-              description: Reference to resource that defines the property. We default to trying Wikipedia.
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          description: |
+            Unique integer identifier for entity.
 
-            DataStreams@iot.navigation:
-              readOnly: true
-              oneOf:
+        name:
+          type:
+            - "string"
+            - "null"
+          description: Human readable entity name for displaying data.
 
-                - type: array
-                  title: references
-                  maxItems: 1
-                  items:
-                    type: string
+        description:
+          type:
+            - "string"
+            - "null"
+          description: Short but useful explanation of what the entity is.
 
-                - type: array
-                  title: objects
-                  maxItems: 1
-                  items:
-                    type: object
+        definition:
+          type:
+            - "string"
+            - "null"
+          description: Reference to resource that defines the property. We default to trying Wikipedia.
+
+        DataStreams@iot.navigation:
+          readOnly: true
+          oneOf:
+
+            - type: array
+              title: references
+              maxItems: 1
+              items:
+                type: string
+
+            - type: array
+              title: objects
+              maxItems: 1
+              items:
+                type: object
 
     Collection:
       title: stacCollection
@@ -1748,18 +1726,33 @@ components:
           keywords: oysters,aquaculture,Maine,ShellSIM
         - name: Limited purpose aquaculture sites
           description: Temporary sites with a small footprint
-      allOf:
-        - $ref: '#/components/schemas/Entity'
-        - type: object
+      type: object
+      description: |
+        SpatioTemporal Asset Catalog object-linking collection object. Collections are generic, while some
+        SensorThings entities are special Collections. For instance, a `DataStreams` is a collection of
+        `Observations`.
+
+      properties:
+        uuid:
+          type: string
+          format: uuid
           description: |
-            SpatioTemporal Asset Catalog object-linking collection object. Collections are generic, while some
-            SensorThings entities are special Collections. For instance, a `DataStreams` is a collection of
-            `Observations`.
+            Unique integer identifier for entity.
 
-          properties:
+        name:
+          type:
+            - "string"
+            - "null"
+          description: Human readable entity name for displaying data.
 
-            extent:
-              $ref: '#/components/schemas/Extent'
+        description:
+          type:
+            - "string"
+            - "null"
+          description: Short but useful explanation of what the entity is.
+
+        extent:
+          $ref: '#/components/schemas/Extent'
 
     Extent:
       title: extent
@@ -1797,31 +1790,46 @@ components:
           description: Research and development
           domain: oceanics.io
           owner: true
-      allOf:
-        - $ref: '#/components/schemas/Entity'
-        - type: object
+      type: object
+      description: |
+        Data providers are organizations or individuals that produce, process, host, or license data.
+
+      properties:
+        uuid:
+          type: string
+          format: uuid
           description: |
-            Data providers are organizations or individuals that produce, process, host, or license data.
+            Unique integer identifier for entity.
 
-          properties:
+        name:
+          type:
+            - "string"
+            - "null"
+          description: Human readable entity name for displaying data.
 
-            url:
-              type: string
-              description: URL to organization website
+        description:
+          type:
+            - "string"
+            - "null"
+          description: Short but useful explanation of what the entity is.
 
-            roles:
-              type: array
-              description: |
-                Data providers are labeled with a role, so that attribution and redaction works properly on synthesized
-                datasets. Data in the system m
-              items:
-                title: providerRole
-                type: string
-                enum:
-                  - licensor
-                  - producer
-                  - processor
-                  - host
+        url:
+          type: string
+          description: URL to organization website
+
+        roles:
+          type: array
+          description: |
+            Data providers are labeled with a role, so that attribution and redaction works properly on synthesized
+            datasets. Data in the system m
+          items:
+            title: providerRole
+            type: string
+            enum:
+              - licensor
+              - producer
+              - processor
+              - host
 
 
     Weight:
