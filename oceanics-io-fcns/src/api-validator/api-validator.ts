@@ -1,30 +1,44 @@
 
 import type { Handler } from "@netlify/functions";
-// https://ajv.js.org/standalone.html#using-the-validation-function-s
 import spec from "./bathysphere.json";
 import Ajv from "ajv";
 
+const API_NAME = "bathysphere";
 
-const ajv = new Ajv({ removeAdditional: true });
-ajv.addSchema(spec, "bathysphere");
+const ajv = new Ajv({ removeAdditional: true, strict: false });
+ajv.addSchema(spec, API_NAME);
 
-
-
-const handler: Handler = async ({ body, httpMethod, path }) => {
-
-  // const valid = ajv.validate({ $ref: 'bathysphere#/definitions/Employee' }, {
-  //   name: "John"
-  // });
+const handler: Handler = async ({ body, httpMethod }) => {
+  if (httpMethod !== "POST") {
+    return {
+      statusCode: 405,
+      body: JSON.stringify({ message: "Invalid HTTP Method" }),
+      headers: { "Content-Type": "application/json" }
+    }
+  }
+  const { data, reference } = JSON.parse(body);
+  const test = ajv.validate({ $ref: `${API_NAME}${reference}`}, data);
+  let schema = spec;
+  let last = "#";
+  for (const part of reference.split("/").filter((symbol) => symbol !== "#")) {
+    schema = schema[part]
+    if (typeof schema === "undefined") {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ message: "Bad Validation Reference"}),
+        headers: { "Content-Type": "application/json" }
+      }
+    }
+    last = part;
+  }
 
   return {
     statusCode: 200,
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      ok: true,
-      path,
-      schema: spec["/{entity}"]["post"]
-      // pass: validateWeight(pass),
-      // fail: validateWeight(fail)
+      test,
+      errors: ajv.errors,
+      schema: spec.components.schemas["Weight"]
     })
   }
 }

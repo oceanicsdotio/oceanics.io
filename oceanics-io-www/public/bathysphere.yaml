@@ -1,4 +1,4 @@
-openapi: "3.0.0"
+openapi: "3.1.0"
 
 info:
 
@@ -738,7 +738,7 @@ components:
   schemas:
 
     Agents:
-      example:
+      examples:
         - name: Arthur Machen
         - name: Octavia Butler
       allOf:
@@ -877,19 +877,17 @@ components:
             IDs within the Neo4j database, since those are not guaranteed to persist.
 
         name:
-          type: string
-          nullable: true
+          type: [string, null]
           description: |
             Human readable entity name for displaying data.
 
         description:
-          type: string
-          nullable: true
+          type: [string, null]
           description: |
             Short but useful explanation of what the entity is.
 
     FeaturesOfInterest:
-      example:
+      examples:
         - name: Gulf of Maine Mesh
         - name: Midcoast Maine Mesh
         - name: Damariscotta River Estuary shellfish growing area
@@ -925,7 +923,7 @@ components:
                     type: object
 
     Things:
-      example:
+      examples:
         - name: Land Ocean Biogeochemical Observatory
           description: |
             Moored buoy deployment of the Sustainable Ecological Aquaculture Network
@@ -1035,7 +1033,7 @@ components:
       description: The encoding rendered in the location response
 
     Locations:
-      example:
+      examples:
         - name: Fish Farm
           encodingType: application/json
           location:
@@ -1310,7 +1308,7 @@ components:
                     type: object
 
     Sensors:
-      example:
+      examples:
         - name: SeaBird Electronics CTD
           description: A common oceanographic sensing package
         - name: Chlorophyll fluorometer
@@ -1357,7 +1355,7 @@ components:
                     type: object
 
     DataStreams:
-      example:
+      examples:
         - Things@iot.navigation:
             - name: [ Land Ocean Biogeochemical Observatory ]
           Sensors@iot.navigation:
@@ -1398,21 +1396,17 @@ components:
                   description: Name for matching and displaying
 
                 symbol:
-                  type: string
-                  nullable: true
+                  type: [string, null]
                   description: Abbreviation for the parameter
 
                 definition:
-                  type: string
-                  nullable: true
+                  type: [string, null]
                   description: A link to a formal definition
 
             observationType:
-              type: string
+              type: [string, null]
               description: |
                 Data model of child `Observations`. Usually a `Measurement`.
-
-              nullable: true
               enum:
                 - "OM_CategoryObservation"
                 - "OM_CountObservation"
@@ -1421,8 +1415,7 @@ components:
                 - "OM_TruthObservation"
 
             observedArea:
-              type: object
-              nullable: true
+              type: [object, null]
               readOnly: true
               description: |
                 The bounding box that encloses all `FeaturesOfInterest` referenced by child `Observations`
@@ -1518,7 +1511,7 @@ components:
 
 
     Observations:
-      example: 
+      examples: 
         - Datastreams@iot.navigation:
             - name: [ temperature ]
           ts: 1000.234
@@ -1601,7 +1594,7 @@ components:
                     type: object
 
     Tasks:
-      example:
+      examples:
         - Locations@iot.navigation:
             - name: [Wharf]
           name: Do a thing
@@ -1637,7 +1630,7 @@ components:
                       - type: object
             
     ObservedProperties:
-      example:
+      examples:
         - ObservedProperties@iot.navigation:
             - name: [ chlorophyll ]
           Providers@iot.navigation:
@@ -1699,8 +1692,7 @@ components:
         - type: object
           properties:
             definition:
-              type: string
-              nullable: true
+              type: [string, null]
               description: Reference to resource that defines the property. We default to trying Wikipedia.
 
             DataStreams@iot.navigation:
@@ -1721,7 +1713,7 @@ components:
 
     Collection:
       title: stacCollection
-      example:
+      examples:
         - name: Oysters
           description: Oyster data
           license:
@@ -1744,9 +1736,8 @@ components:
 
     Extent:
       title: extent
-      type: object
+      type: [object, null]
       readOnly: true
-      nullable: true
       description: |
 
         Spatiotemporal extent of a data `Collection`. Contains a 2 or 3-D `spatial` extent, and a `temporal`
@@ -1769,7 +1760,7 @@ components:
 
     Provider:
       title: dataProvider
-      example:
+      examples:
         - name: University of Maine
           description: Aquaculture research
           domain: maine.edu
@@ -1847,8 +1838,7 @@ components:
               description: |
                 A short description to help understand the purpose of the simulation
             keywords:
-              type: array
-              nullable: true
+              type: [array, null]
               description: |
                 You may optionally attach keywords to the configuration
               items:
@@ -1869,10 +1859,9 @@ components:
           properties:
 
             workers:
-              nullable: true
               description: | 
                 Number of processes to use for Monte Carlo simulations.
-              type: integer
+              type: [integer, null]
               minimum: 1
               maximum: 4
               default: 1
@@ -1892,15 +1881,13 @@ components:
               default: 3600
 
             integration:
-              nullable: true
               description: |
                 Integration is by Euler (`euler`) or Runge-Kutta 4th order (`rungeKutta`). Only `euler` is enabled.
-              type: string
+              type: [string, null]
               enum: [euler]
               default: euler
 
             backend:
-              nullable: true
               description: |
                 There are several options for biological prediction. Your choice of backend will be based on your licenses
                 and appetite for risk:
@@ -1910,7 +1897,7 @@ components:
 
                 Only `ensemble` is enabled.
 
-              type: string
+              type: [string, null]
               enum: [ensemble]
               default: ensemble
 
@@ -1918,9 +1905,8 @@ components:
 
           description: |
             Collection of multi-simulation experiments produced by this model configuration
-          type: array
+          type: [array, null]
           readOnly: true
-          nullable: true
           items:
             type: string
 
@@ -1959,63 +1945,57 @@ components:
                   $ref: "#/components/schemas/Weight"
 
                 oxygenUptake:
-                  nullable: true
                   description: |
                     Cumulative oxygen uptake. Metabolism removes oxygen from the water column. 
                     
                     If aeration does not exceed the rate of biological uptake (plus other processes), the water body will become hypoxic or anoxic.
 
-                  type: number
+                  type: [number, null]
                   format: float
                   minimum: 0.0
 
                 chlorophyllUptake:
-                  nullable: true
                   description: |
                     Filter feeding removes phytoplankton from the water column. Chlorophyll is a proxy for the productivity of the water body. 
                     
                     When there are too many shellfish in a semi-closed system, they can deplete available
                     food for conspecifics.
 
-                  type: number
+                  type: [number, null]
                   format: float
                   minimum: 0.0
 
                 nitrogenUptake:
-                  nullable: true
                   description: |
                     Filter feeding moves nitrogen from the environment into tissue.
-                  type: number
+                  type: [number, null]
                   format: float
                   minimum: 0.0
 
                 nitrogenExcretion:
-                  nullable: true
                   description: |
                     Shellfish excrete nitrogen through membrane transfer.
 
-                  type: number
+                  type: [number, null]
                   format: float
                   minimum: 0.0
 
                 ammoniaLoss:
-                  nullable: true
                   description: |
                     Ammonia is released to the environment as waste. This can stimulate the growth of plankton.
 
-                  type: number
+                  type: [number, null]
                   format: float
                   minimum: 0.0
 
                 deposition:
-                  nullable: true
                   description: |
                     Shellfish are widely considered beneficial to water quality. However, they can concentrate biological material into feces and pseudofeces. 
                     
                     These particulate forms sink more quickly, and may settle in mats either under the culture area, or downstream.
                     
                     Decomposition can lead to sediment and bottom water hypoxia.
-                  type: number
+                  type: [number, null]
                   format: float
                   minimum: 0.0
 
