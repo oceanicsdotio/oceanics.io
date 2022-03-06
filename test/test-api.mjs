@@ -82,6 +82,10 @@ const batch = async (composeTransaction, nodeType, data) => {
   return Promise.allSettled(queue.map(job));
 };
 
+describe("API Request Validator", function () {
+  
+})
+
 /**
  * Stand alone tests for the Auth flow. Includes initial
  * teardown of test artifacts remaining in the graph.

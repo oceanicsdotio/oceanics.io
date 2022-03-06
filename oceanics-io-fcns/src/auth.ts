@@ -1,7 +1,7 @@
 /**
  * Cloud function version of Auth API.
  */
-import { connect, transform, catchAll, serialize, tokenClaim } from "./shared/driver";
+import { connect, transform, catchAll, serialize, tokenClaim, materialize } from "./shared/driver";
 import { Node, Links } from "./shared/pkg";
 import type { Handler } from "@netlify/functions";
 import crypto from "crypto";
@@ -37,12 +37,13 @@ const authClaim = ({ email = "", password = "", secret = "" }: IAuth) =>
  */
 const register = async ({ apiKey, password, secret, email }: IAuth) => {
   // Empty array if there was an error
-  const provider = new Node(serialize({ apiKey }), "p", "Provider");
-  const user = new Node(serialize({
+  const provider = materialize({ apiKey }, "p", "Provider");
+  const user = materialize({
     email,
     uuid: crypto.randomUUID().replace(/-/g, ""),
     credential: hashPassword(password, secret)
-  }), "u", "User");
+  }, "u", "User");
+  
   const { query } = new Links("Register", 0, 0, "").insert(provider, user);
 
   let records: any;

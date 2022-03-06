@@ -10,6 +10,7 @@
     "dependencies": {
         "@netlify/functions": "^0.10.0",
         "aws-sdk": "^2.1036.0",
+        "js-yaml": "^4.1.0",
         "jsonwebtoken": "^8.5.1",
         "neo4j-driver": "^4.4.1",
         "stripe": "^8.195.0"
@@ -22,7 +23,9 @@
         "node-fetch": "^3.1.0"
     },
     "scripts": {
-        "api:build": "wasm-pack build oceanics-io-wasm --out-dir oceanics-io-fcns/src/shared/pkg --target nodejs",
+        "api:spec": "js-yaml oceanics-io-www/public/bathysphere.yaml > oceanics-io-fcns/src/api-validator/shared/bathysphere.json",
+        "api:build:wasm": "wasm-pack build oceanics-io-wasm --out-dir ../oceanics-io-fcns/src/shared/pkg --target nodejs",
+        "api:build": "yarn api:spec && yarn api:build:wasm",
         "api:test": "mocha",
         "netlify": "netlify dev --dir=oceanics-io-www/build",
         "wasm:build": "rm -rf oceanics-io-wasm/build && wasm-pack build oceanics-io-wasm --out-dir build --out-name index && (rm oceanics-io-wasm/build/.gitignore || :)",
