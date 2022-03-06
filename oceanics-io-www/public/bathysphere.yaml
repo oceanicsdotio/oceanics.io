@@ -877,12 +877,16 @@ components:
             IDs within the Neo4j database, since those are not guaranteed to persist.
 
         name:
-          type: [string, null]
+          type:
+            - "string"
+            - "null"
           description: |
             Human readable entity name for displaying data.
 
         description:
-          type: [string, null]
+          type:
+            - "string"
+            - "null"
           description: |
             Short but useful explanation of what the entity is.
 
@@ -963,65 +967,79 @@ components:
                 high: 15
                 low: 10
 
-      allOf:
-        - $ref: '#/components/schemas/Entity'
-        - type: object
+      type: object
+      description: |
+        A thing is an object of the physical or information world that is capable of of being identified
+        and integrated into communication networks.
+      required: [uuid, name]
+      additionalProperties: false
+      properties:
+
+        uuid:
+          type: string
           description: |
-            A thing is an object of the physical or information world that is capable of of being identified
-            and integrated into communication networks.
+            Unique integer identifier for entity. This usually auto-generated, but is different that the default node
+            IDs within the Neo4j database, since those are not guaranteed to persist.
 
-          properties:
+        name:
+          type:
+            - "string"
+            - "null"
+          description: |
+            Human readable entity name for displaying data.
 
-            entityClass:
-              writeOnly: true
-              enum: [thing]
-              default: thing
+        description:
+          type:
+            - "string"
+            - "null"
+          description: |
+            Short but useful explanation of what the entity is.
 
-            properties:
-              type: object
-              description: Key-value properties
+        properties:
+          type: object
+          description: Key-value properties
 
-            HistoricalLocations@iot.navigation:
-              readOnly: true
-              oneOf:
+        # HistoricalLocations@iot.navigation:
+        #   readOnly: true
+        #   oneOf:
 
-                - type: array
-                  title: references
-                  items:
-                    type: string
+        #     - type: array
+        #       title: references
+        #       items:
+        #         type: string
 
-                - type: array
-                  title: objects
-                  items:
-                    type: object
+        #     - type: array
+        #       title: objects
+        #       items:
+        #         type: object
 
-            Locations@iot.navigation:
-              readOnly: true
-              oneOf:
+        # Locations@iot.navigation:
+        #   readOnly: true
+        #   oneOf:
 
-                - type: array
-                  title: references
-                  items:
-                    type: string
+        #     - type: array
+        #       title: references
+        #       items:
+        #         type: string
 
-                - type: array
-                  title: objects
-                  items:
-                    type: object
+        #     - type: array
+        #       title: objects
+        #       items:
+        #         type: object
 
-            DataStreams@iot.navigation:
-              readOnly: true
-              oneOf:
+        # DataStreams@iot.navigation:
+        #   readOnly: true
+        #   oneOf:
 
-                - type: array
-                  title: references
-                  items:
-                    type: string
+        #     - type: array
+        #       title: references
+        #       items:
+        #         type: string
 
-                - type: array
-                  title: objects
-                  items:
-                    type: object
+        #     - type: array
+        #       title: objects
+        #       items:
+        #         type: object
 
 
     LocationEncodingType:
@@ -1396,15 +1414,21 @@ components:
                   description: Name for matching and displaying
 
                 symbol:
-                  type: [string, null]
+                  type:
+                    - "string"
+                    - "null"
                   description: Abbreviation for the parameter
 
                 definition:
-                  type: [string, null]
+                  type:
+                    - "string"
+                    - "null"
                   description: A link to a formal definition
 
             observationType:
-              type: [string, null]
+              type:
+                - "string"
+                - "null"
               description: |
                 Data model of child `Observations`. Usually a `Measurement`.
               enum:
@@ -1415,7 +1439,7 @@ components:
                 - "OM_TruthObservation"
 
             observedArea:
-              type: [object, null]
+              type: [object, "null"]
               readOnly: true
               description: |
                 The bounding box that encloses all `FeaturesOfInterest` referenced by child `Observations`
@@ -1692,7 +1716,9 @@ components:
         - type: object
           properties:
             definition:
-              type: [string, null]
+              type:
+                - "string"
+                - "null"
               description: Reference to resource that defines the property. We default to trying Wikipedia.
 
             DataStreams@iot.navigation:
@@ -1736,7 +1762,7 @@ components:
 
     Extent:
       title: extent
-      type: [object, null]
+      type: [object, "null"]
       readOnly: true
       description: |
 
@@ -1838,7 +1864,7 @@ components:
               description: |
                 A short description to help understand the purpose of the simulation
             keywords:
-              type: [array, null]
+              type: [array, "null"]
               description: |
                 You may optionally attach keywords to the configuration
               items:
@@ -1861,7 +1887,7 @@ components:
             workers:
               description: | 
                 Number of processes to use for Monte Carlo simulations.
-              type: [integer, null]
+              type: [integer, "null"]
               minimum: 1
               maximum: 4
               default: 1
@@ -1883,7 +1909,9 @@ components:
             integration:
               description: |
                 Integration is by Euler (`euler`) or Runge-Kutta 4th order (`rungeKutta`). Only `euler` is enabled.
-              type: [string, null]
+              type:
+                - "string"
+                - "null"
               enum: [euler]
               default: euler
 
@@ -1897,7 +1925,9 @@ components:
 
                 Only `ensemble` is enabled.
 
-              type: [string, null]
+              type:
+                - "string"
+                - "null"
               enum: [ensemble]
               default: ensemble
 
@@ -1905,7 +1935,9 @@ components:
 
           description: |
             Collection of multi-simulation experiments produced by this model configuration
-          type: [array, null]
+          type:
+            - "array"
+            - "null"
           readOnly: true
           items:
             type: string
@@ -1950,7 +1982,9 @@ components:
                     
                     If aeration does not exceed the rate of biological uptake (plus other processes), the water body will become hypoxic or anoxic.
 
-                  type: [number, null]
+                  number:
+                    - "string"
+                    - "null"
                   format: float
                   minimum: 0.0
 
@@ -1961,14 +1995,16 @@ components:
                     When there are too many shellfish in a semi-closed system, they can deplete available
                     food for conspecifics.
 
-                  type: [number, null]
+                  type:
+                    - "number"
+                    - "null"
                   format: float
                   minimum: 0.0
 
                 nitrogenUptake:
                   description: |
                     Filter feeding moves nitrogen from the environment into tissue.
-                  type: [number, null]
+                  type: [number, "null"]
                   format: float
                   minimum: 0.0
 
@@ -1976,7 +2012,7 @@ components:
                   description: |
                     Shellfish excrete nitrogen through membrane transfer.
 
-                  type: [number, null]
+                  type: [number, "null"]
                   format: float
                   minimum: 0.0
 
@@ -1984,7 +2020,7 @@ components:
                   description: |
                     Ammonia is released to the environment as waste. This can stimulate the growth of plankton.
 
-                  type: [number, null]
+                  type: [number, "null"]
                   format: float
                   minimum: 0.0
 
@@ -1995,7 +2031,7 @@ components:
                     These particulate forms sink more quickly, and may settle in mats either under the culture area, or downstream.
                     
                     Decomposition can lead to sediment and bottom water hypoxia.
-                  type: [number, null]
+                  type: [number, "null"]
                   format: float
                   minimum: 0.0
 

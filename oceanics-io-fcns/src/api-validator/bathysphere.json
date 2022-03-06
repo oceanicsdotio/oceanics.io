@@ -1,5 +1,5 @@
 {
-  "openapi": "3.0.0",
+  "openapi": "3.1.0",
   "info": {
     "title": "Bathysphere API",
     "version": "2.0.0",
@@ -863,7 +863,7 @@
     },
     "schemas": {
       "Agents": {
-        "example": [
+        "examples": [
           {
             "name": "Arthur Machen"
           },
@@ -1039,19 +1039,23 @@
             "description": "Unique integer identifier for entity. This usually auto-generated, but is different that the default node\nIDs within the Neo4j database, since those are not guaranteed to persist.\n"
           },
           "name": {
-            "type": "string",
-            "nullable": true,
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Human readable entity name for displaying data.\n"
           },
           "description": {
-            "type": "string",
-            "nullable": true,
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Short but useful explanation of what the entity is.\n"
           }
         }
       },
       "FeaturesOfInterest": {
-        "example": [
+        "examples": [
           {
             "name": "Gulf of Maine Mesh"
           },
@@ -1103,7 +1107,7 @@
         ]
       },
       "Things": {
-        "example": [
+        "examples": [
           {
             "name": "Land Ocean Biogeochemical Observatory",
             "description": "Moored buoy deployment of the Sustainable Ecological Aquaculture Network\n"
@@ -1158,85 +1162,37 @@
             }
           }
         ],
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/Entity"
+        "type": "object",
+        "description": "A thing is an object of the physical or information world that is capable of of being identified\nand integrated into communication networks.\n",
+        "required": [
+          "uuid",
+          "name"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "uuid": {
+            "type": "string",
+            "description": "Unique integer identifier for entity. This usually auto-generated, but is different that the default node\nIDs within the Neo4j database, since those are not guaranteed to persist.\n"
           },
-          {
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Human readable entity name for displaying data.\n"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Short but useful explanation of what the entity is.\n"
+          },
+          "properties": {
             "type": "object",
-            "description": "A thing is an object of the physical or information world that is capable of of being identified\nand integrated into communication networks.\n",
-            "properties": {
-              "entityClass": {
-                "writeOnly": true,
-                "enum": [
-                  "thing"
-                ],
-                "default": "thing"
-              },
-              "properties": {
-                "type": "object",
-                "description": "Key-value properties"
-              },
-              "HistoricalLocations@iot.navigation": {
-                "readOnly": true,
-                "oneOf": [
-                  {
-                    "type": "array",
-                    "title": "references",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  {
-                    "type": "array",
-                    "title": "objects",
-                    "items": {
-                      "type": "object"
-                    }
-                  }
-                ]
-              },
-              "Locations@iot.navigation": {
-                "readOnly": true,
-                "oneOf": [
-                  {
-                    "type": "array",
-                    "title": "references",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  {
-                    "type": "array",
-                    "title": "objects",
-                    "items": {
-                      "type": "object"
-                    }
-                  }
-                ]
-              },
-              "DataStreams@iot.navigation": {
-                "readOnly": true,
-                "oneOf": [
-                  {
-                    "type": "array",
-                    "title": "references",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  {
-                    "type": "array",
-                    "title": "objects",
-                    "items": {
-                      "type": "object"
-                    }
-                  }
-                ]
-              }
-            }
+            "description": "Key-value properties"
           }
-        ]
+        }
       },
       "LocationEncodingType": {
         "type": "string",
@@ -1248,7 +1204,7 @@
         "description": "The encoding rendered in the location response"
       },
       "Locations": {
-        "example": [
+        "examples": [
           {
             "name": "Fish Farm",
             "encodingType": "application/json",
@@ -1730,7 +1686,7 @@
         ]
       },
       "Sensors": {
-        "example": [
+        "examples": [
           {
             "name": "SeaBird Electronics CTD",
             "description": "A common oceanographic sensing package"
@@ -1812,7 +1768,7 @@
         ]
       },
       "DataStreams": {
-        "example": [
+        "examples": [
           {
             "Things@iot.navigation": [
               {
@@ -1882,21 +1838,27 @@
                     "description": "Name for matching and displaying"
                   },
                   "symbol": {
-                    "type": "string",
-                    "nullable": true,
+                    "type": [
+                      "string",
+                      "null"
+                    ],
                     "description": "Abbreviation for the parameter"
                   },
                   "definition": {
-                    "type": "string",
-                    "nullable": true,
+                    "type": [
+                      "string",
+                      "null"
+                    ],
                     "description": "A link to a formal definition"
                   }
                 }
               },
               "observationType": {
-                "type": "string",
+                "type": [
+                  "string",
+                  "null"
+                ],
                 "description": "Data model of child `Observations`. Usually a `Measurement`.\n",
-                "nullable": true,
                 "enum": [
                   "OM_CategoryObservation",
                   "OM_CountObservation",
@@ -1906,8 +1868,10 @@
                 ]
               },
               "observedArea": {
-                "type": "object",
-                "nullable": true,
+                "type": [
+                  "object",
+                  "null"
+                ],
                 "readOnly": true,
                 "description": "The bounding box that encloses all `FeaturesOfInterest` referenced by child `Observations`\n"
               },
@@ -2022,7 +1986,7 @@
         ]
       },
       "Observations": {
-        "example": [
+        "examples": [
           {
             "Datastreams@iot.navigation": [
               {
@@ -2133,7 +2097,7 @@
         ]
       },
       "Tasks": {
-        "example": [
+        "examples": [
           {
             "Locations@iot.navigation": [
               {
@@ -2217,7 +2181,7 @@
         ]
       },
       "ObservedProperties": {
-        "example": [
+        "examples": [
           {
             "ObservedProperties@iot.navigation": [
               {
@@ -2363,8 +2327,10 @@
             "type": "object",
             "properties": {
               "definition": {
-                "type": "string",
-                "nullable": true,
+                "type": [
+                  "string",
+                  "null"
+                ],
                 "description": "Reference to resource that defines the property. We default to trying Wikipedia."
               },
               "DataStreams@iot.navigation": {
@@ -2394,7 +2360,7 @@
       },
       "Collection": {
         "title": "stacCollection",
-        "example": [
+        "examples": [
           {
             "name": "Oysters",
             "description": "Oyster data",
@@ -2424,9 +2390,11 @@
       },
       "Extent": {
         "title": "extent",
-        "type": "object",
+        "type": [
+          "object",
+          "null"
+        ],
         "readOnly": true,
-        "nullable": true,
         "description": "\nSpatiotemporal extent of a data `Collection`. Contains a 2 or 3-D `spatial` extent, and a `temporal`\ninterval.\n",
         "properties": {
           "spatial": {
@@ -2446,7 +2414,7 @@
       },
       "Provider": {
         "title": "dataProvider",
-        "example": [
+        "examples": [
           {
             "name": "University of Maine",
             "description": "Aquaculture research",
@@ -2529,8 +2497,10 @@
                 "description": "A short description to help understand the purpose of the simulation\n"
               },
               "keywords": {
-                "type": "array",
-                "nullable": true,
+                "type": [
+                  "array",
+                  "null"
+                ],
                 "description": "You may optionally attach keywords to the configuration\n",
                 "items": {
                   "type": "string"
@@ -2548,9 +2518,11 @@
             "description": "When you configure a simulation, it will persist\nindefinitely. After the first production run it will be frozen. Future derived versions will be connected\nto preserve model provenance and intent.\n",
             "properties": {
               "workers": {
-                "nullable": true,
                 "description": "Number of processes to use for Monte Carlo simulations.\n",
-                "type": "integer",
+                "type": [
+                  "integer",
+                  "null"
+                ],
                 "minimum": 1,
                 "maximum": 4,
                 "default": 1
@@ -2563,18 +2535,22 @@
                 "default": 3600
               },
               "integration": {
-                "nullable": true,
                 "description": "Integration is by Euler (`euler`) or Runge-Kutta 4th order (`rungeKutta`). Only `euler` is enabled.\n",
-                "type": "string",
+                "type": [
+                  "string",
+                  "null"
+                ],
                 "enum": [
                   "euler"
                 ],
                 "default": "euler"
               },
               "backend": {
-                "nullable": true,
                 "description": "There are several options for biological prediction. Your choice of backend will be based on your licenses\nand appetite for risk:\n* `shellsim` is available if you have licensed `ShellSIM` from Plymouth Marine Laboratory\n* `empirical` uses multiple linear regression and field data to drive growth predictions\n* `ensemble` uses mix of proprietary models and public data\n\nOnly `ensemble` is enabled.\n",
-                "type": "string",
+                "type": [
+                  "string",
+                  "null"
+                ],
                 "enum": [
                   "ensemble"
                 ],
@@ -2584,9 +2560,11 @@
           },
           "experiments": {
             "description": "Collection of multi-simulation experiments produced by this model configuration\n",
-            "type": "array",
+            "type": [
+              "array",
+              "null"
+            ],
             "readOnly": true,
-            "nullable": true,
             "items": {
               "type": "string"
             }
@@ -2619,44 +2597,56 @@
                     "$ref": "#/components/schemas/Weight"
                   },
                   "oxygenUptake": {
-                    "nullable": true,
                     "description": "Cumulative oxygen uptake. Metabolism removes oxygen from the water column. \n\nIf aeration does not exceed the rate of biological uptake (plus other processes), the water body will become hypoxic or anoxic.\n",
-                    "type": "number",
+                    "number": [
+                      "string",
+                      "null"
+                    ],
                     "format": "float",
                     "minimum": 0
                   },
                   "chlorophyllUptake": {
-                    "nullable": true,
                     "description": "Filter feeding removes phytoplankton from the water column. Chlorophyll is a proxy for the productivity of the water body. \n\nWhen there are too many shellfish in a semi-closed system, they can deplete available\nfood for conspecifics.\n",
-                    "type": "number",
+                    "type": [
+                      "number",
+                      "null"
+                    ],
                     "format": "float",
                     "minimum": 0
                   },
                   "nitrogenUptake": {
-                    "nullable": true,
                     "description": "Filter feeding moves nitrogen from the environment into tissue.\n",
-                    "type": "number",
+                    "type": [
+                      "number",
+                      "null"
+                    ],
                     "format": "float",
                     "minimum": 0
                   },
                   "nitrogenExcretion": {
-                    "nullable": true,
                     "description": "Shellfish excrete nitrogen through membrane transfer.\n",
-                    "type": "number",
+                    "type": [
+                      "number",
+                      "null"
+                    ],
                     "format": "float",
                     "minimum": 0
                   },
                   "ammoniaLoss": {
-                    "nullable": true,
                     "description": "Ammonia is released to the environment as waste. This can stimulate the growth of plankton.\n",
-                    "type": "number",
+                    "type": [
+                      "number",
+                      "null"
+                    ],
                     "format": "float",
                     "minimum": 0
                   },
                   "deposition": {
-                    "nullable": true,
                     "description": "Shellfish are widely considered beneficial to water quality. However, they can concentrate biological material into feces and pseudofeces. \n\nThese particulate forms sink more quickly, and may settle in mats either under the culture area, or downstream.\n\nDecomposition can lead to sediment and bottom water hypoxia.\n",
-                    "type": "number",
+                    "type": [
+                      "number",
+                      "null"
+                    ],
                     "format": "float",
                     "minimum": 0
                   }

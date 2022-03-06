@@ -17,7 +17,17 @@ const handler: Handler = async ({ body, httpMethod }) => {
     }
   }
   const { data, reference } = JSON.parse(body);
-  const test = ajv.validate({ $ref: `${API_NAME}${reference}`}, data);
+  let test;
+  try {
+    test = ajv.validate({ $ref: `${API_NAME}${reference}`}, data);
+  } catch (error) {
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ message: error.message }),
+      headers: { "Content-Type": "application/json" }
+    }
+  }
+  
   let schema = spec;
   let last = "#";
   for (const part of reference.split("/").filter((symbol) => symbol !== "#")) {

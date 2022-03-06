@@ -82,14 +82,101 @@ const batch = async (composeTransaction, nodeType, data) => {
   return Promise.allSettled(queue.map(job));
 };
 
-describe("API Request Validator", function () {
-    it("validates simple case", async function () {
-      const response = await fetch(`${BASE_PATH}/api-validator`);
-      assert(response.status === 200, `Unexpected Response Code: ${response.status}`);
-      const data = await response.json();
 
-      console.log({data});
-      assert(data.ok, "Response Body Missing OK Flag")
+const parseNodesFromApi = () => {
+  const insertIds = (items) => {
+    return items.map((props) => {
+      return {
+        ...props,
+        uuid: crypto.randomUUID().replace(/-/g, "")
+      }
+    })
+  }
+  const text = readFileSync(
+    "oceanics-io-www/public/bathysphere.yaml",
+    "utf8"
+  );
+  const spec = YAML.parse(text);
+  const nodes = Object.entries(spec.components.schemas)
+    .filter(([key]) => EXTENSIONS.sensing.has(key))
+    .map(([key, value]) => [key, insertIds(value.examples ?? [])]);
+ 
+  return Object.fromEntries(nodes);
+}
+
+const WELL_KNOWN_NODES = parseNodesFromApi();
+
+
+describe("API Request Validator", function () {
+
+    const query = (body) => fetch(`${BASE_PATH}/api-validator`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+
+    const testResponse = async (data, expected) => {
+      const response = await query(data);
+      const result = await response.json();
+      if (!response.ok) console.log(result)
+      assert(response.status === 200, `Unexpected Response Code: ${response.status}`);
+      assert(result.test === expected, "Unexpected Validation Result");
+    }
+
+    it("validates numeric type", async function () {
+      await testResponse({
+        data: 0.0,
+        reference: "#/components/schemas/Weight"
+      }, true)
+    })
+
+    it("fails out of range numeric type", async function () {
+      await testResponse({
+        data: -1.0,
+        reference: "#/components/schemas/Weight"
+      }, false)
+    })
+
+    describe("Things entities", function () {
+
+      it("validates well known entities", async function () {
+        for (const thing of WELL_KNOWN_NODES.Things) {
+          console.log(thing);
+          await testResponse({
+            data: thing,
+            reference: "#/components/schemas/Things"
+          }, true)
+        }
+      })
+  
+      it("fails without uuid", async function () {
+        await testResponse({
+          data: {
+            name: "Submarine"
+          },
+          reference: "#/components/schemas/Things"
+        }, false)
+      })
+
+      it("fails without name", async function () {
+        await testResponse({
+          data: {
+            uuid: "placeholder"
+          },
+          reference: "#/components/schemas/Things"
+        }, false)
+      })
+
+      it("fails with extra field", async function () {
+        await testResponse({
+          data: {
+            name: "submarine",
+            uuid: "placeholder",
+            foreign: "value",
+          },
+          reference: "#/components/schemas/Things"
+        }, false)
+      })
     })
 })
 
@@ -219,30 +306,6 @@ describe("Auth API", function () {
  * to sensing
  */
 describe("Sensing API", function () {
-
-  const insertIds = (items) => {
-    return items.map((props) => {
-      return {
-        ...props,
-        uuid: crypto.randomUUID().replace(/-/g, "")
-      }
-    })
-  }
-
-  const parseNodesFromApi = () => {
-    const text = readFileSync(
-      "oceanics-io-www/public/bathysphere.yaml",
-      "utf8"
-    );
-    const spec = YAML.parse(text);
-    const nodes = Object.entries(spec.components.schemas)
-      .filter(([key]) => EXTENSIONS.sensing.has(key))
-      .map(([key, value]) => [key, insertIds(value.example ?? [])]);
-   
-    return Object.fromEntries(nodes);
-  }
-
-  const WELL_KNOWN_NODES = parseNodesFromApi();
 
   /**
    * Check options on for each number of path segments.
