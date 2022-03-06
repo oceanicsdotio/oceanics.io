@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const aws_sdk_1 = require("aws-sdk");
-// import { VertexArrayBuffer, IndexInterval } from "./pkg/neritics";
+// import { VertexArrayBuffer, IndexInterval } from "./pkg";
 // import NetCDFReader from 'netcdfjs';
 const fs_1 = require("fs");
 /**

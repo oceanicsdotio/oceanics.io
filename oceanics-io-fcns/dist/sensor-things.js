@@ -2,12 +2,12 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.handler = void 0;
 const driver_1 = require("./shared/driver");
-const neritics_1 = require("./shared/pkg/neritics");
+const pkg_1 = require("./shared/pkg");
 /**
  * Get an array of all collections by Node type
  */
 const index = async () => {
-    const { query } = neritics_1.Node.allLabels();
+    const { query } = pkg_1.Node.allLabels();
     const { records } = await (0, driver_1.connect)(query);
     const restricted = new Set(["Provider", "User"]);
     //@ts-ignore
@@ -33,7 +33,7 @@ const index = async () => {
  * Location data receives additional processing logic internally.
  */
 const create = async (left, right) => {
-    const cypher = (new neritics_1.Links("Create", 0, 0, "")).insert(left, right);
+    const cypher = (new pkg_1.Links("Create", 0, 0, "")).insert(left, right);
     await (0, driver_1.connect)(cypher.query);
     return { statusCode: 204 };
 };
@@ -43,7 +43,7 @@ const create = async (left, right) => {
  * by any single property.
  */
 const metadata = async (left, right) => {
-    const { query } = (new neritics_1.Links()).query(left, right, right.symbol);
+    const { query } = (new pkg_1.Links()).query(left, right, right.symbol);
     const value = (0, driver_1.transform)((await (0, driver_1.connect)(query))).map(node => node[1]);
     return {
         statusCode: 200,
@@ -76,7 +76,7 @@ const mutate = (left, right) => {
  *
  */
 const remove = async (left, right) => {
-    const link = new neritics_1.Links();
+    const link = new pkg_1.Links();
     const { query } = link.deleteChild(left, right);
     await (0, driver_1.connect)(query);
     return {
@@ -84,13 +84,13 @@ const remove = async (left, right) => {
     };
 };
 const join = async (left, right, label) => {
-    await (0, driver_1.connect)((new neritics_1.Links(label)).join(left, right).query);
+    await (0, driver_1.connect)((new pkg_1.Links(label)).join(left, right).query);
     return {
         statusCode: 204
     };
 };
 const drop = async (left, right) => {
-    await (0, driver_1.connect)((new neritics_1.Links()).drop(left, right).query);
+    await (0, driver_1.connect)((new pkg_1.Links()).drop(left, right).query);
     return {
         statusCode: 204
     };

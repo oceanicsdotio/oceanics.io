@@ -3,16 +3,23 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.tokenClaim = exports.transform = exports.serialize = exports.catchAll = exports.connect = exports.parseFunctionsPath = void 0;
-const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const neritics_1 = require("./pkg/neritics");
+exports.tokenClaim = exports.transform = exports.serialize = exports.catchAll = exports.connect = exports.parseFunctionsPath = exports.materialize = void 0;
 const neo4j_driver_1 = __importDefault(require("neo4j-driver"));
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+// Class and methods are from web assembly package.
+const pkg_1 = require("./pkg");
 /**
  * Magic strings, that we know may exist in the path. It depends on whether the
  * request is being made directly against the netlify functions, or through
  * a proxy redirect.
  */
-const STRIP_BASE_PATH_PREFIX = [".netlify", "functions", "api", "auth", "sensor-things"];
+const STRIP_BASE_PATH_PREFIX = new Set([".netlify", "functions", "api", "auth", "sensor-things"]);
+/**
+ * Shorthand for serializing an a properties object and creating a Node instance from it.
+ * This should be pushed down into a Node static method at some point. Same with serialize.
+ */
+const materialize = (properties, symbol, label) => new pkg_1.Node((0, exports.serialize)(properties), symbol, label);
+exports.materialize = materialize;
 /**
  * Encapsulate logic for parsing node properties from the body, query string, and path.
  *
@@ -36,9 +43,9 @@ const parseFunctionsPath = ({ httpMethod, body, path }) => {
         else {
             label = text;
         }
-        return new neritics_1.Node((0, exports.serialize)({ uuid, ...((index === array.length - 1) ? props : {}) }), `n${index}`, label);
+        return (0, exports.materialize)({ uuid, ...((index === array.length - 1) ? props : {}) }, `n${index}`, label);
     };
-    const filterBasePath = (symbol) => !!symbol && !STRIP_BASE_PATH_PREFIX.includes(symbol);
+    const filterBasePath = (symbol) => !!symbol && !STRIP_BASE_PATH_PREFIX.has(symbol);
     return path.split("/").filter(filterBasePath).map(insertProperties);
 };
 exports.parseFunctionsPath = parseFunctionsPath;
@@ -79,9 +86,8 @@ exports.catchAll = catchAll;
  * from an object. Nested objects will be JSON strings.
  */
 const serialize = (props) => {
-    return Object.entries(props).filter(([_, value]) => {
-        return typeof value !== "undefined" && !!value;
-    }).map(([key, value]) => {
+    const filter = ([_, value]) => typeof value !== "undefined" && !!value;
+    const toString = ([key, value]) => {
         const valueType = typeof value;
         let serialized;
         switch (valueType) {
@@ -92,7 +98,8 @@ const serialize = (props) => {
                 serialized = value;
         }
         return `${key}: '${serialized}'`;
-    }).join(", ");
+    };
+    return Object.entries(props).filter(filter).map(toString).join(", ");
 };
 exports.serialize = serialize;
 /**
@@ -107,6 +114,6 @@ exports.transform = transform;
  */
 const tokenClaim = (token, signingKey) => {
     const claim = jsonwebtoken_1.default.verify(token, signingKey);
-    return new neritics_1.Node((0, exports.serialize)({ uuid: claim["uuid"] }), "u", "User");
+    return new pkg_1.Node((0, exports.serialize)({ uuid: claim["uuid"] }), "u", "User");
 };
 exports.tokenClaim = tokenClaim;
