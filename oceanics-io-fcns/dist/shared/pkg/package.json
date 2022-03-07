@@ -1,5 +1,5 @@
 {
-  "name": "neritics",
+  "name": "oceanics-io-wasm",
   "collaborators": [
     "Oceanicsdotio <business@oceanics.io>"
   ],
@@ -11,10 +11,10 @@
     "url": "git+https://github.com/oceanicsdotio/oceanics.io.git"
   },
   "files": [
-    "neritics_bg.wasm",
-    "neritics.js",
-    "neritics.d.ts"
+    "oceanics_io_wasm_bg.wasm",
+    "oceanics_io_wasm.js",
+    "oceanics_io_wasm.d.ts"
   ],
-  "main": "neritics.js",
-  "types": "neritics.d.ts"
+  "main": "oceanics_io_wasm.js",
+  "types": "oceanics_io_wasm.d.ts"
 }

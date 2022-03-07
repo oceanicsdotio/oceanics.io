@@ -1,14 +1,14 @@
 /**
- * Cloud function version of API
+ * Cloud function version of Auth API.
  */
-import { connect, transform, catchAll, serialize, tokenClaim } from "./shared/driver";
-import { Node, Links } from "./shared/pkg/neritics";
+import { connect, transform, catchAll, serialize, tokenClaim, materialize } from "./shared/driver";
+import { Node, Links } from "./shared/pkg";
 import type { Handler } from "@netlify/functions";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
 
 /**
- * Generic interface for all of the method-specific handlers.
+ * Generic interface for all of the HTTP method-specific handlers.
  */
  export interface IAuth {
   email: string;
@@ -24,13 +24,11 @@ import jwt from "jsonwebtoken";
 const hashPassword = (password: string, secret: string) =>
   crypto.pbkdf2Sync(password, secret, 100000, 64, "sha512").toString("hex");
 
-
 /**
  * Matching pattern based on basic auth information
  */
 const authClaim = ({ email = "", password = "", secret = "" }: IAuth) =>
   new Node(serialize({ email, credential: hashPassword(password, secret) }), null, "User");
-
 
 /**
  * Create a new account using email address. We don't perform
@@ -39,13 +37,13 @@ const authClaim = ({ email = "", password = "", secret = "" }: IAuth) =>
  */
 const register = async ({ apiKey, password, secret, email }: IAuth) => {
   // Empty array if there was an error
-
-  const provider = new Node(serialize({ apiKey }), "p", "Provider");
-  const user = new Node(serialize({
+  const provider = materialize({ apiKey }, "p", "Provider");
+  const user = materialize({
     email,
     uuid: crypto.randomUUID().replace(/-/g, ""),
     credential: hashPassword(password, secret)
-  }), "u", "User");
+  }, "u", "User");
+  
   const { query } = new Links("Register", 0, 0, "").insert(provider, user);
 
   let records: any;
@@ -99,7 +97,6 @@ const getToken = async (auth: IAuth) => {
     headers: { 'Content-Type': 'application/json' },
   }
 };
-
 
 /**
  * Update account information

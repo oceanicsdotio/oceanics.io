@@ -2,12 +2,11 @@ import fetch from "node-fetch";
 import assert from "assert";
 import YAML from "yaml";
 import { readFileSync } from "fs";
-import {describe, it} from "mocha";
+import { describe, it } from "mocha";
 import crypto from "crypto";
 
 // MERGE (n:Provider { apiKey: replace(apoc.create.uuid(), '-', ''), domain: 'oceanics.io' }) return n
 
-// const REAL_PATH = "http://localhost:8888/.netlify/functions";
 const BASE_PATH = "http://localhost:8888/.netlify/functions";
 const API_PATH = "http://localhost:8888/api";
 const TEST_USER = "test@oceanics.io";
@@ -23,11 +22,24 @@ const EXTENSIONS = {
     "HistoricalLocations",
     "Locations",
     "DataStreams",
-    "Agents"
   ]),
-  tasking: [],
-  auth: ["Provider", "User"],
-  ops: [],
+  tasking: new Set([
+    "Tasks",
+    "TaskingCapabilities",
+    "Actuators"
+  ]),
+  auth: [
+    "Provider", 
+    "User"
+  ],
+  governing: new Set([
+    "Missions",
+    "Agents",
+    "Services",
+    "Goals",
+    "Assets",
+    "Collections"
+  ]),
 };
 
 /**
@@ -82,6 +94,106 @@ const batch = async (composeTransaction, nodeType, data) => {
   );
   return Promise.allSettled(queue.map(job));
 };
+
+let spec;
+const parseNodesFromApi = () => {
+  const insertIds = (items) => {
+    return items.map((props) => {
+      return {
+        ...props,
+        uuid: crypto.randomUUID()
+      }
+    })
+  }
+  const text = readFileSync(
+    "oceanics-io-www/public/bathysphere.yaml",
+    "utf8"
+  );
+  spec = YAML.parse(text);
+  const nodes = Object.entries(spec.components.schemas)
+    .map(([key, value]) => [key, insertIds(value.examples ?? [])]);
+  return Object.fromEntries(nodes);
+}
+
+const WELL_KNOWN_NODES = parseNodesFromApi();
+
+/**
+ * API request validation is through a separate service so that it can be tested
+ * and used without needing to persist data or manage side effects. 
+ * 
+ * This `describe` block checks that all canonical examples we use in tests and code
+ * are valid, and that the API layer contract is being upheld on both sides. If the docs
+ * fall out of date with the schema, these tests will start failing. 
+ */
+describe("API Request Validator", function () {
+
+    const query = (body) => fetch(`${BASE_PATH}/api-validator`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+
+    const testResponse = async (data, expected) => {
+      const response = await query(data);
+      const result = await response.json();
+      
+      assert(response.status === 200, `Unexpected Response Code: ${response.status}`);
+
+      const pass = result.test === expected;
+      if (!pass) console.log({...data, ...result});
+      assert(pass, `Unexpected Validation Result`);
+    }
+
+    /**
+     * Block of `it` scope tests that check that the validation service is
+     * maintaining the integrity constraints identified in the specification.
+     */
+    const validateInterface = (nodeType) => {
+      return function () {
+
+        const reference = `#/components/schemas/${nodeType}`;
+        const testCase = WELL_KNOWN_NODES[nodeType][0];
+        const {required=[], additionalProperties=true} = spec.components.schemas[nodeType];
+  
+        it("validates well known nodes", async function () {
+          for (const data of WELL_KNOWN_NODES[nodeType]) {
+            await testResponse({ data, reference}, true);
+          }
+        })
+  
+        for (const key of required) {
+          it(`fails without ${key}`, async function () {
+            await testResponse({ data: {
+              ...testCase,
+              [key]: undefined
+            }, reference }, false);
+          })
+        }
+        if (!additionalProperties) {
+          it("fails with additional properties", async function () {
+            await testResponse({ data: {
+              ...testCase,
+              extra: "extra-key-value-pair"
+            }, reference }, false);
+          })
+        }
+      }
+    }
+
+    /**
+     * Create a `describe` block for each of the Sensing API entities
+     */
+    for (const nodeType of EXTENSIONS.sensing) {
+      describe(nodeType, validateInterface(nodeType));
+    }
+
+        /**
+     * Create a `describe` block for each of the Sensing API entities
+     */
+         for (const nodeType of EXTENSIONS.sensing) {
+          describe(nodeType, validateInterface(nodeType));
+        }
+})
 
 /**
  * Stand alone tests for the Auth flow. Includes initial
@@ -210,30 +322,6 @@ describe("Auth API", function () {
  */
 describe("Sensing API", function () {
 
-  const insertIds = (items) => {
-    return items.map((props) => {
-      return {
-        ...props,
-        uuid: crypto.randomUUID().replace(/-/g, "")
-      }
-    })
-  }
-
-  const parseNodesFromApi = () => {
-    const text = readFileSync(
-      "oceanics-io-www/public/bathysphere.yaml",
-      "utf8"
-    );
-    const spec = YAML.parse(text);
-    const nodes = Object.entries(spec.components.schemas)
-      .filter(([key]) => EXTENSIONS.sensing.has(key))
-      .map(([key, value]) => [key, insertIds(value.example ?? [])]);
-   
-    return Object.fromEntries(nodes);
-  }
-
-  const WELL_KNOWN_NODES = parseNodesFromApi();
-
   /**
    * Check options on for each number of path segments.
    *
@@ -315,94 +403,15 @@ describe("Sensing API", function () {
     };
 
     /**
-     * Get examples from the API spec, nested under the component
-     * schema for each type.
-     */
-    it("parses API examples", function () {
-      const nodes = Object.keys(WELL_KNOWN_NODES)
-      assert(
-        nodes.length === EXTENSIONS.sensing.size,
-        `Unexpected number of schemata (${nodes.length}/${EXTENSIONS.sensing.size})`
-      );
-    });
-
-    /**
      * Create a single Well-Known Entity node.
      */
-    it("creates Things", async function () {
-      await validateBatch(
-        batch(composeWriteTransaction, "Things", WELL_KNOWN_NODES.Things)
-      );
-    });
-
-    it("creates Agents", async function () {
-      await validateBatch(batch(composeWriteTransaction, "Agents", WELL_KNOWN_NODES.Agents));
-    });
-
-    it("creates Sensors", async function () {
-      await validateBatch(batch(composeWriteTransaction, "Sensors", WELL_KNOWN_NODES.Sensors));
-    });
-
-    it("creates Locations", async function () {
-      await validateBatch(batch(
-        composeWriteTransaction,
-        "Locations",
-        WELL_KNOWN_NODES.Locations
-      ));
-    });
-
-    it("creates FeaturesOfInterest", async function () {
-      await validateBatch(batch(
-        composeWriteTransaction,
-        "FeaturesOfInterest",
-        WELL_KNOWN_NODES.FeaturesOfInterest
-      ));
-    });
-
-    it("creates DataStreams", async function () {
-      await validateBatch(batch(
-        composeWriteTransaction,
-        "DataStreams",
-        WELL_KNOWN_NODES.DataStreams
-      ));
-    });
-
-    it("creates ObservedProperties", async function () {
-      await validateBatch(batch(
-        composeWriteTransaction,
-        "ObservedProperties",
-        WELL_KNOWN_NODES.ObservedProperties
-      ));
-    });
-
-    it("creates Observations", async function () {
-      await validateBatch(batch(
-        composeWriteTransaction,
-        "Observations",
-        WELL_KNOWN_NODES.Observations
-      ));
-    });
-
-    /**
-     * Get the index of all node labels with API routes
-     */
-    it("retrieves collection index", async function () {
-      const { token } = await fetchToken();
-      const response = await fetch(`${API_PATH}/`, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `bearer:${token}`,
-        },
+    for (const nodeType of EXTENSIONS.sensing) {
+      it(`creates ${nodeType}`, async function () {
+        await validateBatch(
+          batch(composeWriteTransaction, nodeType, WELL_KNOWN_NODES[nodeType])
+        );
       });
-      expect(response, 200);
-      const data = await response.json();
-      assert(data.length >= 1, `Expected one or more nodes in result`);
-      const names = new Set(data.map((item) => item.name));
-      assert(
-        [...EXTENSIONS.auth].every((omit) => !names.has(omit)),
-        `Result Contains Private Type`
-      );
-    });
+    }
   });
 
   const readTransaction = (token) => async (nodeType) => {
@@ -414,97 +423,89 @@ describe("Sensing API", function () {
     }).then(response => response.json());
   };
 
-  describe("Query nodes", function() {
-    let CREATED_UUID = {};
+  describe("Verify persisted data", function () {
 
-    /**
-     * After the graph has been population there should be some number
-     * of each type of entity node. The number of nodes in the response
-     * should be predicted from the the example nodes in the API spec.
-     */
-    it("retrieves index of single node type", async function () {
-      const nodeTypes = [...EXTENSIONS.sensing]
-      const {token} = await fetchToken();
-      const responses = await Promise.allSettled(nodeTypes.map(readTransaction(token)));
-      const parsed = await Promise.all(responses.map(({value}, index) => {
-        const key = nodeTypes[index];
-        return {
-          key,
-          value,
-          count: {
-            expected: WELL_KNOWN_NODES[key].length,
-            actual: value["@iot.count"]
-          }
-        }
-      }));
-
-      parsed.forEach(({count, key, value}) => {
-        const message = `Unexpected Array Size for ${key} (${count.actual}/${count.expected})`;
-        const isMatch = count.actual === count.expected;
-        assert(isMatch, message);
-        CREATED_UUID[key] = value;
-      })
-    });
-
-    /**
-     * We are able to get a single node by referencing it's unique
-     * identifier. If it does not exist, or is not owned by the user,
-     * then receive 404.
-     */
-    const validateByType = async (nodeType) => {
-      const { token } = await fetchToken();
-      const things = CREATED_UUID[nodeType]
-      const result = things.value.map(async ({uuid})=> {
-        const response = await fetch(
-          `${API_PATH}/${nodeType}(${uuid})`,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `bearer:${token}`,
-            },
-          }
-        );
-        const data = await response.json();
-        expect(response, 200);
-        assert(data.value.length === 1)
-        assert(uuid === data.value[0].uuid)
-      })
-      await Promise.all(result)
-    }
-
+    const CREATED_UUID = {};
     
-    it("retrieve Things by UUID", async function () {
-      await validateByType("Things");
+    describe("Query index", function () {
+      /**
+         * Get the index of all node labels with API routes
+         */
+      it("retrieves collection index", async function () {
+        const { token } = await fetchToken();
+        const response = await fetch(`${API_PATH}/`, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `bearer:${token}`,
+          },
+        });
+        expect(response, 200);
+        const data = await response.json();
+        assert(data.length >= 1, `Expected one or more nodes in result`);
+        const names = new Set(data.map((item) => item.name));
+        assert(
+          EXTENSIONS.auth.every((omit) => !names.has(omit)),
+          `Result Contains Private Type`
+        );
+      });
+    })
+  
+    describe("Query collection", function() {
+      /**
+       * After the graph has been population there should be some number
+       * of each type of entity node. The number of nodes in the response
+       * should be predicted from the the example nodes in the API spec.
+       */
+      for (const nodeType of EXTENSIONS.sensing) {
+        it(`retrieves index of ${nodeType}`, async function () {
+          const {token} = await fetchToken();
+          const data = await readTransaction(token)(nodeType);
+          const actual = data["@iot.count"];
+          const expected = WELL_KNOWN_NODES[nodeType].length;
+          assert(
+            expected === actual, 
+            `Unexpected Array Size for ${nodeType} (${actual}/${expected})`
+          );
+          CREATED_UUID[nodeType] = data.value;
+        });
+      }
     });
-
-    it("retrieve Sensors by UUID", async function () {
-      await validateByType("Sensors");
-    });
-
-    it("retrieve Locations by UUID", async function () {
-      await validateByType("Locations");
-    });
-
-    it("retrieve FeaturesOfInterest by UUID", async function () {
-      await validateByType("FeaturesOfInterest");
-    });
-
-    it("retrieve DataStreams by UUID", async function () {
-      await validateByType("DataStreams");
-    });
-
-    it("retrieve ObservedProperties by UUID", async function () {
-      await validateByType("ObservedProperties");
-    });
-
-    it("retrieve Observations by UUID", async function () {
-      await validateByType("Observations");
-    });
-
-    it("retrieve Agents by UUID", async function () {
-      await validateByType("Agents");
-    });
-  });
+  
+    describe("Query nodes", function () {
+      /**
+       * We are able to get a single node by referencing it's unique
+       * identifier. If it does not exist, or is not owned by the user,
+       * then receive 404.
+       */
+      const validateByType = async (nodeType) => {
+        const { token } = await fetchToken();
+        const things = CREATED_UUID[nodeType]
+        const result = things.map(async ({uuid})=> {
+          const response = await fetch(
+            `${API_PATH}/${nodeType}(${uuid})`,
+            {
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `bearer:${token}`,
+              },
+            }
+          );
+          const data = await response.json();
+          expect(response, 200);
+          assert(data.value.length === 1)
+          assert(uuid === data.value[0].uuid)
+        })
+        await Promise.all(result)
+      }
+  
+      for (const nodeType of EXTENSIONS.sensing) {
+        it(`retrieve ${nodeType} by UUID`, async function () {
+          await validateByType(nodeType);
+        });
+      }
+    })
+  })
+  
 
   describe("Join Nodes", function() {
     this.timeout(5000)

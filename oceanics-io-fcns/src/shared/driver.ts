@@ -1,8 +1,11 @@
 import type { Record } from "neo4j-driver";
-import jwt, { JwtPayload } from "jsonwebtoken";
-import { Node } from "./pkg/neritics";
 import neo4j from "neo4j-driver";
+import jwt, { JwtPayload } from "jsonwebtoken";
 
+// Class and methods are from web assembly package.
+import { Node } from "./pkg";
+
+// Stub Type for generic Entity Properties object.
 type Properties = { [key: string]: any };
 
 /**
@@ -10,7 +13,14 @@ type Properties = { [key: string]: any };
  * request is being made directly against the netlify functions, or through
  * a proxy redirect. 
  */
-const STRIP_BASE_PATH_PREFIX = [".netlify", "functions", "api", "auth", "sensor-things"];
+const STRIP_BASE_PATH_PREFIX = new Set([".netlify", "functions", "api", "auth", "sensor-things"]);
+
+/**
+ * Shorthand for serializing an a properties object and creating a Node instance from it.
+ * This should be pushed down into a Node static method at some point. Same with serialize.
+ */
+export const materialize = (properties: Properties, symbol: string, label: string) => 
+  new Node(serialize(properties), symbol, label)
 
 /**
  * Encapsulate logic for parsing node properties from the body, query string, and path.
@@ -40,10 +50,10 @@ export const parseFunctionsPath = ({ httpMethod, body, path }: {
     } else {
       label = text
     }
-    return new Node(serialize({ uuid, ...((index === array.length - 1) ? props : {}) }), `n${index}`, label)
+    return materialize({ uuid, ...((index === array.length - 1) ? props : {}) }, `n${index}`, label)
   }
 
-  const filterBasePath = (symbol: string) => !!symbol && !STRIP_BASE_PATH_PREFIX.includes(symbol);
+  const filterBasePath = (symbol: string) => !!symbol && !STRIP_BASE_PATH_PREFIX.has(symbol);
 
   return path.split("/").filter(filterBasePath).map(insertProperties);
 }
@@ -86,9 +96,10 @@ export function catchAll(wrapped: (...args: any) => any) {
  * from an object. Nested objects will be JSON strings. 
  */
 export const serialize = (props: Properties) => {
-  return Object.entries(props).filter(([_, value]) => {
-    return typeof value !== "undefined" && !!value
-  }).map(([key, value]) => {
+
+  const filter = ([_, value]) => typeof value !== "undefined" && !!value;
+
+  const toString = ([key, value]) => {
     const valueType = typeof value;
     let serialized: any;
     switch (valueType) {
@@ -100,7 +111,9 @@ export const serialize = (props: Properties) => {
 
     }
     return `${key}: '${serialized}'`
-  }).join(", ")
+  }
+
+  return Object.entries(props).filter(filter).map(toString).join(", ")
 }
 
 /**

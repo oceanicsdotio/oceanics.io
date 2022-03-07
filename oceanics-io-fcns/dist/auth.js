@@ -5,10 +5,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.handler = void 0;
 /**
- * Cloud function version of API
+ * Cloud function version of Auth API.
  */
 const driver_1 = require("./shared/driver");
-const neritics_1 = require("./shared/pkg/neritics");
+const pkg_1 = require("./shared/pkg");
 const crypto_1 = __importDefault(require("crypto"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 /**
@@ -18,7 +18,7 @@ const hashPassword = (password, secret) => crypto_1.default.pbkdf2Sync(password,
 /**
  * Matching pattern based on basic auth information
  */
-const authClaim = ({ email = "", password = "", secret = "" }) => new neritics_1.Node((0, driver_1.serialize)({ email, credential: hashPassword(password, secret) }), null, "User");
+const authClaim = ({ email = "", password = "", secret = "" }) => new pkg_1.Node((0, driver_1.serialize)({ email, credential: hashPassword(password, secret) }), null, "User");
 /**
  * Create a new account using email address. We don't perform
  * any validation of inputs here, such as for email address and
@@ -26,13 +26,13 @@ const authClaim = ({ email = "", password = "", secret = "" }) => new neritics_1
  */
 const register = async ({ apiKey, password, secret, email }) => {
     // Empty array if there was an error
-    const provider = new neritics_1.Node((0, driver_1.serialize)({ apiKey }), "p", "Provider");
-    const user = new neritics_1.Node((0, driver_1.serialize)({
+    const provider = (0, driver_1.materialize)({ apiKey }, "p", "Provider");
+    const user = (0, driver_1.materialize)({
         email,
         uuid: crypto_1.default.randomUUID().replace(/-/g, ""),
         credential: hashPassword(password, secret)
-    }), "u", "User");
-    const { query } = new neritics_1.Links("Register", 0, 0, "").insert(provider, user);
+    }, "u", "User");
+    const { query } = new pkg_1.Links("Register", 0, 0, "").insert(provider, user);
     let records;
     try {
         records = (0, driver_1.transform)(await (0, driver_1.connect)(query));
@@ -114,8 +114,8 @@ const manage = async ({ token }) => {
  */
 const remove = async (auth) => {
     const user = authClaim(auth);
-    const allNodes = new neritics_1.Node(undefined, "a", undefined);
-    const { query } = (new neritics_1.Links()).delete(user, allNodes);
+    const allNodes = new pkg_1.Node(undefined, "a", undefined);
+    const { query } = (new pkg_1.Links()).delete(user, allNodes);
     await (0, driver_1.connect)(query);
     return {
         statusCode: 204
