@@ -10,7 +10,7 @@
     "babel-preset-next": "^1.4.0",
     "gray-matter": "^4.0.3",
     "ignore-loader": "^0.1.2",
-    "next": "12.0.9",
+    "next": "12.1.0",
     "next-mdx-remote": "^3.0.8",
     "oceanics-io-ui": "*",
     "oceanics-io-wasm": "*",
