@@ -11,7 +11,7 @@
     "@types/mapbox-gl": "^2.4.2",
     "js-yaml-loader": "^1.2.2",
     "katex": "^0.15.1",
-    "mapbox-gl": "^1.5.0",
+    "mapbox-gl": "^2.7.0",
     "pluralize": "^8.0.0",
     "prop-types": "^15.8.0",
     "react": "^17.0.2",
