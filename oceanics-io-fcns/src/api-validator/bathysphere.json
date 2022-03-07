@@ -871,6 +871,11 @@
           }
         ],
         "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "uuid",
+          "name"
+        ],
         "properties": {
           "uuid": {
             "type": "string",
@@ -1073,6 +1078,11 @@
         ],
         "type": "object",
         "description": "Features of interest are usually Locations\n",
+        "additionalProperties": false,
+        "required": [
+          "uuid",
+          "name"
+        ],
         "properties": {
           "uuid": {
             "type": "string",
@@ -2071,75 +2081,18 @@
       "ObservedProperties": {
         "examples": [
           {
-            "ObservedProperties@iot.navigation": [
-              {
-                "name": [
-                  "chlorophyll"
-                ]
-              }
-            ],
-            "Providers@iot.navigation": [
-              {
-                "label": "Alias",
-                "props": {
-                  "name": [
-                    "cdom"
-                  ]
-                }
-              }
-            ],
-            "name": "colored dissolved organic matter"
+            "name": "colored dissolved organic matter",
+            "description": "Optically active material suspended in water"
           },
           {
-            "ObservedProperties@iot.navigation": [
-              {
-                "name": [
-                  "conductivity"
-                ]
-              }
-            ],
-            "Providers@iot.navigation": [
-              {
-                "label": "Alias",
-                "props": {
-                  "name": [
-                    "psu",
-                    "sss",
-                    "sal"
-                  ]
-                }
-              }
-            ],
             "name": "salinity",
             "description": "Seawater salinity"
           },
           {
-            "Providers@iot.navigation": [
-              {
-                "label": "Alias",
-                "props": {
-                  "name": [
-                    "temp"
-                  ]
-                }
-              }
-            ],
             "name": "temperature",
             "description": "Measured through a thermistor or remote sensing"
           },
           {
-            "Providers@iot.navigation": [
-              {
-                "label": "Alias",
-                "props": {
-                  "name": [
-                    "chl",
-                    "chla",
-                    "chl-a"
-                  ]
-                }
-              }
-            ],
             "name": "chlorophyll",
             "description": "Measure of chlorophyll"
           },
@@ -2159,29 +2112,9 @@
             "name": "conductivity"
           },
           {
-            "Providers@iot.navigation": [
-              {
-                "label": "Alias",
-                "props": {
-                  "name": [
-                    "par0plus",
-                    "par0minus"
-                  ]
-                }
-              }
-            ],
             "name": "photosynthetically active radiation"
           },
           {
-            "ObservedProperties@iot.navigation": [
-              {
-                "name": [
-                  "transmission",
-                  "cdom",
-                  "cholorophyll"
-                ]
-              }
-            ],
             "name": "turbidity"
           },
           {
@@ -2189,25 +2122,15 @@
             "description": "Electrical voltage or sensor or power source"
           },
           {
-            "Providers@iot.navigation": [
-              {
-                "label": "Alias",
-                "props": {
-                  "name": [
-                    "uv",
-                    "u",
-                    "ww",
-                    "omega",
-                    "current_speed_cm",
-                    "current_direction"
-                  ]
-                }
-              }
-            ],
             "name": "water velocity"
           }
         ],
         "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "uuid",
+          "name"
+        ],
         "properties": {
           "uuid": {
             "type": "string",

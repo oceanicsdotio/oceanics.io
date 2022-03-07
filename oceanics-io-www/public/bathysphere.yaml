@@ -737,6 +737,8 @@ components:
         - name: Arthur Machen
         - name: Octavia Butler
       type: object
+      additionalProperties: false
+      required: [uuid, name]
       properties:
         uuid:
           type: string
@@ -905,7 +907,8 @@ components:
       type: object
       description: |
         Features of interest are usually Locations
-
+      additionalProperties: false
+      required: [uuid, name]
       properties:
         uuid:
           type: string
@@ -1618,63 +1621,28 @@ components:
         
     ObservedProperties:
       examples:
-        - ObservedProperties@iot.navigation:
-            - name: [ chlorophyll ]
-          Providers@iot.navigation:
-            - label: Alias
-              props:
-                name: [ cdom ]
-          name: colored dissolved organic matter
-        
-        - ObservedProperties@iot.navigation:
-            - name: [ conductivity ]
-          Providers@iot.navigation:
-            - label: Alias
-              props:
-                name: [ psu, sss, sal ]
-          name: salinity
+        - name: colored dissolved organic matter
+          description: Optically active material suspended in water
+        - name: salinity
           description: Seawater salinity
-
-        - Providers@iot.navigation:
-            - label: Alias
-              props:
-                name: [ temp ]
-          name: temperature
+        - name: temperature
           description: Measured through a thermistor or remote sensing
-      
-        - Providers@iot.navigation:
-            - label: Alias
-              props:
-                name: [ chl, chla, chl-a ]
-          name: chlorophyll
+        - name: chlorophyll
           description: Measure of chlorophyll
-
         - name: oxygen
         - name: oxygen percent
         - name: transmission
         - name: oxygen saturation
         - name: conductivity
-
-        - Providers@iot.navigation:
-            - label: Alias
-              props:
-                name: [ par0plus, par0minus ]
-          name: photosynthetically active radiation
-
-        - ObservedProperties@iot.navigation:
-            - name: [ transmission, cdom, cholorophyll ]
-          name: turbidity
-
+        - name: photosynthetically active radiation
+        - name: turbidity
         - name: voltage
           description: Electrical voltage or sensor or power source
-
-        - Providers@iot.navigation:
-            - label: Alias
-              props:
-                name: [ uv, u, ww, omega, current_speed_cm, current_direction ]
-          name: water velocity
+        - name: water velocity
 
       type: object
+      additionalProperties: false
+      required: [uuid, name]
       properties:
         uuid:
           type: string
