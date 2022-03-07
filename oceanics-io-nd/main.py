@@ -30,7 +30,62 @@ from matplotlib.patches import Path
 # The most basic of statistical models
 from sklearn.linear_model import LinearRegression
 
+import pytest
+from json import load
 
+from time import time
+from os.path import exists
+from pickle import loads as unpickle, dump as pickle, load
+from itertools import chain, repeat
+from functools import reduce
+from collections import deque
+
+from datetime import datetime
+from random import random
+from requests import post, get
+from json import dumps
+from json import dumps, loads
+from requests import post
+from time import time
+from retry import retry
+
+from matplotlib.cm import get_cmap
+from matplotlib.patches import Path
+from PIL.Image import fromarray, alpha_composite
+
+from numpy import (
+    array,
+    where,
+    column_stack,
+    uint8,
+    arange,
+    delete,
+    zeros,
+    unique,
+    isnan,
+    abs,
+    sqrt,
+)
+from numpy.ma import masked_where
+from matplotlib import pyplot as plt
+from datetime import datetime
+
+from numpy import (
+    random,
+    argmax,
+    argmin,
+    arange,
+    array,
+    vstack,
+    pi,
+    all,
+    any,
+    where,
+    array_split,
+)
+from numpy.random import random
+from numpy.ma import MaskedArray
+from matplotlib import pyplot as plt
 # pylint: disable=line-too-long,invalid-name
 from __future__ import annotations
 from enum import Enum
@@ -117,62 +172,7 @@ avhrr_end = datetime(2015, 1, 30)
 ext = (-69.6, 43.8, -69.5, 44.1)
 OSI_DATASET = "bivalve-suitability"
 IndexedDB = dict()
-import pytest
-from json import load
 
-from time import time
-from os.path import exists
-from pickle import loads as unpickle, dump as pickle, load
-from itertools import chain, repeat
-from functools import reduce
-from collections import deque
-
-from datetime import datetime
-from random import random
-from requests import post, get
-from json import dumps
-from json import dumps, loads
-from requests import post
-from time import time
-from retry import retry
-
-from matplotlib.cm import get_cmap
-from matplotlib.patches import Path
-from PIL.Image import fromarray, alpha_composite
-
-from numpy import (
-    array,
-    where,
-    column_stack,
-    uint8,
-    arange,
-    delete,
-    zeros,
-    unique,
-    isnan,
-    abs,
-    sqrt,
-)
-from numpy.ma import masked_where
-from matplotlib import pyplot as plt
-from datetime import datetime
-
-from numpy import (
-    random,
-    argmax,
-    argmin,
-    arange,
-    array,
-    vstack,
-    pi,
-    all,
-    any,
-    where,
-    array_split,
-)
-from numpy.random import random
-from numpy.ma import MaskedArray
-from matplotlib import pyplot as plt
 
 
 OSI_OBJ = "bivalve-suitability"
