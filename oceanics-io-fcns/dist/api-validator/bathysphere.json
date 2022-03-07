@@ -1495,29 +1495,36 @@
                 }
             },
             "HistoricalLocations": {
+                "examples": [
+                    {
+                        "time": "2020-04-01T09:00:00Z",
+                        "Things@iot.navigation": [
+                            {
+                                "name": [
+                                    "R/V Lloigor"
+                                ]
+                            }
+                        ],
+                        "Locations@iot.navigation": [
+                            {
+                                "name": [
+                                    "Wood Island Harbor"
+                                ]
+                            }
+                        ]
+                    }
+                ],
                 "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "uuid",
+                    "time"
+                ],
                 "properties": {
                     "uuid": {
                         "type": "string",
                         "format": "uuid",
                         "description": "Unique integer identifier for entity.\n"
-                    },
-                    "name": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
-                        "description": "Human readable entity name for displaying data."
-                    },
-                    "description": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
-                        "description": "Short but useful explanation of what the entity is."
-                    },
-                    "encodingType": {
-                        "$ref": "#/components/schemas/LocationEncodingType"
                     },
                     "time": {
                         "type": "string",

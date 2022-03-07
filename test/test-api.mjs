@@ -456,7 +456,6 @@ describe("Sensing API", function () {
       it(`retrieves index of ${nodeType}`, async function () {
         const {token} = await fetchToken();
         const data = await readTransaction(token)(nodeType);
-        console.log(data)
         const actual = data["@iot.count"];
         const expected = WELL_KNOWN_NODES[nodeType].length;
         assert(
@@ -475,7 +474,7 @@ describe("Sensing API", function () {
     const validateByType = async (nodeType) => {
       const { token } = await fetchToken();
       const things = CREATED_UUID[nodeType]
-      const result = things.value.map(async ({uuid})=> {
+      const result = things.map(async ({uuid})=> {
         const response = await fetch(
           `${API_PATH}/${nodeType}(${uuid})`,
           {
