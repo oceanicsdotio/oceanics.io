@@ -423,81 +423,89 @@ describe("Sensing API", function () {
     }).then(response => response.json());
   };
 
-  describe("Query nodes", function() {
-    let CREATED_UUID = {};
+  describe("Verify persisted data", function () {
 
-    /**
-     * Get the index of all node labels with API routes
-     */
-    it("retrieves collection index", async function () {
-      const { token } = await fetchToken();
-      const response = await fetch(`${API_PATH}/`, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `bearer:${token}`,
-        },
-      });
-      expect(response, 200);
-      const data = await response.json();
-      assert(data.length >= 1, `Expected one or more nodes in result`);
-      const names = new Set(data.map((item) => item.name));
-      assert(
-        EXTENSIONS.auth.every((omit) => !names.has(omit)),
-        `Result Contains Private Type`
-      );
-    });
-
-    /**
-     * After the graph has been population there should be some number
-     * of each type of entity node. The number of nodes in the response
-     * should be predicted from the the example nodes in the API spec.
-     */
-    for (const nodeType of EXTENSIONS.sensing) {
-      it(`retrieves index of ${nodeType}`, async function () {
-        const {token} = await fetchToken();
-        const data = await readTransaction(token)(nodeType);
-        const actual = data["@iot.count"];
-        const expected = WELL_KNOWN_NODES[nodeType].length;
-        assert(
-          expected === actual, 
-          `Unexpected Array Size for ${nodeType} (${actual}/${expected})`
-        );
-        CREATED_UUID[nodeType] = data.value;
-      });
-    }
+    const CREATED_UUID = {};
     
-    /**
-     * We are able to get a single node by referencing it's unique
-     * identifier. If it does not exist, or is not owned by the user,
-     * then receive 404.
-     */
-    const validateByType = async (nodeType) => {
-      const { token } = await fetchToken();
-      const things = CREATED_UUID[nodeType]
-      const result = things.map(async ({uuid})=> {
-        const response = await fetch(
-          `${API_PATH}/${nodeType}(${uuid})`,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `bearer:${token}`,
-            },
-          }
-        );
-        const data = await response.json();
+    describe("Query index", function () {
+      /**
+         * Get the index of all node labels with API routes
+         */
+      it("retrieves collection index", async function () {
+        const { token } = await fetchToken();
+        const response = await fetch(`${API_PATH}/`, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `bearer:${token}`,
+          },
+        });
         expect(response, 200);
-        assert(data.value.length === 1)
-        assert(uuid === data.value[0].uuid)
-      })
-      await Promise.all(result)
-    }
-
-    for (const nodeType of EXTENSIONS.sensing) {
-      it(`retrieve ${nodeType} by UUID`, async function () {
-        await validateByType(nodeType);
+        const data = await response.json();
+        assert(data.length >= 1, `Expected one or more nodes in result`);
+        const names = new Set(data.map((item) => item.name));
+        assert(
+          EXTENSIONS.auth.every((omit) => !names.has(omit)),
+          `Result Contains Private Type`
+        );
       });
-    }
-  });
+    })
+  
+    describe("Query collection", function() {
+      /**
+       * After the graph has been population there should be some number
+       * of each type of entity node. The number of nodes in the response
+       * should be predicted from the the example nodes in the API spec.
+       */
+      for (const nodeType of EXTENSIONS.sensing) {
+        it(`retrieves index of ${nodeType}`, async function () {
+          const {token} = await fetchToken();
+          const data = await readTransaction(token)(nodeType);
+          const actual = data["@iot.count"];
+          const expected = WELL_KNOWN_NODES[nodeType].length;
+          assert(
+            expected === actual, 
+            `Unexpected Array Size for ${nodeType} (${actual}/${expected})`
+          );
+          CREATED_UUID[nodeType] = data.value;
+        });
+      }
+    });
+  
+    describe("Query nodes", function () {
+      /**
+       * We are able to get a single node by referencing it's unique
+       * identifier. If it does not exist, or is not owned by the user,
+       * then receive 404.
+       */
+      const validateByType = async (nodeType) => {
+        const { token } = await fetchToken();
+        const things = CREATED_UUID[nodeType]
+        const result = things.map(async ({uuid})=> {
+          const response = await fetch(
+            `${API_PATH}/${nodeType}(${uuid})`,
+            {
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `bearer:${token}`,
+              },
+            }
+          );
+          const data = await response.json();
+          expect(response, 200);
+          assert(data.value.length === 1)
+          assert(uuid === data.value[0].uuid)
+        })
+        await Promise.all(result)
+      }
+  
+      for (const nodeType of EXTENSIONS.sensing) {
+        it(`retrieve ${nodeType} by UUID`, async function () {
+          await validateByType(nodeType);
+        });
+      }
+    })
+  })
+  
 
   describe("Join Nodes", function() {
     this.timeout(5000)
