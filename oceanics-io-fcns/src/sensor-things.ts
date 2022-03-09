@@ -3,7 +3,7 @@
  */
 import type { Handler } from "@netlify/functions";
 import { connect, tokenClaim, parseFunctionsPath, transform } from "./shared/driver";
-import { catchAll } from "./shared/middleware";
+import { catchAll, notImplemented } from "./shared/middleware";
 import { Node, Links } from "./shared/pkg";
 
 /**
@@ -107,15 +107,6 @@ const drop = async (left: Node, right: Node) => {
   }
 }
 
-/**
- * Retrieve nodes that are linked with the left entity
- */
-const topology = (left: Node, right: Node) => {
-  return {
-    statusCode: 501,
-    body: JSON.stringify({ message: "Not Implemented" })
-  }
-}
 
 /**
  * Browse saved results for a single model configuration. 
@@ -150,7 +141,7 @@ export const handler: Handler = async ({ headers, httpMethod, ...rest }) => {
     case "GET1":
       return catchAll(metadata)(user, nodes[0])
     case "GET2":
-      return catchAll(topology)(nodes[0], nodes[1])
+      return catchAll(notImplemented)(nodes[0], nodes[1])
     case "POST1":
       return catchAll(create)(user, nodes[0])
     case "POST2":

@@ -2,7 +2,7 @@
  * Cloud function version of Auth API.
  */
 import { connect, transform, serialize, tokenClaim, materialize } from "./shared/driver";
-import { router } from "./shared/middleware";
+import { router, jsonRequest } from "./shared/middleware";
 import { Node, Links } from "./shared/pkg";
 import type { Handler } from "@netlify/functions";
 import crypto from "crypto";
@@ -36,7 +36,7 @@ const authClaim = ({ email = "", password = "", secret = "" }: IAuth) =>
  * any validation of inputs here, such as for email address and
  * excluded passwords. Assume this is delegated to frontend. 
  */
-const register = async ({ apiKey, password, secret, email }: IAuth) => {
+async function register ({ apiKey, password, secret, email }: IAuth) {
   // Empty array if there was an error
   const provider = materialize({ apiKey }, "p", "Provider");
   const user = materialize({
@@ -102,6 +102,7 @@ const getToken = async (auth: IAuth) => {
 /**
  * Update account information
  */
+
 const manage = async ({ token }: IAuth) => {
 
   const records = transform(await connect(tokenClaim(token, process.env.SIGNING_KEY).load().query));
@@ -143,9 +144,6 @@ const remove = async (auth: IAuth) => {
 }
 
 
-
-
-
 const parseAuth = (authorization="") => {
   const [email, password, secret] = authorization.split(":");
   return { email, password, secret}
@@ -163,14 +161,14 @@ const parseAuth = (authorization="") => {
  */
 const handler: Handler = async ({ headers, body, httpMethod, path }) => {
   
-  const ROUTER = router()
-  ROUTER.add("/", {
+  const routing = router().set("/", {
     GET: getToken,  // Get access token
     POST: register, // Register new User
     PUT: manage,  // Update User information
     DELETE: remove  // Remove User and all attached nodes 
   })
-  ROUTER.before()
+  routing.before("/", ["POST", "PUT"], jsonRequest)
+  routing.after("/", ["GET", "POST", "PUT"])
 
   
   let data = JSON.parse(["POST", "PUT"].includes(httpMethod) ? body : "{}");

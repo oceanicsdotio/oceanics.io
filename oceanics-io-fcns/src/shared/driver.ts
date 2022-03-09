@@ -1,11 +1,12 @@
 import type { Record } from "neo4j-driver";
 import neo4j from "neo4j-driver";
-import jwt, { JwtPayload } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
+import type { JwtPayload } from "jsonwebtoken";
 
 // Class and methods are from web assembly package.
 import { Node } from "./pkg";
 
-// Stub Type for generic Entity Properties object.
+// Stub type for generic entity Properties object.
 type Properties = { [key: string]: any };
 
 /**

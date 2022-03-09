@@ -15,7 +15,7 @@
   }
 
   // Deserialize request body
-  const jsonRequest = ({httpMethod, body, ...rest}) => {
+  export const jsonRequest = ({httpMethod, body, ...rest}) => {
       return {
           ...rest,
           httpMethod,
@@ -24,7 +24,7 @@
   }
 
   // Format response
-  const jsonResponse = ({headers={}, data, ...response}) => {
+  export const jsonResponse = ({headers={}, data, ...response}) => {
     return {
         ...response,
         headers: {
@@ -35,6 +35,13 @@
     }
   }
 
+
+export const notImplemented = () => {
+    return {
+        statusCode: 501,
+        data: { message: "Not Implemented" }
+    }
+}
 
 /**
  * Execute a handler function depending on the HTTP method. Want to take 
@@ -84,7 +91,7 @@ export const route = (methods) => {
         // Invalid method
         return {
             statusCode: 405,
-            body: { message: `Invalid HTTP Method` },
+            data: { message: `Invalid HTTP Method` },
         };
     }
 
@@ -111,7 +118,7 @@ export const router = () => {
         }
     }
 
-    function add(path: string, methods: object) {
+    function set(path: string, methods: object) {
         _routes[path] = route(methods)
     }
 
@@ -125,23 +132,9 @@ export const router = () => {
 
     return {
         handle,
-        add,
+        set,
         before,
         after
     }
 }
 
-
-export const jsonRouter = () => {
-    const _router = router();
-    const add = (path, methods) => {
-        _router.add(path, methods);
-        _router.before(path, ["PUT", "POST"], jsonRequest);
-        _router.after(path, ["PUT", "POST", "GET", "DELETE"], jsonResponse)
-    }
-    
-    return {
-        ..._router,
-        add
-    };
-}
