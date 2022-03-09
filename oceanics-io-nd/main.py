@@ -6,175 +6,85 @@ Array data drivers for parallel analytics
 # Worker pool
 from multiprocessing import Pool
 
-# Asyncio type
-from typing import Coroutine
+from pathlib import Path
+import pytest
+
+from time import sleep, time
+from json import load, loads, dumps
+from json.decoder import JSONDecodeError
+from os.path import isfile, exists
+from functools import reduce
+from subprocess import check_output
+
+from enum import Enum
+from typing import Callable, Any
+from datetime import datetime, date, timedelta
+from re import sub
+from warnings import simplefilter
+
 
 # Less boilerplate
 import attr
-
-# The usual Array implementation
-from numpy import array, zeros, arange, ceil, where, std
+from pickle import loads as unpickle, dump as pickle
+from itertools import chain
+from collections import deque
+from requests import get
 
 # Masked arrays save computation
 from numpy.ma import MaskedArray, masked_array
 
 # Converting arrays to images
-from PIL.Image import Image
+from PIL.Image import Image, fromarray, alpha_composite
 
 # Re-project between spherical and mercator
-from pyproj import Proj
+from pyproj import Proj, transform
 
 # Has fast contains point implementation
 from matplotlib.patches import Path
 
 # The most basic of statistical models
 from sklearn.linear_model import LinearRegression
-
-import pytest
-from json import load
-
-from time import time
-from os.path import exists
-from pickle import loads as unpickle, dump as pickle, load
-from itertools import chain, repeat
-from functools import reduce
-from collections import deque
-
-from datetime import datetime
-from random import random
-from requests import post, get
-from json import dumps
-from json import dumps, loads
-from requests import post
-from time import time
-from retry import retry
-
 from matplotlib.cm import get_cmap
-from matplotlib.patches import Path
-from PIL.Image import fromarray, alpha_composite
+from netCDF4 import Dataset as _Dataset # pylint: disable=no-name-in-module
+from sklearn.neighbors import KernelDensity
 
 from numpy import (
-    array,
+    array, 
+    zeros, 
+    ceil,
+    std,
     where,
     column_stack,
     uint8,
-    arange,
     delete,
-    zeros,
     unique,
     isnan,
     abs,
     sqrt,
-)
-from numpy.ma import masked_where
-from matplotlib import pyplot as plt
-from datetime import datetime
-
-from numpy import (
     random,
-    argmax,
-    argmin,
     arange,
-    array,
     vstack,
     pi,
     all,
     any,
-    where,
     array_split,
-)
-from numpy.random import random
-from numpy.ma import MaskedArray
-from matplotlib import pyplot as plt
-# pylint: disable=line-too-long,invalid-name
-from __future__ import annotations
-from enum import Enum
-from typing import Callable, Any
-from datetime import datetime, date, timedelta
-from json import loads
-from collections import deque
-from os.path import isfile
-from functools import reduce
-from ftplib import FTP
-from re import sub
-from itertools import repeat
-from multiprocessing import Pool
-from warnings import simplefilter
-
-import attr
-from requests import get
-
-from numpy import (
-    array,
     append,
     argmax,
     argmin,
-    where,
-    isnan,
     cross,
     argwhere,
-    arange,
-    array,
     hstack,
     repeat,
-    zeros,
+    sin
 )
-from netCDF4 import Dataset as _Dataset # pylint: disable=no-name-in-module
-from pandas import read_html
-
-from sklearn.neighbors import KernelDensity
-from pyproj import transform
-
-# Use ArrayFire for multiple GPU bindings if available, else use ndarray as stand-in
-
-# pylint: disable=invalid-name
-from numpy import zeros, arange
-from flask_cors import CORS
-from pathlib import Path
-from prance import ResolvingParser, ValidationError
-from os import getenv
-from requests import get
-import pytest
-
-from time import sleep, time
-from json import load, loads, dumps
-from json.decoder import JSONDecodeError
-from pickle import loads as unpickle
-from os.path import isfile
-from datetime import datetime
-from functools import reduce
-from typing import Callable
-from pathlib import Path
-from os import getenv
-from subprocess import check_output
-
-from numpy import arange, column_stack, isnan, pi, random, sin, where
-from numpy.ma import MaskedArray
 
 
-DATE = datetime(2014, 4, 12)
-UTMEXT = (360300.000, 4662300.000, 594300.000, 4899600.000)
 WINDOW = (-69.6, 43.8, -69.5, 44.1)
-ROOT = ("users", "misclab", "coastal_sat")
 DATASET = "LC8011030JulyAvLGN00_OSI.nc"
-TOWNS = "Maine_Boundaries_Town_Polygon"
-CLOSURES = "MaineDMR_Public_Health__NSSP_2017"
-VIEW_NAME = "none"
 LONGITUDE_NAME = "lon"
 LATITUDE_NAME = "lat"
-CENTER_LAT = "latc"
-CENTER_LON = "lonc"
 
-CREDENTIALS = ("testing@oceanics.io", "n0t_passw0rd")
-
-avhrr_start = datetime(2015, 1, 1)
-avhrr_end = datetime(2015, 1, 30)
 ext = (-69.6, 43.8, -69.5, 44.1)
-OSI_DATASET = "bivalve-suitability"
-IndexedDB = dict()
-
-
-
 OSI_OBJ = "bivalve-suitability"
 NBYTES = 100
 # North Atlantic
@@ -192,7 +102,7 @@ def avhrr_sst(
     delay: int = 1
 ):
     """
-    Get  time series of AVHRR temperature
+    Get time series of AVHRR temperature
 
     :param files: files to scrape
     :param locations: get nearest neighbors of these locations
@@ -224,9 +134,8 @@ def avhrr_sst(
                 new = indices[a:b] if b < len(indices) else indices[a:]
                 results = pool.map(Dataset.query, files[new])
 
-                for jj in range(len(new)):
+                for jj, _index in enumerate(new):
                     if results[jj] is not None:
-                        _index = new[jj]
                         found[_index] = True
                         for key in results[jj].keys():
                             sst[key][_index] = results[jj][key]
@@ -260,7 +169,7 @@ def landsat_sst_regression(
     """
     Calculate SST by removing outliers
     """
-    from numpy import hstack, where, log, std, array
+    from numpy import hstack, where, log, std
     from scipy.stats import linregress
     from capsize.utils import filter_in_range, crop, interp2d_nearest, subset
 
@@ -776,8 +685,6 @@ class Shape:
     #     inverse = empty_like(sorting)
     #     inverse[sorting] = arange(sorting.size)
     #     return tuple(array(x)[sorting] for x in data + (areas,)) + (inverse,)
-
-
 
 
 def spherical_nearest_neighbor(lon, lat, reference):
@@ -1999,9 +1906,6 @@ def createShapeIndex(points, polygonMap, file):
         )
     with open(file, "wb+") as f:
         pickle(category, f)
-
-
-
 
 
 def createShapeImage(points, a, b, colorMap):
