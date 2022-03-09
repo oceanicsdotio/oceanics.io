@@ -2,7 +2,8 @@
  * Cloud function version of API
  */
 import type { Handler } from "@netlify/functions";
-import { catchAll, connect, tokenClaim, parseFunctionsPath, transform } from "./shared/driver";
+import { connect, tokenClaim, parseFunctionsPath, transform } from "./shared/driver";
+import { catchAll } from "./shared/middleware";
 import { Node, Links } from "./shared/pkg";
 
 /**

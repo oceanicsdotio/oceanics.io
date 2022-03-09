@@ -1,7 +1,8 @@
 /**
  * Cloud function version of Auth API.
  */
-import { connect, transform, catchAll, serialize, tokenClaim, materialize } from "./shared/driver";
+import { connect, transform, serialize, tokenClaim, materialize } from "./shared/driver";
+import { router } from "./shared/middleware";
 import { Node, Links } from "./shared/pkg";
 import type { Handler } from "@netlify/functions";
 import crypto from "crypto";
@@ -141,6 +142,15 @@ const remove = async (auth: IAuth) => {
   }
 }
 
+
+
+
+
+const parseAuth = (authorization="") => {
+  const [email, password, secret] = authorization.split(":");
+  return { email, password, secret}
+}
+
 /**
  * Browse saved results for a single model configuration. 
  * Results from different configurations are probably not
@@ -151,38 +161,30 @@ const remove = async (auth: IAuth) => {
  * You can only access results for that test, although multiple 
  * collections may be stored in a single place 
  */
-const handler: Handler = async ({ headers, body, httpMethod }) => {
+const handler: Handler = async ({ headers, body, httpMethod, path }) => {
+  
+  const ROUTER = router()
+  ROUTER.add("/", {
+    GET: getToken,  // Get access token
+    POST: register, // Register new User
+    PUT: manage,  // Update User information
+    DELETE: remove  // Remove User and all attached nodes 
+  })
+  ROUTER.before()
+
   
   let data = JSON.parse(["POST", "PUT"].includes(httpMethod) ? body : "{}");
-  const auth = headers["authorization"] ?? "";
-  const [email, password, secret] = auth.split(":");
+  const [email, password, secret] = (headers["authorization"] ?? "").split(":");
+  return ROUTER.handle(httpMethod, )
   switch (httpMethod) {
-    // Get access token
     case "GET":
-      return catchAll(getToken)({ email, password, secret });
-    // Register new User
+      return getToken({ email, password, secret});
     case "POST":
-      return catchAll(register)(data);
-    // Update User information
+      return register(data);
     case "PUT":
-      const [_, token] = auth.split(":");
-      return catchAll(manage)({ token, ...data });
-    // Remove User and all attached nodes 
+      return manage({ token: password, ...data });
     case "DELETE":
-      return catchAll(remove)({ email, password, secret });
-    // Endpoint options
-    case "OPTIONS":
-      return {
-        statusCode: 204,
-        headers: { "Allow": "OPTIONS,GET,POST,PUT,DELETE" }
-      }
-    // Invalid method
-    default:
-      return {
-        statusCode: 405,
-        body: JSON.stringify({ message: `Invalid HTTP Method` }),
-        headers: { 'Content-Type': 'application/json' },
-      };
+      return remove({ email, password, secret });
   }
 }
 

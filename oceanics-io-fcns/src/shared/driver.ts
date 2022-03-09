@@ -75,23 +75,6 @@ export const connect = async (query: string) => {
 }
 
 /**
- * Make sure we don't leak anything in an error message...
- */
-export function catchAll(wrapped: (...args: any) => any) {
-  return (...args: any) => {
-    try {
-      return wrapped(...args);
-    } catch {
-      return {
-        statusCode: 500,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: "Server Error" })
-      }
-    }
-  }
-}
-
-/**
  * Like JSON stringify, but outputs valid Cypher Node Properties
  * from an object. Nested objects will be JSON strings. 
  */
@@ -131,6 +114,6 @@ export const transform = ({ records }: { records: Record[] }): [string, Properti
  * validate other APIs.
  */
 export const tokenClaim = (token: string, signingKey: string) => {
-  const claim = jwt.verify(token, signingKey) as JwtPayload;
-  return new Node(serialize({ uuid: claim["uuid"] }), "u", "User");
+  const { uuid } = jwt.verify(token, signingKey) as JwtPayload;
+  return materialize({ uuid }, "u", "User");
 }
