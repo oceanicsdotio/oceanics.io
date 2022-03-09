@@ -1,0 +1,6 @@
+numpy
+sklearn
+matplotlib
+pyplot
+netCDF4
+pillow

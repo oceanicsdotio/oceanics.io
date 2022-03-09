@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Array data drivers for parallel analytics
 """
@@ -5,30 +6,87 @@ Array data drivers for parallel analytics
 # Worker pool
 from multiprocessing import Pool
 
-# Asyncio type
-from typing import Coroutine
+from pathlib import Path
+import pytest
+
+from time import sleep, time
+from json import load, loads, dumps
+from json.decoder import JSONDecodeError
+from os.path import isfile, exists
+from functools import reduce
+from subprocess import check_output
+
+from enum import Enum
+from typing import Callable, Any
+from datetime import datetime, date, timedelta
+from re import sub
+from warnings import simplefilter
+
 
 # Less boilerplate
 import attr
-
-# The usual Array implementation
-from numpy import array, zeros, arange, ceil, where, std
+from pickle import loads as unpickle, dump as pickle
+from itertools import chain
+from collections import deque
+from requests import get
 
 # Masked arrays save computation
 from numpy.ma import MaskedArray, masked_array
 
 # Converting arrays to images
-from PIL.Image import Image
+from PIL.Image import Image, fromarray, alpha_composite
 
 # Re-project between spherical and mercator
-from pyproj import Proj
+from pyproj import Proj, transform
 
 # Has fast contains point implementation
 from matplotlib.patches import Path
 
 # The most basic of statistical models
 from sklearn.linear_model import LinearRegression
+from matplotlib.cm import get_cmap
+from netCDF4 import Dataset as _Dataset # pylint: disable=no-name-in-module
+from sklearn.neighbors import KernelDensity
 
+from numpy import (
+    array, 
+    zeros, 
+    ceil,
+    std,
+    where,
+    column_stack,
+    uint8,
+    delete,
+    unique,
+    isnan,
+    abs,
+    sqrt,
+    random,
+    arange,
+    vstack,
+    pi,
+    all,
+    any,
+    array_split,
+    append,
+    argmax,
+    argmin,
+    cross,
+    argwhere,
+    hstack,
+    repeat,
+    sin
+)
+
+
+WINDOW = (-69.6, 43.8, -69.5, 44.1)
+DATASET = "LC8011030JulyAvLGN00_OSI.nc"
+LONGITUDE_NAME = "lon"
+LATITUDE_NAME = "lat"
+
+ext = (-69.6, 43.8, -69.5, 44.1)
+OSI_OBJ = "bivalve-suitability"
+NBYTES = 100
 # North Atlantic
 CartesianNAD83 = Proj("epsg:2960")
 
@@ -44,7 +102,7 @@ def avhrr_sst(
     delay: int = 1
 ):
     """
-    Get  time series of AVHRR temperature
+    Get time series of AVHRR temperature
 
     :param files: files to scrape
     :param locations: get nearest neighbors of these locations
@@ -76,9 +134,8 @@ def avhrr_sst(
                 new = indices[a:b] if b < len(indices) else indices[a:]
                 results = pool.map(Dataset.query, files[new])
 
-                for jj in range(len(new)):
+                for jj, _index in enumerate(new):
                     if results[jj] is not None:
-                        _index = new[jj]
                         found[_index] = True
                         for key in results[jj].keys():
                             sst[key][_index] = results[jj][key]
@@ -112,7 +169,7 @@ def landsat_sst_regression(
     """
     Calculate SST by removing outliers
     """
-    from numpy import hstack, where, log, std, array
+    from numpy import hstack, where, log, std
     from scipy.stats import linregress
     from capsize.utils import filter_in_range, crop, interp2d_nearest, subset
 
@@ -181,20 +238,6 @@ def landsat_sst_regression(
     #     sublon = subset(lon, nsub)
 
     return sst
-
-
-
-
-def _parse_str_to_float(string):
-    # type: (str) -> float
-    try:
-        if "K" in string:
-            return float(string.replace("K", ""))
-        else:
-            return float(string) / 1000
-    except TypeError:
-        return -1
-
 
 
 
@@ -644,8 +687,6 @@ class Shape:
     #     return tuple(array(x)[sorting] for x in data + (areas,)) + (inverse,)
 
 
-
-
 def spherical_nearest_neighbor(lon, lat, reference):
     # type: (Array, Array, (float, float)) -> (Array, Array)
     """
@@ -873,121 +914,9 @@ def calc_areas(
 
     return {"parents": art2, "triangles": tri_area, "control volume": area}
 
-# pylint: disable=line-too-long,invalid-name
-from __future__ import annotations
-from enum import Enum
-from typing import Callable, Any
-from datetime import datetime, date, timedelta
-from json import loads
-from collections import deque
-from os.path import isfile
-from functools import reduce
-from ftplib import FTP
-from re import sub
-from itertools import repeat
-from multiprocessing import Pool
-from warnings import simplefilter
-
-import attr
-from requests import get
-
-from numpy import (
-    array,
-    append,
-    argmax,
-    argmin,
-    where,
-    isnan,
-    cross,
-    argwhere,
-    arange,
-    array,
-    hstack,
-    repeat,
-    zeros,
-)
-from netCDF4 import Dataset as _Dataset # pylint: disable=no-name-in-module
-from pandas import read_html
-
-from sklearn.neighbors import KernelDensity
-from pyproj import transform
-
-# Use ArrayFire for multiple GPU bindings if available, else use ndarray as stand-in
-
-
-from bathysphere.utils import (
-    _parse_str_to_float,
-    resolveTaskTree,
-    normal,
-    Path
-)
-# pylint: disable=invalid-name
-from numpy import zeros, arange
-from connexion import App
-from flask_cors import CORS
-from pathlib import Path
-from prance import ResolvingParser, ValidationError
-from os import getenv
-from requests import get
-import pytest
-
-from time import sleep, time
-from json import load, loads, dumps
-from json.decoder import JSONDecodeError
-from pickle import loads as unpickle
-from os.path import isfile
-from datetime import datetime
-from functools import reduce
-from typing import Callable
-from pathlib import Path
-from os import getenv
-from subprocess import check_output
-
-from numpy import arange, column_stack, isnan, pi, random, sin, where
-from numpy.ma import MaskedArray
-
-from capsize import app
-from capsize.array.models import Dataset
-from capsize.utils import (
-    project,
-    interp2d_nearest,
-    CartesianNAD83,
-    SphericalWGS84,
-    nan_mask,
-    arrays2points,
-)
-
-
-DATE = datetime(2014, 4, 12)
-UTMEXT = (360300.000, 4662300.000, 594300.000, 4899600.000)
-WINDOW = (-69.6, 43.8, -69.5, 44.1)
-ROOT = ("users", "misclab", "coastal_sat")
-DATASET = "LC8011030JulyAvLGN00_OSI.nc"
-TOWNS = "Maine_Boundaries_Town_Polygon"
-CLOSURES = "MaineDMR_Public_Health__NSSP_2017"
-VIEW_NAME = "none"
-LONGITUDE_NAME = "lon"
-LATITUDE_NAME = "lat"
-CENTER_LAT = "latc"
-CENTER_LON = "lonc"
-
-CREDENTIALS = ("testing@oceanics.io", "n0t_passw0rd")
-
-avhrr_start = datetime(2015, 1, 1)
-avhrr_end = datetime(2015, 1, 30)
-ext = (-69.6, 43.8, -69.5, 44.1)
-OSI_DATASET = "bivalve-suitability"
-IndexedDB = dict()
-
-
 
 def points(n=10):
     return random.uniform(size=(n, 2))
-
-
-def stripMetadata(item):
-    return {k: v for k, v in item.items() if "@" not in k}
-
 
 def dumpToXYZ():
     path = f"data/LC8011030JulyAvLGN00_OSI.nc"
@@ -1008,16 +937,6 @@ def pad(val, n: int = 9):
     elif isinstance(val, int):
         val = str(val)
     return " " * (n - len(val))
-
-
-def filter_shapes(region, shapes, extents):
-    start = time()
-    # f, e = extent_overlap_filter(region, shapes, extents)
-    # total = reduce(reduce_extent, e)
-    # print(f"{time() - start} seconds to find {len(f)} overlapping shapes")
-    # print("Extent =", total)
-    # return (Path(f) for f in f), total
-
 
 def single_index(fname, field, index):
     nc = Dataset(fname, "r")  # open NetCDF for reading
@@ -1051,27 +970,6 @@ def scan(dataset, attribute, required=None, verb=False):
             print(
                 f"{var.name}: {var.datatype}, {var.dimensions}, {var.size}, {var.shape}"
             )
-
-
-def validate_remote_dataset(storage, dataset, dtype=(MaskedArray, dict, dict)):
-    # type: (Storage, str, (type,)) -> None
-    fetched = load(storage.get(f"{dataset}/index.json"))
-    assert fetched
-    for each in fetched:
-        for i in unpickle(storage.get(f"{dataset}/{each}").data):
-            assert isinstance(i, dtype)
-
-
-def signal():
-    def _sig(m: int = 1):
-        f = 24 * m
-        n = 365 * f
-        x = arange(0, n) / f
-        y = 5 * sin(x / 2 * pi) + random.normal(size=n)
-        return tuple(zip(x, y))
-
-    return _sig
-
 
 def necofs():
     return Dataset("data/necofs_gom3_mesh.nc")
@@ -1119,114 +1017,6 @@ def osi_vertex_array(osi):
     b = xyz.nbytes
     print(f"{b//1000} kb from {a//1000} kb ({int(100*b/a)}%)")
     yield xyz
-
-
-
-
-def createShapeImage(points, a, b, colorMap):
-
-    from numpy.ma import masked_where
-    from pickle import loads as unpickle
-    
-
-
-    reshape = ()  # TODO: use real shape
-    z = points[:, 3]
-    with open(a, "rb") as f:
-        mask_a = unpickle(f.read()) == 0
-    with open(b, "rb") as f:
-        mask_b = unpickle(f.read()) != 0
-    double = 0.5 * ((z - 2 * z * mask_b) + 1)
-    colors = get_cmap(colorMap)(
-        masked_where(mask_a | isnan(z), double).reshape(reshape)
-    )
-    colors[:, :, 3] *= sqrt(abs(double)).reshape(reshape)
-    return fromarray(uint8(colors * 255)).rotate(90)
-
-class Memory:
-    def __init__(self, size, max_size=int(1e6)):
-        # type: (int, int) -> None
-        """
-        Memory manager class for allocating and freeing bytes string, only implements contiguous chunks.
-        """
-        if not isinstance(size, int):
-            raise TypeError
-        if size > max_size:
-            raise MemoryError
-
-        self.buffer = zeros(size, dtype=bytes)
-        self.mask = zeros(size, dtype=bool)
-        self.map = dict()
-        self.remaining = size
-        self._count = 0
-
-    def alloc(self, size):
-        # type: (int) -> int
-        """
-        Allocate and return a fixed length buffer. Raise error if out of memory.
-        """
-        if self.remaining < size:
-            raise MemoryError
-
-        # find indices of sufficient free memory, return pointers
-        # optionally shuffle memory to create contiguous blocks
-        self._count += 1
-        self.remaining -= size
-
-        start = self._find(size)
-        if start is None:
-            raise MemoryError
-
-        ptr = self.buffer[start : start + size]
-        self.map[self._count] = {"mask": arange(start, start + size), "data": ptr}
-        return self._count
-
-    def set(self, key, values):
-        # type: (int or str, bytes) -> None
-        """
-        Set buffer to specified values, or singleton
-        """
-        self.map[key]["data"][:] = values
-
-    def data(self, key):
-        # type: (int or str) -> bytes
-        """Return data"""
-        return self.map[key]["data"]
-
-    def free(self, key):
-        # type: (int or str) -> bool
-        """
-        Free previously allocated variable
-        """
-        try:
-            indices = self.map[key]["mask"]  # get indices from memory map dict
-            # reset mask and increment available memory
-            self.mask[indices] = False
-            self.remaining += len(indices)
-            del key
-
-        except (MemoryError, TypeError):
-            return False
-        else:
-            return True
-
-    def _find(self, size):
-        # type: (int) -> int or None
-        """Find the starting index of the first available contiguous chunk"""
-        start = 0
-        while True:
-            offset = 1
-            if not self.mask[start]:
-                while not self.mask[start + offset] and offset <= size:
-                    if offset == size:
-                        return start
-                    else:
-                        offset += 1
-            else:
-                start += 1
-
-            if start == len(self.mask) - size:
-                return None
 
 
 ExtentType = (float, float, float, float)
@@ -1508,452 +1298,6 @@ class Extent:
         return cropped, f, e, r
 
 
-@attr.s
-class File:
-    """
-    General file system object.
-    """
-    name: str = attr.ib(default="")
-    sn: int = attr.ib(default=None)
-    url: str = attr.ib(default=None)
-    time: datetime = attr.ib(default=None)
-    ts: datetime = attr.ib(default=attr.Factory(datetime.now))
-    kb: float = attr.ib(default=0.0)
-    encoding: str = attr.ib(default=None)
-    content: Any = attr.ib(default=None)
-
-    def __repr__(self):
-        """Print formatting"""
-        return "{} ({}): {}".format(self.__class__.__name__, self.encoding, self.name)
-
-    @property
-    def sort_key(self):
-        """Compare by time"""
-        return self.time
-
-    def __cmp__(self, other):
-        """Compare wrapper"""
-        if hasattr(other, "sort_key"):
-            return self.sort_key.__cmp__(other.sort_key)
-
-    def serialize(self):
-        """Format as JSON style dictionary"""
-        return {
-            "url": self.url,
-            "ts": self.ts,
-            "kb": self.kb,
-            "encoding": self.encoding,
-            "content": self.content,
-        }
-
-
-    @classmethod
-    def metadata(cls, url: str, filename: str, ts: str, size: str):
-        """
-        Create a file metadata object
-        """
-        fields = filename.split(".")
-        encoding = None
-        if len(fields) > 1:
-            fmt = fields.pop()
-            if "sensors" == fmt:
-                encoding = FileType.Config
-            elif "xml" == fmt:
-                encoding = FileType.Schema
-            elif "txt" == fmt:
-                if fields[-1] == "raw":
-                    fields.pop()  # convention is to have ".raw.txt"
-                encoding = FileType.Log
-
-        time = None
-        if len(fields) > 1:  # dated files
-            ft = fields.pop()
-            try:
-                dt_fmt = "%Y%m%d-%H%M%S" if (ft and len(ft) > 13) else "%Y%m%d-%H%M"
-                time = datetime.strptime(ft, dt_fmt)
-            except ValueError:
-                pass
-
-        try:
-            sn = int(fields.pop())
-        except ValueError:
-            sn = None
-
-        path = url + filename
-
-        return cls(
-            name=filename,
-            sn=sn,  # maybe None
-            url=path,  # retrieval path
-            time=time,  # file time from name, maybe None
-            ts=datetime.strptime(ts, "%d-%b-%Y %H:%M"),  # timestamp from server
-            kb=_parse_str_to_float(size),  # float kilobytes
-            encoding=encoding,
-        )
-
-    def _match(self, fmt=None, identity=None):
-        # type: (File, set, set) -> bool
-        """Filter for file objects"""
-        return (not identity or self.sn in identity) and (
-            not fmt or self.encoding in fmt
-        )
-
-    @staticmethod
-    async def metadata_promise(url: str, auth: str) -> (File):
-        """
-        Produce a coroutine that will yield file metadata for all files in a remote directory/catalog.
-        """
-        response = get(url, auth=auth)
-        if not response.ok:
-            return response.content
-
-        df = read_html(response.content, skiprows=3)[0]
-        return tuple(
-            File.metadata(url, *r)
-            for r in zip(*(df[ii][:-1].tolist() for ii in (1, 2, 3)))
-        )
-
-
-@attr.s
-class FileSystem:
-    """
-    File systems are made up of files!
-    """
-    partitions = attr.ib()
-    cache_name = attr.ib(default="data")
-    
-    @property
-    def cache_targets(self):
-        return (f"{self.cache_name}/{each}/checkpoint.pickle" for each in self.partitions)
-
-    def load_cache(self):
-        """
-        Load a local binary file
-        """
-        from numpy import append
-        from pickle import loads
-
-        combined = dict()
-        for target in self.cache_targets:
-            with open(target, "rb") as fid:
-                new = loads(fid)
-            for key in new.keys():
-                try:
-                    combined[key] = append(combined[key], new[key])
-                except KeyError:
-                    combined[key] = array([])
-                    combined[key] = append(combined[key], new[key])
-        return combined
-
-    @staticmethod
-    def indexFileMetadata(url, year, auth=None):
-        # type: (str, int, (str,)) -> deque
-        """
-        Callable method to map a remote HTTP-accessible file catalog by date, and then build an time-indexed structure
-        that contains a <coroutine> in the place of file meta_data. This only takes a few seconds, compared to minutes
-        for resolving all files. Usually, only some data is needed immediately, so tasks can be resolved on demand and
-        cached at a leisurely interactive pace.
-        """
-        collector = deque()
-        for record in resolveTaskTree(
-            FileSystem.indexTaskTree(url=url, enum=year, auth=auth, depth=2)
-        ):
-            path = "{}/{:04}/{:02}/{:02}/".format(url, *record)
-            collector.append(
-                {
-                    "date": date(*record),
-                    "name": "{}-{:02}-{}".format(*record),
-                    "url": path,
-                    "files": File.metadata_promise(path, auth=auth),
-                }
-            )
-        return collector
-
-    @staticmethod
-    def indexFromHtmlTable(
-        uriPattern: str, 
-        start: datetime = None, 
-        end: datetime = None, fmt: 
-        str = "%Y%m%d%H%M%S"
-    ) -> [[dict]]:
-        """
-        Get the entries for all remote files on server in years of interest.
-
-        :param host: hostname
-        :param start: datetime object
-        :param end: datetime object
-        :param fmt: datetime str formatter
-        :return:
-        """
-        
-        def fetch(year: int):
-            nameFilter = lambda x: isinstance(x[1], str) and f"{year}" in x[1]
-            table = array(read_html(uriPattern.format(year)).pop())
-            filtered = array(list(filter(nameFilter, table))).T
-            names = filtered[1, :]
-            dates = array([datetime.strptime(name[:14], fmt) for name in names])
-            timestamps = filtered[2, :]
-            size = filtered[3,:]
-
-            if year in (start.year, end.year):
-                (indices,) = where((start < dates) & (end + timedelta(days=1) > dates))
-                iterator = zip(names[indices], dates[indices], timestamps[indices], size[indices])
-            else:
-                iterator = zip(names, dates, timestamps, size)
-    
-            return [File(name=name, time=date, ts=ts, kb=sz) for name, date, ts, sz in iterator]
-
-        return list(map(fetch, range(start.year, end.year+1)))
-        
-
-    @staticmethod
-    async def indexTaskTree(url, enum, count=0, depth=2, auth=None):
-        # type: (str, int, int, int, (str, )) -> datetime or None
-        """
-        Private method is used by `metadata()` to build a temporal index with multiple levels of resolution on demand.
-
-        Recursively `GET` file metadata in a destination file catalog, based on date, then bathysphere_functions_parse the tabular HTML
-        into nested tuples of (index, <coroutine>). The coroutine is then resolved to another (index, <coroutine>) tuple,
-        using the `render()` method, until the specified depth is reached.
-        """
-
-        def __parse(value):
-            """Convenience method for integer type conversion"""
-            return value if type(value) == int else int(value[:-1])
-
-        if count == depth:
-            return enum, None
-
-        try:
-            formatter = "{{}}/{{:0{}d}}".format(4 if count == 0 else 2)
-            insert = __parse(enum)
-        except TypeError:
-            return enum, None
-
-        sublevel = formatter.format(url, insert)
-        response = get(sublevel, auth=auth)
-        if not response.ok:
-            return enum, None
-
-        collector = deque()
-        for record in deque(response.content.decode().split("\n")[3:-1]):
-            collector.append(
-                FileSystem.indexTaskTree(
-                    url=sublevel,
-                    enum=__parse(record),  # name
-                    count=count + 1,
-                    depth=depth,
-                    auth=auth,
-                )
-            )
-
-        return enum, collector
-
-    @staticmethod
-    def search(pattern, filesystem):
-        # type: (str, dict) -> None or str
-        """
-        Recursively search a directory structure for a key.
-        Call this on the result of `index`
-
-        :param filesystem: paths
-        :param pattern: search key
-        :return:
-        """
-        for key, level in filesystem.items():
-            if key == pattern:
-                return key
-            try:
-                result = FileSystem._search(pattern, level)
-            except AttributeError:
-                result = None
-            if result:
-                return f"{key}/{result}"
-        return None
-
-    @staticmethod
-    def _search(
-        queue: deque,
-        pool: Pool,
-        fmt: set = None,
-        identity: set = None,
-        ts: datetime = None
-    ) -> list or None:
-        """
-        Get all XML and configuration files within a directory
-
-        Find configurations from metadata by serial number and date.
-
-        The files can be:
-        - On a remote server
-        - In the bathysphere_functions_cache
-        - Supplied as a list of dictionaries
-        """
-        iterators = []
-        queue_size = len(queue)
-
-        if identity:
-            iterators.append(repeat(identity, queue_size))
-        if fmt:
-            iterators.append(repeat(fmt, queue_size))
-        if ts:
-            iterators.append(repeat(ts, queue_size))
-
-        def _chrono(x: File, ts: datetime = None):
-            """Chronoloigcal sorting method"""
-            return (
-                (x.time is None if ts else x.time is not None),
-                (ts - x.time if ts else x.time),
-            )
-
-        queue = sorted(queue, key=_chrono, reverse=(False if ts else True))
-        if fmt or identity:
-            matching = pool.starmap(FileSystem._match, zip(queue, *iterators))
-            queue = deque(queue)
-        else:
-            return {}, queue
-
-        collector = dict()
-        for condition in matching:
-            if not condition:
-                queue.rotate(1)
-                continue
-            file = queue.popleft()
-            if not collector.get(file.sn, None):
-                collector[file.sn] = deque()
-            if (
-                not ts or len(collector[file.sn]) == 0
-            ):  # limit to length 1 for getting most recent
-                collector[file.sn].append(file)
-                continue
-
-            queue.append(file)  # put the file back if unused
-
-        return collector, queue
-
-   
-    def get(
-        self,
-        observed_properties,
-        path=None,
-        transpose=True,
-        dataset=None,
-        kind="float64",
-        date=None,
-    ):
-        # type: (str or [str] or dict, str, bool, Dataset, str, datetime) -> dict
-        """
-        Load variables from NetCDF or pickled files into memory. For NetCDF, each variable is accessed
-        by name, resulting in an array. For previously processed internal data, arrays are stored as
-        binary data in either `.pkl` or `.bathysphere_functions_cache` files.
-
-        :param observed_properties: lookup field names
-        :param path: path to local files if loading
-        :param transpose: transpose the array before saving, makes join later easier
-        :param dataset: NetCDF reference as in-memory object
-        :param kind: numerical format for arrays
-        :param date: specific timestamp to sample
-        """
-        result = dict()
-
-        if isinstance(observed_properties, str):
-            fields = keys = [observed_properties]
-        elif isinstance(observed_properties, dict):
-            keys = observed_properties.keys()
-            fields = observed_properties.values()
-        else:
-            fields = keys = observed_properties
-        iterator = zip(*(keys, fields))
-
-        for key, rename in iterator:
-            if path:
-                try:
-                    fid = open(key, "rb")
-                except FileNotFoundError:
-                    continue
-                data = FileSystem.load_cache(fid).transpose() if transpose else FileSystem.load_cache(fid)
-                fid.close()
-
-            elif dataset:
-                data = dataset.variables[key][:].astype(kind)
-                FileSystem.set(date, data, key)
-            else:
-                data = None
-
-            result[rename] = data
-
-        return result
-
-    @staticmethod
-    def syncFtp(ftp, remote, local, filesystem=None):
-        # type: (FTP, str, str, dict) -> int
-        """Find and copy a file"""
-        path = FileSystem.search(pattern=remote, filesystem=filesystem)
-        with open(local, "wb+") as fid:
-            return int(ftp.retrbinary(f"RETR {path}", fid.write))
-
-    @staticmethod
-    def indexFtp(req, node=".", depth=0, limit=None, metadata=None, parent=None):
-        # type: (FTP, str, int, int or None, dict or None, dict) -> None
-        """
-        Build directory structure recursively.
-
-        :param ftp: persistent ftp connection
-        :param node: node in current working directory
-        :param depth: current depth, do not set
-        :param limit: maximum depth,
-        :param metadata: pass the object metadata down one level
-        :param parent:
-        :return:
-        """
-
-        body = loads(req)
-        host = body.get("host", None)
-        root = body.get("root", None)
-        ftp = FTP(host, timeout=4)
-        assert "230" in ftp.login()  # attach if no open socket
-        assert ftp.sock
-        if root is not None:
-            _ = ftp.cwd(root)
-
-        def _map(rec):
-            values = rec.split()
-            key = values.pop().strip()
-            return {key: values}
-
-        if depth == 0 and parent is None:
-            parent = None  # create Location
-
-        if limit is None or depth <= limit:
-            try:
-                _ = ftp.cwd(node)  # target is a file
-            except:
-                pass
-            else:
-                collection = None
-
-                files = []
-                ftp.retrlines("LIST", files.append)
-                for k, v in reduce(lambda x, y: {**x, **y}, map(_map, files), {}).items():
-                    FileSystem.indexFtp(
-                        ftp=ftp,
-                        graph=graph,
-                        node=k,
-                        depth=depth + 1,
-                        limit=limit,
-                        metadata=v,
-                        parent=collection,
-                    )
-
-                if node != ".":
-                    _ = ftp.cwd("..")
-
-
-class FileType(Enum):
-    """Well known file types"""
-    Schema = 1
-    Config = 2
-    Log = 3
 
 
 @attr.s
@@ -2181,564 +1525,482 @@ def train(
     model.fit(hstack((xx[subset], yy[subset], target[subset])))  
     return model.score_samples(field)
 
-# import pytest
-# from json import load
-
-# from time import time
-# from os.path import exists
-# from pickle import loads as unpickle, dump as pickle, load
-# from itertools import chain, repeat
-# from functools import reduce
-# from collections import deque
-
-# from datetime import datetime
-# from random import random
-# from requests import post, get
-# from json import dumps
-# from json import dumps, loads
-# from requests import post
-# from time import time
-# from retry import retry
-
-# from matplotlib.cm import get_cmap
-# from matplotlib.patches import Path
-# from PIL.Image import fromarray, alpha_composite
-
-# from numpy import (
-#     array,
-#     where,
-#     column_stack,
-#     uint8,
-#     arange,
-#     delete,
-#     zeros,
-#     unique,
-#     isnan,
-#     abs,
-#     sqrt,
-# )
-# from numpy.ma import masked_where
-# from matplotlib import pyplot as plt
-# from datetime import datetime
-
-# from numpy import (
-#     random,
-#     argmax,
-#     argmin,
-#     arange,
-#     array,
-#     vstack,
-#     pi,
-#     all,
-#     any,
-#     where,
-#     array_split,
-# )
-# from numpy.random import random
-# from numpy.ma import MaskedArray
-# from matplotlib import pyplot as plt
-
-# from capsize import Memory
-# from capsize.test.conftest import (
-#     IndexedDB,
-#     CREDENTIALS,
-#     stripMetadata,
-#     DATASET, 
-#     ext, 
-#     scan
-# )
-# from capsize.array.models import ConvexHull
-# from capsize.utils import (
-    
-#     filter_arrays,
-#     nan_mask,
-#     array2image,
-#     subset,
-#     normal,
-#     interp2d_nearest,
-# )
-
-# OSI_OBJ = "bivalve-suitability"
-# NBYTES = 100
-
-
-# def test_capsize_array_convex_hull():
-#     # Collections of points
-#     groups = (
-#         random((100, 2)),
-#         0.5 * random((100, 2)) + 1,
-#         0.5 * random((100, 2)) - 1,
-#     )
-
-#     hulls = map(ConvexHull, groups)
-#     hullsUnion = vstack(g[h.points, :] for h, g in zip(hulls, groups))
-#     _ = ConvexHull(hullsUnion)
-#     pts = vstack(groups)
-#     _ = ConvexHull(pts)
-
-
-# def test_capsize_array_memory_buffer():
-#     """
-#     Setup and check internal data structures
-#     """
-#     mem = Memory(NBYTES)
-
-#     assert len(mem.buffer) == NBYTES
-#     assert len(mem.mask) == NBYTES
-#     assert len(mem.map) == 0
-#     assert mem.remaining == NBYTES
-
-
-# def test_capsize_array_memory_buffer_error_allocation():
-#     """
-#     Raises memory error if requested buffer too long
-#     """
-#     try:
-#         _ = Memory(size=NBYTES + 1, max_size=NBYTES)
-#     except MemoryError:
-#         assert True
-#     else:
-#         assert False
 
 
-# def test_capsize_array_memory_buffer_error_request():
-#     """
-#     Doesn't assign beyond available heap size
-#     """
-#     mem = Memory(NBYTES)
-#     assert mem.remaining == NBYTES
-#     try:
-#         _ = mem.alloc(NBYTES + 1)
-#     except MemoryError:
-#         failed = True
-#     else:
-#         failed = False
-
-#     assert failed
-
-
-# def test_capsize_memory_buffer_single_allocation():
-#     """
-#     Assigning to pointer changes underlying data
-#     """
+def test_capsize_array_convex_hull():
+    # Collections of points
+    groups = (
+        random((100, 2)),
+        0.5 * random((100, 2)) + 1,
+        0.5 * random((100, 2)) - 1,
+    )
+
+    hulls = map(ConvexHull, groups)
+    hullsUnion = vstack(g[h.points, :] for h, g in zip(hulls, groups))
+    _ = ConvexHull(hullsUnion)
+    pts = vstack(groups)
+    _ = ConvexHull(pts)
+
 
-#     mem = Memory(NBYTES)
-#     n = NBYTES // 10
-#     ptr = mem.alloc(n)
-#     assert mem.remaining == NBYTES - n
-#     assert mem.buffer[0] == b""
-#     mem.set(ptr, b"a")
-#     assert mem.buffer[0] == b"a"
-#     assert mem.buffer[1] == b"a"
-
-#     assert mem.free(ptr)
-
-#     assert mem.remaining == NBYTES
-
-
-
-# @pytest.mark.xfail
-# def test_capsize_array_netcdf_dataset_landsat_load_local(osi):
-#     """
-#     Check metadata of well-known dataset
-#     """
-#     assert osi.data_model == "NETCDF4_CLASSIC"
-#     assert osi.isopen()
-#     assert osi.file_format == "NETCDF4_CLASSIC"
-#     assert osi.disk_format == "HDF5"
-
-#     scan(osi, attribute="dimensions", required={"r", "c"}, verb=True)
-#     scan(osi, attribute="variables", required={"lat", "lon", "OSI"}, verb=True)
-
-
-# @pytest.mark.xfail
-# def test_capsize_array_netcdf_dataset_analysis_extent_culling(
-#     osi_vertex_array, object_storage
-# ):
-
-#     maine_towns = ()  # TODO: replace with fixture
-#     start = time()
-#     data = _filter(maine_towns)
-
-#     xyz, f, e, r = filter_iteration(
-#         osi_vertex_array,
-#         data["shapes"],
-#         data["extents"],
-#         data["records"],
-#         0
-#     )
-
-
-#     xyz, f2, e2, r2 = filter_iteration(xyz, f, e, r, 1, storage=object_storage)
-
-#     object_storage.vertex_array_buffer(f2, key="shapes-water", nb=1000000)
-
-#     a = len(osi_vertex_array)
-#     b = len(xyz)
-
-#     print(f"{time() - start} seconds to do extent culling")
-#     print(f"{b} pixels after cropping to extents ({int(100*b/a)}%)")
-#     print(f"{len(f2)} shapes to analyze")
-
-#     a = osi_vertex_array.nbytes
-#     b = xyz.nbytes
-#     print(f"{b//1000} kb from {a//1000} kb ({int(100*b/a)}%)")
-
-#     nb = 1000000
-#     chunks = array_split(xyz, xyz.nbytes // nb + 1, axis=0)
-#     fid = open("data/vertex-array", "wb")
-#     pickle(chunks, fid)
-
-
-# def test_capsize_array_netcdf_dataset_analysis_convex_hulls_culling():
-
-#     def reduce_hulls(h):
-#         return h
-
-#     hulls = unpickle(db.get_object(f"{OSI_OBJ}/convex-hulls").data)
-#     outer = reduce_hulls(hulls)  # TODO: implement reduce fcn
-#     fid = open("data/vertex-array", "rb")
-#     chunks = load(fid)
-#     xyz = vstack(chunks)
-#     hull = ConvexHull(xyz.data[:, :2])
-#     print("Hull shape:", hull.shape)
-#     print("Hull center:", center(hull))
-
-#     filtered = []
-#     last = 0
-#     for indx, h in enumerate(hulls):
-#         current = int(100 * indx / len(hulls))
-#         if current != last and not (current % 10):
-#             print(current, "%")
-#         if not hull_overlap(hull, h):
-#             continue
-#         filtered.append(h)
-#         last = current
-
-#     polygon_crop_and_save(xyz, (outer,), "vertex-array-hulls")
-
-
-
-# def test_capsize_array_netcdf_dataset_analysis_convex_hull_intersections(
-#     object_storage,
-# ):
-#     """Intersect convex hulls with points and capsize_functions_cache to local system"""
-#     hulls = unpickle(
-#         object_storage(prefix=None).get_object(f"{OSI_OBJ}/convex-hulls-2").data
-#     )
-#     with open("data/vertex-array-hulls", "rb") as fid:
-#         xyz = vstack(load(fid))
-#     polygon_crop_and_save(xyz, hulls, "vertex-array-hulls-2")
-
-
-# def test_capsize_array_netcdf_dataset_analysis_upload_vertex_array_shapes(
-#     object_storage,
-# ):
-#     """Send set of intersected points and hulls to object storage"""
-#     with open("data/vertex-array-hulls-2", "rb") as fid:
-#         chunks = deque(load(fid))
-#     object_storage(prefix=None).vertex_array_buffer(
-#         chunks, OSI_OBJ, "vertex-array-shapes"
-#     )
-
-
-# def test_capsize_array_netcdf_dataset_analysis_shape_intersections(object_storage):
-#     """Intersect points and shapes"""
-#     part = 0
-#     areas = None
-#     shapes = ()
-#     db = object_storage(prefix=None)
-#     while db.stat_object(f"{OSI_OBJ}/shapes-water-{part}"):
-#         shapes += unpickle(db.get_object(f"{OSI_OBJ}/shapes-water-{part}").data)
-#         part += 1
-
-#     with open("data/vertex-array-hulls-2", "rb") as fid:
-#         xyz = vstack(filter(filter_arrays, chain(*load(fid))))
-#     _ = where(areas < 0.0)[0]
-#     polygon_crop_and_save(xyz, shapes, "vertex-array-shapes")
-
-
-# def test_capsize_array_netcdf_dataset_analysis_upload_vertex_array_final(
-#     object_storage,
-# ):
-#     """Upload vertices that are inside the shapes"""
-#     with open("data/vertex-array-shapes", "rb") as fid:
-#         data = deque((vstack(filter(filter_arrays, chain(*load(fid)))),))
-#     object_storage(prefix=None).vertex_array_buffer(data, OSI_OBJ, "vertex-array-final")
-
-
-# def test_capsize_array_netcdf_dataset_analysis_subtract_closures():
-#     """Remove closures and save locally"""
-#     nssp_closures = ()
-#     shp, _, _ = zip(*tuple(chain(*nssp_closures)))
-#     with open("data/vertex-array-shapes", "rb") as fid:
-#         data = vstack(filter(filter_arrays, chain(*load(fid))))
-#     polygon_crop_and_save(data, shp, "vertex-array-closures", method=multi_polygon_cull)
-
-
-# def test_capsize_array_netcdf_dataset_analysis_upload_vertex_array_closures(
-#     object_storage,
-# ):
-#     """Upload vertices that are inside the shapes"""
-#     key = "data/vertex-array-closures"
-#     with open(key, "rb") as fid:
-#         data = (vstack(filter(filter_arrays, chain(*load(fid)))),)
-#     object_storage(prefix=None).vertex_array_buffer(data, OSI_OBJ, key)
-
-
-# def test_capsize_array_netcdf_dataset_analysis_island_hole_culling_local(
-#     object_storage,
-# ):
-#     """
-#     Given a set of closed polygons, where some may be holes within others of the set,
-#     extract all the inner polygons (those which do not contain others)
-
-#     1. Calculate extents and filter out shapes not within region of interest
-#     2. Sort by area, larger shapes cannot be inside smaller shapes
-#     3. For each shape, check if it is in any larger shape (extent, hull, shape)
-#     4. Extract the shapes that
-#     """
-#     print(f"\n{__name__}")
-#     limit = None
-#     db = object_storage(prefix=None)
-#     shapes = reduce(
-#         lambda a, b: a + b,
-#         (
-#             unpickle(db.get_object(key).data)
-#             for key in db.parts(OSI_OBJ, "shapes-water")
-#         ),
-#     )
-
-#     areas = array([polygon_area(s) for s in shapes[:limit]])
-#     islands = where(areas < 0.0)[0]
-#     print(f"Found {islands.size} islands")
-
-#     with open("data/vertex-array-closures", "rb") as fid:
-#         data = vstack(filter(filter_arrays, chain(*load(fid))))
-
-#     polygon_crop_and_save(
-#         data,
-#         array(shapes)[islands],
-#         "data/vertex-array-islands",
-#         method=multi_polygon_cull,
-#     )
-
-
-# def test_capsize_array_netcdf_dataset_analysis_island_hole_culling_upload(
-#     object_storage,
-# ):
-#     key = "vertex-array-islands"
-#     with open(key, "rb") as fid:
-#         data = (vstack(filter(filter_arrays, chain(*load(fid)))),)
-#     object_storage(prefix=None).vertex_array_buffer(
-#         data, OSI_OBJ, key, strategy="bisect"
-#     )
-
-
-# def vertexArray(path="data/LC8011030JulyAvLGN00_OSI.nc"):
-#     osi = Dataset(path)
-#     x = osi.variables["lon"][:].data.flatten()
-#     y = osi.variables["lat"][:].data.flatten()
-#     z = osi.variables["OSI"][:].data
-#     restore = z.shape
-#     _z = z.flatten()
-#     return column_stack((arange(len(_z)), x, y, _z)), restore
-
-# def shapeGeometry(record, auth):
-#     """Get tuple of vertex arrays from a MultiPolygon, and calculate area and extent"""
-#     _gid = record["gid"]
-#     body = dumps(
-#         {
-#             "table": "maine_boundaries_town_polygon",
-#             "fields": ["st_asgeojson(st_transform(st_setsrid(geom, 2960), 4326))"],
-#             "conditions": [f"gid={_gid}"],
-#             "encoding": "json",
-#         }
-#     )
+def test_capsize_array_memory_buffer():
+    """
+    Setup and check internal data structures
+    """
+    mem = Memory(NBYTES)
+
+    assert len(mem.buffer) == NBYTES
+    assert len(mem.mask) == NBYTES
+    assert len(mem.map) == 0
+    assert mem.remaining == NBYTES
+
+
+def test_capsize_array_memory_buffer_error_allocation():
+    """
+    Raises memory error if requested buffer too long
+    """
+    try:
+        _ = Memory(size=NBYTES + 1, max_size=NBYTES)
+    except MemoryError:
+        assert True
+    else:
+        assert False
+
+
+def test_capsize_array_memory_buffer_error_request():
+    """
+    Doesn't assign beyond available heap size
+    """
+    mem = Memory(NBYTES)
+    assert mem.remaining == NBYTES
+    try:
+        _ = mem.alloc(NBYTES + 1)
+    except MemoryError:
+        failed = True
+    else:
+        failed = False
+
+    assert failed
+
+
+def test_capsize_memory_buffer_single_allocation():
+    """
+    Assigning to pointer changes underlying data
+    """
+
+    mem = Memory(NBYTES)
+    n = NBYTES // 10
+    ptr = mem.alloc(n)
+    assert mem.remaining == NBYTES - n
+    assert mem.buffer[0] == b""
+    mem.set(ptr, b"a")
+    assert mem.buffer[0] == b"a"
+    assert mem.buffer[1] == b"a"
+
+    assert mem.free(ptr)
+
+    assert mem.remaining == NBYTES
+
+
+
+@pytest.mark.xfail
+def test_capsize_array_netcdf_dataset_landsat_load_local(osi):
+    """
+    Check metadata of well-known dataset
+    """
+    assert osi.data_model == "NETCDF4_CLASSIC"
+    assert osi.isopen()
+    assert osi.file_format == "NETCDF4_CLASSIC"
+    assert osi.disk_format == "HDF5"
+
+    scan(osi, attribute="dimensions", required={"r", "c"}, verb=True)
+    scan(osi, attribute="variables", required={"lat", "lon", "OSI"}, verb=True)
+
+
+@pytest.mark.xfail
+def test_capsize_array_netcdf_dataset_analysis_extent_culling(
+    osi_vertex_array, object_storage
+):
+
+    maine_towns = ()  # TODO: replace with fixture
+    start = time()
+    data = _filter(maine_towns)
+
+    xyz, f, e, r = filter_iteration(
+        osi_vertex_array,
+        data["shapes"],
+        data["extents"],
+        data["records"],
+        0
+    )
+
+
+    xyz, f2, e2, r2 = filter_iteration(xyz, f, e, r, 1, storage=object_storage)
+
+    object_storage.vertex_array_buffer(f2, key="shapes-water", nb=1000000)
+
+    a = len(osi_vertex_array)
+    b = len(xyz)
+
+    print(f"{time() - start} seconds to do extent culling")
+    print(f"{b} pixels after cropping to extents ({int(100*b/a)}%)")
+    print(f"{len(f2)} shapes to analyze")
+
+    a = osi_vertex_array.nbytes
+    b = xyz.nbytes
+    print(f"{b//1000} kb from {a//1000} kb ({int(100*b/a)}%)")
+
+    nb = 1000000
+    chunks = array_split(xyz, xyz.nbytes // nb + 1, axis=0)
+    fid = open("data/vertex-array", "wb")
+    pickle(chunks, fid)
+
+
+def test_capsize_array_netcdf_dataset_analysis_convex_hulls_culling():
+
+    def reduce_hulls(h):
+        return h
+
+    hulls = unpickle(db.get_object(f"{OSI_OBJ}/convex-hulls").data)
+    outer = reduce_hulls(hulls)  # TODO: implement reduce fcn
+    fid = open("data/vertex-array", "rb")
+    chunks = load(fid)
+    xyz = vstack(chunks)
+    hull = ConvexHull(xyz.data[:, :2])
+    print("Hull shape:", hull.shape)
+    print("Hull center:", center(hull))
+
+    filtered = []
+    last = 0
+    for indx, h in enumerate(hulls):
+        current = int(100 * indx / len(hulls))
+        if current != last and not (current % 10):
+            print(current, "%")
+        if not hull_overlap(hull, h):
+            continue
+        filtered.append(h)
+        last = current
+
+    polygon_crop_and_save(xyz, (outer,), "vertex-array-hulls")
+
+
+
+def test_capsize_array_netcdf_dataset_analysis_convex_hull_intersections(
+    object_storage,
+):
+    """Intersect convex hulls with points and capsize_functions_cache to local system"""
+    hulls = unpickle(
+        object_storage(prefix=None).get_object(f"{OSI_OBJ}/convex-hulls-2").data
+    )
+    with open("data/vertex-array-hulls", "rb") as fid:
+        xyz = vstack(load(fid))
+    polygon_crop_and_save(xyz, hulls, "vertex-array-hulls-2")
+
+
+def test_capsize_array_netcdf_dataset_analysis_upload_vertex_array_shapes(
+    object_storage,
+):
+    """Send set of intersected points and hulls to object storage"""
+    with open("data/vertex-array-hulls-2", "rb") as fid:
+        chunks = deque(load(fid))
+    object_storage(prefix=None).vertex_array_buffer(
+        chunks, OSI_OBJ, "vertex-array-shapes"
+    )
+
+
+def test_capsize_array_netcdf_dataset_analysis_shape_intersections(object_storage):
+    """Intersect points and shapes"""
+    part = 0
+    areas = None
+    shapes = ()
+    db = object_storage(prefix=None)
+    while db.stat_object(f"{OSI_OBJ}/shapes-water-{part}"):
+        shapes += unpickle(db.get_object(f"{OSI_OBJ}/shapes-water-{part}").data)
+        part += 1
+
+    with open("data/vertex-array-hulls-2", "rb") as fid:
+        xyz = vstack(filter(filter_arrays, chain(*load(fid))))
+    _ = where(areas < 0.0)[0]
+    polygon_crop_and_save(xyz, shapes, "vertex-array-shapes")
+
+
+def test_capsize_array_netcdf_dataset_analysis_upload_vertex_array_final(
+    object_storage,
+):
+    """Upload vertices that are inside the shapes"""
+    with open("data/vertex-array-shapes", "rb") as fid:
+        data = deque((vstack(filter(filter_arrays, chain(*load(fid)))),))
+    object_storage(prefix=None).vertex_array_buffer(data, OSI_OBJ, "vertex-array-final")
+
+
+def test_capsize_array_netcdf_dataset_analysis_subtract_closures():
+    """Remove closures and save locally"""
+    nssp_closures = ()
+    shp, _, _ = zip(*tuple(chain(*nssp_closures)))
+    with open("data/vertex-array-shapes", "rb") as fid:
+        data = vstack(filter(filter_arrays, chain(*load(fid))))
+    polygon_crop_and_save(data, shp, "vertex-array-closures", method=multi_polygon_cull)
+
+
+def test_capsize_array_netcdf_dataset_analysis_upload_vertex_array_closures(
+    object_storage,
+):
+    """Upload vertices that are inside the shapes"""
+    key = "data/vertex-array-closures"
+    with open(key, "rb") as fid:
+        data = (vstack(filter(filter_arrays, chain(*load(fid)))),)
+    object_storage(prefix=None).vertex_array_buffer(data, OSI_OBJ, key)
+
+
+def test_capsize_array_netcdf_dataset_analysis_island_hole_culling_local(
+    object_storage,
+):
+    """
+    Given a set of closed polygons, where some may be holes within others of the set,
+    extract all the inner polygons (those which do not contain others)
+
+    1. Calculate extents and filter out shapes not within region of interest
+    2. Sort by area, larger shapes cannot be inside smaller shapes
+    3. For each shape, check if it is in any larger shape (extent, hull, shape)
+    4. Extract the shapes that
+    """
+    print(f"\n{__name__}")
+    limit = None
+    db = object_storage(prefix=None)
+    shapes = reduce(
+        lambda a, b: a + b,
+        (
+            unpickle(db.get_object(key).data)
+            for key in db.parts(OSI_OBJ, "shapes-water")
+        ),
+    )
+
+    areas = array([polygon_area(s) for s in shapes[:limit]])
+    islands = where(areas < 0.0)[0]
+    print(f"Found {islands.size} islands")
+
+    with open("data/vertex-array-closures", "rb") as fid:
+        data = vstack(filter(filter_arrays, chain(*load(fid))))
+
+    polygon_crop_and_save(
+        data,
+        array(shapes)[islands],
+        "data/vertex-array-islands",
+        method=multi_polygon_cull,
+    )
+
+
+def test_capsize_array_netcdf_dataset_analysis_island_hole_culling_upload(
+    object_storage,
+):
+    key = "vertex-array-islands"
+    with open(key, "rb") as fid:
+        data = (vstack(filter(filter_arrays, chain(*load(fid)))),)
+    object_storage(prefix=None).vertex_array_buffer(
+        data, OSI_OBJ, key, strategy="bisect"
+    )
+
+
+def vertexArray(path="data/LC8011030JulyAvLGN00_OSI.nc"):
+    osi = Dataset(path)
+    x = osi.variables["lon"][:].data.flatten()
+    y = osi.variables["lat"][:].data.flatten()
+    z = osi.variables["OSI"][:].data
+    restore = z.shape
+    _z = z.flatten()
+    return column_stack((arange(len(_z)), x, y, _z)), restore
+
+def shapeGeometry(record, auth):
+    """Get tuple of vertex arrays from a MultiPolygon, and calculate area and extent"""
+    _gid = record["gid"]
+    body = dumps(
+        {
+            "table": "maine_boundaries_town_polygon",
+            "fields": ["st_asgeojson(st_transform(st_setsrid(geom, 2960), 4326))"],
+            "conditions": [f"gid={_gid}"],
+            "encoding": "json",
+        }
+    )
    
 
-#     single = loads(data.get("st_asgeojson"))
-#     assert single.get("type") == "MultiPolygon", single.get("type")
+    single = loads(data.get("st_asgeojson"))
+    assert single.get("type") == "MultiPolygon", single.get("type")
 
-#     def _item(s):
-#         arr = array(s)
-#         return Path(arr), polygon_area(arr), extent(arr[:, 0], arr[:, 1])
+    def _item(s):
+        arr = array(s)
+        return Path(arr), polygon_area(arr), extent(arr[:, 0], arr[:, 1])
 
-#     _s, _a, _e = tuple(zip(*map(_item, single.get("coordinates").pop())))
-#     return _gid, array(_s), array(_a), reduce(reduce_extent, _e)
-
-
-# def processMultiPolygon(data, points):
-#     """
-
-#     """
-#     globalId, shapes, areas, unionExtent = data
-#     sorting = areas.argsort()
-#     subset = extent_crop(unionExtent, points)
-#     dataIterator = zip(areas[sorting[::-1]], shapes[sorting[::-1]])
-#     _found = set()  # collector for found pixels
-
-#     while True:
-#         try:
-#             area, shape = next(dataIterator)
-#         except StopIteration:
-#             break
-
-#         _mask = shape.contains_points(subset[:, 1:3])
-#         _select = where(_mask)[0]
-#         if area > 0:
-#             _found |= set(_select)
-#         else:
-#             _found -= set(_select)
-
-#     return globalId, subset[list(_found), 0].astype(int)
+    _s, _a, _e = tuple(zip(*map(_item, single.get("coordinates").pop())))
+    return _gid, array(_s), array(_a), reduce(reduce_extent, _e)
 
 
-# def histogramCreate(shapes):
-#     histogram = {}
-#     for s in shapes:
-#         for k, v in s["properties"]["histogram"]:
-#             key = "{0:.2f}".format(k)
-#             if key in histogram.keys():
-#                 histogram[key] += int(v)
-#             else:
-#                 histogram[key] = int(v)
-#     return histogram
+def processMultiPolygon(data, points):
+    """
+
+    """
+    globalId, shapes, areas, unionExtent = data
+    sorting = areas.argsort()
+    subset = extent_crop(unionExtent, points)
+    dataIterator = zip(areas[sorting[::-1]], shapes[sorting[::-1]])
+    _found = set()  # collector for found pixels
+
+    while True:
+        try:
+            area, shape = next(dataIterator)
+        except StopIteration:
+            break
+
+        _mask = shape.contains_points(subset[:, 1:3])
+        _select = where(_mask)[0]
+        if area > 0:
+            _found |= set(_select)
+        else:
+            _found -= set(_select)
+
+    return globalId, subset[list(_found), 0].astype(int)
 
 
-# def histogramReduce(histogram):
-
-#     total = 0.0
-#     highValue = 0.0
-#     highValueWeighted = 0.0
-#     for k, v in histogram.items():
-#         suit = float(k)
-#         if suit > 0.9:
-#             highValue += v
-#             highValueWeighted += suit * v
-#         total += suit * v
-
-#     print("Total weighted:", total)
-#     print("Above 0.9 total:", highValue)
-#     print("Above 0.9 weighted:", highValueWeighted)
-#     return total, highValue, highValueWeighted
+def histogramCreate(shapes):
+    histogram = {}
+    for s in shapes:
+        for k, v in s["properties"]["histogram"]:
+            key = "{0:.2f}".format(k)
+            if key in histogram.keys():
+                histogram[key] += int(v)
+            else:
+                histogram[key] = int(v)
+    return histogram
 
 
-# def createShapeIndex(points, polygonMap, file):
+def histogramReduce(histogram):
 
-#     category = zeros(points.shape[0], dtype=int)
-#     n = 0
-#     start = time()
-#     while True:
-#         try:
-#             g, i = processMultiPolygon(next(polygonMap), points)
-#         except StopIteration:
-#             break
-#         category[i] = g
-#         n += 1
-#         print(
-#             "iteration:", n, "gid:", g, "points:", len(i), "time:", int(time() - start)
-#         )
-#     with open(file, "wb+") as f:
-#         pickle(category, f)
+    total = 0.0
+    highValue = 0.0
+    highValueWeighted = 0.0
+    for k, v in histogram.items():
+        suit = float(k)
+        if suit > 0.9:
+            highValue += v
+            highValueWeighted += suit * v
+        total += suit * v
 
+    print("Total weighted:", total)
+    print("Above 0.9 total:", highValue)
+    print("Above 0.9 weighted:", highValueWeighted)
+    return total, highValue, highValueWeighted
 
 
+def createShapeIndex(points, polygonMap, file):
+
+    category = zeros(points.shape[0], dtype=int)
+    n = 0
+    start = time()
+    while True:
+        try:
+            g, i = processMultiPolygon(next(polygonMap), points)
+        except StopIteration:
+            break
+        category[i] = g
+        n += 1
+        print(
+            "iteration:", n, "gid:", g, "points:", len(i), "time:", int(time() - start)
+        )
+    with open(file, "wb+") as f:
+        pickle(category, f)
 
 
-# def createShapeImage(points, a, b, colorMap):
+def createShapeImage(points, a, b, colorMap):
 
-#     reshape = ()  # TODO: use real shape
-#     z = points[:, 3]
-#     with open(a, "rb") as f:
-#         mask_a = unpickle(f.read()) == 0
-#     with open(b, "rb") as f:
-#         mask_b = unpickle(f.read()) != 0
-#     double = 0.5 * ((z - 2 * z * mask_b) + 1)
-#     colors = get_cmap(colorMap)(
-#         masked_where(mask_a | isnan(z), double).reshape(reshape)
-#     )
-#     colors[:, :, 3] *= sqrt(abs(double)).reshape(reshape)
-#     return fromarray(uint8(colors * 255)).rotate(90)
-
-
-# def main(styles: dict):
-
-#     ixyz, reshape = vertexArray()
-#     clippingExtent = extent(*ixyz[:, 1:3].T)
-#     accessKey = ""
-#     createShapeIndex(
-#         points=ixyz,
-#         polygonMap=map(
-#             shapeGeometry, townQuery(ext=clippingExtent, auth=accessKey), repeat(accessKey)
-#         ),
-#         file="data/category-index-2.npy",
-#     )
-
-#     closures = nsspQuery(ext=clippingExtent, auth=accessKey)
-#     createShapeIndex(
-#         points=ixyz,
-#         polygonMap=map(closureGeometry, closures),
-#         file="data/category-index-closures.npy",
-#     )
-#     createClosureJson(records=closures)
-
-#     createMaineTowns(ext=clippingExtent, key=accessKey)
-#     aggregateStatistics(
-#         points=ixyz,
-#         file="data/category-index-2.npy",
-#         geojson="openapi/spatial/suitability.json",
-#     )
-#     aggregateStatistics(
-#         points=ixyz,
-#         file="data/category-index-closures.npy",
-#         geojson="openapi/spatial/suitability-closures.json",
-#     )
-
-#     # Bad: Spectral, PiYG, BrBG
-#     with open("openapi/osi-composite-rg-2.png", "wb+") as f:
-#         createShapeImage(
-#             points=ixyz,
-#             a="data/category-index-2.npy",
-#             b="data/category-index-closures.npy",
-#             colorMap="RdGy",
-#         ).save(f)
-
-#     with open("openapi/osi-composite-web.png", "wb+") as f:
-#         createShapeImage(
-#             points=ixyz,
-#             a="data/category-index-2.npy",
-#             b="data/category-index-closures.npy",
-#             colorMap="twilight",
-#         ).save(f)
+    reshape = ()  # TODO: use real shape
+    z = points[:, 3]
+    with open(a, "rb") as f:
+        mask_a = unpickle(f.read()) == 0
+    with open(b, "rb") as f:
+        mask_b = unpickle(f.read()) != 0
+    double = 0.5 * ((z - 2 * z * mask_b) + 1)
+    colors = get_cmap(colorMap)(
+        masked_where(mask_a | isnan(z), double).reshape(reshape)
+    )
+    colors[:, :, 3] *= sqrt(abs(double)).reshape(reshape)
+    return fromarray(uint8(colors * 255)).rotate(90)
 
 
-#     fid = open("capsize_functions/capsize_functions_image/styles.yml", "r")
+def main(styles: dict):
+
+    ixyz, reshape = vertexArray()
+    clippingExtent = extent(*ixyz[:, 1:3].T)
+    accessKey = ""
+    createShapeIndex(
+        points=ixyz,
+        polygonMap=map(
+            shapeGeometry, townQuery(ext=clippingExtent, auth=accessKey), repeat(accessKey)
+        ),
+        file="data/category-index-2.npy",
+    )
+
+    closures = nsspQuery(ext=clippingExtent, auth=accessKey)
+    createShapeIndex(
+        points=ixyz,
+        polygonMap=map(closureGeometry, closures),
+        file="data/category-index-closures.npy",
+    )
+    createClosureJson(records=closures)
+
+    createMaineTowns(ext=clippingExtent, key=accessKey)
+    aggregateStatistics(
+        points=ixyz,
+        file="data/category-index-2.npy",
+        geojson="openapi/spatial/suitability.json",
+    )
+    aggregateStatistics(
+        points=ixyz,
+        file="data/category-index-closures.npy",
+        geojson="openapi/spatial/suitability-closures.json",
+    )
+
+    # Bad: Spectral, PiYG, BrBG
+    with open("openapi/osi-composite-rg-2.png", "wb+") as f:
+        createShapeImage(
+            points=ixyz,
+            a="data/category-index-2.npy",
+            b="data/category-index-closures.npy",
+            colorMap="RdGy",
+        ).save(f)
+
+    with open("openapi/osi-composite-web.png", "wb+") as f:
+        createShapeImage(
+            points=ixyz,
+            a="data/category-index-2.npy",
+            b="data/category-index-closures.npy",
+            colorMap="twilight",
+        ).save(f)
 
 
-#     z = ixyz[:, 3]
-#     with open("data/category-index-2.npy", "rb") as f:
-#         mask_a = unpickle(f.read()) == 0
-#     with open("data/category-index-closures.npy", "rb") as f:
-#         mask_b = unpickle(f.read()) != 0
+    fid = open("capsize_functions/capsize_functions_image/styles.yml", "r")
 
-#     double = 0.5 * ((z - 2 * z * mask_b) + 1)
-#     colors = get_cmap("RdGy")(masked_where(mask_a | isnan(z), double).reshape(reshape))
-#     # colors[:, :, 3] *= sqrt(abs(double)).reshape(reshape)
-#     img = fromarray(uint8(colors * 255)).rotate(90)
 
-#     view = Spatial(
-#         style={
-#             **styles["base"],
-#             **styles["light"],
-#             **{"dpi": 300, "height": 3.0, "width": 4.0},
-#         },
-#         extent=(-70.6, -68.5, 42.75, 44.1),
-#     )
+    z = ixyz[:, 3]
+    with open("data/category-index-2.npy", "rb") as f:
+        mask_a = unpickle(f.read()) == 0
+    with open("data/category-index-closures.npy", "rb") as f:
+        mask_b = unpickle(f.read()) != 0
 
-#     _ = view.ax.imshow(
-#         img, origin="upper", extent=clippingExtent, interpolation="gaussian"
-#     )
-#     buffer = view.push(xlabel="longitude", ylabel="latitude")
-#     with open("data/test-osi-capsize_functions_image.png", "wb+") as fid:
-#         fid.write(buffer.getvalue())
+    double = 0.5 * ((z - 2 * z * mask_b) + 1)
+    colors = get_cmap("RdGy")(masked_where(mask_a | isnan(z), double).reshape(reshape))
+    # colors[:, :, 3] *= sqrt(abs(double)).reshape(reshape)
+    img = fromarray(uint8(colors * 255)).rotate(90)
+
+    view = Spatial(
+        style={
+            **styles["base"],
+            **styles["light"],
+            **{"dpi": 300, "height": 3.0, "width": 4.0},
+        },
+        extent=(-70.6, -68.5, 42.75, 44.1),
+    )
+
+    _ = view.ax.imshow(
+        img, origin="upper", extent=clippingExtent, interpolation="gaussian"
+    )
+    buffer = view.push(xlabel="longitude", ylabel="latitude")
+    with open("data/test-osi-capsize_functions_image.png", "wb+") as fid:
+        fid.write(buffer.getvalue())
