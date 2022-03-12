@@ -13,7 +13,8 @@ The flow to test API changes is therefore:
 
 ```bash
 yarn api:build  # build WASM package from sibling
-yarn workspaces build  # build everything
-yarn api:dev  # run Netlify dev stack
-yarn api:test  # mocha tests
+yarn api:spec  # convert API spec to json
+yarn workspace oceanics-io-fcns build  # build functions
+yarn netlify  # run Netlify dev stack
+yarn api:test -- --grep="Auth API" # mocha tests, with optional filter
 ```

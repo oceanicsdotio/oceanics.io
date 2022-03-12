@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.handler = void 0;
 const driver_1 = require("./shared/driver");
+const middleware_1 = require("./shared/middleware");
 const pkg_1 = require("./shared/pkg");
 /**
  * Get an array of all collections by Node type
@@ -96,15 +97,6 @@ const drop = async (left, right) => {
     };
 };
 /**
- * Retrieve nodes that are linked with the left entity
- */
-const topology = (left, right) => {
-    return {
-        statusCode: 501,
-        body: JSON.stringify({ message: "Not Implemented" })
-    };
-};
-/**
  * Browse saved results for a single model configuration.
  * Results from different configurations are probably not
  * directly comparable, so we reduce the chances that someone
@@ -131,26 +123,26 @@ const handler = async ({ headers, httpMethod, ...rest }) => {
     const pattern = `${httpMethod}${nodes.length}`;
     switch (pattern) {
         case "GET0":
-            return (0, driver_1.catchAll)(index)();
+            return (0, middleware_1.catchAll)(index)();
         case "GET1":
-            return (0, driver_1.catchAll)(metadata)(user, nodes[0]);
+            return (0, middleware_1.catchAll)(metadata)(user, nodes[0]);
         case "GET2":
-            return (0, driver_1.catchAll)(topology)(nodes[0], nodes[1]);
+            return (0, middleware_1.catchAll)(middleware_1.notImplemented)(nodes[0], nodes[1]);
         case "POST1":
-            return (0, driver_1.catchAll)(create)(user, nodes[0]);
+            return (0, middleware_1.catchAll)(create)(user, nodes[0]);
         case "POST2":
-            return (0, driver_1.catchAll)(join)(nodes[0], nodes[1], "Join");
+            return (0, middleware_1.catchAll)(join)(nodes[0], nodes[1], "Join");
         case "PUT1":
-            return (0, driver_1.catchAll)(mutate)(user, nodes[0]);
+            return (0, middleware_1.catchAll)(mutate)(user, nodes[0]);
         case "PUT2":
             return {
                 statusCode: 501,
                 body: JSON.stringify({ message: "Not Implemented" })
             };
         case "DELETE1":
-            return (0, driver_1.catchAll)(remove)(user, nodes[0]);
+            return (0, middleware_1.catchAll)(remove)(user, nodes[0]);
         case "DELETE2":
-            return (0, driver_1.catchAll)(drop)(nodes[0], nodes[1]);
+            return (0, middleware_1.catchAll)(drop)(nodes[0], nodes[1]);
         case "OPTIONS0":
             return {
                 statusCode: 204,

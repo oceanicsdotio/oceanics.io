@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.tokenClaim = exports.transform = exports.serialize = exports.catchAll = exports.connect = exports.parseFunctionsPath = exports.materialize = void 0;
+exports.tokenClaim = exports.transform = exports.serialize = exports.connect = exports.parseFunctionsPath = exports.materialize = void 0;
 const neo4j_driver_1 = __importDefault(require("neo4j-driver"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 // Class and methods are from web assembly package.
@@ -64,24 +64,6 @@ const connect = async (query) => {
 };
 exports.connect = connect;
 /**
- * Make sure we don't leak anything in an error message...
- */
-function catchAll(wrapped) {
-    return (...args) => {
-        try {
-            return wrapped(...args);
-        }
-        catch {
-            return {
-                statusCode: 500,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: "Server Error" })
-            };
-        }
-    };
-}
-exports.catchAll = catchAll;
-/**
  * Like JSON stringify, but outputs valid Cypher Node Properties
  * from an object. Nested objects will be JSON strings.
  */
@@ -113,7 +95,7 @@ exports.transform = transform;
  * validate other APIs.
  */
 const tokenClaim = (token, signingKey) => {
-    const claim = jsonwebtoken_1.default.verify(token, signingKey);
-    return new pkg_1.Node((0, exports.serialize)({ uuid: claim["uuid"] }), "u", "User");
+    const { uuid } = jsonwebtoken_1.default.verify(token, signingKey);
+    return (0, exports.materialize)({ uuid }, "u", "User");
 };
 exports.tokenClaim = tokenClaim;

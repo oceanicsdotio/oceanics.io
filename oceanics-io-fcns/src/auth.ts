@@ -1,17 +1,34 @@
-/**
- * Cloud function version of Auth API.
- */
-import { connect, transform, serialize, tokenClaim, materialize } from "./shared/driver";
-import { router, jsonRequest } from "./shared/middleware";
-import { Node, Links } from "./shared/pkg";
 import type { Handler } from "@netlify/functions";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
 
+import { 
+  connect, 
+  transform,
+  serialize, 
+  tokenClaim, 
+  materialize 
+} from "./shared/driver";
+
+import { 
+  router, 
+  jsonRequest, 
+  jsonResponse, 
+  withBasicAuth, 
+  withBearerToken
+} from "./shared/middleware";
+
+import { 
+  Node,
+  Links
+} from "./shared/pkg";
+
+const BASE_PATH = "/auth";
+
 /**
  * Generic interface for all of the HTTP method-specific handlers.
  */
- export interface IAuth {
+export interface IAuth {
   email: string;
   password: string;
   secret: string;
@@ -68,8 +85,7 @@ async function register ({ apiKey, password, secret, email }: IAuth) {
   }
   return {
     statusCode,
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message })
+    data: { message }
   }
 };
 
@@ -81,48 +97,42 @@ async function register ({ apiKey, password, secret, email }: IAuth) {
 const getToken = async (auth: IAuth) => {
   const records = transform(await connect(authClaim(auth).load().query))
   let statusCode: number;
-  let body: string;
+  let data: object;
 
   if (records.length !== 1) {
     statusCode = 403;
-    body = JSON.stringify({ message: "Unauthorized" });
+    data = { message: "Unauthorized" };
   } else {
     statusCode = 200;
     const { uuid } = records[0][1];
     const token = jwt.sign({ uuid }, process.env.SIGNING_KEY, { expiresIn: 3600 })
-    body = JSON.stringify({ token })
+    data = { token }
   }
   return {
     statusCode,
-    body,
-    headers: { 'Content-Type': 'application/json' },
+    data
   }
 };
 
 /**
  * Update account information
  */
-
 const manage = async ({ token }: IAuth) => {
-
-  const records = transform(await connect(tokenClaim(token, process.env.SIGNING_KEY).load().query));
-
-  let statusCode: number;
-  let body: string | undefined;
+  const {query} = tokenClaim(token, process.env.SIGNING_KEY).load();
+  const records = transform(await connect(query));
 
   if (records.length !== 1) {
-    statusCode = 403;
-    body = JSON.stringify({ message: "Unauthorized" });
+    return {
+      statusCode: 403,
+      data: { message: "Unauthorized" }
+    };
   } else {
     // const [previous, insert] = parseAsNodes([{ uuid: records[0][1].uuid }, { password, email }]);
     // const cypher = previous.mutate(insert);
     // await connect(cypher.query);
-    statusCode = 200;
-    body = JSON.stringify({ message: "OK" });
-  }
-  return {
-    statusCode,
-    body
+    return {
+      statusCode: 204
+    };
   }
 };
 
@@ -143,47 +153,23 @@ const remove = async (auth: IAuth) => {
   }
 }
 
-
-const parseAuth = (authorization="") => {
-  const [email, password, secret] = authorization.split(":");
-  return { email, password, secret}
-}
-
 /**
- * Browse saved results for a single model configuration. 
- * Results from different configurations are probably not
- * directly comparable, so we reduce the chances that someone 
- * makes wild conclusions comparing numerically
- * different models.
- *
- * You can only access results for that test, although multiple 
- * collections may be stored in a single place 
+ * Auth Router
  */
-const handler: Handler = async ({ headers, body, httpMethod, path }) => {
-  
-  const routing = router().set("/", {
-    GET: getToken,  // Get access token
-    POST: register, // Register new User
-    PUT: manage,  // Update User information
-    DELETE: remove  // Remove User and all attached nodes 
+const handler: Handler = async (request) => {
+  const result = await router().add(BASE_PATH, {
+    get: getToken,
+    post: register,
+    put: manage,
+    delete: remove 
   })
-  routing.before("/", ["POST", "PUT"], jsonRequest)
-  routing.after("/", ["GET", "POST", "PUT"])
-
-  
-  let data = JSON.parse(["POST", "PUT"].includes(httpMethod) ? body : "{}");
-  const [email, password, secret] = (headers["authorization"] ?? "").split(":");
-  return ROUTER.handle(httpMethod, )
-  switch (httpMethod) {
-    case "GET":
-      return getToken({ email, password, secret});
-    case "POST":
-      return register(data);
-    case "PUT":
-      return manage({ token: password, ...data });
-    case "DELETE":
-      return remove({ email, password, secret });
-  }
+    .before(BASE_PATH, ["get", "delete"], withBasicAuth)
+    .before(BASE_PATH, ["put"], withBearerToken)
+    .before(BASE_PATH, ["post", "put"], jsonRequest)
+    .after(BASE_PATH, ["get", "post", "put", "delete"], jsonResponse)
+    .handle(request)
+  console.log(result)
+  return result
 }
 
 export { handler };
