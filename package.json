@@ -11,7 +11,7 @@
         "@netlify/functions": "^0.10.0",
         "ajv": "^8.10.0",
         "ajv-formats": "^2.1.1",
-        "aws-sdk": "^2.1036.0",
+        "aws-sdk": "^2.1093.0",
         "js-yaml": "^4.1.0",
         "jsonwebtoken": "^8.5.1",
         "neo4j-driver": "^4.4.1",
