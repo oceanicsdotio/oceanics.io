@@ -9,12 +9,10 @@ This assumes that the web assembly package has already been created and copied o
 
 This module is just a build environment, so normally you won't run these commands directly. Local testing requires a Netlify environment, which is controlled from the parent module. Submodules are built with `yarn workspaces build`. 
 
-The flow to test API changes is therefore:
+The flow to build sibling dependencies, compile from TypeScript, and test Auth API (for example) is therefore:
 
 ```bash
-yarn api:build  # build WASM package from sibling
-yarn api:spec  # convert API spec to json
-yarn workspace oceanics-io-fcns build  # build functions
-yarn netlify  # run Netlify dev stack
-yarn api:test -- --grep="Auth API" # mocha tests, with optional filter
+yarn api:build && yarn workspace oceanics-io-fcns build
+yarn netlify  # run Netlify dev stack, use another terminal
+yarn api:test -- --grep="Auth API"
 ```

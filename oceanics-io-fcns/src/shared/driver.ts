@@ -16,9 +16,14 @@ type Properties = { [key: string]: any };
  */
 const STRIP_BASE_PATH_PREFIX = new Set([".netlify", "functions", "api", "auth", "sensor-things"]);
 
+
+export const filterBasePath = (symbol: string) => 
+  !!symbol && !STRIP_BASE_PATH_PREFIX.has(symbol);
+
 /**
  * Shorthand for serializing an a properties object and creating a Node instance from it.
- * This should be pushed down into a Node static method at some point. Same with serialize.
+ * This should be pushed down into a Node static method at some point. 
+ * Same with serialize.
  */
 export const materialize = (properties: Properties, symbol: string, label: string) => 
   new Node(serialize(properties), symbol, label)
@@ -53,8 +58,6 @@ export const parseFunctionsPath = ({ httpMethod, body, path }: {
     }
     return materialize({ uuid, ...((index === array.length - 1) ? props : {}) }, `n${index}`, label)
   }
-
-  const filterBasePath = (symbol: string) => !!symbol && !STRIP_BASE_PATH_PREFIX.has(symbol);
 
   return path.split("/").filter(filterBasePath).map(insertProperties);
 }
