@@ -15,7 +15,7 @@
         "js-yaml": "^4.1.0",
         "jsonwebtoken": "^8.5.1",
         "neo4j-driver": "^4.4.1",
-        "stripe": "^8.195.0"
+        "stripe": "^8.210.0"
     },
     "devDependencies": {
         "@types/ajv": "^1.0.0",
