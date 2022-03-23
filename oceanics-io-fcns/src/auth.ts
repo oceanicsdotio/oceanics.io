@@ -23,7 +23,7 @@ import {
   Links
 } from "./shared/pkg";
 
-const BASE_PATH = "/auth";
+const BASE_PATH = "/";
 
 /**
  * Generic interface for all of the HTTP method-specific handlers.
@@ -37,7 +37,7 @@ export interface IAuth {
 }
 
 /**
- * Securely store and anc compare passwords
+ * Securely store and compare passwords
  */
 const hashPassword = (password: string, secret: string) =>
   crypto.pbkdf2Sync(password, secret, 100000, 64, "sha512").toString("hex");

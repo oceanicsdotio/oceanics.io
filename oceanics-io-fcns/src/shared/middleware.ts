@@ -1,7 +1,27 @@
+/**
+ * Magic strings, that we know may exist in the path. It depends on whether the
+ * request is being made directly against the netlify functions, or through
+ * a proxy redirect. 
+ */
+ const STRIP_BASE_PATH_PREFIX = new Set([
+    ".netlify",
+    "functions",
+    "api",
+    "auth",
+    "sensor-things"
+]);
+  
+// Test part of path, and reject if it is blank or part of the restricted set. 
+export const filterBaseRoute = (symbol: string) => 
+    !!symbol && !STRIP_BASE_PATH_PREFIX.has(symbol);
+
+// Get meaningful tokens from full route
+export const parseRoute = (path: string) =>
+    path.split("/").filter(filterBaseRoute)
+
 
 // Format response
 export const jsonResponse = ({ headers = {}, data, ...response }, extension="") => {
-
     return {
         ...response,
         headers: {
@@ -13,7 +33,7 @@ export const jsonResponse = ({ headers = {}, data, ...response }, extension="") 
 }
 
 /**
- * Make sure we don't leak anything in an error message...
+ * Make sure we don't leak anything in an error message.
  */
 export function catchAll(wrapped: (...args: any) => any) {
     return (...args: any) => {
@@ -45,7 +65,9 @@ export const jsonRequest = ({ httpMethod, body, ...rest }) => {
 export const notImplemented = () => {
     return {
         statusCode: 501,
-        data: { message: "Not Implemented" }
+        data: { 
+            message: "Not Implemented"
+        }
     }
 }
 
