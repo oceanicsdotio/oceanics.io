@@ -1,6 +1,24 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.router = exports.route = exports.withBearerToken = exports.withBasicAuth = exports.notImplemented = exports.jsonRequest = exports.catchAll = exports.jsonResponse = void 0;
+exports.router = exports.route = exports.withBearerToken = exports.withBasicAuth = exports.notImplemented = exports.jsonRequest = exports.catchAll = exports.jsonResponse = exports.parseRoute = exports.filterBaseRoute = void 0;
+/**
+ * Magic strings, that we know may exist in the path. It depends on whether the
+ * request is being made directly against the netlify functions, or through
+ * a proxy redirect.
+ */
+const STRIP_BASE_PATH_PREFIX = new Set([
+    ".netlify",
+    "functions",
+    "api",
+    "auth",
+    "sensor-things"
+]);
+// Test part of path, and reject if it is blank or part of the restricted set. 
+const filterBaseRoute = (symbol) => !!symbol && !STRIP_BASE_PATH_PREFIX.has(symbol);
+exports.filterBaseRoute = filterBaseRoute;
+// Get meaningful tokens from full route
+const parseRoute = (path) => path.split("/").filter(exports.filterBaseRoute);
+exports.parseRoute = parseRoute;
 // Format response
 const jsonResponse = ({ headers = {}, data, ...response }, extension = "") => {
     return {
@@ -14,7 +32,7 @@ const jsonResponse = ({ headers = {}, data, ...response }, extension = "") => {
 };
 exports.jsonResponse = jsonResponse;
 /**
- * Make sure we don't leak anything in an error message...
+ * Make sure we don't leak anything in an error message.
  */
 function catchAll(wrapped) {
     return (...args) => {
@@ -46,7 +64,9 @@ exports.jsonRequest = jsonRequest;
 const notImplemented = () => {
     return {
         statusCode: 501,
-        data: { message: "Not Implemented" }
+        data: {
+            message: "Not Implemented"
+        }
     };
 };
 exports.notImplemented = notImplemented;

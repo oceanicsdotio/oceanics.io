@@ -9,9 +9,9 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const driver_1 = require("./shared/driver");
 const middleware_1 = require("./shared/middleware");
 const pkg_1 = require("./shared/pkg");
-const BASE_PATH = "/auth";
+const BASE_PATH = "/";
 /**
- * Securely store and anc compare passwords
+ * Securely store and compare passwords
  */
 const hashPassword = (password, secret) => crypto_1.default.pbkdf2Sync(password, secret, 100000, 64, "sha512").toString("hex");
 /**

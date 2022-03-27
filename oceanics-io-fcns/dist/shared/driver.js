@@ -6,17 +6,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.tokenClaim = exports.transform = exports.serialize = exports.connect = exports.parseFunctionsPath = exports.materialize = void 0;
 const neo4j_driver_1 = __importDefault(require("neo4j-driver"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const middleware_1 = require("./middleware");
 // Class and methods are from web assembly package.
 const pkg_1 = require("./pkg");
 /**
- * Magic strings, that we know may exist in the path. It depends on whether the
- * request is being made directly against the netlify functions, or through
- * a proxy redirect.
- */
-const STRIP_BASE_PATH_PREFIX = new Set([".netlify", "functions", "api", "auth", "sensor-things"]);
-/**
  * Shorthand for serializing an a properties object and creating a Node instance from it.
- * This should be pushed down into a Node static method at some point. Same with serialize.
+ * This should be pushed down into a Node static method at some point.
+ * Same with serialize.
  */
 const materialize = (properties, symbol, label) => new pkg_1.Node((0, exports.serialize)(properties), symbol, label);
 exports.materialize = materialize;
@@ -24,7 +20,7 @@ exports.materialize = materialize;
  * Encapsulate logic for parsing node properties from the body, query string, and path.
  *
  * One reason for this is that automatic detection of body fails on OPTIONS, which
- * seems to provide an object instead of undefined.
+ * provides an object instead of undefined.
  *
  * Choose the correct (and right) node to add the properties to when creating or querying,
  * and removes non-node path segments (STRIP_BASE_PATH_PREFIX) before parsing
@@ -32,9 +28,12 @@ exports.materialize = materialize;
 const parseFunctionsPath = ({ httpMethod, body, path }) => {
     // 
     const insertProperties = (text, index, array) => {
-        const props = index === (array.length - 1) && ["POST", "PUT"].includes(httpMethod) ? JSON.parse(body) : {};
+        const isFinalPart = index === (array.length - 1);
+        const hasBodyProps = isFinalPart && ["POST", "PUT"].includes(httpMethod);
+        const props = hasBodyProps ? JSON.parse(body) : {};
         let label = "";
         let uuid = "";
+        // Identifiers are delimited with parentheses
         if (text.includes("(")) {
             const parts = text.split("(");
             label = parts[0];
@@ -43,16 +42,14 @@ const parseFunctionsPath = ({ httpMethod, body, path }) => {
         else {
             label = text;
         }
-        return (0, exports.materialize)({ uuid, ...((index === array.length - 1) ? props : {}) }, `n${index}`, label);
+        return (0, exports.materialize)({ uuid, ...props }, `n${index}`, label);
     };
-    const filterBasePath = (symbol) => !!symbol && !STRIP_BASE_PATH_PREFIX.has(symbol);
-    return path.split("/").filter(filterBasePath).map(insertProperties);
+    return (0, middleware_1.parseRoute)(path).map(insertProperties);
 };
 exports.parseFunctionsPath = parseFunctionsPath;
 /**
  * Connect to graph database using the service account credentials,
- * and execute a single
- * We use
+ * and execute a single query
  */
 const connect = async (query) => {
     var _a, _b;
@@ -68,11 +65,10 @@ exports.connect = connect;
  * from an object. Nested objects will be JSON strings.
  */
 const serialize = (props) => {
-    const filter = ([_, value]) => typeof value !== "undefined" && !!value;
+    const removeFalsy = ([_, value]) => typeof value !== "undefined" && !!value;
     const toString = ([key, value]) => {
-        const valueType = typeof value;
         let serialized;
-        switch (valueType) {
+        switch (typeof value) {
             case "object":
                 serialized = JSON.stringify(value);
                 break;
@@ -81,11 +77,11 @@ const serialize = (props) => {
         }
         return `${key}: '${serialized}'`;
     };
-    return Object.entries(props).filter(filter).map(toString).join(", ");
+    return Object.entries(props).filter(removeFalsy).map(toString).join(", ");
 };
 exports.serialize = serialize;
 /**
- * Transform from Neo4j response records to generic internal node representation
+ * Transform from Neo4j response records to generic internal node representation.
  */
 const transform = ({ records }) => records.flatMap((record) => Object.values(record.toObject()))
     .map(({ labels: [primary], properties }) => [primary, properties]);
