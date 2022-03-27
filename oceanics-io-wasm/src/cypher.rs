@@ -53,6 +53,16 @@ pub mod cypher {
                 label,
             }
         }
+        pub fn materialize(properties: &JsValue, symbol: Option<String>, label: Option<String>) -> Self {
+            let pattern = String::new();
+            let mut props = properties.into_serde().unwrap();
+
+            Node {
+                pattern,
+                symbol,
+                label
+            }
+        }
         #[wasm_bindgen(js_name = allLabels)]
         pub fn all_labels() -> Cypher {
             Cypher {

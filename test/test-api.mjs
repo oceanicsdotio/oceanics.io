@@ -190,9 +190,9 @@ describe("API Request Validator", function () {
         /**
      * Create a `describe` block for each of the Sensing API entities
      */
-         for (const nodeType of EXTENSIONS.sensing) {
-          describe(nodeType, validateInterface(nodeType));
-        }
+    for (const nodeType of EXTENSIONS.sensing) {
+      describe(nodeType, validateInterface(nodeType));
+    }
 })
 
 /**

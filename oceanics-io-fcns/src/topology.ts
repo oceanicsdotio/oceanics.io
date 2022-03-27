@@ -1,15 +1,11 @@
-/**
- * Cloud function version of API
- */
-import type { Handler } from "@netlify/functions";
-import { connect, tokenClaim, parseFunctionsPath } from "./shared/driver";
-import { catchAll } from "./shared/middleware";
-import { Node, Links } from "./shared/pkg/oceanics_io_wasm";
+import { connect, NetlifyRouter } from "./shared/middleware";
+import type { ApiHandler } from "./shared/middleware";
+import { Links } from "./shared/pkg";
 
 /**
  * Connect two nodes.
  */
-const join = async (left: Node, right: Node, label: string) => {
+const join: ApiHandler = async ({ data: { nodes: [left, right], label } }) => {
   await connect((new Links(label)).join(left, right).query);
   return {
     statusCode: 204
@@ -19,7 +15,7 @@ const join = async (left: Node, right: Node, label: string) => {
 /**
  * Drop connection between nodes. 
  */
-const drop = async (left: Node, right: Node) => {
+const drop: ApiHandler = async ({ data: { nodes: [left, right] } }) => {
   await connect((new Links()).drop(left, right).query);
   return {
     statusCode: 204
@@ -35,37 +31,7 @@ const drop = async (left: Node, right: Node) => {
  
  * You can only access results for that test, although multiple collections * may be stored in a single place 
  */
-export const handler: Handler = async ({ headers, httpMethod, ...rest }) => {
-
-  let user: Node;
-  try {
-    const auth = headers["authorization"]
-    const token = auth.split(":").pop();
-    user = tokenClaim(token, process.env.SIGNING_KEY)
-  } catch {
-    return {
-      statusCode: 403,
-      data: { message: "Unauthorized" }
-    }
-  }
-
-  const [left, right] = parseFunctionsPath({ httpMethod, ...rest })
-
-  switch (httpMethod) {
-    case "POST":
-      return catchAll(join)(left, right, "Join")
-    case "DELETE":
-      return catchAll(drop)(left, right)
-    case "OPTIONS":
-      return {
-        statusCode: 204,
-        headers: { "Allow": "OPTIONS,GET,POST,DELETE" }
-      }
-    default:
-      return {
-        statusCode: 405,
-        body: JSON.stringify({ message: "Invalid HTTP Method" }),
-        headers: { "Content-Type": "application/json" }
-      }
-  }
-}
+export const handler = NetlifyRouter({
+  post: join,
+  delete: drop
+});

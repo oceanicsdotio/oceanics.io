@@ -76,8 +76,7 @@ paths:
     post:
       tags: [ Account ]
       summary: Register
-      security:
-        - ApiKeyAuth: []
+      security: []
       description: |
 
         Register an e-mail address to get access to development API. Accounts are for development and testing purposes only. We won't share your contact information, but we do reserve the right to analyze and profile your use of our infrastructure, as well as monitor un-encrypted traffic.
@@ -340,10 +339,6 @@ components:
     BearerAuth:
       type: http
       scheme: bearer
-    ApiKeyAuth:
-      type: apiKey
-      in: body
-      name: apiKey
 
   parameters:
 
