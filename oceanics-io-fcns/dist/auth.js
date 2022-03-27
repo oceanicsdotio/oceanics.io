@@ -9,7 +9,7 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const driver_1 = require("./shared/driver");
 const middleware_1 = require("./shared/middleware");
 const pkg_1 = require("./shared/pkg");
-const BASE_PATH = "/";
+const BASE_PATH = "";
 /**
  * Securely store and compare passwords
  */

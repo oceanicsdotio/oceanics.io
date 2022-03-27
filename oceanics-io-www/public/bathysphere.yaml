@@ -76,6 +76,8 @@ paths:
     post:
       tags: [ Account ]
       summary: Register
+      security:
+        - ApiKeyAuth: []
       description: |
 
         Register an e-mail address to get access to development API. Accounts are for development and testing purposes only. We won't share your contact information, but we do reserve the right to analyze and profile your use of our infrastructure, as well as monitor un-encrypted traffic.
@@ -87,13 +89,17 @@ paths:
 
       responses:
         '200':
-          $ref: '#/components/responses/TokenResponse'
+          $ref: '#/components/responses/Message'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Unauthorized'
 
     get:
       tags: [ Account ]
-      summary: Token
+      summary: Get Token
+      security:
+        - BasicAuth: []
       description: |
 
         Exchange token or email and password for a Javascript Web Token. This will allow you make API calls and use graphical interfaces for a fixed period of time. If you have previously provided a secret, it will be required here to authenticate login and hash the token.
@@ -107,12 +113,14 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/TokenResponse'
-        '404':
-          $ref: '#/components/responses/NotFound'
+        '403':
+          $ref: '#/components/responses/Unauthorized'
 
     put:
       tags: [Account]
       summary: Manage
+      security:
+        - BearerAuth: []
       description: |
 
         Change e-mail address or password.
@@ -121,8 +129,8 @@ paths:
         $ref: '#/components/requestBodies/Register'
 
       responses:
-        '200':
-          $ref: '#/components/responses/TokenResponse'
+        '204':
+          description: No content
         '400':
           $ref: '#/components/responses/BadRequest'
       
@@ -131,6 +139,8 @@ paths:
     get:
       tags: [Catalog]
       summary: Catalog
+      security:
+        - BearerAuth: []
       description: |
         Get all entity types in database as collections following the SpatioTemporal Asset Catalog specification
 
@@ -169,6 +179,8 @@ paths:
     post:
       tags: [Catalog]
       summary: Create
+      security:
+        - BearerAuth: []
       description: |
         Create a new entity.
       parameters:
@@ -184,6 +196,8 @@ paths:
     get:
       tags: [Catalog]
       summary: Collection
+      security:
+        - BearerAuth: []
       description: |
         Get all entities of one type
 
@@ -202,6 +216,8 @@ paths:
     get:
       tags: [Catalog]
       summary: Metadata
+      security:
+        - BearerAuth: []
       description: Get entity
       parameters:
         - $ref: "#/components/parameters/entityClass"
@@ -215,6 +231,8 @@ paths:
     put:
       tags: [ Catalog ]
       summary: Update
+      security:
+        - BearerAuth: []
       description: Update entity
       requestBody:
         $ref: '#/components/requestBodies/Entity'
@@ -232,6 +250,8 @@ paths:
     delete:
       tags: [ Catalog ]
       summary: Delete
+      security:
+        - BearerAuth: []
       description: Delete entity and orphans recursively.
       parameters:
         - $ref: "#/components/parameters/entityClass"
@@ -249,6 +269,8 @@ paths:
     get:
       tags: [ Topology ]
       summary: Query
+      security:
+        - BearerAuth: []
       description: |
         Get related entities
 
@@ -271,6 +293,8 @@ paths:
 
       tags: [ Topology ]
       summary: Join
+      security:
+        - BearerAuth: []
       description: Create a labeled relationship between entities.
       parameters:
         - $ref: "#/components/parameters/root"
@@ -288,6 +312,8 @@ paths:
     delete:
       tags: [Topology]
       summary: Drop
+      security:
+        - BearerAuth: []
       description: |
         Remove a labeled relationship between entities. If no `label` is specified, remove all
         relationships between the entities.
@@ -305,182 +331,21 @@ paths:
         '400':
           $ref: '#/components/responses/BadRequest'
     
-  /DataStreams/smooth:
-
-    post:
-      tags: [DataStreams]
-      summary: Smooth
-      description: |
-
-        Smooth an evenly-spaced time series using convolution. The backend uses the `Numpy.convolve` method.
-        The result is a filtered time series, with a length that depends on the `convolutionMode` parameter. It is
-        the same length by default, but introduces artifacts at the boundaries.
-
-      parameters:
-        
-        - in: query
-          name: bandwidth
-          description: |
-            Width of convolution filter signal in terms of existing sample points. This assumes that the signal
-            discretization has even intervals, and no missing values.
-
-          schema:
-            type: integer
-            default: 1
-        
-
-        - in: query
-          name: mode
-          description: |
-
-            Determines the length of the resulting series. Mode "full" returns points of overlap, with size (N+M-1).
-            Boundary/edge effects will be retained. Mode "same" will have the same length as the input series. Mode "valid"
-            returns points where signals overlap, and will eliminate edges effects, but will have a different size than the
-            input series.
-
-          schema:
-            type: string
-            default: same
-            enum:
-              - full
-              - same
-              - valid
-
-      requestBody:
-        $ref: '#/components/requestBodies/Entity'
-
-      responses:
-        '200':
-          $ref: '#/components/responses/Entity'
-
-  /DataStreams/fft:
-
-    post:
-      tags: [DataStreams]
-      summary: Bandpass
-      description: |
-        Filter an evenly-spaced time series using fast Fourier transform. The query string can include `lowpass` and
-        `highpass` thresholds. With both described, this acts as a bandpass filter. The `fill` option will
-        automatically forward-fill missing values to prevent anomalies.
-
-      parameters:
-        # - $ref: '#/components/parameters/dt'
-
-        - in: query
-          name: lowpass
-          description: High-frequency cutoff in Hz
-          schema:
-            type: number
-            format: foat
-
-        - in: query
-          name: highpass
-          description: Low-frequency cutoff in Hz
-          schema:
-            type: number
-            format: float
-
-        # - $ref: '#/components/parameters/fill'
-        # - $ref: '#/components/parameters/compress'
-
-      requestBody:
-        $ref: '#/components/requestBodies/Entity'
-
-      responses:
-        '200':
-          $ref: '#/components/responses/Entity'
-
-
-  /DataStreams/resample:
-
-    post:
-      tags: [DataStreams]
-      summary: Resample and interpolate
-      description: |
-        Resample a sparse time series at specified rate by either forward/back filling or linear interpolation.
-
-      parameters:
-        - in: query
-          name: observations
-          description: Total number of observations to produce
-          schema:
-            type: number
-            format: integer
-
-      
-        - in: query
-          name: start
-          description: Datetime to apply as a start
-          schema:
-            type: string
-
-       
-        - in: query
-          name: method
-          description: Interpolation method
-          schema:
-            type: string
-            enum:
-              - forward
-              - back
-              - interp
-
-      requestBody:
-        $ref: '#/components/requestBodies/Entity'
-
-      responses:
-        '200':
-          $ref: '#/components/responses/Entity'
-      
 
 components:
+  securitySchemes:
+    BasicAuth:
+      type: http
+      scheme: basic
+    BearerAuth:
+      type: http
+      scheme: bearer
+    ApiKeyAuth:
+      type: apiKey
+      in: body
+      name: apiKey
 
   parameters:
-
-    ploidy:
-      in: query
-      name: ploidy
-      description: |
-        Shellfish are assumed to be reproductive, and therefore diploid. 
-        Future features will include phylogeography tools.
-
-      schema:
-        type: string
-        enum: [diploid, triploid]
-        default: diploid
-
-    dryWeight:
-      in: query
-      name: dryWeight
-      description: |
-        Actual mass of organic material. Automatically calculated from fresh weight.
-      schema:
-        type: number
-        format: float
-        minimum: 0.0
-
-    shellHeight:
-      in: query
-      name: shellHeight
-      description: |
-        Linear size measurement. Automatically calculated from fresh weight.
-      schema:
-        type: number
-        format: float
-
-    volume:
-      in: query
-      name: volume
-      description: Control volume for density-dependence
-      schema:
-        description: |
-          Control volume for density-dependence, measure in liters. As the number of organisms per unit volume increases,
-          competition for limited resources like food or oxygen can come into play.
-
-        type: number
-        format: float
-        minimum: 1
-        maximum: 1000
 
     weight:
       name: weight

@@ -23,7 +23,7 @@ import {
   Links
 } from "./shared/pkg";
 
-const BASE_PATH = "/";
+const BASE_PATH = "";
 
 /**
  * Generic interface for all of the HTTP method-specific handlers.
@@ -136,40 +136,23 @@ const manage = async ({ token }: IAuth) => {
   }
 };
 
-/**
- * Remove user and all attached nodes. This will
- * explicitly NOT remove any Providers. There is
- * a danger that if the User has somehow been linked
- * ad hoc to un-owned data, that another Users data
- * could be deleted.
- */
-const remove = async (auth: IAuth) => {
-  const user = authClaim(auth);
-  const allNodes = new Node(undefined, "a", undefined)
-  const { query } = (new Links()).delete(user, allNodes);
-  await connect(query);
-  return {
-    statusCode: 204
-  }
-}
+
+const _router = router().add(BASE_PATH, {
+  get: getToken,
+  post: register,
+  put: manage
+}).before(BASE_PATH, ["get", "delete"], withBasicAuth)
+.before(BASE_PATH, ["put"], withBearerToken)
+.before(BASE_PATH, ["post", "put"], jsonRequest)
+.after(BASE_PATH, ["get", "post", "put"], jsonResponse);
 
 /**
  * Auth Router
  */
 const handler: Handler = async (request) => {
-  const result = await router().add(BASE_PATH, {
-    get: getToken,
-    post: register,
-    put: manage,
-    delete: remove 
-  })
-    .before(BASE_PATH, ["get", "delete"], withBasicAuth)
-    .before(BASE_PATH, ["put"], withBearerToken)
-    .before(BASE_PATH, ["post", "put"], jsonRequest)
-    .after(BASE_PATH, ["get", "post", "put", "delete"], jsonResponse)
-    .handle(request)
+  const result = await _router.handle(request)
   console.log(result)
   return result
 }
 
-export { handler };
+export { handler: _router.handle };

@@ -142,10 +142,18 @@ exports.route = route;
  * Router is a function enclosure that allows multiple routes.
  */
 const router = () => {
+    // Closure-scoped lookup of routes
     const _routes = {};
+    /**
+     * Compare two routes
+     */
+    const compareRoute = (actual, candidate) => {
+    };
     const handle = ({ path, httpMethod, data }) => {
-        let route = _routes[path];
-        if (path in _routes) {
+        const available = Object.keys(_routes);
+        const normalized = (0, exports.parseRoute)(path).join("/");
+        let route = _routes[normalized];
+        if (typeof route !== "undefined") {
             return route.handle(httpMethod, data);
         }
         else {
@@ -153,14 +161,12 @@ const router = () => {
                 statusCode: 404,
                 data: {
                     title: `Not Found`,
-                    detail: {
-                        path,
-                        available: Object.keys(_routes)
-                    }
+                    detail: { path, normalized, available }
                 }
             }, "problem+");
         }
     };
+    // Reference the collection of methods, so that we can chain and return
     const _controls = {
         handle,
         add: undefined,

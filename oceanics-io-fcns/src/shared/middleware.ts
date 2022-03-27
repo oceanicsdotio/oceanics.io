@@ -144,27 +144,32 @@ export const route = (methods: object) => {
  * Router is a function enclosure that allows multiple routes. 
  */
 export const router = () => {
-    
+    // Closure-scoped lookup of routes
     const _routes = {}
 
+
+    /**
+     * 
+     */
     const handle = ({path, httpMethod, data}) => {
-        let route = _routes[path]
-        if (path in _routes) {
+        const available = Object.keys(_routes);
+        const normalized = parseRoute(path).join("/");
+        let route = _routes[normalized];
+
+        if (typeof route !== "undefined") {
             return route.handle(httpMethod, data)
         } else {
             return jsonResponse({
                 statusCode: 404,
                 data: { 
                     title: `Not Found`,
-                    detail: {
-                        path,
-                        available: Object.keys(_routes)
-                    }
+                    detail: { path, normalized, available }
                 }
             }, "problem+")
         }
     }
 
+    // Reference the collection of methods, so that we can chain and return
     const _controls = {
         handle,
         add: undefined,
