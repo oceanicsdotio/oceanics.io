@@ -9,11 +9,16 @@ import { Node } from "./pkg";
 // Stub type for generic entity Properties object.
 export type Properties = { [key: string]: any };
 
+// Handler lookup
+type HttpMethods = {
+    [key: string]: Function;
+}
+
 // Predictable inbound headers
 type Headers = { 
     authorization?: string;
     [key: string]: string;
- };
+}
 
 // Type of request after going through middleware. 
 export type ApiEvent = HandlerEvent & {
@@ -30,15 +35,6 @@ type ApiResponse = {
     data?: Properties;
 }
 
-// Response once it reaches Netlify service. 
-type JsonResponse = {
-    statusCode: number;
-    data?: Properties;
-    headers: {
-        "Content-Type": "application/json"|"application/problem+json"
-    };
-}
-
 // Type for handlers, more succinct
 export type ApiHandler = (event: ApiEvent) => Promise<ApiResponse>
 
@@ -49,7 +45,7 @@ type ErrorDetail = {
         details?: any[];
     };
     statusCode: number;
-    extension?: "problem+"
+    extension?: "problem+";
 }
 
 /**
@@ -68,19 +64,6 @@ export const connect = async (query: string, callback: Function|null = null) => 
     return callback ? callback(result) : result;
 }
 
-// Format key value as cypher
-const valueToString = ([key, value]) => {
-    let serialized: any;
-    switch (typeof value) {
-        case "object":
-            serialized = JSON.stringify(value);
-            break;
-        default:
-            serialized = value
-    }
-    return `${key}: '${serialized}'`
-}
-
 /**
  * Like JSON stringify, but outputs valid Cypher Node Properties
  * from an object. Nested objects will be JSON strings. 
@@ -89,6 +72,21 @@ const valueToString = ([key, value]) => {
  * Same with serialize.
  */
 export const materialize = (properties: Properties, symbol: string, label: string): Node => {
+    // Format key value as cypher
+    const valueToString = ([key, value]) => {
+        let serialized: any;
+        switch (typeof value) {
+            case "object":
+                serialized = JSON.stringify(value);
+                break;
+            default:
+                serialized = value
+        }
+        return `${key}: '${serialized}'`
+    }
+    // Common filter need
+    const removeFalsy = ([_, value]) => typeof value !== "undefined" && !!value;
+
     const props = Object.entries(properties).filter(removeFalsy).map(valueToString).join(", ")
     return new Node(props, symbol, label)
 }
@@ -153,37 +151,48 @@ const INVALID_METHOD = {
     extension: "problem+"
 };
 
-// Common filter need
-const removeFalsy = ([_, value]) => typeof value !== "undefined" && !!value;
-
 // Securely store and compare passwords
 export const hashPassword = (password: string, secret: string) =>
     crypto.pbkdf2Sync(password, secret, 100000, 64, "sha512").toString("hex");
 
 // Test part of path, and reject if it is blank or part of the restricted set. 
-export const filterBaseRoute = (symbol: string) =>
+const filterBaseRoute = (symbol: string) =>
     !!symbol && !STRIP_BASE_PATH_PREFIX.has(symbol);
 
-// Get meaningful tokens from full route
-export const parseRoute = (path: string) =>
-    path.split("/").filter(filterBaseRoute)
+/**
+ * Convert part of path into a resource identifier that
+ * includes the UUID and Label.
+ */
+const parseToken = (text: string) => {
+    let label: string = "";
+    let uuid: string = "";
+    // Identifiers are delimited with parentheses
+    if (text.includes("(")) {
+        const parts = text.split("(")
+        label = parts[0]
+        uuid = parts[1].replace(")", "")
+    } else {
+        label = text
+    }
+    return [uuid, label]
+}
 
 /**
  * Matching pattern based on basic auth information
  */
-function basicAuthClaim({ authorization }: Headers): Node {
+const basicAuthClaim = ({ authorization }: Headers) => {
     const [email, password, secret] = authorization.split(":");
-    return materialize({ email, credential: hashPassword(password, secret) }, null, "User");
+    return { email, credential: hashPassword(password, secret) };
 }
 
 /**
  * Matching pattern based on bearer token authorization with JWT. Used in Auth, and to 
  * validate other APIs.
  */
-const bearerAuthClaim = ({ authorization }: Headers): Node => {
+const bearerAuthClaim = ({ authorization }: Headers) => {
     const [, token] = authorization.split(":");
     const { uuid } = jwt.verify(token, process.env.SIGNING_KEY) as JwtPayload;
-    return materialize({ uuid }, "u", "User");
+    return { uuid };
 }
 
 /**
@@ -196,61 +205,46 @@ const bearerAuthClaim = ({ authorization }: Headers): Node => {
  *   - add a step before or after the handler call
  *   - handle a request
  */
-export function NetlifyRouter(methods: { [key: string]: Function }, pathSpec?: Object): Handler {
+export function NetlifyRouter(methods: HttpMethods, pathSpec?: Object): Handler {
+    const upperCase = (key: string) => key.toUpperCase();
 
-    let _methods = {
+    const _methods = {
         ...methods,
-        options: () => Object({
+        OPTIONS: () => Object({
             statusCode: 204,
-            headers: { Allow: Object.keys(methods).join(",") }
+            headers: { Allow: Object.keys(methods).map(upperCase).join(",") }
         })
-    };
+    }
 
-    return async function ({ path, httpMethod, body, headers, ...request }: HandlerEvent) {
-        const key = httpMethod.toLowerCase();
-        if (!(key in methods)) return INVALID_METHOD;
-        const handler = methods[key];
-        const security = pathSpec[key]; // get security protocols if any
+    return async function ({
+        path, 
+        httpMethod,
+        body,
+        headers,
+        ...request
+    }: HandlerEvent) {
+        if (!(httpMethod in _methods)) return INVALID_METHOD;
+        const handler = _methods[httpMethod];
+        const security = pathSpec[httpMethod]; // security protocols if any
+        const nodes = path.split("/").filter(filterBaseRoute).map(parseToken) // get uuid and labels
        
         let authClaim: Node;
+
         if ("BearerAuth" in security) {
-            authClaim = bearerAuthClaim(headers)
+            authClaim = materialize(bearerAuthClaim(headers), "u", "User")
         } else if ("BasicAuth" in security) {
-            authClaim = basicAuthClaim(headers)
+            authClaim = materialize(basicAuthClaim(headers), "u", "User")
             const {query} = authClaim.load()
             const records = await connect(query, transform)
             if (records.length !== 1) return UNAUTHORIZED
             authClaim = records[0]
         }
 
-        const data = 
-
-
-// I dunno!?
-const insertProperties = (text: string, index: number, array: string[]) => {
-
-    const isFinalPart = index === (array.length - 1)
-    const hasBodyProps = isFinalPart && ["POST", "PUT"].includes(httpMethod);
-    const props = hasBodyProps ? JSON.parse(body) : {};
-
-    let label: string = "";
-    let uuid: string = "";
-
-    // Identifiers are delimited with parentheses
-    if (text.includes("(")) {
-        const parts = text.split("(")
-        label = parts[0]
-        uuid = parts[1].replace(")", "")
-    } else {
-        label = text
-    }
-    return materialize({ uuid, ...props }, `n${index}`, label)
-}
-
         const {extension="", data, ...result} = await handler({
-            path,
-            httpMethod,
-            data: ["post", "put"].includes(key) ? JSON.parse(body) : {},
+            data: {
+                nodes,
+                ...(["post", "put"].includes(key) ? JSON.parse(body) : {})
+            },
             ...request
         })
 
@@ -264,7 +258,3 @@ const insertProperties = (text: string, index: number, array: string[]) => {
         }
     }
 }
-
-
-
-
