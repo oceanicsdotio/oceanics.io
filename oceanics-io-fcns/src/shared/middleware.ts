@@ -9,9 +9,14 @@ import { Node } from "./pkg";
 // Stub type for generic entity Properties object.
 export type Properties = { [key: string]: any };
 
+enum HttpMethod {POST, OPTIONS, PUT, GET, QUERY, DELETE, PATCH};
+
+// TODO: pre-determine this from the API specification
+const METHODS_WITH_BODY: HttpMethod[] = ["POST", "PUT"];
+
 // Handler lookup
 type HttpMethods = {
-    [key: string]: Function;
+    [key in HttpMethod]: Function;
 }
 
 // Predictable inbound headers
@@ -196,14 +201,19 @@ const bearerAuthClaim = ({ authorization }: Headers) => {
 }
 
 /**
- * Execute a handler function depending on the HTTP method. Want to take 
- * declarative approach. We can just pass in object. 
+ * Return a handler function depending on the HTTP method. Want to take 
+ * declarative approach: just pass in an object containing handlers for
+ * each defined method, and an OpenAPI 3.1 specification. It is not entirely
+ * backwards compatible with 3.0 syntax, because we want to enable validation
+ * middleware with AJV and need valid JSONSchema.
  * 
- * You must:
- *   - pass in routes to the enclosure
- * You can:
- *   - add a step before or after the handler call
- *   - handle a request
+ * All other functionality is derived from the API spec. This includes JSON 
+ * parsing and serialization, and security checks. 
+ * 
+ * Because ACL is baked into the graph and query, 
+ * we authenticate during the query so that only a single transaction is required.
+ * The side-effect is that it can be hard to tell the difference between a 404 and
+ * 403 error. 
  */
 export function NetlifyRouter(methods: HttpMethods, pathSpec?: Object): Handler {
     const upperCase = (key: string) => key.toUpperCase();
@@ -216,6 +226,9 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: Object): Handler 
         })
     }
 
+    /**
+     * Return he actual bound handler. 
+     */
     return async function ({
         path, 
         httpMethod,
@@ -225,29 +238,31 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: Object): Handler 
     }: HandlerEvent) {
         if (!(httpMethod in _methods)) return INVALID_METHOD;
         const handler = _methods[httpMethod];
-        const security = pathSpec[httpMethod]; // security protocols if any
-        const nodes = path.split("/").filter(filterBaseRoute).map(parseToken) // get uuid and labels
-       
-        let authClaim: Node;
 
+        const {security} = pathSpec[httpMethod]; // security protocols if any
+        let user: Node;
         if ("BearerAuth" in security) {
-            authClaim = materialize(bearerAuthClaim(headers), "u", "User")
+            user = materialize(bearerAuthClaim(headers), "u", "User");
         } else if ("BasicAuth" in security) {
-            authClaim = materialize(basicAuthClaim(headers), "u", "User")
-            const {query} = authClaim.load()
-            const records = await connect(query, transform)
-            if (records.length !== 1) return UNAUTHORIZED
-            authClaim = records[0]
+            user = materialize(basicAuthClaim(headers), "u", "User");
+            const {query} = user.load();
+            const records = await connect(query, transform);
+            if (records.length !== 1) return UNAUTHORIZED;
+            user = records[0];
+        } else {
+            // The only route without an empty security schema Register, 
+            // and it will likely have ApiKeyAuth in the future. 
         }
 
+        const nodes = path.split("/").filter(filterBaseRoute).map(parseToken);
+        const additionalParameters = 
+            METHODS_WITH_BODY.includes(httpMethod) ? JSON.parse(body) : {};
         const {extension="", data, ...result} = await handler({
-            data: {
-                nodes,
-                ...(["post", "put"].includes(key) ? JSON.parse(body) : {})
-            },
+            data: { user, nodes, ...additionalParameters },
             ...request
-        })
+        });
 
+        // Make it a valid JSON response. Core API doesn't use other content types. 
         return {
             ...result,
             headers: {
