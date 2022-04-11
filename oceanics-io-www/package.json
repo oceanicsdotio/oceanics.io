@@ -15,7 +15,7 @@
     "oceanics-io-ui": "*",
     "oceanics-io-wasm": "*",
     "react": "17.0.2",
-    "react-dom": "17.0.2",
+    "react-dom": "18.0.0",
     "react-typography": "^0.16.19",
     "remark": "^14.0.1",
     "remark-html": "^15.0.0",
