@@ -1,6 +1,75 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.router = exports.route = exports.withBearerToken = exports.withBasicAuth = exports.notImplemented = exports.jsonRequest = exports.catchAll = exports.jsonResponse = exports.parseRoute = exports.filterBaseRoute = void 0;
+exports.NetlifyRouter = exports.hashPassword = exports.UNAUTHORIZED = exports.NOT_IMPLEMENTED = exports.transform = exports.materialize = exports.connect = void 0;
+const neo4j_driver_1 = __importDefault(require("neo4j-driver"));
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const crypto_1 = __importDefault(require("crypto"));
+const pkg_1 = require("./pkg");
+var Method;
+(function (Method) {
+    Method["POST"] = "POST";
+    Method["PUT"] = "PUT";
+    Method["OPTIONS"] = "OPTIONS";
+    Method["QUERY"] = "QUERY";
+    Method["DELETE"] = "DELETE";
+    Method["GET"] = "GET";
+    Method["HEAD"] = "HEAD";
+})(Method || (Method = {}));
+;
+// TODO: pre-determine this from the API specification
+const METHODS_WITH_BODY = [Method.POST, Method.PUT];
+/**
+ * Connect to graph database using the service account credentials,
+ * and execute a single query. For convenience you can pass in a callback
+ * to execute on the result.
+ */
+const connect = async (query, callback = null) => {
+    var _a, _b;
+    const driver = neo4j_driver_1.default.driver((_a = process.env.NEO4J_HOSTNAME) !== null && _a !== void 0 ? _a : "", neo4j_driver_1.default.auth.basic("neo4j", (_b = process.env.NEO4J_ACCESS_KEY) !== null && _b !== void 0 ? _b : ""));
+    const session = driver.session({ defaultAccessMode: neo4j_driver_1.default.session.READ });
+    const result = await session.run(query);
+    await driver.close();
+    return callback ? callback(result) : result;
+};
+exports.connect = connect;
+/**
+ * Like JSON stringify, but outputs valid Cypher Node Properties
+ * from an object. Nested objects will be JSON strings.
+ * Shorthand for serializing an a properties object and creating a Node instance from it.
+ * This should be pushed down into a Node static method at some point.
+ * Same with serialize.
+ */
+const materialize = (properties, symbol, label) => {
+    // Format key value as cypher
+    const valueToString = ([key, value]) => {
+        let serialized;
+        switch (typeof value) {
+            case "object":
+                serialized = JSON.stringify(value);
+                break;
+            default:
+                serialized = value;
+        }
+        return `${key}: '${serialized}'`;
+    };
+    // Common filter need
+    const removeFalsy = ([_, value]) => typeof value !== "undefined" && !!value;
+    const props = Object.entries(properties).filter(removeFalsy).map(valueToString).join(", ");
+    return new pkg_1.Node(props, symbol, label);
+};
+exports.materialize = materialize;
+/**
+ * Transform from Neo4j response records type to generic internal node representation.
+ *
+ * This will pass out only one of the labels attached to the node. It is almost always used
+ * on the result of a cypher query.
+ */
+const transform = ({ records }) => records.flatMap((record) => Object.values(record.toObject()))
+    .map(({ labels: [primary], properties }) => [primary, properties]);
+exports.transform = transform;
 /**
  * Magic strings, that we know may exist in the path. It depends on whether the
  * request is being made directly against the netlify functions, or through
@@ -11,186 +80,133 @@ const STRIP_BASE_PATH_PREFIX = new Set([
     "functions",
     "api",
     "auth",
-    "sensor-things"
+    "entity",
+    "topology",
+    "index"
 ]);
+// Convenience method while in development
+exports.NOT_IMPLEMENTED = {
+    statusCode: 501,
+    data: {
+        message: "Not Implemented"
+    },
+    extension: "problem+"
+};
+exports.UNAUTHORIZED = {
+    statusCode: 403,
+    data: {
+        message: "Unauthorized"
+    },
+    extension: "problem+"
+};
+const INVALID_METHOD = {
+    statusCode: 405,
+    data: { message: `Invalid HTTP Method` },
+    extension: "problem+"
+};
+// Securely store and compare passwords
+const hashPassword = (password, secret) => crypto_1.default.pbkdf2Sync(password, secret, 100000, 64, "sha512").toString("hex");
+exports.hashPassword = hashPassword;
 // Test part of path, and reject if it is blank or part of the restricted set. 
 const filterBaseRoute = (symbol) => !!symbol && !STRIP_BASE_PATH_PREFIX.has(symbol);
-exports.filterBaseRoute = filterBaseRoute;
-// Get meaningful tokens from full route
-const parseRoute = (path) => path.split("/").filter(exports.filterBaseRoute);
-exports.parseRoute = parseRoute;
-// Format response
-const jsonResponse = ({ headers = {}, data, ...response }, extension = "") => {
-    return {
-        ...response,
-        headers: {
-            ...headers,
-            'Content-Type': `application/${extension}json`
-        },
-        body: JSON.stringify(data)
-    };
-};
-exports.jsonResponse = jsonResponse;
 /**
- * Make sure we don't leak anything in an error message.
+ * Convert part of path into a resource identifier that
+ * includes the UUID and Label.
  */
-function catchAll(wrapped) {
-    return (...args) => {
-        try {
-            return wrapped(...args);
-        }
-        catch (error) {
-            return (0, exports.jsonResponse)({
-                statusCode: 500,
-                data: {
-                    title: "Server Error",
-                    detail: "Additional details disabled"
-                }
-            }, "problem+");
-        }
-    };
-}
-exports.catchAll = catchAll;
-// Deserialize request body
-const jsonRequest = ({ httpMethod, body, ...rest }) => {
-    return {
-        ...rest,
-        httpMethod,
-        data: JSON.parse(body)
-    };
+const parseToken = (text) => {
+    let label = "";
+    let uuid = "";
+    // Identifiers are delimited with parentheses
+    if (text.includes("(")) {
+        const parts = text.split("(");
+        label = parts[0];
+        uuid = parts[1].replace(")", "");
+    }
+    else {
+        label = text;
+    }
+    return [uuid, label];
 };
-exports.jsonRequest = jsonRequest;
-// Convenience method while in development
-const notImplemented = () => {
-    return {
-        statusCode: 501,
-        data: {
-            message: "Not Implemented"
-        }
-    };
-};
-exports.notImplemented = notImplemented;
-const withBasicAuth = ({ headers, ...rest }) => {
-    var _a;
-    const [email, password, secret] = ((_a = headers.authorization) !== null && _a !== void 0 ? _a : "").split(":");
-    return { ...rest, auth: { email, password, secret } };
-};
-exports.withBasicAuth = withBasicAuth;
-const withBearerToken = ({ headers, ...rest }) => {
-    var _a;
-    const [, token] = ((_a = headers.authorization) !== null && _a !== void 0 ? _a : "").split(":");
-    return { ...rest, auth: { token } };
-};
-exports.withBearerToken = withBearerToken;
 /**
- * Execute a handler function depending on the HTTP method. Want to take
- * declarative approach. We can just pass in object.
+ * Matching pattern based on basic auth information
+ */
+const basicAuthClaim = ({ authorization = "::" }) => {
+    const [email, password, secret] = authorization.split(":");
+    return { email, credential: (0, exports.hashPassword)(password, secret) };
+};
+/**
+ * Matching pattern based on bearer token authorization with JWT. Used in Auth, and to
+ * validate other APIs.
+ */
+const bearerAuthClaim = ({ authorization }) => {
+    const [, token] = authorization.split(":");
+    const { uuid } = jsonwebtoken_1.default.verify(token, process.env.SIGNING_KEY);
+    return { uuid };
+};
+/**
+ * Return a handler function depending on the HTTP method. Want to take
+ * declarative approach: just pass in an object containing handlers for
+ * each defined method, and an OpenAPI 3.1 specification. It is not entirely
+ * backwards compatible with 3.0 syntax, because we want to enable validation
+ * middleware with AJV and need valid JSONSchema.
  *
- * You must:
- *   - pass in routes to the enclosure
- * You can:
- *   - add a step before or after the handler call
- *   - handle a request
+ * All other functionality is derived from the API spec. This includes JSON
+ * parsing and serialization, and security checks.
+ *
+ * Because ACL is baked into the graph and query,
+ * we authenticate during the query so that only a single transaction is required.
+ * The side-effect is that it can be hard to tell the difference between a 404 and
+ * 403 error.
  */
-const route = (methods) => {
-    // Create lookup table inside the closure
-    let _methods = {
+function NetlifyRouter(methods, pathSpec) {
+    const _methods = {
         ...methods,
-        options: () => Object({
+        OPTIONS: () => Object({
             statusCode: 204,
             headers: { Allow: Object.keys(methods).join(",") }
         })
     };
-    // Generic function generator for adding stages
-    const before = (keys, fcn) => {
-        for (const key of keys) {
-            const _key = key.toLowerCase();
-            if (!(_key in _methods))
-                throw Error(`Invalid Key: ${_key}`);
-            _methods[_key] = (data) => _methods[_key](fcn(data));
-        }
-    };
-    // Generic function generator for adding stages
-    const after = (keys, fcn) => {
-        for (const key of keys) {
-            const _key = key.toLowerCase();
-            if (!(_key in _methods))
-                throw Error(`Invalid Key: ${_key}`);
-            _methods[_key] = (data) => fcn(_methods[_key](data));
-        }
-    };
-    // Method-level router for single path/pattern
-    const handle = (httpMethod, data) => {
-        const key = httpMethod.toLowerCase();
-        const handler = _methods[key];
-        if (typeof handler !== "undefined")
-            return handler(data);
-        // Invalid method
-        return {
-            statusCode: 405,
-            data: { message: `Invalid HTTP Method` },
-        };
-    };
-    return {
-        handle,
-        before,
-        after
-    };
-};
-exports.route = route;
-/**
- * Router is a function enclosure that allows multiple routes.
- */
-const router = () => {
-    // Closure-scoped lookup of routes
-    const _routes = {};
     /**
-     * Compare two routes
+     * Return he actual bound handler.
      */
-    const compareRoute = (actual, candidate) => {
-    };
-    const handle = ({ path, httpMethod, data }) => {
-        const available = Object.keys(_routes);
-        const normalized = (0, exports.parseRoute)(path).join("/");
-        let route = _routes[normalized];
-        if (typeof route !== "undefined") {
-            return route.handle(httpMethod, data);
+    return async function ({ path, httpMethod, body, headers, ...request }) {
+        if (!(httpMethod in _methods))
+            return INVALID_METHOD;
+        const handler = _methods[httpMethod];
+        // security protocols if any
+        const security = pathSpec[httpMethod.toLowerCase()].security.reduce((lookup, schema) => Object.assign(lookup, schema), {});
+        let user;
+        if ("BearerAuth" in security) {
+            user = (0, exports.materialize)(bearerAuthClaim(headers), "u", "User");
+        }
+        else if ("BasicAuth" in security) {
+            user = (0, exports.materialize)(basicAuthClaim(headers), "u", "User");
+            const { query } = user.load();
+            const records = await (0, exports.connect)(query, exports.transform);
+            if (records.length !== 1)
+                return exports.UNAUTHORIZED;
+            user = records[0];
         }
         else {
-            return (0, exports.jsonResponse)({
-                statusCode: 404,
-                data: {
-                    title: `Not Found`,
-                    detail: { path, normalized, available }
-                }
-            }, "problem+");
+            // The only route without an empty security schema Register, 
+            // and it will likely have ApiKeyAuth in the future. 
         }
+        console.log({ user, security, path });
+        const nodes = path.split("/").filter(filterBaseRoute).map(parseToken);
+        const additionalParameters = METHODS_WITH_BODY.includes(httpMethod) ? JSON.parse(body) : {};
+        const { extension = "", data, ...result } = await handler({
+            data: { user, nodes, ...additionalParameters },
+            ...request
+        });
+        // Make it a valid JSON response. Core API doesn't use other content types. 
+        return {
+            ...result,
+            headers: {
+                ...result.headers,
+                'Content-Type': `application/${extension}json`
+            },
+            body: JSON.stringify(data)
+        };
     };
-    // Reference the collection of methods, so that we can chain and return
-    const _controls = {
-        handle,
-        add: undefined,
-        before: undefined,
-        after: undefined
-    };
-    _controls.add = function (path, methods) {
-        if (path in _routes)
-            throw Error(`Route Exists: ${path}`);
-        _routes[path] = (0, exports.route)(methods);
-        return _controls;
-    };
-    _controls.before = function (path, methods, fcn) {
-        if (!(path in _routes))
-            throw Error(`Route Does Not Exist: ${path}`);
-        _routes[path].before(methods, fcn);
-        return _controls;
-    };
-    _controls.after = function (path, methods, fcn) {
-        if (!(path in _routes))
-            throw Error(`Route Does Not Exist: ${path}`);
-        _routes[path].after(methods, fcn);
-        return _controls;
-    };
-    return _controls;
-};
-exports.router = router;
+}
+exports.NetlifyRouter = NetlifyRouter;

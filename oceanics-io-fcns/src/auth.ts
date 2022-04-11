@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
+import apiSpec from "./shared/bathysphere.json";
 
 import { 
   connect, 
@@ -76,6 +77,6 @@ const getToken = async ({
  * Auth Router
  */
 export const handler = NetlifyRouter({
-  get: getToken,
-  post: register
-})
+  GET: getToken,
+  POST: register
+}, apiSpec.paths["/auth"])

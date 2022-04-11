@@ -9,14 +9,22 @@ import { Node } from "./pkg";
 // Stub type for generic entity Properties object.
 export type Properties = { [key: string]: any };
 
-enum HttpMethod {POST, OPTIONS, PUT, GET, QUERY, DELETE, PATCH};
+enum Method {
+    POST = "POST", 
+    PUT = "PUT",
+    OPTIONS = "OPTIONS",
+    QUERY = "QUERY",
+    DELETE = "DELETE",
+    GET = "GET",
+    HEAD = "HEAD"
+};
 
 // TODO: pre-determine this from the API specification
-const METHODS_WITH_BODY: HttpMethod[] = ["POST", "PUT"];
+const METHODS_WITH_BODY: Method[] = [Method.POST, Method.PUT];
 
 // Handler lookup
 type HttpMethods = {
-    [key in HttpMethod]: Function;
+    [key in Method]?: Function;
 }
 
 // Predictable inbound headers
@@ -124,15 +132,6 @@ const STRIP_BASE_PATH_PREFIX = new Set([
     "index"
 ]);
 
-// Generic server error
-const SERVER_ERROR: ErrorDetail = {
-    statusCode: 500,
-    data: {
-        message: "Server error"
-    },
-    extension: "problem+"
-};
-
 // Convenience method while in development
 export const NOT_IMPLEMENTED: ErrorDetail = {
     statusCode: 501,
@@ -185,7 +184,7 @@ const parseToken = (text: string) => {
 /**
  * Matching pattern based on basic auth information
  */
-const basicAuthClaim = ({ authorization }: Headers) => {
+const basicAuthClaim = ({ authorization="::" }: Headers) => {
     const [email, password, secret] = authorization.split(":");
     return { email, credential: hashPassword(password, secret) };
 }
@@ -216,18 +215,17 @@ const bearerAuthClaim = ({ authorization }: Headers) => {
  * 403 error. 
  */
 export function NetlifyRouter(methods: HttpMethods, pathSpec?: Object): Handler {
-    const upperCase = (key: string) => key.toUpperCase();
-
+   
     const _methods = {
         ...methods,
         OPTIONS: () => Object({
             statusCode: 204,
-            headers: { Allow: Object.keys(methods).map(upperCase).join(",") }
+            headers: { Allow: Object.keys(methods).join(",") }
         })
     }
 
     /**
-     * Return he actual bound handler. 
+     * Return the actual bound handler. 
      */
     return async function ({
         path, 
@@ -239,7 +237,11 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: Object): Handler 
         if (!(httpMethod in _methods)) return INVALID_METHOD;
         const handler = _methods[httpMethod];
 
-        const {security} = pathSpec[httpMethod]; // security protocols if any
+        // security protocols if any
+        const security = pathSpec[httpMethod.toLowerCase()].security.reduce(
+            (lookup: Object, schema: Object) => Object.assign(lookup, schema),
+            {}
+        ); 
         let user: Node;
         if ("BearerAuth" in security) {
             user = materialize(bearerAuthClaim(headers), "u", "User");
@@ -256,7 +258,7 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: Object): Handler 
 
         const nodes = path.split("/").filter(filterBaseRoute).map(parseToken);
         const additionalParameters = 
-            METHODS_WITH_BODY.includes(httpMethod) ? JSON.parse(body) : {};
+            METHODS_WITH_BODY.includes(httpMethod as Method) ? JSON.parse(body) : {};
         const {extension="", data, ...result} = await handler({
             data: { user, nodes, ...additionalParameters },
             ...request

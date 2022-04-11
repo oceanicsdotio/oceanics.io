@@ -32,6 +32,6 @@ const drop: ApiHandler = async ({ data: { nodes: [left, right] } }) => {
  * You can only access results for that test, although multiple collections * may be stored in a single place 
  */
 export const handler = NetlifyRouter({
-  post: join,
-  delete: drop
+  POST: join,
+  DELETE: drop
 });

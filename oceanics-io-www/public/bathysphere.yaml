@@ -78,7 +78,6 @@ paths:
       summary: Register
       security: []
       description: |
-
         Register an e-mail address to get access to development API. Accounts are for development and testing purposes only. We won't share your contact information, but we do reserve the right to analyze and profile your use of our infrastructure, as well as monitor un-encrypted traffic.
 
         Contact us if you are interested in a dedicated database instance, or long-term multi-tenancy hosting.
@@ -100,7 +99,6 @@ paths:
       security:
         - BasicAuth: []
       description: |
-
         Exchange token or email and password for a Javascript Web Token. This will allow you make API calls and use graphical interfaces for a fixed period of time. If you have previously provided a secret, it will be required here to authenticate login and hash the token.
 
       parameters:
@@ -121,7 +119,6 @@ paths:
       security:
         - BearerAuth: []
       description: |
-
         Change e-mail address or password.
 
       requestBody:

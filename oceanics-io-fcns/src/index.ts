@@ -24,5 +24,5 @@ const index: ApiHandler = async () => {
 
 // HTTP Router
 export const handler = NetlifyRouter({
-  get: index
+  GET: index
 })

@@ -187,7 +187,7 @@ describe("API Request Validator", function () {
       describe(nodeType, validateInterface(nodeType));
     }
 
-        /**
+    /**
      * Create a `describe` block for each of the Sensing API entities
      */
     for (const nodeType of EXTENSIONS.sensing) {
@@ -225,8 +225,10 @@ describe("Auth API", function () {
   describe("Teardown", function () {
     /**
      * Remove User and and all linked, non-provider nodes.
+     * 
+     * Removed the route from the API for the time being. 
      */
-    it("clears non-provider, nodes", async function () {
+    xit("clears non-provider, nodes", async function () {
       const response = await fetch(`${API_PATH}/auth`, {
         method: "DELETE",
         headers: {

@@ -54,7 +54,7 @@ const remove: ApiHandler = async ({data: {user, nodes: [entity]}}) => {
 }
 
 export const handler = NetlifyRouter({
-  get: metadata,
-  post: create,
-  delete: remove
+  GET: metadata,
+  POST: create,
+  DELETE: remove
 })
