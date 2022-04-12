@@ -15,6 +15,7 @@ import { Reference } from "./Reference";
 
 export interface IDocument extends IStyled {
   document: DocumentType;
+  children: any;
 };
 interface IDocumentContent extends IDocument {
   onClickLabel: (label: string) => MouseEventHandler<HTMLAnchorElement>;

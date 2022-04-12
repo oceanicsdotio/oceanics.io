@@ -40,6 +40,7 @@ export const LongText: FC<LongTextType> = ({
     type,
     className,
     name = null,
+    children,
     ...props
 }) => 
     <textarea
