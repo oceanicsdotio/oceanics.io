@@ -1,8 +1,12 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.handler = void 0;
 const middleware_1 = require("./shared/middleware");
 const pkg_1 = require("./shared/pkg");
+const bathysphere_json_1 = __importDefault(require("./shared/bathysphere.json"));
 /**
  * Connect two nodes.
  */
@@ -33,4 +37,4 @@ const drop = async ({ data: { nodes: [left, right] } }) => {
 exports.handler = (0, middleware_1.NetlifyRouter)({
     POST: join,
     DELETE: drop
-});
+}, bathysphere_json_1.default.paths["/{entity}(uuid)"]);

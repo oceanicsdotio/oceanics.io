@@ -1,6 +1,7 @@
 import { connect, NetlifyRouter } from "./shared/middleware";
 import type { ApiHandler } from "./shared/middleware";
 import { Links } from "./shared/pkg";
+import apiSpec from "./shared/bathysphere.json";
 
 /**
  * Connect two nodes.
@@ -34,4 +35,4 @@ const drop: ApiHandler = async ({ data: { nodes: [left, right] } }) => {
 export const handler = NetlifyRouter({
   POST: join,
   DELETE: drop
-});
+}, apiSpec.paths["/{root}({rootId})/{entity}"]);

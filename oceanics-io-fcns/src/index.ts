@@ -1,6 +1,7 @@
 import { connect, NetlifyRouter } from "./shared/middleware";
 import type { ApiHandler } from "./shared/middleware";
 import { Node } from "./shared/pkg";
+import apiSpec from "./shared/bathysphere.json";
 
 // Convenience methods for chaining
 const restricted = new Set(["Provider", "User"]);
@@ -25,4 +26,4 @@ const index: ApiHandler = async () => {
 // HTTP Router
 export const handler = NetlifyRouter({
   GET: index
-})
+}, apiSpec.paths["/"])

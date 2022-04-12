@@ -1,6 +1,7 @@
 import { connect, transform, NetlifyRouter } from "./shared/middleware";
 import type { ApiHandler, Properties } from "./shared/middleware";
 import { Links } from "./shared/pkg";
+import apiSpec from "./shared/bathysphere.json";
 
 /**
  * Create some nodes, usually one, within the graph. This will
@@ -57,4 +58,4 @@ export const handler = NetlifyRouter({
   GET: metadata,
   POST: create,
   DELETE: remove
-})
+}, apiSpec.paths["/{entity}"])

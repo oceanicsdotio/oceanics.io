@@ -345,7 +345,7 @@ describe("Sensing API", function () {
       assert(!!allowed, "Empty Allow Header");
       assert(
         methods.length === expected,
-        `Unexpected Number Of Allowed Methods (${methods.length}/${expected})`
+        `Unexpected Number Of Allowed Methods (${methods.length}/${expected}, ${allowed})`
       );
     };
 
@@ -375,7 +375,7 @@ describe("Sensing API", function () {
       const { token } = await fetchToken();
       const response = await options(token, "Things");
       expect(response, 204);
-      testAllowedMethodCount(response.headers, 5);
+      testAllowedMethodCount(response.headers, 4);
     });
 
     /**

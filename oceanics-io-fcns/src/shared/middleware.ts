@@ -220,14 +220,14 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: Object): Handler 
         ...methods,
         OPTIONS: () => Object({
             statusCode: 204,
-            headers: { Allow: Object.keys(methods).join(",") }
+            headers: { Allow: ["OPTIONS", ...Object.keys(methods)].join(",") }
         })
     }
 
     /**
      * Return the actual bound handler. 
      */
-    return async function ({
+    const NetlifyHandler = async function ({
         path, 
         httpMethod,
         body,
@@ -238,12 +238,12 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: Object): Handler 
         const handler = _methods[httpMethod];
 
         // security protocols if any
-        const security = pathSpec[httpMethod.toLowerCase()].security.reduce(
-            (lookup: Object, schema: Object) => Object.assign(lookup, schema),
-            {}
-        ); 
+        const methodSpec = pathSpec[httpMethod.toLowerCase()] ?? {security: []};
+        const reduceMethods = (lookup: Object, schema: Object) => Object.assign(lookup, schema);
+        const security: string[] = methodSpec.security.reduce(reduceMethods, {}); 
+
         let user: Node;
-        if ("BearerAuth" in security) {
+        if (!methodSpec || "BearerAuth" in security) {
             user = materialize(bearerAuthClaim(headers), "u", "User");
         } else if ("BasicAuth" in security) {
             user = materialize(basicAuthClaim(headers), "u", "User");
@@ -274,4 +274,6 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: Object): Handler 
             body: JSON.stringify(data)
         }
     }
+
+    return NetlifyHandler;
 }

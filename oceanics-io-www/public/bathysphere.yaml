@@ -131,7 +131,7 @@ paths:
           $ref: '#/components/responses/BadRequest'
       
   /:
-
+  
     get:
       tags: [Catalog]
       summary: Catalog
