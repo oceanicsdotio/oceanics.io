@@ -18,13 +18,15 @@ type PaneType = {
     expand: boolean;
     mobile: boolean;
     className?: string;
+    children: any;
 }
 
 /**
  * Page component rendered by GatsbyJS.
  */
 const Pane: FC<PaneType> = ({
-    className, children
+    className, 
+    children
 }) => {
     return (
         <div className={className}>
