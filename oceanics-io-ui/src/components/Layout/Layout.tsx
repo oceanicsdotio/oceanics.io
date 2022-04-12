@@ -58,6 +58,7 @@ export interface ILayout {
     title: string;
     HeadComponent: any;
     description: string;
+    children: any;
 };
 
 export const Layout: FC<ILayout> = ({ 
@@ -78,7 +79,8 @@ export const Layout: FC<ILayout> = ({
             <Title href={"/"}>{title}</Title>  
         </NavBar>
         <main>
-            {children}</main>
+            {children}
+        </main>
         <footer>
             {PageData.policy.split("\n").filter((x: string) => x).map((text: string) => <p key={text}>{text}</p>)}
         </footer>

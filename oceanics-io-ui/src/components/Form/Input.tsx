@@ -42,15 +42,16 @@ export const Input: FC<InputType> = ({
     type,
     className,
     name = null,
-    options = [],
-    ...props
+    onChange,
+    required
 }) => 
     <input
         id={id}
         className={className}
         type={type}
         name={name??id}
-        {...props}
+        onChange={onChange}
+        required={required}
     />
     
 /**
