@@ -375,13 +375,13 @@ describe("Sensing API", function () {
       const { token } = await fetchToken();
       const response = await options(token, "Things");
       expect(response, 204);
-      testAllowedMethodCount(response.headers, 4);
+      testAllowedMethodCount(response.headers, 3);
     });
 
     /**
      * Options for topological paths
      */
-    it("reports for multi-node path", async function () {
+    xit("reports for multi-node path", async function () {
       const { token } = await fetchToken();
       const response = await options(token, "Things/Locations");
       expect(response, 204);

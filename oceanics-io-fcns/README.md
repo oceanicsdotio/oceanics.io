@@ -14,5 +14,5 @@ The flow to build sibling dependencies, compile from TypeScript, and test Auth A
 ```bash
 yarn api:build && yarn workspace oceanics-io-fcns build
 yarn netlify  # run Netlify dev stack, use another terminal
-yarn api:test -- --grep="Auth API"
+yarn api:test -- --grep="Sensor API"
 ```

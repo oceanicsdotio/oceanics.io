@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NetlifyRouter = exports.hashPassword = exports.UNAUTHORIZED = exports.NOT_IMPLEMENTED = exports.transform = exports.materialize = exports.connect = void 0;
+exports.NetlifyRouter = exports.hashPassword = exports.UNAUTHORIZED = exports.NOT_IMPLEMENTED = exports.metadata = exports.transform = exports.materialize = exports.connect = void 0;
 const neo4j_driver_1 = __importDefault(require("neo4j-driver"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const crypto_1 = __importDefault(require("crypto"));
@@ -71,6 +71,23 @@ const transform = ({ records }) => records.flatMap((record) => Object.values(rec
     .map(({ labels: [primary], properties }) => [primary, properties]);
 exports.transform = transform;
 /**
+ * Retrieve one or more entities of a single type. This may be filtered
+ * by any single property.
+ */
+const metadata = async ({ data: { user, nodes: [entity] } }) => {
+    const { query } = (new pkg_1.Links()).query(user, entity, entity.symbol);
+    const properties = (node) => node[1];
+    const value = (await (0, exports.connect)(query, exports.transform)).map(properties);
+    return {
+        statusCode: 200,
+        data: {
+            "@iot.count": value.length,
+            value,
+        }
+    };
+};
+exports.metadata = metadata;
+/**
  * Magic strings, that we know may exist in the path. It depends on whether the
  * request is being made directly against the netlify functions, or through
  * a proxy redirect.
@@ -101,7 +118,9 @@ exports.UNAUTHORIZED = {
 };
 const INVALID_METHOD = {
     statusCode: 405,
-    data: { message: `Invalid HTTP Method` },
+    data: {
+        message: `Invalid HTTP Method`
+    },
     extension: "problem+"
 };
 // Securely store and compare passwords
@@ -113,7 +132,7 @@ const filterBaseRoute = (symbol) => !!symbol && !STRIP_BASE_PATH_PREFIX.has(symb
  * Convert part of path into a resource identifier that
  * includes the UUID and Label.
  */
-const parseToken = (text) => {
+const asNodes = (httpMethod, body) => (text, index, arr) => {
     let label = "";
     let uuid = "";
     // Identifiers are delimited with parentheses
@@ -125,7 +144,14 @@ const parseToken = (text) => {
     else {
         label = text;
     }
-    return [uuid, label];
+    let properties = {};
+    if (index !== arr.length) {
+        properties = { uuid };
+    }
+    else if (METHODS_WITH_BODY.includes(httpMethod)) {
+        properties = JSON.parse(body);
+    }
+    return (0, exports.materialize)(properties, `n${index}`, label);
 };
 /**
  * Matching pattern based on basic auth information
@@ -140,8 +166,9 @@ const basicAuthClaim = ({ authorization = "::" }) => {
  */
 const bearerAuthClaim = ({ authorization }) => {
     const [, token] = authorization.split(":");
-    const { uuid } = jsonwebtoken_1.default.verify(token, process.env.SIGNING_KEY);
-    return { uuid };
+    const decoded = jsonwebtoken_1.default.verify(token, process.env.SIGNING_KEY);
+    console.log({ decoded, token, key: process.env.SIGNING_KEY });
+    return { uuid: decoded.uuid };
 };
 /**
  * Return a handler function depending on the HTTP method. Want to take
@@ -169,7 +196,7 @@ function NetlifyRouter(methods, pathSpec) {
     /**
      * Return the actual bound handler.
      */
-    return async function ({ path, httpMethod, body, headers, ...request }) {
+    const NetlifyHandler = async function ({ path, httpMethod, body, headers, ...request }) {
         var _a;
         if (!(httpMethod in _methods))
             return INVALID_METHOD;
@@ -180,7 +207,11 @@ function NetlifyRouter(methods, pathSpec) {
         const security = methodSpec.security.reduce(reduceMethods, {});
         let user;
         if (!methodSpec || "BearerAuth" in security) {
-            user = (0, exports.materialize)(bearerAuthClaim(headers), "u", "User");
+            const claim = bearerAuthClaim(headers);
+            if (typeof claim.uuid === "undefined" || !claim.uuid)
+                return exports.UNAUTHORIZED;
+            // Have to assume anything with uuid is valid until query hits
+            user = (0, exports.materialize)(claim, "u", "User");
         }
         else if ("BasicAuth" in security) {
             user = (0, exports.materialize)(basicAuthClaim(headers), "u", "User");
@@ -194,10 +225,13 @@ function NetlifyRouter(methods, pathSpec) {
             // The only route without an empty security schema Register, 
             // and it will likely have ApiKeyAuth in the future. 
         }
-        const nodes = path.split("/").filter(filterBaseRoute).map(parseToken);
-        const additionalParameters = METHODS_WITH_BODY.includes(httpMethod) ? JSON.parse(body) : {};
+        const nodeTransform = asNodes(httpMethod, body);
+        const nodes = path.split("/").filter(filterBaseRoute).map(nodeTransform);
         const { extension = "", data, ...result } = await handler({
-            data: { user, nodes, ...additionalParameters },
+            data: {
+                user,
+                nodes
+            },
             ...request
         });
         // Make it a valid JSON response. Core API doesn't use other content types. 
@@ -210,5 +244,6 @@ function NetlifyRouter(methods, pathSpec) {
             body: JSON.stringify(data)
         };
     };
+    return NetlifyHandler;
 }
 exports.NetlifyRouter = NetlifyRouter;

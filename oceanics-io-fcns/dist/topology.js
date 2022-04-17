@@ -17,7 +17,7 @@ const join = async ({ data: { nodes: [left, right], label } }) => {
     };
 };
 /**
- * Drop connection between nodes.
+ * Drop connection between two nodes.
  */
 const drop = async ({ data: { nodes: [left, right] } }) => {
     await (0, middleware_1.connect)((new pkg_1.Links()).drop(left, right).query);
@@ -37,4 +37,4 @@ const drop = async ({ data: { nodes: [left, right] } }) => {
 exports.handler = (0, middleware_1.NetlifyRouter)({
     POST: join,
     DELETE: drop
-}, bathysphere_json_1.default.paths["/{entity}(uuid)"]);
+}, bathysphere_json_1.default.paths["/{root}({rootId})/{entity}"]);

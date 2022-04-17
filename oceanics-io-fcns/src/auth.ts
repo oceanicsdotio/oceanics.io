@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import apiSpec from "./shared/bathysphere.json";
+import type { ApiHandler } from "./shared/middleware";
 
 import { 
   connect, 
@@ -29,9 +30,9 @@ export interface IAuth {
  * any validation of inputs here, such as for email address and
  * excluded passwords. Assume this is delegated to frontend. 
  */
-async function register ({
+const register: ApiHandler = async ({
   data: { apiKey, password, secret, email }
-}) {
+}) => {
   const provider = materialize({ apiKey }, "p", "Provider");
   const user = materialize({
     email,
@@ -58,17 +59,17 @@ async function register ({
  * data per the standard, it includes the UUID for the User, as this is the
  * information needed when validating access to data. 
  */
-const getToken = async ({
+const getToken: ApiHandler = async ({
   data: {
-    user: {
-      uuid
-    }
+    user
   }
 }) => {
+  console.log({user})
+
   return {
     statusCode: 200,
     data: {
-      token: jwt.sign({ uuid }, process.env.SIGNING_KEY, { expiresIn: 3600 })
+      token: jwt.sign({ uuid: undefined }, process.env.SIGNING_KEY, { expiresIn: 3600 })
     }
   }
 };

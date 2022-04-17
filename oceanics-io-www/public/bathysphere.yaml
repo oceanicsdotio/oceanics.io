@@ -224,24 +224,24 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-    put:
-      tags: [ Catalog ]
-      summary: Update
-      security:
-        - BearerAuth: []
-      description: Update entity
-      requestBody:
-        $ref: '#/components/requestBodies/Entity'
+    # put:
+    #   tags: [ Catalog ]
+    #   summary: Update
+    #   security:
+    #     - BearerAuth: []
+    #   description: Update entity
+    #   requestBody:
+    #     $ref: '#/components/requestBodies/Entity'
 
-      parameters:
-        - $ref: "#/components/parameters/entityClass"
-        - $ref: "#/components/parameters/entityId"
+    #   parameters:
+    #     - $ref: "#/components/parameters/entityClass"
+    #     - $ref: "#/components/parameters/entityId"
 
-      responses:
-        '200':
-          $ref: '#/components/responses/Entity'
-        '404':
-          $ref: '#/components/responses/NotFound'
+    #   responses:
+    #     '200':
+    #       $ref: '#/components/responses/Entity'
+    #     '404':
+    #       $ref: '#/components/responses/NotFound'
 
     delete:
       tags: [ Catalog ]

@@ -4,7 +4,7 @@ import type { Record } from "neo4j-driver";
 import jwt from "jsonwebtoken";
 import type { JwtPayload } from "jsonwebtoken";
 import crypto from "crypto";
-import { Node } from "./pkg";
+import { Node, Links } from "./pkg";
 
 // Stub type for generic entity Properties object.
 export type Properties = { [key: string]: any };
@@ -118,6 +118,23 @@ export const transform = ({ records }: { records: Record[] }): [string, Properti
         }) => [primary, properties])
 
 /**
+ * Retrieve one or more entities of a single type. This may be filtered
+ * by any single property. 
+ */
+export const metadata: ApiHandler = async ({data: {user, nodes: [entity]}}) => {
+    const { query } = (new Links()).query(user, entity, entity.symbol);
+    const properties = (node: [string, Properties]) => node[1];
+    const value = (await connect(query, transform)).map(properties);
+    return {
+        statusCode: 200,
+        data: {
+            "@iot.count": value.length,
+            value,
+        }
+    }
+}
+
+/**
  * Magic strings, that we know may exist in the path. It depends on whether the
  * request is being made directly against the netlify functions, or through
  * a proxy redirect. 
@@ -151,7 +168,9 @@ export const UNAUTHORIZED: ErrorDetail = {
 
 const INVALID_METHOD = {
     statusCode: 405,
-    data: { message: `Invalid HTTP Method` },
+    data: {
+        message: `Invalid HTTP Method`
+    },
     extension: "problem+"
 };
 
@@ -167,7 +186,7 @@ const filterBaseRoute = (symbol: string) =>
  * Convert part of path into a resource identifier that
  * includes the UUID and Label.
  */
-const parseToken = (text: string) => {
+const asNodes = (httpMethod: Method, body: string) => (text: string, index: number, arr: string[]) => {
     let label: string = "";
     let uuid: string = "";
     // Identifiers are delimited with parentheses
@@ -178,7 +197,15 @@ const parseToken = (text: string) => {
     } else {
         label = text
     }
-    return [uuid, label]
+
+    let properties = {};
+    if (index !== arr.length) {
+        properties = {uuid}
+    } else if (METHODS_WITH_BODY.includes(httpMethod)) {
+        properties = JSON.parse(body)
+    }
+    
+    return materialize(properties, `n${index}`, label)
 }
 
 /**
@@ -195,8 +222,9 @@ const basicAuthClaim = ({ authorization="::" }: Headers) => {
  */
 const bearerAuthClaim = ({ authorization }: Headers) => {
     const [, token] = authorization.split(":");
-    const { uuid } = jwt.verify(token, process.env.SIGNING_KEY) as JwtPayload;
-    return { uuid };
+    const decoded = jwt.verify(token, process.env.SIGNING_KEY) as JwtPayload;
+    console.log({decoded, token, key: process.env.SIGNING_KEY})
+    return { uuid: decoded.uuid };
 }
 
 /**
@@ -244,7 +272,10 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: Object): Handler 
 
         let user: Node;
         if (!methodSpec || "BearerAuth" in security) {
-            user = materialize(bearerAuthClaim(headers), "u", "User");
+            const claim = bearerAuthClaim(headers)
+            if (typeof claim.uuid === "undefined" || !claim.uuid) return UNAUTHORIZED
+            // Have to assume anything with uuid is valid until query hits
+            user = materialize(claim, "u", "User");
         } else if ("BasicAuth" in security) {
             user = materialize(basicAuthClaim(headers), "u", "User");
             const {query} = user.load();
@@ -256,11 +287,14 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: Object): Handler 
             // and it will likely have ApiKeyAuth in the future. 
         }
 
-        const nodes = path.split("/").filter(filterBaseRoute).map(parseToken);
-        const additionalParameters = 
-            METHODS_WITH_BODY.includes(httpMethod as Method) ? JSON.parse(body) : {};
+        const nodeTransform = asNodes(httpMethod as Method, body)
+        const nodes = path.split("/").filter(filterBaseRoute).map(nodeTransform);
+
         const {extension="", data, ...result} = await handler({
-            data: { user, nodes, ...additionalParameters },
+            data: { 
+                user, 
+                nodes
+            },
             ...request
         });
 

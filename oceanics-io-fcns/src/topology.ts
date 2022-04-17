@@ -14,7 +14,7 @@ const join: ApiHandler = async ({ data: { nodes: [left, right], label } }) => {
 }
 
 /**
- * Drop connection between nodes. 
+ * Drop connection between two nodes. 
  */
 const drop: ApiHandler = async ({ data: { nodes: [left, right] } }) => {
   await connect((new Links()).drop(left, right).query);

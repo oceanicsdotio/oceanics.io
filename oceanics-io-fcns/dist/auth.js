@@ -14,7 +14,7 @@ const pkg_1 = require("./shared/pkg");
  * any validation of inputs here, such as for email address and
  * excluded passwords. Assume this is delegated to frontend.
  */
-async function register({ data: { apiKey, password, secret, email } }) {
+const register = async ({ data: { apiKey, password, secret, email } }) => {
     const provider = (0, middleware_1.materialize)({ apiKey }, "p", "Provider");
     const user = (0, middleware_1.materialize)({
         email,
@@ -35,18 +35,18 @@ async function register({ data: { apiKey, password, secret, email } }) {
         data: { message: `Registered as a member of ${records[0].domain}.` },
         statusCode: 200
     };
-}
-;
+};
 /**
  * Exchange user name and password for JWT. In addition to the usual encoded
  * data per the standard, it includes the UUID for the User, as this is the
  * information needed when validating access to data.
  */
-const getToken = async ({ data: { user: { uuid } } }) => {
+const getToken = async ({ data: { user } }) => {
+    console.log({ user });
     return {
         statusCode: 200,
         data: {
-            token: jsonwebtoken_1.default.sign({ uuid }, process.env.SIGNING_KEY, { expiresIn: 3600 })
+            token: jsonwebtoken_1.default.sign({ uuid: undefined }, process.env.SIGNING_KEY, { expiresIn: 3600 })
         }
     };
 };
