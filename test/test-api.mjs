@@ -50,11 +50,7 @@ const EXTENSIONS = {
 const fetchToken = () =>
   fetch(`${API_PATH}/auth`, {
     headers: {
-      Authorization: [
-        process.env.SERVICE_ACCOUNT_USERNAME, 
-        process.env.SERVICE_ACCOUNT_PASSWORD, 
-        process.env.SERVICE_ACCOUNT_SECRET
-      ].join(":"),
+      Authorization: SERVICE_ACCOUNT_AUTHENTICATION,
     },
   }).then((response) => response.json());
 
