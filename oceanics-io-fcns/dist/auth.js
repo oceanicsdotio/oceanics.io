@@ -35,12 +35,18 @@ const register = async ({ data: { user, provider } }) => {
  * information needed when validating access to data.
  */
 const getToken = async ({ data: { user } }) => {
-    console.log(user.cypherRepr());
+    const [{ uuid }] = (0, middleware_1.dematerialize)(user);
     return {
         statusCode: 200,
         data: {
-            token: jsonwebtoken_1.default.sign({ uuid: undefined }, process.env.SIGNING_KEY, { expiresIn: 3600 })
+            token: jsonwebtoken_1.default.sign({ uuid }, process.env.SIGNING_KEY, { expiresIn: 3600 })
         }
+    };
+};
+// Just a stub for now, to enable testing of bearer auth
+const manage = async ({}) => {
+    return {
+        statusCode: 501
     };
 };
 /**
@@ -48,5 +54,6 @@ const getToken = async ({ data: { user } }) => {
  */
 exports.handler = (0, middleware_1.NetlifyRouter)({
     GET: getToken,
-    POST: register
+    POST: register,
+    PUT: manage
 }, bathysphere_json_1.default.paths["/auth"]);

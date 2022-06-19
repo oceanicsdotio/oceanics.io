@@ -113,6 +113,25 @@ export const materialize = (properties: Properties, symbol: string, label: strin
 }
 
 /**
+ * Approximate inverse of the `materialize` function, for extracting key, value data from a 
+ * WASM Node. 
+ */
+export const dematerialize = (node: Node): [Properties, string, string] => {
+    const stringToValue = (keyValue: string): [string, any] => {
+        const [key, serialized] =  keyValue.split(": ")
+        return [key, serialized.slice(1, serialized.length - 1)]
+    }
+
+    const properties: Properties = Object.fromEntries(node.patternOnly().split(", ").map(stringToValue));
+
+    return [properties, node.symbol, node.label]
+}
+
+
+
+
+
+/**
  * Transform from Neo4j response records type to generic internal node representation.
  * 
  * This will pass out only one of the labels attached to the node. It is almost always used
@@ -244,7 +263,7 @@ const bearerAuthClaim = ({ authorization }: Headers) => {
 /**
  * ApiKey is used to match to a provider claim
  */
-const apiKeyClaim = ({ ["X-API-KEY"]: apiKey }: Headers) => {
+const apiKeyClaim = ({ ["x-api-key"]: apiKey }: Headers) => {
     return { apiKey }
 }
 

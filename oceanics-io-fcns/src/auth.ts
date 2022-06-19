@@ -6,7 +6,8 @@ import {
   connect, 
   transform,
   NetlifyRouter,
-  UNAUTHORIZED
+  UNAUTHORIZED,
+  dematerialize
 } from "./shared/middleware";
 
 import { Links } from "./shared/pkg";
@@ -57,12 +58,11 @@ const getToken: ApiHandler = async ({
     user
   }
 }) => {
-  console.log(user.cypherRepr())
-
+  const [{uuid}] = dematerialize(user)
   return {
     statusCode: 200,
     data: {
-      token: jwt.sign({ uuid: undefined }, process.env.SIGNING_KEY, { expiresIn: 3600 })
+      token: jwt.sign({ uuid }, process.env.SIGNING_KEY, { expiresIn: 3600 })
     }
   }
 };

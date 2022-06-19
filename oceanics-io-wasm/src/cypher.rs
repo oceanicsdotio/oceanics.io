@@ -89,6 +89,17 @@ pub mod cypher {
             }
             symbol
         }
+
+        #[wasm_bindgen(getter)]
+        pub fn label(&self) -> String {
+            let label: String;
+            match &self.label {
+                None => label = String::from(""),
+                Some(value) => label = format!("{}", value),
+            }
+            label
+        }
+
         /**
          * Format the cypher query representation of the Node data structure
          */

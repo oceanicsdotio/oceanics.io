@@ -330,6 +330,7 @@ describe("Auth API", function () {
     it("authenticates with JWT", async function () {
       const { token } = await fetchToken();
       const response = await fetch(authPath, {
+        method: "PUT",
         headers: {
           Authorization: ["BearerAuth", token].join(":")
         }

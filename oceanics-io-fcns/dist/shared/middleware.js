@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NetlifyRouter = exports.hashPassword = exports.UNAUTHORIZED = exports.NOT_IMPLEMENTED = exports.metadata = exports.transform = exports.materialize = exports.connect = void 0;
+exports.NetlifyRouter = exports.hashPassword = exports.UNAUTHORIZED = exports.NOT_IMPLEMENTED = exports.metadata = exports.transform = exports.dematerialize = exports.materialize = exports.connect = void 0;
 const neo4j_driver_1 = __importDefault(require("neo4j-driver"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const crypto_1 = __importDefault(require("crypto"));
@@ -67,6 +67,15 @@ const materialize = (properties, symbol, label) => {
     return new pkg_1.Node(props, symbol, label);
 };
 exports.materialize = materialize;
+const dematerialize = (node) => {
+    const stringToValue = (keyValue) => {
+        const [key, serialized] = keyValue.split(": ");
+        return [key, serialized.slice(1, serialized.length - 1)];
+    };
+    const properties = Object.fromEntries(node.patternOnly().split(", ").map(stringToValue));
+    return [properties, node.symbol, node.label];
+};
+exports.dematerialize = dematerialize;
 /**
  * Transform from Neo4j response records type to generic internal node representation.
  *
@@ -179,7 +188,7 @@ const bearerAuthClaim = ({ authorization }) => {
 /**
  * ApiKey is used to match to a provider claim
  */
-const apiKeyClaim = ({ ["X-API-KEY"]: apiKey }) => {
+const apiKeyClaim = ({ ["x-api-key"]: apiKey }) => {
     return { apiKey };
 };
 /**

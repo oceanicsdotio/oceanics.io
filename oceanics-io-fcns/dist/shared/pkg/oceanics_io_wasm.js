@@ -598,7 +598,7 @@ function getUint8ClampedMemory0() {
 function getClampedArrayU8FromWasm0(ptr, len) {
     return getUint8ClampedMemory0().subarray(ptr / 1, ptr / 1 + len);
 }
-function __wbg_adapter_279(arg0, arg1, arg2, arg3) {
+function __wbg_adapter_280(arg0, arg1, arg2, arg3) {
     wasm.wasm_bindgen__convert__closures__invoke2_mut__he635f268f2714aeb(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
 }
 
@@ -1530,6 +1530,21 @@ class Node {
         }
     }
     /**
+    * @returns {string}
+    */
+    get label() {
+        try {
+            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+            wasm.node_label(retptr, this.ptr);
+            var r0 = getInt32Memory0()[retptr / 4 + 0];
+            var r1 = getInt32Memory0()[retptr / 4 + 1];
+            return getStringFromWasm0(r0, r1);
+        } finally {
+            wasm.__wbindgen_add_to_stack_pointer(16);
+            wasm.__wbindgen_free(r0, r1);
+        }
+    }
+    /**
     *
     *         * Format the cypher query representation of the Node data structure
     *
@@ -2283,7 +2298,7 @@ module.exports.__wbg_new_b1d61b5687f5e73a = function(arg0, arg1) {
             const a = state0.a;
             state0.a = 0;
             try {
-                return __wbg_adapter_279(a, state0.b, arg0, arg1);
+                return __wbg_adapter_280(a, state0.b, arg0, arg1);
             } finally {
                 state0.a = a;
             }
@@ -2390,7 +2405,7 @@ module.exports.__wbindgen_memory = function() {
     return addHeapObject(ret);
 };
 
-module.exports.__wbindgen_closure_wrapper746 = function(arg0, arg1, arg2) {
+module.exports.__wbindgen_closure_wrapper749 = function(arg0, arg1, arg2) {
     var ret = makeMutClosure(arg0, arg1, 92, __wbg_adapter_24);
     return addHeapObject(ret);
 };
