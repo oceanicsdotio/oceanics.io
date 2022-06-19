@@ -170,12 +170,6 @@ const asNodes = (httpMethod, body) => (text, index, arr) => {
     else if (METHODS_WITH_BODY.includes(httpMethod)) {
         properties = JSON.parse(body);
     }
-    console.log({
-        properties,
-        arrayLength: arr.length - 1,
-        index,
-        body
-    });
     return (0, exports.materialize)(properties, `n${index}`, label);
 };
 /**
@@ -191,9 +185,8 @@ const basicAuthClaim = ({ authorization = "::" }) => {
  */
 const bearerAuthClaim = ({ authorization }) => {
     const [, token] = authorization.split(":");
-    const decoded = jsonwebtoken_1.default.verify(token, process.env.SIGNING_KEY);
-    console.log({ decoded, token, key: process.env.SIGNING_KEY });
-    return { uuid: decoded.uuid };
+    const { uuid } = jsonwebtoken_1.default.verify(token, process.env.SIGNING_KEY);
+    return { uuid };
 };
 /**
  * ApiKey is used to match to a provider claim
@@ -239,9 +232,23 @@ function NetlifyRouter(methods, pathSpec) {
         let user;
         let provider;
         if (!methodSpec || Authentication.Bearer in security) {
-            const claim = bearerAuthClaim(headers);
-            if (typeof claim.uuid === "undefined" || !claim.uuid)
+            let claim;
+            try {
+                claim = bearerAuthClaim(headers);
+            }
+            catch (err) {
+                claim = {
+                    uuid: undefined,
+                    error: err.message
+                };
+            }
+            if (typeof claim.uuid === "undefined" || !claim.uuid) {
+                console.error({
+                    headers,
+                    claim
+                });
                 return exports.UNAUTHORIZED;
+            }
             // Have to assume anything with uuid is valid until query hits
             user = (0, exports.materialize)(claim, "u", "User");
         }

@@ -49,11 +49,28 @@ const manage = async ({}) => {
         statusCode: 501
     };
 };
+const remove = async ({ data: { user } }) => {
+    const { query } = new pkg_1.Links().delete(user, new pkg_1.Node());
+    try {
+        await (0, middleware_1.connect)(query);
+    }
+    catch (error) {
+        console.error({
+            user,
+            error
+        });
+        return middleware_1.UNAUTHORIZED;
+    }
+    return {
+        statusCode: 204
+    };
+};
 /**
  * Auth Router
  */
 exports.handler = (0, middleware_1.NetlifyRouter)({
     GET: getToken,
     POST: register,
-    PUT: manage
+    PUT: manage,
+    DELETE: remove,
 }, bathysphere_json_1.default.paths["/auth"]);

@@ -256,9 +256,8 @@ const basicAuthClaim = ({ authorization="::" }: Headers) => {
  */
 const bearerAuthClaim = ({ authorization }: Headers) => {
     const [, token] = authorization.split(":");
-    const decoded = jwt.verify(token, process.env.SIGNING_KEY) as JwtPayload;
-    console.log({decoded, token, key: process.env.SIGNING_KEY})
-    return { uuid: decoded.uuid };
+    const { uuid } = jwt.verify(token, process.env.SIGNING_KEY) as JwtPayload;
+    return { uuid };
 }
 
 /**
@@ -314,8 +313,22 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: Object): Handler 
         let user: Node;
         let provider: Node;
         if (!methodSpec || Authentication.Bearer in security) {
-            const claim = bearerAuthClaim(headers)
-            if (typeof claim.uuid === "undefined" || !claim.uuid) return UNAUTHORIZED
+            let claim: { uuid: string, error?: string };
+            try {
+                claim = bearerAuthClaim(headers);
+            } catch (err) {
+                claim = { 
+                    uuid: undefined,
+                    error: err.message
+                };
+            }
+            if (typeof claim.uuid === "undefined" || !claim.uuid) {
+                console.error({
+                    headers,
+                    claim
+                })
+                return UNAUTHORIZED
+            } 
             // Have to assume anything with uuid is valid until query hits
             user = materialize(claim, "u", "User");
         } else if (Authentication.Basic in security) {

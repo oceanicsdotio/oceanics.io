@@ -130,6 +130,20 @@ paths:
           description: No content
         '400':
           $ref: '#/components/responses/BadRequest'
+
+    delete:
+      tags: [Account]
+      summary: Delete
+      security:
+        - BearerAuth: []
+      description: |
+        Delete account and all connected data.
+
+      responses:
+        '204':
+          description: No content
+        '400':
+          $ref: '#/components/responses/BadRequest'
       
   /:
   

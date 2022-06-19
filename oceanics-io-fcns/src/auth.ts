@@ -10,7 +10,7 @@ import {
   dematerialize
 } from "./shared/middleware";
 
-import { Links } from "./shared/pkg";
+import { Links, Node } from "./shared/pkg";
 
 /**
  * Generic interface for all of the HTTP method-specific handlers.
@@ -68,9 +68,25 @@ const getToken: ApiHandler = async ({
 };
 
 // Just a stub for now, to enable testing of bearer auth
-const manage: ApiHandler =  async ({}) => {
+const manage: ApiHandler = async ({}) => {
   return {
     statusCode: 501
+  }
+}
+
+const remove: ApiHandler = async ({data: {user}}) => {
+  const { query } = new Links().delete(user, new Node());
+  try {
+    await connect(query);
+  } catch (error) {
+    console.error({
+      user,
+      error
+    })
+    return UNAUTHORIZED;
+  }
+  return {
+    statusCode: 204
   }
 }
 
@@ -80,5 +96,6 @@ const manage: ApiHandler =  async ({}) => {
 export const handler = NetlifyRouter({
   GET: getToken,
   POST: register,
-  PUT: manage
+  PUT: manage,
+  DELETE: remove,
 }, apiSpec.paths["/auth"])

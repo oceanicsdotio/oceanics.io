@@ -9,9 +9,11 @@ import crypto from "crypto";
 
 const BASE_PATH = "http://localhost:8888/.netlify/functions";
 const API_PATH = "http://localhost:8888/api";
-const TEST_USER = "test@oceanics.io";
-const TEST_PASSWORD = "n0t_p@55w0rd";
-const TEST_SECRET = "salt";
+const SERVICE_ACCOUNT_AUTHENTICATION = [
+  process.env.SERVICE_ACCOUNT_USERNAME??"", 
+  process.env.SERVICE_ACCOUNT_PASSWORD??"", 
+  process.env.SERVICE_ACCOUNT_SECRET??"",
+].join(":")
 const EXTENSIONS = {
   sensing: new Set([
     "Things",
@@ -48,7 +50,11 @@ const EXTENSIONS = {
 const fetchToken = () =>
   fetch(`${API_PATH}/auth`, {
     headers: {
-      Authorization: [TEST_USER, TEST_PASSWORD, TEST_SECRET].join(":"),
+      Authorization: [
+        process.env.SERVICE_ACCOUNT_USERNAME, 
+        process.env.SERVICE_ACCOUNT_PASSWORD, 
+        process.env.SERVICE_ACCOUNT_SECRET
+      ].join(":"),
     },
   }).then((response) => response.json());
 
@@ -214,9 +220,9 @@ describe("Auth API", function () {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        email: TEST_USER,
-        password: TEST_PASSWORD,
-        secret: TEST_SECRET,
+        email: process.env.SERVICE_ACCOUNT_USERNAME,
+        password: process.env.SERVICE_ACCOUNT_PASSWORD,
+        secret: process.env.SERVICE_ACCOUNT_SECRET,
         ...(typeof apiKey === "undefined" ? {} : { apiKey }),
       }),
     });
@@ -231,11 +237,12 @@ describe("Auth API", function () {
      * 
      * Removed the route from the API for the time being. 
      */
-    xit("clears non-provider, nodes", async function () {
+    it("clears non-provider, nodes", async function () {
+      const {token} = await fetchToken()
       const response = await fetch(authPath, {
         method: "DELETE",
         headers: {
-          Authorization: [TEST_USER, TEST_PASSWORD, TEST_SECRET].join(":"),
+          Authorization: ["BearerAuth", token].join(":"),
         },
       });
       assert(
@@ -311,7 +318,29 @@ describe("Auth API", function () {
     it("denies access with wrong credentials", async function () {
       const response = await fetch(authPath, {
         headers: {
-          Authorization: [TEST_USER, "a-very-bad-password", TEST_SECRET].join(
+          Authorization: [
+            process.env.SERVICE_ACCOUNT_USERNAME, 
+            "a-very-bad-password", 
+            process.env.SERVICE_ACCOUNT_SECRET
+          ].join(
+            ":"
+          ),
+        },
+      });
+      expect(response, 403);
+    });
+
+    /**
+     * Bad secret is a 403 error
+     */
+     it("denies access with wrong salt", async function () {
+      const response = await fetch(authPath, {
+        headers: {
+          Authorization: [
+            process.env.SERVICE_ACCOUNT_USERNAME, 
+            process.env.SERVICE_ACCOUNT_PASSWORD, 
+            "a-very-bad-secret",
+          ].join(
             ":"
           ),
         },
