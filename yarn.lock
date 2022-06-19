@@ -2894,21 +2894,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@next/eslint-plugin-next@npm:12.0.9":
+  version: 12.0.9
+  resolution: "@next/eslint-plugin-next@npm:12.0.9"
+  dependencies:
+    glob: 7.1.7
+  checksum: b28f86f7f74dad8abe7f3905a1ce6465a04d41dac088c8ff61c21801b39a86319f732482083ea5903fd66800c87143bb5737e1086abf308cce52c5564ea1df4c
+  languageName: node
+  linkType: hard
+
 "@next/eslint-plugin-next@npm:12.1.4":
   version: 12.1.4
   resolution: "@next/eslint-plugin-next@npm:12.1.4"
   dependencies:
     glob: 7.1.7
   checksum: 6908d3ea066cc31a2353a198eb019bccb1158f032df8607568bb5ca17f84d271871e916e426f981eab08f2dbbc3df7a0ab00de2a8f14ed323492417e4f9d7903
-  languageName: node
-  linkType: hard
-
-"@next/eslint-plugin-next@npm:12.1.6":
-  version: 12.1.6
-  resolution: "@next/eslint-plugin-next@npm:12.1.6"
-  dependencies:
-    glob: 7.1.7
-  checksum: 33dcaf71f299d3c8a0744cad512369f92d7a355f3c0d57f2496e888e4242080c49226ec2c59ba2efac04b3a1df51c36019b853b4177df082ca4621a1713a2229
   languageName: node
   linkType: hard
 
@@ -5356,7 +5356,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:*, @types/react@npm:>=16":
+"@types/react@npm:*, @types/react@npm:18.0.1, @types/react@npm:>=16":
   version: 18.0.1
   resolution: "@types/react@npm:18.0.1"
   dependencies:
@@ -7934,10 +7934,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"caniuse-lite@npm:^1.0.30001109, caniuse-lite@npm:^1.0.30001283, caniuse-lite@npm:^1.0.30001317":
+"caniuse-lite@npm:^1.0.30001109, caniuse-lite@npm:^1.0.30001317":
   version: 1.0.30001327
   resolution: "caniuse-lite@npm:1.0.30001327"
   checksum: 789076fb889bd03515c4a3e2bfa09cd5b28439645173445147eb6ddfd8105c755e46dfda3de4b75edd2b71490864188bbfe8a2efe920c7998960b4e98916f518
+  languageName: node
+  linkType: hard
+
+"caniuse-lite@npm:^1.0.30001283":
+  version: 1.0.30001356
+  resolution: "caniuse-lite@npm:1.0.30001356"
+  checksum: 2b1f377f503de8c3d585b85b648422d1a202528d04321aaff5e37054cf413e927db1cc37a3408b44646c6eab7b9e38cae4b44b3a81fbf2e2f8f676cf559518b5
   languageName: node
   linkType: hard
 
@@ -18213,10 +18220,10 @@ __metadata:
   dependencies:
     "@apidevtools/swagger-parser": ^10.0.3
     "@mdx-js/react": ^2.1.1
-    "@next/eslint-plugin-next": 12.1.6
+    "@next/eslint-plugin-next": 12.0.9
     "@types/node": ^17.0.5
     "@types/prop-types": ^15.7.4
-    "@types/react": ^18.0.14
+    "@types/react": 18.0.1
     "@types/sharedworker": ^0.0.76
     "@types/xmldom": ^0.1.31
     "@types/yaml": ^1.9.7
