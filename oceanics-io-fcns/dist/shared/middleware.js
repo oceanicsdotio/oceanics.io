@@ -19,6 +19,12 @@ var Method;
     Method["HEAD"] = "HEAD";
 })(Method || (Method = {}));
 ;
+var Authentication;
+(function (Authentication) {
+    Authentication["Bearer"] = "BearerAuth";
+    Authentication["ApiKey"] = "ApiKeyAuth";
+    Authentication["Basic"] = "BasicAuth";
+})(Authentication || (Authentication = {}));
 // TODO: pre-determine this from the API specification
 const METHODS_WITH_BODY = [Method.POST, Method.PUT];
 /**
@@ -26,13 +32,13 @@ const METHODS_WITH_BODY = [Method.POST, Method.PUT];
  * and execute a single query. For convenience you can pass in a callback
  * to execute on the result.
  */
-const connect = async (query, callback = null) => {
+const connect = async (query) => {
     var _a, _b;
     const driver = neo4j_driver_1.default.driver((_a = process.env.NEO4J_HOSTNAME) !== null && _a !== void 0 ? _a : "", neo4j_driver_1.default.auth.basic("neo4j", (_b = process.env.NEO4J_ACCESS_KEY) !== null && _b !== void 0 ? _b : ""));
     const session = driver.session({ defaultAccessMode: neo4j_driver_1.default.session.READ });
     const result = await session.run(query);
     await driver.close();
-    return callback ? callback(result) : result;
+    return result;
 };
 exports.connect = connect;
 /**
@@ -77,7 +83,7 @@ exports.transform = transform;
 const metadata = async ({ data: { user, nodes: [entity] } }) => {
     const { query } = (new pkg_1.Links()).query(user, entity, entity.symbol);
     const properties = (node) => node[1];
-    const value = (await (0, exports.connect)(query, exports.transform)).map(properties);
+    const value = (await (0, exports.connect)(query).then(exports.transform)).map(properties);
     return {
         statusCode: 200,
         data: {
@@ -132,7 +138,7 @@ const filterBaseRoute = (symbol) => !!symbol && !STRIP_BASE_PATH_PREFIX.has(symb
  * Convert part of path into a resource identifier that
  * includes the UUID and Label.
  */
-const asNodes = (httpMethod, body) => (text, index, arr) => {
+const asNodes = (httpMethod, body, text, index, arr) => {
     let label = "";
     let uuid = "";
     // Identifiers are delimited with parentheses
@@ -149,7 +155,7 @@ const asNodes = (httpMethod, body) => (text, index, arr) => {
         properties = { uuid };
     }
     else if (METHODS_WITH_BODY.includes(httpMethod)) {
-        properties = JSON.parse(body);
+        properties = typeof body === "string" ? JSON.parse(body) : body;
     }
     return (0, exports.materialize)(properties, `n${index}`, label);
 };
@@ -169,6 +175,12 @@ const bearerAuthClaim = ({ authorization }) => {
     const decoded = jsonwebtoken_1.default.verify(token, process.env.SIGNING_KEY);
     console.log({ decoded, token, key: process.env.SIGNING_KEY });
     return { uuid: decoded.uuid };
+};
+/**
+ * ApiKey is used to match to a provider claim
+ */
+const apiKeyClaim = ({ ["X-API-KEY"]: apiKey }) => {
+    return { apiKey };
 };
 /**
  * Return a handler function depending on the HTTP method. Want to take
@@ -205,31 +217,44 @@ function NetlifyRouter(methods, pathSpec) {
         const methodSpec = (_a = pathSpec[httpMethod.toLowerCase()]) !== null && _a !== void 0 ? _a : { security: [] };
         const reduceMethods = (lookup, schema) => Object.assign(lookup, schema);
         const security = methodSpec.security.reduce(reduceMethods, {});
+        // parse path into resources
+        const nodeTransform = asNodes.bind(httpMethod, body);
+        const nodes = path.split("/").filter(filterBaseRoute).map(nodeTransform);
         let user;
-        if (!methodSpec || "BearerAuth" in security) {
+        let provider;
+        if (!methodSpec || Authentication.Bearer in security) {
             const claim = bearerAuthClaim(headers);
             if (typeof claim.uuid === "undefined" || !claim.uuid)
                 return exports.UNAUTHORIZED;
             // Have to assume anything with uuid is valid until query hits
             user = (0, exports.materialize)(claim, "u", "User");
         }
-        else if ("BasicAuth" in security) {
+        else if (Authentication.Basic in security) {
             user = (0, exports.materialize)(basicAuthClaim(headers), "u", "User");
             const { query } = user.load();
-            const records = await (0, exports.connect)(query, exports.transform);
+            const records = await (0, exports.connect)(query).then(exports.transform);
             if (records.length !== 1)
                 return exports.UNAUTHORIZED;
-            user = records[0];
+            // Use the full properties
+            user = (0, exports.materialize)(records[0][1], "u", "User");
+        }
+        else if (Authentication.ApiKey in security) {
+            // Only for registration on /auth route
+            provider = (0, exports.materialize)(apiKeyClaim(headers), "p", "Provider");
+            const { email, password, secret } = JSON.parse(body);
+            user = (0, exports.materialize)({
+                email,
+                uuid: crypto_1.default.randomUUID().replace(/-/g, ""),
+                credential: (0, exports.hashPassword)(password, secret)
+            }, "u", "User");
         }
         else {
-            // The only route without an empty security schema Register, 
-            // and it will likely have ApiKeyAuth in the future. 
+            // Shouldn't occur
         }
-        const nodeTransform = asNodes(httpMethod, body);
-        const nodes = path.split("/").filter(filterBaseRoute).map(nodeTransform);
         const { extension = "", data, ...result } = await handler({
             data: {
                 user,
+                provider,
                 nodes
             },
             ...request

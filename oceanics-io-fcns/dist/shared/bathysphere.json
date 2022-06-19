@@ -53,7 +53,11 @@
                     "Account"
                 ],
                 "summary": "Register",
-                "security": [],
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Register an e-mail address to get access to development API. Accounts are for development and testing purposes only. We won't share your contact information, but we do reserve the right to analyze and profile your use of our infrastructure, as well as monitor un-encrypted traffic.\n\nContact us if you are interested in a dedicated database instance, or long-term multi-tenancy hosting.\n",
                 "requestBody": {
                     "$ref": "#/components/requestBodies/Register"
@@ -404,11 +408,18 @@
         "securitySchemes": {
             "BasicAuth": {
                 "type": "http",
+                "in": "header",
                 "scheme": "basic"
             },
             "BearerAuth": {
                 "type": "http",
+                "in": "header",
                 "scheme": "bearer"
+            },
+            "ApiKeyAuth": {
+                "type": "apiKey",
+                "in": "header",
+                "name": "X-API-KEY"
             }
         },
         "parameters": {

@@ -4,7 +4,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.handler = void 0;
-const crypto_1 = __importDefault(require("crypto"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const bathysphere_json_1 = __importDefault(require("./shared/bathysphere.json"));
 const middleware_1 = require("./shared/middleware");
@@ -14,17 +13,11 @@ const pkg_1 = require("./shared/pkg");
  * any validation of inputs here, such as for email address and
  * excluded passwords. Assume this is delegated to frontend.
  */
-const register = async ({ data: { apiKey, password, secret, email } }) => {
-    const provider = (0, middleware_1.materialize)({ apiKey }, "p", "Provider");
-    const user = (0, middleware_1.materialize)({
-        email,
-        uuid: crypto_1.default.randomUUID().replace(/-/g, ""),
-        credential: (0, middleware_1.hashPassword)(password, secret)
-    }, "u", "User");
+const register = async ({ data: { user, provider } }) => {
     const { query } = new pkg_1.Links("Register", 0, 0, "").insert(provider, user);
     let records;
     try {
-        records = await (0, middleware_1.connect)(query, middleware_1.transform);
+        records = await (0, middleware_1.connect)(query).then(middleware_1.transform);
     }
     catch {
         records = [];
@@ -42,7 +35,7 @@ const register = async ({ data: { apiKey, password, secret, email } }) => {
  * information needed when validating access to data.
  */
 const getToken = async ({ data: { user } }) => {
-    console.log({ user });
+    console.log(user.cypherRepr());
     return {
         statusCode: 200,
         data: {

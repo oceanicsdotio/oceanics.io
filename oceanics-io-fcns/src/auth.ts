@@ -1,4 +1,3 @@
-import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import apiSpec from "./shared/bathysphere.json";
 import type { ApiHandler } from "./shared/middleware";
@@ -6,9 +5,7 @@ import type { ApiHandler } from "./shared/middleware";
 import { 
   connect, 
   transform,
-  materialize,
-  NetlifyRouter, 
-  hashPassword,
+  NetlifyRouter,
   UNAUTHORIZED
 } from "./shared/middleware";
 
@@ -31,19 +28,15 @@ export interface IAuth {
  * excluded passwords. Assume this is delegated to frontend. 
  */
 const register: ApiHandler = async ({
-  data: { apiKey, password, secret, email }
+  data: {
+    user,
+    provider
+  }
 }) => {
-  const provider = materialize({ apiKey }, "p", "Provider");
-  const user = materialize({
-    email,
-    uuid: crypto.randomUUID().replace(/-/g, ""),
-    credential: hashPassword(password, secret)
-  }, "u", "User");
-  
   const { query } = new Links("Register", 0, 0, "").insert(provider, user);
   let records: any;
   try {
-    records = await connect(query, transform);
+    records = await connect(query).then(transform);
   } catch {
     records = [];
   }
@@ -64,7 +57,7 @@ const getToken: ApiHandler = async ({
     user
   }
 }) => {
-  console.log({user})
+  console.log(user.cypherRepr())
 
   return {
     statusCode: 200,
@@ -74,10 +67,18 @@ const getToken: ApiHandler = async ({
   }
 };
 
+// Just a stub for now, to enable testing of bearer auth
+const manage: ApiHandler =  async ({}) => {
+  return {
+    statusCode: 501
+  }
+}
+
 /**
  * Auth Router
  */
 export const handler = NetlifyRouter({
   GET: getToken,
-  POST: register
+  POST: register,
+  PUT: manage
 }, apiSpec.paths["/auth"])

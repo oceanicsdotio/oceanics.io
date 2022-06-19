@@ -13,7 +13,7 @@ const uniqueLabels = ({records}) => records.flatMap(extractLabel).filter(filterL
  * Get an array of all collections by Node type
  */
 const index: ApiHandler = async () => {
-  const labels = await connect(Node.allLabels().query, uniqueLabels);
+  const labels = await connect(Node.allLabels().query).then(uniqueLabels);
   return {
     statusCode: 200,
     data: labels.map((label: string) => Object({

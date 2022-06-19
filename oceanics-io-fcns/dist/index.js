@@ -16,7 +16,7 @@ const uniqueLabels = ({ records }) => records.flatMap(extractLabel).filter(filte
  * Get an array of all collections by Node type
  */
 const index = async () => {
-    const labels = await (0, middleware_1.connect)(pkg_1.Node.allLabels().query, uniqueLabels);
+    const labels = await (0, middleware_1.connect)(pkg_1.Node.allLabels().query).then(uniqueLabels);
     return {
         statusCode: 200,
         data: labels.map((label) => Object({

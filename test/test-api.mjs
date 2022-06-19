@@ -46,7 +46,7 @@ const EXTENSIONS = {
  * Use canonical test user information to get a Javascript Web Token.
  */
 const fetchToken = () =>
-  fetch(`${BASE_PATH}/auth`, {
+  fetch(`${API_PATH}/auth`, {
     headers: {
       Authorization: [TEST_USER, TEST_PASSWORD, TEST_SECRET].join(":"),
     },
@@ -202,12 +202,15 @@ describe("API Request Validator", function () {
  * On a clean database, the first test will fail.
  */
 describe("Auth API", function () {
+
+  const authPath = `${API_PATH}/auth`;
+
   /**
    * Convenience method for creating consistent test user account under
    * multiple providers.
    */
   const register = (apiKey) =>
-    fetch(`${API_PATH}/auth`, {
+    fetch(authPath, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -229,7 +232,7 @@ describe("Auth API", function () {
      * Removed the route from the API for the time being. 
      */
     xit("clears non-provider, nodes", async function () {
-      const response = await fetch(`${API_PATH}/auth`, {
+      const response = await fetch(authPath, {
         method: "DELETE",
         headers: {
           Authorization: [TEST_USER, TEST_PASSWORD, TEST_SECRET].join(":"),
@@ -298,7 +301,7 @@ describe("Auth API", function () {
      * Missing header is a 403 error
      */
     it("denies access without credentials", async function () {
-      const response = await fetch(`${BASE_PATH}/auth`);
+      const response = await fetch(authPath);
       expect(response, 403);
     });
 
@@ -306,7 +309,7 @@ describe("Auth API", function () {
      * Bad credential is a 403 error
      */
     it("denies access with wrong credentials", async function () {
-      const response = await fetch(`${BASE_PATH}/auth`, {
+      const response = await fetch(authPath, {
         headers: {
           Authorization: [TEST_USER, "a-very-bad-password", TEST_SECRET].join(
             ":"
@@ -316,6 +319,24 @@ describe("Auth API", function () {
       expect(response, 403);
     });
   });
+
+  /**
+   * Confirm that JWT can be used to access an endpoint with BearerAuth security
+   */
+  describe("Manage account", function () {
+    /**
+     * Update is not implemented
+     */
+    it("authenticates with JWT", async function () {
+      const { token } = await fetchToken();
+      const response = await fetch(authPath, {
+        headers: {
+          Authorization: ["BearerAuth", token].join(":")
+        }
+      })
+      expect(response, 501)
+    })
+  })
 });
 
 /**
