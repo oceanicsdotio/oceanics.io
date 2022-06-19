@@ -215,7 +215,8 @@ const filterBaseRoute = (symbol: string) =>
  */
 const asNodes = (
     httpMethod: Method, 
-    body: string | object, 
+    body: string, 
+) => (
     text: string, 
     index: number, 
     arr: string[],
@@ -232,10 +233,10 @@ const asNodes = (
     }
 
     let properties = {};
-    if (index !== arr.length) {
+    if (index < arr.length - 1) {
         properties = {uuid}
     } else if (METHODS_WITH_BODY.includes(httpMethod)) {
-        properties = typeof body === "string" ? JSON.parse(body) : body
+        properties = JSON.parse(body)
     }
     
     return materialize(properties, `n${index}`, label)
@@ -310,10 +311,6 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: Object): Handler 
         const reduceMethods = (lookup: Object, schema: Object) => Object.assign(lookup, schema);
         const security: string[] = methodSpec.security.reduce(reduceMethods, {}); 
 
-        // parse path into resources
-        const nodeTransform = asNodes.bind(httpMethod as Method, body)
-        const nodes: Node[] = path.split("/").filter(filterBaseRoute).map(nodeTransform);
-
         let user: Node;
         let provider: Node;
         if (!methodSpec || Authentication.Bearer in security) {
@@ -345,6 +342,10 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: Object): Handler 
             // Shouldn't occur
         }
 
+        // parse path into resources
+        const nodeTransform = asNodes(httpMethod as Method, body);
+        const nodes: Node[] = path.split("/").filter(filterBaseRoute).map(nodeTransform);
+        
         const {extension="", data, ...result} = await handler({
             data: { 
                 user,

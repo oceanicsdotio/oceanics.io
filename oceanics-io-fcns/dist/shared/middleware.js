@@ -67,6 +67,10 @@ const materialize = (properties, symbol, label) => {
     return new pkg_1.Node(props, symbol, label);
 };
 exports.materialize = materialize;
+/**
+ * Approximate inverse of the `materialize` function, for extracting key, value data from a
+ * WASM Node.
+ */
 const dematerialize = (node) => {
     const stringToValue = (keyValue) => {
         const [key, serialized] = keyValue.split(": ");
@@ -147,7 +151,7 @@ const filterBaseRoute = (symbol) => !!symbol && !STRIP_BASE_PATH_PREFIX.has(symb
  * Convert part of path into a resource identifier that
  * includes the UUID and Label.
  */
-const asNodes = (httpMethod, body, text, index, arr) => {
+const asNodes = (httpMethod, body) => (text, index, arr) => {
     let label = "";
     let uuid = "";
     // Identifiers are delimited with parentheses
@@ -160,12 +164,18 @@ const asNodes = (httpMethod, body, text, index, arr) => {
         label = text;
     }
     let properties = {};
-    if (index !== arr.length) {
+    if (index < arr.length - 1) {
         properties = { uuid };
     }
     else if (METHODS_WITH_BODY.includes(httpMethod)) {
-        properties = typeof body === "string" ? JSON.parse(body) : body;
+        properties = JSON.parse(body);
     }
+    console.log({
+        properties,
+        arrayLength: arr.length - 1,
+        index,
+        body
+    });
     return (0, exports.materialize)(properties, `n${index}`, label);
 };
 /**
@@ -226,9 +236,6 @@ function NetlifyRouter(methods, pathSpec) {
         const methodSpec = (_a = pathSpec[httpMethod.toLowerCase()]) !== null && _a !== void 0 ? _a : { security: [] };
         const reduceMethods = (lookup, schema) => Object.assign(lookup, schema);
         const security = methodSpec.security.reduce(reduceMethods, {});
-        // parse path into resources
-        const nodeTransform = asNodes.bind(httpMethod, body);
-        const nodes = path.split("/").filter(filterBaseRoute).map(nodeTransform);
         let user;
         let provider;
         if (!methodSpec || Authentication.Bearer in security) {
@@ -260,6 +267,9 @@ function NetlifyRouter(methods, pathSpec) {
         else {
             // Shouldn't occur
         }
+        // parse path into resources
+        const nodeTransform = asNodes(httpMethod, body);
+        const nodes = path.split("/").filter(filterBaseRoute).map(nodeTransform);
         const { extension = "", data, ...result } = await handler({
             data: {
                 user,

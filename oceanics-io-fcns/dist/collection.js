@@ -19,7 +19,7 @@ const bathysphere_json_1 = __importDefault(require("./shared/bathysphere.json"))
  */
 const create = async ({ data: { user, nodes: [entity] } }) => {
     const { query } = (new pkg_1.Links("Create", 0, 0, "")).insert(user, entity);
-    console.log({ query });
+    console.log({ entity: entity.patternOnly() });
     const result = await (0, middleware_1.connect)(query);
     console.log({ result });
     return {
