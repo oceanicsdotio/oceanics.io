@@ -5356,7 +5356,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:*, @types/react@npm:>=16":
+"@types/react@npm:*, @types/react@npm:18.0.1, @types/react@npm:>=16":
   version: 18.0.1
   resolution: "@types/react@npm:18.0.1"
   dependencies:
@@ -5367,7 +5367,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:^17, @types/react@npm:^17.0.2, @types/react@npm:^17.0.38":
+"@types/react@npm:^17":
   version: 17.0.44
   resolution: "@types/react@npm:17.0.44"
   dependencies:
@@ -5375,6 +5375,17 @@ __metadata:
     "@types/scheduler": "*"
     csstype: ^3.0.2
   checksum: ebee02778ca08f954c316dc907802264e0121c87b8fa2e7e0156ab0ef2a1b0a09d968c016a3600ec4c9a17dc09b4274f292d9b15a1a5369bb7e4072def82808f
+  languageName: node
+  linkType: hard
+
+"@types/react@npm:^18.0.14":
+  version: 18.0.14
+  resolution: "@types/react@npm:18.0.14"
+  dependencies:
+    "@types/prop-types": "*"
+    "@types/scheduler": "*"
+    csstype: ^3.0.2
+  checksum: 608eb57a383eedc54c79949673e5e8314f6b0c61542bff58721c8c47a18c23e2832e77c656050c2c2c004b62cf25582136c7c56fe1b6263a285c065fae31dbcf
   languageName: node
   linkType: hard
 
@@ -5410,10 +5421,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/sharedworker@npm:^0.0.61":
-  version: 0.0.61
-  resolution: "@types/sharedworker@npm:0.0.61"
-  checksum: abd5d4bb3428bbe105e69331eff2a96031ab91fc424b9d078ec26dcc74e8d61d94cb5d669b3df5fbcd2e84da76d1521efe4ae5ffb7eebdcc000c7f3a7fdc85cd
+"@types/sharedworker@npm:^0.0.76":
+  version: 0.0.76
+  resolution: "@types/sharedworker@npm:0.0.76"
+  checksum: f50d3aec38bdaa1d82085e029ba2aa57f1b93de843456c3d9de6675ef65f3dd1f870b487e39515e70cdc96a2dd154bd884132dd0558415c74df782f43d3034b0
   languageName: node
   linkType: hard
 
@@ -7923,10 +7934,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"caniuse-lite@npm:^1.0.30001109, caniuse-lite@npm:^1.0.30001283, caniuse-lite@npm:^1.0.30001317":
+"caniuse-lite@npm:^1.0.30001109, caniuse-lite@npm:^1.0.30001317":
   version: 1.0.30001327
   resolution: "caniuse-lite@npm:1.0.30001327"
   checksum: 789076fb889bd03515c4a3e2bfa09cd5b28439645173445147eb6ddfd8105c755e46dfda3de4b75edd2b71490864188bbfe8a2efe920c7998960b4e98916f518
+  languageName: node
+  linkType: hard
+
+"caniuse-lite@npm:^1.0.30001283":
+  version: 1.0.30001356
+  resolution: "caniuse-lite@npm:1.0.30001356"
+  checksum: 2b1f377f503de8c3d585b85b648422d1a202528d04321aaff5e37054cf413e927db1cc37a3408b44646c6eab7b9e38cae4b44b3a81fbf2e2f8f676cf559518b5
   languageName: node
   linkType: hard
 
@@ -8469,7 +8487,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"color@npm:^4.2.1":
+"color@npm:^4.2.3":
   version: 4.2.3
   resolution: "color@npm:4.2.3"
   dependencies:
@@ -17522,12 +17540,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-addon-api@npm:^4.3.0":
-  version: 4.3.0
-  resolution: "node-addon-api@npm:4.3.0"
+"node-addon-api@npm:^5.0.0":
+  version: 5.0.0
+  resolution: "node-addon-api@npm:5.0.0"
   dependencies:
     node-gyp: latest
-  checksum: 3de396e23cc209f539c704583e8e99c148850226f6e389a641b92e8967953713228109f919765abc1f4355e801e8f41842f96210b8d61c7dcc10a477002dcf00
+  checksum: 7c5e2043ac37f6108784d94ed73a44ae6d3e68eb968de60680922fc6bc3d17fa69448c0feb4e0c9d3f4c74a0324822e566a8340a56916d9d6f23cb3e85620334
   languageName: node
   linkType: hard
 
@@ -17887,7 +17905,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"npmlog@npm:^4.0.1, npmlog@npm:^4.0.2":
+"npmlog@npm:^4.0.2":
   version: 4.1.2
   resolution: "npmlog@npm:4.1.2"
   dependencies:
@@ -18164,7 +18182,7 @@ __metadata:
     "@types/mapbox-gl": ^2.4.2
     "@types/node": ^17.0.5
     "@types/pluralize": ^0.0.29
-    "@types/react": ^17.0.2
+    "@types/react": ^18.0.14
     "@types/react-dom": ^17.0.2
     "@types/react-pdf": ^5.0.9
     "@types/styled-components": ^5.1.22
@@ -18205,8 +18223,8 @@ __metadata:
     "@next/eslint-plugin-next": 12.0.9
     "@types/node": ^17.0.5
     "@types/prop-types": ^15.7.4
-    "@types/react": ^17.0.38
-    "@types/sharedworker": ^0.0.61
+    "@types/react": 18.0.1
+    "@types/sharedworker": ^0.0.76
     "@types/xmldom": ^0.1.31
     "@types/yaml": ^1.9.7
     babel: ^6.23.0
@@ -18230,7 +18248,7 @@ __metadata:
     rehype-stringify: ^9.0.2
     remark: ^14.0.1
     remark-html: ^15.0.0
-    sharp: ^0.30.3
+    sharp: ^0.30.6
     styled-components: ^5.3.0
     typescript: ^4.6.3
     typography: ^0.16.19
@@ -19364,9 +19382,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prebuild-install@npm:^7.0.1":
-  version: 7.0.1
-  resolution: "prebuild-install@npm:7.0.1"
+"prebuild-install@npm:^7.1.0":
+  version: 7.1.1
+  resolution: "prebuild-install@npm:7.1.1"
   dependencies:
     detect-libc: ^2.0.0
     expand-template: ^2.0.3
@@ -19375,7 +19393,6 @@ __metadata:
     mkdirp-classic: ^0.5.3
     napi-build-utils: ^1.0.1
     node-abi: ^3.3.0
-    npmlog: ^4.0.1
     pump: ^3.0.0
     rc: ^1.2.7
     simple-get: ^4.0.0
@@ -19383,7 +19400,7 @@ __metadata:
     tunnel-agent: ^0.6.0
   bin:
     prebuild-install: bin.js
-  checksum: 117c8966f221242633bbf245755fb469dabc7085909f5e3db83359d6281a88dedbdada7e839315805a192c74b7cce3ed1a86c1382a8d950c1ea60a9d5d8e7bf0
+  checksum: dbf96d0146b6b5827fc8f67f72074d2e19c69628b9a7a0a17d0fad1bf37e9f06922896972e074197fc00a52eae912993e6ef5a0d471652f561df5cb516f3f467
   languageName: node
   linkType: hard
 
@@ -21408,6 +21425,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"semver@npm:^7.3.7":
+  version: 7.3.7
+  resolution: "semver@npm:7.3.7"
+  dependencies:
+    lru-cache: ^6.0.0
+  bin:
+    semver: bin/semver.js
+  checksum: 2fa3e877568cd6ce769c75c211beaed1f9fce80b28338cadd9d0b6c40f2e2862bafd62c19a6cff42f3d54292b7c623277bcab8816a2b5521cf15210d43e75232
+  languageName: node
+  linkType: hard
+
 "send@npm:0.17.2":
   version: 0.17.2
   resolution: "send@npm:0.17.2"
@@ -21542,20 +21570,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sharp@npm:^0.30.3":
-  version: 0.30.3
-  resolution: "sharp@npm:0.30.3"
+"sharp@npm:^0.30.6":
+  version: 0.30.6
+  resolution: "sharp@npm:0.30.6"
   dependencies:
-    color: ^4.2.1
+    color: ^4.2.3
     detect-libc: ^2.0.1
-    node-addon-api: ^4.3.0
+    node-addon-api: ^5.0.0
     node-gyp: latest
-    prebuild-install: ^7.0.1
-    semver: ^7.3.5
+    prebuild-install: ^7.1.0
+    semver: ^7.3.7
     simple-get: ^4.0.1
     tar-fs: ^2.1.1
     tunnel-agent: ^0.6.0
-  checksum: 05738f0a74f55217ccbbe74ad7b8b579e2e24cbcebd021ae53cfb81d7a3e8ab42b02526249ad7d04900a4ea0da80fa63805b492edab3bfa0541888169c079057
+  checksum: 2560b5769d78ee660d767e59f6fa56531c448d16383f9700e4ecb8016382104c1bb42991bdd4ea741c0f4d934ea5246c5d602fc5f39062bcc1c2c8786421fd5a
   languageName: node
   linkType: hard
 

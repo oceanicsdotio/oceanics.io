@@ -56,6 +56,7 @@ export function node_new(a: number, b: number, c: number, d: number, e: number, 
 export function node_allLabels(): number;
 export function node_patternOnly(a: number, b: number): void;
 export function node_symbol(a: number, b: number): void;
+export function node_label(a: number, b: number): void;
 export function node_cypherRepr(a: number, b: number): void;
 export function node_delete(a: number): number;
 export function node_mutate(a: number, b: number): number;

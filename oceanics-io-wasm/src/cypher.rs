@@ -53,6 +53,16 @@ pub mod cypher {
                 label,
             }
         }
+        // pub fn materialize(properties: &JsValue, symbol: Option<String>, label: Option<String>) -> Self {
+        //     let pattern = String::new();
+        //     let mut props = properties.into_serde().unwrap();
+
+        //     Node {
+        //         pattern: Some(pattern),
+        //         symbol,
+        //         label
+        //     }
+        // }
         #[wasm_bindgen(js_name = allLabels)]
         pub fn all_labels() -> Cypher {
             Cypher {
@@ -79,6 +89,17 @@ pub mod cypher {
             }
             symbol
         }
+
+        #[wasm_bindgen(getter)]
+        pub fn label(&self) -> String {
+            let label: String;
+            match &self.label {
+                None => label = String::from(""),
+                Some(value) => label = format!("{}", value),
+            }
+            label
+        }
+
         /**
          * Format the cypher query representation of the Node data structure
          */

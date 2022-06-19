@@ -39,14 +39,14 @@ Presentational aspects of the front-end are part of the `oceanics-io-ui` workspa
 
 Netlify serverless functions are `oceanics-io-fcns`. These are single purpose endpoints that support secure data access, pre-processing, and sub-setting.
  
-Static assets are hosted on Netlify. The deploy is setup in `netlify.toml `. When new commits are checked into the Github repository, the site is built and deployed to [https://www.oceanics.io](https://www.oceanics.io).
+Static assets are hosted on Netlify. The deploy is setup in `netlify.toml`. When new commits are checked into the Github repository, the site is built and deployed to [https://www.oceanics.io](https://www.oceanics.io).
 
 ## Environment
 
 There must also be several environment variables active for things to work:
 
-- `NEO4J_HOSTNAME` is the hostname for Neo4j instance
-- `NEO4J_ACCESS_KEY` is the password for Neo4j instance
+- `NEO4J_HOSTNAME`: the hostname for Neo4j instance
+- `NEO4J_ACCESS_KEY`: the password for Neo4j instance
 - `SPACES_ACCESS_KEY`: for accessing storage
 - `SPACES_SECRET_KEY`: for accessing storage
 - `STORAGE_ENDPOINT`: the region and host for cloud storage

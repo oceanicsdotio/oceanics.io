@@ -9,9 +9,11 @@ import crypto from "crypto";
 
 const BASE_PATH = "http://localhost:8888/.netlify/functions";
 const API_PATH = "http://localhost:8888/api";
-const TEST_USER = "test@oceanics.io";
-const TEST_PASSWORD = "n0t_p@55w0rd";
-const TEST_SECRET = "salt";
+const SERVICE_ACCOUNT_AUTHENTICATION = [
+  process.env.SERVICE_ACCOUNT_USERNAME??"", 
+  process.env.SERVICE_ACCOUNT_PASSWORD??"", 
+  process.env.SERVICE_ACCOUNT_SECRET??"",
+].join(":")
 const EXTENSIONS = {
   sensing: new Set([
     "Things",
@@ -46,9 +48,9 @@ const EXTENSIONS = {
  * Use canonical test user information to get a Javascript Web Token.
  */
 const fetchToken = () =>
-  fetch(`${BASE_PATH}/auth`, {
+  fetch(`${API_PATH}/auth`, {
     headers: {
-      Authorization: [TEST_USER, TEST_PASSWORD, TEST_SECRET].join(":"),
+      Authorization: SERVICE_ACCOUNT_AUTHENTICATION,
     },
   }).then((response) => response.json());
 
@@ -187,12 +189,12 @@ describe("API Request Validator", function () {
       describe(nodeType, validateInterface(nodeType));
     }
 
-        /**
+    /**
      * Create a `describe` block for each of the Sensing API entities
      */
-         for (const nodeType of EXTENSIONS.sensing) {
-          describe(nodeType, validateInterface(nodeType));
-        }
+    for (const nodeType of EXTENSIONS.sensing) {
+      describe(nodeType, validateInterface(nodeType));
+    }
 })
 
 /**
@@ -202,18 +204,21 @@ describe("API Request Validator", function () {
  * On a clean database, the first test will fail.
  */
 describe("Auth API", function () {
+
+  const authPath = `${API_PATH}/auth`;
+
   /**
    * Convenience method for creating consistent test user account under
    * multiple providers.
    */
   const register = (apiKey) =>
-    fetch(`${API_PATH}/auth`, {
+    fetch(authPath, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        email: TEST_USER,
-        password: TEST_PASSWORD,
-        secret: TEST_SECRET,
+        email: process.env.SERVICE_ACCOUNT_USERNAME,
+        password: process.env.SERVICE_ACCOUNT_PASSWORD,
+        secret: process.env.SERVICE_ACCOUNT_SECRET,
         ...(typeof apiKey === "undefined" ? {} : { apiKey }),
       }),
     });
@@ -225,12 +230,15 @@ describe("Auth API", function () {
   describe("Teardown", function () {
     /**
      * Remove User and and all linked, non-provider nodes.
+     * 
+     * Removed the route from the API for the time being. 
      */
     it("clears non-provider, nodes", async function () {
-      const response = await fetch(`${API_PATH}/auth`, {
+      const {token} = await fetchToken()
+      const response = await fetch(authPath, {
         method: "DELETE",
         headers: {
-          Authorization: [TEST_USER, TEST_PASSWORD, TEST_SECRET].join(":"),
+          Authorization: ["BearerAuth", token].join(":"),
         },
       });
       assert(
@@ -296,7 +304,7 @@ describe("Auth API", function () {
      * Missing header is a 403 error
      */
     it("denies access without credentials", async function () {
-      const response = await fetch(`${BASE_PATH}/auth`);
+      const response = await fetch(authPath);
       expect(response, 403);
     });
 
@@ -304,9 +312,31 @@ describe("Auth API", function () {
      * Bad credential is a 403 error
      */
     it("denies access with wrong credentials", async function () {
-      const response = await fetch(`${BASE_PATH}/auth`, {
+      const response = await fetch(authPath, {
         headers: {
-          Authorization: [TEST_USER, "a-very-bad-password", TEST_SECRET].join(
+          Authorization: [
+            process.env.SERVICE_ACCOUNT_USERNAME, 
+            "a-very-bad-password", 
+            process.env.SERVICE_ACCOUNT_SECRET
+          ].join(
+            ":"
+          ),
+        },
+      });
+      expect(response, 403);
+    });
+
+    /**
+     * Bad secret is a 403 error
+     */
+     it("denies access with wrong salt", async function () {
+      const response = await fetch(authPath, {
+        headers: {
+          Authorization: [
+            process.env.SERVICE_ACCOUNT_USERNAME, 
+            process.env.SERVICE_ACCOUNT_PASSWORD, 
+            "a-very-bad-secret",
+          ].join(
             ":"
           ),
         },
@@ -314,6 +344,25 @@ describe("Auth API", function () {
       expect(response, 403);
     });
   });
+
+  /**
+   * Confirm that JWT can be used to access an endpoint with BearerAuth security
+   */
+  describe("Manage account", function () {
+    /**
+     * Update is not implemented
+     */
+    it("authenticates with JWT", async function () {
+      const { token } = await fetchToken();
+      const response = await fetch(authPath, {
+        method: "PUT",
+        headers: {
+          Authorization: ["BearerAuth", token].join(":")
+        }
+      })
+      expect(response, 501)
+    })
+  })
 });
 
 /**
@@ -343,7 +392,7 @@ describe("Sensing API", function () {
       assert(!!allowed, "Empty Allow Header");
       assert(
         methods.length === expected,
-        `Unexpected Number Of Allowed Methods (${methods.length}/${expected})`
+        `Unexpected Number Of Allowed Methods (${methods.length}/${expected}, ${allowed})`
       );
     };
 
@@ -373,13 +422,13 @@ describe("Sensing API", function () {
       const { token } = await fetchToken();
       const response = await options(token, "Things");
       expect(response, 204);
-      testAllowedMethodCount(response.headers, 5);
+      testAllowedMethodCount(response.headers, 3);
     });
 
     /**
      * Options for topological paths
      */
-    it("reports for multi-node path", async function () {
+    xit("reports for multi-node path", async function () {
       const { token } = await fetchToken();
       const response = await options(token, "Things/Locations");
       expect(response, 204);

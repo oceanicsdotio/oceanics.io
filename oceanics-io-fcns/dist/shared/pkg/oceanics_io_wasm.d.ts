@@ -680,6 +680,10 @@ export class Node {
 /**
 * @returns {string}
 */
+  readonly label: string;
+/**
+* @returns {string}
+*/
   readonly symbol: string;
 }
 /**
