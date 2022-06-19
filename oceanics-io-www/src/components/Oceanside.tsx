@@ -3,23 +3,21 @@
  */
 import React, { useEffect } from "react";
 import type { FC } from "react";
-import { GetStaticProps } from "next";
-import { readIcons, parseIconMetadata } from "../src/next-util";
 import styled from "styled-components";
 
 /**
  * Hooks for data handling.
  */
-import useOceansideWorld from "../src/hooks/useOceansideWorld";
-import useOceansideBoard from "../src/hooks/useOceansideBoard";
-import useWasmRuntime from "../src/hooks/useWasmRuntime";
-import useSharedWorkerState from "../src/hooks/useSharedWorkerState";
-import type {IWorld} from "../src/hooks/useOceansideWorld";
+import useOceansideWorld from "../hooks/useOceansideWorld";
+import useOceansideBoard from "../hooks/useOceansideBoard";
+import useWasmRuntime from "../hooks/useWasmRuntime";
+import useSharedWorkerState from "../hooks/useSharedWorkerState";
+import type {IWorld} from "../hooks/useOceansideWorld";
 
 /**
  * Page-specific typings.
  */
-interface ApplicationType extends IWorld {
+export interface ApplicationType extends IWorld {
   className?: string;
   icons: {
     sources: any;
@@ -34,16 +32,16 @@ interface ApplicationType extends IWorld {
  */
 const createBathysphereWorker = () => {
   return new Worker(
-      new URL("../src/workers/useBathysphereApi.worker.ts", import.meta.url)
+      new URL("../workers/useBathysphereApi.worker.ts", import.meta.url)
   );
 }
 
 /**
  * Page component rendered by NextJS.
  */
-const AppPage: FC<ApplicationType> = ({ className, ...props }) => {
+const Oceanside: FC<ApplicationType> = ({ className, ...props }) => {
   /**
-   * Single runtime for AppPage context
+   * Single runtime for Oceanside context
    */
   const {runtime} = useWasmRuntime();
 
@@ -78,7 +76,7 @@ const AppPage: FC<ApplicationType> = ({ className, ...props }) => {
 /**
  * Styled version of page exported by default.
  */
-const StyledIndex = styled(AppPage)`
+const StyledViewport = styled(Oceanside)`
   display: block;
   margin: 0;
   padding: 0;
@@ -93,29 +91,10 @@ const StyledIndex = styled(AppPage)`
     height: 256px;
   }
   & .board {
-    width: 512px;
+    width: 100%;
     height: 512px;
   }
 `;
 
-AppPage.displayName = "Oceanside";
-export default StyledIndex;
-
-export const getStaticProps: GetStaticProps = () => {
-  return {
-    props: {
-      description: "",
-      title: "Oceanside",
-      size: 64,
-      grid: {
-        size: 8
-      },
-      datum: 0.7,
-      runtime: null,
-      icons: {
-        sources: readIcons(),
-        templates: parseIconMetadata()
-      }
-    }
-  };
-}
+Oceanside.displayName = "Oceanside";
+export default StyledViewport;

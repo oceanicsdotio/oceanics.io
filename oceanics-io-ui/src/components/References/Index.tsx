@@ -24,7 +24,7 @@ export interface DocumentIndexType extends IStyled {
   onClearConstraints: MouseEventHandler<HTMLButtonElement>;
   onClickLabel: (label: string) => MouseEventHandler<HTMLAnchorElement>;
   pagingIncrement: number;
-  navigate?: (...args: any[]) => void;
+  navigate: (...args: any[]) => void;
 }
 
 /**
@@ -40,6 +40,7 @@ const Index: FC<DocumentIndexType> = ({
   onClearConstraints,
   onClickLabel,
   pagingIncrement,
+  navigate
 }) => {
   /**
    * The array of visible articles sorted in reverse chronological order.
@@ -100,6 +101,9 @@ const Index: FC<DocumentIndexType> = ({
       ))}
       <Button onClick={onShowMore} style={showMore.style}>
         {showMore.text}
+      </Button>
+      <Button onClick={()=>{navigate(`/bathysphere.html`)}}>
+          {`Learn about our API`}
       </Button>
       <Button onClick={onClearConstraints}>{"Clear selection"}</Button>
     </div>

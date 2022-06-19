@@ -9,10 +9,12 @@ import { useRouter } from "next/router";
  * Campaign component
  */
 import Campaign, { PageData } from "oceanics-io-ui/build/components/Campaign/Campaign";
+import Oceanside from "../src/components/Oceanside";
+import type {ApplicationType} from "../src/components/Oceanside"
 import Index from "oceanics-io-ui/build/components/References/Index";
 import type { IDocumentIndexSerialized, QueryType } from "oceanics-io-ui/build/components/References/types";
 import type { GetStaticProps } from "next";
-import { createIndex, readIndexedDocuments } from "../src/next-util";
+import { createIndex, readIndexedDocuments, readIcons, parseIconMetadata } from "../src/next-util";
 import useDeserialize from "oceanics-io-ui/build/hooks/useDeserialize";
 
 /**
@@ -20,9 +22,10 @@ import useDeserialize from "oceanics-io-ui/build/hooks/useDeserialize";
  * 
  * Optionally use query parameters and hash anchor to filter content. 
  */
-const IndexPage: FC<IDocumentIndexSerialized> = ({
+const IndexPage: FC<IDocumentIndexSerialized & ApplicationType> = ({
     documents,
-    pagingIncrement
+    pagingIncrement,
+    ...props
 }) => {
     /**
      * Convert into our internal Document data model. 
@@ -66,12 +69,10 @@ const IndexPage: FC<IDocumentIndexSerialized> = ({
 
     return (
         <>
-            <img src={"/assets/shrimpers-web.png"} alt={"agents at rest"} width={"100%"} />
             <Campaign
-                navigate={navigate}
-                title={PageData.title}
                 campaign={PageData.campaigns[1]}
             />
+            <Oceanside {...props}/>
             <Index
                 query={router.query}
                 onShowMore={onShowMore}
@@ -79,6 +80,7 @@ const IndexPage: FC<IDocumentIndexSerialized> = ({
                 onClickLabel={onClickLabel}
                 documents={deserialized}
                 pagingIncrement={pagingIncrement}
+                navigate={navigate}
             />
         </>
     )
@@ -93,7 +95,17 @@ export const getStaticProps: GetStaticProps = async () => {
             documents: readIndexedDocuments(createIndex()),
             description: "The trust layer for the blue economy",
             title: "Oceanics.io",
-            pagingIncrement: 3
+            pagingIncrement: 3,
+            size: 96,
+            grid: {
+                size: 6
+            },
+            datum: 0.7,
+            runtime: null,
+            icons: {
+                sources: readIcons(),
+                templates: parseIconMetadata()
+            }
         }
     }
 }

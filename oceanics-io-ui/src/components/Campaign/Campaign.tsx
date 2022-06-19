@@ -16,7 +16,6 @@ import { ghost } from "../../palette";
 /**
  * For interactive elements
  */
-import Button from "../Form/Button";
 import * as PageData from "./PageData.json";
 export {PageData as PageData}
 
@@ -29,7 +28,6 @@ type CampaignType = {
 export interface ICampaignType {
     navigate: (arg0: string) => void;
     className?: string;
-    title: string;
     campaign: CampaignType;
 };
 
@@ -41,7 +39,6 @@ export interface ICampaignType {
 export const Campaign: FC<ICampaignType> = ({
     navigate,
     className,
-    title, 
     campaign: {
         description
     }
@@ -59,14 +56,7 @@ export const Campaign: FC<ICampaignType> = ({
 
     return (
         <div className={className}>
-            <h2>{title}</h2>
             {narrative}
-            <Button onClick={()=>{navigate(`/bathysphere.html`)}}>
-                {`Learn about our API`}
-            </Button>
-            <Button onClick={()=>{navigate(`/references`)}}>
-                {`See the science`}
-            </Button>
         </div>
     )
 }
