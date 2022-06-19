@@ -26,7 +26,6 @@ type CampaignType = {
     description: string;
 };
 export interface ICampaignType {
-    navigate: (arg0: string) => void;
     className?: string;
     campaign: CampaignType;
 };
@@ -37,7 +36,6 @@ export interface ICampaignType {
  * Optionally use query parameters and hash anchor to filter content. 
  */
 export const Campaign: FC<ICampaignType> = ({
-    navigate,
     className,
     campaign: {
         description
