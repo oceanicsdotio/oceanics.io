@@ -9,7 +9,7 @@
   headers = {X-From = "Netlify"}
 
 [[redirects]]
-  from = "/api/:left\(:uuid\)/:right"
+  from = "/api/:left(:uuid)/:right"
   to = "/.netlify/functions/topology"
   status = 200
   headers = {X-From = "Netlify"}
@@ -21,7 +21,7 @@
   headers = {X-From = "Netlify"}
 
 [[redirects]]
-  from = "/api/:left\(:uuid\)"
+  from = "/api/:left(:uuid)"
   to = "/.netlify/functions/entity"
   status = 200
   headers = {X-From = "Netlify"}

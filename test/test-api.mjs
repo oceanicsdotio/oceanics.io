@@ -12,8 +12,8 @@ import crypto from "crypto";
  * - BASE: non-published routes
  * - API: routes described in our API documentation
  */
-const HOSTNAME = "http://localhost:8888";
-// const HOSTNAME = "https://www.oceanics.io";
+// const HOSTNAME = "http://localhost:8888";
+const HOSTNAME = "https://www.oceanics.io";
 const BASE_PATH = `${HOSTNAME}/.netlify/functions`;
 const API_PATH = `${HOSTNAME}/api`;
 
