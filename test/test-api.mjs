@@ -7,13 +7,24 @@ import crypto from "crypto";
 
 // MERGE (n:Provider { apiKey: replace(apoc.create.uuid(), '-', ''), domain: 'oceanics.io' }) return n
 
-const BASE_PATH = "http://localhost:8888/.netlify/functions";
-const API_PATH = "http://localhost:8888/api";
+/**
+ * Network configuration for tests.
+ * - BASE: non-published routes
+ * - API: routes described in our API documentation
+ */
+const HOSTNAME = "http://localhost:8888";
+// const HOSTNAME = "https://www.oceanics.io";
+const BASE_PATH = `${HOSTNAME}/.netlify/functions`;
+const API_PATH = `${HOSTNAME}/api`;
+
+// Auth header value
 const SERVICE_ACCOUNT_AUTHENTICATION = [
   process.env.SERVICE_ACCOUNT_USERNAME??"", 
   process.env.SERVICE_ACCOUNT_PASSWORD??"", 
   process.env.SERVICE_ACCOUNT_SECRET??"",
 ].join(":")
+
+// Lookup for entity type by domain area
 const EXTENSIONS = {
   sensing: new Set([
     "Things",
@@ -180,13 +191,6 @@ describe("API Request Validator", function () {
           })
         }
       }
-    }
-
-    /**
-     * Create a `describe` block for each of the Sensing API entities
-     */
-    for (const nodeType of EXTENSIONS.sensing) {
-      describe(nodeType, validateInterface(nodeType));
     }
 
     /**
