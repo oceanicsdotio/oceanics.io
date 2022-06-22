@@ -1,0 +1,15 @@
+{
+    "name": "oceanics-io-fcns",
+    "version": "1.0.0",
+    "description": "",
+    "main": "middleware.js",
+    "keywords": [],
+    "author": "Oceanicsdotio LLC",
+    "license": "MIT",
+    "engines": {
+        "node": "14"
+    },
+    "dependencies": {
+        "wasm": "file:pkg"
+    }
+}

@@ -2,7 +2,6 @@
     "name": "oceanics-io-fcns",
     "version": "1.0.0",
     "description": "",
-    "main": "index.js",
     "scripts": {
         "clean": "rimraf dist/",
         "copyfiles": "yarn clean && copyfiles -u 1 src/shared/pkg/* src/**/*.txt src/**/*.json dist",
