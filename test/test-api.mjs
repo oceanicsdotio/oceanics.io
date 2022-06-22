@@ -133,13 +133,22 @@ const WELL_KNOWN_NODES = parseNodesFromApi();
 
 describe("Middleware", function () {
 
-  it("parses collection path", function () {
+  it("parses get entity path", function () {
     const uuid = `abcd`;
     const path = `api/DataStreams(${uuid})`;
-    const nodeTransform = asNodes("GET", {});
-    const symbols = path.split("/").filter(filterBaseRoute)
-    const node = nodeTransform(symbols[0], 0, symbols);
+    const nodeTransform = asNodes("GET", "");
+    const segments = path.split("/").filter(filterBaseRoute)
+    const node = nodeTransform(segments[0], 0);
     assert(node.patternOnly().includes(uuid))
+  })
+
+  it("parses post collection path", function () {
+    const uuid = `abcd`;
+    const path = `api/DataStreams`;
+    const nodeTransform = asNodes("POST", JSON.stringify({uuid}));
+    const segments = path.split("/").filter(filterBaseRoute)
+    const node = nodeTransform(segments[0], 0);
+    assert(node.patternOnly().includes(uuid), segments)
   })
 })
 
@@ -560,8 +569,6 @@ describe("Sensing API", function () {
           );
           const data = await response.json();
           expect(response, 200);
-
-          console.log({data, response})
           assert(data.value.length === 1, `More values than expected (${data.value.length}/1)`)
           assert(uuid === data.value[0].uuid, `Unexpected UUID (${uuid}, ${data.value[0].uuid})`)
         })

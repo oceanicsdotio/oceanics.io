@@ -3,10 +3,13 @@ import type { ApiHandler } from "./shared/middleware";
 import { Links } from "./shared/pkg";
 import apiSpec from "./shared/bathysphere.json";
 
+// Don't currently pass custom label through the API
+const DEFAULT_LABEL = "Link"
+
 /**
  * Connect two nodes.
  */
-const join: ApiHandler = async ({ data: { nodes: [left, right], label } }) => {
+const join: ApiHandler = async ({ data: { nodes: [left, right], label=DEFAULT_LABEL } }) => {
   await connect((new Links(label)).join(left, right).query);
   return {
     statusCode: 204

@@ -1,10 +1,11 @@
 [build]
   functions = "/oceanics-io-fcns/dist"
+  edge_functions = "/oceanics-io-edge-fcns"
   environment = {NODE_VERSION = "14", AWS_LAMBDA_JS_RUNTIME = "nodejs14.x", NETLIFY_USE_YARN = "true", NETLIFY_YARN_WORKSPACES = "true", YARN_VERSION="1.22.17", NETLIFY_EXPERIMENTAL_BUILD_RUST_SOURCE="true"}
   
 [[edge_functions]]
   function = "hello-world"
-  path = "/hello"
+  path = "/hello-you"
 
 [[redirects]]
   from = "/api/auth"
@@ -13,7 +14,7 @@
   headers = {X-From = "Netlify"}
 
 [[redirects]]
-  from = "/api/:left(:uuid)/:right"
+  from = "/api/:left/:right"
   to = "/.netlify/functions/topology"
   status = 200
   headers = {X-From = "Netlify"}
@@ -81,6 +82,12 @@
 [[redirects]]
   from = "/api/DataStreams"
   to = "/.netlify/functions/collection"
+  status = 200
+  headers = {X-From = "Netlify"}
+
+[[redirects]]
+  from = "/api/DataStreams*"
+  to = "/.netlify/functions/entity"
   status = 200
   headers = {X-From = "Netlify"}
 

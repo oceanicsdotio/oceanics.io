@@ -7,10 +7,12 @@ exports.handler = void 0;
 const middleware_1 = require("./shared/middleware");
 const pkg_1 = require("./shared/pkg");
 const bathysphere_json_1 = __importDefault(require("./shared/bathysphere.json"));
+// Don't currently pass custom label through the API
+const DEFAULT_LABEL = "Link";
 /**
  * Connect two nodes.
  */
-const join = async ({ data: { nodes: [left, right], label } }) => {
+const join = async ({ data: { nodes: [left, right], label = DEFAULT_LABEL } }) => {
     await (0, middleware_1.connect)((new pkg_1.Links(label)).join(left, right).query);
     return {
         statusCode: 204

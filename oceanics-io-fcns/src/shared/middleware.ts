@@ -152,7 +152,6 @@ export const metadata: ApiHandler = async ({data: {user, nodes: [entity]}}) => {
     const { query } = (new Links()).query(user, entity, entity.symbol);
     const properties = (node: [string, Properties]) => node[1];
     const value = (await connect(query).then(transform)).map(properties);
-    console.log({entity: entity.patternOnly(), value})
     return {
         statusCode: 200,
         data: {
@@ -217,30 +216,24 @@ export const filterBaseRoute = (symbol: string) =>
 export const asNodes = (
     httpMethod: Method, 
     body: string, 
-) => (
-    text: string, 
-    index: number, 
-    arr: string[],
 ) => {
-    let label: string = "";
-    let uuid: string = "";
-    // Identifiers are delimited with parentheses
-    if (text.includes("(")) {
-        const parts = text.split("(")
-        label = parts[0]
-        uuid = parts[1].replace(")", "")
-    } else {
-        label = text
+    const expectBody = METHODS_WITH_BODY.includes(httpMethod)
+    return (
+        text: string, 
+        index: number
+    ) => {
+        let label: string = "";
+        let properties = expectBody ? JSON.parse(body) : {};
+        // Identifiers are delimited with parentheses
+        if (text.includes("(")) {
+            const parts = text.split("(")
+            label = parts[0]
+            properties.uuid = parts[1].replace(")", "")
+        } else {
+            label = text
+        }  
+        return materialize(properties, `n${index}`, label)
     }
-
-    let properties = {};
-    if (index === arr.length - 1) {
-        properties = {uuid}
-    } else if (METHODS_WITH_BODY.includes(httpMethod)) {
-        properties = JSON.parse(body)
-    }
-    
-    return materialize(properties, `n${index}`, label)
 }
 
 /**
@@ -313,7 +306,7 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: Object): Handler 
 
         let user: Node;
         let provider: Node;
-        if (!methodSpec || Authentication.Bearer in security) {
+        if (Authentication.Bearer in security) {
             let claim: { uuid: string, error?: string };
             try {
                 claim = bearerAuthClaim(headers);
@@ -360,11 +353,6 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: Object): Handler 
         const nodeTransform = asNodes(httpMethod as Method, body);
         const nodes: Node[] = path.split("/").filter(filterBaseRoute).map(nodeTransform);
 
-        console.log({
-            path,
-            nodes
-        })
-        
         const {extension="", data, ...result} = await handler({
             data: { 
                 user,
