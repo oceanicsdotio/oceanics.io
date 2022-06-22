@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.handler = void 0;
 const middleware_1 = require("./shared/middleware");
-const pkg_1 = require("./shared/pkg");
+const wasm_1 = require("wasm");
 const bathysphere_json_1 = __importDefault(require("./shared/bathysphere.json"));
 /**
  * Create some nodes, usually one, within the graph. This will
@@ -18,7 +18,7 @@ const bathysphere_json_1 = __importDefault(require("./shared/bathysphere.json"))
  * Location data receives additional processing logic internally.
  */
 const create = async ({ data: { user, nodes: [entity] } }) => {
-    const { query } = (new pkg_1.Links("Create", 0, 0, "")).insert(user, entity);
+    const { query } = (new wasm_1.Links("Create", 0, 0, "")).insert(user, entity);
     await (0, middleware_1.connect)(query);
     return {
         statusCode: 204

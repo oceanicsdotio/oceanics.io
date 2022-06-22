@@ -7,7 +7,7 @@ exports.NetlifyRouter = exports.asNodes = exports.filterBaseRoute = exports.hash
 const neo4j_driver_1 = __importDefault(require("neo4j-driver"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const crypto_1 = __importDefault(require("crypto"));
-const pkg_1 = require("./pkg");
+const wasm_1 = require("wasm");
 var Method;
 (function (Method) {
     Method["POST"] = "POST";
@@ -64,7 +64,7 @@ const materialize = (properties, symbol, label) => {
     // Common filter need
     const removeFalsy = ([_, value]) => typeof value !== "undefined" && !!value;
     const props = Object.entries(properties).filter(removeFalsy).map(valueToString).join(", ");
-    return new pkg_1.Node(props, symbol, label);
+    return new wasm_1.Node(props, symbol, label);
 };
 exports.materialize = materialize;
 /**
@@ -95,7 +95,7 @@ exports.transform = transform;
  * by any single property.
  */
 const metadata = async ({ data: { user, nodes: [entity] } }) => {
-    const { query } = (new pkg_1.Links()).query(user, entity, entity.symbol);
+    const { query } = (new wasm_1.Links()).query(user, entity, entity.symbol);
     const properties = (node) => node[1];
     const value = (await (0, exports.connect)(query).then(exports.transform)).map(properties);
     return {

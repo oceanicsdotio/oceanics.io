@@ -1,6 +1,6 @@
 import { connect, metadata, NetlifyRouter } from "./shared/middleware";
 import type { ApiHandler } from "./shared/middleware";
-import { Links } from "./shared/pkg";
+import { Links } from "wasm";
 import apiSpec from "./shared/bathysphere.json";
 
 /**
