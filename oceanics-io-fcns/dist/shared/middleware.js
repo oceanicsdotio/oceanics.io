@@ -3,11 +3,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NetlifyRouter = exports.hashPassword = exports.UNAUTHORIZED = exports.NOT_IMPLEMENTED = exports.metadata = exports.transform = exports.dematerialize = exports.materialize = exports.connect = void 0;
+exports.NetlifyRouter = exports.asNodes = exports.filterBaseRoute = exports.hashPassword = exports.UNAUTHORIZED = exports.NOT_IMPLEMENTED = exports.metadata = exports.transform = exports.dematerialize = exports.materialize = exports.connect = void 0;
 const neo4j_driver_1 = __importDefault(require("neo4j-driver"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const crypto_1 = __importDefault(require("crypto"));
-const pkg_1 = require("./pkg");
+const wasm_1 = require("wasm");
 var Method;
 (function (Method) {
     Method["POST"] = "POST";
@@ -64,7 +64,7 @@ const materialize = (properties, symbol, label) => {
     // Common filter need
     const removeFalsy = ([_, value]) => typeof value !== "undefined" && !!value;
     const props = Object.entries(properties).filter(removeFalsy).map(valueToString).join(", ");
-    return new pkg_1.Node(props, symbol, label);
+    return new wasm_1.Node(props, symbol, label);
 };
 exports.materialize = materialize;
 /**
@@ -76,7 +76,8 @@ const dematerialize = (node) => {
         const [key, serialized] = keyValue.split(": ");
         return [key, serialized.slice(1, serialized.length - 1)];
     };
-    const properties = Object.fromEntries(node.patternOnly().split(", ").map(stringToValue));
+    const propsString = node.patternOnly();
+    const properties = propsString ? Object.fromEntries(propsString.split(", ").map(stringToValue)) : {};
     return [properties, node.symbol, node.label];
 };
 exports.dematerialize = dematerialize;
@@ -94,7 +95,7 @@ exports.transform = transform;
  * by any single property.
  */
 const metadata = async ({ data: { user, nodes: [entity] } }) => {
-    const { query } = (new pkg_1.Links()).query(user, entity, entity.symbol);
+    const { query } = (new wasm_1.Links()).query(user, entity, entity.symbol);
     const properties = (node) => node[1];
     const value = (await (0, exports.connect)(query).then(exports.transform)).map(properties);
     return {
@@ -147,31 +148,29 @@ const hashPassword = (password, secret) => crypto_1.default.pbkdf2Sync(password,
 exports.hashPassword = hashPassword;
 // Test part of path, and reject if it is blank or part of the restricted set. 
 const filterBaseRoute = (symbol) => !!symbol && !STRIP_BASE_PATH_PREFIX.has(symbol);
+exports.filterBaseRoute = filterBaseRoute;
 /**
  * Convert part of path into a resource identifier that
  * includes the UUID and Label.
  */
-const asNodes = (httpMethod, body) => (text, index, arr) => {
-    let label = "";
-    let uuid = "";
-    // Identifiers are delimited with parentheses
-    if (text.includes("(")) {
-        const parts = text.split("(");
-        label = parts[0];
-        uuid = parts[1].replace(")", "");
-    }
-    else {
-        label = text;
-    }
-    let properties = {};
-    if (index < arr.length - 1) {
-        properties = { uuid };
-    }
-    else if (METHODS_WITH_BODY.includes(httpMethod)) {
-        properties = JSON.parse(body);
-    }
-    return (0, exports.materialize)(properties, `n${index}`, label);
+const asNodes = (httpMethod, body) => {
+    const expectBody = METHODS_WITH_BODY.includes(httpMethod);
+    return (text, index) => {
+        let label = "";
+        let properties = expectBody ? JSON.parse(body) : {};
+        // Identifiers are delimited with parentheses
+        if (text.includes("(")) {
+            const parts = text.split("(");
+            label = parts[0];
+            properties.uuid = parts[1].replace(")", "");
+        }
+        else {
+            label = text;
+        }
+        return (0, exports.materialize)(properties, `n${index}`, label);
+    };
 };
+exports.asNodes = asNodes;
 /**
  * Matching pattern based on basic auth information
  */
@@ -231,7 +230,7 @@ function NetlifyRouter(methods, pathSpec) {
         const security = methodSpec.security.reduce(reduceMethods, {});
         let user;
         let provider;
-        if (!methodSpec || Authentication.Bearer in security) {
+        if (Authentication.Bearer in security) {
             let claim;
             try {
                 claim = bearerAuthClaim(headers);
@@ -275,8 +274,8 @@ function NetlifyRouter(methods, pathSpec) {
             // Shouldn't occur
         }
         // parse path into resources
-        const nodeTransform = asNodes(httpMethod, body);
-        const nodes = path.split("/").filter(filterBaseRoute).map(nodeTransform);
+        const nodeTransform = (0, exports.asNodes)(httpMethod, body);
+        const nodes = path.split("/").filter(exports.filterBaseRoute).map(nodeTransform);
         const { extension = "", data, ...result } = await handler({
             data: {
                 user,

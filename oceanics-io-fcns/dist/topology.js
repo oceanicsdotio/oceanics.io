@@ -5,13 +5,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.handler = void 0;
 const middleware_1 = require("./shared/middleware");
-const pkg_1 = require("./shared/pkg");
+const wasm_1 = require("wasm");
 const bathysphere_json_1 = __importDefault(require("./shared/bathysphere.json"));
+// Don't currently pass custom label through the API
+const DEFAULT_LABEL = "Link";
 /**
  * Connect two nodes.
  */
-const join = async ({ data: { nodes: [left, right], label } }) => {
-    await (0, middleware_1.connect)((new pkg_1.Links(label)).join(left, right).query);
+const join = async ({ data: { nodes: [left, right], label = DEFAULT_LABEL } }) => {
+    await (0, middleware_1.connect)((new wasm_1.Links(label)).join(left, right).query);
     return {
         statusCode: 204
     };
@@ -20,7 +22,7 @@ const join = async ({ data: { nodes: [left, right], label } }) => {
  * Drop connection between two nodes.
  */
 const drop = async ({ data: { nodes: [left, right] } }) => {
-    await (0, middleware_1.connect)((new pkg_1.Links()).drop(left, right).query);
+    await (0, middleware_1.connect)((new wasm_1.Links()).drop(left, right).query);
     return {
         statusCode: 204
     };

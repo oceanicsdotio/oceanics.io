@@ -4,16 +4,28 @@ import YAML from "yaml";
 import { readFileSync } from "fs";
 import { describe, it } from "mocha";
 import crypto from "crypto";
+import { asNodes, filterBaseRoute, dematerialize } from "../oceanics-io-fcns/dist/shared/middleware.js";
 
 // MERGE (n:Provider { apiKey: replace(apoc.create.uuid(), '-', ''), domain: 'oceanics.io' }) return n
 
-const BASE_PATH = "http://localhost:8888/.netlify/functions";
-const API_PATH = "http://localhost:8888/api";
+/**
+ * Network configuration for tests.
+ * - BASE: non-published routes
+ * - API: routes described in our API documentation
+ */
+const HOSTNAME = "http://localhost:8888";
+// const HOSTNAME = "https://www.oceanics.io";
+const BASE_PATH = `${HOSTNAME}/.netlify/functions`;
+const API_PATH = `${HOSTNAME}/api`;
+
+// Auth header value
 const SERVICE_ACCOUNT_AUTHENTICATION = [
   process.env.SERVICE_ACCOUNT_USERNAME??"", 
   process.env.SERVICE_ACCOUNT_PASSWORD??"", 
   process.env.SERVICE_ACCOUNT_SECRET??"",
 ].join(":")
+
+// Lookup for entity type by domain area
 const EXTENSIONS = {
   sensing: new Set([
     "Things",
@@ -119,6 +131,27 @@ const parseNodesFromApi = () => {
 
 const WELL_KNOWN_NODES = parseNodesFromApi();
 
+describe("Middleware", function () {
+
+  it("parses get entity path", function () {
+    const uuid = `abcd`;
+    const path = `api/DataStreams(${uuid})`;
+    const nodeTransform = asNodes("GET", "");
+    const segments = path.split("/").filter(filterBaseRoute)
+    const node = nodeTransform(segments[0], 0);
+    assert(node.patternOnly().includes(uuid))
+  })
+
+  it("parses post collection path", function () {
+    const uuid = `abcd`;
+    const path = `api/DataStreams`;
+    const nodeTransform = asNodes("POST", JSON.stringify({uuid}));
+    const segments = path.split("/").filter(filterBaseRoute)
+    const node = nodeTransform(segments[0], 0);
+    assert(node.patternOnly().includes(uuid), segments)
+  })
+})
+
 /**
  * API request validation is through a separate service so that it can be tested
  * and used without needing to persist data or manage side effects. 
@@ -188,13 +221,6 @@ describe("API Request Validator", function () {
     for (const nodeType of EXTENSIONS.sensing) {
       describe(nodeType, validateInterface(nodeType));
     }
-
-    /**
-     * Create a `describe` block for each of the Sensing API entities
-     */
-    for (const nodeType of EXTENSIONS.sensing) {
-      describe(nodeType, validateInterface(nodeType));
-    }
 })
 
 /**
@@ -234,6 +260,7 @@ describe("Auth API", function () {
      * Removed the route from the API for the time being. 
      */
     it("clears non-provider, nodes", async function () {
+      this.timeout(5000)
       const {token} = await fetchToken()
       const response = await fetch(authPath, {
         method: "DELETE",
@@ -456,6 +483,7 @@ describe("Sensing API", function () {
      */
     for (const nodeType of EXTENSIONS.sensing) {
       it(`creates ${nodeType}`, async function () {
+        this.timeout(5000)
         await validateBatch(
           batch(composeWriteTransaction, nodeType, WELL_KNOWN_NODES[nodeType])
         );
@@ -494,7 +522,7 @@ describe("Sensing API", function () {
         const names = new Set(data.map((item) => item.name));
         assert(
           EXTENSIONS.auth.every((omit) => !names.has(omit)),
-          `Result Contains Private Type`
+          `Result Contains Private Type: ${[...names].join(", ")}`
         );
       });
     })
@@ -541,8 +569,8 @@ describe("Sensing API", function () {
           );
           const data = await response.json();
           expect(response, 200);
-          assert(data.value.length === 1)
-          assert(uuid === data.value[0].uuid)
+          assert(data.value.length === 1, `More values than expected (${data.value.length}/1)`)
+          assert(uuid === data.value[0].uuid, `Unexpected UUID (${uuid}, ${data.value[0].uuid})`)
         })
         await Promise.all(result)
       }

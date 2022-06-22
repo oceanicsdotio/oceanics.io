@@ -4,7 +4,7 @@ import type { Record } from "neo4j-driver";
 import jwt from "jsonwebtoken";
 import type { JwtPayload } from "jsonwebtoken";
 import crypto from "crypto";
-import { Node, Links } from "./pkg";
+import { Node, Links } from "wasm";
 
 // Stub type for generic entity Properties object.
 export type Properties = { [key: string]: any };
@@ -121,8 +121,8 @@ export const dematerialize = (node: Node): [Properties, string, string] => {
         const [key, serialized] =  keyValue.split(": ")
         return [key, serialized.slice(1, serialized.length - 1)]
     }
-
-    const properties: Properties = Object.fromEntries(node.patternOnly().split(", ").map(stringToValue));
+    const propsString = node.patternOnly()
+    const properties: Properties = propsString ? Object.fromEntries(propsString.split(", ").map(stringToValue)) : {};
 
     return [properties, node.symbol, node.label]
 }
@@ -206,40 +206,34 @@ export const hashPassword = (password: string, secret: string) =>
     crypto.pbkdf2Sync(password, secret, 100000, 64, "sha512").toString("hex");
 
 // Test part of path, and reject if it is blank or part of the restricted set. 
-const filterBaseRoute = (symbol: string) =>
+export const filterBaseRoute = (symbol: string) =>
     !!symbol && !STRIP_BASE_PATH_PREFIX.has(symbol);
 
 /**
  * Convert part of path into a resource identifier that
  * includes the UUID and Label.
  */
-const asNodes = (
+export const asNodes = (
     httpMethod: Method, 
     body: string, 
-) => (
-    text: string, 
-    index: number, 
-    arr: string[],
 ) => {
-    let label: string = "";
-    let uuid: string = "";
-    // Identifiers are delimited with parentheses
-    if (text.includes("(")) {
-        const parts = text.split("(")
-        label = parts[0]
-        uuid = parts[1].replace(")", "")
-    } else {
-        label = text
+    const expectBody = METHODS_WITH_BODY.includes(httpMethod)
+    return (
+        text: string, 
+        index: number
+    ) => {
+        let label: string = "";
+        let properties = expectBody ? JSON.parse(body) : {};
+        // Identifiers are delimited with parentheses
+        if (text.includes("(")) {
+            const parts = text.split("(")
+            label = parts[0]
+            properties.uuid = parts[1].replace(")", "")
+        } else {
+            label = text
+        }  
+        return materialize(properties, `n${index}`, label)
     }
-
-    let properties = {};
-    if (index < arr.length - 1) {
-        properties = {uuid}
-    } else if (METHODS_WITH_BODY.includes(httpMethod)) {
-        properties = JSON.parse(body)
-    }
-    
-    return materialize(properties, `n${index}`, label)
 }
 
 /**
@@ -312,7 +306,7 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: Object): Handler 
 
         let user: Node;
         let provider: Node;
-        if (!methodSpec || Authentication.Bearer in security) {
+        if (Authentication.Bearer in security) {
             let claim: { uuid: string, error?: string };
             try {
                 claim = bearerAuthClaim(headers);
@@ -358,7 +352,7 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: Object): Handler 
         // parse path into resources
         const nodeTransform = asNodes(httpMethod as Method, body);
         const nodes: Node[] = path.split("/").filter(filterBaseRoute).map(nodeTransform);
-        
+
         const {extension="", data, ...result} = await handler({
             data: { 
                 user,

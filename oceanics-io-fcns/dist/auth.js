@@ -7,14 +7,14 @@ exports.handler = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const bathysphere_json_1 = __importDefault(require("./shared/bathysphere.json"));
 const middleware_1 = require("./shared/middleware");
-const pkg_1 = require("./shared/pkg");
+const wasm_1 = require("wasm");
 /**
  * Create a new account using email address. We don't perform
  * any validation of inputs here, such as for email address and
  * excluded passwords. Assume this is delegated to frontend.
  */
 const register = async ({ data: { user, provider } }) => {
-    const { query } = new pkg_1.Links("Register", 0, 0, "").insert(provider, user);
+    const { query } = new wasm_1.Links("Register", 0, 0, "").insert(provider, user);
     let records;
     try {
         records = await (0, middleware_1.connect)(query).then(middleware_1.transform);
@@ -50,7 +50,7 @@ const manage = async ({}) => {
     };
 };
 const remove = async ({ data: { user } }) => {
-    const { query } = new pkg_1.Links().delete(user, new pkg_1.Node());
+    const { query } = new wasm_1.Links().delete(user, new wasm_1.Node());
     try {
         await (0, middleware_1.connect)(query);
     }

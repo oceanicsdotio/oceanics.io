@@ -10,7 +10,7 @@ import {
   dematerialize
 } from "./shared/middleware";
 
-import { Links, Node } from "./shared/pkg";
+import { Links, Node } from "wasm";
 
 /**
  * Generic interface for all of the HTTP method-specific handlers.

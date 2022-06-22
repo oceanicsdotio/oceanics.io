@@ -1,6 +1,6 @@
-import { connect, metadata, NetlifyRouter, dematerialize } from "./shared/middleware";
+import { connect, metadata, NetlifyRouter } from "./shared/middleware";
 import type { ApiHandler } from "./shared/middleware";
-import { Links } from "./shared/pkg";
+import { Links } from "wasm";
 import apiSpec from "./shared/bathysphere.json";
 
 /**
@@ -15,9 +15,7 @@ import apiSpec from "./shared/bathysphere.json";
  */
 const create: ApiHandler = async ({ data: { user, nodes: [entity] } }) => {
     const { query } = (new Links("Create", 0, 0, "")).insert(user, entity)
-    console.log({ entity: entity.patternOnly() })
-    const result = await connect(query)
-    console.log({ result })
+    await connect(query)
     return {
         statusCode: 204
     }

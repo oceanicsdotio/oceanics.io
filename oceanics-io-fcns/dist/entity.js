@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.handler = void 0;
 const middleware_1 = require("./shared/middleware");
-const pkg_1 = require("./shared/pkg");
+const wasm_1 = require("wasm");
 const bathysphere_json_1 = __importDefault(require("./shared/bathysphere.json"));
 /**
  * Delete a pattern from the graph. Be careful, this can
@@ -17,7 +17,7 @@ const bathysphere_json_1 = __importDefault(require("./shared/bathysphere.json"))
  * labels.
  */
 const remove = async ({ data: { user, nodes: [entity] } }) => {
-    const { query } = (new pkg_1.Links()).deleteChild(user, entity);
+    const { query } = (new wasm_1.Links()).deleteChild(user, entity);
     await (0, middleware_1.connect)(query);
     return {
         statusCode: 204

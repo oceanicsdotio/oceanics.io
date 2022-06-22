@@ -1,7 +1,12 @@
 [build]
   functions = "/oceanics-io-fcns/dist"
+  edge_functions = "/oceanics-io-edge-fcns"
   environment = {NODE_VERSION = "14", AWS_LAMBDA_JS_RUNTIME = "nodejs14.x", NETLIFY_USE_YARN = "true", NETLIFY_YARN_WORKSPACES = "true", YARN_VERSION="1.22.17", NETLIFY_EXPERIMENTAL_BUILD_RUST_SOURCE="true"}
   
+[[edge_functions]]
+  function = "hello-world"
+  path = "/hello-you"
+
 [[redirects]]
   from = "/api/auth"
   to = "/.netlify/functions/auth"
@@ -9,23 +14,89 @@
   headers = {X-From = "Netlify"}
 
 [[redirects]]
-  from = "/api/:left\(:uuid\)/:right"
+  from = "/api/:left/:right"
   to = "/.netlify/functions/topology"
   status = 200
   headers = {X-From = "Netlify"}
 
 [[redirects]]
-  from = "/api/:left"
+  from = "/api/Things"
   to = "/.netlify/functions/collection"
   status = 200
   headers = {X-From = "Netlify"}
 
 [[redirects]]
-  from = "/api/:left\(:uuid\)"
+  from = "/api/Sensors"
+  to = "/.netlify/functions/collection"
+  status = 200
+  headers = {X-From = "Netlify"}
+
+[[redirects]]
+  from = "/api/ObservedProperties"
+  to = "/.netlify/functions/collection"
+  status = 200
+  headers = {X-From = "Netlify"}
+
+[[redirects]]
+  from = "/api/Observations"
+  to = "/.netlify/functions/collection"
+  status = 200
+  headers = {X-From = "Netlify"}
+
+[[redirects]]
+  from = "/api/Locations"
+  to = "/.netlify/functions/collection"
+  status = 200
+  headers = {X-From = "Netlify"}
+
+[[redirects]]
+  from = "/api/HistoricalLocations"
+  to = "/.netlify/functions/collection"
+  status = 200
+  headers = {X-From = "Netlify"}
+
+[[redirects]]
+  from = "/api/FeaturesOfInterest"
+  to = "/.netlify/functions/collection"
+  status = 200
+  headers = {X-From = "Netlify"}
+
+[[redirects]]
+  from = "/api/Actuators"
+  to = "/.netlify/functions/collection"
+  status = 200
+  headers = {X-From = "Netlify"}
+
+[[redirects]]
+  from = "/api/Tasks"
+  to = "/.netlify/functions/collection"
+  status = 200
+  headers = {X-From = "Netlify"}
+
+[[redirects]]
+  from = "/api/TaskingCapabilties"
+  to = "/.netlify/functions/collection"
+  status = 200
+  headers = {X-From = "Netlify"}
+
+[[redirects]]
+  from = "/api/DataStreams"
+  to = "/.netlify/functions/collection"
+  status = 200
+  headers = {X-From = "Netlify"}
+
+[[redirects]]
+  from = "/api/DataStreams*"
   to = "/.netlify/functions/entity"
   status = 200
   headers = {X-From = "Netlify"}
-  
+
+[[redirects]]
+  from = "/api/:left"
+  to = "/.netlify/functions/entity"
+  status = 200
+  headers = {X-From = "Netlify"}
+
 [[redirects]]
   from = "/api/"
   to = "/.netlify/functions/index"
