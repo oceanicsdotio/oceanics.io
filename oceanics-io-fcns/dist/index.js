@@ -10,16 +10,16 @@ const bathysphere_json_1 = __importDefault(require("./shared/bathysphere.json"))
 // Convenience methods for chaining
 const restricted = new Set(["Provider", "User"]);
 const extractLabel = ({ _fields: [label] }) => label;
-const filterLabels = ({ label }) => !restricted.has(label);
+const filterLabels = (label) => !restricted.has(label);
 const uniqueLabels = ({ records }) => records.flatMap(extractLabel).filter(filterLabels);
 /**
  * Get an array of all collections by Node type
  */
 const index = async () => {
-    const labels = await (0, middleware_1.connect)(pkg_1.Node.allLabels().query).then(uniqueLabels);
+    const filteredLabels = await (0, middleware_1.connect)(pkg_1.Node.allLabels().query).then(uniqueLabels);
     return {
         statusCode: 200,
-        data: labels.map((label) => Object({
+        data: filteredLabels.map((label) => Object({
             name: label,
             url: `/api/${label}`
         }))

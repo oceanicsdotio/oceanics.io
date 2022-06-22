@@ -121,8 +121,8 @@ export const dematerialize = (node: Node): [Properties, string, string] => {
         const [key, serialized] =  keyValue.split(": ")
         return [key, serialized.slice(1, serialized.length - 1)]
     }
-
-    const properties: Properties = Object.fromEntries(node.patternOnly().split(", ").map(stringToValue));
+    const propsString = node.patternOnly()
+    const properties: Properties = propsString ? Object.fromEntries(propsString.split(", ").map(stringToValue)) : {};
 
     return [properties, node.symbol, node.label]
 }
@@ -152,6 +152,7 @@ export const metadata: ApiHandler = async ({data: {user, nodes: [entity]}}) => {
     const { query } = (new Links()).query(user, entity, entity.symbol);
     const properties = (node: [string, Properties]) => node[1];
     const value = (await connect(query).then(transform)).map(properties);
+    console.log({entity: entity.patternOnly(), value})
     return {
         statusCode: 200,
         data: {
@@ -206,14 +207,14 @@ export const hashPassword = (password: string, secret: string) =>
     crypto.pbkdf2Sync(password, secret, 100000, 64, "sha512").toString("hex");
 
 // Test part of path, and reject if it is blank or part of the restricted set. 
-const filterBaseRoute = (symbol: string) =>
+export const filterBaseRoute = (symbol: string) =>
     !!symbol && !STRIP_BASE_PATH_PREFIX.has(symbol);
 
 /**
  * Convert part of path into a resource identifier that
  * includes the UUID and Label.
  */
-const asNodes = (
+export const asNodes = (
     httpMethod: Method, 
     body: string, 
 ) => (
@@ -233,7 +234,7 @@ const asNodes = (
     }
 
     let properties = {};
-    if (index < arr.length - 1) {
+    if (index === arr.length - 1) {
         properties = {uuid}
     } else if (METHODS_WITH_BODY.includes(httpMethod)) {
         properties = JSON.parse(body)
@@ -358,6 +359,11 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: Object): Handler 
         // parse path into resources
         const nodeTransform = asNodes(httpMethod as Method, body);
         const nodes: Node[] = path.split("/").filter(filterBaseRoute).map(nodeTransform);
+
+        console.log({
+            path,
+            nodes
+        })
         
         const {extension="", data, ...result} = await handler({
             data: { 
