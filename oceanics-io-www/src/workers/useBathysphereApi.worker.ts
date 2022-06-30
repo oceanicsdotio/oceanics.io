@@ -1,5 +1,5 @@
 
-import { DOMParser } from "xmldom";
+import { DOMParser } from "@xmldom/xmldom";
 import type { FileSystem } from "./shared";
 import SwaggerParser from "@apidevtools/swagger-parser";
 import YAML from "yaml";
