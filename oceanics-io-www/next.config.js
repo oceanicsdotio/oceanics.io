@@ -1,5 +1,5 @@
-const SSRPlugin =
-  require("next/dist/build/webpack/plugins/nextjs-ssr-import").default;
+// const SSRPlugin =
+//   require("next/dist/build/webpack/plugins/nextjs-ssr-import").default;
 const {
   dirname,
   relative,
@@ -28,13 +28,13 @@ module.exports = {
     });
 
     // From https://github.com/vercel/next.js/issues/22581#issuecomment-864476385
-    const ssrPlugin = config.plugins.find(
-      (plugin) => plugin instanceof SSRPlugin
-    );
+    // const ssrPlugin = config.plugins.find(
+    //   (plugin) => plugin instanceof SSRPlugin
+    // );
 
-    if (ssrPlugin) {
-      patchSsrPlugin(ssrPlugin);
-    }
+    // if (ssrPlugin) {
+    //   patchSsrPlugin(ssrPlugin);
+    // }
 
     return config;
   },
