@@ -5423,13 +5423,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/pluralize@npm:^0.0.29":
-  version: 0.0.29
-  resolution: "@types/pluralize@npm:0.0.29"
-  checksum: db7732b733ba1dc59f080f87364c9f985c1ae9f1e5ec5fcefb83c1327149e01ecac42766352eb7b19b117cf39defa99cf514629f3666968a3bdeb00e74f2a97e
-  languageName: node
-  linkType: hard
-
 "@types/prettier@npm:^2.1.5":
   version: 2.6.0
   resolution: "@types/prettier@npm:2.6.0"
@@ -14623,17 +14616,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"js-yaml-loader@npm:^1.2.2":
-  version: 1.2.2
-  resolution: "js-yaml-loader@npm:1.2.2"
-  dependencies:
-    js-yaml: ^3.13.1
-    loader-utils: ^1.2.3
-    un-eval: ^1.2.0
-  checksum: cf7f19e3c8e9055c8d0db40d444ef980fe49414e4dcfa626f721395d6b3b239af22fc008b70a2c203e04691832269ce2c9ec2b17d602942495d0202a875206ce
-  languageName: node
-  linkType: hard
-
 "js-yaml@npm:4.1.0, js-yaml@npm:^4.0.0, js-yaml@npm:^4.1.0":
   version: 4.1.0
   resolution: "js-yaml@npm:4.1.0"
@@ -17926,7 +17908,6 @@ __metadata:
     "@types/katex": ^0.11.1
     "@types/mapbox-gl": ^2.4.2
     "@types/node": ^17.0.5
-    "@types/pluralize": ^0.0.29
     "@types/react": ^18.0.14
     "@types/react-dom": ^17.0.2
     "@types/react-pdf": ^5.0.9
@@ -17934,10 +17915,8 @@ __metadata:
     "@types/typography": ^0.16.4
     babel-loader: ^8.2.2
     jest: ^27.0.6
-    js-yaml-loader: ^1.2.2
     katex: ^0.15.3
     mapbox-gl: ^1.5.0
-    pluralize: ^8.0.0
     prop-types: ^15.8.0
     react: ^18.0.0
     react-dom: ^18.0.0
@@ -23162,13 +23141,6 @@ __metadata:
   dependencies:
     random-bytes: ~1.0.0
   checksum: 07536043da9a026f4a2bc397543d0ace7587449afa1d9d2c4fd3ce76af8a5263a678788bcc429dff499ef29d45843cd5ee9d05434450fcfc19cc661229f703d1
-  languageName: node
-  linkType: hard
-
-"un-eval@npm:^1.2.0":
-  version: 1.2.0
-  resolution: "un-eval@npm:1.2.0"
-  checksum: 91257096b6282cb93b744dca882219401b591d90e45ab0d6ca7e0b9b1eb30190c2c41fa55b50a04a8d48f617151e74fba7b7121fa1b957b9351b60ac354e0e79
   languageName: node
   linkType: hard
 
