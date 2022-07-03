@@ -1,0 +1,39 @@
+---
+title: Just normal sensor things
+published: "2022-06-24T12:00:00.000Z"
+description: |
+    Design decisions matter to implementors and users, and these decisions compound in unfortunate ways.
+    I was reminded of this once again while creating middleware for our API. 
+labels: ["API", "sensor things", "cloud functions", "netlify", "wip"]
+authors: []
+references: []
+---
+
+I am a person with strong opinions. It doesn't take much to turn me off from a technology forever, and ExpressJS is one of those. So, when I set out to rewrite our SensorThings API in TypeScript I went looking for something a little different. That led me to [`middy`](https://github.com/middyjs/middy), which is a middleware engine for AWS Lambda.
+
+Love the concept, dislike the API. [I don't want this](https://middy.js.org/docs/events/api-gateway-rest). Also, I use an [OpenAPI v3.1 specification](https://www.oceanics.io/bathysphere) to be the source of truth for the interface.
+
+SensorThings is basically CRUD until you add in the tasking extension. You'd create `Things` by sending POST to `/Things`. You get all Things from `/Things`, but you retrieve a single entity, by querying `/Things(ENTITY_UUID)`, rather than `/Things/ENTITY_UUID`.
+
+And you see, Netlify routing is great, but it can only recognize placeholders between slashes. And under the hood we don't have a `/Things` route, we have an `/{entity}` route. For example `/Things` and `/Sensors` both resolve to the same function. So all queries with a single path segment are going to end up in the same place. 
+
+Specifically, depending on the order of these entries in `netlify.toml`, you end up with different results, because they are the same:
+
+```toml
+[[redirects]]
+  from = "/api/:left"
+  to = "/.netlify/functions/collection"
+  ...
+
+[[redirects]]
+  from = "/api/:left(:uuid)"
+  to = "/.netlify/functions/entity"
+  ...
+```
+
+I attempted to escape the characters (`:left\(:uuid\)`) to get apache-like matching, but it definitely doesn't work. 
+
+
+
+
+
