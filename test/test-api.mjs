@@ -162,65 +162,67 @@ describe("Middleware", function () {
  */
 describe("API Request Validator", function () {
 
-    const query = (body) => fetch(`${BASE_PATH}/api-validator`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body)
-    });
+  this.timeout(4000)
 
-    const testResponse = async (data, expected) => {
-      const response = await query(data);
-      const result = await response.json();
-      
-      assert(response.status === 200, `Unexpected Response Code: ${response.status}`);
+  const query = (body) => fetch(`${BASE_PATH}/api-validator`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
 
-      const pass = result.test === expected;
-      if (!pass) console.log({...data, ...result});
-      assert(pass, `Unexpected Validation Result`);
-    }
+  const testResponse = async (data, expected) => {
+    const response = await query(data);
+    const result = await response.json();
+    
+    assert(response.status === 200, `Unexpected Response Code: ${response.status}`);
 
-    /**
-     * Block of `it` scope tests that check that the validation service is
-     * maintaining the integrity constraints identified in the specification.
-     */
-    const validateInterface = (nodeType) => {
-      return function () {
+    const pass = result.test === expected;
+    if (!pass) console.log({...data, ...result});
+    assert(pass, `Unexpected Validation Result`);
+  }
 
-        const reference = `#/components/schemas/${nodeType}`;
-        const testCase = WELL_KNOWN_NODES[nodeType][0];
-        const {required=[], additionalProperties=true} = spec.components.schemas[nodeType];
-  
-        it("validates well known nodes", async function () {
-          for (const data of WELL_KNOWN_NODES[nodeType]) {
-            await testResponse({ data, reference}, true);
-          }
+  /**
+   * Block of `it` scope tests that check that the validation service is
+   * maintaining the integrity constraints identified in the specification.
+   */
+  const validateInterface = (nodeType) => {
+    return function () {
+
+      const reference = `#/components/schemas/${nodeType}`;
+      const testCase = WELL_KNOWN_NODES[nodeType][0];
+      const {required=[], additionalProperties=true} = spec.components.schemas[nodeType];
+
+      it("validates well known nodes", async function () {
+        for (const data of WELL_KNOWN_NODES[nodeType]) {
+          await testResponse({ data, reference}, true);
+        }
+      })
+
+      for (const key of required) {
+        it(`fails without ${key}`, async function () {
+          await testResponse({ data: {
+            ...testCase,
+            [key]: undefined
+          }, reference }, false);
         })
-  
-        for (const key of required) {
-          it(`fails without ${key}`, async function () {
-            await testResponse({ data: {
-              ...testCase,
-              [key]: undefined
-            }, reference }, false);
-          })
-        }
-        if (!additionalProperties) {
-          it("fails with additional properties", async function () {
-            await testResponse({ data: {
-              ...testCase,
-              extra: "extra-key-value-pair"
-            }, reference }, false);
-          })
-        }
+      }
+      if (!additionalProperties) {
+        it("fails with additional properties", async function () {
+          await testResponse({ data: {
+            ...testCase,
+            extra: "extra-key-value-pair"
+          }, reference }, false);
+        })
       }
     }
+  }
 
-    /**
-     * Create a `describe` block for each of the Sensing API entities
-     */
-    for (const nodeType of EXTENSIONS.sensing) {
-      describe(nodeType, validateInterface(nodeType));
-    }
+  /**
+   * Create a `describe` block for each of the Sensing API entities
+   */
+  for (const nodeType of EXTENSIONS.sensing) {
+    describe(nodeType, validateInterface(nodeType));
+  }
 })
 
 /**
@@ -549,6 +551,7 @@ describe("Sensing API", function () {
     });
   
     describe("Query nodes", function () {
+      this.timeout(5000)
       /**
        * We are able to get a single node by referencing it's unique
        * identifier. If it does not exist, or is not owned by the user,
