@@ -42,7 +42,7 @@ export const useFragmentQueue = ({ worker, map, fs }: IFragmentQueue) => {
   }, [fs]);
 
   /**
-   * Request all NECOFS fragments sequentially.
+   * Request all fragments sequentially.
    *
    * All of this should be cached by the browser
    */
