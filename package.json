@@ -27,9 +27,9 @@
         "node-fetch": "^3.1.0"
     },
     "scripts": {
-        "api:spec": "js-yaml oceanics-io-www/public/bathysphere.yaml > oceanics-io-fcns/src/shared/bathysphere.json",
+        "api:build:spec": "js-yaml oceanics-io-www/public/bathysphere.yaml > oceanics-io-fcns/src/shared/bathysphere.json",
         "api:build:wasm": "wasm-pack build oceanics-io-wasm --out-dir ../oceanics-io-fcns/src/shared/pkg --target nodejs",
-        "api:build": "yarn api:spec && yarn api:build:wasm",
+        "api:build": "yarn api:build:spec && yarn api:build:wasm",
         "api:test": "mocha",
         "netlify": "netlify dev --dir=oceanics-io-www/build",
         "wasm:build": "rm -rf oceanics-io-wasm/build && wasm-pack build oceanics-io-wasm --out-dir build --out-name index && (rm oceanics-io-wasm/build/.gitignore || :)",

@@ -59,8 +59,9 @@
   },
   "scripts": {
     "develop": "next dev",
-    "redoc": "redoc-cli bundle ./public/bathysphere.yaml --output ./public/bathysphere.html",
-    "build": "next build && next export -o build",
+    "build:docs": "redoc-cli build ./public/bathysphere.yaml --output ./public/bathysphere.html",
+    "build:next": "next build && next export -o build",
+    "build": "yarn build:docs && yarn build:next",
     "lint": "next lint"
   }
 }
