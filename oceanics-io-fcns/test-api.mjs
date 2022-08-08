@@ -4,7 +4,7 @@ import YAML from "yaml";
 import { readFileSync } from "fs";
 import { describe, it } from "mocha";
 import crypto from "crypto";
-import { asNodes, filterBaseRoute, dematerialize } from "../oceanics-io-fcns/dist/shared/middleware.js";
+import { asNodes, filterBaseRoute, dematerialize } from "./dist/shared/middleware.js";
 
 // MERGE (n:Provider { apiKey: replace(apoc.create.uuid(), '-', ''), domain: 'oceanics.io' }) return n
 

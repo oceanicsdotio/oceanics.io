@@ -48,6 +48,6 @@
     "start": "start-storybook -p 6006",
     "build-storybook": "build-storybook --loglevel warn",
     "build": "tsc",
-    "postinstall": "tsc"
+    "postinstall": "yarn build"
   }
 }
