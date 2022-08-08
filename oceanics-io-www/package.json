@@ -11,7 +11,7 @@
     "gray-matter": "^4.0.3",
     "mapbox-gl": "^1.5.0",
     "next": "^12.2.0",
-    "next-mdx-remote": "^3.0.8",
+    "next-mdx-remote": "^4.0.3",
     "oceanics-io-ui": "*",
     "oceanics-io-wasm": "*",
     "react": "^18.0.0",
