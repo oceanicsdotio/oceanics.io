@@ -8,14 +8,14 @@ import { useRouter } from "next/router";
 /**
  * Campaign component
  */
-import Campaign, { PageData } from "oceanics-io-ui/build/components/Campaign/Campaign";
+import Campaign, { PageData } from "../src/components/Campaign/Campaign";
 import Oceanside from "../src/components/Oceanside";
 import type {ApplicationType} from "../src/components/Oceanside"
-import Index from "oceanics-io-ui/build/components/References/Index";
-import type { IDocumentIndexSerialized, QueryType } from "oceanics-io-ui/build/components/References/types";
+import Index from "../src/components/References/Index";
+import type { IDocumentIndexSerialized, QueryType } from "../src/components/References/types";
 import type { GetStaticProps } from "next";
 import { createIndex, readIndexedDocuments, readIcons, parseIconMetadata } from "../src/next-util";
-import useDeserialize from "oceanics-io-ui/build/hooks/useDeserialize";
+import useDeserialize from "../src/hooks/useDeserialize";
 
 /**
  * Base component for web landing page.
