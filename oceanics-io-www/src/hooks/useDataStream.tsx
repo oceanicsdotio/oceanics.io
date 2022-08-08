@@ -2,7 +2,7 @@
  * React friends.
  */
 import { useState, useEffect, useRef } from "react";
-import { lichen, ghost } from "oceanics-io-ui/build/palette";
+import { lichen, ghost } from "../palette";
 
 /**
  * Synchronous front-end WASM Runtime

@@ -2,8 +2,7 @@
     "private": true,
     "workspaces": [
         "oceanics-io-www",
-        "oceanics-io-ui",
-        "oceanics-io-fcns",
+        "oceanics-io-api",
         "oceanics-io-wasm/*"
     ],
     "packageManager": "yarn@3.1.0",
@@ -12,6 +11,6 @@
         "netlify-cli": "^10.7.1"
     },
     "scripts": {
-        "spec": "js-yaml oceanicsdotio/public/bathysphere.yaml > $(FUNCTIONS_DIR)/bathysphere.json"
+        "spec": "js-yaml oceanics-io-www/public/bathysphere.yaml > oceanics-io-api/bathysphere.json"
     }
 }

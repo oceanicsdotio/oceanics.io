@@ -2,6 +2,15 @@ FUNCTIONS_DIR=oceanics-io-fcns/src/shared
 WASM=oceanics-io-wasm
 WWW=oceanics-io-www
 
+    "develop": "next dev",
+    "build:docs": "redoc-cli build ./public/bathysphere.yaml --output ./public/bathysphere.html",
+    "build:next": "next build && next export -o build",
+    "build": "yarn build:docs && yarn build:next",
+    "start": "start-storybook -p 6006",
+    "build-storybook": "build-storybook --loglevel warn",
+    "tsc": "tsc",
+    "postinstall": "tsc"
+
 rust:
 	curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 	cargo install wasm-pack

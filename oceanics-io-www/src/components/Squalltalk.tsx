@@ -4,7 +4,7 @@
 import React, { useEffect } from "react";
 import type { FC } from "react";
 
-import useMapBox from "oceanics-io-ui/build/hooks/useMapBox";
+import useMapBox from "../hooks/useMapBox";
 import useWasmRuntime from "../hooks/useWasmRuntime";
 import useSharedWorkerState from "../hooks/useSharedWorkerState";
 import useFragmentQueue, {
@@ -12,7 +12,7 @@ import useFragmentQueue, {
 } from "../hooks/useFragmentQueue";
 import useObjectStorage from "../hooks/useObjectStorage";
 
-import type {OptionalLocation} from "oceanics-io-ui/build/hooks/useDetectClient";
+import type {OptionalLocation} from "../hooks/useDetectClient";
 
 export const DEFAULT_MAP_PROPS = {
   zoom: 10,
