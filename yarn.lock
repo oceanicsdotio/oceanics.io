@@ -15189,14 +15189,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"katex@npm:^0.15.3":
-  version: 0.15.3
-  resolution: "katex@npm:0.15.3"
+"katex@npm:^0.16.0":
+  version: 0.16.0
+  resolution: "katex@npm:0.16.0"
   dependencies:
     commander: ^8.0.0
   bin:
     katex: cli.js
-  checksum: 12bec82d9ae9f122b9aeafaf2de476e702d12ae19bb9bdd9c8c24126fd81e752047bb856254af98ca54fc51f3bb7f149b3902d65dcdafb5e3deeb691ec4d3db2
+  checksum: 0e094523544b3c921e55da8cf1a9ea2718213c621af508af9fc03859b97dc73280f478fbfede5a8b32948210c3596c5a637dd64e0e28e31d6c617b5d50c29762
   languageName: node
   linkType: hard
 
@@ -18347,7 +18347,7 @@ __metadata:
     "@types/typography": ^0.16.4
     babel-loader: ^8.2.2
     jest: ^28.1.2
-    katex: ^0.15.3
+    katex: ^0.16.0
     mapbox-gl: ^1.5.0
     prop-types: ^15.8.0
     react: ^18.0.0
