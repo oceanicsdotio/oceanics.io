@@ -36,4 +36,4 @@ jobs:
         name: Install Node dependencies
 
       - run: make api-compile
-        name: Build API from source
+        name: Build API
