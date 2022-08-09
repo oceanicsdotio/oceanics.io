@@ -27,9 +27,9 @@ jobs:
         with:
           path: |
             ${{ github.workspace }}/oceanics-io-www/.next/cache
-          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('./yarn.lock') }}
           restore-keys: |
-            ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}
+            ${{ runner.os }}-nextjs-${{ hashFiles('./yarn.lock') }}
 
 
       - name: Configure Rust cache
