@@ -31,17 +31,16 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nextjs-${{ hashFiles('./yarn.lock') }}
 
-
       - name: Configure Rust cache
         id: rust-cache
         uses: Swatinem/rust-cache@v2
         
       - name: Install wasm-pack
         if: steps.rust-cache.outputs.cache-hit != 'true'
-        run: make install-wasm-pack
+        run: cargo install wasm-pack
         
       - name: Bundle site and API for Netlify
-        run: make build
+        run: yarn run netlify build
 
       - name: Deploy site to Netlify
-        run: make deploy
+        run: yarn run netlify deploy --prod

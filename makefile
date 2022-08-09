@@ -48,28 +48,6 @@ $(WWW)/$(OUT_DIR): node_modules $(DOCS_PAGE) $(WWW)/package.json
 
 .: $(API)/$(OUT_DIR) $(WWW)/$(OUT_DIR)
 
-# Install rust interactively on the system
-install-rustup:
-	curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-
-# Install rust to WASM transpiler
-install-wasm-pack:
-	cargo install wasm-pack
-
-build: .
-	yarn run netlify build
-
-# Start up emulation environment
-dev:
-	yarn run netlify dev
-
-deploy:
-	yarn run netlify deploy --prod
-
-# Run tests against the emulation environment
-test:
-	yarn workspace $(API) run mocha
-
 clean:
 	rm -rf $(WASM_NODE)
 	rm -rf $(WASM_WWW)
@@ -79,4 +57,4 @@ clean:
 	rm -rf $(WWW)/storybook-static
 	rm -rf $(API)/$(OUT_DIR)
 
-.PHONY: install-rustup install-wasm-pack build dev deploy test clean
+.PHONY: clean
