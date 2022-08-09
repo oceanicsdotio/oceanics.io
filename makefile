@@ -17,10 +17,10 @@ api-clean:
 	yarn workspace $(API) run rimraf dist/
 
 api-spec:
-	yarn run js-yaml $(SPEC_FILE) > $(API_SHARED)/$(SPEC).json
+	yarn run js-yaml $(SPEC_FILE) > $(SHARED)/$(SPEC).json
 
 api-wasm:
-	wasm-pack build $(WASM) --out-dir ../$(API_SHARED)/pkg --target nodejs
+	wasm-pack build $(WASM) --out-dir ../$(SHARED)/pkg --target nodejs
 
 api-copy:
 	yarn workspace $(API) run copyfiles -u 1 src/shared/pkg/* src/**/*.txt src/**/*.json dist
