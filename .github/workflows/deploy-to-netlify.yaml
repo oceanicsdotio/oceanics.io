@@ -11,14 +11,20 @@ jobs:
   Build:
     runs-on: ubuntu-latest
     steps:
+    
       - name: Check out repository code
         uses: actions/checkout@v3
+
       - uses: actions/setup-node@v3
         with:
           node-version: 16
           cache: 'yarn'
+
       # - run: make install-wasm-pack
       #   name: Install wasm-pack
+
       - run: yarn install --frozen-lockfile
+        name: Install Node dependencies
+
       - run: make www-postcommit
         name: Make Postcommit
