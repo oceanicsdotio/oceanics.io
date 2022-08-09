@@ -5047,10 +5047,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/katex@npm:^0.11.1":
-  version: 0.11.1
-  resolution: "@types/katex@npm:0.11.1"
-  checksum: 1e51988b4b386a1b6fa8e22826ab4705bf3e6c9fb03461f2c91d28cb31095232bdeff491069ac9bc74bc4c26110be6a11a41e12ca77a2e4169f3afd8cd349355
+"@types/katex@npm:^0.14.0":
+  version: 0.14.0
+  resolution: "@types/katex@npm:0.14.0"
+  checksum: 330e0d0337ba48c87f5b793965fbad673653789bf6e50dfe8d726a7b0cbefd37195055e31503aae629814aa79447e4f23a4b87ad1ac565c0d9a9d9978836f39b
   languageName: node
   linkType: hard
 
@@ -5112,7 +5112,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:>=8.1.0":
+"@types/node@npm:*, @types/node@npm:>=8.1.0, @types/node@npm:^18.6.5":
   version: 18.6.5
   resolution: "@types/node@npm:18.6.5"
   checksum: e3e66c9a84b94010a57c1b9dac882c08484278d74f9d120dbe6a3e45d00740d178bd1d34a5deee28197c94b9f4359153b637bab9b305328e865027e9987a0f3d
@@ -5130,13 +5130,6 @@ __metadata:
   version: 14.18.23
   resolution: "@types/node@npm:14.18.23"
   checksum: 119d5ab18426694ade0d3feefbdb42afc5a47b9144e523293f1554f9d34b41c7f21eafc9d0f1295db5700d134aa74e7fd37556e9438f6d64dbeddf791527e1e4
-  languageName: node
-  linkType: hard
-
-"@types/node@npm:^17.0.5":
-  version: 17.0.45
-  resolution: "@types/node@npm:17.0.45"
-  checksum: aa04366b9103b7d6cfd6b2ef64182e0eaa7d4462c3f817618486ea0422984c51fc69fd0d436eae6c9e696ddfdbec9ccaa27a917f7c2e8c75c5d57827fe3d95e8
   languageName: node
   linkType: hard
 
@@ -5222,7 +5215,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:*":
+"@types/react@npm:*, @types/react@npm:18.0.17":
   version: 18.0.17
   resolution: "@types/react@npm:18.0.17"
   dependencies:
@@ -5230,17 +5223,6 @@ __metadata:
     "@types/scheduler": "*"
     csstype: ^3.0.2
   checksum: 18cae64f5bfd6bb58fbd8ee2ba52ec82de844f114254e26de7b513e4b86621f643f9b71d7066958cd571b0d78cb86cbceda449c5289f9349ca573df29ab69252
-  languageName: node
-  linkType: hard
-
-"@types/react@npm:18.0.1":
-  version: 18.0.1
-  resolution: "@types/react@npm:18.0.1"
-  dependencies:
-    "@types/prop-types": "*"
-    "@types/scheduler": "*"
-    csstype: ^3.0.2
-  checksum: ede927ed3766fef5fec513fe75e79180bb3c97d21ca7707321e969193c596bc4a531160238546a845e4131df02ec9be7803277a268bc270156362d16b29b4ffb
   languageName: node
   linkType: hard
 
@@ -17256,7 +17238,7 @@ __metadata:
     netlify-lambda: ^2.0.15
     node-fetch: ^3.1.0
     oceanics-io-wasm-node: "*"
-    stripe: ^8.210.0
+    stripe: ^10.0.0
     typescript: ^4.6.3
   languageName: unknown
   linkType: soft
@@ -17290,11 +17272,11 @@ __metadata:
     "@storybook/react": ^6.5.10
     "@types/geojson": ^7946.0.8
     "@types/jest": ^28.1.4
-    "@types/katex": ^0.11.1
+    "@types/katex": ^0.14.0
     "@types/mapbox-gl": ^2.4.2
-    "@types/node": ^17.0.5
+    "@types/node": ^18.6.5
     "@types/prop-types": ^15.7.4
-    "@types/react": 18.0.1
+    "@types/react": 18.0.17
     "@types/react-dom": ^17.0.2
     "@types/react-pdf": ^5.0.9
     "@types/styled-components": ^5.1.22
@@ -17325,7 +17307,7 @@ __metadata:
     typescript: ^4.6.3
     typography: ^0.16.21
     webpack: ^5.47.1
-    yaml: ^1.10.2
+    yaml: ^2.1.1
   languageName: unknown
   linkType: soft
 
@@ -21341,13 +21323,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"stripe@npm:^8.210.0":
-  version: 8.222.0
-  resolution: "stripe@npm:8.222.0"
+"stripe@npm:^10.0.0":
+  version: 10.0.0
+  resolution: "stripe@npm:10.0.0"
   dependencies:
     "@types/node": ">=8.1.0"
     qs: ^6.10.3
-  checksum: ac9a5b569abf274a9f10cf5bad09d6cf47d457dad21191e8fc896c356608e75337b2e39b6e39526579d39f5b29c74a34e61c55e706def2498a079f7b4dbaea17
+  checksum: 674d4b7e08d8f2e8dca5785b1972925e6c97b085ad9ba71929a1d9cfd7fe788bd1326c5163066429ae999c473f9cc34051840fb7e159edeffd7586f4e9316285
   languageName: node
   linkType: hard
 
@@ -23654,10 +23636,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"yaml@npm:^1.10.0, yaml@npm:^1.10.2, yaml@npm:^1.7.2":
+"yaml@npm:^1.10.0, yaml@npm:^1.7.2":
   version: 1.10.2
   resolution: "yaml@npm:1.10.2"
   checksum: ce4ada136e8a78a0b08dc10b4b900936912d15de59905b2bf415b4d33c63df1d555d23acb2a41b23cf9fb5da41c256441afca3d6509de7247daa062fd2c5ea5f
+  languageName: node
+  linkType: hard
+
+"yaml@npm:^2.1.1":
+  version: 2.1.1
+  resolution: "yaml@npm:2.1.1"
+  checksum: f48bb209918aa57cfaf78ef6448d1a1f8187f45c746f933268b7023dc59e5456004611879126c9bb5ea55b0a2b1c2b392dfde436931ece0c703a3d754562bb96
   languageName: node
   linkType: hard
 

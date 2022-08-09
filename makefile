@@ -25,7 +25,7 @@ $(WASM_WWW): $(WASM)
 		--out-name index
 	sed -i 's/"name": "$(WASM)"/"name": "$(WASM_WWW)"/g' $(WASM_WWW)/package.json
 
-node_modules: $(WASM_NODE) $(WASM_WWW) package.json yarn.lock
+node_modules: $(WASM_NODE) $(WASM_WWW) package.json yarn.lock $(API)/package.json $(WWW)/package.json
 	yarn install
 
 # Build OpenAPI docs page from specification
@@ -37,12 +37,12 @@ $(API)/shared: $(SPEC_FILE) node_modules
 	yarn run js-yaml $(SPEC_FILE) > $(API)/src/shared/$(SPEC).json
 
 # Compile API
-$(API)/$(OUT_DIR): node_modules $(API)/shared 
+$(API)/$(OUT_DIR): node_modules $(API)/shared $(API)/package.json
 	(rm -rf $(API)/$(OUT_DIR)/ || :)
 	yarn workspace $(API) run tsc
 
 # Compile WWW
-$(WWW)/$(OUT_DIR): node_modules $(DOCS_PAGE)
+$(WWW)/$(OUT_DIR): node_modules $(DOCS_PAGE) $(WWW)/package.json
 	yarn workspace $(WWW) run next build
 	yarn workspace $(WWW) run next export -o $(OUT_DIR)
 
