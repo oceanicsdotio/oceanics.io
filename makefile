@@ -15,8 +15,7 @@ $(WASM_NODE): $(WASM)
 		--out-dir ../$(WASM_NODE) \
 		--target nodejs \
 		--out-name index
-	sed -i ".bak" -e 's/"name": "$(WASM)"/"name": "$(WASM_NODE)"/g' $(WASM_NODE)/package.json
-	rm $(WASM_NODE)/package.json.bak
+	sed -i 's/"name": "$(WASM)"/"name": "$(WASM_NODE)"/g' $(WASM_NODE)/package.json
 
 # Build WASM for web
 $(WASM_WWW): $(WASM)
@@ -24,8 +23,7 @@ $(WASM_WWW): $(WASM)
 	wasm-pack build $(WASM) \
 		--out-dir ../$(WASM_WWW) \
 		--out-name index
-	sed -i ".bak" -e 's/"name": "$(WASM)"/"name": "$(WASM_WWW)"/g' $(WASM_WWW)/package.json
-	rm $(WASM_WWW)/package.json.bak
+	sed -i 's/"name": "$(WASM)"/"name": "$(WASM_WWW)"/g' $(WASM_WWW)/package.json
 
 node_modules: $(WASM_NODE) $(WASM_WWW) package.json yarn.lock
 	yarn install
