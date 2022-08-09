@@ -33,9 +33,8 @@ oceanics-io-wasm-node: oceanics-io-wasm
 		--out-dir ../$(WASM_NODE) \
 		--target nodejs \
 		--out-name index
-
-rename:
-	sed -i ".bak" -e 's/"name": "$(WASM)"/"name": "$(WASM_NODE)"/g' pkg/package.json
+	sed -i ".bak" -e 's/"name": "$(WASM)"/"name": "$(WASM_NODE)"/g' $(WASM_NODE)/package.json
+	rm $(WASM_NODE)/package.json.bak
 
 # Build WASM for web
 oceanics-io-wasm-www: oceanics-io-wasm

@@ -1,9 +1,9 @@
 [package]
 name = "oceanics-io-wasm"
 version = "0.3.0"
-authors = ["Oceanicsdotio <business@oceanics.io>"]
+authors = ["Oceanicsdotio LLC <business@oceanics.io>"]
 edition = "2018"
-description = "Spatial stuff"
+description = "Computational kernels"
 license = "MIT"
 repository = "git+https://github.com/oceanicsdotio/oceanics.io.git"
 
