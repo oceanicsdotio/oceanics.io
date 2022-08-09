@@ -31,14 +31,14 @@ jobs:
         run: cargo install wasm-pack
         
       - name: Prepare API files
-        run: make api-preinstall
+        run: make oceanics-io-wasm-node
 
       - name: Prepare WWW files
-        run: make www-preinstall
+        run: make oceanics-io-wasm-www
 
-      - name: Install Node dependencies
-        # run: mkdir .yarn/cache
-        run: yarn install
+      - name: Install Node dependencies (mock)
+        run: mkdir .yarn/cache
+        # run: yarn install --immutable
 
       # - run: make api-compile
       #   name: Build API

@@ -1,10 +1,13 @@
 WASM = oceanics-io-wasm
 WWW = oceanics-io-www
 API = oceanics-io-api
+WASM_NODE = $(WASM)-node
+WASM_WWW = $(WASM)-www
 OUT_DIR = build
 SHARED = $(API)/src/shared
 SPEC = bathysphere
 SPEC_FILE = ./$(SPEC).yaml
+SPEC_JSON = $(SHARED)/$(SPEC).json
 
 # Install rust interactively on the system
 install-rustup:
@@ -15,16 +18,31 @@ install-wasm-pack:
 	cargo install wasm-pack
 
 # Remove build artifacts
-api-clean: 
-	rm -rf $(API)/dist/
+api-clean:
+	(rm $(SPEC_JSON) || :)
+	(rm -rf $(API)/dist/ || :)
 
 # Convert from YAML to JSON for bundling OpenAPI
 api-spec:
-	yarn dlx js-yaml $(SPEC_FILE) > $(SHARED)/$(SPEC).json
+	yarn dlx js-yaml $(SPEC_FILE) > $(SPEC_JSON)
 
-# Build WASM for NodeJS target
-api-wasm:
-	wasm-pack build $(WASM) --out-dir ../$(SHARED)/pkg --target nodejs
+# Build WASM for NodeJS
+oceanics-io-wasm-node: oceanics-io-wasm
+	(rm -rf $(WASM_NODE) || :)
+	wasm-pack build $(WASM) \
+		--out-dir ../$(WASM_NODE) \
+		--target nodejs \
+		--out-name index
+
+rename:
+	sed -i ".bak" -e 's/"name": "$(WASM)"/"name": "$(WASM_NODE)"/g' pkg/package.json
+
+# Build WASM for web
+oceanics-io-wasm-www: oceanics-io-wasm
+	(rm -rf $(WASM_WWW) || :)
+	wasm-pack build $(WASM) \
+		--out-dir ../$(WASM_WWW) \
+		--out-name index
 
 # Copy data and WASM package over to build
 api-copy:
@@ -44,10 +62,7 @@ api: api-preinstall api-compile
 www-clean:
 	(rm -rf $(WASM)/$(OUT_DIR) || :)
 
-# Compile WASM for web bundler
-www-wasm:
-	wasm-pack build $(WASM) --out-dir $(OUT_DIR) --out-name index
-	(rm $(WASM)/$(OUT_DIR)/.gitignore || :)
+
 
 # Build OpenAPI docs page from specification
 www-docs:

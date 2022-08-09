@@ -1,6 +1,6 @@
 import { connect, NetlifyRouter } from "./shared/middleware";
 import type { ApiHandler } from "./shared/middleware";
-import { Node } from "wasm";
+import { Node } from "oceanics-io-wasm-node";
 import apiSpec from "./shared/bathysphere.json";
 
 // Convenience methods for chaining
