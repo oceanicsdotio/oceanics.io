@@ -34,9 +34,7 @@ The `oceanics-io-www` workspace contains a TypeScript web application. Client si
 
 Rust to web assembly libraries are in `oceanics-io-wasm`. These methods are used both in cloud functions and the web application.
 
-Presentational aspects of the front-end are part of the `oceanics-io-ui` workspace, so these React components and hooks can be shared across applications. We use Storybook to develop and test at the component level.
-
-Netlify serverless functions are `oceanics-io-fcns`. These are single purpose endpoints that support secure data access, pre-processing, and sub-setting.
+Netlify serverless functions are `oceanics-io-api`. These are single purpose endpoints that support secure data access, pre-processing, and sub-setting.
  
 Static assets are hosted on Netlify. The deploy is setup in `netlify.toml`. When new commits are checked into the Github repository, the site is built and deployed to [https://www.oceanics.io](https://www.oceanics.io).
 
