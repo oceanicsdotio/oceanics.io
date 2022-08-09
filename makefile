@@ -4,30 +4,15 @@ API = oceanics-io-api
 WASM_NODE = $(WASM)-node
 WASM_WWW = $(WASM)-www
 OUT_DIR = build
+DEPLOY = $(WWW)/$(OUT_DIR)
 SHARED = $(API)/src/shared
 SPEC = bathysphere
 SPEC_FILE = ./$(SPEC).yaml
 SPEC_JSON = $(SHARED)/$(SPEC).json
-
-# Install rust interactively on the system
-install-rustup:
-	curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-
-# Install rust to WASM transpiler
-install-wasm-pack:
-	cargo install wasm-pack
-
-# Remove build artifacts
-api-clean:
-	(rm $(SPEC_JSON) || :)
-	(rm -rf $(API)/dist/ || :)
-
-# Convert from YAML to JSON for bundling OpenAPI
-api-spec:
-	yarn dlx js-yaml $(SPEC_FILE) > $(SPEC_JSON)
+DOCS_PAGE = $(WWW)/public/$(SPEC).html
 
 # Build WASM for NodeJS
-oceanics-io-wasm-node: oceanics-io-wasm
+$(WASM_NODE): $(WASM)
 	(rm -rf $(WASM_NODE) || :)
 	wasm-pack build $(WASM) \
 		--out-dir ../$(WASM_NODE) \
@@ -37,7 +22,7 @@ oceanics-io-wasm-node: oceanics-io-wasm
 	rm $(WASM_NODE)/package.json.bak
 
 # Build WASM for web
-oceanics-io-wasm-www: oceanics-io-wasm
+$(WASM_WWW): $(WASM)
 	(rm -rf $(WASM_WWW) || :)
 	wasm-pack build $(WASM) \
 		--out-dir ../$(WASM_WWW) \
@@ -45,56 +30,50 @@ oceanics-io-wasm-www: oceanics-io-wasm
 	sed -i ".bak" -e 's/"name": "$(WASM)"/"name": "$(WASM_WWW)"/g' $(WASM_WWW)/package.json
 	rm $(WASM_WWW)/package.json.bak
 
-# Copy data and WASM package over to build
-api-copy:
-	yarn workspace $(API) dlx copyfiles -u 1 src/shared/pkg/* src/**/*.txt src/**/*.json dist
-
-api-preinstall: api-clean api-spec api-wasm api-copy
-
-# Transpile source code into deployable build
-api-compile:
-	yarn workspace $(API) run tsc
-
-# Full API build process
-api: api-preinstall api-compile
-	
-.PHONY: api-clean api-spec api-wasm api-copy api-precompile api-compile api
-
-www-clean:
-	(rm -rf $(WASM)/$(OUT_DIR) || :)
-
-
+# Convert from YAML to JSON for bundling OpenAPI
+$(API)/shared: $(SPEC_FILE)
+	yarn run js-yaml $(SPEC_FILE) > $(SPEC_JSON)
 
 # Build OpenAPI docs page from specification
-www-docs:
-	yarn dlx redoc-cli build $(SPEC_FILE) --output ./$(WWW)/public/$(SPEC).html
+$(DOCS_PAGE): $(SPEC_FILE)
+	yarn dlx redoc-cli build $(SPEC_FILE) --output $(DOCS_PAGE)
 
-www-preinstall: www-wasm www-docs
+node_modules: $(WASM_NODE) $(WASM_WWW) package.json yarn.lock
+	yarn install
 
-# Create production build of the site
-www-next:
+# Compile API
+$(API)/dist: node_modules $(API)/shared 
+	(rm -rf $(API)/dist/ || :)
+	yarn workspace $(API) run tsc
+
+# Compile WWW
+$(DEPLOY): node_modules $(DOCS_PAGE)
 	yarn workspace $(WWW) run next build
-
-# Export as static HTML
-www-export: 
 	yarn workspace $(WWW) run next export -o $(OUT_DIR)
 
-www-compile: www-next www-export
+# Install rust interactively on the system
+install-rustup:
+	curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
-# Full site build process
-www: www-clean www-preinstall www-compile
-
-.PHONY: www-clean www-wasm www-docs www-next www-export www-compile www
-
-# Build everything
-all: api www
+# Install rust to WASM transpiler
+install-wasm-pack:
+	cargo install wasm-pack
 
 # Start up emulation environment
-run:
-	yarn run netlify dev --dir=$(WWW)/$(OUT_DIR)
+run: $(API)/dist $(DEPLOY)
+	yarn run netlify dev --dir=$(DEPLOY)
 
 # Run tests against the emulation environment
 test:
 	yarn workspace $(API) run mocha
 
-.PHONY: all run test
+clean:
+	rm -rf $(WASM_NODE)
+	rm -rf $(WASM_WWW)
+	rm -rf node_modules/
+	rm -rf $(WWW)/.next
+	rm -rf $(WWW)/build
+	rm -rf $(WWW)/storybook-static
+	rm -rf $(API)/dist
+
+.PHONY: run test clean install-rustup install-wasm-pack

@@ -1,3 +1,4 @@
 Cargo.lock
 src/shared/*.json
 dist/
+build/

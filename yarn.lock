@@ -19601,6 +19601,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "root-workspace-0b6124@workspace:."
   dependencies:
+    js-yaml: ^4.1.0
     netlify-cli: ^10.7.1
   languageName: unknown
   linkType: soft
