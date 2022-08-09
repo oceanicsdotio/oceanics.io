@@ -69,11 +69,11 @@ www: www-wasm www-docs www-next www-export
 all: api www
 
 # Start up emulation environment
-start:
-	netlify dev --dir=$(WWW)/build
+run:
+	netlify dev --dir=$(WWW)/$(OUT_DIR)
 
 # Run tests against the emulation environment
 test:
 	yarn workspace $(API) run mocha
 
-.PHONY: build start test
+.PHONY: all run test
