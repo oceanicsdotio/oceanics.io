@@ -56,7 +56,7 @@ install-rustup:
 install-wasm-pack:
 	cargo install wasm-pack
 
-build:
+build: .
 	yarn run netlify build
 
 # Start up emulation environment
