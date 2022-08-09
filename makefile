@@ -70,7 +70,7 @@ all: api www
 
 # Start up emulation environment
 run:
-	netlify dev --dir=$(WWW)/$(OUT_DIR)
+	yarn run netlify dev --dir=$(WWW)/$(OUT_DIR)
 
 # Run tests against the emulation environment
 test:

@@ -120,7 +120,7 @@ const parseNodesFromApi = () => {
     })
   }
   const text = readFileSync(
-    "oceanics-io-www/public/bathysphere.yaml",
+    "../bathysphere.yaml",
     "utf8"
   );
   spec = YAML.parse(text);
