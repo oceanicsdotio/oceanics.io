@@ -40,7 +40,7 @@ jobs:
         name: Copyfiles and prepare to build API 
 
       - run: yarn install
-        name: Install Node dependencies
+        name: Yarn dependencies
 
       - run: make api-compile
         name: Build the API from source
