@@ -30,19 +30,8 @@ jobs:
         if: steps.rust-cache.outputs.cache-hit != 'true'
         run: cargo install wasm-pack
         
-      - name: Prepare API files
-        run: make oceanics-io-wasm-node
+      - name: Build API
+        run: make oceanics-io-api/build
 
-      - name: Prepare WWW files
-        run: make oceanics-io-wasm-www
-
-      - name: Install Node dependencies (mock)
-        run: mkdir .yarn/cache
-        # run: yarn install --immutable
-
-      # - run: make api-compile
-      #   name: Build API
-
-      # - name: Build WWW
-      #   run: make www-compile
-      
+      - name: Build WWW
+        run: make oceanics-io-www/build

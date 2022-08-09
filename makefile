@@ -27,16 +27,16 @@ $(WASM_WWW): $(WASM)
 	sed -i ".bak" -e 's/"name": "$(WASM)"/"name": "$(WASM_WWW)"/g' $(WASM_WWW)/package.json
 	rm $(WASM_WWW)/package.json.bak
 
-# Convert from YAML to JSON for bundling OpenAPI
-$(API)/shared: $(SPEC_FILE)
-	yarn run js-yaml $(SPEC_FILE) > $(API)/src/shared/$(SPEC).json
-
-# Build OpenAPI docs page from specification
-$(DOCS_PAGE): $(SPEC_FILE)
-	yarn dlx redoc-cli build $(SPEC_FILE) --output $(DOCS_PAGE)
-
 node_modules: $(WASM_NODE) $(WASM_WWW) package.json yarn.lock
 	yarn install
+
+# Build OpenAPI docs page from specification
+$(DOCS_PAGE): $(SPEC_FILE) node_modules
+	yarn run redoc-cli build $(SPEC_FILE) --output $(DOCS_PAGE)
+
+# Convert from YAML to JSON for bundling OpenAPI
+$(API)/shared: $(SPEC_FILE) node_modules
+	yarn run js-yaml $(SPEC_FILE) > $(API)/src/shared/$(SPEC).json
 
 # Compile API
 $(API)/$(OUT_DIR): node_modules $(API)/shared 
