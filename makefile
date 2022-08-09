@@ -4,11 +4,8 @@ API = oceanics-io-api
 WASM_NODE = $(WASM)-node
 WASM_WWW = $(WASM)-www
 OUT_DIR = build
-DEPLOY = $(WWW)/$(OUT_DIR)
-SHARED = $(API)/src/shared
 SPEC = bathysphere
 SPEC_FILE = ./$(SPEC).yaml
-SPEC_JSON = $(SHARED)/$(SPEC).json
 DOCS_PAGE = $(WWW)/public/$(SPEC).html
 
 # Build WASM for NodeJS
@@ -32,7 +29,7 @@ $(WASM_WWW): $(WASM)
 
 # Convert from YAML to JSON for bundling OpenAPI
 $(API)/shared: $(SPEC_FILE)
-	yarn run js-yaml $(SPEC_FILE) > $(SPEC_JSON)
+	yarn run js-yaml $(SPEC_FILE) > $(API)/src/shared/$(SPEC).json
 
 # Build OpenAPI docs page from specification
 $(DOCS_PAGE): $(SPEC_FILE)
@@ -42,12 +39,12 @@ node_modules: $(WASM_NODE) $(WASM_WWW) package.json yarn.lock
 	yarn install
 
 # Compile API
-$(API)/dist: node_modules $(API)/shared 
-	(rm -rf $(API)/dist/ || :)
+$(API)/$(OUT_DIR): node_modules $(API)/shared 
+	(rm -rf $(API)/$(OUT_DIR)/ || :)
 	yarn workspace $(API) run tsc
 
 # Compile WWW
-$(DEPLOY): node_modules $(DOCS_PAGE)
+$(WWW)/$(OUT_DIR): node_modules $(DOCS_PAGE)
 	yarn workspace $(WWW) run next build
 	yarn workspace $(WWW) run next export -o $(OUT_DIR)
 
@@ -60,8 +57,8 @@ install-wasm-pack:
 	cargo install wasm-pack
 
 # Start up emulation environment
-run: $(API)/dist $(DEPLOY)
-	yarn run netlify dev --dir=$(DEPLOY)
+run: $(API)/$(OUT_DIR) $(WWW)/$(OUT_DIR)
+	yarn run netlify dev --dir=$(WWW)/$(OUT_DIR)
 
 # Run tests against the emulation environment
 test:
@@ -72,8 +69,8 @@ clean:
 	rm -rf $(WASM_WWW)
 	rm -rf node_modules/
 	rm -rf $(WWW)/.next
-	rm -rf $(WWW)/build
+	rm -rf $(WWW)/$(OUT_DIR)
 	rm -rf $(WWW)/storybook-static
-	rm -rf $(API)/dist
+	rm -rf $(API)/$(OUT_DIR)
 
 .PHONY: run test clean install-rustup install-wasm-pack
