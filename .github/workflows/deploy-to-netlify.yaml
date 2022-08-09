@@ -35,8 +35,10 @@ jobs:
       - name: Prepare WWW files
         run: make www-preinstall
 
-      # - run: yarn install
-      #   name: Install Node dependencies
+      - name: Install Node dependencies
+        run: touch .yarn/cache/mock
+      # run: yarn install
+
 
       # - run: make api-compile
       #   name: Build API
