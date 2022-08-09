@@ -42,7 +42,6 @@ yarn-error.log
 tsconfig.tsbuildinfo
 .pnp.*
 
-target/
-
 # Local Netlify folder
 .netlify
+oceanics-io-wasm/build

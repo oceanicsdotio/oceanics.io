@@ -20,5 +20,5 @@ jobs:
       # - run: make install-wasm-pack
       #   name: Install wasm-pack
       - run: yarn install --frozen-lockfile
-      # - run: make www-postcommit
-      #   name: Make Postcommit
+      - run: make www-postcommit
+        name: Make Postcommit
