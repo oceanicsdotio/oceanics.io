@@ -43,7 +43,11 @@ jobs:
         run: make .  
       
       - name: Bundle site and API for Netlify
-        run: yarn run netlify build
+        env:
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        run: |
+          netlify link --id $NETLIFY_SITE_ID && \
+          yarn run netlify build
 
       - name: Deploy site to Netlify
         run: yarn run netlify deploy --prod
