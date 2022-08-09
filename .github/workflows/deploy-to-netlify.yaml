@@ -20,8 +20,21 @@ jobs:
           node-version: 16
           cache: 'yarn'
 
-      - run: make install-wasm-pack
-        name: Install wasm-pack
+      - name: Cache Cargo
+        id: cache-cargo
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo
+
+      - name: Install Wasm Pack
+        if: steps.cache-cargo.outputs.cache-hit != 'true'
+        run: cargo install wasm-pack
 
       - run: make api-precompile
         name: Copyfiles and prepare to build API 
