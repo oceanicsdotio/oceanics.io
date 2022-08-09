@@ -23,8 +23,8 @@ jobs:
       - run: make install-wasm-pack
         name: Install wasm-pack
 
-      - run: make www-wasm
-        name: Compile WASM for Node
+      - run: make api
+        name: Build API 
 
       - run: yarn install --immutable
         name: Install Node dependencies

@@ -16,11 +16,11 @@ install-wasm-pack:
 
 # Remove build artifacts
 api-clean: 
-	yarn workspace $(API) run rimraf dist/
+	rm -rf $(API)/dist/
 
 # Convert from YAML to JSON for bundling OpenAPI
 api-spec:
-	yarn run js-yaml $(SPEC_FILE) > $(SHARED)/$(SPEC).json
+	yarn dlx js-yaml $(SPEC_FILE) > $(SHARED)/$(SPEC).json
 
 # Build WASM for NodeJS target
 api-wasm:
@@ -28,7 +28,7 @@ api-wasm:
 
 # Copy data and WASM package over to build
 api-copy:
-	yarn workspace $(API) run copyfiles -u 1 src/shared/pkg/* src/**/*.txt src/**/*.json dist
+	yarn workspace $(API) dlx copyfiles -u 1 src/shared/pkg/* src/**/*.txt src/**/*.json dist
 
 # Transpile source code into deployable build
 api-compile:
@@ -39,6 +39,9 @@ api: api-clean api-spec api-wasm api-copy api-compile
 	
 .PHONY: api-clean api-spec api-wasm api-copy api-compile api
 
+www-clean:
+	rm -rf $(WASM)/$(OUT_DIR)
+
 # Compile WASM for web bundler
 www-wasm:
 	wasm-pack build $(WASM) --out-dir $(OUT_DIR) --out-name index
@@ -46,7 +49,7 @@ www-wasm:
 
 # Build OpenAPI docs page from specification
 www-docs:
-	yarn run redoc-cli build $(SPEC_FILE) --output ./$(WWW)/public/$(SPEC).html
+	yarn dlx redoc-cli build $(SPEC_FILE) --output ./$(WWW)/public/$(SPEC).html
 
 # Create production build of the site
 www-next:
@@ -56,11 +59,8 @@ www-next:
 www-export: 
 	yarn workspace $(WWW) run next export -o $(OUT_DIR)
 
-# Step for Netlify, post-VCS
-www-postcommit: www-docs www-next www-export
-
 # Full site build process
-www: www-wasm www-postcommit
+www: www-clean www-wasm www-docs www-next www-export
 
 .PHONY: www-clean www-wasm www-docs www-next www-export www
 
