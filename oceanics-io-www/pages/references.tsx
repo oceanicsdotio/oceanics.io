@@ -6,11 +6,11 @@ import React, { FC } from "react";
 /**
  * Array of references component, no heading
  */
-import Reference from "oceanics-io-ui/build/components/References/Reference";
-import type {IDocumentIndexSerialized} from "oceanics-io-ui/build/components/References/types";
+import Reference from "../src/components/References/Reference";
+import type {IDocumentIndexSerialized} from "../src/components/References/types";
 import type {GetStaticProps} from "next";
 import {createIndex, readIndexedDocuments} from "../src/next-util";
-import useDeserialize from "oceanics-io-ui/build/hooks/useDeserialize";
+import useDeserialize from "../src/hooks/useDeserialize";
 import styled from "styled-components";
 
 interface IPage extends IDocumentIndexSerialized {

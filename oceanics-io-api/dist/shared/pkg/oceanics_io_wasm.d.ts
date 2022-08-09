@@ -210,7 +210,6 @@ export class Cypher {
 */
   constructor(query: string, read_only: boolean);
 /**
-* @returns {string}
 */
   readonly query: string;
 /**
@@ -678,11 +677,9 @@ export class Node {
 */
   create(): Cypher;
 /**
-* @returns {string}
 */
   readonly label: string;
 /**
-* @returns {string}
 */
   readonly symbol: string;
 }

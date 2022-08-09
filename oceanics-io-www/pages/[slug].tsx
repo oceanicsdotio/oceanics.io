@@ -20,14 +20,14 @@ import "highlight.js/styles/a11y-dark.css";
  * are provided to the Gatsby rendering context. This allows us to build citation lists
  * and cross-reference material based on shared references.
  */
-import Document from "oceanics-io-ui/build/components/References/Document";
-import Equation from "oceanics-io-ui/build/components/References/Equation";
-import Inline from "oceanics-io-ui/build/components/References/Inline";
+import Document from "../src/components/References/Document";
+import Equation from "../src/components/References/Equation";
+import Inline from "../src/components/References/Inline";
 import {Standalone as Squalltalk} from "../src/components/Squalltalk";
-import type { IDocumentSerialized, DocumentSerializedType, QueryType } from "oceanics-io-ui/build/components/References/types";
+import type { IDocumentSerialized, DocumentSerializedType, QueryType } from "../src/components/References/types";
 import { readDocument, createIndex } from "../src/next-util";
 import type { GetStaticPaths, GetStaticProps } from "next";
-import useDeserialize from "oceanics-io-ui/build/hooks/useDeserialize";
+import useDeserialize from "../src/hooks/useDeserialize";
 
 const embeddedComponents = { Equation, Squalltalk, Inline };
 
