@@ -32,8 +32,8 @@ jobs:
       - run: make api-preinstall
         name: Copy API files and prepare build 
 
-      - run: yarn install
-        name: Install Node dependencies
+      # - run: yarn install
+      #   name: Install Node dependencies
 
-      - run: make api-compile
-        name: Build API
+      # - run: make api-compile
+      #   name: Build API
