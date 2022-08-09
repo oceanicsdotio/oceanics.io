@@ -22,16 +22,8 @@ jobs:
 
       - name: Cache Cargo
         id: cache-cargo
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-cargo
-
+        uses: Swatinem/rust-cache@v2
+        
       - name: Install Wasm Pack
         if: steps.cache-cargo.outputs.cache-hit != 'true'
         run: cargo install wasm-pack
