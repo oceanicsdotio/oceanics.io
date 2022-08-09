@@ -6,7 +6,7 @@ SPEC = bathysphere
 SPEC_FILE = ./$(SPEC).yaml
 
 # Install rust interactively on the system
-rustup:
+install-rustup:
 	curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 # Install rust to WASM transpiler
@@ -30,10 +30,12 @@ api-compile:
 
 api: api-clean api-spec api-wasm api-copy api-compile
 	
-.PHONY: api-clean api-spec api-copy api-compile api
+.PHONY: api-clean api-spec api-wasm api-copy api-compile api
+
+www-clean: 
+	rm -rf $(WASM)/build
 
 www-wasm:
-	rm -rf $(WASM)/build
 	wasm-pack build $(WASM) --out-dir build --out-name index
 	(rm $(WASM)/build/.gitignore || :)
 
