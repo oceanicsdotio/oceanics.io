@@ -1,6 +1,7 @@
 WASM = oceanics-io-wasm
 WWW = oceanics-io-www
 API = oceanics-io-api
+OUT_DIR = build
 SHARED = $(API)/src/shared
 SPEC = bathysphere
 SPEC_FILE = ./$(SPEC).yaml
@@ -10,59 +11,69 @@ install-rustup:
 	curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 # Install rust to WASM transpiler
-wasm-pack:
+install-wasm-pack:
 	cargo install wasm-pack
 
+# Remove build artifacts
 api-clean: 
 	yarn workspace $(API) run rimraf dist/
 
+# Convert from YAML to JSON for bundling OpenAPI
 api-spec:
 	yarn run js-yaml $(SPEC_FILE) > $(SHARED)/$(SPEC).json
 
+# Build WASM for NodeJS target
 api-wasm:
 	wasm-pack build $(WASM) --out-dir ../$(SHARED)/pkg --target nodejs
 
+# Copy data and WASM package over to build
 api-copy:
 	yarn workspace $(API) run copyfiles -u 1 src/shared/pkg/* src/**/*.txt src/**/*.json dist
 
+# Transpile source code into deployable build
 api-compile:
 	yarn workspace $(API) run tsc
 
+# Full API build process
 api: api-clean api-spec api-wasm api-copy api-compile
 	
 .PHONY: api-clean api-spec api-wasm api-copy api-compile api
 
+# Get ride of WASM build artifacts
 www-clean: 
-	rm -rf $(WASM)/build
+	rm -rf $(WASM)/$(OUT_DIR)
 
+# Compile WASM for web bundler
 www-wasm:
-	wasm-pack build $(WASM) --out-dir build --out-name index
-	(rm $(WASM)/build/.gitignore || :)
+	wasm-pack build $(WASM) --out-dir $(OUT_DIR) --out-name index
+	(rm $(WASM)/$(OUT_DIR)/.gitignore || :)
 
+# Build OpenAPI docs page from specification
 www-docs:
 	yarn run redoc-cli build $(SPEC_FILE) --output ./$(WWW)/public/$(SPEC).html
 
+# Create production build of the site
 www-next:
 	yarn workspace $(WWW) run next build
 
-www-stories:
-	yarn workspace $(WWW) run build-storybook --loglevel warn
-
+# Export as static HTML
 www-export: 
-	yarn workspace $(WWW) run next export -o build
+	yarn workspace $(WWW) run next export -o $(OUT_DIR)
 
+# Full site build process
 www: www-wasm www-docs www-next www-export
 
-.PHONY: www-wasm www-docs www-stories www-next www-export www
+.PHONY: www-wasm www-docs www-next www-export www
 
-# start-storybook:
-# 	yarn workspace $(WWW) run start-storybook -p 6006
+# Build everything
+all: api www
 
-# start-next:
-# 	yarn workspace $(WWW) run next dev
-
+# Start up emulation environment
 start:
 	netlify dev --dir=$(WWW)/build
 
+# Run tests against the emulation environment
 test:
 	yarn workspace $(API) run mocha
+
+.PHONY: build start test
