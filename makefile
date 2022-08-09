@@ -30,8 +30,7 @@ api-wasm:
 api-copy:
 	yarn workspace $(API) dlx copyfiles -u 1 src/shared/pkg/* src/**/*.txt src/**/*.json dist
 
-api-precompile:
-	api-clean api-spec api-wasm api-copy
+api-precompile: api-clean api-spec api-wasm api-copy
 
 # Transpile source code into deployable build
 api-compile:
