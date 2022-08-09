@@ -38,7 +38,10 @@ jobs:
       - name: Install wasm-pack
         if: steps.rust-cache.outputs.cache-hit != 'true'
         run: cargo install wasm-pack
-        
+
+      - name: Install and build dependencies
+        run: make .  
+      
       - name: Bundle site and API for Netlify
         run: yarn run netlify build
 
