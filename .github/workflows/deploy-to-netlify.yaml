@@ -1,4 +1,4 @@
-name: Build and Deploy
+name: Build
 
 on:
   push:
@@ -36,9 +36,8 @@ jobs:
         run: make www-preinstall
 
       - name: Install Node dependencies
-        run: touch .yarn/cache/mock
+        run: mkdir .yarn/cache
       # run: yarn install
-
 
       # - run: make api-compile
       #   name: Build API
