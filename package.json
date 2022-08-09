@@ -9,6 +9,6 @@
     "devDependencies": {
         "js-yaml": "^4.1.0",
         "netlify-cli": "^10.7.1",
-        "redoc-cli": "^0.13.16"
+        "redoc-cli": "^0.13.17"
     }
 }

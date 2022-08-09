@@ -48,6 +48,9 @@ www-wasm:
 	wasm-pack build $(WASM) --out-dir $(OUT_DIR) --out-name index
 	(rm $(WASM)/$(OUT_DIR)/.gitignore || :)
 
+# Steps needed pre-VCS
+www-precommit: www-clean www-wasm
+
 # Build OpenAPI docs page from specification
 www-docs:
 	yarn run redoc-cli build $(SPEC_FILE) --output ./$(WWW)/public/$(SPEC).html
@@ -60,10 +63,13 @@ www-next:
 www-export: 
 	yarn workspace $(WWW) run next export -o $(OUT_DIR)
 
-# Full site build process
-www: www-wasm www-docs www-next www-export
+# Step for Netlify, post-VCS
+www-postcommit: www-docs www-next www-export
 
-.PHONY: www-wasm www-docs www-next www-export www
+# Full site build process
+www: www-precommit www-postcommit
+
+.PHONY: www-clean www-wasm www-docs www-next www-export www
 
 # Build everything
 all: api www
