@@ -17,7 +17,7 @@
         "jsonwebtoken": "^8.5.1",
         "neo4j-driver": "^4.4.6",
         "stripe": "^8.210.0",
-        "wasm": "file:./dist/shared/pkg"
+        "wasm": "file:./src/shared/pkg"
     },
     "devDependencies": {
         "@types/jsonwebtoken": "^8.5.6",
