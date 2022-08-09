@@ -11,14 +11,14 @@ repository = "git+https://github.com/oceanicsdotio/oceanics.io.git"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-js-sys = "0.3.32"
-wasm-bindgen-futures = "0.4.8"
-serde = { version = "1.0.80", features = ["derive"] }
-serde_derive = "1.0.104"
-console_error_panic_hook = "0.1.6"
-rand = "0.8.0"
+js-sys = "0.3.56"
+wasm-bindgen-futures = "0.4.29"
+serde = { version = "1.0.136", features = ["derive"] }
+serde_derive = "1.0.136"
+console_error_panic_hook = "0.1.7"
+rand = "0.8.5"
 # https://docs.rs/getrandom/0.2.2/getrandom/#unsupported-targets
-getrandom = { version = "0.2", features = ["js"] }
+getrandom = { version = "0.2.5", features = ["js"] }
 
 [profile.release]
 opt-level = "s"
@@ -28,11 +28,11 @@ opt-level = "s"
 wasm-opt = ["-Oz", "--enable-mutable-globals"]
 
 [dependencies.wasm-bindgen]
-version = "0.2.69"
+version = "0.2.79"
 features = ["serde-serialize"]
 
 [dependencies.web-sys]
-version = "0.3.4"
+version = "0.3.56"
 features = [
     'Document',
     'Element',

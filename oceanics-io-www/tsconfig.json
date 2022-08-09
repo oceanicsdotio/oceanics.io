@@ -1,14 +1,14 @@
 {
   "compilerOptions": {
     "incremental": true,
-    "target": "es6",
+    "target": "esnext",
     "lib": [
       "dom",
       "dom.iterable",
       "esnext"
     ],
     "allowJs": true,
-    "skipLibCheck": true,
+    "skipLibCheck": false,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "noUnusedLocals": false,
@@ -22,8 +22,8 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "typeRoots": ["./src/@types", "./node_modules/@types"],
-    "declaration": true, /* Generates corresponding '.d.ts' file. */
-    // "sourceMap": true, /* Generates corresponding '.map' file. */
+    "declaration": false, /* Generates corresponding '.d.ts' file. */
+    "sourceMap": false, /* Generates corresponding '.map' file. */
     "outDir": "build",
     "rootDir": "src",
     "removeComments": true, /* Do not emit comments to output. */
@@ -32,8 +32,7 @@
     "next-env.d.ts",
     "src/**/*.ts",
     "src/**/*.tsx",
-    "src/**/*.json",
-    "typings.d.ts",
+    "src/**/*.json"
   ],
   "exclude": [
     "node_modules",

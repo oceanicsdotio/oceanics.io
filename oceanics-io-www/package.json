@@ -87,14 +87,5 @@
         }
       ]
     ]
-  },
-  "scripts": {
-    "develop": "next dev",
-    "build:docs": "redoc-cli build ./public/bathysphere.yaml --output ./public/bathysphere.html",
-    "build:next": "next build && next export -o build",
-    "build": "yarn build:docs && yarn build:next",
-    "start": "start-storybook -p 6006",
-    "build-storybook": "build-storybook --loglevel warn",
-    "tsc": "tsc"
   }
 }
