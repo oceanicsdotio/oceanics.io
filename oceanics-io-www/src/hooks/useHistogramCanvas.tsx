@@ -7,7 +7,7 @@ import type {WorkerRef} from "../utils";
 /**
  * Consistent styling.
  */
-import { ghost } from "oceanics-io-ui/build/palette";
+import { ghost } from "../palette";
 
 /**
  * The bin size is known, since the bins are precalculated.

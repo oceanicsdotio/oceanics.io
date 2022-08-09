@@ -12,7 +12,7 @@ import useGlslShaders, {renderPipelineStage} from "./useGlslShaders";
 /**
  * Color map texture for lookups.
  */
-import useColorMapTexture from "oceanics-io-ui/build/hooks/useColorMapTexture";
+import useColorMapTexture from "./useColorMapTexture";
 
 /**
  * Hook for lazy loading image data as texture.

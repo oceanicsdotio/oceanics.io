@@ -10,9 +10,9 @@
  /**
   * Container for MapboxGL feature content. Rendered client-side.
   */
- import PopUpContent from "oceanics-io-ui/build/components/Catalog/PopUpContent";
+ import PopUpContent from "../components/Catalog/PopUpContent";
  import {pulsingDot} from "../utils";
- import useMapBox from "oceanics-io-ui/build/hooks/useMapBox";
+ import useMapBox from "./useMapBox";
  
  
  type ApplicationType = {

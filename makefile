@@ -42,6 +42,8 @@ oceanics-io-wasm-www: oceanics-io-wasm
 	wasm-pack build $(WASM) \
 		--out-dir ../$(WASM_WWW) \
 		--out-name index
+	sed -i ".bak" -e 's/"name": "$(WASM)"/"name": "$(WASM_WWW)"/g' $(WASM_WWW)/package.json
+	rm $(WASM_WWW)/package.json.bak
 
 # Copy data and WASM package over to build
 api-copy:
