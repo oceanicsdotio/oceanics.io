@@ -53,6 +53,8 @@ www-wasm:
 www-docs:
 	yarn dlx redoc-cli build $(SPEC_FILE) --output ./$(WWW)/public/$(SPEC).html
 
+www-preinstall: www-wasm www-docs
+
 # Create production build of the site
 www-next:
 	yarn workspace $(WWW) run next build
@@ -61,10 +63,12 @@ www-next:
 www-export: 
 	yarn workspace $(WWW) run next export -o $(OUT_DIR)
 
-# Full site build process
-www: www-clean www-wasm www-docs www-next www-export
+www-compile: www-next www-export
 
-.PHONY: www-clean www-wasm www-docs www-next www-export www
+# Full site build process
+www: www-clean www-preinstall www-compile
+
+.PHONY: www-clean www-wasm www-docs www-next www-export www-compile www
 
 # Build everything
 all: api www

@@ -12,28 +12,35 @@ jobs:
     name: Build environment
     runs-on: ubuntu-latest
     steps:
-      - name: Check out code
+      - name: Checkout
         uses: actions/checkout@v3
 
       - uses: actions/setup-node@v3
-        name: Configure Node and restore cache
+        name: Configure Node cache
         with:
           node-version: 16
           cache: 'yarn'
 
-      - name: Rust cache
+      - name: Configure Rust cache
         id: rust-cache
         uses: Swatinem/rust-cache@v2
         
-      - name: Restore or install wasm-pack
+      - name: Restore wasm-pack
         if: steps.rust-cache.outputs.cache-hit != 'true'
         run: cargo install wasm-pack
         
-      - run: make api-preinstall
-        name: Copy API files and prepare build 
+      - name: Prepare API files
+        run: make api-preinstall
+
+      - name: Prepare WWW files
+        run: make www-preinstall
 
       # - run: yarn install
       #   name: Install Node dependencies
 
       # - run: make api-compile
       #   name: Build API
+
+      # - name: Build WWW
+      #   run: make www-compile
+      
