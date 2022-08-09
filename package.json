@@ -8,6 +8,7 @@
     "packageManager": "yarn@3.1.0",
     "devDependencies": {
         "js-yaml": "^4.1.0",
-        "netlify-cli": "^10.7.1"
+        "netlify-cli": "^10.7.1",
+        "redoc-cli": "^0.13.16"
     }
 }
