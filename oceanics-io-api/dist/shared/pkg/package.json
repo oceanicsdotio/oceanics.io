@@ -1,0 +1,20 @@
+{
+  "name": "oceanics-io-wasm",
+  "collaborators": [
+    "Oceanicsdotio <business@oceanics.io>"
+  ],
+  "description": "Spatial stuff",
+  "version": "0.3.0",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oceanicsdotio/oceanics.io.git"
+  },
+  "files": [
+    "oceanics_io_wasm_bg.wasm",
+    "oceanics_io_wasm.js",
+    "oceanics_io_wasm.d.ts"
+  ],
+  "main": "oceanics_io_wasm.js",
+  "types": "oceanics_io_wasm.d.ts"
+}
