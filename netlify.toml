@@ -1,5 +1,8 @@
 [build]
+  base = "/"
+  publish = "/oceanics-io-www/build"
   functions = "/oceanics-io-api/build"
+  command = "make ."
   environment = {NODE_VERSION = "16", AWS_LAMBDA_JS_RUNTIME = "nodejs16.x", NETLIFY_USE_YARN = "true", NETLIFY_YARN_WORKSPACES = "true", YARN_VERSION="1.22.17"}
   
 [[redirects]]

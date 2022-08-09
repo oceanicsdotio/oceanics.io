@@ -46,6 +46,8 @@ $(WWW)/$(OUT_DIR): node_modules $(DOCS_PAGE) $(WWW)/package.json
 	yarn workspace $(WWW) run next build
 	yarn workspace $(WWW) run next export -o $(OUT_DIR)
 
+.: $(API)/$(OUT_DIR) $(WWW)/$(OUT_DIR)
+
 # Install rust interactively on the system
 install-rustup:
 	curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
@@ -54,8 +56,10 @@ install-rustup:
 install-wasm-pack:
 	cargo install wasm-pack
 
+
+
 # Start up emulation environment
-run: $(API)/$(OUT_DIR) $(WWW)/$(OUT_DIR)
+run:
 	yarn run netlify dev --dir=$(WWW)/$(OUT_DIR)
 
 # Run tests against the emulation environment
