@@ -39,17 +39,10 @@ api: api-clean api-spec api-wasm api-copy api-compile
 	
 .PHONY: api-clean api-spec api-wasm api-copy api-compile api
 
-# Get ride of WASM build artifacts
-www-clean: 
-	rm -rf $(WASM)/$(OUT_DIR)
-
 # Compile WASM for web bundler
 www-wasm:
 	wasm-pack build $(WASM) --out-dir $(OUT_DIR) --out-name index
 	(rm $(WASM)/$(OUT_DIR)/.gitignore || :)
-
-# Steps needed pre-VCS
-www-precommit: www-clean www-wasm
 
 # Build OpenAPI docs page from specification
 www-docs:
@@ -67,7 +60,7 @@ www-export:
 www-postcommit: www-docs www-next www-export
 
 # Full site build process
-www: www-precommit www-postcommit
+www: www-wasm www-postcommit
 
 .PHONY: www-clean www-wasm www-docs www-next www-export www
 

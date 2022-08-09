@@ -20,8 +20,11 @@ jobs:
           node-version: 16
           cache: 'yarn'
 
-      # - run: make install-wasm-pack
-      #   name: Install wasm-pack
+      - run: make install-wasm-pack
+        name: Install wasm-pack
+
+      - run: make www-wasm
+        name: Compile WASM for Node
 
       - run: yarn install --immutable
         name: Install Node dependencies
