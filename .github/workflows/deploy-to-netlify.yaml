@@ -17,6 +17,7 @@ jobs:
 
       - uses: actions/setup-node@v3
         name: Configure Node cache
+        id: node-cache
         with:
           node-version: 16
           cache: 'yarn'
@@ -36,8 +37,8 @@ jobs:
         run: make www-preinstall
 
       - name: Install Node dependencies
-        run: mkdir .yarn/cache
-      # run: yarn install
+        # run: mkdir .yarn/cache
+        run: yarn install
 
       # - run: make api-compile
       #   name: Build API
