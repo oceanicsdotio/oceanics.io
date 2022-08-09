@@ -23,11 +23,11 @@ jobs:
       - run: make install-wasm-pack
         name: Install wasm-pack
 
-      - run: make api
-        name: Build API 
+      - run: make api-precompile
+        name: Copyfiles and prepare to build API 
 
       - run: yarn install --immutable
         name: Install Node dependencies
 
-      - run: make www-postcommit
-        name: Make Postcommit
+      - run: make api-compile
+        name: Build the API from source

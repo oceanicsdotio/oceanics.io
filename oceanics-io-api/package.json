@@ -6,7 +6,7 @@
     "author": "Oceanicsdotio LLC",
     "license": "MIT",
     "engines": {
-        "node": "14"
+        "node": "16"
     },
     "dependencies": {
         "@netlify/functions": "^0.10.0",
