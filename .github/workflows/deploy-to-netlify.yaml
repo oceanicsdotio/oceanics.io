@@ -26,7 +26,7 @@ jobs:
       - run: make api-precompile
         name: Copyfiles and prepare to build API 
 
-      - run: yarn install --immutable
+      - run: yarn install
         name: Install Node dependencies
 
       - run: make api-compile
