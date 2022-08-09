@@ -56,11 +56,15 @@ install-rustup:
 install-wasm-pack:
 	cargo install wasm-pack
 
-
+build:
+	yarn run netlify build
 
 # Start up emulation environment
-run:
-	yarn run netlify dev --dir=$(WWW)/$(OUT_DIR)
+dev:
+	yarn run netlify dev
+
+deploy:
+	yarn run netlify deploy --prod
 
 # Run tests against the emulation environment
 test:
@@ -75,4 +79,4 @@ clean:
 	rm -rf $(WWW)/storybook-static
 	rm -rf $(API)/$(OUT_DIR)
 
-.PHONY: run test clean install-rustup install-wasm-pack
+.PHONY: install-rustup install-wasm-pack build dev deploy test clean

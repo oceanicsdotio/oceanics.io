@@ -29,8 +29,8 @@ jobs:
         if: steps.rust-cache.outputs.cache-hit != 'true'
         run: cargo install wasm-pack
         
-      - name: Build API
-        run: make oceanics-io-api/build
+      - name: Build site
+        run: make build
 
-      - name: Build WWW
-        run: make oceanics-io-www/build
+      # - name: Deploy site
+      #   run: make deploy
