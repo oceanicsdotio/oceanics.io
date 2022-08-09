@@ -8,31 +8,32 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  Build:
+  build:
+    name: Build environment
     runs-on: ubuntu-latest
     steps:
-
-      - name: Check out repository code
+      - name: Check out code
         uses: actions/checkout@v3
 
       - uses: actions/setup-node@v3
+        name: Configure Node and restore cache
         with:
           node-version: 16
           cache: 'yarn'
 
-      - name: Cache Cargo
-        id: cache-cargo
+      - name: Rust cache
+        id: rust-cache
         uses: Swatinem/rust-cache@v2
         
-      - name: Install Wasm Pack
-        if: steps.cache-cargo.outputs.cache-hit != 'true'
+      - name: Restore or install wasm-pack
+        if: steps.rust-cache.outputs.cache-hit != 'true'
         run: cargo install wasm-pack
-
-      - run: make api-precompile
-        name: Copyfiles and prepare to build API 
+        
+      - run: make api-preinstall
+        name: Copy API files and prepare build 
 
       - run: yarn install
-        name: Yarn dependencies
+        name: Install Node dependencies
 
       - run: make api-compile
-        name: Build the API from source
+        name: Build API from source
