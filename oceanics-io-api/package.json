@@ -16,8 +16,8 @@
         "js-yaml": "^4.1.0",
         "jsonwebtoken": "^8.5.1",
         "neo4j-driver": "^4.4.6",
-        "stripe": "^8.210.0",
-        "oceanics-io-wasm-node": "*"
+        "oceanics-io-wasm-node": "*",
+        "stripe": "^8.210.0"
     },
     "devDependencies": {
         "@types/jsonwebtoken": "^8.5.6",
