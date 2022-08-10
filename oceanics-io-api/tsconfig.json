@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
-      "target": "es2019",
-      "lib": ["dom", "dom.iterable", "esnext"],
+      "target": "esnext",
+      "lib": ["esnext"],
       "allowJs": true,
       "skipLibCheck": true,
       "esModuleInterop": true,
@@ -11,11 +11,11 @@
       "module": "commonjs",
       "moduleResolution": "node",
       "resolveJsonModule": true,
-      "isolatedModules": true,
+      "isolatedModules": false,
       "outDir": "./build",
       "rootDir": "./src"
     },
     "include": [
-        "**/*.ts",
+        "**/*.ts", "spec/api.spec.js", "spec/api.spec.mjs",
       ],
   }

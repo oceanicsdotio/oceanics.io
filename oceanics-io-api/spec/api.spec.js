@@ -1,10 +1,9 @@
 import fetch from "node-fetch";
-import assert from "assert";
 import YAML from "yaml";
 import { readFileSync } from "fs";
-import { describe, it } from "mocha";
+import { describe, expect, test } from '@jest/globals'
 import crypto from "crypto";
-import { asNodes, filterBaseRoute, dematerialize } from "./src/shared/middleware";
+import { asNodes, filterBaseRoute, dematerialize } from "../src/shared/middleware";
 
 // MERGE (n:Provider { apiKey: replace(apoc.create.uuid(), '-', ''), domain: 'oceanics.io' }) return n
 
@@ -69,11 +68,8 @@ const fetchToken = () =>
 /**
  * Test the status code, just shorthand to avoid writing error messages
  */
-const expect = (response, expectedStatus) => {
-  assert(
-    response.status === expectedStatus,
-    `Unexpected Status Code: ${response.status}`
-  );
+const _expect = (response, expectedStatus) => {
+  expect(response.status).toEqual(expectedStatus)
 };
 
 /**
@@ -133,22 +129,22 @@ const WELL_KNOWN_NODES = parseNodesFromApi();
 
 describe("Middleware", function () {
 
-  it("parses get entity path", function () {
+  test("parses get entity path", function () {
     const uuid = `abcd`;
     const path = `api/DataStreams(${uuid})`;
     const nodeTransform = asNodes("GET", "");
     const segments = path.split("/").filter(filterBaseRoute)
     const node = nodeTransform(segments[0], 0);
-    assert(node.patternOnly().includes(uuid))
+    expect(node.patternOnly()).stringContaining(uuid)
   })
 
-  it("parses post collection path", function () {
+  test("parses post collection path", function () {
     const uuid = `abcd`;
     const path = `api/DataStreams`;
     const nodeTransform = asNodes("POST", JSON.stringify({uuid}));
     const segments = path.split("/").filter(filterBaseRoute)
     const node = nodeTransform(segments[0], 0);
-    assert(node.patternOnly().includes(uuid), segments)
+    expect(node.patternOnly()).stringContaining(uuid)
   })
 })
 
@@ -174,11 +170,11 @@ describe("API Request Validator", function () {
     const response = await query(data);
     const result = await response.json();
     
-    assert(response.status === 200, `Unexpected Response Code: ${response.status}`);
+    expect(response.status).toBe(200);
 
     const pass = result.test === expected;
     if (!pass) console.log({...data, ...result});
-    assert(pass, `Unexpected Validation Result`);
+    expect(pass).toBe(true);
   }
 
   /**
@@ -192,14 +188,14 @@ describe("API Request Validator", function () {
       const testCase = WELL_KNOWN_NODES[nodeType][0];
       const {required=[], additionalProperties=true} = spec.components.schemas[nodeType];
 
-      it("validates well known nodes", async function () {
+      test("validates well known nodes", async function () {
         for (const data of WELL_KNOWN_NODES[nodeType]) {
           await testResponse({ data, reference}, true);
         }
       })
 
       for (const key of required) {
-        it(`fails without ${key}`, async function () {
+        test(`fails without ${key}`, async function () {
           await testResponse({ data: {
             ...testCase,
             [key]: undefined
@@ -207,7 +203,7 @@ describe("API Request Validator", function () {
         })
       }
       if (!additionalProperties) {
-        it("fails with additional properties", async function () {
+        test("fails with additional properties", async function () {
           await testResponse({ data: {
             ...testCase,
             extra: "extra-key-value-pair"
@@ -261,7 +257,7 @@ describe("Auth API", function () {
      * 
      * Removed the route from the API for the time being. 
      */
-    it("clears non-provider, nodes", async function () {
+    test("clears non-provider, nodes", async function () {
       this.timeout(5000)
       const {token} = await fetchToken()
       const response = await fetch(authPath, {
@@ -270,10 +266,7 @@ describe("Auth API", function () {
           Authorization: ["BearerAuth", token].join(":"),
         },
       });
-      assert(
-        response.status === 204,
-        `Unexpected Status Code: ${response.status}`
-      );
+      expect(response.status).toBe(204);
     });
   });
 
@@ -285,34 +278,34 @@ describe("Auth API", function () {
     /**
      * To create a User, you need to know at least one API key
      */
-    it("has valid API key in environment", function () {
-      assert(typeof process.env.SERVICE_PROVIDER_API_KEY !== "undefined");
-      assert(!!process.env.SERVICE_PROVIDER_API_KEY);
+    test("has valid API key in environment", function () {
+      expect(typeof process.env.SERVICE_PROVIDER_API_KEY).toBe("string") ;
+      expect(process.env.SERVICE_PROVIDER_API_KEY).not.toBeFalsy();
     });
 
     /**
      * Valid API key will associate new User with an existing Provider
      */
-    it("allows registration with API key", async function () {
+    test("allows registration with API key", async function () {
       const response = await register(process.env.SERVICE_PROVIDER_API_KEY??"");
-      expect(response, 200);
+      _expect(response, 200);
     });
 
     /**
      * Missing API key is a 403 error
      */
-    it("should prevent registration without API key", async function () {
+    test("should prevent registration without API key", async function () {
       //@ts-ignore
       const response = await register(undefined);
-      expect(response, 403);
+      _expect(response, 403);
     });
 
     /**
      * Invalid API key is a 403 error
      */
-    it("should prevent registration with wrong API key", async function () {
+    test("should prevent registration with wrong API key", async function () {
       const response = await register("not-a-valid-api-key");
-      expect(response, 403);
+      _expect(response, 403);
     });
   });
 
@@ -323,24 +316,24 @@ describe("Auth API", function () {
     /**
      * Memoize a valid Token
      */
-    it("returns well-formed token given credentials", async function () {
+    test("returns well-formed token given credentials", async function () {
       const data = await fetchToken();
-      assert(typeof data.token !== "undefined");
-      assert(!!data.token);
+      expect(typeof data.token).toBe("string");
+      expect(data.token).not.toBeFalsy();
     });
 
     /**
      * Missing header is a 403 error
      */
-    it("denies access without credentials", async function () {
+    test("denies access without credentials", async function () {
       const response = await fetch(authPath);
-      expect(response, 403);
+      _expect(response, 403);
     });
 
     /**
      * Bad credential is a 403 error
      */
-    it("denies access with wrong credentials", async function () {
+    test("denies access with wrong credentials", async function () {
       const response = await fetch(authPath, {
         headers: {
           Authorization: [
@@ -352,13 +345,13 @@ describe("Auth API", function () {
           ),
         },
       });
-      expect(response, 403);
+      _expect(response, 403);
     });
 
     /**
      * Bad secret is a 403 error
      */
-     it("denies access with wrong salt", async function () {
+     test("denies access with wrong salt", async function () {
       const response = await fetch(authPath, {
         headers: {
           Authorization: [
@@ -370,7 +363,7 @@ describe("Auth API", function () {
           ),
         },
       });
-      expect(response, 403);
+      _expect(response, 403);
     });
   });
 
@@ -381,7 +374,7 @@ describe("Auth API", function () {
     /**
      * Update is not implemented
      */
-    it("authenticates with JWT", async function () {
+    test("authenticates with JWT", async function () {
       const { token } = await fetchToken();
       const response = await fetch(authPath, {
         method: "PUT",
@@ -389,7 +382,7 @@ describe("Auth API", function () {
           Authorization: ["BearerAuth", token].join(":")
         }
       })
-      expect(response, 501)
+      _expect(response, 501)
     })
   })
 });
@@ -417,12 +410,9 @@ describe("Sensing API", function () {
     const testAllowedMethodCount = (headers, expected) => {
       const allowed = headers.get("allow");
       const methods = (allowed||"").split(",");
-      assert(typeof allowed !== "undefined", "No Allow Header");
-      assert(!!allowed, "Empty Allow Header");
-      assert(
-        methods.length === expected,
-        `Unexpected Number Of Allowed Methods (${methods.length}/${expected}, ${allowed})`
-      );
+      expect(typeof allowed).not.toBe("undefined");
+      expect(allowed).not.toBeFalsy();
+      expect(methods.length).toBe(expected)
     };
 
     /**
@@ -437,30 +427,30 @@ describe("Sensing API", function () {
     /**
      * Options for path length zero
      */
-    it("reports for base path", async function () {
+    test("reports for base path", async function () {
       const { token } = await fetchToken();
       const response = await options(token);
-      expect(response, 204);
+      _expect(response, 204);
       testAllowedMethodCount(response.headers, 2);
     });
 
     /**
      * Options for path length one
      */
-    it("reports for single-node path", async function () {
+    test("reports for single-node path", async function () {
       const { token } = await fetchToken();
       const response = await options(token, "Things");
-      expect(response, 204);
+      _expect(response, 204);
       testAllowedMethodCount(response.headers, 3);
     });
 
     /**
      * Options for topological paths
      */
-    xit("reports for multi-node path", async function () {
+    test.todo("reports for multi-node path", async function () {
       const { token } = await fetchToken();
       const response = await options(token, "Things/Locations");
-      expect(response, 204);
+      _expect(response, 204);
       testAllowedMethodCount(response.headers, 4);
     });
   });
@@ -474,9 +464,9 @@ describe("Sensing API", function () {
 
     const validateBatch = async (batchPromises) => {
       const responses = await batchPromises;
-      assert(responses.length >= 1, `Unexpected Number of Responses: (${responses.length}/N)`);
+      expect(responses.length).toBeGreaterThanOrEqual(1)
       responses.forEach(({ value: response }) => {
-        expect(response, 204);
+        _expect(response, 204);
       });
     };
 
@@ -484,7 +474,7 @@ describe("Sensing API", function () {
      * Create a single Well-Known Entity node.
      */
     for (const nodeType of EXTENSIONS.sensing) {
-      it(`creates ${nodeType}`, async function () {
+      test(`creates ${nodeType}`, async function () {
         this.timeout(5000)
         await validateBatch(
           batch(composeWriteTransaction, nodeType, WELL_KNOWN_NODES[nodeType])
@@ -510,7 +500,7 @@ describe("Sensing API", function () {
       /**
          * Get the index of all node labels with API routes
          */
-      it("retrieves collection index", async function () {
+      test("retrieves collection index", async function () {
         const { token } = await fetchToken();
         const response = await fetch(`${API_PATH}/`, {
           headers: {
@@ -518,14 +508,11 @@ describe("Sensing API", function () {
             Authorization: `bearer:${token}`,
           },
         });
-        expect(response, 200);
+        _expect(response, 200);
         const data = await response.json();
-        assert(data.length >= 1, `Expected one or more nodes in result`);
+        expect(data.length).toBeGreaterThanOrEqual(1)
         const names = new Set(data.map((item) => item.name));
-        assert(
-          EXTENSIONS.auth.every((omit) => !names.has(omit)),
-          `Result Contains Private Type: ${[...names].join(", ")}`
-        );
+        expect(EXTENSIONS.auth.every((omit) => !names.has(omit))).toBe(true)
       });
     })
   
@@ -536,15 +523,12 @@ describe("Sensing API", function () {
        * should be predicted from the the example nodes in the API spec.
        */
       for (const nodeType of EXTENSIONS.sensing) {
-        it(`retrieves index of ${nodeType}`, async function () {
+        test(`retrieves index of ${nodeType}`, async function () {
           const {token} = await fetchToken();
           const data = await readTransaction(token)(nodeType);
           const actual = data["@iot.count"];
           const expected = WELL_KNOWN_NODES[nodeType].length;
-          assert(
-            expected === actual, 
-            `Unexpected Array Size for ${nodeType} (${actual}/${expected})`
-          );
+          expect(expected).toBe(actual)
           CREATED_UUID[nodeType] = data.value;
         });
       }
@@ -571,15 +555,15 @@ describe("Sensing API", function () {
             }
           );
           const data = await response.json();
-          expect(response, 200);
-          assert(data.value.length === 1, `More values than expected (${data.value.length}/1)`)
-          assert(uuid === data.value[0].uuid, `Unexpected UUID (${uuid}, ${data.value[0].uuid})`)
+          _expect(response, 200);
+          expect(data.value.length).toBe(1)
+          expect(uuid).toBe(data.value[0].uuid)
         })
         await Promise.all(result)
       }
   
       for (const nodeType of EXTENSIONS.sensing) {
-        it(`retrieve ${nodeType} by UUID`, async function () {
+        test(`retrieve ${nodeType} by UUID`, async function () {
           await validateByType(nodeType);
         });
       }
@@ -589,7 +573,7 @@ describe("Sensing API", function () {
 
   describe("Join Nodes", function() {
     this.timeout(5000)
-    it("joins two well-known nodes",  async function() {
+    test("joins two well-known nodes",  async function() {
       const {token} = await fetchToken();
       const read = readTransaction(token);
       const things = await read("Things");
@@ -609,7 +593,7 @@ describe("Sensing API", function () {
           body: JSON.stringify({})
         }
       )
-      expect(response, 204);
+      _expect(response, 204);
     })
   })
 });
@@ -627,7 +611,7 @@ describe("Lexicon API", function () {
     /**
      * Dummy function works but is not fully implemented
      */
-    xit("works?", async function () {
+    test.todo("works?", async function () {
       const response = await fetch(`${BASE_PATH}/lexicon`, {
         method: "POST",
         headers: {
@@ -638,7 +622,7 @@ describe("Lexicon API", function () {
           maxCost: 1,
         }),
       });
-      assert(response.status === 200);
+      _expect(response.status).toEqual(200);
     });
   });
 });
