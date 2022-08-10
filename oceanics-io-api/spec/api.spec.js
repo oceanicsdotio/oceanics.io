@@ -135,7 +135,7 @@ describe("Middleware", function () {
     const nodeTransform = asNodes("GET", "");
     const segments = path.split("/").filter(filterBaseRoute)
     const node = nodeTransform(segments[0], 0);
-    expect(node.patternOnly()).stringContaining(uuid)
+    expect(node.patternOnly()).toEqual(expect.stringContaining(uuid))
   })
 
   test("parses post collection path", function () {
@@ -144,7 +144,7 @@ describe("Middleware", function () {
     const nodeTransform = asNodes("POST", JSON.stringify({uuid}));
     const segments = path.split("/").filter(filterBaseRoute)
     const node = nodeTransform(segments[0], 0);
-    expect(node.patternOnly()).stringContaining(uuid)
+    expect(node.patternOnly()).toEqual(expect.stringContaining(uuid))
   })
 })
 
@@ -157,8 +157,6 @@ describe("Middleware", function () {
  * fall out of date with the schema, these tests will start failing. 
  */
 describe("API Request Validator", function () {
-
-  this.timeout(4000)
 
   const query = (body) => fetch(`${BASE_PATH}/api-validator`, {
     method: "POST",
@@ -178,7 +176,7 @@ describe("API Request Validator", function () {
   }
 
   /**
-   * Block of `it` scope tests that check that the validation service is
+   * Block of `test` scope tests that check that the validation service is
    * maintaining the integrity constraints identified in the specification.
    */
   const validateInterface = (nodeType) => {
@@ -192,7 +190,7 @@ describe("API Request Validator", function () {
         for (const data of WELL_KNOWN_NODES[nodeType]) {
           await testResponse({ data, reference}, true);
         }
-      })
+      }, 4000)
 
       for (const key of required) {
         test(`fails without ${key}`, async function () {
@@ -200,7 +198,7 @@ describe("API Request Validator", function () {
             ...testCase,
             [key]: undefined
           }, reference }, false);
-        })
+        }, 4000)
       }
       if (!additionalProperties) {
         test("fails with additional properties", async function () {
@@ -208,7 +206,7 @@ describe("API Request Validator", function () {
             ...testCase,
             extra: "extra-key-value-pair"
           }, reference }, false);
-        })
+        }, 4000)
       }
     }
   }
@@ -258,7 +256,6 @@ describe("Auth API", function () {
      * Removed the route from the API for the time being. 
      */
     test("clears non-provider, nodes", async function () {
-      this.timeout(5000)
       const {token} = await fetchToken()
       const response = await fetch(authPath, {
         method: "DELETE",
@@ -267,7 +264,7 @@ describe("Auth API", function () {
         },
       });
       expect(response.status).toBe(204);
-    });
+    }, 5000);
   });
 
   /**
@@ -447,7 +444,7 @@ describe("Sensing API", function () {
     /**
      * Options for topological paths
      */
-    test.todo("reports for multi-node path", async function () {
+    test.skip("reports for multi-node path", async function () {
       const { token } = await fetchToken();
       const response = await options(token, "Things/Locations");
       _expect(response, 204);
@@ -475,11 +472,10 @@ describe("Sensing API", function () {
      */
     for (const nodeType of EXTENSIONS.sensing) {
       test(`creates ${nodeType}`, async function () {
-        this.timeout(5000)
         await validateBatch(
           batch(composeWriteTransaction, nodeType, WELL_KNOWN_NODES[nodeType])
         );
-      });
+      }, 5000);
     }
   });
 
@@ -535,7 +531,6 @@ describe("Sensing API", function () {
     });
   
     describe("Query nodes", function () {
-      this.timeout(5000)
       /**
        * We are able to get a single node by referencing it's unique
        * identifier. If it does not exist, or is not owned by the user,
@@ -565,14 +560,13 @@ describe("Sensing API", function () {
       for (const nodeType of EXTENSIONS.sensing) {
         test(`retrieve ${nodeType} by UUID`, async function () {
           await validateByType(nodeType);
-        });
+        }, 5000);
       }
     })
   })
   
 
   describe("Join Nodes", function() {
-    this.timeout(5000)
     test("joins two well-known nodes",  async function() {
       const {token} = await fetchToken();
       const read = readTransaction(token);
@@ -594,7 +588,7 @@ describe("Sensing API", function () {
         }
       )
       _expect(response, 204);
-    })
+    }, 5000)
   })
 });
 
@@ -611,7 +605,7 @@ describe("Lexicon API", function () {
     /**
      * Dummy function works but is not fully implemented
      */
-    test.todo("works?", async function () {
+    test.skip("works?", async function () {
       const response = await fetch(`${BASE_PATH}/lexicon`, {
         method: "POST",
         headers: {
