@@ -1,6 +1,6 @@
 /**
-Enable plotting 2D data series to a canvas.
-*/
+ * Enable plotting 2D data series to a canvas.
+ */
 pub mod data_stream {
     
     use wasm_bindgen::prelude::*;
@@ -12,18 +12,17 @@ pub mod data_stream {
     use crate::cursor::cursor_system::SimpleCursor;
 
     /**
-    Observations are N-dimensional points mapped into 2-D screen space.
-
-    DataStreams are made up of Observations.
-    */
+     * Observations are N-dimensional points mapped into 2-D screen space.
+     * DataStreams are made up of Observations.
+     */
     struct Observation {
         x: f64,
         y: f64
     }
 
     /**
-    Observed properties describe a data dimesion. They are a child of Axis. 
-    */
+     * Observed properties describe a data dimesion. They are a child of Axis. 
+     */
     #[allow(dead_code)]
     struct ObservedProperty {
         name: String,
@@ -46,8 +45,8 @@ pub mod data_stream {
 
     impl Axis {
         /**
-        Create a new Axis struct
-        */
+         * Create a new Axis struct
+         */
         pub fn new(dimension: u8, extent: (f64, f64)) -> Axis {
            
             Axis {
@@ -77,10 +76,11 @@ pub mod data_stream {
     /**
      * Implementation of DataStream.
      */
+    #[allow(dead_code)]
     impl DataStream {
         /**
-        Constructor for datastreams
-        */
+         * Constructor for datastreams
+         */
         pub fn new(capacity: usize) -> DataStream {
             
             DataStream {
@@ -97,7 +97,6 @@ pub mod data_stream {
         pub fn size(&self) -> usize {
             self.data.len()
         }
-
 
         /**
          * Add a new observation to the datastream.

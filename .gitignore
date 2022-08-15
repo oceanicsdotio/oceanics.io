@@ -46,4 +46,4 @@ tsconfig.tsbuildinfo
 .netlify
 target/
 oceanics-io-wasm-api-node/
-oceanics-io-wasm-www/
+oceanics-io-wasm-ui-www/

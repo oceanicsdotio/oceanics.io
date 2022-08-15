@@ -6,12 +6,10 @@ mod triangular_mesh;  // 3D unstructured triangular network
 mod grid;  // 3D rectilinear grid methods and structures
 
 
-
 use std::f32::consts::PI;
 use std::mem;
 use std::os::raw::c_void;
 use std::ops::{Index, Mul, SubAssign};
-
 
 /*
  * WebGL bindings capabilities in Rust, using `web_sys` package.
@@ -92,20 +90,6 @@ impl Array {
 
     pub fn len(&self) -> usize {
         0
-    }
-}
-
-pub struct Limit {
-    lower: f64,
-    upper: f64
-}
-
-impl Limit {
-    pub fn new(lower: f64, upper: f64) -> Limit {
-        Limit {
-            lower,
-            upper
-        }
     }
 }
 

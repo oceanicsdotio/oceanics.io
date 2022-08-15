@@ -17057,9 +17057,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"oceanics-io-wasm-www@*, oceanics-io-wasm-www@workspace:oceanics-io-wasm-www":
+"oceanics-io-wasm-ui-www@*, oceanics-io-wasm-ui-www@workspace:oceanics-io-wasm-ui-www":
   version: 0.0.0-use.local
-  resolution: "oceanics-io-wasm-www@workspace:oceanics-io-wasm-www"
+  resolution: "oceanics-io-wasm-ui-www@workspace:oceanics-io-wasm-ui-www"
   languageName: unknown
   linkType: soft
 
@@ -17101,7 +17101,7 @@ __metadata:
     mapbox-gl: ^1.5.0
     next: ^12.2.0
     next-mdx-remote: ^3.0.8
-    oceanics-io-wasm-www: "*"
+    oceanics-io-wasm-ui-www: "*"
     prop-types: ^15.8.0
     react: ^18.0.0
     react-dom: ^18.0.0

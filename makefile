@@ -1,29 +1,31 @@
 WASM = oceanics-io-wasm
 WWW = oceanics-io-www
 API = oceanics-io-api
-WASM_NODE = $(WASM)-api-node
-WASM_WWW = $(WASM)-www
+WASM_NODE_SRC = $(WASM)-api
+WASM_NODE = $(WASM_NODE_SRC)-node
+WASM_WWW_SRC = $(WASM)-ui
+WASM_WWW = $(WASM_WWW_SRC)-www
 OUT_DIR = build
 SPEC = bathysphere
 SPEC_FILE = ./$(SPEC).yaml
 DOCS_PAGE = $(WWW)/public/$(SPEC).html
 
 # Build WASM for NodeJS
-$(WASM_NODE): $(WASM)
+$(WASM_NODE): $(WASM_NODE_SRC)
 	(rm -rf $(WASM_NODE) || :)
-	wasm-pack build $(WASM) \
+	wasm-pack build $(WASM_NODE_SRC) \
 		--out-dir ../$(WASM_NODE) \
 		--target nodejs \
 		--out-name index
-	sed -i 's/"name": "$(WASM)"/"name": "$(WASM_NODE)"/g' $(WASM_NODE)/package.json
+	sed -i 's/"name": "$(WASM_NODE_SRC)"/"name": "$(WASM_NODE)"/g' $(WASM_NODE)/package.json
 
 # Build WASM for web
-$(WASM_WWW): $(WASM)
+$(WASM_WWW): $(WASM_WWW_SRC)
 	(rm -rf $(WASM_WWW) || :)
-	wasm-pack build $(WASM) \
+	wasm-pack build $(WASM_WWW_SRC) \
 		--out-dir ../$(WASM_WWW) \
 		--out-name index
-	sed -i 's/"name": "$(WASM)"/"name": "$(WASM_WWW)"/g' $(WASM_WWW)/package.json
+	sed -i 's/"name": "$(WASM_WWW_SRC)"/"name": "$(WASM_WWW)"/g' $(WASM_WWW)/package.json
 
 node_modules: $(WASM_NODE) $(WASM_WWW) package.json yarn.lock $(API)/package.json $(WWW)/package.json
 	yarn install

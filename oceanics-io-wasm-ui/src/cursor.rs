@@ -1,3 +1,6 @@
+/**
+ * System for handling cursor interaction with canvas. 
+ */
 pub mod cursor_system {
 
     use wasm_bindgen::prelude::*;

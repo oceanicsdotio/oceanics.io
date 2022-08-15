@@ -21,14 +21,9 @@ pub mod vec3 {
     use std::collections::{HashMap};
 
     /**
-     * Iter into array
-     */
-    use std::convert::TryInto;
-
-    /**
      * Encode or decode with JSON
      */
-    use serde::{Serialize,Deserialize};
+    use serde::{Serialize};
 
     /**
      * The `IndexInterval` is a way of referencing a slice of a 1-dimensional 
@@ -62,6 +57,7 @@ pub mod vec3 {
     /**
     * JavaScript bindings `impl`
     */
+    #[allow(dead_code)]
     impl IndexInterval {
         /**
         * Create a new interval struct and pre-calculate the "hash" of the slice range.
@@ -137,16 +133,16 @@ pub mod vec3 {
     /**
      * 3D rotation about any axis using quaternion multiplication
      */
-    fn quaternion(U: [f64;4], V: [f64;4]) -> [f64;4] {
+    fn quaternion(u: [f64;4], v: [f64;4]) -> [f64;4] {
 
-       let mut R = [0.0; 4];
+       let mut r = [0.0; 4];
     
-       R[0] = U[0]*V[0] - U[1]*V[1] - U[2]*V[2] - U[3]*V[3];   // A*B - dotProduct(U,V)
-       R[1] = U[2]*V[3] - U[3]*V[2] + U[0]*V[1] + V[0]*U[1];   // crossProduct(U,V) + A*V + B*U;
-       R[2] = U[3]*V[1] - U[1]*V[3] + U[0]*V[2] + V[0]*U[2];
-       R[3] = U[1]*V[2] - U[2]*V[1] + U[0]*V[3] + V[0]*U[3];
+       r[0] = u[0]*v[0] - u[1]*v[1] - u[2]*v[2] - u[3]*v[3];   // A*B - dotProduct(U,V)
+       r[1] = u[2]*v[3] - u[3]*v[2] + u[0]*v[1] + v[0]*u[1];   // crossProduct(U,V) + A*V + B*U;
+       r[2] = u[3]*v[1] - u[1]*v[3] + u[0]*v[2] + v[0]*u[2];
+       r[3] = u[1]*v[2] - u[2]*v[1] + u[0]*v[3] + v[0]*u[3];
 
-       R
+       r
     }
 
 
@@ -462,6 +458,7 @@ pub mod vec3 {
     /**
      * Public interface for VertexArray
      */
+    #[allow(dead_code)]
     impl VertexArray{
         /**
         * Hoist the method for inserting points. Don't have to make points public.

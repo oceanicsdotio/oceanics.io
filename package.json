@@ -4,7 +4,7 @@
         "oceanics-io-www",
         "oceanics-io-api",
         "oceanics-io-wasm-api-node",
-        "oceanics-io-wasm-www"
+        "oceanics-io-wasm-ui-www"
     ],
     "packageManager": "yarn@3.2.2",
     "devDependencies": {

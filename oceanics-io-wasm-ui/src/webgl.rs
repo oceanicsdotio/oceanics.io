@@ -11,14 +11,10 @@ pub mod webgl {
         WebGlProgram, 
         WebGlRenderingContext, 
         WebGlShader, 
-        WebGlTexture,
-        WebGlFramebuffer
-    };
-    use js_sys::{
-        ArrayBuffer
+        WebGlTexture
     };
 
-
+    #[allow(dead_code)]
     #[wasm_bindgen]
     pub fn bind_attribute(
         context: &WebGlRenderingContext,
