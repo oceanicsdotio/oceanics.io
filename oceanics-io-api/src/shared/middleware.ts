@@ -4,7 +4,7 @@ import type { Record } from "neo4j-driver";
 import jwt from "jsonwebtoken";
 import type { JwtPayload } from "jsonwebtoken";
 import crypto from "crypto";
-import { Node, Links } from "oceanics-io-wasm-node";
+import { Node, Links } from "oceanics-io-wasm-api-node";
 
 // Stub type for generic entity Properties object.
 export type Properties = { [key: string]: any };

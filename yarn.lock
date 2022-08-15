@@ -17044,16 +17044,16 @@ __metadata:
     neo4j-driver: ^4.4.6
     netlify-lambda: ^2.0.15
     node-fetch: ^2.6.7
-    oceanics-io-wasm-node: "*"
+    oceanics-io-wasm-api-node: "*"
     stripe: ^10.0.0
     ts-jest: ^28.0.7
     typescript: ^4.7.4
   languageName: unknown
   linkType: soft
 
-"oceanics-io-wasm-node@*, oceanics-io-wasm-node@workspace:oceanics-io-wasm-node":
+"oceanics-io-wasm-api-node@*, oceanics-io-wasm-api-node@workspace:oceanics-io-wasm-api-node":
   version: 0.0.0-use.local
-  resolution: "oceanics-io-wasm-node@workspace:oceanics-io-wasm-node"
+  resolution: "oceanics-io-wasm-api-node@workspace:oceanics-io-wasm-api-node"
   languageName: unknown
   linkType: soft
 

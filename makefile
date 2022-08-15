@@ -1,7 +1,7 @@
 WASM = oceanics-io-wasm
 WWW = oceanics-io-www
 API = oceanics-io-api
-WASM_NODE = $(WASM)-node
+WASM_NODE = $(WASM)-api-node
 WASM_WWW = $(WASM)-www
 OUT_DIR = build
 SPEC = bathysphere

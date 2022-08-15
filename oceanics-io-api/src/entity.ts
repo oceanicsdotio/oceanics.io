@@ -1,6 +1,6 @@
 import { connect, metadata, NetlifyRouter } from "./shared/middleware";
 import type { ApiHandler } from "./shared/middleware";
-import { Links } from "oceanics-io-wasm-node";
+import { Links } from "oceanics-io-wasm-api-node";
 import apiSpec from "./shared/bathysphere.json";
 
 /**

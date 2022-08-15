@@ -44,5 +44,5 @@ tsconfig.tsbuildinfo
 
 # Local Netlify folder
 .netlify
-oceanics-io-wasm-node/
+oceanics-io-wasm-api-node/
 oceanics-io-wasm-www/
