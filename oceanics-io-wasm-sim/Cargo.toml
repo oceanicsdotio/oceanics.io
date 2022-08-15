@@ -1,5 +1,5 @@
 [package]
-name = "oceanics-io-wasm"
+name = "oceanics-io-wasm-ui"
 version = "0.3.0"
 authors = ["Oceanicsdotio LLC <business@oceanics.io>"]
 edition = "2018"
