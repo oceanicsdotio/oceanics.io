@@ -20,28 +20,26 @@ pub mod index_interval {
      * indexed points. Re-indexing might be required if the points 
      * are not ordered in the desired manner.
      */
-     #[derive(Serialize, Clone)]
-     #[serde(rename_all = "camelCase")]
+    #[derive(Serialize, Clone)]
+    #[serde(rename_all = "camelCase")]
     pub struct IndexInterval {
         /**
          * Start and end indices. Start is inclusive, end is not.
          */
-        interval: [u32; 2],
+        pub interval: [u32; 2],
         /**
          * Reversible string representation of the interval.
          */
-        hash: String,
+        pub hash: String,
         /**
          * Radix for byte string encoding.
          */
-        radix: u8
+        pub radix: u8
     }
- 
  
     /**
      * JavaScript bindings `impl`
      */
-    #[allow(dead_code)]
     impl IndexInterval {
         /**
          * Create a new interval struct and pre-calculate the "hash" of the slice range.
@@ -58,6 +56,7 @@ pub mod index_interval {
          * Create an `IndexInterval` from a hash. This is meant to be called
          * from JavaScript in the browser or a node function.
          */
+        #[allow(dead_code)]
         pub fn from_hash(hash: &JsValue, radix: u8) -> IndexInterval {
             let hash_string = hash.as_string().unwrap();
             IndexInterval {

@@ -40,7 +40,7 @@ pub mod tile_set {
     impl Tile {
         #[wasm_bindgen(getter)]
         pub fn feature(&self) -> JsString {
-            JsString::from(self.feature)
+            JsString::from(self.feature.clone())
         }
 
         #[wasm_bindgen(setter)]

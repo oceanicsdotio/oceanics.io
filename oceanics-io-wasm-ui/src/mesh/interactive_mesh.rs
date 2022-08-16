@@ -9,9 +9,10 @@ pub mod interactive_mesh {
     use crate::cursor::cursor_system::SimpleCursor;  // custom cursor behavior
     use crate::mesh::triangular_mesh::triangular_mesh::TriangularMesh;
     use crate::mesh::style::style::Style;
+    use crate::mesh::mesh::{color_map_z, next_state};
 
     /**
-     * Container for mesh that also contains cursor and rendering target infromation
+     * Container for mesh that also contains cursor and rendering target information.
      */
     #[wasm_bindgen]
     pub struct InteractiveMesh{
@@ -21,7 +22,6 @@ pub mod interactive_mesh {
         velocity: HashMap<u16,Vec3>
     }
 
-
     #[wasm_bindgen]
     impl InteractiveMesh {
         /**
@@ -29,7 +29,6 @@ pub mod interactive_mesh {
          */
         #[wasm_bindgen(constructor)]
         pub fn new(nx: usize, ny: usize) -> InteractiveMesh {
-            
             InteractiveMesh {
                 mesh: TriangularMesh::from_rectilinear_shape(nx, ny),
                 cursor: SimpleCursor::new(0.0, 0.0),
@@ -39,8 +38,9 @@ pub mod interactive_mesh {
         }
 
         /**
-         * Initialize a fully connected topological network with random initial postions
+         * Initialize a fully connected topological network with random initial positions
          */
+        #[allow(dead_code)]
         fn from_random_positions(count: u16, length: f64, spring_constant: f64, length_variability: f64) -> InteractiveMesh {
 
             let mut mesh = InteractiveMesh {
@@ -51,23 +51,20 @@ pub mod interactive_mesh {
             };
 
             for ii in 0..count {
-                unsafe {
-                    let coordinates: Vec3 =  Vec3{value:[
-                        js_sys::Math::random().powi(2),
-                        js_sys::Math::random().powi(2),
-                        js_sys::Math::random()
-                    ]};
-                    mesh.mesh.insert_point(ii, coordinates);
-                    mesh.insert_agent(ii);
-                }
+                let coordinates: Vec3 =  Vec3{value:[
+                    js_sys::Math::random().powi(2),
+                    js_sys::Math::random().powi(2),
+                    js_sys::Math::random()
+                ]};
+                mesh.mesh.insert_point(ii, coordinates);
+                mesh.insert_agent(ii);
             }
             
             for ii in 0..count {
                 for jj in (ii+1)..count {
-                    unsafe {
-                        let random_length = length + js_sys::Math::random()*length_variability;
-                        mesh.mesh.topology.insert_edge([ii, jj], random_length, spring_constant);
-                    }
+                    let random_length = length + js_sys::Math::random()*length_variability;
+                    mesh.mesh.topology.insert_edge([ii, jj], random_length, spring_constant);
+                    
                 }
             }
 
@@ -80,6 +77,7 @@ pub mod interactive_mesh {
          * into the `vertex_array` mapping, and a state object into the
          * `particles` mapping.
          */
+        #[allow(dead_code)]
         fn insert_agent(&mut self, index: u16) {
             if !self.mesh.vertex_array.contains_key(&index) {
                 panic!("Attempted to create Agent on non-existent index ({})", index);
@@ -87,7 +85,6 @@ pub mod interactive_mesh {
             self.velocity.insert(index, Vec3{value:[0.0, 0.0, 0.0]});    
         }
         
-
         /**
          * Render the current state of single Agent to HTML canvas. The basic
          * representation includes a scaled circle indicating the position, 
@@ -132,7 +129,7 @@ pub mod interactive_mesh {
          * Display size for agents is used to calculate an offset, so that the ray begins
          * on the surface of a 3D sphere, projected into the X,Y plane.
          */
-        unsafe fn draw_edges(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, style: &Style) -> u16 {
+        fn draw_edges(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, style: &Style) -> u16 {
             
             ctx.set_line_width(style.line_width);
 
@@ -162,7 +159,7 @@ pub mod interactive_mesh {
                     let force = edge.force(extension, differential, 2.0*style.radius);
                     let max_distance = ((3.0 as f64).sqrt() - edge.length).abs();
                     let max_force = edge.force(max_distance, differential, 2.0*style.radius).abs();
-                    let force_frac = force / max_force;
+                    let _force_frac = force / max_force;
 
                     // let a_color = format!(
                     //     "rgba({},{},{},{:.2}", 

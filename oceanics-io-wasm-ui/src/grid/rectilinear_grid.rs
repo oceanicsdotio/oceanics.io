@@ -61,6 +61,7 @@ pub mod rectilinear_grid {
         * Flexible sizing, in case implementing with vector 
         * instead of array
         */
+        #[allow(dead_code)]
         fn size(&self) -> usize {
             let mut result: usize = 1;
             for dim in &self.shape {
@@ -126,6 +127,7 @@ pub mod rectilinear_grid {
          * dimensions. 
          * They are masked by default. 
          */
+        #[allow(dead_code)]
         pub fn insert(&mut self, i: u16, j: u16, k: u8) -> bool {
             let insert = !self.cells.contains_key(&(i, j, k));
             if insert {

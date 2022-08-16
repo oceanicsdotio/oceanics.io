@@ -5,9 +5,10 @@ pub mod triangular_mesh {
     use std::iter::FromIterator;
 
     use crate::mesh::vertex_array::vertex_array::VertexArray;
-    use crate::vec3::vec3::{Vec3, VertexArray, IndexInterval};  // 3-D graphics primitive
+    use crate::vec3::vec3::Vec3;  // 3-D graphics primitive
     use crate::mesh::topology::topology::Topology;
     use crate::mesh::cell_index::cell_index::CellIndex;
+    use crate::mesh::index_interval::index_interval::IndexInterval;
 
     /**
      * Unstructured triangular mesh, commonly used in finite element simulations
@@ -69,7 +70,7 @@ pub mod triangular_mesh {
             let count = self.vertex_array.points.len();
             let mut lookup: HashMap<u16,HashSet<u16>> = HashMap::with_capacity(count);
 
-            for (edge, metadata) in self.topology.edges.iter() {
+            for (edge, _metadata) in self.topology.edges.iter() {
                 let [a, b] = &edge.indices;
                 if lookup.contains_key(a) {
                     lookup.get_mut(a).unwrap().insert(*b);
@@ -115,12 +116,11 @@ pub mod triangular_mesh {
          * 
          * All added vertex references are offset by the length of
          * the current vertex_array, which currently does NOT
-         * guarentee that no collisons happen.
+         * guarantee that no collisions happen.
          */
         #[allow(dead_code)]
         fn append(&mut self, mesh: &TriangularMesh) {
-           
-           
+                      
             let offset = self.vertex_array.points.len() as u16;
             for (index, vert) in mesh.vertex_array.points.iter() {
                 self.vertex_array.insert_point(
@@ -184,14 +184,14 @@ pub mod triangular_mesh {
         }
 
         /**
-         * Calculate the normals of each face
+         * Calculate the normals of each face.
          */
         #[allow(dead_code)]
         fn normals (&mut self) -> (HashMap<u16,(Vec3,u8)>, HashMap<CellIndex,Vec3>) {
 
             let capacity = self.vertex_array.points.len();
             let mut normals: HashMap<u16,(Vec3,u8)> = HashMap::with_capacity(capacity);
-            let mut norf: HashMap<CellIndex,Vec3> = HashMap::with_capacity(self.topology.cells.len());
+            let mut face_normals: HashMap<CellIndex,Vec3> = HashMap::with_capacity(self.topology.cells.len());
             
             let cells = &self.topology.cells;
             for index in cells.iter() {
@@ -208,22 +208,22 @@ pub mod triangular_mesh {
                     normal = Vec3::cross_product(&v, &u).normalized();
                                     
                     if normals.contains_key(&vid) {
-                        let (mut vec, mut count) = normals.get_mut(&vid).unwrap();
-                        vec = (vec * (count as f64) + normal) / (count + 1) as f64;
-                        count += 1;
+                        let (mut _vec, mut _count) = normals.get_mut(&vid).unwrap();
+                        _vec = (_vec * (_count as f64) + normal) / (_count + 1) as f64;
+                        _count += 1;
                     } else {
                         normals.insert(vid, (normal, 1));
                     }
                 }
-                norf.insert(index.clone(), normal);  // add the face normal once
+                face_normals.insert(index.clone(), normal);  // add the face normal once
             }
-            (normals, norf)
+            (normals, face_normals)
         }
 
         /**
          * Create a simple RTIN type mesh
          */
-        pub unsafe fn from_rectilinear_shape(nx: usize, ny: usize) -> TriangularMesh {
+        pub fn from_rectilinear_shape(nx: usize, ny: usize) -> TriangularMesh {
            
             let dx = 1.0 / (nx as f64);
             let dy = 1.0 / (ny as f64);
@@ -238,7 +238,7 @@ pub mod triangular_mesh {
                     points: HashMap::with_capacity((nx+1)*(ny+1)),
                     normals: HashMap::with_capacity(0)
                 },
-                topology: Topology{
+                topology: Topology {
                     cells: HashSet::with_capacity(nx*ny*2),
                     edges: HashMap::with_capacity(nx*ny*2*3),
                     neighbors: Vec::with_capacity(0),
@@ -284,7 +284,7 @@ pub mod triangular_mesh {
         fn subdivide(&mut self) {
       
             let cells = &mut self.topology.cells;
-            for cell_index in cells.iter() {
+            for _cell_index in cells.iter() {
                 // let index = [cell_index.a, cell_index.b, cell_index.c];
                 // let nv = self.vertex_array.points.len() as u16;
 

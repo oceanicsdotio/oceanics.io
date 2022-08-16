@@ -31,7 +31,7 @@ pub mod mesh {
     * - drag: lose velocity over time
     * - bounce: lose velocity on interaction
     */      
-    fn next_state(coordinates: &Vec3, velocity: &Vec3, drag: f64, bounce: f64, dt: f64) -> [[f64; 3]; 2] {
+    pub fn next_state(coordinates: &Vec3, velocity: &Vec3, drag: f64, bounce: f64, dt: f64) -> [[f64; 3]; 2] {
     
         let mut new_v: Vec3 = velocity * (1.0 - drag);
         let mut new_c: Vec3 = coordinates + new_v * dt;
@@ -53,7 +53,7 @@ pub mod mesh {
     }
 
 
-    unsafe fn color_map_z(z: f64, fade: &f64) -> String {
+    pub fn color_map_z(z: f64, fade: &f64) -> String {
         format!(
             "rgba({},{},{},{:.2})", 
             255,

@@ -79,6 +79,7 @@ pub mod grid {
     * array as a JavaScript/HTML image data element.
     */
     #[wasm_bindgen]
+    #[allow(dead_code)]
     pub fn image_data(world_size: u32, water_level: f64) -> ImageData {
         let data = &mut image_data_data(world_size.clone(), water_level);
         ImageData::new_with_u8_clamped_array(Clamped(data), world_size as u32).unwrap()

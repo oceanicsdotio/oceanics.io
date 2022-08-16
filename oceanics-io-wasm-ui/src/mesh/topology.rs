@@ -13,8 +13,8 @@ pub mod topology {
     pub struct Topology{
         pub cells: HashSet<CellIndex>,
         pub edges: HashMap<EdgeIndex, Edge>,
-        normals: HashMap<CellIndex, Vec3>,
-        neighbors: Vec<Vec<usize>>
+        pub normals: HashMap<CellIndex, Vec3>,
+        pub neighbors: Vec<Vec<usize>>
     }
 
     /**
@@ -25,7 +25,7 @@ pub mod topology {
          * Create an empty topology structure.
          */
         pub fn new() -> Topology {
-            Topology{
+            Topology {
                 cells: HashSet::with_capacity(0),
                 edges: HashMap::new(),
                 normals: HashMap::with_capacity(0),
@@ -59,7 +59,7 @@ pub mod topology {
         * and unique `EdgeIndex`, calculate the length of the edge,
         * and insert into the `edges` map.
         */
-        pub unsafe fn insert_edge(&mut self, index: [u16; 2], length: f64, spring_constant: f64) {
+        pub fn insert_edge(&mut self, index: [u16; 2], length: f64, spring_constant: f64) {
            
             let [a, b] = index;
             let edge_index = EdgeIndex::new(a, b);

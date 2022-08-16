@@ -18,7 +18,7 @@ pub mod cell_index {
         /**
          * Sort the indices and create a CellIndex.
          */
-        pub unsafe fn new(a: u16, b: u16, c: u16) -> CellIndex {
+        pub fn new(a: u16, b: u16, c: u16) -> CellIndex {
            
             if a == b || b == c || c == a {
                 panic!("Degenerate CellIndex ({},{},{})", a, b, c);

@@ -15,6 +15,7 @@ pub mod data_stream {
     /**
      * Observed properties describe a data dimesion. They are a child of Axis. 
      */
+    #[allow(dead_code)]
     struct ObservedProperty {
         name: String,
         unit: String,
@@ -26,6 +27,7 @@ pub mod data_stream {
 
     Methods on Axis are defined in the `impl` block. 
     */
+    #[allow(dead_code)]
     struct Axis {
         dimension: u8,
         extent: (f64, f64),
@@ -50,7 +52,7 @@ pub mod data_stream {
     }
     
     /**
-     * Datastreams are containers of observations. They keep track of data, metadata, and
+     * Data streams are containers of observations. They keep track of data, metadata, and
      * summary statistics about their child Observations.
      */
     pub struct DataStream {
@@ -122,13 +124,13 @@ pub mod data_stream {
          * first derivative are outliers
          *  Threshold 3.5
          */
-        pub fn statistical_outliers(&self, threshold: f32) {
+        pub fn statistical_outliers(&self, _threshold: f32) {
 
             let size = self.data.len();
             let mut dydt: Vec<f32> = Vec::with_capacity(size);
             let mut dt: Vec<f32> = Vec::with_capacity(size);
             let mut diff: Vec<f64> = Vec::with_capacity(size);
-            let mut mask: Vec<bool> = Vec::with_capacity(size);
+            let mut _mask: Vec<bool> = Vec::with_capacity(size);
 
             dydt.push(0.0);
             dt.push(0.0);
@@ -138,9 +140,10 @@ pub mod data_stream {
             }
             
             diff.sort_by(|a, b| a.partial_cmp(b).unwrap());
-            let mut median = 0.0;
+            
             let f_size = 0.5 * size as f64;
           
+            let median;
             if size % 2 == 0 {
                 median = 0.5*(diff[f_size.floor() as usize] + diff[f_size.ceil() as usize]);
             } else {
@@ -157,11 +160,11 @@ pub mod data_stream {
                 diff[nn] = (diff[nn] - median).abs();
             }
 
-            let mut anomaly_median = 0.0;
+            let _anomaly_median;
             if size % 2 == 0 {
-                anomaly_median = 0.5*(diff[f_size.floor() as usize] + diff[f_size.ceil() as usize]);
+                _anomaly_median = 0.5*(diff[f_size.floor() as usize] + diff[f_size.ceil() as usize]);
             } else {
-                anomaly_median = diff[f_size as usize];
+                _anomaly_median = diff[f_size as usize];
             }
 
             // let mod_z = 0.6745 * diff / mad;

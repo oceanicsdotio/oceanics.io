@@ -13,8 +13,8 @@ pub mod edge {
      */
     #[derive(Copy, Clone)]
     pub struct Edge {
-        spring_constant: f64, // spring constant
-        length: f64, // zero position length
+        pub spring_constant: f64, // spring constant
+        pub length: f64, // zero position length
     }
 
     impl Edge {
