@@ -11,7 +11,6 @@ repository = "git+https://github.com/oceanicsdotio/oceanics.io.git"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-js-sys = "0.3.56"
 serde = { version = "1.0.136", features = ["derive"] }
 serde_derive = "1.0.136"
 console_error_panic_hook = "0.1.7"

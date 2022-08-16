@@ -7,9 +7,6 @@ mod grid;  // 3D rectilinear grid methods and structures
 
 
 use std::f32::consts::PI;
-use std::mem;
-use std::os::raw::c_void;
-use std::ops::{Index, Mul, SubAssign};
 
 /*
  * WebGL bindings capabilities in Rust, using `web_sys` package.
@@ -21,77 +18,9 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen::{JsCast, JsValue};
 use wasm_bindgen_futures::JsFuture;
 
-use web_sys::{HtmlCanvasElement, CanvasRenderingContext2d, Request, RequestInit, RequestMode, Response, console};
+use web_sys::{HtmlCanvasElement, CanvasRenderingContext2d, Request, RequestInit, RequestMode, Response};
 
 extern crate console_error_panic_hook;
-
-#[wasm_bindgen]
-pub fn greet() {
-    console::log_1(&"Hello from Rust".into());
-}
-
-#[wasm_bindgen]
-pub fn get_rust_data() -> String {
-    "Some data from Rust".into()
-}
-
-
-#[wasm_bindgen]
-pub fn hello_world(name: &str) -> String {
-    String::from(format!("Hello {}!", name))
-}
-
-pub struct Array {
-    data: Vec<f64>
-}
-
-impl Index<usize> for Array {
-    type Output = f64;
-
-    fn index(&self, index: usize) -> &Self::Output {
-        return &self.data[index]
-    }
-}
-
-impl Mul<f64> for &Array {
-    type Output = Array;
-    fn mul(self, rhs: f64) -> Array {
-        let mut v = Vec::with_capacity(self.data.len());
-        for value in &self.data {
-            v.push(value * rhs);
-        }
-        Array{ data: v }
-    }
-}
-
-impl Mul<f64> for Array {
-    type Output = Array;
-    fn mul(self, rhs: f64) -> Array {
-        let mut v = Vec::with_capacity(self.data.len());
-        for value in self.data {
-            v.push(value * rhs);
-        }
-        Array{ data: v }
-    }
-}
-
-impl SubAssign<f64> for Array {
-    fn sub_assign(&mut self, rhs: f64) {
-        for ii in 0..self.data.len() {
-            self.data[ii] += rhs;
-        }
-    }
-}
-
-impl Array {
-    pub fn mean(axis: usize) -> f64 {
-        0.0
-    }
-
-    pub fn len(&self) -> usize {
-        0
-    }
-}
 
 
 #[wasm_bindgen]
@@ -173,23 +102,6 @@ pub fn draw_single_pixel(ctx: &CanvasRenderingContext2d, x: f64, y: f64, scale: 
     ctx.fill_rect(x, y, scale, scale);
 }
 
-
-#[wasm_bindgen]
-pub fn alloc(size: usize) -> *mut c_void {
-    let mut buf = Vec::with_capacity(size);
-    let ptr = buf.as_mut_ptr();
-    mem::forget(buf);
-    return ptr as *mut c_void;
-}
-
-#[wasm_bindgen]
-pub fn dealloc(ptr: *mut c_void, cap: usize) {
-    unsafe  {
-        let _buf = Vec::from_raw_parts(ptr, 0, cap);
-    }
-}
-
-
 #[wasm_bindgen]
 pub async fn fetch_text(path: String) -> Result<JsValue, JsValue> {
     let mut opts = RequestInit::new();
@@ -205,9 +117,8 @@ pub async fn fetch_text(path: String) -> Result<JsValue, JsValue> {
     Ok(text)
 }
 
-
 #[wasm_bindgen]
-pub fn make_vertex_array (series: Vec<f64>) -> Vec<f64> {
+pub fn make_vertex_array(series: Vec<f64>) -> Vec<f64> {
 
     let mut vertices: Vec<f64> = vec![];
     let points: usize = series.len();
