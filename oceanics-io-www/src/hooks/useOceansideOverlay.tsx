@@ -1,7 +1,7 @@
 import { useEffect, useState, useReducer, useRef } from "react";
 import { lichen, orange } from "../palette";
 import useWasmRuntime from "./useWasmRuntime";
-import type {PrismCursor} from "oceanics-io-wasm-ui-www";
+import type {PrismCursor} from "oceanics-io-www-wasm";
 import {rotatePath, eventCoordinates, inverse} from "../workers/shared";
 
 
