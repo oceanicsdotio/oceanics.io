@@ -2,7 +2,7 @@ mod webgl;  // shader magic
 mod vec3;
 mod cursor;  // cursor replacements and canvas event handling system
 mod data_stream;  // data stream structs and visualization methods
-mod triangular_mesh;  // 3D unstructured triangular network
+mod mesh;  // 3D unstructured triangular network
 mod grid;  // 3D rectilinear grid methods and structures
 
 
