@@ -1,25 +1,26 @@
 /** 
-The `rectilinear_grid` module provides methods
-for interacting with tessellations of arbitrary 
-dimensions using rectangular cells.
-
-It depends on the `SimpleCursor` module when providing
-an interactive visualization artifact.
-*/
+ * The `grid` module provides methods
+ * for interacting with tessellations of arbitrary 
+ * dimensions using rectangular cells.
+ *
+ * It depends on the `SimpleCursor` module when providing
+ * an interactive visualization artifact.
+ */
 pub mod grid {
-    
+    // Third-party dependencies
     use wasm_bindgen::prelude::*;
     use wasm_bindgen::{JsValue,Clamped};
     use web_sys::{
         CanvasRenderingContext2d, 
         HtmlCanvasElement, 
         HtmlImageElement, 
-        ImageData,
-        console
+        ImageData
     };
     use std::collections::HashMap;  // used for cell attribute lookup
     use std::f64::consts::PI;
     use serde::{Deserialize,Serialize};  // comm with Web JS
+
+    // Local dependencies
     use crate::cursor::cursor_system::SimpleCursor; 
 
     /**
@@ -51,37 +52,35 @@ pub mod grid {
     }
 
     /**
-    A cell is and interior space define by joined vertices.
-    This is duplicated in all topological models to reduce cross- 
-    boundary imports.
-
-    The `mask` attribute is used to indicate whether the cell is active.
-    */
+     * A cell is and interior space define by joined vertices.
+     * This is duplicated in all topological models to reduce cross- 
+     * boundary imports.
+     * 
+     * The `mask` attribute is used to indicate whether the cell is active.
+     */
     struct Cell {
         pub mask: bool
     }
 
-    
     /**
-    Good old-fashioned 3D grid, usually projected 
-    into the X,Y plane. The precision of the hash
-    allows 65535 values in X,Y and 255 values in Z,
-    which is appropriate for most oceanographic
-    applications.
-
-    Use other methods for higher resolution applications
-    */
+     * Good old-fashioned 3D grid, usually projected 
+     * into the X,Y plane. The precision of the hash
+     * allows 65535 values in X,Y and 255 values in Z,
+     * which is appropriate for most oceanographic
+     * applications.
+     *
+     * Use other methods for higher resolution applications
+     */
     pub struct RectilinearGrid {
         shape: [usize; 3],
         cells: HashMap<(u16,u16,u8), Cell>,
     }
 
-
     impl RectilinearGrid {
         /**
-        Create a new Grid that is both rectilinear and rectangular,
-        With Only the number of desired cells in each dimension
-        */
+         * Create a new Grid that is both rectilinear and rectangular,
+         * with Only the number of desired cells in each dimension
+         */
         pub fn new(nx: u16, ny: u16, nz: u8) -> RectilinearGrid {
             RectilinearGrid { 
                 shape: [
@@ -127,8 +126,8 @@ pub mod grid {
         }
 
         /** 
-        Draw the grid lines and any selected cells
-        */
+         * Draw the grid lines and any selected cells
+         */
         pub fn draw_edges(
             &self, 
             ctx: &CanvasRenderingContext2d, 
@@ -157,8 +156,8 @@ pub mod grid {
         }
 
         /**
-        Draw the lines and any selected cells
-        */
+         * Draw the lines and any selected cells
+         */
         pub fn draw_cells(
             &self, 
             ctx: &CanvasRenderingContext2d, 
@@ -179,10 +178,10 @@ pub mod grid {
         }
 
         /**
-        * Add a tracked cell to the grid. Cells have 3 spatial index
-        * dimensions. 
-        * They are masked by default. 
-        */
+         * Add a tracked cell to the grid. Cells have 3 spatial index
+         * dimensions. 
+         * They are masked by default. 
+         */
         #[allow(dead_code)]
         pub fn insert(&mut self, i: u16, j: u16, k: u8) -> bool {
             let insert = !self.cells.contains_key(&(i, j, k));
@@ -194,9 +193,9 @@ pub mod grid {
     }
 
     /**
-    * Container for rectilinear grid that also has a cursor reference,
-    * and keeps track of metadata related to sampling and rendering.
-    */
+     * Container for rectilinear grid that also has a cursor reference,
+     * and keeps track of metadata related to sampling and rendering.
+     */
     #[wasm_bindgen]
     pub struct InteractiveGrid {
         grid: RectilinearGrid,
@@ -229,25 +228,23 @@ pub mod grid {
         }
 
         /**
-        * Hoisting function for cursor updates from JavaScript. 
-        * Prevents null references in some cases.
-        */
+         * Hoisting function for cursor updates from JavaScript. 
+         * Prevents null references in some cases.
+         */
         pub fn update_cursor(&mut self, x: f64, y: f64) {
             self.cursor.update(x, y);
         }
 
-        
         /** 
-        * Animation frame is used as a visual feedback test 
-        * that utilizes most public methods of the data structure.
-        */
+         * Animation frame is used as a visual feedback test 
+         * that utilizes most public methods of the data structure.
+         */
         pub fn draw(
             &mut self, 
             canvas: HtmlCanvasElement, 
             time: f64, 
             style: JsValue
         ) {
-            
             let rstyle: Style = style.into_serde().unwrap();
             let color = JsValue::from_str(&rstyle.grid_color);
             let bg = JsValue::from_str(&rstyle.background_color);
@@ -317,10 +314,10 @@ pub mod grid {
     }
 
     /**
-    The MiniMap is a data structure and interactive container.
-    It contains persistent world data as a raster, and exposes
-    selection and subsetting methods to explore subareas. 
-    */
+     * The MiniMap is a data structure and interactive container.
+     * It contains persistent world data as a raster, and exposes
+     * selection and subsetting methods to explore subareas. 
+     */
     #[wasm_bindgen]
     pub struct MiniMap {
         view: [f64; 2],
@@ -333,7 +330,7 @@ pub mod grid {
     }
 
     /**
-     Create an island-like feature in an image format.
+     * Create an island-like feature in an image format.
      */
     fn island_kernel(ii: u32, jj: u32, world_size: f64, water_level: f64) -> [f64; 2] {
         let quadrant: f64 = world_size / 2.0;
@@ -350,16 +347,15 @@ pub mod grid {
         ]
     }
 
-
     /**
-    Create raw image data based on the size of the world and the
-    given water level.
-
-    Essentially this is a digital elevation model of a fictious
-    island. Other geomorphology kernels can be used in place or
-    in combination with `island_kernel` to achieve other desired
-    features.
-    */
+     * Create raw image data based on the size of the world and the
+     * given water level.
+     * 
+     * Essentially this is a digital elevation model of a fictious
+     * island. Other geomorphology kernels can be used in place or
+     * in combination with `island_kernel` to achieve other desired
+     * features.
+     */
     fn image_data_data(world_size: u32, water_level: f64) -> Vec<u8> {
       
         let data = &mut Vec::with_capacity((world_size*world_size*4) as usize);
@@ -382,25 +378,23 @@ pub mod grid {
     }
 
     /**
-    After generating the base data array, clamp it and create a new
-    array as a JavaScript/HTML image data element.
+    * After generating the base data array, clamp it and create a new
+    * array as a JavaScript/HTML image data element.
     */
     #[wasm_bindgen]
     #[allow(dead_code)]
     pub fn image_data(world_size: u32, water_level: f64) -> ImageData {
-       
         let data = &mut image_data_data(world_size.clone(), water_level);
         ImageData::new_with_u8_clamped_array(Clamped(data), world_size as u32).unwrap()
     }
 
     /**
-    Extract the visible pixels from a canvas element's 2D 
-    context. These will be used to render a localized
-    map with a greater level of visual detail and contextual
-    information
-    */
+     * Extract the visible pixels from a canvas element's 2D 
+     * context. These will be used to render a localized
+     * map with a greater level of visual detail and contextual
+     * information
+     */
     fn visible(view: &[f64; 2], ctx: &CanvasRenderingContext2d, grid_size: &usize) -> ImageData {
-       
         ctx.get_image_data(
             view[0] + 1.0, 
             view[1] + 1.0, 
@@ -410,7 +404,7 @@ pub mod grid {
     }
 
     #[wasm_bindgen]
-    pub fn x_transform (jj: f64, length: f64, grid_size: usize) -> f64 {
+    pub fn x_transform(jj: f64, length: f64, grid_size: usize) -> f64 {
         const SPRITE_SIZE: f64 = 32.0;
         SPRITE_SIZE*((jj + (grid_size as f64 - (length-1.0)/2.0)) - (grid_size as f64+1.0)/2.0)
 
@@ -564,8 +558,8 @@ pub mod grid {
         }
 
         /**
-        Map the alpha channel of the image data into a land_mask. 
-        */
+         * Map the alpha channel of the image data into a land_mask. 
+         */
         fn create_land_mask(&mut self, ctx: &CanvasRenderingContext2d) {
             
             let data = self.visible(ctx).data();
@@ -638,12 +632,10 @@ pub mod grid {
         }
 
         /**
-         * Draw the image data, then a square, and then fill the square with part of the image data again to form
-         * a frame
+         * Draw the image data, then a square, and then fill the square with 
+         * part of the image data again to form a frame
          */
         pub fn draw_image_data(&mut self, ctx: &CanvasRenderingContext2d) {
-    
-           
             let [vx, vy] = self.view;
             let data = &mut self.data;
             let world = ImageData::new_with_u8_clamped_array(Clamped(data), self.world_size as u32).unwrap();
@@ -662,18 +654,18 @@ pub mod grid {
     }
 
     /**
-    Tiles are individual features, aka the instance of
-    a type of feature, which is stored in memory and may be 
-    modified to deviate from the basic rules.
-
-    These are used in the TileSet struct.
-
-    These have:
-    - feature: unique string identifying the base type
-    - flip: render left or right facing sprite
-    - value: passive value toward total score
-    - frame_offset: start frame to desync animations
-    */
+     * Tiles are individual features, aka the instance of
+     * a type of feature, which is stored in memory and may be 
+     * modified to deviate from the basic rules.
+     * 
+     * These are used in the TileSet struct.
+     * 
+     * These have:
+     * - feature: unique string identifying the base type
+     * - flip: render left or right facing sprite
+     * - value: passive value toward total score
+     * - frame_offset: start frame to desync animations
+     */
     #[wasm_bindgen]
     #[derive(Serialize,Deserialize,Clone)]
     #[serde(rename_all = "camelCase")]
@@ -685,9 +677,9 @@ pub mod grid {
     }
 
     /**
-    Features are used in multiple ways. Both by the probability table.
-    and by the game interface. 
-    */
+     * Features are used in multiple ways. Both by the probability table.
+     * and by the game interface. 
+     */
     #[wasm_bindgen]
     #[derive(Serialize,Deserialize,Clone)]
     #[serde(rename_all = "camelCase")]
@@ -699,254 +691,13 @@ pub mod grid {
         data_url: String
     }
 
-    
     /**
-    Used as index in the lookup functions that 
-    translate between reference frames.
-    */
+     * Used as index in the lookup functions that 
+     * translate between reference frames.
+     */
     #[derive(Hash,Eq,PartialEq)]
     struct DiagonalIndex{
         row: usize,
         column: usize
-    }
-
-    
-    /**
-     * Tileset collects data structures related to generating and saving
-     * features in the game.
-     * Tiles are stored in `tiles`. 
-     * Current count of each type is stored
-     * in a HashMap indexed by tile type, and mapping of diagonal indices
-     * to linear indices is stored in a another HashMap.
-     */
-    #[wasm_bindgen]
-    pub struct TileSet {
-        tiles: Vec<Tile>,
-        probability_table: ProbabilityTable,
-        count: HashMap<String, u32>,
-        index: HashMap<DiagonalIndex, usize>
-    }
-    
-    impl TileSet {
-        /**
-         * Create a new struct, initializing with known
-         * capacity. The size will be the square of the
-         * grid size normally. 
-         */
-        pub fn new(count: usize) -> TileSet {  
-            TileSet{
-                tiles: Vec::with_capacity(count),
-                probability_table: ProbabilityTable::new(),
-                count: HashMap::new(),
-                index: HashMap::with_capacity(count)
-            }
-        }
-
-        /**
-         * Drain the bookkeeping collections before rebuilding
-         * the selected features.
-         * 
-         * If we want to retain items from the overlapping area,
-         * this needs to be modified.
-         */
-        pub fn clear(&mut self) {
-            self.count.clear();
-            self.tiles.clear();
-            self.index.clear();
-        }
-
-        /**
-         * Accumulate score from all tiles in the selection
-         */
-        pub fn score(&self) -> f64 {
-            let mut total = 0.0;
-            for tile in &self.tiles {
-                total += tile.value;
-            }
-            total
-        }
-
-        /**
-         * Hoist the table insert function.
-         * 
-         * Deserialize JS objects into Rust Features, and insert these 
-         * into the probability table.
-         */
-        pub fn insert_feature(&mut self, feature: JsValue) {
-            let r_feature: Feature = feature.into_serde().unwrap();
-            self.probability_table.insert(r_feature);
-        }
-
-        /**
-         * Get tile as a JSON object
-         */
-        pub fn get_tile(&self, index: usize) -> JsValue {
-            JsValue::from_serde(&self.tiles.get(index).unwrap()).unwrap()
-        }
-
-        /**
-         * Change the existing feature to a new one.
-         * The supplied indices are in Diagonal Row reference frame.
-         */
-        pub fn replace_tile(&mut self, ii: usize, jj: usize) {
-            
-            let index: &usize = self.index.get(&DiagonalIndex{row:ii, column:jj}).unwrap();
-            let previous = self.tiles[*index].clone();
-            loop {
-                let probability = js_sys::Math::random();
-                let feature: Feature = self.probability_table.pick_one(probability);
-                let mut count: u32 = 0;
-                if self.count.contains_key(&feature.key) { 
-                    count = self.count.get(&feature.key).unwrap().clone();
-                }
-                if count >= feature.limit { continue; }
-                
-                self.count.insert(feature.key.clone(), count + 1);
-                self.tiles[*index] = Tile{
-                    feature: feature.key,
-                    flip: previous.flip,
-                    value: feature.value,
-                    frame_offset: previous.frame_offset
-                };
-                break;
-            }
-        }
-
-        /**
-         * Invisbible placeholder for land tile, so that all spaces are
-         * treated the same way
-         */
-        pub fn insert_land_tile(&mut self, ii: usize, jj: usize) -> usize {
-           
-            let current_size = self.tiles.len();
-            self.index.insert(DiagonalIndex{row: ii,column: jj}, current_size);
-            self.tiles.push(Tile{
-                feature: "land".to_string(),
-                flip: false,
-                value: 0.0,
-                frame_offset: 0.0
-            });
-            current_size
-        }
-
-        /**
-         * Choose a water feature to add to the map
-         */
-        pub fn insert_water_tile(&mut self, ii: usize, jj: usize) -> usize {
-            
-            let current_size = self.tiles.len();
-            loop {
-                let probability = js_sys::Math::random();
-                let feature: Feature = self.probability_table.pick_one(probability);
-                let mut count: u32 = 0;
-                if self.count.contains_key(&feature.key) { 
-                    count = self.count.get(&feature.key).unwrap().clone();
-                }
-                if count >= feature.limit { continue; }
-                
-                self.count.insert(feature.key.clone(), count + 1);
-                self.tiles.push(Tile{
-                    feature: feature.key,
-                    flip: false,
-                    value: feature.value,
-                    frame_offset: (js_sys::Math::random()*4.0).floor()
-
-                });
-                break;
-            }
-            self.index.insert(DiagonalIndex{row: ii, column: jj}, current_size);
-            current_size
-        }
-
-    }
-    
-    /**
-     * Generate features randomly. The struct has a `lookup` table 
-     * based on `HashMap`. The map takes a String key and gets back
-     * a linear index into the `table` vector of Features. 
-     */
-    pub struct ProbabilityTable { 
-        lookup: HashMap<String, usize>,
-        table: Vec<Feature>
-    }
-
-    /**
-     * Use TileSet object as a probability table. Generate a random number
-     * and iterate through the table until a feature is chosen. Assign the 
-     * empty tile by default.
-    
-     * Need to scan over the whole thing to check if the
-     * probability > 1.0. That would indicate a logical error in the TileSet
-     * configuration.
-     */
-    impl ProbabilityTable {
-        /**
-         * Create a new empty table, that will be programmatically filled. 
-         */
-        pub fn new() -> ProbabilityTable {
-            ProbabilityTable {
-                lookup: HashMap::with_capacity(64),
-                table: Vec::with_capacity(64)
-            }
-        }
-
-        /**
-         * Insert a feature instance into the probability table. 
-         * The table is always built up from empty, and cannot be drained.
-         */
-        pub fn insert(&mut self, feature: Feature) {
-            if !self.lookup.contains_key(&feature.key) {
-                let current_size = self.table.len();
-                let mut current_total = 0.0;
-                if current_size > 0 {
-                    current_total = self.table.get(current_size-1).unwrap().probability;
-                }
-
-                self.table.push(Feature {
-                    key: feature.key.clone(),
-                    value: feature.value,
-                    limit: feature.limit,
-                    probability: current_total + feature.probability,
-                    data_url: feature.data_url.clone()
-                });
-                self.lookup.insert(feature.key.clone(), current_size);
-            }
-        }
-
-        /**
-         * Retrieve feature template data from the probability table using
-         * the name key to get the linear index into the table. 
-         * This is used to retrieve image data for the sprite sheets when
-         * each tile is being drawn.
-         */
-        pub fn get_by_key(&self, key: &String) -> &Feature {
-            self.table.get(self.lookup[key]).unwrap()
-        }
-
-        /**
-         * Pick a random feature, defaulting to empty ocean space. Copy the
-         * feature template object that was inserted, and return the copy.
-         *
-         * This is used when populating the world or replacing tiles with
-         * others randomly. 
-         */
-        pub fn pick_one(&self, probability: f64) -> Feature {
-            let lookup_key = &"ocean".to_string();
-            if !self.lookup.contains_key(lookup_key) {
-                let valid = self.lookup.keys().cloned().collect::<Vec<String>>();
-                let message = format!("{} is not a key in the feature lookup table ({}): {}", lookup_key, valid.len(), valid.join(", "));
-                console::error_1(&message.into());
-                panic!("Bad lookup value, see error output for more information");
-            }
-            let entry = self.lookup[lookup_key]; // err
-            let mut feature = (*self.table.get(entry).unwrap()).clone();
-            for ii in 0..self.table.len() {
-                if probability < self.table[ii].probability {
-                    feature = (*self.table.get(ii).unwrap()).clone();
-                    break;
-                }
-            }
-            feature
-        }
     }
 }
