@@ -1,7 +1,7 @@
 mod webgl;  // shader magic
 mod vec3;
 mod cursor;  // cursor replacements and canvas event handling system
-mod data_stream;  // data stream structs and visualization methods
+mod stream;  // data stream structs and visualization methods
 mod mesh;  // 3D unstructured triangular network
 mod grid;  // 3D rectilinear grid methods and structures
 
@@ -22,12 +22,10 @@ use web_sys::{HtmlCanvasElement, CanvasRenderingContext2d, Request, RequestInit,
 
 extern crate console_error_panic_hook;
 
-
 #[wasm_bindgen]
 pub fn panic_hook() {
     console_error_panic_hook::set_once();
 }
-
 
 fn context2d (canvas: &HtmlCanvasElement) -> CanvasRenderingContext2d {
     (*canvas)
@@ -37,7 +35,6 @@ fn context2d (canvas: &HtmlCanvasElement) -> CanvasRenderingContext2d {
         .dyn_into::<CanvasRenderingContext2d>()
         .unwrap()
 }
-
 
 #[wasm_bindgen]
 pub fn create_color_map_canvas(_color: JsValue) -> CanvasRenderingContext2d {
@@ -129,11 +126,9 @@ pub fn make_vertex_array(series: Vec<f64>) -> Vec<f64> {
     return vertices;
 }
 
-
 pub fn rotate(angle: f32, delta: f32) -> f32 {
     return ((angle + delta) % 360.0) * 2.0*PI/360.0;
 }
-
 
 // Returns a transformation matrix as a flat array with 16 components
 pub fn transformation_matrix (ox: f32, oy: f32, oz: f32, rx: f32, ry: f32, rz: f32, s: f32, d: f32, f: f32, n: f32, ar: f32) -> [f32; 16] {
@@ -157,7 +152,6 @@ pub fn transformation_matrix (ox: f32, oy: f32, oz: f32, rx: f32, ry: f32, rz: f
         c +(s*(ox*sy+cy*(-oy*sx-cx*oz))+d)* b, s*(ox*sy+cy*(-oy*sx-cx*oz))+d
     ];
 }
-
 
 pub fn calculate_rotation(ax: f32, ay: f32, az: f32, dx: f32, dy: f32, dz: f32, aspect: f32) -> [f32; 16] {
 

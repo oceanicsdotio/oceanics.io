@@ -1,10 +1,12 @@
 pub mod cell_index;
 pub mod edge_index;
 pub mod edge;
+pub mod index_interval;
 pub mod interactive_mesh;
 pub mod style;
 pub mod topology;
 pub mod triangular_mesh;
+pub mod vertex_array;
 
 /**
  * The `mesh` module provides and interactive and non-interactive

@@ -4,6 +4,7 @@ pub mod triangular_mesh {
     use std::collections::{HashMap,HashSet};
     use std::iter::FromIterator;
 
+    use crate::mesh::vertex_array::vertex_array::VertexArray;
     use crate::vec3::vec3::{Vec3, VertexArray, IndexInterval};  // 3-D graphics primitive
     use crate::mesh::topology::topology::Topology;
     use crate::mesh::cell_index::cell_index::CellIndex;

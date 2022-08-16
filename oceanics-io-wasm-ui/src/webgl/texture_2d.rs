@@ -31,6 +31,4 @@ pub mod texture_2d {
             ).unwrap();
         }
     }
-
-    
 }
