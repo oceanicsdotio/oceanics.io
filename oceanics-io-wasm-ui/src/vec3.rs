@@ -3,7 +3,6 @@
  * 3D vectors.
  */
 pub mod vec3 {
-
     /**
      * Operator overloading.
      */
@@ -29,8 +28,8 @@ pub mod vec3 {
      * The `IndexInterval` is a way of referencing a slice of a 1-dimensional 
      * array of N-dimensional tuples. 
      * 
-     * The main use is to chunk vertex arrays and assign them a unique key that can be decoded
-     * into the index range.
+     * The main use is to chunk vertex arrays and assign them a unique 
+     * key that can be decoded into the index range.
      * 
      * The limitation is that each chunk must contain contiguously 
      * indexed points. Re-indexing might be required if the points 
@@ -38,30 +37,30 @@ pub mod vec3 {
      */
      #[derive(Serialize,Clone)]
      #[serde(rename_all = "camelCase")]
-     pub struct IndexInterval {
-         /**
-          * Start and end indices. Start is inclusive, end is not.
-          */
-         interval: [u32; 2],
-         /**
-          * Reversible string representation of the interval.
-          */
-         hash: String,
-         /**
-          * Radix for byte string encoding.
-          */
-         radix: u8
-     }
+    pub struct IndexInterval {
+        /**
+         * Start and end indices. Start is inclusive, end is not.
+         */
+        interval: [u32; 2],
+        /**
+         * Reversible string representation of the interval.
+         */
+        hash: String,
+        /**
+         * Radix for byte string encoding.
+         */
+        radix: u8
+    }
  
  
     /**
-    * JavaScript bindings `impl`
-    */
+     * JavaScript bindings `impl`
+     */
     #[allow(dead_code)]
     impl IndexInterval {
         /**
-        * Create a new interval struct and pre-calculate the "hash" of the slice range.
-        */
+         * Create a new interval struct and pre-calculate the "hash" of the slice range.
+         */
         pub fn new(x: u32, y: u32, radix: u8) -> IndexInterval {
             IndexInterval{ 
                 interval: [x, y],
@@ -71,9 +70,9 @@ pub mod vec3 {
         }
 
         /**
-        * Create an `IndexInterval` from a hash. This is meant to be called
-        * from JavaScript in the browser or a node function.
-        */
+         * Create an `IndexInterval` from a hash. This is meant to be called
+         * from JavaScript in the browser or a node function.
+         */
         pub fn from_hash(hash: &JsValue, radix: u8) -> IndexInterval {
             let hash_string = hash.as_string().unwrap();
             IndexInterval {
@@ -84,25 +83,25 @@ pub mod vec3 {
         }
 
         /**
-        * Convenience method for accessing the value from JavaScript in
-        * JSON notation
-        */
+         * Convenience method for accessing the value from JavaScript in
+         * JSON notation
+         */
         pub fn interval(&self) -> JsValue {
             JsValue::from_serde(self).unwrap()
         }
  
         /**
-        * Reversibly combine two integers into a single integer. 
-        * 
-        * In this case we are segmenting the linear index of an ordered array, 
-        * to break it into chunks named with the hash of their own interval. 
-        * 
-        * The interval is implicit in the hash, and can be extracted to rebuild the entire array
-        * by concatenating the chunks. 
-        * 
-        * This is intended to be used for vertex arrays, but can be applied generally to any
-        * single or multidimensional arrays.  
-        */
+         * Reversibly combine two integers into a single integer. 
+         * 
+         * In this case we are segmenting the linear index of an ordered array, 
+         * to break it into chunks named with the hash of their own interval. 
+         * 
+         * The interval is implicit in the hash, and can be extracted to rebuild 
+         * the entire array by concatenating the chunks. 
+         * 
+         * This is intended to be used for vertex arrays, but can be applied 
+         * generally to any single or multidimensional array.  
+         */
         fn encode(x: u32, y: u32, radix: u8) -> String {
 
             let mut z = (x + y) * (x + y + 1) / 2 + y;
@@ -119,9 +118,9 @@ pub mod vec3 {
         }
  
         /**
-        * Restore the interval values from a "hashed" string. Used in building
-        * an interval `from_hash`.
-        */
+         * Restore the interval values from a "hashed" string. Used in building
+         * an interval `from_hash`.
+         */
         fn decode(hash: &String, radix: u8) -> [u32; 2] {
             let z = u32::from_str_radix(hash, radix as u32).unwrap();
             let w = (0.5*(((8*z + 1) as f32).sqrt() - 1.0)).floor() as u32;
@@ -461,16 +460,16 @@ pub mod vec3 {
     #[allow(dead_code)]
     impl VertexArray{
         /**
-        * Hoist the method for inserting points. Don't have to make points public.
-        */
+         * Hoist the method for inserting points. Don't have to make points public.
+         */
         pub fn insert_point(&mut self, index: u16, coordinates: Vec3) {
             self.points.insert(index, coordinates);
         }
 
         /**
-        * Initial the Vec3 maps. Normals are not usually used, 
-        * so we don't allocate by default
-        */
+         * Initial the Vec3 maps. Normals are not usually used, 
+         * so we don't allocate by default
+         */
         pub fn new(
             prefix: String,
             start: u32,
@@ -486,56 +485,53 @@ pub mod vec3 {
         }
 
         /**
-        * Next interval, for DAGs
-        */
+         * Next interval, for DAGs
+         */
         pub fn next(&self) -> JsValue {
             let [start, end] = &self.interval.interval;
             IndexInterval::new(end + 1, end + end - start, self.interval.radix).interval()
         }
 
         /**
-        * Formatted string of canonical object storage name for item
-        */
+         * Formatted string of canonical object storage name for item
+         */
         pub fn fragment(&self) -> JsValue {
             JsValue::from(format!("{}/nodes/{}", self.prefix, self.interval.hash))
         }
 
         /**
-        * Hoist the interval serializer
-        */
+         * Hoist the interval serializer
+         */
         pub fn interval(&self) -> JsValue {
             self.interval.interval()
         }
 
-
         /**
-        * Hoist query by index function from 
-        */
+         * Hoist query by index function from 
+         */
         pub fn contains_key(&self, index: &u16) -> bool {
             self.points.contains_key(index)
         }
 
         /**
-        * Get a single point
-        */
+         * Get a single point
+         */
         pub fn get(&self, index: &u16) -> Option<&Vec3> {
             self.points.get(index)
         }
 
         /**
-        * Hoist mutable point getter
-        */
+         * Hoist mutable point getter
+         */
         pub fn get_mut(&mut self, index: &u16) -> Option<&mut Vec3> {
             self.points.get_mut(index)
         }
 
-        
         /**
-        * Re-scale the points in place by a constant factor 
-        * in each dimension (xyz). Then return self for chaining.
-        */
+         * Re-scale the points in place by a constant factor 
+         * in each dimension (xyz). Then return self for chaining.
+         */
         pub fn scale(&mut self, sx: f64, sy: f64, sz: f64) -> &Self {
-        
             for vert in self.points.values_mut() {
                 vert.value = [
                     vert.x()*sx, 
@@ -547,11 +543,11 @@ pub mod vec3 {
         }
 
         /**
-        * Shift each child vertex by a constant offset
-        * in each each dimension (xyz).
-        * 
-        * Then return self for chaining.
-        */
+         * Shift each child vertex by a constant offset
+         * in each each dimension (xyz).
+         * 
+         * Then return self for chaining.
+         */
         pub fn shift(&mut self, dx: f64, dy: f64, dz: f64) -> &Self {
         
             for vert in self.points.values_mut() {
@@ -565,8 +561,8 @@ pub mod vec3 {
         }
 
         /**
-        * Vector between any two points in the array.
-        */
+         * Vector between any two points in the array.
+         */
         pub fn vector(&self, start: &u16, end: &u16) -> Vec3 {
             self.points[end] - self.points[start]
         }

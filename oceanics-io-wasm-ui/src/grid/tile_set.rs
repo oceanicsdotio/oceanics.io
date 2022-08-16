@@ -1,6 +1,45 @@
-pub mod probability_table;
-
 pub mod tile_set {
+    use wasm_bindgen::prelude::*;
+    use serde::{Deserialize,Serialize};
+    use std::collections::HashMap;
+
+    use crate::grid::probability_table::probability_table::ProbabilityTable;
+    use crate::grid::feature::feature::Feature;
+    
+
+    /**
+     * Tiles are individual features, aka the instance of
+     * a type of feature, which is stored in memory and may be 
+     * modified to deviate from the basic rules.
+     * 
+     * These are used in the TileSet struct.
+     * 
+     * These have:
+     * - feature: unique string identifying the base type
+     * - flip: render left or right facing sprite
+     * - value: passive value toward total score
+     * - frame_offset: start frame to desync animations
+     */
+    #[wasm_bindgen]
+    #[derive(Serialize,Deserialize,Clone)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Tile {
+        feature: String,
+        flip: bool,
+        value: f64,
+        frame_offset: f64
+    }
+
+    /**
+     * Used as index in the lookup functions that 
+     * translate between reference frames.
+     */
+    #[derive(Hash,Eq,PartialEq)]
+    struct DiagonalIndex{
+        row: usize,
+        column: usize
+    }
+
     /**
      * Tileset collects data structures related to generating and saving
      * features in the game.

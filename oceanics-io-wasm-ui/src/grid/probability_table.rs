@@ -1,4 +1,5 @@
 pub mod probability_table {
+    use web_sys::console;
     /**
      * Generate features randomly. The struct has a `lookup` table 
      * based on `HashMap`. The map takes a String key and gets back
