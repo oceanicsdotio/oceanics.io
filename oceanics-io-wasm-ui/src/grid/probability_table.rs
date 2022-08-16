@@ -1,10 +1,19 @@
 pub mod probability_table {
+    use std::collections::HashMap;
     use web_sys::console;
+    use crate::grid::feature::feature::Feature;
+    use wasm_bindgen::prelude::*;
+    use serde::{Deserialize,Serialize};
+    
+
     /**
      * Generate features randomly. The struct has a `lookup` table 
      * based on `HashMap`. The map takes a String key and gets back
      * a linear index into the `table` vector of Features. 
      */
+    #[wasm_bindgen(getter_with_clone)]
+    #[derive(Serialize,Deserialize,Clone)]
+    #[serde(rename_all = "camelCase")]
     pub struct ProbabilityTable { 
         lookup: HashMap<String, usize>,
         table: Vec<Feature>

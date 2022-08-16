@@ -2,11 +2,11 @@ pub mod tile_set {
     use wasm_bindgen::prelude::*;
     use serde::{Deserialize,Serialize};
     use std::collections::HashMap;
+    use js_sys::JsString;
 
     use crate::grid::probability_table::probability_table::ProbabilityTable;
     use crate::grid::feature::feature::Feature;
     
-
     /**
      * Tiles are individual features, aka the instance of
      * a type of feature, which is stored in memory and may be 
@@ -20,21 +20,40 @@ pub mod tile_set {
      * - value: passive value toward total score
      * - frame_offset: start frame to desync animations
      */
-    #[wasm_bindgen]
-    #[derive(Serialize,Deserialize,Clone)]
+    #[wasm_bindgen(getter_with_clone)]
+    #[derive(Serialize, Deserialize, Clone)]
     #[serde(rename_all = "camelCase")]
     pub struct Tile {
         feature: String,
-        flip: bool,
-        value: f64,
-        frame_offset: f64
+        pub flip: bool,
+        pub value: f64,
+        pub frame_offset: f64
+    }
+
+    impl Tile {
+        pub fn get_feature(&self) -> &str {
+            &*self.feature
+        }
+    }
+
+    #[wasm_bindgen]
+    impl Tile {
+        #[wasm_bindgen(getter)]
+        pub fn feature(&self) -> JsString {
+            JsString::from(self.feature)
+        }
+
+        #[wasm_bindgen(setter)]
+        pub fn set_feature(&mut self, feature: JsString) {
+            self.feature = String::from(feature);
+        }
     }
 
     /**
      * Used as index in the lookup functions that 
      * translate between reference frames.
      */
-    #[derive(Hash,Eq,PartialEq)]
+    #[derive(Hash, Eq, PartialEq)]
     struct DiagonalIndex{
         row: usize,
         column: usize
@@ -48,20 +67,31 @@ pub mod tile_set {
      * in a HashMap indexed by tile type, and mapping of diagonal indices
      * to linear indices is stored in a another HashMap.
      */
-    #[wasm_bindgen]
+    #[wasm_bindgen(getter_with_clone)]
     pub struct TileSet {
         tiles: Vec<Tile>,
-        probability_table: ProbabilityTable,
+        pub probability_table: ProbabilityTable,
         count: HashMap<String, u32>,
         index: HashMap<DiagonalIndex, usize>
     }
+
+    impl TileSet {
+        pub fn get_tile(&self, index: usize) -> &Tile {
+            self.tiles.get(index).unwrap()
+        }
+        pub fn get_feature(&self, index: usize) -> &str {
+            &*self.get_tile(index).feature
+        }
+    }
     
+    #[wasm_bindgen]
     impl TileSet {
         /**
          * Create a new struct, initializing with known
          * capacity. The size will be the square of the
          * grid size normally. 
          */
+        #[wasm_bindgen(constructor)]
         pub fn new(count: usize) -> TileSet {  
             TileSet{
                 tiles: Vec::with_capacity(count),
@@ -69,6 +99,11 @@ pub mod tile_set {
                 count: HashMap::new(),
                 index: HashMap::with_capacity(count)
             }
+        }
+
+        #[wasm_bindgen(getter)]
+        pub fn tiles(&self) {
+            
         }
 
         /**
@@ -109,7 +144,7 @@ pub mod tile_set {
         /**
          * Get tile as a JSON object
          */
-        pub fn get_tile(&self, index: usize) -> JsValue {
+        pub fn get_tile_json(&self, index: usize) -> JsValue {
             JsValue::from_serde(&self.tiles.get(index).unwrap()).unwrap()
         }
 

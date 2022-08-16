@@ -9,7 +9,7 @@ pub mod mini_map {
     };
 
     use crate::grid::tile_set::tile_set::TileSet;
-    use crate::grid::grid::{x_transform, z_transform, visible};
+    use crate::grid::grid::{x_transform, z_transform, visible, image_data_data};
 
     /**
      * The MiniMap is a data structure and interactive container.
@@ -62,7 +62,7 @@ pub mod mini_map {
             
             const SPRITE_SIZE: f64 = 32.0;
             const DRY_THRESHOLD: f64 = -0.75*SPRITE_SIZE;
-            let mut feature: &str = &self.tile_set.tiles.get(index).unwrap().feature;
+            let mut feature: &str = &self.tile_set.get_feature(index);
                     
             let xx = x_transform(jj, length, self.grid_size as usize);
             let zz = z_transform(xx, phase, width);
@@ -81,7 +81,7 @@ pub mod mini_map {
 
             let sprite_scale = width / SPRITE_SIZE / self.grid_size as f64;
             let phase = (time / 10000.0) % 1.0;
-            let offset: f64 = self.tile_set.tiles.get(tile).unwrap().frame_offset;
+            let offset: f64 = self.tile_set.get_tile(tile).frame_offset;
 
             let yy = SPRITE_SIZE/4.0*ii;
             let xx = x_transform(jj, length, self.grid_size as usize);
@@ -140,7 +140,7 @@ pub mod mini_map {
          * Get the JSON serialized tile data from a linear index. 
          */
         pub fn get_tile(&self, index: usize) -> JsValue {
-            self.tile_set.get_tile(index)
+            self.tile_set.get_tile_json(index)
         }
 
         /**

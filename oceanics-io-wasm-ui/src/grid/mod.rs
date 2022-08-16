@@ -53,7 +53,7 @@ pub mod grid {
      * in combination with `island_kernel` to achieve other desired
      * features.
      */
-    fn image_data_data(world_size: u32, water_level: f64) -> Vec<u8> {
+    pub fn image_data_data(world_size: u32, water_level: f64) -> Vec<u8> {
       
         let data = &mut Vec::with_capacity((world_size*world_size*4) as usize);
         for ii in 0..world_size {
