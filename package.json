@@ -3,8 +3,8 @@
     "workspaces": [
         "oceanics-io-www",
         "oceanics-io-api",
-        "oceanics-io-wasm-api-node",
-        "oceanics-io-wasm-ui-www"
+        "oceanics-io-api-wasm",
+        "oceanics-io-www-wam"
     ],
     "packageManager": "yarn@3.2.2",
     "devDependencies": {
