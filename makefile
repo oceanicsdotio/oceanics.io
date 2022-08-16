@@ -16,13 +16,12 @@ $(API)-wasm: $(API)-rust
 	sed -i 's/"name": "$(API)-rust"/"name": "$(API)-wasm"/g' $(API)-wasm/package.json
 
 # Build WASM for web
-$(WWW)-rust = $(WWW)-rust
-$(WWW)-wasm: $($(WWW)-rust)
+$(WWW)-wasm: $(WWW)-rust
 	(rm -rf $(WWW)-wasm || :)
-	wasm-pack build $($(WWW)-rust) \
+	wasm-pack build $(WWW)-rust \
 		--out-dir ../$(WWW)-wasm \
 		--out-name index
-	sed -i 's/"name": "$($(WWW)-rust)"/"name": "$(WWW)-wasm"/g' $(WWW)-wasm/package.json
+	sed -i 's/"name": "$(WWW)-rust"/"name": "$(WWW)-wasm"/g' $(WWW)-wasm/package.json
 
 node_modules: $(API)-wasm $(WWW)-wasm package.json yarn.lock $(API)/package.json $(WWW)/package.json
 	yarn install
