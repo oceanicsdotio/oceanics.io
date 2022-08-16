@@ -1,5 +1,8 @@
 pub mod feature;
+pub mod cell;
 pub mod interactive_grid;
+pub mod island_kernel;
+pub mod style;
 pub mod mini_map;
 pub mod probability_table;
 pub mod rectilinear_grid;
@@ -22,46 +25,6 @@ pub mod grid {
         ImageData
     };
     use std::f64::consts::PI;
-    use serde::{Deserialize,Serialize};  // comm with Web JS
-
-    /**
-    * Styles are used in rendering the WebGL/Canvas animations
-    * and static images of the grid
-    */
-    #[derive(Deserialize)]
-    #[serde(rename_all = "camelCase")]
-    pub struct Style {
-        pub background_color: String, 
-        pub grid_color: String, 
-        pub overlay_color: String, 
-        pub line_width: f64,
-        pub font_size: f64, 
-        pub tick_size: f64, 
-        pub label_padding: f64
-    }
-
-    /**
-     The Island Kernel is used to generate island features
-     when the program is used in generative mode.
-     */
-    #[wasm_bindgen]
-    #[derive(Serialize)]
-    #[serde(rename_all = "camelCase")]
-    pub struct IslandKernel {
-        pub mask: f64, 
-        pub depth: f64
-    }
-
-    /**
-     * A cell is and interior space define by joined vertices.
-     * This is duplicated in all topological models to reduce cross- 
-     * boundary imports.
-     * 
-     * The `mask` attribute is used to indicate whether the cell is active.
-     */
-    struct Cell {
-        pub mask: bool
-    }
 
     /**
      * Create an island-like feature in an image format.
@@ -127,7 +90,7 @@ pub mod grid {
      * map with a greater level of visual detail and contextual
      * information
      */
-    fn visible(view: &[f64; 2], ctx: &CanvasRenderingContext2d, grid_size: &usize) -> ImageData {
+    pub fn visible(view: &[f64; 2], ctx: &CanvasRenderingContext2d, grid_size: &usize) -> ImageData {
         ctx.get_image_data(
             view[0] + 1.0, 
             view[1] + 1.0, 

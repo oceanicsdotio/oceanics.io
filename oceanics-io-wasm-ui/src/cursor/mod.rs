@@ -147,7 +147,6 @@ pub mod cursor_system {
         y: f64
     }
 
-
     #[wasm_bindgen]
     impl ContextCursor {
 

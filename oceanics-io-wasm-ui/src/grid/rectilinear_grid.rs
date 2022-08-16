@@ -1,4 +1,12 @@
 pub mod rectilinear_grid {
+    use std::collections::HashMap;
+
+    // Third-party dependencies
+    use web_sys::CanvasRenderingContext2d;
+    use wasm_bindgen::JsValue;
+
+    use crate::grid::cell::cell::Cell;
+
     /**
      * Good old-fashioned 3D grid, usually projected 
      * into the X,Y plane. The precision of the hash
@@ -35,19 +43,19 @@ pub mod rectilinear_grid {
         * Width convenience method, assumes X is the horizontal
         * axis in screen orientation
         */
-        fn w(&self) -> f64 {self.shape[0] as f64}
+        pub fn w(&self) -> f64 {self.shape[0] as f64}
 
         /**
         * Height convenience method. Returns discrete height
         * assuming that Y is up in screen orientation
         */
-        fn h(&self) -> f64 {self.shape[1] as f64}
+        pub fn h(&self) -> f64 {self.shape[1] as f64}
 
         /**
         * Depth convenience method, returns number of vertical
         * cells, assuming that Z is into the screen orientation.
         */
-        fn d(&self) -> f64 {self.shape[2] as f64}
+        pub fn d(&self) -> f64 {self.shape[2] as f64}
 
         /** 
         * Flexible sizing, in case implementing with vector 

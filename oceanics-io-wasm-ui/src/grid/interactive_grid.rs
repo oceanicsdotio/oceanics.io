@@ -1,10 +1,10 @@
 pub mod interactive_grid {
     use wasm_bindgen::prelude::*;
-    use serde::{Deserialize,Serialize};
     use web_sys::{HtmlCanvasElement,CanvasRenderingContext2d};
 
     use crate::grid::rectilinear_grid::rectilinear_grid::RectilinearGrid;
     use crate::cursor::cursor_system::SimpleCursor;
+    use crate::grid::style::style::Style;
 
     /**
      * Container for rectilinear grid that also has a cursor reference,

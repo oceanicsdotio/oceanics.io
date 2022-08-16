@@ -50,7 +50,7 @@ pub mod hexagonal_grid {
             let diag = dx / 3.0_f64.sqrt();
             let dy = 1.5*diag;
 
-            let dx = 
+            // let dx = 
             HexagonalGrid {
                 diagonal: diag,
                 x: GridDimension {
@@ -59,7 +59,7 @@ pub mod hexagonal_grid {
                     size: width
                 },
                 y: GridDimension {
-                    cells: 
+                    cells: nx,
                     delta: dy
                 }
             }

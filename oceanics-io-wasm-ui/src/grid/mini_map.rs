@@ -1,6 +1,16 @@
-pub mod tile_set;
-
 pub mod mini_map {
+    // Third-party dependencies
+    use wasm_bindgen::prelude::*;
+    use wasm_bindgen::Clamped;
+    use web_sys::{
+        CanvasRenderingContext2d,
+        ImageData,
+        HtmlImageElement
+    };
+
+    use crate::grid::tile_set::tile_set::TileSet;
+    use crate::grid::grid::{x_transform, z_transform, visible};
+
     /**
      * The MiniMap is a data structure and interactive container.
      * It contains persistent world data as a raster, and exposes
