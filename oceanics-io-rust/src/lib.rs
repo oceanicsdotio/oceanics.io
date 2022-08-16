@@ -1,24 +1,11 @@
-mod webgl;  // shader magic
-mod vec3;
-mod cursor;  // cursor replacements and canvas event handling system
-mod light;  // submarine light simulation system
-mod data_stream;  // data stream structs and visualization methods
-mod triangular_mesh;  // 3D unstructured triangular network used for surface and object modelling
-mod grid;  // 3D rectilinear grid methods and structures
-mod cypher;
-mod stac;
 
+mod light;  // submarine light simulation system
 
 use std::f32::consts::PI;
 use std::mem;
 use std::os::raw::c_void;
 use std::ops::{Index, Mul, SubAssign};
 
-
-/*
- * WebGL bindings capabilities in Rust, using `web_sys` package.
- */
-pub use webgl::webgl::{create_buffer, create_program, create_texture};
 
 
 use wasm_bindgen::prelude::*;

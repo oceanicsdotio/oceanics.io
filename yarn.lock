@@ -17024,6 +17024,12 @@ __metadata:
   languageName: node
   linkType: hard
 
+"oceanics-io-api-wasm@*, oceanics-io-api-wasm@workspace:oceanics-io-api-wasm":
+  version: 0.0.0-use.local
+  resolution: "oceanics-io-api-wasm@workspace:oceanics-io-api-wasm"
+  languageName: unknown
+  linkType: soft
+
 "oceanics-io-api@workspace:oceanics-io-api":
   version: 0.0.0-use.local
   resolution: "oceanics-io-api@workspace:oceanics-io-api"
@@ -17044,22 +17050,16 @@ __metadata:
     neo4j-driver: ^4.4.6
     netlify-lambda: ^2.0.15
     node-fetch: ^2.6.7
-    oceanics-io-wasm-node: "*"
+    oceanics-io-api-wasm: "*"
     stripe: ^10.0.0
     ts-jest: ^28.0.7
     typescript: ^4.7.4
   languageName: unknown
   linkType: soft
 
-"oceanics-io-wasm-node@*, oceanics-io-wasm-node@workspace:oceanics-io-wasm-node":
+"oceanics-io-www-wasm@*, oceanics-io-www-wasm@workspace:oceanics-io-www-wasm":
   version: 0.0.0-use.local
-  resolution: "oceanics-io-wasm-node@workspace:oceanics-io-wasm-node"
-  languageName: unknown
-  linkType: soft
-
-"oceanics-io-wasm-www@*, oceanics-io-wasm-www@workspace:oceanics-io-wasm-www":
-  version: 0.0.0-use.local
-  resolution: "oceanics-io-wasm-www@workspace:oceanics-io-wasm-www"
+  resolution: "oceanics-io-www-wasm@workspace:oceanics-io-www-wasm"
   languageName: unknown
   linkType: soft
 
@@ -17101,7 +17101,7 @@ __metadata:
     mapbox-gl: ^1.5.0
     next: ^12.2.0
     next-mdx-remote: ^3.0.8
-    oceanics-io-wasm-www: "*"
+    oceanics-io-www-wasm: "*"
     prop-types: ^15.8.0
     react: ^18.0.0
     react-dom: ^18.0.0

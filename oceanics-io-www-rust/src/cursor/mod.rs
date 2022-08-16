@@ -1,3 +1,6 @@
+/**
+ * System for handling cursor interaction with canvas. 
+ */
 pub mod cursor_system {
 
     use wasm_bindgen::prelude::*;
@@ -143,7 +146,6 @@ pub mod cursor_system {
         x: f64,
         y: f64
     }
-
 
     #[wasm_bindgen]
     impl ContextCursor {

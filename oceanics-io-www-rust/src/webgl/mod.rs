@@ -1,7 +1,7 @@
 /**
-The `graphics_system` module provides generic methods for working with
-WebGL and GLSL shaders from inside Rust/WASM
-*/
+ * The `graphics_system` module provides generic methods for working with
+ * WebGL and GLSL shaders from inside Rust/WASM
+ */
 pub mod webgl {
 
     use wasm_bindgen::prelude::*;
@@ -11,14 +11,10 @@ pub mod webgl {
         WebGlProgram, 
         WebGlRenderingContext, 
         WebGlShader, 
-        WebGlTexture,
-        WebGlFramebuffer
-    };
-    use js_sys::{
-        ArrayBuffer
+        WebGlTexture
     };
 
-
+    #[allow(dead_code)]
     #[wasm_bindgen]
     pub fn bind_attribute(
         context: &WebGlRenderingContext,
@@ -32,9 +28,9 @@ pub mod webgl {
     }
 
     /**
-    Take a rendering context, and shader definition and compile 
-    the rendering pipeline stage into a program in GPU memory.
-    */
+     * Take a rendering context, and shader definition and compile 
+     * the rendering pipeline stage into a program in GPU memory.
+     */
     fn compile_shader(
         context: &WebGlRenderingContext,
         shader_type: u32,
@@ -59,13 +55,13 @@ pub mod webgl {
     }
 
     /**
-    Bind shaders to the program to set the dataflow in hardware
-    processing. 
-
-    This is maintained as a standalone singleton function called by
-    `create_program` so that it can be used directly from JavaScript
-    if needed without refactoring. 
-    */
+     * Bind shaders to the program to set the dataflow in hardware
+     * processing. 
+     * 
+     * This is maintained as a standalone singleton function called by
+     * `create_program` so that it can be used directly from JavaScript
+     * if needed without refactoring. 
+     */
     fn link_program(
         context: &WebGlRenderingContext,
         vert_shader: &WebGlShader,
@@ -94,11 +90,12 @@ pub mod webgl {
     }
 
     /**
-    Compile the shaders and link them to a program, returning the pointer to the executable
-    in GPU memory. 
-
-    This is the high-level routine called directly from JavaScript. 
-    */
+     * Compile the shaders and link them to a program, 
+     * returning the pointer to the executable
+     * in GPU memory. 
+     * 
+     * This is the high-level routine called directly from JavaScript. 
+     */
     #[allow(dead_code)]
     #[wasm_bindgen]
     pub fn create_program(
@@ -115,10 +112,10 @@ pub mod webgl {
     }
 
     /**
-    Memory buffers are used to store array data for visualization.
-
-    This could be colors, or positions, or offsets, or velocities. 
-    */
+     * Memory buffers are used to store array data for visualization.
+     * 
+     * This could be colors, or positions, or offsets, or velocities. 
+     */
     #[wasm_bindgen]
     pub fn create_buffer(ctx: &WebGlRenderingContext, data: &[f32]) -> WebGlBuffer {
        
@@ -135,22 +132,21 @@ pub mod webgl {
     }
 
     /**
-    Activate the chosen texture so that GL operations on textures will target it. The
-    texture number is [0,...) and can be accessed sequentially by offset.  
-
-    Currently we only support 2D textures, which can be stacked to emulate 3D.
-    */
+     * Activate the chosen texture so that GL operations on textures will target it. The
+     * texture number is [0,...) and can be accessed sequentially by offset.  
+     * 
+     * Currently we only support 2D textures, which can be stacked to emulate 3D.
+     */
     #[allow(dead_code)]
     #[wasm_bindgen]
     pub fn bind_texture(ctx: &WebGlRenderingContext, texture: WebGlTexture, unit: u32) {
-       
         ctx.active_texture(WebGlRenderingContext::TEXTURE0 + unit);
         ctx.bind_texture(WebGlRenderingContext::TEXTURE_2D, Some(&texture));
     }
 
     /**
-    Define a 2D array in GPU memory, and bind it for GL operations. 
-    */
+     * Define a 2D array in GPU memory, and bind it for GL operations. 
+     */
     #[wasm_bindgen]
     pub fn create_texture(
         ctx: &WebGlRenderingContext,

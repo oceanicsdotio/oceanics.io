@@ -2,9 +2,9 @@
     "private": true,
     "workspaces": [
         "oceanics-io-www",
+        "oceanics-io-www-wasm",
         "oceanics-io-api",
-        "oceanics-io-wasm-node",
-        "oceanics-io-wasm-www"
+        "oceanics-io-api-wasm"
     ],
     "packageManager": "yarn@3.2.2",
     "devDependencies": {

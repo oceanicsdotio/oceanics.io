@@ -16,6 +16,6 @@
       "rootDir": "./src"
     },
     "include": [
-        "**/*.ts", "spec/api.spec.js", "spec/api.spec.mjs",
+        "**/*.ts"
       ],
   }

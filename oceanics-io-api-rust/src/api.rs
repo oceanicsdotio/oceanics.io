@@ -1,13 +1,20 @@
 /**
- *
+ * Data models for persistence and application logic. Plus abstractions
+ * over data sources and sinks, and vendor metadata schemas. This used
+ * to be used with Maturin to generate Python bindings, but we don't 
+ * need to do domain-level models for passing-through API requests to
+ * the database, so this is current is used for serializing/deserializing
+ * data in Rust application code. 
  */
-use std::env;
 use std::collections::HashMap;
 use serde::{Serialize, Deserialize};
 
 extern crate serde_json; 
 extern crate serde_yaml;
 
+/**
+ * S3 storage metadata headers
+ */
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 struct MetaDataTemplate {
@@ -92,7 +99,7 @@ struct Agents {
 
 
 /**
- * Python interface for Agents
+ *  interface for Agents
  */
 
 impl Agents {
@@ -127,7 +134,7 @@ struct Socket {
 
 
 /**
- * Python bindings for Socker structure
+ *  bindings for Socker structure
  */
 
 impl Socket {
@@ -167,7 +174,7 @@ struct Actuators {
 
 
 /**
- * Python bindings for Actuators
+ *  bindings for Actuators
  */
 
 impl Actuators {
@@ -217,7 +224,7 @@ struct FeaturesOfInterest {
 
 
 /**
- * Python implementation of Features
+ *  implementation of Features
  */
 
 impl FeaturesOfInterest {
@@ -265,7 +272,7 @@ struct Sensors{
 
 
 /**
- * Python implementation of Sensors
+ *  implementation of Sensors
  */
 
 impl Sensors {
@@ -310,7 +317,7 @@ struct ObservedProperties {
 
 
 /**
- * Python implementation of ObservedProperties
+ *  implementation of ObservedProperties
  */
 
 impl ObservedProperties{
@@ -353,7 +360,7 @@ struct Tasks {
 
 
 /**
- * Python implementation of tasks
+ *  implementation of tasks
  */
 
 impl Tasks {
@@ -396,7 +403,7 @@ struct Things {
 
 
 /**
- * Python implementation of Things
+ *  implementation of Things
  */
 
 impl Things {
@@ -670,7 +677,7 @@ struct Observations {
 
 
 /**
- * Python implementation of Observations
+ *  implementation of Observations
  */
 
 impl Observations {
@@ -726,7 +733,7 @@ struct DataStreams {
 
 
 /**
- * Python implementation of DataStreams
+ *  implementation of DataStreams
  */
 
 impl DataStreams {
@@ -753,267 +760,5 @@ impl DataStreams {
 
     pub fn serialize(&self) -> String {
         serde_json::to_string(self).unwrap()
-    }
-}
-
-/**
- *  Create a user entity. Users contain authorization secrets, and do not enter/leave
- *  the system through the same routes as normal Entities
- */
-
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct User {
-    
-    uuid: Option<String>,
-    
-    ip: Option<String>,
-    
-    name: Option<String>,
-    
-    alias: Option<String>,
-    
-    credential: Option<String>,
-    
-    validated: Option<bool>,
-    
-    description: Option<String>
-}
-
-
-/**
- * Python implementation of User
- */
-
-impl User {
-    
-    pub fn new(
-        uuid: Option<String>,
-        ip: Option<String>,
-        name: Option<String>,
-        alias: Option<String>,
-        credential: Option<String>,
-        validated: Option<bool>,
-        description: Option<String>
-    ) -> Self {
-        User {
-            uuid,
-            ip,
-            name,
-            alias,
-            credential,
-            validated,
-            description
-        }
-    }
-
-    pub fn serialize(&self) -> String {
-        serde_json::to_string(self).unwrap()
-    }
-}
-
-
-
-struct Experiment {
-
-}
-
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct ModelMetadata {
-    name: String,
-    description: String,
-    keywords: Vec<String>,
-    license: String,
-}
-
-
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct ModelProperties {
-    workers: u16,
-    dt: u16,
-    integration: String,
-    backend: String
-}
-
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct Model {
-    uuid: Option<String>,
-    metadata: Option<ModelMetadata>,
-    properties: Option<ModelProperties>
-}
-
-
-impl Model {
-    
-    pub fn new(
-        uuid: Option<String>,
-        metadata: Option<ModelMetadata>,
-        properties: Option<ModelProperties>
-    ) -> Self {
-        Model {
-            uuid,
-            metadata,
-            properties
-        }
-    }
-
-    
-    pub fn self_link(&self) -> String {
-        format!("")
-    }
-
-    pub fn serialize(&self) -> String {
-        serde_json::to_string(self).unwrap()
-    }
-}
-
-
-
-
-#[derive(Debug, Serialize, Deserialize)]
-struct Axis {
-    label: String,
-    tick: u32,
-    interval: [f32; 2],
-    dim: String,
-    spines: [String; 2]
-}
-
-
-impl Axis {
-    
-    pub fn new(
-        label: String,
-        tick: u32,
-        interval: [f32; 2],
-        dim: String,
-    ) -> Self {
-
-        let spines;
-        
-        match dim.as_ref() {
-            "x" => spines = [String::from("left"), String::from("right")],
-            "y" => spines = [String::from("top"), String::from("bottom")],
-            "z" => spines = [String::from("front"), String::from("back")],
-            _ => spines = [String::from(""), String::from("")]
-        }
-
-        Axis {
-            label,
-            tick,
-            dim,
-            interval,
-            spines
-        }
-    }
-
-    pub fn ax_attr(&self) -> String {
-        format!("{}axis", self.dim)
-    }
-}
-
-
-
-#[derive(Debug, Serialize, Deserialize)]
-struct FigureLayout {
-    padding: [f64; 4],
-    marker: f32,
-    font: u8,
-    text: u8,
-    width: f32,
-    height: f32,
-    line: f32,
-    alpha: f32,
-    dpi: u16,
-    legend: bool,
-    grid: bool,
-    image_interp: String
-}
-
-
-impl FigureLayout {
-    
-    pub fn new(
-        padding: [f64; 4],
-        marker: f32,
-        font: u8,
-        text: u8,
-        width: f32,
-        height: f32,
-        line: f32,
-        alpha: f32,
-        dpi: u16,
-        legend: bool,
-        grid: bool,
-        image_interp: String
-    ) -> Self {
-        FigureLayout {
-            padding,
-            marker,
-            font,
-            text,
-            width,
-            height,
-            line,
-            alpha,
-            dpi,
-            legend,
-            grid,
-            image_interp
-        }
-    }
-}
-
-
-#[derive(Debug, Serialize, Deserialize)]
-struct FigurePalette {
-    bg: String,
-    contrast: String,
-    flag: String,
-    label: String,
-    colors: Vec<String>
-}
-
-
-impl FigurePalette {
-    
-    pub fn new(
-        bg: String,
-        contrast: String,
-        flag: String,
-        label: String,
-        colors: Vec<String>
-    ) -> Self {
-        FigurePalette {
-            bg,
-            contrast,
-            flag,
-            label,
-            colors
-        }
-    }
-}
-
-
-#[derive(Debug, Serialize, Deserialize)]
-struct FigureStyle {
-    base: FigureLayout,
-    dark: FigurePalette,
-    light: FigurePalette,
-}
-
-
-impl FigureStyle {
-    
-    pub fn new(
-        spec: String,
-    ) -> Self {
-        serde_yaml::from_str(&spec).unwrap()
     }
 }

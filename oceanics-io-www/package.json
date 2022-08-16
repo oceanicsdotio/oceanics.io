@@ -29,7 +29,7 @@
     "mapbox-gl": "^1.5.0",
     "next": "^12.2.0",
     "next-mdx-remote": "^3.0.8",
-    "oceanics-io-wasm-www": "*",
+    "oceanics-io-www-wasm": "*",
     "prop-types": "^15.8.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",

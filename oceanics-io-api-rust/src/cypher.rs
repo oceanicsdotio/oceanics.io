@@ -1,3 +1,8 @@
+/**
+ * Module handling encoding and decoding application data from
+ * Neo4j and Cypher formats. Used by the backend to communicate
+ * with the primary metadata store.
+ */
 #[allow(dead_code)]
 pub mod cypher {
     use wasm_bindgen::prelude::*;

@@ -1,6 +1,6 @@
 import { connect, NetlifyRouter } from "./shared/middleware";
 import type { ApiHandler } from "./shared/middleware";
-import { Links } from "oceanics-io-wasm-node";
+import { Links } from "oceanics-io-api-wasm";
 import apiSpec from "./shared/bathysphere.json";
 
 // Don't currently pass custom label through the API

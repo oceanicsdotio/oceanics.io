@@ -10,7 +10,7 @@ import {
   dematerialize
 } from "./shared/middleware";
 
-import { Links, Node } from "oceanics-io-wasm-node";
+import { Links, Node } from "oceanics-io-api-wasm";
 
 /**
  * Generic interface for all of the HTTP method-specific handlers.

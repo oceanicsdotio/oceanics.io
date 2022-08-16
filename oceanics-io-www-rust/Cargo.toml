@@ -1,9 +1,9 @@
 [package]
-name = "oceanics-io-wasm"
-version = "0.3.0"
+name = "oceanics-io-www-rust"
+version = "0.1.0"
 authors = ["Oceanicsdotio LLC <business@oceanics.io>"]
 edition = "2018"
-description = "Computational kernels"
+description = "User interaction and visualization methods for web frontend."
 license = "MIT"
 repository = "git+https://github.com/oceanicsdotio/oceanics.io.git"
 
@@ -16,9 +16,6 @@ wasm-bindgen-futures = "0.4.29"
 serde = { version = "1.0.136", features = ["derive"] }
 serde_derive = "1.0.136"
 console_error_panic_hook = "0.1.7"
-rand = "0.8.5"
-# https://docs.rs/getrandom/0.2.2/getrandom/#unsupported-targets
-getrandom = { version = "0.2.5", features = ["js"] }
 
 [profile.release]
 opt-level = "s"
@@ -34,30 +31,29 @@ features = ["serde-serialize"]
 [dependencies.web-sys]
 version = "0.3.56"
 features = [
+    'CanvasGradient',
+    'CanvasRenderingContext2d',
     'Document',
     'Element',
-    'HtmlElement',
-    'Node',
-    'HtmlCanvasElement',
-    'HtmlImageElement',
-    'WebGlBuffer',
-    'WebGlRenderingContext',
-    'WebGlProgram',
-    'WebGlShader',
-    'WebGlFramebuffer',
-    'WebGlTexture',
-    'Window',
-    'console',
-    'ImageData',
-    'CanvasRenderingContext2d',
-    'CanvasGradient',
     'Headers',
+    'HtmlCanvasElement',
+    'HtmlElement',
+    'HtmlImageElement',
+    'ImageData',
+    'Node',
+    'Performance',
     'Request',
     'RequestInit',
     'RequestMode',
     'Response',
-    'Performance',
     'TextMetrics',
+    'WebGlBuffer',
+    'WebGlFramebuffer',
+    'WebGlProgram',
+    'WebGlRenderingContext',
+    'WebGlShader',
+    'WebGlTexture',
+    'Window',
     'console'
 ]
 

@@ -8,7 +8,7 @@ import { lichen, ghost } from "../palette";
  * Synchronous front-end WASM Runtime
  */
 import useWasmRuntime from "./useWasmRuntime";
-import type { InteractiveDataStream } from "oceanics-io-wasm-www";
+import type { InteractiveDataStream } from "oceanics-io-www-wasm";
 
 /*
  * Time series data
