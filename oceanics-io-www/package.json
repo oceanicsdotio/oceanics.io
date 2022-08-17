@@ -27,7 +27,7 @@
     "gray-matter": "^4.0.3",
     "katex": "^0.16.0",
     "mapbox-gl": "^1.5.0",
-    "next": "^12.2.0",
+    "next": "^12.2.5",
     "next-mdx-remote": "^3.0.8",
     "oceanics-io-www-wasm": "*",
     "prop-types": "^15.8.0",
