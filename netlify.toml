@@ -11,6 +11,18 @@
 [functions.auth]
   external_node_modules = ["oceanics-io-api-wasm"]
 
+[functions.collection]
+  external_node_modules = ["oceanics-io-api-wasm"]
+
+[functions.entity]
+  external_node_modules = ["oceanics-io-api-wasm"]
+
+[functions.index]
+  external_node_modules = ["oceanics-io-api-wasm"]
+
+[functions.topology]
+  external_node_modules = ["oceanics-io-api-wasm"]
+
 [[redirects]]
   from = "/api/auth"
   to = "/.netlify/functions/auth"
