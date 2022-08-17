@@ -10,17 +10,20 @@ jobs:
   lock:
     name: Lock after dependency change
     runs-on: ubuntu-latest
-    if: ${{ github.actor == 'dependabot[bot]' }}
     steps:
 
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Setup build environment
-        uses: ./.github/workflows/build-env.yaml
+      # - uses: actions/setup-node@v3
+      #   name: Configure Node cache
+      #   id: node-cache
+      #   with:
+      #     node-version: 16
+      #     cache: 'yarn'
 
       - name: Yarn lock
-        run: echo "placeholder"  
+        run: yarn lock  
 
   build:
     name: Build site
