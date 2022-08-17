@@ -57,7 +57,7 @@
     "@types/react": "18.0.17",
     "@types/react-dom": "^17.0.2",
     "@types/react-pdf": "^5.0.9",
-    "@types/styled-components": "^5.1.22",
+    "@types/styled-components": "^5.1.26",
     "@types/typography": "^0.16.4",
     "@types/xmldom": "^0.1.31",
     "babel-loader": "^8.2.2",
