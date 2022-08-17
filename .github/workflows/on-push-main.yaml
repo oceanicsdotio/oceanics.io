@@ -13,9 +13,30 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      
+      - uses: actions/setup-node@v3
+        name: Configure Node cache
+        id: node-cache
+        with:
+          node-version: 16
+          cache: 'yarn'
 
-      - name: Setup build environment
-        uses: ./.github/workflows/build-env.yaml
+      - name: Configure Next cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ${{ github.workspace }}/oceanics-io-www/.next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('./yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('./yarn.lock') }}
+
+      - name: Configure Rust cache
+        id: rust-cache
+        uses: Swatinem/rust-cache@v2
+        
+      - name: Install wasm-pack
+        if: steps.rust-cache.outputs.cache-hit != 'true'
+        run: cargo install wasm-pack
 
       - name: Install and build dependencies
         run: make .  
