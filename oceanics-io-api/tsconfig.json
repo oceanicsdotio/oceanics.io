@@ -1,21 +1,21 @@
 {
-    "compilerOptions": {
-      "target": "esnext",
-      "lib": ["esnext"],
-      "allowJs": true,
-      "skipLibCheck": true,
-      "esModuleInterop": true,
-      "allowSyntheticDefaultImports": true,
-      "strict": false,
-      "forceConsistentCasingInFileNames": true,
-      "module": "commonjs",
-      "moduleResolution": "node",
-      "resolveJsonModule": true,
-      "isolatedModules": false,
-      "outDir": "./build",
-      "rootDir": "./src"
-    },
-    "include": [
-        "**/*.ts"
-      ],
-  }
+  "compilerOptions": {
+    "target": "esnext",
+    "lib": ["esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": false,
+    "forceConsistentCasingInFileNames": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": false,
+    "outDir": "./build",
+    "rootDir": "./src"
+  },
+  "include": [
+    "**/*.ts"
+  ],
+}
