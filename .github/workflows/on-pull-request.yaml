@@ -23,7 +23,7 @@ jobs:
       #     cache: 'yarn'
 
       - name: Yarn lock
-        run: yarn lock  
+        run: yarn install --mode update-lockfile 
 
   build:
     name: Build site
