@@ -8,7 +8,7 @@ env:
 
 jobs:
   lock:
-    name: Lock after dependency change
+    name: Lock dependencies
     runs-on: ubuntu-latest
     steps:
 
@@ -43,7 +43,17 @@ jobs:
         run: make .  
 
       - name: Yarn lock
-        run: yarn install --mode update-lockfile 
+        run: yarn install --mode update-lockfile
+
+      - name: Setup git
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "<>"
+
+      - name: Commit lock
+        run: |
+          git commit -m "Lockfile change"
+          git push
 
   build:
     name: Build site
