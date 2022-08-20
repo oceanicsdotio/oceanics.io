@@ -16,8 +16,12 @@ const onMessageHandler = (
 /**
  * Lifecycle controller for web workers. You need to actually start
  * the worker with the source code loaded externally.
+ * 
+ * Webpack needs a static path at build time to make loadable chunks
+ * from the worker script. There is probably a more clever way to do
+ * this.
  */
-const useWorker = (name: string, worker: Worker|undefined) => {
+const useWorker = (name: string, path: string) => {
 
     const listening = useRef<boolean>(false);
     const ref = useRef<Worker|null>(null);
@@ -25,8 +29,8 @@ const useWorker = (name: string, worker: Worker|undefined) => {
     const listener = onMessageHandler(name, setMessages);
 
     // Init and start
-    const start = (worker: Worker) => {
-        ref.current = worker;
+    const start = (path: string) => {
+        ref.current = new Worker(new URL(path, import.meta.url));
         if (ref.current) {
             ref.current.addEventListener("message", listener, { passive: true });
             listening.current = true
@@ -39,7 +43,7 @@ const useWorker = (name: string, worker: Worker|undefined) => {
 
     // Start if we get a worker on load. Clean up after.
     useEffect(() => {
-        if (typeof worker !== "undefined") start(worker)
+        if (typeof path !== "undefined" && !!path) start(path)
         return () => {
             if (listening.current) ref.current?.removeEventListener("message", listener);
             if (ref.current) ref.current.terminate();

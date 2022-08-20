@@ -46,13 +46,13 @@ $(API)/$(OUT_DIR): node_modules $(API)/shared $(API)/package.json
 
 # Compile WWW
 WWW_SRC := $(wildcard $(WWW)/**/*)
-FILTERED_SRC := $(filter-out $(WWW)/.next/*, $(SRC_FILES))
+FILTERED_SRC := $(filter-out $(WWW)/.next/*, $(WWW_SRC))
 $(WWW)/$(OUT_DIR): node_modules $(FILTERED_SRC)
 	yarn workspace $(WWW) run next build
 	yarn workspace $(WWW) run next export -o $(OUT_DIR)
 
 # Build everything
-.: $(API)/$(OUT_DIR) $(WWW)/$(OUT_DIR)
+.: $(API)/$(OUT_DIR) $(WWW)/$(OUT_DIR) $(FILTERED_SRC)
 
 # Serve the storybook docs in dev mode
 start-storybook:

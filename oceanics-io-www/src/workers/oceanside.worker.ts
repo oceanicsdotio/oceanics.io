@@ -43,8 +43,6 @@ const parseIconSet = (
   nodes.map(({ slug }) => [slug, slug])
 )));
 
-
-
 /**
  * Event handler
  */
