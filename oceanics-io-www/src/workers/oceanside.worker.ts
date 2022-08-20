@@ -48,6 +48,12 @@ const parseIconSet = (
  */
 const handleMessage = async ({ data }: MessageEvent) => {
   switch (data.type) {
+    case "status":
+      ctx.postMessage({
+        type: "status",
+        data: "ready",
+      });
+      return;
     case "parseIconSet":
       const [nodes, templates, worldSize]: MessageData = data.data;
       ctx.postMessage({
@@ -62,7 +68,6 @@ const handleMessage = async ({ data }: MessageEvent) => {
         data
       });
       return;
-
   }
 }
 
@@ -72,5 +77,5 @@ const handleMessage = async ({ data }: MessageEvent) => {
  */
 ctx.addEventListener("message", handleMessage)
 
-// Trick into being a module
-export {}
+// Trick into being a module and for testing
+export { handleMessage }
