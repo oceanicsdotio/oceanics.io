@@ -125,6 +125,12 @@
   status = 200
   headers = {X-From = "Netlify"}
 
+[[redirects]]
+  from = "/dev/storybook:splat"
+  to = "/dev/storybook/:splat"
+  status = 200
+  headers = {X-From = "Netlify"}
+
 [[headers]]
   for = "/*"
   [headers.values]

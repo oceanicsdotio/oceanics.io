@@ -1,9 +1,15 @@
+// @ts-check
+
 // https://www.npmjs.com/package/@next/bundle-analyzer
 const withBundleAnalyzer = require('@next/bundle-analyzer')({
   enabled: process.env.ANALYZE_BUNDLE === 'true',
   openAnalyzer: false,
 })
 
+// https://nextjs.org/docs/basic-features/typescript#type-checking-nextconfigjs
+/**
+ * @type {import('next').NextConfig}
+ **/
 const config = {
   typescript: {
     // Dangerously allow production builds to successfully complete even if
