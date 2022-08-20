@@ -21,7 +21,7 @@ const onMessageHandler = (
  * from the worker script. There is probably a more clever way to do
  * this.
  */
-const useWorker = (name: string, path: string) => {
+const useWorker = (name: string, createWorker: () => Worker) => {
 
     const listening = useRef<boolean>(false);
     const ref = useRef<Worker|null>(null);
@@ -29,8 +29,8 @@ const useWorker = (name: string, path: string) => {
     const listener = onMessageHandler(name, setMessages);
 
     // Init and start
-    const start = (path: string) => {
-        ref.current = new Worker(new URL(path, import.meta.url));
+    const start = () => {
+        ref.current = createWorker();
         if (ref.current) {
             ref.current.addEventListener("message", listener, { passive: true });
             listening.current = true
@@ -43,7 +43,7 @@ const useWorker = (name: string, path: string) => {
 
     // Start if we get a worker on load. Clean up after.
     useEffect(() => {
-        if (typeof path !== "undefined" && !!path) start(path)
+        start()
         return () => {
             if (listening.current) ref.current?.removeEventListener("message", listener);
             if (ref.current) ref.current.terminate();

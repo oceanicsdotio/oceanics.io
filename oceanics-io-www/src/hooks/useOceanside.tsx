@@ -58,6 +58,10 @@ export interface IWorld extends IWorldType {
   };
 }
 
+// This has to be defined in global scope to force Webpack to bundle the script. 
+const createWorker = () => 
+  new Worker(new URL("../workers/oceanside.worker.ts", import.meta.url), { type: 'module' })
+
 /**
  * The `Oceanside` hook provides all of the functionality to
  * embed the game/visualization engine in any React app.
@@ -88,7 +92,7 @@ export const useOceanside = ({
    * Dedicated background worker for number crunching and text
    * analysis.
    */
-  const worker = useWorker("oceanside", "../workers/oceanside.worker.ts");
+  const worker = useWorker("oceanside", createWorker);
 
   /**
    * When the runtime loads, create a pixel map

@@ -45,9 +45,8 @@ $(API)/$(OUT_DIR): node_modules $(API)/shared $(API)/package.json
 	yarn workspace $(API) run tsc
 
 # Compile WWW
-WWW_SRC := $(wildcard $(WWW)/**/*)
-FILTERED_SRC := $(filter-out $(WWW)/.next/*, $(WWW_SRC))
-$(WWW)/$(OUT_DIR): node_modules $(FILTERED_SRC)
+WWW_SRC = $(wildcard $(WWW)/**/*)
+$(WWW)/$(OUT_DIR): node_modules $(WWW_SRC)
 	yarn workspace $(WWW) run next build
 	yarn workspace $(WWW) run next export -o $(OUT_DIR)
 
