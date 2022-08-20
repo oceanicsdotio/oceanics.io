@@ -17,7 +17,7 @@ jobs:
 
       - name: Hash lockfile
         id: lockfile
-        run: echo "::set-output name=hash::hashFiles('./yarn.lock')\n"
+        run: echo "::set-output name=hash::${{ hashFiles('./yarn.lock') }}\n"
 
       - uses: actions/setup-node@v3
         name: Configure Node cache
