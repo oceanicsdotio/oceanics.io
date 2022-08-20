@@ -9,7 +9,7 @@ env:
 jobs:
   lock:
     name: Lock dependencies
-    # if: ${{ github.actor == 'dependabot[bot]' }}
+    if: ${{ github.actor == 'dependabot[bot]' }}
     runs-on: ubuntu-latest
     steps:
 
