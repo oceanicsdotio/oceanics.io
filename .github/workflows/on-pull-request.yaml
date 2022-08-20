@@ -15,6 +15,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Hash lockfile
+        id: lockfile
+        run: echo "::set-output name=hash::hashFiles('./yarn.lock')\n"
+
       - uses: actions/setup-node@v3
         name: Configure Node cache
         id: node-cache
@@ -25,11 +29,9 @@ jobs:
       - name: Configure Next cache
         uses: actions/cache@v2
         with:
-          path: |
-            ${{ github.workspace }}/oceanics-io-www/.next/cache
-          key: ${{ runner.os }}-nextjs-${{ hashFiles('./yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-nextjs-${{ hashFiles('./yarn.lock') }}
+          path: ${{ github.workspace }}/oceanics-io-www/.next/cache
+          key: ${{ runner.os }}-nextjs-${{ steps.lockfile.outputs.hash }}
+          restore-keys: ${{ runner.os }}-nextjs-${{ steps.lockfile.outputs.hash }}
 
       - name: Configure Rust cache
         id: rust-cache
@@ -42,18 +44,20 @@ jobs:
       - name: Install and build dependencies
         run: make .  
 
-      - name: Yarn lock
-        run: yarn install --mode update-lockfile
+      - name: Update yarn.lock
+        id: update-lockfile
+        run: |
+          yarn install --mode update-lockfile
+          echo "::set-output name=hash::hashFiles('./yarn.lock')\n"
 
-      - name: Setup git
+      - name: Push on diff
+        if: steps.update-lockfile.outputs.hash != steps.lockfile.outputs.hash
         run: |
           git config user.name "GitHub Actions Bot"
           git config user.email "<>"
-
-      - name: Commit lock
-        run: |
           git commit -m "Lockfile change"
           git push
+        
 
   build:
     name: Build site
