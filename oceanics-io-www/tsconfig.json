@@ -26,8 +26,8 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "typeRoots": ["./src/@types", "../node_modules/@types"],
-    "declaration": false,
-    "sourceMap": false,
+    "declaration": true,
+    "sourceMap": true,
     "rootDir": "src",
     "removeComments": true,
     "jsx": "preserve"
