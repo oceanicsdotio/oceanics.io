@@ -29,13 +29,6 @@ export const rotatePath = (pts: Points, angle: number): Points  => {
     return pts.map(([xx, yy]) => [(xx * c - yy * s), (xx * s + yy * c)]);
 }
 
-
-export const eventCoordinates = ({clientX, clientY}: EventLocation, canvas: HTMLCanvasElement): [number, number] => {
-    // Short hand for element reference frame
-    const {left, top} = canvas.getBoundingClientRect();
-    return [clientX - left, clientY - top]
-};
-
 /*
  * Translate x and scale y, rotate CCW, scale points.
  * Points must be in the canvas coordinate reference frame. 

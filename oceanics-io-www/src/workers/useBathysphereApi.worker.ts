@@ -335,45 +335,6 @@ async function initParticles(res: number) {
   ))
 };
 
-type Template = {
-  name: string;
-  spriteSheet: string;
-  probability?: number;
-  value?: number;
-  limit?: number;
-}
-
-/**
- * Generate the dataUrls for icon assets in the background.
- * 
- * Not a heavy performance hit, but some of the sprite sheet logic can be moved in here
- * eventually as well.
- */
-const parseIconSet = async (
-  nodes: {slug: string}[], 
-  templates: Template[], 
-  worldSize: number
-) => {
-
-  const lookup = Object.fromEntries(
-    nodes.map(({ slug }) => [slug, slug])
-  );
-
-  return templates.map(({
-    name,
-    spriteSheet,
-    probability = 0.0,
-    value = 0.0,
-    limit = worldSize * worldSize
-  }) => ({
-    key: name.toLowerCase().split(" ").join("-"),
-    dataUrl: lookup[spriteSheet],
-    limit,
-    probability,
-    value
-  }));
-}
-
 /**
  * Max regional ocean depth for bthymetry rendering
  */
@@ -789,13 +750,6 @@ ctx.addEventListener("message", async ({ data }: MessageEvent) => {
       ctx.postMessage({
         type: "data",
         data: await getFragment(data.target, data.key, data.attribution),
-      });
-      return;
-    case "parseIconSet":
-      ctx.postMessage({
-        type: "parseIconSet",
-        //@ts-ignore
-        data: await parseIconSet(...data.data),
       });
       return;
     default:
