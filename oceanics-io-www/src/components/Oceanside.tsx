@@ -2,7 +2,6 @@
  * React and friends.
  */
 import React, { useEffect } from "react";
-import type { FC } from "react";
 import styled from "styled-components";
 
 /**
@@ -11,7 +10,7 @@ import styled from "styled-components";
 import useOceansideWorld from "../hooks/useOceansideWorld";
 import useOceansideBoard from "../hooks/useOceansideBoard";
 import useWasmRuntime from "../hooks/useWasmRuntime";
-import useSharedWorkerState from "../hooks/useSharedWorkerState";
+import useWorker from "../hooks/useWorker";
 import type {IWorld} from "../hooks/useOceansideWorld";
 
 /**
@@ -32,14 +31,14 @@ export interface ApplicationType extends IWorld {
  */
 const createBathysphereWorker = () => {
   return new Worker(
-      new URL("../workers/useBathysphereApi.worker.ts", import.meta.url)
+      new URL("../workers/useOceanside.worker.ts", import.meta.url)
   );
 }
 
 /**
  * Page component rendered by NextJS.
  */
-const Oceanside: FC<ApplicationType> = ({ className, ...props }) => {
+const Oceanside = ({ className, ...props }: ApplicationType) => {
   /**
    * Single runtime for Oceanside context
    */
@@ -49,14 +48,14 @@ const Oceanside: FC<ApplicationType> = ({ className, ...props }) => {
    * Dedicated worker for performing numerical computation and text
    * analysis in the background. 
    */
-  const worker = useSharedWorkerState("bathysphere");
+  const worker = useWorker("bathysphere", createBathysphereWorker());
 
   /**
    * Digital elevation map of the synthetic terrain, with a 
    * probability table of feature types for world-building
    */
   const world = useOceansideWorld({...props, runtime, worker: worker.ref});
-  const board = useOceansideBoard({worker: worker.ref, runtime, world})
+  const board = useOceansideBoard({runtime, world})
 
   /**
    * Required to start the background WASM runtime. 

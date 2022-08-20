@@ -6,7 +6,7 @@ import type { FC } from "react";
 
 import useMapBox from "../hooks/useMapBox";
 import useWasmRuntime from "../hooks/useWasmRuntime";
-import useSharedWorkerState from "../hooks/useSharedWorkerState";
+import useSharedWorkerState from "../hooks/useWorker";
 import useFragmentQueue, {
   OBJECT_STORAGE_URL,
 } from "../hooks/useFragmentQueue";

@@ -1,4 +1,4 @@
-import { useEffect, useState, useReducer } from "react";
+import { useEffect, useState } from "react";
 import type {WorkerRef} from "../utils";
 
 /**
@@ -15,13 +15,13 @@ export const useBathysphereApi = (server: string, worker: WorkerRef) => {
      * JavaScript Web Token. State variable returned to parent component,
      * but not setter.
      */
-    const [ accessToken, setAccessToken ] = useState("");
+    const [ accessToken ] = useState("");
 
     /**
      * Catalog to render in frontend, set from result
      * of Web Worker.
      */
-    const [ catalog, setCatalog ] = useState([]);
+    const [ catalog ] = useState([]);
 
     /**
      * Query the API for index of collections.
@@ -36,31 +36,10 @@ export const useBathysphereApi = (server: string, worker: WorkerRef) => {
             // TODO: ).then(setCatalog)
     }, [ worker, accessToken, server ]);
 
-    
-    /**
-     * The login container handles authorization interactions with the
-     * backend.
-     */
-    const [credentials] = useReducer(
-        (prev, event:any=null) => !event ? prev : {
-            ...prev,
-            [event.target.id]: event.target.value.trim()
-        },
-        {
-            email: "",
-            password: "",
-            apiKey:  "",
-            server: "https://graph.oceanics.io/api"
-        }
-    );
-   
     return {
         catalog,
         login: () => {},
-        register: () => {},
-        populate: () => {
-            console.log("Populate...");
-        }
+        register: () => {}
     };
 };
 

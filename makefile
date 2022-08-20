@@ -32,7 +32,7 @@ $(DOCS_PAGE): $(SPEC_FILE) node_modules
 	yarn run redoc-cli build $(SPEC_FILE) --output $(DOCS_PAGE)
 
 # Build static storybook pages
-$(WWW)/$(STORYBOOK): $(wildcard $(WWW)/src/**/*)
+$(WWW)/$(STORYBOOK): $(wildcard $(WWW)/src/**/*) $(wildcard $(WWW)/.storybook/*)
 	yarn workspace oceanics-io-www build-storybook --output-dir $(STORYBOOK)  --webpack-stats-json
 
 # Convert from YAML to JSON for bundling OpenAPI
@@ -45,7 +45,9 @@ $(API)/$(OUT_DIR): node_modules $(API)/shared $(API)/package.json
 	yarn workspace $(API) run tsc
 
 # Compile WWW
-$(WWW)/$(OUT_DIR): node_modules $(DOCS_PAGE) $(WWW)/package.json $(WWW)/$(STORYBOOK)
+WWW_SRC := $(wildcard $(WWW)/**/*)
+FILTERED_SRC := $(filter-out $(WWW)/.next/*, $(SRC_FILES))
+$(WWW)/$(OUT_DIR): node_modules $(FILTERED_SRC)
 	yarn workspace $(WWW) run next build
 	yarn workspace $(WWW) run next export -o $(OUT_DIR)
 
