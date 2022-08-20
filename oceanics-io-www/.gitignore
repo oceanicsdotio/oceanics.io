@@ -1,5 +1,5 @@
 .next
 out/
 build/
-storybook-static/
+public/dev/*
 public/*.html
