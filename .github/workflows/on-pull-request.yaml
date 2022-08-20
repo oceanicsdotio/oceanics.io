@@ -48,7 +48,7 @@ jobs:
         id: update-lockfile
         run: |
           yarn install --mode update-lockfile
-          echo "::set-output name=hash::hashFiles('./yarn.lock')\n"
+          echo "::set-output name=hash::${{ hashFiles('./yarn.lock') }}"
 
       - name: Push on diff
         if: steps.update-lockfile.outputs.hash != steps.lockfile.outputs.hash
