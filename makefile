@@ -1,6 +1,5 @@
 WWW = oceanics-io-www
 API = oceanics-io-api
-
 OUT_DIR = build
 SPEC = bathysphere
 SPEC_FILE = ./$(SPEC).yaml
@@ -24,6 +23,7 @@ $(WWW)-wasm: $(wildcard $(WWW)-rust/src/**/*) $(wildcard $(WWW)-rust/Cargo*)
 		--out-name index
 	sed -i 's/"name": "$(WWW)-rust"/"name": "$(WWW)-wasm"/g' $(WWW)-wasm/package.json
 
+# Local dependencies need to be built before we can install
 node_modules: $(API)-wasm $(WWW)-wasm yarn.lock $(wildcard **/package.json)
 	yarn install
 
@@ -49,8 +49,14 @@ $(WWW)/$(OUT_DIR): node_modules $(DOCS_PAGE) $(WWW)/package.json $(WWW)/$(STORYB
 	yarn workspace $(WWW) run next build
 	yarn workspace $(WWW) run next export -o $(OUT_DIR)
 
+# Build everything
 .: $(API)/$(OUT_DIR) $(WWW)/$(OUT_DIR)
 
+# Serve the storybook docs in dev mode
+start-storybook:
+	yarn workspace oceanics-io-www start-storybook
+
+# Remove build artifacts
 clean:
 	rm -rf $(API)-wasm
 	rm -rf $(WWW)-wasm
@@ -60,4 +66,5 @@ clean:
 	rm -rf $(WWW)/$(STORYBOOK)
 	rm -rf $(API)/$(OUT_DIR)
 
-.PHONY: clean
+# Non-file targets (aka commands)
+.PHONY: clean start-storybook
