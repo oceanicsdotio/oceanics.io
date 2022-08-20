@@ -41,7 +41,7 @@
   "exclude": [
     "node_modules",
     "src/**/*.stories.tsx",
-    "useOceanside*",
+    "useOceansideOverlay*",
     "useGlsl*",
     "useLagrangian*",
     "useSelectChannels*"

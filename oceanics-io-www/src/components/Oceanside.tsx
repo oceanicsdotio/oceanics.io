@@ -31,7 +31,7 @@ export interface ApplicationType extends IWorld {
  */
 const createBathysphereWorker = () => {
   return new Worker(
-      new URL("../workers/useOceanside.worker.ts", import.meta.url)
+      new URL("../workers/oceanside.worker.ts", import.meta.url)
   );
 }
 
