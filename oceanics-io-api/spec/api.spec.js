@@ -236,12 +236,14 @@ describe("Auth API", function () {
   const register = (apiKey) =>
     fetch(authPath, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey ?? ""
+      },
       body: JSON.stringify({
         email: process.env.SERVICE_ACCOUNT_USERNAME,
         password: process.env.SERVICE_ACCOUNT_PASSWORD,
-        secret: process.env.SERVICE_ACCOUNT_SECRET,
-        ...(typeof apiKey === "undefined" ? {} : { apiKey }),
+        secret: process.env.SERVICE_ACCOUNT_SECRET
       }),
     });
 
@@ -276,7 +278,7 @@ describe("Auth API", function () {
      * To create a User, you need to know at least one API key
      */
     test("has valid API key in environment", function () {
-      expect(typeof process.env.SERVICE_PROVIDER_API_KEY).toBe("string") ;
+      expect(typeof process.env.SERVICE_PROVIDER_API_KEY).toBe("string");
       expect(process.env.SERVICE_PROVIDER_API_KEY).not.toBeFalsy();
     });
 
@@ -292,7 +294,6 @@ describe("Auth API", function () {
      * Missing API key is a 403 error
      */
     test("should prevent registration without API key", async function () {
-      //@ts-ignore
       const response = await register(undefined);
       _expect(response, 403);
     });

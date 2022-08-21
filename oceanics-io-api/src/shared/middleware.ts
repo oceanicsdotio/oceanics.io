@@ -74,12 +74,13 @@ type ErrorDetail = {
  * and execute a single query. For convenience you can pass in a callback
  * to execute on the result.
  */
-export const connect = async (query: string) => {
+export const connect = async (query: string, readOnly: boolean = true) => {
     const driver = neo4j.driver(
         process.env.NEO4J_HOSTNAME ?? "",
         neo4j.auth.basic("neo4j", process.env.NEO4J_ACCESS_KEY ?? "")
     );
-    const session = driver.session({ defaultAccessMode: neo4j.session.READ });
+    const defaultAccessMode = readOnly ? neo4j.session.READ : neo4j.session.WRITE
+    const session = driver.session({ defaultAccessMode });
     const result = await session.run(query);
     await driver.close();
     return result;
@@ -331,6 +332,7 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: Object): Handler 
         } else if (Authentication.ApiKey in security) {
             // Only for registration on /auth route
             provider = materialize(apiKeyClaim(headers), "p", "Provider");
+            if (!provider.patternOnly().includes("apiKey")) return UNAUTHORIZED;
             const {
                 email,
                 password,
