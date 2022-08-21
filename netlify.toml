@@ -139,6 +139,5 @@
         *.oceanics.io,
         *.googleapis.com,
         *.github.com,
-        cdn.jsdelivr.net,
-        localhost:9009
+        cdn.jsdelivr.net
     '''
