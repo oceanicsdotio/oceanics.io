@@ -26,7 +26,7 @@ const Template: Story<IAccount> = (args) => <Account {...args} />;
 export const ServiceAccount = Template.bind({});
 ServiceAccount.args = {
   server: "",
-  email: "public@oceanics.io",
-  password: "haug2RISH1narn.fonk",
-  salt: "some_secret"
+  email: "",
+  password: "",
+  salt: ""
 };
