@@ -96,4 +96,12 @@ jobs:
         run: cargo install wasm-pack
 
       - name: Build all dependencies
-        run: make .  
+        run: make .
+
+      - name: Run dev server
+        run: yarn netlify dev &
+
+      - name: Test API
+        run: |
+          sleep 10s
+          yarn workspace oceanics-io-api jest 
