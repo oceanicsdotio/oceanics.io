@@ -99,9 +99,18 @@ jobs:
         run: make .
 
       - name: Run dev server
+        env:
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+          NEO4J_HOSTNAME: ${{ secrets.NEO4J_HOSTNAME }}
+          NEO4J_ACCESS_KEY: ${{ secrets.NEO4J_ACCESS_KEY }}
         run: yarn netlify dev &
 
       - name: Test API
+        env:
+          SERVICE_PROVIDER_API_KEY: ${{ secrets.SERVICE_PROVIDER_API_KEY }}
+          SERVICE_ACCOUNT_USERNAME: ${{ secrets.SERVICE_ACCOUNT_USERNAME }}
+          SERVICE_ACCOUNT_PASSWORD: ${{ secrets.SERVICE_ACCOUNT_PASSWORD }}
+          SERVICE_ACCOUNT_SECRET: ${{ secrets.SERVICE_ACCOUNT_SECRET }}
         run: |
           sleep 10s
           yarn workspace oceanics-io-api jest 

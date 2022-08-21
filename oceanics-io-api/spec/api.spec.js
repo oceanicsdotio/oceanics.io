@@ -274,12 +274,26 @@ describe("Auth API", function () {
    * auth/apiKey values prevent access and return correct status codes.
    */
   describe("Register", function () {
+
+    const expectEnvVar = (value) => {
+      expect(typeof value).toBe("string");
+      expect(process.env.SERVICE_PROVIDER_API_KEY).not.toBeFalsy();
+    }
+
     /**
      * To create a User, you need to know at least one API key
      */
     test("has valid API key in environment", function () {
-      expect(typeof process.env.SERVICE_PROVIDER_API_KEY).toBe("string");
-      expect(process.env.SERVICE_PROVIDER_API_KEY).not.toBeFalsy();
+      expectEnvVar(process.env.SERVICE_PROVIDER_API_KEY);
+    });
+
+    /**
+     * Also need valid credentials
+     */
+    test("has valid credentials in environment", function () {
+      expectEnvVar(process.env.SERVICE_ACCOUNT_USERNAME);
+      expectEnvVar(process.env.SERVICE_ACCOUNT_PASSWORD);
+      expectEnvVar(process.env.SERVICE_ACCOUNT_SECRET);
     });
 
     /**
