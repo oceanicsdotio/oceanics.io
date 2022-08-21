@@ -127,10 +127,6 @@ export const dematerialize = (node: Node): [Properties, string, string] => {
     return [properties, node.symbol, node.label]
 }
 
-
-
-
-
 /**
  * Transform from Neo4j response records type to generic internal node representation.
  * 

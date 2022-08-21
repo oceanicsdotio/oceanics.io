@@ -109,37 +109,6 @@ const getPublicJsonData = async (url: string): Promise<object> => {
     }));
 };
 
-type IRegister = {
-  email: string;
-  password: string;
-  apiKey: string;
-  server: string;
-}
-
-/**
- * Create a new account for our API and services.
- */
-const register = async ({
-  email,
-  password,
-  apiKey,
-  server
-}: IRegister): Promise<object> =>
-  fetch(`${server}/api/auth`, {
-    method: "POST",
-    mode: "cors",
-    cache: "no-cache",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Api-Key": apiKey
-    },
-    body: JSON.stringify({
-      username: email,
-      password
-    })
-  })
-    .then(response => response.json());
-
 type IQuery = {
   accessToken: string;
   server: string;
@@ -165,32 +134,6 @@ const query = async ({
   })
     .then(response => response.json())
     .then(({ value }) => value);
-
-type ILogin = {
-  email: string;
-  password: string;
-  server: string;
-}
-
-/**
- * Login and get a JWT.
- */
-const login = async ({
-  email,
-  password,
-  server
-}: ILogin): Promise<string> =>
-  fetch(`${server}/api/auth`, {
-    method: "GET",
-    mode: "cors",
-    cache: "no-cache",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `${email}:${password}`
-    }
-  })
-    .then(response => response.json())
-    .then(({ token = "" }) => token);
 
 
 /**

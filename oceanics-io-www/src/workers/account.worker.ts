@@ -44,8 +44,10 @@ const login = async ({
   email,
   password,
   server
-}: ILogin): Promise<string> =>
-  fetch(`${server}/api/auth`, {
+}: ILogin): Promise<string> => {
+  const url = `${server}/api/auth`;
+  console.log("Worker", {url})
+  const response = await fetch(url, {
     method: "GET",
     mode: "cors",
     cache: "no-cache",
@@ -54,8 +56,10 @@ const login = async ({
       "Authorization": `${email}:${password}`
     }
   })
-    .then(response => response.json())
-    .then(({ token = "" }) => token);
+  const {token} = await response.json()
+  return token;
+}
+  
 
 /**
  * Listener function

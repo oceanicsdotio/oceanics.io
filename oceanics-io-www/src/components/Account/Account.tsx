@@ -1,5 +1,11 @@
-import React from "react";
-import useBathysphereApi from "../../hooks/useBathysphereApi";
+import React, { useState, useEffect } from "react";
+import useWorker from "../../hooks/useWorker";
+
+
+
+// This has to be defined in global scope to force Webpack to bundle the script. 
+const createWorker = () => 
+  new Worker(new URL("../../workers/account.worker.ts", import.meta.url), { type: 'module' })
 
 /**
  * Account is a page-level component. 
@@ -14,11 +20,38 @@ import useBathysphereApi from "../../hooks/useBathysphereApi";
  * Otherwise, assume that they need to create an account.
  * 
  */
-const Account = () => {
+const Account = ({
+  server
+}: {
+  server: string
+}) => {
+    const [registered, setRegistered] = useState(false);
+    const [loggedIn, setLoggedIn] = useState(false);
 
-    const {} = useBathysphereApi({})
+    const worker = useWorker("account", createWorker);
 
-    return <></>
+    const listener = ({ data }: any) => {
+      console.log(data)
+    }
+
+    const onClick = () => {
+      if (!worker.ref.current) return;
+      worker.ref.current.addEventListener("message", listener, { passive: true });
+      worker.ref.current.postMessage({
+        type: "login",
+        data: {
+          email: "",
+          password: "",
+          server
+        },
+      });
+      return () => {
+        worker.ref.current?.removeEventListener("message", listener);
+        worker.ref.current?.terminate();
+      };
+    }
+
+    return <button onClick={onClick}>Login</button>
 }
 
 export default Account

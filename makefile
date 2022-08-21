@@ -55,7 +55,7 @@ $(WWW)/$(OUT_DIR): node_modules $(WWW_SRC)
 
 # Serve the storybook docs in dev mode
 start-storybook:
-	yarn workspace oceanics-io-www start-storybook
+	yarn workspace oceanics-io-www start-storybook --port ${STORYBOOK_PORT}
 
 # Remove build artifacts
 clean:

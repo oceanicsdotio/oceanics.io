@@ -4,7 +4,7 @@ import styled from "styled-components";
 /**
  * Hooks for render loop and interaction.
  */
-import useOceansideWorld from "../hooks/useOceanside";
+import useOceanside from "../hooks/useOceanside";
 import useWasmRuntime from "../hooks/useWasmRuntime";
 import type { IWorld } from "../hooks/useOceanside";
 
@@ -37,7 +37,7 @@ const Oceanside = ({ className, ...props }: ApplicationType) => {
    * Synthetic terrain with digital elevation map and 
    * probability table of feature types for world-building.
    */
-  const {world, board} = useOceansideWorld({...props, runtime});
+  const {world, board} = useOceanside({...props, runtime});
 
   return (
     <div className={className}>
