@@ -277,7 +277,7 @@ describe("Auth API", function () {
 
     const expectEnvVar = (value) => {
       expect(typeof value).toBe("string");
-      expect(process.env.SERVICE_PROVIDER_API_KEY).not.toBeFalsy();
+      expect(value).not.toBeFalsy();
     }
 
     /**
