@@ -2,7 +2,6 @@
  * React and friends
  */
 import React, { useCallback } from "react";
-import type {FC} from "react"
 import { useRouter } from "next/router";
 
 /**
@@ -31,10 +30,10 @@ import useDeserialize from "../src/hooks/useDeserialize";
 
 const embeddedComponents = { Equation, Squalltalk, Inline };
 
-const ArticlePage: FC<IDocumentSerialized> = ({
+const ArticlePage = ({
     document,
     source
-}) => {
+}: IDocumentSerialized) => {
     const [deserialized] = useDeserialize([document])
 
     const router = useRouter();

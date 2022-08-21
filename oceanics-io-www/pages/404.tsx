@@ -1,13 +1,10 @@
-/**
- * React and friends.
- */
-import React, {FC} from "react";
+import React from "react";
 import {GetStaticProps} from "next";
 
 /**
  * Just a dumb functional component.
  */
-const PageNotFound: FC<{}> = () => {
+const PageNotFound = () => {
   return (
     <>  
       <p>{"You can't get there from here."}</p>

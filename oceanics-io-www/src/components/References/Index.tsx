@@ -1,7 +1,5 @@
-/**
- * React and friends.
- */
-import React, { FC, useMemo, MouseEventHandler } from "react";
+import React, { useMemo } from "react";
+import type { MouseEventHandler } from "react";
 
 /**
  * Preview of article
@@ -32,7 +30,7 @@ export interface DocumentIndexType extends IStyled {
  *
  * Optionally use query parameters and hash anchor to filter content.
  */
-const Index: FC<DocumentIndexType> = ({
+const Index = ({
   className,
   documents,
   query,
@@ -41,7 +39,7 @@ const Index: FC<DocumentIndexType> = ({
   onClickLabel,
   pagingIncrement,
   navigate
-}) => {
+}: DocumentIndexType) => {
   /**
    * The array of visible articles sorted in reverse chronological order.
    * The initial value is the subset from 0 to the increment constant.

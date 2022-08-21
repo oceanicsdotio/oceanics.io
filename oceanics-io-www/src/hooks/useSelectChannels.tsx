@@ -40,7 +40,7 @@
  /**
   * Page component rendered by GatsbyJS.
   */
- const AppPage: FC<ApplicationType> = ({
+ const AppPage = ({
      location,
      worker: {
          worker,
@@ -52,7 +52,7 @@
          geojson
      },
      expand
- }) => {
+ }: ApplicationType) => {
      /**
       * MapBoxGL Map instance is saved to React state. 
       */

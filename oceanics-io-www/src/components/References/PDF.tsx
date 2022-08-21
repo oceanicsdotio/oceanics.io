@@ -1,8 +1,4 @@
-/**
- * React and friends
- */
 import React from "react";
-import type { FC } from "react";
 import {
   Document, Page,
 } from 'react-pdf/dist/esm/entry.webpack';
@@ -18,7 +14,7 @@ interface IPDF {
   pages: number;
 }
 
-const PDF: FC<IPDF> = ({ file, pages = 1 }) => {
+const PDF = ({ file, pages = 1 }: IPDF) => {
   return (
     <Document
       file={file}

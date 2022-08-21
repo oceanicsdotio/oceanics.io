@@ -1,7 +1,7 @@
 /**
  * React and friends
  */
-import React, { FC } from "react";
+import React from "react";
 
 /**
  * Runtime input type checking
@@ -19,7 +19,7 @@ export interface IInline {
 /**
  Include inline links for references in markdown
  */
-export const Inline: FC<IInline> = ({published, authors, title, parenthesis=false}) => {
+export const Inline = ({published, authors, title, parenthesis=false}: IInline) => {
     const doc = new Document({metadata: {
         published: (new Date(published, 0, 1)).toISOString(),
         authors,

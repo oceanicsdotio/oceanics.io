@@ -1,7 +1,7 @@
 /**
  * React and friends
  */
-import React, {useState, useEffect, RefObject, FC} from "react";
+import React, {useState, useEffect, RefObject} from "react";
 
 import Placeholder from "./Placeholder"
 
@@ -16,12 +16,12 @@ export type ApiType = {
  * The OpenApi component uses an OpenAPI specification for a 
  * simulation backend, and uses it to construct an interface.
  */
-const OpenApi: FC<ApiType> = ({
+const OpenApi = ({
     specUrl,
     // service,
     scrapeIndexPage,
     worker,
-}) => {
+}: ApiType) => {
      /**
       * OpenAPI spec structure will be populated asynchronously once the 
       * web worker is available.

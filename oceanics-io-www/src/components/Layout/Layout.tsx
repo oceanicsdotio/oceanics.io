@@ -1,7 +1,7 @@
 /**
  * React and friends
  */
-import React, { FC } from "react";
+import React from "react";
 import styled from "styled-components";
 
 /**
@@ -61,13 +61,13 @@ export interface ILayout {
     children: any;
 };
 
-export const Layout: FC<ILayout> = ({ 
+export const Layout = ({ 
     children,
     className,
     title,
     description,
     HeadComponent
-}) => {
+}: ILayout) => {
     
     return <div className={className}>
         <GlobalStyle />

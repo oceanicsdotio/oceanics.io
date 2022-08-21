@@ -1,7 +1,4 @@
-/**
- * React and friends
- */
-import React, {FC} from "react";
+import React from "react";
 
 /**
  * Component level styling
@@ -31,7 +28,7 @@ export type TileType = {
  * Art and information for single tile feature. 
  * This is used to render documentation for the game.
  */
-export const TileInformation: FC<TileType> = ({
+export const TileInformation = ({
     tile: {
         publicURL, 
         anchorHash,
@@ -39,7 +36,7 @@ export const TileInformation: FC<TileType> = ({
     }, 
     className,
     //search
-}) => {
+}: TileType) => {
     return <div className={className}>
         <a id={anchorHash}/>
         <img 
