@@ -246,6 +246,24 @@ describe("Auth API", function () {
         secret: process.env.SERVICE_ACCOUNT_SECRET
       }),
     });
+  
+  /**
+   * Check the required environment variables.
+   */
+  describe("Environment", function () {
+    [
+      "SERVICE_PROVIDER_API_KEY",
+      "SERVICE_ACCOUNT_USERNAME",
+      "SERVICE_ACCOUNT_PASSWORD",
+      "SERVICE_ACCOUNT_SECRET"
+    ].forEach((key) => {
+      test(`${key} is in environment`, function () {
+        const value = process.env[key];
+        expect(typeof value).toBe("string");
+        expect(value).not.toBeFalsy();
+      });
+    })
+  })
 
   /**
    * Isolate destructive actions so that it can be called
@@ -274,33 +292,11 @@ describe("Auth API", function () {
    * auth/apiKey values prevent access and return correct status codes.
    */
   describe("Register", function () {
-
-    const expectEnvVar = (value) => {
-      expect(typeof value).toBe("string");
-      expect(value).not.toBeFalsy();
-    }
-
-    /**
-     * To create a User, you need to know at least one API key
-     */
-    test("has valid API key in environment", function () {
-      expectEnvVar(process.env.SERVICE_PROVIDER_API_KEY);
-    });
-
-    /**
-     * Also need valid credentials
-     */
-    test("has valid credentials in environment", function () {
-      expectEnvVar(process.env.SERVICE_ACCOUNT_USERNAME);
-      expectEnvVar(process.env.SERVICE_ACCOUNT_PASSWORD);
-      expectEnvVar(process.env.SERVICE_ACCOUNT_SECRET);
-    });
-
     /**
      * Valid API key will associate new User with an existing Provider
      */
     test("allows registration with API key", async function () {
-      const response = await register(process.env.SERVICE_PROVIDER_API_KEY??"");
+      const response = await register(process.env.SERVICE_PROVIDER_API_KEY);
       _expect(response, 200);
     });
 

@@ -112,5 +112,4 @@ jobs:
           SERVICE_ACCOUNT_PASSWORD: ${{ secrets.SERVICE_ACCOUNT_PASSWORD }}
           SERVICE_ACCOUNT_SECRET: ${{ secrets.SERVICE_ACCOUNT_SECRET }}
         run: |
-          sleep 10s
           yarn workspace oceanics-io-api jest 
