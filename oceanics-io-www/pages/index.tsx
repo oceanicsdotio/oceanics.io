@@ -1,8 +1,4 @@
-/**
- * React and friends.
- */
 import React, { useCallback } from "react";
-import type {FC} from "react"
 import { useRouter } from "next/router";
 
 /**
@@ -22,11 +18,11 @@ import useDeserialize from "../src/hooks/useDeserialize";
  * 
  * Optionally use query parameters and hash anchor to filter content. 
  */
-const IndexPage: FC<IDocumentIndexSerialized & ApplicationType> = ({
+const IndexPage = ({
     documents,
     pagingIncrement,
     ...props
-}) => {
+}: IDocumentIndexSerialized & ApplicationType) => {
     /**
      * Convert into our internal Document data model. 
      */

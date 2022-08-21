@@ -2,7 +2,7 @@
  * React and friends
  */
 import React from "react";
-import type { FC, MouseEventHandler } from "react";
+import type { MouseEventHandler } from "react";
 import styled from "styled-components";
 
 /**
@@ -22,11 +22,11 @@ interface IDocumentStub extends IDocument {
 /**
  * List view of an article
  */
-export const Stub: FC<IDocumentStub> = ({
+export const Stub = ({
   className,
   document: { slug, metadata },
   onClickLabel
-}) => {
+}: IDocumentStub) => {
   return (
     <article className={className}>
       <header>

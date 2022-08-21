@@ -14,13 +14,13 @@ import apiSpec from "./shared/bathysphere.json";
  */
 const remove: ApiHandler = async ({data: {user, nodes: [entity]}}) => {
   const { query } = (new Links()).deleteChild(user, entity);
-  await connect(query)
+  await connect(query, false)
   return {
     statusCode: 204
   }
 }
 
 export const handler = NetlifyRouter({
-  GET: metadata,  // shared with /collection
+  GET: metadata,
   DELETE: remove
 }, apiSpec.paths["/{entity}({uuid})"])

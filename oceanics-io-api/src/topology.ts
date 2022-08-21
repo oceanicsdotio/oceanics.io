@@ -10,7 +10,7 @@ const DEFAULT_LABEL = "Link"
  * Connect two nodes.
  */
 const join: ApiHandler = async ({ data: { nodes: [left, right], label=DEFAULT_LABEL } }) => {
-  await connect((new Links(label)).join(left, right).query);
+  await connect((new Links(label)).join(left, right).query, false);
   return {
     statusCode: 204
   }
@@ -20,7 +20,7 @@ const join: ApiHandler = async ({ data: { nodes: [left, right], label=DEFAULT_LA
  * Drop connection between two nodes. 
  */
 const drop: ApiHandler = async ({ data: { nodes: [left, right] } }) => {
-  await connect((new Links()).drop(left, right).query);
+  await connect((new Links()).drop(left, right).query, false);
   return {
     statusCode: 204
   }

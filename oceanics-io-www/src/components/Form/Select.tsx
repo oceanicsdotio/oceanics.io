@@ -1,7 +1,5 @@
-/**
- * React and friends
- */
-import React, { FC, ChangeEventHandler } from "react"
+import React from "react"
+import type { ChangeEventHandler } from "react"
 
 /**
  * Component level styling
@@ -11,7 +9,6 @@ import styled from "styled-components";
 /**
  * Runtime input type checking
  */
-//@ts-ignore
 import PropTypes from "prop-types";
 
 /**
@@ -34,13 +31,13 @@ export type SelectType = {
  * Generic form input component that converts to the
  * appropriate type
  */
-export const Input: FC<SelectType> = ({
+export const Input = ({
     id,
     className,
     name,
     options,
     onChange,
-}) => {
+}: SelectType) => {
    return (
         <div className={className}>
             <select id={id} name={name??id} onChange={onChange}>

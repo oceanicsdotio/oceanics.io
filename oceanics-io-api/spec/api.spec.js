@@ -236,14 +236,34 @@ describe("Auth API", function () {
   const register = (apiKey) =>
     fetch(authPath, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey ?? ""
+      },
       body: JSON.stringify({
         email: process.env.SERVICE_ACCOUNT_USERNAME,
         password: process.env.SERVICE_ACCOUNT_PASSWORD,
-        secret: process.env.SERVICE_ACCOUNT_SECRET,
-        ...(typeof apiKey === "undefined" ? {} : { apiKey }),
+        secret: process.env.SERVICE_ACCOUNT_SECRET
       }),
     });
+  
+  /**
+   * Check the required environment variables.
+   */
+  describe("Environment", function () {
+    [
+      "SERVICE_PROVIDER_API_KEY",
+      "SERVICE_ACCOUNT_USERNAME",
+      "SERVICE_ACCOUNT_PASSWORD",
+      "SERVICE_ACCOUNT_SECRET"
+    ].forEach((key) => {
+      test(`${key} is in environment`, function () {
+        const value = process.env[key];
+        expect(typeof value).toBe("string");
+        expect(value).not.toBeFalsy();
+      });
+    })
+  })
 
   /**
    * Isolate destructive actions so that it can be called
@@ -273,18 +293,10 @@ describe("Auth API", function () {
    */
   describe("Register", function () {
     /**
-     * To create a User, you need to know at least one API key
-     */
-    test("has valid API key in environment", function () {
-      expect(typeof process.env.SERVICE_PROVIDER_API_KEY).toBe("string") ;
-      expect(process.env.SERVICE_PROVIDER_API_KEY).not.toBeFalsy();
-    });
-
-    /**
      * Valid API key will associate new User with an existing Provider
      */
     test("allows registration with API key", async function () {
-      const response = await register(process.env.SERVICE_PROVIDER_API_KEY??"");
+      const response = await register(process.env.SERVICE_PROVIDER_API_KEY);
       _expect(response, 200);
     });
 
@@ -292,7 +304,6 @@ describe("Auth API", function () {
      * Missing API key is a 403 error
      */
     test("should prevent registration without API key", async function () {
-      //@ts-ignore
       const response = await register(undefined);
       _expect(response, 403);
     });

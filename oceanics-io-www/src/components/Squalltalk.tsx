@@ -1,12 +1,8 @@
-/**
- * React and friends.
- */
 import React, { useEffect } from "react";
-import type { FC } from "react";
 
 import useMapBox from "../hooks/useMapBox";
 import useWasmRuntime from "../hooks/useWasmRuntime";
-import useSharedWorkerState from "../hooks/useSharedWorkerState";
+import useWorker from "../hooks/useWorker";
 import useFragmentQueue, {
   OBJECT_STORAGE_URL,
 } from "../hooks/useFragmentQueue";
@@ -93,9 +89,9 @@ interface ISqualltalk {
 /**
  * Page component rendered by GatsbyJS.
  */
-const Squalltalk: FC<ISqualltalk> = ({ map, client, height = "500px" }) => {
+const Squalltalk = ({ map, client, height = "500px" }: ISqualltalk) => {
   const { ref, map: mapBox } = useMapBox(map);
-  const worker = useSharedWorkerState("bathysphere");
+  const worker = useWorker("bathysphere", createBathysphereWorker);
   const { runtime } = useWasmRuntime();
   const fs = useObjectStorage(OBJECT_STORAGE_URL, worker.ref);
 
@@ -108,13 +104,6 @@ const Squalltalk: FC<ISqualltalk> = ({ map, client, height = "500px" }) => {
     if (!client.location) return;
     console.log({client})
   }, [ client ])
-
-  /**
-   * Start the background worker, including a worker-bound WASM runtime. 
-   */
-  useEffect(() => {
-    worker.start(createBathysphereWorker());
-  }, []);
 
   /**
    * Load vertex array buffers from cloud storage. 
@@ -132,7 +121,7 @@ const Squalltalk: FC<ISqualltalk> = ({ map, client, height = "500px" }) => {
   );
 };
 
-export const Standalone: FC<{center: [number, number], zoom: number}> = ({center, zoom}) => {
+export const Standalone = ({center, zoom}: {center: [number, number], zoom: number}) => {
   return (
     <Squalltalk
       height={"250px"}

@@ -47,8 +47,6 @@ These environment variables must be present for things to work:
 - `SPACES_SECRET_KEY`: for accessing storage
 - `STORAGE_ENDPOINT`: the region and host for cloud storage
 - `BUCKET_NAME`: the prefix to the storage endpoint
-- `SERVICE_NAME`: grouping of data in storage
-- `PORT`: used on localhost
 - `SERVICE_PROVIDER_API_KEY`: Provider API key for registering accounts
 - `SIGNING_KEY`: A signing ket for producing JWT in-application
 - `SERVICE_ACCOUNT_USERNAME`: email for service account
@@ -58,9 +56,7 @@ These environment variables must be present for things to work:
 
 ## Database
 
-You can run the database manager in an [official Neo4j container image](https://hub.docker.com/_/neo4j/), or use a managed service that supports the [cypher query language](https://neo4j.com/docs/cypher-refcard/current/)
-
-Running automated tests populates the connected database with the examples described in `oceanics-io-www/public/bathysphere.yaml`. Use the default entities as examples to make your own.
+You can run the database manager in an [official Neo4j container image](https://hub.docker.com/_/neo4j/), or use a managed service that supports the [cypher query language](https://neo4j.com/docs/cypher-refcard/current/).
 
 If you are new to Neo4j, deploy a local container to kick the tires:
 
@@ -74,3 +70,10 @@ docker run \
 ```
 
 The [browser interface](http://localhost:7474/browser/) is useful for debugging data access layer errors. See [the official documentation for more info](https://neo4j.com/developer/neo4j-browser/).
+
+You'll have to create the root provider by executing a query like:
+```cypher
+MERGE (n:Provider { apiKey: replace(apoc.create.uuid(), '-', ''), domain: 'oceanics.io' }) return n
+```
+
+Running automated tests populates the connected database with the examples described in `oceanics-io-www/public/bathysphere.yaml`. Use the default entities as examples to make your own.

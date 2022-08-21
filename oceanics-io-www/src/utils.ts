@@ -13,6 +13,16 @@ export type RenderInstance = {
     render: () => boolean;
 }
 
+export type Points = [number, number][];
+export type EventLocation = {clientX: number; clientY: number;}; 
+export type ModuleType = typeof import("oceanics-io-www-wasm");
+
+export const eventCoordinates = ({clientX, clientY}: EventLocation, canvas: HTMLCanvasElement): [number, number] => {
+    // Short hand for element reference frame
+    const {left, top} = canvas.getBoundingClientRect();
+    return [clientX - left, clientY - top]
+};
+
 /**
  * Use the Geolocation API to retieve the location of the client,
  * and set the map center to those coordinates, and flag that the interface

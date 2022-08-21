@@ -1,7 +1,5 @@
-/**
- * React and friends
- */
-import React, { FC, ChangeEventHandler } from "react"
+import React from "react"
+import type { ChangeEventHandler } from "react"
 
 /**
  * Component level styling
@@ -11,7 +9,6 @@ import styled from "styled-components"
 /**
  * Runtime input type checking
  */
-//@ts-ignore
 import PropTypes from "prop-types"
 
 /**
@@ -35,13 +32,13 @@ export type LongTextType = {
  * Generic form input component that converts to the
  * appropriate type
  */
-export const LongText: FC<LongTextType> = ({
+export const LongText = ({
     id,
     type,
     className,
     name = null,
     ...props
-}) => 
+}: LongTextType) => 
     <textarea
         id={id}
         name={name || id}

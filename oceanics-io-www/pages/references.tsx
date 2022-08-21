@@ -1,7 +1,4 @@
-/**
- * React and friends. 
- */
-import React, { FC } from "react";
+import React from "react";
 
 /**
  * Array of references component, no heading
@@ -22,10 +19,10 @@ interface IPage extends IDocumentIndexSerialized {
  * listed in article frontmatter. Query for MDX frontmatter for references. 
  * No references can be added that aren't cited within a file.
  */
-const ReferencesPage: FC<IPage> = ({
+const ReferencesPage = ({
   className,
   documents
-}) => {
+}: IPage) => {
   const deserialized = useDeserialize(documents);
   return (
     <div className={className}>

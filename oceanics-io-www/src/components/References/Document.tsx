@@ -1,8 +1,5 @@
-/**
- * React and friends
- */
 import React from "react";
-import type { FC, MouseEventHandler } from "react"
+import type { MouseEventHandler } from "react"
 /**
  * Component level styling
  */
@@ -31,14 +28,14 @@ interface IDocumentContent extends IDocument {
  * No longer has a title heading, because this is assumed to be controlled
  * at the page level.
  */
-export const Document: FC<IDocumentContent> = ({
+export const Document = ({
   className,
   document: {
     metadata
   },
   children,
   onClickLabel
-}) => {
+}: IDocumentContent) => {
   return (
     <article className={className}>
       <header>

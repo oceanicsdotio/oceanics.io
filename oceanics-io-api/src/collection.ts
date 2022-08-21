@@ -15,7 +15,7 @@ import apiSpec from "./shared/bathysphere.json";
  */
 const create: ApiHandler = async ({ data: { user, nodes: [entity] } }) => {
     const { query } = (new Links("Create", 0, 0, "")).insert(user, entity)
-    await connect(query)
+    await connect(query, false)
     return {
         statusCode: 204
     }

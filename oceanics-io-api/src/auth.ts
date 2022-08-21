@@ -37,8 +37,9 @@ const register: ApiHandler = async ({
   const { query } = new Links("Register", 0, 0, "").insert(provider, user);
   let records: any;
   try {
-    records = await connect(query).then(transform);
-  } catch {
+    records = await connect(query, false).then(transform);
+  } catch (error) {
+    console.error({error})
     records = [];
   }
   if (records.length !== 1) return UNAUTHORIZED
@@ -77,12 +78,9 @@ const manage: ApiHandler = async ({}) => {
 const remove: ApiHandler = async ({data: {user}}) => {
   const { query } = new Links().delete(user, new Node());
   try {
-    await connect(query);
+    await connect(query, false);
   } catch (error) {
-    console.error({
-      user,
-      error
-    })
+    console.error({ error })
     return UNAUTHORIZED;
   }
   return {

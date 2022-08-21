@@ -109,37 +109,6 @@ const getPublicJsonData = async (url: string): Promise<object> => {
     }));
 };
 
-type IRegister = {
-  email: string;
-  password: string;
-  apiKey: string;
-  server: string;
-}
-
-/**
- * Create a new account for our API and services.
- */
-const register = async ({
-  email,
-  password,
-  apiKey,
-  server
-}: IRegister): Promise<object> =>
-  fetch(`${server}/api/auth`, {
-    method: "POST",
-    mode: "cors",
-    cache: "no-cache",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Api-Key": apiKey
-    },
-    body: JSON.stringify({
-      username: email,
-      password
-    })
-  })
-    .then(response => response.json());
-
 type IQuery = {
   accessToken: string;
   server: string;
@@ -165,32 +134,6 @@ const query = async ({
   })
     .then(response => response.json())
     .then(({ value }) => value);
-
-type ILogin = {
-  email: string;
-  password: string;
-  server: string;
-}
-
-/**
- * Login and get a JWT.
- */
-const login = async ({
-  email,
-  password,
-  server
-}: ILogin): Promise<string> =>
-  fetch(`${server}/api/auth`, {
-    method: "GET",
-    mode: "cors",
-    cache: "no-cache",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `${email}:${password}`
-    }
-  })
-    .then(response => response.json())
-    .then(({ token = "" }) => token);
 
 
 /**
@@ -334,45 +277,6 @@ async function initParticles(res: number) {
     () => Math.floor(Math.random() * 256)
   ))
 };
-
-type Template = {
-  name: string;
-  spriteSheet: string;
-  probability?: number;
-  value?: number;
-  limit?: number;
-}
-
-/**
- * Generate the dataUrls for icon assets in the background.
- * 
- * Not a heavy performance hit, but some of the sprite sheet logic can be moved in here
- * eventually as well.
- */
-const parseIconSet = async (
-  nodes: {slug: string}[], 
-  templates: Template[], 
-  worldSize: number
-) => {
-
-  const lookup = Object.fromEntries(
-    nodes.map(({ slug }) => [slug, slug])
-  );
-
-  return templates.map(({
-    name,
-    spriteSheet,
-    probability = 0.0,
-    value = 0.0,
-    limit = worldSize * worldSize
-  }) => ({
-    key: name.toLowerCase().split(" ").join("-"),
-    dataUrl: lookup[spriteSheet],
-    limit,
-    probability,
-    value
-  }));
-}
 
 /**
  * Max regional ocean depth for bthymetry rendering
@@ -789,13 +693,6 @@ ctx.addEventListener("message", async ({ data }: MessageEvent) => {
       ctx.postMessage({
         type: "data",
         data: await getFragment(data.target, data.key, data.attribution),
-      });
-      return;
-    case "parseIconSet":
-      ctx.postMessage({
-        type: "parseIconSet",
-        //@ts-ignore
-        data: await parseIconSet(...data.data),
       });
       return;
     default:

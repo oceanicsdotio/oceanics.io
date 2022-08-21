@@ -8,7 +8,6 @@ import styled from "styled-components";
  */
 import {ghost} from "../../palette"
 
-
 /**
  * Styled div, nothing special
  */

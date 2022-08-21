@@ -1,16 +1,10 @@
-/**
- * React and friends.
- */
-import React, { FC } from "react";
+import React from "react";
 
 /**
  * Component-level styling.
  */
 import styled from "styled-components";
 import {columnSize} from "./utils";
-
-
-
 
 type PaneType = {
     row: number;
@@ -24,10 +18,10 @@ type PaneType = {
 /**
  * Page component rendered by GatsbyJS.
  */
-const Pane: FC<PaneType> = ({
+const Pane = ({
     className, 
     children
-}) => {
+}: PaneType) => {
     return (
         <div className={className}>
             {children}

@@ -1,7 +1,7 @@
 /**
  * react and friends
  */
-import React, { FC } from "react";
+import React from "react";
 
 /**
  * Component level styling
@@ -16,10 +16,10 @@ import type {IDocument} from "./types";
 /**
  Single reference to journal article or similar material.
  */
-export const Reference: FC<IDocument> = ({
+export const Reference = ({
     className,
     document
-}) => {
+}: IDocument) => {
     return <div key={document.hash} className={className}>
         <a id={document.hash} />
         {document.reference}

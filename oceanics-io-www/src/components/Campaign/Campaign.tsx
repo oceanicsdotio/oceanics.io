@@ -1,7 +1,7 @@
 /**
  * React and friends.
  */
-import React, { useMemo, FC } from "react";
+import React, { useMemo } from "react";
 
 /**
  * Stylish stuff
@@ -35,12 +35,12 @@ export interface ICampaignType {
  * 
  * Optionally use query parameters and hash anchor to filter content. 
  */
-export const Campaign: FC<ICampaignType> = ({
+export const Campaign = ({
     className,
     campaign: {
         description
     }
-}) => {
+}: ICampaignType) => {
     /**
      * Format the narrative, we need to break into semantic paragraphs.
      */
