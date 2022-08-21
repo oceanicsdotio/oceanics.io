@@ -21,6 +21,6 @@ const remove: ApiHandler = async ({data: {user, nodes: [entity]}}) => {
 }
 
 export const handler = NetlifyRouter({
-  GET: metadata,  // shared with /collection
+  GET: metadata,
   DELETE: remove
 }, apiSpec.paths["/{entity}({uuid})"])
