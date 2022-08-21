@@ -6,7 +6,6 @@ import React, {useState} from "react";
 /**
  * Type checking
  */
-//@ts-ignore
 import PropTypes from "prop-types";
 
 /**

@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from "react";
 import useWorker from "../../hooks/useWorker";
 
-
+export interface IAccount {
+  server: string
+  email?: string
+  password?: string
+  salt?: string
+}
 
 // This has to be defined in global scope to force Webpack to bundle the script. 
 const createWorker = () => 
@@ -21,16 +26,17 @@ const createWorker = () =>
  * 
  */
 const Account = ({
-  server
-}: {
-  server: string
-}) => {
-    const [registered, setRegistered] = useState(false);
-    const [loggedIn, setLoggedIn] = useState(false);
+  server,
+  ...props
+}: IAccount) => {
+
+    const [email] = useState(props.email??"");
+    const [password] = useState(props.password??"");
+    const [salt] = useState(props.salt??"");
 
     const worker = useWorker("account", createWorker);
 
-    const listener = ({ data }: any) => {
+    const listener = ({ data }: { data: { data: any, type: string}}) => {
       console.log(data)
     }
 
@@ -40,8 +46,9 @@ const Account = ({
       worker.ref.current.postMessage({
         type: "login",
         data: {
-          email: "",
-          password: "",
+          email,
+          password,
+          salt,
           server
         },
       });
@@ -51,7 +58,9 @@ const Account = ({
       };
     }
 
-    return <button onClick={onClick}>Login</button>
+    return (
+      <button onClick={onClick}>Login</button>
+    )
 }
 
 export default Account

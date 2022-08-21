@@ -32,9 +32,10 @@ const register = async ({
     .then(response => response.json());
 
 type ILogin = {
-  email: string;
-  password: string;
-  server: string;
+  email: string
+  password: string
+  server: string
+  salt: string
 }
 
 /**
@@ -43,17 +44,23 @@ type ILogin = {
 const login = async ({
   email,
   password,
+  salt,
   server
 }: ILogin): Promise<string> => {
   const url = `${server}/api/auth`;
-  console.log("Worker", {url})
+  console.log("Worker", {
+    email,
+    password,
+    salt,
+    url
+  })
   const response = await fetch(url, {
     method: "GET",
     mode: "cors",
     cache: "no-cache",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": `${email}:${password}`
+      "Authorization": `${email}:${password}:${salt}`
     }
   })
   const {token} = await response.json()
