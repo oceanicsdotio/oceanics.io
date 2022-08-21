@@ -5,8 +5,6 @@ import React from "react";
 import { Meta, Story } from "@storybook/react";
 import Account from "./Account";
 
-const PORT = process.env.STORYBOOK_PORT || 9009;
-
 /**
  * Storybook interface
  */
@@ -26,5 +24,5 @@ const Template: Story<any> = (args) => <Account {...args} />;
  */
 export const Default = Template.bind({});
 Default.args = {
-  server: `http://localhost:${PORT}`
+  server: `http://localhost:8888`
 };
