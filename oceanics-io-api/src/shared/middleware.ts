@@ -371,6 +371,7 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: Object): Handler 
             // Only for registration on /auth route
             provider = materialize(apiKeyClaim(headers), "p", "Provider");
             if (!provider.patternOnly().includes("apiKey")) return UNAUTHORIZED;
+            console.log(body)
             const {
                 email,
                 password,

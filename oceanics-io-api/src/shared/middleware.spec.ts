@@ -1,4 +1,5 @@
 import fetch from "node-fetch";
+import type { Headers } from "node-fetch";
 import { describe, expect, test } from '@jest/globals'
 import crypto from "crypto";
 import { asNodes, filterBaseRoute } from "../shared/middleware";
@@ -9,7 +10,6 @@ import spec from "./bathysphere.json";
 const HOSTNAME = "http://localhost:8888";
 export const BASE_PATH = `${HOSTNAME}/.netlify/functions`;
 export const API_PATH = `${HOSTNAME}/api`;
-
 
 // Lookup for entity type by domain area
 export const EXTENSIONS = {
@@ -42,44 +42,12 @@ export const EXTENSIONS = {
   ]),
 };
 
-
 // Format the Authorization header, picking up from env var if undefined
 export const Authorization = (
   username: string = process.env.SERVICE_ACCOUNT_USERNAME ?? "",
   password: string = process.env.SERVICE_ACCOUNT_PASSWORD ?? "",
   secret: string = process.env.SERVICE_ACCOUNT_SECRET ?? ""
 ) => [username, password, secret].join(":")
-
-
-
-/**
- * Execute many requests against a single endpoint, in this case
- * stripping out any topological metadata.
- * 
- * This is specific to creating sensor things style nodes,
- * but is purposefully generic so maybe can be brought into
- * main API
- */
-export const batch = async (composeTransaction, nodeType, data) => {
-  const token = await fetchToken();
-  const job = composeTransaction(token, `${API_PATH}/${nodeType}`);
-  const queue = data.map((each) =>
-    Object.fromEntries(
-      Object.entries(each).filter(([key]) => !key.includes("@"))
-    )
-  );
-  return Promise.allSettled(queue.map(job));
-};
-
-
-/**
- * Convenience method for submitting options query.
- */
- export const options = (token, route = "") =>
- fetch(`${API_PATH}/${route}`, {
-   method: "OPTIONS",
-   headers: { Authorization: `bearer:${token}` },
- });
 
 // Shallow copy and insert uuid v4
 const insertId = (props: Object) => Object({ ...props, uuid: crypto.randomUUID() });
@@ -113,8 +81,9 @@ export const fetchToken = async () => {
     },
   })
   expect(response.status).toBe(200);
-  //@ts-ignore
-  const { token } = response.json();
+  const {token} = await response.json();
+  expect(typeof token).toBe("string");
+  expect(token).not.toBeFalsy();
   return token;
 }
 
@@ -122,19 +91,22 @@ export const fetchToken = async () => {
    * Convenience method for creating consistent test user account under
    * multiple providers.
    */
-   export const register = (apiKey: string) =>
-   fetch(`${API_PATH}/auth`, {
-     method: "POST",
-     headers: {
-       "Content-Type": "application/json",
-       "x-api-key": apiKey ?? ""
-     },
-     body: JSON.stringify({
-       email: process.env.SERVICE_ACCOUNT_USERNAME,
-       password: process.env.SERVICE_ACCOUNT_PASSWORD,
-       secret: process.env.SERVICE_ACCOUNT_SECRET
-     }),
-   });
+   export const register = (apiKey: string) => {
+    const body = JSON.stringify({
+      email: process.env.SERVICE_ACCOUNT_USERNAME,
+      password: process.env.SERVICE_ACCOUNT_PASSWORD,
+      secret: process.env.SERVICE_ACCOUNT_SECRET
+    })
+    return fetch(`${API_PATH}/auth`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey ?? ""
+      },
+      body,
+    });
+  }
+
 
 // Bind an auth token to fetch transaction
 export const apiFetch = (token: string, url: string, method: string = "GET") => async (data?: Object) => {
@@ -148,7 +120,7 @@ export const apiFetch = (token: string, url: string, method: string = "GET") => 
   })
 };
 
-describe("Middleware", function () {
+describe("middleware", function () {
 
   test("parses get entity path", function () {
     const uuid = `abcd`;

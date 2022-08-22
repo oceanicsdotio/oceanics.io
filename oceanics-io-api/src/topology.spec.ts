@@ -2,16 +2,17 @@ import fetch from "node-fetch";
 import { describe, expect, test } from '@jest/globals';
 import { fetchToken, apiFetch, API_PATH } from "./shared/middleware.spec";
 
-
 describe("Topology", function () {
   describe("Join Nodes", function() {
     test("join two well-known nodes",  async function() {
       const token = await fetchToken();
       const things = await apiFetch(token, `${API_PATH}/Things`)();
+      const {value: [{uuid: thingsId}]} = await things.json();
       const locations = await apiFetch(token, `${API_PATH}/Locations`)();
+      const {value: [{uuid: locationsId}]} = await locations.json();
       const queryData = {
-        Things: things.value[0].uuid,
-        Locations: locations.value[0].uuid,
+        Things: thingsId,
+        Locations: locationsId,
       }
       const response = await fetch(
         `${API_PATH}/Things(${queryData.Things})/Locations(${queryData.Locations})`,
