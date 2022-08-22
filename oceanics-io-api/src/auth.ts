@@ -4,10 +4,11 @@ import type { ApiHandler } from "./shared/middleware";
 
 import { 
   connect, 
-  transform,
+  recordsToProperties,
   NetlifyRouter,
   UNAUTHORIZED,
-  dematerialize
+  dematerialize,
+  WRITE
 } from "./shared/middleware";
 
 import { Links, Node } from "oceanics-io-api-wasm";
@@ -37,7 +38,8 @@ const register: ApiHandler = async ({
   const { query } = new Links("Register", 0, 0, "").insert(provider, user);
   let records: any;
   try {
-    records = await connect(query, false).then(transform);
+    const result = await connect(query, WRITE);
+    records = recordsToProperties(result);
   } catch (error) {
     console.error({error})
     records = [];
@@ -78,7 +80,7 @@ const manage: ApiHandler = async ({}) => {
 const remove: ApiHandler = async ({data: {user}}) => {
   const { query } = new Links().delete(user, new Node());
   try {
-    await connect(query, false);
+    await connect(query, WRITE);
   } catch (error) {
     console.error({ error })
     return UNAUTHORIZED;
