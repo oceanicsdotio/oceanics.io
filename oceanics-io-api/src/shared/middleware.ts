@@ -134,6 +134,29 @@ type RecordObject = {
     labels: string[]
     properties: Properties
 }
+
+
+// Convenience methods for chaining
+const RESTRICTED = new Set(["Provider", "User"]);
+
+const filterAllowedLabels = (label: string) => !RESTRICTED.has(label);
+
+const recordsToLabels = ({ records }: QueryResult) => 
+    records.flatMap((record: Record) => {
+        return record.get(0)
+    })
+
+export const recordsToUniqueLabels = (result: QueryResult) => 
+    recordsToLabels(result).filter(filterAllowedLabels)
+
+const labelToRoute = (label: string) => Object({
+    name: label,
+    url: `/api/${label}`
+})
+
+export const recordsToUniqueRoutes = (result: QueryResult) =>
+    recordsToUniqueLabels(result).map(labelToRoute)
+
 // QueryResult to POJO
 const recordsToObjects = ({ records }: QueryResult): RecordObject[] =>
     records.flatMap((record) => Object.values(record.toObject()))

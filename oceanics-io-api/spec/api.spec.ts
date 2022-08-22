@@ -58,19 +58,17 @@ const EXTENSIONS = {
 /**
  * Use canonical test user information to get a Javascript Web Token.
  */
-const fetchToken = () =>
-  fetch(`${API_PATH}/auth`, {
+const fetchToken = async () => {
+  const response = await fetch(`${API_PATH}/auth`, {
     headers: {
       Authorization: SERVICE_ACCOUNT_AUTHENTICATION,
     },
-  }).then((response) => response.json());
-
-/**
- * Test the status code, just shorthand to avoid writing error messages
- */
-const _expect = (response, expectedStatus) => {
-  expect(response.status).toEqual(expectedStatus)
-};
+  })
+  expect(response.status).toBe(200);
+  //@ts-ignore
+  const { token } = response.json();
+  return token;
+}
 
 /**
  * Returns transaction promise function
@@ -95,7 +93,7 @@ const composeWriteTransaction = (token, url) => (data) => {
  * main API
  */
 const batch = async (composeTransaction, nodeType, data) => {
-  const { token } = await fetchToken();
+  const token = await fetchToken();
   const job = composeTransaction(token, `${API_PATH}/${nodeType}`);
   const queue = data.map((each) =>
     Object.fromEntries(
@@ -120,7 +118,9 @@ const parseNodesFromApi = () => {
     "utf8"
   );
   spec = YAML.parse(text);
+  
   const nodes = Object.entries(spec.components.schemas)
+    //@ts-ignore
     .map(([key, value]) => [key, insertIds(value.examples ?? [])]);
   return Object.fromEntries(nodes);
 }
@@ -132,6 +132,7 @@ describe("Middleware", function () {
   test("parses get entity path", function () {
     const uuid = `abcd`;
     const path = `api/DataStreams(${uuid})`;
+    //@ts-ignore
     const nodeTransform = asNodes("GET", "");
     const segments = path.split("/").filter(filterBaseRoute)
     const node = nodeTransform(segments[0], 0);
@@ -141,6 +142,7 @@ describe("Middleware", function () {
   test("parses post collection path", function () {
     const uuid = `abcd`;
     const path = `api/DataStreams`;
+    //@ts-ignore
     const nodeTransform = asNodes("POST", JSON.stringify({uuid}));
     const segments = path.split("/").filter(filterBaseRoute)
     const node = nodeTransform(segments[0], 0);
@@ -266,6 +268,23 @@ describe("Auth API", function () {
   })
 
   /**
+   * Run setup of constraints on database
+   */
+  describe("Constraints", function () {
+    /**
+     * Add UUID index for each known type
+     */
+
+    /**
+     * Add User index
+     */
+
+    /**
+     * Add Provider index
+     */
+  })
+
+  /**
    * Isolate destructive actions so that it can be called
    * with mocha grep flag.
    */
@@ -276,7 +295,7 @@ describe("Auth API", function () {
      * Removed the route from the API for the time being. 
      */
     test("clears non-provider, nodes", async function () {
-      const {token} = await fetchToken()
+      const token = await fetchToken()
       const response = await fetch(authPath, {
         method: "DELETE",
         headers: {
@@ -297,7 +316,7 @@ describe("Auth API", function () {
      */
     test("allows registration with API key", async function () {
       const response = await register(process.env.SERVICE_PROVIDER_API_KEY);
-      _expect(response, 200);
+      expect(response.status).toEqual(200);
     });
 
     /**
@@ -305,7 +324,7 @@ describe("Auth API", function () {
      */
     test("should prevent registration without API key", async function () {
       const response = await register(undefined);
-      _expect(response, 403);
+      expect(response.status).toEqual(403);
     });
 
     /**
@@ -313,7 +332,7 @@ describe("Auth API", function () {
      */
     test("should prevent registration with wrong API key", async function () {
       const response = await register("not-a-valid-api-key");
-      _expect(response, 403);
+      expect(response.status).toEqual(403);
     });
   });
 
@@ -325,9 +344,9 @@ describe("Auth API", function () {
      * Memoize a valid Token
      */
     test("returns well-formed token given credentials", async function () {
-      const data = await fetchToken();
-      expect(typeof data.token).toBe("string");
-      expect(data.token).not.toBeFalsy();
+      const token = await fetchToken();
+      expect(typeof token).toBe("string");
+      expect(token).not.toBeFalsy();
     });
 
     /**
@@ -335,7 +354,7 @@ describe("Auth API", function () {
      */
     test("denies access without credentials", async function () {
       const response = await fetch(authPath);
-      _expect(response, 403);
+      expect(response.status).toEqual(403);
     });
 
     /**
@@ -353,7 +372,7 @@ describe("Auth API", function () {
           ),
         },
       });
-      _expect(response, 403);
+      expect(response.status).toEqual(403);
     });
 
     /**
@@ -371,7 +390,7 @@ describe("Auth API", function () {
           ),
         },
       });
-      _expect(response, 403);
+      expect(response.status).toEqual(403);
     });
   });
 
@@ -383,14 +402,14 @@ describe("Auth API", function () {
      * Update is not implemented
      */
     test("authenticates with JWT", async function () {
-      const { token } = await fetchToken();
+      const token = await fetchToken();
       const response = await fetch(authPath, {
         method: "PUT",
         headers: {
           Authorization: ["BearerAuth", token].join(":")
         }
       })
-      _expect(response, 501)
+      expect(response.status).toEqual(501)
     })
   })
 });
@@ -436,9 +455,9 @@ describe("Sensing API", function () {
      * Options for path length zero
      */
     test("reports for base path", async function () {
-      const { token } = await fetchToken();
+      const token = await fetchToken();
       const response = await options(token);
-      _expect(response, 204);
+      expect(response.status).toEqual(204);
       testAllowedMethodCount(response.headers, 2);
     });
 
@@ -446,9 +465,9 @@ describe("Sensing API", function () {
      * Options for path length one
      */
     test("reports for single-node path", async function () {
-      const { token } = await fetchToken();
+      const token = await fetchToken();
       const response = await options(token, "Things");
-      _expect(response, 204);
+      expect(response.status).toEqual(204);
       testAllowedMethodCount(response.headers, 3);
     });
 
@@ -456,9 +475,9 @@ describe("Sensing API", function () {
      * Options for topological paths
      */
     test.skip("reports for multi-node path", async function () {
-      const { token } = await fetchToken();
+      const token = await fetchToken();
       const response = await options(token, "Things/Locations");
-      _expect(response, 204);
+      expect(response.status).toEqual(204);
       testAllowedMethodCount(response.headers, 4);
     });
   });
@@ -474,7 +493,7 @@ describe("Sensing API", function () {
       const responses = await batchPromises;
       expect(responses.length).toBeGreaterThanOrEqual(1)
       responses.forEach(({ value: response }) => {
-        _expect(response, 204);
+        expect(response.status).toEqual(204);
       });
     };
 
@@ -508,14 +527,14 @@ describe("Sensing API", function () {
          * Get the index of all node labels with API routes
          */
       test("retrieves collection index", async function () {
-        const { token } = await fetchToken();
+        const token = await fetchToken();
         const response = await fetch(`${API_PATH}/`, {
           headers: {
             "Content-Type": "application/json",
             Authorization: `bearer:${token}`,
           },
         });
-        _expect(response, 200);
+        expect(response.status).toEqual(200);
         const data = await response.json();
         expect(data.length).toBeGreaterThanOrEqual(1)
         const names = new Set(data.map((item) => item.name));
@@ -531,7 +550,7 @@ describe("Sensing API", function () {
        */
       for (const nodeType of EXTENSIONS.sensing) {
         test(`retrieves index of ${nodeType}`, async function () {
-          const {token} = await fetchToken();
+          const token = await fetchToken();
           const data = await readTransaction(token)(nodeType);
           const actual = data["@iot.count"];
           const expected = WELL_KNOWN_NODES[nodeType].length;
@@ -548,7 +567,7 @@ describe("Sensing API", function () {
        * then receive 404.
        */
       const validateByType = async (nodeType) => {
-        const { token } = await fetchToken();
+        const token = await fetchToken();
         const things = CREATED_UUID[nodeType]
         const result = things.map(async ({uuid})=> {
           const response = await fetch(
@@ -561,7 +580,7 @@ describe("Sensing API", function () {
             }
           );
           const data = await response.json();
-          _expect(response, 200);
+          expect(response.status).toEqual(200);
           expect(data.value.length).toBe(1)
           expect(uuid).toBe(data.value[0].uuid)
         })
@@ -579,7 +598,7 @@ describe("Sensing API", function () {
 
   describe("Join Nodes", function() {
     test("joins two well-known nodes",  async function() {
-      const {token} = await fetchToken();
+      const token = await fetchToken();
       const read = readTransaction(token);
       const things = await read("Things");
       const locations = await read("Locations");
@@ -598,7 +617,7 @@ describe("Sensing API", function () {
           body: JSON.stringify({})
         }
       )
-      _expect(response, 204);
+      expect(response.status).toEqual(204);
     }, 5000)
   })
 });
@@ -627,7 +646,7 @@ describe("Lexicon API", function () {
           maxCost: 1,
         }),
       });
-      _expect(response.status).toEqual(200);
+      expect(response.status).toEqual(200);
     });
   });
 });

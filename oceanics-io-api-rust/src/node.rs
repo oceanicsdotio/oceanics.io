@@ -158,32 +158,33 @@ pub mod node {
 
     /**
      * Data structure representing a Node Index, which can be used to
-     * to create index on node property to speed up retievals and enfroce
+     * to create index on node property to speed up retrievals and enforce
      * unique constraints.
      */
     #[wasm_bindgen]
-    #[derive(Deserialize,Serialize)]
+    #[derive(Deserialize, Serialize)]
     #[serde(rename_all = "camelCase")]
-    pub struct NodeIndex {
+    pub struct NodeConstraint {
         label: String,
         key: String,
     }
+
     /**
-     * Public Python implementation for NodeIndex
+     * Public implementation for NodeIndex
      */
     #[wasm_bindgen]
-    impl NodeIndex {
+    impl NodeConstraint {
         #[wasm_bindgen(constructor)]
         pub fn new(label: String, key: String) -> Self {
-            NodeIndex { label, key }
+            NodeConstraint { label, key }
         }
         /**
          * Indexes add a unique constraint as well as speeding up queries
          * on the graph database.
          */
-        pub fn add(&self) -> Cypher {
+        pub fn create_index(&self) -> Cypher {
             let query = format!(
-                "CREATE INDEX FOR (n:{}) ON (n.{})", 
+                "CREATE INDEX IF NOT EXISTS FOR (n:{}) ON (n.{})", 
                 self.label, 
                 self.key
             );
@@ -192,7 +193,7 @@ pub mod node {
         /**
          * Remove the index
          */
-        pub fn drop(&self) -> Cypher {
+        pub fn drop_index(&self) -> Cypher {
             let query = format!(
                 "DROP INDEX ON : {}({})", 
                 self.label, 
@@ -205,10 +206,11 @@ pub mod node {
          */
         pub fn unique_constraint(&self) -> Cypher {
             let query = format!(
-                "CREATE CONSTRAINT ON (n:{}) ASSERT n.{} IS UNIQUE",
+                "CREATE CONSTRAINT IF NOT EXISTS FOR (n:{}) REQUIRE n.{} IS UNIQUE",
                 self.label, self.key
             );
             Cypher::new(query, false)
         }
+
     }
 }
