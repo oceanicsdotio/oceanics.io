@@ -178,6 +178,7 @@ pub mod node {
         pub fn new(label: String, key: String) -> Self {
             NodeConstraint { label, key }
         }
+
         /**
          * Indexes add a unique constraint as well as speeding up queries
          * on the graph database.

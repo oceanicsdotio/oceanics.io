@@ -20,17 +20,7 @@ const index: ApiHandler = async () => {
   };
 }
 
-/**
- * Initialize the database
- */
-const configure: ApiHandler = async () => {
-  return {
-    statusCode: 204
-  }
-}
-
 // HTTP method router
 export const handler = NetlifyRouter({
-  GET: index,
-  POST: configure
+  GET: index
 }, apiSpec.paths["/"])

@@ -3,7 +3,7 @@ import YAML from "yaml";
 import { readFileSync } from "fs";
 import { describe, expect, test } from '@jest/globals'
 import crypto from "crypto";
-import { asNodes, filterBaseRoute, dematerialize } from "../src/shared/middleware";
+import { asNodes, filterBaseRoute, dematerialize, setupQueries } from "../shared/middleware";
 
 // MERGE (n:Provider { apiKey: replace(apoc.create.uuid(), '-', ''), domain: 'oceanics.io' }) return n
 
@@ -222,197 +222,16 @@ describe("API Request Validator", function () {
 })
 
 /**
- * Stand alone tests for the Auth flow. Includes initial
- * teardown of test artifacts remaining in the graph.
- *
- * On a clean database, the first test will fail.
+ * Run setup of constraints on database
  */
-describe("Auth API", function () {
-
-  const authPath = `${API_PATH}/auth`;
-
+describe("Database constraints", function () {
   /**
-   * Convenience method for creating consistent test user account under
-   * multiple providers.
+   * Add UUID index for each known type
    */
-  const register = (apiKey) =>
-    fetch(authPath, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey ?? ""
-      },
-      body: JSON.stringify({
-        email: process.env.SERVICE_ACCOUNT_USERNAME,
-        password: process.env.SERVICE_ACCOUNT_PASSWORD,
-        secret: process.env.SERVICE_ACCOUNT_SECRET
-      }),
-    });
-  
-  /**
-   * Check the required environment variables.
-   */
-  describe("Environment", function () {
-    [
-      "SERVICE_PROVIDER_API_KEY",
-      "SERVICE_ACCOUNT_USERNAME",
-      "SERVICE_ACCOUNT_PASSWORD",
-      "SERVICE_ACCOUNT_SECRET"
-    ].forEach((key) => {
-      test(`${key} is in environment`, function () {
-        const value = process.env[key];
-        expect(typeof value).toBe("string");
-        expect(value).not.toBeFalsy();
-      });
-    })
+  test("dry run setup queries", async function() {
+    setupQueries()
   })
-
-  /**
-   * Run setup of constraints on database
-   */
-  describe("Constraints", function () {
-    /**
-     * Add UUID index for each known type
-     */
-
-    /**
-     * Add User index
-     */
-
-    /**
-     * Add Provider index
-     */
-  })
-
-  /**
-   * Isolate destructive actions so that it can be called
-   * with mocha grep flag.
-   */
-  describe("Teardown", function () {
-    /**
-     * Remove User and and all linked, non-provider nodes.
-     * 
-     * Removed the route from the API for the time being. 
-     */
-    test("clears non-provider, nodes", async function () {
-      const token = await fetchToken()
-      const response = await fetch(authPath, {
-        method: "DELETE",
-        headers: {
-          Authorization: ["BearerAuth", token].join(":"),
-        },
-      });
-      expect(response.status).toBe(204);
-    }, 5000);
-  });
-
-  /**
-   * Test creating a valid new account, and also make sure that bad
-   * auth/apiKey values prevent access and return correct status codes.
-   */
-  describe("Register", function () {
-    /**
-     * Valid API key will associate new User with an existing Provider
-     */
-    test("allows registration with API key", async function () {
-      const response = await register(process.env.SERVICE_PROVIDER_API_KEY);
-      expect(response.status).toEqual(200);
-    });
-
-    /**
-     * Missing API key is a 403 error
-     */
-    test("should prevent registration without API key", async function () {
-      const response = await register(undefined);
-      expect(response.status).toEqual(403);
-    });
-
-    /**
-     * Invalid API key is a 403 error
-     */
-    test("should prevent registration with wrong API key", async function () {
-      const response = await register("not-a-valid-api-key");
-      expect(response.status).toEqual(403);
-    });
-  });
-
-  /**
-   * Test Bearer Token based authentication
-   */
-  describe("JWT Auth", function () {
-    /**
-     * Memoize a valid Token
-     */
-    test("returns well-formed token given credentials", async function () {
-      const token = await fetchToken();
-      expect(typeof token).toBe("string");
-      expect(token).not.toBeFalsy();
-    });
-
-    /**
-     * Missing header is a 403 error
-     */
-    test("denies access without credentials", async function () {
-      const response = await fetch(authPath);
-      expect(response.status).toEqual(403);
-    });
-
-    /**
-     * Bad credential is a 403 error
-     */
-    test("denies access with wrong credentials", async function () {
-      const response = await fetch(authPath, {
-        headers: {
-          Authorization: [
-            process.env.SERVICE_ACCOUNT_USERNAME, 
-            "a-very-bad-password", 
-            process.env.SERVICE_ACCOUNT_SECRET
-          ].join(
-            ":"
-          ),
-        },
-      });
-      expect(response.status).toEqual(403);
-    });
-
-    /**
-     * Bad secret is a 403 error
-     */
-     test("denies access with wrong salt", async function () {
-      const response = await fetch(authPath, {
-        headers: {
-          Authorization: [
-            process.env.SERVICE_ACCOUNT_USERNAME, 
-            process.env.SERVICE_ACCOUNT_PASSWORD, 
-            "a-very-bad-secret",
-          ].join(
-            ":"
-          ),
-        },
-      });
-      expect(response.status).toEqual(403);
-    });
-  });
-
-  /**
-   * Confirm that JWT can be used to access an endpoint with BearerAuth security
-   */
-  describe("Manage account", function () {
-    /**
-     * Update is not implemented
-     */
-    test("authenticates with JWT", async function () {
-      const token = await fetchToken();
-      const response = await fetch(authPath, {
-        method: "PUT",
-        headers: {
-          Authorization: ["BearerAuth", token].join(":")
-        }
-      })
-      expect(response.status).toEqual(501)
-    })
-  })
-});
+})
 
 /**
  * Collect tests that create, get, and manipulate graph nodes related
@@ -509,56 +328,11 @@ describe("Sensing API", function () {
     }
   });
 
-  const readTransaction = (token) => async (nodeType) => {
-    return fetch(`${API_PATH}/${nodeType}`, {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `bearer:${token}`,
-      },
-    }).then(response => response.json());
-  };
 
   describe("Verify persisted data", function () {
 
     const CREATED_UUID = {};
     
-    describe("Query index", function () {
-      /**
-         * Get the index of all node labels with API routes
-         */
-      test("retrieves collection index", async function () {
-        const token = await fetchToken();
-        const response = await fetch(`${API_PATH}/`, {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `bearer:${token}`,
-          },
-        });
-        expect(response.status).toEqual(200);
-        const data = await response.json();
-        expect(data.length).toBeGreaterThanOrEqual(1)
-        const names = new Set(data.map((item) => item.name));
-        expect(EXTENSIONS.auth.every((omit) => !names.has(omit))).toBe(true)
-      });
-    })
-  
-    describe("Query collection", function() {
-      /**
-       * After the graph has been population there should be some number
-       * of each type of entity node. The number of nodes in the response
-       * should be predicted from the the example nodes in the API spec.
-       */
-      for (const nodeType of EXTENSIONS.sensing) {
-        test(`retrieves index of ${nodeType}`, async function () {
-          const token = await fetchToken();
-          const data = await readTransaction(token)(nodeType);
-          const actual = data["@iot.count"];
-          const expected = WELL_KNOWN_NODES[nodeType].length;
-          expect(expected).toBe(actual)
-          CREATED_UUID[nodeType] = data.value;
-        });
-      }
-    });
   
     describe("Query nodes", function () {
       /**
@@ -595,58 +369,4 @@ describe("Sensing API", function () {
     })
   })
   
-
-  describe("Join Nodes", function() {
-    test("joins two well-known nodes",  async function() {
-      const token = await fetchToken();
-      const read = readTransaction(token);
-      const things = await read("Things");
-      const locations = await read("Locations");
-      const queryData = {
-        Things: things.value[0].uuid,
-        Locations: locations.value[0].uuid,
-      }
-      const response = await fetch(
-        `${API_PATH}/Things(${queryData.Things})/Locations(${queryData.Locations})`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `bearer:${token}`,
-          },
-          body: JSON.stringify({})
-        }
-      )
-      expect(response.status).toEqual(204);
-    }, 5000)
-  })
-});
-
-/**
- * A stand-alone function for dictionary and aliasing
- * features
- */
-describe("Lexicon API", function () {
-  /**
-   * Test correcting input word to the closest
-   * well-known match.
-   */
-  describe("Well Known Words", function () {
-    /**
-     * Dummy function works but is not fully implemented
-     */
-    test.skip("works?", async function () {
-      const response = await fetch(`${BASE_PATH}/lexicon`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          pattern: "lexicon",
-          maxCost: 1,
-        }),
-      });
-      expect(response.status).toEqual(200);
-    });
-  });
 });

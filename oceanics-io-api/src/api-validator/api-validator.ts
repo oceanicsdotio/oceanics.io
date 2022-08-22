@@ -1,4 +1,3 @@
-
 import type { Handler } from "@netlify/functions";
 import spec from "./bathysphere.json";
 import Ajv from "ajv";
@@ -19,7 +18,7 @@ const handler: Handler = async ({ body, httpMethod }) => {
     }
   }
   const { data, reference } = JSON.parse(body);
-  let test;
+  let test: boolean;
   try {
     test = ajv.validate({ $ref: `${API_NAME}${reference}`}, data);
   } catch (error) {
@@ -31,8 +30,7 @@ const handler: Handler = async ({ body, httpMethod }) => {
   }
   
   let schema = spec;
-  let last = "#";
-  for (const part of reference.split("/").filter((symbol) => symbol !== "#")) {
+  for (const part of reference.split("/").filter((symbol: string) => symbol !== "#")) {
     schema = schema[part]
     if (typeof schema === "undefined") {
       return {
@@ -41,7 +39,6 @@ const handler: Handler = async ({ body, httpMethod }) => {
         headers: { "Content-Type": "application/json" }
       }
     }
-    last = part;
   }
 
   return {

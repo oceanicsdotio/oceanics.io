@@ -4,7 +4,7 @@ import type { Record, QueryResult } from "neo4j-driver";
 import jwt from "jsonwebtoken";
 import type { JwtPayload } from "jsonwebtoken";
 import crypto from "crypto";
-import { Node, Links } from "oceanics-io-api-wasm";
+import { Node, Links, NodeConstraint } from "oceanics-io-api-wasm";
 
 // Stub type for generic entity Properties object.
 export type Properties = { [key: string]: any };
@@ -86,6 +86,16 @@ export const connect = async (query: string, readOnly: boolean) => {
     const result = await session.run(query);
     await driver.close();
     return result;
+}
+
+export const setupQueries = (): Promise<QueryResult>[] => {
+    return [
+        ["User", "email"],
+        ["Provider", "apiKey"],
+        ["Provider", "domain"]
+    ].map(
+        (pair) => (new NodeConstraint(...pair)).createIndex().query
+    )
 }
 
 /**
