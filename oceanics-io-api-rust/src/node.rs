@@ -9,7 +9,7 @@ pub mod node {
      * representing entities in the Cypher query language.
      */
     #[wasm_bindgen]
-    #[derive(Debug,Deserialize,Serialize)]
+    #[derive(Debug, Deserialize, Serialize)]
     #[serde(rename_all = "camelCase")]
     pub struct Node {
         pattern: Option<String>,
@@ -27,6 +27,7 @@ pub mod node {
                 label,
             }
         }
+
         // pub fn materialize(properties: &JsValue, symbol: Option<String>, label: Option<String>) -> Self {
         //     let pattern = String::new();
         //     let mut props = properties.into_serde().unwrap();
@@ -86,6 +87,7 @@ pub mod node {
             }
             format!("( {}{}{} )", self.symbol(), label, self.pattern_only())
         }
+
         /**
          * Count instances of the node label.
          */
@@ -97,6 +99,7 @@ pub mod node {
             );
             Cypher::new(query, false)
         }
+
         /**
          * Apply new label to the node set matching the node pattern.
          */
@@ -109,6 +112,7 @@ pub mod node {
             );
             Cypher::new(query, false)
         }
+
         /**
          * Query to delete a node pattern from the graph.
          */
@@ -121,6 +125,7 @@ pub mod node {
             );
             Cypher::new(query, false)
         }
+
         /**
          * Format a query that will merge a pattern into all matching nodes.
          */
@@ -183,6 +188,7 @@ pub mod node {
          * Indexes add a unique constraint as well as speeding up queries
          * on the graph database.
          */
+        #[wasm_bindgen(js_name = createIndex)]
         pub fn create_index(&self) -> Cypher {
             let query = format!(
                 "CREATE INDEX IF NOT EXISTS FOR (n:{}) ON (n.{})", 
@@ -191,9 +197,11 @@ pub mod node {
             );
             Cypher::new(query, false)
         }
+
         /**
          * Remove the index
          */
+        #[wasm_bindgen(js_name = dropIndex)]
         pub fn drop_index(&self) -> Cypher {
             let query = format!(
                 "DROP INDEX ON : {}({})", 
@@ -202,9 +210,11 @@ pub mod node {
             );
             Cypher::new(query, false)
         }
+
         /**
          * Apply a unique constraint, without creating an index
          */
+        #[wasm_bindgen(js_name = uniqueConstraint)]
         pub fn unique_constraint(&self) -> Cypher {
             let query = format!(
                 "CREATE CONSTRAINT IF NOT EXISTS FOR (n:{}) REQUIRE n.{} IS UNIQUE",

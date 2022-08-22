@@ -1,15 +1,14 @@
 import fetch from "node-fetch";
 import { describe, expect, test } from '@jest/globals';
-import { fetchToken, readTransaction, API_PATH } from "./shared/middleware.spec";
+import { fetchToken, apiFetch, API_PATH } from "./shared/middleware.spec";
 
 
 describe("Topology", function () {
   describe("Join Nodes", function() {
     test("join two well-known nodes",  async function() {
       const token = await fetchToken();
-      const read = readTransaction(token);
-      const things = await read("Things");
-      const locations = await read("Locations");
+      const things = await apiFetch(token, `${API_PATH}/Things`)();
+      const locations = await apiFetch(token, `${API_PATH}/Locations`)();
       const queryData = {
         Things: things.value[0].uuid,
         Locations: locations.value[0].uuid,

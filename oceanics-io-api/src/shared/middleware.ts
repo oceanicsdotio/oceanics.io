@@ -88,13 +88,13 @@ export const connect = async (query: string, readOnly: boolean) => {
     return result;
 }
 
-export const setupQueries = (): Promise<QueryResult>[] => {
+export const setupQueries = (): string[] => {
     return [
         ["User", "email"],
         ["Provider", "apiKey"],
         ["Provider", "domain"]
     ].map(
-        (pair) => (new NodeConstraint(...pair)).createIndex().query
+        ([label, key]) => (new NodeConstraint(label, key)).createIndex().query
     )
 }
 

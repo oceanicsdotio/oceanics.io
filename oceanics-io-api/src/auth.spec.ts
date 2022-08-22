@@ -1,6 +1,8 @@
 import fetch from "node-fetch";
 import { describe, expect, test } from '@jest/globals';
-import { API_PATH, fetchToken } from "./shared/middleware.spec";
+import { API_PATH, fetchToken, Authorization, register } from "./shared/middleware.spec";
+
+const AUTH_PATH = `${API_PATH}/auth`;
 
 /**
  * Stand alone tests for the Auth flow. Includes initial
@@ -8,28 +10,7 @@ import { API_PATH, fetchToken } from "./shared/middleware.spec";
  *
  * On a clean database, the first test will fail.
  */
-describe("Auth API", function () {
-
-  const authPath = `${API_PATH}/auth`;
-
-  /**
-   * Convenience method for creating consistent test user account under
-   * multiple providers.
-   */
-  const register = (apiKey: string) =>
-    fetch(authPath, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey ?? ""
-      },
-      body: JSON.stringify({
-        email: process.env.SERVICE_ACCOUNT_USERNAME,
-        password: process.env.SERVICE_ACCOUNT_PASSWORD,
-        secret: process.env.SERVICE_ACCOUNT_SECRET
-      }),
-    });
-  
+describe("Auth", function () {
   /**
    * Check the required environment variables.
    */
@@ -60,7 +41,7 @@ describe("Auth API", function () {
      */
     test("clears non-provider, nodes", async function () {
       const token = await fetchToken()
-      const response = await fetch(authPath, {
+      const response = await fetch(AUTH_PATH, {
         method: "DELETE",
         headers: {
           Authorization: ["BearerAuth", token].join(":"),
@@ -79,7 +60,7 @@ describe("Auth API", function () {
      * Valid API key will associate new User with an existing Provider
      */
     test("allows registration with API key", async function () {
-      const response = await register(process.env.SERVICE_PROVIDER_API_KEY);
+      const response = await register(process.env.SERVICE_PROVIDER_API_KEY??"");
       expect(response.status).toEqual(200);
     });
 
@@ -87,7 +68,7 @@ describe("Auth API", function () {
      * Missing API key is a 403 error
      */
     test("should prevent registration without API key", async function () {
-      const response = await register(undefined);
+      const response = await register("");
       expect(response.status).toEqual(403);
     });
 
@@ -103,55 +84,32 @@ describe("Auth API", function () {
   /**
    * Test Bearer Token based authentication
    */
-  describe("JWT Auth", function () {
-    /**
-     * Memoize a valid Token
-     */
-    test("returns well-formed token given credentials", async function () {
+  describe("Get authentication token", function () {
+
+    test("returns well-formed token", async function () {
       const token = await fetchToken();
       expect(typeof token).toBe("string");
       expect(token).not.toBeFalsy();
     });
 
-    /**
-     * Missing header is a 403 error
-     */
-    test("denies access without credentials", async function () {
-      const response = await fetch(authPath);
+    test("denies missing header with 403", async function () {
+      const response = await fetch(AUTH_PATH);
       expect(response.status).toEqual(403);
     });
 
-    /**
-     * Bad credential is a 403 error
-     */
-    test("denies access with wrong credentials", async function () {
-      const response = await fetch(authPath, {
+    test("denies wrong credentials with 403", async function () {
+      const response = await fetch(AUTH_PATH, {
         headers: {
-          Authorization: [
-            process.env.SERVICE_ACCOUNT_USERNAME, 
-            "a-very-bad-password", 
-            process.env.SERVICE_ACCOUNT_SECRET
-          ].join(
-            ":"
-          ),
+          Authorization: Authorization(undefined, "a-very-bad-password", undefined),
         },
       });
       expect(response.status).toEqual(403);
     });
 
-    /**
-     * Bad secret is a 403 error
-     */
-     test("denies access with wrong salt", async function () {
-      const response = await fetch(authPath, {
+    test("denies wrong salt with 403", async function () {
+      const response = await fetch(AUTH_PATH, {
         headers: {
-          Authorization: [
-            process.env.SERVICE_ACCOUNT_USERNAME, 
-            process.env.SERVICE_ACCOUNT_PASSWORD, 
-            "a-very-bad-secret",
-          ].join(
-            ":"
-          ),
+          Authorization: Authorization(undefined, undefined, "a-very-bad-secret"),
         },
       });
       expect(response.status).toEqual(403);
@@ -162,12 +120,9 @@ describe("Auth API", function () {
    * Confirm that JWT can be used to access an endpoint with BearerAuth security
    */
   describe("Manage account", function () {
-    /**
-     * Update is not implemented
-     */
-    test("authenticates with JWT", async function () {
+    test("update is not implemented", async function () {
       const token = await fetchToken();
-      const response = await fetch(authPath, {
+      const response = await fetch(AUTH_PATH, {
         method: "PUT",
         headers: {
           Authorization: ["BearerAuth", token].join(":")

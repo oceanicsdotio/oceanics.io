@@ -19,7 +19,7 @@ describe("Index", function () {
     /**
      * Options for path length zero
      */
-    test("reports for base path", async function () {
+    test("reports Allowed Methods", async function () {
       const token = await fetchToken();
       const response = await options(token);
       expect(response.status).toEqual(204);

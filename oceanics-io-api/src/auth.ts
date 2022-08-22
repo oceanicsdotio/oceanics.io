@@ -90,9 +90,6 @@ const remove: ApiHandler = async ({data: {user}}) => {
   }
 }
 
-/**
- * Auth Router
- */
 export const handler = NetlifyRouter({
   GET: getToken,
   POST: register,
