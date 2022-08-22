@@ -42,10 +42,10 @@ describe("API Validator", function () {
       const response = await fetch(PATH, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+        body: JSON.stringify({data: {
           ...testCase,
           [key]: undefined
-        })
+        }, reference})
       });
       expect(response.status).toBe(200);
       const result = await response.json();
@@ -57,10 +57,10 @@ describe("API Validator", function () {
         const response = await fetch(PATH, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
+          body: JSON.stringify({data: {
             ...testCase,
             extra: "extra-key-value-pair"
-          })
+          }, reference})
         });
         expect(response.status).toBe(200);
         const result = await response.json();
