@@ -1,9 +1,9 @@
 import fetch from "node-fetch";
 import { describe, expect, test } from '@jest/globals';
-import { fetchToken, apiFetch, API_PATH } from "./shared/middleware.spec";
+import { fetchToken, apiFetch, API_PATH } from "../test-utils";
 
-describe("Topology", function () {
-  describe("Join Nodes", function() {
+describe("topology", function () {
+  describe("join Nodes", function() {
     test("join two well-known nodes",  async function() {
       const token = await fetchToken();
       const things = await apiFetch(token, `${API_PATH}/Things`)();

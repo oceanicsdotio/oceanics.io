@@ -9,7 +9,7 @@ import { Node, Links, NodeConstraint } from "oceanics-io-api-wasm";
 // Stub type for generic entity Properties object.
 export type Properties = { [key: string]: any };
 
-enum Method {
+export enum Method {
     POST = "POST", 
     PUT = "PUT",
     OPTIONS = "OPTIONS",

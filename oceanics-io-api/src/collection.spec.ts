@@ -1,5 +1,5 @@
 import { describe, expect, test } from '@jest/globals';
-import { apiFetch, EXTENSIONS, fetchToken, WELL_KNOWN_NODES, testAllowedMethodCount, API_PATH } from "./shared/middleware.spec";
+import { apiFetch, EXTENSIONS, fetchToken, WELL_KNOWN_NODES, testAllowedMethodCount, API_PATH } from "../test-utils";
 
 /**
  * Collect tests that create, get, and manipulate graph nodes related
@@ -48,7 +48,8 @@ describe("Sensing API", function () {
    * should be predicted from the the example nodes in the API spec.
    */
   describe("Verify persisted data", function () {
-    test.concurrent.each(Array.from(EXTENSIONS.sensing))(`retrieves index of $nodeType`, async function (nodeType) {
+    const nodeTypes = Array.from(EXTENSIONS.sensing).map(each => [each]);
+    test.concurrent.each(nodeTypes)(`retrieves $nodeType collection`, async function (nodeType) {
       const token = await fetchToken();
       const data = await apiFetch(token, nodeType, "GET")();
       expect(WELL_KNOWN_NODES[nodeType].length).toBe(data["@iot.count"]);

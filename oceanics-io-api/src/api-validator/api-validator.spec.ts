@@ -1,6 +1,6 @@
 import fetch from "node-fetch";
 import { describe, expect, test } from '@jest/globals';
-import { EXTENSIONS, BASE_PATH, WELL_KNOWN_NODES } from "../shared/middleware.spec";
+import { EXTENSIONS, BASE_PATH, WELL_KNOWN_NODES } from "../../test-utils";
 import spec from "./bathysphere.json";
 
 const PATH = `${BASE_PATH}/api-validator`;

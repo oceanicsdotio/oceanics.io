@@ -1,6 +1,6 @@
 import fetch from "node-fetch";
 import { describe, expect, test } from '@jest/globals';
-import { fetchToken, testAllowedMethodCount, EXTENSIONS,  API_PATH, apiFetch } from "./shared/middleware.spec";
+import { fetchToken, testAllowedMethodCount, EXTENSIONS,  API_PATH, apiFetch } from "../test-utils";
 
 const CREATED_UUID = {};
 
@@ -8,8 +8,8 @@ const CREATED_UUID = {};
  * Collect tests that create, get, and manipulate graph nodes related
  * to sensing
  */
-describe("Entity", function () {
-  describe("Metadata", function () {
+describe("entity", function () {
+  describe("metadata", function () {
     test.concurrent("options reports allowed methods", async function () {
       const token = await fetchToken();
       const response = await apiFetch(token, `${API_PATH}/Things`, "OPTIONS")();
@@ -23,8 +23,9 @@ describe("Entity", function () {
    * identifier. If it does not exist, or is not owned by the user,
    * then receive 404.
    */
-  describe("Verify persisted data", function () {
-    test.concurrent.each(Array.from(EXTENSIONS.sensing))(`retrieve $nodeType by UUID`, async function (nodeType) {
+  describe("verify persisted data", function () {
+    const nodeTypes = Array.from(EXTENSIONS.sensing).map(each => [each])
+    test.concurrent.each(nodeTypes)(`retrieve $nodeType by UUID`, async function (nodeType) {
       const token = await fetchToken();
       const things = CREATED_UUID[nodeType]
       const result = things.map(async ({uuid})=> {
