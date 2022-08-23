@@ -34,8 +34,7 @@ describe("auth handlers", function () {
      * Fails on empty database.
      */
     test("clears non-provider nodes", async function () {
-      const token = await fetchToken();
-      const response = await apiFetch(token, AUTH_PATH, "DELETE")();
+      const response = await apiFetch("auth", "DELETE")();
       expect(response.status).toBe(204);
     });
   });

@@ -5,13 +5,13 @@ import { fetchToken, apiFetch, API_PATH } from "../test-utils";
 /**
  * Join and drop relationships between nodes.
  */
-describe("topology", function () {
+describe("topology handlers", function () {
   describe("topology.post", function() {
     test("join two well-known nodes",  async function() {
       const token = await fetchToken();
-      const things = await apiFetch(token, `${API_PATH}/Things`)();
+      const things = await apiFetch(`Things`)();
       const {value: [{uuid: thingsId}]} = await things.json();
-      const locations = await apiFetch(token, `${API_PATH}/Locations`)();
+      const locations = await apiFetch(`Locations`)();
       const {value: [{uuid: locationsId}]} = await locations.json();
       const queryData = {
         Things: thingsId,

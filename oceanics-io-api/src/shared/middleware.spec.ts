@@ -1,8 +1,10 @@
 import { describe, expect, test } from '@jest/globals';
 import { asNodes, filterBaseRoute, Method } from "../shared/middleware";
 
-
-
+/**
+ * Tests lower-level parts of the API without making HTTP
+ * requests.
+ */
 describe("middleware", function () {
 
   test("parses get entity path", function () {

@@ -1,7 +1,9 @@
 import fetch from "node-fetch";
 import type { Headers } from "node-fetch";
 import { expect } from '@jest/globals';
-
+import crypto from "crypto";
+import API_SPECIFICATION from "./src/shared/bathysphere.json";
+import fs from "fs";
 // MERGE (n:Provider { apiKey: replace(apoc.create.uuid(), '-', ''), domain: 'oceanics.io' }) return n
 
 const HOSTNAME = "http://localhost:8888";
@@ -38,7 +40,71 @@ export const EXTENSIONS = {
     "Collections"
   ]),
 };
-export const NODE_TYPES = Array.from(EXTENSIONS.sensing).map(each => [each])
+
+type Node = {uuid?: string};
+type Schema = { examples: Node[] };
+type SchemaEntry = [string, Schema];
+type NodeTypeTuple = [string, number];
+type NodeTuple = [string, string, Node];
+
+/**
+ * Translate from OpenAPI schema examples to simple
+ * table used in per-entity unit concurrent tests.
+ * 
+ * Result will have no topological metadata, and will
+ * be populated with UUID for each record. This is used
+ * to reference instances across test runs.
+ */ 
+export let getNodes = (cache_hit: boolean = true): NodeTuple[] => {
+  // Strip navigation props from instance
+  const filterNavigation = ([key]: [string, any]) => !key.includes("@");
+
+  // Unpack UUI and de-normalize
+  const flattenNode = (label: string) => {
+    return (props: Node): NodeTuple => {
+      const uuid = crypto.randomUUID();
+      return [
+        label, 
+        uuid, 
+        Object.fromEntries(Object.entries({ ...props, uuid }).filter(filterNavigation))
+      ]
+    }
+  }
+  // OpenAPI schema to flat list of examples
+  const schemaToLookup = ([label, {examples=[]}]: SchemaEntry): NodeTuple[] =>
+    examples.map(flattenNode(label));
+
+  // Strip lookup entries not in Sensing
+  const filterSensing = ([label]: NodeTuple): boolean => 
+    EXTENSIONS.sensing.has(label);
+
+  const CACHE = "./src/shared/nodes.json";
+  if (cache_hit) {
+    const text = fs.readFileSync(CACHE, "utf-8");
+    const value = JSON.parse(text);
+    return value;
+  } else {
+    const value = (Object.entries(API_SPECIFICATION.components.schemas) as SchemaEntry[])
+      .flatMap(schemaToLookup)
+      .filter(filterSensing);
+
+    fs.writeFileSync(CACHE, JSON.stringify(value));
+    return value;
+  }
+}
+
+/**
+ * Get iterable of node types, suitable for concurrent testing
+ */
+export const getNodeTypes = (cache_hit?: boolean): NodeTypeTuple[] => {
+  const counts = getNodes(cache_hit).reduce((acc: { [key: string]: number}, [label]: NodeTuple) => {
+    return {
+      ...acc,
+      [label]: acc[label] + 1
+    }
+  }, {})
+  return Object.entries(counts)
+}
 
 // Format the Authorization header, picking up from env var if undefined
 export const Authorization = (
@@ -73,6 +139,7 @@ export const fetchToken = async () => {
   const { token } = await response.json();
   expect(typeof token).toBe("string");
   expect(token).not.toBeFalsy();
+  expect(token).not.toBe("undefined");
   return token;
 }
 
@@ -96,10 +163,10 @@ export const register = (apiKey: string) => {
   });
 }
 
-
 // Bind an auth token to fetch transaction
-export const apiFetch = (token: string, url: string, method: string = "GET") => async (data?: Object) => {
-  return fetch(url, {
+export const apiFetch = (url: string, method: string = "GET") => async (data?: Object) => {
+  const token = await fetchToken();
+  return fetch(`${API_PATH}/${url}`, {
     body: typeof data !== "undefined" ? JSON.stringify(data) : undefined,
     method,
     headers: {

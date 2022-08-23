@@ -58,6 +58,15 @@ $(WWW)/$(OUT_DIR): node_modules $(WWW_SRC)
 start-storybook:
 	yarn workspace oceanics-io-www start-storybook --port ${STORYBOOK_PORT}
 
+test:
+	yarn workspace oceanics-io-api jest -t "api-validator handlers" --verbose
+	yarn workspace oceanics-io-api jest -t "middleware" --verbose
+	yarn workspace oceanics-io-api jest -t "auth handlers" --verbose
+	yarn workspace oceanics-io-api jest -t "collection handlers" --verbose
+	yarn workspace oceanics-io-api jest -t "index handlers" --verbose
+	yarn workspace oceanics-io-api jest -t "entity handlers" --verbose
+	yarn workspace oceanics-io-api jest -t "topology handlers" --verbose
+
 # Remove build artifacts
 clean:
 	rm -rf $(API)-wasm
@@ -69,4 +78,4 @@ clean:
 	rm -rf $(API)/$(OUT_DIR)
 
 # Non-file targets (aka commands)
-.PHONY: clean start-storybook
+.PHONY: clean start-storybook test

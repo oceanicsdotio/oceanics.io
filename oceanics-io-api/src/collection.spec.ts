@@ -1,35 +1,15 @@
-import { describe, expect, test, beforeAll } from '@jest/globals';
+import { describe, expect, test } from '@jest/globals';
 import { Method } from './shared/middleware';
-import { apiFetch, fetchToken, testAllowedMethodCount, API_PATH, NODE_TYPES } from "../test-utils";
-import WELL_KNOWN_NODES from "./shared/nodes.json";
+import { apiFetch, testAllowedMethodCount, getNodeTypes, getNodes } from "../test-utils";
 
 /**
  * Collect tests that create, get, and manipulate graph nodes related
  * to sensing
  */
 describe("collection handlers", function () {
-  let NODES: [string, string, Object][];
-
-  // Load data structure with pre-generated UUID
-  beforeAll(() => {
-    NODES = NODE_TYPES.flatMap(([label]) => WELL_KNOWN_NODES[label].map(({uuid, ...value}) => {
-      const props = Object.fromEntries(Object.entries(value).filter(([key]) => !key.includes("@")))
-      return [label, uuid, {...props, uuid}]
-    }))
-  })
-
-  /**
-   * Check options on for each number of path segments.
-   *
-   * The SensorThings standard specifies that the path can be
-   * arbitrarily long. However, not all operations make sense
-   * for linked nodes, so the API matches against the combination
-   * of method and path length.
-   */
   describe("collection.options", function () {
-    test.concurrent.each(NODE_TYPES)("reports allowed methods for %s", async function (nodeType) {
-      const token = await fetchToken();
-      const response = await apiFetch(token, `${API_PATH}/${nodeType}`, Method.OPTIONS)();
+    test.concurrent.each(getNodeTypes())("reports allowed methods for %s", async function (nodeType) {
+      const response = await apiFetch(nodeType, Method.OPTIONS)();
       expect(response.status).toEqual(204);
       testAllowedMethodCount(response.headers, 3);
     });
@@ -41,9 +21,8 @@ describe("collection handlers", function () {
    * in expected format.
    */
   describe(`collection.post`, function () {
-    test.concurrent.each(NODES)(`creates %s %s`, async function(nodeType, _, properties) {
-      const token = await fetchToken();
-      const response = await apiFetch(token, `${API_PATH}/${nodeType}`, Method.POST)(properties);
+    test.concurrent.each(getNodes())(`creates %s %s`, async function(nodeType, _, properties) {
+      const response = await apiFetch(nodeType, Method.POST)(properties);
       expect(response.status).toEqual(204);
     });
   });
@@ -54,15 +33,14 @@ describe("collection handlers", function () {
    * should be predicted from the the example nodes in the API spec.
    */
   describe("collection.get", function () {
-    test.concurrent.each(NODE_TYPES)(`retrieves %s`, async function (nodeType) {
-      const count = WELL_KNOWN_NODES[nodeType].length;
+    test.concurrent.each(getNodeTypes())(`retrieves %s (N=%s)`, async function (nodeType, count) {
       expect(typeof count).toBe("number");
-      const token = await fetchToken();
-      const response = await apiFetch(token, `${API_PATH}/${nodeType}`, Method.GET)();
+      const response = await apiFetch(nodeType, Method.GET)();
       expect(response.status).toBe(200);
       const data = await response.json();
-      expect(typeof data["@iot.count"]).toBe("number");
-      expect(data["@iot.count"]).toBe(count);
+      const actual = data["@iot.count"]
+      expect(typeof actual).toBe("number");
+      expect(actual).toBe(count);
     });
   })
 });

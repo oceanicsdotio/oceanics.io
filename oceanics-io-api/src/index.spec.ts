@@ -1,15 +1,14 @@
 import { describe, expect, test } from '@jest/globals';
-import { EXTENSIONS, fetchToken, apiFetch, testAllowedMethodCount, API_PATH } from "../test-utils";
+import { EXTENSIONS, apiFetch, testAllowedMethodCount } from "../test-utils";
 
 /**
  * Collect tests that create, get, and manipulate graph nodes related
  * to sensing
  */
-describe("index", function () {
+describe("index handlers", function () {
   describe("index.options", function () {
     test.concurrent("options reports allowed methods", async function () {
-      const token = await fetchToken();
-      const response = await apiFetch(token, API_PATH, "OPTIONS")();
+      const response = await apiFetch("", "OPTIONS")();
       expect(response.status).toEqual(204);
       testAllowedMethodCount(response.headers, 2);
     });
@@ -21,8 +20,7 @@ describe("index", function () {
    */
   describe("index.get", function () {
     test.concurrent("retrieves collection index", async function () {
-      const token = await fetchToken();
-      const response = await apiFetch(token, API_PATH, "GET")();
+      const response = await apiFetch("", "GET")();
       expect(response.status).toEqual(200);
       const data = await response.json();
       expect(data.length).toBeGreaterThanOrEqual(1);
