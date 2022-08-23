@@ -2,8 +2,11 @@ import fetch from "node-fetch";
 import { describe, expect, test } from '@jest/globals';
 import { fetchToken, apiFetch, API_PATH } from "../test-utils";
 
+/**
+ * Join and drop relationships between nodes.
+ */
 describe("topology", function () {
-  describe("join Nodes", function() {
+  describe("topology.post", function() {
     test("join two well-known nodes",  async function() {
       const token = await fetchToken();
       const things = await apiFetch(token, `${API_PATH}/Things`)();
@@ -26,6 +29,6 @@ describe("topology", function () {
         }
       )
       expect(response.status).toEqual(204);
-    }, 5000)
+    })
   })
 });

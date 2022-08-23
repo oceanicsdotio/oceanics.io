@@ -1,8 +1,6 @@
 import fetch from "node-fetch";
 import type { Headers } from "node-fetch";
-import { expect } from '@jest/globals'
-import crypto from "crypto";
-import spec from "./src/shared/bathysphere.json";
+import { expect } from '@jest/globals';
 
 // MERGE (n:Provider { apiKey: replace(apoc.create.uuid(), '-', ''), domain: 'oceanics.io' }) return n
 
@@ -48,15 +46,6 @@ export const Authorization = (
   password: string = process.env.SERVICE_ACCOUNT_PASSWORD ?? "",
   secret: string = process.env.SERVICE_ACCOUNT_SECRET ?? ""
 ) => [username, password, secret].join(":")
-
-// Shallow copy and insert uuid v4
-const insertId = (props: Object) => Object({ ...props, uuid: crypto.randomUUID() });
-
-// Insert id into each example
-const specifyExamples = ([key, { examples = [] }]: [string, any]) => [key, examples.map(insertId)];
-
-export const WELL_KNOWN_NODES =
-  Object.fromEntries(Object.entries(spec.components.schemas).map(specifyExamples));
 
 /**
  * Parse and check the number of methods in the Allow header.

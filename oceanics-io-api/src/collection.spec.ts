@@ -1,12 +1,23 @@
 import { describe, expect, test, beforeAll } from '@jest/globals';
 import { Method } from './shared/middleware';
-import { apiFetch, fetchToken, WELL_KNOWN_NODES, testAllowedMethodCount, API_PATH, NODE_TYPES } from "../test-utils";
+import { apiFetch, fetchToken, testAllowedMethodCount, API_PATH, NODE_TYPES } from "../test-utils";
+import WELL_KNOWN_NODES from "./shared/nodes.json";
 
 /**
  * Collect tests that create, get, and manipulate graph nodes related
  * to sensing
  */
 describe("collection handlers", function () {
+  let NODES: [string, string, Object][];
+
+  // Load data structure with pre-generated UUID
+  beforeAll(() => {
+    NODES = NODE_TYPES.flatMap(([label]) => WELL_KNOWN_NODES[label].map(({uuid, ...value}) => {
+      const props = Object.fromEntries(Object.entries(value).filter(([key]) => !key.includes("@")))
+      return [label, uuid, {...props, uuid}]
+    }))
+  })
+
   /**
    * Check options on for each number of path segments.
    *
@@ -30,13 +41,7 @@ describe("collection handlers", function () {
    * in expected format.
    */
   describe(`collection.post`, function () {
-    const NODES: [string, string, Object][] = NODE_TYPES.flatMap(([label]) => WELL_KNOWN_NODES[label].map(({uuid, ...value}) => {
-      const props = Object.fromEntries(Object.entries(value).filter(([key]) => !key.includes("@")))
-      return [label, uuid, {...props, uuid}]
-    }))
-
-    test.concurrent.each(NODES)(`creates %s %s`, async function(nodeType, uuid, properties) {
-      console.log(nodeType, {uuid, properties});
+    test.concurrent.each(NODES)(`creates %s %s`, async function(nodeType, _, properties) {
       const token = await fetchToken();
       const response = await apiFetch(token, `${API_PATH}/${nodeType}`, Method.POST)(properties);
       expect(response.status).toEqual(204);
@@ -50,13 +55,14 @@ describe("collection handlers", function () {
    */
   describe("collection.get", function () {
     test.concurrent.each(NODE_TYPES)(`retrieves %s`, async function (nodeType) {
-      expect(typeof WELL_KNOWN_NODES[nodeType].length).toBe("number");
+      const count = WELL_KNOWN_NODES[nodeType].length;
+      expect(typeof count).toBe("number");
       const token = await fetchToken();
       const response = await apiFetch(token, `${API_PATH}/${nodeType}`, Method.GET)();
       expect(response.status).toBe(200);
       const data = await response.json();
       expect(typeof data["@iot.count"]).toBe("number");
-      expect(data["@iot.count"]).toBe(WELL_KNOWN_NODES[nodeType].length);
+      expect(data["@iot.count"]).toBe(count);
     });
   })
 });

@@ -8,11 +8,11 @@ const AUTH_PATH = `${API_PATH}/auth`;
  * Stand alone tests for Auth flow. Includes initial
  * teardown of test artifacts remaining in the graph.
  */
-describe("auth", function () {
+describe("auth handlers", function () {
   /**
    * Check required environment variables.
    */
-  describe("environment", function () {
+  describe("environment variables", function () {
     test.concurrent.each([
       ["SERVICE_PROVIDER_API_KEY"],
       ["SERVICE_ACCOUNT_USERNAME"],
@@ -29,7 +29,7 @@ describe("auth", function () {
    * Isolate destructive actions so that it can be called
    * with mocha grep flag.
    */
-  describe("teardown", function () {
+  describe("auth.delete", function () {
     /**
      * Fails on empty database.
      */
@@ -44,11 +44,16 @@ describe("auth", function () {
    * Test creating a valid new account, and also make sure that bad
    * auth/apiKey values prevent access and return correct status codes.
    */
-  describe("register", function () {
+  describe("auth.post", function () {
 
     test("allows registration with valid API key", async function () {
       const response = await register(process.env.SERVICE_PROVIDER_API_KEY??"");
       expect(response.status).toEqual(200);
+    });
+
+    test("prevents duplicate registration", async function () {
+      const response = await register(process.env.SERVICE_PROVIDER_API_KEY??"");
+      expect(response.status).toEqual(403);
     });
 
     test.concurrent("denies missing API key with 403", async function () {
@@ -65,12 +70,7 @@ describe("auth", function () {
   /**
    * Test Bearer Token based authentication
    */
-  describe("login", function () {
-
-    test("prevents duplicate registration", async function () {
-      const response = await register(process.env.SERVICE_PROVIDER_API_KEY??"");
-      expect(response.status).toEqual(403);
-    });
+  describe("auth.get", function () {
 
     test("returns well-formed token", async function () {
       const token = await fetchToken();
