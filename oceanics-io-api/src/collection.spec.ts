@@ -1,12 +1,12 @@
-import { describe, expect, test } from '@jest/globals';
-import { apiFetch, EXTENSIONS, fetchToken, WELL_KNOWN_NODES, testAllowedMethodCount, API_PATH } from "../test-utils";
+import { describe, expect, test, beforeAll } from '@jest/globals';
+import { Method } from './shared/middleware';
+import { apiFetch, fetchToken, WELL_KNOWN_NODES, testAllowedMethodCount, API_PATH, NODE_TYPES } from "../test-utils";
 
 /**
  * Collect tests that create, get, and manipulate graph nodes related
  * to sensing
  */
-describe("Sensing API", function () {
-
+describe("collection handlers", function () {
   /**
    * Check options on for each number of path segments.
    *
@@ -15,10 +15,10 @@ describe("Sensing API", function () {
    * for linked nodes, so the API matches against the combination
    * of method and path length.
    */
-  describe("Options", function () {
-    test.concurrent("options reports allowed methods", async function () {
+  describe("collection.options", function () {
+    test.concurrent.each(NODE_TYPES)("reports allowed methods for %s", async function (nodeType) {
       const token = await fetchToken();
-      const response = await apiFetch(token, `${API_PATH}/Things`, "OPTIONS")();
+      const response = await apiFetch(token, `${API_PATH}/${nodeType}`, Method.OPTIONS)();
       expect(response.status).toEqual(204);
       testAllowedMethodCount(response.headers, 3);
     });
@@ -29,17 +29,18 @@ describe("Sensing API", function () {
    * through the API and database and ensuring that it comes back
    * in expected format.
    */
-  describe(`Create sensing nodes`, function (nodeType) {
+  describe(`collection.post`, function () {
+    const NODES: [string, string, Object][] = NODE_TYPES.flatMap(([label]) => WELL_KNOWN_NODES[label].map(({uuid, ...value}) => {
+      const props = Object.fromEntries(Object.entries(value).filter(([key]) => !key.includes("@")))
+      return [label, uuid, {...props, uuid}]
+    }))
 
-    for (const nodeType of EXTENSIONS.sensing) {
-      test.concurrent.each(Array.from(EXTENSIONS.sensing))(`creates $nodeType`, async function (nodeType) {
-        const responses: any[] = Promise.allSettled(queue.map(job));
-        expect(responses.length).toBeGreaterThanOrEqual(1)
-        responses.forEach(({ value: response }) => {
-          expect(response.status).toEqual(204);
-        });
-      }, 5000);
-    }
+    test.concurrent.each(NODES)(`creates %s %s`, async function(nodeType, uuid, properties) {
+      console.log(nodeType, {uuid, properties});
+      const token = await fetchToken();
+      const response = await apiFetch(token, `${API_PATH}/${nodeType}`, Method.POST)(properties);
+      expect(response.status).toEqual(204);
+    });
   });
 
   /**
@@ -47,13 +48,15 @@ describe("Sensing API", function () {
    * of each type of entity node. The number of nodes in the response
    * should be predicted from the the example nodes in the API spec.
    */
-  describe("Verify persisted data", function () {
-    const nodeTypes = Array.from(EXTENSIONS.sensing).map(each => [each]);
-    test.concurrent.each(nodeTypes)(`retrieves $nodeType collection`, async function (nodeType) {
+  describe("collection.get", function () {
+    test.concurrent.each(NODE_TYPES)(`retrieves %s`, async function (nodeType) {
+      expect(typeof WELL_KNOWN_NODES[nodeType].length).toBe("number");
       const token = await fetchToken();
-      const data = await apiFetch(token, nodeType, "GET")();
-      expect(WELL_KNOWN_NODES[nodeType].length).toBe(data["@iot.count"]);
+      const response = await apiFetch(token, `${API_PATH}/${nodeType}`, Method.GET)();
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      expect(typeof data["@iot.count"]).toBe("number");
+      expect(data["@iot.count"]).toBe(WELL_KNOWN_NODES[nodeType].length);
     });
   })
-  
 });

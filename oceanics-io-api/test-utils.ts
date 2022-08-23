@@ -40,6 +40,7 @@ export const EXTENSIONS = {
     "Collections"
   ]),
 };
+export const NODE_TYPES = Array.from(EXTENSIONS.sensing).map(each => [each])
 
 // Format the Authorization header, picking up from env var if undefined
 export const Authorization = (
@@ -54,7 +55,7 @@ const insertId = (props: Object) => Object({ ...props, uuid: crypto.randomUUID()
 // Insert id into each example
 const specifyExamples = ([key, { examples = [] }]: [string, any]) => [key, examples.map(insertId)];
 
-export const WELL_KNOWN_NODES = 
+export const WELL_KNOWN_NODES =
   Object.fromEntries(Object.entries(spec.components.schemas).map(specifyExamples));
 
 /**
@@ -80,31 +81,31 @@ export const fetchToken = async () => {
     },
   })
   expect(response.status).toBe(200);
-  const {token} = await response.json();
+  const { token } = await response.json();
   expect(typeof token).toBe("string");
   expect(token).not.toBeFalsy();
   return token;
 }
 
-  /**
-   * Convenience method for creating consistent test user account under
-   * multiple providers.
-   */
-   export const register = (apiKey: string) => {
-    const body = JSON.stringify({
-      email: process.env.SERVICE_ACCOUNT_USERNAME,
-      password: process.env.SERVICE_ACCOUNT_PASSWORD,
-      secret: process.env.SERVICE_ACCOUNT_SECRET
-    })
-    return fetch(`${API_PATH}/auth`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey ?? ""
-      },
-      body,
-    });
-  }
+/**
+ * Convenience method for creating consistent test user account under
+ * multiple providers.
+ */
+export const register = (apiKey: string) => {
+  const body = JSON.stringify({
+    email: process.env.SERVICE_ACCOUNT_USERNAME,
+    password: process.env.SERVICE_ACCOUNT_PASSWORD,
+    secret: process.env.SERVICE_ACCOUNT_SECRET
+  })
+  return fetch(`${API_PATH}/auth`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": apiKey ?? ""
+    },
+    body,
+  });
+}
 
 
 // Bind an auth token to fetch transaction
