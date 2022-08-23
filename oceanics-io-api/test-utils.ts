@@ -6,6 +6,7 @@ import API_SPECIFICATION from "./src/shared/bathysphere.json";
 import fs from "fs";
 // MERGE (n:Provider { apiKey: replace(apoc.create.uuid(), '-', ''), domain: 'oceanics.io' }) return n
 
+export const CACHE = "./src/shared/nodes.json";
 const HOSTNAME = "http://localhost:8888";
 export const BASE_PATH = `${HOSTNAME}/.netlify/functions`;
 export const API_PATH = `${HOSTNAME}/api`;
@@ -41,11 +42,11 @@ export const EXTENSIONS = {
   ]),
 };
 
-type Node = {uuid?: string};
-type Schema = { examples: Node[] };
-type SchemaEntry = [string, Schema];
-type NodeTypeTuple = [string, number];
-type NodeTuple = [string, string, Node];
+export type Node = {uuid?: string};
+export type Schema = { examples: Node[] };
+export type SchemaEntry = [string, Schema];
+export type NodeTypeTuple = [string, number];
+export type NodeTuple = [string, string, Node];
 
 /**
  * Translate from OpenAPI schema examples to simple
@@ -89,6 +90,7 @@ export let getNodes = (cache_hit: boolean = true): NodeTuple[] => {
       .filter(filterSensing);
 
     fs.writeFileSync(CACHE, JSON.stringify(value));
+    console.warn(`writing new cache: ${CACHE}`)
     return value;
   }
 }
@@ -100,7 +102,7 @@ export const getNodeTypes = (cache_hit?: boolean): NodeTypeTuple[] => {
   const counts = getNodes(cache_hit).reduce((acc: { [key: string]: number}, [label]: NodeTuple) => {
     return {
       ...acc,
-      [label]: acc[label] + 1
+      [label]: (acc[label]??0) + 1
     }
   }, {})
   return Object.entries(counts)

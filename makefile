@@ -59,13 +59,13 @@ start-storybook:
 	yarn workspace oceanics-io-www start-storybook --port ${STORYBOOK_PORT}
 
 test:
-	yarn workspace oceanics-io-api jest -t "api-validator handlers" --verbose
-	yarn workspace oceanics-io-api jest -t "middleware" --verbose
-	yarn workspace oceanics-io-api jest -t "auth handlers" --verbose
-	yarn workspace oceanics-io-api jest -t "collection handlers" --verbose
-	yarn workspace oceanics-io-api jest -t "index handlers" --verbose
-	yarn workspace oceanics-io-api jest -t "entity handlers" --verbose
-	yarn workspace oceanics-io-api jest -t "topology handlers" --verbose
+	yarn workspace oceanics-io-api jest -t "api-validator handlers"
+	yarn workspace oceanics-io-api jest -t "middleware"
+	yarn workspace oceanics-io-api jest -t "auth handlers"
+	yarn workspace oceanics-io-api jest -t "collection handlers"
+	yarn workspace oceanics-io-api jest -t "index handlers"
+	yarn workspace oceanics-io-api jest -t "entity handlers"
+	yarn workspace oceanics-io-api jest -t "topology handlers"
 
 # Remove build artifacts
 clean:
