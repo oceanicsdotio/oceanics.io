@@ -111,5 +111,4 @@ jobs:
           SERVICE_ACCOUNT_USERNAME: ${{ secrets.SERVICE_ACCOUNT_USERNAME }}
           SERVICE_ACCOUNT_PASSWORD: ${{ secrets.SERVICE_ACCOUNT_PASSWORD }}
           SERVICE_ACCOUNT_SECRET: ${{ secrets.SERVICE_ACCOUNT_SECRET }}
-        run: |
-          yarn workspace oceanics-io-api jest 
+        run: make test 

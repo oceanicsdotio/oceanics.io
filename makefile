@@ -2,9 +2,11 @@ WWW = oceanics-io-www
 API = oceanics-io-api
 OUT_DIR = build
 SPEC = bathysphere
+CACHE = nodes
 SPEC_FILE = ./$(SPEC).yaml
 DOCS_PAGE = $(WWW)/public/$(SPEC).html
 STORYBOOK = public/dev/storybook
+SHARED = src/shared
 
 # Build WASM for NodeJS
 $(API)-wasm: $(wildcard $(API)-rust/src/**/*) $(wildcard $(API)-rust/Cargo*)
@@ -37,11 +39,19 @@ $(WWW)/$(STORYBOOK): $(STORY_SRC)
 	yarn workspace oceanics-io-www build-storybook --output-dir $(STORYBOOK)  --webpack-stats-json
 
 # Convert from YAML to JSON for bundling OpenAPI
-$(API)/shared: $(SPEC_FILE) node_modules
-	yarn run js-yaml $(SPEC_FILE) > $(API)/src/shared/$(SPEC).json
+API_JSON_RELATIVE = $(SHARED)/$(SPEC).json
+API_JSON = $(API)/$(API_JSON_RELATIVE)
+$(API_JSON): $(SPEC_FILE) node_modules
+	yarn run js-yaml $(SPEC_FILE) > $(API_JSON)
+
+# Create examples with static UUID values for deterministic testing
+TEST_CACHE_RELATIVE = $(SHARED)/$(CACHE).json
+TEST_CACHE = $(API)/${TEST_CACHE_RELATIVE}
+$(TEST_CACHE): $(API_JSON)
+	yarn workspace $(API) exec node test-cache.js ./$(API_JSON_RELATIVE) ./$(TEST_CACHE_RELATIVE)
 
 # Compile API
-$(API)/$(OUT_DIR): node_modules $(API)/shared $(API)/package.json
+$(API)/$(OUT_DIR): node_modules $(API_JSON) $(API)/package.json
 	(rm -rf $(API)/$(OUT_DIR)/ || :)
 	yarn workspace $(API) run tsc
 
@@ -54,18 +64,15 @@ $(WWW)/$(OUT_DIR): node_modules $(WWW_SRC)
 # Build everything
 .: $(API)/$(OUT_DIR) $(WWW)/$(OUT_DIR) $(FILTERED_SRC)
 
-# Serve the storybook docs in dev mode
+# Serve the storybook docs in dev mode for manual testing
 start-storybook:
 	yarn workspace oceanics-io-www start-storybook --port ${STORYBOOK_PORT}
 
-test:
-	yarn workspace oceanics-io-api jest -t "api-validator handlers"
-	yarn workspace oceanics-io-api jest -t "middleware"
+# Run jest incrementally, because order matters
+test: $(TEST_CACHE)
 	yarn workspace oceanics-io-api jest -t "auth handlers"
 	yarn workspace oceanics-io-api jest -t "collection handlers"
-	yarn workspace oceanics-io-api jest -t "index handlers"
-	yarn workspace oceanics-io-api jest -t "entity handlers"
-	yarn workspace oceanics-io-api jest -t "topology handlers"
+	yarn workspace oceanics-io-api jest -t "idempotent"
 
 # Remove build artifacts
 clean:

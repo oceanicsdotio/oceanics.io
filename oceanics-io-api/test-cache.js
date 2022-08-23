@@ -1,8 +1,10 @@
 import crypto from "crypto";
 import fs from "fs";
 
-const API_SPECIFICATION = "./src/shared/bathysphere.json";
-const CACHE = "./src/shared/nodes.json"
+const [
+  API_SPECIFICATION,
+  CACHE
+] = process.argv.slice(2)
 
 /**
  * Translate from OpenAPI schema examples to simple
