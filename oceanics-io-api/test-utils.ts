@@ -58,8 +58,12 @@ export let getNodes = (): NodeTuple[] => {
   // Strip lookup entries not in Sensing
   const filterSensing = ([label]: NodeTuple): boolean => EXTENSIONS.sensing.has(label);
   const CACHE = "./src/shared/nodes.json";
-  const text = fs.readFileSync(CACHE, "utf-8");
-  return JSON.parse(text).filter(filterSensing);
+  try {
+    const text = fs.readFileSync(CACHE, "utf-8");
+    return JSON.parse(text).filter(filterSensing); 
+  } catch {
+    return []
+  }
 }
 
 /**
