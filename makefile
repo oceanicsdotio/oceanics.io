@@ -94,4 +94,4 @@ clean:
 	rm -rf $(API)/$(OUT_DIR)
 
 # Non-file targets (aka commands)
-.PHONY: clean start-storybook test-auth test-collection test-idempotent test
+.PHONY: clean start-storybook test-auth test-collection test-idempotent test lock

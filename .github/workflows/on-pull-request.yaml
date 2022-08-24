@@ -42,13 +42,12 @@ jobs:
         if: steps.rust-cache.outputs.cache-hit != 'true'
         run: cargo install wasm-pack
 
-      - name: Build yarn dependencies
-        run: make node_modules  
-
       - name: Update lockfile
         id: update-lockfile
+        env:
+          YARN_ENABLE_IMMUTABLE_INSTALLS: false
         run: |
-          yarn install --mode update-lockfile
+          make node_modules
           echo "::set-output name=hash::${{ hashFiles('./yarn.lock') }}"
 
       - name: Commit lockfile
@@ -65,10 +64,10 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.actor != 'dependabot[bot]' }}
     env:
-          SERVICE_PROVIDER_API_KEY: ${{ secrets.SERVICE_PROVIDER_API_KEY }}
-          SERVICE_ACCOUNT_USERNAME: ${{ secrets.SERVICE_ACCOUNT_USERNAME }}
-          SERVICE_ACCOUNT_PASSWORD: ${{ secrets.SERVICE_ACCOUNT_PASSWORD }}
-          SERVICE_ACCOUNT_SECRET: ${{ secrets.SERVICE_ACCOUNT_SECRET }}
+      SERVICE_PROVIDER_API_KEY: ${{ secrets.SERVICE_PROVIDER_API_KEY }}
+      SERVICE_ACCOUNT_USERNAME: ${{ secrets.SERVICE_ACCOUNT_USERNAME }}
+      SERVICE_ACCOUNT_PASSWORD: ${{ secrets.SERVICE_ACCOUNT_PASSWORD }}
+      SERVICE_ACCOUNT_SECRET: ${{ secrets.SERVICE_ACCOUNT_SECRET }}
 
     steps:
 
