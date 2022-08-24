@@ -21,7 +21,8 @@ type CanonicalLogLineData = {
     user?: Node
     httpMethod: Method
     statusCode: number
-    start: Date
+    start: Date,
+    auth?: Authentication
 }
 
 /**
@@ -40,21 +41,20 @@ type CanonicalLogLineData = {
 }
 
 const transformLogLine = ({
-    user, 
-    httpMethod, 
-    statusCode, 
-    start
+    user,
+    start,
+    ...rest
 }: CanonicalLogLineData) => {
-    let email: string;
+    let uuid: string, email: string;
     if (typeof user !== "undefined") {
-        ({email} = dematerialize(user));
+        ({uuid, email} = dematerialize(user));
     } else {
-        email = "undefined"
+        email = undefined;
+        uuid = "undefined";
     }
     return {
-        httpMethod,
-        statusCode,
-        user: email,
+        ...rest,
+        user: email ?? uuid,
         elapsedTime: (new Date()).getTime() - start.getTime()
     }
 }
@@ -387,22 +387,27 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: Object): Handler 
 
         let user: Node;
         let provider: Node;
+        let auth: Authentication;
         if (Authentication.Bearer in security) {
             let claim: { uuid: string, error?: string };
+            auth = Authentication.Bearer;
             try {
                 claim = bearerAuthClaim(headers);
                 if (!claim.uuid) throw Error("Bearer token claim missing .uuid");
             } catch ({message}) {
-                logging.warn(message, transformLogLine({
+                logging.error(message, transformLogLine({
                     httpMethod: httpMethod as Method, 
                     statusCode: UNAUTHORIZED.statusCode, 
-                    start
+                    start,
+                    auth
                 }));
                 return UNAUTHORIZED
             }
             // Have to assume anything with uuid is valid until query hits
             user = materialize(claim, "u", "User");
+            
         } else if (Authentication.Basic in security) {
+            auth = Authentication.Basic;
             user = materialize(basicAuthClaim(headers), "u", "User");
             const {query} = user.load();
             const result = await connect(query, READ_ONLY)
@@ -411,11 +416,12 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: Object): Handler 
                 const message = records.length > 0 ? 
                     `Basic auth claim matches multiple accounts` :
                     `Basic auth claim does not exist`;
-                logging.warn(message, transformLogLine({
+                logging.error(message, transformLogLine({
                     user,
                     httpMethod: httpMethod as Method, 
                     statusCode: UNAUTHORIZED.statusCode, 
-                    start
+                    start,
+                    auth
                 }));
                 return UNAUTHORIZED
             };
@@ -424,6 +430,7 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: Object): Handler 
         } else if (Authentication.ApiKey in security) {
             // Only for registration on /auth route
             provider = materialize(apiKeyClaim(headers), "p", "Provider");
+            auth = Authentication.ApiKey;
             // Works as existence check, because we strip blank strings
             const {
                 email="",
@@ -431,17 +438,18 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: Object): Handler 
                 secret=""
             } = JSON.parse(body??"{}")
             if (!provider.patternOnly().includes("apiKey")) {
-                logging.warn(`API key auth claim missing .apiKey`, transformLogLine({
+                logging.error(`API key auth claim missing .apiKey`, transformLogLine({
                     user: materialize({ email }, "u", "User"),
                     httpMethod: httpMethod as Method, 
                     statusCode: UNAUTHORIZED.statusCode, 
-                    start
+                    start,
+                    auth
                 }));
                 return UNAUTHORIZED
             };
             user = materialize({
                 email,
-                uuid: crypto.randomUUID().replace(/-/g, ""),
+                uuid: crypto.randomUUID(),
                 credential: hashPassword(password, secret)
             }, "u", "User");
         } else {
@@ -451,7 +459,6 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: Object): Handler 
         // parse path into resources and make request to handler
         const nodeTransform = asNodes(httpMethod as Method, body);
         const nodes: Node[] = path.split("/").filter(filterBaseRoute).map(nodeTransform);
-        
         const {extension="", data, ...result} = await handler({
             data: { 
                 user,
@@ -471,11 +478,12 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: Object): Handler 
             body: JSON.stringify(data)
         };
         
-        logging.info(`Handler response with ${result.statusCode}`, transformLogLine({
+        logging.info(`${httpMethod} response with ${result.statusCode}`, transformLogLine({
             user,
             httpMethod: httpMethod as Method, 
             statusCode: result.statusCode, 
-            start
+            start,
+            auth
         }));
         return response;
     }
