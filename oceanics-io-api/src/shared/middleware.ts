@@ -5,6 +5,59 @@ import jwt from "jsonwebtoken";
 import type { JwtPayload } from "jsonwebtoken";
 import crypto from "crypto";
 import { Node, Links, NodeConstraint } from "oceanics-io-api-wasm";
+import { Logtail } from "@logtail/node";
+import { ILogtailLog } from "@logtail/types";
+
+const logging = new Logtail(process.env.LOGTAIL_SOURCE_TOKEN??"");
+logging.use(async (log: ILogtailLog) => {
+    return {
+        ...log,
+        ...process.memoryUsage(),
+        nodeEnv: process.env.NODE_ENV??"undefined",
+    }
+});
+
+type CanonicalLogLineData = {
+    user?: Node
+    httpMethod: Method
+    statusCode: number
+    start: Date,
+    auth?: Authentication
+}
+
+/**
+ * Approximate inverse of the `materialize` function, for extracting key, value data from a 
+ * WASM Node. 
+ */
+ export const dematerialize = (node: Node): Properties => {
+    const stringToValue = (keyValue: string): [string, any] => {
+        const [key, serialized] =  keyValue.split(": ")
+        return [key.trim(), serialized.trim().slice(1, serialized.length - 1)]
+    }
+    const properties: Properties = node.pattern ? 
+        Object.fromEntries(node.pattern.split(", ").map(stringToValue)) : {};
+
+    return properties
+}
+
+const transformLogLine = ({
+    user,
+    start,
+    ...rest
+}: CanonicalLogLineData) => {
+    let uuid: string, email: string;
+    if (typeof user !== "undefined") {
+        ({uuid, email} = dematerialize(user));
+    } else {
+        email = undefined;
+        uuid = "undefined";
+    }
+    return {
+        ...rest,
+        user: email ?? uuid,
+        elapsedTime: (new Date()).getTime() - start.getTime()
+    }
+}
 
 // Stub type for generic entity Properties object.
 export type Properties = { [key: string]: any };
@@ -123,21 +176,6 @@ export const materialize = (properties: Properties, symbol: string, label: strin
 
     const props = Object.entries(properties).filter(removeFalsy).map(valueToString).join(", ")
     return new Node(props, symbol, label)
-}
-
-/**
- * Approximate inverse of the `materialize` function, for extracting key, value data from a 
- * WASM Node. 
- */
-export const dematerialize = (node: Node): [Properties, string, string] => {
-    const stringToValue = (keyValue: string): [string, any] => {
-        const [key, serialized] =  keyValue.split(": ")
-        return [key, serialized.slice(1, serialized.length - 1)]
-    }
-    const propsString = node.patternOnly()
-    const properties: Properties = propsString ? Object.fromEntries(propsString.split(", ").map(stringToValue)) : {};
-
-    return [properties, node.symbol, node.label]
 }
 
 type RecordObject = {
@@ -295,6 +333,7 @@ const apiKeyClaim = ({ ["x-api-key"]: apiKey }: Headers) => {
     return { apiKey }
 }
 
+
 /**
  * Return a handler function depending on the HTTP method. Want to take 
  * declarative approach: just pass in an object containing handlers for
@@ -330,66 +369,96 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: Object): Handler 
         headers,
         ...request
     }: HandlerEvent) {
-        if (!(httpMethod in _methods)) return INVALID_METHOD;
+        const start = new Date();
+        if (!(httpMethod in _methods)) {
+            logging.warn(`Invalid method`, transformLogLine({
+                httpMethod: httpMethod as Method, 
+                statusCode: INVALID_METHOD.statusCode, 
+                start
+            }));
+            return INVALID_METHOD
+        };
         const handler = _methods[httpMethod];
-
-        // security protocols if any
         const methodSpec = pathSpec[httpMethod.toLowerCase()] ?? {security: []};
+        
+        // security protocols if any
         const reduceMethods = (lookup: Object, schema: Object) => Object.assign(lookup, schema);
         const security: string[] = methodSpec.security.reduce(reduceMethods, {}); 
 
         let user: Node;
         let provider: Node;
+        let auth: Authentication;
         if (Authentication.Bearer in security) {
             let claim: { uuid: string, error?: string };
+            auth = Authentication.Bearer;
             try {
                 claim = bearerAuthClaim(headers);
-            } catch (err) {
-                claim = { 
-                    uuid: undefined,
-                    error: err.message
-                };
-            }
-            if (typeof claim.uuid === "undefined" || !claim.uuid) {
-                console.error({
-                    headers,
-                    claim
-                })
+                if (!claim.uuid) throw Error("Bearer token claim missing .uuid");
+            } catch ({message}) {
+                logging.error(message, transformLogLine({
+                    httpMethod: httpMethod as Method, 
+                    statusCode: UNAUTHORIZED.statusCode, 
+                    start,
+                    auth
+                }));
                 return UNAUTHORIZED
-            } 
+            }
             // Have to assume anything with uuid is valid until query hits
             user = materialize(claim, "u", "User");
+            
         } else if (Authentication.Basic in security) {
+            auth = Authentication.Basic;
             user = materialize(basicAuthClaim(headers), "u", "User");
             const {query} = user.load();
             const result = await connect(query, READ_ONLY)
             const records = recordsToObjects(result);
-            if (records.length !== 1) return UNAUTHORIZED;
+            if (records.length !== 1) {
+                const message = records.length > 0 ? 
+                    `Basic auth claim matches multiple accounts` :
+                    `Basic auth claim does not exist`;
+                logging.error(message, transformLogLine({
+                    user,
+                    httpMethod: httpMethod as Method, 
+                    statusCode: UNAUTHORIZED.statusCode, 
+                    start,
+                    auth
+                }));
+                return UNAUTHORIZED
+            };
             // Use the full properties
             user = materialize(records.map(getProperties)[0], "u", "User");
         } else if (Authentication.ApiKey in security) {
             // Only for registration on /auth route
             provider = materialize(apiKeyClaim(headers), "p", "Provider");
-            if (!provider.patternOnly().includes("apiKey")) return UNAUTHORIZED;
-            console.log(body)
+            auth = Authentication.ApiKey;
+            // Works as existence check, because we strip blank strings
             const {
-                email,
-                password,
-                secret
-            } = JSON.parse(body)
+                email="",
+                password="",
+                secret=""
+            } = JSON.parse(body??"{}")
+            if (!provider.patternOnly().includes("apiKey")) {
+                logging.error(`API key auth claim missing .apiKey`, transformLogLine({
+                    user: materialize({ email }, "u", "User"),
+                    httpMethod: httpMethod as Method, 
+                    statusCode: UNAUTHORIZED.statusCode, 
+                    start,
+                    auth
+                }));
+                return UNAUTHORIZED
+            };
             user = materialize({
                 email,
-                uuid: crypto.randomUUID().replace(/-/g, ""),
+                uuid: crypto.randomUUID(),
                 credential: hashPassword(password, secret)
             }, "u", "User");
         } else {
             // Shouldn't occur
         }
 
-        // parse path into resources
+        // parse path into resources and make request to handler
         const nodeTransform = asNodes(httpMethod as Method, body);
         const nodes: Node[] = path.split("/").filter(filterBaseRoute).map(nodeTransform);
-
         const {extension="", data, ...result} = await handler({
             data: { 
                 user,
@@ -400,14 +469,23 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: Object): Handler 
         });
 
         // Make it a valid JSON response. Core API doesn't use other content types. 
-        return {
+        const response = {
             ...result,
             headers: {
                 ...result.headers,
                 'Content-Type': `application/${extension}json`
             },
             body: JSON.stringify(data)
-        }
+        };
+        
+        logging.info(`${httpMethod} response with ${result.statusCode}`, transformLogLine({
+            user,
+            httpMethod: httpMethod as Method, 
+            statusCode: result.statusCode, 
+            start,
+            auth
+        }));
+        return response;
     }
 
     return NetlifyHandler;

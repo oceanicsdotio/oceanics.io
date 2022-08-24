@@ -70,6 +70,7 @@ jobs:
       SERVICE_ACCOUNT_USERNAME: ${{ secrets.SERVICE_ACCOUNT_USERNAME }}
       SERVICE_ACCOUNT_PASSWORD: ${{ secrets.SERVICE_ACCOUNT_PASSWORD }}
       SERVICE_ACCOUNT_SECRET: ${{ secrets.SERVICE_ACCOUNT_SECRET }}
+      LOGTAIL_SOURCE_TOKEN: ${{ secrets.LOGTAIL_SOURCE_TOKEN }}
 
     steps:
 
@@ -110,7 +111,7 @@ jobs:
           SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
           NEO4J_HOSTNAME: ${{ secrets.NEO4J_HOSTNAME }}
           NEO4J_ACCESS_KEY: ${{ secrets.NEO4J_ACCESS_KEY }}
-        run: yarn netlify dev &
+        run: make dev &
 
       - name: Test auth
         run: make test-auth

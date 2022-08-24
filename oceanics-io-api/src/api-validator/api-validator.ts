@@ -22,7 +22,6 @@ const handler: Handler = async ({ body, httpMethod }) => {
   try {
     test = ajv.validate({ $ref: `${API_NAME}${reference}`}, data);
   } catch (error) {
-    console.log({error});
     return {
       statusCode: 500,
       body: JSON.stringify({ message: error.message }),

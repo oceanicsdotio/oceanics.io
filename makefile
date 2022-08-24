@@ -9,7 +9,8 @@ STORYBOOK = public/dev/storybook
 SHARED = src/shared
 
 # Build WASM for NodeJS
-$(API)-wasm: $(wildcard $(API)-rust/src/**/*) $(wildcard $(API)-rust/Cargo*)
+API_WASM_SOURCE = $(wildcard $(API)-rust/src/**/*)
+$(API)-wasm: $(API_WASM_SOURCE) $(wildcard $(API)-rust/Cargo*)
 	(rm -rf $(API)-wasm || :)
 	wasm-pack build $(API)-rust \
 		--out-dir ../$(API)-wasm \
@@ -51,7 +52,7 @@ $(TEST_CACHE): $(API_JSON)
 	yarn workspace $(API) exec node test-cache.js ./$(API_JSON_RELATIVE) ./$(TEST_CACHE_RELATIVE)
 
 # Compile API
-$(API)/$(OUT_DIR): node_modules $(API_JSON) $(API)/package.json
+$(API)/$(OUT_DIR): node_modules $(API_JSON) $(wildcard $(API)/src/**/*) $(API)-wasm
 	(rm -rf $(API)/$(OUT_DIR)/ || :)
 	yarn workspace $(API) run tsc
 
@@ -62,7 +63,7 @@ $(WWW)/$(OUT_DIR): node_modules $(WWW_SRC)
 	yarn workspace $(WWW) run next export -o $(OUT_DIR)
 
 # Build everything
-.: $(API)/$(OUT_DIR) $(WWW)/$(OUT_DIR) $(FILTERED_SRC)
+.: $(API)/$(OUT_DIR) $(WWW)/$(OUT_DIR) $(FILTERED_SRC) $(API_WASM_SOURCE)
 
 # Serve the storybook docs in dev mode for manual testing
 start-storybook:
@@ -83,6 +84,10 @@ test-idempotent: $(TEST_CACHE)
 # Run jest incrementally, because order matters
 test: $(TEST_CACHE) test-auth test-collection test-idempotent
 
+# Run the dev server
+dev: .
+	yarn netlify dev
+
 # Remove build artifacts
 clean:
 	rm -rf $(API)-wasm
@@ -94,4 +99,4 @@ clean:
 	rm -rf $(API)/$(OUT_DIR)
 
 # Non-file targets (aka commands)
-.PHONY: clean start-storybook test-auth test-collection test-idempotent test lock
+.PHONY: clean start-storybook test-auth test-collection test-idempotent test lock dev

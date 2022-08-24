@@ -17,7 +17,8 @@ describe("auth handlers", function () {
       ["SERVICE_PROVIDER_API_KEY"],
       ["SERVICE_ACCOUNT_USERNAME"],
       ["SERVICE_ACCOUNT_PASSWORD"],
-      ["SERVICE_ACCOUNT_SECRET"]
+      ["SERVICE_ACCOUNT_SECRET"],
+      ["LOGTAIL_SOURCE_TOKEN"]
     ])(`%s is in environment`, async function(key: string) {
       const value = process.env[key];
       expect(typeof value).toBe("string");
