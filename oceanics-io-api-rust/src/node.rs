@@ -47,7 +47,7 @@ pub mod node {
         #[wasm_bindgen(getter)]
         pub fn pattern(&self) -> String {
             let pattern: String;
-            match &self.symbol {
+            match &self.pattern {
                 None => pattern = String::from(""),
                 Some(value) => pattern = value.clone()
             }
