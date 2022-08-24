@@ -1,15 +1,15 @@
 import type { Handler, HandlerEvent } from "@netlify/functions";
 import neo4j from "neo4j-driver";
-import type { Record } from "neo4j-driver";
+import type { Record, QueryResult } from "neo4j-driver";
 import jwt from "jsonwebtoken";
 import type { JwtPayload } from "jsonwebtoken";
 import crypto from "crypto";
-import { Node, Links } from "oceanics-io-api-wasm";
+import { Node, Links, NodeConstraint } from "oceanics-io-api-wasm";
 
 // Stub type for generic entity Properties object.
 export type Properties = { [key: string]: any };
 
-enum Method {
+export enum Method {
     POST = "POST", 
     PUT = "PUT",
     OPTIONS = "OPTIONS",
@@ -27,6 +27,8 @@ enum Authentication {
 
 // TODO: pre-determine this from the API specification
 const METHODS_WITH_BODY: Method[] = [Method.POST, Method.PUT];
+export const READ_ONLY = true;
+export const WRITE = false;
 
 // Handler lookup
 type HttpMethods = {
@@ -74,7 +76,7 @@ type ErrorDetail = {
  * and execute a single query. For convenience you can pass in a callback
  * to execute on the result.
  */
-export const connect = async (query: string, readOnly: boolean = true) => {
+export const connect = async (query: string, readOnly: boolean) => {
     const driver = neo4j.driver(
         process.env.NEO4J_HOSTNAME ?? "",
         neo4j.auth.basic("neo4j", process.env.NEO4J_ACCESS_KEY ?? "")
@@ -84,6 +86,16 @@ export const connect = async (query: string, readOnly: boolean = true) => {
     const result = await session.run(query);
     await driver.close();
     return result;
+}
+
+export const setupQueries = (): string[] => {
+    return [
+        ["User", "email"],
+        ["Provider", "apiKey"],
+        ["Provider", "domain"]
+    ].map(
+        ([label, key]) => (new NodeConstraint(label, key)).createIndex().query
+    )
 }
 
 /**
@@ -128,18 +140,43 @@ export const dematerialize = (node: Node): [Properties, string, string] => {
     return [properties, node.symbol, node.label]
 }
 
-/**
- * Transform from Neo4j response records type to generic internal node representation.
- * 
- * This will pass out only one of the labels attached to the node. It is almost always used
- * on the result of a cypher query.
- */
-export const transform = ({ records }: { records: Record[] }): [string, Properties][] =>
+type RecordObject = {
+    labels: string[]
+    properties: Properties
+}
+
+
+// Convenience methods for chaining
+const RESTRICTED = new Set(["Provider", "User"]);
+
+const filterAllowedLabels = (label: string) => !RESTRICTED.has(label);
+
+const recordsToLabels = ({ records }: QueryResult) => 
+    records.flatMap((record: Record) => {
+        return record.get(0)
+    })
+
+export const recordsToUniqueLabels = (result: QueryResult) => 
+    recordsToLabels(result).filter(filterAllowedLabels)
+
+const labelToRoute = (label: string) => Object({
+    name: label,
+    url: `/api/${label}`
+})
+
+export const recordsToUniqueRoutes = (result: QueryResult) =>
+    recordsToUniqueLabels(result).map(labelToRoute)
+
+// QueryResult to POJO
+const recordsToObjects = ({ records }: QueryResult): RecordObject[] =>
     records.flatMap((record) => Object.values(record.toObject()))
-        .map(({ labels: [primary], properties }: {
-            labels: string[];
-            properties: Properties;
-        }) => [primary, properties])
+
+// Get just the properties, for example if requesting a single label
+const getProperties = ({ properties }: RecordObject): Properties => properties
+
+// Transform from Neo4j response records type to generic internal node representation.
+export const recordsToProperties = (result: QueryResult): Properties[] =>
+    recordsToObjects(result).map(getProperties)
 
 /**
  * Retrieve one or more entities of a single type. This may be filtered
@@ -147,8 +184,8 @@ export const transform = ({ records }: { records: Record[] }): [string, Properti
  */
 export const metadata: ApiHandler = async ({data: {user, nodes: [entity]}}) => {
     const { query } = (new Links()).query(user, entity, entity.symbol);
-    const properties = (node: [string, Properties]) => node[1];
-    const value = (await connect(query).then(transform)).map(properties);
+    const result = await connect(query, READ_ONLY);
+    const value = recordsToProperties(result);
     return {
         statusCode: 200,
         data: {
@@ -325,14 +362,16 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: Object): Handler 
         } else if (Authentication.Basic in security) {
             user = materialize(basicAuthClaim(headers), "u", "User");
             const {query} = user.load();
-            const records = await connect(query).then(transform);
+            const result = await connect(query, READ_ONLY)
+            const records = recordsToObjects(result);
             if (records.length !== 1) return UNAUTHORIZED;
             // Use the full properties
-            user = materialize(records[0][1], "u", "User");
+            user = materialize(records.map(getProperties)[0], "u", "User");
         } else if (Authentication.ApiKey in security) {
             // Only for registration on /auth route
             provider = materialize(apiKeyClaim(headers), "p", "Provider");
             if (!provider.patternOnly().includes("apiKey")) return UNAUTHORIZED;
+            console.log(body)
             const {
                 email,
                 password,
