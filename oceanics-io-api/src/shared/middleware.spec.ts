@@ -15,9 +15,7 @@ describe("idempotent", function() {
         uuid: crypto.randomUUID()
       }
       const user = materialize(claim, "u", "User")
-      console.log({pattern: user.pattern})
       const props = dematerialize(user);
-      console.log({props, pattern: user.pattern})
       expect(props.email).toBe(claim.email)
       expect(props.uuid).toBe(claim.uuid)
     })

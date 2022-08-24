@@ -60,7 +60,7 @@ const getToken: ApiHandler = async ({
     user
   }
 }) => {
-  const {uuid} = dematerialize(user)
+  const {uuid} = dematerialize(user);
   return {
     statusCode: 200,
     data: {
