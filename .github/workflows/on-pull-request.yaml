@@ -53,9 +53,12 @@ jobs:
 
       - name: Commit lockfile
         if: steps.hash-lockfile.outputs.hash != steps.lockfile.outputs.hash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name "GitHub Actions Bot"
           git config user.email "<>"
+          git remote set-url origin https://x-access-token:$GITHUB_TOKEN@github.com/${{ github.repository }}
           git add yarn.lock
           git commit -m "Lockfile change"
           git push origin HEAD:${GITHUB_REF##*/}
