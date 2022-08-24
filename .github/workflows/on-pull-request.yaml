@@ -64,6 +64,12 @@ jobs:
     name: Build site
     runs-on: ubuntu-latest
     if: ${{ github.actor != 'dependabot[bot]' }}
+    env:
+          SERVICE_PROVIDER_API_KEY: ${{ secrets.SERVICE_PROVIDER_API_KEY }}
+          SERVICE_ACCOUNT_USERNAME: ${{ secrets.SERVICE_ACCOUNT_USERNAME }}
+          SERVICE_ACCOUNT_PASSWORD: ${{ secrets.SERVICE_ACCOUNT_PASSWORD }}
+          SERVICE_ACCOUNT_SECRET: ${{ secrets.SERVICE_ACCOUNT_SECRET }}
+
     steps:
 
       - name: Checkout
@@ -105,10 +111,11 @@ jobs:
           NEO4J_ACCESS_KEY: ${{ secrets.NEO4J_ACCESS_KEY }}
         run: yarn netlify dev &
 
-      - name: Test API
-        env:
-          SERVICE_PROVIDER_API_KEY: ${{ secrets.SERVICE_PROVIDER_API_KEY }}
-          SERVICE_ACCOUNT_USERNAME: ${{ secrets.SERVICE_ACCOUNT_USERNAME }}
-          SERVICE_ACCOUNT_PASSWORD: ${{ secrets.SERVICE_ACCOUNT_PASSWORD }}
-          SERVICE_ACCOUNT_SECRET: ${{ secrets.SERVICE_ACCOUNT_SECRET }}
-        run: make test 
+      - name: Test auth
+        run: make test-auth
+
+      - name: Test collections
+        run: make test-collection
+
+      - name: Test idempotent
+        run: make test-idempotent

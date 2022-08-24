@@ -68,11 +68,20 @@ $(WWW)/$(OUT_DIR): node_modules $(WWW_SRC)
 start-storybook:
 	yarn workspace oceanics-io-www start-storybook --port ${STORYBOOK_PORT}
 
-# Run jest incrementally, because order matters
-test: $(TEST_CACHE)
-	yarn workspace oceanics-io-api jest -t "auth handlers"
+# Test just Auth API to setup service account.
+test-auth:
+	yarn workspace oceanics-io-api jest -t "auth handlers" --verbose
+
+# This test set populates the test database, must be called after `test-auth`.
+test-collection: $(TEST_CACHE)
 	yarn workspace oceanics-io-api jest -t "collection handlers"
+
+# Once database and cache are setup
+test-idempotent: $(TEST_CACHE)
 	yarn workspace oceanics-io-api jest -t "idempotent"
+
+# Run jest incrementally, because order matters
+test: $(TEST_CACHE) test-auth test-collection test-idempotent
 
 # Remove build artifacts
 clean:
@@ -85,4 +94,4 @@ clean:
 	rm -rf $(API)/$(OUT_DIR)
 
 # Non-file targets (aka commands)
-.PHONY: clean start-storybook test
+.PHONY: clean start-storybook test-auth test-collection test-idempotent test
