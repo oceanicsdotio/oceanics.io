@@ -1,5 +1,6 @@
 import { describe, expect, test } from '@jest/globals';
-import { asNodes, filterBaseRoute, Method } from "../shared/middleware";
+import { asNodes, filterBaseRoute, Method, materialize, dematerialize } from "../shared/middleware";
+import crypto from "crypto";
 
 describe("idempotent", function() {
   /**
@@ -7,6 +8,17 @@ describe("idempotent", function() {
    * requests.
    */
   describe("middleware", function () {
+
+    test("reversible operations", function () {
+      const claim = {
+        email: "test@oceanics.io",
+        uuid: crypto.randomUUID()
+      }
+      const user = materialize(claim, "u", "User")
+      const props = dematerialize(user);
+      expect(props.email).toBe(claim.email)
+      expect(props.uuid).toBe(claim.uuid)
+    })
 
     test("parses get entity path", function () {
       const uuid = `abcd`;

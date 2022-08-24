@@ -40,8 +40,7 @@ const register: ApiHandler = async ({
   try {
     const result = await connect(query, WRITE);
     records = recordsToProperties(result);
-  } catch (error) {
-    console.error({error})
+  } catch {
     records = [];
   }
   if (records.length !== 1) return UNAUTHORIZED
@@ -61,7 +60,7 @@ const getToken: ApiHandler = async ({
     user
   }
 }) => {
-  const [{uuid}] = dematerialize(user)
+  const {uuid} = dematerialize(user);
   return {
     statusCode: 200,
     data: {
@@ -81,8 +80,7 @@ const remove: ApiHandler = async ({data: {user}}) => {
   const { query } = new Links().delete(user, new Node());
   try {
     await connect(query, WRITE);
-  } catch (error) {
-    console.error({ error })
+  } catch {
     return UNAUTHORIZED;
   }
   return {

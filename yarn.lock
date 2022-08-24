@@ -2194,6 +2194,49 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@logtail/core@npm:^0.1.12":
+  version: 0.1.12
+  resolution: "@logtail/core@npm:0.1.12"
+  dependencies:
+    "@logtail/tools": ^0.1.12
+    "@logtail/types": ^0.1.12
+  checksum: c79487b29cf8e7c4c55213b875a1f189ae0040922df336804bbffc1ef137f84075da2ba26c2266e14bce184ba26480abee7f2edccc83a08e891f5f2dd6b2ed5d
+  languageName: node
+  linkType: hard
+
+"@logtail/node@npm:^0.1.12":
+  version: 0.1.12
+  resolution: "@logtail/node@npm:0.1.12"
+  dependencies:
+    "@logtail/core": ^0.1.12
+    "@logtail/types": ^0.1.12
+    "@msgpack/msgpack": ^2.5.1
+    "@types/stack-trace": ^0.0.29
+    cross-fetch: ^3.0.4
+    minimatch: ^3.0.4
+    stack-trace: ^0.0.10
+  checksum: a34d5ef4c1978cbee65a1a5b97ac0883be57658a556b95a7bce5b473ecf97928c9b7f85d6412b2c39583d844d3ee8fffc225a8f037b709dcca5ab31f28dafc2c
+  languageName: node
+  linkType: hard
+
+"@logtail/tools@npm:^0.1.12":
+  version: 0.1.12
+  resolution: "@logtail/tools@npm:0.1.12"
+  dependencies:
+    "@logtail/types": ^0.1.12
+  checksum: 0518e283522399df2a678cd4a58281dfb909590e177dd79ace27a67c41d2cf5cb54e61b31fef11ee1610f73a38a4879357d0fc38da96bccc799d46d9d40f2a8b
+  languageName: node
+  linkType: hard
+
+"@logtail/types@npm:^0.1.12":
+  version: 0.1.12
+  resolution: "@logtail/types@npm:0.1.12"
+  dependencies:
+    js: ^0.1.0
+  checksum: cb40db2794f31cd45bceb0d598da3defd0923e3269b2cb0b9569323c48b8e9d079f6881a3bcb890c4e1406621a5b63f4bac6a5bb9c02c13d153585a4ce365d3f
+  languageName: node
+  linkType: hard
+
 "@mapbox/geojson-rewind@npm:^0.5.0":
   version: 0.5.2
   resolution: "@mapbox/geojson-rewind@npm:0.5.2"
@@ -2335,6 +2378,13 @@ __metadata:
     call-me-maybe: ^1.0.1
     glob-to-regexp: ^0.3.0
   checksum: d3b82b29368821154ce8e10bef5ccdbfd070d3e9601643c99ea4607e56f3daeaa4e755dd6d2355da20762c695c1b0570543d9f84b48f70c211ec09c4aaada2e1
+  languageName: node
+  linkType: hard
+
+"@msgpack/msgpack@npm:^2.5.1":
+  version: 2.7.2
+  resolution: "@msgpack/msgpack@npm:2.7.2"
+  checksum: 85258ef7a3fb74c1e1f8be017413c1311938bb614b46cf1643fb33a9469b79a08ce61ab81cc139644b12d537178687f4d107d902337062ff728d55825c492b83
   languageName: node
   linkType: hard
 
@@ -5253,6 +5303,13 @@ __metadata:
   version: 0.1.2
   resolution: "@types/source-list-map@npm:0.1.2"
   checksum: fda8f37537aca9d3ed860d559289ab1dddb6897e642e6f53e909bbd18a7ac3129a8faa2a7d093847c91346cf09c86ef36e350c715406fba1f2271759b449adf6
+  languageName: node
+  linkType: hard
+
+"@types/stack-trace@npm:^0.0.29":
+  version: 0.0.29
+  resolution: "@types/stack-trace@npm:0.0.29"
+  checksum: 2dcfdf8f10e250a76e43efe6d3e05a463b4e22ca290dbb423ec14fa21f57f94ef0cc8ba19ed3394c448218d9ddd9f7cd9adea131fb6572aa2d484b1cf7f043aa
   languageName: node
   linkType: hard
 
@@ -8499,6 +8556,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"commander@npm:~1.1.1":
+  version: 1.1.1
+  resolution: "commander@npm:1.1.1"
+  dependencies:
+    keypress: 0.1.x
+  checksum: a27db3772327d1d8a8abaa7d3834c2b4f14067bc9467a113de96834fd6bfcabd0e3a18ca64aa6b4560804d4923c2424b5471409cc85bd929f2a28f8738760d19
+  languageName: node
+  linkType: hard
+
 "common-path-prefix@npm:^3.0.0":
   version: 3.0.0
   resolution: "common-path-prefix@npm:3.0.0"
@@ -8915,6 +8981,15 @@ __metadata:
   dependencies:
     luxon: ^3.0.1
   checksum: cef63dee396732a8247c2c55d99512db7ad39797459f4bfd534ce5c18efdbf88b16ae8265c3b2abc40cdfadf8930bb1be6778e6ae664ae70e4ed7f206487d0cd
+  languageName: node
+  linkType: hard
+
+"cross-fetch@npm:^3.0.4":
+  version: 3.1.5
+  resolution: "cross-fetch@npm:3.1.5"
+  dependencies:
+    node-fetch: 2.6.7
+  checksum: f6b8c6ee3ef993ace6277fd789c71b6acf1b504fd5f5c7128df4ef2f125a429e29cd62dc8c127523f04a5f2fa4771ed80e3f3d9695617f441425045f505cf3bb
   languageName: node
   linkType: hard
 
@@ -14332,6 +14407,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"js@npm:^0.1.0":
+  version: 0.1.0
+  resolution: "js@npm:0.1.0"
+  dependencies:
+    commander: ~1.1.1
+  bin:
+    js: ./bin/js
+  checksum: c2967be06de24caace5044d7cd6d9571034cdaae3da5a0a19602a2791d0654e9c87c53fed00283ae861a055c1db82ff0bda26ad9381aa915f3f06205c3f91c7c
+  languageName: node
+  linkType: hard
+
 "jscodeshift@npm:^0.13.1":
   version: 0.13.1
   resolution: "jscodeshift@npm:0.13.1"
@@ -14567,6 +14653,13 @@ __metadata:
   dependencies:
     mimic-fn: ^4.0.0
   checksum: a21f9e5516a6e2d463bb59a2610b79abd87801f6af5ac3348f95ba782a755fd874a7edadd77a3e5c8b5b1ff89f65645b2220029b6d8c7e3c9775131cd37a59b5
+  languageName: node
+  linkType: hard
+
+"keypress@npm:0.1.x":
+  version: 0.1.0
+  resolution: "keypress@npm:0.1.0"
+  checksum: 3a7e9dc0354dc6e5cfd4a507263dee4d736381d1bf40b59b73ed9972aef9b5e5be3ce6df24ca67d1530c9fe9cf90b913c6d2cc49f610b4077af379933a2968a5
   languageName: node
   linkType: hard
 
@@ -16483,7 +16576,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-fetch@npm:^2.3.0, node-fetch@npm:^2.6.0, node-fetch@npm:^2.6.1, node-fetch@npm:^2.6.7":
+"node-fetch@npm:2.6.7, node-fetch@npm:^2.3.0, node-fetch@npm:^2.6.0, node-fetch@npm:^2.6.1, node-fetch@npm:^2.6.7":
   version: 2.6.7
   resolution: "node-fetch@npm:2.6.7"
   dependencies:
@@ -17010,6 +17103,7 @@ __metadata:
     "@babel/core": ^7.18.10
     "@babel/preset-env": ^7.18.10
     "@babel/preset-typescript": ^7.18.6
+    "@logtail/node": ^0.1.12
     "@netlify/functions": ^1.2.0
     "@types/jest": ^28.1.6
     "@types/jsonwebtoken": ^8.5.6
@@ -20596,7 +20690,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"stack-trace@npm:0.0.x":
+"stack-trace@npm:0.0.x, stack-trace@npm:^0.0.10":
   version: 0.0.10
   resolution: "stack-trace@npm:0.0.10"
   checksum: 473036ad32f8c00e889613153d6454f9be0536d430eb2358ca51cad6b95cea08a3cc33cc0e34de66b0dad221582b08ed2e61ef8e13f4087ab690f388362d6610
