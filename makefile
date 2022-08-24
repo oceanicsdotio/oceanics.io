@@ -51,7 +51,7 @@ $(TEST_CACHE): $(API_JSON)
 	yarn workspace $(API) exec node test-cache.js ./$(API_JSON_RELATIVE) ./$(TEST_CACHE_RELATIVE)
 
 # Compile API
-$(API)/$(OUT_DIR): node_modules $(API_JSON) $(API)/package.json
+$(API)/$(OUT_DIR): node_modules $(API_JSON) $(wildcard $(API)/src/**/*)
 	(rm -rf $(API)/$(OUT_DIR)/ || :)
 	yarn workspace $(API) run tsc
 
@@ -83,6 +83,10 @@ test-idempotent: $(TEST_CACHE)
 # Run jest incrementally, because order matters
 test: $(TEST_CACHE) test-auth test-collection test-idempotent
 
+# Run the dev server
+dev: .
+	yarn netlify dev
+
 # Remove build artifacts
 clean:
 	rm -rf $(API)-wasm
@@ -94,4 +98,4 @@ clean:
 	rm -rf $(API)/$(OUT_DIR)
 
 # Non-file targets (aka commands)
-.PHONY: clean start-storybook test-auth test-collection test-idempotent test lock
+.PHONY: clean start-storybook test-auth test-collection test-idempotent test lock dev

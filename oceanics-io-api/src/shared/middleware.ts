@@ -5,6 +5,9 @@ import jwt from "jsonwebtoken";
 import type { JwtPayload } from "jsonwebtoken";
 import crypto from "crypto";
 import { Node, Links, NodeConstraint } from "oceanics-io-api-wasm";
+import { Logtail } from "@logtail/node";
+
+export const logging = new Logtail(process.env.LOGTAIL_SOURCE_TOKEN??"");
 
 // Stub type for generic entity Properties object.
 export type Properties = { [key: string]: any };
@@ -330,7 +333,10 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: Object): Handler 
         headers,
         ...request
     }: HandlerEvent) {
-        if (!(httpMethod in _methods)) return INVALID_METHOD;
+        const start = new Date();
+        if (!(httpMethod in _methods)) {
+            return INVALID_METHOD
+        };
         const handler = _methods[httpMethod];
 
         // security protocols if any
@@ -351,10 +357,10 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: Object): Handler 
                 };
             }
             if (typeof claim.uuid === "undefined" || !claim.uuid) {
-                console.error({
-                    headers,
-                    claim
-                })
+                // console.error({
+                //     headers,
+                //     claim
+                // })
                 return UNAUTHORIZED
             } 
             // Have to assume anything with uuid is valid until query hits
@@ -364,14 +370,17 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: Object): Handler 
             const {query} = user.load();
             const result = await connect(query, READ_ONLY)
             const records = recordsToObjects(result);
-            if (records.length !== 1) return UNAUTHORIZED;
+            if (records.length !== 1) {
+                return UNAUTHORIZED
+            };
             // Use the full properties
             user = materialize(records.map(getProperties)[0], "u", "User");
         } else if (Authentication.ApiKey in security) {
             // Only for registration on /auth route
             provider = materialize(apiKeyClaim(headers), "p", "Provider");
-            if (!provider.patternOnly().includes("apiKey")) return UNAUTHORIZED;
-            console.log(body)
+            if (!provider.patternOnly().includes("apiKey")) {
+                return UNAUTHORIZED
+            };
             const {
                 email,
                 password,
@@ -400,14 +409,29 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: Object): Handler 
         });
 
         // Make it a valid JSON response. Core API doesn't use other content types. 
-        return {
+        const response = {
             ...result,
             headers: {
                 ...result.headers,
                 'Content-Type': `application/${extension}json`
             },
             body: JSON.stringify(data)
-        }
+        };
+
+        // Canonical logging to Logtail
+        const [{email}] = dematerialize(user);
+        logging.info(`logging handler`, {
+            httpMethod,
+            statusCode: result.statusCode,
+            user: {email},
+            performance: {
+                elapsedTime: (new Date()).getTime() - start.getTime(),
+                ...process.memoryUsage(),
+            }
+        }); 
+
+        // Respond
+        return response
     }
 
     return NetlifyHandler;
