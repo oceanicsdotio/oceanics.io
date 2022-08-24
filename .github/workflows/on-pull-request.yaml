@@ -108,7 +108,7 @@ jobs:
           SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
           NEO4J_HOSTNAME: ${{ secrets.NEO4J_HOSTNAME }}
           NEO4J_ACCESS_KEY: ${{ secrets.NEO4J_ACCESS_KEY }}
-        run: yarn netlify dev &
+        run: make dev &
 
       - name: Test auth
         run: make test-auth
