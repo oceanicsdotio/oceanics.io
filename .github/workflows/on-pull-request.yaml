@@ -58,7 +58,7 @@ jobs:
           git config user.email "<>"
           git add yarn.lock
           git commit -m "Lockfile change"
-          git push
+          git push origin HEAD:${GITHUB_REF##*/}
         
 
   build:
