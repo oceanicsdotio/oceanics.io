@@ -43,15 +43,16 @@ jobs:
         run: cargo install wasm-pack
 
       - name: Update lockfile
-        id: update-lockfile
         env:
           YARN_ENABLE_IMMUTABLE_INSTALLS: false
-        run: |
-          make node_modules
-          echo "::set-output name=hash::${{ hashFiles('./yarn.lock') }}"
+        run: make node_modules
+
+      - name: Hash lockfile
+        id: hash-lockfile
+        run: echo "::set-output name=hash::${{ hashFiles('./yarn.lock') }}"
 
       - name: Commit lockfile
-        if: steps.update-lockfile.outputs.hash != steps.lockfile.outputs.hash
+        if: steps.hash-lockfile.outputs.hash != steps.lockfile.outputs.hash
         run: |
           git config user.name "GitHub Actions Bot"
           git config user.email "<>"
