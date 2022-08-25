@@ -27,7 +27,7 @@ $(WWW)-wasm: $(wildcard $(WWW)-rust/src/**/*) $(wildcard $(WWW)-rust/Cargo*)
 	sed -i 's/"name": "$(WWW)-rust"/"name": "$(WWW)-wasm"/g' $(WWW)-wasm/package.json
 
 # Local dependencies need to be built before we can install
-node_modules: $(API)-wasm $(WWW)-wasm yarn.lock $(wildcard **/package.json)
+node_modules: $(API)-wasm $(WWW)-wasm yarn.lock $(wildcard **/package.json) package.json
 	yarn install
 
 # Build OpenAPI docs page from specification
