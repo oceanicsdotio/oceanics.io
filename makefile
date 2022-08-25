@@ -62,6 +62,12 @@ $(WWW)/$(OUT_DIR): node_modules $(WWW_SRC)
 	yarn workspace $(WWW) run next build
 	yarn workspace $(WWW) run next export -o $(OUT_DIR)
 
+oceanics-io-native/web-build:
+	yarn workspace oceanics-io-native expo --non-interactive build:web
+
+expo:
+	yarn workspace oceanics-io-native expo start
+
 # Build everything
 .: $(API)/$(OUT_DIR) $(WWW)/$(OUT_DIR) $(FILTERED_SRC) $(API_WASM_SOURCE)
 
@@ -87,6 +93,9 @@ test: $(TEST_CACHE) test-auth test-collection test-idempotent
 # Run the dev server
 dev: .
 	yarn netlify dev
+
+lint:
+	yarn eslint "oceanics-io-api/**/*.{ts,tsx}"
 
 # Remove build artifacts
 clean:
