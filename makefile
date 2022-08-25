@@ -95,7 +95,7 @@ dev: .
 	yarn netlify dev
 
 lint:
-	yarn eslint "oceanics-io-www/**/*.{js,ts,json,tsx,jsx}"
+	yarn eslint "**/*.{js,ts,json,tsx,jsx}"
 	
 # Remove build artifacts
 clean:
