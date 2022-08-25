@@ -1,4 +1,5 @@
 // @ts-check
+/* eslint-disable @typescript-eslint/no-var-requires */
 
 // https://www.npmjs.com/package/@next/bundle-analyzer
 const withBundleAnalyzer = require('@next/bundle-analyzer')({

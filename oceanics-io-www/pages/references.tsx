@@ -39,10 +39,11 @@ const StyledRefPage = styled(ReferencesPage)`
 `;
 
 export default StyledRefPage;
+type Frontmatter = {metadata: {references: unknown}};
 
 export const getStaticProps: GetStaticProps = () => Object({
     props: { 
-        documents: readIndexedDocuments(createIndex()).flatMap(({metadata}: any)=>metadata.references),
+        documents: readIndexedDocuments(createIndex()).flatMap(({metadata}: Frontmatter)=>metadata.references),
         description: "See the science",
         title: "References"
     }

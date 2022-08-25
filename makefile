@@ -95,8 +95,8 @@ dev: .
 	yarn netlify dev
 
 lint:
-	yarn eslint "oceanics-io-api/**/*.{js,ts,json}"
-
+	yarn eslint "oceanics-io-www/**/*.{js,ts,json,tsx,jsx}"
+	
 # Remove build artifacts
 clean:
 	rm -rf $(API)-wasm

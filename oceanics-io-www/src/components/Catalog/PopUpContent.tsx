@@ -1,11 +1,4 @@
-/**
- * React and friends
- */
 import React,  {Fragment, useState, useEffect, useCallback} from "react";
-
-/**
- * Component level styling
- */
 import styled from "styled-components";
 
 type FeatureType = {
@@ -13,9 +6,9 @@ type FeatureType = {
 }
 type PopUpType = {
     features: FeatureType[],
-    Component: any,
+    Component: (props: FeatureType) => JSX.Element,
     className: string,
-    transferCallback: Function | null
+    transferCallback: (() => void) | null
 }
 
 /**

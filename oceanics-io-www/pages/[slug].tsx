@@ -41,7 +41,7 @@ const ArticlePage = ({
     /**
      * Use next router, and merge query parameters.
      */
-    const navigate = useCallback((pathname: string, insert?: QueryType, merge: boolean = true) => {
+    const navigate = useCallback((pathname: string, insert?: QueryType, merge = true) => {
         const query = { ...(merge ? router.query : {}), ...(insert ?? {}) }
         router.push({ pathname, query });
     }, [router]);

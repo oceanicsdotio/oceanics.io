@@ -2,3 +2,6 @@ build/
 node_modules/
 oceanics-io-api/src/shared/data.ts
 .expo/
+.next/
+oceanics-io-www/public/dev/storybook/
+oceanics-io-www/**/*.stories.{jsx,tsx,js,ts}
