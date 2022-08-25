@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import type {Handler} from "@netlify/functions";
 import {readFileSync} from "fs";
 
@@ -44,17 +45,16 @@ const search = ({
     maxCost,
 }: ISearch) => {
 
-    const costCompare = Array(Array(pattern.length + 1).keys());
-    const inner = (row: any[], symbol: string) => 
+    const costCompare = [...Array(pattern.length + 1).keys()];
+    const inner = (previous: number[], symbol: string) => 
         calculateRow({
-            previous: row, 
-            word: pattern, 
-            symbol
+            previous, 
+            symbol,
+            word: pattern
         })
 
-    const outer = (result: [string, number][], word: string) => { 
-        //@ts-ignore
-        const cost = [...word].reduce(inner, costCompare).pop();
+    const outer = (result: [string, number][], word: string) => {
+        const cost: number = [...word].reduce(inner, costCompare).pop();
         if (cost <= maxCost) result.push([word, cost]);
         return result;
     }
@@ -108,7 +108,7 @@ const trie = ({
     }
     
     const reducer = (root: INode, pattern: string) => {
-        let node = root;
+        const node = root;
         [...pattern].forEach(inner(node));
         node.word = true;
         return root;
@@ -172,7 +172,7 @@ function recurse({
         //@ts-ignore
         return self + Object.entries(node.children??{}).map(mapNodes)
     }
-};
+}
 
 /**
  * HTTP method
@@ -188,14 +188,12 @@ const handler: Handler = async ({
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(search({words: WELL_KNOWN_TEXT, pattern, maxCost}))
         }; 
-    } catch (err: any) {
+    } catch (err) {
         return { 
             statusCode: err.statusCode || 500, 
             body: err.message
         };
     }
 }
-
-
 
 export {handler}

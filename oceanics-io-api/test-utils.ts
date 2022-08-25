@@ -54,7 +54,7 @@ export type NodeTuple = [string, string, Node];
  * be populated with UUID for each record. This is used
  * to reference instances across test runs.
  */ 
-export let getNodes = (): NodeTuple[] => {
+export const getNodes = (): NodeTuple[] => {
   // Strip lookup entries not in Sensing
   const filterSensing = ([label]: NodeTuple): boolean => EXTENSIONS.sensing.has(label);
   const CACHE = "./src/shared/nodes.json";
@@ -137,7 +137,7 @@ export const register = (apiKey: string) => {
 }
 
 // Bind an auth token to fetch transaction
-export const apiFetch = (url: string, method: string = "GET") => async (data?: Object) => {
+export const apiFetch = (url: string, method = "GET") => async (data?: unknown) => {
   const token = await fetchToken();
   return fetch(`${API_PATH}/${url}`, {
     body: typeof data !== "undefined" ? JSON.stringify(data) : undefined,

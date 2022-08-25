@@ -1,2 +1,4 @@
+build/
 node_modules/
+oceanics-io-api/src/shared/data.ts
 .expo/

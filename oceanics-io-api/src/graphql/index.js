@@ -1,5 +1,5 @@
 // https://www.apollographql.com/docs/apollo-server/v2/deployment/netlify/
-const { ApolloServer, gql } = require("apollo-server-lambda");
+import { ApolloServer, gql } from "apollo-server-lambda";
 
 const typeDefs = gql`
   type Query {
@@ -9,7 +9,7 @@ const typeDefs = gql`
 
 const resolvers = {
   Query: {
-    hello: (parent, args, context) => {
+    hello: () => {
       return "Hello, world!";
     },
   },

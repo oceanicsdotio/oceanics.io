@@ -23,7 +23,6 @@
         "ajv-formats": "^2.1.1",
         "apollo-server-lambda": "^3.8.1",
         "aws-sdk": "^2.1101.0",
-        "graphql-playground-middleware-lambda": "^1.7.24",
         "js-yaml": "^4.1.0",
         "jsonwebtoken": "^8.5.1",
         "neo4j-driver": "^4.4.6",
