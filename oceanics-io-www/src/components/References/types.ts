@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 import {MouseEventHandler} from "react";
 const NAMED_AUTHORS = 3; 
 
@@ -33,22 +34,22 @@ export type MetadataSerializedType = {
 
 export interface IStyled {
     className?: string;
-};
-
-export interface IDocument extends IStyled {
-    document: Document;
-};
-
-export interface IDocumentSerialized {
-    document: DocumentSerializedType;
-    source: any;  // TODO: determine base type from Next without adding dependency?
 }
+
+
 
 export type DocumentSerializedType = {
     metadata: MetadataSerializedType;
     content?: string;
     slug?: string;
 }
+
+export interface IDocumentSerialized {
+    document: DocumentSerializedType;
+    source: unknown;  // TODO: determine base type from Next without adding dependency?
+}
+
+
 
 export interface IDocumentIndexSerialized {
     documents: DocumentSerializedType[];
@@ -66,6 +67,7 @@ export class Document {
             value: string;
             onClick: MouseEventHandler<HTMLAnchorElement>
         }[];
+        /* eslint-disable no-use-before-define */
         references?: Document[];
         authors: string[];
         title: string;
@@ -105,7 +107,7 @@ export class Document {
         };
         this.content = content;
         this.slug = slug;
-    };
+    }
 
     public get hash() {
         const inputs = [
@@ -157,4 +159,8 @@ export class Document {
             this.source
         ].join(". ")
     }
-};
+}
+
+export interface IDocument extends IStyled {
+    document: Document;
+}

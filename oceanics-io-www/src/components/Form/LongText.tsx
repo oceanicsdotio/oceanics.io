@@ -34,8 +34,6 @@ export type LongTextType = {
  */
 export const LongText = ({
     id,
-    type,
-    className,
     name = null,
     ...props
 }: LongTextType) => 

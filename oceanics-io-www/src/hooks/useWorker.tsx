@@ -8,9 +8,9 @@ const LIMIT = 10;
 const onMessageHandler = (
     name: string, 
     setValue: Dispatch<SetStateAction<string[]>>
-) => ({data}: any) => {
+) => ({data}: {data: string}) => {
     console.log(`Message from ${name} worker:`, data);
-    setValue((prev: any[]) => [...prev.slice(0, LIMIT-1), data]);
+    setValue((prev: string[]) => [...prev.slice(0, LIMIT-1), data]);
 }
 
 /**

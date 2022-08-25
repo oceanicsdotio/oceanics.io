@@ -19,10 +19,10 @@ const [WORLD, BOARD] = ["world", "board"];
 export interface ApplicationType extends IWorld {
   className?: string;
   icons: {
-    sources: any;
-    templates: any;
+    sources: unknown;
+    templates: unknown;
   }
-};
+}
 
 /**
  * Page component rendered by NextJS.

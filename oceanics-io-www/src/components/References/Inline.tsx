@@ -14,7 +14,7 @@ export interface IInline {
     authors: string[];
     published: number;
     title: string;
-};
+}
 
 /**
  Include inline links for references in markdown

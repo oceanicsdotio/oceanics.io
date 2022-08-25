@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import useWorker from "../../hooks/useWorker";
 
 export interface IAccount {
@@ -36,7 +36,7 @@ const Account = ({
 
     const worker = useWorker("account", createWorker);
 
-    const listener = ({ data }: { data: { data: any, type: string}}) => {
+    const listener = ({ data }: { data: { data: unknown, type: string}}) => {
       console.log(data)
     }
 

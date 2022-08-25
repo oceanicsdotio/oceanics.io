@@ -22,7 +22,7 @@ export default {
  * Base version
  */
 
-const Template: Story<any> = () => {
+const Template: Story<void> = () => {
   return (
     <>
       <GlobalStyle />

@@ -55,10 +55,9 @@ const handleMessage = async ({ data }: MessageEvent) => {
       });
       return;
     case "parseIconSet":
-      const [nodes, templates, worldSize]: MessageData = data.data;
       ctx.postMessage({
         type: "parseIconSet",
-        data: parseIconSet(nodes, templates, worldSize),
+        data: parseIconSet(...(data.data.slice(0, 3) as MessageData)),
       });
       return;
     default:

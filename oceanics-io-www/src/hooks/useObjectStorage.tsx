@@ -20,7 +20,7 @@ export const useObjectStorage = (
   /**
    * Memoize the metadata for the assets in object storage
    */
-  const [fileSystem, setFileSystem] = useState<FileSystem|null>(null);
+  const [fileSystem] = useState<FileSystem|null>(null);
 
   /**
    * Get the asset metadata from object storage service

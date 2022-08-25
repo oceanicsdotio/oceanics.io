@@ -53,8 +53,8 @@ export interface IWorld extends IWorldType {
    */
   runtime: ModuleType | null;
   icons: {
-    sources: any;
-    templates: any;
+    sources: unknown[];
+    templates: unknown[];
   };
 }
 
@@ -136,7 +136,7 @@ export const useOceanside = ({
       build.push([]);
       const columns = row + (row < grid.size ? 1 : diagonals - 2 * row);
       for (let column = 0; column < columns; column++) {
-        let col = columns - 1 - column; // reverse the order in the index
+        const col = columns - 1 - column; // reverse the order in the index
         build[row].push(map.insertTile(count++, row, col));
       }
       build[row] = build[row].reverse();
@@ -152,7 +152,7 @@ export const useOceanside = ({
   const listener = useCallback(
     ({ data }: { data: any; type: string }) => {
       if (data.type !== ACTION) return;
-      data.data.forEach((x: any) => {
+      data.data.forEach((x: unknown) => {
         map?.insertFeature(x);
       });
       populate();
@@ -192,7 +192,7 @@ export const useOceanside = ({
         const canvas: HTMLCanvasElement = ref.current;
         const xy: [number, number] = eventCoordinates(action, ref.current).map(
           (x: number) => x / 4
-        ) as any;
+        ) as unknown as [number, number];
         const ctx = canvas.getContext("2d");
         if (ctx) map?.updateView(ctx, ...xy);
       }

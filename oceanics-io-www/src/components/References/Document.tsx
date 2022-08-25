@@ -11,9 +11,9 @@ import type { Document as DocumentType, IStyled } from "./types"
 import { Reference } from "./Reference";
 
 export interface IDocument extends IStyled {
-  document: DocumentType;
-  children: any;
-};
+  document: DocumentType,
+  children: JSX.Element
+}
 interface IDocumentContent extends IDocument {
   onClickLabel: (label: string) => MouseEventHandler<HTMLAnchorElement>;
 }

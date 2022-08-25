@@ -1,4 +1,4 @@
-
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { DOMParser } from "@xmldom/xmldom";
 import type { FileSystem } from "./shared";
 import SwaggerParser from "@apidevtools/swagger-parser";
@@ -46,7 +46,9 @@ async function getFileSystem(url: string): Promise<FileSystem> {
   if (!parser) parser = new DOMParser();
 
   const nodes = await getNodes(url, parser);
-  const filter = (match: string) => ({ tagName }: any) => tagName === match;
+  const filter = (match: string) => (node: ChildNode) => 
+    (node as unknown as {tagName: string}).tagName === match;
+    
   const fileObject = (node: ChildNode) => Object({
     key: node.childNodes[0].textContent,
     updated: node.childNodes[1].textContent,
@@ -68,7 +70,7 @@ async function getFileSystem(url: string): Promise<FileSystem> {
 const fetchImageBuffer = async (url: string): Promise<Float32Array> => {
   const blob = await fetch(url).then(response => response.blob());
   const arrayBuffer: string | ArrayBuffer | null = await (new Promise(resolve => {
-    var reader = new FileReader();
+    const reader = new FileReader();
     reader.onloadend = () => { resolve(reader.result); };
     reader.readAsArrayBuffer(blob);
   }));
@@ -219,7 +221,7 @@ type ICodex = {
  */
 const codex = async ({ edges }: ICodex): Promise<Dictionary> => {
 
-  let mapping: Dictionary = {};
+  const mapping: Dictionary = {};
 
   edges.forEach(({ node }) => {
     const { frontmatter: { tags, description }, fields: { slug } } = node;
@@ -276,7 +278,7 @@ async function initParticles(res: number) {
     { length: res * res * 4 },
     () => Math.floor(Math.random() * 256)
   ))
-};
+}
 
 /**
  * Max regional ocean depth for bthymetry rendering
@@ -404,7 +406,7 @@ type FeatureReducer = {
 /**
  * Log normal density function for color mapping
  */
-const logNormal = (x: number, m: number = 0, s: number = 1.0): number =>
+const logNormal = (x: number, m = 0, s = 1.0): number =>
   (1 / s / x / Math.sqrt(2 * Math.PI) * Math.exp(-1 * (Math.log(x) - m) ** 2 / (2 * s ** 2)));
 
 /**
@@ -416,7 +418,7 @@ const getFragment = async (target: string, key: string, attribution: string) => 
   const blob = await fetch(url).then(response => response.blob());
 
   const arrayBuffer: ArrayBuffer | string | null = await (new Promise((resolve) => {
-    var reader = new FileReader();
+    const reader = new FileReader();
     reader.onloadend = () => { resolve(reader.result) };
     reader.readAsArrayBuffer(blob);
   }));
@@ -509,7 +511,7 @@ const parseYamlText = (text: string) =>
  */
 const load = async (specUrl: string) => {
   try {
-    let api = await SwaggerParser.validate(specUrl);
+    const api = await SwaggerParser.validate(specUrl);
     api.info.description = parseYamlText(api.info.description ?? "");
     return api;
   }
@@ -584,7 +586,6 @@ type Content = {
   }
 }
 
-
 type IBuildView = {
   parameters: any;
   requestBody: {
@@ -627,7 +628,7 @@ type ApiOperation = {
   schema: Schema;
   view: {
     query: Input[];
-    body: any;
+    body: string;
   }
 }
 

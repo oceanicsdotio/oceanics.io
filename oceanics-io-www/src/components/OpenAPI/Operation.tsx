@@ -1,6 +1,3 @@
-/**
- * React and friends
- */
 import React, {useState, Dispatch, SetStateAction} from "react";
 
 /**
@@ -43,8 +40,8 @@ type OperationType = {
     path: string,
     method: string,
     view: {
-        body: any,
-        query: any
+        body: string,
+        query: string
     },
     schema: {
         description: string[],
