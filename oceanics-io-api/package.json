@@ -27,7 +27,7 @@
         "jsonwebtoken": "^8.5.1",
         "neo4j-driver": "^4.4.6",
         "oceanics-io-api-wasm": "*",
-        "stripe": "^10.2.0"
+        "stripe": "^10.5.0"
     },
     "devDependencies": {
         "@babel/core": "^7.18.10",
