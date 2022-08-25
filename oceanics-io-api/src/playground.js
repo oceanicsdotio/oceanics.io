@@ -1,6 +1,4 @@
 const lambdaPlayground = require('graphql-playground-middleware-lambda')
-// or using require()
-// const lambdaPlayground = require('graphql-playground-middleware-lambda').default
 
 exports.graphqlHandler = function graphqlHandler(event, context, callback) {
   function callbackFilter(error, output) {

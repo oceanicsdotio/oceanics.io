@@ -1,3 +1,4 @@
+// https://www.apollographql.com/docs/apollo-server/v2/deployment/netlify/
 const { ApolloServer, gql } = require("apollo-server-lambda");
 
 const typeDefs = gql`

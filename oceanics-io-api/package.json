@@ -26,7 +26,9 @@
         "jsonwebtoken": "^8.5.1",
         "neo4j-driver": "^4.4.6",
         "oceanics-io-api-wasm": "*",
-        "stripe": "^10.2.0"
+        "stripe": "^10.2.0",
+        "graphql-playground-middleware-lambda": "^1.7.24",
+        "apollo-server-lambda": "^3.8.1"
     },
     "devDependencies": {
         "@babel/core": "^7.18.10",
