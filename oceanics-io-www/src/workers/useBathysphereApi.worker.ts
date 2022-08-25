@@ -48,7 +48,7 @@ async function getFileSystem(url: string): Promise<FileSystem> {
   const nodes = await getNodes(url, parser);
   const filter = (match: string) => (node: ChildNode) => 
     (node as unknown as {tagName: string}).tagName === match;
-    
+
   const fileObject = (node: ChildNode) => Object({
     key: node.childNodes[0].textContent,
     updated: node.childNodes[1].textContent,
@@ -329,9 +329,9 @@ const PointFeature = (x: number, y: number, properties: object): PointFeatureRes
   properties
 });
 
-
+type FeatureEncodings = (PointFeatureResult|IEsri|INoaa)
 type IGeoJsonSource = {
-  features: any[];
+  features: FeatureEncodings[];
   standard?: string;
   properties?: object;
 };
@@ -344,26 +344,32 @@ const GeoJsonSource = ({
   standard,
   properties
 }: IGeoJsonSource) => {
-  let filterFcn = (x: any): boolean => x;
-  let parserFcn = (x: any): PointFeatureResult => x;
+  let parsed: PointFeatureResult[];
+    
   if (standard === "noaa") {
-    filterFcn = (x: object): boolean => "data" in x && "metadata" in x;
-    parserFcn = ({
-      data: [head],
-      metadata: { lon, lat, ...metadata }
-    }: INoaa) => PointFeature(lon, lat, { ...head, ...metadata })
+    parsed = (features as INoaa[])
+      .filter(x => "data" in x && "metadata" in x)
+      .map(({
+        data: [head],
+        metadata: { lon, lat, ...metadata }
+      }) => PointFeature(lon, lat, { ...head, ...metadata }))
   } else if (standard === "esri") {
-    parserFcn = ({
-      geometry: { x, y },
-      attributes
-    }: IEsri) => PointFeature(x, y, attributes)
+    parsed = (features as IEsri[])
+      .filter(x => !!x)
+      .map(({
+        geometry: { x, y },
+        attributes
+      }) => PointFeature(x, y, attributes))
+  } else {
+    parsed = (features as PointFeatureResult[])
+      .filter(x => !!x)
   }
   return {
     type: "geojson",
     generateId: true,
     data: {
       type: "FeatureCollection",
-      features: parserFcn(filterFcn(features)),
+      features: parsed,
       properties,
     },
     attribution: ""
@@ -587,7 +593,7 @@ type Content = {
 }
 
 type IBuildView = {
-  parameters: any;
+  parameters: Schema[];
   requestBody: {
     content: Content;
   }
@@ -622,35 +628,35 @@ const buildView = ({ parameters, requestBody }: IBuildView) => {
   }
 }
 
-type ApiOperation = {
-  path: string;
-  method: string;
-  schema: Schema;
-  view: {
-    query: Input[];
-    body: string;
-  }
-}
+// type ApiOperation = {
+//   path: string;
+//   method: string;
+//   schema: Schema;
+//   view: {
+//     query: Input[];
+//     body: string;
+//   }
+// }
 
-type SpecNode = { [index: string]: Schema }
-type UnpackedPair = [string, Schema]
+// type SpecNode = { [index: string]: Schema }
+// type UnpackedPair = [string, Schema]
 
 /**
  * Flatten the route and method pairs to be filtered
  * and converted to UI features
  */
-const flattenSpecOperations = async (paths: SpecNode): Promise<ApiOperation[]> =>
-    Object.entries(paths).flatMap(([path, schema]: UnpackedPair) => 
-        Object.entries(schema).map(([method, schema]: any) => 
-            Object({
-                path, 
-                method, 
-                schema: {
-                    ...schema,
-                    description: parseYamlText(schema.description)
-                }, 
-                view: buildView(schema)
-            })));
+// const flattenSpecOperations = async (paths: SpecNode): Promise<ApiOperation[]> =>
+//     Object.entries(paths).flatMap(([path, schema]: UnpackedPair) => 
+//         Object.entries(schema).map(([method, _schema]) => 
+//             Object({
+//                 path, 
+//                 method, 
+//                 schema: {
+//                     ..._schema,
+//                     description: parseYamlText(_schema.description)
+//                 }, 
+//                 view: buildView(_schema)
+//             })));
 
 
 /**

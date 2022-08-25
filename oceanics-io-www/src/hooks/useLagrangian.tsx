@@ -387,7 +387,7 @@ export const useLagrangian = ({
         function render(back, screen, previous, state) {
             pipeline.stages(back, screen, previous, state).forEach(pipeline.render);
             timer.current = setTimeout(render, timeConstant.current * 17.0, screen, back, state, previous);
-        };
+        }
 
         render(
             screenBuffers.current.back, 

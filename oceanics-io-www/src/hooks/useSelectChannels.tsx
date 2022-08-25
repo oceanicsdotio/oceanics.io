@@ -40,19 +40,18 @@ type ApplicationType = {
 /**
  * Page component rendered by GatsbyJS.
  */
-const AppPage = ({
+export const useSelectChannels = ({
   location,
   worker: {
     worker,
     status: { ready },
   },
-  channels: { geojson },
   expand,
 }: ApplicationType) => {
   /**
    * MapBoxGL Map instance is saved to React state.
    */
-  const { map, ref, zoom } = useMapBox({ expand });
+  const { map} = useMapBox({ expand });
 
   /**
    * Hoist the resize function on map to the parent
@@ -65,7 +64,7 @@ const AppPage = ({
   /**
    * Data sets to queue and build layers from.
    */
-  const [queue, setQueue] = useState<unknown[]>([]);
+  const [queue] = useState<unknown[]>([]);
 
   /**
    * Reorder data sets as they are added.
@@ -143,7 +142,7 @@ const AppPage = ({
     queue
       .filter(filterExisting)
       .forEach(
-        ({ id, behind, standard, url, component, attribution, ...layer }) => {
+        ({ id, behind, standard, url, attribution, ...layer }) => {
           setChannelOrder([...channelOrder, [id, behind]]);
           worker.current
             .getData(url, standard)
@@ -196,4 +195,6 @@ const AppPage = ({
   }, [map]);
 
   return {};
-};
+}
+
+export default useSelectChannels
