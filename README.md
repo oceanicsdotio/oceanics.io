@@ -1,7 +1,5 @@
 # Oceanics.io
 
-[![Netlify Status](https://api.netlify.com/api/v1/badges/ad77195f-da0a-428f-ad2d-8dc5f45b3858/deploy-status)](https://app.netlify.com/sites/oceanicsdotio/deploys)
-
 <p align="center">
   <img width="60%" src="https://www.oceanics.io/assets/dagan-sprite.gif">
 </p>
