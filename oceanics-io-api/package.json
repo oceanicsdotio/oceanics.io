@@ -22,7 +22,7 @@
         "ajv": "^8.10.0",
         "ajv-formats": "^2.1.1",
         "apollo-server-lambda": "^3.8.1",
-        "aws-sdk": "^2.1101.0",
+        "aws-sdk": "^2.1202.0",
         "js-yaml": "^4.1.0",
         "jsonwebtoken": "^8.5.1",
         "neo4j-driver": "^4.4.6",
