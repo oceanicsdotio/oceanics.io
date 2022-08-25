@@ -4053,12 +4053,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@next/bundle-analyzer@npm:^12.2.0":
-  version: 12.2.4
-  resolution: "@next/bundle-analyzer@npm:12.2.4"
+"@next/bundle-analyzer@npm:^12.2.5":
+  version: 12.2.5
+  resolution: "@next/bundle-analyzer@npm:12.2.5"
   dependencies:
     webpack-bundle-analyzer: 4.3.0
-  checksum: 7bc1ef2a4bbb72899941bdde3112e9f213832f7bea20cc5d6698f393ff38df60da3a9a2357ed009cd9d45bf0a88645048785cda049ecceb36fbffe9884c89e34
+  checksum: 1829e2aa31765664251bd8d0cd6f73bf4f7856284cd5b0faa07c02a3a580604d7952a96e5a0ce84fc5ddb252a8131d1135d47d2c84613b8b9bccc5774944efa6
   languageName: node
   linkType: hard
 
@@ -6592,13 +6592,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/jest@npm:^28.1.4, @types/jest@npm:^28.1.6":
-  version: 28.1.6
-  resolution: "@types/jest@npm:28.1.6"
+"@types/jest@npm:^28.1.8":
+  version: 28.1.8
+  resolution: "@types/jest@npm:28.1.8"
   dependencies:
-    jest-matcher-utils: ^28.0.0
+    expect: ^28.0.0
     pretty-format: ^28.0.0
-  checksum: f2ba5fbefc8f44d1c16ee19d8d2811bca75754a2846e222287f2788d96062801c568215e6b81eb532a48e8cb2a7282729da1d4f6fb496831da8269c5abaad4c5
+  checksum: d4cd36158a3ae1d4b42cc48a77c95de74bc56b84cf81e09af3ee0399c34f4a7da8ab9e787570f10004bd642f9e781b0033c37327fbbf4a8e4b6e37e8ee3693a7
   languageName: node
   linkType: hard
 
@@ -8731,9 +8731,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"aws-sdk@npm:^2.1101.0":
-  version: 2.1190.0
-  resolution: "aws-sdk@npm:2.1190.0"
+"aws-sdk@npm:^2.1202.0":
+  version: 2.1202.0
+  resolution: "aws-sdk@npm:2.1202.0"
   dependencies:
     buffer: 4.9.2
     events: 1.1.1
@@ -8745,7 +8745,7 @@ __metadata:
     util: ^0.12.4
     uuid: 8.0.0
     xml2js: 0.4.19
-  checksum: be70dc21b26edb0cd6e8d4134ce20744a6ecb02db3a17b5481a08266ca6ee341e3f037de1cfaa6c96acf5e9d6a25daa27813d1b95dd72cfec3442ec406d4dcc7
+  checksum: ace5075676a63d7250ff97ef4dcaa7a39d951540e7a58ac8ef5132c61c9235cd1094fd7a213e185c009e38047ddc1ba7d40608576cd267552b3f61f1133097cb
   languageName: node
   linkType: hard
 
@@ -13596,7 +13596,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expect@npm:^28.1.3":
+"expect@npm:^28.0.0, expect@npm:^28.1.3":
   version: 28.1.3
   resolution: "expect@npm:28.1.3"
   dependencies:
@@ -18275,7 +18275,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jest-matcher-utils@npm:^28.0.0, jest-matcher-utils@npm:^28.1.3":
+"jest-matcher-utils@npm:^28.1.3":
   version: 28.1.3
   resolution: "jest-matcher-utils@npm:28.1.3"
   dependencies:
@@ -22291,12 +22291,12 @@ __metadata:
     "@babel/preset-typescript": ^7.18.6
     "@logtail/node": ^0.1.12
     "@netlify/functions": ^1.2.0
-    "@types/jest": ^28.1.6
+    "@types/jest": ^28.1.8
     "@types/jsonwebtoken": ^8.5.6
     ajv: ^8.10.0
     ajv-formats: ^2.1.1
     apollo-server-lambda: ^3.8.1
-    aws-sdk: ^2.1101.0
+    aws-sdk: ^2.1202.0
     babel-jest: ^28.1.3
     jest: ^28.1.3
     js-yaml: ^4.1.0
@@ -22305,7 +22305,7 @@ __metadata:
     netlify-lambda: ^2.0.15
     node-fetch: ^2.6.7
     oceanics-io-api-wasm: "*"
-    stripe: ^10.2.0
+    stripe: ^10.5.0
     typescript: ^4.7.4
   languageName: unknown
   linkType: soft
@@ -22359,7 +22359,7 @@ __metadata:
   dependencies:
     "@apidevtools/swagger-parser": ^10.1.0
     "@babel/core": ^7.18.6
-    "@next/bundle-analyzer": ^12.2.0
+    "@next/bundle-analyzer": ^12.2.5
     "@storybook/addon-actions": ^6.5.10
     "@storybook/addon-docs": ^6.5.10
     "@storybook/addon-essentials": ^6.5.10
@@ -22369,7 +22369,7 @@ __metadata:
     "@storybook/manager-webpack5": ^6.5.10
     "@storybook/react": ^6.5.10
     "@types/geojson": ^7946.0.8
-    "@types/jest": ^28.1.4
+    "@types/jest": ^28.1.8
     "@types/katex": ^0.14.0
     "@types/mapbox-gl": ^2.4.2
     "@types/node": ^18.6.5
@@ -27886,13 +27886,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"stripe@npm:^10.2.0":
-  version: 10.2.0
-  resolution: "stripe@npm:10.2.0"
+"stripe@npm:^10.5.0":
+  version: 10.5.0
+  resolution: "stripe@npm:10.5.0"
   dependencies:
     "@types/node": ">=8.1.0"
     qs: ^6.10.3
-  checksum: 56e4f441083e7733ab8bb38e34e1b333c6af8fa5ce821c579714c7ae95750ec0086bbcc14ae9ddc3ca390d1e39df8410afb6e3ed5a9dea9c843169e04c7b2143
+  checksum: 15047a26821b9c392ea22f0338c2031d8dbcdcc00c26f145bf36d07e5836e78f621f919e465aab1cd6abb4789c04b8c22e1a07b722b4a1ee881194c46d3cda1f
   languageName: node
   linkType: hard
 
