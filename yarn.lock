@@ -1882,7 +1882,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/runtime@npm:^7.0.0, @babel/runtime@npm:^7.1.2, @babel/runtime@npm:^7.12.13, @babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.14.0, @babel/runtime@npm:^7.17.8, @babel/runtime@npm:^7.3.1, @babel/runtime@npm:^7.4.4, @babel/runtime@npm:^7.5.0, @babel/runtime@npm:^7.5.5, @babel/runtime@npm:^7.6.3, @babel/runtime@npm:^7.7.2, @babel/runtime@npm:^7.7.6, @babel/runtime@npm:^7.8.4, @babel/runtime@npm:^7.8.7, @babel/runtime@npm:^7.9.2":
+"@babel/runtime@npm:^7.0.0, @babel/runtime@npm:^7.1.2, @babel/runtime@npm:^7.12.13, @babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.14.0, @babel/runtime@npm:^7.17.8, @babel/runtime@npm:^7.3.1, @babel/runtime@npm:^7.4.4, @babel/runtime@npm:^7.5.0, @babel/runtime@npm:^7.5.5, @babel/runtime@npm:^7.7.2, @babel/runtime@npm:^7.7.6, @babel/runtime@npm:^7.8.4, @babel/runtime@npm:^7.8.7, @babel/runtime@npm:^7.9.2":
   version: 7.18.9
   resolution: "@babel/runtime@npm:7.18.9"
   dependencies:
@@ -5246,7 +5246,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@storybook/addon-actions@npm:6.5.10, @storybook/addon-actions@npm:^6.5.10":
+"@storybook/addon-actions@npm:6.5.10, @storybook/addon-actions@npm:^6.5, @storybook/addon-actions@npm:^6.5.10":
   version: 6.5.10
   resolution: "@storybook/addon-actions@npm:6.5.10"
   dependencies:
@@ -5278,28 +5278,6 @@ __metadata:
     react-dom:
       optional: true
   checksum: b864ceb0ec9aef76c438cfd55977946619954e07b2b822205e5209e3901cc9ae669babc9304026e48e3717e075212c9e5175d62fd63183cf696e3e196f1f6dd8
-  languageName: node
-  linkType: hard
-
-"@storybook/addon-actions@npm:^5.3":
-  version: 5.3.21
-  resolution: "@storybook/addon-actions@npm:5.3.21"
-  dependencies:
-    "@storybook/addons": 5.3.21
-    "@storybook/api": 5.3.21
-    "@storybook/client-api": 5.3.21
-    "@storybook/components": 5.3.21
-    "@storybook/core-events": 5.3.21
-    "@storybook/theming": 5.3.21
-    core-js: ^3.0.1
-    fast-deep-equal: ^2.0.1
-    global: ^4.3.2
-    polished: ^3.3.1
-    prop-types: ^15.7.2
-    react: ^16.8.3
-    react-inspector: ^4.0.0
-    uuid: ^3.3.2
-  checksum: 5e5d3fb2d7965dfc7631a84aa215aa19d5086916bbe631392df971281d79cc22b7f0c33e4ce6f9cfbde982b25a97df36076b38da2098f9ac7fc213ab17cca1ff
   languageName: node
   linkType: hard
 
@@ -5495,27 +5473,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@storybook/addon-links@npm:^5.3":
-  version: 5.3.21
-  resolution: "@storybook/addon-links@npm:5.3.21"
-  dependencies:
-    "@storybook/addons": 5.3.21
-    "@storybook/client-logger": 5.3.21
-    "@storybook/core-events": 5.3.21
-    "@storybook/csf": 0.0.1
-    "@storybook/router": 5.3.21
-    core-js: ^3.0.1
-    global: ^4.3.2
-    prop-types: ^15.7.2
-    qs: ^6.6.0
-    ts-dedent: ^1.1.0
-  peerDependencies:
-    react: "*"
-  checksum: b9e092a46c5ba91c84d1f73a7c29da9197b68d4d3426ceddf66117e20d8f41125dfb2c25d0e81b4b88ef60efe536e697832e1b35fca7ecbc6955d92f083ac010
-  languageName: node
-  linkType: hard
-
-"@storybook/addon-links@npm:^6.5.10":
+"@storybook/addon-links@npm:^6.5, @storybook/addon-links@npm:^6.5.10":
   version: 6.5.10
   resolution: "@storybook/addon-links@npm:6.5.10"
   dependencies:
@@ -5583,7 +5541,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@storybook/addon-ondevice-knobs@npm:^5.3.25":
+"@storybook/addon-ondevice-knobs@npm:^5.3.26":
   version: 5.3.26
   resolution: "@storybook/addon-ondevice-knobs@npm:5.3.26"
   dependencies:
@@ -19269,7 +19227,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"is-dom@npm:^1.0.0, is-dom@npm:^1.0.9":
+"is-dom@npm:^1.0.0":
   version: 1.1.0
   resolution: "is-dom@npm:1.1.0"
   dependencies:
@@ -24952,11 +24910,11 @@ __metadata:
     "@react-navigation/bottom-tabs": ^6.0.5
     "@react-navigation/native": ^6.0.2
     "@react-navigation/native-stack": ^6.1.0
-    "@storybook/addon-actions": ^5.3
+    "@storybook/addon-actions": ^6.5
     "@storybook/addon-knobs": ^5.3
-    "@storybook/addon-links": ^5.3
+    "@storybook/addon-links": ^6.5
     "@storybook/addon-ondevice-actions": ^5.3.23
-    "@storybook/addon-ondevice-knobs": ^5.3.25
+    "@storybook/addon-ondevice-knobs": ^5.3.26
     "@storybook/react-native": ^5.3.25
     "@storybook/react-native-server": ^5.3.23
     "@types/node": ^17.0.36
@@ -27897,19 +27855,6 @@ __metadata:
   peerDependencies:
     react: ^16.3.0 || ^17.0.0
   checksum: cc3309ddc87446ade742c7d0e88ef089dd8b6981f21506a2bb27daf01a8803ac697f64157c4ffc7e81dfcf3892b54a4072dbc3652fd9addcf6d22dd0b87ab723
-  languageName: node
-  linkType: hard
-
-"react-inspector@npm:^4.0.0":
-  version: 4.0.1
-  resolution: "react-inspector@npm:4.0.1"
-  dependencies:
-    "@babel/runtime": ^7.6.3
-    is-dom: ^1.0.9
-    prop-types: ^15.6.1
-  peerDependencies:
-    react: ^16.8.4
-  checksum: 5eab77b4686e2782f5cd7c47b9ce4e28823e2ffe48e22342ee9c68ff5123447fad32f1e9814cba53bea6514fd939f2e4b3d56f926bdbaa04a6d1fa24b9585dfb
   languageName: node
   linkType: hard
 
