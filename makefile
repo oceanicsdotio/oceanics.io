@@ -57,8 +57,7 @@ $(API)/$(OUT_DIR): node_modules $(API_JSON) $(wildcard $(API)/src/**/*) $(API)-w
 	yarn workspace $(API) run tsc
 
 # Compile WWW
-WWW_SRC := $(wildcard $(WWW)/**/*) $(WWW)/$(STORYBOOK)
-$(WWW)/$(OUT_DIR): node_modules $(WWW_SRC)
+$(WWW)/$(OUT_DIR): node_modules $(wildcard $(WWW)/**/*)
 	yarn workspace $(WWW) run next build
 	yarn workspace $(WWW) run next export -o $(OUT_DIR)
 

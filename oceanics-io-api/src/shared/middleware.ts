@@ -17,6 +17,7 @@ logging.use(async (log: ILogtailLog) => {
     }
 });
 
+type Route = {name: string, url: string};
 export enum Method {
     POST = "POST", 
     PUT = "PUT",
@@ -96,7 +97,7 @@ export type ApiEvent = HandlerEvent & {
 // Response before being processed by middleware
 type ApiResponse = {
     statusCode: number;
-    data?: Properties;
+    data?: Properties|Route[];
 }
 
 // Type for handlers, more succinct
@@ -187,12 +188,12 @@ type RecordObject = {
 const RESTRICTED = new Set(["Provider", "User"]);
 const filterAllowedLabels = (label: string) => !RESTRICTED.has(label);
 const recordToLabel = (record: Record) => record.get(0);
-const labelToRoute = (label: string) => Object({
+const labelToRoute = (label: string): Route => Object({
     name: label,
     url: `/api/${label}`
 })
-export const recordsToUniqueRoutes = 
-    ({ records }: QueryResult) => records
+export const recordsToUniqueRoutes = ({ records }: QueryResult): Route[] => 
+    records
         .flatMap(recordToLabel)
         .filter(filterAllowedLabels)
         .map(labelToRoute)

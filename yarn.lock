@@ -17488,26 +17488,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"graphql-playground-html@npm:^1.6.30":
-  version: 1.6.30
-  resolution: "graphql-playground-html@npm:1.6.30"
-  dependencies:
-    xss: ^1.0.6
-  checksum: a17b8cd4f9c1dd94c4e2aafb5f39b80fbee20adaf80dccc2d6dfebcd0ebf65dc8d7c913bd387461a0360e61d0a7474512817c5fdb636e6c0d631603ed1e8b54c
-  languageName: node
-  linkType: hard
-
-"graphql-playground-middleware-lambda@npm:^1.7.24":
-  version: 1.7.24
-  resolution: "graphql-playground-middleware-lambda@npm:1.7.24"
-  dependencies:
-    graphql-playground-html: ^1.6.30
-  peerDependencies:
-    aws-lambda: ^1.0.5
-  checksum: dbff762e7ecf4fe3244b703b22e441c2254268593627fe12a157c367dd73800465476319088e89c13b6819da19161abf19f34bd2a9cb378b5328fbb22c1d8ce9
-  languageName: node
-  linkType: hard
-
 "graphql-tag@npm:^2.10.1, graphql-tag@npm:^2.11.0, graphql-tag@npm:^2.12.6":
   version: 2.12.6
   resolution: "graphql-tag@npm:2.12.6"
@@ -24950,7 +24930,6 @@ __metadata:
     apollo-server-lambda: ^3.8.1
     aws-sdk: ^2.1101.0
     babel-jest: ^28.1.3
-    graphql-playground-middleware-lambda: ^1.7.24
     jest: ^28.1.3
     js-yaml: ^4.1.0
     jsonwebtoken: ^8.5.1
@@ -34587,7 +34566,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"xss@npm:^1.0.6, xss@npm:^1.0.8":
+"xss@npm:^1.0.8":
   version: 1.0.14
   resolution: "xss@npm:1.0.14"
   dependencies:
