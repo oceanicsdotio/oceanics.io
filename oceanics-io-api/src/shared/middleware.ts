@@ -183,31 +183,23 @@ type RecordObject = {
     properties: Properties
 }
 
-
 // Convenience methods for chaining
 const RESTRICTED = new Set(["Provider", "User"]);
-
 const filterAllowedLabels = (label: string) => !RESTRICTED.has(label);
-
-const recordsToLabels = ({ records }: QueryResult) => 
-    records.flatMap((record: Record) => {
-        return record.get(0)
-    })
-
-export const recordsToUniqueLabels = (result: QueryResult) => 
-    recordsToLabels(result).filter(filterAllowedLabels)
-
+const recordToLabel = (record: Record) => record.get(0);
 const labelToRoute = (label: string) => Object({
     name: label,
     url: `/api/${label}`
 })
-
-export const recordsToUniqueRoutes = (result: QueryResult) =>
-    recordsToUniqueLabels(result).map(labelToRoute)
+export const recordsToUniqueRoutes = 
+    ({ records }: QueryResult) => records
+        .flatMap(recordToLabel)
+        .filter(filterAllowedLabels)
+        .map(labelToRoute)
 
 // QueryResult to POJO
 const recordsToObjects = ({ records }: QueryResult): RecordObject[] =>
-    records.flatMap((record) => Object.values(record.toObject()))
+    records.flatMap((record: Record) => Object.values(record.toObject()))
 
 // Get just the properties, for example if requesting a single label
 const getProperties = ({ properties }: RecordObject): Properties => properties
