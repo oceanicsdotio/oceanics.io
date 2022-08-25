@@ -4,13 +4,18 @@
         "oceanics-io-www",
         "oceanics-io-www-wasm",
         "oceanics-io-api",
-        "oceanics-io-api-wasm"
+        "oceanics-io-api-wasm",
+        "oceanics-io-native"
     ],
     "packageManager": "yarn@3.2.2",
     "devDependencies": {
+        "@typescript-eslint/eslint-plugin": "^5.26.0",
+        "@typescript-eslint/parser": "^5.26.0",
+        "eslint": "^8.16.0",
         "js-yaml": "^4.1.0",
         "netlify-cli": "^10.7.1",
-        "redoc-cli": "^0.13.17"
+        "redoc-cli": "^0.13.17",
+        "typescript": "~4.3.5"
     },
     "resolutions": {
         "trim-newlines": ">=3.0.1",

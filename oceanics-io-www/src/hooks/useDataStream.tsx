@@ -1,6 +1,3 @@
-/**
- * React friends.
- */
 import { useState, useEffect, useRef } from "react";
 import { lichen, ghost } from "../palette";
 
@@ -61,9 +58,9 @@ export const useDataStream = ({
 
         // use location based sunlight function
         const fcn = (t: number) => {
-            let days = t / 5000.0 % 365.0;
-            let hours = days % 1.0;
-            let latitude = 46.0;
+            const days = t / 5000.0 % 365.0;
+            const hours = days % 1.0;
+            const latitude = 46.0;
             return runtime.photosynthetically_active_radiation(days, latitude, hours);
         };
 

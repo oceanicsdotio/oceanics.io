@@ -25,7 +25,7 @@ export type EventLocation = {clientX: number; clientY: number;};
  * Not as flexible as quaternion rotation.
  */
 export const rotatePath = (pts: Points, angle: number): Points  => {
-    let [s, c] = [Math.sin, Math.cos].map(fcn => fcn(angle));
+    const [s, c] = [Math.sin, Math.cos].map(fcn => fcn(angle));
     return pts.map(([xx, yy]) => [(xx * c - yy * s), (xx * s + yy * c)]);
 }
 

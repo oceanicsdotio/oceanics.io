@@ -154,7 +154,7 @@ export const useOceansideOverlay = ({
 
         const canvas: HTMLCanvasElement = overlay.current;
         const ctx = canvas.getContext(`2d`);
-        if (!ctx) throw TypeError("Rendering Context is Null")
+        if (!ctx) throw TypeError("Rendering Context is Null");
         
         [canvas.width, canvas.height] = ["width", "height"].map(
             dim => getComputedStyle(canvas).getPropertyValue(dim).slice(0, -2)

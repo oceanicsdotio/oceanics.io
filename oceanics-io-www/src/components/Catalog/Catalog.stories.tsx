@@ -1,6 +1,4 @@
-/**
- * React and friends
- */
+/* eslint-disable @typescript-eslint/no-empty-function */
 import React from 'react';
 import { Meta, Story} from "@storybook/react";
 

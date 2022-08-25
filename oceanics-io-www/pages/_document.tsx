@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import Document from "next/document"
 import { ServerStyleSheet } from "styled-components"
 
@@ -9,7 +10,7 @@ export default class MyDocument extends Document {
     try {
       ctx.renderPage = () =>
         originalRenderPage({
-          enhanceApp: (App: any) => (props: any) =>
+          enhanceApp: (App: unknown) => (props: Record<string,unknown>) =>
             sheet.collectStyles(<App {...props} />),
         })
 

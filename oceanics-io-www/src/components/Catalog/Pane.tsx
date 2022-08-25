@@ -1,8 +1,5 @@
 import React from "react";
-
-/**
- * Component-level styling.
- */
+import type {ReactNode} from "react";
 import styled from "styled-components";
 import {columnSize} from "./utils";
 
@@ -12,11 +9,11 @@ type PaneType = {
     expand: boolean;
     mobile: boolean;
     className?: string;
-    children: any;
+    children: ReactNode;
 }
 
 /**
- * Page component rendered by GatsbyJS.
+ * Page component rendered.
  */
 const Pane = ({
     className, 

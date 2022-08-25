@@ -63,11 +63,13 @@ export default ({
      */
     useEffect(() => {
         if (!validContext) return;
-        const ctx: any = validContext;
+        const ctx = validContext as CanvasRenderingContext2D;
         
         // Create `CanvasGradient` and add color stops
         ctx.fillStyle = ctx.createLinearGradient(0, 0, size, 0);
-        colors.forEach(pair => { ctx.fillStyle.addColorStop(...pair) });
+        colors.forEach(([offset, color]) => { 
+            (ctx.fillStyle as CanvasGradient).addColorStop(parseFloat(offset), color) 
+        });
 
         // Draw to temp canvas
         ctx.fillRect(0, 0, size, 1);

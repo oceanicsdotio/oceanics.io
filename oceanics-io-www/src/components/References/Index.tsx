@@ -22,7 +22,7 @@ export interface DocumentIndexType extends IStyled {
   onClearConstraints: MouseEventHandler<HTMLButtonElement>;
   onClickLabel: (label: string) => MouseEventHandler<HTMLAnchorElement>;
   pagingIncrement: number;
-  navigate: (...args: any[]) => void;
+  navigate: (...args: unknown[]) => void;
 }
 
 /**

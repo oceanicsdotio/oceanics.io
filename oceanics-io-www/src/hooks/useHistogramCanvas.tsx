@@ -1,6 +1,3 @@
-/**
- * React friends.
- */
 import { useEffect, useRef, useState } from "react";
 import type {WorkerRef} from "../utils";
 
@@ -45,7 +42,7 @@ export const useHistogramCanvas = ({
      * Summary stats include max and total. Set asynchonously by
      * result of web worker calculation.
      */
-    const [ statistics, setStatistics ] = useState({
+    const [ statistics ] = useState({
         total: 0,
         max: 0
     });

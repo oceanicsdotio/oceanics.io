@@ -1,4 +1,4 @@
-
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { DOMParser } from "@xmldom/xmldom";
 import type { FileSystem } from "./shared";
 import SwaggerParser from "@apidevtools/swagger-parser";
@@ -46,7 +46,9 @@ async function getFileSystem(url: string): Promise<FileSystem> {
   if (!parser) parser = new DOMParser();
 
   const nodes = await getNodes(url, parser);
-  const filter = (match: string) => ({ tagName }: any) => tagName === match;
+  const filter = (match: string) => (node: ChildNode) => 
+    (node as unknown as {tagName: string}).tagName === match;
+
   const fileObject = (node: ChildNode) => Object({
     key: node.childNodes[0].textContent,
     updated: node.childNodes[1].textContent,
@@ -68,7 +70,7 @@ async function getFileSystem(url: string): Promise<FileSystem> {
 const fetchImageBuffer = async (url: string): Promise<Float32Array> => {
   const blob = await fetch(url).then(response => response.blob());
   const arrayBuffer: string | ArrayBuffer | null = await (new Promise(resolve => {
-    var reader = new FileReader();
+    const reader = new FileReader();
     reader.onloadend = () => { resolve(reader.result); };
     reader.readAsArrayBuffer(blob);
   }));
@@ -219,7 +221,7 @@ type ICodex = {
  */
 const codex = async ({ edges }: ICodex): Promise<Dictionary> => {
 
-  let mapping: Dictionary = {};
+  const mapping: Dictionary = {};
 
   edges.forEach(({ node }) => {
     const { frontmatter: { tags, description }, fields: { slug } } = node;
@@ -276,7 +278,7 @@ async function initParticles(res: number) {
     { length: res * res * 4 },
     () => Math.floor(Math.random() * 256)
   ))
-};
+}
 
 /**
  * Max regional ocean depth for bthymetry rendering
@@ -327,9 +329,9 @@ const PointFeature = (x: number, y: number, properties: object): PointFeatureRes
   properties
 });
 
-
+type FeatureEncodings = (PointFeatureResult|IEsri|INoaa)
 type IGeoJsonSource = {
-  features: any[];
+  features: FeatureEncodings[];
   standard?: string;
   properties?: object;
 };
@@ -342,26 +344,32 @@ const GeoJsonSource = ({
   standard,
   properties
 }: IGeoJsonSource) => {
-  let filterFcn = (x: any): boolean => x;
-  let parserFcn = (x: any): PointFeatureResult => x;
+  let parsed: PointFeatureResult[];
+    
   if (standard === "noaa") {
-    filterFcn = (x: object): boolean => "data" in x && "metadata" in x;
-    parserFcn = ({
-      data: [head],
-      metadata: { lon, lat, ...metadata }
-    }: INoaa) => PointFeature(lon, lat, { ...head, ...metadata })
+    parsed = (features as INoaa[])
+      .filter(x => "data" in x && "metadata" in x)
+      .map(({
+        data: [head],
+        metadata: { lon, lat, ...metadata }
+      }) => PointFeature(lon, lat, { ...head, ...metadata }))
   } else if (standard === "esri") {
-    parserFcn = ({
-      geometry: { x, y },
-      attributes
-    }: IEsri) => PointFeature(x, y, attributes)
+    parsed = (features as IEsri[])
+      .filter(x => !!x)
+      .map(({
+        geometry: { x, y },
+        attributes
+      }) => PointFeature(x, y, attributes))
+  } else {
+    parsed = (features as PointFeatureResult[])
+      .filter(x => !!x)
   }
   return {
     type: "geojson",
     generateId: true,
     data: {
       type: "FeatureCollection",
-      features: parserFcn(filterFcn(features)),
+      features: parsed,
       properties,
     },
     attribution: ""
@@ -404,7 +412,7 @@ type FeatureReducer = {
 /**
  * Log normal density function for color mapping
  */
-const logNormal = (x: number, m: number = 0, s: number = 1.0): number =>
+const logNormal = (x: number, m = 0, s = 1.0): number =>
   (1 / s / x / Math.sqrt(2 * Math.PI) * Math.exp(-1 * (Math.log(x) - m) ** 2 / (2 * s ** 2)));
 
 /**
@@ -416,7 +424,7 @@ const getFragment = async (target: string, key: string, attribution: string) => 
   const blob = await fetch(url).then(response => response.blob());
 
   const arrayBuffer: ArrayBuffer | string | null = await (new Promise((resolve) => {
-    var reader = new FileReader();
+    const reader = new FileReader();
     reader.onloadend = () => { resolve(reader.result) };
     reader.readAsArrayBuffer(blob);
   }));
@@ -509,7 +517,7 @@ const parseYamlText = (text: string) =>
  */
 const load = async (specUrl: string) => {
   try {
-    let api = await SwaggerParser.validate(specUrl);
+    const api = await SwaggerParser.validate(specUrl);
     api.info.description = parseYamlText(api.info.description ?? "");
     return api;
   }
@@ -584,9 +592,8 @@ type Content = {
   }
 }
 
-
 type IBuildView = {
-  parameters: any;
+  parameters: Schema[];
   requestBody: {
     content: Content;
   }
@@ -621,35 +628,35 @@ const buildView = ({ parameters, requestBody }: IBuildView) => {
   }
 }
 
-type ApiOperation = {
-  path: string;
-  method: string;
-  schema: Schema;
-  view: {
-    query: Input[];
-    body: any;
-  }
-}
+// type ApiOperation = {
+//   path: string;
+//   method: string;
+//   schema: Schema;
+//   view: {
+//     query: Input[];
+//     body: string;
+//   }
+// }
 
-type SpecNode = { [index: string]: Schema }
-type UnpackedPair = [string, Schema]
+// type SpecNode = { [index: string]: Schema }
+// type UnpackedPair = [string, Schema]
 
 /**
  * Flatten the route and method pairs to be filtered
  * and converted to UI features
  */
-const flattenSpecOperations = async (paths: SpecNode): Promise<ApiOperation[]> =>
-    Object.entries(paths).flatMap(([path, schema]: UnpackedPair) => 
-        Object.entries(schema).map(([method, schema]: any) => 
-            Object({
-                path, 
-                method, 
-                schema: {
-                    ...schema,
-                    description: parseYamlText(schema.description)
-                }, 
-                view: buildView(schema)
-            })));
+// const flattenSpecOperations = async (paths: SpecNode): Promise<ApiOperation[]> =>
+//     Object.entries(paths).flatMap(([path, schema]: UnpackedPair) => 
+//         Object.entries(schema).map(([method, _schema]) => 
+//             Object({
+//                 path, 
+//                 method, 
+//                 schema: {
+//                     ..._schema,
+//                     description: parseYamlText(_schema.description)
+//                 }, 
+//                 view: buildView(_schema)
+//             })));
 
 
 /**

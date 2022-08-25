@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 import type {MutableRefObject} from "react";
 export type WorkerRef = MutableRefObject<Worker|null>;
 
@@ -49,11 +50,11 @@ export const eventCoordinates = ({clientX, clientY}: EventLocation, canvas: HTML
 
         // called once before every frame where the icon will be used
         render: function () {
-            let duration = 1000;
-            let time = (performance.now() % duration) / duration;
+            const duration = 1000;
+            const time = (performance.now() % duration) / duration;
 
-            let radius = size / 2;
-            let ctx: CanvasRenderingContext2D|null = this.context;
+            const radius = size / 2;
+            const ctx: CanvasRenderingContext2D|null = this.context;
             if (!ctx) return false;
 
             ctx.clearRect(0, 0, size, size);

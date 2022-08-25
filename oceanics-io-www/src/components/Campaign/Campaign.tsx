@@ -24,11 +24,11 @@ type CampaignType = {
     response: string;
     name: string;
     description: string;
-};
+}
 export interface ICampaignType {
     className?: string;
     campaign: CampaignType;
-};
+}
 
 /**
  * Base component for web landing page.

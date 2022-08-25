@@ -1,6 +1,3 @@
-/**
- * React and friends
- */
 import React from "react";
 import styled from "styled-components";
 
@@ -15,7 +12,7 @@ import GlobalStyle from "./GlobalStyle";
 
 /**
  * The NavBar is a <nav> element that displays links or buttons
- * as a horizontal bar with the current choise styled
+ * as a horizontal bar with the current choice styled
  * prominently.
  */
 export const NavBar = styled.nav`
@@ -54,12 +51,12 @@ export const Title = styled.a`
 `;
 
 export interface ILayout {
-    className?: string;
-    title: string;
-    HeadComponent: any;
-    description: string;
-    children: any;
-};
+    className?: string,
+    title: string,
+    HeadComponent: Element,
+    description: string,
+    children: JSX.Element,
+}
 
 export const Layout = ({ 
     children,

@@ -30,20 +30,17 @@ export const useImageDataTexture = ({
      * Interpreting image formatted velocity data requires having
      * information about the range. 
      */
-    const [ metadata, setMetadata ] = useState(null);
+    const [ metadata ] = useState(null);
 
     /**
      * Fetch the metadata file. 
      */
     useEffect(() => {
         if (!metadataFile || !worker.current) return
-            
         worker.current.postMessage({
             type: "getPublicJsonData",
             data: metadataFile
         });
-
-        // TODO: then(setMetadata)
     }, [ worker ]);
 
 
@@ -76,7 +73,7 @@ export const useImageDataTexture = ({
      */
     useEffect(() => {
         if (!preview || !preview.current || !imageData) return;
-        const canvas: HTMLCanvasElement = preview.current as any;
+        const canvas: HTMLCanvasElement = preview.current as unknown as HTMLCanvasElement;
         const ctx = canvas.getContext("2d");
         if (!ctx) {
             throw TypeError("Canvas Rendering Context is Null");
@@ -90,7 +87,7 @@ export const useImageDataTexture = ({
      * not cleaned up.
      */
     useEffect(() => {
-        if (metadata && imageData && worker.current) worker.current.close();
+        if (metadata && imageData && worker.current) worker.current.terminate();
     }, [ metadata, imageData ]);
 
     return {

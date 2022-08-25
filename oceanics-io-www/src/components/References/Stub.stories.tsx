@@ -8,7 +8,7 @@ import type { Meta, Story } from '@storybook/react';
  * Base component
  */
 import Stub from "./Stub";
-import type {IDocument, MetadataSerializedType} from "./types";
+import type {IDocument} from "./types";
 import { Document } from './types';
 import PageData from  "./Example.json";
 import GlobalStyle from '../Layout/GlobalStyle';

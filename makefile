@@ -57,10 +57,15 @@ $(API)/$(OUT_DIR): node_modules $(API_JSON) $(wildcard $(API)/src/**/*) $(API)-w
 	yarn workspace $(API) run tsc
 
 # Compile WWW
-WWW_SRC := $(wildcard $(WWW)/**/*) $(WWW)/$(STORYBOOK)
-$(WWW)/$(OUT_DIR): node_modules $(WWW_SRC)
+$(WWW)/$(OUT_DIR): node_modules $(wildcard $(WWW)/**/*)
 	yarn workspace $(WWW) run next build
 	yarn workspace $(WWW) run next export -o $(OUT_DIR)
+
+oceanics-io-native/web-build:
+	yarn workspace oceanics-io-native expo --non-interactive build:web
+
+expo:
+	yarn workspace oceanics-io-native expo start
 
 # Build everything
 .: $(API)/$(OUT_DIR) $(WWW)/$(OUT_DIR) $(FILTERED_SRC) $(API_WASM_SOURCE)
@@ -88,6 +93,9 @@ test: $(TEST_CACHE) test-auth test-collection test-idempotent
 dev: .
 	yarn netlify dev
 
+lint:
+	yarn eslint "**/*.{js,ts,json,tsx,jsx}"
+	
 # Remove build artifacts
 clean:
 	rm -rf $(API)-wasm

@@ -239,7 +239,7 @@ export const createTexture = (
   const bindTexture = ctx.bindTexture.bind(ctx, ctx.TEXTURE_2D);
   const texParameteri = ctx.texParameteri.bind(ctx, ctx.TEXTURE_2D);
 
-  let texture = ctx.createTexture();
+  const texture = ctx.createTexture();
 
   bindTexture(texture);
 
@@ -268,7 +268,7 @@ export const createTexture = (
   return texture;
 };
 
-type Shader = {};
+type Shader = string;
 type IGlslShaders = {
   shaders: Shader[];
 };

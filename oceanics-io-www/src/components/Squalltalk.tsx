@@ -1,7 +1,6 @@
 import React, { useEffect } from "react";
 
 import useMapBox from "../hooks/useMapBox";
-import useWasmRuntime from "../hooks/useWasmRuntime";
 import useWorker from "../hooks/useWorker";
 import useFragmentQueue, {
   OBJECT_STORAGE_URL,
@@ -92,7 +91,6 @@ interface ISqualltalk {
 const Squalltalk = ({ map, client, height = "500px" }: ISqualltalk) => {
   const { ref, map: mapBox } = useMapBox(map);
   const worker = useWorker("bathysphere", createBathysphereWorker);
-  const { runtime } = useWasmRuntime();
   const fs = useObjectStorage(OBJECT_STORAGE_URL, worker.ref);
 
   /**

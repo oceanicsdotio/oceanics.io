@@ -17,20 +17,40 @@ logging.use(async (log: ILogtailLog) => {
     }
 });
 
+type Route = {name: string, url: string};
+export enum Method {
+    POST = "POST", 
+    PUT = "PUT",
+    OPTIONS = "OPTIONS",
+    QUERY = "QUERY",
+    DELETE = "DELETE",
+    GET = "GET",
+    HEAD = "HEAD"
+}
+
+enum Authentication {
+    Bearer = "BearerAuth",
+    ApiKey = "ApiKeyAuth",
+    Basic = "BasicAuth"
+}
+
 type CanonicalLogLineData = {
     user?: Node
     httpMethod: Method
     statusCode: number
-    start: Date,
+    start: Date
     auth?: Authentication
 }
+
+// Stub type for generic entity Properties object.
+export type Properties = { [key: string]: unknown };
 
 /**
  * Approximate inverse of the `materialize` function, for extracting key, value data from a 
  * WASM Node. 
  */
  export const dematerialize = (node: Node): Properties => {
-    const stringToValue = (keyValue: string): [string, any] => {
+    const stringToValue = (keyValue: string): [string, unknown] => {
         const [key, serialized] =  keyValue.split(": ")
         return [key.trim(), serialized.trim().slice(1, serialized.length - 1)]
     }
@@ -47,7 +67,7 @@ const transformLogLine = ({
 }: CanonicalLogLineData) => {
     let uuid: string, email: string;
     if (typeof user !== "undefined") {
-        ({uuid, email} = dematerialize(user));
+        ({uuid, email} = dematerialize(user) as {uuid?: string, email?: string});
     } else {
         email = undefined;
         uuid = "undefined";
@@ -59,41 +79,10 @@ const transformLogLine = ({
     }
 }
 
-// Stub type for generic entity Properties object.
-export type Properties = { [key: string]: any };
-
-export enum Method {
-    POST = "POST", 
-    PUT = "PUT",
-    OPTIONS = "OPTIONS",
-    QUERY = "QUERY",
-    DELETE = "DELETE",
-    GET = "GET",
-    HEAD = "HEAD"
-};
-
-enum Authentication {
-    Bearer = "BearerAuth",
-    ApiKey = "ApiKeyAuth",
-    Basic = "BasicAuth"
-}
-
 // TODO: pre-determine this from the API specification
 const METHODS_WITH_BODY: Method[] = [Method.POST, Method.PUT];
 export const READ_ONLY = true;
 export const WRITE = false;
-
-// Handler lookup
-type HttpMethods = {
-    [key in Method]?: Function;
-}
-
-// Predictable inbound headers
-type Headers = { 
-    authorization?: string;
-    ["x-api-key"]?: string;
-    [key: string]: string;
-}
 
 // Type of request after going through middleware. 
 export type ApiEvent = HandlerEvent & {
@@ -108,17 +97,29 @@ export type ApiEvent = HandlerEvent & {
 // Response before being processed by middleware
 type ApiResponse = {
     statusCode: number;
-    data?: Properties;
+    data?: Properties|Route[];
 }
 
 // Type for handlers, more succinct
 export type ApiHandler = (event: ApiEvent) => Promise<ApiResponse>
 
+// Handler lookup
+type HttpMethods = {
+    [key in Method]?: ApiHandler;
+}
+
+// Predictable inbound headers
+type Headers = { 
+    authorization?: string;
+    ["x-api-key"]?: string;
+    [key: string]: string;
+}
+
 // Pattern for returning formatted/spec'd errors
 type ErrorDetail = {
     data: {
         message: string;
-        details?: any[];
+        details?: unknown;
     };
     statusCode: number;
     extension?: "problem+";
@@ -161,7 +162,7 @@ export const setupQueries = (): string[] => {
 export const materialize = (properties: Properties, symbol: string, label: string): Node => {
     // Format key value as cypher
     const valueToString = ([key, value]) => {
-        let serialized: any;
+        let serialized: string;
         switch (typeof value) {
             case "object":
                 serialized = JSON.stringify(value);
@@ -172,7 +173,7 @@ export const materialize = (properties: Properties, symbol: string, label: strin
         return `${key}: '${serialized}'`
     }
     // Common filter need
-    const removeFalsy = ([_, value]) => typeof value !== "undefined" && !!value;
+    const removeFalsy = ([, value]) => typeof value !== "undefined" && !!value;
 
     const props = Object.entries(properties).filter(removeFalsy).map(valueToString).join(", ")
     return new Node(props, symbol, label)
@@ -187,12 +188,12 @@ type RecordObject = {
 const RESTRICTED = new Set(["Provider", "User"]);
 const filterAllowedLabels = (label: string) => !RESTRICTED.has(label);
 const recordToLabel = (record: Record) => record.get(0);
-const labelToRoute = (label: string) => Object({
+const labelToRoute = (label: string): Route => Object({
     name: label,
     url: `/api/${label}`
 })
-export const recordsToUniqueRoutes = 
-    ({ records }: QueryResult) => records
+export const recordsToUniqueRoutes = ({ records }: QueryResult): Route[] => 
+    records
         .flatMap(recordToLabel)
         .filter(filterAllowedLabels)
         .map(labelToRoute)
@@ -286,8 +287,8 @@ export const asNodes = (
         text: string, 
         index: number
     ) => {
-        let label: string = "";
-        let properties = expectBody ? JSON.parse(body) : {};
+        let label = "";
+        const properties = expectBody ? JSON.parse(body) : {};
         // Identifiers are delimited with parentheses
         if (text.includes("(")) {
             const parts = text.split("(")
@@ -341,7 +342,7 @@ const apiKeyClaim = ({ ["x-api-key"]: apiKey }: Headers) => {
  * The side-effect is that it can be hard to tell the difference between a 404 and
  * 403 error. 
  */
-export function NetlifyRouter(methods: HttpMethods, pathSpec?: Object): Handler {
+export function NetlifyRouter(methods: HttpMethods, pathSpec?: unknown): Handler {
    
     const _methods = {
         ...methods,
@@ -369,12 +370,12 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: Object): Handler 
                 start
             }));
             return INVALID_METHOD
-        };
+        }
         const handler = _methods[httpMethod];
         const methodSpec = pathSpec[httpMethod.toLowerCase()] ?? {security: []};
         
         // security protocols if any
-        const reduceMethods = (lookup: Object, schema: Object) => Object.assign(lookup, schema);
+        const reduceMethods = (lookup: unknown, schema: unknown) => Object.assign(lookup, schema);
         const security: string[] = methodSpec.security.reduce(reduceMethods, {}); 
 
         let user: Node;
@@ -416,7 +417,7 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: Object): Handler 
                     auth
                 }));
                 return UNAUTHORIZED
-            };
+            }
             // Use the full properties
             user = materialize(records.map(getProperties)[0], "u", "User");
         } else if (Authentication.ApiKey in security) {
@@ -438,7 +439,7 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: Object): Handler 
                     auth
                 }));
                 return UNAUTHORIZED
-            };
+            }
             user = materialize({
                 email,
                 uuid: crypto.randomUUID(),

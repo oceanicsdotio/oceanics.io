@@ -77,7 +77,7 @@ export const Location = ({
         const title = name || (nav_unit_n ?? "");
         if (title) {
             setTitle(title);
-        } else if (!!(properties.port_name ?? false)) {
+        } else if (properties.port_name ?? false) {
             setTitle(properties.port_name??"");
         } else if ("species" in properties) {
             setTitle("Sea farm");
@@ -97,7 +97,7 @@ export const Location = ({
         <label>{label}</label>
         <ul>
             {Object.entries(properties)
-                .filter(([_, v]) => v !== " " && !!v)
+                .filter(([, v]) => v !== " " && !!v)
                 .map(([jj, item]) => <li key={jj}>{`${jj}: ${item}`}</li>)
             }
         </ul>

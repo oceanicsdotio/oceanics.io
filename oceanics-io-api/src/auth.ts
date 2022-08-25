@@ -10,6 +10,7 @@ import {
   dematerialize,
   WRITE
 } from "./shared/middleware";
+import type { Properties } from "./shared/middleware";
 
 import { Links, Node } from "oceanics-io-api-wasm";
 
@@ -36,7 +37,7 @@ const register: ApiHandler = async ({
   }
 }) => {
   const { query } = new Links("Register", 0, 0, "").insert(provider, user);
-  let records: any;
+  let records: Properties[];
   try {
     const result = await connect(query, WRITE);
     records = recordsToProperties(result);
@@ -70,7 +71,7 @@ const getToken: ApiHandler = async ({
 };
 
 // Just a stub for now, to enable testing of bearer auth
-const manage: ApiHandler = async ({}) => {
+const manage: ApiHandler = async () => {
   return {
     statusCode: 501
   }
