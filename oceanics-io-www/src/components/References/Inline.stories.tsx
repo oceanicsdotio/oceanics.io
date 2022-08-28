@@ -6,7 +6,7 @@ import { Meta, Story } from '@storybook/react';
 import Inline from "./Inline";
 import type { IInline } from './Inline';
 import GlobalStyle from '../Layout/GlobalStyle';
-import { Document } from './types';
+import { Document } from 'oceanics-io-www-wasm';
 
 
 import {documents} from "../../../public/dev/content.json";

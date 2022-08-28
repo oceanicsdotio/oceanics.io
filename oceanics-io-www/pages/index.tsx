@@ -5,20 +5,9 @@ import Campaign, { PageData } from "../src/components/Campaign/Campaign";
 import Oceanside from "../src/components/Oceanside";
 import type {ApplicationType} from "../src/components/Oceanside"
 import Index from "../src/components/References/Index";
-import type { IDocumentIndexSerialized } from "../src/components/References/types";
+import type { DocumentSerializedType } from "../src/components/References/types";
 import useDeserialize from "../src/hooks/useDeserialize";
 import useNextRouter from "../src/hooks/useNextRouter";
-
-/**
- * Query string parameters used by the Index component to filter
- * which documents are visible. Actual parsing of URL is done in the
- * calling application.
- */
-export type QueryType = {
-    items?: number;
-    label?: string;
-    reference?: number;
-};
 
 /**
  * Base component for web landing page.
@@ -29,7 +18,10 @@ const IndexPage = ({
     documents,
     pagingIncrement,
     ...props
-}: IDocumentIndexSerialized & ApplicationType) => {
+}: {
+    documents: DocumentSerializedType[];
+    pagingIncrement: number;
+} & ApplicationType) => {
     /**
      * Convert into our internal Document data model. 
      */

@@ -3,7 +3,7 @@ import type { Meta, Story } from '@storybook/react';
 
 import Stub from "./Stub";
 import type {IDocumentStub} from "./Stub";
-import { Document } from './types';
+import { Document } from 'oceanics-io-www-wasm';
 import GlobalStyle from '../Layout/GlobalStyle';
 
 // Must be pre-built by `make`

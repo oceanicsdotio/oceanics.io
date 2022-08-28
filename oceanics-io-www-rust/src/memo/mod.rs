@@ -1,13 +1,26 @@
 pub mod memo {
-    use std::cmp;
     use chrono::NaiveDate;
-    use regex::Regex;
     use wasm_bindgen::prelude::*;
     use js_sys::Function;
+    use web_sys::Document;
+    use std::collections::hash_map::DefaultHasher;
+    use std::hash::{Hash, Hasher};
 
     struct Label {
         value: String,
         onClick: Option<Function>
+    }
+
+    struct SerializedMetadata {
+        publication: String,
+        published: String,
+        labels: Vec<Label>,
+        references: Option<Vec<SerializedMemo>>,
+        authors: Vec<String>,
+        title: String,
+        description: String,
+        volume: String,
+        pages: Option<Vec<Vec<u16>>>
     }
 
     #[wasm_bindgen]
@@ -27,19 +40,42 @@ pub mod memo {
     impl Metadata {
         #[wasm_bindgen(constructor)]
         pub fn new(
-            published: String
+            published: String,
+            labels: Option<Vec<String>>,
+            references: Option<Vec<Memo>>,
         ) -> Self {
             Metadata { 
                 publication: (), 
                 published: NaiveDate::new(published), 
-                labels: (), 
-                references: (), 
+                labels: labels.into_iter().map(
+                    |value| Label{value, onClick: None}
+                ), 
+                references: references.into_iter().map(
+                    |each| Memo{
+                        ..each
+                    }
+                ), 
                 authors: (), 
                 title: (), 
                 description: (), 
                 volume: (), 
-                pages: () }
+                pages: () 
+            }
         }
+    }
+
+    impl Hash for Metadata {
+        fn hash<H: Hasher>(&self, state: &mut H) {
+            self.authors.hash(state);
+            self.published.hash(state);
+            self.title.hash(state);
+        }
+    }
+
+    struct SerializedMemo {
+        metadata: Metadata,
+        content: Option<String>,
+        slug: Option<String>
     }
 
     #[wasm_bindgen]
@@ -59,27 +95,17 @@ pub mod memo {
         ) -> Self {
            
             Memo {
-                metadata: Metadata {
-                    labels: ,
-                    ..metadata
-                },
+                metadata: Metadata::new(),
                 content,
                 slug
             }
         }
 
         #[wasm_bindgen(getter)]
-        pub fn hash(&self) -> String {
-            let re = Regex::new(r"/\s/g").unwrap();
-            
-            let inputs = [
-                self.metadata.authors.join(""),
-                format!("{}", self.year()),
-                self.metadata.title
-            ].join("");
-
-            let result: Vec<str> = re.replace_all(inputs, "").to_lowercase().split("").into();
-
+        pub fn hash(&self) -> u64 {
+            let mut s = DefaultHasher::new();
+            self.metadata.hash(&mut s);
+            s.finish()
         }
 
         #[wasm_bindgen(getter)]

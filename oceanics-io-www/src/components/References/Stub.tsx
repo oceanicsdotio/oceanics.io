@@ -3,9 +3,11 @@ import type { MouseEventHandler } from "react";
 import styled from "styled-components";
 
 import { orange, ghost } from "../../palette";
-import type { IDocument } from "./types";
+import type { Document } from "oceanics-io-www-wasm";
 
-export interface IDocumentStub extends IDocument {
+export interface IDocumentStub {
+  className: string
+  document: Document
   onClickLabel: (label: string) => MouseEventHandler
 }
 

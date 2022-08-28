@@ -8,9 +8,9 @@ import type { Meta, Story } from "@storybook/react";
  */
 import Document from "./Document";
 import GlobalStyle from '../Layout/GlobalStyle';
-import PageData from "./Example.json";
+import {documents} from "../../../public/dev/content.json";
 import type { IDocumentContent } from './Document';
-import {Document as DocumentClass} from "./types"
+import {Document as DocumentClass} from "oceanics-io-www-wasm"
 
 /**
  * Storybook Interface
@@ -29,7 +29,6 @@ const Template: Story<IDocumentContent&{children: ReactNode}> = (args) => (
     </>
 );
 
-const {documents: [doc]} = PageData;
 const TEST_STRING = "aa aaa a aaaa aaa aa aaa";
 
 /**
@@ -37,14 +36,14 @@ const TEST_STRING = "aa aaa a aaaa aaa aa aaa";
  */
 export const TextContent = Template.bind({});
 TextContent.args = {
-    document: new DocumentClass(doc),
+    document: new DocumentClass(documents[0]),
     onClickLabel: () => {},
     children: TEST_STRING.repeat(100)
 };
 
 export const HtmlContent = Template.bind({});
 HtmlContent.args = {
-    document: new DocumentClass(doc),
+    document: new DocumentClass(documents[0]),
     onClickLabel: () => {},
     children: [...Array(5)].map(() => <p>{TEST_STRING}</p>)
 };

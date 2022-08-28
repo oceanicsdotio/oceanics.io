@@ -10,7 +10,7 @@ import Button from "../Form/Button";
 /**
  * Typing and lookups
  */
-import type { Document, QueryType } from "./types";
+import type { Document, QueryType } from "oceanics-io-www-wasm";
 
 /**
  * Main page inputs

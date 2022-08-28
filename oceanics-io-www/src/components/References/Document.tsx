@@ -1,20 +1,19 @@
 import React, { ReactNode } from "react";
-import type { MouseEventHandler } from "react"
+import type { MouseEventHandler } from "react";
 import styled from "styled-components";
+
 /**
  * Components and Types
  */
-import type { Document as DocumentType } from "./types"
+import type { Document as DocumentType } from "oceanics-io-www-wasm"
 import { Reference } from "./Reference";
 const REFERENCE = "reference";
 
-export interface IDocument {
+export interface IDocumentContent {
+  onClickLabel: (label: string) => MouseEventHandler<HTMLAnchorElement>
   className: string
   document: DocumentType
   children: ReactNode
-}
-export interface IDocumentContent extends IDocument {
-  onClickLabel: (label: string) => MouseEventHandler<HTMLAnchorElement>;
 }
 
 /**
