@@ -38,4 +38,5 @@ const config = {
   },
 };
 
+
 module.exports = withBundleAnalyzer(config)

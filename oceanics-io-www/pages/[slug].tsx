@@ -1,10 +1,7 @@
-import React, { useCallback } from "react";
+import React, { ReactNode, useCallback } from "react";
 import { useRouter } from "next/router";
 import type { GetStaticPaths, GetStaticProps } from "next";
 
-/**
- * See: https://nextjs.org/blog/markdown
- */
 import { serialize } from "next-mdx-remote/serialize";
 import { MDXRemote } from "next-mdx-remote";
 import rehypeHighlight from "rehype-highlight";
@@ -20,11 +17,11 @@ import "highlight.js/styles/a11y-dark.css";
 import Document from "../src/components/References/Document";
 import Equation from "../src/components/References/Equation";
 import Inline from "../src/components/References/Inline";
-import {Standalone as Squalltalk} from "../src/components/Squalltalk";
+import {Standalone as Squalltalk} from "../src/components/References/Squalltalk";
 import type { IDocumentSerialized, QueryType } from "../src/components/References/types";
 import useDeserialize from "../src/hooks/useDeserialize";
 
-const embeddedComponents = { Equation, Squalltalk, Inline };
+const embeddedComponents = { Equation, Squalltalk, Inline } as Record<string, ReactNode>;
 
 const ArticlePage = ({
     document,
@@ -33,6 +30,7 @@ const ArticlePage = ({
     const [deserialized] = useDeserialize([document])
 
     const router = useRouter();
+    const props = source as Record<string, unknown>;
 
     /**
      * Use next router, and merge query parameters.
@@ -51,18 +49,16 @@ const ArticlePage = ({
 
     return (
         <Document document={deserialized} onClickLabel={onClickLabel}>
-            <MDXRemote {...source} components={embeddedComponents}/>
+            <MDXRemote {...props} components={embeddedComponents}/>
         </Document>
     )
 };
 
-ArticlePage.displayName = "Document";
 export default ArticlePage;
 
-export const getStaticProps: GetStaticProps = async (slug: string) => {
-
+export const getStaticProps: GetStaticProps = async (path: {params: {slug: string}}) => {
     const {documents} = await import("../public/dev/content.json");
-    const [document] = documents.filter((props) => props.slug === slug);
+    const [document] = documents.filter((props) => props.slug === path.params.slug);
     const source = await serialize(document.content??"", {
         mdxOptions: {
             rehypePlugins: [[rehypeHighlight, {}]]
@@ -83,10 +79,9 @@ export const getStaticProps: GetStaticProps = async (slug: string) => {
  * Used by NextJS in building
  */
 export const getStaticPaths: GetStaticPaths = async () => {
-    
     const {index} = await import("../public/dev/content.json");
     return {
-    paths: index,
-    fallback: false
-}}
-
+        paths: index,
+        fallback: false
+    }
+}

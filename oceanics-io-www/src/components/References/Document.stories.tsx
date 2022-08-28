@@ -25,9 +25,7 @@ export default {
 const Template: Story<IDocumentContent&{children: ReactNode}> = (args) => (
     <>
         <GlobalStyle/>
-        <Document {...args} >
-            {"aa aaa a aaaa aaa aa aaa".repeat(100)}
-        </Document>
+        <Document {...args} />
     </>
 );
 
@@ -43,6 +41,7 @@ TextContent.args = {
     onClickLabel: () => {},
     children: TEST_STRING.repeat(100)
 };
+
 export const HtmlContent = Template.bind({});
 HtmlContent.args = {
     document: new DocumentClass(doc),

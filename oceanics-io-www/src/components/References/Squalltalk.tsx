@@ -1,13 +1,13 @@
 import React, { useEffect } from "react";
 
-import useMapBox from "../hooks/useMapBox";
-import useWorker from "../hooks/useWorker";
+import useMapBox from "../../hooks/useMapBox";
+import useWorker from "../../hooks/useWorker";
 import useFragmentQueue, {
   OBJECT_STORAGE_URL,
-} from "../hooks/useFragmentQueue";
-import useObjectStorage from "../hooks/useObjectStorage";
+} from "../../hooks/useFragmentQueue";
+import useObjectStorage from "../../hooks/useObjectStorage";
 
-import type {OptionalLocation} from "../hooks/useDetectClient";
+import type {OptionalLocation} from "../../hooks/useDetectClient";
 
 export const DEFAULT_MAP_PROPS = {
   zoom: 10,
@@ -66,7 +66,7 @@ export const DEFAULT_MAP_PROPS = {
 
 const createBathysphereWorker = () => {
   return new Worker(
-    new URL("../workers/useBathysphereApi.worker.ts", import.meta.url)
+    new URL("../../workers/useBathysphereApi.worker.ts", import.meta.url)
   );
 };
 

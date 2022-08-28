@@ -5,7 +5,7 @@ import styled from "styled-components";
 import { orange, ghost } from "../../palette";
 import type { IDocument } from "./types";
 
-interface IDocumentStub extends IDocument {
+export interface IDocumentStub extends IDocument {
   onClickLabel: (label: string) => MouseEventHandler
 }
 

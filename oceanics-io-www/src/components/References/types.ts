@@ -30,13 +30,11 @@ export type MetadataSerializedType = {
     publication: string;
     volume: string;
     pages: number[][];
-};
+}
 
 export interface IStyled {
     className?: string;
 }
-
-
 
 export type DocumentSerializedType = {
     metadata: MetadataSerializedType;
@@ -48,8 +46,6 @@ export interface IDocumentSerialized {
     document: DocumentSerializedType;
     source: unknown;  // TODO: determine base type from Next without adding dependency?
 }
-
-
 
 export interface IDocumentIndexSerialized {
     documents: DocumentSerializedType[];
