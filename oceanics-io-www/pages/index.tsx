@@ -1,16 +1,24 @@
 import React, { useCallback } from "react";
-import { useRouter } from "next/router";
 import type { GetStaticProps } from "next";
 
-/**
- * Campaign component
- */
 import Campaign, { PageData } from "../src/components/Campaign/Campaign";
 import Oceanside from "../src/components/Oceanside";
 import type {ApplicationType} from "../src/components/Oceanside"
 import Index from "../src/components/References/Index";
-import type { IDocumentIndexSerialized, QueryType } from "../src/components/References/types";
+import type { IDocumentIndexSerialized } from "../src/components/References/types";
 import useDeserialize from "../src/hooks/useDeserialize";
+import useNextRouter from "../src/hooks/useNextRouter";
+
+/**
+ * Query string parameters used by the Index component to filter
+ * which documents are visible. Actual parsing of URL is done in the
+ * calling application.
+ */
+export type QueryType = {
+    items?: number;
+    label?: string;
+    reference?: number;
+};
 
 /**
  * Base component for web landing page.
@@ -30,15 +38,7 @@ const IndexPage = ({
     /**
      * Just the Next router.
      */
-    const router = useRouter();
-
-    /**
-     * Use next router, and merge query parameters.
-     */
-    const navigate = useCallback((pathname: string, insert?: QueryType, merge = true) => {
-        const query = { ...(merge ? router.query : {}), ...(insert ?? {}) }
-        router.push({ pathname, query });
-    }, [router]);
+    const {navigate, router, home} = useNextRouter();
 
     /**
      * Mouse event handler for paging/scroll-into-view
@@ -54,14 +54,6 @@ const IndexPage = ({
         navigate("/", undefined, false)
     }, [navigate]);
 
-    /**
-     * Additionally filter by a single label. Handles multi-word implicitly.
-     */
-    const onClickLabel = useCallback((label: string) => () => {
-        navigate("/", {label}, true)
-    }, [navigate])
-
-
     return (
         <>
             <Campaign
@@ -72,7 +64,7 @@ const IndexPage = ({
                 query={router.query}
                 onShowMore={onShowMore}
                 onClearConstraints={onClearConstraints}
-                onClickLabel={onClickLabel}
+                onClickLabel={home}
                 documents={deserialized}
                 pagingIncrement={pagingIncrement}
                 navigate={navigate}

@@ -15,6 +15,7 @@ const wrapSlug = (slug) => Object({ slug });
 const filterMdx = (name) => name.endsWith(FORMAT);
 const getSlug = (name) => Object({ params: { slug: name.split(".").shift() } });
 
+// Concurrently load all of the idempotent data for processing
 const [
     _icons,
     _references,
@@ -25,6 +26,7 @@ const [
     fs.readdir(path.join(process.cwd(), `${PUBLIC}/assets`))
 ]);
 
+// Read content of a resource and parse it
 const readDocument = async ({ params: {slug}}) => {
     const file = path.join(REFERENCES, `${slug}${FORMAT}`);
     const text = await fs.readFile(file, {encoding: "utf8"});
@@ -39,8 +41,10 @@ const readDocument = async ({ params: {slug}}) => {
     }
 };
 
+// All of the MDX files
 const index = _references.filter(filterMdx).map(getSlug);
 
+// Write out the cached index of content
 await fs.writeFile(CACHE, JSON.stringify({
     index,
     documents: await Promise.all(index.map(readDocument)),
