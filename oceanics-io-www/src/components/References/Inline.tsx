@@ -6,7 +6,7 @@ import React from "react";
 /**
  * Runtime input type checking
  */
-import {Document} from "./types";
+import {Document} from "oceanics-io-www-wasm";
 
 // Min required for unique hashing
 export interface IInline {

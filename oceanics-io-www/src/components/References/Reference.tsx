@@ -4,7 +4,7 @@ import styled from "styled-components";
 /**
  * Types and ref lookups
  */
-import type {IDocument} from "./types";
+import type { Document } from "oceanics-io-www-wasm";
 
 /**
  Single reference to journal article or similar material.
@@ -12,7 +12,10 @@ import type {IDocument} from "./types";
 export const Reference = ({
     className,
     document
-}: IDocument) => {
+}: {
+    className: string
+    document: Document
+}) => {
     return <div key={document.hash} className={className}>
         <a id={document.hash} />
         {document.reference}

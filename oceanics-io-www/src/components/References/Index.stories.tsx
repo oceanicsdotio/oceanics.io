@@ -8,7 +8,7 @@ import Index from "./Index";
 import type { DocumentIndexType } from './Index';
 import {documents} from "../../../public/dev/content.json";
 import GlobalStyle from '../Layout/GlobalStyle';
-import { Document } from './types';
+import { Document } from 'oceanics-io-www-wasm';
 
 /**
  * Storybook Interface

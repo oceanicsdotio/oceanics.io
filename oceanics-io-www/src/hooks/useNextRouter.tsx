@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useRouter } from "next/router";
-import type {  QueryType } from "../components/References/types";
+import type { QueryType } from "../components/References/types";
 
 const useNextRouter = () => {
    

@@ -5,13 +5,9 @@ import type {GetStaticProps} from "next";
  * Array of references component, no heading
  */
 import Reference from "../src/components/References/Reference";
-import type {IDocumentIndexSerialized} from "../src/components/References/types";
+import type {DocumentSerializedType} from "../src/components/References/types";
 import useDeserialize from "../src/hooks/useDeserialize";
 import styled from "styled-components";
-
-interface IPage extends IDocumentIndexSerialized {
-  className: string;
-}
 
 /**
  * The ReferencesPage renders a memoized array of filtered citations
@@ -21,7 +17,10 @@ interface IPage extends IDocumentIndexSerialized {
 const ReferencesPage = ({
   className,
   documents
-}: IPage) => {
+}: {
+  className: string
+  documents: DocumentSerializedType[]
+}) => {
   const deserialized = useDeserialize(documents);
   return (
     <div className={className}>

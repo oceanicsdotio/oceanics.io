@@ -21,8 +21,6 @@ import {Standalone as Squalltalk} from "../src/components/References/Squalltalk"
 import type { DocumentSerializedType } from "../src/components/References/types";
 import useDeserialize from "../src/hooks/useDeserialize";
 
-const embeddedComponents = { Equation, Squalltalk, Inline } as Record<string, ReactNode>;
-
 const ArticlePage = ({
     document,
     source
@@ -43,7 +41,7 @@ const ArticlePage = ({
 
     return (
         <Document document={deserialized} onClickLabel={onClickLabel}>
-            <MDXRemote {...props} components={embeddedComponents}/>
+            <MDXRemote {...props} components={{ Equation, Squalltalk, Inline }}/>
         </Document>
     )
 };

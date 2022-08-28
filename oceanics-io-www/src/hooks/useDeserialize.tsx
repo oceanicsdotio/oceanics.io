@@ -1,16 +1,16 @@
 import { useMemo } from "react";
 
-import { Document } from "../components/References/types";
-import type { DocumentSerializedType } from "../components/References/types";
+import { Memo } from "oceanics-io-www-wasm";
+import type { SerializedMemo } from "oceanics-io-www-wasm";
 
 /**
  * 
  * @param documents 
  * @returns 
  */
-const useDeserialize = (documents: DocumentSerializedType[]) => {
+const useDeserialize = (documents: SerializedMemo[]) => {
   const deserialized = useMemo(() => {
-    return documents.map((doc) => new Document(doc));
+    return documents.map((doc) => new Memo(doc));
   }, []);
 
   return deserialized;
