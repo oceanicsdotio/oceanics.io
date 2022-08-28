@@ -1,6 +1,3 @@
-/**
- * React and friends
- */
 import React, { useCallback } from "react";
 import { useRouter } from "next/router";
 
@@ -24,7 +21,7 @@ import Equation from "../src/components/References/Equation";
 import Inline from "../src/components/References/Inline";
 import {Standalone as Squalltalk} from "../src/components/Squalltalk";
 import type { IDocumentSerialized, DocumentSerializedType, QueryType } from "../src/components/References/types";
-import { readDocument, createIndex } from "../src/next-util";
+import { readDocument, createIndex } from "../src/shared";
 import type { GetStaticPaths, GetStaticProps } from "next";
 import useDeserialize from "../src/hooks/useDeserialize";
 

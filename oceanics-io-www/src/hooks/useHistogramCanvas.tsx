@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type {WorkerRef} from "../utils";
+import type {WorkerRef} from "../shared";
 
 /**
  * Consistent styling.

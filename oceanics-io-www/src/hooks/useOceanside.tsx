@@ -1,8 +1,8 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import type { MouseEvent } from "react";
 
-import { eventCoordinates } from "../utils";
-import type { EventLocation, ModuleType } from "../utils";
+import { eventCoordinates } from "../shared";
+import type { EventLocation, ModuleType } from "../shared";
 
 import useWorker from "../hooks/useWorker";
 

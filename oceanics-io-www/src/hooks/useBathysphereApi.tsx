@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type {WorkerRef} from "../utils";
+import type {WorkerRef} from "../shared";
 
 /**
  * The catalog page is like a landing page to the api.

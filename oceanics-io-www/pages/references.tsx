@@ -6,7 +6,7 @@ import React from "react";
 import Reference from "../src/components/References/Reference";
 import type {IDocumentIndexSerialized} from "../src/components/References/types";
 import type {GetStaticProps} from "next";
-import {createIndex, readIndexedDocuments} from "../src/next-util";
+import {createIndex, readIndexedDocuments} from "../src/shared";
 import useDeserialize from "../src/hooks/useDeserialize";
 import styled from "styled-components";
 

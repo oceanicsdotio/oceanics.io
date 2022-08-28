@@ -1,5 +1,8 @@
 import React, { useCallback } from "react";
 import { useRouter } from "next/router";
+import fs from "fs";
+import path from "path";
+import YAML from "yaml";
 
 /**
  * Campaign component
@@ -10,7 +13,7 @@ import type {ApplicationType} from "../src/components/Oceanside"
 import Index from "../src/components/References/Index";
 import type { IDocumentIndexSerialized, QueryType } from "../src/components/References/types";
 import type { GetStaticProps } from "next";
-import { createIndex, readIndexedDocuments, readIcons, parseIconMetadata } from "../src/next-util";
+import { createIndex, readIndexedDocuments } from "../src/next-util";
 import useDeserialize from "../src/hooks/useDeserialize";
 
 /**
@@ -86,6 +89,17 @@ IndexPage.displayName = "Index";
 export default IndexPage;
 
 export const getStaticProps: GetStaticProps = async () => {
+    const parseIconMetadata = () => {
+        const file = "public/assets/oceanside.yml"
+        const text = fs.readFileSync(path.join(process.cwd(), file), "utf8")
+        return YAML.parseAllDocuments(text).map((doc) => doc.toJSON())
+    }
+    const readIcons = () => {
+        const directory = "public/assets"
+        return fs.readdirSync(path.join(process.cwd(), directory))
+            .filter((name) => name.endsWith(".png"))
+            .map((slug) => Object({ slug }))
+    }
     return {
         props: { 
             documents: readIndexedDocuments(createIndex()),
