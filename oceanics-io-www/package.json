@@ -17,6 +17,7 @@
     "type": "git",
     "url": "git+https://github.com/oceanicsdotio/oceanics.io.git"
   },
+  "type": "module",
   "dependencies": {
     "@apidevtools/swagger-parser": "^10.1.0",
     "@types/geojson": "^7946.0.8",

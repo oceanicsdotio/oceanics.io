@@ -1,5 +1,6 @@
 import React, { useCallback } from "react";
 import { useRouter } from "next/router";
+import type { GetStaticPaths, GetStaticProps } from "next";
 
 /**
  * See: https://nextjs.org/blog/markdown
@@ -20,9 +21,7 @@ import Document from "../src/components/References/Document";
 import Equation from "../src/components/References/Equation";
 import Inline from "../src/components/References/Inline";
 import {Standalone as Squalltalk} from "../src/components/Squalltalk";
-import type { IDocumentSerialized, DocumentSerializedType, QueryType } from "../src/components/References/types";
-import { readDocument, createIndex } from "../src/shared";
-import type { GetStaticPaths, GetStaticProps } from "next";
+import type { IDocumentSerialized, QueryType } from "../src/components/References/types";
 import useDeserialize from "../src/hooks/useDeserialize";
 
 const embeddedComponents = { Equation, Squalltalk, Inline };
@@ -61,7 +60,9 @@ ArticlePage.displayName = "Document";
 export default ArticlePage;
 
 export const getStaticProps: GetStaticProps = async (slug: string) => {
-    const document = readDocument(slug) as DocumentSerializedType;
+
+    const {documents} = await import("../public/dev/content.json");
+    const [document] = documents.filter((props) => props.slug === slug);
     const source = await serialize(document.content??"", {
         mdxOptions: {
             rehypePlugins: [[rehypeHighlight, {}]]
@@ -81,8 +82,11 @@ export const getStaticProps: GetStaticProps = async (slug: string) => {
 /**
  * Used by NextJS in building
  */
-export const getStaticPaths: GetStaticPaths = async () => Object({
-    paths: createIndex(),
+export const getStaticPaths: GetStaticPaths = async () => {
+    
+    const {index} = await import("../public/dev/content.json");
+    return {
+    paths: index,
     fallback: false
-})
+}}
 

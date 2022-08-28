@@ -1,12 +1,11 @@
 import React from "react";
+import type {GetStaticProps} from "next";
 
 /**
  * Array of references component, no heading
  */
 import Reference from "../src/components/References/Reference";
 import type {IDocumentIndexSerialized} from "../src/components/References/types";
-import type {GetStaticProps} from "next";
-import {createIndex, readIndexedDocuments} from "../src/shared";
 import useDeserialize from "../src/hooks/useDeserialize";
 import styled from "styled-components";
 
@@ -41,11 +40,15 @@ const StyledRefPage = styled(ReferencesPage)`
 export default StyledRefPage;
 type Frontmatter = {metadata: {references: unknown}};
 
-export const getStaticProps: GetStaticProps = () => Object({
+export const getStaticProps: GetStaticProps = async () => {
+  
+  const {documents} = await import("../public/dev/content.json");
+  const getRefs = ({metadata}: Frontmatter)=> metadata.references;
+  return {
     props: { 
-        documents: readIndexedDocuments(createIndex()).flatMap(({metadata}: Frontmatter)=>metadata.references),
+        documents: documents.flatMap(getRefs),
         description: "See the science",
         title: "References"
     }
-});
+}};
 
