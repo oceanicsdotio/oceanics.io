@@ -1,20 +1,18 @@
-import React from "react";
+import React, { ReactNode } from "react";
 import type { MouseEventHandler } from "react"
-/**
- * Component level styling
- */
 import styled from "styled-components";
 /**
  * Components and Types
  */
 import type { Document as DocumentType, IStyled } from "./types"
 import { Reference } from "./Reference";
+const REFERENCE = "reference";
 
 export interface IDocument extends IStyled {
   document: DocumentType,
-  children: JSX.Element
+  children: ReactNode
 }
-interface IDocumentContent extends IDocument {
+export interface IDocumentContent extends IDocument {
   onClickLabel: (label: string) => MouseEventHandler<HTMLAnchorElement>;
 }
 
@@ -22,11 +20,7 @@ interface IDocumentContent extends IDocument {
  * Base component is a composed wrapper around <article/>,
  * that adds metadata and references sections. This is used
  * by whatever template renders MDX or other static data
- * into webpages. Previously Gatsby by default, more recently
- * NextJS. 
- * 
- * No longer has a title heading, because this is assumed to be controlled
- * at the page level.
+ * into webpages.
  */
 export const Document = ({
   className,
@@ -36,11 +30,16 @@ export const Document = ({
   children,
   onClickLabel
 }: IDocumentContent) => {
+  const timestamp = metadata.published.toISOString().replace(/T/, " ").replace(/Z/, "");
+
   return (
     <article className={className}>
       <header>
-        <h2>{metadata.published.toISOString().replace(/T/, " ").replace(/Z/, "")}</h2>
-        <h2>{metadata.labels.map(({value}) => <a key={`${metadata.title} ${value}`} onClick={onClickLabel(value)}>{value}</a>)}</h2>
+        <h2>{timestamp}</h2>
+        <h2>
+          {metadata.labels.map(({value}) => 
+            <a key={`${metadata.title} ${value}`} onClick={onClickLabel(value)}>{value}</a>)}
+        </h2>
         <p>{metadata.description}</p>
       </header>
       <hr/>
@@ -48,7 +47,7 @@ export const Document = ({
         {children}
       </section>
       <hr/>
-      {(metadata.references??[]).map((ref) => <Reference className={"reference"} key={ref.hash} document={ref}/>)}
+      {(metadata.references??[]).map((ref) => <Reference className={REFERENCE} key={ref.hash} document={ref}/>)}
     </article>
   )
 }
@@ -68,7 +67,7 @@ const StyledDocument = styled(Document)`
       margin: 0.25em 0;
     }
   }
-  .reference {
+  .${REFERENCE} {
     margin: 1em 0;
   }
 `;
@@ -76,4 +75,5 @@ const StyledDocument = styled(Document)`
 /**
  * Base component is default export
  */
-export default StyledDocument
+Document.displayName = "Document";
+export default StyledDocument;

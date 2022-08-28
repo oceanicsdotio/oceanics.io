@@ -15,8 +15,7 @@ import { Document } from './types';
  * Storybook Interface
  */
 export default {
-    component: Index,
-    title: 'References/Index',
+    component: Index
 } as Meta;
 
 const {documents} = PageData;

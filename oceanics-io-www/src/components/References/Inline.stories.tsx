@@ -13,8 +13,7 @@ import { Document } from './types';
  * Storybook Interface
  */
 export default {
-    component: Inline,
-    title: 'References/Inline',
+    component: Inline
 } as Meta;
 
 const {documents: [{metadata: {references: [doc]}}]} = PageData;

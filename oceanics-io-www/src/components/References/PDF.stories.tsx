@@ -1,6 +1,3 @@
-/**
- * React and friends
- */
 import React from "react";
 import { Meta, Story } from "@storybook/react";
 
@@ -14,8 +11,7 @@ import GlobalStyle from "../Layout/GlobalStyle";
  * Storybook interface
  */
 export default {
-  component: PDF,
-  title: "References/PDF",
+  component: PDF
 } as Meta;
 
 /**

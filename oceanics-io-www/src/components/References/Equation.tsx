@@ -14,5 +14,5 @@ const Equation = ({text}: IEquation) => {
     )
 }
 
-Equation.displayName = "InlineEquation"
+Equation.displayName = "Equation"
 export default Equation

@@ -12,8 +12,7 @@ import type { IEquation } from "./Equation";
  * Storybook Interface
  */
 export default {
-  component: Equation,
-  title: `References/${Equation.displayName}`,
+  component: Equation
 } as Meta;
 
 /**
