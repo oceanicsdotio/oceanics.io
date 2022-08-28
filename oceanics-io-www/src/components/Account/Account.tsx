@@ -63,4 +63,5 @@ const Account = ({
     )
 }
 
+Account.displayName = "Account";
 export default Account

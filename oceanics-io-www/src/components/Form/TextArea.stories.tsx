@@ -1,6 +1,3 @@
-/**
- * React and friends
- */
 import React from 'react';
 import {Meta, Story} from "@storybook/react";
 /**
@@ -12,8 +9,7 @@ import TextArea from './TextArea';
  * Storybook config
  */
 export default {
-  component: TextArea,
-  title: 'Form/TextArea',
+  component: TextArea
 } as Meta;
 
 /**

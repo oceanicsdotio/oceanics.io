@@ -1,18 +1,8 @@
-/**
- * React and friends
- */
 import React from "react";
 import type { MouseEventHandler } from "react";
 import styled from "styled-components";
 
-/**
- * Predefined color palette
- */
 import { orange, ghost } from "../../palette";
-
-/**
- * Types
- */
 import type { IDocument } from "./types";
 
 interface IDocumentStub extends IDocument {

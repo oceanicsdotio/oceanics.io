@@ -11,8 +11,7 @@ import Button from './Button';
  * Storybook interface
  */
 export default {
-  component: Button,
-  title: 'Form/Button',
+  component: Button
 } as Meta
 
 /**

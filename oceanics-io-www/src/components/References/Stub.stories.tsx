@@ -1,12 +1,6 @@
-/**
- * React and friends
- */
 import React from 'react';
 import type { Meta, Story } from '@storybook/react';
 
-/**
- * Base component
- */
 import Stub from "./Stub";
 import type {IDocument} from "./types";
 import { Document } from './types';
@@ -17,8 +11,7 @@ import GlobalStyle from '../Layout/GlobalStyle';
  * Storybook Interface
  */
 export default {
-    component: Stub,
-    title: 'References/Stub',
+    component: Stub
 } as Meta;
 
 const {documents:[doc]} = PageData;

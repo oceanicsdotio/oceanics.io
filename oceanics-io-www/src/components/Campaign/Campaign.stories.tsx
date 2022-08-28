@@ -11,8 +11,7 @@ import Campaign, {ICampaignType, PageData} from './Campaign';
   * Storybook interface
   */
  export default {
-   component: Campaign,
-   title: 'index/Campaign',
+   component: Campaign
  } as Meta;
  
  /**

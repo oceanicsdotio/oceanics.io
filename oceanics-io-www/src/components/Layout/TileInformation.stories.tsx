@@ -17,8 +17,7 @@ import { Story, Meta } from '@storybook/react';
  * Storybook Interface
  */
 export default {
-  component: TileInformation,
-  title: 'Layout/TileInformation',
+  component: TileInformation
 } as Meta
 
 /**

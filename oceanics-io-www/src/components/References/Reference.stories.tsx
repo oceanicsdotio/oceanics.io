@@ -1,36 +1,33 @@
-/**
- * React and friends
- */
 import React from 'react';
 import type {Meta, Story} from '@storybook/react';
+import {createIndex, readIndexedDocuments} from "../../../src/next-util";
 
 /**
  * Base component
  */
 import Reference from "./Reference";
 import GlobalStyle from "../Layout/GlobalStyle"
-import type {IDocument} from "./types";
+// import type {IDocument} from "./types";
 import {Document} from "./types";
-import PageData from "./Example.json";
+const docs = readIndexedDocuments(createIndex())
+.flatMap(({metadata})=>metadata.references)
+console.log(docs)
 
 /**
  * Storybook Interface
  */
 export default {
-    component: Reference,
-    title: 'References/Reference',
+    component: Reference
 } as Meta;
-
-const {documents: [{metadata: {references: [doc]}}]} = PageData;
 
 /**
  * Base case
  */
-const Template: Story<IDocument> = (args) => {
+const Template: Story<{docs: Document[]}> = ({docs}) => {
     return (
         <>
             <GlobalStyle/>
-            <Reference {...args} />
+            {docs.map((document) => <Reference key={document.hash} document={document} />)}
         </>
     )
 };
@@ -40,5 +37,5 @@ const Template: Story<IDocument> = (args) => {
  */
 export const Example = Template.bind({});
 Example.args = {
-    document: new Document(doc)
+    docs
 };

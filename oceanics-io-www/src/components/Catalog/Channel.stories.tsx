@@ -11,8 +11,7 @@ import LayerCard, { LayerType } from './Channel';
  * Storybook Interface
  */
 export default {
-    component: LayerCard,
-    title: 'Catalog/LayerCard',
+    component: LayerCard
 } as Meta;
 
 /**

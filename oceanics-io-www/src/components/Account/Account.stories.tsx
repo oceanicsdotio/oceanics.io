@@ -7,8 +7,7 @@ import type { IAccount } from "./Account";
  * Storybook interface
  */
 export default {
-  component: Account,
-  title: `account/${Account.name}`,
+  component: Account
 } as Meta;
 
 /**
