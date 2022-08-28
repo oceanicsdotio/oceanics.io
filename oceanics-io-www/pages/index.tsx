@@ -1,8 +1,6 @@
 import React, { useCallback } from "react";
 import { useRouter } from "next/router";
-import fs from "fs";
-import path from "path";
-import YAML from "yaml";
+import type { GetStaticProps } from "next";
 
 /**
  * Campaign component
@@ -12,8 +10,6 @@ import Oceanside from "../src/components/Oceanside";
 import type {ApplicationType} from "../src/components/Oceanside"
 import Index from "../src/components/References/Index";
 import type { IDocumentIndexSerialized, QueryType } from "../src/components/References/types";
-import type { GetStaticProps } from "next";
-import { createIndex, readIndexedDocuments } from "../src/next-util";
 import useDeserialize from "../src/hooks/useDeserialize";
 
 /**
@@ -85,24 +81,13 @@ const IndexPage = ({
     )
 };
 
-IndexPage.displayName = "Index";
 export default IndexPage;
 
 export const getStaticProps: GetStaticProps = async () => {
-    const parseIconMetadata = () => {
-        const file = "public/assets/oceanside.yml"
-        const text = fs.readFileSync(path.join(process.cwd(), file), "utf8")
-        return YAML.parseAllDocuments(text).map((doc) => doc.toJSON())
-    }
-    const readIcons = () => {
-        const directory = "public/assets"
-        return fs.readdirSync(path.join(process.cwd(), directory))
-            .filter((name) => name.endsWith(".png"))
-            .map((slug) => Object({ slug }))
-    }
+    const {documents, icons} = await import("../public/dev/content.json");
     return {
         props: { 
-            documents: readIndexedDocuments(createIndex()),
+            documents,
             description: "The trust layer for the blue economy",
             title: "Oceanics.io",
             pagingIncrement: 3,
@@ -112,10 +97,7 @@ export const getStaticProps: GetStaticProps = async () => {
             },
             datum: 0.7,
             runtime: null,
-            icons: {
-                sources: readIcons(),
-                templates: parseIconMetadata()
-            }
+            icons
         }
     }
 }
