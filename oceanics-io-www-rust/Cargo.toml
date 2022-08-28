@@ -16,6 +16,8 @@ wasm-bindgen-futures = "0.4.38"
 serde = { version = "1.0.192", features = ["derive"] }
 serde_derive = "1.0.192"
 console_error_panic_hook = "0.1.7"
+regex = "1.6.0"
+chrono = "0.4.22"
 
 [profile.release]
 opt-level = "s"

@@ -1,86 +1,52 @@
-/* eslint-disable @typescript-eslint/no-empty-function */
 import type {MutableRefObject} from "react";
 export type WorkerRef = MutableRefObject<Worker|null>;
 
-export type RenderEffect = {
-    size: number;
-};
-export type RenderInstance = {
-    width: number;
-    height: number;
-    data: Uint8Array;
-    context: CanvasRenderingContext2D|null;
-    onAdd: () => void;
-    render: () => boolean;
-}
-
-export type Points = [number, number][];
+// Mouse click coordinates
 export type EventLocation = {clientX: number; clientY: number;}; 
-export type ModuleType = typeof import("oceanics-io-www-wasm");
 
+// Get click coords from an event
 export const eventCoordinates = ({clientX, clientY}: EventLocation, canvas: HTMLCanvasElement): [number, number] => {
     // Short hand for element reference frame
     const {left, top} = canvas.getBoundingClientRect();
     return [clientX - left, clientY - top]
 };
 
-/**
- * Use the Geolocation API to retieve the location of the client,
- * and set the map center to those coordinates, and flag that the interface
- * should use the client location on refresh.
- * 
- * This will also trigger a greater initial zoom level.
- */
- export const pulsingDot = ({
-    size
-}: RenderEffect): RenderInstance => {
-    const canvas = document.createElement("canvas");
-    canvas.width = size;
-    canvas.height = size;
+export type FileObject = {
+    key: string;
+    updated: string;
+    size: string; 
+}
 
-    return {
-
-        width: size,
-        height: size,
-        data: new Uint8Array(size * size * 4),
-        context: canvas.getContext("2d"),
-
-        // get rendering context for the map canvas when layer is added to the map
-        onAdd: () => { },
-
-        // called once before every frame where the icon will be used
-        render: function () {
-            const duration = 1000;
-            const time = (performance.now() % duration) / duration;
-
-            const radius = size / 2;
-            const ctx: CanvasRenderingContext2D|null = this.context;
-            if (!ctx) return false;
-
-            ctx.clearRect(0, 0, size, size);
-            ctx.beginPath();
-            ctx.arc(
-                radius,
-                radius,
-                radius * (0.7 * time + 0.3),
-                0,
-                Math.PI * 2
-            );
-
-            ctx.strokeStyle = "orange";
-            ctx.lineWidth = 2;
-            ctx.stroke();
-
-            // update this image"s data with data from the canvas
-            this.data = new Uint8Array(ctx.getImageData(
-                0,
-                0,
-                size,
-                size
-            ).data);
-
-            return true;
-        }
-    }
+export type FileSystem = {
+    objects: FileObject[];
+    collections: {
+        key: string;
+    }[];
 };
 
+type Points = [number, number][];
+
+/*
+ * Rotate a path of any number of points about the origin.
+ * You need to translate first to the desired origin, and then translate back 
+ * once the rotation is complete.
+ * 
+ * Not as flexible as quaternion rotation.
+ */
+export const rotatePath = (pts: Points, angle: number): Points  => {
+    const [s, c] = [Math.sin, Math.cos].map(fcn => fcn(angle));
+    return pts.map(([xx, yy]) => [(xx * c - yy * s), (xx * s + yy * c)]);
+}
+
+/*
+ * Translate x and scale y, rotate CCW, scale points.
+ * Points must be in the canvas coordinate reference frame. 
+ * The width is the width of the canvas drawing area, and 
+ * gridSize is the number of squares per side of the world.
+ */
+export const inverse = (points: Points, width: number, gridSize: number): Points => {
+    return rotatePath(points.map(([x,y])=> [
+            x - (Math.floor(0.5*gridSize) + 1.25)*width/gridSize/Math.sqrt(2), 
+            2*y 
+        ]
+), -Math.PI/4).map(([x, y]) => [x*Math.sqrt(2), y*Math.sqrt(2)])};

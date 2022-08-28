@@ -10,12 +10,13 @@ import Button from "../Form/Button";
 /**
  * Typing and lookups
  */
-import type { Document, QueryType, IStyled } from "./types";
+import type { Document, QueryType } from "./types";
 
 /**
  * Main page inputs
  */
-export interface DocumentIndexType extends IStyled {
+export interface DocumentIndexType {
+  className: string
   documents: Document[];
   query: QueryType;
   onShowMore: MouseEventHandler<HTMLButtonElement>;

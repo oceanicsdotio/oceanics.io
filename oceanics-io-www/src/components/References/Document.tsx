@@ -4,12 +4,13 @@ import styled from "styled-components";
 /**
  * Components and Types
  */
-import type { Document as DocumentType, IStyled } from "./types"
+import type { Document as DocumentType } from "./types"
 import { Reference } from "./Reference";
 const REFERENCE = "reference";
 
-export interface IDocument extends IStyled {
-  document: DocumentType,
+export interface IDocument {
+  className: string
+  document: DocumentType
   children: ReactNode
 }
 export interface IDocumentContent extends IDocument {

@@ -2,8 +2,7 @@ import { useEffect, useState, useReducer, useRef } from "react";
 import { lichen, orange } from "../palette";
 import useWasmRuntime from "./useWasmRuntime";
 import type {PrismCursor} from "oceanics-io-www-wasm";
-import {rotatePath, inverse} from "../workers/shared";
-import {eventCoordinates} from "../shared";
+import {rotatePath, inverse, eventCoordinates} from "../shared";
 
 
 type IOceansideOverlay = {

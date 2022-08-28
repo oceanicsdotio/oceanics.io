@@ -14,8 +14,72 @@ import { Popup, AnyLayer, AnySourceData } from "mapbox-gl";
  * Container for MapboxGL feature content. Rendered client-side.
  */
 import PopUpContent from "../components/Catalog/PopUpContent";
-import { pulsingDot } from "../shared";
 import useMapBox from "./useMapBox";
+
+
+/**
+ * Use the Geolocation API to retieve the location of the client,
+ * and set the map center to those coordinates, and flag that the interface
+ * should use the client location on refresh.
+ * 
+ * This will also trigger a greater initial zoom level.
+ */
+ export const pulsingDot = ({
+  size
+}: {
+  size: number;
+}) => {
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+
+  return {
+
+      width: size,
+      height: size,
+      data: new Uint8Array(size * size * 4),
+      context: canvas.getContext("2d"),
+
+      // get rendering context for the map canvas when layer is added to the map
+      /* eslint-disable @typescript-eslint/no-empty-function */
+      onAdd: () => { },
+
+      // called once before every frame where the icon will be used
+      render: function () {
+          const duration = 1000;
+          const time = (performance.now() % duration) / duration;
+
+          const radius = size / 2;
+          const ctx: CanvasRenderingContext2D|null = this.context;
+          if (!ctx) return false;
+
+          ctx.clearRect(0, 0, size, size);
+          ctx.beginPath();
+          ctx.arc(
+              radius,
+              radius,
+              radius * (0.7 * time + 0.3),
+              0,
+              Math.PI * 2
+          );
+
+          ctx.strokeStyle = "orange";
+          ctx.lineWidth = 2;
+          ctx.stroke();
+
+          // update this image"s data with data from the canvas
+          this.data = new Uint8Array(ctx.getImageData(
+              0,
+              0,
+              size,
+              size
+          ).data);
+
+          return true;
+      }
+  }
+};
+
 
 type ApplicationType = {
   location: {

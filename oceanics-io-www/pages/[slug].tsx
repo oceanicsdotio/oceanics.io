@@ -1,5 +1,5 @@
 import React, { ReactNode, useCallback } from "react";
-import { useRouter } from "next/router";
+import useNextRouter from "../src/hooks/useNextRouter";
 import type { GetStaticPaths, GetStaticProps } from "next";
 
 import { serialize } from "next-mdx-remote/serialize";
@@ -18,7 +18,7 @@ import Document from "../src/components/References/Document";
 import Equation from "../src/components/References/Equation";
 import Inline from "../src/components/References/Inline";
 import {Standalone as Squalltalk} from "../src/components/References/Squalltalk";
-import type { IDocumentSerialized, QueryType } from "../src/components/References/types";
+import type { DocumentSerializedType } from "../src/components/References/types";
 import useDeserialize from "../src/hooks/useDeserialize";
 
 const embeddedComponents = { Equation, Squalltalk, Inline } as Record<string, ReactNode>;
@@ -26,19 +26,13 @@ const embeddedComponents = { Equation, Squalltalk, Inline } as Record<string, Re
 const ArticlePage = ({
     document,
     source
-}: IDocumentSerialized) => {
+}: {
+    document: DocumentSerializedType;
+    source: unknown;  // TODO: determine base type from Next without adding dependency?
+}) => {
     const [deserialized] = useDeserialize([document])
-
-    const router = useRouter();
+    const {navigate} = useNextRouter();
     const props = source as Record<string, unknown>;
-
-    /**
-     * Use next router, and merge query parameters.
-     */
-    const navigate = useCallback((pathname: string, insert?: QueryType, merge = true) => {
-        const query = { ...(merge ? router.query : {}), ...(insert ?? {}) }
-        router.push({ pathname, query });
-    }, [router]);
 
     /**
      * Additionally filter by a single label.

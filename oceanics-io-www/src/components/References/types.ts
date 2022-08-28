@@ -18,7 +18,7 @@ export type QueryType = {
  * be duplicated in the content.
  */
 
-export type MetadataSerializedType = {
+type MetadataSerializedType = {
     published: string;
     labels: string[];
     references?: {
@@ -40,11 +40,6 @@ export type DocumentSerializedType = {
     metadata: MetadataSerializedType;
     content?: string;
     slug?: string;
-}
-
-export interface IDocumentSerialized {
-    document: DocumentSerializedType;
-    source: unknown;  // TODO: determine base type from Next without adding dependency?
 }
 
 export interface IDocumentIndexSerialized {
