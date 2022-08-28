@@ -1,14 +1,16 @@
 import React from "react";
 import styled from "styled-components";
+import Typography from "typography";
 
 /**
  * Color palette and typesetting
  */
 import { pink, ghost, orange } from "../../palette";
-import { rhythm } from "../../typography";
 
 import PageData from "./PageData.json";
 import GlobalStyle from "./GlobalStyle";
+
+const {rhythm} = new Typography({});
 
 /**
  * The NavBar is a <nav> element that displays links or buttons

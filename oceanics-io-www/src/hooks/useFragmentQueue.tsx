@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import type { Map } from "mapbox-gl";
 import type { FileObject, FileSystem } from "../workers/shared";
-import type { WorkerRef } from "../utils"
+import type { WorkerRef } from "../shared"
 
 /**
  * Storage target.

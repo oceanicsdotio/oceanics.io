@@ -14,7 +14,7 @@ import { Popup, AnyLayer, AnySourceData } from "mapbox-gl";
  * Container for MapboxGL feature content. Rendered client-side.
  */
 import PopUpContent from "../components/Catalog/PopUpContent";
-import { pulsingDot } from "../utils";
+import { pulsingDot } from "../shared";
 import useMapBox from "./useMapBox";
 
 type ApplicationType = {

@@ -3,7 +3,7 @@ import { lichen, orange } from "../palette";
 import useWasmRuntime from "./useWasmRuntime";
 import type {PrismCursor} from "oceanics-io-www-wasm";
 import {rotatePath, inverse} from "../workers/shared";
-import {eventCoordinates} from "../utils";
+import {eventCoordinates} from "../shared";
 
 
 type IOceansideOverlay = {

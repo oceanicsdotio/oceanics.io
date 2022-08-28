@@ -2,6 +2,37 @@
 import type {MutableRefObject} from "react";
 export type WorkerRef = MutableRefObject<Worker|null>;
 
+import fs from "fs";
+import matter from "gray-matter";
+import path from "path";
+
+export const DIRECTORY = "references";
+
+export const createIndex = () => {
+    return fs.readdirSync(path.join(process.cwd(), DIRECTORY))
+        .filter((name) => name.endsWith(".mdx"))
+        .map((name) => Object({ params: { slug: name.split(".").shift() } }))
+}
+
+export const readDocument = (doc: {params: {slug: string}}) => {
+    const STATIC_SOURCE = path.join(process.cwd(), DIRECTORY);
+    const file = path.join(STATIC_SOURCE, `${doc.params.slug}.mdx`);
+    const { data: {references=[], ...metadata}, content }: {data: {references: any[]}, content: any} = matter(fs.readFileSync(file, "utf8"));
+    return {
+        metadata: {
+            ...metadata,
+            references: references.map((metadata) => Object({metadata}))
+        },
+        content,
+        slug: doc.params.slug
+    }
+};
+
+export const readIndexedDocuments = (index) => {
+    return index.map(readDocument)
+}
+
+
 export type RenderEffect = {
     size: number;
 };

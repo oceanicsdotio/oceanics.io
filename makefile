@@ -34,6 +34,12 @@ node_modules: $(API)-wasm $(WWW)-wasm yarn.lock $(wildcard **/package.json) pack
 $(DOCS_PAGE): $(SPEC_FILE) node_modules
 	yarn run redoc-cli build $(SPEC_FILE) --output $(DOCS_PAGE)
 
+# Build a JSON of MDX references for storybook visual regression testing
+# Only had to do this because I couldn't get `fs` from next-utils to work correctly.
+$(WWW)/public/dev/citations.json:
+	yarn workspace $(WWW) exec node parse-content.js
+
+
 # Build static storybook pages
 STORY_SRC := $(wildcard $(WWW)/src/**/*) $(wildcard $(WWW)/.storybook/*)
 $(WWW)/$(STORYBOOK): $(STORY_SRC)
