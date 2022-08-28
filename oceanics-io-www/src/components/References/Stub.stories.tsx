@@ -2,10 +2,13 @@ import React from 'react';
 import type { Meta, Story } from '@storybook/react';
 
 import Stub from "./Stub";
-import type {IDocument} from "./types";
+import type {IDocumentStub} from "./Stub";
 import { Document } from './types';
-import PageData from  "./Example.json";
 import GlobalStyle from '../Layout/GlobalStyle';
+
+// Must be pre-built by `make`
+import {documents} from "../../../public/dev/content.json";
+const [example] = documents.filter(({slug}) => slug === "a-small-place");
 
 /**
  * Storybook Interface
@@ -14,23 +17,25 @@ export default {
     component: Stub
 } as Meta;
 
-const {documents:[doc]} = PageData;
-
 /**
  * Base case
  */
-const Template: Story<IDocument> = ({document}) => {
+const Template: Story<IDocumentStub> = ({document, onClickLabel}) => {
     return (
-    <>
-        <GlobalStyle/>
-        <Stub document={document} />
-    </>
-)};
+        <>
+            <GlobalStyle/>
+            <Stub document={document} onClickLabel={onClickLabel} />
+        </>
+    )
+};
 
 /**
  * Default test case
  */
-export const Default = Template.bind({});
-Default.args = {
-    document: new Document(doc)
+export const ASmallPlace = Template.bind({});
+ASmallPlace.args = {
+    document: new Document(example),
+    onClickLabel: () => {
+        console.log("Mock mouse event handler fired")
+    }
 };

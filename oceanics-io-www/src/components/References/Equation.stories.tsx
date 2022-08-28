@@ -25,10 +25,8 @@ const Template: Story<IEquation> = (args) => (
   </>
 );
 
-/**
- * Default test case
- */
-export const Example = Template.bind({});
-Example.args = {
+
+export const PartialDerivative = Template.bind({});
+PartialDerivative.args = {
   text: "{\\delta x}\\over{\\delta t}",
 };

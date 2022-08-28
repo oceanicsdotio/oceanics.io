@@ -17,7 +17,6 @@
     "type": "git",
     "url": "git+https://github.com/oceanicsdotio/oceanics.io.git"
   },
-  "type": "module",
   "dependencies": {
     "@apidevtools/swagger-parser": "^10.1.0",
     "@types/geojson": "^7946.0.8",
@@ -71,6 +70,7 @@
     "storybook": "^6.5.10",
     "styled-components": "^5.3.0",
     "typescript": "^5.2.2",
+    "tsconfig-paths-webpack-plugin": "^4.0.0",
     "webpack": "^5.47.1"
   },
   "babel": {
