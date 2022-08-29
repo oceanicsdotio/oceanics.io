@@ -1,16 +1,23 @@
 pub mod memo {
     use chrono::NaiveDate;
     use wasm_bindgen::prelude::*;
+    use serde::{Deserialize, Serialize};
     use js_sys::Function;
-    use web_sys::Document;
     use std::collections::hash_map::DefaultHasher;
     use std::hash::{Hash, Hasher};
 
+    /**
+     * Labels are string tags that may have a mouse event
+     * handler attached to it. That will be a JS object/fcn
+     * reference.
+     */
     struct Label {
         value: String,
         onClick: Option<Function>
     }
 
+    
+    #[derive(Deserialize)]
     struct SerializedMetadata {
         publication: String,
         published: String,
@@ -24,6 +31,7 @@ pub mod memo {
     }
 
     #[wasm_bindgen]
+    #[derive(Debug,Deserialize, Serialize)]
     struct Metadata {
         publication: String,
         published: NaiveDate,
@@ -50,7 +58,7 @@ pub mod memo {
                 labels: labels.into_iter().map(
                     |value| Label{value, onClick: None}
                 ), 
-                references: references.into_iter().map(
+                references: Some(references).unwrap().into_iter().map(
                     |each| Memo{
                         ..each
                     }
@@ -72,6 +80,7 @@ pub mod memo {
         }
     }
 
+    #[derive(Deserialize)]
     struct SerializedMemo {
         metadata: Metadata,
         content: Option<String>,
@@ -79,6 +88,7 @@ pub mod memo {
     }
 
     #[wasm_bindgen]
+    #[derive(Debug, Deserialize, Serialize)]
     struct Memo {
         metadata: Metadata,
         content: Option<String>,
