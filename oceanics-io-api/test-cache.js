@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import fs from "fs";
+import fs from "fs/promises";
 
 const [
   API_SPECIFICATION,
@@ -33,9 +33,9 @@ const flattenNode = (label) => {
 const schemaToLookup = ([label, { examples = [] }]) =>
   examples.map(flattenNode(label));
 
-const text = fs.readFileSync(API_SPECIFICATION, "utf-8");
+const text = await fs.readFile(API_SPECIFICATION, "utf-8");
 const {components: {schemas}} = JSON.parse(text);
 const value = (Object.entries(schemas)).flatMap(schemaToLookup);
 
 console.warn(`writing new cache: ${CACHE}`);
-fs.writeFileSync(CACHE, JSON.stringify(value));
+await fs.writeFile(CACHE, JSON.stringify(value));

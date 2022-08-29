@@ -171,10 +171,6 @@ paths:
       responses:
         '200':
           description: Catalog
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Entity'
 
   /{entity}:
 
@@ -292,7 +288,6 @@ paths:
   /{root}({rootId})/{entity}({uuid}):
 
     post:
-
       tags: [ Topology ]
       summary: Join
       security:
@@ -332,18 +327,21 @@ paths:
           description: No Content
         '400':
           $ref: '#/components/responses/BadRequest'
-    
 
 components:
+
   securitySchemes:
+
     BasicAuth:
       type: http
       in: header
       scheme: basic
+
     BearerAuth:
       type: http
       in: header
       scheme: bearer
+
     ApiKeyAuth:
       type: apiKey
       in: header
@@ -411,7 +409,6 @@ components:
       schema:
         type: string
 
-
     label:
       in: query
       name: label
@@ -420,7 +417,6 @@ components:
         are used to crawl over the graph.
       schema:
         type: string
-
 
     ObjectKey:
       in: path
@@ -448,23 +444,37 @@ components:
       schema:
         type: integer
 
-
   requestBodies:
 
-    Register:
+    Asset:
       description: |
-        Request is e-mail and password, plus an optional secret key for encrypting password and data.
-        Note that if you lose the secret key, you will lose access to data.
+        Tell the server where to find the data
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Register'
-
+            $ref: '#/components/schemas/Asset'
+          
     Collection:
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Collection'
+
+    CollectionUpdate:
+      description: |
+        Relabel or index an entity collection
+
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CollectionOptions'
+
+    Memos:
+      description: Create and retrieve content data
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Memos'
 
     Entity:
       description: |
@@ -483,24 +493,14 @@ components:
               - $ref: '#/components/schemas/FeaturesOfInterest'
               - $ref: '#/components/schemas/Collection'
 
-    CollectionUpdate:
+    Register:
       description: |
-        Relabel or index an entity collection
-
+        Request is e-mail and password, plus an optional secret key for encrypting password and data.
+        Note that if you lose the secret key, you will lose access to data.
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/CollectionOptions'
-
-    Asset:
-      description: |
-        Tell the server where to find the data
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Asset'
-
-
+            $ref: '#/components/schemas/Register'
   responses:
 
     Asset:
@@ -511,6 +511,13 @@ components:
           schema:
             $ref: '#/components/schemas/Asset'
 
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+            
     Collection:
       description: |
         Description of the service and data
@@ -518,6 +525,13 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Collection'
+
+    Memos:
+      description: Description of Memos
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Memos'
 
     Entity:
       description: |
@@ -543,6 +557,19 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/EntityCollection'
+    Message:
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Message'
+                
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
 
     TokenResponse:
       description: Auth token
@@ -564,22 +591,8 @@ components:
                 minimum: 30
                 maximum: 3600
 
-    Message:
-      description: Success
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Message'
-                
-    NotFound:
-      description: Not found
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-
-    BadRequest:
-      description: Bad Request
+    ServerError:
+      description: Server error
       content:
         application/json:
           schema:
@@ -587,13 +600,6 @@ components:
 
     Unauthorized:
       description: Not authorized
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-
-    ServerError:
-      description: Server error
       content:
         application/json:
           schema:
@@ -649,6 +655,39 @@ components:
               description: |
                 Node attribute to create an index on.
 
+    Memos:
+      type: object
+      properties:
+        uuid:
+          type: string
+        publication:
+          type: string
+        published:
+          type: date-time
+        labels:
+          type: array
+          items:
+            type: object
+            properties:
+              value:
+                type: string
+        authors:
+          type: array
+          items:
+            type: string
+        title:
+          type: string
+        description:
+          type: string
+        volume:
+          type: string
+        pages:
+          type: array
+          items:
+            type: array
+            items:
+              type: number
+              format: integer
 
     EntityLabel:
       type: string
@@ -662,7 +701,6 @@ components:
       description: |
         Additional node labels that can be applied to entities, which have internal meaning.
 
-  
     Message:
       type: object
       properties:
@@ -705,6 +743,7 @@ components:
 
     EntityCollection:
       allOf:
+        - $ref: '#/components/schemas/Collection'
         - type: object
           properties:
             "@iot.count":
@@ -725,7 +764,8 @@ components:
                   - $ref: '#/components/schemas/ObservedProperties'
                   - $ref: '#/components/schemas/Sensors'
                   - $ref: '#/components/schemas/FeaturesOfInterest'
-        - $ref: '#/components/schemas/Collection'
+                  - $ref: '#/components/schemas/Memos'
+        
 
     EntityClass:
       type: string
@@ -741,31 +781,7 @@ components:
         - Actuators
         - TaskingCapabilities
         - Tasks
-
-    Entity:
-      type: object
-      properties:
-
-        id:
-          type: integer
-          readOnly: true
-          description: |
-            Unique integer identifier for entity. This usually auto-generated, but is different that the default node
-            IDs within the Neo4j database, since those are not guaranteed to persist.
-
-        name:
-          type:
-            - "string"
-            - "null"
-          description: |
-            Human readable entity name for displaying data.
-
-        description:
-          type:
-            - "string"
-            - "null"
-          description: |
-            Short but useful explanation of what the entity is.
+        - Memos
 
     FeaturesOfInterest:
       examples:
