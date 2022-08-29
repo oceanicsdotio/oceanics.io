@@ -7,6 +7,14 @@ import crypto from "crypto";
 import { Node, Links, NodeConstraint } from "oceanics-io-api-wasm";
 import { Logtail } from "@logtail/node";
 import { ILogtailLog } from "@logtail/types";
+import { Endpoint, S3 } from "aws-sdk";
+
+const spacesEndpoint = new Endpoint(process.env.STORAGE_ENDPOINT);
+export const s3 = new S3({
+    endpoint: spacesEndpoint,
+    accessKeyId: process.env.SPACES_ACCESS_KEY,
+    secretAccessKey: process.env.SPACES_SECRET_KEY
+});
 
 const logging = new Logtail(process.env.LOGTAIL_SOURCE_TOKEN??"");
 logging.use(async (log: ILogtailLog) => {
@@ -458,6 +466,7 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: unknown): Handler
                 provider,
                 nodes
             },
+            headers,
             ...request
         });
 
