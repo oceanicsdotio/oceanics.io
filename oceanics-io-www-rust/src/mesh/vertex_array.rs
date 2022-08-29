@@ -1,23 +1,15 @@
 pub mod vertex_array {
-
+    use wasm_bindgen::prelude::*;
+    use wasm_bindgen::JsValue;
+    use std::collections::HashMap;
     use crate::vec3::vec3::Vec3;
     use crate::mesh::index_interval::index_interval::IndexInterval;
-
-    /**
-     * Shared pointer back to Javascript.
-     * TODO: move this dependency to higher level
-     */
-    use wasm_bindgen::JsValue;
-
-    /** 
-     * For container structures.
-     */
-    use std::collections::HashMap;
 
     /**
      * The vertex array contains the points that make up the spatial component of
      * a triangulation network. 
      */
+    #[wasm_bindgen]
     #[derive(Clone)]
     pub struct VertexArray{
         pub prefix: String,
@@ -25,10 +17,15 @@ pub mod vertex_array {
         pub points: HashMap<u16,Vec3>,
         pub normals: HashMap<u16,(Vec3, u16)>
     }
- 
+    
+    #[wasm_bindgen]
+    impl VertexArray {
+
+    }
     /**
      * Public interface for VertexArray
      */
+    #[wasm_bindgen]
     #[allow(dead_code)]
     impl VertexArray{
         /**
