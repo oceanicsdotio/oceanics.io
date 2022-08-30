@@ -60,7 +60,7 @@ export const getNodes = (): NodeTuple[] => {
   const CACHE = "./src/shared/nodes.json";
   try {
     const text = fs.readFileSync(CACHE, "utf-8");
-    return JSON.parse(text).filter(filterSensing); 
+    return JSON.parse(text).nodes.filter(filterSensing); 
   } catch {
     return []
   }

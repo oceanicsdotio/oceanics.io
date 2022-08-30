@@ -534,15 +534,14 @@ components:
             $ref: '#/components/schemas/Error'
             
     Collection:
-      description: |
-        Description of the service and data
+      description: Collection
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Collection'
 
     Memos:
-      description: Description of Memos
+      description: Memos
       content:
         application/json:
           schema:
@@ -563,6 +562,7 @@ components:
               - $ref: '#/components/schemas/ObservedProperties'
               - $ref: '#/components/schemas/Sensors'
               - $ref: '#/components/schemas/FeaturesOfInterest'
+              - $ref: '#/components/schemas/Memos'
 
     EntityCollection:
       description: |

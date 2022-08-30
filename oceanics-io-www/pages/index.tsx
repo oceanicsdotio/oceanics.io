@@ -5,8 +5,7 @@ import Campaign, { PageData } from "../src/components/Campaign/Campaign";
 import Oceanside from "../src/components/Oceanside";
 import type {ApplicationType} from "../src/components/Oceanside"
 import Index from "../src/components/References/Index";
-import type { DocumentSerializedType } from "../src/components/References/types";
-import useDeserialize from "../src/hooks/useDeserialize";
+import useMemoCache from "../src/hooks/useMemoCache";
 import useNextRouter from "../src/hooks/useNextRouter";
 
 /**
@@ -19,13 +18,13 @@ const IndexPage = ({
     pagingIncrement,
     ...props
 }: {
-    documents: DocumentSerializedType[];
+    documents: any[];
     pagingIncrement: number;
 } & ApplicationType) => {
     /**
      * Convert into our internal Document data model. 
      */
-    const deserialized = useDeserialize(documents);
+    const deserialized = useMemoCache(documents);
 
     /**
      * Just the Next router.

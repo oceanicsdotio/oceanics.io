@@ -5,14 +5,14 @@ import styled from "styled-components";
 /**
  * Components and Types
  */
-import type { Document as DocumentType } from "oceanics-io-www-wasm"
+import type { Memo } from "oceanics-io-www-wasm"
 import { Reference } from "./Reference";
 const REFERENCE = "reference";
 
 export interface IDocumentContent {
   onClickLabel: (label: string) => MouseEventHandler<HTMLAnchorElement>
   className: string
-  document: DocumentType
+  document: Memo
   children: ReactNode
 }
 

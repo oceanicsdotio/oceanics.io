@@ -1,12 +1,5 @@
-/**
- * React and friends
- */
 import React from "react";
 
-/**
- * Runtime input type checking
- */
-import {Document} from "oceanics-io-www-wasm";
 
 // Min required for unique hashing
 export interface IInline {
@@ -20,21 +13,18 @@ export interface IInline {
  Include inline links for references in markdown
  */
 export const Inline = ({published, authors, title, parenthesis=false}: IInline) => {
-    const doc = new Document({metadata: {
-        published: (new Date(published, 0, 1)).toISOString(),
-        authors,
-        labels: [],
-        title,
-        description: "",
-        publication: "",
-        volume: "",
-        pages: []
-    }});
-    return <a href={`#${doc.hash}`}>{
-        parenthesis ? 
-        `${doc.authors} (${doc.year})` : 
-        `(${doc.authors} ${doc.year})`
-    }</a>;
+    // const doc = new Document({metadata: {
+    //     published: (new Date(published, 0, 1)).toISOString(),
+    //     authors,
+    //     labels: [],
+    //     title,
+    //     description: "",
+    //     publication: "",
+    //     volume: "",
+    //     pages: []
+    // }});
+    const doc = {hash: "", inline: () => ""}
+    return <a href={`#${doc.hash}`}>{doc.inline(parenthesis)}</a>;
 };
 
 export default Inline

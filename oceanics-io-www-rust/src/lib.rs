@@ -4,7 +4,6 @@ mod cursor;  // cursor replacements and canvas event handling system
 mod stream;  // data stream structs and visualization methods
 mod mesh;  // 3D unstructured triangular network
 mod grid;  // 3D rectilinear grid methods and structures
-// mod memo; // document handling
 
 
 use std::f32::consts::PI;
@@ -21,6 +20,7 @@ use wasm_bindgen_futures::JsFuture;
 
 use web_sys::{HtmlCanvasElement, CanvasRenderingContext2d, Request, RequestInit, RequestMode, Response};
 
+// Better error reporting
 extern crate console_error_panic_hook;
 
 #[wasm_bindgen]

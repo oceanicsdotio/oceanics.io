@@ -48,6 +48,7 @@ dependencies = [
  "js-sys",
  "num-integer",
  "num-traits",
+ "serde",
  "time",
  "wasm-bindgen",
  "winapi",
@@ -138,7 +139,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "oceanics-io-www-rust"
+name = "oceanics-io-www-wasm"
 version = "0.1.0"
 dependencies = [
  "chrono",
@@ -146,6 +147,7 @@ dependencies = [
  "js-sys",
  "regex",
  "serde",
+ "serde-wasm-bindgen",
  "serde_derive",
  "wasm-bindgen",
  "wasm-bindgen-futures",
@@ -206,6 +208,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bca2a08484b285dcb282d0f67b26cadc0df8b19f8c12502c13d966bf9482f001"
 dependencies = [
  "serde_derive",
+]
+
+[[package]]
+name = "serde-wasm-bindgen"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "17ba92964781421b6cef36bf0d7da26d201e96d84e1b10e7ae6ed416e516906d"
+dependencies = [
+ "js-sys",
+ "serde",
+ "wasm-bindgen",
 ]
 
 [[package]]
