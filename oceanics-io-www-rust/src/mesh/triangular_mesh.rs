@@ -8,7 +8,6 @@ pub mod triangular_mesh {
     use crate::vec3::vec3::Vec3;  // 3-D graphics primitive
     use crate::mesh::topology::topology::Topology;
     use crate::mesh::cell_index::cell_index::CellIndex;
-    use crate::mesh::index_interval::index_interval::IndexInterval;
 
     /**
      * Unstructured triangular mesh, commonly used in finite element simulations
@@ -67,7 +66,7 @@ pub mod triangular_mesh {
         #[allow(dead_code)]
         pub fn neighbors(&self) -> HashMap<u16,HashSet<u16>> {
 
-            let count = self.vertex_array.points.len();
+            let count = self.vertex_array.count();
             let mut lookup: HashMap<u16,HashSet<u16>> = HashMap::with_capacity(count);
 
             for (edge, _metadata) in self.topology.edges.iter() {
@@ -95,7 +94,7 @@ pub mod triangular_mesh {
         #[allow(dead_code)]
         pub fn reflect(&mut self, dim: usize) -> &mut Self {
             
-            for vert in self.vertex_array.points.values_mut() {
+            for vert in self.vertex_array.values_mut() {
                 vert.value[dim] *= -1.0;
             }
 
@@ -121,11 +120,11 @@ pub mod triangular_mesh {
         #[allow(dead_code)]
         fn append(&mut self, mesh: &TriangularMesh) {
                       
-            let offset = self.vertex_array.points.len() as u16;
-            for (index, vert) in mesh.vertex_array.points.iter() {
+            let offset = self.vertex_array.count() as u16;
+            for (index, vert) in mesh.vertex_array.points().iter() {
                 self.vertex_array.insert_point(
-                    index.clone() + offset, 
-                    vert.clone()
+                    index + offset, 
+                    *vert
                 );
             }
            
@@ -145,7 +144,7 @@ pub mod triangular_mesh {
          * Rotate the vertices in place around an arbitrary axis.
          */
         pub fn rotate(&mut self, angle: &f64, axis: &Vec3) -> &Self {
-            for coordinates in self.vertex_array.points.values_mut() {
+            for coordinates in self.vertex_array.values_mut() {
                 coordinates.value = coordinates.rotate(angle, axis).value;
             }
             self
@@ -157,9 +156,9 @@ pub mod triangular_mesh {
         #[allow(dead_code)]
         fn deduplicate(&mut self, threshold: f64) {
            
-            for ii in 0..(self.vertex_array.points.len()-1) as u16 { 
-                for jj in (ii+1) as u16..self.vertex_array.points.len() as u16 { 
-                    let delta = self.vertex_array.points[&ii] - self.vertex_array.points[&(jj)];
+            for ii in 0..(self.vertex_array.count()-1) as u16 { 
+                for jj in (ii+1) as u16..self.vertex_array.count() as u16 { 
+                    let delta = self.vertex_array.points()[&ii] - self.vertex_array.points()[&jj];
                     if delta.magnitude() < threshold {
                         // self.vertex_array.points.remove(&jj);
                         // let cells = &mut self.topology.cells;
@@ -189,7 +188,7 @@ pub mod triangular_mesh {
         #[allow(dead_code)]
         fn normals (&mut self) -> (HashMap<u16,(Vec3,u8)>, HashMap<CellIndex,Vec3>) {
 
-            let capacity = self.vertex_array.points.len();
+            let capacity = self.vertex_array.count();
             let mut normals: HashMap<u16,(Vec3,u8)> = HashMap::with_capacity(capacity);
             let mut face_normals: HashMap<CellIndex,Vec3> = HashMap::with_capacity(self.topology.cells.len());
             
@@ -230,14 +229,15 @@ pub mod triangular_mesh {
 
             let mut ni = 0;
             let mut start_pattern = false;
+            let vertex_array = VertexArray::new(
+                "rtin-sample".to_string(),
+                0,
+                ((nx+1)*(ny+1)) as u32,
+                36
+            );
 
             let mut mesh: TriangularMesh = TriangularMesh{ 
-                vertex_array: VertexArray{
-                    prefix: "rtin-sample".to_string(),
-                    interval: IndexInterval::new(0,((nx+1)*(ny+1)) as u32, 36),
-                    points: HashMap::with_capacity((nx+1)*(ny+1)),
-                    normals: HashMap::with_capacity(0)
-                },
+                vertex_array,
                 topology: Topology {
                     cells: HashSet::with_capacity(nx*ny*2),
                     edges: HashMap::with_capacity(nx*ny*2*3),
