@@ -94,7 +94,7 @@ pub mod interactive_mesh {
         fn draw_nodes(&self, ctx: &CanvasRenderingContext2d, w: f64, h: f64, style: &Style) -> u16 {
 
             let mut count: u16 = 0;
-            for (index, vert) in self.mesh.vertex_array.points.iter() {
+            for (index, vert) in self.mesh.vertex_array.points().iter() {
                 for dim in vert.value.iter() {
                     if dim.is_sign_negative() { panic!("Negative z-coordinate: {}", dim); }
                 }
@@ -222,7 +222,7 @@ pub mod interactive_mesh {
                 let caption = format!(
                     "Network, Nodes: {}/{}, Cells: 0/{}, Edges: {}/{})", 
                     nodes,
-                    self.mesh.vertex_array.points.len(), 
+                    self.mesh.vertex_array.count(), 
                     self.mesh.topology.cells.len(), 
                     edges,
                     self.mesh.topology.edges.len()
