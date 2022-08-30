@@ -19,7 +19,7 @@ import Equation from "../src/components/References/Equation";
 import Inline from "../src/components/References/Inline";
 import {Standalone as Squalltalk} from "../src/components/References/Squalltalk";
 import type { DocumentSerializedType } from "../src/components/References/types";
-import useDeserialize from "../src/hooks/useDeserialize";
+import useMemoCache from "../src/hooks/useMemoCache";
 
 const ArticlePage = ({
     document,
@@ -28,7 +28,7 @@ const ArticlePage = ({
     document: DocumentSerializedType;
     source: unknown;  // TODO: determine base type from Next without adding dependency?
 }) => {
-    const [deserialized] = useDeserialize([document])
+    const [deserialized] = useMemoCache([document])
     const {navigate} = useNextRouter();
     const props = source as Record<string, unknown>;
 

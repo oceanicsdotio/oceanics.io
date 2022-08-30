@@ -7,7 +7,9 @@
         "oceanics-io-api-wasm",
         "oceanics-io-native"
     ],
+    "type": "module",
     "packageManager": "yarn@3.2.2",
+    "description": "Build environment",
     "devDependencies": {
         "@typescript-eslint/eslint-plugin": "^5.26.0",
         "@typescript-eslint/parser": "^5.26.0",

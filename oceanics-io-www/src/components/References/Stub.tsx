@@ -12,7 +12,7 @@ export interface IDocumentStub {
 }
 
 /**
- * List view of an article
+ * List view of an article. Presented at the index. 
  */
 export const Stub = ({
   className,
