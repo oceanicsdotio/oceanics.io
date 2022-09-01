@@ -26,7 +26,7 @@ $(TEST_CACHE): $(API_JSON)
 
 # Compile API
 $(API_OUT): node_modules $(API_JSON) $(API)/src/**/* $(API)/tsconfig.json
-	yarn eslint "$(API)/src/**/*.{js,ts,json}"
+	yarn eslint "$(API)/src/**/*.{js,ts}"
 	yarn workspace $(API) run tsc 
 	touch -m $@
 
@@ -47,7 +47,7 @@ api-test-idempotent: $(TEST_CACHE)
 
 # Serve functions locally
 api-dev: $(API_OUT)
-	yarn netlify functions:serve --debug --port=8888
+	yarn netlify dev --port=8888
 
 # Run jest incrementally, because order matters
 api-test: $(TEST_CACHE) test-auth test-collection test-idempotent
