@@ -1,5 +1,5 @@
 import { describe, expect, test } from '@jest/globals';
-import { asNodes, filterBaseRoute, Method, materialize, dematerialize } from "../shared/middleware";
+import { asNodes, Method, materialize, dematerialize } from "../shared/middleware";
 import crypto from "crypto";
 
 describe("idempotent", function() {
@@ -9,7 +9,7 @@ describe("idempotent", function() {
    */
   describe("middleware", function () {
 
-    test("reversible operations", function () {
+    test.concurrent("reversible operations", async function () {
       const claim = {
         email: "test@oceanics.io",
         uuid: crypto.randomUUID()
@@ -20,23 +20,31 @@ describe("idempotent", function() {
       expect(props.uuid).toBe(claim.uuid)
     })
 
-    test("parses get entity path", function () {
+    test.concurrent("parses get index path", async function () {
+      const nodes = asNodes(Method.GET, "", {});
+      expect(nodes.length).toEqual(0)
+    })
+
+    test.concurrent("parses get entity path", async function () {
       const uuid = `abcd`;
-      const path = `api/DataStreams(${uuid})`;
-      const nodeTransform = asNodes(Method.GET, "");
-      const segments = path.split("/").filter(filterBaseRoute)
-      const node = nodeTransform(segments[0], 0);
+      const [node] = asNodes(Method.GET, "", {left: `DataStreams`, uuid});
       expect(node.patternOnly()).toEqual(expect.stringContaining(uuid))
     })
 
-    test("parses post collection path", function () {
+    test.concurrent("parses post collection path", async function () {
       const uuid = `abcd`;
-      const path = `api/DataStreams`;
-      const nodeTransform = asNodes(Method.POST, JSON.stringify({ uuid }));
-      const segments = path.split("/").filter(filterBaseRoute)
-      const node = nodeTransform(segments[0], 0);
+      const [node] = asNodes(Method.POST, JSON.stringify({ uuid }), {left: `DataStreams`});
       expect(node.patternOnly()).toEqual(expect.stringContaining(uuid))
     })
+
+    test.concurrent("parses post topology path", async function () {
+      const uuid1 = `abcd`;
+      const uuid2 = `efgh`;
+      const [left, right] = asNodes(Method.POST, JSON.stringify({ uuid2 }), {left: `DataStreams`, uuid: uuid1, right: "Things"});
+      expect(left.patternOnly()).toEqual(expect.stringContaining(uuid1));
+      expect(right.patternOnly()).toEqual(expect.stringContaining(uuid2));
+    })
+
   })
 })
 

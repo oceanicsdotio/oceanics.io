@@ -87,8 +87,7 @@ const transformLogLine = ({
     }
 }
 
-// TODO: pre-determine this from the API specification
-const METHODS_WITH_BODY: Method[] = [Method.POST, Method.PUT];
+
 export const READ_ONLY = true;
 export const WRITE = false;
 
@@ -242,7 +241,6 @@ export const metadata: ApiHandler = async ({data: {user, nodes: [entity]}}) => {
 const STRIP_BASE_PATH_PREFIX = new Set([
     ".netlify",
     "functions",
-    "api",
     "auth",
     "entity",
     "topology",
@@ -282,6 +280,8 @@ export const hashPassword = (password: string, secret: string) =>
 export const filterBaseRoute = (symbol: string) =>
     !!symbol && !STRIP_BASE_PATH_PREFIX.has(symbol);
 
+type QueryString = {left?: string, uuid?: string, right?: string};
+
 /**
  * Convert part of path into a resource identifier that
  * includes the UUID and Label.
@@ -289,24 +289,29 @@ export const filterBaseRoute = (symbol: string) =>
 export const asNodes = (
     httpMethod: Method, 
     body: string, 
+    query: QueryString 
 ) => {
-    const expectBody = METHODS_WITH_BODY.includes(httpMethod)
-    return (
-        text: string, 
-        index: number
-    ) => {
-        let label = "";
-        const properties = expectBody ? JSON.parse(body) : {};
-        // Identifiers are delimited with parentheses
-        if (text.includes("(")) {
-            const parts = text.split("(")
-            label = parts[0]
-            properties.uuid = parts[1].replace(")", "")
-        } else {
-            label = text
-        }  
-        return materialize(properties, `n${index}`, label)
+    const properties = [Method.POST, Method.PUT].includes(httpMethod) ? 
+        JSON.parse(body) : {};
+
+    const {left="", right="", uuid=""} = query;
+    if (right) {
+        return [
+            materialize({ uuid }, `n0`, left),
+            materialize(properties, `n1`, right)
+        ]
     }
+    if (uuid) {
+        return [
+            materialize({...properties, uuid}, `n`, left)
+        ]
+    } 
+    if (left) {
+        return [
+            materialize(properties, `n`, left)
+        ]
+    }
+    return []
 }
 
 /**
@@ -364,10 +369,10 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: unknown): Handler
      * Return the actual bound handler.
      */
     const NetlifyHandler = async function ({
-        path, 
         httpMethod,
         body,
         headers,
+        queryStringParameters,
         ...request
     }: HandlerEvent) {
         const start = new Date();
@@ -458,8 +463,8 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: unknown): Handler
         }
 
         // parse path into resources and make request to handler
-        const nodeTransform = asNodes(httpMethod as Method, body);
-        const nodes: Node[] = path.split("/").filter(filterBaseRoute).map(nodeTransform);
+        const nodes = asNodes(httpMethod as Method, body, queryStringParameters as QueryString);
+
         const {extension="", data, ...result} = await handler({
             data: { 
                 user,
@@ -467,6 +472,7 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: unknown): Handler
                 nodes
             },
             headers,
+            queryStringParameters,
             ...request
         });
 
