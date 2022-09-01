@@ -30,8 +30,8 @@ $(API_OUT): node_modules $(API_JSON) $(API)/src/**/* $(API)/tsconfig.json
 	yarn workspace $(API) run tsc 
 	touch -m $@
 
-# PHONYs for convenience
-.PHONY: api-cleanup 
+# Non-file targets
+.PHONY: api-cleanup api-test-auth api-test-collection- api-test-idempotent api-dev api-test
 
 # Test just Auth API to setup service account.
 api-test-auth: $(TEST_CACHE)
@@ -50,7 +50,7 @@ api-dev: $(API_OUT)
 	yarn netlify dev --port=8888
 
 # Run jest incrementally, because order matters
-api-test: $(TEST_CACHE) test-auth test-collection test-idempotent
+api-test: $(TEST_CACHE) api-test-auth api-test-collection api-test-idempotent
 
 api-cleanup:
 	rm -rf $(API_WASM)
@@ -135,7 +135,7 @@ clean: api-cleanup www-cleanup
 	rm -rf node_modules/
 
 # Non-file targets (aka commands)
-.PHONY: clean start-storybook test-auth test-collection test-idempotent test lock dev
+.PHONY: clean start-storybook dev
 
 # Cleanup targets on error
 .DELETE_ON_ERROR:

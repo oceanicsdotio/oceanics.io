@@ -20,10 +20,6 @@ const SENSING = new Set([
   "DataStreams",
 ])
 
-const NOT_FOUND = new Response("Not Found", {
-  status: 404
-})
-
 const filterPath = (x: string) =>
   x
   && !["api", "index"].includes(x)
@@ -38,7 +34,9 @@ const routeFromUrl = (url: URL) =>
 // Replace parenthesis syntax with paths, because it's WAY easier
 export default (request: Request, context: Context) => {
   const hasAuth = request.headers.has("x-api-key") || request.headers.has("authorization")
-  if (!hasAuth) return NOT_FOUND
+  if (!hasAuth) return new Response("Unauthorized", {
+    status: 403
+  })
   
   const url = new URL(request.url)
   const route = routeFromUrl(url);
@@ -47,19 +45,34 @@ export default (request: Request, context: Context) => {
     return context.rewrite(`/.netlify/functions/auth`)
   }
   const endpoint: string = lookup[count] ?? "";
-  if (!endpoint) return NOT_FOUND
+  if (!endpoint) {
+    return new Response("Not Found", {
+      status: 404
+    })
+  }
   const search = new URLSearchParams();
   const [left="", uuid="", right=""] = route;
+
   if (count > 0) {
-    if (!SENSING.has(left)) return NOT_FOUND
+    if (!SENSING.has(left)) {
+      return new Response("Not Found", {
+        status: 404
+      })
+    }
     search.append('left', left);
   }
   if (count > 1) search.append('uuid', uuid);
   if (count > 2) {
+    if (!SENSING.has(right)) {
+      return new Response("Not Found", {
+        status: 404
+      })
+    }
     search.append('right', right)
-    if (!SENSING.has(left)) return NOT_FOUND
+    
   }
   const target = `${url.origin}/.netlify/functions/${endpoint}?${search.toString()}`;
+  
   return fetch(target, {
     headers: request.headers,
     method: request.method,
