@@ -1,6 +1,6 @@
 import fetch from "node-fetch";
 import { describe, expect, test } from '@jest/globals';
-import { BASE_PATH, getNodes } from "../../test-utils";
+import { BASE_PATH, getNodes } from "../shared/test-utils";
 
 const PATH = `${BASE_PATH}/api-validator`;
 

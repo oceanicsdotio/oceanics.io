@@ -19,6 +19,11 @@ API_JSON = $(API)/$(SHARED)/bathysphere.json
 $(API_JSON): $(SPEC_FILE) node_modules
 	yarn run js-yaml $< > $@
 
+# Create examples with static UUID values for deterministic testing
+TEST_CACHE = nodes.json
+$(TEST_CACHE): $(API_JSON)
+	yarn exec node test-cache.js $< $@
+
 # Compile API
 $(API_OUT): node_modules $(API_JSON) $(API)/src/**/* $(API)/tsconfig.json
 	yarn eslint "$(API)/src/**/*.{js,ts,json}"
@@ -26,8 +31,27 @@ $(API_OUT): node_modules $(API_JSON) $(API)/src/**/* $(API)/tsconfig.json
 	touch -m $@
 
 # PHONYs for convenience
-.PHONY: api api-cleanup 
-api: $(API_OUT)
+.PHONY: api-cleanup 
+
+# Test just Auth API to setup service account.
+api-test-auth: $(TEST_CACHE)
+	yarn workspace oceanics-io-api jest -t "auth handlers" --verbose
+
+# This test set populates the test database, must be called after `test-auth`.
+api-test-collection: $(TEST_CACHE)
+	yarn workspace oceanics-io-api jest -t "collection handlers"
+
+# Once database and cache are setup
+api-test-idempotent: $(TEST_CACHE)
+	yarn workspace oceanics-io-api jest -t "idempotent"
+
+# Serve functions locally
+api-dev: $(API_OUT)
+	yarn netlify functions:serve --debug --port=8888
+
+# Run jest incrementally, because order matters
+api-test: $(TEST_CACHE) test-auth test-collection test-idempotent
+
 api-cleanup:
 	rm -rf $(API_WASM)
 	rm -rf $(API_OUT)
@@ -87,31 +111,12 @@ node_modules: $(API_WASM) $(WWW_WASM) package.json **/package.json yarn.lock
 	touch -m $@
 
 # Build everything
-.: api www
+.: $(API_OUT) www
 
 # Serve the storybook docs in dev mode for manual testing
 start-storybook:
 	yarn workspace oceanics-io-www start-storybook --port ${STORYBOOK_PORT}
 
-# Create examples with static UUID values for deterministic testing
-TEST_CACHE = nodes.json
-$(TEST_CACHE): $(API_JSON)
-	yarn exec node test-cache.js $< $@
-
-# Test just Auth API to setup service account.
-test-auth: $(TEST_CACHE)
-	yarn workspace oceanics-io-api jest -t "auth handlers" --verbose
-
-# This test set populates the test database, must be called after `test-auth`.
-test-collection: $(TEST_CACHE)
-	yarn workspace oceanics-io-api jest -t "collection handlers"
-
-# Once database and cache are setup
-test-idempotent: $(TEST_CACHE)
-	yarn workspace oceanics-io-api jest -t "idempotent"
-
-# Run jest incrementally, because order matters
-test: $(TEST_CACHE) test-auth test-collection test-idempotent
 
 # Run the dev server for only API
 dev: .

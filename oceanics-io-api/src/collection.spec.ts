@@ -1,6 +1,6 @@
 import { describe, expect, test } from '@jest/globals';
 import { Method } from './shared/middleware';
-import { apiFetch, testAllowedMethodCount, getNodeTypes, getNodes } from "../test-utils";
+import { apiFetch, testAllowedMethodCount, getNodeTypes, getNodes } from "./shared/test-utils";
 
 /**
  * Collect tests that create, get, and manipulate graph nodes related
