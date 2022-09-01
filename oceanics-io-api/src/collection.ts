@@ -14,6 +14,7 @@ import apiSpec from "./shared/bathysphere.json";
  * Location data receives additional processing logic internally.
  */
 const create: ApiHandler = async ({ data: { user, nodes: [entity] } }) => {
+    console.log({entity: entity.patternOnly()})
     const { query } = (new Links("Create", 0, 0, "")).insert(user, entity)
     await connect(query, false)
     return {
