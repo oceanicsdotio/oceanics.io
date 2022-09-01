@@ -26,8 +26,8 @@ describe("collection handlers", function () {
       expect(response.status).toEqual(204);
     });
 
-    test.concurrent("redirects unknown entities with query", async function() {
-      const response = await apiFetch("Memos(Something)", Method.POST)({});
+    test.concurrent("redirects unknown entity to 404", async function() {
+      const response = await apiFetch("Nothings", Method.POST)({});
       expect(response.status).toEqual(404);
     })
   });
