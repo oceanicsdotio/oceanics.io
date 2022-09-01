@@ -1,16 +1,16 @@
 import { useEffect, useState, useReducer, useRef } from "react";
+import type { KeyboardEvent } from "react";
 import { lichen, orange } from "../palette";
 import useWasmRuntime from "./useWasmRuntime";
 import type {PrismCursor} from "oceanics-io-www-wasm";
 import {rotatePath, inverse, eventCoordinates} from "../shared";
+import { emitKeypressEvents } from "readline";
 
 
-type IOceansideOverlay = {
-    gridSize: number;
-    backgroundColor: string;
+enum KeyEvents {
+    KeyUp="keyup",
+    KeyDown="keydown"
 }
-
-type ListenArgs = {key: string; repeat: boolean;}
 
 /**
  * The `Oceanside` hook provides all of the functionality to
@@ -38,7 +38,10 @@ type ListenArgs = {key: string; repeat: boolean;}
 export const useOceansideOverlay = ({
     gridSize,
     backgroundColor = "#00000000",
-}: IOceansideOverlay) => {
+}: {
+    gridSize: number;
+    backgroundColor: string;
+}) => {
 
     /**
      * Canvas reference.
@@ -102,19 +105,22 @@ export const useOceansideOverlay = ({
 
     
     useEffect(() => {
-        const listeners = ["keyup", "keydown"].map((type: "keyup"|"keydown") => {
-            const listen = ({key, repeat}: {key: string; repeat: boolean;}) => {
-                const symbol = key.toLowerCase();
-                if (repeat || !keys.hasOwnProperty(symbol)) return;
-                if (keys[symbol] === ("keyup" === type)) setKeys({ type, key: symbol });  
+        const listeners = [KeyEvents.KeyUp, KeyEvents.KeyDown].map((type: KeyEvents) => {
+            const listen = (event: KeyboardEvent<Element>) => {
+                const symbol = event.key.toLowerCase();
+                if (event.repeat || !(symbol in emitKeypressEvents)) return;
+                if (keys[symbol] === (KeyEvents.KeyUp === type)) setKeys({ type, key: symbol });  
             };
-            window.addEventListener(type, listen, true);
+            //@ts-ignore
+            document.addEventListener(type, listen, true);
             return [type, listen];
         });
 
-        const removeListener = (each: [string, (arg: ListenArgs)=>void]) => window.removeEventListener(...each, true);
-
-        return () => { listeners.forEach(removeListener) };
+        return () => { 
+            listeners.forEach(([type, listen]) => 
+                //@ts-ignore
+                document.removeEventListener(type, listen, true)) 
+        };
     }, [ keys ]);
   
 

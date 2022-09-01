@@ -38,8 +38,8 @@ export const useBathysphereApi = (server: string, worker: WorkerRef) => {
 
     return {
         catalog,
-        login: () => {},
-        register: () => {}
+        login: null,
+        register: null
     };
 };
 
