@@ -352,7 +352,7 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: unknown): Handler
         ...methods,
         OPTIONS: () => Object({
             statusCode: 204,
-            headers: { Allow: ["OPTIONS", ...Object.keys(methods)].join(",") }
+            headers: { Allow: [Method.OPTIONS, ...Object.keys(methods)].join(",") }
         })
     }
 

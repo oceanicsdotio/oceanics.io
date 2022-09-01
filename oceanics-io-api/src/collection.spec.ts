@@ -25,6 +25,11 @@ describe("collection handlers", function () {
       const response = await apiFetch(nodeType, Method.POST)(properties);
       expect(response.status).toEqual(204);
     });
+
+    test.concurrent("redirects unknown entities with query", async function() {
+      const response = await apiFetch("Memos(Something)", Method.POST)({});
+      expect(response.status).toEqual(404);
+    })
   });
 
   /**

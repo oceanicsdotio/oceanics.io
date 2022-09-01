@@ -2,12 +2,14 @@ import fetch from "node-fetch";
 import type { Headers } from "node-fetch";
 import { expect } from '@jest/globals';
 import fs from "fs";
+import path from "path";
 // MERGE (n:Provider { apiKey: replace(apoc.create.uuid(), '-', ''), domain: 'oceanics.io' }) return n
 
-export const CACHE = "./src/shared/nodes.json";
+export const CACHE = "src/shared/nodes.json";
 const HOSTNAME = "http://localhost:8888";
 export const BASE_PATH = `${HOSTNAME}/.netlify/functions`;
 export const API_PATH = `${HOSTNAME}/api`;
+// export const API_PATH = `${HOSTNAME}/.netlify/functions`;
 
 // Lookup for entity type by domain area
 export const EXTENSIONS = {
@@ -57,11 +59,12 @@ export type NodeTuple = [string, string, Node];
 export const getNodes = (): NodeTuple[] => {
   // Strip lookup entries not in Sensing
   const filterSensing = ([label]: NodeTuple): boolean => EXTENSIONS.sensing.has(label);
-  const CACHE = "./src/shared/nodes.json";
   try {
-    const text = fs.readFileSync(CACHE, "utf-8");
-    return JSON.parse(text).nodes.filter(filterSensing); 
-  } catch {
+    const file = path.join(process.cwd(), CACHE);
+    const text = fs.readFileSync(file, "utf-8");
+    return JSON.parse(text).filter(filterSensing); 
+  } catch (error) {
+    console.log(error.message);
     return []
   }
 }
