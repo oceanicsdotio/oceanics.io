@@ -33,6 +33,9 @@
 [functions.topology]
   external_node_modules = ["oceanics-io-api-wasm"]
 
+[functions.content]
+  external_node_modules = ["oceanics-io-api-wasm"]
+
 [[headers]]
   for = "/*"
   [headers.values]

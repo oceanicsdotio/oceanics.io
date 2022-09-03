@@ -48,6 +48,22 @@ export type SchemaEntry = [string, Schema];
 export type NodeTypeTuple = [string, number];
 export type NodeTuple = [string, string, Node];
 
+const getFromCache = (key: string) => {
+  // Strip lookup entries not in Sensing
+  const file = path.join(process.cwd(), CACHE);
+  const text = fs.readFileSync(file, "utf-8");
+  return JSON.parse(text)[key];
+}
+
+export const getContent = (): string[] => {
+  try {
+    return getFromCache("content"); 
+  } catch (error) {
+    console.log(error.message);
+    return []
+  }
+}
+
 /**
  * Translate from OpenAPI schema examples to simple
  * table used in per-entity unit concurrent tests.
@@ -60,9 +76,7 @@ export const getNodes = (): NodeTuple[] => {
   // Strip lookup entries not in Sensing
   const filterSensing = ([label]: NodeTuple): boolean => EXTENSIONS.sensing.has(label);
   try {
-    const file = path.join(process.cwd(), CACHE);
-    const text = fs.readFileSync(file, "utf-8");
-    return JSON.parse(text).filter(filterSensing); 
+    return getFromCache("nodes").filter(filterSensing); 
   } catch (error) {
     console.log(error.message);
     return []
