@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import type {Handler} from "@netlify/functions";
 import {readFileSync} from "fs";
 
@@ -85,7 +84,7 @@ interface ITrie {
  * 
  * @param {*} param0 
  */
-const trie = ({
+export const trie = ({
     words=[], 
     root={},
     encode=(weight)=>weight+1,
@@ -133,7 +132,7 @@ interface IRecurse {
  * 
  * @param {*} param0 
  */
-function recurse({
+export function recurse({
     node, 
     pattern, 
     maxCost,

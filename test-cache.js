@@ -8,7 +8,6 @@
  */
 import crypto from "crypto";
 import fs from "fs/promises";
-import matter from "gray-matter";
 import path from "path";
 import {parseAllDocuments} from "yaml";
 
@@ -25,43 +24,42 @@ const ICON_METADATA = `${ASSETS}/oceanside.yml`;
 const FORMAT = ".mdx";
 const REFERENCES = path.join(process.cwd(), "./oceanics-io-content"); 
 
-// Utility functions for chaining
-const filterPng = (name) => name.endsWith(".png");
-const wrapSlug = (slug) => Object({ slug });
-const wrapMeta = (metadata) => Object({metadata});
-const filterMdx = (name) => name.endsWith(FORMAT);
-const getSlug = (name) => Object({ params: { slug: name.split(".").shift() } });
 
-// Read content of a resource and parse it
-const readDocument = async ({ params: {slug}}) => {
-  const file = path.join(REFERENCES, `${slug}${FORMAT}`);
-  const text = await fs.readFile(file, ENCODING);
-  const { data: {references=[], ...metadata}, content } = matter(text);
-  metadata.references = references.map(wrapMeta);
-  return {
-      metadata,
-      content,
-      slug
-  }
-};
+// Concurrently load all of the MDX files
+const readContent = async (content) => {
+  // Utility functions for chaining
+  const _filter = (name) => name.endsWith(FORMAT);
+  // Read content of a resource and parse it
+  const _read = async (name) => {
+    const slug = name.split(".").shift();
+    const file = path.join(REFERENCES, `${slug}${FORMAT}`);
+    const text = await fs.readFile(file, ENCODING);
+    return [
+      "Memos",
+      slug,
+      text
+    ]
+  };
+  return Promise.all(content.filter(_filter).map(_read));
+}
+
 
 // OpenAPI schema to flat list of examples
 const schemaToLookup = ([label, { examples = [] }]) => {
   // Strip navigation props from instance
-  const _filterNavigation = ([key]) => !key.includes("@"); 
-  // Unpack UUI and de-normalize
-  const _flattenNode = (props) => {
+  const _filter = ([key]) => !key.includes("@"); 
+  // Unpack UUID and de-normalize
+  const _flatten = (props) => {
     const uuid = crypto.randomUUID();
-    const filtered = Object.entries(props).filter(_filterNavigation);
+    const filtered = Object.entries(props).filter(_filter);
     return [
       label,
       uuid,
       Object.fromEntries([...filtered, [UUID, uuid]])
     ]
   }
-  return examples.map(_flattenNode);
+  return examples.map(_flatten);
 }
-  
 
 // Concurrently load all of the idempotent data for processing
 const [
@@ -76,24 +74,22 @@ const [
   fs.readFile(API_SPECIFICATION, ENCODING)
 ]);
 
-// Concurrently load all of the MDX files
-const index = _references.filter(filterMdx).map(getSlug);
-const documents = await Promise.all(index.map(readDocument));
-
 // Parse schema examples
-const examples = Object.entries(JSON.parse(_text).components.schemas);
-const data = examples.flatMap(schemaToLookup);
+const nodes = Object.entries(JSON.parse(_text).components.schemas).flatMap(schemaToLookup);
+
+// Utility functions for chaining
+const filterPng = (name) => name.endsWith(".png");
+const wrapSlug = (slug) => Object({ slug });
 
 // Structure cache data
-// const data = {
-//   nodes: examples.flatMap(schemaToLookup),
-//   index,
-//   documents,
-//   icons: {
-//       sources: _assets.filter(filterPng).map(wrapSlug),
-//       templates: parseAllDocuments(_icons).map((doc) => doc.toJSON())
-//   }
-// }
+const data = {
+  nodes,
+  content: await readContent(_references),
+  icons: {
+      sources: _assets.filter(filterPng).map(wrapSlug),
+      templates: parseAllDocuments(_icons).map((doc) => doc.toJSON())
+  }
+}
 
 // Write out the cache
 console.warn(`writing new cache: ${CACHE}`);

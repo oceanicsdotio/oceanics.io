@@ -20,12 +20,13 @@ $(API_JSON): $(SPEC_FILE) node_modules
 	yarn run js-yaml $< > $@
 
 # Create examples with static UUID values for deterministic testing
-TEST_CACHE = nodes.json
-$(TEST_CACHE): $(API_JSON)
-	yarn exec node test-cache.js $< $@
+TEST_CACHE = $(API)/src/shared/nodes.json
+CACHE_SCRIPT = test-cache.js
+$(TEST_CACHE): $(API_JSON) $(CACHE_SCRIPT)
+	yarn exec node $(CACHE_SCRIPT) $< $@
 
 # Compile API
-$(API_OUT): node_modules $(API_JSON) $(API)/src/**/* $(API)/tsconfig.json
+$(API_OUT): node_modules $(API_JSON) $(API)/src/**/* $(API)/src/* $(API)/tsconfig.json
 	yarn eslint "$(API)/src/**/*.{js,ts}"
 	yarn workspace $(API) run tsc 
 	touch -m $@
@@ -45,12 +46,15 @@ api-test-collection: $(TEST_CACHE)
 api-test-idempotent: $(TEST_CACHE)
 	yarn workspace oceanics-io-api jest -t "idempotent"
 
+api-test-content: $(TEST_CACHE)
+	yarn workspace oceanics-io-api jest -t "creates Memos a-small-place"
+
 # Serve functions locally
 api-dev: $(API_OUT)
 	yarn netlify dev --port=8888
 
 # Run jest incrementally, because order matters
-api-test: $(TEST_CACHE) api-test-auth api-test-collection api-test-idempotent
+api-test: $(TEST_CACHE) api-test-auth api-test-collection api-test-idempotent api-test-content
 
 api-cleanup:
 	rm -rf $(API_WASM)

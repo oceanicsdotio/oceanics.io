@@ -36,7 +36,7 @@ const register: ApiHandler = async ({
     provider
   }
 }) => {
-  const { query } = new Links("Register", 0, 0, "").insert(provider, user);
+  const { query } = (new Links("Register", 0, 0, "")).insert(provider, user);
   let records: Properties[];
   try {
     const result = await connect(query, WRITE);
