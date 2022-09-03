@@ -20,8 +20,7 @@ describe("content handlers", function() {
             })
             expect(response.status).toBe(200);
             const result = await response.json();
-            expect(result).not.toBeFalsy();
-            console.log(JSON.parse(result))
+            console.log(result)
         })
     })
 })
