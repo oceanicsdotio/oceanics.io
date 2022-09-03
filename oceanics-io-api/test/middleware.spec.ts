@@ -1,5 +1,5 @@
 import { describe, expect, test } from '@jest/globals';
-import { asNodes, Method, materialize, dematerialize } from "../shared/middleware";
+import { asNodes, Method, materialize, dematerialize } from "../src/shared/middleware";
 import crypto from "crypto";
 
 describe("idempotent", function() {

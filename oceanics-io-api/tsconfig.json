@@ -6,20 +6,17 @@
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "strict": false,
+    "strict": true,
     "forceConsistentCasingInFileNames": true,
     "module": "esnext",
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": false,
-    "outDir": "./build",
+    "noEmit": true,
     "rootDir": "./src"
   },
   "include": [
-    "src/**/*.ts"
-  ],
-  "exclude": [
-    "src/**/*.spec.ts",
-    "src/**/test-*.ts"
+    "src/**/*.ts",
+    "test/**/*.ts"
   ]
 }
