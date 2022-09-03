@@ -59,7 +59,7 @@ export const getContent = (): string[] => {
   try {
     return getFromCache("content"); 
   } catch (error) {
-    console.log(error.message);
+    console.log(error);
     return []
   }
 }
@@ -78,7 +78,7 @@ export const getNodes = (): NodeTuple[] => {
   try {
     return getFromCache("nodes").filter(filterSensing); 
   } catch (error) {
-    console.log(error.message);
+    console.log(error);
     return []
   }
 }

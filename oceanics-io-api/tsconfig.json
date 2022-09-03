@@ -2,21 +2,21 @@
   "compilerOptions": {
     "target": "esnext",
     "lib": ["esnext"],
-    "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "strict": true,
+    "strict": false,
     "forceConsistentCasingInFileNames": true,
     "module": "esnext",
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": false,
     "noEmit": true,
-    "rootDir": "./src"
+    "rootDir": "."
   },
   "include": [
     "src/**/*.ts",
-    "test/**/*.ts"
+    "test/**/*.ts",
+    "edge/**/*.ts"
   ]
 }

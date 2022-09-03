@@ -53,7 +53,7 @@ const search = ({
         })
 
     const outer = (result: [string, number][], word: string) => {
-        const cost: number = [...word].reduce(inner, costCompare).pop();
+        const cost: number = [...word].reduce(inner, costCompare).pop() as number;
         if (cost <= maxCost) result.push([word, cost]);
         return result;
     }
@@ -187,10 +187,10 @@ const handler: Handler = async ({
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(search({words: WELL_KNOWN_TEXT, pattern, maxCost}))
         }; 
-    } catch (err) {
+    } catch ({statusCode = 500, message = ""}) {
         return { 
-            statusCode: err.statusCode || 500, 
-            body: err.message
+            statusCode: statusCode as number, 
+            body: message as string
         };
     }
 }

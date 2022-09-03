@@ -26,10 +26,9 @@ $(TEST_CACHE): $(API_JSON) $(CACHE_SCRIPT)
 	yarn exec node $(CACHE_SCRIPT) $< $@
 
 # Compile API
-$(API_OUT): node_modules $(API_JSON) $(API)/src/**/* $(API)/src/* $(API)/tsconfig.json
+api: node_modules $(API_JSON) $(API)/src/**/* $(API)/src/* $(API)/tsconfig.json
 	yarn eslint "$(API)/src/**/*.{js,ts}"
 	yarn workspace $(API) run tsc 
-	touch -m $@
 
 # Non-file targets
 .PHONY: api-cleanup api-test-auth api-test-collection- api-test-idempotent api-dev api-test
@@ -50,7 +49,9 @@ api-test-content: $(TEST_CACHE)
 	yarn workspace oceanics-io-api jest -t "creates Memos a-small-place"
 
 # Serve functions locally
-api-dev: $(API_OUT)
+api-dev: api
+	yarn eslint "$(API)/src/**/*.{js,ts}"
+	yarn workspace $(API) run tsc 
 	yarn netlify dev --port=8888
 
 # Run jest incrementally, because order matters
@@ -58,7 +59,6 @@ api-test: $(TEST_CACHE) api-test-auth api-test-collection api-test-idempotent ap
 
 api-cleanup:
 	rm -rf $(API_WASM)
-	rm -rf $(API_OUT)
 
 ## WWW targets
 
@@ -115,7 +115,7 @@ node_modules: $(API_WASM) $(WWW_WASM) package.json **/package.json yarn.lock
 	touch -m $@
 
 # Build everything
-.: $(API_OUT) www
+.: www
 
 # Serve the storybook docs in dev mode for manual testing
 start-storybook:
