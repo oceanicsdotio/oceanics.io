@@ -1,3 +1,4 @@
+// @ts-ignore: tsc doesn't get deno?
 import type { Context } from "https://edge.netlify.com";
 
 const AUTH = "auth";

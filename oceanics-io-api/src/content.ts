@@ -1,5 +1,6 @@
 
 import matter from "gray-matter";
+import type { Input } from "gray-matter";
 import type { Handler } from "@netlify/functions";
 import { materialize, batch, connect } from "./shared/middleware";
 import { Links } from "oceanics-io-api-wasm";
@@ -18,7 +19,7 @@ const handler: Handler = async ({ body }) => {
             ...data
         }, 
         content
-    } = matter(body);
+    } = matter(body as Input);
    
     const memo = materialize(data, "n0", "Memos");
 

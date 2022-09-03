@@ -9,7 +9,7 @@ import { Logtail } from "@logtail/node";
 import { ILogtailLog } from "@logtail/types";
 import { Endpoint, S3 } from "aws-sdk";
 
-const spacesEndpoint = new Endpoint(process.env.STORAGE_ENDPOINT);
+const spacesEndpoint = new Endpoint(process.env.STORAGE_ENDPOINT??"");
 export const s3 = new S3({
     endpoint: spacesEndpoint,
     accessKeyId: process.env.SPACES_ACCESS_KEY,
@@ -73,7 +73,7 @@ const transformLogLine = ({
     start,
     ...rest
 }: CanonicalLogLineData) => {
-    let uuid: string, email: string;
+    let uuid: string|undefined, email: string|undefined;
     if (typeof user !== "undefined") {
         ({uuid, email} = dematerialize(user) as {uuid?: string, email?: string});
     } else {
@@ -182,19 +182,19 @@ export const uniqueConstraint = (label: string, key: string): Promise<QueryResul
  */
 export const materialize = (properties: Properties, symbol: string, label: string): Node => {
     // Format key value as cypher
-    const valueToString = ([key, value]) => {
+    const valueToString = ([key, value]: [string, unknown]) => {
         let serialized: string;
         switch (typeof value) {
             case "object":
                 serialized = JSON.stringify(value);
                 break;
             default:
-                serialized = value
+                serialized = value as string;
         }
         return `${key}: '${serialized}'`
     }
     // Common filter need
-    const removeFalsy = ([, value]) => typeof value !== "undefined" && !!value;
+    const removeFalsy = ([, value]: [string, unknown]) => typeof value !== "undefined" && !!value;
 
     const props = Object.entries(properties).filter(removeFalsy).map(valueToString).join(", ")
     return new Node(props, symbol, label)
@@ -235,7 +235,7 @@ export const recordsToProperties = (result: QueryResult): Properties[] =>
  * by any single property. 
  */
 export const metadata: ApiHandler = async ({data: {user, nodes: [entity]}}) => {
-    const { query } = (new Links()).query(user, entity, entity.symbol);
+    const { query } = (new Links()).query(user as Node, entity, entity.symbol);
     const result = await connect(query, READ_ONLY);
     const value = recordsToProperties(result);
     return {
@@ -295,6 +295,7 @@ export const filterBaseRoute = (symbol: string) =>
     !!symbol && !STRIP_BASE_PATH_PREFIX.has(symbol);
 
 type QueryString = {left?: string, uuid?: string, right?: string};
+type PathSchema = {security: string[]};
 
 /**
  * Convert part of path into a resource identifier that
@@ -302,10 +303,10 @@ type QueryString = {left?: string, uuid?: string, right?: string};
  */
 export const asNodes = (
     httpMethod: Method, 
-    body: string, 
+    body: string|null, 
     query: QueryString 
 ) => {
-    const properties = [Method.POST, Method.PUT].includes(httpMethod) ? 
+    const properties = [Method.POST, Method.PUT].includes(httpMethod) && body ? 
         JSON.parse(body) : {};
 
     const {left="", right="", uuid=""} = query;
@@ -340,9 +341,9 @@ const basicAuthClaim = ({ authorization="::" }: Headers) => {
  * Matching pattern based on bearer token authorization with JWT. Used in Auth, and to 
  * validate other APIs.
  */
-const bearerAuthClaim = ({ authorization }: Headers) => {
+const bearerAuthClaim = ({ authorization="::" }: Headers) => {
     const [, token] = authorization.split(":");
-    const { uuid } = jwt.verify(token, process.env.SIGNING_KEY) as JwtPayload;
+    const { uuid } = jwt.verify(token, process.env.SIGNING_KEY??"") as JwtPayload;
     return { uuid };
 }
 
@@ -390,7 +391,8 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: unknown): Handler
         ...request
     }: HandlerEvent) {
         const start = new Date();
-        if (!(httpMethod in _methods)) {
+        const handler = _methods[httpMethod as Method];
+        if (typeof handler === "undefined") {
             logging.warn(`Invalid method`, transformLogLine({
                 httpMethod: httpMethod as Method, 
                 statusCode: INVALID_METHOD.statusCode, 
@@ -398,8 +400,8 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: unknown): Handler
             }));
             return INVALID_METHOD
         }
-        const handler = _methods[httpMethod];
-        const methodSpec = pathSpec[httpMethod.toLowerCase()] ?? {security: []};
+        
+        const methodSpec = pathSpec[httpMethod.toLowerCase()];
         
         // security protocols if any
         const reduceMethods = (lookup: unknown, schema: unknown) => Object.assign(lookup, schema);
@@ -479,6 +481,7 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: unknown): Handler
         // parse path into resources and make request to handler
         const nodes = asNodes(httpMethod as Method, body, queryStringParameters as QueryString);
 
+        //@ts-ignore
         const {extension="", data, ...result} = await handler({
             data: { 
                 user,

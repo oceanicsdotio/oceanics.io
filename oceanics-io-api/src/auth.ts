@@ -65,7 +65,7 @@ const getToken: ApiHandler = async ({
   return {
     statusCode: 200,
     data: {
-      token: jwt.sign({ uuid }, process.env.SIGNING_KEY, { expiresIn: 3600 })
+      token: jwt.sign({ uuid }, process.env.SIGNING_KEY??"", { expiresIn: 3600 })
     }
   }
 };
