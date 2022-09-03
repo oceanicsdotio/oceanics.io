@@ -149,6 +149,24 @@ export const connect = async (query: string, readOnly: boolean) => {
     return result;
 }
 
+/**
+ * Connect to graph database using the service account credentials,
+ * and execute a single query. For convenience you can pass in a callback
+ * to execute on the result.
+ */
+ export const batch = async (queries: string[], readOnly: boolean) => {
+    const driver = neo4j.driver(
+        process.env.NEO4J_HOSTNAME ?? "",
+        neo4j.auth.basic("neo4j", process.env.NEO4J_ACCESS_KEY ?? "")
+    );
+    const defaultAccessMode = readOnly ? neo4j.session.READ : neo4j.session.WRITE
+    const session = driver.session({ defaultAccessMode });
+    const result = Promise.all(queries.map(query => session.run(query)));
+    await driver.close();
+    return result;
+}
+
+
 
 export const uniqueConstraint = (label: string, key: string): Promise<QueryResult> => {
   const {query} = (new NodeConstraint(label, key)).uniqueConstraint();

@@ -1,7 +1,7 @@
 
 import matter from "gray-matter";
 import type { Handler } from "@netlify/functions";
-import { materialize } from "./shared/middleware";
+import { materialize, batch, connect } from "./shared/middleware";
 import { Links } from "oceanics-io-api-wasm";
 
 /**
@@ -12,7 +12,13 @@ import { Links } from "oceanics-io-api-wasm";
  * 3. Create topology.
  */
 const handler: Handler = async ({ body }) => {
-    const { data: {content, references=[], ...data} } = matter(body);
+    const { 
+        data: {
+            references=[], 
+            ...data
+        }, 
+        content
+    } = matter(body);
    
     const memo = materialize(data, "n0", "Memos");
 
@@ -22,13 +28,15 @@ const handler: Handler = async ({ body }) => {
         const {query} = new Links("Reference", 0, 0, "").insert(memo, node);
         return query
     });
+    await connect(query, false);
+    await batch(linkQueries, false);
 
     return {
         statusCode: 200,
         body: JSON.stringify({
             query,
             links: linkQueries,
-            content
+            content: content.length
         })
     }
 }
