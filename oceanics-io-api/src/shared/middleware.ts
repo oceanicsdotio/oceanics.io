@@ -4,7 +4,7 @@ import type { Record, QueryResult } from "neo4j-driver";
 import jwt from "jsonwebtoken";
 import type { JwtPayload } from "jsonwebtoken";
 import crypto from "crypto";
-import { Node, Links, NodeConstraint } from "oceanics-io-api-wasm";
+import { Node, Links, NodeConstraint, RequestContext, Query, ErrorDetail } from "oceanics-io-api-wasm";
 import { Logtail } from "@logtail/node";
 import { ILogtailLog } from "@logtail/types";
 import { Endpoint, S3 } from "aws-sdk";
@@ -71,7 +71,9 @@ export type Properties = { [key: string]: unknown };
 const transformLogLine = ({
     user,
     start,
-    ...rest
+    httpMethod,
+    statusCode,
+    auth,
 }: CanonicalLogLineData) => {
     let uuid: string|undefined, email: string|undefined;
     if (typeof user !== "undefined") {
@@ -81,7 +83,9 @@ const transformLogLine = ({
         uuid = "undefined";
     }
     return {
-        ...rest,
+        httpMethod,
+        statusCode,
+        auth,
         user: email ?? uuid,
         elapsedTime: (new Date()).getTime() - start.getTime()
     }
@@ -120,16 +124,6 @@ type Headers = {
     authorization?: string;
     ["x-api-key"]?: string;
     [key: string]: string;
-}
-
-// Pattern for returning formatted/spec'd errors
-type ErrorDetail = {
-    data: {
-        message: string;
-        details?: unknown;
-    };
-    statusCode: number;
-    extension?: "problem+";
 }
 
 /**
@@ -237,31 +231,6 @@ const STRIP_BASE_PATH_PREFIX = new Set([
     "index"
 ]);
 
-// Convenience method while in development
-export const NOT_IMPLEMENTED: ErrorDetail = {
-    statusCode: 501,
-    data: {
-        message: "Not Implemented"
-    },
-    extension: "problem+"
-};
-
-export const UNAUTHORIZED: ErrorDetail = {
-    statusCode: 403,
-    data: {
-        message: "Unauthorized"
-    },
-    extension: "problem+"
-};
-
-const INVALID_METHOD = {
-    statusCode: 405,
-    data: {
-        message: `Invalid HTTP Method`
-    },
-    extension: "problem+"
-};
-
 // Securely store and compare passwords
 export const hashPassword = (password: string, secret: string) =>
     crypto.pbkdf2Sync(password, secret, 100000, 64, "sha512").toString("hex");
@@ -341,66 +310,70 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: unknown): Handler
         queryStringParameters,
         ...request
     }: HandlerEvent) {
+        const context = new RequestContext(queryStringParameters as unknown as Query, _method);
+
         const httpMethod = _method as Method;
         const start = new Date();
         const handler = _methods[httpMethod];
         if (typeof handler === "undefined") {
+            const detail = ErrorDetail.invalidMethod();
             logging.warn(`Invalid method`, transformLogLine({
                 httpMethod, 
-                statusCode: INVALID_METHOD.statusCode, 
+                statusCode: detail.statusCode, 
                 start
             }));
-            return INVALID_METHOD
+            return detail
         }
         
         const security: string[] = authMethod(pathSpec, httpMethod); 
 
         let user: Node;
         let provider: Node;
-        let auth: Authentication;
         if (Authentication.Bearer in security) {
             let claim: { uuid: string, error?: string };
-            auth = Authentication.Bearer;
+            context.auth = Authentication.Bearer;
             try {
                 claim = bearerAuthClaim(headers);
                 if (!claim.uuid) throw Error("Bearer token claim missing .uuid");
             } catch ({message}) {
+                const detail = ErrorDetail.unauthorized();
                 logging.error(message, transformLogLine({
                     httpMethod: httpMethod as Method, 
-                    statusCode: UNAUTHORIZED.statusCode, 
+                    statusCode: detail.statusCode, 
                     start,
-                    auth
+                    auth: context.auth as Authentication
                 }));
-                return UNAUTHORIZED
+                return detail
             }
             // Have to assume anything with uuid is valid until query hits
-            user = Node.materialize(JSON.stringify(claim), "u", "User");
+            user = Node.user(JSON.stringify(claim));
             
         } else if (Authentication.Basic in security) {
-            auth = Authentication.Basic;
-            user = Node.materialize(JSON.stringify(basicAuthClaim(headers)), "u", "User");
+            context.auth = Authentication.Basic;
+            user = Node.user(JSON.stringify(basicAuthClaim(headers)));
             const {query} = user.load();
-            const result = await connect(query, READ_ONLY)
-            const records = recordsToObjects(result);
+            const records = await connect(query, READ_ONLY)
+                .then(recordsToObjects);
             if (records.length !== 1) {
                 const message = records.length > 0 ? 
                     `Basic auth claim matches multiple accounts` :
                     `Basic auth claim does not exist`;
+                const detail = ErrorDetail.unauthorized();
                 logging.error(message, transformLogLine({
                     user,
                     httpMethod: httpMethod as Method, 
-                    statusCode: UNAUTHORIZED.statusCode, 
+                    statusCode: detail.statusCode, 
                     start,
-                    auth
+                    auth: context.auth as Authentication
                 }));
-                return UNAUTHORIZED
+                return detail
             }
             // Use the full properties
-            user = Node.materialize(JSON.stringify(records.map(getProperties)[0]), "u", "User");
+            user = Node.user(JSON.stringify(records.map(getProperties)[0]));
         } else if (Authentication.ApiKey in security) {
             // Only for registration on /auth route
             provider = Node.materialize(JSON.stringify(apiKeyClaim(headers)), "p", "Provider");
-            auth = Authentication.ApiKey;
+            context.auth = Authentication.ApiKey;
             // Works as existence check, because we strip blank strings
             const {
                 email="",
@@ -408,20 +381,21 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: unknown): Handler
                 secret=""
             } = JSON.parse(body??"{}")
             if (!provider.patternOnly().includes("apiKey")) {
+                const detail = ErrorDetail.unauthorized();
                 logging.error(`API key auth claim missing .apiKey`, transformLogLine({
-                    user: Node.materialize(JSON.stringify({ email }), "u", "User"),
+                    user: Node.user(JSON.stringify({ email })),
                     httpMethod: httpMethod as Method, 
-                    statusCode: UNAUTHORIZED.statusCode, 
+                    statusCode: detail.statusCode, 
                     start,
-                    auth
+                    auth: context.auth as Authentication
                 }));
-                return UNAUTHORIZED
+                return detail
             }
-            user = Node.materialize(JSON.stringify({
+            user = Node.user(JSON.stringify({
                 email,
                 uuid: crypto.randomUUID(),
                 credential: hashPassword(password, secret)
-            }), "u", "User");
+            }));
         } else {
             // Shouldn't occur
         }
@@ -456,7 +430,7 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: unknown): Handler
             httpMethod: httpMethod as Method, 
             statusCode: result.statusCode, 
             start,
-            auth
+            auth: context.auth as Authentication
         }));
         return response;
     }
