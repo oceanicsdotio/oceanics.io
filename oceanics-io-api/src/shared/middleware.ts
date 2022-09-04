@@ -176,33 +176,6 @@ export const setupQueries = (): string[] => {
     )
 }
 
-/**
- * Like JSON stringify, but outputs valid Cypher Node Properties
- * from an object. Nested objects will be JSON strings. 
- * Shorthand for serializing an a properties object and creating a Node instance from it.
- * This should be pushed down into a Node static method at some point. 
- * Same with serialize.
- */
-export const materialize = (properties: Properties, symbol: string, label: string): Node => {
-    // Format key value as cypher
-    const valueToString = ([key, value]: [string, unknown]) => {
-        let serialized: string;
-        switch (typeof value) {
-            case "object":
-                serialized = JSON.stringify(value);
-                break;
-            default:
-                serialized = value as string;
-        }
-        return `${key}: '${serialized}'`
-    }
-    // Common filter need
-    const removeFalsy = ([, value]: [string, unknown]) => typeof value !== "undefined" && !!value;
-
-    const props = Object.entries(properties).filter(removeFalsy).map(valueToString).join(", ")
-    return new Node(props, symbol, label)
-}
-
 type RecordObject = {
     labels: string[]
     properties: Properties
@@ -298,39 +271,7 @@ export const filterBaseRoute = (symbol: string) =>
     !!symbol && !STRIP_BASE_PATH_PREFIX.has(symbol);
 
 type QueryString = {left?: string, uuid?: string, right?: string};
-type PathSchema = {security: string[]};
 
-/**
- * Convert part of path into a resource identifier that
- * includes the UUID and Label.
- */
-export const asNodes = (
-    httpMethod: Method, 
-    body: string|null, 
-    query: QueryString 
-) => {
-    const properties = [Method.POST, Method.PUT].includes(httpMethod) && body ? 
-        JSON.parse(body) : {};
-
-    const {left="", right="", uuid=""} = query;
-    if (right) {
-        return [
-            materialize({ uuid }, `n0`, left),
-            materialize(properties, `n1`, right)
-        ]
-    }
-    if (uuid) {
-        return [
-            materialize({...properties, uuid}, `n`, left)
-        ]
-    } 
-    if (left) {
-        return [
-            materialize(properties, `n`, left)
-        ]
-    }
-    return []
-}
 
 /**
  * Matching pattern based on basic auth information
@@ -357,6 +298,13 @@ const apiKeyClaim = ({ ["x-api-key"]: apiKey }: Headers) => {
     return { apiKey }
 }
 
+const authMethod = (pathSpec: unknown, httpMethod: Method) => {
+    const methodSpec = pathSpec[httpMethod.toLowerCase()];
+        
+    // security protocols if any
+    const reduceMethods = (lookup: unknown, schema: unknown) => Object.assign(lookup, schema);
+    return methodSpec.security.reduce(reduceMethods, {}); 
+}
 
 /**
  * Return a handler function depending on the HTTP method. Want to take 
@@ -387,28 +335,25 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: unknown): Handler
      * Return the actual bound handler.
      */
     const NetlifyHandler = async function ({
-        httpMethod,
+        httpMethod: _method,
         body,
         headers,
         queryStringParameters,
         ...request
     }: HandlerEvent) {
+        const httpMethod = _method as Method;
         const start = new Date();
-        const handler = _methods[httpMethod as Method];
+        const handler = _methods[httpMethod];
         if (typeof handler === "undefined") {
             logging.warn(`Invalid method`, transformLogLine({
-                httpMethod: httpMethod as Method, 
+                httpMethod, 
                 statusCode: INVALID_METHOD.statusCode, 
                 start
             }));
             return INVALID_METHOD
         }
         
-        const methodSpec = pathSpec[httpMethod.toLowerCase()];
-        
-        // security protocols if any
-        const reduceMethods = (lookup: unknown, schema: unknown) => Object.assign(lookup, schema);
-        const security: string[] = methodSpec.security.reduce(reduceMethods, {}); 
+        const security: string[] = authMethod(pathSpec, httpMethod); 
 
         let user: Node;
         let provider: Node;
@@ -429,11 +374,11 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: unknown): Handler
                 return UNAUTHORIZED
             }
             // Have to assume anything with uuid is valid until query hits
-            user = materialize(claim, "u", "User");
+            user = Node.materialize(JSON.stringify(claim), "u", "User");
             
         } else if (Authentication.Basic in security) {
             auth = Authentication.Basic;
-            user = materialize(basicAuthClaim(headers), "u", "User");
+            user = Node.materialize(JSON.stringify(basicAuthClaim(headers)), "u", "User");
             const {query} = user.load();
             const result = await connect(query, READ_ONLY)
             const records = recordsToObjects(result);
@@ -451,10 +396,10 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: unknown): Handler
                 return UNAUTHORIZED
             }
             // Use the full properties
-            user = materialize(records.map(getProperties)[0], "u", "User");
+            user = Node.materialize(JSON.stringify(records.map(getProperties)[0]), "u", "User");
         } else if (Authentication.ApiKey in security) {
             // Only for registration on /auth route
-            provider = materialize(apiKeyClaim(headers), "p", "Provider");
+            provider = Node.materialize(JSON.stringify(apiKeyClaim(headers)), "p", "Provider");
             auth = Authentication.ApiKey;
             // Works as existence check, because we strip blank strings
             const {
@@ -464,7 +409,7 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: unknown): Handler
             } = JSON.parse(body??"{}")
             if (!provider.patternOnly().includes("apiKey")) {
                 logging.error(`API key auth claim missing .apiKey`, transformLogLine({
-                    user: materialize({ email }, "u", "User"),
+                    user: Node.materialize(JSON.stringify({ email }), "u", "User"),
                     httpMethod: httpMethod as Method, 
                     statusCode: UNAUTHORIZED.statusCode, 
                     start,
@@ -472,17 +417,17 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: unknown): Handler
                 }));
                 return UNAUTHORIZED
             }
-            user = materialize({
+            user = Node.materialize(JSON.stringify({
                 email,
                 uuid: crypto.randomUUID(),
                 credential: hashPassword(password, secret)
-            }, "u", "User");
+            }), "u", "User");
         } else {
             // Shouldn't occur
         }
 
         // parse path into resources and make request to handler
-        const nodes = asNodes(httpMethod as Method, body, queryStringParameters as QueryString);
+        const nodes = Node.fromRequest(httpMethod as Method, body, queryStringParameters as QueryString);
 
         //@ts-ignore
         const {extension="", data, ...result} = await handler({

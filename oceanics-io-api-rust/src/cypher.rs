@@ -8,7 +8,7 @@ pub mod cypher {
      * ready to be executed against the Neo4j graph database.
      */
     #[wasm_bindgen]
-    #[derive(Debug,Deserialize,Serialize)]
+    #[derive(Debug, Deserialize, Serialize)]
     #[serde(rename_all = "camelCase")]
     pub struct Cypher {
         pub read_only: bool,

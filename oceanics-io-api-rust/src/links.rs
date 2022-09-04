@@ -1,5 +1,5 @@
 #[allow(dead_code)]
-pub mod link {
+pub mod links {
     use wasm_bindgen::prelude::*;
     use serde::{Deserialize, Serialize};
     use crate::cypher::cypher::Cypher;

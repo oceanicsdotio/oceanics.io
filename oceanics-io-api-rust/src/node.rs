@@ -1,8 +1,20 @@
 #[allow(dead_code)]
 pub mod node {
-    use wasm_bindgen::prelude::*;
     use serde::{Deserialize, Serialize};
+    use std::collections::HashMap;
+    use wasm_bindgen::prelude::*;
+
     use crate::cypher::cypher::Cypher;
+    use js_sys::JsString;
+    use serde_json::Value;
+
+    #[wasm_bindgen]
+    #[derive(Debug, Deserialize, Serialize)]
+    pub struct Query {
+        pub left: Option<String>,
+        pub uuid: Option<String>,
+        pub right: Option<String>,
+    }
 
     /**
      * The Node data structure encapsulates logic needed for
@@ -15,6 +27,51 @@ pub mod node {
         pattern: Option<String>,
         symbol: Option<String>,
         label: Option<String>,
+    }
+
+    struct ApiKeyClaim {
+        api_key: Option<String>
+    }
+
+    impl Node {
+        fn format_pair(key: &String, value: &Value) -> Option<String> {
+            match value {
+                Value::Object(_) | Value::Array(_) => {
+                    let serialized = serde_json::to_string(value).unwrap();
+                    Some(format!("{}: '{}'", key, serialized))
+                }
+                Value::String(val) => {
+                    if val.len() > 0 {
+                        return Some(format!("{}: '{}'", key, value));
+                    }
+                    None
+                }
+                Value::Null => None,
+                _ => Some(format!("{}: '{}'", key, value)),
+            }
+        }
+
+        pub fn deserialize(
+            properties: HashMap<String, Value>,
+            symbol: String,
+            label: String,
+        ) -> Self {
+            // Format key value as cypher
+            let mut pairs: Vec<String> = Vec::new();
+            for (key, value) in properties.iter() {
+                match Node::format_pair(key, value) {
+                    Some(value) => pairs.push(value),
+                    None => {}
+                };
+            }
+            let pattern = Some(pairs.join(", "));
+            Node {
+                pattern,
+                symbol: Some(symbol),
+                label: Some(label),
+            }
+        }
+
     }
 
     #[wasm_bindgen]
@@ -49,7 +106,7 @@ pub mod node {
             let pattern: String;
             match &self.pattern {
                 None => pattern = String::from(""),
-                Some(value) => pattern = value.clone()
+                Some(value) => pattern = value.clone(),
             }
             pattern
         }
@@ -158,6 +215,67 @@ pub mod node {
         pub fn create(&self) -> Cypher {
             Cypher::new(format!("MERGE {}", self.cypher_repr()), false)
         }
+
+        #[wasm_bindgen(static_method_of = Node)]
+        pub fn materialize(properties: JsString, symbol: JsString, label: JsString) -> Node {
+            // Format key value as cypher
+            let prop_string = properties.as_string().unwrap();
+            let lookup: HashMap<String, Value> = serde_json::from_str(&*prop_string).unwrap();
+            let mut pairs: Vec<String> = Vec::new();
+            for (key, value) in lookup.iter() {
+                match value {
+                    Value::Object(_) | Value::Array(_) => {
+                        let serialized = serde_json::to_string(value).unwrap();
+                        pairs.push(format!("{}: '{}'", key, serialized));
+                    }
+                    Value::String(val) => {
+                        if val.len() > 0 {
+                            pairs.push(format!("{}: '{}'", key, value))
+                        }
+                    }
+                    Value::Null => {}
+                    _ => pairs.push(format!("{}: '{}'", key, value)),
+                };
+            }
+            let pattern = pairs.join(", ");
+            Node::new(Some(pattern), symbol.as_string(), label.as_string())
+        }
+
+        pub fn from_request(http_method: String, body: Option<String>, query: Query) -> Vec<Node> {
+            let mut props: HashMap<String, Value> = match &*http_method {
+                "POST" | "PUT" => serde_json::from_str(&*body.unwrap()).unwrap(),
+                _ => HashMap::with_capacity(0),
+            };
+            match query {
+                Query {
+                    right: Some(right),
+                    left: Some(left),
+                    uuid: Some(uuid),
+                } => {
+                    let mut left_props: HashMap<String, Value> = HashMap::with_capacity(1);
+                    left_props.insert(String::from("uuid"), Value::String(uuid));
+
+                    vec![
+                        Node::deserialize(left_props, String::from("n0"), left),
+                        Node::deserialize(props, String::from("n1"), right),
+                    ]
+                }
+                Query {
+                    right: None,
+                    left: Some(left),
+                    uuid: Some(uuid),
+                } => {
+                    props.insert(String::from("uuid"), Value::String(uuid));
+                    vec![Node::deserialize(props, String::from("n"), left)]
+                }
+                Query {
+                    right: None,
+                    left: Some(left),
+                    uuid: None,
+                } => vec![Node::deserialize(props, String::from("n"), left)],
+                _ => vec![],
+            }
+        }
     }
 
     /**
@@ -190,9 +308,8 @@ pub mod node {
         #[wasm_bindgen(js_name = createIndex)]
         pub fn create_index(&self) -> Cypher {
             let query = format!(
-                "CREATE INDEX IF NOT EXISTS FOR (n:{}) ON (n.{})", 
-                self.label, 
-                self.key
+                "CREATE INDEX IF NOT EXISTS FOR (n:{}) ON (n.{})",
+                self.label, self.key
             );
             Cypher::new(query, false)
         }
@@ -202,11 +319,7 @@ pub mod node {
          */
         #[wasm_bindgen(js_name = dropIndex)]
         pub fn drop_index(&self) -> Cypher {
-            let query = format!(
-                "DROP INDEX ON : {}({})", 
-                self.label, 
-                self.key
-            );
+            let query = format!("DROP INDEX ON : {}({})", self.label, self.key);
             Cypher::new(query, false)
         }
 
@@ -221,6 +334,5 @@ pub mod node {
             );
             Cypher::new(query, false)
         }
-
     }
 }
