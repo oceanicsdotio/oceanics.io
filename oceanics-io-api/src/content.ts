@@ -3,7 +3,7 @@ import matter from "gray-matter";
 import type { Input } from "gray-matter";
 import type { Handler } from "@netlify/functions";
 import { materialize, batch, connect } from "./shared/middleware";
-import { Links } from "oceanics-io-api-wasm";
+import { Links, Memo } from "oceanics-io-api-wasm";
 
 /**
  * Endpoint allows bulk upload of content metadata. 
