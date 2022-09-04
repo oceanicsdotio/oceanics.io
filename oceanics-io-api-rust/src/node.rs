@@ -2,18 +2,43 @@
 pub mod node {
     use serde::{Deserialize, Serialize};
     use std::collections::HashMap;
+    use std::str::FromStr;
+    use std::time::{Duration,Instant};
     use wasm_bindgen::prelude::*;
 
     use crate::cypher::cypher::Cypher;
     use js_sys::JsString;
     use serde_json::Value;
 
+    fn opt_string(value: &Option<String>) -> String {
+        match value {
+            Some(val) => val.clone(),
+            None => String::from("")
+        }
+    }
+
     #[wasm_bindgen]
     #[derive(Debug, Deserialize, Serialize)]
     pub struct Query {
-        pub left: Option<String>,
-        pub uuid: Option<String>,
-        pub right: Option<String>,
+        left: Option<String>,
+        uuid: Option<String>,
+        right: Option<String>,
+    }
+
+    #[wasm_bindgen]
+    impl Query {
+        #[wasm_bindgen(getter)]
+        pub fn left(&self) -> String {
+            opt_string(&self.left)
+        }
+        #[wasm_bindgen(getter)]
+        pub fn uuid(&self) -> String {
+            opt_string(&self.uuid)
+        }
+        #[wasm_bindgen(getter)]
+        pub fn right(&self) -> String {
+            opt_string(&self.right)
+        }
     }
 
     /**
@@ -27,10 +52,6 @@ pub mod node {
         pattern: Option<String>,
         symbol: Option<String>,
         label: Option<String>,
-    }
-
-    struct ApiKeyClaim {
-        api_key: Option<String>
     }
 
     impl Node {
@@ -52,9 +73,9 @@ pub mod node {
         }
 
         pub fn deserialize(
-            properties: HashMap<String, Value>,
-            symbol: String,
-            label: String,
+            properties: &HashMap<String, Value>,
+            symbol: &String,
+            label: &String,
         ) -> Self {
             // Format key value as cypher
             let mut pairs: Vec<String> = Vec::new();
@@ -67,8 +88,8 @@ pub mod node {
             let pattern = Some(pairs.join(", "));
             Node {
                 pattern,
-                symbol: Some(symbol),
-                label: Some(label),
+                symbol: Some(symbol.clone()),
+                label: Some(label.clone()),
             }
         }
 
@@ -241,41 +262,203 @@ pub mod node {
             Node::new(Some(pattern), symbol.as_string(), label.as_string())
         }
 
-        pub fn from_request(http_method: String, body: Option<String>, query: Query) -> Vec<Node> {
-            let mut props: HashMap<String, Value> = match &*http_method {
-                "POST" | "PUT" => serde_json::from_str(&*body.unwrap()).unwrap(),
-                _ => HashMap::with_capacity(0),
-            };
-            match query {
-                Query {
-                    right: Some(right),
-                    left: Some(left),
-                    uuid: Some(uuid),
-                } => {
-                    let mut left_props: HashMap<String, Value> = HashMap::with_capacity(1);
-                    left_props.insert(String::from("uuid"), Value::String(uuid));
+        #[wasm_bindgen(static_method_of = Node)]
+        pub fn user(properties: JsString) -> Node {
+            let prop_string = properties.as_string().unwrap();
+            let props: HashMap<String, Value> = serde_json::from_str(&*prop_string).unwrap();
+            Node::deserialize(&props, &String::from("u"), &String::from("User"))
+        }
+    }
 
-                    vec![
-                        Node::deserialize(left_props, String::from("n0"), left),
-                        Node::deserialize(props, String::from("n1"), right),
-                    ]
-                }
-                Query {
-                    right: None,
-                    left: Some(left),
-                    uuid: Some(uuid),
-                } => {
-                    props.insert(String::from("uuid"), Value::String(uuid));
-                    vec![Node::deserialize(props, String::from("n"), left)]
-                }
-                Query {
-                    right: None,
-                    left: Some(left),
-                    uuid: None,
-                } => vec![Node::deserialize(props, String::from("n"), left)],
-                _ => vec![],
+    #[derive(Debug, PartialEq)]
+    enum Method {
+        POST,
+        PUT,
+        OPTIONS,
+        QUERY,
+        DELETE,
+        GET,
+        HEAD
+    }
+    impl FromStr for Method {
+        type Err = ();
+        fn from_str(input: &str) -> Result<Method, Self::Err> {
+            match input {
+                "POST" => Ok(Method::POST),
+                "PUT" => Ok(Method::PUT),
+                "OPTIONS" => Ok(Method::OPTIONS),
+                "QUERY" => Ok(Method::QUERY),
+                "DELETE" => Ok(Method::DELETE),
+                "GET" => Ok(Method::GET),
+                "HEAD" => Ok(Method::HEAD),
+                _ => Err(()),
             }
         }
+    }
+
+    #[wasm_bindgen]
+    #[derive(Debug, PartialEq, Serialize)]
+    pub enum Authentication {
+        Bearer,
+        ApiKey,
+        Basic
+    }
+    impl FromStr for Authentication {
+        type Err = ();
+        fn from_str(input: &str) -> Result<Authentication, Self::Err> {
+            match input {
+                "BearerAuth" => Ok(Authentication::Bearer),
+                "ApiKeyAuth" => Ok(Authentication::ApiKey),
+                "BasicAuth" => Ok(Authentication::Basic),
+                _ => Err(()),
+            }
+        }
+    }
+
+    #[wasm_bindgen]
+    #[derive(Serialize)]
+    pub struct LogLine {
+        user: String,
+        http_method: String,
+        status_code: u16,
+        elapsed_time: Duration,
+        auth: Authentication
+    }
+
+    #[wasm_bindgen]
+    #[derive(Serialize)]
+    pub struct ErrorBody {
+        message: String,
+        details: Option<String>
+    }
+
+    #[wasm_bindgen]
+    #[derive(Serialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct ErrorDetail{
+        status_code: u16,
+        data: ErrorBody,
+        extension: Option<String>
+    }
+
+    #[wasm_bindgen]
+    impl ErrorDetail {
+        fn new(message: String, status_code: u16) -> JsValue {
+            let detail = ErrorDetail { 
+                status_code, 
+                data: ErrorBody { 
+                    message, 
+                    details: None
+                }, 
+                extension: Some(String::from("problem+"))
+            };
+            serde_wasm_bindgen::to_value(&detail).unwrap()
+        }
+
+        #[wasm_bindgen(static_method_of = Node)]
+        pub fn unauthorized() -> JsValue {
+            let message = String::from("Unauthorized");
+            ErrorDetail::new(message, 403)
+        }
+        #[wasm_bindgen(static_method_of = Node)]
+        #[wasm_bindgen(js_name = invalidMethod)]
+        pub fn invalid_method() -> JsValue {
+            let message = String::from("Invalid HTTP Method");
+            ErrorDetail::new(message, 405)
+
+        }
+
+        #[wasm_bindgen(static_method_of = Node)]
+        #[wasm_bindgen(js_name = notImplemented)]
+        pub fn not_implemented() -> JsValue {
+            let message = String::from("Not implemented");
+            ErrorDetail::new(message, 501)
+        }
+    }
+
+    #[wasm_bindgen]
+    pub struct RequestContext {
+        nodes: Vec<Node>,
+        user: Option<Node>,
+        provider: Option<Node>,
+        http_method: Method,
+        data: HashMap<String, Value>,
+        query: Query,
+        auth: Option<Authentication>,
+        start: Instant,
+    }
+
+    #[wasm_bindgen]
+    impl RequestContext {
+        #[wasm_bindgen(setter)]
+        pub fn set_auth(&mut self, auth: JsString) {
+            let auth_str = &*auth.as_string().unwrap();
+            self.auth = Some(Authentication::from_str(auth_str).unwrap());
+        }
+
+        #[wasm_bindgen(constructor)]
+        pub fn new(query: Query, http_method: JsString) -> Self {
+            let _method = Method::from_str(&*http_method.as_string().unwrap()).unwrap();
+            RequestContext {
+                nodes: Vec::with_capacity(2),
+                user: None, 
+                provider: None, 
+                http_method: _method, 
+                data: HashMap::new(), 
+                query, 
+                auth: None,
+                start: Instant::now()
+            }
+        }
+
+        // pub fn log_line(&self, status_code: u16, ) -> LogLine {
+        //     LogLine { 
+        //         user: &self.user, 
+        //         http_method: &self.http_method, 
+        //         status_code, 
+        //         elapsed_time: Instant::now() - self.start, 
+        //         auth: self.auth.unwrap() 
+        //     }
+        // }
+        // pub fn new(http_method: String, body: Option<String>, query: Query) -> RequestContext {
+        //     let mut data: HashMap<String, Value> = match &*http_method {
+        //         "POST" | "PUT" => serde_json::from_str(&*body.unwrap()).unwrap(),
+        //         _ => HashMap::with_capacity(0),
+        //     };
+            
+        //     let nodes = match &query {
+        //         Query {
+        //             right: Some(right),
+        //             left: Some(left),
+        //             uuid: Some(uuid),
+        //         } => {
+        //             let mut left_props: HashMap<String, Value> = HashMap::with_capacity(1);
+        //             left_props.insert(String::from("uuid"), Value::String(*uuid));
+        //             let left_node = 
+
+        //             vec![
+        //                 Node::deserialize(left_props, String::from("n0"), left),
+        //                 Node::deserialize(data, String::from("n1"), right),
+        //             ]
+        //         }
+        //         Query {
+        //             right: None,
+        //             left: Some(left),
+        //             uuid: Some(uuid),
+        //         } => {
+        //             data.insert(String::from("uuid"), Value::String(uuid));
+        //             vec![Node::deserialize(data, String::from("n"), left)]
+        //         }
+        //         Query {
+        //             right: None,
+        //             left: Some(left),
+        //             uuid: None,
+        //         } => vec![Node::deserialize(data, String::from("n"), left)],
+        //         _ => vec![],
+        //     };
+
+        //     RequestContext { nodes, http_method, data, query }
+        // }
     }
 
     /**

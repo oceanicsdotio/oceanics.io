@@ -2,8 +2,8 @@
 import matter from "gray-matter";
 import type { Input } from "gray-matter";
 import type { Handler } from "@netlify/functions";
-import { materialize, batch, connect } from "./shared/middleware";
-import { Links, Memo } from "oceanics-io-api-wasm";
+import { batch, connect } from "./shared/middleware";
+import { Links, Node } from "oceanics-io-api-wasm";
 
 /**
  * Endpoint allows bulk upload of content metadata. 
@@ -21,11 +21,11 @@ const handler: Handler = async ({ body }) => {
         content
     } = matter(body as Input);
    
-    const memo = materialize(data, "n0", "Memos");
+    const memo = Node.materialize(JSON.stringify(data), "n0", "Memos");
 
     const {query} = memo.create();
     const linkQueries = references.map((each: Record<string, unknown>) => {
-        const node = materialize(each, `n1`, "Memos");
+        const node = Node.materialize(JSON.stringify(each), `n1`, "Memos");
         const {query} = new Links("Reference", 0, 0, "").insert(memo, node);
         return query
     });

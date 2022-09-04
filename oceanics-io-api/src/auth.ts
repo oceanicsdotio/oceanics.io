@@ -6,13 +6,12 @@ import {
   connect, 
   recordsToProperties,
   NetlifyRouter,
-  UNAUTHORIZED,
   dematerialize,
   WRITE
 } from "./shared/middleware";
 import type { Properties } from "./shared/middleware";
 
-import { Links, Node } from "oceanics-io-api-wasm";
+import { Links, Node, ErrorDetail } from "oceanics-io-api-wasm";
 
 /**
  * Generic interface for all of the HTTP method-specific handlers.
@@ -44,7 +43,7 @@ const register: ApiHandler = async ({
   } catch {
     records = [];
   }
-  if (records.length !== 1) return UNAUTHORIZED
+  if (records.length !== 1) return ErrorDetail.unauthorized()
   return {
     data: {message: `Registered as a member of ${records[0].domain}.`},
     statusCode: 200
@@ -82,7 +81,7 @@ const remove: ApiHandler = async ({data: {user}}) => {
   try {
     await connect(query, WRITE);
   } catch {
-    return UNAUTHORIZED;
+    return ErrorDetail.unauthorized();
   }
   return {
     statusCode: 204
