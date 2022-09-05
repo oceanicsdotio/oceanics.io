@@ -1,7 +1,22 @@
-import { connect, metadata, NetlifyRouter } from "./shared/middleware";
+import { NetlifyRouter } from "./shared/middleware";
+import * as db from "./shared/queries";
 import type { ApiHandler } from "./shared/middleware";
-import { Links } from "oceanics-io-api-wasm";
 import apiSpec from "./shared/bathysphere.json";
+
+/**
+ * Retrieve one or more entities of a single type. This may be filtered
+ * by any single property. 
+ */
+ export const metadata: ApiHandler = async ({data: {user, nodes: [entity]}}) => {
+    const value = await db.metadata(user, entity);
+    return {
+        statusCode: 200,
+        data: {
+            "@iot.count": value.length,
+            value,
+        }
+    }
+}
 
 /**
  * Create some nodes, usually one, within the graph. This will
@@ -14,8 +29,7 @@ import apiSpec from "./shared/bathysphere.json";
  * Location data receives additional processing logic internally.
  */
 const create: ApiHandler = async ({ data: { user, nodes: [entity] } }) => {
-    const { query } = (new Links("Create", 0, 0, "")).insert(user, entity)
-    await connect(query, false)
+    await db.create("Create", user, entity)
     return {
         statusCode: 204
     }

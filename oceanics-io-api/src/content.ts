@@ -2,7 +2,7 @@
 import matter from "gray-matter";
 import type { Input } from "gray-matter";
 import type { Handler } from "@netlify/functions";
-import { batch, connect } from "./shared/middleware";
+import * as db from "./shared/queries";
 import { Links, Node } from "oceanics-io-api-wasm";
 
 /**
@@ -29,8 +29,8 @@ const handler: Handler = async ({ body }) => {
         const {query} = new Links("Reference", 0, 0, "").insert(memo, node);
         return query
     });
-    await connect(query, false);
-    await batch(linkQueries, false);
+    await db.connect(query, false);
+    await db.batch(linkQueries, false);
 
     return {
         statusCode: 200,

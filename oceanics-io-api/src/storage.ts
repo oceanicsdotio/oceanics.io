@@ -1,8 +1,16 @@
-import { s3, NetlifyRouter } from "./shared/middleware";
-import type { S3 } from "aws-sdk";
+import { NetlifyRouter } from "./shared/middleware";
 import type { ApiHandler } from "./shared/middleware";
 import apiSpec from "./shared/bathysphere.json";
 
+import { Endpoint, S3 } from "aws-sdk";
+
+
+const spacesEndpoint = new Endpoint(process.env.STORAGE_ENDPOINT??"");
+export const s3 = new S3({
+    endpoint: spacesEndpoint,
+    accessKeyId: process.env.SPACES_ACCESS_KEY,
+    secretAccessKey: process.env.SPACES_SECRET_KEY
+});
 
 const metadata: ApiHandler = async ({
     queryStringParameters: {

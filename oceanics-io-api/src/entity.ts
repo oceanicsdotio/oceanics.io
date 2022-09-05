@@ -1,7 +1,22 @@
-import { connect, metadata, NetlifyRouter } from "./shared/middleware";
+import { NetlifyRouter } from "./shared/middleware";
+import * as db from "./shared/queries";
 import type { ApiHandler } from "./shared/middleware";
-import { Links } from "oceanics-io-api-wasm";
 import apiSpec from "./shared/bathysphere.json";
+
+/**
+ * Retrieve one or more entities of a single type. This may be filtered
+ * by any single property. 
+ */
+ export const metadata: ApiHandler = async ({data: {user, nodes: [entity]}}) => {
+  const value = await db.metadata(user, entity);
+  return {
+      statusCode: 200,
+      data: {
+          "@iot.count": value.length,
+          value,
+      }
+  }
+}
 
 /**
  * Delete a pattern from the graph. Be careful, this can
@@ -13,8 +28,7 @@ import apiSpec from "./shared/bathysphere.json";
  * labels.
  */
 const remove: ApiHandler = async ({data: {user, nodes: [entity]}}) => {
-  const { query } = (new Links()).deleteChild(user, entity);
-  await connect(query, false)
+  await db.remove(user, entity);
   return {
     statusCode: 204
   }

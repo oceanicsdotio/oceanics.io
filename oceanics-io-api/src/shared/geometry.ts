@@ -1,4 +1,3 @@
-
 // import { VertexArray } from "oceanics-io-www-wasm";
 // const ENCODER_RADIX = 36;
 // const WEBGL_VERTEX_ARRAY_LIMIT = 65536;

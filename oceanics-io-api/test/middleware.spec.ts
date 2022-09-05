@@ -1,5 +1,5 @@
 import { describe, expect, test } from '@jest/globals';
-import { Method, dematerialize } from "../src/shared/middleware";
+import { Method } from "../src/shared/middleware";
 import crypto from "crypto";
 
 describe("idempotent", function() {
@@ -15,7 +15,7 @@ describe("idempotent", function() {
         uuid: crypto.randomUUID()
       }
       const user = Node.materialize(claim, "u", "User")
-      const props = dematerialize(user);
+      const props = user.dematerialize();
       expect(props.email).toBe(claim.email)
       expect(props.uuid).toBe(claim.uuid)
     })

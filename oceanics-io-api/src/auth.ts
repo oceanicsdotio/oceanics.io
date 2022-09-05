@@ -1,17 +1,9 @@
 import jwt from "jsonwebtoken";
 import apiSpec from "./shared/bathysphere.json";
+import { NetlifyRouter } from "./shared/middleware";
+import * as db from "./shared/queries"
 import type { ApiHandler } from "./shared/middleware";
-
-import { 
-  connect, 
-  recordsToProperties,
-  NetlifyRouter,
-  dematerialize,
-  WRITE
-} from "./shared/middleware";
-import type { Properties } from "./shared/middleware";
-
-import { Links, Node, ErrorDetail } from "oceanics-io-api-wasm";
+import { Node, ErrorDetail } from "oceanics-io-api-wasm";
 
 /**
  * Generic interface for all of the HTTP method-specific handlers.
@@ -35,18 +27,16 @@ const register: ApiHandler = async ({
     provider
   }
 }) => {
-  const { query } = (new Links("Register", 0, 0, "")).insert(provider, user);
-  let records: Properties[];
   try {
-    const result = await connect(query, WRITE);
-    records = recordsToProperties(result);
+    const domain = await db.register(provider, user);
+    return {
+      data: {
+        message: `Registered as a member of ${domain}.`
+      },
+      statusCode: 200
+    }
   } catch {
-    records = [];
-  }
-  if (records.length !== 1) return ErrorDetail.unauthorized()
-  return {
-    data: {message: `Registered as a member of ${records[0].domain}.`},
-    statusCode: 200
+    return ErrorDetail.unauthorized();
   }
 };
 
@@ -60,7 +50,7 @@ const getToken: ApiHandler = async ({
     user
   }
 }) => {
-  const {uuid} = dematerialize(user);
+  const {uuid} = Node.dematerialize(user);
   return {
     statusCode: 200,
     data: {
@@ -69,20 +59,22 @@ const getToken: ApiHandler = async ({
   }
 };
 
-// Just a stub for now, to enable testing of bearer auth
+/**
+ * Change auth details, such as updating e-mail or password.
+ */
 const manage: ApiHandler = async () => {
   return {
     statusCode: 501
   }
 }
 
+/**
+ * Detach and delete all child nodes. The underlying query
+ * generator prevents internal Nodes like Provider from
+ * being dropped.
+ */
 const remove: ApiHandler = async ({data: {user}}) => {
-  const { query } = new Links().delete(user, new Node());
-  try {
-    await connect(query, WRITE);
-  } catch {
-    return ErrorDetail.unauthorized();
-  }
+  await db.remove(user, new Node());
   return {
     statusCode: 204
   }
