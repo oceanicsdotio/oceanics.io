@@ -2,6 +2,7 @@ mod cypher;
 mod node;
 mod links;
 mod memo;
+mod middleware;
 
 use wasm_bindgen::prelude::*;
 
