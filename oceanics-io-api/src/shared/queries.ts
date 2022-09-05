@@ -46,17 +46,19 @@ const recordsToProperties = (result: QueryResult): Properties[] =>
 /**
  * Execute a query that returns Node data 
  */
-export const node = (query: string, readOnly: boolean) => {
-    return connect(query, readOnly).then(recordsToProperties)
+export const node = async (query: string, readOnly: boolean) => {
+    const result = await connect(query, readOnly);
+    return recordsToProperties(result);
 }
 
-export const metadata = (left: Node, right: Node): Promise<Properties[]> => {
+export const metadata = async (left: Node, right: Node): Promise<Properties[]> => {
     const link = new Links();
     const { query } = link.query(left, right, right.symbol);
-    return connect(query, READ_ONLY).then(recordsToProperties);
+    const result = await connect(query, READ_ONLY);
+    return recordsToProperties(result);
 }
 
-export const index = (): Promise<Route[]> => {
+export const index = async (): Promise<Route[]> => {
     const RESTRICTED = new Set(["Provider", "User"]);
     const filterAllowedLabels = (label: string) => !RESTRICTED.has(label);
     const recordToLabel = (record: Record) => record.get(0);
@@ -71,7 +73,8 @@ export const index = (): Promise<Route[]> => {
             .map(labelToRoute)
 
     const { query } = Node.allLabels();
-    return connect(query, READ_ONLY).then(recordsToUniqueRoutes)
+    const result = await connect(query, READ_ONLY);
+    return recordsToUniqueRoutes(result);
 }
 
 export const remove = (left: Node, right: Node): Promise<QueryResult> => {
