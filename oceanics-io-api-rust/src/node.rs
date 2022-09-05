@@ -3,7 +3,7 @@ pub mod node {
     use serde::{Deserialize, Serialize};
     use std::collections::HashMap;
     use std::str::FromStr;
-    use std::time::{Duration,Instant};
+    use std::time::{Duration, Instant};
     use wasm_bindgen::prelude::*;
 
     use crate::cypher::cypher::Cypher;
@@ -262,6 +262,22 @@ pub mod node {
             Node::new(Some(pattern), symbol.as_string(), label.as_string())
         }
 
+        fn string_to_value(key_value: &str) -> (&str, &str) {
+            let parts: Vec<&str> = key_value.split(": ").collect();
+            (parts[0].trim(), &parts[1].trim()[1..])
+        }
+
+        fn dematerialize(&self) -> HashMap<String, String> {
+            match self.pattern {
+                Some(value) => {
+                    HashMap::from(value.split(", ").map(Node::string_to_value))
+                }
+                None => {
+                    HashMap::with_capacity(0)
+                }
+            }
+        }
+
         #[wasm_bindgen(static_method_of = Node)]
         pub fn user(properties: JsString) -> Node {
             let prop_string = properties.as_string().unwrap();
@@ -270,38 +286,40 @@ pub mod node {
         }
     }
 
-    #[derive(Debug, PartialEq)]
-    enum Method {
-        POST,
-        PUT,
-        OPTIONS,
-        QUERY,
-        DELETE,
-        GET,
-        HEAD
+    #[wasm_bindgen]
+    #[derive(Debug, PartialEq, Serialize, Deserialize, Copy, Clone)]
+    pub enum HttpMethod {
+        POST = "POST",
+        PUT = "PUT",
+        OPTIONS = "OPTIONS",
+        QUERY = "QUERY",
+        DELETE = "DELETE",
+        GET ="GET",
+        HEAD = "HEAD"
     }
-    impl FromStr for Method {
+
+    impl FromStr for HttpMethod {
         type Err = ();
-        fn from_str(input: &str) -> Result<Method, Self::Err> {
+        fn from_str(input: &str) -> Result<HttpMethod, Self::Err> {
             match input {
-                "POST" => Ok(Method::POST),
-                "PUT" => Ok(Method::PUT),
-                "OPTIONS" => Ok(Method::OPTIONS),
-                "QUERY" => Ok(Method::QUERY),
-                "DELETE" => Ok(Method::DELETE),
-                "GET" => Ok(Method::GET),
-                "HEAD" => Ok(Method::HEAD),
+                "POST" => Ok(HttpMethod::POST),
+                "PUT" => Ok(HttpMethod::PUT),
+                "OPTIONS" => Ok(HttpMethod::OPTIONS),
+                "QUERY" => Ok(HttpMethod::QUERY),
+                "DELETE" => Ok(HttpMethod::DELETE),
+                "GET" => Ok(HttpMethod::GET),
+                "HEAD" => Ok(HttpMethod::HEAD),
                 _ => Err(()),
             }
         }
     }
 
     #[wasm_bindgen]
-    #[derive(Debug, PartialEq, Serialize)]
+    #[derive(Debug, PartialEq, Serialize, Copy, Clone)]
     pub enum Authentication {
-        Bearer,
-        ApiKey,
-        Basic
+        Bearer = "BearerAuth",
+        ApiKey = "ApiKey",
+        Basic = "BasicAuth"
     }
     impl FromStr for Authentication {
         type Err = ();
@@ -319,7 +337,7 @@ pub mod node {
     #[derive(Serialize)]
     pub struct LogLine {
         user: String,
-        http_method: String,
+        http_method: HttpMethod,
         status_code: u16,
         elapsed_time: Duration,
         auth: Authentication
@@ -381,7 +399,7 @@ pub mod node {
         nodes: Vec<Node>,
         user: Option<Node>,
         provider: Option<Node>,
-        http_method: Method,
+        http_method: HttpMethod,
         data: HashMap<String, Value>,
         query: Query,
         auth: Option<Authentication>,
@@ -398,7 +416,7 @@ pub mod node {
 
         #[wasm_bindgen(constructor)]
         pub fn new(query: Query, http_method: JsString) -> Self {
-            let _method = Method::from_str(&*http_method.as_string().unwrap()).unwrap();
+            let _method = HttpMethod::from_str(&*http_method.as_string().unwrap()).unwrap();
             RequestContext {
                 nodes: Vec::with_capacity(2),
                 user: None, 
@@ -411,15 +429,34 @@ pub mod node {
             }
         }
 
-        // pub fn log_line(&self, status_code: u16, ) -> LogLine {
-        //     LogLine { 
-        //         user: &self.user, 
-        //         http_method: &self.http_method, 
-        //         status_code, 
-        //         elapsed_time: Instant::now() - self.start, 
-        //         auth: self.auth.unwrap() 
-        //     }
-        // }
+        pub fn log_line(&self, status_code: u16) -> JsValue {
+           
+            let user = match self.user {
+                Some(node) => {
+                    let lookup = node.dematerialize();
+                    let email = lookup.get("email");
+                    let uuid = lookup.get("uuid");
+                    match (email, uuid) {
+                        (Some(email), _) => email,
+                        (None, Some(uuid)) => uuid,
+                        (None, None) => {
+                            panic!("Expected user information in logging context.")
+                        }
+                    }
+                },
+                None => String::from("undefined")
+            };
+
+            let line = LogLine { 
+                user, 
+                http_method: self.http_method, 
+                status_code, 
+                elapsed_time: Instant::now() - self.start, 
+                auth: self.auth.unwrap() 
+            };
+            serde_wasm_bindgen::to_value(&line).unwrap()
+        }
+
         // pub fn new(http_method: String, body: Option<String>, query: Query) -> RequestContext {
         //     let mut data: HashMap<String, Value> = match &*http_method {
         //         "POST" | "PUT" => serde_json::from_str(&*body.unwrap()).unwrap(),

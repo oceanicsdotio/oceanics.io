@@ -1,20 +1,12 @@
 import type { Handler, HandlerEvent } from "@netlify/functions";
-import neo4j from "neo4j-driver";
-import type { Record, QueryResult } from "neo4j-driver";
 import jwt from "jsonwebtoken";
 import type { JwtPayload } from "jsonwebtoken";
 import crypto from "crypto";
-import { Node, Links, NodeConstraint, RequestContext, Query, ErrorDetail } from "oceanics-io-api-wasm";
 import { Logtail } from "@logtail/node";
 import { ILogtailLog } from "@logtail/types";
-import { Endpoint, S3 } from "aws-sdk";
 
-const spacesEndpoint = new Endpoint(process.env.STORAGE_ENDPOINT??"");
-export const s3 = new S3({
-    endpoint: spacesEndpoint,
-    accessKeyId: process.env.SPACES_ACCESS_KEY,
-    secretAccessKey: process.env.SPACES_SECRET_KEY
-});
+import * as db from "./queries";
+import { Node, RequestContext, Query, ErrorDetail, HttpMethod } from "oceanics-io-api-wasm";
 
 const logging = new Logtail(process.env.LOGTAIL_SOURCE_TOKEN??"");
 logging.use(async (log: ILogtailLog) => {
@@ -25,78 +17,19 @@ logging.use(async (log: ILogtailLog) => {
     }
 });
 
-type Route = {name: string, url: string};
-export enum Method {
-    POST = "POST", 
-    PUT = "PUT",
-    OPTIONS = "OPTIONS",
-    QUERY = "QUERY",
-    DELETE = "DELETE",
-    GET = "GET",
-    HEAD = "HEAD"
-}
-
+// Types of Auth we handle
 enum Authentication {
     Bearer = "BearerAuth",
     ApiKey = "ApiKeyAuth",
     Basic = "BasicAuth"
 }
 
-type CanonicalLogLineData = {
-    user?: Node
-    httpMethod: Method
-    statusCode: number
-    start: Date
-    auth?: Authentication
-}
-
-// Stub type for generic entity Properties object.
-export type Properties = { [key: string]: unknown };
-
-/**
- * Approximate inverse of the `materialize` function, for extracting key, value data from a 
- * WASM Node. 
- */
- export const dematerialize = (node: Node): Properties => {
-    const stringToValue = (keyValue: string): [string, unknown] => {
-        const [key, serialized] =  keyValue.split(": ")
-        return [key.trim(), serialized.trim().slice(1, serialized.length - 1)]
-    }
-    const properties: Properties = node.pattern ? 
-        Object.fromEntries(node.pattern.split(", ").map(stringToValue)) : {};
-
-    return properties
-}
-
-const transformLogLine = ({
-    user,
-    start,
-    httpMethod,
-    statusCode,
-    auth,
-}: CanonicalLogLineData) => {
-    let uuid: string|undefined, email: string|undefined;
-    if (typeof user !== "undefined") {
-        ({uuid, email} = dematerialize(user) as {uuid?: string, email?: string});
-    } else {
-        email = undefined;
-        uuid = "undefined";
-    }
-    return {
-        httpMethod,
-        statusCode,
-        auth,
-        user: email ?? uuid,
-        elapsedTime: (new Date()).getTime() - start.getTime()
-    }
-}
-
-
-export const READ_ONLY = true;
-export const WRITE = false;
+// Stub type for generic entity transform object.
+type Properties = { [key: string]: unknown };
+type Route = {name: string, url: string};
 
 // Type of request after going through middleware. 
-export type ApiEvent = HandlerEvent & {
+type ApiEvent = HandlerEvent & {
     data: {
       user?: Node;
       nodes: Node[];
@@ -104,7 +37,7 @@ export type ApiEvent = HandlerEvent & {
       provider?: Node;
     }
 }
-
+ 
 // Response before being processed by middleware
 type ApiResponse = {
     statusCode: number;
@@ -116,7 +49,7 @@ export type ApiHandler = (event: ApiEvent) => Promise<ApiResponse>
 
 // Handler lookup
 type HttpMethods = {
-    [key in Method]?: ApiHandler;
+    [key in HttpMethod]?: ApiHandler;
 }
 
 // Predictable inbound headers
@@ -126,121 +59,11 @@ type Headers = {
     [key: string]: string;
 }
 
-/**
- * Connect to graph database using the service account credentials,
- * and execute a single query. For convenience you can pass in a callback
- * to execute on the result.
- */
-export const connect = async (query: string, readOnly: boolean) => {
-    const driver = neo4j.driver(
-        process.env.NEO4J_HOSTNAME ?? "",
-        neo4j.auth.basic("neo4j", process.env.NEO4J_ACCESS_KEY ?? "")
-    );
-    const defaultAccessMode = readOnly ? neo4j.session.READ : neo4j.session.WRITE
-    const session = driver.session({ defaultAccessMode });
-    const result = await session.run(query);
-    await driver.close();
-    return result;
-}
-
-/**
- * Connect to graph database using the service account credentials,
- * and execute a single query. For convenience you can pass in a callback
- * to execute on the result.
- */
- export const batch = async (queries: string[], readOnly: boolean) => {
-    const driver = neo4j.driver(
-        process.env.NEO4J_HOSTNAME ?? "",
-        neo4j.auth.basic("neo4j", process.env.NEO4J_ACCESS_KEY ?? "")
-    );
-    const defaultAccessMode = readOnly ? neo4j.session.READ : neo4j.session.WRITE
-    const session = driver.session({ defaultAccessMode });
-    const result = Promise.all(queries.map(query => session.run(query)));
-    await driver.close();
-    return result;
-}
-
-export const setupQueries = (): string[] => {
-    return [
-        ["User", "email"],
-        ["Provider", "apiKey"],
-        ["Provider", "domain"]
-    ].map(
-        ([label, key]) => (new NodeConstraint(label, key)).createIndex().query
-    )
-}
-
-type RecordObject = {
-    labels: string[]
-    properties: Properties
-}
-
-// Convenience methods for chaining
-const RESTRICTED = new Set(["Provider", "User"]);
-const filterAllowedLabels = (label: string) => !RESTRICTED.has(label);
-const recordToLabel = (record: Record) => record.get(0);
-const labelToRoute = (label: string): Route => Object({
-    name: label,
-    url: `/api/${label}`
-})
-export const recordsToUniqueRoutes = ({ records }: QueryResult): Route[] => 
-    records
-        .flatMap(recordToLabel)
-        .filter(filterAllowedLabels)
-        .map(labelToRoute)
-
-// QueryResult to POJO
-const recordsToObjects = ({ records }: QueryResult): RecordObject[] =>
-    records.flatMap((record: Record) => Object.values(record.toObject()))
-
-// Get just the properties, for example if requesting a single label
-const getProperties = ({ properties }: RecordObject): Properties => properties
-
-// Transform from Neo4j response records type to generic internal node representation.
-export const recordsToProperties = (result: QueryResult): Properties[] =>
-    recordsToObjects(result).map(getProperties)
-
-/**
- * Retrieve one or more entities of a single type. This may be filtered
- * by any single property. 
- */
-export const metadata: ApiHandler = async ({data: {user, nodes: [entity]}}) => {
-    const { query } = (new Links()).query(user as Node, entity, entity.symbol);
-    const result = await connect(query, READ_ONLY);
-    const value = recordsToProperties(result);
-    return {
-        statusCode: 200,
-        data: {
-            "@iot.count": value.length,
-            value,
-        }
-    }
-}
-
-/**
- * Magic strings, that we know may exist in the path. It depends on whether the
- * request is being made directly against the netlify functions, or through
- * a proxy redirect. 
- */
-const STRIP_BASE_PATH_PREFIX = new Set([
-    ".netlify",
-    "functions",
-    "auth",
-    "entity",
-    "topology",
-    "index"
-]);
-
 // Securely store and compare passwords
-export const hashPassword = (password: string, secret: string) =>
+const hashPassword = (password: string, secret: string) =>
     crypto.pbkdf2Sync(password, secret, 100000, 64, "sha512").toString("hex");
 
-// Test part of path, and reject if it is blank or part of the restricted set. 
-export const filterBaseRoute = (symbol: string) =>
-    !!symbol && !STRIP_BASE_PATH_PREFIX.has(symbol);
-
 type QueryString = {left?: string, uuid?: string, right?: string};
-
 
 /**
  * Matching pattern based on basic auth information
@@ -267,12 +90,23 @@ const apiKeyClaim = ({ ["x-api-key"]: apiKey }: Headers) => {
     return { apiKey }
 }
 
-const authMethod = (pathSpec: unknown, httpMethod: Method) => {
-    const methodSpec = pathSpec[httpMethod.toLowerCase()];
-        
-    // security protocols if any
+// security protocols if any
+const authMethod = (pathSpec: unknown, httpMethod: HttpMethod) => {
     const reduceMethods = (lookup: unknown, schema: unknown) => Object.assign(lookup, schema);
-    return methodSpec.security.reduce(reduceMethods, {}); 
+    return pathSpec[httpMethod.toLowerCase()].security.reduce(reduceMethods, {}); 
+}
+
+const transformResponse = ({extension="", data, statusCode, headers}) => {
+     
+    // Make it a valid JSON response. Core API doesn't use other content types. 
+    return {
+        statusCode,
+        headers: {
+            ...headers,
+            'Content-Type': `application/${extension}json`
+        },
+        body: JSON.stringify(data)
+    };
 }
 
 /**
@@ -296,7 +130,7 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: unknown): Handler
         ...methods,
         OPTIONS: () => Object({
             statusCode: 204,
-            headers: { Allow: [Method.OPTIONS, ...Object.keys(methods)].join(",") }
+            headers: { Allow: [HttpMethod.OPTIONS, ...Object.keys(methods)].join(",") }
         })
     }
 
@@ -311,10 +145,9 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: unknown): Handler
         ...request
     }: HandlerEvent) {
         const context = new RequestContext(queryStringParameters as unknown as Query, _method);
-
-        const httpMethod = _method as Method;
+        const httpMethod: HttpMethod = new HttpMethod(_method);
         const start = new Date();
-        const handler = _methods[httpMethod];
+        const handler: ApiHandler = _methods[httpMethod];
         if (typeof handler === "undefined") {
             const detail = ErrorDetail.invalidMethod();
             logging.warn(`Invalid method`, transformLogLine({
@@ -338,7 +171,7 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: unknown): Handler
             } catch ({message}) {
                 const detail = ErrorDetail.unauthorized();
                 logging.error(message, transformLogLine({
-                    httpMethod: httpMethod as Method, 
+                    httpMethod, 
                     statusCode: detail.statusCode, 
                     start,
                     auth: context.auth as Authentication
@@ -351,25 +184,19 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: unknown): Handler
         } else if (Authentication.Basic in security) {
             context.auth = Authentication.Basic;
             user = Node.user(JSON.stringify(basicAuthClaim(headers)));
-            const {query} = user.load();
-            const records = await connect(query, READ_ONLY)
-                .then(recordsToObjects);
-            if (records.length !== 1) {
-                const message = records.length > 0 ? 
-                    `Basic auth claim matches multiple accounts` :
-                    `Basic auth claim does not exist`;
+            try {
+                user = await db.auth(user);
+            } catch (error) {
                 const detail = ErrorDetail.unauthorized();
-                logging.error(message, transformLogLine({
+                logging.error(error.message, transformLogLine({
                     user,
-                    httpMethod: httpMethod as Method, 
+                    httpMethod, 
                     statusCode: detail.statusCode, 
                     start,
                     auth: context.auth as Authentication
                 }));
                 return detail
             }
-            // Use the full properties
-            user = Node.user(JSON.stringify(records.map(getProperties)[0]));
         } else if (Authentication.ApiKey in security) {
             // Only for registration on /auth route
             provider = Node.materialize(JSON.stringify(apiKeyClaim(headers)), "p", "Provider");
@@ -384,7 +211,7 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: unknown): Handler
                 const detail = ErrorDetail.unauthorized();
                 logging.error(`API key auth claim missing .apiKey`, transformLogLine({
                     user: Node.user(JSON.stringify({ email })),
-                    httpMethod: httpMethod as Method, 
+                    httpMethod, 
                     statusCode: detail.statusCode, 
                     start,
                     auth: context.auth as Authentication
@@ -403,8 +230,8 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: unknown): Handler
         // parse path into resources and make request to handler
         const nodes = Node.fromRequest(httpMethod as Method, body, queryStringParameters as QueryString);
 
-        //@ts-ignore
-        const {extension="", data, ...result} = await handler({
+        // Make it a valid JSON response. Core API doesn't use other content types.
+        const response = await handler({
             data: { 
                 user,
                 provider,
@@ -412,23 +239,15 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: unknown): Handler
             },
             headers,
             queryStringParameters,
+            body: undefined,
+            httpMethod: undefined,
             ...request
-        });
+        }).then(transformResponse);
 
-        // Make it a valid JSON response. Core API doesn't use other content types. 
-        const response = {
-            ...result,
-            headers: {
-                ...result.headers,
-                'Content-Type': `application/${extension}json`
-            },
-            body: JSON.stringify(data)
-        };
-        
-        logging.info(`${httpMethod} response with ${result.statusCode}`, transformLogLine({
+        logging.info(`${httpMethod} response with ${response.statusCode}`, transformLogLine({
             user,
             httpMethod: httpMethod as Method, 
-            statusCode: result.statusCode, 
+            statusCode: response.statusCode, 
             start,
             auth: context.auth as Authentication
         }));
