@@ -59,6 +59,10 @@ pub mod node {
             }
         }
 
+        pub fn serialize(&self) -> HashMap<String, Value> {
+            HashMap::new()
+        }
+
     }
 
     #[wasm_bindgen]
@@ -233,15 +237,9 @@ pub mod node {
             (parts[0].trim(), &parts[1].trim()[1..])
         }
 
-        pub fn dematerialize() -> JsValue {
+        #[wasm_bindgen(js_name = dematerialize)]
+        pub fn js_dematerialize() -> JsValue {
             JsValue::NULL
-        }
-
-        #[wasm_bindgen(static_method_of = Node)]
-        pub fn user(properties: JsString) -> Node {
-            let prop_string = properties.as_string().unwrap();
-            let props: HashMap<String, Value> = serde_json::from_str(&*prop_string).unwrap();
-            Node::deserialize(&props, &String::from("u"), &String::from("User"))
         }
 
         #[wasm_bindgen(static_method_of = Node)]
@@ -260,7 +258,7 @@ pub mod node {
     #[wasm_bindgen]
     #[derive(Deserialize, Serialize)]
     #[serde(rename_all = "camelCase")]
-    pub struct NodeConstraint {
+    pub struct Constraint {
         label: String,
         key: String,
     }
@@ -269,10 +267,10 @@ pub mod node {
      * Public implementation for NodeIndex
      */
     #[wasm_bindgen]
-    impl NodeConstraint {
+    impl Constraint {
         #[wasm_bindgen(constructor)]
         pub fn new(label: String, key: String) -> Self {
-            NodeConstraint { label, key }
+            Constraint { label, key }
         }
 
         /**

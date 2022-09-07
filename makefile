@@ -31,7 +31,11 @@ api: node_modules $(API_JSON) $(API)/src/**/* $(API)/src/* $(API)/tsconfig.json
 	yarn workspace $(API) run tsc 
 
 # Non-file targets
-.PHONY: api-cleanup api-test-auth api-test-collection- api-test-idempotent api-dev api-test
+.PHONY: api-cleanup api-test-auth api-test-collection- api-test-idempotent api-dev api-test api-test-middleware
+
+# Test just the WASM middleware
+api-test-middleware: $(API_WASM)
+	yarn workspace oceanics-io-api jest -t "middleware"
 
 # Test just Auth API to setup service account.
 api-test-auth: $(TEST_CACHE)
