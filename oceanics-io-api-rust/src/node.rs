@@ -1,11 +1,19 @@
 pub mod node {
     use serde::{Deserialize, Serialize};
     use std::collections::HashMap;
+    use std::fmt;
     use wasm_bindgen::prelude::*;
 
     use crate::cypher::cypher::Cypher;
-    use js_sys::JsString;
     use serde_json::Value;
+
+
+    fn string_or(value: &Option<String>, default: String) -> String {
+        match &value {
+            None => default,
+            Some(value) => value.clone()
+        }
+    }
 
     /**
      * The Node data structure encapsulates logic needed for
@@ -15,133 +23,166 @@ pub mod node {
     #[derive(Debug, Deserialize, Serialize)]
     #[serde(rename_all = "camelCase")]
     pub struct Node {
-        pattern: Option<String>,
+        properties: Option<HashMap<String, Value>>,
         symbol: Option<String>,
         label: Option<String>,
     }
 
+    /**
+     * Methods used internally, but without JavaScript bindings. 
+     */
     impl Node {
+        /**
+         * Convenience method for return correct type. 
+         */
+        fn format(key: &String, value: &Value) -> Option<String> {
+            Some(format!("{}: '{}'", key, value))
+        }
+
+        /**
+         * Use when the property is an Array or Object.
+         */
+        fn format_nested(key: &String, value: &Value) -> Option<String> {
+            let decode = serde_json::to_string(value);
+            match decode {
+                Err(_) => {
+                    panic!("Problem serializing property value");
+                },
+                Ok(serialized) => Node::format(key, &Value::String(serialized))
+            }
+        }
+
+        /**
+         * Format a key and value as a Cypher compatible property
+         * string.
+         */
         fn format_pair(key: &String, value: &Value) -> Option<String> {
             match value {
                 Value::Object(_) | Value::Array(_) => {
-                    let serialized = serde_json::to_string(value).unwrap();
-                    Some(format!("{}: '{}'", key, serialized))
-                }
+                    Node::format_nested(key, value)}
                 Value::String(val) => {
                     if val.len() > 0 {
-                        return Some(format!("{}: '{}'", key, value));
+                        return Node::format(key, &Value::String(val.clone()));
                     }
                     None
                 }
                 Value::Null => None,
-                _ => Some(format!("{}: '{}'", key, value)),
+                _ => Node::format(key, value),
             }
         }
 
-        pub fn deserialize(
-            properties: &HashMap<String, Value>,
-            symbol: &String,
-            label: &String,
-        ) -> Self {
-            // Format key value as cypher
-            let mut pairs: Vec<String> = Vec::new();
-            for (key, value) in properties.iter() {
-                match Node::format_pair(key, value) {
-                    Some(value) => pairs.push(value),
-                    None => {}
-                };
-            }
-            let pattern = Some(pairs.join(", "));
-            Node {
-                pattern,
-                symbol: Some(symbol.clone()),
-                label: Some(label.clone()),
-            }
+        fn _string_to_value(key_value: &str) -> (&str, &str) {
+            let parts: Vec<&str> = key_value.split(": ").collect();
+            (parts[0].trim(), &parts[1].trim()[1..])
         }
-
-        pub fn serialize(&self) -> HashMap<String, Value> {
-            HashMap::new()
-        }
-
     }
 
+    /**
+     * Format the cypher query representation of the Node 
+     * data structure.
+     */
+    impl fmt::Display for Node {
+        
+        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+            let label = match &self.label {
+                None => String::from(""),
+                Some(value) => format!(":{}", value),
+            };
+            let pattern = self.pattern();
+            let _pattern: String;
+            if pattern.len() > 0 {
+                _pattern = format!(" {{ {} }}", pattern);
+            } else {
+                _pattern = pattern.clone();
+            }
+            write!(f, "( {}{}{} )", self.symbol(), label, pattern)
+        }
+    }
+
+    /**
+     * Public web bindings for Node. These are tested
+     * from JavaScript side. 
+     */
     #[wasm_bindgen]
     impl Node {
         #[wasm_bindgen(constructor)]
-        pub fn new(pattern: Option<String>, symbol: Option<String>, label: Option<String>) -> Self {
+        pub fn new(
+            properties: Option<String>, 
+            symbol: Option<String>, 
+            label: Option<String>
+        ) -> Self {
+            let _properties: Option<HashMap<String, Value>> = match properties {
+                None => None,
+                Some(props) => serde_json::from_str(&*props).unwrap()
+            };
             Node {
-                pattern,
                 symbol,
                 label,
+                properties: _properties
             }
         }
 
+        // Always return a plain string
+        #[wasm_bindgen(getter)]
+        pub fn pattern(&self) -> String {
+            match &self.properties {
+                None => String::from(""),
+                Some(lookup) => lookup.iter().map(
+                    |(key, value)| 
+                        Node::format_pair(key, value).unwrap()
+                ).collect::<Vec<String>>().join(", ")
+            }
+        }
+
+        // Always return a plain string
+        #[wasm_bindgen(getter)]
+        pub fn symbol(&self) -> String {
+            string_or(&self.symbol, String::from("n"))
+        }
+
+        // Always return a plain string
+        #[wasm_bindgen(getter)]
+        pub fn label(&self) -> String {
+            string_or(&self.label, String::from(""))
+        }
+
+        // Often access by UUID
+        #[wasm_bindgen(getter)]
+        pub fn uuid(&self) -> String {
+            let null = String::from("");
+            let key = String::from("uuid");
+            match &self.properties {
+                Some(lookup) => {
+                    let _null = Value::String(null);
+                    lookup.get(&key).unwrap_or(&_null).to_string()
+                },
+                None => null
+            }
+        }
+    }
+
+    /**
+     * Implement Cypher Query generation methods.
+     */
+    #[wasm_bindgen]
+    impl Node {
+        /**
+         * Get unique node labels in the database. 
+         */
         #[wasm_bindgen(js_name = allLabels)]
+        #[wasm_bindgen(static_method_of = Node)]
         pub fn all_labels() -> Cypher {
             let query = String::from("CALL db.labels()");
             Cypher::new(query, true)
         }
 
-        #[wasm_bindgen(js_name = patternOnly)]
-        pub fn pattern_only(&self) -> String {
-            let pattern: String;
-            match &self.pattern {
-                None => pattern = String::from(""),
-                Some(value) => pattern = format!(" {{ {} }}", value),
-            }
-            pattern
-        }
-
-        #[wasm_bindgen(getter)]
-        pub fn pattern(&self) -> String {
-            let pattern: String;
-            match &self.pattern {
-                None => pattern = String::from(""),
-                Some(value) => pattern = value.clone(),
-            }
-            pattern
-        }
-
-        #[wasm_bindgen(getter)]
-        pub fn symbol(&self) -> String {
-            let symbol: String;
-            match &self.symbol {
-                None => symbol = String::from("n"),
-                Some(value) => symbol = format!("{}", value),
-            }
-            symbol
-        }
-
-        #[wasm_bindgen(getter)]
-        pub fn label(&self) -> String {
-            let label: String;
-            match &self.label {
-                None => label = String::from(""),
-                Some(value) => label = format!("{}", value),
-            }
-            label
-        }
-
-        /**
-         * Format the cypher query representation of the Node data structure
-         */
-        #[wasm_bindgen(js_name = cypherRepr)]
-        pub fn cypher_repr(&self) -> String {
-            let label: String;
-            match &self.label {
-                None => label = String::from(""),
-                Some(value) => label = format!(":{}", value),
-            }
-            format!("( {}{}{} )", self.symbol(), label, self.pattern_only())
-        }
-
         /**
          * Count instances of the node label.
          */
-        fn count(&self) -> Cypher {
+        pub fn count(&self) -> Cypher {
             let query = format!(
                 "MATCH {} RETURN count({})",
-                self.cypher_repr(),
+                self,
                 self.symbol()
             );
             Cypher::new(query, false)
@@ -150,10 +191,10 @@ pub mod node {
         /**
          * Apply new label to the node set matching the node pattern.
          */
-        fn add_label(&self, label: String) -> Cypher {
+        fn _add_label(&self, label: String) -> Cypher {
             let query = format!(
                 "MATCH {} SET {}:{}",
-                self.cypher_repr(),
+                self,
                 self.symbol(),
                 label
             );
@@ -161,12 +202,12 @@ pub mod node {
         }
 
         /**
-         * Query to delete a node pattern from the graph.
+         * Delete a node pattern from the graph.
          */
         pub fn delete(&self) -> Cypher {
             let query = format!(
                 "MATCH {} WHERE NOT {}:Provider DETACH DELETE {}",
-                self.cypher_repr(),
+                self,
                 self.symbol(),
                 self.symbol()
             );
@@ -174,79 +215,40 @@ pub mod node {
         }
 
         /**
-         * Format a query that will merge a pattern into all matching nodes.
+         * Format a query that will merge a pattern 
+         * into all matching nodes.
          */
         pub fn mutate(&self, updates: Node) -> Cypher {
             let query = format!(
                 "MATCH {} SET {} += {{ {} }}",
-                self.cypher_repr(),
+                self,
                 self.symbol(),
-                updates.pattern_only()
+                updates.pattern()
             );
             Cypher::new(query, false)
         }
         /**
-         * Generate a query to load data from the database
+         * Generate a query to load data from the database.
          */
         pub fn load(&self, key: Option<String>) -> Cypher {
-            let variable: String;
-            match &key {
-                None => variable = String::from(""),
-                Some(value) => variable = format!(".{}", value),
-            }
+            let variable = match &key {
+                None => String::from(""),
+                Some(value) => format!(".{}", value)
+            };
             let query = format!(
                 "MATCH {} RETURN {}{}",
-                self.cypher_repr(),
+                self,
                 self.symbol(),
                 variable
             );
             Cypher::new(query, true)
         }
 
+        /**
+         * Create or update a node. 
+         */
         pub fn create(&self) -> Cypher {
-            Cypher::new(format!("MERGE {}", self.cypher_repr()), false)
-        }
-
-        #[wasm_bindgen(static_method_of = Node)]
-        pub fn materialize(properties: JsString, symbol: JsString, label: JsString) -> Node {
-            // Format key value as cypher
-            let prop_string = properties.as_string().unwrap();
-            let lookup: HashMap<String, Value> = serde_json::from_str(&*prop_string).unwrap();
-            let mut pairs: Vec<String> = Vec::new();
-            for (key, value) in lookup.iter() {
-                match value {
-                    Value::Object(_) | Value::Array(_) => {
-                        let serialized = serde_json::to_string(value).unwrap();
-                        pairs.push(format!("{}: '{}'", key, serialized));
-                    }
-                    Value::String(val) => {
-                        if val.len() > 0 {
-                            pairs.push(format!("{}: '{}'", key, value))
-                        }
-                    }
-                    Value::Null => {}
-                    _ => pairs.push(format!("{}: '{}'", key, value)),
-                };
-            }
-            let pattern = pairs.join(", ");
-            Node::new(Some(pattern), symbol.as_string(), label.as_string())
-        }
-
-        fn string_to_value(key_value: &str) -> (&str, &str) {
-            let parts: Vec<&str> = key_value.split(": ").collect();
-            (parts[0].trim(), &parts[1].trim()[1..])
-        }
-
-        #[wasm_bindgen(js_name = dematerialize)]
-        pub fn js_dematerialize() -> JsValue {
-            JsValue::NULL
-        }
-
-        #[wasm_bindgen(static_method_of = Node)]
-        pub fn provider(properties: JsString) -> Node {
-            let prop_string = properties.as_string().unwrap();
-            let props: HashMap<String, Value> = serde_json::from_str(&*prop_string).unwrap();
-            Node::deserialize(&props, &String::from("p"), &String::from("Provider"))
+            Cypher::new(format!("MERGE {}", self), false)
         }
     }
 
