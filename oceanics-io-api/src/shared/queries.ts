@@ -32,17 +32,14 @@ type RecordObject = {
     properties: Properties
 }
 
-// QueryResult to POJO
-const recordsToObjects = ({ records }: QueryResult): RecordObject[] =>
-    records.flatMap((record: Record) => Object.values(record.toObject()))
-
-// Get just the properties, for example if requesting a single label
-const getProperties = ({ properties }: RecordObject): Properties => properties
-
 // Transform from Neo4j response records type to generic internal node representation.
-const recordsToProperties = (result: QueryResult): Properties[] =>
-    recordsToObjects(result).map(getProperties)
-
+const recordsToProperties = (result: QueryResult): Properties[] => {
+    const recordsToObjects = ({ records }: QueryResult): RecordObject[] =>
+    records.flatMap((record: Record) => Object.values(record.toObject()))
+    const getProperties = ({ properties }: RecordObject): Properties => properties
+    return recordsToObjects(result).map(getProperties)
+}
+   
 /**
  * Execute a query that returns Node data 
  */

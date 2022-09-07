@@ -1,23 +1,16 @@
 import type { Handler, HandlerEvent } from "@netlify/functions";
 import jwt from "jsonwebtoken";
 import type { JwtPayload } from "jsonwebtoken";
-import crypto from "crypto";
 import { Logtail } from "@logtail/node";
 import { ILogtailLog } from "@logtail/types";
 
 import * as db from "./queries";
 import { Node, RequestContext, Query, ErrorDetail } from "oceanics-io-api-wasm";
 
-type ContextData = {
-    user?: Node
-    nodes: Node[]
-    label?: string
-    provider?: Node
-}
 
 // Type for handlers, before response processing
 export type ApiHandler = (event: {
-    data: ContextData
+    context: RequestContext
     queryStringParameters: Record<string, string>
     body?: string
 }) => Promise<{
@@ -50,6 +43,8 @@ type Headers = {
 }
 
 const logging = new Logtail(process.env.LOGTAIL_SOURCE_TOKEN??"");
+
+// Enrich logs with memory usage stats
 logging.use(async (log: ILogtailLog) => {
     return {
         ...log,
@@ -57,11 +52,6 @@ logging.use(async (log: ILogtailLog) => {
         nodeEnv: process.env.NODE_ENV??"undefined",
     }
 });
-
-
-// Securely store and compare passwords
-const hashPassword = (password: string, secret: string) =>
-    crypto.pbkdf2Sync(password, secret, 100000, 64, "sha512").toString("hex");
 
 // Make it a valid JSON response. Core API doesn't use other content types. 
 const transformResponse = ({extension="", data, statusCode, headers}) => {
@@ -95,7 +85,7 @@ const bearerAuth = (context: RequestContext, { authorization="::" }: Headers) =>
 const basicAuth = async (context: RequestContext, { authorization="::" }: Headers) => {
     context.auth = Authentication.Basic;
     const [email, password, secret] = authorization.split(":");
-    const user = Node.user(JSON.stringify({ email, credential: hashPassword(password, secret) }));
+    const user = User.from_basic_auth(email, password, secret);
     return {user: await db.auth(user)}
 }
 
@@ -112,12 +102,10 @@ const apiKeyAuth = (context: RequestContext, { ["x-api-key"]: apiKey }: Headers,
         password="",
         secret=""
     } = JSON.parse(body);
-    const user = Node.user(JSON.stringify({
-        email,
-        uuid: crypto.randomUUID(),
-        credential: hashPassword(password, secret)
-    }));
-    return {provider, user}
+    const user = new User(
+        email, password, secret
+    );
+    return {provider, user: user.node}
 }
 
 // security protocols if any
@@ -176,18 +164,17 @@ export function NetlifyRouter(methods: {
             logging.warn(`Invalid method`, context.log_line(detail.statusCode));
             return detail
         }
-        
-        let data: ContextData;
+    
         try {
-            data = authMethod(pathSpec, httpMethod)(context, headers, body??"{}");
-            data.nodes = Node.fromRequest(httpMethod, body, queryStringParameters);
+            const auth = authMethod(pathSpec, httpMethod);
+            context.auth(headers, body??"{}");
         } catch ({message}) {
             const detail = ErrorDetail.unauthorized();
             logging.error(message, context.log_line(detail.statusCode));
             return detail
         }
         const response = await handler({
-            data,
+            context,
             queryStringParameters
         }).then(transformResponse);
 
