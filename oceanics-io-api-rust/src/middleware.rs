@@ -5,7 +5,7 @@ pub mod middleware {
     use std::time::{Duration, Instant};
 
     use wasm_bindgen::prelude::*;
-    use js_sys::JsString;
+    use js_sys::{JsString, Function};
 
     use serde::{Deserialize, Serialize};
     use serde_json::Value;
@@ -383,6 +383,7 @@ pub mod middleware {
         query: Query,
         auth: Option<Authentication>,
         start: Instant,
+        handler: Function
     }
 
     impl RequestContext {
@@ -401,7 +402,8 @@ pub mod middleware {
                 data: HashMap::new(), 
                 query, 
                 auth: None,
-                start: Instant::now()
+                start: Instant::now(),
+                handler: Function::new_no_args("")
             }
         }
 
@@ -510,6 +512,7 @@ pub mod middleware {
         spec: Path
     }
 
+    #[wasm_bindgen]
     impl FunctionContext {
         pub fn context(query: Query, http_method: HttpMethod) -> RequestContext {
             RequestContext::new(query, http_method)
