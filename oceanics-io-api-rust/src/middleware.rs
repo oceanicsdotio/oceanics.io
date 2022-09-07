@@ -180,16 +180,16 @@ pub mod middleware {
         }
 
         // Create a generic graph node representation
-        fn node(&self) -> Node {
-            let props: HashMap<String, Value> = HashMap::from([
-                (String::from("uuid"), Value::String(format!("{}", self.uuid.unwrap())))
-            ]);
-            Node::deserialize(
-                &props, 
-                &String::from("u"), 
-                &String::from("User")
-            )
-        }
+        // fn node(&self) -> Node {
+        //     let props: HashMap<String, Value> = HashMap::from([
+        //         (String::from("uuid"), Value::String(format!("{}", self.uuid.unwrap())))
+        //     ]);
+        //     Node::deserialize(
+        //         &props, 
+        //         &String::from("u"), 
+        //         &String::from("User")
+        //     )
+        // }
     }
 
     /**

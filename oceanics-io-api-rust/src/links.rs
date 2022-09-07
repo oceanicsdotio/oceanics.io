@@ -1,7 +1,7 @@
-#[allow(dead_code)]
 pub mod links {
     use wasm_bindgen::prelude::*;
     use serde::{Deserialize, Serialize};
+    use std::fmt;
     use crate::cypher::cypher::Cypher;
     use crate::node::node::Node;
 
@@ -13,7 +13,6 @@ pub mod links {
      *  doubly-linked nodes to represent relationships.
      *
      * The attributes are for a `Links` are:
-     * - `_symbol`, a private str for cypher query templating
      * - `rank`, a reinforcement learning parameter for recommending new data
      * - `uuid`, the unique identifier for the entity
      * - `props`, properties blob
@@ -28,13 +27,38 @@ pub mod links {
         label: Option<String>,
         pattern: Option<String>,
     }
+
+    /**
+     * Format the cypher query representation of the Links 
+     * data structure.
+     * 
+     * [ r:Label { <key>:<value>, <key>:<value> } ]
+     */
+    impl fmt::Display for Links {
+        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+            let label: String;
+            match &self.label {
+                None => label = String::from(""),
+                Some(value) => label = format!(":{}", value),
+            }
+            let pattern: String;
+            match &self.pattern {
+                None => pattern = String::from(""),
+                Some(value) => pattern = format!(" {{ {} }}", value),
+            }
+            write!(f, "-[ r{}{} ]-", label, pattern)
+        }
+    }
     
     /**
-     * Link implementation for Python contains Cypher query generators.
+     * Link implementation for Python contains Cypher 
+     * query generators.
      */
     #[wasm_bindgen]
     impl Links {
-
+        /**
+         * Simple passthrough constructor. 
+         */
         #[wasm_bindgen(constructor)]
         pub fn new(
             label: Option<String>,
@@ -51,34 +75,14 @@ pub mod links {
         }
 
         /**
-         *  Format the Links for making a Cypher language query
-         * to the Neo4j graph database
-         *
-         * [ r:Label { <key>:<value>, <key>:<value> } ]
-         */
-        fn cypher_repr(&self) -> String {
-            let label: String;
-            match &self.label {
-                None => label = String::from(""),
-                Some(value) => label = format!(":{}", value),
-            }
-            let pattern: String;
-            match &self.pattern {
-                None => pattern = String::from(""),
-                Some(value) => pattern = format!(" {{ {} }}", value),
-            }
-            format!("-[ r{}{} ]-", label, pattern)
-        }
-
-        /**
          * Query to remove a links between node patterns
          */
         pub fn drop(&self, left: &Node, right: &Node) -> Cypher {
             let query = format!(
                 "MATCH {}{}{} DELETE r",
-                left.cypher_repr(),
-                self.cypher_repr(),
-                right.cypher_repr()
+                left,
+                self,
+                right
             );
             Cypher::new(query, false)
         }
@@ -89,10 +93,10 @@ pub mod links {
         pub fn join(&self, left: &Node, right: &Node) -> Cypher {
             let query = format!(
                 "MATCH {}, {} MERGE ({}){}({})",
-                left.cypher_repr(),
-                right.cypher_repr(),
+                left,
+                right,
                 left.symbol(),
-                self.cypher_repr(),
+                self,
                 right.symbol()
             );
             Cypher::new(query, false)
@@ -105,9 +109,9 @@ pub mod links {
         pub fn query(&self, left: &Node, right: &Node, result: String) -> Cypher {
             let query = format!(
                 "MATCH {}{}{} WHERE NOT {}:Provider AND NOT {}:User RETURN {}",
-                left.cypher_repr(),
-                self.cypher_repr(),
-                right.cypher_repr(),
+                left,
+                self,
+                right,
                 right.symbol(),
                 right.symbol(),
                 result
@@ -118,10 +122,10 @@ pub mod links {
         pub fn insert(&self, left: &Node, right: &Node) -> Cypher {
             let query = format!(
                 "MATCH {} WITH * MERGE ({}){}{} RETURN ({})",
-                left.cypher_repr(),
+                left,
                 left.symbol(),
-                self.cypher_repr(),
-                right.cypher_repr(),
+                self,
+                right,
                 left.symbol()
             );
             Cypher::new(query, false)
@@ -136,9 +140,9 @@ pub mod links {
         pub fn delete_child(&self, left: &Node, right: &Node) -> Cypher {
             let query = format!(
                 "MATCH {}{}{} WHERE NOT {}:Provider DETACH DELETE {}", 
-                left.cypher_repr(), 
-                self.cypher_repr(), 
-                right.cypher_repr(), 
+                left, 
+                self, 
+                right, 
                 right.symbol(), 
                 right.symbol()
             );
@@ -155,10 +159,10 @@ pub mod links {
         pub fn delete(&self, left: &Node, right: &Node) -> Cypher {
             let query = format!(
                 "MATCH {} OPTIONAL MATCH ({}){}{} WHERE NOT {}: Provider DETACH DELETE {}, {}", 
-                left.cypher_repr(), 
+                left, 
                 left.symbol(), 
-                self.cypher_repr(), 
-                right.cypher_repr(), 
+                self, 
+                right, 
                 right.symbol(), 
                 left.symbol(), 
                 right.symbol()

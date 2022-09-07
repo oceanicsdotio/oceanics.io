@@ -25,7 +25,7 @@ enum Authentication {
     Basic = "BasicAuth"
 }
 
-enum HttpMethod {
+export enum HttpMethod {
     POST = "POST",
     PUT = "PUT",
     OPTIONS = "OPTIONS",
@@ -93,7 +93,7 @@ const apiKeyAuth = (context: RequestContext, { ["x-api-key"]: apiKey }: Headers,
     // Only for registration on /auth route
     context.auth = Authentication.ApiKey;
     const provider = Node.provider(JSON.stringify({apiKey}));
-    if (!provider.patternOnly().includes("apiKey"))
+    if (!provider.pattern.includes("apiKey"))
         throw Error(`API key auth claim missing .apiKey`)
     
     // Works as existence check, because we strip blank strings
