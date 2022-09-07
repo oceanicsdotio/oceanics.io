@@ -5,7 +5,7 @@ import { Logtail } from "@logtail/node";
 import { ILogtailLog } from "@logtail/types";
 
 import * as db from "./queries";
-import { Node, RequestContext, Query, ErrorDetail } from "oceanics-io-api-wasm";
+import { Node, RequestContext, Query, ErrorDetail, FunctionContext } from "oceanics-io-api-wasm";
 
 
 // Type for handlers, before response processing
@@ -137,7 +137,7 @@ const authMethod = (pathSpec: unknown, httpMethod: HttpMethod) => {
 export function NetlifyRouter(methods: {
     [key in HttpMethod]?: ApiHandler;
 }, pathSpec?: unknown): Handler {
-   
+    const route = new FunctionContext(pathSpec);
     const _methods = {
         ...methods,
         OPTIONS: () => Object({
@@ -147,7 +147,8 @@ export function NetlifyRouter(methods: {
     }
 
     /**
-     * Return the actual bound handler.
+     * The actual bound handler that will be run when
+     * serving a query response.
      */
     const ApiHandler = async function ({
         httpMethod: _method,
@@ -155,25 +156,25 @@ export function NetlifyRouter(methods: {
         headers,
         queryStringParameters
     }: HandlerEvent) {
-        const query = queryStringParameters as unknown as Query;
         const httpMethod = _method as HttpMethod;
-        const context = new RequestContext(query, httpMethod);
+        const context: RequestContext = route.context(
+            queryStringParameters as unknown as Query, 
+            httpMethod
+        );
         const handler: ApiHandler = _methods[httpMethod];
         if (typeof handler === "undefined") {
             const detail = ErrorDetail.invalidMethod();
             logging.warn(`Invalid method`, context.log_line(detail.statusCode));
             return detail
         }
-    
         try {
-            const auth = authMethod(pathSpec, httpMethod);
             context.auth(headers, body??"{}");
         } catch ({message}) {
             const detail = ErrorDetail.unauthorized();
             logging.error(message, context.log_line(detail.statusCode));
             return detail
         }
-        const response = await handler({
+        const response = await context.handler({
             context,
             queryStringParameters
         }).then(transformResponse);
