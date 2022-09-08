@@ -11,6 +11,7 @@ pub mod cypher {
     #[derive(Debug, Deserialize, Serialize)]
     #[serde(rename_all = "camelCase")]
     pub struct Cypher {
+        #[wasm_bindgen(js_name = "readOnly")]
         pub read_only: bool,
         query: String,
     }

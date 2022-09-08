@@ -10,7 +10,7 @@ describe("idempotent", function() {
    */
   describe("middleware", function () {
 
-    describe("class Node", function (){
+    describe("Node", function (){
 
       test.concurrent("create empty node", async function () {
         const node = new Node(undefined, undefined, undefined);
@@ -46,10 +46,67 @@ describe("idempotent", function() {
         expect(node.uuid).toBe(example.uuid);
       })
 
-      // test.concurrent("constructor", async function () {
-      //   // const node = new Node();
-      // })
+      test.concurrent("errors on create query without label", async function() {
+        const node = new Node('{"uuid":"test"}', undefined, undefined);
+        let query = null;
+        let error = null;
+        try {
+          query = node.create();
+        } catch (_error) {
+          error = _error.message;
+        }
+        expect(query).toBe(null);
+        expect(error).not.toBeFalsy();
+      })
+
+      test.concurrent("errors on create query without props", async function() {
+        const node = new Node(undefined, undefined, "Things");
+        let query = null;
+        let error = null;
+        try {
+          query = node.create();
+        } catch (_error) {
+          error = _error.message;
+        }
+        expect(query).toBe(null);
+        expect(error).not.toBeFalsy();
+      })
+
+      test.concurrent("produces create query", async function() {
+        const node = new Node('{"uuid":"test"}', undefined, "Things");
+        const query = node.create();
+        expect(query.readOnly).toBe(false);
+      })
+
+      test.concurrent("produces count query", async function() {
+        const query = (new Node()).count();
+        expect(query.readOnly).toBe(true);
+      })
+
+      test.concurrent("produces load query", async function() {
+        const query = (new Node()).load();
+        expect(query.readOnly).toBe(true);
+      })
+
+      test.concurrent("produces delete query", async function() {
+        const query = (new Node()).delete();
+        expect(query.readOnly).toBe(false);
+      })
+
+      test.concurrent("produces mutate query", async function() {
+        const updates = new Node();
+        const query = (new Node()).mutate(updates);
+        expect(query.readOnly).toBe(false);
+      })
+
+
     })
+
+    // describe("Links", function() {
+    //   test.concurrent("", async function() {
+
+    //   })
+    // })
 
     // test.concurrent("reversible operations", async function () {
     //   const claim = {
