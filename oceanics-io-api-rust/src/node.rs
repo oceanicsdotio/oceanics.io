@@ -7,7 +7,10 @@ pub mod node {
     use crate::cypher::cypher::Cypher;
     use serde_json::Value;
 
+    const READ_ONLY: bool = true;
+    const WRITE: bool = false;
 
+ 
     fn string_or(value: &Option<String>, default: String) -> String {
         match &value {
             None => default,
@@ -82,7 +85,6 @@ pub mod node {
      * data structure.
      */
     impl fmt::Display for Node {
-        
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             let label = match &self.label {
                 None => String::from(""),
@@ -151,13 +153,13 @@ pub mod node {
         pub fn uuid(&self) -> String {
             let null = String::from("");
             let key = String::from("uuid");
-            match &self.properties {
-                Some(lookup) => {
-                    let _null = Value::String(null);
-                    lookup.get(&key).unwrap_or(&_null).to_string()
-                },
-                None => null
-            }
+            let _null = Value::String(null);
+            let raw = match &self.properties {
+                Some(lookup) =>
+                    lookup.get(&key).unwrap_or(&_null).as_str(),
+                None => Some("")
+            };
+            String::from(raw.unwrap())
         }
     }
 
@@ -173,7 +175,7 @@ pub mod node {
         #[wasm_bindgen(static_method_of = Node)]
         pub fn all_labels() -> Cypher {
             let query = String::from("CALL db.labels()");
-            Cypher::new(query, true)
+            Cypher::new(query, READ_ONLY)
         }
 
         /**
@@ -185,7 +187,7 @@ pub mod node {
                 self,
                 self.symbol()
             );
-            Cypher::new(query, false)
+            Cypher::new(query, READ_ONLY)
         }
 
         /**
@@ -198,7 +200,7 @@ pub mod node {
                 self.symbol(),
                 label
             );
-            Cypher::new(query, false)
+            Cypher::new(query, WRITE)
         }
 
         /**
@@ -211,7 +213,7 @@ pub mod node {
                 self.symbol(),
                 self.symbol()
             );
-            Cypher::new(query, false)
+            Cypher::new(query, WRITE)
         }
 
         /**
@@ -225,7 +227,7 @@ pub mod node {
                 self.symbol(),
                 updates.pattern()
             );
-            Cypher::new(query, false)
+            Cypher::new(query, WRITE)
         }
         /**
          * Generate a query to load data from the database.
@@ -241,14 +243,26 @@ pub mod node {
                 self.symbol(),
                 variable
             );
-            Cypher::new(query, true)
+            Cypher::new(query, READ_ONLY)
         }
 
         /**
-         * Create or update a node. 
+         * Create or update a node. Throw an error if the node
+         * has no properties. Should in no case create an
+         * instance without uuid or other indexed identifier.
+         * 
+         * The query itself will fail if no label, but we 
+         * should check early, rather than hitting the 
+         * database.
          */
         pub fn create(&self) -> Cypher {
-            Cypher::new(format!("MERGE {}", self), false)
+            if self.properties.is_none() {
+                panic!("Cannot create a node without properties")
+            }
+            if self.label.is_none() {
+                panic!("Cannot create a node without label")
+            }
+            Cypher::new(format!("MERGE {}", self), WRITE)
         }
     }
 
