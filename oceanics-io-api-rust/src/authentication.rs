@@ -36,19 +36,19 @@ pub mod authentication  {
      * Authentication matching enum. 
      */
     #[wasm_bindgen]
-    #[derive(Debug, PartialEq, Serialize, Copy, Clone)]
+    #[derive(Debug, PartialEq, Serialize, Deserialize, Copy, Clone)]
     pub enum Authentication {
-        Bearer = "BearerAuth",
-        ApiKey = "ApiKeyAuth",
-        Basic = "BasicAuth"
+        BearerAuth = "BearerAuth",
+        ApiKeyAuth = "ApiKeyAuth",
+        BasicAuth = "BasicAuth"
     }
     impl FromStr for Authentication {
         type Err = ();
         fn from_str(input: &str) -> Result<Authentication, Self::Err> {
             match input {
-                "BearerAuth" => Ok(Authentication::Bearer),
-                "ApiKeyAuth" => Ok(Authentication::ApiKey),
-                "BasicAuth" => Ok(Authentication::Basic),
+                "BearerAuth" => Ok(Authentication::BearerAuth),
+                "ApiKeyAuth" => Ok(Authentication::ApiKeyAuth),
+                "BasicAuth" => Ok(Authentication::BasicAuth),
                 _ => Err(()),
             }
         }
@@ -59,7 +59,7 @@ pub mod authentication  {
      * array. Only one of these will be truthy at a time. 
      */
     #[wasm_bindgen]
-    #[derive(PartialEq, Eq, Deserialize)]
+    #[derive(PartialEq, Eq, Deserialize, Serialize)]
     #[serde(rename_all = "camelCase")]
     pub struct Security {
         api_key_auth: Option<Vec<Value>>,
@@ -80,15 +80,15 @@ pub mod authentication  {
                 Security {
                     api_key_auth: Some(_),
                     ..
-                } => Authentication::ApiKey,
+                } => Authentication::ApiKeyAuth,
                 Security {
                     bearer_auth: Some(_),
                     ..
-                } => Authentication::Bearer,
+                } => Authentication::BearerAuth,
                 Security {
                     basic_auth: Some(_),
                     ..
-                } => Authentication::Basic,
+                } => Authentication::BasicAuth,
                 _ => {
                     panic!("Blocking unauthenticated endpoint");
                 }
@@ -103,7 +103,7 @@ pub mod authentication  {
      * between the two. 
      */
     #[wasm_bindgen]
-    #[derive(Serialize, Deserialize)]
+    #[derive(Serialize, Deserialize, Clone)]
     pub struct User {
         email: Option<String>,
         password: Option<String>,
