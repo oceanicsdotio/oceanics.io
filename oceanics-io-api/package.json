@@ -40,6 +40,8 @@
         "netlify-lambda": "^2.0.16",
         "node-fetch": "^3.3.2",
         "typescript": "^5.2.2",
+        "@types/btoa": "^1.2.3",
+        "btoa": "^1.2.1",
         "gray-matter": "^4.0.3",
         "yaml": "^2.1.1"
     },

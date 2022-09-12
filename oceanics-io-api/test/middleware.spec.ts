@@ -1,7 +1,20 @@
 import { describe, expect, test } from '@jest/globals';
-import { HttpMethod } from "../src/shared/middleware";
-import crypto from "crypto";
-import { Node, Cypher } from "oceanics-io-api-wasm";
+import { Node, Constraint, Cypher, Links } from "oceanics-io-api-wasm";
+
+
+const THINGS = "Things"
+
+const expectError = (node: Node, method: string, ...args: unknown[]) => {
+  let error = null;
+  let query = null;
+  try {
+    query = node[method](...args)
+  } catch (_error) {
+    error = _error.message;
+  }
+  expect(query).toBe(null)
+  expect(error).not.toBeFalsy()
+}
 
 describe("idempotent", function() {
   /**
@@ -12,7 +25,11 @@ describe("idempotent", function() {
 
     describe("Node", function (){
 
-      test.concurrent("create empty node", async function () {
+      const EXAMPLE = {
+        uuid: "just-a-test"
+      };
+
+      test.concurrent("constructs empty node", async function () {
         const node = new Node(undefined, undefined, undefined);
         expect(node.symbol).toBe("n");
         expect(node.label).toBe("");
@@ -20,130 +37,114 @@ describe("idempotent", function() {
         expect(node.uuid).toBe("");
       })
 
-      test.concurrent("create labeled node", async function () {
-        const label = "Things";
-        const node = new Node(undefined, undefined, label);
+      test.concurrent("constructs labeled node", async function () {
+        const node = new Node(undefined, undefined, THINGS);
         expect(node.symbol).toBe("n");
-        expect(node.label).toBe(label);
+        expect(node.label).toBe(THINGS);
         expect(node.pattern).toBe("");
         expect(node.uuid).toBe("");
       })
 
-      test.concurrent("create materialized node", async function () {
-        const label = "Things";
-        const example = {
-          uuid: "just-a-test"
-        };
-        const propString = JSON.stringify(example)
-        const node = new Node(propString, undefined, label);
-        console.log({
-          pattern: node.pattern,
-          propString
-        })
+      test.concurrent("constructs materialized node", async function () {
+        const propString = JSON.stringify(EXAMPLE)
+        const node = new Node(propString, undefined, THINGS);
         expect(node.symbol).toBe("n");
-        expect(node.label).toBe(label);
-        expect(node.pattern).toContain(example.uuid);
-        expect(node.uuid).toBe(example.uuid);
+        expect(node.label).toBe(THINGS);
+        expect(node.pattern).toContain(EXAMPLE.uuid);
+        expect(node.uuid).toBe(EXAMPLE.uuid);
       })
 
-      test.concurrent("errors on create query without label", async function() {
-        const node = new Node('{"uuid":"test"}', undefined, undefined);
-        let query = null;
-        let error = null;
-        try {
-          query = node.create();
-        } catch (_error) {
-          error = _error.message;
-        }
-        expect(query).toBe(null);
-        expect(error).not.toBeFalsy();
+      // Test queries that require properties to exist
+      test.concurrent.each([
+        "create"
+      ])("errors on %s query without props", async function(method: string) {
+        const node = new Node(undefined, undefined, THINGS);
+        expectError(node, method)
       })
 
-      test.concurrent("errors on create query without props", async function() {
-        const node = new Node(undefined, undefined, "Things");
-        let query = null;
-        let error = null;
-        try {
-          query = node.create();
-        } catch (_error) {
-          error = _error.message;
-        }
-        expect(query).toBe(null);
-        expect(error).not.toBeFalsy();
+      // Test queries that require label to exist
+      test.concurrent.each([
+        ["count", undefined],
+        ["load", undefined],
+        ["create", JSON.stringify(EXAMPLE)]
+      ])("errors on %s query without label", async function(method: string, props: string) {
+        const node = new Node(props, undefined, undefined);
+        expectError(node, method)
       })
 
-      test.concurrent("produces create query", async function() {
-        const node = new Node('{"uuid":"test"}', undefined, "Things");
-        const query = node.create();
-        expect(query.readOnly).toBe(false);
+      test.concurrent.each([
+        ["count", true, undefined],
+        ["load", true, undefined],
+        ["create", false, JSON.stringify(EXAMPLE)]
+      ])("produces %s query", async function(method: string, readOnly: boolean, props: string) {
+        const node = new Node(props, undefined, THINGS);
+        const query = node[method]();
+        expect(query.readOnly).toBe(readOnly);
+        expect(query.query.length).toBeGreaterThan(0);
       })
 
-      test.concurrent("produces count query", async function() {
-        const query = (new Node()).count();
-        expect(query.readOnly).toBe(true);
-      })
-
-      test.concurrent("produces load query", async function() {
-        const query = (new Node()).load();
-        expect(query.readOnly).toBe(true);
-      })
 
       test.concurrent("produces delete query", async function() {
-        const query = (new Node()).delete();
+        const node = new Node(undefined, undefined, undefined)
+        const query = node.delete();
         expect(query.readOnly).toBe(false);
+        expect(query.query.length).toBeGreaterThan(0);
+        expect(query.query).toContain("DETACH DELETE");
+      })
+
+      test.concurrent.each([
+        ["self props", undefined, THINGS, EXAMPLE, THINGS],
+        ["self label", EXAMPLE, undefined, EXAMPLE, THINGS],
+        ["updates label", EXAMPLE, THINGS, EXAMPLE, undefined],
+        ["updates props", EXAMPLE, THINGS, undefined, THINGS],
+        ["matching labels", EXAMPLE, THINGS, undefined, "Sensors"]
+      ])("errors on mutate query without %s", async function(_, selfProps, selfLabel, insertProps, insertLabel) {
+        const _insertProps = typeof insertProps === "undefined" ?
+          undefined : JSON.stringify(insertProps)
+        const _selfProps = typeof selfProps === "undefined" ?
+        undefined : JSON.stringify(selfProps)
+        const updates = new Node(_insertProps, undefined, insertLabel);
+        const node = new Node(_selfProps, undefined, selfLabel);
+        expectError(node, "mutate", updates)
       })
 
       test.concurrent("produces mutate query", async function() {
-        const updates = new Node();
-        const query = (new Node()).mutate(updates);
+        const updates = new Node(JSON.stringify(EXAMPLE), undefined, THINGS);
+        const node = new Node(JSON.stringify(EXAMPLE), undefined, THINGS);
+        const query = node.mutate(updates);
         expect(query.readOnly).toBe(false);
+        expect(query.query.length).toBeGreaterThan(0);
+        expect(query.query).toContain("SET");
       })
-
-
     })
 
-    // describe("Links", function() {
-    //   test.concurrent("", async function() {
+    describe("Constraint", function() {
+      test.concurrent.each([
+        ["uniqueConstraint"],
+        ["dropIndex"],
+        ["createIndex"]
+      ])("produces %s query", async function () {
+        const constraint = new Constraint(THINGS, "uuid");
+        const cypher = constraint.uniqueConstraint();
+        expect(cypher).toBeInstanceOf(Cypher);
+        expect(cypher.query.length).toBeGreaterThan(0);
+        expect(cypher.readOnly).toBe(false);
+      })
+    })
 
-    //   })
-    // })
+    describe("Links", function() {
+      test.concurrent("constructs blank link", async function() {
+        const link = new Links(undefined, undefined, undefined, undefined);
+        expect(link.cost).toBe(undefined);
+        expect(link.rank).toBe(undefined);
+      })
 
-    // test.concurrent("reversible operations", async function () {
-    //   const claim = {
-    //     email: "test@oceanics.io",
-    //     uuid: crypto.randomUUID()
-    //   }
-    //   const user = Node.materialize(claim, "u", "User")
-    //   const props = user.dematerialize();
-    //   expect(props.email).toBe(claim.email)
-    //   expect(props.uuid).toBe(claim.uuid)
-    // })
-
-    // test.concurrent("parses get index path", async function () {
-    //   const nodes = Node.asNodes(HttpMethod.GET, "", {});
-    //   expect(nodes.length).toEqual(0)
-    // })
-
-    // test.concurrent("parses get entity path", async function () {
-    //   const uuid = `abcd`;
-    //   const [node] = Node.asNodes(HttpMethod.GET, "", {left: `DataStreams`, uuid});
-    //   expect(node.patternOnly()).toEqual(expect.stringContaining(uuid))
-    // })
-
-    // test.concurrent("parses post collection path", async function () {
-    //   const uuid = `abcd`;
-    //   const [node] = Node.asNodes(HttpMethod.POST, JSON.stringify({ uuid }), {left: `DataStreams`});
-    //   expect(node.patternOnly()).toEqual(expect.stringContaining(uuid))
-    // })
-
-    // test.concurrent("parses post topology path", async function () {
-    //   const uuid1 = `abcd`;
-    //   const uuid2 = `efgh`;
-    //   const [left, right] = Node.asNodes(HttpMethod.POST, JSON.stringify({ uuid2 }), {left: `DataStreams`, uuid: uuid1, right: "Things"});
-    //   expect(left.patternOnly()).toEqual(expect.stringContaining(uuid1));
-    //   expect(right.patternOnly()).toEqual(expect.stringContaining(uuid2));
-    // })
-
+      test.concurrent("constructs weighted link", async function() {
+        const link = new Links("Owns", 0, 0, undefined);
+        expect(link.cost).toBe(0);
+        expect(link.rank).toBe(0)
+      })
+    })
   })
 })
 

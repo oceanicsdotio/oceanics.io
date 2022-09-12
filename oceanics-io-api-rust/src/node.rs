@@ -1,16 +1,13 @@
 pub mod node {
     use serde::{Deserialize, Serialize};
+    use serde_json::Value;
     use std::collections::HashMap;
     use std::fmt;
     use wasm_bindgen::prelude::*;
 
-    use crate::cypher::cypher::Cypher;
-    use serde_json::Value;
+    use crate::cypher::cypher::{Cypher, READ_ONLY, WRITE};
 
-    const READ_ONLY: bool = true;
-    const WRITE: bool = false;
-
- 
+    // Convenience function for getting a String from Option.
     fn string_or(value: &Option<String>, default: String) -> String {
         match &value {
             None => default,
@@ -23,7 +20,7 @@ pub mod node {
      * representing entities in the Cypher query language.
      */
     #[wasm_bindgen]
-    #[derive(Debug, Deserialize, Serialize)]
+    #[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
     #[serde(rename_all = "camelCase")]
     pub struct Node {
         properties: Option<HashMap<String, Value>>,
@@ -77,6 +74,17 @@ pub mod node {
         fn _string_to_value(key_value: &str) -> (&str, &str) {
             let parts: Vec<&str> = key_value.split(": ").collect();
             (parts[0].trim(), &parts[1].trim()[1..])
+        }
+
+        pub fn from_hash_map(
+            properties: HashMap<String,Value>,
+            label: String,
+        ) -> Self {
+            Node {
+                properties: Some(properties),
+                symbol: None,
+                label: Some(label)
+            }
         }
     }
 
@@ -148,7 +156,7 @@ pub mod node {
             string_or(&self.label, String::from(""))
         }
 
-        // Often access by UUID
+        // Often accessed by UUID
         #[wasm_bindgen(getter)]
         pub fn uuid(&self) -> String {
             let null = String::from("");
@@ -179,9 +187,19 @@ pub mod node {
         }
 
         /**
-         * Count instances of the node label.
+         * Count instances of the node label. You can
+         * match properties, but you must match by labels.
+         * This can be used for query planning, or existence
+         * checks without returning potentially sensitive
+         * data to the middleware layer
          */
         pub fn count(&self) -> Cypher {
+            match &self.label {
+                Some(_) => {},
+                None => {
+                    panic!("Cannot count without label")
+                }
+            }
             let query = format!(
                 "MATCH {} RETURN count({})",
                 self,
@@ -191,7 +209,8 @@ pub mod node {
         }
 
         /**
-         * Apply new label to the node set matching the node pattern.
+         * Apply new label to the node set matching 
+         * the node pattern.
          */
         fn _add_label(&self, label: String) -> Cypher {
             let query = format!(
@@ -204,7 +223,15 @@ pub mod node {
         }
 
         /**
-         * Delete a node pattern from the graph.
+         * Delete a node pattern from the graph. This
+         * explicitly prevents Provider nodes from 
+         * being deleted.
+         * 
+         * This otherwise has no constraints, so the
+         * query can delete a single node, or everything.
+         * Generally you want the topological delete
+         * query for use cases other than draining a 
+         * database.
          */
         pub fn delete(&self) -> Cypher {
             let query = format!(
@@ -218,21 +245,47 @@ pub mod node {
 
         /**
          * Format a query that will merge a pattern 
-         * into all matching nodes.
+         * into all matching nodes. Both the target
+         * and the update Node must have some 
+         * properties. 
+         * 
+         * We also panic on queries without label,
+         * because there aren't common reasons to
+         * be applying generic mutations at this time. 
          */
-        pub fn mutate(&self, updates: Node) -> Cypher {
+        pub fn mutate(&self, updates: &Node) -> Cypher {
+            match (self, updates) {
+                (Node{properties: Some(_), label: Some(self_label), ..}, Node{properties: Some(_), label: Some(insert_label), ..}) => {
+                    if self_label != insert_label {
+                        panic!("Nodes must have a common label")
+                    }
+                },
+                (_, _) => {
+                    panic!("Cannot mutate using this pattern")
+                }
+            }
+          
             let query = format!(
                 "MATCH {} SET {} += {{ {} }}",
                 self,
                 self.symbol(),
-                updates.pattern()
+                self.pattern()
             );
             Cypher::new(query, WRITE)
         }
+
         /**
          * Generate a query to load data from the database.
+         * We require a label to prevent potential leaks of
+         * internal node data from a generic query.
          */
         pub fn load(&self, key: Option<String>) -> Cypher {
+            match &self.label {
+                None => {
+                    panic!("Cannot load without label")
+                },
+                Some(_) => {},
+            }
             let variable = match &key {
                 None => String::from(""),
                 Some(value) => format!(".{}", value)
@@ -256,13 +309,10 @@ pub mod node {
          * database.
          */
         pub fn create(&self) -> Cypher {
-            if self.properties.is_none() {
-                panic!("Cannot create a node without properties")
+            match self {
+                Node {properties: Some(_), label: Some(_), ..} => Cypher::new(format!("MERGE {}", self), WRITE),
+                _ => panic!("Invalid node pattern")
             }
-            if self.label.is_none() {
-                panic!("Cannot create a node without label")
-            }
-            Cypher::new(format!("MERGE {}", self), WRITE)
         }
     }
 
@@ -290,8 +340,8 @@ pub mod node {
         }
 
         /**
-         * Indexes add a unique constraint as well as speeding up queries
-         * on the graph database.
+         * Indexes add a unique constraint as well as 
+         * speeding up queries on the graph database.
          */
         #[wasm_bindgen(js_name = createIndex)]
         pub fn create_index(&self) -> Cypher {
@@ -299,20 +349,21 @@ pub mod node {
                 "CREATE INDEX IF NOT EXISTS FOR (n:{}) ON (n.{})",
                 self.label, self.key
             );
-            Cypher::new(query, false)
+            Cypher::new(query, WRITE)
         }
 
         /**
-         * Remove the index
+         * Remove the index.
          */
         #[wasm_bindgen(js_name = dropIndex)]
         pub fn drop_index(&self) -> Cypher {
             let query = format!("DROP INDEX ON : {}({})", self.label, self.key);
-            Cypher::new(query, false)
+            Cypher::new(query, WRITE)
         }
 
         /**
-         * Apply a unique constraint, without creating an index
+         * Apply a unique constraint, without creating 
+         * an index.
          */
         #[wasm_bindgen(js_name = uniqueConstraint)]
         pub fn unique_constraint(&self) -> Cypher {
@@ -320,7 +371,7 @@ pub mod node {
                 "CREATE CONSTRAINT IF NOT EXISTS FOR (n:{}) REQUIRE n.{} IS UNIQUE",
                 self.label, self.key
             );
-            Cypher::new(query, false)
+            Cypher::new(query, WRITE)
         }
     }
 }
