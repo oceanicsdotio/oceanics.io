@@ -1,8 +1,69 @@
 import fetch from "node-fetch";
-import { describe, expect, test } from '@jest/globals';
+import btoa from "btoa";
+import { describe, expect, test, beforeAll } from '@jest/globals';
 import { API_PATH, fetchToken, Authorization, register, apiFetch } from "./test-utils";
+import { Provider, Security, User, Node, panic_hook } from "oceanics-io-api-wasm";
 
 const AUTH_PATH = `${API_PATH}/auth`;
+
+// Bubble up stack trace from Rust
+beforeAll(panic_hook)
+
+describe("idempotent", function () {
+  describe("authentication middleware", function() {
+
+    test.concurrent("constructs ApiKeyAuth schema", async function () {
+      const security = new Security({apiKeyAuth: []})
+      expect(security.authentication).toBe("ApiKeyAuth")
+    })
+    test.concurrent("constructs BasicAuth schema", async function () {
+      const security = new Security({basicAuth: []})
+      expect(security.authentication).toBe("BasicAuth")
+    })
+    test.concurrent("constructs Security schema", async function () {
+      const security = new Security({bearerAuth: []})
+      expect(security.authentication).toBe("BearerAuth")
+    })
+    test.concurrent("constructs User", async function () {
+      const user = new User({
+        email: "user@example.com", 
+        password: btoa("password"), 
+        secret: btoa("secret")
+      });
+
+      expect(typeof user.credential).toBe("string");
+      expect(user.node).toBeInstanceOf(Node);
+    })
+    test.concurrent("verifies User", async function () {
+      const user = new User({
+        email: "user@example.com", 
+        password: btoa("password"), 
+        secret: btoa("secret")
+      });
+      expect(user.verify(user.credential)).toBe(true);
+    })
+    test.concurrent("errors on bad User credential", async function () {
+      const user = new User({
+        email: "user@example.com", 
+        password: btoa("password"), 
+        secret: btoa("secret")
+      });
+      const wrongPassword = new User({
+        email: "user@example.com", 
+        password: btoa("not_password"), 
+        secret: btoa("secret")
+      });
+      expect(user.verify(wrongPassword.credential)).toBe(false);
+    })
+    test.concurrent("constructs Provider", async function() {
+      const provider = new Provider({
+        apiKey: "this-is-my-key",
+        domain: "oceanics.io"
+      });
+      expect(provider.node).toBeInstanceOf(Node);
+    })
+  })
+})
 
 /**
  * Stand alone tests for Auth flow. Includes initial

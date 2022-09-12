@@ -6361,6 +6361,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/btoa@npm:^1.2.3":
+  version: 1.2.3
+  resolution: "@types/btoa@npm:1.2.3"
+  dependencies:
+    "@types/node": "*"
+  checksum: 76fff64a9a91639d124eaf36b6389af12c8717c81221d03524eadac056710a9d0aa076e99c553ec83c251cf215d8e38413c0f4e6fb6be36b0d761c5130e06d0f
+  languageName: node
+  linkType: hard
+
 "@types/cacheable-request@npm:^6.0.1":
   version: 6.0.2
   resolution: "@types/cacheable-request@npm:6.0.2"
@@ -9504,6 +9513,15 @@ __metadata:
   dependencies:
     node-int64: ^0.4.0
   checksum: 9ba4dc58ce86300c862bffc3ae91f00b2a03b01ee07f3564beeeaf82aa243b8b03ba53f123b0b842c190d4399b94697970c8e7cf7b1ea44b61aa28c3526a4449
+  languageName: node
+  linkType: hard
+
+"btoa@npm:^1.2.1":
+  version: 1.2.1
+  resolution: "btoa@npm:1.2.1"
+  bin:
+    btoa: bin/btoa.js
+  checksum: afbf004fb1b1d530e053ffa66ef5bd3878b101c59d808ac947fcff96810b4452abba2b54be687adadea2ba9efc7af48b04228742789bf824ef93f103767e690c
   languageName: node
   linkType: hard
 
@@ -21868,6 +21886,7 @@ __metadata:
     "@babel/preset-typescript": ^7.18.6
     "@logtail/node": ^0.1.12
     "@netlify/functions": ^1.2.0
+    "@types/btoa": ^1.2.3
     "@types/jest": ^28.1.8
     "@types/jsonwebtoken": ^8.5.6
     ajv: ^8.10.0
@@ -21875,6 +21894,7 @@ __metadata:
     apollo-server-lambda: ^3.8.1
     aws-sdk: ^2.1202.0
     babel-jest: ^28.1.3
+    btoa: ^1.2.1
     gray-matter: ^4.0.3
     jest: ^28.1.3
     js-yaml: ^4.1.0

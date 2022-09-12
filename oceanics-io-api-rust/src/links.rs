@@ -2,7 +2,7 @@ pub mod links {
     use wasm_bindgen::prelude::*;
     use serde::{Deserialize, Serialize};
     use std::fmt;
-    use crate::cypher::cypher::Cypher;
+    use crate::cypher::cypher::{Cypher, WRITE, READ_ONLY};
     use crate::node::node::Node;
 
     /**
@@ -84,7 +84,7 @@ pub mod links {
                 self,
                 right
             );
-            Cypher::new(query, false)
+            Cypher::new(query, WRITE)
         }
 
         /**
@@ -99,7 +99,7 @@ pub mod links {
                 self,
                 right.symbol()
             );
-            Cypher::new(query, false)
+            Cypher::new(query, WRITE)
         }
 
         /**
@@ -116,7 +116,7 @@ pub mod links {
                 right.symbol(),
                 result
             );
-            Cypher::new(query, true)
+            Cypher::new(query, READ_ONLY)
         }
 
         pub fn insert(&self, left: &Node, right: &Node) -> Cypher {
@@ -128,7 +128,7 @@ pub mod links {
                 right,
                 left.symbol()
             );
-            Cypher::new(query, false)
+            Cypher::new(query, WRITE)
         }
 
         /**
@@ -146,7 +146,7 @@ pub mod links {
                 right.symbol(), 
                 right.symbol()
             );
-            Cypher::new(query, false)
+            Cypher::new(query, WRITE)
         }
 
         /**
@@ -167,7 +167,7 @@ pub mod links {
                 left.symbol(), 
                 right.symbol()
             );
-            Cypher::new(query, false)
+            Cypher::new(query, WRITE)
         }
     }
 }

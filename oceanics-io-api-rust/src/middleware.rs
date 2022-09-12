@@ -14,6 +14,7 @@ pub mod middleware {
     use uuid::Uuid;
 
     use crate::node::node::Node;
+    use crate::authentication::authentication::{Authentication,Security,Provider,User};
 
     /**
      * Return empty string instead of None. 
@@ -26,17 +27,11 @@ pub mod middleware {
     }
 
     /**
-     * Schema for individual item in OpenAPI security object
-     * array. Only one of these will be truthy at a time. 
+     * Handlers correspond to a unique combination
+     * of endpoint and HTTP method. The OpenApi3
+     * specification provides the security definition
+     * we use to choose an auth strategy.
      */
-    #[wasm_bindgen]
-    #[derive(PartialEq, Eq)]
-    pub struct Security {
-        api_key_auth: Option<Vec<Value>>,
-        bearer_auth: Option<Vec<Value>>,
-        basic_auth: Option<Vec<Value>>
-    }
-
     pub struct Handler {
         security: Vec<Security>
     }
@@ -44,26 +39,16 @@ pub mod middleware {
     impl Handler {
         fn authentication(&self) -> Authentication {
             let security = self.security.get(0).unwrap();
-            match security {
-                Security {
-                    api_key_auth: Some(_),
-                    ..
-                } => Authentication::ApiKey,
-                Security {
-                    bearer_auth: Some(_),
-                    ..
-                } => Authentication::Bearer,
-                Security {
-                    basic_auth: Some(_),
-                    ..
-                } => Authentication::Basic,
-                _ => {
-                    panic!("Blocking unauthenticated endpoint");
-                }
-            }
+            security.authentication()
         }
     }
 
+    /**
+     * The Path corresponds to the OpenApi
+     * specification, and should have a 
+     * handler for each HTTP method listed
+     * in the spec.
+     */
     #[wasm_bindgen]
     pub struct Path {
         post: Option<Handler>,
@@ -97,119 +82,6 @@ pub mod middleware {
         }
     }
 
-    /**
-     * Users are a special type of internal node. They
-     * have some special checks and methods that do not
-     * apply to Nodes, so we provide methods for transforming
-     * between the two. 
-     */
-    struct User {
-        email: Option<String>,
-        password: Option<String>,
-        secret: Option<String>,
-        uuid: Option<Uuid>
-    }
-
-    impl fmt::Display for User {
-        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            match self {
-                User { email: Some(email), .. } => write!(f, "{}", email),
-                User { uuid: Some(uuid), .. } => write!(f, "{}", uuid),
-                _ => write!(f, "{}", "undefined")
-            }
-        }
-    }
-
-    impl User {
-        // Creation requires inputs
-        pub fn new(
-            email: String,
-            password: String,
-            secret: String
-        ) -> Self {
-            let uuid = Uuid::new_v4();
-            User {
-                email: Some(email),
-                password: Some(password),
-                secret: Some(secret),
-                uuid: Some(uuid)
-            }
-        }
-
-        fn from_basic_auth(
-            email: String,
-            password: String,
-            secret: String, 
-        ) -> Self {
-            User {
-                email: Some(email),
-                password: Some(password),
-                secret: Some(secret),
-                uuid: None
-            }
-        }
-
-        // fn from_bearer_auth(
-        //     token: String,
-        // ) -> Self {
-        //     User {
-        //         email: None,
-        //         password: None,
-        //         secret: None,
-        //         uuid: None
-        //     }
-        // }
-
-        fn credential(&self) -> String {
-            let password_bytes = match &self.password {
-                Some(password) => password.as_bytes(),
-                None => { panic!("Password is not defined"); }
-            };
-            let salt = match &self.secret {
-                Some(secret) => secret,
-                None => { panic!("Secret is not defined"); }
-            };
-            let result = Pbkdf2.hash_password(
-                password_bytes,
-                salt
-            );
-            match result {
-                Ok(value) => value.to_string(),
-                _ => { panic!("Problem hashing password."); }
-            }
-        }
-
-        // Create a generic graph node representation
-        // fn node(&self) -> Node {
-        //     let props: HashMap<String, Value> = HashMap::from([
-        //         (String::from("uuid"), Value::String(format!("{}", self.uuid.unwrap())))
-        //     ]);
-        //     Node::deserialize(
-        //         &props, 
-        //         &String::from("u"), 
-        //         &String::from("User")
-        //     )
-        // }
-    }
-
-    /**
-     * Like Users, Providers are a special type of internal Node
-     * used by the authentication middleware. 
-     */
-    struct Provider {
-        api_key: String
-    }
-
-    impl Provider {
-        fn new(api_key: String) -> Self {
-            Provider { api_key }
-        }
-        // fn node(&self) -> Node {
-        //     Node {
-
-        //     }
-        // }
-    }
 
     /**
      * After passing through edge functions, API requests
@@ -268,28 +140,6 @@ pub mod middleware {
                 "DELETE" => Ok(HttpMethod::DELETE),
                 "GET" => Ok(HttpMethod::GET),
                 "HEAD" => Ok(HttpMethod::HEAD),
-                _ => Err(()),
-            }
-        }
-    }
-
-    /**
-     * Authentication matching
-     */
-    #[wasm_bindgen]
-    #[derive(Debug, PartialEq, Serialize, Copy, Clone)]
-    pub enum Authentication {
-        Bearer = "BearerAuth",
-        ApiKey = "ApiKey",
-        Basic = "BasicAuth"
-    }
-    impl FromStr for Authentication {
-        type Err = ();
-        fn from_str(input: &str) -> Result<Authentication, Self::Err> {
-            match input {
-                "BearerAuth" => Ok(Authentication::Bearer),
-                "ApiKeyAuth" => Ok(Authentication::ApiKey),
-                "BasicAuth" => Ok(Authentication::Basic),
                 _ => Err(()),
             }
         }

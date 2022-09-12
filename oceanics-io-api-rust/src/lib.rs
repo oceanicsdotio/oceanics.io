@@ -3,6 +3,7 @@ mod node;
 mod links;
 mod memo;
 mod middleware;
+mod authentication;
 
 use wasm_bindgen::prelude::*;
 

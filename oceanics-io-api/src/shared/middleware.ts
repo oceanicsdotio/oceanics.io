@@ -5,7 +5,7 @@ import { Logtail } from "@logtail/node";
 import { ILogtailLog } from "@logtail/types";
 
 import * as db from "./queries";
-import { Node, RequestContext, Query, ErrorDetail, FunctionContext } from "oceanics-io-api-wasm";
+import { Node, RequestContext, Query, ErrorDetail, FunctionContext, User } from "oceanics-io-api-wasm";
 
 
 // Type for handlers, before response processing
