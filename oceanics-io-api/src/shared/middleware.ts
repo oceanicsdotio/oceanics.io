@@ -94,7 +94,7 @@ const apiKeyAuth = ({ ["x-api-key"]: apiKey }: Headers, body: string) => {
  * The side-effect is that it can be hard to tell the difference between a 404 and
  * 403 error. 
  */
-export function NetlifyRouter(methods: {
+export function Router(methods: {
     [key in HttpMethod]?: ApiHandler;
 }, pathSpec?: unknown): Handler {
     const context = new FunctionContext(pathSpec);
@@ -102,11 +102,7 @@ export function NetlifyRouter(methods: {
         context.insertMethod(key, value);
     })
 
-    /**
-     * The actual bound handler that will be run when
-     * serving a query response.
-     */
-    const ApiHandler = async function ({
+    const Handler = async function ({
         httpMethod,
         body,
         headers,
@@ -158,5 +154,5 @@ export function NetlifyRouter(methods: {
         return (response);
     }
 
-    return ApiHandler;
+    return Handler;
 }

@@ -4,7 +4,7 @@ pub mod middleware {
     use chrono::prelude::*;
 
     use wasm_bindgen::prelude::*;
-    use js_sys::{JsString, Function};
+    use js_sys::Function;
 
     use serde::{Deserialize, Serialize};
     use serde_json::{Value, json};
@@ -283,13 +283,22 @@ pub mod middleware {
             }
         }
 
-        pub fn new(query: Query, http_method: HttpMethod, handler: Function) -> Self {
+        pub fn new(
+            query: Query,
+            http_method: HttpMethod, 
+            handler: Function, 
+            body: Option<String>
+        ) -> Self {
+            let mut data: HashMap<String, Value> = match &http_method {
+                HttpMethod::POST | HttpMethod::PUT => serde_json::from_str(&*body.unwrap()).unwrap(),
+                _ => HashMap::with_capacity(0),
+            };
             RequestContext {
                 nodes: Vec::with_capacity(2),
                 user: None, 
                 provider: None, 
                 http_method, 
-                data: HashMap::new(), 
+                data, 
                 query, 
                 auth: None,
                 start: Local::now(),
@@ -320,84 +329,52 @@ pub mod middleware {
             (Local::now() - self.start).num_milliseconds() as f64
         }
 
-        fn basic_auth_claim(
-            &mut self, 
-            email: String, 
-            credential: String
-        ) {
-            self.auth = Some(Authentication::BasicAuth);
-            // const [email, password, secret] = authorization.split(":");
-            // const user = Node.user(JSON.stringify({ email, credential: hashPassword(password, secret) }));
-            // Node{}
+        fn multiple_nodes(left: String, uuid: String, right: String, data: HashMap<String, Value>) -> Vec<Node> {
+            let mut left_props: HashMap<String, Value> = HashMap::from([(
+                String::from("uuid"), Value::String(uuid)
+            )]);
+            vec![
+                Node::from_hash_map_and_symbol(left_props, String::from("n0"), left),
+                Node::from_hash_map_and_symbol(data, String::from("n1"), right),
+            ]
         }
 
-        fn api_key_claim(&self, apiKey: String, body: String) {
-            // check apiKey format
+        fn collection(left: String, data: HashMap<String, Value>) -> Vec<Node> {
+            vec![
+                Node::from_hash_map(data, left)
+            ]
+        }
 
-            let provider = Node::provider(json!({"apiKey": apiKey}));
+        fn entity(left: String, uuid: String, mut data: HashMap<String, Value>) -> Vec<Node> {
+            data.insert(String::from("uuid"), Value::String(uuid));
+            vec![
+                Node::from_hash_map(data, left)
+            ]
+        }
 
-            // Works as existence check, because we strip blank strings
-            let {
-                email="",
-                password="",
-                secret=""
-            } = JSON.parse(body);
-            const user = User {
-
+        fn nodes(&self, data: HashMap<String, Value>) -> Vec<Node> {
+            match &self.query {
+                Query {
+                    right: Some(right),
+                    left: Some(left),
+                    uuid: Some(uuid),
+                } =>
+                    RequestContext::multiple_nodes(left.to_string(), uuid.to_string(), right.to_string(), data),
+                Query {
+                    right: None,
+                    left: Some(left),
+                    uuid: Some(uuid),
+                } => 
+                    RequestContext::entity(left.to_string(), uuid.to_string(), data),
+                Query {
+                    right: None,
+                    left: Some(left),
+                    uuid: None,
+                } => 
+                    RequestContext::collection(left.to_string(), data),
+                _ => vec![],
             }
-                email, password, secret
-            );
-            return {provider, user: user.node}
-
         }
-
-        fn bearer_auth_claim(&self, authorization: String) {
-            let parts: Vec<&str> = authorization.split(":").collect();
-            let token = parts[1];
-
-        }
-
-
-
-        // pub fn new(http_method: String, body: Option<String>, query: Query) -> RequestContext {
-        //     let mut data: HashMap<String, Value> = match &*http_method {
-        //         "POST" | "PUT" => serde_json::from_str(&*body.unwrap()).unwrap(),
-        //         _ => HashMap::with_capacity(0),
-        //     };
-            
-        //     let nodes = match &query {
-        //         Query {
-        //             right: Some(right),
-        //             left: Some(left),
-        //             uuid: Some(uuid),
-        //         } => {
-        //             let mut left_props: HashMap<String, Value> = HashMap::with_capacity(1);
-        //             left_props.insert(String::from("uuid"), Value::String(*uuid));
-        //             let left_node = 
-
-        //             vec![
-        //                 Node::deserialize(left_props, String::from("n0"), left),
-        //                 Node::deserialize(data, String::from("n1"), right),
-        //             ]
-        //         }
-        //         Query {
-        //             right: None,
-        //             left: Some(left),
-        //             uuid: Some(uuid),
-        //         } => {
-        //             data.insert(String::from("uuid"), Value::String(uuid));
-        //             vec![Node::deserialize(data, String::from("n"), left)]
-        //         }
-        //         Query {
-        //             right: None,
-        //             left: Some(left),
-        //             uuid: None,
-        //         } => vec![Node::deserialize(data, String::from("n"), left)],
-        //         _ => vec![],
-        //     };
-
-        //     RequestContext { nodes, http_method, data, query }
-        // }
     }
 
     #[wasm_bindgen]
@@ -458,19 +435,19 @@ pub mod middleware {
          * Get singleton context. Should only
          * be called once per function/endpoint.
          */
-        pub fn request(&self, query: Query, http_method: HttpMethod) -> RequestContext {
+        pub fn request(
+            &self, 
+            query: Query, 
+            http_method: HttpMethod,
+            body: Option<String>
+        ) -> RequestContext {
             let handler = self.methods.get(&http_method).unwrap();
-            RequestContext { 
-                nodes: vec![], 
-                user: None, 
-                provider: None, 
-                http_method, 
-                data: HashMap::new(), 
+            RequestContext::new(
                 query, 
-                auth: None, 
-                start: Local::now(), 
-                handler: None
-            }
+                http_method,
+                handler,
+                body
+            )
         }
     }
 

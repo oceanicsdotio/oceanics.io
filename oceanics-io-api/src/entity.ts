@@ -1,4 +1,4 @@
-import { NetlifyRouter } from "./shared/middleware";
+import { Router } from "./shared/middleware";
 import * as db from "./shared/queries";
 import type { ApiHandler } from "./shared/middleware";
 import apiSpec from "./shared/bathysphere.json";
@@ -34,7 +34,7 @@ const remove: ApiHandler = async ({data: {user, nodes: [entity]}}) => {
   }
 }
 
-export const handler = NetlifyRouter({
+export const handler = Router({
   GET: metadata,
   DELETE: remove
 }, apiSpec.paths["/{entity}({uuid})"])

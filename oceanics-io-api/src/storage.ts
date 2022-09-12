@@ -1,4 +1,4 @@
-import { NetlifyRouter } from "./shared/middleware";
+import { Router } from "./shared/middleware";
 import type { ApiHandler } from "./shared/middleware";
 import apiSpec from "./shared/bathysphere.json";
 
@@ -94,7 +94,7 @@ const retrieve: ApiHandler = async ({
     };
 }
 
-export const handler = NetlifyRouter({
+export const handler = Router({
     GET: retrieve,
     HEAD: metadata,
     POST: create

@@ -1,5 +1,5 @@
 import apiSpec from "./shared/bathysphere.json";
-import { NetlifyRouter } from "./shared/middleware";
+import { Router } from "./shared/middleware";
 import * as db from "./shared/queries";
 import type { ApiHandler } from "./shared/middleware";
 
@@ -13,6 +13,6 @@ const index: ApiHandler = async () => {
   };
 }
 
-export const handler = NetlifyRouter({
+export const handler = Router({
   GET: index
 }, apiSpec.paths["/"])
