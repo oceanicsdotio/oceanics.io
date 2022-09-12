@@ -22,13 +22,10 @@ export interface IAuth {
  * excluded passwords. Assume this is delegated to frontend. 
  */
 const register: ApiHandler = async ({
-  data: {
-    user,
-    provider
-  }
+  context
 }) => {
   try {
-    const domain = await db.register(provider, user);
+    const domain = await db.register(context.provider, user);
     return {
       data: {
         message: `Registered as a member of ${domain}.`

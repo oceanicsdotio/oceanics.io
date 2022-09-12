@@ -35,7 +35,7 @@ api: node_modules $(API_JSON) $(API)/src/**/* $(API)/src/* $(API)/tsconfig.json
 
 # Test just the WASM middleware
 api-test-middleware: $(API_WASM)
-	yarn workspace oceanics-io-api jest -t "authentication middleware" --verbose
+	yarn workspace oceanics-io-api jest -t "router middleware" --verbose
 
 # Test just Auth API to setup service account.
 api-test-auth: $(TEST_CACHE)

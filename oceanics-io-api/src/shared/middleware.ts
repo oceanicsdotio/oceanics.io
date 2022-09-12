@@ -5,7 +5,7 @@ import { Logtail } from "@logtail/node";
 import { ILogtailLog } from "@logtail/types";
 
 import * as db from "./queries";
-import { Node, RequestContext, Query, ErrorDetail, FunctionContext, User } from "oceanics-io-api-wasm";
+import { Provider, RequestContext, Query, ErrorDetail, FunctionContext, User } from "oceanics-io-api-wasm";
 
 
 // Type for handlers, before response processing
@@ -19,11 +19,6 @@ export type ApiHandler = (event: {
     data?: Record<string, unknown> | {name: string, url: string}[];
 }>
 
-enum Authentication {
-    Bearer = "BearerAuth",
-    ApiKey = "ApiKeyAuth",
-    Basic = "BasicAuth"
-}
 
 export enum HttpMethod {
     POST = "POST",
@@ -53,71 +48,36 @@ logging.use(async (log: ILogtailLog) => {
     }
 });
 
-// Make it a valid JSON response. Core API doesn't use other content types. 
-const transformResponse = ({extension="", data, statusCode, headers}) => {
-    return {
-        statusCode,
-        headers: {
-            ...headers,
-            'Content-Type': `application/${extension}json`
-        },
-        body: JSON.stringify(data)
-    };
-}
-
 /**
  * Matching pattern based on bearer token authorization with JWT. Used in Auth, and to 
  * validate other APIs.
  * 
  * Have to assume anything with uuid is valid until query hits
  */
-const bearerAuth = (context: RequestContext, { authorization="::" }: Headers) => {
-    context.auth = Authentication.Bearer;
+const bearerAuth = ({ authorization="::" }: Headers) => {
     const [, token] = authorization.split(":");
     const { uuid } = jwt.verify(token, process.env.SIGNING_KEY??"") as JwtPayload;
     if (!uuid)
         throw Error("Bearer token claim missing .uuid");
-    return {
-        user: Node.user(JSON.stringify({ uuid }))
-    }
+    return new User({ uuid })
 }
 
-const basicAuth = async (context: RequestContext, { authorization="::" }: Headers) => {
-    context.auth = Authentication.Basic;
+const basicAuth = async ({ authorization="::" }: Headers) => {
     const [email, password, secret] = authorization.split(":");
-    const user = User.from_basic_auth(email, password, secret);
-    return {user: await db.auth(user)}
+    const user = new User({email, password, secret});
+    return {user: await db.auth(user.node)}
 }
 
-const apiKeyAuth = (context: RequestContext, { ["x-api-key"]: apiKey }: Headers, body: string) => {
+const apiKeyAuth = ({ ["x-api-key"]: apiKey }: Headers, body: string) => {
     // Only for registration on /auth route
-    context.auth = Authentication.ApiKey;
-    const provider = Node.provider(JSON.stringify({apiKey}));
-    if (!provider.pattern.includes("apiKey"))
+    const provider = new Provider({apiKey});
+    if (!provider.node.pattern.includes("apiKey"))
         throw Error(`API key auth claim missing .apiKey`)
-    
     // Works as existence check, because we strip blank strings
-    const {
-        email="",
-        password="",
-        secret=""
-    } = JSON.parse(body);
-    const user = new User(
-        email, password, secret
-    );
+    const user = new User(JSON.parse(body));
     return {provider, user: user.node}
 }
 
-// security protocols if any
-const authMethod = (pathSpec: unknown, httpMethod: HttpMethod) => {
-    const reduceMethods = (lookup: unknown, schema: unknown) => Object.assign(lookup, schema);
-    const [security] = pathSpec[httpMethod.toLowerCase()].security.reduce(reduceMethods, {}); 
-    return {
-        [Authentication.Bearer]: bearerAuth,
-        [Authentication.ApiKey]: apiKeyAuth,
-        [Authentication.Basic]: basicAuth
-    }[security]; 
-}
 
 /**
  * Return a handler function depending on the HTTP method. Want to take 
@@ -137,53 +97,65 @@ const authMethod = (pathSpec: unknown, httpMethod: HttpMethod) => {
 export function NetlifyRouter(methods: {
     [key in HttpMethod]?: ApiHandler;
 }, pathSpec?: unknown): Handler {
-    const route = new FunctionContext(pathSpec);
-    const _methods = {
-        ...methods,
-        OPTIONS: () => Object({
-            statusCode: 204,
-            headers: { Allow: [HttpMethod.OPTIONS, ...Object.keys(methods)].join(",") }
-        })
-    }
+    const context = new FunctionContext(pathSpec);
+    Object.entries(methods).forEach((key: HttpMethod, value: ApiHandler) => {
+        context.insertMethod(key, value);
+    })
 
     /**
      * The actual bound handler that will be run when
      * serving a query response.
      */
     const ApiHandler = async function ({
-        httpMethod: _method,
+        httpMethod,
         body,
         headers,
         queryStringParameters
     }: HandlerEvent) {
-        const httpMethod = _method as HttpMethod;
-        const context: RequestContext = route.context(
-            queryStringParameters as unknown as Query, 
-            httpMethod
-        );
-        const handler: ApiHandler = _methods[httpMethod];
-        if (typeof handler === "undefined") {
-            const detail = ErrorDetail.invalidMethod();
-            logging.warn(`Invalid method`, context.log_line(detail.statusCode));
+        let request: RequestContext;
+        let detail: ErrorDetail;
+        try {
+            request = context.request(
+                queryStringParameters as unknown as Query, 
+                httpMethod as HttpMethod
+            );
+        } catch ({message}) {
+            detail = ErrorDetail.invalidMethod();
+            logging.warn(
+                message, 
+                request.logLine(detail.statusCode)
+            );
             return detail
         }
         try {
-            context.auth(headers, body??"{}");
+            request.auth(headers, body??"{}");
         } catch ({message}) {
-            const detail = ErrorDetail.unauthorized();
-            logging.error(message, context.log_line(detail.statusCode));
+            detail = ErrorDetail.unauthorized();
+            logging.error(
+                message, 
+                request.logLine(detail.statusCode)
+            );
             return detail
         }
-        const response = await context.handler({
+        const response = await request.handler({
             context,
             queryStringParameters
-        }).then(transformResponse);
+        }).then(({extension="", data, statusCode, headers}) => {
+            return {
+                statusCode,
+                headers: {
+                    ...headers,
+                    'Content-Type': `application/${extension}json`
+                },
+                body: JSON.stringify(data)
+            };
+        });
 
         logging.info(
             `${httpMethod} response with ${response.statusCode}`, 
-            context.log_line(response.statusCode)
+            request.logLine(response.statusCode) as unknown
         );
-        return response;
+        return (response);
     }
 
     return ApiHandler;

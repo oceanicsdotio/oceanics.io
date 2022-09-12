@@ -1,5 +1,5 @@
-import { describe, expect, test } from '@jest/globals';
-import { Node, Constraint, Cypher, Links } from "oceanics-io-api-wasm";
+import { describe, expect, test, beforeAll } from '@jest/globals';
+import { Node, Constraint, Cypher, Links, FunctionContext, RequestContext,ErrorDetail, LogLine, panic_hook, Handler, Path, Query } from "oceanics-io-api-wasm";
 
 
 const THINGS = "Things"
@@ -16,12 +16,74 @@ const expectError = (node: Node, method: string, ...args: unknown[]) => {
   expect(error).not.toBeFalsy()
 }
 
+beforeAll(panic_hook)
+
 describe("idempotent", function() {
+
+  const EXAMPLE_PATH = {
+    get: {
+      security: [{
+        bearerAuth: []
+      }]
+    }
+  }
+
+  describe("router middleware", function() {
+    describe("LogLine", function() {
+      test.concurrent("constructs LogLine", async function () {
+        const detail = new LogLine({
+          user: "user@example.com",
+          httpMethod: "GET",
+          statusCode: 403,
+          elapsedTime: 1.0,
+          auth: "BearerAuth"
+        });
+        expect(detail).not.toBeFalsy();
+      })
+    })  
+    describe("Handler", function() {
+      test.concurrent("constructs Handler", async function () {
+        const handler = new Handler({
+          security: [{
+            bearerAuth: []
+          }]
+        });
+        expect(handler).not.toBeFalsy();
+        expect(handler.authentication).toBe("BearerAuth")
+      })
+    })
+    describe("Path", function() {
+      test.concurrent("constructs Path", async function () {
+        const path = new Path(EXAMPLE_PATH);
+        expect(path).not.toBeFalsy();
+      })
+    })
+
+    describe("RequestContext", function() {
+      test.concurrent("constructs RequestContext", async function () {
+        const query = new Query({left: "Things"});
+        const context = new RequestContext(query, "GET");
+        expect(context).not.toBeFalsy();
+        expect(context.logLine(403)).toBeInstanceOf(LogLine);
+        expect(context.elapsedTime).toBeGreaterThan(0.0);
+      })
+    })
+    describe("FunctionContext", function() {
+      test.concurrent("constructs FunctionContext", async function() {
+        const query = new Query({left: "Things"});
+        const context = new FunctionContext({spec: EXAMPLE_PATH});
+        expect(context).toBeInstanceOf(FunctionContext);
+        const request = context.context(query, "GET")
+        expect(request).toBeInstanceOf(RequestContext);
+      })
+    })
+  })
+
   /**
    * Tests lower-level parts of the API without making HTTP
    * requests.
    */
-  describe("middleware", function () {
+  describe("cypher middleware", function () {
 
     describe("Node", function (){
 
