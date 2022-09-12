@@ -86,6 +86,18 @@ pub mod node {
                 label: Some(label)
             }
         }
+
+        pub fn from_hash_map_and_symbol(
+            properties: HashMap<String,Value>,
+            symbol: String, 
+            label: String,
+        ) -> Self {
+            Node {
+                properties: Some(properties),
+                symbol: Some(symbol),
+                label: Some(label)
+            }
+        }
     }
 
     /**

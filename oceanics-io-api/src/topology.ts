@@ -1,4 +1,4 @@
-import { NetlifyRouter } from "./shared/middleware";
+import { Router } from "./shared/middleware";
 import * as db from "./shared/queries";
 import type { ApiHandler } from "./shared/middleware";
 import apiSpec from "./shared/bathysphere.json";
@@ -35,7 +35,7 @@ const drop: ApiHandler = async ({ data: { nodes: [left, right] } }) => {
  
  * You can only access results for that test, although multiple collections * may be stored in a single place 
  */
-export const handler = NetlifyRouter({
+export const handler = Router({
   POST: join,
   DELETE: drop
 }, apiSpec.paths["/{root}({rootId})/{entity}"]);

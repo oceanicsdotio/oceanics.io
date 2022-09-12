@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import apiSpec from "./shared/bathysphere.json";
-import { NetlifyRouter } from "./shared/middleware";
+import { Router } from "./shared/middleware";
 import * as db from "./shared/queries"
 import type { ApiHandler } from "./shared/middleware";
 import { Node, ErrorDetail } from "oceanics-io-api-wasm";
@@ -77,7 +77,7 @@ const remove: ApiHandler = async ({data: {user}}) => {
   }
 }
 
-export const handler = NetlifyRouter({
+export const handler = Router({
   GET: getToken,
   POST: register,
   PUT: manage,
