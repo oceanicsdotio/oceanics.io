@@ -8,6 +8,7 @@ pub mod middleware {
 
     use serde::{Deserialize, Serialize};
     use serde_json::{Value, json};
+    use std::fmt;
 
     use crate::node::node::Node;
     use crate::authentication::authentication::{Authentication,Security,Provider,User};
@@ -50,6 +51,11 @@ pub mod middleware {
                 "HEAD" => Ok(HttpMethod::HEAD),
                 _ => Err(()),
             }
+        }
+    }
+    impl fmt::Display for HttpMethod {
+        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+            write!(f, "{}", self.to_string())
         }
     }
 
@@ -102,6 +108,7 @@ pub mod middleware {
 
     #[wasm_bindgen]
     impl Path {
+        #[wasm_bindgen(constructor)]
         pub fn new(value: JsValue) -> Self {
             serde_wasm_bindgen::from_value(value).unwrap()
         }
@@ -177,8 +184,8 @@ pub mod middleware {
     #[serde(rename_all = "camelCase")]
     pub struct LogLine {
         user: String,
-        http_method: HttpMethod,
-        status_code: u16,
+        pub http_method: HttpMethod,
+        pub status_code: u16,
         pub elapsed_time: f64,
         auth: Option<Authentication>
     }
@@ -283,13 +290,14 @@ pub mod middleware {
             }
         }
 
+        #[wasm_bindgen(constructor)]
         pub fn new(
             query: Query,
             http_method: HttpMethod, 
             handler: Function, 
             body: Option<String>
         ) -> Self {
-            let mut data: HashMap<String, Value> = match &http_method {
+            let data: HashMap<String, Value> = match &http_method {
                 HttpMethod::POST | HttpMethod::PUT => serde_json::from_str(&*body.unwrap()).unwrap(),
                 _ => HashMap::with_capacity(0),
             };
@@ -378,11 +386,14 @@ pub mod middleware {
     }
 
     #[wasm_bindgen]
+    #[derive(Serialize, Deserialize)]
     pub struct Headers {
-        Allow: String
+        allow: String
     }
     
     #[wasm_bindgen]
+    #[derive(Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
     pub struct OptionResponse {
         status_code: u32,
         headers: Headers
@@ -411,24 +422,44 @@ pub mod middleware {
             }
         }
 
+        /**
+         * Each handler is inserted individually. The
+         * function returns the result, true if inserted
+         * and false if it already exists.
+         */
         #[wasm_bindgen(js_name = "insertMethod")]
-        pub fn insert_method(&mut self, http_method: HttpMethod, handler: Function) {
+        pub fn insert_method(&mut self, http_method: HttpMethod, handler: Function) -> bool {
+            if self.methods.contains_key(&http_method) {
+                return false;
+            }
             self.methods.insert(http_method, handler);
+            true
         }
 
+        /**
+         * Format current HTTP methods for options
+         * request header.
+         */
         #[wasm_bindgen(getter)]
         pub fn allowed_methods(&self) -> String {
             let keys: Vec<&str> = self.methods.keys().map(|x| x.to_str()).collect();
             keys.join(",")
         }
 
-        pub fn options(&self) -> OptionResponse {
-            OptionResponse{
+        /**
+         * Options are based on what is actually available
+         * in the lookup table. Does not include things
+         * defined in the OpenApi spec which are not
+         * implemented in code. 
+         */
+        pub fn options(&self) -> JsValue {
+            let response = OptionResponse{
                 status_code: 204,
                 headers: Headers{
-                    Allow: self.allowed_methods()
+                    allow: self.allowed_methods()
                 }
-            }
+            };
+            serde_wasm_bindgen::to_value(&response).unwrap()
         }
 
         /**
@@ -441,7 +472,15 @@ pub mod middleware {
             http_method: HttpMethod,
             body: Option<String>
         ) -> RequestContext {
-            let handler = self.methods.get(&http_method).unwrap();
+            
+            let handler = match self.methods.get(&http_method) {
+                Some(func) => {
+                    func.clone()
+                },
+                None => {
+                    panic!("No handler for {} method", http_method)
+                }
+            };
             RequestContext::new(
                 query, 
                 http_method,
