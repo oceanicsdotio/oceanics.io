@@ -1,8 +1,9 @@
 import { describe, expect, test, beforeAll } from '@jest/globals';
-import { Node, Constraint, Cypher, Links, FunctionContext, RequestContext,ErrorDetail, LogLine, panic_hook, Handler, Path, Query } from "oceanics-io-api-wasm";
+import { Node, Constraint, Cypher, Links, FunctionContext, RequestContext, LogLine, panic_hook, Handler, Path, Query } from "oceanics-io-api-wasm";
 
 
 const THINGS = "Things"
+const MOCK_HANDLER = () => {console.log("mock")};
 
 const expectError = (node: Node, method: string, ...args: unknown[]) => {
   let error = null;
@@ -62,10 +63,14 @@ describe("idempotent", function() {
     describe("RequestContext", function() {
       test.concurrent("constructs RequestContext", async function () {
         const query = new Query({left: "Things"});
-        const context = new RequestContext(query, "GET");
+        const context = new RequestContext(query, "GET", MOCK_HANDLER, undefined);
         expect(context).not.toBeFalsy();
-        expect(context.logLine(403)).toBeInstanceOf(LogLine);
-        expect(context.elapsedTime).toBeGreaterThan(0.0);
+        const logLine = context.logLine(403);
+        expect(logLine).toBeInstanceOf(Object);
+        expect(logLine.elapsedTime).toBeGreaterThan(0.0);
+        expect(logLine.httpMethod).toBe("GET");
+        expect(logLine.statusCode).toBe(403);
+
       })
     })
     describe("FunctionContext", function() {
@@ -73,8 +78,23 @@ describe("idempotent", function() {
         const query = new Query({left: "Things"});
         const context = new FunctionContext({spec: EXAMPLE_PATH});
         expect(context).toBeInstanceOf(FunctionContext);
-        const request = context.context(query, "GET")
+        const ok = context.insertMethod("GET", MOCK_HANDLER);
+        expect(ok).toBe(true)
+        const request = context.request(query, "GET");
         expect(request).toBeInstanceOf(RequestContext);
+        const options = context.options();
+        expect(options.statusCode).toBe(204);
+        expect(options.headers.allow).toBe("GET");
+      })
+
+      test.concurrent("errors on insert existing key", async function() {
+        const context = new FunctionContext({spec: EXAMPLE_PATH});
+        let ok = context.insertMethod("GET", MOCK_HANDLER);
+        expect(ok).toBe(true);
+        ok = context.insertMethod("POST", MOCK_HANDLER);
+        expect(ok).toBe(true);
+        ok = context.insertMethod("GET", MOCK_HANDLER);
+        expect(ok).toBe(false);
       })
     })
   })
