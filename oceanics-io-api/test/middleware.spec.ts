@@ -42,6 +42,7 @@ describe("idempotent", function() {
         expect(detail).not.toBeFalsy();
       })
     })  
+
     describe("Handler", function() {
       test.concurrent("constructs Handler", async function () {
         const handler = new Handler({
@@ -53,6 +54,7 @@ describe("idempotent", function() {
         expect(handler.authentication).toBe("BearerAuth")
       })
     })
+
     describe("Path", function() {
       test.concurrent("constructs Path", async function () {
         const path = new Path(EXAMPLE_PATH);
@@ -73,6 +75,7 @@ describe("idempotent", function() {
 
       })
     })
+    
     describe("FunctionContext", function() {
       test.concurrent("constructs FunctionContext", async function() {
         const query = new Query({left: "Things"});

@@ -1,11 +1,8 @@
 import type { Handler, HandlerEvent } from "@netlify/functions";
-import jwt from "jsonwebtoken";
-import type { JwtPayload } from "jsonwebtoken";
 import { Logtail } from "@logtail/node";
 import { ILogtailLog } from "@logtail/types";
-
 import * as db from "./queries";
-import { Provider, RequestContext, Query, ErrorDetail, FunctionContext, User } from "oceanics-io-api-wasm";
+import { RequestContext, Query, ErrorDetail, FunctionContext } from "oceanics-io-api-wasm";
 
 
 // Type for handlers, before response processing
@@ -30,13 +27,6 @@ export enum HttpMethod {
     HEAD = "HEAD"
 }
 
-// Predictable inbound headers
-type Headers = { 
-    authorization?: string;
-    ["x-api-key"]?: string;
-    [key: string]: string;
-}
-
 const logging = new Logtail(process.env.LOGTAIL_SOURCE_TOKEN??"");
 
 // Enrich logs with memory usage stats
@@ -47,37 +37,6 @@ logging.use(async (log: ILogtailLog) => {
         nodeEnv: process.env.NODE_ENV??"undefined",
     }
 });
-
-/**
- * Matching pattern based on bearer token authorization with JWT. Used in Auth, and to 
- * validate other APIs.
- * 
- * Have to assume anything with uuid is valid until query hits
- */
-const bearerAuth = ({ authorization="::" }: Headers) => {
-    const [, token] = authorization.split(":");
-    const { uuid } = jwt.verify(token, process.env.SIGNING_KEY??"") as JwtPayload;
-    if (!uuid)
-        throw Error("Bearer token claim missing .uuid");
-    return new User({ uuid })
-}
-
-const basicAuth = async ({ authorization="::" }: Headers) => {
-    const [email, password, secret] = authorization.split(":");
-    const user = new User({email, password, secret});
-    return {user: await db.auth(user.node)}
-}
-
-const apiKeyAuth = ({ ["x-api-key"]: apiKey }: Headers, body: string) => {
-    // Only for registration on /auth route
-    const provider = new Provider({apiKey});
-    if (!provider.node.pattern.includes("apiKey"))
-        throw Error(`API key auth claim missing .apiKey`)
-    // Works as existence check, because we strip blank strings
-    const user = new User(JSON.parse(body));
-    return {provider, user: user.node}
-}
-
 
 /**
  * Return a handler function depending on the HTTP method. Want to take 
@@ -94,15 +53,20 @@ const apiKeyAuth = ({ ["x-api-key"]: apiKey }: Headers, body: string) => {
  * The side-effect is that it can be hard to tell the difference between a 404 and
  * 403 error. 
  */
-export function Router(methods: {
-    [key in HttpMethod]?: ApiHandler;
-}, pathSpec?: unknown): Handler {
+export function Router(
+    methods: {
+        [key in HttpMethod]?: ApiHandler;
+    }, 
+    pathSpec?: unknown
+): Handler {
+    // 
     const context = new FunctionContext(pathSpec);
     Object.entries(methods).forEach((key: HttpMethod, value: ApiHandler) => {
         context.insertMethod(key, value);
     })
 
-    const Handler = async function ({
+    // Inner handler receives Netlify event
+    return async function ({
         httpMethod,
         body,
         headers,
@@ -153,6 +117,4 @@ export function Router(methods: {
         );
         return (response);
     }
-
-    return Handler;
 }
