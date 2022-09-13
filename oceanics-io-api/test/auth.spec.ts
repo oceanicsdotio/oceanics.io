@@ -16,14 +16,17 @@ describe("idempotent", function () {
       const security = new Security({apiKeyAuth: []})
       expect(security.authentication).toBe("ApiKeyAuth")
     })
+
     test.concurrent("constructs BasicAuth schema", async function () {
       const security = new Security({basicAuth: []})
       expect(security.authentication).toBe("BasicAuth")
     })
+
     test.concurrent("constructs Security schema", async function () {
       const security = new Security({bearerAuth: []})
       expect(security.authentication).toBe("BearerAuth")
     })
+
     test.concurrent("constructs User", async function () {
       const user = new User({
         email: "user@example.com", 
@@ -34,6 +37,7 @@ describe("idempotent", function () {
       expect(typeof user.credential).toBe("string");
       expect(user.node).toBeInstanceOf(Node);
     })
+
     test.concurrent("verifies User", async function () {
       const user = new User({
         email: "user@example.com", 
@@ -42,6 +46,7 @@ describe("idempotent", function () {
       });
       expect(user.verify(user.credential)).toBe(true);
     })
+
     test.concurrent("errors on bad User credential", async function () {
       const user = new User({
         email: "user@example.com", 
@@ -55,6 +60,7 @@ describe("idempotent", function () {
       });
       expect(user.verify(wrongPassword.credential)).toBe(false);
     })
+    
     test.concurrent("constructs Provider", async function() {
       const provider = new Provider({
         apiKey: "this-is-my-key",
