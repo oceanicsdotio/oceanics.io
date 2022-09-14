@@ -4,7 +4,7 @@ use wasm_bindgen::prelude::*;
 
 use serde::{Serialize, Deserialize};
 
-use jsonwebtoken::{encode, Header, EncodingKey};
+// use jsonwebtoken::{encode, Header, EncodingKey};
 use serde_json::Value;
 use pbkdf2::Pbkdf2;
 use pbkdf2::password_hash::PasswordHasher;
@@ -91,26 +91,26 @@ impl User {
         Node::from_hash_map(properties, "User".to_string())
     }
 
-    pub fn token(&self, signing_key: &str) -> Option<String> {
-        let sub = match &self.email {
-            Some(email) => {
-                email.clone()
-            },
-            None => {
-                panic!("Cannot sign token without email")
-            }
-        };
-        let my_claims = Claims {
-            sub,
-            iss: "".to_string(),
-            exp: 3600
-        };
-        let result = encode(&Header::default(), &my_claims, &EncodingKey::from_secret((*signing_key).as_ref()));
-        match result {
-            Ok(value) => Some(value),
-            Err(_) => None
-        }
-    }
+    // pub fn token(&self, signing_key: &str) -> Option<String> {
+    //     let sub = match &self.email {
+    //         Some(email) => {
+    //             email.clone()
+    //         },
+    //         None => {
+    //             panic!("Cannot sign token without email")
+    //         }
+    //     };
+    //     let my_claims = Claims {
+    //         sub,
+    //         iss: "".to_string(),
+    //         exp: 3600
+    //     };
+    //     let result = encode(&Header::default(), &my_claims, &EncodingKey::from_secret((*signing_key).as_ref()));
+    //     match result {
+    //         Ok(value) => Some(value),
+    //         Err(_) => None
+    //     }
+    // }
 
     #[wasm_bindgen(getter)]
     pub fn credential(&self) -> String {

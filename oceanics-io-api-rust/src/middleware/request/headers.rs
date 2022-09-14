@@ -1,4 +1,3 @@
-use wasm_bindgen::prelude::*;
 use serde::Deserialize;
 use crate::authentication::{Authentication,User,Provider};
 use regex::Regex;
