@@ -14,7 +14,7 @@ use crate::authentication::{Authentication,User,Provider};
 pub struct RequestHeaders {
     authorization: Option<String>,
     user: Option<User>,
-    provider: Option<Provider>
+    provider: Option<Provider>,
 }
 
 #[wasm_bindgen]
@@ -24,8 +24,23 @@ impl RequestHeaders {
      * by Netlify or other API framework. 
      */
     #[wasm_bindgen(constructor)]
-    pub fn new(value: JsValue) -> Self {
-        serde_wasm_bindgen::from_value(value).unwrap()
+    pub fn new(value: JsValue, signing_key: JsValue) -> Self {
+        let mut this: RequestHeaders = serde_wasm_bindgen::from_value(value).unwrap();
+        let key = signing_key.as_string().unwrap();
+        match this.claim_auth_method() {
+            Some(Authentication::BearerAuth) => {
+                let (provider, user) = this.token_claim(&key);
+                this.set_user(user);
+                this.set_provider(provider);
+            },
+            Some(Authentication::BasicAuth) => {
+                this.set_user(this.basic_auth_claim());
+            },
+            _ => {
+                panic!("Cannot verify header");
+            }
+        };
+        this
     }
 
     /**
@@ -55,21 +70,22 @@ impl RequestHeaders {
         }
     }
 
-    /**
-     * Assign provider
-     */
-    pub fn authenticate(&mut self, signing_key: JsValue) {
-        let key = signing_key.as_string().unwrap();
-        match self.claim_auth_method() {
-            Some(Authentication::BearerAuth) => {
-                (self.provider, self.user) = self.token_claim(&key);
-            },
-            Some(Authentication::BasicAuth) => {
-                self.user = self.basic_auth_claim();
-                self.provider = None;
-            },
-            _ => {}
-        };
+    #[wasm_bindgen(getter)]
+    pub fn user(&self) -> JsValue {
+        match &self.user {
+            Some(value) => 
+                serde_wasm_bindgen::to_value(value).unwrap_or(JsValue::NULL),
+            None => JsValue::NULL
+        }
+    }
+
+    #[wasm_bindgen(getter)]
+    pub fn provider(&self) -> JsValue {
+        match &self.provider {
+            Some(value) => 
+                serde_wasm_bindgen::to_value(value).unwrap_or(JsValue::NULL),
+            None => JsValue::NULL
+        }
     }
 }
 
@@ -86,11 +102,19 @@ impl RequestHeaders {
         }
     }
 
+    fn set_user(&mut self, user: Option<User>) {
+        self.user = user;
+    }
+
+    fn set_provider(&mut self, provider: Option<Provider>) {
+        self.provider = provider;
+    }
+
     /**
      * Decode a JWT to get the issuer and/or subject. For us, this
      * corresponds to the provider and user respectively.
      */
-    pub fn token_claim(&self, signing_key: &str) -> (Option<Provider>, Option<User>) {
+    fn token_claim(&self, signing_key: &str) -> (Option<Provider>, Option<User>) {
         let parts = self.split_auth();
         let token = match parts.as_slice() {
             [_, token] => token,
@@ -99,9 +123,13 @@ impl RequestHeaders {
         let claims = Claims::decode(token.to_string(), signing_key);
         match claims {
             Some(value) => {
-                let (email, _) = value.get();
+                let (email, domain) = value.get();
                 let user = User::from_token(email.to_string());
-                (None, Some(user))
+                let provider = match domain.len() {
+                    0 => None,
+                    _ => Some(Provider::from_domain(Some(domain.clone())))
+                };
+                (provider, Some(user))
             },
             None => (None, None)
         }
@@ -110,7 +138,7 @@ impl RequestHeaders {
     /**
      * Format the auth header as a User claim. 
      */
-    pub fn basic_auth_claim(&self) -> Option<User> {
+    fn basic_auth_claim(&self) -> Option<User> {
         match self.split_auth().as_slice() {
             [email, password, secret] => {
                 Some(User::from_basic_auth(

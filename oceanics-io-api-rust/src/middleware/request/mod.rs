@@ -13,7 +13,7 @@ use js_sys::Function;
 use serde::Deserialize;
 use serde_json::Value;
 
-use crate::node::Node;
+use crate::cypher::node::Node;
 use crate::middleware::HttpMethod;
 use crate::authentication::{Authentication, Security};
 

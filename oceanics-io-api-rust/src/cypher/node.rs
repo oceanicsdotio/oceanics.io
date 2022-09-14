@@ -1,11 +1,10 @@
-
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
 use std::fmt;
 use wasm_bindgen::prelude::*;
 
-use crate::cypher::{Cypher, READ_ONLY, WRITE};
+use super::{Cypher, READ_ONLY, WRITE};
 
 // Convenience function for getting a String from Option.
 fn string_or(value: &Option<String>, default: String) -> String {

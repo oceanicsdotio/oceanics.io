@@ -3,7 +3,7 @@ use wasm_bindgen::prelude::*;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::node::Node;
+use crate::cypher::node::Node;
 use super::claims::Claims;
 
 /**
@@ -11,19 +11,17 @@ use super::claims::Claims;
  * used by the authentication middleware. 
  */
 #[wasm_bindgen]
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Provider {
-    api_key: String,
     domain: Option<String>
 }
 
 impl Provider {
-    pub fn from_key_and_domain(
-        api_key: String,
+    pub fn from_domain(
         domain: Option<String>
     ) -> Self {
-        Provider { api_key, domain }
+        Provider { domain }
     }
 }
 
@@ -38,10 +36,16 @@ impl Provider {
 
     #[wasm_bindgen(getter)]
     pub fn node(&self) -> Node {
-        let properties = HashMap::from([(
-            "apiKey".to_string(), Value::String(self.api_key.clone())
-        )]);
-        Node::from_hash_map(properties, "Provider".to_string())
+        match &self.domain {
+            Some(value) => {
+                let domain = Value::String(value.clone());
+                let properties = HashMap::from([("domain".to_string(), domain)]);
+                Node::from_hash_map(properties, "Provider".to_string())
+            },
+            None => {
+                panic!("Provider nodes must have a domain property")
+            }
+        }
     }
 
     pub fn token(&self, signing_key: &str) -> Option<String> {
