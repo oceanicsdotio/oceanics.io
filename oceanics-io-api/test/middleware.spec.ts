@@ -1,9 +1,18 @@
 import { describe, expect, test, beforeAll } from '@jest/globals';
-import { Node, Constraint, Cypher, Links, panic_hook } from "oceanics-io-api-wasm";
+import { 
+  Node,
+  Context,
+  Request,
+  Constraint, 
+  Cypher,
+  RequestHeaders,
+  Links, 
+  panic_hook, 
+  Specification
+} from "oceanics-io-api-wasm";
 
 
-const THINGS = "Things"
-const MOCK_HANDLER = () => {console.log("mock")};
+const THINGS = "Things";
 
 const expectError = (node: Node, method: string, ...args: unknown[]) => {
   let error = null;
@@ -20,14 +29,6 @@ const expectError = (node: Node, method: string, ...args: unknown[]) => {
 beforeAll(panic_hook)
 
 describe("idempotent", function() {
-
-  const specification = {
-    get: {
-      security: [{
-        bearerAuth: []
-      }]
-    }
-  }
 
   describe("wasm middleware", function() {
     // describe("LogLine", function() {
@@ -56,37 +57,48 @@ describe("idempotent", function() {
     // })
 
     describe("RequestContext", function() {
-      test.concurrent("constructs RequestContext", async function () {
-        
-        const specification = {
-          get: {
-            security: [{
-              bearerAuth: []
-            }]
-          }
+
+      const endpoint = {
+        post: {
+          security: [{
+            bearerAuth: []
+          }]
         }
+      }
 
-        const handler = () => {
-          console.log("mock")
+      const request = {
+        queryStringParameters: {left: "Things"},
+        httpMethod: "POST",
+        body: '{"name":"thing"}',
+        headers: {
+          authorization: "Bearer:x"
         }
+      };
 
-        const request = {
-          queryStringParameters: {left: "Things"},
-          httpMethod: "GET",
-          body: undefined,
-          headers: {
-            authorization: "bearer:x"
-          }
-        };
+      const handler = () => {
+        console.log("mock")
+      }
 
-        // const context = new Context(specification, request, handler);
-        expect(false).not.toBeFalsy();
-        // const logLine = context.logLine(403);
-        // expect(logLine).toBeInstanceOf(Object);
-        // expect(logLine.elapsedTime).toBeGreaterThan(0.0);
-        // expect(logLine.httpMethod).toBe("GET");
-        // expect(logLine.statusCode).toBe(403);
+      test.concurrent("constructs Specification", async function () {
+        const specification = new Specification(endpoint.post);
+        expect(specification.auth).toBe("BearerAuth");
+      })
 
+      test.concurrent("constructs RequestHeaders", async function() {
+        const headers = new RequestHeaders(request.headers);
+        expect(headers).toBeInstanceOf(RequestHeaders);
+        expect(headers.authMethod).toBe("BearerAuth")
+      })
+
+      test.concurrent("constructs Request", async function() {
+        const _request = new Request(request);
+        expect(_request).toBeInstanceOf(Request);
+      })
+
+      test.concurrent("constructs Context", async function () {
+        const context = new Context(endpoint.post, request, handler);
+        expect(context).toBeInstanceOf(Context);
+        expect(context.elapsedTime).toBeGreaterThan(0);
       })
     })
     

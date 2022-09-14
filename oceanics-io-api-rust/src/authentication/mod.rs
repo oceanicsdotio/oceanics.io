@@ -1,10 +1,12 @@
 pub mod provider;
 pub mod user;
 pub mod security;
+pub mod claims;
 
 pub use provider::Provider;
-pub use user::{User, Claims};
+pub use user::User;
 pub use security::Security;
+pub use claims::Claims;
 
 use std::str::FromStr;
 use wasm_bindgen::prelude::*;

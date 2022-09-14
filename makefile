@@ -5,7 +5,7 @@ API = oceanics-io-api
 API_RUST = $(API)-rust
 API_WASM = $(API)-wasm
 API_OUT = $(API)/build
-$(API_WASM): $(API_RUST)/src/* $(API_RUST)/Cargo*
+$(API_WASM): $(API_RUST)/src/* $(API_RUST)/src/**/* $(API_RUST)/src/**/**/* $(API_RUST)/Cargo*
 	wasm-pack build $(API_RUST) \
 		--out-dir ../$@ \
 		--target nodejs \
