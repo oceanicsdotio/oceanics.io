@@ -1,5 +1,5 @@
 pub mod request;
-pub mod function;
+pub mod endpoint;
 pub mod response;
 
 use std::str::FromStr;

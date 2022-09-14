@@ -1,6 +1,12 @@
 use wasm_bindgen::prelude::*;
 use serde::Deserialize;
 
+
+use std::collections::HashMap;
+use serde_json::Value;
+
+use crate::node::Node;
+
 /**
  * Return empty string instead of None. 
  */
@@ -21,6 +27,57 @@ pub struct Query {
     left: Option<String>,
     uuid: Option<String>,
     right: Option<String>,
+}
+
+impl Query {
+    pub fn from_args(
+        left: Option<String>,
+        uuid: Option<String>,
+        right: Option<String>,
+    ) -> Self {
+        Query {
+            left,
+            uuid,
+            right
+        }
+    }
+
+    pub fn nodes(&self, data: HashMap<String,Value>) -> (Option<Node>, Option<Node>) {
+        let mut clone = data.clone();
+        match self {
+            Query {
+                right: Some(right),
+                left: Some(left),
+                uuid: Some(uuid),
+            } => {
+                let left_props: HashMap<String, Value> = HashMap::from([(
+                    String::from("uuid"), Value::String(uuid.to_string())
+                )]);
+                let left_node = Node::from_hash_map_and_symbol(left_props, String::from("n0"), left.to_string());
+                let right_node = 
+                    Node::from_hash_map_and_symbol(data, String::from("n1"), right.to_string());
+                (Some(left_node), Some(right_node))
+            },
+            Query {
+                right: None,
+                left: Some(left),
+                uuid: Some(uuid),
+            } => {
+                clone.insert(String::from("uuid"), Value::String(uuid.clone()));
+                let left_node = Node::from_hash_map(clone, left.clone());
+                (Some(left_node), None)
+            },
+            Query {
+                right: None,
+                left: Some(left),
+                uuid: None,
+            } => {
+                let left_node = Node::from_hash_map(clone, left.clone()); 
+                (Some(left_node), None)
+            },
+            _ => (None, None),
+        }
+    }
 }
 
 /**
