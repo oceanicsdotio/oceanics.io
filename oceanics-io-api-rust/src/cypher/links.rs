@@ -1,8 +1,8 @@
 use wasm_bindgen::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt;
-use crate::cypher::{Cypher, WRITE, READ_ONLY};
-use crate::node::Node;
+use super::{Cypher, WRITE, READ_ONLY};
+use super::node::Node;
 
 /**
  * Links are the relationships between two entities.

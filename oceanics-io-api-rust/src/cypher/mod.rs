@@ -1,5 +1,10 @@
+pub mod node;
+pub mod links;
+
 use wasm_bindgen::prelude::*;
 use serde::{Deserialize, Serialize};
+
+
 pub const WRITE: bool = false;
 pub const READ_ONLY: bool = true;
 

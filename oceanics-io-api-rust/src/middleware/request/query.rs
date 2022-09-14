@@ -5,7 +5,7 @@ use serde::Deserialize;
 use std::collections::HashMap;
 use serde_json::Value;
 
-use crate::node::Node;
+use crate::cypher::node::Node;
 
 /**
  * Return empty string instead of None. 

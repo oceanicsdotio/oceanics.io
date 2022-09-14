@@ -28,7 +28,6 @@ describe("idempotent", function() {
       })
     })
   })
-
 })
 
 

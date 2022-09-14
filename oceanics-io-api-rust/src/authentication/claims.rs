@@ -29,6 +29,21 @@ impl Claims {
         Claims { sub, iss, exp }
     }
 
+    #[wasm_bindgen(getter)]
+    pub fn iss(&self) -> String {
+        self.iss.clone()
+    }
+
+    #[wasm_bindgen(getter)]
+    pub fn sub(&self) -> String {
+        self.sub.clone()
+    }
+
+    #[wasm_bindgen(getter)]
+    pub fn exp(&self) -> usize {
+        self.exp
+    }
+
     pub fn encode(&self, signing_key: &str) -> Option<String> {
         let key: Hmac<Sha256> = Hmac::new_from_slice(signing_key.as_ref()).unwrap();
         let result = self.sign_with_key(&key);

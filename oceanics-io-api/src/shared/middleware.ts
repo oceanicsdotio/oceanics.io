@@ -1,16 +1,14 @@
 import type { Handler, HandlerEvent } from "@netlify/functions";
 import { Logtail } from "@logtail/node";
 import { ILogtailLog } from "@logtail/types";
-import * as db from "./queries";
-import { RequestContext, Query, ErrorDetail, FunctionContext } from "oceanics-io-api-wasm";
+// import * as db from "./queries";
+import { Context, Query, ErrorDetail, Endpoint } from "oceanics-io-api-wasm";
 
 
 // Type for handlers, before response processing
-export type ApiHandler = (event: {
-    context: RequestContext
-    queryStringParameters: Record<string, string>
-    body?: string
-}) => Promise<{
+export type ApiHandler = (
+    context: Context
+) => Promise<{
     statusCode: number;
     // Stub type for generic entity transform object.
     data?: Record<string, unknown> | {name: string, url: string}[];
@@ -23,7 +21,7 @@ export enum HttpMethod {
     OPTIONS = "OPTIONS",
     QUERY = "QUERY",
     DELETE = "DELETE",
-    GET ="GET",
+    GET = "GET",
     HEAD = "HEAD"
 }
 
@@ -57,22 +55,22 @@ export function Router(
     methods: {
         [key in HttpMethod]?: ApiHandler;
     }, 
-    pathSpec?: unknown
+    pathSpec?: Record<string, unknown>
 ): Handler {
-    // 
-    const context = new FunctionContext(pathSpec);
-    Object.entries(methods).forEach((key: HttpMethod, value: ApiHandler) => {
+    // Pre-populate with assigned handlers. 
+    const context = new Endpoint(pathSpec);
+    Object.entries(methods).forEach(([key, value]) => {
         context.insertMethod(key, value);
     })
 
-    // Inner handler receives Netlify event
+    // Inner handler receives Netlify handler event
     return async function ({
         httpMethod,
         body,
         headers,
         queryStringParameters
     }: HandlerEvent) {
-        let request: RequestContext;
+        let request: Context;
         let detail: ErrorDetail;
         try {
             request = context.request(

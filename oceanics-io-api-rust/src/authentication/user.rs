@@ -8,7 +8,7 @@ use serde_json::Value;
 use pbkdf2::Pbkdf2;
 use pbkdf2::password_hash::PasswordHasher;
 
-use crate::node::Node;
+use crate::cypher::node::Node;
 use super::claims::Claims;
 
 use pbkdf2::
