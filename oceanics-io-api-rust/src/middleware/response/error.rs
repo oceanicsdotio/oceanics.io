@@ -57,4 +57,3 @@ impl ErrorDetail {
         ErrorDetail::new(message, 501)
     }
 }
-
