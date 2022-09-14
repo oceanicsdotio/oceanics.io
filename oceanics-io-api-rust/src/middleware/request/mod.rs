@@ -1,59 +1,94 @@
+mod headers;
+mod query;
+mod log_line;
+
+use headers::RequestHeaders;
+use query::Query;
+use log_line::LogLine;
+
 use std::collections::HashMap;
 use chrono::prelude::*;
 
 use wasm_bindgen::prelude::*;
 use js_sys::Function;
-
+use serde::Deserialize;
 use serde_json::Value;
 
-use crate::node::Node;
-use crate::authentication::{Authentication,User,Provider,RequestHeaders};
 
-use super::HttpMethod;
-use super::query::Query;
-use super::log_line::LogLine;
+use crate::middleware::HttpMethod;
+use crate::node::Node;
+use crate::authentication::{Authentication, User, Provider, Security};
+
+// use super::HttpMethod;
+
+
 
 
 /**
  * The Outer Function level context produces
  * an inner RequestContext that provides an
  * simple API for authentication and response
- * handling. 
+ * handling.
  */
 #[wasm_bindgen]
+#[derive(Deserialize)]
 pub struct RequestContext {
+    #[serde(skip)]
     user: Option<User>,
+    #[serde(skip)]
     provider: Option<Provider>,
-    http_method: HttpMethod,
+    #[serde(skip)]
     data: HashMap<String, Value>,
+    headers: RequestHeaders,
+    #[serde(skip)]
+    handler: Option<Function>,
+    http_method: HttpMethod,
     query: Query,
     auth: Option<Authentication>,
     start: DateTime<Local>,
-    handler: Option<Function>,
-    headers: RequestHeaders
+    security: Vec<Security>,
+}
+
+/**
+ * Specification for the request
+ */
+struct Specification {
+    security: Vec<Security>,
+}
+
+/**
+ * Derived properties as getters
+ */
+#[wasm_bindgen]
+impl RequestContext {
+    #[wasm_bindgen(getter)]
+    pub fn authentication(&self) -> Option<Authentication> {
+        match self.security.get(0) {
+            None => None,
+            Some(strategy) => Some(strategy.authentication())
+        }
+    }
+
+    #[wasm_bindgen(getter)]
+    #[wasm_bindgen(js_name = "elapsedTime")]
+    pub fn elapsed_time(&self) -> f64 {
+        (Local::now() - self.start).num_milliseconds() as f64
+    }
+
+    #[wasm_bindgen(getter)]
+    pub fn handler(&self) -> Option<Function> {
+        self.handler.clone()
+    }
+    
+    #[wasm_bindgen(getter)]
+    pub fn user(&self) -> Option<User> {
+        self.user.clone()
+    }
+
 }
 
 #[wasm_bindgen]
 impl RequestContext {
-    
-    #[wasm_bindgen(getter)]
-    pub fn user(&self) -> Option<User> {
-        match &self.user {
-            Some(value) => Some(value.clone()),
-            None => None
-        }
-    }
-
-    #[wasm_bindgen(getter)]
-    pub fn handler(&self) -> Function {
-        match &self.handler {
-            Some(func) => func.clone(),
-            None => {
-                panic!("Cannot find ")
-            }
-        }
-    }
-
     #[wasm_bindgen(constructor)]
     pub fn new(
         query: Query,
@@ -62,9 +97,11 @@ impl RequestContext {
         body: Option<String>,
         headers: JsValue,
         expected_auth: Authentication,
+        security: JsValue,
     ) -> Self {
-        let data: HashMap<String, Value> = match &http_method {
-            HttpMethod::POST | HttpMethod::PUT => serde_json::from_str(&*body.unwrap()).unwrap(),
+        let data: HashMap<String, Value> = match (body, &http_method) {
+            (Some(data), HttpMethod::POST | HttpMethod::PUT) => 
+                serde_json::from_str(&data).unwrap(),
             _ => HashMap::with_capacity(0),
         };
         RequestContext {
@@ -76,7 +113,8 @@ impl RequestContext {
             auth: Some(expected_auth),
             start: Local::now(),
             handler: Some(handler),
-            headers: serde_wasm_bindgen::from_value(headers).unwrap()
+            headers: serde_wasm_bindgen::from_value(headers).unwrap(),
+            security: serde_wasm_bindgen::from_value(security).unwrap()
         }
     }
 
@@ -86,21 +124,17 @@ impl RequestContext {
             Some(user) => format!("{}", user),
             None => String::from("undefined")
         };
-        let line = LogLine { 
+        let line = LogLine::from_props(
             user, 
-            http_method: self.http_method, 
+            self.http_method, 
             status_code, 
-            elapsed_time: self.elapsed_time(), 
-            auth: self.auth
-        };
+            self.elapsed_time(), 
+            self.auth
+        );
         serde_wasm_bindgen::to_value(&line).unwrap()
     }
 
-    #[wasm_bindgen(getter)]
-    #[wasm_bindgen(js_name = "elapsedTime")]
-    pub fn elapsed_time(&self) -> f64 {
-        (Local::now() - self.start).num_milliseconds() as f64
-    }
+
 
     /**
      * Strategy for three-part paths. 
@@ -136,18 +170,19 @@ impl RequestContext {
      * Strategy for two-part paths. 
      */
     fn entity(
-        &mut self,
+        &self,
         left: String, 
         uuid: String,
     ) -> Vec<Node> {
-        self.data.insert(String::from("uuid"), Value::String(uuid));
+        let mut clone = self.data.clone();
+        clone.insert(String::from("uuid"), Value::String(uuid));
         vec![
-            Node::from_hash_map(self.data.clone(), left)
+            Node::from_hash_map(clone, left)
         ]
     }
 
     #[wasm_bindgen(getter)]
-    pub fn nodes(&mut self) -> JsValue {
+    pub fn nodes(&self) -> JsValue {
         let nodes = match &self.query {
             Query {
                 right: Some(right),

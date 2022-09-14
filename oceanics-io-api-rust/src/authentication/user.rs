@@ -1,7 +1,6 @@
 use std::fmt;
 use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
-use regex::Regex;
 
 use serde::{Serialize, Deserialize};
 
@@ -19,15 +18,12 @@ use pbkdf2::
         Salt
     };
 
-const re_bearer: Regex = Regex::new(r"").unwrap();
-const re_basic: Regex = Regex::new(r"").unwrap();
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Claims {
     pub sub: String,
-    exp: usize,
+    pub iss: String,
+    pub exp: usize,
 }
-
 
 /**
  * Users are a special type of internal node. They
@@ -48,6 +44,24 @@ impl fmt::Display for User {
         match self {
             User { email: Some(email), .. } => write!(f, "{}", email),
             _ => write!(f, "{}", "undefined")
+        }
+    }
+}
+
+impl User {
+    pub fn from_token(email: String) -> Self {
+        User {
+            email: Some(email), 
+            password: None, 
+            secret: None 
+        }
+    }
+
+    pub fn from_basic_auth(email: String, password: String, secret: String) -> Self {
+        User {
+            email: Some(email), 
+            password: Some(password), 
+            secret: Some(secret) 
         }
     }
 }
@@ -78,8 +92,17 @@ impl User {
     }
 
     pub fn token(&self, signing_key: &str) -> Option<String> {
+        let sub = match &self.email {
+            Some(email) => {
+                email.clone()
+            },
+            None => {
+                panic!("Cannot sign token without email")
+            }
+        };
         let my_claims = Claims {
-            sub: self.email.unwrap(),
+            sub,
+            iss: "".to_string(),
             exp: 3600
         };
         let result = encode(&Header::default(), &my_claims, &EncodingKey::from_secret((*signing_key).as_ref()));

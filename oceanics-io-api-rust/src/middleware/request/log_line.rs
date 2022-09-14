@@ -18,6 +18,24 @@ pub struct LogLine {
     auth: Option<Authentication>
 }
 
+impl LogLine {
+    pub fn from_props (
+        user: String,
+        http_method: HttpMethod,
+        status_code: u16,
+        elapsed_time: f64,
+        auth: Option<Authentication>
+    ) -> Self {
+        LogLine{
+            user, 
+            http_method, 
+            status_code, 
+            elapsed_time, 
+            auth
+        }
+    }
+}
+
 #[wasm_bindgen]
 impl LogLine {
     #[wasm_bindgen(constructor)]

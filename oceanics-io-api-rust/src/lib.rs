@@ -1,9 +1,9 @@
+mod authentication;
 mod cypher;
-mod node;
 mod links;
 mod memo;
 mod middleware;
-mod authentication;
+mod node;
 
 use wasm_bindgen::prelude::*;
 

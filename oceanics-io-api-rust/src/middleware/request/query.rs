@@ -1,5 +1,5 @@
 use wasm_bindgen::prelude::*;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 /**
  * Return empty string instead of None. 
@@ -16,7 +16,7 @@ fn opt_string(value: &Option<String>) -> String {
  * may have these query string parameters defined. 
  */
 #[wasm_bindgen]
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Deserialize)]
 pub struct Query {
     left: Option<String>,
     uuid: Option<String>,
@@ -33,14 +33,17 @@ impl Query {
     pub fn new(value: JsValue) -> Self {
         serde_wasm_bindgen::from_value(value).unwrap()
     }
+    
     #[wasm_bindgen(getter)]
     pub fn left(&self) -> String {
         opt_string(&self.left)
     }
+
     #[wasm_bindgen(getter)]
     pub fn uuid(&self) -> String {
         opt_string(&self.uuid)
     }
+
     #[wasm_bindgen(getter)]
     pub fn right(&self) -> String {
         opt_string(&self.right)

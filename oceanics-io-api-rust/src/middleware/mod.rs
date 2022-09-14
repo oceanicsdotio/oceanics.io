@@ -1,9 +1,6 @@
 pub mod request;
 pub mod function;
-mod log_line;
-mod query;
-mod error;
-mod handler;
+pub mod response;
 
 use std::str::FromStr;
 use wasm_bindgen::prelude::*;
