@@ -2,7 +2,7 @@ mod headers;
 mod query;
 mod log_line;
 
-use headers::RequestHeaders;
+pub use headers::RequestHeaders;
 use query::Query;
 use log_line::LogLine;
 
@@ -48,9 +48,10 @@ impl Specification {
  */
 #[wasm_bindgen]
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Request {
     headers: RequestHeaders,
-    http_method: HttpMethod,
+    pub http_method: HttpMethod,
     query_string_parameters: Query,
     body: Option<String>
 }
@@ -129,11 +130,15 @@ impl Context {
         request: JsValue,
         handler: Function,
     ) -> Self {
-        Context::from_args(
-            serde_wasm_bindgen::from_value(specification).unwrap(),
-            serde_wasm_bindgen::from_value(request).unwrap(),
-            handler
-        )
+        let spec = match serde_wasm_bindgen::from_value(specification) {
+            Ok(value) => value,
+            Err(_) => panic!("Cannot parse specification")
+        };
+        let req = match serde_wasm_bindgen::from_value(request) {
+            Ok(value) => value,
+            Err(_) => panic!("Cannot parse request data")
+        };
+        Context::from_args(spec, req, handler)
     }
 
     #[wasm_bindgen(js_name = "logLine")]

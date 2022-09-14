@@ -1,7 +1,6 @@
 use std::fmt;
 use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
-
 use serde::{Serialize, Deserialize};
 
 // use jsonwebtoken::{encode, Header, EncodingKey};
@@ -10,6 +9,7 @@ use pbkdf2::Pbkdf2;
 use pbkdf2::password_hash::PasswordHasher;
 
 use crate::node::Node;
+use super::claims::Claims;
 
 use pbkdf2::
     password_hash::{
@@ -18,12 +18,6 @@ use pbkdf2::
         Salt
     };
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Claims {
-    pub sub: String,
-    pub iss: String,
-    pub exp: usize,
-}
 
 /**
  * Users are a special type of internal node. They
@@ -91,26 +85,20 @@ impl User {
         Node::from_hash_map(properties, "User".to_string())
     }
 
-    // pub fn token(&self, signing_key: &str) -> Option<String> {
-    //     let sub = match &self.email {
-    //         Some(email) => {
-    //             email.clone()
-    //         },
-    //         None => {
-    //             panic!("Cannot sign token without email")
-    //         }
-    //     };
-    //     let my_claims = Claims {
-    //         sub,
-    //         iss: "".to_string(),
-    //         exp: 3600
-    //     };
-    //     let result = encode(&Header::default(), &my_claims, &EncodingKey::from_secret((*signing_key).as_ref()));
-    //     match result {
-    //         Ok(value) => Some(value),
-    //         Err(_) => None
-    //     }
-    // }
+    pub fn token(&self, signing_key: &str) -> Option<String> {
+        match &self.email {
+            Some(sub) => {
+                Claims::new(
+                    sub.clone(),
+                    "".to_string(),
+                    3600
+                ).encode(signing_key)
+            },
+            None => {
+                panic!("Cannot sign token without email")
+            }
+        }
+    }
 
     #[wasm_bindgen(getter)]
     pub fn credential(&self) -> String {

@@ -1,18 +1,17 @@
 use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
-// use jsonwebtoken::{encode, Header, EncodingKey};
 
 use crate::node::Node;
-use super::Claims;
+use super::claims::Claims;
 
 /**
  * Like Users, Providers are a special type of internal Node
  * used by the authentication middleware. 
  */
 #[wasm_bindgen]
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Provider {
     api_key: String,
@@ -45,25 +44,19 @@ impl Provider {
         Node::from_hash_map(properties, "Provider".to_string())
     }
 
-    // pub fn token(&self, signing_key: &str) -> Option<String> {
-    //     let iss = match &self.domain {
-    //         Some(domain) => {
-    //             domain.clone()
-    //         },
-    //         None => {
-    //             panic!("Cannot sign token without domain")
-    //         }
-    //     };
-    //     let my_claims = Claims {
-    //         iss,
-    //         sub: "".to_string(),
-    //         exp: 3600*24
-    //     };
-    //     let result = encode(&Header::default(), &my_claims, &EncodingKey::from_secret((*signing_key).as_ref()));
-    //     match result {
-    //         Ok(value) => Some(value),
-    //         Err(_) => None
-    //     }
-    // }
+    pub fn token(&self, signing_key: &str) -> Option<String> {
+        match &self.domain {
+            Some(iss) => {
+                Claims::new(
+                    iss.clone(),
+                    "".to_string(),
+                    3600*24
+                ).encode(signing_key)
+            },
+            None => {
+                panic!("Cannot sign token without domain")
+            }
+        }
+    }
 }
 
