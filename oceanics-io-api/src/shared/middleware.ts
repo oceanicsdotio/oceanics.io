@@ -2,7 +2,7 @@ import type { Handler, HandlerEvent } from "@netlify/functions";
 import { Logtail } from "@logtail/node";
 import { ILogtailLog } from "@logtail/types";
 // import * as db from "./queries";
-import { Context, Query, ErrorDetail, Endpoint } from "oceanics-io-api-wasm";
+import { Context, QueryStringParameters, ErrorDetail, Endpoint } from "oceanics-io-api-wasm";
 
 
 // Type for handlers, before response processing
@@ -13,7 +13,6 @@ export type ApiHandler = (
     // Stub type for generic entity transform object.
     data?: Record<string, unknown> | {name: string, url: string}[];
 }>
-
 
 export enum HttpMethod {
     POST = "POST",
@@ -58,33 +57,28 @@ export function Router(
     pathSpec?: Record<string, unknown>
 ): Handler {
     // Pre-populate with assigned handlers. 
-    const context = new Endpoint(pathSpec);
+    const endpoint: Endpoint = new Endpoint(pathSpec);
     Object.entries(methods).forEach(([key, value]) => {
-        context.insertMethod(key, value);
+        endpoint.insertMethod(key, value);
     })
 
     // Inner handler receives Netlify handler event
-    return async function ({
-        httpMethod,
-        body,
-        headers,
-        queryStringParameters
-    }: HandlerEvent) {
-        let request: Context;
-        let detail: ErrorDetail;
+    return async function (request: HandlerEvent) {
+        let context: Context;
         try {
-            request = context.request(
-                queryStringParameters as unknown as Query, 
-                httpMethod as HttpMethod
-            );
+            context = endpoint.context(request);
         } catch ({message}) {
-            detail = ErrorDetail.invalidMethod();
+            const detail = ErrorDetail.invalidMethod();
             logging.warn(
                 message, 
-                request.logLine(detail.statusCode)
+                context.logLine("", request.httpMethod, detail.statusCode)
             );
             return detail
         }
+
+        if (context.auth !== ) 
+
+
         try {
             request.auth(headers, body??"{}");
         } catch ({message}) {
@@ -95,8 +89,7 @@ export function Router(
             );
             return detail
         }
-        const response = await request.handler({
-            context,
+        const response = await context.handle({
             queryStringParameters
         }).then(({extension="", data, statusCode, headers}) => {
             return {

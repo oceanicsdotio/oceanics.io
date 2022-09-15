@@ -1,7 +1,6 @@
 use wasm_bindgen::prelude::*;
 use serde::Deserialize;
 
-
 use std::collections::HashMap;
 use serde_json::Value;
 
@@ -23,29 +22,33 @@ fn opt_string(value: &Option<String>) -> String {
  */
 #[wasm_bindgen]
 #[derive(Deserialize)]
-pub struct Query {
+pub struct QueryStringParameters {
     left: Option<String>,
     uuid: Option<String>,
     right: Option<String>,
 }
 
-impl Query {
+impl QueryStringParameters {
     pub fn from_args(
         left: Option<String>,
         uuid: Option<String>,
         right: Option<String>,
     ) -> Self {
-        Query {
+        QueryStringParameters {
             left,
             uuid,
             right
         }
     }
 
-    pub fn nodes(&self, data: HashMap<String,Value>) -> (Option<Node>, Option<Node>) {
+    /**
+     * Pass in the parsed body data, and get back a tuple of Nodes
+     * corresponding to left/right.
+     */
+    pub fn nodes(&self, data: HashMap<String, Value>) -> (Option<Node>, Option<Node>) {
         let mut clone = data.clone();
         match self {
-            Query {
+            QueryStringParameters {
                 right: Some(right),
                 left: Some(left),
                 uuid: Some(uuid),
@@ -58,7 +61,7 @@ impl Query {
                     Node::from_hash_map_and_symbol(data, String::from("n1"), right.to_string());
                 (Some(left_node), Some(right_node))
             },
-            Query {
+            QueryStringParameters {
                 right: None,
                 left: Some(left),
                 uuid: Some(uuid),
@@ -67,7 +70,7 @@ impl Query {
                 let left_node = Node::from_hash_map(clone, left.clone());
                 (Some(left_node), None)
             },
-            Query {
+            QueryStringParameters {
                 right: None,
                 left: Some(left),
                 uuid: None,
@@ -85,7 +88,7 @@ impl Query {
  * empty string instead of Null/None. 
  */
 #[wasm_bindgen]
-impl Query {
+impl QueryStringParameters {
     #[wasm_bindgen(constructor)]
     pub fn new(value: JsValue) -> Self {
         serde_wasm_bindgen::from_value(value).unwrap()
