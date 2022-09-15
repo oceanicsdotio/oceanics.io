@@ -9,7 +9,7 @@ use super::Authentication;
  * array. Only one of these will be truthy at a time. 
  */
 #[wasm_bindgen]
-#[derive(PartialEq, Eq, Deserialize, Serialize)]
+#[derive(PartialEq, Eq, Deserialize, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Security {
     bearer_auth: Option<Vec<Value>>,

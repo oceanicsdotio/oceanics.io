@@ -21,9 +21,7 @@ export interface IAuth {
  * any validation of inputs here, such as for email address and
  * excluded passwords. Assume this is delegated to frontend. 
  */
-const register: ApiHandler = async ({
-  context
-}) => {
+const register: ApiHandler = async (context) => {
   try {
     const domain = await db.register(context.provider, user);
     return {

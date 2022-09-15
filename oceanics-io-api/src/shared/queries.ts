@@ -1,6 +1,6 @@
 import neo4j from "neo4j-driver";
 import type { Record, QueryResult } from "neo4j-driver";
-import { Node, Links, NodeConstraint } from "oceanics-io-api-wasm";
+import { Node, Links, Constraint } from "oceanics-io-api-wasm";
 
 type Route = {name: string, url: string};
 
@@ -141,6 +141,6 @@ export const setup = (): string[] => {
         ["Provider", "apiKey"],
         ["Provider", "domain"]
     ].map(
-        ([label, key]) => (new NodeConstraint(label, key)).createIndex().query
+        ([label, key]) => (new Constraint(label, key)).createIndex().query
     )
 }

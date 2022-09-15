@@ -4,9 +4,8 @@ use serde::Serialize;
 /**
  * Error detail metadata
  */
-#[wasm_bindgen]
 #[derive(Serialize)]
-pub struct ErrorBody {
+struct ErrorBody {
     message: String,
     details: Option<String>
 }
@@ -23,7 +22,6 @@ pub struct ErrorDetail{
     extension: Option<String>
 }
 
-#[wasm_bindgen]
 impl ErrorDetail {
     fn new(message: String, status_code: u16) -> JsValue {
         let detail = ErrorDetail { 
@@ -36,7 +34,10 @@ impl ErrorDetail {
         };
         serde_wasm_bindgen::to_value(&detail).unwrap()
     }
+}
 
+#[wasm_bindgen]
+impl ErrorDetail {
     #[wasm_bindgen(static_method_of = Node)]
     pub fn unauthorized() -> JsValue {
         let message = String::from("Unauthorized");
@@ -45,9 +46,8 @@ impl ErrorDetail {
     #[wasm_bindgen(static_method_of = Node)]
     #[wasm_bindgen(js_name = invalidMethod)]
     pub fn invalid_method() -> JsValue {
-        let message = String::from("Invalid HTTP Method");
+        let message = String::from("Invalid HTTP method");
         ErrorDetail::new(message, 405)
-
     }
 
     #[wasm_bindgen(static_method_of = Node)]

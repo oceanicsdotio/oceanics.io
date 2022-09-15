@@ -37,7 +37,7 @@ impl RequestHeaders {
                 this.set_user(this.basic_auth_claim());
             },
             _ => {
-                panic!("Cannot verify header");
+                panic!("Cannot verify header with auth: {}", this.authorization.unwrap());
             }
         };
         this
@@ -54,7 +54,7 @@ impl RequestHeaders {
     #[wasm_bindgen(js_name = "claimAuthMethod")]
     pub fn claim_auth_method(&self) -> Option<Authentication> {
         let bearer: Regex = Regex::new(r"Bearer:()").unwrap();
-        let basic: Regex = Regex::new(r"():():()").unwrap();
+        let basic: Regex = Regex::new(r"(.+):(.+):(.+)").unwrap();
         match self {
             Self {
                 authorization: Some(auth),
