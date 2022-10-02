@@ -19,7 +19,7 @@ fn string_or(value: &Option<String>, default: String) -> String {
  * representing entities in the Cypher query language.
  */
 #[wasm_bindgen]
-#[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Eq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Node {
     properties: Option<HashMap<String, Value>>,

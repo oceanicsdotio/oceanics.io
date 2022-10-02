@@ -6,6 +6,8 @@ use js_sys::Function;
 use serde::Deserialize;
 
 use super::{HttpMethod, request::Context};
+
+use super::request::LogLine;
 pub use specification::Specification;
 use super::response::OptionsResponse;
 use super::request::Request;
@@ -63,6 +65,21 @@ impl Endpoint {
         endpoint
     }
 
+    #[wasm_bindgen(js_name = "logLine")]
+    pub fn log_line(&self, user: String, http_method: HttpMethod, status_code: u16) -> JsValue {
+        LogLine::from_props(
+            user, 
+            http_method, 
+            status_code, 
+            0, 
+            None
+        ).json()
+    }
+
+    /**
+     * Called from JS inside the generated handler function. Any errors
+     * will be caught, and return an Invalid Method response. 
+     */
     pub fn context(&self, request: JsValue) -> Context {
         let _request: Request = match serde_wasm_bindgen::from_value(request) {
             Ok(value) => value,

@@ -11,14 +11,14 @@ use crate::middleware::HttpMethod;
 
 use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 /**
  * Data passed in from the Netlify handler. 
  */
 #[wasm_bindgen]
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Request {
     headers: RequestHeaders,

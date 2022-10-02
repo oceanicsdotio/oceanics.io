@@ -35,6 +35,18 @@ logging.use(async (log: ILogtailLog) => {
     }
 });
 
+// Response format
+const transform = ({extension="", data, statusCode, headers}) => {
+    return {
+        statusCode,
+        headers: {
+            ...headers,
+            'Content-Type': `application/${extension}json`
+        },
+        body: JSON.stringify(data)
+    };
+}
+
 /**
  * Return a handler function depending on the HTTP method. Want to take 
  * declarative approach: just pass in an object containing handlers for
@@ -56,56 +68,49 @@ export function Router(
     }, 
     pathSpec?: Record<string, unknown>
 ): Handler {
+    // Define context in outer scope for easier memoization of common responses
+    let context: Context;
+
     // Pre-populate with assigned handlers. 
     const endpoint: Endpoint = new Endpoint(pathSpec);
     Object.entries(methods).forEach(([key, value]) => {
         endpoint.insertMethod(key, value);
     })
 
-    // Inner handler receives Netlify handler event
-    return async function (request: HandlerEvent) {
-        let context: Context;
+    /**
+     * Inner handler will receive Netlify function event.
+     * 
+     * From the event data we create a request context instance
+     * that will authenticate and handle the request. If creating
+     * the context throws an error, we can assume an invalid method
+     * has been requested. 
+     */
+    return async function (event: HandlerEvent) {
         try {
-            context = endpoint.context(request);
+            context = endpoint.context(event);
         } catch ({message}) {
-            const detail = ErrorDetail.invalidMethod();
-            logging.warn(
-                message, 
-                context.logLine("", request.httpMethod, detail.statusCode)
-            );
-            return detail
-        }
-
-        if (context.auth !== ) 
-
-
-        try {
-            request.auth(headers, body??"{}");
-        } catch ({message}) {
-            detail = ErrorDetail.unauthorized();
+            const response = ErrorDetail.invalidMethod();
             logging.error(
                 message, 
-                request.logLine(detail.statusCode)
+                endpoint.logLine("none", event.httpMethod, response.statusCode)
             );
-            return detail
+            return response
         }
-        const response = await context.handle({
-            queryStringParameters
-        }).then(({extension="", data, statusCode, headers}) => {
-            return {
-                statusCode,
-                headers: {
-                    ...headers,
-                    'Content-Type': `application/${extension}json`
-                },
-                body: JSON.stringify(data)
-            };
-        });
-
+        try {
+            context.auth();
+        } catch ({message}) {
+            const response = ErrorDetail.unauthorized();
+            logging.error(
+                message, 
+                context.logLine(context.user(), response.statusCode)
+            );
+            return response
+        }
+        const response = await context.handle().then(transform);
         logging.info(
-            `${httpMethod} response with ${response.statusCode}`, 
-            request.logLine(response.statusCode) as unknown
+            `${context.httpMethod} response with ${response.statusCode}`, 
+            context.logLine(null, response.statusCode)
         );
-        return (response);
+        return response;
     }
 }

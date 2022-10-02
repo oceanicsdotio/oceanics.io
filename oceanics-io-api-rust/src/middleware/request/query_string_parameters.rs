@@ -1,5 +1,5 @@
 use wasm_bindgen::prelude::*;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use std::collections::HashMap;
 use serde_json::Value;
@@ -21,7 +21,7 @@ fn opt_string(value: &Option<String>) -> String {
  * may have these query string parameters defined. 
  */
 #[wasm_bindgen]
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub struct QueryStringParameters {
     left: Option<String>,
     uuid: Option<String>,

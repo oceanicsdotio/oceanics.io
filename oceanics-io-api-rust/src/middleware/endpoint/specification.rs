@@ -1,5 +1,5 @@
 use wasm_bindgen::prelude::*;
-use serde::Deserialize;
+use serde::{Deserialize,Serialize};
 
 use crate::authentication::{Authentication, Security};
 
@@ -8,7 +8,7 @@ use crate::authentication::{Authentication, Security};
  * are retrieved from the OpenApi3 spec. 
  */
 #[wasm_bindgen]
-#[derive(Deserialize, Clone)]
+#[derive(Deserialize, Serialize, Clone)]
 pub struct Specification {
     security: Vec<Security>,
 }

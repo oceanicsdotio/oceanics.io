@@ -9,8 +9,8 @@ const DEFAULT_LABEL = "Link"
 /**
  * Connect two nodes.
  */
-const join: ApiHandler = async ({ data: { nodes: [left, right], label=DEFAULT_LABEL } }) => {
-  await db.join(label, left, right);
+const join: ApiHandler = async (context) => {
+  await db.join(DEFAULT_LABEL, context.left, context.right);
   return {
     statusCode: 204
   }
@@ -19,8 +19,8 @@ const join: ApiHandler = async ({ data: { nodes: [left, right], label=DEFAULT_LA
 /**
  * Drop connection between two nodes. 
  */
-const drop: ApiHandler = async ({ data: { nodes: [left, right] } }) => {
-  await db.drop(undefined, left, right);
+const drop: ApiHandler = async (context) => {
+  await db.drop(undefined, context.left, context.right);
   return {
     statusCode: 204
   }

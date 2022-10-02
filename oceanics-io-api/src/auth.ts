@@ -23,7 +23,7 @@ export interface IAuth {
  */
 const register: ApiHandler = async (context) => {
   try {
-    const domain = await db.register(context.provider, user);
+    const domain = await db.register(context.provider, context.user);
     return {
       data: {
         message: `Registered as a member of ${domain}.`
@@ -40,12 +40,8 @@ const register: ApiHandler = async (context) => {
  * data per the standard, it includes the UUID for the User, as this is the
  * information needed when validating access to data. 
  */
-const getToken: ApiHandler = async ({
-  data: {
-    user
-  }
-}) => {
-  const {uuid} = Node.dematerialize(user);
+const getToken: ApiHandler = async (context) => {
+  const {uuid} = context.user;
   return {
     statusCode: 200,
     data: {
@@ -68,8 +64,8 @@ const manage: ApiHandler = async () => {
  * generator prevents internal Nodes like Provider from
  * being dropped.
  */
-const remove: ApiHandler = async ({data: {user}}) => {
-  await db.remove(user, new Node());
+const remove: ApiHandler = async (context) => {
+  await db.remove(context.user, new Node());
   return {
     statusCode: 204
   }
