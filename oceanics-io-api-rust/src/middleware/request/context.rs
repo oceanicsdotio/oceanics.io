@@ -55,7 +55,7 @@ impl Context {
     }
 
     #[wasm_bindgen(getter)]
-    pub fn user(&self) -> Option<User> {
+    pub fn user(&self) -> JsValue {
         self.request.headers.user()
     }
 
