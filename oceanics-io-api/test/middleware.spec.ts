@@ -467,7 +467,7 @@ describe("idempotent", function() {
 
           test.concurrent("generates LogLine JSON", async function () {
             const context = new Context(ENDPOINT.post, REQUEST, HANDLER);
-            const log = context.logLine("test@oceanics.io", "GET", 403);
+            const log = context.logLine("test@oceanics.io", 403);
             delete log.elapsedTime;
 
             expect(log).toEqual({

@@ -1,5 +1,5 @@
 use wasm_bindgen::prelude::*;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use regex::Regex;
 
 use crate::authentication::Claims;
@@ -10,7 +10,7 @@ use crate::authentication::{Authentication,User,Provider};
  * request headers. 
  */
 #[wasm_bindgen]
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub struct RequestHeaders {
     authorization: Option<String>,
     user: Option<User>,
