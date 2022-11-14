@@ -54,9 +54,7 @@ api-test-content: $(TEST_CACHE)
 
 # Serve functions locally
 api-dev: api
-	yarn eslint "$(API)/src/**/*.{js,ts}"
-	yarn workspace $(API) run tsc 
-	yarn netlify dev --port=8888
+	yarn netlify dev
 
 # Run jest incrementally, because order matters
 api-test: $(TEST_CACHE) api-test-auth api-test-collection api-test-idempotent api-test-content

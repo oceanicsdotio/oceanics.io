@@ -1,8 +1,7 @@
 import type { Handler, HandlerEvent } from "@netlify/functions";
 import { Logtail } from "@logtail/node";
 import { ILogtailLog } from "@logtail/types";
-// import * as db from "./queries";
-import { Context, QueryStringParameters, ErrorDetail, Endpoint } from "oceanics-io-api-wasm";
+import { Context, Endpoint } from "oceanics-io-api-wasm";
 
 
 // Type for handlers, before response processing
@@ -24,10 +23,10 @@ export enum HttpMethod {
     HEAD = "HEAD"
 }
 
-const logging = new Logtail(process.env.LOGTAIL_SOURCE_TOKEN??"");
+const log = new Logtail(process.env.LOGTAIL_SOURCE_TOKEN??"");
 
 // Enrich logs with memory usage stats
-logging.use(async (log: ILogtailLog) => {
+log.use(async (log: ILogtailLog) => {
     return {
         ...log,
         ...process.memoryUsage(),
@@ -71,10 +70,10 @@ export function Router(
     // Define context in outer scope for easier memoization of common responses
     let context: Context;
 
-    // Pre-populate with assigned handlers. 
+    // Pre-populate with assigned handlers & transform. 
     const endpoint: Endpoint = new Endpoint(pathSpec);
-    Object.entries(methods).forEach(([key, value]) => {
-        endpoint.insertMethod(key, value);
+    Object.entries(methods).forEach(([key, fn]) => {
+        endpoint.insertMethod(key, (ctx: Context) => fn(ctx).then(transform));
     })
 
     /**
@@ -86,31 +85,18 @@ export function Router(
      * has been requested. 
      */
     return async function (event: HandlerEvent) {
+        // All validation up until DB query is done in WASM. 
         try {
             context = endpoint.context(event);
         } catch ({message}) {
-            const response = ErrorDetail.invalidMethod();
-            logging.error(
-                message, 
-                endpoint.logLine("none", event.httpMethod, response.statusCode)
-            );
-            return response
+            const error = JSON.parse(message);
+            const logData = endpoint.logLine("none", event.httpMethod, error.statusCode);
+            log.error(error.message, logData);
+            return error
         }
-        try {
-            context.auth();
-        } catch ({message}) {
-            const response = ErrorDetail.unauthorized();
-            logging.error(
-                message, 
-                context.logLine(context.user(), response.statusCode)
-            );
-            return response
-        }
-        const response = await context.handle().then(transform);
-        logging.info(
-            `${context.httpMethod} response with ${response.statusCode}`, 
-            context.logLine(null, response.statusCode)
-        );
+        const response = await context.handle();
+        const logData = context.logLine(null, response.statusCode)
+        log.info(`${event.httpMethod} response with ${response.statusCode}`, logData);
         return response;
     }
 }

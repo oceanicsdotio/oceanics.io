@@ -13,7 +13,7 @@ export const s3 = new S3({
 });
 
 const metadata: ApiHandler = async ({
-    queryStringParameters: {
+    query: {
         key
     }
 }) => {
@@ -43,17 +43,12 @@ const metadata: ApiHandler = async ({
 /**
  * Create a new object in the S3 service
  */
-const create: ApiHandler = async ({
-    queryStringParameters: {
-        key
-    },
-    body
-}) => {
+const create: ApiHandler = async (context) => {
     try {
         await s3.putObject({
-            Body: Buffer.from(body),
+            Body: Buffer.from(context.request.body),
             Bucket: process.env.BUCKET_NAME,
-            Key: key,
+            Key: context.request.uuid,
             ContentType: 'application/octet-stream',
             ACL:'public-read',
         }).promise();
@@ -70,16 +65,12 @@ const create: ApiHandler = async ({
 /**
  * Browse saved results for a single model configuration.
  */
-const retrieve: ApiHandler = async ({
-    queryStringParameters: {
-        key
-    }
-}) => {
+const retrieve: ApiHandler = async (context) => {
     let Body: S3.Body;
     try {    
         ({Body} = await s3.getObject({
             Bucket: process.env.BUCKET_NAME,
-            Key: key
+            Key: context.query.key
         }).promise()); 
     } catch ({message, statusCode}) {
         return { 

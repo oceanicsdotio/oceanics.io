@@ -1,6 +1,6 @@
 import neo4j from "neo4j-driver";
 import type { Record, QueryResult } from "neo4j-driver";
-import { Node, Links, Constraint } from "oceanics-io-api-wasm";
+import { Node, Links, Constraint, User } from "oceanics-io-api-wasm";
 
 type Route = {name: string, url: string};
 
@@ -95,7 +95,7 @@ export const register = async (left: Node, right: Node): Promise<string> => {
     return domain;
 }
 
-export const auth = async (user: Node): Promise<Node> => {
+export const auth = async (user: Node): Promise<User> => {
     const {query} = user.load();
     const records = await connect(query, READ_ONLY).then(recordsToProperties);
     if (records.length === 0)
@@ -103,7 +103,7 @@ export const auth = async (user: Node): Promise<Node> => {
     else if (records.length > 1) {
         throw Error(`Basic auth claim matches multiple accounts`)
     }
-    return Node.user(JSON.stringify(records[0]));
+    return new User(JSON.stringify(records[0]));
 }
 
 export const drop = (label: string, left: Node, right: Node): Promise<QueryResult> => {
