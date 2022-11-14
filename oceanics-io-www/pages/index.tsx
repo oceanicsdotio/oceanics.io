@@ -65,11 +65,11 @@ const IndexPage = ({
 
     return (
         <>
+            <Oceanside {...props}/>
             <Campaign
                 campaign={PageData.campaigns[1]}
             />
-            <Oceanside {...props}/>
-            <Index
+            {/* <Index
                 query={router.query}
                 onShowMore={onShowMore}
                 onClearConstraints={onClearConstraints}
@@ -77,7 +77,7 @@ const IndexPage = ({
                 documents={deserialized}
                 pagingIncrement={pagingIncrement}
                 navigate={navigate}
-            />
+            /> */}
         </>
     )
 };
