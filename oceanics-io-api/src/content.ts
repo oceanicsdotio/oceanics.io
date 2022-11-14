@@ -21,11 +21,11 @@ const handler: Handler = async ({ body }) => {
         content
     } = matter(body as Input);
    
-    const memo = Node.materialize(JSON.stringify(data), "n0", "Memos");
+    const memo = new Node(JSON.stringify(data), "n0", "Memos");
 
     const {query} = memo.create();
     const linkQueries = references.map((each: Record<string, unknown>) => {
-        const node = Node.materialize(JSON.stringify(each), `n1`, "Memos");
+        const node = new Node(JSON.stringify(each), `n1`, "Memos");
         const {query} = new Links("Reference", 0, 0, "").insert(memo, node);
         return query
     });

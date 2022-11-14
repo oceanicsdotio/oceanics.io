@@ -63,16 +63,25 @@ impl Context {
         self.request.headers.claim_auth_method()
     }
 
+    /**
+     * Parse user information from the headers.
+     */
     #[wasm_bindgen(getter)]
     pub fn user(&self) -> JsValue {
         self.request.headers.user()
     }
 
+    /**
+     * Parse provider information from the headers. 
+     */
     #[wasm_bindgen(getter)]
     pub fn provider(&self) -> JsValue {
         self.request.headers.provider()
     }
 
+    /**
+     * Hoist access to one of the nodes. 
+     */
     #[wasm_bindgen(getter)]
     pub fn left(&self) -> Option<Node> {
         self.nodes.0.clone()
@@ -87,6 +96,16 @@ impl Context {
     #[wasm_bindgen(js_name = "httpMethod")]
     pub fn http_method(&self) -> HttpMethod {
         self.request.http_method
+    }
+
+    #[wasm_bindgen(getter)]
+    pub fn request(&self) -> JsValue {
+        serde_wasm_bindgen::to_value(&self.request).unwrap()
+    }
+
+    #[wasm_bindgen(getter)]
+    pub fn query(&self) -> JsValue {
+        serde_wasm_bindgen::to_value(&self.request.query_string_parameters).unwrap()
     }
 
     /**
@@ -128,5 +147,9 @@ impl Context {
             self.elapsed_time(), 
             self.specification.auth()
         ).json()
+    }
+
+    pub fn authenticate() {
+        
     }
 }

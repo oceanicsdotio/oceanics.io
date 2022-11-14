@@ -3,6 +3,7 @@ mod specification;
 use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
 use js_sys::Function;
+use serde_json::json;
 use serde::Deserialize;
 
 use super::{HttpMethod, request::Context};
@@ -84,19 +85,33 @@ impl Endpoint {
         let _request: Request = match serde_wasm_bindgen::from_value(request) {
             Ok(value) => value,
             Err(_) => {
-                panic!("Malformed request");
+                let response = json!({
+                    "message": "Bad request",
+                    "statusCode": 400,
+                });
+                panic!("{}", response);
             }
         };
         let specification = match self.get_specification(&_request.http_method) {
             Some(value) => value.clone(),
             None => {
-                panic!("No specification found for {}", _request.http_method);
+                let response = json!({
+                    "message": "Invalid HTTP method",
+                    "statusCode": 405,
+                    "detail": "No specification found"
+                });
+                panic!("{}", response);
             }
         };
         let method = match self.get_method(_request.http_method) {
             Some(value) => value,
             None => {
-                panic!("No handler found for {}", _request.http_method);
+                let response = json!({
+                    "message": "Invalid HTTP method",
+                    "statusCode": 405,
+                    "detail": "No handler found"
+                });
+                panic!("{}", response);
             }
         };
         Context::from_args(specification, _request, method)

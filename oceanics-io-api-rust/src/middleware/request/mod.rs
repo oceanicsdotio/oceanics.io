@@ -46,6 +46,16 @@ impl Request {
             _ => JsValue::NULL,
         }
     }
+
+    #[wasm_bindgen(getter)]
+    pub fn body(&self) -> Option<String> {
+        match self.http_method {
+            HttpMethod::POST | HttpMethod::PUT => {
+                Some(self.body.as_ref().unwrap().clone())
+            },
+            _ => None,
+        }
+    }
 }
 
 impl Request {

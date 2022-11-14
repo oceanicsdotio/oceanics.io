@@ -41,7 +41,7 @@ const register: ApiHandler = async (context) => {
  * information needed when validating access to data. 
  */
 const getToken: ApiHandler = async (context) => {
-  const {uuid} = context.user;
+  const uuid = context.request.uuid;
   return {
     statusCode: 200,
     data: {

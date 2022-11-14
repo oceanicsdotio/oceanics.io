@@ -6,7 +6,7 @@ The minimal example to get up and running is:
 
 ```bash
 make api
-make run & # run Netlify dev stack, use another terminal
+make api-dev & # run Netlify dev stack, use another terminal
 make test
 ```
 

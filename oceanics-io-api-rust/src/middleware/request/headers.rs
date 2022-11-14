@@ -17,6 +17,10 @@ pub struct RequestHeaders {
     provider: Option<Provider>,
 }
 
+/**
+ * Web bindings, includes constructor and getters. These
+ * are public for the sake of testing.
+ */
 #[wasm_bindgen]
 impl RequestHeaders {
     /**
@@ -89,6 +93,9 @@ impl RequestHeaders {
     }
 }
 
+/**
+ * Rust-only methods
+ */
 impl RequestHeaders {
     /**
      * Parse auth string into parts
