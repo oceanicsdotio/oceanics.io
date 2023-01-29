@@ -1,7 +1,7 @@
 # Oceanics.io
 
 <p align="center">
-  <img width="60%" src="https://www.oceanics.io/assets/dagan-sprite.gif">
+  <img width="80%" src="https://www.oceanics.io/assets/dagan-sprite.gif">
 </p>
 
 ## Contents
@@ -10,6 +10,7 @@
   - [Contents](#contents)
   - [About](#about)
   - [Web application](#web-application)
+    - [Workspaces](#workspaces)
   - [Environment](#environment)
   - [Database](#database)
 
@@ -21,19 +22,32 @@ This document describes this repository, and steps to modify the API. To use the
 
 ## Web application
 
-We use a `yarn` monorepo and workspaces to manage code. The environment configuration is in `.yarnrc.yml`. There are version controlled plugins in `.yarn`. Workspaces and shared dependencies are defined in `package.json`. 
+We use a `yarn` monorepo and workspaces to manage code. The environment configuration lives in `.yarnrc.yml`, and version controlled plugins in `.yarn`.
+
+The top-level directory also contains this `README.md` along with configuration files and scripts for linting, compiling, bundling, and deploying.
+
+Workspaces and shared dependencies are defined in `package.json`. The build process is defined in `makefile`. 
 
 Static assets are hosted on Netlify. The deploy is setup in `netlify.toml`. When new commits are checked into the Github repository, the site is built and deployed to [https://www.oceanics.io](https://www.oceanics.io).
 
-The build process is defined in `makefile`. 
-
-The top-level directory also contains this `README.md` along with configuration files and scripts for linting, compiling, bundling, and deploying the site.
+### Workspaces
 
 The `oceanics-io-www` workspace contains the TypeScript web application. Client side interaction is accomplished with React Hooks and browser APIs.
 
 Netlify serverless functions that make up our API are `oceanics-io-api`. These are single purpose endpoints that support secure data access, pre-processing, and sub-setting.
 
-The Rust-to-Web-Assembly libraries used by these workspaces are in `oceanics-io-*-rust`.
+Rust-to-Web-Assembly libraries used by these workspaces are in `oceanics-io-*-rust`.
+
+Dependencies of the main components are shown below:
+
+```mermaid
+flowchart TD
+  api-wasm--->|import|api
+  api-rust--->|transpile|api-wasm
+  www-wasm--->|import|www
+  content--->|import|www
+  www-rust--->|transpile|www-wasm
+```
 
 ## Environment
 

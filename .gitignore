@@ -47,3 +47,5 @@ tsconfig.tsbuildinfo
 target/
 oceanics-io-api-wasm/
 oceanics-io-www-wasm/
+./nodes.json
+nodes.json

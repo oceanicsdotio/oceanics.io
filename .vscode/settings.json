@@ -38,7 +38,9 @@
   "git.enableCommitSigning": true,
   "deno.enable": true,
   "deno.enablePaths": [
-    "netlify/edge-functions"
+    "netlify/edge-functions",
+    "oceanics-io-edge",
+    "oceanics-io-api/edge"
   ],
   "deno.unstable": true,
   "deno.importMap": ".netlify/edge-functions-import-map.json",
