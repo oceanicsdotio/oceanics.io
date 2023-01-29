@@ -1,6 +1,3 @@
-/**
- * React and friends
- */
 import React from 'react';
 
 /**
@@ -18,8 +15,7 @@ import { Story, Meta } from '@storybook/react';
  * Storybook Interface
  */
 export default {
-  component: Layout,
-  title: 'Layout/Layout',
+  component: Layout
 } as Meta
 
 /**

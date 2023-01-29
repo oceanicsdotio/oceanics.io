@@ -1,4 +1,3 @@
-// @ts-check
 /* eslint-disable @typescript-eslint/no-var-requires */
 
 // https://www.npmjs.com/package/@next/bundle-analyzer
@@ -12,6 +11,10 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
  * @type {import('next').NextConfig}
  **/
 const config = {
+  compiler: {
+    // https://nextjs.org/docs/advanced-features/compiler#styled-components
+    styledComponents: true,
+  },
   eslint: {
     ignoreDuringBuilds: true,
   },

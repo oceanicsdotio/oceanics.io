@@ -1,6 +1,3 @@
-/**
- * React and friends
- */
 import React from 'react';
 import {Meta,Story} from "@storybook/react";
 
@@ -13,8 +10,7 @@ import Select, {SelectType} from './Select';
  * Storybook interface
  */
 export default {
-  component: Select,
-  title: 'Form/Select',
+  component: Select
 } as Meta;
 
 /**
