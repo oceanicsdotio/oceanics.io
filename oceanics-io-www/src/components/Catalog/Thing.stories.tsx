@@ -12,8 +12,7 @@ import Thing, {ThingType} from './Thing';
  * Storybook definition
  */
 export default {
-  component: Thing,
-  title: 'Catalog/Thing',
+  component: Thing
 } as Meta;
 
 /**

@@ -12,8 +12,7 @@ import Location, {LocationType} from './Location';
  * Storybook Interface
  */
 export default {
-    component: Location,
-    title: 'Catalog/Location',
+    component: Location
 } as Meta;
 
 /**

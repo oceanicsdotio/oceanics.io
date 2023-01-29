@@ -20,8 +20,7 @@
   * Storybook Interface
   */
  export default {
-   component: Trifold,
-   title: 'Layout/Trifold',
+   component: Trifold
  } as Meta
  
  /**

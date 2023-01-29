@@ -11,8 +11,7 @@ import Catalog, {CatalogType} from './Catalog';
  * Storybook Interface
  */
 export default {
-    component: Catalog,
-    title: 'Catalog/Catalog',
+    component: Catalog
 } as Meta;
 
 /**

@@ -1,6 +1,3 @@
-/**
- * React and friends
- */
 import React from 'react';
 import {Meta,Story} from "@storybook/react";
 /**
@@ -12,8 +9,7 @@ import LongText, {LongTextType} from './LongText';
  * Storybook interface
  */
 export default {
-  component: LongText,
-  title: 'Form/LongText',
+  component: LongText
 } as Meta;
 
 /**

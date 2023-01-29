@@ -4,8 +4,7 @@ import {Meta, Story} from "@storybook/react"
 import Form, {FormType} from './Form';
 
 export default {
-  component: Form,
-  title: 'Form/Form',
+  component: Form
 } as Meta
 
 const Template: Story<FormType> = (args) => <Form {...args} />;
