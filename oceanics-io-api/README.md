@@ -2,13 +2,16 @@
 
 This module is a build environment, so you won't run any commands directly. Local testing requires Netlify, which is installed from the parent module.
 
+You'll need to have created a Provider node in the Neo4j database, and added the API key to your local environment. 
+
 The minimal example to get up and running is:
 
 ```bash
 make oceanics-io-api/build
-make run & # run Netlify dev stack, use another terminal
+make dev & # run Netlify dev stack, use another terminal
 make test
 ```
+
 
 ## Logging
 
