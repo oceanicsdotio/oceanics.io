@@ -49,7 +49,7 @@ export type Properties = { [key: string]: unknown };
  * Approximate inverse of the `materialize` function, for extracting key, value data from a 
  * WASM Node. 
  */
- export const dematerialize = (node: Node): Properties => {
+export const dematerialize = (node: Node): Properties => {
     const stringToValue = (keyValue: string): [string, unknown] => {
         const [key, serialized] =  keyValue.split(": ")
         return [key.trim(), serialized.trim().slice(1, serialized.length - 1)]
@@ -142,14 +142,10 @@ export const connect = async (query: string, readOnly: boolean) => {
     return result;
 }
 
-export const setupQueries = (): string[] => {
-    return [
-        ["User", "email"],
-        ["Provider", "apiKey"],
-        ["Provider", "domain"]
-    ].map(
-        ([label, key]) => (new NodeConstraint(label, key)).createIndex().query
-    )
+
+export const uniqueConstraint = (label: string, key: string): Promise<QueryResult> => {
+  const {query} = (new NodeConstraint(label, key)).uniqueConstraint();
+  return connect(query, WRITE);
 }
 
 /**
