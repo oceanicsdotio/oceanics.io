@@ -3,7 +3,6 @@ import { Logtail } from "@logtail/node";
 import { ILogtailLog } from "@logtail/types";
 import { Context, Endpoint } from "oceanics-io-api-wasm";
 
-
 // Type for handlers, before response processing
 export type ApiHandler = (
     context: Context
