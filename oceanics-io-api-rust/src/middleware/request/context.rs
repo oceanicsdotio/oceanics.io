@@ -50,8 +50,9 @@ impl Context {
 impl Context {
     #[wasm_bindgen(getter)]
     #[wasm_bindgen(js_name = "elapsedTime")]
-    pub fn elapsed_time(&self) -> i64 {
-        (Local::now() - self.start).num_milliseconds()
+    pub fn elapsed_time(&self) -> f64 {
+        let big_int_duration = (Local::now() - self.start).num_milliseconds();
+        big_int_duration as f64
     }
 
     /**

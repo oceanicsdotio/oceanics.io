@@ -89,13 +89,25 @@ export function Router(
             context = endpoint.context(event);
         } catch ({message}) {
             const error = JSON.parse(message);
-            const logData = endpoint.logLine("none", event.httpMethod, error.statusCode);
-            log.error(error.message, logData);
+            // const logData = endpoint.logLine("none", event.httpMethod, error.statusCode);
+            // log.error(error.message, logData);
             return error
         }
-        const response = await context.handle();
-        const logData = context.logLine(null, response.statusCode)
-        log.info(`${event.httpMethod} response with ${response.statusCode}`, logData);
-        return response;
+        console.log({event, user: context.user});
+        try {
+            const response = await context.handle();
+            // const logData = context.logLine(null, response.statusCode)
+            // log.info(`${event.httpMethod} response with ${response.statusCode}`, logData);
+            return response;
+        } catch ({message}) {
+            console.log({message})
+            return {
+                statusCode: 500,
+                message: "Runtime error",
+                detail: message
+            }
+        }
+        
+        
     }
 }

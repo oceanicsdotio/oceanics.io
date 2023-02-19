@@ -10,7 +10,8 @@ const url = "http://localhost:8888/.netlify/functions/content"
 
 describe("content handlers", function() {
     describe("content.post", function() {
-        test.concurrent.each(getContent())(`creates %s %s`, async function (label: string, slug: string, body: string) {
+        const content: string[] = getContent();
+        test.concurrent.each(content)(`creates %s`, async function (body) {
             const response = await fetch(url, {
                 method: "POST",
                 body,

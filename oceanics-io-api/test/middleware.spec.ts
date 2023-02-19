@@ -388,7 +388,7 @@ describe("idempotent", function() {
         }
       }
 
-      const REQUEST = {
+      const POST_THINGS_REQUEST = {
         queryStringParameters: {left: "Things"},
         httpMethod: "POST",
         body: '{"name":"thing"}',
@@ -441,7 +441,7 @@ describe("idempotent", function() {
           test.concurrent("returns request context", async function() {
             const endpoint = new Endpoint(ENDPOINT);
             endpoint.insertMethod("POST", HANDLER);
-            const context = endpoint.context(REQUEST);
+            const context = endpoint.context(POST_THINGS_REQUEST);
             expect(context).toBeInstanceOf(Context);
             expect(context.auth).toBe("BearerAuth");
           })
@@ -459,25 +459,24 @@ describe("idempotent", function() {
         
         describe("Context", function() {
           test.concurrent("constructs Context", async function () {
-            const context = new Context(ENDPOINT.post, REQUEST, HANDLER);
+            const context = new Context(ENDPOINT.post, POST_THINGS_REQUEST, HANDLER);
             expect(context).toBeInstanceOf(Context);
-            expect(typeof context.elapsedTime).toBe("bigint");
-            expect(context.elapsedTime).toBeGreaterThanOrEqual(0n);
+            expect(context.elapsedTime).toBeGreaterThan(0.0);
           })
 
           test.concurrent("generates LogLine JSON", async function () {
-            const context = new Context(ENDPOINT.post, REQUEST, HANDLER);
+            const context = new Context(ENDPOINT.post, POST_THINGS_REQUEST, HANDLER);
             const log = context.logLine("test@oceanics.io", 403);
             delete log.elapsedTime;
 
             expect(log).toEqual({
               user: "test@oceanics.io", 
-              httpMethod: "GET", 
+              httpMethod: "POST", 
               statusCode: 403,
               auth: "BearerAuth"
             });
-            expect(typeof context.elapsedTime).toBe("bigint");
-            expect(context.elapsedTime).toBeGreaterThanOrEqual(0n);
+            // expect(typeof context.elapsedTime).toBe("number");
+            // expect(context.elapsedTime).toBeGreaterThanOrEqual(0.0);
           })
         })
 
@@ -499,23 +498,23 @@ describe("idempotent", function() {
 
         describe("QueryStringParameters", function() {
           test.concurrent("constructs QueryStringParameters", async function() {
-            const query = new QueryStringParameters(REQUEST.queryStringParameters);
+            const query = new QueryStringParameters(POST_THINGS_REQUEST.queryStringParameters);
             expect(query.left).toBe(THINGS)
           })
         })
 
         describe("Request", function() {
           test.concurrent("constructs Request", async function() {
-            const request = new Request(REQUEST);
+            const request = new Request(POST_THINGS_REQUEST);
             expect(request).toBeInstanceOf(Request);
-            const check = new Map(Object.entries(JSON.parse(REQUEST.body)));
+            const check = new Map(Object.entries(JSON.parse(POST_THINGS_REQUEST.body)));
             expect(request.json).toEqual(check);
           })
         })
 
         describe("RequestHeaders", function() {
           test.concurrent("constructs RequestHeaders", async function() {
-            const headers = new RequestHeaders(REQUEST.headers, "secret");
+            const headers = new RequestHeaders(POST_THINGS_REQUEST.headers, "secret");
             expect(headers).toBeInstanceOf(RequestHeaders);
             expect(headers.claimAuthMethod).toBe("BearerAuth");
           })

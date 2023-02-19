@@ -21,7 +21,7 @@ export interface IAuth {
  * any validation of inputs here, such as for email address and
  * excluded passwords. Assume this is delegated to frontend. 
  */
-const register: ApiHandler = async (context) => {
+export const register: ApiHandler = async (context) => {
   try {
     const domain = await db.register(context.provider, context.user);
     return {
@@ -64,7 +64,7 @@ const manage: ApiHandler = async () => {
  * generator prevents internal Nodes like Provider from
  * being dropped.
  */
-const remove: ApiHandler = async (context) => {
+export const remove: ApiHandler = async (context) => {
   await db.remove(context.user, new Node());
   return {
     statusCode: 204

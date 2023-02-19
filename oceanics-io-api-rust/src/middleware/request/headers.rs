@@ -57,7 +57,7 @@ impl RequestHeaders {
     #[wasm_bindgen(getter)]
     #[wasm_bindgen(js_name = "claimAuthMethod")]
     pub fn claim_auth_method(&self) -> Option<Authentication> {
-        let bearer: Regex = Regex::new(r"Bearer:()").unwrap();
+        let bearer: Regex = Regex::new(r"bearer:()").unwrap();
         let basic: Regex = Regex::new(r"(.+):(.+):(.+)").unwrap();
         match self {
             Self {
@@ -77,9 +77,16 @@ impl RequestHeaders {
     #[wasm_bindgen(getter)]
     pub fn user(&self) -> JsValue {
         match &self.user {
-            Some(value) => 
-                serde_wasm_bindgen::to_value(value).unwrap_or(JsValue::NULL),
-            None => JsValue::NULL
+            None => JsValue::NULL,
+            Some(value) => {
+                let result = serde_wasm_bindgen::to_value(value);
+                match result {
+                    Ok(value) => value,
+                    Err(error) => {
+                        panic!("{}", error);
+                    }
+                }
+            }
         }
     }
 

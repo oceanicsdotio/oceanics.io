@@ -135,12 +135,7 @@ export const batch = async (queries: string[], readOnly: boolean) => {
     return result;
 }
 
-export const setup = (): string[] => {
-    return [
-        ["User", "email"],
-        ["Provider", "apiKey"],
-        ["Provider", "domain"]
-    ].map(
-        ([label, key]) => (new Constraint(label, key)).createIndex().query
-    )
+export const uniqueConstraint = (label: string, key: string) => {
+    const {query} = (new Constraint(label, key)).uniqueConstraint();
+    return connect(query, WRITE);
 }

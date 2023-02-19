@@ -12,7 +12,7 @@ use crate::middleware::HttpMethod;
 use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
+use serde_json::{Value, json};
 
 /**
  * Data passed in from the Netlify handler. 
@@ -22,6 +22,7 @@ use serde_json::Value;
 #[serde(rename_all = "camelCase")]
 pub struct Request {
     headers: RequestHeaders,
+    #[wasm_bindgen(js_name = httpMethod)]
     pub http_method: HttpMethod,
     query_string_parameters: QueryStringParameters,
     body: Option<String>
@@ -29,9 +30,24 @@ pub struct Request {
 
 #[wasm_bindgen]
 impl Request {
+
+    fn bad_request(error: String) -> Value {
+        json!({
+            "message": "Bad request",
+            "statusCode": 400,
+            "detail": error
+        })
+    }
+
     #[wasm_bindgen(constructor)]
     pub fn new(value: JsValue) -> Self {
-        serde_wasm_bindgen::from_value(value).unwrap()
+        match serde_wasm_bindgen::from_value(value) {
+            Ok(value) => value,
+            Err(err) => {
+                let response = Request::bad_request(format!("{}", err));
+                panic!("{}", response)
+            }
+        }
     }
 
     /**
@@ -65,6 +81,9 @@ impl Request {
     pub fn data(&self) -> HashMap<String, Value> {
         match &self.body {
             Some(data) => {
+                if data.len() == 0 {
+                    return HashMap::with_capacity(0)
+                }
                 match serde_json::from_str(data) {
                     Ok(decoded) => decoded,
                     Err(_) => {
