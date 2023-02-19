@@ -30,19 +30,6 @@ pub struct Endpoint {
  */
 impl Endpoint {
     /**
-     * Convert from request method to the context instance
-     */
-    fn get_specification(&self, method: &HttpMethod) -> &Option<Specification> {
-        match &method {
-            HttpMethod::POST => &self.post,
-            HttpMethod::GET => &self.get,
-            HttpMethod::DELETE => &self.delete,
-            HttpMethod::PUT => &self.put,
-            _ => &None
-        }
-    }
-
-    /**
      * Format current HTTP methods for options
      * request header.
      */
@@ -51,6 +38,7 @@ impl Endpoint {
         keys.insert(0, "OPTIONS");
         keys.join(",")
     }
+
 }
 
 #[wasm_bindgen]
@@ -72,9 +60,36 @@ impl Endpoint {
             user, 
             http_method, 
             status_code, 
-            0, 
+            0.0, 
             None
         ).json()
+    }
+
+    /**
+     * Convert from request method to the context instance
+     */
+    fn specification(&self, method: &HttpMethod) -> &Option<Specification> {
+        match &method {
+            HttpMethod::POST => &self.post,
+            HttpMethod::GET => &self.get,
+            HttpMethod::DELETE => &self.delete,
+            HttpMethod::PUT => &self.put,
+            _ => &None
+        }
+    }
+
+    pub fn get_specification(&self, method: &str) -> Option<Specification> {
+        match self.specification(&HttpMethod::from_str(method).unwrap()) {
+            Some(value) => Some(value.clone()),
+            None => None
+        }
+    }
+
+    pub fn has_method(&self, method: &str) -> bool {
+        match self.specification(&HttpMethod::from_str(method).unwrap()) {
+            Some(..) => true,
+            None => false
+        }
     }
 
     /**
@@ -82,17 +97,8 @@ impl Endpoint {
      * will be caught, and return an Invalid Method response. 
      */
     pub fn context(&self, request: JsValue) -> Context {
-        let _request: Request = match serde_wasm_bindgen::from_value(request) {
-            Ok(value) => value,
-            Err(_) => {
-                let response = json!({
-                    "message": "Bad request",
-                    "statusCode": 400,
-                });
-                panic!("{}", response);
-            }
-        };
-        let specification = match self.get_specification(&_request.http_method) {
+        let _request: Request = Request::new(request);
+        let specification = match self.specification(&_request.http_method) {
             Some(value) => value.clone(),
             None => {
                 let response = json!({

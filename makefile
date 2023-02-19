@@ -57,7 +57,7 @@ api-dev: api
 	yarn netlify dev
 
 # Run jest incrementally, because order matters
-api-test: $(TEST_CACHE) api-test-auth api-test-collection api-test-idempotent api-test-content
+api-test: $(TEST_CACHE) api-test-middleware api-test-auth api-test-collection api-test-idempotent api-test-content
 
 api-cleanup:
 	rm -rf $(API_WASM)

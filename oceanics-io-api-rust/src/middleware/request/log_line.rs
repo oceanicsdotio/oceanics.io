@@ -14,7 +14,7 @@ pub struct LogLine {
     user: String,
     pub http_method: HttpMethod,
     pub status_code: u16,
-    pub elapsed_time: i64,
+    pub elapsed_time: f64,
     auth: Option<Authentication>
 }
 
@@ -23,7 +23,7 @@ impl LogLine {
         user: String,
         http_method: HttpMethod,
         status_code: u16,
-        elapsed_time: i64,
+        elapsed_time: f64,
         auth: Option<Authentication>
     ) -> Self {
         LogLine{
