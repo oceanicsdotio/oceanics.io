@@ -12,6 +12,30 @@ pub struct Claims {
     exp: usize,
 }
 
+/**
+ * Rust-only methods
+ */
+impl Claims {
+    pub fn encode(&self, signing_key: &str) -> Option<String> {
+        let key: Hmac<Sha256> = Hmac::new_from_slice(signing_key.as_ref()).unwrap();
+        match self.sign_with_key(&key) {
+            Ok(value) => Some(value),
+            Err(_) => None
+        }
+    }
+
+    pub fn decode(token: String, signing_key: &str) -> Option<Claims> {
+        let key: Hmac<Sha256> = Hmac::new_from_slice(signing_key.as_ref()).unwrap();
+        match token.verify_with_key(&key) {
+            Ok(value) => Some(value),
+            Err(_) => None
+        }
+    }
+}
+
+/**
+ * Methods exposed to JavaScript
+ */
 #[wasm_bindgen]
 impl Claims {
     #[wasm_bindgen(constructor)]
@@ -32,31 +56,6 @@ impl Claims {
     pub fn sub(&self) -> String {
         self.sub.clone()
     }
-
-    #[wasm_bindgen(getter)]
-    pub fn exp(&self) -> usize {
-        self.exp
-    }
-
-    pub fn encode(&self, signing_key: &str) -> Option<String> {
-        let key: Hmac<Sha256> = Hmac::new_from_slice(signing_key.as_ref()).unwrap();
-        let result = self.sign_with_key(&key);
-        // let result = encode(&Header::default(), &my_claims, &EncodingKey::from_secret((*signing_key).as_ref()));
-        match result {
-            Ok(value) => Some(value),
-            Err(_) => None
-        }
-    }
-
-    pub fn decode(token: String, signing_key: &str) -> Option<Claims> {
-        let key: Hmac<Sha256> = Hmac::new_from_slice(signing_key.as_ref()).unwrap();
-        let claims = token.verify_with_key(&key);
-        match claims {
-            Ok(value) => Some(value),
-            Err(_) => None
-        }
-        
-    }
 }
 
 #[cfg(test)]
@@ -70,7 +69,6 @@ mod test {
             "oceanics.io".to_string(),
             3600
         );
-        assert_eq!(claims.exp, claims.exp());
         assert_eq!(claims.iss, claims.iss());
         assert_eq!(claims.sub, claims.sub());
     }
@@ -89,6 +87,5 @@ mod test {
         let decoded = Claims::decode(token_string, signing_key).unwrap();
         assert_eq!(claims.sub, decoded.sub);
         assert_eq!(claims.iss, decoded.iss);
-        assert_eq!(claims.sub, decoded.sub);
     }
 }
