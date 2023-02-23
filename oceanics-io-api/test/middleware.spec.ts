@@ -4,6 +4,7 @@ import {
   // Helpers,
   panicHook as enableWasmLog,
   // Authentication
+  Claims,
   Provider, 
   Security, 
   User,
