@@ -11,6 +11,7 @@ repository = "git+https://github.com/oceanicsdotio/oceanics.io.git"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
+hex = "0.4.3"
 sha2 = "0.10.5"
 hmac = "0.12.1"
 jwt = "0.16.0"

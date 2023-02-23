@@ -28,56 +28,76 @@ use pbkdf2::
 #[wasm_bindgen]
 #[derive(Serialize, Deserialize, Clone)]
 pub struct User {
-    email: Option<String>,
+    email: String,
     password: Option<String>,
-    secret: Option<String>
+    secret: Option<String>,
 }
 
 impl fmt::Display for User {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            User { email: Some(email), .. } => write!(f, "{}", email),
-            _ => write!(f, "{}", "undefined")
-        }
+        write!(f, "{}", self.email)
     }
 }
 
 impl User {
-    pub fn from_token(email: String) -> Self {
+    pub fn create(
+        email: String, 
+        password: Option<String>, 
+        secret: Option<String>) -> Self {
         User {
-            email: Some(email), 
-            password: None, 
-            secret: None 
+            email,
+            password,
+            secret
         }
     }
 
-    pub fn from_basic_auth(email: String, password: String, secret: String) -> Self {
-        User {
-            email: Some(email), 
-            password: Some(password), 
-            secret: Some(secret) 
-        }
-    }
-}
-
-#[wasm_bindgen]
-impl User {
-    #[wasm_bindgen(constructor)]
-    pub fn new(
-        data: JsValue
-    ) -> Self {
-        serde_wasm_bindgen::from_value(data).unwrap()
-    }
-
-    #[wasm_bindgen(getter)]
-    pub fn node(&mut self) -> Node {
-        let mut properties = HashMap::new();
-        let email = match &self.email {
-            Some(value) => value.clone(),
-            None => "".to_string()
+    /**
+     * Salt the password with the provided secret.
+     */
+    fn credential(&self) -> String {
+        let (password, salt): (&[u8], Salt) = match self {
+            User {
+                password: Some(password), 
+                secret: Some(secret),
+                ..
+            } => {
+                let salt = match Salt::new(&secret) {
+                    Ok(value) => {
+                        value
+                    },
+                    Err(_) => {
+                        panic!("Invalid salt value: {}", secret);
+                    }
+                };
+                (password.as_bytes(), salt)
+            },
+            _ => {
+                panic!("Cannot derive signing credential for {}", self);
+            }
         };
+
+        match Pbkdf2.hash_password(password, &salt) {
+            Ok(value) => {
+                value.to_string()
+            },
+            Err(error) => {
+                // Likely because values are not base64 encoded...
+                panic!("{}", error);
+            }
+        }
+    }
+
+    pub fn verify(&self, password: String) -> bool {
+        let _cred = self.credential();
+        let parsed_hash = PasswordHash::new(&_cred).unwrap();
+        let bytes = password.as_bytes();
+        Pbkdf2.verify_password(&bytes, &parsed_hash).is_ok()
+    }
+
+    pub fn node(&self) -> Node {
+        let mut properties = HashMap::new();
         properties.insert(
-            "email".to_string(), Value::String(email)
+            "email".to_string(), Value::String(self.email.clone())
         );
         properties.insert(
             "credential".to_string(), Value::String(self.credential())
@@ -86,63 +106,88 @@ impl User {
     }
 
     pub fn token(&self, signing_key: &str) -> Option<String> {
-        match &self.email {
-            Some(sub) => {
-                Claims::new(
-                    sub.clone(),
-                    "".to_string(),
-                    3600
-                ).encode(signing_key)
-            },
-            None => {
-                panic!("Cannot sign token without email")
-            }
-        }
+        Claims::new(
+            self.email.clone(),
+            "".to_string(),
+            3600
+        ).encode(signing_key)
     }
 
-    #[wasm_bindgen(getter)]
-    pub fn credential(&self) -> String {
-        let salt: Salt;
-        let result = match self {
-            User {
-                password: Some(password), 
-                secret: Some(secret),
-                ..
-            } => {
-                salt = Salt::new(&secret).unwrap();
-                Pbkdf2.hash_password(password.as_bytes(), &salt)
-            },
-            _ => {
-                panic!("Cannot derive signing credential")
-            }
-        };
-        
-        match result {
-            Ok(value) => {
-                value.to_string()
-            },
-            Err(error) => {
-                panic!("{} {}", error, self);
-            }
-        }
-    }
 
-    pub fn verify(&self, hash: String) -> bool {
-        let parsed_hash = PasswordHash::new(&hash).unwrap();
-        let bytes = match &self.password {
-            None => {
-                panic!("No password for comparison.")
-            },
-            Some(password) => password.as_bytes()
-        };
-        Pbkdf2.verify_password(&bytes, &parsed_hash).is_ok()
+
+}
+
+/**
+ * Methods exposed to JavaScript
+ */
+#[wasm_bindgen]
+impl User {
+    #[wasm_bindgen(constructor)]
+    pub fn new(
+        data: JsValue
+    ) -> Self {
+        serde_wasm_bindgen::from_value(data).unwrap()
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use super::User;
+    use hex::encode;
+
     #[test]
     fn create_user () {
-        
+        let user = User {
+            email: "test@oceanics.io".to_string(),
+            password: Some(encode("password")),
+            secret: Some(encode("secret"))
+        };
+        assert!(user.password.is_some());
+        assert!(user.secret.is_some());
+    }
+
+    #[test]
+    fn user_credential_verification () {
+        let password = encode("password");
+        let user = User {
+            email: "test@oceanics.io".to_string(),
+            password: Some(password.clone()),
+            secret: Some(encode("secret"))
+        };
+        assert!(user.verify(password));
+    }
+
+
+    #[test]
+    fn denies_bad_credentials () {
+        let user = User {
+            email: "test@oceanics.io".to_string(),
+            password: Some(encode("password")),
+            secret: Some(encode("secret"))
+        };
+        assert!(!user.verify(encode("bad_password")));
+    }
+
+    #[test]
+    fn user_issue_token () {
+        let user = User {
+            email: "test@oceanics.io".to_string(),
+            password: Some(encode("password")),
+            secret: Some(encode("secret"))
+        };
+        let token = user.token("another_secret");
+        assert!(token.is_some());
+        assert!(token.unwrap().len() > 0);
+    }
+
+    #[test]
+    fn user_as_node () {
+        let user = User {
+            email: "test@oceanics.io".to_string(),
+            password: Some(encode("password")),
+            secret: Some(encode("secret"))
+        };
+        let node = user.node();
+        assert!(node.pattern().len() > 0);
     }
 }

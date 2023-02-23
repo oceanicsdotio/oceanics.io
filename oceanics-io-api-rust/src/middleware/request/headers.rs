@@ -131,7 +131,11 @@ impl RequestHeaders {
         let claims = Claims::decode(token.to_string(), signing_key);
         match claims {
             Some(value) => {
-                let user = User::from_token(value.sub().to_string());
+                let user = User::create(
+                    value.sub().to_string(), 
+                    None, 
+                    None
+                );
                 let domain = value.iss();
                 let provider = match domain.len() {
                     0 => None,
@@ -150,11 +154,12 @@ impl RequestHeaders {
     fn basic_auth_claim(&self) -> Option<User> {
         match self.split_auth().as_slice() {
             [email, password, secret] => {
-                Some(User::from_basic_auth(
-                    email.to_string(),
-                    password.to_string(), 
-                    secret.to_string()
-                ))
+                let user = User::create(
+                    email.to_string(), 
+                    Some(password.to_string()), 
+                    Some(secret.to_string())
+                );
+                Some(user)
             },
             _ => None
         }

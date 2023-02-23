@@ -79,17 +79,6 @@ describe("idempotent", function() {
           password: btoa(process.env.SERVICE_ACCOUNT_PASSWORD), 
           secret: btoa(process.env.SERVICE_ACCOUNT_SECRET)
         };
-
-        test.concurrent("constructs User", async function () {
-          const user = new User(userData);
-          expect(typeof user.credential).toBe("string");
-          expect(user.node).toBeInstanceOf(Node);
-        })
-  
-        test.concurrent("verifies User", async function () {
-          const user = new User(userData);
-          expect(user.verify(userData.password)).toBe(true);
-        })
   
         test.concurrent("errors on bad User credential", async function () {
           const user = new User(userData);
@@ -439,7 +428,6 @@ describe("idempotent", function() {
 
       describe("request", function() {
         
-
         describe("LogLine", function() {
           test.concurrent("constructs LogLine", async function () {
             const input = {
