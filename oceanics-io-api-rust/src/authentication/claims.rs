@@ -3,6 +3,8 @@ use hmac::{Hmac, Mac};
 use jwt::{SignWithKey,VerifyWithKey};
 use sha2::Sha256;
 use serde::{Serialize, Deserialize};
+use super::{User, Provider};
+use std::convert::From;
 
 #[wasm_bindgen]
 #[derive(Debug, Serialize, Deserialize)]
@@ -30,6 +32,26 @@ impl Claims {
             Ok(value) => Some(value),
             Err(_) => None
         }
+    }
+}
+
+impl From<User> for Claims {
+    fn from(user: User) -> Self {
+        Claims::new(
+            user.email().to_string(),
+            "".to_string(),
+            3600
+        )
+    }
+}
+
+impl From<Provider> for Claims {
+    fn from(provider: Provider) -> Self {
+        Claims::new(
+            "".to_string(),
+            provider.domain().to_string(),
+            3600*24
+        )
     }
 }
 

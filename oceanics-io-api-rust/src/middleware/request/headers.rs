@@ -139,7 +139,7 @@ impl RequestHeaders {
                 let domain = value.iss();
                 let provider = match domain.len() {
                     0 => None,
-                    _ => Some(Provider::from_domain(Some(domain.clone())))
+                    _ => Some(Provider::create(domain))
                 };
                 (provider, Some(user))
             },

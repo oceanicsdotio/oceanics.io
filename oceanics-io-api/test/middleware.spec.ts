@@ -4,8 +4,7 @@ import {
   // Helpers,
   panicHook as enableWasmLog,
   // Authentication
-  Claims,
-  Provider, 
+  Claims, 
   Security, 
   User,
   // Data Layer Primitives
@@ -50,16 +49,6 @@ describe("idempotent", function() {
     // oceanics-io-api-rust/src/authentication
     describe("authentication", function() {
     
-      describe("Provider", function() {
-        test.concurrent("constructs Provider", async function() {
-          const provider = new Provider({
-            apiKey: "this-is-my-key",
-            domain: "oceanics.io"
-          });
-          expect(provider.node).toBeInstanceOf(Node);
-        })
-      })  
-  
       describe("Security", function () {
         test.concurrent("constructs BasicAuth schema", async function () {
           const security = new Security({basicAuth: []})

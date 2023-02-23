@@ -472,59 +472,6 @@ impl TaskingCapabilities {
     }
 }
 
-/**
- * Providerss are generally organization or enterprise sub-units. This is used to
-    route ingress and determine implicit permissions for data access, sharing, and
-    attribution. 
- */
-
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct Providers {
-    
-    uuid: Option<String>,
-    
-    name: Option<String>,
-    
-    description: Option<String>,
-    
-    domain: Option<String>,
-    
-    secret_key: Option<String>,
-    
-    api_key: Option<String>,
-    
-    token_duration: Option<u16>,
-}
-
-
-impl Providers {
-    
-    pub fn new(
-        uuid: Option<String>,
-        name: Option<String>,
-        description: Option<String>,
-        domain: Option<String>,
-        secret_key: Option<String>,
-        api_key: Option<String>,
-        token_duration: Option<u16>,
-    ) -> Self {
-        Providers {
-            uuid,
-            name,
-            description,
-            domain,
-            secret_key,
-            api_key,
-            token_duration
-        }
-    }
-
-    pub fn serialize(&self) -> String {
-        serde_json::to_string(self).unwrap()
-    }
-}
-
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]

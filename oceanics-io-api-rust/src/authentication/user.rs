@@ -1,14 +1,10 @@
 use std::fmt;
-use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
 use serde::{Serialize, Deserialize};
 
-// use jsonwebtoken::{encode, Header, EncodingKey};
-use serde_json::Value;
 use pbkdf2::Pbkdf2;
 use pbkdf2::password_hash::PasswordHasher;
 
-use crate::cypher::node::Node;
 use super::claims::Claims;
 
 use pbkdf2::
@@ -40,10 +36,13 @@ impl fmt::Display for User {
 }
 
 impl User {
+    // all fields are private, so we expose a rust level
+    // constructor in addition to the new() method. 
     pub fn create(
         email: String, 
         password: Option<String>, 
-        secret: Option<String>) -> Self {
+        secret: Option<String>
+    ) -> Self {
         User {
             email,
             password,
@@ -54,7 +53,7 @@ impl User {
     /**
      * Salt the password with the provided secret.
      */
-    fn credential(&self) -> String {
+    pub fn credential(&self) -> String {
         let (password, salt): (&[u8], Salt) = match self {
             User {
                 password: Some(password), 
@@ -87,33 +86,26 @@ impl User {
         }
     }
 
+    /**
+     * Check a base64 string against a credential in the PHC format, 
+     * which is a $-separated string that includes algorithm, salt,
+     * and hash.
+     */
     pub fn verify(&self, password: String) -> bool {
-        let _cred = self.credential();
-        let parsed_hash = PasswordHash::new(&_cred).unwrap();
+        let credential = self.credential();
+        let parsed_hash = PasswordHash::new(&credential).unwrap();
         let bytes = password.as_bytes();
         Pbkdf2.verify_password(&bytes, &parsed_hash).is_ok()
     }
 
-    pub fn node(&self) -> Node {
-        let mut properties = HashMap::new();
-        properties.insert(
-            "email".to_string(), Value::String(self.email.clone())
-        );
-        properties.insert(
-            "credential".to_string(), Value::String(self.credential())
-        );
-        Node::from_hash_map(properties, "User".to_string())
+    pub fn token(self, signing_key: &str) -> Option<String> {
+        let claims = Claims::from(self);
+        claims.encode(signing_key)
     }
 
-    pub fn token(&self, signing_key: &str) -> Option<String> {
-        Claims::new(
-            self.email.clone(),
-            "".to_string(),
-            3600
-        ).encode(signing_key)
+    pub fn email(&self) -> &String {
+        &self.email
     }
-
-
 
 }
 
@@ -133,6 +125,7 @@ impl User {
 #[cfg(test)]
 mod tests {
     use super::User;
+    use crate::cypher::node::Node;
     use hex::encode;
 
     #[test]
@@ -187,7 +180,7 @@ mod tests {
             password: Some(encode("password")),
             secret: Some(encode("secret"))
         };
-        let node = user.node();
+        let node: Node = user.into();
         assert!(node.pattern().len() > 0);
     }
 }

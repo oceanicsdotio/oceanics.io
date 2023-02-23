@@ -2,7 +2,11 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
 use std::fmt;
+use std::convert::From;
 use wasm_bindgen::prelude::*;
+
+
+use crate::authentication::{Provider, User};
 
 use super::{Cypher, READ_ONLY, WRITE};
 
@@ -25,6 +29,27 @@ pub struct Node {
     properties: Option<HashMap<String, Value>>,
     symbol: Option<String>,
     label: Option<String>,
+}
+
+impl From<Provider> for Node {
+    fn from(provider: Provider) -> Self {
+        let domain = Value::String(provider.domain().clone());
+        let properties = HashMap::from([("domain".to_string(), domain)]);
+        Node::from_hash_map(properties, "Provider".to_string())  
+    }
+}
+
+impl From<User> for Node {
+    fn from(user: User) -> Self {
+        let mut properties = HashMap::new();
+        properties.insert(
+            "email".to_string(), Value::String(user.email().clone())
+        );
+        properties.insert(
+            "credential".to_string(), Value::String(user.credential())
+        );
+        Node::from_hash_map(properties, "User".to_string())
+    }
 }
 
 /**
@@ -383,5 +408,13 @@ impl Constraint {
             self.label, self.key
         );
         Cypher::new(query, WRITE)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn create_node() {
+        
     }
 }

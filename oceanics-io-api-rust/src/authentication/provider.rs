@@ -1,9 +1,5 @@
-use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
-
-use crate::cypher::node::Node;
 use super::claims::Claims;
 
 /**
@@ -14,14 +10,18 @@ use super::claims::Claims;
 #[derive(Deserialize, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Provider {
-    domain: Option<String>
+    domain: String
 }
 
 impl Provider {
-    pub fn from_domain(
-        domain: Option<String>
-    ) -> Self {
+    pub fn create(domain: String) -> Self {
         Provider { domain }
+    }
+    pub fn domain(&self) -> &String {
+        &self.domain
+    }
+    pub fn token(self, signing_key: &str) -> Option<String> {
+        Claims::from(self).encode(signing_key) 
     }
 }
 
@@ -33,34 +33,39 @@ impl Provider {
     ) -> Self {
         serde_wasm_bindgen::from_value(data).unwrap()
     }
+}
 
-    #[wasm_bindgen(getter)]
-    pub fn node(&self) -> Node {
-        match &self.domain {
-            Some(value) => {
-                let domain = Value::String(value.clone());
-                let properties = HashMap::from([("domain".to_string(), domain)]);
-                Node::from_hash_map(properties, "Provider".to_string())
-            },
-            None => {
-                panic!("Provider nodes must have a domain property")
-            }
-        }
+#[cfg(test)]
+mod tests {
+    use super::Provider;
+    use crate::cypher::node::Node;
+
+    #[test]
+    fn create_provider () {
+        let domain = "oceanics.io".to_string();
+        let provider = Provider {
+            domain: domain.clone()
+        };
+        assert_eq!(provider.domain(), &domain);
     }
 
-    pub fn token(&self, signing_key: &str) -> Option<String> {
-        match &self.domain {
-            Some(iss) => {
-                Claims::new(
-                    iss.clone(),
-                    "".to_string(),
-                    3600*24
-                ).encode(signing_key)
-            },
-            None => {
-                panic!("Cannot sign token without domain")
-            }
-        }
+    #[test]
+    fn provider_into_node() {
+        let domain = "oceanics.io".to_string();
+        let provider = Provider { domain };
+        let node: Node = provider.into();
+        assert!(node.pattern().len() > 0);
+    }
+
+    #[test]
+    fn provider_issue_token() {
+        let domain = "oceanics.io".to_string();
+        let provider = Provider {
+            domain: domain.clone()
+        };
+        let token = provider.token("secret");
+        assert!(token.is_some());
+        assert!(token.unwrap().len() > 0);
     }
 }
 
