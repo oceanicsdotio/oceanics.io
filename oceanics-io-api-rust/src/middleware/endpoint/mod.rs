@@ -94,10 +94,10 @@ impl Endpoint {
 
     /**
      * Called from JS inside the generated handler function. Any errors
-     * will be caught, and return an Invalid Method response. 
+     * will be caught, and should return an Invalid Method response. 
      */
-    pub fn context(&self, request: JsValue) -> Context {
-        let _request: Request = Request::new(request);
+    pub fn context(&self, request: JsValue, signing_key: JsValue) -> Context {
+        let mut _request: Request = Request::new(request, signing_key);
         let specification = match self.specification(&_request.http_method) {
             Some(value) => value.clone(),
             None => {

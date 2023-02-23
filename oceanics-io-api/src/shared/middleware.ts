@@ -86,7 +86,7 @@ export function Router(
     return async function (event: HandlerEvent) {
         // All validation up until DB query is done in WASM. 
         try {
-            context = endpoint.context(event);
+            context = endpoint.context(event, process.env.SIGNING_KEY);
         } catch ({message}) {
             const error = JSON.parse(message);
             // const logData = endpoint.logLine("none", event.httpMethod, error.statusCode);
