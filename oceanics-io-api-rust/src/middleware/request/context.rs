@@ -30,6 +30,9 @@ pub struct Context {
 }
 
 impl Context {
+    /**
+     * This is how the context is created during request handling.
+     */
     pub fn from_args(
         specification: Specification,
         request: Request,

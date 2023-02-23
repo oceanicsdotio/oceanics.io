@@ -65,15 +65,26 @@ describe("auth handlers", function () {
       httpMethod: "DELETE",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `bearer:mock`,
+        Authorization: `Bearer:mock`,
       },
       queryStringParameters: {}
     }
 
     test("auth.delete routing", async function () {
-      const request = new Request(DELETE);
-      const spec = specification.paths["/auth"]
+
+      const token = await fetchToken();
+      const requestData = {
+        ...DELETE,
+        headers: {
+          ...DELETE.headers,
+          authorization: `Bearer:${token}`
+        }
+      };
+
+      const request = new Request(requestData, process.env.SIGNING_KEY);
       expect(request).toBeInstanceOf(Request);
+
+      const spec = specification.paths["/auth"];
       const endpoint = new Endpoint(spec);
       const inserted = endpoint.insertMethod(DELETE.httpMethod, remove);
       expect(inserted).toBeTruthy();
@@ -81,16 +92,12 @@ describe("auth handlers", function () {
       const copy = endpoint.get_specification(request.httpMethod);
       expect(copy).toBeInstanceOf(Specification);
 
-      const token = await fetchToken();
-      const context = endpoint.context({
-        ...DELETE,
-        headers: {
-          ...DELETE.headers,
-          authorization: `bearer:${token}`
-        }
-      });
+      const context = endpoint.context(requestData, process.env.SIGNING_KEY);
       expect(context).toBeInstanceOf(Context);
-      console.log({headers: context.request.headers})
+      const {headers} = context.request;
+      
+      console.log({headers})
+      expect(headers.claimAuthMethod).toBe("Bearer")
       expect(context.user).toBeInstanceOf(User);
     });
 

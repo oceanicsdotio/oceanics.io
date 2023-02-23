@@ -12,12 +12,6 @@ pub struct Claims {
     exp: usize,
 }
 
-impl Claims {
-    pub fn get(&self) -> (&String, &String) {
-        (&self.sub, &self.iss)
-    }
-}
-
 #[wasm_bindgen]
 impl Claims {
     #[wasm_bindgen(constructor)]
@@ -62,5 +56,39 @@ impl Claims {
             Err(_) => None
         }
         
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::Claims;
+
+    #[test]
+    fn create_claims () {
+        let claims = Claims::new(
+            "test@oceanics.io".to_string(),
+            "oceanics.io".to_string(),
+            3600
+        );
+        assert_eq!(claims.exp, claims.exp());
+        assert_eq!(claims.iss, claims.iss());
+        assert_eq!(claims.sub, claims.sub());
+    }
+
+    #[test]
+    fn issue_token () {
+        let claims = Claims::new(
+            "test@oceanics.io".to_string(),
+            "oceanics.io".to_string(),
+            3600
+        );
+        let signing_key = "secret";
+        let token = claims.encode(signing_key);
+        assert!(token.is_some());
+        let token_string = token.unwrap();
+        let decoded = Claims::decode(token_string, signing_key).unwrap();
+        assert_eq!(claims.sub, decoded.sub);
+        assert_eq!(claims.iss, decoded.iss);
+        assert_eq!(claims.sub, decoded.sub);
     }
 }

@@ -138,3 +138,11 @@ impl User {
         Pbkdf2.verify_password(&bytes, &parsed_hash).is_ok()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn create_user () {
+        
+    }
+}

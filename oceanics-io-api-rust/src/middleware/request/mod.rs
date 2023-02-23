@@ -40,14 +40,22 @@ impl Request {
     }
 
     #[wasm_bindgen(constructor)]
-    pub fn new(value: JsValue) -> Self {
-        match serde_wasm_bindgen::from_value(value) {
-            Ok(value) => value,
+    /**
+     * Need to init the derived authentication values for headers
+     * once the basic data has been parsed from the JavaScript side.
+     */
+    pub fn new(value: JsValue, signing_key: JsValue) -> Self {
+        let mut this: Self = match serde_wasm_bindgen::from_value(value) {
+            Ok(value) => {
+                value
+            },
             Err(err) => {
                 let response = Request::bad_request(format!("{}", err));
                 panic!("{}", response)
             }
-        }
+        };
+        this.headers._parse_auth(signing_key);
+        this
     }
 
     /**

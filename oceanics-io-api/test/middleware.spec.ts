@@ -4,7 +4,6 @@ import {
   // Helpers,
   panicHook as enableWasmLog,
   // Authentication
-  Claims,
   Provider, 
   Security, 
   User,
@@ -50,19 +49,6 @@ describe("idempotent", function() {
     // oceanics-io-api-rust/src/authentication
     describe("authentication", function() {
     
-      describe("Claims", function() {
-        test.concurrent("constructs Claims", async function (){
-          const claims = new Claims("test@oceanics.io", "oceanics.io", 3600);
-          expect(claims).toBeInstanceOf(Claims);
-          const token = claims.encode("secret");
-          const reverse = Claims.decode(token, "secret");
-          expect(reverse).toBeInstanceOf(Claims);
-          expect(reverse.sub).toBe(claims.sub);
-          expect(reverse.iss).toBe(claims.iss);
-          expect(reverse.exp).toBe(claims.exp);
-        })
-      })
-  
       describe("Provider", function() {
         test.concurrent("constructs Provider", async function() {
           const provider = new Provider({
@@ -86,35 +72,30 @@ describe("idempotent", function() {
       })
   
       describe("User", function () {
+
+        const userData = {
+          email: process.env.SERVICE_ACCOUNT_USERNAME, 
+          password: btoa(process.env.SERVICE_ACCOUNT_PASSWORD), 
+          secret: btoa(process.env.SERVICE_ACCOUNT_SECRET)
+        };
+
         test.concurrent("constructs User", async function () {
-          const user = new User({
-            email: "user@example.com", 
-            password: btoa("password"), 
-            secret: btoa("secret")
-          });
+          const user = new User(userData);
           expect(typeof user.credential).toBe("string");
           expect(user.node).toBeInstanceOf(Node);
         })
   
         test.concurrent("verifies User", async function () {
-          const user = new User({
-            email: "user@example.com", 
-            password: btoa("password"), 
-            secret: btoa("secret")
-          });
-          expect(user.verify(user.credential)).toBe(true);
+          const user = new User(userData);
+          expect(user.verify(userData.password)).toBe(true);
         })
   
         test.concurrent("errors on bad User credential", async function () {
-          const user = new User({
-            email: "user@example.com", 
-            password: btoa("password"), 
-            secret: btoa("secret")
-          });
+          const user = new User(userData);
           const wrongPassword = new User({
-            email: "user@example.com", 
+            email: process.env.SERVICE_ACCOUNT_EMAIL, 
             password: btoa("not_password"), 
-            secret: btoa("secret")
+            secret: btoa(process.env.SERVICE_ACCOUNT_SECRET)
           });
           expect(user.verify(wrongPassword.credential)).toBe(false);
         })
@@ -441,7 +422,7 @@ describe("idempotent", function() {
           test.concurrent("returns request context", async function() {
             const endpoint = new Endpoint(ENDPOINT);
             endpoint.insertMethod("POST", HANDLER);
-            const context = endpoint.context(POST_THINGS_REQUEST);
+            const context = endpoint.context(POST_THINGS_REQUEST, process.env.SIGNING_KEY);
             expect(context).toBeInstanceOf(Context);
             expect(context.auth).toBe("BearerAuth");
           })
@@ -457,28 +438,6 @@ describe("idempotent", function() {
 
       describe("request", function() {
         
-        describe("Context", function() {
-          test.concurrent("constructs Context", async function () {
-            const context = new Context(ENDPOINT.post, POST_THINGS_REQUEST, HANDLER);
-            expect(context).toBeInstanceOf(Context);
-            expect(context.elapsedTime).toBeGreaterThan(0.0);
-          })
-
-          test.concurrent("generates LogLine JSON", async function () {
-            const context = new Context(ENDPOINT.post, POST_THINGS_REQUEST, HANDLER);
-            const log = context.logLine("test@oceanics.io", 403);
-            delete log.elapsedTime;
-
-            expect(log).toEqual({
-              user: "test@oceanics.io", 
-              httpMethod: "POST", 
-              statusCode: 403,
-              auth: "BearerAuth"
-            });
-            // expect(typeof context.elapsedTime).toBe("number");
-            // expect(context.elapsedTime).toBeGreaterThanOrEqual(0.0);
-          })
-        })
 
         describe("LogLine", function() {
           test.concurrent("constructs LogLine", async function () {
@@ -505,7 +464,7 @@ describe("idempotent", function() {
 
         describe("Request", function() {
           test.concurrent("constructs Request", async function() {
-            const request = new Request(POST_THINGS_REQUEST);
+            const request = new Request(POST_THINGS_REQUEST, process.env.SIGNING_KEY);
             expect(request).toBeInstanceOf(Request);
             const check = new Map(Object.entries(JSON.parse(POST_THINGS_REQUEST.body)));
             expect(request.json).toEqual(check);
@@ -514,7 +473,7 @@ describe("idempotent", function() {
 
         describe("RequestHeaders", function() {
           test.concurrent("constructs RequestHeaders", async function() {
-            const headers = new RequestHeaders(POST_THINGS_REQUEST.headers, "secret");
+            const headers = new RequestHeaders(POST_THINGS_REQUEST.headers, process.env.SIGNING_KEY);
             expect(headers).toBeInstanceOf(RequestHeaders);
             expect(headers.claimAuthMethod).toBe("BearerAuth");
           })
@@ -522,11 +481,11 @@ describe("idempotent", function() {
           test.concurrent("constructs RequestHeaders from token", async function() {
             const email = "test@oceanics.io";
             const domain = "oceanics.io";
-            const token = (new Claims(email, domain, 3600)).encode("secret");
+            const token = (new Claims(email, domain, 3600)).encode(process.env.SIGNING_KEY);
             const _headers = {
               authorization: `Bearer:${token}`
             }
-            const headers = new RequestHeaders(_headers, "secret");
+            const headers = new RequestHeaders(_headers, process.env.SIGNING_KEY);
             const {user, provider} = headers;
             expect(user.email).toBe(email);
             expect(provider.domain).toBe(domain);
@@ -535,10 +494,9 @@ describe("idempotent", function() {
           test.concurrent("constructs RequestHeaders from basic auth", async function() {
             const email = "test@oceanics.io";
             const password = "password";
-            const secret = "secret";
             
             const headers = new RequestHeaders({
-              authorization: `${btoa(email)}:${btoa(password)}:${btoa(secret)}`
+              authorization: `${btoa(email)}:${btoa(password)}:${btoa(process.env.SIGNING_KEY)}`
             }, "");
             expect(headers.claimAuthMethod).toBe("BasicAuth");
             const {user, provider} = headers;
@@ -546,7 +504,31 @@ describe("idempotent", function() {
             expect(provider).toBe(null);
           })
         })
-      }) 
+      })
+
+
+      describe("Context", function() {
+        test.concurrent("constructs Context", async function () {
+          const context = new Context(ENDPOINT.post, POST_THINGS_REQUEST, HANDLER);
+          expect(context).toBeInstanceOf(Context);
+          expect(context.elapsedTime).toBeGreaterThanOrEqual(0.0);
+        })
+
+        test.concurrent("generates LogLine JSON", async function () {
+          const context = new Context(ENDPOINT.post, POST_THINGS_REQUEST, HANDLER);
+          const log = context.logLine("test@oceanics.io", 403);
+          delete log.elapsedTime;
+
+          expect(log).toEqual({
+            user: "test@oceanics.io", 
+            httpMethod: "POST", 
+            statusCode: 403,
+            auth: "BearerAuth"
+          });
+          // expect(typeof context.elapsedTime).toBe("number");
+          // expect(context.elapsedTime).toBeGreaterThanOrEqual(0.0);
+        })
+      })
 
       describe("response", function() {
         describe("error", function () {

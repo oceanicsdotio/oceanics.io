@@ -31,7 +31,10 @@ api: node_modules $(API_JSON) $(API)/src/**/* $(API)/src/* $(API)/tsconfig.json
 	yarn workspace $(API) run tsc 
 
 # Non-file targets
-.PHONY: api-cleanup api-test-auth api-test-collection- api-test-idempotent api-dev api-test api-test-middleware
+.PHONY: api-cleanup api-test-auth api-test-collection- api-test-idempotent api-dev api-test api-test-middleware api-test-rust
+
+api-test-rust:
+	cargo test --manifest-path oceanics-io-api-rust/Cargo.toml
 
 # Test just the WASM middleware
 api-test-middleware: $(API_WASM)
