@@ -6,7 +6,6 @@ use serde::{Deserialize,Serialize};
 use super::Request;
 use crate::cypher::node::Node;
 use super::log_line::LogLine;
-use crate::authentication::Authentication;
 use crate::middleware::HttpMethod;
 use crate::middleware::endpoint::Specification;
 
@@ -56,15 +55,6 @@ impl Context {
     pub fn elapsed_time(&self) -> f64 {
         let big_int_duration = (Local::now() - self.start).num_milliseconds();
         big_int_duration as f64
-    }
-
-    /**
-     * Get the auth method asserted by the request headers. We'll
-     * want to make sure it matches the allow methods of the endpoint. 
-     */
-    #[wasm_bindgen(getter)]
-    pub fn auth(&self) -> Option<Authentication> {
-        self.request.headers.claim_auth_method()
     }
 
     /**

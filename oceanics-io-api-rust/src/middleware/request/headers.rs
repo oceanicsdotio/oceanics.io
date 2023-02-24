@@ -56,8 +56,6 @@ impl RequestHeaders {
         self.parse_auth(&key);
     }
 
-
-    #[wasm_bindgen(getter)]
     pub fn user(&self) -> JsValue {
         match &self.user {
             None => JsValue::NULL,
@@ -73,7 +71,6 @@ impl RequestHeaders {
         }
     }
 
-    #[wasm_bindgen(getter)]
     pub fn provider(&self) -> JsValue {
         match &self.provider {
             Some(value) => 
@@ -88,7 +85,11 @@ impl RequestHeaders {
  */
 impl RequestHeaders {
 
-    pub fn claim_auth_method(&self) -> Option<Authentication> {
+    /**
+     * Will be Some(Auth) when we can pattern match the auth header.
+     * None when there is a missing or malformed auth header. 
+     */
+    fn claim_auth_method(&self) -> Option<Authentication> {
         let bearer: Regex = Regex::new(r"[Bb]earer:()").unwrap();
         let basic: Regex = Regex::new(r"(.+):(.+):(.+)").unwrap();
         match self {
@@ -114,66 +115,73 @@ impl RequestHeaders {
             Some(value) => {
                 value.split(":").collect()
             },
-            None => vec![]
+            None => {
+                panic!("Missing authentication header");
+            }
         }
     }
 
     /**
      * Decode a JWT to get the issuer and/or subject. For us, this
      * corresponds to the provider and user respectively.
+     * 
+     * We use tokens for both granting registration capabilities, 
+     * and performing account/user level interactions, so both
+     * user and provider are optional. 
      */
-    fn token_claim(&self, signing_key: &str) -> (Option<Provider>, Option<User>) {
+    fn token_claim(&self, signing_key: &str) -> (Option<User>, Option<Provider>) {
         let parts = self.split_auth();
         let token = match parts.as_slice() {
-            [_, token] => token,
-            _ => panic!("Malformed authorization header")
+            [_, token] => token.to_string(),
+            _ => {
+                panic!("Malformed authorization header");
+            }
         };
-        let claims = Claims::decode(token.to_string(), signing_key);
-        match claims {
-            Some(value) => {
-                let user = User::create(
-                    value.sub().to_string(), 
-                    None, 
-                    None
-                );
-                let domain = value.iss();
-                let provider = match domain.len() {
-                    0 => None,
-                    _ => Some(Provider::create(domain))
-                };
-                (provider, Some(user))
-            },
-            None => (None, None)
-        }
+        let claims = Claims::decode(token, signing_key);
+        let email = claims.sub();
+        let user = match email.len() {
+            0 => None,
+            _ => Some(User::create(
+                email, 
+                None, 
+                None
+            ))
+        };
+        let domain = claims.iss();
+        let provider = match domain.len() {
+            0 => None,
+            _ => Some(Provider::create(domain))
+        };
+        (user, provider)
     }
-
 
     /**
      * Format the auth header as a User claim. 
      */
-    fn basic_auth_claim(&self) -> Option<User> {
+    fn basic_auth_claim(&self) -> User {
         match self.split_auth().as_slice() {
             [email, password, secret] => {
-                let user = User::create(
+                User::create(
                     email.to_string(), 
                     Some(password.to_string()), 
                     Some(secret.to_string())
-                );
-                Some(user)
+                )
             },
-            _ => None
+            _ => {
+                panic!("Invalid basic auth claim");
+            }
         }
     }
 
     pub fn parse_auth(&mut self, signing_key: &String) {
         match self.claim_auth_method() {
             Some(Authentication::BearerAuth) => {
-                let (provider, user) = self.token_claim(signing_key);
+                let (user, provider) = self.token_claim(signing_key);
                 self.user = user;
                 self.provider = provider;
             },
             Some(Authentication::BasicAuth) => {
-                self.user = self.basic_auth_claim();
+                self.user = Some(self.basic_auth_claim());
             },
             _ => {
                 panic!("Cannot verify header auth");
@@ -196,6 +204,7 @@ mod tests {
             provider: None
         };
         assert!(headers.authorization.is_some());
+        assert_eq!(headers.split_auth().len(), 2);
     }
 
     #[test]
@@ -206,6 +215,7 @@ mod tests {
             provider: None
         };
         assert_eq!(headers.claim_auth_method(), Some(Authentication::BearerAuth));
+        assert_eq!(headers.split_auth().len(), 2)
     }
 
     #[test]
@@ -219,6 +229,7 @@ mod tests {
             headers.claim_auth_method(), 
             Some(Authentication::BearerAuth)
         );
+        assert_eq!(headers.split_auth().len(), 2)
     }
 
     #[test]
@@ -232,17 +243,8 @@ mod tests {
             headers.claim_auth_method(), 
             Some(Authentication::BasicAuth)
         );
+        assert_eq!(headers.split_auth().len(), 3);
+        let user = headers.basic_auth_claim();
+        assert_eq!(user.email(), "some");
     }
-
-    // #[test]
-    // fn request_headers_claim_auth_method_with() {
-    //     let headers = RequestHeaders {
-    //         authorization: Some("Bearer:mock".to_string()),
-    //         user: None, 
-    //         provider: None
-    //     };
-    //     let (user, provider) = headers.token_claim(&"secret");
-    //     assert!(user.is_none());
-    //     assert!(provider.is_none());
-    // }
 }

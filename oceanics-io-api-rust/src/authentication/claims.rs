@@ -18,19 +18,23 @@ pub struct Claims {
  * Rust-only methods
  */
 impl Claims {
-    pub fn encode(&self, signing_key: &str) -> Option<String> {
+    pub fn encode(&self, signing_key: &str) -> String {
         let key: Hmac<Sha256> = Hmac::new_from_slice(signing_key.as_ref()).unwrap();
         match self.sign_with_key(&key) {
-            Ok(value) => Some(value),
-            Err(_) => None
+            Ok(value) => value,
+            Err(_) => {
+                panic!("Cannot issue token with current signing key")
+            }
         }
     }
 
-    pub fn decode(token: String, signing_key: &str) -> Option<Claims> {
+    pub fn decode(token: String, signing_key: &str) -> Claims {
         let key: Hmac<Sha256> = Hmac::new_from_slice(signing_key.as_ref()).unwrap();
         match token.verify_with_key(&key) {
-            Ok(value) => Some(value),
-            Err(_) => None
+            Ok(value) => value,
+            Err(_) => {
+                panic!("Cannot verify token with current signing key");
+            }
         }
     }
 }
@@ -104,9 +108,8 @@ mod test {
         );
         let signing_key = "secret";
         let token = claims.encode(signing_key);
-        assert!(token.is_some());
-        let token_string = token.unwrap();
-        let decoded = Claims::decode(token_string, signing_key).unwrap();
+        assert!(token.len() > 0);
+        let decoded = Claims::decode(token, signing_key);
         assert_eq!(claims.sub, decoded.sub);
         assert_eq!(claims.iss, decoded.iss);
     }
