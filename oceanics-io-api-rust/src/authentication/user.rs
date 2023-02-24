@@ -98,7 +98,7 @@ impl User {
         Pbkdf2.verify_password(&bytes, &parsed_hash).is_ok()
     }
 
-    pub fn token(self, signing_key: &str) -> Option<String> {
+    pub fn token(self, signing_key: &str) -> String {
         let claims = Claims::from(self);
         claims.encode(signing_key)
     }
@@ -169,8 +169,7 @@ mod tests {
             secret: Some(encode("secret"))
         };
         let token = user.token("another_secret");
-        assert!(token.is_some());
-        assert!(token.unwrap().len() > 0);
+        assert!(token.len() > 0);
     }
 
     #[test]

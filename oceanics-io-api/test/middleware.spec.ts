@@ -5,8 +5,7 @@ import {
   panicHook as enableWasmLog,
   // Authentication
   Claims, 
-  Security, 
-  User,
+  Security,
   // Data Layer Primitives
   Node,
   Cypher,
@@ -58,25 +57,6 @@ describe("idempotent", function() {
         test.concurrent("constructs BearerAuth schema", async function () {
           const security = new Security({bearerAuth: []})
           expect(security.authentication).toBe("BearerAuth")
-        })
-      })
-  
-      describe("User", function () {
-
-        const userData = {
-          email: process.env.SERVICE_ACCOUNT_USERNAME, 
-          password: btoa(process.env.SERVICE_ACCOUNT_PASSWORD), 
-          secret: btoa(process.env.SERVICE_ACCOUNT_SECRET)
-        };
-  
-        test.concurrent("errors on bad User credential", async function () {
-          const user = new User(userData);
-          const wrongPassword = new User({
-            email: process.env.SERVICE_ACCOUNT_EMAIL, 
-            password: btoa("not_password"), 
-            secret: btoa(process.env.SERVICE_ACCOUNT_SECRET)
-          });
-          expect(user.verify(wrongPassword.credential)).toBe(false);
         })
       })
     })

@@ -20,7 +20,7 @@ impl Provider {
     pub fn domain(&self) -> &String {
         &self.domain
     }
-    pub fn token(self, signing_key: &str) -> Option<String> {
+    pub fn token(self, signing_key: &str) -> String {
         Claims::from(self).encode(signing_key) 
     }
 }
@@ -64,8 +64,7 @@ mod tests {
             domain: domain.clone()
         };
         let token = provider.token("secret");
-        assert!(token.is_some());
-        assert!(token.unwrap().len() > 0);
+        assert!(token.len() > 0);
     }
 }
 
