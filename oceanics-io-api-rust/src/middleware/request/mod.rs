@@ -110,28 +110,3 @@ impl Request {
         self.query_string_parameters.nodes(self.data())
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use crate::middleware::HttpMethod;
-
-    use super::{Request, RequestHeaders, QueryStringParameters};
-    #[test]
-    fn create_request() {
-        // let request = Request {
-        //     headers: RequestHeaders{
-        //         authorization: Some("".to_string()),
-        //         user: None,
-        //         provider: None
-        //     },
-        //     http_method: HttpMethod::GET,
-        //     query_string_parameters: QueryStringParameters {
-        //         left: None,
-        //         uuid: None,
-        //         right: None
-        //     },
-        //     body: None
-        // };
-        // assert_eq!(request.data().len(), 0)
-    }
-}
