@@ -1,6 +1,5 @@
 mod authentication;
 mod cypher;
-mod memo;
 mod middleware;
 
 use wasm_bindgen::prelude::*;
