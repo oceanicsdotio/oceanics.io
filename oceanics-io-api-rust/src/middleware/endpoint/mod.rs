@@ -1,4 +1,5 @@
 mod specification;
+mod security;
 
 use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
@@ -11,6 +12,7 @@ use super::request::{LogLine, Request};
 use super::response::OptionsResponse;
 
 pub use specification::Specification;
+pub use security::Security;
 
 #[wasm_bindgen]
 #[derive(Deserialize)]

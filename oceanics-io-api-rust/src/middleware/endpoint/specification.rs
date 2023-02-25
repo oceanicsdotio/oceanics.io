@@ -1,7 +1,8 @@
 use wasm_bindgen::prelude::*;
 use serde::{Deserialize,Serialize};
 
-use crate::authentication::{Authentication, Security};
+use crate::authentication::Authentication;
+use super::security::Security;
 
 /**
  * Specification for the request. These data
