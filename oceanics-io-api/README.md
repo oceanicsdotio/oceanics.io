@@ -54,10 +54,25 @@ The package uses the `oceanics-io-api-rust` crate, transpiled to web assembly (`
 
 ```mermaid
 classDiagram
-  `authentication` <|-- `cypher`
-  `middleware` <|-- `authentication`
-  `lib` <|-- `authentication`
-  `lib` <|-- `cypher`
-  `lib` <|-- `middleware`
+  class cypher{
+    Cypher
+    Links
+    Node
+  } 
+  authentication <|-- cypher
+  class authentication{
+    Authentication
+    Claims
+    Provider
+    User
+  }
+  middleware <|-- authentication
+  lib <|-- authentication
+  lib <|-- cypher
+  lib <|-- middleware
+  class lib{
+    panicHook()
+  }
+
 ```
 
