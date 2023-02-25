@@ -42,9 +42,16 @@ GROUP BY
   method
 ```
 
-## Rust bindings
+## Rust middleware bindings
 
-The package uses the `oceanics-io-api-rust` crate, transpiled to web assembly (`oceanics-io-api-wasm`).
+The package uses the `oceanics-io-api-rust` crate, transpiled to web assembly (`oceanics-io-api-wasm`). Functionality is divided between modules within the library,
+
+
+- `authentication`: includes the `Provider` and `User` types, and other functionality related to API security.
+- `cypher`: drivers for creating Neo4j queries in the cypher query language. Core types are `Links`, `Node`, and `Cypher`. See the `src/shared/queries.ts` for usage. 
+- `middleware`: everything needed to power the cloud function router in `src/shared/queries.ts`. 
+- `lib.rs`: imports the modules, and provides a `panicHook()` function for bubbling up errors between runtimes
+- `memo.rs`: content management system, in development
 
 ```mermaid
 erDiagram

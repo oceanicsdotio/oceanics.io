@@ -1,6 +1,10 @@
 use wasm_bindgen::prelude::*;
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
+use std::collections::HashMap;
+
 use super::claims::Claims;
+use crate::cypher::node::Node;
 
 /**
  * Like Users, Providers are a special type of internal Node
@@ -32,6 +36,24 @@ impl Provider {
         data: JsValue
     ) -> Self {
         serde_wasm_bindgen::from_value(data).unwrap()
+    }
+}
+
+impl From<Provider> for Node {
+    fn from(provider: Provider) -> Self {
+        let domain = Value::String(provider.domain().clone());
+        let properties = HashMap::from([("domain".to_string(), domain)]);
+        Node::from_hash_map(properties, "Provider".to_string())  
+    }
+}
+
+impl From<Provider> for Claims {
+    fn from(provider: Provider) -> Self {
+        Claims::new(
+            "".to_string(),
+            provider.domain().to_string(),
+            3600*24
+        )
     }
 }
 

@@ -5,7 +5,6 @@ use std::fmt;
 use std::convert::From;
 use wasm_bindgen::prelude::*;
 
-use crate::authentication::{Provider, User};
 use super::{Cypher, READ_ONLY, WRITE};
 
 // Convenience function for getting a String from Option.
@@ -27,27 +26,6 @@ pub struct Node {
     properties: Option<HashMap<String, Value>>,
     symbol: Option<String>,
     label: Option<String>,
-}
-
-impl From<Provider> for Node {
-    fn from(provider: Provider) -> Self {
-        let domain = Value::String(provider.domain().clone());
-        let properties = HashMap::from([("domain".to_string(), domain)]);
-        Node::from_hash_map(properties, "Provider".to_string())  
-    }
-}
-
-impl From<User> for Node {
-    fn from(user: User) -> Self {
-        let mut properties = HashMap::new();
-        properties.insert(
-            "email".to_string(), Value::String(user.email().clone())
-        );
-        properties.insert(
-            "credential".to_string(), Value::String(user.credential())
-        );
-        Node::from_hash_map(properties, "User".to_string())
-    }
 }
 
 /**

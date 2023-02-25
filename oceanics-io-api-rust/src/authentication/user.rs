@@ -1,11 +1,16 @@
 use std::fmt;
+use std::convert::From;
 use wasm_bindgen::prelude::*;
 use serde::{Serialize, Deserialize};
+
+use serde_json::Value;
+use std::collections::HashMap;
 
 use pbkdf2::Pbkdf2;
 use pbkdf2::password_hash::PasswordHasher;
 
 use super::claims::Claims;
+use crate::cypher::node::Node;
 
 use pbkdf2::
     password_hash::{
@@ -119,6 +124,29 @@ impl User {
         data: JsValue
     ) -> Self {
         serde_wasm_bindgen::from_value(data).unwrap()
+    }
+}
+
+impl From<User> for Claims {
+    fn from(user: User) -> Self {
+        Claims::new(
+            user.email().to_string(),
+            "".to_string(),
+            3600
+        )
+    }
+}
+
+impl From<User> for Node {
+    fn from(user: User) -> Self {
+        let mut properties = HashMap::new();
+        properties.insert(
+            "email".to_string(), Value::String(user.email().clone())
+        );
+        properties.insert(
+            "credential".to_string(), Value::String(user.credential())
+        );
+        Node::from_hash_map(properties, "User".to_string())
     }
 }
 
