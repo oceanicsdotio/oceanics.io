@@ -1,5 +1,4 @@
-use chrono::NaiveDate;
-use chrono::Datelike;
+use chrono::{NaiveDate, Datelike};
 use wasm_bindgen::prelude::*;
 use serde::{Deserialize, Serialize};
 use serde_wasm_bindgen;
@@ -7,6 +6,9 @@ use js_sys::Date;
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 
+/**
+ * Content data type, assumed to be text-based. 
+ */
 #[wasm_bindgen]
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]

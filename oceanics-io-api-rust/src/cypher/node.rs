@@ -5,9 +5,7 @@ use std::fmt;
 use std::convert::From;
 use wasm_bindgen::prelude::*;
 
-
 use crate::authentication::{Provider, User};
-
 use super::{Cypher, READ_ONLY, WRITE};
 
 // Convenience function for getting a String from Option.

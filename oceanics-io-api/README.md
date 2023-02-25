@@ -1,6 +1,8 @@
 # Quick start
 
-This module is a build environment, so you won't run any commands directly. Local testing requires Netlify, which is installed from the parent module.
+This module is a build environment, so you won't run any commands directly. 
+
+Local testing requires Netlify, which is installed from the parent module.
 
 You'll need to have created a Provider node in the Neo4j database, and added the API key to your local environment. 
 
@@ -39,3 +41,15 @@ GROUP BY
   file,
   method
 ```
+
+## Rust bindings
+
+The package uses the `oceanics-io-api-rust` crate, transpiled to web assembly (`oceanics-io-api-wasm`).
+
+```mermaid
+erDiagram
+  CUSTOMER ||--o{ ORDER : places
+  ORDER ||--|{ LINE-ITEM : contains
+  CUSTOMER }|..|{ DELIVERY-ADDRESS : uses
+```
+
