@@ -7,11 +7,10 @@ use serde_json::json;
 use serde::Deserialize;
 
 use super::{HttpMethod, request::Context};
-
-use super::request::LogLine;
-pub use specification::Specification;
+use super::request::{LogLine, Request};
 use super::response::OptionsResponse;
-use super::request::Request;
+
+pub use specification::Specification;
 
 #[wasm_bindgen]
 #[derive(Deserialize)]

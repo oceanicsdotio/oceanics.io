@@ -1,6 +1,7 @@
 use wasm_bindgen::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt;
+
 use super::{Cypher, WRITE, READ_ONLY};
 use super::node::Node;
 
