@@ -30,3 +30,22 @@ impl FromStr for Authentication {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::Authentication;
+
+    #[test]
+    fn parses_bearer_auth_from_str() {
+        assert_eq!(Authentication::from_str("BearerAuth").unwrap(), Authentication::BearerAuth);
+    }
+
+    #[test]
+    fn parses_basic_auth_from_str() {
+        assert_eq!(Authentication::from_str("BasicAuth").unwrap(), Authentication::BasicAuth);
+    }
+
+    #[test]
+    fn errors_on_unknown_value() {
+        assert!(Authentication::from_str("ApiKey").is_none());
+    }
+}
