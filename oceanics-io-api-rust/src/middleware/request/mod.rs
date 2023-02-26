@@ -1,5 +1,5 @@
 mod headers;
-pub use headers::RequestHeaders;
+pub use headers::Headers;
 mod query_string_parameters;
 pub use query_string_parameters::QueryStringParameters;
 mod log_line;
@@ -21,7 +21,7 @@ use serde_json::{Value, json};
 #[derive(Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Request {
-    headers: RequestHeaders,
+    headers: Headers,
     #[wasm_bindgen(js_name = httpMethod)]
     pub http_method: HttpMethod,
     query_string_parameters: QueryStringParameters,

@@ -47,14 +47,15 @@ GROUP BY
 The package uses the `oceanics-io-api-rust` crate, transpiled to web assembly (`oceanics-io-api-wasm`). Functionality is divided between modules within the library,
 
 
-- `authentication`: includes the `Provider` and `User` types, and other functionality related to API security.
-- `cypher`: drivers for creating Neo4j queries in the cypher query language. Core types are `Links`, `Node`, and `Cypher`. See the `src/shared/queries.ts` for usage. 
-- `middleware`: everything needed to power the cloud function router in `src/shared/queries.ts`. 
-- `lib.rs`: imports the modules, and provides a `panicHook()` function for bubbling up errors.
+- `authentication`: includes functionality related to API security.
+- `cypher`: drivers for creating Neo4j queries in the cypher query language. See the `src/shared/queries.ts` for usage. 
+- `middleware`: everything needed to power the cloud function router in `src/shared/middleware.ts`. 
+- `lib.rs`: imports and exposes the modules.
 
 ```mermaid
 classDiagram
   class cypher{
+    Constraint
     Cypher
     Links
     Node
@@ -67,6 +68,12 @@ classDiagram
     User
   }
   middleware <|-- authentication
+  class middleware{
+    Endpoint
+    HttpMethod
+    Request
+    Response
+  }
   lib <|-- authentication
   lib <|-- cypher
   lib <|-- middleware

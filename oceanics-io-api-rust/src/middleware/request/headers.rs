@@ -11,7 +11,7 @@ use crate::authentication::{Authentication,User,Provider};
  */
 #[wasm_bindgen]
 #[derive(Deserialize, Serialize)]
-pub struct RequestHeaders {
+pub struct Headers {
     authorization: Option<String>,
     user: Option<User>,
     provider: Option<Provider>,
@@ -22,14 +22,14 @@ pub struct RequestHeaders {
  * are public for the sake of testing.
  */
 #[wasm_bindgen]
-impl RequestHeaders {
+impl Headers {
     /**
      * Deserialize from the JsValue provided
      * by Netlify or other API framework. 
      */
     #[wasm_bindgen(constructor)]
     pub fn new(value: JsValue, signing_key: JsValue) -> Self {
-        let mut this: RequestHeaders = serde_wasm_bindgen::from_value(value).unwrap();
+        let mut this: Headers = serde_wasm_bindgen::from_value(value).unwrap();
         this._parse_auth(signing_key);
         this
     }
@@ -83,7 +83,7 @@ impl RequestHeaders {
 /**
  * Rust-only methods
  */
-impl RequestHeaders {
+impl Headers {
 
     /**
      * Will be Some(Auth) when we can pattern match the auth header.
@@ -194,11 +194,11 @@ impl RequestHeaders {
 mod tests {
    
     use crate::authentication::Authentication;
-    use super::RequestHeaders;
+    use super::Headers;
 
     #[test]
     fn create_request_headers_with_token () {
-        let headers = RequestHeaders {
+        let headers = Headers {
             authorization: Some("Bearer:mock".to_string()),
             user: None, 
             provider: None
@@ -209,7 +209,7 @@ mod tests {
 
     #[test]
     fn request_headers_claim_auth_method_with_lowercase () {
-        let headers = RequestHeaders {
+        let headers = Headers {
             authorization: Some("bearer:mock".to_string()),
             user: None, 
             provider: None
@@ -220,7 +220,7 @@ mod tests {
 
     #[test]
     fn request_headers_claim_auth_method_with_uppercase () {
-        let headers = RequestHeaders {
+        let headers = Headers {
             authorization: Some("Bearer:mock".to_string()),
             user: None, 
             provider: None
@@ -234,7 +234,7 @@ mod tests {
 
     #[test]
     fn request_headers_claim_auth_method_with_basic_auth () {
-        let headers = RequestHeaders {
+        let headers = Headers {
             authorization: Some("some:credentials:here".to_string()),
             user: None, 
             provider: None
