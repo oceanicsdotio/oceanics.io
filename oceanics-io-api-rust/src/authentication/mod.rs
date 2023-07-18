@@ -1,6 +1,6 @@
 pub mod provider;
 pub mod user;
-pub mod claims;
+mod claims;
 
 pub use provider::Provider;
 pub use user::User;

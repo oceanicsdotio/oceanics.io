@@ -138,7 +138,7 @@ impl Headers {
             }
         };
         let claims = Claims::decode(token, signing_key);
-        let email = claims.sub();
+        let email = claims.sub;
         let user = match email.len() {
             0 => None,
             _ => Some(User::create(
@@ -147,7 +147,7 @@ impl Headers {
                 None
             ))
         };
-        let domain = claims.iss();
+        let domain = claims.iss;
         let provider = match domain.len() {
             0 => None,
             _ => Some(Provider::create(domain))

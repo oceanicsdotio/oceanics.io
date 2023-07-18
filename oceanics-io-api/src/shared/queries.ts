@@ -1,6 +1,6 @@
 import neo4j from "neo4j-driver";
 import type { Record, QueryResult } from "neo4j-driver";
-import { Node, Links, Constraint, User } from "oceanics-io-api-wasm";
+import { Node, Links, User } from "oceanics-io-api-wasm";
 
 type Route = {name: string, url: string};
 
@@ -136,6 +136,7 @@ export const batch = async (queries: string[], readOnly: boolean) => {
 }
 
 export const uniqueConstraint = (label: string, key: string) => {
-    const {query} = (new Constraint(label, key)).uniqueConstraint();
+    const node = new Node(undefined, undefined, label);
+    const {query} = node.uniqueConstraintQuery(key);
     return connect(query, WRITE);
 }
