@@ -6,6 +6,7 @@ use std::convert::From;
 use wasm_bindgen::prelude::*;
 
 use super::{Cypher, READ_ONLY, WRITE};
+use super::constraint::Constraint;
 
 // Convenience function for getting a String from Option.
 fn string_or(value: &Option<String>, default: String) -> String {
@@ -324,6 +325,25 @@ impl Node {
         match self {
             Node {properties: Some(_), label: Some(_), ..} => Cypher::new(format!("MERGE {}", self), WRITE),
             _ => panic!("Invalid node pattern")
+        }
+    }
+
+    /**
+     * Produce a query that will set a uniqueness constraint on the Node.
+     */
+    #[wasm_bindgen(js_name = uniqueConstraintQuery)]
+    pub fn unique_constraint_query(self, key: String) -> Cypher {
+        match self.label {
+            Some(label) => {
+                let constraint = Constraint{
+                    label, 
+                    key
+                };
+                constraint.unique_constraint()
+            },
+            None => {
+                panic!("Constraint requires node label, but Node instance is generic");
+            }
         }
     }
 }

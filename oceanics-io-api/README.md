@@ -55,7 +55,6 @@ The package uses the `oceanics-io-api-rust` crate, transpiled to web assembly (`
 ```mermaid
 classDiagram
   class cypher{
-    Constraint
     Cypher
     Links
     Node
@@ -63,7 +62,6 @@ classDiagram
   authentication <|-- cypher
   class authentication{
     Authentication
-    Claims
     Provider
     User
   }

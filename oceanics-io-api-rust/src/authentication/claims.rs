@@ -1,21 +1,28 @@
-use wasm_bindgen::prelude::*;
 use hmac::{Hmac, Mac};
 use jwt::{SignWithKey,VerifyWithKey};
 use sha2::Sha256;
 use serde::{Serialize, Deserialize};
 
-#[wasm_bindgen]
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Claims {
-    sub: String,
-    iss: String,
-    exp: usize,
+    pub sub: String,
+    pub iss: String,
+    pub exp: usize,
 }
 
 /**
  * Rust-only methods
  */
 impl Claims {
+    pub fn new(
+        sub: String,
+        iss: String,
+        exp: usize,
+    ) -> Self {
+        Claims { sub, iss, exp }
+    }
+
     pub fn encode(&self, signing_key: &str) -> String {
         let key: Hmac<Sha256> = Hmac::new_from_slice(signing_key.as_ref()).unwrap();
         match self.sign_with_key(&key) {
@@ -37,30 +44,6 @@ impl Claims {
     }
 }
 
-/**
- * Methods exposed to JavaScript
- */
-#[wasm_bindgen]
-impl Claims {
-    #[wasm_bindgen(constructor)]
-    pub fn new(
-        sub: String,
-        iss: String,
-        exp: usize,
-    ) -> Self {
-        Claims { sub, iss, exp }
-    }
-
-    #[wasm_bindgen(getter)]
-    pub fn iss(&self) -> String {
-        self.iss.clone()
-    }
-
-    #[wasm_bindgen(getter)]
-    pub fn sub(&self) -> String {
-        self.sub.clone()
-    }
-}
 
 #[cfg(test)]
 mod test {
@@ -68,13 +51,11 @@ mod test {
 
     #[test]
     fn create_claims () {
-        let claims = Claims::new(
+        let _claims = Claims::new(
             "test@oceanics.io".to_string(),
             "oceanics.io".to_string(),
             3600
         );
-        assert_eq!(claims.iss, claims.iss());
-        assert_eq!(claims.sub, claims.sub());
     }
 
     #[test]
