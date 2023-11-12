@@ -11,12 +11,12 @@
     "packageManager": "yarn@4.0.1",
     "description": "Build environment",
     "devDependencies": {
+        "@redocly/cli": "^1.4.0",
         "@typescript-eslint/eslint-plugin": "^6.10.0",
         "@typescript-eslint/parser": "^6.10.0",
         "eslint": "^8.53.0",
         "js-yaml": "^4.1.0",
         "netlify-cli": "^17.2.2",
-        "redoc-cli": "^0.13.21",
         "typescript": "^5.2.2"
     },
     "resolutions": {
@@ -29,6 +29,7 @@
         "immer": ">=9.0.6",
         "axios": ">=0.21.2",
         "ansi-html": ">=0.0.8",
-        "nth-check": ">=2.1.1"
+        "nth-check": ">=2.1.1",
+        "node-fetch": "=2.0.0"
     }
 }
