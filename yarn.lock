@@ -10216,17 +10216,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"caniuse-lite@npm:^1.0.0, caniuse-lite@npm:^1.0.30001125":
-  version: 1.0.30001382
-  resolution: "caniuse-lite@npm:1.0.30001382"
-  checksum: 186ec65230bf315c4dbfb2785be811653869aaa7713c5e83dfa9ca9396be371f5e02a0dfe56b9c7069ad9ecff811d316b507d8a7c700d429e423d8808dee5771
-  languageName: node
-  linkType: hard
-
-"caniuse-lite@npm:^1.0.30001109, caniuse-lite@npm:^1.0.30001332, caniuse-lite@npm:^1.0.30001370":
-  version: 1.0.30001374
-  resolution: "caniuse-lite@npm:1.0.30001374"
-  checksum: a75656e971d7ef2af4d2f3529a4620ae1a45d09460601fbc34b26f6867f31bbca006f71d8840291c471a2f01fc1994044f319a5660241ffaf35a2d84535af442
+"caniuse-lite@npm:^1.0.0, caniuse-lite@npm:^1.0.30001109, caniuse-lite@npm:^1.0.30001125, caniuse-lite@npm:^1.0.30001332, caniuse-lite@npm:^1.0.30001370":
+  version: 1.0.30001561
+  resolution: "caniuse-lite@npm:1.0.30001561"
+  checksum: 949829fe037e23346595614e01d362130245920503a12677f2506ce68e1240360113d6383febed41e8aa38cd0f5fd9c69c21b0af65a71c0246d560db489f1373
   languageName: node
   linkType: hard
 
@@ -22309,7 +22302,7 @@ __metadata:
     node-fetch: ^2.6.7
     oceanics-io-api-wasm: "*"
     stripe: ^10.5.0
-    typescript: ^4.7.4
+    typescript: ^5.2.2
   languageName: unknown
   linkType: soft
 
@@ -22346,7 +22339,7 @@ __metadata:
     react-native-web: ~0.18.7
     reflect-metadata: ^0.1.13
     sharp-cli: ^2.1.1
-    typescript: ^4.7.4
+    typescript: ^5.2.2
   languageName: unknown
   linkType: soft
 
@@ -22406,7 +22399,7 @@ __metadata:
     rehype-stringify: ^9.0.2
     storybook: ^6.5.10
     styled-components: ^5.3.0
-    typescript: ^4.6.3
+    typescript: ^5.2.2
     typography: ^0.16.21
     webpack: ^5.47.1
     yaml: ^2.1.1
@@ -26215,7 +26208,7 @@ __metadata:
     js-yaml: ^4.1.0
     netlify-cli: ^10.7.1
     redoc-cli: ^0.13.17
-    typescript: ~4.3.5
+    typescript: ^5.2.2
   languageName: unknown
   linkType: soft
 
@@ -29116,7 +29109,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^4.5.4, typescript@npm:^4.5.5, typescript@npm:^4.6.3, typescript@npm:^4.7.4":
+"typescript@npm:^4.5.4, typescript@npm:^4.5.5":
   version: 4.7.4
   resolution: "typescript@npm:4.7.4"
   bin:
@@ -29126,17 +29119,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:~4.3.5":
-  version: 4.3.5
-  resolution: "typescript@npm:4.3.5"
+"typescript@npm:^5.2.2":
+  version: 5.2.2
+  resolution: "typescript@npm:5.2.2"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: bab033b5e2b0790dd35b77fd005df976ef80b8d84fd2c6e63cc31808151875beae9216e5a315fe7068e8499905c3c354248fe83272cdfc13b7705635f0c66c97
+  checksum: 7912821dac4d962d315c36800fe387cdc0a6298dba7ec171b350b4a6e988b51d7b8f051317786db1094bd7431d526b648aba7da8236607febb26cf5b871d2d3c
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@^4.5.4#~builtin<compat/typescript>, typescript@patch:typescript@^4.5.5#~builtin<compat/typescript>, typescript@patch:typescript@^4.6.3#~builtin<compat/typescript>, typescript@patch:typescript@^4.7.4#~builtin<compat/typescript>":
+"typescript@patch:typescript@^4.5.4#~builtin<compat/typescript>, typescript@patch:typescript@^4.5.5#~builtin<compat/typescript>":
   version: 4.7.4
   resolution: "typescript@patch:typescript@npm%3A4.7.4#~builtin<compat/typescript>::version=4.7.4&hash=f456af"
   bin:
@@ -29146,13 +29139,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@~4.3.5#~builtin<compat/typescript>":
-  version: 4.3.5
-  resolution: "typescript@patch:typescript@npm%3A4.3.5#~builtin<compat/typescript>::version=4.3.5&hash=f456af"
+"typescript@patch:typescript@^5.2.2#~builtin<compat/typescript>":
+  version: 5.2.2
+  resolution: "typescript@patch:typescript@npm%3A5.2.2#~builtin<compat/typescript>::version=5.2.2&hash=f456af"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 365df18cf979c971ef9543b2acaa8694377a803f98e1804c41d0ede0b09d7046cb0cd98f2eaf3884b0fe923c01a60af1f653841bd8805c9715d5479c09a4ebe4
+  checksum: 07106822b4305de3f22835cbba949a2b35451cad50888759b6818421290ff95d522b38ef7919e70fb381c5fe9c1c643d7dea22c8b31652a717ddbd57b7f4d554
   languageName: node
   linkType: hard
 

@@ -1,6 +1,6 @@
 /**
  * Translate from OpenAPI schema examples and other sources
- * to simple table used in per-entity unit concurrent tests.
+ * to simple table used in per-entity concurrent unit tests.
  * 
  * Result will have no topological metadata, and will
  * be populated with UUID for each record. This is used
