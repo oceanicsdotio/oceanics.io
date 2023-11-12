@@ -88,7 +88,7 @@ jobs:
         name: Configure Node cache
         id: node-cache
         with:
-          node-version: 16
+          node-version: 18
           cache: 'yarn'
 
       - name: Configure Next cache
