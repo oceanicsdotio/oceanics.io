@@ -8,15 +8,15 @@
         "oceanics-io-native"
     ],
     "type": "module",
-    "packageManager": "yarn@3.2.2",
+    "packageManager": "yarn@4.0.1",
     "description": "Build environment",
     "devDependencies": {
-        "@typescript-eslint/eslint-plugin": "^5.26.0",
-        "@typescript-eslint/parser": "^5.26.0",
-        "eslint": "^8.16.0",
+        "@typescript-eslint/eslint-plugin": "^6.10.0",
+        "@typescript-eslint/parser": "^6.10.0",
+        "eslint": "^8.53.0",
         "js-yaml": "^4.1.0",
-        "netlify-cli": "^10.7.1",
-        "redoc-cli": "^0.13.17",
+        "netlify-cli": "^17.2.2",
+        "redoc-cli": "^0.13.21",
         "typescript": "^5.2.2"
     },
     "resolutions": {
