@@ -21,7 +21,7 @@
     "@apidevtools/swagger-parser": "^10.1.0",
     "@types/geojson": "^7946.0.8",
     "@types/mapbox-gl": "^2.4.2",
-    "@xmldom/xmldom": "^0.8.2",
+    "@xmldom/xmldom": "^0.8.10",
     "babel-cli": "^6.23.0",
     "babel-preset-next": "^1.4.0",
     "gray-matter": "^4.0.3",
