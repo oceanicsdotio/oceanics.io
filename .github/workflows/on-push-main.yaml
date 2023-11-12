@@ -16,17 +16,17 @@ jobs:
 
       - name: Hash lockfile
         id: lockfile
-        run: echo "::set-output name=hash::${{ hashFiles('./yarn.lock') }}"
+        run: echo "hash=${{ hashFiles('./yarn.lock') }}" >> $GITHUB_OUTPUT
       
       - uses: actions/setup-node@v3
         name: Configure Node cache
         id: node-cache
         with:
-          node-version: 20
+          node-version: 18
           cache: 'yarn'
 
       - name: Configure Next cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/oceanics-io-www/.next/cache
           key: ${{ runner.os }}-nextjs-${{ steps.lockfile.outputs.hash }}
