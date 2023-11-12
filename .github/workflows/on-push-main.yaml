@@ -26,7 +26,7 @@ jobs:
           cache: 'yarn'
 
       - name: Configure Next cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{ github.workspace }}/oceanics-io-www/.next/cache
           key: ${{ runner.os }}-nextjs-${{ steps.lockfile.outputs.hash }}
