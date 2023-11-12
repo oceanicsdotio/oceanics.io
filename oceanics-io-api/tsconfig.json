@@ -2,7 +2,6 @@
   "compilerOptions": {
     "target": "esnext",
     "lib": ["esnext"],
-    "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
@@ -12,13 +11,12 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": false,
-    "outDir": "./build",
-    "rootDir": "./src"
+    "noEmit": true,
+    "rootDir": "."
   },
   "include": [
-    "src/**/*.ts"
-  ],
-  "exclude": [
-    "src/**/*.spec.ts"
+    "src/**/*.ts",
+    "test/**/*.ts",
+    "edge/**/*.ts"
   ]
 }
