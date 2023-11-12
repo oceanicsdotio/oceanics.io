@@ -95,6 +95,13 @@ dev: .
 
 lint:
 	yarn eslint "**/*.{js,ts,json,tsx,jsx}"
+
+netlify: .
+	yarn netlify init --filter oceanics-io-www
+	yarn netlify build --filter oceanics-io-www
+
+deploy: netlify
+	yarn netlify deploy --prod --filter oceanics-io-www
 	
 # Remove build artifacts
 clean:
