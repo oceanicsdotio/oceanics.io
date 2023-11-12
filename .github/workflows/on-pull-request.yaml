@@ -74,6 +74,9 @@ jobs:
       SERVICE_ACCOUNT_PASSWORD: ${{ secrets.SERVICE_ACCOUNT_PASSWORD }}
       SERVICE_ACCOUNT_SECRET: ${{ secrets.SERVICE_ACCOUNT_SECRET }}
       LOGTAIL_SOURCE_TOKEN: ${{ secrets.LOGTAIL_SOURCE_TOKEN }}
+      SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+      NEO4J_HOSTNAME: ${{ secrets.NEO4J_HOSTNAME }}
+      NEO4J_ACCESS_KEY: ${{ secrets.NEO4J_ACCESS_KEY }}
 
     steps:
 
@@ -110,10 +113,6 @@ jobs:
         run: make .
 
       - name: Run dev server
-        env:
-          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
-          NEO4J_HOSTNAME: ${{ secrets.NEO4J_HOSTNAME }}
-          NEO4J_ACCESS_KEY: ${{ secrets.NEO4J_ACCESS_KEY }}
         run: make dev &
 
       - name: Test auth

@@ -19,6 +19,9 @@ describe("auth handlers", function () {
       ["SERVICE_ACCOUNT_USERNAME"],
       ["SERVICE_ACCOUNT_PASSWORD"],
       ["SERVICE_ACCOUNT_SECRET"],
+      ["LOGTAIL_SOURCE_TOKEN"],
+      ["NEO4J_HOSTNAME"],
+      ["NEO4J_ACCESS_KEY"],
       ["LOGTAIL_SOURCE_TOKEN"]
     ])(`%s is in environment`, async function(key: string) {
       const value = process.env[key];
