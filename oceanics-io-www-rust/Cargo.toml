@@ -11,10 +11,10 @@ repository = "git+https://github.com/oceanicsdotio/oceanics.io.git"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-js-sys = "0.3.56"
-wasm-bindgen-futures = "0.4.29"
-serde = { version = "1.0.136", features = ["derive"] }
-serde_derive = "1.0.136"
+js-sys = "0.3.65"
+wasm-bindgen-futures = "0.4.38"
+serde = { version = "1.0.192", features = ["derive"] }
+serde_derive = "1.0.192"
 console_error_panic_hook = "0.1.7"
 
 [profile.release]
@@ -25,11 +25,11 @@ opt-level = "s"
 wasm-opt = ["-Oz", "--enable-mutable-globals"]
 
 [dependencies.wasm-bindgen]
-version = "0.2.79"
+version = "0.2.88"
 features = ["serde-serialize"]
 
 [dependencies.web-sys]
-version = "0.3.56"
+version = "0.3.65"
 features = [
     'CanvasGradient',
     'CanvasRenderingContext2d',

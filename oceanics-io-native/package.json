@@ -34,6 +34,6 @@
     "babel-loader": "^8.2.5",
     "expo-cli": "^6.0.5",
     "sharp-cli": "^2.1.1",
-    "typescript": "^4.7.4"
+    "typescript": "^5.2.2"
   }
 }

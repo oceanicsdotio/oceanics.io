@@ -5,6 +5,11 @@
   command = "make ."
   environment = {NODE_VERSION = "16", AWS_LAMBDA_JS_RUNTIME = "nodejs16.x", NETLIFY_USE_YARN = "true", NETLIFY_YARN_WORKSPACES = "true", YARN_VERSION="1.22.17"}
 
+[dev]
+  base = "/"
+  publish = "/oceanics-io-www/build"
+  port = 8888
+
 [functions]  
   node_bundler = "esbuild"
  
@@ -22,7 +27,7 @@
 
 [functions.topology]
   external_node_modules = ["oceanics-io-api-wasm"]
-
+    
 [[redirects]]
   from = "/api/auth"
   to = "/.netlify/functions/auth"

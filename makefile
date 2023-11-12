@@ -32,7 +32,7 @@ node_modules: $(API)-wasm $(WWW)-wasm yarn.lock $(wildcard **/package.json) pack
 
 # Build OpenAPI docs page from specification
 $(DOCS_PAGE): $(SPEC_FILE) node_modules
-	yarn run redoc-cli build $(SPEC_FILE) --output $(DOCS_PAGE)
+	yarn run redocly build-docs $(SPEC_FILE) --output $(DOCS_PAGE)
 
 # Build static storybook pages
 STORY_SRC := $(wildcard $(WWW)/src/**/*) $(wildcard $(WWW)/.storybook/*)
@@ -89,9 +89,9 @@ test-idempotent: $(TEST_CACHE)
 # Run jest incrementally, because order matters
 test: $(TEST_CACHE) test-auth test-collection test-idempotent
 
-# Run the dev server
+# Run the dev server for only API
 dev: .
-	yarn netlify dev
+	yarn netlify dev --no-open --filter=oceanics-io-api
 
 lint:
 	yarn eslint "**/*.{js,ts,json,tsx,jsx}"

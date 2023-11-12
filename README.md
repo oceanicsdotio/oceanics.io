@@ -1,44 +1,40 @@
 # Oceanics.io
 
-<p align="center">
-  <img width="80%" src="https://www.oceanics.io/assets/dagan-sprite.gif">
-</p>
-
 ## Contents
 
 - [Oceanics.io](#oceanicsio)
   - [Contents](#contents)
   - [About](#about)
-  - [Web application](#web-application)
-    - [Workspaces](#workspaces)
+  - [Getting started](#getting-started)
+  - [Workspaces](#workspaces)
+    - [Website](#website)
+    - [API](#api)
+  - [Logging](#logging)
+    - [Native](#native)
   - [Environment](#environment)
-  - [Database](#database)
+  - [Database initialization](#database-initialization)
 
 ## About
 
-Oceanics.io is a web application for high-performance computing and visualization. The interface and utilities ingest sensor and model data and metadata, and parse them into discoverable databases. Simulations and analyses run in the browser using Web Assembly, client side parallelism, and GPU acceleration. 
+This document is for developers of `oceanics.io`, a web application for high-performance ocean computing and visualization. 
 
-This document describes this repository, and steps to modify the API. To use the software, [see documentation for our API](https://www.oceanics.io/bathysphere). Software is provided by Oceanicsdotio LLC under the [MIT license](https://github.com/oceanics-io/oceanics.io/blob/main/LICENSE) as is, with no warranty or guarantee. 
+Software is provided by Oceanicsdotio LLC under the [MIT license](https://github.com/oceanics-io/oceanics.io/blob/main/LICENSE) as is, with no warranty or guarantee. 
 
-## Web application
+## Getting started
 
-We use a `yarn` monorepo and workspaces to manage code. The environment configuration lives in `.yarnrc.yml`, and version controlled plugins in `.yarn`.
+The top-level directory also contains this `README.md` along with configuration files and scripts for linting, compiling, bundling, and deploying. The complete build and test processes are defined in `makefile`. 
 
-The top-level directory also contains this `README.md` along with configuration files and scripts for linting, compiling, bundling, and deploying.
+The site is hosted on Netlify at [https://www.oceanics.io](https://www.oceanics.io). The deploy is setup in `netlify.toml`. When updates are pushed to Github, the site is rebuilt and deployed automatically.
 
-Workspaces and shared dependencies are defined in `package.json`. The build process is defined in `makefile`. 
+## Workspaces
 
-Static assets are hosted on Netlify. The deploy is setup in `netlify.toml`. When new commits are checked into the Github repository, the site is built and deployed to [https://www.oceanics.io](https://www.oceanics.io).
+We use a `yarn` monorepo and workspaces to manage code. The environment configuration lives in `.yarnrc.yml`, and version controlled plugins in `.yarn`. 
 
-### Workspaces
-
-The `oceanics-io-www` workspace contains the TypeScript web application. Client side interaction is accomplished with React Hooks and browser APIs.
-
-Netlify serverless functions that make up our API are `oceanics-io-api`. These are single purpose endpoints that support secure data access, pre-processing, and sub-setting.
+Workspaces and shared dependencies are defined in `package.json`.
 
 Rust-to-Web-Assembly libraries used by these workspaces are in `oceanics-io-*-rust`.
 
-Dependencies of the main components are shown below:
+Dependencies of the main components are:
 
 ```mermaid
 flowchart TD
@@ -47,6 +43,92 @@ flowchart TD
   www-wasm--->|import|www
   content--->|import|www
   www-rust--->|transpile|www-wasm
+```
+
+### Website
+
+The `oceanics-io-www` workspace contains the TypeScript web application. 
+
+This is our main web page, powered by NextJS. Component-level development is supported by StorybookJS. Client side interaction is accomplished with React Hooks and browser APIs.
+
+You should not need to manually build this workspace; everything is handled from the top-level directory.
+
+### API
+
+Netlify serverless functions that make up our API are `oceanics-io-api`. These are single purpose endpoints that support secure data access, pre-processing, and sub-setting.
+
+This module is a build environment, so you won't run any commands directly. Local testing requires the Netlify CLI, which is installed from the parent module.
+
+You'll first have to create the root provider by executing a query like:
+```cypher
+MERGE (n:Provider { apiKey: replace(apoc.create.uuid(), '-', ''), domain: 'oceanics.io' }) return n
+```
+
+You can run the Neo4j database manager in a [Neo4j container image](https://hub.docker.com/_/neo4j/), or use a managed service that supports [cypher](https://neo4j.com/docs/cypher-refcard/current/). 
+
+Running automated tests populates the connected database with the examples described in `oceanics-io-www/public/bathysphere.yaml`. The [browser interface](https://neo4j.com/developer/neo4j-browser/) can be used to explore the example database.
+
+The minimal example to get up and running is:
+
+```bash
+make oceanics-io-api/build
+make dev & # run Netlify dev stack, use another terminal
+make test
+```
+
+## Logging
+
+Logging is setup [through Logtail for JavaScript](https://docs.logtail.com/integrations/javascript).
+
+If you want to get performance metrics from the log database, you can use a query like:
+```sql
+SELECT
+  substring(context.runtime.file, 35) as file,
+  httpmethod AS method,
+  avg(cast(elapsedtime AS INT)) AS time,
+  avg(cast(arraybuffers AS INT))/1000 AS arraybuffers_kb,
+  avg(cast(heaptotal AS INT))/1000 AS heaptotal_kb,
+  avg(cast(heapused AS INT))/1000 AS heapused_kb,
+  avg(cast(external AS INT))/1000 AS external_kb,
+  count(*) as requests
+FROM $table
+WHERE
+  elapsedtime IS NOT NULL AND
+  heaptotal IS NOT NULL AND
+  heapused IS NOT NULL AND
+  external IS NOT NULL AND
+  arraybuffers IS NOT NULL
+GROUP BY 
+  file,
+  method
+```
+
+### Native
+
+This is a reference implementation for a cross platform application using Expo, React Native, [MMKV](https://github.com/mrousavy/react-native-mmkv), and Storybook.
+
+The project was initialized with `npx expo init .`. Storybook was added with the step [described in the React Native tutorial](https://storybook.js.org/tutorials/intro-to-storybook/react-native/en/get-started/). It was necessary to modify the `addons.js` imports to get things working.
+
+The app can be started on the Expo server with `expo start`, which will publish an iOS and Web version on MacOS. To run just the mobile version you can `yarn ios`. You can access this from a phone that has Expo Go installed.
+
+Additional information on the app frameworks here:
+ - [Available Expo icons catalog](https://icons.expo.fyi/)
+ - [React Navigation docs](https://reactnavigation.org/)
+
+The dependency graph of the navigation and screen components is:
+
+```mermaid
+graph TD
+    Decklist & MoreInfo & Bench 
+        -- import --> BottomTabNavigator;
+    Navigation 
+        -- import --> App;
+    BottomTabNavigator & DecklistSummary 
+        -- import --> Navigation;
+    NotFound 
+        -- import --> Navigation;
+    MoreInfo 
+        -. navigate .-> DecklistSummary;
 ```
 
 ## Environment
@@ -66,26 +148,15 @@ These environment variables must be present for things to work:
 - `SERVICE_ACCOUNT_SECRET`: string for salting service key password
 - `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN`: mapbox access token for map interface
 
-## Database
+## Database initialization
 
 You can run the database manager in an [official Neo4j container image](https://hub.docker.com/_/neo4j/), or use a managed service that supports the [cypher query language](https://neo4j.com/docs/cypher-refcard/current/).
 
-If you are new to Neo4j, deploy a local container to kick the tires:
-
-```bash
-docker run \
-    --publish=7474:7474 \
-    --publish=7473:7473 \
-    --publish=7687:7687 \
-    --volume=$HOME/neo4j/data:/data \
-    neo4j/neo4j
-```
-
-The [browser interface](http://localhost:7474/browser/) is useful for debugging data access layer errors. See [the official documentation for more info](https://neo4j.com/developer/neo4j-browser/).
+The [browser interface](https://neo4j.com/developer/neo4j-browser/) is useful for debugging data access layer errors.
 
 You'll have to create the root provider by executing a query like:
 ```cypher
 MERGE (n:Provider { apiKey: replace(apoc.create.uuid(), '-', ''), domain: 'oceanics.io' }) return n
 ```
 
-Running automated tests populates the connected database with the examples described in `oceanics-io-www/public/bathysphere.yaml`. Use the default entities as examples to make your own.
+Running automated tests populates the connected database with the examples described in `oceanics-io-www/public/bathysphere.yaml`.
