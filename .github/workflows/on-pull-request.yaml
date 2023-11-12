@@ -18,7 +18,7 @@ jobs:
 
       - name: Hash lockfile
         id: lockfile
-        run: echo "::set-output name=hash::${{ hashFiles('./yarn.lock') }}"
+        run: echo "hash=${{ hashFiles('./yarn.lock') }}" >> $GITHUB_OUTPUT
 
       - uses: actions/setup-node@v3
         name: Configure Node cache
