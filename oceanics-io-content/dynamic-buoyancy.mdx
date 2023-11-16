@@ -1,0 +1,61 @@
+---
+title: Dynamic buoyancy in cyanobacteria
+published: "2021-12-22T17:01:00.000Z"
+description: |
+  Toxic algae control their buoyancy with a carbon pump. Learn about the math behind simulating the process, and how surface scums form as result of this feedback control system. 
+labels: ["cyanobacteria", "algorithms", "diving", "control systems"]
+authors: [Keeney]
+pageRange: []
+references: []
+---
+
+## Background
+
+Cyanobacteria are notorious for the dense, green scums they form on water bodies the world over. 
+
+Blooms are increasingly common due to changing nutrient regimes and changing temperatures, and this means more incidents of human and animal toxicity. Because, of course they produce potent neurological toxins. 
+
+The genera Anabaena and *Microcystis* share similar phenomenological behavior. They out-compete con-specifics by using specialized stages and cells for quiescence, acquiring nutrients, and creating buoyancy.
+
+The buoyancy bit is the most interesting. Both types use a combination of lighter-than-water proteins and gas vesicles, but the method of controlling the effect varies. 
+
+Anabaena relies on vesicle collapse, basically purging gas to descend like a diver. This results in a hysteresis, where the method of action is different for increasing or decreasing buoyancy. 
+
+*Microcystis* instead chemically alters the ratio of carbohydrate and protein move, like, well, a chemical ballast.
+
+People I have see embark on a dynamic buoyancy engineering project do the first bit, while thinking they are doing the second. The second is harder to achieve, but provides better control. I hope engineers new to marine operations will incorporate solid, displacement, and dynamic buoyancy, as this can be safer and prevent catastrophic loss. 
+
+To incorporate any vertical moving agent into high-resolution hydrodynamic models, or to have a hope for remote autonomous control you need a rigorous definition of vertical movement. 
+
+The *Microcystis* way relies on the balance of carbohydrate (C) and protein (M).
+
+<Equation text={"{{\\delta \\vec{M}} \\over {\\delta t}} = \\vec{C} \\cdot (f_1(T) - f_2(T)) - \\vec{M} \\cdot f_3(T)"} />
+<br/>
+<Equation text={"{{\\delta \\vec{C}} \\over {\\delta t}} = f_4(I) \\cdot \\vec{M} \\cdot (1-V_p) \\cdot ({{{C \\over M }_{max} - {\\vec{C} \\over \\vec{M}} \\over {C \\over M }_{max}}}) - \\vec{C} \\cdot f_1(T) - f_5(T) \\cdot \\vec{C} - f_6(T) \\cdot \\vec{M}"} />
+
+The subscripted functions are physiological processes that depend on light and temperature. The details aren't really that important to the discussion, but you can get an idea of the data requirements from this system diagram,
+
+<img src="/assets/neon-stella.png" alt="Rigorous Definition" style={{width: "100%"}}/>
+
+In the end you want a density difference compared to the local water column, which is used to calculate the Stoke's velocity,
+
+<Equation text={"V = {{2gR^2 \\cdot \\delta \\rho} \\over {9 \\eta}}"}/>
+
+That's g for gravity, R for radius, rho for density, and eta for viscosity. 
+
+The question that surfaces for shallow lakes and estuaries, is this: does the constrained depth and mixing allow for surface accumulation of biomass and toxins? Aquaculture poses the opposite challenge. That is, how to control position in the water column to prevent local build-up. 
+
+
+For a case with uniform colony size starting at the bottom of a in a 1-dimensional domain, several things happen:
+
+- High temperatures result in surface accumulation
+- Toxin intensifies in the upper water column
+- Colony size appears to modulate timing and depth of microlayer, but it's an artifact of "bouncing" in the movement integration algorithm
+
+For deep water, particles stabilize at depth thanks to feedback loops in the photosynthesis driven cycle,
+
+<img src="/assets/cyanobacteria-buoyancy.png" alt="Buoyancy Driven Oscillation" style={{width: "100%"}}/>
+
+For shallow water, there's no time to generate carbohydrate sufficient for ballast, and metastable surface layers form based on thermal and light limitation,
+
+<img src="/assets/cyano-vertical-layer.png" alt="Cyanobacteria Vertical Layer Formation" style={{width: "100%"}}/>
