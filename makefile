@@ -1,93 +1,131 @@
-WWW = oceanics-io-www
-API = oceanics-io-api
-OUT_DIR = build
-SPEC = bathysphere
-CACHE = nodes
-SPEC_FILE = ./$(SPEC).yaml
-DOCS_PAGE = $(WWW)/public/$(SPEC).html
-STORYBOOK = public/dev/storybook
-SHARED = src/shared
+## API targets
 
 # Build WASM for NodeJS
-API_WASM_SOURCE = $(wildcard $(API)-rust/src/**/*)
-$(API)-wasm: $(API_WASM_SOURCE) $(wildcard $(API)-rust/Cargo*)
-	(rm -rf $(API)-wasm || :)
-	wasm-pack build $(API)-rust \
-		--out-dir ../$(API)-wasm \
+API = oceanics-io-api
+API_RUST = $(API)-rust
+API_WASM = $(API)-wasm
+API_OUT = $(API)/build
+$(API_WASM): $(API_RUST)/src/* $(API_RUST)/src/**/* $(API_RUST)/src/**/**/* $(API_RUST)/Cargo*
+	wasm-pack build $(API_RUST) \
+		--out-dir ../$@ \
 		--target nodejs \
 		--out-name index
-	sed -i 's/"name": "$(API)-rust"/"name": "$(API)-wasm"/g' $(API)-wasm/package.json
+	touch -m $@
 
-# Build WASM for web
-$(WWW)-wasm: $(wildcard $(WWW)-rust/src/**/*) $(wildcard $(WWW)-rust/Cargo*)
-	(rm -rf $(WWW)-wasm || :)
-	wasm-pack build $(WWW)-rust \
-		--out-dir ../$(WWW)-wasm \
-		--out-name index
-	sed -i 's/"name": "$(WWW)-rust"/"name": "$(WWW)-wasm"/g' $(WWW)-wasm/package.json
-
-# Local dependencies need to be built before we can install
-node_modules: $(API)-wasm $(WWW)-wasm yarn.lock $(wildcard **/package.json) package.json
-	yarn install
-
-# Build OpenAPI docs page from specification
-$(DOCS_PAGE): $(SPEC_FILE) node_modules
-	yarn run redocly build-docs $(SPEC_FILE) --output $(DOCS_PAGE)
-
-# Build static storybook pages
-STORY_SRC := $(wildcard $(WWW)/src/**/*) $(wildcard $(WWW)/.storybook/*)
-$(WWW)/$(STORYBOOK): $(STORY_SRC)
-	yarn workspace oceanics-io-www build-storybook --output-dir $(STORYBOOK)  --webpack-stats-json
-
-# Convert from YAML to JSON for bundling OpenAPI
-API_JSON_RELATIVE = $(SHARED)/$(SPEC).json
-API_JSON = $(API)/$(API_JSON_RELATIVE)
+# Convert from YAML to JSON for bundling with API
+SHARED = src/shared
+SPEC_FILE = ./bathysphere.yaml
+API_JSON = $(API)/$(SHARED)/bathysphere.json
 $(API_JSON): $(SPEC_FILE) node_modules
-	yarn run js-yaml $(SPEC_FILE) > $(API_JSON)
+	yarn run js-yaml $< > $@
 
 # Create examples with static UUID values for deterministic testing
-TEST_CACHE_RELATIVE = $(SHARED)/$(CACHE).json
-TEST_CACHE = $(API)/${TEST_CACHE_RELATIVE}
-$(TEST_CACHE): $(API_JSON)
-	yarn workspace $(API) exec node test-cache.js ./$(API_JSON_RELATIVE) ./$(TEST_CACHE_RELATIVE)
+TEST_CACHE = $(API)/src/shared/nodes.json
+CACHE_SCRIPT = test-cache.js
+$(TEST_CACHE): $(API_JSON) $(CACHE_SCRIPT)
+	yarn exec node $(CACHE_SCRIPT) $< $@
 
 # Compile API
-$(API)/$(OUT_DIR): node_modules $(API_JSON) $(wildcard $(API)/src/**/*) $(API)-wasm
-	(rm -rf $(API)/$(OUT_DIR)/ || :)
-	yarn workspace $(API) run tsc
+api: node_modules $(API_JSON) $(API)/src/**/* $(API)/src/* $(API)/tsconfig.json
+	yarn eslint "$(API)/src/**/*.{js,ts}"
+	yarn workspace $(API) run tsc 
+
+# Non-file targets
+.PHONY: api-cleanup api-test-auth api-test-collection- api-test-idempotent api-dev api-test api-test-middleware api-test-rust
+
+api-test-rust:
+	cargo test --manifest-path oceanics-io-api-rust/Cargo.toml
+
+# Test just the WASM middleware
+api-test-middleware: $(API_WASM)
+	yarn workspace oceanics-io-api jest -t "wasm" --verbose
+
+# Test just Auth API to setup service account.
+api-test-auth: $(TEST_CACHE)
+	yarn workspace oceanics-io-api jest -t "auth handlers" --verbose
+
+# This test set populates the test database, must be called after `test-auth`.
+api-test-collection: $(TEST_CACHE)
+	yarn workspace oceanics-io-api jest -t "collection handlers"
+
+# Once database and cache are setup
+api-test-idempotent: $(TEST_CACHE)
+	yarn workspace oceanics-io-api jest -t "idempotent"
+
+api-test-content: $(TEST_CACHE)
+	yarn workspace oceanics-io-api jest -t "creates Memos a-small-place"
+
+# Serve functions locally
+api-dev: api
+	yarn netlify dev
+
+# Run jest incrementally, because order matters
+api-test: $(TEST_CACHE) api-test-middleware api-test-auth api-test-collection api-test-idempotent api-test-content
+
+api-cleanup:
+	rm -rf $(API_WASM)
+
+## WWW targets
+
+# Build WASM for web bunder (default --target)
+WWW = oceanics-io-www
+WWW_RUST = $(WWW)-rust
+WWW_WASM = $(WWW)-wasm
+WWW_OUT = $(WWW)/build
+$(WWW_WASM): $(WWW_RUST)/src/**/* $(WWW_RUST)/Cargo*
+	wasm-pack build $(WWW_RUST) \
+		--out-dir ../$@ \
+		--out-name index
+	touch -m $@
+
+# Build OpenAPI docs page from specification
+DOCS_PAGE = $(WWW)/public/bathysphere.html
+$(DOCS_PAGE): $(SPEC_FILE) node_modules
+	yarn run redocly build-docs $< --output $@
+
+# Build WWW storybook pages
+STORYBOOK = public/dev/storybook
+$(WWW)/$(STORYBOOK): $(WWW)/src/**/* $(WWW)/.storybook/*
+	yarn workspace oceanics-io-www build-storybook --output-dir $(STORYBOOK)  --webpack-stats-json
+	touch -m $@
 
 # Compile WWW
-$(WWW)/$(OUT_DIR): node_modules $(wildcard $(WWW)/**/*)
+$(WWW)/$(OUT_DIR): node_modules $(WWW)/**/*
+	yarn eslint "$(WWW)/src/**/*.{js,ts,json,tsx,jsx}"
 	yarn workspace $(WWW) run next build
 	yarn workspace $(WWW) run next export -o $(OUT_DIR)
+	touch -m $@
 
-oceanics-io-native/web-build:
-	yarn workspace oceanics-io-native expo --non-interactive build:web
+# PHONY for convenience
+.PHONY: www www-cleanup
+www: $(WWW)/$(OUT_DIR)
+www-cleanup:
+	rm -rf $(WWW_WASM)
+	rm -rf $(WWW)/.next
+	rm -rf $(WWW)/$(OUT_DIR)
+	rm -rf $(WWW)/$(STORYBOOK)
+
+NATIVE = oceanics-io-native
+$(NATIVE)/web-build:
+	yarn workspace $(NATIVE) expo --non-interactive build:web
 
 expo:
-	yarn workspace oceanics-io-native expo start
+	yarn workspace $(NATIVE) expo start
+
+
+# Local dependencies need to be built before we can install
+# touching the directory updates timestamp for make
+node_modules: $(API_WASM) $(WWW_WASM) package.json **/package.json yarn.lock
+	yarn install
+	touch -m $@
 
 # Build everything
-.: $(API)/$(OUT_DIR) $(WWW)/$(OUT_DIR) $(FILTERED_SRC) $(API_WASM_SOURCE)
+.: www
 
 # Serve the storybook docs in dev mode for manual testing
 start-storybook:
 	yarn workspace oceanics-io-www start-storybook --port ${STORYBOOK_PORT}
 
-# Test just Auth API to setup service account.
-test-auth:
-	yarn workspace oceanics-io-api jest -t "auth handlers" --verbose
-
-# This test set populates the test database, must be called after `test-auth`.
-test-collection: $(TEST_CACHE)
-	yarn workspace oceanics-io-api jest -t "collection handlers"
-
-# Once database and cache are setup
-test-idempotent: $(TEST_CACHE)
-	yarn workspace oceanics-io-api jest -t "idempotent"
-
-# Run jest incrementally, because order matters
-test: $(TEST_CACHE) test-auth test-collection test-idempotent
 
 # Run the dev server for only API
 dev: .
@@ -95,23 +133,18 @@ dev: .
 
 lint:
 	yarn eslint "**/*.{js,ts,json,tsx,jsx}"
-
 netlify: .
 	yarn netlify init --filter oceanics-io-www
 	yarn netlify build --filter oceanics-io-www
 
 deploy: netlify
-	yarn netlify deploy --prod --filter oceanics-io-www
-	
+	yarn netlify deploy --prod --filter oceanics-io-www	
 # Remove build artifacts
-clean:
-	rm -rf $(API)-wasm
-	rm -rf $(WWW)-wasm
+clean: api-cleanup www-cleanup
 	rm -rf node_modules/
-	rm -rf $(WWW)/.next
-	rm -rf $(WWW)/$(OUT_DIR)
-	rm -rf $(WWW)/$(STORYBOOK)
-	rm -rf $(API)/$(OUT_DIR)
 
 # Non-file targets (aka commands)
-.PHONY: clean start-storybook test-auth test-collection test-idempotent test lock dev
+.PHONY: clean start-storybook dev
+
+# Cleanup targets on error
+.DELETE_ON_ERROR:
