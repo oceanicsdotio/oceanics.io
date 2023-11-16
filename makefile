@@ -26,12 +26,12 @@ $(TEST_CACHE): $(API_JSON) $(CACHE_SCRIPT)
 	yarn exec node $(CACHE_SCRIPT) $< $@
 
 # Compile API
-api: node_modules $(API_JSON) $(API)/src/**/* $(API)/src/* $(API)/tsconfig.json
+api: node_modules $(API_WASM) $(API_JSON) $(API)/src/**/* $(API)/src/* $(API)/tsconfig.json 
 	yarn eslint "$(API)/src/**/*.{js,ts}"
 	yarn workspace $(API) run tsc 
 
 # Non-file targets
-.PHONY: api-cleanup api-test-auth api-test-collection- api-test-idempotent api-dev api-test api-test-middleware api-test-rust
+.PHONY: api-cleanup api-test-auth api-test-collection api-test-idempotent api-dev api-test api-test-middleware api-test-rust
 
 api-test-rust:
 	cargo test --manifest-path oceanics-io-api-rust/Cargo.toml
