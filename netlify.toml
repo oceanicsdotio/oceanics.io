@@ -1,7 +1,8 @@
 [build]
   base = "/"
   publish = "/oceanics-io-www/build"
-  functions = "/oceanics-io-api/build"
+  functions = "/oceanics-io-api/src"
+  edge_functions = "/oceanics-io-api/edge"
   command = "make ."
   environment = {NODE_VERSION = "16", AWS_LAMBDA_JS_RUNTIME = "nodejs16.x", NETLIFY_USE_YARN = "true", NETLIFY_YARN_WORKSPACES = "true", YARN_VERSION="1.22.17"}
 
@@ -9,6 +10,10 @@
   base = "/"
   publish = "/oceanics-io-www/build"
   port = 8888
+
+[[edge_functions]]
+  path = "/api*"
+  function = "rewrite"
 
 [functions]  
   node_bundler = "esbuild"
@@ -27,114 +32,9 @@
 
 [functions.topology]
   external_node_modules = ["oceanics-io-api-wasm"]
-    
-[[redirects]]
-  from = "/api/auth"
-  to = "/.netlify/functions/auth"
-  status = 200
-  headers = {X-From = "Netlify"}
 
-[[redirects]]
-  from = "/api/:left/:right"
-  to = "/.netlify/functions/topology"
-  status = 200
-  headers = {X-From = "Netlify"}
-
-[[redirects]]
-  from = "/api/Things"
-  to = "/.netlify/functions/collection"
-  status = 200
-  headers = {X-From = "Netlify"}
-
-[[redirects]]
-  from = "/api/Sensors"
-  to = "/.netlify/functions/collection"
-  status = 200
-  headers = {X-From = "Netlify"}
-
-[[redirects]]
-  from = "/api/ObservedProperties"
-  to = "/.netlify/functions/collection"
-  status = 200
-  headers = {X-From = "Netlify"}
-
-[[redirects]]
-  from = "/api/Observations"
-  to = "/.netlify/functions/collection"
-  status = 200
-  headers = {X-From = "Netlify"}
-
-[[redirects]]
-  from = "/api/Locations"
-  to = "/.netlify/functions/collection"
-  status = 200
-  headers = {X-From = "Netlify"}
-
-[[redirects]]
-  from = "/api/HistoricalLocations"
-  to = "/.netlify/functions/collection"
-  status = 200
-  headers = {X-From = "Netlify"}
-
-[[redirects]]
-  from = "/api/FeaturesOfInterest"
-  to = "/.netlify/functions/collection"
-  status = 200
-  headers = {X-From = "Netlify"}
-
-[[redirects]]
-  from = "/api/Actuators"
-  to = "/.netlify/functions/collection"
-  status = 200
-  headers = {X-From = "Netlify"}
-
-[[redirects]]
-  from = "/api/Tasks"
-  to = "/.netlify/functions/collection"
-  status = 200
-  headers = {X-From = "Netlify"}
-
-[[redirects]]
-  from = "/api/TaskingCapabilties"
-  to = "/.netlify/functions/collection"
-  status = 200
-  headers = {X-From = "Netlify"}
-
-[[redirects]]
-  from = "/api/DataStreams"
-  to = "/.netlify/functions/collection"
-  status = 200
-  headers = {X-From = "Netlify"}
-
-[[redirects]]
-  from = "/api/DataStreams*"
-  to = "/.netlify/functions/entity"
-  status = 200
-  headers = {X-From = "Netlify"}
-
-[[redirects]]
-  from = "/api/:left"
-  to = "/.netlify/functions/entity"
-  status = 200
-  headers = {X-From = "Netlify"}
-
-[[redirects]]
-  from = "/api/"
-  to = "/.netlify/functions/index"
-  status = 200
-  headers = {X-From = "Netlify"}
-
-[[redirects]]
-  from = "/functions/:splat"
-  to = "/.netlify/functions/:splat"
-  status = 200
-  headers = {X-From = "Netlify"}
-
-[[redirects]]
-  from = "/dev/storybook:splat"
-  to = "/dev/storybook/:splat"
-  status = 200
-  headers = {X-From = "Netlify"}
+[functions.content]
+  external_node_modules = ["oceanics-io-api-wasm"]
 
 [[headers]]
   for = "/*"
