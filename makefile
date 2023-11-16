@@ -57,7 +57,7 @@ api-test-content: $(TEST_CACHE)
 
 # Serve functions locally
 api-dev: api
-	yarn netlify dev
+	yarn netlify dev --filter oceanics-io-api --no-open
 
 # Run jest incrementally, because order matters
 api-test: $(TEST_CACHE) api-test-middleware api-test-auth api-test-collection api-test-idempotent api-test-content
@@ -90,6 +90,7 @@ $(WWW)/$(STORYBOOK): $(WWW)/src/**/* $(WWW)/.storybook/*
 	touch -m $@
 
 # Compile WWW
+OUT_DIR = build
 $(WWW)/$(OUT_DIR): node_modules $(WWW)/**/*
 	yarn eslint "$(WWW)/src/**/*.{js,ts,json,tsx,jsx}"
 	yarn workspace $(WWW) run next build
