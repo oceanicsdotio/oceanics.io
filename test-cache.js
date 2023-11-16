@@ -9,7 +9,8 @@
 import crypto from "crypto";
 import fs from "fs/promises";
 import path from "path";
-import {parseAllDocuments} from "yaml";
+import yaml from "yaml";
+const {parseAllDocuments} = yaml;
 
 // Command-line args
 const [
