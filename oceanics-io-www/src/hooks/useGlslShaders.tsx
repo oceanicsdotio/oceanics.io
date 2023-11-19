@@ -39,6 +39,7 @@ export class ArrayBuffer {
  * @param {*} h Texture height
  * @returns
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const screenBuffer = (w: number, h: number) =>
   Object({
     data: new Uint8Array(w * h * 4),

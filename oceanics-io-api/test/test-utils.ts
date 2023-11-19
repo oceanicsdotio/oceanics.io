@@ -1,10 +1,9 @@
 import fetch from "node-fetch";
 import type { Headers } from "node-fetch";
 import { expect } from '@jest/globals';
-import fs from "fs";
+// import fs from "fs";
 // MERGE (n:Provider { apiKey: replace(apoc.create.uuid(), '-', ''), domain: 'oceanics.io' }) return n
 
-export const CACHE = "./src/shared/nodes.json";
 const HOSTNAME = "http://localhost:8888";
 export const BASE_PATH = `${HOSTNAME}/.netlify/functions`;
 export const API_PATH = `${HOSTNAME}/api`;
@@ -40,6 +39,8 @@ export const EXTENSIONS = {
   ]),
 };
 
+import {nodes} from "./nodes.json"
+
 export type Node = {uuid?: string};
 export type Schema = { examples: Node[] };
 export type SchemaEntry = [string, Schema];
@@ -57,13 +58,16 @@ export type NodeTuple = [string, string, Node];
 export const getNodes = (): NodeTuple[] => {
   // Strip lookup entries not in Sensing
   const filterSensing = ([label]: NodeTuple): boolean => EXTENSIONS.sensing.has(label);
-  const CACHE = "./src/shared/nodes.json";
-  try {
-    const text = fs.readFileSync(CACHE, "utf-8");
-    return JSON.parse(text).filter(filterSensing); 
-  } catch {
-    return []
-  }
+  // @ts-ignore
+  return nodes.filter(filterSensing)   
+  // const CACHE = "nodes.json";
+  // try {
+  //   const text = fs.readFileSync(CACHE, "utf-8");
+  //   return JSON.parse(text).filter(filterSensing); 
+  // } catch (error) {
+  //   console.log(error)
+  //   return []
+  // }
 }
 
 /**

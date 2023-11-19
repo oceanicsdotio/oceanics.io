@@ -1,4 +1,15 @@
+import type {MutableRefObject} from "react";
+export type WorkerRef = MutableRefObject<Worker|null>;
 
+// Mouse click coordinates
+export type EventLocation = {clientX: number; clientY: number;}; 
+
+// Get click coords from an event
+export const eventCoordinates = ({clientX, clientY}: EventLocation, canvas: HTMLCanvasElement): [number, number] => {
+    // Short hand for element reference frame
+    const {left, top} = canvas.getBoundingClientRect();
+    return [clientX - left, clientY - top]
+};
 
 export type FileObject = {
     key: string;
@@ -13,9 +24,7 @@ export type FileSystem = {
     }[];
 };
 
-
-export type Points = [number, number][];
-export type EventLocation = {clientX: number; clientY: number;}; 
+type Points = [number, number][];
 
 /*
  * Rotate a path of any number of points about the origin.
