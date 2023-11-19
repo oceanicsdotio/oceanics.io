@@ -1,7 +1,7 @@
 import fetch from "node-fetch";
 import { describe, expect, test } from '@jest/globals';
-import { API_PATH, fetchToken, Authorization, register, apiFetch } from "../test-utils";
-import { uniqueConstraint } from "./shared/middleware";
+import { API_PATH, fetchToken, Authorization, register, apiFetch } from "./test-utils";
+import { uniqueConstraint } from "../src/shared/middleware";
 
 const AUTH_PATH = `${API_PATH}/auth`;
 
