@@ -106,10 +106,10 @@ jobs:
         run: make dev &
 
       - name: Test auth
-        run: make test-auth
+        run: make api-test-auth
 
       - name: Test collections
-        run: make test-collection
+        run: make api-test-collection
 
       - name: Test idempotent
-        run: make test-idempotent
+        run: make api-test-idempotent
