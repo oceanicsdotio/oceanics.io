@@ -1,6 +1,6 @@
 import fetch from "node-fetch";
 import { describe, expect, test } from '@jest/globals';
-import { fetchToken, apiFetch, API_PATH } from "../test-utils";
+import { fetchToken, apiFetch, API_PATH } from "./test-utils";
 
 /**
  * Join and drop relationships between nodes.

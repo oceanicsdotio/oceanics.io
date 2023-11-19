@@ -1,5 +1,5 @@
 import { describe, expect, test } from '@jest/globals';
-import { testAllowedMethodCount, apiFetch, getNodes } from "../test-utils";
+import { testAllowedMethodCount, apiFetch, getNodes } from "./test-utils";
 
 describe("idempotent", function () {
   /**

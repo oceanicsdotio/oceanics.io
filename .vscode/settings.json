@@ -44,5 +44,6 @@
   ],
   "deno.unstable": true,
   "deno.importMap": ".netlify/edge-functions-import-map.json",
-  "deno.path": "/Users/keeney/Library/Preferences/netlify/deno-cli/deno"
+  "deno.path": "/Users/keeney/Library/Preferences/netlify/deno-cli/deno",
+  "rust-analyzer.showUnlinkedFileNotification": false
 }

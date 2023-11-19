@@ -17,7 +17,7 @@
   },
   "include": [
     "src/**/*.ts"
-  ],
+, "test/topology.spec.ts", "test/index.spec.ts", "test/entity.spec.ts", "test/collection.spec.ts", "test/auth.spec.ts", "test/middleware.spec.ts", "test/lexicon.spec.ts", "test/api-validator.spec.ts"  ],
   "exclude": [
     "src/**/*.spec.ts"
   ]
