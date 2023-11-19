@@ -17,9 +17,7 @@ pub mod vertex_array;
  * - `EdgeIndex`: 2-integer index to HashMap
  * - `Edge`: Edge data
  * - `Topology`: Topological data structs
- * - `TriangularMesh`: VertexArray + Topology
- * - `VertexArrayBuffer`
- * - 
+ * - `TriangularMesh`: VertexArray + Topology * - 
  */
 pub mod mesh {
     use crate::vec3::vec3::Vec3;

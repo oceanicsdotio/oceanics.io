@@ -20,6 +20,7 @@ use wasm_bindgen_futures::JsFuture;
 
 use web_sys::{HtmlCanvasElement, CanvasRenderingContext2d, Request, RequestInit, RequestMode, Response};
 
+// Better error reporting
 extern crate console_error_panic_hook;
 
 #[wasm_bindgen]
