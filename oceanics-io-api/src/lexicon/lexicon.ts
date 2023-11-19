@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import type {Handler} from "@netlify/functions";
 import {readFileSync} from "fs";
 
@@ -54,7 +53,7 @@ const search = ({
         })
 
     const outer = (result: [string, number][], word: string) => {
-        const cost: number = [...word].reduce(inner, costCompare).pop();
+        const cost: number = [...word].reduce(inner, costCompare).pop() as number;
         if (cost <= maxCost) result.push([word, cost]);
         return result;
     }
@@ -85,7 +84,7 @@ interface ITrie {
  * 
  * @param {*} param0 
  */
-const trie = ({
+export const trie = ({
     words=[], 
     root={},
     encode=(weight)=>weight+1,
@@ -133,7 +132,7 @@ interface IRecurse {
  * 
  * @param {*} param0 
  */
-function recurse({
+export function recurse({
     node, 
     pattern, 
     maxCost,
@@ -188,10 +187,10 @@ const handler: Handler = async ({
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(search({words: WELL_KNOWN_TEXT, pattern, maxCost}))
         }; 
-    } catch (err) {
+    } catch ({statusCode = 500, message = ""}) {
         return { 
-            statusCode: err.statusCode || 500, 
-            body: err.message
+            statusCode: statusCode as number, 
+            body: message as string
         };
     }
 }

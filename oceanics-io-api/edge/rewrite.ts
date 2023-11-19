@@ -1,5 +1,9 @@
+// @ts-ignore: tsc doesn't get deno?
+import type { Context } from "https://edge.netlify.com";
+
 const AUTH = "auth";
 const lookup = {
+  [AUTH]: AUTH,
   0: `index`,
   1: `collection`,
   2: `entity`,
@@ -29,7 +33,7 @@ const routeFromUrl = (url: URL) =>
     .filter(filterPath)
 
 // Replace parenthesis syntax with paths, because it's WAY easier
-export default (request: Request) => {
+export default (request: Request, context: Context) => {
   const hasAuth = request.headers.has("x-api-key") || request.headers.has("authorization")
   if (!hasAuth) return new Response("Unauthorized", {
     status: 403
@@ -39,7 +43,7 @@ export default (request: Request) => {
   const route = routeFromUrl(url);
   const count = route.length as keyof typeof lookup;
   if (count > 0 && route[0] === AUTH) {
-    return new URL(`/.netlify/functions/auth`, request.url)
+    return context.rewrite(`/.netlify/functions/auth`)
   }
   const endpoint: string = lookup[count] ?? "";
   if (!endpoint) {
