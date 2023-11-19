@@ -1,81 +1,87 @@
 pub mod vertex_array {
-
+    use wasm_bindgen::prelude::*;
+    use std::collections::HashMap;
+    use std::collections::hash_map::ValuesMut;
     use crate::vec3::vec3::Vec3;
     use crate::mesh::index_interval::index_interval::IndexInterval;
-
-    /**
-     * Shared pointer back to Javascript.
-     * TODO: move this dependency to higher level
-     */
-    use wasm_bindgen::JsValue;
-
-    /** 
-     * For container structures.
-     */
-    use std::collections::HashMap;
 
     /**
      * The vertex array contains the points that make up the spatial component of
      * a triangulation network. 
      */
+    #[wasm_bindgen]
     #[derive(Clone)]
     pub struct VertexArray{
-        pub prefix: String,
-        pub interval: IndexInterval,
-        pub points: HashMap<u16,Vec3>,
-        pub normals: HashMap<u16,(Vec3, u16)>
+        prefix: String,
+        interval: IndexInterval,
+        points: HashMap<u16,Vec3>
     }
- 
+    
     /**
-     * Public interface for VertexArray
+     * Web/Node bindings. Can also be used in Rust. 
      */
-    #[allow(dead_code)]
-    impl VertexArray{
-        /**
-         * Hoist the method for inserting points. Don't have to make points public.
-         */
-        pub fn insert_point(&mut self, index: u16, coordinates: Vec3) {
-            self.points.insert(index, coordinates);
-        }
-
+    #[wasm_bindgen]
+    impl VertexArray {
         /**
          * Initial the Vec3 maps. Normals are not usually used, 
          * so we don't allocate by default
          */
+        #[wasm_bindgen(constructor)]
         pub fn new(
             prefix: String,
             start: u32,
             end: u32,
             radix: u8,
-        ) -> VertexArray {
+        ) -> Self {
             VertexArray{
                 prefix,
-                points: HashMap::with_capacity((end-start) as usize),
-                normals: HashMap::with_capacity(0),
+                points: HashMap::with_capacity((end - start) as usize),
                 interval: IndexInterval::new(start, end, radix)
             }
         }
 
         /**
-         * Next interval, for DAGs
+         * Next interval. No error-checking. 
          */
-        pub fn next(&self) -> JsValue {
-            let [start, end] = &self.interval.interval;
-            IndexInterval::new(end + 1, end + end - start, self.interval.radix).interval()
+        #[wasm_bindgen(getter)]
+        pub fn next_interval(&self) -> IndexInterval {
+            self.interval.next()
         }
 
         /**
          * Formatted string of canonical object storage name for item
          */
-        pub fn fragment(&self) -> JsValue {
-            JsValue::from(format!("{}/nodes/{}", self.prefix, self.interval.hash))
+        #[wasm_bindgen(getter)]
+        pub fn fragment(&self) -> String {
+            format!("{}/nodes/{}", self.prefix, self.interval.hash())
+        }
+
+        #[wasm_bindgen(getter)]
+        pub fn count(&self) -> usize {
+            self.points.len()
+        }
+    }
+
+    /**
+     * Public interface for VertexArray. Not used by JavaScript side. 
+     */
+    impl VertexArray{
+        /**
+         * Points are private for serialization, so we need a getter
+         */
+        pub fn points(&self) -> &HashMap<u16,Vec3> {
+            &self.points
+        }
+
+        pub fn values_mut(&mut self) -> ValuesMut<u16,Vec3> {
+            self.points.values_mut()
         }
 
         /**
-         * Hoist the interval serializer
+         * Hoist the method for inserting points. Don't have to make points public.
          */
-        pub fn interval(&self) -> JsValue {
-            self.interval.interval()
+        pub fn insert_point(&mut self, index: u16, coordinates: Vec3) {
+            self.points.insert(index, coordinates);
         }
 
         /**
@@ -121,7 +127,6 @@ pub mod vertex_array {
          * Then return self for chaining.
          */
         pub fn shift(&mut self, dx: f64, dy: f64, dz: f64) -> &Self {
-        
             for vert in self.points.values_mut() {
                 vert.value = [
                     vert.x()+dx, 
