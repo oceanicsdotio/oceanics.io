@@ -17,21 +17,28 @@ const handler: Handler = async ({ body, httpMethod }) => {
       headers: { "Content-Type": "application/json" }
     }
   }
+  if (!body) {
+    return {
+      statusCode: 405,
+      body: JSON.stringify({ message: "Body required" }),
+      headers: { "Content-Type": "application/json" }
+    }
+  }
   const { data, reference } = JSON.parse(body);
   let test: boolean;
   try {
     test = ajv.validate({ $ref: `${API_NAME}${reference}`}, data);
-  } catch (error) {
+  } catch ({message = "Unknown error"}) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ message: error.message }),
+      body: JSON.stringify({ message }),
       headers: { "Content-Type": "application/json" }
     }
   }
   
-  let schema = spec;
+  let schema: Record<string, unknown> = spec;
   for (const part of reference.split("/").filter((symbol: string) => symbol !== "#")) {
-    schema = schema[part]
+    schema = schema[part] as Record<string, unknown>;
     if (typeof schema === "undefined") {
       return {
         statusCode: 400,
