@@ -11,7 +11,8 @@
   ],
   "rules": {
     "no-use-before-define": "error",
-    "@typescript-eslint/ban-ts-comment": 0
+    "@typescript-eslint/ban-ts-comment": 0,
+    "@typescript-eslint/no-explicit-any": 0
   },
   "env": {
     "node": true

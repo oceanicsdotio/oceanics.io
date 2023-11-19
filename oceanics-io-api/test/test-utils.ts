@@ -1,11 +1,10 @@
 import fetch from "node-fetch";
 import type { Headers } from "node-fetch";
 import { expect } from '@jest/globals';
-import fs from "fs";
-import path from "path";
+// import path from "path";
+// import fs from "fs";
 // MERGE (n:Provider { apiKey: replace(apoc.create.uuid(), '-', ''), domain: 'oceanics.io' }) return n
 
-export const CACHE = "src/shared/nodes.json";
 const HOSTNAME = "http://localhost:8888";
 export const BASE_PATH = `${HOSTNAME}/.netlify/functions`;
 export const API_PATH = `${HOSTNAME}/api`;
@@ -42,26 +41,23 @@ export const EXTENSIONS = {
   ]),
 };
 
+import {nodes, content} from "./nodes.json"
+
 export type Node = {uuid?: string};
 export type Schema = { examples: Node[] };
 export type SchemaEntry = [string, Schema];
 export type NodeTypeTuple = [string, number];
 export type NodeTuple = [string, string, Node];
 
-const getFromCache = (key: string) => {
-  // Strip lookup entries not in Sensing
-  const file = path.join(process.cwd(), CACHE);
-  const text = fs.readFileSync(file, "utf-8");
-  return JSON.parse(text)[key];
-}
+// const getFromCache = (key: string) => {
+//   // Strip lookup entries not in Sensing
+//   const file = path.join(process.cwd(), CACHE);
+//   const text = fs.readFileSync(file, "utf-8");
+//   return JSON.parse(text)[key];
+// }
 
-export const getContent = (): string[] => {
-  try {
-    return getFromCache("content"); 
-  } catch (error) {
-    console.log(error);
-    return []
-  }
+export const getContent = (): string[][] => {
+  return content
 }
 
 /**
@@ -75,12 +71,16 @@ export const getContent = (): string[] => {
 export const getNodes = (): NodeTuple[] => {
   // Strip lookup entries not in Sensing
   const filterSensing = ([label]: NodeTuple): boolean => EXTENSIONS.sensing.has(label);
-  try {
-    return getFromCache("nodes").filter(filterSensing); 
-  } catch (error) {
-    console.log(error);
-    return []
-  }
+  // @ts-ignore
+  return nodes.filter(filterSensing)   
+  // const CACHE = "nodes.json";
+  // try {
+  //   const text = fs.readFileSync(CACHE, "utf-8");
+  //   return JSON.parse(text).filter(filterSensing); 
+  // } catch (error) {
+  //   console.log(error)
+  //   return []
+  // }
 }
 
 /**
