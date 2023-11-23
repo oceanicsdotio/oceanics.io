@@ -2,7 +2,7 @@
 pub mod node {
     use wasm_bindgen::prelude::*;
     use serde::{Deserialize, Serialize};
-    use crate::cypher::cypher::Cypher;
+    use crate::cypher::Cypher;
 
     /**
      * The Node data structure encapsulates logic needed for

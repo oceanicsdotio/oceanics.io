@@ -39,7 +39,11 @@ export default (request: Request) => {
   const route = routeFromUrl(url);
   const count = route.length as keyof typeof lookup;
   if (count > 0 && route[0] === AUTH) {
-    return new URL(`/.netlify/functions/auth`, request.url)
+    return fetch(`${url.origin}/.netlify/functions/auth`, {
+      headers: request.headers,
+      method: request.method,
+      body: request.body
+    })
   }
   const endpoint: string = lookup[count] ?? "";
   if (!endpoint) {
