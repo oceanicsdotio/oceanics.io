@@ -4,7 +4,7 @@ import type { Record, QueryResult } from "neo4j-driver";
 import jwt from "jsonwebtoken";
 import type { JwtPayload } from "jsonwebtoken";
 import crypto from "crypto";
-import { Node, Links, NodeConstraint } from "oceanics-io-api-wasm";
+import { Node, Links } from "oceanics-io-api-wasm";
 import { Logtail } from "@logtail/node";
 import { ILogtailLog } from "@logtail/types";
 
@@ -144,7 +144,7 @@ export const connect = async (query: string, readOnly: boolean) => {
 
 
 export const uniqueConstraint = (label: string, key: string): Promise<QueryResult> => {
-  const {query} = (new NodeConstraint(label, key)).uniqueConstraint();
+  const {query} = (new Node(label)).uniqueConstraintQuery(key);
   return connect(query, WRITE);
 }
 
@@ -426,7 +426,7 @@ export function NetlifyRouter(methods: HttpMethods, pathSpec?: unknown): Handler
                 password="",
                 secret=""
             } = JSON.parse(body??"{}")
-            if (!provider.patternOnly().includes("apiKey")) {
+            if (!provider.pattern.includes("apiKey")) {
                 logging.error(`API key auth claim missing .apiKey`, transformLogLine({
                     user: materialize({ email }, "u", "User"),
                     httpMethod: httpMethod as Method, 

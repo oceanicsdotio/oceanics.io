@@ -1,5 +1,5 @@
-// pub mod node;
-// pub mod links;
+pub mod node;
+pub mod links;
 mod constraint;
 
 use wasm_bindgen::prelude::*;

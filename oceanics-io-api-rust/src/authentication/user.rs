@@ -80,7 +80,7 @@ impl User {
             }
         };
 
-        match Pbkdf2.hash_password(password, &salt) {
+        match Pbkdf2.hash_password(password, salt) {
             Ok(value) => {
                 value.to_string()
             },
