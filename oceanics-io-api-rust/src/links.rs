@@ -2,7 +2,7 @@
 pub mod link {
     use wasm_bindgen::prelude::*;
     use serde::{Deserialize, Serialize};
-    use crate::cypher::cypher::Cypher;
+    use crate::cypher::Cypher;
     use crate::node::node::Node;
 
     /**
