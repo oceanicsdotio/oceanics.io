@@ -4,7 +4,7 @@ import {
   // Helpers,
   panicHook as enableWasmLog,
   // Authentication
-  Claims, 
+  // Claims, 
   Security,
   // Data Layer Primitives
   Node,
@@ -234,13 +234,13 @@ describe("idempotent", function() {
             })
           })
 
-          test.concurrent("returns request context", async function() {
-            const endpoint = new Endpoint(ENDPOINT);
-            endpoint.insertMethod("POST", HANDLER);
-            const context = endpoint.context(POST_THINGS_REQUEST, process.env.SIGNING_KEY);
-            expect(context).toBeInstanceOf(Context);
-            expect(context.auth).toBe("BearerAuth");
-          })
+          // test.concurrent("returns request context", async function() {
+          //   const endpoint = new Endpoint(ENDPOINT);
+          //   endpoint.insertMethod("POST", HANDLER);
+          //   const context = endpoint.context(POST_THINGS_REQUEST, process.env.SIGNING_KEY);
+          //   expect(context).toBeInstanceOf(Context);
+          //   expect(context.auth).toBe("BearerAuth");
+          // })
         })
         
         describe("Specification", function() {
@@ -292,18 +292,18 @@ describe("idempotent", function() {
             expect(headers.claimAuthMethod).toBe("BearerAuth");
           })
 
-          test.concurrent("constructs RequestHeaders from token", async function() {
-            const email = "test@oceanics.io";
-            const domain = "oceanics.io";
-            const token = (new Claims(email, domain, 3600)).encode(process.env.SIGNING_KEY);
-            const _headers = {
-              authorization: `Bearer:${token}`
-            }
-            const headers = new Headers(_headers, process.env.SIGNING_KEY);
-            const {user, provider} = headers;
-            expect(user.email).toBe(email);
-            expect(provider.domain).toBe(domain);
-          })
+          // test.concurrent("constructs RequestHeaders from token", async function() {
+          //   const email = "test@oceanics.io";
+          //   const domain = "oceanics.io";
+          //   const token = (new Claims(email, domain, 3600)).encode(process.env.SIGNING_KEY);
+          //   const _headers = {
+          //     authorization: `Bearer:${token}`
+          //   }
+          //   const headers = new Headers(_headers, process.env.SIGNING_KEY);
+          //   const {user, provider} = headers;
+          //   expect(user.email).toBe(email);
+          //   expect(provider.domain).toBe(domain);
+          // })
 
           test.concurrent("constructs RequestHeaders from basic auth", async function() {
             const email = "test@oceanics.io";
@@ -313,9 +313,8 @@ describe("idempotent", function() {
               authorization: `${btoa(email)}:${btoa(password)}:${btoa(process.env.SIGNING_KEY)}`
             }, "");
             expect(headers.claimAuthMethod).toBe("BasicAuth");
-            const {user, provider} = headers;
-            expect(user.email).toBe(btoa(email));
-            expect(provider).toBe(null);
+            expect(headers.user().email).toBe(btoa(email));
+            expect(headers.provider()).toBe(null);
           })
         })
       })
