@@ -24,6 +24,7 @@ const IndexPage = ({
     /**
      * Convert into our internal Document data model. 
      */
+    // const deserialized = useMemoCache(documents);
     const deserialized = useMemoCache(documents);
 
     /**
@@ -67,10 +68,10 @@ const IndexPage = ({
 export default IndexPage;
 
 export const getStaticProps: GetStaticProps = async () => {
-    const {documents, icons} = await import("../public/dev/content.json");
+    const {content, icons} = await import("../public/nodes.json");
     return {
         props: { 
-            documents,
+            documents: content,
             description: "The trust layer for the blue economy",
             title: "Oceanics.io",
             pagingIncrement: 3,
