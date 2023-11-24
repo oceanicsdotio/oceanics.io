@@ -1,18 +1,9 @@
 import jwt from "jsonwebtoken";
 import apiSpec from "./shared/bathysphere.json";
+import { Router } from "./shared/middleware";
+import * as db from "./shared/queries"
 import type { ApiHandler } from "./shared/middleware";
-
-import { 
-  connect, 
-  recordsToProperties,
-  NetlifyRouter,
-  UNAUTHORIZED,
-  dematerialize,
-  WRITE
-} from "./shared/middleware";
-import type { Properties } from "./shared/middleware";
-
-import { Links, Node } from "oceanics-io-api-wasm";
+import { Node, ErrorDetail } from "oceanics-io-api-wasm";
 
 /**
  * Generic interface for all of the HTTP method-specific handlers.
@@ -30,24 +21,17 @@ export interface IAuth {
  * any validation of inputs here, such as for email address and
  * excluded passwords. Assume this is delegated to frontend. 
  */
-const register: ApiHandler = async ({
-  data: {
-    user,
-    provider
-  }
-}) => {
-  const { query } = new Links("Register", 0, 0, "").insert(provider, user);
-  let records: Properties[];
+export const register: ApiHandler = async (context) => {
   try {
-    const result = await connect(query, WRITE);
-    records = recordsToProperties(result);
+    const domain = await db.register(context.provider, context.user);
+    return {
+      data: {
+        message: `Registered as a member of ${domain}.`
+      },
+      statusCode: 200
+    }
   } catch {
-    records = [];
-  }
-  if (records.length !== 1) return UNAUTHORIZED
-  return {
-    data: {message: `Registered as a member of ${records[0].domain}.`},
-    statusCode: 200
+    return ErrorDetail.unauthorized();
   }
 };
 
@@ -56,40 +40,38 @@ const register: ApiHandler = async ({
  * data per the standard, it includes the UUID for the User, as this is the
  * information needed when validating access to data. 
  */
-const getToken: ApiHandler = async ({
-  data: {
-    user
-  }
-}) => {
-  const {uuid} = dematerialize(user);
+const getToken: ApiHandler = async (context) => {
+  const uuid = context.request.uuid;
   return {
     statusCode: 200,
     data: {
-      token: jwt.sign({ uuid }, process.env.SIGNING_KEY, { expiresIn: 3600 })
+      token: jwt.sign({ uuid }, process.env.SIGNING_KEY??"", { expiresIn: 3600 })
     }
   }
 };
 
-// Just a stub for now, to enable testing of bearer auth
+/**
+ * Change auth details, such as updating e-mail or password.
+ */
 const manage: ApiHandler = async () => {
   return {
     statusCode: 501
   }
 }
 
-const remove: ApiHandler = async ({data: {user}}) => {
-  const { query } = new Links().delete(user, new Node());
-  try {
-    await connect(query, WRITE);
-  } catch {
-    return UNAUTHORIZED;
-  }
+/**
+ * Detach and delete all child nodes. The underlying query
+ * generator prevents internal Nodes like Provider from
+ * being dropped.
+ */
+export const remove: ApiHandler = async (context) => {
+  await db.remove(context.user, new Node());
   return {
     statusCode: 204
   }
 }
 
-export const handler = NetlifyRouter({
+export const handler = Router({
   GET: getToken,
   POST: register,
   PUT: manage,

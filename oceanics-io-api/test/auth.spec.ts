@@ -1,9 +1,23 @@
 import fetch from "node-fetch";
-import { describe, expect, test } from '@jest/globals';
-import { API_PATH, fetchToken, Authorization, register, apiFetch } from "./test-utils";
-import { uniqueConstraint } from "../src/shared/middleware";
+import { describe, expect, test, beforeAll } from '@jest/globals';
+import { API_PATH, fetchToken, Authorization, register as registerRequest } from "./test-utils";
+import { uniqueConstraint } from "../src/shared/queries";
+import { remove } from "../src/auth";
+import specification from "../src/shared/bathysphere.json";
+
+import {
+  panicHook as enableWasmLog,
+  Context,
+  Request,
+  Endpoint,
+  Specification,
+  User
+} from "oceanics-io-api-wasm";
 
 const AUTH_PATH = `${API_PATH}/auth`;
+
+// Bubble up stack trace from Rust
+beforeAll(enableWasmLog)
 
 /**
  * Stand alone tests for Auth flow. Includes initial
@@ -48,11 +62,62 @@ describe("auth handlers", function () {
    * with mocha grep flag.
    */
   describe("auth.delete", function () {
+
+    const DELETE = {
+      body: "",
+      httpMethod: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer:mock`,
+      },
+      queryStringParameters: {}
+    }
+
+    test("auth.delete routing", async function () {
+
+      const token = await fetchToken();
+      const requestData = {
+        ...DELETE,
+        headers: {
+          ...DELETE.headers,
+          authorization: `Bearer:${token}`
+        }
+      };
+
+      const request = new Request(requestData, process.env.SIGNING_KEY);
+      expect(request).toBeInstanceOf(Request);
+
+      const spec = specification.paths["/auth"];
+      const endpoint = new Endpoint(spec);
+      const inserted = endpoint.insertMethod(DELETE.httpMethod, remove);
+      expect(inserted).toBeTruthy();
+      expect(endpoint.has_method(DELETE.httpMethod)).toBeTruthy();
+      const copy = endpoint.get_specification(request.httpMethod);
+      expect(copy).toBeInstanceOf(Specification);
+
+      const context = endpoint.context(requestData, process.env.SIGNING_KEY);
+      expect(context).toBeInstanceOf(Context);
+      const {headers} = context.request;
+      
+      console.log({headers})
+      expect(headers.claimAuthMethod).toBe("Bearer")
+      expect(context.user).toBeInstanceOf(User);
+    });
+
     /**
      * Fails on empty database.
      */
     test("clears non-provider nodes", async function () {
-      const response = await apiFetch("auth", "DELETE")();
+      const token = await fetchToken();
+
+
+      const response = await fetch(`${API_PATH}/auth`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `bearer:${token}`,
+        },
+      })
       expect(response.status).toBe(204);
     });
   });
@@ -64,22 +129,22 @@ describe("auth handlers", function () {
   describe("auth.post", function () {
 
     test("allows registration with valid API key", async function () {
-      const response = await register(process.env.SERVICE_PROVIDER_API_KEY??"");
+      const response = await registerRequest(process.env.SERVICE_PROVIDER_API_KEY??"");
       expect(response.status).toEqual(200);
     });
 
     test("prevents duplicate registration", async function () {
-      const response = await register(process.env.SERVICE_PROVIDER_API_KEY??"");
+      const response = await registerRequest(process.env.SERVICE_PROVIDER_API_KEY??"");
       expect(response.status).toEqual(403);
     });
 
     test.concurrent("denies missing API key with 403", async function () {
-      const response = await register("");
+      const response = await registerRequest("");
       expect(response.status).toEqual(403);
     });
 
     test.concurrent("denies invalid API key with 403", async function () {
-      const response = await register("not-a-valid-api-key");
+      const response = await registerRequest("not-a-valid-api-key");
       expect(response.status).toEqual(403);
     });
   });
