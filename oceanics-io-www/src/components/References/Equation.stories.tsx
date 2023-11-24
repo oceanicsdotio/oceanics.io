@@ -12,8 +12,7 @@ import type { IEquation } from "./Equation";
  * Storybook Interface
  */
 export default {
-  component: Equation,
-  title: `References/${Equation.displayName}`,
+  component: Equation
 } as Meta;
 
 /**
@@ -26,10 +25,8 @@ const Template: Story<IEquation> = (args) => (
   </>
 );
 
-/**
- * Default test case
- */
-export const Example = Template.bind({});
-Example.args = {
+
+export const PartialDerivative = Template.bind({});
+PartialDerivative.args = {
   text: "{\\delta x}\\over{\\delta t}",
 };

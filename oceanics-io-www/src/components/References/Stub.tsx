@@ -1,26 +1,18 @@
-/**
- * React and friends
- */
 import React from "react";
 import type { MouseEventHandler } from "react";
 import styled from "styled-components";
 
-/**
- * Predefined color palette
- */
 import { orange, ghost } from "../../palette";
+import type { Document } from "oceanics-io-www-wasm";
 
-/**
- * Types
- */
-import type { IDocument } from "./types";
-
-interface IDocumentStub extends IDocument {
+export interface IDocumentStub {
+  className: string
+  document: Document
   onClickLabel: (label: string) => MouseEventHandler
 }
 
 /**
- * List view of an article
+ * List view of an article. Presented at the index. 
  */
 export const Stub = ({
   className,

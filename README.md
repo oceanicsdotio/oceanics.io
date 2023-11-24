@@ -52,6 +52,7 @@ The `oceanics-io-www` workspace contains the TypeScript web application.
 This is our main web page, powered by NextJS. Component-level development is supported by StorybookJS. Client side interaction is accomplished with React Hooks and browser APIs.
 
 You should not need to manually build this workspace; everything is handled from the top-level directory.
+### Workspaces
 
 ### API
 

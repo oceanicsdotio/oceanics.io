@@ -6,7 +6,7 @@ import styled from "styled-components";
  */
 import useOceanside from "../hooks/useOceanside";
 import useWasmRuntime from "../hooks/useWasmRuntime";
-import type { IWorld } from "../hooks/useOceanside";
+import type { IWorldType } from "../hooks/useOceanside";
 
 /**
  * Class names for ref in CSS-in-JSS.
@@ -16,12 +16,8 @@ const [WORLD, BOARD] = ["world", "board"];
 /**
  * Page-specific typings.
  */
-export interface ApplicationType extends IWorld {
-  className?: string;
-  icons: {
-    sources: unknown;
-    templates: unknown;
-  }
+export interface ApplicationType extends IWorldType {
+  className?: string
 }
 
 /**

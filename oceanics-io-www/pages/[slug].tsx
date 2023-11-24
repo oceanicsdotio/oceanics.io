@@ -22,7 +22,7 @@ import "highlight.js/styles/a11y-dark.css";
 import Document from "../src/components/References/Document";
 import Equation from "../src/components/References/Equation";
 import Inline from "../src/components/References/Inline";
-import {Standalone as Squalltalk} from "../src/components/Squalltalk";
+import {Standalone as Squalltalk} from "../src/components/References/Squalltalk";
 import type { IDocumentSerialized, DocumentSerializedType, QueryType } from "../src/components/References/types";
 import { readDocument, createIndex } from "../src/next-util";
 import type { GetStaticPaths, GetStaticProps } from "next";
