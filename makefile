@@ -98,8 +98,10 @@ $(WWW)/$(OUT_DIR): node_modules $(WWW)/**/*
 	touch -m $@
 
 # PHONY for convenience
-.PHONY: www www-cleanup
+.PHONY: www www-cleanup www-dev
 www: $(WWW)/$(OUT_DIR)
+www-dev: $(WWW)/$(OUT_DIR)
+	yarn netlify dev --filter=oceanics-io-www
 www-cleanup:
 	rm -rf $(WWW_WASM)
 	rm -rf $(WWW)/.next
@@ -127,19 +129,16 @@ node_modules: $(API_WASM) $(WWW_WASM) package.json **/package.json yarn.lock
 start-storybook:
 	yarn workspace oceanics-io-www start-storybook --port ${STORYBOOK_PORT}
 
-
-# Run the dev server for only API
-dev: .
-	yarn netlify dev --no-open --filter=oceanics-io-api
-
 lint:
 	yarn eslint "**/*.{js,ts,json,tsx,jsx}"
+
 netlify: .
 	yarn netlify init --filter oceanics-io-www
 	yarn netlify build --filter oceanics-io-www
 
 deploy: netlify
-	yarn netlify deploy --prod --filter oceanics-io-www	
+	yarn netlify deploy --prod --filter oceanics-io-www
+
 # Remove build artifacts
 clean: api-cleanup www-cleanup
 	rm -rf node_modules/
