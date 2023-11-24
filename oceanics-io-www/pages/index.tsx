@@ -1,17 +1,12 @@
 import React, { useCallback } from "react";
-import { useRouter } from "next/router";
+import type { GetStaticProps } from "next";
 
-/**
- * Campaign component
- */
 import Campaign, { PageData } from "../src/components/Campaign/Campaign";
 import Oceanside from "../src/components/Oceanside";
 import type {ApplicationType} from "../src/components/Oceanside"
 import Index from "../src/components/References/Index";
-import type { IDocumentIndexSerialized, QueryType } from "../src/components/References/types";
-import type { GetStaticProps } from "next";
-import { createIndex, readIndexedDocuments, readIcons, parseIconMetadata } from "../src/next-util";
-import useDeserialize from "../src/hooks/useDeserialize";
+import useMemoCache from "../src/hooks/useMemoCache";
+import useNextRouter from "../src/hooks/useNextRouter";
 
 /**
  * Base component for web landing page.
@@ -22,24 +17,19 @@ const IndexPage = ({
     documents,
     pagingIncrement,
     ...props
-}: IDocumentIndexSerialized & ApplicationType) => {
+}: {
+    documents: any[];
+    pagingIncrement: number;
+} & ApplicationType) => {
     /**
      * Convert into our internal Document data model. 
      */
-    const deserialized = useDeserialize(documents);
+    // const deserialized = useMemoCache(documents);
 
     /**
      * Just the Next router.
      */
-    const router = useRouter();
-
-    /**
-     * Use next router, and merge query parameters.
-     */
-    const navigate = useCallback((pathname: string, insert?: QueryType, merge = true) => {
-        const query = { ...(merge ? router.query : {}), ...(insert ?? {}) }
-        router.push({ pathname, query });
-    }, [router]);
+    const {navigate, router, home} = useNextRouter();
 
     /**
      * Mouse event handler for paging/scroll-into-view
@@ -55,14 +45,6 @@ const IndexPage = ({
         navigate("/", undefined, false)
     }, [navigate]);
 
-    /**
-     * Additionally filter by a single label. Handles multi-word implicitly.
-     */
-    const onClickLabel = useCallback((label: string) => () => {
-        navigate("/", {label}, true)
-    }, [navigate])
-
-
     return (
         <>
             <Oceanside {...props}/>
@@ -73,7 +55,7 @@ const IndexPage = ({
                 query={router.query}
                 onShowMore={onShowMore}
                 onClearConstraints={onClearConstraints}
-                onClickLabel={onClickLabel}
+                onClickLabel={home}
                 documents={deserialized}
                 pagingIncrement={pagingIncrement}
                 navigate={navigate}
@@ -82,13 +64,13 @@ const IndexPage = ({
     )
 };
 
-IndexPage.displayName = "Index";
 export default IndexPage;
 
 export const getStaticProps: GetStaticProps = async () => {
+    const {content, icons} = await import("../public/nodes.json");
     return {
         props: { 
-            documents: readIndexedDocuments(createIndex()),
+            documents: content,
             description: "The trust layer for the blue economy",
             title: "Oceanics.io",
             pagingIncrement: 3,
@@ -98,10 +80,7 @@ export const getStaticProps: GetStaticProps = async () => {
             },
             datum: 0.7,
             runtime: null,
-            icons: {
-                sources: readIcons(),
-                templates: parseIconMetadata()
-            }
+            icons
         }
     }
 }

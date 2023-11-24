@@ -78,6 +78,10 @@ $(WWW_WASM): $(WWW_RUST)/src/**/* $(WWW_RUST)/Cargo*
 		--out-name index
 	touch -m $@
 
+WWW_CACHE = $(WWW)/public/nodes.json
+$(WWW_CACHE): $(TEST_CACHE)
+	cp $< $@
+
 # Build OpenAPI docs page from specification
 DOCS_PAGE = $(WWW)/public/bathysphere.html
 $(DOCS_PAGE): $(SPEC_FILE) node_modules
@@ -91,7 +95,7 @@ $(WWW)/$(STORYBOOK): $(WWW)/src/**/* $(WWW)/.storybook/*
 
 # Compile WWW
 OUT_DIR = build
-$(WWW)/$(OUT_DIR): node_modules $(WWW)/**/*
+$(WWW)/$(OUT_DIR): node_modules $(WWW)/**/* $(WWW_CACHE)
 	yarn eslint "$(WWW)/src/**/*.{js,ts,json,tsx,jsx}"
 	yarn workspace $(WWW) run next build
 	yarn workspace $(WWW) run next export -o $(OUT_DIR)
