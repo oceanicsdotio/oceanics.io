@@ -174,7 +174,8 @@ impl Headers {
     }
 
     pub fn parse_auth(&mut self, signing_key: &String) {
-        match self.claim_auth_method() {
+        let method = self.claim_auth_method();
+        match method {
             Some(Authentication::BearerAuth) => {
                 let (user, provider) = self.token_claim(signing_key);
                 self.user = user;
@@ -184,7 +185,7 @@ impl Headers {
                 self.user = Some(self.basic_auth_claim());
             },
             _ => {
-                panic!("Cannot verify header auth");
+                panic!("Cannot verify header auth: {:?}, {:?}", method, self.authorization);
             }
         };
     }
@@ -193,8 +194,11 @@ impl Headers {
 #[cfg(test)]
 mod tests {
    
+    use wasm_bindgen::JsValue;
+
     use crate::authentication::Authentication;
     use super::Headers;
+    use super::Claims;
 
     #[test]
     fn create_request_headers_with_token () {
@@ -208,7 +212,7 @@ mod tests {
     }
 
     #[test]
-    fn request_headers_claim_auth_method_with_lowercase () {
+    fn request_headers_claim_auth_method_with_bearer_auth_lowercase () {
         let headers = Headers {
             authorization: Some("bearer:mock".to_string()),
             user: None, 
@@ -219,7 +223,7 @@ mod tests {
     }
 
     #[test]
-    fn request_headers_claim_auth_method_with_uppercase () {
+    fn request_headers_claim_auth_method_with_bearer_auth_uppercase () {
         let headers = Headers {
             authorization: Some("Bearer:mock".to_string()),
             user: None, 
@@ -232,13 +236,17 @@ mod tests {
         assert_eq!(headers.split_auth().len(), 2)
     }
 
+
     #[test]
     fn request_headers_claim_auth_method_with_basic_auth () {
-        let headers = Headers {
+        let mut headers = Headers {
             authorization: Some("some:credentials:here".to_string()),
             user: None, 
             provider: None
         };
+        headers.parse_auth(&"some_secret".to_string());
+        assert!(headers.user.is_some());
+        assert!(headers.provider.is_none());
         assert_eq!(
             headers.claim_auth_method(), 
             Some(Authentication::BasicAuth)
@@ -247,4 +255,31 @@ mod tests {
         let user = headers.basic_auth_claim();
         assert_eq!(user.email(), "some");
     }
+
+    #[test]
+    fn request_headers_claim_auth_method_with_bearer_auth () {
+
+        let claims = Claims::new(
+            "test@oceanics.io".to_string(),
+            "oceanics.io".to_string(),
+            3600
+        );
+        let signing_key = String::from("secret");
+        let token = claims.encode(&signing_key);
+        assert!(token.len() > 0);
+
+        let mut headers = Headers {
+            authorization: Some(format!("Bearer:{}", token)),
+            user: None, 
+            provider: None
+        };
+        assert_eq!(
+            headers.claim_auth_method(), 
+            Some(Authentication::BearerAuth)
+        );
+        headers.parse_auth(&signing_key);
+        assert!(headers.user.is_some());
+        assert!(headers.provider.is_some());
+       
+    }    
 }

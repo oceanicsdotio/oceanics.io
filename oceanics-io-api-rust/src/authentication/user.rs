@@ -125,6 +125,11 @@ impl User {
     ) -> Self {
         serde_wasm_bindgen::from_value(data).unwrap()
     }
+
+    #[wasm_bindgen(js_name=issueToken)]
+    pub fn issue_token(self, signing_key: &str) -> JsValue {
+        JsValue::from(self.token(signing_key))
+    }
 }
 
 impl From<User> for Claims {
