@@ -2,6 +2,7 @@ use wasm_bindgen::prelude::*;
 use serde::{Deserialize, Serialize};
 use regex::Regex;
 
+use serde_json::json;
 use crate::authentication::Claims;
 use crate::authentication::{Authentication,User,Provider};
 
@@ -185,7 +186,14 @@ impl Headers {
                 self.user = Some(self.basic_auth_claim());
             },
             _ => {
-                panic!("Cannot verify header auth: {:?}, {:?}", method, self.authorization);
+                let response = json!({
+                    "statusCode": 403,
+                    "data": {
+                        "message": "Invalid request",
+                        "detail": "No authorization header found"
+                    }
+                });
+                panic!("{}", response);
             }
         };
     }
@@ -193,9 +201,6 @@ impl Headers {
 
 #[cfg(test)]
 mod tests {
-   
-    use wasm_bindgen::JsValue;
-
     use crate::authentication::Authentication;
     use super::Headers;
     use super::Claims;

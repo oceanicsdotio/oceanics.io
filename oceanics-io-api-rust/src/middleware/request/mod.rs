@@ -8,6 +8,7 @@ mod context;
 pub use context::Context;
 use crate::cypher::node::Node;
 use crate::middleware::HttpMethod;
+use super::log;
 
 use std::collections::HashMap;
 use wasm_bindgen::prelude::*;

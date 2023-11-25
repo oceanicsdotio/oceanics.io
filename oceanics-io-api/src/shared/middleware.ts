@@ -1,7 +1,7 @@
 import type { Handler, HandlerEvent } from "@netlify/functions";
 import { Logtail } from "@logtail/node";
 import { ILogtailLog } from "@logtail/types";
-import { Context, Endpoint } from "oceanics-io-api-wasm";
+import { Context, Endpoint, panicHook } from "oceanics-io-api-wasm";
 
 // Type for handlers, before response processing
 export type ApiHandler = (
@@ -67,13 +67,14 @@ export function Router(
     pathSpec?: Record<string, unknown>
 ): Handler {
     // Define context in outer scope for easier memoization of common responses
-    let context: Context;
+    // let context: Context;
+    panicHook();
 
     // Pre-populate with assigned handlers & transform. 
     const endpoint: Endpoint = new Endpoint(pathSpec);
     Object.entries(methods).forEach(([key, fn]) => {
         endpoint.insertMethod(key, (ctx: Context) => fn(ctx).then(transform));
-    })
+    });
 
     /**
      * Inner handler will receive Netlify function event.
@@ -84,30 +85,36 @@ export function Router(
      * has been requested. 
      */
     return async function (event: HandlerEvent) {
-        // All validation up until DB query is done in WASM. 
+        // All validation up until DB query is done in WASM.
+        let context: Context; 
         try {
             context = endpoint.context(event, process.env.SIGNING_KEY);
-        } catch ({message}) {
-            const error = JSON.parse(message);
+        } catch (error) {
+            console.log(error.message);
+            const response = JSON.parse(error.message);
+            // console.log(response)
             // const logData = endpoint.logLine("none", event.httpMethod, error.statusCode);
             // log.error(error.message, logData);
-            return error
+            return transform({
+                headers: {},
+                ...response,
+            })
         }
-        console.log({event, user: context.user});
+        // console.log({event});
         try {
             const response = await context.handle();
             // const logData = context.logLine(null, response.statusCode)
             // log.info(`${event.httpMethod} response with ${response.statusCode}`, logData);
             return response;
         } catch ({message}) {
-            console.log({message})
-            return {
+            return transform({
                 statusCode: 500,
-                message: "Runtime error",
-                detail: message
-            }
+                data: {
+                    message: "Handle request error",
+                    detail: message
+                },
+                headers: {}
+            })
         }
-        
-        
     }
 }

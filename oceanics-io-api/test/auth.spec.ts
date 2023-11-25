@@ -63,25 +63,17 @@ describe("auth handlers", function () {
    */
   describe("auth.delete", function () {
 
-    const DELETE = {
-      body: "",
-      httpMethod: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer:mock`,
-      },
-      queryStringParameters: {}
-    }
-
     test("auth.delete routing", async function () {
-
+      
       const token = await fetchToken();
       const requestData = {
-        ...DELETE,
+        body: "",
+        httpMethod: "DELETE",
         headers: {
-          ...DELETE.headers,
-          authorization: `Bearer:${token}`
-        }
+          "Content-Type": "application/json",
+          authorization: `Bearer:${token}`,
+        },
+        queryStringParameters: {}
       };
 
       const request = new Request(requestData, process.env.SIGNING_KEY);
@@ -89,9 +81,9 @@ describe("auth handlers", function () {
 
       const spec = specification.paths["/auth"];
       const endpoint = new Endpoint(spec);
-      const inserted = endpoint.insertMethod(DELETE.httpMethod, remove);
+      const inserted = endpoint.insertMethod(requestData.httpMethod, remove);
       expect(inserted).toBeTruthy();
-      expect(endpoint.has_method(DELETE.httpMethod)).toBeTruthy();
+      expect(endpoint.has_method(requestData.httpMethod)).toBeTruthy();
       const copy = endpoint.get_specification(request.httpMethod);
       expect(copy).toBeInstanceOf(Specification);
 
@@ -162,7 +154,12 @@ describe("auth handlers", function () {
 
     test("denies missing header with 403", async function () {
       const response = await fetch(AUTH_PATH);
-      expect(response.status).toEqual(403);
+      try {
+        expect(response.status).toEqual(403);
+      } catch (err) {
+        console.log(await response.json());
+        throw err;
+      }
     });
 
     test("denies wrong credentials with 403", async function () {

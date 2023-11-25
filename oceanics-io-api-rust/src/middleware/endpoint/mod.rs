@@ -10,6 +10,7 @@ use serde::Deserialize;
 use super::{HttpMethod, request::Context};
 use super::request::{LogLine, Request};
 use super::response::OptionsResponse;
+use super::log;
 
 pub use specification::Specification;
 pub use security::Security;
@@ -87,10 +88,7 @@ impl Endpoint {
     }
 
     pub fn has_method(&self, method: &str) -> bool {
-        match self.specification(&HttpMethod::from_str(method).unwrap()) {
-            Some(..) => true,
-            None => false
-        }
+        self.specification(&HttpMethod::from_str(method).unwrap()).is_some()
     }
 
     /**

@@ -142,8 +142,4 @@ impl Context {
             self.specification.auth()
         ).json()
     }
-
-    pub fn authenticate() {
-        
-    }
 }
