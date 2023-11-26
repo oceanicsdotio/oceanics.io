@@ -6,7 +6,7 @@ use crate::authentication::Authentication;
 
 /**
  * Schema for individual item in OpenAPI security object
- * array. Only one of these will be truthy at a time. 
+ * array. Only one of these should be truthy at a time. 
  */
 #[wasm_bindgen]
 #[derive(PartialEq, Eq, Deserialize, Serialize, Clone)]
@@ -23,6 +23,9 @@ impl Security {
         serde_wasm_bindgen::from_value(data).unwrap()
     }
 
+    /**
+     * Need to handle case where they both exist
+     */
     #[wasm_bindgen(getter)]
     pub fn authentication(&self) -> Authentication {
         match self {

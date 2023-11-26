@@ -90,7 +90,7 @@ export function Router(
         try {
             context = endpoint.context(event, process.env.SIGNING_KEY);
         } catch (error) {
-            console.log(error.message);
+            console.log(error);
             const response = JSON.parse(error.message);
             // console.log(response)
             // const logData = endpoint.logLine("none", event.httpMethod, error.statusCode);

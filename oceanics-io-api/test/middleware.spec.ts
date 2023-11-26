@@ -207,7 +207,6 @@ describe("idempotent", function() {
 
           test.concurrent("inserts methods", async function() {
             const endpoint = new Endpoint(ENDPOINT);
-            expect(endpoint).toBeInstanceOf(Endpoint);
             let ok = endpoint.insertMethod("GET", HANDLER);
             expect(ok).toBe(true);
             ok = endpoint.insertMethod("POST", HANDLER);

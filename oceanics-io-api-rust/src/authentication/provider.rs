@@ -24,7 +24,7 @@ impl Provider {
     pub fn domain(&self) -> &String {
         &self.domain
     }
-    pub fn token(self, signing_key: &str) -> String {
+    pub fn token(self, signing_key: &str) -> Result<String, jwt::Error> {
         Claims::from(self).encode(signing_key) 
     }
 }
@@ -85,7 +85,7 @@ mod tests {
         let provider = Provider {
             domain: domain.clone()
         };
-        let token = provider.token("secret");
+        let token = provider.token("secret").unwrap();
         assert!(token.len() > 0);
     }
 }

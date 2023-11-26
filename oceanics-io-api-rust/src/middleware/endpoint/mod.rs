@@ -10,7 +10,6 @@ use serde::Deserialize;
 use super::{HttpMethod, request::Context};
 use super::request::{LogLine, Request};
 use super::response::OptionsResponse;
-use super::log;
 
 pub use specification::Specification;
 pub use security::Security;
@@ -96,7 +95,7 @@ impl Endpoint {
      * will be caught, and should return an Invalid Method response. 
      */
     pub fn context(&self, request: JsValue, signing_key: JsValue) -> Context {
-        let mut _request: Request = Request::new(request, signing_key);
+        let mut _request: Request = Request::new(request);
         let specification = match self.specification(&_request.http_method) {
             Some(value) => value.clone(),
             None => {

@@ -1,8 +1,7 @@
 use wasm_bindgen::prelude::*;
-use serde::{Deserialize, Serialize};
-
 use std::collections::HashMap;
 use serde_json::Value;
+use serde::{Deserialize, Serialize};
 
 use crate::cypher::node::Node;
 

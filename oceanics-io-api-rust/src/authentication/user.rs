@@ -103,9 +103,8 @@ impl User {
         Pbkdf2.verify_password(&bytes, &parsed_hash).is_ok()
     }
 
-    pub fn token(self, signing_key: &str) -> String {
-        let claims = Claims::from(self);
-        claims.encode(signing_key)
+    pub fn token(self, signing_key: &str) -> Result<String, jwt::Error> {
+        Claims::from(self).encode(signing_key)
     }
 
     pub fn email(&self) -> &String {
@@ -128,7 +127,7 @@ impl User {
 
     #[wasm_bindgen(js_name=issueToken)]
     pub fn issue_token(self, signing_key: &str) -> JsValue {
-        JsValue::from(self.token(signing_key))
+        JsValue::from(self.token(signing_key).unwrap())
     }
 }
 
@@ -201,7 +200,7 @@ mod tests {
             password: Some(encode("password")),
             secret: Some(encode("secret"))
         };
-        let token = user.token("another_secret");
+        let token = user.token("another_secret").unwrap();
         assert!(token.len() > 0);
     }
 

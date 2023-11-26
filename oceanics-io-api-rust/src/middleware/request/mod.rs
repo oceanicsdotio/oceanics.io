@@ -6,9 +6,7 @@ mod log_line;
 pub use log_line::LogLine;
 mod context;
 pub use context::Context;
-use crate::cypher::node::Node;
 use crate::middleware::HttpMethod;
-use super::log;
 
 use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
@@ -22,7 +20,8 @@ use serde_json::{Value, json};
 #[derive(Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Request {
-    headers: Headers,
+    #[wasm_bindgen(skip)]
+    pub headers: Headers,
     #[wasm_bindgen(js_name = httpMethod)]
     pub http_method: HttpMethod,
     query_string_parameters: QueryStringParameters,
@@ -45,8 +44,8 @@ impl Request {
      * Need to init the derived authentication values for headers
      * once the basic data has been parsed from the JavaScript side.
      */
-    pub fn new(value: JsValue, signing_key: JsValue) -> Self {
-        let mut this: Self = match serde_wasm_bindgen::from_value(value) {
+    pub fn new(value: JsValue) -> Self {
+        match serde_wasm_bindgen::from_value(value) {
             Ok(value) => {
                 value
             },
@@ -54,9 +53,7 @@ impl Request {
                 let response = Request::bad_request(format!("{}", err));
                 panic!("{}", response)
             }
-        };
-        this.headers._parse_auth(signing_key);
-        this
+        }
     }
 
     /**
@@ -102,12 +99,5 @@ impl Request {
             },
             _ => HashMap::with_capacity(0),
         }
-    }
-
-    /**
-     * Hoist the query nodes methods
-     */
-    pub fn nodes(&self) -> (Option<Node>, Option<Node>) {
-        self.query_string_parameters.nodes(self.data())
     }
 }
