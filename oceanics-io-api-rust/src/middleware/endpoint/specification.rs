@@ -1,8 +1,7 @@
 use wasm_bindgen::prelude::*;
 use serde::{Deserialize,Serialize};
 
-use crate::authentication::Authentication;
-use super::security::Security;
+use crate::authentication::{Authentication, Security};
 
 /**
  * Specification for the request. These data
@@ -28,4 +27,9 @@ impl Specification {
             Some(strategy) => Some(strategy.authentication())
         }
     }
+}
+
+#[cfg(test)]
+mod test {
+    
 }

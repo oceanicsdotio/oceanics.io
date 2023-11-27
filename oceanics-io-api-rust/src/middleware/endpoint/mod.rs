@@ -1,5 +1,5 @@
 mod specification;
-mod security;
+mod context;
 
 use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
@@ -7,12 +7,12 @@ use js_sys::Function;
 use serde_json::json;
 use serde::Deserialize;
 
-use super::{HttpMethod, request::Context};
+use super::HttpMethod;
 use super::request::{LogLine, Request};
 use super::response::OptionsResponse;
 
 pub use specification::Specification;
-pub use security::Security;
+pub use context::Context;
 
 #[wasm_bindgen]
 #[derive(Deserialize)]
@@ -118,7 +118,8 @@ impl Endpoint {
                 panic!("{}", response);
             }
         };
-        Context::from_args(specification, _request, method)
+        let key = signing_key.as_string().unwrap();
+        Context::from_args(specification, _request, method, &key)
     }
 
     /**

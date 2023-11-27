@@ -1,5 +1,5 @@
 use hmac::{Hmac, Mac};
-use jwt::{SignWithKey,VerifyWithKey};
+use jwt::{SignWithKey, VerifyWithKey};
 use sha2::Sha256;
 use serde::{Serialize, Deserialize};
 
@@ -35,7 +35,7 @@ impl Claims {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::Claims;
 
     #[test]

@@ -4,9 +4,10 @@ mod query_string_parameters;
 pub use query_string_parameters::QueryStringParameters;
 mod log_line;
 pub use log_line::LogLine;
-mod context;
-pub use context::Context;
+
+
 use crate::middleware::HttpMethod;
+use crate::cypher::Node;
 
 use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
@@ -24,7 +25,8 @@ pub struct Request {
     pub headers: Headers,
     #[wasm_bindgen(js_name = httpMethod)]
     pub http_method: HttpMethod,
-    query_string_parameters: QueryStringParameters,
+    #[wasm_bindgen(skip)]
+    pub query_string_parameters: QueryStringParameters,
     body: Option<String>
 }
 
@@ -84,7 +86,7 @@ impl Request {
     /**
      * Parse string body to JSON hashmap. 
      */
-    pub fn data(&self) -> HashMap<String, Value> {
+    fn data(&self) -> HashMap<String, Value> {
         match &self.body {
             Some(data) => {
                 if data.len() == 0 {
@@ -99,5 +101,13 @@ impl Request {
             },
             _ => HashMap::with_capacity(0),
         }
+    }
+
+    pub fn nodes(&self) -> (Option<Node>, Option<Node>) {
+        self.query_string_parameters.nodes(self.data())
+    }
+
+    pub fn authorization(&self) -> Vec<String> {
+        self.headers.authorization.clone().unwrap().split(":").map(str::to_string).collect::<Vec<_>>()
     }
 }

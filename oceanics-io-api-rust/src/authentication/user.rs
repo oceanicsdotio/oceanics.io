@@ -1,24 +1,24 @@
-use std::fmt;
-use std::convert::From;
+use std::{
+    fmt,
+    convert::From,
+    collections::HashMap
+};
+use regex::Regex;
 use wasm_bindgen::prelude::*;
 use serde::{Serialize, Deserialize};
-
 use serde_json::Value;
-use std::collections::HashMap;
-
-use pbkdf2::Pbkdf2;
-use pbkdf2::password_hash::PasswordHasher;
-
-use super::claims::Claims;
-use crate::cypher::node::Node;
-
-use pbkdf2::
+use pbkdf2::{
+    Pbkdf2,
     password_hash::{
-        PasswordHash, 
+        PasswordHash,
+        PasswordHasher,
         PasswordVerifier, 
         Salt
-    };
+    }
+};
 
+use super::Claims;
+use crate::cypher::Node;
 
 /**
  * Users are a special type of internal node. They
@@ -34,61 +34,115 @@ pub struct User {
     secret: Option<String>,
 }
 
+#[derive(Debug)]
+pub enum Error {
+    PasswordInvalid,
+    PasswordMissing,
+    SecretInvalid,
+    SecretMissing,
+    PasswordHash
+}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
+// Control how user info is printed, prevent leaking secrets
 impl fmt::Display for User {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.email)
     }
 }
 
+// Transform into claims for hash operations
+impl From<&User> for Claims {
+    fn from(user: &User) -> Self {
+        Claims::new(
+            user.email.to_string(),
+            "".to_string(),
+            3600
+        )
+    }
+}
+
+// Transform into application user type from claims
+impl From<&Claims> for User {
+    fn from(claims: &Claims) -> Self {
+        User {
+            email: claims.sub.clone(), 
+            password: None, 
+            secret: None
+        }
+    }
+}
+
+// Transform User into database Node representation
+impl From<&User> for Node {
+    fn from(user: &User) -> Self {
+        let mut properties = HashMap::new();
+        properties.insert(
+            "email".to_string(), Value::String(user.email.clone())
+        );
+        properties.insert(
+            "credential".to_string(), Value::String(user.credential().to_string())
+        );
+        Node::from_hash_map(properties, "User".to_string())
+    }
+}
+
 impl User {
-    // all fields are private, so we expose a rust level
-    // constructor in addition to the new() method. 
+    /**
+     * All fields are private, so we expose a rust level
+     * 
+     * constructor in addition to the new() method. Needs
+     * to be public for use in `Context` methods. Reduces
+     * boilerplate by wrapping optional values with Some().
+     */ 
     pub fn create(
         email: String, 
-        password: Option<String>, 
-        secret: Option<String>
+        password: String, 
+        secret: String
     ) -> Self {
         User {
             email,
-            password,
-            secret
+            password: Some(password),
+            secret: Some(secret)
         }
     }
 
     /**
-     * Salt the password with the provided secret.
+     * Salt the password with a provided secret.
      */
-    pub fn credential(&self) -> String {
-        let (password, salt): (&[u8], Salt) = match self {
-            User {
-                password: Some(password), 
-                secret: Some(secret),
-                ..
-            } => {
-                let salt = match Salt::new(&secret) {
-                    Ok(value) => {
-                        value
-                    },
-                    Err(_) => {
-                        panic!("Invalid salt value: {}", secret);
-                    }
-                };
-                (password.as_bytes(), salt)
-            },
-            _ => {
-                panic!("Cannot derive signing credential for {}", self);
-            }
-        };
-
-        match Pbkdf2.hash_password(password, salt) {
-            Ok(value) => {
-                value.to_string()
-            },
-            Err(error) => {
-                // Likely because values are not base64 encoded...
-                panic!("{}", error);
-            }
+    fn credential(&self) -> PasswordHash {
+        let password = self.password.as_ref().unwrap_or_else(
+            || panic!("{}", Error::PasswordMissing)
+        );
+        let base64: Regex = Regex::new(r"^[-A-Za-z0-9+/]*={0,3}$+").unwrap();
+        if !base64.is_match(&password) {
+            panic!("{}", Error::PasswordInvalid)
         }
+        let data = self.secret.as_ref().unwrap_or_else(
+            || panic!("{}", Error::SecretMissing)
+        );
+        if !base64.is_match(&data) {
+            panic!("{}", Error::SecretInvalid)
+        }
+        let salt = Salt::from_b64(data).unwrap_or_else(
+            |_| panic!("{}", Error::SecretInvalid)
+        );
+        Pbkdf2.hash_password(
+            password.as_bytes(), 
+            salt
+        ).unwrap_or_else(
+            |_| panic!("{}", Error::PasswordHash)
+        )
+    }
+
+    // Testing interface only
+    fn _issue_token(&self, signing_key: &str) -> Result<String, jwt::Error> {
+        Claims::from(self).encode(signing_key)
     }
 
     /**
@@ -96,21 +150,11 @@ impl User {
      * which is a $-separated string that includes algorithm, salt,
      * and hash.
      */
-    pub fn verify(&self, password: String) -> bool {
-        let credential = self.credential();
-        let parsed_hash = PasswordHash::new(&credential).unwrap();
-        let bytes = password.as_bytes();
-        Pbkdf2.verify_password(&bytes, &parsed_hash).is_ok()
+    fn _verify_credential(&self, stored_credential: String) -> bool {
+        let claim_credential = self.credential();
+        let bytes = stored_credential.as_bytes();
+        Pbkdf2.verify_password(bytes, &claim_credential).is_ok()
     }
-
-    pub fn token(self, signing_key: &str) -> Result<String, jwt::Error> {
-        Claims::from(self).encode(signing_key)
-    }
-
-    pub fn email(&self) -> &String {
-        &self.email
-    }
-
 }
 
 /**
@@ -119,99 +163,177 @@ impl User {
 #[wasm_bindgen]
 impl User {
     #[wasm_bindgen(constructor)]
-    pub fn new(
-        data: JsValue
-    ) -> Self {
+    pub fn new(data: JsValue) -> Self {
         serde_wasm_bindgen::from_value(data).unwrap()
     }
 
+    // Create a JS object 
     #[wasm_bindgen(js_name=issueToken)]
-    pub fn issue_token(self, signing_key: &str) -> JsValue {
-        JsValue::from(self.token(signing_key).unwrap())
+    pub fn issue_token(&self, signing_key: &str) -> JsValue {
+        let token = self._issue_token(signing_key).expect(
+            "Could not create token"
+        );
+        JsValue::from(token)
+    }
+
+    // Compare a pre-encoded credential against the secrets in the user instance
+    #[wasm_bindgen(js_name=verifyCredential)]
+    pub fn verify_credential(self, credential: &str) -> bool {
+        self._verify_credential(String::from(credential))
     }
 }
 
-impl From<User> for Claims {
-    fn from(user: User) -> Self {
-        Claims::new(
-            user.email().to_string(),
-            "".to_string(),
-            3600
-        )
-    }
-}
-
-impl From<User> for Node {
-    fn from(user: User) -> Self {
-        let mut properties = HashMap::new();
-        properties.insert(
-            "email".to_string(), Value::String(user.email().clone())
-        );
-        properties.insert(
-            "credential".to_string(), Value::String(user.credential())
-        );
-        Node::from_hash_map(properties, "User".to_string())
-    }
-}
 
 #[cfg(test)]
 mod tests {
-    use super::User;
+    use super::{User, Claims};
     use crate::cypher::node::Node;
     use hex::encode;
 
     #[test]
     fn create_user () {
-        let user = User {
-            email: "test@oceanics.io".to_string(),
-            password: Some(encode("password")),
-            secret: Some(encode("secret"))
-        };
+        let user = User::create(
+            "test@oceanics.io".to_string(), 
+            encode("password"), 
+            encode("secret")
+        );
         assert!(user.password.is_some());
         assert!(user.secret.is_some());
     }
 
     #[test]
-    fn user_credential_verification () {
-        let password = encode("password");
+    fn transform_user_into_node () {
+        let user = User::create(
+            "test@oceanics.io".to_string(),
+            encode("password"),
+            encode("secret")
+        );
+        let node = Node::from(&user);
+        assert!(node.pattern().len() > 0);
+    }
+
+    #[test]
+    fn transform_user_into_claims () {
+        let email = "test@oceanics.io".to_string();
+        let user = User::create(
+            email.clone(),
+            encode("password"),
+            encode("secret")
+        );
+        let claims = Claims::from(&user);
+        assert_eq!(claims.sub, email);
+    }
+
+    #[test]
+    fn transform_user_from_claims () {
+        let email = "test@oceanics.io".to_string();
+        let claims = Claims::new(
+            email.clone(),
+            "oceanics.io".to_string(), 
+            3600
+        );
+        let user = User::from(&claims);
+        assert_eq!(claims.sub, user.email);
+    }
+
+    #[test]
+    #[should_panic(expected = "SecretMissing")]
+    fn user_credential_panics_with_no_secret () {
         let user = User {
             email: "test@oceanics.io".to_string(),
-            password: Some(password.clone()),
-            secret: Some(encode("secret"))
+            password: Some(encode("some_password")),
+            secret: None
         };
-        assert!(user.verify(password));
+        let _cred = user.credential();
+    }
+
+    #[test]
+    #[should_panic(expected = "PasswordMissing")]
+    fn user_credential_panics_with_no_password () {
+        let user = User {
+            email: "test@oceanics.io".to_string(),
+            password: None,
+            secret: Some("some_secret".to_string())
+        };
+        let _cred = user.credential();
+    }
+
+    #[test]
+    #[should_panic(expected = "SecretInvalid")]
+    fn user_credential_panics_with_empty_secret () {
+        let user = User {
+            email: "test@oceanics.io".to_string(),
+            password: Some(encode("some_password")),
+            secret: Some(encode(""))
+        };
+        let _cred = user.credential();
+    }
+
+    #[test]
+    #[should_panic(expected = "SecretInvalid")]
+    fn user_credential_panics_with_plaintext_secret () {
+        let user = User {
+            email: "test@oceanics.io".to_string(),
+            password: Some(encode("some_password")),
+            secret: Some("some_secret".to_string())
+        };
+        let _cred = user.credential();
+    }
+
+    #[test]
+    #[should_panic(expected = "PasswordHash")]
+    fn user_credential_panics_with_empty_password () {
+        let user = User {
+            email: "test@oceanics.io".to_string(),
+            password: Some(encode("")),
+            secret: Some(encode("some_secret".to_string()))
+        };
+        let _cred = user.credential();
+    }
+
+    #[test]
+    #[should_panic(expected = "PasswordInvalid")]
+    fn user_credential_panics_with_plaintext_password () {
+        let user = User {
+            email: "test@oceanics.io".to_string(),
+            password: Some("some_password".to_string()),
+            secret: Some(encode("some_secret".to_string()))
+        };
+        let _cred = user.credential();
+    }
+
+    #[test]
+    fn user_verify_credential () {
+        let password = encode("password");
+        let user = User::create(
+            "test@oceanics.io".to_string(),
+            password.clone(),
+            encode("secret")
+        );
+        assert!(user._verify_credential(password));
     }
 
 
     #[test]
     fn denies_bad_credentials () {
-        let user = User {
-            email: "test@oceanics.io".to_string(),
-            password: Some(encode("password")),
-            secret: Some(encode("secret"))
-        };
-        assert!(!user.verify(encode("bad_password")));
+        let user = User::create(
+            "test@oceanics.io".to_string(),
+            encode("password"),
+            encode("secret")
+        );
+        assert!(!user._verify_credential(encode("bad_password")));
     }
 
     #[test]
     fn user_issue_token () {
-        let user = User {
-            email: "test@oceanics.io".to_string(),
-            password: Some(encode("password")),
-            secret: Some(encode("secret"))
-        };
-        let token = user.token("another_secret").unwrap();
+        let user = User::create(
+            "test@oceanics.io".to_string(),
+            encode("password"),
+            encode("secret")
+        );
+        let token = user._issue_token("another_secret").unwrap();
         assert!(token.len() > 0);
     }
 
-    #[test]
-    fn user_as_node () {
-        let user = User {
-            email: "test@oceanics.io".to_string(),
-            password: Some(encode("password")),
-            secret: Some(encode("secret"))
-        };
-        let node: Node = user.into();
-        assert!(node.pattern().len() > 0);
-    }
+
 }

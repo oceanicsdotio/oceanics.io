@@ -1,6 +1,7 @@
 pub mod node;
 pub mod links;
 mod constraint;
+pub use node::Node;
 
 use wasm_bindgen::prelude::*;
 use serde::{Deserialize, Serialize};

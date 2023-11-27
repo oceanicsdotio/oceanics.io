@@ -1,16 +1,15 @@
+use std::convert::TryFrom;
+
 use chrono::prelude::*;
 use wasm_bindgen::prelude::*;
 use js_sys::Function;
 use serde::{Deserialize,Serialize};
 
-use super::Request;
 use crate::cypher::node::Node;
-use super::log_line::LogLine;
 use crate::middleware::HttpMethod;
 use crate::middleware::endpoint::Specification;
-use serde_json::json;
-use crate::authentication::Claims;
-use crate::authentication::{Authentication,User,Provider};
+use crate::middleware::request::{Request, LogLine};
+use crate::authentication::{Claims,Authentication,User,Provider};
 
 
 /**
@@ -42,33 +41,43 @@ impl Context {
         specification: Specification,
         request: Request,
         handler: Function,
+        signing_key: &String
     ) -> Self {
-  
-        let nodes = request.query_string_parameters.nodes(request.data());
-        Context {
+        let nodes = request.nodes();
+        let mut user: Option<User> = None;
+        let mut provider:Option<Provider> = None;
+
+        // Already pattern-checked using regex, shouldn't throw an error
+        match request.headers.claim_auth_method() {
+            Some(Authentication::BearerAuth) => {
+                let [_, token] = 
+                    <[String; 2]>::try_from(request.authorization()).ok().unwrap();
+                let claims = Claims::decode(token, signing_key).unwrap();
+                user = Some(User::from(&claims));
+                provider = Some(Provider::from(&claims));
+            },
+            Some(Authentication::BasicAuth) => {
+                let [email, password, secret] = 
+                    <[String; 3]>::try_from(request.authorization()).ok().unwrap();
+                user = Some(User::create(
+                    email, 
+                    password, 
+                    secret
+                ));
+            },
+            _ => {}
+        };
+
+        let mut this = Context {
             request,
             start: Local::now(),
             handler,
             nodes,
             specification,
-            user: None,
-            provider: None
-        }
-    }
-
-
-    /**
-     * Parse auth string into parts
-     */
-    fn split_auth(&self) -> Vec<&str> {
-        match &self.request.headers.authorization {
-            Some(value) => {
-                value.split(":").collect()
-            },
-            None => {
-                panic!("Missing authentication header");
-            }
-        }
+            user,
+            provider
+        };
+        this
     }
 
     /**
@@ -79,69 +88,26 @@ impl Context {
      * and performing account/user level interactions, so both
      * user and provider are optional. 
      */
-    fn token_claim(&self, signing_key: &str) -> (Option<User>, Option<Provider>) {
-        let parts = self.split_auth();
-        let token = match parts.as_slice() {
-            [_, token] => token.to_string(),
-            _ => {
-                panic!("Malformed authorization header");
-            }
-        };
-        let claims = Claims::decode(token, signing_key).unwrap();
-        let user = match claims.sub.len() {
-            0 => None,
-            _ => Some(User::create(
-                claims.sub, 
-                None, 
-                None
-            ))
-        };
-        let provider = match claims.iss.len() {
-            0 => None,
-            _ => Some(Provider::create(claims.iss))
-        };
-        (user, provider)
-    }
-
-    /**
-     * Format the auth header as a User claim. 
-     */
-    fn basic_auth_claim(&self) -> User {
-        match self.split_auth().as_slice() {
-            [email, password, secret] => {
-                User::create(
-                    email.to_string(), 
-                    Some(password.to_string()), 
-                    Some(secret.to_string())
-                )
-            },
-            _ => {
-                panic!("Invalid basic auth claim");
-            }
-        }
-    }
-
     pub fn parse_auth(&mut self, signing_key: &String) {
-        let method = self.request.headers.claim_auth_method();
-        match method {
+        // Already pattern-checked using regex, shouldn't throw an error
+        match self.request.headers.claim_auth_method() {
             Some(Authentication::BearerAuth) => {
-                let (user, provider) = self.token_claim(signing_key);
-                self.user = user;
-                self.provider = provider;
+                let [_, token] = 
+                    <[String; 2]>::try_from(self.request.authorization()).ok().unwrap();
+                let claims = Claims::decode(token, signing_key).unwrap();
+                self.user = Some(User::from(&claims));
+                self.provider = Some(Provider::from(&claims));
             },
             Some(Authentication::BasicAuth) => {
-                self.user = Some(self.basic_auth_claim());
+                let [email, password, secret] = 
+                    <[String; 3]>::try_from(self.request.authorization()).ok().unwrap();
+                self.user = Some(User::create(
+                    email, 
+                    password, 
+                    secret
+                ));
             },
-            _ => {
-                let response = json!({
-                    "statusCode": 403,
-                    "data": {
-                        "message": "Invalid request",
-                        "detail": "No authorization header found"
-                    }
-                });
-                panic!("{}", response);
-            }
+            _ => {}
         };
     }
 }
@@ -164,13 +130,7 @@ impl Context {
         match &self.user {
             None => JsValue::NULL,
             Some(value) => {
-                let result = serde_wasm_bindgen::to_value(value);
-                match result {
-                    Ok(value) => value,
-                    Err(error) => {
-                        panic!("{}", error);
-                    }
-                }
+                serde_wasm_bindgen::to_value(value).unwrap()
             }
         }
     }
@@ -181,9 +141,9 @@ impl Context {
     #[wasm_bindgen(getter)]
     pub fn provider(&self) -> JsValue {
         match &self.provider {
+            None => JsValue::NULL,
             Some(value) => 
-                serde_wasm_bindgen::to_value(value).unwrap_or(JsValue::NULL),
-            None => JsValue::NULL
+                serde_wasm_bindgen::to_value(value).unwrap_or(JsValue::NULL)
         }
     }
 
@@ -234,6 +194,7 @@ impl Context {
         specification: JsValue,
         request: JsValue,
         handler: Function,
+        signing_key: String
     ) -> Self {
         let spec = match serde_wasm_bindgen::from_value(specification) {
             Ok(value) => value,
@@ -243,7 +204,7 @@ impl Context {
             Ok(value) => value,
             Err(_) => panic!("Cannot parse request data")
         };
-        Context::from_args(spec, req, handler)
+        Context::from_args(spec, req, handler, &signing_key)
     }
 
     #[wasm_bindgen(js_name = "logLine")]
@@ -261,8 +222,8 @@ impl Context {
 
 #[cfg(test)]
 mod tests {
-    use crate::authentication::{Authentication,Claims};
-    use super::super::Headers;
+    // use crate::authentication::{Authentication,Claims};
+    // use super::super::Headers;
 
     // #[test]
     // fn request_headers_claim_auth_method_with_basic_auth () {
