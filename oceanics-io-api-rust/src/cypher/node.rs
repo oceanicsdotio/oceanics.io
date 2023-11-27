@@ -5,8 +5,7 @@ use std::fmt;
 use std::convert::From;
 use wasm_bindgen::prelude::*;
 
-use super::{Cypher, READ_ONLY, WRITE};
-use super::constraint::Constraint;
+use super::{Cypher, READ_ONLY, WRITE, constraint::Constraint};
 
 // Convenience function for getting a String from Option.
 fn string_or(value: &Option<String>, default: String) -> String {

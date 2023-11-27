@@ -57,7 +57,7 @@ impl QueryStringParameters {
                 )]);
                 let left_node = Node::from_hash_map_and_symbol(left_props, String::from("n0"), left.to_string());
                 let right_node = 
-                    Node::from_hash_map_and_symbol(data, String::from("n1"), right.to_string());
+                    Node::from_hash_map_and_symbol(clone, String::from("n1"), right.to_string());
                 (Some(left_node), Some(right_node))
             },
             QueryStringParameters {

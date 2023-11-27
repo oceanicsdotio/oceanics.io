@@ -22,14 +22,8 @@ impl Specification {
 
     #[wasm_bindgen(getter)]
     pub fn auth(&self) -> Option<Authentication> {
-        match self.security.get(0) {
-            None => None,
-            Some(strategy) => Some(strategy.authentication())
-        }
+        self.security.get(0).and_then(
+            |some| Some(Authentication::from(some))
+        )
     }
-}
-
-#[cfg(test)]
-mod test {
-    
 }

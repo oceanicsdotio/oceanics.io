@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use regex::Regex;
 
 use crate::authentication::Authentication;
+use super::MiddlewareError;
 
 /**
  * Extract Authentication information from the
@@ -39,7 +40,12 @@ impl Headers {
  * Rust-only methods
  */
 impl Headers {
-
+    // Hoist and wrap access to authorization headers in a usable format
+    pub fn authorization(&self) -> Vec<String> {
+        self.authorization.clone().unwrap_or_else(
+            || panic!("{}", MiddlewareError::HeaderAuthorizationMissing)
+        ).split(":").map(str::to_string).collect::<Vec<_>>()
+    }
     /**
      * Will be Some(Auth) when we can pattern match the auth header.
      * None when there is a missing or malformed auth header. 
@@ -69,7 +75,6 @@ impl Headers {
 mod tests {
     use crate::authentication::Authentication;
     use super::Headers;
-
 
     #[test]
     fn request_headers_claim_auth_method_with_bearer_auth_lowercase () {

@@ -43,32 +43,9 @@ impl Context {
         handler: Function,
         signing_key: &String
     ) -> Self {
-        let nodes = request.nodes();
-        let mut user: Option<User> = None;
-        let mut provider:Option<Provider> = None;
-
-        // Already pattern-checked using regex, shouldn't throw an error
-        match request.headers.claim_auth_method() {
-            Some(Authentication::BearerAuth) => {
-                let [_, token] = 
-                    <[String; 2]>::try_from(request.authorization()).ok().unwrap();
-                let claims = Claims::decode(token, signing_key).unwrap();
-                user = Some(User::from(&claims));
-                provider = Some(Provider::from(&claims));
-            },
-            Some(Authentication::BasicAuth) => {
-                let [email, password, secret] = 
-                    <[String; 3]>::try_from(request.authorization()).ok().unwrap();
-                user = Some(User::create(
-                    email, 
-                    password, 
-                    secret
-                ));
-            },
-            _ => {}
-        };
-
-        let mut this = Context {
+        let nodes = request.query_string_parameters.nodes(request.data());
+        let (user, provider) = request.parse_auth(signing_key);
+        Context {
             request,
             start: Local::now(),
             handler,
@@ -76,39 +53,7 @@ impl Context {
             specification,
             user,
             provider
-        };
-        this
-    }
-
-    /**
-     * Decode a JWT to get the issuer and/or subject. For us, this
-     * corresponds to the provider and user respectively.
-     * 
-     * We use tokens for both granting registration capabilities, 
-     * and performing account/user level interactions, so both
-     * user and provider are optional. 
-     */
-    pub fn parse_auth(&mut self, signing_key: &String) {
-        // Already pattern-checked using regex, shouldn't throw an error
-        match self.request.headers.claim_auth_method() {
-            Some(Authentication::BearerAuth) => {
-                let [_, token] = 
-                    <[String; 2]>::try_from(self.request.authorization()).ok().unwrap();
-                let claims = Claims::decode(token, signing_key).unwrap();
-                self.user = Some(User::from(&claims));
-                self.provider = Some(Provider::from(&claims));
-            },
-            Some(Authentication::BasicAuth) => {
-                let [email, password, secret] = 
-                    <[String; 3]>::try_from(self.request.authorization()).ok().unwrap();
-                self.user = Some(User::create(
-                    email, 
-                    password, 
-                    secret
-                ));
-            },
-            _ => {}
-        };
+        }
     }
 }
 

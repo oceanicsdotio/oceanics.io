@@ -29,6 +29,24 @@ pub enum HttpMethod {
     GET = "GET",
     HEAD = "HEAD"
 }
+
+#[derive(Debug)]
+pub enum MiddlewareError {
+    RequestInvalid,
+    BodyMissing,
+    BodyNotExpected,
+    BodyInvalid,
+    HeaderAuthorizationMissing,
+    HeaderAuthorizationInvalid,
+    TokenDecodeFailed
+}
+
+impl fmt::Display for MiddlewareError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
 impl FromStr for HttpMethod {
     type Err = ();
     fn from_str(input: &str) -> Result<HttpMethod, Self::Err> {

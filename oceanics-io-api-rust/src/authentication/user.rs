@@ -17,7 +17,7 @@ use pbkdf2::{
     }
 };
 
-use super::Claims;
+use super::{Claims, AuthError};
 use crate::cypher::Node;
 
 /**
@@ -32,21 +32,6 @@ pub struct User {
     email: String,
     password: Option<String>,
     secret: Option<String>,
-}
-
-#[derive(Debug)]
-pub enum Error {
-    PasswordInvalid,
-    PasswordMissing,
-    SecretInvalid,
-    SecretMissing,
-    PasswordHash
-}
-
-impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?}", self)
-    }
 }
 
 // Control how user info is printed, prevent leaking secrets
@@ -117,31 +102,31 @@ impl User {
      */
     fn credential(&self) -> PasswordHash {
         let password = self.password.as_ref().unwrap_or_else(
-            || panic!("{}", Error::PasswordMissing)
+            || panic!("{}", AuthError::PasswordMissing)
         );
         let base64: Regex = Regex::new(r"^[-A-Za-z0-9+/]*={0,3}$+").unwrap();
         if !base64.is_match(&password) {
-            panic!("{}", Error::PasswordInvalid)
+            panic!("{}", AuthError::PasswordInvalid)
         }
         let data = self.secret.as_ref().unwrap_or_else(
-            || panic!("{}", Error::SecretMissing)
+            || panic!("{}", AuthError::SecretMissing)
         );
         if !base64.is_match(&data) {
-            panic!("{}", Error::SecretInvalid)
+            panic!("{}", AuthError::SecretInvalid)
         }
         let salt = Salt::from_b64(data).unwrap_or_else(
-            |_| panic!("{}", Error::SecretInvalid)
+            |_| panic!("{}", AuthError::SecretInvalid)
         );
         Pbkdf2.hash_password(
             password.as_bytes(), 
             salt
         ).unwrap_or_else(
-            |_| panic!("{}", Error::PasswordHash)
+            |_| panic!("{}", AuthError::PasswordHash)
         )
     }
 
     // Testing interface only
-    fn _issue_token(&self, signing_key: &str) -> Result<String, jwt::Error> {
+    pub fn issue_token(&self, signing_key: &str) -> Result<String, jwt::Error> {
         Claims::from(self).encode(signing_key)
     }
 
@@ -169,8 +154,8 @@ impl User {
 
     // Create a JS object 
     #[wasm_bindgen(js_name=issueToken)]
-    pub fn issue_token(&self, signing_key: &str) -> JsValue {
-        let token = self._issue_token(signing_key).expect(
+    pub fn _issue_token(&self, signing_key: &str) -> JsValue {
+        let token = self.issue_token(signing_key).expect(
             "Could not create token"
         );
         JsValue::from(token)
@@ -331,7 +316,7 @@ mod tests {
             encode("password"),
             encode("secret")
         );
-        let token = user._issue_token("another_secret").unwrap();
+        let token = user.issue_token("another_secret").unwrap();
         assert!(token.len() > 0);
     }
 

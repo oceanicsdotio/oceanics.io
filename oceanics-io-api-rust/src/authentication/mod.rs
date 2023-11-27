@@ -8,8 +8,15 @@ pub use user::User;
 pub use claims::Claims;
 pub use security::Security;
 
-use std::str::FromStr;
+
+use std::{
+    fmt,
+    convert::From
+};
 use wasm_bindgen::prelude::*;
+
+
+use std::str::FromStr;
 use serde::{Serialize, Deserialize};
 
 /**
@@ -31,6 +38,21 @@ impl FromStr for Authentication {
             "NoAuth" => Ok(Authentication::NoAuth),
             _ => Err(()),
         }
+    }
+}
+
+#[derive(Debug)]
+pub enum AuthError {
+    PasswordInvalid,
+    PasswordMissing,
+    SecretInvalid,
+    SecretMissing,
+    PasswordHash
+}
+
+impl fmt::Display for AuthError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self)
     }
 }
 
