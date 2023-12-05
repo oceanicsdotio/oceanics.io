@@ -1,12 +1,7 @@
-/**
- * React and friends
- */
-import React, { useCallback } from "react";
-import { useRouter } from "next/router";
+import React, { ReactNode, useCallback } from "react";
+import useNextRouter from "../src/hooks/useNextRouter";
+import type { GetStaticPaths, GetStaticProps } from "next";
 
-/**
- * See: https://nextjs.org/blog/markdown
- */
 import { serialize } from "next-mdx-remote/serialize";
 import { MDXRemote } from "next-mdx-remote";
 import rehypeHighlight from "rehype-highlight";
@@ -23,28 +18,19 @@ import Document from "../src/components/References/Document";
 import Equation from "../src/components/References/Equation";
 import Inline from "../src/components/References/Inline";
 import {Standalone as Squalltalk} from "../src/components/References/Squalltalk";
-import type { IDocumentSerialized, DocumentSerializedType, QueryType } from "../src/components/References/types";
-import { readDocument, createIndex } from "../src/next-util";
-import type { GetStaticPaths, GetStaticProps } from "next";
-import useDeserialize from "../src/hooks/useDeserialize";
-
-const embeddedComponents = { Equation, Squalltalk, Inline };
+import type { DocumentSerializedType } from "../src/components/References/types";
+import useMemoCache from "../src/hooks/useMemoCache";
 
 const ArticlePage = ({
     document,
     source
-}: IDocumentSerialized) => {
-    const [deserialized] = useDeserialize([document])
-
-    const router = useRouter();
-
-    /**
-     * Use next router, and merge query parameters.
-     */
-    const navigate = useCallback((pathname: string, insert?: QueryType, merge = true) => {
-        const query = { ...(merge ? router.query : {}), ...(insert ?? {}) }
-        router.push({ pathname, query });
-    }, [router]);
+}: {
+    document: DocumentSerializedType;
+    source: unknown;  // TODO: determine base type from Next without adding dependency?
+}) => {
+    const [deserialized] = useMemoCache([document])
+    const {navigate} = useNextRouter();
+    const props = source as Record<string, unknown>;
 
     /**
      * Additionally filter by a single label.
@@ -55,16 +41,16 @@ const ArticlePage = ({
 
     return (
         <Document document={deserialized} onClickLabel={onClickLabel}>
-            <MDXRemote {...source} components={embeddedComponents}/>
+            <MDXRemote {...props} components={{ Equation, Squalltalk, Inline }}/>
         </Document>
     )
 };
 
-ArticlePage.displayName = "Document";
 export default ArticlePage;
 
-export const getStaticProps: GetStaticProps = async (slug: string) => {
-    const document = readDocument(slug) as DocumentSerializedType;
+export const getStaticProps: GetStaticProps = async (path: {params: {slug: string}}) => {
+    const {documents} = await import("../public/dev/content.json");
+    const [document] = documents.filter((props) => props.slug === path.params.slug);
     const source = await serialize(document.content??"", {
         mdxOptions: {
             rehypePlugins: [[rehypeHighlight, {}]]
@@ -84,8 +70,10 @@ export const getStaticProps: GetStaticProps = async (slug: string) => {
 /**
  * Used by NextJS in building
  */
-export const getStaticPaths: GetStaticPaths = async () => Object({
-    paths: createIndex(),
-    fallback: false
-})
-
+export const getStaticPaths: GetStaticPaths = async () => {
+    const {index} = await import("../public/dev/content.json");
+    return {
+        paths: index,
+        fallback: false
+    }
+}

@@ -25,6 +25,7 @@ const IndexPage = ({
      * Convert into our internal Document data model. 
      */
     // const deserialized = useMemoCache(documents);
+    const deserialized = useMemoCache(documents);
 
     /**
      * Just the Next router.

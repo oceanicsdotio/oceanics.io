@@ -1,18 +1,13 @@
 import React from "react";
+import type {GetStaticProps} from "next";
 
 /**
  * Array of references component, no heading
  */
 import Reference from "../src/components/References/Reference";
-import type {IDocumentIndexSerialized} from "../src/components/References/types";
-import type {GetStaticProps} from "next";
-import {createIndex, readIndexedDocuments} from "../src/next-util";
-import useDeserialize from "../src/hooks/useDeserialize";
+import useMemoCache from "../src/hooks/useMemoCache";
 import styled from "styled-components";
-
-interface IPage extends IDocumentIndexSerialized {
-  className: string;
-}
+import type {Memo} from "oceanics-io-www-wasm";
 
 /**
  * The ReferencesPage renders a memoized array of filtered citations
@@ -22,8 +17,11 @@ interface IPage extends IDocumentIndexSerialized {
 const ReferencesPage = ({
   className,
   documents
-}: IPage) => {
-  const deserialized = useDeserialize(documents);
+}: {
+  className: string
+  documents: Memo[]
+}) => {
+  const deserialized = useMemoCache(documents);
   return (
     <div className={className}>
       {deserialized.map((document) => <Reference key={document.hash} document={document} />)}
@@ -39,13 +37,18 @@ const StyledRefPage = styled(ReferencesPage)`
 `;
 
 export default StyledRefPage;
-type Frontmatter = {metadata: {references: unknown}};
 
-export const getStaticProps: GetStaticProps = () => Object({
+
+/**
+ * Used only by NextJS.
+ */
+export const getStaticProps: GetStaticProps = async () => {
+  const {documents} = await import("../public/dev/content.json");
+  const getRefs = ({metadata}: {metadata: {references: unknown}}) => metadata.references;
+  return {
     props: { 
-        documents: readIndexedDocuments(createIndex()).flatMap(({metadata}: Frontmatter)=>metadata.references),
+        documents: documents.flatMap(getRefs),
         description: "See the science",
         title: "References"
     }
-});
-
+}};
