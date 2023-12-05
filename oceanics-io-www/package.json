@@ -65,7 +65,6 @@
     "styled-components": "^5.3.0",
     "tsconfig-paths-webpack-plugin": "^4.0.0",
     "typescript": "^5.2.2",
-    "tsconfig-paths-webpack-plugin": "^4.0.0",
     "webpack": "^5.47.1"
   }
 }
