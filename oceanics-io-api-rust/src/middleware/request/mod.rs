@@ -28,7 +28,8 @@ pub struct Request {
     pub http_method: HttpMethod,
     #[wasm_bindgen(skip)]
     pub query_string_parameters: QueryStringParameters,
-    body: Option<String>
+    #[wasm_bindgen(skip)]
+    pub body: Option<String>
 }
 
 impl Request {

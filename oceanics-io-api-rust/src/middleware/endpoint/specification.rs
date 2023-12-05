@@ -10,7 +10,8 @@ use crate::authentication::{Authentication, Security};
 #[wasm_bindgen]
 #[derive(Deserialize, Serialize, Clone)]
 pub struct Specification {
-    security: Vec<Security>,
+    #[wasm_bindgen(skip)]
+    pub security: Vec<Security>,
 }
 
 #[wasm_bindgen]
@@ -25,5 +26,22 @@ impl Specification {
         self.security.get(0).and_then(
             |some| Some(Authentication::from(some))
         )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::authentication::Security;
+    use super::Specification;
+
+    #[test]
+    fn create_specification () {
+        let sec = Security{ 
+            bearer_auth: Some(Vec::from([])), 
+            basic_auth: None
+        };
+        let specification = Specification {
+            security: vec![sec],
+        };
     }
 }

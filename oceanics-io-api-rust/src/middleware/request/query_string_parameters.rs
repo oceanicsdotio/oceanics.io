@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use serde_json::Value;
 use serde::{Deserialize, Serialize};
 
-use crate::cypher::node::Node;
+use crate::cypher::Node;
 
 /**
  * Return empty string instead of None. 

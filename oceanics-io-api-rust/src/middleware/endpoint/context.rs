@@ -167,52 +167,34 @@ impl Context {
 
 #[cfg(test)]
 mod tests {
-    // use crate::authentication::{Authentication,Claims};
-    // use super::super::Headers;
+    use hex::encode;
 
-    // #[test]
-    // fn request_headers_claim_auth_method_with_basic_auth () {
-    //     let mut headers = Headers {
-    //         authorization: Some("some:credentials:here".to_string()),
-    //         user: None, 
-    //         provider: None
-    //     };
-    //     headers.parse_auth(&"some_secret".to_string());
-    //     assert!(headers.user.is_some());
-    //     assert!(headers.provider.is_none());
-    //     assert_eq!(
-    //         headers.claim_auth_method(), 
-    //         Some(Authentication::BasicAuth)
-    //     );
-    //     assert_eq!(headers.split_auth().len(), 3);
-    //     let user = headers.basic_auth_claim();
-    //     assert_eq!(user.email(), "some");
-    // }
-
-    // #[test]
-    // fn request_headers_claim_auth_method_with_bearer_auth () {
-
-    //     let claims = Claims::new(
-    //         "test@oceanics.io".to_string(),
-    //         "oceanics.io".to_string(),
-    //         3600
-    //     );
-    //     let signing_key = String::from("secret");
-    //     let token = claims.encode(&signing_key);
-    //     assert!(token.len() > 0);
-
-    //     let mut headers = Headers {
-    //         authorization: Some(format!("Bearer:{}", token)),
-    //         user: None, 
-    //         provider: None
-    //     };
-    //     assert_eq!(
-    //         headers.claim_auth_method(), 
-    //         Some(Authentication::BearerAuth)
-    //     );
-    //     headers.parse_auth(&signing_key);
-    //     assert!(headers.user.is_some());
-    //     assert!(headers.provider.is_some());
-       
-    // }    
+    use crate::middleware::endpoint::Specification;
+    use crate::authentication::{Security};
+    use crate::middleware::HttpMethod;
+    use crate::middleware::request::{Request, Headers, QueryStringParameters};
+    use super::Context;
+    #[test]
+    fn create_context () {
+        let sec = Security{ 
+            bearer_auth: Some(Vec::from([])), 
+            basic_auth: None
+        };
+        let specification = Specification {
+            security: vec![sec],
+        };
+        let request = Request {
+            headers: Headers { authorization: None },
+            http_method: HttpMethod::GET,
+            query_string_parameters: QueryStringParameters::from_args(None, None, None),
+            body: None
+        };
+        let signing_key = String::from(encode("some_secret"));
+        let ctx = Context::from_args(
+            specification,
+            request,
+            Function::new_no_args(),
+            &signing_key
+        )
+    }
 }

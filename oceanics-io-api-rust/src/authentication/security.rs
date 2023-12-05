@@ -12,8 +12,10 @@ use super::Authentication;
 #[derive(PartialEq, Eq, Deserialize, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Security {
-    bearer_auth: Option<Vec<Value>>,
-    basic_auth: Option<Vec<Value>>
+    #[wasm_bindgen(skip)]
+    pub bearer_auth: Option<Vec<Value>>,
+    #[wasm_bindgen(skip)]
+    pub basic_auth: Option<Vec<Value>>
 }
 
 #[wasm_bindgen]
