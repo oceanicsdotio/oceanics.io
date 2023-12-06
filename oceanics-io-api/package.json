@@ -21,13 +21,11 @@
         "@netlify/functions": "^2.4.0",
         "ajv": "^8.12.0",
         "ajv-formats": "^2.1.1",
-        "apollo-server-lambda": "^3.12.1",
         "aws-sdk": "^2.1494.0",
         "js-yaml": "^4.1.0",
         "jsonwebtoken": "^9.0.2",
         "neo4j-driver": "^5.14.0",
-        "oceanics-io-api-wasm": "*",
-        "stripe": "^14.4.0"
+        "oceanics-io-api-wasm": "*"
     },
     "devDependencies": {
         "@babel/core": "^7.23.3",
