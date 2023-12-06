@@ -1,10 +1,5 @@
 {
   "compilerOptions": {
-    // https://nextjs.org/docs/advanced-features/module-path-aliases
-    // "baseUrl": ".",
-    // "paths": {
-    //   "@/components/*": ["components/*"]
-    // },
     "incremental": true,
     "target": "esnext",
     "lib": [
