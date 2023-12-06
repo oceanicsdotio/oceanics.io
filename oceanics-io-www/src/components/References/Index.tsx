@@ -10,13 +10,14 @@ import Button from "../Form/Button";
 /**
  * Typing and lookups
  */
-import type { Document, QueryType, IStyled } from "./types";
+import type { Memo, QueryType } from "oceanics-io-www-wasm";
 
 /**
  * Main page inputs
  */
-export interface DocumentIndexType extends IStyled {
-  documents: Document[];
+export interface DocumentIndexType {
+  className: string
+  documents: Memo[];
   query: QueryType;
   onShowMore: MouseEventHandler<HTMLButtonElement>;
   onClearConstraints: MouseEventHandler<HTMLButtonElement>;
