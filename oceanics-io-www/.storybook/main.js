@@ -6,7 +6,6 @@ module.exports = {
   features: {
     storyStoreV7: true
   },
-
   typescript: {
     check: false,
     checkOptions: {},
@@ -31,17 +30,20 @@ module.exports = {
             stream: false,
             os: false,
         },
+        
+    };
+    config.experiments = {
+      ...config.experiments,
+      asyncWebAssembly: true
     }
-
     // Return the altered config
     return config
-},
-
+  },
   framework: {
     name: getAbsolutePath("@storybook/nextjs"),
     options: {}
   },
-
+  staticDirs: ['../public'],
   docs: {
     autodocs: true
   }

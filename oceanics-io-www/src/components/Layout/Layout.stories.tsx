@@ -18,15 +18,8 @@ export default {
   component: Layout
 } as Meta
 
-/**
- * Base case
- *
- */
 const Template: Story<ILayout> = (args) => <Layout {...args} />;
 
-/**
- * Default test case
- */
 export const Default = Template.bind({});
 Default.args = {
     ...PageData
