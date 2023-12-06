@@ -133,6 +133,7 @@ storybook: www
 	yarn workspace oceanics-io-www storybook dev \
 		--port ${STORYBOOK_PORT} \
 		--debug
+		--debug-webpack
 
 lint:
 	yarn eslint "**/*.{js,ts,json,tsx,jsx}"

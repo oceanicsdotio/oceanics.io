@@ -1,27 +1,17 @@
 import React from "react";
-import { Meta, Story } from "@storybook/react";
+import { Meta, StoryFn } from "@storybook/react";
 import Account from "./Account";
 import type { IAccount } from "./Account";
 
-/**
- * Storybook interface
- */
 export default {
   component: Account
 } as Meta;
 
-/**
- * Base version
- */
+const Template: StoryFn<IAccount> = (args) => <Account {...args} />;
 
-const Template: Story<IAccount> = (args) => <Account {...args} />;
-
-/**
- * Example
- */
 export const ServiceAccount = Template.bind({});
 ServiceAccount.args = {
-  server: "",
+  server: "http://localhost:9009",
   email: "",
   password: "",
   salt: ""

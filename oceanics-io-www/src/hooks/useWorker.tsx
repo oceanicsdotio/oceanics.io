@@ -18,40 +18,41 @@ const onMessageHandler = (
  * the worker with the source code loaded externally.
  * 
  * Webpack needs a static path at build time to make loadable chunks
- * from the worker script. There is probably a more clever way to do
- * this.
+ * from the worker script.
+ * 
+ * There is probably a more clever way to do this.
  */
 const useWorker = (name: string, createWorker: () => Worker) => {
 
     const listening = useRef<boolean>(false);
-    const ref = useRef<Worker|null>(null);
+    const worker = useRef<Worker|null>(null);
     const [messages, setMessages] = useState<string[]>([]);
     const listener = onMessageHandler(name, setMessages);
 
     // Init and start
     const start = () => {
-        ref.current = createWorker();
-        if (ref.current) {
-            ref.current.addEventListener("message", listener, { passive: true });
+        worker.current = createWorker();
+        if (worker.current) {
+            worker.current.addEventListener("message", listener, { passive: true });
             listening.current = true
-            ref.current.postMessage({ type: "status" });
+            worker.current.postMessage({ type: "status" });
         } else {
             console.error(`${name} worker not ready`);
         }
-        return ref.current
+        return worker.current
     }
 
     // Start if we get a worker on load. Clean up after.
     useEffect(() => {
         start()
         return () => {
-            if (listening.current) ref.current?.removeEventListener("message", listener);
-            if (ref.current) ref.current.terminate();
+            if (listening.current) worker.current?.removeEventListener("message", listener);
+            if (worker.current) worker.current.terminate();
         }
     }, [])
 
     return {
-        ref,
+        ref: worker,
         messages,
         start
     }

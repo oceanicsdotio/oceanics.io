@@ -48,12 +48,6 @@ const login = async ({
   server
 }: ILogin): Promise<string> => {
   const url = `${server}/api/auth`;
-  console.log("Worker", {
-    email,
-    password,
-    salt,
-    url
-  })
   const response = await fetch(url, {
     method: "GET",
     mode: "cors",
@@ -98,7 +92,6 @@ const handleMessage = async ({ data }: MessageEvent) => {
         data
       });
       return;
-
   }
 }
 
