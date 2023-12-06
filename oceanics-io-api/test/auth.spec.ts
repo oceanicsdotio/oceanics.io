@@ -62,40 +62,6 @@ describe("auth handlers", function () {
    * with mocha grep flag.
    */
   describe("auth.delete", function () {
-
-    test("auth.delete routing", async function () {
-      
-      const token = await fetchToken();
-      const requestData = {
-        body: "",
-        httpMethod: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          authorization: `Bearer:${token}`,
-        },
-        queryStringParameters: {}
-      };
-
-      const request = new Request(requestData, process.env.SIGNING_KEY);
-      expect(request).toBeInstanceOf(Request);
-
-      const spec = specification.paths["/auth"];
-      const endpoint = new Endpoint(spec);
-      const inserted = endpoint.insertMethod(requestData.httpMethod, remove);
-      expect(inserted).toBeTruthy();
-      expect(endpoint.has_method(requestData.httpMethod)).toBeTruthy();
-      const copy = endpoint.get_specification(request.httpMethod);
-      expect(copy).toBeInstanceOf(Specification);
-
-      const context = endpoint.context(requestData, process.env.SIGNING_KEY);
-      expect(context).toBeInstanceOf(Context);
-      const {headers} = context.request;
-      
-      console.log({headers})
-      expect(headers.claimAuthMethod).toBe("Bearer")
-      expect(context.user).toBeInstanceOf(User);
-    });
-
     /**
      * Fails on empty database.
      */

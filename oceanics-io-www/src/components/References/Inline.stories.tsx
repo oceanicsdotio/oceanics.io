@@ -4,20 +4,21 @@ import { Meta, Story } from '@storybook/react';
  * Base component
  */
 import Inline from "./Inline";
-import PageData from "./Example.json";
 import type { IInline } from './Inline';
 import GlobalStyle from '../Layout/GlobalStyle';
-import { Document } from './types';
+import { Document } from 'oceanics-io-www-wasm';
+
+
+import {documents} from "../../../public/dev/content.json";
+const [example] = documents.filter(({slug}) => slug === "a-small-place");
 
 /**
  * Storybook Interface
  */
 export default {
-    component: Inline,
-    title: 'References/Inline',
+    component: Inline
 } as Meta;
 
-const {documents: [{metadata: {references: [doc]}}]} = PageData;
 
 /**
  * Base case
@@ -32,8 +33,8 @@ const Template: Story<IInline> = (args) => (
 /**
  * Default test case
  */
-export const Example = Template.bind({});
-Example.args = {
-    document: new Document(doc),
+export const ASmallPlace = Template.bind({});
+ASmallPlace.args = {
+    document: new Document(example.metadata.references[0]),
     parenthesis: false
 };

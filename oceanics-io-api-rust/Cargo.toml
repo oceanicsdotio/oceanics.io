@@ -11,21 +11,21 @@ repository = "git+https://github.com/oceanicsdotio/oceanics.io.git"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-serde = { version = "1.0.192", features = ["derive"] }
-serde_derive = "1.0.192"
+serde = { version = "1.0.193", features = ["derive"] }
+serde_derive = "1.0.193"
 hex = "0.4.3"
-sha2 = "0.10.5"
+sha2 = "0.10.8"
 hmac = "0.12.1"
 jwt = "0.16.0"
-regex = "1"
-js-sys = "0.3.56"
-wasm-bindgen-futures = "0.4.29"
-serde_json = "1.0"
+regex = "1.10.2"
+js-sys = "0.3.66"
+wasm-bindgen-futures = "0.4.39"
+serde_json = "1.0.108"
 serde-wasm-bindgen = "0.6.1"
 console_error_panic_hook = "0.1.7"
-chrono = { version = "0.4.22", features = ["serde"] }
+chrono = { version = "0.4.31", features = ["serde"] }
 pbkdf2 = { version = "0.12.2", features = ["simple"] }
-rand_core = { version = "0.6", features = ["std"] }
+rand_core = { version = "0.6.4", features = ["std"] }
 
 # Transitive dependency requires feature:
 # https://docs.rs/getrandom/latest/getrandom/#webassembly-support
@@ -33,7 +33,7 @@ rand_core = { version = "0.6", features = ["std"] }
 features = ["js"]
 
 [dependencies.uuid]
-version = "1.1.2"
+version = "1.6.1"
 features = [
     "v4", # Lets you generate random UUIDs
     "fast-rng",  # Use a faster (but still sufficiently random) RNG
@@ -43,10 +43,6 @@ features = [
 [profile.release]
 opt-level = "s"
 
-[package.metadata.wasm-pack.profile.release]
-# see https://github.com/rustwasm/wasm-pack/issues/886#issuecomment-667669802
-wasm-opt = ["-Oz", "--enable-mutable-globals"]
-
 [dependencies.wasm-bindgen]
-version = "0.2.88"
+version = "0.2.89"
 features = ["serde-serialize"]

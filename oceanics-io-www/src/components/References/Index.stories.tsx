@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-empty-function */
 import React from 'react';
 import {Meta, Story} from "@storybook/react";
 
@@ -7,19 +6,16 @@ import {Meta, Story} from "@storybook/react";
  */
 import Index from "./Index";
 import type { DocumentIndexType } from './Index';
-import PageData from "./Example.json";
+import {documents} from "../../../public/dev/content.json";
 import GlobalStyle from '../Layout/GlobalStyle';
-import { Document } from './types';
+import { Document } from 'oceanics-io-www-wasm';
 
 /**
  * Storybook Interface
  */
 export default {
-    component: Index,
-    title: 'References/Index',
+    component: Index
 } as Meta;
-
-const {documents} = PageData;
 
 /**
  * Base case
@@ -34,15 +30,19 @@ const Template: Story<DocumentIndexType> = (args) => (
 /**
  * Default test case
  */
-export const Example = Template.bind({});
-Example.args = { 
+export const ReferenceIndex = Template.bind({});
+ReferenceIndex.args = { 
     documents: documents.map((doc)=>(new Document(doc))),
     query: {
-        increment:3,
-        items:10,
+        increment: 3,
+        items: 10,
         tag:"",
         reference:0,
     },
-    onClickMore: ()=>{},
-    onClickTag: ()=>()=>{}
+    onClickMore: ()=>{
+        console.log("Mock click more mouse event handler")
+    },
+    onClickTag: ()=>()=>{
+        console.log("Mock click tag mouse event handler")
+    }
 };

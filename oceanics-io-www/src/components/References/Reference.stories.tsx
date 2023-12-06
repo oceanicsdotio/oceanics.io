@@ -1,6 +1,3 @@
-/**
- * React and friends
- */
 import React from 'react';
 import type {Meta, Story} from '@storybook/react';
 
@@ -8,29 +5,27 @@ import type {Meta, Story} from '@storybook/react';
  * Base component
  */
 import Reference from "./Reference";
-import GlobalStyle from "../Layout/GlobalStyle"
-import type {IDocument} from "./types";
-import {Document} from "./types";
-import PageData from "./Example.json";
+import GlobalStyle from "../Layout/GlobalStyle";
+import {Document, DocumentSerializedType} from "oceanics-io-www-wasm";
+import {documents} from "../../../public/dev/content.json";
+const [example] = documents.filter(({slug}) => slug === "a-small-place");
 
 /**
  * Storybook Interface
  */
 export default {
-    component: Reference,
-    title: 'References/Reference',
+    component: Reference
 } as Meta;
-
-const {documents: [{metadata: {references: [doc]}}]} = PageData;
 
 /**
  * Base case
  */
-const Template: Story<IDocument> = (args) => {
+const Template: Story<DocumentSerializedType> = (props) => {
+    const document = new Document(props);
     return (
         <>
             <GlobalStyle/>
-            <Reference {...args} />
+            <Reference key={document.hash} document={document} />
         </>
     )
 };
@@ -38,7 +33,5 @@ const Template: Story<IDocument> = (args) => {
 /**
  * Default test case
  */
-export const Example = Template.bind({});
-Example.args = {
-    document: new Document(doc)
-};
+export const ASmallPlace = Template.bind({});
+[ASmallPlace.args] = example.metadata.references;

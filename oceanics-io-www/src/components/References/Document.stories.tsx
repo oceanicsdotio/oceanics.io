@@ -1,44 +1,49 @@
-/**
- * React and friends
- */
+/* eslint-disable @typescript-eslint/no-empty-function */
 import React from 'react';
-import {Meta, Story} from "@storybook/react";
+import type { ReactNode } from 'react';
+import type { Meta, Story } from "@storybook/react";
 
 /**
  * Base component
  */
 import Document from "./Document";
 import GlobalStyle from '../Layout/GlobalStyle';
-import PageData from "./Example.json";
-import type { IDocument } from './Document';
-import {Document as DocumentClass} from "./types"
+import {documents} from "../../../public/dev/content.json";
+import type { IDocumentContent } from './Document';
+import {Document as DocumentClass} from "oceanics-io-www-wasm"
 
 /**
  * Storybook Interface
  */
 export default {
-    component: Document,
-    title: 'References/Document',
+    component: Document
 } as Meta
 
 /**
  * Base case
  */
-const Template: Story<IDocument> = (args) => (
+const Template: Story<IDocumentContent&{children: ReactNode}> = (args) => (
     <>
         <GlobalStyle/>
-        <Document {...args} >
-            {"aa aaa a aaaa aaa aa aaa".repeat(100)}
-        </Document>
+        <Document {...args} />
     </>
 );
 
-const {documents: [doc]} = PageData;
+const TEST_STRING = "aa aaa a aaaa aaa aa aaa";
 
 /**
- * Default test case
+ * Test cases
  */
-export const Example = Template.bind({});
-Example.args = {
-    document: new DocumentClass(doc),
+export const TextContent = Template.bind({});
+TextContent.args = {
+    document: new DocumentClass(documents[0]),
+    onClickLabel: () => {},
+    children: TEST_STRING.repeat(100)
+};
+
+export const HtmlContent = Template.bind({});
+HtmlContent.args = {
+    document: new DocumentClass(documents[0]),
+    onClickLabel: () => {},
+    children: [...Array(5)].map(() => <p>{TEST_STRING}</p>)
 };

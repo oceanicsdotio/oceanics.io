@@ -98,7 +98,6 @@ OUT_DIR = build
 $(WWW)/$(OUT_DIR): node_modules $(WWW)/**/* $(WWW_CACHE)
 	yarn eslint "$(WWW)/src/**/*.{js,ts,json,tsx,jsx}"
 	yarn workspace $(WWW) run next build
-	yarn workspace $(WWW) run next export -o $(OUT_DIR)
 	touch -m $@
 
 # PHONY for convenience
@@ -130,7 +129,7 @@ node_modules: $(API_WASM) $(WWW_WASM) package.json **/package.json yarn.lock
 .: www
 
 # Serve the storybook docs in dev mode for manual testing
-start-storybook:
+start-storybook: www
 	yarn workspace oceanics-io-www start-storybook --port ${STORYBOOK_PORT}
 
 lint:
