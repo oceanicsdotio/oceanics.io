@@ -12,7 +12,7 @@ export interface IInline {
 /**
  Include inline links for references in markdown
  */
-export const Inline = ({published, authors, title, parenthesis=false}: IInline) => {
+export const Inline = () => {
     // const doc = new Document({metadata: {
     //     published: (new Date(published, 0, 1)).toISOString(),
     //     authors,
@@ -24,7 +24,7 @@ export const Inline = ({published, authors, title, parenthesis=false}: IInline) 
     //     pages: []
     // }});
     const doc = {hash: "", inline: () => ""}
-    return <a href={`#${doc.hash}`}>{doc.inline(parenthesis)}</a>;
+    return <a href={`#${doc.hash}`}>{doc.inline()}</a>;
 };
 
 export default Inline
