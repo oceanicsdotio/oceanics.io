@@ -130,7 +130,7 @@ node_modules: $(API_WASM) $(WWW_WASM) package.json **/package.json yarn.lock
 .: www
 
 # Serve the storybook docs in dev mode for manual testing
-start-storybook:
+start-storybook: www
 	yarn workspace oceanics-io-www start-storybook --port ${STORYBOOK_PORT}
 
 lint:
