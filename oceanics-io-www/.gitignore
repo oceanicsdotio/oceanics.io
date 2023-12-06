@@ -3,3 +3,4 @@ out/
 build/
 public/dev/*
 public/*.html
+next-env.d.ts
