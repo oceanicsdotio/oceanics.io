@@ -21,29 +21,25 @@
         "@netlify/functions": "^1.2.0",
         "ajv": "^8.10.0",
         "ajv-formats": "^2.1.1",
-        "apollo-server-lambda": "3.10.3",
-        "aws-sdk": "^2.1202.0",
+        "aws-sdk": "^2.1494.0",
         "js-yaml": "^4.1.0",
-        "jsonwebtoken": "^8.5.1",
-        "neo4j-driver": "^4.4.6",
-        "oceanics-io-api-wasm": "*",
-        "stripe": "^10.5.0"
+        "jsonwebtoken": "^9.0.2",
+        "neo4j-driver": "^5.14.0",
+        "oceanics-io-api-wasm": "*"
     },
     "devDependencies": {
-        "@babel/core": "^7.18.10",
-        "@babel/preset-env": "^7.18.10",
-        "@babel/preset-typescript": "^7.18.6",
-        "@types/btoa": "^1.2.3",
-        "@types/jest": "^29.0.0",
+        "@babel/core": "^7.23.3",
+        "@babel/preset-env": "^7.23.3",
+        "@babel/preset-typescript": "^7.23.3",
+        "@types/jest": "^29.5.11",
         "@types/jsonwebtoken": "^8.5.6",
         "babel-jest": "^29.7.0",
         "btoa": "^1.2.1",
         "gray-matter": "^4.0.3",
         "jest": "^29.7.0",
-        "netlify-lambda": "^2.0.16",
         "node-fetch": "^3.3.2",
-        "typescript": "^5.2.2",
-        "yaml": "^2.1.1"
+        "typescript": "^5.3.2",
+        "yaml": "^2.3.4"
     },
     "babel": {
         "presets": [

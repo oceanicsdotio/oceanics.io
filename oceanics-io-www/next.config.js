@@ -11,6 +11,9 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
  * @type {import('next').NextConfig}
  **/
 const config = {
+
+  output: "export",
+  distDir: "build",
   compiler: {
     // https://nextjs.org/docs/advanced-features/compiler#styled-components
     styledComponents: true,
