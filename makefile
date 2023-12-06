@@ -98,7 +98,6 @@ OUT_DIR = build
 $(WWW)/$(OUT_DIR): node_modules $(WWW)/**/* $(WWW_CACHE)
 	yarn eslint "$(WWW)/src/**/*.{js,ts,json,tsx,jsx}"
 	yarn workspace $(WWW) run next build
-	yarn workspace $(WWW) run next export -o $(OUT_DIR)
 	touch -m $@
 
 # PHONY for convenience
