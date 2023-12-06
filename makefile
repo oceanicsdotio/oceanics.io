@@ -129,8 +129,10 @@ node_modules: $(API_WASM) $(WWW_WASM) package.json **/package.json yarn.lock
 .: www
 
 # Serve the storybook docs in dev mode for manual testing
-start-storybook: www
-	yarn workspace oceanics-io-www start-storybook --port ${STORYBOOK_PORT}
+storybook: www
+	yarn workspace oceanics-io-www storybook dev \
+		--port ${STORYBOOK_PORT} \
+		--debug
 
 lint:
 	yarn eslint "**/*.{js,ts,json,tsx,jsx}"
@@ -147,7 +149,7 @@ clean: api-cleanup www-cleanup
 	rm -rf node_modules/
 
 # Non-file targets (aka commands)
-.PHONY: clean start-storybook dev
+.PHONY: clean storybook dev
 
 # Cleanup targets on error
 .DELETE_ON_ERROR:

@@ -1,5 +1,5 @@
 import React from "react";
-import { Meta, Story } from "@storybook/react";
+import { Meta, StoryFn } from "@storybook/react";
 
 const PDF_CDN_ROUTE =
   "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com/assets/johnson-etal-2019-sesf.pdf";
@@ -17,7 +17,7 @@ export default {
 } as Meta;
 
 
-const Template: Story<{file: string, pages: number}> = ({file, pages}) => {
+const Template: StoryFn<{file: string, pages: number}> = ({file, pages}) => {
   return (
     <>
       <GlobalStyle />
