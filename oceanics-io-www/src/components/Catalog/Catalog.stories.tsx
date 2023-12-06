@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 import React from 'react';
-import { Meta, Story} from "@storybook/react";
+import { Meta, StoryFn} from "@storybook/react";
 
 /**
  * Base component
@@ -17,7 +17,7 @@ export default {
 /**
  * Base case
  */
-const Template: Story<CatalogType> = (args) => <Catalog {...args} />;
+const Template: StoryFn<CatalogType> = (args) => <Catalog {...args} />;
 
 /**
  * Default test case
@@ -27,5 +27,5 @@ Default.args = {
     geojson: [],
     zoomLevel: 6,
     queue: [],
-    setQueue: () => {},
+    setQueue: () => {console.log("set-queue")},
 };

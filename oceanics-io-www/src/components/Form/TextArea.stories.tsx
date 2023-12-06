@@ -1,34 +1,19 @@
 import React from 'react';
-import {Meta, Story} from "@storybook/react";
-/**
- * Base component
- */
+import {Meta, StoryFn} from "@storybook/react";
 import TextArea from './TextArea';
 
-/**
- * Storybook config
- */
 export default {
   component: TextArea
 } as Meta;
 
-/**
- * Template to build cases from
- */
-const Template: Story = ({children}) => <TextArea>{children}</TextArea>;
+const Template: StoryFn = ({children}) => <TextArea>{children}</TextArea>;
 
-/**
- * Case with a short string
- */
-export const Short = Template.bind({});
-Short.args = {
+export const ShortString = Template.bind({});
+ShortString.args = {
     children: "Some text"
 };
 
-/**
- * Case with a long string
- */
-export const Long = Template.bind({});
-Long.args = {
+export const LongString = Template.bind({});
+ShortString.args = {
     children: "some text ".repeat(127)
 };

@@ -1,16 +1,6 @@
-/**
- * Component level styling
- */
 import styled from "styled-components";
-
-/**
- * Color palette
- */
 import {orange, grey, charcoal} from "../../palette";
 
-/**
- * Styled component
- */
 const ButtonWrapper = styled.button`
     background-color: ${charcoal};
     color: ${orange};
@@ -29,7 +19,4 @@ const ButtonWrapper = styled.button`
     -moz-appearance: none;  /*Removes default style Firefox*/
 `;
 
-/**
- * Export styled as default
- */
 export default ButtonWrapper

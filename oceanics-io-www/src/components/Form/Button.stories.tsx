@@ -1,27 +1,13 @@
-/* eslint-disable @typescript-eslint/no-empty-function */
 import React from 'react';
-import {Story, Meta} from "@storybook/react";
-
-/**
- * Base component, w wrapped `Input` component
- */
+import {StoryFn, Meta} from "@storybook/react";
 import Button from './Button';
 
-/**
- * Storybook interface
- */
 export default {
   component: Button
 } as Meta
 
-/**
- * Base version
- */
-const Template: Story = (args) => <Button {...args} />;
+const Template: StoryFn = (args) => <Button {...args} />;
 
-/**
- * Example
- */
 export const Example = Template.bind({});
 Example.args = {
     id: "some-button",

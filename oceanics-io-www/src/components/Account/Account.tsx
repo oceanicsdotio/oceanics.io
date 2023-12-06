@@ -37,7 +37,7 @@ const Account = ({
     const worker = useWorker("account", createWorker);
 
     const listener = ({ data }: { data: { data: unknown, type: string}}) => {
-      console.log("Outer listener")
+      console.log("Outer listener", data)
     }
 
     const onLogin = () => {

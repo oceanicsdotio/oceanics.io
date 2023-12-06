@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-empty-function */
 import React from 'react';
-import {Meta,Story} from "@storybook/react";
+import {Meta,StoryFn} from "@storybook/react";
 
 /**
  * Base component
@@ -20,7 +19,7 @@ export default {
  * @param {*} args 
  * @returns 
  */
-const Template: Story<LayerType> = (args) => <LayerCard {...args} />;
+const Template: StoryFn<LayerType> = (args) => <LayerCard {...args} />;
 
 /**
  * Default test case
@@ -36,5 +35,5 @@ Default.args = {
     zoomLevel: 10,
     attribution: "Oceanics.io",
     info: null,
-    onClick: ()=>{}
+    onClick: ()=>{console.log("on-click")}
 };

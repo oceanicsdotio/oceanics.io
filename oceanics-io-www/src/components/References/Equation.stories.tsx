@@ -1,16 +1,9 @@
 import React from "react";
-import { Meta, Story } from "@storybook/react";
-
-/**
- * Base component
- */
+import { Meta, StoryFn } from "@storybook/react";
 import Equation from "./Equation";
 import GlobalStyle from "../Layout/GlobalStyle";
 import type { IEquation } from "./Equation";
 
-/**
- * Storybook Interface
- */
 export default {
   component: Equation
 } as Meta;
@@ -18,7 +11,7 @@ export default {
 /**
  * Base case
  */
-const Template: Story<IEquation> = (args) => (
+const Template: StoryFn<IEquation> = (args) => (
   <>
     <GlobalStyle />
     <Equation {...args} />

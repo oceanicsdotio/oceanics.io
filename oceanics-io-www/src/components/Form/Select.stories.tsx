@@ -1,23 +1,12 @@
 import React from 'react';
-import {Meta,Story} from "@storybook/react";
-
-/**
- * Base component
- */
+import {Meta, StoryFn} from "@storybook/react";
 import Select, {SelectType} from './Select';
 
-/**
- * Storybook interface
- */
 export default {
   component: Select
 } as Meta;
 
-/**
- * Base case
- */
-const Template: Story<SelectType> = (args) => <Select {...args} />;
-
+const Template: StoryFn<SelectType> = (args) => <Select {...args} />;
 
 export const Example = Template.bind({});
 Example.args = {

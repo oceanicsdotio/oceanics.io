@@ -1,11 +1,6 @@
 import React from 'react';
-
-/**
- * Base component
- */
-import StyledViewport, {ApplicationType} from './Oceanside';
-
 import { StoryFn, Meta, Args } from '@storybook/react';
+import StyledViewport, {ApplicationType} from './Oceanside';
 
 type LoaderResult = {
     loaded: {

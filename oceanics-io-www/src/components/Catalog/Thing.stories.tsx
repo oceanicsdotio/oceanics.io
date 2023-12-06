@@ -1,28 +1,13 @@
-/**
- * React and friends
- */
 import React from 'react';
-import {Meta, Story} from "@storybook/react"
-/**
- * Base component
- */
+import {Meta, StoryFn} from "@storybook/react"
 import Thing, {ThingType} from './Thing';
 
-/**
- * Storybook definition
- */
 export default {
   component: Thing
 } as Meta;
 
-/**
- * Base case
- */
-const Template: Story<ThingType> = (args) => <Thing {...args} />;
+const Template: StoryFn<ThingType> = (args) => <Thing {...args} />;
 
-/**
- * Default test case
- */
 export const Default = Template.bind({});
 Default.args = {
     spec: {

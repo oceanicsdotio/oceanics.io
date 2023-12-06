@@ -1,28 +1,13 @@
-/**
- * React and friends
- */
 import React from 'react';
-import {Meta,Story} from "@storybook/react"
-/**
- * Base component
- */
+import {Meta, StoryFn} from "@storybook/react"
 import Location, {LocationType} from './Location';
 
-/**
- * Storybook Interface
- */
 export default {
     component: Location
 } as Meta;
 
-/**
- * Base case
- */
-const Template: Story<LocationType> = (args) => <Location {...args} />;
+const Template: StoryFn<LocationType> = (args) => <Location {...args} />;
 
-/**
- * Default test case
- */
 export const Default = Template.bind({});
 Default.args = {
     key: "a-location",
