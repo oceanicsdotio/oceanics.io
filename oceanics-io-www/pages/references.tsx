@@ -43,7 +43,7 @@ export default StyledRefPage;
  * Used only by NextJS.
  */
 export const getStaticProps: GetStaticProps = async () => {
-  const {documents} = await import("../public/dev/content.json");
+  const {content} = await import("../public/nodes.json");
   const getRefs = ({metadata}: {metadata: {references: unknown}}) => metadata.references;
   return {
     props: { 

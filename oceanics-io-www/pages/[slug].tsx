@@ -49,8 +49,8 @@ const ArticlePage = ({
 export default ArticlePage;
 
 export const getStaticProps: GetStaticProps = async (path: {params: {slug: string}}) => {
-    const {documents} = await import("../public/dev/content.json");
-    const [document] = documents.filter((props) => props.slug === path.params.slug);
+    const {content} = await import("../public/nodes.json");
+    const [document] = content.filter((props) => props.slug === path.params.slug);
     const source = await serialize(document.content??"", {
         mdxOptions: {
             rehypePlugins: [[rehypeHighlight, {}]]
@@ -71,9 +71,9 @@ export const getStaticProps: GetStaticProps = async (path: {params: {slug: strin
  * Used by NextJS in building
  */
 export const getStaticPaths: GetStaticPaths = async () => {
-    const {index} = await import("../public/dev/content.json");
+    const {content} = await import("../public/nodes.json");
     return {
-        paths: index,
+        paths: content,
         fallback: false
     }
 }

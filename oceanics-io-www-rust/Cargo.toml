@@ -25,7 +25,7 @@ opt-level = "s"
 
 [package.metadata.wasm-pack.profile.release]
 # see https://github.com/rustwasm/wasm-pack/issues/886#issuecomment-667669802
-wasm-opt = ["-Oz", "--enable-mutable-globals"]
+# wasm-opt = ["-Oz", "--enable-mutable-globals"]
 
 [dependencies.wasm-bindgen]
 version = "0.2.88"
