@@ -5,20 +5,33 @@ import React from 'react';
  */
 import StyledViewport, {ApplicationType} from './Oceanside';
 
-import { StoryFn, Meta } from '@storybook/react';
+import { StoryFn, Meta, Args } from '@storybook/react';
 
-import {icons} from "../../public/nodes.json";
+type LoaderResult = {
+    loaded: {
+        icons: {
+            sources: unknown[]
+            templates: unknown[]
+        }
+    }
+}
 
+const render = (
+    args: Args, 
+    { loaded: { icons } }: LoaderResult
+) => <StyledViewport {...args} icons={icons} />
 
-/**
- * Storybook Interface
- */
 export default {
-  component: StyledViewport
-} as Meta
+  component: StyledViewport,
+  render: render
+} as Meta<typeof StyledViewport>
 
-const Template: StoryFn<ApplicationType> = (args) => 
+const Template: StoryFn<ApplicationType> = (args, ) => 
     <StyledViewport {...args} />;
+
+Template.loaders = [
+    async () => await fetch('/nodes.json').then(x => x.json()),
+]
 
 export const Default = Template.bind({});
 Default.args = {
@@ -27,6 +40,5 @@ Default.args = {
         size: 6
     },
     datum: 0.7,
-    runtime: null,
-    icons
+    runtime: null
 };
