@@ -11,7 +11,7 @@ const Template: StoryFn<IAccount> = (args) => <Account {...args} />;
 
 export const ServiceAccount = Template.bind({});
 ServiceAccount.args = {
-  server: "http://localhost:9009",
+  server: "",
   email: "",
   password: "",
   salt: ""

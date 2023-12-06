@@ -29,8 +29,9 @@ const useWorker = (name: string, createWorker: () => Worker) => {
     const [messages, setMessages] = useState<string[]>([]);
     const listener = onMessageHandler(name, setMessages);
 
-    // Init and start
+    // Init and start only once
     const start = () => {
+        if (worker.current) return;
         worker.current = createWorker();
         if (worker.current) {
             worker.current.addEventListener("message", listener, { passive: true });
@@ -42,19 +43,24 @@ const useWorker = (name: string, createWorker: () => Worker) => {
         return worker.current
     }
 
-    // Start if we get a worker on load. Clean up after.
+    // Remove listener and kill worker.
+    const terminate = () => {
+        if (!worker.current) return;
+        if (listening.current) worker.current.removeEventListener("message", listener);
+        worker.current.terminate();
+    }
+
+    // Start if we get a worker on load.
     useEffect(() => {
-        start()
-        return () => {
-            if (listening.current) worker.current?.removeEventListener("message", listener);
-            if (worker.current) worker.current.terminate();
-        }
+        start();
+        return terminate;
     }, [])
 
     return {
         ref: worker,
         messages,
-        start
+        start,
+        terminate
     }
 }
 

@@ -15,8 +15,8 @@ const register = async ({
   password,
   apiKey,
   server
-}: IRegister): Promise<object> =>
-  fetch(`${server}/api/auth`, {
+}: IRegister): Promise<object> => {
+  const response = await fetch(`${server}/api/auth`, {
     method: "POST",
     mode: "cors",
     cache: "no-cache",
@@ -28,8 +28,10 @@ const register = async ({
       username: email,
       password
     })
-  })
-    .then(response => response.json());
+  });
+  return response.json();
+}
+  
 
 type ILogin = {
   email: string
@@ -60,7 +62,6 @@ const login = async ({
   const {token} = await response.json()
   return token;
 }
-  
 
 /**
  * Listener function

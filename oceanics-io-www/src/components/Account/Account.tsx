@@ -23,7 +23,6 @@ const createWorker = () =>
  * account data and render that. 
  * 
  * Otherwise, assume that they need to create an account.
- * 
  */
 const Account = ({
   server,
@@ -34,13 +33,14 @@ const Account = ({
     const [password] = useState(props.password??"");
     const [salt] = useState(props.salt??"");
 
+    
     const worker = useWorker("account", createWorker);
 
     const listener = ({ data }: { data: { data: unknown, type: string}}) => {
-      console.log(data)
+      console.log("Outer listener")
     }
 
-    const onClick = () => {
+    const onLogin = () => {
       if (!worker.ref.current) return;
       worker.ref.current.addEventListener("message", listener, { passive: true });
       worker.ref.current.postMessage({
@@ -59,7 +59,7 @@ const Account = ({
     }
 
     return (
-      <button onClick={onClick}>Login</button>
+      <button onClick={onLogin}>Login</button>
     )
 }
 
