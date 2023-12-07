@@ -21,7 +21,7 @@ const createWorker = () =>
  */
 const useMemoCache = ({documents}: IMemoCache) => {
 
-  const worker = useWorker("oceanside", createWorker);
+  const worker = useWorker(createWorker);
   const listener = useCallback(
     ({ type }: { type: string }) => {
       if (type !== "status") return;

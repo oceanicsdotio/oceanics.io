@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import useWorker from "../../hooks/useWorker";
+import type {Listener} from "../../hooks/useWorker";
 import Button from "../Form/Button";
 
 export interface IAccount {
@@ -7,11 +8,13 @@ export interface IAccount {
   email?: string
   password?: string
   salt?: string
+  apiKey?: string
 }
 
-// This has to be defined in global scope to force Webpack to bundle the script. 
+
+// Defined in global scope to force Webpack to bundle the script. 
 const createWorker = () => 
-  new Worker(new URL("../../workers/account.worker.ts", import.meta.url), { type: 'module' })
+  new Worker(new URL("./account.worker.ts", import.meta.url), { type: 'module' })
 
 /**
  * Account is a page-level component. 
@@ -29,57 +32,59 @@ const Account = ({
   server,
   ...props
 }: IAccount) => {
+    // Web worker makes requests in background
+    const worker = useWorker(createWorker);
 
     const [email] = useState(props.email??"");
     const [password] = useState(props.password??"");
     const [salt] = useState(props.salt??"");
+    const [apiKey] = useState(props.apiKey??"");
 
+    const listener: Listener = ({ data }) => {
+      switch (data.type) {
+        case "login":
+          console.log(data.type, data.data);
+          return;
+        case "register":
+          console.log(data.type, data.data);
+          return;
+        default:
+          console.log(data.type, data.data);
+          return;
+      }
+    }
+
+    useEffect(() => {
+      worker.listen(listener);
+    }, []);
+
+
+
+    const onLogin = worker.post({
+      type: "login",
+      data: {
+        email,
+        password,
+        salt,
+        server
+      },
+    });
+  
+    const onRegister = worker.post({
+      type: "register",
+      data: {
+        email,
+        password,
+        apiKey,
+        server
+      },
+    });
     
-    const worker = useWorker("account", createWorker);
-    const addListener = (listener: ()=>void) => {
-      if (!worker.ref.current) return;
-      worker.ref.current.addEventListener("message", listener, { passive: true });
-      worker.ref.current.postMessage({
-        type: "login",
-        data: {
-          email,
-          password,
-          salt,
-          server
-        },
-      });
-      return () => {
-        worker.ref.current?.removeEventListener("message", listener);
-        worker.ref.current?.terminate();
-      };
-    }
-
-    const listener = ({ data }: { data: { data: unknown, type: string}}) => {
-      console.log("Outer listener", data)
-    }
-
-    const onLogin = () => {
-      if (!worker.ref.current) return;
-      worker.ref.current.addEventListener("message", listener, { passive: true });
-      worker.ref.current.postMessage({
-        type: "login",
-        data: {
-          email,
-          password,
-          salt,
-          server
-        },
-      });
-      return () => {
-        worker.ref.current?.removeEventListener("message", listener);
-        worker.ref.current?.terminate();
-      };
-    }
-
     return (
       <>
-        <Button onClick={onLogin}>Login</Button>
-        <Button onClick={onRegister}>Register</Button>
+        <</>
+        <button onClick={onLogin}>Login</button>
+        <button onClick={onRegister}>Register</button>
       </>
     )
 }

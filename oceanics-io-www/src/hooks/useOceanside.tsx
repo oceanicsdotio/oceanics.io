@@ -92,7 +92,7 @@ export const useOceanside = ({
    * Dedicated background worker for number crunching and text
    * analysis.
    */
-  const worker = useWorker("oceanside", createWorker);
+  const worker = useWorker(createWorker);
 
   /**
    * When the runtime loads, create a pixel map

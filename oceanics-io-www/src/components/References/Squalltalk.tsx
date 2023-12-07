@@ -90,7 +90,7 @@ interface ISqualltalk {
  */
 const Squalltalk = ({ map, client, height = "500px" }: ISqualltalk) => {
   const { ref, map: mapBox } = useMapBox(map);
-  const worker = useWorker("bathysphere", createBathysphereWorker);
+  const worker = useWorker(createBathysphereWorker);
   const fs = useObjectStorage(OBJECT_STORAGE_URL, worker.ref);
 
   /**
