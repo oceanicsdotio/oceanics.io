@@ -1,8 +1,4 @@
-/**
- * React and friends
- */
 import React, {useState, useEffect, RefObject} from "react";
-
 import Placeholder from "./Placeholder"
 
 export type ApiType = {

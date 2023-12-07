@@ -19,7 +19,7 @@ export type SelectType = {
  * Generic form input component that converts to the
  * appropriate type
  */
-export const Select = ({
+const Select = ({
     id,
     className,
     name,

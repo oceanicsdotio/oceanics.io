@@ -1,13 +1,5 @@
 import React from "react";
-
-/**
- * Component level styling
- */
 import styled from "styled-components";
-
-/**
- * Runtime type checking
- */
 import PropTypes from "prop-types";
 
 /**

@@ -1,7 +1,8 @@
 import styled from "styled-components";
 import {orange, grey, charcoal} from "../../palette";
 
-const ButtonWrapper = styled.button`
+// Styled button
+const Button = styled.button`
     background-color: ${charcoal};
     color: ${orange};
     border: 1px dashed ${grey};
@@ -19,4 +20,4 @@ const ButtonWrapper = styled.button`
     -moz-appearance: none;  /*Removes default style Firefox*/
 `;
 
-export default ButtonWrapper
+export default Button

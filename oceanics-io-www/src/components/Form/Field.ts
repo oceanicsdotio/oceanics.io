@@ -1,7 +1,6 @@
 import styled from "styled-components";
 import {ghost, orange, pink, grey, charcoal} from "../../palette";
 
-
 export type FieldType = {
     name?: string;
     description?: string;

@@ -22,7 +22,7 @@ export type InputType = {
  * Generic form input component that converts to the
  * appropriate type
  */
-export const Input = ({
+const Input = ({
   id,
   type,
   className,

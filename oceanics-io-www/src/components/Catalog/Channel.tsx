@@ -1,16 +1,5 @@
-/**
- * React and friends.
- */
 import React, { MouseEventHandler } from "react";
-
-/**
- * Component-level styling.
- */
 import styled from "styled-components";
-
-/**
- * Predefined colors.
- */
 import { ghost, orange, grey } from "../../palette";
 
 

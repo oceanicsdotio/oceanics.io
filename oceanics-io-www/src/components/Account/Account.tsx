@@ -13,7 +13,10 @@ export interface IAccount {
 
 // Defined in global scope to force Webpack to bundle the script. 
 const createWorker = () => 
-  new Worker(new URL("./account.worker.ts", import.meta.url), { type: 'module' })
+  new Worker(
+    new URL("./Account.worker.ts", import.meta.url), 
+    { type: 'module' }
+  );
 
 /**
  * Account is a page-level component. 

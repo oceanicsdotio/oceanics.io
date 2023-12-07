@@ -1,10 +1,6 @@
 import React from "react";
 import styled from "styled-components";
 import Typography from "typography";
-
-/**
- * Color palette and typesetting
- */
 import { pink, ghost, orange } from "../../palette";
 
 import PageData from "./PageData.json";

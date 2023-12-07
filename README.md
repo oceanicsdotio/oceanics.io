@@ -52,7 +52,6 @@ The `oceanics-io-www` workspace contains the TypeScript web application.
 This is our main web page, powered by NextJS. Component-level development is supported by StorybookJS. Client side interaction is accomplished with React Hooks and browser APIs.
 
 You should not need to manually build this workspace; everything is handled from the top-level directory.
-### Workspaces
 
 ### API
 
@@ -115,22 +114,6 @@ The app can be started on the Expo server with `expo start`, which will publish 
 Additional information on the app frameworks here:
  - [Available Expo icons catalog](https://icons.expo.fyi/)
  - [React Navigation docs](https://reactnavigation.org/)
-
-The dependency graph of the navigation and screen components is:
-
-```mermaid
-graph TD
-    Decklist & MoreInfo & Bench 
-        -- import --> BottomTabNavigator;
-    Navigation 
-        -- import --> App;
-    BottomTabNavigator & DecklistSummary 
-        -- import --> Navigation;
-    NotFound 
-        -- import --> Navigation;
-    MoreInfo 
-        -. navigate .-> DecklistSummary;
-```
 
 ## Environment
 

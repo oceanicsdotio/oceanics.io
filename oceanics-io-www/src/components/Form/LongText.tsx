@@ -20,7 +20,7 @@ export type LongTextType = {
  * Generic form input component that converts to the
  * appropriate type
  */
-export const LongText = ({
+const LongText = ({
     id,
     name = null,
     ...props

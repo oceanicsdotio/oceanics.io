@@ -25,7 +25,7 @@ export type FormType = {
 /**
  * Base version of the form, without styled components. 
  */
-export const Form = ({ 
+const Form = ({ 
     id, 
     className,
     fields, 
