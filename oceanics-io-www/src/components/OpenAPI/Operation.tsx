@@ -1,19 +1,6 @@
 import React, {useState, Dispatch, SetStateAction} from "react";
-
-/**
- * Component level styling
- */
 import styled from "styled-components";
-
-/**
- * For components
- */
-// import Form from "../Form/Form";
 import Button from "../Form/Button";
-
-/**
- * Color palette
- */
 import {grey} from "../../palette";
 
 

@@ -1,11 +1,4 @@
-/**
- * Component level styling
- */
 import styled from "styled-components";
-
-/**
- * Color palette
- */
 import {ghost, orange, pink, grey, charcoal} from "../../palette";
 
 

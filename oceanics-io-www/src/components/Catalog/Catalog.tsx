@@ -1,11 +1,4 @@
-/**
- * react and friends
- */
 import React, {Dispatch, SetStateAction} from "react";
-
-/**
- * Component level styling
- */
 import styled from "styled-components";
 
 /**

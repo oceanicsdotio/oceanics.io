@@ -1,16 +1,6 @@
-/**
- * React and friends
- */
 import React, { MouseEventHandler } from "react";
-
-/**
- * Component level styling
- */
 import styled from "styled-components"
 
-/**
- * Compile time type checking
- */
 export type TrifoldType = {
     display: string,
     onClick: MouseEventHandler,

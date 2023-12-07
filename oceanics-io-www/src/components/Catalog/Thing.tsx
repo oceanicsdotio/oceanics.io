@@ -1,26 +1,9 @@
-/**
- * React and friends
- */
 import React, {useState} from "react";
-
-/**
- * Type checking
- */
 import PropTypes from "prop-types";
-
-/**
- * Component-level styling
- */
 import styled from "styled-components";
 
-/**
- * Color palette
- */
 import {ghost, grey} from "../../palette";
 
-/**
- * Type for Meter child components
- */
 export type MeterType = {
     name: string;
 }

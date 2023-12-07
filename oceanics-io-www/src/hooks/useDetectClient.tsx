@@ -1,6 +1,3 @@
-/**
- * React friends.
- */
 import { useEffect, useState } from "react";
 
 /**

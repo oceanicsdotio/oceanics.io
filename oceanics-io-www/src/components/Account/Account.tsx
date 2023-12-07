@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import useWorker from "../../hooks/useWorker";
 import type {Listener} from "../../hooks/useWorker";
-import Button from "../Form/Button";
 
 export interface IAccount {
   server: string
@@ -82,7 +81,6 @@ const Account = ({
     
     return (
       <>
-        <</>
         <button onClick={onLogin}>Login</button>
         <button onClick={onRegister}>Register</button>
       </>
