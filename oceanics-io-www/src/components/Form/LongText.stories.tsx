@@ -6,6 +6,9 @@ export default {
   component: LongText
 } as Meta;
 
+/**
+ * Long text is something
+ */
 const Template: StoryFn<LongTextType> = (args) => <LongText {...args} />;
 
 export const Example = Template.bind({});

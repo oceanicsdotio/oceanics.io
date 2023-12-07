@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import useWorker from "../../hooks/useWorker";
+import Button from "../Form/Button";
 
 export interface IAccount {
   server: string
@@ -35,6 +36,23 @@ const Account = ({
 
     
     const worker = useWorker("account", createWorker);
+    const addListener = (listener: ()=>void) => {
+      if (!worker.ref.current) return;
+      worker.ref.current.addEventListener("message", listener, { passive: true });
+      worker.ref.current.postMessage({
+        type: "login",
+        data: {
+          email,
+          password,
+          salt,
+          server
+        },
+      });
+      return () => {
+        worker.ref.current?.removeEventListener("message", listener);
+        worker.ref.current?.terminate();
+      };
+    }
 
     const listener = ({ data }: { data: { data: unknown, type: string}}) => {
       console.log("Outer listener", data)
@@ -59,7 +77,10 @@ const Account = ({
     }
 
     return (
-      <button onClick={onLogin}>Login</button>
+      <>
+        <Button onClick={onLogin}>Login</Button>
+        <Button onClick={onRegister}>Register</Button>
+      </>
     )
 }
 

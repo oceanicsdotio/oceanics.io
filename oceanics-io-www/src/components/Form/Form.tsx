@@ -1,14 +1,7 @@
 import React from "react";
 import type {ChangeEventHandler, MouseEventHandler} from "react";
-
-/**
- * Component level styling
- */
 import styled from "styled-components";
 
-/**
- * Input components
- */
 import Input from "./Input";
 import Button from "./Button";
 import Field from "./Field";
@@ -30,7 +23,7 @@ export type FormType = {
 };
 
 /**
- * 
+ * Base version of the form, without styled components. 
  */
 export const Form = ({ 
     id, 
@@ -54,7 +47,7 @@ export const Form = ({
 
 
 /**
- * Styled version of the Form component
+ * Styled version of the Form component. 
  */
 export const StyledForm = styled(Form)`
     display: inline-block;
@@ -62,4 +55,3 @@ export const StyledForm = styled(Form)`
 `;
 
 export default StyledForm;
-

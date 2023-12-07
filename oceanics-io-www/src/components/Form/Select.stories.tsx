@@ -10,7 +10,11 @@ const Template: StoryFn<SelectType> = (args) => <Select {...args} />;
 
 export const Example = Template.bind({});
 Example.args = {
-    options: ["a", "b", "c"],
+    options: [
+      "Things", 
+      "Sensors", 
+      "Locations"
+    ],
     id: "select-case",
     name: "your selection",
 };

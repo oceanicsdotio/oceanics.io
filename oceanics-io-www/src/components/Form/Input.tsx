@@ -1,22 +1,7 @@
-/**
- * React and friends
- */
 import React from "react";
 import type { ChangeEventHandler } from "react";
-
-/**
- * Component level styling
- */
 import styled from "styled-components";
-
-/**
- * Runtime input type checking
- */
 import PropTypes from "prop-types";
-
-/**
- * Color palette
- */
 import { red, orange, ghost, grey, charcoal } from "../../palette";
 
 /**

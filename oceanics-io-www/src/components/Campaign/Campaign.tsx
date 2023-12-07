@@ -1,16 +1,5 @@
-/**
- * React and friends.
- */
 import React, { useMemo } from "react";
-
-/**
- * Stylish stuff
- */
 import styled from "styled-components";
-
-/**
- * Predefined color palette
- */
 import { ghost } from "../../palette";
 
 /**

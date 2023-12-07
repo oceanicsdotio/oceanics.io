@@ -56,7 +56,7 @@ const login = async ({
     cache: "no-cache",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": `${email}:${password}:${salt}`
+      "Authorization": `${btoa(email)}:${btoa(password)}:${btoa(salt)}`
     }
   })
   const {token} = await response.json()

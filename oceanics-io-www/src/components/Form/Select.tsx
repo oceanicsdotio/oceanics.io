@@ -1,19 +1,7 @@
 import React from "react"
 import type { ChangeEventHandler } from "react"
-
-/**
- * Component level styling
- */
 import styled from "styled-components";
-
-/**
- * Runtime input type checking
- */
 import PropTypes from "prop-types";
-
-/**
- * Color palette
- */
 import { ghost, grey } from "../../palette";
 
 /**
@@ -31,7 +19,7 @@ export type SelectType = {
  * Generic form input component that converts to the
  * appropriate type
  */
-export const Input = ({
+export const Select = ({
     id,
     className,
     name,
@@ -52,7 +40,7 @@ export const Input = ({
 /**
  * Runtime type checking
  */
-Input.propTypes = {
+Select.propTypes = {
     id: PropTypes.string.isRequired,
     className: PropTypes.string,
     name: PropTypes.string,
@@ -63,7 +51,7 @@ Input.propTypes = {
  * The InputWrapper component is a styled version of the standard
  * Input
  */
-export const InputWrapper = styled(Input)`
+export const StyledSelect = styled(Select)`
     color: ${ghost};
     border: dashed 1px ${grey};
     border-radius: 5px;
@@ -88,4 +76,4 @@ export const InputWrapper = styled(Input)`
 /**
  * Default export is styled version
  */
-export default InputWrapper;
+export default StyledSelect;

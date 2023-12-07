@@ -1,19 +1,7 @@
 import React from "react"
 import type { ChangeEventHandler } from "react"
-
-/**
- * Component level styling
- */
 import styled from "styled-components"
-
-/**
- * Runtime input type checking
- */
 import PropTypes from "prop-types"
-
-/**
- * Color palette
- */
 import {orange, grey} from "../../palette"
 
 /**
@@ -58,35 +46,35 @@ LongText.propTypes = {
  */
 export const LongTextWrapper = styled(LongText)`
 
- border: dashed 1px ${grey};
- border-radius: 5px;
- padding: 0.25rem;
- margin: 0;
- margin-bottom: 0.5rem;
+    border: dashed 1px ${grey};
+    border-radius: 5px;
+    padding: 0.25rem;
+    margin: 0;
+    margin-bottom: 0.5rem;
 
- display: block;
- font-family: inherit;
- font-size: inherit;
- width: 100%;
- 
- box-sizing: border-box;
+    display: block;
+    font-family: inherit;
+    font-size: inherit;
+    width: 100%;
 
- cursor: ${({ type }) => type === "button" ? "pointer" : null};
- 
- -webkit-appearance: none;  /*Removes default chrome and safari style*/
- -moz-appearance: none;  /*Removes default style Firefox*/
+    box-sizing: border-box;
 
- ::after {
-     content: ${({ required }) => required ? "'(!)'" : null};
-     color: ${orange};
-     font-size: smaller;
- }
+    cursor: ${({ type }) => type === "button" ? "pointer" : null};
 
- & > * {
-     padding: 0;
-     margin: 0;
-     max-width: 100%;
- } 
+    -webkit-appearance: none;  /*Removes default chrome and safari style*/
+    -moz-appearance: none;  /*Removes default style Firefox*/
+
+    ::after {
+        content: ${({ required }) => required ? "'(!)'" : null};
+        color: ${orange};
+        font-size: smaller;
+    }
+
+    & > * {
+        padding: 0;
+        margin: 0;
+        max-width: 100%;
+    } 
 `;
 
 /**
