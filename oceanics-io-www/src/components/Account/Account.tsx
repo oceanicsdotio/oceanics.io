@@ -1,15 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import useWorker from "../../hooks/useWorker";
 import type {Listener} from "../../hooks/useWorker";
+import Form from "../Form/Form";
+import type { FieldType } from "../Form/Form";
 
 export interface IAccount {
-  server: string
-  email?: string
-  password?: string
-  salt?: string
-  apiKey?: string
+  server?: string
 }
-
 
 // Defined in global scope to force Webpack to bundle the script. 
 const createWorker = () => 
@@ -17,6 +14,32 @@ const createWorker = () =>
     new URL("./Account.worker.ts", import.meta.url), 
     { type: 'module' }
   );
+
+// Form fields for rendering and validation
+const fields: FieldType[] = [{
+  id: "email",
+  type: "email",
+  placeholder: "your email address",
+  required: true
+}, {
+  id: "password",
+  type: "password",
+  placeholder: "****************",
+  minLength: 16,
+  maxLength: 64,
+  required: true
+}, {
+  id: "apiKey",
+  type: "text",
+  placeholder: "your provider API key",
+  minLength: 16,
+  maxLength: 64,
+  required: true
+}, {
+  id: "type",
+  type: "submit",
+  value: "register"
+}];
 
 /**
  * Account is a page-level component. 
@@ -30,18 +53,11 @@ const createWorker = () =>
  * 
  * Otherwise, assume that they need to create an account.
  */
-const Account = ({
-  server,
-  ...props
-}: IAccount) => {
+const Account = ({ server="" }: IAccount) => {
     // Web worker makes requests in background
     const worker = useWorker(createWorker);
 
-    const [email] = useState(props.email??"");
-    const [password] = useState(props.password??"");
-    const [salt] = useState(props.salt??"");
-    const [apiKey] = useState(props.apiKey??"");
-
+    // Act on worker messages
     const listener: Listener = ({ data }) => {
       switch (data.type) {
         case "login":
@@ -50,43 +66,39 @@ const Account = ({
         case "register":
           console.log(data.type, data.data);
           return;
+        case "error":
+          console.error(data.type, data.data);
+          return
         default:
           console.log(data.type, data.data);
           return;
       }
     }
 
+    // Start listener
     useEffect(() => {
-      worker.listen(listener);
+      return worker.listen(listener);
     }, []);
-
-
-
-    const onLogin = worker.post({
-      type: "login",
-      data: {
-        email,
-        password,
-        salt,
-        server
-      },
-    });
   
-    const onRegister = worker.post({
-      type: "register",
-      data: {
-        email,
-        password,
-        apiKey,
-        server
-      },
-    });
-    
+    // Post to worker on form submit
+    const action = (data: FormData) => {
+      const {type, ...props} = Object.fromEntries(data.entries());
+      worker.post({
+        type: type.toString(),
+        data: {
+          server,
+          ...props
+        },
+      });
+    }
+  
     return (
-      <>
-        <button onClick={onLogin}>Login</button>
-        <button onClick={onRegister}>Register</button>
-      </>
+      <Form
+        id={"register"}
+        name={"create an account"}
+        fields={fields}
+        action={action}
+      />
     )
 }
 
