@@ -7,13 +7,10 @@ type Template = {
   value?: number
   limit?: number
 };
-type Node = { slug: string };
-type MessageData = [
-  Node[],
-  Template[],
-  number
-];
 type Lookup = {[key: string]: string};
+const ACTIONS = {
+  parseIconSet: "parseIconSet"
+}
 
 /**
  * Translate to normalized form used for fetching data. 
@@ -35,13 +32,13 @@ const templateToSource = (worldSize: number, lookup: Lookup) => ({
 /**
  * Generate the dataUrls for icon assets in the background.
  */
-const parseIconSet = (
-  nodes: { slug: string }[],
-  templates: Template[],
-  worldSize: number
-) => templates.map(templateToSource(worldSize, Object.fromEntries(
-  nodes.map(({ slug }) => [slug, slug])
-)));
+const fetchAndParse = async (src: string, size: number) => {
+  const response = await fetch(src);
+  const {icons}: {icons: {sources: {slug: string}[], templates: Template[]}} = await response.json();
+  const lookup = Object.fromEntries(icons.sources.map(({ slug }) => [slug, slug]));
+  const result = icons.templates.map(templateToSource(size, lookup));
+  return result;
+}
 
 /**
  * Event handler
@@ -54,10 +51,10 @@ const handleMessage = async ({ data }: MessageEvent) => {
         data: "ready",
       });
       return;
-    case "parseIconSet":
+    case ACTIONS.parseIconSet:
       ctx.postMessage({
-        type: "parseIconSet",
-        data: parseIconSet(...(data.data.slice(0, 3) as MessageData)),
+        type: ACTIONS.parseIconSet,
+        data: await fetchAndParse(data.data.src, data.data.size),
       });
       return;
     default:
