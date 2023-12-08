@@ -1,13 +1,14 @@
 import React from 'react';
 import {Meta, StoryFn} from "@storybook/react"
-import Index, {IndexType} from './Index';
+import Index from './Index';
+import type {ApplicationType} from "./Oceanside";
 import GlobalStyle from "../Layout/GlobalStyle";
 
 export default {
   component: Index
 } as Meta
 
-const Template: StoryFn<IndexType> = (args) => {
+const Template: StoryFn<ApplicationType> = (args) => {
   return (
     <>
       <GlobalStyle/>
@@ -18,7 +19,6 @@ const Template: StoryFn<IndexType> = (args) => {
 
 export const Default = Template.bind({});
 Default.args = {
-    pagingIncrement: 3,
     size: 96,
     grid: {
         size: 6

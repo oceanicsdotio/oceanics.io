@@ -15,14 +15,15 @@ const Index = (props: ApplicationType) => {
     
     const [isClient, setIsClient] = useState(false);
     useEffect(() => setIsClient(true), []);
-
-    const description: string[] = PageData.campaigns[1].description.split("\n");
     return (
         <>
             {isClient && <Oceanside {...props}/>}
             <div>
-                {description.map((x: string, index: number) => 
-                    <p key={`paragraph-${index}`}>{x}</p>)}
+                To protect our Ocean, you need to draw on community knowledge and make data-driven decisions for the future.
+                
+                We analyze public and proprietary assets and serve you synthetic and aggregate products to manage risk and conflict.
+                
+                Whether watching your surf or seeking opportunity.
             </div>
         </>
     )

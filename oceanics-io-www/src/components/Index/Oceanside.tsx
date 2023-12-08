@@ -1,10 +1,9 @@
-"use client"
-
 import React from "react";
 import styled from "styled-components";
 import useOceanside from "../../hooks/useOceanside";
 import useWasmRuntime from "../../hooks/useWasmRuntime";
 import type { IWorldType } from "../../hooks/useOceanside";
+
 
 /**
  * Class names for ref in CSS-in-JSS.
