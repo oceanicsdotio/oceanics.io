@@ -9,7 +9,14 @@ export default {
 
 const Template: StoryFn<IAccount> = (args) => <Account {...args} />;
 
-export const ServiceAccount = Template.bind({});
-ServiceAccount.args = {
-  server: ""
+export const Register = Template.bind({});
+Register.args = {
+  exists: false,
+  name: "create an account"
+};
+
+export const Login = Template.bind({});
+Login.args = {
+  exists: true,
+  name: "login"
 };

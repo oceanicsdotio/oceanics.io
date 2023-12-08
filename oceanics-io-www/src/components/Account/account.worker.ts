@@ -1,10 +1,14 @@
 const ctx: Worker = self as unknown as Worker;
 
-type IRegister = {
-  email: string;
-  password: string;
-  apiKey: string;
-  server: string;
+interface Auth {
+  email: string
+  password: string
+}
+interface IRegister extends Auth {
+  apiKey: string
+}
+interface ILogin extends Auth {
+  salt: string
 }
 
 /**
@@ -13,10 +17,9 @@ type IRegister = {
 const register = async ({
   email,
   password,
-  apiKey,
-  server
+  apiKey
 }: IRegister): Promise<object> => {
-  const response = await fetch(`${server}/api/auth`, {
+  const response = await fetch(`/api/auth`, {
     method: "POST",
     mode: "cors",
     cache: "no-cache",
@@ -31,14 +34,6 @@ const register = async ({
   });
   return response.json();
 }
-  
-
-type ILogin = {
-  email: string
-  password: string
-  server: string
-  salt: string
-}
 
 /**
  * Login and get a JWT.
@@ -46,10 +41,9 @@ type ILogin = {
 const login = async ({
   email,
   password,
-  salt,
-  server
+  salt
 }: ILogin): Promise<string> => {
-  const url = `${server}/api/auth`;
+  const url = `/api/auth`;
   const response = await fetch(url, {
     method: "GET",
     mode: "cors",
@@ -102,4 +96,5 @@ const handleMessage = async ({ data }: MessageEvent) => {
  */
 ctx.addEventListener("message", handleMessage)
 
+// Trick into being a module and for testing
 export { handleMessage }
