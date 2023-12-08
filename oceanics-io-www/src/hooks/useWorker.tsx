@@ -52,7 +52,7 @@ const useWorker = (createWorker: () => Worker) => {
     }
 
     // Shorthand to send a message, or silently fail
-    const post = (message: {type: string, data: any}) => () => {
+    const post = (message: {type: string, data: any}) => {
         worker.current?.postMessage(message);
     }
 

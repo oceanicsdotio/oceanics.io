@@ -6,21 +6,22 @@ import {ghost, orange, grey, charcoal, red} from "../../palette";
 /**
  * Compile time type checking
  */
-type FieldType = {
+export type FieldType = {
     name?: string
     description?: string
     id: string
     type: "password"|"email"|"text"|"number"|"submit"
     disabled?: true
-    minlength?: number
-    maxlength?: number
+    minLength?: number
+    maxLength?: number
     min?: number
     max?: number
     step?: number
     pattern?: string
     placeholder?: string
-    readonly?: boolean,
+    readonly?: boolean
     required?: true
+    value?: any
 };
 type SelectType = {
     id: string;
@@ -47,7 +48,7 @@ export type FormType = {
     fields?: FieldType[]
     enums?: SelectType[]
     actions?: ActionType[]
-    onChange: ChangeEventHandler<HTMLInputElement>
+    onChange?: ChangeEventHandler<HTMLInputElement>
 };
 
 

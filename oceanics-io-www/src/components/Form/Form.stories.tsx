@@ -19,7 +19,7 @@ const Template: StoryFn<FormType> = (args) => {
   return (
     <>
       <GlobalStyle/>
-      <Form {...args} action={action} />
+      <Form {...args} action={action} onChange={onChange}/>
     </>
   );
 }
@@ -37,13 +37,13 @@ Register.args = {
       id: "password",
       type: "password",
       placeholder: "****************",
-      pattern: `.{16,64}`,
+      minLength: 16,
+      maxLength: 64,
       required: true
     },{
       id: "register",
       type: "submit"
-    }],
-    onChange
+    }]
 };
 
 export const DataInput = Template.bind({});
@@ -52,17 +52,24 @@ DataInput.args = {
     name: "update parameters",
     fields: [{
       id: "name",
-      type: "text"
+      type: "text",
+      required: true,
+      minLength: 8,
+      maxLength: 64,
+      placeholder: "name of the thing"
     }, {
       id: "description",
-      type: "text"
+      type: "text",
+      maxLength: 128,
+      placeholder: "a short description"
     },{
       id: "distance",
       type: "number",
-      step: 0.1
+      step: 0.1,
+      min: 0,
+      max: 100
     },{
       id: "post",
       type: "submit"
-    }],
-    onChange
+    }]
 };
