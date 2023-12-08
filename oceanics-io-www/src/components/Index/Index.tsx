@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useState, useEffect} from "react";
 import Oceanside from "./Oceanside";
 import type {ApplicationType} from "./Oceanside";
 import styled from "styled-components";
@@ -12,10 +12,14 @@ export {PageData as PageData}
  * Optionally use query parameters and hash anchor to filter content. 
  */
 const Index = (props: ApplicationType) => {
+    
+    const [isClient, setIsClient] = useState(false);
+    useEffect(() => setIsClient(true), []);
+
     const description: string[] = PageData.campaigns[1].description.split("\n");
     return (
         <>
-            <Oceanside {...props}/>
+            {isClient && <Oceanside {...props}/>}
             <div>
                 {description.map((x: string, index: number) => 
                     <p key={`paragraph-${index}`}>{x}</p>)}

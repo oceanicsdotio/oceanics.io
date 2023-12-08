@@ -31,6 +31,7 @@ const config = {
 
     // From https://github.com/rustwasm/wasm-pack/issues/835#issuecomment-772591665
     config.experiments = {
+      ...config.experiments,
       syncWebAssembly: true,
     };
 
