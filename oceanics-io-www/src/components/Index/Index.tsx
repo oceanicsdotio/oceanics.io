@@ -6,17 +6,12 @@ import { ghost } from "../../palette";
 import * as PageData from "./PageData.json";
 export {PageData as PageData}
 
-export interface IndexType extends ApplicationType {
-    documents: any[]
-    pagingIncrement: number
-}
-
 /**
  * Base component for web landing page.
  * 
  * Optionally use query parameters and hash anchor to filter content. 
  */
-const Index = (props: IndexType) => {
+const Index = (props: ApplicationType) => {
     const description: string[] = PageData.campaigns[1].description.split("\n");
     return (
         <>

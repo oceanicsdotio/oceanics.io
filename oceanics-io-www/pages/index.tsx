@@ -1,8 +1,7 @@
 import React from "react";
 import type { GetStaticProps } from "next";
 
-import Campaign, { PageData } from "../src/components/Index/Campaign";
-import Oceanside from "../src/components/Index/Oceanside";
+import Index from "../src/components/Index/Index";
 import type {ApplicationType} from "../src/components/Index/Oceanside";
 
 /**
@@ -14,16 +13,8 @@ const IndexPage = ({
     ...props
 }: {
     documents: any[];
-    pagingIncrement: number;
 } & ApplicationType) => {
-    return (
-        <>
-            <Oceanside {...props}/>
-            <Campaign
-                campaign={PageData.campaigns[1]}
-            />
-        </>
-    )
+    return <Index {...props}/>
 };
 
 export default IndexPage;
