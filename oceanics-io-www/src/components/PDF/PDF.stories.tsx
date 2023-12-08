@@ -17,27 +17,22 @@ export default {
 } as Meta;
 
 
-const Template: StoryFn<{file: string, pages: number}> = ({file, pages}) => {
+const Template: StoryFn<{file: string, page: number}> = (args) => {
   return (
     <>
       <GlobalStyle />
-      <PDF file={file} pages={pages} />
+      <PDF {...args} />
     </>
   );
 };
 
 export const SinglePage = Template.bind({});
 SinglePage.args = {
-  pages: 1,
-  file: PDF_CDN_ROUTE
-};
-export const MultiPage = Template.bind({});
-MultiPage.args = {
-  pages: 4,
+  page: 1,
   file: PDF_CDN_ROUTE
 };
 export const NotFound = Template.bind({});
-SinglePage.args = {
-  pages: 1,
+NotFound.args = {
+  page: 1,
   file: DOES_NOT_EXIST
 };
