@@ -1,6 +1,5 @@
 import React, {useState, Dispatch, SetStateAction} from "react";
 import styled from "styled-components";
-import Button from "../Form/Button";
 import {grey} from "../../palette";
 
 
@@ -63,9 +62,9 @@ const Operation = ({
         <h3>{"Description"}</h3>
         {description.map((text, ii) => <p key={`${path+method}-text-${ii}`}>{text}</p>)}
         <Collapse hidden={hidden}>
-            <Button id={"toggle-upload"} onClick={toggle(setUpload)}>
+            <button id={"toggle-upload"} onClick={toggle(setUpload)}>
                 {`Use a ${upload ? "form" : "file"} instead`}
-            </Button>
+            </button>
           
 
             {/* <Form
