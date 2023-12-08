@@ -1,7 +1,7 @@
 import React from "react";
 import { Meta, StoryFn } from "@storybook/react";
 import Equation from "./Equation";
-import GlobalStyle from "../Layout/GlobalStyle";
+import GlobalStyle from "../GlobalStyle";
 import type { IEquation } from "./Equation";
 
 export default {

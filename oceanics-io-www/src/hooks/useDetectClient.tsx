@@ -54,7 +54,7 @@ export default (): ClientData => {
     const [ location, setLocation ] = useState<OptionalLocation>(null);
 
     /**
-     * Get the user location and 
+     * Get the user location 
      */
     useEffect(() => {
         if (!navigator.geolocation) return;

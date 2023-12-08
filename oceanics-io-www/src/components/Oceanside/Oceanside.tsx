@@ -1,8 +1,8 @@
 import React from "react";
 import styled from "styled-components";
-import useOceanside from "../../hooks/useOceanside";
+import useOceanside from "./useOceanside";
 import useWasmRuntime from "../../hooks/useWasmRuntime";
-import type { IWorldType } from "../../hooks/useOceanside";
+import type { IWorldType } from "./useOceanside";
 
 
 /**
@@ -54,7 +54,7 @@ const StyledViewport = styled(Oceanside)`
   }
   & .${BOARD} {
     width: 100%;
-    height: 512px;
+    height: 700px;
   }
 `;
 

@@ -7,7 +7,7 @@ const DOES_NOT_EXIST =
   "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com/assets/not-a-file.pdf";
 
 import PDF from "./PDF";
-import GlobalStyle from "../Layout/GlobalStyle";
+import GlobalStyle from "../GlobalStyle";
 
 /**
  * Storybook interface

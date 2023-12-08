@@ -1,10 +1,9 @@
 import { createGlobalStyle } from "styled-components";
 import Typography from "typography";
-import { ghost, orange } from "../../palette";
+import { ghost, orange } from "../palette";
 const {rhythm} = new Typography({});
 
 const GlobalStyle = createGlobalStyle`
-
 
     margin-left: auto;
     margin-right: auto;
@@ -13,6 +12,14 @@ const GlobalStyle = createGlobalStyle`
 
     * {
         box-sizing: border-box;
+    }
+
+    & p {
+        font-size: larger;
+    }
+    & h2 {
+        color: ${ghost};
+        font-size: x-large;
     }
 
     body, html{

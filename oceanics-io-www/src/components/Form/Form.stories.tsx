@@ -2,7 +2,7 @@ import React from 'react';
 import type {ChangeEvent} from 'react';
 import {Meta, StoryFn} from "@storybook/react"
 import Form, {FormType} from './Form';
-import GlobalStyle from "../Layout/GlobalStyle";
+import GlobalStyle from "../GlobalStyle";
 
 export default {
   component: Form

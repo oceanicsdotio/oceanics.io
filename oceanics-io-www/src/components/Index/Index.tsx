@@ -1,10 +1,8 @@
 import React, {useState, useEffect} from "react";
-import Oceanside from "./Oceanside";
-import type {ApplicationType} from "./Oceanside";
+import Oceanside from "../Oceanside/Oceanside";
+import type {ApplicationType} from "../Oceanside/Oceanside";
 import styled from "styled-components";
 import { ghost } from "../../palette";
-import * as PageData from "./PageData.json";
-export {PageData as PageData}
 
 /**
  * Base component for web landing page.
@@ -12,9 +10,10 @@ export {PageData as PageData}
  * Optionally use query parameters and hash anchor to filter content. 
  */
 const Index = (props: ApplicationType) => {
-    
+    // Prevent pre-render by NextJS
     const [isClient, setIsClient] = useState(false);
     useEffect(() => setIsClient(true), []);
+
     return (
         <>
             {isClient && <Oceanside {...props}/>}

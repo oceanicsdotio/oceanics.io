@@ -2,7 +2,7 @@ import type { AppProps } from "next/app"
 import Head from "next/head";
 
 import React from "react";
-import GlobalStyle from "../src/components/Layout/GlobalStyle";
+import GlobalStyle from "../src/components/GlobalStyle";
 
 export interface ILayout {
     className?: string,
@@ -22,21 +22,21 @@ export interface ILayout {
 function MyApp({ Component, pageProps }: AppProps) {
     return (
         <>
-        <GlobalStyle />
-        <Head>
-            <title>{`${"Oceanics.io"} | ${pageProps.title}`}</title>
-            <meta name="description" content={pageProps.description} />
-         </Head>
-        <nav>
-            <a href={"/"}>{pageProps.title}</a>  
-        </nav>
-        <main>
-            <Component {...pageProps} />
-        </main>
-        <footer>
-            We love you! Regardless of identity, ability, or belief. That being said, when you arrive we track your user agent, actions, and location. These data are never transmitted, but may be stored on your device. We manage risk with encryption and best security practices.
-        </footer>
-    </>
+            <GlobalStyle />
+            <Head>
+                <title>{`${"Oceanics.io"} | ${pageProps.title}`}</title>
+                <meta name="description" content={pageProps.description} />
+            </Head>
+            <nav>
+                <a href={"/"}>{pageProps.title}</a>  
+            </nav>
+            <main>
+                <Component {...pageProps} />
+            </main>
+            <footer>
+                We love you! Regardless of identity, ability, or belief. That being said, when you arrive we track your user agent, actions, and location. These data are never transmitted, but may be stored on your device. We manage risk with encryption and best security practices.
+            </footer>
+        </>
     )
 }
 

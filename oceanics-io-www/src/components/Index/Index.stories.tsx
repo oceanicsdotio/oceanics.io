@@ -1,8 +1,8 @@
 import React from 'react';
 import {Meta, StoryFn} from "@storybook/react"
 import Index from './Index';
-import type {ApplicationType} from "./Oceanside";
-import GlobalStyle from "../Layout/GlobalStyle";
+import type {ApplicationType} from "../Oceanside/Oceanside";
+import GlobalStyle from "../GlobalStyle";
 
 export default {
   component: Index

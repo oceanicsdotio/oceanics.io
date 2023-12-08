@@ -1,9 +1,9 @@
 import { useEffect, useState, useReducer, useRef } from "react";
 import type { KeyboardEvent } from "react";
-import { lichen, orange } from "../palette";
-import useWasmRuntime from "./useWasmRuntime";
+import { lichen, orange } from "../../palette";
+import useWasmRuntime from "../../hooks/useWasmRuntime";
 import type {PrismCursor} from "oceanics-io-www-wasm";
-import {rotatePath, inverse, eventCoordinates} from "../shared";
+import {rotatePath, inverse, eventCoordinates} from "../../shared";
 import { emitKeypressEvents } from "readline";
 
 
