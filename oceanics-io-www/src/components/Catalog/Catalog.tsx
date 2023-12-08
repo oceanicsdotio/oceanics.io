@@ -1,10 +1,6 @@
 import React, {Dispatch, SetStateAction} from "react";
 import styled from "styled-components";
-
-/**
- * Geospatial data layers
- */
-import LayerCard, {LayerType} from "./Channel";
+import LayerCard, {LayerType} from "../Channel/Channel";
 
 export type CatalogType = {
     geojson: LayerType[];
@@ -88,9 +84,6 @@ const Catalog = ({geojson, className, zoomLevel, setQueue}: CatalogType) => {
     </div> 
 }; 
 
-/**
- * Styled version of the Single day calendar view
- */
 const StyledCatalog = styled(Catalog)`
 
     width: auto;

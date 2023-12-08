@@ -1,6 +1,3 @@
-/**
- * React friends.
- */
 import { useEffect, useState, useRef } from "react";
 import type { MutableRefObject } from "react";
 

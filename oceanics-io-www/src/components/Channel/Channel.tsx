@@ -16,7 +16,7 @@ const Emoji = styled.a`
     text-decoration: none !important;
 `;
 
-export type LayerType = {
+export type ChannelType = {
     id: string,
     url: string,
     type: string,
@@ -30,12 +30,7 @@ export type LayerType = {
     onClick: MouseEventHandler
 }
  
-/**
- * This is the per item element for layers
- * @param {*} param0 
- * @returns 
- */
-export const LayerCard = ({
+const Channel = ({
     id,
     url,
     type,
@@ -46,27 +41,31 @@ export const LayerCard = ({
     attribution="Oceanics.io",
     info=null,
     onClick,
-}: LayerType) => {
+}: ChannelType) => {
 
-    return <div className={className}>
-        <div>
-            <h2>{id.replace(/-/g, ' ')}</h2>
-            <a href={info||""}>{attribution}</a>
+    return (
+        <div className={className}>
+            <div>
+                <h2>{id.replace(/-/g, ' ')}</h2>
+                <a href={info||""}>{attribution}</a>
+            </div>
+            <p>{`${type} with <${component}/> popup`}</p>
+            <div className={"zoom"}>
+                {`zoom: ${minzoom}-${maxzoom}`}
+            </div>
+            <div>
+                {onClick && <Emoji onClick={onClick}>{"🏝️"}</Emoji>}
+                {url && <Emoji href={url}>{"💻"}</Emoji>}
+            </div>  
         </div>
-        <p>{`${type} with <${component}/> popup`}</p>
-        <div className={"zoom"}>{`zoom: ${minzoom}-${maxzoom}`}</div>
-        <div>
-            {onClick && <Emoji onClick={onClick}>{"🏝️"}</Emoji>}
-            {url && <Emoji href={url}>{"💻"}</Emoji>}
-        </div>  
-    </div>
+    )
 }
 
 
 /**
  * Styled Version
  */
-const StyledLayerCard = styled(LayerCard)`
+const StyledChannel = styled(Channel)`
 
     margin-top: 10px;
     border-top: 1px dashed ${ghost};
@@ -106,7 +105,4 @@ const StyledLayerCard = styled(LayerCard)`
     }
 `;
 
-/**
- * Default export is the styled version
- */
-export default StyledLayerCard;
+export default StyledChannel;

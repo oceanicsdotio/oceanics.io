@@ -9,7 +9,7 @@ import type { Memo } from "oceanics-io-www-wasm"
 import { Reference } from "./Reference";
 const REFERENCE = "reference";
 
-export interface IDocumentContent {
+interface IDocumentContent {
   onClickLabel: (label: string) => MouseEventHandler<HTMLAnchorElement>
   className: string
   document: Memo

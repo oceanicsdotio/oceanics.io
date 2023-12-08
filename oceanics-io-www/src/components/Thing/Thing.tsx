@@ -4,19 +4,18 @@ import styled from "styled-components";
 
 import {ghost, grey} from "../../palette";
 
-export type MeterType = {
-    name: string;
+type MeterType = {
+    name: string
+    min: number
+    max: number
+    value: number
 }
-
-/**
- * TypeScript definition for inputs
- */
 export type ThingType = {
     className?: string,
     spec: {
         name: string,
         properties: {
-            meters: MeterType[]
+            meters?: MeterType[]
         }
     }
 }
@@ -47,18 +46,17 @@ export const Thing = ({
      */
     const [meters,] = useState(_meters);
 
-    /**
-     * Wrapped component block
-     */
-    return <div className={className}>
-        {name}
-        {meters.map(({name: _name, ...props}: MeterType) => 
-            <div key={`${name} ${_name}`}>
-                <label>{_name}</label>
-                <meter {...props}/>
-            </div>
-        )}
-    </div>
+    return (
+        <div className={className}>
+            {name}
+            {meters.map(({name: _name, ...props}: MeterType) => 
+                <div key={`${name} ${_name}`}>
+                    <label>{_name}</label>
+                    <meter {...props}/>
+                </div>
+            )}
+        </div>
+    )
 };
 
 /**
@@ -82,31 +80,35 @@ Thing.propTypes = {
  * Styled version of the Thing Component
  */
 export const StyledThing = styled(Thing)`
+
     display: block;
-    border-bottom: 0.07rem solid ${ghost};
+    border: 1px solid ${ghost};
     padding: 1rem;
     margin: 0;
     color: ${ghost};
     box-sizing: border-box;
 
-    font-size: large;
+    font-size: inherit;
     font-family: inherit;
 
-    & > div {
-        & > meter {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 100%;
-            height: 1rem;
-            border: 0.1rem solid;
-            background: none;
-            color: ${grey};
-            box-sizing: border-box;   
-        }
+    & label {
+        display: block;
+        font-size: smaller;
+        font-style: italic;
+        text-transform: lowercase;
+        margin: 0;
+    }
+
+    & meter {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100%;
+        height: 1rem;
+        border: 0.1rem solid;
+        background: none;
+        color: ${grey};
+        box-sizing: border-box;   
     }
 `;
 
-/**
- * Styled version is default export
- */
 export default StyledThing;

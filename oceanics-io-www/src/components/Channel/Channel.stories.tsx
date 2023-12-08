@@ -1,25 +1,20 @@
 import React from 'react';
 import {Meta,StoryFn} from "@storybook/react";
+import Channel, { ChannelType } from './Channel';
+import GlobalStyle from '../GlobalStyle';
 
-/**
- * Base component
- */
-import LayerCard, { LayerType } from './Channel';
-
-/**
- * Storybook Interface
- */
 export default {
-    component: LayerCard
+    component: Channel
 } as Meta;
 
-/**
- * Base case
- * 
- * @param {*} args 
- * @returns 
- */
-const Template: StoryFn<LayerType> = (args) => <LayerCard {...args} />;
+const Template: StoryFn<ChannelType> = (args) => {
+    return (
+        <>
+            <GlobalStyle/>
+            <Channel {...args} />
+        </>
+    );
+}
 
 /**
  * Default test case

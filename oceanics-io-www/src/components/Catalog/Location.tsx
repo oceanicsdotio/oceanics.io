@@ -1,21 +1,6 @@
-/**
- * React and friends
- */
 import React, { useState, useEffect } from "react";
-
-/**
- * Component level styling
- */
 import styled from "styled-components";
-
-/**
- * Runtime input type checking
- */
 import PropTypes from "prop-types";
-
-/**
- * Color palette
- */
 import { orange, ghost, shadow } from "../../palette";
 
 /**

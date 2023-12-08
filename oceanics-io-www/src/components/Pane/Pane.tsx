@@ -1,15 +1,12 @@
 import React from "react";
 import type {ReactNode} from "react";
 import styled from "styled-components";
-import {columnSize} from "./utils";
+import { ghost } from "../../palette";
 
-type PaneType = {
-    row: number;
-    column: number;
-    expand: boolean;
-    mobile: boolean;
-    className?: string;
-    children: ReactNode;
+export interface PaneType {
+    column: number
+    className?: string
+    children: ReactNode
 }
 
 /**
@@ -26,18 +23,16 @@ const Pane = ({
     )
 };
 
-
 /**
 * The div component holds one or more Mini-Apps.
 */
 const StyledPane = styled(Pane)`
-    display: ${({ expand, mobile, column }) => !columnSize({ expand, mobile, column }) ? "none" : undefined};
-    grid-row: ${({ row }) => row + 1};
+    grid-row: 1;
     grid-column: ${({ column }) => column + 1};
+    border: 1px dotted ${ghost};
     overflow-x: hidden;
-    overflow-y: ${({ column }) => column !== 1 ? undefined : "hidden"};
-    min-height: 100vh;
-    bottom: 0;
+    overflow-y: hidden;
+    height: 100vh;
  `;
 
 export default StyledPane;

@@ -24,17 +24,12 @@ export const TileInformation = ({
     tile: {
         publicURL, 
         anchorHash,
-        //queryString
     }, 
     className,
-    //search
 }: TileType) => {
     return <div className={className}>
         <a id={anchorHash}/>
-        <img 
-            src={publicURL}
-            //onClick={() => {navigateWithQuery(`/app`, search, {agent: queryString})}}
-        />
+        <img src={publicURL}/>
     </div>
 };
 
