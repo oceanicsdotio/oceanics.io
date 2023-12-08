@@ -1,9 +1,9 @@
 import React from "react";
 import type { GetStaticProps } from "next";
 
-import Campaign, { PageData } from "../src/components/Campaign/Campaign";
-import Oceanside from "../src/components/Oceanside";
-import type {ApplicationType} from "../src/components/Oceanside";
+import Campaign, { PageData } from "../src/components/Index/Campaign";
+import Oceanside from "../src/components/Index/Oceanside";
+import type {ApplicationType} from "../src/components/Index/Oceanside";
 
 /**
  * Base component for web landing page.

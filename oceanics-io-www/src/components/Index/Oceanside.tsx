@@ -1,21 +1,14 @@
 import React from "react";
 import styled from "styled-components";
-
-/**
- * Hooks for render loop and interaction.
- */
-import useOceanside from "../hooks/useOceanside";
-import useWasmRuntime from "../hooks/useWasmRuntime";
-import type { IWorldType } from "../hooks/useOceanside";
+import useOceanside from "../../hooks/useOceanside";
+import useWasmRuntime from "../../hooks/useWasmRuntime";
+import type { IWorldType } from "../../hooks/useOceanside";
 
 /**
  * Class names for ref in CSS-in-JSS.
  */
 const [WORLD, BOARD] = ["world", "board"];
 
-/**
- * Page-specific typings.
- */
 export interface ApplicationType extends IWorldType {
   className?: string
 }
@@ -24,9 +17,7 @@ export interface ApplicationType extends IWorldType {
  * Page component rendered by NextJS.
  */
 const Oceanside = ({ className, ...props }: ApplicationType) => {
-  /**
-   * Main thread web assembly runtime.
-   */
+  // Main thread web assembly runtime.
   const {runtime} = useWasmRuntime();
 
   /**

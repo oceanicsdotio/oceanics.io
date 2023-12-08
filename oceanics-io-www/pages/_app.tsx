@@ -1,7 +1,5 @@
 import type { AppProps } from "next/app"
 import Layout from "../src/components/Layout/Layout";
-
-import "mapbox-gl/dist/mapbox-gl.css";
 import Head from "next/head";
 
 function MyApp({ Component, pageProps }: AppProps) {
