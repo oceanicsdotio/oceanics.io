@@ -1,81 +1,91 @@
-import React, {useState, useEffect, RefObject} from "react";
-import Placeholder from "./Placeholder"
+import React, { useState, useEffect } from "react";
+import useWorker from "../../hooks/useWorker";
+import styled from "styled-components";
+import Markdown from "react-markdown";
 
-export type ApiType = {
-    specUrl: string;
-    service: string;
-    scrapeIndexPage: boolean;
-    worker?: RefObject<unknown>;
-}
+export type OpenApiType = {
+  // Network source for the JSON specification
+  src: string
+};
+type SpecType = {
+  info: {
+    title: string
+    version: string
+    description: string
+  }
+  paths: object[]
+};
+
+// Defined in global scope to force Webpack to bundle the script.
+const createWorker = () =>
+  new Worker(new URL("./OpenApi.worker.ts", import.meta.url), {
+    type: "module",
+  });
 
 /**
- * The OpenApi component uses an OpenAPI specification for a 
+ * The OpenApi component uses an OpenAPI specification for a
  * simulation backend, and uses it to construct an interface.
  */
-const OpenApi = ({
-    specUrl,
-    // service,
-    scrapeIndexPage,
-    worker,
-}: ApiType) => {
-     /**
-      * OpenAPI spec structure will be populated asynchronously once the 
-      * web worker is available.
-      */
-     const [apiSpec, setApiSpec] = useState<object|null>(null); 
- 
-     /**
-      * Hook loads and parses an OpenAPI spec from a URL using a
-      * background worker.
-      * 
-      * It runs once when the component loads. This allows
-      * the specification to be available before derived data
-      * is calculated for UI. 
-      */
-     useEffect(() => {
-         // @ts-ignore
-         if (worker.current) worker.current.load(specUrl).then(setApiSpec);
-     },[ worker ]);
- 
-     /**
-      * API routes to convert to forms.
-      */
-     const [, setMethods ] = useState([]);
- 
-     /**
-      * Extract and flatten the paths and methods.
-      */
-     useEffect(() => {
-         if (!apiSpec) return;
-         // @ts-ignore
-         worker.current.flattenSpecOperations(apiSpec.paths).then(setMethods);
-     }, [ apiSpec ]);
- 
-     /**
-      * Collections are scraped from available implementations
-      * of the API listed in the `servers` block.
-      */
-     const [, setIndex ] = useState<object|null>(null);
-     
-     /**
-      * Hook gets any existing configurations from the API 
-      * and formats them for display in React State.
-      * 
-      * The request url is inferred
-      * from the `servers` object of the OpenAPI specification.
-      */
-     useEffect(() => {
-         if (!scrapeIndexPage ||  !apiSpec) return;
-         // @ts-ignore
-        worker.current.scrapeIndexPage(apiSpec.servers[0].url).then(setIndex);    
-     }, [ apiSpec ]);
-    
-    return (
-        <div> 
-            <Placeholder>{`Loading ${specUrl}...`}</Placeholder> 
-            <Placeholder>{`Loading methods...`}</Placeholder>
-        </div>
-    )
-}
+const OpenApi = ({ src }: OpenApiType) => {
+  // Web worker makes requests in background
+  const worker = useWorker(createWorker);
+  
+  /**
+   * OpenAPI spec structure will be populated asynchronously once the
+   * web worker is available.
+   */
+  const [apiSpec, setApiSpec] = useState<SpecType | null>(null);
 
-export default OpenApi;
+  // Start listening to worker messages
+  useEffect(() => {
+    return worker.listen(({ data }) => {
+      switch (data.type) {
+        case "status":
+          console.log(data.type, data.data);
+          return;
+        case "load":
+          setApiSpec(data.data as SpecType);
+          return;
+        case "error":
+          console.error(data.type, data.data);
+          return;
+        default:
+          return;
+      }
+    });
+  }, []);
+
+  /**
+   * Hook loads and parses an OpenAPI spec from a URL using a
+   * background worker.
+   *
+   * It runs once when the component loads. This allows
+   * the specification to be available before derived data
+   * is calculated for UI.
+   */
+  useEffect(() => {
+    worker.post({
+        type: "load",
+        data: {src}
+    });
+  }, []);
+
+  const [title, setTitle] = useState(`Loading ${src}...`);
+  const [description, setDescription] = useState(`Loading methods...`);
+  useEffect(()=>{
+    if (!apiSpec) return;
+    console.log(apiSpec.paths);
+    setTitle(`${apiSpec.info.title}, v${apiSpec.info.version}`);
+    setDescription(apiSpec.info.description);
+  }, [apiSpec]);
+
+  return (
+    <div>
+        <h1>{title}</h1>
+        <Markdown>{description}</Markdown>
+    </div>
+  );
+};
+
+const StyledOpenApi = styled(OpenApi)``;
+export default StyledOpenApi;

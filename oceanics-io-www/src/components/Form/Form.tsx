@@ -3,13 +3,12 @@ import type {ChangeEventHandler, MouseEventHandler} from "react";
 import styled from "styled-components";
 import {ghost, orange, grey, charcoal, red} from "../../palette";
 
-/**
- * Compile time type checking
- */
-export type FieldType = {
+export interface InputType {
     name?: string
     description?: string
     id: string
+}
+export interface FieldType extends InputType {
     type: "password"|"email"|"text"|"number"|"submit"
     disabled?: true
     minLength?: number
@@ -22,13 +21,11 @@ export type FieldType = {
     readonly?: boolean
     required?: true
     value?: any
-};
-type SelectType = {
-    id: string;
-    name?: string;
-    options: string[];
-    onChange: ChangeEventHandler<HTMLSelectElement>;
-};
+}
+export interface SelectType extends InputType{
+    options: string[]
+    onChange?: ChangeEventHandler<HTMLSelectElement>
+}
 type ActionType = {
     id: string
     disabled?: boolean

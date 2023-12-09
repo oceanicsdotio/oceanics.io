@@ -82,6 +82,10 @@ WWW_CACHE = $(WWW)/public/nodes.json
 $(WWW_CACHE): $(TEST_CACHE)
 	cp $< $@
 
+WWW_API_JSON = $(WWW)/public/bathysphere.json
+$(WWW_API_JSON): $(API_JSON)
+	cp $< $@
+
 # Build OpenAPI docs page from specification
 DOCS_PAGE = $(WWW)/public/bathysphere.html
 $(DOCS_PAGE): $(SPEC_FILE) node_modules
@@ -95,7 +99,7 @@ $(WWW)/$(STORYBOOK): $(WWW)/src/**/* $(WWW)/.storybook/*
 
 # Compile WWW
 OUT_DIR = build
-$(WWW)/$(OUT_DIR): node_modules $(WWW)/**/* $(WWW_CACHE)
+$(WWW)/$(OUT_DIR): node_modules $(WWW)/**/* $(WWW_CACHE) $(WWW_API_JSON)
 	yarn eslint "$(WWW)/src/**/*.{js,ts,json,tsx,jsx}"
 	yarn workspace $(WWW) run next build
 	touch -m $@
