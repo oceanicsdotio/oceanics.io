@@ -22,14 +22,45 @@ const Template: StoryFn<ChannelType> = (args) => {
  */
 export const Default = Template.bind({});
 Default.args = {
-    id: "a-layer",
-    url: "example.com",
+    id: "places-we-visited",
+    url: "www.oceanics.io",
     type: "point",
-    component: "a component",
+    component: "Location",
     maxzoom: 20,
     minzoom: 1,
     zoomLevel: 10,
-    attribution: "Oceanics.io",
-    info: null,
+    info: "www.oceanics.io",
+    onClick: ()=>{console.log("on-click")}
+};
+
+/**
+ * Only visible in narrow zoom window
+ */
+export const Localized = Template.bind({});
+Localized.args = {
+    id: "favorite-dive-spots",
+    url: "www.oceanics.io",
+    type: "point",
+    component: "Location",
+    maxzoom: 8,
+    minzoom: 3,
+    zoomLevel: 5,
+    info: "www.oceanics.io",
+    onClick: ()=>{console.log("on-click")}
+};
+
+/**
+ * Not currently in view
+ */
+export const OutOfView = Template.bind({});
+OutOfView.args = {
+    id: "favorite-dive-spots",
+    url: "www.oceanics.io",
+    type: "point",
+    component: "Location",
+    maxzoom: 8,
+    minzoom: 3,
+    zoomLevel: 10,
+    info: "www.oceanics.io",
     onClick: ()=>{console.log("on-click")}
 };

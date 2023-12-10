@@ -1,32 +1,50 @@
 import React, { MouseEventHandler } from "react";
 import styled from "styled-components";
-import { ghost, orange, grey } from "../../palette";
+import { ghost, orange, grey, charcoal } from "../../palette";
 
-
-/**
- * Emoji button, cuz it unicode baby. 
- */
-const Emoji = styled.a`
-    margin: 5px;
-    padding: 2px;
-    border-radius:50%;
-    background-color: ${grey};
-    cursor: pointer;
-    border: 1px dashed ${ghost};
-    text-decoration: none !important;
-`;
 
 export type ChannelType = {
     id: string,
+    /**
+     * Source of the raw data
+     */
     url: string,
+    /**
+     * The type of the data. 
+     */
     type: string,
+    /**
+     * Hook for Styled Components to apply CSS
+     */
     className: string,
+    /**
+     * How to render the data
+     */
     component: string,
+    /**
+     * Does not appear when zoomed in further
+     */
     maxzoom: number,
+    /**
+     * Not rendered when zoomed further out
+     */
     minzoom: number,
+    /**
+     * Current zoom level passed in for rendering in cards
+     * whether or not the channel is currently visible
+     */
     zoomLevel: number,
+    /**
+     * The provider and legal owner of the data
+     */
     attribution: string,
-    info: string | null,
+    /**
+     * URL that links to the provider
+     */
+    info: string,
+    /**
+     * Render and update view on click
+     */
     onClick: MouseEventHandler
 }
 
@@ -41,65 +59,82 @@ export const Channel = ({
     component="default",
     maxzoom=21,
     minzoom=1,
-    attribution="Oceanics.io",
-    info=null,
+    zoomLevel,
+    info="",
     onClick,
 }: ChannelType) => {
+    const inView = (zoomLevel >= minzoom) && (zoomLevel <= maxzoom)
     return (
         <div className={className}>
-            <div>
-                <h2>{id.replace(/-/g, ' ')}</h2>
-                <a href={info||""}>{attribution}</a>
-            </div>
-            <p>{`${type} with <${component}/> popup`}</p>
+            <h1>{id.replace(/-/g, ' ')}</h1>
             <div className={"zoom"}>
-                {`zoom: ${minzoom}-${maxzoom}`}
+                <div className={inView?"visible":""}>
+                    {`zoom: ${minzoom}-${maxzoom}`}
+                </div>
             </div>
-            <div>
-                {onClick && <Emoji onClick={onClick}>{"🏝️"}</Emoji>}
-                {url && <Emoji href={url}>{"💻"}</Emoji>}
-            </div>  
+            <a onClick={onClick}>{`< render as ${type} with <${component}/> popup`}</a>
+            <a href={url}>{"> download"}</a>
+            <a href={info}>{"> attribution"}</a>
         </div>
     )
 }
 
-const StyledChannel = styled(Channel)`
+export const StyledChannel = styled(Channel)`
 
-    margin-top: 10px;
-    border-top: 1px dashed ${ghost};
+    display: block;
+    max-width: 65ch;
+    padding: 1rem;
+    margin: 0;
+    border-radius: 5px;
+    background-color: ${charcoal};
+    color: ${ghost};
 
-    & > #zoom {
-        height: auto;
-        border: 1px solid;
-        margin-bottom: 15px;
-        margin-left: ${({minzoom})=>(minzoom-1)/22*100}%;
-        margin-right: ${({maxzoom})=>(22-maxzoom)/22*100}%;
-        color: ${({ minzoom, maxzoom, zoomLevel}) => (zoomLevel === null || (zoomLevel >= minzoom) && (zoomLevel <= maxzoom)) ? orange : grey};
+    & * {
+        font-size: inherit;
+        font-family: inherit;
     }
 
-    & p {
-        color: ${grey};
-        margin: 0;
+    & h1 {
+        text-transform: capitalize;
         font-size: larger;
+    }
+
+    & label {
+        font-style: italic;
     }
 
     & a {
         color: ${orange};
+        display: block;
         cursor: pointer;
-        font-family: inherit;
-        display: inline-block;
-        text-decoration: none;  
-        text-decoration: underline dashed; 
+        margin: 0.5rem 0;
+        text-decoration: underline;
     }
 
-    & h2 {
-        text-transform: capitalize;
-        display: inline;
-        font-size: larger;
-        font-family: inherit;
-        width: fit-content;
+    & .zoom {
+        color: ${orange};
+        border-radius: 5px;
+        background-color: black;
         padding: 0;
-        margin-right: 10px;
+        border: 1px solid ${grey};
+
+        & div {
+            height: auto;
+            border: 1px solid;
+            border-radius: 5px;
+            text-align: center;
+            background-color: ${charcoal};
+            padding: 3px;
+            margin-left: ${({minzoom})=>(minzoom-1)/22*100}%;
+            margin-right: ${({maxzoom})=>(22-maxzoom)/22*100}%;
+            color: ${({ minzoom, maxzoom, zoomLevel}) => 
+                (zoomLevel === null || (zoomLevel >= minzoom) && (zoomLevel <= maxzoom)) ? ghost : grey
+            };
+        }
+
+        & .visible {
+            color: ${ghost}
+        }
     }
 `;
 
