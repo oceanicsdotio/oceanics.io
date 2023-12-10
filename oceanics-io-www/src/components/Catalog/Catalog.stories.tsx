@@ -2,6 +2,7 @@ import React from 'react';
 import { Meta, StoryFn} from "@storybook/react";
 import StyledCatalog, {Catalog} from './Catalog';
 import type { CatalogType } from './Catalog';
+import GlobalStyle from '../GlobalStyle';
 
 
 export default {
@@ -10,12 +11,13 @@ export default {
 
 const Template: StoryFn<CatalogType> = (args) => {
     return (<>
+        <GlobalStyle/>
         <StyledCatalog {...args} />;
     </>)
 }
 
 /**
- * Default test case
+ * An example test case
  */
 export const Default = Template.bind({});
 Default.args = {

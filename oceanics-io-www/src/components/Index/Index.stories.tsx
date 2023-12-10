@@ -17,6 +17,9 @@ const Template: StoryFn<ApplicationType> = (args) => {
   );
 }
 
+/**
+ * How our homepage should look
+ */
 export const Default = Template.bind({});
 Default.args = {
     size: 96,

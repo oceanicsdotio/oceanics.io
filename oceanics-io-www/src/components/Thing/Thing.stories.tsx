@@ -15,6 +15,9 @@ const Template: StoryFn<ThingType> = (args) => {
     </>)
 };
 
+/**
+ * An example thing, with a possible meter level.
+ */
 export const Default = Template.bind({});
 Default.args = {
     spec: {

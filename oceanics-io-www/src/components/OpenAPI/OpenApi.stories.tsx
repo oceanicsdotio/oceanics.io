@@ -17,6 +17,9 @@ const Template: StoryFn<IOpenApi> = (args) => {
     )
 };
 
+/**
+ * Render interactions forms for the Bathysphere API
+ */
 export const Default = Template.bind({});
 Default.args = {
     src: "/bathysphere.json"

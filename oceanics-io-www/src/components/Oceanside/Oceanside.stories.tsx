@@ -17,6 +17,9 @@ const Template: StoryFn<ApplicationType> = (args) => {
     )
 }
 
+/**
+ * Show an 8x8 animated grid.
+ */
 export const EightSquare = Template.bind({});
 EightSquare.args = {
     view: {
@@ -31,6 +34,9 @@ EightSquare.args = {
     src: "/nodes.json"
 };
 
+/**
+ * Show an 12x12 animated grid, to demonstrate performance limits.
+ */
 export const TwelveSquare = Template.bind({});
 TwelveSquare.args = {
     view: {

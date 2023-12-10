@@ -9,13 +9,9 @@ const DOES_NOT_EXIST =
 import PDF from "./PDF";
 import GlobalStyle from "../GlobalStyle";
 
-/**
- * Storybook interface
- */
 export default {
   component: PDF
 } as Meta;
-
 
 const Template: StoryFn<{file: string, page: number}> = (args) => {
   return (
@@ -26,11 +22,18 @@ const Template: StoryFn<{file: string, page: number}> = (args) => {
   );
 };
 
+/**
+ * Load a known document from our CDN and render the first page.
+ */
 export const SinglePage = Template.bind({});
 SinglePage.args = {
   page: 1,
   file: PDF_CDN_ROUTE
 };
+
+/**
+ * Attempt to load a document that does not exist. 
+ */
 export const NotFound = Template.bind({});
 NotFound.args = {
   page: 1,

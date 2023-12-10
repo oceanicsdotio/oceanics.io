@@ -39,5 +39,8 @@ const Template: StoryFn<PaneType> = () => {
     )
 };
 
+/**
+ * Show two panes
+ */
 export const Default = Template.bind({});
 Default.args = {};

@@ -16,6 +16,9 @@ const Template: StoryFn<LocationType> = (args) => {
     )
 };
 
+/**
+ * An example of rendering Location
+ */
 export const Default = Template.bind({});
 Default.args = {
     key: "a-location",

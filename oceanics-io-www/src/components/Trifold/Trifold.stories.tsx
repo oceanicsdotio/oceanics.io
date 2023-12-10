@@ -18,7 +18,9 @@ const Template: StoryFn<TrifoldType> = (args: TrifoldType) => {
   )
 }
   
-
+/**
+ * An orange SVG icon
+ */
 export const Default = Template.bind({});
 Default.args = {
   display: undefined,

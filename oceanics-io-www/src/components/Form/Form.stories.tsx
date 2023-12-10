@@ -25,6 +25,9 @@ const Template: StoryFn<FormType> = (args) => {
   );
 }
 
+/**
+ * Mock up a registration form without handlers
+ */
 export const Register = Template.bind({});
 Register.args = {
     id: "register",
@@ -47,6 +50,9 @@ Register.args = {
     }]
 };
 
+/**
+ * Mock up a data entry form with text and numbers. 
+ */
 export const DataInput = Template.bind({});
 DataInput.args = {
     id: "post",

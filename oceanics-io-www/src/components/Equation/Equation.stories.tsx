@@ -18,7 +18,9 @@ const Template: StoryFn<IEquation> = (args) => (
   </>
 );
 
-
+/**
+ * Using the over function
+ */
 export const PartialDerivative = Template.bind({});
 PartialDerivative.args = {
   text: "{\\delta x}\\over{\\delta t}",

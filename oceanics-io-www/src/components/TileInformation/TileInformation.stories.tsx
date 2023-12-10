@@ -19,7 +19,9 @@ const Template: StoryFn<TileType> = (args) => {
   )
 }
   
-
+/**
+ * Example metadata card. 
+ */
 export const Default = Template.bind({});
 Default.args = {
     tile: {
