@@ -1,45 +1,32 @@
 import SwaggerParser from "@apidevtools/swagger-parser";
-import type {SelectType, FieldType} from "../Form/Form";
+import type {FieldType} from "../Form/Form";
+import type {Property, Method, Methods, Paths, Operation, Properties} from "./useOpenApi";
 const ctx: Worker = self as unknown as Worker;
 
-interface Property {
-    readOnly?: boolean
-    items?: Property
-    properties?: object
-    type: string
-    description: string
-    enum?: string[]
-}
-interface NamedProperty extends Property {
-    name: string
-    id: string
-}
-type Properties = { 
-    [index: string]: Property
-}
-type Parameter = {
-    name: string
-    schema: Property
-}
-type Operation = {
-    parameters?: Parameter[];
-    requestBody?: {
-        content: {
-            ["application/json"]: {
-                schema: {
-                    properties?: Properties
-                    oneOf?: Properties[]
-                }
-            }
-        };
-    }
-}
-
-const nameToId = (name: string) => 
+// Human readable name for body props and parameters
+const nameToId = (name: string): string => 
     name.split(/([A-Z][a-z]+)/)
         .filter((word: string) => word)
         .map((word: string) => word.toLowerCase())
         .join(" ")
+
+// HTMLInputElement type
+type InputTypes = "text" | "number" | "email" | "password";
+const convertType = (name: string, {type}: Property): InputTypes | null => {
+    if (name === "password") {
+        return "password"
+    } else if (name === "email") {
+        return "email"
+    }
+    if (type === "string") {
+        return "text"
+    } else if (type === "integer") {
+        return "number"
+    } else {
+        console.warn(`Skipping unsupported type:`, type);
+        return null
+    }
+};
 
 /**
  * Convert from OpenAPI schema standard to JSX Form component properties
@@ -47,63 +34,53 @@ const nameToId = (name: string) =>
  * Split a camelCase string on capitalized words and rejoin them
  * as a lower case phrase separated by spaces. 
  */
-const schemaToInput = ({
-    name,
-    schema,
-    ...props
-}: Parameter): SelectType | FieldType => {
+const propertyToInput = (
+    [name, property]: [string, Property]
+): FieldType | null  => {
     const id = nameToId(name);
-    if (typeof schema.enum !== "undefined") {
-        return { id, options: schema.enum, ...props }
-    } else if (schema.type === "string") {
-        return { id, type: "text", ...props }
-    } else if (schema.type === "integer") {
-        return { id, type: "number", ...props }
-    } else {
-        throw Error(`${id}, ${schema.type}`)
-    }
-};
-
-// descend through array to try and find properties
-const formatPaths = ([k, v]: [string, Property]): NamedProperty[] => {
-    let value = v;
-    while (typeof value.items !== "undefined") value = value.items;
-    if (typeof value.properties !== "undefined") {
-        return Object.entries(value.properties).map(([k, v]) => Object({ name: k, id: nameToId(k), ...v }));
-    } else {
-        return [{ name: k, id: nameToId(k), ...value }]
-    }
+    const type = convertType(name, property);
+    if (type) return { ...property, id, type, }
+    console.warn(`Skipping unknown format (${id}):`, property);
+    return null
 }
 
-const parse = ({
-    path, 
-    method, 
-    operation: {
+// Transform from an OpenApi path into an Operation
+const methodToOperation = (
+    path: string,
+    method: string,
+    {
         requestBody,
         parameters=[],
-        ...schema
-    }
-}: {
-    path: string
-    method: string
-    operation: Operation
-}) => {
-    let body: SelectType|FieldType[] = [];
+        ...props
+    }: Method
+): Operation => {
+    let body: FieldType[] = [];
     if (typeof requestBody !== "undefined") {
-        const _schema = requestBody.content["application/json"].schema;
-        const properties = (typeof _schema.oneOf === "undefined") ? 
-            _schema.properties : _schema.oneOf[0];
-        body = Object.entries(properties as Properties)
-            .flatMap(formatPaths)
-            .filter(({ readOnly = null }) => !readOnly)
+        const {schema} = requestBody.content["application/json"];
+        const properties = (typeof schema.oneOf === "undefined") ? schema.properties : schema.oneOf[0];
+
+        const _body: [string, Property][] = Object.entries(properties as Properties).flatMap(([name, property]: [string, Property]) => {
+            let value = property;
+            while (typeof value.items !== "undefined") value = value.items;
+            if (typeof value.properties !== "undefined") {
+                return Object.entries(value.properties);
+            } else {
+                return [[name, value]]
+            }
+        })
+        body = _body.map(propertyToInput).filter(param => param) as FieldType[];
     }
-    return Object({
+    const _parameters: FieldType[] = parameters.map(
+        ({ name, schema }) => propertyToInput([name, schema])
+    ).filter(param => param) as FieldType[];
+
+    return {
         path,
         method,
-        body,
-        parameters: parameters.map(schemaToInput),
-        schema
-    })
+        requestBody: body,
+        parameters: _parameters,
+        ...props
+    }
 }
 
 /**
@@ -115,21 +92,16 @@ const parse = ({
  */
 const load = async (src: string) => {
     const {info, paths} = await SwaggerParser.dereference(src);
-    const entries = Object.entries(paths as object)
-    const pathMethods = entries.flatMap(
-        ([path, methods]: [string, object]) => 
-            Object.entries(methods).map(([method, operation]) => 
-                parse({path, method, operation})
-            ));
+    const operations = Object.entries(paths as Paths).flatMap(([path, methods]) => 
+        Object.entries(methods as Methods).map(([method, operation]) => 
+            methodToOperation(path, method, operation)));
     return {
-        info, 
-        paths: pathMethods
+        info,
+        operations
     }
 }
 
-/**
- * Listener function
- */
+// Listener function
 const handleMessage = async ({ data }: MessageEvent) => {
     switch (data.type) {
         case "status":

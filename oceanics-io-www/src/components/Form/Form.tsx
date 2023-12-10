@@ -48,7 +48,6 @@ export type FormType = {
     onChange?: ChangeEventHandler<HTMLInputElement>
 };
 
-
 /**
  * Base version of the form, without styled components. 
  */
