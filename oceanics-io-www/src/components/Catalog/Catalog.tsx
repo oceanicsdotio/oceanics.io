@@ -1,12 +1,35 @@
 import React, {Dispatch, SetStateAction} from "react";
 import styled from "styled-components";
+
 import Channel, {ChannelType} from "../Channel/Channel";
+import Trifold from "../Trifold/Trifold";
+import { grey, orange } from "../../palette";
+
 
 export type CatalogType = {
-    geojson: ChannelType[];
-    className?: string;
-    zoomLevel: number;
+    /**
+     * Placement in horizontal grid
+     */
+    column: number
+    /**
+     * Metadata about data sources
+     */
+    channels: ChannelType[]
+    /**
+     * Styuled components name
+     */
+    className?: string
+    /**
+     * Current zoom level
+     */
+    zoomLevel: number
+    /**
+     * Pass in an existing queue
+     */
     queue: ChannelType[];
+    /**
+     * Replace me a reducer
+     */
     setQueue: Dispatch<SetStateAction<ChannelType[]>>;
 }
 
@@ -29,7 +52,10 @@ The props are the properties of the collection itself.
 Routes from here correspond to entities and 
 collections in the graph database.
  */
-export const Catalog = ({geojson, className, zoomLevel, setQueue}: CatalogType) => {
+export const Catalog = ({
+    className, 
+    zoomLevel
+}: CatalogType) => {
    
     /**
      * List of collections to build selection from.
@@ -37,15 +63,15 @@ export const Catalog = ({geojson, className, zoomLevel, setQueue}: CatalogType) 
      * If there is no `behind`, can be inserted in front, otherwise need to find the index
      * of the behind value, and insert after.
      */ 
-    // const validLayerOrder = (geojson) => {
+    // const validLayerOrder = (channels: ChannelType[]) => {
 
     //     // Memoize just ID and BEHIND
     //     const triggers = {};
 
     //     // Queue to build
-    //     const layerQueue = [];
+    //     const layerQueue: number[] = [];
 
-    //     geojson.forEach(({behind=null, id}) => {
+    //     channels.forEach(({behind=null, id}) => {
             
     //         // no behind value
     //         if (behind === null) {
@@ -71,20 +97,34 @@ export const Catalog = ({geojson, className, zoomLevel, setQueue}: CatalogType) 
     // }
         
     
-    return <div className={className}>
-        {/* <LayerCard {...{id: "home"}}/>
-        <LayerCard {...{id: "Gulf of Maine"}}/> */}
-        {geojson.map((layer: ChannelType) => {
-            const onClick = () => {
-                setQueue((queue: ChannelType[]) => [...queue, layer]);
-            };
-
-            return <Channel {...{...layer, key: layer.id, zoomLevel, onClick}}/>
-        })}
-    </div> 
+    return (
+        <div className={className}>
+            <Trifold 
+                stroke={orange}
+                onClick={()=>{console.log("on-click-trifold")}}
+            />
+            <Channel 
+                zoomLevel={zoomLevel}
+                id="home"
+                url="www.oceanics.io"
+                maxzoom={21}
+                minzoom={1}
+                type="point"
+                component="Location"
+                info="www.oceanics.io"
+                onClick={()=>{console.log("click")}}
+            />
+        </div>
+    )
 }; 
 
 export const StyledCatalog = styled(Catalog)`
+    grid-row: 1;
+    grid-column: ${({ column }) => column + 1};
+    border: 1px dashed ${grey};
+    overflow-x: hidden;
+    overflow-y: hidden;
+    height: 100vh;
     width: auto;
     min-height: 100vh;
     bottom: 0;

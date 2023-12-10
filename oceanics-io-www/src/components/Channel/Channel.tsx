@@ -16,7 +16,7 @@ export type ChannelType = {
     /**
      * Hook for Styled Components to apply CSS
      */
-    className: string,
+    className?: string,
     /**
      * How to render the data
      */
@@ -37,7 +37,7 @@ export type ChannelType = {
     /**
      * The provider and legal owner of the data
      */
-    attribution: string,
+    attribution?: string,
     /**
      * URL that links to the provider
      */

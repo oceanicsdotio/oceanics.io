@@ -11,6 +11,9 @@ export type LocationType = {
      * Handle for accessing by ID
      */
     key: string,
+    /**
+     * Location UUID
+     */
     id: string,
     /**
      * Class name for styled components CSS
@@ -68,7 +71,6 @@ export const Location = ({
      */
     useEffect(() => {
         if (!coordinates) return;
-
         const [lon, lat] = coordinates;
         setLabel(`${lat.toFixed(4)}, ${lon.toFixed(4)}`);
     }, []);

@@ -12,7 +12,15 @@ export default {
 const Template: StoryFn<CatalogType> = (args) => {
     return (<>
         <GlobalStyle/>
-        <StyledCatalog {...args} />;
+        <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(2, 1fr)",
+            gap: 0,
+            gridAutoRows: "minmax(100px, auto)",
+            boxSizing: "border-box"
+        }}>
+            <StyledCatalog {...args} />
+        </div>
     </>)
 }
 
@@ -21,7 +29,7 @@ const Template: StoryFn<CatalogType> = (args) => {
  */
 export const Default = Template.bind({});
 Default.args = {
-    geojson: [],
+    channels: [],
     zoomLevel: 6,
     queue: [],
     setQueue: () => {console.log("set-queue")},

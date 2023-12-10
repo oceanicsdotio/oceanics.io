@@ -2,38 +2,42 @@ import React, { MouseEventHandler } from "react";
 import styled from "styled-components"
 
 export type TrifoldType = {
-    display: string,
+    /**
+     * Use as a button
+     */
     onClick: MouseEventHandler,
-    className: string,
+    /**
+     * Styling hook
+     */
+    className?: string,
+    /**
+     * String color, valid CSS
+     */
     stroke: string,
-    fill: string,
-    strokeWidth: number,
-    strokeLinejoin: "bevel" | "miter" | "round" | "inherit",
+    strokeWidth?: number,
+    strokeLinejoin?: "bevel" | "miter" | "round" | "inherit",
 }
 
 /**
  * Vector graphic icon for toggle between folded/unfolded view.
  */
-export const Trifold = ({
-    display, 
+export const Trifold = ({ 
     onClick, 
     className,
     stroke,
-    fill = "none",
     strokeWidth = 15,
     strokeLinejoin = "bevel"
 }: TrifoldType) => {
 
     const presentation = {
         stroke,
-        fill,
+        fill: "none",
         strokeWidth,
         strokeLinejoin
     }
 
     return <svg 
         className={className}
-        display={display}
         viewBox={"0 0 225 300"}
         onClick={onClick}
     >

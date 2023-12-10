@@ -48,9 +48,6 @@ export const TileInformation = ({
     )
 };
 
-
-
-
 /**
  * Styled version of the basic TileInfo that makes the 
  * rendering context use crisp edges and a fixed size icon
