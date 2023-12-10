@@ -1,13 +1,20 @@
 import React from 'react';
 import { StoryFn, Meta } from '@storybook/react';
-import Oceanside, {ApplicationType} from './Oceanside';
+import StyledOceanside, {Oceanside} from './Oceanside';
+import type { ApplicationType } from './Oceanside';
+import GlobalStyle from '../GlobalStyle';
 
 export default {
   component: Oceanside
 } as Meta
 
 const Template: StoryFn<ApplicationType> = (args) => {
-    return <Oceanside {...args} />
+    return (
+        <>
+            <GlobalStyle/>
+            <StyledOceanside {...args} />
+        </>
+    )
 }
 
 export const EightSquare = Template.bind({});

@@ -19,6 +19,22 @@ export type ThingType = {
         }
     }
 }
+const propTypes = {
+    className: PropTypes.string,
+    spec: PropTypes.shape({
+        name: PropTypes.string.isRequired,
+        properties: PropTypes.shape({
+            meters: PropTypes.arrayOf(
+                PropTypes.shape({
+                    name: PropTypes.string.isRequired,
+                    min: PropTypes.number.isRequired,
+                    max: PropTypes.number.isRequired,
+                    value: PropTypes.number.isRequired
+                })
+            )
+        })
+    }).isRequired
+}
    
 /**
  * A thing is a physical entity in the SensorThings ontology. In 
@@ -60,23 +76,6 @@ export const Thing = ({
 };
 
 /**
- * Runtime typechecking
- */
-Thing.propTypes = {
-    className: PropTypes.string,
-    spec: PropTypes.shape({
-        name: PropTypes.string.isRequired,
-        properties: PropTypes.shape({
-            meters: PropTypes.arrayOf(
-                PropTypes.shape({
-                    name: PropTypes.string.isRequired
-                })
-            )
-        })
-    }).isRequired
-}
-
-/**
  * Styled version of the Thing Component
  */
 export const StyledThing = styled(Thing)`
@@ -111,4 +110,7 @@ export const StyledThing = styled(Thing)`
     }
 `;
 
+Thing.displayName = "Thing";
+Thing.propTypes = propTypes;
+StyledThing.propTypes = propTypes;
 export default StyledThing;

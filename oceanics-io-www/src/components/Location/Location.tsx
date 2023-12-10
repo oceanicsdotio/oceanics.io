@@ -7,16 +7,39 @@ import { orange, ghost, shadow } from "../../palette";
  * Compile time type checking
  */
 export type LocationType = {
+    /**
+     * Handle for accessing by ID
+     */
     key: string,
     id: string,
+    /**
+     * Class name for styled components CSS
+     */
     className?: string,
+    /**
+     * Location metadata
+     */
     properties: {
         name: string,
         nav_unit_n?: string,
         port_name?: string
     },
+    /**
+     * Spatial coordinates
+     */
     coordinates: number[]
 }
+
+const propTypes = {
+    key: PropTypes.string.isRequired,
+    coordinates: PropTypes.arrayOf(PropTypes.number),
+    className: PropTypes.string.isRequired,
+    properties: PropTypes.shape({
+        name: PropTypes.string.isRequired,
+        nav_unit_n: PropTypes.string,
+        port_name: PropTypes.string
+    }).isRequired
+};
 
 /**
  * Location Components provide metadata about a location, as well
@@ -88,38 +111,11 @@ export const Location = ({
         </ul>
     </div>};
 
-
-/**
- * Validate Location elements
- */
-Location.propTypes = {
-    /**
-     * Handle for accessing by ID
-     */
-    key: PropTypes.string.isRequired,
-    /**
-     * Spatial coordinates
-     */
-    coordinates: PropTypes.arrayOf(PropTypes.number),
-    /**
-     * Class name for styled components CSS
-     */
-    className: PropTypes.string.isRequired,
-    /**
-     * Location metadata
-     */
-    properties: PropTypes.shape({
-        name: PropTypes.string.isRequired,
-        nav_unit_n: PropTypes.string,
-        port_name: PropTypes.string
-    }).isRequired
-};
-
 /**
  * The StyledLocation component is just a styled version of Location
  * that includes hover effects. 
  */
-const StyledLocation = styled(Location)`
+export const StyledLocation = styled(Location)`
     display: block;
     margin: 0;
     height: auto;
@@ -151,7 +147,7 @@ const StyledLocation = styled(Location)`
     }
 `;
 
-/**
- * Export styled version by default
- */
+Location.displayName = "Location";
+Location.propTypes = propTypes;
+StyledLocation.propTypes = propTypes;
 export default StyledLocation;

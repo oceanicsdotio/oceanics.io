@@ -12,7 +12,7 @@ export interface IPDF {
   page: number;
 }
 
-const PDF = ({ file, page = 1 }: IPDF) => {
+export const PDF = ({ file, page = 1 }: IPDF) => {
   return (
     <Document file={file}>
       <Page 

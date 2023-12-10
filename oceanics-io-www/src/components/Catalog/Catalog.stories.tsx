@@ -1,13 +1,18 @@
 import React from 'react';
 import { Meta, StoryFn} from "@storybook/react";
-import Catalog, {CatalogType} from './Catalog';
+import StyledCatalog, {Catalog} from './Catalog';
+import type { CatalogType } from './Catalog';
 
 
 export default {
     component: Catalog
 } as Meta;
 
-const Template: StoryFn<CatalogType> = (args) => <Catalog {...args} />;
+const Template: StoryFn<CatalogType> = (args) => {
+    return (<>
+        <StyledCatalog {...args} />;
+    </>)
+}
 
 /**
  * Default test case

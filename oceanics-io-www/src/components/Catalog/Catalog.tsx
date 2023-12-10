@@ -92,4 +92,5 @@ export const StyledCatalog = styled(Catalog)`
     padding: 0;
 `;
 
+Catalog.displayName = "Catalog";
 export default StyledCatalog;

@@ -13,10 +13,6 @@ export type TrifoldType = {
 
 /**
  * Vector graphic icon for toggle between folded/unfolded view.
- * 
- * 
- * @param {*} param0 
- * @returns 
  */
 export const Trifold = ({
     display, 
@@ -83,7 +79,5 @@ export const InlineTrifold = styled(Trifold)`
     margin: 0;
 `;
 
-/**
- * Export styled fixed sized version
- */
+Trifold.displayName = "Trifold";
 export default StyledTrifold;

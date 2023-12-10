@@ -1,6 +1,7 @@
 import React from 'react';
 import {Meta,StoryFn} from "@storybook/react";
-import Channel, { ChannelType } from './Channel';
+import StyledChannel, { Channel } from './Channel';
+import type { ChannelType } from './Channel';
 import GlobalStyle from '../GlobalStyle';
 
 export default {
@@ -11,7 +12,7 @@ const Template: StoryFn<ChannelType> = (args) => {
     return (
         <>
             <GlobalStyle/>
-            <Channel {...args} />
+            <StyledChannel {...args} />
         </>
     );
 }

@@ -29,8 +29,11 @@ export type ChannelType = {
     info: string | null,
     onClick: MouseEventHandler
 }
- 
-const Channel = ({
+
+/**
+ * A channel abstracts access to a data source. 
+ */
+export const Channel = ({
     id,
     url,
     type,
@@ -42,7 +45,6 @@ const Channel = ({
     info=null,
     onClick,
 }: ChannelType) => {
-
     return (
         <div className={className}>
             <div>
@@ -61,10 +63,6 @@ const Channel = ({
     )
 }
 
-
-/**
- * Styled Version
- */
 const StyledChannel = styled(Channel)`
 
     margin-top: 10px;
@@ -105,4 +103,5 @@ const StyledChannel = styled(Channel)`
     }
 `;
 
+Channel.displayName = "Channel";
 export default StyledChannel;

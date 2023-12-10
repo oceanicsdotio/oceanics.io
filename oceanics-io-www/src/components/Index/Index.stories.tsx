@@ -1,6 +1,6 @@
 import React from 'react';
 import {Meta, StoryFn} from "@storybook/react"
-import Index from './Index';
+import StyledIndex, {Index} from './Index';
 import type {ApplicationType} from "../Oceanside/Oceanside";
 import GlobalStyle from "../GlobalStyle";
 
@@ -12,7 +12,7 @@ const Template: StoryFn<ApplicationType> = (args) => {
   return (
     <>
       <GlobalStyle/>
-      <Index {...args}/>
+      <StyledIndex {...args}/>
     </>
   );
 }
@@ -25,8 +25,5 @@ Default.args = {
     },
     datum: 0.7,
     runtime: null,
-    icons: {
-        sources: [],
-        templates: []
-    }
+    src: "/nodes.json"
 };

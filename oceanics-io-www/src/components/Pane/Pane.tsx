@@ -4,15 +4,24 @@ import styled from "styled-components";
 import { ghost } from "../../palette";
 
 export interface PaneType {
+    /**
+     * Placement in horizontal grid
+     */
     column: number
+    /**
+     * Styled components identifier
+     */
     className?: string
+    /**
+     * Passthrough
+     */
     children: ReactNode
 }
 
 /**
  * Page component rendered.
  */
-const Pane = ({
+export const Pane = ({
     className, 
     children
 }: PaneType) => {
@@ -26,7 +35,7 @@ const Pane = ({
 /**
 * The div component holds one or more Mini-Apps.
 */
-const StyledPane = styled(Pane)`
+export const StyledPane = styled(Pane)`
     grid-row: 1;
     grid-column: ${({ column }) => column + 1};
     border: 1px dotted ${ghost};

@@ -9,7 +9,7 @@ import { ghost } from "../../palette";
  * 
  * Optionally use query parameters and hash anchor to filter content. 
  */
-const Index = (props: ApplicationType) => {
+export const Index = (props: ApplicationType) => {
     // Prevent pre-render by NextJS
     const [isClient, setIsClient] = useState(false);
     useEffect(() => setIsClient(true), []);
@@ -31,7 +31,7 @@ const Index = (props: ApplicationType) => {
 /**
  * Styled version
  */
-const StyledIndex = styled(Index)`
+export const StyledIndex = styled(Index)`
     & p {
         font-size: larger;
     }

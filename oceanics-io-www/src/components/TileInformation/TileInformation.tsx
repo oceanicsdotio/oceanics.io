@@ -18,6 +18,16 @@ export type TileType = {
     className?: string,
     query: object
 }
+const propTypes = {
+    tile: PropTypes.shape({
+        publicURL: PropTypes.string.isRequired, 
+        anchorHash: PropTypes.string.isRequired,
+        queryString: PropTypes.string.isRequired,
+        grayscale: PropTypes.bool.isRequired
+    }).isRequired, 
+    className: PropTypes.string,
+    query: PropTypes.object.isRequired
+}
 
 /**
  * Art and information for single tile feature. 
@@ -38,20 +48,8 @@ export const TileInformation = ({
     )
 };
 
-const propTypes = {
-    /**
-     * Description goes here propTypes
-     */
-    tile: PropTypes.shape({
-        publicURL: PropTypes.string.isRequired, 
-        anchorHash: PropTypes.string.isRequired,
-        queryString: PropTypes.string.isRequired,
-        grayscale: PropTypes.bool.isRequired
-    }).isRequired, 
-    className: PropTypes.string,
-    query: PropTypes.object.isRequired
-}
-TileInformation.propTypes = propTypes;
+
+
 
 /**
  * Styled version of the basic TileInfo that makes the 
@@ -68,9 +66,8 @@ export const StyledTileInformation = styled(TileInformation)`
         cursor: pointer;
     }
 `;
-StyledTileInformation.propTypes = propTypes;
 
-/**
- * Default export is the styled version
- */
+TileInformation.displayName = "TileInformation";
+StyledTileInformation.propTypes = propTypes;
+TileInformation.propTypes = propTypes;
 export default StyledTileInformation;

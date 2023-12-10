@@ -11,13 +11,16 @@ import type { IWorldType } from "./useOceanside";
 const [WORLD, BOARD] = ["world", "board"];
 
 export interface ApplicationType extends IWorldType {
+  /**
+   * Styled components hook for container
+   */
   className?: string
 }
 
 /**
- * Page component rendered by NextJS.
+ * Dynamic interactive game board
  */
-const Oceanside = ({ className, ...props }: ApplicationType) => {
+export const Oceanside = ({ className, ...props }: ApplicationType) => {
   // Main thread web assembly runtime.
   const {runtime} = useWasmRuntime();
 
@@ -35,10 +38,7 @@ const Oceanside = ({ className, ...props }: ApplicationType) => {
   );
 };
 
-/**
- * Styled version of page exported by default.
- */
-const StyledViewport = styled(Oceanside)`
+export const StyledViewport = styled(Oceanside)`
   display: block;
   margin: 0;
   padding: 0;
