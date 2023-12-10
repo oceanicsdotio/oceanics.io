@@ -13,8 +13,8 @@ import { Popup, AnyLayer, AnySourceData } from "mapbox-gl";
 /**
  * Container for MapboxGL feature content. Rendered client-side.
  */
-import PopUpContent from "../components/PopUp/PopUpContent";
-import useMapBox from "./useMapBox";
+import PopUpContent from "../PopUp/PopUpContent";
+import useMapBox from "./useSqualltalk";
 
 
 /**

@@ -6,7 +6,7 @@ import styled from "styled-components";
  * Components and Types
  */
 import type { Memo } from "oceanics-io-www-wasm"
-import { Reference } from "./Reference";
+import { Reference } from "../References/Reference";
 const REFERENCE = "reference";
 
 interface IDocumentContent {

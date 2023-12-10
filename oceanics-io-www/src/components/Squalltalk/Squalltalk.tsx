@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 
-import useMapBox from "../../hooks/useMapBox";
+import useSqualltalk from "./useSqualltalk";
 import useWorker from "../../hooks/useWorker";
 import useFragmentQueue, {
   OBJECT_STORAGE_URL,
@@ -70,17 +70,22 @@ const createBathysphereWorker = () => {
   );
 };
 
-interface ISqualltalk {
+interface View {
+  zoom: number
+  center?: [number, number]
+}
+export interface ViewParams extends View {
+  accessToken: string
+}
+
+export interface ISqualltalk {
   client?: {
     mobile: boolean;
     location: OptionalLocation;
   };
   map: {
     accessToken: string;
-    defaults: {
-      zoom: number;
-      center?: [number, number];
-    };
+    defaults: View;
   };
   height?: string;
 }
@@ -89,7 +94,7 @@ interface ISqualltalk {
  * Page component rendered by GatsbyJS.
  */
 const Squalltalk = ({ map, client, height = "500px" }: ISqualltalk) => {
-  const { ref, map: mapBox } = useMapBox(map);
+  const { ref, map: mapBox } = useSqualltalk(map);
   const worker = useWorker(createBathysphereWorker);
   const fs = useObjectStorage(OBJECT_STORAGE_URL, worker.ref);
 
@@ -119,12 +124,13 @@ const Squalltalk = ({ map, client, height = "500px" }: ISqualltalk) => {
   );
 };
 
-export const Standalone = ({center, zoom}: {center: [number, number], zoom: number}) => {
+export const Standalone = ({center, zoom, accessToken}: ViewParams) => {
+  console.log("token", accessToken)
   return (
     <Squalltalk
       height={"250px"}
       map={{
-        accessToken: process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN??"",
+        accessToken,
         defaults: {
             ...DEFAULT_MAP_PROPS,
             center,

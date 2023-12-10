@@ -1,6 +1,3 @@
-/**
- * React friends.
- */
 import { useState, useEffect } from "react";
 import useCanvasContext from "./useCanvasContext";
 

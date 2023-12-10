@@ -3,16 +3,14 @@ import styled from "styled-components";
 import PropTypes from "prop-types";
 import { orange, ghost, shadow } from "../../palette";
 
-/**
- * Compile time type checking
- */
+
 export type LocationType = {
     /**
      * Handle for accessing by ID
      */
     key: string,
     /**
-     * Location UUID
+     * Element id for referencing from parent
      */
     id: string,
     /**
@@ -31,18 +29,36 @@ export type LocationType = {
      * Spatial coordinates
      */
     coordinates: number[]
+    /**
+     * Description goes here TypeScript
+     */
+    tile: {
+        publicURL: string, 
+        anchorHash: string,
+        queryString: string,
+        grayscale: boolean
+    }
+    query: object
 }
 
 const propTypes = {
-    key: PropTypes.string.isRequired,
+    id: PropTypes.string.isRequired,
     coordinates: PropTypes.arrayOf(PropTypes.number),
     className: PropTypes.string.isRequired,
     properties: PropTypes.shape({
         name: PropTypes.string.isRequired,
         nav_unit_n: PropTypes.string,
         port_name: PropTypes.string
-    }).isRequired
+    }).isRequired,
+    tile: PropTypes.shape({
+        publicURL: PropTypes.string.isRequired, 
+        anchorHash: PropTypes.string.isRequired,
+        queryString: PropTypes.string.isRequired,
+        grayscale: PropTypes.bool.isRequired
+    }).isRequired,
+    query: PropTypes.object.isRequired
 };
+
 
 /**
  * Location Components provide metadata about a location, as well
@@ -50,11 +66,13 @@ const propTypes = {
  * with the location. 
  */
 export const Location = ({
-    key,
+    id,
     className,
+    tile: {
+        publicURL, 
+    },
     properties: {
         name,
-        nav_unit_n,
         ...properties
     },
     coordinates = []
@@ -76,35 +94,13 @@ export const Location = ({
     }, []);
 
     /**
-     * Guess name from data if none is given
-     */
-    const [ title, setTitle ] = useState("Naming...");
-    
-    /**
-     * Some jank that should get moved
-     */
-    useEffect(() => {
-        const title = name || (nav_unit_n ?? "");
-        if (title) {
-            setTitle(title);
-        } else if (properties.port_name ?? false) {
-            setTitle(properties.port_name??"");
-        } else if ("species" in properties) {
-            setTitle("Sea farm");
-        } else if ("yearSunk" in properties) {
-            setTitle("Wreck");
-        }
-    }, []);
-
-    /**
      * Render list of property items
      */
-    return <div 
-        className={className}
-        id={key}
-    >
-        <h3>{title}</h3>
-        <label>{label}</label>
+    return <div className={className} id={id}>
+        <h1>{name}</h1>
+        <p>{label}</p>
+        <img src={publicURL}/>
+        
         <ul>
             {Object.entries(properties)
                 .filter(([, v]) => v !== " " && !!v)
@@ -122,30 +118,26 @@ export const StyledLocation = styled(Location)`
     margin: 0;
     height: auto;
     position: relative;
-    background: none;
-    box-sizing: border-box;
+    
+    & * {
+        font-family: inherit;
+        box-sizing: border-box;
+        color: ${ghost};
+    }
+    
+    & img {
+        image-rendering: crisp-edges;
+        width: 72px;
+        filter: grayscale(100%);
+        cursor: pointer;
 
-    font-family: inherit;
-
-    padding: 0.5rem;
-    color: ${ghost};
-
-    cursor: pointer;
+        &:hover {
+            filter: grayscale(0%);
+        }
+    }
 
     &:hover {
         background: ${shadow};
-    }
-
-    & > h3 {
-        padding: 0;
-        margin: 0;
-    }
-
-    & > label {
-        color: ${orange};
-        font-size: larger;
-        padding: 0;
-        margin: 0;
     }
 `;
 

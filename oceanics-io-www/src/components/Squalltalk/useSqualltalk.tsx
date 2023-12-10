@@ -1,20 +1,7 @@
-/**
- * React friends
- */
 import { useRef, useEffect, useState } from "react";
 import type {MutableRefObject} from "react";
-
-/**
- * Mapbox instance and the object constructor
- */
 import { Map } from "mapbox-gl";
 
-type HookProps = {
-    accessToken: string;
-    defaults: {
-        zoom: number;
-    };
-}
 
 /**
  * If the map element has not been created yet, create it with a custom style, and user
@@ -25,18 +12,22 @@ type HookProps = {
  * 
  * Only one map context please, need center to have been set.
 */
-const useMapBox = ({
+const useSqualltalk = ({
     accessToken,
     defaults
-}: HookProps) => {
-
+}: {
+    accessToken: string
+    defaults: {
+        zoom: number
+    }
+}) => {
     /**
      * MapBox container reference.
      */
     const ref: MutableRefObject<HTMLDivElement|null> = useRef(null);
 
     /**
-     * MapBoxGL Map instance is saved to React state. 
+     * MapBoxGL Map instance saved to React state. 
      */
     const [map, setMap] = useState<Map|null>(null);
 
@@ -44,7 +35,7 @@ const useMapBox = ({
      * Resize on load.
      */
     useEffect(() => {
-        if (map) map.resize();
+        map?.resize();
     }, []);
 
     /**
@@ -61,10 +52,8 @@ const useMapBox = ({
             ...defaults
         });
         setMap(handle);
-
-        return () => { handle.remove() };
+        return handle.remove;
     }, [ref]);
-
 
     const [zoom, setZoom] = useState<number>(defaults.zoom);
 
@@ -84,7 +73,7 @@ const useMapBox = ({
      * Add a mouse move handler to the map
      */
     useEffect(() => {
-        if (map) map.on('mousemove', ({ lngLat }) => { setCursor(lngLat) });
+        map?.on('mousemove', ({ lngLat }) => { setCursor(lngLat) });
     }, [map]);
 
     return {
@@ -95,4 +84,4 @@ const useMapBox = ({
     }
 }
 
-export default useMapBox;
+export default useSqualltalk;

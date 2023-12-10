@@ -23,8 +23,14 @@ export const Default = Template.bind({});
 Default.args = {
     key: "a-location",
     properties: {
-        name: "Null Island",
-        nav_unit_n: "Null Island"
+        name: "Null Island"
     },
-    coordinates: [0, 0]
+    coordinates: [0, 0],
+    tile: {
+        publicURL: "/assets/boat.gif", 
+        anchorHash: "hash",
+        queryString: "",
+        grayscale: false
+    }, 
+    query: {}
 };
