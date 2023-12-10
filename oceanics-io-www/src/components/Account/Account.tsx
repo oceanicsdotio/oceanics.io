@@ -1,12 +1,24 @@
 import React, { useEffect } from "react";
+import PropTypes from "prop-types";
 import useWorker from "../../hooks/useWorker";
 import Form from "../Form/Form";
 import type { FieldType } from "../Form/Form";
 
 export interface IAccount {
+  /**
+   * Account is known to exist
+   */
   exists: boolean
+  /**
+   * Name of inner HTMLform
+   */
   name: string
 }
+
+const propTypes = {
+  exists: PropTypes.bool.isRequired,
+  name: PropTypes.string.isRequired
+};
 
 // Defined in global scope to force Webpack to bundle the script. 
 const createWorker = () => 
@@ -27,7 +39,7 @@ const createWorker = () =>
  * 
  * Otherwise, assume that they need to create an account.
  */
-const Account = ({exists, name}: IAccount) => {
+export const Account = ({ exists, name }: IAccount) => {
   // Web worker makes requests in background
   const worker = useWorker(createWorker);
 
@@ -94,5 +106,6 @@ const Account = ({exists, name}: IAccount) => {
   return <Form id={view} name={name} fields={fields} action={action}/>
 }
 
+Account.propTypes = propTypes;
 Account.displayName = "Account";
-export default Account
+export default Account;

@@ -20,20 +20,24 @@ const config: StorybookConfig = {
   features: {
     storyStoreV7: true
   },
+  framework: "@storybook/nextjs",
+  staticDirs: ['../public'],
+  docs: {
+    autodocs: true
+  },
+  core: {
+    disableTelemetry: true
+  },
   typescript: {
     check: false,
     checkOptions: {},
     reactDocgen: 'react-docgen-typescript',
     reactDocgenTypescriptOptions: {
       shouldExtractLiteralValuesFromEnum: true,
-      propFilter: prop => prop.parent ? !/node_modules/.test(prop.parent.fileName) : true
+      propFilter: prop => 
+        (prop.parent ? !/node_modules/.test(prop.parent.fileName) : true)
     }
   },
-
-  core: {
-    disableTelemetry: true
-  },
-
   // https://stackoverflow.com/questions/71158775/storybook-couldnt-resolve-fs
   webpackFinal: async (config) => {
     config.resolve = {
@@ -50,14 +54,8 @@ const config: StorybookConfig = {
       ...config.experiments,
       asyncWebAssembly: true
     }
-    // Return the altered config
     return config
   },
-  framework: "@storybook/nextjs",
-  staticDirs: ['../public'],
-  docs: {
-    autodocs: true
-  }
 };
 
 export default config

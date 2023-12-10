@@ -1,13 +1,24 @@
 import React from 'react';
-import TileInformation, {TileType} from './TileInformation';
+import StyledTileInformation, {TileType, TileInformation} from './TileInformation';
 import type { StoryFn, Meta } from '@storybook/react';
+import GlobalStyle from '../GlobalStyle';
 
 export default {
   component: TileInformation
 } as Meta
 
-const Template: StoryFn<TileType> = (args: TileType) => 
-  <TileInformation {...args} />;
+/**
+ * Something about template here
+ */
+const Template: StoryFn<TileType> = (args) => {
+  return (
+    <>
+      <GlobalStyle />
+      <StyledTileInformation {...args} />
+    </>
+  )
+}
+  
 
 export const Default = Template.bind({});
 Default.args = {

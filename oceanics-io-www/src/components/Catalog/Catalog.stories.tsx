@@ -1,22 +1,12 @@
-/* eslint-disable @typescript-eslint/no-empty-function */
 import React from 'react';
 import { Meta, StoryFn} from "@storybook/react";
-
-/**
- * Base component
- */
 import Catalog, {CatalogType} from './Catalog';
 
-/**
- * Storybook Interface
- */
+
 export default {
     component: Catalog
 } as Meta;
 
-/**
- * Base case
- */
 const Template: StoryFn<CatalogType> = (args) => <Catalog {...args} />;
 
 /**

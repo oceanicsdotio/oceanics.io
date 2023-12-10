@@ -1,13 +1,13 @@
 import React, {Dispatch, SetStateAction} from "react";
 import styled from "styled-components";
-import LayerCard, {LayerType} from "../Channel/Channel";
+import Channel, {ChannelType} from "../Channel/Channel";
 
 export type CatalogType = {
-    geojson: LayerType[];
+    geojson: ChannelType[];
     className?: string;
     zoomLevel: number;
-    queue: LayerType[];
-    setQueue: Dispatch<SetStateAction<LayerType[]>>;
+    queue: ChannelType[];
+    setQueue: Dispatch<SetStateAction<ChannelType[]>>;
 }
 
 /**
@@ -29,7 +29,7 @@ The props are the properties of the collection itself.
 Routes from here correspond to entities and 
 collections in the graph database.
  */
-const Catalog = ({geojson, className, zoomLevel, setQueue}: CatalogType) => {
+export const Catalog = ({geojson, className, zoomLevel, setQueue}: CatalogType) => {
    
     /**
      * List of collections to build selection from.
@@ -74,24 +74,22 @@ const Catalog = ({geojson, className, zoomLevel, setQueue}: CatalogType) => {
     return <div className={className}>
         {/* <LayerCard {...{id: "home"}}/>
         <LayerCard {...{id: "Gulf of Maine"}}/> */}
-        {geojson.map((layer: LayerType) => {
+        {geojson.map((layer: ChannelType) => {
             const onClick = () => {
-                setQueue((queue: LayerType[]) => [...queue, layer]);
+                setQueue((queue: ChannelType[]) => [...queue, layer]);
             };
 
-            return <LayerCard {...{...layer, key: layer.id, zoomLevel, onClick}}/>
+            return <Channel {...{...layer, key: layer.id, zoomLevel, onClick}}/>
         })}
     </div> 
 }; 
 
-const StyledCatalog = styled(Catalog)`
-
+export const StyledCatalog = styled(Catalog)`
     width: auto;
     min-height: 100vh;
     bottom: 0;
     margin: 0.5rem;
     padding: 0;
-
 `;
 
 export default StyledCatalog;

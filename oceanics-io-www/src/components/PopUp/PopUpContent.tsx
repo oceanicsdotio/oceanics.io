@@ -100,7 +100,6 @@ const StyledPopUpContent = styled(PopUpContent)`
             display: block;
             padding: 0;
             margin: 0;
-            border-bottom: 1px solid ${({fg="#ccc"}: {fg:string})=>fg};
             image-rendering: crisp-edges;
         }
 

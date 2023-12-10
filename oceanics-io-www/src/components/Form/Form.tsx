@@ -38,20 +38,45 @@ type ActionType = {
 });
 
 export type FormType = {
+    /**
+     * Unique form identifier
+     */
     id: string
+    /**
+     * Form data submission action 
+     */
     action: (data: FormData) => void
+    /**
+     * Name of the form
+     */
     name?: string
+    /**
+     * Styled components hook
+     */
     className?: string
+    /**
+     * Array of inputs to render
+     */
     fields?: FieldType[]
+    /**
+     * Array of selects to render
+     */
     enums?: SelectType[]
+    /**
+     * Additional button actions that can use the form data
+     */
     actions?: ActionType[]
+    /**
+     * Callback for input value changes
+     */
     onChange?: ChangeEventHandler<HTMLInputElement>
 };
 
 /**
- * Base version of the form, without styled components. 
+ * Form component used across the site
+ * to standardize the data entry experience.
  */
-const Form = ({ 
+export const Form = ({ 
     id,
     action,
     name="",
@@ -116,9 +141,6 @@ const Form = ({
     )
 }
 
-/**
- * Styled version of the Form component. 
- */
 export const StyledForm = styled(Form)`
     display: block;
     max-width: 65ch;
@@ -191,5 +213,7 @@ export const StyledForm = styled(Form)`
         margin: 0;
     }
 `;
+
+Form.displayName = "Form";
 
 export default StyledForm;

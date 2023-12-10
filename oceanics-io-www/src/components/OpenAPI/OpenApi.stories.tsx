@@ -1,6 +1,6 @@
 import React from "react";
 import { Meta, StoryFn } from "@storybook/react";
-import OpenApi from "./OpenApi";
+import StyledOpenApi, {OpenApi} from "./OpenApi";
 import type { IOpenApi } from "./OpenApi";
 import GlobalStyle from "../GlobalStyle";
 
@@ -12,7 +12,7 @@ const Template: StoryFn<IOpenApi> = (args) => {
     return (
         <>
             <GlobalStyle/>
-            <OpenApi {...args}/>
+            <StyledOpenApi {...args}/>
         </>
     )
 };

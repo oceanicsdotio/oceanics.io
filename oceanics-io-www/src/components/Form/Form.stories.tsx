@@ -1,7 +1,8 @@
 import React from 'react';
 import type {ChangeEvent} from 'react';
 import {Meta, StoryFn} from "@storybook/react"
-import Form, {FormType} from './Form';
+import StyledForm, {Form} from './Form';
+import type { FormType } from './Form';
 import GlobalStyle from "../GlobalStyle";
 
 export default {
@@ -19,7 +20,7 @@ const Template: StoryFn<FormType> = (args) => {
   return (
     <>
       <GlobalStyle/>
-      <Form {...args} action={action} onChange={onChange}/>
+      <StyledForm {...args} action={action} onChange={onChange}/>
     </>
   );
 }

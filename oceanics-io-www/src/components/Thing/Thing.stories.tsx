@@ -1,6 +1,7 @@
 import React from 'react';
 import {Meta, StoryFn} from "@storybook/react"
-import Thing, {ThingType} from './Thing';
+import StyledThing, {Thing} from './Thing';
+import type { ThingType } from './Thing';
 import GlobalStyle from '../GlobalStyle';
 
 export default {
@@ -10,7 +11,7 @@ export default {
 const Template: StoryFn<ThingType> = (args) => {
     return (<>
         <GlobalStyle/>
-        <Thing {...args} />
+        <StyledThing {...args} />
     </>)
 };
 

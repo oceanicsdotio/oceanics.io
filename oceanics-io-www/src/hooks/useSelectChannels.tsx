@@ -13,7 +13,7 @@ import { Popup, AnyLayer, AnySourceData } from "mapbox-gl";
 /**
  * Container for MapboxGL feature content. Rendered client-side.
  */
-import PopUpContent from "../components/Catalog/PopUpContent";
+import PopUpContent from "../components/PopUp/PopUpContent";
 import useMapBox from "./useMapBox";
 
 

@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import PropTypes from "prop-types";
 import Markdown from "react-markdown";
 import React from "react";
 import Form from "../Form/Form";
@@ -7,16 +8,27 @@ import type { Operation } from "./useOpenApi";
 import { ghost, charcoal, orange } from "../../palette";
 
 export interface IOpenApi { 
+    /**
+     * Source on the server to fetch the JSON
+     * specification from.
+     */
     src: string
+    /**
+     * Hook for styled components.
+     */
     className?: string
+}
+const propTypes = {
+    src: PropTypes.string.isRequired,
+    className: PropTypes.string
 }
 
 /**
  * The OpenApi component uses an OpenAPI specification for a
  * simulation backend, and uses it to construct an interface.
  */
-const OpenApi = ({ src, className }: IOpenApi) => {
-/**
+export const OpenApi = ({ src, className }: IOpenApi) => {
+  /**
    * OpenAPI spec structure will be populated asynchronously once the
    * web worker is available.
    */
@@ -59,7 +71,7 @@ const OpenApi = ({ src, className }: IOpenApi) => {
   );
 };
 
-const StyledOpenApi = styled(OpenApi)`
+export const StyledOpenApi = styled(OpenApi)`
     max-width: 65ch;
     display: block;
     padding: 1rem 1rem;
@@ -87,4 +99,8 @@ const StyledOpenApi = styled(OpenApi)`
         padding: 5px;
     }
 `;
+
+OpenApi.displayName = "OpenApi";
+OpenApi.propTypes = propTypes;
+StyledOpenApi.propTypes = propTypes;
 export default StyledOpenApi;

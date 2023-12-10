@@ -6,6 +6,9 @@ import PropTypes from "prop-types";
  * Compile-time type checking
  */
 export type TileType = {
+    /**
+     * Description goes here TypeScript
+     */
     tile: {
         publicURL: string, 
         anchorHash: string,
@@ -27,16 +30,18 @@ export const TileInformation = ({
     }, 
     className,
 }: TileType) => {
-    return <div className={className}>
-        <a id={anchorHash}/>
-        <img src={publicURL}/>
-    </div>
+    return (
+        <div className={className}>
+            <a id={anchorHash}/>
+            <img src={publicURL}/>
+        </div>
+    )
 };
 
-/**
- * Runtime input type checking
- */
-TileInformation.propTypes = {
+const propTypes = {
+    /**
+     * Description goes here propTypes
+     */
     tile: PropTypes.shape({
         publicURL: PropTypes.string.isRequired, 
         anchorHash: PropTypes.string.isRequired,
@@ -46,7 +51,7 @@ TileInformation.propTypes = {
     className: PropTypes.string,
     query: PropTypes.object.isRequired
 }
-
+TileInformation.propTypes = propTypes;
 
 /**
  * Styled version of the basic TileInfo that makes the 
@@ -63,6 +68,7 @@ export const StyledTileInformation = styled(TileInformation)`
         cursor: pointer;
     }
 `;
+StyledTileInformation.propTypes = propTypes;
 
 /**
  * Default export is the styled version
