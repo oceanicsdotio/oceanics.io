@@ -1,19 +1,10 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { DOMParser } from "@xmldom/xmldom";
 import type { FileSystem } from "../../shared";
-
-const ctx: Worker = self as unknown as Worker;
-type ModuleType = typeof import("oceanics-io-www-wasm");
 
 /**
  * Global for reuse
  */
 let parser: DOMParser | null = null;
-
-/**
- * Runtime handle to which we will memoize the active runtime. 
- */
-let runtime: ModuleType | null = null;
 
 /**
  * Make HTTP request to S3 service for metadata about available
@@ -80,23 +71,6 @@ const fetchImageBuffer = async (url: string): Promise<Float32Array> => {
 }
 
 /**
- * Import Rust-WASM runtime, and add a panic hook to give 
- * more informative error messages on failure. 
- * 
- * Using dynamic import this way with Webpack requires the path to be 
- * hard-coded, and not supplied as a variable:
- * https://stackoverflow.com/questions/42908116/webpack-critical-dependency-the-request-of-a-dependency-is-an-expression
- * https://github.com/wasm-tool/wasm-pack-plugin
- * 
- * We pass back the status and error message to the main
- * thread for troubleshooting.
- */
-async function start() {
-  runtime = await import("oceanics-io-www-wasm");
-  runtime.panic_hook();
-}
-
-/**
  * Get public JSON data. 
  * 
  * Return an error JSON object if something goes wrong.
@@ -108,33 +82,6 @@ const getPublicJsonData = async (url: string): Promise<object> => {
       error: err.message
     }));
 };
-
-type IQuery = {
-  accessToken: string;
-  server: string;
-  route?: string;
-}
-
-/**
- * Get the index.
- */
-const query = async ({
-  accessToken,
-  server,
-  route = ""
-}: IQuery): Promise<object> =>
-  fetch(`${server}/api/${route}`, {
-    method: "GET",
-    mode: "cors",
-    cache: "no-cache",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `:${accessToken}`
-    }
-  })
-    .then(response => response.json())
-    .then(({ value }) => value);
-
 
 /**
  * Convenience method to make the name usable as a page anchor
@@ -160,38 +107,6 @@ type Tile = {
   queryString: string;
 }
 
-
-type ISorted = {
-  icons: Icon[];
-  tiles: Tile[];
-}
-
-/** 
- * Generate derived fields, and match metadata to asset files.
- */
-const sorted = async ({ tiles, icons }: ISorted) => {
-
-  const lookup = Object.fromEntries(
-    icons.map(({ relativePath, publicURL }) => [relativePath, publicURL])
-  );
-
-  return tiles.map(({ name, becomes = [], data, queryString, ...tile }) => Object({
-    canonical: transformName(name),
-    grayscale: typeof queryString === "undefined" || queryString === null,
-    queryString,
-    anchorHash: name.toLowerCase().split(" ").join("-"),
-    group: becomes.map((x: string) => {
-      const [{ name }] = tiles.filter(({ name }) => transformName(name) === transformName(x));
-      return {
-        link: `#${transformName(name)}`,
-        text: name
-      };
-    }),
-    name,
-    publicURL: lookup[data],
-    ...tile
-  }));
-}
 
 
 type Edge = {
@@ -374,23 +289,7 @@ const GeoJsonSource = ({
   };
 }
 
-/**
- * Format the user location
- */
-const userLocation = async (
-  coordinates: [number, number],
-  iconImage: string
-) =>
-  Object({
-    id: "home",
-    type: "symbol",
-    source: GeoJsonSource({
-      features: [PointFeature(...coordinates, {})]
-    }),
-    layout: {
-      "icon-image": iconImage
-    }
-  });
+
 
 
 /**
@@ -499,57 +398,3 @@ const reduceVertexArray = async (vertexArray: Vertex[]) => {
     [0, 0, 0]
   )
 };
-
-/**
- * On start will listen for messages and match against type to determine
- * which internal methods to use. 
- */
-ctx.addEventListener("message", async ({ data }: MessageEvent) => {
-  switch (data.type) {
-    case "start":
-      await start();
-      ctx.postMessage({
-        type: "status",
-        data: "ready",
-      });
-      return;
-    case "status":
-      ctx.postMessage({
-        type: "status",
-        data: "ready",
-      });
-      return;
-    case "index":
-      ctx.postMessage({
-        type: "data",
-        data: await getFileSystem(data.url),
-      });
-      return;
-    case "json":
-      ctx.postMessage({
-        type: "data",
-        data: await getPublicJsonData(data.url),
-      });
-      return;
-    case "blob":
-      ctx.postMessage({
-        type: "data",
-        data: await fetchImageBuffer(data.url),
-      });
-      return;
-    case "getFragment":
-      ctx.postMessage({
-        type: "data",
-        data: await getFragment(data.target, data.key, data.attribution),
-      });
-      return;
-    default:
-      ctx.postMessage({
-        type: "error",
-        message: "unknown message format",
-        data
-      });
-      return;
-
-  }
-})

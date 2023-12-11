@@ -11,5 +11,14 @@ export const parameters = {
 
 if (typeof global.process === 'undefined') {
   const { worker } = require('../src/mocks/browser')
-  worker.start()
+  worker.start({
+    // https://github.com/mswjs/msw/discussions/1589
+    onUnhandledRequest: "bypass"
+    // onUnhandledRequest: (request, print) => {
+    //   if (request.url.includes('bundle')) {
+    //     return;
+    //   }
+    //   print.warning()
+    // }
+  })
 }

@@ -2,7 +2,8 @@ import type { MutableRefObject, RefObject, MouseEventHandler } from "react";
 import { Map } from "mapbox-gl";
 
 import { useRef, useState, useEffect, useCallback } from "react";
-
+import useWorker from "../../hooks/useWorker";
+import type { OptionalLocation } from "../../hooks/useDetectClient";
 import ReactDOM from "react-dom";
 import { Popup, AnyLayer, AnySourceData } from "mapbox-gl";
 
@@ -10,6 +11,11 @@ import { Popup, AnyLayer, AnySourceData } from "mapbox-gl";
  * Container for MapboxGL feature content. Rendered client-side.
  */
 import PopUpContent from "../PopUp/PopUpContent";
+import Squalltalk from "./Squalltalk";
+
+const createBathysphereWorker = () => {
+  return new Worker(new URL("./Squalltalk.worker.ts", import.meta.url));
+};
 
 /**
  * Use the Geolocation API to retieve the location of the client,
@@ -58,29 +64,21 @@ export const pulsingDot = ({ size }: { size: number }) => {
   };
 };
 
-type ApplicationType = {
-  location: {
-    coords: {
-      latitude: string;
-      longitude: string;
-    };
+interface View {
+  zoom: number;
+  center: [number, number];
+}
+export interface SqualltalkHook {
+  client: {
+    mobile: boolean;
+    location: OptionalLocation;
   };
-  mobile: boolean;
-  worker: {
-    worker: RefObject<Worker>;
-    status: {
-      ready: boolean;
-    };
+  map: {
+    accessToken: string;
+    defaults: View;
+    expand: boolean;
   };
-  channels: {
-    geojson: AnyLayer[];
-  };
-  expand: boolean;
-  accessToken: string;
-  defaults: {
-    zoom: number;
-  };
-};
+}
 
 /**
  * If the map element has not been created yet, create it with a custom style, and user
@@ -92,24 +90,42 @@ type ApplicationType = {
  * Only one map context please, need center to have been set.
  */
 const useSqualltalk = ({
-  accessToken,
-  defaults,
-  location,
-  worker: {
-    worker,
-    status: { ready },
-  },
-  expand,
-}: ApplicationType) => {
+  map: { accessToken, defaults, expand },
+  client: { location },
+}: SqualltalkHook) => {
   /**
    * MapBox container reference.
    */
   const ref: MutableRefObject<HTMLDivElement | null> = useRef(null);
-
   /**
    * MapBoxGL Map instance saved to React state.
    */
   const [map, setMap] = useState<Map | null>(null);
+  /**
+   * Background worker
+   */
+  const worker = useWorker(createBathysphereWorker);
+
+  // Start listening to worker messages
+  useEffect(() => {
+    return worker.listen(({ data }) => {
+      switch (data.type) {
+        case "status":
+          console.log(data.type, data.data);
+          return;
+        case "render":
+          console.log(data.type, data.data);
+        //   map?.addLayer(data.data as AnyLayer);
+          return;
+        case "error":
+          console.error(data.type, data.data);
+          return;
+        default:
+          console.warn(data.type, data.data);
+          return;
+      }
+    });
+  }, []);
 
   /**
    * Resize on load.
@@ -121,8 +137,8 @@ const useSqualltalk = ({
   /**
    * Create the MapBoxGL instance.
    *
-   * Don't do any work if `ref` has not been assigned to an element, and be sure to remove when component
-   * unmounts to clean up workers.
+   * Don't do any work if `ref` has not been assigned to an element,
+   * and be sure to remove when component unmounts to clean up workers.
    */
   useEffect(() => {
     if (!ref.current) return;
@@ -132,7 +148,9 @@ const useSqualltalk = ({
       ...defaults,
     });
     setMap(handle);
-    return handle.remove;
+    return () => {
+      handle.remove();
+    };
   }, [ref]);
 
   /**
@@ -141,9 +159,12 @@ const useSqualltalk = ({
   const [zoom, setZoom] = useState<number>(defaults.zoom);
 
   /**
-   * Location of cursor in geospatial coordinates, updated onMouseMove.
+   * Location of cursor in geo coordinates, updated onMouseMove.
    */
-  const [cursor, setCursor] = useState<{ lng: number; lat: number }>();
+  const [cursor, setCursor] = useState<{ lng: number; lat: number }>({
+    lng: defaults.center[0],
+    lat: defaults.center[1],
+  });
 
   /**
    * Add a zoom handler that updates state
@@ -176,73 +197,72 @@ const useSqualltalk = ({
   /**
    * Memoize an addLayer convenience function
    */
-//   const addLayer = (
-//     source: AnySourceData,
-//     layer: AnyLayer,
-//     onClick: MouseEventHandler
-//   ): void => {
-//     if (!map) return;
-//     map.addLayer({ source, ...layer });
-//     if (onClick) map.on("click", layer.id, onClick);
-//   };
+  //   const addLayer = (
+  //     source: AnySourceData,
+  //     layer: AnyLayer,
+  //     onClick: MouseEventHandler
+  //   ): void => {
+  //     map?.addLayer({ source, ...layer });
+  //     if (onClick) map?.on("click", layer.id, onClick);
+  //   };
 
-//   const addPopup = (coords: number[]) => {
-//     const placeholder: HTMLElement = document.createElement("div");
+  //   const addPopup = (coords: number[]) => {
+  //     const placeholder: HTMLElement = document.createElement("div");
 
-//     ReactDOM.render(
-//       <PopUpContent features={projected} Component={component} />,
-//       placeholder
-//     );
+  //     ReactDOM.render(
+  //       <PopUpContent features={projected} Component={component} />,
+  //       placeholder
+  //     );
 
-//     new Popup({
-//       className: "map-popup",
-//       closeButton: false,
-//       closeOnClick: true,
-//     })
-//       .setLngLat(coords.slice(0, 2))
-//       .setDOMContent(placeholder)
-//       .addTo(map);
-//   };
+  //     new Popup({
+  //       className: "map-popup",
+  //       closeButton: false,
+  //       closeOnClick: true,
+  //     })
+  //       .setLngLat(coords.slice(0, 2))
+  //       .setDOMContent(placeholder)
+  //       .addTo(map);
+  //   };
 
-//   const onReduceFeature = ({ features, lngLat: { lng, lat } }) => {
-//     const reduce = layer.type === "circle" || layer.type === "symbol";
+  //   const onReduceFeature = ({ features, lngLat: { lng, lat } }) => {
+  //     const reduce = layer.type === "circle" || layer.type === "symbol";
 
-//     const projected = reduce
-//       ? features.map(({ geometry: { coordinates }, ...props }) => {
-//           while (Math.abs(lng - coordinates[0]) > 180)
-//             coordinates[0] += lng > coordinates[0] ? 360 : -360;
-//           return {
-//             ...props,
-//             coordinates,
-//           };
-//         })
-//       : features;
+  //     const projected = reduce
+  //       ? features.map(({ geometry: { coordinates }, ...props }) => {
+  //           while (Math.abs(lng - coordinates[0]) > 180)
+  //             coordinates[0] += lng > coordinates[0] ? 360 : -360;
+  //           return {
+  //             ...props,
+  //             coordinates,
+  //           };
+  //         })
+  //       : features;
 
-//     worker.current
-//       .reduceVertexArray(reduce ? projected : [{ coordinates: [lng, lat] }])
-//       .then(addPopup);
-//   };
+  //     worker.current
+  //       .reduceVertexArray(reduce ? projected : [{ coordinates: [lng, lat] }])
+  //       .then(addPopup);
+  //   };
 
   /**
    * Task the web worker with loading and transforming data to add
    * to the MapBox instance as a GeoJSON layer.
    */
-//   useEffect(() => {
-//     if (!map || !queue || !ready) return;
-//     const filterExisting = (x: string): boolean => !map.getLayer(x);
+  //   useEffect(() => {
+  //     if (!map || !queue || !ready) return;
+  //     const filterExisting = (x: string): boolean => !map.getLayer(x);
 
-//     queue
-//       .filter(filterExisting)
-//       .forEach(({ id, behind, standard, url, attribution, ...layer }) => {
-//         setChannelOrder([...channelOrder, [id, behind]]);
-//         worker.current
-//           .getData(url, standard)
-//           .then((source: AnySourceData) => {
-//             addLayer(id, { ...source, attribution }, layer, onReduceFeature);
-//           })
-//           .catch(console.error);
-//       });
-//   }, [map, queue, ready]);
+  //     queue
+  //       .filter(filterExisting)
+  //       .forEach(({ id, behind, standard, url, attribution, ...layer }) => {
+  //         setChannelOrder([...channelOrder, [id, behind]]);
+  //         worker.current
+  //           .getData(url, standard)
+  //           .then((source: AnySourceData) => {
+  //             addLayer(id, { ...source, attribution }, layer, onReduceFeature);
+  //           })
+  //           .catch(console.error);
+  //       });
+  //   }, [map, queue, ready]);
 
   /**
    * Swap layers to be in the correct order as they are created. Will
@@ -251,38 +271,42 @@ const useSqualltalk = ({
    * Nice because you can resolve them asynchronously without worrying
    * about creation order.
    */
-//   useEffect(() => {
-//     if (typeof map === "undefined") return;
-//     channelOrder.forEach(([back, front]) => {
-//       if (map.getLayer(back) && map.getLayer(front)) map.moveLayer(back, front);
-//     });
-//   }, [channelOrder]);
+  useEffect(() => {
+    if (!map) return;
+    channelOrder.forEach(([back, front]) => {
+      if (map.getLayer(back) && map.getLayer(front)) map.moveLayer(back, front);
+    });
+  }, [channelOrder]);
 
   /**
    * Use the worker to create the point feature for the user location.
    */
-//   useEffect(() => {
-//     if (!map || !worker.current || !location) return;
-//     worker.current
-//       .userLocation([location.coords.longitude, location.coords.latitude])
-//       .then(map.addLayer);
-//   }, [worker, location, map]);
+  useEffect(() => {
+    if (!map || !location) return;
+    worker.post({
+      type: "home",
+      data: {
+        coordinates: location.coords,
+        iconImage: "home",
+      },
+    });
+  }, [map]);
 
   /**
-   * Pan to user location immediately.
+   * Pan to user location immediately when updated.
    */
-//   useEffect(() => {
-//     if (!location) return;
-//     map?.panTo([location.coords.longitude, location.coords.latitude]);
-//   }, [location, map]);
+  useEffect(() => {
+    if (!location) return;
+    map?.panTo([location.coords.longitude, location.coords.latitude]);
+  }, [location, map]);
 
   /**
    * Create home animation image
    */
-  useEffect(() => {
-    if (map?.hasImage("home")) return;
-    map?.addImage("home", pulsingDot({ size: 32 }));
-  }, [map]);
+    useEffect(() => {
+      if (map?.hasImage("home")) return;
+      map?.addImage("home", pulsingDot({ size: 32 }));
+    }, [map]);
 
   return {
     map,

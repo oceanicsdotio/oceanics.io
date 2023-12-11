@@ -1,13 +1,7 @@
-import React, { useEffect } from "react";
-
+import React from "react";
 import useSqualltalk from "./useSqualltalk";
-import useWorker from "../../hooks/useWorker";
-import useFragmentQueue, {
-  OBJECT_STORAGE_URL,
-} from "../../hooks/useFragmentQueue";
-import useObjectStorage from "./useObjectStorage";
+import type {SqualltalkHook} from "./useSqualltalk"
 
-import type {OptionalLocation} from "../../hooks/useDetectClient";
 
 export const DEFAULT_MAP_PROPS = {
   zoom: 10,
@@ -15,7 +9,7 @@ export const DEFAULT_MAP_PROPS = {
   pitchWithRotate: false,
   dragRotate: false,
   touchZoomRotate: false,
-  center: [-70, 43.7],
+  center: [-70, 43.7] as [number, number],
   style: {
     version: 8,
     name: "Dark",
@@ -64,44 +58,15 @@ export const DEFAULT_MAP_PROPS = {
   },
 };
 
-const createBathysphereWorker = () => {
-  return new Worker(
-    new URL("../../workers/useBathysphereApi.worker.ts", import.meta.url)
-  );
-};
-
-interface View {
-  zoom: number
-  center?: [number, number]
-}
-export interface ViewParams extends View {
-  accessToken: string
-}
-export interface ISqualltalk {
-  client?: {
-    mobile: boolean;
-    location: OptionalLocation;
-  };
-  map: {
-    accessToken: string;
-    defaults: View;
-  };
-  height?: string;
+export interface ISqualltalk extends SqualltalkHook {
+  height: string;
 }
 
 /**
- * Page component rendered by GatsbyJS.
+ * Mapping and data visualization interface
  */
-const Squalltalk = ({ map, height = "500px" }: ISqualltalk) => {
-  const { ref, map: mapBox } = useSqualltalk(map);
-  const worker = useWorker(createBathysphereWorker);
-  const fs = useObjectStorage(OBJECT_STORAGE_URL, worker.ref);
-
-  /**
-   * Load vertex array buffers from cloud storage. 
-   */
-  useFragmentQueue({ worker: worker.ref, map: mapBox, fs });
-
+const Squalltalk = ({ height, ...props }: ISqualltalk) => {
+  const { ref } = useSqualltalk(props);
   return (
     <>
       <link
