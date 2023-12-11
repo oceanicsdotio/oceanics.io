@@ -11,9 +11,16 @@ export default {
 
 const Template: StoryFn<ISqualltalk> = (args) => {
     const client = useDetectClient();
+    const props = {
+        ...args,
+        client: {
+            ...client,
+            source: "https://oceanicsdotio.nyc3.digitaloceanspaces.com"
+        }
+    }
     return (<>
         <GlobalStyle/>
-        <Squalltalk {...{...args, {...client, source}}} />
+        <Squalltalk {...props} />
     </>)
 };
 
@@ -23,7 +30,7 @@ const Template: StoryFn<ISqualltalk> = (args) => {
 export const Default = Template.bind({});
 Default.args = {
     map: {
-        defaults: DEFAULT_MAP_PROPS,
+        defaults: DEFAULT_MAP_PROPS as any,
         expand: true,
         accessToken: process.env.STORYBOOK_PUBLIC_MAPBOX_ACCESS_TOKEN??""
     },

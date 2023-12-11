@@ -6,8 +6,24 @@ import type { OptionalLocation } from "../../hooks/useDetectClient";
 import ReactDOM from "react-dom";
 import type { AnyLayer, AnySourceData, Style } from "mapbox-gl";
 // import PopUpContent from "../PopUp/PopUpContent";
-// import Squalltalk from "./Squalltalk";import { DOMParser } from "@xmldom/xmldom";
-import type { FileSystem } from "../../shared";
+// import Squalltalk from "./Squalltalk";
+
+export type FileObject = {
+  key: string;
+  updated: string;
+  size: number; 
+}
+
+export type FileSystem = {
+  objects: FileObject[];
+};
+/**
+ * Storage target.
+ */
+const TARGET = "https://oceanicsdotio.nyc3.cdn.digitaloceanspaces.com";
+const PREFIX = "MidcoastMaineMesh";
+export const OBJECT_STORAGE_URL = `${TARGET}?prefix=${PREFIX}/necofs_gom3_mesh/nodes/`;
+
 
 /**
  * Dedicated Worker loader
@@ -121,7 +137,7 @@ const useSqualltalk = ({
   /**
    * Memoize the metadata for the assets in object storage
    */
-  const [fileSystem] = useState<FileSystem|null>(null);
+  const [fileSystem, setFileSystem] = useState<FileSystem|null>(null);
 
   /**
    * Get the asset metadata from object storage service
@@ -199,11 +215,12 @@ const useSqualltalk = ({
           console.log(data.type, data.data);
           map?.addLayer(data.data as AnyLayer);
           return;
-        case "storage":
-          console.log(data.type, data.data);
-          return;
         case "error":
           console.error(data.type, data.data);
+          return;
+        case "storage":
+          console.log(data.type, data.data)
+          setFileSystem(data.data as FileSystem);
           return;
         default:
           console.warn(data.type, data.data);
@@ -239,16 +256,40 @@ const useSqualltalk = ({
   }, [ready, location]);
 
   /**
-   * Data sets to queue and build layers from.
+   * The queue is an array of remote data assets to fetch and process.
+   * Updating the queue triggers `useEffect` hooks depending on whether
+   * visualization elements have been passed in or assigned externally.
    */
-  const [queue] = useState<unknown[]>([]);
+  const [queue, setQueue] = useState<FileObject[]>([]);
 
   /**
    * Reorder data sets as they are added.
    */
   const [channelOrder] = useState<[string, string][]>([]);
 
-  
+  /**
+   * By default set the queue to the fragments listed in the response
+   * from S3 object storage queries.
+   */
+  useEffect(() => {
+    if (fileSystem) setQueue(fileSystem.objects);
+  }, [fileSystem]);
+
+  /**
+   * Request all fragments sequentially.
+   *
+   * All of this should be cached by the browser
+   */
+  useEffect(() => {
+    if (!ready || !queue.length) return;
+    const key = queue[0].key;
+    setQueue(queue.slice(1, queue.length));
+    if (map?.getLayer(`mesh-${key}`)) return;
+    worker.post({
+      type: "fragment",
+      data: [TARGET, key],
+    });
+  }, [ready, worker, queue]);
 
   /**
    * Memoize an addLayer convenience function
@@ -281,8 +322,6 @@ const useSqualltalk = ({
       .setDOMContent(placeholder)
       .addTo(map);
   };
-
-  
 
   /**
    * Task the web worker with loading and transforming data to add

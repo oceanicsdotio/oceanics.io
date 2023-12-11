@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
  * Rust WASM runtime, used for numerical methods.
  */
 import useWasmRuntime from "./useWasmRuntime";
-import useCanvasContext from "../hooks/useCanvasContext";
+import useCanvasContext from "../components/CanvasContext/useCanvasContext";
 
 /**
  * Pre-import all shaders. This is a bit fragile.

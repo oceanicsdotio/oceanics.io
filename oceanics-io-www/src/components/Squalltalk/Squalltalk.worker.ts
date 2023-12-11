@@ -1,12 +1,32 @@
+import { DOMParser } from "@xmldom/xmldom";
+import type { FileObject, FileSystem } from "./useSqualltalk";
 const ctx: Worker = self as unknown as Worker;
 type ModuleType = typeof import("oceanics-io-www-wasm");
+
+// Possible types of message
+const COMMANDS = {
+  // Signal fatal error
+  error: "error",
+  // Parse geolocation re-post as source
+  home: "home",
+  // Sending a data source to MapBox
+  source: "source",
+  // Signal from `useWorker()` hook 
+  start: "start",
+  // Respond with Worker status
+  status: "status",
+  // Get object storage index
+  storage: "storage",
+  // Sending a layer style to MapBox
+  layer: "layer",
+  // Get object storage buffer
+  fragment: "fragment"
+}
 
 /**
  * Runtime handle to which we will memoize the active runtime. 
  */
 let runtime: ModuleType | null = null;
-import type { FileSystem } from "../../shared";
-
 /**
  * Global for reuse
  */
@@ -23,33 +43,26 @@ let parser: DOMParser | null = null;
  */
 async function getFileSystem(url: string): Promise<FileSystem> {
   if (!parser) parser = new DOMParser();
-
-  const text = await fetch(url, {
+  const response = await fetch(url, {
     method: "GET",
     mode: "cors",
     cache: "no-cache"
-  }).then(response => response.text());
-
+  })
+  const text = await response.text();
   const xmlDoc = parser.parseFromString(text, "text/xml");
-  const [result] = Object.values(xmlDoc.childNodes).filter(
+  const [{childNodes}] = Object.values(xmlDoc.childNodes).filter(
     (x) => x.nodeName === "ListBucketResult"
   );
-  const nodes = Array.from(result.childNodes);
-  const filter = (match: string) => (node: ChildNode) => 
-    (node as unknown as {tagName: string}).tagName === match;
-
-  const fileObject = (node: ChildNode) => Object({
-    key: node.childNodes[0].textContent,
-    updated: node.childNodes[1].textContent,
-    size: node.childNodes[3].textContent,
-  })
-  const fileCollection = (node: ChildNode) => Object({
-    key: node.childNodes[0].textContent
-  })
-
-  return { 
-    objects: nodes.filter(filter("Contents")).map(fileObject), 
-    collections: nodes.filter(filter("CommonPrefixes")).map(fileCollection)
+  const nodes: FileObject[] = Array.from(childNodes)
+    .map((node) => {
+      return {
+        key: node.childNodes[0]?.textContent ?? "",
+        updated: node.childNodes[1]?.textContent ?? "",
+        size: parseInt(node.childNodes[3]?.textContent ?? "0"),
+      }
+    });
+  return {
+    objects: nodes.filter((node: FileObject) => node.size > 0)
   };
 }
 
@@ -140,7 +153,7 @@ const vertexReducer = (length: number) =>
     ]
 
 const featureReducer = ({ features, lngLat: { lng, lat } }) => {
-  
+
   features.map(({ geometry: { coordinates }, ...props }) => {
     while (Math.abs(lng - coordinates[0]) > 180)
       coordinates[0] += lng > coordinates[0] ? 360 : -360;
@@ -202,6 +215,166 @@ const userLocationChannel = ({
   };
 }
 
+
+/**
+ * Max regional ocean depth for bthymetry rendering
+ */
+const MAX_VALUE = 5200;
+
+/**
+ * Get rid of the junk
+ */
+export const cleanAndParse = (text: string): string[] =>
+  text.replace("and", ",")
+    .replace(";", ",")
+    .split(",")
+    .map(each => each.trim());
+
+type IEsri = {
+  geometry: {
+    x: number;
+    y: number;
+  },
+  attributes: object;
+}
+type INoaa = {
+  data: [object];
+  metadata: {
+    lon: number;
+    lat: number;
+  } & object;
+}
+type PointFeatureResult = {
+  type: "Feature";
+  geometry: {
+    type: "Point";
+    coordinates: [number, number];
+  };
+  properties: object
+}
+/**
+ * Single point feature with coordinates 
+ * and arbitrary properties.
+ */
+const PointFeature = (x: number, y: number, properties: object): PointFeatureResult => Object({
+  type: "Feature",
+  geometry: {
+    type: "Point",
+    coordinates: [x, y]
+  },
+  properties
+});
+
+type IGeoJsonSource = {
+  features: (PointFeatureResult | IEsri | INoaa)[];
+  standard?: string;
+  properties?: object;
+};
+
+/**
+ * Out ready for MapBox as a Layer object description
+ */
+const GeoJsonSource = ({
+  features,
+  standard,
+  properties
+}: IGeoJsonSource) => {
+  let parsed: PointFeatureResult[];
+
+  if (standard === "noaa") {
+    parsed = (features as INoaa[])
+      .filter(x => "data" in x && "metadata" in x)
+      .map(({
+        data: [head],
+        metadata: { lon, lat, ...metadata }
+      }) => PointFeature(lon, lat, { ...head, ...metadata }))
+  } else if (standard === "esri") {
+    parsed = (features as IEsri[])
+      .filter(x => !!x)
+      .map(({
+        geometry: { x, y },
+        attributes
+      }) => PointFeature(x, y, attributes))
+  } else {
+    parsed = (features as PointFeatureResult[])
+      .filter(x => !!x)
+  }
+  return {
+    type: "geojson",
+    generateId: true,
+    data: {
+      type: "FeatureCollection",
+      features: parsed,
+      properties,
+    },
+    attribution: ""
+  };
+}
+
+/**
+ * Log normal density function for color mapping
+ */
+const logNormal = (x: number, m = 0, s = 1.0): number =>
+  (1 / s / x / Math.sqrt(2 * Math.PI) * Math.exp(-1 * (Math.log(x) - m) ** 2 / (2 * s ** 2)));
+
+/**
+ * Retrieve a piece of a vertex array buffer from object storage.
+ */
+const getFragment = async (target: string, key: string) => {
+  const url = `${target}/${key}`;
+  const blob = await fetch(url).then(response => response.blob());
+  const arrayBuffer: ArrayBuffer | string | null = await (new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onloadend = () => { resolve(reader.result) };
+    reader.readAsArrayBuffer(blob);
+  }));
+  if (!(arrayBuffer instanceof ArrayBuffer)) {
+    throw TypeError("Expected ArrayBuffer type")
+  }
+
+  const dataView = new Float32Array(arrayBuffer);
+  const [features] = dataView.reduce(([features, count]: [number[][], number], cur: number) => {
+    return [
+      features.concat(count ? [...features.slice(-1)[0], cur] : [cur]),
+      (count + 1) % 3
+    ];
+  },
+    [[], 0]
+  );
+
+  const source = GeoJsonSource({
+    features: features.map(
+      coordinates => Object({
+        geometry: { type: "Point", coordinates },
+        properties: {
+          q: (((100 + coordinates[2]) / MAX_VALUE) - 1) ** 2,
+          ln: logNormal((100 + coordinates[2]) / MAX_VALUE, 0.0, 1.5)
+        }
+      })
+    )
+  });
+
+  return {
+    id: `mesh-${key}`,
+    type: "circle",
+    source,
+    component: "location",
+    paint: {
+      "circle-radius": { stops: [[0, 0.2], [22, 4]] },
+      "circle-stroke-width": 0,
+      "circle-color": [
+        "rgba",
+        ["*", 127, ["get", "q"]],
+        ["*", 127, ["get", "ln"]],
+        ["*", 127, ["-", 1, ["get", "q"]]],
+        0.75
+      ]
+    }
+  }
+
+};
+
+
 /**
  * On start will listen for messages and match against type to determine
  * which internal methods to use. 
@@ -209,42 +382,49 @@ const userLocationChannel = ({
 ctx.addEventListener("message", async ({ data }: MessageEvent) => {
   switch (data.type) {
     // Start the worker
-    case "start":
+    case COMMANDS.start:
       await start();
       ctx.postMessage({
-        type: "status",
+        type: COMMANDS.status,
         data: "ready",
       });
       return;
     // Respond with status
-    case "status":
+    case COMMANDS.status:
       ctx.postMessage({
-        type: "status",
+        type: COMMANDS.status,
         data: "ready",
       });
       return;
     // Push a home layer
-    case "home":
+    case COMMANDS.home:
       ctx.postMessage({
-        type: "source",
+        type: COMMANDS.source,
         data: ["home", userLocationSource(data.data as UserLocation)],
       });
       ctx.postMessage({
-        type: "layer",
+        type: COMMANDS.layer,
         data: userLocationChannel(data.data as UserLocation),
       });
       return;
     // Get object storage file system index
-    case "storage":
+    case COMMANDS.storage:
       ctx.postMessage({
-        type: "storage",
+        type: COMMANDS.storage,
         data: await getFileSystem(data.data.url),
       });
-      return
+      return;
+    // Get an object fragment from storage
+    case COMMANDS.fragment:
+      ctx.postMessage({
+        type: COMMANDS.source,
+        data: await getFragment(...(data.data as [string, string])),
+      });
+      return;
     // Error on unspecified message type
     default:
       ctx.postMessage({
-        type: "error",
+        type: COMMANDS.error,
         message: "unknown message format",
         data
       });

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
-export type Listener = (args: { data: { data: unknown, type: string}}) => void;
+export type Listener = (args: { data: { data: unknown, type: string, message?: string}}) => void;
 
 // In-memory log truncation
 const LIMIT = 10;
