@@ -1,46 +1,5 @@
-// @ts-nocheck
-/**
- * React, just friends because it's a hook. 
- */
-import { useEffect, useState } from "react";
-import type {MutableRefObject} from "react";
-/**
- * Shader hook. We keep this separate for use by other implementations. 
- */
-import useGlslShaders from "../../hooks/useGlslShaders";
+import { useEffect } from "react";
 
-/**
- * Color map texture for lookups
- */
-import useColorMapTexture from "./useColorMapTexture";
-
-/**
- * Dedicated worker loader
- */
-import useImageDataTexture from "./useImageDataTexture";
-
-/**
- * Mapping of uniforms to program components
- */
-const parameters = {
-    screen: ["u_screen", "u_opacity"],
-    sim: ["speed",  "drop",  "seed", "u_wind_res", "diffusivity"],
-    wind: ["u_wind", "u_particles", "u_color_ramp", "u_particles_res", "u_wind_max", "u_wind_min"],
-    color: ["u_color_ramp", "u_opacity"],
-};
-
-type ILagrangian = {
-    source: string;
-    metadataFile: string;
-    res: number;
-    colors: [number, string][];
-    opacity: number;
-    speed: number;
-    diffusivity: number;
-    pointSize: number;
-    drop: number;
-    worker: MutableRefObject<SharedWorker|null>;
-};
 
  /**
   * Use WebGL to calculate particle trajectories from velocity data. 
@@ -49,101 +8,13 @@ type ILagrangian = {
   * will support pulling frames from video or gif formats. 
   */
 export const useLagrangianTrajectory = ({
-    source,
-    metadataFile,
-    worker,
     res = 16,
-    colors = [
-        [0.0, "#deababff"],
-        [1.0, "#660066ff"],
-    ],
     opacity = 0.92, // how fast the particle trails fade on each frame
     speed = 0.00007, // how fast the particles move
     diffusivity = 0.004,
     pointSize = 1.0,
     drop = 0.01, // how often the particles move to a random place
-}: ILagrangian) => {
-   
-    /**
-     * Exported ref to draw textures to a secondary HTML canvas component
-     */
-    const { preview, imageData, metadata } = useImageDataTexture({
-        source,
-        metadataFile,
-        worker
-    });
-
-    /**
-     * Particle locations. Will be set by web worker from remote source,
-     * procedure, or randomly. 
-     */
-    const [ particles, setParticles ] = useState(null);
-
-    /**
-     * Error flag
-     */
-    const [ error, setError ] = useState("");
-
-    /**
-     * Create a initial distribution of particle positions,
-     * encoded as 4-byte colors.
-     */
-    useEffect(() => {
-        if (!worker.current) return;
-        worker.current.initParticles(res)
-            .then(setParticles)
-            .catch(() => {setError("There was a runtime error.")});
-    }, [ worker ]);
-
-    /**
-     * Message for user interface, passed out to parent component.
-     */
-    const [ message, setMessage ] = useState("Working...");
-
-    /**
-     * When we have some information ready, set the status message
-     * to something informative, like number of particles
-     */
-    useEffect(() => {
-        if (particles) setMessage(`Ichthyoid (N=${res*res})`);
-    }, [ particles ]);
-
-    /**
-     * Set an error message in necessary.
-     */
-    useEffect(() => {
-        if (error) setMessage(error);
-    }, [ error ]);
-
-    /**
-     * Shader programs compiled from GLSL source. 
-     * 
-     * Comes with a recycled Rust-WASM runtime. 
-     */
-    const { 
-        ref,
-        assets,
-        setAssets,
-        runtime, 
-        programs, 
-        validContext, 
-        VertexArrayBuffers,
-        createTexture,
-        renderPipeline
-    } = useGlslShaders({ 
-        shaders: {
-            screen: ["quad-vertex", "screen-fragment"],
-            draw: ["draw-vertex", "draw-fragment"],
-            update: ["quad-vertex", "update-fragment"],
-        }
-    });
-
-    /**
-     * Create color map
-     */
-    const colorMap = useColorMapTexture({width: 16, height: 16, colors});
-
-    
+}) => { 
     /**
     * Generate assets and handles for rendering to canvas.
     * Use transducer to replace configs with texture instances.
@@ -153,8 +24,7 @@ export const useLagrangianTrajectory = ({
     */
     useEffect(() => {
         const ctx = validContext();
-        if (!ctx || !particles || !metadata || !colorMap.texture || (source && !imageData) || ! ref.current) return;
-        
+     
         const canvas: HTMLCanvasElement = ref.current;
         const { width, height } = canvas;
         const size = width * height * 4;
@@ -260,11 +130,4 @@ export const useLagrangianTrajectory = ({
         })()
         return () => cancelAnimationFrame(requestId);
     }, [programs, assets]);
-
-    /**
-     * Resources available to parent Component or Hook.
-     */
-    return {ref, message, preview}
 };
-
-export default useLagrangianTrajectory
