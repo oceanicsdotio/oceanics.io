@@ -1,6 +1,14 @@
-type HistogramResult = { total: number; max: number; };
-
+import type { HistogramResult, HistogramData } from "./useHistogram";
 const ctx: Worker = self as unknown as Worker;
+
+/**
+ * Known message types
+ */
+const MESSAGES = {
+    status: "status",
+    error: "error",
+    reduce: "reduce"
+}
 
 /**
  * Calculate summary statistics for the bins, to help with rendering
@@ -8,43 +16,45 @@ const ctx: Worker = self as unknown as Worker;
  * 
  * There should only be positive values for the y-axis.
  */
-const histogramReducer = (histogram: [number, number][]): HistogramResult => histogram.reduce(
-  ({ total, max }, [bin, count]) => {
+const reduce = (
+    { total, max }: HistogramResult,
+    [bin, count]: [number, number]
+) => {
     if (count < 0) throw Error(`Negative count value, ${count} @ ${bin}`);
     return {
-      total: total + count,
-      max: Math.max(max, count)
+        total: total + count,
+        max: Math.max(max, count)
     }
-  },
-  { total: 0, max: 0 }
-);
-
+}
 
 /**
  * Listener function
  */
 const handleMessage = async ({ data }: MessageEvent) => {
-  switch (data.type) {
-    case "status":
-      ctx.postMessage({
-        type: "status",
-        data: "ready",
-      });
-      return;
-    case "histogram":
-        ctx.postMessage({
-            type: "histogram",
-            data: "ready",
-        });
-        return;
-    default:
-      ctx.postMessage({
-        type: "error",
-        message: "unknown message format",
-        data
-      });
-      return;
-  }
+    switch (data.type) {
+        case MESSAGES.status:
+            ctx.postMessage({
+                type: MESSAGES.status,
+                data: "ready",
+            });
+            return;
+        case MESSAGES.reduce:
+            ctx.postMessage({
+                type: MESSAGES.reduce,
+                data: (data.data as HistogramData).reduce(
+                    reduce, 
+                    { total: 0, max: 0 }
+                ),
+            });
+            return;
+        default:
+            ctx.postMessage({
+                type: MESSAGES.error,
+                message: "unknown message format",
+                data
+            });
+            return;
+    }
 }
 
 /**
