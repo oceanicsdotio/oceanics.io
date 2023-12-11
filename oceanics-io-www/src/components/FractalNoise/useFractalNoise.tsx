@@ -1,16 +1,17 @@
-//@ts-nocheck
 import { useEffect } from "react";
+import useCanvasContext from "../../hooks/useCanvasContext";
 
+export interface IFractalNoise {
 
-export const useFractalNoise = () => {
+}
 
+export const useFractalNoise = ({}: IFractalNoise) => {
+
+    const {ref, validContext: ctx} = useCanvasContext("webgl");
 
     useEffect(() => {
-        const ctx = validContext();
-        if (!fractal || !ctx) return;
-
+        if (!ctx || !ref.current) return;
         const { width, height } = ref.current;
-
         setAssets({
             textures: 
                 Object.fromEntries(Object.entries({
@@ -68,7 +69,10 @@ export const useFractalNoise = () => {
         ]);
     }, [programs]);
 
-    
+    return {
+        ref,
+        message: ""
+    }
 }
 
 export default useFractalNoise

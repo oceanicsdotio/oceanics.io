@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import type { MutableRefObject } from "react";
 
 
-export default (contextType: string) => {
+export default (contextType: "2d" | "webgl") => {
     /**
      * Canvas ref to get a WebGL context from once it has been
      * assigned to a valid element. 

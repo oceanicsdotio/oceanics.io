@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import useCanvasContext from "../components/CanvasContext/useCanvasContext";
+import useCanvasContext from "../../hooks/useCanvasContext";
 
 type IColorMap = {
     width: number;

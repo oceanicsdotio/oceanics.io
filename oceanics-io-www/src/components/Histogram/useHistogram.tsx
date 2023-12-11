@@ -1,10 +1,14 @@
 import { useEffect, useRef, useState } from "react";
-import type {WorkerRef} from "../shared";
+import type {WorkerRef} from "../../shared";
+import { ghost } from "../../palette";
 
-/**
- * Consistent styling.
- */
-import { ghost } from "../palette";
+
+export type IHistogram = {
+    histogram: [number, number][];
+    caption: string;
+    foreground?: string;
+    worker: WorkerRef;
+}
 
 /**
  * The bin size is known, since the bins are precalculated.
@@ -16,23 +20,16 @@ const COUNT = 100;
  */
 const Δw = 1.0/COUNT;
 
-type IHistogramCanvas = {
-    histogram: [number, number][];
-    caption: string;
-    foreground?: string;
-    worker: WorkerRef;
-}
-
 /**
  * Calculate and draw a histogram from count data 
  * where 0.0 < x < 1.0.
  */
-export const useHistogramCanvas = ({
+export const useHistogram = ({
     histogram, 
     caption,
     worker,
     foreground = ghost
-}: IHistogramCanvas) => {
+}: IHistogram) => {
     /**
      * Handle to assign to canvas element instance
      */
@@ -47,6 +44,35 @@ export const useHistogramCanvas = ({
         max: 0
     });
 
+    // Start listening to worker messages
+  useEffect(() => {
+    return worker.listen(({ data }) => {
+      switch (data.type) {
+        case "status":
+          console.log(data.type, data.data);
+          return;
+        case "source":
+          console.log(data.type, data.data);
+          map?.addSource(...data.data as [string, AnySourceData]);
+          return;
+        case "layer":
+          console.log(data.type, data.data);
+          map?.addLayer(data.data as AnyLayer);
+          return;
+        case "error":
+          console.error(data.type, data.data);
+          return;
+        case "storage":
+          console.log(data.type, data.data)
+          setFileSystem(data.data as FileSystem);
+          return;
+        default:
+          console.warn(data.type, data.data);
+          return;
+      }
+    });
+  }, [ready]);
+
     /**
      * Use background worker to calculate summary statistics.
      * 
@@ -55,8 +81,8 @@ export const useHistogramCanvas = ({
      */
     useEffect(() => {
         if (!worker.current) return;
-        worker.current.postMessage({
-            type: "histogramReducer",
+        worker.post({
+            type: "histogram",
             data: histogram
         })
         // TODO: wait, and .then(setStatistics)});
@@ -87,7 +113,6 @@ export const useHistogramCanvas = ({
             throw TypeError("Canvas Context is Null")
         }
         ctx.fillStyle = foreground;
-        
         histogram.forEach(([x, n]: [number, number]) => {
             ctx.fillRect(
                 canvas.width * (x - Δw),
@@ -101,4 +126,4 @@ export const useHistogramCanvas = ({
     return { statistics, ref, message };
 }
 
-export default useHistogramCanvas;
+export default useHistogram;

@@ -7,7 +7,7 @@ import type {MutableRefObject} from "react";
 /**
  * Shader hook. We keep this separate for use by other implementations. 
  */
-import useGlslShaders from "./useGlslShaders";
+import useGlslShaders from "../../hooks/useGlslShaders";
 
 /**
  * Color map texture for lookups

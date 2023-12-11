@@ -1,27 +1,54 @@
 import { useState, useEffect, useRef } from "react";
-import { lichen, ghost } from "../palette";
-
-/**
- * Synchronous front-end WASM Runtime
- */
-import useWasmRuntime from "./useWasmRuntime";
+import useWasmRuntime from "../../hooks/useWasmRuntime";
 import type { InteractiveDataStream } from "oceanics-io-www-wasm";
 
+export interface IDataStream {
+    /**
+     * Hex color for the time series
+     */
+    streamColor: string;
+    /**
+     * Hex color for 
+     */
+    overlayColor: string;
+    /**
+     * Hex color for background blending
+     */
+    backgroundColor: string;
+    /**
+     * How thick to draw the time series line
+     */
+    lineWidth: number;
+    /**
+     * How large to draw the points
+     */
+    pointSize: number;
+    /**
+     * Buffer of observations visible at once
+     */
+    capacity: number;
+    /**
+     * Axis tick length
+     */
+    tickSize: number;
+    /**
+     * Canvas-drawn text size
+     */
+    fontSize: number;
+    /**
+     * Space between ticks and text labels
+     */
+    labelPadding: number;
+}
+
 /*
- * Time series data
+ * Time series data container. Uses a synchronous WASM runtime
+ * to draw to canvas and do various transformations of the data.
  */
 export const useDataStream = ({
-    streamColor = lichen,
-    overlayColor = ghost,
-    backgroundColor = "#202020FF",
-    lineWidth=1.5,
-    pointSize=2.0,
-    capacity=500,
-    tickSize=10.0,
-    fontSize=12.0,
-    labelPadding=2.0,
-}) => {
-
+    capacity,
+    ...props
+}: IDataStream) => {
     /**
      * Reference to pass to target canvas
      */
@@ -60,8 +87,9 @@ export const useDataStream = ({
         const fcn = (t: number) => {
             const days = t / 5000.0 % 365.0;
             const hours = days % 1.0;
-            const latitude = 46.0;
-            return runtime.photosynthetically_active_radiation(days, latitude, hours);
+            // const latitude = 46.0;
+            return Math.sin(hours)
+            // return runtime.photosynthetically_active_radiation(days, latitude, hours);
         };
 
         canvas.addEventListener("mousemove", ({clientX, clientY}) => {
@@ -79,7 +107,7 @@ export const useDataStream = ({
         (function render() {
             const time = performance.now() - start;
             dataStream.push(time, fcn(time));
-            dataStream.draw(canvas, time, {backgroundColor, streamColor, overlayColor, lineWidth, pointSize, fontSize, tickSize, labelPadding});
+            dataStream.draw(canvas, time, props);
             setMessage(`Light (N=${dataStream.size()})`);
             requestId = requestAnimationFrame(render);
 

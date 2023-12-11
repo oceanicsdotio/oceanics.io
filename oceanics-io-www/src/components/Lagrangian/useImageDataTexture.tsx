@@ -1,15 +1,12 @@
-/**
- * React friends.
- */
 import { useEffect, useRef, useState } from "react";
-import type {WorkerRef} from "../shared"
-
+import type {WorkerRef} from "../../shared"
 
 type IImageData = {
     source?: string;
     metadataFile?: string;
     worker: WorkerRef;
 };
+
 
 /**
  * Re-usable logic for loading remote image as data source for GPGPU

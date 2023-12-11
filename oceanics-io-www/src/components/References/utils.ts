@@ -1,19 +1,3 @@
-/**
- * Get image data from S3, the Blob-y way. 
- */
-const fetchImageBuffer = async (url: string): Promise<Float32Array> => {
-  const blob = await fetch(url).then(response => response.blob());
-  const arrayBuffer: string | ArrayBuffer | null = await (new Promise(resolve => {
-    const reader = new FileReader();
-    reader.onloadend = () => { resolve(reader.result); };
-    reader.readAsArrayBuffer(blob);
-  }));
-  if (arrayBuffer instanceof ArrayBuffer) {
-    return new Float32Array(arrayBuffer);
-  } else {
-    throw TypeError("Result is not ArrayBuffer type")
-  }
-}
 
 
 type Edge = {
@@ -70,25 +54,6 @@ export const codex = async ({ edges }: ICodex): Promise<Dictionary> => {
   return mapping;
 
 };
-
-type HistogramResult = { total: number; max: number; };
-/**
- * Calculate summary statistics for the bins, to help with rendering
- * and UI metadata.
- * 
- * There should only be positive values for the y-axis.
- */
-export const histogramReducer = (histogram: [number, number][]): HistogramResult => histogram.reduce(
-  ({ total, max }, [bin, count]) => {
-    if (count < 0) throw Error(`Negative count value, ${count} @ ${bin}`);
-
-    return {
-      total: total + count,
-      max: Math.max(max, count)
-    }
-  },
-  { total: 0, max: 0 }
-);
 
 /**
  * Create vertex array buffer

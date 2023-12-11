@@ -7,7 +7,7 @@ import { useEffect, useState, useRef } from "react";
 /**
  * Shader hook. We keep this separate for use by other implementations. 
  */
-import useGlslShaders, {renderPipelineStage} from "./useGlslShaders";
+import useGlslShaders, {renderPipelineStage} from "../../hooks/useGlslShaders";
 
 /**
  * Color map texture for lookups.
@@ -33,7 +33,18 @@ const PARAMETER_MAP = {
     wind: ["u_wind", "u_particles", "u_color_ramp", "u_particles_res", "u_wind_max", "u_wind_min"],
     color: ["u_color_ramp", "u_opacity"],
 };
-
+type ILagrangian = {
+    source: string;
+    metadataFile: string;
+    res: number;
+    colors: [number, string][];
+    opacity: number;
+    speed: number;
+    diffusivity: number;
+    pointSize: number;
+    drop: number;
+    worker: MutableRefObject<SharedWorker|null>;
+};
  /**
   * Use WebGL to calculate particle trajectories from velocity data. 
   * This example uses wind data to move particles around the globe. 
@@ -55,7 +66,7 @@ export const useLagrangian = ({
     diffusivity = 0.004,
     pointSize = 1.0,
     drop = 0.01, // how often the particles move to a random place
-}) => {
+}: ILagrangian) => {
    
     /**
      * Exported ref to draw textures to a secondary HTML canvas component
