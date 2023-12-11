@@ -10,10 +10,10 @@ export default {
 } as Meta;
 
 const Template: StoryFn<ISqualltalk> = (args) => {
-    const client = useDetectClient()
+    const client = useDetectClient();
     return (<>
         <GlobalStyle/>
-        <Squalltalk {...{...args, client}} />
+        <Squalltalk {...{...args, {...client, source}}} />
     </>)
 };
 

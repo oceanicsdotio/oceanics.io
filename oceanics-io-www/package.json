@@ -20,10 +20,10 @@
   "dependencies": {
     "@apidevtools/swagger-parser": "^10.1.0",
     "@types/geojson": "^7946.0.13",
-    "@types/mapbox-gl": "^2.4.2",
+    "@types/mapbox-gl": "^2.7.19",
     "@xmldom/xmldom": "^0.8.10",
     "katex": "^0.16.9",
-    "mapbox-gl": "^1.5.0",
+    "mapbox-gl": "^3.0.1",
     "next": "^14.0.3",
     "next-mdx-remote": "^4.4.1",
     "oceanics-io-www-wasm": "*",

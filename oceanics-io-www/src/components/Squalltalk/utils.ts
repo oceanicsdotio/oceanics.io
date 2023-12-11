@@ -1,58 +1,3 @@
-import { DOMParser } from "@xmldom/xmldom";
-import type { FileSystem } from "../../shared";
-
-/**
- * Global for reuse
- */
-let parser: DOMParser | null = null;
-
-/**
- * Make HTTP request to S3 service for metadata about available
- * assets.
- * 
- * Use `xmldom.DOMParser` to parse S3 metadata as JSON file descriptors,
- * because window.DOMParser is not available in Web Worker 
- */
-async function getNodes(url: string, parser: DOMParser): Promise<ChildNode[]> {
-  const text = await fetch(url, {
-    method: "GET",
-    mode: "cors",
-    cache: "no-cache"
-  }).then(response => response.text());
-
-  const xmlDoc = parser.parseFromString(text, "text/xml");
-  const [result] = Object.values(xmlDoc.childNodes).filter(
-    (x) => x.nodeName === "ListBucketResult"
-  );
-  return Array.from(result.childNodes);
-}
-
-/**
- * Retrieve remote file metadata and format it as a
- * serializable message. 
- */
-async function getFileSystem(url: string): Promise<FileSystem> {
-  if (!parser) parser = new DOMParser();
-
-  const nodes = await getNodes(url, parser);
-  const filter = (match: string) => (node: ChildNode) => 
-    (node as unknown as {tagName: string}).tagName === match;
-
-  const fileObject = (node: ChildNode) => Object({
-    key: node.childNodes[0].textContent,
-    updated: node.childNodes[1].textContent,
-    size: node.childNodes[3].textContent,
-  })
-  const fileCollection = (node: ChildNode) => Object({
-    key: node.childNodes[0].textContent
-  })
-
-  const objects = nodes.filter(filter("Contents")).map(fileObject)
-  const collections = nodes.filter(filter("CommonPrefixes")).map(fileCollection)
-
-  return { objects, collections };
-}
-
 /**
  * Get image data from S3, the Blob-y way. 
  */
@@ -69,19 +14,6 @@ const fetchImageBuffer = async (url: string): Promise<Float32Array> => {
     throw TypeError("Result is not ArrayBuffer type")
   }
 }
-
-/**
- * Get public JSON data. 
- * 
- * Return an error JSON object if something goes wrong.
- */
-const getPublicJsonData = async (url: string): Promise<object> => {
-  return fetch(url)
-    .then(r => r.json())
-    .catch((err) => Object({
-      error: err.message
-    }));
-};
 
 /**
  * Convenience method to make the name usable as a page anchor
@@ -289,18 +221,6 @@ const GeoJsonSource = ({
   };
 }
 
-
-
-
-/**
- * Retrieve arbitrary GeoJson source
- */
-const getData = async (url: string, standard: string) => {
-  return await fetch(url)
-    .then(response => response.json())
-    .then(({ features }) => GeoJsonSource({ features, standard }));
-};
-
 type FeatureReducer = {
   count: number;
   features: number[][]
@@ -378,23 +298,4 @@ const getFragment = async (target: string, key: string, attribution: string) => 
     }
   }
 
-};
-
-type Vertex = {
-  coordinates: [number, number, number?];
-}
-/**
- * Average a vertex array down to a single point. Will
- * work with XYZ and or XY, assuming the Z=0.
- */
-const reduceVertexArray = async (vertexArray: Vertex[]) => {
-  return vertexArray.reduce(
-    ([x, y, z = 0], { coordinates: [Δx, Δy, Δz = 0] }) =>
-      [
-        x + Δx / vertexArray.length,
-        y + Δy / vertexArray.length,
-        z + Δz / vertexArray.length
-      ],
-    [0, 0, 0]
-  )
 };

@@ -1,6 +1,7 @@
 import React from "react";
 import useSqualltalk from "./useSqualltalk";
-import type {SqualltalkHook} from "./useSqualltalk"
+import type {SqualltalkHook} from "./useSqualltalk";
+import 'mapbox-gl/dist/mapbox-gl.css';
 
 
 export const DEFAULT_MAP_PROPS = {
@@ -19,7 +20,7 @@ export const DEFAULT_MAP_PROPS = {
         url: "mapbox://mapbox.mapbox-streets-v8",
       },
     },
-    sprite: "mapbox://sprites/mapbox/dark-v10",
+    sprite: "mapbox://sprites/mapbox/dark-v8",
     glyphs: "mapbox://fonts/mapbox/{fontstack}/{range}.pbf",
     layers: [
       {
@@ -63,19 +64,11 @@ export interface ISqualltalk extends SqualltalkHook {
 }
 
 /**
- * Mapping and data visualization interface
+ * Map-based data visualization interface
  */
 const Squalltalk = ({ height, ...props }: ISqualltalk) => {
   const { ref } = useSqualltalk(props);
-  return (
-    <>
-      <link
-        href="https://api.mapbox.com/mapbox-gl-js/v1.5.0/mapbox-gl.css"
-        rel="stylesheet"
-      />
-      <div style={{ height }} ref={ref} />
-    </>
-  );
+  return <div style={{ height }} ref={ref} />;
 };
 
 Squalltalk.displayName = "Squalltalk";
