@@ -1,15 +1,7 @@
 import React, { useMemo } from "react";
 import type { MouseEventHandler } from "react";
-
-/**
- * Preview of article
- */
 import Stub from "./Stub";
 import Button from "../Form/Button";
-
-/**
- * Typing and lookups
- */
 import type { Memo, QueryType } from "oceanics-io-www-wasm";
 
 /**
@@ -100,9 +92,6 @@ const Index = ({
       ))}
       <Button onClick={onShowMore} style={showMore.style}>
         {showMore.text}
-      </Button>
-      <Button onClick={()=>{navigate(`/bathysphere.html`)}}>
-          {`Learn about our API`}
       </Button>
       <Button onClick={onClearConstraints}>{"Clear selection"}</Button>
     </div>

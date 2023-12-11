@@ -5,7 +5,7 @@ import useWorker from "../../hooks/useWorker";
 import useFragmentQueue, {
   OBJECT_STORAGE_URL,
 } from "../../hooks/useFragmentQueue";
-import useObjectStorage from "../../hooks/useObjectStorage";
+import useObjectStorage from "./useObjectStorage";
 
 import type {OptionalLocation} from "../../hooks/useDetectClient";
 
@@ -77,7 +77,6 @@ interface View {
 export interface ViewParams extends View {
   accessToken: string
 }
-
 export interface ISqualltalk {
   client?: {
     mobile: boolean;
@@ -93,20 +92,10 @@ export interface ISqualltalk {
 /**
  * Page component rendered by GatsbyJS.
  */
-const Squalltalk = ({ map, client, height = "500px" }: ISqualltalk) => {
+const Squalltalk = ({ map, height = "500px" }: ISqualltalk) => {
   const { ref, map: mapBox } = useSqualltalk(map);
   const worker = useWorker(createBathysphereWorker);
   const fs = useObjectStorage(OBJECT_STORAGE_URL, worker.ref);
-
-  /**
-   * Map interface may be used in a location-aware way, or as a static presentation
-   * of data at a chosen point. 
-   */
-  useEffect(() => {
-    if (typeof client === "undefined") return;
-    if (!client.location) return;
-    console.log({client})
-  }, [ client ])
 
   /**
    * Load vertex array buffers from cloud storage. 
@@ -121,23 +110,6 @@ const Squalltalk = ({ map, client, height = "500px" }: ISqualltalk) => {
       />
       <div style={{ height }} ref={ref} />
     </>
-  );
-};
-
-export const Standalone = ({center, zoom, accessToken}: ViewParams) => {
-  console.log("token", accessToken)
-  return (
-    <Squalltalk
-      height={"250px"}
-      map={{
-        accessToken,
-        defaults: {
-            ...DEFAULT_MAP_PROPS,
-            center,
-            zoom
-        },
-      }}
-    />
   );
 };
 

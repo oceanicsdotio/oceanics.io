@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { DOMParser } from "@xmldom/xmldom";
-import type { FileSystem } from "../shared";
+import type { FileSystem } from "../../shared";
 
 const ctx: Worker = self as unknown as Worker;
 type ModuleType = typeof import("oceanics-io-www-wasm");

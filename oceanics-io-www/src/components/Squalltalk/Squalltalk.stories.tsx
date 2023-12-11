@@ -1,17 +1,17 @@
 import React from 'react';
 import {Meta, StoryFn} from "@storybook/react"
-import {Standalone} from './Squalltalk';
+import Squalltalk from './Squalltalk';
 import type { ViewParams } from './Squalltalk';
 import GlobalStyle from '../GlobalStyle';
 
 export default {
-  component: Standalone
+  component: Squalltalk
 } as Meta;
 
 const Template: StoryFn<ViewParams> = (args) => {
     return (<>
         <GlobalStyle/>
-        <Standalone {...args} />
+        <Squalltalk {...args} />
     </>)
 };
 
