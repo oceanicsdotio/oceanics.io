@@ -111,18 +111,109 @@ export const useSimulation = ({
   drop = 0.01, // how often the particles move to a random place
 }: ISimulation) => {
   /**
-   * Background web worker
+   * Colormap size
+   */
+  const size = 16 * 16;
+  /**
+   * Background web worker.
    */
   const worker = useWorker(createWorker);
   /**
-   * Exported ref to draw textures to a secondary HTML canvas component
+   * Hold reference to temporary canvas element.
+   *
+   * This is available for specific use cases that reuse
+   * the canvas.
    */
-  const preview = useRef(null);
+  const colorMap = useCanvasContext("2d");
+  /**
+   * Shader programs compiled from GLSL source.
+   *
+   * Comes with a recycled Rust-WASM runtime.
+   */
+  const webgl = useGlslShaders({
+    shaders: {
+      screen: ["quad-vertex", "screen-fragment"],
+      draw: ["draw-vertex", "draw-fragment"],
+      update: ["quad-vertex", "update-fragment"],
+    },
+  });
+  /**
+   * Exported ref to draw textures to a secondary HTML canvas component.
+   * Generally not needed except when doing end-to-end testing or debugging.
+   */
+  const preview = useRef<HTMLCanvasElement>(null);
+  /**
+   * Textures that are drawn to the screen.
+   */
+  const screenBuffers = useRef(null);
+  /**
+   * Reference for using and cancelling setTimeout.
+   */
+  const timer = useRef(null);
+  /**
+   * Adjustable scalar to fire faster/slower than 60fps
+   */
+  const timeConstant = useRef(1.0);
+  /**
+   * Order of textures is swapped after every render pass.
+   */
+  const textures = useRef(null);
   /**
    * Interpreting image formatted velocity data requires having
    * information about the range.
    */
   const [metadata] = useState(null);
+  /**
+   * Container for handles to GPU interface
+   */
+  const [imageData, setImageData] = useState<HTMLImageElement | null>(null);
+  /**
+   * Message for user interface, passed out to parent component.
+   */
+  const [message, setMessage] = useState("Working...");
+  /**
+   * Use pipeline as an effect triggering state.
+   */
+  const [pipeline, setPipeline] = useState(null);
+  /**
+   * Particle locations. Will be set by web worker from remote source,
+   * procedure, or randomly.
+   */
+  const [particles] = useState(null);
+  /**
+   * Error flag
+   */
+  const [error] = useState(null);
+  /**
+   * Break out velocity texture, we want this to be optional.
+   */
+  const [velocity, setVelocity] = useState(null);
+  /**
+   * State for data to be passed to WebGL
+   */
+  const [texture, setTexture] = useState<Uint8Array | null>(null);
+  /**
+   * Save framebuffer reference. This should be constant, but needs
+   * a valid WebGL constant.
+   */
+  const [framebuffer, setFramebuffer] = useState(null);
+  /**
+   * Assets are our data
+   */
+  const [assets, setAssets] = useState(null);
+  /**
+   * Points and window buffers for generic drawArray rendering
+   */
+  const [buffers, setBuffers] = useState(null);
+  /**
+   * Create a temporary canvas element to paint a color
+   * map to. This will be an orphan, and we need to make
+   * sure it gets cleaned up.
+   */
+  useEffect(() => {
+    colorMap.ref.current = document.createElement("canvas");
+    [colorMap.ref.current.width, colorMap.ref.current.height] = [size, 1];
+  }, []);
   /**
    * Fetch the metadata file.
    */
@@ -133,79 +224,49 @@ export const useSimulation = ({
     });
   }, []);
   /**
-   * Hold reference to temporary canvas element.
-   *
-   * This is available for specific use cases that reuse
-   * the canvas.
+   * Create a initial distribution of particle positions,
+   * encoded as 4-byte colors.
    */
-  const { ref, validContext } = useCanvasContext("2d");
-
+    useEffect(() => {
+        worker.post({
+          type: "init",
+          data: {},
+        });
+      }, []);
   /**
-   * Create a temporary canvas element to paint a color
-   * map to. This will be an orphan, and we need to make
-   * sure it gets cleaned up.
-   */
-  useEffect(() => {
-    ref.current = document.createElement("canvas");
-    [ref.current.width, ref.current.height] = [16*16, 1];
-  }, []);
-
-  /**
-     * State for data to be passed to WebGL
-    }, [ validContext ]);
-     */
-  const [texture, setTexture] = useState<Uint8Array | null>(null);
-  /**
-   * Save framebuffer reference. This should be constant, but needs
-   * a valid WebGL constant.
-   */
-  const [framebuffer, setFramebuffer] = useState(null);
-  /**
-   * Then draw a gradient and extract a color
-   * look up table from it.
-   *
+   * Then draw a gradient and extract a color look up table from it.
    * Fires once when canvas is set.
    */
   useEffect(() => {
-    if (!validContext) return;
-    const ctx = validContext as CanvasRenderingContext2D;
-
+    if (!colorMap.validContext) return;
+    const ctx = colorMap.validContext as CanvasRenderingContext2D;
     // Create `CanvasGradient` and add color stops
     ctx.fillStyle = ctx.createLinearGradient(0, 0, size, 0);
     colors.forEach(([offset, color]) => {
-      (ctx.fillStyle as CanvasGradient).addColorStop(parseFloat(offset), color);
+      (ctx.fillStyle as CanvasGradient).addColorStop(offset, color);
     });
-
     // Draw to temp canvas
     ctx.fillRect(0, 0, size, 1);
-
     // Extract regularly interpolated data
     const buffer = ctx.getImageData(0, 0, size, 1).data;
     setTexture(new Uint8Array(buffer));
-  }, [validContext]);
+  }, [colorMap.validContext]);
 
   /**
-   * Clean up. Remove canvas and delete state.
-   *
+   * Clean up color map instance. Remove canvas and delete state.
    * This hook fires once when texture is set.
    */
   useEffect(() => {
-    if (!texture || !ref.current) return;
-    ref.current.remove();
-    ref.current = null;
+    if (!texture || !colorMap.ref.current) return;
+    colorMap.ref.current?.remove();
+    colorMap.ref.current = null;
   }, [texture]);
-
   /**
-   * Container for handles to GPU interface
-   */
-  const [imageData, setImageData] = useState<HTMLImageElement | null>(null);
-
-  /**
-   * Use external data as a velocity field to force movement of particles
+   * Use external data as a velocity field to force movement of particles.
+   *
    */
   useEffect(() => {
     if (!source) return;
-
     const img = new Image();
     img.addEventListener(
       "load",
@@ -220,67 +281,22 @@ export const useSimulation = ({
     img.crossOrigin = source.includes(".") ? "" : null;
     img.src = source;
   }, []);
-
   /**
    * Display the wind data in a secondary 2D HTML canvas, for debugging
    * and interpretation.
    */
   useEffect(() => {
     if (!preview || !preview.current || !imageData) return;
-    const canvas: HTMLCanvasElement =
-      preview.current as unknown as HTMLCanvasElement;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) {
-      throw TypeError("Canvas Rendering Context is Null");
-    }
-    ctx.drawImage(imageData, 0, 0, canvas.width, canvas.height);
+    const ctx = preview.current?.getContext("2d");
+    if (!ctx) throw TypeError("Canvas Rendering Context is Null");
+    ctx.drawImage(
+      imageData,
+      0,
+      0,
+      preview.current.width,
+      preview.current.height
+    );
   }, [preview, imageData]);
-
-  /**
-   * Terminate the worker once complete. For ling running App, this is necessary
-   * because usually terminate on component unmount, and can crash browser if
-   * not cleaned up.
-   */
-  useEffect(() => {
-    if (metadata && imageData && worker.current) worker.current.terminate();
-  }, [metadata, imageData]);
-
-  /**
-   * Particle locations. Will be set by web worker from remote source,
-   * procedure, or randomly.
-   */
-  const [particles, setParticles] = useState(null);
-  /**
-   * Error flag
-   */
-  const [error, setError] = useState(null);
-  /**
-   * Load worker
-   */
-  const { worker } = useWasmWorkers();
-  /**
-   * Reference for using and cancelling setTimeout.
-   */
-  const timer = useRef(null);
-  /**
-   * Adjustable scalar to fire faster/slower than 60fps
-   */
-  const timeConstant = useRef(1.0);
-  /**
-   * Create a initial distribution of particle positions,
-   * encoded as 4-byte colors.
-   */
-  useEffect(() => {
-    worker.post({
-      type: "init",
-      data: {},
-    });
-  }, []);
-
-  /**
-   * Message for user interface, passed out to parent component.
-   */
-  const [message, setMessage] = useState("Working...");
 
   /**
    * When we have some information ready, set the status message
@@ -294,42 +310,11 @@ export const useSimulation = ({
   }, [particles, error]);
 
   /**
-   * Shader programs compiled from GLSL source.
-   *
-   * Comes with a recycled Rust-WASM runtime.
-   */
-  const {
-    ref,
-    runtimeContext,
-    programs,
-    validContext,
-    VertexArrayBuffers,
-    createTexture,
-    setUniforms,
-  } = useGlslShaders({
-    shaders: {
-      screen: ["quad-vertex", "screen-fragment"],
-      draw: ["draw-vertex", "draw-fragment"],
-      update: ["quad-vertex", "update-fragment"],
-    },
-  });
-
-  /**
-   * Assets are our data
-   */
-  const [assets, setAssets] = useState(null);
-
-  /**
-   * Create color map
-   */
-  const colorMap = useColorMapTexture({ width: 16, height: 16, colors });
-
-  /**
    * Update values of uniforms.
    */
   useEffect(() => {
-    if (validContext && metadata)
-      setUniforms({
+    if (webgl.validContext && metadata)
+    webgl.setUniforms({
         u_screen: ["i", 2],
         u_opacity: ["f", opacity],
         u_wind: ["i", 0],
@@ -343,29 +328,17 @@ export const useSimulation = ({
         diffusivity: ["f", diffusivity],
         drop: ["f", drop],
         seed: ["f", Math.random()],
-        u_wind_res: ["f", [ref.current?.width, ref.current?.height]],
+        u_wind_res: ["f", [webgl.ref.current?.width, webgl.ref.current?.height]],
       });
-  }, [validContext, metadata]);
-
-  /**
-   * Points and window buffers for generic drawArray rendering
-   */
-  const [buffers, setBuffers] = useState(null);
-
+  }, [webgl.validContext, metadata]);
   /**
    * Once we have a valid context and initial positions, save the array buffers.
    * This may not be strictly necessary.
    */
   useEffect(() => {
-    if (validContext && particles)
-      setBuffers(VertexArrayBuffers(validContext, particles));
-  }, [validContext, particles]);
-
-  /**
-   * Break out velocity texture, we want this to be optional.
-   */
-  const [velocity, setVelocity] = useState(null);
-
+    if (webgl.validContext && particles)
+      setBuffers(webgl.VertexArrayBuffers(validContext, particles));
+  }, [webgl.validContext, particles]);
   /**
    * Create the UV velocity texture
    */
@@ -378,7 +351,6 @@ export const useSimulation = ({
         })
       );
   }, [imageData, createTexture]);
-
   /**
    * Generate assets and handles for rendering to canvas.
    * Use transducer to replace configs with texture instances.
@@ -396,26 +368,13 @@ export const useSimulation = ({
         })
       );
   }, [createTexture, colorMap.texture]);
-
-  /**
-   * Order of textures is swapped after every render pass.
-   */
-  const textures = useRef(null);
-
-  /**
-   * Textures that are drawn to the screen.
-   */
-  const screenBuffers = useRef(null);
-
   /**
    * Create the textures.
    */
   useEffect(() => {
     if (!validContext || !createTexture) return;
-
     const { width, height } = ref.current;
     const size = width * height * 4;
-
     screenBuffers.current = Object.fromEntries(
       Object.entries({
         screen: {
@@ -437,7 +396,6 @@ export const useSimulation = ({
    */
   useEffect(() => {
     if (!validContext || !particles || !createTexture) return;
-
     textures.current = Object.fromEntries(
       Object.entries({
         state: { data: particles, shape: [res, res], filter: "NEAREST" },
@@ -456,7 +414,6 @@ export const useSimulation = ({
 
   const stageDeps = [validContext, assets, framebuffer, programs, buffers];
   const frontBufferDeps = [validContext, programs, buffers];
-
   /**
    * Render stage
    */
@@ -490,7 +447,6 @@ export const useSimulation = ({
       viewport: [0, 0, ref.current.width, ref.current.height],
     })
   );
-
   /**
    * Render stage.
    */
@@ -505,7 +461,6 @@ export const useSimulation = ({
       viewport: [0, 0, ref.current.width, ref.current.height],
     })
   );
-
   /**
    * Shader program.
    */
@@ -531,12 +486,6 @@ export const useSimulation = ({
     frontBufferStage,
     updateStage,
   ];
-
-  /**
-   * Use pipe line as an effect triggering state.
-   */
-  const [pipeline, setPipeline] = useState(null);
-
   /**
    * Set pipeline value to signal ready for rendering. The saved object
    * contains a `render()` function bound to a WebGL context.
@@ -578,7 +527,6 @@ export const useSimulation = ({
         previous
       );
     }
-
     render(
       screenBuffers.current.back,
       screenBuffers.current.screen,
@@ -600,9 +548,7 @@ export const useSimulation = ({
     const simulateControl = () => {
       timeConstant.current = 0.5 * (Math.sin(0.005 * performance.now()) + 1.0);
     };
-
     const loop = setInterval(simulateControl, 30.0);
-
     return () => clearInterval(loop);
   }, []);
   /**
@@ -611,3 +557,121 @@ export const useSimulation = ({
   return { ref, message, preview, timeConstant };
 };
 export default useSimulation;
+
+
+
+
+// export const useLagrangianTrajectory = ({
+//     res = 16,
+//     opacity = 0.92, // how fast the particle trails fade on each frame
+//     speed = 0.00007, // how fast the particles move
+//     diffusivity = 0.004,
+//     pointSize = 1.0,
+//     drop = 0.01, // how often the particles move to a random place
+// }) => { 
+  
+//     useEffect(() => {
+//         const ctx = validContext();
+     
+//         const canvas: HTMLCanvasElement = ref.current;
+//         const { width, height } = canvas;
+//         const size = width * height * 4;
+       
+//         setAssets({
+//             textures: 
+//                 Object.fromEntries(Object.entries({
+//                     screen: { data: new Uint8Array(size), shape: [ width, height ] },
+//                     back: { data: new Uint8Array(size), shape: [ width, height ] },
+//                     state: { data: particles, shape: [res, res] },
+//                     previous: { data: particles, shape: [res, res] },
+//                     color: { data: colorMap.texture, filter: "LINEAR", shape: [16, 16] },
+//                     uv: { filter: "LINEAR", data: imageData },
+//                 }).map(
+//                     ([k, v]) => [k, createTexture({ctx: ctx, ...v})]
+//                 )),
+//             buffers: VertexArrayBuffers(ctx, particles),
+//             framebuffer: ctx.createFramebuffer(),
+//             uniforms: {
+//                 "u_screen" : ["i", 2],
+//                 "u_opacity": ["f", opacity],
+//                 "u_wind": ["i", 0],
+//                 "u_particles": ["i", 1],
+//                 "u_color_ramp": ["i", 2],
+//                 "u_particles_res": ["f", res],
+//                 "u_point_size": ["f", pointSize],
+//                 "u_wind_max": ["f", [metadata.u.max, metadata.v.max]],
+//                 "u_wind_min": ["f", [metadata.u.min, metadata.v.min]],
+//                 "speed": ["f", speed],
+//                 "diffusivity": ["f", diffusivity],
+//                 "drop": ["f", drop],
+//                 "seed": ["f", Math.random()],
+//                 "u_wind_res": ["f", [width, height]]
+//             }
+//         });
+//     }, [ ref, particles, metadata, colorMap.texture, imageData ]);
+//     useEffect(() => {
+//         const ctx = validContext();
+//         if (!ctx || !programs || !assets || !metadata) return;
+
+//         let requestId: number;  
+//         let {
+//             textures: { 
+//                 back, 
+//                 previous, 
+//                 state, 
+//                 screen 
+//             },
+//         } = assets;  // non-static assets
+ 
+//         (function render() {
+//             const pipeline = [
+//                 {
+//                     program: programs.screen,
+//                     textures: [
+//                         [assets.textures.uv, 0],
+//                         [state, 1],  // variable
+//                         [back, 2]  // variable
+//                     ],
+//                     attributes: [assets.buffers.quad],
+//                     parameters: parameters.screen,
+//                     framebuffer: [assets.framebuffer, screen],  // variable
+//                     topology: [ctx.TRIANGLES, 6],
+//                     viewport: [0, 0, ref.current.width, ref.current.height]
+//                 },
+//                 {
+//                     program: programs.draw,
+//                     textures: [[assets.textures.color, 2]],
+//                     attributes: [assets.buffers.index],
+//                     parameters: [...parameters.wind, "u_point_size"],
+//                     framebuffer: [assets.framebuffer, screen],  // variable
+//                     topology: [ctx.LINE_STRIP, res * res],
+//                     viewport: [0, 0, ref.current.width, ref.current.height]
+//                 },
+//                 {
+//                     program: programs.screen,
+//                     textures: [[screen, 2]], // variable  
+//                     parameters: parameters.color,
+//                     attributes: [assets.buffers.quad],
+//                     framebuffer: [null, null], 
+//                     topology: [ctx.TRIANGLES, 6],
+//                     viewport: [0, 0, ref.current.width, ref.current.height],
+//                     callback: () => [back, screen] = [screen, back]  // blend frames
+//                 }, 
+//                 {
+//                     program: programs.update,
+//                     textures: [[assets.textures.color, 2]],
+//                     parameters: [...parameters.sim, ...parameters.wind],
+//                     attributes: [assets.buffers.quad],
+//                     framebuffer: [assets.framebuffer, previous],  // re-use the old data buffer
+//                     topology: [ctx.TRIANGLES, 6],
+//                     viewport: [0, 0, res, res],  
+//                     callback: () => [state, previous] = [previous, state]  // use previous pass to calculate next position
+//                 }
+//             ];
+            
+//             renderPipeline(runtime, ctx, assets.uniforms, pipeline);
+//             requestId = requestAnimationFrame(render);
+//         })()
+//         return () => cancelAnimationFrame(requestId);
+//     }, [programs, assets]);
+// };

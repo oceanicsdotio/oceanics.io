@@ -1,8 +1,4 @@
 import { useEffect, useState } from "react";
-
-/**
- * Rust WASM runtime, used for numerical methods.
- */
 import useWasmRuntime from "./useWasmRuntime";
 import useCanvasContext from "./useCanvasContext";
 
@@ -29,14 +25,7 @@ export class ArrayBuffer {
   }
 }
 
-/**
- *
- * @param {*} w Texture width
- * @param {*} h Texture height
- * @returns
- */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const screenBuffer = (w: number, h: number) =>
+export const screenBuffer = (w: number, h: number) =>
   Object({
     data: new Uint8Array(w * h * 4),
     shape: [w, h],
@@ -407,5 +396,4 @@ export const useGlslShaders = ({ shaders }: IGlslShaders) => {
     setUniforms,
   };
 };
-
 export default useGlslShaders;

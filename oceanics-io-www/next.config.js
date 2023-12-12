@@ -40,7 +40,10 @@ const config = {
       test: /\.wasm$/,
       type: "webassembly/sync",
     });
-
+    config.module.rules.push({
+      test: /\.glsl/,
+      type: "asset/source",
+    });
     return config;
   },
 };

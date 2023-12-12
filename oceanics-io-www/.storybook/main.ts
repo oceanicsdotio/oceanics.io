@@ -54,6 +54,14 @@ const config: StorybookConfig = {
       ...config.experiments,
       asyncWebAssembly: true
     }
+    config.module = {
+      ...config.module,
+      rules: [...config.module?.rules||[], {
+        test: /\.glsl/,
+        type: "asset/source",
+      }]
+    };
+  
     return config
   },
 };
