@@ -20,12 +20,12 @@ const IndexPage = () =>
     <Index {...{
         size: 96,
         view: {
-            size: 10
+            size: 9
         },
         grid: {
-            size: 8
+            size: 7
         },
-        datum: 0.9,
+        datum: 0.8,
         runtime: null,
         src: "/nodes.json"
     }}/>;

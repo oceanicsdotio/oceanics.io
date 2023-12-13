@@ -3,7 +3,7 @@
   "info": {
     "title": "Bathysphere API",
     "version": "2.0.0",
-    "description": "\nBathysphere API is a store and registry for public and proprietary geospatial data. The system is designed to support marine research in the North Atlantic, but can be configured or extended for many applications.\n\nWe ingest sensor and simulation data and automatically parse them into discoverable databases. Representing complex relationships between heterogenous data is simplified by applying a graph-native framework, backed by our [Neo4j](https://neo4j.com/) cluster.\n\nThis approach applies to many flexible, high-level cases, from NASA managing their [lessons-learned](https://neo4j.com/blog/nasa-lesson-learned-database-using-neo4j-linkurious/)\nmission database, to modeling a [virtual economy](https://www.airpair.com/neo4j/posts/modelling-game-economy-with-neo4j).\n\nYou probably have to share data anyway. Our middleware can enhance your data science and management experience by providing representation state transfer (REST) and graph-based services for...\n\n* Secure organizational accounts\n* Open Geospatial Consortium (OGC) SensorThings standard\n* [SpatioTemporal Assets Catalog](https://stacspec.org/) (STAC) standard\n* Provenance tracking\n* Granular access control and auditing\n\nBy assessing data and service availability over your whole domain, projects can allocate resources to fill coverage gaps. This supports an open marketplace asset sharing model, which may be preferable to redundant operational and capital expenses.\n",
+    "description": "\nBathysphere API is a store and registry for public and proprietary geospatial data. The system is designed to support marine research in the North Atlantic, but can be configured or extended for many applications.\n\nWe ingest sensor and simulation data and automatically parse them into discoverable databases. Representing complex relationships between heterogenous data is simplified by applying a graph-native framework, backed by our [Neo4j](https://neo4j.com/) cluster.\n\nThis approach applies to many flexible, high-level cases, from NASA managing their lessons-learned mission database, to modeling virtual economies.\n\nYou probably have to share data anyway. Our middleware can enhance your data science and management experience by providing representation state transfer (REST) and graph-based services for...\n\n* Secure organizational accounts\n* Open Geospatial Consortium (OGC) SensorThings standard\n* [SpatioTemporal Assets Catalog](https://stacspec.org/) (STAC) standard\n* Provenance tracking\n* Granular access control and auditing\n\nBy assessing data and service availability over your whole domain, projects can allocate resources to fill coverage gaps. This supports an open marketplace asset sharing model, which may be preferable to redundant operational and capital expenses.\n",
     "contact": {
       "name": "Oceanicsdotio LLC",
       "url": "http://www.oceanics.io",
@@ -29,10 +29,6 @@
     {
       "name": "Topology",
       "description": "Build topological relationships and access metadata.\n"
-    },
-    {
-      "name": "DataStreams",
-      "description": "Collections of time series observations with numerical methods"
     }
   ],
   "servers": [

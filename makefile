@@ -108,7 +108,7 @@ www-lint: $(WWW_SRC) $(WWW_SRC_FILES) $(WWW_PAGES) $(WWW_PAGES_FILES)
 
 # Compile WWW
 OUT_DIR = build
-$(WWW)/$(OUT_DIR): node_modules www-lint $(WWW_CACHE) $(WWW_API_JSON)
+$(WWW)/$(OUT_DIR): node_modules www-lint $(WWW_CACHE) $(WWW_API_JSON) $(DOCS_PAGE)
 	yarn workspace $(WWW) run next build
 	touch -m $@
 
