@@ -11,7 +11,6 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
  * @type {import('next').NextConfig}
  **/
 const config = {
-
   output: "export",
   distDir: "build",
   compiler: {
@@ -29,9 +28,11 @@ const config = {
   webpack(config) {
     // Ensures that web workers can import scripts.
     config.output.publicPath = "/_next/";
-
+    // https://github.com/wojtekmaj/react-pdf
+    config.resolve.alias.canvas = false;
     // From https://github.com/rustwasm/wasm-pack/issues/835#issuecomment-772591665
     config.experiments = {
+      ...config.experiments,
       syncWebAssembly: true,
     };
 
@@ -39,7 +40,10 @@ const config = {
       test: /\.wasm$/,
       type: "webassembly/sync",
     });
-
+    config.module.rules.push({
+      test: /\.glsl/,
+      type: "asset/source",
+    });
     return config;
   },
 };

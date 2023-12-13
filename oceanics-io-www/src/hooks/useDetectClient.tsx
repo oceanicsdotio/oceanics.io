@@ -1,6 +1,3 @@
-/**
- * React friends.
- */
 import { useEffect, useState } from "react";
 
 /**
@@ -57,7 +54,7 @@ export default (): ClientData => {
     const [ location, setLocation ] = useState<OptionalLocation>(null);
 
     /**
-     * Get the user location and 
+     * Get the user location 
      */
     useEffect(() => {
         if (!navigator.geolocation) return;

@@ -1,28 +1,31 @@
 import React from "react";
-import { Meta, Story } from "@storybook/react";
+import { Meta, StoryFn } from "@storybook/react";
 import Account from "./Account";
 import type { IAccount } from "./Account";
 
-/**
- * Storybook interface
- */
+
 export default {
   component: Account
 } as Meta;
 
-/**
- * Base version
- */
 
-const Template: Story<IAccount> = (args) => <Account {...args} />;
+const Template: StoryFn<IAccount> = (args) => <Account {...args} />;
 
 /**
- * Example
+ * Show the registration form if account is not assumed
+ * to exist.
  */
-export const ServiceAccount = Template.bind({});
-ServiceAccount.args = {
-  server: "",
-  email: "",
-  password: "",
-  salt: ""
+export const Register = Template.bind({});
+Register.args = {
+  exists: false,
+  name: "create an account"
+};
+
+/**
+ * Show login form if the account is assumed to exist. 
+ */
+export const Login = Template.bind({});
+Login.args = {
+  exists: true,
+  name: "login"
 };

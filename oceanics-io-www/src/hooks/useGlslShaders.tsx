@@ -1,14 +1,6 @@
-// @ts-nocheck
-/**
- * React friends.
- */
 import { useEffect, useState } from "react";
-
-/**
- * Rust WASM runtime, used for numerical methods.
- */
 import useWasmRuntime from "./useWasmRuntime";
-import useCanvasContext from "../hooks/useCanvasContext";
+import useCanvasContext from "./useCanvasContext";
 
 /**
  * Pre-import all shaders. This is a bit fragile.
@@ -33,14 +25,7 @@ export class ArrayBuffer {
   }
 }
 
-/**
- *
- * @param {*} w Texture width
- * @param {*} h Texture height
- * @returns
- */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const screenBuffer = (w: number, h: number) =>
+export const screenBuffer = (w: number, h: number) =>
   Object({
     data: new Uint8Array(w * h * 4),
     shape: [w, h],
@@ -167,7 +152,7 @@ export const renderPipelineStage = (
   /**
    * Load textures into memory.
    */
-  (textures || []).forEach((texture) => {
+  (textures || []).forEach((texture: any) => {
     runtime.bind_texture(ctx, ...texture);
   });
 
@@ -175,12 +160,12 @@ export const renderPipelineStage = (
    * Bind vertex attribute array buffers to hardware memory handles.
    */
   (attributes || [])
-    .map(([buffer, handle, count]) => [
+    .map(([buffer, handle, count]: [number, string, number]) => [
       buffer,
       ctx.getAttribLocation(program.program, handle),
       count,
     ])
-    .forEach((attribute) => {
+    .forEach((attribute: [number, number, number]) => {
       runtime.bind_attribute(ctx, ...attribute);
     });
 
@@ -195,13 +180,16 @@ export const renderPipelineStage = (
    * attach to string key.
    */
   (parameters || [])
+    //@ts-ignore
     .map((key: string) => [key, ...uniforms[key], program[key]])
     .forEach(([key, type, value, handle]) => {
       try {
         const size = value.length || 1;
+        //@ts-ignore
         ctx[`uniform${size}${type}`](handle, ...(size === 1 ? [value] : value));
       } catch {
         if (key in printedWarnings) return;
+        //@ts-ignore
         printedWarnings[key] = true;
         console.warn(`${key} is not a uniform of the shader program.`);
       }
@@ -211,12 +199,15 @@ export const renderPipelineStage = (
    * Update clock for deterministic simulation components and psuedo random
    * number generation.
    */
-  if (CLOCK_UNIFORM in program)
+  if (CLOCK_UNIFORM in program) {
+    //@ts-ignore
     ctx[`uniform1f`](program[CLOCK_UNIFORM], performance.now());
-
+  }
+    
   /**
    * Draw the data to the target texture or screen buffer.
    */
+  //@ts-ignore
   ctx.drawArrays(...topology);
 };
 
@@ -258,7 +249,9 @@ export const createTexture = (
   [
     [ctx.TEXTURE_WRAP_S, ctx.CLAMP_TO_EDGE],
     [ctx.TEXTURE_WRAP_T, ctx.CLAMP_TO_EDGE],
+    //@ts-ignore
     [ctx.TEXTURE_MIN_FILTER, ctx[filter]],
+    //@ts-ignore
     [ctx.TEXTURE_MAG_FILTER, ctx[filter]],
   ].forEach(([handle, value]) => {
     texParameteri(handle, value);
@@ -323,26 +316,31 @@ export const useGlslShaders = ({ shaders }: IGlslShaders) => {
         ]
           .map(([key, fcn]) => [
             fcn,
+            //@ts-ignore
             validContext.getProgramParameter(
               program,
+              //@ts-ignore
               validContext[`ACTIVE_${key}`]
             ),
           ])
           .flatMap(([fcn, count]) =>
             Array(Array(count).keys())
+              //@ts-ignore
               .map((ii) => validContext[`getActive${fcn}`](program, ii))
               .map(({ name }) => [
                 name,
+                //@ts-ignore
                 validContext[`get${fcn}Location`](program, name),
               ])
           )
       ),
     ];
-
+    //@ts-ignore
     const form = ([name, program, wrapper]) => [name, { ...wrapper, program }];
 
     setPrograms(
       Object.fromEntries(
+        //@ts-ignore
         Object.entries(shaders).map(compile).map(extract).map(form)
       )
     );
@@ -357,8 +355,10 @@ export const useGlslShaders = ({ shaders }: IGlslShaders) => {
    * Create our texture function
    */
   useEffect(() => {
-    if (validContext)
+    if (validContext) {
+      //@ts-ignore
       setNewTexture(() => createTexture.bind(null, validContext));
+    }
   }, [validContext]);
 
   /**
@@ -377,6 +377,7 @@ export const useGlslShaders = ({ shaders }: IGlslShaders) => {
    */
   useEffect(() => {
     if (!runtime || !validContext || !uniforms) return;
+    //@ts-ignore
     setRuntimeContext({ runtime, ctx: validContext, uniforms });
   }, [runtime, validContext, uniforms]);
 
@@ -395,5 +396,4 @@ export const useGlslShaders = ({ shaders }: IGlslShaders) => {
     setUniforms,
   };
 };
-
 export default useGlslShaders;

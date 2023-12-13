@@ -1,16 +1,31 @@
-import React, { useState } from "react";
+import React, { useEffect } from "react";
+import PropTypes from "prop-types";
 import useWorker from "../../hooks/useWorker";
+import Form from "../Form/Form";
+import type { FieldType } from "../Form/Form";
 
 export interface IAccount {
-  server: string
-  email?: string
-  password?: string
-  salt?: string
+  /**
+   * Account is known to exist
+   */
+  exists: boolean
+  /**
+   * Name of inner HTMLform
+   */
+  name: string
 }
 
-// This has to be defined in global scope to force Webpack to bundle the script. 
+const propTypes = {
+  exists: PropTypes.bool.isRequired,
+  name: PropTypes.string.isRequired
+};
+
+// Defined in global scope to force Webpack to bundle the script. 
 const createWorker = () => 
-  new Worker(new URL("../../workers/account.worker.ts", import.meta.url), { type: 'module' })
+  new Worker(
+    new URL("./Account.worker.ts", import.meta.url), 
+    { type: 'module' }
+  );
 
 /**
  * Account is a page-level component. 
@@ -23,45 +38,74 @@ const createWorker = () =>
  * account data and render that. 
  * 
  * Otherwise, assume that they need to create an account.
- * 
  */
-const Account = ({
-  server,
-  ...props
-}: IAccount) => {
+export const Account = ({ exists, name }: IAccount) => {
+  // Web worker makes requests in background
+  const worker = useWorker(createWorker);
 
-    const [email] = useState(props.email??"");
-    const [password] = useState(props.password??"");
-    const [salt] = useState(props.salt??"");
+  // Toggle between views
+  const view = exists ? "login" : "register";
 
-    const worker = useWorker("account", createWorker);
+  // Form fields for rendering and validation
+  const fields: FieldType[] = [{
+    id: "email",
+    type: "email",
+    placeholder: "your email address",
+    required: true
+  }, {
+    id: "password",
+    type: "password",
+    placeholder: "****************",
+    minLength: 16,
+    maxLength: 64,
+    required: true
+  }, exists ? {
+    id: "secret",
+    type: "text",
+    placeholder: "additional encryption key",
+    minLength: 8,
+    maxLength: 16,
+    required: true
+  } : {
+    id: "apiKey",
+    type: "text",
+    placeholder: "your provider API key",
+    minLength: 16,
+    maxLength: 64,
+    required: true
+  }, {
+    id: "type",
+    type: "submit",
+    value: view
+  }];
 
-    const listener = ({ data }: { data: { data: unknown, type: string}}) => {
-      console.log(data)
-    }
+  // Start listening to worker messages
+  useEffect(() => {
+    return worker.listen(({ data }) => {
+      switch (data.type) {
+        case view:
+          console.log(data.type, data.data);
+          return;
+        case "error":
+          console.error(data.type, data.data);
+          return
+        default:
+          return;
+      }
+    });
+  }, []);
 
-    const onClick = () => {
-      if (!worker.ref.current) return;
-      worker.ref.current.addEventListener("message", listener, { passive: true });
-      worker.ref.current.postMessage({
-        type: "login",
-        data: {
-          email,
-          password,
-          salt,
-          server
-        },
-      });
-      return () => {
-        worker.ref.current?.removeEventListener("message", listener);
-        worker.ref.current?.terminate();
-      };
-    }
-
-    return (
-      <button onClick={onClick}>Login</button>
-    )
+  // Post to worker on form submit
+  const action = (data: FormData) => {
+    const {type, ...props} = Object.fromEntries(data.entries());
+    worker.post({
+      type: type.toString(),
+      data: props
+    });
+  }
+  return <Form id={view} name={name} fields={fields} action={action}/>
 }
 
+Account.propTypes = propTypes;
 Account.displayName = "Account";
-export default Account
+export default Account;
