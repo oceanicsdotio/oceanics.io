@@ -115,14 +115,6 @@ www-cleanup:
 	rm -rf $(WWW)/$(OUT_DIR)
 	rm -rf $(WWW)/$(STORYBOOK)
 
-NATIVE = oceanics-io-native
-$(NATIVE)/web-build:
-	yarn workspace $(NATIVE) expo --non-interactive build:web
-
-expo:
-	yarn workspace $(NATIVE) expo start
-
-
 # Local dependencies need to be built before we can install
 # touching the directory updates timestamp for make
 node_modules: $(API_WASM) $(WWW_WASM) package.json **/package.json yarn.lock
