@@ -1,11 +1,12 @@
+// @ts-nocheck
 import { useEffect } from "react";
 import useCanvasContext from "../../hooks/useCanvasContext";
 
 export interface IFractalNoise {
 
 }
-
-export const useFractalNoise = ({}: IFractalNoise) => {
+// eslint-disable-next-line
+export const useFractalNoise = (props: IFractalNoise) => {
 
     const {ref, validContext: ctx} = useCanvasContext("webgl");
 

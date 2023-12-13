@@ -1,7 +1,7 @@
+// @ts-ignore
 import React, { useMemo } from "react";
 import type { MouseEventHandler } from "react";
 import Stub from "./Stub";
-import Button from "../Form/Button";
 import type { Memo, QueryType } from "oceanics-io-www-wasm";
 
 /**
@@ -30,8 +30,7 @@ const Index = ({
   onShowMore,
   onClearConstraints,
   onClickLabel,
-  pagingIncrement,
-  navigate
+  pagingIncrement
 }: DocumentIndexType) => {
   /**
    * The array of visible articles sorted in reverse chronological order.
@@ -90,10 +89,10 @@ const Index = ({
       {visible.map((document) => (
         <Stub key={document.metadata.title} document={document} onClickLabel={onClickLabel}/>
       ))}
-      <Button onClick={onShowMore} style={showMore.style}>
+      <button onClick={onShowMore} style={showMore.style}>
         {showMore.text}
-      </Button>
-      <Button onClick={onClearConstraints}>{"Clear selection"}</Button>
+      </button>
+      <button onClick={onClearConstraints}>{"Clear selection"}</button>
     </div>
   );
 };

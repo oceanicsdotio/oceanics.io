@@ -1,19 +1,31 @@
 import React from "react";
+import type { GetStaticProps } from "next";
+import type { ILayout } from "./_app";
 import Index from "../src/components/Index/Index";
+
+export const getStaticProps = (async () => {
+    return {
+        props: {
+            meta: {
+                title: "Oceanics.io",
+                description: "The trust layer for the blue economy."
+            }
+        }
+    }
+}) satisfies GetStaticProps<{
+    meta: ILayout
+}>
 
 const IndexPage = () =>
     <Index {...{
-        description: "The trust layer for the blue economy",
-        title: "Oceanics.io",
-        pagingIncrement: 3,
         size: 96,
         view: {
-            size: 12
+            size: 10
         },
         grid: {
-            size: 6
+            size: 8
         },
-        datum: 0.7,
+        datum: 0.9,
         runtime: null,
         src: "/nodes.json"
     }}/>;

@@ -97,15 +97,23 @@ $(WWW)/$(STORYBOOK): $(WWW)/src/**/* $(WWW)/.storybook/*
 	yarn workspace oceanics-io-www build-storybook --output-dir $(STORYBOOK)  --webpack-stats-json
 	touch -m $@
 
+# Lint WWW
+WWW_SRC = $(shell find $(WWW)/src -type d)
+WWW_SRC_FILES = $(shell find $(WWW)/src -type f -name '*')
+WWW_PAGES = $(shell find $(WWW)/pages -type d)
+WWW_PAGES_FILES = $(shell find $(WWW)/pages -type f -name '*')
+www-lint: $(WWW_SRC) $(WWW_SRC_FILES) $(WWW_PAGES) $(WWW_PAGES_FILES)
+	yarn eslint "$(WWW)/src/**/*.{js,ts,json,tsx,jsx}"
+	yarn eslint "$(WWW)/pages/**/*.{tsx,jsx}"
+
 # Compile WWW
 OUT_DIR = build
-$(WWW)/$(OUT_DIR): node_modules $(WWW)/**/* $(WWW_CACHE) $(WWW_API_JSON)
-	yarn eslint "$(WWW)/src/**/*.{js,ts,json,tsx,jsx}"
+$(WWW)/$(OUT_DIR): node_modules www-lint $(WWW_CACHE) $(WWW_API_JSON)
 	yarn workspace $(WWW) run next build
 	touch -m $@
 
-# PHONY for convenience
-.PHONY: www www-cleanup www-dev
+# command aliases for www
+.PHONY: www www-cleanup www-dev www-lint
 www: $(WWW)/$(OUT_DIR)
 www-dev: $(WWW)/$(OUT_DIR)
 	yarn netlify dev --filter=oceanics-io-www

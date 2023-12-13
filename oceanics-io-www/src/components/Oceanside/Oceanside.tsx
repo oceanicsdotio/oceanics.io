@@ -39,10 +39,16 @@ export const Oceanside = ({ className, ...props }: ApplicationType) => {
 };
 
 export const StyledViewport = styled(Oceanside)`
+
   display: block;
   margin: 0;
   padding: 0;
   width: 100%;
+
+  & * {
+    margin: 0;
+    padding: 0;
+  }
 
   & canvas {
     image-rendering: crisp-edges;
@@ -54,7 +60,7 @@ export const StyledViewport = styled(Oceanside)`
   }
   & .${BOARD} {
     width: 100%;
-    height: 700px;
+    aspect-ratio: 1 / 0.8;
   }
 `;
 

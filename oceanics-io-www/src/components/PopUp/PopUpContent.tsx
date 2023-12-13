@@ -77,7 +77,25 @@ export const PopUpContent = ({
 };
 
 const StyledPopUpContent = styled(PopUpContent)`
+    .map-popup {
+        background: #202020FF;
+        height: fit-content;
+        border: solid 0.1rem;
+        border-radius: 0.3rem;
+        font-family:inherit;
+        font-size: inherit;
+        padding: 0;
+        color: #CCCCCC;
+    }
 
+    .map-popup div {
+        background: none;
+        height: fit-content;
+        border: none;
+        margin: 0;
+        padding: 0;
+        float: left;
+    }
     background: #000000FF;
     font-family: inherit;
     font-size: larger;

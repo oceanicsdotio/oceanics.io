@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import PropTypes from "prop-types";
-import { orange, ghost, shadow } from "../../palette";
+import { ghost, shadow } from "../../palette";
 
 
 export type LocationType = {

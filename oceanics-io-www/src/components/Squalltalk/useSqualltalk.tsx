@@ -1,9 +1,13 @@
+// @ts-ignore 
+// eslint-disable-next-line
 import type { MutableRefObject, MouseEventHandler } from "react";
+// @ts-ignore 
+// eslint-disable-next-line
 import { Map, Popup } from "mapbox-gl";
 import { useRef, useState, useEffect } from "react";
 import useWorker from "../../hooks/useWorker";
 import type { OptionalLocation } from "../../hooks/useDetectClient";
-import ReactDOM from "react-dom";
+// import ReactDOM from "react-dom";
 import type { AnyLayer, AnySourceData, Style } from "mapbox-gl";
 // import PopUpContent from "../PopUp/PopUpContent";
 // import Squalltalk from "./Squalltalk";
@@ -294,34 +298,34 @@ const useSqualltalk = ({
   /**
    * Memoize an addLayer convenience function
    */
-  const addLayer = (
-    source: AnySourceData,
-    layer: AnyLayer,
-    onClick: MouseEventHandler
-  ): void => {
-    map?.addLayer({ source, ...layer });
-    if (onClick) map?.on("click", layer.id, onClick);
-  };
+  // const addLayer = (
+  //   source: AnySourceData,
+  //   layer: AnyLayer,
+  //   onClick: MouseEventHandler
+  // ): void => {
+  //   map?.addLayer({ source, ...layer });
+  //   if (onClick) map?.on("click", layer.id, onClick);
+  // };
 
-  const addPopup = (coords: number[]) => {
-    const placeholder: HTMLElement = document.createElement("div");
+  // const addPopup = (coords: number[]) => {
+  //   const placeholder: HTMLElement = document.createElement("div");
 
-    ReactDOM.render(
-      // <PopUpContent features={projected} Component={component} />,
-      <div />,
-      placeholder
-    );
+  //   ReactDOM.render(
+  //     // <PopUpContent features={projected} Component={component} />,
+  //     <div />,
+  //     placeholder
+  //   );
 
-    if (!map) return;
-    new Popup({
-      className: "map-popup",
-      closeButton: false,
-      closeOnClick: true,
-    })
-      .setLngLat(coords.slice(0, 2) as [number, number])
-      .setDOMContent(placeholder)
-      .addTo(map);
-  };
+  //   if (!map) return;
+  //   new Popup({
+  //     className: "map-popup",
+  //     closeButton: false,
+  //     closeOnClick: true,
+  //   })
+  //     .setLngLat(coords.slice(0, 2) as [number, number])
+  //     .setDOMContent(placeholder)
+  //     .addTo(map);
+  // };
 
   /**
    * Task the web worker with loading and transforming data to add
@@ -329,7 +333,7 @@ const useSqualltalk = ({
    */
   useEffect(() => {
     if (!map || !queue || !ready) return;
-    const filterExisting = (x: string): boolean => !map.getLayer(x);
+    // const filterExisting = (x: string): boolean => !map.getLayer(x);
 
     // queue
     //   .filter(filterExisting)

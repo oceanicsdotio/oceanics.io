@@ -143,8 +143,7 @@ type VertexObject = {
  * Average a vertex array down to a single point. Will
  * work with XYZ and or XY, assuming the Z=0.
  */
-
-const vertexReducer = (length: number) =>
+export const vertexReducer = (length: number) =>
   ([x, y, z = 0]: Vertex, { coordinates: [Δx, Δy, Δz = 0] }: VertexObject) =>
     [
       x + Δx / length,
@@ -152,18 +151,16 @@ const vertexReducer = (length: number) =>
       z + Δz / length
     ]
 
-const featureReducer = ({ features, lngLat: { lng, lat } }) => {
-
-  features.map(({ geometry: { coordinates }, ...props }) => {
-    while (Math.abs(lng - coordinates[0]) > 180)
-      coordinates[0] += lng > coordinates[0] ? 360 : -360;
-    return {
-      ...props,
-      coordinates,
-    };
-  })
-
-};
+// const featureReducer = ({ features, lngLat: { lng, lat } }) => {
+//   features.map(({ geometry: { coordinates }, ...props }) => {
+//     while (Math.abs(lng - coordinates[0]) > 180)
+//       coordinates[0] += lng > coordinates[0] ? 360 : -360;
+//     return {
+//       ...props,
+//       coordinates,
+//     };
+//   })
+// };
 
 /**
  * Out ready for MapBox as a Layer object description
@@ -331,20 +328,20 @@ const getFragment = async (target: string, key: string) => {
   if (!(arrayBuffer instanceof ArrayBuffer)) {
     throw TypeError("Expected ArrayBuffer type")
   }
-
-  const dataView = new Float32Array(arrayBuffer);
-  const [features] = dataView.reduce(([features, count]: [number[][], number], cur: number) => {
-    return [
-      features.concat(count ? [...features.slice(-1)[0], cur] : [cur]),
-      (count + 1) % 3
-    ];
-  },
-    [[], 0]
-  );
+  const features: any[] = [];
+  // const dataView = new Float32Array(arrayBuffer);
+  // const [features] = dataView.reduce(([features, count]: [number[][], number], cur: number) => {
+  //   return [
+  //     features.concat(count ? [...features.slice(-1)[0], cur] : [cur]),
+  //     (count + 1) % 3
+  //   ];
+  // },
+  //   [[], 0]
+  // );
 
   const source = GeoJsonSource({
     features: features.map(
-      coordinates => Object({
+      (coordinates: any) => Object({
         geometry: { type: "Point", coordinates },
         properties: {
           q: (((100 + coordinates[2]) / MAX_VALUE) - 1) ** 2,
