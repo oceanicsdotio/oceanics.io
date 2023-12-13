@@ -1,9 +1,6 @@
 import React from "react";
 import {GetStaticProps} from "next";
 
-/**
- * Just a dumb functional component.
- */
 const PageNotFound = () => {
   return (
     <>  
