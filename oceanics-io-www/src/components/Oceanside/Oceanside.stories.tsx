@@ -1,6 +1,6 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import { StoryFn, Meta } from '@storybook/react';
-import StyledOceanside, {Oceanside} from './Oceanside';
+import StyledOceanside, {Oceanside, StyledCanvasPlaceholder} from './Oceanside';
 import type { ApplicationType } from './Oceanside';
 import GlobalStyle from '../GlobalStyle';
 
@@ -9,10 +9,14 @@ export default {
 } as Meta
 
 const Template: StoryFn<ApplicationType> = (args) => {
+    const [isClient, setIsClient] = useState(false);
+    useEffect(()=>{
+        setIsClient(true);
+    }, []);
     return (
         <>
             <GlobalStyle/>
-            <StyledOceanside {...args} />
+            {isClient ? <StyledOceanside {...args} /> : <StyledCanvasPlaceholder/>}
         </>
     )
 }

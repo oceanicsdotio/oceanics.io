@@ -15,6 +15,16 @@ export const fetchImageBuffer = async (url: string): Promise<Float32Array> => {
   }
 }
 
+/**
+ * Create vertex array buffer
+ */
+export async function initParticles(res: number) {
+  return new Uint8Array(Array.from(
+    { length: res * res * 4 },
+    () => Math.floor(Math.random() * 256)
+  ))
+}
+
 const ctx: Worker = self as unknown as Worker;
 
 /**

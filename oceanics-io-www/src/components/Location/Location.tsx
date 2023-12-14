@@ -1,49 +1,51 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import PropTypes from "prop-types";
-import { ghost, shadow } from "../../palette";
+import { ghost, charcoal, orange } from "../../palette";
 
 
 export type LocationType = {
     /**
      * Handle for accessing by ID
      */
-    key: string,
+    key: string;
     /**
      * Element id for referencing from parent
      */
-    id: string,
+    id: string;
     /**
      * Class name for styled components CSS
      */
-    className?: string,
+    className?: string;
     /**
      * Location metadata
      */
     properties: {
-        name: string,
-        nav_unit_n?: string,
-        port_name?: string
+        name: string;
+        nav_unit_n?: string;
+        port_name?: string;
     },
     /**
      * Spatial coordinates
      */
-    coordinates: number[]
+    coordinates: [number, number];
     /**
      * Description goes here TypeScript
      */
     tile: {
-        publicURL: string, 
-        anchorHash: string,
-        queryString: string,
-        grayscale: boolean
-    }
-    query: object
+        publicURL: string;
+        anchorHash: string;
+    };
+    /**
+     * A function that takes the coordinates and 
+     * refreshes the render target view. 
+     */
+    panTo: (coordinates: [number, number]) => void;
 }
 
 const propTypes = {
     id: PropTypes.string.isRequired,
-    coordinates: PropTypes.arrayOf(PropTypes.number),
+    coordinates: PropTypes.arrayOf(PropTypes.number).isRequired,
     className: PropTypes.string.isRequired,
     properties: PropTypes.shape({
         name: PropTypes.string.isRequired,
@@ -52,13 +54,10 @@ const propTypes = {
     }).isRequired,
     tile: PropTypes.shape({
         publicURL: PropTypes.string.isRequired, 
-        anchorHash: PropTypes.string.isRequired,
-        queryString: PropTypes.string.isRequired,
-        grayscale: PropTypes.bool.isRequired
+        anchorHash: PropTypes.string.isRequired
     }).isRequired,
-    query: PropTypes.object.isRequired
+    panTo: PropTypes.func.isRequired
 };
-
 
 /**
  * Location Components provide metadata about a location, as well
@@ -75,7 +74,8 @@ export const Location = ({
         name,
         ...properties
     },
-    coordinates = []
+    coordinates,
+    panTo
 }: LocationType) => {
     /**
      * Location summary data. May not be available for large
@@ -88,7 +88,6 @@ export const Location = ({
      * Determine the reference position of the Location entity
      */
     useEffect(() => {
-        if (!coordinates) return;
         const [lon, lat] = coordinates;
         setLabel(`${lat.toFixed(4)}, ${lon.toFixed(4)}`);
     }, []);
@@ -98,15 +97,16 @@ export const Location = ({
      */
     return <div className={className} id={id}>
         <h1>{name}</h1>
+        <label>coordinates</label>
         <p>{label}</p>
-        <img src={publicURL}/>
-        
         <ul>
             {Object.entries(properties)
                 .filter(([, v]) => v !== " " && !!v)
                 .map(([jj, item]) => <li key={jj}>{`${jj}: ${item}`}</li>)
             }
         </ul>
+        <a onClick={() => panTo(coordinates)}>{`< pan to coordinates`}</a>
+        <img src={publicURL}/>
     </div>};
 
 /**
@@ -115,14 +115,25 @@ export const Location = ({
  */
 export const StyledLocation = styled(Location)`
     display: block;
+    max-width: 65ch;
+    padding: 1rem;
     margin: 0;
-    height: auto;
-    position: relative;
+    border-radius: 5px;
+    background-color: ${charcoal};
+    color: ${ghost};
     
     & * {
         font-family: inherit;
-        box-sizing: border-box;
-        color: ${ghost};
+        font-size: inherit;
+    }
+
+    & h1 {
+        text-transform: capitalize;
+        font-size: larger;
+    }
+
+    & label {
+        font-style: italic;
     }
     
     & img {
@@ -130,14 +141,20 @@ export const StyledLocation = styled(Location)`
         width: 72px;
         filter: grayscale(100%);
         cursor: pointer;
+    }
 
-        &:hover {
-            filter: grayscale(0%);
-        }
+    & a {
+        color: ${orange};
+        display: block;
+        cursor: pointer;
+        margin: 0.5rem 0;
+        text-decoration: underline;
     }
 
     &:hover {
-        background: ${shadow};
+        & img {
+            filter: grayscale(0%);
+        }
     }
 `;
 

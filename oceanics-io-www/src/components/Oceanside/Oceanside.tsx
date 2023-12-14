@@ -57,11 +57,11 @@ export const StyledViewport = styled(Oceanside)`
   width: 100%;
 
   @keyframes fade-in {
-    0% {
+    from {
       opacity: 0;
     }
-    100% {
-      opacity: 100%;
+    to {
+      opacity: 1;
     }
   }
 
@@ -81,7 +81,7 @@ export const StyledViewport = styled(Oceanside)`
   & .${BOARD} {
     width: 100%;
     aspect-ratio: 1 / 0.8;
-    animation: 1s ease-out 0s 1 fade-in;
+    animation: fade-in 2s;
   }
 `;
 
