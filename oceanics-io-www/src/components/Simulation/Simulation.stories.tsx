@@ -1,14 +1,14 @@
 import React from 'react';
 import { StoryFn, Meta } from '@storybook/react';
 import Simulation from './Simulation';
-import type { ApplicationType } from './Simulation';
+import type { ISimulation } from './useSimulation';
 import GlobalStyle from '../GlobalStyle';
 
 export default {
   component: Simulation
 } as Meta
 
-const Template: StoryFn<ApplicationType> = (args) => {
+const Template: StoryFn<ISimulation> = (args) => {
     return (
         <>
             <GlobalStyle/>
@@ -18,4 +18,7 @@ const Template: StoryFn<ApplicationType> = (args) => {
 }
 
 export const Default = Template.bind({});
-Default.args = {};
+Default.args = {
+
+    
+};

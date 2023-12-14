@@ -1,12 +1,13 @@
 import { useEffect, useState, useRef } from "react";
-import useGlslShaders, {
+import useShaders, {
   renderPipelineStage,
-} from "../../hooks/useGlslShaders";
+} from "../Shaders/useShaders";
 import useCanvasContext from "../../hooks/useCanvasContext";
 import useWorker from "../../hooks/useWorker";
 
 /**
- * Mapping of uniforms to program components
+ * Mapping of uniforms to program components. Requires
+ * knowledge of GLSL variable names and types. 
  */
 const PARAMETER_MAP = {
   screen: ["u_screen", "u_opacity"],
@@ -40,7 +41,7 @@ type IImageData = {
 /**
  * Input to the lagrangian simulation hook
  */
-type ISimulation = {
+export type ISimulation = {
   /**
    * Where to obtain velocity data for particle simulation
    */
@@ -111,9 +112,9 @@ export const useSimulation = ({
   drop = 0.01, // how often the particles move to a random place
 }: ISimulation) => {
   /**
-   * Colormap size
+   * Colormap size for velocity lookups. 
    */
-  const size = 16 * 16;
+  const colorMapSize = 16 * 16;
   /**
    * Background web worker.
    */
@@ -130,7 +131,7 @@ export const useSimulation = ({
    *
    * Comes with a recycled Rust-WASM runtime.
    */
-  const webgl = useGlslShaders({
+  const webgl = useShaders({
     shaders: {
       screen: ["quad-vertex", "screen-fragment"],
       draw: ["draw-vertex", "draw-fragment"],
@@ -147,15 +148,18 @@ export const useSimulation = ({
    */
   const screenBuffers = useRef(null);
   /**
-   * Reference for using and cancelling setTimeout.
+   * Reference for using and cancelling setTimeout. The render
+   * loop uses setTimeout to limit how quickly the simulation
+   * runs.
    */
   const timer = useRef(null);
   /**
-   * Adjustable scalar to fire faster/slower than 60fps
+   * Adjustable scalar to fire faster/slower than 60fps. Works
+   * with timer to control simulation speed. 
    */
   const timeConstant = useRef(1.0);
   /**
-   * Order of textures is swapped after every render pass.
+   * Order of textures is swapped after every render pass. 
    */
   const textures = useRef(null);
   /**
@@ -181,11 +185,9 @@ export const useSimulation = ({
    */
   const [particles] = useState(null);
   /**
-   * Error flag
-   */
-  const [error] = useState(null);
-  /**
    * Break out velocity texture, we want this to be optional.
+   * When present, it forces particle movement in the simulation. 
+   * If absent, only diffusion and particle behaviors apply.
    */
   const [velocity, setVelocity] = useState(null);
   /**
@@ -196,9 +198,9 @@ export const useSimulation = ({
    * Save framebuffer reference. This should be constant, but needs
    * a valid WebGL constant.
    */
-  const [framebuffer, setFramebuffer] = useState(null);
+  const [framebuffer, setFramebuffer] = useState<WebGLFramebuffer|null>(null);
   /**
-   * Assets are our data
+   * Assets are our data, loaded from database or synthesized at runtime.
    */
   const [assets, setAssets] = useState(null);
   /**
@@ -212,7 +214,7 @@ export const useSimulation = ({
    */
   useEffect(() => {
     colorMap.ref.current = document.createElement("canvas");
-    [colorMap.ref.current.width, colorMap.ref.current.height] = [size, 1];
+    [colorMap.ref.current.width, colorMap.ref.current.height] = [colorMapSize, 1];
   }, []);
   /**
    * Fetch the metadata file.
@@ -241,14 +243,14 @@ export const useSimulation = ({
     if (!colorMap.validContext) return;
     const ctx = colorMap.validContext as CanvasRenderingContext2D;
     // Create `CanvasGradient` and add color stops
-    ctx.fillStyle = ctx.createLinearGradient(0, 0, size, 0);
+    ctx.fillStyle = ctx.createLinearGradient(0, 0, colorMapSize, 0);
     colors.forEach(([offset, color]) => {
       (ctx.fillStyle as CanvasGradient).addColorStop(offset, color);
     });
     // Draw to temp canvas
-    ctx.fillRect(0, 0, size, 1);
+    ctx.fillRect(0, 0, colorMapSize, 1);
     // Extract regularly interpolated data
-    const buffer = ctx.getImageData(0, 0, size, 1).data;
+    const buffer = ctx.getImageData(0, 0, colorMapSize, 1).data;
     setTexture(new Uint8Array(buffer));
   }, [colorMap.validContext]);
 
@@ -301,13 +303,11 @@ export const useSimulation = ({
   /**
    * When we have some information ready, set the status message
    * to something informative, like number of particles.
-   *
-   * Set an error message if necessary.
    */
   useEffect(() => {
-    if (particles || error)
-      setMessage(error ? error : `Ichthyoid (N=${res * res})`);
-  }, [particles, error]);
+    if (particles)
+      setMessage(`Ichthyoid (N=${res * res})`);
+  }, [particles]);
 
   /**
    * Update values of uniforms.
@@ -372,7 +372,7 @@ export const useSimulation = ({
    * Create the textures.
    */
   useEffect(() => {
-    if (!validContext || !createTexture) return;
+    if (!webgl.validContext || !webgl.createTexture) return;
     const { width, height } = ref.current;
     const size = width * height * 4;
     screenBuffers.current = Object.fromEntries(
@@ -408,9 +408,24 @@ export const useSimulation = ({
    * Save reference
    */
   useEffect(() => {
-    if (!validContext) return;
-    setFramebuffer(validContext.createFramebuffer());
-  }, [validContext]);
+    if (webgl.validContext) 
+      setFramebuffer((webgl.validContext as WebGL2RenderingContext).createFramebuffer());
+  }, [webgl.validContext]);
+
+  /**
+   * In a stand alone loop, update the timeConstant to control
+   * the time between render passes.
+   *
+   * This decouples that control, so that it can be bound to UI
+   * elements, for example.
+   */
+  useEffect(() => {
+    const simulateControl = () => {
+      timeConstant.current = 0.5 * (Math.sin(0.005 * performance.now()) + 1.0);
+    };
+    const loop = setInterval(simulateControl, 30.0);
+    return () => clearInterval(loop);
+  }, []);
 
   const stageDeps = [validContext, assets, framebuffer, programs, buffers];
   const frontBufferDeps = [validContext, programs, buffers];
@@ -537,20 +552,7 @@ export const useSimulation = ({
     return () => clearTimeout(timer.current);
   }, [pipeline, textures.current, screenBuffers.current]);
 
-  /**
-   * In a stand alone loop, update the timeConstant to control
-   * the time between render passes.
-   *
-   * This decouples that control, so that it can be bound to UI
-   * elements, for example.
-   */
-  useEffect(() => {
-    const simulateControl = () => {
-      timeConstant.current = 0.5 * (Math.sin(0.005 * performance.now()) + 1.0);
-    };
-    const loop = setInterval(simulateControl, 30.0);
-    return () => clearInterval(loop);
-  }, []);
+  
   /**
    * Resources available to parent Component or Hook.
    */
