@@ -37,7 +37,7 @@ const Shaders = ({source}: IShaders) => {
     useEffect(() => {
         if (shaders.programs)
             console.debug("programs", shaders.programs)
-    }, [shaders.programs])
+    }, [shaders.programs]);
     /**
      * Result is a bare canvas element
      */

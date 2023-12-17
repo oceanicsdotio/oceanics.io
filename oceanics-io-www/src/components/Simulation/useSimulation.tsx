@@ -1,13 +1,18 @@
 import { useEffect, useState, useRef } from "react";
-import useShaders, {
+import {
+  IRenderStage,
   renderPipelineStage,
-} from "../Shaders/useShaders";
+  useShaderContext,
+  ArrayBuffer
+} from "../Shaders/Shaders.context";
+import type {BufferTriple} from "../Shaders/Shaders.context";
+
 import useCanvasContext from "../../hooks/useCanvasContext";
 import useWorker from "../../hooks/useWorker";
 
 /**
  * Mapping of uniforms to program components. Requires
- * knowledge of GLSL variable names and types. 
+ * knowledge of GLSL variable names and types.
  */
 const PARAMETER_MAP = {
   screen: ["u_screen", "u_opacity"],
@@ -112,101 +117,95 @@ export const useSimulation = ({
   drop = 0.01, // how often the particles move to a random place
 }: ISimulation) => {
   /**
-   * Colormap size for velocity lookups. 
+   * Colormap size for velocity lookups.
    */
   const colorMapSize = 16 * 16;
   /**
-   * Background web worker.
+   * Background web worker. Uses dedicated message interface to do
+   * numerical calculations and map/reduce in background.
    */
   const worker = useWorker(createWorker);
   /**
-   * Hold reference to temporary canvas element.
-   *
-   * This is available for specific use cases that reuse
-   * the canvas.
+   * Hold reference to temporary canvas element. This is available
+   * for specific cases that reuse the canvas.
    */
   const colorMap = useCanvasContext("2d");
-  /**
-   * Shader programs compiled from GLSL source.
-   *
-   * Comes with a recycled Rust-WASM runtime.
-   */
-  const webgl = useShaders({
-    shaders: {
-      screen: ["quad-vertex", "screen-fragment"],
-      draw: ["draw-vertex", "draw-fragment"],
-      update: ["quad-vertex", "update-fragment"],
-    },
-  });
   /**
    * Exported ref to draw textures to a secondary HTML canvas component.
    * Generally not needed except when doing end-to-end testing or debugging.
    */
-  const preview = useRef<HTMLCanvasElement>(null);
+  const preview = useCanvasContext("2d");
+  /**
+   * All WebGL related setup is relegated to the context
+   * provider.
+   */
+  const {
+    shaders: { webgl, ref, ...shaders },
+  } = useShaderContext();
   /**
    * Textures that are drawn to the screen.
    */
-  const screenBuffers = useRef(null);
+  const screenBuffers = useRef<{ [k: string]: WebGLTexture | null } | null>(
+    null
+  );
   /**
    * Reference for using and cancelling setTimeout. The render
    * loop uses setTimeout to limit how quickly the simulation
    * runs.
    */
-  const timer = useRef(null);
+  const timer = useRef<number|null>(null);
   /**
    * Adjustable scalar to fire faster/slower than 60fps. Works
-   * with timer to control simulation speed. 
+   * with timer to control simulation speed.
    */
   const timeConstant = useRef(1.0);
-  /**
-   * Order of textures is swapped after every render pass. 
-   */
-  const textures = useRef(null);
   /**
    * Interpreting image formatted velocity data requires having
    * information about the range.
    */
-  const [metadata] = useState(null);
+  const [metadata] = useState<{u: any, v: any}|null>(null);
   /**
-   * Container for handles to GPU interface
+   * Container for handles to GPU interface. Image data is loaded
+   * and then handed off as a Texture.
    */
   const [imageData, setImageData] = useState<HTMLImageElement | null>(null);
   /**
-   * Message for user interface, passed out to parent component.
+   * Message for user interface, passed out to parent component. Shows
+   * current status or summary statistics about the simulation.
    */
   const [message, setMessage] = useState("Working...");
-  /**
-   * Use pipeline as an effect triggering state.
-   */
-  const [pipeline, setPipeline] = useState(null);
   /**
    * Particle locations. Will be set by web worker from remote source,
    * procedure, or randomly.
    */
-  const [particles] = useState(null);
+  const [particles, setParticles] = useState(null);
   /**
    * Break out velocity texture, we want this to be optional.
-   * When present, it forces particle movement in the simulation. 
+   * When present, it forces particle movement in the simulation.
    * If absent, only diffusion and particle behaviors apply.
    */
-  const [velocity, setVelocity] = useState(null);
+  const [velocity, setVelocity] = useState<WebGLTexture | null>(null);
   /**
-   * State for data to be passed to WebGL
+   * Linear color map texture for interpolated lookups.
    */
-  const [texture, setTexture] = useState<Uint8Array | null>(null);
+  const [texture, setTexture] = useState<WebGLTexture | null>(null);
   /**
-   * Save framebuffer reference. This should be constant, but needs
-   * a valid WebGL constant.
+   * Point coordinates and window buffers for generic
+   * drawArray rendering.
    */
-  const [framebuffer, setFramebuffer] = useState<WebGLFramebuffer|null>(null);
+  const [buffers, setBuffers] = useState<{[key: string]: BufferTriple}>({});
   /**
-   * Assets are our data, loaded from database or synthesized at runtime.
+   * Set the program source map triggers hooks that will
+   * compile the shader program and return information
+   * about how to bind real data to the textures and arrays.
    */
-  const [assets, setAssets] = useState(null);
-  /**
-   * Points and window buffers for generic drawArray rendering
-   */
-  const [buffers, setBuffers] = useState(null);
+  useEffect(() => {
+    shaders.setProgramSourceMap({
+      screen: ["quad-vertex", "screen-fragment"],
+      draw: ["draw-vertex", "draw-fragment"],
+      update: ["quad-vertex", "update-fragment"],
+    });
+  }, []);
   /**
    * Create a temporary canvas element to paint a color
    * map to. This will be an orphan, and we need to make
@@ -214,27 +213,67 @@ export const useSimulation = ({
    */
   useEffect(() => {
     colorMap.ref.current = document.createElement("canvas");
-    [colorMap.ref.current.width, colorMap.ref.current.height] = [colorMapSize, 1];
+    [colorMap.ref.current.width, colorMap.ref.current.height] = [
+      colorMapSize,
+      1,
+    ];
   }, []);
   /**
-   * Fetch the metadata file.
+   * When we get a message back from the worker that matches
+   * a specific pattern, report or act on that info.
    */
   useEffect(() => {
-    worker.post({
-      type: "getPublicJsonData",
-      data: metadataFile,
+    if (!worker.ref.current || !ref.current) return;
+    // start listener
+    const remove = worker.listen(({ data }) => {
+      const _data = data.data as any;
+      switch (data.type) {
+        /**
+         * Update values of uniforms using pre-calculated values
+         * from image metadata and simulation configuration
+         * inputs
+         */
+        case "init":
+          if (!ref.current) return; // typescript/linting
+          shaders.setUniforms({
+            u_screen: ["i", 2],
+            u_opacity: ["f", opacity],
+            u_wind: ["i", 0],
+            u_particles: ["i", 1],
+            u_color_ramp: ["i", 2],
+            u_particles_res: ["f", res],
+            u_point_size: ["f", pointSize],
+            u_wind_max: ["f", [_data.metadata.u.max, _data.metadata.v.max]],
+            u_wind_min: ["f", [_data.metadata.u.min, _data.metadata.v.min]],
+            speed: ["f", speed],
+            diffusivity: ["f", diffusivity],
+            drop: ["f", drop],
+            seed: ["f", Math.random()],
+            u_wind_res: ["f", [ref.current.width, ref.current.height]],
+          });
+          return;
+        default:
+          console.warn(data.type, data.data);
+          return;
+      }
     });
-  }, []);
+    return remove;
+  }, [worker.ref.current, ref.current]);
   /**
    * Create a initial distribution of particle positions,
-   * encoded as 4-byte colors.
+   * encoded as 4-byte colors. Fetch the metadata file.
    */
-    useEffect(() => {
-        worker.post({
-          type: "init",
-          data: {},
-        });
-      }, []);
+  useEffect(() => {
+    if (!worker.ref.current) return;
+    worker.post({
+      type: "init",
+      data: {
+        metadata: {
+          source: metadataFile
+        }
+      },
+    });
+  }, [worker.ref.current]);
   /**
    * Then draw a gradient and extract a color look up table from it.
    * Fires once when canvas is set.
@@ -251,256 +290,117 @@ export const useSimulation = ({
     ctx.fillRect(0, 0, colorMapSize, 1);
     // Extract regularly interpolated data
     const buffer = ctx.getImageData(0, 0, colorMapSize, 1).data;
-    setTexture(new Uint8Array(buffer));
-  }, [colorMap.validContext]);
-
-  /**
-   * Clean up color map instance. Remove canvas and delete state.
-   * This hook fires once when texture is set.
-   */
-  useEffect(() => {
-    if (!texture || !colorMap.ref.current) return;
+    const colorMapTexture = shaders.createTexture({
+      data: new Uint8Array(buffer),
+      filter: "LINEAR",
+      shape: [16, 16],
+    })
+    setTexture(colorMapTexture);
+    /**
+     * Clean up color map instance. Remove canvas and delete state.
+     */
     colorMap.ref.current?.remove();
     colorMap.ref.current = null;
-  }, [texture]);
+  }, [colorMap.validContext]);
+
   /**
    * Use external data as a velocity field to force movement of particles.
    *
    */
   useEffect(() => {
     if (!source) return;
-    const img = new Image();
-    img.addEventListener(
-      "load",
-      () => {
-        setImageData(img);
-      },
-      {
-        capture: true,
-        once: true,
-      }
-    );
-    img.crossOrigin = source.includes(".") ? "" : null;
-    img.src = source;
+    const data = new Image();
+    const onLoad = () => {
+      // setVelocity(
+      //   shaders.createTexture({
+      //     filter: "LINEAR",
+      //     data,
+      //   })
+      // );
+      setImageData(data);
+    }
+    data.addEventListener("load", onLoad, { capture: true, once: true });
+    data.crossOrigin = source.includes(".") ? "" : null;
+    data.src = source;
   }, []);
   /**
    * Display the wind data in a secondary 2D HTML canvas, for debugging
    * and interpretation.
    */
   useEffect(() => {
-    if (!preview || !preview.current || !imageData) return;
-    const ctx = preview.current?.getContext("2d");
-    if (!ctx) throw TypeError("Canvas Rendering Context is Null");
-    ctx.drawImage(
+    if (!preview.ref.current || !preview.validContext || !imageData) return;
+    (preview.validContext as CanvasRenderingContext2D).drawImage(
       imageData,
       0,
       0,
-      preview.current.width,
-      preview.current.height
+      preview.ref.current.width,
+      preview.ref.current.height
     );
-  }, [preview, imageData]);
-
+  }, [preview.validContext, imageData]);
   /**
    * When we have some information ready, set the status message
    * to something informative, like number of particles.
    */
   useEffect(() => {
-    if (particles)
-      setMessage(`Ichthyoid (N=${res * res})`);
+    if (particles) setMessage(`Ichthyoid (N=${res * res})`);
   }, [particles]);
-
   /**
-   * Update values of uniforms.
+   * In a stand alone loop, update the timeConstant to control
+   * the time between render passes. This decouples that control,
+   * so that it can be bound to UI elements, for example.
    */
   useEffect(() => {
-    if (webgl.validContext && metadata)
-    webgl.setUniforms({
-        u_screen: ["i", 2],
-        u_opacity: ["f", opacity],
-        u_wind: ["i", 0],
-        u_particles: ["i", 1],
-        u_color_ramp: ["i", 2],
-        u_particles_res: ["f", res],
-        u_point_size: ["f", pointSize],
-        u_wind_max: ["f", [metadata.u.max, metadata.v.max]],
-        u_wind_min: ["f", [metadata.u.min, metadata.v.min]],
-        speed: ["f", speed],
-        diffusivity: ["f", diffusivity],
-        drop: ["f", drop],
-        seed: ["f", Math.random()],
-        u_wind_res: ["f", [webgl.ref.current?.width, webgl.ref.current?.height]],
-      });
-  }, [webgl.validContext, metadata]);
+    const control = () => {
+      timeConstant.current = 0.5 * (Math.sin(0.005 * performance.now()) + 1.0);
+    };
+    const loop = setInterval(control, 30.0);
+    return () => {
+      clearInterval(loop);
+    };
+  }, []);
+
   /**
    * Once we have a valid context and initial positions, save the array buffers.
    * This may not be strictly necessary.
    */
   useEffect(() => {
-    if (webgl.validContext && particles)
-      setBuffers(webgl.VertexArrayBuffers(validContext, particles));
-  }, [webgl.validContext, particles]);
-  /**
-   * Create the UV velocity texture
-   */
-  useEffect(() => {
-    if (imageData && createTexture)
-      setVelocity(
-        createTexture({
-          filter: "LINEAR",
-          data: imageData,
-        })
-      );
-  }, [imageData, createTexture]);
-  /**
-   * Generate assets and handles for rendering to canvas.
-   * Use transducer to replace configs with texture instances.
-   *
-   * This is executed exactly once after the canvas is created,
-   * and the initial positions have been loaded or generated
-   */
-  useEffect(() => {
-    if (createTexture && colorMap.texture)
-      setAssets(
-        createTexture({
-          data: colorMap.texture,
-          filter: "LINEAR",
-          shape: [16, 16],
-        })
-      );
-  }, [createTexture, colorMap.texture]);
+    if (!webgl || !particles) return;
+    setBuffers({
+      quad: ArrayBuffer.quad(webgl),
+      index: ArrayBuffer.index(webgl, particles)
+    });
+  }, [webgl, particles]);
+
+
   /**
    * Create the textures.
    */
   useEffect(() => {
-    if (!webgl.validContext || !webgl.createTexture) return;
+    if (!webgl || !ref.current) return;
     const { width, height } = ref.current;
     const size = width * height * 4;
-    screenBuffers.current = Object.fromEntries(
-      Object.entries({
-        screen: {
-          data: new Uint8Array(size),
-          shape: [width, height],
-          filter: "NEAREST",
-        },
-        back: {
-          data: new Uint8Array(size),
-          shape: [width, height],
-          filter: "NEAREST",
-        },
-      }).map(([k, v]) => [k, createTexture(v)])
-    );
-  }, [validContext, createTexture]);
-
-  /**
-   * Create the textures.
-   */
-  useEffect(() => {
-    if (!validContext || !particles || !createTexture) return;
-    textures.current = Object.fromEntries(
-      Object.entries({
-        state: { data: particles, shape: [res, res], filter: "NEAREST" },
-        previous: { data: particles, shape: [res, res], filter: "NEAREST" },
-      }).map(([k, v]) => [k, createTexture(v)])
-    );
-  }, [ref, particles, createTexture]);
-
-  /**
-   * Save reference
-   */
-  useEffect(() => {
-    if (webgl.validContext) 
-      setFramebuffer((webgl.validContext as WebGL2RenderingContext).createFramebuffer());
-  }, [webgl.validContext]);
-
-  /**
-   * In a stand alone loop, update the timeConstant to control
-   * the time between render passes.
-   *
-   * This decouples that control, so that it can be bound to UI
-   * elements, for example.
-   */
-  useEffect(() => {
-    const simulateControl = () => {
-      timeConstant.current = 0.5 * (Math.sin(0.005 * performance.now()) + 1.0);
+    const data = {
+      data: new Uint8Array(size),
+      shape: [width, height],
+      filter: "NEAREST" as ("NEAREST" | "LINEAR"),
     };
-    const loop = setInterval(simulateControl, 30.0);
-    return () => clearInterval(loop);
-  }, []);
-
-  const stageDeps = [validContext, assets, framebuffer, programs, buffers];
-  const frontBufferDeps = [validContext, programs, buffers];
-  /**
-   * Render stage
-   */
-  const indexBufferStage = usePipelineStage(stageDeps, (screen) =>
-    Object({
-      program: programs.draw,
-      textures: [[assets, 2]],
-      attributes: [buffers.index],
-      parameters: [...PARAMETER_MAP.wind, "u_point_size"],
-      framebuffer: [framebuffer, screen], // variable
-      topology: [validContext.POINTS, 0, res * res],
-      viewport: [0, 0, ref.current.width, ref.current.height],
-    })
-  );
+    screenBuffers.current = {
+      screen: shaders.createTexture(Object.assign({}, data)),
+      back: shaders.createTexture(data),
+    };
+  }, [webgl, ref.current]);
 
   /**
-   * Render stage
+   * Create the textures
    */
-  const backBufferStage = usePipelineStage(stageDeps, (state, back, screen) =>
-    Object({
-      program: programs.screen,
-      textures: [
-        [velocity, 0],
-        [state, 1], // variable
-        [back, 2], // variable
-      ],
-      attributes: [buffers.quad],
-      parameters: PARAMETER_MAP.screen,
-      framebuffer: [framebuffer, screen], // variable
-      topology: [validContext.TRIANGLES, 0, 6],
-      viewport: [0, 0, ref.current.width, ref.current.height],
-    })
-  );
-  /**
-   * Render stage.
-   */
-  const frontBufferStage = usePipelineStage(frontBufferDeps, (screen) =>
-    Object({
-      program: programs.screen,
-      textures: [[screen, 2]], // variable
-      parameters: PARAMETER_MAP.color,
-      attributes: [buffers.quad],
-      framebuffer: [null, null],
-      topology: [validContext.TRIANGLES, 0, 6],
-      viewport: [0, 0, ref.current.width, ref.current.height],
-    })
-  );
-  /**
-   * Shader program.
-   */
-  const updateStage = usePipelineStage(stageDeps, (previous) =>
-    Object({
-      program: programs.update,
-      textures: [[assets, 2]],
-      parameters: [...PARAMETER_MAP.sim, ...PARAMETER_MAP.wind],
-      attributes: [buffers.quad],
-      framebuffer: [framebuffer, previous], // re-use the old data buffer
-      topology: [validContext.TRIANGLES, 0, 6],
-      viewport: [0, 0, res, res],
-    })
-  );
+  useEffect(() => {
+    if (!webgl || !particles) return;
+    const data = { data: particles, shape: [res, res], filter: "NEAREST" as ("NEAREST" | "LINEAR")};
+    const state = shaders.createTexture(Object.assign({}, data));
+    const previous = shaders.createTexture(data);
+    shaders.textures.current = { state, previous };
+  }, [particles, webgl]);
 
-  /**
-   * Triggers for updating the rendering pipeline.
-   */
-  const renderDeps = [
-    runtimeContext,
-    indexBufferStage,
-    backBufferStage,
-    frontBufferStage,
-    updateStage,
-  ];
   /**
    * Set pipeline value to signal ready for rendering. The saved object
    * contains a `render()` function bound to a WebGL context.
@@ -508,172 +408,96 @@ export const useSimulation = ({
    * It also has a `stages()` function that produces an array of executable
    * stages. This is required, because we need to pass in the texture handles
    * between steps to do double buffering.
+   * Render function calls itself recursively, swapping front/back 
+   * buffers between passes. Triggered when pipeline of functions are ready.
    */
-  useEffect(() => {
-    if (renderDeps.every((x) => !!x))
-      setPipeline({
-        render: renderPipelineStage.bind(null, runtimeContext),
-        stages: (back, screen, previous, state) => [
-          backBufferStage(state, back, screen),
-          indexBufferStage(screen), // draw to front buffer
-          frontBufferStage(back), // write over previous buffer
-          updateStage(previous), // write over previous state
-        ],
-      });
-  }, renderDeps);
+useEffect(() => {
+    if (!webgl || !shaders.programs || !metadata || !shaders.framebuffer || !shaders.runtime || !shaders.uniforms) return;
+    let requestId: number;
+    (function render() {
+        const pipeline = [
+            {
+                program: shaders.programs.screen,
+                textures: [
+                    [shaders.textures.current?.uv, 0],
+                    [shaders.textures.current?.state, 1],  // variable
+                    [shaders.textures.current?.back, 2]  // variable
+                ],
+                attributes: [buffers.quad],
+                parameters: PARAMETER_MAP.screen,
+                framebuffer: [shaders.framebuffer, screen],  // variable
+                topology: [webgl.TRIANGLES, 0, 6],
+                viewport: [0, 0, ref.current?.width, ref.current?.height]
+            }, {
+                program: shaders.programs.draw,
+                textures: [[shaders.textures.current?.color, 2]],
+                attributes: [buffers.index],
+                parameters: [...PARAMETER_MAP.wind, "u_point_size"],
+                framebuffer: [shaders.framebuffer, screen],  // variable
+                topology: [webgl.POINTS, 0, res * res],
+                viewport: [0, 0, ref.current?.width, ref.current?.height]
+            },{
+                program: shaders.programs.screen,
+                textures: [[shaders.textures.current?.screen, 2]], // variable
+                parameters: PARAMETER_MAP.color,
+                attributes: [buffers.quad],
+                framebuffer: [null, null],
+                topology: [webgl.TRIANGLES, 6],
+                viewport: [0, 0, ref.current?.width, ref.current?.height],
+                callback: () => {
+                  shaders.textures.current = {
+                    ...shaders.textures.current,
+                    back: shaders.textures.current?.screen??null,
+                    screen: shaders.textures.current?.back??null
+                  }
+                }  // blend frames
+            }, {
+                program: shaders.programs.update,
+                textures: [[shaders.textures.current?.color, 2]],
+                parameters: [...PARAMETER_MAP.sim, ...PARAMETER_MAP.wind],
+                attributes: [buffers.quad],
+                framebuffer: [shaders.framebuffer, shaders.textures.current?.previous],  // re-use the old data buffer
+                topology: [webgl.TRIANGLES, 0, 6],
+                viewport: [0, 0, res, res],
+                callback: () => {
+                  shaders.textures.current = {
+                    ...shaders.textures.current,
+                    previous: shaders.textures.current?.state??null,
+                    state: shaders.textures.current?.previous??null
+                  }
+                } // use previous pass to calculate next position
+            }
+        ] as IRenderStage[];
 
-  /**
-   * Render function that calls itself recursively, swapping front/back buffers between
-   * passes.
-   *
-   * Triggered when pipeline of functions are ready.
-   */
-  useEffect(() => {
-    if (!pipeline || !textures.current || !screenBuffers.current) return;
-
-    function render(back, screen, previous, state) {
-      pipeline.stages(back, screen, previous, state).forEach(pipeline.render);
-      timer.current = setTimeout(
-        render,
-        timeConstant.current * 17.0,
-        screen,
-        back,
-        state,
-        previous
-      );
-    }
-    render(
-      screenBuffers.current.back,
-      screenBuffers.current.screen,
-      textures.current.previous,
-      textures.current.state
-    );
-
-    return () => clearTimeout(timer.current);
-  }, [pipeline, textures.current, screenBuffers.current]);
-
-  
+        pipeline.forEach((stage) => {
+          if (!shaders.runtime || !shaders.uniforms) return;
+          renderPipelineStage({
+            webgl,
+            runtime: shaders.runtime, 
+            uniforms: shaders.uniforms, 
+            ...stage
+          });
+        })
+        // timer.current = setTimeout(
+        //   render,
+        //   timeConstant.current * 17.0,
+        //   screen,
+        //   textures.back,
+        //   textures.state,
+        //   textures.previous
+        // );
+        requestId = requestAnimationFrame(render);
+    })()
+    return () => {
+      cancelAnimationFrame(requestId);
+      // if (timer.current) clearTimeout(timer.current);
+    };
+}, [shaders.programs, shaders.runtime]);
   /**
    * Resources available to parent Component or Hook.
    */
   return { ref, message, preview, timeConstant };
 };
+
 export default useSimulation;
 
-
-
-
-// export const useLagrangianTrajectory = ({
-//     res = 16,
-//     opacity = 0.92, // how fast the particle trails fade on each frame
-//     speed = 0.00007, // how fast the particles move
-//     diffusivity = 0.004,
-//     pointSize = 1.0,
-//     drop = 0.01, // how often the particles move to a random place
-// }) => { 
-  
-//     useEffect(() => {
-//         const ctx = validContext();
-     
-//         const canvas: HTMLCanvasElement = ref.current;
-//         const { width, height } = canvas;
-//         const size = width * height * 4;
-       
-//         setAssets({
-//             textures: 
-//                 Object.fromEntries(Object.entries({
-//                     screen: { data: new Uint8Array(size), shape: [ width, height ] },
-//                     back: { data: new Uint8Array(size), shape: [ width, height ] },
-//                     state: { data: particles, shape: [res, res] },
-//                     previous: { data: particles, shape: [res, res] },
-//                     color: { data: colorMap.texture, filter: "LINEAR", shape: [16, 16] },
-//                     uv: { filter: "LINEAR", data: imageData },
-//                 }).map(
-//                     ([k, v]) => [k, createTexture({ctx: ctx, ...v})]
-//                 )),
-//             buffers: VertexArrayBuffers(ctx, particles),
-//             framebuffer: ctx.createFramebuffer(),
-//             uniforms: {
-//                 "u_screen" : ["i", 2],
-//                 "u_opacity": ["f", opacity],
-//                 "u_wind": ["i", 0],
-//                 "u_particles": ["i", 1],
-//                 "u_color_ramp": ["i", 2],
-//                 "u_particles_res": ["f", res],
-//                 "u_point_size": ["f", pointSize],
-//                 "u_wind_max": ["f", [metadata.u.max, metadata.v.max]],
-//                 "u_wind_min": ["f", [metadata.u.min, metadata.v.min]],
-//                 "speed": ["f", speed],
-//                 "diffusivity": ["f", diffusivity],
-//                 "drop": ["f", drop],
-//                 "seed": ["f", Math.random()],
-//                 "u_wind_res": ["f", [width, height]]
-//             }
-//         });
-//     }, [ ref, particles, metadata, colorMap.texture, imageData ]);
-//     useEffect(() => {
-//         const ctx = validContext();
-//         if (!ctx || !programs || !assets || !metadata) return;
-
-//         let requestId: number;  
-//         let {
-//             textures: { 
-//                 back, 
-//                 previous, 
-//                 state, 
-//                 screen 
-//             },
-//         } = assets;  // non-static assets
- 
-//         (function render() {
-//             const pipeline = [
-//                 {
-//                     program: programs.screen,
-//                     textures: [
-//                         [assets.textures.uv, 0],
-//                         [state, 1],  // variable
-//                         [back, 2]  // variable
-//                     ],
-//                     attributes: [assets.buffers.quad],
-//                     parameters: parameters.screen,
-//                     framebuffer: [assets.framebuffer, screen],  // variable
-//                     topology: [ctx.TRIANGLES, 6],
-//                     viewport: [0, 0, ref.current.width, ref.current.height]
-//                 },
-//                 {
-//                     program: programs.draw,
-//                     textures: [[assets.textures.color, 2]],
-//                     attributes: [assets.buffers.index],
-//                     parameters: [...parameters.wind, "u_point_size"],
-//                     framebuffer: [assets.framebuffer, screen],  // variable
-//                     topology: [ctx.LINE_STRIP, res * res],
-//                     viewport: [0, 0, ref.current.width, ref.current.height]
-//                 },
-//                 {
-//                     program: programs.screen,
-//                     textures: [[screen, 2]], // variable  
-//                     parameters: parameters.color,
-//                     attributes: [assets.buffers.quad],
-//                     framebuffer: [null, null], 
-//                     topology: [ctx.TRIANGLES, 6],
-//                     viewport: [0, 0, ref.current.width, ref.current.height],
-//                     callback: () => [back, screen] = [screen, back]  // blend frames
-//                 }, 
-//                 {
-//                     program: programs.update,
-//                     textures: [[assets.textures.color, 2]],
-//                     parameters: [...parameters.sim, ...parameters.wind],
-//                     attributes: [assets.buffers.quad],
-//                     framebuffer: [assets.framebuffer, previous],  // re-use the old data buffer
-//                     topology: [ctx.TRIANGLES, 6],
-//                     viewport: [0, 0, res, res],  
-//                     callback: () => [state, previous] = [previous, state]  // use previous pass to calculate next position
-//                 }
-//             ];
-            
-//             renderPipeline(runtime, ctx, assets.uniforms, pipeline);
-//             requestId = requestAnimationFrame(render);
-//         })()
-//         return () => cancelAnimationFrame(requestId);
-//     }, [programs, assets]);
-// };
